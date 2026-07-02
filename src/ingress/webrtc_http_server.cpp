@@ -2826,6 +2826,12 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
             </div>
           </div>
           <div>
+            <h4>Client Notice Preview</h4>
+            <div id="dashSimulationWorkspaceNoticePreviewList" class="ops-simulation-notice-preview-list" data-v360-client-notice-preview="media-server.ops.v360-client-notice-preview.v1">
+              <div class="empty">maintenance/degraded/recovering notice preview를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
             <h4>Impact Diff</h4>
             <div id="dashSimulationWorkspaceImpactList" class="ops-simulation-workspace-list">
               <div class="empty">source/rule impact diff를 기다립니다.</div>
@@ -17861,6 +17867,7 @@ OpsV360SimulationRunContract BuildV360SimulationRunContract() {
         "/ops/api/live-operations/simulation/impact-diff",
         "/ops/api/live-operations/simulation/safe-apply-readiness",
         "/ops/api/live-operations/simulation/run-ledger",
+        "/ops/api/live-operations/simulation/client-notice-preview",
     };
     contract.allowed_readiness_states = {
         "ready",
@@ -18818,6 +18825,254 @@ std::string OpsV360SimulationRunLedgerComparisonJson(
         << "\"rawDiagnosticJsonIncluded\":false,"
         << "\"eventRecordSchemaChanged\":false,"
         << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV360ClientNoticePreviewItem {
+    std::string notice_preview_id;
+    std::string candidate_id;
+    std::string source_id;
+    std::string notice_status{"degraded"};
+    std::string viewer_safe_title{"Service status preview"};
+    std::string viewer_safe_body{"Viewer-safe status preview only."};
+    std::string timeline_hint{"No viewer action is required."};
+    std::string delivery_state{"preview-only"};
+    std::vector<std::string> evidence_refs;
+    bool viewer_safe{true};
+};
+
+struct OpsV360ClientNoticePreviewSummary {
+    int preview_count{0};
+    int maintenance_count{0};
+    int degraded_count{0};
+    int recovering_count{0};
+    int evidence_ref_count{0};
+};
+
+std::string V360ClientNoticePreviewStatusFor(const std::string& candidate_type) {
+    if (candidate_type == "maintenance") {
+        return "maintenance";
+    }
+    if (candidate_type == "recovery" || candidate_type == "sourceRecheck") {
+        return "recovering";
+    }
+    return "degraded";
+}
+
+std::string V360ClientNoticePreviewTitleFor(const std::string& status) {
+    if (status == "maintenance") {
+        return "Maintenance preview";
+    }
+    if (status == "recovering") {
+        return "Recovering preview";
+    }
+    return "Degraded preview";
+}
+
+std::string V360ClientNoticePreviewTimelineHintFor(const std::string& status) {
+    if (status == "maintenance") {
+        return "Maintenance window is being prepared; live video may pause briefly.";
+    }
+    if (status == "recovering") {
+        return "Service is recovering; live video should stabilize shortly.";
+    }
+    return "Some live views may be degraded while operators review the source.";
+}
+
+std::vector<OpsV360ClientNoticePreviewItem> BuildV360ClientNoticePreviewItems(
+    const std::vector<OpsV360CommandPlanDryRunResult>& dryRunResults,
+    const std::vector<OpsV360SourceRuleImpactDiff>& impactDiffs,
+    const std::vector<OpsV360SafeApplyReadinessItem>& readinessItems) {
+    std::vector<OpsV360ClientNoticePreviewItem> items;
+    const auto append_preview = [&](const std::string& preview_id,
+                                    const std::string& candidate_id,
+                                    const std::string& source_id,
+                                    const std::string& candidate_type) {
+        const std::string status = V360ClientNoticePreviewStatusFor(candidate_type);
+        OpsV360ClientNoticePreviewItem item;
+        item.notice_preview_id = preview_id;
+        item.candidate_id = candidate_id;
+        item.source_id = source_id.empty() ? "pending-source" : source_id;
+        item.notice_status = status;
+        item.viewer_safe_title = V360ClientNoticePreviewTitleFor(status);
+        item.viewer_safe_body =
+            "viewerSafeClientNoticePreview: " + status +
+            " notice preview generated without client notice delivery";
+        item.timeline_hint = V360ClientNoticePreviewTimelineHintFor(status);
+        item.evidence_refs = {
+            "/ops/api/live-operations/simulation/command-plan-dry-run",
+            "/ops/api/live-operations/simulation/impact-diff",
+            "/ops/api/live-operations/simulation/safe-apply-readiness",
+            candidate_id,
+        };
+        for (const auto& diff : impactDiffs) {
+            if (diff.candidate_id == candidate_id) {
+                item.evidence_refs.push_back(diff.diff_id);
+                break;
+            }
+        }
+        for (const auto& readiness : readinessItems) {
+            if (readiness.candidate_id == candidate_id) {
+                item.evidence_refs.push_back(readiness.readiness_id);
+                break;
+            }
+        }
+        items.push_back(std::move(item));
+    };
+
+    for (const auto& result : dryRunResults) {
+        if (result.candidate_type == "maintenance" ||
+            result.candidate_type == "clientNotice" ||
+            result.candidate_type == "recovery" ||
+            result.candidate_type == "sourceRecheck") {
+            append_preview("notice-preview:" + result.candidate_id,
+                           result.candidate_id,
+                           result.source_id,
+                           result.candidate_type);
+        }
+        if (items.size() >= 12U) {
+            break;
+        }
+    }
+
+    const std::vector<std::pair<std::string, std::string>> required_status_candidates = {
+        {"maintenance", "maintenance"},
+        {"degraded", "clientNotice"},
+        {"recovering", "recovery"},
+    };
+    for (const auto& [status, candidate_type] : required_status_candidates) {
+        bool exists = false;
+        for (const auto& item : items) {
+            if (item.notice_status == status) {
+                exists = true;
+                break;
+            }
+        }
+        if (!exists) {
+            append_preview("notice-preview:default:" + status,
+                           "candidate:default:" + candidate_type,
+                           "pending-source",
+                           candidate_type);
+        }
+    }
+    return items;
+}
+
+OpsV360ClientNoticePreviewSummary BuildV360ClientNoticePreviewSummary(
+    const std::vector<OpsV360ClientNoticePreviewItem>& items) {
+    OpsV360ClientNoticePreviewSummary summary;
+    summary.preview_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        if (item.notice_status == "maintenance") {
+            ++summary.maintenance_count;
+        } else if (item.notice_status == "degraded") {
+            ++summary.degraded_count;
+        } else if (item.notice_status == "recovering") {
+            ++summary.recovering_count;
+        }
+        summary.evidence_ref_count += static_cast<int>(item.evidence_refs.size());
+    }
+    return summary;
+}
+
+void AppendV360ClientNoticePreviewSummaryJson(
+    std::ostringstream& out,
+    const OpsV360ClientNoticePreviewSummary& summary) {
+    out << "{"
+        << "\"previewCount\":" << summary.preview_count << ","
+        << "\"maintenanceCount\":" << summary.maintenance_count << ","
+        << "\"degradedCount\":" << summary.degraded_count << ","
+        << "\"recoveringCount\":" << summary.recovering_count << ","
+        << "\"evidenceRefCount\":" << summary.evidence_ref_count
+        << "}";
+}
+
+void AppendV360ClientNoticePreviewItemJson(
+    std::ostringstream& out,
+    const OpsV360ClientNoticePreviewItem& item) {
+    out << "{"
+        << "\"noticePreviewId\":\"" << JsonEscape(item.notice_preview_id) << "\","
+        << "\"candidateId\":\"" << JsonEscape(item.candidate_id) << "\","
+        << "\"sourceId\":\"" << JsonEscape(item.source_id) << "\","
+        << "\"noticeStatus\":\"" << JsonEscape(item.notice_status) << "\","
+        << "\"viewerSafeTitle\":\"" << JsonEscape(item.viewer_safe_title) << "\","
+        << "\"viewerSafeBody\":\"" << JsonEscape(item.viewer_safe_body) << "\","
+        << "\"timelineHint\":\"" << JsonEscape(item.timeline_hint) << "\","
+        << "\"deliveryState\":\"" << JsonEscape(item.delivery_state) << "\","
+        << "\"viewerSafe\":" << (item.viewer_safe ? "true" : "false") << ","
+        << "\"evidenceRefs\":";
+    AppendV340RecoveryCandidateStringListJson(out, item.evidence_refs);
+    out << "}";
+}
+
+std::string OpsV360ClientNoticePreviewJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v360-client-notice-preview.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto dryRunResults = BuildV360CommandPlanDryRunResults(commandPlanCandidates);
+    const auto impactDiffs =
+        BuildV360SourceRuleImpactDiffs(context, commandPlanCandidates, stagedChangePlans);
+    const auto readinessItems = BuildV360SafeApplyReadinessItems(dryRunResults, impactDiffs);
+    const auto previewItems =
+        BuildV360ClientNoticePreviewItems(dryRunResults, impactDiffs, readinessItems);
+    const auto summary = BuildV360ClientNoticePreviewSummary(previewItems);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v360-client-notice-preview.v1\","
+        << "\"status\":\"client-notice-preview\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"commandPlanDryRunRoute\":\"/ops/api/live-operations/simulation/command-plan-dry-run\","
+        << "\"impactDiffRoute\":\"/ops/api/live-operations/simulation/impact-diff\","
+        << "\"readinessRoute\":\"/ops/api/live-operations/simulation/safe-apply-readiness\","
+        << "\"viewerSafeClientNoticePreview\":true,"
+        << "\"previewStatuses\":[\"maintenance\",\"degraded\",\"recovering\"],"
+        << "\"clientNoticePreviewSummary\":";
+    AppendV360ClientNoticePreviewSummaryJson(out, summary);
+    out << ",\"clientNoticePreviewItems\":[";
+    for (std::size_t i = 0; i < previewItems.size(); ++i) {
+        if (i != 0) out << ",";
+        AppendV360ClientNoticePreviewItemJson(out, previewItems[i]);
+    }
+    out << "],\"deliveryPolicy\":{"
+        << "\"deliveryState\":\"preview-only\","
+        << "\"actualSend\":\"not-run\","
+        << "\"viewerSafeFields\":[\"noticeStatus\",\"viewerSafeTitle\",\"viewerSafeBody\",\"timelineHint\"]"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"viewerSafe\":true,"
+        << "\"previewOnly\":true,"
+        << "\"clientNoticeSent\":false,"
+        << "\"clientNoticePersisted\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"sourceUrlIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"operatorMaterialIncluded\":false,"
+        << "\"commandPlanDetailsIncluded\":false,"
+        << "\"incidentDetailsIncluded\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
         << "\"webrtcDataChannelSchemaChanged\":false,"
         << "\"sseMetadataSchemaChanged\":false,"
         << "\"wsMetadataSchemaChanged\":false,"
@@ -28857,6 +29112,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV360SimulationRunLedgerComparisonJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/live-operations/simulation/client-notice-preview") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV360ClientNoticePreviewJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

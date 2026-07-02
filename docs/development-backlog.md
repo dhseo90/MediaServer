@@ -51,6 +51,7 @@ production write 없이 simulation input, dry-run, impact diff, safe apply readi
 | 6 | v3.6.0 (6) Safe Apply Readiness Gate | P0 | 완료 | 자동 적용 없이 ready, blocked, approval-needed, field-needed, not-run 상태와 blocker를 산출 |
 | 7 | v3.6.0 (7) Ops Simulation Workspace UI | P1 | 완료 | `/ops` command workspace에 simulation input, run, impact diff, readiness blocker 탐색 화면 추가 |
 | 8 | v3.6.0 (8) Simulation Run Ledger and Comparison | P1 | 완료 | simulation run id, 입력 ref, 결과 diff, operator note, 이전 run 대비 변화를 누적 표시 |
+| 9 | v3.6.0 (9) Client Notice Preview | P1 | 완료 | 실제 발송 없이 viewer-safe maintenance/degraded/recovering notice preview 생성 |
 
 완료 경계: 위 표는 v3.6.0 개발 순서와 우선순위입니다. 각 step은 실제 코드/API/문서
 변경, 기능 ID/test inventory 등록, 해당 verifier와 release test record evidence가 생긴 뒤에만
@@ -126,6 +127,15 @@ action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁�
 - `src/ingress/webrtc_http_server.cpp`, `src/ingress/product_ui_page_scripts.cpp`, `src/ingress/product_ui_css.cpp`: `/ops` simulation workspace에 `dashSimulationWorkspaceLedgerList`를 추가하고 `simulationRunLedgerEntries`를 표시합니다. renderer는 `inputRef`, `resultDiff`, `operatorNote`, `previousRunId`, `changedFields`를 read-only로 표시하며 client/viewer script에 operator material을 노출하지 않습니다.
 - `scripts/internal/verify_v360_simulation_run_ledger_comparison.mjs`, `server.sh`: `./server.sh verify-v360-simulation-run-ledger-comparison` 명령을 추가해 ledger model, route guard, append-only/read-only boundary, UI renderer/CSS, client/viewer 비노출, docs/inventory/release records/server dispatch 연결을 검증합니다.
 - 완료 경계: 이번 Step 8은 Simulation Run Ledger and Comparison API/UI/verifier 연결입니다. Client Notice Preview 완료 evidence가 아닙니다. simulation 실행, operator note 저장, client notice 발송, UI 풀테스트 직접 조작, 30분/120분 longrun, release action PASS를 대체하지 않습니다.
+
+## v3.6.0 Step 9 개발 기록
+
+- 범위: P1 `v3.6.0 (9) Client Notice Preview`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV360ClientNoticePreviewJson`을 추가해 `media-server.ops.v360-client-notice-preview.v1` preview-only notice를 생성합니다. preview는 `BuildV360CommandPlanDryRunResults`, `BuildV360SourceRuleImpactDiffs`, `BuildV360SafeApplyReadinessItems`에서 파생하며 `maintenance`, `degraded`, `recovering` 상태와 `viewerSafeTitle`, `viewerSafeBody`, `timelineHint`, `deliveryState=preview-only`만 노출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `GET /ops/api/live-operations/simulation/client-notice-preview` route를 추가했습니다. 이 route는 `require_ops_principal()`로 보호되고 `Cache-Control: no-store`를 설정하며 client notice 발송, client notice persist, viewer client payload 변경, source/view/rule/EventRecord/Ops audit/client/media mutation을 수행하지 않습니다.
+- `src/ingress/webrtc_http_server.cpp`, `src/ingress/product_ui_page_scripts.cpp`, `src/ingress/product_ui_css.cpp`: `/ops` simulation workspace에 `dashSimulationWorkspaceNoticePreviewList`를 추가하고 `clientNoticePreviewItems`의 `noticeStatus`, `viewerSafeTitle`, `viewerSafeBody`, `timelineHint`, `deliveryState`를 표시합니다. 실제 `/client/*` viewer payload에는 v3.6 preview material을 주입하지 않습니다.
+- `scripts/internal/verify_v360_client_notice_preview.mjs`, `server.sh`: `./server.sh verify-v360-client-notice-preview` 명령을 추가해 preview model, route guard, preview-only/viewer-safe boundary, UI renderer/CSS, client/viewer 비노출, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- 완료 경계: 이번 Step 9는 Client Notice Preview API/UI/verifier 연결입니다. Rule/VA What-if Replay Pack 완료 evidence가 아닙니다. 실제 client notice 발송, client viewer payload 변경, UI 풀테스트 직접 조작, 30분/120분 longrun, release action PASS를 대체하지 않습니다.
 
 ## 최신 published baseline 상세: v3.5.0 Live Operations Control Plane
 

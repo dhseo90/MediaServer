@@ -57,6 +57,7 @@ const v360VerifierCoverage = {
   UI: [
     "verify-v360-ops-simulation-workspace-ui",
     "verify-v360-simulation-run-ledger-comparison",
+    "verify-v360-client-notice-preview",
   ],
   SRC: [
     "verify-v360-simulation-input-contract",
@@ -68,7 +69,10 @@ const v360VerifierCoverage = {
     "verify-v360-source-rule-impact-diff",
   ],
   EVT: ["verify-v360-simulation-input-contract"],
-  CLIENT: ["verify-v360-source-rule-impact-diff"],
+  CLIENT: [
+    "verify-v360-source-rule-impact-diff",
+    "verify-v360-client-notice-preview",
+  ],
   LAB: [
     "verify-v360-operations-simulation-run-contract",
     "verify-v360-simulation-run-ledger-comparison",
@@ -82,6 +86,7 @@ const v360VerifierCoverage = {
     "verify-v360-safe-apply-readiness-gate",
     "verify-v360-ops-simulation-workspace-ui",
     "verify-v360-simulation-run-ledger-comparison",
+    "verify-v360-client-notice-preview",
   ],
   OPS: [
     "verify-v360-entry-baseline",
@@ -92,6 +97,7 @@ const v360VerifierCoverage = {
     "verify-v360-safe-apply-readiness-gate",
     "verify-v360-ops-simulation-workspace-ui",
     "verify-v360-simulation-run-ledger-comparison",
+    "verify-v360-client-notice-preview",
   ],
 };
 
