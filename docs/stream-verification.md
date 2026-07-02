@@ -40,9 +40,24 @@
 | V250-S08 | `./server.sh verify-v250-redacted-incident-evidence-bundle` | release-safe manifest-only evidence bundle guard |
 | V250-S09 | `./server.sh verify-v250-owner-release-readiness` | owner decomposition/release readiness local gate |
 
-## 현재 v3.5.0 verifier
+## 현재 v3.6.0 verifier
 
-아래 명령은 v3.5.0 Live Operations Control Plane의 현재 source gate입니다.
+아래 명령은 v3.6.0 Operations Simulation and Safe Apply Readiness의 현재 source gate입니다.
+UI 풀테스트, 30분/120분, published metadata, release action, field smoke는 실행 evidence가
+있을 때만 별도로 PASS 근거가 됩니다.
+
+| Step | Command | Scope |
+| --- | --- | --- |
+| v3.6.0 (1) | `./server.sh verify-v360-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | source `3.6.0`, latest published `v3.5.0`, current roadmap `v3.6.0 Operations Simulation and Safe Apply Readiness` 정렬. v3.6 기능 구현, UI 풀테스트, 30분/120분, tag, push, GitHub Release evidence와는 별도 gate입니다 |
+| v3.6.0 (2) | `./server.sh verify-v360-simulation-input-contract` | Simulation Input Contract. `/ops/api/live-operations/simulation/input-pack`가 EventRecord, SourceRegistry, PublishedView, command plan, staged plan을 read-only simulation input pack으로 묶고 source/view/rule/EventRecord/Ops audit/client/media mutation 미수행 경계를 확인합니다 |
+| v3.6.0 (3) | `./server.sh verify-v360-operations-simulation-run-contract` | Operations Simulation Run Contract. `/ops/api/live-operations/simulation/run-contract`가 simulation route family, run schema, result envelope, not-run 상태와 no-run/no-persist boundary를 확인합니다 |
+| v3.6.0 (4) | `./server.sh verify-v360-command-plan-dry-run-simulator` | Command Plan Dry-run Simulator. `/ops/api/live-operations/simulation/command-plan-dry-run`이 source recheck, recovery, maintenance, client notice, rule follow-up 후보를 실제 write 없이 dry-run 결과로 계산하고 command execution 미수행 경계를 확인합니다 |
+| v3.6.0 (5) | `./server.sh verify-v360-source-rule-impact-diff` | Source/Rule Impact Diff. `/ops/api/live-operations/simulation/impact-diff`가 source/view/rule 변경 전후의 source health, event risk, client impact diff를 read-only로 표시하고 source/rule apply 미수행 경계를 확인합니다 |
+| v3.6.0 (6) | `./server.sh verify-v360-safe-apply-readiness-gate` | Safe Apply Readiness Gate. `/ops/api/live-operations/simulation/safe-apply-readiness`가 ready, blocked, approval-needed, field-needed, not-run 상태와 blocker를 산출하고 automatic apply/client notice/field smoke 미수행 경계를 확인합니다 |
+
+## 최신 published baseline v3.5.0 verifier
+
+아래 명령은 v3.5.0 Live Operations Control Plane의 published baseline source gate입니다.
 UI 풀테스트, 30분/120분, published metadata, release action, field smoke는 실행 evidence가
 있을 때만 별도로 PASS 근거가 됩니다.
 

@@ -10,14 +10,104 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.5.0`
+- 현재 소스 버전: `3.6.0`
 - 최신 공개 GitHub Release: `v3.5.0`
 - `v3.5.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap: `v3.5.0 Live Operations Control Plane`
+- 현재 source roadmap: `v3.6.0 Operations Simulation and Safe Apply Readiness`
 - 최신 published baseline: `v3.5.0 Live Operations Control Plane`
 
-## 현재 source roadmap: v3.5.0 Live Operations Control Plane
+## 현재 source roadmap: v3.6.0 Operations Simulation and Safe Apply Readiness
+
+상태: Step 1 source/version/docs/backlog/verification metadata 정렬 완료. Step 2
+Simulation Input Contract 구현 완료. Step 3 Operations Simulation Run Contract 구현 완료.
+Step 4 Command Plan Dry-run Simulator 구현 완료. Step 5 Source/Rule Impact Diff 구현 완료.
+Step 6 Safe Apply Readiness Gate 구현 완료. 현재 source version은 `3.6.0`이고 latest
+published baseline은 `v3.5.0`입니다. 각 step은 실제 코드/API/문서/검증 산출물이 생긴
+뒤에만 완료로 기록합니다.
+
+직접 답: v3.6.0의 1차 선택값은 `Operations Simulation and Safe Apply Readiness`입니다.
+v3.5가 live operations graph, command plan, staged plan을 묶었다면, v3.6은 같은 입력을
+production write 없이 simulation input, dry-run, impact diff, safe apply readiness로
+검토하는 단계입니다.
+
+비범위:
+
+- 자동 source registry mutation 또는 PublishedView 자동 변경
+- 자동 command plan 실행, recovery cutover, maintenance 시작, client notice 발송
+- Rule/Profile 자동 저장 또는 rule follow-up 자동 적용
+- EventRecord, Event POST payload, WebRTC DataChannel, SSE/WS metadata,
+  RTSP/WebRTC media path, Rule/Profile payload schema 변경
+- viewer/client에 source locator, credential, raw diagnostic JSON, raw provider material,
+  operator-only blocker detail 노출
+
+| Step | 제목 | 우선순위 | 상태 | 산출물 |
+| --- | --- | --- | --- | --- |
+| 1 | v3.6.0 (1) v3.6.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/docs/backlog/source roadmap과 `verify-v360-entry-baseline` 기준 정렬 |
+| 2 | v3.6.0 (2) Simulation Input Contract | P0 | 완료 | EventRecord, SourceRegistry, PublishedView, command plan, staged plan을 read-only simulation input pack으로 정의 |
+| 3 | v3.6.0 (3) Operations Simulation Run Contract | P0 | 완료 | `/ops/api/live-operations/simulation/*` route family와 simulation result envelope를 read-only/not-run schema로 정의 |
+| 4 | v3.6.0 (4) Command Plan Dry-run Simulator | P0 | 완료 | source recheck, recovery, maintenance, client notice, rule follow-up 후보를 실제 write 없이 dry-run 결과로 계산 |
+| 5 | v3.6.0 (5) Source/Rule Impact Diff | P0 | 완료 | source/view/rule 변경 전후의 source health, event risk, client 영향 차이를 diff로 표시 |
+| 6 | v3.6.0 (6) Safe Apply Readiness Gate | P0 | 완료 | 자동 적용 없이 ready, blocked, approval-needed, field-needed, not-run 상태와 blocker를 산출 |
+
+완료 경계: 위 표는 v3.6.0 P0 개발 순서와 우선순위입니다. 각 step은 실제 코드/API/문서
+변경, 기능 ID/test inventory 등록, 해당 verifier와 release test record evidence가 생긴 뒤에만
+완료로 기록합니다. UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release
+action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁니다.
+
+## v3.6.0 Step 1 개발 기록
+
+- 범위: P0 `v3.6.0 (1) v3.6.0 baseline 정렬`.
+- `VERSION`, `CMakeLists.txt`: 현재 source version과 CMake project version을 `3.6.0`으로 정렬했습니다.
+- `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`, `docs/versioning-policy.md`, `docs/release-policy.md`, `docs/public-repo-final-review.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`: 현재 source roadmap을 `v3.6.0 Operations Simulation and Safe Apply Readiness`로 전환했고 latest published release는 `v3.5.0` source-only GitHub Release로 유지했습니다.
+- `docs/development-backlog.md`: v3.6.0 current roadmap을 `Step | 제목 | 우선순위 | 상태 | 산출물` 구조로 승격하고, no-auto-write/no-client-secret/no-media-path-change 경계를 기록했습니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`, `config/docs_ui_assets.json`: current release target, docs asset baseline, verification catalog, release records를 source `3.6.0`와 latest published `v3.5.0` 기준으로 정렬했습니다.
+- `scripts/internal/verify_release_metadata_consistency.mjs`, `scripts/internal/verify_docs_ui_assets.mjs`: release metadata와 docs UI asset verifier가 source `3.6.0`, current roadmap `v3.6.0 Operations Simulation and Safe Apply Readiness`, latest published `v3.5.0`을 검증하도록 보정했습니다.
+- `scripts/internal/verify_v360_entry_baseline.mjs`, `server.sh`: `./server.sh verify-v360-entry-baseline` 명령을 추가해 source `3.6.0`, latest published `v3.5.0`, current roadmap `v3.6.0 Operations Simulation and Safe Apply Readiness`, release records, feature inventory, server dispatch 연결을 정적 검증합니다.
+- 검증: 최초 `node scripts/internal/verify_v360_entry_baseline.mjs`는 source version/docs/inventory/server dispatch가 아직 v3.6 기준이 아니어서 `pass=0 fail=9`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v360 Step 1 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 1은 source/version/docs/backlog/verification metadata 정렬입니다. UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다. `v3.6.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
+
+## v3.6.0 Step 2 개발 기록
+
+- 범위: P0 `v3.6.0 (2) Simulation Input Contract`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV360SimulationInputPackJson`을 추가해 `media-server.ops.v360-simulation-input-pack.v1` read-only simulation input pack을 생성합니다. input pack은 EventRecord, SourceRegistry, PublishedView, command plan, staged plan을 기존 v3.5 graph/command/staged plan context에서 파생합니다.
+- `src/ingress/webrtc_http_server.cpp`: `GET /ops/api/live-operations/simulation/input-pack` route를 추가했습니다. 이 route는 `require_ops_principal()`로 보호되고 `Cache-Control: no-store`를 설정하며 source/view/rule/EventRecord/Ops audit/client/media mutation을 수행하지 않습니다.
+- `scripts/internal/verify_v360_simulation_input_contract.mjs`, `server.sh`: `./server.sh verify-v360-simulation-input-contract` 명령을 추가해 input pack model, route guard, no-write boundary, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- 완료 경계: 이번 Step 2는 Simulation Input Contract read model/API/verifier 연결입니다. simulation run 실행, dry-run 계산, impact diff, safe apply readiness 완료 evidence가 아닙니다.
+
+## v3.6.0 Step 3 개발 기록
+
+- 범위: P0 `v3.6.0 (3) Operations Simulation Run Contract`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV360OperationsSimulationRunContractJson`을 추가해 `media-server.ops.v360-simulation-run-contract.v1` simulation run schema와 result envelope를 정의합니다. envelope는 default `not-run`이며 route family, input pack summary, blocker, allowed readiness state를 포함합니다.
+- `src/ingress/webrtc_http_server.cpp`: `GET /ops/api/live-operations/simulation/run-contract` route를 추가했습니다. 이 route는 `require_ops_principal()`로 보호되고 `Cache-Control: no-store`를 설정하며 simulation run persist/execute, result persist, source/view/rule/EventRecord/Ops audit/client/media mutation을 수행하지 않습니다.
+- `scripts/internal/verify_v360_operations_simulation_run_contract.mjs`, `server.sh`: `./server.sh verify-v360-operations-simulation-run-contract` 명령을 추가해 simulation run schema/envelope, route family, no-run boundary, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- 완료 경계: 이번 Step 3은 Operations Simulation Run Contract read model/API/verifier 연결입니다. command plan dry-run 실행 결과, source/rule impact diff, safe apply readiness 완료 evidence가 아닙니다.
+
+## v3.6.0 Step 4 개발 기록
+
+- 범위: P0 `v3.6.0 (4) Command Plan Dry-run Simulator`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV360CommandPlanDryRunSimulatorJson`을 추가해 source recheck, recovery, maintenance, client notice, rule follow-up 후보를 v3.5 command plan candidates에서 파생하고 `dryRunStatus`, `predictedResult`, `blockers`, `writePlan`을 산출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `GET /ops/api/live-operations/simulation/command-plan-dry-run` route를 추가했습니다. 이 route는 `require_ops_principal()`로 보호되고 `Cache-Control: no-store`를 설정하며 recheck/recovery/maintenance/client notice/rule follow-up 실행과 source/view/rule/EventRecord/Ops audit/client/media mutation을 수행하지 않습니다.
+- `scripts/internal/verify_v360_command_plan_dry_run_simulator.mjs`, `server.sh`: `./server.sh verify-v360-command-plan-dry-run-simulator` 명령을 추가해 dry-run simulator, candidate family coverage, no-execution boundary, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- 완료 경계: 이번 Step 4는 Command Plan Dry-run Simulator API/verifier 연결입니다. source/rule impact diff, safe apply readiness 완료 evidence가 아닙니다. 실제 command execution 또는 write path가 아닙니다.
+
+## v3.6.0 Step 5 개발 기록
+
+- 범위: P0 `v3.6.0 (5) Source/Rule Impact Diff`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV360SourceRuleImpactDiffJson`을 추가해 command dry-run과 staged plan context를 기반으로 `beforeState`, `afterState`, `sourceHealthDiff`, `eventRiskDiff`, `clientImpactDiff`, `sourceChangeCandidate`, `ruleChangeCandidate`를 read-only diff로 산출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `GET /ops/api/live-operations/simulation/impact-diff` route를 추가했습니다. 이 route는 `require_ops_principal()`로 보호되고 `Cache-Control: no-store`를 설정하며 source/view/rule/EventRecord/Ops audit/client/media mutation을 수행하지 않습니다.
+- `scripts/internal/verify_v360_source_rule_impact_diff.mjs`, `server.sh`: `./server.sh verify-v360-source-rule-impact-diff` 명령을 추가해 impact diff model, route guard, no-apply boundary, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- 완료 경계: 이번 Step 5는 Source/Rule Impact Diff API/verifier 연결입니다. safe apply readiness 완료 evidence가 아닙니다. source/rule 변경 적용 또는 client notice 발송 evidence가 아닙니다.
+
+## v3.6.0 Step 6 개발 기록
+
+- 범위: P0 `v3.6.0 (6) Safe Apply Readiness Gate`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV360SafeApplyReadinessGateJson`을 추가해 dry-run과 impact diff 결과에서 `ready`, `blocked`, `approval-needed`, `field-needed`, `not-run` readiness state와 blocker를 산출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `GET /ops/api/live-operations/simulation/safe-apply-readiness` route를 추가했습니다. 이 route는 `require_ops_principal()`로 보호되고 `Cache-Control: no-store`를 설정하며 automatic apply, safe apply, client notice, field smoke, source/view/rule/EventRecord/Ops audit/client/media mutation을 수행하지 않습니다.
+- `scripts/internal/verify_v360_safe_apply_readiness_gate.mjs`, `server.sh`: `./server.sh verify-v360-safe-apply-readiness-gate` 명령을 추가해 readiness state, blocker, no-auto-apply boundary, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- 완료 경계: 이번 Step 6은 Safe Apply Readiness Gate API/verifier 연결입니다. 자동 적용, operator approval 수행, field smoke 실행, release action 완료 evidence가 아닙니다.
+
+## 최신 published baseline 상세: v3.5.0 Live Operations Control Plane
 
 상태: Step 1 source/version/docs/backlog/verification metadata 정렬 완료. Step 2
 Live Operations Graph Contract 구현 완료. Step 3 Operations Command Plan Contract

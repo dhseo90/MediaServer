@@ -6,11 +6,11 @@
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.5.0`
+- 현재 소스 버전: `3.6.0`
 - 최신 공개 GitHub Release: `v3.5.0`
 - `v3.5.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap은 `v3.5.0 Live Operations Control Plane`입니다.
+- 현재 source roadmap은 `v3.6.0 Operations Simulation and Safe Apply Readiness`입니다.
 
 ## 기본 공개 범위
 
@@ -55,19 +55,19 @@ main merge를 수행하지 않습니다.
 
 ## Public Docs / Assets Refresh
 
-v3.5.0 Step 1 source baseline alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
-source `3.5.0`, current roadmap `v3.5.0 Live Operations Control Plane`,
-latest published `v3.4.0` 기준으로 정렬하는 local gate입니다.
+v3.6.0 Step 1 source baseline alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
+source `3.6.0`, current roadmap `v3.6.0 Operations Simulation and Safe Apply Readiness`,
+latest published `v3.5.0` 기준으로 정렬하는 local gate입니다.
 대상 문서는 `README.md`, `README.en.md`,
 `docs/README.md`, `docs/en/README.md`, `docs/ui-guide.md`,
 `docs/assets/ui/README.md`, 이 정책 문서, [versioning-policy.md](versioning-policy.md)입니다.
 
 Companion local gate:
 
-전용 companion command는 `./server.sh verify-v350-entry-baseline`입니다.
+전용 companion command는 `./server.sh verify-v360-entry-baseline`입니다.
 
 ```bash
-./server.sh verify-v350-entry-baseline
+./server.sh verify-v360-entry-baseline
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-docs-links
 ./server.sh verify-release-metadata
@@ -171,30 +171,23 @@ published metadata, release branch 삭제, Next branch sync는 각각 실행 evi
 close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 삭제 승인이 없으면
 수행하지 않습니다.
 
-## v3.5.0 Source Roadmap Scope
+## v3.6.0 Source Roadmap Scope
 
-현재 `3.5.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
+현재 `3.6.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
 정리합니다. 각 항목은 구현과 직접 evidence가 생긴 뒤에만 완료로 기록합니다. UI
 풀테스트, 30분, 120분, 외부 endpoint field smoke는 실행한 경우에만 release evidence로
 기록합니다.
 
-- v3.5.0 Step 1 source baseline alignment
-- v3.5.0 Step 2 Live Operations Graph Contract
-- v3.5.0 Step 3 Operations Command Plan Contract
-- v3.5.0 Step 4 Incident-to-Command Handoff
-- v3.5.0 Step 5 Staged Change Plan and Impact Preview
-- v3.5.0 Step 6 Ops Command Workspace UI
-- v3.5.0 Step 7 Drill Run Ledger and Plan Comparison
-- v3.5.0 Step 8 Client Impact Forecast
-- v3.5.0 Step 9 Client-safe Operations Notice
-- v3.5.0 Step 10 Operations Export Bundle and Handoff Map
-- v3.5.0 Step 11 Field Evidence Intake
-- v3.5.0 Step 12 VLM-assisted Ops Explanation
-- v3.5.0 Step 13 Stabilization and Release Readiness
+- v3.6.0 Step 1 source baseline alignment
+- v3.6.0 Step 2 Simulation Input Contract
+- v3.6.0 Step 3 Operations Simulation Run Contract
+- v3.6.0 Step 4 Command Plan Dry-run Simulator
+- v3.6.0 Step 5 Source/Rule Impact Diff
+- v3.6.0 Step 6 Safe Apply Readiness Gate
 
-`v3.5.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
+`v3.6.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
 있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.5.0`입니다.
-현재 공개 release tag 기준은 `v3.5.0`입니다. 현재 source tag 기준은 `v3.5.0`입니다.
+현재 공개 release tag 기준은 `v3.5.0`입니다. 현재 source tag 기준은 `v3.6.0`입니다.
 `v3.5.0` release tag는 SSH-signed annotated tag이며 GitHub API tag verification
 `verified=true`/`reason=valid`로 확인했습니다.
 
@@ -587,24 +580,24 @@ Annotation JSON을 확보한 경우:
 ./server.sh verify-actions-security --annotations-json <annotations.json>
 ```
 
-## v3.5.0 Release Note Template
+## v3.6.0 Release Note Template
 
-아래 템플릿은 v3.5.0 source-only GitHub Release note 기준입니다. 실행하지 않은
+아래 템플릿은 v3.6.0 source-only GitHub Release note 기준입니다. 실행하지 않은
 장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다.
 
 ```markdown
-# Media Server v3.5.0
+# Media Server v3.6.0
 
 ## Scope
 
 - Source-only live media server release
-- Live Operations Control Plane source scope
-- Latest published baseline before this release: v3.4.0
+- Operations Simulation and Safe Apply Readiness source scope
+- Latest published baseline before this release: v3.5.0
 - Binary/runtime/model bundle: not included
 
 ## Verification
 
-- v3.5.0 baseline alignment: <fill after docs/release metadata gates>
+- v3.6.0 baseline alignment: <fill after docs/release metadata gates>
 - Local docs/release metadata: <fill after `verify-release-metadata`,
   `verify-docs-links`, `verify-docs-ui-assets`, and required inventory gates>
 - Build: <fill after `./server.sh build`>
