@@ -109,6 +109,7 @@ const v360VerifierCoverage = {
     "verify-v360-simulation-export-bundle",
     "verify-v360-field-evidence-simulation-adapter",
     "verify-v360-vlm-assisted-simulation-explanation",
+    "verify-v360-stabilization-release-readiness",
   ],
   OPS: [
     "verify-v360-entry-baseline",
@@ -124,6 +125,7 @@ const v360VerifierCoverage = {
     "verify-v360-simulation-export-bundle",
     "verify-v360-field-evidence-simulation-adapter",
     "verify-v360-vlm-assisted-simulation-explanation",
+    "verify-v360-stabilization-release-readiness",
   ],
 };
 

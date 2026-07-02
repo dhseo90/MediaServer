@@ -167,6 +167,48 @@ SSH-signed annotated tag로 교체했고 GitHub API verification `verified=true`
 local readiness, 30분 soak, UI 풀테스트 evidence와 분리합니다. Release branch 삭제는
 사용자 승인 후 수행했고 후속 브랜치 생성은 명시 승인 전 수행하지 않습니다.
 
+## v3.6.0 Step 14 local readiness gate records
+
+v3.6.0 Step 14 stabilization/release readiness는
+`media-server.v360-stabilization-release-readiness.v1` 기준으로 v3.6.0 Step 1~13
+local verifier와 release records를 묶는 색인입니다. 이 섹션은 release action을
+승인하거나 실행하지 않고, UI 풀테스트 직접 조작, 30분/120분 longrun, published
+metadata, release action evidence를 대체하지 않습니다.
+
+v3.6.0 Step 14 local readiness gate는 v3.6.0 stabilization/release readiness 문서/명령
+연결을 확인할 뿐, UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata,
+release action evidence를 대체하지 않습니다.
+
+Companion local gate:
+
+```bash
+./server.sh verify-v360-stabilization-release-readiness
+./server.sh build
+./server.sh verify-v360-entry-baseline
+./server.sh verify-v360-simulation-input-contract
+./server.sh verify-v360-operations-simulation-run-contract
+./server.sh verify-v360-command-plan-dry-run-simulator
+./server.sh verify-v360-source-rule-impact-diff
+./server.sh verify-v360-safe-apply-readiness-gate
+./server.sh verify-v360-ops-simulation-workspace-ui
+./server.sh verify-v360-simulation-run-ledger-comparison
+./server.sh verify-v360-client-notice-preview
+./server.sh verify-v360-rule-va-what-if-replay-pack
+./server.sh verify-v360-simulation-export-bundle
+./server.sh verify-v360-field-evidence-simulation-adapter
+./server.sh verify-v360-vlm-assisted-simulation-explanation
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+./server.sh verify-script-inventory
+git diff --check
+```
+
 ## v3.5.0 local readiness gate records
 
 v3.5.0 stabilization/release readiness는
