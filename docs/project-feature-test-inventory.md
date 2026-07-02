@@ -26,13 +26,13 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 772 |
-| UI 직접 필요 | 372 |
+| 전체 기능 항목 | 776 |
+| UI 직접 필요 | 373 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 369 |
-| 테스트 필요 | 772 |
-| 안정화 대상 | 762 |
-| UI 풀테스트 대상 | 392 |
+| UI 비대상 | 372 |
+| 테스트 필요 | 776 |
+| 안정화 대상 | 766 |
+| UI 풀테스트 대상 | 393 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
 
@@ -72,6 +72,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | v3.6.0 (8) Simulation Run Ledger and Comparison | `UI-089`, `LAB-096`, `SAFE-155`, `OPS-122` | `verify-v360-simulation-run-ledger-comparison`, `verify-ops-client-ui` | `/ops/api/live-operations/simulation/run-ledger`와 `/ops` simulation workspace가 simulation run id, 입력 ref, 결과 diff, operator note, 이전 run 대비 변화를 append-only/read-only projection으로 누적 표시합니다. simulation run persist/execute, operator note write, client notice 발송, source/view/rule/EventRecord/Ops audit/client/media mutation, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.6.0 (9) Client Notice Preview | `UI-090`, `CLIENT-034`, `SAFE-156`, `OPS-123` | `verify-v360-client-notice-preview`, `verify-ops-client-ui` | `/ops/api/live-operations/simulation/client-notice-preview`와 `/ops` simulation workspace가 실제 발송 없이 viewer-safe maintenance/degraded/recovering notice preview를 표시합니다. client notice send/persist, viewer client payload 변경, source/view/rule/EventRecord/Ops audit/client/media mutation, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.6.0 (10) Rule/VA What-if Replay Pack | `UI-091`, `RULE-109`, `EVT-078`, `LAB-097`, `SAFE-157`, `OPS-124` | `verify-v360-rule-va-what-if-replay-pack`, `verify-ops-client-ui` | `/ops/api/live-operations/simulation/rule-va-what-if-replay-pack`와 `/ops` simulation workspace가 EventRecord/VA fixture 기반 rule threshold, preset, scenario 후보의 what-if 결과를 비교합니다. rule apply, EventRecord write, Event POST/schema/media/client mutation, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
+| v3.6.0 (11) Simulation Export Bundle | `UI-092`, `LAB-098`, `SAFE-158`, `OPS-125` | `verify-v360-simulation-export-bundle`, `verify-ops-client-ui` | `/ops/api/live-operations/simulation/export-bundle`와 `/ops` simulation workspace가 simulation input/output, blocker, handoff map을 redacted release-safe export bundle로 조합합니다. artifact export/file write/handoff write, simulation run persist/execute, source/view/rule/EventRecord/Ops audit/client/media mutation, raw locator/credential/provider/client viewer material 노출, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 
 ## 최신 published baseline v3.5.0 Live Operations Control Plane Coverage Mapping
 
@@ -304,16 +305,16 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 
 | 기능 ID 범위 | 안정화 verifier 후보 | 비고 |
 | --- | --- | --- |
-| `UI-001`~`UI-018`, `UI-022`~`UI-091` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
+| `UI-001`~`UI-018`, `UI-022`~`UI-092` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
 | `SRC-001`~`SRC-051` | source/ONVIF/UI/v340/v350/v360 verifier family | ONVIF field success는 approved environment only |
 | `RULE-001`~`RULE-109` | rule/VA/v350/v360 verifier family | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
 | `EVT-001`~`EVT-078` | event/VLM/v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360 verifier family | event log 육안 확인은 UI 풀테스트 |
 | `CLIENT-001`~`CLIENT-034` | client/UI/v350/v360 verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-023` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
-| `LAB-001`~`LAB-097` | lab/VLM/v250/v260/v270/v280/v300/v310/v340/v350/v360 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-157` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-124` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
+| `LAB-001`~`LAB-098` | lab/VLM/v250/v260/v270/v280/v300/v310/v340/v350/v360 fixture verifier family | 제품 UI 비대상 |
+| `SAFE-001`~`SAFE-158` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-125` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
 
 ## VA Manual UI Seed Matrix
 
@@ -452,6 +453,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | UI-089 | V360 Step 8 Simulation Run Ledger and Comparison UI | 필요 | 필요 | 안정화, UI | `/ops` simulation workspace가 `media-server.ops.v360-simulation-run-ledger.v1` 기반 simulation run id, input ref, result diff, operator note, previous run diff를 read-only로 표시하고 simulation 실행/operator note write/client notice 발송을 수행하지 않음 |
 | UI-090 | V360 Step 9 Client Notice Preview UI | 필요 | 필요 | 안정화, UI | `/ops` simulation workspace가 `media-server.ops.v360-client-notice-preview.v1` 기반 maintenance/degraded/recovering notice preview를 preview-only로 표시하고 client notice send/persist 또는 viewer client payload 변경을 수행하지 않음 |
 | UI-091 | V360 Step 10 Rule/VA What-if Replay Pack UI | 필요 | 필요 | 안정화, UI | `/ops` simulation workspace가 `media-server.ops.v360-rule-va-what-if-replay-pack.v1` 기반 rule threshold, preset, scenario what-if 후보를 read-only로 표시하고 rule apply/EventRecord write/media mutation을 수행하지 않음 |
+| UI-092 | V360 Step 11 Simulation Export Bundle UI | 필요 | 필요 | 안정화, UI | `/ops` simulation workspace가 `media-server.ops.v360-simulation-export-bundle.v1` 기반 simulation input/output, blocker, handoff map refs를 redacted release-safe bundle으로 표시하고 artifact export/file write/handoff write를 수행하지 않음 |
 
 ## B. Auth, Account, Role, Scope
 
@@ -921,6 +923,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | LAB-095 | V360 Step 3 simulation run schema/envelope | 비대상 | 필요 | 안정화 | `verify-v360-operations-simulation-run-contract`가 simulation route family, simulation run schema, result envelope, not-run 상태를 검증하고 simulation run persist/execute 또는 provider/runtime/media 작업을 수행하지 않음을 확인 |
 | LAB-096 | V360 Step 8 simulation run ledger comparison | 비대상 | 필요 | 안정화 | `verify-v360-simulation-run-ledger-comparison`이 simulation input/run/dry-run/impact/readiness fixture를 append-only ledger projection으로 조합하고 simulation run persist/execute 또는 operator note write를 수행하지 않음을 확인 |
 | LAB-097 | V360 Step 10 Rule/VA what-if replay pack | 비대상 | 필요 | 안정화 | `verify-v360-rule-va-what-if-replay-pack`이 EventRecord/VA fixture와 simulation diff를 조합해 threshold/preset/scenario 후보를 비교하되 실제 replay execution, rule apply, EventRecord mutation을 수행하지 않음을 확인 |
+| LAB-098 | V360 Step 11 simulation export bundle | 비대상 | 필요 | 안정화 | `verify-v360-simulation-export-bundle`이 simulation input/output, readiness blocker, handoff map refs를 redacted release-safe projection으로 조합하되 artifact export, file write, simulation execution, raw material 노출을 수행하지 않음을 확인 |
 
 ## I. Safety, Boundary, Invariant Contract
 
@@ -1083,6 +1086,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-155 | V360 Step 8 simulation ledger boundary | 비대상 | 필요 | 안정화 | `verify-v360-simulation-run-ledger-comparison`이 simulation run ledger를 append-only/read-only projection으로 산출하고 simulationRunPersisted=false, simulationRunExecuted=false, operatorNoteWritePerformed=false, resultDiffPersisted=false, clientNoticeSent=false를 확인 |
 | SAFE-156 | V360 Step 9 client notice preview boundary | 비대상 | 필요 | 안정화 | `verify-v360-client-notice-preview`가 notice preview를 viewer-safe/previewOnly로 산출하고 clientNoticeSent=false, clientNoticePersisted=false, viewerClientPayloadChanged=false, sourceUrlIncluded=false, rawLocatorIncluded=false, credentialMaterialIncluded=false를 확인 |
 | SAFE-157 | V360 Step 10 Rule/VA what-if boundary | 비대상 | 필요 | 안정화 | `verify-v360-rule-va-what-if-replay-pack`이 whatIfOnly=true로 산출하고 ruleRegistryWritePerformed=false, ruleThresholdApplied=false, presetApplied=false, scenarioApplied=false, eventRecordWritePerformed=false, rtspOrWebrtcMediaPathChanged=false를 확인 |
+| SAFE-158 | V360 Step 11 simulation export boundary | 비대상 | 필요 | 안정화 | `verify-v360-simulation-export-bundle`이 releaseSafe=true, redacted=true로 산출하고 artifactExportExecuted=false, bundlePersisted=false, fileWritePerformed=false, handoffWritePerformed=false, rawLocatorIncluded=false, credentialMaterialIncluded=false, rawProviderResponseIncluded=false를 확인 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -1178,6 +1182,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-122 | V360 Step 8 Simulation Run Ledger and Comparison 게이트 | 비대상 | 필요 | 안정화 | `verify-v360-simulation-run-ledger-comparison`이 `/ops/api/live-operations/simulation/run-ledger` Ops-only route, `/ops` ledger UI, simulation run id/input ref/result diff/operator note/previous run comparison, append-only boundary, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 simulation execution, operator note write, client notice 발송, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-123 | V360 Step 9 Client Notice Preview 게이트 | 비대상 | 필요 | 안정화 | `verify-v360-client-notice-preview`가 `/ops/api/live-operations/simulation/client-notice-preview` Ops-only route, `/ops` preview UI, maintenance/degraded/recovering viewer-safe notice preview, preview-only boundary, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 client notice send/persist, viewer payload 변경, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-124 | V360 Step 10 Rule/VA What-if Replay Pack 게이트 | 비대상 | 필요 | 안정화 | `verify-v360-rule-va-what-if-replay-pack`이 `/ops/api/live-operations/simulation/rule-va-what-if-replay-pack` Ops-only route, `/ops` what-if UI, EventRecord/VA fixture 기반 threshold/preset/scenario 후보 비교, no-apply boundary, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 rule apply, EventRecord write, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
+| OPS-125 | V360 Step 11 Simulation Export Bundle 게이트 | 비대상 | 필요 | 안정화 | `verify-v360-simulation-export-bundle`이 `/ops/api/live-operations/simulation/export-bundle` Ops-only route, `/ops` export bundle UI, simulation input/output/blocker/handoff refs, redacted release-safe boundary, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 artifact export/file write/handoff write, field smoke/provider call, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 

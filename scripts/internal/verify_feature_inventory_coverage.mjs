@@ -59,6 +59,7 @@ const v360VerifierCoverage = {
     "verify-v360-simulation-run-ledger-comparison",
     "verify-v360-client-notice-preview",
     "verify-v360-rule-va-what-if-replay-pack",
+    "verify-v360-simulation-export-bundle",
   ],
   SRC: [
     "verify-v360-simulation-input-contract",
@@ -82,6 +83,7 @@ const v360VerifierCoverage = {
     "verify-v360-operations-simulation-run-contract",
     "verify-v360-simulation-run-ledger-comparison",
     "verify-v360-rule-va-what-if-replay-pack",
+    "verify-v360-simulation-export-bundle",
   ],
   SAFE: [
     "verify-v360-entry-baseline",
@@ -94,6 +96,7 @@ const v360VerifierCoverage = {
     "verify-v360-simulation-run-ledger-comparison",
     "verify-v360-client-notice-preview",
     "verify-v360-rule-va-what-if-replay-pack",
+    "verify-v360-simulation-export-bundle",
   ],
   OPS: [
     "verify-v360-entry-baseline",
@@ -106,6 +109,7 @@ const v360VerifierCoverage = {
     "verify-v360-simulation-run-ledger-comparison",
     "verify-v360-client-notice-preview",
     "verify-v360-rule-va-what-if-replay-pack",
+    "verify-v360-simulation-export-bundle",
   ],
 };
 

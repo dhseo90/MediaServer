@@ -795,6 +795,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         const simulationRunLedger = payload.simulationRunLedger || {};
         const clientNoticePreview = payload.clientNoticePreview || {};
         const ruleVaWhatIfReplayPack = payload.ruleVaWhatIfReplayPack || {};
+        const simulationExportBundle = payload.simulationExportBundle || {};
         const dryRun = payload.dryRun || {};
         const impactDiff = payload.impactDiff || {};
         const readiness = payload.readiness || {};
@@ -802,6 +803,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         const simulationRunLedgerEntries = v360SimulationWorkspaceList(simulationRunLedger.simulationRunLedgerEntries);
         const clientNoticePreviewItems = v360SimulationWorkspaceList(clientNoticePreview.clientNoticePreviewItems);
         const whatIfReplayCandidates = v360SimulationWorkspaceList(ruleVaWhatIfReplayPack.whatIfReplayCandidates);
+        const simulationExportBundleItems = v360SimulationWorkspaceList(simulationExportBundle.simulationExportBundleItems);
+        const simulationHandoffMapEntries = v360SimulationWorkspaceList(simulationExportBundle.simulationHandoffMapEntries);
         const commandPlanDryRunResults = v360SimulationWorkspaceList(dryRun.commandPlanDryRunResults);
         const sourceRuleImpactDiffs = v360SimulationWorkspaceList(impactDiff.sourceRuleImpactDiffs);
         const safeApplyReadinessItems = v360SimulationWorkspaceList(readiness.safeApplyReadinessItems);
@@ -813,6 +816,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           simulationRunLedger,
           clientNoticePreview,
           ruleVaWhatIfReplayPack,
+          simulationExportBundle,
           dryRun,
           impactDiff,
           readiness,
@@ -821,6 +825,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           simulationRunLedgerRoute: payload.simulationRunLedgerRoute || '/ops/api/live-operations/simulation/run-ledger',
           clientNoticePreviewRoute: payload.clientNoticePreviewRoute || '/ops/api/live-operations/simulation/client-notice-preview',
           ruleVaWhatIfReplayRoute: payload.ruleVaWhatIfReplayRoute || '/ops/api/live-operations/simulation/rule-va-what-if-replay-pack',
+          simulationExportBundleRoute: payload.simulationExportBundleRoute || '/ops/api/live-operations/simulation/export-bundle',
           dryRunRoute: payload.dryRunRoute || '/ops/api/live-operations/simulation/command-plan-dry-run',
           impactDiffRoute: payload.impactDiffRoute || '/ops/api/live-operations/simulation/impact-diff',
           readinessRoute: payload.readinessRoute || '/ops/api/live-operations/simulation/safe-apply-readiness'
@@ -833,6 +838,9 @@ void AppendOpsShellScript(std::ostringstream& out,
           clientNoticePreview.boundaries?.viewerClientPayloadChanged === false &&
           ruleVaWhatIfReplayPack.boundaries?.ruleRegistryWritePerformed === false &&
           ruleVaWhatIfReplayPack.boundaries?.eventRecordWritePerformed === false &&
+          simulationExportBundle.boundaries?.artifactExportExecuted === false &&
+          simulationExportBundle.boundaries?.fileWritePerformed === false &&
+          simulationExportBundle.boundaries?.handoffWritePerformed === false &&
           dryRun.boundaries?.commandPlanExecuted === false &&
           impactDiff.boundaries?.sourceChangeApplied === false &&
           readiness.boundaries?.safeApplyPerformed === false &&
@@ -842,6 +850,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           { text: `ledger ${simulationRunLedgerEntries.length}` },
           { text: `notice ${clientNoticePreviewItems.length}` },
           { text: `what-if ${whatIfReplayCandidates.length}` },
+          { text: `export ${simulationExportBundleItems.length + simulationHandoffMapEntries.length}` },
           { text: `dry-run ${commandPlanDryRunResults.length}` },
           { text: `diff ${sourceRuleImpactDiffs.length}` },
           { text: `readiness ${safeApplyReadinessItems.length}` },
@@ -851,7 +860,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         setText('dashSimulationWorkspaceText',
           payload.error
             ? `simulation workspace 로드 실패: ${payload.error}`
-            : `input ${simulationInputPackItems.length} · ledger ${simulationRunLedgerEntries.length} · notice preview ${clientNoticePreviewItems.length} · what-if ${whatIfReplayCandidates.length} · dry-run ${commandPlanDryRunResults.length} · impact diff ${sourceRuleImpactDiffs.length} · readiness ${safeApplyReadinessItems.length}`);
+            : `input ${simulationInputPackItems.length} · ledger ${simulationRunLedgerEntries.length} · notice preview ${clientNoticePreviewItems.length} · what-if ${whatIfReplayCandidates.length} · export bundle ${simulationExportBundleItems.length} · handoff ${simulationHandoffMapEntries.length} · dry-run ${commandPlanDryRunResults.length} · impact diff ${sourceRuleImpactDiffs.length} · readiness ${safeApplyReadinessItems.length}`);
         const inputList = document.getElementById('dashSimulationWorkspaceInputList');
         if (inputList) {
           inputList.innerHTML = simulationInputPackItems.length > 0
@@ -913,6 +922,30 @@ void AppendOpsShellScript(std::ostringstream& out,
               </p>`).join('')
             : '<div class="empty">Rule/VA what-if replay 후보가 아직 없습니다.</div>';
         }
+        const exportBundleList = document.getElementById('dashSimulationWorkspaceExportBundleList');
+        if (exportBundleList) {
+          const bundleRows = simulationExportBundleItems.slice(0, 4).map(item => {
+            const inputRefs = v360SimulationWorkspaceList(item.simulationInputRefs).slice(0, 2).join(', ') || 'input refs pending';
+            const outputRefs = v360SimulationWorkspaceList(item.simulationOutputRefs).slice(0, 2).join(', ') || 'output refs pending';
+            const blockerRefs = v360SimulationWorkspaceList(item.readinessBlockerRefs).slice(0, 2).join(', ') || 'none';
+            return `<p class="ops-simulation-export-bundle-entry" data-v360-simulation-export-bundle-entry="${escapeHtml(item.bundleItemId || 'simulation-export-bundle')}">
+              <strong>${escapeHtml(display(item.bundleSection || 'Simulation Export Bundle'))}</strong>
+              <span>${escapeHtml(display(item.summary || 'redacted release-safe simulation export bundle'))}</span>
+              <small>simulationInputRefs=${escapeHtml(display(inputRefs))} · simulationOutputRefs=${escapeHtml(display(outputRefs))} · readinessBlockerRefs=${escapeHtml(display(blockerRefs))} · redactionPolicy=${escapeHtml(display(item.redactionPolicy || 'redacted-release-safe'))}</small>
+            </p>`;
+          });
+          const handoffRows = simulationHandoffMapEntries.slice(0, 4).map(item => {
+            const bundleRefs = v360SimulationWorkspaceList(item.bundleItemRefs).slice(0, 3).join(', ') || 'bundle refs pending';
+            return `<p class="ops-simulation-export-bundle-entry" data-v360-simulation-handoff-map-entry="${escapeHtml(item.handoffId || 'simulation-handoff-map')}">
+              <strong>${escapeHtml(display(item.handoffStatus || 'handoff pending'))}</strong>
+              <span>${escapeHtml(display(item.nextOperatorRole || 'operator review'))}</span>
+              <small>blockedReason=${escapeHtml(display(item.blockedReason || 'none'))} · handoffMapRefs=${escapeHtml(display(bundleRefs))}</small>
+            </p>`;
+          });
+          exportBundleList.innerHTML = bundleRows.length + handoffRows.length > 0
+            ? [...bundleRows, ...handoffRows].join('')
+            : '<div class="empty">Simulation Export Bundle 항목이 아직 없습니다.</div>';
+        }
         const impactList = document.getElementById('dashSimulationWorkspaceImpactList');
         if (impactList) {
           impactList.innerHTML = sourceRuleImpactDiffs.length > 0
@@ -940,7 +973,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             : '<div class="empty">Safe Apply Readiness blocker 항목이 아직 없습니다.</div>';
         }
         setText('dashSimulationWorkspaceBoundary',
-          `input=${display(v360SimulationWorkspaceState.inputPackRoute)} · run=${display(v360SimulationWorkspaceState.runContractRoute)} · ledger=${display(v360SimulationWorkspaceState.simulationRunLedgerRoute)} · noticePreview=${display(v360SimulationWorkspaceState.clientNoticePreviewRoute)} · whatIf=${display(v360SimulationWorkspaceState.ruleVaWhatIfReplayRoute)} · dryRun=${display(v360SimulationWorkspaceState.dryRunRoute)} · impact=${display(v360SimulationWorkspaceState.impactDiffRoute)} · readiness=${display(v360SimulationWorkspaceState.readinessRoute)} · simulationRunExecuted=${simulationRun.boundaries?.simulationRunExecuted === false && simulationRunLedger.boundaries?.simulationRunExecuted === false ? 'false' : '확인 필요'} · operatorNoteWritePerformed=${simulationRunLedger.boundaries?.operatorNoteWritePerformed === false ? 'false' : '확인 필요'} · commandPlanExecuted=${dryRun.boundaries?.commandPlanExecuted === false ? 'false' : '확인 필요'} · ruleRegistryWritePerformed=${ruleVaWhatIfReplayPack.boundaries?.ruleRegistryWritePerformed === false ? 'false' : '확인 필요'} · eventRecordWritePerformed=${ruleVaWhatIfReplayPack.boundaries?.eventRecordWritePerformed === false ? 'false' : '확인 필요'} · sourceChangeApplied=${impactDiff.boundaries?.sourceChangeApplied === false ? 'false' : '확인 필요'} · safeApplyPerformed=${readiness.boundaries?.safeApplyPerformed === false ? 'false' : '확인 필요'} · clientNoticeSent=${readiness.boundaries?.clientNoticeSent === false || simulationRunLedger.boundaries?.clientNoticeSent === false || clientNoticePreview.boundaries?.clientNoticeSent === false || ruleVaWhatIfReplayPack.boundaries?.clientNoticeSent === false ? 'false' : '확인 필요'} · viewerClientPayloadChanged=${clientNoticePreview.boundaries?.viewerClientPayloadChanged === false ? 'false' : '확인 필요'}`);
+          `input=${display(v360SimulationWorkspaceState.inputPackRoute)} · run=${display(v360SimulationWorkspaceState.runContractRoute)} · ledger=${display(v360SimulationWorkspaceState.simulationRunLedgerRoute)} · noticePreview=${display(v360SimulationWorkspaceState.clientNoticePreviewRoute)} · whatIf=${display(v360SimulationWorkspaceState.ruleVaWhatIfReplayRoute)} · export=${display(v360SimulationWorkspaceState.simulationExportBundleRoute)} · dryRun=${display(v360SimulationWorkspaceState.dryRunRoute)} · impact=${display(v360SimulationWorkspaceState.impactDiffRoute)} · readiness=${display(v360SimulationWorkspaceState.readinessRoute)} · simulationRunExecuted=${simulationRun.boundaries?.simulationRunExecuted === false && simulationRunLedger.boundaries?.simulationRunExecuted === false && simulationExportBundle.boundaries?.simulationRunExecuted === false ? 'false' : '확인 필요'} · artifactExportExecuted=${simulationExportBundle.boundaries?.artifactExportExecuted === false ? 'false' : '확인 필요'} · fileWritePerformed=${simulationExportBundle.boundaries?.fileWritePerformed === false ? 'false' : '확인 필요'} · handoffWritePerformed=${simulationExportBundle.boundaries?.handoffWritePerformed === false ? 'false' : '확인 필요'} · operatorNoteWritePerformed=${simulationRunLedger.boundaries?.operatorNoteWritePerformed === false ? 'false' : '확인 필요'} · commandPlanExecuted=${dryRun.boundaries?.commandPlanExecuted === false ? 'false' : '확인 필요'} · ruleRegistryWritePerformed=${ruleVaWhatIfReplayPack.boundaries?.ruleRegistryWritePerformed === false ? 'false' : '확인 필요'} · eventRecordWritePerformed=${ruleVaWhatIfReplayPack.boundaries?.eventRecordWritePerformed === false ? 'false' : '확인 필요'} · sourceChangeApplied=${impactDiff.boundaries?.sourceChangeApplied === false ? 'false' : '확인 필요'} · safeApplyPerformed=${readiness.boundaries?.safeApplyPerformed === false ? 'false' : '확인 필요'} · clientNoticeSent=${readiness.boundaries?.clientNoticeSent === false || simulationRunLedger.boundaries?.clientNoticeSent === false || clientNoticePreview.boundaries?.clientNoticeSent === false || ruleVaWhatIfReplayPack.boundaries?.clientNoticeSent === false || simulationExportBundle.boundaries?.clientNoticeSent === false ? 'false' : '확인 필요'} · viewerClientPayloadChanged=${clientNoticePreview.boundaries?.viewerClientPayloadChanged === false ? 'false' : '확인 필요'}`);
       };
       const refreshV360OpsSimulationWorkspace = async ({
         inputPackRoute = '/ops/api/live-operations/simulation/input-pack',
@@ -948,21 +981,23 @@ void AppendOpsShellScript(std::ostringstream& out,
         simulationRunLedgerRoute = '/ops/api/live-operations/simulation/run-ledger',
         clientNoticePreviewRoute = '/ops/api/live-operations/simulation/client-notice-preview',
         ruleVaWhatIfReplayRoute = '/ops/api/live-operations/simulation/rule-va-what-if-replay-pack',
+        simulationExportBundleRoute = '/ops/api/live-operations/simulation/export-bundle',
         dryRunRoute = '/ops/api/live-operations/simulation/command-plan-dry-run',
         impactDiffRoute = '/ops/api/live-operations/simulation/impact-diff',
         readinessRoute = '/ops/api/live-operations/simulation/safe-apply-readiness'
       } = {}) => {
-        const [inputPack, simulationRun, simulationRunLedger, clientNoticePreview, ruleVaWhatIfReplayPack, dryRun, impactDiff, readiness] = await Promise.all([
+        const [inputPack, simulationRun, simulationRunLedger, clientNoticePreview, ruleVaWhatIfReplayPack, simulationExportBundle, dryRun, impactDiff, readiness] = await Promise.all([
           requestJson(inputPackRoute).catch(error => ({ error: error.message, simulationInputPackItems: [], boundaries: {} })),
           requestJson(runContractRoute).catch(error => ({ error: error.message, simulationResultEnvelope: {}, boundaries: {} })),
           requestJson(simulationRunLedgerRoute).catch(error => ({ error: error.message, simulationRunLedgerEntries: [], boundaries: {} })),
           requestJson(clientNoticePreviewRoute).catch(error => ({ error: error.message, clientNoticePreviewItems: [], boundaries: {} })),
           requestJson(ruleVaWhatIfReplayRoute).catch(error => ({ error: error.message, whatIfReplayCandidates: [], boundaries: {} })),
+          requestJson(simulationExportBundleRoute).catch(error => ({ error: error.message, simulationExportBundleItems: [], simulationHandoffMapEntries: [], boundaries: {} })),
           requestJson(dryRunRoute).catch(error => ({ error: error.message, commandPlanDryRunResults: [], boundaries: {} })),
           requestJson(impactDiffRoute).catch(error => ({ error: error.message, sourceRuleImpactDiffs: [], boundaries: {} })),
           requestJson(readinessRoute).catch(error => ({ error: error.message, safeApplyReadinessItems: [], boundaries: {} }))
         ]);
-        renderV360OpsSimulationWorkspace({ inputPack, simulationRun, simulationRunLedger, clientNoticePreview, ruleVaWhatIfReplayPack, dryRun, impactDiff, readiness, inputPackRoute, runContractRoute, simulationRunLedgerRoute, clientNoticePreviewRoute, ruleVaWhatIfReplayRoute, dryRunRoute, impactDiffRoute, readinessRoute });
+        renderV360OpsSimulationWorkspace({ inputPack, simulationRun, simulationRunLedger, clientNoticePreview, ruleVaWhatIfReplayPack, simulationExportBundle, dryRun, impactDiff, readiness, inputPackRoute, runContractRoute, simulationRunLedgerRoute, clientNoticePreviewRoute, ruleVaWhatIfReplayRoute, simulationExportBundleRoute, dryRunRoute, impactDiffRoute, readinessRoute });
       };
       const renderDashboardRootCause = (runtime, principal, eventsStatus = {}, browserConfig = {}, diagnosticLog = {}, sourceHealth = {}) => {
         const items = dashboardRootCauseItems(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);
@@ -1930,6 +1965,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           simulationRunLedgerRoute: '/ops/api/live-operations/simulation/run-ledger',
           clientNoticePreviewRoute: '/ops/api/live-operations/simulation/client-notice-preview',
           ruleVaWhatIfReplayRoute: '/ops/api/live-operations/simulation/rule-va-what-if-replay-pack',
+          simulationExportBundleRoute: '/ops/api/live-operations/simulation/export-bundle',
           dryRunRoute: '/ops/api/live-operations/simulation/command-plan-dry-run',
           impactDiffRoute: '/ops/api/live-operations/simulation/impact-diff',
           readinessRoute: '/ops/api/live-operations/simulation/safe-apply-readiness'

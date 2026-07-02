@@ -2838,6 +2838,12 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
             </div>
           </div>
           <div>
+            <h4>Simulation Export Bundle</h4>
+            <div id="dashSimulationWorkspaceExportBundleList" class="ops-simulation-export-bundle-list" data-v360-simulation-export-bundle="media-server.ops.v360-simulation-export-bundle.v1">
+              <div class="empty">simulation input/output, blocker, handoff map 기반 redacted export bundle을 기다립니다.</div>
+            </div>
+          </div>
+          <div>
             <h4>Impact Diff</h4>
             <div id="dashSimulationWorkspaceImpactList" class="ops-simulation-workspace-list">
               <div class="empty">source/rule impact diff를 기다립니다.</div>
@@ -17875,6 +17881,7 @@ OpsV360SimulationRunContract BuildV360SimulationRunContract() {
         "/ops/api/live-operations/simulation/run-ledger",
         "/ops/api/live-operations/simulation/client-notice-preview",
         "/ops/api/live-operations/simulation/rule-va-what-if-replay-pack",
+        "/ops/api/live-operations/simulation/export-bundle",
     };
     contract.allowed_readiness_states = {
         "ready",
@@ -19292,6 +19299,426 @@ std::string OpsV360RuleVaWhatIfReplayPackJson(
         << "\"clientNoticeSent\":false,"
         << "\"viewerClientExposureAdded\":false,"
         << "\"rawDiagnosticJsonIncluded\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV360SimulationExportBundleItem {
+    std::string bundle_item_id;
+    std::string bundle_section;
+    std::string summary;
+    std::vector<std::string> simulation_input_refs;
+    std::vector<std::string> simulation_output_refs;
+    std::vector<std::string> readiness_blocker_refs;
+    std::vector<std::string> handoff_map_refs;
+    std::vector<std::string> evidence_refs;
+    std::string redaction_policy{"redacted-release-safe"};
+    bool release_safe{true};
+    bool read_only{true};
+};
+
+struct OpsV360SimulationHandoffMapEntry {
+    std::string handoff_id;
+    std::string candidate_id;
+    std::string handoff_status{"operator-review-required"};
+    std::string next_operator_role{"operator"};
+    std::string blocked_reason{"simulation-not-executed"};
+    std::vector<std::string> bundle_item_refs;
+    std::vector<std::string> evidence_refs;
+    bool release_safe{true};
+    bool read_only{true};
+};
+
+struct OpsV360SimulationExportBundleSummary {
+    int bundle_item_count{0};
+    int handoff_entry_count{0};
+    int simulation_input_ref_count{0};
+    int simulation_output_ref_count{0};
+    int readiness_blocker_ref_count{0};
+    int evidence_ref_count{0};
+};
+
+std::vector<std::string> V360SimulationExportTakeRefs(
+    const std::vector<std::string>& refs,
+    std::size_t limit,
+    const std::string& fallback) {
+    std::vector<std::string> result;
+    for (const auto& ref : refs) {
+        if (!ref.empty()) {
+            result.push_back(ref);
+        }
+        if (result.size() >= limit) {
+            break;
+        }
+    }
+    if (result.empty() && !fallback.empty()) {
+        result.push_back(fallback);
+    }
+    return result;
+}
+
+std::vector<OpsV360SimulationExportBundleItem> BuildV360SimulationExportBundleItems(
+    const std::vector<OpsV360SimulationInputPackItem>& inputPackItems,
+    const OpsV360SimulationRunContract& simulationRunContract,
+    const OpsV360SimulationResultEnvelope& simulationResultEnvelope,
+    const std::vector<OpsV360SimulationRunLedgerEntry>& ledgerEntries,
+    const std::vector<OpsV360CommandPlanDryRunResult>& dryRunResults,
+    const std::vector<OpsV360SourceRuleImpactDiff>& impactDiffs,
+    const std::vector<OpsV360SafeApplyReadinessItem>& readinessItems,
+    const std::vector<OpsV360RuleVaWhatIfReplayCandidate>& whatIfCandidates,
+    const std::vector<OpsV360ClientNoticePreviewItem>& noticePreviewItems) {
+    std::vector<std::string> input_refs;
+    for (const auto& item : inputPackItems) {
+        input_refs.push_back(item.input_id + "@" + item.source_route);
+    }
+    std::vector<std::string> output_refs = {
+        simulationRunContract.simulation_run_id,
+        "simulationResultEnvelope:" + simulationResultEnvelope.result_status,
+        "/ops/api/live-operations/simulation/command-plan-dry-run",
+        "/ops/api/live-operations/simulation/impact-diff",
+    };
+    for (const auto& entry : ledgerEntries) {
+        output_refs.push_back(entry.simulation_run_id);
+        if (output_refs.size() >= 12U) {
+            break;
+        }
+    }
+    for (const auto& result : dryRunResults) {
+        output_refs.push_back(result.result_id);
+        if (output_refs.size() >= 16U) {
+            break;
+        }
+    }
+    for (const auto& diff : impactDiffs) {
+        output_refs.push_back(diff.diff_id);
+        if (output_refs.size() >= 20U) {
+            break;
+        }
+    }
+
+    std::vector<std::string> blocker_refs = simulationResultEnvelope.blockers;
+    for (const auto& readiness : readinessItems) {
+        blocker_refs.push_back(readiness.readiness_id);
+        for (const auto& blocker : readiness.blockers) {
+            blocker_refs.push_back(readiness.readiness_id + ":" + blocker);
+        }
+        if (blocker_refs.size() >= 16U) {
+            break;
+        }
+    }
+
+    std::vector<std::string> handoff_refs;
+    for (const auto& readiness : readinessItems) {
+        handoff_refs.push_back("handoff:" + readiness.candidate_id);
+        if (handoff_refs.size() >= 8U) {
+            break;
+        }
+    }
+    for (const auto& candidate : whatIfCandidates) {
+        handoff_refs.push_back("what-if:" + candidate.what_if_replay_id);
+        if (handoff_refs.size() >= 12U) {
+            break;
+        }
+    }
+    for (const auto& preview : noticePreviewItems) {
+        handoff_refs.push_back("notice-preview:" + preview.notice_preview_id);
+        if (handoff_refs.size() >= 16U) {
+            break;
+        }
+    }
+
+    std::vector<OpsV360SimulationExportBundleItem> items;
+    OpsV360SimulationExportBundleItem input_output;
+    input_output.bundle_item_id = "simulation-export-bundle:input-output";
+    input_output.bundle_section = "simulation input/output";
+    input_output.summary =
+        "redacted release-safe bundle of simulation input refs and computed output refs";
+    input_output.simulation_input_refs =
+        V360SimulationExportTakeRefs(input_refs, 8, "/ops/api/live-operations/simulation/input-pack");
+    input_output.simulation_output_refs =
+        V360SimulationExportTakeRefs(output_refs, 12, simulationRunContract.simulation_run_id);
+    input_output.readiness_blocker_refs =
+        V360SimulationExportTakeRefs(blocker_refs, 6, "simulation-not-executed");
+    input_output.handoff_map_refs =
+        V360SimulationExportTakeRefs(handoff_refs, 6, "handoff:operator-review-required");
+    input_output.evidence_refs = {
+        "/ops/api/live-operations/simulation/input-pack",
+        "/ops/api/live-operations/simulation/run-contract",
+        "/ops/api/live-operations/simulation/run-ledger",
+        "/ops/api/live-operations/simulation/command-plan-dry-run",
+        "/ops/api/live-operations/simulation/impact-diff",
+    };
+    items.push_back(std::move(input_output));
+
+    OpsV360SimulationExportBundleItem blocker_item;
+    blocker_item.bundle_item_id = "simulation-export-bundle:blocker";
+    blocker_item.bundle_section = "readiness blocker";
+    blocker_item.summary =
+        "redacted release-safe blocker map for simulation handoff review";
+    blocker_item.simulation_input_refs =
+        V360SimulationExportTakeRefs(input_refs, 4, "/ops/api/live-operations/simulation/input-pack");
+    blocker_item.simulation_output_refs =
+        V360SimulationExportTakeRefs(output_refs, 6, simulationRunContract.simulation_run_id);
+    blocker_item.readiness_blocker_refs =
+        V360SimulationExportTakeRefs(blocker_refs, 12, "safe-apply-readiness-not-approved");
+    blocker_item.handoff_map_refs =
+        V360SimulationExportTakeRefs(handoff_refs, 8, "handoff:blocker-review");
+    blocker_item.evidence_refs = {
+        "/ops/api/live-operations/simulation/safe-apply-readiness",
+        "/ops/api/live-operations/simulation/impact-diff",
+    };
+    items.push_back(std::move(blocker_item));
+
+    OpsV360SimulationExportBundleItem handoff_item;
+    handoff_item.bundle_item_id = "simulation-export-bundle:handoff-map";
+    handoff_item.bundle_section = "handoff map";
+    handoff_item.summary =
+        "redacted release-safe handoff map for operator review and release notes";
+    handoff_item.simulation_input_refs =
+        V360SimulationExportTakeRefs(input_refs, 4, "/ops/api/live-operations/simulation/input-pack");
+    handoff_item.simulation_output_refs =
+        V360SimulationExportTakeRefs(output_refs, 8, simulationRunContract.simulation_run_id);
+    handoff_item.readiness_blocker_refs =
+        V360SimulationExportTakeRefs(blocker_refs, 6, "simulation-not-executed");
+    handoff_item.handoff_map_refs =
+        V360SimulationExportTakeRefs(handoff_refs, 12, "handoff:operator-review-required");
+    handoff_item.evidence_refs = {
+        "/ops/api/live-operations/simulation/rule-va-what-if-replay-pack",
+        "/ops/api/live-operations/simulation/client-notice-preview",
+        "/ops/api/live-operations/simulation/safe-apply-readiness",
+    };
+    items.push_back(std::move(handoff_item));
+
+    return items;
+}
+
+std::vector<OpsV360SimulationHandoffMapEntry> BuildV360SimulationHandoffMapEntries(
+    const std::vector<OpsV360SafeApplyReadinessItem>& readinessItems,
+    const std::vector<OpsV360SimulationExportBundleItem>& bundleItems) {
+    std::vector<std::string> bundle_refs;
+    for (const auto& item : bundleItems) {
+        bundle_refs.push_back(item.bundle_item_id);
+    }
+
+    std::vector<OpsV360SimulationHandoffMapEntry> entries;
+    for (const auto& readiness : readinessItems) {
+        OpsV360SimulationHandoffMapEntry entry;
+        entry.handoff_id = "simulation-handoff:" + readiness.candidate_id;
+        entry.candidate_id = readiness.candidate_id;
+        entry.handoff_status = readiness.readiness_state == "ready"
+                                   ? "ready-for-operator-review"
+                                   : "operator-review-required";
+        entry.next_operator_role = readiness.field_evidence_required ? "field-operator"
+                                  : (readiness.operator_approval_required ? "operator"
+                                                                           : "ops-admin");
+        entry.blocked_reason = readiness.blockers.empty()
+                                   ? "none"
+                                   : JoinV340ApprovalRecoveryStrings(readiness.blockers, ", ");
+        entry.bundle_item_refs = V360SimulationExportTakeRefs(
+            bundle_refs,
+            6,
+            "simulation-export-bundle:input-output");
+        entry.evidence_refs = {
+            "/ops/api/live-operations/simulation/export-bundle",
+            "/ops/api/live-operations/simulation/safe-apply-readiness",
+            readiness.readiness_id,
+        };
+        entries.push_back(std::move(entry));
+        if (entries.size() >= 12U) {
+            break;
+        }
+    }
+
+    if (entries.empty()) {
+        OpsV360SimulationHandoffMapEntry entry;
+        entry.handoff_id = "simulation-handoff:pending";
+        entry.candidate_id = "candidate:pending";
+        entry.bundle_item_refs =
+            V360SimulationExportTakeRefs(bundle_refs, 6, "simulation-export-bundle:input-output");
+        entry.evidence_refs = {
+            "/ops/api/live-operations/simulation/export-bundle",
+            "/ops/api/live-operations/simulation/safe-apply-readiness",
+        };
+        entries.push_back(std::move(entry));
+    }
+    return entries;
+}
+
+OpsV360SimulationExportBundleSummary BuildV360SimulationExportBundleSummary(
+    const std::vector<OpsV360SimulationExportBundleItem>& items,
+    const std::vector<OpsV360SimulationHandoffMapEntry>& handoffEntries) {
+    OpsV360SimulationExportBundleSummary summary;
+    summary.bundle_item_count = static_cast<int>(items.size());
+    summary.handoff_entry_count = static_cast<int>(handoffEntries.size());
+    for (const auto& item : items) {
+        summary.simulation_input_ref_count += static_cast<int>(item.simulation_input_refs.size());
+        summary.simulation_output_ref_count += static_cast<int>(item.simulation_output_refs.size());
+        summary.readiness_blocker_ref_count +=
+            static_cast<int>(item.readiness_blocker_refs.size());
+        summary.evidence_ref_count += static_cast<int>(item.evidence_refs.size());
+    }
+    for (const auto& entry : handoffEntries) {
+        summary.evidence_ref_count += static_cast<int>(entry.evidence_refs.size());
+    }
+    return summary;
+}
+
+void AppendV360SimulationExportBundleSummaryJson(
+    std::ostringstream& out,
+    const OpsV360SimulationExportBundleSummary& summary) {
+    out << "{"
+        << "\"bundleItemCount\":" << summary.bundle_item_count << ","
+        << "\"handoffEntryCount\":" << summary.handoff_entry_count << ","
+        << "\"simulationInputRefCount\":" << summary.simulation_input_ref_count << ","
+        << "\"simulationOutputRefCount\":" << summary.simulation_output_ref_count << ","
+        << "\"readinessBlockerRefCount\":" << summary.readiness_blocker_ref_count << ","
+        << "\"evidenceRefCount\":" << summary.evidence_ref_count
+        << "}";
+}
+
+void AppendV360SimulationExportBundleItemJson(
+    std::ostringstream& out,
+    const OpsV360SimulationExportBundleItem& item) {
+    out << "{"
+        << "\"bundleItemId\":\"" << JsonEscape(item.bundle_item_id) << "\","
+        << "\"bundleSection\":\"" << JsonEscape(item.bundle_section) << "\","
+        << "\"summary\":\"" << JsonEscape(item.summary) << "\","
+        << "\"simulationInputRefs\":";
+    AppendV340RecoveryCandidateStringListJson(out, item.simulation_input_refs);
+    out << ",\"simulationOutputRefs\":";
+    AppendV340RecoveryCandidateStringListJson(out, item.simulation_output_refs);
+    out << ",\"readinessBlockerRefs\":";
+    AppendV340RecoveryCandidateStringListJson(out, item.readiness_blocker_refs);
+    out << ",\"handoffMapRefs\":";
+    AppendV340RecoveryCandidateStringListJson(out, item.handoff_map_refs);
+    out << ",\"evidenceRefs\":";
+    AppendV340RecoveryCandidateStringListJson(out, item.evidence_refs);
+    out << ",\"redactionPolicy\":\"" << JsonEscape(item.redaction_policy) << "\","
+        << "\"releaseSafe\":" << (item.release_safe ? "true" : "false") << ","
+        << "\"readOnly\":" << (item.read_only ? "true" : "false")
+        << "}";
+}
+
+void AppendV360SimulationHandoffMapEntryJson(
+    std::ostringstream& out,
+    const OpsV360SimulationHandoffMapEntry& entry) {
+    out << "{"
+        << "\"handoffId\":\"" << JsonEscape(entry.handoff_id) << "\","
+        << "\"candidateId\":\"" << JsonEscape(entry.candidate_id) << "\","
+        << "\"handoffStatus\":\"" << JsonEscape(entry.handoff_status) << "\","
+        << "\"nextOperatorRole\":\"" << JsonEscape(entry.next_operator_role) << "\","
+        << "\"blockedReason\":\"" << JsonEscape(entry.blocked_reason) << "\","
+        << "\"bundleItemRefs\":";
+    AppendV340RecoveryCandidateStringListJson(out, entry.bundle_item_refs);
+    out << ",\"evidenceRefs\":";
+    AppendV340RecoveryCandidateStringListJson(out, entry.evidence_refs);
+    out << ",\"releaseSafe\":" << (entry.release_safe ? "true" : "false") << ","
+        << "\"readOnly\":" << (entry.read_only ? "true" : "false")
+        << "}";
+}
+
+std::string OpsV360SimulationExportBundleJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v360-simulation-export-bundle.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto inputPackItems =
+        BuildV360SimulationInputPackItems(context, commandPlanCandidates, stagedChangePlans);
+    const auto inputSummary = BuildV360SimulationInputPackSummary(inputPackItems);
+    const auto simulationRunContract = BuildV360SimulationRunContract();
+    const auto simulationResultEnvelope = BuildV360SimulationResultEnvelope(inputSummary);
+    const auto dryRunResults = BuildV360CommandPlanDryRunResults(commandPlanCandidates);
+    const auto impactDiffs =
+        BuildV360SourceRuleImpactDiffs(context, commandPlanCandidates, stagedChangePlans);
+    const auto readinessItems = BuildV360SafeApplyReadinessItems(dryRunResults, impactDiffs);
+    const auto ledgerEntries =
+        BuildV360SimulationRunLedgerEntries(context,
+                                            inputPackItems,
+                                            simulationRunContract,
+                                            simulationResultEnvelope,
+                                            dryRunResults,
+                                            impactDiffs,
+                                            readinessItems);
+    const auto whatIfCandidates =
+        BuildV360RuleVaWhatIfReplayCandidates(context, dryRunResults, impactDiffs);
+    const auto noticePreviewItems =
+        BuildV360ClientNoticePreviewItems(dryRunResults, impactDiffs, readinessItems);
+    const auto bundleItems =
+        BuildV360SimulationExportBundleItems(inputPackItems,
+                                             simulationRunContract,
+                                             simulationResultEnvelope,
+                                             ledgerEntries,
+                                             dryRunResults,
+                                             impactDiffs,
+                                             readinessItems,
+                                             whatIfCandidates,
+                                             noticePreviewItems);
+    const auto handoffEntries =
+        BuildV360SimulationHandoffMapEntries(readinessItems, bundleItems);
+    const auto summary = BuildV360SimulationExportBundleSummary(bundleItems, handoffEntries);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v360-simulation-export-bundle.v1\","
+        << "\"status\":\"simulation-export-bundle\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"inputPackRoute\":\"/ops/api/live-operations/simulation/input-pack\","
+        << "\"runLedgerRoute\":\"/ops/api/live-operations/simulation/run-ledger\","
+        << "\"readinessRoute\":\"/ops/api/live-operations/simulation/safe-apply-readiness\","
+        << "\"whatIfReplayRoute\":\"/ops/api/live-operations/simulation/rule-va-what-if-replay-pack\","
+        << "\"simulationExportBundle\":{"
+        << "\"redactedReleaseSafeExportBundle\":true,"
+        << "\"releaseSafe\":true,"
+        << "\"redacted\":true,"
+        << "\"artifactMode\":\"projection-only\","
+        << "\"redactionPolicy\":\"redacted-release-safe\""
+        << "},\"simulationExportBundleSummary\":";
+    AppendV360SimulationExportBundleSummaryJson(out, summary);
+    out << ",\"simulationExportBundleItems\":[";
+    for (std::size_t i = 0; i < bundleItems.size(); ++i) {
+        if (i != 0) out << ",";
+        AppendV360SimulationExportBundleItemJson(out, bundleItems[i]);
+    }
+    out << "],\"simulationHandoffMapEntries\":[";
+    for (std::size_t i = 0; i < handoffEntries.size(); ++i) {
+        if (i != 0) out << ",";
+        AppendV360SimulationHandoffMapEntryJson(out, handoffEntries[i]);
+    }
+    out << "],\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"releaseSafe\":true,"
+        << "\"redacted\":true,"
+        << "\"artifactExportExecuted\":false,"
+        << "\"bundlePersisted\":false,"
+        << "\"fileWritePerformed\":false,"
+        << "\"handoffWritePerformed\":false,"
+        << "\"simulationRunPersisted\":false,"
+        << "\"simulationRunExecuted\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawProviderResponseIncluded\":false,"
+        << "\"rawDiagnosticJsonIncluded\":false,"
+        << "\"clientViewerRawMaterialIncluded\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
         << "}}";
     return out.str();
 }
@@ -29366,6 +29793,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV360RuleVaWhatIfReplayPackJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/live-operations/simulation/export-bundle") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV360SimulationExportBundleJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }
