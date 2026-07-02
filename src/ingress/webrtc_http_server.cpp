@@ -2832,6 +2832,12 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
             </div>
           </div>
           <div>
+            <h4>Rule/VA What-if Replay</h4>
+            <div id="dashSimulationWorkspaceWhatIfReplayList" class="ops-simulation-what-if-replay-list" data-v360-rule-va-what-if-replay-pack="media-server.ops.v360-rule-va-what-if-replay-pack.v1">
+              <div class="empty">rule threshold, preset, scenario what-if 후보를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
             <h4>Impact Diff</h4>
             <div id="dashSimulationWorkspaceImpactList" class="ops-simulation-workspace-list">
               <div class="empty">source/rule impact diff를 기다립니다.</div>
@@ -17868,6 +17874,7 @@ OpsV360SimulationRunContract BuildV360SimulationRunContract() {
         "/ops/api/live-operations/simulation/safe-apply-readiness",
         "/ops/api/live-operations/simulation/run-ledger",
         "/ops/api/live-operations/simulation/client-notice-preview",
+        "/ops/api/live-operations/simulation/rule-va-what-if-replay-pack",
     };
     contract.allowed_readiness_states = {
         "ready",
@@ -19078,6 +19085,213 @@ std::string OpsV360ClientNoticePreviewJson(
         << "\"wsMetadataSchemaChanged\":false,"
         << "\"rtspOrWebrtcMediaPathChanged\":false,"
         << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV360RuleVaWhatIfReplayCandidate {
+    std::string what_if_replay_id;
+    std::string event_record_ref;
+    std::string va_fixture_ref{"vaFixtureRef:manual_ui_fulltest_va_seed_matrix"};
+    std::string source_id;
+    std::string rule_candidate_id;
+    std::string rule_threshold_candidate{"thresholdCandidate:confidence+0.05"};
+    std::string preset_candidate{"presetCandidate:default"};
+    std::string scenario_candidate{"scenarioCandidate:baseline"};
+    std::string before_match_state{"beforeMatchState: current EventRecord/Rule projection"};
+    std::string after_match_state{"afterMatchState: what-if projection"};
+    std::string what_if_result_delta{"whatIfResultDelta: pending"};
+    std::vector<std::string> changed_fields;
+    std::vector<std::string> evidence_refs;
+    bool read_only{true};
+};
+
+struct OpsV360RuleVaWhatIfReplaySummary {
+    int candidate_count{0};
+    int threshold_candidate_count{0};
+    int preset_candidate_count{0};
+    int scenario_candidate_count{0};
+    int event_record_ref_count{0};
+};
+
+std::vector<OpsV360RuleVaWhatIfReplayCandidate> BuildV360RuleVaWhatIfReplayCandidates(
+    const OpsV350LiveOperationsGraphContext& context,
+    const std::vector<OpsV360CommandPlanDryRunResult>& dryRunResults,
+    const std::vector<OpsV360SourceRuleImpactDiff>& impactDiffs) {
+    std::vector<OpsV360RuleVaWhatIfReplayCandidate> candidates;
+    const int event_record_count = std::max(1, context.event_record_count);
+    int index = 0;
+    const auto append_candidate = [&](const std::string& candidate_id,
+                                      const std::string& candidate_type,
+                                      const std::string& source_id) {
+        OpsV360RuleVaWhatIfReplayCandidate candidate;
+        candidate.what_if_replay_id = "what-if-replay:" + candidate_id;
+        candidate.event_record_ref =
+            "EventRecord:aggregate:" + std::to_string((index % event_record_count) + 1);
+        candidate.source_id = source_id.empty() ? "pending-source" : source_id;
+        candidate.rule_candidate_id = candidate_id;
+        candidate.rule_threshold_candidate =
+            candidate_type == "ruleFollowUp" ? "thresholdCandidate:confidence+0.05"
+                                             : "thresholdCandidate:sensitivity-review";
+        candidate.preset_candidate =
+            candidate_type == "ruleFollowUp" ? "presetCandidate:retail"
+                                             : "presetCandidate:default";
+        candidate.scenario_candidate =
+            candidate_type == "ruleFollowUp" ? "scenarioCandidate:loitering"
+                                             : "scenarioCandidate:presence";
+        candidate.after_match_state =
+            "afterMatchState: what-if threshold/preset/scenario projection";
+        candidate.what_if_result_delta =
+            "ruleThresholdDelta=" + candidate.rule_threshold_candidate +
+            "; presetDelta=" + candidate.preset_candidate +
+            "; scenarioDelta=" + candidate.scenario_candidate;
+        candidate.changed_fields = {"ruleThresholdDelta", "presetDelta", "scenarioDelta"};
+        candidate.evidence_refs = {
+            "/ops/api/events/reviews",
+            "/ops/api/live-operations/simulation/command-plan-dry-run",
+            "/ops/api/live-operations/simulation/impact-diff",
+            candidate_id,
+        };
+        for (const auto& diff : impactDiffs) {
+            if (diff.candidate_id == candidate_id) {
+                candidate.evidence_refs.push_back(diff.diff_id);
+                break;
+            }
+        }
+        candidates.push_back(std::move(candidate));
+        ++index;
+    };
+
+    for (const auto& result : dryRunResults) {
+        if (result.candidate_type == "ruleFollowUp" ||
+            result.candidate_type == "sourceRecheck" ||
+            result.candidate_type == "recovery") {
+            append_candidate(result.candidate_id, result.candidate_type, result.source_id);
+        }
+        if (candidates.size() >= 12U) {
+            break;
+        }
+    }
+    if (candidates.empty()) {
+        append_candidate("candidate:default:ruleFollowUp", "ruleFollowUp", "pending-source");
+    }
+    return candidates;
+}
+
+OpsV360RuleVaWhatIfReplaySummary BuildV360RuleVaWhatIfReplaySummary(
+    const std::vector<OpsV360RuleVaWhatIfReplayCandidate>& candidates) {
+    OpsV360RuleVaWhatIfReplaySummary summary;
+    summary.candidate_count = static_cast<int>(candidates.size());
+    for (const auto& candidate : candidates) {
+        if (!candidate.rule_threshold_candidate.empty()) {
+            ++summary.threshold_candidate_count;
+        }
+        if (!candidate.preset_candidate.empty()) {
+            ++summary.preset_candidate_count;
+        }
+        if (!candidate.scenario_candidate.empty()) {
+            ++summary.scenario_candidate_count;
+        }
+        if (!candidate.event_record_ref.empty()) {
+            ++summary.event_record_ref_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV360RuleVaWhatIfReplaySummaryJson(
+    std::ostringstream& out,
+    const OpsV360RuleVaWhatIfReplaySummary& summary) {
+    out << "{"
+        << "\"candidateCount\":" << summary.candidate_count << ","
+        << "\"thresholdCandidateCount\":" << summary.threshold_candidate_count << ","
+        << "\"presetCandidateCount\":" << summary.preset_candidate_count << ","
+        << "\"scenarioCandidateCount\":" << summary.scenario_candidate_count << ","
+        << "\"eventRecordRefCount\":" << summary.event_record_ref_count
+        << "}";
+}
+
+void AppendV360RuleVaWhatIfReplayCandidateJson(
+    std::ostringstream& out,
+    const OpsV360RuleVaWhatIfReplayCandidate& candidate) {
+    out << "{"
+        << "\"whatIfReplayId\":\"" << JsonEscape(candidate.what_if_replay_id) << "\","
+        << "\"eventRecordRef\":\"" << JsonEscape(candidate.event_record_ref) << "\","
+        << "\"vaFixtureRef\":\"" << JsonEscape(candidate.va_fixture_ref) << "\","
+        << "\"sourceId\":\"" << JsonEscape(candidate.source_id) << "\","
+        << "\"ruleCandidateId\":\"" << JsonEscape(candidate.rule_candidate_id) << "\","
+        << "\"ruleThresholdCandidate\":\""
+        << JsonEscape(candidate.rule_threshold_candidate) << "\","
+        << "\"presetCandidate\":\"" << JsonEscape(candidate.preset_candidate) << "\","
+        << "\"scenarioCandidate\":\"" << JsonEscape(candidate.scenario_candidate) << "\","
+        << "\"beforeMatchState\":\"" << JsonEscape(candidate.before_match_state) << "\","
+        << "\"afterMatchState\":\"" << JsonEscape(candidate.after_match_state) << "\","
+        << "\"whatIfResultDelta\":\"" << JsonEscape(candidate.what_if_result_delta) << "\","
+        << "\"changedFields\":";
+    AppendV340RecoveryCandidateStringListJson(out, candidate.changed_fields);
+    out << ",\"evidenceRefs\":";
+    AppendV340RecoveryCandidateStringListJson(out, candidate.evidence_refs);
+    out << ",\"readOnly\":" << (candidate.read_only ? "true" : "false") << "}";
+}
+
+std::string OpsV360RuleVaWhatIfReplayPackJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v360-rule-va-what-if-replay-pack.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto dryRunResults = BuildV360CommandPlanDryRunResults(commandPlanCandidates);
+    const auto impactDiffs =
+        BuildV360SourceRuleImpactDiffs(context, commandPlanCandidates, stagedChangePlans);
+    const auto candidates =
+        BuildV360RuleVaWhatIfReplayCandidates(context, dryRunResults, impactDiffs);
+    const auto summary = BuildV360RuleVaWhatIfReplaySummary(candidates);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v360-rule-va-what-if-replay-pack.v1\","
+        << "\"status\":\"rule-va-what-if-replay-pack\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"eventRecordRoute\":\"/ops/api/events/reviews\","
+        << "\"commandPlanDryRunRoute\":\"/ops/api/live-operations/simulation/command-plan-dry-run\","
+        << "\"impactDiffRoute\":\"/ops/api/live-operations/simulation/impact-diff\","
+        << "\"replayPolicy\":{"
+        << "\"whatIfOnly\":true,"
+        << "\"EventRecord\":\"read-only aggregate input\","
+        << "\"vaFixtureRef\":\"manual_ui_fulltest_va_seed_matrix\","
+        << "\"thresholdCandidate\":\"computed-only\","
+        << "\"presetCandidate\":\"computed-only\","
+        << "\"scenarioCandidate\":\"computed-only\""
+        << "},\"ruleVaWhatIfReplaySummary\":";
+    AppendV360RuleVaWhatIfReplaySummaryJson(out, summary);
+    out << ",\"whatIfReplayCandidates\":[";
+    for (std::size_t i = 0; i < candidates.size(); ++i) {
+        if (i != 0) out << ",";
+        AppendV360RuleVaWhatIfReplayCandidateJson(out, candidates[i]);
+    }
+    out << "],\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"whatIfOnly\":true,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"ruleThresholdApplied\":false,"
+        << "\"presetApplied\":false,"
+        << "\"scenarioApplied\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawDiagnosticJsonIncluded\":false"
         << "}}";
     return out.str();
 }
@@ -29132,6 +29346,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV360ClientNoticePreviewJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/live-operations/simulation/rule-va-what-if-replay-pack") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV360RuleVaWhatIfReplayPackJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

@@ -647,7 +647,8 @@ std::string ProductUiCss() {
     body.ops-shell .ops-command-workspace .ops-vlm-assisted-explanation-list,
     body.ops-shell .ops-simulation-workspace .ops-simulation-workspace-list,
     body.ops-shell .ops-simulation-workspace .ops-simulation-ledger-list,
-    body.ops-shell .ops-simulation-workspace .ops-simulation-notice-preview-list {
+    body.ops-shell .ops-simulation-workspace .ops-simulation-notice-preview-list,
+    body.ops-shell .ops-simulation-workspace .ops-simulation-what-if-replay-list {
       min-width: 0;
     }
     body.ops-shell .ops-channels-workspace {
@@ -1219,7 +1220,8 @@ std::string ProductUiCss() {
     .ops-vlm-assisted-explanation-list,
     .ops-simulation-workspace-list,
     .ops-simulation-ledger-list,
-    .ops-simulation-notice-preview-list {
+    .ops-simulation-notice-preview-list,
+    .ops-simulation-what-if-replay-list {
       display: grid;
       gap: var(--space-2);
     }
@@ -1234,7 +1236,8 @@ std::string ProductUiCss() {
     .ops-vlm-assisted-explanation-entry,
     .ops-simulation-workspace-entry,
     .ops-simulation-ledger-entry,
-    .ops-simulation-notice-preview-entry {
+    .ops-simulation-notice-preview-entry,
+    .ops-simulation-what-if-replay-entry {
       min-width: 0;
       margin: 0;
       padding: 11px 12px;
@@ -1268,6 +1271,9 @@ std::string ProductUiCss() {
     .ops-simulation-notice-preview-entry strong,
     .ops-simulation-notice-preview-entry span,
     .ops-simulation-notice-preview-entry small,
+    .ops-simulation-what-if-replay-entry strong,
+    .ops-simulation-what-if-replay-entry span,
+    .ops-simulation-what-if-replay-entry small,
     .ops-command-boundary,
     .ops-simulation-boundary {
       min-width: 0;
@@ -1280,7 +1286,8 @@ std::string ProductUiCss() {
     .ops-vlm-assisted-explanation-entry strong,
     .ops-simulation-workspace-entry strong,
     .ops-simulation-ledger-entry strong,
-    .ops-simulation-notice-preview-entry strong {
+    .ops-simulation-notice-preview-entry strong,
+    .ops-simulation-what-if-replay-entry strong {
       font-size: 13px;
       line-height: 1.2;
     }
@@ -1300,6 +1307,8 @@ std::string ProductUiCss() {
     .ops-simulation-ledger-entry small,
     .ops-simulation-notice-preview-entry span,
     .ops-simulation-notice-preview-entry small,
+    .ops-simulation-what-if-replay-entry span,
+    .ops-simulation-what-if-replay-entry small,
     .ops-command-boundary,
     .ops-simulation-boundary {
       color: var(--color-muted);

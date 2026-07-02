@@ -794,12 +794,14 @@ void AppendOpsShellScript(std::ostringstream& out,
         const simulationRun = payload.simulationRun || {};
         const simulationRunLedger = payload.simulationRunLedger || {};
         const clientNoticePreview = payload.clientNoticePreview || {};
+        const ruleVaWhatIfReplayPack = payload.ruleVaWhatIfReplayPack || {};
         const dryRun = payload.dryRun || {};
         const impactDiff = payload.impactDiff || {};
         const readiness = payload.readiness || {};
         const simulationInputPackItems = v360SimulationWorkspaceList(inputPack.simulationInputPackItems);
         const simulationRunLedgerEntries = v360SimulationWorkspaceList(simulationRunLedger.simulationRunLedgerEntries);
         const clientNoticePreviewItems = v360SimulationWorkspaceList(clientNoticePreview.clientNoticePreviewItems);
+        const whatIfReplayCandidates = v360SimulationWorkspaceList(ruleVaWhatIfReplayPack.whatIfReplayCandidates);
         const commandPlanDryRunResults = v360SimulationWorkspaceList(dryRun.commandPlanDryRunResults);
         const sourceRuleImpactDiffs = v360SimulationWorkspaceList(impactDiff.sourceRuleImpactDiffs);
         const safeApplyReadinessItems = v360SimulationWorkspaceList(readiness.safeApplyReadinessItems);
@@ -810,6 +812,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           simulationRun,
           simulationRunLedger,
           clientNoticePreview,
+          ruleVaWhatIfReplayPack,
           dryRun,
           impactDiff,
           readiness,
@@ -817,6 +820,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           runContractRoute: payload.runContractRoute || '/ops/api/live-operations/simulation/run-contract',
           simulationRunLedgerRoute: payload.simulationRunLedgerRoute || '/ops/api/live-operations/simulation/run-ledger',
           clientNoticePreviewRoute: payload.clientNoticePreviewRoute || '/ops/api/live-operations/simulation/client-notice-preview',
+          ruleVaWhatIfReplayRoute: payload.ruleVaWhatIfReplayRoute || '/ops/api/live-operations/simulation/rule-va-what-if-replay-pack',
           dryRunRoute: payload.dryRunRoute || '/ops/api/live-operations/simulation/command-plan-dry-run',
           impactDiffRoute: payload.impactDiffRoute || '/ops/api/live-operations/simulation/impact-diff',
           readinessRoute: payload.readinessRoute || '/ops/api/live-operations/simulation/safe-apply-readiness'
@@ -827,6 +831,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           simulationRunLedger.boundaries?.operatorNoteWritePerformed === false &&
           clientNoticePreview.boundaries?.clientNoticeSent === false &&
           clientNoticePreview.boundaries?.viewerClientPayloadChanged === false &&
+          ruleVaWhatIfReplayPack.boundaries?.ruleRegistryWritePerformed === false &&
+          ruleVaWhatIfReplayPack.boundaries?.eventRecordWritePerformed === false &&
           dryRun.boundaries?.commandPlanExecuted === false &&
           impactDiff.boundaries?.sourceChangeApplied === false &&
           readiness.boundaries?.safeApplyPerformed === false &&
@@ -835,6 +841,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           { text: `input ${simulationInputPackItems.length}` },
           { text: `ledger ${simulationRunLedgerEntries.length}` },
           { text: `notice ${clientNoticePreviewItems.length}` },
+          { text: `what-if ${whatIfReplayCandidates.length}` },
           { text: `dry-run ${commandPlanDryRunResults.length}` },
           { text: `diff ${sourceRuleImpactDiffs.length}` },
           { text: `readiness ${safeApplyReadinessItems.length}` },
@@ -844,7 +851,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         setText('dashSimulationWorkspaceText',
           payload.error
             ? `simulation workspace 로드 실패: ${payload.error}`
-            : `input ${simulationInputPackItems.length} · ledger ${simulationRunLedgerEntries.length} · notice preview ${clientNoticePreviewItems.length} · dry-run ${commandPlanDryRunResults.length} · impact diff ${sourceRuleImpactDiffs.length} · readiness ${safeApplyReadinessItems.length}`);
+            : `input ${simulationInputPackItems.length} · ledger ${simulationRunLedgerEntries.length} · notice preview ${clientNoticePreviewItems.length} · what-if ${whatIfReplayCandidates.length} · dry-run ${commandPlanDryRunResults.length} · impact diff ${sourceRuleImpactDiffs.length} · readiness ${safeApplyReadinessItems.length}`);
         const inputList = document.getElementById('dashSimulationWorkspaceInputList');
         if (inputList) {
           inputList.innerHTML = simulationInputPackItems.length > 0
@@ -896,6 +903,16 @@ void AppendOpsShellScript(std::ostringstream& out,
               </p>`).join('')
             : '<div class="empty">client notice preview 항목이 아직 없습니다.</div>';
         }
+        const whatIfReplayList = document.getElementById('dashSimulationWorkspaceWhatIfReplayList');
+        if (whatIfReplayList) {
+          whatIfReplayList.innerHTML = whatIfReplayCandidates.length > 0
+            ? whatIfReplayCandidates.slice(0, 6).map(item => `<p class="ops-simulation-what-if-replay-entry" data-v360-rule-va-what-if-replay-entry="${escapeHtml(item.whatIfReplayId || 'what-if-replay')}">
+                <strong>${escapeHtml(display(item.ruleThresholdCandidate || 'thresholdCandidate'))}</strong>
+                <span>${escapeHtml(display(`${item.presetCandidate || 'presetCandidate'} · ${item.scenarioCandidate || 'scenarioCandidate'}`))}</span>
+                <small>eventRecordRef=${escapeHtml(display(item.eventRecordRef || 'EventRecord'))} · delta=${escapeHtml(display(item.whatIfResultDelta || 'what-if result pending'))} · before=${escapeHtml(display(item.beforeMatchState || 'current'))} · after=${escapeHtml(display(item.afterMatchState || 'what-if'))}</small>
+              </p>`).join('')
+            : '<div class="empty">Rule/VA what-if replay 후보가 아직 없습니다.</div>';
+        }
         const impactList = document.getElementById('dashSimulationWorkspaceImpactList');
         if (impactList) {
           impactList.innerHTML = sourceRuleImpactDiffs.length > 0
@@ -923,27 +940,29 @@ void AppendOpsShellScript(std::ostringstream& out,
             : '<div class="empty">Safe Apply Readiness blocker 항목이 아직 없습니다.</div>';
         }
         setText('dashSimulationWorkspaceBoundary',
-          `input=${display(v360SimulationWorkspaceState.inputPackRoute)} · run=${display(v360SimulationWorkspaceState.runContractRoute)} · ledger=${display(v360SimulationWorkspaceState.simulationRunLedgerRoute)} · noticePreview=${display(v360SimulationWorkspaceState.clientNoticePreviewRoute)} · dryRun=${display(v360SimulationWorkspaceState.dryRunRoute)} · impact=${display(v360SimulationWorkspaceState.impactDiffRoute)} · readiness=${display(v360SimulationWorkspaceState.readinessRoute)} · simulationRunExecuted=${simulationRun.boundaries?.simulationRunExecuted === false && simulationRunLedger.boundaries?.simulationRunExecuted === false ? 'false' : '확인 필요'} · operatorNoteWritePerformed=${simulationRunLedger.boundaries?.operatorNoteWritePerformed === false ? 'false' : '확인 필요'} · commandPlanExecuted=${dryRun.boundaries?.commandPlanExecuted === false ? 'false' : '확인 필요'} · sourceChangeApplied=${impactDiff.boundaries?.sourceChangeApplied === false ? 'false' : '확인 필요'} · safeApplyPerformed=${readiness.boundaries?.safeApplyPerformed === false ? 'false' : '확인 필요'} · clientNoticeSent=${readiness.boundaries?.clientNoticeSent === false || simulationRunLedger.boundaries?.clientNoticeSent === false || clientNoticePreview.boundaries?.clientNoticeSent === false ? 'false' : '확인 필요'} · viewerClientPayloadChanged=${clientNoticePreview.boundaries?.viewerClientPayloadChanged === false ? 'false' : '확인 필요'}`);
+          `input=${display(v360SimulationWorkspaceState.inputPackRoute)} · run=${display(v360SimulationWorkspaceState.runContractRoute)} · ledger=${display(v360SimulationWorkspaceState.simulationRunLedgerRoute)} · noticePreview=${display(v360SimulationWorkspaceState.clientNoticePreviewRoute)} · whatIf=${display(v360SimulationWorkspaceState.ruleVaWhatIfReplayRoute)} · dryRun=${display(v360SimulationWorkspaceState.dryRunRoute)} · impact=${display(v360SimulationWorkspaceState.impactDiffRoute)} · readiness=${display(v360SimulationWorkspaceState.readinessRoute)} · simulationRunExecuted=${simulationRun.boundaries?.simulationRunExecuted === false && simulationRunLedger.boundaries?.simulationRunExecuted === false ? 'false' : '확인 필요'} · operatorNoteWritePerformed=${simulationRunLedger.boundaries?.operatorNoteWritePerformed === false ? 'false' : '확인 필요'} · commandPlanExecuted=${dryRun.boundaries?.commandPlanExecuted === false ? 'false' : '확인 필요'} · ruleRegistryWritePerformed=${ruleVaWhatIfReplayPack.boundaries?.ruleRegistryWritePerformed === false ? 'false' : '확인 필요'} · eventRecordWritePerformed=${ruleVaWhatIfReplayPack.boundaries?.eventRecordWritePerformed === false ? 'false' : '확인 필요'} · sourceChangeApplied=${impactDiff.boundaries?.sourceChangeApplied === false ? 'false' : '확인 필요'} · safeApplyPerformed=${readiness.boundaries?.safeApplyPerformed === false ? 'false' : '확인 필요'} · clientNoticeSent=${readiness.boundaries?.clientNoticeSent === false || simulationRunLedger.boundaries?.clientNoticeSent === false || clientNoticePreview.boundaries?.clientNoticeSent === false || ruleVaWhatIfReplayPack.boundaries?.clientNoticeSent === false ? 'false' : '확인 필요'} · viewerClientPayloadChanged=${clientNoticePreview.boundaries?.viewerClientPayloadChanged === false ? 'false' : '확인 필요'}`);
       };
       const refreshV360OpsSimulationWorkspace = async ({
         inputPackRoute = '/ops/api/live-operations/simulation/input-pack',
         runContractRoute = '/ops/api/live-operations/simulation/run-contract',
         simulationRunLedgerRoute = '/ops/api/live-operations/simulation/run-ledger',
         clientNoticePreviewRoute = '/ops/api/live-operations/simulation/client-notice-preview',
+        ruleVaWhatIfReplayRoute = '/ops/api/live-operations/simulation/rule-va-what-if-replay-pack',
         dryRunRoute = '/ops/api/live-operations/simulation/command-plan-dry-run',
         impactDiffRoute = '/ops/api/live-operations/simulation/impact-diff',
         readinessRoute = '/ops/api/live-operations/simulation/safe-apply-readiness'
       } = {}) => {
-        const [inputPack, simulationRun, simulationRunLedger, clientNoticePreview, dryRun, impactDiff, readiness] = await Promise.all([
+        const [inputPack, simulationRun, simulationRunLedger, clientNoticePreview, ruleVaWhatIfReplayPack, dryRun, impactDiff, readiness] = await Promise.all([
           requestJson(inputPackRoute).catch(error => ({ error: error.message, simulationInputPackItems: [], boundaries: {} })),
           requestJson(runContractRoute).catch(error => ({ error: error.message, simulationResultEnvelope: {}, boundaries: {} })),
           requestJson(simulationRunLedgerRoute).catch(error => ({ error: error.message, simulationRunLedgerEntries: [], boundaries: {} })),
           requestJson(clientNoticePreviewRoute).catch(error => ({ error: error.message, clientNoticePreviewItems: [], boundaries: {} })),
+          requestJson(ruleVaWhatIfReplayRoute).catch(error => ({ error: error.message, whatIfReplayCandidates: [], boundaries: {} })),
           requestJson(dryRunRoute).catch(error => ({ error: error.message, commandPlanDryRunResults: [], boundaries: {} })),
           requestJson(impactDiffRoute).catch(error => ({ error: error.message, sourceRuleImpactDiffs: [], boundaries: {} })),
           requestJson(readinessRoute).catch(error => ({ error: error.message, safeApplyReadinessItems: [], boundaries: {} }))
         ]);
-        renderV360OpsSimulationWorkspace({ inputPack, simulationRun, simulationRunLedger, clientNoticePreview, dryRun, impactDiff, readiness, inputPackRoute, runContractRoute, simulationRunLedgerRoute, clientNoticePreviewRoute, dryRunRoute, impactDiffRoute, readinessRoute });
+        renderV360OpsSimulationWorkspace({ inputPack, simulationRun, simulationRunLedger, clientNoticePreview, ruleVaWhatIfReplayPack, dryRun, impactDiff, readiness, inputPackRoute, runContractRoute, simulationRunLedgerRoute, clientNoticePreviewRoute, ruleVaWhatIfReplayRoute, dryRunRoute, impactDiffRoute, readinessRoute });
       };
       const renderDashboardRootCause = (runtime, principal, eventsStatus = {}, browserConfig = {}, diagnosticLog = {}, sourceHealth = {}) => {
         const items = dashboardRootCauseItems(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);
@@ -1910,6 +1929,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           runContractRoute: '/ops/api/live-operations/simulation/run-contract',
           simulationRunLedgerRoute: '/ops/api/live-operations/simulation/run-ledger',
           clientNoticePreviewRoute: '/ops/api/live-operations/simulation/client-notice-preview',
+          ruleVaWhatIfReplayRoute: '/ops/api/live-operations/simulation/rule-va-what-if-replay-pack',
           dryRunRoute: '/ops/api/live-operations/simulation/command-plan-dry-run',
           impactDiffRoute: '/ops/api/live-operations/simulation/impact-diff',
           readinessRoute: '/ops/api/live-operations/simulation/safe-apply-readiness'
