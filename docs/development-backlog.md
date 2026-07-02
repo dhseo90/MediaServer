@@ -54,6 +54,7 @@ production write 없이 simulation input, dry-run, impact diff, safe apply readi
 | 9 | v3.6.0 (9) Client Notice Preview | P1 | 완료 | 실제 발송 없이 viewer-safe maintenance/degraded/recovering notice preview 생성 |
 | 10 | v3.6.0 (10) Rule/VA What-if Replay Pack | P1 | 완료 | 기존 VA fixture/EventRecord 기반으로 rule threshold, preset, scenario 후보의 what-if 결과 비교 |
 | 11 | v3.6.0 (11) Simulation Export Bundle | P1 | 완료 | simulation input/output, blocker, handoff map을 redacted release-safe export bundle로 조합 |
+| 12 | v3.6.0 (12) Field Evidence Simulation Adapter | P2 | 완료 | ONVIF, external WHEP/TURN, cloud/VLM provider 조건을 field 실행 없이 조건부/not-run evidence로 simulation에 연결 |
 
 완료 경계: 위 표는 v3.6.0 개발 순서와 우선순위입니다. 각 step은 실제 코드/API/문서
 변경, 기능 ID/test inventory 등록, 해당 verifier와 release test record evidence가 생긴 뒤에만
@@ -156,6 +157,15 @@ action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁�
 - `src/ingress/webrtc_http_server.cpp`, `src/ingress/product_ui_page_scripts.cpp`, `src/ingress/product_ui_css.cpp`: `/ops` simulation workspace에 `dashSimulationWorkspaceExportBundleList`를 추가하고 `simulationExportBundleItems`, `simulationHandoffMapEntries`의 input/output/blocker/handoff refs와 redaction policy를 표시합니다.
 - `scripts/internal/verify_v360_simulation_export_bundle.mjs`, `server.sh`: `./server.sh verify-v360-simulation-export-bundle` 명령을 추가해 export bundle model, route guard, redacted release-safe boundary, UI renderer/CSS, client/viewer 비노출, docs/inventory/release records/server dispatch 연결을 검증합니다.
 - 완료 경계: 이번 Step 11은 Simulation Export Bundle API/UI/verifier 연결입니다. Field Evidence Simulation Adapter 완료 evidence가 아닙니다. VLM-assisted Simulation Explanation 완료 evidence가 아닙니다. 실제 파일 export, field smoke, provider/runtime call, UI 풀테스트 직접 조작, 30분/120분 longrun, release action PASS를 대체하지 않습니다.
+
+## v3.6.0 Step 12 개발 기록
+
+- 범위: P2 `v3.6.0 (12) Field Evidence Simulation Adapter`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV360FieldEvidenceSimulationAdapterJson`을 추가해 `media-server.ops.v360-field-evidence-simulation-adapter.v1` adapter projection을 생성합니다. adapter는 `BuildV340FieldBridgeConditionGates`, `BuildV350FieldEvidenceIntakeRecords`, `BuildV350FieldEvidenceExecutionConditions`, `BuildV360SafeApplyReadinessItems`를 조합해 ONVIF, external WHEP/TURN, cloud/VLM provider 조건을 `conditionalNotRunEvidence`, `simulationReadinessBlockerRef`, `simulationAdapterConditions`로 연결합니다.
+- `src/ingress/webrtc_http_server.cpp`: `GET /ops/api/live-operations/simulation/field-evidence-adapter` route를 추가했습니다. 이 route는 `require_ops_principal()`로 보호되고 `Cache-Control: no-store`를 설정하며 field smoke, endpoint probe, credential probe, ONVIF device contact, external WHEP/TURN contact, cloud/VLM provider call, simulation execution, source/view/EventRecord/Ops audit/client/media mutation을 수행하지 않습니다.
+- `src/ingress/webrtc_http_server.cpp`, `src/ingress/product_ui_page_scripts.cpp`, `src/ingress/product_ui_css.cpp`: `/ops` simulation workspace에 `dashSimulationWorkspaceFieldEvidenceAdapterList`를 추가하고 `fieldEvidenceSimulationAdapters`, `simulationAdapterConditions`의 not-run reason, readiness blocker ref, condition refs를 표시합니다.
+- `scripts/internal/verify_v360_field_evidence_simulation_adapter.mjs`, `server.sh`: `./server.sh verify-v360-field-evidence-simulation-adapter` 명령을 추가해 adapter model, route guard, conditional/not-run boundary, UI renderer/CSS, client/viewer 비노출, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- 완료 경계: 이번 Step 12는 Field Evidence Simulation Adapter API/UI/verifier 연결입니다. VLM-assisted Simulation Explanation 완료 evidence가 아닙니다. 실제 field smoke, endpoint/credential probe, provider/runtime call, UI 풀테스트 직접 조작, 30분/120분 longrun, release action PASS를 대체하지 않습니다.
 
 ## 최신 published baseline 상세: v3.5.0 Live Operations Control Plane
 

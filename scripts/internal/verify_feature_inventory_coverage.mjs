@@ -60,11 +60,13 @@ const v360VerifierCoverage = {
     "verify-v360-client-notice-preview",
     "verify-v360-rule-va-what-if-replay-pack",
     "verify-v360-simulation-export-bundle",
+    "verify-v360-field-evidence-simulation-adapter",
   ],
   SRC: [
     "verify-v360-simulation-input-contract",
     "verify-v360-command-plan-dry-run-simulator",
     "verify-v360-source-rule-impact-diff",
+    "verify-v360-field-evidence-simulation-adapter",
   ],
   RULE: [
     "verify-v360-command-plan-dry-run-simulator",
@@ -79,11 +81,15 @@ const v360VerifierCoverage = {
     "verify-v360-source-rule-impact-diff",
     "verify-v360-client-notice-preview",
   ],
+  MEDIA: [
+    "verify-v360-field-evidence-simulation-adapter",
+  ],
   LAB: [
     "verify-v360-operations-simulation-run-contract",
     "verify-v360-simulation-run-ledger-comparison",
     "verify-v360-rule-va-what-if-replay-pack",
     "verify-v360-simulation-export-bundle",
+    "verify-v360-field-evidence-simulation-adapter",
   ],
   SAFE: [
     "verify-v360-entry-baseline",
@@ -97,6 +103,7 @@ const v360VerifierCoverage = {
     "verify-v360-client-notice-preview",
     "verify-v360-rule-va-what-if-replay-pack",
     "verify-v360-simulation-export-bundle",
+    "verify-v360-field-evidence-simulation-adapter",
   ],
   OPS: [
     "verify-v360-entry-baseline",
@@ -110,6 +117,7 @@ const v360VerifierCoverage = {
     "verify-v360-client-notice-preview",
     "verify-v360-rule-va-what-if-replay-pack",
     "verify-v360-simulation-export-bundle",
+    "verify-v360-field-evidence-simulation-adapter",
   ],
 };
 

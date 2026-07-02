@@ -649,7 +649,8 @@ std::string ProductUiCss() {
     body.ops-shell .ops-simulation-workspace .ops-simulation-ledger-list,
     body.ops-shell .ops-simulation-workspace .ops-simulation-notice-preview-list,
     body.ops-shell .ops-simulation-workspace .ops-simulation-what-if-replay-list,
-    body.ops-shell .ops-simulation-workspace .ops-simulation-export-bundle-list {
+    body.ops-shell .ops-simulation-workspace .ops-simulation-export-bundle-list,
+    body.ops-shell .ops-simulation-workspace .ops-simulation-field-evidence-adapter-list {
       min-width: 0;
     }
     body.ops-shell .ops-channels-workspace {
@@ -1223,7 +1224,8 @@ std::string ProductUiCss() {
     .ops-simulation-ledger-list,
     .ops-simulation-notice-preview-list,
     .ops-simulation-what-if-replay-list,
-    .ops-simulation-export-bundle-list {
+    .ops-simulation-export-bundle-list,
+    .ops-simulation-field-evidence-adapter-list {
       display: grid;
       gap: var(--space-2);
     }
@@ -1240,7 +1242,8 @@ std::string ProductUiCss() {
     .ops-simulation-ledger-entry,
     .ops-simulation-notice-preview-entry,
     .ops-simulation-what-if-replay-entry,
-    .ops-simulation-export-bundle-entry {
+    .ops-simulation-export-bundle-entry,
+    .ops-simulation-field-evidence-adapter-entry {
       min-width: 0;
       margin: 0;
       padding: 11px 12px;
@@ -1280,6 +1283,9 @@ std::string ProductUiCss() {
     .ops-simulation-export-bundle-entry strong,
     .ops-simulation-export-bundle-entry span,
     .ops-simulation-export-bundle-entry small,
+    .ops-simulation-field-evidence-adapter-entry strong,
+    .ops-simulation-field-evidence-adapter-entry span,
+    .ops-simulation-field-evidence-adapter-entry small,
     .ops-command-boundary,
     .ops-simulation-boundary {
       min-width: 0;
@@ -1294,7 +1300,8 @@ std::string ProductUiCss() {
     .ops-simulation-ledger-entry strong,
     .ops-simulation-notice-preview-entry strong,
     .ops-simulation-what-if-replay-entry strong,
-    .ops-simulation-export-bundle-entry strong {
+    .ops-simulation-export-bundle-entry strong,
+    .ops-simulation-field-evidence-adapter-entry strong {
       font-size: 13px;
       line-height: 1.2;
     }
@@ -1318,6 +1325,8 @@ std::string ProductUiCss() {
     .ops-simulation-what-if-replay-entry small,
     .ops-simulation-export-bundle-entry span,
     .ops-simulation-export-bundle-entry small,
+    .ops-simulation-field-evidence-adapter-entry span,
+    .ops-simulation-field-evidence-adapter-entry small,
     .ops-command-boundary,
     .ops-simulation-boundary {
       color: var(--color-muted);

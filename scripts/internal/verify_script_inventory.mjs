@@ -487,6 +487,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_v360_client_notice_preview.mjs",
     "verify_v360_rule_va_what_if_replay_pack.mjs",
     "verify_v360_simulation_export_bundle.mjs",
+    "verify_v360_field_evidence_simulation_adapter.mjs",
     "verify_external_turn_whep_field_gate.mjs",
     "verify_vlm_runtime_status_ui.mjs",
     "verify_vlm_evaluation_result_workflow.mjs",

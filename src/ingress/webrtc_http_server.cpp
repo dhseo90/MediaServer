@@ -2844,6 +2844,12 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
             </div>
           </div>
           <div>
+            <h4>Field Evidence Adapter</h4>
+            <div id="dashSimulationWorkspaceFieldEvidenceAdapterList" class="ops-simulation-field-evidence-adapter-list" data-v360-field-evidence-simulation-adapter="media-server.ops.v360-field-evidence-simulation-adapter.v1">
+              <div class="empty">ONVIF, external WHEP/TURN, cloud/VLM provider 조건부/not-run evidence를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
             <h4>Impact Diff</h4>
             <div id="dashSimulationWorkspaceImpactList" class="ops-simulation-workspace-list">
               <div class="empty">source/rule impact diff를 기다립니다.</div>
@@ -17882,6 +17888,7 @@ OpsV360SimulationRunContract BuildV360SimulationRunContract() {
         "/ops/api/live-operations/simulation/client-notice-preview",
         "/ops/api/live-operations/simulation/rule-va-what-if-replay-pack",
         "/ops/api/live-operations/simulation/export-bundle",
+        "/ops/api/live-operations/simulation/field-evidence-adapter",
     };
     contract.allowed_readiness_states = {
         "ready",
@@ -19719,6 +19726,269 @@ std::string OpsV360SimulationExportBundleJson(
         << "\"wsMetadataSchemaChanged\":false,"
         << "\"rtspOrWebrtcMediaPathChanged\":false,"
         << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV360FieldEvidenceSimulationAdapterItem {
+    std::string adapter_id;
+    std::string bridge_kind;
+    std::string label;
+    std::string adapter_type{"fieldEvidenceAdapter"};
+    std::string conditional_not_run_evidence{"conditional-not-run evidence"};
+    std::string execution_status{"not-run"};
+    std::string field_smoke_status{"field-smoke-needed"};
+    std::string not_run_reason;
+    std::string redacted_field_evidence;
+    std::string simulation_input_ref{"/ops/api/live-operations/simulation/input-pack"};
+    std::string simulation_readiness_blocker_ref{
+        "/ops/api/live-operations/simulation/safe-apply-readiness"};
+    std::vector<std::string> condition_refs;
+    std::vector<std::string> evidence_refs;
+    bool endpoint_required{true};
+    bool credential_required{true};
+    bool operator_approval_required{true};
+    bool read_only{true};
+};
+
+struct OpsV360FieldEvidenceSimulationAdapterSummary {
+    int adapter_count{0};
+    int onvif_condition_count{0};
+    int external_whep_turn_condition_count{0};
+    int cloud_vlm_provider_condition_count{0};
+    int not_run_count{0};
+    int endpoint_required_count{0};
+    int credential_required_count{0};
+    int approval_required_count{0};
+};
+
+std::string V360FieldEvidenceSimulationReadinessRef(
+    const OpsV350FieldEvidenceIntakeRecord& record,
+    const std::vector<OpsV360SafeApplyReadinessItem>& readinessItems) {
+    for (const auto& readiness : readinessItems) {
+        if (readiness.field_evidence_required) {
+            return readiness.readiness_id + ":" + record.bridge_kind;
+        }
+    }
+    return "simulationReadinessBlockerRef:" + record.bridge_kind + ":conditional-not-run";
+}
+
+std::vector<OpsV360FieldEvidenceSimulationAdapterItem>
+BuildV360FieldEvidenceSimulationAdapterItems(
+    const std::vector<OpsV350FieldEvidenceIntakeRecord>& fieldEvidenceIntakeRecords,
+    const std::vector<OpsV350FieldEvidenceExecutionCondition>& fieldEvidenceExecutionConditions,
+    const std::vector<OpsV360SafeApplyReadinessItem>& readinessItems) {
+    std::vector<OpsV360FieldEvidenceSimulationAdapterItem> items;
+    for (const auto& record : fieldEvidenceIntakeRecords) {
+        OpsV360FieldEvidenceSimulationAdapterItem item;
+        item.adapter_id = "field-evidence-adapter:" + record.bridge_kind;
+        item.bridge_kind = record.bridge_kind;
+        item.label = record.label;
+        item.conditional_not_run_evidence =
+            "conditional-not-run evidence for " + record.bridge_kind;
+        if (record.bridge_kind == "onvif-real-device") {
+            item.conditional_not_run_evidence =
+                "ONVIF conditional-not-run evidence; no device contacted";
+        } else if (record.bridge_kind == "external-whep-turn") {
+            item.conditional_not_run_evidence =
+                "external WHEP/TURN conditional-not-run evidence; no endpoint contacted";
+        } else if (record.bridge_kind == "real-cloud-vlm-provider") {
+            item.conditional_not_run_evidence =
+                "cloud/VLM provider conditional-not-run evidence; no provider call";
+        }
+        item.execution_status = record.execution_status;
+        item.field_smoke_status = record.field_smoke_status;
+        item.not_run_reason = record.not_run_reason;
+        item.redacted_field_evidence = record.redacted_field_evidence;
+        item.simulation_input_ref =
+            "/ops/api/live-operations/simulation/input-pack:fieldEvidenceAdapter:" +
+            record.bridge_kind;
+        item.simulation_readiness_blocker_ref =
+            V360FieldEvidenceSimulationReadinessRef(record, readinessItems);
+        item.endpoint_required = record.endpoint_required;
+        item.credential_required = record.credential_required;
+        item.operator_approval_required = record.operator_approval_required;
+        for (const auto& condition : fieldEvidenceExecutionConditions) {
+            if (condition.evidence_id == record.evidence_id) {
+                item.condition_refs.push_back(condition.condition_id);
+            }
+        }
+        item.evidence_refs = record.evidence_refs;
+        item.evidence_refs.push_back("/ops/api/live-operations/simulation/safe-apply-readiness");
+        item.evidence_refs.push_back("/ops/api/live-operations/simulation/export-bundle");
+        items.push_back(std::move(item));
+    }
+    return items;
+}
+
+OpsV360FieldEvidenceSimulationAdapterSummary
+BuildV360FieldEvidenceSimulationAdapterSummary(
+    const std::vector<OpsV360FieldEvidenceSimulationAdapterItem>& items) {
+    OpsV360FieldEvidenceSimulationAdapterSummary summary;
+    summary.adapter_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        if (item.bridge_kind == "onvif-real-device") {
+            ++summary.onvif_condition_count;
+        } else if (item.bridge_kind == "external-whep-turn") {
+            ++summary.external_whep_turn_condition_count;
+        } else if (item.bridge_kind == "real-cloud-vlm-provider") {
+            ++summary.cloud_vlm_provider_condition_count;
+        }
+        if (item.execution_status == "not-run") {
+            ++summary.not_run_count;
+        }
+        if (item.endpoint_required) {
+            ++summary.endpoint_required_count;
+        }
+        if (item.credential_required) {
+            ++summary.credential_required_count;
+        }
+        if (item.operator_approval_required) {
+            ++summary.approval_required_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV360FieldEvidenceSimulationAdapterSummaryJson(
+    std::ostringstream& out,
+    const OpsV360FieldEvidenceSimulationAdapterSummary& summary) {
+    out << "{"
+        << "\"adapterCount\":" << summary.adapter_count << ","
+        << "\"onvifConditionCount\":" << summary.onvif_condition_count << ","
+        << "\"externalWhepTurnConditionCount\":"
+        << summary.external_whep_turn_condition_count << ","
+        << "\"cloudVlmProviderConditionCount\":"
+        << summary.cloud_vlm_provider_condition_count << ","
+        << "\"notRunCount\":" << summary.not_run_count << ","
+        << "\"endpointRequiredCount\":" << summary.endpoint_required_count << ","
+        << "\"credentialRequiredCount\":" << summary.credential_required_count << ","
+        << "\"approvalRequiredCount\":" << summary.approval_required_count
+        << "}";
+}
+
+void AppendV360FieldEvidenceSimulationAdapterItemJson(
+    std::ostringstream& out,
+    const OpsV360FieldEvidenceSimulationAdapterItem& item) {
+    out << "{"
+        << "\"adapterId\":\"" << JsonEscape(item.adapter_id) << "\","
+        << "\"bridgeKind\":\"" << JsonEscape(item.bridge_kind) << "\","
+        << "\"label\":\"" << JsonEscape(item.label) << "\","
+        << "\"fieldEvidenceAdapter\":\"" << JsonEscape(item.adapter_type) << "\","
+        << "\"conditionalNotRunEvidence\":\""
+        << JsonEscape(item.conditional_not_run_evidence) << "\","
+        << "\"executionStatus\":\"" << JsonEscape(item.execution_status) << "\","
+        << "\"fieldSmokeStatus\":\"" << JsonEscape(item.field_smoke_status) << "\","
+        << "\"notRunReason\":\"" << JsonEscape(item.not_run_reason) << "\","
+        << "\"redactedFieldEvidence\":\""
+        << JsonEscape(item.redacted_field_evidence) << "\","
+        << "\"simulationInputRef\":\"" << JsonEscape(item.simulation_input_ref) << "\","
+        << "\"simulationReadinessBlockerRef\":\""
+        << JsonEscape(item.simulation_readiness_blocker_ref) << "\","
+        << "\"endpointRequired\":" << (item.endpoint_required ? "true" : "false") << ","
+        << "\"credentialRequired\":" << (item.credential_required ? "true" : "false") << ","
+        << "\"operatorApprovalRequired\":"
+        << (item.operator_approval_required ? "true" : "false") << ","
+        << "\"readOnly\":" << (item.read_only ? "true" : "false") << ","
+        << "\"conditionRefs\":";
+    AppendV340RecoveryCandidateStringListJson(out, item.condition_refs);
+    out << ",\"evidenceRefs\":";
+    AppendV340RecoveryCandidateStringListJson(out, item.evidence_refs);
+    out << ",\"rawEndpointIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawTurnCredentialsIncluded\":false,"
+        << "\"rawVlmPromptIncluded\":false,"
+        << "\"rawProviderResponseIncluded\":false,"
+        << "\"clientViewerMaterialIncluded\":false"
+        << "}";
+}
+
+std::string OpsV360FieldEvidenceSimulationAdapterJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v360-field-evidence-simulation-adapter.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto dryRunResults = BuildV360CommandPlanDryRunResults(commandPlanCandidates);
+    const auto impactDiffs =
+        BuildV360SourceRuleImpactDiffs(context, commandPlanCandidates, stagedChangePlans);
+    const auto readinessItems = BuildV360SafeApplyReadinessItems(dryRunResults, impactDiffs);
+    const auto fieldBridgeConditionGates = BuildV340FieldBridgeConditionGates();
+    const auto fieldEvidenceIntakeRecords =
+        BuildV350FieldEvidenceIntakeRecords(fieldBridgeConditionGates);
+    const auto fieldEvidenceExecutionConditions =
+        BuildV350FieldEvidenceExecutionConditions(fieldEvidenceIntakeRecords);
+    const auto adapterItems =
+        BuildV360FieldEvidenceSimulationAdapterItems(fieldEvidenceIntakeRecords,
+                                                     fieldEvidenceExecutionConditions,
+                                                     readinessItems);
+    const auto summary = BuildV360FieldEvidenceSimulationAdapterSummary(adapterItems);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v360-field-evidence-simulation-adapter.v1\","
+        << "\"status\":\"field-evidence-simulation-adapter\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"fieldBridgeConditionGateRoute\":\"/ops/api/source-registry/field-bridge-condition-gates\","
+        << "\"simulationReadinessRoute\":\"/ops/api/live-operations/simulation/safe-apply-readiness\","
+        << "\"simulationExportBundleRoute\":\"/ops/api/live-operations/simulation/export-bundle\","
+        << "\"fieldEvidenceSimulationAdapterSummary\":";
+    AppendV360FieldEvidenceSimulationAdapterSummaryJson(out, summary);
+    out << ",\"simulationAdapterConditions\":[";
+    for (std::size_t i = 0; i < fieldEvidenceExecutionConditions.size(); ++i) {
+        if (i != 0) out << ",";
+        AppendV350FieldEvidenceExecutionConditionJson(out, fieldEvidenceExecutionConditions[i]);
+    }
+    out << "],\"fieldEvidenceSimulationAdapters\":[";
+    for (std::size_t i = 0; i < adapterItems.size(); ++i) {
+        if (i != 0) out << ",";
+        AppendV360FieldEvidenceSimulationAdapterItemJson(out, adapterItems[i]);
+    }
+    out << "],\"adapterPolicy\":{"
+        << "\"fieldEvidenceAdapter\":\"simulation-only\","
+        << "\"conditionalNotRunEvidence\":true,"
+        << "\"ONVIF\":\"conditional-not-run\","
+        << "\"externalWhepTurn\":\"conditional-not-run\","
+        << "\"cloudVlmProvider\":\"conditional-not-run\","
+        << "\"fieldExecution\":\"not-run\","
+        << "\"rawMaterial\":\"redacted\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"conditionalNotRunEvidence\":true,"
+        << "\"fieldEvidencePersisted\":false,"
+        << "\"fieldEvidenceWritePerformed\":false,"
+        << "\"fieldSmokeExecuted\":false,"
+        << "\"endpointProbePerformed\":false,"
+        << "\"credentialProbePerformed\":false,"
+        << "\"onvifDeviceContacted\":false,"
+        << "\"externalWhepTurnContacted\":false,"
+        << "\"cloudProviderContacted\":false,"
+        << "\"vlmProviderCalled\":false,"
+        << "\"simulationRunExecuted\":false,"
+        << "\"simulationRunPersisted\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"artifactExportExecuted\":false,"
+        << "\"rawEndpointIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawTurnCredentialsIncluded\":false,"
+        << "\"rawVlmPromptIncluded\":false,"
+        << "\"rawProviderResponseIncluded\":false,"
+        << "\"clientViewerMaterialIncluded\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
         << "}}";
     return out.str();
 }
@@ -29813,6 +30083,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV360SimulationExportBundleJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/live-operations/simulation/field-evidence-adapter") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV360FieldEvidenceSimulationAdapterJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }
