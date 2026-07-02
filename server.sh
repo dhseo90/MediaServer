@@ -362,6 +362,8 @@ Usage:
                  v3.6.0 Step 11 Simulation Export Bundle release-safe 경계를 검증합니다.
   verify-v360-field-evidence-simulation-adapter
                  v3.6.0 Step 12 Field Evidence Simulation Adapter not-run 경계를 검증합니다.
+  verify-v360-vlm-assisted-simulation-explanation
+                 v3.6.0 Step 13 VLM-assisted Simulation Explanation default-off 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -606,6 +608,8 @@ Usage:
                  v3.6.0 Step 11 Simulation Export Bundle release-safe 경계를 검증합니다.
   verify-v360-field-evidence-simulation-adapter
                  v3.6.0 Step 12 Field Evidence Simulation Adapter not-run 경계를 검증합니다.
+  verify-v360-vlm-assisted-simulation-explanation
+                 v3.6.0 Step 13 VLM-assisted Simulation Explanation default-off 경계를 검증합니다.
   verify-actions-security
                  GitHub Actions workflow 권한과 action 사용 정책을 검증합니다.
   verify-ci-local-gate-parity
@@ -1692,6 +1696,10 @@ case "${cmd}" in
   verify-v360-field-evidence-simulation-adapter)
     require_internal verify_v360_field_evidence_simulation_adapter.mjs
     exec "${INTERNAL_DIR}/verify_v360_field_evidence_simulation_adapter.mjs" "$@"
+    ;;
+  verify-v360-vlm-assisted-simulation-explanation)
+    require_internal verify_v360_vlm_assisted_simulation_explanation.mjs
+    exec "${INTERNAL_DIR}/verify_v360_vlm_assisted_simulation_explanation.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs

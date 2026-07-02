@@ -26,13 +26,13 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 782 |
-| UI 직접 필요 | 374 |
+| 전체 기능 항목 | 788 |
+| UI 직접 필요 | 375 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 377 |
-| 테스트 필요 | 782 |
-| 안정화 대상 | 772 |
-| UI 풀테스트 대상 | 394 |
+| UI 비대상 | 382 |
+| 테스트 필요 | 788 |
+| 안정화 대상 | 778 |
+| UI 풀테스트 대상 | 395 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
 
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 755개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 788개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -51,7 +51,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | VA seed 데이터 | `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`로 numeric ID/API payload 기준 full UI seed matrix를 고정 | 준비 기준일 뿐 실행 증거 아님 |
 | UI 풀테스트 결과 | 기능 ID별 result template 기록란은 별도 문서가 관리 | 결과 문서 없이 inventory만으로 UI PASS 판정 불가 |
 | Coverage gate | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-inventory-coverage.v1` report로 기능 ID별 연결을 점검 | `missing coverage target` 누락 ID는 release gate에서 FAIL |
-| VLM current expansion | VLM route, control, action, runtime state, sidecar, privacy guard, feature-only retention과 v3.6 simulation input/run/dry-run/impact diff/safe apply readiness, v3.5 live operations published baseline을 현재 기능 ID에 연결 | 실행 증거 아님 |
+| VLM current expansion | VLM route, control, action, runtime state, sidecar, privacy guard, feature-only retention과 v3.6 simulation input/run/dry-run/impact diff/safe apply readiness/field evidence adapter/default-off simulation explanation, v3.5 live operations published baseline을 현재 기능 ID에 연결 | 실행 증거 아님 |
 
 ## v3.6.0 Operations Simulation and Safe Apply Readiness Coverage Mapping
 
@@ -74,6 +74,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | v3.6.0 (10) Rule/VA What-if Replay Pack | `UI-091`, `RULE-109`, `EVT-078`, `LAB-097`, `SAFE-157`, `OPS-124` | `verify-v360-rule-va-what-if-replay-pack`, `verify-ops-client-ui` | `/ops/api/live-operations/simulation/rule-va-what-if-replay-pack`와 `/ops` simulation workspace가 EventRecord/VA fixture 기반 rule threshold, preset, scenario 후보의 what-if 결과를 비교합니다. rule apply, EventRecord write, Event POST/schema/media/client mutation, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.6.0 (11) Simulation Export Bundle | `UI-092`, `LAB-098`, `SAFE-158`, `OPS-125` | `verify-v360-simulation-export-bundle`, `verify-ops-client-ui` | `/ops/api/live-operations/simulation/export-bundle`와 `/ops` simulation workspace가 simulation input/output, blocker, handoff map을 redacted release-safe export bundle로 조합합니다. artifact export/file write/handoff write, simulation run persist/execute, source/view/rule/EventRecord/Ops audit/client/media mutation, raw locator/credential/provider/client viewer material 노출, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.6.0 (12) Field Evidence Simulation Adapter | `UI-093`, `SRC-052`, `MEDIA-024`, `LAB-099`, `SAFE-159`, `OPS-126` | `verify-v360-field-evidence-simulation-adapter`, `verify-ops-client-ui` | `/ops/api/live-operations/simulation/field-evidence-adapter`와 `/ops` simulation workspace가 ONVIF, external WHEP/TURN, cloud/VLM provider 조건을 field 실행 없이 조건부/not-run evidence로 simulation에 연결합니다. field smoke/endpoint probe/credential probe/provider call, source/view/EventRecord/Ops audit/client/media mutation, raw endpoint/credential/provider/VLM/client material 노출, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
+| v3.6.0 (13) VLM-assisted Simulation Explanation | `UI-094`, `SRC-053`, `EVT-079`, `LAB-100`, `SAFE-160`, `OPS-127` | `verify-v360-vlm-assisted-simulation-explanation`, `verify-ops-client-ui` | `/ops/api/live-operations/simulation/vlm-assisted-explanation`와 `/ops` simulation workspace가 default-off VLM 보조 설명으로 blocker, impact diff, operator review hint를 요약합니다. provider/runtime call은 opt-in 전 미수행이며 raw prompt/provider response/credential material, simulation run, field smoke, source/view/EventRecord/Ops audit/client/media mutation, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 
 ## 최신 published baseline v3.5.0 Live Operations Control Plane Coverage Mapping
 
@@ -306,16 +307,16 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 
 | 기능 ID 범위 | 안정화 verifier 후보 | 비고 |
 | --- | --- | --- |
-| `UI-001`~`UI-018`, `UI-022`~`UI-093` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
+| `UI-001`~`UI-018`, `UI-022`~`UI-094` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
-| `SRC-001`~`SRC-052` | source/ONVIF/UI/v340/v350/v360 verifier family | ONVIF field success는 approved environment only |
+| `SRC-001`~`SRC-053` | source/ONVIF/UI/v340/v350/v360 verifier family | ONVIF field success는 approved environment only |
 | `RULE-001`~`RULE-109` | rule/VA/v350/v360 verifier family | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
-| `EVT-001`~`EVT-078` | event/VLM/v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360 verifier family | event log 육안 확인은 UI 풀테스트 |
+| `EVT-001`~`EVT-079` | event/VLM/v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360 verifier family | event log 육안 확인은 UI 풀테스트 |
 | `CLIENT-001`~`CLIENT-034` | client/UI/v350/v360 verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-024` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
-| `LAB-001`~`LAB-099` | lab/VLM/v250/v260/v270/v280/v300/v310/v340/v350/v360 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-159` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-126` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
+| `LAB-001`~`LAB-100` | lab/VLM/v250/v260/v270/v280/v300/v310/v340/v350/v360 fixture verifier family | 제품 UI 비대상 |
+| `SAFE-001`~`SAFE-160` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-127` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
 
 ## VA Manual UI Seed Matrix
 
@@ -456,6 +457,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | UI-091 | V360 Step 10 Rule/VA What-if Replay Pack UI | 필요 | 필요 | 안정화, UI | `/ops` simulation workspace가 `media-server.ops.v360-rule-va-what-if-replay-pack.v1` 기반 rule threshold, preset, scenario what-if 후보를 read-only로 표시하고 rule apply/EventRecord write/media mutation을 수행하지 않음 |
 | UI-092 | V360 Step 11 Simulation Export Bundle UI | 필요 | 필요 | 안정화, UI | `/ops` simulation workspace가 `media-server.ops.v360-simulation-export-bundle.v1` 기반 simulation input/output, blocker, handoff map refs를 redacted release-safe bundle으로 표시하고 artifact export/file write/handoff write를 수행하지 않음 |
 | UI-093 | V360 Step 12 Field Evidence Simulation Adapter UI | 필요 | 필요 | 안정화, UI | `/ops` simulation workspace가 `media-server.ops.v360-field-evidence-simulation-adapter.v1` 기반 ONVIF, external WHEP/TURN, cloud/VLM provider 조건부/not-run evidence와 readiness blocker ref를 raw endpoint/credential/provider material 없이 표시함 |
+| UI-094 | V360 Step 13 VLM-assisted Simulation Explanation UI | 필요 | 필요 | 안정화, UI | `/ops` simulation workspace가 `media-server.ops.v360-vlm-assisted-simulation-explanation.v1` 기반 VLM-assisted Simulation Explanation을 default-off로 표시하고 blocker, impact diff, operator review hint를 raw prompt/provider response/credential material 없이 노출함 |
 
 ## B. Auth, Account, Role, Scope
 
@@ -560,6 +562,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SRC-050 | V360 Step 4 command plan dry-run source candidates | 비대상 | 필요 | 안정화 | `verify-v360-command-plan-dry-run-simulator`가 source recheck/recovery/maintenance 후보를 dry-run 결과로 계산하되 source recheck 실행, recovery 실행, source registry/PublishedView write를 수행하지 않음을 확인 |
 | SRC-051 | V360 Step 5 source health impact diff | 비대상 | 필요 | 안정화 | `verify-v360-source-rule-impact-diff`가 source/view 변경 후보 전후의 source health diff를 read-only로 표시하고 source/view apply, source registry/PublishedView write, raw locator/credential 노출을 수행하지 않음을 확인 |
 | SRC-052 | V360 Step 12 ONVIF simulation field evidence adapter | 비대상 | 필요 | 안정화 | `verify-v360-field-evidence-simulation-adapter`가 ONVIF 실기기 조건을 conditional/not-run simulation evidence로만 연결하고 endpoint probe, credential probe, source registry write, raw locator/credential 노출을 수행하지 않음을 확인 |
+| SRC-053 | V360 Step 13 source simulation explanation context | 비대상 | 필요 | 안정화 | `verify-v360-vlm-assisted-simulation-explanation`이 source health와 simulation impact diff를 default-off VLM 보조 설명 입력으로만 요약하고 source registry/PublishedView write, raw locator/credential 노출, VLM/provider call을 수행하지 않음을 확인 |
 
 ## D. Rule, Profile, Scenario, Tracker
 
@@ -757,6 +760,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | EVT-076 | V350 Step 12 incident/source relation explanation context | 비대상 | 필요 | 안정화 | `verify-v350-vlm-assisted-ops-explanation`이 incident/source relation을 EventRecord/source health refs 기반 default-off 보조 설명으로만 요약하고 EventRecord write, Event POST payload, client/viewer exposure, VLM/provider call을 수행하지 않음을 확인 |
 | EVT-077 | V360 Step 2 EventRecord simulation input | 비대상 | 필요 | 안정화 | `verify-v360-simulation-input-contract`가 EventRecord count/source refs를 read-only simulation input pack에 포함하되 EventRecord write, Event POST payload, WebRTC/SSE/WS metadata, RTSP/WebRTC media path를 변경하지 않음을 확인 |
 | EVT-078 | V360 Step 10 EventRecord what-if replay input | 비대상 | 필요 | 안정화 | `verify-v360-rule-va-what-if-replay-pack`이 EventRecord aggregate ref를 what-if input으로만 사용하고 EventRecord write, Event POST payload, WebRTC/SSE/WS metadata, RTSP/WebRTC media path를 변경하지 않음을 확인 |
+| EVT-079 | V360 Step 13 event risk simulation explanation context | 비대상 | 필요 | 안정화 | `verify-v360-vlm-assisted-simulation-explanation`이 EventRecord/what-if event risk context를 simulation explanation에만 사용하고 EventRecord write, Event POST payload, WebRTC/SSE/WS metadata, RTSP/WebRTC media path, client/viewer exposure, VLM/provider call을 수행하지 않음을 확인 |
 
 ## F. Client And Viewer
 
@@ -929,6 +933,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | LAB-097 | V360 Step 10 Rule/VA what-if replay pack | 비대상 | 필요 | 안정화 | `verify-v360-rule-va-what-if-replay-pack`이 EventRecord/VA fixture와 simulation diff를 조합해 threshold/preset/scenario 후보를 비교하되 실제 replay execution, rule apply, EventRecord mutation을 수행하지 않음을 확인 |
 | LAB-098 | V360 Step 11 simulation export bundle | 비대상 | 필요 | 안정화 | `verify-v360-simulation-export-bundle`이 simulation input/output, readiness blocker, handoff map refs를 redacted release-safe projection으로 조합하되 artifact export, file write, simulation execution, raw material 노출을 수행하지 않음을 확인 |
 | LAB-099 | V360 Step 12 cloud/VLM simulation field evidence adapter | 비대상 | 필요 | 안정화 | `verify-v360-field-evidence-simulation-adapter`가 cloud/VLM provider 조건을 conditional/not-run simulation evidence로만 연결하고 provider call, raw VLM prompt, raw provider response, credential material 저장을 수행하지 않음을 확인 |
+| LAB-100 | V360 Step 13 default-off VLM simulation explanation harness | 비대상 | 필요 | 안정화 | `verify-v360-vlm-assisted-simulation-explanation`이 VLM-assisted Simulation Explanation을 defaultEnabled=false, runtime/provider call 미수행, raw prompt/response 미포함 상태로 검증하고 실제 VLM/provider 실행을 PASS로 대체하지 않음을 확인 |
 
 ## I. Safety, Boundary, Invariant Contract
 
@@ -1093,6 +1098,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-157 | V360 Step 10 Rule/VA what-if boundary | 비대상 | 필요 | 안정화 | `verify-v360-rule-va-what-if-replay-pack`이 whatIfOnly=true로 산출하고 ruleRegistryWritePerformed=false, ruleThresholdApplied=false, presetApplied=false, scenarioApplied=false, eventRecordWritePerformed=false, rtspOrWebrtcMediaPathChanged=false를 확인 |
 | SAFE-158 | V360 Step 11 simulation export boundary | 비대상 | 필요 | 안정화 | `verify-v360-simulation-export-bundle`이 releaseSafe=true, redacted=true로 산출하고 artifactExportExecuted=false, bundlePersisted=false, fileWritePerformed=false, handoffWritePerformed=false, rawLocatorIncluded=false, credentialMaterialIncluded=false, rawProviderResponseIncluded=false를 확인 |
 | SAFE-159 | V360 Step 12 field evidence simulation boundary | 비대상 | 필요 | 안정화 | `verify-v360-field-evidence-simulation-adapter`가 conditionalNotRunEvidence=true로 산출하고 fieldSmokeExecuted=false, endpointProbePerformed=false, credentialProbePerformed=false, onvifDeviceContacted=false, externalWhepTurnContacted=false, cloudProviderContacted=false, vlmProviderCalled=false, raw endpoint/credential/provider material 미포함을 확인 |
+| SAFE-160 | V360 Step 13 VLM-assisted simulation explanation boundary | 비대상 | 필요 | 안정화 | `verify-v360-vlm-assisted-simulation-explanation`이 default-off VLM 보조 설명을 산출하면서 defaultEnabled=false, vlmProviderCallPerformed=false, vlmRuntimeCallPerformed=false, rawVlmPromptIncluded=false, rawProviderResponseIncluded=false, credentialMaterialIncluded=false, simulationRunExecuted=false, operatorReviewWritePerformed=false, source/view/EventRecord/Ops audit/client/media mutation 미수행을 확인 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -1190,6 +1196,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-124 | V360 Step 10 Rule/VA What-if Replay Pack 게이트 | 비대상 | 필요 | 안정화 | `verify-v360-rule-va-what-if-replay-pack`이 `/ops/api/live-operations/simulation/rule-va-what-if-replay-pack` Ops-only route, `/ops` what-if UI, EventRecord/VA fixture 기반 threshold/preset/scenario 후보 비교, no-apply boundary, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 rule apply, EventRecord write, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-125 | V360 Step 11 Simulation Export Bundle 게이트 | 비대상 | 필요 | 안정화 | `verify-v360-simulation-export-bundle`이 `/ops/api/live-operations/simulation/export-bundle` Ops-only route, `/ops` export bundle UI, simulation input/output/blocker/handoff refs, redacted release-safe boundary, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 artifact export/file write/handoff write, field smoke/provider call, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-126 | V360 Step 12 Field Evidence Simulation Adapter 게이트 | 비대상 | 필요 | 안정화 | `verify-v360-field-evidence-simulation-adapter`가 `/ops/api/live-operations/simulation/field-evidence-adapter` Ops-only route, `/ops` adapter UI, ONVIF/external WHEP-TURN/cloud-VLM conditional/not-run evidence, no-field-execution boundary, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 field smoke, endpoint/credential probe, provider call, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
+| OPS-127 | V360 Step 13 VLM-assisted Simulation Explanation 게이트 | 비대상 | 필요 | 안정화 | `verify-v360-vlm-assisted-simulation-explanation`이 `/ops/api/live-operations/simulation/vlm-assisted-explanation` Ops-only route, `/ops` simulation workspace VLM-assisted Simulation Explanation UI, default-off/no-call boundary, CSS, ops/client smoke, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 VLM/provider 실행, simulation 실행, operator review write, UI 풀테스트 직접 조작, 30분/120분, release publish PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 

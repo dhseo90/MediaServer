@@ -2850,6 +2850,12 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
             </div>
           </div>
           <div>
+            <h4>VLM-assisted Simulation Explanation</h4>
+            <div id="dashSimulationWorkspaceVlmAssistedExplanationList" class="ops-simulation-vlm-assisted-explanation-list" data-v360-vlm-assisted-simulation-explanation="media-server.ops.v360-vlm-assisted-simulation-explanation.v1">
+              <div class="empty">default-off VLM 보조 설명으로 blocker, impact diff, operator review hint 요약을 기다립니다.</div>
+            </div>
+          </div>
+          <div>
             <h4>Impact Diff</h4>
             <div id="dashSimulationWorkspaceImpactList" class="ops-simulation-workspace-list">
               <div class="empty">source/rule impact diff를 기다립니다.</div>
@@ -17889,6 +17895,7 @@ OpsV360SimulationRunContract BuildV360SimulationRunContract() {
         "/ops/api/live-operations/simulation/rule-va-what-if-replay-pack",
         "/ops/api/live-operations/simulation/export-bundle",
         "/ops/api/live-operations/simulation/field-evidence-adapter",
+        "/ops/api/live-operations/simulation/vlm-assisted-explanation",
     };
     contract.allowed_readiness_states = {
         "ready",
@@ -19983,6 +19990,266 @@ std::string OpsV360FieldEvidenceSimulationAdapterJson(
         << "\"rawVlmPromptIncluded\":false,"
         << "\"rawProviderResponseIncluded\":false,"
         << "\"clientViewerMaterialIncluded\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV360VlmAssistedSimulationExplanationItem {
+    std::string explanation_id;
+    std::string explanation_type;
+    std::string title;
+    std::string simulation_blocker_summary;
+    std::string impact_diff_summary;
+    std::string operator_review_hint;
+    std::string source_id{"simulation"};
+    std::vector<std::string> evidence_refs;
+    bool default_enabled{false};
+    bool default_off{true};
+    bool runtime_opt_in_required{true};
+    bool vlm_provider_call_performed{false};
+    bool vlm_runtime_call_performed{false};
+};
+
+struct OpsV360VlmAssistedSimulationExplanationSummary {
+    int explanation_count{0};
+    int blocker_summary_count{0};
+    int impact_diff_summary_count{0};
+    int operator_review_hint_count{0};
+    int default_off_count{0};
+    int provider_call_count{0};
+};
+
+std::vector<OpsV360VlmAssistedSimulationExplanationItem>
+BuildV360VlmAssistedSimulationExplanationItems(
+    const std::vector<OpsV360CommandPlanDryRunResult>& dryRunResults,
+    const std::vector<OpsV360SourceRuleImpactDiff>& impactDiffs,
+    const std::vector<OpsV360SafeApplyReadinessItem>& readinessItems,
+    const std::vector<OpsV360FieldEvidenceSimulationAdapterItem>& fieldEvidenceAdapters) {
+    std::vector<std::string> blockers;
+    for (const auto& readiness : readinessItems) {
+        blockers.insert(blockers.end(), readiness.blockers.begin(), readiness.blockers.end());
+    }
+    for (const auto& result : dryRunResults) {
+        blockers.insert(blockers.end(), result.blockers.begin(), result.blockers.end());
+    }
+
+    const OpsV360SourceRuleImpactDiff* first_diff =
+        impactDiffs.empty() ? nullptr : &impactDiffs.front();
+    const std::string source_id =
+        first_diff == nullptr || first_diff->source_id.empty() ? "simulation" : first_diff->source_id;
+    const std::string blocker_text =
+        blockers.empty() ? "no simulation-blocker currently projected"
+                         : JoinV340ApprovalRecoveryStrings(blockers, ", ");
+    const std::string impact_text =
+        first_diff == nullptr
+            ? "impact diff pending from BuildV360SourceRuleImpactDiffs"
+            : first_diff->source_health_diff + "; " + first_diff->event_risk_diff + "; " +
+                  first_diff->client_impact_diff;
+
+    std::vector<OpsV360VlmAssistedSimulationExplanationItem> items;
+    OpsV360VlmAssistedSimulationExplanationItem blocker_item;
+    blocker_item.explanation_id = "vlm-simulation-explanation:simulation-blocker";
+    blocker_item.explanation_type = "simulation-blocker";
+    blocker_item.title = "Simulation Blocker Summary";
+    blocker_item.source_id = source_id;
+    blocker_item.simulation_blocker_summary =
+        "simulation-blocker summary from BuildV360SafeApplyReadinessItems and BuildV360CommandPlanDryRunResults: " +
+        blocker_text;
+    blocker_item.impact_diff_summary =
+        "impactDiffSummary remains deterministic and default-off for simulation-blocker review.";
+    blocker_item.operator_review_hint =
+        "operator review hint: review readiness blockers and dry-run blockers before any opt-in VLM assistance.";
+    blocker_item.evidence_refs = {
+        "/ops/api/live-operations/simulation/command-plan-dry-run",
+        "/ops/api/live-operations/simulation/safe-apply-readiness",
+    };
+    items.push_back(std::move(blocker_item));
+
+    OpsV360VlmAssistedSimulationExplanationItem impact_item;
+    impact_item.explanation_id = "vlm-simulation-explanation:simulation-impact-diff";
+    impact_item.explanation_type = "simulation-impact-diff";
+    impact_item.title = "Simulation Impact Diff Summary";
+    impact_item.source_id = source_id;
+    impact_item.simulation_blocker_summary =
+        "simulationBlockerSummary references " + std::to_string(blockers.size()) +
+        " blocker signals without executing simulation.";
+    impact_item.impact_diff_summary =
+        "simulation-impact-diff summary from BuildV360SourceRuleImpactDiffs: " + impact_text;
+    impact_item.operator_review_hint =
+        "operator review hint: compare source health, event risk, and viewer-safe client impact diff before promotion.";
+    impact_item.evidence_refs = {
+        "/ops/api/live-operations/simulation/impact-diff",
+        first_diff == nullptr ? "impact-diff:pending" : first_diff->diff_id,
+    };
+    items.push_back(std::move(impact_item));
+
+    OpsV360VlmAssistedSimulationExplanationItem review_item;
+    review_item.explanation_id = "vlm-simulation-explanation:operator-review-hint";
+    review_item.explanation_type = "operator-review-hint";
+    review_item.title = "Operator Review Hint";
+    review_item.source_id = source_id;
+    review_item.simulation_blocker_summary =
+        "simulationBlockerSummary combines readiness and field evidence adapter not-run context.";
+    review_item.impact_diff_summary =
+        "impactDiffSummary is redacted release-safe and built from simulation read models only.";
+    review_item.operator_review_hint =
+        "operator review hint: VLM assistance is default-off; provider/runtime call is opt-in only and no operator review write is performed.";
+    review_item.evidence_refs = {
+        "/ops/api/live-operations/simulation/field-evidence-adapter",
+        "/ops/api/live-operations/simulation/export-bundle",
+        "fieldEvidenceAdapterCount:" + std::to_string(fieldEvidenceAdapters.size()),
+    };
+    items.push_back(std::move(review_item));
+
+    return items;
+}
+
+OpsV360VlmAssistedSimulationExplanationSummary
+BuildV360VlmAssistedSimulationExplanationSummary(
+    const std::vector<OpsV360VlmAssistedSimulationExplanationItem>& items) {
+    OpsV360VlmAssistedSimulationExplanationSummary summary;
+    summary.explanation_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        if (item.explanation_type == "simulation-blocker") {
+            ++summary.blocker_summary_count;
+        } else if (item.explanation_type == "simulation-impact-diff") {
+            ++summary.impact_diff_summary_count;
+        } else if (item.explanation_type == "operator-review-hint") {
+            ++summary.operator_review_hint_count;
+        }
+        if (item.default_off && !item.default_enabled) {
+            ++summary.default_off_count;
+        }
+        if (item.vlm_provider_call_performed || item.vlm_runtime_call_performed) {
+            ++summary.provider_call_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV360VlmAssistedSimulationExplanationItemJson(
+    std::ostringstream& out,
+    const OpsV360VlmAssistedSimulationExplanationItem& item) {
+    out << "{"
+        << "\"explanationId\":\"" << JsonEscape(item.explanation_id) << "\","
+        << "\"explanationType\":\"" << JsonEscape(item.explanation_type) << "\","
+        << "\"title\":\"" << JsonEscape(item.title) << "\","
+        << "\"sourceId\":\"" << JsonEscape(item.source_id) << "\","
+        << "\"simulationBlockerSummary\":\""
+        << JsonEscape(item.simulation_blocker_summary) << "\","
+        << "\"impactDiffSummary\":\"" << JsonEscape(item.impact_diff_summary) << "\","
+        << "\"operatorReviewHint\":\"" << JsonEscape(item.operator_review_hint) << "\","
+        << "\"defaultEnabled\":" << (item.default_enabled ? "true" : "false") << ","
+        << "\"defaultOff\":" << (item.default_off ? "true" : "false") << ","
+        << "\"runtimeOptInRequired\":"
+        << (item.runtime_opt_in_required ? "true" : "false") << ","
+        << "\"vlmProviderCallPerformed\":"
+        << (item.vlm_provider_call_performed ? "true" : "false") << ","
+        << "\"vlmRuntimeCallPerformed\":"
+        << (item.vlm_runtime_call_performed ? "true" : "false") << ","
+        << "\"rawVlmPromptIncluded\":false,"
+        << "\"rawProviderResponseIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"evidenceRefs\":";
+    AppendV340RecoveryCandidateStringListJson(out, item.evidence_refs);
+    out << "}";
+}
+
+void AppendV360VlmAssistedSimulationExplanationSummaryJson(
+    std::ostringstream& out,
+    const OpsV360VlmAssistedSimulationExplanationSummary& summary) {
+    out << "{"
+        << "\"explanationCount\":" << summary.explanation_count << ","
+        << "\"blockerSummaryCount\":" << summary.blocker_summary_count << ","
+        << "\"impactDiffSummaryCount\":" << summary.impact_diff_summary_count << ","
+        << "\"operatorReviewHintCount\":" << summary.operator_review_hint_count << ","
+        << "\"defaultOffCount\":" << summary.default_off_count << ","
+        << "\"providerCallCount\":" << summary.provider_call_count
+        << "}";
+}
+
+std::string OpsV360VlmAssistedSimulationExplanationJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v360-vlm-assisted-simulation-explanation.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto dryRunResults = BuildV360CommandPlanDryRunResults(commandPlanCandidates);
+    const auto impactDiffs =
+        BuildV360SourceRuleImpactDiffs(context, commandPlanCandidates, stagedChangePlans);
+    const auto readinessItems = BuildV360SafeApplyReadinessItems(dryRunResults, impactDiffs);
+    const auto fieldBridgeConditionGates = BuildV340FieldBridgeConditionGates();
+    const auto fieldEvidenceIntakeRecords =
+        BuildV350FieldEvidenceIntakeRecords(fieldBridgeConditionGates);
+    const auto fieldEvidenceExecutionConditions =
+        BuildV350FieldEvidenceExecutionConditions(fieldEvidenceIntakeRecords);
+    const auto fieldEvidenceAdapterItems =
+        BuildV360FieldEvidenceSimulationAdapterItems(fieldEvidenceIntakeRecords,
+                                                     fieldEvidenceExecutionConditions,
+                                                     readinessItems);
+    const auto explanations = BuildV360VlmAssistedSimulationExplanationItems(
+        dryRunResults, impactDiffs, readinessItems, fieldEvidenceAdapterItems);
+    const auto summary = BuildV360VlmAssistedSimulationExplanationSummary(explanations);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v360-vlm-assisted-simulation-explanation.v1\","
+        << "\"status\":\"vlm-assisted-simulation-explanation\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"commandPlanDryRunRoute\":\"/ops/api/live-operations/simulation/command-plan-dry-run\","
+        << "\"impactDiffRoute\":\"/ops/api/live-operations/simulation/impact-diff\","
+        << "\"readinessRoute\":\"/ops/api/live-operations/simulation/safe-apply-readiness\","
+        << "\"fieldEvidenceSimulationAdapterRoute\":\"/ops/api/live-operations/simulation/field-evidence-adapter\","
+        << "\"defaultOff\":true,"
+        << "\"defaultEnabled\":false,"
+        << "\"runtimeOptInRequired\":true,"
+        << "\"vlmAssistedSimulationExplanationSummary\":";
+    AppendV360VlmAssistedSimulationExplanationSummaryJson(out, summary);
+    out << ",\"vlmAssistedSimulationExplanations\":[";
+    for (std::size_t i = 0; i < explanations.size(); ++i) {
+        if (i != 0) out << ",";
+        AppendV360VlmAssistedSimulationExplanationItemJson(out, explanations[i]);
+    }
+    out << "],\"vlmPolicy\":{"
+        << "\"defaultOff\":true,"
+        << "\"defaultEnabled\":false,"
+        << "\"runtimeOptInRequired\":true,"
+        << "\"summaryMode\":\"deterministic-simulation-read-model\","
+        << "\"simulationBlockerSummary\":\"readiness and dry-run blockers only\","
+        << "\"impactDiffSummary\":\"source/rule/client impact diff only\","
+        << "\"operatorReviewHint\":\"operator review hint only; no automatic action\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"defaultOff\":true,"
+        << "\"defaultEnabled\":false,"
+        << "\"runtimeOptInRequired\":true,"
+        << "\"vlmProviderCallPerformed\":false,"
+        << "\"vlmRuntimeCallPerformed\":false,"
+        << "\"rawVlmPromptIncluded\":false,"
+        << "\"rawProviderResponseIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"simulationRunExecuted\":false,"
+        << "\"simulationRunPersisted\":false,"
+        << "\"fieldSmokeExecuted\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"operatorReviewWritePerformed\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"viewerClientExposureAdded\":false,"
         << "\"eventRecordSchemaChanged\":false,"
         << "\"eventPostPayloadChanged\":false,"
         << "\"webrtcDataChannelSchemaChanged\":false,"
@@ -30103,6 +30370,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV360FieldEvidenceSimulationAdapterJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/live-operations/simulation/vlm-assisted-explanation") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV360VlmAssistedSimulationExplanationJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

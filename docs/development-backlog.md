@@ -22,8 +22,8 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 상태: Step 1 source/version/docs/backlog/verification metadata 정렬 완료. Step 2
 Simulation Input Contract 구현 완료. Step 3 Operations Simulation Run Contract 구현 완료.
 Step 4 Command Plan Dry-run Simulator 구현 완료. Step 5 Source/Rule Impact Diff 구현 완료.
-Step 6 Safe Apply Readiness Gate 구현 완료. 현재 source version은 `3.6.0`이고 latest
-published baseline은 `v3.5.0`입니다. 각 step은 실제 코드/API/문서/검증 산출물이 생긴
+Step 6 Safe Apply Readiness Gate 구현 완료. Step 7~13 simulation workspace 확장 구현 완료.
+현재 source version은 `3.6.0`이고 latest published baseline은 `v3.5.0`입니다. 각 step은 실제 코드/API/문서/검증 산출물이 생긴
 뒤에만 완료로 기록합니다.
 
 직접 답: v3.6.0의 1차 선택값은 `Operations Simulation and Safe Apply Readiness`입니다.
@@ -55,6 +55,8 @@ production write 없이 simulation input, dry-run, impact diff, safe apply readi
 | 10 | v3.6.0 (10) Rule/VA What-if Replay Pack | P1 | 완료 | 기존 VA fixture/EventRecord 기반으로 rule threshold, preset, scenario 후보의 what-if 결과 비교 |
 | 11 | v3.6.0 (11) Simulation Export Bundle | P1 | 완료 | simulation input/output, blocker, handoff map을 redacted release-safe export bundle로 조합 |
 | 12 | v3.6.0 (12) Field Evidence Simulation Adapter | P2 | 완료 | ONVIF, external WHEP/TURN, cloud/VLM provider 조건을 field 실행 없이 조건부/not-run evidence로 simulation에 연결 |
+| 13 | v3.6.0 (13) VLM-assisted Simulation Explanation | P2 | 완료 | default-off VLM 보조 설명으로 blocker, impact diff, operator review hint를 요약. provider/runtime call은 opt-in 전 미수행 |
+| 14 | v3.6.0 (14) Stabilization and Release Readiness | P0 | 미진행 | v3.6 verifier, feature inventory, release records, docs links/assets, close-out dry-run, `git diff --check` 연결 |
 
 완료 경계: 위 표는 v3.6.0 개발 순서와 우선순위입니다. 각 step은 실제 코드/API/문서
 변경, 기능 ID/test inventory 등록, 해당 verifier와 release test record evidence가 생긴 뒤에만
@@ -166,6 +168,15 @@ action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁�
 - `src/ingress/webrtc_http_server.cpp`, `src/ingress/product_ui_page_scripts.cpp`, `src/ingress/product_ui_css.cpp`: `/ops` simulation workspace에 `dashSimulationWorkspaceFieldEvidenceAdapterList`를 추가하고 `fieldEvidenceSimulationAdapters`, `simulationAdapterConditions`의 not-run reason, readiness blocker ref, condition refs를 표시합니다.
 - `scripts/internal/verify_v360_field_evidence_simulation_adapter.mjs`, `server.sh`: `./server.sh verify-v360-field-evidence-simulation-adapter` 명령을 추가해 adapter model, route guard, conditional/not-run boundary, UI renderer/CSS, client/viewer 비노출, docs/inventory/release records/server dispatch 연결을 검증합니다.
 - 완료 경계: 이번 Step 12는 Field Evidence Simulation Adapter API/UI/verifier 연결입니다. VLM-assisted Simulation Explanation 완료 evidence가 아닙니다. 실제 field smoke, endpoint/credential probe, provider/runtime call, UI 풀테스트 직접 조작, 30분/120분 longrun, release action PASS를 대체하지 않습니다.
+
+## v3.6.0 Step 13 개발 기록
+
+- 범위: P2 `v3.6.0 (13) VLM-assisted Simulation Explanation`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV360VlmAssistedSimulationExplanationJson`을 추가해 `media-server.ops.v360-vlm-assisted-simulation-explanation.v1` default-off explanation projection을 생성합니다. explanation은 `BuildV350LiveOperationsGraphContext`, `BuildV360CommandPlanDryRunResults`, `BuildV360SourceRuleImpactDiffs`, `BuildV360SafeApplyReadinessItems`, `BuildV360FieldEvidenceSimulationAdapterItems`를 조합해 `simulationBlockerSummary`, `impactDiffSummary`, `operatorReviewHint`를 산출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `GET /ops/api/live-operations/simulation/vlm-assisted-explanation` route를 추가했습니다. 이 route는 `require_ops_principal()`로 보호되고 `Cache-Control: no-store`를 설정하며 provider/runtime call은 opt-in 전 미수행, raw prompt/provider response/credential material 미포함, simulation run, field smoke, source/view/EventRecord/Ops audit/client/media mutation을 수행하지 않습니다.
+- `src/ingress/webrtc_http_server.cpp`, `src/ingress/product_ui_page_scripts.cpp`, `src/ingress/product_ui_css.cpp`: `/ops` simulation workspace에 `dashSimulationWorkspaceVlmAssistedExplanationList`를 추가하고 `vlmAssistedSimulationExplanations`의 blocker, impact diff, operator review hint, default-off boundary를 표시합니다.
+- `scripts/internal/verify_v360_vlm_assisted_simulation_explanation.mjs`, `server.sh`: `./server.sh verify-v360-vlm-assisted-simulation-explanation` 명령을 추가해 explanation model, route guard, default-off/no-call/no-write boundary, UI renderer/CSS, client/viewer 비노출, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- 완료 경계: 이번 Step 13은 VLM-assisted Simulation Explanation API/UI/verifier 연결입니다. Stabilization and Release Readiness 완료 evidence가 아닙니다. 실제 VLM/provider/runtime call, simulation 실행, operator review write, UI 풀테스트 직접 조작, 30분/120분 longrun, release action PASS를 대체하지 않습니다.
 
 ## 최신 published baseline 상세: v3.5.0 Live Operations Control Plane
 
