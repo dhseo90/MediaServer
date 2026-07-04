@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Published Release](https://img.shields.io/badge/published-v3.5.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v3.5.0)
+[![Published Release](https://img.shields.io/badge/published-v3.6.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v3.6.0)
 ![Source Version](https://img.shields.io/badge/source-3.6.0-informational)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
@@ -14,9 +14,9 @@ and runtime/model bundle distribution are outside the default public release.
 
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
-- Latest published GitHub Release: [v3.5.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.5.0)
+- Latest published GitHub Release: [v3.6.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.6.0)
 - Current source version: `3.6.0`
-- v3.5.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
+- v3.6.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
 - Current source roadmap: `v3.6.0 Operations Simulation and Safe Apply Readiness`
 
 ## At a Glance
@@ -36,14 +36,13 @@ and runtime/model bundle distribution are outside the default public release.
 
 ## v3.6 Source Roadmap
 
-- Latest published release: `v3.5.0` Live Operations Control Plane, source-only.
+- Latest published release: `v3.6.0` Operations Simulation and Safe Apply Readiness, source-only.
 - Current source: `3.6.0` Operations Simulation and Safe Apply Readiness.
 - v3.6 roadmap: builds read-only simulation input packs, simulation run
   contracts, command plan dry-runs, source/rule impact diffs, and safe apply
   readiness gates on top of the v3.5 Live Operations graph and plans.
-- Latest published baseline: v3.5.0 remains the published source baseline, and
-  v3.6 source changes are recorded complete only after their own
-  code/UI/API/verification evidence exists.
+- Latest published baseline: v3.6.0 is the published source baseline, while
+  v3.5.0 Live Operations Control Plane remains the previous published baseline.
 - Invariants: Event POST, WebRTC DataChannel, SSE/WS metadata, and RTSP/WebRTC
   media paths are unchanged unless explicitly requested.
 - AI/model boundary: Qwen 8B local standard, Qwen 4B low-spec fallback, Qwen 30B
@@ -133,7 +132,7 @@ records live in dedicated docs.
 - Release/version policy: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
-- Latest published release notes: [v3.5.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.5.0)
+- Latest published release notes: [v3.6.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.6.0)
 - Current source roadmap: `v3.6.0 Operations Simulation and Safe Apply Readiness` in
   [docs/development-backlog.md](docs/development-backlog.md)
 
