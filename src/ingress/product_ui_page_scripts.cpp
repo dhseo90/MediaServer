@@ -781,6 +781,274 @@ void AppendOpsShellScript(std::ostringstream& out,
         ]);
         renderV350OpsCommandWorkspace({ liveOperationsGraph, commandPlan, stagedPlan, drillLedger, exportBundle, fieldEvidenceIntake, vlmAssistedExplanation, reviews, graphRoute, commandPlanRoute, stagedPlanRoute, drillLedgerRoute, exportBundleRoute, fieldEvidenceRoute, vlmExplanationRoute, reviewRoute });
       };
+      let v360SimulationWorkspaceState = {};
+      const v360SimulationWorkspaceList = value => Array.isArray(value) ? value : [];
+      const v360SimulationWorkspaceEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-simulation-workspace-entry ${escapeHtml(tone)}" data-v360-simulation-workspace-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV360OpsSimulationWorkspace = (payload = {}) => {
+        const inputPack = payload.inputPack || {};
+        const simulationRun = payload.simulationRun || {};
+        const simulationRunLedger = payload.simulationRunLedger || {};
+        const clientNoticePreview = payload.clientNoticePreview || {};
+        const ruleVaWhatIfReplayPack = payload.ruleVaWhatIfReplayPack || {};
+        const simulationExportBundle = payload.simulationExportBundle || {};
+        const fieldEvidenceSimulationAdapter = payload.fieldEvidenceSimulationAdapter || {};
+        const vlmAssistedSimulationExplanation = payload.vlmAssistedSimulationExplanation || {};
+        const dryRun = payload.dryRun || {};
+        const impactDiff = payload.impactDiff || {};
+        const readiness = payload.readiness || {};
+        const simulationInputPackItems = v360SimulationWorkspaceList(inputPack.simulationInputPackItems);
+        const simulationRunLedgerEntries = v360SimulationWorkspaceList(simulationRunLedger.simulationRunLedgerEntries);
+        const clientNoticePreviewItems = v360SimulationWorkspaceList(clientNoticePreview.clientNoticePreviewItems);
+        const whatIfReplayCandidates = v360SimulationWorkspaceList(ruleVaWhatIfReplayPack.whatIfReplayCandidates);
+        const simulationExportBundleItems = v360SimulationWorkspaceList(simulationExportBundle.simulationExportBundleItems);
+        const simulationHandoffMapEntries = v360SimulationWorkspaceList(simulationExportBundle.simulationHandoffMapEntries);
+        const fieldEvidenceSimulationAdapters = v360SimulationWorkspaceList(fieldEvidenceSimulationAdapter.fieldEvidenceSimulationAdapters);
+        const simulationAdapterConditions = v360SimulationWorkspaceList(fieldEvidenceSimulationAdapter.simulationAdapterConditions);
+        const vlmAssistedSimulationExplanations = v360SimulationWorkspaceList(vlmAssistedSimulationExplanation.vlmAssistedSimulationExplanations);
+        const commandPlanDryRunResults = v360SimulationWorkspaceList(dryRun.commandPlanDryRunResults);
+        const sourceRuleImpactDiffs = v360SimulationWorkspaceList(impactDiff.sourceRuleImpactDiffs);
+        const safeApplyReadinessItems = v360SimulationWorkspaceList(readiness.safeApplyReadinessItems);
+        const simulationResultEnvelope = simulationRun.simulationResultEnvelope || {};
+        const readinessBlockers = safeApplyReadinessItems.flatMap(item => v360SimulationWorkspaceList(item.blockers));
+        v360SimulationWorkspaceState = {
+          inputPack,
+          simulationRun,
+          simulationRunLedger,
+          clientNoticePreview,
+          ruleVaWhatIfReplayPack,
+          simulationExportBundle,
+          fieldEvidenceSimulationAdapter,
+          vlmAssistedSimulationExplanation,
+          dryRun,
+          impactDiff,
+          readiness,
+          inputPackRoute: payload.inputPackRoute || '/ops/api/live-operations/simulation/input-pack',
+          runContractRoute: payload.runContractRoute || '/ops/api/live-operations/simulation/run-contract',
+          simulationRunLedgerRoute: payload.simulationRunLedgerRoute || '/ops/api/live-operations/simulation/run-ledger',
+          clientNoticePreviewRoute: payload.clientNoticePreviewRoute || '/ops/api/live-operations/simulation/client-notice-preview',
+          ruleVaWhatIfReplayRoute: payload.ruleVaWhatIfReplayRoute || '/ops/api/live-operations/simulation/rule-va-what-if-replay-pack',
+          simulationExportBundleRoute: payload.simulationExportBundleRoute || '/ops/api/live-operations/simulation/export-bundle',
+          fieldEvidenceSimulationAdapterRoute: payload.fieldEvidenceSimulationAdapterRoute || '/ops/api/live-operations/simulation/field-evidence-adapter',
+          vlmAssistedSimulationExplanationRoute: payload.vlmAssistedSimulationExplanationRoute || '/ops/api/live-operations/simulation/vlm-assisted-explanation',
+          dryRunRoute: payload.dryRunRoute || '/ops/api/live-operations/simulation/command-plan-dry-run',
+          impactDiffRoute: payload.impactDiffRoute || '/ops/api/live-operations/simulation/impact-diff',
+          readinessRoute: payload.readinessRoute || '/ops/api/live-operations/simulation/safe-apply-readiness'
+        };
+        const boundaryOk = inputPack.boundaries?.readOnly === true &&
+          simulationRun.boundaries?.simulationRunExecuted === false &&
+          simulationRunLedger.boundaries?.simulationRunExecuted === false &&
+          simulationRunLedger.boundaries?.operatorNoteWritePerformed === false &&
+          clientNoticePreview.boundaries?.clientNoticeSent === false &&
+          clientNoticePreview.boundaries?.viewerClientPayloadChanged === false &&
+          ruleVaWhatIfReplayPack.boundaries?.ruleRegistryWritePerformed === false &&
+          ruleVaWhatIfReplayPack.boundaries?.eventRecordWritePerformed === false &&
+          simulationExportBundle.boundaries?.artifactExportExecuted === false &&
+          simulationExportBundle.boundaries?.fileWritePerformed === false &&
+          simulationExportBundle.boundaries?.handoffWritePerformed === false &&
+          fieldEvidenceSimulationAdapter.boundaries?.fieldSmokeExecuted === false &&
+          fieldEvidenceSimulationAdapter.boundaries?.endpointProbePerformed === false &&
+          fieldEvidenceSimulationAdapter.boundaries?.vlmProviderCalled === false &&
+          vlmAssistedSimulationExplanation.boundaries?.defaultEnabled === false &&
+          vlmAssistedSimulationExplanation.boundaries?.vlmProviderCallPerformed === false &&
+          vlmAssistedSimulationExplanation.boundaries?.vlmRuntimeCallPerformed === false &&
+          dryRun.boundaries?.commandPlanExecuted === false &&
+          impactDiff.boundaries?.sourceChangeApplied === false &&
+          readiness.boundaries?.safeApplyPerformed === false &&
+          readiness.boundaries?.clientNoticeSent === false;
+        renderBadges('dashSimulationWorkspaceBadges', [
+          { text: `input ${simulationInputPackItems.length}` },
+          { text: `ledger ${simulationRunLedgerEntries.length}` },
+          { text: `notice ${clientNoticePreviewItems.length}` },
+          { text: `what-if ${whatIfReplayCandidates.length}` },
+          { text: `export ${simulationExportBundleItems.length + simulationHandoffMapEntries.length}` },
+          { text: `field adapter ${fieldEvidenceSimulationAdapters.length}` },
+          { text: `vlm hint ${vlmAssistedSimulationExplanations.length}` },
+          { text: `dry-run ${commandPlanDryRunResults.length}` },
+          { text: `diff ${sourceRuleImpactDiffs.length}` },
+          { text: `readiness ${safeApplyReadinessItems.length}` },
+          { text: `blocker ${readinessBlockers.length}`, tone: readinessBlockers.length > 0 ? 'warn' : 'info' },
+          { text: boundaryOk ? 'read-only' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashSimulationWorkspaceText',
+          payload.error
+            ? `simulation workspace 로드 실패: ${payload.error}`
+            : `input ${simulationInputPackItems.length} · ledger ${simulationRunLedgerEntries.length} · notice preview ${clientNoticePreviewItems.length} · what-if ${whatIfReplayCandidates.length} · export bundle ${simulationExportBundleItems.length} · handoff ${simulationHandoffMapEntries.length} · field adapter ${fieldEvidenceSimulationAdapters.length} · vlm hint ${vlmAssistedSimulationExplanations.length} · dry-run ${commandPlanDryRunResults.length} · impact diff ${sourceRuleImpactDiffs.length} · readiness ${safeApplyReadinessItems.length}`);
+        const inputList = document.getElementById('dashSimulationWorkspaceInputList');
+        if (inputList) {
+          inputList.innerHTML = simulationInputPackItems.length > 0
+            ? simulationInputPackItems.slice(0, 6).map(item =>
+                v360SimulationWorkspaceEntry(
+                  item.inputId || item.inputType || 'simulation-input',
+                  item.inputType || 'Simulation Input',
+                  item.sourceRoute || 'source route pending',
+                  `records=${item.recordCount ?? 0} · status=${item.snapshotStatus || 'snapshot'} · writeGuard=${item.writeGuard || 'read-only'}`))
+              .join('')
+            : '<div class="empty">Simulation Input Pack 항목이 아직 없습니다.</div>';
+        }
+        const runList = document.getElementById('dashSimulationWorkspaceRunList');
+        if (runList) {
+          const routeFamily = v360SimulationWorkspaceList(simulationRun.simulationRunSchema?.simulationRouteFamily).slice(0, 6).join(', ');
+          runList.innerHTML = [
+            v360SimulationWorkspaceEntry(
+              'simulation-run',
+              simulationRun.simulationRunSchema?.simulationRunId || simulationResultEnvelope.simulationRunId || 'simulation run id pending',
+              simulationResultEnvelope.summary || 'simulation result envelope is not persisted',
+              `resultStatus=${simulationResultEnvelope.resultStatus || 'not-run'} · readyStatus=${simulationResultEnvelope.readyStatus || 'not-run'} · blockers=${v360SimulationWorkspaceList(simulationResultEnvelope.blockers).join(', ') || 'none'}`),
+            v360SimulationWorkspaceEntry(
+              'simulation-route-family',
+              'route family',
+              routeFamily || 'simulation route family pending',
+              `input=${v360SimulationWorkspaceState.inputPackRoute} · run=${v360SimulationWorkspaceState.runContractRoute}`)
+          ].join('');
+        }
+        const ledgerList = document.getElementById('dashSimulationWorkspaceLedgerList');
+        if (ledgerList) {
+          ledgerList.innerHTML = simulationRunLedgerEntries.length > 0
+            ? simulationRunLedgerEntries.slice(0, 6).map(entry => {
+                const changedFields = v360SimulationWorkspaceList(entry.changedFields).slice(0, 3).join(', ') || 'changed fields pending';
+                return `<p class="ops-simulation-ledger-entry" data-v360-simulation-run-ledger-entry="${escapeHtml(entry.simulationRunId || 'simulation-run')}">
+                  <strong>${escapeHtml(display(entry.simulationRunId || 'simulation run id pending'))}</strong>
+                  <span>${escapeHtml(display(entry.operatorNote || 'operator note pending'))}</span>
+                  <small>inputRef=${escapeHtml(display(entry.inputRef || 'input ref pending'))} · resultDiff=${escapeHtml(display(entry.resultDiff || 'result diff pending'))} · previous=${escapeHtml(display(entry.previousRunId || entry.comparedToRunId || 'baseline'))} · blocker=${escapeHtml(display(entry.blocker || 'none'))} · changedFields=${escapeHtml(display(changedFields))}</small>
+                </p>`;
+              }).join('')
+            : '<div class="empty">simulation run ledger 누적 항목이 아직 없습니다.</div>';
+        }
+        const noticePreviewList = document.getElementById('dashSimulationWorkspaceNoticePreviewList');
+        if (noticePreviewList) {
+          noticePreviewList.innerHTML = clientNoticePreviewItems.length > 0
+            ? clientNoticePreviewItems.slice(0, 6).map(item => `<p class="ops-simulation-notice-preview-entry" data-v360-client-notice-preview-entry="${escapeHtml(item.noticePreviewId || 'notice-preview')}">
+                <strong>${escapeHtml(display(item.noticeStatus || 'degraded'))}</strong>
+                <span>${escapeHtml(display(item.viewerSafeTitle || 'viewer-safe notice preview'))}</span>
+                <small>${escapeHtml(display(item.viewerSafeBody || 'preview only'))} · timelineHint=${escapeHtml(display(item.timelineHint || 'pending'))} · deliveryState=${escapeHtml(display(item.deliveryState || 'preview-only'))}</small>
+              </p>`).join('')
+            : '<div class="empty">client notice preview 항목이 아직 없습니다.</div>';
+        }
+        const whatIfReplayList = document.getElementById('dashSimulationWorkspaceWhatIfReplayList');
+        if (whatIfReplayList) {
+          whatIfReplayList.innerHTML = whatIfReplayCandidates.length > 0
+            ? whatIfReplayCandidates.slice(0, 6).map(item => `<p class="ops-simulation-what-if-replay-entry" data-v360-rule-va-what-if-replay-entry="${escapeHtml(item.whatIfReplayId || 'what-if-replay')}">
+                <strong>${escapeHtml(display(item.ruleThresholdCandidate || 'thresholdCandidate'))}</strong>
+                <span>${escapeHtml(display(`${item.presetCandidate || 'presetCandidate'} · ${item.scenarioCandidate || 'scenarioCandidate'}`))}</span>
+                <small>eventRecordRef=${escapeHtml(display(item.eventRecordRef || 'EventRecord'))} · delta=${escapeHtml(display(item.whatIfResultDelta || 'what-if result pending'))} · before=${escapeHtml(display(item.beforeMatchState || 'current'))} · after=${escapeHtml(display(item.afterMatchState || 'what-if'))}</small>
+              </p>`).join('')
+            : '<div class="empty">Rule/VA what-if replay 후보가 아직 없습니다.</div>';
+        }
+        const exportBundleList = document.getElementById('dashSimulationWorkspaceExportBundleList');
+        if (exportBundleList) {
+          const bundleRows = simulationExportBundleItems.slice(0, 4).map(item => {
+            const inputRefs = v360SimulationWorkspaceList(item.simulationInputRefs).slice(0, 2).join(', ') || 'input refs pending';
+            const outputRefs = v360SimulationWorkspaceList(item.simulationOutputRefs).slice(0, 2).join(', ') || 'output refs pending';
+            const blockerRefs = v360SimulationWorkspaceList(item.readinessBlockerRefs).slice(0, 2).join(', ') || 'none';
+            return `<p class="ops-simulation-export-bundle-entry" data-v360-simulation-export-bundle-entry="${escapeHtml(item.bundleItemId || 'simulation-export-bundle')}">
+              <strong>${escapeHtml(display(item.bundleSection || 'Simulation Export Bundle'))}</strong>
+              <span>${escapeHtml(display(item.summary || 'redacted release-safe simulation export bundle'))}</span>
+              <small>simulationInputRefs=${escapeHtml(display(inputRefs))} · simulationOutputRefs=${escapeHtml(display(outputRefs))} · readinessBlockerRefs=${escapeHtml(display(blockerRefs))} · redactionPolicy=${escapeHtml(display(item.redactionPolicy || 'redacted-release-safe'))}</small>
+            </p>`;
+          });
+          const handoffRows = simulationHandoffMapEntries.slice(0, 4).map(item => {
+            const bundleRefs = v360SimulationWorkspaceList(item.bundleItemRefs).slice(0, 3).join(', ') || 'bundle refs pending';
+            return `<p class="ops-simulation-export-bundle-entry" data-v360-simulation-handoff-map-entry="${escapeHtml(item.handoffId || 'simulation-handoff-map')}">
+              <strong>${escapeHtml(display(item.handoffStatus || 'handoff pending'))}</strong>
+              <span>${escapeHtml(display(item.nextOperatorRole || 'operator review'))}</span>
+              <small>blockedReason=${escapeHtml(display(item.blockedReason || 'none'))} · handoffMapRefs=${escapeHtml(display(bundleRefs))}</small>
+            </p>`;
+          });
+          exportBundleList.innerHTML = bundleRows.length + handoffRows.length > 0
+            ? [...bundleRows, ...handoffRows].join('')
+            : '<div class="empty">Simulation Export Bundle 항목이 아직 없습니다.</div>';
+        }
+        const fieldEvidenceAdapterList = document.getElementById('dashSimulationWorkspaceFieldEvidenceAdapterList');
+        if (fieldEvidenceAdapterList) {
+          const adapterRows = fieldEvidenceSimulationAdapters.slice(0, 6).map(item => {
+            const conditionRefs = v360SimulationWorkspaceList(item.conditionRefs).slice(0, 3).join(', ') || 'condition refs pending';
+            return `<p class="ops-simulation-field-evidence-adapter-entry" data-v360-field-evidence-simulation-adapter-entry="${escapeHtml(item.adapterId || item.bridgeKind || 'field-evidence-adapter')}">
+              <strong>${escapeHtml(display(item.bridgeKind || 'fieldEvidenceAdapter'))}</strong>
+              <span>${escapeHtml(display(item.conditionalNotRunEvidence || 'conditional-not-run evidence'))}</span>
+              <small>simulationReadinessBlockerRef=${escapeHtml(display(item.simulationReadinessBlockerRef || 'safe-apply readiness'))} · executionStatus=${escapeHtml(display(item.executionStatus || 'not-run'))} · notRunReason=${escapeHtml(display(item.notRunReason || 'approval required'))} · conditionRefs=${escapeHtml(display(conditionRefs))}</small>
+            </p>`;
+          });
+          const conditionRows = simulationAdapterConditions.slice(0, 3).map(item => `<p class="ops-simulation-field-evidence-adapter-entry" data-v360-field-evidence-condition="${escapeHtml(item.conditionId || 'simulation-adapter-condition')}">
+              <strong>${escapeHtml(display(item.conditionKind || 'condition'))}</strong>
+              <span>${escapeHtml(display(item.summary || 'condition required before field execution'))}</span>
+              <small>endpointRequired=${item.endpointRequired === true ? 'true' : 'false'} · credentialRequired=${item.credentialRequired === true ? 'true' : 'false'} · operatorApprovalRequired=${item.operatorApprovalRequired === true ? 'true' : 'false'}</small>
+            </p>`);
+          fieldEvidenceAdapterList.innerHTML = adapterRows.length + conditionRows.length > 0
+            ? [...adapterRows, ...conditionRows].join('')
+            : '<div class="empty">Field Evidence Simulation Adapter 항목이 아직 없습니다.</div>';
+        }
+        const vlmAssistedExplanationList = document.getElementById('dashSimulationWorkspaceVlmAssistedExplanationList');
+        if (vlmAssistedExplanationList) {
+          vlmAssistedExplanationList.innerHTML = vlmAssistedSimulationExplanations.length > 0
+            ? vlmAssistedSimulationExplanations.slice(0, 6).map(item => `<p class="ops-simulation-vlm-assisted-explanation-entry" data-v360-vlm-assisted-simulation-explanation-entry="${escapeHtml(item.explanationId || item.explanationType || 'vlm-assisted-simulation-explanation')}">
+              <strong>${escapeHtml(display(item.title || item.explanationType || 'VLM-assisted Simulation Explanation'))}</strong>
+              <span>${escapeHtml(display(item.operatorReviewHint || 'operator review hint'))}</span>
+              <small>simulationBlockerSummary=${escapeHtml(display(item.simulationBlockerSummary || 'blocker summary pending'))} · impactDiffSummary=${escapeHtml(display(item.impactDiffSummary || 'impact diff pending'))} · defaultEnabled=${item.defaultEnabled === true ? 'true' : 'false'}</small>
+            </p>`).join('')
+            : '<div class="empty">VLM-assisted Simulation Explanation 항목이 아직 없습니다.</div>';
+        }
+        const impactList = document.getElementById('dashSimulationWorkspaceImpactList');
+        if (impactList) {
+          impactList.innerHTML = sourceRuleImpactDiffs.length > 0
+            ? sourceRuleImpactDiffs.slice(0, 6).map(diff =>
+                v360SimulationWorkspaceEntry(
+                  diff.diffId || diff.candidateId || 'impact-diff',
+                  diff.candidateType || 'impact diff',
+                  diff.clientImpactDiff || diff.sourceHealthDiff || 'viewer-safe impact diff pending',
+                  `before=${diff.beforeState || 'current'} · after=${diff.afterState || 'simulated'} · blocker=${v360SimulationWorkspaceList(diff.blockers).join(', ') || 'none'}`,
+                  v360SimulationWorkspaceList(diff.blockers).length > 0 ? 'warn' : ''))
+              .join('')
+            : '<div class="empty">Impact Diff 항목이 아직 없습니다.</div>';
+        }
+        const readinessList = document.getElementById('dashSimulationWorkspaceReadinessList');
+        if (readinessList) {
+          readinessList.innerHTML = safeApplyReadinessItems.length > 0
+            ? safeApplyReadinessItems.slice(0, 8).map(item =>
+                v360SimulationWorkspaceEntry(
+                  item.readinessId || item.candidateId || 'safe-apply-readiness',
+                  item.readinessState || 'not-run',
+                  item.candidateType || 'candidate',
+                  `operatorApprovalRequired=${item.operatorApprovalRequired === true ? 'true' : 'false'} · fieldEvidenceRequired=${item.fieldEvidenceRequired === true ? 'true' : 'false'} · blockers=${v360SimulationWorkspaceList(item.blockers).join(', ') || 'none'}`,
+                  item.readinessState === 'ready' ? '' : 'warn'))
+              .join('')
+            : '<div class="empty">Safe Apply Readiness blocker 항목이 아직 없습니다.</div>';
+        }
+        setText('dashSimulationWorkspaceBoundary',
+          `input=${display(v360SimulationWorkspaceState.inputPackRoute)} · run=${display(v360SimulationWorkspaceState.runContractRoute)} · ledger=${display(v360SimulationWorkspaceState.simulationRunLedgerRoute)} · noticePreview=${display(v360SimulationWorkspaceState.clientNoticePreviewRoute)} · whatIf=${display(v360SimulationWorkspaceState.ruleVaWhatIfReplayRoute)} · export=${display(v360SimulationWorkspaceState.simulationExportBundleRoute)} · fieldAdapter=${display(v360SimulationWorkspaceState.fieldEvidenceSimulationAdapterRoute)} · vlmHint=${display(v360SimulationWorkspaceState.vlmAssistedSimulationExplanationRoute)} · dryRun=${display(v360SimulationWorkspaceState.dryRunRoute)} · impact=${display(v360SimulationWorkspaceState.impactDiffRoute)} · readiness=${display(v360SimulationWorkspaceState.readinessRoute)} · simulationRunExecuted=${simulationRun.boundaries?.simulationRunExecuted === false && simulationRunLedger.boundaries?.simulationRunExecuted === false && simulationExportBundle.boundaries?.simulationRunExecuted === false && fieldEvidenceSimulationAdapter.boundaries?.simulationRunExecuted === false && vlmAssistedSimulationExplanation.boundaries?.simulationRunExecuted === false ? 'false' : '확인 필요'} · artifactExportExecuted=${simulationExportBundle.boundaries?.artifactExportExecuted === false && fieldEvidenceSimulationAdapter.boundaries?.artifactExportExecuted === false ? 'false' : '확인 필요'} · fieldSmokeExecuted=${fieldEvidenceSimulationAdapter.boundaries?.fieldSmokeExecuted === false && vlmAssistedSimulationExplanation.boundaries?.fieldSmokeExecuted === false ? 'false' : '확인 필요'} · endpointProbePerformed=${fieldEvidenceSimulationAdapter.boundaries?.endpointProbePerformed === false ? 'false' : '확인 필요'} · vlmProviderCalled=${fieldEvidenceSimulationAdapter.boundaries?.vlmProviderCalled === false && vlmAssistedSimulationExplanation.boundaries?.vlmProviderCallPerformed === false ? 'false' : '확인 필요'} · vlmRuntimeCallPerformed=${vlmAssistedSimulationExplanation.boundaries?.vlmRuntimeCallPerformed === false ? 'false' : '확인 필요'} · fileWritePerformed=${simulationExportBundle.boundaries?.fileWritePerformed === false ? 'false' : '확인 필요'} · handoffWritePerformed=${simulationExportBundle.boundaries?.handoffWritePerformed === false ? 'false' : '확인 필요'} · operatorNoteWritePerformed=${simulationRunLedger.boundaries?.operatorNoteWritePerformed === false ? 'false' : '확인 필요'} · commandPlanExecuted=${dryRun.boundaries?.commandPlanExecuted === false ? 'false' : '확인 필요'} · ruleRegistryWritePerformed=${ruleVaWhatIfReplayPack.boundaries?.ruleRegistryWritePerformed === false ? 'false' : '확인 필요'} · eventRecordWritePerformed=${ruleVaWhatIfReplayPack.boundaries?.eventRecordWritePerformed === false ? 'false' : '확인 필요'} · sourceChangeApplied=${impactDiff.boundaries?.sourceChangeApplied === false ? 'false' : '확인 필요'} · safeApplyPerformed=${readiness.boundaries?.safeApplyPerformed === false ? 'false' : '확인 필요'} · clientNoticeSent=${readiness.boundaries?.clientNoticeSent === false || simulationRunLedger.boundaries?.clientNoticeSent === false || clientNoticePreview.boundaries?.clientNoticeSent === false || ruleVaWhatIfReplayPack.boundaries?.clientNoticeSent === false || simulationExportBundle.boundaries?.clientNoticeSent === false || vlmAssistedSimulationExplanation.boundaries?.clientNoticeSent === false ? 'false' : '확인 필요'} · viewerClientPayloadChanged=${clientNoticePreview.boundaries?.viewerClientPayloadChanged === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV360OpsSimulationWorkspace = async ({
+        inputPackRoute = '/ops/api/live-operations/simulation/input-pack',
+        runContractRoute = '/ops/api/live-operations/simulation/run-contract',
+        simulationRunLedgerRoute = '/ops/api/live-operations/simulation/run-ledger',
+        clientNoticePreviewRoute = '/ops/api/live-operations/simulation/client-notice-preview',
+        ruleVaWhatIfReplayRoute = '/ops/api/live-operations/simulation/rule-va-what-if-replay-pack',
+        simulationExportBundleRoute = '/ops/api/live-operations/simulation/export-bundle',
+        fieldEvidenceSimulationAdapterRoute = '/ops/api/live-operations/simulation/field-evidence-adapter',
+        vlmAssistedSimulationExplanationRoute = '/ops/api/live-operations/simulation/vlm-assisted-explanation',
+        dryRunRoute = '/ops/api/live-operations/simulation/command-plan-dry-run',
+        impactDiffRoute = '/ops/api/live-operations/simulation/impact-diff',
+        readinessRoute = '/ops/api/live-operations/simulation/safe-apply-readiness'
+      } = {}) => {
+        const [inputPack, simulationRun, simulationRunLedger, clientNoticePreview, ruleVaWhatIfReplayPack, simulationExportBundle, fieldEvidenceSimulationAdapter, vlmAssistedSimulationExplanation, dryRun, impactDiff, readiness] = await Promise.all([
+          requestJson(inputPackRoute).catch(error => ({ error: error.message, simulationInputPackItems: [], boundaries: {} })),
+          requestJson(runContractRoute).catch(error => ({ error: error.message, simulationResultEnvelope: {}, boundaries: {} })),
+          requestJson(simulationRunLedgerRoute).catch(error => ({ error: error.message, simulationRunLedgerEntries: [], boundaries: {} })),
+          requestJson(clientNoticePreviewRoute).catch(error => ({ error: error.message, clientNoticePreviewItems: [], boundaries: {} })),
+          requestJson(ruleVaWhatIfReplayRoute).catch(error => ({ error: error.message, whatIfReplayCandidates: [], boundaries: {} })),
+          requestJson(simulationExportBundleRoute).catch(error => ({ error: error.message, simulationExportBundleItems: [], simulationHandoffMapEntries: [], boundaries: {} })),
+          requestJson(fieldEvidenceSimulationAdapterRoute).catch(error => ({ error: error.message, fieldEvidenceSimulationAdapters: [], simulationAdapterConditions: [], boundaries: {} })),
+          requestJson(vlmAssistedSimulationExplanationRoute).catch(error => ({ error: error.message, vlmAssistedSimulationExplanations: [], boundaries: {} })),
+          requestJson(dryRunRoute).catch(error => ({ error: error.message, commandPlanDryRunResults: [], boundaries: {} })),
+          requestJson(impactDiffRoute).catch(error => ({ error: error.message, sourceRuleImpactDiffs: [], boundaries: {} })),
+          requestJson(readinessRoute).catch(error => ({ error: error.message, safeApplyReadinessItems: [], boundaries: {} }))
+        ]);
+        renderV360OpsSimulationWorkspace({ inputPack, simulationRun, simulationRunLedger, clientNoticePreview, ruleVaWhatIfReplayPack, simulationExportBundle, fieldEvidenceSimulationAdapter, vlmAssistedSimulationExplanation, dryRun, impactDiff, readiness, inputPackRoute, runContractRoute, simulationRunLedgerRoute, clientNoticePreviewRoute, ruleVaWhatIfReplayRoute, simulationExportBundleRoute, fieldEvidenceSimulationAdapterRoute, vlmAssistedSimulationExplanationRoute, dryRunRoute, impactDiffRoute, readinessRoute });
+      };
       const renderDashboardRootCause = (runtime, principal, eventsStatus = {}, browserConfig = {}, diagnosticLog = {}, sourceHealth = {}) => {
         const items = dashboardRootCauseItems(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);
         const warnCount = items.filter(item => item.level === 'warn' || item.level === 'bad').length;
@@ -1741,6 +2009,19 @@ void AppendOpsShellScript(std::ostringstream& out,
           stagedPlanRoute: '/ops/api/live-operations/staged-change-plan-impact-preview',
           reviewRoute: '/ops/api/events/reviews'
         }).catch(error => renderV350OpsCommandWorkspace({ error: error.message }));
+        await refreshV360OpsSimulationWorkspace({
+          inputPackRoute: '/ops/api/live-operations/simulation/input-pack',
+          runContractRoute: '/ops/api/live-operations/simulation/run-contract',
+          simulationRunLedgerRoute: '/ops/api/live-operations/simulation/run-ledger',
+          clientNoticePreviewRoute: '/ops/api/live-operations/simulation/client-notice-preview',
+          ruleVaWhatIfReplayRoute: '/ops/api/live-operations/simulation/rule-va-what-if-replay-pack',
+          simulationExportBundleRoute: '/ops/api/live-operations/simulation/export-bundle',
+          fieldEvidenceSimulationAdapterRoute: '/ops/api/live-operations/simulation/field-evidence-adapter',
+          vlmAssistedSimulationExplanationRoute: '/ops/api/live-operations/simulation/vlm-assisted-explanation',
+          dryRunRoute: '/ops/api/live-operations/simulation/command-plan-dry-run',
+          impactDiffRoute: '/ops/api/live-operations/simulation/impact-diff',
+          readinessRoute: '/ops/api/live-operations/simulation/safe-apply-readiness'
+        }).catch(error => renderV360OpsSimulationWorkspace({ error: error.message }));
         await refreshDashboardVaQuality(runtime, eventsStatus).catch(renderDashboardVaQualityError);
         renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
         window.MediaServerUi?.translatePage?.();

@@ -1,0 +1,859 @@
+{
+  "kind": "predev",
+  "status": "pass",
+  "pass": 119,
+  "fail": 0,
+  "skip": 1,
+  "durationSec": 2356,
+  "reportFile": "/tmp/media_server_predev-1783153043-79079_report.md",
+  "reportHtmlFile": "/tmp/media_server_predev-1783153043-79079_report.html",
+  "soakMinutes": 30,
+  "quickMode": false,
+  "includeExternalTurn": false,
+  "workDir": "/tmp/media_server_predev-1783153043-79079",
+  "includeExternalClient": false,
+  "includeRedaction": true,
+  "finishedAtEpochMs": 1783155399892,
+  "steps": [
+    {
+      "name": "build",
+      "result": "pass",
+      "command": "cmake --build build-gst-onnx",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/build.log",
+      "durationSec": 1.0
+    },
+    {
+      "name": "server-start-queue-256",
+      "result": "pass",
+      "command": "run_server_foreground",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/server.log",
+      "durationSec": 0.0
+    },
+    {
+      "name": "integrated-smoke",
+      "result": "pass",
+      "command": "MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_AUTH_MODE=off ./server.sh test --no-start --skip-external --include-rules  --include-va-events --include-image-analysis --include-redaction",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/integrated_smoke.log",
+      "durationSec": 513.0
+    },
+    {
+      "name": "external-turn-hard-gate",
+      "result": "skip",
+      "command": "--include-external-turn not requested",
+      "logFile": "",
+      "durationSec": 0.0
+    },
+    {
+      "name": "soak-1-va-events",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=30 ./server.sh verify-va-events --duration 30",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_1_va_events.log",
+      "durationSec": 33.0
+    },
+    {
+      "name": "soak-1-event-post-schema",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode schema",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_1_event_post_schema.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-1-event-post-recovery",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode recovery",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_1_event_post_recovery.log",
+      "durationSec": 4.0
+    },
+    {
+      "name": "soak-1-redaction",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-redaction --live-only --duration 12",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_1_redaction.log",
+      "durationSec": 34.0
+    },
+    {
+      "name": "soak-1-runtime-idle",
+      "result": "pass",
+      "command": "runtime idle check",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_1_runtime_idle.json",
+      "durationSec": 0.0
+    },
+    {
+      "name": "soak-2-va-events",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=30 ./server.sh verify-va-events --duration 30",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_2_va_events.log",
+      "durationSec": 34.0
+    },
+    {
+      "name": "soak-2-event-post-schema",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode schema",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_2_event_post_schema.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-2-event-post-recovery",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode recovery",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_2_event_post_recovery.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-2-redaction",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-redaction --live-only --duration 12",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_2_redaction.log",
+      "durationSec": 34.0
+    },
+    {
+      "name": "soak-2-runtime-idle",
+      "result": "pass",
+      "command": "runtime idle check",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_2_runtime_idle.json",
+      "durationSec": 0.0
+    },
+    {
+      "name": "soak-3-va-events",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=30 ./server.sh verify-va-events --duration 30",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_3_va_events.log",
+      "durationSec": 33.0
+    },
+    {
+      "name": "soak-3-event-post-schema",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode schema",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_3_event_post_schema.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-3-event-post-recovery",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode recovery",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_3_event_post_recovery.log",
+      "durationSec": 4.0
+    },
+    {
+      "name": "soak-3-redaction",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-redaction --live-only --duration 12",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_3_redaction.log",
+      "durationSec": 34.0
+    },
+    {
+      "name": "soak-3-runtime-idle",
+      "result": "pass",
+      "command": "runtime idle check",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_3_runtime_idle.json",
+      "durationSec": 0.0
+    },
+    {
+      "name": "soak-4-va-events",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=30 ./server.sh verify-va-events --duration 30",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_4_va_events.log",
+      "durationSec": 33.0
+    },
+    {
+      "name": "soak-4-event-post-schema",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode schema",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_4_event_post_schema.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-4-event-post-recovery",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode recovery",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_4_event_post_recovery.log",
+      "durationSec": 4.0
+    },
+    {
+      "name": "soak-4-redaction",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-redaction --live-only --duration 12",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_4_redaction.log",
+      "durationSec": 33.0
+    },
+    {
+      "name": "soak-4-runtime-idle",
+      "result": "pass",
+      "command": "runtime idle check",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_4_runtime_idle.json",
+      "durationSec": 0.0
+    },
+    {
+      "name": "soak-5-va-events",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=30 ./server.sh verify-va-events --duration 30",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_5_va_events.log",
+      "durationSec": 33.0
+    },
+    {
+      "name": "soak-5-event-post-schema",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode schema",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_5_event_post_schema.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-5-event-post-recovery",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode recovery",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_5_event_post_recovery.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-5-redaction",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-redaction --live-only --duration 12",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_5_redaction.log",
+      "durationSec": 34.0
+    },
+    {
+      "name": "soak-5-runtime-idle",
+      "result": "pass",
+      "command": "runtime idle check",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_5_runtime_idle.json",
+      "durationSec": 0.0
+    },
+    {
+      "name": "soak-6-va-events",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=30 ./server.sh verify-va-events --duration 30",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_6_va_events.log",
+      "durationSec": 33.0
+    },
+    {
+      "name": "soak-6-event-post-schema",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode schema",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_6_event_post_schema.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-6-event-post-recovery",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode recovery",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_6_event_post_recovery.log",
+      "durationSec": 4.0
+    },
+    {
+      "name": "soak-6-redaction",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-redaction --live-only --duration 12",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_6_redaction.log",
+      "durationSec": 34.0
+    },
+    {
+      "name": "soak-6-runtime-idle",
+      "result": "pass",
+      "command": "runtime idle check",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_6_runtime_idle.json",
+      "durationSec": 0.0
+    },
+    {
+      "name": "soak-7-va-events",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=30 ./server.sh verify-va-events --duration 30",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_7_va_events.log",
+      "durationSec": 34.0
+    },
+    {
+      "name": "soak-7-event-post-schema",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode schema",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_7_event_post_schema.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-7-event-post-recovery",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode recovery",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_7_event_post_recovery.log",
+      "durationSec": 4.0
+    },
+    {
+      "name": "soak-7-redaction",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-redaction --live-only --duration 12",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_7_redaction.log",
+      "durationSec": 33.0
+    },
+    {
+      "name": "soak-7-runtime-idle",
+      "result": "pass",
+      "command": "runtime idle check",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_7_runtime_idle.json",
+      "durationSec": 0.0
+    },
+    {
+      "name": "soak-8-va-events",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=30 ./server.sh verify-va-events --duration 30",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_8_va_events.log",
+      "durationSec": 33.0
+    },
+    {
+      "name": "soak-8-event-post-schema",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode schema",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_8_event_post_schema.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-8-event-post-recovery",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode recovery",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_8_event_post_recovery.log",
+      "durationSec": 4.0
+    },
+    {
+      "name": "soak-8-redaction",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-redaction --live-only --duration 12",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_8_redaction.log",
+      "durationSec": 34.0
+    },
+    {
+      "name": "soak-8-runtime-idle",
+      "result": "pass",
+      "command": "runtime idle check",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_8_runtime_idle.json",
+      "durationSec": 0.0
+    },
+    {
+      "name": "soak-9-va-events",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=30 ./server.sh verify-va-events --duration 30",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_9_va_events.log",
+      "durationSec": 34.0
+    },
+    {
+      "name": "soak-9-event-post-schema",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode schema",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_9_event_post_schema.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-9-event-post-recovery",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode recovery",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_9_event_post_recovery.log",
+      "durationSec": 4.0
+    },
+    {
+      "name": "soak-9-redaction",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-redaction --live-only --duration 12",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_9_redaction.log",
+      "durationSec": 33.0
+    },
+    {
+      "name": "soak-9-runtime-idle",
+      "result": "pass",
+      "command": "runtime idle check",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_9_runtime_idle.json",
+      "durationSec": 0.0
+    },
+    {
+      "name": "soak-10-va-events",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=30 ./server.sh verify-va-events --duration 30",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_10_va_events.log",
+      "durationSec": 33.0
+    },
+    {
+      "name": "soak-10-event-post-schema",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode schema",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_10_event_post_schema.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-10-event-post-recovery",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode recovery",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_10_event_post_recovery.log",
+      "durationSec": 4.0
+    },
+    {
+      "name": "soak-10-redaction",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-redaction --live-only --duration 12",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_10_redaction.log",
+      "durationSec": 34.0
+    },
+    {
+      "name": "soak-10-runtime-idle",
+      "result": "pass",
+      "command": "runtime idle check",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_10_runtime_idle.json",
+      "durationSec": 0.0
+    },
+    {
+      "name": "soak-11-va-events",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=30 ./server.sh verify-va-events --duration 30",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_11_va_events.log",
+      "durationSec": 33.0
+    },
+    {
+      "name": "soak-11-event-post-schema",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode schema",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_11_event_post_schema.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-11-event-post-recovery",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode recovery",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_11_event_post_recovery.log",
+      "durationSec": 4.0
+    },
+    {
+      "name": "soak-11-redaction",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-redaction --live-only --duration 12",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_11_redaction.log",
+      "durationSec": 33.0
+    },
+    {
+      "name": "soak-11-runtime-idle",
+      "result": "pass",
+      "command": "runtime idle check",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_11_runtime_idle.json",
+      "durationSec": 0.0
+    },
+    {
+      "name": "soak-12-va-events",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=30 ./server.sh verify-va-events --duration 30",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_12_va_events.log",
+      "durationSec": 33.0
+    },
+    {
+      "name": "soak-12-event-post-schema",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode schema",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_12_event_post_schema.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-12-event-post-recovery",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode recovery",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_12_event_post_recovery.log",
+      "durationSec": 4.0
+    },
+    {
+      "name": "soak-12-redaction",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-redaction --live-only --duration 12",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_12_redaction.log",
+      "durationSec": 33.0
+    },
+    {
+      "name": "soak-12-runtime-idle",
+      "result": "pass",
+      "command": "runtime idle check",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_12_runtime_idle.json",
+      "durationSec": 0.0
+    },
+    {
+      "name": "soak-13-va-events",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=30 ./server.sh verify-va-events --duration 30",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_13_va_events.log",
+      "durationSec": 33.0
+    },
+    {
+      "name": "soak-13-event-post-schema",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode schema",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_13_event_post_schema.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-13-event-post-recovery",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode recovery",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_13_event_post_recovery.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-13-redaction",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-redaction --live-only --duration 12",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_13_redaction.log",
+      "durationSec": 34.0
+    },
+    {
+      "name": "soak-13-runtime-idle",
+      "result": "pass",
+      "command": "runtime idle check",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_13_runtime_idle.json",
+      "durationSec": 0.0
+    },
+    {
+      "name": "soak-14-va-events",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=30 ./server.sh verify-va-events --duration 30",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_14_va_events.log",
+      "durationSec": 33.0
+    },
+    {
+      "name": "soak-14-event-post-schema",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode schema",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_14_event_post_schema.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-14-event-post-recovery",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode recovery",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_14_event_post_recovery.log",
+      "durationSec": 4.0
+    },
+    {
+      "name": "soak-14-redaction",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-redaction --live-only --duration 12",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_14_redaction.log",
+      "durationSec": 34.0
+    },
+    {
+      "name": "soak-14-runtime-idle",
+      "result": "pass",
+      "command": "runtime idle check",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_14_runtime_idle.json",
+      "durationSec": 0.0
+    },
+    {
+      "name": "soak-15-va-events",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=30 ./server.sh verify-va-events --duration 30",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_15_va_events.log",
+      "durationSec": 34.0
+    },
+    {
+      "name": "soak-15-event-post-schema",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode schema",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_15_event_post_schema.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-15-event-post-recovery",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode recovery",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_15_event_post_recovery.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-15-redaction",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-redaction --live-only --duration 12",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_15_redaction.log",
+      "durationSec": 34.0
+    },
+    {
+      "name": "soak-15-runtime-idle",
+      "result": "pass",
+      "command": "runtime idle check",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_15_runtime_idle.json",
+      "durationSec": 0.0
+    },
+    {
+      "name": "soak-16-va-events",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=30 ./server.sh verify-va-events --duration 30",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_16_va_events.log",
+      "durationSec": 33.0
+    },
+    {
+      "name": "soak-16-event-post-schema",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode schema",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_16_event_post_schema.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-16-event-post-recovery",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode recovery",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_16_event_post_recovery.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-16-redaction",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-redaction --live-only --duration 12",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_16_redaction.log",
+      "durationSec": 34.0
+    },
+    {
+      "name": "soak-16-runtime-idle",
+      "result": "pass",
+      "command": "runtime idle check",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_16_runtime_idle.json",
+      "durationSec": 0.0
+    },
+    {
+      "name": "soak-17-va-events",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=30 ./server.sh verify-va-events --duration 30",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_17_va_events.log",
+      "durationSec": 33.0
+    },
+    {
+      "name": "soak-17-event-post-schema",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode schema",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_17_event_post_schema.log",
+      "durationSec": 4.0
+    },
+    {
+      "name": "soak-17-event-post-recovery",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode recovery",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_17_event_post_recovery.log",
+      "durationSec": 4.0
+    },
+    {
+      "name": "soak-17-redaction",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-redaction --live-only --duration 12",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_17_redaction.log",
+      "durationSec": 33.0
+    },
+    {
+      "name": "soak-17-runtime-idle",
+      "result": "pass",
+      "command": "runtime idle check",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_17_runtime_idle.json",
+      "durationSec": 0.0
+    },
+    {
+      "name": "soak-18-va-events",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=30 ./server.sh verify-va-events --duration 30",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_18_va_events.log",
+      "durationSec": 33.0
+    },
+    {
+      "name": "soak-18-event-post-schema",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode schema",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_18_event_post_schema.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-18-event-post-recovery",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode recovery",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_18_event_post_recovery.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-18-redaction",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-redaction --live-only --duration 12",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_18_redaction.log",
+      "durationSec": 34.0
+    },
+    {
+      "name": "soak-18-runtime-idle",
+      "result": "pass",
+      "command": "runtime idle check",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_18_runtime_idle.json",
+      "durationSec": 0.0
+    },
+    {
+      "name": "soak-19-va-events",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=30 ./server.sh verify-va-events --duration 30",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_19_va_events.log",
+      "durationSec": 33.0
+    },
+    {
+      "name": "soak-19-event-post-schema",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode schema",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_19_event_post_schema.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-19-event-post-recovery",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode recovery",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_19_event_post_recovery.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-19-redaction",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-redaction --live-only --duration 12",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_19_redaction.log",
+      "durationSec": 35.0
+    },
+    {
+      "name": "soak-19-runtime-idle",
+      "result": "pass",
+      "command": "runtime idle check",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_19_runtime_idle.json",
+      "durationSec": 0.0
+    },
+    {
+      "name": "soak-20-va-events",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=30 ./server.sh verify-va-events --duration 30",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_20_va_events.log",
+      "durationSec": 34.0
+    },
+    {
+      "name": "soak-20-event-post-schema",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode schema",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_20_event_post_schema.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-20-event-post-recovery",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode recovery",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_20_event_post_recovery.log",
+      "durationSec": 4.0
+    },
+    {
+      "name": "soak-20-redaction",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-redaction --live-only --duration 12",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_20_redaction.log",
+      "durationSec": 33.0
+    },
+    {
+      "name": "soak-20-runtime-idle",
+      "result": "pass",
+      "command": "runtime idle check",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_20_runtime_idle.json",
+      "durationSec": 0.0
+    },
+    {
+      "name": "soak-21-va-events",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=30 ./server.sh verify-va-events --duration 30",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_21_va_events.log",
+      "durationSec": 33.0
+    },
+    {
+      "name": "soak-21-event-post-schema",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode schema",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_21_event_post_schema.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-21-event-post-recovery",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode recovery",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_21_event_post_recovery.log",
+      "durationSec": 4.0
+    },
+    {
+      "name": "soak-21-redaction",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-redaction --live-only --duration 12",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_21_redaction.log",
+      "durationSec": 34.0
+    },
+    {
+      "name": "soak-21-runtime-idle",
+      "result": "pass",
+      "command": "runtime idle check",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_21_runtime_idle.json",
+      "durationSec": 0.0
+    },
+    {
+      "name": "soak-22-va-events",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=30 ./server.sh verify-va-events --duration 30",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_22_va_events.log",
+      "durationSec": 33.0
+    },
+    {
+      "name": "soak-22-event-post-schema",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode schema",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_22_event_post_schema.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-22-event-post-recovery",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode recovery",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_22_event_post_recovery.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "soak-22-redaction",
+      "result": "pass",
+      "command": "MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_HTTP_LISTEN_ADDRESS=127.0.0.1 MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=http://127.0.0.1:8081 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-redaction --live-only --duration 12",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_22_redaction.log",
+      "durationSec": 34.0
+    },
+    {
+      "name": "soak-22-runtime-idle",
+      "result": "pass",
+      "command": "runtime idle check",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/soak_22_runtime_idle.json",
+      "durationSec": 0.0
+    },
+    {
+      "name": "main-runtime-idle",
+      "result": "pass",
+      "command": "runtime idle check",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/main_runtime_idle.json",
+      "durationSec": 0.0
+    },
+    {
+      "name": "server-start-queue-2",
+      "result": "pass",
+      "command": "run_server_foreground",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/server.log",
+      "durationSec": 0.0
+    },
+    {
+      "name": "event-post-queue",
+      "result": "pass",
+      "command": "MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=http://127.0.0.1:8081 ./server.sh verify-event-post --mode queue",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/event_post_queue.log",
+      "durationSec": 3.0
+    },
+    {
+      "name": "queue-runtime-idle",
+      "result": "pass",
+      "command": "runtime idle check",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/queue_runtime_idle.json",
+      "durationSec": 0.0
+    },
+    {
+      "name": "ports-clean",
+      "result": "pass",
+      "command": "lsof predev ports",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/ports-clean.log",
+      "durationSec": 0.0
+    },
+    {
+      "name": "summary-report",
+      "result": "pass",
+      "command": "./server.sh summarize-reports /tmp/media_server_*summary*.json --output /tmp/media_server_predev-1783153043-79079_report.md --html-output /tmp/media_server_predev-1783153043-79079_report.html",
+      "logFile": "/tmp/media_server_predev-1783153043-79079/summary_report.log",
+      "durationSec": 1.0
+    }
+  ]
+}

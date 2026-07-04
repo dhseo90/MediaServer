@@ -53,6 +53,86 @@ const stabilityVerifierByPrefix = {
   OPS: ["verify-release-metadata", "verify-docs-links", "verify-docs-ui-assets", "verify-v230-ops-backup-recovery-lifecycle", "verify-ops-backup-recovery-guide", "verify-ops-backup-restore-dry-run", "verify-ops-evidence-retention-cleanup", "verify-v250-owner-release-readiness", "verify-v260-owner-release-readiness", "verify-v270-owner-release-readiness", "verify-v280-owner-release-readiness", "verify-v290-final-contract-freeze", "verify-v290-v28-regression-bundle", "verify-v290-2x-compatibility-baseline", "verify-v290-release-test-records-enforcement", "verify-v290-ui-fulltest-criteria-freeze", "verify-v290-release-evidence-hygiene", "verify-v290-public-docs-assets-refresh", "verify-v290-final-stabilization-run", "verify-v290-owner-release-readiness", "verify-v300-entry-baseline", "verify-v300-event-evidence-contract", "verify-v300-feature-schema-privacy", "verify-v300-vlm-feature-queue", "verify-v300-feature-only-retention", "verify-v300-search-dsl-query-convert", "verify-v300-feature-search-index", "verify-v300-ops-events-ui", "verify-v300-retention-pin-cleanup", "verify-v300-stabilization-release-readiness", "verify-v310-entry-baseline", "verify-v310-event-clip-contract", "verify-v310-replay-timeline-ui", "verify-v310-scoped-integrator-search-api", "verify-v310-operator-feature-correction", "verify-v310-optional-vector-search", "verify-v310-retention-export-hardening", "verify-v310-stabilization-release-readiness", "verify-v320-entry-baseline", "verify-v320-resolution-state-contract", "verify-v320-unified-ops-events-workspace", "verify-v320-evidence-quality-layer", "verify-v320-source-reliability-context", "verify-v320-source-reliability-runtime-sample", "verify-v320-ai-review-quality-context", "verify-v320-operator-resolution-flow", "verify-v320-action-readiness-checklist", "verify-v320-client-safe-resolution-digest", "verify-v320-resolution-search-metrics", "verify-v320-stabilization-release-readiness", "verify-v330-entry-baseline", "verify-v330-source-registry-snapshot-identity", "verify-v330-source-onboarding-quality-summary", "verify-v330-reliability-timeline-health-history", "verify-v330-incident-source-correlation-layer", "verify-v330-operator-recheck-recovery-queue", "verify-v330-client-safe-source-status-digest", "verify-v330-operator-runbook-reliability-handoff", "verify-v330-source-reliability-search-metrics", "verify-v330-ops-backup-recovery-source-handoff", "verify-v330-stabilization-release-readiness", "verify-v340-entry-baseline", "verify-v340-continuity-drill-contract", "verify-v340-recovery-candidate-package", "verify-v340-staging-restore-validation-harness", "verify-v340-source-health-replay-drift-diff", "verify-v340-ops-continuity-drill-workspace-ui", "verify-v340-approval-gated-recovery-checklist-audit", "verify-v340-client-safe-maintenance-digest", "verify-v340-drill-evidence-export-cleanup-manifest", "verify-v340-field-bridge-condition-gates", "verify-v340-stabilization-release-readiness", "verify-v350-entry-baseline", "verify-v350-live-operations-graph-contract", "verify-v350-operations-command-plan-contract", "verify-v350-incident-to-command-handoff", "verify-v350-staged-change-plan-impact-preview", "verify-v350-ops-command-workspace-ui", "verify-v350-drill-run-ledger-plan-comparison", "verify-v350-client-impact-forecast", "verify-v350-client-safe-operations-notice", "verify-v350-operations-export-bundle-handoff-map", "verify-v350-field-evidence-intake", "verify-v350-vlm-assisted-ops-explanation", "verify-v350-stabilization-release-readiness"],
 };
 
+const v360VerifierCoverage = {
+  UI: [
+    "verify-v360-ops-simulation-workspace-ui",
+    "verify-v360-simulation-run-ledger-comparison",
+    "verify-v360-client-notice-preview",
+    "verify-v360-rule-va-what-if-replay-pack",
+    "verify-v360-simulation-export-bundle",
+    "verify-v360-field-evidence-simulation-adapter",
+    "verify-v360-vlm-assisted-simulation-explanation",
+  ],
+  SRC: [
+    "verify-v360-simulation-input-contract",
+    "verify-v360-command-plan-dry-run-simulator",
+    "verify-v360-source-rule-impact-diff",
+    "verify-v360-field-evidence-simulation-adapter",
+    "verify-v360-vlm-assisted-simulation-explanation",
+  ],
+  RULE: [
+    "verify-v360-command-plan-dry-run-simulator",
+    "verify-v360-source-rule-impact-diff",
+    "verify-v360-rule-va-what-if-replay-pack",
+  ],
+  EVT: [
+    "verify-v360-simulation-input-contract",
+    "verify-v360-rule-va-what-if-replay-pack",
+    "verify-v360-vlm-assisted-simulation-explanation",
+  ],
+  CLIENT: [
+    "verify-v360-source-rule-impact-diff",
+    "verify-v360-client-notice-preview",
+  ],
+  MEDIA: [
+    "verify-v360-field-evidence-simulation-adapter",
+  ],
+  LAB: [
+    "verify-v360-operations-simulation-run-contract",
+    "verify-v360-simulation-run-ledger-comparison",
+    "verify-v360-rule-va-what-if-replay-pack",
+    "verify-v360-simulation-export-bundle",
+    "verify-v360-field-evidence-simulation-adapter",
+    "verify-v360-vlm-assisted-simulation-explanation",
+  ],
+  SAFE: [
+    "verify-v360-entry-baseline",
+    "verify-v360-simulation-input-contract",
+    "verify-v360-operations-simulation-run-contract",
+    "verify-v360-command-plan-dry-run-simulator",
+    "verify-v360-source-rule-impact-diff",
+    "verify-v360-safe-apply-readiness-gate",
+    "verify-v360-ops-simulation-workspace-ui",
+    "verify-v360-simulation-run-ledger-comparison",
+    "verify-v360-client-notice-preview",
+    "verify-v360-rule-va-what-if-replay-pack",
+    "verify-v360-simulation-export-bundle",
+    "verify-v360-field-evidence-simulation-adapter",
+    "verify-v360-vlm-assisted-simulation-explanation",
+    "verify-v360-stabilization-release-readiness",
+  ],
+  OPS: [
+    "verify-v360-entry-baseline",
+    "verify-v360-simulation-input-contract",
+    "verify-v360-operations-simulation-run-contract",
+    "verify-v360-command-plan-dry-run-simulator",
+    "verify-v360-source-rule-impact-diff",
+    "verify-v360-safe-apply-readiness-gate",
+    "verify-v360-ops-simulation-workspace-ui",
+    "verify-v360-simulation-run-ledger-comparison",
+    "verify-v360-client-notice-preview",
+    "verify-v360-rule-va-what-if-replay-pack",
+    "verify-v360-simulation-export-bundle",
+    "verify-v360-field-evidence-simulation-adapter",
+    "verify-v360-vlm-assisted-simulation-explanation",
+    "verify-v360-stabilization-release-readiness",
+  ],
+};
+
+for (const [prefix, verifiers] of Object.entries(v360VerifierCoverage)) {
+  stabilityVerifierByPrefix[prefix].push(...verifiers);
+}
+
 check("inventory row count is stable", () => {
   const declaredTotal = summaryCount(inventory, "전체 기능 항목");
   assert(rows.length === declaredTotal, `expected ${declaredTotal} feature rows, found ${rows.length}`);
