@@ -134,11 +134,22 @@ for (const [prefix, verifiers] of Object.entries(v360VerifierCoverage)) {
 }
 
 const v370VerifierCoverage = {
+  SRC: [
+    "verify-v370-site-source-group-contract",
+    "verify-v370-site-aware-source-registry-projection",
+    "verify-v370-site-health-rollup",
+  ],
   SAFE: [
     "verify-v370-entry-baseline",
+    "verify-v370-site-source-group-contract",
+    "verify-v370-site-aware-source-registry-projection",
+    "verify-v370-site-health-rollup",
   ],
   OPS: [
     "verify-v370-entry-baseline",
+    "verify-v370-site-source-group-contract",
+    "verify-v370-site-aware-source-registry-projection",
+    "verify-v370-site-health-rollup",
   ],
 };
 

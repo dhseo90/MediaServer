@@ -340,6 +340,12 @@ Usage:
                  v3.5.0 Step 13 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
+  verify-v370-site-source-group-contract
+                 v3.7.0 Step 2 Site / Source Group Contract read-only 경계를 검증합니다.
+  verify-v370-site-aware-source-registry-projection
+                 v3.7.0 Step 3 Site-Aware Source Registry Projection read-only 경계를 검증합니다.
+  verify-v370-site-health-rollup
+                 v3.7.0 Step 4 Site Health Rollup read-only 경계를 검증합니다.
   verify-v360-entry-baseline
                  v3.6.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v360-simulation-input-contract
@@ -590,6 +596,12 @@ Usage:
                  v3.5.0 Step 13 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
+  verify-v370-site-source-group-contract
+                 v3.7.0 Step 2 Site / Source Group Contract read-only 경계를 검증합니다.
+  verify-v370-site-aware-source-registry-projection
+                 v3.7.0 Step 3 Site-Aware Source Registry Projection read-only 경계를 검증합니다.
+  verify-v370-site-health-rollup
+                 v3.7.0 Step 4 Site Health Rollup read-only 경계를 검증합니다.
   verify-v360-entry-baseline
                  v3.6.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v360-simulation-input-contract
@@ -1660,6 +1672,18 @@ case "${cmd}" in
   verify-v370-entry-baseline)
     require_internal verify_v370_entry_baseline.mjs
     exec "${INTERNAL_DIR}/verify_v370_entry_baseline.mjs" "$@"
+    ;;
+  verify-v370-site-source-group-contract)
+    require_internal verify_v370_site_source_group_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v370_site_source_group_contract.mjs" "$@"
+    ;;
+  verify-v370-site-aware-source-registry-projection)
+    require_internal verify_v370_site_aware_source_registry_projection.mjs
+    exec "${INTERNAL_DIR}/verify_v370_site_aware_source_registry_projection.mjs" "$@"
+    ;;
+  verify-v370-site-health-rollup)
+    require_internal verify_v370_site_health_rollup.mjs
+    exec "${INTERNAL_DIR}/verify_v370_site_health_rollup.mjs" "$@"
     ;;
   verify-v360-entry-baseline)
     require_internal verify_v360_entry_baseline.mjs

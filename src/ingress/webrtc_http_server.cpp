@@ -10671,6 +10671,530 @@ void AppendOpsSourceHealthSummaryJson(std::ostringstream& out, const OpsSourceHe
         << "}";
 }
 
+struct OpsV370SiteSourceGroupContractItem {
+    std::string field;
+    std::string json_name;
+    std::string source;
+    std::string fallback;
+    bool required{false};
+};
+
+std::vector<OpsV370SiteSourceGroupContractItem> BuildV370SiteSourceGroupContractItems() {
+    return {
+        {"site", "siteId", "SourceRegistry.SourceRecord.site", "unassigned-site", false},
+        {"sourceGroup", "sourceGroup", "SourceRegistry.SourceRecord.group or ownerGroup", "default-source-group", false},
+        {"zone", "zone", "SourceRegistry.SourceRecord.zone", "unassigned-zone", false},
+        {"viewGroup", "viewGroup", "PublishedViewRecord.clientGroups", "default-view-group", false},
+    };
+}
+
+void AppendV370SiteSourceGroupContractItemJson(std::ostringstream& out,
+                                               const OpsV370SiteSourceGroupContractItem& item) {
+    out << "{"
+        << "\"field\":\"" << JsonEscape(item.field) << "\","
+        << "\"jsonName\":\"" << JsonEscape(item.json_name) << "\","
+        << "\"source\":\"" << JsonEscape(item.source) << "\","
+        << "\"fallback\":\"" << JsonEscape(item.fallback) << "\","
+        << "\"required\":" << JsonBool(item.required)
+        << "}";
+}
+
+std::string OpsV370SiteSourceGroupContractJson() {
+    const auto items = BuildV370SiteSourceGroupContractItems();
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v370-site-source-group-contract.v1\","
+        << "\"status\":\"site-source-group-contract\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"contract\":{"
+        << "\"siteIdField\":\"site\","
+        << "\"sourceGroupField\":\"sourceGroup\","
+        << "\"zoneField\":\"zone\","
+        << "\"viewGroupField\":\"viewGroup\","
+        << "\"readModelOnly\":true,"
+        << "\"noAutoWriteBoundary\":true,"
+        << "\"projectionRoute\":\"/ops/api/site-operations/source-registry-projection\","
+        << "\"healthRollupRoute\":\"/ops/api/site-operations/health-rollup\""
+        << "},\"siteSourceGroupContract\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV370SiteSourceGroupContractItemJson(out, items[i]);
+    }
+    out << "],\"rollupStates\":["
+        << "\"healthy\","
+        << "\"offline\","
+        << "\"degraded\","
+        << "\"recovering\","
+        << "\"field-needed\""
+        << "],\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"siteSourceGroupContractOnly\":true,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV370SiteAwareSourceRegistryProjectionItem {
+    std::string site_id;
+    std::string source_group;
+    std::string zone;
+    int source_count{0};
+    int enabled_source_count{0};
+    int disabled_source_count{0};
+    int published_view_count{0};
+    int enabled_published_view_count{0};
+    std::vector<std::string> source_ids;
+    std::vector<std::string> view_ids;
+    std::vector<std::string> view_groups;
+};
+
+struct OpsV370SiteAwareSourceRegistryProjectionSummary {
+    int site_count{0};
+    int source_group_count{0};
+    int source_count{0};
+    int enabled_source_count{0};
+    int published_view_count{0};
+    int sources_without_site{0};
+    int sources_without_source_group{0};
+};
+
+std::string V370SiteForSource(const SourceViewRegistry::SourceRecord& source) {
+    const std::string site = Trim(source.site);
+    return site.empty() ? "unassigned-site" : site;
+}
+
+std::string V370SourceGroupForSource(const SourceViewRegistry::SourceRecord& source) {
+    const std::string group = Trim(source.group);
+    if (!group.empty()) {
+        return group;
+    }
+    const std::string owner_group = Trim(source.owner_group);
+    return owner_group.empty() ? "default-source-group" : owner_group;
+}
+
+std::string V370ZoneForSource(const SourceViewRegistry::SourceRecord& source) {
+    const std::string zone = Trim(source.zone);
+    return zone.empty() ? "unassigned-zone" : zone;
+}
+
+std::vector<std::string> V370ViewGroupsForView(const SourceViewRegistry::PublishedViewRecord& view) {
+    if (!view.client_groups.empty()) {
+        return view.client_groups;
+    }
+    return {"default-view-group"};
+}
+
+void AddV370UniqueString(std::vector<std::string>* values, const std::string& value) {
+    if (values == nullptr || value.empty() ||
+        std::find(values->begin(), values->end(), value) != values->end()) {
+        return;
+    }
+    values->push_back(value);
+}
+
+std::vector<OpsV370SiteAwareSourceRegistryProjectionItem>
+BuildV370SiteAwareSourceRegistryProjectionItems(
+    const std::vector<SourceViewRegistry::SourceRecord>& sources,
+    const std::vector<SourceViewRegistry::PublishedViewRecord>& views) {
+    std::vector<OpsV370SiteAwareSourceRegistryProjectionItem> items;
+    for (const auto& source : sources) {
+        const std::string site_id = V370SiteForSource(source);
+        const std::string source_group = V370SourceGroupForSource(source);
+        const std::string zone = V370ZoneForSource(source);
+        auto it = std::find_if(items.begin(), items.end(), [&](const auto& item) {
+            return item.site_id == site_id && item.source_group == source_group && item.zone == zone;
+        });
+        if (it == items.end()) {
+            OpsV370SiteAwareSourceRegistryProjectionItem next;
+            next.site_id = site_id;
+            next.source_group = source_group;
+            next.zone = zone;
+            items.push_back(std::move(next));
+            it = std::prev(items.end());
+        }
+        ++it->source_count;
+        if (source.enabled) {
+            ++it->enabled_source_count;
+        } else {
+            ++it->disabled_source_count;
+        }
+        AddV370UniqueString(&it->source_ids, source.source_id);
+        for (const auto& view : views) {
+            if (view.source_id != source.source_id) {
+                continue;
+            }
+            ++it->published_view_count;
+            if (view.enabled) {
+                ++it->enabled_published_view_count;
+            }
+            AddV370UniqueString(&it->view_ids, view.view_id);
+            for (const auto& view_group : V370ViewGroupsForView(view)) {
+                AddV370UniqueString(&it->view_groups, view_group);
+            }
+        }
+    }
+    return items;
+}
+
+OpsV370SiteAwareSourceRegistryProjectionSummary
+BuildV370SiteAwareSourceRegistryProjectionSummary(
+    const std::vector<SourceViewRegistry::SourceRecord>& sources,
+    const std::vector<SourceViewRegistry::PublishedViewRecord>& views,
+    const std::vector<OpsV370SiteAwareSourceRegistryProjectionItem>& items) {
+    OpsV370SiteAwareSourceRegistryProjectionSummary summary;
+    summary.source_group_count = static_cast<int>(items.size());
+    summary.source_count = static_cast<int>(sources.size());
+    summary.published_view_count = static_cast<int>(views.size());
+    std::vector<std::string> site_ids;
+    for (const auto& item : items) {
+        AddV370UniqueString(&site_ids, item.site_id);
+    }
+    summary.site_count = static_cast<int>(site_ids.size());
+    for (const auto& source : sources) {
+        if (source.enabled) {
+            ++summary.enabled_source_count;
+        }
+        if (Trim(source.site).empty()) {
+            ++summary.sources_without_site;
+        }
+        if (Trim(source.group).empty() && Trim(source.owner_group).empty()) {
+            ++summary.sources_without_source_group;
+        }
+    }
+    return summary;
+}
+
+void AppendV370SiteAwareSourceRegistryProjectionSummaryJson(
+    std::ostringstream& out,
+    const OpsV370SiteAwareSourceRegistryProjectionSummary& summary) {
+    out << "{"
+        << "\"siteCount\":" << summary.site_count << ","
+        << "\"sourceGroupCount\":" << summary.source_group_count << ","
+        << "\"sourceCount\":" << summary.source_count << ","
+        << "\"enabledSourceCount\":" << summary.enabled_source_count << ","
+        << "\"publishedViewCount\":" << summary.published_view_count << ","
+        << "\"sourcesWithoutSite\":" << summary.sources_without_site << ","
+        << "\"sourcesWithoutSourceGroup\":" << summary.sources_without_source_group
+        << "}";
+}
+
+void AppendV370SiteAwareSourceRegistryProjectionItemJson(
+    std::ostringstream& out,
+    const OpsV370SiteAwareSourceRegistryProjectionItem& item) {
+    out << "{"
+        << "\"siteId\":\"" << JsonEscape(item.site_id) << "\","
+        << "\"sourceGroup\":\"" << JsonEscape(item.source_group) << "\","
+        << "\"zone\":\"" << JsonEscape(item.zone) << "\","
+        << "\"sourceCount\":" << item.source_count << ","
+        << "\"enabledSourceCount\":" << item.enabled_source_count << ","
+        << "\"disabledSourceCount\":" << item.disabled_source_count << ","
+        << "\"publishedViewCount\":" << item.published_view_count << ","
+        << "\"enabledPublishedViewCount\":" << item.enabled_published_view_count << ","
+        << "\"sourceIds\":";
+    AppendJsonStringArray(out, item.source_ids);
+    out << ",\"viewIds\":";
+    AppendJsonStringArray(out, item.view_ids);
+    out << ",\"viewGroups\":";
+    AppendJsonStringArray(out, item.view_groups);
+    out << "}";
+}
+
+std::string OpsV370SiteAwareSourceRegistryProjectionJson() {
+    std::vector<SourceViewRegistry::SourceRecord> sources;
+    std::vector<SourceViewRegistry::PublishedViewRecord> views;
+    std::string load_error;
+    if (!SourceViewRegistry::Instance().Snapshot(&sources, &views, &load_error)) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v370-site-aware-source-registry-projection.v1\",\"error\":\"" +
+               JsonEscape(load_error.empty() ? "source registry load failed" : load_error) + "\"}";
+    }
+
+    const auto items = BuildV370SiteAwareSourceRegistryProjectionItems(sources, views);
+    const auto summary = BuildV370SiteAwareSourceRegistryProjectionSummary(sources, views, items);
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v370-site-aware-source-registry-projection.v1\","
+        << "\"status\":\"site-aware-source-registry-projection\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"siteRegistryProjectionSummary\":";
+    AppendV370SiteAwareSourceRegistryProjectionSummaryJson(out, summary);
+    out << ",\"siteRegistryProjection\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV370SiteAwareSourceRegistryProjectionItemJson(out, items[i]);
+    }
+    out << "],\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"projectionOnly\":true,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV370SiteHealthRollupItem {
+    std::string site_id;
+    std::string source_group;
+    std::string zone;
+    std::string rollup_state{"healthy"};
+    int source_count{0};
+    int healthy_source_count{0};
+    int offline_source_count{0};
+    int degraded_source_count{0};
+    int recovering_source_count{0};
+    int field_needed_source_count{0};
+    std::vector<std::string> source_ids;
+    std::vector<std::string> reasons;
+};
+
+struct OpsV370SiteHealthRollupSummary {
+    int site_count{0};
+    int source_group_count{0};
+    int source_count{0};
+    int healthy{0};
+    int offline{0};
+    int degraded{0};
+    int recovering{0};
+    int field_needed{0};
+};
+
+const OpsSourceHealthItem* V370HealthForSource(const OpsSourceHealthSnapshot& snapshot,
+                                               const std::string& source_id) {
+    const auto it = std::find_if(snapshot.items.begin(), snapshot.items.end(), [&](const auto& item) {
+        return item.source_id == source_id;
+    });
+    return it == snapshot.items.end() ? nullptr : &*it;
+}
+
+bool V370HealthHasWarning(const OpsSourceHealthItem& item, const std::string& warning) {
+    return std::find(item.warnings.begin(), item.warnings.end(), warning) != item.warnings.end();
+}
+
+std::string V370SiteHealthSourceState(const SourceViewRegistry::SourceRecord& source,
+                                      const OpsSourceHealthItem* health) {
+    if (!source.enabled) {
+        return "offline";
+    }
+    if (health == nullptr) {
+        return "degraded";
+    }
+    if (V370HealthHasWarning(*health, "missing-published-view") ||
+        health->reason == "no-subscriber" ||
+        health->reason == "unreachable") {
+        return "field-needed";
+    }
+    if (health->status == "connecting" || V370HealthHasWarning(*health, "high-reconnect")) {
+        return "recovering";
+    }
+    if (health->status == "offline") {
+        return "offline";
+    }
+    if (health->status == "stale" || health->status == "unknown" || !health->warnings.empty()) {
+        return "degraded";
+    }
+    return "healthy";
+}
+
+std::string V370SiteHealthRollupState(const OpsV370SiteHealthRollupItem& item) {
+    if (item.field_needed_source_count > 0) {
+        return "field-needed";
+    }
+    if (item.source_count > 0 && item.offline_source_count == item.source_count) {
+        return "offline";
+    }
+    if (item.recovering_source_count > 0) {
+        return "recovering";
+    }
+    if (item.degraded_source_count > 0 || item.offline_source_count > 0) {
+        return "degraded";
+    }
+    return "healthy";
+}
+
+std::vector<OpsV370SiteHealthRollupItem> BuildV370SiteHealthRollupItems(
+    const std::vector<SourceViewRegistry::SourceRecord>& sources,
+    const std::vector<SourceViewRegistry::PublishedViewRecord>& views,
+    const OpsSourceHealthSnapshot& health_snapshot) {
+    const auto projection = BuildV370SiteAwareSourceRegistryProjectionItems(sources, views);
+    std::vector<OpsV370SiteHealthRollupItem> items;
+    items.reserve(projection.size());
+    for (const auto& projected : projection) {
+        OpsV370SiteHealthRollupItem item;
+        item.site_id = projected.site_id;
+        item.source_group = projected.source_group;
+        item.zone = projected.zone;
+        item.source_ids = projected.source_ids;
+        for (const auto& source_id : projected.source_ids) {
+            const auto source = std::find_if(sources.begin(), sources.end(), [&](const auto& candidate) {
+                return candidate.source_id == source_id;
+            });
+            if (source == sources.end()) {
+                continue;
+            }
+            ++item.source_count;
+            const auto* health = V370HealthForSource(health_snapshot, source_id);
+            const std::string state = V370SiteHealthSourceState(*source, health);
+            if (state == "field-needed") {
+                ++item.field_needed_source_count;
+            } else if (state == "offline") {
+                ++item.offline_source_count;
+            } else if (state == "recovering") {
+                ++item.recovering_source_count;
+            } else if (state == "degraded") {
+                ++item.degraded_source_count;
+            } else {
+                ++item.healthy_source_count;
+            }
+            if (health != nullptr) {
+                AddV370UniqueString(&item.reasons, health->status + ":" + health->reason);
+            } else {
+                AddV370UniqueString(&item.reasons, "unknown:health-missing");
+            }
+        }
+        item.rollup_state = V370SiteHealthRollupState(item);
+        items.push_back(std::move(item));
+    }
+    return items;
+}
+
+OpsV370SiteHealthRollupSummary BuildV370SiteHealthRollupSummary(
+    const std::vector<OpsV370SiteHealthRollupItem>& items) {
+    OpsV370SiteHealthRollupSummary summary;
+    summary.source_group_count = static_cast<int>(items.size());
+    std::vector<std::string> site_ids;
+    for (const auto& item : items) {
+        AddV370UniqueString(&site_ids, item.site_id);
+        summary.source_count += item.source_count;
+        if (item.rollup_state == "field-needed") {
+            ++summary.field_needed;
+        } else if (item.rollup_state == "offline") {
+            ++summary.offline;
+        } else if (item.rollup_state == "recovering") {
+            ++summary.recovering;
+        } else if (item.rollup_state == "degraded") {
+            ++summary.degraded;
+        } else {
+            ++summary.healthy;
+        }
+    }
+    summary.site_count = static_cast<int>(site_ids.size());
+    return summary;
+}
+
+void AppendV370SiteHealthRollupSummaryJson(std::ostringstream& out,
+                                           const OpsV370SiteHealthRollupSummary& summary) {
+    out << "{"
+        << "\"siteCount\":" << summary.site_count << ","
+        << "\"sourceGroupCount\":" << summary.source_group_count << ","
+        << "\"sourceCount\":" << summary.source_count << ","
+        << "\"healthy\":" << summary.healthy << ","
+        << "\"offline\":" << summary.offline << ","
+        << "\"degraded\":" << summary.degraded << ","
+        << "\"recovering\":" << summary.recovering << ","
+        << "\"fieldNeeded\":" << summary.field_needed
+        << "}";
+}
+
+void AppendV370SiteHealthRollupItemJson(std::ostringstream& out,
+                                        const OpsV370SiteHealthRollupItem& item) {
+    out << "{"
+        << "\"siteId\":\"" << JsonEscape(item.site_id) << "\","
+        << "\"sourceGroup\":\"" << JsonEscape(item.source_group) << "\","
+        << "\"zone\":\"" << JsonEscape(item.zone) << "\","
+        << "\"rollupState\":\"" << JsonEscape(item.rollup_state) << "\","
+        << "\"sourceCount\":" << item.source_count << ","
+        << "\"healthySourceCount\":" << item.healthy_source_count << ","
+        << "\"offlineSourceCount\":" << item.offline_source_count << ","
+        << "\"degradedSourceCount\":" << item.degraded_source_count << ","
+        << "\"recoveringSourceCount\":" << item.recovering_source_count << ","
+        << "\"fieldNeededSourceCount\":" << item.field_needed_source_count << ","
+        << "\"sourceIds\":";
+    AppendJsonStringArray(out, item.source_ids);
+    out << ",\"reasons\":";
+    AppendJsonStringArray(out, item.reasons);
+    out << "}";
+}
+
+std::string OpsV370SiteHealthRollupJson(const OpsSourceHealthSnapshot& health_snapshot) {
+    if (!health_snapshot.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v370-site-health-rollup.v1\",\"error\":\"" +
+               JsonEscape(health_snapshot.error.empty() ? "source health snapshot unavailable" : health_snapshot.error) +
+               "\"}";
+    }
+    std::vector<SourceViewRegistry::SourceRecord> sources;
+    std::vector<SourceViewRegistry::PublishedViewRecord> views;
+    std::string load_error;
+    if (!SourceViewRegistry::Instance().Snapshot(&sources, &views, &load_error)) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v370-site-health-rollup.v1\",\"error\":\"" +
+               JsonEscape(load_error.empty() ? "source registry load failed" : load_error) + "\"}";
+    }
+
+    const auto items = BuildV370SiteHealthRollupItems(sources, views, health_snapshot);
+    const auto summary = BuildV370SiteHealthRollupSummary(items);
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v370-site-health-rollup.v1\","
+        << "\"status\":\"site-health-rollup\","
+        << "\"generatedAt\":\"" << JsonEscape(health_snapshot.generated_at) << "\","
+        << "\"siteHealthRollupSummary\":";
+    AppendV370SiteHealthRollupSummaryJson(out, summary);
+    out << ",\"siteHealthRollup\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV370SiteHealthRollupItemJson(out, items[i]);
+    }
+    out << "],\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"rollupOnly\":true,"
+        << "\"sourceHealthPersisted\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"automaticRecoveryPerformed\":false,"
+        << "\"fieldSmokeExecuted\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 void AppendOpsSourceHealthAuditChanges(const app::AppConfig& config,
                                        const auth::Principal& principal,
                                        const OpsSourceHealthSnapshot& snapshot);
@@ -29386,6 +29910,54 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            ok.headers["Cache-Control"] = "no-store";
 	                            return ok;
 	                        }
+
+                        if (request.path == "/ops/api/site-operations/source-group-contract") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV370SiteSourceGroupContractJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/site-operations/source-registry-projection") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV370SiteAwareSourceRegistryProjectionJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/site-operations/health-rollup") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV370SiteHealthRollupJson(source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
 
 	                        if (request.method == "GET" && request.path == "/ops/api/diagnostics/log-tail") {
 	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
