@@ -217,7 +217,7 @@ git diff --check
 
 - 완료 경계: 이번 Step 14는 local stabilization/release readiness gate 연결입니다. UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, PR/main/tag/GitHub Release, field smoke 실행 PASS를 대체하지 않습니다.
 
-## 최신 published baseline 상세: v3.5.0 Live Operations Control Plane
+## v3.5.0 published baseline 상세: Live Operations Control Plane
 
 상태: Step 1 source/version/docs/backlog/verification metadata 정렬 완료. Step 2
 Live Operations Graph Contract 구현 완료. Step 3 Operations Command Plan Contract
@@ -226,8 +226,8 @@ and Impact Preview 구현 완료. Step 6 Ops Command Workspace UI, Step 7 Drill 
 Ledger and Plan Comparison, Step 8 Client Impact Forecast, Step 9 Client-safe Operations
 Notice, Step 10 Operations Export Bundle and Handoff Map, Step 11 Field Evidence Intake,
 Step 12 VLM-assisted Ops Explanation 구현 완료. Step 13 Stabilization and Release Readiness
-local gate 연결 완료. 현재 source version은
-`3.5.0`이고 latest published baseline은 `v3.5.0`입니다. 각 step은 실제 코드/API/UI/문서/검증
+local gate 연결 완료. v3.5.0 release close-out 당시 source version은
+`3.5.0`이고 published baseline은 `v3.5.0`이었습니다. 각 step은 실제 코드/API/UI/문서/검증
 산출물이 생긴 뒤에만 완료로 기록합니다.
 
 직접 답: v3.5.0의 1차 선택값은 `Live Operations Control Plane`입니다. v3.2가
