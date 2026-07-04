@@ -14,7 +14,7 @@ const docsAssetEnDir = path.join(docsAssetDir, "en");
 
 const manifest = JSON.parse(readText("config/docs_ui_assets.json"));
 const currentVersion = readText("VERSION").trim();
-const latestPublishedTag = "v3.5.0";
+const latestPublishedTag = "v3.6.0";
 const readmeAssets = manifest.assets.filter((asset) => asset.readme).map((asset) => asset.file);
 const uiGuideAssets = manifest.assets.filter((asset) => asset.uiGuide).map((asset) => asset.file);
 const assetByFile = new Map(manifest.assets.map((asset) => [asset.file, asset]));

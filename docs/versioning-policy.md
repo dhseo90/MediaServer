@@ -7,16 +7,16 @@
 
 - 현재 소스 버전: `3.6.0`
 - 현재 source roadmap: `v3.6.0 Operations Simulation and Safe Apply Readiness`
-- 최신 공개 GitHub Release: `v3.5.0`
-- 최신 공개 roadmap: `v3.5.0 Live Operations Control Plane`
-- `v3.5.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- source-only release 기준 tag는 published tag `v3.5.0`와 현재 source tag `v3.6.0`를 함께 기록합니다.
-- `v3.5.0` release tag는 SSH-signed annotated tag이며 GitHub API tag verification `verified=true`/`reason=valid`로 확인했습니다.
+- 최신 공개 GitHub Release: `v3.6.0`
+- 최신 공개 roadmap: `v3.6.0 Operations Simulation and Safe Apply Readiness`
+- `v3.6.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
+- source-only release 기준 tag는 published tag `v3.6.0`와 현재 source tag `v3.6.0`를 함께 기록합니다.
+- `v3.6.0` release tag는 SSH-signed annotated tag이며 GitHub API tag verification `verified=true`/`reason=valid`로 확인했습니다.
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
 
 현재 소스 트리의 `3.6.0` roadmap은 v3.6.0 Operations Simulation and Safe Apply Readiness
-source-only/live-only active source baseline입니다. v3.5.0 최신 published baseline,
-v3.4.0 previous published evidence와 후속 기능별 완료 evidence는 계속 분리해 기록합니다. 기본 공개 형태는 계속 source-only이며
+source-only/live-only published baseline입니다. v3.5.0 previous published baseline,
+v3.4.0 historical published evidence와 후속 기능별 완료 evidence는 계속 분리해 기록합니다. 기본 공개 형태는 계속 source-only이며
 binary/runtime/model bundle을 공개 asset으로 포함하지 않습니다.
 
 ## 2.x runway / 3.0 전환 정책
@@ -68,13 +68,33 @@ tag, 30분/120분 장시간 테스트, UI 풀테스트, 외부 field smoke는 �
 `v3.6.0 source-of-truth 정렬`은 `README.md`, `README.en.md`, `docs/README.md`,
 `docs/en/README.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`,
 release/version policy가 source `3.6.0`, current roadmap
-`v3.6.0 Operations Simulation and Safe Apply Readiness`, latest published `v3.5.0`를 정렬하는지
-확인하는 local gate입니다. v3.5 published baseline은 최신 공개 기준입니다. 대표 UI 이미지는 `config/docs_ui_assets.json`의 managed
+`v3.6.0 Operations Simulation and Safe Apply Readiness`, latest published `v3.6.0`를 정렬하는지
+확인하는 local gate입니다. v3.6 published baseline은 최신 공개 기준입니다. 대표 UI 이미지는 `config/docs_ui_assets.json`의 managed
 asset list로 관리하며, image recapture, 직접 브라우저 검수 PASS, UI 풀테스트,
 published metadata, tag/push/GitHub Release는 source baseline 정렬 PASS로 대체하지
 않습니다.
 
-## v3.5.0 latest published source-only release 범위
+## v3.6.0 latest published source-only release 범위
+
+- v3.6.0 source roadmap baseline 정렬
+- Simulation Input Contract
+- Operations Simulation Run Contract
+- Command Plan Dry-run Simulator
+- Source/Rule Impact Diff
+- Safe Apply Readiness Gate
+- Ops Simulation Workspace UI
+- Simulation Run Ledger and Comparison
+- Client Notice Preview
+- Rule/VA What-if Replay Pack
+- Simulation Export Bundle
+- Field Evidence Simulation Adapter
+- VLM-assisted Simulation Explanation
+- Stabilization and Release Readiness
+
+위 항목은 최신 published baseline입니다. 120분 longrun과 외부 field smoke는 실행하지
+않은 영역으로 계속 분리합니다.
+
+## v3.5.0 previous published source-only release 범위
 
 - v3.5.0 source roadmap baseline 정렬
 - Live Operations Graph Contract
@@ -88,23 +108,6 @@ published metadata, tag/push/GitHub Release는 source baseline 정렬 PASS로 �
 - Operations Export Bundle and Handoff Map
 - Field Evidence Intake
 - VLM-assisted Ops Explanation
-- Stabilization and Release Readiness
-
-위 항목은 최신 published baseline입니다. 120분 longrun과 외부 field smoke는 실행하지
-않은 영역으로 계속 분리합니다.
-
-## v3.4.0 previous published source-only release 범위
-
-- v3.4.0 source roadmap baseline 정렬
-- Continuity Drill Contract
-- Recovery Candidate Package Read Model
-- Staging Restore Validation Harness
-- Source Health Replay and Drift Diff
-- Ops Continuity Drill Workspace UI
-- Approval-Gated Recovery Checklist and Audit
-- Client-safe Maintenance Digest
-- Drill Evidence Export and Cleanup Manifest
-- Field Bridge Condition Gates
 - Stabilization and Release Readiness
 
 위 항목은 직전 published baseline입니다. 120분 longrun과 외부 field smoke는 실행하지
