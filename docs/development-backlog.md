@@ -10,14 +10,99 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.6.0`
+- 현재 소스 버전: `3.7.0`
 - 최신 공개 GitHub Release: `v3.6.0`
 - `v3.6.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap: `v3.6.0 Operations Simulation and Safe Apply Readiness`
+- 현재 source roadmap: `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`
 - 최신 published baseline: `v3.6.0 Operations Simulation and Safe Apply Readiness`
 
-## 현재 source roadmap: v3.6.0 Operations Simulation and Safe Apply Readiness
+## 현재 source roadmap: v3.7.0 Site-Aware Operations and Safe Runbook Control Plane
+
+상태: Step 1 source/version/docs/backlog/verification metadata 정렬을 진행합니다.
+현재 source version은 `3.7.0`이고 latest published baseline은 `v3.6.0`입니다. 각 step은
+실제 코드/API/문서/검증 산출물이 생긴 뒤에만 완료로 기록합니다.
+
+직접 답: v3.7.0의 1차 선택값은 `Site-Aware Operations and Safe Runbook Control Plane`입니다.
+v3.6이 production write 없이 simulation input, dry-run, impact diff, safe apply readiness를
+산출했다면, v3.7은 이 결과를 site/source group/runbook approval 단위로 확장합니다.
+개발은 중요도보다 의존 순서를 우선해 Foundation → Intelligence → Workflow →
+Product UI → Field/Execution → Release 순서로 진행합니다.
+
+비범위:
+
+- site/group 기능을 이유로 SourceRegistry 또는 PublishedView를 자동 변경
+- 자동 대량 apply, 자동 recovery cutover, 자동 client notice 발송
+- Rule/Profile 자동 저장 또는 rule follow-up 자동 적용
+- EventRecord, Event POST payload, WebRTC DataChannel, SSE/WS metadata,
+  RTSP/WebRTC media path, Rule/Profile payload schema 변경
+- viewer/client에 site 내부 source locator, credential, raw diagnostic JSON,
+  raw provider material, operator-only blocker detail 노출
+- VMS/NVR, 장기 녹화, playback/archive search, runtime/model bundle 배포
+
+| 구간 | 제목 | 우선순위 | 개발 내용 |
+| --- | --- | --- | --- |
+| Foundation | v3.7.0 (1) v3.7.0 baseline 정렬 | P0 | VERSION/CMake/README/docs/backlog/source roadmap을 `3.7.0`와 `verify-v370-entry-baseline` 기준으로 정렬 |
+| Foundation | v3.7.0 (2) Site / Source Group Contract | P0 | site, sourceGroup, zone, viewGroup read model과 no-auto-write boundary 정의 |
+| Foundation | v3.7.0 (3) Site-Aware Source Registry Projection | P0 | 기존 SourceRegistry/PublishedView를 site/source group 관점의 Ops-only projection으로 노출 |
+| Foundation | v3.7.0 (4) Site Health Rollup | P0 | source health를 site/group 단위 offline/degraded/recovering/field-needed 상태로 집계 |
+| Intelligence | v3.7.0 (5) Site Impact Graph | P1 | EventRecord, source health, PublishedView, client impact를 site별 graph로 연결 |
+| Intelligence | v3.7.0 (6) Site Simulation Input Pack | P1 | v3.6 simulation input/result envelope를 site/source group 단위 입력 pack으로 확장 |
+| Intelligence | v3.7.0 (7) Cross-Site Safe Apply Readiness | P1 | site/group 변경 후보의 affected clients, blocker, approval-needed, field-needed 상태 산출 |
+| Workflow | v3.7.0 (8) Runbook Template Contract | P1 | source recheck, maintenance, rule draft, client notice 후보를 반복 가능한 runbook template으로 정의 |
+| Workflow | v3.7.0 (9) Runbook Instance Ledger | P1 | runbookId, siteId, status, operator note, previous run comparison을 append-only/read-only ledger로 누적 |
+| Workflow | v3.7.0 (10) Approval Ticket Workflow | P1 | approval, hold, reject, field-needed 상태와 reviewer/reason/audit link를 관리 |
+| Product UI | v3.7.0 (11) Site Operations Workspace UI | P1 | `/ops`에서 site list, health rollup, runbook queue, impact detail을 탐색하는 workspace 추가 |
+| Product UI | v3.7.0 (12) Client Notice by Site/View Group | P1 | site/view group 기준 viewer-safe notice preview와 delivery queue 경계를 준비 |
+| Product UI | v3.7.0 (13) Rule/VA What-if by Site | P1 | rule threshold/scenario 후보를 site 영향과 EventRecord/VA fixture 기반으로 비교 |
+| Field/Execution | v3.7.0 (14) Field Evidence Attachment | P2 | ONVIF, external WHEP/TURN, cloud/VLM 조건부 evidence를 site/runbook에 not-run/conditional로 첨부 |
+| Field/Execution | v3.7.0 (15) Limited Safe Execution Pilot | P2 | 가장 낮은 위험의 source recheck 또는 notice queue action만 approval-gated 실행 파일럿으로 분리 |
+| Field/Execution | v3.7.0 (16) Outcome Reconciliation | P2 | 실행 전 simulation과 실행 후 source/event/client impact diff를 비교 |
+| Release | v3.7.0 (17) Export / Handoff Bundle | P1 | site/runbook/evidence/approval/outcome을 redacted release-safe handoff bundle로 조합 |
+| Release | v3.7.0 (18) Stabilization and Release Readiness | P0 | v3.7 local verifier suite, inventory, release records, close-out dry-run, `git diff --check` 연결 |
+
+### v3.7.0 진행 상태
+
+| 번호 | 제목 | 우선순위 | 상태 | 완료/잔여 내용 |
+| --- | --- | --- | --- | --- |
+| 1 | v3.7.0 (1) v3.7.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/docs/backlog/source roadmap과 `verify-v370-entry-baseline` 기준 정렬 |
+| 2 | v3.7.0 (2) Site / Source Group Contract | P0 | 미진행 | site, sourceGroup, zone, viewGroup read model과 no-auto-write boundary 정의 |
+| 3 | v3.7.0 (3) Site-Aware Source Registry Projection | P0 | 미진행 | SourceRegistry/PublishedView를 site/source group 관점의 Ops-only projection으로 노출 |
+| 4 | v3.7.0 (4) Site Health Rollup | P0 | 미진행 | source health를 site/group 단위 상태로 집계 |
+| 5 | v3.7.0 (5) Site Impact Graph | P1 | 미진행 | EventRecord, source health, PublishedView, client impact를 site별 graph로 연결 |
+| 6 | v3.7.0 (6) Site Simulation Input Pack | P1 | 미진행 | v3.6 simulation input/result envelope를 site/source group 단위 입력 pack으로 확장 |
+| 7 | v3.7.0 (7) Cross-Site Safe Apply Readiness | P1 | 미진행 | site/group 변경 후보의 affected clients, blocker, approval-needed, field-needed 상태 산출 |
+| 8 | v3.7.0 (8) Runbook Template Contract | P1 | 미진행 | source recheck, maintenance, rule draft, client notice 후보를 runbook template으로 정의 |
+| 9 | v3.7.0 (9) Runbook Instance Ledger | P1 | 미진행 | runbookId, siteId, status, operator note, previous run comparison을 append-only/read-only ledger로 누적 |
+| 10 | v3.7.0 (10) Approval Ticket Workflow | P1 | 미진행 | approval, hold, reject, field-needed 상태와 reviewer/reason/audit link 관리 |
+| 11 | v3.7.0 (11) Site Operations Workspace UI | P1 | 미진행 | `/ops` site list, health rollup, runbook queue, impact detail workspace 추가 |
+| 12 | v3.7.0 (12) Client Notice by Site/View Group | P1 | 미진행 | site/view group 기준 viewer-safe notice preview와 delivery queue 경계 준비 |
+| 13 | v3.7.0 (13) Rule/VA What-if by Site | P1 | 미진행 | rule threshold/scenario 후보를 site 영향과 EventRecord/VA fixture 기반으로 비교 |
+| 14 | v3.7.0 (14) Field Evidence Attachment | P2 | 미진행 | 외부/실기기 조건부 evidence를 site/runbook에 not-run/conditional로 첨부 |
+| 15 | v3.7.0 (15) Limited Safe Execution Pilot | P2 | 미진행 | 낮은 위험 action만 approval-gated 실행 파일럿으로 분리 |
+| 16 | v3.7.0 (16) Outcome Reconciliation | P2 | 미진행 | 실행 전 simulation과 실행 후 source/event/client impact diff 비교 |
+| 17 | v3.7.0 (17) Export / Handoff Bundle | P1 | 미진행 | site/runbook/evidence/approval/outcome을 redacted release-safe bundle로 조합 |
+| 18 | v3.7.0 (18) Stabilization and Release Readiness | P0 | 미진행 | v3.7 local verifier suite, inventory, release records, close-out dry-run, `git diff --check` 연결 |
+
+완료 경계: 위 표는 v3.7.0 개발 순서와 우선순위입니다. 현재 Step 1만 source baseline
+정렬 범위이며, Step 2~18은 개발 전 roadmap 항목입니다. 각 step은 실제 코드/API/UI/문서
+변경, 기능 ID/test inventory 등록, 해당 verifier와 release test record evidence가 생긴 뒤에만
+완료로 기록합니다. UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release
+action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁니다.
+
+## v3.7.0 Step 1 개발 기록
+
+- 범위: P0 `v3.7.0 (1) v3.7.0 baseline 정렬`.
+- `VERSION`, `CMakeLists.txt`: 현재 source version과 CMake project version을 `3.7.0`으로 정렬했습니다.
+- `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`, `docs/versioning-policy.md`, `docs/release-policy.md`, `docs/public-repo-final-review.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`: 현재 source roadmap을 `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`으로 전환했고 latest published release는 `v3.6.0` source-only GitHub Release로 유지했습니다.
+- `docs/development-backlog.md`: v3.7.0 current roadmap을 `구간 | 제목 | 우선순위 | 개발 내용` 구조로 승격하고, site/source group/runbook approval 방향과 no-auto-write/no-client-secret/no-media-path-change 경계를 기록했습니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`, `config/docs_ui_assets.json`: current release target, docs asset baseline, verification catalog, release records를 source `3.7.0`와 latest published `v3.6.0` 기준으로 정렬했습니다.
+- `scripts/internal/verify_release_metadata_consistency.mjs`, `scripts/internal/verify_docs_ui_assets.mjs`: release metadata와 docs UI asset verifier가 source `3.7.0`, current roadmap `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`, latest published `v3.6.0`을 검증하도록 보정했습니다.
+- `scripts/internal/verify_v370_entry_baseline.mjs`, `server.sh`: `./server.sh verify-v370-entry-baseline` 명령을 추가해 source `3.7.0`, latest published `v3.6.0`, current roadmap `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`, release records, feature inventory, server dispatch 연결을 정적 검증합니다.
+- 검증: 최초 `node scripts/internal/verify_v370_entry_baseline.mjs`는 versioning/release policy, backlog, metadata verifier, server dispatch, UI guide/assets policy가 아직 v3.7 기준이 아니어서 `pass=3 fail=6`으로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 1 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 1은 source/version/docs/backlog/verification metadata 정렬입니다. UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다. `v3.7.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
+
+## 최신 공개 기준: v3.6.0 Operations Simulation and Safe Apply Readiness
 
 상태: Step 1 source/version/docs/backlog/verification metadata 정렬 완료. Step 2
 Simulation Input Contract 구현 완료. Step 3 Operations Simulation Run Contract 구현 완료.

@@ -5,18 +5,19 @@
 
 ## 현재 기준
 
-- 현재 소스 버전: `3.6.0`
-- 현재 source roadmap: `v3.6.0 Operations Simulation and Safe Apply Readiness`
+- 현재 소스 버전: `3.7.0`
+- 현재 source roadmap: `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`
 - 최신 공개 GitHub Release: `v3.6.0`
 - 최신 공개 roadmap: `v3.6.0 Operations Simulation and Safe Apply Readiness`
 - `v3.6.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- source-only release 기준 tag는 published tag `v3.6.0`와 현재 source tag `v3.6.0`를 함께 기록합니다.
+- source-only release 기준 tag는 published tag `v3.6.0`와 현재 source tag `v3.7.0`를 함께 기록합니다.
 - `v3.6.0` release tag는 SSH-signed annotated tag이며 GitHub API tag verification `verified=true`/`reason=valid`로 확인했습니다.
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
 
-현재 소스 트리의 `3.6.0` roadmap은 v3.6.0 Operations Simulation and Safe Apply Readiness
-source-only/live-only published baseline입니다. v3.5.0 previous published baseline,
-v3.4.0 historical published evidence와 후속 기능별 완료 evidence는 계속 분리해 기록합니다. 기본 공개 형태는 계속 source-only이며
+현재 소스 트리의 `3.7.0` roadmap은 v3.7.0 Site-Aware Operations and Safe Runbook Control Plane
+source-only/live-only active source roadmap입니다. v3.6.0 published baseline,
+v3.5.0 previous published baseline, v3.4.0 historical published evidence와 후속 기능별
+완료 evidence는 계속 분리해 기록합니다. 기본 공개 형태는 계속 source-only이며
 binary/runtime/model bundle을 공개 asset으로 포함하지 않습니다.
 
 ## 2.x runway / 3.0 전환 정책
@@ -49,26 +50,41 @@ binary/runtime/model bundle을 공개 asset으로 포함하지 않습니다.
   PublishedView, command plan, staged plan을 read-only simulation input으로 묶고,
   dry-run, source/rule impact diff, safe apply readiness를 자동 적용 없이 계산하는
   minor line입니다.
+- `3.7.0`은 v3.6 Operations Simulation and Safe Apply Readiness 위에서 site/source
+  group, site impact graph, safe runbook template, approval ticket, limited safe execution
+  pilot을 순서대로 준비하는 minor line입니다.
 - 3.0 전에는 자동 Rule/Profile 적용, 외부 알림 실제 발송 보장, VLM default-on,
   runtime/model bundle default 배포를 2.x 완료 조건으로 승격하지 않습니다.
 
-## 3.6.0 active source roadmap 범위
+## 3.7.0 active source roadmap 범위
 
-- v3.6.0 source roadmap baseline 정렬
-- Simulation Input Contract
-- Operations Simulation Run Contract
-- Command Plan Dry-run Simulator
-- Source/Rule Impact Diff
-- Safe Apply Readiness Gate
+- v3.7.0 source roadmap baseline 정렬
+- Site / Source Group Contract
+- Site-Aware Source Registry Projection
+- Site Health Rollup
+- Site Impact Graph
+- Site Simulation Input Pack
+- Cross-Site Safe Apply Readiness
+- Runbook Template Contract
+- Runbook Instance Ledger
+- Approval Ticket Workflow
+- Site Operations Workspace UI
+- Client Notice by Site/View Group
+- Rule/VA What-if by Site
+- Field Evidence Attachment
+- Limited Safe Execution Pilot
+- Outcome Reconciliation
+- Export / Handoff Bundle
+- Stabilization and Release Readiness
 
 위 항목은 구현과 검증 evidence가 생긴 뒤에만 `완료`로 기록합니다. GitHub Release,
 tag, 30분/120분 장시간 테스트, UI 풀테스트, 외부 field smoke는 별도 실행 evidence가
 있을 때만 완료로 씁니다.
 
-`v3.6.0 source-of-truth 정렬`은 `README.md`, `README.en.md`, `docs/README.md`,
+`v3.7.0 source-of-truth 정렬`은 `README.md`, `README.en.md`, `docs/README.md`,
 `docs/en/README.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`,
-release/version policy가 source `3.6.0`, current roadmap
-`v3.6.0 Operations Simulation and Safe Apply Readiness`, latest published `v3.6.0`를 정렬하는지
+release/version policy가 source `3.7.0`, current roadmap
+`v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`, latest published `v3.6.0`를 정렬하는지
 확인하는 local gate입니다. v3.6 published baseline은 최신 공개 기준입니다. 대표 UI 이미지는 `config/docs_ui_assets.json`의 managed
 asset list로 관리하며, image recapture, 직접 브라우저 검수 PASS, UI 풀테스트,
 published metadata, tag/push/GitHub Release는 source baseline 정렬 PASS로 대체하지
