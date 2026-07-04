@@ -306,6 +306,8 @@ release close-out에서도 릴리즈 테스트는 자동으로 넓혀 실행하�
 
 release close-out에서 테스트와 evidence는 서로 대체하지 않는다. 안정화, 30분, UI 풀테스트, 필요 시 120분은 7장의 판정 규칙을 따른다. 30분 테스트와 UI 풀테스트가 7장 기준으로 미실행, FAIL, 미확인 blocker 상태이면, 사용자가 해당 blocker를 알고도 강제로 진행하라고 최신 지시에서 명시 승인한 경우를 제외하고 PR, main merge, tag, GitHub Release, published metadata 재검증, 후속 브랜치 생성으로 넘어갈 수 없다. 30분 테스트와 UI 풀테스트가 "사용자 승인 전 실행 금지"라는 말은 "조건부", "선택", "생략 가능"이라는 뜻이 아니다.
 
+release tag closure의 불변 조건은 `해당 릴리즈 버전의 모든 repo 커밋이 tag 대상 commit에 포함되어야 한다`이다. 이 규칙은 모든 릴리즈에 보정 커밋이 있다고 가정하지 않는다. release branch를 닫기 직전에 반드시 `같은 버전의 release correctness 보정 커밋이 tag 대상 commit 밖에 남아 있는가`를 확인한다. 보정 커밋이 없으면 정상 close-out을 진행할 수 있다. 보정 커밋이 tag 밖에 하나라도 있으면 release branch를 닫을 수 없고, 후속 브랜치 생성과 release branch 삭제도 할 수 없다. 이때 보정 커밋을 금지하지 말고, 그 보정 커밋을 PR/main merge까지 완료한 뒤 release tag 대상 commit을 그 보정 merge commit 또는 그 이후의 동일 버전 close-out commit으로 옮긴다. tag를 이미 만든 뒤 같은 버전 보정 커밋이 tag 밖에 남았음이 확인되면 기존 tag는 최종 완료 evidence로 인정하지 않고, 사용자가 tag 교체와 force update를 명시 승인한 경우에만 corrected commit으로 signed tag를 재생성/force update한 뒤 GitHub Release와 published metadata를 다시 검증한다.
+
 120분은 7.6.2의 진행 조건 또는 현재 release policy/roadmap/evidence의 필수 gate 명시가 있을 때만 필수 release gate로 말한다. 120분 조건을 충족하지 않아 실행하지 않은 경우에는 release evidence와 최종 보고에 `조건부 미실행`으로 남기며, 완료 evidence로 사용하지 않는다.
 
 사용자가 `필수 로컬 안정화 전체`처럼 묶음 실행을 지시한 경우에는 `./server.sh build`, `git diff --check`, 현재 버전 entry/baseline verifier, release metadata/evidence, docs links/assets, feature/script inventory, release close-out dry-run을 포함한다. 명령이 없거나 현재 버전 범위가 아니면 PASS로 대체하지 말고 `미실행` 또는 `비대상`으로 보고한다.
@@ -357,6 +359,8 @@ external TURN/WHEP, cloud provider, ONVIF 실기기, 외부 VLM/provider 호출�
 6. 릴리즈 tag 생성
    - 이 단계는 사용자가 tag 생성을 명시 승인한 경우에만 수행한다.
    - PR이 main에 merge된 뒤 main의 최신 release commit에 signed annotated 릴리즈 tag를 만든다.
+   - tag 대상 commit은 해당 버전의 release branch merge뿐 아니라 published metadata, release evidence, docs/verifier 기준, release note source, policy 보정 등 같은 버전 release correctness 보정 커밋을 모두 포함해야 한다.
+   - release branch를 닫기 전 같은 버전 보정 커밋이 tag 대상 commit 뒤에 있는지 확인한다. 없으면 진행할 수 있고, 있으면 branch close-out을 멈춘 뒤 tag 대상 commit을 보정 커밋 이후로 재선정한다.
    - `annotated`만 된 unsigned tag, lightweight tag, GitHub UI/API가 자동 생성한 unsigned tag는 신규 릴리즈 tag로 사용하지 않는다.
    - tag 생성 전 local signing 설정과 GitHub에 등록된 signing key가 확인되지 않으면 tag 생성을 중단하고 blocker로 보고한다.
    - tag push 전 `git tag -v <tag>` 또는 동등한 local signature verification으로 tag object에 서명이 있음을 확인한다.
