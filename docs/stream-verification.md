@@ -53,6 +53,7 @@ UI 풀테스트, 30분/120분, published metadata, release action, field smoke�
 | v3.7.0 (3) | `./server.sh verify-v370-site-aware-source-registry-projection` | Site-Aware Source Registry Projection. `/ops/api/site-operations/source-registry-projection`이 SourceRegistry/PublishedView snapshot을 site/source group 단위 projection으로 묶고 raw locator/credential/client material 없이 read-only로 노출하는지 확인합니다 |
 | v3.7.0 (4) | `./server.sh verify-v370-site-health-rollup` | Site Health Rollup. `/ops/api/site-operations/health-rollup`이 source health snapshot을 site/source group 단위 `offline`/`degraded`/`recovering`/`field-needed` 상태로 집계하고 source health persistence, automatic recovery, field smoke, source/view write 미수행 경계를 확인합니다 |
 | v3.7.0 (5) | `./server.sh verify-v370-site-impact-graph` | Site Impact Graph. `/ops/api/site-operations/impact-graph`가 EventRecord, source health, PublishedView, client impact를 site/source group별 node/edge graph로 연결하고 source/view/EventRecord/Ops audit/client/media mutation, viewer/client exposure, raw locator/credential/debug material 미수행 경계를 확인합니다 |
+| v3.7.0 (6) | `./server.sh verify-v370-site-simulation-input-pack` | Site Simulation Input Pack. `/ops/api/site-operations/simulation-input-pack`이 v3.6 simulation input/result envelope와 v3.7 site projection/impact graph를 site/source group별 read-only input pack으로 연결하고 simulation persist/run/result persist, source/view/rule/EventRecord/Ops audit/client/media mutation, viewer/client exposure, raw locator/credential material 미수행 경계를 확인합니다 |
 
 ## 최신 published baseline v3.6.0 verifier
 

@@ -19013,6 +19013,403 @@ std::string OpsV360OperationsSimulationRunContractJson(
     return out.str();
 }
 
+struct OpsV370SiteSimulationInputPackItem {
+    std::string pack_id;
+    std::string input_type;
+    std::string site_id;
+    std::string source_group;
+    std::string source_route;
+    std::string snapshot_status{"available"};
+    std::string write_guard{"read-only siteScopedInputPack; no simulation run"};
+    std::vector<std::string> source_ids;
+    std::vector<std::string> published_view_ids;
+    std::vector<std::string> included_fields;
+    std::vector<std::string> refs;
+    int record_count{0};
+    int event_record_count{0};
+    int source_health_count{0};
+    int impact_graph_node_count{0};
+    int impact_graph_edge_count{0};
+    bool site_scoped{true};
+    bool read_only{true};
+};
+
+struct OpsV370SiteSimulationInputPackSummary {
+    int pack_count{0};
+    int site_count{0};
+    int source_group_count{0};
+    int source_count{0};
+    int published_view_count{0};
+    int event_record_count{0};
+    int source_health_count{0};
+    int impact_graph_node_count{0};
+    int impact_graph_edge_count{0};
+    int v360_input_count{0};
+    int v360_command_plan_candidate_count{0};
+    int v360_staged_plan_count{0};
+    std::vector<std::string> derivation_sources;
+};
+
+int V370ImpactGraphNodeCountForScope(
+    const std::vector<OpsV370SiteImpactGraphNode>& nodes,
+    const OpsV370SiteAwareSourceRegistryProjectionItem& projected) {
+    return static_cast<int>(std::count_if(nodes.begin(), nodes.end(), [&](const auto& node) {
+        return node.site_id == projected.site_id &&
+               (node.source_group == projected.source_group || node.node_type == "site");
+    }));
+}
+
+int V370ImpactGraphEdgeCountForScope(
+    const std::vector<OpsV370SiteImpactGraphEdge>& edges,
+    const OpsV370SiteAwareSourceRegistryProjectionItem& projected) {
+    return static_cast<int>(std::count_if(edges.begin(), edges.end(), [&](const auto& edge) {
+        return edge.site_id == projected.site_id && edge.source_group == projected.source_group;
+    }));
+}
+
+int V370SourceHealthCountForProjection(
+    const OpsV350LiveOperationsGraphContext& context,
+    const OpsV370SiteAwareSourceRegistryProjectionItem& projected) {
+    int count = 0;
+    for (const auto& source_id : projected.source_ids) {
+        if (context.health_by_source.find(source_id) != context.health_by_source.end()) {
+            ++count;
+        }
+    }
+    return count;
+}
+
+int V370EventRecordCountForProjection(
+    const OpsV350LiveOperationsGraphContext& context,
+    const OpsV370SiteAwareSourceRegistryProjectionItem& projected) {
+    int count = 0;
+    for (const auto& source_id : projected.source_ids) {
+        count += V370EventRecordCountForSource(context, source_id);
+    }
+    return count;
+}
+
+std::vector<OpsV370SiteSimulationInputPackItem> BuildV370SiteSimulationInputPackItems(
+    const OpsV350LiveOperationsGraphContext& context,
+    const std::vector<OpsV370SiteAwareSourceRegistryProjectionItem>& projection,
+    const std::vector<OpsV370SiteHealthRollupItem>& rollups,
+    const std::vector<OpsV370SiteImpactGraphNode>& impactGraphNodes,
+    const std::vector<OpsV370SiteImpactGraphEdge>& impactGraphEdges,
+    const std::vector<OpsV360SimulationInputPackItem>& v360InputPackItems) {
+    std::vector<OpsV370SiteSimulationInputPackItem> items;
+    items.reserve(projection.size() * 6);
+
+    for (const auto& projected : projection) {
+        const auto* rollup = V370RollupForProjection(rollups, projected);
+        const int eventRecordCount = V370EventRecordCountForProjection(context, projected);
+        const int sourceHealthCount = V370SourceHealthCountForProjection(context, projected);
+        const int impactNodeCount = V370ImpactGraphNodeCountForScope(impactGraphNodes, projected);
+        const int impactEdgeCount = V370ImpactGraphEdgeCountForScope(impactGraphEdges, projected);
+        const std::string scope = projected.site_id + ":" + projected.source_group;
+        const std::string snapshotStatus =
+            rollup == nullptr ? "site-scope-linked" : rollup->rollup_state;
+
+        items.push_back({"siteSimulationInputPack:" + scope + ":source-registry-projection",
+                         "SourceRegistry",
+                         projected.site_id,
+                         projected.source_group,
+                         "/ops/api/site-operations/source-registry-projection",
+                         projected.source_ids.empty() ? "empty" : "available",
+                         "read-only site source projection; no SourceRegistry write",
+                         projected.source_ids,
+                         projected.view_ids,
+                         {"siteId", "sourceGroup", "zone", "sourceIds", "viewIds"},
+                         {"/ops/api/site-operations/source-registry-projection"},
+                         static_cast<int>(projected.source_ids.size()),
+                         eventRecordCount,
+                         sourceHealthCount,
+                         impactNodeCount,
+                         impactEdgeCount,
+                         true,
+                         true});
+        items.push_back({"siteSimulationInputPack:" + scope + ":event-record",
+                         "EventRecord",
+                         projected.site_id,
+                         projected.source_group,
+                         "/ops/api/events/reviews",
+                         eventRecordCount > 0 ? "available" : "empty",
+                         "read-only EventRecord aggregate; no EventRecord write",
+                         projected.source_ids,
+                         projected.view_ids,
+                         {"eventId", "streamId", "channelId", "eventType", "createdAtMs"},
+                         {"/ops/api/events/reviews"},
+                         eventRecordCount,
+                         eventRecordCount,
+                         sourceHealthCount,
+                         impactNodeCount,
+                         impactEdgeCount,
+                         true,
+                         true});
+        items.push_back({"siteSimulationInputPack:" + scope + ":published-view",
+                         "PublishedView",
+                         projected.site_id,
+                         projected.source_group,
+                         "/ops/api/views",
+                         projected.view_ids.empty() ? "empty" : "available",
+                         "read-only PublishedView identity; no PublishedView write",
+                         projected.source_ids,
+                         projected.view_ids,
+                         {"viewId", "sourceId", "displayName", "enabled", "siteId", "sourceGroup"},
+                         {"/ops/api/views", "/client/api/views"},
+                         static_cast<int>(projected.view_ids.size()),
+                         eventRecordCount,
+                         sourceHealthCount,
+                         impactNodeCount,
+                         impactEdgeCount,
+                         true,
+                         true});
+        items.push_back({"siteSimulationInputPack:" + scope + ":source-health-rollup",
+                         "sourceHealthRollup",
+                         projected.site_id,
+                         projected.source_group,
+                         "/ops/api/site-operations/health-rollup",
+                         snapshotStatus,
+                         "read-only source health rollup; no recovery or field action",
+                         projected.source_ids,
+                         projected.view_ids,
+                         {"siteId", "sourceGroup", "liveCount", "degradedCount", "fieldNeededCount"},
+                         {"/ops/api/site-operations/health-rollup"},
+                         sourceHealthCount,
+                         eventRecordCount,
+                         sourceHealthCount,
+                         impactNodeCount,
+                         impactEdgeCount,
+                         true,
+                         true});
+        items.push_back({"siteSimulationInputPack:" + scope + ":site-impact-graph",
+                         "SiteImpactGraph",
+                         projected.site_id,
+                         projected.source_group,
+                         "/ops/api/site-operations/impact-graph",
+                         impactNodeCount > 0 ? "available" : "empty",
+                         "read-only impact graph input; no client exposure or graph persistence",
+                         projected.source_ids,
+                         projected.view_ids,
+                         {"nodeId", "edgeId", "siteId", "sourceGroup", "clientImpact"},
+                         {"/ops/api/site-operations/impact-graph"},
+                         impactNodeCount,
+                         eventRecordCount,
+                         sourceHealthCount,
+                         impactNodeCount,
+                         impactEdgeCount,
+                         true,
+                         true});
+        items.push_back({"siteSimulationInputPack:" + scope + ":v360-input-envelope",
+                         "simulationInputEnvelope",
+                         projected.site_id,
+                         projected.source_group,
+                         "/ops/api/live-operations/simulation/input-pack",
+                         v360InputPackItems.empty() ? "empty" : "available",
+                         "read-only v3.6 simulation input envelope ref; simulation is not executed",
+                         projected.source_ids,
+                         projected.view_ids,
+                         {"inputId", "inputType", "sourceRoute", "snapshotStatus", "recordCount"},
+                         {"/ops/api/live-operations/simulation/input-pack",
+                          "/ops/api/live-operations/simulation/run-contract"},
+                         static_cast<int>(v360InputPackItems.size()),
+                         eventRecordCount,
+                         sourceHealthCount,
+                         impactNodeCount,
+                         impactEdgeCount,
+                         true,
+                         true});
+    }
+    return items;
+}
+
+OpsV370SiteSimulationInputPackSummary BuildV370SiteSimulationInputPackSummary(
+    const OpsV350LiveOperationsGraphContext& context,
+    const std::vector<OpsV370SiteAwareSourceRegistryProjectionItem>& projection,
+    const std::vector<OpsV370SiteSimulationInputPackItem>& items,
+    const OpsV360SimulationInputPackSummary& v360InputPackSummary,
+    const std::vector<OpsV370SiteImpactGraphNode>& impactGraphNodes,
+    const std::vector<OpsV370SiteImpactGraphEdge>& impactGraphEdges) {
+    OpsV370SiteSimulationInputPackSummary summary;
+    std::vector<std::string> site_ids;
+    summary.derivation_sources = {
+        "BuildV350LiveOperationsGraphContext",
+        "BuildV350CommandPlanCandidates",
+        "BuildV350StagedChangePlans",
+        "BuildV360SimulationInputPackItems",
+        "BuildV360SimulationInputPackSummary",
+        "BuildV360SimulationResultEnvelope",
+        "BuildV370SiteAwareSourceRegistryProjectionItems",
+        "BuildV370SiteHealthRollupItems",
+        "BuildV370SiteImpactGraphNodes",
+        "BuildV370SiteImpactGraphEdges",
+    };
+    summary.pack_count = static_cast<int>(items.size());
+    summary.source_count = static_cast<int>(context.sources.size());
+    summary.published_view_count = static_cast<int>(context.views.size());
+    summary.event_record_count = context.event_record_count;
+    summary.impact_graph_node_count = static_cast<int>(impactGraphNodes.size());
+    summary.impact_graph_edge_count = static_cast<int>(impactGraphEdges.size());
+    summary.v360_input_count = v360InputPackSummary.input_count;
+    summary.v360_command_plan_candidate_count = v360InputPackSummary.command_plan_candidate_count;
+    summary.v360_staged_plan_count = v360InputPackSummary.staged_plan_count;
+    for (const auto& projected : projection) {
+        AddV370UniqueString(&site_ids, projected.site_id);
+        summary.source_health_count += V370SourceHealthCountForProjection(context, projected);
+    }
+    summary.site_count = static_cast<int>(site_ids.size());
+    summary.source_group_count = static_cast<int>(projection.size());
+    return summary;
+}
+
+void AppendV370SiteSimulationInputPackItemJson(
+    std::ostringstream& out,
+    const OpsV370SiteSimulationInputPackItem& item) {
+    out << "{"
+        << "\"packId\":\"" << JsonEscape(item.pack_id) << "\","
+        << "\"inputType\":\"" << JsonEscape(item.input_type) << "\","
+        << "\"siteId\":\"" << JsonEscape(item.site_id) << "\","
+        << "\"sourceGroup\":\"" << JsonEscape(item.source_group) << "\","
+        << "\"sourceRoute\":\"" << JsonEscape(item.source_route) << "\","
+        << "\"snapshotStatus\":\"" << JsonEscape(item.snapshot_status) << "\","
+        << "\"recordCount\":" << item.record_count << ","
+        << "\"eventRecordCount\":" << item.event_record_count << ","
+        << "\"sourceHealthCount\":" << item.source_health_count << ","
+        << "\"impactGraphNodeCount\":" << item.impact_graph_node_count << ","
+        << "\"impactGraphEdgeCount\":" << item.impact_graph_edge_count << ","
+        << "\"sourceIds\":";
+    AppendJsonStringArray(out, item.source_ids);
+    out << ",\"publishedViewIds\":";
+    AppendJsonStringArray(out, item.published_view_ids);
+    out << ",\"includedFields\":";
+    AppendJsonStringArray(out, item.included_fields);
+    out << ",\"refs\":";
+    AppendJsonStringArray(out, item.refs);
+    out << ",\"writeGuard\":\"" << JsonEscape(item.write_guard) << "\","
+        << "\"siteScoped\":" << (item.site_scoped ? "true" : "false") << ","
+        << "\"readOnly\":" << (item.read_only ? "true" : "false")
+        << "}";
+}
+
+void AppendV370SiteSimulationInputPackSummaryJson(
+    std::ostringstream& out,
+    const OpsV370SiteSimulationInputPackSummary& summary) {
+    out << "{"
+        << "\"packCount\":" << summary.pack_count << ","
+        << "\"siteCount\":" << summary.site_count << ","
+        << "\"sourceGroupCount\":" << summary.source_group_count << ","
+        << "\"sourceCount\":" << summary.source_count << ","
+        << "\"publishedViewCount\":" << summary.published_view_count << ","
+        << "\"eventRecordCount\":" << summary.event_record_count << ","
+        << "\"sourceHealthCount\":" << summary.source_health_count << ","
+        << "\"impactGraphNodeCount\":" << summary.impact_graph_node_count << ","
+        << "\"impactGraphEdgeCount\":" << summary.impact_graph_edge_count << ","
+        << "\"v360InputPackCount\":" << summary.v360_input_count << ","
+        << "\"v360CommandPlanCandidateCount\":" << summary.v360_command_plan_candidate_count << ","
+        << "\"v360StagedPlanCount\":" << summary.v360_staged_plan_count << ","
+        << "\"derivationSources\":";
+    AppendJsonStringArray(out, summary.derivation_sources);
+    out << "}";
+}
+
+std::string OpsV370SiteSimulationInputPackJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v370-site-simulation-input-pack.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto v360InputPackItems =
+        BuildV360SimulationInputPackItems(context, commandPlanCandidates, stagedChangePlans);
+    const auto v360InputPackSummary = BuildV360SimulationInputPackSummary(v360InputPackItems);
+    const auto simulationResultEnvelope =
+        BuildV360SimulationResultEnvelope(v360InputPackSummary);
+    const auto projection =
+        BuildV370SiteAwareSourceRegistryProjectionItems(context.sources, context.views);
+    const auto rollups =
+        BuildV370SiteHealthRollupItems(context.sources, context.views, source_health_snapshot);
+    const auto impactGraphNodes = BuildV370SiteImpactGraphNodes(context, projection, rollups);
+    const auto impactGraphEdges = BuildV370SiteImpactGraphEdges(projection);
+    const auto siteSimulationInputPackItems =
+        BuildV370SiteSimulationInputPackItems(context,
+                                             projection,
+                                             rollups,
+                                             impactGraphNodes,
+                                             impactGraphEdges,
+                                             v360InputPackItems);
+    const auto summary = BuildV370SiteSimulationInputPackSummary(context,
+                                                                projection,
+                                                                siteSimulationInputPackItems,
+                                                                v360InputPackSummary,
+                                                                impactGraphNodes,
+                                                                impactGraphEdges);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v370-site-simulation-input-pack.v1\","
+        << "\"status\":\"site-scoped-read-only-simulation-input-pack\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"siteScopedInputPack\":true,"
+        << "\"readOnlySimulationInputPack\":true,"
+        << "\"simulationInputPackRoute\":\"/ops/api/live-operations/simulation/input-pack\","
+        << "\"simulationRunContractRoute\":\"/ops/api/live-operations/simulation/run-contract\","
+        << "\"siteRegistryProjectionRoute\":\"/ops/api/site-operations/source-registry-projection\","
+        << "\"siteHealthRollupRoute\":\"/ops/api/site-operations/health-rollup\","
+        << "\"siteImpactGraphRoute\":\"/ops/api/site-operations/impact-graph\","
+        << "\"eventRecordRoute\":\"/ops/api/events/reviews\","
+        << "\"publishedViewRoute\":\"/ops/api/views\","
+        << "\"v360InputPackSummary\":";
+    AppendV360SimulationInputPackSummaryJson(out, v360InputPackSummary);
+    out << ",\"simulationResultEnvelope\":";
+    AppendV360SimulationResultEnvelopeJson(out, simulationResultEnvelope);
+    out << ",\"siteSimulationInputPackSummary\":";
+    AppendV370SiteSimulationInputPackSummaryJson(out, summary);
+    out << ",\"siteSimulationInputPackItems\":[";
+    for (std::size_t i = 0; i < siteSimulationInputPackItems.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV370SiteSimulationInputPackItemJson(out, siteSimulationInputPackItems[i]);
+    }
+    out << "],\"contractPolicy\":{"
+        << "\"SourceRegistry\":\"site scoped identity input only\","
+        << "\"EventRecord\":\"aggregate input only\","
+        << "\"PublishedView\":\"identity refs only\","
+        << "\"SiteImpactGraph\":\"read-only graph input\","
+        << "\"simulationResultEnvelope\":\"v3.6 envelope ref only; not persisted\","
+        << "\"siteScopedInputPack\":true"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"siteScopedInputPack\":true,"
+        << "\"readOnlySimulationInputPack\":true,"
+        << "\"simulationInputPersisted\":false,"
+        << "\"simulationRunExecuted\":false,"
+        << "\"simulationResultPersisted\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"commandPlanExecuted\":false,"
+        << "\"stagedPlanApplied\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 struct OpsV360CommandPlanDryRunResult {
     std::string result_id;
     std::string candidate_id;
@@ -30460,6 +30857,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV370SiteImpactGraphJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/site-operations/simulation-input-pack") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV370SiteSimulationInputPackJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

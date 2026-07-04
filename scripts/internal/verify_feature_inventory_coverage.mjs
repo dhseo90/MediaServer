@@ -139,9 +139,14 @@ const v370VerifierCoverage = {
     "verify-v370-site-aware-source-registry-projection",
     "verify-v370-site-health-rollup",
     "verify-v370-site-impact-graph",
+    "verify-v370-site-simulation-input-pack",
   ],
   EVT: [
     "verify-v370-site-impact-graph",
+    "verify-v370-site-simulation-input-pack",
+  ],
+  LAB: [
+    "verify-v370-site-simulation-input-pack",
   ],
   CLIENT: [
     "verify-v370-site-impact-graph",
@@ -152,6 +157,7 @@ const v370VerifierCoverage = {
     "verify-v370-site-aware-source-registry-projection",
     "verify-v370-site-health-rollup",
     "verify-v370-site-impact-graph",
+    "verify-v370-site-simulation-input-pack",
   ],
   OPS: [
     "verify-v370-entry-baseline",
@@ -159,6 +165,7 @@ const v370VerifierCoverage = {
     "verify-v370-site-aware-source-registry-projection",
     "verify-v370-site-health-rollup",
     "verify-v370-site-impact-graph",
+    "verify-v370-site-simulation-input-pack",
   ],
 };
 
