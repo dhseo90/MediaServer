@@ -138,18 +138,27 @@ const v370VerifierCoverage = {
     "verify-v370-site-source-group-contract",
     "verify-v370-site-aware-source-registry-projection",
     "verify-v370-site-health-rollup",
+    "verify-v370-site-impact-graph",
+  ],
+  EVT: [
+    "verify-v370-site-impact-graph",
+  ],
+  CLIENT: [
+    "verify-v370-site-impact-graph",
   ],
   SAFE: [
     "verify-v370-entry-baseline",
     "verify-v370-site-source-group-contract",
     "verify-v370-site-aware-source-registry-projection",
     "verify-v370-site-health-rollup",
+    "verify-v370-site-impact-graph",
   ],
   OPS: [
     "verify-v370-entry-baseline",
     "verify-v370-site-source-group-contract",
     "verify-v370-site-aware-source-registry-projection",
     "verify-v370-site-health-rollup",
+    "verify-v370-site-impact-graph",
   ],
 };
 

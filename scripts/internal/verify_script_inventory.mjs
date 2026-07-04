@@ -480,6 +480,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_v370_site_source_group_contract.mjs",
     "verify_v370_site_aware_source_registry_projection.mjs",
     "verify_v370_site_health_rollup.mjs",
+    "verify_v370_site_impact_graph.mjs",
     "verify_v360_entry_baseline.mjs",
     "verify_v360_simulation_input_contract.mjs",
     "verify_v360_operations_simulation_run_contract.mjs",

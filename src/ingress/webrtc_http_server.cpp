@@ -16356,6 +16356,492 @@ std::string OpsV350LiveOperationsGraphJson(
     return out.str();
 }
 
+struct OpsV370SiteImpactGraphNode {
+    std::string node_id;
+    std::string node_type;
+    std::string site_id;
+    std::string source_group;
+    std::string label;
+    std::string status;
+    std::string source_id;
+    std::vector<std::string> published_view_ids;
+    std::vector<std::string> refs;
+    int event_record_count{0};
+    std::string source_health_status{"unknown"};
+    std::string client_impact{"viewer-safe-summary"};
+    std::string viewer_safe_impact_summary{
+        "Site impact graph is redacted and does not add viewer/client payload exposure."};
+};
+
+struct OpsV370SiteImpactGraphEdge {
+    std::string edge_id;
+    std::string from_node_id;
+    std::string to_node_id;
+    std::string edge_type;
+    std::string site_id;
+    std::string source_group;
+    std::string status;
+    std::string summary;
+};
+
+struct OpsV370SiteImpactGraphSummary {
+    int site_count{0};
+    int source_group_count{0};
+    int source_count{0};
+    int published_view_count{0};
+    int event_record_count{0};
+    int source_health_count{0};
+    int client_impact_count{0};
+    int field_needed_group_count{0};
+    int node_count{0};
+    int edge_count{0};
+    std::vector<std::string> derivation_sources;
+};
+
+const SourceViewRegistry::SourceRecord* V370SourceById(
+    const std::vector<SourceViewRegistry::SourceRecord>& sources,
+    const std::string& source_id) {
+    const auto it = std::find_if(sources.begin(), sources.end(), [&](const auto& source) {
+        return source.source_id == source_id;
+    });
+    return it == sources.end() ? nullptr : &*it;
+}
+
+std::vector<std::string> V370PublishedViewIdsForSource(
+    const OpsV350LiveOperationsGraphContext& context,
+    const std::string& source_id) {
+    const auto it = context.published_view_ids_by_source.find(source_id);
+    return it == context.published_view_ids_by_source.end() ? std::vector<std::string>{}
+                                                            : it->second;
+}
+
+int V370EventRecordCountForSource(
+    const OpsV350LiveOperationsGraphContext& context,
+    const std::string& source_id) {
+    const auto it = context.event_record_count_by_source.find(source_id);
+    return it == context.event_record_count_by_source.end() ? 0 : it->second;
+}
+
+std::string V370SourceHealthStatusForSource(
+    const OpsV350LiveOperationsGraphContext& context,
+    const std::string& source_id) {
+    const auto it = context.source_health_status_by_source.find(source_id);
+    return it == context.source_health_status_by_source.end() ? "unknown" : it->second;
+}
+
+const OpsV370SiteHealthRollupItem* V370RollupForProjection(
+    const std::vector<OpsV370SiteHealthRollupItem>& rollups,
+    const OpsV370SiteAwareSourceRegistryProjectionItem& projected) {
+    const auto it = std::find_if(rollups.begin(), rollups.end(), [&](const auto& item) {
+        return item.site_id == projected.site_id &&
+               item.source_group == projected.source_group &&
+               item.zone == projected.zone;
+    });
+    return it == rollups.end() ? nullptr : &*it;
+}
+
+std::vector<OpsV370SiteImpactGraphNode> BuildV370SiteImpactGraphNodes(
+    const OpsV350LiveOperationsGraphContext& context,
+    const std::vector<OpsV370SiteAwareSourceRegistryProjectionItem>& projection,
+    const std::vector<OpsV370SiteHealthRollupItem>& rollups) {
+    std::vector<OpsV370SiteImpactGraphNode> nodes;
+    for (const auto& projected : projection) {
+        const auto* rollup = V370RollupForProjection(rollups, projected);
+        int group_event_count = 0;
+        for (const auto& source_id : projected.source_ids) {
+            group_event_count += V370EventRecordCountForSource(context, source_id);
+        }
+
+        OpsV370SiteImpactGraphNode site;
+        site.node_id = "siteImpactGraph:site:" + projected.site_id;
+        site.node_type = "site";
+        site.site_id = projected.site_id;
+        site.source_group = "all-source-groups";
+        site.label = projected.site_id;
+        site.status = rollup == nullptr ? "site-linked" : rollup->rollup_state;
+        site.published_view_ids = projected.view_ids;
+        site.event_record_count = group_event_count;
+        site.source_health_status = site.status;
+        site.client_impact = projected.view_ids.empty() ? "no-published-view-client-impact"
+                                                        : "published-view-client-impact";
+        site.viewer_safe_impact_summary =
+            "Site-level EventRecord, source health, PublishedView, and client impact are linked without raw locator or credential material.";
+        site.refs = {"/ops/api/site-operations/source-registry-projection",
+                     "/ops/api/site-operations/health-rollup",
+                     "/ops/api/events/reviews"};
+        nodes.push_back(std::move(site));
+
+        OpsV370SiteImpactGraphNode group;
+        group.node_id = "siteImpactGraph:sourceGroup:" + projected.site_id + ":" + projected.source_group;
+        group.node_type = "sourceGroup";
+        group.site_id = projected.site_id;
+        group.source_group = projected.source_group;
+        group.label = projected.source_group;
+        group.status = rollup == nullptr ? "source-group-linked" : rollup->rollup_state;
+        group.published_view_ids = projected.view_ids;
+        group.event_record_count = group_event_count;
+        group.source_health_status = group.status;
+        group.client_impact = projected.view_ids.empty() ? "no-published-view-client-impact"
+                                                         : "published-view-client-impact";
+        group.viewer_safe_impact_summary =
+            "Source group impact keeps EventRecord and client impact as redacted read model refs.";
+        group.refs = {"/ops/api/site-operations/source-registry-projection",
+                      "/ops/api/site-operations/health-rollup"};
+        nodes.push_back(std::move(group));
+
+        for (const auto& source_id : projected.source_ids) {
+            const auto* source = V370SourceById(context.sources, source_id);
+            const auto view_ids = V370PublishedViewIdsForSource(context, source_id);
+            const int event_count = V370EventRecordCountForSource(context, source_id);
+            const std::string health_status = V370SourceHealthStatusForSource(context, source_id);
+            const std::string label =
+                source == nullptr || source->display_name.empty() ? source_id : source->display_name;
+            const std::string client_impact =
+                view_ids.empty() ? "no-published-view-client-impact" : "published-view-client-impact";
+
+            OpsV370SiteImpactGraphNode source_node;
+            source_node.node_id = "siteImpactGraph:source:" + source_id;
+            source_node.node_type = "sourceRegistry";
+            source_node.site_id = projected.site_id;
+            source_node.source_group = projected.source_group;
+            source_node.label = label;
+            source_node.status = source != nullptr && source->enabled ? "enabled" : "disabled";
+            source_node.source_id = source_id;
+            source_node.published_view_ids = view_ids;
+            source_node.event_record_count = event_count;
+            source_node.source_health_status = health_status;
+            source_node.client_impact = client_impact;
+            source_node.viewer_safe_impact_summary =
+                "Source impact links identity, health, EventRecord count, PublishedView refs, and viewer-safe client impact.";
+            source_node.refs = {"/ops/api/source-registry/snapshot", "/ops/api/site-operations/impact-graph"};
+            nodes.push_back(std::move(source_node));
+
+            OpsV370SiteImpactGraphNode health_node;
+            health_node.node_id = "siteImpactGraph:sourceHealth:" + source_id;
+            health_node.node_type = "sourceHealth";
+            health_node.site_id = projected.site_id;
+            health_node.source_group = projected.source_group;
+            health_node.label = "Source health " + source_id;
+            health_node.status = health_status;
+            health_node.source_id = source_id;
+            health_node.published_view_ids = view_ids;
+            health_node.event_record_count = event_count;
+            health_node.source_health_status = health_status;
+            health_node.client_impact = client_impact;
+            health_node.viewer_safe_impact_summary =
+                "Source health is summarized for impact graph without persisting health changes.";
+            health_node.refs = {"/ops/api/site-operations/health-rollup", "sourceHealth:" + source_id};
+            nodes.push_back(std::move(health_node));
+
+            OpsV370SiteImpactGraphNode event_node;
+            event_node.node_id = "siteImpactGraph:eventRecord:" + source_id;
+            event_node.node_type = "EventRecord";
+            event_node.site_id = projected.site_id;
+            event_node.source_group = projected.source_group;
+            event_node.label = "EventRecord aggregate " + source_id;
+            event_node.status = event_count > 0 ? "recorded" : "empty";
+            event_node.source_id = source_id;
+            event_node.published_view_ids = view_ids;
+            event_node.event_record_count = event_count;
+            event_node.source_health_status = health_status;
+            event_node.client_impact = client_impact;
+            event_node.viewer_safe_impact_summary =
+                "EventRecord aggregate is counted only; payload and schema are unchanged.";
+            event_node.refs = {"/ops/api/events/reviews", "EventRecord:" + source_id};
+            nodes.push_back(std::move(event_node));
+
+            OpsV370SiteImpactGraphNode client_node;
+            client_node.node_id = "siteImpactGraph:clientImpact:" + source_id;
+            client_node.node_type = "clientImpact";
+            client_node.site_id = projected.site_id;
+            client_node.source_group = projected.source_group;
+            client_node.label = "Client impact " + source_id;
+            client_node.status = client_impact;
+            client_node.source_id = source_id;
+            client_node.published_view_ids = view_ids;
+            client_node.event_record_count = event_count;
+            client_node.source_health_status = health_status;
+            client_node.client_impact = client_impact;
+            client_node.viewer_safe_impact_summary =
+                view_ids.empty()
+                    ? "No published client view is linked to this source."
+                    : "Client impact is a viewer-safe PublishedView summary only.";
+            client_node.refs = {"/client/api/views", "/ops/api/site-operations/impact-graph"};
+            nodes.push_back(std::move(client_node));
+
+            for (const auto& view_id : view_ids) {
+                OpsV370SiteImpactGraphNode view_node;
+                view_node.node_id = "siteImpactGraph:publishedView:" + view_id;
+                view_node.node_type = "PublishedView";
+                view_node.site_id = projected.site_id;
+                view_node.source_group = projected.source_group;
+                view_node.label = "PublishedView " + view_id;
+                view_node.status = "view-linked";
+                view_node.source_id = source_id;
+                view_node.published_view_ids = {view_id};
+                view_node.event_record_count = event_count;
+                view_node.source_health_status = health_status;
+                view_node.client_impact = client_impact;
+                view_node.viewer_safe_impact_summary =
+                    "PublishedView identity is linked without exposing source locator or credential material.";
+                view_node.refs = {"/ops/api/views", "PublishedView:" + view_id};
+                nodes.push_back(std::move(view_node));
+            }
+        }
+    }
+    return nodes;
+}
+
+std::vector<OpsV370SiteImpactGraphEdge> BuildV370SiteImpactGraphEdges(
+    const std::vector<OpsV370SiteAwareSourceRegistryProjectionItem>& projection) {
+    std::vector<OpsV370SiteImpactGraphEdge> edges;
+    for (const auto& projected : projection) {
+        const std::string site_node = "siteImpactGraph:site:" + projected.site_id;
+        const std::string group_node =
+            "siteImpactGraph:sourceGroup:" + projected.site_id + ":" + projected.source_group;
+        edges.push_back({"siteImpactGraph:edge:site-sourceGroup:" + projected.site_id + ":" + projected.source_group,
+                         site_node,
+                         group_node,
+                         "site-to-source-group",
+                         projected.site_id,
+                         projected.source_group,
+                         "linked",
+                         "Site node owns the source group impact scope."});
+        for (const auto& source_id : projected.source_ids) {
+            const std::string source_node = "siteImpactGraph:source:" + source_id;
+            const std::string health_node = "siteImpactGraph:sourceHealth:" + source_id;
+            const std::string event_node = "siteImpactGraph:eventRecord:" + source_id;
+            const std::string client_node = "siteImpactGraph:clientImpact:" + source_id;
+            edges.push_back({"siteImpactGraph:edge:sourceGroup-source:" + source_id,
+                             group_node,
+                             source_node,
+                             "source-group-to-source",
+                             projected.site_id,
+                             projected.source_group,
+                             "linked",
+                             "Source group is linked to SourceRegistry identity."});
+            edges.push_back({"siteImpactGraph:edge:source-health:" + source_id,
+                             source_node,
+                             health_node,
+                             "source-to-source-health",
+                             projected.site_id,
+                             projected.source_group,
+                             "linked",
+                             "Source identity is linked to source health status."});
+            edges.push_back({"siteImpactGraph:edge:event-source:" + source_id,
+                             event_node,
+                             source_node,
+                             "event-record-to-source",
+                             projected.site_id,
+                             projected.source_group,
+                             "aggregate",
+                             "Recent EventRecord aggregate is linked by source/channel id."});
+            edges.push_back({"siteImpactGraph:edge:source-client:" + source_id,
+                             source_node,
+                             client_node,
+                             "source-to-client-impact",
+                             projected.site_id,
+                             projected.source_group,
+                             "viewer-safe",
+                             "Source impact is summarized for client impact without client payload changes."});
+            edges.push_back({"siteImpactGraph:edge:health-client:" + source_id,
+                             health_node,
+                             client_node,
+                             "source-health-to-client-impact",
+                             projected.site_id,
+                             projected.source_group,
+                             "viewer-safe",
+                             "Source health status informs viewer-safe client impact summary."});
+            for (const auto& view_id : projected.view_ids) {
+                const std::string view_node = "siteImpactGraph:publishedView:" + view_id;
+                edges.push_back({"siteImpactGraph:edge:source-view:" + source_id + ":" + view_id,
+                                 source_node,
+                                 view_node,
+                                 "source-to-published-view",
+                                 projected.site_id,
+                                 projected.source_group,
+                                 "linked",
+                                 "PublishedView identity is linked without exposing raw source material."});
+                edges.push_back({"siteImpactGraph:edge:view-client:" + view_id,
+                                 view_node,
+                                 client_node,
+                                 "published-view-to-client-impact",
+                                 projected.site_id,
+                                 projected.source_group,
+                                 "viewer-safe",
+                                 "PublishedView client impact remains a viewer-safe summary."});
+            }
+        }
+    }
+    return edges;
+}
+
+OpsV370SiteImpactGraphSummary BuildV370SiteImpactGraphSummary(
+    const OpsV350LiveOperationsGraphContext& context,
+    const std::vector<OpsV370SiteHealthRollupItem>& rollups,
+    const std::vector<OpsV370SiteImpactGraphNode>& nodes,
+    const std::vector<OpsV370SiteImpactGraphEdge>& edges) {
+    OpsV370SiteImpactGraphSummary summary;
+    std::vector<std::string> site_ids;
+    summary.derivation_sources = {
+        "BuildV350LiveOperationsGraphContext",
+        "BuildV370SiteAwareSourceRegistryProjectionItems",
+        "BuildV370SiteHealthRollupItems",
+        "event_record_count_by_source",
+        "published_view_ids_by_source",
+        "source_health_status_by_source",
+    };
+    summary.source_count = static_cast<int>(context.sources.size());
+    summary.published_view_count = static_cast<int>(context.views.size());
+    summary.event_record_count = context.event_record_count;
+    summary.source_health_count = static_cast<int>(context.health_by_source.size());
+    summary.node_count = static_cast<int>(nodes.size());
+    summary.edge_count = static_cast<int>(edges.size());
+    for (const auto& rollup : rollups) {
+        AddV370UniqueString(&site_ids, rollup.site_id);
+        ++summary.source_group_count;
+        if (rollup.rollup_state == "field-needed") {
+            ++summary.field_needed_group_count;
+        }
+    }
+    for (const auto& node : nodes) {
+        if (node.node_type == "clientImpact") {
+            ++summary.client_impact_count;
+        }
+    }
+    summary.site_count = static_cast<int>(site_ids.size());
+    return summary;
+}
+
+void AppendV370SiteImpactGraphSummaryJson(
+    std::ostringstream& out,
+    const OpsV370SiteImpactGraphSummary& summary) {
+    out << "{"
+        << "\"siteCount\":" << summary.site_count << ","
+        << "\"sourceGroupCount\":" << summary.source_group_count << ","
+        << "\"sourceCount\":" << summary.source_count << ","
+        << "\"publishedViewCount\":" << summary.published_view_count << ","
+        << "\"eventRecordCount\":" << summary.event_record_count << ","
+        << "\"sourceHealthCount\":" << summary.source_health_count << ","
+        << "\"clientImpactCount\":" << summary.client_impact_count << ","
+        << "\"fieldNeededGroupCount\":" << summary.field_needed_group_count << ","
+        << "\"nodeCount\":" << summary.node_count << ","
+        << "\"edgeCount\":" << summary.edge_count << ","
+        << "\"derivationSources\":";
+    AppendJsonStringArray(out, summary.derivation_sources);
+    out << "}";
+}
+
+void AppendV370SiteImpactGraphNodeJson(
+    std::ostringstream& out,
+    const OpsV370SiteImpactGraphNode& node) {
+    out << "{"
+        << "\"nodeId\":\"" << JsonEscape(node.node_id) << "\","
+        << "\"nodeType\":\"" << JsonEscape(node.node_type) << "\","
+        << "\"siteId\":\"" << JsonEscape(node.site_id) << "\","
+        << "\"sourceGroup\":\"" << JsonEscape(node.source_group) << "\","
+        << "\"label\":\"" << JsonEscape(node.label) << "\","
+        << "\"status\":\"" << JsonEscape(node.status) << "\","
+        << "\"sourceId\":\"" << JsonEscape(node.source_id) << "\","
+        << "\"publishedViewIds\":";
+    AppendJsonStringArray(out, node.published_view_ids);
+    out << ",\"eventRecordCount\":" << node.event_record_count
+        << ",\"sourceHealthStatus\":\"" << JsonEscape(node.source_health_status) << "\","
+        << "\"clientImpact\":\"" << JsonEscape(node.client_impact) << "\","
+        << "\"viewerSafeImpactSummary\":\"" << JsonEscape(node.viewer_safe_impact_summary) << "\","
+        << "\"refs\":";
+    AppendJsonStringArray(out, node.refs);
+    out << "}";
+}
+
+void AppendV370SiteImpactGraphEdgeJson(
+    std::ostringstream& out,
+    const OpsV370SiteImpactGraphEdge& edge) {
+    out << "{"
+        << "\"edgeId\":\"" << JsonEscape(edge.edge_id) << "\","
+        << "\"fromNodeId\":\"" << JsonEscape(edge.from_node_id) << "\","
+        << "\"toNodeId\":\"" << JsonEscape(edge.to_node_id) << "\","
+        << "\"edgeType\":\"" << JsonEscape(edge.edge_type) << "\","
+        << "\"siteId\":\"" << JsonEscape(edge.site_id) << "\","
+        << "\"sourceGroup\":\"" << JsonEscape(edge.source_group) << "\","
+        << "\"status\":\"" << JsonEscape(edge.status) << "\","
+        << "\"summary\":\"" << JsonEscape(edge.summary) << "\""
+        << "}";
+}
+
+std::string OpsV370SiteImpactGraphJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v370-site-impact-graph.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto projection =
+        BuildV370SiteAwareSourceRegistryProjectionItems(context.sources, context.views);
+    const auto rollups =
+        BuildV370SiteHealthRollupItems(context.sources, context.views, source_health_snapshot);
+    const auto nodes = BuildV370SiteImpactGraphNodes(context, projection, rollups);
+    const auto edges = BuildV370SiteImpactGraphEdges(projection);
+    const auto summary = BuildV370SiteImpactGraphSummary(context, rollups, nodes, edges);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v370-site-impact-graph.v1\","
+        << "\"status\":\"site-impact-graph\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"siteRegistryProjectionRoute\":\"/ops/api/site-operations/source-registry-projection\","
+        << "\"siteHealthRollupRoute\":\"/ops/api/site-operations/health-rollup\","
+        << "\"eventRecordRoute\":\"/ops/api/events/reviews\","
+        << "\"publishedViewRoute\":\"/ops/api/views\","
+        << "\"clientImpactRoute\":\"/client/api/views\","
+        << "\"viewerSafeImpactSummary\":\"" << JsonEscape(context.viewer_safe_impact_summary) << "\","
+        << "\"siteImpactGraphSummary\":";
+    AppendV370SiteImpactGraphSummaryJson(out, summary);
+    out << ",\"siteImpactGraphNodes\":[";
+    for (std::size_t i = 0; i < nodes.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV370SiteImpactGraphNodeJson(out, nodes[i]);
+    }
+    out << "],\"siteImpactGraphEdges\":[";
+    for (std::size_t i = 0; i < edges.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV370SiteImpactGraphEdgeJson(out, edges[i]);
+    }
+    out << "],\"readModelPolicy\":{"
+        << "\"EventRecord\":\"linked-by-source-or-channel-id aggregate only\","
+        << "\"sourceHealth\":\"site rollup status summary\","
+        << "\"PublishedView\":\"identity refs only\","
+        << "\"clientImpact\":\"viewer-safe summary only\","
+        << "\"graphOnly\":true"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"graphOnly\":true,"
+        << "\"redacted\":true,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawDiagnosticJsonIncluded\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 struct OpsV350CommandPlanCandidate {
     std::string candidate_id;
     std::string candidate_type;
@@ -29954,6 +30440,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV370SiteHealthRollupJson(source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/site-operations/impact-graph") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV370SiteImpactGraphJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

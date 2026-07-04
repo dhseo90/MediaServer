@@ -346,6 +346,8 @@ Usage:
                  v3.7.0 Step 3 Site-Aware Source Registry Projection read-only 경계를 검증합니다.
   verify-v370-site-health-rollup
                  v3.7.0 Step 4 Site Health Rollup read-only 경계를 검증합니다.
+  verify-v370-site-impact-graph
+                 v3.7.0 Step 5 Site Impact Graph read-only 경계를 검증합니다.
   verify-v360-entry-baseline
                  v3.6.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v360-simulation-input-contract
@@ -602,6 +604,8 @@ Usage:
                  v3.7.0 Step 3 Site-Aware Source Registry Projection read-only 경계를 검증합니다.
   verify-v370-site-health-rollup
                  v3.7.0 Step 4 Site Health Rollup read-only 경계를 검증합니다.
+  verify-v370-site-impact-graph
+                 v3.7.0 Step 5 Site Impact Graph read-only 경계를 검증합니다.
   verify-v360-entry-baseline
                  v3.6.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v360-simulation-input-contract
@@ -1684,6 +1688,10 @@ case "${cmd}" in
   verify-v370-site-health-rollup)
     require_internal verify_v370_site_health_rollup.mjs
     exec "${INTERNAL_DIR}/verify_v370_site_health_rollup.mjs" "$@"
+    ;;
+  verify-v370-site-impact-graph)
+    require_internal verify_v370_site_impact_graph.mjs
+    exec "${INTERNAL_DIR}/verify_v370_site_impact_graph.mjs" "$@"
     ;;
   verify-v360-entry-baseline)
     require_internal verify_v360_entry_baseline.mjs

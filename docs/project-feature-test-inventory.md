@@ -26,12 +26,12 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 801 |
+| 전체 기능 항목 | 806 |
 | UI 직접 필요 | 375 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 395 |
-| 테스트 필요 | 801 |
-| 안정화 대상 | 791 |
+| UI 비대상 | 400 |
+| 테스트 필요 | 806 |
+| 안정화 대상 | 796 |
 | UI 풀테스트 대상 | 395 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 801개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 806개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -66,6 +66,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | v3.7.0 (2) Site / Source Group Contract | `SRC-054`, `SAFE-163`, `OPS-130` | `verify-v370-site-source-group-contract` | `/ops/api/site-operations/source-group-contract`가 site, sourceGroup, zone, viewGroup read model과 no-auto-write boundary를 정의합니다. SourceRegistry/PublishedView write, viewer/client 노출, EventRecord/Event POST/WebRTC/SSE/WS/media schema 변경, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.7.0 (3) Site-Aware Source Registry Projection | `SRC-055`, `SAFE-164`, `OPS-131` | `verify-v370-site-aware-source-registry-projection` | `/ops/api/site-operations/source-registry-projection`이 기존 SourceRegistry/PublishedView snapshot을 site/source group 관점의 Ops-only projection으로 노출합니다. source/view write, raw locator/credential 노출, viewer/client 노출, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.7.0 (4) Site Health Rollup | `SRC-056`, `SAFE-165`, `OPS-132` | `verify-v370-site-health-rollup` | `/ops/api/site-operations/health-rollup`이 source health를 site/group 단위 offline/degraded/recovering/field-needed 상태로 집계합니다. source health persistence, automatic recovery, field smoke, source/view write, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
+| v3.7.0 (5) Site Impact Graph | `SRC-057`, `EVT-080`, `CLIENT-035`, `SAFE-166`, `OPS-133` | `verify-v370-site-impact-graph` | `/ops/api/site-operations/impact-graph`가 EventRecord, source health, PublishedView, client impact를 site/source group graph로 연결합니다. source/view/EventRecord/Ops audit/client/media mutation, viewer/client 노출, raw locator/credential/debug material, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 
 ## 최신 published baseline v3.6.0 Operations Simulation and Safe Apply Readiness Coverage Mapping
 
@@ -324,14 +325,14 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | --- | --- | --- |
 | `UI-001`~`UI-018`, `UI-022`~`UI-094` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
-| `SRC-001`~`SRC-056` | source/ONVIF/UI/v340/v350/v360/v370 verifier family | ONVIF field success는 approved environment only |
+| `SRC-001`~`SRC-057` | source/ONVIF/UI/v340/v350/v360/v370 verifier family | ONVIF field success는 approved environment only |
 | `RULE-001`~`RULE-109` | rule/VA/v350/v360 verifier family | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
-| `EVT-001`~`EVT-079` | event/VLM/v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360 verifier family | event log 육안 확인은 UI 풀테스트 |
-| `CLIENT-001`~`CLIENT-034` | client/UI/v350/v360 verifier family | viewer 비노출은 브라우저 확인 필요 |
+| `EVT-001`~`EVT-080` | event/VLM/v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360/v370 verifier family | event log 육안 확인은 UI 풀테스트 |
+| `CLIENT-001`~`CLIENT-035` | client/UI/v350/v360/v370 verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-024` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
 | `LAB-001`~`LAB-100` | lab/VLM/v250/v260/v270/v280/v300/v310/v340/v350/v360 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-165` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-132` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
+| `SAFE-001`~`SAFE-166` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-133` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
 
 ## VA Manual UI Seed Matrix
 
@@ -581,6 +582,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SRC-054 | V370 Step 2 site/source group contract | 비대상 | 필요 | 안정화 | `verify-v370-site-source-group-contract`가 site, sourceGroup, zone, viewGroup read model과 no-auto-write boundary를 확인하되 SourceRegistry/PublishedView write, viewer/client 노출, raw locator/credential 노출을 수행하지 않음 |
 | SRC-055 | V370 Step 3 site-aware source registry projection | 비대상 | 필요 | 안정화 | `verify-v370-site-aware-source-registry-projection`가 SourceRegistry/PublishedView snapshot을 site/source group Ops-only projection으로 묶고 source/view write, viewer/client 노출, raw locator/credential 노출을 수행하지 않음을 확인 |
 | SRC-056 | V370 Step 4 site health rollup source grouping | 비대상 | 필요 | 안정화 | `verify-v370-site-health-rollup`이 source health를 site/source group 단위로 offline/degraded/recovering/field-needed 상태로 집계하되 source health persistence, recovery execution, field smoke 실행을 수행하지 않음을 확인 |
+| SRC-057 | V370 Step 5 site impact graph source linkage | 비대상 | 필요 | 안정화 | `verify-v370-site-impact-graph`가 SourceRegistry/PublishedView source refs를 site/source group graph node/edge로 연결하되 source/view write, raw locator/credential/debug material 노출, viewer/client payload 변경을 수행하지 않음을 확인 |
 
 ## D. Rule, Profile, Scenario, Tracker
 
@@ -779,6 +781,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | EVT-077 | V360 Step 2 EventRecord simulation input | 비대상 | 필요 | 안정화 | `verify-v360-simulation-input-contract`가 EventRecord count/source refs를 read-only simulation input pack에 포함하되 EventRecord write, Event POST payload, WebRTC/SSE/WS metadata, RTSP/WebRTC media path를 변경하지 않음을 확인 |
 | EVT-078 | V360 Step 10 EventRecord what-if replay input | 비대상 | 필요 | 안정화 | `verify-v360-rule-va-what-if-replay-pack`이 EventRecord aggregate ref를 what-if input으로만 사용하고 EventRecord write, Event POST payload, WebRTC/SSE/WS metadata, RTSP/WebRTC media path를 변경하지 않음을 확인 |
 | EVT-079 | V360 Step 13 event risk simulation explanation context | 비대상 | 필요 | 안정화 | `verify-v360-vlm-assisted-simulation-explanation`이 EventRecord/what-if event risk context를 simulation explanation에만 사용하고 EventRecord write, Event POST payload, WebRTC/SSE/WS metadata, RTSP/WebRTC media path, client/viewer exposure, VLM/provider call을 수행하지 않음을 확인 |
+| EVT-080 | V370 Step 5 EventRecord site impact graph aggregate | 비대상 | 필요 | 안정화 | `verify-v370-site-impact-graph`가 EventRecord count/source refs를 site graph aggregate로만 연결하고 EventRecord write, Event POST payload, WebRTC/SSE/WS metadata, RTSP/WebRTC media path를 변경하지 않음을 확인 |
 
 ## F. Client And Viewer
 
@@ -818,6 +821,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | CLIENT-032 | V350 Step 9 client-safe operations notice API/UI | 필요 | 필요 | 안정화, UI | `/client/api/views/{id}/events`와 dashboard events payload가 `clientOperationsNotice`로 operationsStatus/timelineHint만 노출하고 source URL/raw locator/raw JSON/debug/credential/operator material/command plan detail/incident detail/action controls를 포함하지 않음 |
 | CLIENT-033 | V360 Step 5 client impact diff | 비대상 | 필요 | 안정화 | `verify-v360-source-rule-impact-diff`가 client impact diff를 Ops-only simulation result로만 표시하고 client route/API/viewer payload, source URL/raw locator/debug material, client notice 발송을 변경하지 않음을 확인 |
 | CLIENT-034 | V360 Step 9 client notice preview | 비대상 | 필요 | 안정화 | `verify-v360-client-notice-preview`가 viewer-safe notice preview를 Ops-only simulation result로만 생성하고 client notice send/persist, viewer client payload 변경, source URL/raw locator/debug/operator material 노출을 수행하지 않음을 확인 |
+| CLIENT-035 | V370 Step 5 site impact client summary boundary | 비대상 | 필요 | 안정화 | `verify-v370-site-impact-graph`가 client impact를 Ops-only viewer-safe summary/ref로만 계산하고 client route/API/viewer payload, source URL/raw locator/debug/operator material, client notice 발송을 변경하지 않음을 확인 |
 
 ## G. Media And Streaming
 
@@ -1122,6 +1126,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-163 | V370 Step 2 site/source group no-write boundary | 비대상 | 필요 | 안정화 | `verify-v370-site-source-group-contract`가 site/source group 계약을 read model로만 정의하고 SourceRegistry/PublishedView write, viewer/client exposure, EventRecord/Event POST/WebRTC/SSE/WS/media schema 변경, rule/profile payload 변경을 수행하지 않음을 확인 |
 | SAFE-164 | V370 Step 3 source projection redaction boundary | 비대상 | 필요 | 안정화 | `verify-v370-site-aware-source-registry-projection`이 source/view projection에 raw locator, credential material, client viewer material을 포함하지 않고 source registry/PublishedView write와 media/schema 변경을 수행하지 않음을 확인 |
 | SAFE-165 | V370 Step 4 site health rollup no-recovery boundary | 비대상 | 필요 | 안정화 | `verify-v370-site-health-rollup`이 health rollup을 read-only로 계산하고 source health persistence, automatic recovery, field smoke, source/view write, client exposure, media/schema 변경을 수행하지 않음을 확인 |
+| SAFE-166 | V370 Step 5 site impact graph redaction boundary | 비대상 | 필요 | 안정화 | `verify-v370-site-impact-graph`가 site impact graph를 read-only/redacted로 계산하고 source/view/EventRecord/Ops audit/client/media mutation, viewer/client exposure, raw locator/credential/debug material 노출, media/schema 변경을 수행하지 않음을 확인 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -1225,6 +1230,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-130 | V370 Step 2 Site / Source Group Contract 게이트 | 비대상 | 필요 | 안정화 | `verify-v370-site-source-group-contract`가 `/ops/api/site-operations/source-group-contract` Ops-only route, site/sourceGroup/zone/viewGroup read model, no-write boundary, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 source/view write, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-131 | V370 Step 3 Site-Aware Source Registry Projection 게이트 | 비대상 | 필요 | 안정화 | `verify-v370-site-aware-source-registry-projection`가 `/ops/api/site-operations/source-registry-projection` Ops-only route, SourceRegistry/PublishedView site projection, redaction boundary, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 source/view write, viewer/client 노출, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-132 | V370 Step 4 Site Health Rollup 게이트 | 비대상 | 필요 | 안정화 | `verify-v370-site-health-rollup`이 `/ops/api/site-operations/health-rollup` Ops-only route, source health site/group rollup, offline/degraded/recovering/field-needed 상태, no-recovery boundary, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 field smoke, automatic recovery, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
+| OPS-133 | V370 Step 5 Site Impact Graph 게이트 | 비대상 | 필요 | 안정화 | `verify-v370-site-impact-graph`가 `/ops/api/site-operations/impact-graph` Ops-only route, EventRecord/source health/PublishedView/client impact site graph, redaction boundary, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 source/view/EventRecord/Ops audit/client/media mutation, viewer/client 노출, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 

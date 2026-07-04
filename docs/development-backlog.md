@@ -69,7 +69,7 @@ Product UI → Field/Execution → Release 순서로 진행합니다.
 | 2 | v3.7.0 (2) Site / Source Group Contract | P0 | 완료 | `/ops/api/site-operations/source-group-contract`에서 site/sourceGroup/zone/viewGroup read model과 no-auto-write boundary 정의 |
 | 3 | v3.7.0 (3) Site-Aware Source Registry Projection | P0 | 완료 | `/ops/api/site-operations/source-registry-projection`에서 SourceRegistry/PublishedView를 site/source group 관점의 Ops-only projection으로 노출 |
 | 4 | v3.7.0 (4) Site Health Rollup | P0 | 완료 | `/ops/api/site-operations/health-rollup`에서 source health를 site/group 단위 offline/degraded/recovering/field-needed 상태로 집계 |
-| 5 | v3.7.0 (5) Site Impact Graph | P1 | 미진행 | EventRecord, source health, PublishedView, client impact를 site별 graph로 연결 |
+| 5 | v3.7.0 (5) Site Impact Graph | P1 | 완료 | `/ops/api/site-operations/impact-graph`에서 EventRecord, source health, PublishedView, client impact를 site/source group별 graph로 연결 |
 | 6 | v3.7.0 (6) Site Simulation Input Pack | P1 | 미진행 | v3.6 simulation input/result envelope를 site/source group 단위 입력 pack으로 확장 |
 | 7 | v3.7.0 (7) Cross-Site Safe Apply Readiness | P1 | 미진행 | site/group 변경 후보의 affected clients, blocker, approval-needed, field-needed 상태 산출 |
 | 8 | v3.7.0 (8) Runbook Template Contract | P1 | 미진행 | source recheck, maintenance, rule draft, client notice 후보를 runbook template으로 정의 |
@@ -84,8 +84,8 @@ Product UI → Field/Execution → Release 순서로 진행합니다.
 | 17 | v3.7.0 (17) Export / Handoff Bundle | P1 | 미진행 | site/runbook/evidence/approval/outcome을 redacted release-safe bundle로 조합 |
 | 18 | v3.7.0 (18) Stabilization and Release Readiness | P0 | 미진행 | v3.7 local verifier suite, inventory, release records, close-out dry-run, `git diff --check` 연결 |
 
-완료 경계: 위 표는 v3.7.0 개발 순서와 우선순위입니다. 현재 Step 1~4는 Foundation
-local source gate 범위이며, Step 5~18은 개발 전 roadmap 항목입니다. 각 step은 실제 코드/API/UI/문서
+완료 경계: 위 표는 v3.7.0 개발 순서와 우선순위입니다. 현재 Step 1~5는 Foundation/Intelligence
+local source gate 범위이며, Step 6~18은 개발 전 roadmap 항목입니다. 각 step은 실제 코드/API/UI/문서
 변경, 기능 ID/test inventory 등록, 해당 verifier와 release test record evidence가 생긴 뒤에만
 완료로 기록합니다. UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release
 action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁니다.
@@ -133,6 +133,17 @@ action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁�
 - verifier: `scripts/internal/verify_v370_site_health_rollup.mjs`, `server.sh verify-v370-site-health-rollup`, `docs/project-feature-test-inventory.md`의 `SRC-056`, `SAFE-165`, `OPS-132`를 추가했습니다.
 - 검증: 최초 `./server.sh verify-v370-site-health-rollup`은 route/model/final backlog 기록이 없어 `pass=0 fail=5`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 4 결과 행에 기록합니다.
 - 완료 경계: Step 4는 read-only rollup입니다. automatic recovery, field smoke, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다.
+
+## v3.7.0 Step 5 개발 기록
+
+- 범위: P1 `v3.7.0 (5) Site Impact Graph`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV370SiteImpactGraphNode`, `OpsV370SiteImpactGraphEdge`, `OpsV370SiteImpactGraphSummary`, `BuildV370SiteImpactGraphNodes`, `BuildV370SiteImpactGraphEdges`, `BuildV370SiteImpactGraphSummary`, `AppendV370SiteImpactGraphNodeJson`, `AppendV370SiteImpactGraphEdgeJson`, `OpsV370SiteImpactGraphJson`를 추가했습니다.
+- route: `GET /ops/api/site-operations/impact-graph`을 Ops principal 전용, `Cache-Control: no-store` JSON route로 연결했습니다.
+- logic: 기존 `BuildV350LiveOperationsGraphContext`, `BuildV370SiteAwareSourceRegistryProjectionItems`, `BuildV370SiteHealthRollupItems`를 조합해 site/source group별 `EventRecord`, `sourceHealth`, `PublishedView`, `clientImpact` node/edge와 summary를 산출합니다.
+- boundary: source/view/EventRecord/Ops audit/client/media mutation, viewer/client exposure, raw locator/credential/debug material 포함, Event POST/WebRTC/SSE/WS/RTSP media schema 변경을 수행하지 않는 `boundaries` flag를 응답에 고정했습니다.
+- verifier: `scripts/internal/verify_v370_site_impact_graph.mjs`, `./server.sh verify-v370-site-impact-graph`, `docs/project-feature-test-inventory.md`의 `SRC-057`, `EVT-080`, `CLIENT-035`, `SAFE-166`, `OPS-133`을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v370_site_impact_graph.mjs`는 route/model/final backlog 기록이 없어 `pass=0 fail=5`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 5 결과 행에 기록합니다.
+- 완료 경계: Step 5는 Ops-only site impact graph API/verifier 연결입니다. 제품 UI 직접 조작, 30분/120분, source/view/EventRecord/Ops audit/client/media mutation, published metadata, release action evidence가 아닙니다.
 
 ## 최신 공개 기준: v3.6.0 Operations Simulation and Safe Apply Readiness
 
