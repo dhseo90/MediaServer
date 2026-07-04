@@ -1,0 +1,2147 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>MediaServer 검증 리포트</title><style>body{font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;margin:24px;line-height:1.5;color:#17202a;background:#f8fafc;}pre{white-space:pre-wrap;background:#fff;border:1px solid #d8dee9;border-radius:8px;padding:16px;}</style></head><body><pre># MediaServer 검증 요약
+
+| 파일 | 유형 | 상태 | pass | fail | skip | 핵심 detail |
+| --- | --- | --- | ---: | ---: | ---: | --- |
+| /tmp/media_server_predev-1783150577-40687_summary.json | predev | fail | 118 | 1 | 1 | durationSec=2364 steps=120 failed=integrated-smoke skipped=external-turn-hard-gate |
+| /tmp/media_server_evtpost-1783152925-74195_summary.json | event-post | pass | 11 | 0 | 0 | mode=queue received=1 paths={&#x27;/slow&#x27;: 1} |
+| /tmp/media_server_redaction-1783152880-73808_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783152876-73660_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1783152873-73570_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1783152798-72623_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783152794-72491_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1783152791-72385_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1783152714-71387_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783152711-71255_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1783152708-71165_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1783152632-70183_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783152629-70067_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1783152626-69960_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1783152551-68996_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783152547-68849_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1783152544-68758_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1783152468-67786_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783152465-67668_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1783152462-67546_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1783152387-66565_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783152382-66417_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1783152379-66327_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1783152304-65375_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783152300-65228_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1783152297-65138_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1783152222-64200_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783152218-64053_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1783152215-63962_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1783152138-62952_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783152135-62835_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1783152132-62729_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1783152056-61749_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783152053-61616_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1783152050-61526_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1783151974-60582_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783151969-60433_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1783151966-60343_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1783151890-59352_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783151886-59205_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1783151883-59113_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1783151806-58168_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783151802-58003_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1783151799-57913_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1783151723-56899_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783151720-56783_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1783151717-56684_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1783151642-55692_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783151638-55545_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1783151635-55453_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1783151558-54479_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783151554-54331_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1783151551-54241_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1783151475-53277_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783151472-53127_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1783151469-53025_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1783151392-52086_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783151388-51939_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1783151385-51849_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1783151309-50859_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783151304-50713_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1783151301-50622_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1783151225-49646_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783151221-49498_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1783151218-49408_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1783151141-48454_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783151137-48295_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=33 paths={&#x27;/flaky&#x27;: 33} |
+| /tmp/media_server_evtpost-1783151134-48205_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_image-analysis-1783151097-47462_tracking_summary.json | image-analysis | info | 1 | 0 | 0 | default={&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 15, &#x27;labels&#x27;: [&#x27;bicycle&#x27;, &#x27;bus&#x27;, &#x27;car&#x27;, &#x27;motorcycle&#x27;, &#x27;person&#x27;]}, empty={&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 0, &#x27;labels&#x27;: []}, animal={&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 2, &#x27;labels&#x27;: [&#x27;bird&#x27;, &#x27;dog&#x27;]}, road={&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 3, &#x27;labels&#x27;: [&#x27;traffic light&#x27;]} |
+| /tmp/media_server_redaction-1783151016-46242_summary.json | redaction | pass | 4 | 0 | 3 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782833582-80901_summary.json | event-post | pass | 11 | 0 | 0 | mode=queue received=1 paths={&#x27;/slow&#x27;: 1} |
+| /tmp/media_server_redaction-1782833537-80529_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782833534-80389_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782833531-80289_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782833455-79367_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782833451-79219_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782833448-79129_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782833372-78187_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782833368-78039_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782833365-77949_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782833290-77026_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782833286-76870_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782833283-76780_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782833208-75829_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782833203-75696_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782833200-75588_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782833125-74664_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782833121-74515_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782833118-74425_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782833043-73487_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782833039-73336_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782833036-73246_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782832959-72304_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782832956-72172_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782832953-72081_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782832877-71176_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782832873-71029_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782832870-70938_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782832794-69992_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782832790-69837_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782832787-69743_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782832711-68788_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782832708-68655_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782832705-68565_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782832628-67610_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782832625-67476_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782832621-67379_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782832545-66382_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782832542-66266_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782832539-66159_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782832464-65242_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782832460-65094_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782832457-65003_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782832381-64068_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782832377-63920_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782832374-63830_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782832298-62888_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782832294-62741_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782832291-62651_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782832214-61687_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782832211-61556_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782832208-61465_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782832133-60534_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782832129-60403_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782832126-60296_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782832049-59351_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782832045-59189_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782832042-59098_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782831966-58154_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782831962-58023_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782831959-57917_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782831882-56996_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782831878-56841_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782831875-56750_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782831799-55777_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782831796-55654_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=30 paths={&#x27;/flaky&#x27;: 30} |
+| /tmp/media_server_evtpost-1782831793-55548_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_image-analysis-1782831756-54845_tracking_summary.json | image-analysis | info | 1 | 0 | 0 | default={&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 15, &#x27;labels&#x27;: [&#x27;bicycle&#x27;, &#x27;bus&#x27;, &#x27;car&#x27;, &#x27;motorcycle&#x27;, &#x27;person&#x27;]}, empty={&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 0, &#x27;labels&#x27;: []}, animal={&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 2, &#x27;labels&#x27;: [&#x27;bird&#x27;, &#x27;dog&#x27;]}, road={&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 3, &#x27;labels&#x27;: [&#x27;traffic light&#x27;]} |
+| /tmp/media_server_redaction-1782831680-53709_summary.json | redaction | pass | 4 | 0 | 3 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782831068-41979_summary.json | event-post | pass | 11 | 0 | 0 | mode=queue received=1 paths={&#x27;/slow&#x27;: 1} |
+| /tmp/media_server_redaction-1782831024-41627_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782831020-41488_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782831017-41382_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782830941-40468_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782830937-40321_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782830934-40230_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782830858-39273_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782830855-39140_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782830852-39050_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782830775-38101_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782830771-37953_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782830768-37861_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782830693-36927_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782830689-36780_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782830686-36690_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782830610-35766_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782830607-35634_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782830603-35543_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782830528-34599_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782830524-34449_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782830521-34359_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782830445-33424_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782830441-33276_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782830438-33185_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782830361-32223_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782830358-32091_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782830355-32001_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782830280-31055_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782830276-30908_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782830273-30817_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782830196-29863_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782830192-29714_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782830189-29623_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782830113-28679_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782830109-28530_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782830106-28431_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782830029-27463_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782830026-27331_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782830023-27240_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782829947-26260_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782829944-26144_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782829941-26036_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782829864-25128_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782829860-24969_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782829857-24879_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782829782-23964_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782829778-23817_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782829775-23727_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782829699-22804_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782829695-22654_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782829692-22563_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782829617-21649_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782829613-21497_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782829610-21383_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782829534-20453_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782829531-20320_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782829528-20216_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782829452-19280_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782829448-19131_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782829445-19041_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782829368-18070_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782829365-17954_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={&#x27;/flaky&#x27;: 24} |
+| /tmp/media_server_evtpost-1782829362-17864_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_redaction-1782829286-16869_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1782829282-16688_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=34 paths={&#x27;/flaky&#x27;: 34} |
+| /tmp/media_server_evtpost-1782829279-16597_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4} |
+| /tmp/media_server_image-analysis-1782829242-15872_tracking_summary.json | image-analysis | info | 1 | 0 | 0 | default={&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 15, &#x27;labels&#x27;: [&#x27;bicycle&#x27;, &#x27;bus&#x27;, &#x27;car&#x27;, &#x27;motorcycle&#x27;, &#x27;person&#x27;]}, empty={&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 0, &#x27;labels&#x27;: []}, animal={&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 2, &#x27;labels&#x27;: [&#x27;bird&#x27;, &#x27;dog&#x27;]}, road={&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 3, &#x27;labels&#x27;: [&#x27;traffic light&#x27;]} |
+| /tmp/media_server_redaction-1782829160-14676_summary.json | redaction | pass | 4 | 0 | 3 | mode=person-mosaic classes=person steps=7 failed= |
+
+## 상세
+
+### media_server_predev-1783150577-40687_summary.json
+
+- durationSec: `2364`
+- soakMinutes: `30`
+- step `build`: `pass` duration=`1.0` log=`/tmp/media_server_predev-1783150577-40687/build.log`
+- step `server-start-queue-256`: `pass` duration=`0.0` log=`/tmp/media_server_predev-1783150577-40687/server.log`
+- step `integrated-smoke`: `fail` duration=`521.0` log=`/tmp/media_server_predev-1783150577-40687/integrated_smoke.log`
+- step `external-turn-hard-gate`: `skip` duration=`0.0` log=``
+- step `soak-1-va-events`: `pass` duration=`33.0` log=`/tmp/media_server_predev-1783150577-40687/soak_1_va_events.log`
+- step `soak-1-event-post-schema`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1783150577-40687/soak_1_event_post_schema.log`
+- step `soak-1-event-post-recovery`: `pass` duration=`4.0` log=`/tmp/media_server_predev-1783150577-40687/soak_1_event_post_recovery.log`
+- step `soak-1-redaction`: `pass` duration=`34.0` log=`/tmp/media_server_predev-1783150577-40687/soak_1_redaction.log`
+- step `soak-1-runtime-idle`: `pass` duration=`0.0` log=`/tmp/media_server_predev-1783150577-40687/soak_1_runtime_idle.json`
+- step `soak-2-va-events`: `pass` duration=`34.0` log=`/tmp/media_server_predev-1783150577-40687/soak_2_va_events.log`
+- step `soak-2-event-post-schema`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1783150577-40687/soak_2_event_post_schema.log`
+- step `soak-2-event-post-recovery`: `pass` duration=`4.0` log=`/tmp/media_server_predev-1783150577-40687/soak_2_event_post_recovery.log`
+- step `soak-2-redaction`: `pass` duration=`33.0` log=`/tmp/media_server_predev-1783150577-40687/soak_2_redaction.log`
+- step `soak-2-runtime-idle`: `pass` duration=`0.0` log=`/tmp/media_server_predev-1783150577-40687/soak_2_runtime_idle.json`
+- step `soak-3-va-events`: `pass` duration=`33.0` log=`/tmp/media_server_predev-1783150577-40687/soak_3_va_events.log`
+- step `soak-3-event-post-schema`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1783150577-40687/soak_3_event_post_schema.log`
+- step `soak-3-event-post-recovery`: `pass` duration=`4.0` log=`/tmp/media_server_predev-1783150577-40687/soak_3_event_post_recovery.log`
+- step `soak-3-redaction`: `pass` duration=`34.0` log=`/tmp/media_server_predev-1783150577-40687/soak_3_redaction.log`
+- step `soak-3-runtime-idle`: `pass` duration=`0.0` log=`/tmp/media_server_predev-1783150577-40687/soak_3_runtime_idle.json`
+- step `soak-4-va-events`: `pass` duration=`33.0` log=`/tmp/media_server_predev-1783150577-40687/soak_4_va_events.log`
+- step `soak-4-event-post-schema`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1783150577-40687/soak_4_event_post_schema.log`
+- step `soak-4-event-post-recovery`: `pass` duration=`4.0` log=`/tmp/media_server_predev-1783150577-40687/soak_4_event_post_recovery.log`
+- step `soak-4-redaction`: `pass` duration=`33.0` log=`/tmp/media_server_predev-1783150577-40687/soak_4_redaction.log`
+- step `soak-4-runtime-idle`: `pass` duration=`0.0` log=`/tmp/media_server_predev-1783150577-40687/soak_4_runtime_idle.json`
+- step `soak-5-va-events`: `pass` duration=`33.0` log=`/tmp/media_server_predev-1783150577-40687/soak_5_va_events.log`
+- step `soak-5-event-post-schema`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1783150577-40687/soak_5_event_post_schema.log`
+- step `soak-5-event-post-recovery`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1783150577-40687/soak_5_event_post_recovery.log`
+- step `soak-5-redaction`: `pass` duration=`34.0` log=`/tmp/media_server_predev-1783150577-40687/soak_5_redaction.log`
+- step `soak-5-runtime-idle`: `pass` duration=`0.0` log=`/tmp/media_server_predev-1783150577-40687/soak_5_runtime_idle.json`
+- step `soak-6-va-events`: `pass` duration=`33.0` log=`/tmp/media_server_predev-1783150577-40687/soak_6_va_events.log`
+- step `soak-6-event-post-schema`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1783150577-40687/soak_6_event_post_schema.log`
+- step `soak-6-event-post-recovery`: `pass` duration=`4.0` log=`/tmp/media_server_predev-1783150577-40687/soak_6_event_post_recovery.log`
+- step `soak-6-redaction`: `pass` duration=`33.0` log=`/tmp/media_server_predev-1783150577-40687/soak_6_redaction.log`
+- step `soak-6-runtime-idle`: `pass` duration=`0.0` log=`/tmp/media_server_predev-1783150577-40687/soak_6_runtime_idle.json`
+- step `soak-7-va-events`: `pass` duration=`33.0` log=`/tmp/media_server_predev-1783150577-40687/soak_7_va_events.log`
+- step `soak-7-event-post-schema`: `pass` duration=`3.0` log=`/tmp/media_server_predev-1783150577-40687/soak_7_event_post_schema.log`
+- step `soak-7-event-post-recovery`: `pass` duration=`4.0` log=`/tmp/media_server_predev-1783150577-40687/soak_7_event_post_recovery.log`
+- step `soak-7-redaction`: `pass` duration=`33.0` log=`/tmp/media_server_predev-1783150577-40687/soak_7_redaction.log`
+- step `soak-7-runtime-idle`: `pass` duration=`0.0` log=`/tmp/media_server_predev-1783150577-40687/soak_7_runtime_idle.json`
+- step `soak-8-va-events`: `pass` duration=`33.0` log=`/tmp/media_server_predev-1783150577-40687/soak_8_va_events.log`
+
+### media_server_evtpost-1783152925-74195_summary.json
+
+- mode: `queue`
+- receivedCount: `1`
+- receivedPathCounts: `{&#x27;/slow&#x27;: 1}`
+- status: `{}`
+
+### media_server_redaction-1783152880-73808_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783152880-73808/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783152876-73660_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1783152873-73570_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1783152798-72623_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`30.0` log=`/tmp/media_server_redaction-1783152798-72623/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783152794-72491_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1783152791-72385_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1783152714-71387_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783152714-71387/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783152711-71255_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1783152708-71165_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1783152632-70183_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783152632-70183/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783152629-70067_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1783152626-69960_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1783152551-68996_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783152551-68996/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783152547-68849_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1783152544-68758_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1783152468-67786_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783152468-67786/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783152465-67668_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1783152462-67546_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1783152387-66565_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783152387-66565/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783152382-66417_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1783152379-66327_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1783152304-65375_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783152304-65375/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783152300-65228_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1783152297-65138_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1783152222-64200_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783152222-64200/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783152218-64053_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1783152215-63962_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1783152138-62952_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783152138-62952/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783152135-62835_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1783152132-62729_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1783152056-61749_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783152056-61749/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783152053-61616_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1783152050-61526_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1783151974-60582_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783151974-60582/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783151969-60433_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1783151966-60343_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1783151890-59352_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783151890-59352/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783151886-59205_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1783151883-59113_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1783151806-58168_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783151806-58168/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783151802-58003_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1783151799-57913_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1783151723-56899_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783151723-56899/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783151720-56783_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1783151717-56684_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1783151642-55692_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783151642-55692/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783151638-55545_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1783151635-55453_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1783151558-54479_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783151558-54479/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783151554-54331_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1783151551-54241_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1783151475-53277_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783151475-53277/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783151472-53127_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1783151469-53025_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1783151392-52086_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783151392-52086/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783151388-51939_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1783151385-51849_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1783151309-50859_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783151309-50859/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783151304-50713_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1783151301-50622_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1783151225-49646_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783151225-49646/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783151221-49498_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1783151218-49408_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1783151141-48454_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783151141-48454/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783151137-48295_summary.json
+
+- mode: `recovery`
+- receivedCount: `33`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 33}`
+- status: `{}`
+
+### media_server_evtpost-1783151134-48205_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_image-analysis-1783151097-47462_tracking_summary.json
+
+- default: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 15, &#x27;labels&#x27;: [&#x27;bicycle&#x27;, &#x27;bus&#x27;, &#x27;car&#x27;, &#x27;motorcycle&#x27;, &#x27;person&#x27;]}`
+- empty: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 0, &#x27;labels&#x27;: []}`
+- animal: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 2, &#x27;labels&#x27;: [&#x27;bird&#x27;, &#x27;dog&#x27;]}`
+- road: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 3, &#x27;labels&#x27;: [&#x27;traffic light&#x27;]}`
+- sports: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 0, &#x27;labels&#x27;: []}`
+- tableware: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 7, &#x27;labels&#x27;: [&#x27;bottle&#x27;, &#x27;bowl&#x27;, &#x27;cup&#x27;]}`
+- food: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 1, &#x27;labels&#x27;: [&#x27;pizza&#x27;]}`
+- furniture: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 11, &#x27;labels&#x27;: [&#x27;bench&#x27;, &#x27;chair&#x27;, &#x27;couch&#x27;, &#x27;dining table&#x27;, &#x27;potted plant&#x27;]}`
+- device: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 5, &#x27;labels&#x27;: [&#x27;clock&#x27;, &#x27;laptop&#x27;, &#x27;microwave&#x27;, &#x27;oven&#x27;, &#x27;tv&#x27;]}`
+- object: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 3, &#x27;labels&#x27;: [&#x27;backpack&#x27;, &#x27;umbrella&#x27;]}`
+- all: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 47, &#x27;labels&#x27;: [&#x27;backpack&#x27;, &#x27;bench&#x27;, &#x27;bicycle&#x27;, &#x27;bird&#x27;, &#x27;bottle&#x27;, &#x27;bowl&#x27;, &#x27;bus&#x27;, &#x27;car&#x27;, &#x27;chair&#x27;, &#x27;clock&#x27;, &#x27;couch&#x27;, &#x27;cup&#x27;, &#x27;dining table&#x27;, &#x27;dog&#x27;, &#x27;laptop&#x27;, &#x27;microwave&#x27;, &#x27;motorcycle&#x27;, &#x27;oven&#x27;, &#x27;person&#x27;, &#x27;pizza&#x27;, &#x27;potted plant&#x27;, &#x27;traffic light&#x27;, &#x27;tv&#x27;, &#x27;umbrella&#x27;]}`
+- mixedAnimalCar: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 6, &#x27;labels&#x27;: [&#x27;bird&#x27;, &#x27;car&#x27;, &#x27;dog&#x27;]}`
+
+### media_server_redaction-1783151016-46242_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `pass` duration=`0.0` log=`/tmp/media_server_redaction-1783151016-46242/static_pixel_diff.json`
+- step `live-va-redaction`: `pass` duration=`26.0` log=`/tmp/media_server_redaction-1783151016-46242/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782833582-80901_summary.json
+
+- mode: `queue`
+- receivedCount: `1`
+- receivedPathCounts: `{&#x27;/slow&#x27;: 1}`
+- status: `{}`
+
+### media_server_redaction-1782833537-80529_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782833537-80529/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782833534-80389_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782833531-80289_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782833455-79367_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782833455-79367/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782833451-79219_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782833448-79129_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782833372-78187_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782833372-78187/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782833368-78039_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782833365-77949_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782833290-77026_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782833290-77026/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782833286-76870_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782833283-76780_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782833208-75829_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782833208-75829/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782833203-75696_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782833200-75588_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782833125-74664_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782833125-74664/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782833121-74515_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782833118-74425_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782833043-73487_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782833043-73487/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782833039-73336_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782833036-73246_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782832959-72304_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782832959-72304/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782832956-72172_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782832953-72081_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782832877-71176_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782832877-71176/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782832873-71029_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782832870-70938_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782832794-69992_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782832794-69992/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782832790-69837_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782832787-69743_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782832711-68788_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782832711-68788/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782832708-68655_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782832705-68565_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782832628-67610_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782832628-67610/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782832625-67476_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782832621-67379_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782832545-66382_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782832545-66382/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782832542-66266_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782832539-66159_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782832464-65242_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782832464-65242/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782832460-65094_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782832457-65003_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782832381-64068_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782832381-64068/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782832377-63920_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782832374-63830_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782832298-62888_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782832298-62888/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782832294-62741_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782832291-62651_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782832214-61687_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782832214-61687/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782832211-61556_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782832208-61465_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782832133-60534_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782832133-60534/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782832129-60403_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782832126-60296_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782832049-59351_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782832049-59351/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782832045-59189_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782832042-59098_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782831966-58154_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782831966-58154/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782831962-58023_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782831959-57917_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782831882-56996_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782831882-56996/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782831878-56841_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782831875-56750_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782831799-55777_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782831799-55777/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782831796-55654_summary.json
+
+- mode: `recovery`
+- receivedCount: `30`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 30}`
+- status: `{}`
+
+### media_server_evtpost-1782831793-55548_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_image-analysis-1782831756-54845_tracking_summary.json
+
+- default: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 15, &#x27;labels&#x27;: [&#x27;bicycle&#x27;, &#x27;bus&#x27;, &#x27;car&#x27;, &#x27;motorcycle&#x27;, &#x27;person&#x27;]}`
+- empty: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 0, &#x27;labels&#x27;: []}`
+- animal: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 2, &#x27;labels&#x27;: [&#x27;bird&#x27;, &#x27;dog&#x27;]}`
+- road: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 3, &#x27;labels&#x27;: [&#x27;traffic light&#x27;]}`
+- sports: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 0, &#x27;labels&#x27;: []}`
+- tableware: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 7, &#x27;labels&#x27;: [&#x27;bottle&#x27;, &#x27;bowl&#x27;, &#x27;cup&#x27;]}`
+- food: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 1, &#x27;labels&#x27;: [&#x27;pizza&#x27;]}`
+- furniture: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 11, &#x27;labels&#x27;: [&#x27;bench&#x27;, &#x27;chair&#x27;, &#x27;couch&#x27;, &#x27;dining table&#x27;, &#x27;potted plant&#x27;]}`
+- device: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 5, &#x27;labels&#x27;: [&#x27;clock&#x27;, &#x27;laptop&#x27;, &#x27;microwave&#x27;, &#x27;oven&#x27;, &#x27;tv&#x27;]}`
+- object: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 3, &#x27;labels&#x27;: [&#x27;backpack&#x27;, &#x27;umbrella&#x27;]}`
+- all: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 47, &#x27;labels&#x27;: [&#x27;backpack&#x27;, &#x27;bench&#x27;, &#x27;bicycle&#x27;, &#x27;bird&#x27;, &#x27;bottle&#x27;, &#x27;bowl&#x27;, &#x27;bus&#x27;, &#x27;car&#x27;, &#x27;chair&#x27;, &#x27;clock&#x27;, &#x27;couch&#x27;, &#x27;cup&#x27;, &#x27;dining table&#x27;, &#x27;dog&#x27;, &#x27;laptop&#x27;, &#x27;microwave&#x27;, &#x27;motorcycle&#x27;, &#x27;oven&#x27;, &#x27;person&#x27;, &#x27;pizza&#x27;, &#x27;potted plant&#x27;, &#x27;traffic light&#x27;, &#x27;tv&#x27;, &#x27;umbrella&#x27;]}`
+- mixedAnimalCar: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 6, &#x27;labels&#x27;: [&#x27;bird&#x27;, &#x27;car&#x27;, &#x27;dog&#x27;]}`
+
+### media_server_redaction-1782831680-53709_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `pass` duration=`0.0` log=`/tmp/media_server_redaction-1782831680-53709/static_pixel_diff.json`
+- step `live-va-redaction`: `pass` duration=`22.0` log=`/tmp/media_server_redaction-1782831680-53709/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782831068-41979_summary.json
+
+- mode: `queue`
+- receivedCount: `1`
+- receivedPathCounts: `{&#x27;/slow&#x27;: 1}`
+- status: `{}`
+
+### media_server_redaction-1782831024-41627_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782831024-41627/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782831020-41488_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782831017-41382_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782830941-40468_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782830941-40468/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782830937-40321_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782830934-40230_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782830858-39273_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782830858-39273/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782830855-39140_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782830852-39050_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782830775-38101_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782830775-38101/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782830771-37953_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782830768-37861_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782830693-36927_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782830693-36927/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782830689-36780_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782830686-36690_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782830610-35766_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782830610-35766/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782830607-35634_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782830603-35543_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782830528-34599_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782830528-34599/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782830524-34449_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782830521-34359_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782830445-33424_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782830445-33424/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782830441-33276_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782830438-33185_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782830361-32223_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782830361-32223/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782830358-32091_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782830355-32001_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782830280-31055_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`30.0` log=`/tmp/media_server_redaction-1782830280-31055/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782830276-30908_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782830273-30817_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782830196-29863_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782830196-29863/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782830192-29714_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782830189-29623_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782830113-28679_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782830113-28679/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782830109-28530_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782830106-28431_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782830029-27463_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782830029-27463/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782830026-27331_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782830023-27240_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782829947-26260_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782829947-26260/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782829944-26144_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782829941-26036_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782829864-25128_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782829864-25128/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782829860-24969_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782829857-24879_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782829782-23964_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782829782-23964/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782829778-23817_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782829775-23727_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782829699-22804_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782829699-22804/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782829695-22654_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782829692-22563_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782829617-21649_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782829617-21649/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782829613-21497_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782829610-21383_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782829534-20453_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782829534-20453/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782829531-20320_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782829528-20216_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782829452-19280_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782829452-19280/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782829448-19131_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782829445-19041_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782829368-18070_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782829368-18070/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782829365-17954_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 24}`
+- status: `{}`
+
+### media_server_evtpost-1782829362-17864_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_redaction-1782829286-16869_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1782829286-16869/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1782829282-16688_summary.json
+
+- mode: `recovery`
+- receivedCount: `34`
+- receivedPathCounts: `{&#x27;/flaky&#x27;: 34}`
+- status: `{}`
+
+### media_server_evtpost-1782829279-16597_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{&#x27;/event&#x27;: 4, &#x27;/fail&#x27;: 4}`
+- status: `{}`
+
+### media_server_image-analysis-1782829242-15872_tracking_summary.json
+
+- default: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 15, &#x27;labels&#x27;: [&#x27;bicycle&#x27;, &#x27;bus&#x27;, &#x27;car&#x27;, &#x27;motorcycle&#x27;, &#x27;person&#x27;]}`
+- empty: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 0, &#x27;labels&#x27;: []}`
+- animal: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 2, &#x27;labels&#x27;: [&#x27;bird&#x27;, &#x27;dog&#x27;]}`
+- road: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 3, &#x27;labels&#x27;: [&#x27;traffic light&#x27;]}`
+- sports: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 0, &#x27;labels&#x27;: []}`
+- tableware: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 7, &#x27;labels&#x27;: [&#x27;bottle&#x27;, &#x27;bowl&#x27;, &#x27;cup&#x27;]}`
+- food: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 1, &#x27;labels&#x27;: [&#x27;pizza&#x27;]}`
+- furniture: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 11, &#x27;labels&#x27;: [&#x27;bench&#x27;, &#x27;chair&#x27;, &#x27;couch&#x27;, &#x27;dining table&#x27;, &#x27;potted plant&#x27;]}`
+- device: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 5, &#x27;labels&#x27;: [&#x27;clock&#x27;, &#x27;laptop&#x27;, &#x27;microwave&#x27;, &#x27;oven&#x27;, &#x27;tv&#x27;]}`
+- object: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 3, &#x27;labels&#x27;: [&#x27;backpack&#x27;, &#x27;umbrella&#x27;]}`
+- all: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 47, &#x27;labels&#x27;: [&#x27;backpack&#x27;, &#x27;bench&#x27;, &#x27;bicycle&#x27;, &#x27;bird&#x27;, &#x27;bottle&#x27;, &#x27;bowl&#x27;, &#x27;bus&#x27;, &#x27;car&#x27;, &#x27;chair&#x27;, &#x27;clock&#x27;, &#x27;couch&#x27;, &#x27;cup&#x27;, &#x27;dining table&#x27;, &#x27;dog&#x27;, &#x27;laptop&#x27;, &#x27;microwave&#x27;, &#x27;motorcycle&#x27;, &#x27;oven&#x27;, &#x27;person&#x27;, &#x27;pizza&#x27;, &#x27;potted plant&#x27;, &#x27;traffic light&#x27;, &#x27;tv&#x27;, &#x27;umbrella&#x27;]}`
+- mixedAnimalCar: `{&#x27;total&#x27;: 47, &#x27;tracked&#x27;: 6, &#x27;labels&#x27;: [&#x27;bird&#x27;, &#x27;car&#x27;, &#x27;dog&#x27;]}`
+
+### media_server_redaction-1782829160-14676_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{&#x27;mode&#x27;: &#x27;person-mosaic&#x27;, &#x27;classes&#x27;: &#x27;person&#x27;, &#x27;blockSize&#x27;: 20, &#x27;marginRatio&#x27;: 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `pass` duration=`0.0` log=`/tmp/media_server_redaction-1782829160-14676/static_pixel_diff.json`
+- step `live-va-redaction`: `pass` duration=`27.0` log=`/tmp/media_server_redaction-1782829160-14676/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+</pre></body></html>

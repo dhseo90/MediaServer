@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// File purpose: verify v3.6.0 source baseline, roadmap, docs, and verifier wiring.
+// 파일 용도: v3.6.0 source baseline, roadmap, docs, verifier 연결을 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";

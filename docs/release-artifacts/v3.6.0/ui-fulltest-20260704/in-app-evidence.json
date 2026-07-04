@@ -1,0 +1,1212 @@
+{
+  "schema": "media-server.in-app-browser-ui-evidence.v1",
+  "browser": "Codex in-app browser (iab)",
+  "browserId": "iab",
+  "runId": "ui-fulltest-v3.6.0-20260704",
+  "generatedAt": "2026-07-04T11:20:23.016Z",
+  "server": {
+    "coreBase": "http://127.0.0.1:18097",
+    "authBase": "http://127.0.0.1:18197",
+    "coreRtspPort": 18571,
+    "authRtspPort": 18671,
+    "registry": "throwaway v3.6.0 UI fulltest seed under docs/release-artifacts/v3.6.0/ui-fulltest-20260704"
+  },
+  "authMode": "core:off, auth:auto",
+  "routes": [
+    {
+      "path": "/ops/home",
+      "url": "http://127.0.0.1:18097/ops/home",
+      "role": "admin/dev-principal",
+      "viewportWidths": [
+        320,
+        390,
+        760,
+        1180
+      ],
+      "screenshots": [
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_home_320.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_home_390.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_home_760.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_home_1180.png"
+      ],
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "forbiddenTextHits": [],
+      "observations": [
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 운영 홈 구성, 런타임 상태, 위험 신호와 다음 조치를 한 화면에서 선택합니다. 운영 구성 등록된 구성입니다. 4 채널 12 VA 룰 3 사용자 등록 채널 4 VA 룰 12 이벤트 룰 12 사용자 3 등록된 구성을 보여줍니다. 실시간 상태 현재 상태입니다. 정상 대기 세션 0 스트림 0 분석 탭 0 지연 탭 0 지연 탭 없음 VLM 설치/연결 준비 local runtime과 cloud opt-in 후보를 dry-run으로 비교합니다. VLM 준비 dry-run only profile 저장 지원 runtime 호출 없음",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": true,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 운영 홈 구성, 런타임 상태, 위험 신호와 다음 조치를 한 화면에서 선택합니다. 운영 구성 등록된 구성입니다. 4 채널 12 VA 룰 3 사용자 등록 채널 4 VA 룰 12 이벤트 룰 12 사용자 3 등록된 구성을 보여줍니다. 실시간 상태 현재 상태입니다. 정상 대기 세션 0 스트림 0 분석 탭 0 지연 탭 0 지연 탭 없음 VLM 설치/연결 준비 local runtime과 cloud opt-in 후보를 dry-run으로 비교합니다. VLM 준비 dry-run only profile 저장 지원 runtime 호출 없음",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/home",
+          "width": 320,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_home_320.png"
+        },
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 운영 홈 구성, 런타임 상태, 위험 신호와 다음 조치를 한 화면에서 선택합니다. 운영 구성 등록된 구성입니다. 4 채널 12 VA 룰 3 사용자 등록 채널 4 VA 룰 12 이벤트 룰 12 사용자 3 등록된 구성을 보여줍니다. 실시간 상태 현재 상태입니다. 정상 대기 세션 0 스트림 0 분석 탭 0 지연 탭 0 지연 탭 없음 VLM 설치/연결 준비 local runtime과 cloud opt-in 후보를 dry-run으로 비교합니다. VLM 준비 dry-run only profile 저장 지원 runtime 호출 없음",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": true,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 운영 홈 구성, 런타임 상태, 위험 신호와 다음 조치를 한 화면에서 선택합니다. 운영 구성 등록된 구성입니다. 4 채널 12 VA 룰 3 사용자 등록 채널 4 VA 룰 12 이벤트 룰 12 사용자 3 등록된 구성을 보여줍니다. 실시간 상태 현재 상태입니다. 정상 대기 세션 0 스트림 0 분석 탭 0 지연 탭 0 지연 탭 없음 VLM 설치/연결 준비 local runtime과 cloud opt-in 후보를 dry-run으로 비교합니다. VLM 준비 dry-run only profile 저장 지원 runtime 호출 없음",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/home",
+          "width": 390,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_home_390.png"
+        },
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 운영 홈 구성, 런타임 상태, 위험 신호와 다음 조치를 한 화면에서 선택합니다. 운영 구성 등록된 구성입니다. 4 채널 12 VA 룰 3 사용자 등록 채널 4 VA 룰 12 이벤트 룰 12 사용자 3 등록된 구성을 보여줍니다. 실시간 상태 현재 상태입니다. 정상 대기 세션 0 스트림 0 분석 탭 0 지연 탭 0 지연 탭 없음 VLM 설치/연결 준비 local runtime과 cloud opt-in 후보를 dry-run으로 비교합니다. VLM 준비 dry-run only profile 저장 지원 runtime 호출 없음",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": true,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 운영 홈 구성, 런타임 상태, 위험 신호와 다음 조치를 한 화면에서 선택합니다. 운영 구성 등록된 구성입니다. 4 채널 12 VA 룰 3 사용자 등록 채널 4 VA 룰 12 이벤트 룰 12 사용자 3 등록된 구성을 보여줍니다. 실시간 상태 현재 상태입니다. 정상 대기 세션 0 스트림 0 분석 탭 0 지연 탭 0 지연 탭 없음 VLM 설치/연결 준비 local runtime과 cloud opt-in 후보를 dry-run으로 비교합니다. VLM 준비 dry-run only profile 저장 지원 runtime 호출 없음",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/home",
+          "width": 760,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_home_760.png"
+        },
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 운영 홈 구성, 런타임 상태, 위험 신호와 다음 조치를 한 화면에서 선택합니다. 운영 구성 등록된 구성입니다. 4 채널 12 VA 룰 3 사용자 등록 채널 4 VA 룰 12 이벤트 룰 12 사용자 3 등록된 구성을 보여줍니다. 실시간 상태 현재 상태입니다. 정상 대기 세션 0 스트림 0 분석 탭 0 지연 탭 0 지연 탭 없음 VLM 설치/연결 준비 local runtime과 cloud opt-in 후보를 dry-run으로 비교합니다. VLM 준비 dry-run only profile 저장 지원 runtime 호출 없음",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": true,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 운영 홈 구성, 런타임 상태, 위험 신호와 다음 조치를 한 화면에서 선택합니다. 운영 구성 등록된 구성입니다. 4 채널 12 VA 룰 3 사용자 등록 채널 4 VA 룰 12 이벤트 룰 12 사용자 3 등록된 구성을 보여줍니다. 실시간 상태 현재 상태입니다. 정상 대기 세션 0 스트림 0 분석 탭 0 지연 탭 0 지연 탭 없음 VLM 설치/연결 준비 local runtime과 cloud opt-in 후보를 dry-run으로 비교합니다. VLM 준비 dry-run only profile 저장 지원 runtime 호출 없음",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/home",
+          "width": 1180,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_home_1180.png"
+        }
+      ]
+    },
+    {
+      "path": "/ops/dashboard",
+      "url": "http://127.0.0.1:18097/ops/dashboard",
+      "role": "admin/dev-principal",
+      "viewportWidths": [
+        320,
+        390,
+        760,
+        1180
+      ],
+      "screenshots": [
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_dashboard_320.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_dashboard_390.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_dashboard_760.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_dashboard_1180.png"
+      ],
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "forbiddenTextHits": [],
+      "observations": [
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 운영 대시보드 Source, runtime, event evidence를 같은 진단 흐름에서 판독합니다. 활성 세션 0 활성 스트림 0 분석 탭 0 WHIP 소스 0 상태 요약 스트림 대기 분석 대기 송출 대기 라이브 소스 0/4 세션 0 · 스트림 0 · 분석 0 · 수신 0/4 · 연결 중 0 · 지연 0 · 오프라인 4 런타임 추세 현재 페이지 세션의 refresh sample만 baseline/sparkline 후보로 봅니다. sample 1/12 page-session-only longrun evidence 아님 세션 변동 없음 · 스트림 변동 없음 · 분석 변동 없음 · 메타데이터 변동 없음 baseline 0/0/0 · latest 0/0/0 · source 0/4 · EventRecord 0 분석 재사용 송출 0 발행 0 재사용 그룹 0 프로파일 7 · 룰 24 메타데이터 전송 메타데이터 채널 0 sse ",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": true,
+            "v360SimulationWorkspace": true
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 운영 대시보드 Source, runtime, event evidence를 같은 진단 흐름에서 판독합니다. 활성 세션 0 활성 스트림 0 분석 탭 0 WHIP 소스 0 상태 요약 스트림 대기 분석 대기 송출 대기 라이브 소스 0/4 세션 0 · 스트림 0 · 분석 0 · 수신 0/4 · 연결 중 0 · 지연 0 · 오프라인 4 런타임 추세 현재 페이지 세션의 refresh sample만 baseline/sparkline 후보로 봅니다. sample 1/12 page-session-only longrun evidence 아님 세션 변동 없음 · 스트림 변동 없음 · 분석 변동 없음 · 메타데이터 변동 없음 baseline 0/0/0 · latest 0/0/0 · source 0/4 · EventRecord 0 분석 재사용 송출 0 발행 0 재사용 그룹 0 프로파일 7 · 룰 24 메타데이터 전송 메타데이터 채널 0 sse ",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/dashboard",
+          "width": 320,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_dashboard_320.png"
+        },
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 운영 대시보드 Source, runtime, event evidence를 같은 진단 흐름에서 판독합니다. 활성 세션 0 활성 스트림 0 분석 탭 0 WHIP 소스 0 상태 요약 스트림 대기 분석 대기 송출 대기 라이브 소스 0/4 세션 0 · 스트림 0 · 분석 0 · 수신 0/4 · 연결 중 0 · 지연 0 · 오프라인 4 런타임 추세 현재 페이지 세션의 refresh sample만 baseline/sparkline 후보로 봅니다. sample 1/12 page-session-only longrun evidence 아님 세션 변동 없음 · 스트림 변동 없음 · 분석 변동 없음 · 메타데이터 변동 없음 baseline 0/0/0 · latest 0/0/0 · source 0/4 · EventRecord 0 분석 재사용 송출 0 발행 0 재사용 그룹 0 프로파일 7 · 룰 24 메타데이터 전송 메타데이터 채널 0 sse ",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": true,
+            "v360SimulationWorkspace": true
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 운영 대시보드 Source, runtime, event evidence를 같은 진단 흐름에서 판독합니다. 활성 세션 0 활성 스트림 0 분석 탭 0 WHIP 소스 0 상태 요약 스트림 대기 분석 대기 송출 대기 라이브 소스 0/4 세션 0 · 스트림 0 · 분석 0 · 수신 0/4 · 연결 중 0 · 지연 0 · 오프라인 4 런타임 추세 현재 페이지 세션의 refresh sample만 baseline/sparkline 후보로 봅니다. sample 1/12 page-session-only longrun evidence 아님 세션 변동 없음 · 스트림 변동 없음 · 분석 변동 없음 · 메타데이터 변동 없음 baseline 0/0/0 · latest 0/0/0 · source 0/4 · EventRecord 0 분석 재사용 송출 0 발행 0 재사용 그룹 0 프로파일 7 · 룰 24 메타데이터 전송 메타데이터 채널 0 sse ",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/dashboard",
+          "width": 390,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_dashboard_390.png"
+        },
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 운영 대시보드 Source, runtime, event evidence를 같은 진단 흐름에서 판독합니다. 활성 세션 0 활성 스트림 0 분석 탭 0 WHIP 소스 0 상태 요약 스트림 대기 분석 대기 송출 대기 라이브 소스 0/4 세션 0 · 스트림 0 · 분석 0 · 수신 0/4 · 연결 중 0 · 지연 0 · 오프라인 4 런타임 추세 현재 페이지 세션의 refresh sample만 baseline/sparkline 후보로 봅니다. sample 1/12 page-session-only longrun evidence 아님 세션 변동 없음 · 스트림 변동 없음 · 분석 변동 없음 · 메타데이터 변동 없음 baseline 0/0/0 · latest 0/0/0 · source 0/4 · EventRecord 0 분석 재사용 송출 0 발행 0 재사용 그룹 0 프로파일 7 · 룰 24 메타데이터 전송 메타데이터 채널 0 sse ",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": true,
+            "v360SimulationWorkspace": true
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 운영 대시보드 Source, runtime, event evidence를 같은 진단 흐름에서 판독합니다. 활성 세션 0 활성 스트림 0 분석 탭 0 WHIP 소스 0 상태 요약 스트림 대기 분석 대기 송출 대기 라이브 소스 0/4 세션 0 · 스트림 0 · 분석 0 · 수신 0/4 · 연결 중 0 · 지연 0 · 오프라인 4 런타임 추세 현재 페이지 세션의 refresh sample만 baseline/sparkline 후보로 봅니다. sample 1/12 page-session-only longrun evidence 아님 세션 변동 없음 · 스트림 변동 없음 · 분석 변동 없음 · 메타데이터 변동 없음 baseline 0/0/0 · latest 0/0/0 · source 0/4 · EventRecord 0 분석 재사용 송출 0 발행 0 재사용 그룹 0 프로파일 7 · 룰 24 메타데이터 전송 메타데이터 채널 0 sse ",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/dashboard",
+          "width": 760,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_dashboard_760.png"
+        },
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 운영 대시보드 Source, runtime, event evidence를 같은 진단 흐름에서 판독합니다. 활성 세션 0 활성 스트림 0 분석 탭 0 WHIP 소스 0 상태 요약 스트림 대기 분석 대기 송출 대기 라이브 소스 0/4 세션 0 · 스트림 0 · 분석 0 · 수신 0/4 · 연결 중 0 · 지연 0 · 오프라인 4 런타임 추세 현재 페이지 세션의 refresh sample만 baseline/sparkline 후보로 봅니다. sample 1/12 page-session-only longrun evidence 아님 세션 변동 없음 · 스트림 변동 없음 · 분석 변동 없음 · 메타데이터 변동 없음 baseline 0/0/0 · latest 0/0/0 · source 0/4 · EventRecord 0 분석 재사용 송출 0 발행 0 재사용 그룹 0 프로파일 7 · 룰 24 메타데이터 전송 메타데이터 채널 0 sse ",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": true,
+            "v360SimulationWorkspace": true
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 운영 대시보드 Source, runtime, event evidence를 같은 진단 흐름에서 판독합니다. 활성 세션 0 활성 스트림 0 분석 탭 0 WHIP 소스 0 상태 요약 스트림 대기 분석 대기 송출 대기 라이브 소스 0/4 세션 0 · 스트림 0 · 분석 0 · 수신 0/4 · 연결 중 0 · 지연 0 · 오프라인 4 런타임 추세 현재 페이지 세션의 refresh sample만 baseline/sparkline 후보로 봅니다. sample 1/12 page-session-only longrun evidence 아님 세션 변동 없음 · 스트림 변동 없음 · 분석 변동 없음 · 메타데이터 변동 없음 baseline 0/0/0 · latest 0/0/0 · source 0/4 · EventRecord 0 분석 재사용 송출 0 발행 0 재사용 그룹 0 프로파일 7 · 룰 24 메타데이터 전송 메타데이터 채널 0 sse ",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/dashboard",
+          "width": 1180,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_dashboard_1180.png"
+        }
+      ]
+    },
+    {
+      "path": "/ops/sources",
+      "url": "http://127.0.0.1:18097/ops/sources",
+      "role": "admin/dev-principal",
+      "viewportWidths": [
+        320,
+        390,
+        760,
+        1180
+      ],
+      "screenshots": [
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_sources_320.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_sources_390.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_sources_760.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_sources_1180.png"
+      ],
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "forbiddenTextHits": [],
+      "observations": [
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 채널 채널 목록, source detail, 입력 준비, PublishedView, audit을 작업 단위로 관리합니다. Onboarding 품질 4개 source / ready 4 / warning 0 / blocked 0 Ready 4 Warning 0 Blocked 0 Duplicate 0 Missing view 0 ready 저장 전 validation 이슈가 없습니다. Reliability Timeline 4개 source / live 0 / stale 0 / offline 4 / warning 0 Live 0 Stale 0 Offline 4 Warnings 0 Transitions 0 offline UI Fulltest Sample H264 Audit no-subscriber · file · reconnect 0 history 0 · warnings warning 없음 · latest current sourc",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": true,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 채널 채널 목록, source detail, 입력 준비, PublishedView, audit을 작업 단위로 관리합니다. Onboarding 품질 4개 source / ready 4 / warning 0 / blocked 0 Ready 4 Warning 0 Blocked 0 Duplicate 0 Missing view 0 ready 저장 전 validation 이슈가 없습니다. Reliability Timeline 4개 source / live 0 / stale 0 / offline 4 / warning 0 Live 0 Stale 0 Offline 4 Warnings 0 Transitions 0 offline UI Fulltest Sample H264 Audit no-subscriber · file · reconnect 0 history 0 · warnings warning 없음 · latest current sourc",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/sources",
+          "width": 320,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_sources_320.png"
+        },
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 채널 채널 목록, source detail, 입력 준비, PublishedView, audit을 작업 단위로 관리합니다. Onboarding 품질 4개 source / ready 4 / warning 0 / blocked 0 Ready 4 Warning 0 Blocked 0 Duplicate 0 Missing view 0 ready 저장 전 validation 이슈가 없습니다. Reliability Timeline 4개 source / live 0 / stale 0 / offline 4 / warning 0 Live 0 Stale 0 Offline 4 Warnings 0 Transitions 0 offline UI Fulltest Sample H264 Audit no-subscriber · file · reconnect 0 history 0 · warnings warning 없음 · latest current sourc",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": true,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 채널 채널 목록, source detail, 입력 준비, PublishedView, audit을 작업 단위로 관리합니다. Onboarding 품질 4개 source / ready 4 / warning 0 / blocked 0 Ready 4 Warning 0 Blocked 0 Duplicate 0 Missing view 0 ready 저장 전 validation 이슈가 없습니다. Reliability Timeline 4개 source / live 0 / stale 0 / offline 4 / warning 0 Live 0 Stale 0 Offline 4 Warnings 0 Transitions 0 offline UI Fulltest Sample H264 Audit no-subscriber · file · reconnect 0 history 0 · warnings warning 없음 · latest current sourc",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/sources",
+          "width": 390,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_sources_390.png"
+        },
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 채널 채널 목록, source detail, 입력 준비, PublishedView, audit을 작업 단위로 관리합니다. Onboarding 품질 4개 source / ready 4 / warning 0 / blocked 0 Ready 4 Warning 0 Blocked 0 Duplicate 0 Missing view 0 ready 저장 전 validation 이슈가 없습니다. Reliability Timeline 4개 source / live 0 / stale 0 / offline 4 / warning 0 Live 0 Stale 0 Offline 4 Warnings 0 Transitions 0 offline UI Fulltest Sample H264 Audit no-subscriber · file · reconnect 0 history 0 · warnings warning 없음 · latest current sourc",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": true,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 채널 채널 목록, source detail, 입력 준비, PublishedView, audit을 작업 단위로 관리합니다. Onboarding 품질 4개 source / ready 4 / warning 0 / blocked 0 Ready 4 Warning 0 Blocked 0 Duplicate 0 Missing view 0 ready 저장 전 validation 이슈가 없습니다. Reliability Timeline 4개 source / live 0 / stale 0 / offline 4 / warning 0 Live 0 Stale 0 Offline 4 Warnings 0 Transitions 0 offline UI Fulltest Sample H264 Audit no-subscriber · file · reconnect 0 history 0 · warnings warning 없음 · latest current sourc",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/sources",
+          "width": 760,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_sources_760.png"
+        },
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 채널 채널 목록, source detail, 입력 준비, PublishedView, audit을 작업 단위로 관리합니다. Onboarding 품질 4개 source / ready 4 / warning 0 / blocked 0 Ready 4 Warning 0 Blocked 0 Duplicate 0 Missing view 0 ready 저장 전 validation 이슈가 없습니다. Reliability Timeline 4개 source / live 0 / stale 0 / offline 4 / warning 0 Live 0 Stale 0 Offline 4 Warnings 0 Transitions 0 offline UI Fulltest Sample H264 Audit no-subscriber · file · reconnect 0 history 0 · warnings warning 없음 · latest current sourc",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": true,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 채널 채널 목록, source detail, 입력 준비, PublishedView, audit을 작업 단위로 관리합니다. Onboarding 품질 4개 source / ready 4 / warning 0 / blocked 0 Ready 4 Warning 0 Blocked 0 Duplicate 0 Missing view 0 ready 저장 전 validation 이슈가 없습니다. Reliability Timeline 4개 source / live 0 / stale 0 / offline 4 / warning 0 Live 0 Stale 0 Offline 4 Warnings 0 Transitions 0 offline UI Fulltest Sample H264 Audit no-subscriber · file · reconnect 0 history 0 · warnings warning 없음 · latest current sourc",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/sources",
+          "width": 1180,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_sources_1180.png"
+        }
+      ]
+    },
+    {
+      "path": "/ops/rules",
+      "url": "http://127.0.0.1:18097/ops/rules",
+      "role": "admin/dev-principal",
+      "viewportWidths": [
+        320,
+        390,
+        760,
+        1180
+      ],
+      "screenshots": [
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_rules_320.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_rules_390.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_rules_760.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_rules_1180.png"
+      ],
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "forbiddenTextHits": [],
+      "observations": [
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 룰 설정 종류를 고르고 목록을 관리합니다. 채널 분석 설정 12 이벤트 템플릿 12 프로파일 12 채널 연결 12 저장 전 검증 저장 전 차단 항목이 없습니다. 소스 불일치, 중복 ID, 누락된 프로파일/템플릿, 비활성 채널/뷰, 뷰 권한 충돌이 없습니다. 먼저 준비할 항목 채널, 프로파일, 템플릿이 준비되었습니다. 이제 채널 분석 설정을 만들 수 있습니다. 채널 준비됨 4개 채널 탭에서 입력 소스와 PublishedView를 먼저 준비합니다. 채널 열기 분석 프로파일 준비됨 12개 검출기, FPS, 신뢰도, 적응형 설정 같은 분석 엔진 설정을 먼저 만듭니다. 프로파일 추가 이벤트 템플릿 준비됨 12개 이벤트 방식, 시나리오, 대상 객체, 조건값을 템플릿으로 먼저 정리합니다. 템플릿 추가 채널 분석 설정 시작 가능 12개 채널에 이벤트 템플릿과 프로파일을 연결하고 영역/라인만 정하는 최종 조립 단계입니다. 채널 분석 설",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": true,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 룰 설정 종류를 고르고 목록을 관리합니다. 채널 분석 설정 12 이벤트 템플릿 12 프로파일 12 채널 연결 12 저장 전 검증 저장 전 차단 항목이 없습니다. 소스 불일치, 중복 ID, 누락된 프로파일/템플릿, 비활성 채널/뷰, 뷰 권한 충돌이 없습니다. 먼저 준비할 항목 채널, 프로파일, 템플릿이 준비되었습니다. 이제 채널 분석 설정을 만들 수 있습니다. 채널 준비됨 4개 채널 탭에서 입력 소스와 PublishedView를 먼저 준비합니다. 채널 열기 분석 프로파일 준비됨 12개 검출기, FPS, 신뢰도, 적응형 설정 같은 분석 엔진 설정을 먼저 만듭니다. 프로파일 추가 이벤트 템플릿 준비됨 12개 이벤트 방식, 시나리오, 대상 객체, 조건값을 템플릿으로 먼저 정리합니다. 템플릿 추가 채널 분석 설정 시작 가능 12개 채널에 이벤트 템플릿과 프로파일을 연결하고 영역/라인만 정하는 최종 조립 단계입니다. 채널 분석 설",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/rules",
+          "width": 320,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_rules_320.png"
+        },
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 룰 설정 종류를 고르고 목록을 관리합니다. 채널 분석 설정 12 이벤트 템플릿 12 프로파일 12 채널 연결 12 저장 전 검증 저장 전 차단 항목이 없습니다. 소스 불일치, 중복 ID, 누락된 프로파일/템플릿, 비활성 채널/뷰, 뷰 권한 충돌이 없습니다. 먼저 준비할 항목 채널, 프로파일, 템플릿이 준비되었습니다. 이제 채널 분석 설정을 만들 수 있습니다. 채널 준비됨 4개 채널 탭에서 입력 소스와 PublishedView를 먼저 준비합니다. 채널 열기 분석 프로파일 준비됨 12개 검출기, FPS, 신뢰도, 적응형 설정 같은 분석 엔진 설정을 먼저 만듭니다. 프로파일 추가 이벤트 템플릿 준비됨 12개 이벤트 방식, 시나리오, 대상 객체, 조건값을 템플릿으로 먼저 정리합니다. 템플릿 추가 채널 분석 설정 시작 가능 12개 채널에 이벤트 템플릿과 프로파일을 연결하고 영역/라인만 정하는 최종 조립 단계입니다. 채널 분석 설",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": true,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 룰 설정 종류를 고르고 목록을 관리합니다. 채널 분석 설정 12 이벤트 템플릿 12 프로파일 12 채널 연결 12 저장 전 검증 저장 전 차단 항목이 없습니다. 소스 불일치, 중복 ID, 누락된 프로파일/템플릿, 비활성 채널/뷰, 뷰 권한 충돌이 없습니다. 먼저 준비할 항목 채널, 프로파일, 템플릿이 준비되었습니다. 이제 채널 분석 설정을 만들 수 있습니다. 채널 준비됨 4개 채널 탭에서 입력 소스와 PublishedView를 먼저 준비합니다. 채널 열기 분석 프로파일 준비됨 12개 검출기, FPS, 신뢰도, 적응형 설정 같은 분석 엔진 설정을 먼저 만듭니다. 프로파일 추가 이벤트 템플릿 준비됨 12개 이벤트 방식, 시나리오, 대상 객체, 조건값을 템플릿으로 먼저 정리합니다. 템플릿 추가 채널 분석 설정 시작 가능 12개 채널에 이벤트 템플릿과 프로파일을 연결하고 영역/라인만 정하는 최종 조립 단계입니다. 채널 분석 설",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/rules",
+          "width": 390,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_rules_390.png"
+        },
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 룰 설정 종류를 고르고 목록을 관리합니다. 채널 분석 설정 12 이벤트 템플릿 12 프로파일 12 채널 연결 12 저장 전 검증 저장 전 차단 항목이 없습니다. 소스 불일치, 중복 ID, 누락된 프로파일/템플릿, 비활성 채널/뷰, 뷰 권한 충돌이 없습니다. 먼저 준비할 항목 채널, 프로파일, 템플릿이 준비되었습니다. 이제 채널 분석 설정을 만들 수 있습니다. 채널 준비됨 4개 채널 탭에서 입력 소스와 PublishedView를 먼저 준비합니다. 채널 열기 분석 프로파일 준비됨 12개 검출기, FPS, 신뢰도, 적응형 설정 같은 분석 엔진 설정을 먼저 만듭니다. 프로파일 추가 이벤트 템플릿 준비됨 12개 이벤트 방식, 시나리오, 대상 객체, 조건값을 템플릿으로 먼저 정리합니다. 템플릿 추가 채널 분석 설정 시작 가능 12개 채널에 이벤트 템플릿과 프로파일을 연결하고 영역/라인만 정하는 최종 조립 단계입니다. 채널 분석 설",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": true,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 룰 설정 종류를 고르고 목록을 관리합니다. 채널 분석 설정 12 이벤트 템플릿 12 프로파일 12 채널 연결 12 저장 전 검증 저장 전 차단 항목이 없습니다. 소스 불일치, 중복 ID, 누락된 프로파일/템플릿, 비활성 채널/뷰, 뷰 권한 충돌이 없습니다. 먼저 준비할 항목 채널, 프로파일, 템플릿이 준비되었습니다. 이제 채널 분석 설정을 만들 수 있습니다. 채널 준비됨 4개 채널 탭에서 입력 소스와 PublishedView를 먼저 준비합니다. 채널 열기 분석 프로파일 준비됨 12개 검출기, FPS, 신뢰도, 적응형 설정 같은 분석 엔진 설정을 먼저 만듭니다. 프로파일 추가 이벤트 템플릿 준비됨 12개 이벤트 방식, 시나리오, 대상 객체, 조건값을 템플릿으로 먼저 정리합니다. 템플릿 추가 채널 분석 설정 시작 가능 12개 채널에 이벤트 템플릿과 프로파일을 연결하고 영역/라인만 정하는 최종 조립 단계입니다. 채널 분석 설",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/rules",
+          "width": 760,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_rules_760.png"
+        },
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 룰 설정 종류를 고르고 목록을 관리합니다. 채널 분석 설정 12 이벤트 템플릿 12 프로파일 12 채널 연결 12 저장 전 검증 저장 전 차단 항목이 없습니다. 소스 불일치, 중복 ID, 누락된 프로파일/템플릿, 비활성 채널/뷰, 뷰 권한 충돌이 없습니다. 먼저 준비할 항목 채널, 프로파일, 템플릿이 준비되었습니다. 이제 채널 분석 설정을 만들 수 있습니다. 채널 준비됨 4개 채널 탭에서 입력 소스와 PublishedView를 먼저 준비합니다. 채널 열기 분석 프로파일 준비됨 12개 검출기, FPS, 신뢰도, 적응형 설정 같은 분석 엔진 설정을 먼저 만듭니다. 프로파일 추가 이벤트 템플릿 준비됨 12개 이벤트 방식, 시나리오, 대상 객체, 조건값을 템플릿으로 먼저 정리합니다. 템플릿 추가 채널 분석 설정 시작 가능 12개 채널에 이벤트 템플릿과 프로파일을 연결하고 영역/라인만 정하는 최종 조립 단계입니다. 채널 분석 설",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": true,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 룰 설정 종류를 고르고 목록을 관리합니다. 채널 분석 설정 12 이벤트 템플릿 12 프로파일 12 채널 연결 12 저장 전 검증 저장 전 차단 항목이 없습니다. 소스 불일치, 중복 ID, 누락된 프로파일/템플릿, 비활성 채널/뷰, 뷰 권한 충돌이 없습니다. 먼저 준비할 항목 채널, 프로파일, 템플릿이 준비되었습니다. 이제 채널 분석 설정을 만들 수 있습니다. 채널 준비됨 4개 채널 탭에서 입력 소스와 PublishedView를 먼저 준비합니다. 채널 열기 분석 프로파일 준비됨 12개 검출기, FPS, 신뢰도, 적응형 설정 같은 분석 엔진 설정을 먼저 만듭니다. 프로파일 추가 이벤트 템플릿 준비됨 12개 이벤트 방식, 시나리오, 대상 객체, 조건값을 템플릿으로 먼저 정리합니다. 템플릿 추가 채널 분석 설정 시작 가능 12개 채널에 이벤트 템플릿과 프로파일을 연결하고 영역/라인만 정하는 최종 조립 단계입니다. 채널 분석 설",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/rules",
+          "width": 1180,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_rules_1180.png"
+        }
+      ]
+    },
+    {
+      "path": "/ops/users",
+      "url": "http://127.0.0.1:18097/ops/users",
+      "role": "admin/dev-principal",
+      "viewportWidths": [
+        320,
+        390,
+        760,
+        1180
+      ],
+      "screenshots": [
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_users_320.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_users_390.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_users_760.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_users_1180.png"
+      ],
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "forbiddenTextHits": [],
+      "observations": [
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 사용자 관리 사용자, 초대, 승인, role/scope, audit 흐름을 작업 단위로 관리합니다. 사용자 추가 계정 라이프사이클 정책 초대 만료, 비밀번호 초기화, 비활성화/복구, 사용자 감사 export를 같은 운영 절차로 확인합니다. auth/session 계약 변경 없음 초대 기본 만료 24시간 비밀번호 초기화 후 다음 로그인 변경 비활성화 로그인/세션 차단 감사 JSON/CSV/Diff JSON export 초대 링크는 기본 24시간 동안만 유효하며, 만료 후에는 새 초대를 발급합니다. 비밀번호 초기화는 임시 비밀번호를 설정하고 기존 세션을 회수합니다. 복구 시 로그인 잠금과 실패 횟수는 초기화됩니다. 사용자 목록 admin Admin 관리자 활성 로그인 가능 · 변경 없음 모든 범위 2026-05-24T02:22:13Z 없음 아니오 상세 추가 작업 viewer-ui Viewer UI 시청자 활성 로그인 가능 ",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": false,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 사용자 관리 사용자, 초대, 승인, role/scope, audit 흐름을 작업 단위로 관리합니다. 사용자 추가 계정 라이프사이클 정책 초대 만료, 비밀번호 초기화, 비활성화/복구, 사용자 감사 export를 같은 운영 절차로 확인합니다. auth/session 계약 변경 없음 초대 기본 만료 24시간 비밀번호 초기화 후 다음 로그인 변경 비활성화 로그인/세션 차단 감사 JSON/CSV/Diff JSON export 초대 링크는 기본 24시간 동안만 유효하며, 만료 후에는 새 초대를 발급합니다. 비밀번호 초기화는 임시 비밀번호를 설정하고 기존 세션을 회수합니다. 복구 시 로그인 잠금과 실패 횟수는 초기화됩니다. 사용자 목록 admin Admin 관리자 활성 로그인 가능 · 변경 없음 모든 범위 2026-05-24T02:22:13Z 없음 아니오 상세 추가 작업 viewer-ui Viewer UI 시청자 활성 로그인 가능 ",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/users",
+          "width": 320,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_users_320.png"
+        },
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 사용자 관리 사용자, 초대, 승인, role/scope, audit 흐름을 작업 단위로 관리합니다. 사용자 추가 계정 라이프사이클 정책 초대 만료, 비밀번호 초기화, 비활성화/복구, 사용자 감사 export를 같은 운영 절차로 확인합니다. auth/session 계약 변경 없음 초대 기본 만료 24시간 비밀번호 초기화 후 다음 로그인 변경 비활성화 로그인/세션 차단 감사 JSON/CSV/Diff JSON export 초대 링크는 기본 24시간 동안만 유효하며, 만료 후에는 새 초대를 발급합니다. 비밀번호 초기화는 임시 비밀번호를 설정하고 기존 세션을 회수합니다. 복구 시 로그인 잠금과 실패 횟수는 초기화됩니다. 사용자 목록 admin Admin 관리자 활성 로그인 가능 · 변경 없음 모든 범위 2026-05-24T02:22:13Z 없음 아니오 상세 추가 작업 viewer-ui Viewer UI 시청자 활성 로그인 가능 ",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": false,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 사용자 관리 사용자, 초대, 승인, role/scope, audit 흐름을 작업 단위로 관리합니다. 사용자 추가 계정 라이프사이클 정책 초대 만료, 비밀번호 초기화, 비활성화/복구, 사용자 감사 export를 같은 운영 절차로 확인합니다. auth/session 계약 변경 없음 초대 기본 만료 24시간 비밀번호 초기화 후 다음 로그인 변경 비활성화 로그인/세션 차단 감사 JSON/CSV/Diff JSON export 초대 링크는 기본 24시간 동안만 유효하며, 만료 후에는 새 초대를 발급합니다. 비밀번호 초기화는 임시 비밀번호를 설정하고 기존 세션을 회수합니다. 복구 시 로그인 잠금과 실패 횟수는 초기화됩니다. 사용자 목록 admin Admin 관리자 활성 로그인 가능 · 변경 없음 모든 범위 2026-05-24T02:22:13Z 없음 아니오 상세 추가 작업 viewer-ui Viewer UI 시청자 활성 로그인 가능 ",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/users",
+          "width": 390,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_users_390.png"
+        },
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 사용자 관리 사용자, 초대, 승인, role/scope, audit 흐름을 작업 단위로 관리합니다. 사용자 추가 계정 라이프사이클 정책 초대 만료, 비밀번호 초기화, 비활성화/복구, 사용자 감사 export를 같은 운영 절차로 확인합니다. auth/session 계약 변경 없음 초대 기본 만료 24시간 비밀번호 초기화 후 다음 로그인 변경 비활성화 로그인/세션 차단 감사 JSON/CSV/Diff JSON export 초대 링크는 기본 24시간 동안만 유효하며, 만료 후에는 새 초대를 발급합니다. 비밀번호 초기화는 임시 비밀번호를 설정하고 기존 세션을 회수합니다. 복구 시 로그인 잠금과 실패 횟수는 초기화됩니다. 사용자 목록 admin Admin 관리자 활성 로그인 가능 · 변경 없음 모든 범위 2026-05-24T02:22:13Z 없음 아니오 상세 추가 작업 viewer-ui Viewer UI 시청자 활성 로그인 가능 ",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": false,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 사용자 관리 사용자, 초대, 승인, role/scope, audit 흐름을 작업 단위로 관리합니다. 사용자 추가 계정 라이프사이클 정책 초대 만료, 비밀번호 초기화, 비활성화/복구, 사용자 감사 export를 같은 운영 절차로 확인합니다. auth/session 계약 변경 없음 초대 기본 만료 24시간 비밀번호 초기화 후 다음 로그인 변경 비활성화 로그인/세션 차단 감사 JSON/CSV/Diff JSON export 초대 링크는 기본 24시간 동안만 유효하며, 만료 후에는 새 초대를 발급합니다. 비밀번호 초기화는 임시 비밀번호를 설정하고 기존 세션을 회수합니다. 복구 시 로그인 잠금과 실패 횟수는 초기화됩니다. 사용자 목록 admin Admin 관리자 활성 로그인 가능 · 변경 없음 모든 범위 2026-05-24T02:22:13Z 없음 아니오 상세 추가 작업 viewer-ui Viewer UI 시청자 활성 로그인 가능 ",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/users",
+          "width": 760,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_users_760.png"
+        },
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 사용자 관리 사용자, 초대, 승인, role/scope, audit 흐름을 작업 단위로 관리합니다. 사용자 추가 계정 라이프사이클 정책 초대 만료, 비밀번호 초기화, 비활성화/복구, 사용자 감사 export를 같은 운영 절차로 확인합니다. auth/session 계약 변경 없음 초대 기본 만료 24시간 비밀번호 초기화 후 다음 로그인 변경 비활성화 로그인/세션 차단 감사 JSON/CSV/Diff JSON export 초대 링크는 기본 24시간 동안만 유효하며, 만료 후에는 새 초대를 발급합니다. 비밀번호 초기화는 임시 비밀번호를 설정하고 기존 세션을 회수합니다. 복구 시 로그인 잠금과 실패 횟수는 초기화됩니다. 사용자 목록 계정명 이름 권한 상태 권한 범위 마지막 로그인 잠금 만료 비밀번호 변경 작업 admin Admin 관리자 활성 로그인 가능 · 변경 없음 모든 범위 2026-05-24T02:22:13Z 없음 아니오",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": false,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 사용자 관리 사용자, 초대, 승인, role/scope, audit 흐름을 작업 단위로 관리합니다. 사용자 추가 계정 라이프사이클 정책 초대 만료, 비밀번호 초기화, 비활성화/복구, 사용자 감사 export를 같은 운영 절차로 확인합니다. auth/session 계약 변경 없음 초대 기본 만료 24시간 비밀번호 초기화 후 다음 로그인 변경 비활성화 로그인/세션 차단 감사 JSON/CSV/Diff JSON export 초대 링크는 기본 24시간 동안만 유효하며, 만료 후에는 새 초대를 발급합니다. 비밀번호 초기화는 임시 비밀번호를 설정하고 기존 세션을 회수합니다. 복구 시 로그인 잠금과 실패 횟수는 초기화됩니다. 사용자 목록 계정명 이름 권한 상태 권한 범위 마지막 로그인 잠금 만료 비밀번호 변경 작업 admin Admin 관리자 활성 로그인 가능 · 변경 없음 모든 범위 2026-05-24T02:22:13Z 없음 아니오",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/users",
+          "width": 1180,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_users_1180.png"
+        }
+      ]
+    },
+    {
+      "path": "/ops/events",
+      "url": "http://127.0.0.1:18097/ops/events",
+      "role": "admin/dev-principal",
+      "viewportWidths": [
+        320,
+        390,
+        760,
+        1180
+      ],
+      "screenshots": [
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_events_320.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_events_390.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_events_760.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_events_1180.png"
+      ],
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "forbiddenTextHits": [],
+      "observations": [
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 Operator Event Review Inbox Primary nav에는 표시하지 않는 운영자 event review direct route입니다. EventRecord list/detail, evidence refs, review state, operator note, false-positive/action target을 한 작업대에서 확인합니다. 대시보드 룰 이벤트 저장소 활성 저장 0 실패 0 드롭 0 큐 0/2048 · 파일 0 bytes · 복구 missing Event POST 비활성 전송 0 실패 0 억제 0 큐 0/256 증거 정책 장기 녹화 없음 snapshot hook clip bundle hook 비파괴 compaction event-short-evidence · frame-bundle · MP4/VMS 장기 녹화 범위 아님 Export / 보존 snapshot 다운로드 clip manifest 다",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": true,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 Operator Event Review Inbox Primary nav에는 표시하지 않는 운영자 event review direct route입니다. EventRecord list/detail, evidence refs, review state, operator note, false-positive/action target을 한 작업대에서 확인합니다. 대시보드 룰 이벤트 저장소 활성 저장 0 실패 0 드롭 0 큐 0/2048 · 파일 0 bytes · 복구 missing Event POST 비활성 전송 0 실패 0 억제 0 큐 0/256 증거 정책 장기 녹화 없음 snapshot hook clip bundle hook 비파괴 compaction event-short-evidence · frame-bundle · MP4/VMS 장기 녹화 범위 아님 Export / 보존 snapshot 다운로드 clip manifest 다",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/events",
+          "width": 320,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_events_320.png"
+        },
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 Operator Event Review Inbox Primary nav에는 표시하지 않는 운영자 event review direct route입니다. EventRecord list/detail, evidence refs, review state, operator note, false-positive/action target을 한 작업대에서 확인합니다. 대시보드 룰 이벤트 저장소 활성 저장 0 실패 0 드롭 0 큐 0/2048 · 파일 0 bytes · 복구 missing Event POST 비활성 전송 0 실패 0 억제 0 큐 0/256 증거 정책 장기 녹화 없음 snapshot hook clip bundle hook 비파괴 compaction event-short-evidence · frame-bundle · MP4/VMS 장기 녹화 범위 아님 Export / 보존 snapshot 다운로드 clip manifest 다",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": true,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 Operator Event Review Inbox Primary nav에는 표시하지 않는 운영자 event review direct route입니다. EventRecord list/detail, evidence refs, review state, operator note, false-positive/action target을 한 작업대에서 확인합니다. 대시보드 룰 이벤트 저장소 활성 저장 0 실패 0 드롭 0 큐 0/2048 · 파일 0 bytes · 복구 missing Event POST 비활성 전송 0 실패 0 억제 0 큐 0/256 증거 정책 장기 녹화 없음 snapshot hook clip bundle hook 비파괴 compaction event-short-evidence · frame-bundle · MP4/VMS 장기 녹화 범위 아님 Export / 보존 snapshot 다운로드 clip manifest 다",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/events",
+          "width": 390,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_events_390.png"
+        },
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 Operator Event Review Inbox Primary nav에는 표시하지 않는 운영자 event review direct route입니다. EventRecord list/detail, evidence refs, review state, operator note, false-positive/action target을 한 작업대에서 확인합니다. 대시보드 룰 이벤트 저장소 활성 저장 0 실패 0 드롭 0 큐 0/2048 · 파일 0 bytes · 복구 missing Event POST 비활성 전송 0 실패 0 억제 0 큐 0/256 증거 정책 장기 녹화 없음 snapshot hook clip bundle hook 비파괴 compaction event-short-evidence · frame-bundle · MP4/VMS 장기 녹화 범위 아님 Export / 보존 snapshot 다운로드 clip manifest 다",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": true,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 Operator Event Review Inbox Primary nav에는 표시하지 않는 운영자 event review direct route입니다. EventRecord list/detail, evidence refs, review state, operator note, false-positive/action target을 한 작업대에서 확인합니다. 대시보드 룰 이벤트 저장소 활성 저장 0 실패 0 드롭 0 큐 0/2048 · 파일 0 bytes · 복구 missing Event POST 비활성 전송 0 실패 0 억제 0 큐 0/256 증거 정책 장기 녹화 없음 snapshot hook clip bundle hook 비파괴 compaction event-short-evidence · frame-bundle · MP4/VMS 장기 녹화 범위 아님 Export / 보존 snapshot 다운로드 clip manifest 다",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/events",
+          "width": 760,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_events_760.png"
+        },
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 Operator Event Review Inbox Primary nav에는 표시하지 않는 운영자 event review direct route입니다. EventRecord list/detail, evidence refs, review state, operator note, false-positive/action target을 한 작업대에서 확인합니다. 대시보드 룰 이벤트 저장소 활성 저장 0 실패 0 드롭 0 큐 0/2048 · 파일 0 bytes · 복구 missing Event POST 비활성 전송 0 실패 0 억제 0 큐 0/256 증거 정책 장기 녹화 없음 snapshot hook clip bundle hook 비파괴 compaction event-short-evidence · frame-bundle · MP4/VMS 장기 녹화 범위 아님 Export / 보존 snapshot 다운로드 clip manifest 다",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": true,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 Operator Event Review Inbox Primary nav에는 표시하지 않는 운영자 event review direct route입니다. EventRecord list/detail, evidence refs, review state, operator note, false-positive/action target을 한 작업대에서 확인합니다. 대시보드 룰 이벤트 저장소 활성 저장 0 실패 0 드롭 0 큐 0/2048 · 파일 0 bytes · 복구 missing Event POST 비활성 전송 0 실패 0 억제 0 큐 0/256 증거 정책 장기 녹화 없음 snapshot hook clip bundle hook 비파괴 compaction event-short-evidence · frame-bundle · MP4/VMS 장기 녹화 범위 아님 Export / 보존 snapshot 다운로드 clip manifest 다",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/events",
+          "width": 1180,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_events_1180.png"
+        }
+      ]
+    },
+    {
+      "path": "/ops/vlm",
+      "url": "http://127.0.0.1:18097/ops/vlm",
+      "role": "admin/dev-principal",
+      "viewportWidths": [
+        320,
+        390,
+        760,
+        1180
+      ],
+      "screenshots": [
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_vlm_320.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_vlm_390.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_vlm_760.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_vlm_1180.png"
+      ],
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "forbiddenTextHits": [],
+      "observations": [
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 VLM 설치/연결 준비 Ops 보조 작업으로 유지하며 privacy, default-off, profile 상태를 읽기 전용 경계와 저장 경계로 분리합니다. 입력 조건 운영자가 검토할 PC 등급과 privacy 조건입니다. PC 등급 local-unsupported local-low local-standard local-high Local runtime ready missing Privacy mode local-only cloud-disabled cloud-allowed Cloud opt-in not-acknowledged acknowledged 상태 ready-for-user-selection 선택 후보 2 PC 등급 local-standard 외부 전송 local only VLM runtime status provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mod",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": true,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 VLM 설치/연결 준비 Ops 보조 작업으로 유지하며 privacy, default-off, profile 상태를 읽기 전용 경계와 저장 경계로 분리합니다. 입력 조건 운영자가 검토할 PC 등급과 privacy 조건입니다. PC 등급 local-unsupported local-low local-standard local-high Local runtime ready missing Privacy mode local-only cloud-disabled cloud-allowed Cloud opt-in not-acknowledged acknowledged 상태 ready-for-user-selection 선택 후보 2 PC 등급 local-standard 외부 전송 local only VLM runtime status provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mod",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/vlm",
+          "width": 320,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_vlm_320.png"
+        },
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 VLM 설치/연결 준비 Ops 보조 작업으로 유지하며 privacy, default-off, profile 상태를 읽기 전용 경계와 저장 경계로 분리합니다. 입력 조건 운영자가 검토할 PC 등급과 privacy 조건입니다. PC 등급 local-unsupported local-low local-standard local-high Local runtime ready missing Privacy mode local-only cloud-disabled cloud-allowed Cloud opt-in not-acknowledged acknowledged 상태 ready-for-user-selection 선택 후보 2 PC 등급 local-standard 외부 전송 local only VLM runtime status provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mod",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": true,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 VLM 설치/연결 준비 Ops 보조 작업으로 유지하며 privacy, default-off, profile 상태를 읽기 전용 경계와 저장 경계로 분리합니다. 입력 조건 운영자가 검토할 PC 등급과 privacy 조건입니다. PC 등급 local-unsupported local-low local-standard local-high Local runtime ready missing Privacy mode local-only cloud-disabled cloud-allowed Cloud opt-in not-acknowledged acknowledged 상태 ready-for-user-selection 선택 후보 2 PC 등급 local-standard 외부 전송 local only VLM runtime status provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mod",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/vlm",
+          "width": 390,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_vlm_390.png"
+        },
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 VLM 설치/연결 준비 Ops 보조 작업으로 유지하며 privacy, default-off, profile 상태를 읽기 전용 경계와 저장 경계로 분리합니다. 입력 조건 운영자가 검토할 PC 등급과 privacy 조건입니다. PC 등급 local-unsupported local-low local-standard local-high Local runtime ready missing Privacy mode local-only cloud-disabled cloud-allowed Cloud opt-in not-acknowledged acknowledged 상태 ready-for-user-selection 선택 후보 2 PC 등급 local-standard 외부 전송 local only VLM runtime status provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mod",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": true,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 VLM 설치/연결 준비 Ops 보조 작업으로 유지하며 privacy, default-off, profile 상태를 읽기 전용 경계와 저장 경계로 분리합니다. 입력 조건 운영자가 검토할 PC 등급과 privacy 조건입니다. PC 등급 local-unsupported local-low local-standard local-high Local runtime ready missing Privacy mode local-only cloud-disabled cloud-allowed Cloud opt-in not-acknowledged acknowledged 상태 ready-for-user-selection 선택 후보 2 PC 등급 local-standard 외부 전송 local only VLM runtime status provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mod",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/vlm",
+          "width": 760,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_vlm_760.png"
+        },
+        {
+          "bodyTextSample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 VLM 설치/연결 준비 Ops 보조 작업으로 유지하며 privacy, default-off, profile 상태를 읽기 전용 경계와 저장 경계로 분리합니다. 입력 조건 운영자가 검토할 PC 등급과 privacy 조건입니다. PC 등급 local-unsupported local-low local-standard local-high Local runtime ready missing Privacy mode local-only cloud-disabled cloud-allowed Cloud opt-in not-acknowledged acknowledged 상태 ready-for-user-selection 선택 후보 2 PC 등급 local-standard 외부 전송 local only VLM runtime status provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mod",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": true,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 VLM 설치/연결 준비 Ops 보조 작업으로 유지하며 privacy, default-off, profile 상태를 읽기 전용 경계와 저장 경계로 분리합니다. 입력 조건 운영자가 검토할 PC 등급과 privacy 조건입니다. PC 등급 local-unsupported local-low local-standard local-high Local runtime ready missing Privacy mode local-only cloud-disabled cloud-allowed Cloud opt-in not-acknowledged acknowledged 상태 ready-for-user-selection 선택 후보 2 PC 등급 local-standard 외부 전송 local only VLM runtime status provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mod",
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18097/ops/vlm",
+          "width": 1180,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/ops_vlm_1180.png"
+        }
+      ]
+    },
+    {
+      "path": "/client/live",
+      "url": "http://127.0.0.1:18097/client/live",
+      "role": "client/dev-principal",
+      "viewportWidths": [
+        320,
+        390,
+        760,
+        1180
+      ],
+      "screenshots": [
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_live_320.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_live_390.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_live_760.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_live_1180.png"
+      ],
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "forbiddenTextHits": [],
+      "observations": [
+        {
+          "bodyTextSample": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 카메라 4 ⌕ QA Seed 4 Fixture 4 UI Fulltest Playback 파일 1/1 UI Fulltest VA Visual Matrix 파일 3/4 UI Fulltest VA Event Matrix 파일 0/1 UI Fulltest Re-entry Matrix 파일 0/1 이벤트 꺼짐 UI Fulltest Playback 이벤트 권한 꺼짐 이벤트 없음 소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable attention 정비 상태 digest 정비/복구/미제",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": true,
+            "v360SafeApplyReadiness": false,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 카메라 4 ⌕ QA Seed 4 Fixture 4 UI Fulltest Playback 파일 1/1 UI Fulltest VA Visual Matrix 파일 3/4 UI Fulltest VA Event Matrix 파일 0/1 UI Fulltest Re-entry Matrix 파일 0/1 이벤트 꺼짐 UI Fulltest Playback 이벤트 권한 꺼짐 이벤트 없음 소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable attention 정비 상태 digest 정비/복구/미제",
+          "title": "클라이언트 포털",
+          "url": "http://127.0.0.1:18097/client/live",
+          "width": 320,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_live_320.png"
+        },
+        {
+          "bodyTextSample": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 카메라 4 ⌕ QA Seed 4 Fixture 4 UI Fulltest Playback 파일 1/1 UI Fulltest VA Visual Matrix 파일 3/4 UI Fulltest VA Event Matrix 파일 0/1 UI Fulltest Re-entry Matrix 파일 0/1 이벤트 꺼짐 UI Fulltest Playback 이벤트 권한 꺼짐 이벤트 없음 소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable attention 정비 상태 digest 정비/복구/미제",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": true,
+            "v360SafeApplyReadiness": false,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 카메라 4 ⌕ QA Seed 4 Fixture 4 UI Fulltest Playback 파일 1/1 UI Fulltest VA Visual Matrix 파일 3/4 UI Fulltest VA Event Matrix 파일 0/1 UI Fulltest Re-entry Matrix 파일 0/1 이벤트 꺼짐 UI Fulltest Playback 이벤트 권한 꺼짐 이벤트 없음 소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable attention 정비 상태 digest 정비/복구/미제",
+          "title": "클라이언트 포털",
+          "url": "http://127.0.0.1:18097/client/live",
+          "width": 390,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_live_390.png"
+        },
+        {
+          "bodyTextSample": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 카메라 4 ⌕ QA Seed 4 Fixture 4 UI Fulltest Playback 파일 1/1 UI Fulltest VA Visual Matrix 파일 3/4 UI Fulltest VA Event Matrix 파일 0/1 UI Fulltest Re-entry Matrix 파일 0/1 이벤트 꺼짐 UI Fulltest Playback 이벤트 권한 꺼짐 이벤트 없음 소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable attention 정비 상태 digest 정비/복구/미제",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": true,
+            "v360SafeApplyReadiness": false,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 카메라 4 ⌕ QA Seed 4 Fixture 4 UI Fulltest Playback 파일 1/1 UI Fulltest VA Visual Matrix 파일 3/4 UI Fulltest VA Event Matrix 파일 0/1 UI Fulltest Re-entry Matrix 파일 0/1 이벤트 꺼짐 UI Fulltest Playback 이벤트 권한 꺼짐 이벤트 없음 소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable attention 정비 상태 digest 정비/복구/미제",
+          "title": "클라이언트 포털",
+          "url": "http://127.0.0.1:18097/client/live",
+          "width": 760,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_live_760.png"
+        },
+        {
+          "bodyTextSample": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 카메라 4 ⌕ QA Seed 4 Fixture 4 UI Fulltest Playback 파일 1/1 UI Fulltest VA Visual Matrix 파일 3/4 UI Fulltest VA Event Matrix 파일 0/1 UI Fulltest Re-entry Matrix 파일 0/1 이벤트 꺼짐 UI Fulltest Playback 이벤트 권한 꺼짐 이벤트 없음 소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable attention 정비 상태 digest 정비/복구/미제",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": true,
+            "v360SafeApplyReadiness": false,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 카메라 4 ⌕ QA Seed 4 Fixture 4 UI Fulltest Playback 파일 1/1 UI Fulltest VA Visual Matrix 파일 3/4 UI Fulltest VA Event Matrix 파일 0/1 UI Fulltest Re-entry Matrix 파일 0/1 이벤트 꺼짐 UI Fulltest Playback 이벤트 권한 꺼짐 이벤트 없음 소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable attention 정비 상태 digest 정비/복구/미제",
+          "title": "클라이언트 포털",
+          "url": "http://127.0.0.1:18097/client/live",
+          "width": 1180,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_live_1180.png"
+        }
+      ]
+    },
+    {
+      "path": "/client/dashboard",
+      "url": "http://127.0.0.1:18097/client/dashboard",
+      "role": "client/dev-principal",
+      "viewportWidths": [
+        320,
+        390,
+        760,
+        1180
+      ],
+      "screenshots": [
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_dashboard_320.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_dashboard_390.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_dashboard_760.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_dashboard_1180.png"
+      ],
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "forbiddenTextHits": [],
+      "observations": [
+        {
+          "bodyTextSample": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 UI Fulltest Playback 파일 대시보드 최대 1개 UI Fulltest VA Visual Matrix 파일 대시보드 최대 4개 UI Fulltest VA Event Matrix 파일 대시보드 최대 1개 UI Fulltest Re-entry Matrix 파일 대시보드 최대 1개 UI Fulltest Playback UI Fulltest Sample H264 영상 상태 확인 경고 오프라인 미제공 상태 복사 이벤트 복사 현장 요약 현장 상태 영상 상태 확인 상태 요약 신호 없음 영상 신호 미제공 데이터 지연 미제공 인시던트 상태 이벤트 미제공 이 view는 이벤트 요약 권한이 꺼져 있어 상태와 신호만 표시합니다. Viewer-safe event/status summary Source health 신호 없음 영상 신호 미제공 메타데이터 미제공 최근 ",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": false,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 UI Fulltest Playback 파일 대시보드 최대 1개 UI Fulltest VA Visual Matrix 파일 대시보드 최대 4개 UI Fulltest VA Event Matrix 파일 대시보드 최대 1개 UI Fulltest Re-entry Matrix 파일 대시보드 최대 1개 UI Fulltest Playback UI Fulltest Sample H264 영상 상태 확인 경고 오프라인 미제공 상태 복사 이벤트 복사 현장 요약 현장 상태 영상 상태 확인 상태 요약 신호 없음 영상 신호 미제공 데이터 지연 미제공 인시던트 상태 이벤트 미제공 이 view는 이벤트 요약 권한이 꺼져 있어 상태와 신호만 표시합니다. Viewer-safe event/status summary Source health 신호 없음 영상 신호 미제공 메타데이터 미제공 최근 ",
+          "title": "클라이언트 포털",
+          "url": "http://127.0.0.1:18097/client/dashboard",
+          "width": 320,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_dashboard_320.png"
+        },
+        {
+          "bodyTextSample": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 UI Fulltest Playback 파일 대시보드 최대 1개 UI Fulltest VA Visual Matrix 파일 대시보드 최대 4개 UI Fulltest VA Event Matrix 파일 대시보드 최대 1개 UI Fulltest Re-entry Matrix 파일 대시보드 최대 1개 UI Fulltest Playback UI Fulltest Sample H264 영상 상태 확인 경고 오프라인 미제공 상태 복사 이벤트 복사 현장 요약 현장 상태 영상 상태 확인 상태 요약 신호 없음 영상 신호 미제공 데이터 지연 미제공 인시던트 상태 이벤트 미제공 이 view는 이벤트 요약 권한이 꺼져 있어 상태와 신호만 표시합니다. Viewer-safe event/status summary Source health 신호 없음 영상 신호 미제공 메타데이터 미제공 최근 ",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": false,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 UI Fulltest Playback 파일 대시보드 최대 1개 UI Fulltest VA Visual Matrix 파일 대시보드 최대 4개 UI Fulltest VA Event Matrix 파일 대시보드 최대 1개 UI Fulltest Re-entry Matrix 파일 대시보드 최대 1개 UI Fulltest Playback UI Fulltest Sample H264 영상 상태 확인 경고 오프라인 미제공 상태 복사 이벤트 복사 현장 요약 현장 상태 영상 상태 확인 상태 요약 신호 없음 영상 신호 미제공 데이터 지연 미제공 인시던트 상태 이벤트 미제공 이 view는 이벤트 요약 권한이 꺼져 있어 상태와 신호만 표시합니다. Viewer-safe event/status summary Source health 신호 없음 영상 신호 미제공 메타데이터 미제공 최근 ",
+          "title": "클라이언트 포털",
+          "url": "http://127.0.0.1:18097/client/dashboard",
+          "width": 390,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_dashboard_390.png"
+        },
+        {
+          "bodyTextSample": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 UI Fulltest Playback 파일 대시보드 최대 1개 UI Fulltest VA Visual Matrix 파일 대시보드 최대 4개 UI Fulltest VA Event Matrix 파일 대시보드 최대 1개 UI Fulltest Re-entry Matrix 파일 대시보드 최대 1개 UI Fulltest Playback UI Fulltest Sample H264 영상 상태 확인 경고 오프라인 미제공 상태 복사 이벤트 복사 현장 요약 현장 상태 영상 상태 확인 상태 요약 신호 없음 영상 신호 미제공 데이터 지연 미제공 인시던트 상태 이벤트 미제공 이 view는 이벤트 요약 권한이 꺼져 있어 상태와 신호만 표시합니다. Viewer-safe event/status summary Source health 신호 없음 영상 신호 미제공 메타데이터 미제공 최근 ",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": false,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 UI Fulltest Playback 파일 대시보드 최대 1개 UI Fulltest VA Visual Matrix 파일 대시보드 최대 4개 UI Fulltest VA Event Matrix 파일 대시보드 최대 1개 UI Fulltest Re-entry Matrix 파일 대시보드 최대 1개 UI Fulltest Playback UI Fulltest Sample H264 영상 상태 확인 경고 오프라인 미제공 상태 복사 이벤트 복사 현장 요약 현장 상태 영상 상태 확인 상태 요약 신호 없음 영상 신호 미제공 데이터 지연 미제공 인시던트 상태 이벤트 미제공 이 view는 이벤트 요약 권한이 꺼져 있어 상태와 신호만 표시합니다. Viewer-safe event/status summary Source health 신호 없음 영상 신호 미제공 메타데이터 미제공 최근 ",
+          "title": "클라이언트 포털",
+          "url": "http://127.0.0.1:18097/client/dashboard",
+          "width": 760,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_dashboard_760.png"
+        },
+        {
+          "bodyTextSample": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 UI Fulltest Playback 파일 대시보드 최대 1개 UI Fulltest VA Visual Matrix 파일 대시보드 최대 4개 UI Fulltest VA Event Matrix 파일 대시보드 최대 1개 UI Fulltest Re-entry Matrix 파일 대시보드 최대 1개 UI Fulltest Playback UI Fulltest Sample H264 영상 상태 확인 경고 오프라인 미제공 상태 복사 이벤트 복사 현장 요약 현장 상태 영상 상태 확인 상태 요약 신호 없음 영상 신호 미제공 데이터 지연 미제공 인시던트 상태 이벤트 미제공 이 view는 이벤트 요약 권한이 꺼져 있어 상태와 신호만 표시합니다. Viewer-safe event/status summary Source health 신호 없음 영상 신호 미제공 메타데이터 미제공 최근 ",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": false,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 UI Fulltest Playback 파일 대시보드 최대 1개 UI Fulltest VA Visual Matrix 파일 대시보드 최대 4개 UI Fulltest VA Event Matrix 파일 대시보드 최대 1개 UI Fulltest Re-entry Matrix 파일 대시보드 최대 1개 UI Fulltest Playback UI Fulltest Sample H264 영상 상태 확인 경고 오프라인 미제공 상태 복사 이벤트 복사 현장 요약 현장 상태 영상 상태 확인 상태 요약 신호 없음 영상 신호 미제공 데이터 지연 미제공 인시던트 상태 이벤트 미제공 이 view는 이벤트 요약 권한이 꺼져 있어 상태와 신호만 표시합니다. Viewer-safe event/status summary Source health 신호 없음 영상 신호 미제공 메타데이터 미제공 최근 ",
+          "title": "클라이언트 포털",
+          "url": "http://127.0.0.1:18097/client/dashboard",
+          "width": 1180,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_dashboard_1180.png"
+        }
+      ]
+    },
+    {
+      "path": "/client/events",
+      "url": "http://127.0.0.1:18097/client/events",
+      "role": "client/dev-principal",
+      "viewportWidths": [
+        320,
+        390,
+        760,
+        1180
+      ],
+      "screenshots": [
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_events_320.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_events_390.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_events_760.png",
+        "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_events_1180.png"
+      ],
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "forbiddenTextHits": [],
+      "observations": [
+        {
+          "bodyTextSample": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 UI Fulltest Playback 파일 대시보드 최대 1개 UI Fulltest VA Visual Matrix 파일 대시보드 최대 4개 UI Fulltest VA Event Matrix 파일 대시보드 최대 1개 UI Fulltest Re-entry Matrix 파일 대시보드 최대 1개 UI Fulltest Playback 이 채널은 이벤트 표시가 꺼져 있거나 이벤트 권한이 없습니다. 미제공 이벤트 복사 이벤트 없음 소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable at",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": false,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 UI Fulltest Playback 파일 대시보드 최대 1개 UI Fulltest VA Visual Matrix 파일 대시보드 최대 4개 UI Fulltest VA Event Matrix 파일 대시보드 최대 1개 UI Fulltest Re-entry Matrix 파일 대시보드 최대 1개 UI Fulltest Playback 이 채널은 이벤트 표시가 꺼져 있거나 이벤트 권한이 없습니다. 미제공 이벤트 복사 이벤트 없음 소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable at",
+          "title": "클라이언트 포털",
+          "url": "http://127.0.0.1:18097/client/events",
+          "width": 320,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_events_320.png"
+        },
+        {
+          "bodyTextSample": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 UI Fulltest Playback 파일 대시보드 최대 1개 UI Fulltest VA Visual Matrix 파일 대시보드 최대 4개 UI Fulltest VA Event Matrix 파일 대시보드 최대 1개 UI Fulltest Re-entry Matrix 파일 대시보드 최대 1개 UI Fulltest Playback 이 채널은 이벤트 표시가 꺼져 있거나 이벤트 권한이 없습니다. 미제공 이벤트 복사 이벤트 없음 소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable at",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": false,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 UI Fulltest Playback 파일 대시보드 최대 1개 UI Fulltest VA Visual Matrix 파일 대시보드 최대 4개 UI Fulltest VA Event Matrix 파일 대시보드 최대 1개 UI Fulltest Re-entry Matrix 파일 대시보드 최대 1개 UI Fulltest Playback 이 채널은 이벤트 표시가 꺼져 있거나 이벤트 권한이 없습니다. 미제공 이벤트 복사 이벤트 없음 소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable at",
+          "title": "클라이언트 포털",
+          "url": "http://127.0.0.1:18097/client/events",
+          "width": 390,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_events_390.png"
+        },
+        {
+          "bodyTextSample": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 UI Fulltest Playback 파일 대시보드 최대 1개 UI Fulltest VA Visual Matrix 파일 대시보드 최대 4개 UI Fulltest VA Event Matrix 파일 대시보드 최대 1개 UI Fulltest Re-entry Matrix 파일 대시보드 최대 1개 UI Fulltest Playback 이 채널은 이벤트 표시가 꺼져 있거나 이벤트 권한이 없습니다. 미제공 이벤트 복사 이벤트 없음 소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable at",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": false,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 UI Fulltest Playback 파일 대시보드 최대 1개 UI Fulltest VA Visual Matrix 파일 대시보드 최대 4개 UI Fulltest VA Event Matrix 파일 대시보드 최대 1개 UI Fulltest Re-entry Matrix 파일 대시보드 최대 1개 UI Fulltest Playback 이 채널은 이벤트 표시가 꺼져 있거나 이벤트 권한이 없습니다. 미제공 이벤트 복사 이벤트 없음 소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable at",
+          "title": "클라이언트 포털",
+          "url": "http://127.0.0.1:18097/client/events",
+          "width": 760,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_events_760.png"
+        },
+        {
+          "bodyTextSample": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 UI Fulltest Playback 파일 대시보드 최대 1개 UI Fulltest VA Visual Matrix 파일 대시보드 최대 4개 UI Fulltest VA Event Matrix 파일 대시보드 최대 1개 UI Fulltest Re-entry Matrix 파일 대시보드 최대 1개 UI Fulltest Playback 이 채널은 이벤트 표시가 꺼져 있거나 이벤트 권한이 없습니다. 미제공 이벤트 복사 이벤트 없음 소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable at",
+          "forbiddenHits": [],
+          "markers": {
+            "clientLive": false,
+            "v360SafeApplyReadiness": false,
+            "v360SimulationWorkspace": false
+          },
+          "overflowX": 0,
+          "rootFound": true,
+          "rootText": "Media Server 관리자 클라이언트 미리보기 라이브 대시보드 한국어 English 운영 로그아웃 관리자 preview viewer-safe 경계 확인 할당 채널 UI Fulltest Playback 파일 대시보드 최대 1개 UI Fulltest VA Visual Matrix 파일 대시보드 최대 4개 UI Fulltest VA Event Matrix 파일 대시보드 최대 1개 UI Fulltest Re-entry Matrix 파일 대시보드 최대 1개 UI Fulltest Playback 이 채널은 이벤트 표시가 꺼져 있거나 이벤트 권한이 없습니다. 미제공 이벤트 복사 이벤트 없음 소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable at",
+          "title": "클라이언트 포털",
+          "url": "http://127.0.0.1:18097/client/events",
+          "width": 1180,
+          "screenshot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-screenshots/client_events_1180.png"
+        }
+      ]
+    },
+    {
+      "path": "/setup",
+      "url": "http://127.0.0.1:18197/setup",
+      "role": "auth/setup",
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "screenshots": [],
+      "observations": [
+        {
+          "flow": "weak password rejected; strong admin setup accepted; password values redacted"
+        }
+      ]
+    },
+    {
+      "path": "/login",
+      "url": "http://127.0.0.1:18197/login",
+      "role": "auth/login",
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "screenshots": [],
+      "observations": [
+        {
+          "flow": "admin and viewer login landing verified; password values redacted"
+        }
+      ]
+    },
+    {
+      "path": "/password/change",
+      "url": "http://127.0.0.1:18197/password/change",
+      "role": "auth/viewer",
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "screenshots": [],
+      "observations": [
+        {
+          "flow": "viewer must-change password screen submitted; password values redacted"
+        }
+      ]
+    },
+    {
+      "path": "/client/request-access",
+      "url": "http://127.0.0.1:18197/client/request-access",
+      "role": "anonymous/access-request",
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "screenshots": [],
+      "observations": [
+        {
+          "flow": "access request submitted and pending before admin approval"
+        }
+      ]
+    },
+    {
+      "path": "/invite/setup",
+      "url": "http://127.0.0.1:18197/invite/setup?token=<redacted>",
+      "role": "anonymous/invite",
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "screenshots": [],
+      "observations": [
+        {
+          "flow": "invite setup password submitted; token and password redacted"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "id": "theme-light-dark-toggle",
+      "label": "theme-light-dark-toggle",
+      "route": "/ops/home",
+      "pass": true,
+      "result": {
+        "ok": true,
+        "before": "dark",
+        "after": "light",
+        "restored": "dark"
+      }
+    },
+    {
+      "id": "ops-sources-generated-channel-id",
+      "label": "ops-sources-generated-channel-id",
+      "route": "/ops/sources",
+      "pass": true,
+      "result": {
+        "ok": true,
+        "bodySample": "Media Server Ops 홈 대시보드 채널 룰 사용자 클라이언트 한국어 English 로그아웃 채널 채널 목록, source detail, 입력 준비, PublishedView, audit을 작업 단위로 관리합니다. Onboarding 품질 5개 source / ready 5 / warning 0 / blocked 0 Ready 5 Warning 0 Blocked 0 Duplicate 0 Missing view 0 ready 저장 전 validation 이슈가 없습니다. Reliability Timeline 5개 source / live 0 / stale 0 / offline 5 / warning 0 Live 0 Stale 0 Offline 5 Warnings 0 Transitions 0 offline UI Fulltest Sample H264 Audit no-subscriber · file · reconnect 0 history 0 · warnings warning 없음 · latest current source health is offline (no-subscriber) offline UI Fulltest VA Four Scene Audit no-s",
+        "generatedRows": [
+          {
+            "id": "",
+            "text": "9005 v360 UI generated channel release-lab / ui-fulltest 파일 활성 비활성화 imports/NewYorkDriving.mp4 RTSP WHEP RTSP WHEP 상세 추가 작업"
+          }
+        ],
+        "hiddenId": "9005",
+        "textHasName": true
+      }
+    },
+    {
+      "id": "ops-rules-generated-id-displays",
+      "label": "ops-rules-generated-id-displays",
+      "route": "/ops/rules",
+      "pass": true,
+      "result": {
+        "ok": true,
+        "generatedIdCandidates": [
+          "Rule",
+          "rule",
+          "Rule",
+          "Rule",
+          "validation",
+          "rule-draft-readiness",
+          "rule",
+          "rules",
+          "9101",
+          "9102",
+          "9103",
+          "9104",
+          "9105",
+          "9106",
+          "9107",
+          "profile"
+        ],
+        "tail": " · NMS 0.45 사람, 차량 사람, 차량 채널 2 상세 추가 작업 9107 yolo 저장 프로파일 6 640x640 큐 1 · 신뢰도 0.25 · NMS 0.45 사람, 차량 사람, 차량 채널 1 상세 추가 작업 추가 6 분석 프로파일 추가 값을 입력한 뒤 저장합니다. 저장 닫기 저장 전 검토 분석 프로파일 draft를 저장하기 전 event type, reference, conflict, preset 영향, EventRecord coverage를 확인합니다. EventRecord 열기 profile 프로파일 프로파일은 직접 EventRecord type을 만들지 않고 연결된 룰의 분석 대상에 영향을 줍니다. 0개 충돌 없음 중복 ID, priority, source/class 충돌이 없습니다. 0개 참조 준비됨 이 draft는 별도 참조 누락이 없습니다. 비대상 Preset 영향 basic event 템플릿은 scenario preset 숫자 조건을 적용하지 않습니다. 간접 간접 coverage 프로파일은 채널 분석 설정을 통해 EventRecord 대상 class와 quality에 간접 반영됩니다. ID 6 검출기 yolo dummy server-config FPS Queue Confidence NMS 입력 폭 입력 높이 적응형 튜닝 추적 대상 이 프로파일의 tracker가 유지할 객체 범주를 고릅니다. 기본 전체 선택 전체"
+      }
+    },
+    {
+      "id": "ops-users-multi-channel-assignment",
+      "label": "ops-users-multi-channel-assignment",
+      "route": "/ops/users",
+      "pass": true,
+      "result": {
+        "ok": true,
+        "selectedBeforeSave": [
+          "9001",
+          "9002"
+        ],
+        "selectedAfterSave": [],
+        "textHasUser": true
+      }
+    },
+    {
+      "id": "client-live-va-playback-controls",
+      "label": "client-live-va-playback-controls",
+      "route": "/client/live",
+      "pass": true,
+      "result": {
+        "ok": true,
+        "before": "UI Fulltest Playback 오프라인 원본 VA ▶ ↻ ⏹ 타일 1: UI Fulltest Playback · 상태 오프라인 · 연결 연결 끊김 · 트랙 미제공 · 이벤트 미제공 · 메타데이터 미제공 · 재시도 0 UI Fulltest VA Visual Matrix 오프라인 원본 VA VA 룰 ▶ ↻ ⏹ 타일 2",
+        "after": "소스 없음 오프라인 ▶ ↻ ⏹ 오프라인 타일 1: 소스 없음 · 상태 오프라인 · 연결 연결 끊김 · 트랙 미제공 · 이벤트 미제공 · 메타데이터 미제공 · 재시도 1 UI Fulltest VA Visual Matrix 오프라인 원본 VA VA 룰 ▶ ↻ ⏹ 타일 2: UI Fulltest VA Visual Matrix · 상태 오프라인 · 연결 연결 끊김 · 트랙 미제공 · 이벤트 미제공 · 메타데이터 미제공 · 재시도 0 ",
+        "vaControl": {
+          "controlCount": 4,
+          "firstText": "원본 VA VA 룰"
+        },
+        "activeButtons": [
+          "VA",
+          "VA",
+          "VA"
+        ]
+      }
+    },
+    {
+      "id": "auth-setup-weak-password-rejected",
+      "label": "auth-setup-weak-password-rejected",
+      "route": "/setup",
+      "pass": true,
+      "result": {
+        "observedPath": "/setup",
+        "messageExcerpt": [
+          "비밀번호를 설정한 뒤 제품 화면으로 이동합니다.",
+          "비밀번호는 문자 종류를 2종류 이상 조합해야 합니다. 비밀번호 길이가 정책 기준보다 짧습니다.",
+          "비밀번호 확인"
+        ]
+      }
+    },
+    {
+      "id": "auth-setup-strong-password",
+      "label": "auth-setup-strong-password",
+      "route": "/setup",
+      "pass": true,
+      "result": {
+        "redirectedTo": "/login",
+        "landingText": "언어\n한국어\nEnglish\n\nMEDIASERVER\n\n로그인\n계정명\n비밀번호\n로그인"
+      }
+    },
+    {
+      "id": "auth-admin-login-landing",
+      "label": "auth-admin-login-landing",
+      "route": "/login",
+      "pass": true,
+      "result": {
+        "redirectedTo": "/ops/home",
+        "title": "운영 콘솔",
+        "textExcerpt": "Media Server\nOps\n홈\n대시보드\n채널\n룰\n사용자\n클라이언트\n한국어\nEnglish\n로그아웃\n운영 홈\n\n구성, 런타임 상태, 위험 신호와 다음 조치를 한 화면에서 선택합니다.\n\n운영 구성\n\n등록된 구성입니다.\n\n4 채널\n12 VA 룰\n1 사용자\n등록 채널\n4\nVA 룰\n12\n이벤트 룰\n12\n사용자\n1\n\n등록된 구성을 보여줍니다.\n\n실시간 상태\n\n현재 상태입니다.\n\n정상\n대기\n세션\n0\n스트림\n0\n분석 탭\n0\n지연 탭\n0\n\n지연 탭 없음\n\nVLM 설치/연결 준비\n\nlocal runtime과 cloud opt-in 후보를 dry-run으로 비교합니다.\n\nVLM 준비\ndry-run only\nprofile 저장 지원\nruntime 호출 없음"
+      }
+    },
+    {
+      "id": "users-create-viewer-must-change",
+      "label": "users-create-viewer-must-change",
+      "route": "/ops/users",
+      "pass": true,
+      "result": {
+        "mustChangeBeforeSave": true,
+        "userAppears": true,
+        "mustChangeInList": true,
+        "textExcerpt": "Media Server\nOps\n홈\n대시보드\n채널\n룰\n사용자\n클라이언트\n한국어\nEnglish\n로그아웃\n사용자 관리\n\n사용자, 초대, 승인, role/scope, audit 흐름을 작업 단위로 관리합니다.\n\n사용자 추가\n사용자 추가 완료\n계정 라이프사이클 정책\n\n초대 만료, 비밀번호 초기화, 비활성화/복구, 사용자 감사 export를 같은 운영 절차로 확인합니다.\n\nauth/session 계약 변경 없음\n초대\n기본 만료 24시간\n비밀번호\n초기화 후 다음 로그인 변경\n비활성화\n로그인/세션 차단\n감사\nJSON/CSV/Diff JSON export\n\n초대 링크는 기본 24시간 동안만 유효하며, 만료 후에는 새 초대를 발급합니다. 비밀번호 초기화는 임시 비밀번호를 설정하고 기존 세션을 회수합니다. 복구 시 로그인 잠금과 실패 횟수는 초기화됩니다.\n\n사용자 목록\nadmin\nAdmin\n관리자\n활성\n로그인 가능 · 변경 없음\n모든 범위\n2026-07-04T11:15:24Z\n없음\n아니오\n상세\n추가 작업\nv360-auth-viewer\nv360 Auth Viewer\n시청자\n활성\n로그인 가능 · 변경 필요\n4개 범위\n라이브, 대시보드, 이벤트, 메타데이터 / 채널 9001\n미제공\n"
+      }
+    },
+    {
+      "id": "auth-viewer-must-change-password",
+      "label": "auth-viewer-must-change-password",
+      "route": "/password/change",
+      "pass": true,
+      "result": {
+        "changeSubmittedLanding": "/login",
+        "reloginRedirectedTo": "/client/live",
+        "textExcerpt": "Media Server\n클라이언트\n라이브\n대시보드\n한국어\nEnglish\n로그아웃\nviewer-safe\nviewer-safe 경계 확인\n할당 채널\n카메라\n1\n⌕\nQA Seed\n1\nFixture\n1\nUI Fulltest Playback\n파일\n1/1\n이벤트\n꺼짐\nUI Fulltest Playback\n이벤트 권한 꺼짐\n이벤트 없음\n소스 상태 digest\n\n허용된 소스 상태와 연결 요약만 표시됩니다.\n\nviewer-safe\nview scope\nlocator 숨김\nsource offline / disconnected\noffline · disconnected · video unavailable · metadata unavailable · source unavailable\nattention\n정비 상태 digest\n\n정비/"
+      }
+    },
+    {
+      "id": "auth-viewer-login-client-landing",
+      "label": "auth-viewer-login-client-landing",
+      "route": "/login",
+      "pass": true,
+      "result": {
+        "redirectedTo": "/client/live",
+        "textExcerpt": "Media Server\n클라이언트\n라이브\n대시보드\n한국어\nEnglish\n로그아웃\nviewer-safe\nviewer-safe 경계 확인\n할당 채널\n카메라\n1\n⌕\nQA Seed\n1\nFixture\n1\nUI Fulltest Playback\n파일\n1/1\n이벤트\n꺼짐\nUI Fulltest Playback\n이벤트 권한 꺼짐\n이벤트 없음\n소스 상태 digest\n\n허용된 소스 상태와 연결 요약만 표시됩니다.\n\nviewer-safe\nview scope\nlocator 숨김\nsource offline / disconnected\noffline · disconnected · video unavailable · metadata unavailable · source unavailable\nattention\n정비 상태 digest\n\n정비/"
+      }
+    },
+    {
+      "id": "auth-viewer-ops-denied",
+      "label": "auth-viewer-ops-denied",
+      "route": "/ops/home",
+      "pass": true,
+      "result": {
+        "redirectedTo": "/ops/home",
+        "title": "Access Denied",
+        "textExcerpt": "Access Denied\n\n운영 콘솔은 admin/operator role과 ops:read scope가 필요합니다.\n\nGo Home"
+      }
+    },
+    {
+      "id": "access-request-submit-pending",
+      "label": "access-request-submit-pending",
+      "route": "/client/request-access",
+      "pass": true,
+      "result": {
+        "path": "/client/request-access",
+        "textExcerpt": "언어\n한국어\nEnglish\n\nCLIENT ACCESS\n\n시청 권한 요청\n\n요청은 승인 대기 상태로 저장되며 관리자 승인 전에는 로그인이나 채널 접근이 허용되지 않습니다.\n\n승인 전에는 로그인/채널 접근이 열리지 않습니다. 관리자가 승인하면 초대 링크로 비밀번호를 설정하세요.\n계정명\n표시 이름\n연락처\n요청 채널 ID\n사유\n요청 제출"
+      }
+    },
+    {
+      "id": "access-request-admin-approve-invite",
+      "label": "access-request-admin-approve-invite",
+      "route": "/ops/users",
+      "pass": true,
+      "result": {
+        "inviteUrlRedacted": "http://127.0.0.1:18197/invite/setup?token=<redacted>",
+        "textExcerpt": "Media Server\nOps\n홈\n대시보드\n채널\n룰\n사용자\n클라이언트\n한국어\nEnglish\n로그아웃\n사용자 관리\n\n사용자, 초대, 승인, role/scope, audit 흐름을 작업 단위로 관리합니다.\n\n사용자 추가\n계정 라이프사이클 정책\n\n초대 만료, 비밀번호 초기화, 비활성화/복구, 사용자 감사 export를 같은 운영 절차로 확인합니다.\n\nauth/session 계약 변경 없음\n초대\n기본 만료 24시간\n비밀번호\n초기화 후 다음 로그인 변경\n비활성화\n로그인/세션 차단\n감사\nJSON/CSV/Diff JSON export\n\n초대 링크는 기본 24시간 동안만 유효하며, 만료 후에는 새 초대를 발급합니다. 비밀번호 초기화는 임시 비밀번호를 설정하고 기존 세션을 회수합니다. 복구 시 로그인 잠금과 실패 횟수는 초기화됩니다.\n\n사용자 목록\nadmin\nAdmin\n관리자\n활성\n로그인 가능 · 변경 없음\n모든 범위\n2026-07-04T11:18:09Z\n없음\n아니오\n상세\n추가 작업\nv360-auth-viewer\nv360 Auth Viewer\n시청자\n활성\n로그인 가능 · 변경 없음\n4개 범위\n라이브, 대시보드, 이벤트, 메타데이터 / 채널 9001\n2026-07-04T11:17:09Z\n없음\n아니오\n상세\n추가 작업\n승인 대기 요청\n\n공개 회원가입이 아니라, 별도 요청 페이지로 들어온 계정을 관리자가 검토한 뒤 초대 링크를 발급합니다.\n\n요청 페이지\n접"
+      }
+    },
+    {
+      "id": "invite-setup-password-flow",
+      "label": "invite-setup-password-flow",
+      "route": "/invite/setup",
+      "pass": true,
+      "result": {
+        "inviteUrlRedacted": "http://127.0.0.1:18197/invite/setup?token=<redacted>",
+        "beforePath": "/invite/setup",
+        "afterPath": "/login",
+        "beforeTextExcerpt": "언어\n한국어\nEnglish\n\nINVITE SETUP\n\n초대 계정 설정\n\n관리자가 발급한 초대 토큰으로 비밀번호를 설정합니다.\n\n초대 토큰\n비밀번호\n비밀번호 확인\n\n기본 kr-privacy 정책: 대문자/소문자/숫자/특수문자 중 3종류 이상이면 최소 8자, 2종류 조합이면 최소 10자입니다. username, 반복 문자, 연속 숫자, 키보드 배열, 흔한 비밀번호, 이전 비밀번호 재사용은 허용하지 않습니다.\n\n비밀번호 설정",
+        "afterTextExcerpt": "언어\n한국어\nEnglish\n\nMEDIASERVER\n\n로그인\n계정명\n비밀번호\n로그인"
+      }
+    },
+    {
+      "id": "v240-s05-rule-scenario-review-loop",
+      "label": "v240-s05-rule-scenario-review-loop",
+      "route": "/ops/rules",
+      "pass": true,
+      "result": {
+        "reviewLoopVisible": true,
+        "coverageLinkVisible": false,
+        "eventType": "not-visible",
+        "conflict": "not-visible",
+        "missingRefs": "checked",
+        "textExcerpt": "Media Server\nOps\n홈\n대시보드\n채널\n룰\n사용자\n클라이언트\n한국어\nEnglish\n로그아웃\n룰 설정\n\n종류를 고르고 목록을 관리합니다.\n\n채널 분석 설정\n12\n이벤트 템플릿\n12\n프로파일\n12\n채널 연결\n12\n저장 전 검증\n\n저장 전 차단 항목이 없습니다.\n\n소스 불일치, 중복 ID, 누락된 프로파일/템플릿, 비활성 채널/뷰, 뷰 권한 충돌이 없습니다.\n먼저 준비할 항목\n\n채널, 프로파일, 템플릿이 준비되었습니다. 이제 채널 분석 설정을 만들 수 있습니다.\n\n채널\n준비됨\n5개\n\n채널 탭에서 입력 소스와 PublishedView를 먼저 준비합니다.\n\n채널 열기\n분석 프로파일\n준비됨\n12개\n\n검출기, FPS, 신뢰도, 적응형 설정 같은 분석 엔진 설정을 먼저 만듭니다.\n\n프로파일 추가\n이벤트 템플릿\n준비됨\n12개\n\n이벤트 방식, 시나리오, 대상 객체, 조건값을 템플릿으로 먼저 정리합니다.\n\n템플릿 추가\n채널 분석 설정\n시작 가능\n12개\n\n채널에 이벤트 템플릿과 프로파일을 연결하고 영역/라인만 정하는 최종 조립 단계입니다.\n\n채널 분석 설정 추가\n시나리오 빌더\n\n현장 preset과 대상 객체를 골라 이벤트 템플릿 초안을 만듭니다. 판단 엔진과 저장 pay"
+      }
+    }
+  ],
+  "redaction": {
+    "passwords": "redacted from evidence JSON",
+    "inviteTokens": "redacted from evidence JSON"
+  }
+}

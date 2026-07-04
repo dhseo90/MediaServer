@@ -179,6 +179,38 @@ v3.6.0 Step 14 local readiness gate는 v3.6.0 stabilization/release readiness �
 연결을 확인할 뿐, UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata,
 release action evidence를 대체하지 않습니다.
 
+v3.6.0 release run evidence는 local readiness gate와 분리해 관리합니다.
+
+- 30분 soak: 최종 비샌드박스 `./server.sh verify-predev --soak-minutes 30` run은
+  `status=pass`, `pass=119`, `fail=0`, `skip=1`, `durationSec=2356`,
+  `soakMinutes=30`, `steps=120`입니다. 최초 sandbox bind failure와 최초
+  비샌드박스 code comment policy failure는 각각 실패 evidence로 분리했고, 최종
+  PASS evidence에는 포함하지 않습니다. External TURN hard gate는 요청하지 않아
+  skip이며 PASS로 대체하지 않습니다. Summary/report/html은
+  [predev-1783153043-79079](./release-artifacts/v3.6.0/predev-1783153043-79079/media_server_predev-1783153043-79079_summary.json)에
+  보존했습니다.
+- UI 풀테스트: 2026-07-04 승인 범위에서 Codex 인앱 브라우저 직접 검수로
+  route 15개, screenshot 40장, interaction 16개를 확인했습니다. One-shot wrapper는
+  runId `ui-fulltest-one-shot-1783164060346-62410`으로 PASS했고
+  [in-app evidence](./release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-evidence.json)와
+  [one-shot summary](./release-artifacts/v3.6.0/ui-fulltest-20260704/one-shot/summary.json)를
+  보존했습니다. 30분 soak와 UI 풀테스트는 서로 대체하지 않습니다.
+- 120분 longrun: 승인된 비샌드박스 `./server.sh verify-predev --soak-minutes 120`
+  run은 `status=pass`, `pass=444`, `fail=0`, `skip=1`, `durationSec=7745`,
+  `soakMinutes=120`, `steps=445`입니다. integrated-smoke PASS 뒤 87회 soak
+  iteration, main-runtime-idle, event-post-queue, queue-runtime-idle, ports-clean,
+  summary-report가 PASS했습니다. External TURN hard gate는 요청하지 않아 skip이며
+  PASS로 대체하지 않습니다. Summary/report/html은
+  [predev-1783164699-79436-120min](./release-artifacts/v3.6.0/predev-1783164699-79436-120min/media_server_predev-1783164699-79436_summary.json)에
+  보존했습니다.
+- Field smoke: 승인 후 실행 가능 범위를 판정했고 `verify-external-turn-whep-field-gate`,
+  `verify-vlm-cloud-provider-field-smoke-gate`, `verify-onvif-field-smoke-gate`,
+  `verify-onvif-field-smoke-redaction` 절차 gate는 PASS했습니다. 다만 실제 ONVIF
+  실기기, external TURN/WHEP, cloud/VLM provider field smoke는 endpoint/credential/
+  실기기/provider 조건이 없어 `not-run`이며 local/30분/120분/UI PASS로 대체하지 않습니다.
+- Published metadata, PR/main/tag/GitHub Release는 이 문서 갱신 시점에는 아직
+  실행하지 않았고 release action evidence로 대체하지 않습니다.
+
 Companion local gate:
 
 ```bash
@@ -397,6 +429,11 @@ v3.2.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직
 
 | date | run id | test area | scope | verdict | token start | token end | token consumed | elapsed | token usage source | evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-07-04 | v360-release-local-gates-rerun-20260704 | 안정화 테스트 | v3.6.0 Step 14 local readiness gate와 Step 1~13 companion verifiers, release metadata/docs/assets/inventory/evidence/script/closeout dry-run, `git diff --check` 재실행. UI 풀테스트/30분/120분/published metadata/release actions/field smoke는 이 PASS로 대체하지 않음 | PASS | 미집계 | 미집계 | 미집계 | command summaries only | command-level token split 미집계; same goal turn later captured for failed 30분 row | [release-test-records.md](./release-test-records.md) v3.6.0 section |
+| 2026-07-04 | v360-release-30min-sandbox-failure-20260704 | 30분 테스트 | `./server.sh verify-predev --soak-minutes 30` 실행. build PASS 후 `server-start-queue-256`/`server-start-queue-2`가 RTSP `127.0.0.1:8555` bind `Operation not permitted`로 FAIL. summary `status=fail`, `pass=3`, `fail=2`, `skip=0`, `durationSec=8`, `soakMinutes=30`. `lsof`에서 포트 점유 없음. 비샌드박스 재실행 요청은 승인되지 않아 최종 30분 PASS evidence가 아님. `/tmp/media_server_predev-1783095006-82341*` 값은 release records로 이관 후 cleanup 완료 | FAIL | 141330 | 208059 | 66729 | goal snapshot 230s to failure diagnosis | Codex goal snapshot; command-level token split 미집계 | [release-test-records.md](./release-test-records.md) v3.6.0 section |
+| 2026-07-04 | v360-release-30min-code-comment-failure-20260704 | 30분 테스트 | 승인된 비샌드박스 `./server.sh verify-predev --soak-minutes 30` 최초 run. integrated-smoke의 `verify-code-comments`가 v3.6 verifier 6개 영어-only 상단 용도 주석을 잡아 summary `status=fail`, `pass=118`, `fail=1`, `skip=1`, `durationSec=2364`, `soakMinutes=30`으로 종료. 헤더를 한글 `파일 용도` 주석으로 보정한 뒤 `./server.sh verify-code-comments`가 `missing headers=0`, `english-only comments=0`으로 통과. 이 FAIL은 최종 30분 PASS evidence가 아님 | FAIL | 미집계 | 미집계 | 미집계 | durationSec 2364 | command summary and preserved failure report; command-level token split 미집계 | [release-test-records.md](./release-test-records.md) v3.6.0 section, [failure summary](./release-artifacts/v3.6.0/predev-1783150577-40687-fail-code-comments/media_server_predev-1783150577-40687_summary.json), [failure report](./release-artifacts/v3.6.0/predev-1783150577-40687-fail-code-comments/media_server_predev-1783150577-40687_report.md) |
+| 2026-07-04 | v360-release-30min-20260704 | 30분 테스트 | code comment policy 보정 후 승인된 비샌드박스 `./server.sh verify-predev --soak-minutes 30` 최종 run. summary `status=pass`, `pass=119`, `fail=0`, `skip=1`, `durationSec=2356`, `soakMinutes=30`, `steps=120`. integrated-smoke PASS, 22회 soak iteration, main-runtime-idle, event-post-queue, queue-runtime-idle, ports-clean, summary-report PASS. External TURN hard gate는 요청하지 않아 skip이며 PASS가 아님. UI 풀테스트/120분/published/release actions/field smoke는 별도 | PASS | 미집계 | 미집계 | 미집계 | durationSec 2356 | command summary and preserved report; command-level token split 미집계 | [release-test-records.md](./release-test-records.md) v3.6.0 section, [predev summary](./release-artifacts/v3.6.0/predev-1783153043-79079/media_server_predev-1783153043-79079_summary.json), [predev report](./release-artifacts/v3.6.0/predev-1783153043-79079/media_server_predev-1783153043-79079_report.md) |
+| 2026-07-04 | v360-release-ui-fulltest-20260704 | UI 풀테스트 | Codex 인앱 브라우저 직접 검수. route 15개, screenshot 40개, interaction 16개, failed interaction 0. `verify-ui-fulltest-one-shot --browser-mode in-app --in-app-evidence docs/release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-evidence.json --skip-build --skip-manual-result` result PASS, runId `ui-fulltest-one-shot-1783164060346-62410`, 20 PASS steps, 5 SKIPPED boundary steps. raw auth/registry/log/ports/seed plan은 cleanup 완료. 30분 soak는 별도 PASS row, 120분/field/published/release actions는 본 run에서 실행하지 않음 | PASS | 미집계 | 미집계 | 미집계 | one-shot runId `ui-fulltest-one-shot-1783164060346-62410` | Codex in-app evidence and one-shot wrapper output; command-level token split 미집계 | [release-test-records.md](./release-test-records.md) v3.6.0 section, [ui evidence](./release-artifacts/v3.6.0/ui-fulltest-20260704/in-app-evidence.json), [one-shot summary](./release-artifacts/v3.6.0/ui-fulltest-20260704/one-shot/summary.json) |
 | 2026-06-21 | v310-s09-stabilization-release-readiness-20260621 | 안정화 테스트 | V310-S09 local readiness gate, S00~S08 companion verifiers, release metadata/docs/assets/inventory/evidence/script/closeout dry-run, temp cleanup, `git diff --check`. UI 풀테스트/30분/120분/published metadata/release actions/field smoke는 미실행 | PASS | 미집계 | 미집계 | 미집계 | command summaries only | manual-not-available; final goal snapshot은 최종 보고에서 별도 확인 | [release-test-records.md](./release-test-records.md) v3.1.0 section |
 | 2026-06-30 | v350-step13-stabilization-release-readiness-20260630 | 안정화 테스트 | v3.5.0 Step 13 local readiness gate, Step 1~12 companion verifiers, release metadata/docs/assets/inventory/evidence/script/closeout dry-run, `git diff --check`. 30분 predev와 UI 풀테스트는 각각 별도 `v350-release-30min-20260630`, `v350-release-ui-fulltest-20260630` 행에서 release run evidence로 분리. 120분/published metadata/release actions/field smoke는 미실행 | PASS | 미집계 | 미집계 | 미집계 | command summaries only | command-level usage 미집계; local gate evidence only | [release-test-records.md](./release-test-records.md) v3.5.0 section |
 | 2026-06-30 | v350-release-30min-20260630 | 30분 soak | 최종 권한 상승 `./server.sh verify-predev --soak-minutes 30` 실행. status pass, pass 119, fail 0, skip 1, durationSec 2365, soakMinutes 30, steps 120. integrated-smoke PASS, 22회 soak iteration의 VA events/Event POST schema/recovery/redaction/runtime idle 반복 PASS, main-runtime-idle/event-post-queue/queue-runtime-idle/ports-clean/summary-report PASS. 최초 sandbox bind failure와 최초 approved code comment failure는 원인 보정 후 재검증했고 최종 PASS evidence에는 포함하지 않음. External TURN hard gate는 요청하지 않아 skip이며 PASS로 대체하지 않음. Summary/report/html은 `docs/release-artifacts/v3.5.0/predev-1782831234-48352/`에 보존했고 `/tmp` 원본과 transient output은 cleanup 완료 | PASS | 미집계 | 미집계 | 미집계 | durationSec 2365 | command summary and preserved report; command-level token split 미집계 | [release-test-records.md](./release-test-records.md) v3.5.0 section, [predev summary](./release-artifacts/v3.5.0/predev-1782831234-48352/summary.json), [predev report](./release-artifacts/v3.5.0/predev-1782831234-48352/report.md) |

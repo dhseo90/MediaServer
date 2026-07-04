@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// File purpose: verify v3.6.0 Step 6 Safe Apply Readiness Gate wiring.
+// 파일 용도: v3.6.0 Step 6 Safe Apply Readiness Gate 구현, 문서, inventory 연결을 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";

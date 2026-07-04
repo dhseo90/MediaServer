@@ -39,7 +39,8 @@ field smoke 절차, report schema, redaction, 미실행/실패/PASS 분리 기�
 
 ## Fixture Matrix
 
-`test/fixtures/external_turn_whep_field_gate/cases.json`는 아래 case를 고정합니다.
+`test/fixtures/external_turn_whep_field_gate/cases.json`는
+`media-server.external-turn-whep-field-gate-fixtures.v1` schema로 아래 case를 고정합니다.
 
 | case | 의미 |
 | --- | --- |
