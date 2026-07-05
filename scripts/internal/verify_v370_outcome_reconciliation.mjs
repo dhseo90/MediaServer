@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Verifies v3.7.0 Step 16 Outcome Reconciliation wiring, docs, and boundaries.
+// 파일 용도: v3.7.0 Step 16 Outcome Reconciliation 연결, 문서, 경계를 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";

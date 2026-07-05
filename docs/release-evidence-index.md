@@ -302,6 +302,43 @@ Companion local gate:
 git diff --check
 ```
 
+## v3.7.0 release run records
+
+v3.7.0 release run evidence는 Step 18 local readiness gate와 분리해 관리합니다.
+30분 soak와 Codex 인앱 UI 풀테스트는 2026-07-05 승인 범위에서 최종 PASS로
+실행했습니다. Chrome fallback one-shot과 pre-final partial 인앱 route evidence는
+최종 UI PASS 이전의 보조/실패 경계 기록으로만 남기며, 인앱 UI PASS evidence로
+승격하지 않습니다.
+
+- 30분 soak: 최종 `./server.sh verify-predev --soak-minutes 30` run은 `status=pass`,
+  `pass=119`, `fail=0`, `skip=1`, `durationSec=2361`, `soakMinutes=30`입니다.
+  summary/report/html은
+  [predev-30min-20260705-final](./release-artifacts/v3.7.0/predev-30min-20260705-final/)
+  에 보존했습니다. External TURN hard gate는 요청하지 않아 skip이며 PASS가 아닙니다.
+- UI wrapper: `verify-ui-fulltest-one-shot --browser-mode chrome --allow-chrome-fallback`
+  결과는 `PASS`, runId `ui-fulltest-one-shot-1783239016082-59069`입니다. Chrome fallback
+  자동 wrapper PASS이며 인앱 UI 풀테스트 PASS로 승격하지 않습니다.
+- 인앱 partial evidence: pre-final 단계에서 route `18`, overflowIssues `[]`를 생성해
+  dashboard marker false positive까지 검토했지만 최종 in-app evidence
+  schema/interaction gate가 없어 최종 PASS 이전 blocker 기록으로만 분리합니다.
+  최종 PASS evidence 보존 후 raw partial JSON/screenshot/diagnostic JSON은 cleanup했고,
+  삭제된 partial 산출물을 최종 evidence 링크로 사용하지 않습니다.
+- UI 풀테스트: Codex 인앱 브라우저 직접 evidence는
+  [in-app-evidence.json](./release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-evidence.json)
+  기준 route `10`, screenshot `40`, interaction `16`, failed interaction `0`,
+  routeIssues `[]`입니다. `verify-ui-fulltest-one-shot --browser-mode in-app
+  --in-app-evidence docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-evidence.json
+  --skip-build --skip-manual-result` 결과는 `PASS`, runId
+  `ui-fulltest-one-shot-1783244324767-83262`, step `20 PASS`/`5 SKIPPED`입니다.
+  summary는
+  [one-shot-inapp-final/summary.json](./release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/summary.json)
+  에 보존했습니다. SKIPPED된 build/30분/120분/runtime-console longrun은 각각 별도
+  evidence 또는 조건부 미실행으로 분리하며 UI PASS로 대체하지 않습니다.
+- 120분 longrun: AGENTS 7.6.2의 직접 진행 조건이 충족되지 않아 조건부 미실행입니다.
+  이 항목은 120분 PASS evidence가 아닙니다.
+- PR/main/tag/GitHub Release/published metadata/field smoke는 이 run에서 실행하지 않았고
+  별도 사용자 명시 승인 전 release action evidence가 아닙니다.
+
 ## v3.5.0 local readiness gate records
 
 v3.5.0 stabilization/release readiness는
@@ -490,6 +527,11 @@ v3.2.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직
 
 | date | run id | test area | scope | verdict | token start | token end | token consumed | elapsed | token usage source | evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-07-05 | v370-release-ui-wrapper-partial-inapp-20260705 | UI 자동 smoke + 인앱 partial evidence | `verify-ui-fulltest-one-shot --browser-mode chrome --allow-chrome-fallback --skip-manual-result`는 `result=PASS`, runId `ui-fulltest-one-shot-1783239016082-59069`, widths `390,1180`, visualWidths `320,390,760,1180`입니다. Codex 인앱 route partial evidence는 pre-final 단계에서 route `18`, overflowIssues `[]`까지 생성/검토했지만 최종 in-app schema/interaction gate가 없어 AGENTS 기준 UI 풀테스트 PASS가 아닙니다. 이 행은 release blocker를 숨기지 않기 위한 기록이며 Chrome wrapper PASS를 인앱 UI PASS로 승격하지 않습니다 | FAIL | 미집계 | 미집계 | 미집계 | one-shot runId `ui-fulltest-one-shot-1783239016082-59069` | Chrome fallback one-shot summary와 pre-final partial in-app route evidence 기록; raw partial files는 최종 PASS 이후 cleanup했고 command-level token split 미집계 | [release-test-records.md](./release-test-records.md) v3.7.0 section, [one-shot summary](./release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/summary.json) |
+| 2026-07-05 | v370-release-ui-fulltest-inapp-20260705 | UI 풀테스트 | Codex 인앱 브라우저 직접 evidence route `10`, screenshot `40`, interaction `16`, failed interaction `0`, routeIssues `[]`. `verify-ui-fulltest-one-shot --browser-mode in-app --in-app-evidence docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-evidence.json --skip-build --skip-manual-result`는 `result=PASS`, runId `ui-fulltest-one-shot-1783244324767-83262`, step `20 PASS`/`5 SKIPPED`, widths `390,1180`, visualWidths `320,390,760,1180`입니다. build는 wrapper에서 skip했고 30분은 별도 PASS row, 120분/runtime-console은 조건부 미실행/별도 미실행으로 분리합니다 | PASS | 미집계 | 미집계 | 미집계 | one-shot runId `ui-fulltest-one-shot-1783244324767-83262` | Codex in-app evidence and one-shot wrapper output; command-level token split 미집계 | [release-test-records.md](./release-test-records.md) v3.7.0 section, [ui evidence](./release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-evidence.json), [one-shot summary](./release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/summary.json) |
+| 2026-07-05 | v370-release-30min-code-comment-precheck-20260705 | 30분 테스트 | 최초 승인 run은 integrated-smoke `verify-code-comments`가 v3.7 verifier 5개 영어-only 상단 용도 주석을 잡아 실패가 확정됐고 중단했습니다. 해당 5개 파일의 헤더를 한글 `파일 용도` 주석으로 보정한 뒤 `./server.sh verify-code-comments`가 files `529`, missing headers `0`, english-only comments `0`으로 통과했습니다. 이 행은 최종 30분 PASS evidence가 아닙니다 | FAIL | 미집계 | 미집계 | 미집계 | interrupted after code-comment failure diagnosis | command output and release-test-records migration; command-level token split 미집계 | [release-test-records.md](./release-test-records.md) v3.7.0 section |
+| 2026-07-05 | v370-release-30min-20260705 | 30분 테스트 | code comment policy 보정 후 승인된 `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-predev --soak-minutes 30 --rtsp-port 18698 --http-port 18198 ...` 최종 run. summary `status=pass`, `pass=119`, `fail=0`, `skip=1`, `durationSec=2361`, `soakMinutes=30`, `steps=120`. integrated-smoke PASS, 22회 soak iteration, main-runtime-idle, event-post-queue, queue-runtime-idle, ports-clean, summary-report PASS. External TURN hard gate는 요청하지 않아 skip이며 PASS가 아님 | PASS | 미집계 | 미집계 | 미집계 | durationSec 2361 | command summary and preserved report; command-level token split 미집계 | [release-test-records.md](./release-test-records.md) v3.7.0 section, [predev summary](./release-artifacts/v3.7.0/predev-30min-20260705-final/summary.json), [predev report](./release-artifacts/v3.7.0/predev-30min-20260705-final/report.md) |
+| 2026-07-05 | v370-release-120min-conditional-20260705 | 120분 longrun | AGENTS 7.6.2 기준 최신 사용자 지시, v3.7 release policy/roadmap/evidence, 변경 기능 ID, media/runtime/cleanup 변경, 30분 결과 high-risk signal 중 120분을 `진행 대상`으로 끌어오는 직접 근거가 없습니다. 최종 30분은 `fail=0`이고 memory/runtime/cleanup/media-session drift signal을 남기지 않았습니다. 조건부 미실행이며 120분 PASS evidence가 아닙니다 | FAIL | 미집계 | 미집계 | 미집계 | 조건부 미실행 | AGENTS 7.6.2 판정과 project feature inventory/release summary 직접 확인; command-level token split 없음 | [release-test-records.md](./release-test-records.md) v3.7.0 section, [project feature inventory](./project-feature-test-inventory.md) |
 | 2026-07-04 | v360-release-local-gates-rerun-20260704 | 안정화 테스트 | v3.6.0 Step 14 local readiness gate와 Step 1~13 companion verifiers, release metadata/docs/assets/inventory/evidence/script/closeout dry-run, `git diff --check` 재실행. UI 풀테스트/30분/120분/published metadata/release actions/field smoke는 이 PASS로 대체하지 않음 | PASS | 미집계 | 미집계 | 미집계 | command summaries only | command-level token split 미집계; same goal turn later captured for failed 30분 row | [release-test-records.md](./release-test-records.md) v3.6.0 section |
 | 2026-07-04 | v360-release-30min-sandbox-failure-20260704 | 30분 테스트 | `./server.sh verify-predev --soak-minutes 30` 실행. build PASS 후 `server-start-queue-256`/`server-start-queue-2`가 RTSP `127.0.0.1:8555` bind `Operation not permitted`로 FAIL. summary `status=fail`, `pass=3`, `fail=2`, `skip=0`, `durationSec=8`, `soakMinutes=30`. `lsof`에서 포트 점유 없음. 비샌드박스 재실행 요청은 승인되지 않아 최종 30분 PASS evidence가 아님. `/tmp/media_server_predev-1783095006-82341*` 값은 release records로 이관 후 cleanup 완료 | FAIL | 141330 | 208059 | 66729 | goal snapshot 230s to failure diagnosis | Codex goal snapshot; command-level token split 미집계 | [release-test-records.md](./release-test-records.md) v3.6.0 section |
 | 2026-07-04 | v360-release-30min-code-comment-failure-20260704 | 30분 테스트 | 승인된 비샌드박스 `./server.sh verify-predev --soak-minutes 30` 최초 run. integrated-smoke의 `verify-code-comments`가 v3.6 verifier 6개 영어-only 상단 용도 주석을 잡아 summary `status=fail`, `pass=118`, `fail=1`, `skip=1`, `durationSec=2364`, `soakMinutes=30`으로 종료. 헤더를 한글 `파일 용도` 주석으로 보정한 뒤 `./server.sh verify-code-comments`가 `missing headers=0`, `english-only comments=0`으로 통과. 이 FAIL은 최종 30분 PASS evidence가 아님 | FAIL | 미집계 | 미집계 | 미집계 | durationSec 2364 | command summary and preserved failure report; command-level token split 미집계 | [release-test-records.md](./release-test-records.md) v3.6.0 section, [failure summary](./release-artifacts/v3.6.0/predev-1783150577-40687-fail-code-comments/media_server_predev-1783150577-40687_summary.json), [failure report](./release-artifacts/v3.6.0/predev-1783150577-40687-fail-code-comments/media_server_predev-1783150577-40687_report.md) |

@@ -1,0 +1,1980 @@
+{
+  "schema": "media-server.in-app-browser-ui-evidence.v1",
+  "generatedAt": "2026-07-05T09:38:04.413Z",
+  "release": "v3.7.0",
+  "browser": "codex-in-app-browser",
+  "browserId": "-be2e-490f-ad40-e797d69e6c01",
+  "source": "codex-iab",
+  "httpBases": {
+    "core": "http://127.0.0.1:18077",
+    "auth": "http://127.0.0.1:18177"
+  },
+  "widths": [
+    320,
+    390,
+    760,
+    1180
+  ],
+  "routes": [
+    {
+      "name": "ops-home",
+      "path": "/ops/home",
+      "url": "http://127.0.0.1:18077/ops/home",
+      "widths": [
+        320,
+        390,
+        760,
+        1180
+      ],
+      "visualSelector": "main",
+      "screenshots": [
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_home_320.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_home_390.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_home_760.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_home_1180.png"
+      ],
+      "screenshotDetails": [
+        {
+          "width": 320,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_home_320.png"
+        },
+        {
+          "width": 390,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_home_390.png"
+        },
+        {
+          "width": 760,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_home_760.png"
+        },
+        {
+          "width": 1180,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_home_1180.png"
+        }
+      ],
+      "observations": [
+        {
+          "width": 320,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/home",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 1673,
+            "width": 320
+          },
+          "scrollWidth": 320,
+          "clientWidth": 320,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-home-page",
+            "ops-home-vlm-entry"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 390,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/home",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 1445,
+            "width": 390
+          },
+          "scrollWidth": 390,
+          "clientWidth": 390,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-home-page",
+            "ops-home-vlm-entry"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 760,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/home",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 1072,
+            "width": 760
+          },
+          "scrollWidth": 760,
+          "clientWidth": 760,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-home-page",
+            "ops-home-vlm-entry"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 1180,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/home",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 727,
+            "width": 1180
+          },
+          "scrollWidth": 1180,
+          "clientWidth": 1180,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-home-page",
+            "ops-home-vlm-entry"
+          ],
+          "clientForbiddenTextHits": []
+        }
+      ],
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "forbiddenTextHits": [],
+      "clientForbiddenTextHits": []
+    },
+    {
+      "name": "ops-dashboard",
+      "path": "/ops/dashboard",
+      "url": "http://127.0.0.1:18077/ops/dashboard",
+      "widths": [
+        320,
+        390,
+        760,
+        1180
+      ],
+      "visualSelector": "main",
+      "screenshots": [
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_dashboard_320.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_dashboard_390.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_dashboard_760.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_dashboard_1180.png"
+      ],
+      "screenshotDetails": [
+        {
+          "width": 320,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_dashboard_320.png"
+        },
+        {
+          "width": 390,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_dashboard_390.png"
+        },
+        {
+          "width": 760,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_dashboard_760.png"
+        },
+        {
+          "width": 1180,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_dashboard_1180.png"
+        }
+      ],
+      "observations": [
+        {
+          "width": 320,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/dashboard",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 60999,
+            "width": 320
+          },
+          "scrollWidth": 320,
+          "clientWidth": 320,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-dashboard-page",
+            "ops-runtime-trend-card",
+            "ops-root-cause-panel",
+            "ops-incident-timeline-panel",
+            "ops-command-workspace",
+            "ops-simulation-workspace",
+            "ops-site-operations-workspace",
+            "ops-site-client-notice-workspace",
+            "ops-site-rule-va-what-if-workspace",
+            "ops-site-field-evidence-attachment-workspace",
+            "ops-site-limited-safe-execution-pilot-workspace",
+            "ops-site-outcome-reconciliation-workspace",
+            "ops-site-export-handoff-bundle-workspace",
+            "ops-runtime-operations-console",
+            "ops-va-quality-panel"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 390,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/dashboard",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 51727,
+            "width": 390
+          },
+          "scrollWidth": 390,
+          "clientWidth": 390,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-dashboard-page",
+            "ops-runtime-trend-card",
+            "ops-root-cause-panel",
+            "ops-incident-timeline-panel",
+            "ops-command-workspace",
+            "ops-simulation-workspace",
+            "ops-site-operations-workspace",
+            "ops-site-client-notice-workspace",
+            "ops-site-rule-va-what-if-workspace",
+            "ops-site-field-evidence-attachment-workspace",
+            "ops-site-limited-safe-execution-pilot-workspace",
+            "ops-site-outcome-reconciliation-workspace",
+            "ops-site-export-handoff-bundle-workspace",
+            "ops-runtime-operations-console",
+            "ops-va-quality-panel"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 760,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/dashboard",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 35876,
+            "width": 760
+          },
+          "scrollWidth": 760,
+          "clientWidth": 760,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-dashboard-page",
+            "ops-runtime-trend-card",
+            "ops-root-cause-panel",
+            "ops-incident-timeline-panel",
+            "ops-command-workspace",
+            "ops-simulation-workspace",
+            "ops-site-operations-workspace",
+            "ops-site-client-notice-workspace",
+            "ops-site-rule-va-what-if-workspace",
+            "ops-site-field-evidence-attachment-workspace",
+            "ops-site-limited-safe-execution-pilot-workspace",
+            "ops-site-outcome-reconciliation-workspace",
+            "ops-site-export-handoff-bundle-workspace",
+            "ops-runtime-operations-console",
+            "ops-va-quality-panel"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 1180,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/dashboard",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 23355,
+            "width": 1180
+          },
+          "scrollWidth": 1180,
+          "clientWidth": 1180,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-dashboard-page",
+            "ops-runtime-trend-card",
+            "ops-root-cause-panel",
+            "ops-incident-timeline-panel",
+            "ops-command-workspace",
+            "ops-simulation-workspace",
+            "ops-site-operations-workspace",
+            "ops-site-client-notice-workspace",
+            "ops-site-rule-va-what-if-workspace",
+            "ops-site-field-evidence-attachment-workspace",
+            "ops-site-limited-safe-execution-pilot-workspace",
+            "ops-site-outcome-reconciliation-workspace",
+            "ops-site-export-handoff-bundle-workspace",
+            "ops-runtime-operations-console",
+            "ops-va-quality-panel"
+          ],
+          "clientForbiddenTextHits": []
+        }
+      ],
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "forbiddenTextHits": [],
+      "clientForbiddenTextHits": []
+    },
+    {
+      "name": "ops-sources",
+      "path": "/ops/sources",
+      "url": "http://127.0.0.1:18077/ops/sources",
+      "widths": [
+        320,
+        390,
+        760,
+        1180
+      ],
+      "visualSelector": "[data-testid='ops-sources-page']",
+      "screenshots": [
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_sources_320.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_sources_390.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_sources_760.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_sources_1180.png"
+      ],
+      "screenshotDetails": [
+        {
+          "width": 320,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_sources_320.png"
+        },
+        {
+          "width": 390,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_sources_390.png"
+        },
+        {
+          "width": 760,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_sources_760.png"
+        },
+        {
+          "width": 1180,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_sources_1180.png"
+        }
+      ],
+      "observations": [
+        {
+          "width": 320,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/sources",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 22884,
+            "width": 288
+          },
+          "scrollWidth": 320,
+          "clientWidth": 320,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-sources-page",
+            "source-onboarding-quality-summary",
+            "source-reliability-timeline-health-history",
+            "source-reliability-search-metrics",
+            "source-backup-recovery-handoff",
+            "ops-continuity-drill-workspace",
+            "ops-approval-gated-recovery-checklist",
+            "ops-drill-evidence-export-cleanup-manifest",
+            "ops-field-bridge-condition-gates",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "source-group-site-management",
+            "onvif-probe-draft-tool",
+            "onvif-credential-gate"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 390,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/sources",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 20338,
+            "width": 358
+          },
+          "scrollWidth": 390,
+          "clientWidth": 390,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-sources-page",
+            "source-onboarding-quality-summary",
+            "source-reliability-timeline-health-history",
+            "source-reliability-search-metrics",
+            "source-backup-recovery-handoff",
+            "ops-continuity-drill-workspace",
+            "ops-approval-gated-recovery-checklist",
+            "ops-drill-evidence-export-cleanup-manifest",
+            "ops-field-bridge-condition-gates",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "source-group-site-management",
+            "onvif-probe-draft-tool",
+            "onvif-credential-gate"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 760,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/sources",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 14547,
+            "width": 728
+          },
+          "scrollWidth": 760,
+          "clientWidth": 760,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-sources-page",
+            "source-onboarding-quality-summary",
+            "source-reliability-timeline-health-history",
+            "source-reliability-search-metrics",
+            "source-backup-recovery-handoff",
+            "ops-continuity-drill-workspace",
+            "ops-approval-gated-recovery-checklist",
+            "ops-drill-evidence-export-cleanup-manifest",
+            "ops-field-bridge-condition-gates",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "source-group-site-management",
+            "onvif-probe-draft-tool",
+            "onvif-credential-gate"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 1180,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/sources",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 10760,
+            "width": 1148
+          },
+          "scrollWidth": 1180,
+          "clientWidth": 1180,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-sources-page",
+            "source-onboarding-quality-summary",
+            "source-reliability-timeline-health-history",
+            "source-reliability-search-metrics",
+            "source-backup-recovery-handoff",
+            "ops-continuity-drill-workspace",
+            "ops-approval-gated-recovery-checklist",
+            "ops-drill-evidence-export-cleanup-manifest",
+            "ops-field-bridge-condition-gates",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "source-group-site-management",
+            "onvif-probe-draft-tool",
+            "onvif-credential-gate"
+          ],
+          "clientForbiddenTextHits": []
+        }
+      ],
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "forbiddenTextHits": [],
+      "clientForbiddenTextHits": []
+    },
+    {
+      "name": "ops-rules",
+      "path": "/ops/rules",
+      "url": "http://127.0.0.1:18077/ops/rules",
+      "widths": [
+        320,
+        390,
+        760,
+        1180
+      ],
+      "visualSelector": "[data-testid='ops-rules-page']",
+      "screenshots": [
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_rules_320.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_rules_390.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_rules_760.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_rules_1180.png"
+      ],
+      "screenshotDetails": [
+        {
+          "width": 320,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_rules_320.png"
+        },
+        {
+          "width": 390,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_rules_390.png"
+        },
+        {
+          "width": 760,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_rules_760.png"
+        },
+        {
+          "width": 1180,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_rules_1180.png"
+        }
+      ],
+      "observations": [
+        {
+          "width": 320,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/rules",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 15053,
+            "width": 288
+          },
+          "scrollWidth": 320,
+          "clientWidth": 320,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-rules-page",
+            "ops-rules-validation-panel",
+            "ops-scenario-builder",
+            "ops-vlm-rule-draft-workflow",
+            "ops-rule-what-if-preview-draft-context",
+            "ops-approval-gated-rule-draft-readiness",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 390,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/rules",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 14846,
+            "width": 358
+          },
+          "scrollWidth": 390,
+          "clientWidth": 390,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-rules-page",
+            "ops-rules-validation-panel",
+            "ops-scenario-builder",
+            "ops-vlm-rule-draft-workflow",
+            "ops-rule-what-if-preview-draft-context",
+            "ops-approval-gated-rule-draft-readiness",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 760,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/rules",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 9695,
+            "width": 728
+          },
+          "scrollWidth": 760,
+          "clientWidth": 760,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-rules-page",
+            "ops-rules-validation-panel",
+            "ops-scenario-builder",
+            "ops-vlm-rule-draft-workflow",
+            "ops-rule-what-if-preview-draft-context",
+            "ops-approval-gated-rule-draft-readiness",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 1180,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/rules",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 3798,
+            "width": 1148
+          },
+          "scrollWidth": 1180,
+          "clientWidth": 1180,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-rules-page",
+            "ops-rules-validation-panel",
+            "ops-scenario-builder",
+            "ops-vlm-rule-draft-workflow",
+            "ops-rule-what-if-preview-draft-context",
+            "ops-approval-gated-rule-draft-readiness",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions"
+          ],
+          "clientForbiddenTextHits": []
+        }
+      ],
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "forbiddenTextHits": [],
+      "clientForbiddenTextHits": []
+    },
+    {
+      "name": "ops-users",
+      "path": "/ops/users",
+      "url": "http://127.0.0.1:18077/ops/users",
+      "widths": [
+        320,
+        390,
+        760,
+        1180
+      ],
+      "visualSelector": "[data-testid='ops-users-page']",
+      "screenshots": [
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_users_320.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_users_390.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_users_760.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_users_1180.png"
+      ],
+      "screenshotDetails": [
+        {
+          "width": 320,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_users_320.png"
+        },
+        {
+          "width": 390,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_users_390.png"
+        },
+        {
+          "width": 760,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_users_760.png"
+        },
+        {
+          "width": 1180,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_users_1180.png"
+        }
+      ],
+      "observations": [
+        {
+          "width": 320,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/users",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 6487,
+            "width": 288
+          },
+          "scrollWidth": 320,
+          "clientWidth": 320,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-users-page",
+            "user-lifecycle-policy",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-invites-panel",
+            "user-channel-assignment-list"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 390,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/users",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 6247,
+            "width": 358
+          },
+          "scrollWidth": 390,
+          "clientWidth": 390,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-users-page",
+            "user-lifecycle-policy",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-invites-panel",
+            "user-channel-assignment-list"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 760,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/users",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 4455,
+            "width": 728
+          },
+          "scrollWidth": 760,
+          "clientWidth": 760,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-users-page",
+            "user-lifecycle-policy",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-invites-panel",
+            "user-channel-assignment-list"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 1180,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/users",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 2042,
+            "width": 1148
+          },
+          "scrollWidth": 1180,
+          "clientWidth": 1180,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-users-page",
+            "user-lifecycle-policy",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-context-actions",
+            "ops-invites-panel",
+            "user-channel-assignment-list"
+          ],
+          "clientForbiddenTextHits": []
+        }
+      ],
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "forbiddenTextHits": [],
+      "clientForbiddenTextHits": []
+    },
+    {
+      "name": "ops-events",
+      "path": "/ops/events",
+      "url": "http://127.0.0.1:18077/ops/events",
+      "widths": [
+        320,
+        390,
+        760,
+        1180
+      ],
+      "visualSelector": "main",
+      "screenshots": [
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_events_320.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_events_390.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_events_760.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_events_1180.png"
+      ],
+      "screenshotDetails": [
+        {
+          "width": 320,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_events_320.png"
+        },
+        {
+          "width": 390,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_events_390.png"
+        },
+        {
+          "width": 760,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_events_760.png"
+        },
+        {
+          "width": 1180,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_events_1180.png"
+        }
+      ],
+      "observations": [
+        {
+          "width": 320,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/events",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 12066,
+            "width": 320
+          },
+          "scrollWidth": 320,
+          "clientWidth": 320,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-events-page",
+            "ops-events-semantic-search",
+            "ops-vlm-summary-candidate-review",
+            "ops-v300-event-evidence-search-ui",
+            "ops-v320-unified-events-workspace",
+            "ops-v310-replay-timeline-ui",
+            "ops-v310-operator-feature-correction",
+            "ops-incident-triage-board",
+            "ops-incident-decision-scorecard",
+            "ops-operational-action-pack",
+            "ops-incident-action-readiness-queue",
+            "ops-evidence-intake-field-readiness",
+            "ops-runtime-evidence-window",
+            "ops-rule-what-if-preview",
+            "ops-approval-gated-rule-draft-readiness-events",
+            "ops-operator-outcome-memory",
+            "ops-similar-incident-lookup",
+            "ops-incident-timeline-graph",
+            "ops-explainable-incident-brief",
+            "ops-alert-delivery-integrations",
+            "ops-alert-dry-run-result",
+            "ops-event-review-inbox",
+            "ops-event-incident-workflow"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 390,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/events",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 10477,
+            "width": 390
+          },
+          "scrollWidth": 390,
+          "clientWidth": 390,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-events-page",
+            "ops-events-semantic-search",
+            "ops-vlm-summary-candidate-review",
+            "ops-v300-event-evidence-search-ui",
+            "ops-v320-unified-events-workspace",
+            "ops-v310-replay-timeline-ui",
+            "ops-v310-operator-feature-correction",
+            "ops-incident-triage-board",
+            "ops-incident-decision-scorecard",
+            "ops-operational-action-pack",
+            "ops-incident-action-readiness-queue",
+            "ops-evidence-intake-field-readiness",
+            "ops-runtime-evidence-window",
+            "ops-rule-what-if-preview",
+            "ops-approval-gated-rule-draft-readiness-events",
+            "ops-operator-outcome-memory",
+            "ops-similar-incident-lookup",
+            "ops-incident-timeline-graph",
+            "ops-explainable-incident-brief",
+            "ops-alert-delivery-integrations",
+            "ops-alert-dry-run-result",
+            "ops-event-review-inbox",
+            "ops-event-incident-workflow"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 760,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/events",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 7789,
+            "width": 760
+          },
+          "scrollWidth": 760,
+          "clientWidth": 760,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-events-page",
+            "ops-events-semantic-search",
+            "ops-vlm-summary-candidate-review",
+            "ops-v300-event-evidence-search-ui",
+            "ops-v320-unified-events-workspace",
+            "ops-v310-replay-timeline-ui",
+            "ops-v310-operator-feature-correction",
+            "ops-incident-triage-board",
+            "ops-incident-decision-scorecard",
+            "ops-operational-action-pack",
+            "ops-incident-action-readiness-queue",
+            "ops-evidence-intake-field-readiness",
+            "ops-runtime-evidence-window",
+            "ops-rule-what-if-preview",
+            "ops-approval-gated-rule-draft-readiness-events",
+            "ops-operator-outcome-memory",
+            "ops-similar-incident-lookup",
+            "ops-incident-timeline-graph",
+            "ops-explainable-incident-brief",
+            "ops-alert-delivery-integrations",
+            "ops-alert-dry-run-result",
+            "ops-event-review-inbox",
+            "ops-event-incident-workflow"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 1180,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/events",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 5136,
+            "width": 1180
+          },
+          "scrollWidth": 1180,
+          "clientWidth": 1180,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-events-page",
+            "ops-events-semantic-search",
+            "ops-vlm-summary-candidate-review",
+            "ops-v300-event-evidence-search-ui",
+            "ops-v320-unified-events-workspace",
+            "ops-v310-replay-timeline-ui",
+            "ops-v310-operator-feature-correction",
+            "ops-incident-triage-board",
+            "ops-incident-decision-scorecard",
+            "ops-operational-action-pack",
+            "ops-incident-action-readiness-queue",
+            "ops-evidence-intake-field-readiness",
+            "ops-runtime-evidence-window",
+            "ops-rule-what-if-preview",
+            "ops-approval-gated-rule-draft-readiness-events",
+            "ops-operator-outcome-memory",
+            "ops-similar-incident-lookup",
+            "ops-incident-timeline-graph",
+            "ops-explainable-incident-brief",
+            "ops-alert-delivery-integrations",
+            "ops-alert-dry-run-result",
+            "ops-event-review-inbox",
+            "ops-event-incident-workflow"
+          ],
+          "clientForbiddenTextHits": []
+        }
+      ],
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "forbiddenTextHits": [],
+      "clientForbiddenTextHits": []
+    },
+    {
+      "name": "ops-vlm",
+      "path": "/ops/vlm",
+      "url": "http://127.0.0.1:18077/ops/vlm",
+      "widths": [
+        320,
+        390,
+        760,
+        1180
+      ],
+      "visualSelector": "[data-testid='ops-vlm-page']",
+      "screenshots": [
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_vlm_320.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_vlm_390.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_vlm_760.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_vlm_1180.png"
+      ],
+      "screenshotDetails": [
+        {
+          "width": 320,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_vlm_320.png"
+        },
+        {
+          "width": 390,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_vlm_390.png"
+        },
+        {
+          "width": 760,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_vlm_760.png"
+        },
+        {
+          "width": 1180,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/ops_vlm_1180.png"
+        }
+      ],
+      "observations": [
+        {
+          "width": 320,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/vlm",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 7969,
+            "width": 288
+          },
+          "scrollWidth": 320,
+          "clientWidth": 320,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-vlm-page",
+            "ops-vlm-controls",
+            "ops-vlm-runtime-status-panel",
+            "ops-vlm-evaluation-result-workflow",
+            "ops-vlm-options-panel",
+            "ops-vlm-privacy-transfer-guard-panel",
+            "ops-vlm-profile-panel",
+            "ops-vlm-boundary-panel"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 390,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/vlm",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 7452,
+            "width": 358
+          },
+          "scrollWidth": 390,
+          "clientWidth": 390,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-vlm-page",
+            "ops-vlm-controls",
+            "ops-vlm-runtime-status-panel",
+            "ops-vlm-evaluation-result-workflow",
+            "ops-vlm-options-panel",
+            "ops-vlm-privacy-transfer-guard-panel",
+            "ops-vlm-profile-panel",
+            "ops-vlm-boundary-panel"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 760,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/vlm",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 6154,
+            "width": 728
+          },
+          "scrollWidth": 760,
+          "clientWidth": 760,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-vlm-page",
+            "ops-vlm-controls",
+            "ops-vlm-runtime-status-panel",
+            "ops-vlm-evaluation-result-workflow",
+            "ops-vlm-options-panel",
+            "ops-vlm-privacy-transfer-guard-panel",
+            "ops-vlm-profile-panel",
+            "ops-vlm-boundary-panel"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 1180,
+          "title": "운영 콘솔",
+          "url": "http://127.0.0.1:18077/ops/vlm",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 3405,
+            "width": 1148
+          },
+          "scrollWidth": 1180,
+          "clientWidth": 1180,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "ops-vlm-page",
+            "ops-vlm-controls",
+            "ops-vlm-runtime-status-panel",
+            "ops-vlm-evaluation-result-workflow",
+            "ops-vlm-options-panel",
+            "ops-vlm-privacy-transfer-guard-panel",
+            "ops-vlm-profile-panel",
+            "ops-vlm-boundary-panel"
+          ],
+          "clientForbiddenTextHits": []
+        }
+      ],
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "forbiddenTextHits": [],
+      "clientForbiddenTextHits": []
+    },
+    {
+      "name": "client-live",
+      "path": "/client/live",
+      "url": "http://127.0.0.1:18077/client/live",
+      "widths": [
+        320,
+        390,
+        760,
+        1180
+      ],
+      "visualSelector": "[data-testid='client-shell-page']",
+      "screenshots": [
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/client_live_320.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/client_live_390.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/client_live_760.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/client_live_1180.png"
+      ],
+      "screenshotDetails": [
+        {
+          "width": 320,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/client_live_320.png"
+        },
+        {
+          "width": 390,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/client_live_390.png"
+        },
+        {
+          "width": 760,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/client_live_760.png"
+        },
+        {
+          "width": 1180,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/client_live_1180.png"
+        }
+      ],
+      "observations": [
+        {
+          "width": 320,
+          "title": "클라이언트 포털",
+          "url": "http://127.0.0.1:18077/client/live",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 1876,
+            "width": 288
+          },
+          "scrollWidth": 320,
+          "clientWidth": 320,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "client-shell-page",
+            "client-live-action-reduction",
+            "client-live-workspace",
+            "client-live-source-tree",
+            "client-live-dock-event-feed",
+            "client-safe-source-status-digest",
+            "client-safe-maintenance-digest",
+            "client-operations-notice",
+            "client-impact-forecast",
+            "client-safe-event-digest",
+            "client-safe-resolution-digest",
+            "client-safe-incident-digest",
+            "client-safe-followup-digest",
+            "client-live-layout-presets",
+            "client-live-safe-summary",
+            "client-live-drop-grid",
+            "client-live-va-overlay-toggle",
+            "client-live-tile-info-overlay",
+            "client-live-va-overlay-toggle",
+            "client-live-tile-info-overlay",
+            "client-live-va-overlay-toggle",
+            "client-live-tile-info-overlay",
+            "client-live-va-overlay-toggle",
+            "client-live-tile-info-overlay"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 390,
+          "title": "클라이언트 포털",
+          "url": "http://127.0.0.1:18077/client/live",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 1932,
+            "width": 358
+          },
+          "scrollWidth": 390,
+          "clientWidth": 390,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "client-shell-page",
+            "client-live-action-reduction",
+            "client-live-workspace",
+            "client-live-source-tree",
+            "client-live-dock-event-feed",
+            "client-safe-source-status-digest",
+            "client-safe-maintenance-digest",
+            "client-operations-notice",
+            "client-impact-forecast",
+            "client-safe-event-digest",
+            "client-safe-resolution-digest",
+            "client-safe-incident-digest",
+            "client-safe-followup-digest",
+            "client-live-layout-presets",
+            "client-live-safe-summary",
+            "client-live-drop-grid",
+            "client-live-va-overlay-toggle",
+            "client-live-tile-info-overlay",
+            "client-live-va-overlay-toggle",
+            "client-live-tile-info-overlay",
+            "client-live-va-overlay-toggle",
+            "client-live-tile-info-overlay",
+            "client-live-va-overlay-toggle",
+            "client-live-tile-info-overlay"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 760,
+          "title": "클라이언트 포털",
+          "url": "http://127.0.0.1:18077/client/live",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 2481,
+            "width": 728
+          },
+          "scrollWidth": 760,
+          "clientWidth": 760,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "client-shell-page",
+            "client-live-action-reduction",
+            "client-live-workspace",
+            "client-live-source-tree",
+            "client-live-dock-event-feed",
+            "client-safe-source-status-digest",
+            "client-safe-maintenance-digest",
+            "client-operations-notice",
+            "client-impact-forecast",
+            "client-safe-event-digest",
+            "client-safe-resolution-digest",
+            "client-safe-incident-digest",
+            "client-safe-followup-digest",
+            "client-live-layout-presets",
+            "client-live-safe-summary",
+            "client-live-drop-grid",
+            "client-live-va-overlay-toggle",
+            "client-live-tile-info-overlay",
+            "client-live-va-overlay-toggle",
+            "client-live-tile-info-overlay",
+            "client-live-va-overlay-toggle",
+            "client-live-tile-info-overlay",
+            "client-live-va-overlay-toggle",
+            "client-live-tile-info-overlay"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 1180,
+          "title": "클라이언트 포털",
+          "url": "http://127.0.0.1:18077/client/live",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 999,
+            "width": 1148
+          },
+          "scrollWidth": 1180,
+          "clientWidth": 1180,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "client-shell-page",
+            "client-live-action-reduction",
+            "client-live-workspace",
+            "client-live-source-tree",
+            "client-live-dock-event-feed",
+            "client-safe-source-status-digest",
+            "client-safe-maintenance-digest",
+            "client-operations-notice",
+            "client-impact-forecast",
+            "client-safe-event-digest",
+            "client-safe-resolution-digest",
+            "client-safe-incident-digest",
+            "client-safe-followup-digest",
+            "client-live-layout-presets",
+            "client-live-safe-summary",
+            "client-live-drop-grid",
+            "client-live-va-overlay-toggle",
+            "client-live-tile-info-overlay",
+            "client-live-va-overlay-toggle",
+            "client-live-tile-info-overlay",
+            "client-live-va-overlay-toggle",
+            "client-live-tile-info-overlay",
+            "client-live-va-overlay-toggle",
+            "client-live-tile-info-overlay"
+          ],
+          "clientForbiddenTextHits": []
+        }
+      ],
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "forbiddenTextHits": [],
+      "clientForbiddenTextHits": []
+    },
+    {
+      "name": "client-dashboard",
+      "path": "/client/dashboard",
+      "url": "http://127.0.0.1:18077/client/dashboard",
+      "widths": [
+        320,
+        390,
+        760,
+        1180
+      ],
+      "visualSelector": "[data-testid='client-shell-page']",
+      "screenshots": [
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/client_dashboard_320.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/client_dashboard_390.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/client_dashboard_760.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/client_dashboard_1180.png"
+      ],
+      "screenshotDetails": [
+        {
+          "width": 320,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/client_dashboard_320.png"
+        },
+        {
+          "width": 390,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/client_dashboard_390.png"
+        },
+        {
+          "width": 760,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/client_dashboard_760.png"
+        },
+        {
+          "width": 1180,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/client_dashboard_1180.png"
+        }
+      ],
+      "observations": [
+        {
+          "width": 320,
+          "title": "클라이언트 포털",
+          "url": "http://127.0.0.1:18077/client/dashboard",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 6843,
+            "width": 288
+          },
+          "scrollWidth": 320,
+          "clientWidth": 320,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "client-shell-page",
+            "client-dashboard-shell",
+            "client-dashboard-field-summary",
+            "client-dashboard-safe-summary",
+            "client-dashboard-compare",
+            "client-dashboard-preset-config",
+            "client-safe-source-status-digest",
+            "client-safe-maintenance-digest",
+            "client-operations-notice",
+            "client-impact-forecast",
+            "client-safe-event-digest",
+            "client-safe-resolution-digest",
+            "client-safe-incident-digest",
+            "client-safe-followup-digest"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 390,
+          "title": "클라이언트 포털",
+          "url": "http://127.0.0.1:18077/client/dashboard",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 6457,
+            "width": 358
+          },
+          "scrollWidth": 390,
+          "clientWidth": 390,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "client-shell-page",
+            "client-dashboard-shell",
+            "client-dashboard-field-summary",
+            "client-dashboard-safe-summary",
+            "client-dashboard-compare",
+            "client-dashboard-preset-config",
+            "client-safe-source-status-digest",
+            "client-safe-maintenance-digest",
+            "client-operations-notice",
+            "client-impact-forecast",
+            "client-safe-event-digest",
+            "client-safe-resolution-digest",
+            "client-safe-incident-digest",
+            "client-safe-followup-digest"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 760,
+          "title": "클라이언트 포털",
+          "url": "http://127.0.0.1:18077/client/dashboard",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 3821,
+            "width": 728
+          },
+          "scrollWidth": 760,
+          "clientWidth": 760,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "client-shell-page",
+            "client-dashboard-shell",
+            "client-dashboard-field-summary",
+            "client-dashboard-safe-summary",
+            "client-dashboard-compare",
+            "client-dashboard-preset-config",
+            "client-safe-source-status-digest",
+            "client-safe-maintenance-digest",
+            "client-operations-notice",
+            "client-impact-forecast",
+            "client-safe-event-digest",
+            "client-safe-resolution-digest",
+            "client-safe-incident-digest",
+            "client-safe-followup-digest"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 1180,
+          "title": "클라이언트 포털",
+          "url": "http://127.0.0.1:18077/client/dashboard",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 3149,
+            "width": 1148
+          },
+          "scrollWidth": 1180,
+          "clientWidth": 1180,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "client-shell-page",
+            "client-dashboard-shell",
+            "client-dashboard-field-summary",
+            "client-dashboard-safe-summary",
+            "client-dashboard-compare",
+            "client-dashboard-preset-config",
+            "client-safe-source-status-digest",
+            "client-safe-maintenance-digest",
+            "client-operations-notice",
+            "client-impact-forecast",
+            "client-safe-event-digest",
+            "client-safe-resolution-digest",
+            "client-safe-incident-digest",
+            "client-safe-followup-digest"
+          ],
+          "clientForbiddenTextHits": []
+        }
+      ],
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "forbiddenTextHits": [],
+      "clientForbiddenTextHits": []
+    },
+    {
+      "name": "client-events",
+      "path": "/client/events",
+      "url": "http://127.0.0.1:18077/client/events",
+      "widths": [
+        320,
+        390,
+        760,
+        1180
+      ],
+      "visualSelector": "[data-testid='client-shell-page']",
+      "screenshots": [
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/client_events_320.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/client_events_390.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/client_events_760.png",
+        "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/client_events_1180.png"
+      ],
+      "screenshotDetails": [
+        {
+          "width": 320,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/client_events_320.png"
+        },
+        {
+          "width": 390,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/client_events_390.png"
+        },
+        {
+          "width": 760,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/client_events_760.png"
+        },
+        {
+          "width": 1180,
+          "height": 900,
+          "file": "docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-final-screenshots/client_events_1180.png"
+        }
+      ],
+      "observations": [
+        {
+          "width": 320,
+          "title": "클라이언트 포털",
+          "url": "http://127.0.0.1:18077/client/events",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 3088,
+            "width": 288
+          },
+          "scrollWidth": 320,
+          "clientWidth": 320,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "client-shell-page",
+            "client-safe-source-status-digest",
+            "client-safe-maintenance-digest",
+            "client-operations-notice",
+            "client-impact-forecast",
+            "client-safe-event-digest",
+            "client-safe-resolution-digest",
+            "client-safe-incident-digest",
+            "client-safe-followup-digest"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 390,
+          "title": "클라이언트 포털",
+          "url": "http://127.0.0.1:18077/client/events",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 2793,
+            "width": 358
+          },
+          "scrollWidth": 390,
+          "clientWidth": 390,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "client-shell-page",
+            "client-safe-source-status-digest",
+            "client-safe-maintenance-digest",
+            "client-operations-notice",
+            "client-impact-forecast",
+            "client-safe-event-digest",
+            "client-safe-resolution-digest",
+            "client-safe-incident-digest",
+            "client-safe-followup-digest"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 760,
+          "title": "클라이언트 포털",
+          "url": "http://127.0.0.1:18077/client/events",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 2413,
+            "width": 728
+          },
+          "scrollWidth": 760,
+          "clientWidth": 760,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "client-shell-page",
+            "client-safe-source-status-digest",
+            "client-safe-maintenance-digest",
+            "client-operations-notice",
+            "client-impact-forecast",
+            "client-safe-event-digest",
+            "client-safe-resolution-digest",
+            "client-safe-incident-digest",
+            "client-safe-followup-digest"
+          ],
+          "clientForbiddenTextHits": []
+        },
+        {
+          "width": 1180,
+          "title": "클라이언트 포털",
+          "url": "http://127.0.0.1:18077/client/events",
+          "visualSelectorPresent": true,
+          "visualRect": {
+            "height": 1732,
+            "width": 1148
+          },
+          "scrollWidth": 1180,
+          "clientWidth": 1180,
+          "noHorizontalOverflow": true,
+          "rootTestIds": [
+            "client-shell-page",
+            "client-safe-source-status-digest",
+            "client-safe-maintenance-digest",
+            "client-operations-notice",
+            "client-impact-forecast",
+            "client-safe-event-digest",
+            "client-safe-resolution-digest",
+            "client-safe-incident-digest",
+            "client-safe-followup-digest"
+          ],
+          "clientForbiddenTextHits": []
+        }
+      ],
+      "checks": {
+        "visualLayoutPass": true,
+        "noHorizontalOverflow": true,
+        "noClientForbiddenText": true
+      },
+      "forbiddenTextHits": [],
+      "clientForbiddenTextHits": []
+    }
+  ],
+  "interactions": [
+    {
+      "id": "theme-light-dark-toggle",
+      "pass": true,
+      "details": {
+        "path": "/ops/home",
+        "before": "dark",
+        "after": "light",
+        "restored": true
+      },
+      "timestamp": "2026-07-05T09:28:02.531Z",
+      "browser": "codex-in-app-browser",
+      "source": "codex-iab"
+    },
+    {
+      "id": "ops-sources-generated-channel-id",
+      "pass": true,
+      "details": {
+        "display": "9005",
+        "generatedAttr": "channel",
+        "hiddenChannelId": "9005",
+        "path": "/ops/sources"
+      },
+      "timestamp": "2026-07-05T09:28:07.079Z",
+      "browser": "codex-in-app-browser",
+      "source": "codex-iab"
+    },
+    {
+      "id": "v240-s05-rule-scenario-review-loop",
+      "pass": true,
+      "details": {
+        "builderPresent": true,
+        "path": "/ops/rules",
+        "reviewPresent": true,
+        "reviewText": "저장 전 검토\n\n이벤트 템플릿 draft를 저장하기 전 event type, reference, conflict, preset 영향, EventRecord coverage를 확인합니다.\n\n침입 후 체류 EventRecord\nintrusion-dwell\n침입 후 체류\n\n저장 후 EventRecord eventType 후보는 intrusion-dwell입니다.\n\n0개\n충돌 없음\n\n중복 ID, priority, source/class 충돌이 없습니다.\n\n0개\n참조 준비됨\n\n이 draft는 별도 참조 누락이 없습니다.\n\n적용\nPreset "
+      },
+      "timestamp": "2026-07-05T09:28:16.981Z",
+      "browser": "codex-in-app-browser",
+      "source": "codex-iab"
+    },
+    {
+      "id": "ops-users-multi-channel-assignment",
+      "pass": true,
+      "details": {
+        "assignmentListPresent": true,
+        "checked": [
+          "9001",
+          "9002"
+        ],
+        "hiddenView": "9001,9002",
+        "path": "/ops/users",
+        "scopes": ""
+      },
+      "timestamp": "2026-07-05T09:28:26.524Z",
+      "browser": "codex-in-app-browser",
+      "source": "codex-iab"
+    },
+    {
+      "id": "client-live-va-playback-controls",
+      "pass": true,
+      "details": {
+        "path": "/client/live",
+        "playbackIcons": 4,
+        "toggleControls": 4,
+        "vaOverlayToggles": 4,
+        "workspacePresent": true
+      },
+      "timestamp": "2026-07-05T09:28:31.188Z",
+      "browser": "codex-in-app-browser",
+      "source": "codex-iab"
+    },
+    {
+      "id": "ops-rules-generated-id-displays",
+      "pass": true,
+      "details": {
+        "path": "/ops/rules",
+        "profile": {
+          "attr": "profile",
+          "display": "6",
+          "formVisible": true,
+          "id": "6"
+        },
+        "va": {
+          "attr": "va-rule",
+          "display": "1",
+          "formVisible": true,
+          "id": "1"
+        }
+      },
+      "timestamp": "2026-07-05T09:29:41.327Z",
+      "browser": "codex-in-app-browser",
+      "source": "codex-iab"
+    },
+    {
+      "id": "auth-setup-weak-password-rejected",
+      "pass": true,
+      "details": {
+        "bodySnippet": "언어\n한국어\nEnglish\n\nINITIAL SETUP\n\n관리자 설정\n\n기본 admin 계정에 강한 비밀번호를 설정한 뒤 제품 화면으로 이동합니다.\n\n비밀번호는 문자 종류를 2종류 이상 조합해야 합니다. 비밀번호 길이가 정책 기준보다 짧습니다.\n계정명\n비밀번호\n비밀번호 확인\n\n기본 kr-privacy 정책: 대문자/소문자/숫자/특수문자 중 3종류 이상이면 최소 8자, 2종류 조합이면 최소 10자입니다. username, 반복 문자, 연속 숫자, 키보드 배열, 흔한 비밀번호, 이전 비밀번호 재사용은 허용하지 않습니다.\n\n관리자 비밀번호 설정",
+        "formPresent": true,
+        "message": "비밀번호는 문자 종류를 2종류 이상 조합해야 합니다. 비밀번호 길이가 정책 기준보다 짧습니다.",
+        "path": "/setup"
+      },
+      "timestamp": "2026-07-05T09:32:43.337Z",
+      "browser": "codex-in-app-browser",
+      "source": "codex-iab"
+    },
+    {
+      "id": "auth-setup-strong-password",
+      "pass": true,
+      "details": {
+        "path": "/login",
+        "adminUser": "admin"
+      },
+      "timestamp": "2026-07-05T09:32:45.812Z",
+      "browser": "codex-in-app-browser",
+      "source": "codex-iab"
+    },
+    {
+      "id": "users-create-viewer-must-change",
+      "pass": true,
+      "details": {
+        "path": "/ops/users",
+        "rowText": "iab-viewer-43957664IAB Must Change Viewer시청자활성로그인 가능 · 변경 필요4개 범위라이브, 대시보드, 이벤트, 메타데이터 / 채널 9001미제공없음예상세\n              추가 작업\n              초기화\n          비활성화",
+        "statusText": "사용자 추가 완료",
+        "username": "iab-viewer-43957664"
+      },
+      "timestamp": "2026-07-05T09:32:53.096Z",
+      "browser": "codex-in-app-browser",
+      "source": "codex-iab"
+    },
+    {
+      "id": "auth-viewer-must-change-password",
+      "pass": true,
+      "details": {
+        "username": "iab-viewer-43957664",
+        "path": "/login"
+      },
+      "timestamp": "2026-07-05T09:33:04.217Z",
+      "browser": "codex-in-app-browser",
+      "source": "codex-iab"
+    },
+    {
+      "id": "auth-viewer-login-client-landing",
+      "pass": true,
+      "details": {
+        "path": "/client/live",
+        "clientShell": true,
+        "sourceNodes": [
+          "9001"
+        ],
+        "username": "iab-viewer-43957664"
+      },
+      "timestamp": "2026-07-05T09:36:36.923Z",
+      "browser": "codex-in-app-browser",
+      "source": "codex-iab"
+    },
+    {
+      "id": "access-request-submit-pending",
+      "pass": true,
+      "details": {
+        "path": "/client/request-access",
+        "username": "iab-request-44188786",
+        "message": "승인 전에는 로그인/채널 접근이 열리지 않습니다. 관리자가 승인하면 초대 링크로 비밀번호를 설정하세요."
+      },
+      "timestamp": "2026-07-05T09:36:46.103Z",
+      "browser": "codex-in-app-browser",
+      "source": "codex-iab"
+    },
+    {
+      "id": "access-request-admin-approve-invite",
+      "pass": true,
+      "details": {
+        "username": "iab-request-44188786",
+        "requestMeta": {
+          "approvePresent": true,
+          "requestId": "request-1dd8a132e00f83e6",
+          "rowText": "iab-request-44188786IAB Access Requestiab-request-44188786@example.test9001v3.7.0 direct in-app UI evidence request대기승인 전: 로그인/세션/채널 권한 없음2026-07-05T09:36:44Z승인 전: 로그인/세션/채널 권한 없음\n              \n                승인 채널 ID\n                \n              \n              승인\n              거절",
+          "viewInputPresent": true
+        },
+        "status": "접근 요청 승인 완료",
+        "outputSnippet": "계정: iab-request-44188786\n초대 링크: [redacted]\n초대 링크 만료: 2026-07-06T09:36:51Z\n토큰: [redacted]\n초대 설정 완료 전까지는 로그인/세션/채널 권한이 열리지 않습니다.",
+        "tokenLength": 64
+      },
+      "timestamp": "2026-07-05T09:36:53.771Z",
+      "browser": "codex-in-app-browser",
+      "source": "codex-iab"
+    },
+    {
+      "id": "invite-setup-password-flow",
+      "pass": true,
+      "details": {
+        "username": "iab-request-44188786",
+        "path": "/client/live",
+        "clientShell": true
+      },
+      "timestamp": "2026-07-05T09:37:02.782Z",
+      "browser": "codex-in-app-browser",
+      "source": "codex-iab"
+    },
+    {
+      "id": "auth-admin-login-landing",
+      "pass": true,
+      "details": {
+        "path": "/ops/home",
+        "title": "운영 콘솔",
+        "opsMain": true,
+        "logoutPresent": true
+      },
+      "timestamp": "2026-07-05T09:37:31.008Z",
+      "browser": "codex-in-app-browser",
+      "source": "codex-iab"
+    },
+    {
+      "id": "auth-viewer-ops-denied",
+      "pass": true,
+      "details": {
+        "path": "/ops/home",
+        "title": "Access Denied",
+        "deniedTextSnippet": "Access Denied\n\n운영 콘솔은 admin/operator role과 ops:read scope가 필요합니다.\n\nGo Home",
+        "username": "iab-viewer-43957664"
+      },
+      "timestamp": "2026-07-05T09:37:36.870Z",
+      "browser": "codex-in-app-browser",
+      "source": "codex-iab"
+    }
+  ],
+  "summary": {
+    "routeCount": 10,
+    "screenshotCount": 40,
+    "interactionCount": 16,
+    "failedInteractions": [],
+    "routeIssues": [],
+    "tokenRedaction": "one-time invite tokens are redacted from interaction details"
+  }
+}

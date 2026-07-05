@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Verifies v3.7.0 Step 17 Export / Handoff Bundle wiring, docs, and boundaries.
+// 파일 용도: v3.7.0 Step 17 Export / Handoff Bundle 연결, 문서, 경계를 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";
