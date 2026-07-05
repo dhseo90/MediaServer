@@ -149,6 +149,7 @@ const v370VerifierCoverage = {
   LAB: [
     "verify-v370-site-simulation-input-pack",
     "verify-v370-cross-site-safe-apply-readiness",
+    "verify-v370-runbook-template-contract",
   ],
   CLIENT: [
     "verify-v370-site-impact-graph",
@@ -162,6 +163,7 @@ const v370VerifierCoverage = {
     "verify-v370-site-impact-graph",
     "verify-v370-site-simulation-input-pack",
     "verify-v370-cross-site-safe-apply-readiness",
+    "verify-v370-runbook-template-contract",
   ],
   OPS: [
     "verify-v370-entry-baseline",
@@ -171,6 +173,7 @@ const v370VerifierCoverage = {
     "verify-v370-site-impact-graph",
     "verify-v370-site-simulation-input-pack",
     "verify-v370-cross-site-safe-apply-readiness",
+    "verify-v370-runbook-template-contract",
   ],
 };
 

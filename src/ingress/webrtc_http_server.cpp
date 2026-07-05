@@ -20312,6 +20312,368 @@ std::string OpsV370CrossSiteSafeApplyReadinessJson(
     return out.str();
 }
 
+struct OpsV370RunbookTemplateContractItem {
+    std::string runbook_template_id;
+    std::string template_type;
+    std::string candidate_id;
+    std::string candidate_type;
+    std::string site_id{"unassigned-site"};
+    std::string source_group{"unassigned-source-group"};
+    std::string review_policy{"approval-ticket-required"};
+    std::vector<std::string> required_inputs;
+    std::vector<std::string> approval_state_catalog;
+    std::vector<std::string> output_refs;
+    std::vector<std::string> evidence_refs;
+    bool operator_approval_required{true};
+    bool field_evidence_required{false};
+    bool read_only{true};
+};
+
+struct OpsV370RunbookTemplateContractSummary {
+    int template_count{0};
+    int source_recheck_count{0};
+    int maintenance_count{0};
+    int rule_draft_count{0};
+    int client_notice_count{0};
+    int approval_required_count{0};
+    int field_required_count{0};
+    int cross_site_readiness_ref_count{0};
+    std::vector<std::string> derivation_sources;
+};
+
+std::string V370RunbookTemplateTypeForCandidate(const std::string& candidate_type) {
+    if (candidate_type == "sourceRecheck" || candidate_type == "recovery") {
+        return "source-recheck";
+    }
+    if (candidate_type == "maintenance") {
+        return "maintenance";
+    }
+    if (candidate_type == "ruleFollowUp") {
+        return "rule-draft";
+    }
+    if (candidate_type == "clientNotice") {
+        return "client-notice";
+    }
+    return {};
+}
+
+const OpsV360SafeApplyReadinessItem* V370ReadinessForCandidate(
+    const std::vector<OpsV360SafeApplyReadinessItem>& readiness_items,
+    const std::string& candidate_id) {
+    const auto it = std::find_if(readiness_items.begin(), readiness_items.end(), [&](const auto& item) {
+        return item.candidate_id == candidate_id;
+    });
+    return it == readiness_items.end() ? nullptr : &*it;
+}
+
+const OpsV370CrossSiteSafeApplyReadinessItem* V370CrossSiteReadinessForCandidate(
+    const std::vector<OpsV370CrossSiteSafeApplyReadinessItem>& readiness_items,
+    const std::string& candidate_id) {
+    const auto it = std::find_if(readiness_items.begin(), readiness_items.end(), [&](const auto& item) {
+        return item.candidate_id == candidate_id;
+    });
+    return it == readiness_items.end() ? nullptr : &*it;
+}
+
+bool V370RunbookTemplateHasType(
+    const std::vector<OpsV370RunbookTemplateContractItem>& items,
+    const std::string& template_type) {
+    return std::any_of(items.begin(), items.end(), [&](const auto& item) {
+        return item.template_type == template_type;
+    });
+}
+
+std::vector<OpsV370RunbookTemplateContractItem> BuildV370RunbookTemplateContractItems(
+    const std::vector<OpsV350CommandPlanCandidate>& commandPlanCandidates,
+    const std::vector<OpsV360CommandPlanDryRunResult>& dryRunResults,
+    const std::vector<OpsV360SourceRuleImpactDiff>& impactDiffs,
+    const std::vector<OpsV360SafeApplyReadinessItem>& readinessItems,
+    const std::vector<OpsV370SiteAwareSourceRegistryProjectionItem>& projection,
+    const std::vector<OpsV370SiteSimulationInputPackItem>& siteSimulationInputPackItems,
+    const std::vector<OpsV370CrossSiteSafeApplyReadinessItem>& crossSiteReadinessItems) {
+    std::vector<OpsV370RunbookTemplateContractItem> items;
+
+    const auto append_template = [&](const std::string& candidate_id,
+                                     const std::string& candidate_type,
+                                     const std::string& source_id,
+                                     const std::string& default_route) {
+        const std::string template_type = V370RunbookTemplateTypeForCandidate(candidate_type);
+        if (template_type.empty()) {
+            return;
+        }
+        const auto* projected = V370ProjectionForSource(projection, source_id);
+        const auto* readiness = V370ReadinessForCandidate(readinessItems, candidate_id);
+        const auto* cross_site_readiness =
+            V370CrossSiteReadinessForCandidate(crossSiteReadinessItems, candidate_id);
+        const auto* diff = V370ImpactDiffForCandidate(impactDiffs, candidate_id);
+        const std::string site_id = projected == nullptr ? "unassigned-site" : projected->site_id;
+        const std::string source_group =
+            projected == nullptr ? "unassigned-source-group" : projected->source_group;
+        const int site_input_pack_count =
+            V370SiteSimulationPackCountForScope(siteSimulationInputPackItems, site_id, source_group);
+
+        OpsV370RunbookTemplateContractItem item;
+        item.runbook_template_id = "runbook-template:" + template_type + ":" +
+                                   (source_id.empty() ? candidate_id : source_id);
+        item.template_type = template_type;
+        item.candidate_id = candidate_id;
+        item.candidate_type = candidate_type;
+        item.site_id = site_id;
+        item.source_group = source_group;
+        item.required_inputs = {
+            "siteId",
+            "sourceGroup",
+            "candidateId",
+            "safeApplyReadinessRef",
+            "operatorReviewReason",
+        };
+        if (template_type == "source-recheck") {
+            item.required_inputs.push_back("sourceHealthSnapshot");
+        } else if (template_type == "maintenance") {
+            item.required_inputs.push_back("maintenanceWindow");
+        } else if (template_type == "rule-draft") {
+            item.required_inputs.push_back("ruleDraftRef");
+        } else if (template_type == "client-notice") {
+            item.required_inputs.push_back("viewerSafeNoticePreview");
+        }
+        item.approval_state_catalog = {"approval", "hold", "reject", "field-needed"};
+        item.output_refs = {
+            default_route,
+            "/ops/api/site-operations/runbook-instance-ledger",
+            "/ops/api/site-operations/approval-ticket-workflow",
+        };
+        item.evidence_refs = {
+            "/ops/api/site-operations/simulation-input-pack",
+            "/ops/api/site-operations/cross-site-safe-apply-readiness",
+            "siteSimulationInputPackCount:" + std::to_string(site_input_pack_count),
+            candidate_id,
+        };
+        if (readiness != nullptr) {
+            item.operator_approval_required = readiness->operator_approval_required;
+            item.field_evidence_required = readiness->field_evidence_required;
+            item.evidence_refs.push_back(readiness->readiness_id);
+        }
+        if (cross_site_readiness != nullptr) {
+            item.evidence_refs.push_back(cross_site_readiness->readiness_id);
+        }
+        if (diff != nullptr) {
+            item.evidence_refs.push_back(diff->diff_id);
+        }
+        items.push_back(std::move(item));
+    };
+
+    for (const auto& candidate : commandPlanCandidates) {
+        append_template(candidate.candidate_id,
+                        candidate.candidate_type,
+                        candidate.source_id,
+                        candidate.route.empty() ? "/ops/api/live-operations/command-plan"
+                                                : candidate.route);
+        if (items.size() >= 20U) {
+            break;
+        }
+    }
+
+    const std::vector<std::pair<std::string, std::string>> required_templates = {
+        {"source-recheck", "sourceRecheck"},
+        {"maintenance", "maintenance"},
+        {"rule-draft", "ruleFollowUp"},
+        {"client-notice", "clientNotice"},
+    };
+    for (const auto& [template_type, candidate_type] : required_templates) {
+        if (!V370RunbookTemplateHasType(items, template_type)) {
+            append_template("candidate:default:" + candidate_type,
+                            candidate_type,
+                            "pending-source",
+                            "/ops/api/site-operations/runbook-template-contract");
+        }
+    }
+    (void)dryRunResults;
+    return items;
+}
+
+OpsV370RunbookTemplateContractSummary BuildV370RunbookTemplateContractSummary(
+    const std::vector<OpsV370RunbookTemplateContractItem>& items) {
+    OpsV370RunbookTemplateContractSummary summary;
+    summary.derivation_sources = {
+        "BuildV350LiveOperationsGraphContext",
+        "BuildV350CommandPlanCandidates",
+        "BuildV360CommandPlanDryRunResults",
+        "BuildV360SourceRuleImpactDiffs",
+        "BuildV360SafeApplyReadinessItems",
+        "BuildV370SiteAwareSourceRegistryProjectionItems",
+        "BuildV370SiteSimulationInputPackItems",
+        "BuildV370CrossSiteSafeApplyReadinessItems",
+    };
+    summary.template_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        if (item.template_type == "source-recheck") {
+            ++summary.source_recheck_count;
+        } else if (item.template_type == "maintenance") {
+            ++summary.maintenance_count;
+        } else if (item.template_type == "rule-draft") {
+            ++summary.rule_draft_count;
+        } else if (item.template_type == "client-notice") {
+            ++summary.client_notice_count;
+        }
+        if (item.operator_approval_required) {
+            ++summary.approval_required_count;
+        }
+        if (item.field_evidence_required) {
+            ++summary.field_required_count;
+        }
+        for (const auto& ref : item.evidence_refs) {
+            if (ref.rfind("cross-site-safe-apply:", 0) == 0) {
+                ++summary.cross_site_readiness_ref_count;
+            }
+        }
+    }
+    return summary;
+}
+
+void AppendV370RunbookTemplateContractSummaryJson(
+    std::ostringstream& out,
+    const OpsV370RunbookTemplateContractSummary& summary) {
+    out << "{"
+        << "\"templateCount\":" << summary.template_count << ","
+        << "\"sourceRecheckCount\":" << summary.source_recheck_count << ","
+        << "\"maintenanceCount\":" << summary.maintenance_count << ","
+        << "\"ruleDraftCount\":" << summary.rule_draft_count << ","
+        << "\"clientNoticeCount\":" << summary.client_notice_count << ","
+        << "\"approvalRequiredCount\":" << summary.approval_required_count << ","
+        << "\"fieldRequiredCount\":" << summary.field_required_count << ","
+        << "\"crossSiteReadinessRefCount\":" << summary.cross_site_readiness_ref_count << ","
+        << "\"derivationSources\":";
+    AppendJsonStringArray(out, summary.derivation_sources);
+    out << "}";
+}
+
+void AppendV370RunbookTemplateContractItemJson(
+    std::ostringstream& out,
+    const OpsV370RunbookTemplateContractItem& item) {
+    out << "{"
+        << "\"runbookTemplateId\":\"" << JsonEscape(item.runbook_template_id) << "\","
+        << "\"templateType\":\"" << JsonEscape(item.template_type) << "\","
+        << "\"candidateId\":\"" << JsonEscape(item.candidate_id) << "\","
+        << "\"candidateType\":\"" << JsonEscape(item.candidate_type) << "\","
+        << "\"siteId\":\"" << JsonEscape(item.site_id) << "\","
+        << "\"sourceGroup\":\"" << JsonEscape(item.source_group) << "\","
+        << "\"reviewPolicy\":\"" << JsonEscape(item.review_policy) << "\","
+        << "\"operatorApprovalRequired\":"
+        << (item.operator_approval_required ? "true" : "false") << ","
+        << "\"fieldEvidenceRequired\":"
+        << (item.field_evidence_required ? "true" : "false") << ","
+        << "\"requiredInputs\":";
+    AppendJsonStringArray(out, item.required_inputs);
+    out << ",\"approvalStateCatalog\":";
+    AppendJsonStringArray(out, item.approval_state_catalog);
+    out << ",\"outputRefs\":";
+    AppendJsonStringArray(out, item.output_refs);
+    out << ",\"evidenceRefs\":";
+    AppendJsonStringArray(out, item.evidence_refs);
+    out << ",\"readOnly\":" << (item.read_only ? "true" : "false")
+        << "}";
+}
+
+std::string OpsV370RunbookTemplateContractJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v370-runbook-template-contract.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto dryRunResults = BuildV360CommandPlanDryRunResults(commandPlanCandidates);
+    const auto impactDiffs =
+        BuildV360SourceRuleImpactDiffs(context, commandPlanCandidates, stagedChangePlans);
+    const auto readinessItems = BuildV360SafeApplyReadinessItems(dryRunResults, impactDiffs);
+    const auto v360InputPackItems =
+        BuildV360SimulationInputPackItems(context, commandPlanCandidates, stagedChangePlans);
+    const auto projection =
+        BuildV370SiteAwareSourceRegistryProjectionItems(context.sources, context.views);
+    const auto rollups =
+        BuildV370SiteHealthRollupItems(context.sources, context.views, source_health_snapshot);
+    const auto impactGraphNodes = BuildV370SiteImpactGraphNodes(context, projection, rollups);
+    const auto impactGraphEdges = BuildV370SiteImpactGraphEdges(projection);
+    const auto siteSimulationInputPackItems =
+        BuildV370SiteSimulationInputPackItems(context,
+                                             projection,
+                                             rollups,
+                                             impactGraphNodes,
+                                             impactGraphEdges,
+                                             v360InputPackItems);
+    const auto crossSiteReadinessItems =
+        BuildV370CrossSiteSafeApplyReadinessItems(projection,
+                                                 siteSimulationInputPackItems,
+                                                 readinessItems,
+                                                 impactDiffs);
+    const auto runbookTemplateContractItems =
+        BuildV370RunbookTemplateContractItems(commandPlanCandidates,
+                                             dryRunResults,
+                                             impactDiffs,
+                                             readinessItems,
+                                             projection,
+                                             siteSimulationInputPackItems,
+                                             crossSiteReadinessItems);
+    const auto summary =
+        BuildV370RunbookTemplateContractSummary(runbookTemplateContractItems);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v370-runbook-template-contract.v1\","
+        << "\"status\":\"runbook-template-contract\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"siteSimulationInputPackRoute\":\"/ops/api/site-operations/simulation-input-pack\","
+        << "\"crossSiteSafeApplyReadinessRoute\":\"/ops/api/site-operations/cross-site-safe-apply-readiness\","
+        << "\"runbookInstanceLedgerRoute\":\"/ops/api/site-operations/runbook-instance-ledger\","
+        << "\"approvalTicketWorkflowRoute\":\"/ops/api/site-operations/approval-ticket-workflow\","
+        << "\"templateTypeCatalog\":[\"source-recheck\",\"maintenance\",\"rule-draft\",\"client-notice\"],"
+        << "\"runbookTemplateContractSummary\":";
+    AppendV370RunbookTemplateContractSummaryJson(out, summary);
+    out << ",\"runbookTemplateContractItems\":[";
+    for (std::size_t i = 0; i < runbookTemplateContractItems.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV370RunbookTemplateContractItemJson(out, runbookTemplateContractItems[i]);
+    }
+    out << "],\"templatePolicy\":{"
+        << "\"requiredInputs\":\"site/source group, candidate ref, readiness ref, operator review reason\","
+        << "\"approvalStateCatalog\":[\"approval\",\"hold\",\"reject\",\"field-needed\"],"
+        << "\"outputRefs\":\"ledger and approval ticket routes only; no execution route is invoked\","
+        << "\"runbookTemplateContractOnly\":true"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"runbookTemplateContractOnly\":true,"
+        << "\"runbookInstancePersisted\":false,"
+        << "\"approvalTicketWritePerformed\":false,"
+        << "\"operatorNoteWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"fieldSmokeExecuted\":false,"
+        << "\"commandPlanExecuted\":false,"
+        << "\"automaticApplyPerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 struct OpsV360SimulationRunLedgerEntry {
     std::string simulation_run_id;
     std::string input_ref;
@@ -31224,6 +31586,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV370CrossSiteSafeApplyReadinessJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/site-operations/runbook-template-contract") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV370RunbookTemplateContractJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }
