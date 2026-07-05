@@ -142,6 +142,7 @@ const v370VerifierCoverage = {
     "verify-v370-limited-safe-execution-pilot",
     "verify-v370-outcome-reconciliation",
     "verify-v370-export-handoff-bundle",
+    "verify-v370-stabilization-release-readiness",
   ],
   RULE: [
     "verify-v370-rule-va-what-if-by-site",
@@ -203,6 +204,7 @@ const v370VerifierCoverage = {
     "verify-v370-limited-safe-execution-pilot",
     "verify-v370-outcome-reconciliation",
     "verify-v370-export-handoff-bundle",
+    "verify-v370-stabilization-release-readiness",
   ],
   OPS: [
     "verify-v370-entry-baseline",
@@ -222,6 +224,7 @@ const v370VerifierCoverage = {
     "verify-v370-limited-safe-execution-pilot",
     "verify-v370-outcome-reconciliation",
     "verify-v370-export-handoff-bundle",
+    "verify-v370-stabilization-release-readiness",
   ],
 };
 

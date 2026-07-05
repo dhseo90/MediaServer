@@ -82,7 +82,7 @@ Product UI → Field/Execution → Release 순서로 진행합니다.
 | 15 | v3.7.0 (15) Limited Safe Execution Pilot | P2 | 완료 | `/ops/api/site-operations/limited-safe-execution-pilot`와 `/ops` dashboard에서 source recheck 또는 notice queue 후보를 approval-gated execution preview로 분리 |
 | 16 | v3.7.0 (16) Outcome Reconciliation | P2 | 완료 | `/ops/api/site-operations/outcome-reconciliation`와 `/ops` dashboard에서 실행 전 simulation ref와 실행 후 source/event/client impact diff를 pending/not-run 상태로 비교 |
 | 17 | v3.7.0 (17) Export / Handoff Bundle | P1 | 완료 | `/ops/api/site-operations/export-handoff-bundle`와 `/ops` dashboard에서 site/runbook/evidence/approval/outcome을 redacted release-safe handoff bundle로 조합 |
-| 18 | v3.7.0 (18) Stabilization and Release Readiness | P0 | 미진행 | v3.7 local verifier suite, inventory, release records, close-out dry-run, `git diff --check` 연결 |
+| 18 | v3.7.0 (18) Stabilization and Release Readiness | P0 | 완료 | v3.7 local stabilization, release evidence/not-run 경계, inventory, release records, close-out dry-run, `git diff --check` 연결 |
 
 완료 경계: 위 표는 v3.7.0 개발 순서와 우선순위입니다. 현재 Step 1~16은 Foundation/Intelligence/Workflow/Product UI/Field
 local source gate 범위이며, Step 17~18은 개발 전 roadmap 항목입니다. 각 step은 실제 코드/API/UI/문서
@@ -282,6 +282,45 @@ action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁�
 - verifier: `scripts/internal/verify_v370_export_handoff_bundle.mjs`, `./server.sh verify-v370-export-handoff-bundle`, `docs/project-feature-test-inventory.md`의 `UI-101`, `LAB-110`, `SAFE-178`, `OPS-145`를 추가했습니다.
 - 검증: 최초 `./server.sh verify-v370-export-handoff-bundle`는 Export / Handoff Bundle model, route, dashboard shell, CSS, final backlog 기록, feature coverage 연결이 아직 없어 `pass=1 fail=8`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 17 결과 행에 기록합니다.
 - 완료 경계: Step 17은 Ops-only Export / Handoff Bundle API/UI/verifier 연결입니다. Stabilization and Release Readiness 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분, artifact/file/handoff write, pilot 실행, source recheck 실행, notice queue write/send, source/view/runbook/approval/EventRecord/Ops audit/client/media mutation, published metadata, release action evidence가 아닙니다.
+
+## v3.7.0 Step 18 개발 기록
+
+- 범위: P0 `v3.7.0 (18) Stabilization and Release Readiness`.
+- `scripts/internal/verify_v370_stabilization_release_readiness.mjs`, `./server.sh verify-v370-stabilization-release-readiness`: v3.7 Step 1~17 local verifier, release metadata/docs/assets, feature/script inventory, release evidence index, close-out dry-run, `git diff --check` 연결을 `media-server.v370-stabilization-release-readiness.v1` local readiness gate로 묶었습니다.
+- `docs/development-backlog.md`, `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`, `docs/release-test-records.md`, `docs/release-policy.md`, `docs/release-evidence-index.md`: `SAFE-179`, `OPS-146`, Step 18 local readiness command, 미실행/미확인 release action 경계, local gate 결과 기록 위치를 추가했습니다.
+- `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_script_inventory.mjs`, `server.sh`: Step 18 verifier coverage, project inventory required row/range, script inventory, server help/dispatch 연결을 추가했습니다.
+- companion local gate:
+  - `./server.sh verify-v370-stabilization-release-readiness`
+  - `./server.sh build`
+  - `./server.sh verify-v370-entry-baseline`
+  - `./server.sh verify-v370-site-source-group-contract`
+  - `./server.sh verify-v370-site-aware-source-registry-projection`
+  - `./server.sh verify-v370-site-health-rollup`
+  - `./server.sh verify-v370-site-impact-graph`
+  - `./server.sh verify-v370-site-simulation-input-pack`
+  - `./server.sh verify-v370-cross-site-safe-apply-readiness`
+  - `./server.sh verify-v370-runbook-template-contract`
+  - `./server.sh verify-v370-runbook-instance-ledger`
+  - `./server.sh verify-v370-approval-ticket-workflow`
+  - `./server.sh verify-v370-site-operations-workspace-ui`
+  - `./server.sh verify-v370-client-notice-by-site-view-group`
+  - `./server.sh verify-v370-rule-va-what-if-by-site`
+  - `./server.sh verify-v370-field-evidence-attachment`
+  - `./server.sh verify-v370-limited-safe-execution-pilot`
+  - `./server.sh verify-v370-outcome-reconciliation`
+  - `./server.sh verify-v370-export-handoff-bundle`
+  - `./server.sh verify-release-metadata`
+  - `./server.sh verify-docs-links`
+  - `./server.sh verify-docs-ui-assets`
+  - `./server.sh verify-project-inventory`
+  - `./server.sh verify-feature-inventory-coverage`
+  - `./server.sh verify-release-evidence-index`
+  - `./server.sh verify-release-closeout-helper --dry-run`
+  - `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run`
+  - `./server.sh verify-script-inventory`
+  - `git diff --check`
+- 검증: 최초 `./server.sh verify-v370-stabilization-release-readiness`는 Step 18 roadmap, feature inventory, release policy/evidence index/release records 연결이 아직 없어 `pass=2 fail=4`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 18 결과 행에 기록합니다.
+- 완료 경계: Step 18은 local stabilization/readiness wiring입니다. UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release, field smoke, 외부 credential/endpoint/실기기 evidence, release action 완료 evidence가 아닙니다.
 
 ## 최신 공개 기준: v3.6.0 Operations Simulation and Safe Apply Readiness
 

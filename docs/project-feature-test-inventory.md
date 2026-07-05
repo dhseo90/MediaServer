@@ -26,12 +26,12 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 861 |
+| 전체 기능 항목 | 863 |
 | UI 직접 필요 | 382 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 448 |
-| 테스트 필요 | 861 |
-| 안정화 대상 | 851 |
+| UI 비대상 | 450 |
+| 테스트 필요 | 863 |
+| 안정화 대상 | 853 |
 | UI 풀테스트 대상 | 402 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
@@ -79,6 +79,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | v3.7.0 (15) Limited Safe Execution Pilot | `UI-099`, `SRC-061`, `CLIENT-038`, `LAB-108`, `SAFE-176`, `OPS-143` | `verify-v370-limited-safe-execution-pilot`, `verify-ops-client-ui` | `/ops/api/site-operations/limited-safe-execution-pilot`와 `/ops` dashboard가 가장 낮은 위험의 source recheck 또는 notice queue action 후보만 approval-gated execution preview로 분리합니다. source recheck 실행, notice queue write/send, runbook/approval write, source/view/EventRecord/Ops audit/client/media mutation, raw locator/credential/operator material 노출, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.7.0 (16) Outcome Reconciliation | `UI-100`, `SRC-062`, `EVT-083`, `CLIENT-039`, `LAB-109`, `SAFE-177`, `OPS-144` | `verify-v370-outcome-reconciliation`, `verify-ops-client-ui` | `/ops/api/site-operations/outcome-reconciliation`와 `/ops` dashboard가 pre-simulation ref와 post-execution not-run ref를 source/event/client impact diff로 비교합니다. pilot execution, source recheck 실행, notice queue write/send, source/view/EventRecord/Ops audit/client/media mutation, raw locator/credential/operator material 노출, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.7.0 (17) Export / Handoff Bundle | `UI-101`, `LAB-110`, `SAFE-178`, `OPS-145` | `verify-v370-export-handoff-bundle`, `verify-ops-client-ui` | `/ops/api/site-operations/export-handoff-bundle`와 `/ops` dashboard가 site/runbook/evidence/approval/outcome refs를 redacted release-safe handoff bundle로 조합합니다. artifact export/file write/handoff write, pilot/source recheck/notice queue write/send, source/view/runbook/approval/EventRecord/Ops audit/client/media mutation, raw locator/endpoint/credential/provider/diagnostic/client raw material 노출, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
+| v3.7.0 (18) Stabilization and Release Readiness | `SAFE-179`, `OPS-146` | `verify-v370-stabilization-release-readiness`, `verify-release-metadata`, `verify-release-evidence-index`, `verify-release-closeout-helper --dry-run` | v3.7 Step 1~17 local gates, release policy/evidence index/test records, docs links/assets, feature/script inventory, close-out dry-run, `git diff --check`를 같은 local readiness gate로 묶음. UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release, field smoke 실행 PASS를 대체하지 않음 |
 
 ## 최신 published baseline v3.6.0 Operations Simulation and Safe Apply Readiness Coverage Mapping
 
@@ -343,8 +344,8 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | `CLIENT-001`~`CLIENT-039` | client/UI/v350/v360/v370 verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-025` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
 | `LAB-001`~`LAB-110` | lab/VLM/v250/v260/v270/v280/v300/v310/v340/v350/v360/v370 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-178` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-145` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
+| `SAFE-001`~`SAFE-179` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-146` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
 
 ## VA Manual UI Seed Matrix
 
@@ -1182,6 +1183,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-176 | V370 Step 15 Limited Safe Execution Pilot boundary | 비대상 | 필요 | 안정화 | `verify-v370-limited-safe-execution-pilot`이 source recheck/notice queue pilot을 approval-gated preview로만 산출하고 pilot execution, source recheck, notice queue write/send, source/view/runbook/approval/EventRecord/Ops audit/client/media mutation, raw locator/credential/operator material 노출을 수행하지 않음을 확인 |
 | SAFE-177 | V370 Step 16 Outcome Reconciliation boundary | 비대상 | 필요 | 안정화 | `verify-v370-outcome-reconciliation`이 pre-simulation/post-execution source/event/client impact reconciliation을 pending/not-run read model로만 산출하고 pilot execution, source recheck, notice queue write/send, source/view/runbook/approval/EventRecord/Ops audit/client/media mutation, raw locator/credential/operator material 노출을 수행하지 않음을 확인 |
 | SAFE-178 | V370 Step 17 Export / Handoff Bundle boundary | 비대상 | 필요 | 안정화 | `verify-v370-export-handoff-bundle`이 redacted release-safe handoff bundle만 산출하고 artifact export/file write/handoff write, pilot/source recheck/notice queue write/send, source/view/runbook/approval/EventRecord/Ops audit/client/media mutation, raw locator/endpoint/credential/provider/diagnostic/client raw material 노출을 수행하지 않음을 확인 |
+| SAFE-179 | V370 Step 18 stabilization/release readiness boundary | 비대상 | 필요 | 안정화 | `verify-v370-stabilization-release-readiness`가 v3.7 local readiness command, roadmap/stream verification/release policy/evidence index/release records/server dispatch/script inventory 연결을 확인하되 release action, published metadata, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -1298,6 +1300,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-143 | V370 Step 15 Limited Safe Execution Pilot 게이트 | 비대상 | 필요 | 안정화 | `verify-v370-limited-safe-execution-pilot`가 `/ops/api/site-operations/limited-safe-execution-pilot` Ops-only route, source recheck/notice queue lowest-risk pilot 후보, approval gate state, execution preview, no-execution/no-write boundary, dashboard renderer/CSS, client 비노출, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, source recheck 실행, notice queue write/send, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-144 | V370 Step 16 Outcome Reconciliation 게이트 | 비대상 | 필요 | 안정화 | `verify-v370-outcome-reconciliation`가 `/ops/api/site-operations/outcome-reconciliation` Ops-only route, pre-simulation/post-execution source/event/client impact diff, pending/not-run boundary, dashboard renderer/CSS, client 비노출, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, pilot execution, source recheck 실행, notice queue write/send, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-145 | V370 Step 17 Export / Handoff Bundle 게이트 | 비대상 | 필요 | 안정화 | `verify-v370-export-handoff-bundle`가 `/ops/api/site-operations/export-handoff-bundle` Ops-only route, site/runbook/evidence/approval/outcome refs, redacted release-safe bundle, handoff map, dashboard renderer/CSS, client 비노출, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, artifact/file/handoff write, execution, 30분/120분, release publish PASS로 대체하지 않음 |
+| OPS-146 | V370 Step 18 Stabilization and Release Readiness 게이트 | 비대상 | 필요 | 안정화 | `verify-v370-stabilization-release-readiness`가 v3.7 Step 1~17 local gates, release policy/evidence index/test records, close-out dry-run command, server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release, field smoke 실행 PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 

@@ -372,6 +372,8 @@ Usage:
                  v3.7.0 Step 16 Outcome Reconciliation pending/not-run 비교 경계를 검증합니다.
   verify-v370-export-handoff-bundle
                  v3.7.0 Step 17 Export / Handoff Bundle release-safe 경계를 검증합니다.
+  verify-v370-stabilization-release-readiness
+                 v3.7.0 Step 18 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-v360-entry-baseline
                  v3.6.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v360-simulation-input-contract
@@ -654,6 +656,8 @@ Usage:
                  v3.7.0 Step 16 Outcome Reconciliation pending/not-run 비교 경계를 검증합니다.
   verify-v370-export-handoff-bundle
                  v3.7.0 Step 17 Export / Handoff Bundle release-safe 경계를 검증합니다.
+  verify-v370-stabilization-release-readiness
+                 v3.7.0 Step 18 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-v360-entry-baseline
                  v3.6.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v360-simulation-input-contract
@@ -1788,6 +1792,10 @@ case "${cmd}" in
   verify-v370-export-handoff-bundle)
     require_internal verify_v370_export_handoff_bundle.mjs
     exec "${INTERNAL_DIR}/verify_v370_export_handoff_bundle.mjs" "$@"
+    ;;
+  verify-v370-stabilization-release-readiness)
+    require_internal verify_v370_stabilization_release_readiness.mjs
+    exec "${INTERNAL_DIR}/verify_v370_stabilization_release_readiness.mjs" "$@"
     ;;
   verify-v360-entry-baseline)
     require_internal verify_v360_entry_baseline.mjs

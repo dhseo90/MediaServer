@@ -109,6 +109,30 @@ gate 실패 또는 미확인으로 보고하며 제품 runtime/media 회귀와 �
 
 ## GitHub Releases 운영
 
+### v3.7.0 Release Close-out Runbook
+
+아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
+순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
+
+Dry-run checklist:
+
+- `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>`
+- `./server.sh verify-release-closeout-helper --one-shot-dry-run`
+- one-shot schema: `media-server.release-closeout-one-shot-gate.v1`
+- fail-stop: 실패 단계 이후의 release action은 건너뜁니다.
+
+Real close-out checklist:
+
+- Branch close
+- PR merge
+- Main fast-forward/sync
+- public-readiness, bundle policy, Actions status check
+- Tag 전략에 맞춘 signed annotated tag 생성
+- GitHub Release
+- Latest 확인
+- release branch 보존/삭제는 사용자 별도 승인 후 진행
+- Next branch sync
+
 ### v3.6.0 Release Close-out Runbook
 
 아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
@@ -246,6 +270,55 @@ close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 �
 현재 공개 release tag 기준은 `v3.6.0`입니다. 현재 source tag 기준은 `v3.6.0`입니다.
 `v3.6.0` release tag는 SSH-signed annotated tag이며 GitHub API tag verification
 `verified=true`/`reason=valid`로 확인했습니다.
+
+## v3.7.0 stabilization and release readiness
+
+v3.7.0 Step 18 local readiness gate는
+`media-server.v370-stabilization-release-readiness.v1` 기준으로 v3.7.0
+Site-Aware Operations and Safe Runbook Control Plane의 Step 1~17 local gates,
+release policy, release evidence index, release test records, docs links/assets,
+feature/script inventory, close-out dry-run command를 같은 범위로 묶습니다. 이 절은
+source tree 준비 상태를 확인할 뿐 release action을 승인하거나 실행하지 않습니다.
+`verify-release-metadata --published` 미실행 상태는 local readiness PASS로 완료 처리하지
+않습니다.
+
+Companion local gate:
+
+```bash
+./server.sh verify-v370-stabilization-release-readiness
+./server.sh build
+./server.sh verify-v370-entry-baseline
+./server.sh verify-v370-site-source-group-contract
+./server.sh verify-v370-site-aware-source-registry-projection
+./server.sh verify-v370-site-health-rollup
+./server.sh verify-v370-site-impact-graph
+./server.sh verify-v370-site-simulation-input-pack
+./server.sh verify-v370-cross-site-safe-apply-readiness
+./server.sh verify-v370-runbook-template-contract
+./server.sh verify-v370-runbook-instance-ledger
+./server.sh verify-v370-approval-ticket-workflow
+./server.sh verify-v370-site-operations-workspace-ui
+./server.sh verify-v370-client-notice-by-site-view-group
+./server.sh verify-v370-rule-va-what-if-by-site
+./server.sh verify-v370-field-evidence-attachment
+./server.sh verify-v370-limited-safe-execution-pilot
+./server.sh verify-v370-outcome-reconciliation
+./server.sh verify-v370-export-handoff-bundle
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+./server.sh verify-script-inventory
+git diff --check
+```
+
+v3.7.0 Step 18 local readiness gate는 UI 풀테스트 직접 조작, 30분/120분 longrun,
+published metadata, PR/main/tag/GitHub Release, field smoke 실행 evidence를 대체하지
+않습니다.
 
 ## v3.6.0 stabilization and release readiness
 

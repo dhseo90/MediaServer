@@ -256,6 +256,52 @@ Companion local gate:
 git diff --check
 ```
 
+## v3.7.0 Step 18 local readiness gate records
+
+v3.7.0 Step 18 stabilization/release readiness는
+`media-server.v370-stabilization-release-readiness.v1` 기준으로 v3.7.0 Step 1~17
+local verifier와 release records를 묶는 색인입니다. 이 섹션은 release action을
+승인하거나 실행하지 않고, UI 풀테스트 직접 조작, 30분/120분 longrun, published
+metadata, release action evidence를 대체하지 않습니다.
+
+v3.7.0 Step 18 local readiness gate는 v3.7.0 stabilization/release readiness
+문서/명령 연결을 확인할 뿐, UI 풀테스트 직접 조작, 30분/120분 longrun, published
+metadata, release action evidence를 대체하지 않습니다.
+
+Companion local gate:
+
+```bash
+./server.sh verify-v370-stabilization-release-readiness
+./server.sh build
+./server.sh verify-v370-entry-baseline
+./server.sh verify-v370-site-source-group-contract
+./server.sh verify-v370-site-aware-source-registry-projection
+./server.sh verify-v370-site-health-rollup
+./server.sh verify-v370-site-impact-graph
+./server.sh verify-v370-site-simulation-input-pack
+./server.sh verify-v370-cross-site-safe-apply-readiness
+./server.sh verify-v370-runbook-template-contract
+./server.sh verify-v370-runbook-instance-ledger
+./server.sh verify-v370-approval-ticket-workflow
+./server.sh verify-v370-site-operations-workspace-ui
+./server.sh verify-v370-client-notice-by-site-view-group
+./server.sh verify-v370-rule-va-what-if-by-site
+./server.sh verify-v370-field-evidence-attachment
+./server.sh verify-v370-limited-safe-execution-pilot
+./server.sh verify-v370-outcome-reconciliation
+./server.sh verify-v370-export-handoff-bundle
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+./server.sh verify-script-inventory
+git diff --check
+```
+
 ## v3.5.0 local readiness gate records
 
 v3.5.0 stabilization/release readiness는
