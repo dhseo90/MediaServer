@@ -79,13 +79,13 @@ Product UI → Field/Execution → Release 순서로 진행합니다.
 | 12 | v3.7.0 (12) Client Notice by Site/View Group | P1 | 완료 | site/view group 기준 viewer-safe notice preview와 delivery queue 경계 준비 |
 | 13 | v3.7.0 (13) Rule/VA What-if by Site | P1 | 완료 | `/ops/api/site-operations/rule-va-what-if-by-site`와 `/ops` dashboard에서 site 영향, EventRecord aggregate, VA fixture 기반 rule threshold/scenario 후보를 read-only로 비교 |
 | 14 | v3.7.0 (14) Field Evidence Attachment | P2 | 완료 | `/ops/api/site-operations/field-evidence-attachment`와 `/ops` dashboard에서 ONVIF, external WHEP/TURN, cloud/VLM 조건부 evidence를 site/runbook에 not-run/conditional로 첨부 |
-| 15 | v3.7.0 (15) Limited Safe Execution Pilot | P2 | 미진행 | 낮은 위험 action만 approval-gated 실행 파일럿으로 분리 |
+| 15 | v3.7.0 (15) Limited Safe Execution Pilot | P2 | 완료 | `/ops/api/site-operations/limited-safe-execution-pilot`와 `/ops` dashboard에서 source recheck 또는 notice queue 후보를 approval-gated execution preview로 분리 |
 | 16 | v3.7.0 (16) Outcome Reconciliation | P2 | 미진행 | 실행 전 simulation과 실행 후 source/event/client impact diff 비교 |
 | 17 | v3.7.0 (17) Export / Handoff Bundle | P1 | 미진행 | site/runbook/evidence/approval/outcome을 redacted release-safe bundle로 조합 |
 | 18 | v3.7.0 (18) Stabilization and Release Readiness | P0 | 미진행 | v3.7 local verifier suite, inventory, release records, close-out dry-run, `git diff --check` 연결 |
 
-완료 경계: 위 표는 v3.7.0 개발 순서와 우선순위입니다. 현재 Step 1~14는 Foundation/Intelligence/Workflow/Product UI/Field
-local source gate 범위이며, Step 15~18은 개발 전 roadmap 항목입니다. 각 step은 실제 코드/API/UI/문서
+완료 경계: 위 표는 v3.7.0 개발 순서와 우선순위입니다. 현재 Step 1~15는 Foundation/Intelligence/Workflow/Product UI/Field
+local source gate 범위이며, Step 16~18은 개발 전 roadmap 항목입니다. 각 step은 실제 코드/API/UI/문서
 변경, 기능 ID/test inventory 등록, 해당 verifier와 release test record evidence가 생긴 뒤에만
 완료로 기록합니다. UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release
 action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁니다.
@@ -246,6 +246,18 @@ action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁�
 - verifier: `scripts/internal/verify_v370_field_evidence_attachment.mjs`, `./server.sh verify-v370-field-evidence-attachment`, `docs/project-feature-test-inventory.md`의 `UI-098`, `SRC-060`, `MEDIA-025`, `LAB-107`, `SAFE-175`, `OPS-142`를 추가했습니다.
 - 검증: 최초 `node scripts/internal/verify_v370_field_evidence_attachment.mjs`는 Field Evidence Attachment model, route, dashboard shell, CSS, final backlog 기록, server dispatch가 아직 없어 `pass=1 fail=8`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 14 결과 행에 기록합니다.
 - 완료 경계: Step 14는 Ops-only Field Evidence Attachment API/UI/verifier 연결입니다. Limited Safe Execution Pilot 완료 evidence가 아닙니다. Outcome Reconciliation, Export/Handoff Bundle, Stabilization and Release Readiness 완료 evidence도 아닙니다. UI 풀테스트 직접 조작, 30분/120분, field smoke, endpoint/provider 실행, source/view/runbook/approval/EventRecord write, media mutation, published metadata, release action evidence가 아닙니다.
+
+## v3.7.0 Step 15 개발 기록
+
+- 범위: P2 `v3.7.0 (15) Limited Safe Execution Pilot`.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/site-operations/limited-safe-execution-pilot` GET route와 `OpsV370LimitedSafeExecutionPilotJson`, `BuildV370LimitedSafeExecutionPilotActions`, `BuildV370LimitedSafeExecutionPilotSummary`를 추가했습니다. v3.7 runbook instance ledger, approval ticket workflow, field evidence attachment, client notice by site/view group refs를 조합해 source recheck 또는 notice queue pilot 후보를 lowest-risk approval-gated preview로 산출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `AppendOpsDashboardPage` 안에 `ops-site-limited-safe-execution-pilot-workspace` section을 추가했고, `dashSiteLimitedSafeExecutionPilotBadges`, `dashSiteLimitedSafeExecutionPilotText`, `dashSiteLimitedSafeExecutionPilotList`, `dashSiteLimitedSafeExecutionPilotGateList`, `dashSiteLimitedSafeExecutionPilotBoundary` control을 배치했습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV370LimitedSafeExecutionPilot`, `refreshV370LimitedSafeExecutionPilot`, `v370LimitedSafeExecutionPilotEntry`를 추가해 `/ops/api/site-operations/limited-safe-execution-pilot`의 `limitedSafeExecutionPilotActions`와 `limitedSafeExecutionPilotSummary`를 pilot candidate, approval gate, execution request preview, idempotency key로 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `.ops-site-limited-safe-execution-pilot-workspace`, `.ops-site-limited-safe-execution-pilot-grid`, `.ops-site-limited-safe-execution-pilot-list`, `.ops-site-limited-safe-execution-pilot-entry`, `.ops-site-limited-safe-execution-pilot-boundary` 스타일을 추가해 기존 site workspace와 같은 responsive density, wrapping, boundary 패턴을 사용합니다.
+- boundary: pilot execution, source recheck 실행, notice queue write/send, runbook/approval write, source/view/EventRecord/Ops audit/client/media mutation, raw locator/credential/operator material 노출을 수행하지 않습니다.
+- verifier: `scripts/internal/verify_v370_limited_safe_execution_pilot.mjs`, `./server.sh verify-v370-limited-safe-execution-pilot`, `docs/project-feature-test-inventory.md`의 `UI-099`, `SRC-061`, `CLIENT-038`, `LAB-108`, `SAFE-176`, `OPS-143`을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v370_limited_safe_execution_pilot.mjs`는 Limited Safe Execution Pilot model, route, dashboard shell, CSS, final backlog 기록, server dispatch가 아직 없어 `pass=1 fail=8`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 15 결과 행에 기록합니다.
+- 완료 경계: Step 15는 Ops-only Limited Safe Execution Pilot API/UI/verifier 연결입니다. Outcome Reconciliation 완료 evidence가 아닙니다. Export/Handoff Bundle, Stabilization and Release Readiness 완료 evidence도 아닙니다. UI 풀테스트 직접 조작, 30분/120분, source recheck 실행, notice queue write/send, source/view/runbook/approval/EventRecord write, media mutation, published metadata, release action evidence가 아닙니다.
 
 ## 최신 공개 기준: v3.6.0 Operations Simulation and Safe Apply Readiness
 

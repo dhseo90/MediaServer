@@ -1049,6 +1049,82 @@ void AppendOpsShellScript(std::ostringstream& out,
         ]);
         renderV360OpsSimulationWorkspace({ inputPack, simulationRun, simulationRunLedger, clientNoticePreview, ruleVaWhatIfReplayPack, simulationExportBundle, fieldEvidenceSimulationAdapter, vlmAssistedSimulationExplanation, dryRun, impactDiff, readiness, inputPackRoute, runContractRoute, simulationRunLedgerRoute, clientNoticePreviewRoute, ruleVaWhatIfReplayRoute, simulationExportBundleRoute, fieldEvidenceSimulationAdapterRoute, vlmAssistedSimulationExplanationRoute, dryRunRoute, impactDiffRoute, readinessRoute });
       };
+      let v370LimitedSafeExecutionPilotState = {};
+      const v370LimitedSafeExecutionPilotList = value => Array.isArray(value) ? value : [];
+      const v370LimitedSafeExecutionPilotEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-site-limited-safe-execution-pilot-entry ${escapeHtml(tone)}" data-v370-limited-safe-execution-pilot-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV370LimitedSafeExecutionPilot = (payload = {}) => {
+        const pilot = payload.pilot || {};
+        const limitedSafeExecutionPilotActions =
+          v370LimitedSafeExecutionPilotList(pilot.limitedSafeExecutionPilotActions);
+        const limitedSafeExecutionPilotSummary =
+          pilot.limitedSafeExecutionPilotSummary || {};
+        const boundaryOk =
+          pilot.boundaries?.pilotExecutionPerformed === false &&
+          pilot.boundaries?.sourceRecheckExecuted === false &&
+          pilot.boundaries?.noticeQueueWritePerformed === false &&
+          pilot.boundaries?.clientNoticeSent === false &&
+          pilot.boundaries?.sourceRegistryWritePerformed === false &&
+          pilot.boundaries?.runbookInstancePersisted === false &&
+          pilot.boundaries?.approvalTicketWritePerformed === false &&
+          pilot.boundaries?.rtspOrWebrtcMediaPathChanged === false;
+        v370LimitedSafeExecutionPilotState = {
+          pilot,
+          limitedSafeExecutionPilotRoute: payload.limitedSafeExecutionPilotRoute || '/ops/api/site-operations/limited-safe-execution-pilot'
+        };
+        renderBadges('dashSiteLimitedSafeExecutionPilotBadges', [
+          { text: `pilot ${limitedSafeExecutionPilotActions.length}` },
+          { text: `source recheck ${limitedSafeExecutionPilotSummary.sourceRecheckPilotCount ?? 0}` },
+          { text: `notice queue ${limitedSafeExecutionPilotSummary.noticeQueuePilotCount ?? 0}` },
+          { text: `approval gated ${limitedSafeExecutionPilotSummary.approvalGatedCount ?? 0}` },
+          { text: `not-run ${limitedSafeExecutionPilotSummary.notRunCount ?? 0}` },
+          { text: boundaryOk ? 'preview only' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashSiteLimitedSafeExecutionPilotText',
+          payload.error
+            ? `Limited Safe Execution Pilot 로드 실패: ${payload.error}`
+            : `candidate ${limitedSafeExecutionPilotActions.length} · ready ${limitedSafeExecutionPilotSummary.readyToPilotCount ?? 0} · blocked ${limitedSafeExecutionPilotSummary.blockedCount ?? 0}`);
+        const pilotList = document.getElementById('dashSiteLimitedSafeExecutionPilotList');
+        if (pilotList) {
+          pilotList.innerHTML = limitedSafeExecutionPilotActions.length > 0
+            ? limitedSafeExecutionPilotActions.slice(0, 8).map(item =>
+                v370LimitedSafeExecutionPilotEntry(
+                  item.pilotActionId || item.actionKind || 'limitedSafeExecutionPilot',
+                  `${item.siteId || 'site'} / ${item.sourceGroup || 'source group'} / ${item.actionKind || 'actionKind'}`,
+                  `${item.sourceRecheckRef || 'sourceRecheckRef'} · ${item.noticeQueueRef || 'noticeQueueRef'}`,
+                  `approval=${display(item.approvalGateState || 'hold')} · status=${display(item.pilotExecutionStatus || 'approval-gated-not-run')} · key=${display(item.idempotencyKey || '-')}`,
+                  item.pilotExecutionStatus === 'approval-gated-ready' ? '' : 'warn'))
+              .join('')
+            : '<div class="empty">Limited Safe Execution Pilot 후보가 아직 없습니다.</div>';
+        }
+        const gateList = document.getElementById('dashSiteLimitedSafeExecutionPilotGateList');
+        if (gateList) {
+          gateList.innerHTML = limitedSafeExecutionPilotActions.length > 0
+            ? limitedSafeExecutionPilotActions.slice(0, 8).map(item => {
+                const blockerRefs = v370LimitedSafeExecutionPilotList(item.blockerRefs).slice(0, 3).join(', ') || 'none';
+                const evidenceRefs = v370LimitedSafeExecutionPilotList(item.evidenceRefs).slice(0, 3).join(', ') || 'evidence refs pending';
+                return v370LimitedSafeExecutionPilotEntry(
+                  item.approvalTicketId || 'approvalTicketId',
+                  item.executionRequestPreview || 'executionRequestPreview',
+                  `expectedOutcome=${display(item.expectedOutcomeRef || 'not-run')}`,
+                  `blockerRefs=${blockerRefs} · evidenceRefs=${evidenceRefs}`,
+                  item.approvalGateState === 'approval-gated-ready' ? '' : 'warn');
+              }).join('')
+            : '<div class="empty">approval gate preview 항목이 아직 없습니다.</div>';
+        }
+        setText('dashSiteLimitedSafeExecutionPilotBoundary',
+          `pilot=${display(v370LimitedSafeExecutionPilotState.limitedSafeExecutionPilotRoute)} · runbook=${display(pilot.runbookInstanceLedgerRoute)} · approval=${display(pilot.approvalTicketWorkflowRoute)} · fieldAttachment=${display(pilot.fieldEvidenceAttachmentRoute)} · notice=${display(pilot.clientNoticeBySiteViewGroupRoute)} · pilotExecutionPerformed=${pilot.boundaries?.pilotExecutionPerformed === false ? 'false' : '확인 필요'} · sourceRecheckExecuted=${pilot.boundaries?.sourceRecheckExecuted === false ? 'false' : '확인 필요'} · noticeQueueWritePerformed=${pilot.boundaries?.noticeQueueWritePerformed === false ? 'false' : '확인 필요'} · clientNoticeSent=${pilot.boundaries?.clientNoticeSent === false ? 'false' : '확인 필요'} · runbookInstancePersisted=${pilot.boundaries?.runbookInstancePersisted === false ? 'false' : '확인 필요'} · approvalTicketWritePerformed=${pilot.boundaries?.approvalTicketWritePerformed === false ? 'false' : '확인 필요'} · rtspOrWebrtcMediaPathChanged=${pilot.boundaries?.rtspOrWebrtcMediaPathChanged === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV370LimitedSafeExecutionPilot = async ({
+        limitedSafeExecutionPilotRoute = '/ops/api/site-operations/limited-safe-execution-pilot'
+      } = {}) => {
+        const pilot = await requestJson(limitedSafeExecutionPilotRoute);
+        renderV370LimitedSafeExecutionPilot({ pilot, limitedSafeExecutionPilotRoute });
+      };
       let v370FieldEvidenceAttachmentState = {};
       const v370FieldEvidenceAttachmentList = value => Array.isArray(value) ? value : [];
       const v370FieldEvidenceAttachmentEntry = (kind, title, detail, meta, tone = '') =>
@@ -2393,6 +2469,9 @@ void AppendOpsShellScript(std::ostringstream& out,
         await refreshV370FieldEvidenceAttachment({
           fieldEvidenceAttachmentRoute: '/ops/api/site-operations/field-evidence-attachment'
         }).catch(error => renderV370FieldEvidenceAttachment({ error: error.message }));
+        await refreshV370LimitedSafeExecutionPilot({
+          limitedSafeExecutionPilotRoute: '/ops/api/site-operations/limited-safe-execution-pilot'
+        }).catch(error => renderV370LimitedSafeExecutionPilot({ error: error.message }));
         await refreshV370ClientNoticeBySiteViewGroup({
           noticeRoute: '/ops/api/site-operations/client-notice-by-site-view-group'
         }).catch(error => renderV370ClientNoticeBySiteViewGroup({ error: error.message }));

@@ -2998,6 +2998,33 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           fieldSmokeExecuted=false · endpointProbePerformed=false · providerCallPerformed=false · media mutation=false
         </div>
       </section>
+      <section class="section-card ops-workspace-wide ops-site-limited-safe-execution-pilot-workspace" data-testid="ops-site-limited-safe-execution-pilot-workspace" data-v370-limited-safe-execution-pilot="media-server.ops.v370-limited-safe-execution-pilot.v1">
+        <div class="toolbar">
+          <div>
+            <h3>Limited Safe Execution Pilot</h3>
+            <p>source recheck 또는 notice queue 후보만 approval-gated preview로 분리하고 실제 실행은 하지 않습니다.</p>
+          </div>
+        </div>
+        <div id="dashSiteLimitedSafeExecutionPilotBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashSiteLimitedSafeExecutionPilotText">limited safe execution pilot 후보를 불러오는 중입니다.</p>
+        <div class="grid ops-site-limited-safe-execution-pilot-grid">
+          <div>
+            <h4>Pilot Candidates</h4>
+            <div id="dashSiteLimitedSafeExecutionPilotList" class="ops-site-limited-safe-execution-pilot-list">
+              <div class="empty">approval-gated pilot 후보를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Approval Gates</h4>
+            <div id="dashSiteLimitedSafeExecutionPilotGateList" class="ops-site-limited-safe-execution-pilot-list">
+              <div class="empty">approval gate preview를 기다립니다.</div>
+            </div>
+          </div>
+        </div>
+        <div id="dashSiteLimitedSafeExecutionPilotBoundary" class="ops-site-limited-safe-execution-pilot-boundary">
+          pilotExecutionPerformed=false · sourceRecheckExecuted=false · noticeQueueWritePerformed=false · clientNoticeSent=false
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide" data-testid="ops-runtime-operations-console">
         <div class="toolbar">
           <div>
@@ -23226,6 +23253,437 @@ std::string OpsV370ClientNoticeBySiteViewGroupJson(
     return out.str();
 }
 
+struct OpsV370LimitedSafeExecutionPilotAction {
+    std::string pilot_action_id;
+    std::string site_id;
+    std::string source_group;
+    std::string source_id;
+    std::string action_kind;
+    std::string action_label;
+    std::string approval_ticket_id;
+    std::string runbook_id;
+    std::string source_recheck_ref;
+    std::string notice_queue_ref;
+    std::string pilot_execution_status{"approval-gated-not-run"};
+    std::string approval_gate_state{"hold"};
+    std::string execution_request_preview;
+    std::string idempotency_key;
+    std::string expected_outcome_ref;
+    std::vector<std::string> blocker_refs;
+    std::vector<std::string> evidence_refs;
+    bool lowest_risk{true};
+    bool approval_gated{true};
+    bool read_only{true};
+};
+
+struct OpsV370LimitedSafeExecutionPilotSummary {
+    int action_count{0};
+    int source_recheck_pilot_count{0};
+    int notice_queue_pilot_count{0};
+    int approval_gated_count{0};
+    int ready_to_pilot_count{0};
+    int not_run_count{0};
+    int blocked_count{0};
+    std::vector<std::string> derivation_sources;
+};
+
+const OpsV370ApprovalTicketWorkflowItem* V370ApprovalTicketForPilot(
+    const std::vector<OpsV370ApprovalTicketWorkflowItem>& approvalTicketWorkflowItems,
+    const std::string& runbook_id) {
+    const auto it =
+        std::find_if(approvalTicketWorkflowItems.begin(),
+                     approvalTicketWorkflowItems.end(),
+                     [&](const auto& item) { return item.runbook_id == runbook_id; });
+    if (it != approvalTicketWorkflowItems.end()) {
+        return &*it;
+    }
+    return approvalTicketWorkflowItems.empty() ? nullptr : &approvalTicketWorkflowItems.front();
+}
+
+const OpsV370ClientNoticeBySiteViewGroupItem* V370NoticeQueuePilotForScope(
+    const std::vector<OpsV370ClientNoticeBySiteViewGroupItem>& noticeItems,
+    const std::string& site_id,
+    const std::string& source_group) {
+    const auto it =
+        std::find_if(noticeItems.begin(),
+                     noticeItems.end(),
+                     [&](const auto& item) {
+                         return item.site_id == site_id && item.source_group == source_group;
+                     });
+    return it == noticeItems.end() ? nullptr : &*it;
+}
+
+const OpsV370FieldEvidenceAttachmentItem* V370FieldAttachmentForScope(
+    const std::vector<OpsV370FieldEvidenceAttachmentItem>& attachments,
+    const std::string& site_id,
+    const std::string& source_group) {
+    const auto it =
+        std::find_if(attachments.begin(),
+                     attachments.end(),
+                     [&](const auto& item) {
+                         return item.site_id == site_id && item.source_group == source_group;
+                     });
+    return it == attachments.end() ? nullptr : &*it;
+}
+
+std::string V370LimitedSafePilotGateState(
+    const OpsV370ApprovalTicketWorkflowItem* approval,
+    const OpsV370RunbookInstanceLedgerEntry& runbook) {
+    if (approval != nullptr && approval->status == "approval" && runbook.status == "ready") {
+        return "approval-gated-ready";
+    }
+    if (approval != nullptr && approval->status == "approval") {
+        return "approval-gated-review";
+    }
+    if (approval != nullptr && approval->status == "field-needed") {
+        return "field-needed";
+    }
+    return "hold";
+}
+
+std::vector<OpsV370LimitedSafeExecutionPilotAction>
+BuildV370LimitedSafeExecutionPilotActions(
+    const std::vector<OpsV370RunbookInstanceLedgerEntry>& runbookInstanceLedgerEntries,
+    const std::vector<OpsV370ApprovalTicketWorkflowItem>& approvalTicketWorkflowItems,
+    const std::vector<OpsV370FieldEvidenceAttachmentItem>& fieldEvidenceAttachments,
+    const std::vector<OpsV370ClientNoticeBySiteViewGroupItem>& noticeItems) {
+    std::vector<OpsV370LimitedSafeExecutionPilotAction> actions;
+    int index = 0;
+    for (const auto& runbook : runbookInstanceLedgerEntries) {
+        const auto* approval =
+            V370ApprovalTicketForPilot(approvalTicketWorkflowItems, runbook.runbook_id);
+        const auto* attachment =
+            V370FieldAttachmentForScope(fieldEvidenceAttachments, runbook.site_id, runbook.source_group);
+        const auto* notice =
+            V370NoticeQueuePilotForScope(noticeItems, runbook.site_id, runbook.source_group);
+
+        OpsV370LimitedSafeExecutionPilotAction source_action;
+        source_action.pilot_action_id =
+            "limitedSafeExecutionPilot:" + runbook.site_id + ":" + runbook.source_group +
+            ":source-recheck:" + std::to_string(index + 1);
+        source_action.site_id = runbook.site_id;
+        source_action.source_group = runbook.source_group;
+        source_action.source_id = attachment == nullptr ? "pending-source" : attachment->source_id;
+        source_action.action_kind = "source-recheck-pilot";
+        source_action.action_label = "Approval-gated source recheck pilot";
+        source_action.approval_ticket_id =
+            approval == nullptr ? "approval-ticket:pending" : approval->approval_ticket_id;
+        source_action.runbook_id = runbook.runbook_id;
+        source_action.source_recheck_ref =
+            "sourceRecheckRef:" + source_action.site_id + ":" + source_action.source_group +
+            ":" + source_action.source_id;
+        source_action.notice_queue_ref = "noticeQueueRef:not-selected";
+        source_action.approval_gate_state =
+            V370LimitedSafePilotGateState(approval, runbook);
+        source_action.pilot_execution_status =
+            source_action.approval_gate_state == "approval-gated-ready"
+                ? "approval-gated-ready"
+                : "approval-gated-not-run";
+        source_action.execution_request_preview =
+            "executionRequestPreview: source recheck only after approval; no request is executed by this read model";
+        source_action.idempotency_key =
+            "idempotencyKey:" + source_action.pilot_action_id + ":preview";
+        source_action.expected_outcome_ref =
+            "expectedOutcomeRef: source-health-recheck-result:not-run";
+        source_action.blocker_refs = runbook.status_history;
+        source_action.evidence_refs = runbook.evidence_refs;
+        source_action.evidence_refs.push_back("/ops/api/site-operations/runbook-instance-ledger");
+        source_action.evidence_refs.push_back("/ops/api/site-operations/approval-ticket-workflow");
+        source_action.evidence_refs.push_back("/ops/api/site-operations/field-evidence-attachment");
+        if (attachment != nullptr) {
+            source_action.evidence_refs.push_back(attachment->field_evidence_attachment_id);
+        }
+        actions.push_back(std::move(source_action));
+
+        if (notice != nullptr) {
+            OpsV370LimitedSafeExecutionPilotAction notice_action;
+            notice_action.pilot_action_id =
+                "limitedSafeExecutionPilot:" + notice->site_id + ":" + notice->source_group +
+                ":notice-queue:" + std::to_string(index + 1);
+            notice_action.site_id = notice->site_id;
+            notice_action.source_group = notice->source_group;
+            notice_action.source_id = attachment == nullptr ? "pending-source" : attachment->source_id;
+            notice_action.action_kind = "notice-queue-pilot";
+            notice_action.action_label = "Approval-gated notice queue pilot";
+            notice_action.approval_ticket_id =
+                approval == nullptr ? "approval-ticket:pending" : approval->approval_ticket_id;
+            notice_action.runbook_id = runbook.runbook_id;
+            notice_action.source_recheck_ref = "sourceRecheckRef:not-selected";
+            notice_action.notice_queue_ref =
+                "noticeQueueRef:" + notice->notice_preview_id + ":preview-only";
+            notice_action.approval_gate_state =
+                V370LimitedSafePilotGateState(approval, runbook);
+            notice_action.pilot_execution_status = "approval-gated-not-run";
+            notice_action.execution_request_preview =
+                "executionRequestPreview: notice queue preview only; no send or queue write is performed";
+            notice_action.idempotency_key =
+                "idempotencyKey:" + notice_action.pilot_action_id + ":preview";
+            notice_action.expected_outcome_ref =
+                "expectedOutcomeRef: notice-queue-delivery:not-run";
+            notice_action.blocker_refs = {notice->delivery_queue_state, notice->delivery_state};
+            notice_action.evidence_refs = notice->evidence_refs;
+            notice_action.evidence_refs.push_back("/ops/api/site-operations/client-notice-by-site-view-group");
+            notice_action.evidence_refs.push_back("/ops/api/site-operations/approval-ticket-workflow");
+            actions.push_back(std::move(notice_action));
+        }
+
+        ++index;
+        if (actions.size() >= 24U) {
+            break;
+        }
+    }
+
+    if (actions.empty()) {
+        OpsV370LimitedSafeExecutionPilotAction action;
+        action.pilot_action_id = "limitedSafeExecutionPilot:pending";
+        action.site_id = "unassigned-site";
+        action.source_group = "unassigned-source-group";
+        action.source_id = "pending-source";
+        action.action_kind = "source-recheck-pilot";
+        action.action_label = "Approval-gated source recheck pilot";
+        action.approval_ticket_id = "approval-ticket:pending";
+        action.runbook_id = "runbook:pending";
+        action.source_recheck_ref = "sourceRecheckRef:pending";
+        action.notice_queue_ref = "noticeQueueRef:not-selected";
+        action.execution_request_preview =
+            "executionRequestPreview: no eligible runbook candidate exists; not-run";
+        action.idempotency_key = "idempotencyKey:pending:preview";
+        action.expected_outcome_ref = "expectedOutcomeRef:pending:not-run";
+        action.blocker_refs = {"runbook-ledger-empty"};
+        action.evidence_refs = {
+            "/ops/api/site-operations/runbook-instance-ledger",
+            "/ops/api/site-operations/approval-ticket-workflow",
+        };
+        actions.push_back(std::move(action));
+    }
+    return actions;
+}
+
+OpsV370LimitedSafeExecutionPilotSummary BuildV370LimitedSafeExecutionPilotSummary(
+    const std::vector<OpsV370LimitedSafeExecutionPilotAction>& actions) {
+    OpsV370LimitedSafeExecutionPilotSummary summary;
+    summary.derivation_sources = {
+        "BuildV370RunbookInstanceLedgerEntries",
+        "BuildV370ApprovalTicketWorkflowItems",
+        "BuildV370FieldEvidenceAttachmentItems",
+        "BuildV370ClientNoticeBySiteViewGroupItems",
+    };
+    summary.action_count = static_cast<int>(actions.size());
+    for (const auto& action : actions) {
+        if (action.action_kind == "source-recheck-pilot") {
+            ++summary.source_recheck_pilot_count;
+        } else if (action.action_kind == "notice-queue-pilot") {
+            ++summary.notice_queue_pilot_count;
+        }
+        if (action.approval_gated) {
+            ++summary.approval_gated_count;
+        }
+        if (action.pilot_execution_status == "approval-gated-ready") {
+            ++summary.ready_to_pilot_count;
+        } else {
+            ++summary.not_run_count;
+        }
+        if (action.approval_gate_state == "hold" ||
+            action.approval_gate_state == "field-needed") {
+            ++summary.blocked_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV370LimitedSafeExecutionPilotSummaryJson(
+    std::ostringstream& out,
+    const OpsV370LimitedSafeExecutionPilotSummary& summary) {
+    out << "{"
+        << "\"actionCount\":" << summary.action_count << ","
+        << "\"sourceRecheckPilotCount\":" << summary.source_recheck_pilot_count << ","
+        << "\"noticeQueuePilotCount\":" << summary.notice_queue_pilot_count << ","
+        << "\"approvalGatedCount\":" << summary.approval_gated_count << ","
+        << "\"readyToPilotCount\":" << summary.ready_to_pilot_count << ","
+        << "\"notRunCount\":" << summary.not_run_count << ","
+        << "\"blockedCount\":" << summary.blocked_count << ","
+        << "\"derivationSources\":";
+    AppendJsonStringArray(out, summary.derivation_sources);
+    out << "}";
+}
+
+void AppendV370LimitedSafeExecutionPilotActionJson(
+    std::ostringstream& out,
+    const OpsV370LimitedSafeExecutionPilotAction& action) {
+    out << "{"
+        << "\"pilotActionId\":\"" << JsonEscape(action.pilot_action_id) << "\","
+        << "\"siteId\":\"" << JsonEscape(action.site_id) << "\","
+        << "\"sourceGroup\":\"" << JsonEscape(action.source_group) << "\","
+        << "\"sourceId\":\"" << JsonEscape(action.source_id) << "\","
+        << "\"actionKind\":\"" << JsonEscape(action.action_kind) << "\","
+        << "\"actionLabel\":\"" << JsonEscape(action.action_label) << "\","
+        << "\"approvalTicketId\":\"" << JsonEscape(action.approval_ticket_id) << "\","
+        << "\"runbookId\":\"" << JsonEscape(action.runbook_id) << "\","
+        << "\"sourceRecheckRef\":\"" << JsonEscape(action.source_recheck_ref) << "\","
+        << "\"noticeQueueRef\":\"" << JsonEscape(action.notice_queue_ref) << "\","
+        << "\"pilotExecutionStatus\":\"" << JsonEscape(action.pilot_execution_status) << "\","
+        << "\"approvalGateState\":\"" << JsonEscape(action.approval_gate_state) << "\","
+        << "\"executionRequestPreview\":\"" << JsonEscape(action.execution_request_preview) << "\","
+        << "\"idempotencyKey\":\"" << JsonEscape(action.idempotency_key) << "\","
+        << "\"expectedOutcomeRef\":\"" << JsonEscape(action.expected_outcome_ref) << "\","
+        << "\"blockerRefs\":";
+    AppendJsonStringArray(out, action.blocker_refs);
+    out << ",\"evidenceRefs\":";
+    AppendJsonStringArray(out, action.evidence_refs);
+    out << ",\"lowestRisk\":" << JsonBool(action.lowest_risk)
+        << ",\"approvalGated\":" << JsonBool(action.approval_gated)
+        << ",\"readOnly\":" << JsonBool(action.read_only)
+        << "}";
+}
+
+std::string OpsV370LimitedSafeExecutionPilotJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v370-limited-safe-execution-pilot.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto dryRunResults = BuildV360CommandPlanDryRunResults(commandPlanCandidates);
+    const auto impactDiffs =
+        BuildV360SourceRuleImpactDiffs(context, commandPlanCandidates, stagedChangePlans);
+    const auto readinessItems = BuildV360SafeApplyReadinessItems(dryRunResults, impactDiffs);
+    const auto v360InputPackItems =
+        BuildV360SimulationInputPackItems(context, commandPlanCandidates, stagedChangePlans);
+    const auto inputSummary = BuildV360SimulationInputPackSummary(v360InputPackItems);
+    const auto simulationRunContract = BuildV360SimulationRunContract();
+    const auto simulationResultEnvelope = BuildV360SimulationResultEnvelope(inputSummary);
+    const auto simulationRunLedgerEntries =
+        BuildV360SimulationRunLedgerEntries(context,
+                                            v360InputPackItems,
+                                            simulationRunContract,
+                                            simulationResultEnvelope,
+                                            dryRunResults,
+                                            impactDiffs,
+                                            readinessItems);
+    const auto projection =
+        BuildV370SiteAwareSourceRegistryProjectionItems(context.sources, context.views);
+    const auto rollups =
+        BuildV370SiteHealthRollupItems(context.sources, context.views, source_health_snapshot);
+    const auto impactGraphNodes = BuildV370SiteImpactGraphNodes(context, projection, rollups);
+    const auto impactGraphEdges = BuildV370SiteImpactGraphEdges(projection);
+    const auto siteSimulationInputPackItems =
+        BuildV370SiteSimulationInputPackItems(context,
+                                             projection,
+                                             rollups,
+                                             impactGraphNodes,
+                                             impactGraphEdges,
+                                             v360InputPackItems);
+    const auto crossSiteReadinessItems =
+        BuildV370CrossSiteSafeApplyReadinessItems(projection,
+                                                 siteSimulationInputPackItems,
+                                                 readinessItems,
+                                                 impactDiffs);
+    const auto runbookTemplateContractItems =
+        BuildV370RunbookTemplateContractItems(commandPlanCandidates,
+                                             dryRunResults,
+                                             impactDiffs,
+                                             readinessItems,
+                                             projection,
+                                             siteSimulationInputPackItems,
+                                             crossSiteReadinessItems);
+    const auto runbookInstanceLedgerEntries =
+        BuildV370RunbookInstanceLedgerEntries(runbookTemplateContractItems,
+                                             crossSiteReadinessItems,
+                                             simulationRunLedgerEntries);
+    const auto approvalTicketWorkflowItems =
+        BuildV370ApprovalTicketWorkflowItems(runbookTemplateContractItems,
+                                            runbookInstanceLedgerEntries,
+                                            crossSiteReadinessItems);
+    const auto fieldBridgeConditionGates = BuildV340FieldBridgeConditionGates();
+    const auto fieldEvidenceIntakeRecords =
+        BuildV350FieldEvidenceIntakeRecords(fieldBridgeConditionGates);
+    const auto fieldEvidenceExecutionConditions =
+        BuildV350FieldEvidenceExecutionConditions(fieldEvidenceIntakeRecords);
+    const auto fieldEvidenceAttachments =
+        BuildV370FieldEvidenceAttachmentItems(projection,
+                                             siteSimulationInputPackItems,
+                                             runbookInstanceLedgerEntries,
+                                             approvalTicketWorkflowItems,
+                                             fieldEvidenceIntakeRecords,
+                                             fieldEvidenceExecutionConditions);
+    const auto noticeItems = BuildV370ClientNoticeBySiteViewGroupItems(
+        projection,
+        rollups,
+        impactGraphNodes,
+        runbookInstanceLedgerEntries,
+        approvalTicketWorkflowItems);
+    const auto actions =
+        BuildV370LimitedSafeExecutionPilotActions(runbookInstanceLedgerEntries,
+                                                 approvalTicketWorkflowItems,
+                                                 fieldEvidenceAttachments,
+                                                 noticeItems);
+    const auto summary = BuildV370LimitedSafeExecutionPilotSummary(actions);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v370-limited-safe-execution-pilot.v1\","
+        << "\"status\":\"limited-safe-execution-pilot\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"runbookInstanceLedgerRoute\":\"/ops/api/site-operations/runbook-instance-ledger\","
+        << "\"approvalTicketWorkflowRoute\":\"/ops/api/site-operations/approval-ticket-workflow\","
+        << "\"fieldEvidenceAttachmentRoute\":\"/ops/api/site-operations/field-evidence-attachment\","
+        << "\"clientNoticeBySiteViewGroupRoute\":\"/ops/api/site-operations/client-notice-by-site-view-group\","
+        << "\"lowestRiskOnly\":true,"
+        << "\"approvalGateRequired\":true,"
+        << "\"limitedSafeExecutionPilotSummary\":";
+    AppendV370LimitedSafeExecutionPilotSummaryJson(out, summary);
+    out << ",\"limitedSafeExecutionPilotActions\":[";
+    for (std::size_t i = 0; i < actions.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV370LimitedSafeExecutionPilotActionJson(out, actions[i]);
+    }
+    out << "],\"executionPilotPolicy\":{"
+        << "\"allowedActionKinds\":[\"source-recheck-pilot\",\"notice-queue-pilot\"],"
+        << "\"approvalGateRequired\":true,"
+        << "\"lowestRiskOnly\":true,"
+        << "\"executionRequestPreview\":\"preview-only; no command is executed\","
+        << "\"idempotencyKey\":\"required before any future execution endpoint\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"executionPilotOnly\":true,"
+        << "\"lowestRiskOnly\":true,"
+        << "\"approvalGateRequired\":true,"
+        << "\"pilotExecutionPerformed\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"runbookInstancePersisted\":false,"
+        << "\"approvalTicketWritePerformed\":false,"
+        << "\"approvalDecisionPersisted\":false,"
+        << "\"operatorNoteWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"fieldSmokeExecuted\":false,"
+        << "\"endpointProbePerformed\":false,"
+        << "\"providerCallPerformed\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"operatorMaterialIncluded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 struct OpsV360RuleVaWhatIfReplayCandidate {
     std::string what_if_replay_id;
     std::string event_record_ref;
@@ -33726,6 +34184,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV370FieldEvidenceAttachmentJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/site-operations/limited-safe-execution-pilot") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV370LimitedSafeExecutionPilotJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

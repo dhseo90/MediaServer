@@ -647,6 +647,10 @@ std::string ProductUiCss() {
       display: grid;
       gap: var(--space-3);
     }
+    body.ops-shell .ops-site-limited-safe-execution-pilot-workspace {
+      display: grid;
+      gap: var(--space-3);
+    }
     body.ops-shell .ops-command-workspace .ops-command-workspace-detail-grid {
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: var(--space-3);
@@ -671,6 +675,10 @@ std::string ProductUiCss() {
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: var(--space-3);
     }
+    body.ops-shell .ops-site-limited-safe-execution-pilot-workspace .ops-site-limited-safe-execution-pilot-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--space-3);
+    }
     body.ops-shell .ops-command-workspace .ops-command-ledger-list,
     body.ops-shell .ops-command-workspace .ops-export-bundle-list,
     body.ops-shell .ops-command-workspace .ops-handoff-map-list,
@@ -687,7 +695,8 @@ std::string ProductUiCss() {
     body.ops-shell .ops-site-operations-workspace .ops-site-operations-list,
     body.ops-shell .ops-site-client-notice-workspace .ops-site-client-notice-list,
     body.ops-shell .ops-site-rule-va-what-if-workspace .ops-site-rule-va-what-if-list,
-    body.ops-shell .ops-site-field-evidence-attachment-workspace .ops-site-field-evidence-attachment-list {
+    body.ops-shell .ops-site-field-evidence-attachment-workspace .ops-site-field-evidence-attachment-list,
+    body.ops-shell .ops-site-limited-safe-execution-pilot-workspace .ops-site-limited-safe-execution-pilot-list {
       min-width: 0;
     }
     body.ops-shell .ops-channels-workspace {
@@ -1267,7 +1276,8 @@ std::string ProductUiCss() {
     .ops-site-operations-list,
     .ops-site-client-notice-list,
     .ops-site-rule-va-what-if-list,
-    .ops-site-field-evidence-attachment-list {
+    .ops-site-field-evidence-attachment-list,
+    .ops-site-limited-safe-execution-pilot-list {
       display: grid;
       gap: var(--space-2);
     }
@@ -1290,7 +1300,8 @@ std::string ProductUiCss() {
     .ops-site-operations-entry,
     .ops-site-client-notice-entry,
     .ops-site-rule-va-what-if-entry,
-    .ops-site-field-evidence-attachment-entry {
+    .ops-site-field-evidence-attachment-entry,
+    .ops-site-limited-safe-execution-pilot-entry {
       min-width: 0;
       margin: 0;
       padding: 11px 12px;
@@ -1348,12 +1359,16 @@ std::string ProductUiCss() {
     .ops-site-field-evidence-attachment-entry strong,
     .ops-site-field-evidence-attachment-entry span,
     .ops-site-field-evidence-attachment-entry small,
+    .ops-site-limited-safe-execution-pilot-entry strong,
+    .ops-site-limited-safe-execution-pilot-entry span,
+    .ops-site-limited-safe-execution-pilot-entry small,
     .ops-command-boundary,
     .ops-simulation-boundary,
     .ops-site-operations-boundary,
     .ops-site-client-notice-boundary,
     .ops-site-rule-va-what-if-boundary,
-    .ops-site-field-evidence-attachment-boundary {
+    .ops-site-field-evidence-attachment-boundary,
+    .ops-site-limited-safe-execution-pilot-boundary {
       min-width: 0;
       overflow-wrap: anywhere;
     }
@@ -1372,7 +1387,8 @@ std::string ProductUiCss() {
     .ops-site-operations-entry strong,
     .ops-site-client-notice-entry strong,
     .ops-site-rule-va-what-if-entry strong,
-    .ops-site-field-evidence-attachment-entry strong {
+    .ops-site-field-evidence-attachment-entry strong,
+    .ops-site-limited-safe-execution-pilot-entry strong {
       font-size: 13px;
       line-height: 1.2;
     }
@@ -1408,12 +1424,15 @@ std::string ProductUiCss() {
     .ops-site-rule-va-what-if-entry small,
     .ops-site-field-evidence-attachment-entry span,
     .ops-site-field-evidence-attachment-entry small,
+    .ops-site-limited-safe-execution-pilot-entry span,
+    .ops-site-limited-safe-execution-pilot-entry small,
     .ops-command-boundary,
     .ops-simulation-boundary,
     .ops-site-operations-boundary,
     .ops-site-client-notice-boundary,
     .ops-site-rule-va-what-if-boundary,
-    .ops-site-field-evidence-attachment-boundary {
+    .ops-site-field-evidence-attachment-boundary,
+    .ops-site-limited-safe-execution-pilot-boundary {
       color: var(--color-muted);
       font-size: 12px;
       line-height: 1.35;
@@ -1427,7 +1446,8 @@ std::string ProductUiCss() {
     .ops-site-operations-entry.warn,
     .ops-site-client-notice-entry.warn,
     .ops-site-rule-va-what-if-entry.warn,
-    .ops-site-field-evidence-attachment-entry.warn {
+    .ops-site-field-evidence-attachment-entry.warn,
+    .ops-site-limited-safe-execution-pilot-entry.warn {
       border-color: color-mix(in srgb, var(--color-warning) 56%, var(--color-border));
     }
     .ops-command-boundary,
@@ -1435,7 +1455,8 @@ std::string ProductUiCss() {
     .ops-site-operations-boundary,
     .ops-site-client-notice-boundary,
     .ops-site-rule-va-what-if-boundary,
-    .ops-site-field-evidence-attachment-boundary {
+    .ops-site-field-evidence-attachment-boundary,
+    .ops-site-limited-safe-execution-pilot-boundary {
       padding: 9px 10px;
       border: 1px dashed var(--color-border);
       border-radius: 8px;

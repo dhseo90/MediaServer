@@ -366,6 +366,8 @@ Usage:
                  v3.7.0 Step 13 Rule/VA What-if by Site no-apply 경계를 검증합니다.
   verify-v370-field-evidence-attachment
                  v3.7.0 Step 14 Field Evidence Attachment conditional/not-run 경계를 검증합니다.
+  verify-v370-limited-safe-execution-pilot
+                 v3.7.0 Step 15 Limited Safe Execution Pilot approval-gated preview 경계를 검증합니다.
   verify-v360-entry-baseline
                  v3.6.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v360-simulation-input-contract
@@ -642,6 +644,8 @@ Usage:
                  v3.7.0 Step 13 Rule/VA What-if by Site no-apply 경계를 검증합니다.
   verify-v370-field-evidence-attachment
                  v3.7.0 Step 14 Field Evidence Attachment conditional/not-run 경계를 검증합니다.
+  verify-v370-limited-safe-execution-pilot
+                 v3.7.0 Step 15 Limited Safe Execution Pilot approval-gated preview 경계를 검증합니다.
   verify-v360-entry-baseline
                  v3.6.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v360-simulation-input-contract
@@ -1764,6 +1768,10 @@ case "${cmd}" in
   verify-v370-field-evidence-attachment)
     require_internal verify_v370_field_evidence_attachment.mjs
     exec "${INTERNAL_DIR}/verify_v370_field_evidence_attachment.mjs" "$@"
+    ;;
+  verify-v370-limited-safe-execution-pilot)
+    require_internal verify_v370_limited_safe_execution_pilot.mjs
+    exec "${INTERNAL_DIR}/verify_v370_limited_safe_execution_pilot.mjs" "$@"
     ;;
   verify-v360-entry-baseline)
     require_internal verify_v360_entry_baseline.mjs
