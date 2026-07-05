@@ -67,12 +67,12 @@ const report = {
 const version = readText("VERSION").trim();
 assert(/^\d+\.\d+\.\d+$/.test(version), `VERSION must be semver, got ${version}`);
 const currentTag = `v${version}`;
-const latestPublishedTag = "v3.6.0";
+const latestPublishedTag = "v3.7.0";
 const latestPublishedVersion = latestPublishedTag.replace(/^v/, "");
 const currentRoadmap = "v3.7.0 Site-Aware Operations and Safe Runbook Control Plane";
-const latestPublishedBaseline = "v3.6.0 Operations Simulation and Safe Apply Readiness";
-const previousPublishedTag = "v3.5.0";
-const previousPublishedBaseline = `${previousPublishedTag} Live Operations Control Plane`;
+const latestPublishedBaseline = "v3.7.0 Site-Aware Operations and Safe Runbook Control Plane";
+const previousPublishedTag = "v3.6.0";
+const previousPublishedBaseline = `${previousPublishedTag} Operations Simulation and Safe Apply Readiness`;
 const githubRepository = resolveGithubRepository();
 const repositoryUrl = `https://github.com/${githubRepository}`;
 const expectedReleaseUrl = `https://github.com/${githubRepository}/releases/tag/${latestPublishedTag}`;
@@ -401,8 +401,8 @@ check("development backlog pins current source roadmap and public release bounda
     "Site Health Rollup",
     "Site Operations Workspace UI",
     "Limited Safe Execution Pilot",
-    `## 최신 공개 기준: ${latestPublishedTag} Operations Simulation and Safe Apply Readiness`,
-    `## v3.5.0 published baseline 상세`,
+    `## 최신 공개 기준: ${latestPublishedTag} Source Release Baseline`,
+    `## 직전 공개 기준: ${previousPublishedTag} Source Release Baseline`,
     "기존 네 영역인 안정화 테스트, 30분 테스트, 120분 테스트, UI 풀테스트",
     `\`${currentTag}\` GitHub Release publish 완료는 tag, GitHub Release, \`verify-release-metadata --published\` evidence가 있을 때만 기록합니다.`,
   ]) {

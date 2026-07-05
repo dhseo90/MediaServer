@@ -336,8 +336,25 @@ v3.7.0 release run evidence는 Step 18 local readiness gate와 분리해 관리�
   evidence 또는 조건부 미실행으로 분리하며 UI PASS로 대체하지 않습니다.
 - 120분 longrun: AGENTS 7.6.2의 직접 진행 조건이 충족되지 않아 조건부 미실행입니다.
   이 항목은 120분 PASS evidence가 아닙니다.
-- PR/main/tag/GitHub Release/published metadata/field smoke는 이 run에서 실행하지 않았고
-  별도 사용자 명시 승인 전 release action evidence가 아닙니다.
+- Release action: PR #58 `v3.7.0 -> main`은 `guardrails`와 `static-gates` PASS 뒤
+  merge commit `09f074c8a69585020d6d03dbd3d048c16957fdac`로 main에 병합했습니다.
+  초기 SSH-signed annotated tag `v3.7.0`은 tag object
+  `3802d41f7f3979556f637251bd6718774659d7c3`, target commit
+  `09f074c8a69585020d6d03dbd3d048c16957fdac`였고 GitHub API tag verification은
+  `verified=true`/`reason=valid`였습니다. GitHub Release는
+  [v3.7.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.7.0)로 생성했습니다.
+  다만 이후 `v3.7.0` published metadata 보정 커밋이 발생하므로 이 초기 tag는 최종
+  v3.7.0 closure evidence가 아니라 initial publication evidence로 보존합니다.
+- Published metadata initial: GitHub Release 생성 직후 `./server.sh verify-release-metadata --published`는
+  GitHub latest/list/view가 실제 `v3.7.0`을 가리키지만 local docs/verifier latest
+  published 기준이 아직 `v3.6.0`이라 `pass=18 fail=3`으로 실패했습니다.
+  제품 runtime/media 회귀가 아니라 publish 이후 metadata 기준 drift입니다.
+- Published metadata correction: README/docs/policy/backlog/UI asset manifest/verifier
+  latest published 기준을 `v3.7.0`으로 정렬하는 보정은 PR/main merge 뒤 corrected commit을
+  포함하도록 `v3.7.0` signed tag를 force-update하고, `./server.sh verify-release-metadata --published`
+  최종 PASS로 닫습니다. 이 보정 전 initial tag/Release는 final closure evidence로 쓰지 않습니다.
+- Field smoke는 이 release run에서 실행하지 않았고 endpoint/credential/실기기/provider 조건이
+  없는 not-run 항목입니다.
 
 ## v3.5.0 local readiness gate records
 
@@ -532,6 +549,8 @@ v3.2.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직
 | 2026-07-05 | v370-release-30min-code-comment-precheck-20260705 | 30분 테스트 | 최초 승인 run은 integrated-smoke `verify-code-comments`가 v3.7 verifier 5개 영어-only 상단 용도 주석을 잡아 실패가 확정됐고 중단했습니다. 해당 5개 파일의 헤더를 한글 `파일 용도` 주석으로 보정한 뒤 `./server.sh verify-code-comments`가 files `529`, missing headers `0`, english-only comments `0`으로 통과했습니다. 이 행은 최종 30분 PASS evidence가 아닙니다 | FAIL | 미집계 | 미집계 | 미집계 | interrupted after code-comment failure diagnosis | command output and release-test-records migration; command-level token split 미집계 | [release-test-records.md](./release-test-records.md) v3.7.0 section |
 | 2026-07-05 | v370-release-30min-20260705 | 30분 테스트 | code comment policy 보정 후 승인된 `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-predev --soak-minutes 30 --rtsp-port 18698 --http-port 18198 ...` 최종 run. summary `status=pass`, `pass=119`, `fail=0`, `skip=1`, `durationSec=2361`, `soakMinutes=30`, `steps=120`. integrated-smoke PASS, 22회 soak iteration, main-runtime-idle, event-post-queue, queue-runtime-idle, ports-clean, summary-report PASS. External TURN hard gate는 요청하지 않아 skip이며 PASS가 아님 | PASS | 미집계 | 미집계 | 미집계 | durationSec 2361 | command summary and preserved report; command-level token split 미집계 | [release-test-records.md](./release-test-records.md) v3.7.0 section, [predev summary](./release-artifacts/v3.7.0/predev-30min-20260705-final/summary.json), [predev report](./release-artifacts/v3.7.0/predev-30min-20260705-final/report.md) |
 | 2026-07-05 | v370-release-120min-conditional-20260705 | 120분 longrun | AGENTS 7.6.2 기준 최신 사용자 지시, v3.7 release policy/roadmap/evidence, 변경 기능 ID, media/runtime/cleanup 변경, 30분 결과 high-risk signal 중 120분을 `진행 대상`으로 끌어오는 직접 근거가 없습니다. 최종 30분은 `fail=0`이고 memory/runtime/cleanup/media-session drift signal을 남기지 않았습니다. 조건부 미실행이며 120분 PASS evidence가 아닙니다 | FAIL | 미집계 | 미집계 | 미집계 | 조건부 미실행 | AGENTS 7.6.2 판정과 project feature inventory/release summary 직접 확인; command-level token split 없음 | [release-test-records.md](./release-test-records.md) v3.7.0 section, [project feature inventory](./project-feature-test-inventory.md) |
+| 2026-07-05 | v370-release-initial-publication-20260705 | release action | PR #58 `v3.7.0 -> main` merge commit `09f074c8a69585020d6d03dbd3d048c16957fdac`, initial signed tag object `3802d41f7f3979556f637251bd6718774659d7c3`, GitHub API verification `verified=true`/`reason=valid`, GitHub Release `https://github.com/dhseo90/MediaServer/releases/tag/v3.7.0`. 이후 published metadata 보정 커밋을 포함하도록 tag target을 corrected commit으로 옮겨야 하므로 이 row는 initial publication evidence입니다 | PASS | 미집계 | 미집계 | 미집계 | GitHub PR/check/tag/release command output 기준 | initial publication evidence; final closure는 보정 PR/main merge, signed tag force-update, published metadata final PASS에서 분리 기록 | [release-test-records.md](./release-test-records.md) v3.7.0 section |
+| 2026-07-05 | v370-published-metadata-initial-20260705 | published metadata | GitHub Release 생성 직후 `./server.sh verify-release-metadata --published` 최초 실행. GitHub latest/list/view가 실제 `v3.7.0`을 가리키지만 local docs/verifier latest published 기준이 `v3.6.0`이라 `pass=18 fail=3`으로 실패했습니다. 제품 runtime/media 회귀가 아니라 publish 이후 metadata 기준 drift입니다 | FAIL | 미집계 | 미집계 | 미집계 | command output 기준 | initial published metadata failure; final correction PASS는 보정 merge/tag 후 분리 기록 | [release-test-records.md](./release-test-records.md) v3.7.0 section |
 | 2026-07-04 | v360-release-local-gates-rerun-20260704 | 안정화 테스트 | v3.6.0 Step 14 local readiness gate와 Step 1~13 companion verifiers, release metadata/docs/assets/inventory/evidence/script/closeout dry-run, `git diff --check` 재실행. UI 풀테스트/30분/120분/published metadata/release actions/field smoke는 이 PASS로 대체하지 않음 | PASS | 미집계 | 미집계 | 미집계 | command summaries only | command-level token split 미집계; same goal turn later captured for failed 30분 row | [release-test-records.md](./release-test-records.md) v3.6.0 section |
 | 2026-07-04 | v360-release-30min-sandbox-failure-20260704 | 30분 테스트 | `./server.sh verify-predev --soak-minutes 30` 실행. build PASS 후 `server-start-queue-256`/`server-start-queue-2`가 RTSP `127.0.0.1:8555` bind `Operation not permitted`로 FAIL. summary `status=fail`, `pass=3`, `fail=2`, `skip=0`, `durationSec=8`, `soakMinutes=30`. `lsof`에서 포트 점유 없음. 비샌드박스 재실행 요청은 승인되지 않아 최종 30분 PASS evidence가 아님. `/tmp/media_server_predev-1783095006-82341*` 값은 release records로 이관 후 cleanup 완료 | FAIL | 141330 | 208059 | 66729 | goal snapshot 230s to failure diagnosis | Codex goal snapshot; command-level token split 미집계 | [release-test-records.md](./release-test-records.md) v3.6.0 section |
 | 2026-07-04 | v360-release-30min-code-comment-failure-20260704 | 30분 테스트 | 승인된 비샌드박스 `./server.sh verify-predev --soak-minutes 30` 최초 run. integrated-smoke의 `verify-code-comments`가 v3.6 verifier 6개 영어-only 상단 용도 주석을 잡아 summary `status=fail`, `pass=118`, `fail=1`, `skip=1`, `durationSec=2364`, `soakMinutes=30`으로 종료. 헤더를 한글 `파일 용도` 주석으로 보정한 뒤 `./server.sh verify-code-comments`가 `missing headers=0`, `english-only comments=0`으로 통과. 이 FAIL은 최종 30분 PASS evidence가 아님 | FAIL | 미집계 | 미집계 | 미집계 | durationSec 2364 | command summary and preserved failure report; command-level token split 미집계 | [release-test-records.md](./release-test-records.md) v3.6.0 section, [failure summary](./release-artifacts/v3.6.0/predev-1783150577-40687-fail-code-comments/media_server_predev-1783150577-40687_summary.json), [failure report](./release-artifacts/v3.6.0/predev-1783150577-40687-fail-code-comments/media_server_predev-1783150577-40687_report.md) |
