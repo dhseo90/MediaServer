@@ -1049,6 +1049,82 @@ void AppendOpsShellScript(std::ostringstream& out,
         ]);
         renderV360OpsSimulationWorkspace({ inputPack, simulationRun, simulationRunLedger, clientNoticePreview, ruleVaWhatIfReplayPack, simulationExportBundle, fieldEvidenceSimulationAdapter, vlmAssistedSimulationExplanation, dryRun, impactDiff, readiness, inputPackRoute, runContractRoute, simulationRunLedgerRoute, clientNoticePreviewRoute, ruleVaWhatIfReplayRoute, simulationExportBundleRoute, fieldEvidenceSimulationAdapterRoute, vlmAssistedSimulationExplanationRoute, dryRunRoute, impactDiffRoute, readinessRoute });
       };
+      let v370FieldEvidenceAttachmentState = {};
+      const v370FieldEvidenceAttachmentList = value => Array.isArray(value) ? value : [];
+      const v370FieldEvidenceAttachmentEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-site-field-evidence-attachment-entry ${escapeHtml(tone)}" data-v370-field-evidence-attachment-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV370FieldEvidenceAttachment = (payload = {}) => {
+        const fieldEvidenceAttachment = payload.fieldEvidenceAttachment || {};
+        const fieldEvidenceAttachments = v370FieldEvidenceAttachmentList(
+          fieldEvidenceAttachment.fieldEvidenceAttachments);
+        const fieldEvidenceAttachmentSummary =
+          fieldEvidenceAttachment.fieldEvidenceAttachmentSummary || {};
+        const boundaryOk =
+          fieldEvidenceAttachment.boundaries?.fieldSmokeExecuted === false &&
+          fieldEvidenceAttachment.boundaries?.endpointProbePerformed === false &&
+          fieldEvidenceAttachment.boundaries?.credentialProbePerformed === false &&
+          fieldEvidenceAttachment.boundaries?.providerCallPerformed === false &&
+          fieldEvidenceAttachment.boundaries?.sourceRegistryWritePerformed === false &&
+          fieldEvidenceAttachment.boundaries?.runbookInstancePersisted === false &&
+          fieldEvidenceAttachment.boundaries?.approvalTicketWritePerformed === false &&
+          fieldEvidenceAttachment.boundaries?.rtspOrWebrtcMediaPathChanged === false;
+        v370FieldEvidenceAttachmentState = {
+          fieldEvidenceAttachment,
+          fieldEvidenceAttachmentRoute: payload.fieldEvidenceAttachmentRoute || '/ops/api/site-operations/field-evidence-attachment'
+        };
+        renderBadges('dashSiteFieldEvidenceAttachmentBadges', [
+          { text: `attachment ${fieldEvidenceAttachments.length}` },
+          { text: `ONVIF ${fieldEvidenceAttachmentSummary.onvifConditionCount ?? 0}` },
+          { text: `WHEP/TURN ${fieldEvidenceAttachmentSummary.externalWhepTurnConditionCount ?? 0}` },
+          { text: `cloud/VLM ${fieldEvidenceAttachmentSummary.cloudVlmProviderConditionCount ?? 0}` },
+          { text: `not-run ${fieldEvidenceAttachmentSummary.notRunCount ?? 0}` },
+          { text: boundaryOk ? 'attachment only' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashSiteFieldEvidenceAttachmentText',
+          payload.error
+            ? `Field Evidence Attachment 로드 실패: ${payload.error}`
+            : `site/runbook evidence ${fieldEvidenceAttachments.length} · endpoint required ${fieldEvidenceAttachmentSummary.endpointRequiredCount ?? 0} · credential required ${fieldEvidenceAttachmentSummary.credentialRequiredCount ?? 0} · approval required ${fieldEvidenceAttachmentSummary.approvalRequiredCount ?? 0}`);
+        const attachmentList = document.getElementById('dashSiteFieldEvidenceAttachmentList');
+        if (attachmentList) {
+          attachmentList.innerHTML = fieldEvidenceAttachments.length > 0
+            ? fieldEvidenceAttachments.slice(0, 8).map(item =>
+                v370FieldEvidenceAttachmentEntry(
+                  item.fieldEvidenceAttachmentId || item.bridgeKind || 'fieldEvidenceAttachment',
+                  `${item.siteId || 'site'} / ${item.sourceGroup || 'source group'} / ${item.bridgeKind || 'bridgeKind'}`,
+                  `${item.siteRunbookEvidenceRef || 'siteRunbookEvidenceRef'} · ${item.conditionalNotRunEvidence || 'conditionalNotRunEvidence'}`,
+                  `runbook=${display(item.runbookId || '-')} · approval=${display(item.approvalTicketId || '-')} · execution=${display(item.executionStatus || 'not-run')} · fieldSmoke=${display(item.fieldSmokeStatus || 'field-smoke-not-run')}`,
+                  item.executionStatus === 'not-run' ? 'warn' : ''))
+              .join('')
+            : '<div class="empty">Field Evidence Attachment 항목이 아직 없습니다.</div>';
+        }
+        const conditionList = document.getElementById('dashSiteFieldEvidenceAttachmentConditionList');
+        if (conditionList) {
+          conditionList.innerHTML = fieldEvidenceAttachments.length > 0
+            ? fieldEvidenceAttachments.slice(0, 8).map(item => {
+                const conditionRefs = v370FieldEvidenceAttachmentList(item.conditionRefs).slice(0, 3).join(', ') || 'condition refs pending';
+                const evidenceRefs = v370FieldEvidenceAttachmentList(item.evidenceRefs).slice(0, 3).join(', ') || 'evidence refs pending';
+                return v370FieldEvidenceAttachmentEntry(
+                  item.siteRunbookEvidenceRef || item.fieldEvidenceAttachmentId || 'siteRunbookEvidenceRef',
+                  item.redactedFieldEvidence || 'redactedFieldEvidence',
+                  `conditionRefs=${conditionRefs}`,
+                  `evidenceRefs=${evidenceRefs} · notRunReason=${display(item.notRunReason || 'not-run')}`,
+                  item.endpointRequired || item.credentialRequired ? 'warn' : '');
+              }).join('')
+            : '<div class="empty">conditional/not-run condition refs가 아직 없습니다.</div>';
+        }
+        setText('dashSiteFieldEvidenceAttachmentBoundary',
+          `attachment=${display(v370FieldEvidenceAttachmentState.fieldEvidenceAttachmentRoute)} · projection=${display(fieldEvidenceAttachment.siteRegistryProjectionRoute)} · runbook=${display(fieldEvidenceAttachment.runbookInstanceLedgerRoute)} · approval=${display(fieldEvidenceAttachment.approvalTicketWorkflowRoute)} · adapter=${display(fieldEvidenceAttachment.fieldEvidenceSimulationAdapterRoute)} · fieldSmokeExecuted=${fieldEvidenceAttachment.boundaries?.fieldSmokeExecuted === false ? 'false' : '확인 필요'} · endpointProbePerformed=${fieldEvidenceAttachment.boundaries?.endpointProbePerformed === false ? 'false' : '확인 필요'} · credentialProbePerformed=${fieldEvidenceAttachment.boundaries?.credentialProbePerformed === false ? 'false' : '확인 필요'} · providerCallPerformed=${fieldEvidenceAttachment.boundaries?.providerCallPerformed === false ? 'false' : '확인 필요'} · runbookInstancePersisted=${fieldEvidenceAttachment.boundaries?.runbookInstancePersisted === false ? 'false' : '확인 필요'} · approvalTicketWritePerformed=${fieldEvidenceAttachment.boundaries?.approvalTicketWritePerformed === false ? 'false' : '확인 필요'} · sourceRegistryWritePerformed=${fieldEvidenceAttachment.boundaries?.sourceRegistryWritePerformed === false ? 'false' : '확인 필요'} · rtspOrWebrtcMediaPathChanged=${fieldEvidenceAttachment.boundaries?.rtspOrWebrtcMediaPathChanged === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV370FieldEvidenceAttachment = async ({
+        fieldEvidenceAttachmentRoute = '/ops/api/site-operations/field-evidence-attachment'
+      } = {}) => {
+        const fieldEvidenceAttachment = await requestJson(fieldEvidenceAttachmentRoute);
+        renderV370FieldEvidenceAttachment({ fieldEvidenceAttachment, fieldEvidenceAttachmentRoute });
+      };
       let v370RuleVaWhatIfBySiteState = {};
       const v370RuleVaWhatIfBySiteList = value => Array.isArray(value) ? value : [];
       const v370RuleVaWhatIfBySiteEntry = (kind, title, detail, meta, tone = '') =>
@@ -2314,6 +2390,9 @@ void AppendOpsShellScript(std::ostringstream& out,
         await refreshV370RuleVaWhatIfBySite({
           whatIfRoute: '/ops/api/site-operations/rule-va-what-if-by-site'
         }).catch(error => renderV370RuleVaWhatIfBySite({ error: error.message }));
+        await refreshV370FieldEvidenceAttachment({
+          fieldEvidenceAttachmentRoute: '/ops/api/site-operations/field-evidence-attachment'
+        }).catch(error => renderV370FieldEvidenceAttachment({ error: error.message }));
         await refreshV370ClientNoticeBySiteViewGroup({
           noticeRoute: '/ops/api/site-operations/client-notice-by-site-view-group'
         }).catch(error => renderV370ClientNoticeBySiteViewGroup({ error: error.message }));

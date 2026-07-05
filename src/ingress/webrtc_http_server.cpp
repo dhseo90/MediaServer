@@ -2971,6 +2971,33 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           ruleRegistryWritePerformed=false · eventRecordWritePerformed=false · media mutation=false
         </div>
       </section>
+      <section class="section-card ops-workspace-wide ops-site-field-evidence-attachment-workspace" data-testid="ops-site-field-evidence-attachment-workspace" data-v370-field-evidence-attachment="media-server.ops.v370-field-evidence-attachment.v1">
+        <div class="toolbar">
+          <div>
+            <h3>Field Evidence Attachment</h3>
+            <p>ONVIF, external WHEP/TURN, cloud/VLM 조건부 evidence를 site/runbook ref에 not-run 상태로 첨부합니다.</p>
+          </div>
+        </div>
+        <div id="dashSiteFieldEvidenceAttachmentBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashSiteFieldEvidenceAttachmentText">site/runbook field evidence attachment를 불러오는 중입니다.</p>
+        <div class="grid ops-site-field-evidence-attachment-grid">
+          <div>
+            <h4>Attachment Refs</h4>
+            <div id="dashSiteFieldEvidenceAttachmentList" class="ops-site-field-evidence-attachment-list">
+              <div class="empty">site/runbook field evidence attachment를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Condition Refs</h4>
+            <div id="dashSiteFieldEvidenceAttachmentConditionList" class="ops-site-field-evidence-attachment-list">
+              <div class="empty">conditional/not-run condition refs를 기다립니다.</div>
+            </div>
+          </div>
+        </div>
+        <div id="dashSiteFieldEvidenceAttachmentBoundary" class="ops-site-field-evidence-attachment-boundary">
+          fieldSmokeExecuted=false · endpointProbePerformed=false · providerCallPerformed=false · media mutation=false
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide" data-testid="ops-runtime-operations-console">
         <div class="toolbar">
           <div>
@@ -22307,6 +22334,502 @@ std::string OpsV370RuleVaWhatIfBySiteJson(
     return out.str();
 }
 
+struct OpsV370FieldEvidenceAttachmentItem {
+    std::string field_evidence_attachment_id;
+    std::string site_id;
+    std::string source_group;
+    std::string source_id;
+    std::string runbook_id;
+    std::string approval_ticket_id;
+    std::string bridge_kind;
+    std::string label;
+    std::string site_runbook_evidence_ref;
+    std::string conditional_not_run_evidence;
+    std::string execution_status{"not-run"};
+    std::string field_smoke_status{"field-smoke-not-run"};
+    std::string not_run_reason;
+    std::string redacted_field_evidence;
+    std::string simulation_input_ref;
+    std::string simulation_readiness_blocker_ref;
+    std::string runbook_ledger_ref;
+    std::string approval_ticket_ref;
+    std::vector<std::string> condition_refs;
+    std::vector<std::string> evidence_refs;
+    bool endpoint_required{true};
+    bool credential_required{true};
+    bool operator_approval_required{true};
+    bool read_only{true};
+};
+
+struct OpsV370FieldEvidenceAttachmentSummary {
+    int attachment_count{0};
+    int onvif_condition_count{0};
+    int external_whep_turn_condition_count{0};
+    int cloud_vlm_provider_condition_count{0};
+    int not_run_count{0};
+    int endpoint_required_count{0};
+    int credential_required_count{0};
+    int approval_required_count{0};
+    int runbook_ref_count{0};
+    int approval_ref_count{0};
+    std::vector<std::string> derivation_sources;
+};
+
+const OpsV370RunbookInstanceLedgerEntry* V370RunbookLedgerForAttachment(
+    const std::vector<OpsV370RunbookInstanceLedgerEntry>& runbookInstanceLedgerEntries,
+    std::size_t index) {
+    if (runbookInstanceLedgerEntries.empty()) {
+        return nullptr;
+    }
+    const auto field_it =
+        std::find_if(runbookInstanceLedgerEntries.begin(),
+                     runbookInstanceLedgerEntries.end(),
+                     [](const auto& entry) {
+                         return entry.status == "field-needed" ||
+                                entry.status == "approval-needed" ||
+                                entry.status == "blocked";
+                     });
+    if (field_it != runbookInstanceLedgerEntries.end()) {
+        return &*field_it;
+    }
+    return &runbookInstanceLedgerEntries[index % runbookInstanceLedgerEntries.size()];
+}
+
+const OpsV370ApprovalTicketWorkflowItem* V370ApprovalTicketForRunbook(
+    const std::vector<OpsV370ApprovalTicketWorkflowItem>& approvalTicketWorkflowItems,
+    const std::string& runbook_id,
+    std::size_t index) {
+    const auto it =
+        std::find_if(approvalTicketWorkflowItems.begin(),
+                     approvalTicketWorkflowItems.end(),
+                     [&](const auto& item) { return item.runbook_id == runbook_id; });
+    if (it != approvalTicketWorkflowItems.end()) {
+        return &*it;
+    }
+    if (approvalTicketWorkflowItems.empty()) {
+        return nullptr;
+    }
+    return &approvalTicketWorkflowItems[index % approvalTicketWorkflowItems.size()];
+}
+
+const OpsV370SiteSimulationInputPackItem* V370SiteSimulationInputPackForScope(
+    const std::vector<OpsV370SiteSimulationInputPackItem>& siteSimulationInputPackItems,
+    const std::string& site_id,
+    const std::string& source_group) {
+    const auto it =
+        std::find_if(siteSimulationInputPackItems.begin(),
+                     siteSimulationInputPackItems.end(),
+                     [&](const auto& item) {
+                         return item.site_id == site_id &&
+                                item.source_group == source_group;
+                     });
+    return it == siteSimulationInputPackItems.end() ? nullptr : &*it;
+}
+
+std::string V370FieldEvidenceAttachmentNotRunReason(
+    const OpsV350FieldEvidenceIntakeRecord& record) {
+    if (!record.not_run_reason.empty()) {
+        return record.not_run_reason;
+    }
+    if (record.bridge_kind == "onvif-real-device") {
+        return "ONVIF 실기기 endpoint와 credential, operator approval 없이는 실행하지 않음";
+    }
+    if (record.bridge_kind == "external-whep-turn") {
+        return "external WHEP endpoint와 TURN credential 조건 미충족으로 실행하지 않음";
+    }
+    if (record.bridge_kind == "real-cloud-vlm-provider") {
+        return "cloud/VLM provider credential과 runtime opt-in 없이는 호출하지 않음";
+    }
+    return "field execution condition is conditional/not-run";
+}
+
+std::vector<OpsV370FieldEvidenceAttachmentItem> BuildV370FieldEvidenceAttachmentItems(
+    const std::vector<OpsV370SiteAwareSourceRegistryProjectionItem>& projection,
+    const std::vector<OpsV370SiteSimulationInputPackItem>& siteSimulationInputPackItems,
+    const std::vector<OpsV370RunbookInstanceLedgerEntry>& runbookInstanceLedgerEntries,
+    const std::vector<OpsV370ApprovalTicketWorkflowItem>& approvalTicketWorkflowItems,
+    const std::vector<OpsV350FieldEvidenceIntakeRecord>& fieldEvidenceIntakeRecords,
+    const std::vector<OpsV350FieldEvidenceExecutionCondition>& fieldEvidenceExecutionConditions) {
+    std::vector<OpsV370FieldEvidenceAttachmentItem> items;
+    const auto* fallback_projection = projection.empty() ? nullptr : &projection.front();
+
+    for (std::size_t i = 0; i < fieldEvidenceIntakeRecords.size(); ++i) {
+        const auto& record = fieldEvidenceIntakeRecords[i];
+        const auto* runbook =
+            V370RunbookLedgerForAttachment(runbookInstanceLedgerEntries, i);
+        const auto* approval =
+            V370ApprovalTicketForRunbook(approvalTicketWorkflowItems,
+                                        runbook == nullptr ? "" : runbook->runbook_id,
+                                        i);
+
+        const std::string site_id =
+            runbook != nullptr && !runbook->site_id.empty()
+                ? runbook->site_id
+                : (fallback_projection == nullptr ? "unassigned-site" : fallback_projection->site_id);
+        const std::string source_group =
+            runbook != nullptr && !runbook->source_group.empty()
+                ? runbook->source_group
+                : (fallback_projection == nullptr ? "unassigned-source-group"
+                                                   : fallback_projection->source_group);
+        const auto* scoped_input =
+            V370SiteSimulationInputPackForScope(siteSimulationInputPackItems, site_id, source_group);
+        const auto* projected = fallback_projection;
+        if (fallback_projection != nullptr) {
+            const auto projection_it =
+                std::find_if(projection.begin(), projection.end(), [&](const auto& item) {
+                    return item.site_id == site_id && item.source_group == source_group;
+                });
+            if (projection_it != projection.end()) {
+                projected = &*projection_it;
+            }
+        }
+
+        OpsV370FieldEvidenceAttachmentItem item;
+        item.field_evidence_attachment_id =
+            "fieldEvidenceAttachment:" + site_id + ":" + source_group + ":" +
+            record.bridge_kind;
+        item.site_id = site_id;
+        item.source_group = source_group;
+        item.source_id =
+            projected == nullptr || projected->source_ids.empty()
+                ? "pending-source"
+                : projected->source_ids.front();
+        item.runbook_id = runbook == nullptr ? "runbook:pending" : runbook->runbook_id;
+        item.approval_ticket_id =
+            approval == nullptr ? "approval-ticket:pending" : approval->approval_ticket_id;
+        item.bridge_kind = record.bridge_kind;
+        item.label = record.label;
+        item.site_runbook_evidence_ref =
+            "siteRunbookEvidenceRef:" + item.site_id + ":" + item.source_group + ":" +
+            item.runbook_id + ":" + item.bridge_kind;
+        item.conditional_not_run_evidence =
+            "conditionalNotRunEvidence: " + record.result_summary;
+        item.execution_status =
+            record.execution_status.empty() ? "not-run" : record.execution_status;
+        item.field_smoke_status =
+            record.field_smoke_status.empty() ? "field-smoke-not-run"
+                                              : record.field_smoke_status;
+        item.not_run_reason = V370FieldEvidenceAttachmentNotRunReason(record);
+        item.redacted_field_evidence =
+            record.redacted_field_evidence.empty()
+                ? "redactedFieldEvidence: endpoint, credential, provider, and VLM material omitted"
+                : record.redacted_field_evidence;
+        item.simulation_input_ref =
+            scoped_input == nullptr
+                ? "/ops/api/live-operations/simulation/field-evidence-adapter:" +
+                      record.bridge_kind
+                : scoped_input->pack_id + ":fieldEvidenceAttachment";
+        item.simulation_readiness_blocker_ref =
+            "simulationReadinessBlockerRef:" + record.bridge_kind + ":conditional-not-run";
+        item.runbook_ledger_ref =
+            "runbookLedgerRef:" + item.runbook_id + ":conditional-field-evidence";
+        item.approval_ticket_ref =
+            "approvalTicketRef:" + item.approval_ticket_id + ":field-needed";
+        for (const auto& condition : fieldEvidenceExecutionConditions) {
+            if (condition.evidence_id == record.evidence_id) {
+                item.condition_refs.push_back(condition.condition_id);
+            }
+        }
+        item.evidence_refs = record.evidence_refs;
+        item.evidence_refs.push_back("/ops/api/site-operations/source-registry-projection");
+        item.evidence_refs.push_back("/ops/api/site-operations/runbook-instance-ledger");
+        item.evidence_refs.push_back("/ops/api/site-operations/approval-ticket-workflow");
+        item.evidence_refs.push_back("/ops/api/live-operations/simulation/field-evidence-adapter");
+        item.evidence_refs.push_back(item.site_runbook_evidence_ref);
+        item.evidence_refs.push_back(item.runbook_ledger_ref);
+        item.evidence_refs.push_back(item.approval_ticket_ref);
+        item.endpoint_required = record.endpoint_required;
+        item.credential_required = record.credential_required;
+        item.operator_approval_required = record.operator_approval_required;
+        items.push_back(std::move(item));
+    }
+
+    if (items.empty()) {
+        OpsV370FieldEvidenceAttachmentItem item;
+        item.field_evidence_attachment_id = "fieldEvidenceAttachment:pending";
+        item.site_id = fallback_projection == nullptr ? "unassigned-site" : fallback_projection->site_id;
+        item.source_group =
+            fallback_projection == nullptr ? "unassigned-source-group" : fallback_projection->source_group;
+        item.source_id = fallback_projection == nullptr || fallback_projection->source_ids.empty()
+                             ? "pending-source"
+                             : fallback_projection->source_ids.front();
+        item.runbook_id = "runbook:pending";
+        item.approval_ticket_id = "approval-ticket:pending";
+        item.bridge_kind = "conditional-field-evidence";
+        item.label = "Conditional field evidence attachment";
+        item.site_runbook_evidence_ref =
+            "siteRunbookEvidenceRef:" + item.site_id + ":" + item.source_group + ":pending";
+        item.conditional_not_run_evidence =
+            "conditionalNotRunEvidence: no field adapter item exists; not-run";
+        item.not_run_reason = "field evidence adapter source is empty";
+        item.redacted_field_evidence =
+            "redactedFieldEvidence: no raw endpoint, credential, provider, or VLM material";
+        item.simulation_input_ref =
+            "/ops/api/site-operations/simulation-input-pack:fieldEvidenceAttachment:pending";
+        item.simulation_readiness_blocker_ref =
+            "/ops/api/site-operations/cross-site-safe-apply-readiness:pending";
+        item.runbook_ledger_ref = "runbookLedgerRef:pending";
+        item.approval_ticket_ref = "approvalTicketRef:pending";
+        item.condition_refs = {"condition:pending:not-run"};
+        item.evidence_refs = {
+            "/ops/api/site-operations/source-registry-projection",
+            "/ops/api/site-operations/runbook-instance-ledger",
+            "/ops/api/site-operations/approval-ticket-workflow",
+            "/ops/api/live-operations/simulation/field-evidence-adapter",
+        };
+        items.push_back(std::move(item));
+    }
+    return items;
+}
+
+OpsV370FieldEvidenceAttachmentSummary BuildV370FieldEvidenceAttachmentSummary(
+    const std::vector<OpsV370FieldEvidenceAttachmentItem>& items) {
+    OpsV370FieldEvidenceAttachmentSummary summary;
+    summary.derivation_sources = {
+        "BuildV340FieldBridgeConditionGates",
+        "BuildV350FieldEvidenceIntakeRecords",
+        "BuildV350FieldEvidenceExecutionConditions",
+        "BuildV360FieldEvidenceSimulationAdapterItems",
+        "BuildV370SiteAwareSourceRegistryProjectionItems",
+        "BuildV370SiteSimulationInputPackItems",
+        "BuildV370RunbookInstanceLedgerEntries",
+        "BuildV370ApprovalTicketWorkflowItems",
+    };
+    summary.attachment_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        if (item.bridge_kind == "onvif-real-device") {
+            ++summary.onvif_condition_count;
+        } else if (item.bridge_kind == "external-whep-turn") {
+            ++summary.external_whep_turn_condition_count;
+        } else if (item.bridge_kind == "real-cloud-vlm-provider") {
+            ++summary.cloud_vlm_provider_condition_count;
+        }
+        if (item.execution_status == "not-run") {
+            ++summary.not_run_count;
+        }
+        if (item.endpoint_required) {
+            ++summary.endpoint_required_count;
+        }
+        if (item.credential_required) {
+            ++summary.credential_required_count;
+        }
+        if (item.operator_approval_required) {
+            ++summary.approval_required_count;
+        }
+        if (!item.runbook_ledger_ref.empty()) {
+            ++summary.runbook_ref_count;
+        }
+        if (!item.approval_ticket_ref.empty()) {
+            ++summary.approval_ref_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV370FieldEvidenceAttachmentSummaryJson(
+    std::ostringstream& out,
+    const OpsV370FieldEvidenceAttachmentSummary& summary) {
+    out << "{"
+        << "\"attachmentCount\":" << summary.attachment_count << ","
+        << "\"onvifConditionCount\":" << summary.onvif_condition_count << ","
+        << "\"externalWhepTurnConditionCount\":"
+        << summary.external_whep_turn_condition_count << ","
+        << "\"cloudVlmProviderConditionCount\":"
+        << summary.cloud_vlm_provider_condition_count << ","
+        << "\"notRunCount\":" << summary.not_run_count << ","
+        << "\"endpointRequiredCount\":" << summary.endpoint_required_count << ","
+        << "\"credentialRequiredCount\":" << summary.credential_required_count << ","
+        << "\"approvalRequiredCount\":" << summary.approval_required_count << ","
+        << "\"runbookRefCount\":" << summary.runbook_ref_count << ","
+        << "\"approvalRefCount\":" << summary.approval_ref_count << ","
+        << "\"derivationSources\":";
+    AppendJsonStringArray(out, summary.derivation_sources);
+    out << "}";
+}
+
+void AppendV370FieldEvidenceAttachmentItemJson(
+    std::ostringstream& out,
+    const OpsV370FieldEvidenceAttachmentItem& item) {
+    out << "{"
+        << "\"fieldEvidenceAttachmentId\":\""
+        << JsonEscape(item.field_evidence_attachment_id) << "\","
+        << "\"siteId\":\"" << JsonEscape(item.site_id) << "\","
+        << "\"sourceGroup\":\"" << JsonEscape(item.source_group) << "\","
+        << "\"sourceId\":\"" << JsonEscape(item.source_id) << "\","
+        << "\"runbookId\":\"" << JsonEscape(item.runbook_id) << "\","
+        << "\"approvalTicketId\":\"" << JsonEscape(item.approval_ticket_id) << "\","
+        << "\"bridgeKind\":\"" << JsonEscape(item.bridge_kind) << "\","
+        << "\"label\":\"" << JsonEscape(item.label) << "\","
+        << "\"siteRunbookEvidenceRef\":\""
+        << JsonEscape(item.site_runbook_evidence_ref) << "\","
+        << "\"conditionalNotRunEvidence\":\""
+        << JsonEscape(item.conditional_not_run_evidence) << "\","
+        << "\"executionStatus\":\"" << JsonEscape(item.execution_status) << "\","
+        << "\"fieldSmokeStatus\":\"" << JsonEscape(item.field_smoke_status) << "\","
+        << "\"notRunReason\":\"" << JsonEscape(item.not_run_reason) << "\","
+        << "\"redactedFieldEvidence\":\""
+        << JsonEscape(item.redacted_field_evidence) << "\","
+        << "\"simulationInputRef\":\"" << JsonEscape(item.simulation_input_ref) << "\","
+        << "\"simulationReadinessBlockerRef\":\""
+        << JsonEscape(item.simulation_readiness_blocker_ref) << "\","
+        << "\"runbookLedgerRef\":\"" << JsonEscape(item.runbook_ledger_ref) << "\","
+        << "\"approvalTicketRef\":\"" << JsonEscape(item.approval_ticket_ref) << "\","
+        << "\"conditionRefs\":";
+    AppendJsonStringArray(out, item.condition_refs);
+    out << ",\"evidenceRefs\":";
+    AppendJsonStringArray(out, item.evidence_refs);
+    out << ",\"endpointRequired\":" << JsonBool(item.endpoint_required)
+        << ",\"credentialRequired\":" << JsonBool(item.credential_required)
+        << ",\"operatorApprovalRequired\":"
+        << JsonBool(item.operator_approval_required)
+        << ",\"readOnly\":" << JsonBool(item.read_only)
+        << "}";
+}
+
+std::string OpsV370FieldEvidenceAttachmentJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v370-field-evidence-attachment.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto dryRunResults = BuildV360CommandPlanDryRunResults(commandPlanCandidates);
+    const auto impactDiffs =
+        BuildV360SourceRuleImpactDiffs(context, commandPlanCandidates, stagedChangePlans);
+    const auto readinessItems = BuildV360SafeApplyReadinessItems(dryRunResults, impactDiffs);
+    const auto v360InputPackItems =
+        BuildV360SimulationInputPackItems(context, commandPlanCandidates, stagedChangePlans);
+    const auto inputSummary = BuildV360SimulationInputPackSummary(v360InputPackItems);
+    const auto simulationRunContract = BuildV360SimulationRunContract();
+    const auto simulationResultEnvelope = BuildV360SimulationResultEnvelope(inputSummary);
+    const auto simulationRunLedgerEntries =
+        BuildV360SimulationRunLedgerEntries(context,
+                                            v360InputPackItems,
+                                            simulationRunContract,
+                                            simulationResultEnvelope,
+                                            dryRunResults,
+                                            impactDiffs,
+                                            readinessItems);
+    const auto projection =
+        BuildV370SiteAwareSourceRegistryProjectionItems(context.sources, context.views);
+    const auto rollups =
+        BuildV370SiteHealthRollupItems(context.sources, context.views, source_health_snapshot);
+    const auto impactGraphNodes = BuildV370SiteImpactGraphNodes(context, projection, rollups);
+    const auto impactGraphEdges = BuildV370SiteImpactGraphEdges(projection);
+    const auto siteSimulationInputPackItems =
+        BuildV370SiteSimulationInputPackItems(context,
+                                             projection,
+                                             rollups,
+                                             impactGraphNodes,
+                                             impactGraphEdges,
+                                             v360InputPackItems);
+    const auto crossSiteReadinessItems =
+        BuildV370CrossSiteSafeApplyReadinessItems(projection,
+                                                 siteSimulationInputPackItems,
+                                                 readinessItems,
+                                                 impactDiffs);
+    const auto runbookTemplateContractItems =
+        BuildV370RunbookTemplateContractItems(commandPlanCandidates,
+                                             dryRunResults,
+                                             impactDiffs,
+                                             readinessItems,
+                                             projection,
+                                             siteSimulationInputPackItems,
+                                             crossSiteReadinessItems);
+    const auto runbookInstanceLedgerEntries =
+        BuildV370RunbookInstanceLedgerEntries(runbookTemplateContractItems,
+                                             crossSiteReadinessItems,
+                                             simulationRunLedgerEntries);
+    const auto approvalTicketWorkflowItems =
+        BuildV370ApprovalTicketWorkflowItems(runbookTemplateContractItems,
+                                            runbookInstanceLedgerEntries,
+                                            crossSiteReadinessItems);
+    const auto fieldBridgeConditionGates = BuildV340FieldBridgeConditionGates();
+    const auto fieldEvidenceIntakeRecords =
+        BuildV350FieldEvidenceIntakeRecords(fieldBridgeConditionGates);
+    const auto fieldEvidenceExecutionConditions =
+        BuildV350FieldEvidenceExecutionConditions(fieldEvidenceIntakeRecords);
+    const auto attachments =
+        BuildV370FieldEvidenceAttachmentItems(projection,
+                                             siteSimulationInputPackItems,
+                                             runbookInstanceLedgerEntries,
+                                             approvalTicketWorkflowItems,
+                                             fieldEvidenceIntakeRecords,
+                                             fieldEvidenceExecutionConditions);
+    const auto summary = BuildV370FieldEvidenceAttachmentSummary(attachments);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v370-field-evidence-attachment.v1\","
+        << "\"status\":\"field-evidence-attachment\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"siteRegistryProjectionRoute\":\"/ops/api/site-operations/source-registry-projection\","
+        << "\"siteSimulationInputPackRoute\":\"/ops/api/site-operations/simulation-input-pack\","
+        << "\"runbookInstanceLedgerRoute\":\"/ops/api/site-operations/runbook-instance-ledger\","
+        << "\"approvalTicketWorkflowRoute\":\"/ops/api/site-operations/approval-ticket-workflow\","
+        << "\"fieldEvidenceSimulationAdapterRoute\":\"/ops/api/live-operations/simulation/field-evidence-adapter\","
+        << "\"fieldEvidenceAttachmentSummary\":";
+    AppendV370FieldEvidenceAttachmentSummaryJson(out, summary);
+    out << ",\"fieldEvidenceAttachments\":[";
+    for (std::size_t i = 0; i < attachments.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV370FieldEvidenceAttachmentItemJson(out, attachments[i]);
+    }
+    out << "],\"attachmentPolicy\":{"
+        << "\"siteRunbookEvidenceRef\":\"site/runbook scoped reference only\","
+        << "\"conditionalNotRunEvidence\":true,"
+        << "\"ONVIF\":\"conditional-not-run\","
+        << "\"externalWhepTurn\":\"conditional-not-run\","
+        << "\"cloudVlmProvider\":\"conditional-not-run\","
+        << "\"fieldSmoke\":\"not-run\","
+        << "\"rawMaterial\":\"redacted\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"attachmentOnly\":true,"
+        << "\"siteScoped\":true,"
+        << "\"conditionalNotRunOnly\":true,"
+        << "\"fieldSmokeExecuted\":false,"
+        << "\"endpointProbePerformed\":false,"
+        << "\"credentialProbePerformed\":false,"
+        << "\"providerCallPerformed\":false,"
+        << "\"vlmProviderCalled\":false,"
+        << "\"vlmRuntimeCallPerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"runbookInstancePersisted\":false,"
+        << "\"approvalTicketWritePerformed\":false,"
+        << "\"approvalDecisionPersisted\":false,"
+        << "\"operatorNoteWritePerformed\":false,"
+        << "\"resultDiffPersisted\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"rawEndpointIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"vlmPromptIncluded\":false,"
+        << "\"vlmResponseIncluded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 struct OpsV370ClientNoticeBySiteViewGroupItem {
     std::string notice_preview_id;
     std::string site_id;
@@ -33183,6 +33706,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV370RuleVaWhatIfBySiteJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/site-operations/field-evidence-attachment") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV370FieldEvidenceAttachmentJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

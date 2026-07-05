@@ -138,6 +138,7 @@ const v370VerifierCoverage = {
     "verify-v370-site-operations-workspace-ui",
     "verify-v370-client-notice-by-site-view-group",
     "verify-v370-rule-va-what-if-by-site",
+    "verify-v370-field-evidence-attachment",
   ],
   RULE: [
     "verify-v370-rule-va-what-if-by-site",
@@ -149,6 +150,10 @@ const v370VerifierCoverage = {
     "verify-v370-site-impact-graph",
     "verify-v370-site-simulation-input-pack",
     "verify-v370-cross-site-safe-apply-readiness",
+    "verify-v370-field-evidence-attachment",
+  ],
+  MEDIA: [
+    "verify-v370-field-evidence-attachment",
   ],
   EVT: [
     "verify-v370-site-impact-graph",
@@ -162,6 +167,7 @@ const v370VerifierCoverage = {
     "verify-v370-runbook-instance-ledger",
     "verify-v370-approval-ticket-workflow",
     "verify-v370-rule-va-what-if-by-site",
+    "verify-v370-field-evidence-attachment",
   ],
   CLIENT: [
     "verify-v370-site-impact-graph",
@@ -182,6 +188,7 @@ const v370VerifierCoverage = {
     "verify-v370-site-operations-workspace-ui",
     "verify-v370-client-notice-by-site-view-group",
     "verify-v370-rule-va-what-if-by-site",
+    "verify-v370-field-evidence-attachment",
   ],
   OPS: [
     "verify-v370-entry-baseline",
@@ -197,6 +204,7 @@ const v370VerifierCoverage = {
     "verify-v370-site-operations-workspace-ui",
     "verify-v370-client-notice-by-site-view-group",
     "verify-v370-rule-va-what-if-by-site",
+    "verify-v370-field-evidence-attachment",
   ],
 };
 

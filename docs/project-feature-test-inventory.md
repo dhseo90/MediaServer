@@ -26,13 +26,13 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 838 |
-| UI 직접 필요 | 378 |
+| 전체 기능 항목 | 844 |
+| UI 직접 필요 | 379 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 429 |
-| 테스트 필요 | 838 |
-| 안정화 대상 | 828 |
-| UI 풀테스트 대상 | 398 |
+| UI 비대상 | 434 |
+| 테스트 필요 | 844 |
+| 안정화 대상 | 834 |
+| UI 풀테스트 대상 | 399 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
 
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 838개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 844개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -75,6 +75,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | v3.7.0 (11) Site Operations Workspace UI | `UI-095`, `SAFE-172`, `OPS-139` | `verify-v370-site-operations-workspace-ui`, `verify-ops-client-ui` | `/ops` dashboard가 `media-server.ops.v370-site-operations-workspace-ui.v1` 기반 site list, health rollup, runbook queue, impact detail을 read-only로 표시합니다. source/view/runbook/approval write, client notice send, raw locator/credential/debug material, viewer/client 노출, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.7.0 (12) Client Notice by Site/View Group | `UI-096`, `CLIENT-037`, `SAFE-173`, `OPS-140` | `verify-v370-client-notice-by-site-view-group`, `verify-ops-client-ui` | `/ops/api/site-operations/client-notice-by-site-view-group`와 `/ops` dashboard가 site/view group 기준 viewer-safe notice preview와 delivery queue를 preview-only로 표시합니다. client notice send/persist, viewer client payload 변경, source/view/rule/EventRecord/Ops audit/client/media mutation, raw locator/credential/operator material 노출, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.7.0 (13) Rule/VA What-if by Site | `UI-097`, `RULE-110`, `EVT-082`, `LAB-106`, `SAFE-174`, `OPS-141` | `verify-v370-rule-va-what-if-by-site`, `verify-ops-client-ui` | `/ops/api/site-operations/rule-va-what-if-by-site`와 `/ops` dashboard가 site 영향과 EventRecord/VA fixture 기반 rule threshold/scenario 후보를 rule apply 없이 비교합니다. rule/profile registry write, EventRecord/Ops audit/source/view/client/media mutation, raw locator/credential/debug material 노출, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
+| v3.7.0 (14) Field Evidence Attachment | `UI-098`, `SRC-060`, `MEDIA-025`, `LAB-107`, `SAFE-175`, `OPS-142` | `verify-v370-field-evidence-attachment`, `verify-ops-client-ui` | `/ops/api/site-operations/field-evidence-attachment`와 `/ops` dashboard가 ONVIF, external WHEP/TURN, cloud/VLM 조건부 evidence를 site/runbook에 not-run/conditional로 첨부합니다. field smoke, endpoint/credential probe, provider/VLM call, runbook/approval write, source/view/EventRecord/Ops audit/client/media mutation, raw endpoint/locator/credential/provider material 노출, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 
 ## 최신 published baseline v3.6.0 Operations Simulation and Safe Apply Readiness Coverage Mapping
 
@@ -331,16 +332,16 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 
 | 기능 ID 범위 | 안정화 verifier 후보 | 비고 |
 | --- | --- | --- |
-| `UI-001`~`UI-018`, `UI-022`~`UI-097` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360/v370 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
+| `UI-001`~`UI-018`, `UI-022`~`UI-098` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360/v370 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
-| `SRC-001`~`SRC-059` | source/ONVIF/UI/v340/v350/v360/v370 verifier family | ONVIF field success는 approved environment only |
+| `SRC-001`~`SRC-060` | source/ONVIF/UI/v340/v350/v360/v370 verifier family | ONVIF field success는 approved environment only |
 | `RULE-001`~`RULE-110` | rule/VA/v350/v360/v370 verifier family | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
 | `EVT-001`~`EVT-082` | event/VLM/v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360/v370 verifier family | event log 육안 확인은 UI 풀테스트 |
 | `CLIENT-001`~`CLIENT-037` | client/UI/v350/v360/v370 verifier family | viewer 비노출은 브라우저 확인 필요 |
-| `MEDIA-001`~`MEDIA-024` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
-| `LAB-001`~`LAB-106` | lab/VLM/v250/v260/v270/v280/v300/v310/v340/v350/v360/v370 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-174` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-141` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
+| `MEDIA-001`~`MEDIA-025` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
+| `LAB-001`~`LAB-107` | lab/VLM/v250/v260/v270/v280/v300/v310/v340/v350/v360/v370 fixture verifier family | 제품 UI 비대상 |
+| `SAFE-001`~`SAFE-175` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-142` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
 
 ## VA Manual UI Seed Matrix
 
@@ -485,6 +486,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | UI-095 | V370 Step 11 Site Operations Workspace UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v370-site-operations-workspace-ui.v1` 기반 site list, health rollup, runbook queue, impact detail을 read-only로 표시하고 source URL/raw locator/raw JSON/debug/credential/operator material과 source/view/runbook/approval write를 노출하지 않음 |
 | UI-096 | V370 Step 12 Client Notice by Site/View Group UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v370-client-notice-by-site-view-group.v1` 기반 site/view group viewer-safe notice preview와 delivery queue를 preview-only로 표시하고 client notice send/persist 또는 viewer client payload 변경을 수행하지 않음 |
 | UI-097 | V370 Step 13 Rule/VA What-if by Site UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v370-rule-va-what-if-by-site.v1` 기반 site-scoped rule threshold/scenario what-if 후보, site impact delta, EventRecord/VA fixture refs를 read-only로 표시하고 rule apply/EventRecord write/media mutation을 수행하지 않음 |
+| UI-098 | V370 Step 14 Field Evidence Attachment UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v370-field-evidence-attachment.v1` 기반 site/runbook field evidence attachment, condition refs, approval/runbook refs, not-run/conditional evidence boundary를 표시하고 field smoke, endpoint/provider 실행, source/view/runbook/approval write, raw endpoint/credential/provider material 노출을 수행하지 않음 |
 
 ## B. Auth, Account, Role, Scope
 
@@ -596,6 +598,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SRC-057 | V370 Step 5 site impact graph source linkage | 비대상 | 필요 | 안정화 | `verify-v370-site-impact-graph`가 SourceRegistry/PublishedView source refs를 site/source group graph node/edge로 연결하되 source/view write, raw locator/credential/debug material 노출, viewer/client payload 변경을 수행하지 않음을 확인 |
 | SRC-058 | V370 Step 6 site simulation input source projection | 비대상 | 필요 | 안정화 | `verify-v370-site-simulation-input-pack`이 SourceRegistry/PublishedView source refs를 site/source group simulation input pack으로만 묶고 source/view write, raw locator/credential material 노출, simulation run을 수행하지 않음을 확인 |
 | SRC-059 | V370 Step 7 cross-site readiness source scope | 비대상 | 필요 | 안정화 | `verify-v370-cross-site-safe-apply-readiness`가 source 변경 후보를 site/source group safe-apply readiness로만 매핑하고 source registry/PublishedView write, source change apply, raw locator/credential material 노출을 수행하지 않음을 확인 |
+| SRC-060 | V370 Step 14 site/runbook field evidence source refs | 비대상 | 필요 | 안정화 | `verify-v370-field-evidence-attachment`가 SourceRegistry/PublishedView site/source group projection과 runbook ledger refs에 ONVIF 조건부/not-run evidence를 연결하되 source registry/PublishedView write, endpoint probe, credential probe, raw locator/credential 노출을 수행하지 않음을 확인 |
 
 ## D. Rule, Profile, Scenario, Tracker
 
@@ -869,6 +872,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | MEDIA-022 | V340 Step 10 external WHEP/TURN condition gate | 비대상 | 필요 | 안정화 | `verify-v340-field-bridge-condition-gates`가 external WHEP endpoint와 TURN credential/approval 조건을 field-smoke-needed/not-run으로 기록하고 local ICE/WebRTC/source-only PASS를 external bridge PASS로 승격하지 않음을 확인 |
 | MEDIA-023 | V350 Step 11 external WHEP/TURN field evidence intake | 비대상 | 필요 | 안정화 | `verify-v350-field-evidence-intake`가 external WHEP/TURN 결과를 endpoint/credential/operator approval 조건과 not-run redacted evidence로 분리하고 WHEP 접속, TURN credential 사용, media path 변경을 수행하지 않음을 확인 |
 | MEDIA-024 | V360 Step 12 external WHEP/TURN simulation field evidence adapter | 비대상 | 필요 | 안정화 | `verify-v360-field-evidence-simulation-adapter`가 external WHEP/TURN 조건을 conditional/not-run simulation evidence로만 연결하고 WHEP 접속, TURN credential 사용, endpoint probe, media path 변경을 수행하지 않음을 확인 |
+| MEDIA-025 | V370 Step 14 external WHEP/TURN field evidence attachment | 비대상 | 필요 | 안정화 | `verify-v370-field-evidence-attachment`가 external WHEP/TURN 조건부 evidence를 site/runbook attachment ref로만 연결하고 WHEP 접속, TURN credential 사용, endpoint probe, field smoke, media path 변경을 수행하지 않음을 확인 |
 
 ## H. Lab, Development API, Metadata
 
@@ -980,6 +984,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | LAB-104 | V370 Step 9 runbook instance ledger harness | 비대상 | 필요 | 안정화 | `verify-v370-runbook-instance-ledger`가 runbook template contract, cross-site readiness, v3.6 simulation run ledger를 read-only append-only ledger projection으로 연결하되 runbook instance persist, operator note write, approval ticket write, provider/runtime/media 작업을 수행하지 않음을 확인 |
 | LAB-105 | V370 Step 10 approval ticket workflow harness | 비대상 | 필요 | 안정화 | `verify-v370-approval-ticket-workflow`가 runbook template contract, runbook instance ledger, cross-site readiness를 read-only approval ticket workflow projection으로 연결하되 approval ticket write, reviewer assignment write, approval decision persist, provider/runtime/media 작업을 수행하지 않음을 확인 |
 | LAB-106 | V370 Step 13 Rule/VA what-if by site harness | 비대상 | 필요 | 안정화 | `verify-v370-rule-va-what-if-by-site`가 v3.6 dry-run/impact diff/Rule-VA replay refs와 v3.7 site projection/simulation/readiness를 read-only what-if harness로 연결하되 simulation run, rule apply, provider/runtime/media 작업을 수행하지 않음을 확인 |
+| LAB-107 | V370 Step 14 Field Evidence Attachment harness | 비대상 | 필요 | 안정화 | `verify-v370-field-evidence-attachment`가 v3.4 field bridge condition gates, v3.5 field evidence intake, v3.6 field evidence simulation adapter, v3.7 runbook/approval refs를 read-only attachment harness로 연결하되 field smoke, endpoint/credential probe, provider/VLM call, runtime/media 작업을 수행하지 않음을 확인 |
 
 ## I. Safety, Boundary, Invariant Contract
 
@@ -1159,6 +1164,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-172 | V370 Step 11 site operations workspace boundary | 비대상 | 필요 | 안정화 | `verify-v370-site-operations-workspace-ui`가 `/ops` site operations workspace를 read-only로 표시하고 source/view/runbook/approval write, client notice send, source URL/raw locator/raw JSON/debug/credential material, viewer/client exposure, media mutation을 수행하지 않음을 확인 |
 | SAFE-173 | V370 Step 12 client notice by site/view group boundary | 비대상 | 필요 | 안정화 | `verify-v370-client-notice-by-site-view-group`가 site/view group viewer-safe notice preview와 delivery queue를 preview-only로 표시하고 client notice send/persist, viewer client payload 변경, source/view/rule/EventRecord/Ops audit/client/media mutation, raw locator/credential/operator material 노출을 수행하지 않음을 확인 |
 | SAFE-174 | V370 Step 13 Rule/VA what-if by site boundary | 비대상 | 필요 | 안정화 | `verify-v370-rule-va-what-if-by-site`가 site-scoped what-if를 read-only로 산출하고 rule/profile registry write, rule apply, EventRecord/Ops audit/source/view/client/media mutation, raw locator/credential/debug material 노출을 수행하지 않음을 확인 |
+| SAFE-175 | V370 Step 14 Field Evidence Attachment boundary | 비대상 | 필요 | 안정화 | `verify-v370-field-evidence-attachment`가 field evidence attachment를 conditional/not-run read model로만 산출하고 field smoke, endpoint/credential probe, provider/VLM call, source/view/runbook/approval/EventRecord/Ops audit/client/media mutation, raw endpoint/credential/provider material 노출을 수행하지 않음을 확인 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -1271,6 +1277,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-139 | V370 Step 11 Site Operations Workspace UI 게이트 | 비대상 | 필요 | 안정화 | `verify-v370-site-operations-workspace-ui`가 `/ops` dashboard site operations workspace shell, renderer/CSS, site list/health rollup/runbook queue/impact detail read model 연결, client 비노출, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, source/view/runbook/approval write, client notice send, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-140 | V370 Step 12 Client Notice by Site/View Group 게이트 | 비대상 | 필요 | 안정화 | `verify-v370-client-notice-by-site-view-group`가 `/ops/api/site-operations/client-notice-by-site-view-group` Ops-only route, site/view group notice preview, delivery queue preview, no-send/no-persist boundary, dashboard renderer/CSS, client 비노출, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, client notice 발송, viewer payload 변경, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-141 | V370 Step 13 Rule/VA What-if by Site 게이트 | 비대상 | 필요 | 안정화 | `verify-v370-rule-va-what-if-by-site`가 `/ops/api/site-operations/rule-va-what-if-by-site` Ops-only route, site-scoped rule threshold/scenario 후보, EventRecord/VA fixture refs, no-apply/no-write boundary, dashboard renderer/CSS, client 비노출, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, rule apply, EventRecord write, 30분/120분, release publish PASS로 대체하지 않음 |
+| OPS-142 | V370 Step 14 Field Evidence Attachment 게이트 | 비대상 | 필요 | 안정화 | `verify-v370-field-evidence-attachment`가 `/ops/api/site-operations/field-evidence-attachment` Ops-only route, ONVIF/external WHEP/TURN/cloud/VLM conditional evidence attachment, runbook/approval refs, no-execution/no-write boundary, dashboard renderer/CSS, client 비노출, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, field smoke, endpoint/provider 실행, 30분/120분, release publish PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 
