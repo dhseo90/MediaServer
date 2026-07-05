@@ -1049,6 +1049,139 @@ void AppendOpsShellScript(std::ostringstream& out,
         ]);
         renderV360OpsSimulationWorkspace({ inputPack, simulationRun, simulationRunLedger, clientNoticePreview, ruleVaWhatIfReplayPack, simulationExportBundle, fieldEvidenceSimulationAdapter, vlmAssistedSimulationExplanation, dryRun, impactDiff, readiness, inputPackRoute, runContractRoute, simulationRunLedgerRoute, clientNoticePreviewRoute, ruleVaWhatIfReplayRoute, simulationExportBundleRoute, fieldEvidenceSimulationAdapterRoute, vlmAssistedSimulationExplanationRoute, dryRunRoute, impactDiffRoute, readinessRoute });
       };
+      let v370SiteOperationsWorkspaceState = {};
+      const v370SiteOperationsWorkspaceList = value => Array.isArray(value) ? value : [];
+      const v370SiteOperationsWorkspaceEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-site-operations-entry ${escapeHtml(tone)}" data-v370-site-operations-workspace-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV370SiteOperationsWorkspace = (payload = {}) => {
+        const projection = payload.projection || {};
+        const health = payload.health || {};
+        const impact = payload.impact || {};
+        const runbook = payload.runbook || {};
+        const approval = payload.approval || {};
+        const sourceRegistryProjectionItems = v370SiteOperationsWorkspaceList(
+          projection.sourceRegistryProjectionItems || projection.siteRegistryProjection);
+        const siteHealthRollupItems = v370SiteOperationsWorkspaceList(
+          health.siteHealthRollupItems || health.siteHealthRollup);
+        const siteImpactGraphNodes = v370SiteOperationsWorkspaceList(impact.siteImpactGraphNodes);
+        const siteImpactGraphEdges = v370SiteOperationsWorkspaceList(impact.siteImpactGraphEdges);
+        const runbookInstanceLedgerEntries = v370SiteOperationsWorkspaceList(runbook.runbookInstanceLedgerEntries);
+        const approvalTicketWorkflowItems = v370SiteOperationsWorkspaceList(approval.approvalTicketWorkflowItems);
+        const siteNodes = siteImpactGraphNodes.filter(node => String(node?.nodeType || node?.type || '').toLowerCase() === 'site');
+        const sourceNodes = siteImpactGraphNodes.filter(node => String(node?.nodeType || node?.type || '').toLowerCase() === 'source');
+        const boundaryOk = projection.boundaries?.readOnly === true &&
+          health.boundaries?.readOnly === true &&
+          impact.boundaries?.readOnly === true &&
+          runbook.boundaries?.runbookInstancePersisted === false &&
+          runbook.boundaries?.operatorNoteWritePerformed === false &&
+          approval.boundaries?.approvalTicketWritePerformed === false &&
+          approval.boundaries?.approvalDecisionPersisted === false &&
+          approval.boundaries?.clientNoticeSent === false;
+        v370SiteOperationsWorkspaceState = {
+          projection,
+          health,
+          impact,
+          runbook,
+          approval,
+          projectionRoute: payload.projectionRoute || '/ops/api/site-operations/source-registry-projection',
+          healthRoute: payload.healthRoute || '/ops/api/site-operations/health-rollup',
+          impactRoute: payload.impactRoute || '/ops/api/site-operations/impact-graph',
+          runbookRoute: payload.runbookRoute || '/ops/api/site-operations/runbook-instance-ledger',
+          approvalRoute: payload.approvalRoute || '/ops/api/site-operations/approval-ticket-workflow'
+        };
+        renderBadges('dashSiteOperationsWorkspaceBadges', [
+          { text: `site ${siteNodes.length || sourceRegistryProjectionItems.length}` },
+          { text: `source ${sourceNodes.length}` },
+          { text: `health ${siteHealthRollupItems.length}` },
+          { text: `runbook ${runbookInstanceLedgerEntries.length}` },
+          { text: `approval ${approvalTicketWorkflowItems.length}` },
+          { text: `impact ${siteImpactGraphNodes.length}/${siteImpactGraphEdges.length}` },
+          { text: boundaryOk ? 'read-only' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashSiteOperationsWorkspaceText',
+          payload.error
+            ? `site operations workspace 로드 실패: ${payload.error}`
+            : `site list ${sourceRegistryProjectionItems.length} · health rollup ${siteHealthRollupItems.length} · runbook queue ${runbookInstanceLedgerEntries.length} · approval workflow ${approvalTicketWorkflowItems.length} · impact detail ${siteImpactGraphNodes.length}`);
+        const siteList = document.getElementById('dashSiteOperationsSiteList');
+        if (siteList) {
+          siteList.innerHTML = sourceRegistryProjectionItems.length > 0
+            ? sourceRegistryProjectionItems.slice(0, 8).map(item =>
+                v370SiteOperationsWorkspaceEntry(
+                  item.siteId || item.sourceId || 'site-projection',
+                  item.siteId || item.siteName || item.sourceGroup || item.sourceId || 'site',
+                  item.sourceGroup || item.viewGroup || item.zone || 'source group pending',
+                  `source=${display(item.sourceId || '-')} · view=${display(item.viewId || item.viewCount || '-')} · route=${v370SiteOperationsWorkspaceState.projectionRoute}`))
+              .join('')
+            : '<div class="empty">site/source group projection 항목이 아직 없습니다.</div>';
+        }
+        const healthList = document.getElementById('dashSiteOperationsHealthList');
+        if (healthList) {
+          healthList.innerHTML = siteHealthRollupItems.length > 0
+            ? siteHealthRollupItems.slice(0, 8).map(item =>
+                v370SiteOperationsWorkspaceEntry(
+                  item.siteId || item.sourceId || 'site-health',
+                  item.rollupState || item.healthState || item.status || 'health rollup',
+                  item.siteId || item.sourceGroup || item.sourceId || 'site',
+                  `offline=${display(item.offlineCount ?? item.offlineSources ?? 0)} · degraded=${display(item.degradedCount ?? item.degradedSources ?? 0)} · fieldNeeded=${display(item.fieldNeededCount ?? item.fieldNeededSources ?? 0)}`,
+                  String(item.rollupState || item.healthState || item.status || '').includes('field') ? 'warn' : ''))
+              .join('')
+            : '<div class="empty">site health rollup 항목이 아직 없습니다.</div>';
+        }
+        const runbookQueue = document.getElementById('dashSiteOperationsRunbookQueue');
+        if (runbookQueue) {
+          const runbookRows = runbookInstanceLedgerEntries.slice(0, 5).map(entry =>
+            v370SiteOperationsWorkspaceEntry(
+              entry.runbookId || entry.runbookInstanceId || 'runbook',
+              entry.status || entry.runbookStatus || 'queued',
+              entry.operatorNote || entry.previousRunComparison || entry.siteId || 'operator review pending',
+              `site=${display(entry.siteId || '-')} · template=${display(entry.templateId || entry.runbookTemplateId || '-')} · previous=${display(entry.previousRunId || entry.comparedToRunId || '-')}`,
+              String(entry.status || '').includes('blocked') ? 'warn' : ''));
+          const approvalRows = approvalTicketWorkflowItems.slice(0, 5).map(item =>
+            v370SiteOperationsWorkspaceEntry(
+              item.ticketId || item.approvalTicketId || 'approval-ticket',
+              item.approvalState || item.status || 'approval',
+              item.reason || item.reviewer || item.auditLink || 'approval review pending',
+              `runbook=${display(item.runbookId || '-')} · reviewer=${display(item.reviewer || '-')} · audit=${display(item.auditLink || '-')}`,
+              ['hold', 'reject', 'field-needed'].includes(String(item.approvalState || item.status || '')) ? 'warn' : ''));
+          runbookQueue.innerHTML = runbookRows.length + approvalRows.length > 0
+            ? [...runbookRows, ...approvalRows].join('')
+            : '<div class="empty">runbook queue와 approval workflow 항목이 아직 없습니다.</div>';
+        }
+        const impactDetail = document.getElementById('dashSiteOperationsImpactDetail');
+        if (impactDetail) {
+          impactDetail.innerHTML = siteImpactGraphNodes.length > 0
+            ? siteImpactGraphNodes.slice(0, 8).map(node =>
+                v370SiteOperationsWorkspaceEntry(
+                  node.nodeId || node.id || 'impact-node',
+                  node.label || node.title || node.nodeType || 'impact node',
+                  node.summary || node.status || node.siteId || 'impact detail',
+                  `type=${display(node.nodeType || node.type || '-')} · refs=${display(v370SiteOperationsWorkspaceList(node.refs || node.evidenceRefs).slice(0, 2).join(', ') || 'none')}`))
+              .join('')
+            : '<div class="empty">site impact graph detail 항목이 아직 없습니다.</div>';
+        }
+        setText('dashSiteOperationsBoundary',
+          `projection=${display(v370SiteOperationsWorkspaceState.projectionRoute)} · health=${display(v370SiteOperationsWorkspaceState.healthRoute)} · impact=${display(v370SiteOperationsWorkspaceState.impactRoute)} · runbook=${display(v370SiteOperationsWorkspaceState.runbookRoute)} · approval=${display(v370SiteOperationsWorkspaceState.approvalRoute)} · sourceRegistryWritePerformed=${projection.boundaries?.sourceRegistryWritePerformed === false ? 'false' : '확인 필요'} · publishedViewWritePerformed=${projection.boundaries?.publishedViewWritePerformed === false ? 'false' : '확인 필요'} · runbookInstancePersisted=${runbook.boundaries?.runbookInstancePersisted === false ? 'false' : '확인 필요'} · operatorNoteWritePerformed=${runbook.boundaries?.operatorNoteWritePerformed === false ? 'false' : '확인 필요'} · approvalTicketWritePerformed=${approval.boundaries?.approvalTicketWritePerformed === false ? 'false' : '확인 필요'} · approvalDecisionPersisted=${approval.boundaries?.approvalDecisionPersisted === false ? 'false' : '확인 필요'} · clientNoticeSent=${approval.boundaries?.clientNoticeSent === false ? 'false' : '확인 필요'} · rtspOrWebrtcMediaPathChanged=${impact.boundaries?.rtspOrWebrtcMediaPathChanged === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV370SiteOperationsWorkspace = async ({
+        projectionRoute = '/ops/api/site-operations/source-registry-projection',
+        healthRoute = '/ops/api/site-operations/health-rollup',
+        impactRoute = '/ops/api/site-operations/impact-graph',
+        runbookRoute = '/ops/api/site-operations/runbook-instance-ledger',
+        approvalRoute = '/ops/api/site-operations/approval-ticket-workflow'
+      } = {}) => {
+        const [projection, health, impact, runbook, approval] = await Promise.all([
+          requestJson(projectionRoute).catch(error => ({ error: error.message, sourceRegistryProjectionItems: [], boundaries: {} })),
+          requestJson(healthRoute).catch(error => ({ error: error.message, siteHealthRollupItems: [], boundaries: {} })),
+          requestJson(impactRoute).catch(error => ({ error: error.message, siteImpactGraphNodes: [], siteImpactGraphEdges: [], boundaries: {} })),
+          requestJson(runbookRoute).catch(error => ({ error: error.message, runbookInstanceLedgerEntries: [], boundaries: {} })),
+          requestJson(approvalRoute).catch(error => ({ error: error.message, approvalTicketWorkflowItems: [], boundaries: {} }))
+        ]);
+        renderV370SiteOperationsWorkspace({ projection, health, impact, runbook, approval, projectionRoute, healthRoute, impactRoute, runbookRoute, approvalRoute });
+      };
       const renderDashboardRootCause = (runtime, principal, eventsStatus = {}, browserConfig = {}, diagnosticLog = {}, sourceHealth = {}) => {
         const items = dashboardRootCauseItems(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);
         const warnCount = items.filter(item => item.level === 'warn' || item.level === 'bad').length;
@@ -2022,6 +2155,13 @@ void AppendOpsShellScript(std::ostringstream& out,
           impactDiffRoute: '/ops/api/live-operations/simulation/impact-diff',
           readinessRoute: '/ops/api/live-operations/simulation/safe-apply-readiness'
         }).catch(error => renderV360OpsSimulationWorkspace({ error: error.message }));
+        await refreshV370SiteOperationsWorkspace({
+          projectionRoute: '/ops/api/site-operations/source-registry-projection',
+          healthRoute: '/ops/api/site-operations/health-rollup',
+          impactRoute: '/ops/api/site-operations/impact-graph',
+          runbookRoute: '/ops/api/site-operations/runbook-instance-ledger',
+          approvalRoute: '/ops/api/site-operations/approval-ticket-workflow'
+        }).catch(error => renderV370SiteOperationsWorkspace({ error: error.message }));
         await refreshDashboardVaQuality(runtime, eventsStatus).catch(renderDashboardVaQualityError);
         renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
         window.MediaServerUi?.translatePage?.();

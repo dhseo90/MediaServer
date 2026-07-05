@@ -631,11 +631,19 @@ std::string ProductUiCss() {
       display: grid;
       gap: var(--space-3);
     }
+    body.ops-shell .ops-site-operations-workspace {
+      display: grid;
+      gap: var(--space-3);
+    }
     body.ops-shell .ops-command-workspace .ops-command-workspace-detail-grid {
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: var(--space-3);
     }
     body.ops-shell .ops-simulation-workspace .ops-simulation-workspace-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--space-3);
+    }
+    body.ops-shell .ops-site-operations-workspace .ops-site-operations-grid {
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: var(--space-3);
     }
@@ -651,7 +659,8 @@ std::string ProductUiCss() {
     body.ops-shell .ops-simulation-workspace .ops-simulation-what-if-replay-list,
     body.ops-shell .ops-simulation-workspace .ops-simulation-export-bundle-list,
     body.ops-shell .ops-simulation-workspace .ops-simulation-field-evidence-adapter-list,
-    body.ops-shell .ops-simulation-workspace .ops-simulation-vlm-assisted-explanation-list {
+    body.ops-shell .ops-simulation-workspace .ops-simulation-vlm-assisted-explanation-list,
+    body.ops-shell .ops-site-operations-workspace .ops-site-operations-list {
       min-width: 0;
     }
     body.ops-shell .ops-channels-workspace {
@@ -1227,7 +1236,8 @@ std::string ProductUiCss() {
     .ops-simulation-what-if-replay-list,
     .ops-simulation-export-bundle-list,
     .ops-simulation-field-evidence-adapter-list,
-    .ops-simulation-vlm-assisted-explanation-list {
+    .ops-simulation-vlm-assisted-explanation-list,
+    .ops-site-operations-list {
       display: grid;
       gap: var(--space-2);
     }
@@ -1246,7 +1256,8 @@ std::string ProductUiCss() {
     .ops-simulation-what-if-replay-entry,
     .ops-simulation-export-bundle-entry,
     .ops-simulation-field-evidence-adapter-entry,
-    .ops-simulation-vlm-assisted-explanation-entry {
+    .ops-simulation-vlm-assisted-explanation-entry,
+    .ops-site-operations-entry {
       min-width: 0;
       margin: 0;
       padding: 11px 12px;
@@ -1292,8 +1303,12 @@ std::string ProductUiCss() {
     .ops-simulation-vlm-assisted-explanation-entry strong,
     .ops-simulation-vlm-assisted-explanation-entry span,
     .ops-simulation-vlm-assisted-explanation-entry small,
+    .ops-site-operations-entry strong,
+    .ops-site-operations-entry span,
+    .ops-site-operations-entry small,
     .ops-command-boundary,
-    .ops-simulation-boundary {
+    .ops-simulation-boundary,
+    .ops-site-operations-boundary {
       min-width: 0;
       overflow-wrap: anywhere;
     }
@@ -1308,7 +1323,8 @@ std::string ProductUiCss() {
     .ops-simulation-what-if-replay-entry strong,
     .ops-simulation-export-bundle-entry strong,
     .ops-simulation-field-evidence-adapter-entry strong,
-    .ops-simulation-vlm-assisted-explanation-entry strong {
+    .ops-simulation-vlm-assisted-explanation-entry strong,
+    .ops-site-operations-entry strong {
       font-size: 13px;
       line-height: 1.2;
     }
@@ -1336,8 +1352,11 @@ std::string ProductUiCss() {
     .ops-simulation-field-evidence-adapter-entry small,
     .ops-simulation-vlm-assisted-explanation-entry span,
     .ops-simulation-vlm-assisted-explanation-entry small,
+    .ops-site-operations-entry span,
+    .ops-site-operations-entry small,
     .ops-command-boundary,
-    .ops-simulation-boundary {
+    .ops-simulation-boundary,
+    .ops-site-operations-boundary {
       color: var(--color-muted);
       font-size: 12px;
       line-height: 1.35;
@@ -1347,11 +1366,13 @@ std::string ProductUiCss() {
       background: color-mix(in srgb, var(--color-surface) 90%, transparent);
     }
     .ops-command-flow-card.warn,
-    .ops-simulation-workspace-entry.warn {
+    .ops-simulation-workspace-entry.warn,
+    .ops-site-operations-entry.warn {
       border-color: color-mix(in srgb, var(--color-warning) 56%, var(--color-border));
     }
     .ops-command-boundary,
-    .ops-simulation-boundary {
+    .ops-simulation-boundary,
+    .ops-site-operations-boundary {
       padding: 9px 10px;
       border: 1px dashed var(--color-border);
       border-radius: 8px;

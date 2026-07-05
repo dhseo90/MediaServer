@@ -2872,6 +2872,45 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           simulationRunExecuted=false · safeApplyPerformed=false · clientNoticeSent=false
         </div>
       </section>
+      <section class="section-card ops-workspace-wide ops-site-operations-workspace" data-testid="ops-site-operations-workspace" data-v370-site-operations-workspace="media-server.ops.v370-site-operations-workspace-ui.v1">
+        <div class="toolbar">
+          <div>
+            <h3>Site Operations Workspace</h3>
+            <p>site list, health rollup, runbook queue, impact detail을 read-only로 탐색합니다.</p>
+          </div>
+        </div>
+        <div id="dashSiteOperationsWorkspaceBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashSiteOperationsWorkspaceText">site operations read model을 불러오는 중입니다.</p>
+        <div class="grid ops-site-operations-grid">
+          <div>
+            <h4>Site List</h4>
+            <div id="dashSiteOperationsSiteList" class="ops-site-operations-list">
+              <div class="empty">site/source group projection을 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Health Rollup</h4>
+            <div id="dashSiteOperationsHealthList" class="ops-site-operations-list">
+              <div class="empty">site health rollup을 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Runbook Queue</h4>
+            <div id="dashSiteOperationsRunbookQueue" class="ops-site-operations-list">
+              <div class="empty">runbook instance ledger와 approval workflow를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Impact Detail</h4>
+            <div id="dashSiteOperationsImpactDetail" class="ops-site-operations-list">
+              <div class="empty">site impact graph detail을 기다립니다.</div>
+            </div>
+          </div>
+        </div>
+        <div id="dashSiteOperationsBoundary" class="ops-site-operations-boundary">
+          source/view/runbook/approval write=false · clientNoticeSent=false · media mutation=false
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide" data-testid="ops-runtime-operations-console">
         <div class="toolbar">
           <div>

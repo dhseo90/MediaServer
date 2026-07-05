@@ -26,13 +26,13 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 825 |
-| UI 직접 필요 | 375 |
+| 전체 기능 항목 | 828 |
+| UI 직접 필요 | 376 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 419 |
-| 테스트 필요 | 825 |
-| 안정화 대상 | 815 |
-| UI 풀테스트 대상 | 395 |
+| UI 비대상 | 421 |
+| 테스트 필요 | 828 |
+| 안정화 대상 | 818 |
+| UI 풀테스트 대상 | 396 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
 
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 825개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 828개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -72,6 +72,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | v3.7.0 (8) Runbook Template Contract | `LAB-103`, `SAFE-169`, `OPS-136` | `verify-v370-runbook-template-contract` | `/ops/api/site-operations/runbook-template-contract`가 source recheck, maintenance, rule draft, client notice 후보를 반복 가능한 read-only runbook template contract로 정의합니다. runbook instance persist, approval ticket write, source/view/rule/EventRecord/Ops audit/client/media mutation, client notice send, field smoke, viewer/client 노출, raw locator/credential material, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.7.0 (9) Runbook Instance Ledger | `LAB-104`, `SAFE-170`, `OPS-137` | `verify-v370-runbook-instance-ledger` | `/ops/api/site-operations/runbook-instance-ledger`가 runbookId, siteId, status, operator note, previous run comparison을 append-only/read-only ledger projection으로 누적합니다. runbook instance persist, operator note write, approval ticket write, result diff persist, source/view/rule/EventRecord/Ops audit/client/media mutation, viewer/client 노출, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.7.0 (10) Approval Ticket Workflow | `LAB-105`, `SAFE-171`, `OPS-138` | `verify-v370-approval-ticket-workflow` | `/ops/api/site-operations/approval-ticket-workflow`가 approval, hold, reject, field-needed 상태와 reviewer/reason/audit link를 read-only workflow projection으로 관리합니다. approval ticket write, reviewer assignment write, approval decision persist, runbook instance persist, operator note write, source/view/rule/EventRecord/Ops audit/client/media mutation, viewer/client 노출, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
+| v3.7.0 (11) Site Operations Workspace UI | `UI-095`, `SAFE-172`, `OPS-139` | `verify-v370-site-operations-workspace-ui`, `verify-ops-client-ui` | `/ops` dashboard가 `media-server.ops.v370-site-operations-workspace-ui.v1` 기반 site list, health rollup, runbook queue, impact detail을 read-only로 표시합니다. source/view/runbook/approval write, client notice send, raw locator/credential/debug material, viewer/client 노출, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 
 ## 최신 published baseline v3.6.0 Operations Simulation and Safe Apply Readiness Coverage Mapping
 
@@ -328,7 +329,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 
 | 기능 ID 범위 | 안정화 verifier 후보 | 비고 |
 | --- | --- | --- |
-| `UI-001`~`UI-018`, `UI-022`~`UI-094` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
+| `UI-001`~`UI-018`, `UI-022`~`UI-095` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360/v370 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
 | `SRC-001`~`SRC-059` | source/ONVIF/UI/v340/v350/v360/v370 verifier family | ONVIF field success는 approved environment only |
 | `RULE-001`~`RULE-109` | rule/VA/v350/v360 verifier family | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
@@ -336,8 +337,8 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | `CLIENT-001`~`CLIENT-036` | client/UI/v350/v360/v370 verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-024` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
 | `LAB-001`~`LAB-105` | lab/VLM/v250/v260/v270/v280/v300/v310/v340/v350/v360/v370 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-171` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-138` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
+| `SAFE-001`~`SAFE-172` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-139` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
 
 ## VA Manual UI Seed Matrix
 
@@ -479,6 +480,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | UI-092 | V360 Step 11 Simulation Export Bundle UI | 필요 | 필요 | 안정화, UI | `/ops` simulation workspace가 `media-server.ops.v360-simulation-export-bundle.v1` 기반 simulation input/output, blocker, handoff map refs를 redacted release-safe bundle으로 표시하고 artifact export/file write/handoff write를 수행하지 않음 |
 | UI-093 | V360 Step 12 Field Evidence Simulation Adapter UI | 필요 | 필요 | 안정화, UI | `/ops` simulation workspace가 `media-server.ops.v360-field-evidence-simulation-adapter.v1` 기반 ONVIF, external WHEP/TURN, cloud/VLM provider 조건부/not-run evidence와 readiness blocker ref를 raw endpoint/credential/provider material 없이 표시함 |
 | UI-094 | V360 Step 13 VLM-assisted Simulation Explanation UI | 필요 | 필요 | 안정화, UI | `/ops` simulation workspace가 `media-server.ops.v360-vlm-assisted-simulation-explanation.v1` 기반 VLM-assisted Simulation Explanation을 default-off로 표시하고 blocker, impact diff, operator review hint를 raw prompt/provider response/credential material 없이 노출함 |
+| UI-095 | V370 Step 11 Site Operations Workspace UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v370-site-operations-workspace-ui.v1` 기반 site list, health rollup, runbook queue, impact detail을 read-only로 표시하고 source URL/raw locator/raw JSON/debug/credential/operator material과 source/view/runbook/approval write를 노출하지 않음 |
 
 ## B. Auth, Account, Role, Scope
 
@@ -1146,6 +1148,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-169 | V370 Step 8 runbook template no-write boundary | 비대상 | 필요 | 안정화 | `verify-v370-runbook-template-contract`가 runbook template contract를 read-only로 정의하고 runbook instance persist, approval ticket write, operator note write, source/view/rule/EventRecord/Ops audit/client/media mutation, client notice send, field smoke, viewer/client exposure, raw locator/credential material 노출을 수행하지 않음을 확인 |
 | SAFE-170 | V370 Step 9 runbook ledger append-only boundary | 비대상 | 필요 | 안정화 | `verify-v370-runbook-instance-ledger`가 runbook instance ledger를 append-only/read-only projection으로 산출하고 runbook instance persist, operator note write, approval ticket write, result diff persist, source/view/rule/EventRecord/Ops audit/client/media mutation, viewer/client exposure를 수행하지 않음을 확인 |
 | SAFE-171 | V370 Step 10 approval ticket workflow no-write boundary | 비대상 | 필요 | 안정화 | `verify-v370-approval-ticket-workflow`가 approval ticket workflow를 read-only로 산출하고 approval ticket write, reviewer assignment write, approval decision persist, runbook instance persist, operator note write, result diff persist, source/view/rule/EventRecord/Ops audit/client/media mutation, viewer/client exposure를 수행하지 않음을 확인 |
+| SAFE-172 | V370 Step 11 site operations workspace boundary | 비대상 | 필요 | 안정화 | `verify-v370-site-operations-workspace-ui`가 `/ops` site operations workspace를 read-only로 표시하고 source/view/runbook/approval write, client notice send, source URL/raw locator/raw JSON/debug/credential material, viewer/client exposure, media mutation을 수행하지 않음을 확인 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -1255,6 +1258,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-136 | V370 Step 8 Runbook Template Contract 게이트 | 비대상 | 필요 | 안정화 | `verify-v370-runbook-template-contract`가 `/ops/api/site-operations/runbook-template-contract` Ops-only route, source recheck/maintenance/rule draft/client notice template contract, no-write boundary, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 runbook instance persist, approval ticket write, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-137 | V370 Step 9 Runbook Instance Ledger 게이트 | 비대상 | 필요 | 안정화 | `verify-v370-runbook-instance-ledger`가 `/ops/api/site-operations/runbook-instance-ledger` Ops-only route, runbookId/siteId/status/operator note/previous run comparison append-only ledger projection, no-write boundary, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 runbook instance persist, operator note write, approval ticket write, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-138 | V370 Step 10 Approval Ticket Workflow 게이트 | 비대상 | 필요 | 안정화 | `verify-v370-approval-ticket-workflow`가 `/ops/api/site-operations/approval-ticket-workflow` Ops-only route, approval/hold/reject/field-needed 상태, reviewer/reason/audit link read-only projection, no-write boundary, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 approval ticket write, reviewer assignment write, approval decision persist, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
+| OPS-139 | V370 Step 11 Site Operations Workspace UI 게이트 | 비대상 | 필요 | 안정화 | `verify-v370-site-operations-workspace-ui`가 `/ops` dashboard site operations workspace shell, renderer/CSS, site list/health rollup/runbook queue/impact detail read model 연결, client 비노출, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, source/view/runbook/approval write, client notice send, 30분/120분, release publish PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 
