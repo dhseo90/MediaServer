@@ -17,6 +17,7 @@
     "^video/imports/va_tracking_event_1280x720_30fps_h264\\.mp4$",
     "^docs/assets/.+\\.(png|jpg|jpeg)$",
     "^docs/release-artifacts/v[0-9]+\\.[0-9]+\\.[0-9]+/ui-fulltest-[0-9]{8}/in-app-screenshots/.+\\.png$",
+    "^docs/release-artifacts/v[0-9]+\\.[0-9]+\\.[0-9]+/ui-fulltest-[0-9]{8}/in-app-final-screenshots/.+\\.png$",
     "^test/fixtures/.+\\.(json|csv)$"
   ],
   "requiredDocs": [
