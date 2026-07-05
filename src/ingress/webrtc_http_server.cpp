@@ -19985,6 +19985,333 @@ std::string OpsV360SafeApplyReadinessGateJson(
     return out.str();
 }
 
+struct OpsV370CrossSiteSafeApplyReadinessItem {
+    std::string readiness_id;
+    std::string candidate_id;
+    std::string candidate_type;
+    std::string source_id;
+    std::string site_id;
+    std::string source_group;
+    std::string readiness_state{"not-run"};
+    std::string cross_site_impact{"site-scoped"};
+    std::vector<std::string> affected_source_ids;
+    std::vector<std::string> affected_client_refs;
+    std::vector<std::string> blockers;
+    std::vector<std::string> evidence_refs;
+    bool operator_approval_required{true};
+    bool field_evidence_required{false};
+    bool cross_site_review_required{false};
+    bool read_only{true};
+};
+
+struct OpsV370CrossSiteSafeApplyReadinessSummary {
+    int item_count{0};
+    int ready_count{0};
+    int blocked_count{0};
+    int approval_needed_count{0};
+    int field_needed_count{0};
+    int not_run_count{0};
+    int blocker_count{0};
+    int affected_client_count{0};
+    int cross_site_review_required_count{0};
+    int source_group_count{0};
+    std::vector<std::string> derivation_sources;
+};
+
+const OpsV370SiteAwareSourceRegistryProjectionItem* V370ProjectionForSource(
+    const std::vector<OpsV370SiteAwareSourceRegistryProjectionItem>& projection,
+    const std::string& source_id) {
+    for (const auto& projected : projection) {
+        if (std::find(projected.source_ids.begin(), projected.source_ids.end(), source_id) !=
+            projected.source_ids.end()) {
+            return &projected;
+        }
+    }
+    return nullptr;
+}
+
+std::vector<std::string> V370AffectedClientRefsForProjection(
+    const OpsV370SiteAwareSourceRegistryProjectionItem* projected) {
+    std::vector<std::string> refs;
+    if (projected == nullptr) {
+        return refs;
+    }
+    for (const auto& view_id : projected->view_ids) {
+        refs.push_back("PublishedView:" + view_id);
+    }
+    return refs;
+}
+
+const OpsV360SourceRuleImpactDiff* V370ImpactDiffForCandidate(
+    const std::vector<OpsV360SourceRuleImpactDiff>& diffs,
+    const std::string& candidate_id) {
+    const auto it = std::find_if(diffs.begin(), diffs.end(), [&](const auto& diff) {
+        return diff.candidate_id == candidate_id;
+    });
+    return it == diffs.end() ? nullptr : &*it;
+}
+
+int V370SiteSimulationPackCountForScope(
+    const std::vector<OpsV370SiteSimulationInputPackItem>& siteSimulationInputPackItems,
+    const std::string& site_id,
+    const std::string& source_group) {
+    return static_cast<int>(std::count_if(siteSimulationInputPackItems.begin(),
+                                          siteSimulationInputPackItems.end(),
+                                          [&](const auto& item) {
+                                              return item.site_id == site_id &&
+                                                     item.source_group == source_group;
+                                          }));
+}
+
+std::vector<OpsV370CrossSiteSafeApplyReadinessItem> BuildV370CrossSiteSafeApplyReadinessItems(
+    const std::vector<OpsV370SiteAwareSourceRegistryProjectionItem>& projection,
+    const std::vector<OpsV370SiteSimulationInputPackItem>& siteSimulationInputPackItems,
+    const std::vector<OpsV360SafeApplyReadinessItem>& readinessItems,
+    const std::vector<OpsV360SourceRuleImpactDiff>& diffs) {
+    std::vector<OpsV370CrossSiteSafeApplyReadinessItem> items;
+    items.reserve(readinessItems.size());
+
+    for (const auto& readiness : readinessItems) {
+        const auto* projected = V370ProjectionForSource(projection, readiness.source_id);
+        const auto* diff = V370ImpactDiffForCandidate(diffs, readiness.candidate_id);
+        const auto affectedClientRefs = V370AffectedClientRefsForProjection(projected);
+        const std::string siteId = projected == nullptr ? "unassigned-site" : projected->site_id;
+        const std::string sourceGroup =
+            projected == nullptr ? "unassigned-source-group" : projected->source_group;
+        const int siteInputPackCount =
+            V370SiteSimulationPackCountForScope(siteSimulationInputPackItems, siteId, sourceGroup);
+
+        OpsV370CrossSiteSafeApplyReadinessItem item;
+        item.readiness_id = "cross-site-safe-apply:" + readiness.candidate_id;
+        item.candidate_id = readiness.candidate_id;
+        item.candidate_type = readiness.candidate_type;
+        item.source_id = readiness.source_id;
+        item.site_id = siteId;
+        item.source_group = sourceGroup;
+        item.readiness_state = readiness.readiness_state;
+        item.affected_client_refs = affectedClientRefs;
+        item.blockers = readiness.blockers;
+        item.operator_approval_required = readiness.operator_approval_required;
+        item.field_evidence_required = readiness.field_evidence_required;
+        item.cross_site_review_required = projected == nullptr || affectedClientRefs.size() > 1U ||
+                                          item.readiness_state == "field-needed";
+        item.cross_site_impact =
+            item.cross_site_review_required ? "cross-site-review-required" : "site-scoped";
+        if (projected != nullptr) {
+            item.affected_source_ids = projected->source_ids;
+        } else if (!readiness.source_id.empty() && readiness.source_id != "pending-source") {
+            item.affected_source_ids = {readiness.source_id};
+        }
+        if (projected == nullptr) {
+            item.readiness_state = "blocked";
+            item.blockers.push_back("site-projection-missing");
+            item.cross_site_impact = "cross-site-review-required";
+            item.cross_site_review_required = true;
+        }
+        if (item.operator_approval_required) {
+            item.blockers.push_back("operator-approval-required");
+        }
+        if (item.field_evidence_required) {
+            item.blockers.push_back("field-evidence-required");
+        }
+        item.evidence_refs = {
+            "/ops/api/live-operations/simulation/safe-apply-readiness",
+            "/ops/api/site-operations/simulation-input-pack",
+            "/ops/api/site-operations/source-registry-projection",
+            "/ops/api/site-operations/impact-graph",
+            "siteSimulationInputPackCount:" + std::to_string(siteInputPackCount),
+        };
+        if (diff != nullptr) {
+            item.evidence_refs.push_back(diff->diff_id);
+            item.evidence_refs.push_back(diff->client_impact_diff);
+        }
+        items.push_back(std::move(item));
+    }
+    return items;
+}
+
+OpsV370CrossSiteSafeApplyReadinessSummary BuildV370CrossSiteSafeApplyReadinessSummary(
+    const std::vector<OpsV370CrossSiteSafeApplyReadinessItem>& items,
+    const OpsV360SafeApplyReadinessSummary& v360ReadinessSummary) {
+    OpsV370CrossSiteSafeApplyReadinessSummary summary;
+    std::vector<std::string> source_groups;
+    summary.derivation_sources = {
+        "BuildV350LiveOperationsGraphContext",
+        "BuildV350CommandPlanCandidates",
+        "BuildV350StagedChangePlans",
+        "BuildV360CommandPlanDryRunResults",
+        "BuildV360SourceRuleImpactDiffs",
+        "BuildV360SafeApplyReadinessItems",
+        "BuildV360SafeApplyReadinessSummary",
+        "BuildV370SiteAwareSourceRegistryProjectionItems",
+        "BuildV370SiteSimulationInputPackItems",
+        "BuildV370SiteImpactGraphNodes",
+        "BuildV370SiteImpactGraphEdges",
+    };
+    summary.item_count = static_cast<int>(items.size());
+    summary.ready_count = v360ReadinessSummary.ready_count;
+    summary.approval_needed_count = v360ReadinessSummary.approval_needed_count;
+    summary.field_needed_count = v360ReadinessSummary.field_needed_count;
+    summary.not_run_count = v360ReadinessSummary.not_run_count;
+    for (const auto& item : items) {
+        if (item.readiness_state == "blocked") {
+            ++summary.blocked_count;
+        }
+        if (item.cross_site_review_required) {
+            ++summary.cross_site_review_required_count;
+        }
+        summary.blocker_count += static_cast<int>(item.blockers.size());
+        summary.affected_client_count += static_cast<int>(item.affected_client_refs.size());
+        AddV370UniqueString(&source_groups, item.site_id + ":" + item.source_group);
+    }
+    summary.source_group_count = static_cast<int>(source_groups.size());
+    return summary;
+}
+
+void AppendV370CrossSiteSafeApplyReadinessItemJson(
+    std::ostringstream& out,
+    const OpsV370CrossSiteSafeApplyReadinessItem& item) {
+    out << "{"
+        << "\"readinessId\":\"" << JsonEscape(item.readiness_id) << "\","
+        << "\"candidateId\":\"" << JsonEscape(item.candidate_id) << "\","
+        << "\"candidateType\":\"" << JsonEscape(item.candidate_type) << "\","
+        << "\"sourceId\":\"" << JsonEscape(item.source_id) << "\","
+        << "\"siteId\":\"" << JsonEscape(item.site_id) << "\","
+        << "\"sourceGroup\":\"" << JsonEscape(item.source_group) << "\","
+        << "\"readinessState\":\"" << JsonEscape(item.readiness_state) << "\","
+        << "\"crossSiteImpact\":\"" << JsonEscape(item.cross_site_impact) << "\","
+        << "\"operatorApprovalRequired\":"
+        << (item.operator_approval_required ? "true" : "false") << ","
+        << "\"fieldEvidenceRequired\":"
+        << (item.field_evidence_required ? "true" : "false") << ","
+        << "\"crossSiteReviewRequired\":"
+        << (item.cross_site_review_required ? "true" : "false") << ","
+        << "\"affectedSourceIds\":";
+    AppendJsonStringArray(out, item.affected_source_ids);
+    out << ",\"affectedClientRefs\":";
+    AppendJsonStringArray(out, item.affected_client_refs);
+    out << ",\"blockers\":";
+    AppendJsonStringArray(out, item.blockers);
+    out << ",\"evidenceRefs\":";
+    AppendJsonStringArray(out, item.evidence_refs);
+    out << ",\"readOnly\":" << (item.read_only ? "true" : "false")
+        << "}";
+}
+
+void AppendV370CrossSiteSafeApplyReadinessSummaryJson(
+    std::ostringstream& out,
+    const OpsV370CrossSiteSafeApplyReadinessSummary& summary) {
+    out << "{"
+        << "\"itemCount\":" << summary.item_count << ","
+        << "\"readyCount\":" << summary.ready_count << ","
+        << "\"blockedCount\":" << summary.blocked_count << ","
+        << "\"approvalNeededCount\":" << summary.approval_needed_count << ","
+        << "\"fieldNeededCount\":" << summary.field_needed_count << ","
+        << "\"notRunCount\":" << summary.not_run_count << ","
+        << "\"blockerCount\":" << summary.blocker_count << ","
+        << "\"affectedClientCount\":" << summary.affected_client_count << ","
+        << "\"crossSiteReviewRequiredCount\":" << summary.cross_site_review_required_count << ","
+        << "\"sourceGroupCount\":" << summary.source_group_count << ","
+        << "\"derivationSources\":";
+    AppendJsonStringArray(out, summary.derivation_sources);
+    out << "}";
+}
+
+std::string OpsV370CrossSiteSafeApplyReadinessJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v370-cross-site-safe-apply-readiness.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto dryRunResults = BuildV360CommandPlanDryRunResults(commandPlanCandidates);
+    const auto impactDiffs =
+        BuildV360SourceRuleImpactDiffs(context, commandPlanCandidates, stagedChangePlans);
+    const auto v360ReadinessItems = BuildV360SafeApplyReadinessItems(dryRunResults, impactDiffs);
+    const auto v360ReadinessSummary = BuildV360SafeApplyReadinessSummary(v360ReadinessItems);
+    const auto v360InputPackItems =
+        BuildV360SimulationInputPackItems(context, commandPlanCandidates, stagedChangePlans);
+    const auto projection =
+        BuildV370SiteAwareSourceRegistryProjectionItems(context.sources, context.views);
+    const auto rollups =
+        BuildV370SiteHealthRollupItems(context.sources, context.views, source_health_snapshot);
+    const auto impactGraphNodes = BuildV370SiteImpactGraphNodes(context, projection, rollups);
+    const auto impactGraphEdges = BuildV370SiteImpactGraphEdges(projection);
+    const auto siteSimulationInputPackItems =
+        BuildV370SiteSimulationInputPackItems(context,
+                                             projection,
+                                             rollups,
+                                             impactGraphNodes,
+                                             impactGraphEdges,
+                                             v360InputPackItems);
+    const auto readinessItems =
+        BuildV370CrossSiteSafeApplyReadinessItems(projection,
+                                                 siteSimulationInputPackItems,
+                                                 v360ReadinessItems,
+                                                 impactDiffs);
+    const auto summary =
+        BuildV370CrossSiteSafeApplyReadinessSummary(readinessItems, v360ReadinessSummary);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v370-cross-site-safe-apply-readiness.v1\","
+        << "\"status\":\"cross-site-safe-apply-readiness\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"safeApplyReadinessRoute\":\"/ops/api/live-operations/simulation/safe-apply-readiness\","
+        << "\"siteSimulationInputPackRoute\":\"/ops/api/site-operations/simulation-input-pack\","
+        << "\"siteRegistryProjectionRoute\":\"/ops/api/site-operations/source-registry-projection\","
+        << "\"siteImpactGraphRoute\":\"/ops/api/site-operations/impact-graph\","
+        << "\"readinessStateCatalog\":[\"ready\",\"blocked\",\"approval-needed\",\"field-needed\",\"not-run\"],"
+        << "\"crossSiteSafeApplyReadinessSummary\":";
+    AppendV370CrossSiteSafeApplyReadinessSummaryJson(out, summary);
+    out << ",\"crossSiteSafeApplyReadinessItems\":[";
+    for (std::size_t i = 0; i < readinessItems.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV370CrossSiteSafeApplyReadinessItemJson(out, readinessItems[i]);
+    }
+    out << "],\"readinessPolicy\":{"
+        << "\"ready\":\"safe apply candidate is only ready when v3.6 gate is ready\","
+        << "\"blocked\":\"site projection or blocker prevents apply\","
+        << "\"approval-needed\":\"operator approval required before any apply\","
+        << "\"field-needed\":\"field evidence required before any apply\","
+        << "\"affectedClientRefs\":\"PublishedView refs only; no client payload is sent\","
+        << "\"crossSiteSafeApplyReadinessOnly\":true"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"crossSiteSafeApplyReadinessOnly\":true,"
+        << "\"automaticApplyPerformed\":false,"
+        << "\"safeApplyPerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"fieldSmokeExecuted\":false,"
+        << "\"commandPlanExecuted\":false,"
+        << "\"sourceChangeApplied\":false,"
+        << "\"ruleFollowUpApplied\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 struct OpsV360SimulationRunLedgerEntry {
     std::string simulation_run_id;
     std::string input_ref;
@@ -30877,6 +31204,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV370SiteSimulationInputPackJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/site-operations/cross-site-safe-apply-readiness") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV370CrossSiteSafeApplyReadinessJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }
