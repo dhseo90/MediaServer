@@ -3025,6 +3025,33 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           pilotExecutionPerformed=false · sourceRecheckExecuted=false · noticeQueueWritePerformed=false · clientNoticeSent=false
         </div>
       </section>
+      <section class="section-card ops-workspace-wide ops-site-outcome-reconciliation-workspace" data-testid="ops-site-outcome-reconciliation-workspace" data-v370-outcome-reconciliation="media-server.ops.v370-outcome-reconciliation.v1">
+        <div class="toolbar">
+          <div>
+            <h3>Outcome Reconciliation</h3>
+            <p>pre-simulation ref와 post-execution ref를 source, EventRecord, client impact 축으로 비교하고 미실행 상태를 보존합니다.</p>
+          </div>
+        </div>
+        <div id="dashSiteOutcomeReconciliationBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashSiteOutcomeReconciliationText">outcome reconciliation diff를 불러오는 중입니다.</p>
+        <div class="grid ops-site-outcome-reconciliation-grid">
+          <div>
+            <h4>Source Impact Diff</h4>
+            <div id="dashSiteOutcomeReconciliationSourceList" class="ops-site-outcome-reconciliation-list">
+              <div class="empty">source reconciliation diff를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Event / Client Diff</h4>
+            <div id="dashSiteOutcomeReconciliationEventClientList" class="ops-site-outcome-reconciliation-list">
+              <div class="empty">EventRecord와 client impact diff를 기다립니다.</div>
+            </div>
+          </div>
+        </div>
+        <div id="dashSiteOutcomeReconciliationBoundary" class="ops-site-outcome-reconciliation-boundary">
+          executionObserved=false · pilotExecutionPerformed=false · eventRecordWritePerformed=false · clientNoticeSent=false
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide" data-testid="ops-runtime-operations-console">
         <div class="toolbar">
           <div>
@@ -23684,6 +23711,500 @@ std::string OpsV370LimitedSafeExecutionPilotJson(
     return out.str();
 }
 
+struct OpsV370OutcomeReconciliationItem {
+    std::string reconciliation_id;
+    std::string pilot_action_id;
+    std::string site_id;
+    std::string source_group;
+    std::string action_kind;
+    std::string pre_simulation_ref;
+    std::string post_execution_ref;
+    std::string source_impact_before_ref;
+    std::string source_impact_after_ref;
+    std::string source_impact_diff;
+    std::string event_impact_before_ref;
+    std::string event_impact_after_ref;
+    std::string event_impact_diff;
+    std::string client_impact_before_ref;
+    std::string client_impact_after_ref;
+    std::string client_impact_diff;
+    std::string reconciliation_status{"pending-execution"};
+    std::string pending_reason{
+        "pilotExecutionStatus=approval-gated-not-run; executionObserved=false"};
+    std::vector<std::string> evidence_refs;
+    std::vector<std::string> drift_signals;
+    bool source_reconciled{false};
+    bool event_reconciled{false};
+    bool client_reconciled{false};
+    bool execution_observed{false};
+    bool read_only{true};
+};
+
+struct OpsV370OutcomeReconciliationSummary {
+    int reconciliation_count{0};
+    int source_diff_count{0};
+    int event_diff_count{0};
+    int client_diff_count{0};
+    int pending_count{0};
+    int execution_observed_count{0};
+    int not_run_count{0};
+    std::vector<std::string> derivation_sources;
+};
+
+const OpsV360SourceRuleImpactDiff* V370ImpactDiffForOutcomeReconciliation(
+    const std::vector<OpsV360SourceRuleImpactDiff>& impactDiffs,
+    const OpsV370LimitedSafeExecutionPilotAction& action) {
+    const auto action_kind_matches = [&](const OpsV360SourceRuleImpactDiff& diff) {
+        return (action.action_kind == "source-recheck-pilot" &&
+                (diff.candidate_type == "sourceRecheck" || diff.candidate_type == "recovery")) ||
+               (action.action_kind == "notice-queue-pilot" &&
+                diff.candidate_type == "clientNotice");
+    };
+    const auto exact_it =
+        std::find_if(impactDiffs.begin(), impactDiffs.end(), [&](const auto& diff) {
+            return diff.source_id == action.source_id && action_kind_matches(diff);
+        });
+    if (exact_it != impactDiffs.end()) {
+        return &*exact_it;
+    }
+    const auto source_it =
+        std::find_if(impactDiffs.begin(), impactDiffs.end(), [&](const auto& diff) {
+            return diff.source_id == action.source_id;
+        });
+    if (source_it != impactDiffs.end()) {
+        return &*source_it;
+    }
+    return impactDiffs.empty() ? nullptr : &impactDiffs.front();
+}
+
+const OpsV370SiteSimulationInputPackItem* V370SimulationPackForOutcomeReconciliation(
+    const std::vector<OpsV370SiteSimulationInputPackItem>& siteSimulationInputPackItems,
+    const std::string& site_id,
+    const std::string& source_group,
+    const std::string& input_type) {
+    const auto it =
+        std::find_if(siteSimulationInputPackItems.begin(),
+                     siteSimulationInputPackItems.end(),
+                     [&](const auto& item) {
+                         return item.site_id == site_id &&
+                                item.source_group == source_group &&
+                                item.input_type == input_type;
+                     });
+    return it == siteSimulationInputPackItems.end() ? nullptr : &*it;
+}
+
+const OpsV370SiteImpactGraphNode* V370ImpactGraphNodeForOutcomeReconciliation(
+    const std::vector<OpsV370SiteImpactGraphNode>& impactGraphNodes,
+    const OpsV370LimitedSafeExecutionPilotAction& action) {
+    const auto source_it =
+        std::find_if(impactGraphNodes.begin(), impactGraphNodes.end(), [&](const auto& node) {
+            return node.source_id == action.source_id && node.node_type == "sourceRegistry";
+        });
+    if (source_it != impactGraphNodes.end()) {
+        return &*source_it;
+    }
+    const auto group_it =
+        std::find_if(impactGraphNodes.begin(), impactGraphNodes.end(), [&](const auto& node) {
+            return node.site_id == action.site_id &&
+                   node.source_group == action.source_group &&
+                   node.node_type == "sourceGroup";
+        });
+    return group_it == impactGraphNodes.end() ? nullptr : &*group_it;
+}
+
+const OpsV370ClientNoticeBySiteViewGroupItem* V370ClientNoticeForOutcomeReconciliation(
+    const std::vector<OpsV370ClientNoticeBySiteViewGroupItem>& noticeItems,
+    const OpsV370LimitedSafeExecutionPilotAction& action) {
+    const auto it =
+        std::find_if(noticeItems.begin(), noticeItems.end(), [&](const auto& item) {
+            return item.site_id == action.site_id && item.source_group == action.source_group;
+        });
+    return it == noticeItems.end() ? nullptr : &*it;
+}
+
+std::vector<OpsV370OutcomeReconciliationItem> BuildV370OutcomeReconciliationItems(
+    const std::vector<OpsV370LimitedSafeExecutionPilotAction>& actions,
+    const std::vector<OpsV370SiteSimulationInputPackItem>& siteSimulationInputPackItems,
+    const std::vector<OpsV360SourceRuleImpactDiff>& impactDiffs,
+    const std::vector<OpsV370SiteImpactGraphNode>& impactGraphNodes,
+    const std::vector<OpsV370ClientNoticeBySiteViewGroupItem>& noticeItems) {
+    std::vector<OpsV370OutcomeReconciliationItem> items;
+    int index = 0;
+    for (const auto& action : actions) {
+        const auto* source_pack =
+            V370SimulationPackForOutcomeReconciliation(siteSimulationInputPackItems,
+                                                       action.site_id,
+                                                       action.source_group,
+                                                       "SourceRegistry");
+        const auto* event_pack =
+            V370SimulationPackForOutcomeReconciliation(siteSimulationInputPackItems,
+                                                       action.site_id,
+                                                       action.source_group,
+                                                       "EventRecord");
+        const auto* client_pack =
+            V370SimulationPackForOutcomeReconciliation(siteSimulationInputPackItems,
+                                                       action.site_id,
+                                                       action.source_group,
+                                                       "PublishedView");
+        const auto* impact_diff = V370ImpactDiffForOutcomeReconciliation(impactDiffs, action);
+        const auto* impact_node =
+            V370ImpactGraphNodeForOutcomeReconciliation(impactGraphNodes, action);
+        const auto* notice = V370ClientNoticeForOutcomeReconciliation(noticeItems, action);
+
+        OpsV370OutcomeReconciliationItem item;
+        item.reconciliation_id =
+            "outcomeReconciliation:" + action.site_id + ":" + action.source_group +
+            ":" + std::to_string(index + 1);
+        item.pilot_action_id = action.pilot_action_id;
+        item.site_id = action.site_id;
+        item.source_group = action.source_group;
+        item.action_kind = action.action_kind;
+        item.pre_simulation_ref =
+            source_pack == nullptr ? "preSimulationRef:source-pack-pending"
+                                   : source_pack->pack_id;
+        item.post_execution_ref =
+            "postExecutionRef:not-run:" + action.pilot_action_id;
+        item.source_impact_before_ref =
+            impact_node == nullptr ? item.pre_simulation_ref : impact_node->node_id;
+        item.source_impact_after_ref =
+            action.source_recheck_ref.empty() ? item.post_execution_ref
+                                              : action.source_recheck_ref;
+        item.source_impact_diff =
+            "source-reconciliation: " +
+            (impact_diff == nullptr ? std::string("pending impact diff")
+                                    : impact_diff->source_health_diff);
+        item.event_impact_before_ref =
+            event_pack == nullptr ? "EventRecord:aggregate:pending" : event_pack->pack_id;
+        item.event_impact_after_ref =
+            "EventRecord:postExecution:not-run:" + action.pilot_action_id;
+        item.event_impact_diff =
+            "event-reconciliation: " +
+            (impact_diff == nullptr ? std::string("pending EventRecord impact diff")
+                                    : impact_diff->event_risk_diff);
+        item.client_impact_before_ref =
+            notice == nullptr
+                ? (client_pack == nullptr ? "clientImpact:PublishedView:pending"
+                                          : client_pack->pack_id)
+                : notice->notice_preview_id;
+        item.client_impact_after_ref =
+            action.notice_queue_ref.empty() ? "noticeQueueRef:not-selected"
+                                            : action.notice_queue_ref;
+        item.client_impact_diff =
+            "client-reconciliation: " +
+            (impact_diff == nullptr
+                 ? std::string("pending client impact diff")
+                 : impact_diff->client_impact_diff);
+        item.reconciliation_status =
+            action.pilot_execution_status == "approval-gated-ready"
+                ? "pending-approved-execution"
+                : "pending-execution";
+        item.pending_reason =
+            "pilotExecutionStatus=" + action.pilot_execution_status +
+            "; executionObserved=false; postExecutionRef=not-run";
+        item.drift_signals = {
+            "source-reconciliation:pending",
+            "event-reconciliation:pending",
+            "client-reconciliation:pending",
+        };
+        item.evidence_refs = {
+            "/ops/api/site-operations/limited-safe-execution-pilot",
+            "/ops/api/site-operations/simulation-input-pack",
+            "/ops/api/live-operations/simulation/impact-diff",
+            "/ops/api/site-operations/impact-graph",
+            "/ops/api/site-operations/client-notice-by-site-view-group",
+            action.pilot_action_id,
+        };
+        if (source_pack != nullptr) {
+            item.evidence_refs.push_back(source_pack->pack_id);
+        }
+        if (event_pack != nullptr) {
+            item.evidence_refs.push_back(event_pack->pack_id);
+        }
+        if (client_pack != nullptr) {
+            item.evidence_refs.push_back(client_pack->pack_id);
+        }
+        if (impact_diff != nullptr) {
+            item.evidence_refs.push_back(impact_diff->diff_id);
+        }
+        if (notice != nullptr) {
+            item.evidence_refs.push_back(notice->notice_preview_id);
+        }
+        for (const auto& ref : action.evidence_refs) {
+            AddV370UniqueString(&item.evidence_refs, ref);
+        }
+        items.push_back(std::move(item));
+        ++index;
+        if (items.size() >= 24U) {
+            break;
+        }
+    }
+
+    if (items.empty()) {
+        OpsV370OutcomeReconciliationItem item;
+        item.reconciliation_id = "outcomeReconciliation:pending";
+        item.pilot_action_id = "limitedSafeExecutionPilot:pending";
+        item.site_id = "unassigned-site";
+        item.source_group = "unassigned-source-group";
+        item.action_kind = "source-recheck-pilot";
+        item.pre_simulation_ref = "preSimulationRef:pending";
+        item.post_execution_ref = "postExecutionRef:not-run";
+        item.source_impact_before_ref = "sourceImpactBeforeRef:pending";
+        item.source_impact_after_ref = "sourceImpactAfterRef:not-run";
+        item.source_impact_diff = "source-reconciliation: pending";
+        item.event_impact_before_ref = "EventRecord:aggregate:pending";
+        item.event_impact_after_ref = "EventRecord:postExecution:not-run";
+        item.event_impact_diff = "event-reconciliation: pending";
+        item.client_impact_before_ref = "clientImpactBeforeRef:pending";
+        item.client_impact_after_ref = "clientImpactAfterRef:not-run";
+        item.client_impact_diff = "client-reconciliation: pending";
+        item.evidence_refs = {
+            "/ops/api/site-operations/limited-safe-execution-pilot",
+            "/ops/api/site-operations/simulation-input-pack",
+            "/ops/api/live-operations/simulation/impact-diff",
+        };
+        item.drift_signals = {
+            "source-reconciliation:pending",
+            "event-reconciliation:pending",
+            "client-reconciliation:pending",
+        };
+        items.push_back(std::move(item));
+    }
+    return items;
+}
+
+OpsV370OutcomeReconciliationSummary BuildV370OutcomeReconciliationSummary(
+    const std::vector<OpsV370OutcomeReconciliationItem>& items) {
+    OpsV370OutcomeReconciliationSummary summary;
+    summary.derivation_sources = {
+        "BuildV370LimitedSafeExecutionPilotActions",
+        "BuildV370SiteSimulationInputPackItems",
+        "BuildV360SourceRuleImpactDiffs",
+        "BuildV370SiteImpactGraphNodes",
+        "BuildV370ClientNoticeBySiteViewGroupItems",
+    };
+    summary.reconciliation_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        if (!item.source_impact_diff.empty()) {
+            ++summary.source_diff_count;
+        }
+        if (!item.event_impact_diff.empty()) {
+            ++summary.event_diff_count;
+        }
+        if (!item.client_impact_diff.empty()) {
+            ++summary.client_diff_count;
+        }
+        if (item.reconciliation_status.find("pending") != std::string::npos) {
+            ++summary.pending_count;
+        }
+        if (item.execution_observed) {
+            ++summary.execution_observed_count;
+        } else {
+            ++summary.not_run_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV370OutcomeReconciliationSummaryJson(
+    std::ostringstream& out,
+    const OpsV370OutcomeReconciliationSummary& summary) {
+    out << "{"
+        << "\"reconciliationCount\":" << summary.reconciliation_count << ","
+        << "\"sourceDiffCount\":" << summary.source_diff_count << ","
+        << "\"eventDiffCount\":" << summary.event_diff_count << ","
+        << "\"clientDiffCount\":" << summary.client_diff_count << ","
+        << "\"pendingCount\":" << summary.pending_count << ","
+        << "\"executionObservedCount\":" << summary.execution_observed_count << ","
+        << "\"notRunCount\":" << summary.not_run_count << ","
+        << "\"derivationSources\":";
+    AppendJsonStringArray(out, summary.derivation_sources);
+    out << "}";
+}
+
+void AppendV370OutcomeReconciliationItemJson(
+    std::ostringstream& out,
+    const OpsV370OutcomeReconciliationItem& item) {
+    out << "{"
+        << "\"reconciliationId\":\"" << JsonEscape(item.reconciliation_id) << "\","
+        << "\"pilotActionId\":\"" << JsonEscape(item.pilot_action_id) << "\","
+        << "\"siteId\":\"" << JsonEscape(item.site_id) << "\","
+        << "\"sourceGroup\":\"" << JsonEscape(item.source_group) << "\","
+        << "\"actionKind\":\"" << JsonEscape(item.action_kind) << "\","
+        << "\"preSimulationRef\":\"" << JsonEscape(item.pre_simulation_ref) << "\","
+        << "\"postExecutionRef\":\"" << JsonEscape(item.post_execution_ref) << "\","
+        << "\"sourceImpactBeforeRef\":\"" << JsonEscape(item.source_impact_before_ref) << "\","
+        << "\"sourceImpactAfterRef\":\"" << JsonEscape(item.source_impact_after_ref) << "\","
+        << "\"sourceImpactDiff\":\"" << JsonEscape(item.source_impact_diff) << "\","
+        << "\"eventImpactBeforeRef\":\"" << JsonEscape(item.event_impact_before_ref) << "\","
+        << "\"eventImpactAfterRef\":\"" << JsonEscape(item.event_impact_after_ref) << "\","
+        << "\"eventImpactDiff\":\"" << JsonEscape(item.event_impact_diff) << "\","
+        << "\"clientImpactBeforeRef\":\"" << JsonEscape(item.client_impact_before_ref) << "\","
+        << "\"clientImpactAfterRef\":\"" << JsonEscape(item.client_impact_after_ref) << "\","
+        << "\"clientImpactDiff\":\"" << JsonEscape(item.client_impact_diff) << "\","
+        << "\"reconciliationStatus\":\"" << JsonEscape(item.reconciliation_status) << "\","
+        << "\"pendingReason\":\"" << JsonEscape(item.pending_reason) << "\","
+        << "\"evidenceRefs\":";
+    AppendJsonStringArray(out, item.evidence_refs);
+    out << ",\"driftSignals\":";
+    AppendJsonStringArray(out, item.drift_signals);
+    out << ",\"sourceReconciled\":" << JsonBool(item.source_reconciled)
+        << ",\"eventReconciled\":" << JsonBool(item.event_reconciled)
+        << ",\"clientReconciled\":" << JsonBool(item.client_reconciled)
+        << ",\"executionObserved\":" << JsonBool(item.execution_observed)
+        << ",\"readOnly\":" << JsonBool(item.read_only)
+        << "}";
+}
+
+std::string OpsV370OutcomeReconciliationJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v370-outcome-reconciliation.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto dryRunResults = BuildV360CommandPlanDryRunResults(commandPlanCandidates);
+    const auto impactDiffs =
+        BuildV360SourceRuleImpactDiffs(context, commandPlanCandidates, stagedChangePlans);
+    const auto readinessItems = BuildV360SafeApplyReadinessItems(dryRunResults, impactDiffs);
+    const auto v360InputPackItems =
+        BuildV360SimulationInputPackItems(context, commandPlanCandidates, stagedChangePlans);
+    const auto inputSummary = BuildV360SimulationInputPackSummary(v360InputPackItems);
+    const auto simulationRunContract = BuildV360SimulationRunContract();
+    const auto simulationResultEnvelope = BuildV360SimulationResultEnvelope(inputSummary);
+    const auto simulationRunLedgerEntries =
+        BuildV360SimulationRunLedgerEntries(context,
+                                            v360InputPackItems,
+                                            simulationRunContract,
+                                            simulationResultEnvelope,
+                                            dryRunResults,
+                                            impactDiffs,
+                                            readinessItems);
+    const auto projection =
+        BuildV370SiteAwareSourceRegistryProjectionItems(context.sources, context.views);
+    const auto rollups =
+        BuildV370SiteHealthRollupItems(context.sources, context.views, source_health_snapshot);
+    const auto impactGraphNodes = BuildV370SiteImpactGraphNodes(context, projection, rollups);
+    const auto impactGraphEdges = BuildV370SiteImpactGraphEdges(projection);
+    const auto siteSimulationInputPackItems =
+        BuildV370SiteSimulationInputPackItems(context,
+                                             projection,
+                                             rollups,
+                                             impactGraphNodes,
+                                             impactGraphEdges,
+                                             v360InputPackItems);
+    const auto crossSiteReadinessItems =
+        BuildV370CrossSiteSafeApplyReadinessItems(projection,
+                                                 siteSimulationInputPackItems,
+                                                 readinessItems,
+                                                 impactDiffs);
+    const auto runbookTemplateContractItems =
+        BuildV370RunbookTemplateContractItems(commandPlanCandidates,
+                                             dryRunResults,
+                                             impactDiffs,
+                                             readinessItems,
+                                             projection,
+                                             siteSimulationInputPackItems,
+                                             crossSiteReadinessItems);
+    const auto runbookInstanceLedgerEntries =
+        BuildV370RunbookInstanceLedgerEntries(runbookTemplateContractItems,
+                                             crossSiteReadinessItems,
+                                             simulationRunLedgerEntries);
+    const auto approvalTicketWorkflowItems =
+        BuildV370ApprovalTicketWorkflowItems(runbookTemplateContractItems,
+                                            runbookInstanceLedgerEntries,
+                                            crossSiteReadinessItems);
+    const auto fieldBridgeConditionGates = BuildV340FieldBridgeConditionGates();
+    const auto fieldEvidenceIntakeRecords =
+        BuildV350FieldEvidenceIntakeRecords(fieldBridgeConditionGates);
+    const auto fieldEvidenceExecutionConditions =
+        BuildV350FieldEvidenceExecutionConditions(fieldEvidenceIntakeRecords);
+    const auto fieldEvidenceAttachments =
+        BuildV370FieldEvidenceAttachmentItems(projection,
+                                             siteSimulationInputPackItems,
+                                             runbookInstanceLedgerEntries,
+                                             approvalTicketWorkflowItems,
+                                             fieldEvidenceIntakeRecords,
+                                             fieldEvidenceExecutionConditions);
+    const auto noticeItems = BuildV370ClientNoticeBySiteViewGroupItems(
+        projection,
+        rollups,
+        impactGraphNodes,
+        runbookInstanceLedgerEntries,
+        approvalTicketWorkflowItems);
+    const auto actions =
+        BuildV370LimitedSafeExecutionPilotActions(runbookInstanceLedgerEntries,
+                                                 approvalTicketWorkflowItems,
+                                                 fieldEvidenceAttachments,
+                                                 noticeItems);
+    const auto items =
+        BuildV370OutcomeReconciliationItems(actions,
+                                           siteSimulationInputPackItems,
+                                           impactDiffs,
+                                           impactGraphNodes,
+                                           noticeItems);
+    const auto summary = BuildV370OutcomeReconciliationSummary(items);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v370-outcome-reconciliation.v1\","
+        << "\"status\":\"outcome-reconciliation\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"limitedSafeExecutionPilotRoute\":\"/ops/api/site-operations/limited-safe-execution-pilot\","
+        << "\"siteSimulationInputPackRoute\":\"/ops/api/site-operations/simulation-input-pack\","
+        << "\"sourceRuleImpactDiffRoute\":\"/ops/api/live-operations/simulation/impact-diff\","
+        << "\"siteImpactGraphRoute\":\"/ops/api/site-operations/impact-graph\","
+        << "\"clientNoticeBySiteViewGroupRoute\":\"/ops/api/site-operations/client-notice-by-site-view-group\","
+        << "\"preSimulationCompared\":true,"
+        << "\"postExecutionCompared\":true,"
+        << "\"executionObserved\":false,"
+        << "\"outcomeReconciliationSummary\":";
+    AppendV370OutcomeReconciliationSummaryJson(out, summary);
+    out << ",\"outcomeReconciliationItems\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV370OutcomeReconciliationItemJson(out, items[i]);
+    }
+    out << "],\"reconciliationPolicy\":{"
+        << "\"comparisonAxes\":[\"source-reconciliation\",\"event-reconciliation\",\"client-reconciliation\"],"
+        << "\"preSimulationRef\":\"required\","
+        << "\"postExecutionRef\":\"not-run until approved pilot evidence exists\","
+        << "\"executionObserved\":false,"
+        << "\"pendingOutcomeBehavior\":\"preserve pending/not-run; do not synthesize success\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"outcomeReconciliationOnly\":true,"
+        << "\"preSimulationCompared\":true,"
+        << "\"postExecutionCompared\":true,"
+        << "\"executionObserved\":false,"
+        << "\"pilotExecutionPerformed\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"runbookInstancePersisted\":false,"
+        << "\"approvalTicketWritePerformed\":false,"
+        << "\"operatorNoteWritePerformed\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 struct OpsV360RuleVaWhatIfReplayCandidate {
     std::string what_if_replay_id;
     std::string event_record_ref;
@@ -34204,6 +34725,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV370LimitedSafeExecutionPilotJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/site-operations/outcome-reconciliation") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV370OutcomeReconciliationJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

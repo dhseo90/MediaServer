@@ -1049,6 +1049,82 @@ void AppendOpsShellScript(std::ostringstream& out,
         ]);
         renderV360OpsSimulationWorkspace({ inputPack, simulationRun, simulationRunLedger, clientNoticePreview, ruleVaWhatIfReplayPack, simulationExportBundle, fieldEvidenceSimulationAdapter, vlmAssistedSimulationExplanation, dryRun, impactDiff, readiness, inputPackRoute, runContractRoute, simulationRunLedgerRoute, clientNoticePreviewRoute, ruleVaWhatIfReplayRoute, simulationExportBundleRoute, fieldEvidenceSimulationAdapterRoute, vlmAssistedSimulationExplanationRoute, dryRunRoute, impactDiffRoute, readinessRoute });
       };
+      let v370OutcomeReconciliationState = {};
+      const v370OutcomeReconciliationList = value => Array.isArray(value) ? value : [];
+      const v370OutcomeReconciliationEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-site-outcome-reconciliation-entry ${escapeHtml(tone)}" data-v370-outcome-reconciliation-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV370OutcomeReconciliation = (payload = {}) => {
+        const reconciliation = payload.reconciliation || {};
+        const outcomeReconciliationItems =
+          v370OutcomeReconciliationList(reconciliation.outcomeReconciliationItems);
+        const outcomeReconciliationSummary =
+          reconciliation.outcomeReconciliationSummary || {};
+        const boundaryOk =
+          reconciliation.boundaries?.executionObserved === false &&
+          reconciliation.boundaries?.pilotExecutionPerformed === false &&
+          reconciliation.boundaries?.sourceRecheckExecuted === false &&
+          reconciliation.boundaries?.noticeQueueWritePerformed === false &&
+          reconciliation.boundaries?.clientNoticeSent === false &&
+          reconciliation.boundaries?.eventRecordWritePerformed === false &&
+          reconciliation.boundaries?.viewerClientPayloadChanged === false &&
+          reconciliation.boundaries?.rtspOrWebrtcMediaPathChanged === false;
+        v370OutcomeReconciliationState = {
+          reconciliation,
+          outcomeReconciliationRoute: payload.outcomeReconciliationRoute || '/ops/api/site-operations/outcome-reconciliation'
+        };
+        renderBadges('dashSiteOutcomeReconciliationBadges', [
+          { text: `reconcile ${outcomeReconciliationItems.length}` },
+          { text: `source ${outcomeReconciliationSummary.sourceDiffCount ?? 0}` },
+          { text: `event ${outcomeReconciliationSummary.eventDiffCount ?? 0}` },
+          { text: `client ${outcomeReconciliationSummary.clientDiffCount ?? 0}` },
+          { text: `pending ${outcomeReconciliationSummary.pendingCount ?? 0}` },
+          { text: boundaryOk ? 'not-run preserved' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashSiteOutcomeReconciliationText',
+          payload.error
+            ? `Outcome Reconciliation 로드 실패: ${payload.error}`
+            : `pre/post comparison ${outcomeReconciliationItems.length} · observed ${outcomeReconciliationSummary.executionObservedCount ?? 0} · not-run ${outcomeReconciliationSummary.notRunCount ?? 0}`);
+        const sourceList = document.getElementById('dashSiteOutcomeReconciliationSourceList');
+        if (sourceList) {
+          sourceList.innerHTML = outcomeReconciliationItems.length > 0
+            ? outcomeReconciliationItems.slice(0, 8).map(item =>
+                v370OutcomeReconciliationEntry(
+                  item.reconciliationId || item.pilotActionId || 'outcomeReconciliation',
+                  `${item.siteId || 'site'} / ${item.sourceGroup || 'source group'} / ${item.actionKind || 'action'}`,
+                  `${item.preSimulationRef || 'preSimulationRef'} -> ${item.postExecutionRef || 'postExecutionRef'}`,
+                  `${item.sourceImpactBeforeRef || 'sourceImpactBeforeRef'} -> ${item.sourceImpactAfterRef || 'sourceImpactAfterRef'} · ${display(item.sourceImpactDiff || 'sourceImpactDiff pending')}`,
+                  item.executionObserved === true ? '' : 'warn'))
+              .join('')
+            : '<div class="empty">Outcome Reconciliation source diff가 아직 없습니다.</div>';
+        }
+        const eventClientList = document.getElementById('dashSiteOutcomeReconciliationEventClientList');
+        if (eventClientList) {
+          eventClientList.innerHTML = outcomeReconciliationItems.length > 0
+            ? outcomeReconciliationItems.slice(0, 8).map(item => {
+                const driftSignals = v370OutcomeReconciliationList(item.driftSignals).slice(0, 3).join(', ') || 'drift pending';
+                const evidenceRefs = v370OutcomeReconciliationList(item.evidenceRefs).slice(0, 3).join(', ') || 'evidence refs pending';
+                return v370OutcomeReconciliationEntry(
+                  item.reconciliationStatus || 'pending-execution',
+                  `${item.eventImpactBeforeRef || 'eventImpactBeforeRef'} -> ${item.eventImpactAfterRef || 'eventImpactAfterRef'}`,
+                  `${display(item.eventImpactDiff || 'eventImpactDiff pending')} · ${display(item.clientImpactDiff || 'clientImpactDiff pending')}`,
+                  `client=${display(item.clientImpactBeforeRef || '-')} -> ${display(item.clientImpactAfterRef || '-')} · drift=${driftSignals} · evidence=${evidenceRefs}`,
+                  item.reconciliationStatus?.includes('pending') ? 'warn' : '');
+              }).join('')
+            : '<div class="empty">EventRecord/client reconciliation diff가 아직 없습니다.</div>';
+        }
+        setText('dashSiteOutcomeReconciliationBoundary',
+          `reconcile=${display(v370OutcomeReconciliationState.outcomeReconciliationRoute)} · pilot=${display(reconciliation.limitedSafeExecutionPilotRoute)} · simulation=${display(reconciliation.siteSimulationInputPackRoute)} · impact=${display(reconciliation.sourceRuleImpactDiffRoute)} · client=${display(reconciliation.clientNoticeBySiteViewGroupRoute)} · executionObserved=${reconciliation.boundaries?.executionObserved === false ? 'false' : '확인 필요'} · pilotExecutionPerformed=${reconciliation.boundaries?.pilotExecutionPerformed === false ? 'false' : '확인 필요'} · eventRecordWritePerformed=${reconciliation.boundaries?.eventRecordWritePerformed === false ? 'false' : '확인 필요'} · clientNoticeSent=${reconciliation.boundaries?.clientNoticeSent === false ? 'false' : '확인 필요'} · viewerClientPayloadChanged=${reconciliation.boundaries?.viewerClientPayloadChanged === false ? 'false' : '확인 필요'} · rtspOrWebrtcMediaPathChanged=${reconciliation.boundaries?.rtspOrWebrtcMediaPathChanged === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV370OutcomeReconciliation = async ({
+        outcomeReconciliationRoute = '/ops/api/site-operations/outcome-reconciliation'
+      } = {}) => {
+        const reconciliation = await requestJson(outcomeReconciliationRoute);
+        renderV370OutcomeReconciliation({ reconciliation, outcomeReconciliationRoute });
+      };
       let v370LimitedSafeExecutionPilotState = {};
       const v370LimitedSafeExecutionPilotList = value => Array.isArray(value) ? value : [];
       const v370LimitedSafeExecutionPilotEntry = (kind, title, detail, meta, tone = '') =>
@@ -2472,6 +2548,9 @@ void AppendOpsShellScript(std::ostringstream& out,
         await refreshV370LimitedSafeExecutionPilot({
           limitedSafeExecutionPilotRoute: '/ops/api/site-operations/limited-safe-execution-pilot'
         }).catch(error => renderV370LimitedSafeExecutionPilot({ error: error.message }));
+        await refreshV370OutcomeReconciliation({
+          outcomeReconciliationRoute: '/ops/api/site-operations/outcome-reconciliation'
+        }).catch(error => renderV370OutcomeReconciliation({ error: error.message }));
         await refreshV370ClientNoticeBySiteViewGroup({
           noticeRoute: '/ops/api/site-operations/client-notice-by-site-view-group'
         }).catch(error => renderV370ClientNoticeBySiteViewGroup({ error: error.message }));
