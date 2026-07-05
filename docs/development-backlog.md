@@ -81,7 +81,7 @@ Product UI → Field/Execution → Release 순서로 진행합니다.
 | 14 | v3.7.0 (14) Field Evidence Attachment | P2 | 완료 | `/ops/api/site-operations/field-evidence-attachment`와 `/ops` dashboard에서 ONVIF, external WHEP/TURN, cloud/VLM 조건부 evidence를 site/runbook에 not-run/conditional로 첨부 |
 | 15 | v3.7.0 (15) Limited Safe Execution Pilot | P2 | 완료 | `/ops/api/site-operations/limited-safe-execution-pilot`와 `/ops` dashboard에서 source recheck 또는 notice queue 후보를 approval-gated execution preview로 분리 |
 | 16 | v3.7.0 (16) Outcome Reconciliation | P2 | 완료 | `/ops/api/site-operations/outcome-reconciliation`와 `/ops` dashboard에서 실행 전 simulation ref와 실행 후 source/event/client impact diff를 pending/not-run 상태로 비교 |
-| 17 | v3.7.0 (17) Export / Handoff Bundle | P1 | 미진행 | site/runbook/evidence/approval/outcome을 redacted release-safe bundle로 조합 |
+| 17 | v3.7.0 (17) Export / Handoff Bundle | P1 | 완료 | `/ops/api/site-operations/export-handoff-bundle`와 `/ops` dashboard에서 site/runbook/evidence/approval/outcome을 redacted release-safe handoff bundle로 조합 |
 | 18 | v3.7.0 (18) Stabilization and Release Readiness | P0 | 미진행 | v3.7 local verifier suite, inventory, release records, close-out dry-run, `git diff --check` 연결 |
 
 완료 경계: 위 표는 v3.7.0 개발 순서와 우선순위입니다. 현재 Step 1~16은 Foundation/Intelligence/Workflow/Product UI/Field
@@ -270,6 +270,18 @@ action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁�
 - verifier: `scripts/internal/verify_v370_outcome_reconciliation.mjs`, `./server.sh verify-v370-outcome-reconciliation`, `docs/project-feature-test-inventory.md`의 `UI-100`, `SRC-062`, `EVT-083`, `CLIENT-039`, `LAB-109`, `SAFE-177`, `OPS-144`를 추가했습니다.
 - 검증: 최초 `node scripts/internal/verify_v370_outcome_reconciliation.mjs`는 Outcome Reconciliation model, route, dashboard shell, CSS, final backlog 기록, server dispatch가 아직 없어 `pass=1 fail=8`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 16 결과 행에 기록합니다.
 - 완료 경계: Step 16은 Ops-only Outcome Reconciliation API/UI/verifier 연결입니다. Export/Handoff Bundle 완료 evidence가 아닙니다. Stabilization and Release Readiness 완료 evidence도 아닙니다. UI 풀테스트 직접 조작, 30분/120분, pilot 실행, source recheck 실행, notice queue write/send, source/view/runbook/approval/EventRecord write, media mutation, published metadata, release action evidence가 아닙니다.
+
+## v3.7.0 Step 17 개발 기록
+
+- 범위: P1 `v3.7.0 (17) Export / Handoff Bundle`.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/site-operations/export-handoff-bundle` GET route와 `OpsV370ExportHandoffBundleJson`, `BuildV370ExportHandoffBundleItems`, `BuildV370ExportHandoffMapEntries`, `BuildV370ExportHandoffBundleSummary`를 추가했습니다. v3.7 site registry projection, runbook instance ledger, field evidence attachment, approval ticket workflow, outcome reconciliation refs를 조합해 redacted release-safe handoff bundle과 handoff map을 산출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `AppendOpsDashboardPage` 안에 `ops-site-export-handoff-bundle-workspace` section을 추가했고, `dashSiteExportHandoffBundleBadges`, `dashSiteExportHandoffBundleText`, `dashSiteExportHandoffBundleList`, `dashSiteExportHandoffMapList`, `dashSiteExportHandoffRedactionList`, `dashSiteExportHandoffBundleBoundary` control을 배치했습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV370ExportHandoffBundle`, `refreshV370ExportHandoffBundle`, `v370ExportHandoffBundleEntry`를 추가해 `/ops/api/site-operations/export-handoff-bundle`의 `exportHandoffBundleItems`, `exportHandoffMapEntries`, `exportHandoffBundleSummary`를 bundle item, handoff map, redaction review, boundary로 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `.ops-site-export-handoff-bundle-workspace`, `.ops-site-export-handoff-bundle-grid`, `.ops-site-export-handoff-bundle-list`, `.ops-site-export-handoff-bundle-entry`, `.ops-site-export-handoff-bundle-boundary` 스타일을 추가해 기존 site workspace와 같은 responsive density, wrapping, boundary 패턴을 사용합니다.
+- boundary: artifact export, bundle/file/handoff write, pilot execution, source recheck, notice queue write/send, client notice send, field smoke, endpoint/provider call, source/view/runbook/approval/EventRecord/Ops audit/client/media mutation, raw locator/endpoint/credential/provider/diagnostic/client raw material 노출을 수행하지 않습니다.
+- verifier: `scripts/internal/verify_v370_export_handoff_bundle.mjs`, `./server.sh verify-v370-export-handoff-bundle`, `docs/project-feature-test-inventory.md`의 `UI-101`, `LAB-110`, `SAFE-178`, `OPS-145`를 추가했습니다.
+- 검증: 최초 `./server.sh verify-v370-export-handoff-bundle`는 Export / Handoff Bundle model, route, dashboard shell, CSS, final backlog 기록, feature coverage 연결이 아직 없어 `pass=1 fail=8`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 17 결과 행에 기록합니다.
+- 완료 경계: Step 17은 Ops-only Export / Handoff Bundle API/UI/verifier 연결입니다. Stabilization and Release Readiness 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분, artifact/file/handoff write, pilot 실행, source recheck 실행, notice queue write/send, source/view/runbook/approval/EventRecord/Ops audit/client/media mutation, published metadata, release action evidence가 아닙니다.
 
 ## 최신 공개 기준: v3.6.0 Operations Simulation and Safe Apply Readiness
 

@@ -3052,6 +3052,39 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           executionObserved=false · pilotExecutionPerformed=false · eventRecordWritePerformed=false · clientNoticeSent=false
         </div>
       </section>
+      <section class="section-card ops-workspace-wide ops-site-export-handoff-bundle-workspace" data-testid="ops-site-export-handoff-bundle-workspace" data-v370-export-handoff-bundle="media-server.ops.v370-export-handoff-bundle.v1">
+        <div class="toolbar">
+          <div>
+            <h3>Export / Handoff Bundle</h3>
+            <p>site, runbook, evidence, approval, outcome ref를 redacted release-safe handoff bundle로 조합하고 실제 export/write는 하지 않습니다.</p>
+          </div>
+        </div>
+        <div id="dashSiteExportHandoffBundleBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashSiteExportHandoffBundleText">export handoff bundle을 불러오는 중입니다.</p>
+        <div class="grid ops-site-export-handoff-bundle-grid">
+          <div>
+            <h4>Bundle Items</h4>
+            <div id="dashSiteExportHandoffBundleList" class="ops-site-export-handoff-bundle-list">
+              <div class="empty">release-safe bundle 항목을 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Handoff Map</h4>
+            <div id="dashSiteExportHandoffMapList" class="ops-site-export-handoff-bundle-list">
+              <div class="empty">handoff map entry를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Redaction Review</h4>
+            <div id="dashSiteExportHandoffRedactionList" class="ops-site-export-handoff-bundle-list">
+              <div class="empty">redaction review ref를 기다립니다.</div>
+            </div>
+          </div>
+        </div>
+        <div id="dashSiteExportHandoffBundleBoundary" class="ops-site-export-handoff-bundle-boundary">
+          artifactExportExecuted=false · fileWritePerformed=false · handoffWritePerformed=false · raw material=false
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide" data-testid="ops-runtime-operations-console">
         <div class="toolbar">
           <div>
@@ -24205,6 +24238,583 @@ std::string OpsV370OutcomeReconciliationJson(
     return out.str();
 }
 
+struct OpsV370ExportHandoffBundleItem {
+    std::string bundle_id;
+    std::string site_id;
+    std::string source_group;
+    std::string bundle_kind{"site-runbook-outcome-handoff"};
+    std::string title{"Export / Handoff Bundle"};
+    std::string handoff_status{"pending-handoff"};
+    std::string next_operator_role{"ops-reviewer"};
+    std::string blocked_reason{"outcome reconciliation pending"};
+    std::string release_safe_label{"redacted-release-safe"};
+    std::vector<std::string> site_refs;
+    std::vector<std::string> runbook_refs;
+    std::vector<std::string> evidence_refs;
+    std::vector<std::string> approval_refs;
+    std::vector<std::string> outcome_refs;
+    std::vector<std::string> handoff_map_refs;
+    std::vector<std::string> redaction_review{
+        "rawLocatorIncluded=false",
+        "rawEndpointIncluded=false",
+        "credentialMaterialIncluded=false",
+        "rawProviderResponseIncluded=false",
+        "rawDiagnosticJsonIncluded=false",
+        "clientViewerRawMaterialIncluded=false",
+    };
+    bool release_safe{true};
+    bool handoff_ready{false};
+    bool read_only{true};
+};
+
+struct OpsV370ExportHandoffMapEntry {
+    std::string handoff_id;
+    std::string bundle_id;
+    std::string site_id;
+    std::string source_group;
+    std::string handoff_status{"pending-handoff"};
+    std::string next_operator_role{"ops-reviewer"};
+    std::string blocked_reason{"outcome reconciliation pending"};
+    std::vector<std::string> bundle_refs;
+    std::vector<std::string> release_safety_refs;
+    bool release_safe{true};
+    bool read_only{true};
+};
+
+struct OpsV370ExportHandoffBundleSummary {
+    int bundle_count{0};
+    int handoff_entry_count{0};
+    int site_ref_count{0};
+    int runbook_ref_count{0};
+    int evidence_ref_count{0};
+    int approval_ref_count{0};
+    int outcome_ref_count{0};
+    int release_safe_count{0};
+    int blocked_count{0};
+    std::vector<std::string> derivation_sources;
+};
+
+const OpsV370SiteAwareSourceRegistryProjectionItem* V370ProjectionForExportHandoff(
+    const std::vector<OpsV370SiteAwareSourceRegistryProjectionItem>& projection,
+    const std::string& site_id,
+    const std::string& source_group) {
+    const auto it =
+        std::find_if(projection.begin(), projection.end(), [&](const auto& item) {
+            return item.site_id == site_id && item.source_group == source_group;
+        });
+    return it == projection.end() ? nullptr : &*it;
+}
+
+const OpsV370RunbookInstanceLedgerEntry* V370RunbookForExportHandoff(
+    const std::vector<OpsV370RunbookInstanceLedgerEntry>& runbookInstanceLedgerEntries,
+    const std::string& site_id,
+    const std::string& source_group) {
+    const auto it =
+        std::find_if(runbookInstanceLedgerEntries.begin(),
+                     runbookInstanceLedgerEntries.end(),
+                     [&](const auto& item) {
+                         return item.site_id == site_id &&
+                                item.source_group == source_group;
+                     });
+    return it == runbookInstanceLedgerEntries.end() ? nullptr : &*it;
+}
+
+const OpsV370ApprovalTicketWorkflowItem* V370ApprovalForExportHandoff(
+    const std::vector<OpsV370ApprovalTicketWorkflowItem>& approvalTicketWorkflowItems,
+    const std::string& runbook_id,
+    const std::string& site_id,
+    const std::string& source_group) {
+    const auto runbook_it =
+        std::find_if(approvalTicketWorkflowItems.begin(),
+                     approvalTicketWorkflowItems.end(),
+                     [&](const auto& item) {
+                         return !runbook_id.empty() && item.runbook_id == runbook_id;
+                     });
+    if (runbook_it != approvalTicketWorkflowItems.end()) {
+        return &*runbook_it;
+    }
+    const auto scope_it =
+        std::find_if(approvalTicketWorkflowItems.begin(),
+                     approvalTicketWorkflowItems.end(),
+                     [&](const auto& item) {
+                         return item.site_id == site_id &&
+                                item.source_group == source_group;
+                     });
+    return scope_it == approvalTicketWorkflowItems.end() ? nullptr : &*scope_it;
+}
+
+const OpsV370FieldEvidenceAttachmentItem* V370EvidenceForExportHandoff(
+    const std::vector<OpsV370FieldEvidenceAttachmentItem>& fieldEvidenceAttachments,
+    const std::string& site_id,
+    const std::string& source_group) {
+    const auto it =
+        std::find_if(fieldEvidenceAttachments.begin(),
+                     fieldEvidenceAttachments.end(),
+                     [&](const auto& item) {
+                         return item.site_id == site_id &&
+                                item.source_group == source_group;
+                     });
+    return it == fieldEvidenceAttachments.end() ? nullptr : &*it;
+}
+
+std::vector<OpsV370ExportHandoffBundleItem> BuildV370ExportHandoffBundleItems(
+    const std::vector<OpsV370SiteAwareSourceRegistryProjectionItem>& projection,
+    const std::vector<OpsV370RunbookInstanceLedgerEntry>& runbookInstanceLedgerEntries,
+    const std::vector<OpsV370FieldEvidenceAttachmentItem>& fieldEvidenceAttachments,
+    const std::vector<OpsV370ApprovalTicketWorkflowItem>& approvalTicketWorkflowItems,
+    const std::vector<OpsV370OutcomeReconciliationItem>& outcomeReconciliationItems) {
+    std::vector<OpsV370ExportHandoffBundleItem> items;
+    int index = 0;
+    for (const auto& outcome : outcomeReconciliationItems) {
+        const auto* projected =
+            V370ProjectionForExportHandoff(projection, outcome.site_id, outcome.source_group);
+        const auto* runbook =
+            V370RunbookForExportHandoff(runbookInstanceLedgerEntries,
+                                        outcome.site_id,
+                                        outcome.source_group);
+        const auto* approval =
+            V370ApprovalForExportHandoff(approvalTicketWorkflowItems,
+                                         runbook == nullptr ? "" : runbook->runbook_id,
+                                         outcome.site_id,
+                                         outcome.source_group);
+        const auto* evidence =
+            V370EvidenceForExportHandoff(fieldEvidenceAttachments,
+                                         outcome.site_id,
+                                         outcome.source_group);
+
+        OpsV370ExportHandoffBundleItem item;
+        item.bundle_id =
+            "exportHandoffBundle:" + outcome.site_id + ":" + outcome.source_group +
+            ":" + std::to_string(index + 1);
+        item.site_id = outcome.site_id;
+        item.source_group = outcome.source_group;
+        item.title = "Export / Handoff Bundle for " + item.site_id + " / " +
+                     item.source_group;
+        item.handoff_status =
+            outcome.reconciliation_status.find("pending") == std::string::npos
+                ? "handoff-ready"
+                : "pending-handoff";
+        item.handoff_ready = item.handoff_status == "handoff-ready";
+        item.next_operator_role =
+            approval == nullptr || approval->reviewer.empty()
+                ? "ops-reviewer"
+                : approval->reviewer;
+        item.blocked_reason =
+            approval == nullptr
+                ? outcome.pending_reason
+                : approval->reason + "; " + outcome.pending_reason;
+        item.site_refs = {
+            "/ops/api/site-operations/source-registry-projection",
+            "site:" + item.site_id,
+            "sourceGroup:" + item.source_group,
+        };
+        if (projected != nullptr) {
+            for (const auto& source_id : projected->source_ids) {
+                AddV370UniqueString(&item.site_refs, "source:" + source_id);
+            }
+            for (const auto& view_id : projected->view_ids) {
+                AddV370UniqueString(&item.site_refs, "PublishedView:" + view_id);
+            }
+        }
+        item.runbook_refs = {
+            "/ops/api/site-operations/runbook-instance-ledger",
+            runbook == nullptr ? "runbook:pending" : runbook->runbook_id,
+        };
+        item.evidence_refs = {
+            "/ops/api/site-operations/field-evidence-attachment",
+            evidence == nullptr ? "fieldEvidenceAttachment:pending"
+                                : evidence->field_evidence_attachment_id,
+        };
+        item.approval_refs = {
+            "/ops/api/site-operations/approval-ticket-workflow",
+            approval == nullptr ? "approval-ticket:pending"
+                                : approval->approval_ticket_id,
+        };
+        item.outcome_refs = {
+            "/ops/api/site-operations/outcome-reconciliation",
+            outcome.reconciliation_id,
+            outcome.pre_simulation_ref,
+            outcome.post_execution_ref,
+        };
+        for (const auto& ref : outcome.evidence_refs) {
+            AddV370UniqueString(&item.evidence_refs, ref);
+        }
+        if (runbook != nullptr) {
+            for (const auto& ref : runbook->evidence_refs) {
+                AddV370UniqueString(&item.runbook_refs, ref);
+            }
+        }
+        if (approval != nullptr) {
+            for (const auto& ref : approval->evidence_refs) {
+                AddV370UniqueString(&item.approval_refs, ref);
+            }
+        }
+        if (evidence != nullptr) {
+            for (const auto& ref : evidence->evidence_refs) {
+                AddV370UniqueString(&item.evidence_refs, ref);
+            }
+        }
+        item.handoff_map_refs = {
+            "/ops/api/site-operations/export-handoff-bundle",
+            item.bundle_id,
+            item.handoff_status,
+            item.next_operator_role,
+            item.release_safe_label,
+        };
+        items.push_back(std::move(item));
+        ++index;
+        if (items.size() >= 24U) {
+            break;
+        }
+    }
+
+    if (items.empty()) {
+        OpsV370ExportHandoffBundleItem item;
+        item.bundle_id = "exportHandoffBundle:pending";
+        item.site_id = "unassigned-site";
+        item.source_group = "unassigned-source-group";
+        item.title = "Export / Handoff Bundle pending";
+        item.blocked_reason =
+            "no outcome reconciliation items exist; handoff remains pending";
+        item.site_refs = {
+            "/ops/api/site-operations/source-registry-projection",
+            "site:pending",
+        };
+        item.runbook_refs = {
+            "/ops/api/site-operations/runbook-instance-ledger",
+            "runbook:pending",
+        };
+        item.evidence_refs = {
+            "/ops/api/site-operations/field-evidence-attachment",
+            "fieldEvidenceAttachment:pending",
+        };
+        item.approval_refs = {
+            "/ops/api/site-operations/approval-ticket-workflow",
+            "approval-ticket:pending",
+        };
+        item.outcome_refs = {
+            "/ops/api/site-operations/outcome-reconciliation",
+            "outcomeReconciliation:pending",
+        };
+        item.handoff_map_refs = {
+            "/ops/api/site-operations/export-handoff-bundle",
+            item.bundle_id,
+            item.handoff_status,
+        };
+        items.push_back(std::move(item));
+    }
+    return items;
+}
+
+std::vector<OpsV370ExportHandoffMapEntry> BuildV370ExportHandoffMapEntries(
+    const std::vector<OpsV370ExportHandoffBundleItem>& bundleItems) {
+    std::vector<OpsV370ExportHandoffMapEntry> entries;
+    int index = 0;
+    for (const auto& item : bundleItems) {
+        OpsV370ExportHandoffMapEntry entry;
+        entry.handoff_id =
+            "exportHandoffMap:" + item.site_id + ":" + item.source_group + ":" +
+            std::to_string(index + 1);
+        entry.bundle_id = item.bundle_id;
+        entry.site_id = item.site_id;
+        entry.source_group = item.source_group;
+        entry.handoff_status = item.handoff_status;
+        entry.next_operator_role = item.next_operator_role;
+        entry.blocked_reason = item.blocked_reason;
+        entry.bundle_refs = item.handoff_map_refs;
+        entry.release_safety_refs = {
+            item.release_safe_label,
+            "redactionReview",
+            "artifactExportExecuted=false",
+            "fileWritePerformed=false",
+            "handoffWritePerformed=false",
+        };
+        entry.release_safe = item.release_safe;
+        entries.push_back(std::move(entry));
+        ++index;
+    }
+    return entries;
+}
+
+OpsV370ExportHandoffBundleSummary BuildV370ExportHandoffBundleSummary(
+    const std::vector<OpsV370ExportHandoffBundleItem>& bundleItems,
+    const std::vector<OpsV370ExportHandoffMapEntry>& handoffMapEntries) {
+    OpsV370ExportHandoffBundleSummary summary;
+    summary.derivation_sources = {
+        "BuildV370SiteAwareSourceRegistryProjectionItems",
+        "BuildV370RunbookInstanceLedgerEntries",
+        "BuildV370FieldEvidenceAttachmentItems",
+        "BuildV370ApprovalTicketWorkflowItems",
+        "BuildV370OutcomeReconciliationItems",
+    };
+    summary.bundle_count = static_cast<int>(bundleItems.size());
+    summary.handoff_entry_count = static_cast<int>(handoffMapEntries.size());
+    for (const auto& item : bundleItems) {
+        summary.site_ref_count += static_cast<int>(item.site_refs.size());
+        summary.runbook_ref_count += static_cast<int>(item.runbook_refs.size());
+        summary.evidence_ref_count += static_cast<int>(item.evidence_refs.size());
+        summary.approval_ref_count += static_cast<int>(item.approval_refs.size());
+        summary.outcome_ref_count += static_cast<int>(item.outcome_refs.size());
+        if (item.release_safe) {
+            ++summary.release_safe_count;
+        }
+        if (!item.handoff_ready || item.handoff_status.find("pending") != std::string::npos) {
+            ++summary.blocked_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV370ExportHandoffBundleSummaryJson(
+    std::ostringstream& out,
+    const OpsV370ExportHandoffBundleSummary& summary) {
+    out << "{"
+        << "\"bundleCount\":" << summary.bundle_count << ","
+        << "\"handoffEntryCount\":" << summary.handoff_entry_count << ","
+        << "\"siteRefCount\":" << summary.site_ref_count << ","
+        << "\"runbookRefCount\":" << summary.runbook_ref_count << ","
+        << "\"evidenceRefCount\":" << summary.evidence_ref_count << ","
+        << "\"approvalRefCount\":" << summary.approval_ref_count << ","
+        << "\"outcomeRefCount\":" << summary.outcome_ref_count << ","
+        << "\"releaseSafeCount\":" << summary.release_safe_count << ","
+        << "\"blockedCount\":" << summary.blocked_count << ","
+        << "\"derivationSources\":";
+    AppendJsonStringArray(out, summary.derivation_sources);
+    out << "}";
+}
+
+void AppendV370ExportHandoffBundleItemJson(
+    std::ostringstream& out,
+    const OpsV370ExportHandoffBundleItem& item) {
+    out << "{"
+        << "\"bundleId\":\"" << JsonEscape(item.bundle_id) << "\","
+        << "\"siteId\":\"" << JsonEscape(item.site_id) << "\","
+        << "\"sourceGroup\":\"" << JsonEscape(item.source_group) << "\","
+        << "\"bundleKind\":\"" << JsonEscape(item.bundle_kind) << "\","
+        << "\"title\":\"" << JsonEscape(item.title) << "\","
+        << "\"handoffStatus\":\"" << JsonEscape(item.handoff_status) << "\","
+        << "\"nextOperatorRole\":\"" << JsonEscape(item.next_operator_role) << "\","
+        << "\"blockedReason\":\"" << JsonEscape(item.blocked_reason) << "\","
+        << "\"releaseSafeLabel\":\"" << JsonEscape(item.release_safe_label) << "\","
+        << "\"siteRefs\":";
+    AppendJsonStringArray(out, item.site_refs);
+    out << ",\"runbookRefs\":";
+    AppendJsonStringArray(out, item.runbook_refs);
+    out << ",\"evidenceRefs\":";
+    AppendJsonStringArray(out, item.evidence_refs);
+    out << ",\"approvalRefs\":";
+    AppendJsonStringArray(out, item.approval_refs);
+    out << ",\"outcomeRefs\":";
+    AppendJsonStringArray(out, item.outcome_refs);
+    out << ",\"handoffMapRefs\":";
+    AppendJsonStringArray(out, item.handoff_map_refs);
+    out << ",\"redactionReview\":";
+    AppendJsonStringArray(out, item.redaction_review);
+    out << ",\"releaseSafe\":" << JsonBool(item.release_safe)
+        << ",\"handoffReady\":" << JsonBool(item.handoff_ready)
+        << ",\"readOnly\":" << JsonBool(item.read_only)
+        << "}";
+}
+
+void AppendV370ExportHandoffMapEntryJson(
+    std::ostringstream& out,
+    const OpsV370ExportHandoffMapEntry& entry) {
+    out << "{"
+        << "\"handoffId\":\"" << JsonEscape(entry.handoff_id) << "\","
+        << "\"bundleId\":\"" << JsonEscape(entry.bundle_id) << "\","
+        << "\"siteId\":\"" << JsonEscape(entry.site_id) << "\","
+        << "\"sourceGroup\":\"" << JsonEscape(entry.source_group) << "\","
+        << "\"handoffStatus\":\"" << JsonEscape(entry.handoff_status) << "\","
+        << "\"nextOperatorRole\":\"" << JsonEscape(entry.next_operator_role) << "\","
+        << "\"blockedReason\":\"" << JsonEscape(entry.blocked_reason) << "\","
+        << "\"bundleRefs\":";
+    AppendJsonStringArray(out, entry.bundle_refs);
+    out << ",\"releaseSafetyRefs\":";
+    AppendJsonStringArray(out, entry.release_safety_refs);
+    out << ",\"releaseSafe\":" << JsonBool(entry.release_safe)
+        << ",\"readOnly\":" << JsonBool(entry.read_only)
+        << "}";
+}
+
+std::string OpsV370ExportHandoffBundleJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v370-export-handoff-bundle.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto dryRunResults = BuildV360CommandPlanDryRunResults(commandPlanCandidates);
+    const auto impactDiffs =
+        BuildV360SourceRuleImpactDiffs(context, commandPlanCandidates, stagedChangePlans);
+    const auto readinessItems = BuildV360SafeApplyReadinessItems(dryRunResults, impactDiffs);
+    const auto v360InputPackItems =
+        BuildV360SimulationInputPackItems(context, commandPlanCandidates, stagedChangePlans);
+    const auto inputSummary = BuildV360SimulationInputPackSummary(v360InputPackItems);
+    const auto simulationRunContract = BuildV360SimulationRunContract();
+    const auto simulationResultEnvelope = BuildV360SimulationResultEnvelope(inputSummary);
+    const auto simulationRunLedgerEntries =
+        BuildV360SimulationRunLedgerEntries(context,
+                                            v360InputPackItems,
+                                            simulationRunContract,
+                                            simulationResultEnvelope,
+                                            dryRunResults,
+                                            impactDiffs,
+                                            readinessItems);
+    const auto projection =
+        BuildV370SiteAwareSourceRegistryProjectionItems(context.sources, context.views);
+    const auto rollups =
+        BuildV370SiteHealthRollupItems(context.sources, context.views, source_health_snapshot);
+    const auto impactGraphNodes = BuildV370SiteImpactGraphNodes(context, projection, rollups);
+    const auto impactGraphEdges = BuildV370SiteImpactGraphEdges(projection);
+    const auto siteSimulationInputPackItems =
+        BuildV370SiteSimulationInputPackItems(context,
+                                             projection,
+                                             rollups,
+                                             impactGraphNodes,
+                                             impactGraphEdges,
+                                             v360InputPackItems);
+    const auto crossSiteReadinessItems =
+        BuildV370CrossSiteSafeApplyReadinessItems(projection,
+                                                 siteSimulationInputPackItems,
+                                                 readinessItems,
+                                                 impactDiffs);
+    const auto runbookTemplateContractItems =
+        BuildV370RunbookTemplateContractItems(commandPlanCandidates,
+                                             dryRunResults,
+                                             impactDiffs,
+                                             readinessItems,
+                                             projection,
+                                             siteSimulationInputPackItems,
+                                             crossSiteReadinessItems);
+    const auto runbookInstanceLedgerEntries =
+        BuildV370RunbookInstanceLedgerEntries(runbookTemplateContractItems,
+                                             crossSiteReadinessItems,
+                                             simulationRunLedgerEntries);
+    const auto approvalTicketWorkflowItems =
+        BuildV370ApprovalTicketWorkflowItems(runbookTemplateContractItems,
+                                            runbookInstanceLedgerEntries,
+                                            crossSiteReadinessItems);
+    const auto fieldBridgeConditionGates = BuildV340FieldBridgeConditionGates();
+    const auto fieldEvidenceIntakeRecords =
+        BuildV350FieldEvidenceIntakeRecords(fieldBridgeConditionGates);
+    const auto fieldEvidenceExecutionConditions =
+        BuildV350FieldEvidenceExecutionConditions(fieldEvidenceIntakeRecords);
+    const auto fieldEvidenceAttachments =
+        BuildV370FieldEvidenceAttachmentItems(projection,
+                                             siteSimulationInputPackItems,
+                                             runbookInstanceLedgerEntries,
+                                             approvalTicketWorkflowItems,
+                                             fieldEvidenceIntakeRecords,
+                                             fieldEvidenceExecutionConditions);
+    const auto noticeItems = BuildV370ClientNoticeBySiteViewGroupItems(
+        projection,
+        rollups,
+        impactGraphNodes,
+        runbookInstanceLedgerEntries,
+        approvalTicketWorkflowItems);
+    const auto actions =
+        BuildV370LimitedSafeExecutionPilotActions(runbookInstanceLedgerEntries,
+                                                 approvalTicketWorkflowItems,
+                                                 fieldEvidenceAttachments,
+                                                 noticeItems);
+    const auto outcomeItems =
+        BuildV370OutcomeReconciliationItems(actions,
+                                           siteSimulationInputPackItems,
+                                           impactDiffs,
+                                           impactGraphNodes,
+                                           noticeItems);
+    const auto bundleItems =
+        BuildV370ExportHandoffBundleItems(projection,
+                                         runbookInstanceLedgerEntries,
+                                         fieldEvidenceAttachments,
+                                         approvalTicketWorkflowItems,
+                                         outcomeItems);
+    const auto handoffMapEntries = BuildV370ExportHandoffMapEntries(bundleItems);
+    const auto summary =
+        BuildV370ExportHandoffBundleSummary(bundleItems, handoffMapEntries);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v370-export-handoff-bundle.v1\","
+        << "\"status\":\"export-handoff-bundle\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"siteRegistryProjectionRoute\":\"/ops/api/site-operations/source-registry-projection\","
+        << "\"runbookInstanceLedgerRoute\":\"/ops/api/site-operations/runbook-instance-ledger\","
+        << "\"fieldEvidenceAttachmentRoute\":\"/ops/api/site-operations/field-evidence-attachment\","
+        << "\"approvalTicketWorkflowRoute\":\"/ops/api/site-operations/approval-ticket-workflow\","
+        << "\"outcomeReconciliationRoute\":\"/ops/api/site-operations/outcome-reconciliation\","
+        << "\"redactedReleaseSafeExportBundle\":true,"
+        << "\"releaseSafe\":true,"
+        << "\"exportHandoffBundleSummary\":";
+    AppendV370ExportHandoffBundleSummaryJson(out, summary);
+    out << ",\"exportHandoffBundleItems\":[";
+    for (std::size_t i = 0; i < bundleItems.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV370ExportHandoffBundleItemJson(out, bundleItems[i]);
+    }
+    out << "],\"exportHandoffMapEntries\":[";
+    for (std::size_t i = 0; i < handoffMapEntries.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV370ExportHandoffMapEntryJson(out, handoffMapEntries[i]);
+    }
+    out << "],\"bundlePolicy\":{"
+        << "\"redacted\":\"redacted-release-safe\","
+        << "\"siteRefs\":\"site/source group ids and PublishedView ids only\","
+        << "\"runbookRefs\":\"read-only runbook ledger refs\","
+        << "\"evidenceRefs\":\"conditional/not-run evidence refs only\","
+        << "\"approvalRefs\":\"approval ticket refs only\","
+        << "\"outcomeRefs\":\"pre/post execution refs with post execution not-run preserved\","
+        << "\"handoff\":\"release-safe handoff map only; no file or artifact export is performed\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"releaseSafe\":true,"
+        << "\"redacted\":true,"
+        << "\"exportHandoffOnly\":true,"
+        << "\"artifactExportExecuted\":false,"
+        << "\"bundlePersisted\":false,"
+        << "\"fileWritePerformed\":false,"
+        << "\"handoffWritePerformed\":false,"
+        << "\"pilotExecutionPerformed\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"fieldSmokeExecuted\":false,"
+        << "\"endpointProbePerformed\":false,"
+        << "\"providerCallPerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"runbookInstancePersisted\":false,"
+        << "\"approvalTicketWritePerformed\":false,"
+        << "\"operatorNoteWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawEndpointIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawProviderResponseIncluded\":false,"
+        << "\"rawDiagnosticJsonIncluded\":false,"
+        << "\"clientViewerRawMaterialIncluded\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 struct OpsV360RuleVaWhatIfReplayCandidate {
     std::string what_if_replay_id;
     std::string event_record_ref;
@@ -34745,6 +35355,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV370OutcomeReconciliationJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/site-operations/export-handoff-bundle") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV370ExportHandoffBundleJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

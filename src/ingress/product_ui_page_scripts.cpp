@@ -1049,6 +1049,106 @@ void AppendOpsShellScript(std::ostringstream& out,
         ]);
         renderV360OpsSimulationWorkspace({ inputPack, simulationRun, simulationRunLedger, clientNoticePreview, ruleVaWhatIfReplayPack, simulationExportBundle, fieldEvidenceSimulationAdapter, vlmAssistedSimulationExplanation, dryRun, impactDiff, readiness, inputPackRoute, runContractRoute, simulationRunLedgerRoute, clientNoticePreviewRoute, ruleVaWhatIfReplayRoute, simulationExportBundleRoute, fieldEvidenceSimulationAdapterRoute, vlmAssistedSimulationExplanationRoute, dryRunRoute, impactDiffRoute, readinessRoute });
       };
+      let v370ExportHandoffBundleState = {};
+      const v370ExportHandoffBundleList = value => Array.isArray(value) ? value : [];
+      const v370ExportHandoffBundleEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-site-export-handoff-bundle-entry ${escapeHtml(tone)}" data-v370-export-handoff-bundle-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV370ExportHandoffBundle = (payload = {}) => {
+        const bundle = payload.bundle || {};
+        const exportHandoffBundleItems =
+          v370ExportHandoffBundleList(bundle.exportHandoffBundleItems);
+        const exportHandoffMapEntries =
+          v370ExportHandoffBundleList(bundle.exportHandoffMapEntries);
+        const exportHandoffBundleSummary =
+          bundle.exportHandoffBundleSummary || {};
+        const boundaryOk =
+          bundle.boundaries?.artifactExportExecuted === false &&
+          bundle.boundaries?.bundlePersisted === false &&
+          bundle.boundaries?.fileWritePerformed === false &&
+          bundle.boundaries?.handoffWritePerformed === false &&
+          bundle.boundaries?.pilotExecutionPerformed === false &&
+          bundle.boundaries?.clientNoticeSent === false &&
+          bundle.boundaries?.fieldSmokeExecuted === false &&
+          bundle.boundaries?.rawLocatorIncluded === false &&
+          bundle.boundaries?.credentialMaterialIncluded === false &&
+          bundle.boundaries?.rawDiagnosticJsonIncluded === false &&
+          bundle.boundaries?.rtspOrWebrtcMediaPathChanged === false;
+        v370ExportHandoffBundleState = {
+          bundle,
+          exportHandoffBundleRoute: payload.exportHandoffBundleRoute || '/ops/api/site-operations/export-handoff-bundle'
+        };
+        renderBadges('dashSiteExportHandoffBundleBadges', [
+          { text: `bundle ${exportHandoffBundleItems.length}` },
+          { text: `handoff ${exportHandoffMapEntries.length}` },
+          { text: `site refs ${exportHandoffBundleSummary.siteRefCount ?? 0}` },
+          { text: `evidence refs ${exportHandoffBundleSummary.evidenceRefCount ?? 0}` },
+          { text: `blocked ${exportHandoffBundleSummary.blockedCount ?? 0}` },
+          { text: boundaryOk ? 'redacted release-safe' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashSiteExportHandoffBundleText',
+          payload.error
+            ? `Export / Handoff Bundle 로드 실패: ${payload.error}`
+            : `release-safe bundle ${exportHandoffBundleItems.length} · handoff map ${exportHandoffMapEntries.length} · releaseSafe ${exportHandoffBundleSummary.releaseSafeCount ?? 0}`);
+        const bundleList = document.getElementById('dashSiteExportHandoffBundleList');
+        if (bundleList) {
+          bundleList.innerHTML = exportHandoffBundleItems.length > 0
+            ? exportHandoffBundleItems.slice(0, 8).map(item => {
+                const siteRefs = v370ExportHandoffBundleList(item.siteRefs).slice(0, 3).join(', ') || 'site refs pending';
+                const runbookRefs = v370ExportHandoffBundleList(item.runbookRefs).slice(0, 3).join(', ') || 'runbook refs pending';
+                const evidenceRefs = v370ExportHandoffBundleList(item.evidenceRefs).slice(0, 3).join(', ') || 'evidence refs pending';
+                const approvalRefs = v370ExportHandoffBundleList(item.approvalRefs).slice(0, 3).join(', ') || 'approval refs pending';
+                const outcomeRefs = v370ExportHandoffBundleList(item.outcomeRefs).slice(0, 3).join(', ') || 'outcome refs pending';
+                return v370ExportHandoffBundleEntry(
+                  item.bundleId || item.bundleKind || 'exportHandoffBundle',
+                  `${item.siteId || 'site'} / ${item.sourceGroup || 'source group'} / ${item.handoffStatus || 'pending-handoff'}`,
+                  `${display(item.title || 'Export / Handoff Bundle')} · next=${display(item.nextOperatorRole || 'ops-reviewer')}`,
+                  `siteRefs=${display(siteRefs)} · runbookRefs=${display(runbookRefs)} · evidenceRefs=${display(evidenceRefs)} · approvalRefs=${display(approvalRefs)} · outcomeRefs=${display(outcomeRefs)}`,
+                  item.handoffReady === true ? '' : 'warn');
+              }).join('')
+            : '<div class="empty">Export / Handoff Bundle 항목이 아직 없습니다.</div>';
+        }
+        const handoffList = document.getElementById('dashSiteExportHandoffMapList');
+        if (handoffList) {
+          handoffList.innerHTML = exportHandoffMapEntries.length > 0
+            ? exportHandoffMapEntries.slice(0, 8).map(entry => {
+                const bundleRefs = v370ExportHandoffBundleList(entry.bundleRefs).slice(0, 4).join(', ') || 'bundle refs pending';
+                const releaseSafetyRefs = v370ExportHandoffBundleList(entry.releaseSafetyRefs).slice(0, 4).join(', ') || 'release safety refs pending';
+                return v370ExportHandoffBundleEntry(
+                  entry.handoffId || 'handoffMap',
+                  `${entry.handoffStatus || 'pending-handoff'} -> ${entry.nextOperatorRole || 'ops-reviewer'}`,
+                  entry.blockedReason || 'blocked reason pending',
+                  `bundleRefs=${display(bundleRefs)} · releaseSafetyRefs=${display(releaseSafetyRefs)}`,
+                  entry.handoffStatus?.includes('pending') ? 'warn' : '');
+              }).join('')
+            : '<div class="empty">Export handoff map entry가 아직 없습니다.</div>';
+        }
+        const redactionList = document.getElementById('dashSiteExportHandoffRedactionList');
+        if (redactionList) {
+          const redactionRows = exportHandoffBundleItems.flatMap(item =>
+            v370ExportHandoffBundleList(item.redactionReview).slice(0, 6).map(ref =>
+              v370ExportHandoffBundleEntry(
+                'redactionReview',
+                ref,
+                item.releaseSafeLabel || 'redacted-release-safe',
+                `${item.bundleId || 'bundle'} · raw/client/provider material excluded`,
+                '')));
+          redactionList.innerHTML = redactionRows.length > 0
+            ? redactionRows.slice(0, 12).join('')
+            : '<div class="empty">redaction review ref가 아직 없습니다.</div>';
+        }
+        setText('dashSiteExportHandoffBundleBoundary',
+          `bundle=${display(v370ExportHandoffBundleState.exportHandoffBundleRoute)} · site=${display(bundle.siteRegistryProjectionRoute)} · runbook=${display(bundle.runbookInstanceLedgerRoute)} · evidence=${display(bundle.fieldEvidenceAttachmentRoute)} · approval=${display(bundle.approvalTicketWorkflowRoute)} · outcome=${display(bundle.outcomeReconciliationRoute)} · artifactExportExecuted=${bundle.boundaries?.artifactExportExecuted === false ? 'false' : '확인 필요'} · fileWritePerformed=${bundle.boundaries?.fileWritePerformed === false ? 'false' : '확인 필요'} · handoffWritePerformed=${bundle.boundaries?.handoffWritePerformed === false ? 'false' : '확인 필요'} · rawLocatorIncluded=${bundle.boundaries?.rawLocatorIncluded === false ? 'false' : '확인 필요'} · credentialMaterialIncluded=${bundle.boundaries?.credentialMaterialIncluded === false ? 'false' : '확인 필요'} · rawDiagnosticJsonIncluded=${bundle.boundaries?.rawDiagnosticJsonIncluded === false ? 'false' : '확인 필요'} · rtspOrWebrtcMediaPathChanged=${bundle.boundaries?.rtspOrWebrtcMediaPathChanged === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV370ExportHandoffBundle = async ({
+        exportHandoffBundleRoute = '/ops/api/site-operations/export-handoff-bundle'
+      } = {}) => {
+        const bundle = await requestJson(exportHandoffBundleRoute);
+        renderV370ExportHandoffBundle({ bundle, exportHandoffBundleRoute });
+      };
       let v370OutcomeReconciliationState = {};
       const v370OutcomeReconciliationList = value => Array.isArray(value) ? value : [];
       const v370OutcomeReconciliationEntry = (kind, title, detail, meta, tone = '') =>
@@ -2551,6 +2651,9 @@ void AppendOpsShellScript(std::ostringstream& out,
         await refreshV370OutcomeReconciliation({
           outcomeReconciliationRoute: '/ops/api/site-operations/outcome-reconciliation'
         }).catch(error => renderV370OutcomeReconciliation({ error: error.message }));
+        await refreshV370ExportHandoffBundle({
+          exportHandoffBundleRoute: '/ops/api/site-operations/export-handoff-bundle'
+        }).catch(error => renderV370ExportHandoffBundle({ error: error.message }));
         await refreshV370ClientNoticeBySiteViewGroup({
           noticeRoute: '/ops/api/site-operations/client-notice-by-site-view-group'
         }).catch(error => renderV370ClientNoticeBySiteViewGroup({ error: error.message }));

@@ -492,6 +492,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_v370_field_evidence_attachment.mjs",
     "verify_v370_limited_safe_execution_pilot.mjs",
     "verify_v370_outcome_reconciliation.mjs",
+    "verify_v370_export_handoff_bundle.mjs",
     "verify_v360_entry_baseline.mjs",
     "verify_v360_simulation_input_contract.mjs",
     "verify_v360_operations_simulation_run_contract.mjs",

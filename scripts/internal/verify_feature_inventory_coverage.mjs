@@ -141,6 +141,7 @@ const v370VerifierCoverage = {
     "verify-v370-field-evidence-attachment",
     "verify-v370-limited-safe-execution-pilot",
     "verify-v370-outcome-reconciliation",
+    "verify-v370-export-handoff-bundle",
   ],
   RULE: [
     "verify-v370-rule-va-what-if-by-site",
@@ -175,6 +176,7 @@ const v370VerifierCoverage = {
     "verify-v370-field-evidence-attachment",
     "verify-v370-limited-safe-execution-pilot",
     "verify-v370-outcome-reconciliation",
+    "verify-v370-export-handoff-bundle",
   ],
   CLIENT: [
     "verify-v370-site-impact-graph",
@@ -200,6 +202,7 @@ const v370VerifierCoverage = {
     "verify-v370-field-evidence-attachment",
     "verify-v370-limited-safe-execution-pilot",
     "verify-v370-outcome-reconciliation",
+    "verify-v370-export-handoff-bundle",
   ],
   OPS: [
     "verify-v370-entry-baseline",
@@ -218,6 +221,7 @@ const v370VerifierCoverage = {
     "verify-v370-field-evidence-attachment",
     "verify-v370-limited-safe-execution-pilot",
     "verify-v370-outcome-reconciliation",
+    "verify-v370-export-handoff-bundle",
   ],
 };
 
