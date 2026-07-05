@@ -639,6 +639,10 @@ std::string ProductUiCss() {
       display: grid;
       gap: var(--space-3);
     }
+    body.ops-shell .ops-site-rule-va-what-if-workspace {
+      display: grid;
+      gap: var(--space-3);
+    }
     body.ops-shell .ops-command-workspace .ops-command-workspace-detail-grid {
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: var(--space-3);
@@ -652,6 +656,10 @@ std::string ProductUiCss() {
       gap: var(--space-3);
     }
     body.ops-shell .ops-site-client-notice-workspace .ops-site-client-notice-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--space-3);
+    }
+    body.ops-shell .ops-site-rule-va-what-if-workspace .ops-site-rule-va-what-if-grid {
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: var(--space-3);
     }
@@ -669,7 +677,8 @@ std::string ProductUiCss() {
     body.ops-shell .ops-simulation-workspace .ops-simulation-field-evidence-adapter-list,
     body.ops-shell .ops-simulation-workspace .ops-simulation-vlm-assisted-explanation-list,
     body.ops-shell .ops-site-operations-workspace .ops-site-operations-list,
-    body.ops-shell .ops-site-client-notice-workspace .ops-site-client-notice-list {
+    body.ops-shell .ops-site-client-notice-workspace .ops-site-client-notice-list,
+    body.ops-shell .ops-site-rule-va-what-if-workspace .ops-site-rule-va-what-if-list {
       min-width: 0;
     }
     body.ops-shell .ops-channels-workspace {
@@ -1247,7 +1256,8 @@ std::string ProductUiCss() {
     .ops-simulation-field-evidence-adapter-list,
     .ops-simulation-vlm-assisted-explanation-list,
     .ops-site-operations-list,
-    .ops-site-client-notice-list {
+    .ops-site-client-notice-list,
+    .ops-site-rule-va-what-if-list {
       display: grid;
       gap: var(--space-2);
     }
@@ -1268,7 +1278,8 @@ std::string ProductUiCss() {
     .ops-simulation-field-evidence-adapter-entry,
     .ops-simulation-vlm-assisted-explanation-entry,
     .ops-site-operations-entry,
-    .ops-site-client-notice-entry {
+    .ops-site-client-notice-entry,
+    .ops-site-rule-va-what-if-entry {
       min-width: 0;
       margin: 0;
       padding: 11px 12px;
@@ -1320,10 +1331,14 @@ std::string ProductUiCss() {
     .ops-site-client-notice-entry strong,
     .ops-site-client-notice-entry span,
     .ops-site-client-notice-entry small,
+    .ops-site-rule-va-what-if-entry strong,
+    .ops-site-rule-va-what-if-entry span,
+    .ops-site-rule-va-what-if-entry small,
     .ops-command-boundary,
     .ops-simulation-boundary,
     .ops-site-operations-boundary,
-    .ops-site-client-notice-boundary {
+    .ops-site-client-notice-boundary,
+    .ops-site-rule-va-what-if-boundary {
       min-width: 0;
       overflow-wrap: anywhere;
     }
@@ -1340,7 +1355,8 @@ std::string ProductUiCss() {
     .ops-simulation-field-evidence-adapter-entry strong,
     .ops-simulation-vlm-assisted-explanation-entry strong,
     .ops-site-operations-entry strong,
-    .ops-site-client-notice-entry strong {
+    .ops-site-client-notice-entry strong,
+    .ops-site-rule-va-what-if-entry strong {
       font-size: 13px;
       line-height: 1.2;
     }
@@ -1372,10 +1388,13 @@ std::string ProductUiCss() {
     .ops-site-operations-entry small,
     .ops-site-client-notice-entry span,
     .ops-site-client-notice-entry small,
+    .ops-site-rule-va-what-if-entry span,
+    .ops-site-rule-va-what-if-entry small,
     .ops-command-boundary,
     .ops-simulation-boundary,
     .ops-site-operations-boundary,
-    .ops-site-client-notice-boundary {
+    .ops-site-client-notice-boundary,
+    .ops-site-rule-va-what-if-boundary {
       color: var(--color-muted);
       font-size: 12px;
       line-height: 1.35;
@@ -1387,13 +1406,15 @@ std::string ProductUiCss() {
     .ops-command-flow-card.warn,
     .ops-simulation-workspace-entry.warn,
     .ops-site-operations-entry.warn,
-    .ops-site-client-notice-entry.warn {
+    .ops-site-client-notice-entry.warn,
+    .ops-site-rule-va-what-if-entry.warn {
       border-color: color-mix(in srgb, var(--color-warning) 56%, var(--color-border));
     }
     .ops-command-boundary,
     .ops-simulation-boundary,
     .ops-site-operations-boundary,
-    .ops-site-client-notice-boundary {
+    .ops-site-client-notice-boundary,
+    .ops-site-rule-va-what-if-boundary {
       padding: 9px 10px;
       border: 1px dashed var(--color-border);
       border-radius: 8px;

@@ -1049,6 +1049,92 @@ void AppendOpsShellScript(std::ostringstream& out,
         ]);
         renderV360OpsSimulationWorkspace({ inputPack, simulationRun, simulationRunLedger, clientNoticePreview, ruleVaWhatIfReplayPack, simulationExportBundle, fieldEvidenceSimulationAdapter, vlmAssistedSimulationExplanation, dryRun, impactDiff, readiness, inputPackRoute, runContractRoute, simulationRunLedgerRoute, clientNoticePreviewRoute, ruleVaWhatIfReplayRoute, simulationExportBundleRoute, fieldEvidenceSimulationAdapterRoute, vlmAssistedSimulationExplanationRoute, dryRunRoute, impactDiffRoute, readinessRoute });
       };
+      let v370RuleVaWhatIfBySiteState = {};
+      const v370RuleVaWhatIfBySiteList = value => Array.isArray(value) ? value : [];
+      const v370RuleVaWhatIfBySiteEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-site-rule-va-what-if-entry ${escapeHtml(tone)}" data-v370-rule-va-what-if-by-site-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV370RuleVaWhatIfBySite = (payload = {}) => {
+        const whatIf = payload.whatIf || {};
+        const items = v370RuleVaWhatIfBySiteList(whatIf.ruleVaWhatIfBySiteItems);
+        const summary = whatIf.ruleVaWhatIfBySiteSummary || {};
+        const boundaryOk = whatIf.boundaries?.ruleRegistryWritePerformed === false &&
+          whatIf.boundaries?.ruleThresholdApplied === false &&
+          whatIf.boundaries?.scenarioApplied === false &&
+          whatIf.boundaries?.eventRecordWritePerformed === false &&
+          whatIf.boundaries?.simulationRunExecuted === false &&
+          whatIf.boundaries?.safeApplyPerformed === false &&
+          whatIf.boundaries?.clientNoticeSent === false &&
+          whatIf.boundaries?.rtspOrWebrtcMediaPathChanged === false;
+        v370RuleVaWhatIfBySiteState = {
+          whatIf,
+          whatIfRoute: payload.whatIfRoute || '/ops/api/site-operations/rule-va-what-if-by-site'
+        };
+        renderBadges('dashSiteRuleVaWhatIfBadges', [
+          { text: `candidate ${items.length}` },
+          { text: `site ${summary.siteCount ?? 0}` },
+          { text: `source group ${summary.sourceGroupCount ?? 0}` },
+          { text: `threshold ${summary.thresholdCandidateCount ?? 0}` },
+          { text: `scenario ${summary.scenarioCandidateCount ?? 0}` },
+          { text: `EventRecord ${summary.eventRecordRefCount ?? 0}` },
+          { text: `VA fixture ${summary.vaFixtureRefCount ?? 0}` },
+          { text: boundaryOk ? 'what-if only' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashSiteRuleVaWhatIfText',
+          payload.error
+            ? `Rule/VA what-if by site 로드 실패: ${payload.error}`
+            : `site ${summary.siteCount ?? 0} · source group ${summary.sourceGroupCount ?? 0} · candidate ${items.length} · affected clients ${summary.affectedClientRefCount ?? 0} · blocked/not-run ${summary.blockedOrNotRunCount ?? 0}`);
+        const candidateList = document.getElementById('dashSiteRuleVaWhatIfCandidateList');
+        if (candidateList) {
+          candidateList.innerHTML = items.length > 0
+            ? items.slice(0, 8).map(item =>
+                v370RuleVaWhatIfBySiteEntry(
+                  item.whatIfBySiteId || item.ruleCandidateId || 'what-if-by-site',
+                  `${item.siteId || 'site'} / ${item.sourceGroup || 'source group'}`,
+                  `${item.ruleThresholdCandidate || 'thresholdCandidate'} · ${item.scenarioCandidate || 'scenarioCandidate'}`,
+                  `ruleCandidate=${display(item.ruleCandidateId || '-')} · source=${display(item.sourceId || '-')} · readiness=${display(item.readinessState || 'not-run')}`,
+                  item.readinessState === 'ready' ? '' : 'warn'))
+              .join('')
+            : '<div class="empty">Rule/VA what-if by site 후보가 아직 없습니다.</div>';
+        }
+        const impactList = document.getElementById('dashSiteRuleVaWhatIfImpactList');
+        if (impactList) {
+          impactList.innerHTML = items.length > 0
+            ? items.slice(0, 8).map(item =>
+                v370RuleVaWhatIfBySiteEntry(
+                  item.whatIfBySiteId || item.ruleCandidateId || 'site-impact-delta',
+                  item.siteImpactSummary || 'site impact summary',
+                  item.whatIfResultDelta || 'what-if result delta',
+                  `before=${display(item.beforeMatchState || 'current')} · after=${display(item.afterMatchState || 'what-if')}`))
+              .join('')
+            : '<div class="empty">site impact delta 항목이 아직 없습니다.</div>';
+        }
+        const fixtureList = document.getElementById('dashSiteRuleVaWhatIfFixtureList');
+        if (fixtureList) {
+          fixtureList.innerHTML = items.length > 0
+            ? items.slice(0, 8).map(item => {
+                const changedFields = v370RuleVaWhatIfBySiteList(item.changedFields).slice(0, 3).join(', ') || 'changed fields pending';
+                const affectedClients = v370RuleVaWhatIfBySiteList(item.affectedClientRefs).slice(0, 3).join(', ') || 'none';
+                return v370RuleVaWhatIfBySiteEntry(
+                  item.eventRecordRef || 'EventRecord aggregate',
+                  item.vaFixtureRef || 'vaFixtureRef',
+                  `changedFields=${changedFields}`,
+                  `affectedClientRefs=${affectedClients}`);
+              }).join('')
+            : '<div class="empty">EventRecord aggregate와 VA fixture refs가 아직 없습니다.</div>';
+        }
+        setText('dashSiteRuleVaWhatIfBoundary',
+          `whatIf=${display(v370RuleVaWhatIfBySiteState.whatIfRoute)} · projection=${display(whatIf.siteRegistryProjectionRoute)} · health=${display(whatIf.siteHealthRollupRoute)} · impact=${display(whatIf.siteImpactGraphRoute)} · simulationInput=${display(whatIf.siteSimulationInputPackRoute)} · readiness=${display(whatIf.crossSiteSafeApplyReadinessRoute)} · eventRecord=${display(whatIf.eventRecordRoute)} · ruleReplay=${display(whatIf.ruleVaReplayRoute)} · ruleRegistryWritePerformed=${whatIf.boundaries?.ruleRegistryWritePerformed === false ? 'false' : '확인 필요'} · ruleThresholdApplied=${whatIf.boundaries?.ruleThresholdApplied === false ? 'false' : '확인 필요'} · scenarioApplied=${whatIf.boundaries?.scenarioApplied === false ? 'false' : '확인 필요'} · eventRecordWritePerformed=${whatIf.boundaries?.eventRecordWritePerformed === false ? 'false' : '확인 필요'} · simulationRunExecuted=${whatIf.boundaries?.simulationRunExecuted === false ? 'false' : '확인 필요'} · safeApplyPerformed=${whatIf.boundaries?.safeApplyPerformed === false ? 'false' : '확인 필요'} · clientNoticeSent=${whatIf.boundaries?.clientNoticeSent === false ? 'false' : '확인 필요'} · rtspOrWebrtcMediaPathChanged=${whatIf.boundaries?.rtspOrWebrtcMediaPathChanged === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV370RuleVaWhatIfBySite = async ({
+        whatIfRoute = '/ops/api/site-operations/rule-va-what-if-by-site'
+      } = {}) => {
+        const whatIf = await requestJson(whatIfRoute);
+        renderV370RuleVaWhatIfBySite({ whatIf, whatIfRoute });
+      };
       let v370ClientNoticeBySiteViewGroupState = {};
       const v370ClientNoticeBySiteViewGroupList = value => Array.isArray(value) ? value : [];
       const v370ClientNoticeBySiteViewGroupEntry = (kind, title, detail, meta, tone = '') =>
@@ -2225,6 +2311,9 @@ void AppendOpsShellScript(std::ostringstream& out,
           impactDiffRoute: '/ops/api/live-operations/simulation/impact-diff',
           readinessRoute: '/ops/api/live-operations/simulation/safe-apply-readiness'
         }).catch(error => renderV360OpsSimulationWorkspace({ error: error.message }));
+        await refreshV370RuleVaWhatIfBySite({
+          whatIfRoute: '/ops/api/site-operations/rule-va-what-if-by-site'
+        }).catch(error => renderV370RuleVaWhatIfBySite({ error: error.message }));
         await refreshV370ClientNoticeBySiteViewGroup({
           noticeRoute: '/ops/api/site-operations/client-notice-by-site-view-group'
         }).catch(error => renderV370ClientNoticeBySiteViewGroup({ error: error.message }));

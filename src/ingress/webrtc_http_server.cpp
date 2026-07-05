@@ -2938,6 +2938,39 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           clientNoticeSent=false · viewerClientPayloadChanged=false · source/view write=false
         </div>
       </section>
+      <section class="section-card ops-workspace-wide ops-site-rule-va-what-if-workspace" data-testid="ops-site-rule-va-what-if-workspace" data-v370-rule-va-what-if-by-site="media-server.ops.v370-rule-va-what-if-by-site.v1">
+        <div class="toolbar">
+          <div>
+            <h3>Rule/VA What-if by Site</h3>
+            <p>site 영향, EventRecord aggregate, VA fixture 기반 rule threshold/scenario 후보를 적용 없이 비교합니다.</p>
+          </div>
+        </div>
+        <div id="dashSiteRuleVaWhatIfBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashSiteRuleVaWhatIfText">site-scoped Rule/VA what-if 후보를 불러오는 중입니다.</p>
+        <div class="grid ops-site-rule-va-what-if-grid">
+          <div>
+            <h4>What-if Candidates</h4>
+            <div id="dashSiteRuleVaWhatIfCandidateList" class="ops-site-rule-va-what-if-list">
+              <div class="empty">site-scoped Rule/VA what-if 후보를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Site Impact Delta</h4>
+            <div id="dashSiteRuleVaWhatIfImpactList" class="ops-site-rule-va-what-if-list">
+              <div class="empty">site impact delta를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>EventRecord / VA Fixture</h4>
+            <div id="dashSiteRuleVaWhatIfFixtureList" class="ops-site-rule-va-what-if-list">
+              <div class="empty">EventRecord aggregate와 VA fixture refs를 기다립니다.</div>
+            </div>
+          </div>
+        </div>
+        <div id="dashSiteRuleVaWhatIfBoundary" class="ops-site-rule-va-what-if-boundary">
+          ruleRegistryWritePerformed=false · eventRecordWritePerformed=false · media mutation=false
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide" data-testid="ops-runtime-operations-console">
         <div class="toolbar">
           <div>
@@ -21885,6 +21918,395 @@ std::string OpsV360ClientNoticePreviewJson(
     return out.str();
 }
 
+struct OpsV370RuleVaWhatIfBySiteItem {
+    std::string what_if_by_site_id;
+    std::string site_id;
+    std::string source_group;
+    std::string source_id;
+    std::string rule_candidate_id;
+    std::string event_record_ref;
+    std::string va_fixture_ref{"vaFixtureRef:manual_ui_fulltest_va_seed_matrix"};
+    std::string rule_threshold_candidate{"thresholdCandidate:confidence+0.05"};
+    std::string preset_candidate{"presetCandidate:site-default"};
+    std::string scenario_candidate{"scenarioCandidate:site-risk-review"};
+    std::string before_match_state{"beforeMatchState: current EventRecord/Rule projection"};
+    std::string after_match_state{"afterMatchState: siteRuleVaWhatIfBySite projection"};
+    std::string site_impact_summary{"siteImpactSummary: viewer-safe site impact"};
+    std::string what_if_result_delta{"whatIfResultDelta: computed-only"};
+    std::string readiness_state{"not-run"};
+    std::vector<std::string> affected_client_refs;
+    std::vector<std::string> changed_fields;
+    std::vector<std::string> evidence_refs;
+    bool read_only{true};
+};
+
+struct OpsV370RuleVaWhatIfBySiteSummary {
+    int item_count{0};
+    int site_count{0};
+    int source_group_count{0};
+    int threshold_candidate_count{0};
+    int scenario_candidate_count{0};
+    int event_record_ref_count{0};
+    int va_fixture_ref_count{0};
+    int affected_client_ref_count{0};
+    int blocked_or_not_run_count{0};
+    std::vector<std::string> derivation_sources;
+};
+
+std::string V370SiteImpactSummaryForRuleWhatIf(
+    const std::vector<OpsV370SiteImpactGraphNode>& impactGraphNodes,
+    const std::string& site_id,
+    const std::string& source_group,
+    const std::string& source_id) {
+    const auto source_it = std::find_if(impactGraphNodes.begin(), impactGraphNodes.end(), [&](const auto& node) {
+        return node.source_id == source_id && node.node_type == "EventRecord";
+    });
+    if (source_it != impactGraphNodes.end()) {
+        return source_it->viewer_safe_impact_summary;
+    }
+    const auto group_it = std::find_if(impactGraphNodes.begin(), impactGraphNodes.end(), [&](const auto& node) {
+        return node.site_id == site_id && node.source_group == source_group &&
+               node.node_type == "sourceGroup";
+    });
+    if (group_it != impactGraphNodes.end()) {
+        return group_it->viewer_safe_impact_summary;
+    }
+    return "siteImpactSummary: EventRecord, source health, PublishedView, and client impact are compared as read-only refs";
+}
+
+std::string V370RuleVaThresholdCandidateForDryRun(
+    const OpsV360CommandPlanDryRunResult& result) {
+    if (result.candidate_type == "ruleFollowUp") {
+        return "thresholdCandidate:confidence+0.05";
+    }
+    return "thresholdCandidate:site-sensitivity-review";
+}
+
+std::string V370RuleVaScenarioCandidateForDryRun(
+    const OpsV360CommandPlanDryRunResult& result) {
+    if (result.candidate_type == "ruleFollowUp") {
+        return "scenarioCandidate:loitering-by-site";
+    }
+    return "scenarioCandidate:presence-by-site";
+}
+
+std::vector<OpsV370RuleVaWhatIfBySiteItem> BuildV370RuleVaWhatIfBySiteItems(
+    const std::vector<OpsV370SiteAwareSourceRegistryProjectionItem>& projection,
+    const std::vector<OpsV370SiteImpactGraphNode>& impactGraphNodes,
+    const std::vector<OpsV370SiteSimulationInputPackItem>& siteSimulationInputPackItems,
+    const std::vector<OpsV370CrossSiteSafeApplyReadinessItem>& crossSiteReadinessItems,
+    const std::vector<OpsV360CommandPlanDryRunResult>& dryRunResults,
+    const std::vector<OpsV360SourceRuleImpactDiff>& impactDiffs) {
+    std::vector<OpsV370RuleVaWhatIfBySiteItem> items;
+    const auto* fallback_projection = projection.empty() ? nullptr : &projection.front();
+
+    for (const auto& result : dryRunResults) {
+        if (result.candidate_type != "ruleFollowUp") {
+            continue;
+        }
+        const auto* projected = V370ProjectionForSource(projection, result.source_id);
+        if (projected == nullptr) {
+            projected = fallback_projection;
+        }
+        const auto* diff = V370ImpactDiffForCandidate(impactDiffs, result.candidate_id);
+        const auto* readiness =
+            V370CrossSiteReadinessForCandidate(crossSiteReadinessItems, result.candidate_id);
+        const std::string site_id = projected == nullptr ? "unassigned-site" : projected->site_id;
+        const std::string source_group =
+            projected == nullptr ? "unassigned-source-group" : projected->source_group;
+        const std::string source_id =
+            result.source_id == "pending-source" && projected != nullptr && !projected->source_ids.empty()
+                ? projected->source_ids.front()
+                : result.source_id;
+        const int site_input_count =
+            V370SiteSimulationPackCountForScope(siteSimulationInputPackItems, site_id, source_group);
+
+        OpsV370RuleVaWhatIfBySiteItem item;
+        item.what_if_by_site_id =
+            "siteRuleVaWhatIfBySite:" + site_id + ":" + source_group + ":" + result.candidate_id;
+        item.site_id = site_id;
+        item.source_group = source_group;
+        item.source_id = source_id.empty() ? "pending-source" : source_id;
+        item.rule_candidate_id = result.candidate_id;
+        item.event_record_ref = "EventRecord:aggregate:" + site_id + ":" + source_group;
+        item.rule_threshold_candidate = V370RuleVaThresholdCandidateForDryRun(result);
+        item.preset_candidate = "presetCandidate:site-default";
+        item.scenario_candidate = V370RuleVaScenarioCandidateForDryRun(result);
+        item.before_match_state =
+            diff == nullptr ? "beforeMatchState: current site EventRecord/Rule projection"
+                            : diff->before_state;
+        item.after_match_state =
+            diff == nullptr ? "afterMatchState: siteRuleVaWhatIfBySite projection"
+                            : diff->after_state + " via siteRuleVaWhatIfBySite";
+        item.site_impact_summary = V370SiteImpactSummaryForRuleWhatIf(
+            impactGraphNodes, item.site_id, item.source_group, item.source_id);
+        item.what_if_result_delta =
+            diff == nullptr
+                ? "ruleThresholdDelta=" + item.rule_threshold_candidate +
+                      "; scenarioDelta=" + item.scenario_candidate +
+                      "; siteImpactDelta=viewer-safe-summary-only"
+                : "ruleThresholdDelta=" + item.rule_threshold_candidate +
+                      "; scenarioDelta=" + item.scenario_candidate +
+                      "; " + diff->event_risk_diff + "; " + diff->client_impact_diff;
+        item.readiness_state = readiness == nullptr ? "not-run" : readiness->readiness_state;
+        item.affected_client_refs =
+            readiness == nullptr ? V370AffectedClientRefsForProjection(projected)
+                                 : readiness->affected_client_refs;
+        item.changed_fields = {"ruleThresholdDelta", "scenarioDelta", "siteImpactDelta"};
+        item.evidence_refs = {
+            "/ops/api/site-operations/source-registry-projection",
+            "/ops/api/site-operations/health-rollup",
+            "/ops/api/site-operations/impact-graph",
+            "/ops/api/site-operations/simulation-input-pack",
+            "/ops/api/site-operations/cross-site-safe-apply-readiness",
+            "/ops/api/events/reviews",
+            "/ops/api/live-operations/simulation/rule-va-what-if-replay-pack",
+            "BuildV360RuleVaWhatIfReplayCandidates",
+            "manual_ui_fulltest_va_seed_matrix",
+            "siteSimulationInputPackCount:" + std::to_string(site_input_count),
+        };
+        if (diff != nullptr) {
+            item.evidence_refs.push_back(diff->diff_id);
+        }
+        if (readiness != nullptr) {
+            item.evidence_refs.push_back(readiness->readiness_id);
+        }
+        items.push_back(std::move(item));
+        if (items.size() >= 12U) {
+            break;
+        }
+    }
+
+    if (items.empty()) {
+        OpsV370RuleVaWhatIfBySiteItem item;
+        item.what_if_by_site_id = "siteRuleVaWhatIfBySite:pending";
+        item.site_id = fallback_projection == nullptr ? "unassigned-site" : fallback_projection->site_id;
+        item.source_group =
+            fallback_projection == nullptr ? "unassigned-source-group" : fallback_projection->source_group;
+        item.source_id = fallback_projection == nullptr || fallback_projection->source_ids.empty()
+                             ? "pending-source"
+                             : fallback_projection->source_ids.front();
+        item.rule_candidate_id = "candidate:default:ruleFollowUp";
+        item.event_record_ref = "EventRecord:aggregate:" + item.site_id + ":" + item.source_group;
+        item.scenario_candidate = "scenarioCandidate:presence-by-site";
+        item.site_impact_summary =
+            "siteImpactSummary: pending site impact graph, EventRecord aggregate, and VA fixture refs";
+        item.what_if_result_delta =
+            "ruleThresholdDelta=thresholdCandidate:confidence+0.05; scenarioDelta=scenarioCandidate:presence-by-site";
+        item.evidence_refs = {
+            "/ops/api/site-operations/source-registry-projection",
+            "/ops/api/site-operations/impact-graph",
+            "/ops/api/events/reviews",
+            "/ops/api/live-operations/simulation/rule-va-what-if-replay-pack",
+            "BuildV360RuleVaWhatIfReplayCandidates",
+            "manual_ui_fulltest_va_seed_matrix",
+        };
+        items.push_back(std::move(item));
+    }
+    return items;
+}
+
+OpsV370RuleVaWhatIfBySiteSummary BuildV370RuleVaWhatIfBySiteSummary(
+    const std::vector<OpsV370RuleVaWhatIfBySiteItem>& items) {
+    OpsV370RuleVaWhatIfBySiteSummary summary;
+    summary.derivation_sources = {
+        "BuildV350LiveOperationsGraphContext",
+        "BuildV350CommandPlanCandidates",
+        "BuildV360CommandPlanDryRunResults",
+        "BuildV360SourceRuleImpactDiffs",
+        "BuildV360RuleVaWhatIfReplayCandidates",
+        "BuildV370SiteAwareSourceRegistryProjectionItems",
+        "BuildV370SiteHealthRollupItems",
+        "BuildV370SiteImpactGraphNodes",
+        "BuildV370SiteSimulationInputPackItems",
+        "BuildV370CrossSiteSafeApplyReadinessItems",
+        "manual_ui_fulltest_va_seed_matrix",
+    };
+    std::vector<std::string> sites;
+    std::vector<std::string> source_groups;
+    summary.item_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        AddV370UniqueString(&sites, item.site_id);
+        AddV370UniqueString(&source_groups, item.site_id + ":" + item.source_group);
+        if (!item.rule_threshold_candidate.empty()) {
+            ++summary.threshold_candidate_count;
+        }
+        if (!item.scenario_candidate.empty()) {
+            ++summary.scenario_candidate_count;
+        }
+        if (!item.event_record_ref.empty()) {
+            ++summary.event_record_ref_count;
+        }
+        if (!item.va_fixture_ref.empty()) {
+            ++summary.va_fixture_ref_count;
+        }
+        if (item.readiness_state != "ready") {
+            ++summary.blocked_or_not_run_count;
+        }
+        summary.affected_client_ref_count +=
+            static_cast<int>(item.affected_client_refs.size());
+    }
+    summary.site_count = static_cast<int>(sites.size());
+    summary.source_group_count = static_cast<int>(source_groups.size());
+    return summary;
+}
+
+void AppendV370RuleVaWhatIfBySiteSummaryJson(
+    std::ostringstream& out,
+    const OpsV370RuleVaWhatIfBySiteSummary& summary) {
+    out << "{"
+        << "\"itemCount\":" << summary.item_count << ","
+        << "\"siteCount\":" << summary.site_count << ","
+        << "\"sourceGroupCount\":" << summary.source_group_count << ","
+        << "\"thresholdCandidateCount\":" << summary.threshold_candidate_count << ","
+        << "\"scenarioCandidateCount\":" << summary.scenario_candidate_count << ","
+        << "\"eventRecordRefCount\":" << summary.event_record_ref_count << ","
+        << "\"vaFixtureRefCount\":" << summary.va_fixture_ref_count << ","
+        << "\"affectedClientRefCount\":" << summary.affected_client_ref_count << ","
+        << "\"blockedOrNotRunCount\":" << summary.blocked_or_not_run_count << ","
+        << "\"derivationSources\":";
+    AppendJsonStringArray(out, summary.derivation_sources);
+    out << "}";
+}
+
+void AppendV370RuleVaWhatIfBySiteItemJson(
+    std::ostringstream& out,
+    const OpsV370RuleVaWhatIfBySiteItem& item) {
+    out << "{"
+        << "\"whatIfBySiteId\":\"" << JsonEscape(item.what_if_by_site_id) << "\","
+        << "\"siteId\":\"" << JsonEscape(item.site_id) << "\","
+        << "\"sourceGroup\":\"" << JsonEscape(item.source_group) << "\","
+        << "\"sourceId\":\"" << JsonEscape(item.source_id) << "\","
+        << "\"ruleCandidateId\":\"" << JsonEscape(item.rule_candidate_id) << "\","
+        << "\"eventRecordRef\":\"" << JsonEscape(item.event_record_ref) << "\","
+        << "\"vaFixtureRef\":\"" << JsonEscape(item.va_fixture_ref) << "\","
+        << "\"ruleThresholdCandidate\":\""
+        << JsonEscape(item.rule_threshold_candidate) << "\","
+        << "\"presetCandidate\":\"" << JsonEscape(item.preset_candidate) << "\","
+        << "\"scenarioCandidate\":\"" << JsonEscape(item.scenario_candidate) << "\","
+        << "\"beforeMatchState\":\"" << JsonEscape(item.before_match_state) << "\","
+        << "\"afterMatchState\":\"" << JsonEscape(item.after_match_state) << "\","
+        << "\"siteImpactSummary\":\"" << JsonEscape(item.site_impact_summary) << "\","
+        << "\"whatIfResultDelta\":\"" << JsonEscape(item.what_if_result_delta) << "\","
+        << "\"readinessState\":\"" << JsonEscape(item.readiness_state) << "\","
+        << "\"affectedClientRefs\":";
+    AppendJsonStringArray(out, item.affected_client_refs);
+    out << ",\"changedFields\":";
+    AppendJsonStringArray(out, item.changed_fields);
+    out << ",\"evidenceRefs\":";
+    AppendJsonStringArray(out, item.evidence_refs);
+    out << ",\"readOnly\":" << JsonBool(item.read_only)
+        << "}";
+}
+
+std::string OpsV370RuleVaWhatIfBySiteJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v370-rule-va-what-if-by-site.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto dryRunResults = BuildV360CommandPlanDryRunResults(commandPlanCandidates);
+    const auto impactDiffs =
+        BuildV360SourceRuleImpactDiffs(context, commandPlanCandidates, stagedChangePlans);
+    const auto readinessItems = BuildV360SafeApplyReadinessItems(dryRunResults, impactDiffs);
+    const auto v360InputPackItems =
+        BuildV360SimulationInputPackItems(context, commandPlanCandidates, stagedChangePlans);
+    const auto projection =
+        BuildV370SiteAwareSourceRegistryProjectionItems(context.sources, context.views);
+    const auto rollups =
+        BuildV370SiteHealthRollupItems(context.sources, context.views, source_health_snapshot);
+    const auto impactGraphNodes = BuildV370SiteImpactGraphNodes(context, projection, rollups);
+    const auto impactGraphEdges = BuildV370SiteImpactGraphEdges(projection);
+    const auto siteSimulationInputPackItems =
+        BuildV370SiteSimulationInputPackItems(context,
+                                             projection,
+                                             rollups,
+                                             impactGraphNodes,
+                                             impactGraphEdges,
+                                             v360InputPackItems);
+    const auto crossSiteReadinessItems =
+        BuildV370CrossSiteSafeApplyReadinessItems(projection,
+                                                 siteSimulationInputPackItems,
+                                                 readinessItems,
+                                                 impactDiffs);
+    const auto whatIfItems = BuildV370RuleVaWhatIfBySiteItems(
+        projection,
+        impactGraphNodes,
+        siteSimulationInputPackItems,
+        crossSiteReadinessItems,
+        dryRunResults,
+        impactDiffs);
+    const auto summary = BuildV370RuleVaWhatIfBySiteSummary(whatIfItems);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v370-rule-va-what-if-by-site.v1\","
+        << "\"status\":\"rule-va-what-if-by-site\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"siteRegistryProjectionRoute\":\"/ops/api/site-operations/source-registry-projection\","
+        << "\"siteHealthRollupRoute\":\"/ops/api/site-operations/health-rollup\","
+        << "\"siteImpactGraphRoute\":\"/ops/api/site-operations/impact-graph\","
+        << "\"siteSimulationInputPackRoute\":\"/ops/api/site-operations/simulation-input-pack\","
+        << "\"crossSiteSafeApplyReadinessRoute\":\"/ops/api/site-operations/cross-site-safe-apply-readiness\","
+        << "\"eventRecordRoute\":\"/ops/api/events/reviews\","
+        << "\"ruleVaReplayRoute\":\"/ops/api/live-operations/simulation/rule-va-what-if-replay-pack\","
+        << "\"siteRuleVaWhatIfBySite\":true,"
+        << "\"whatIfOnly\":true,"
+        << "\"ruleVaWhatIfBySiteSummary\":";
+    AppendV370RuleVaWhatIfBySiteSummaryJson(out, summary);
+    out << ",\"ruleVaWhatIfBySiteItems\":[";
+    for (std::size_t i = 0; i < whatIfItems.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV370RuleVaWhatIfBySiteItemJson(out, whatIfItems[i]);
+    }
+    out << "],\"whatIfPolicy\":{"
+        << "\"siteRuleVaWhatIfBySite\":true,"
+        << "\"EventRecord\":\"read-only aggregate input\","
+        << "\"vaFixtureRef\":\"manual_ui_fulltest_va_seed_matrix\","
+        << "\"thresholdCandidate\":\"computed-only\","
+        << "\"scenarioCandidate\":\"computed-only\","
+        << "\"ruleApply\":\"never\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"whatIfOnly\":true,"
+        << "\"siteScoped\":true,"
+        << "\"eventRecordReadOnly\":true,"
+        << "\"vaFixtureReadOnly\":true,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"ruleThresholdApplied\":false,"
+        << "\"presetApplied\":false,"
+        << "\"scenarioApplied\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"simulationRunExecuted\":false,"
+        << "\"safeApplyPerformed\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"sourceUrlIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 struct OpsV370ClientNoticeBySiteViewGroupItem {
     std::string notice_preview_id;
     std::string site_id;
@@ -32741,6 +33163,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV370ClientNoticeBySiteViewGroupJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/site-operations/rule-va-what-if-by-site") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV370RuleVaWhatIfBySiteJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

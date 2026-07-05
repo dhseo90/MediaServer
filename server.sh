@@ -362,6 +362,8 @@ Usage:
                  v3.7.0 Step 11 Site Operations Workspace UI read-only 경계를 검증합니다.
   verify-v370-client-notice-by-site-view-group
                  v3.7.0 Step 12 Client Notice by Site/View Group preview-only 경계를 검증합니다.
+  verify-v370-rule-va-what-if-by-site
+                 v3.7.0 Step 13 Rule/VA What-if by Site no-apply 경계를 검증합니다.
   verify-v360-entry-baseline
                  v3.6.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v360-simulation-input-contract
@@ -634,6 +636,8 @@ Usage:
                  v3.7.0 Step 11 Site Operations Workspace UI read-only 경계를 검증합니다.
   verify-v370-client-notice-by-site-view-group
                  v3.7.0 Step 12 Client Notice by Site/View Group preview-only 경계를 검증합니다.
+  verify-v370-rule-va-what-if-by-site
+                 v3.7.0 Step 13 Rule/VA What-if by Site no-apply 경계를 검증합니다.
   verify-v360-entry-baseline
                  v3.6.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v360-simulation-input-contract
@@ -1748,6 +1752,10 @@ case "${cmd}" in
   verify-v370-client-notice-by-site-view-group)
     require_internal verify_v370_client_notice_by_site_view_group.mjs
     exec "${INTERNAL_DIR}/verify_v370_client_notice_by_site_view_group.mjs" "$@"
+    ;;
+  verify-v370-rule-va-what-if-by-site)
+    require_internal verify_v370_rule_va_what_if_by_site.mjs
+    exec "${INTERNAL_DIR}/verify_v370_rule_va_what_if_by_site.mjs" "$@"
     ;;
   verify-v360-entry-baseline)
     require_internal verify_v360_entry_baseline.mjs
