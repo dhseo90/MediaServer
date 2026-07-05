@@ -635,6 +635,10 @@ std::string ProductUiCss() {
       display: grid;
       gap: var(--space-3);
     }
+    body.ops-shell .ops-site-client-notice-workspace {
+      display: grid;
+      gap: var(--space-3);
+    }
     body.ops-shell .ops-command-workspace .ops-command-workspace-detail-grid {
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: var(--space-3);
@@ -644,6 +648,10 @@ std::string ProductUiCss() {
       gap: var(--space-3);
     }
     body.ops-shell .ops-site-operations-workspace .ops-site-operations-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--space-3);
+    }
+    body.ops-shell .ops-site-client-notice-workspace .ops-site-client-notice-grid {
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: var(--space-3);
     }
@@ -660,7 +668,8 @@ std::string ProductUiCss() {
     body.ops-shell .ops-simulation-workspace .ops-simulation-export-bundle-list,
     body.ops-shell .ops-simulation-workspace .ops-simulation-field-evidence-adapter-list,
     body.ops-shell .ops-simulation-workspace .ops-simulation-vlm-assisted-explanation-list,
-    body.ops-shell .ops-site-operations-workspace .ops-site-operations-list {
+    body.ops-shell .ops-site-operations-workspace .ops-site-operations-list,
+    body.ops-shell .ops-site-client-notice-workspace .ops-site-client-notice-list {
       min-width: 0;
     }
     body.ops-shell .ops-channels-workspace {
@@ -1237,7 +1246,8 @@ std::string ProductUiCss() {
     .ops-simulation-export-bundle-list,
     .ops-simulation-field-evidence-adapter-list,
     .ops-simulation-vlm-assisted-explanation-list,
-    .ops-site-operations-list {
+    .ops-site-operations-list,
+    .ops-site-client-notice-list {
       display: grid;
       gap: var(--space-2);
     }
@@ -1257,7 +1267,8 @@ std::string ProductUiCss() {
     .ops-simulation-export-bundle-entry,
     .ops-simulation-field-evidence-adapter-entry,
     .ops-simulation-vlm-assisted-explanation-entry,
-    .ops-site-operations-entry {
+    .ops-site-operations-entry,
+    .ops-site-client-notice-entry {
       min-width: 0;
       margin: 0;
       padding: 11px 12px;
@@ -1306,9 +1317,13 @@ std::string ProductUiCss() {
     .ops-site-operations-entry strong,
     .ops-site-operations-entry span,
     .ops-site-operations-entry small,
+    .ops-site-client-notice-entry strong,
+    .ops-site-client-notice-entry span,
+    .ops-site-client-notice-entry small,
     .ops-command-boundary,
     .ops-simulation-boundary,
-    .ops-site-operations-boundary {
+    .ops-site-operations-boundary,
+    .ops-site-client-notice-boundary {
       min-width: 0;
       overflow-wrap: anywhere;
     }
@@ -1324,7 +1339,8 @@ std::string ProductUiCss() {
     .ops-simulation-export-bundle-entry strong,
     .ops-simulation-field-evidence-adapter-entry strong,
     .ops-simulation-vlm-assisted-explanation-entry strong,
-    .ops-site-operations-entry strong {
+    .ops-site-operations-entry strong,
+    .ops-site-client-notice-entry strong {
       font-size: 13px;
       line-height: 1.2;
     }
@@ -1354,9 +1370,12 @@ std::string ProductUiCss() {
     .ops-simulation-vlm-assisted-explanation-entry small,
     .ops-site-operations-entry span,
     .ops-site-operations-entry small,
+    .ops-site-client-notice-entry span,
+    .ops-site-client-notice-entry small,
     .ops-command-boundary,
     .ops-simulation-boundary,
-    .ops-site-operations-boundary {
+    .ops-site-operations-boundary,
+    .ops-site-client-notice-boundary {
       color: var(--color-muted);
       font-size: 12px;
       line-height: 1.35;
@@ -1367,12 +1386,14 @@ std::string ProductUiCss() {
     }
     .ops-command-flow-card.warn,
     .ops-simulation-workspace-entry.warn,
-    .ops-site-operations-entry.warn {
+    .ops-site-operations-entry.warn,
+    .ops-site-client-notice-entry.warn {
       border-color: color-mix(in srgb, var(--color-warning) 56%, var(--color-border));
     }
     .ops-command-boundary,
     .ops-simulation-boundary,
-    .ops-site-operations-boundary {
+    .ops-site-operations-boundary,
+    .ops-site-client-notice-boundary {
       padding: 9px 10px;
       border: 1px dashed var(--color-border);
       border-radius: 8px;

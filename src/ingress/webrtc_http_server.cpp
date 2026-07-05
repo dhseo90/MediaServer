@@ -2911,6 +2911,33 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           source/view/runbook/approval write=false · clientNoticeSent=false · media mutation=false
         </div>
       </section>
+      <section class="section-card ops-workspace-wide ops-site-client-notice-workspace" data-testid="ops-site-client-notice-workspace" data-v370-client-notice-by-site-view-group="media-server.ops.v370-client-notice-by-site-view-group.v1">
+        <div class="toolbar">
+          <div>
+            <h3>Client Notice by Site/View Group</h3>
+            <p>site/view group 기준 viewer-safe notice preview와 delivery queue 경계를 실제 발송 없이 확인합니다.</p>
+          </div>
+        </div>
+        <div id="dashSiteClientNoticeBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashSiteClientNoticeText">site/view group notice preview를 불러오는 중입니다.</p>
+        <div class="grid ops-site-client-notice-grid">
+          <div>
+            <h4>Notice Preview</h4>
+            <div id="dashSiteClientNoticePreviewList" class="ops-site-client-notice-list">
+              <div class="empty">viewer-safe notice preview 항목을 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Delivery Queue Boundary</h4>
+            <div id="dashSiteClientNoticeDeliveryQueue" class="ops-site-client-notice-list">
+              <div class="empty">delivery-queue-preview 상태를 기다립니다.</div>
+            </div>
+          </div>
+        </div>
+        <div id="dashSiteClientNoticeBoundary" class="ops-site-client-notice-boundary">
+          clientNoticeSent=false · viewerClientPayloadChanged=false · source/view write=false
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide" data-testid="ops-runtime-operations-console">
         <div class="toolbar">
           <div>
@@ -21858,6 +21885,402 @@ std::string OpsV360ClientNoticePreviewJson(
     return out.str();
 }
 
+struct OpsV370ClientNoticeBySiteViewGroupItem {
+    std::string notice_preview_id;
+    std::string site_id;
+    std::string source_group;
+    std::string view_group;
+    std::string notice_status{"degraded"};
+    std::string viewer_safe_title{"Site notice preview"};
+    std::string viewer_safe_body{"viewerSafeClientNoticeBySiteViewGroup preview-only notice"};
+    std::string timeline_hint{"operator review required"};
+    std::string delivery_state{"preview-only"};
+    std::string delivery_queue_state{"delivery-queue-preview"};
+    std::vector<std::string> affected_view_ids;
+    std::vector<std::string> affected_client_refs;
+    std::vector<std::string> evidence_refs;
+    bool viewer_safe{true};
+    bool view_group_scoped{true};
+    bool read_only{true};
+};
+
+struct OpsV370ClientNoticeBySiteViewGroupSummary {
+    int item_count{0};
+    int view_group_count{0};
+    int affected_view_count{0};
+    int delivery_queue_count{0};
+    int maintenance_count{0};
+    int degraded_count{0};
+    int recovering_count{0};
+    int available_count{0};
+    int field_needed_count{0};
+    std::vector<std::string> derivation_sources;
+};
+
+std::string V370ClientNoticeStatusFor(
+    const OpsV370SiteHealthRollupItem* rollup,
+    int approval_count,
+    int field_needed_count) {
+    if (field_needed_count > 0 || (rollup != nullptr && rollup->rollup_state == "field-needed")) {
+        return "field-needed";
+    }
+    if (approval_count > 0) {
+        return "maintenance";
+    }
+    if (rollup == nullptr) {
+        return "degraded";
+    }
+    if (rollup->rollup_state == "healthy") {
+        return "available";
+    }
+    if (rollup->rollup_state == "recovering") {
+        return "recovering";
+    }
+    return "degraded";
+}
+
+std::string V370ClientNoticeTitleFor(const std::string& status,
+                                     const std::string& site_id,
+                                     const std::string& view_group) {
+    if (status == "available") {
+        return "Available preview for " + site_id + " / " + view_group;
+    }
+    if (status == "recovering") {
+        return "Recovering preview for " + site_id + " / " + view_group;
+    }
+    if (status == "maintenance") {
+        return "Maintenance preview for " + site_id + " / " + view_group;
+    }
+    if (status == "field-needed") {
+        return "Field evidence preview for " + site_id + " / " + view_group;
+    }
+    return "Degraded preview for " + site_id + " / " + view_group;
+}
+
+std::string V370ClientNoticeTimelineHintFor(const std::string& status) {
+    if (status == "available") {
+        return "available";
+    }
+    if (status == "recovering") {
+        return "recovering signal";
+    }
+    if (status == "maintenance") {
+        return "maintenance window pending approval";
+    }
+    if (status == "field-needed") {
+        return "field evidence required before delivery";
+    }
+    return "degraded";
+}
+
+std::vector<std::string> V370ClientNoticeAffectedClientRefs(
+    const OpsV370SiteAwareSourceRegistryProjectionItem& projected,
+    const std::string& view_group) {
+    std::vector<std::string> refs;
+    AddV370UniqueString(&refs, "viewGroup:" + view_group);
+    for (const auto& view_id : projected.view_ids) {
+        AddV370UniqueString(&refs, "PublishedView:" + view_id);
+    }
+    return refs;
+}
+
+int V370ApprovalTicketCountForScope(
+    const std::vector<OpsV370ApprovalTicketWorkflowItem>& approvals,
+    const std::string& site_id,
+    const std::string& source_group) {
+    return static_cast<int>(std::count_if(approvals.begin(), approvals.end(), [&](const auto& item) {
+        return item.site_id == site_id && item.source_group == source_group;
+    }));
+}
+
+int V370ApprovalFieldNeededCountForScope(
+    const std::vector<OpsV370ApprovalTicketWorkflowItem>& approvals,
+    const std::string& site_id,
+    const std::string& source_group) {
+    return static_cast<int>(std::count_if(approvals.begin(), approvals.end(), [&](const auto& item) {
+        return item.site_id == site_id && item.source_group == source_group &&
+               item.status == "field-needed";
+    }));
+}
+
+std::vector<OpsV370ClientNoticeBySiteViewGroupItem>
+BuildV370ClientNoticeBySiteViewGroupItems(
+    const std::vector<OpsV370SiteAwareSourceRegistryProjectionItem>& projection,
+    const std::vector<OpsV370SiteHealthRollupItem>& rollups,
+    const std::vector<OpsV370SiteImpactGraphNode>& impactGraphNodes,
+    const std::vector<OpsV370RunbookInstanceLedgerEntry>& runbookInstanceLedgerEntries,
+    const std::vector<OpsV370ApprovalTicketWorkflowItem>& approvalTicketWorkflowItems) {
+    std::vector<OpsV370ClientNoticeBySiteViewGroupItem> items;
+    for (const auto& projected : projection) {
+        const auto* rollup = V370RollupForProjection(rollups, projected);
+        const int approval_count = V370ApprovalTicketCountForScope(
+            approvalTicketWorkflowItems, projected.site_id, projected.source_group);
+        const int field_needed_count = V370ApprovalFieldNeededCountForScope(
+            approvalTicketWorkflowItems, projected.site_id, projected.source_group);
+        std::vector<std::string> view_groups = projected.view_groups.empty()
+            ? std::vector<std::string>{"default-view-group"}
+            : projected.view_groups;
+        for (const auto& view_group : view_groups) {
+            OpsV370ClientNoticeBySiteViewGroupItem item;
+            item.notice_preview_id =
+                "client-notice-by-site-view-group:" + projected.site_id + ":" +
+                projected.source_group + ":" + view_group;
+            item.site_id = projected.site_id;
+            item.source_group = projected.source_group;
+            item.view_group = view_group;
+            item.notice_status =
+                V370ClientNoticeStatusFor(rollup, approval_count, field_needed_count);
+            item.viewer_safe_title =
+                V370ClientNoticeTitleFor(item.notice_status, item.site_id, item.view_group);
+            item.viewer_safe_body =
+                "viewerSafeClientNoticeBySiteViewGroup: " + item.notice_status +
+                " notice preview for site/view group without client notice delivery";
+            item.timeline_hint = V370ClientNoticeTimelineHintFor(item.notice_status);
+            item.affected_view_ids = projected.view_ids;
+            item.affected_client_refs = V370ClientNoticeAffectedClientRefs(projected, view_group);
+            item.evidence_refs = {
+                "/ops/api/site-operations/source-registry-projection",
+                "/ops/api/site-operations/health-rollup",
+                "/ops/api/site-operations/impact-graph",
+                "/ops/api/site-operations/runbook-instance-ledger",
+                "/ops/api/site-operations/approval-ticket-workflow",
+                "site:" + item.site_id,
+                "sourceGroup:" + item.source_group,
+                "viewGroup:" + item.view_group,
+            };
+            for (const auto& node : impactGraphNodes) {
+                if (node.site_id == item.site_id && node.source_group == item.source_group &&
+                    node.node_type == "clientImpact") {
+                    item.evidence_refs.push_back(node.node_id);
+                    break;
+                }
+            }
+            for (const auto& ledger : runbookInstanceLedgerEntries) {
+                if (ledger.site_id == item.site_id && ledger.source_group == item.source_group) {
+                    item.evidence_refs.push_back(ledger.runbook_id);
+                    break;
+                }
+            }
+            items.push_back(std::move(item));
+        }
+    }
+    return items;
+}
+
+OpsV370ClientNoticeBySiteViewGroupSummary
+BuildV370ClientNoticeBySiteViewGroupSummary(
+    const std::vector<OpsV370ClientNoticeBySiteViewGroupItem>& items) {
+    OpsV370ClientNoticeBySiteViewGroupSummary summary;
+    summary.derivation_sources = {
+        "BuildV370SiteAwareSourceRegistryProjectionItems",
+        "BuildV370SiteHealthRollupItems",
+        "BuildV370SiteImpactGraphNodes",
+        "BuildV370RunbookTemplateContractItems",
+        "BuildV370RunbookInstanceLedgerEntries",
+        "BuildV370ApprovalTicketWorkflowItems",
+    };
+    std::vector<std::string> view_groups;
+    summary.item_count = static_cast<int>(items.size());
+    summary.delivery_queue_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        AddV370UniqueString(&view_groups, item.site_id + ":" + item.view_group);
+        summary.affected_view_count += static_cast<int>(item.affected_view_ids.size());
+        if (item.notice_status == "maintenance") {
+            ++summary.maintenance_count;
+        } else if (item.notice_status == "recovering") {
+            ++summary.recovering_count;
+        } else if (item.notice_status == "available") {
+            ++summary.available_count;
+        } else if (item.notice_status == "field-needed") {
+            ++summary.field_needed_count;
+        } else {
+            ++summary.degraded_count;
+        }
+    }
+    summary.view_group_count = static_cast<int>(view_groups.size());
+    return summary;
+}
+
+void AppendV370ClientNoticeBySiteViewGroupSummaryJson(
+    std::ostringstream& out,
+    const OpsV370ClientNoticeBySiteViewGroupSummary& summary) {
+    out << "{"
+        << "\"itemCount\":" << summary.item_count << ","
+        << "\"viewGroupCount\":" << summary.view_group_count << ","
+        << "\"affectedViewCount\":" << summary.affected_view_count << ","
+        << "\"deliveryQueueCount\":" << summary.delivery_queue_count << ","
+        << "\"maintenanceCount\":" << summary.maintenance_count << ","
+        << "\"degradedCount\":" << summary.degraded_count << ","
+        << "\"recoveringCount\":" << summary.recovering_count << ","
+        << "\"availableCount\":" << summary.available_count << ","
+        << "\"fieldNeededCount\":" << summary.field_needed_count << ","
+        << "\"derivationSources\":";
+    AppendJsonStringArray(out, summary.derivation_sources);
+    out << "}";
+}
+
+void AppendV370ClientNoticeBySiteViewGroupItemJson(
+    std::ostringstream& out,
+    const OpsV370ClientNoticeBySiteViewGroupItem& item) {
+    out << "{"
+        << "\"noticePreviewId\":\"" << JsonEscape(item.notice_preview_id) << "\","
+        << "\"siteId\":\"" << JsonEscape(item.site_id) << "\","
+        << "\"sourceGroup\":\"" << JsonEscape(item.source_group) << "\","
+        << "\"viewGroup\":\"" << JsonEscape(item.view_group) << "\","
+        << "\"noticeStatus\":\"" << JsonEscape(item.notice_status) << "\","
+        << "\"viewerSafeTitle\":\"" << JsonEscape(item.viewer_safe_title) << "\","
+        << "\"viewerSafeBody\":\"" << JsonEscape(item.viewer_safe_body) << "\","
+        << "\"timelineHint\":\"" << JsonEscape(item.timeline_hint) << "\","
+        << "\"deliveryState\":\"" << JsonEscape(item.delivery_state) << "\","
+        << "\"deliveryQueueState\":\"" << JsonEscape(item.delivery_queue_state) << "\","
+        << "\"affectedViewIds\":";
+    AppendJsonStringArray(out, item.affected_view_ids);
+    out << ",\"affectedClientRefs\":";
+    AppendJsonStringArray(out, item.affected_client_refs);
+    out << ",\"evidenceRefs\":";
+    AppendJsonStringArray(out, item.evidence_refs);
+    out << ",\"viewerSafe\":" << JsonBool(item.viewer_safe)
+        << ",\"viewGroupScoped\":" << JsonBool(item.view_group_scoped)
+        << ",\"readOnly\":" << JsonBool(item.read_only)
+        << "}";
+}
+
+std::string OpsV370ClientNoticeBySiteViewGroupJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v370-client-notice-by-site-view-group.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto dryRunResults = BuildV360CommandPlanDryRunResults(commandPlanCandidates);
+    const auto impactDiffs =
+        BuildV360SourceRuleImpactDiffs(context, commandPlanCandidates, stagedChangePlans);
+    const auto readinessItems = BuildV360SafeApplyReadinessItems(dryRunResults, impactDiffs);
+    const auto v360InputPackItems =
+        BuildV360SimulationInputPackItems(context, commandPlanCandidates, stagedChangePlans);
+    const auto inputSummary = BuildV360SimulationInputPackSummary(v360InputPackItems);
+    const auto simulationRunContract = BuildV360SimulationRunContract();
+    const auto simulationResultEnvelope = BuildV360SimulationResultEnvelope(inputSummary);
+    const auto simulationRunLedgerEntries =
+        BuildV360SimulationRunLedgerEntries(context,
+                                            v360InputPackItems,
+                                            simulationRunContract,
+                                            simulationResultEnvelope,
+                                            dryRunResults,
+                                            impactDiffs,
+                                            readinessItems);
+    const auto projection =
+        BuildV370SiteAwareSourceRegistryProjectionItems(context.sources, context.views);
+    const auto rollups =
+        BuildV370SiteHealthRollupItems(context.sources, context.views, source_health_snapshot);
+    const auto impactGraphNodes = BuildV370SiteImpactGraphNodes(context, projection, rollups);
+    const auto impactGraphEdges = BuildV370SiteImpactGraphEdges(projection);
+    const auto siteSimulationInputPackItems =
+        BuildV370SiteSimulationInputPackItems(context,
+                                             projection,
+                                             rollups,
+                                             impactGraphNodes,
+                                             impactGraphEdges,
+                                             v360InputPackItems);
+    const auto crossSiteReadinessItems =
+        BuildV370CrossSiteSafeApplyReadinessItems(projection,
+                                                 siteSimulationInputPackItems,
+                                                 readinessItems,
+                                                 impactDiffs);
+    const auto runbookTemplateContractItems =
+        BuildV370RunbookTemplateContractItems(commandPlanCandidates,
+                                             dryRunResults,
+                                             impactDiffs,
+                                             readinessItems,
+                                             projection,
+                                             siteSimulationInputPackItems,
+                                             crossSiteReadinessItems);
+    const auto runbookInstanceLedgerEntries =
+        BuildV370RunbookInstanceLedgerEntries(runbookTemplateContractItems,
+                                             crossSiteReadinessItems,
+                                             simulationRunLedgerEntries);
+    const auto approvalTicketWorkflowItems =
+        BuildV370ApprovalTicketWorkflowItems(runbookTemplateContractItems,
+                                            runbookInstanceLedgerEntries,
+                                            crossSiteReadinessItems);
+    const auto noticeItems = BuildV370ClientNoticeBySiteViewGroupItems(
+        projection,
+        rollups,
+        impactGraphNodes,
+        runbookInstanceLedgerEntries,
+        approvalTicketWorkflowItems);
+    const auto summary = BuildV370ClientNoticeBySiteViewGroupSummary(noticeItems);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v370-client-notice-by-site-view-group.v1\","
+        << "\"status\":\"client-notice-by-site-view-group\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"siteRegistryProjectionRoute\":\"/ops/api/site-operations/source-registry-projection\","
+        << "\"siteHealthRollupRoute\":\"/ops/api/site-operations/health-rollup\","
+        << "\"siteImpactGraphRoute\":\"/ops/api/site-operations/impact-graph\","
+        << "\"runbookInstanceLedgerRoute\":\"/ops/api/site-operations/runbook-instance-ledger\","
+        << "\"approvalTicketWorkflowRoute\":\"/ops/api/site-operations/approval-ticket-workflow\","
+        << "\"viewerSafeClientNoticeBySiteViewGroup\":true,"
+        << "\"deliveryQueueState\":\"delivery-queue-preview\","
+        << "\"noticeStatusCatalog\":[\"maintenance\",\"degraded\",\"recovering\",\"available\",\"field-needed\"],"
+        << "\"clientNoticeBySiteViewGroupSummary\":";
+    AppendV370ClientNoticeBySiteViewGroupSummaryJson(out, summary);
+    out << ",\"clientNoticeBySiteViewGroupItems\":[";
+    for (std::size_t i = 0; i < noticeItems.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV370ClientNoticeBySiteViewGroupItemJson(out, noticeItems[i]);
+    }
+    out << "],\"deliveryQueuePolicy\":{"
+        << "\"deliveryState\":\"preview-only\","
+        << "\"deliveryQueueState\":\"delivery-queue-preview\","
+        << "\"siteViewGroupScoped\":true,"
+        << "\"viewerSafeFields\":[\"siteId\",\"sourceGroup\",\"viewGroup\",\"noticeStatus\",\"viewerSafeTitle\",\"viewerSafeBody\",\"timelineHint\"]"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"viewerSafe\":true,"
+        << "\"previewOnly\":true,"
+        << "\"siteViewGroupScoped\":true,"
+        << "\"clientNoticeSent\":false,"
+        << "\"clientNoticePersisted\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"sourceUrlIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"operatorMaterialIncluded\":false,"
+        << "\"commandPlanDetailsIncluded\":false,"
+        << "\"incidentDetailsIncluded\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"approvalTicketWritePerformed\":false,"
+        << "\"runbookInstancePersisted\":false,"
+        << "\"operatorNoteWritePerformed\":false,"
+        << "\"fieldSmokeExecuted\":false,"
+        << "\"commandPlanExecuted\":false,"
+        << "\"automaticApplyPerformed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 struct OpsV360RuleVaWhatIfReplayCandidate {
     std::string what_if_replay_id;
     std::string event_record_ref;
@@ -32298,6 +32721,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV370ApprovalTicketWorkflowJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/site-operations/client-notice-by-site-view-group") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV370ClientNoticeBySiteViewGroupJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

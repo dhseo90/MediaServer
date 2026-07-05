@@ -1049,6 +1049,76 @@ void AppendOpsShellScript(std::ostringstream& out,
         ]);
         renderV360OpsSimulationWorkspace({ inputPack, simulationRun, simulationRunLedger, clientNoticePreview, ruleVaWhatIfReplayPack, simulationExportBundle, fieldEvidenceSimulationAdapter, vlmAssistedSimulationExplanation, dryRun, impactDiff, readiness, inputPackRoute, runContractRoute, simulationRunLedgerRoute, clientNoticePreviewRoute, ruleVaWhatIfReplayRoute, simulationExportBundleRoute, fieldEvidenceSimulationAdapterRoute, vlmAssistedSimulationExplanationRoute, dryRunRoute, impactDiffRoute, readinessRoute });
       };
+      let v370ClientNoticeBySiteViewGroupState = {};
+      const v370ClientNoticeBySiteViewGroupList = value => Array.isArray(value) ? value : [];
+      const v370ClientNoticeBySiteViewGroupEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-site-client-notice-entry ${escapeHtml(tone)}" data-v370-client-notice-by-site-view-group-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV370ClientNoticeBySiteViewGroup = (payload = {}) => {
+        const notice = payload.notice || {};
+        const clientNoticeBySiteViewGroupItems = v370ClientNoticeBySiteViewGroupList(
+          notice.clientNoticeBySiteViewGroupItems);
+        const clientNoticeBySiteViewGroupSummary = notice.clientNoticeBySiteViewGroupSummary || {};
+        const noticeRoute = payload.noticeRoute || '/ops/api/site-operations/client-notice-by-site-view-group';
+        const boundaryOk = notice.boundaries?.clientNoticeSent === false &&
+          notice.boundaries?.clientNoticePersisted === false &&
+          notice.boundaries?.viewerClientPayloadChanged === false &&
+          notice.boundaries?.sourceRegistryWritePerformed === false &&
+          notice.boundaries?.publishedViewWritePerformed === false &&
+          notice.boundaries?.eventRecordWritePerformed === false &&
+          notice.boundaries?.opsAuditWritePerformed === false &&
+          notice.boundaries?.rtspOrWebrtcMediaPathChanged === false;
+        v370ClientNoticeBySiteViewGroupState = { notice, noticeRoute };
+        renderBadges('dashSiteClientNoticeBadges', [
+          { text: `notice ${clientNoticeBySiteViewGroupItems.length}` },
+          { text: `viewGroup ${clientNoticeBySiteViewGroupSummary.viewGroupCount ?? 0}` },
+          { text: `affectedView ${clientNoticeBySiteViewGroupSummary.affectedViewCount ?? 0}` },
+          { text: `queue ${clientNoticeBySiteViewGroupSummary.deliveryQueueCount ?? clientNoticeBySiteViewGroupItems.length}` },
+          { text: boundaryOk ? 'preview-only' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashSiteClientNoticeText',
+          payload.error
+            ? `client notice by site/view group 로드 실패: ${payload.error}`
+            : `site/view group notice preview ${clientNoticeBySiteViewGroupItems.length} · affected view ${clientNoticeBySiteViewGroupSummary.affectedViewCount ?? 0} · delivery queue preview ${clientNoticeBySiteViewGroupSummary.deliveryQueueCount ?? clientNoticeBySiteViewGroupItems.length}`);
+        const previewList = document.getElementById('dashSiteClientNoticePreviewList');
+        if (previewList) {
+          previewList.innerHTML = clientNoticeBySiteViewGroupItems.length > 0
+            ? clientNoticeBySiteViewGroupItems.slice(0, 10).map(item =>
+                v370ClientNoticeBySiteViewGroupEntry(
+                  item.noticePreviewId || 'notice-preview',
+                  item.viewerSafeTitle || item.noticeStatus || 'viewer-safe notice preview',
+                  item.viewerSafeBody || item.timelineHint || 'viewer-safe body pending',
+                  `site=${display(item.siteId || '-')} · group=${display(item.sourceGroup || '-')} · viewGroup=${display(item.viewGroup || '-')} · status=${display(item.noticeStatus || '-')}`,
+                  ['degraded', 'maintenance', 'field-needed'].includes(String(item.noticeStatus || '')) ? 'warn' : ''))
+              .join('')
+            : '<div class="empty">site/view group notice preview 항목이 아직 없습니다.</div>';
+        }
+        const deliveryQueue = document.getElementById('dashSiteClientNoticeDeliveryQueue');
+        if (deliveryQueue) {
+          deliveryQueue.innerHTML = clientNoticeBySiteViewGroupItems.length > 0
+            ? clientNoticeBySiteViewGroupItems.slice(0, 10).map(item =>
+                v370ClientNoticeBySiteViewGroupEntry(
+                  item.noticePreviewId || 'delivery-queue-preview',
+                  item.deliveryQueueState || item.deliveryState || 'delivery-queue-preview',
+                  item.timelineHint || 'preview-only delivery queue',
+                  `views=${display(v370ClientNoticeBySiteViewGroupList(item.affectedViewIds).join(', ') || '-')} · clients=${display(v370ClientNoticeBySiteViewGroupList(item.affectedClientRefs).slice(0, 3).join(', ') || '-')} · route=${noticeRoute}`,
+                  item.deliveryState === 'preview-only' ? 'info' : 'warn'))
+              .join('')
+            : '<div class="empty">delivery queue preview 항목이 아직 없습니다.</div>';
+        }
+        setText('dashSiteClientNoticeBoundary',
+          `route=${display(noticeRoute)} · siteViewGroupScoped=${notice.boundaries?.siteViewGroupScoped === true ? 'true' : '확인 필요'} · clientNoticeSent=${notice.boundaries?.clientNoticeSent === false ? 'false' : '확인 필요'} · clientNoticePersisted=${notice.boundaries?.clientNoticePersisted === false ? 'false' : '확인 필요'} · viewerClientPayloadChanged=${notice.boundaries?.viewerClientPayloadChanged === false ? 'false' : '확인 필요'} · sourceRegistryWritePerformed=${notice.boundaries?.sourceRegistryWritePerformed === false ? 'false' : '확인 필요'} · publishedViewWritePerformed=${notice.boundaries?.publishedViewWritePerformed === false ? 'false' : '확인 필요'} · eventRecordWritePerformed=${notice.boundaries?.eventRecordWritePerformed === false ? 'false' : '확인 필요'} · opsAuditWritePerformed=${notice.boundaries?.opsAuditWritePerformed === false ? 'false' : '확인 필요'} · rtspOrWebrtcMediaPathChanged=${notice.boundaries?.rtspOrWebrtcMediaPathChanged === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV370ClientNoticeBySiteViewGroup = async ({
+        noticeRoute = '/ops/api/site-operations/client-notice-by-site-view-group'
+      } = {}) => {
+        const notice = await requestJson(noticeRoute)
+          .catch(error => ({ error: error.message, clientNoticeBySiteViewGroupItems: [], clientNoticeBySiteViewGroupSummary: {}, boundaries: {} }));
+        renderV370ClientNoticeBySiteViewGroup({ notice, noticeRoute });
+      };
       let v370SiteOperationsWorkspaceState = {};
       const v370SiteOperationsWorkspaceList = value => Array.isArray(value) ? value : [];
       const v370SiteOperationsWorkspaceEntry = (kind, title, detail, meta, tone = '') =>
@@ -2155,6 +2225,9 @@ void AppendOpsShellScript(std::ostringstream& out,
           impactDiffRoute: '/ops/api/live-operations/simulation/impact-diff',
           readinessRoute: '/ops/api/live-operations/simulation/safe-apply-readiness'
         }).catch(error => renderV360OpsSimulationWorkspace({ error: error.message }));
+        await refreshV370ClientNoticeBySiteViewGroup({
+          noticeRoute: '/ops/api/site-operations/client-notice-by-site-view-group'
+        }).catch(error => renderV370ClientNoticeBySiteViewGroup({ error: error.message }));
         await refreshV370SiteOperationsWorkspace({
           projectionRoute: '/ops/api/site-operations/source-registry-projection',
           healthRoute: '/ops/api/site-operations/health-rollup',

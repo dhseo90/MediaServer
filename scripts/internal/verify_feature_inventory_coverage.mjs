@@ -136,6 +136,7 @@ for (const [prefix, verifiers] of Object.entries(v360VerifierCoverage)) {
 const v370VerifierCoverage = {
   UI: [
     "verify-v370-site-operations-workspace-ui",
+    "verify-v370-client-notice-by-site-view-group",
   ],
   SRC: [
     "verify-v370-site-source-group-contract",
@@ -159,6 +160,7 @@ const v370VerifierCoverage = {
   CLIENT: [
     "verify-v370-site-impact-graph",
     "verify-v370-cross-site-safe-apply-readiness",
+    "verify-v370-client-notice-by-site-view-group",
   ],
   SAFE: [
     "verify-v370-entry-baseline",
@@ -172,6 +174,7 @@ const v370VerifierCoverage = {
     "verify-v370-runbook-instance-ledger",
     "verify-v370-approval-ticket-workflow",
     "verify-v370-site-operations-workspace-ui",
+    "verify-v370-client-notice-by-site-view-group",
   ],
   OPS: [
     "verify-v370-entry-baseline",
@@ -185,6 +188,7 @@ const v370VerifierCoverage = {
     "verify-v370-runbook-instance-ledger",
     "verify-v370-approval-ticket-workflow",
     "verify-v370-site-operations-workspace-ui",
+    "verify-v370-client-notice-by-site-view-group",
   ],
 };
 
