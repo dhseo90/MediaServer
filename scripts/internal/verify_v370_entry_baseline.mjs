@@ -20,7 +20,7 @@ Usage:
 
 Checks:
   - VERSION/CMake and public docs identify source 3.7.0
-  - latest published release is v3.6.0 source-only
+  - latest published release is v3.7.0 source-only
   - v3.7.0 roadmap selection is Site-Aware Operations and Safe Runbook Control Plane
   - backlog, stream verification, release records, feature inventory, and dispatch are wired
 `);
@@ -30,7 +30,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v370-entry-baseline";
 const currentRoadmap = "v3.7.0 Site-Aware Operations and Safe Runbook Control Plane";
-const latestPublishedTag = "v3.6.0";
+const latestPublishedTag = "v3.7.0";
 const files = {
   cmake: readText("CMakeLists.txt"),
   readme: readText("README.md"),
@@ -63,7 +63,7 @@ check("source version is v3.7.0 and CMake matches", () => {
   assertIncludes(files.cmake, "project(media_server VERSION 3.7.0 LANGUAGES CXX)", "CMake project version");
 });
 
-check("public entry docs pin source v3.7.0 and published v3.6.0", () => {
+check("public entry docs pin source v3.7.0 and published v3.7.0", () => {
   for (const [label, text, sourceSnippet, roadmapSnippet] of [
     ["README.md", files.readme, "현재 소스 버전: `3.7.0`", `현재 source roadmap: \`${currentRoadmap}\``],
     ["README.en.md", files.readmeEn, "Current source version: `3.7.0`", `Current source roadmap: \`${currentRoadmap}\``],
@@ -77,11 +77,11 @@ check("public entry docs pin source v3.7.0 and published v3.6.0", () => {
   }
 });
 
-check("versioning and release policy pin v3.7 source and v3.6 published baseline", () => {
+check("versioning and release policy pin v3.7 source and published baseline", () => {
   for (const snippet of [
     "현재 소스 버전: `3.7.0`",
     `현재 source roadmap: \`${currentRoadmap}\``,
-    "최신 공개 GitHub Release: `v3.6.0`",
+    "최신 공개 GitHub Release: `v3.7.0`",
     "## 3.7.0 active source roadmap 범위",
     "Site-Aware Operations and Safe Runbook Control Plane",
   ]) {
@@ -89,7 +89,7 @@ check("versioning and release policy pin v3.7 source and v3.6 published baseline
   }
   for (const snippet of [
     "현재 소스 버전: `3.7.0`",
-    "최신 공개 GitHub Release: `v3.6.0`",
+    "최신 공개 GitHub Release: `v3.7.0`",
     `현재 source roadmap은 \`${currentRoadmap}\`입니다.`,
     "## v3.7.0 Source Roadmap Scope",
     "v3.7.0 Step 1 source baseline alignment",
@@ -116,15 +116,15 @@ check("roadmap records v3.7 Step 1 as completed baseline alignment only", () => 
 });
 
 check("metadata, asset, stream, inventory, and records expose v3.7 Step 1 gate", () => {
-  assertIncludes(files.releaseMetadataVerifier, 'const latestPublishedTag = "v3.6.0";', "release metadata verifier");
+  assertIncludes(files.releaseMetadataVerifier, 'const latestPublishedTag = "v3.7.0";', "release metadata verifier");
   assertIncludes(files.releaseMetadataVerifier, `const currentRoadmap = "${currentRoadmap}";`, "release metadata verifier");
-  assertIncludes(files.docsUiAssetsVerifier, 'const latestPublishedTag = "v3.6.0";', "docs UI assets verifier");
+  assertIncludes(files.docsUiAssetsVerifier, 'const latestPublishedTag = "v3.7.0";', "docs UI assets verifier");
   const manifest = JSON.parse(files.docsUiAssetsManifest);
   assert(manifest.baseline?.sourceVersion === "3.7.0", "docs UI asset manifest source version must be 3.7.0");
-  assert(manifest.baseline?.publishedRelease === "v3.6.0", "docs UI asset manifest published release must be v3.6.0");
+  assert(manifest.baseline?.publishedRelease === "v3.7.0", "docs UI asset manifest published release must be v3.7.0");
   for (const snippet of [
     "| v3.7.0 (1) | `./server.sh verify-v370-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` |",
-    "source `3.7.0`, latest published `v3.6.0`, current roadmap `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane` 정렬",
+    "source `3.7.0`, latest published `v3.7.0`, current roadmap `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane` 정렬",
   ]) {
     assertIncludes(files.streamVerification, snippet, "stream verification");
   }
@@ -137,7 +137,7 @@ check("metadata, asset, stream, inventory, and records expose v3.7 Step 1 gate",
     assertIncludes(files.featureInventory, snippet, "feature inventory");
   }
   for (const snippet of [
-    "V370 source-of-truth split",
+    "V370 source/published baseline alignment",
     "`./server.sh verify-v370-entry-baseline`",
     "v370 Step 1 RED entry baseline gate",
     "v370 Step 1 entry baseline final",
@@ -177,7 +177,7 @@ console.log("");
 console.log("== v3.7.0 entry baseline summary ==");
 console.log("- schema: media-server.v370-entry-baseline.v1");
 console.log(`- currentVersion: ${version}`);
-console.log("- latestPublishedTag: v3.6.0");
+console.log("- latestPublishedTag: v3.7.0");
 console.log(`- currentRoadmap: ${currentRoadmap}`);
 console.log("- featureImplementation: not-run-by-this-command");
 console.log("- uiFulltest: not-run-by-this-command");

@@ -6,8 +6,8 @@ Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 않고 �
 ## 현재 공개 상태
 
 - 현재 소스 버전: `3.7.0`
-- 최신 공개 GitHub Release: `v3.6.0`
-- `v3.6.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않습니다.
+- 최신 공개 GitHub Release: `v3.7.0`
+- `v3.7.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않습니다.
 - 현재 source roadmap: `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`
 - public repository 기준은 source-only 공개입니다.
 
@@ -30,6 +30,7 @@ Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 않고 �
 `video/imports/va_tracking_event_1280x720_30fps_h264.mp4`는 재현용 생성 fixture로만
 취급합니다.
 릴리즈 UI full-test 스크린샷은 `docs/release-artifacts/v<version>/ui-fulltest-<date>/in-app-screenshots/`
+또는 `docs/release-artifacts/v<version>/ui-fulltest-<date>/in-app-final-screenshots/`
 아래의 최종 evidence 경로만 허용하며, raw auth/registry/log/ports/seed 산출물과 운영
 snapshot/clip bundle은 공개 대상이 아닙니다.
 

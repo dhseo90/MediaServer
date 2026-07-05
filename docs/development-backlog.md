@@ -11,16 +11,16 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 공개 상태
 
 - 현재 소스 버전: `3.7.0`
-- 최신 공개 GitHub Release: `v3.6.0`
-- `v3.6.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
+- 최신 공개 GitHub Release: `v3.7.0`
+- `v3.7.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
 - 현재 source roadmap: `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`
-- 최신 published baseline: `v3.6.0 Operations Simulation and Safe Apply Readiness`
+- 최신 published baseline: `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`
 
 ## 현재 source roadmap: v3.7.0 Site-Aware Operations and Safe Runbook Control Plane
 
-상태: Step 1 source/version/docs/backlog/verification metadata 정렬을 진행합니다.
-현재 source version은 `3.7.0`이고 latest published baseline은 `v3.6.0`입니다. 각 step은
+상태: Step 1~18 source 기능과 local release readiness를 완료했고 published metadata 보정 중입니다.
+현재 source version은 `3.7.0`이고 latest published baseline은 `v3.7.0`입니다. 각 step은
 실제 코드/API/문서/검증 산출물이 생긴 뒤에만 완료로 기록합니다.
 
 직접 답: v3.7.0의 1차 선택값은 `Site-Aware Operations and Safe Runbook Control Plane`입니다.
@@ -84,8 +84,8 @@ Product UI → Field/Execution → Release 순서로 진행합니다.
 | 17 | v3.7.0 (17) Export / Handoff Bundle | P1 | 완료 | `/ops/api/site-operations/export-handoff-bundle`와 `/ops` dashboard에서 site/runbook/evidence/approval/outcome을 redacted release-safe handoff bundle로 조합 |
 | 18 | v3.7.0 (18) Stabilization and Release Readiness | P0 | 완료 | v3.7 local stabilization, release evidence/not-run 경계, inventory, release records, close-out dry-run, `git diff --check` 연결 |
 
-완료 경계: 위 표는 v3.7.0 개발 순서와 우선순위입니다. 현재 Step 1~16은 Foundation/Intelligence/Workflow/Product UI/Field
-local source gate 범위이며, Step 17~18은 개발 전 roadmap 항목입니다. 각 step은 실제 코드/API/UI/문서
+완료 경계: 위 표는 v3.7.0 개발 순서와 우선순위입니다. 현재 Step 1~18은 Foundation/Intelligence/Workflow/Product UI/Field/Release
+local source gate 범위입니다. 각 step은 실제 코드/API/UI/문서
 변경, 기능 ID/test inventory 등록, 해당 verifier와 release test record evidence가 생긴 뒤에만
 완료로 기록합니다. UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release
 action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁니다.
@@ -94,11 +94,11 @@ action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁�
 
 - 범위: P0 `v3.7.0 (1) v3.7.0 baseline 정렬`.
 - `VERSION`, `CMakeLists.txt`: 현재 source version과 CMake project version을 `3.7.0`으로 정렬했습니다.
-- `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`, `docs/versioning-policy.md`, `docs/release-policy.md`, `docs/public-repo-final-review.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`: 현재 source roadmap을 `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`으로 전환했고 latest published release는 `v3.6.0` source-only GitHub Release로 유지했습니다.
+- `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`, `docs/versioning-policy.md`, `docs/release-policy.md`, `docs/public-repo-final-review.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`: 현재 source roadmap을 `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`으로 전환했고 post-publish 보정 후 latest published release도 `v3.7.0` source-only GitHub Release로 정렬했습니다.
 - `docs/development-backlog.md`: v3.7.0 current roadmap을 `구간 | 제목 | 우선순위 | 개발 내용` 구조로 승격하고, site/source group/runbook approval 방향과 no-auto-write/no-client-secret/no-media-path-change 경계를 기록했습니다.
-- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`, `config/docs_ui_assets.json`: current release target, docs asset baseline, verification catalog, release records를 source `3.7.0`와 latest published `v3.6.0` 기준으로 정렬했습니다.
-- `scripts/internal/verify_release_metadata_consistency.mjs`, `scripts/internal/verify_docs_ui_assets.mjs`: release metadata와 docs UI asset verifier가 source `3.7.0`, current roadmap `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`, latest published `v3.6.0`을 검증하도록 보정했습니다.
-- `scripts/internal/verify_v370_entry_baseline.mjs`, `server.sh`: `./server.sh verify-v370-entry-baseline` 명령을 추가해 source `3.7.0`, latest published `v3.6.0`, current roadmap `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`, release records, feature inventory, server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`, `config/docs_ui_assets.json`: current release target, docs asset baseline, verification catalog, release records를 source `3.7.0`와 latest published `v3.7.0` 기준으로 정렬했습니다.
+- `scripts/internal/verify_release_metadata_consistency.mjs`, `scripts/internal/verify_docs_ui_assets.mjs`: release metadata와 docs UI asset verifier가 source `3.7.0`, current roadmap `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`, latest published `v3.7.0`을 검증하도록 보정했습니다.
+- `scripts/internal/verify_v370_entry_baseline.mjs`, `server.sh`: `./server.sh verify-v370-entry-baseline` 명령을 추가해 source `3.7.0`, latest published `v3.7.0`, current roadmap `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`, release records, feature inventory, server dispatch 연결을 정적 검증합니다.
 - 검증: 최초 `node scripts/internal/verify_v370_entry_baseline.mjs`는 versioning/release policy, backlog, metadata verifier, server dispatch, UI guide/assets policy가 아직 v3.7 기준이 아니어서 `pass=3 fail=6`으로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 1 결과 행에 기록합니다.
 - 완료 경계: 이번 Step 1은 source/version/docs/backlog/verification metadata 정렬입니다. UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다. `v3.7.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
 
@@ -1108,25 +1108,38 @@ close-out dry-run, script inventory, `git diff --check` 연결입니다.
 recovery queue, client digest, search/metrics 구현 완료 evidence가 아닙니다.
 `v3.3.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
 
-## 최신 공개 기준: v3.6.0 Source Release Baseline
+## 최신 공개 기준: v3.7.0 Source Release Baseline
+
+v3.7.0은 Site-Aware Operations and Safe Runbook Control Plane source-only 공개 릴리즈입니다. 이 기준은
+Site / Source Group Contract, Site-Aware Source Registry Projection, Site Health
+Rollup, Site Impact Graph, Site Simulation Input Pack, Cross-Site Safe Apply
+Readiness, Runbook Template Contract, Runbook Instance Ledger, Approval Ticket
+Workflow, Site Operations Workspace UI, Client Notice by Site/View Group,
+Rule/VA What-if by Site, Field Evidence Attachment, Limited Safe Execution Pilot,
+Outcome Reconciliation, Export / Handoff Bundle, release readiness를 local evidence와
+함께 닫은 latest published baseline입니다. 120분 longrun은 AGENTS 7.6.2 직접 조건이
+충족되지 않아 조건부 미실행이며 external field smoke는 실제 endpoint/credential/실기기/provider 조건이 없어
+실행하지 않은 영역으로 계속 분리합니다.
+
+## 직전 공개 기준: v3.6.0 Source Release Baseline
 
 v3.6.0은 Operations Simulation and Safe Apply Readiness source-only 공개 릴리즈입니다. 이 기준은
 Simulation Input Contract, Operations Simulation Run Contract, Command Plan Dry-run
 Simulator, Source/Rule Impact Diff, Safe Apply Readiness Gate, Ops Simulation Workspace,
 Simulation Run Ledger, Client Notice Preview, Rule/VA What-if Replay Pack,
 Simulation Export Bundle, Field Evidence Simulation Adapter, VLM-assisted Simulation
-Explanation, release readiness를 local evidence와 함께 닫은 최신 published baseline입니다.
+Explanation, release readiness를 local evidence와 함께 닫은 직전 published baseline입니다.
 120분 longrun은 PASS했고 external field smoke는 실제 endpoint/credential/실기기/provider 조건이 없어
 실행하지 않은 영역으로 계속 분리합니다.
 
-## 직전 공개 기준: v3.5.0 Source Release Baseline
+## 이전 공개 기준: v3.5.0 Source Release Baseline
 
 v3.5.0은 Live Operations Control Plane source-only 공개 릴리즈입니다. 이 기준은
 Live Operations Graph, Operations Command Plan, Incident-to-Command Handoff,
 Staged Change Plan and Impact Preview, Ops Command Workspace, Drill Run Ledger,
 Client Impact Forecast, Client-safe Operations Notice, Operations Export Bundle,
 Field Evidence Intake, VLM-assisted Ops Explanation, release readiness를 local evidence와
-함께 닫은 직전 published baseline입니다. 120분 longrun과 external field smoke는 실행하지
+함께 닫은 historical published baseline입니다. 120분 longrun과 external field smoke는 실행하지
 않은 영역으로 계속 분리합니다.
 
 ## 이전 공개 기준: v3.3.0 Source Release Baseline

@@ -48,7 +48,7 @@ UI 풀테스트, 30분/120분, published metadata, release action, field smoke�
 
 | Step | Command | Scope |
 | --- | --- | --- |
-| v3.7.0 (1) | `./server.sh verify-v370-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | source `3.7.0`, latest published `v3.6.0`, current roadmap `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane` 정렬. v3.7 기능 구현, UI 풀테스트, 30분/120분, tag, push, GitHub Release evidence와는 별도 gate입니다 |
+| v3.7.0 (1) | `./server.sh verify-v370-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | source `3.7.0`, latest published `v3.7.0`, current roadmap `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane` 정렬. v3.7 기능 구현, UI 풀테스트, 30분/120분, tag, push, GitHub Release evidence와는 별도 gate입니다 |
 | v3.7.0 (2) | `./server.sh verify-v370-site-source-group-contract` | Site / Source Group Contract. `/ops/api/site-operations/source-group-contract`가 site, sourceGroup, zone, viewGroup read model과 no-auto-write boundary를 Ops-only contract로 정의하고 source/view write, viewer/client exposure, raw locator/credential, EventRecord/Event POST/WebRTC/SSE/WS/media schema 변경 미수행 경계를 확인합니다 |
 | v3.7.0 (3) | `./server.sh verify-v370-site-aware-source-registry-projection` | Site-Aware Source Registry Projection. `/ops/api/site-operations/source-registry-projection`이 SourceRegistry/PublishedView snapshot을 site/source group 단위 projection으로 묶고 raw locator/credential/client material 없이 read-only로 노출하는지 확인합니다 |
 | v3.7.0 (4) | `./server.sh verify-v370-site-health-rollup` | Site Health Rollup. `/ops/api/site-operations/health-rollup`이 source health snapshot을 site/source group 단위 `offline`/`degraded`/`recovering`/`field-needed` 상태로 집계하고 source health persistence, automatic recovery, field smoke, source/view write 미수행 경계를 확인합니다 |
@@ -67,9 +67,9 @@ UI 풀테스트, 30분/120분, published metadata, release action, field smoke�
 | v3.7.0 (17) | `./server.sh verify-v370-export-handoff-bundle` | Export / Handoff Bundle. `/ops/api/site-operations/export-handoff-bundle`와 `/ops` dashboard가 site/runbook/evidence/approval/outcome refs를 redacted release-safe handoff bundle과 handoff map으로 조합하고 artifact export/file write/handoff write, pilot/source recheck/notice queue write/send, source/view/runbook/approval/EventRecord/Ops audit/client/media mutation 미수행 경계를 확인합니다. UI 풀테스트 직접 조작, 30분/120분, release publish PASS로 대체하지 않습니다 |
 | v3.7.0 (18) | `./server.sh verify-v370-stabilization-release-readiness` | v3.7.0 local stabilization and release readiness. v3.7 Step 1~17 local gates, release policy/evidence index/test records, docs links/assets, feature/script inventory, close-out dry-run, git diff --check 연결을 확인합니다. UI 풀테스트 직접 조작, 30분/120분, published metadata, release action evidence를 대체하지 않음 |
 
-## 최신 published baseline v3.6.0 verifier
+## 직전 published baseline v3.6.0 verifier
 
-아래 명령은 v3.6.0 Operations Simulation and Safe Apply Readiness의 latest published baseline source gate입니다.
+아래 명령은 v3.6.0 Operations Simulation and Safe Apply Readiness의 previous published baseline source gate입니다.
 UI 풀테스트, 30분/120분, published metadata, release action, field smoke는 실행 evidence가
 있을 때만 별도로 PASS 근거가 됩니다.
 
@@ -90,7 +90,7 @@ UI 풀테스트, 30분/120분, published metadata, release action, field smoke�
 | v3.6.0 (13) | `./server.sh verify-v360-vlm-assisted-simulation-explanation` | VLM-assisted Simulation Explanation. `/ops/api/live-operations/simulation/vlm-assisted-explanation`와 `/ops` simulation workspace가 default-off VLM 보조 설명으로 blocker, impact diff, operator review hint를 요약하고 provider/runtime call, raw prompt/provider response/credential material, simulation execution, operator review write, schema/media/client mutation 미수행 경계를 확인합니다. UI 풀테스트 직접 조작, 30분/120분, release action evidence를 대체하지 않음 |
 | v3.6.0 (14) | `./server.sh verify-v360-stabilization-release-readiness` | v3.6.0 local stabilization and release readiness. v3.6 Step 1~13 local gates, release policy/evidence index/test records, docs links/assets, feature/script inventory, close-out dry-run, git diff --check 연결을 확인합니다. UI 풀테스트 직접 조작, 30분/120분, published metadata, release action evidence를 대체하지 않음 |
 
-## 직전 published baseline v3.5.0 verifier
+## historical published baseline v3.5.0 verifier
 
 아래 명령은 v3.5.0 Live Operations Control Plane의 published baseline source gate입니다.
 UI 풀테스트, 30분/120분, published metadata, release action, field smoke는 실행 evidence가
