@@ -21252,6 +21252,325 @@ std::string OpsV370RunbookInstanceLedgerJson(
     return out.str();
 }
 
+struct OpsV370ApprovalTicketWorkflowItem {
+    std::string approval_ticket_id;
+    std::string runbook_id;
+    std::string runbook_template_id;
+    std::string candidate_id;
+    std::string site_id;
+    std::string source_group;
+    std::string status{"hold"};
+    std::string reviewer{"ops-reviewer"};
+    std::string reason{"approval review required"};
+    std::string audit_link{"ops-audit:approval-ticket-workflow:read-only"};
+    std::vector<std::string> approval_state_catalog{
+        "approval",
+        "hold",
+        "reject",
+        "field-needed",
+    };
+    std::vector<std::string> evidence_refs;
+    bool read_only{true};
+};
+
+struct OpsV370ApprovalTicketWorkflowSummary {
+    int approval_ticket_count{0};
+    int approval_count{0};
+    int hold_count{0};
+    int reject_count{0};
+    int field_needed_count{0};
+    int reviewer_count{0};
+    int audit_link_count{0};
+    std::vector<std::string> derivation_sources;
+};
+
+const OpsV370RunbookTemplateContractItem* V370RunbookTemplateForId(
+    const std::vector<OpsV370RunbookTemplateContractItem>& runbookTemplateContractItems,
+    const std::string& runbook_template_id) {
+    const auto it =
+        std::find_if(runbookTemplateContractItems.begin(),
+                     runbookTemplateContractItems.end(),
+                     [&](const OpsV370RunbookTemplateContractItem& item) {
+                         return item.runbook_template_id == runbook_template_id;
+                     });
+    return it == runbookTemplateContractItems.end() ? nullptr : &*it;
+}
+
+std::string V370ApprovalTicketStatusFor(
+    const OpsV370RunbookInstanceLedgerEntry& ledger,
+    const OpsV370CrossSiteSafeApplyReadinessItem* readiness) {
+    if (ledger.status == "field-needed" ||
+        (readiness != nullptr && readiness->field_evidence_required)) {
+        return "field-needed";
+    }
+    if (ledger.status == "blocked" ||
+        (readiness != nullptr && !readiness->blockers.empty())) {
+        return "hold";
+    }
+    if (ledger.status == "approval-needed" || ledger.status == "ready") {
+        return "approval";
+    }
+    return "hold";
+}
+
+std::string V370ApprovalTicketReasonFor(
+    const OpsV370RunbookInstanceLedgerEntry& ledger,
+    const OpsV370RunbookTemplateContractItem* runbook_template,
+    const OpsV370CrossSiteSafeApplyReadinessItem* readiness) {
+    if (readiness != nullptr && readiness->field_evidence_required) {
+        return "field evidence is required before approval ticket promotion";
+    }
+    if (readiness != nullptr && !readiness->blockers.empty()) {
+        return "hold until readiness blockers are reviewed";
+    }
+    if (runbook_template != nullptr && runbook_template->operator_approval_required) {
+        return "operator approval required by runbook template contract";
+    }
+    if (ledger.status == "ready") {
+        return "ready ticket requires reviewer acknowledgement before execution";
+    }
+    return "manual review required before approval decision";
+}
+
+std::vector<OpsV370ApprovalTicketWorkflowItem> BuildV370ApprovalTicketWorkflowItems(
+    const std::vector<OpsV370RunbookTemplateContractItem>& runbookTemplateContractItems,
+    const std::vector<OpsV370RunbookInstanceLedgerEntry>& runbookInstanceLedgerEntries,
+    const std::vector<OpsV370CrossSiteSafeApplyReadinessItem>& crossSiteReadinessItems) {
+    std::vector<OpsV370ApprovalTicketWorkflowItem> items;
+    int index = 0;
+    for (const auto& ledger : runbookInstanceLedgerEntries) {
+        const auto* runbook_template =
+            V370RunbookTemplateForId(runbookTemplateContractItems, ledger.runbook_template_id);
+        const auto* readiness =
+            V370CrossSiteReadinessForCandidate(crossSiteReadinessItems, ledger.candidate_id);
+
+        OpsV370ApprovalTicketWorkflowItem item;
+        item.approval_ticket_id =
+            "approval-ticket:" + ledger.runbook_id + ":" + std::to_string(index + 1);
+        item.runbook_id = ledger.runbook_id;
+        item.runbook_template_id = ledger.runbook_template_id;
+        item.candidate_id = ledger.candidate_id;
+        item.site_id = ledger.site_id;
+        item.source_group = ledger.source_group;
+        item.status = V370ApprovalTicketStatusFor(ledger, readiness);
+        item.reviewer = item.status == "field-needed" ? "field-operator" : "ops-approver";
+        if (item.status == "hold") {
+            item.reviewer = "ops-reviewer";
+        }
+        item.reason = V370ApprovalTicketReasonFor(ledger, runbook_template, readiness);
+        item.audit_link = "ops-audit:read-only:approval-ticket-workflow:" + ledger.candidate_id;
+        item.evidence_refs = ledger.evidence_refs;
+        item.evidence_refs.push_back("/ops/api/site-operations/runbook-template-contract");
+        item.evidence_refs.push_back("/ops/api/site-operations/runbook-instance-ledger");
+        item.evidence_refs.push_back("/ops/api/site-operations/cross-site-safe-apply-readiness");
+        if (runbook_template != nullptr) {
+            item.evidence_refs.push_back(runbook_template->runbook_template_id);
+        }
+        if (readiness != nullptr) {
+            item.evidence_refs.push_back(readiness->readiness_id);
+        }
+        items.push_back(std::move(item));
+        ++index;
+        if (items.size() >= 24U) {
+            break;
+        }
+    }
+    return items;
+}
+
+OpsV370ApprovalTicketWorkflowSummary BuildV370ApprovalTicketWorkflowSummary(
+    const std::vector<OpsV370ApprovalTicketWorkflowItem>& items) {
+    OpsV370ApprovalTicketWorkflowSummary summary;
+    summary.derivation_sources = {
+        "BuildV370RunbookTemplateContractItems",
+        "BuildV370RunbookInstanceLedgerEntries",
+        "BuildV370RunbookInstanceLedgerSummary",
+        "BuildV370CrossSiteSafeApplyReadinessItems",
+    };
+    summary.approval_ticket_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        if (item.status == "approval") {
+            ++summary.approval_count;
+        } else if (item.status == "hold") {
+            ++summary.hold_count;
+        } else if (item.status == "reject") {
+            ++summary.reject_count;
+        } else if (item.status == "field-needed") {
+            ++summary.field_needed_count;
+        }
+        if (!item.reviewer.empty()) {
+            ++summary.reviewer_count;
+        }
+        if (!item.audit_link.empty()) {
+            ++summary.audit_link_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV370ApprovalTicketWorkflowSummaryJson(
+    std::ostringstream& out,
+    const OpsV370ApprovalTicketWorkflowSummary& summary) {
+    out << "{"
+        << "\"approvalTicketCount\":" << summary.approval_ticket_count << ","
+        << "\"approvalCount\":" << summary.approval_count << ","
+        << "\"holdCount\":" << summary.hold_count << ","
+        << "\"rejectCount\":" << summary.reject_count << ","
+        << "\"fieldNeededCount\":" << summary.field_needed_count << ","
+        << "\"reviewerCount\":" << summary.reviewer_count << ","
+        << "\"auditLinkCount\":" << summary.audit_link_count << ","
+        << "\"derivationSources\":";
+    AppendJsonStringArray(out, summary.derivation_sources);
+    out << "}";
+}
+
+void AppendV370ApprovalTicketWorkflowItemJson(
+    std::ostringstream& out,
+    const OpsV370ApprovalTicketWorkflowItem& item) {
+    out << "{"
+        << "\"approvalTicketId\":\"" << JsonEscape(item.approval_ticket_id) << "\","
+        << "\"runbookId\":\"" << JsonEscape(item.runbook_id) << "\","
+        << "\"runbookTemplateId\":\"" << JsonEscape(item.runbook_template_id) << "\","
+        << "\"candidateId\":\"" << JsonEscape(item.candidate_id) << "\","
+        << "\"siteId\":\"" << JsonEscape(item.site_id) << "\","
+        << "\"sourceGroup\":\"" << JsonEscape(item.source_group) << "\","
+        << "\"status\":\"" << JsonEscape(item.status) << "\","
+        << "\"reviewer\":\"" << JsonEscape(item.reviewer) << "\","
+        << "\"reason\":\"" << JsonEscape(item.reason) << "\","
+        << "\"auditLink\":\"" << JsonEscape(item.audit_link) << "\","
+        << "\"approvalStateCatalog\":";
+    AppendJsonStringArray(out, item.approval_state_catalog);
+    out << ",\"evidenceRefs\":";
+    AppendJsonStringArray(out, item.evidence_refs);
+    out << ",\"readOnly\":" << (item.read_only ? "true" : "false")
+        << "}";
+}
+
+std::string OpsV370ApprovalTicketWorkflowJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v370-approval-ticket-workflow.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto dryRunResults = BuildV360CommandPlanDryRunResults(commandPlanCandidates);
+    const auto impactDiffs =
+        BuildV360SourceRuleImpactDiffs(context, commandPlanCandidates, stagedChangePlans);
+    const auto readinessItems = BuildV360SafeApplyReadinessItems(dryRunResults, impactDiffs);
+    const auto v360InputPackItems =
+        BuildV360SimulationInputPackItems(context, commandPlanCandidates, stagedChangePlans);
+    const auto inputSummary = BuildV360SimulationInputPackSummary(v360InputPackItems);
+    const auto simulationRunContract = BuildV360SimulationRunContract();
+    const auto simulationResultEnvelope = BuildV360SimulationResultEnvelope(inputSummary);
+    const auto simulationRunLedgerEntries =
+        BuildV360SimulationRunLedgerEntries(context,
+                                            v360InputPackItems,
+                                            simulationRunContract,
+                                            simulationResultEnvelope,
+                                            dryRunResults,
+                                            impactDiffs,
+                                            readinessItems);
+    const auto projection =
+        BuildV370SiteAwareSourceRegistryProjectionItems(context.sources, context.views);
+    const auto rollups =
+        BuildV370SiteHealthRollupItems(context.sources, context.views, source_health_snapshot);
+    const auto impactGraphNodes = BuildV370SiteImpactGraphNodes(context, projection, rollups);
+    const auto impactGraphEdges = BuildV370SiteImpactGraphEdges(projection);
+    const auto siteSimulationInputPackItems =
+        BuildV370SiteSimulationInputPackItems(context,
+                                             projection,
+                                             rollups,
+                                             impactGraphNodes,
+                                             impactGraphEdges,
+                                             v360InputPackItems);
+    const auto crossSiteReadinessItems =
+        BuildV370CrossSiteSafeApplyReadinessItems(projection,
+                                                 siteSimulationInputPackItems,
+                                                 readinessItems,
+                                                 impactDiffs);
+    const auto runbookTemplateContractItems =
+        BuildV370RunbookTemplateContractItems(commandPlanCandidates,
+                                             dryRunResults,
+                                             impactDiffs,
+                                             readinessItems,
+                                             projection,
+                                             siteSimulationInputPackItems,
+                                             crossSiteReadinessItems);
+    const auto runbookInstanceLedgerEntries =
+        BuildV370RunbookInstanceLedgerEntries(runbookTemplateContractItems,
+                                             crossSiteReadinessItems,
+                                             simulationRunLedgerEntries);
+    const auto runbookInstanceLedgerSummary =
+        BuildV370RunbookInstanceLedgerSummary(runbookInstanceLedgerEntries);
+    const auto approvalTicketWorkflowItems =
+        BuildV370ApprovalTicketWorkflowItems(runbookTemplateContractItems,
+                                            runbookInstanceLedgerEntries,
+                                            crossSiteReadinessItems);
+    const auto summary =
+        BuildV370ApprovalTicketWorkflowSummary(approvalTicketWorkflowItems);
+    (void)runbookInstanceLedgerSummary;
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v370-approval-ticket-workflow.v1\","
+        << "\"status\":\"approval-ticket-workflow\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"runbookTemplateContractRoute\":\"/ops/api/site-operations/runbook-template-contract\","
+        << "\"runbookInstanceLedgerRoute\":\"/ops/api/site-operations/runbook-instance-ledger\","
+        << "\"crossSiteSafeApplyReadinessRoute\":\"/ops/api/site-operations/cross-site-safe-apply-readiness\","
+        << "\"approvalStateCatalog\":[\"approval\",\"hold\",\"reject\",\"field-needed\"],"
+        << "\"approvalTicketWorkflowSummary\":";
+    AppendV370ApprovalTicketWorkflowSummaryJson(out, summary);
+    out << ",\"approvalTicketWorkflowItems\":[";
+    for (std::size_t i = 0; i < approvalTicketWorkflowItems.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV370ApprovalTicketWorkflowItemJson(out, approvalTicketWorkflowItems[i]);
+    }
+    out << "],\"workflowPolicy\":{"
+        << "\"approval\":\"reviewer acknowledgement only; no decision is persisted\","
+        << "\"hold\":\"blocker or manual review state\","
+        << "\"reject\":\"catalog state only until a reviewer records an external decision\","
+        << "\"field-needed\":\"field evidence must be attached outside this read model\","
+        << "\"auditLink\":\"read-only link label; no Ops audit record is written\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"approvalTicketWorkflowOnly\":true,"
+        << "\"approvalTicketWritePerformed\":false,"
+        << "\"reviewerAssignmentWritePerformed\":false,"
+        << "\"approvalDecisionPersisted\":false,"
+        << "\"runbookInstancePersisted\":false,"
+        << "\"operatorNoteWritePerformed\":false,"
+        << "\"resultDiffPersisted\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"fieldSmokeExecuted\":false,"
+        << "\"commandPlanExecuted\":false,"
+        << "\"automaticApplyPerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 struct OpsV360ClientNoticePreviewItem {
     std::string notice_preview_id;
     std::string candidate_id;
@@ -31920,6 +32239,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV370RunbookInstanceLedgerJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/site-operations/approval-ticket-workflow") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV370ApprovalTicketWorkflowJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

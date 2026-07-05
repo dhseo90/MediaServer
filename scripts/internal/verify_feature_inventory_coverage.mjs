@@ -151,6 +151,7 @@ const v370VerifierCoverage = {
     "verify-v370-cross-site-safe-apply-readiness",
     "verify-v370-runbook-template-contract",
     "verify-v370-runbook-instance-ledger",
+    "verify-v370-approval-ticket-workflow",
   ],
   CLIENT: [
     "verify-v370-site-impact-graph",
@@ -166,6 +167,7 @@ const v370VerifierCoverage = {
     "verify-v370-cross-site-safe-apply-readiness",
     "verify-v370-runbook-template-contract",
     "verify-v370-runbook-instance-ledger",
+    "verify-v370-approval-ticket-workflow",
   ],
   OPS: [
     "verify-v370-entry-baseline",
@@ -177,6 +179,7 @@ const v370VerifierCoverage = {
     "verify-v370-cross-site-safe-apply-readiness",
     "verify-v370-runbook-template-contract",
     "verify-v370-runbook-instance-ledger",
+    "verify-v370-approval-ticket-workflow",
   ],
 };
 
