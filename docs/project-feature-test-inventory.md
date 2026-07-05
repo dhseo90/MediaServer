@@ -26,12 +26,12 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 819 |
+| 전체 기능 항목 | 822 |
 | UI 직접 필요 | 375 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 413 |
-| 테스트 필요 | 819 |
-| 안정화 대상 | 809 |
+| UI 비대상 | 416 |
+| 테스트 필요 | 822 |
+| 안정화 대상 | 812 |
 | UI 풀테스트 대상 | 395 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 816개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 822개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -70,6 +70,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | v3.7.0 (6) Site Simulation Input Pack | `SRC-058`, `EVT-081`, `LAB-101`, `SAFE-167`, `OPS-134` | `verify-v370-site-simulation-input-pack` | `/ops/api/site-operations/simulation-input-pack`이 v3.6 simulation input/result envelope와 v3.7 site projection/impact graph를 site/source group 단위 read-only input pack으로 확장합니다. simulation input persist/run/result persist, source/view/rule/EventRecord/Ops audit/client/media mutation, viewer/client 노출, raw locator/credential material, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.7.0 (7) Cross-Site Safe Apply Readiness | `SRC-059`, `CLIENT-036`, `LAB-102`, `SAFE-168`, `OPS-135` | `verify-v370-cross-site-safe-apply-readiness` | `/ops/api/site-operations/cross-site-safe-apply-readiness`가 v3.6 safe apply readiness와 v3.7 site simulation input pack을 연결해 affected clients, blocker, approval-needed, field-needed 상태를 산출합니다. automatic/safe apply, field smoke, client notice send, source/view/rule/EventRecord/Ops audit/client/media mutation, viewer/client 노출, raw locator/credential material, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.7.0 (8) Runbook Template Contract | `LAB-103`, `SAFE-169`, `OPS-136` | `verify-v370-runbook-template-contract` | `/ops/api/site-operations/runbook-template-contract`가 source recheck, maintenance, rule draft, client notice 후보를 반복 가능한 read-only runbook template contract로 정의합니다. runbook instance persist, approval ticket write, source/view/rule/EventRecord/Ops audit/client/media mutation, client notice send, field smoke, viewer/client 노출, raw locator/credential material, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
+| v3.7.0 (9) Runbook Instance Ledger | `LAB-104`, `SAFE-170`, `OPS-137` | `verify-v370-runbook-instance-ledger` | `/ops/api/site-operations/runbook-instance-ledger`가 runbookId, siteId, status, operator note, previous run comparison을 append-only/read-only ledger projection으로 누적합니다. runbook instance persist, operator note write, approval ticket write, result diff persist, source/view/rule/EventRecord/Ops audit/client/media mutation, viewer/client 노출, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 
 ## 최신 published baseline v3.6.0 Operations Simulation and Safe Apply Readiness Coverage Mapping
 
@@ -333,9 +334,9 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | `EVT-001`~`EVT-081` | event/VLM/v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360/v370 verifier family | event log 육안 확인은 UI 풀테스트 |
 | `CLIENT-001`~`CLIENT-036` | client/UI/v350/v360/v370 verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-024` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
-| `LAB-001`~`LAB-103` | lab/VLM/v250/v260/v270/v280/v300/v310/v340/v350/v360/v370 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-169` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-136` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
+| `LAB-001`~`LAB-104` | lab/VLM/v250/v260/v270/v280/v300/v310/v340/v350/v360/v370 fixture verifier family | 제품 UI 비대상 |
+| `SAFE-001`~`SAFE-170` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-137` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
 
 ## VA Manual UI Seed Matrix
 
@@ -966,6 +967,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | LAB-101 | V370 Step 6 site simulation input/result envelope harness | 비대상 | 필요 | 안정화 | `verify-v370-site-simulation-input-pack`이 v3.6 simulation input summary와 result envelope를 site/source group pack에 read-only ref로 연결하되 simulation run, result persist, provider/runtime/media 작업을 수행하지 않음을 확인 |
 | LAB-102 | V370 Step 7 cross-site readiness harness | 비대상 | 필요 | 안정화 | `verify-v370-cross-site-safe-apply-readiness`가 v3.6 dry-run/impact diff/safe readiness와 v3.7 site simulation input pack을 read-only readiness harness로 연결하되 safe apply, field smoke, provider/runtime/media 작업을 수행하지 않음을 확인 |
 | LAB-103 | V370 Step 8 runbook template contract harness | 비대상 | 필요 | 안정화 | `verify-v370-runbook-template-contract`가 v3.5 command plan, v3.6 dry-run/readiness, v3.7 site input/readiness를 read-only runbook template contract로 연결하되 runbook instance persist, approval ticket write, provider/runtime/media 작업을 수행하지 않음을 확인 |
+| LAB-104 | V370 Step 9 runbook instance ledger harness | 비대상 | 필요 | 안정화 | `verify-v370-runbook-instance-ledger`가 runbook template contract, cross-site readiness, v3.6 simulation run ledger를 read-only append-only ledger projection으로 연결하되 runbook instance persist, operator note write, approval ticket write, provider/runtime/media 작업을 수행하지 않음을 확인 |
 
 ## I. Safety, Boundary, Invariant Contract
 
@@ -1140,6 +1142,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-167 | V370 Step 6 site simulation input no-run boundary | 비대상 | 필요 | 안정화 | `verify-v370-site-simulation-input-pack`이 site simulation input pack을 read-only로 계산하고 simulation input persist/run/result persist, source/view/rule/EventRecord/Ops audit/client/media mutation, viewer/client exposure, raw locator/credential material 노출을 수행하지 않음을 확인 |
 | SAFE-168 | V370 Step 7 cross-site safe apply no-apply boundary | 비대상 | 필요 | 안정화 | `verify-v370-cross-site-safe-apply-readiness`가 cross-site readiness를 read-only로 계산하고 automatic/safe apply, field smoke, client notice send, source/view/rule/EventRecord/Ops audit/client/media mutation, viewer/client exposure, raw locator/credential material 노출을 수행하지 않음을 확인 |
 | SAFE-169 | V370 Step 8 runbook template no-write boundary | 비대상 | 필요 | 안정화 | `verify-v370-runbook-template-contract`가 runbook template contract를 read-only로 정의하고 runbook instance persist, approval ticket write, operator note write, source/view/rule/EventRecord/Ops audit/client/media mutation, client notice send, field smoke, viewer/client exposure, raw locator/credential material 노출을 수행하지 않음을 확인 |
+| SAFE-170 | V370 Step 9 runbook ledger append-only boundary | 비대상 | 필요 | 안정화 | `verify-v370-runbook-instance-ledger`가 runbook instance ledger를 append-only/read-only projection으로 산출하고 runbook instance persist, operator note write, approval ticket write, result diff persist, source/view/rule/EventRecord/Ops audit/client/media mutation, viewer/client exposure를 수행하지 않음을 확인 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -1247,6 +1250,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-134 | V370 Step 6 Site Simulation Input Pack 게이트 | 비대상 | 필요 | 안정화 | `verify-v370-site-simulation-input-pack`이 `/ops/api/site-operations/simulation-input-pack` Ops-only route, v3.6 simulation input/result envelope와 site projection/impact graph 연결, no-run/no-persist boundary, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 simulation 실행, source/view/rule/EventRecord/Ops audit/client/media mutation, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-135 | V370 Step 7 Cross-Site Safe Apply Readiness 게이트 | 비대상 | 필요 | 안정화 | `verify-v370-cross-site-safe-apply-readiness`가 `/ops/api/site-operations/cross-site-safe-apply-readiness` Ops-only route, affected clients/blocker/approval-needed/field-needed 상태, no-apply/no-client-exposure boundary, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 safe apply, field smoke, client notice, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-136 | V370 Step 8 Runbook Template Contract 게이트 | 비대상 | 필요 | 안정화 | `verify-v370-runbook-template-contract`가 `/ops/api/site-operations/runbook-template-contract` Ops-only route, source recheck/maintenance/rule draft/client notice template contract, no-write boundary, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 runbook instance persist, approval ticket write, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
+| OPS-137 | V370 Step 9 Runbook Instance Ledger 게이트 | 비대상 | 필요 | 안정화 | `verify-v370-runbook-instance-ledger`가 `/ops/api/site-operations/runbook-instance-ledger` Ops-only route, runbookId/siteId/status/operator note/previous run comparison append-only ledger projection, no-write boundary, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 runbook instance persist, operator note write, approval ticket write, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 

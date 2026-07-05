@@ -354,6 +354,8 @@ Usage:
                  v3.7.0 Step 7 Cross-Site Safe Apply Readiness read-only 경계를 검증합니다.
   verify-v370-runbook-template-contract
                  v3.7.0 Step 8 Runbook Template Contract read-only 경계를 검증합니다.
+  verify-v370-runbook-instance-ledger
+                 v3.7.0 Step 9 Runbook Instance Ledger append-only/read-only 경계를 검증합니다.
   verify-v360-entry-baseline
                  v3.6.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v360-simulation-input-contract
@@ -618,6 +620,8 @@ Usage:
                  v3.7.0 Step 7 Cross-Site Safe Apply Readiness read-only 경계를 검증합니다.
   verify-v370-runbook-template-contract
                  v3.7.0 Step 8 Runbook Template Contract read-only 경계를 검증합니다.
+  verify-v370-runbook-instance-ledger
+                 v3.7.0 Step 9 Runbook Instance Ledger append-only/read-only 경계를 검증합니다.
   verify-v360-entry-baseline
                  v3.6.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v360-simulation-input-contract
@@ -1716,6 +1720,10 @@ case "${cmd}" in
   verify-v370-runbook-template-contract)
     require_internal verify_v370_runbook_template_contract.mjs
     exec "${INTERNAL_DIR}/verify_v370_runbook_template_contract.mjs" "$@"
+    ;;
+  verify-v370-runbook-instance-ledger)
+    require_internal verify_v370_runbook_instance_ledger.mjs
+    exec "${INTERNAL_DIR}/verify_v370_runbook_instance_ledger.mjs" "$@"
     ;;
   verify-v360-entry-baseline)
     require_internal verify_v360_entry_baseline.mjs

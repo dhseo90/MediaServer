@@ -20958,6 +20958,300 @@ std::string OpsV360SimulationRunLedgerComparisonJson(
     return out.str();
 }
 
+struct OpsV370RunbookInstanceLedgerEntry {
+    std::string runbook_id;
+    std::string runbook_template_id;
+    std::string candidate_id;
+    std::string site_id;
+    std::string source_group;
+    std::string status{"not-run"};
+    std::string operator_note{"operator-note-required"};
+    std::string previous_run_comparison{"previousRunComparison: no persisted previous run"};
+    std::string previous_run_id;
+    std::string compared_to_run_id;
+    std::vector<std::string> status_history;
+    std::vector<std::string> evidence_refs;
+    bool read_only{true};
+};
+
+struct OpsV370RunbookInstanceLedgerSummary {
+    int runbook_count{0};
+    int approval_needed_count{0};
+    int field_needed_count{0};
+    int blocked_count{0};
+    int previous_run_comparison_count{0};
+    int operator_note_count{0};
+    std::vector<std::string> derivation_sources;
+};
+
+const OpsV360SimulationRunLedgerEntry* V370SimulationLedgerEntryForCandidate(
+    const std::vector<OpsV360SimulationRunLedgerEntry>& simulationRunLedgerEntries,
+    const std::string& candidate_id) {
+    const auto it =
+        std::find_if(simulationRunLedgerEntries.rbegin(),
+                     simulationRunLedgerEntries.rend(),
+                     [&](const OpsV360SimulationRunLedgerEntry& entry) {
+                         return entry.candidate_id == candidate_id &&
+                                (!entry.previous_run_id.empty() ||
+                                 !entry.compared_to_run_id.empty());
+                     });
+    return it == simulationRunLedgerEntries.rend() ? nullptr : &*it;
+}
+
+std::string V370RunbookLedgerStatusFor(
+    const OpsV370RunbookTemplateContractItem& item,
+    const OpsV370CrossSiteSafeApplyReadinessItem* readiness) {
+    if (readiness != nullptr && !readiness->readiness_state.empty()) {
+        return readiness->readiness_state;
+    }
+    if (item.field_evidence_required) {
+        return "field-needed";
+    }
+    if (item.operator_approval_required) {
+        return "approval-needed";
+    }
+    return "not-run";
+}
+
+std::vector<OpsV370RunbookInstanceLedgerEntry> BuildV370RunbookInstanceLedgerEntries(
+    const std::vector<OpsV370RunbookTemplateContractItem>& runbookTemplateContractItems,
+    const std::vector<OpsV370CrossSiteSafeApplyReadinessItem>& crossSiteReadinessItems,
+    const std::vector<OpsV360SimulationRunLedgerEntry>& simulationRunLedgerEntries) {
+    std::vector<OpsV370RunbookInstanceLedgerEntry> entries;
+    int index = 0;
+    for (const auto& item : runbookTemplateContractItems) {
+        const auto* readiness =
+            V370CrossSiteReadinessForCandidate(crossSiteReadinessItems, item.candidate_id);
+        const auto* previous_run =
+            V370SimulationLedgerEntryForCandidate(simulationRunLedgerEntries, item.candidate_id);
+
+        OpsV370RunbookInstanceLedgerEntry entry;
+        entry.runbook_id = "runbook:" + item.runbook_template_id + ":" + std::to_string(index + 1);
+        entry.runbook_template_id = item.runbook_template_id;
+        entry.candidate_id = item.candidate_id;
+        entry.site_id = item.site_id;
+        entry.source_group = item.source_group;
+        entry.status = V370RunbookLedgerStatusFor(item, readiness);
+        entry.operator_note =
+            "operatorNote: review required before promotion; note is displayed but not persisted";
+        entry.status_history = {
+            "created:read-only-projection",
+            "status:" + entry.status,
+            "operatorNote:display-only",
+        };
+        entry.evidence_refs = {
+            "/ops/api/site-operations/runbook-template-contract",
+            "/ops/api/site-operations/cross-site-safe-apply-readiness",
+            item.runbook_template_id,
+            item.candidate_id,
+        };
+        if (readiness != nullptr) {
+            entry.evidence_refs.push_back(readiness->readiness_id);
+        }
+        if (previous_run != nullptr) {
+            entry.previous_run_id = previous_run->previous_run_id;
+            entry.compared_to_run_id = previous_run->compared_to_run_id;
+            entry.previous_run_comparison =
+                "previousRunComparison: comparedToRunId=" + previous_run->compared_to_run_id +
+                "; resultDiff=" + previous_run->result_diff;
+            entry.evidence_refs.push_back(previous_run->simulation_run_id);
+        } else {
+            entry.previous_run_comparison =
+                "previousRunComparison: no persisted runbook execution exists; compare template and readiness refs only";
+        }
+        entries.push_back(std::move(entry));
+        ++index;
+        if (entries.size() >= 24U) {
+            break;
+        }
+    }
+    return entries;
+}
+
+OpsV370RunbookInstanceLedgerSummary BuildV370RunbookInstanceLedgerSummary(
+    const std::vector<OpsV370RunbookInstanceLedgerEntry>& entries) {
+    OpsV370RunbookInstanceLedgerSummary summary;
+    summary.derivation_sources = {
+        "BuildV370RunbookTemplateContractItems",
+        "BuildV370RunbookTemplateContractSummary",
+        "BuildV370CrossSiteSafeApplyReadinessItems",
+        "BuildV360SimulationRunLedgerEntries",
+    };
+    summary.runbook_count = static_cast<int>(entries.size());
+    for (const auto& entry : entries) {
+        if (entry.status == "approval-needed") {
+            ++summary.approval_needed_count;
+        } else if (entry.status == "field-needed") {
+            ++summary.field_needed_count;
+        } else if (entry.status == "blocked") {
+            ++summary.blocked_count;
+        }
+        if (!entry.previous_run_comparison.empty()) {
+            ++summary.previous_run_comparison_count;
+        }
+        if (!entry.operator_note.empty()) {
+            ++summary.operator_note_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV370RunbookInstanceLedgerSummaryJson(
+    std::ostringstream& out,
+    const OpsV370RunbookInstanceLedgerSummary& summary) {
+    out << "{"
+        << "\"runbookCount\":" << summary.runbook_count << ","
+        << "\"approvalNeededCount\":" << summary.approval_needed_count << ","
+        << "\"fieldNeededCount\":" << summary.field_needed_count << ","
+        << "\"blockedCount\":" << summary.blocked_count << ","
+        << "\"previousRunComparisonCount\":" << summary.previous_run_comparison_count << ","
+        << "\"operatorNoteCount\":" << summary.operator_note_count << ","
+        << "\"derivationSources\":";
+    AppendJsonStringArray(out, summary.derivation_sources);
+    out << "}";
+}
+
+void AppendV370RunbookInstanceLedgerEntryJson(
+    std::ostringstream& out,
+    const OpsV370RunbookInstanceLedgerEntry& entry) {
+    out << "{"
+        << "\"runbookId\":\"" << JsonEscape(entry.runbook_id) << "\","
+        << "\"runbookTemplateId\":\"" << JsonEscape(entry.runbook_template_id) << "\","
+        << "\"candidateId\":\"" << JsonEscape(entry.candidate_id) << "\","
+        << "\"siteId\":\"" << JsonEscape(entry.site_id) << "\","
+        << "\"sourceGroup\":\"" << JsonEscape(entry.source_group) << "\","
+        << "\"status\":\"" << JsonEscape(entry.status) << "\","
+        << "\"operatorNote\":\"" << JsonEscape(entry.operator_note) << "\","
+        << "\"previousRunComparison\":\"" << JsonEscape(entry.previous_run_comparison) << "\","
+        << "\"previousRunId\":\"" << JsonEscape(entry.previous_run_id) << "\","
+        << "\"comparedToRunId\":\"" << JsonEscape(entry.compared_to_run_id) << "\","
+        << "\"statusHistory\":";
+    AppendJsonStringArray(out, entry.status_history);
+    out << ",\"evidenceRefs\":";
+    AppendJsonStringArray(out, entry.evidence_refs);
+    out << ",\"readOnly\":" << (entry.read_only ? "true" : "false")
+        << "}";
+}
+
+std::string OpsV370RunbookInstanceLedgerJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v370-runbook-instance-ledger.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto dryRunResults = BuildV360CommandPlanDryRunResults(commandPlanCandidates);
+    const auto impactDiffs =
+        BuildV360SourceRuleImpactDiffs(context, commandPlanCandidates, stagedChangePlans);
+    const auto readinessItems = BuildV360SafeApplyReadinessItems(dryRunResults, impactDiffs);
+    const auto v360InputPackItems =
+        BuildV360SimulationInputPackItems(context, commandPlanCandidates, stagedChangePlans);
+    const auto inputSummary = BuildV360SimulationInputPackSummary(v360InputPackItems);
+    const auto simulationRunContract = BuildV360SimulationRunContract();
+    const auto simulationResultEnvelope = BuildV360SimulationResultEnvelope(inputSummary);
+    const auto simulationRunLedgerEntries =
+        BuildV360SimulationRunLedgerEntries(context,
+                                            v360InputPackItems,
+                                            simulationRunContract,
+                                            simulationResultEnvelope,
+                                            dryRunResults,
+                                            impactDiffs,
+                                            readinessItems);
+    const auto projection =
+        BuildV370SiteAwareSourceRegistryProjectionItems(context.sources, context.views);
+    const auto rollups =
+        BuildV370SiteHealthRollupItems(context.sources, context.views, source_health_snapshot);
+    const auto impactGraphNodes = BuildV370SiteImpactGraphNodes(context, projection, rollups);
+    const auto impactGraphEdges = BuildV370SiteImpactGraphEdges(projection);
+    const auto siteSimulationInputPackItems =
+        BuildV370SiteSimulationInputPackItems(context,
+                                             projection,
+                                             rollups,
+                                             impactGraphNodes,
+                                             impactGraphEdges,
+                                             v360InputPackItems);
+    const auto crossSiteReadinessItems =
+        BuildV370CrossSiteSafeApplyReadinessItems(projection,
+                                                 siteSimulationInputPackItems,
+                                                 readinessItems,
+                                                 impactDiffs);
+    const auto runbookTemplateContractItems =
+        BuildV370RunbookTemplateContractItems(commandPlanCandidates,
+                                             dryRunResults,
+                                             impactDiffs,
+                                             readinessItems,
+                                             projection,
+                                             siteSimulationInputPackItems,
+                                             crossSiteReadinessItems);
+    const auto templateSummary =
+        BuildV370RunbookTemplateContractSummary(runbookTemplateContractItems);
+    const auto runbookInstanceLedgerEntries =
+        BuildV370RunbookInstanceLedgerEntries(runbookTemplateContractItems,
+                                             crossSiteReadinessItems,
+                                             simulationRunLedgerEntries);
+    const auto summary =
+        BuildV370RunbookInstanceLedgerSummary(runbookInstanceLedgerEntries);
+    (void)templateSummary;
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v370-runbook-instance-ledger.v1\","
+        << "\"status\":\"runbook-instance-ledger\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"runbookTemplateContractRoute\":\"/ops/api/site-operations/runbook-template-contract\","
+        << "\"crossSiteSafeApplyReadinessRoute\":\"/ops/api/site-operations/cross-site-safe-apply-readiness\","
+        << "\"approvalTicketWorkflowRoute\":\"/ops/api/site-operations/approval-ticket-workflow\","
+        << "\"appendOnlyLedgerProjection\":true,"
+        << "\"simulationRunLedgerEntries\":" << simulationRunLedgerEntries.size() << ","
+        << "\"runbookInstanceLedgerSummary\":";
+    AppendV370RunbookInstanceLedgerSummaryJson(out, summary);
+    out << ",\"runbookInstanceLedgerEntries\":[";
+    for (std::size_t i = 0; i < runbookInstanceLedgerEntries.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV370RunbookInstanceLedgerEntryJson(out, runbookInstanceLedgerEntries[i]);
+    }
+    out << "],\"ledgerPolicy\":{"
+        << "\"appendOnly\":\"projection-only; no runbook instance is persisted\","
+        << "\"operatorNote\":\"display-only-not-persisted\","
+        << "\"previousRunComparison\":\"derived from v3.6 simulation ledger when available\","
+        << "\"statusCatalog\":[\"approval-needed\",\"field-needed\",\"blocked\",\"ready\",\"not-run\"]"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"appendOnlyLedgerProjection\":true,"
+        << "\"runbookInstancePersisted\":false,"
+        << "\"operatorNoteWritePerformed\":false,"
+        << "\"approvalTicketWritePerformed\":false,"
+        << "\"resultDiffPersisted\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"fieldSmokeExecuted\":false,"
+        << "\"commandPlanExecuted\":false,"
+        << "\"automaticApplyPerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 struct OpsV360ClientNoticePreviewItem {
     std::string notice_preview_id;
     std::string candidate_id;
@@ -31606,6 +31900,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV370RunbookTemplateContractJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/site-operations/runbook-instance-ledger") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV370RunbookInstanceLedgerJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

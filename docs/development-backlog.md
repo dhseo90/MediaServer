@@ -73,7 +73,7 @@ Product UI → Field/Execution → Release 순서로 진행합니다.
 | 6 | v3.7.0 (6) Site Simulation Input Pack | P1 | 완료 | `/ops/api/site-operations/simulation-input-pack`에서 v3.6 simulation input/result envelope를 site/source group 단위 read-only input pack으로 확장 |
 | 7 | v3.7.0 (7) Cross-Site Safe Apply Readiness | P1 | 완료 | `/ops/api/site-operations/cross-site-safe-apply-readiness`에서 affected clients, blocker, approval-needed, field-needed 상태를 site/source group별로 산출 |
 | 8 | v3.7.0 (8) Runbook Template Contract | P1 | 완료 | `/ops/api/site-operations/runbook-template-contract`에서 source recheck, maintenance, rule draft, client notice 후보를 반복 가능한 read-only runbook template contract로 정의 |
-| 9 | v3.7.0 (9) Runbook Instance Ledger | P1 | 미진행 | runbookId, siteId, status, operator note, previous run comparison을 append-only/read-only ledger로 누적 |
+| 9 | v3.7.0 (9) Runbook Instance Ledger | P1 | 완료 | `/ops/api/site-operations/runbook-instance-ledger`에서 runbookId, siteId, status, operator note, previous run comparison을 append-only/read-only ledger projection으로 누적 |
 | 10 | v3.7.0 (10) Approval Ticket Workflow | P1 | 미진행 | approval, hold, reject, field-needed 상태와 reviewer/reason/audit link 관리 |
 | 11 | v3.7.0 (11) Site Operations Workspace UI | P1 | 미진행 | `/ops` site list, health rollup, runbook queue, impact detail workspace 추가 |
 | 12 | v3.7.0 (12) Client Notice by Site/View Group | P1 | 미진행 | site/view group 기준 viewer-safe notice preview와 delivery queue 경계 준비 |
@@ -177,6 +177,17 @@ action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁�
 - verifier: `scripts/internal/verify_v370_runbook_template_contract.mjs`, `./server.sh verify-v370-runbook-template-contract`, `docs/project-feature-test-inventory.md`의 `LAB-103`, `SAFE-169`, `OPS-136`을 추가했습니다.
 - 검증: 최초 `node scripts/internal/verify_v370_runbook_template_contract.mjs`는 runbook template contract model, route, final backlog 기록이 아직 없어 `pass=0 fail=5`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 8 결과 행에 기록합니다.
 - 완료 경계: Step 8은 Ops-only runbook template contract API/verifier 연결입니다. runbook instance 저장, approval ticket write, 제품 UI 직접 조작, 30분/120분, source/view/rule/EventRecord/Ops audit/client/media mutation, published metadata, release action evidence가 아닙니다.
+
+## v3.7.0 Step 9 개발 기록
+
+- 범위: P1 `v3.7.0 (9) Runbook Instance Ledger`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV370RunbookInstanceLedgerEntry`, `OpsV370RunbookInstanceLedgerSummary`, `BuildV370RunbookInstanceLedgerEntries`, `BuildV370RunbookInstanceLedgerSummary`, `AppendV370RunbookInstanceLedgerEntryJson`, `OpsV370RunbookInstanceLedgerJson`를 추가했습니다.
+- route: `GET /ops/api/site-operations/runbook-instance-ledger`를 Ops principal 전용, `Cache-Control: no-store` JSON route로 연결했습니다.
+- logic: `BuildV370RunbookTemplateContractItems`, `BuildV370RunbookTemplateContractSummary`, `BuildV370CrossSiteSafeApplyReadinessItems`, `BuildV360SimulationRunLedgerEntries`를 조합해 runbookId, siteId, status, operator note, previous run comparison을 append-only/read-only ledger projection으로 산출합니다.
+- boundary: runbook instance persist, operator note write, approval ticket write, result diff persist, source/view/rule/EventRecord/Ops audit/client/media mutation, client notice send, field smoke, raw locator/credential material 포함, Event POST/WebRTC/SSE/WS/RTSP media schema 변경을 수행하지 않는 `boundaries` flag를 응답에 고정했습니다.
+- verifier: `scripts/internal/verify_v370_runbook_instance_ledger.mjs`, `./server.sh verify-v370-runbook-instance-ledger`, `docs/project-feature-test-inventory.md`의 `LAB-104`, `SAFE-170`, `OPS-137`을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v370_runbook_instance_ledger.mjs`는 runbook instance ledger model, route, final backlog 기록이 아직 없어 `pass=0 fail=5`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 9 결과 행에 기록합니다.
+- 완료 경계: Step 9는 Ops-only runbook instance ledger API/verifier 연결입니다. runbook instance 저장, operator note write, approval ticket write, 제품 UI 직접 조작, 30분/120분, source/view/rule/EventRecord/Ops audit/client/media mutation, published metadata, release action evidence가 아닙니다.
 
 ## 최신 공개 기준: v3.6.0 Operations Simulation and Safe Apply Readiness
 

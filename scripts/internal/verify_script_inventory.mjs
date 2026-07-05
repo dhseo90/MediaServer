@@ -484,6 +484,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_v370_site_simulation_input_pack.mjs",
     "verify_v370_cross_site_safe_apply_readiness.mjs",
     "verify_v370_runbook_template_contract.mjs",
+    "verify_v370_runbook_instance_ledger.mjs",
     "verify_v360_entry_baseline.mjs",
     "verify_v360_simulation_input_contract.mjs",
     "verify_v360_operations_simulation_run_contract.mjs",
