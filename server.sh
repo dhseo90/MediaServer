@@ -338,8 +338,44 @@ Usage:
                  v3.5.0 Step 12 VLM-assisted Ops Explanation default-off 경계를 검증합니다.
   verify-v350-stabilization-release-readiness
                  v3.5.0 Step 13 Stabilization and Release Readiness local gate 경계를 검증합니다.
+  verify-v370-entry-baseline
+                 v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
+  verify-v370-site-source-group-contract
+                 v3.7.0 Step 2 Site / Source Group Contract read-only 경계를 검증합니다.
+  verify-v370-site-aware-source-registry-projection
+                 v3.7.0 Step 3 Site-Aware Source Registry Projection read-only 경계를 검증합니다.
+  verify-v370-site-health-rollup
+                 v3.7.0 Step 4 Site Health Rollup read-only 경계를 검증합니다.
+  verify-v370-site-impact-graph
+                 v3.7.0 Step 5 Site Impact Graph read-only 경계를 검증합니다.
+  verify-v370-site-simulation-input-pack
+                 v3.7.0 Step 6 Site Simulation Input Pack read-only 경계를 검증합니다.
+  verify-v370-cross-site-safe-apply-readiness
+                 v3.7.0 Step 7 Cross-Site Safe Apply Readiness read-only 경계를 검증합니다.
+  verify-v370-runbook-template-contract
+                 v3.7.0 Step 8 Runbook Template Contract read-only 경계를 검증합니다.
+  verify-v370-runbook-instance-ledger
+                 v3.7.0 Step 9 Runbook Instance Ledger append-only/read-only 경계를 검증합니다.
+  verify-v370-approval-ticket-workflow
+                 v3.7.0 Step 10 Approval Ticket Workflow read-only 경계를 검증합니다.
+  verify-v370-site-operations-workspace-ui
+                 v3.7.0 Step 11 Site Operations Workspace UI read-only 경계를 검증합니다.
+  verify-v370-client-notice-by-site-view-group
+                 v3.7.0 Step 12 Client Notice by Site/View Group preview-only 경계를 검증합니다.
+  verify-v370-rule-va-what-if-by-site
+                 v3.7.0 Step 13 Rule/VA What-if by Site no-apply 경계를 검증합니다.
+  verify-v370-field-evidence-attachment
+                 v3.7.0 Step 14 Field Evidence Attachment conditional/not-run 경계를 검증합니다.
+  verify-v370-limited-safe-execution-pilot
+                 v3.7.0 Step 15 Limited Safe Execution Pilot approval-gated preview 경계를 검증합니다.
+  verify-v370-outcome-reconciliation
+                 v3.7.0 Step 16 Outcome Reconciliation pending/not-run 비교 경계를 검증합니다.
+  verify-v370-export-handoff-bundle
+                 v3.7.0 Step 17 Export / Handoff Bundle release-safe 경계를 검증합니다.
+  verify-v370-stabilization-release-readiness
+                 v3.7.0 Step 18 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-v360-entry-baseline
-                 v3.6.0 Step 1 source baseline과 latest published v3.5.0 경계를 검증합니다.
+                 v3.6.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v360-simulation-input-contract
                  v3.6.0 Step 2 Simulation Input Contract read-only 경계를 검증합니다.
   verify-v360-operations-simulation-run-contract
@@ -586,8 +622,44 @@ Usage:
                  v3.5.0 Step 8 Client Impact Forecast viewer-safe 경계를 검증합니다.
   verify-v350-stabilization-release-readiness
                  v3.5.0 Step 13 Stabilization and Release Readiness local gate 경계를 검증합니다.
+  verify-v370-entry-baseline
+                 v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
+  verify-v370-site-source-group-contract
+                 v3.7.0 Step 2 Site / Source Group Contract read-only 경계를 검증합니다.
+  verify-v370-site-aware-source-registry-projection
+                 v3.7.0 Step 3 Site-Aware Source Registry Projection read-only 경계를 검증합니다.
+  verify-v370-site-health-rollup
+                 v3.7.0 Step 4 Site Health Rollup read-only 경계를 검증합니다.
+  verify-v370-site-impact-graph
+                 v3.7.0 Step 5 Site Impact Graph read-only 경계를 검증합니다.
+  verify-v370-site-simulation-input-pack
+                 v3.7.0 Step 6 Site Simulation Input Pack read-only 경계를 검증합니다.
+  verify-v370-cross-site-safe-apply-readiness
+                 v3.7.0 Step 7 Cross-Site Safe Apply Readiness read-only 경계를 검증합니다.
+  verify-v370-runbook-template-contract
+                 v3.7.0 Step 8 Runbook Template Contract read-only 경계를 검증합니다.
+  verify-v370-runbook-instance-ledger
+                 v3.7.0 Step 9 Runbook Instance Ledger append-only/read-only 경계를 검증합니다.
+  verify-v370-approval-ticket-workflow
+                 v3.7.0 Step 10 Approval Ticket Workflow read-only 경계를 검증합니다.
+  verify-v370-site-operations-workspace-ui
+                 v3.7.0 Step 11 Site Operations Workspace UI read-only 경계를 검증합니다.
+  verify-v370-client-notice-by-site-view-group
+                 v3.7.0 Step 12 Client Notice by Site/View Group preview-only 경계를 검증합니다.
+  verify-v370-rule-va-what-if-by-site
+                 v3.7.0 Step 13 Rule/VA What-if by Site no-apply 경계를 검증합니다.
+  verify-v370-field-evidence-attachment
+                 v3.7.0 Step 14 Field Evidence Attachment conditional/not-run 경계를 검증합니다.
+  verify-v370-limited-safe-execution-pilot
+                 v3.7.0 Step 15 Limited Safe Execution Pilot approval-gated preview 경계를 검증합니다.
+  verify-v370-outcome-reconciliation
+                 v3.7.0 Step 16 Outcome Reconciliation pending/not-run 비교 경계를 검증합니다.
+  verify-v370-export-handoff-bundle
+                 v3.7.0 Step 17 Export / Handoff Bundle release-safe 경계를 검증합니다.
+  verify-v370-stabilization-release-readiness
+                 v3.7.0 Step 18 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-v360-entry-baseline
-                 v3.6.0 Step 1 source baseline과 latest published v3.5.0 경계를 검증합니다.
+                 v3.6.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v360-simulation-input-contract
                  v3.6.0 Step 2 Simulation Input Contract read-only 경계를 검증합니다.
   verify-v360-operations-simulation-run-contract
@@ -1652,6 +1724,78 @@ case "${cmd}" in
   verify-v350-stabilization-release-readiness)
     require_internal verify_v350_stabilization_release_readiness.mjs
     exec "${INTERNAL_DIR}/verify_v350_stabilization_release_readiness.mjs" "$@"
+    ;;
+  verify-v370-entry-baseline)
+    require_internal verify_v370_entry_baseline.mjs
+    exec "${INTERNAL_DIR}/verify_v370_entry_baseline.mjs" "$@"
+    ;;
+  verify-v370-site-source-group-contract)
+    require_internal verify_v370_site_source_group_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v370_site_source_group_contract.mjs" "$@"
+    ;;
+  verify-v370-site-aware-source-registry-projection)
+    require_internal verify_v370_site_aware_source_registry_projection.mjs
+    exec "${INTERNAL_DIR}/verify_v370_site_aware_source_registry_projection.mjs" "$@"
+    ;;
+  verify-v370-site-health-rollup)
+    require_internal verify_v370_site_health_rollup.mjs
+    exec "${INTERNAL_DIR}/verify_v370_site_health_rollup.mjs" "$@"
+    ;;
+  verify-v370-site-impact-graph)
+    require_internal verify_v370_site_impact_graph.mjs
+    exec "${INTERNAL_DIR}/verify_v370_site_impact_graph.mjs" "$@"
+    ;;
+  verify-v370-site-simulation-input-pack)
+    require_internal verify_v370_site_simulation_input_pack.mjs
+    exec "${INTERNAL_DIR}/verify_v370_site_simulation_input_pack.mjs" "$@"
+    ;;
+  verify-v370-cross-site-safe-apply-readiness)
+    require_internal verify_v370_cross_site_safe_apply_readiness.mjs
+    exec "${INTERNAL_DIR}/verify_v370_cross_site_safe_apply_readiness.mjs" "$@"
+    ;;
+  verify-v370-runbook-template-contract)
+    require_internal verify_v370_runbook_template_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v370_runbook_template_contract.mjs" "$@"
+    ;;
+  verify-v370-runbook-instance-ledger)
+    require_internal verify_v370_runbook_instance_ledger.mjs
+    exec "${INTERNAL_DIR}/verify_v370_runbook_instance_ledger.mjs" "$@"
+    ;;
+  verify-v370-approval-ticket-workflow)
+    require_internal verify_v370_approval_ticket_workflow.mjs
+    exec "${INTERNAL_DIR}/verify_v370_approval_ticket_workflow.mjs" "$@"
+    ;;
+  verify-v370-site-operations-workspace-ui)
+    require_internal verify_v370_site_operations_workspace_ui.mjs
+    exec "${INTERNAL_DIR}/verify_v370_site_operations_workspace_ui.mjs" "$@"
+    ;;
+  verify-v370-client-notice-by-site-view-group)
+    require_internal verify_v370_client_notice_by_site_view_group.mjs
+    exec "${INTERNAL_DIR}/verify_v370_client_notice_by_site_view_group.mjs" "$@"
+    ;;
+  verify-v370-rule-va-what-if-by-site)
+    require_internal verify_v370_rule_va_what_if_by_site.mjs
+    exec "${INTERNAL_DIR}/verify_v370_rule_va_what_if_by_site.mjs" "$@"
+    ;;
+  verify-v370-field-evidence-attachment)
+    require_internal verify_v370_field_evidence_attachment.mjs
+    exec "${INTERNAL_DIR}/verify_v370_field_evidence_attachment.mjs" "$@"
+    ;;
+  verify-v370-limited-safe-execution-pilot)
+    require_internal verify_v370_limited_safe_execution_pilot.mjs
+    exec "${INTERNAL_DIR}/verify_v370_limited_safe_execution_pilot.mjs" "$@"
+    ;;
+  verify-v370-outcome-reconciliation)
+    require_internal verify_v370_outcome_reconciliation.mjs
+    exec "${INTERNAL_DIR}/verify_v370_outcome_reconciliation.mjs" "$@"
+    ;;
+  verify-v370-export-handoff-bundle)
+    require_internal verify_v370_export_handoff_bundle.mjs
+    exec "${INTERNAL_DIR}/verify_v370_export_handoff_bundle.mjs" "$@"
+    ;;
+  verify-v370-stabilization-release-readiness)
+    require_internal verify_v370_stabilization_release_readiness.mjs
+    exec "${INTERNAL_DIR}/verify_v370_stabilization_release_readiness.mjs" "$@"
     ;;
   verify-v360-entry-baseline)
     require_internal verify_v360_entry_baseline.mjs

@@ -1049,6 +1049,623 @@ void AppendOpsShellScript(std::ostringstream& out,
         ]);
         renderV360OpsSimulationWorkspace({ inputPack, simulationRun, simulationRunLedger, clientNoticePreview, ruleVaWhatIfReplayPack, simulationExportBundle, fieldEvidenceSimulationAdapter, vlmAssistedSimulationExplanation, dryRun, impactDiff, readiness, inputPackRoute, runContractRoute, simulationRunLedgerRoute, clientNoticePreviewRoute, ruleVaWhatIfReplayRoute, simulationExportBundleRoute, fieldEvidenceSimulationAdapterRoute, vlmAssistedSimulationExplanationRoute, dryRunRoute, impactDiffRoute, readinessRoute });
       };
+      let v370ExportHandoffBundleState = {};
+      const v370ExportHandoffBundleList = value => Array.isArray(value) ? value : [];
+      const v370ExportHandoffBundleEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-site-export-handoff-bundle-entry ${escapeHtml(tone)}" data-v370-export-handoff-bundle-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV370ExportHandoffBundle = (payload = {}) => {
+        const bundle = payload.bundle || {};
+        const exportHandoffBundleItems =
+          v370ExportHandoffBundleList(bundle.exportHandoffBundleItems);
+        const exportHandoffMapEntries =
+          v370ExportHandoffBundleList(bundle.exportHandoffMapEntries);
+        const exportHandoffBundleSummary =
+          bundle.exportHandoffBundleSummary || {};
+        const boundaryOk =
+          bundle.boundaries?.artifactExportExecuted === false &&
+          bundle.boundaries?.bundlePersisted === false &&
+          bundle.boundaries?.fileWritePerformed === false &&
+          bundle.boundaries?.handoffWritePerformed === false &&
+          bundle.boundaries?.pilotExecutionPerformed === false &&
+          bundle.boundaries?.clientNoticeSent === false &&
+          bundle.boundaries?.fieldSmokeExecuted === false &&
+          bundle.boundaries?.rawLocatorIncluded === false &&
+          bundle.boundaries?.credentialMaterialIncluded === false &&
+          bundle.boundaries?.rawDiagnosticJsonIncluded === false &&
+          bundle.boundaries?.rtspOrWebrtcMediaPathChanged === false;
+        v370ExportHandoffBundleState = {
+          bundle,
+          exportHandoffBundleRoute: payload.exportHandoffBundleRoute || '/ops/api/site-operations/export-handoff-bundle'
+        };
+        renderBadges('dashSiteExportHandoffBundleBadges', [
+          { text: `bundle ${exportHandoffBundleItems.length}` },
+          { text: `handoff ${exportHandoffMapEntries.length}` },
+          { text: `site refs ${exportHandoffBundleSummary.siteRefCount ?? 0}` },
+          { text: `evidence refs ${exportHandoffBundleSummary.evidenceRefCount ?? 0}` },
+          { text: `blocked ${exportHandoffBundleSummary.blockedCount ?? 0}` },
+          { text: boundaryOk ? 'redacted release-safe' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashSiteExportHandoffBundleText',
+          payload.error
+            ? `Export / Handoff Bundle 로드 실패: ${payload.error}`
+            : `release-safe bundle ${exportHandoffBundleItems.length} · handoff map ${exportHandoffMapEntries.length} · releaseSafe ${exportHandoffBundleSummary.releaseSafeCount ?? 0}`);
+        const bundleList = document.getElementById('dashSiteExportHandoffBundleList');
+        if (bundleList) {
+          bundleList.innerHTML = exportHandoffBundleItems.length > 0
+            ? exportHandoffBundleItems.slice(0, 8).map(item => {
+                const siteRefs = v370ExportHandoffBundleList(item.siteRefs).slice(0, 3).join(', ') || 'site refs pending';
+                const runbookRefs = v370ExportHandoffBundleList(item.runbookRefs).slice(0, 3).join(', ') || 'runbook refs pending';
+                const evidenceRefs = v370ExportHandoffBundleList(item.evidenceRefs).slice(0, 3).join(', ') || 'evidence refs pending';
+                const approvalRefs = v370ExportHandoffBundleList(item.approvalRefs).slice(0, 3).join(', ') || 'approval refs pending';
+                const outcomeRefs = v370ExportHandoffBundleList(item.outcomeRefs).slice(0, 3).join(', ') || 'outcome refs pending';
+                return v370ExportHandoffBundleEntry(
+                  item.bundleId || item.bundleKind || 'exportHandoffBundle',
+                  `${item.siteId || 'site'} / ${item.sourceGroup || 'source group'} / ${item.handoffStatus || 'pending-handoff'}`,
+                  `${display(item.title || 'Export / Handoff Bundle')} · next=${display(item.nextOperatorRole || 'ops-reviewer')}`,
+                  `siteRefs=${display(siteRefs)} · runbookRefs=${display(runbookRefs)} · evidenceRefs=${display(evidenceRefs)} · approvalRefs=${display(approvalRefs)} · outcomeRefs=${display(outcomeRefs)}`,
+                  item.handoffReady === true ? '' : 'warn');
+              }).join('')
+            : '<div class="empty">Export / Handoff Bundle 항목이 아직 없습니다.</div>';
+        }
+        const handoffList = document.getElementById('dashSiteExportHandoffMapList');
+        if (handoffList) {
+          handoffList.innerHTML = exportHandoffMapEntries.length > 0
+            ? exportHandoffMapEntries.slice(0, 8).map(entry => {
+                const bundleRefs = v370ExportHandoffBundleList(entry.bundleRefs).slice(0, 4).join(', ') || 'bundle refs pending';
+                const releaseSafetyRefs = v370ExportHandoffBundleList(entry.releaseSafetyRefs).slice(0, 4).join(', ') || 'release safety refs pending';
+                return v370ExportHandoffBundleEntry(
+                  entry.handoffId || 'handoffMap',
+                  `${entry.handoffStatus || 'pending-handoff'} -> ${entry.nextOperatorRole || 'ops-reviewer'}`,
+                  entry.blockedReason || 'blocked reason pending',
+                  `bundleRefs=${display(bundleRefs)} · releaseSafetyRefs=${display(releaseSafetyRefs)}`,
+                  entry.handoffStatus?.includes('pending') ? 'warn' : '');
+              }).join('')
+            : '<div class="empty">Export handoff map entry가 아직 없습니다.</div>';
+        }
+        const redactionList = document.getElementById('dashSiteExportHandoffRedactionList');
+        if (redactionList) {
+          const redactionRows = exportHandoffBundleItems.flatMap(item =>
+            v370ExportHandoffBundleList(item.redactionReview).slice(0, 6).map(ref =>
+              v370ExportHandoffBundleEntry(
+                'redactionReview',
+                ref,
+                item.releaseSafeLabel || 'redacted-release-safe',
+                `${item.bundleId || 'bundle'} · raw/client/provider material excluded`,
+                '')));
+          redactionList.innerHTML = redactionRows.length > 0
+            ? redactionRows.slice(0, 12).join('')
+            : '<div class="empty">redaction review ref가 아직 없습니다.</div>';
+        }
+        setText('dashSiteExportHandoffBundleBoundary',
+          `bundle=${display(v370ExportHandoffBundleState.exportHandoffBundleRoute)} · site=${display(bundle.siteRegistryProjectionRoute)} · runbook=${display(bundle.runbookInstanceLedgerRoute)} · evidence=${display(bundle.fieldEvidenceAttachmentRoute)} · approval=${display(bundle.approvalTicketWorkflowRoute)} · outcome=${display(bundle.outcomeReconciliationRoute)} · artifactExportExecuted=${bundle.boundaries?.artifactExportExecuted === false ? 'false' : '확인 필요'} · fileWritePerformed=${bundle.boundaries?.fileWritePerformed === false ? 'false' : '확인 필요'} · handoffWritePerformed=${bundle.boundaries?.handoffWritePerformed === false ? 'false' : '확인 필요'} · rawLocatorIncluded=${bundle.boundaries?.rawLocatorIncluded === false ? 'false' : '확인 필요'} · credentialMaterialIncluded=${bundle.boundaries?.credentialMaterialIncluded === false ? 'false' : '확인 필요'} · rawDiagnosticJsonIncluded=${bundle.boundaries?.rawDiagnosticJsonIncluded === false ? 'false' : '확인 필요'} · rtspOrWebrtcMediaPathChanged=${bundle.boundaries?.rtspOrWebrtcMediaPathChanged === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV370ExportHandoffBundle = async ({
+        exportHandoffBundleRoute = '/ops/api/site-operations/export-handoff-bundle'
+      } = {}) => {
+        const bundle = await requestJson(exportHandoffBundleRoute);
+        renderV370ExportHandoffBundle({ bundle, exportHandoffBundleRoute });
+      };
+      let v370OutcomeReconciliationState = {};
+      const v370OutcomeReconciliationList = value => Array.isArray(value) ? value : [];
+      const v370OutcomeReconciliationEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-site-outcome-reconciliation-entry ${escapeHtml(tone)}" data-v370-outcome-reconciliation-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV370OutcomeReconciliation = (payload = {}) => {
+        const reconciliation = payload.reconciliation || {};
+        const outcomeReconciliationItems =
+          v370OutcomeReconciliationList(reconciliation.outcomeReconciliationItems);
+        const outcomeReconciliationSummary =
+          reconciliation.outcomeReconciliationSummary || {};
+        const boundaryOk =
+          reconciliation.boundaries?.executionObserved === false &&
+          reconciliation.boundaries?.pilotExecutionPerformed === false &&
+          reconciliation.boundaries?.sourceRecheckExecuted === false &&
+          reconciliation.boundaries?.noticeQueueWritePerformed === false &&
+          reconciliation.boundaries?.clientNoticeSent === false &&
+          reconciliation.boundaries?.eventRecordWritePerformed === false &&
+          reconciliation.boundaries?.viewerClientPayloadChanged === false &&
+          reconciliation.boundaries?.rtspOrWebrtcMediaPathChanged === false;
+        v370OutcomeReconciliationState = {
+          reconciliation,
+          outcomeReconciliationRoute: payload.outcomeReconciliationRoute || '/ops/api/site-operations/outcome-reconciliation'
+        };
+        renderBadges('dashSiteOutcomeReconciliationBadges', [
+          { text: `reconcile ${outcomeReconciliationItems.length}` },
+          { text: `source ${outcomeReconciliationSummary.sourceDiffCount ?? 0}` },
+          { text: `event ${outcomeReconciliationSummary.eventDiffCount ?? 0}` },
+          { text: `client ${outcomeReconciliationSummary.clientDiffCount ?? 0}` },
+          { text: `pending ${outcomeReconciliationSummary.pendingCount ?? 0}` },
+          { text: boundaryOk ? 'not-run preserved' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashSiteOutcomeReconciliationText',
+          payload.error
+            ? `Outcome Reconciliation 로드 실패: ${payload.error}`
+            : `pre/post comparison ${outcomeReconciliationItems.length} · observed ${outcomeReconciliationSummary.executionObservedCount ?? 0} · not-run ${outcomeReconciliationSummary.notRunCount ?? 0}`);
+        const sourceList = document.getElementById('dashSiteOutcomeReconciliationSourceList');
+        if (sourceList) {
+          sourceList.innerHTML = outcomeReconciliationItems.length > 0
+            ? outcomeReconciliationItems.slice(0, 8).map(item =>
+                v370OutcomeReconciliationEntry(
+                  item.reconciliationId || item.pilotActionId || 'outcomeReconciliation',
+                  `${item.siteId || 'site'} / ${item.sourceGroup || 'source group'} / ${item.actionKind || 'action'}`,
+                  `${item.preSimulationRef || 'preSimulationRef'} -> ${item.postExecutionRef || 'postExecutionRef'}`,
+                  `${item.sourceImpactBeforeRef || 'sourceImpactBeforeRef'} -> ${item.sourceImpactAfterRef || 'sourceImpactAfterRef'} · ${display(item.sourceImpactDiff || 'sourceImpactDiff pending')}`,
+                  item.executionObserved === true ? '' : 'warn'))
+              .join('')
+            : '<div class="empty">Outcome Reconciliation source diff가 아직 없습니다.</div>';
+        }
+        const eventClientList = document.getElementById('dashSiteOutcomeReconciliationEventClientList');
+        if (eventClientList) {
+          eventClientList.innerHTML = outcomeReconciliationItems.length > 0
+            ? outcomeReconciliationItems.slice(0, 8).map(item => {
+                const driftSignals = v370OutcomeReconciliationList(item.driftSignals).slice(0, 3).join(', ') || 'drift pending';
+                const evidenceRefs = v370OutcomeReconciliationList(item.evidenceRefs).slice(0, 3).join(', ') || 'evidence refs pending';
+                return v370OutcomeReconciliationEntry(
+                  item.reconciliationStatus || 'pending-execution',
+                  `${item.eventImpactBeforeRef || 'eventImpactBeforeRef'} -> ${item.eventImpactAfterRef || 'eventImpactAfterRef'}`,
+                  `${display(item.eventImpactDiff || 'eventImpactDiff pending')} · ${display(item.clientImpactDiff || 'clientImpactDiff pending')}`,
+                  `client=${display(item.clientImpactBeforeRef || '-')} -> ${display(item.clientImpactAfterRef || '-')} · drift=${driftSignals} · evidence=${evidenceRefs}`,
+                  item.reconciliationStatus?.includes('pending') ? 'warn' : '');
+              }).join('')
+            : '<div class="empty">EventRecord/client reconciliation diff가 아직 없습니다.</div>';
+        }
+        setText('dashSiteOutcomeReconciliationBoundary',
+          `reconcile=${display(v370OutcomeReconciliationState.outcomeReconciliationRoute)} · pilot=${display(reconciliation.limitedSafeExecutionPilotRoute)} · simulation=${display(reconciliation.siteSimulationInputPackRoute)} · impact=${display(reconciliation.sourceRuleImpactDiffRoute)} · client=${display(reconciliation.clientNoticeBySiteViewGroupRoute)} · executionObserved=${reconciliation.boundaries?.executionObserved === false ? 'false' : '확인 필요'} · pilotExecutionPerformed=${reconciliation.boundaries?.pilotExecutionPerformed === false ? 'false' : '확인 필요'} · eventRecordWritePerformed=${reconciliation.boundaries?.eventRecordWritePerformed === false ? 'false' : '확인 필요'} · clientNoticeSent=${reconciliation.boundaries?.clientNoticeSent === false ? 'false' : '확인 필요'} · viewerClientPayloadChanged=${reconciliation.boundaries?.viewerClientPayloadChanged === false ? 'false' : '확인 필요'} · rtspOrWebrtcMediaPathChanged=${reconciliation.boundaries?.rtspOrWebrtcMediaPathChanged === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV370OutcomeReconciliation = async ({
+        outcomeReconciliationRoute = '/ops/api/site-operations/outcome-reconciliation'
+      } = {}) => {
+        const reconciliation = await requestJson(outcomeReconciliationRoute);
+        renderV370OutcomeReconciliation({ reconciliation, outcomeReconciliationRoute });
+      };
+      let v370LimitedSafeExecutionPilotState = {};
+      const v370LimitedSafeExecutionPilotList = value => Array.isArray(value) ? value : [];
+      const v370LimitedSafeExecutionPilotEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-site-limited-safe-execution-pilot-entry ${escapeHtml(tone)}" data-v370-limited-safe-execution-pilot-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV370LimitedSafeExecutionPilot = (payload = {}) => {
+        const pilot = payload.pilot || {};
+        const limitedSafeExecutionPilotActions =
+          v370LimitedSafeExecutionPilotList(pilot.limitedSafeExecutionPilotActions);
+        const limitedSafeExecutionPilotSummary =
+          pilot.limitedSafeExecutionPilotSummary || {};
+        const boundaryOk =
+          pilot.boundaries?.pilotExecutionPerformed === false &&
+          pilot.boundaries?.sourceRecheckExecuted === false &&
+          pilot.boundaries?.noticeQueueWritePerformed === false &&
+          pilot.boundaries?.clientNoticeSent === false &&
+          pilot.boundaries?.sourceRegistryWritePerformed === false &&
+          pilot.boundaries?.runbookInstancePersisted === false &&
+          pilot.boundaries?.approvalTicketWritePerformed === false &&
+          pilot.boundaries?.rtspOrWebrtcMediaPathChanged === false;
+        v370LimitedSafeExecutionPilotState = {
+          pilot,
+          limitedSafeExecutionPilotRoute: payload.limitedSafeExecutionPilotRoute || '/ops/api/site-operations/limited-safe-execution-pilot'
+        };
+        renderBadges('dashSiteLimitedSafeExecutionPilotBadges', [
+          { text: `pilot ${limitedSafeExecutionPilotActions.length}` },
+          { text: `source recheck ${limitedSafeExecutionPilotSummary.sourceRecheckPilotCount ?? 0}` },
+          { text: `notice queue ${limitedSafeExecutionPilotSummary.noticeQueuePilotCount ?? 0}` },
+          { text: `approval gated ${limitedSafeExecutionPilotSummary.approvalGatedCount ?? 0}` },
+          { text: `not-run ${limitedSafeExecutionPilotSummary.notRunCount ?? 0}` },
+          { text: boundaryOk ? 'preview only' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashSiteLimitedSafeExecutionPilotText',
+          payload.error
+            ? `Limited Safe Execution Pilot 로드 실패: ${payload.error}`
+            : `candidate ${limitedSafeExecutionPilotActions.length} · ready ${limitedSafeExecutionPilotSummary.readyToPilotCount ?? 0} · blocked ${limitedSafeExecutionPilotSummary.blockedCount ?? 0}`);
+        const pilotList = document.getElementById('dashSiteLimitedSafeExecutionPilotList');
+        if (pilotList) {
+          pilotList.innerHTML = limitedSafeExecutionPilotActions.length > 0
+            ? limitedSafeExecutionPilotActions.slice(0, 8).map(item =>
+                v370LimitedSafeExecutionPilotEntry(
+                  item.pilotActionId || item.actionKind || 'limitedSafeExecutionPilot',
+                  `${item.siteId || 'site'} / ${item.sourceGroup || 'source group'} / ${item.actionKind || 'actionKind'}`,
+                  `${item.sourceRecheckRef || 'sourceRecheckRef'} · ${item.noticeQueueRef || 'noticeQueueRef'}`,
+                  `approval=${display(item.approvalGateState || 'hold')} · status=${display(item.pilotExecutionStatus || 'approval-gated-not-run')} · key=${display(item.idempotencyKey || '-')}`,
+                  item.pilotExecutionStatus === 'approval-gated-ready' ? '' : 'warn'))
+              .join('')
+            : '<div class="empty">Limited Safe Execution Pilot 후보가 아직 없습니다.</div>';
+        }
+        const gateList = document.getElementById('dashSiteLimitedSafeExecutionPilotGateList');
+        if (gateList) {
+          gateList.innerHTML = limitedSafeExecutionPilotActions.length > 0
+            ? limitedSafeExecutionPilotActions.slice(0, 8).map(item => {
+                const blockerRefs = v370LimitedSafeExecutionPilotList(item.blockerRefs).slice(0, 3).join(', ') || 'none';
+                const evidenceRefs = v370LimitedSafeExecutionPilotList(item.evidenceRefs).slice(0, 3).join(', ') || 'evidence refs pending';
+                return v370LimitedSafeExecutionPilotEntry(
+                  item.approvalTicketId || 'approvalTicketId',
+                  item.executionRequestPreview || 'executionRequestPreview',
+                  `expectedOutcome=${display(item.expectedOutcomeRef || 'not-run')}`,
+                  `blockerRefs=${blockerRefs} · evidenceRefs=${evidenceRefs}`,
+                  item.approvalGateState === 'approval-gated-ready' ? '' : 'warn');
+              }).join('')
+            : '<div class="empty">approval gate preview 항목이 아직 없습니다.</div>';
+        }
+        setText('dashSiteLimitedSafeExecutionPilotBoundary',
+          `pilot=${display(v370LimitedSafeExecutionPilotState.limitedSafeExecutionPilotRoute)} · runbook=${display(pilot.runbookInstanceLedgerRoute)} · approval=${display(pilot.approvalTicketWorkflowRoute)} · fieldAttachment=${display(pilot.fieldEvidenceAttachmentRoute)} · notice=${display(pilot.clientNoticeBySiteViewGroupRoute)} · pilotExecutionPerformed=${pilot.boundaries?.pilotExecutionPerformed === false ? 'false' : '확인 필요'} · sourceRecheckExecuted=${pilot.boundaries?.sourceRecheckExecuted === false ? 'false' : '확인 필요'} · noticeQueueWritePerformed=${pilot.boundaries?.noticeQueueWritePerformed === false ? 'false' : '확인 필요'} · clientNoticeSent=${pilot.boundaries?.clientNoticeSent === false ? 'false' : '확인 필요'} · runbookInstancePersisted=${pilot.boundaries?.runbookInstancePersisted === false ? 'false' : '확인 필요'} · approvalTicketWritePerformed=${pilot.boundaries?.approvalTicketWritePerformed === false ? 'false' : '확인 필요'} · rtspOrWebrtcMediaPathChanged=${pilot.boundaries?.rtspOrWebrtcMediaPathChanged === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV370LimitedSafeExecutionPilot = async ({
+        limitedSafeExecutionPilotRoute = '/ops/api/site-operations/limited-safe-execution-pilot'
+      } = {}) => {
+        const pilot = await requestJson(limitedSafeExecutionPilotRoute);
+        renderV370LimitedSafeExecutionPilot({ pilot, limitedSafeExecutionPilotRoute });
+      };
+      let v370FieldEvidenceAttachmentState = {};
+      const v370FieldEvidenceAttachmentList = value => Array.isArray(value) ? value : [];
+      const v370FieldEvidenceAttachmentEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-site-field-evidence-attachment-entry ${escapeHtml(tone)}" data-v370-field-evidence-attachment-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV370FieldEvidenceAttachment = (payload = {}) => {
+        const fieldEvidenceAttachment = payload.fieldEvidenceAttachment || {};
+        const fieldEvidenceAttachments = v370FieldEvidenceAttachmentList(
+          fieldEvidenceAttachment.fieldEvidenceAttachments);
+        const fieldEvidenceAttachmentSummary =
+          fieldEvidenceAttachment.fieldEvidenceAttachmentSummary || {};
+        const boundaryOk =
+          fieldEvidenceAttachment.boundaries?.fieldSmokeExecuted === false &&
+          fieldEvidenceAttachment.boundaries?.endpointProbePerformed === false &&
+          fieldEvidenceAttachment.boundaries?.credentialProbePerformed === false &&
+          fieldEvidenceAttachment.boundaries?.providerCallPerformed === false &&
+          fieldEvidenceAttachment.boundaries?.sourceRegistryWritePerformed === false &&
+          fieldEvidenceAttachment.boundaries?.runbookInstancePersisted === false &&
+          fieldEvidenceAttachment.boundaries?.approvalTicketWritePerformed === false &&
+          fieldEvidenceAttachment.boundaries?.rtspOrWebrtcMediaPathChanged === false;
+        v370FieldEvidenceAttachmentState = {
+          fieldEvidenceAttachment,
+          fieldEvidenceAttachmentRoute: payload.fieldEvidenceAttachmentRoute || '/ops/api/site-operations/field-evidence-attachment'
+        };
+        renderBadges('dashSiteFieldEvidenceAttachmentBadges', [
+          { text: `attachment ${fieldEvidenceAttachments.length}` },
+          { text: `ONVIF ${fieldEvidenceAttachmentSummary.onvifConditionCount ?? 0}` },
+          { text: `WHEP/TURN ${fieldEvidenceAttachmentSummary.externalWhepTurnConditionCount ?? 0}` },
+          { text: `cloud/VLM ${fieldEvidenceAttachmentSummary.cloudVlmProviderConditionCount ?? 0}` },
+          { text: `not-run ${fieldEvidenceAttachmentSummary.notRunCount ?? 0}` },
+          { text: boundaryOk ? 'attachment only' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashSiteFieldEvidenceAttachmentText',
+          payload.error
+            ? `Field Evidence Attachment 로드 실패: ${payload.error}`
+            : `site/runbook evidence ${fieldEvidenceAttachments.length} · endpoint required ${fieldEvidenceAttachmentSummary.endpointRequiredCount ?? 0} · credential required ${fieldEvidenceAttachmentSummary.credentialRequiredCount ?? 0} · approval required ${fieldEvidenceAttachmentSummary.approvalRequiredCount ?? 0}`);
+        const attachmentList = document.getElementById('dashSiteFieldEvidenceAttachmentList');
+        if (attachmentList) {
+          attachmentList.innerHTML = fieldEvidenceAttachments.length > 0
+            ? fieldEvidenceAttachments.slice(0, 8).map(item =>
+                v370FieldEvidenceAttachmentEntry(
+                  item.fieldEvidenceAttachmentId || item.bridgeKind || 'fieldEvidenceAttachment',
+                  `${item.siteId || 'site'} / ${item.sourceGroup || 'source group'} / ${item.bridgeKind || 'bridgeKind'}`,
+                  `${item.siteRunbookEvidenceRef || 'siteRunbookEvidenceRef'} · ${item.conditionalNotRunEvidence || 'conditionalNotRunEvidence'}`,
+                  `runbook=${display(item.runbookId || '-')} · approval=${display(item.approvalTicketId || '-')} · execution=${display(item.executionStatus || 'not-run')} · fieldSmoke=${display(item.fieldSmokeStatus || 'field-smoke-not-run')}`,
+                  item.executionStatus === 'not-run' ? 'warn' : ''))
+              .join('')
+            : '<div class="empty">Field Evidence Attachment 항목이 아직 없습니다.</div>';
+        }
+        const conditionList = document.getElementById('dashSiteFieldEvidenceAttachmentConditionList');
+        if (conditionList) {
+          conditionList.innerHTML = fieldEvidenceAttachments.length > 0
+            ? fieldEvidenceAttachments.slice(0, 8).map(item => {
+                const conditionRefs = v370FieldEvidenceAttachmentList(item.conditionRefs).slice(0, 3).join(', ') || 'condition refs pending';
+                const evidenceRefs = v370FieldEvidenceAttachmentList(item.evidenceRefs).slice(0, 3).join(', ') || 'evidence refs pending';
+                return v370FieldEvidenceAttachmentEntry(
+                  item.siteRunbookEvidenceRef || item.fieldEvidenceAttachmentId || 'siteRunbookEvidenceRef',
+                  item.redactedFieldEvidence || 'redactedFieldEvidence',
+                  `conditionRefs=${conditionRefs}`,
+                  `evidenceRefs=${evidenceRefs} · notRunReason=${display(item.notRunReason || 'not-run')}`,
+                  item.endpointRequired || item.credentialRequired ? 'warn' : '');
+              }).join('')
+            : '<div class="empty">conditional/not-run condition refs가 아직 없습니다.</div>';
+        }
+        setText('dashSiteFieldEvidenceAttachmentBoundary',
+          `attachment=${display(v370FieldEvidenceAttachmentState.fieldEvidenceAttachmentRoute)} · projection=${display(fieldEvidenceAttachment.siteRegistryProjectionRoute)} · runbook=${display(fieldEvidenceAttachment.runbookInstanceLedgerRoute)} · approval=${display(fieldEvidenceAttachment.approvalTicketWorkflowRoute)} · adapter=${display(fieldEvidenceAttachment.fieldEvidenceSimulationAdapterRoute)} · fieldSmokeExecuted=${fieldEvidenceAttachment.boundaries?.fieldSmokeExecuted === false ? 'false' : '확인 필요'} · endpointProbePerformed=${fieldEvidenceAttachment.boundaries?.endpointProbePerformed === false ? 'false' : '확인 필요'} · credentialProbePerformed=${fieldEvidenceAttachment.boundaries?.credentialProbePerformed === false ? 'false' : '확인 필요'} · providerCallPerformed=${fieldEvidenceAttachment.boundaries?.providerCallPerformed === false ? 'false' : '확인 필요'} · runbookInstancePersisted=${fieldEvidenceAttachment.boundaries?.runbookInstancePersisted === false ? 'false' : '확인 필요'} · approvalTicketWritePerformed=${fieldEvidenceAttachment.boundaries?.approvalTicketWritePerformed === false ? 'false' : '확인 필요'} · sourceRegistryWritePerformed=${fieldEvidenceAttachment.boundaries?.sourceRegistryWritePerformed === false ? 'false' : '확인 필요'} · rtspOrWebrtcMediaPathChanged=${fieldEvidenceAttachment.boundaries?.rtspOrWebrtcMediaPathChanged === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV370FieldEvidenceAttachment = async ({
+        fieldEvidenceAttachmentRoute = '/ops/api/site-operations/field-evidence-attachment'
+      } = {}) => {
+        const fieldEvidenceAttachment = await requestJson(fieldEvidenceAttachmentRoute);
+        renderV370FieldEvidenceAttachment({ fieldEvidenceAttachment, fieldEvidenceAttachmentRoute });
+      };
+      let v370RuleVaWhatIfBySiteState = {};
+      const v370RuleVaWhatIfBySiteList = value => Array.isArray(value) ? value : [];
+      const v370RuleVaWhatIfBySiteEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-site-rule-va-what-if-entry ${escapeHtml(tone)}" data-v370-rule-va-what-if-by-site-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV370RuleVaWhatIfBySite = (payload = {}) => {
+        const whatIf = payload.whatIf || {};
+        const items = v370RuleVaWhatIfBySiteList(whatIf.ruleVaWhatIfBySiteItems);
+        const summary = whatIf.ruleVaWhatIfBySiteSummary || {};
+        const boundaryOk = whatIf.boundaries?.ruleRegistryWritePerformed === false &&
+          whatIf.boundaries?.ruleThresholdApplied === false &&
+          whatIf.boundaries?.scenarioApplied === false &&
+          whatIf.boundaries?.eventRecordWritePerformed === false &&
+          whatIf.boundaries?.simulationRunExecuted === false &&
+          whatIf.boundaries?.safeApplyPerformed === false &&
+          whatIf.boundaries?.clientNoticeSent === false &&
+          whatIf.boundaries?.rtspOrWebrtcMediaPathChanged === false;
+        v370RuleVaWhatIfBySiteState = {
+          whatIf,
+          whatIfRoute: payload.whatIfRoute || '/ops/api/site-operations/rule-va-what-if-by-site'
+        };
+        renderBadges('dashSiteRuleVaWhatIfBadges', [
+          { text: `candidate ${items.length}` },
+          { text: `site ${summary.siteCount ?? 0}` },
+          { text: `source group ${summary.sourceGroupCount ?? 0}` },
+          { text: `threshold ${summary.thresholdCandidateCount ?? 0}` },
+          { text: `scenario ${summary.scenarioCandidateCount ?? 0}` },
+          { text: `EventRecord ${summary.eventRecordRefCount ?? 0}` },
+          { text: `VA fixture ${summary.vaFixtureRefCount ?? 0}` },
+          { text: boundaryOk ? 'what-if only' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashSiteRuleVaWhatIfText',
+          payload.error
+            ? `Rule/VA what-if by site 로드 실패: ${payload.error}`
+            : `site ${summary.siteCount ?? 0} · source group ${summary.sourceGroupCount ?? 0} · candidate ${items.length} · affected clients ${summary.affectedClientRefCount ?? 0} · blocked/not-run ${summary.blockedOrNotRunCount ?? 0}`);
+        const candidateList = document.getElementById('dashSiteRuleVaWhatIfCandidateList');
+        if (candidateList) {
+          candidateList.innerHTML = items.length > 0
+            ? items.slice(0, 8).map(item =>
+                v370RuleVaWhatIfBySiteEntry(
+                  item.whatIfBySiteId || item.ruleCandidateId || 'what-if-by-site',
+                  `${item.siteId || 'site'} / ${item.sourceGroup || 'source group'}`,
+                  `${item.ruleThresholdCandidate || 'thresholdCandidate'} · ${item.scenarioCandidate || 'scenarioCandidate'}`,
+                  `ruleCandidate=${display(item.ruleCandidateId || '-')} · source=${display(item.sourceId || '-')} · readiness=${display(item.readinessState || 'not-run')}`,
+                  item.readinessState === 'ready' ? '' : 'warn'))
+              .join('')
+            : '<div class="empty">Rule/VA what-if by site 후보가 아직 없습니다.</div>';
+        }
+        const impactList = document.getElementById('dashSiteRuleVaWhatIfImpactList');
+        if (impactList) {
+          impactList.innerHTML = items.length > 0
+            ? items.slice(0, 8).map(item =>
+                v370RuleVaWhatIfBySiteEntry(
+                  item.whatIfBySiteId || item.ruleCandidateId || 'site-impact-delta',
+                  item.siteImpactSummary || 'site impact summary',
+                  item.whatIfResultDelta || 'what-if result delta',
+                  `before=${display(item.beforeMatchState || 'current')} · after=${display(item.afterMatchState || 'what-if')}`))
+              .join('')
+            : '<div class="empty">site impact delta 항목이 아직 없습니다.</div>';
+        }
+        const fixtureList = document.getElementById('dashSiteRuleVaWhatIfFixtureList');
+        if (fixtureList) {
+          fixtureList.innerHTML = items.length > 0
+            ? items.slice(0, 8).map(item => {
+                const changedFields = v370RuleVaWhatIfBySiteList(item.changedFields).slice(0, 3).join(', ') || 'changed fields pending';
+                const affectedClients = v370RuleVaWhatIfBySiteList(item.affectedClientRefs).slice(0, 3).join(', ') || 'none';
+                return v370RuleVaWhatIfBySiteEntry(
+                  item.eventRecordRef || 'EventRecord aggregate',
+                  item.vaFixtureRef || 'vaFixtureRef',
+                  `changedFields=${changedFields}`,
+                  `affectedClientRefs=${affectedClients}`);
+              }).join('')
+            : '<div class="empty">EventRecord aggregate와 VA fixture refs가 아직 없습니다.</div>';
+        }
+        setText('dashSiteRuleVaWhatIfBoundary',
+          `whatIf=${display(v370RuleVaWhatIfBySiteState.whatIfRoute)} · projection=${display(whatIf.siteRegistryProjectionRoute)} · health=${display(whatIf.siteHealthRollupRoute)} · impact=${display(whatIf.siteImpactGraphRoute)} · simulationInput=${display(whatIf.siteSimulationInputPackRoute)} · readiness=${display(whatIf.crossSiteSafeApplyReadinessRoute)} · eventRecord=${display(whatIf.eventRecordRoute)} · ruleReplay=${display(whatIf.ruleVaReplayRoute)} · ruleRegistryWritePerformed=${whatIf.boundaries?.ruleRegistryWritePerformed === false ? 'false' : '확인 필요'} · ruleThresholdApplied=${whatIf.boundaries?.ruleThresholdApplied === false ? 'false' : '확인 필요'} · scenarioApplied=${whatIf.boundaries?.scenarioApplied === false ? 'false' : '확인 필요'} · eventRecordWritePerformed=${whatIf.boundaries?.eventRecordWritePerformed === false ? 'false' : '확인 필요'} · simulationRunExecuted=${whatIf.boundaries?.simulationRunExecuted === false ? 'false' : '확인 필요'} · safeApplyPerformed=${whatIf.boundaries?.safeApplyPerformed === false ? 'false' : '확인 필요'} · clientNoticeSent=${whatIf.boundaries?.clientNoticeSent === false ? 'false' : '확인 필요'} · rtspOrWebrtcMediaPathChanged=${whatIf.boundaries?.rtspOrWebrtcMediaPathChanged === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV370RuleVaWhatIfBySite = async ({
+        whatIfRoute = '/ops/api/site-operations/rule-va-what-if-by-site'
+      } = {}) => {
+        const whatIf = await requestJson(whatIfRoute);
+        renderV370RuleVaWhatIfBySite({ whatIf, whatIfRoute });
+      };
+      let v370ClientNoticeBySiteViewGroupState = {};
+      const v370ClientNoticeBySiteViewGroupList = value => Array.isArray(value) ? value : [];
+      const v370ClientNoticeBySiteViewGroupEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-site-client-notice-entry ${escapeHtml(tone)}" data-v370-client-notice-by-site-view-group-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV370ClientNoticeBySiteViewGroup = (payload = {}) => {
+        const notice = payload.notice || {};
+        const clientNoticeBySiteViewGroupItems = v370ClientNoticeBySiteViewGroupList(
+          notice.clientNoticeBySiteViewGroupItems);
+        const clientNoticeBySiteViewGroupSummary = notice.clientNoticeBySiteViewGroupSummary || {};
+        const noticeRoute = payload.noticeRoute || '/ops/api/site-operations/client-notice-by-site-view-group';
+        const boundaryOk = notice.boundaries?.clientNoticeSent === false &&
+          notice.boundaries?.clientNoticePersisted === false &&
+          notice.boundaries?.viewerClientPayloadChanged === false &&
+          notice.boundaries?.sourceRegistryWritePerformed === false &&
+          notice.boundaries?.publishedViewWritePerformed === false &&
+          notice.boundaries?.eventRecordWritePerformed === false &&
+          notice.boundaries?.opsAuditWritePerformed === false &&
+          notice.boundaries?.rtspOrWebrtcMediaPathChanged === false;
+        v370ClientNoticeBySiteViewGroupState = { notice, noticeRoute };
+        renderBadges('dashSiteClientNoticeBadges', [
+          { text: `notice ${clientNoticeBySiteViewGroupItems.length}` },
+          { text: `viewGroup ${clientNoticeBySiteViewGroupSummary.viewGroupCount ?? 0}` },
+          { text: `affectedView ${clientNoticeBySiteViewGroupSummary.affectedViewCount ?? 0}` },
+          { text: `queue ${clientNoticeBySiteViewGroupSummary.deliveryQueueCount ?? clientNoticeBySiteViewGroupItems.length}` },
+          { text: boundaryOk ? 'preview-only' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashSiteClientNoticeText',
+          payload.error
+            ? `client notice by site/view group 로드 실패: ${payload.error}`
+            : `site/view group notice preview ${clientNoticeBySiteViewGroupItems.length} · affected view ${clientNoticeBySiteViewGroupSummary.affectedViewCount ?? 0} · delivery queue preview ${clientNoticeBySiteViewGroupSummary.deliveryQueueCount ?? clientNoticeBySiteViewGroupItems.length}`);
+        const previewList = document.getElementById('dashSiteClientNoticePreviewList');
+        if (previewList) {
+          previewList.innerHTML = clientNoticeBySiteViewGroupItems.length > 0
+            ? clientNoticeBySiteViewGroupItems.slice(0, 10).map(item =>
+                v370ClientNoticeBySiteViewGroupEntry(
+                  item.noticePreviewId || 'notice-preview',
+                  item.viewerSafeTitle || item.noticeStatus || 'viewer-safe notice preview',
+                  item.viewerSafeBody || item.timelineHint || 'viewer-safe body pending',
+                  `site=${display(item.siteId || '-')} · group=${display(item.sourceGroup || '-')} · viewGroup=${display(item.viewGroup || '-')} · status=${display(item.noticeStatus || '-')}`,
+                  ['degraded', 'maintenance', 'field-needed'].includes(String(item.noticeStatus || '')) ? 'warn' : ''))
+              .join('')
+            : '<div class="empty">site/view group notice preview 항목이 아직 없습니다.</div>';
+        }
+        const deliveryQueue = document.getElementById('dashSiteClientNoticeDeliveryQueue');
+        if (deliveryQueue) {
+          deliveryQueue.innerHTML = clientNoticeBySiteViewGroupItems.length > 0
+            ? clientNoticeBySiteViewGroupItems.slice(0, 10).map(item =>
+                v370ClientNoticeBySiteViewGroupEntry(
+                  item.noticePreviewId || 'delivery-queue-preview',
+                  item.deliveryQueueState || item.deliveryState || 'delivery-queue-preview',
+                  item.timelineHint || 'preview-only delivery queue',
+                  `views=${display(v370ClientNoticeBySiteViewGroupList(item.affectedViewIds).join(', ') || '-')} · clients=${display(v370ClientNoticeBySiteViewGroupList(item.affectedClientRefs).slice(0, 3).join(', ') || '-')} · route=${noticeRoute}`,
+                  item.deliveryState === 'preview-only' ? 'info' : 'warn'))
+              .join('')
+            : '<div class="empty">delivery queue preview 항목이 아직 없습니다.</div>';
+        }
+        setText('dashSiteClientNoticeBoundary',
+          `route=${display(noticeRoute)} · siteViewGroupScoped=${notice.boundaries?.siteViewGroupScoped === true ? 'true' : '확인 필요'} · clientNoticeSent=${notice.boundaries?.clientNoticeSent === false ? 'false' : '확인 필요'} · clientNoticePersisted=${notice.boundaries?.clientNoticePersisted === false ? 'false' : '확인 필요'} · viewerClientPayloadChanged=${notice.boundaries?.viewerClientPayloadChanged === false ? 'false' : '확인 필요'} · sourceRegistryWritePerformed=${notice.boundaries?.sourceRegistryWritePerformed === false ? 'false' : '확인 필요'} · publishedViewWritePerformed=${notice.boundaries?.publishedViewWritePerformed === false ? 'false' : '확인 필요'} · eventRecordWritePerformed=${notice.boundaries?.eventRecordWritePerformed === false ? 'false' : '확인 필요'} · opsAuditWritePerformed=${notice.boundaries?.opsAuditWritePerformed === false ? 'false' : '확인 필요'} · rtspOrWebrtcMediaPathChanged=${notice.boundaries?.rtspOrWebrtcMediaPathChanged === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV370ClientNoticeBySiteViewGroup = async ({
+        noticeRoute = '/ops/api/site-operations/client-notice-by-site-view-group'
+      } = {}) => {
+        const notice = await requestJson(noticeRoute)
+          .catch(error => ({ error: error.message, clientNoticeBySiteViewGroupItems: [], clientNoticeBySiteViewGroupSummary: {}, boundaries: {} }));
+        renderV370ClientNoticeBySiteViewGroup({ notice, noticeRoute });
+      };
+      let v370SiteOperationsWorkspaceState = {};
+      const v370SiteOperationsWorkspaceList = value => Array.isArray(value) ? value : [];
+      const v370SiteOperationsWorkspaceEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-site-operations-entry ${escapeHtml(tone)}" data-v370-site-operations-workspace-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV370SiteOperationsWorkspace = (payload = {}) => {
+        const projection = payload.projection || {};
+        const health = payload.health || {};
+        const impact = payload.impact || {};
+        const runbook = payload.runbook || {};
+        const approval = payload.approval || {};
+        const sourceRegistryProjectionItems = v370SiteOperationsWorkspaceList(
+          projection.sourceRegistryProjectionItems || projection.siteRegistryProjection);
+        const siteHealthRollupItems = v370SiteOperationsWorkspaceList(
+          health.siteHealthRollupItems || health.siteHealthRollup);
+        const siteImpactGraphNodes = v370SiteOperationsWorkspaceList(impact.siteImpactGraphNodes);
+        const siteImpactGraphEdges = v370SiteOperationsWorkspaceList(impact.siteImpactGraphEdges);
+        const runbookInstanceLedgerEntries = v370SiteOperationsWorkspaceList(runbook.runbookInstanceLedgerEntries);
+        const approvalTicketWorkflowItems = v370SiteOperationsWorkspaceList(approval.approvalTicketWorkflowItems);
+        const siteNodes = siteImpactGraphNodes.filter(node => String(node?.nodeType || node?.type || '').toLowerCase() === 'site');
+        const sourceNodes = siteImpactGraphNodes.filter(node => String(node?.nodeType || node?.type || '').toLowerCase() === 'source');
+        const boundaryOk = projection.boundaries?.readOnly === true &&
+          health.boundaries?.readOnly === true &&
+          impact.boundaries?.readOnly === true &&
+          runbook.boundaries?.runbookInstancePersisted === false &&
+          runbook.boundaries?.operatorNoteWritePerformed === false &&
+          approval.boundaries?.approvalTicketWritePerformed === false &&
+          approval.boundaries?.approvalDecisionPersisted === false &&
+          approval.boundaries?.clientNoticeSent === false;
+        v370SiteOperationsWorkspaceState = {
+          projection,
+          health,
+          impact,
+          runbook,
+          approval,
+          projectionRoute: payload.projectionRoute || '/ops/api/site-operations/source-registry-projection',
+          healthRoute: payload.healthRoute || '/ops/api/site-operations/health-rollup',
+          impactRoute: payload.impactRoute || '/ops/api/site-operations/impact-graph',
+          runbookRoute: payload.runbookRoute || '/ops/api/site-operations/runbook-instance-ledger',
+          approvalRoute: payload.approvalRoute || '/ops/api/site-operations/approval-ticket-workflow'
+        };
+        renderBadges('dashSiteOperationsWorkspaceBadges', [
+          { text: `site ${siteNodes.length || sourceRegistryProjectionItems.length}` },
+          { text: `source ${sourceNodes.length}` },
+          { text: `health ${siteHealthRollupItems.length}` },
+          { text: `runbook ${runbookInstanceLedgerEntries.length}` },
+          { text: `approval ${approvalTicketWorkflowItems.length}` },
+          { text: `impact ${siteImpactGraphNodes.length}/${siteImpactGraphEdges.length}` },
+          { text: boundaryOk ? 'read-only' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashSiteOperationsWorkspaceText',
+          payload.error
+            ? `site operations workspace 로드 실패: ${payload.error}`
+            : `site list ${sourceRegistryProjectionItems.length} · health rollup ${siteHealthRollupItems.length} · runbook queue ${runbookInstanceLedgerEntries.length} · approval workflow ${approvalTicketWorkflowItems.length} · impact detail ${siteImpactGraphNodes.length}`);
+        const siteList = document.getElementById('dashSiteOperationsSiteList');
+        if (siteList) {
+          siteList.innerHTML = sourceRegistryProjectionItems.length > 0
+            ? sourceRegistryProjectionItems.slice(0, 8).map(item =>
+                v370SiteOperationsWorkspaceEntry(
+                  item.siteId || item.sourceId || 'site-projection',
+                  item.siteId || item.siteName || item.sourceGroup || item.sourceId || 'site',
+                  item.sourceGroup || item.viewGroup || item.zone || 'source group pending',
+                  `source=${display(item.sourceId || '-')} · view=${display(item.viewId || item.viewCount || '-')} · route=${v370SiteOperationsWorkspaceState.projectionRoute}`))
+              .join('')
+            : '<div class="empty">site/source group projection 항목이 아직 없습니다.</div>';
+        }
+        const healthList = document.getElementById('dashSiteOperationsHealthList');
+        if (healthList) {
+          healthList.innerHTML = siteHealthRollupItems.length > 0
+            ? siteHealthRollupItems.slice(0, 8).map(item =>
+                v370SiteOperationsWorkspaceEntry(
+                  item.siteId || item.sourceId || 'site-health',
+                  item.rollupState || item.healthState || item.status || 'health rollup',
+                  item.siteId || item.sourceGroup || item.sourceId || 'site',
+                  `offline=${display(item.offlineCount ?? item.offlineSources ?? 0)} · degraded=${display(item.degradedCount ?? item.degradedSources ?? 0)} · fieldNeeded=${display(item.fieldNeededCount ?? item.fieldNeededSources ?? 0)}`,
+                  String(item.rollupState || item.healthState || item.status || '').includes('field') ? 'warn' : ''))
+              .join('')
+            : '<div class="empty">site health rollup 항목이 아직 없습니다.</div>';
+        }
+        const runbookQueue = document.getElementById('dashSiteOperationsRunbookQueue');
+        if (runbookQueue) {
+          const runbookRows = runbookInstanceLedgerEntries.slice(0, 5).map(entry =>
+            v370SiteOperationsWorkspaceEntry(
+              entry.runbookId || entry.runbookInstanceId || 'runbook',
+              entry.status || entry.runbookStatus || 'queued',
+              entry.operatorNote || entry.previousRunComparison || entry.siteId || 'operator review pending',
+              `site=${display(entry.siteId || '-')} · template=${display(entry.templateId || entry.runbookTemplateId || '-')} · previous=${display(entry.previousRunId || entry.comparedToRunId || '-')}`,
+              String(entry.status || '').includes('blocked') ? 'warn' : ''));
+          const approvalRows = approvalTicketWorkflowItems.slice(0, 5).map(item =>
+            v370SiteOperationsWorkspaceEntry(
+              item.ticketId || item.approvalTicketId || 'approval-ticket',
+              item.approvalState || item.status || 'approval',
+              item.reason || item.reviewer || item.auditLink || 'approval review pending',
+              `runbook=${display(item.runbookId || '-')} · reviewer=${display(item.reviewer || '-')} · audit=${display(item.auditLink || '-')}`,
+              ['hold', 'reject', 'field-needed'].includes(String(item.approvalState || item.status || '')) ? 'warn' : ''));
+          runbookQueue.innerHTML = runbookRows.length + approvalRows.length > 0
+            ? [...runbookRows, ...approvalRows].join('')
+            : '<div class="empty">runbook queue와 approval workflow 항목이 아직 없습니다.</div>';
+        }
+        const impactDetail = document.getElementById('dashSiteOperationsImpactDetail');
+        if (impactDetail) {
+          impactDetail.innerHTML = siteImpactGraphNodes.length > 0
+            ? siteImpactGraphNodes.slice(0, 8).map(node =>
+                v370SiteOperationsWorkspaceEntry(
+                  node.nodeId || node.id || 'impact-node',
+                  node.label || node.title || node.nodeType || 'impact node',
+                  node.summary || node.status || node.siteId || 'impact detail',
+                  `type=${display(node.nodeType || node.type || '-')} · refs=${display(v370SiteOperationsWorkspaceList(node.refs || node.evidenceRefs).slice(0, 2).join(', ') || 'none')}`))
+              .join('')
+            : '<div class="empty">site impact graph detail 항목이 아직 없습니다.</div>';
+        }
+        setText('dashSiteOperationsBoundary',
+          `projection=${display(v370SiteOperationsWorkspaceState.projectionRoute)} · health=${display(v370SiteOperationsWorkspaceState.healthRoute)} · impact=${display(v370SiteOperationsWorkspaceState.impactRoute)} · runbook=${display(v370SiteOperationsWorkspaceState.runbookRoute)} · approval=${display(v370SiteOperationsWorkspaceState.approvalRoute)} · sourceRegistryWritePerformed=${projection.boundaries?.sourceRegistryWritePerformed === false ? 'false' : '확인 필요'} · publishedViewWritePerformed=${projection.boundaries?.publishedViewWritePerformed === false ? 'false' : '확인 필요'} · runbookInstancePersisted=${runbook.boundaries?.runbookInstancePersisted === false ? 'false' : '확인 필요'} · operatorNoteWritePerformed=${runbook.boundaries?.operatorNoteWritePerformed === false ? 'false' : '확인 필요'} · approvalTicketWritePerformed=${approval.boundaries?.approvalTicketWritePerformed === false ? 'false' : '확인 필요'} · approvalDecisionPersisted=${approval.boundaries?.approvalDecisionPersisted === false ? 'false' : '확인 필요'} · clientNoticeSent=${approval.boundaries?.clientNoticeSent === false ? 'false' : '확인 필요'} · rtspOrWebrtcMediaPathChanged=${impact.boundaries?.rtspOrWebrtcMediaPathChanged === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV370SiteOperationsWorkspace = async ({
+        projectionRoute = '/ops/api/site-operations/source-registry-projection',
+        healthRoute = '/ops/api/site-operations/health-rollup',
+        impactRoute = '/ops/api/site-operations/impact-graph',
+        runbookRoute = '/ops/api/site-operations/runbook-instance-ledger',
+        approvalRoute = '/ops/api/site-operations/approval-ticket-workflow'
+      } = {}) => {
+        const [projection, health, impact, runbook, approval] = await Promise.all([
+          requestJson(projectionRoute).catch(error => ({ error: error.message, sourceRegistryProjectionItems: [], boundaries: {} })),
+          requestJson(healthRoute).catch(error => ({ error: error.message, siteHealthRollupItems: [], boundaries: {} })),
+          requestJson(impactRoute).catch(error => ({ error: error.message, siteImpactGraphNodes: [], siteImpactGraphEdges: [], boundaries: {} })),
+          requestJson(runbookRoute).catch(error => ({ error: error.message, runbookInstanceLedgerEntries: [], boundaries: {} })),
+          requestJson(approvalRoute).catch(error => ({ error: error.message, approvalTicketWorkflowItems: [], boundaries: {} }))
+        ]);
+        renderV370SiteOperationsWorkspace({ projection, health, impact, runbook, approval, projectionRoute, healthRoute, impactRoute, runbookRoute, approvalRoute });
+      };
       const renderDashboardRootCause = (runtime, principal, eventsStatus = {}, browserConfig = {}, diagnosticLog = {}, sourceHealth = {}) => {
         const items = dashboardRootCauseItems(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);
         const warnCount = items.filter(item => item.level === 'warn' || item.level === 'bad').length;
@@ -2022,6 +2639,31 @@ void AppendOpsShellScript(std::ostringstream& out,
           impactDiffRoute: '/ops/api/live-operations/simulation/impact-diff',
           readinessRoute: '/ops/api/live-operations/simulation/safe-apply-readiness'
         }).catch(error => renderV360OpsSimulationWorkspace({ error: error.message }));
+        await refreshV370RuleVaWhatIfBySite({
+          whatIfRoute: '/ops/api/site-operations/rule-va-what-if-by-site'
+        }).catch(error => renderV370RuleVaWhatIfBySite({ error: error.message }));
+        await refreshV370FieldEvidenceAttachment({
+          fieldEvidenceAttachmentRoute: '/ops/api/site-operations/field-evidence-attachment'
+        }).catch(error => renderV370FieldEvidenceAttachment({ error: error.message }));
+        await refreshV370LimitedSafeExecutionPilot({
+          limitedSafeExecutionPilotRoute: '/ops/api/site-operations/limited-safe-execution-pilot'
+        }).catch(error => renderV370LimitedSafeExecutionPilot({ error: error.message }));
+        await refreshV370OutcomeReconciliation({
+          outcomeReconciliationRoute: '/ops/api/site-operations/outcome-reconciliation'
+        }).catch(error => renderV370OutcomeReconciliation({ error: error.message }));
+        await refreshV370ExportHandoffBundle({
+          exportHandoffBundleRoute: '/ops/api/site-operations/export-handoff-bundle'
+        }).catch(error => renderV370ExportHandoffBundle({ error: error.message }));
+        await refreshV370ClientNoticeBySiteViewGroup({
+          noticeRoute: '/ops/api/site-operations/client-notice-by-site-view-group'
+        }).catch(error => renderV370ClientNoticeBySiteViewGroup({ error: error.message }));
+        await refreshV370SiteOperationsWorkspace({
+          projectionRoute: '/ops/api/site-operations/source-registry-projection',
+          healthRoute: '/ops/api/site-operations/health-rollup',
+          impactRoute: '/ops/api/site-operations/impact-graph',
+          runbookRoute: '/ops/api/site-operations/runbook-instance-ledger',
+          approvalRoute: '/ops/api/site-operations/approval-ticket-workflow'
+        }).catch(error => renderV370SiteOperationsWorkspace({ error: error.message }));
         await refreshDashboardVaQuality(runtime, eventsStatus).catch(renderDashboardVaQualityError);
         renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
         window.MediaServerUi?.translatePage?.();

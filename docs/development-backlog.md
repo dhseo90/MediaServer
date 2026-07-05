@@ -10,14 +10,319 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.6.0`
+- 현재 소스 버전: `3.7.0`
 - 최신 공개 GitHub Release: `v3.6.0`
 - `v3.6.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap: `v3.6.0 Operations Simulation and Safe Apply Readiness`
+- 현재 source roadmap: `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`
 - 최신 published baseline: `v3.6.0 Operations Simulation and Safe Apply Readiness`
 
-## 현재 source roadmap: v3.6.0 Operations Simulation and Safe Apply Readiness
+## 현재 source roadmap: v3.7.0 Site-Aware Operations and Safe Runbook Control Plane
+
+상태: Step 1 source/version/docs/backlog/verification metadata 정렬을 진행합니다.
+현재 source version은 `3.7.0`이고 latest published baseline은 `v3.6.0`입니다. 각 step은
+실제 코드/API/문서/검증 산출물이 생긴 뒤에만 완료로 기록합니다.
+
+직접 답: v3.7.0의 1차 선택값은 `Site-Aware Operations and Safe Runbook Control Plane`입니다.
+v3.6이 production write 없이 simulation input, dry-run, impact diff, safe apply readiness를
+산출했다면, v3.7은 이 결과를 site/source group/runbook approval 단위로 확장합니다.
+개발은 중요도보다 의존 순서를 우선해 Foundation → Intelligence → Workflow →
+Product UI → Field/Execution → Release 순서로 진행합니다.
+
+비범위:
+
+- site/group 기능을 이유로 SourceRegistry 또는 PublishedView를 자동 변경
+- 자동 대량 apply, 자동 recovery cutover, 자동 client notice 발송
+- Rule/Profile 자동 저장 또는 rule follow-up 자동 적용
+- EventRecord, Event POST payload, WebRTC DataChannel, SSE/WS metadata,
+  RTSP/WebRTC media path, Rule/Profile payload schema 변경
+- viewer/client에 site 내부 source locator, credential, raw diagnostic JSON,
+  raw provider material, operator-only blocker detail 노출
+- VMS/NVR, 장기 녹화, playback/archive search, runtime/model bundle 배포
+
+| 구간 | 제목 | 우선순위 | 개발 내용 |
+| --- | --- | --- | --- |
+| Foundation | v3.7.0 (1) v3.7.0 baseline 정렬 | P0 | VERSION/CMake/README/docs/backlog/source roadmap을 `3.7.0`와 `verify-v370-entry-baseline` 기준으로 정렬 |
+| Foundation | v3.7.0 (2) Site / Source Group Contract | P0 | site, sourceGroup, zone, viewGroup read model과 no-auto-write boundary 정의 |
+| Foundation | v3.7.0 (3) Site-Aware Source Registry Projection | P0 | 기존 SourceRegistry/PublishedView를 site/source group 관점의 Ops-only projection으로 노출 |
+| Foundation | v3.7.0 (4) Site Health Rollup | P0 | source health를 site/group 단위 offline/degraded/recovering/field-needed 상태로 집계 |
+| Intelligence | v3.7.0 (5) Site Impact Graph | P1 | EventRecord, source health, PublishedView, client impact를 site별 graph로 연결 |
+| Intelligence | v3.7.0 (6) Site Simulation Input Pack | P1 | v3.6 simulation input/result envelope를 site/source group 단위 입력 pack으로 확장 |
+| Intelligence | v3.7.0 (7) Cross-Site Safe Apply Readiness | P1 | site/group 변경 후보의 affected clients, blocker, approval-needed, field-needed 상태 산출 |
+| Workflow | v3.7.0 (8) Runbook Template Contract | P1 | source recheck, maintenance, rule draft, client notice 후보를 반복 가능한 runbook template으로 정의 |
+| Workflow | v3.7.0 (9) Runbook Instance Ledger | P1 | runbookId, siteId, status, operator note, previous run comparison을 append-only/read-only ledger로 누적 |
+| Workflow | v3.7.0 (10) Approval Ticket Workflow | P1 | approval, hold, reject, field-needed 상태와 reviewer/reason/audit link를 관리 |
+| Product UI | v3.7.0 (11) Site Operations Workspace UI | P1 | `/ops`에서 site list, health rollup, runbook queue, impact detail을 탐색하는 workspace 추가 |
+| Product UI | v3.7.0 (12) Client Notice by Site/View Group | P1 | site/view group 기준 viewer-safe notice preview와 delivery queue 경계를 준비 |
+| Product UI | v3.7.0 (13) Rule/VA What-if by Site | P1 | rule threshold/scenario 후보를 site 영향과 EventRecord/VA fixture 기반으로 비교 |
+| Field/Execution | v3.7.0 (14) Field Evidence Attachment | P2 | ONVIF, external WHEP/TURN, cloud/VLM 조건부 evidence를 site/runbook에 not-run/conditional로 첨부 |
+| Field/Execution | v3.7.0 (15) Limited Safe Execution Pilot | P2 | 가장 낮은 위험의 source recheck 또는 notice queue action만 approval-gated 실행 파일럿으로 분리 |
+| Field/Execution | v3.7.0 (16) Outcome Reconciliation | P2 | 실행 전 simulation과 실행 후 source/event/client impact diff를 비교 |
+| Release | v3.7.0 (17) Export / Handoff Bundle | P1 | site/runbook/evidence/approval/outcome을 redacted release-safe handoff bundle로 조합 |
+| Release | v3.7.0 (18) Stabilization and Release Readiness | P0 | v3.7 local verifier suite, inventory, release records, close-out dry-run, `git diff --check` 연결 |
+
+### v3.7.0 진행 상태
+
+| 번호 | 제목 | 우선순위 | 상태 | 완료/잔여 내용 |
+| --- | --- | --- | --- | --- |
+| 1 | v3.7.0 (1) v3.7.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/docs/backlog/source roadmap과 `verify-v370-entry-baseline` 기준 정렬 |
+| 2 | v3.7.0 (2) Site / Source Group Contract | P0 | 완료 | `/ops/api/site-operations/source-group-contract`에서 site/sourceGroup/zone/viewGroup read model과 no-auto-write boundary 정의 |
+| 3 | v3.7.0 (3) Site-Aware Source Registry Projection | P0 | 완료 | `/ops/api/site-operations/source-registry-projection`에서 SourceRegistry/PublishedView를 site/source group 관점의 Ops-only projection으로 노출 |
+| 4 | v3.7.0 (4) Site Health Rollup | P0 | 완료 | `/ops/api/site-operations/health-rollup`에서 source health를 site/group 단위 offline/degraded/recovering/field-needed 상태로 집계 |
+| 5 | v3.7.0 (5) Site Impact Graph | P1 | 완료 | `/ops/api/site-operations/impact-graph`에서 EventRecord, source health, PublishedView, client impact를 site/source group별 graph로 연결 |
+| 6 | v3.7.0 (6) Site Simulation Input Pack | P1 | 완료 | `/ops/api/site-operations/simulation-input-pack`에서 v3.6 simulation input/result envelope를 site/source group 단위 read-only input pack으로 확장 |
+| 7 | v3.7.0 (7) Cross-Site Safe Apply Readiness | P1 | 완료 | `/ops/api/site-operations/cross-site-safe-apply-readiness`에서 affected clients, blocker, approval-needed, field-needed 상태를 site/source group별로 산출 |
+| 8 | v3.7.0 (8) Runbook Template Contract | P1 | 완료 | `/ops/api/site-operations/runbook-template-contract`에서 source recheck, maintenance, rule draft, client notice 후보를 반복 가능한 read-only runbook template contract로 정의 |
+| 9 | v3.7.0 (9) Runbook Instance Ledger | P1 | 완료 | `/ops/api/site-operations/runbook-instance-ledger`에서 runbookId, siteId, status, operator note, previous run comparison을 append-only/read-only ledger projection으로 누적 |
+| 10 | v3.7.0 (10) Approval Ticket Workflow | P1 | 완료 | `/ops/api/site-operations/approval-ticket-workflow`에서 approval, hold, reject, field-needed 상태와 reviewer/reason/audit link를 read-only workflow projection으로 관리 |
+| 11 | v3.7.0 (11) Site Operations Workspace UI | P1 | 완료 | `/ops` site list, health rollup, runbook queue, impact detail workspace 추가 |
+| 12 | v3.7.0 (12) Client Notice by Site/View Group | P1 | 완료 | site/view group 기준 viewer-safe notice preview와 delivery queue 경계 준비 |
+| 13 | v3.7.0 (13) Rule/VA What-if by Site | P1 | 완료 | `/ops/api/site-operations/rule-va-what-if-by-site`와 `/ops` dashboard에서 site 영향, EventRecord aggregate, VA fixture 기반 rule threshold/scenario 후보를 read-only로 비교 |
+| 14 | v3.7.0 (14) Field Evidence Attachment | P2 | 완료 | `/ops/api/site-operations/field-evidence-attachment`와 `/ops` dashboard에서 ONVIF, external WHEP/TURN, cloud/VLM 조건부 evidence를 site/runbook에 not-run/conditional로 첨부 |
+| 15 | v3.7.0 (15) Limited Safe Execution Pilot | P2 | 완료 | `/ops/api/site-operations/limited-safe-execution-pilot`와 `/ops` dashboard에서 source recheck 또는 notice queue 후보를 approval-gated execution preview로 분리 |
+| 16 | v3.7.0 (16) Outcome Reconciliation | P2 | 완료 | `/ops/api/site-operations/outcome-reconciliation`와 `/ops` dashboard에서 실행 전 simulation ref와 실행 후 source/event/client impact diff를 pending/not-run 상태로 비교 |
+| 17 | v3.7.0 (17) Export / Handoff Bundle | P1 | 완료 | `/ops/api/site-operations/export-handoff-bundle`와 `/ops` dashboard에서 site/runbook/evidence/approval/outcome을 redacted release-safe handoff bundle로 조합 |
+| 18 | v3.7.0 (18) Stabilization and Release Readiness | P0 | 완료 | v3.7 local stabilization, release evidence/not-run 경계, inventory, release records, close-out dry-run, `git diff --check` 연결 |
+
+완료 경계: 위 표는 v3.7.0 개발 순서와 우선순위입니다. 현재 Step 1~16은 Foundation/Intelligence/Workflow/Product UI/Field
+local source gate 범위이며, Step 17~18은 개발 전 roadmap 항목입니다. 각 step은 실제 코드/API/UI/문서
+변경, 기능 ID/test inventory 등록, 해당 verifier와 release test record evidence가 생긴 뒤에만
+완료로 기록합니다. UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release
+action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁니다.
+
+## v3.7.0 Step 1 개발 기록
+
+- 범위: P0 `v3.7.0 (1) v3.7.0 baseline 정렬`.
+- `VERSION`, `CMakeLists.txt`: 현재 source version과 CMake project version을 `3.7.0`으로 정렬했습니다.
+- `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`, `docs/versioning-policy.md`, `docs/release-policy.md`, `docs/public-repo-final-review.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`: 현재 source roadmap을 `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`으로 전환했고 latest published release는 `v3.6.0` source-only GitHub Release로 유지했습니다.
+- `docs/development-backlog.md`: v3.7.0 current roadmap을 `구간 | 제목 | 우선순위 | 개발 내용` 구조로 승격하고, site/source group/runbook approval 방향과 no-auto-write/no-client-secret/no-media-path-change 경계를 기록했습니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`, `config/docs_ui_assets.json`: current release target, docs asset baseline, verification catalog, release records를 source `3.7.0`와 latest published `v3.6.0` 기준으로 정렬했습니다.
+- `scripts/internal/verify_release_metadata_consistency.mjs`, `scripts/internal/verify_docs_ui_assets.mjs`: release metadata와 docs UI asset verifier가 source `3.7.0`, current roadmap `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`, latest published `v3.6.0`을 검증하도록 보정했습니다.
+- `scripts/internal/verify_v370_entry_baseline.mjs`, `server.sh`: `./server.sh verify-v370-entry-baseline` 명령을 추가해 source `3.7.0`, latest published `v3.6.0`, current roadmap `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`, release records, feature inventory, server dispatch 연결을 정적 검증합니다.
+- 검증: 최초 `node scripts/internal/verify_v370_entry_baseline.mjs`는 versioning/release policy, backlog, metadata verifier, server dispatch, UI guide/assets policy가 아직 v3.7 기준이 아니어서 `pass=3 fail=6`으로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 1 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 1은 source/version/docs/backlog/verification metadata 정렬입니다. UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다. `v3.7.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
+
+## v3.7.0 Step 2 개발 기록
+
+- 범위: P0 `v3.7.0 (2) Site / Source Group Contract`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV370SiteSourceGroupContractItem`, `BuildV370SiteSourceGroupContractItems`, `AppendV370SiteSourceGroupContractItemJson`, `OpsV370SiteSourceGroupContractJson`를 추가해 `site`, `sourceGroup`, `zone`, `viewGroup` read model과 `noAutoWriteBoundary`를 JSON contract로 정의했습니다.
+- route: `GET /ops/api/site-operations/source-group-contract`를 Ops principal 전용, `Cache-Control: no-store` JSON route로 연결했습니다.
+- boundary: SourceRegistry/PublishedView write, viewer/client exposure, raw locator/credential 노출, EventRecord/Event POST/WebRTC/SSE/WS/media schema 변경, Rule/Profile payload 변경을 수행하지 않는 `boundaries` flag를 응답에 고정했습니다.
+- verifier: `scripts/internal/verify_v370_site_source_group_contract.mjs`, `server.sh verify-v370-site-source-group-contract`, `docs/project-feature-test-inventory.md`의 `SRC-054`, `SAFE-163`, `OPS-130`을 추가했습니다.
+- 검증: 최초 `./server.sh verify-v370-site-source-group-contract`는 route/model/final backlog 기록이 없어 `pass=0 fail=4`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 2 결과 행에 기록합니다.
+- 완료 경계: Step 2는 contract/read model gate입니다. site projection, health rollup, UI 풀테스트, 30분/120분, published metadata, release action PASS가 아닙니다.
+
+## v3.7.0 Step 3 개발 기록
+
+- 범위: P0 `v3.7.0 (3) Site-Aware Source Registry Projection`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV370SiteAwareSourceRegistryProjectionItem`, `OpsV370SiteAwareSourceRegistryProjectionSummary`, `BuildV370SiteAwareSourceRegistryProjectionItems`, `BuildV370SiteAwareSourceRegistryProjectionSummary`, `AppendV370SiteAwareSourceRegistryProjectionItemJson`, `OpsV370SiteAwareSourceRegistryProjectionJson`를 추가했습니다.
+- route: `GET /ops/api/site-operations/source-registry-projection`을 Ops principal 전용, `Cache-Control: no-store` JSON route로 연결했습니다.
+- logic: `SourceViewRegistry::Instance().Snapshot`으로 기존 SourceRegistry/PublishedView snapshot만 읽고, source를 `siteId`/`sourceGroup`/`zone` 단위로 묶어 `sourceIds`, `viewIds`, `viewGroups`, source/view count를 산출합니다.
+- boundary: source/view write, viewer/client exposure, raw locator/credential 포함, EventRecord/Event POST/WebRTC/SSE/WS/media schema 변경을 수행하지 않는 `boundaries` flag를 응답에 고정했습니다.
+- verifier: `scripts/internal/verify_v370_site_aware_source_registry_projection.mjs`, `server.sh verify-v370-site-aware-source-registry-projection`, `docs/project-feature-test-inventory.md`의 `SRC-055`, `SAFE-164`, `OPS-131`을 추가했습니다.
+- 검증: 최초 `./server.sh verify-v370-site-aware-source-registry-projection`는 route/model/final backlog 기록이 없어 `pass=0 fail=5`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 3 결과 행에 기록합니다.
+- 완료 경계: Step 3은 Ops-only projection입니다. SourceRegistry/PublishedView mutation, 제품 UI 직접 조작, 30분/120분, published metadata, release action evidence가 아닙니다.
+
+## v3.7.0 Step 4 개발 기록
+
+- 범위: P0 `v3.7.0 (4) Site Health Rollup`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV370SiteHealthRollupItem`, `OpsV370SiteHealthRollupSummary`, `BuildV370SiteHealthRollupItems`, `BuildV370SiteHealthRollupSummary`, `AppendV370SiteHealthRollupItemJson`, `OpsV370SiteHealthRollupJson`를 추가했습니다.
+- route: `GET /ops/api/site-operations/health-rollup`을 Ops principal 전용, `Cache-Control: no-store` JSON route로 연결했습니다.
+- logic: 기존 `BuildOpsSourceHealthSnapshot` 결과와 Step 3의 site-aware source projection을 조합해 site/source group별 `healthy`, `offline`, `degraded`, `recovering`, `field-needed` rollup state와 source count/reason을 계산합니다.
+- boundary: source health persistence, automatic recovery, field smoke, source/view write, viewer/client exposure, raw locator/credential 포함, EventRecord/Event POST/WebRTC/SSE/WS/media schema 변경을 수행하지 않는 `boundaries` flag를 응답에 고정했습니다.
+- verifier: `scripts/internal/verify_v370_site_health_rollup.mjs`, `server.sh verify-v370-site-health-rollup`, `docs/project-feature-test-inventory.md`의 `SRC-056`, `SAFE-165`, `OPS-132`를 추가했습니다.
+- 검증: 최초 `./server.sh verify-v370-site-health-rollup`은 route/model/final backlog 기록이 없어 `pass=0 fail=5`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 4 결과 행에 기록합니다.
+- 완료 경계: Step 4는 read-only rollup입니다. automatic recovery, field smoke, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다.
+
+## v3.7.0 Step 5 개발 기록
+
+- 범위: P1 `v3.7.0 (5) Site Impact Graph`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV370SiteImpactGraphNode`, `OpsV370SiteImpactGraphEdge`, `OpsV370SiteImpactGraphSummary`, `BuildV370SiteImpactGraphNodes`, `BuildV370SiteImpactGraphEdges`, `BuildV370SiteImpactGraphSummary`, `AppendV370SiteImpactGraphNodeJson`, `AppendV370SiteImpactGraphEdgeJson`, `OpsV370SiteImpactGraphJson`를 추가했습니다.
+- route: `GET /ops/api/site-operations/impact-graph`을 Ops principal 전용, `Cache-Control: no-store` JSON route로 연결했습니다.
+- logic: 기존 `BuildV350LiveOperationsGraphContext`, `BuildV370SiteAwareSourceRegistryProjectionItems`, `BuildV370SiteHealthRollupItems`를 조합해 site/source group별 `EventRecord`, `sourceHealth`, `PublishedView`, `clientImpact` node/edge와 summary를 산출합니다.
+- boundary: source/view/EventRecord/Ops audit/client/media mutation, viewer/client exposure, raw locator/credential/debug material 포함, Event POST/WebRTC/SSE/WS/RTSP media schema 변경을 수행하지 않는 `boundaries` flag를 응답에 고정했습니다.
+- verifier: `scripts/internal/verify_v370_site_impact_graph.mjs`, `./server.sh verify-v370-site-impact-graph`, `docs/project-feature-test-inventory.md`의 `SRC-057`, `EVT-080`, `CLIENT-035`, `SAFE-166`, `OPS-133`을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v370_site_impact_graph.mjs`는 route/model/final backlog 기록이 없어 `pass=0 fail=5`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 5 결과 행에 기록합니다.
+- 완료 경계: Step 5는 Ops-only site impact graph API/verifier 연결입니다. 제품 UI 직접 조작, 30분/120분, source/view/EventRecord/Ops audit/client/media mutation, published metadata, release action evidence가 아닙니다.
+
+## v3.7.0 Step 6 개발 기록
+
+- 범위: P1 `v3.7.0 (6) Site Simulation Input Pack`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV370SiteSimulationInputPackItem`, `OpsV370SiteSimulationInputPackSummary`, `BuildV370SiteSimulationInputPackItems`, `BuildV370SiteSimulationInputPackSummary`, `AppendV370SiteSimulationInputPackItemJson`, `AppendV370SiteSimulationInputPackSummaryJson`, `OpsV370SiteSimulationInputPackJson`를 추가했습니다.
+- route: `GET /ops/api/site-operations/simulation-input-pack`을 Ops principal 전용, `Cache-Control: no-store` JSON route로 연결했습니다.
+- logic: 기존 `BuildV350LiveOperationsGraphContext`, `BuildV350CommandPlanCandidates`, `BuildV350StagedChangePlans`, `BuildV360SimulationInputPackItems`, `BuildV360SimulationInputPackSummary`, `BuildV360SimulationResultEnvelope`, `BuildV370SiteAwareSourceRegistryProjectionItems`, `BuildV370SiteHealthRollupItems`, `BuildV370SiteImpactGraphNodes`, `BuildV370SiteImpactGraphEdges`를 조합해 site/source group별 `SourceRegistry`, `EventRecord`, `PublishedView`, `sourceHealthRollup`, `SiteImpactGraph`, v3.6 simulation input envelope refs를 read-only input pack으로 산출합니다.
+- boundary: simulation input persist/run/result persist, source/view/rule/EventRecord/Ops audit/client/media mutation, viewer/client exposure, raw locator/credential material 포함, Event POST/WebRTC/SSE/WS/RTSP media schema 변경을 수행하지 않는 `boundaries` flag를 응답에 고정했습니다.
+- verifier: `scripts/internal/verify_v370_site_simulation_input_pack.mjs`, `./server.sh verify-v370-site-simulation-input-pack`, `docs/project-feature-test-inventory.md`의 `SRC-058`, `EVT-081`, `LAB-101`, `SAFE-167`, `OPS-134`를 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v370_site_simulation_input_pack.mjs`는 route/model/final backlog 기록이 없어 `pass=0 fail=5`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 6 결과 행에 기록합니다.
+- 완료 경계: Step 6은 Ops-only site simulation input pack API/verifier 연결입니다. simulation 실행/저장, 제품 UI 직접 조작, 30분/120분, source/view/rule/EventRecord/Ops audit/client/media mutation, published metadata, release action evidence가 아닙니다.
+
+## v3.7.0 Step 7 개발 기록
+
+- 범위: P1 `v3.7.0 (7) Cross-Site Safe Apply Readiness`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV370CrossSiteSafeApplyReadinessItem`, `OpsV370CrossSiteSafeApplyReadinessSummary`, `BuildV370CrossSiteSafeApplyReadinessItems`, `BuildV370CrossSiteSafeApplyReadinessSummary`, `AppendV370CrossSiteSafeApplyReadinessItemJson`, `AppendV370CrossSiteSafeApplyReadinessSummaryJson`, `OpsV370CrossSiteSafeApplyReadinessJson`를 추가했습니다.
+- route: `GET /ops/api/site-operations/cross-site-safe-apply-readiness`를 Ops principal 전용, `Cache-Control: no-store` JSON route로 연결했습니다.
+- logic: 기존 `BuildV350LiveOperationsGraphContext`, `BuildV350CommandPlanCandidates`, `BuildV350StagedChangePlans`, `BuildV360CommandPlanDryRunResults`, `BuildV360SourceRuleImpactDiffs`, `BuildV360SafeApplyReadinessItems`, `BuildV360SafeApplyReadinessSummary`, `BuildV370SiteAwareSourceRegistryProjectionItems`, `BuildV370SiteSimulationInputPackItems`, `BuildV370SiteImpactGraphNodes`, `BuildV370SiteImpactGraphEdges`를 조합해 site/source group별 affected client refs, blocker, `approval-needed`, `field-needed`, `not-run`, cross-site review 필요 상태를 산출합니다.
+- boundary: automatic/safe apply, field smoke, client notice send, source/view/rule/EventRecord/Ops audit/client/media mutation, viewer/client exposure, raw locator/credential material 포함, Event POST/WebRTC/SSE/WS/RTSP media schema 변경을 수행하지 않는 `boundaries` flag를 응답에 고정했습니다.
+- verifier: `scripts/internal/verify_v370_cross_site_safe_apply_readiness.mjs`, `./server.sh verify-v370-cross-site-safe-apply-readiness`, `docs/project-feature-test-inventory.md`의 `SRC-059`, `CLIENT-036`, `LAB-102`, `SAFE-168`, `OPS-135`를 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v370_cross_site_safe_apply_readiness.mjs`는 route/model/final backlog 기록이 없어 `pass=0 fail=5`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 7 결과 행에 기록합니다.
+- 완료 경계: Step 7은 Ops-only cross-site safe apply readiness API/verifier 연결입니다. safe apply 실행, field smoke, client notice 발송, 제품 UI 직접 조작, 30분/120분, source/view/rule/EventRecord/Ops audit/client/media mutation, published metadata, release action evidence가 아닙니다.
+
+## v3.7.0 Step 8 개발 기록
+
+- 범위: P1 `v3.7.0 (8) Runbook Template Contract`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV370RunbookTemplateContractItem`, `OpsV370RunbookTemplateContractSummary`, `BuildV370RunbookTemplateContractItems`, `BuildV370RunbookTemplateContractSummary`, `AppendV370RunbookTemplateContractItemJson`, `OpsV370RunbookTemplateContractJson`를 추가했습니다.
+- route: `GET /ops/api/site-operations/runbook-template-contract`를 Ops principal 전용, `Cache-Control: no-store` JSON route로 연결했습니다.
+- logic: 기존 `BuildV350LiveOperationsGraphContext`, `BuildV350CommandPlanCandidates`, `BuildV360CommandPlanDryRunResults`, `BuildV360SourceRuleImpactDiffs`, `BuildV360SafeApplyReadinessItems`, `BuildV370SiteAwareSourceRegistryProjectionItems`, `BuildV370SiteSimulationInputPackItems`, `BuildV370CrossSiteSafeApplyReadinessItems`를 조합해 `source-recheck`, `maintenance`, `rule-draft`, `client-notice` runbook template의 required input, approval state catalog, output ref를 산출합니다.
+- boundary: runbook instance persist, approval ticket write, operator note write, source/view/rule/EventRecord/Ops audit/client/media mutation, client notice send, field smoke, raw locator/credential material 포함, Event POST/WebRTC/SSE/WS/RTSP media schema 변경을 수행하지 않는 `boundaries` flag를 응답에 고정했습니다.
+- verifier: `scripts/internal/verify_v370_runbook_template_contract.mjs`, `./server.sh verify-v370-runbook-template-contract`, `docs/project-feature-test-inventory.md`의 `LAB-103`, `SAFE-169`, `OPS-136`을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v370_runbook_template_contract.mjs`는 runbook template contract model, route, final backlog 기록이 아직 없어 `pass=0 fail=5`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 8 결과 행에 기록합니다.
+- 완료 경계: Step 8은 Ops-only runbook template contract API/verifier 연결입니다. runbook instance 저장, approval ticket write, 제품 UI 직접 조작, 30분/120분, source/view/rule/EventRecord/Ops audit/client/media mutation, published metadata, release action evidence가 아닙니다.
+
+## v3.7.0 Step 9 개발 기록
+
+- 범위: P1 `v3.7.0 (9) Runbook Instance Ledger`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV370RunbookInstanceLedgerEntry`, `OpsV370RunbookInstanceLedgerSummary`, `BuildV370RunbookInstanceLedgerEntries`, `BuildV370RunbookInstanceLedgerSummary`, `AppendV370RunbookInstanceLedgerEntryJson`, `OpsV370RunbookInstanceLedgerJson`를 추가했습니다.
+- route: `GET /ops/api/site-operations/runbook-instance-ledger`를 Ops principal 전용, `Cache-Control: no-store` JSON route로 연결했습니다.
+- logic: `BuildV370RunbookTemplateContractItems`, `BuildV370RunbookTemplateContractSummary`, `BuildV370CrossSiteSafeApplyReadinessItems`, `BuildV360SimulationRunLedgerEntries`를 조합해 runbookId, siteId, status, operator note, previous run comparison을 append-only/read-only ledger projection으로 산출합니다.
+- boundary: runbook instance persist, operator note write, approval ticket write, result diff persist, source/view/rule/EventRecord/Ops audit/client/media mutation, client notice send, field smoke, raw locator/credential material 포함, Event POST/WebRTC/SSE/WS/RTSP media schema 변경을 수행하지 않는 `boundaries` flag를 응답에 고정했습니다.
+- verifier: `scripts/internal/verify_v370_runbook_instance_ledger.mjs`, `./server.sh verify-v370-runbook-instance-ledger`, `docs/project-feature-test-inventory.md`의 `LAB-104`, `SAFE-170`, `OPS-137`을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v370_runbook_instance_ledger.mjs`는 runbook instance ledger model, route, final backlog 기록이 아직 없어 `pass=0 fail=5`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 9 결과 행에 기록합니다.
+- 완료 경계: Step 9는 Ops-only runbook instance ledger API/verifier 연결입니다. runbook instance 저장, operator note write, approval ticket write, 제품 UI 직접 조작, 30분/120분, source/view/rule/EventRecord/Ops audit/client/media mutation, published metadata, release action evidence가 아닙니다.
+
+## v3.7.0 Step 10 개발 기록
+
+- 범위: P1 `v3.7.0 (10) Approval Ticket Workflow`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV370ApprovalTicketWorkflowItem`, `OpsV370ApprovalTicketWorkflowSummary`, `BuildV370ApprovalTicketWorkflowItems`, `BuildV370ApprovalTicketWorkflowSummary`, `AppendV370ApprovalTicketWorkflowItemJson`, `OpsV370ApprovalTicketWorkflowJson`를 추가했습니다.
+- route: `GET /ops/api/site-operations/approval-ticket-workflow`를 Ops principal 전용, `Cache-Control: no-store` JSON route로 연결했습니다.
+- logic: `BuildV370RunbookTemplateContractItems`, `BuildV370RunbookInstanceLedgerEntries`, `BuildV370RunbookInstanceLedgerSummary`, `BuildV370CrossSiteSafeApplyReadinessItems`를 조합해 approval, hold, reject, field-needed 상태, reviewer, reason, audit link를 read-only approval ticket workflow projection으로 산출합니다.
+- boundary: approval ticket write, reviewer assignment write, approval decision persist, runbook instance persist, operator note write, result diff persist, source/view/rule/EventRecord/Ops audit/client/media mutation, client notice send, field smoke, raw locator/credential material 포함, Event POST/WebRTC/SSE/WS/RTSP media schema 변경을 수행하지 않는 `boundaries` flag를 응답에 고정했습니다.
+- verifier: `scripts/internal/verify_v370_approval_ticket_workflow.mjs`, `./server.sh verify-v370-approval-ticket-workflow`, `docs/project-feature-test-inventory.md`의 `LAB-105`, `SAFE-171`, `OPS-138`을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v370_approval_ticket_workflow.mjs`는 approval ticket workflow model, route, final backlog 기록이 아직 없어 `pass=0 fail=5`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 10 결과 행에 기록합니다.
+- 완료 경계: Step 10은 Ops-only approval ticket workflow API/verifier 연결입니다. approval ticket 저장, reviewer assignment write, approval decision persist, runbook instance 저장, operator note write, 제품 UI 직접 조작, 30분/120분, source/view/rule/EventRecord/Ops audit/client/media mutation, published metadata, release action evidence가 아닙니다.
+
+## v3.7.0 Step 11 개발 기록
+
+- 범위: P1 `v3.7.0 (11) Site Operations Workspace UI`.
+- `src/ingress/webrtc_http_server.cpp`: `AppendOpsDashboardPage` 안에 `ops-site-operations-workspace` section을 추가했고, `dashSiteOperationsSiteList`, `dashSiteOperationsHealthList`, `dashSiteOperationsRunbookQueue`, `dashSiteOperationsImpactDetail`, `dashSiteOperationsBoundary` control을 배치했습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV370SiteOperationsWorkspace`, `refreshV370SiteOperationsWorkspace`, `v370SiteOperationsWorkspaceEntry`를 추가해 `/ops/api/site-operations/source-registry-projection`, `/health-rollup`, `/impact-graph`, `/runbook-instance-ledger`, `/approval-ticket-workflow`의 read-only payload를 site list, health rollup, runbook queue, impact detail로 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `.ops-site-operations-workspace`, `.ops-site-operations-grid`, `.ops-site-operations-list`, `.ops-site-operations-entry`, `.ops-site-operations-boundary` 스타일을 추가해 기존 command/simulation workspace와 같은 responsive density, wrapping, boundary 패턴을 사용합니다.
+- boundary: source/view/runbook/approval write, client notice send, source URL/raw locator/raw JSON/debug/credential material, viewer/client exposure, RTSP/WebRTC media mutation을 UI에서 수행하거나 노출하지 않습니다.
+- verifier: `scripts/internal/verify_v370_site_operations_workspace_ui.mjs`, `./server.sh verify-v370-site-operations-workspace-ui`, `docs/project-feature-test-inventory.md`의 `UI-095`, `SAFE-172`, `OPS-139`을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v370_site_operations_workspace_ui.mjs`는 workspace shell, renderer, CSS, final backlog 기록이 아직 없어 `pass=1 fail=8`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 11 결과 행에 기록합니다.
+- 완료 경계: Step 11은 Ops-only Site Operations Workspace UI/verifier 연결입니다. Client Notice by Site/View Group 완료 evidence가 아닙니다. Rule/VA What-if by Site 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분, source/view/runbook/approval write, client notice send, media/schema mutation, published metadata, release action evidence가 아닙니다.
+
+## v3.7.0 Step 12 개발 기록
+
+- 범위: P1 `v3.7.0 (12) Client Notice by Site/View Group`.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/site-operations/client-notice-by-site-view-group` GET route와 `OpsV370ClientNoticeBySiteViewGroupJson`, `BuildV370ClientNoticeBySiteViewGroupItems`, `BuildV370ClientNoticeBySiteViewGroupSummary`를 추가했습니다. v3.7 site projection, health rollup, impact graph, runbook ledger, approval workflow를 조합해 site/view group별 viewer-safe notice preview와 delivery queue preview를 산출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `AppendOpsDashboardPage` 안에 `ops-site-client-notice-workspace` section을 추가했고, `dashSiteClientNoticeBadges`, `dashSiteClientNoticeText`, `dashSiteClientNoticePreviewList`, `dashSiteClientNoticeDeliveryQueue`, `dashSiteClientNoticeBoundary` control을 배치했습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV370ClientNoticeBySiteViewGroup`, `refreshV370ClientNoticeBySiteViewGroup`, `v370ClientNoticeBySiteViewGroupEntry`를 추가해 `/ops/api/site-operations/client-notice-by-site-view-group`의 `clientNoticeBySiteViewGroupItems`와 `clientNoticeBySiteViewGroupSummary`를 notice preview와 delivery queue로 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `.ops-site-client-notice-workspace`, `.ops-site-client-notice-grid`, `.ops-site-client-notice-list`, `.ops-site-client-notice-entry`, `.ops-site-client-notice-boundary` 스타일을 추가해 기존 site operations workspace와 같은 responsive density, wrapping, boundary 패턴을 사용합니다.
+- boundary: client notice send/persist, viewer client payload 변경, source/view/rule/EventRecord/Ops audit/client/media mutation, source URL/raw locator/raw JSON/debug/credential/operator material 노출을 수행하지 않습니다.
+- verifier: `scripts/internal/verify_v370_client_notice_by_site_view_group.mjs`, `./server.sh verify-v370-client-notice-by-site-view-group`, `docs/project-feature-test-inventory.md`의 `UI-096`, `CLIENT-037`, `SAFE-173`, `OPS-140`을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v370_client_notice_by_site_view_group.mjs`는 site/view group notice model, route, dashboard shell, CSS, final backlog 기록이 아직 없어 `pass=1 fail=8`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 12 결과 행에 기록합니다.
+- 완료 경계: Step 12는 Ops-only Client Notice by Site/View Group API/UI/verifier 연결입니다. Rule/VA What-if by Site 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분, client notice send/persist, viewer client payload 변경, source/view/rule/EventRecord/Ops audit/client/media mutation, published metadata, release action evidence가 아닙니다.
+
+## v3.7.0 Step 13 개발 기록
+
+- 범위: P1 `v3.7.0 (13) Rule/VA What-if by Site`.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/site-operations/rule-va-what-if-by-site` GET route와 `OpsV370RuleVaWhatIfBySiteJson`, `BuildV370RuleVaWhatIfBySiteItems`, `BuildV370RuleVaWhatIfBySiteSummary`를 추가했습니다. v3.7 site projection, health rollup, impact graph, site simulation input pack, cross-site readiness와 v3.6 dry-run/impact diff/Rule-VA replay refs를 조합해 site/source group별 rule threshold/scenario what-if 후보를 산출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `AppendOpsDashboardPage` 안에 `ops-site-rule-va-what-if-workspace` section을 추가했고, `dashSiteRuleVaWhatIfBadges`, `dashSiteRuleVaWhatIfText`, `dashSiteRuleVaWhatIfCandidateList`, `dashSiteRuleVaWhatIfImpactList`, `dashSiteRuleVaWhatIfFixtureList`, `dashSiteRuleVaWhatIfBoundary` control을 배치했습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV370RuleVaWhatIfBySite`, `refreshV370RuleVaWhatIfBySite`, `v370RuleVaWhatIfBySiteEntry`를 추가해 `/ops/api/site-operations/rule-va-what-if-by-site`의 `ruleVaWhatIfBySiteItems`와 `ruleVaWhatIfBySiteSummary`를 candidate, site impact delta, EventRecord/VA fixture refs로 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `.ops-site-rule-va-what-if-workspace`, `.ops-site-rule-va-what-if-grid`, `.ops-site-rule-va-what-if-list`, `.ops-site-rule-va-what-if-entry`, `.ops-site-rule-va-what-if-boundary` 스타일을 추가해 기존 Product UI workspace와 같은 responsive density, wrapping, boundary 패턴을 사용합니다.
+- boundary: rule/profile registry write, rule threshold/preset/scenario apply, EventRecord/Ops audit/source/view/client/media mutation, simulation run, safe apply, client notice send, source URL/raw locator/raw JSON/debug/credential material 노출을 수행하지 않습니다.
+- verifier: `scripts/internal/verify_v370_rule_va_what_if_by_site.mjs`, `./server.sh verify-v370-rule-va-what-if-by-site`, `docs/project-feature-test-inventory.md`의 `UI-097`, `RULE-110`, `EVT-082`, `LAB-106`, `SAFE-174`, `OPS-141`을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v370_rule_va_what_if_by_site.mjs`는 Rule/VA what-if by site model, route, dashboard shell, CSS, final backlog 기록이 아직 없어 `pass=1 fail=8`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 13 결과 행에 기록합니다.
+- 완료 경계: Step 13은 Ops-only Rule/VA What-if by Site API/UI/verifier 연결입니다. Field Evidence Attachment, Limited Safe Execution Pilot, Outcome Reconciliation, Export/Handoff Bundle, Stabilization and Release Readiness 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분, rule apply, EventRecord write, source/view/client/media mutation, published metadata, release action evidence가 아닙니다.
+
+## v3.7.0 Step 14 개발 기록
+
+- 범위: P2 `v3.7.0 (14) Field Evidence Attachment`.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/site-operations/field-evidence-attachment` GET route와 `OpsV370FieldEvidenceAttachmentJson`, `BuildV370FieldEvidenceAttachmentItems`, `BuildV370FieldEvidenceAttachmentSummary`를 추가했습니다. v3.4 field bridge condition gates, v3.5 field evidence intake, v3.6 field evidence simulation adapter와 v3.7 site projection, site simulation input pack, runbook instance ledger, approval ticket workflow를 조합해 site/runbook scoped `siteRunbookEvidenceRef`와 `conditionalNotRunEvidence`를 산출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `AppendOpsDashboardPage` 안에 `ops-site-field-evidence-attachment-workspace` section을 추가했고, `dashSiteFieldEvidenceAttachmentBadges`, `dashSiteFieldEvidenceAttachmentText`, `dashSiteFieldEvidenceAttachmentList`, `dashSiteFieldEvidenceAttachmentConditionList`, `dashSiteFieldEvidenceAttachmentBoundary` control을 배치했습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV370FieldEvidenceAttachment`, `refreshV370FieldEvidenceAttachment`, `v370FieldEvidenceAttachmentEntry`를 추가해 `/ops/api/site-operations/field-evidence-attachment`의 `fieldEvidenceAttachments`와 `fieldEvidenceAttachmentSummary`를 attachment refs, condition refs, not-run reason으로 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `.ops-site-field-evidence-attachment-workspace`, `.ops-site-field-evidence-attachment-grid`, `.ops-site-field-evidence-attachment-list`, `.ops-site-field-evidence-attachment-entry`, `.ops-site-field-evidence-attachment-boundary` 스타일을 추가해 기존 site workspace와 같은 responsive density, wrapping, boundary 패턴을 사용합니다.
+- boundary: field smoke, endpoint probe, credential probe, provider/VLM call, runbook/approval write, source/view/EventRecord/Ops audit/client/media mutation, raw endpoint/locator/credential/provider/VLM material 노출을 수행하지 않습니다.
+- verifier: `scripts/internal/verify_v370_field_evidence_attachment.mjs`, `./server.sh verify-v370-field-evidence-attachment`, `docs/project-feature-test-inventory.md`의 `UI-098`, `SRC-060`, `MEDIA-025`, `LAB-107`, `SAFE-175`, `OPS-142`를 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v370_field_evidence_attachment.mjs`는 Field Evidence Attachment model, route, dashboard shell, CSS, final backlog 기록, server dispatch가 아직 없어 `pass=1 fail=8`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 14 결과 행에 기록합니다.
+- 완료 경계: Step 14는 Ops-only Field Evidence Attachment API/UI/verifier 연결입니다. Limited Safe Execution Pilot 완료 evidence가 아닙니다. Outcome Reconciliation, Export/Handoff Bundle, Stabilization and Release Readiness 완료 evidence도 아닙니다. UI 풀테스트 직접 조작, 30분/120분, field smoke, endpoint/provider 실행, source/view/runbook/approval/EventRecord write, media mutation, published metadata, release action evidence가 아닙니다.
+
+## v3.7.0 Step 15 개발 기록
+
+- 범위: P2 `v3.7.0 (15) Limited Safe Execution Pilot`.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/site-operations/limited-safe-execution-pilot` GET route와 `OpsV370LimitedSafeExecutionPilotJson`, `BuildV370LimitedSafeExecutionPilotActions`, `BuildV370LimitedSafeExecutionPilotSummary`를 추가했습니다. v3.7 runbook instance ledger, approval ticket workflow, field evidence attachment, client notice by site/view group refs를 조합해 source recheck 또는 notice queue pilot 후보를 lowest-risk approval-gated preview로 산출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `AppendOpsDashboardPage` 안에 `ops-site-limited-safe-execution-pilot-workspace` section을 추가했고, `dashSiteLimitedSafeExecutionPilotBadges`, `dashSiteLimitedSafeExecutionPilotText`, `dashSiteLimitedSafeExecutionPilotList`, `dashSiteLimitedSafeExecutionPilotGateList`, `dashSiteLimitedSafeExecutionPilotBoundary` control을 배치했습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV370LimitedSafeExecutionPilot`, `refreshV370LimitedSafeExecutionPilot`, `v370LimitedSafeExecutionPilotEntry`를 추가해 `/ops/api/site-operations/limited-safe-execution-pilot`의 `limitedSafeExecutionPilotActions`와 `limitedSafeExecutionPilotSummary`를 pilot candidate, approval gate, execution request preview, idempotency key로 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `.ops-site-limited-safe-execution-pilot-workspace`, `.ops-site-limited-safe-execution-pilot-grid`, `.ops-site-limited-safe-execution-pilot-list`, `.ops-site-limited-safe-execution-pilot-entry`, `.ops-site-limited-safe-execution-pilot-boundary` 스타일을 추가해 기존 site workspace와 같은 responsive density, wrapping, boundary 패턴을 사용합니다.
+- boundary: pilot execution, source recheck 실행, notice queue write/send, runbook/approval write, source/view/EventRecord/Ops audit/client/media mutation, raw locator/credential/operator material 노출을 수행하지 않습니다.
+- verifier: `scripts/internal/verify_v370_limited_safe_execution_pilot.mjs`, `./server.sh verify-v370-limited-safe-execution-pilot`, `docs/project-feature-test-inventory.md`의 `UI-099`, `SRC-061`, `CLIENT-038`, `LAB-108`, `SAFE-176`, `OPS-143`을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v370_limited_safe_execution_pilot.mjs`는 Limited Safe Execution Pilot model, route, dashboard shell, CSS, final backlog 기록, server dispatch가 아직 없어 `pass=1 fail=8`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 15 결과 행에 기록합니다.
+- 완료 경계: Step 15는 Ops-only Limited Safe Execution Pilot API/UI/verifier 연결입니다. Outcome Reconciliation 완료 evidence가 아닙니다. Export/Handoff Bundle, Stabilization and Release Readiness 완료 evidence도 아닙니다. UI 풀테스트 직접 조작, 30분/120분, source recheck 실행, notice queue write/send, source/view/runbook/approval/EventRecord write, media mutation, published metadata, release action evidence가 아닙니다.
+
+## v3.7.0 Step 16 개발 기록
+
+- 범위: P2 `v3.7.0 (16) Outcome Reconciliation`.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/site-operations/outcome-reconciliation` GET route와 `OpsV370OutcomeReconciliationJson`, `BuildV370OutcomeReconciliationItems`, `BuildV370OutcomeReconciliationSummary`를 추가했습니다. Limited Safe Execution Pilot action, site simulation input pack, v3.6 source/rule impact diff, site impact graph, client notice by site/view group refs를 조합해 pre-simulation ref와 post-execution not-run ref를 source/event/client impact 축으로 비교합니다.
+- `src/ingress/webrtc_http_server.cpp`: `AppendOpsDashboardPage` 안에 `ops-site-outcome-reconciliation-workspace` section을 추가했고, `dashSiteOutcomeReconciliationBadges`, `dashSiteOutcomeReconciliationText`, `dashSiteOutcomeReconciliationSourceList`, `dashSiteOutcomeReconciliationEventClientList`, `dashSiteOutcomeReconciliationBoundary` control을 배치했습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV370OutcomeReconciliation`, `refreshV370OutcomeReconciliation`, `v370OutcomeReconciliationEntry`를 추가해 `/ops/api/site-operations/outcome-reconciliation`의 `outcomeReconciliationItems`와 `outcomeReconciliationSummary`를 pre/post ref, source impact diff, EventRecord/client impact diff, pending reason으로 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `.ops-site-outcome-reconciliation-workspace`, `.ops-site-outcome-reconciliation-grid`, `.ops-site-outcome-reconciliation-list`, `.ops-site-outcome-reconciliation-entry`, `.ops-site-outcome-reconciliation-boundary` 스타일을 추가해 기존 site workspace와 같은 responsive density, wrapping, boundary 패턴을 사용합니다.
+- boundary: pilot execution, source recheck 실행, notice queue write/send, client notice send, source/view/EventRecord/Ops audit/runbook/approval/operator note write, viewer client payload 변경, media/schema mutation을 수행하지 않습니다.
+- verifier: `scripts/internal/verify_v370_outcome_reconciliation.mjs`, `./server.sh verify-v370-outcome-reconciliation`, `docs/project-feature-test-inventory.md`의 `UI-100`, `SRC-062`, `EVT-083`, `CLIENT-039`, `LAB-109`, `SAFE-177`, `OPS-144`를 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v370_outcome_reconciliation.mjs`는 Outcome Reconciliation model, route, dashboard shell, CSS, final backlog 기록, server dispatch가 아직 없어 `pass=1 fail=8`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 16 결과 행에 기록합니다.
+- 완료 경계: Step 16은 Ops-only Outcome Reconciliation API/UI/verifier 연결입니다. Export/Handoff Bundle 완료 evidence가 아닙니다. Stabilization and Release Readiness 완료 evidence도 아닙니다. UI 풀테스트 직접 조작, 30분/120분, pilot 실행, source recheck 실행, notice queue write/send, source/view/runbook/approval/EventRecord write, media mutation, published metadata, release action evidence가 아닙니다.
+
+## v3.7.0 Step 17 개발 기록
+
+- 범위: P1 `v3.7.0 (17) Export / Handoff Bundle`.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/site-operations/export-handoff-bundle` GET route와 `OpsV370ExportHandoffBundleJson`, `BuildV370ExportHandoffBundleItems`, `BuildV370ExportHandoffMapEntries`, `BuildV370ExportHandoffBundleSummary`를 추가했습니다. v3.7 site registry projection, runbook instance ledger, field evidence attachment, approval ticket workflow, outcome reconciliation refs를 조합해 redacted release-safe handoff bundle과 handoff map을 산출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `AppendOpsDashboardPage` 안에 `ops-site-export-handoff-bundle-workspace` section을 추가했고, `dashSiteExportHandoffBundleBadges`, `dashSiteExportHandoffBundleText`, `dashSiteExportHandoffBundleList`, `dashSiteExportHandoffMapList`, `dashSiteExportHandoffRedactionList`, `dashSiteExportHandoffBundleBoundary` control을 배치했습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV370ExportHandoffBundle`, `refreshV370ExportHandoffBundle`, `v370ExportHandoffBundleEntry`를 추가해 `/ops/api/site-operations/export-handoff-bundle`의 `exportHandoffBundleItems`, `exportHandoffMapEntries`, `exportHandoffBundleSummary`를 bundle item, handoff map, redaction review, boundary로 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `.ops-site-export-handoff-bundle-workspace`, `.ops-site-export-handoff-bundle-grid`, `.ops-site-export-handoff-bundle-list`, `.ops-site-export-handoff-bundle-entry`, `.ops-site-export-handoff-bundle-boundary` 스타일을 추가해 기존 site workspace와 같은 responsive density, wrapping, boundary 패턴을 사용합니다.
+- boundary: artifact export, bundle/file/handoff write, pilot execution, source recheck, notice queue write/send, client notice send, field smoke, endpoint/provider call, source/view/runbook/approval/EventRecord/Ops audit/client/media mutation, raw locator/endpoint/credential/provider/diagnostic/client raw material 노출을 수행하지 않습니다.
+- verifier: `scripts/internal/verify_v370_export_handoff_bundle.mjs`, `./server.sh verify-v370-export-handoff-bundle`, `docs/project-feature-test-inventory.md`의 `UI-101`, `LAB-110`, `SAFE-178`, `OPS-145`를 추가했습니다.
+- 검증: 최초 `./server.sh verify-v370-export-handoff-bundle`는 Export / Handoff Bundle model, route, dashboard shell, CSS, final backlog 기록, feature coverage 연결이 아직 없어 `pass=1 fail=8`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 17 결과 행에 기록합니다.
+- 완료 경계: Step 17은 Ops-only Export / Handoff Bundle API/UI/verifier 연결입니다. Stabilization and Release Readiness 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분, artifact/file/handoff write, pilot 실행, source recheck 실행, notice queue write/send, source/view/runbook/approval/EventRecord/Ops audit/client/media mutation, published metadata, release action evidence가 아닙니다.
+
+## v3.7.0 Step 18 개발 기록
+
+- 범위: P0 `v3.7.0 (18) Stabilization and Release Readiness`.
+- `scripts/internal/verify_v370_stabilization_release_readiness.mjs`, `./server.sh verify-v370-stabilization-release-readiness`: v3.7 Step 1~17 local verifier, release metadata/docs/assets, feature/script inventory, release evidence index, close-out dry-run, `git diff --check` 연결을 `media-server.v370-stabilization-release-readiness.v1` local readiness gate로 묶었습니다.
+- `docs/development-backlog.md`, `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`, `docs/release-test-records.md`, `docs/release-policy.md`, `docs/release-evidence-index.md`: `SAFE-179`, `OPS-146`, Step 18 local readiness command, 미실행/미확인 release action 경계, local gate 결과 기록 위치를 추가했습니다.
+- `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_script_inventory.mjs`, `server.sh`: Step 18 verifier coverage, project inventory required row/range, script inventory, server help/dispatch 연결을 추가했습니다.
+- companion local gate:
+  - `./server.sh verify-v370-stabilization-release-readiness`
+  - `./server.sh build`
+  - `./server.sh verify-v370-entry-baseline`
+  - `./server.sh verify-v370-site-source-group-contract`
+  - `./server.sh verify-v370-site-aware-source-registry-projection`
+  - `./server.sh verify-v370-site-health-rollup`
+  - `./server.sh verify-v370-site-impact-graph`
+  - `./server.sh verify-v370-site-simulation-input-pack`
+  - `./server.sh verify-v370-cross-site-safe-apply-readiness`
+  - `./server.sh verify-v370-runbook-template-contract`
+  - `./server.sh verify-v370-runbook-instance-ledger`
+  - `./server.sh verify-v370-approval-ticket-workflow`
+  - `./server.sh verify-v370-site-operations-workspace-ui`
+  - `./server.sh verify-v370-client-notice-by-site-view-group`
+  - `./server.sh verify-v370-rule-va-what-if-by-site`
+  - `./server.sh verify-v370-field-evidence-attachment`
+  - `./server.sh verify-v370-limited-safe-execution-pilot`
+  - `./server.sh verify-v370-outcome-reconciliation`
+  - `./server.sh verify-v370-export-handoff-bundle`
+  - `./server.sh verify-release-metadata`
+  - `./server.sh verify-docs-links`
+  - `./server.sh verify-docs-ui-assets`
+  - `./server.sh verify-project-inventory`
+  - `./server.sh verify-feature-inventory-coverage`
+  - `./server.sh verify-release-evidence-index`
+  - `./server.sh verify-release-closeout-helper --dry-run`
+  - `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run`
+  - `./server.sh verify-script-inventory`
+  - `git diff --check`
+- 검증: 최초 `./server.sh verify-v370-stabilization-release-readiness`는 Step 18 roadmap, feature inventory, release policy/evidence index/release records 연결이 아직 없어 `pass=2 fail=4`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v370 Step 18 결과 행에 기록합니다.
+- 완료 경계: Step 18은 local stabilization/readiness wiring입니다. UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release, field smoke, 외부 credential/endpoint/실기기 evidence, release action 완료 evidence가 아닙니다.
+
+## 최신 공개 기준: v3.6.0 Operations Simulation and Safe Apply Readiness
 
 상태: Step 1 source/version/docs/backlog/verification metadata 정렬 완료. Step 2
 Simulation Input Contract 구현 완료. Step 3 Operations Simulation Run Contract 구현 완료.

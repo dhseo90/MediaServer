@@ -3,7 +3,7 @@
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Published Release](https://img.shields.io/badge/published-v3.6.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v3.6.0)
-![Source Version](https://img.shields.io/badge/source-3.6.0-informational)
+![Source Version](https://img.shields.io/badge/source-3.7.0-informational)
 
 RTSP/WebRTC live stream을 받아 다시 내보내고, 필요할 때 YOLO/ONNX 영상 분석
 overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
@@ -15,9 +15,9 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 - English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 - 전체 문서 색인: [docs/README.md](docs/README.md)
 - 최신 공개 GitHub Release: [v3.6.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.6.0)
-- 현재 소스 버전: `3.6.0`
+- 현재 소스 버전: `3.7.0`
 - v3.6.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- 현재 source roadmap: `v3.6.0 Operations Simulation and Safe Apply Readiness`
+- 현재 source roadmap: `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`
 
 ## 한눈에 보기
 
@@ -32,16 +32,15 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 - **제외 범위**: VMS/NVR, 장기 녹화, broad archive playback/search, VLM default-on,
   model/runtime bundle 배포, 실기기/외부 provider 성공 보장은 기본 공개 릴리즈에 포함하지 않습니다.
 
-## v3.6 Source Roadmap
+## v3.7 Source Roadmap
 
 - 최신 공개 릴리즈: `v3.6.0` Operations Simulation and Safe Apply Readiness, source-only.
-- 현재 소스: `3.6.0` Operations Simulation and Safe Apply Readiness.
-- v3.6 로드맵: v3.5 Live Operations graph, command plan, staged plan을 기반으로
-  EventRecord, SourceRegistry, PublishedView, command plan, staged plan을 read-only
-  simulation input으로 묶고, dry-run 결과, source/rule impact diff, safe apply readiness를
-  자동 적용 없이 산출합니다.
+- 현재 소스: `3.7.0` Site-Aware Operations and Safe Runbook Control Plane.
+- v3.7 로드맵: v3.6 simulation/safe apply readiness를 site, source group, client view,
+  runbook approval 단위로 확장하고, 운영자가 여러 현장/소스 그룹의 영향과 blocker를
+  순서대로 검토할 수 있는 control plane을 준비합니다.
 - 최신 공개 기준: v3.6.0 Operations Simulation and Safe Apply Readiness는 published baseline이며,
-  v3.5.0 Live Operations Control Plane은 직전 published baseline으로 보존합니다.
+  v3.7.0 Site-Aware Operations and Safe Runbook Control Plane은 현재 source roadmap입니다.
 - 불변 조건: Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path는
   요청 없이 변경하지 않습니다.
 - AI/model 경계: Qwen 8B local standard, Qwen 4B low-spec fallback, Qwen 30B 평가 후보,
@@ -124,7 +123,7 @@ README는 제품 개요와 빠른 시작만 담습니다. 세부 정책과 내�
 - release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
 - 최신 공개 릴리즈 노트: [v3.6.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.6.0)
 - 현재 source roadmap: [docs/development-backlog.md](docs/development-backlog.md)의
-  `v3.6.0 Operations Simulation and Safe Apply Readiness`
+  `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`
 
 ## 대표 UI 미리보기
 

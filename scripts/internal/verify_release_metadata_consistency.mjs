@@ -69,7 +69,7 @@ assert(/^\d+\.\d+\.\d+$/.test(version), `VERSION must be semver, got ${version}`
 const currentTag = `v${version}`;
 const latestPublishedTag = "v3.6.0";
 const latestPublishedVersion = latestPublishedTag.replace(/^v/, "");
-const currentRoadmap = "v3.6.0 Operations Simulation and Safe Apply Readiness";
+const currentRoadmap = "v3.7.0 Site-Aware Operations and Safe Runbook Control Plane";
 const latestPublishedBaseline = "v3.6.0 Operations Simulation and Safe Apply Readiness";
 const previousPublishedTag = "v3.5.0";
 const previousPublishedBaseline = `${previousPublishedTag} Live Operations Control Plane`;
@@ -325,10 +325,10 @@ check("versioning policy separates source version and published release", () => 
     `최신 공개 GitHub Release: \`${latestPublishedTag}\``,
     `최신 공개 roadmap: \`${latestPublishedBaseline}\``,
     `\`${latestPublishedTag}\` 공개 상태: source-only GitHub Release`,
-    `현재 소스 트리의 \`${version}\` roadmap은 v3.6.0 Operations Simulation and Safe Apply Readiness`,
+    `현재 소스 트리의 \`${version}\` roadmap은 v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`,
     `published tag \`${latestPublishedTag}\`와 현재 source tag \`${currentTag}\``,
     "## 2.x runway / 3.0 전환 정책",
-    "## 3.6.0 active source roadmap 범위",
+    "## 3.7.0 active source roadmap 범위",
   ]) {
     assert(doc.includes(snippet), `docs/versioning-policy.md missing snippet: ${snippet}`);
   }
@@ -396,14 +396,13 @@ check("development backlog pins current source roadmap and public release bounda
   const doc = readText("docs/development-backlog.md");
   for (const snippet of [
     `## 현재 source roadmap: ${currentRoadmap}`,
-    "| 1 | v3.6.0 (1) v3.6.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/docs/backlog/source roadmap과 `verify-v360-entry-baseline` 기준 정렬 |",
-    "Simulation Input Contract",
-    "Operations Simulation Run Contract",
-    "Command Plan Dry-run Simulator",
-    "Source/Rule Impact Diff",
-    "Safe Apply Readiness Gate",
-    `## 최신 공개 기준: ${latestPublishedTag} Source Release Baseline`,
-    `## 직전 공개 기준: ${previousPublishedTag} Source Release Baseline`,
+    "| Foundation | v3.7.0 (1) v3.7.0 baseline 정렬 | P0 | VERSION/CMake/README/docs/backlog/source roadmap을 `3.7.0`와 `verify-v370-entry-baseline` 기준으로 정렬 |",
+    "Site / Source Group Contract",
+    "Site Health Rollup",
+    "Site Operations Workspace UI",
+    "Limited Safe Execution Pilot",
+    `## 최신 공개 기준: ${latestPublishedTag} Operations Simulation and Safe Apply Readiness`,
+    `## v3.5.0 published baseline 상세`,
     "기존 네 영역인 안정화 테스트, 30분 테스트, 120분 테스트, UI 풀테스트",
     `\`${currentTag}\` GitHub Release publish 완료는 tag, GitHub Release, \`verify-release-metadata --published\` evidence가 있을 때만 기록합니다.`,
   ]) {
@@ -459,7 +458,7 @@ check("public entry docs keep release evidence source-of-truth deduped", () => {
   ]) {
     assert(docsIndex.includes(snippet), `docs/README.md missing source-of-truth link snippet: ${snippet}`);
   }
-  assert(releasePolicy.includes("## v3.6.0 Source Roadmap Scope"), "release policy must own the v3.6.0 source roadmap boundary");
+  assert(releasePolicy.includes("## v3.7.0 Source Roadmap Scope"), "release policy must own the v3.7.0 source roadmap boundary");
   assert(backlog.includes(`## 현재 source roadmap: ${currentRoadmap}`), `development backlog must own the ${currentTag} source roadmap`);
   assert(backlog.includes(`직전 공개 릴리즈입니다.`), "development backlog must preserve previous published release boundary");
   return {

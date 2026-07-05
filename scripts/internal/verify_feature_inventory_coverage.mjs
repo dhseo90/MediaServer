@@ -133,6 +133,105 @@ for (const [prefix, verifiers] of Object.entries(v360VerifierCoverage)) {
   stabilityVerifierByPrefix[prefix].push(...verifiers);
 }
 
+const v370VerifierCoverage = {
+  UI: [
+    "verify-v370-site-operations-workspace-ui",
+    "verify-v370-client-notice-by-site-view-group",
+    "verify-v370-rule-va-what-if-by-site",
+    "verify-v370-field-evidence-attachment",
+    "verify-v370-limited-safe-execution-pilot",
+    "verify-v370-outcome-reconciliation",
+    "verify-v370-export-handoff-bundle",
+    "verify-v370-stabilization-release-readiness",
+  ],
+  RULE: [
+    "verify-v370-rule-va-what-if-by-site",
+  ],
+  SRC: [
+    "verify-v370-site-source-group-contract",
+    "verify-v370-site-aware-source-registry-projection",
+    "verify-v370-site-health-rollup",
+    "verify-v370-site-impact-graph",
+    "verify-v370-site-simulation-input-pack",
+    "verify-v370-cross-site-safe-apply-readiness",
+    "verify-v370-field-evidence-attachment",
+    "verify-v370-limited-safe-execution-pilot",
+    "verify-v370-outcome-reconciliation",
+  ],
+  MEDIA: [
+    "verify-v370-field-evidence-attachment",
+  ],
+  EVT: [
+    "verify-v370-site-impact-graph",
+    "verify-v370-site-simulation-input-pack",
+    "verify-v370-rule-va-what-if-by-site",
+    "verify-v370-outcome-reconciliation",
+  ],
+  LAB: [
+    "verify-v370-site-simulation-input-pack",
+    "verify-v370-cross-site-safe-apply-readiness",
+    "verify-v370-runbook-template-contract",
+    "verify-v370-runbook-instance-ledger",
+    "verify-v370-approval-ticket-workflow",
+    "verify-v370-rule-va-what-if-by-site",
+    "verify-v370-field-evidence-attachment",
+    "verify-v370-limited-safe-execution-pilot",
+    "verify-v370-outcome-reconciliation",
+    "verify-v370-export-handoff-bundle",
+  ],
+  CLIENT: [
+    "verify-v370-site-impact-graph",
+    "verify-v370-cross-site-safe-apply-readiness",
+    "verify-v370-client-notice-by-site-view-group",
+    "verify-v370-limited-safe-execution-pilot",
+    "verify-v370-outcome-reconciliation",
+  ],
+  SAFE: [
+    "verify-v370-entry-baseline",
+    "verify-v370-site-source-group-contract",
+    "verify-v370-site-aware-source-registry-projection",
+    "verify-v370-site-health-rollup",
+    "verify-v370-site-impact-graph",
+    "verify-v370-site-simulation-input-pack",
+    "verify-v370-cross-site-safe-apply-readiness",
+    "verify-v370-runbook-template-contract",
+    "verify-v370-runbook-instance-ledger",
+    "verify-v370-approval-ticket-workflow",
+    "verify-v370-site-operations-workspace-ui",
+    "verify-v370-client-notice-by-site-view-group",
+    "verify-v370-rule-va-what-if-by-site",
+    "verify-v370-field-evidence-attachment",
+    "verify-v370-limited-safe-execution-pilot",
+    "verify-v370-outcome-reconciliation",
+    "verify-v370-export-handoff-bundle",
+    "verify-v370-stabilization-release-readiness",
+  ],
+  OPS: [
+    "verify-v370-entry-baseline",
+    "verify-v370-site-source-group-contract",
+    "verify-v370-site-aware-source-registry-projection",
+    "verify-v370-site-health-rollup",
+    "verify-v370-site-impact-graph",
+    "verify-v370-site-simulation-input-pack",
+    "verify-v370-cross-site-safe-apply-readiness",
+    "verify-v370-runbook-template-contract",
+    "verify-v370-runbook-instance-ledger",
+    "verify-v370-approval-ticket-workflow",
+    "verify-v370-site-operations-workspace-ui",
+    "verify-v370-client-notice-by-site-view-group",
+    "verify-v370-rule-va-what-if-by-site",
+    "verify-v370-field-evidence-attachment",
+    "verify-v370-limited-safe-execution-pilot",
+    "verify-v370-outcome-reconciliation",
+    "verify-v370-export-handoff-bundle",
+    "verify-v370-stabilization-release-readiness",
+  ],
+};
+
+for (const [prefix, verifiers] of Object.entries(v370VerifierCoverage)) {
+  stabilityVerifierByPrefix[prefix].push(...verifiers);
+}
+
 check("inventory row count is stable", () => {
   const declaredTotal = summaryCount(inventory, "전체 기능 항목");
   assert(rows.length === declaredTotal, `expected ${declaredTotal} feature rows, found ${rows.length}`);
