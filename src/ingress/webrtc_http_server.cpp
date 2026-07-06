@@ -10917,7 +10917,7 @@ std::vector<OpsV380ActionRouteBoundaryItem> BuildV380ActionRouteBoundaryItems() 
          "workflow",
          "GET",
          "ops-action-approval",
-         "planned",
+         "implemented-read-only",
          "approval, hold, reject, field-needed, and stale decision guard"},
         {"/ops/api/actions/readiness-preflight",
          "workflow",
@@ -11341,6 +11341,124 @@ std::string OpsV380ActionRequestLedgerContractJson() {
         << "\"readOnly\":true,"
         << "\"ledgerContractOnly\":true,"
         << "\"requestWritePerformed\":false,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"actionRequestPersisted\":false,"
+        << "\"approvalDecisionPersisted\":false,"
+        << "\"readinessCheckExecuted\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"runbookInstancePersisted\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV380ApprovalDecisionGateItem {
+    std::string decision;
+    std::string label;
+    std::string required_role;
+    std::vector<std::string> allowed_next_statuses;
+    std::string stale_after;
+    std::string description;
+    bool reason_required{false};
+};
+
+std::vector<OpsV380ApprovalDecisionGateItem> BuildV380ApprovalDecisionGateItems() {
+    return {
+        {"approve",
+         "Approve request",
+         "ops",
+         {"approved", "readiness-required"},
+         "15m",
+         "Marks the request as operator-approved for a later readiness preflight contract",
+         true},
+        {"hold",
+         "Hold request",
+         "ops",
+         {"blocked", "approval-needed"},
+         "15m",
+         "Keeps the request in review with a visible blocker reason",
+         true},
+        {"reject",
+         "Reject request",
+         "ops",
+         {"rejected"},
+         "15m",
+         "Rejects the request for review purposes without executing or writing action state",
+         true},
+        {"field-needed",
+         "Field evidence needed",
+         "ops",
+         {"field-needed", "blocked"},
+         "30m",
+         "Requires external or site evidence before any later readiness preflight can continue",
+         true},
+    };
+}
+
+void AppendV380ApprovalDecisionGateItemJson(std::ostringstream& out,
+                                            const OpsV380ApprovalDecisionGateItem& item) {
+    out << "{"
+        << "\"decision\":\"" << JsonEscape(item.decision) << "\","
+        << "\"label\":\"" << JsonEscape(item.label) << "\","
+        << "\"requiredRole\":\"" << JsonEscape(item.required_role) << "\","
+        << "\"reasonRequired\":" << JsonBool(item.reason_required) << ","
+        << "\"allowedNextStatuses\":";
+    AppendJsonStringArray(out, item.allowed_next_statuses);
+    out << ",\"staleAfter\":\"" << JsonEscape(item.stale_after) << "\","
+        << "\"description\":\"" << JsonEscape(item.description) << "\""
+        << "}";
+}
+
+std::string OpsV380ApprovalDecisionGateJson() {
+    const auto items = BuildV380ApprovalDecisionGateItems();
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v380-approval-decision-gate.v1\","
+        << "\"status\":\"approval-decision-gate\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"route\":\"/ops/api/actions/approval-decision-gate\","
+        << "\"capabilityContractRoute\":\"/ops/api/actions/capability-contract\","
+        << "\"requestLedgerRoute\":\"/ops/api/actions/request-ledger\","
+        << "\"approvalDecisionGate\":{"
+        << "\"contractOnly\":true,"
+        << "\"reviewer\":\"ops-principal-ref\","
+        << "\"reason\":\"required-for-all-decisions\","
+        << "\"auditRef\":\"future-ops-audit-ref\","
+        << "\"approvalGateContractOnly\":true"
+        << "},\"decisionStates\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV380ApprovalDecisionGateItemJson(out, items[i]);
+    }
+    out << "],\"staleDecisionGuard\":{"
+        << "\"enabled\":true,"
+        << "\"defaultStaleAfter\":\"15m\","
+        << "\"fieldNeededStaleAfter\":\"30m\","
+        << "\"staleDecisionBlocksReadiness\":true,"
+        << "\"decisionWritePerformed\":false"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"approvalGateContractOnly\":true,"
+        << "\"decisionWritePerformed\":false,"
         << "\"actionExecutionPerformed\":false,"
         << "\"actionRequestPersisted\":false,"
         << "\"approvalDecisionPersisted\":false,"
@@ -35612,6 +35730,20 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV380ActionRequestLedgerContractJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/actions/approval-decision-gate") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV380ApprovalDecisionGateJson());
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

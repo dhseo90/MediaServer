@@ -237,18 +237,21 @@ const v380VerifierCoverage = {
     "verify-v380-ops-action-route-boundary",
     "verify-v380-action-capability-contract",
     "verify-v380-action-request-ledger-contract",
+    "verify-v380-approval-decision-gate",
   ],
   SAFE: [
     "verify-v380-entry-baseline",
     "verify-v380-ops-action-route-boundary",
     "verify-v380-action-capability-contract",
     "verify-v380-action-request-ledger-contract",
+    "verify-v380-approval-decision-gate",
   ],
   OPS: [
     "verify-v380-entry-baseline",
     "verify-v380-ops-action-route-boundary",
     "verify-v380-action-capability-contract",
     "verify-v380-action-request-ledger-contract",
+    "verify-v380-approval-decision-gate",
   ],
 };
 
