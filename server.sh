@@ -342,6 +342,8 @@ Usage:
                  v3.8.0 Step 1 source baseline과 latest published v3.7.0 경계를 검증합니다.
   verify-v380-ops-action-route-boundary
                  v3.8.0 Step 2 Ops Action Route Boundary를 검증합니다.
+  verify-v380-action-capability-contract
+                 v3.8.0 Step 3 Action Capability Contract를 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v370-site-source-group-contract
@@ -630,6 +632,8 @@ Usage:
                  v3.8.0 Step 1 source baseline과 latest published v3.7.0 경계를 검증합니다.
   verify-v380-ops-action-route-boundary
                  v3.8.0 Step 2 Ops Action Route Boundary를 검증합니다.
+  verify-v380-action-capability-contract
+                 v3.8.0 Step 3 Action Capability Contract를 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v370-site-source-group-contract
@@ -1740,6 +1744,10 @@ case "${cmd}" in
   verify-v380-ops-action-route-boundary)
     require_internal verify_v380_ops_action_route_boundary.mjs
     exec "${INTERNAL_DIR}/verify_v380_ops_action_route_boundary.mjs" "$@"
+    ;;
+  verify-v380-action-capability-contract)
+    require_internal verify_v380_action_capability_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v380_action_capability_contract.mjs" "$@"
     ;;
   verify-v370-entry-baseline)
     require_internal verify_v370_entry_baseline.mjs

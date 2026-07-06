@@ -11035,6 +11035,195 @@ std::string OpsV380ActionRouteBoundaryJson() {
     return out.str();
 }
 
+struct OpsV380ActionCapabilityContractItem {
+    std::string action_kind;
+    std::string action_label;
+    std::string capability;
+    std::string required_role;
+    std::vector<std::string> required_scopes;
+    std::string idempotency_key_pattern;
+    std::string status;
+    std::string description;
+    bool allowed{false};
+};
+
+std::vector<OpsV380ActionCapabilityContractItem> BuildV380ActionCapabilityContractItems() {
+    return {
+        {"source-recheck",
+         "Source health recheck request",
+         "source-health-readiness",
+         "ops",
+         {"ops:read", "ops:actions:request"},
+         "v380-actions/{siteId}/source-recheck/{requestFingerprint}",
+         "allowed-preview-only",
+         "Prepare a source health recheck request without executing the recheck or writing source state",
+         true},
+        {"client-notice-draft",
+         "Client notice draft request",
+         "client-safe-notice-preview",
+         "ops",
+         {"ops:read", "ops:actions:request"},
+         "v380-actions/{siteId}/client-notice-draft/{requestFingerprint}",
+         "allowed-preview-only",
+         "Prepare a viewer-safe notice draft without queue writes or delivery",
+         true},
+        {"rule-draft-package",
+         "Rule draft package request",
+         "rule-draft-review-package",
+         "admin",
+         {"ops:read", "ops:actions:request", "rules:read"},
+         "v380-actions/{siteId}/rule-draft-package/{requestFingerprint}",
+         "allowed-preview-only",
+         "Prepare a rule or scenario draft package without applying registry changes",
+         true},
+        {"receipt-bundle",
+         "Action receipt bundle request",
+         "redacted-action-receipt",
+         "ops",
+         {"ops:read", "ops:actions:request"},
+         "v380-actions/{siteId}/receipt-bundle/{requestFingerprint}",
+         "allowed-preview-only",
+         "Prepare a redacted request, readiness, and outcome receipt bundle",
+         true},
+        {"direct-source-write",
+         "Direct source registry write",
+         "source-registry-mutation",
+         "admin",
+         {"ops:read", "sources:write"},
+         "blocked/direct-source-write",
+         "denied",
+         "Blocked because v3.8 action contracts cannot mutate SourceRegistry or PublishedView state",
+         false},
+        {"direct-rule-apply",
+         "Direct rule apply",
+         "rule-registry-mutation",
+         "admin",
+         {"ops:read", "rules:write"},
+         "blocked/direct-rule-apply",
+         "denied",
+         "Blocked because v3.8 action contracts only prepare review packages",
+         false},
+        {"direct-client-notice-send",
+         "Direct client notice send",
+         "client-notice-delivery",
+         "ops",
+         {"ops:read", "client:notice:send"},
+         "blocked/direct-client-notice-send",
+         "denied",
+         "Blocked because v3.8 action contracts only prepare viewer-safe notice drafts",
+         false},
+        {"media-path-change",
+         "Media path change",
+         "media-session-mutation",
+         "admin",
+         {"ops:read", "media:write"},
+         "blocked/media-path-change",
+         "denied",
+         "Blocked because v3.8 action contracts cannot change RTSP, WebRTC, SSE, WS, or event schemas",
+         false},
+    };
+}
+
+void AppendV380ActionCapabilityContractItemJson(std::ostringstream& out,
+                                                const OpsV380ActionCapabilityContractItem& item) {
+    out << "{"
+        << "\"actionKind\":\"" << JsonEscape(item.action_kind) << "\","
+        << "\"actionLabel\":\"" << JsonEscape(item.action_label) << "\","
+        << "\"capability\":\"" << JsonEscape(item.capability) << "\","
+        << "\"allowed\":" << JsonBool(item.allowed) << ","
+        << "\"requiredRole\":\"" << JsonEscape(item.required_role) << "\","
+        << "\"requiredScopes\":";
+    AppendJsonStringArray(out, item.required_scopes);
+    out << ",\"idempotencyKeyPattern\":\"" << JsonEscape(item.idempotency_key_pattern) << "\","
+        << "\"status\":\"" << JsonEscape(item.status) << "\","
+        << "\"description\":\"" << JsonEscape(item.description) << "\""
+        << "}";
+}
+
+std::string OpsV380ActionCapabilityContractJson() {
+    const auto items = BuildV380ActionCapabilityContractItems();
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v380-action-capability-contract.v1\","
+        << "\"status\":\"action-capability-contract\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"route\":\"/ops/api/actions/capability-contract\","
+        << "\"routeBoundary\":\"/ops/api/actions/route-boundary\","
+        << "\"actionCapabilityContract\":{"
+        << "\"contractOnly\":true,"
+        << "\"requiredRole\":\"ops\","
+        << "\"requiredScopes\":";
+    AppendJsonStringArray(out, {"ops:read", "ops:actions:request"});
+    out << ",\"allowedStatuses\":";
+    AppendJsonStringArray(out, {"allowed-preview-only", "denied"});
+    out << "},\"allowedActionCatalog\":[";
+    bool wrote_allowed = false;
+    for (const auto& item : items) {
+        if (!item.allowed) {
+            continue;
+        }
+        if (wrote_allowed) {
+            out << ",";
+        }
+        AppendV380ActionCapabilityContractItemJson(out, item);
+        wrote_allowed = true;
+    }
+    out << "],\"deniedActionCatalog\":[";
+    bool wrote_denied = false;
+    for (const auto& item : items) {
+        if (item.allowed) {
+            continue;
+        }
+        if (wrote_denied) {
+            out << ",";
+        }
+        AppendV380ActionCapabilityContractItemJson(out, item);
+        wrote_denied = true;
+    }
+    out << "],\"idempotencyPolicy\":{"
+        << "\"required\":true,"
+        << "\"keyOwner\":\"operator-request\","
+        << "\"duplicateRequestBehavior\":\"return-existing-read-model\","
+        << "\"keyMaterial\":\"siteId, actionKind, requestFingerprint\","
+        << "\"requestWritePerformed\":false"
+        << "},\"immutableSchemaBoundary\":{"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"capabilityContractOnly\":true,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"actionRequestPersisted\":false,"
+        << "\"approvalDecisionPersisted\":false,"
+        << "\"readinessCheckExecuted\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"runbookInstancePersisted\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 struct OpsV370SiteSourceGroupContractItem {
     std::string field;
     std::string json_name;
@@ -35252,6 +35441,20 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV380ActionRouteBoundaryJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/actions/capability-contract") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV380ActionCapabilityContractJson());
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

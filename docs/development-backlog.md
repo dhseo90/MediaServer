@@ -19,9 +19,10 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 source roadmap: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
 
-상태: Step 1 source baseline 정렬을 완료했고 Step 2~16 개발은 미착수입니다. 현재 source
-version은 `3.8.0`이며, Step 1에서 VERSION/CMake/docs/backlog/source roadmap과
-`verify-v380-entry-baseline`을 `3.8.0` 기준으로 정렬했습니다. 각 step은 실제
+상태: Step 1 source baseline 정렬, Step 2 Ops Action Route Boundary, Step 3 Action
+Capability Contract를 완료했고 Step 4~16 개발은 미착수입니다. 현재 source version은
+`3.8.0`이며, VERSION/CMake/docs/backlog/source roadmap과 v3.8 Step 1~3 local gate를
+`3.8.0` 기준으로 정렬했습니다. 각 step은 실제
 코드/API/UI/문서/검증 산출물이 생긴 뒤에만 완료로 기록합니다.
 
 직접 답: v3.8.0의 1차 선택값은 `Operator-Gated Action Pilot & Outcome Loop`입니다.
@@ -66,7 +67,7 @@ Product UI -> Evidence/Field -> Release 순서로 진행합니다.
 | --- | --- | --- | --- | --- |
 | 1 | v3.8.0 (1) v3.8.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/docs/backlog/source roadmap과 `verify-v380-entry-baseline` 기준 정렬 |
 | 2 | v3.8.0 (2) Ops Action Route Boundary | P0 | 완료 | `/ops/api/actions/route-boundary`와 `OpsV380ActionRouteBoundaryJson`으로 v3.8 action route namespace boundary를 read-only로 분리 |
-| 3 | v3.8.0 (3) Action Capability Contract | P0 | 미착수 | action capability contract, role/scope, idempotency, immutable boundary 정의 필요 |
+| 3 | v3.8.0 (3) Action Capability Contract | P0 | 완료 | `/ops/api/actions/capability-contract`와 `OpsV380ActionCapabilityContractJson`으로 허용/금지 action, role/scope, idempotency, immutable schema boundary를 read-only로 정의 |
 | 4 | v3.8.0 (4) Action Request Ledger Contract | P0 | 미착수 | append-only/read-only action request ledger contract 필요 |
 | 5 | v3.8.0 (5) Approval Decision Gate | P0 | 미착수 | approval decision workflow와 stale decision guard 필요 |
 | 6 | v3.8.0 (6) Action Readiness Preflight | P0 | 미착수 | 실행 전 blocker/readiness 판정 필요 |
@@ -83,7 +84,8 @@ Product UI -> Evidence/Field -> Release 순서로 진행합니다.
 
 완료 경계: Step 1 완료는 source/version/docs/backlog/verification metadata 정렬이고,
 Step 2 완료는 `/ops/api/actions/route-boundary` read-only route boundary입니다.
-Step 3~16은 미착수이며, Step 1~2 PASS 자체는 v3.8 action execution, UI 풀테스트, 30분/120분
+Step 3 완료는 `/ops/api/actions/capability-contract` read-only capability contract입니다.
+Step 4~16은 미착수이며, Step 1~3 PASS 자체는 v3.8 action execution, UI 풀테스트, 30분/120분
 장시간 테스트, published metadata, release action evidence가 아닙니다.
 
 ## v3.8.0 Step 1 개발 기록
@@ -130,6 +132,33 @@ UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release a
 
 `./server.sh verify-v380-ops-action-route-boundary`는 route boundary와 read-only/no-mutation
 경계만 확인합니다. Action Capability Contract, Action Request Ledger, approval decision,
+readiness preflight, actual source recheck, client notice send, rule apply, UI 풀테스트,
+30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
+
+## v3.8.0 Step 3 개발 기록
+
+이번 Step 3은 P0 `v3.8.0 (3) Action Capability Contract`입니다.
+
+- `src/ingress/webrtc_http_server.cpp`: `OpsV380ActionCapabilityContractItem`,
+  `BuildV380ActionCapabilityContractItems`, `AppendV380ActionCapabilityContractItemJson`,
+  `OpsV380ActionCapabilityContractJson`을 추가해 `allowedActionCatalog`,
+  `deniedActionCatalog`, `requiredRole`, `requiredScopes`, `idempotencyPolicy`,
+  `immutableSchemaBoundary`를 read-only JSON으로 산출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/actions/capability-contract` GET route를
+  `require_ops_principal()`과 `Cache-Control: no-store`로 연결했습니다.
+- 허용 action catalog는 `source-recheck`, `client-notice-draft`, `rule-draft-package`,
+  `receipt-bundle`을 preview-only contract로 정의하고, 금지 catalog는 direct source write,
+  direct rule apply, direct client notice send, media path change를 `denied`로 분리합니다.
+- boundary flags는 action execution, action request persist, approval decision persist,
+  readiness execution, source recheck, notice send/write, rule/source/view/runbook/EventRecord/Ops audit
+  write, client payload/media/schema 변경, raw locator/credential 노출을 모두 `false`로 둡니다.
+- `scripts/internal/verify_v380_action_capability_contract.mjs`, `server.sh`: `./server.sh verify-v380-action-capability-contract`
+  local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: `LAB-112`, `SAFE-182`, `OPS-149`와 Step 3 verifier/미실행 경계를 기록했습니다.
+
+`./server.sh verify-v380-action-capability-contract`는 action capability contract와
+read-only/no-mutation/no-schema-change 경계만 확인합니다. Action Request Ledger, approval decision,
 readiness preflight, actual source recheck, client notice send, rule apply, UI 풀테스트,
 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
 
