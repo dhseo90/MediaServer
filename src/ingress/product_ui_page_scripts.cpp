@@ -1460,6 +1460,97 @@ void AppendOpsShellScript(std::ostringstream& out,
         const outcomeObserver = await requestJson(outcomeObserverRoute);
         renderV380OutcomeObserverReconciliation({ outcomeObserver, outcomeObserverRoute });
       };
+      let v380ActionReceiptBundleState = {};
+      const v380ActionReceiptBundleList = value => Array.isArray(value) ? value : [];
+      const v380ActionReceiptEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-action-receipt-entry ${escapeHtml(tone)}" data-v380-action-receipt-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV380ActionReceiptBundle = (payload = {}) => {
+        const receiptBundle = payload.receiptBundle || {};
+        const receiptBundleItems = v380ActionReceiptBundleList(receiptBundle.receiptBundleItems);
+        const receiptBundleSummary = receiptBundle.receiptBundleSummary || {};
+        const boundaryOk =
+          receiptBundle.boundaries?.bundlePersisted === false &&
+          receiptBundle.boundaries?.artifactFileWritePerformed === false &&
+          receiptBundle.boundaries?.handoffWritePerformed === false &&
+          receiptBundle.boundaries?.actionExecutionPerformed === false &&
+          receiptBundle.boundaries?.sourceRecheckExecuted === false &&
+          receiptBundle.boundaries?.clientNoticeSent === false &&
+          receiptBundle.boundaries?.ruleApplyPerformed === false &&
+          receiptBundle.boundaries?.eventRecordWritePerformed === false &&
+          receiptBundle.boundaries?.rawLocatorIncluded === false &&
+          receiptBundle.boundaries?.credentialMaterialIncluded === false &&
+          receiptBundle.boundaries?.rawDiagnosticJsonIncluded === false &&
+          receiptBundle.boundaries?.rtspOrWebrtcMediaPathChanged === false;
+        v380ActionReceiptBundleState = {
+          receiptBundle,
+          receiptBundleRoute: payload.receiptBundleRoute || '/ops/api/actions/receipt-bundle'
+        };
+        renderBadges('dashActionReceiptBundleBadges', [
+          { text: `receipt ${receiptBundleItems.length}` },
+          { text: `safe ${receiptBundleSummary.releaseSafeCount ?? 0}` },
+          { text: `redaction ${receiptBundleSummary.redactionReviewCount ?? 0}` },
+          { text: `handoff ${receiptBundleSummary.handoffRefCount ?? 0}` },
+          { text: `not-run ${receiptBundleSummary.notRunCount ?? 0}` },
+          { text: boundaryOk ? 'release-safe read-only' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashActionReceiptBundleText',
+          payload.error
+            ? `Action Receipt Bundle 로드 실패: ${payload.error}`
+            : `redacted release-safe receipt bundle ${receiptBundleItems.length} · handoff map ${receiptBundleSummary.handoffRefCount ?? 0} · redaction review ${receiptBundleSummary.redactionReviewCount ?? 0}`);
+        const bundleList = document.getElementById('dashActionReceiptBundleList');
+        if (bundleList) {
+          bundleList.innerHTML = receiptBundleItems.length > 0
+            ? receiptBundleItems.slice(0, 8).map(item =>
+                v380ActionReceiptEntry(
+                  item.receiptBundleId || 'receiptBundle',
+                  item.receiptState || 'redacted-release-safe',
+                  `${display(item.actionRequestRef)} · ${display(item.approvalDecisionRef)} · ${display(item.readinessRef)}`,
+                  `candidate=${display(item.executionCandidateRef)} · outcome=${display(item.outcomeDiffRef)}`,
+                  item.releaseSafe === true ? '' : 'warn'))
+              .join('')
+            : '<div class="empty">redacted receipt bundle 항목이 아직 없습니다.</div>';
+        }
+        const handoffList = document.getElementById('dashActionReceiptHandoffList');
+        if (handoffList) {
+          const handoffRows = receiptBundleItems.flatMap(item =>
+            v380ActionReceiptBundleList(item.handoffRefs).slice(0, 5).map(ref =>
+              v380ActionReceiptEntry(
+                'handoffMap',
+                item.handoffMap || 'release-safe-handoff',
+                ref,
+                item.releaseSafeLabel || 'releaseSafe=true',
+                '')));
+          handoffList.innerHTML = handoffRows.length > 0
+            ? handoffRows.slice(0, 12).join('')
+            : '<div class="empty">release-safe handoff map ref가 아직 없습니다.</div>';
+        }
+        const redactionList = document.getElementById('dashActionReceiptRedactionList');
+        if (redactionList) {
+          const redactionRows = receiptBundleItems.flatMap(item =>
+            v380ActionReceiptBundleList(item.redactionReview).slice(0, 6).map(ref =>
+              v380ActionReceiptEntry(
+                'redactionSummary',
+                ref,
+                item.redactionSummary || 'redacted release-safe',
+                `${item.receiptBundleId || 'receipt'} · raw locator/credential/raw diagnostic excluded`,
+                '')));
+          redactionList.innerHTML = redactionRows.length > 0
+            ? redactionRows.slice(0, 12).join('')
+            : '<div class="empty">redaction review ref가 아직 없습니다.</div>';
+        }
+        setText('dashActionReceiptBundleBoundary',
+          `bundle=${display(v380ActionReceiptBundleState.receiptBundleRoute)} · request=${display(receiptBundle.requestLedgerRoute)} · approval=${display(receiptBundle.approvalDecisionGateRoute)} · readiness=${display(receiptBundle.readinessPreflightRoute)} · outcome=${display(receiptBundle.outcomeReconciliationRoute)} · bundlePersisted=${receiptBundle.boundaries?.bundlePersisted === false ? 'false' : '확인 필요'} · artifactFileWritePerformed=${receiptBundle.boundaries?.artifactFileWritePerformed === false ? 'false' : '확인 필요'} · handoffWritePerformed=${receiptBundle.boundaries?.handoffWritePerformed === false ? 'false' : '확인 필요'} · rawLocatorIncluded=${receiptBundle.boundaries?.rawLocatorIncluded === false ? 'false' : '확인 필요'} · credentialMaterialIncluded=${receiptBundle.boundaries?.credentialMaterialIncluded === false ? 'false' : '확인 필요'} · rawDiagnosticJsonIncluded=${receiptBundle.boundaries?.rawDiagnosticJsonIncluded === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV380ActionReceiptBundle = async ({
+        receiptBundleRoute = '/ops/api/actions/receipt-bundle'
+      } = {}) => {
+        const receiptBundle = await requestJson(receiptBundleRoute);
+        renderV380ActionReceiptBundle({ receiptBundle, receiptBundleRoute });
+      };
       let v370OutcomeReconciliationState = {};
       const v370OutcomeReconciliationList = value => Array.isArray(value) ? value : [];
       const v370OutcomeReconciliationEntry = (kind, title, detail, meta, tone = '') =>
@@ -2962,6 +3053,9 @@ void AppendOpsShellScript(std::ostringstream& out,
         await refreshV380OutcomeObserverReconciliation({
           outcomeObserverRoute: '/ops/api/actions/outcome-reconciliation'
         }).catch(error => renderV380OutcomeObserverReconciliation({ error: error.message }));
+        await refreshV380ActionReceiptBundle({
+          receiptBundleRoute: '/ops/api/actions/receipt-bundle'
+        }).catch(error => renderV380ActionReceiptBundle({ error: error.message }));
         await refreshV370RuleVaWhatIfBySite({
           whatIfRoute: '/ops/api/site-operations/rule-va-what-if-by-site'
         }).catch(error => renderV370RuleVaWhatIfBySite({ error: error.message }));

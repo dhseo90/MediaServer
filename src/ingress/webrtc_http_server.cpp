@@ -2992,6 +2992,39 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           actionExecutionPerformed=false · sourceRecheckExecuted=false · clientNoticeSent=false · ruleApplyPerformed=false · eventRecordWritePerformed=false
         </div>
       </section>
+      <section class="section-card ops-workspace-wide ops-action-receipt-bundle" data-testid="ops-action-receipt-bundle" data-v380-action-receipt-bundle="media-server.ops.v380-action-receipt-bundle.v1">
+        <div class="toolbar">
+          <div>
+            <h3>Action Receipt Bundle</h3>
+            <p>request, approval, readiness, candidate, outcome diff를 redacted release-safe receipt로 묶습니다.</p>
+          </div>
+        </div>
+        <div id="dashActionReceiptBundleBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashActionReceiptBundleText">action receipt bundle read model을 불러오는 중입니다.</p>
+        <div class="grid ops-action-receipt-grid">
+          <div>
+            <h4>Receipt Bundle</h4>
+            <div id="dashActionReceiptBundleList" class="ops-action-receipt-list">
+              <div class="empty">redacted receipt bundle 항목을 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Handoff Map</h4>
+            <div id="dashActionReceiptHandoffList" class="ops-action-receipt-list">
+              <div class="empty">release-safe handoff map을 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Redaction Review</h4>
+            <div id="dashActionReceiptRedactionList" class="ops-action-receipt-list">
+              <div class="empty">redaction review 항목을 기다립니다.</div>
+            </div>
+          </div>
+        </div>
+        <div id="dashActionReceiptBundleBoundary" class="ops-action-receipt-boundary">
+          bundlePersisted=false · artifactFileWritePerformed=false · handoffWritePerformed=false · rawLocatorIncluded=false · credentialMaterialIncluded=false
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide ops-site-client-notice-workspace" data-testid="ops-site-client-notice-workspace" data-v370-client-notice-by-site-view-group="media-server.ops.v370-client-notice-by-site-view-group.v1">
         <div class="toolbar">
           <div>
@@ -11179,7 +11212,7 @@ std::vector<OpsV380ActionRouteBoundaryItem> BuildV380ActionRouteBoundaryItems() 
          "evidence",
          "GET",
          "ops-action-receipt",
-         "planned",
+         "implemented-read-only",
          "redacted approval/request/readiness/outcome receipt bundle"},
     };
 }
@@ -12522,6 +12555,262 @@ std::string OpsV380OutcomeObserverReconciliationJson() {
         << "\"opsAuditWritePerformed\":false,"
         << "\"actionResultPersisted\":false,"
         << "\"viewerClientPayloadChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV380ActionReceiptBundleItem {
+    std::string receipt_bundle_id;
+    std::string action_request_ref;
+    std::string approval_decision_ref;
+    std::string readiness_ref;
+    std::string execution_candidate_ref;
+    std::string outcome_diff_ref;
+    std::string redaction_summary;
+    std::string handoff_map;
+    std::string receipt_state{"redacted-release-safe"};
+    std::string release_safe_label{"release-safe-read-model"};
+    std::vector<std::string> bundle_signals;
+    std::vector<std::string> handoff_refs;
+    std::vector<std::string> redaction_review;
+    bool release_safe{true};
+    bool read_only{true};
+};
+
+struct OpsV380ActionReceiptBundleSummary {
+    int receipt_count{0};
+    int release_safe_count{0};
+    int redaction_review_count{0};
+    int handoff_ref_count{0};
+    int not_run_count{0};
+    std::vector<std::string> derivation_sources;
+};
+
+std::vector<OpsV380ActionReceiptBundleItem> BuildV380ActionReceiptBundleItems() {
+    const auto ledgerFields = BuildV380ActionRequestLedgerContractItems();
+    const auto approvalStates = BuildV380ApprovalDecisionGateItems();
+    const auto readinessItems = BuildV380ActionReadinessPreflightItems();
+    const auto sourcePilotItems = BuildV380SourceRecheckActionPilotItems();
+    const auto noticeDraftItems = BuildV380ClientNoticeDraftQueueItems();
+    const auto rulePackageItems = BuildV380RuleDraftActionPackageItems();
+    const auto outcomeItems = BuildV380OutcomeObserverReconciliationItems();
+
+    const std::size_t item_count =
+        std::max<std::size_t>(1U,
+                              std::max({approvalStates.size(),
+                                        readinessItems.size(),
+                                        sourcePilotItems.size(),
+                                        outcomeItems.size()}));
+    std::vector<OpsV380ActionReceiptBundleItem> items;
+    for (std::size_t index = 0; index < item_count && index < 8U; ++index) {
+        const auto& ledger =
+            ledgerFields.empty() ? OpsV380ActionRequestLedgerContractItem{}
+                                 : ledgerFields[index % ledgerFields.size()];
+        const auto& approval =
+            approvalStates.empty() ? OpsV380ApprovalDecisionGateItem{}
+                                   : approvalStates[index % approvalStates.size()];
+        const auto& readiness =
+            readinessItems.empty() ? OpsV380ActionReadinessPreflightItem{}
+                                   : readinessItems[index % readinessItems.size()];
+        const auto& source =
+            sourcePilotItems.empty() ? OpsV380SourceRecheckActionPilotItem{}
+                                     : sourcePilotItems[index % sourcePilotItems.size()];
+        const auto& notice =
+            noticeDraftItems.empty() ? OpsV380ClientNoticeDraftQueueItem{}
+                                     : noticeDraftItems[index % noticeDraftItems.size()];
+        const auto& rule =
+            rulePackageItems.empty() ? OpsV380RuleDraftActionPackageItem{}
+                                     : rulePackageItems[index % rulePackageItems.size()];
+        const auto& outcome =
+            outcomeItems.empty() ? OpsV380OutcomeObserverReconciliationItem{}
+                                 : outcomeItems[index % outcomeItems.size()];
+
+        OpsV380ActionReceiptBundleItem item;
+        item.receipt_bundle_id =
+            "receiptBundle:v380:" + std::to_string(index + 1);
+        item.action_request_ref =
+            "request-to-receipt:" +
+            (ledger.json_name.empty() ? std::string("actionRequestId") : ledger.json_name);
+        item.approval_decision_ref =
+            "approval-to-receipt:" +
+            (approval.decision.empty() ? std::string("approval-needed") : approval.decision);
+        item.readiness_ref =
+            "readiness-to-receipt:" +
+            (readiness.dimension.empty() ? std::string("readiness-preflight") : readiness.dimension);
+        item.execution_candidate_ref =
+            "candidate-to-receipt:" +
+            (source.field.empty() ? std::string("source-recheck-pilot") : source.field);
+        item.outcome_diff_ref =
+            "outcome-diff-to-receipt:" +
+            (outcome.outcome_observer_id.empty() ? std::string("outcome-observer") : outcome.outcome_observer_id);
+        item.redaction_summary =
+            "redacted: operator, source locator, credential, raw diagnostic, internal blocker detail excluded";
+        item.handoff_map =
+            "release-safe-handoff: ops-reviewer -> release-notes-source";
+        item.receipt_state =
+            "redacted-release-safe";
+        item.release_safe_label =
+            "releaseSafe=true; bundlePersisted=false; artifactFileWritePerformed=false";
+        item.bundle_signals = {
+            "request-to-receipt:present",
+            "approval-to-receipt:present",
+            "readiness-to-receipt:present",
+            "candidate-to-receipt:not-run",
+            "outcome-diff-to-receipt:pending",
+            "release-safe-handoff:ready",
+        };
+        item.handoff_refs = {
+            "/ops/api/actions/request-ledger",
+            "/ops/api/actions/approval-decision-gate",
+            "/ops/api/actions/readiness-preflight",
+            "/ops/api/actions/source-recheck-pilot",
+            "/ops/api/actions/outcome-reconciliation",
+        };
+        item.redaction_review = {
+            notice.field.empty() ? "client-notice-redaction:viewer-safe-only"
+                                 : "client-notice-redaction:" + notice.field,
+            rule.field.empty() ? "rule-draft-redaction:no-rule-apply"
+                               : "rule-draft-redaction:" + rule.field,
+            "raw-locator-excluded",
+            "credential-material-excluded",
+            "raw-diagnostic-json-excluded",
+        };
+        items.push_back(std::move(item));
+    }
+    return items;
+}
+
+OpsV380ActionReceiptBundleSummary BuildV380ActionReceiptBundleSummary(
+    const std::vector<OpsV380ActionReceiptBundleItem>& items) {
+    OpsV380ActionReceiptBundleSummary summary;
+    summary.derivation_sources = {
+        "BuildV380ActionRequestLedgerContractItems",
+        "BuildV380ApprovalDecisionGateItems",
+        "BuildV380ActionReadinessPreflightItems",
+        "BuildV380SourceRecheckActionPilotItems",
+        "BuildV380ClientNoticeDraftQueueItems",
+        "BuildV380RuleDraftActionPackageItems",
+        "BuildV380OutcomeObserverReconciliationItems",
+    };
+    summary.receipt_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        if (item.release_safe) {
+            ++summary.release_safe_count;
+        }
+        summary.redaction_review_count += static_cast<int>(item.redaction_review.size());
+        summary.handoff_ref_count += static_cast<int>(item.handoff_refs.size());
+        if (item.outcome_diff_ref.find("not-run") != std::string::npos ||
+            item.release_safe_label.find("artifactFileWritePerformed=false") != std::string::npos) {
+            ++summary.not_run_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV380ActionReceiptBundleSummaryJson(
+    std::ostringstream& out,
+    const OpsV380ActionReceiptBundleSummary& summary) {
+    out << "{"
+        << "\"receiptCount\":" << summary.receipt_count << ","
+        << "\"releaseSafeCount\":" << summary.release_safe_count << ","
+        << "\"redactionReviewCount\":" << summary.redaction_review_count << ","
+        << "\"handoffRefCount\":" << summary.handoff_ref_count << ","
+        << "\"notRunCount\":" << summary.not_run_count << ","
+        << "\"derivationSources\":";
+    AppendJsonStringArray(out, summary.derivation_sources);
+    out << "}";
+}
+
+void AppendV380ActionReceiptBundleItemJson(
+    std::ostringstream& out,
+    const OpsV380ActionReceiptBundleItem& item) {
+    out << "{"
+        << "\"receiptBundleId\":\"" << JsonEscape(item.receipt_bundle_id) << "\","
+        << "\"actionRequestRef\":\"" << JsonEscape(item.action_request_ref) << "\","
+        << "\"approvalDecisionRef\":\"" << JsonEscape(item.approval_decision_ref) << "\","
+        << "\"readinessRef\":\"" << JsonEscape(item.readiness_ref) << "\","
+        << "\"executionCandidateRef\":\"" << JsonEscape(item.execution_candidate_ref) << "\","
+        << "\"outcomeDiffRef\":\"" << JsonEscape(item.outcome_diff_ref) << "\","
+        << "\"redactionSummary\":\"" << JsonEscape(item.redaction_summary) << "\","
+        << "\"handoffMap\":\"" << JsonEscape(item.handoff_map) << "\","
+        << "\"receiptState\":\"" << JsonEscape(item.receipt_state) << "\","
+        << "\"releaseSafeLabel\":\"" << JsonEscape(item.release_safe_label) << "\","
+        << "\"bundleSignals\":";
+    AppendJsonStringArray(out, item.bundle_signals);
+    out << ",\"handoffRefs\":";
+    AppendJsonStringArray(out, item.handoff_refs);
+    out << ",\"redactionReview\":";
+    AppendJsonStringArray(out, item.redaction_review);
+    out << ",\"releaseSafe\":" << JsonBool(item.release_safe)
+        << ",\"readOnly\":" << JsonBool(item.read_only)
+        << "}";
+}
+
+std::string OpsV380ActionReceiptBundleJson() {
+    const auto items = BuildV380ActionReceiptBundleItems();
+    const auto summary = BuildV380ActionReceiptBundleSummary(items);
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v380-action-receipt-bundle.v1\","
+        << "\"status\":\"action-receipt-bundle\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"route\":\"/ops/api/actions/receipt-bundle\","
+        << "\"requestLedgerRoute\":\"/ops/api/actions/request-ledger\","
+        << "\"approvalDecisionGateRoute\":\"/ops/api/actions/approval-decision-gate\","
+        << "\"readinessPreflightRoute\":\"/ops/api/actions/readiness-preflight\","
+        << "\"sourceRecheckActionPilotRoute\":\"/ops/api/actions/source-recheck-pilot\","
+        << "\"clientNoticeDraftQueueRoute\":\"/ops/api/actions/client-notice-draft-queue\","
+        << "\"ruleDraftActionPackageRoute\":\"/ops/api/actions/rule-draft-package\","
+        << "\"outcomeReconciliationRoute\":\"/ops/api/actions/outcome-reconciliation\","
+        << "\"receiptBundleSummary\":";
+    AppendV380ActionReceiptBundleSummaryJson(out, summary);
+    out << ",\"receiptBundleItems\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV380ActionReceiptBundleItemJson(out, items[i]);
+    }
+    out << "],\"receiptPolicy\":{"
+        << "\"redacted\":true,"
+        << "\"releaseSafe\":true,"
+        << "\"handoffMapOnly\":true,"
+        << "\"requestApprovalReadinessCandidateOutcomeIncluded\":true,"
+        << "\"bundlePersisted\":false,"
+        << "\"artifactFileWritePerformed\":false,"
+        << "\"handoffWritePerformed\":false"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"receiptBundleOnly\":true,"
+        << "\"redacted\":true,"
+        << "\"releaseSafe\":true,"
+        << "\"handoffMapOnly\":true,"
+        << "\"bundlePersisted\":false,"
+        << "\"artifactFileWritePerformed\":false,"
+        << "\"handoffWritePerformed\":false,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"ruleApplyPerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"actionResultPersisted\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawDiagnosticJsonIncluded\":false,"
         << "\"eventPostPayloadChanged\":false,"
         << "\"eventRecordSchemaChanged\":false,"
         << "\"webrtcDataChannelSchemaChanged\":false,"
@@ -36861,6 +37150,20 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV380OutcomeObserverReconciliationJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/actions/receipt-bundle") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV380ActionReceiptBundleJson());
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

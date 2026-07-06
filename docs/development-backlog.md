@@ -24,9 +24,9 @@ Capability Contract, Step 4 Action Request Ledger Contract, Step 5 Approval Deci
 Step 6 Action Readiness Preflight, Step 7 Source Recheck Action Pilot, Step 8
 Client Notice Draft Queue, Step 9 Rule Draft Action Package, Step 10 Ops Action
 Control Workspace UI, Step 11 Client-safe Action Notice Preview, Step 12 Outcome Observer and
-Reconciliation을 완료했고 Step 13~16
+Reconciliation, Step 13 Action Receipt Bundle을 완료했고 Step 14~16
 개발은 미착수입니다. 현재 source version은 `3.8.0`이며,
-VERSION/CMake/docs/backlog/source roadmap과 v3.8 Step 1~12 local gate를
+VERSION/CMake/docs/backlog/source roadmap과 v3.8 Step 1~13 local gate를
 `3.8.0` 기준으로 정렬했습니다. 각 step은 실제
 코드/API/UI/문서/검증 산출물이 생긴 뒤에만 완료로 기록합니다.
 
@@ -82,7 +82,7 @@ Product UI -> Evidence/Field -> Release 순서로 진행합니다.
 | 10 | v3.8.0 (10) Ops Action Control Workspace UI | P1 | 완료 | `/ops` action control workspace와 `renderV380OpsActionControlWorkspace`로 action request/approval/readiness/pilot/receipt 흐름을 read-only로 표시 |
 | 11 | v3.8.0 (11) Client-safe Action Notice Preview | P1 | 완료 | `/client/api/views/{id}/events`와 client dashboard/events/live dock에 maintenance/degraded/recovering/available action notice preview만 viewer-safe로 표시 |
 | 12 | v3.8.0 (12) Outcome Observer and Reconciliation | P1 | 완료 | `/ops/api/actions/outcome-reconciliation`과 `/ops` outcome observer UI가 readiness/candidate/observed outcome diff를 source/EventRecord/client/rule 축으로 비교 |
-| 13 | v3.8.0 (13) Action Receipt Bundle | P1 | 미착수 | redacted receipt bundle과 handoff map 필요 |
+| 13 | v3.8.0 (13) Action Receipt Bundle | P1 | 완료 | `/ops/api/actions/receipt-bundle`과 `/ops` Action Receipt Bundle UI가 approval/request/readiness/candidate/outcome diff를 redacted release-safe receipt bundle과 handoff map으로 조합 |
 | 14 | v3.8.0 (14) Field Connector Evidence Package | P2 | 미착수 | field connector evidence 조건부 attachment 필요 |
 | 15 | v3.8.0 (15) Default-off Action Explanation | P2 | 미착수 | default-off explanation hint와 no-provider-call boundary 필요 |
 | 16 | v3.8.0 (16) Stabilization and Release Readiness | P0 | 미착수 | v3.8 local verifier suite, release records, close-out dry-run 연결 필요 |
@@ -99,7 +99,8 @@ Step 9 완료는 `/ops/api/actions/rule-draft-package` read-only rule draft acti
 Step 10 완료는 `/ops` action control workspace UI입니다.
 Step 11 완료는 client-safe action notice preview입니다.
 Step 12 완료는 outcome observer and reconciliation read model입니다.
-Step 13~16은 미착수이며, Step 1~12 PASS 자체는 v3.8 action execution, UI 풀테스트, 30분/120분
+Step 13 완료는 action receipt bundle read model입니다.
+Step 14~16은 미착수이며, Step 1~13 PASS 자체는 v3.8 action execution, UI 풀테스트, 30분/120분
 장시간 테스트, published metadata, release action evidence가 아닙니다.
 
 ## v3.8.0 Step 1 개발 기록
@@ -437,6 +438,49 @@ outcome diff read model과 `/ops` 렌더링 경계만 확인합니다. Actual ac
 source recheck execution, client notice send, notice queue write, rule apply, EventRecord write,
 source/view/Ops audit write, action result persist, Action Receipt Bundle 완료 evidence가 아닙니다.
 UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
+
+## v3.8.0 Step 13 개발 기록
+
+이번 Step 13은 P1 `v3.8.0 (13) Action Receipt Bundle`입니다.
+
+- `src/ingress/webrtc_http_server.cpp`: `OpsV380ActionReceiptBundleItem`,
+  `OpsV380ActionReceiptBundleSummary`, `BuildV380ActionReceiptBundleItems`,
+  `BuildV380ActionReceiptBundleSummary`, `AppendV380ActionReceiptBundleItemJson`,
+  `AppendV380ActionReceiptBundleSummaryJson`, `OpsV380ActionReceiptBundleJson`을 추가했습니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/actions/receipt-bundle` GET route를
+  `require_ops_principal()`, `Cache-Control: no-store`로 연결하고 approval/request/readiness/
+  candidate/outcome diff ref를 redacted release-safe receipt bundle과 handoff map으로 조합했습니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops` dashboard에
+  `ops-action-receipt-bundle` section, `dashActionReceiptBundleBadges`,
+  `dashActionReceiptBundleText`, `dashActionReceiptBundleList`,
+  `dashActionReceiptHandoffList`, `dashActionReceiptRedactionList`,
+  `dashActionReceiptBundleBoundary` UI control을 추가했습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV380ActionReceiptBundle`과
+  `refreshV380ActionReceiptBundle`을 추가해 `/ops/api/actions/receipt-bundle`의
+  `receiptBundleItems`, `receiptBundleSummary`, `handoffMap`, `redactionSummary`,
+  `releaseSafe` 경계를 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `.ops-action-receipt-bundle`,
+  `.ops-action-receipt-grid`, `.ops-action-receipt-list`, `.ops-action-receipt-entry`,
+  `.ops-action-receipt-boundary`를 기존 Ops dashboard card/list/boundary responsive 패턴에
+  연결했습니다.
+- `scripts/internal/verify_v380_action_receipt_bundle.mjs`, `server.sh`:
+  `./server.sh verify-v380-action-receipt-bundle` local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: `UI-105`, `EVT-085`, `CLIENT-042`, `LAB-120`,
+  `SAFE-192`, `OPS-159`와 Step 13 verifier/미실행 경계를 기록했습니다.
+- 검증: 최초 `node scripts/internal/verify_v380_action_receipt_bundle.mjs`는 Action Receipt Bundle
+  model, route, `/ops` shell, CSS, backlog/stream verification/inventory/release records/server
+  dispatch가 아직 없어 `pass=1 fail=8`로 기대 실패했습니다. 최종 검증 결과는
+  `docs/release-test-records.md`의 v380 Step 13 결과 행에 기록합니다.
+
+`./server.sh verify-v380-action-receipt-bundle`은 redacted release-safe receipt bundle과
+handoff map read model, redaction review UI, `/ops` 렌더링 경계만 확인합니다.
+Field Connector Evidence Package 완료 evidence가 아닙니다. Default-off Action Explanation,
+Stabilization and Release Readiness 완료 evidence도 아닙니다. Artifact/file/handoff write,
+action execution, source recheck execution, client notice send/queue write, rule apply/registry
+write, EventRecord/source/view/Ops audit/action result write, client/media/schema mutation,
+raw locator/credential/raw diagnostic inclusion, UI 풀테스트, 30분/120분 장시간 테스트,
+published metadata, release action 완료 evidence가 아닙니다.
 
 ## 최신 published baseline 상세: v3.7.0 Site-Aware Operations and Safe Runbook Control Plane
 

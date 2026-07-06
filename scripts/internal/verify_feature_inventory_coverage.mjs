@@ -237,13 +237,16 @@ const v380VerifierCoverage = {
     "verify-v380-ops-action-control-workspace-ui",
     "verify-v380-client-safe-action-notice-preview",
     "verify-v380-outcome-observer-reconciliation",
+    "verify-v380-action-receipt-bundle",
   ],
   EVT: [
     "verify-v380-outcome-observer-reconciliation",
+    "verify-v380-action-receipt-bundle",
   ],
   CLIENT: [
     "verify-v380-client-safe-action-notice-preview",
     "verify-v380-outcome-observer-reconciliation",
+    "verify-v380-action-receipt-bundle",
   ],
   LAB: [
     "verify-v380-ops-action-route-boundary",
@@ -255,6 +258,7 @@ const v380VerifierCoverage = {
     "verify-v380-client-notice-draft-queue",
     "verify-v380-rule-draft-action-package",
     "verify-v380-outcome-observer-reconciliation",
+    "verify-v380-action-receipt-bundle",
   ],
   SAFE: [
     "verify-v380-entry-baseline",
@@ -269,6 +273,7 @@ const v380VerifierCoverage = {
     "verify-v380-ops-action-control-workspace-ui",
     "verify-v380-client-safe-action-notice-preview",
     "verify-v380-outcome-observer-reconciliation",
+    "verify-v380-action-receipt-bundle",
   ],
   OPS: [
     "verify-v380-entry-baseline",
@@ -283,6 +288,7 @@ const v380VerifierCoverage = {
     "verify-v380-ops-action-control-workspace-ui",
     "verify-v380-client-safe-action-notice-preview",
     "verify-v380-outcome-observer-reconciliation",
+    "verify-v380-action-receipt-bundle",
   ],
 };
 
