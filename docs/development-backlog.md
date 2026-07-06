@@ -22,9 +22,9 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 상태: Step 1 source baseline 정렬, Step 2 Ops Action Route Boundary, Step 3 Action
 Capability Contract, Step 4 Action Request Ledger Contract, Step 5 Approval Decision Gate,
 Step 6 Action Readiness Preflight, Step 7 Source Recheck Action Pilot, Step 8
-Client Notice Draft Queue, Step 9 Rule Draft Action Package를 완료했고 Step 10~16
-개발은 미착수입니다. 현재 source version은 `3.8.0`이며,
-VERSION/CMake/docs/backlog/source roadmap과 v3.8 Step 1~9 local gate를
+Client Notice Draft Queue, Step 9 Rule Draft Action Package, Step 10 Ops Action
+Control Workspace UI를 완료했고 Step 11~16 개발은 미착수입니다. 현재 source
+version은 `3.8.0`이며, VERSION/CMake/docs/backlog/source roadmap과 v3.8 Step 1~10 local gate를
 `3.8.0` 기준으로 정렬했습니다. 각 step은 실제
 코드/API/UI/문서/검증 산출물이 생긴 뒤에만 완료로 기록합니다.
 
@@ -77,7 +77,7 @@ Product UI -> Evidence/Field -> Release 순서로 진행합니다.
 | 7 | v3.8.0 (7) Source Recheck Action Pilot | P1 | 완료 | `/ops/api/actions/source-recheck-pilot`와 `OpsV380SourceRecheckActionPilotJson`으로 source health recheck request와 dry execution result envelope를 read-only로 정의 |
 | 8 | v3.8.0 (8) Client Notice Draft Queue | P1 | 완료 | `/ops/api/actions/client-notice-draft-queue`와 `OpsV380ClientNoticeDraftQueueJson`으로 viewer-safe notice draft, queue preview, delivery blocker, redaction boundary를 read-only로 정의 |
 | 9 | v3.8.0 (9) Rule Draft Action Package | P1 | 완료 | `/ops/api/actions/rule-draft-package`와 `OpsV380RuleDraftActionPackageJson`으로 rule threshold/scenario 후보, draft package, review checklist, apply blocker를 read-only로 정의 |
-| 10 | v3.8.0 (10) Ops Action Control Workspace UI | P1 | 미착수 | `/ops` action control workspace UI 필요 |
+| 10 | v3.8.0 (10) Ops Action Control Workspace UI | P1 | 완료 | `/ops` action control workspace와 `renderV380OpsActionControlWorkspace`로 action request/approval/readiness/pilot/receipt 흐름을 read-only로 표시 |
 | 11 | v3.8.0 (11) Client-safe Action Notice Preview | P1 | 미착수 | client-safe notice preview와 internal detail redaction 필요 |
 | 12 | v3.8.0 (12) Outcome Observer and Reconciliation | P1 | 미착수 | readiness/outcome diff와 observed result projection 필요 |
 | 13 | v3.8.0 (13) Action Receipt Bundle | P1 | 미착수 | redacted receipt bundle과 handoff map 필요 |
@@ -94,7 +94,8 @@ Step 6 완료는 `/ops/api/actions/readiness-preflight` read-only action readine
 Step 7 완료는 `/ops/api/actions/source-recheck-pilot` read-only source recheck action pilot입니다.
 Step 8 완료는 `/ops/api/actions/client-notice-draft-queue` read-only client notice draft queue입니다.
 Step 9 완료는 `/ops/api/actions/rule-draft-package` read-only rule draft action package입니다.
-Step 10~16은 미착수이며, Step 1~9 PASS 자체는 v3.8 action execution, UI 풀테스트, 30분/120분
+Step 10 완료는 `/ops` action control workspace UI입니다.
+Step 11~16은 미착수이며, Step 1~10 PASS 자체는 v3.8 action execution, UI 풀테스트, 30분/120분
 장시간 테스트, published metadata, release action evidence가 아닙니다.
 
 ## v3.8.0 Step 1 개발 기록
@@ -330,6 +331,40 @@ notice queue write, viewer payload mutation, source recheck, rule apply, UI 풀�
 read-only/no-apply/no-persist/no-schema-change 경계만 확인합니다. Actual rule apply,
 scenario apply, rule/profile registry write, source recheck, client notice delivery,
 UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
+
+## v3.8.0 Step 10 개발 기록
+
+이번 Step 10은 P1 `v3.8.0 (10) Ops Action Control Workspace UI`입니다.
+
+- `src/ingress/webrtc_http_server.cpp`: `AppendOpsDashboardPage`에
+  `ops-action-control-workspace` shell과 `media-server.ops.v380-action-control-workspace-ui.v1`
+  schema marker를 추가했습니다. dashboard는 `dashActionControlWorkspaceBadges`,
+  `dashActionControlWorkspaceText`, `dashActionControlWorkspaceFlow`,
+  `dashActionControlRequestList`, `dashActionControlApprovalList`,
+  `dashActionControlReadinessList`, `dashActionControlPilotList`,
+  `dashActionControlReceiptList`, `dashActionControlBoundary`를 고정 DOM hook으로 제공합니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV380OpsActionControlWorkspace`와
+  `refreshV380OpsActionControlWorkspace`를 추가해 `/ops/api/actions/capability-contract`,
+  `/ops/api/actions/request-ledger`, `/ops/api/actions/approval-decision-gate`,
+  `/ops/api/actions/readiness-preflight`, `/ops/api/actions/source-recheck-pilot`,
+  `/ops/api/actions/client-notice-draft-queue`, `/ops/api/actions/rule-draft-package`를
+  GET/read-only로 읽고 request, approval, readiness blocker, pilot/package candidate,
+  receipt placeholder 흐름을 표시합니다.
+- `src/ingress/product_ui_css.cpp`: `.ops-action-control-workspace`,
+  `.ops-action-control-grid`, `.ops-action-control-flow-grid`,
+  `.ops-action-control-list`, `.ops-action-control-entry`,
+  `.ops-action-control-boundary` 반응형 layout과 boundary styling을 추가했습니다.
+- `scripts/internal/verify_v380_ops_action_control_workspace_ui.mjs`, `server.sh`:
+  `./server.sh verify-v380-ops-action-control-workspace-ui` local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: `UI-102`, `SAFE-189`, `OPS-156`과 Step 10 verifier/미실행 경계를 기록했습니다.
+
+`./server.sh verify-v380-ops-action-control-workspace-ui`는 `/ops` action control workspace UI,
+renderer/CSS, 기존 action contract route 연결과 read-only/no-mutation 경계만 확인합니다.
+Actual action execution, action request persist, approval decision persist, readiness result
+persist, source recheck execution, client notice send, rule apply, Action Receipt Bundle 구현,
+Client-safe Action Notice Preview 완료 evidence가 아닙니다. UI 풀테스트, 30분/120분 장시간 테스트,
+published metadata, release action 완료 evidence가 아닙니다.
 
 ## 최신 published baseline 상세: v3.7.0 Site-Aware Operations and Safe Runbook Control Plane
 

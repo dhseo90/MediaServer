@@ -1149,6 +1149,228 @@ void AppendOpsShellScript(std::ostringstream& out,
         const bundle = await requestJson(exportHandoffBundleRoute);
         renderV370ExportHandoffBundle({ bundle, exportHandoffBundleRoute });
       };
+      let v380ActionControlWorkspaceState = {};
+      const v380ActionControlWorkspaceList = value => Array.isArray(value) ? value : [];
+      const v380ActionControlEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-action-control-entry ${escapeHtml(tone)}" data-v380-action-control-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV380OpsActionControlWorkspace = (payload = {}) => {
+        const capabilityContract = payload.capabilityContract || {};
+        const actionRequestLedger = payload.actionRequestLedger || {};
+        const approvalDecisionGate = payload.approvalDecisionGate || {};
+        const actionReadinessPreflight = payload.actionReadinessPreflight || {};
+        const sourceRecheckActionPilot = payload.sourceRecheckActionPilot || {};
+        const clientNoticeDraftQueue = payload.clientNoticeDraftQueue || {};
+        const ruleDraftActionPackage = payload.ruleDraftActionPackage || {};
+        const receiptPlaceholder = payload.receiptPlaceholder || {
+          receiptRef: 'future-action-receipt',
+          receiptState: 'not-run',
+          bundleRoute: '/ops/api/actions/receipt-bundle',
+          summary: 'Step 13 Action Receipt Bundle 전까지 receipt는 preview placeholder로만 표시합니다.'
+        };
+        const allowedActionCatalog = v380ActionControlWorkspaceList(capabilityContract.allowedActionCatalog);
+        const ledgerFields = v380ActionControlWorkspaceList(actionRequestLedger.ledgerFields);
+        const decisionStates = v380ActionControlWorkspaceList(approvalDecisionGate.decisionStates);
+        const preflightBlockers = v380ActionControlWorkspaceList(actionReadinessPreflight.preflightBlockers);
+        const pilotCandidates = v380ActionControlWorkspaceList(sourceRecheckActionPilot.pilotCandidate);
+        const noticeDrafts = v380ActionControlWorkspaceList(clientNoticeDraftQueue.viewerSafeNoticeDrafts);
+        const draftPackages = v380ActionControlWorkspaceList(ruleDraftActionPackage.draftPackage);
+        const boundaryOk =
+          capabilityContract.boundaries?.actionExecutionPerformed === false &&
+          actionRequestLedger.boundaries?.actionRequestPersisted === false &&
+          approvalDecisionGate.boundaries?.approvalDecisionPersisted === false &&
+          actionReadinessPreflight.boundaries?.readinessResultPersisted === false &&
+          sourceRecheckActionPilot.boundaries?.sourceRecheckExecuted === false &&
+          clientNoticeDraftQueue.boundaries?.clientNoticeSent === false &&
+          clientNoticeDraftQueue.boundaries?.noticeQueueWritePerformed === false &&
+          ruleDraftActionPackage.boundaries?.ruleApplyPerformed === false &&
+          ruleDraftActionPackage.boundaries?.ruleRegistryWritePerformed === false;
+        v380ActionControlWorkspaceState = {
+          capabilityContract,
+          actionRequestLedger,
+          approvalDecisionGate,
+          actionReadinessPreflight,
+          sourceRecheckActionPilot,
+          clientNoticeDraftQueue,
+          ruleDraftActionPackage,
+          receiptPlaceholder,
+          capabilityRoute: payload.capabilityRoute || '/ops/api/actions/capability-contract',
+          ledgerRoute: payload.ledgerRoute || '/ops/api/actions/request-ledger',
+          approvalRoute: payload.approvalRoute || '/ops/api/actions/approval-decision-gate',
+          readinessRoute: payload.readinessRoute || '/ops/api/actions/readiness-preflight',
+          sourceRecheckRoute: payload.sourceRecheckRoute || '/ops/api/actions/source-recheck-pilot',
+          noticeRoute: payload.noticeRoute || '/ops/api/actions/client-notice-draft-queue',
+          rulePackageRoute: payload.rulePackageRoute || '/ops/api/actions/rule-draft-package'
+        };
+        renderBadges('dashActionControlWorkspaceBadges', [
+          { text: `request ${ledgerFields.length}` },
+          { text: `approval ${decisionStates.length}` },
+          { text: `readiness ${preflightBlockers.length}` },
+          { text: `pilot ${pilotCandidates.length}` },
+          { text: `notice ${noticeDrafts.length}` },
+          { text: `rule ${draftPackages.length}` },
+          { text: boundaryOk ? 'read-only' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashActionControlWorkspaceText',
+          payload.error
+            ? `Action Control Workspace 로드 실패: ${payload.error}`
+            : `request ledger ${ledgerFields.length} · approval ${decisionStates.length} · readiness blockers ${preflightBlockers.length} · pilot candidates ${pilotCandidates.length} · notice drafts ${noticeDrafts.length} · rule packages ${draftPackages.length}`);
+        const flow = document.getElementById('dashActionControlWorkspaceFlow');
+        if (flow) {
+          flow.setAttribute('data-v380-action-control-workspace-flow', 'request-approval-readiness-pilot-receipt');
+          flow.innerHTML = [
+            v380ActionControlEntry('request', 'request', actionRequestLedger.actionRequestLedgerContract?.idempotencyKey || 'siteId:actionKind:requestFingerprint', v380ActionControlWorkspaceState.ledgerRoute),
+            v380ActionControlEntry('approval', 'approval', approvalDecisionGate.approvalDecisionGate?.reason || 'required-for-all-decisions', v380ActionControlWorkspaceState.approvalRoute),
+            v380ActionControlEntry('readiness', 'readiness', actionReadinessPreflight.readinessPreflight?.defaultReadinessState || 'not-run', v380ActionControlWorkspaceState.readinessRoute, 'warn'),
+            v380ActionControlEntry('pilot', 'pilot/package', sourceRecheckActionPilot.sourceRecheckActionPilot?.pilotCandidate || ruleDraftActionPackage.ruleDraftActionPackage?.draftPackage || 'pilot candidate pending', `${v380ActionControlWorkspaceState.sourceRecheckRoute} · ${v380ActionControlWorkspaceState.rulePackageRoute}`),
+            v380ActionControlEntry('receipt', 'receipt', receiptPlaceholder.receiptState || 'not-run', receiptPlaceholder.bundleRoute || '/ops/api/actions/receipt-bundle', 'warn')
+          ].join('');
+        }
+        const requestList = document.getElementById('dashActionControlRequestList');
+        if (requestList) {
+          requestList.innerHTML = ledgerFields.length > 0
+            ? ledgerFields.slice(0, 8).map(item =>
+                v380ActionControlEntry(
+                  item.jsonName || item.field || 'request-field',
+                  item.field || item.jsonName || 'request field',
+                  `${item.type || 'field'} · required=${item.required === true ? 'true' : 'false'}`,
+                  item.description || actionRequestLedger.appendOnlyPolicy?.duplicateRequestBehavior || 'append-only/read-only policy'))
+              .join('')
+            : '<div class="empty">action request ledger field가 아직 없습니다.</div>';
+        }
+        const approvalList = document.getElementById('dashActionControlApprovalList');
+        if (approvalList) {
+          approvalList.innerHTML = decisionStates.length > 0
+            ? decisionStates.slice(0, 8).map(item =>
+                v380ActionControlEntry(
+                  item.decision || 'decision',
+                  item.label || item.decision || 'approval decision',
+                  `next=${v380ActionControlWorkspaceList(item.allowedNextStatuses).join(', ') || 'none'} · stale=${item.staleAfter || '15m'}`,
+                  `role=${item.requiredRole || 'ops'} · reasonRequired=${item.reasonRequired === true ? 'true' : 'false'}`,
+                  ['hold', 'reject', 'field-needed'].includes(String(item.decision || '')) ? 'warn' : ''))
+              .join('')
+            : '<div class="empty">approval decision state가 아직 없습니다.</div>';
+        }
+        const readinessList = document.getElementById('dashActionControlReadinessList');
+        if (readinessList) {
+          readinessList.innerHTML = preflightBlockers.length > 0
+            ? preflightBlockers.slice(0, 8).map(item =>
+                v380ActionControlEntry(
+                  item.dimension || item.field || 'readiness',
+                  item.expectedState || 'not-run',
+                  item.blocker || 'blocker pending',
+                  `${item.source || 'source'} · required=${item.required === true ? 'true' : 'false'}`,
+                  item.required === true ? 'warn' : ''))
+              .join('')
+            : '<div class="empty">readiness preflight blocker가 아직 없습니다.</div>';
+        }
+        const pilotList = document.getElementById('dashActionControlPilotList');
+        if (pilotList) {
+          const pilotRows = [
+            ...allowedActionCatalog.slice(0, 4).map(item => ({
+              kind: item.actionKind || 'allowed-action',
+              title: item.actionLabel || item.actionKind || 'allowed action',
+              detail: item.capability || item.status || 'allowed-preview-only',
+              meta: `role=${item.requiredRole || 'ops'} · allowed=${item.allowed === true ? 'true' : 'false'}`
+            })),
+            ...pilotCandidates.slice(0, 4).map(item => ({
+              kind: item.field || 'source-recheck-pilot',
+              title: item.state || 'source recheck',
+              detail: item.blocker || 'not-run',
+              meta: item.description || item.source || 'source recheck pilot'
+            })),
+            ...noticeDrafts.slice(0, 3).map(item => ({
+              kind: item.field || 'notice-draft',
+              title: item.state || 'notice draft',
+              detail: item.blocker || item.audience || 'viewer-safe',
+              meta: item.description || 'client notice draft queue'
+            })),
+            ...draftPackages.slice(0, 3).map(item => ({
+              kind: item.field || 'rule-draft-package',
+              title: item.state || 'rule draft',
+              detail: item.blocker || 'apply-blocked',
+              meta: item.description || 'rule draft action package'
+            }))
+          ];
+          pilotList.innerHTML = pilotRows.length > 0
+            ? pilotRows.slice(0, 10).map(item =>
+                v380ActionControlEntry(item.kind, item.title, item.detail, item.meta, String(item.detail || '').includes('blocked') ? 'warn' : ''))
+              .join('')
+            : '<div class="empty">action pilot/package 후보가 아직 없습니다.</div>';
+        }
+        const receiptList = document.getElementById('dashActionControlReceiptList');
+        if (receiptList) {
+          const receiptRefs = [
+            `request=${v380ActionControlWorkspaceState.ledgerRoute}`,
+            `approval=${v380ActionControlWorkspaceState.approvalRoute}`,
+            `readiness=${v380ActionControlWorkspaceState.readinessRoute}`,
+            `pilot=${v380ActionControlWorkspaceState.sourceRecheckRoute}`,
+            `notice=${v380ActionControlWorkspaceState.noticeRoute}`,
+            `rule=${v380ActionControlWorkspaceState.rulePackageRoute}`
+          ].join(' · ');
+          receiptList.innerHTML = v380ActionControlEntry(
+            receiptPlaceholder.receiptRef || 'future-action-receipt',
+            receiptPlaceholder.receiptState || 'not-run',
+            receiptPlaceholder.summary || 'receipt bundle is not implemented in Step 10',
+            `${receiptRefs} · bundle=${display(receiptPlaceholder.bundleRoute || '/ops/api/actions/receipt-bundle')}`,
+            'warn');
+        }
+        setText('dashActionControlBoundary',
+          `capability=${display(v380ActionControlWorkspaceState.capabilityRoute)} · request=${display(v380ActionControlWorkspaceState.ledgerRoute)} · approval=${display(v380ActionControlWorkspaceState.approvalRoute)} · readiness=${display(v380ActionControlWorkspaceState.readinessRoute)} · sourceRecheck=${display(v380ActionControlWorkspaceState.sourceRecheckRoute)} · notice=${display(v380ActionControlWorkspaceState.noticeRoute)} · rulePackage=${display(v380ActionControlWorkspaceState.rulePackageRoute)} · actionExecutionPerformed=${capabilityContract.boundaries?.actionExecutionPerformed === false ? 'false' : '확인 필요'} · actionRequestPersisted=${actionRequestLedger.boundaries?.actionRequestPersisted === false ? 'false' : '확인 필요'} · approvalDecisionPersisted=${approvalDecisionGate.boundaries?.approvalDecisionPersisted === false ? 'false' : '확인 필요'} · readinessResultPersisted=${actionReadinessPreflight.boundaries?.readinessResultPersisted === false ? 'false' : '확인 필요'} · sourceRecheckExecuted=${sourceRecheckActionPilot.boundaries?.sourceRecheckExecuted === false ? 'false' : '확인 필요'} · clientNoticeSent=${clientNoticeDraftQueue.boundaries?.clientNoticeSent === false ? 'false' : '확인 필요'} · noticeQueueWritePerformed=${clientNoticeDraftQueue.boundaries?.noticeQueueWritePerformed === false ? 'false' : '확인 필요'} · ruleRegistryWritePerformed=${ruleDraftActionPackage.boundaries?.ruleRegistryWritePerformed === false ? 'false' : '확인 필요'} · receiptRef=${display(receiptPlaceholder.receiptRef || 'future-action-receipt')}`);
+      };
+      const refreshV380OpsActionControlWorkspace = async ({
+        capabilityRoute = '/ops/api/actions/capability-contract',
+        ledgerRoute = '/ops/api/actions/request-ledger',
+        approvalRoute = '/ops/api/actions/approval-decision-gate',
+        readinessRoute = '/ops/api/actions/readiness-preflight',
+        sourceRecheckRoute = '/ops/api/actions/source-recheck-pilot',
+        noticeRoute = '/ops/api/actions/client-notice-draft-queue',
+        rulePackageRoute = '/ops/api/actions/rule-draft-package'
+      } = {}) => {
+        const [
+          capabilityContract,
+          actionRequestLedger,
+          approvalDecisionGate,
+          actionReadinessPreflight,
+          sourceRecheckActionPilot,
+          clientNoticeDraftQueue,
+          ruleDraftActionPackage
+        ] = await Promise.all([
+          requestJson(capabilityRoute).catch(error => ({ error: error.message, allowedActionCatalog: [], boundaries: {} })),
+          requestJson(ledgerRoute).catch(error => ({ error: error.message, ledgerFields: [], boundaries: {} })),
+          requestJson(approvalRoute).catch(error => ({ error: error.message, decisionStates: [], boundaries: {} })),
+          requestJson(readinessRoute).catch(error => ({ error: error.message, preflightBlockers: [], boundaries: {} })),
+          requestJson(sourceRecheckRoute).catch(error => ({ error: error.message, pilotCandidate: [], boundaries: {} })),
+          requestJson(noticeRoute).catch(error => ({ error: error.message, viewerSafeNoticeDrafts: [], boundaries: {} })),
+          requestJson(rulePackageRoute).catch(error => ({ error: error.message, draftPackage: [], boundaries: {} }))
+        ]);
+        const receiptPlaceholder = {
+          receiptRef: 'future-action-receipt',
+          receiptState: 'not-run',
+          bundleRoute: '/ops/api/actions/receipt-bundle',
+          summary: 'Step 13 Action Receipt Bundle에서 approval/request/readiness/pilot/outcome diff를 redacted bundle로 조합합니다.'
+        };
+        renderV380OpsActionControlWorkspace({
+          capabilityContract,
+          actionRequestLedger,
+          approvalDecisionGate,
+          actionReadinessPreflight,
+          sourceRecheckActionPilot,
+          clientNoticeDraftQueue,
+          ruleDraftActionPackage,
+          receiptPlaceholder,
+          capabilityRoute,
+          ledgerRoute,
+          approvalRoute,
+          readinessRoute,
+          sourceRecheckRoute,
+          noticeRoute,
+          rulePackageRoute
+        });
+      };
       let v370OutcomeReconciliationState = {};
       const v370OutcomeReconciliationList = value => Array.isArray(value) ? value : [];
       const v370OutcomeReconciliationEntry = (kind, title, detail, meta, tone = '') =>
@@ -2639,6 +2861,15 @@ void AppendOpsShellScript(std::ostringstream& out,
           impactDiffRoute: '/ops/api/live-operations/simulation/impact-diff',
           readinessRoute: '/ops/api/live-operations/simulation/safe-apply-readiness'
         }).catch(error => renderV360OpsSimulationWorkspace({ error: error.message }));
+        await refreshV380OpsActionControlWorkspace({
+          capabilityRoute: '/ops/api/actions/capability-contract',
+          ledgerRoute: '/ops/api/actions/request-ledger',
+          approvalRoute: '/ops/api/actions/approval-decision-gate',
+          readinessRoute: '/ops/api/actions/readiness-preflight',
+          sourceRecheckRoute: '/ops/api/actions/source-recheck-pilot',
+          noticeRoute: '/ops/api/actions/client-notice-draft-queue',
+          rulePackageRoute: '/ops/api/actions/rule-draft-package'
+        }).catch(error => renderV380OpsActionControlWorkspace({ error: error.message }));
         await refreshV370RuleVaWhatIfBySite({
           whatIfRoute: '/ops/api/site-operations/rule-va-what-if-by-site'
         }).catch(error => renderV370RuleVaWhatIfBySite({ error: error.message }));

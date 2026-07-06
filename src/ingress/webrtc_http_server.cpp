@@ -2911,6 +2911,54 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           source/view/runbook/approval write=false · clientNoticeSent=false · media mutation=false
         </div>
       </section>
+      <section class="section-card ops-workspace-wide ops-action-control-workspace" data-testid="ops-action-control-workspace" data-v380-action-control-workspace="media-server.ops.v380-action-control-workspace-ui.v1">
+        <div class="toolbar">
+          <div>
+            <h3>Action Control Workspace</h3>
+            <p>action request, approval state, readiness blocker, pilot candidate, receipt preview를 read-only 흐름으로 탐색합니다.</p>
+          </div>
+        </div>
+        <div id="dashActionControlWorkspaceBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashActionControlWorkspaceText">action control workspace read model을 불러오는 중입니다.</p>
+        <div id="dashActionControlWorkspaceFlow" class="ops-action-control-flow-grid" data-v380-action-control-workspace-flow="request-approval-readiness-pilot-receipt">
+          <div class="empty">request/approval/readiness/pilot/receipt 흐름을 기다립니다.</div>
+        </div>
+        <div class="grid ops-action-control-grid">
+          <div>
+            <h4>Request Ledger</h4>
+            <div id="dashActionControlRequestList" class="ops-action-control-list">
+              <div class="empty">action request ledger contract를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Approval Gate</h4>
+            <div id="dashActionControlApprovalList" class="ops-action-control-list">
+              <div class="empty">approval decision state를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Readiness Blockers</h4>
+            <div id="dashActionControlReadinessList" class="ops-action-control-list">
+              <div class="empty">readiness preflight blocker를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Pilot Candidates</h4>
+            <div id="dashActionControlPilotList" class="ops-action-control-list">
+              <div class="empty">source recheck, notice draft, rule draft 후보를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Receipt Preview</h4>
+            <div id="dashActionControlReceiptList" class="ops-action-control-list">
+              <div class="empty">future receipt bundle ref를 기다립니다.</div>
+            </div>
+          </div>
+        </div>
+        <div id="dashActionControlBoundary" class="ops-action-control-boundary">
+          actionExecutionPerformed=false · actionRequestPersisted=false · approvalDecisionPersisted=false · readinessResultPersisted=false · sourceRecheckExecuted=false · clientNoticeSent=false
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide ops-site-client-notice-workspace" data-testid="ops-site-client-notice-workspace" data-v370-client-notice-by-site-view-group="media-server.ops.v370-client-notice-by-site-view-group.v1">
         <div class="toolbar">
           <div>

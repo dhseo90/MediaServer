@@ -26,13 +26,13 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 889 |
-| UI 직접 필요 | 382 |
+| 전체 기능 항목 | 892 |
+| UI 직접 필요 | 383 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 476 |
-| 테스트 필요 | 889 |
-| 안정화 대상 | 879 |
-| UI 풀테스트 대상 | 402 |
+| UI 비대상 | 478 |
+| 테스트 필요 | 892 |
+| 안정화 대상 | 882 |
+| UI 풀테스트 대상 | 403 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
 
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 876개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 879개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -71,6 +71,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | v3.8.0 (7) Source Recheck Action Pilot | `LAB-116`, `SAFE-186`, `OPS-153` | `verify-v380-source-recheck-action-pilot`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory` | `/ops/api/actions/source-recheck-pilot` read-only source recheck action pilot contract와 source health recheck request, dry execution result envelope, readiness refs, pilot blocker state 기준. source recheck execution, source health write, action result persist, request/approval/readiness persist, notice send, rule/source/view/runbook/EventRecord/Ops audit write, UI 풀테스트, 30분/120분, GitHub Release publish evidence와는 별도 gate입니다 |
 | v3.8.0 (8) Client Notice Draft Queue | `LAB-117`, `SAFE-187`, `OPS-154` | `verify-v380-client-notice-draft-queue`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory` | `/ops/api/actions/client-notice-draft-queue` read-only client notice draft queue contract와 viewer-safe notice draft, queue preview, delivery blocker, redaction boundary, readiness/pilot refs 기준. client notice delivery, notice draft persist, notice queue write, operator-only blocker client exposure, source/rule/view/runbook/EventRecord/Ops audit write, UI 풀테스트, 30분/120분, GitHub Release publish evidence와는 별도 gate입니다 |
 | v3.8.0 (9) Rule Draft Action Package | `LAB-118`, `SAFE-188`, `OPS-155` | `verify-v380-rule-draft-action-package`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory` | `/ops/api/actions/rule-draft-package` read-only rule draft action package contract와 rule threshold/scenario 후보, draft package, review checklist, apply blocker, readiness/notice refs 기준. rule/scenario apply, rule draft persist, rule/profile registry write, source/view/runbook/EventRecord/Ops audit write, UI 풀테스트, 30분/120분, GitHub Release publish evidence와는 별도 gate입니다 |
+| v3.8.0 (10) Ops Action Control Workspace UI | `UI-102`, `SAFE-189`, `OPS-156` | `verify-v380-ops-action-control-workspace-ui`, `verify-ops-client-ui`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory` | `/ops` action control workspace UI와 기존 `/ops/api/actions/*` read-only contracts를 request/approval/readiness/pilot/receipt 흐름으로 연결하는 기준. action execution, action request persist, approval/readiness persist, source recheck, notice send, rule apply, client/media/schema mutation, UI 풀테스트 직접 조작, 30분/120분, GitHub Release publish evidence와는 별도 gate입니다 |
 
 ## latest published baseline v3.7.0 Site-Aware Operations and Safe Runbook Control Plane Coverage Mapping
 
@@ -353,7 +354,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 
 | 기능 ID 범위 | 안정화 verifier 후보 | 비고 |
 | --- | --- | --- |
-| `UI-001`~`UI-018`, `UI-022`~`UI-101` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360/v370 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
+| `UI-001`~`UI-018`, `UI-022`~`UI-102` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360/v370/v380 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
 | `SRC-001`~`SRC-062` | source/ONVIF/UI/v340/v350/v360/v370 verifier family | ONVIF field success는 approved environment only |
 | `RULE-001`~`RULE-110` | rule/VA/v350/v360/v370 verifier family | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
@@ -361,8 +362,8 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | `CLIENT-001`~`CLIENT-039` | client/UI/v350/v360/v370 verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-025` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
 | `LAB-001`~`LAB-118` | lab/VLM/v250/v260/v270/v280/v300/v310/v340/v350/v360/v370/v380 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-188` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-155` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
+| `SAFE-001`~`SAFE-189` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-156` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
 
 ## VA Manual UI Seed Matrix
 
@@ -511,6 +512,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | UI-099 | V370 Step 15 Limited Safe Execution Pilot UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v370-limited-safe-execution-pilot.v1` 기반 source recheck 또는 notice queue pilot 후보, approval gate state, execution preview, idempotency key를 표시하고 source recheck 실행, notice send/queue write, source/view/runbook/approval write를 수행하지 않음 |
 | UI-100 | V370 Step 16 Outcome Reconciliation UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v370-outcome-reconciliation.v1` 기반 pre-simulation ref, post-execution not-run ref, source impact diff, EventRecord/client impact diff, pending reason을 표시하고 pilot execution, EventRecord write, client notice send, source/view/client/media mutation을 수행하지 않음 |
 | UI-101 | V370 Step 17 Export / Handoff Bundle UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v370-export-handoff-bundle.v1` 기반 bundle item, handoff map, redaction review, release safety boundary를 표시하고 artifact/file/handoff write, client notice send, raw material 노출을 수행하지 않음 |
+| UI-102 | V380 Step 10 Ops Action Control Workspace UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v380-action-control-workspace-ui.v1` 기반 request/approval/readiness/pilot/receipt flow를 read-only로 표시하고 action execution, request persist, approval persist, readiness persist, source recheck, notice send, rule apply, client/media/schema mutation을 수행하지 않음 |
 
 ## B. Auth, Account, Role, Scope
 
@@ -1218,6 +1220,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-186 | V380 Step 7 Source Recheck Action Pilot no-mutation boundary | 비대상 | 필요 | 안정화 | `verify-v380-source-recheck-action-pilot`가 source health recheck request, dry execution result envelope, readiness refs, pilot blocker state를 산출하되 source recheck execution, source health write, action result persist, action request persist, approval/readiness persist, notice send/write, rule/source/view/runbook/EventRecord/Ops audit write, viewer/client payload, Event POST/EventRecord/WebRTC/SSE/WS/media schema 변경, raw locator/credential 노출을 수행하지 않음을 확인 |
 | SAFE-187 | V380 Step 8 Client Notice Draft Queue no-send/no-leak boundary | 비대상 | 필요 | 안정화 | `verify-v380-client-notice-draft-queue`가 viewer-safe notice draft, queue preview, delivery blocker, redaction boundary를 산출하되 client notice delivery, notice draft persist, notice queue write, operator-only blocker client exposure, action request persist, approval/readiness persist, source recheck, rule/source/view/runbook/EventRecord/Ops audit write, viewer/client payload, Event POST/EventRecord/WebRTC/SSE/WS/media schema 변경, raw locator/credential 노출을 수행하지 않음을 확인 |
 | SAFE-188 | V380 Step 9 Rule Draft Action Package no-apply/no-write boundary | 비대상 | 필요 | 안정화 | `verify-v380-rule-draft-action-package`가 rule threshold/scenario 후보, draft package, review checklist, apply blocker를 산출하되 rule/scenario apply, rule draft persist, rule/profile registry write, action request persist, approval/readiness persist, source recheck, notice send/write, source/view/runbook/EventRecord/Ops audit write, viewer/client payload, Event POST/EventRecord/WebRTC/SSE/WS/media schema 변경, raw locator/credential 노출을 수행하지 않음을 확인 |
+| SAFE-189 | V380 Step 10 Ops Action Control Workspace UI no-action/no-leak boundary | 비대상 | 필요 | 안정화 | `verify-v380-ops-action-control-workspace-ui`가 `/ops` action control workspace가 기존 `/ops/api/actions/*` read-only contracts를 읽기만 하고 action execution, action request persist, approval decision persist, readiness result persist, source recheck, client notice send, notice queue write, rule apply/registry write, viewer/client payload, Event POST/EventRecord/WebRTC/SSE/WS/media schema 변경, raw locator/credential 노출을 수행하지 않음을 확인 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -1344,6 +1347,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-153 | V380 Step 7 Source Recheck Action Pilot 게이트 | 비대상 | 필요 | 안정화 | `verify-v380-source-recheck-action-pilot`가 `/ops/api/actions/source-recheck-pilot` Ops-only route, source health recheck request, dry execution result envelope, readiness refs, pilot blocker state, no-store guard, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 source recheck execution, source health write, action result persist, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-154 | V380 Step 8 Client Notice Draft Queue 게이트 | 비대상 | 필요 | 안정화 | `verify-v380-client-notice-draft-queue`가 `/ops/api/actions/client-notice-draft-queue` Ops-only route, viewer-safe notice draft, queue preview, delivery blocker, redaction boundary, readiness/pilot refs, no-store guard, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 client notice delivery, notice draft persist, notice queue write, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-155 | V380 Step 9 Rule Draft Action Package 게이트 | 비대상 | 필요 | 안정화 | `verify-v380-rule-draft-action-package`가 `/ops/api/actions/rule-draft-package` Ops-only route, rule threshold/scenario 후보, draft package, review checklist, apply blocker, readiness/notice refs, no-store guard, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 rule/scenario apply, rule draft persist, rule/profile registry write, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
+| OPS-156 | V380 Step 10 Ops Action Control Workspace UI 게이트 | 비대상 | 필요 | 안정화 | `verify-v380-ops-action-control-workspace-ui`가 `/ops` dashboard shell, `renderV380OpsActionControlWorkspace`, `refreshV380OpsActionControlWorkspace`, action route refs, CSS, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, action execution, request/approval/readiness persist, source recheck, notice send, rule apply, 30분/120분, release publish PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 

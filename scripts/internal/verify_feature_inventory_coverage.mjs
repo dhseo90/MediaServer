@@ -233,6 +233,9 @@ for (const [prefix, verifiers] of Object.entries(v370VerifierCoverage)) {
 }
 
 const v380VerifierCoverage = {
+  UI: [
+    "verify-v380-ops-action-control-workspace-ui",
+  ],
   LAB: [
     "verify-v380-ops-action-route-boundary",
     "verify-v380-action-capability-contract",
@@ -253,6 +256,7 @@ const v380VerifierCoverage = {
     "verify-v380-source-recheck-action-pilot",
     "verify-v380-client-notice-draft-queue",
     "verify-v380-rule-draft-action-package",
+    "verify-v380-ops-action-control-workspace-ui",
   ],
   OPS: [
     "verify-v380-entry-baseline",
@@ -264,6 +268,7 @@ const v380VerifierCoverage = {
     "verify-v380-source-recheck-action-pilot",
     "verify-v380-client-notice-draft-queue",
     "verify-v380-rule-draft-action-package",
+    "verify-v380-ops-action-control-workspace-ui",
   ],
 };
 
