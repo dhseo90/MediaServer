@@ -300,6 +300,44 @@ Companion local gate:
 git diff --check
 ```
 
+## v3.8.0 release run records
+
+v3.8.0 release run은 Step 16 local readiness와 별개로 사용자가 승인한
+30분/120분/UI 풀테스트 및 cleanup evidence를 보존합니다. 아래 PASS는 해당 run
+범위에만 적용하며, external TURN/WHEP, ONVIF 실기기, cloud/VLM provider field
+smoke 또는 별도 runtime-console 120분 PASS로 확대하지 않습니다.
+
+- 30분 predev: [summary](./release-artifacts/v3.8.0/predev-30min-20260706/summary.json),
+  [report](./release-artifacts/v3.8.0/predev-30min-20260706/report.md),
+  [html](./release-artifacts/v3.8.0/predev-30min-20260706/report.html). Summary
+  `status=pass`, `pass=119`, `fail=0`, `skip=1`, `durationSec=2369`,
+  `soakMinutes=30`, `steps=120`. External TURN hard gate는 요청하지 않아 skip이며
+  PASS가 아닙니다.
+- 120분 predev: [summary](./release-artifacts/v3.8.0/predev-120min-20260706/summary.json),
+  [report](./release-artifacts/v3.8.0/predev-120min-20260706/report.md),
+  [html](./release-artifacts/v3.8.0/predev-120min-20260706/report.html). Summary
+  `status=pass`, `pass=444`, `fail=0`, `skip=1`, `durationSec=7753`,
+  `soakMinutes=120`, `steps=445`. External TURN hard gate는 요청하지 않아 skip이며
+  PASS가 아닙니다.
+- UI 풀테스트: [in-app evidence](./release-artifacts/v3.8.0/ui-fulltest-20260706/in-app-evidence.json),
+  [one-shot summary](./release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/summary.json).
+  Codex 인앱 브라우저 evidence schema
+  `media-server.in-app-browser-ui-evidence.v1`, route `10`, screenshot `40`,
+  interaction `16`, failed interaction `0`, routeIssues `[]`. One-shot wrapper
+  runId `ui-fulltest-one-shot-1783362652122-25088`, `20 PASS`/`5 SKIPPED`/`0 FAIL`.
+  Wrapper에서 build/manual/predev/runtime-console 단계는 skip했고 별도 evidence 또는
+  미실행 경계로 분리합니다.
+- Cleanup: UI raw `manual-servers`, one-shot raw registry/log/ports/seed plan과
+  `/tmp/media_server_predev-1783351738-67055`,
+  `/tmp/media_server_predev-1783354136-2074`는 삭제했습니다. 보존 evidence는
+  30분/120분 summary/report/html, 인앱 evidence JSON, PNG screenshot 40장,
+  one-shot summary JSON/MD입니다. Cleanup 후 UI artifact dir `2.0M`, one-shot
+  final `20K`, 30분 artifact `220K`, 120분 artifact `632K`, throwaway listener
+  없음, 보존 evidence 민감 문자열 스캔 hit 없음.
+- 미실행 경계: 별도 runtime-console 120분과 실제 ONVIF 실기기/external
+  TURN-WHEP/cloud provider field smoke는 실행하지 않았습니다. 30분/120분 predev와
+  UI 풀테스트 PASS로 이 항목들을 완료 처리하지 않습니다.
+
 ## v3.7.0 Step 18 local readiness gate records
 
 v3.7.0 Step 18 stabilization/release readiness는
@@ -590,6 +628,11 @@ v3.2.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직
 
 | date | run id | test area | scope | verdict | token start | token end | token consumed | elapsed | token usage source | evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-07-06 | v380-release-30min-20260706 | 30분 테스트 | 승인된 `./server.sh verify-predev --soak-minutes 30 --rtsp-port 18798 --http-port 18298 ...` final run. Summary `status=pass`, `pass=119`, `fail=0`, `skip=1`, `durationSec=2369`, `soakMinutes=30`, `steps=120`. integrated smoke PASS, 22회 soak iteration, ports-clean PASS. External TURN hard gate는 요청하지 않아 skip이며 PASS가 아님 | PASS | 미집계 | 미집계 | 미집계 | durationSec 2369 | command summary/report; command-level token split 미집계 | [release-test-records.md](./release-test-records.md) v3.8.0 section, [predev summary](./release-artifacts/v3.8.0/predev-30min-20260706/summary.json), [predev report](./release-artifacts/v3.8.0/predev-30min-20260706/report.md) |
+| 2026-07-06 | v380-release-120min-20260706 | 120분 longrun | 승인된 `./server.sh verify-predev --soak-minutes 120 --rtsp-port 18898 --http-port 18398 ...` final run. Summary `status=pass`, `pass=444`, `fail=0`, `skip=1`, `durationSec=7753`, `soakMinutes=120`, `steps=445`. integrated smoke PASS 뒤 87회 soak iteration, ports-clean PASS. External TURN hard gate는 요청하지 않아 skip이며 PASS가 아님 | PASS | 미집계 | 미집계 | 미집계 | durationSec 7753 | command summary/report; command-level token split 미집계 | [release-test-records.md](./release-test-records.md) v3.8.0 section, [predev summary](./release-artifacts/v3.8.0/predev-120min-20260706/summary.json), [predev report](./release-artifacts/v3.8.0/predev-120min-20260706/report.md) |
+| 2026-07-06 | v380-release-ui-fulltest-inapp-20260706 | UI 풀테스트 | Codex 인앱 브라우저 직접 evidence route `10`, screenshot `40`, interaction `16`, failed interaction `0`, routeIssues `[]`. `verify-ui-fulltest-one-shot --browser-mode in-app --in-app-evidence docs/release-artifacts/v3.8.0/ui-fulltest-20260706/in-app-evidence.json --skip-build --skip-manual-result`는 `result=PASS`, runId `ui-fulltest-one-shot-1783362652122-25088`, step `20 PASS`/`5 SKIPPED`/`0 FAIL`입니다. build/manual/predev/runtime-console은 wrapper에서 skip했고 별도 evidence/boundary로 분리합니다 | PASS | 미집계 | 미집계 | 미집계 | one-shot runId `ui-fulltest-one-shot-1783362652122-25088` | Codex in-app evidence and one-shot wrapper output; command-level token split 미집계 | [release-test-records.md](./release-test-records.md) v3.8.0 section, [ui evidence](./release-artifacts/v3.8.0/ui-fulltest-20260706/in-app-evidence.json), [one-shot summary](./release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/summary.json) |
+| 2026-07-06 | v380-release-runtime-console-120min-not-run-20260706 | 120분 runtime console | `verify-predev --soak-minutes 120`은 완료했지만 별도 runtime-console 120분은 실행하지 않았습니다. 이 행은 predev 120분 PASS를 runtime-console 120분 PASS로 승격하지 않기 위한 blocker/boundary 기록입니다 | FAIL | 미집계 | 미집계 | 미집계 | 미실행 | release-test-records boundary; command-level token split 없음 | [release-test-records.md](./release-test-records.md) v3.8.0 section |
+| 2026-07-06 | v380-release-field-smoke-not-run-20260706 | field smoke | ONVIF 실기기, external TURN/WHEP, cloud/VLM provider endpoint/credential/실기기 조건이 없어 실제 field smoke는 실행하지 않았습니다. Local readiness, 30분/120분 predev, UI fulltest PASS로 field smoke PASS를 대체하지 않습니다 | FAIL | 미집계 | 미집계 | 미집계 | 조건부 미실행 | release-test-records boundary; command-level token split 없음 | [release-test-records.md](./release-test-records.md) v3.8.0 section |
 | 2026-07-05 | v370-release-ui-wrapper-partial-inapp-20260705 | UI 자동 smoke + 인앱 partial evidence | `verify-ui-fulltest-one-shot --browser-mode chrome --allow-chrome-fallback --skip-manual-result`는 `result=PASS`, runId `ui-fulltest-one-shot-1783239016082-59069`, widths `390,1180`, visualWidths `320,390,760,1180`입니다. Codex 인앱 route partial evidence는 pre-final 단계에서 route `18`, overflowIssues `[]`까지 생성/검토했지만 최종 in-app schema/interaction gate가 없어 AGENTS 기준 UI 풀테스트 PASS가 아닙니다. 이 행은 release blocker를 숨기지 않기 위한 기록이며 Chrome wrapper PASS를 인앱 UI PASS로 승격하지 않습니다 | FAIL | 미집계 | 미집계 | 미집계 | one-shot runId `ui-fulltest-one-shot-1783239016082-59069` | Chrome fallback one-shot summary와 pre-final partial in-app route evidence 기록; raw partial files는 최종 PASS 이후 cleanup했고 command-level token split 미집계 | [release-test-records.md](./release-test-records.md) v3.7.0 section, [one-shot summary](./release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-rerun/summary.json) |
 | 2026-07-05 | v370-release-ui-fulltest-inapp-20260705 | UI 풀테스트 | Codex 인앱 브라우저 직접 evidence route `10`, screenshot `40`, interaction `16`, failed interaction `0`, routeIssues `[]`. `verify-ui-fulltest-one-shot --browser-mode in-app --in-app-evidence docs/release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-evidence.json --skip-build --skip-manual-result`는 `result=PASS`, runId `ui-fulltest-one-shot-1783244324767-83262`, step `20 PASS`/`5 SKIPPED`, widths `390,1180`, visualWidths `320,390,760,1180`입니다. build는 wrapper에서 skip했고 30분은 별도 PASS row, 120분/runtime-console은 조건부 미실행/별도 미실행으로 분리합니다 | PASS | 미집계 | 미집계 | 미집계 | one-shot runId `ui-fulltest-one-shot-1783244324767-83262` | Codex in-app evidence and one-shot wrapper output; command-level token split 미집계 | [release-test-records.md](./release-test-records.md) v3.7.0 section, [ui evidence](./release-artifacts/v3.7.0/ui-fulltest-20260705/in-app-evidence.json), [one-shot summary](./release-artifacts/v3.7.0/ui-fulltest-20260705/one-shot-inapp-final/summary.json) |
 | 2026-07-05 | v370-release-30min-code-comment-precheck-20260705 | 30분 테스트 | 최초 승인 run은 integrated-smoke `verify-code-comments`가 v3.7 verifier 5개 영어-only 상단 용도 주석을 잡아 실패가 확정됐고 중단했습니다. 해당 5개 파일의 헤더를 한글 `파일 용도` 주석으로 보정한 뒤 `./server.sh verify-code-comments`가 files `529`, missing headers `0`, english-only comments `0`으로 통과했습니다. 이 행은 최종 30분 PASS evidence가 아닙니다 | FAIL | 미집계 | 미집계 | 미집계 | interrupted after code-comment failure diagnosis | command output and release-test-records migration; command-level token split 미집계 | [release-test-records.md](./release-test-records.md) v3.7.0 section |

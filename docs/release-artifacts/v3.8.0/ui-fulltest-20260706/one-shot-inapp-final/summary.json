@@ -1,0 +1,185 @@
+{
+  "schema": "media-server.ui-fulltest-one-shot.v1",
+  "runId": "ui-fulltest-one-shot-1783362652122-25088",
+  "generatedAt": "2026-07-06T18:30:54.326Z",
+  "result": "PASS",
+  "outputDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final",
+  "widths": "390,1180",
+  "visualWidths": "320,390,760,1180",
+  "manualResult": "",
+  "browserMode": "in-app",
+  "inAppEvidence": "docs/release-artifacts/v3.8.0/ui-fulltest-20260706/in-app-evidence.json",
+  "allowChromeFallback": false,
+  "failure": "",
+  "longrun": {
+    "predev30": "not-run",
+    "predev120": "not-run",
+    "runtimeConsole120": "not-run"
+  },
+  "steps": [
+    {
+      "id": "build",
+      "status": "SKIPPED",
+      "reason": "--skip-build"
+    },
+    {
+      "id": "seed-core",
+      "status": "PASS",
+      "command": "./server.sh prepare-manual-ui-fulltest-seed --dry-run --emit-plan /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/core-seed-plan.json --emit-registry-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/core-registry",
+      "exitCode": 0,
+      "elapsedMs": 35,
+      "log": "docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/seed-core.log"
+    },
+    {
+      "id": "seed-auth",
+      "status": "PASS",
+      "command": "./server.sh prepare-manual-ui-fulltest-seed --dry-run --emit-plan /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/auth-seed-plan.json --emit-registry-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/auth-registry",
+      "exitCode": 0,
+      "elapsedMs": 34,
+      "log": "docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/seed-auth.log"
+    },
+    {
+      "id": "start-core-ui",
+      "status": "PASS",
+      "detail": "server log: docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/core-ui.server.log"
+    },
+    {
+      "id": "core-ui-health",
+      "status": "PASS",
+      "detail": "http://127.0.0.1:18097/health"
+    },
+    {
+      "id": "diagnostic-log-tail-fixture",
+      "status": "PASS",
+      "detail": "safe log-tail UI pattern appended"
+    },
+    {
+      "id": "guard-native-dialogs",
+      "status": "PASS",
+      "command": "./server.sh verify-product-ui-no-native-dialogs",
+      "exitCode": 0,
+      "elapsedMs": 42,
+      "log": "docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/guard-native-dialogs.log"
+    },
+    {
+      "id": "guard-blocking-dialog-policy",
+      "status": "PASS",
+      "command": "./server.sh verify-ui-blocking-dialog-policy",
+      "exitCode": 0,
+      "elapsedMs": 52,
+      "log": "docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/guard-blocking-dialog-policy.log"
+    },
+    {
+      "id": "feature-inventory-coverage",
+      "status": "PASS",
+      "command": "./server.sh verify-feature-inventory-coverage",
+      "exitCode": 0,
+      "elapsedMs": 48,
+      "log": "docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/feature-inventory-coverage.log"
+    },
+    {
+      "id": "ops-client-ui",
+      "status": "PASS",
+      "command": "./server.sh verify-ops-client-ui --http-base http://127.0.0.1:18097 --debug-port-base 14000 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/ops-client-ui --browser-mode in-app --in-app-evidence docs/release-artifacts/v3.8.0/ui-fulltest-20260706/in-app-evidence.json",
+      "exitCode": 0,
+      "elapsedMs": 175,
+      "log": "docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/ops-client-ui.log"
+    },
+    {
+      "id": "ops-client-ui-screenshots",
+      "status": "PASS",
+      "command": "./server.sh verify-ops-client-ui --http-base http://127.0.0.1:18097 --screenshots --visual-widths 320,390,760,1180 --debug-port-base 14200 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/ops-client-ui-screenshots --browser-mode in-app --in-app-evidence docs/release-artifacts/v3.8.0/ui-fulltest-20260706/in-app-evidence.json",
+      "exitCode": 0,
+      "elapsedMs": 173,
+      "log": "docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/ops-client-ui-screenshots.log"
+    },
+    {
+      "id": "rule-ui",
+      "status": "PASS",
+      "command": "./server.sh verify-rule-ui --http-base http://127.0.0.1:18097 --debug-port 14500 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/rule-ui --in-app-evidence docs/release-artifacts/v3.8.0/ui-fulltest-20260706/in-app-evidence.json",
+      "exitCode": 0,
+      "elapsedMs": 30,
+      "log": "docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/rule-ui.log"
+    },
+    {
+      "id": "ops-route-boundaries",
+      "status": "PASS",
+      "command": "./server.sh verify-ops-route-boundaries --http-base http://127.0.0.1:18097",
+      "exitCode": 0,
+      "elapsedMs": 79,
+      "log": "docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/ops-route-boundaries.log"
+    },
+    {
+      "id": "ops-rules-roundtrip",
+      "status": "PASS",
+      "command": "./server.sh verify-ops-rules-roundtrip --http-base http://127.0.0.1:18097",
+      "exitCode": 0,
+      "elapsedMs": 69,
+      "log": "docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/ops-rules-roundtrip.log"
+    },
+    {
+      "id": "ops-tables-layout",
+      "status": "PASS",
+      "command": "./server.sh verify-ops-tables-layout --http-base http://127.0.0.1:18097 --debug-port-base 14700 --widths 320,390,760,1180 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/ops-tables-layout --in-app-evidence docs/release-artifacts/v3.8.0/ui-fulltest-20260706/in-app-evidence.json",
+      "exitCode": 0,
+      "elapsedMs": 29,
+      "log": "docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/ops-tables-layout.log"
+    },
+    {
+      "id": "ops-click-e2e-core",
+      "status": "PASS",
+      "command": "./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:18097 --debug-port-base 15000 --widths 390,1180 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/ops-click-core --in-app-evidence docs/release-artifacts/v3.8.0/ui-fulltest-20260706/in-app-evidence.json",
+      "exitCode": 0,
+      "elapsedMs": 31,
+      "log": "docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/ops-click-e2e-core.log"
+    },
+    {
+      "id": "start-auth-ui",
+      "status": "PASS",
+      "detail": "server log: docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/auth-ui.server.log"
+    },
+    {
+      "id": "auth-ui-health",
+      "status": "PASS",
+      "detail": "http://127.0.0.1:18197/health"
+    },
+    {
+      "id": "ops-click-e2e-auth",
+      "status": "PASS",
+      "command": "./server.sh verify-ops-click-e2e --auth-ui-flow --http-base http://127.0.0.1:18197 --debug-port-base 15400 --widths 390,1180 --auth-users-file /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/auth-users.json --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/ops-click-auth --in-app-evidence docs/release-artifacts/v3.8.0/ui-fulltest-20260706/in-app-evidence.json",
+      "exitCode": 0,
+      "elapsedMs": 33,
+      "log": "docs/release-artifacts/v3.8.0/ui-fulltest-20260706/one-shot-inapp-final/ops-click-e2e-auth.log"
+    },
+    {
+      "id": "manual-ui-result-structure",
+      "status": "SKIPPED",
+      "reason": "--skip-manual-result"
+    },
+    {
+      "id": "predev-30min",
+      "status": "SKIPPED",
+      "reason": "one-shot UI wrapper does not run verify-predev --soak-minutes 30"
+    },
+    {
+      "id": "predev-120min",
+      "status": "SKIPPED",
+      "reason": "one-shot UI wrapper does not run verify-predev --soak-minutes 120"
+    },
+    {
+      "id": "runtime-console-120min",
+      "status": "SKIPPED",
+      "reason": "one-shot UI wrapper does not run verify-va-runtime-console-longrun --duration-minutes 120"
+    },
+    {
+      "id": "stop-auth-ui",
+      "status": "PASS",
+      "detail": "stopped"
+    },
+    {
+      "id": "stop-core-ui",
+      "status": "PASS",
+      "detail": "stopped"
+    }
+  ]
+}
