@@ -23,8 +23,9 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 Capability Contract, Step 4 Action Request Ledger Contract, Step 5 Approval Decision Gate,
 Step 6 Action Readiness Preflight, Step 7 Source Recheck Action Pilot, Step 8
 Client Notice Draft Queue, Step 9 Rule Draft Action Package, Step 10 Ops Action
-Control Workspace UI를 완료했고 Step 11~16 개발은 미착수입니다. 현재 source
-version은 `3.8.0`이며, VERSION/CMake/docs/backlog/source roadmap과 v3.8 Step 1~10 local gate를
+Control Workspace UI, Step 11 Client-safe Action Notice Preview를 완료했고 Step 12~16
+개발은 미착수입니다. 현재 source version은 `3.8.0`이며,
+VERSION/CMake/docs/backlog/source roadmap과 v3.8 Step 1~11 local gate를
 `3.8.0` 기준으로 정렬했습니다. 각 step은 실제
 코드/API/UI/문서/검증 산출물이 생긴 뒤에만 완료로 기록합니다.
 
@@ -78,7 +79,7 @@ Product UI -> Evidence/Field -> Release 순서로 진행합니다.
 | 8 | v3.8.0 (8) Client Notice Draft Queue | P1 | 완료 | `/ops/api/actions/client-notice-draft-queue`와 `OpsV380ClientNoticeDraftQueueJson`으로 viewer-safe notice draft, queue preview, delivery blocker, redaction boundary를 read-only로 정의 |
 | 9 | v3.8.0 (9) Rule Draft Action Package | P1 | 완료 | `/ops/api/actions/rule-draft-package`와 `OpsV380RuleDraftActionPackageJson`으로 rule threshold/scenario 후보, draft package, review checklist, apply blocker를 read-only로 정의 |
 | 10 | v3.8.0 (10) Ops Action Control Workspace UI | P1 | 완료 | `/ops` action control workspace와 `renderV380OpsActionControlWorkspace`로 action request/approval/readiness/pilot/receipt 흐름을 read-only로 표시 |
-| 11 | v3.8.0 (11) Client-safe Action Notice Preview | P1 | 미착수 | client-safe notice preview와 internal detail redaction 필요 |
+| 11 | v3.8.0 (11) Client-safe Action Notice Preview | P1 | 완료 | `/client/api/views/{id}/events`와 client dashboard/events/live dock에 maintenance/degraded/recovering/available action notice preview만 viewer-safe로 표시 |
 | 12 | v3.8.0 (12) Outcome Observer and Reconciliation | P1 | 미착수 | readiness/outcome diff와 observed result projection 필요 |
 | 13 | v3.8.0 (13) Action Receipt Bundle | P1 | 미착수 | redacted receipt bundle과 handoff map 필요 |
 | 14 | v3.8.0 (14) Field Connector Evidence Package | P2 | 미착수 | field connector evidence 조건부 attachment 필요 |
@@ -95,7 +96,8 @@ Step 7 완료는 `/ops/api/actions/source-recheck-pilot` read-only source rechec
 Step 8 완료는 `/ops/api/actions/client-notice-draft-queue` read-only client notice draft queue입니다.
 Step 9 완료는 `/ops/api/actions/rule-draft-package` read-only rule draft action package입니다.
 Step 10 완료는 `/ops` action control workspace UI입니다.
-Step 11~16은 미착수이며, Step 1~10 PASS 자체는 v3.8 action execution, UI 풀테스트, 30분/120분
+Step 11 완료는 client-safe action notice preview입니다.
+Step 12~16은 미착수이며, Step 1~11 PASS 자체는 v3.8 action execution, UI 풀테스트, 30분/120분
 장시간 테스트, published metadata, release action evidence가 아닙니다.
 
 ## v3.8.0 Step 1 개발 기록
@@ -365,6 +367,36 @@ Actual action execution, action request persist, approval decision persist, read
 persist, source recheck execution, client notice send, rule apply, Action Receipt Bundle 구현,
 Client-safe Action Notice Preview 완료 evidence가 아닙니다. UI 풀테스트, 30분/120분 장시간 테스트,
 published metadata, release action 완료 evidence가 아닙니다.
+
+## v3.8.0 Step 11 개발 기록
+
+이번 Step 11은 P1 `v3.8.0 (11) Client-safe Action Notice Preview`입니다.
+
+- `src/ingress/webrtc_http_server.cpp`: `ClientActionNoticePreview`,
+  `ClientActionNoticePreviewFor`, `AppendClientActionNoticePreviewJson`,
+  `ClientActionNoticePreviewJson`을 추가해 `/client/api/views/{id}/events`와
+  client dashboard `events.clientActionNoticePreview`에
+  `media-server.client.v380-action-notice-preview.v1` viewer-safe preview를 붙였습니다.
+- `src/ingress/webrtc_http_server.cpp`: preview payload는 `maintenance`, `degraded`,
+  `recovering`, `available` notice status, `viewerSafeTitle`, `viewerSafeBody`,
+  `timelineHint`만 노출하고 operator-only blocker detail, approval decision detail,
+  readiness blocker detail, source URL/raw locator/raw JSON/debug/credential material,
+  action controls를 포함하지 않습니다.
+- `src/ingress/product_ui_client_scripts.cpp`: `renderClientActionNoticePreview`를 추가하고
+  client dashboard, client events, live dock events에 `client-action-notice-preview`
+  section을 표시했습니다.
+- `src/ingress/product_ui_css.cpp`: `.client-action-notice-preview`,
+  `.client-action-notice-list`, `.client-action-notice-item`을 기존 client card layout에 연결했습니다.
+- `scripts/internal/verify_v380_client_safe_action_notice_preview.mjs`, `server.sh`:
+  `./server.sh verify-v380-client-safe-action-notice-preview` local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: `UI-103`, `CLIENT-040`, `SAFE-190`, `OPS-157`과
+  Step 11 verifier/미실행 경계를 기록했습니다.
+
+`./server.sh verify-v380-client-safe-action-notice-preview`는 client-safe action notice preview
+payload/UI와 redaction boundary만 확인합니다. Actual client notice send, notice draft persist,
+notice queue write, action execution, source recheck execution, rule apply, Outcome Observer and Reconciliation 완료 evidence가 아닙니다.
+UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
 
 ## 최신 published baseline 상세: v3.7.0 Site-Aware Operations and Safe Runbook Control Plane
 

@@ -5369,6 +5369,141 @@ std::string ClientOperationsNoticeJson(
     return out.str();
 }
 
+struct ClientActionNoticePreview {
+    bool provided{true};
+    std::string notice_status{"degraded"};
+    std::string viewer_safe_title{"Action notice preview"};
+    std::string viewer_safe_body{"Service status is being reviewed."};
+    std::string timeline_hint{"degraded"};
+};
+
+std::string ClientActionNoticePreviewStatusFor(
+    const SourceViewRegistry::ClientViewAccess& access,
+    const ClientSourceStatusDigest& source_status,
+    const ClientEventSummary& event_summary) {
+    if (!access.view.enabled) {
+        return "degraded";
+    }
+    if (source_status.source_status == "connecting" || source_status.source_status == "stale") {
+        return "recovering";
+    }
+    if (source_status.source_status != "live") {
+        return "degraded";
+    }
+    if (event_summary.warning) {
+        return "maintenance";
+    }
+    return "available";
+}
+
+std::string ClientActionNoticePreviewTitleFor(const std::string& notice_status) {
+    if (notice_status == "maintenance") {
+        return "Maintenance notice";
+    }
+    if (notice_status == "recovering") {
+        return "Recovering notice";
+    }
+    if (notice_status == "available") {
+        return "Available notice";
+    }
+    return "Degraded notice";
+}
+
+std::string ClientActionNoticePreviewBodyFor(const std::string& notice_status) {
+    if (notice_status == "maintenance") {
+        return "A maintenance window may affect this view.";
+    }
+    if (notice_status == "recovering") {
+        return "Service is recovering and should stabilize shortly.";
+    }
+    if (notice_status == "available") {
+        return "Service is available for this view.";
+    }
+    return "Some live views may be degraded while operators review service status.";
+}
+
+std::string ClientActionNoticePreviewTimelineHintFor(const std::string& notice_status) {
+    if (notice_status == "maintenance") {
+        return "maintenance";
+    }
+    if (notice_status == "recovering") {
+        return "recovering";
+    }
+    if (notice_status == "available") {
+        return "available";
+    }
+    return "degraded";
+}
+
+ClientActionNoticePreview ClientActionNoticePreviewFor(
+    const SourceViewRegistry::ClientViewAccess& access,
+    const ClientSourceStatusDigest& source_status,
+    const ClientMaintenanceDigest&,
+    const ClientEventSummary& event_summary) {
+    ClientActionNoticePreview preview;
+    preview.notice_status =
+        ClientActionNoticePreviewStatusFor(access, source_status, event_summary);
+    preview.viewer_safe_title = ClientActionNoticePreviewTitleFor(preview.notice_status);
+    preview.viewer_safe_body = ClientActionNoticePreviewBodyFor(preview.notice_status);
+    preview.timeline_hint = ClientActionNoticePreviewTimelineHintFor(preview.notice_status);
+    return preview;
+}
+
+void AppendClientActionNoticePreviewJson(std::ostringstream& out,
+                                         const ClientActionNoticePreview& preview) {
+    out << "{"
+        << "\"schema\":\"media-server.client.v380-action-notice-preview.v1\","
+        << "\"provided\":" << (preview.provided ? "true" : "false") << ","
+        << "\"viewerSafeActionNoticePreview\":true,"
+        << "\"viewerSafe\":true,"
+        << "\"previewOnly\":true,"
+        << "\"statusTimelineOnly\":true,"
+        << "\"publishedViewScoped\":true,"
+        << "\"noticeStatusCatalog\":[\"maintenance\",\"degraded\",\"recovering\",\"available\"],"
+        << "\"operatorOnlyBlockerDetailIncluded\":false,"
+        << "\"approvalDecisionDetailIncluded\":false,"
+        << "\"readinessBlockerDetailIncluded\":false,"
+        << "\"sourceUrlIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"operatorMaterialIncluded\":false,"
+        << "\"actionControlsIncluded\":false,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeDraftPersisted\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"itemCount\":1,"
+        << "\"noticeItems\":[{"
+        << "\"noticeId\":\"client-action-notice-preview-1\","
+        << "\"noticeStatus\":\"" << JsonEscape(preview.notice_status) << "\","
+        << "\"viewerSafeTitle\":\"" << JsonEscape(preview.viewer_safe_title) << "\","
+        << "\"viewerSafeBody\":\"" << JsonEscape(preview.viewer_safe_body) << "\","
+        << "\"timelineHint\":\"" << JsonEscape(preview.timeline_hint) << "\""
+        << "}]}";
+}
+
+std::string ClientActionNoticePreviewJson(
+    const SourceViewRegistry::ClientViewAccess& access,
+    const ClientSourceStatusDigest& source_status,
+    const ClientMaintenanceDigest& maintenance_digest,
+    const ClientEventSummary& event_summary) {
+    std::ostringstream out;
+    AppendClientActionNoticePreviewJson(
+        out,
+        ClientActionNoticePreviewFor(access, source_status, maintenance_digest, event_summary));
+    return out.str();
+}
+
 ClientEventItem ParseClientEventItem(const std::string& raw) {
     ClientEventItem item;
     item.event_id = ParseStringField(raw, "eventId").value_or("");
@@ -5772,7 +5907,8 @@ void AppendClientEventSummaryJson(std::ostringstream& out,
                                   const std::string& source_status_digest_json = "",
                                   const std::string& maintenance_digest_json = "",
                                   const std::string& client_impact_forecast_json = "",
-                                  const std::string& client_operations_notice_json = "") {
+                                  const std::string& client_operations_notice_json = "",
+                                  const std::string& client_action_notice_preview_json = "") {
     out << "{"
         << "\"provided\":" << (summary.provided ? "true" : "false") << ","
         << "\"storageEnabled\":" << (summary.storage_enabled ? "true" : "false") << ","
@@ -5818,6 +5954,9 @@ void AppendClientEventSummaryJson(std::ostringstream& out,
     }
     if (!client_operations_notice_json.empty()) {
         out << ",\"clientOperationsNotice\":" << client_operations_notice_json;
+    }
+    if (!client_action_notice_preview_json.empty()) {
+        out << ",\"clientActionNoticePreview\":" << client_action_notice_preview_json;
     }
     out << "}";
 }
@@ -5874,6 +6013,8 @@ std::string ClientViewEventsJson(
         ClientImpactForecastJson(access, source_status_digest, maintenance_digest, summary);
     const auto client_operations_notice_json =
         ClientOperationsNoticeJson(access, source_status_digest, maintenance_digest, summary);
+    const auto client_action_notice_preview_json =
+        ClientActionNoticePreviewJson(access, source_status_digest, maintenance_digest, summary);
     std::ostringstream out;
     out << "{\"ok\":true,\"view\":";
     AppendClientViewIdentityJson(out, access);
@@ -5883,7 +6024,8 @@ std::string ClientViewEventsJson(
                                  source_status_digest_json,
                                  maintenance_digest_json,
                                  client_impact_forecast_json,
-                                 client_operations_notice_json);
+                                 client_operations_notice_json,
+                                 client_action_notice_preview_json);
     out << "}";
     return out.str();
 }
@@ -6031,6 +6173,8 @@ std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& 
         ClientImpactForecastJson(access, source_status_digest, maintenance_digest, event_summary);
     const auto client_operations_notice_json =
         ClientOperationsNoticeJson(access, source_status_digest, maintenance_digest, event_summary);
+    const auto client_action_notice_preview_json =
+        ClientActionNoticePreviewJson(access, source_status_digest, maintenance_digest, event_summary);
     const std::optional<std::int64_t> latest_event_time =
         event_summary.latest_event_time_ms.has_value()
             ? event_summary.latest_event_time_ms
@@ -6075,7 +6219,8 @@ std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& 
                                  source_status_digest_json,
                                  maintenance_digest_json,
                                  client_impact_forecast_json,
-                                 client_operations_notice_json);
+                                 client_operations_notice_json,
+                                 client_action_notice_preview_json);
     out << "}";
     return out.str();
 }

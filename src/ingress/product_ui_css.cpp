@@ -1654,9 +1654,11 @@ std::string ProductUiCss() {
     .client-safe-maintenance-digest,
     .client-impact-forecast,
     .client-operations-notice,
+    .client-action-notice-preview,
     .client-safe-followup-digest,
     .client-safe-digest-list,
-    .client-operations-notice-list {
+    .client-operations-notice-list,
+    .client-action-notice-list {
       display: grid;
       gap: var(--space-3);
       min-width: 0;
@@ -1668,6 +1670,7 @@ std::string ProductUiCss() {
     .client-safe-maintenance-digest,
     .client-impact-forecast,
     .client-operations-notice,
+    .client-action-notice-preview,
     .client-safe-followup-digest {
       padding: var(--space-3);
       border: 1px solid var(--color-border);
@@ -1675,7 +1678,8 @@ std::string ProductUiCss() {
       background: var(--color-surface-subtle);
     }
     .client-safe-digest-item,
-    .client-operations-notice-item {
+    .client-operations-notice-item,
+    .client-action-notice-item {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
       gap: var(--space-2);
@@ -1685,13 +1689,16 @@ std::string ProductUiCss() {
       border-radius: 8px;
       background: var(--color-surface-raised);
     }
-    .client-safe-digest-item div {
+    .client-safe-digest-item div,
+    .client-action-notice-item div {
       min-width: 0;
       display: grid;
       gap: 2px;
     }
     .client-safe-digest-item span,
-    .client-operations-notice-item span {
+    .client-operations-notice-item span,
+    .client-action-notice-item span,
+    .client-action-notice-item small {
       color: var(--color-text-muted);
       overflow-wrap: anywhere;
     }

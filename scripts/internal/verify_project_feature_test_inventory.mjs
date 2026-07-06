@@ -721,21 +721,25 @@ check("current feature expansion rows exist", () => {
     "OPS-155",
     "SAFE-189",
     "OPS-156",
+    "UI-103",
+    "CLIENT-040",
+    "SAFE-190",
+    "OPS-157",
   ];
   const ids = new Set(parseFeatureRows(inventory).map(row => row.id));
   for (const id of requiredRows) {
     assert(ids.has(id), `missing current expanded feature row: ${id}`);
   }
   for (const snippet of [
-    "`UI-001`~`UI-018`, `UI-022`~`UI-102`",
+    "`UI-001`~`UI-018`, `UI-022`~`UI-103`",
     "`SRC-001`~`SRC-062`",
-    "`CLIENT-001`~`CLIENT-039`",
+    "`CLIENT-001`~`CLIENT-040`",
     "`EVT-001`~`EVT-083`",
     "`RULE-001`~`RULE-110`",
     "`MEDIA-001`~`MEDIA-025`",
     "`LAB-001`~`LAB-118`",
-    "`SAFE-001`~`SAFE-189`",
-    "`OPS-035`~`OPS-156`",
+    "`SAFE-001`~`SAFE-190`",
+    "`OPS-035`~`OPS-157`",
     "VLM route, control, action, runtime state, sidecar, privacy guard",
     "V300-S02 Frame Bundle Extraction",
     "V300-S03 Feature Schema and Privacy Policy",
