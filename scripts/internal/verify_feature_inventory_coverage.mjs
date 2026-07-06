@@ -233,11 +233,16 @@ for (const [prefix, verifiers] of Object.entries(v370VerifierCoverage)) {
 }
 
 const v380VerifierCoverage = {
+  LAB: [
+    "verify-v380-ops-action-route-boundary",
+  ],
   SAFE: [
     "verify-v380-entry-baseline",
+    "verify-v380-ops-action-route-boundary",
   ],
   OPS: [
     "verify-v380-entry-baseline",
+    "verify-v380-ops-action-route-boundary",
   ],
 };
 

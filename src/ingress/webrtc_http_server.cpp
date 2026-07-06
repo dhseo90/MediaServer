@@ -10884,6 +10884,157 @@ void AppendOpsSourceHealthSummaryJson(std::ostringstream& out, const OpsSourceHe
         << "}";
 }
 
+struct OpsV380ActionRouteBoundaryItem {
+    std::string route;
+    std::string family;
+    std::string method;
+    std::string owner;
+    std::string stage;
+    std::string description;
+};
+
+std::vector<OpsV380ActionRouteBoundaryItem> BuildV380ActionRouteBoundaryItems() {
+    return {
+        {"/ops/api/actions/route-boundary",
+         "foundation",
+         "GET",
+         "ops-action-boundary",
+         "implemented-read-only",
+         "v3.8 action namespace boundary and future route catalog"},
+        {"/ops/api/actions/capability-contract",
+         "foundation",
+         "GET",
+         "ops-action-capability",
+         "planned",
+         "allowed action, denied action, role/scope, and idempotency contract"},
+        {"/ops/api/actions/request-ledger",
+         "foundation",
+         "GET",
+         "ops-action-ledger",
+         "planned",
+         "append-only/read-only action request ledger projection"},
+        {"/ops/api/actions/approval-decision-gate",
+         "workflow",
+         "GET",
+         "ops-action-approval",
+         "planned",
+         "approval, hold, reject, field-needed, and stale decision guard"},
+        {"/ops/api/actions/readiness-preflight",
+         "workflow",
+         "GET",
+         "ops-action-readiness",
+         "planned",
+         "capability, approval, field evidence, source health, and duplicate blocker preflight"},
+        {"/ops/api/actions/source-recheck-pilot",
+         "execution-pilot",
+         "GET",
+         "ops-action-source-recheck",
+         "planned",
+         "lowest-risk source health recheck candidate envelope"},
+        {"/ops/api/actions/client-notice-draft-queue",
+         "execution-pilot",
+         "GET",
+         "ops-action-client-notice",
+         "planned",
+         "viewer-safe notice draft queue preview without delivery"},
+        {"/ops/api/actions/rule-draft-package",
+         "execution-pilot",
+         "GET",
+         "ops-action-rule-draft",
+         "planned",
+         "rule threshold/scenario draft package without apply"},
+        {"/ops/api/actions/outcome-reconciliation",
+         "evidence",
+         "GET",
+         "ops-action-outcome",
+         "planned",
+         "readiness, execution candidate, and observed outcome diff"},
+        {"/ops/api/actions/receipt-bundle",
+         "evidence",
+         "GET",
+         "ops-action-receipt",
+         "planned",
+         "redacted approval/request/readiness/outcome receipt bundle"},
+    };
+}
+
+void AppendV380ActionRouteBoundaryItemJson(std::ostringstream& out,
+                                           const OpsV380ActionRouteBoundaryItem& item) {
+    out << "{"
+        << "\"route\":\"" << JsonEscape(item.route) << "\","
+        << "\"family\":\"" << JsonEscape(item.family) << "\","
+        << "\"method\":\"" << JsonEscape(item.method) << "\","
+        << "\"owner\":\"" << JsonEscape(item.owner) << "\","
+        << "\"stage\":\"" << JsonEscape(item.stage) << "\","
+        << "\"description\":\"" << JsonEscape(item.description) << "\","
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true"
+        << "}";
+}
+
+std::string OpsV380ActionRouteBoundaryJson() {
+    const auto items = BuildV380ActionRouteBoundaryItems();
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v380-action-route-boundary.v1\","
+        << "\"status\":\"action-route-boundary\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"actionNamespace\":\"/ops/api/actions\","
+        << "\"routeBoundaryOnly\":true,"
+        << "\"legacyProjectionRefs\":";
+    AppendJsonStringArray(out,
+                          {"/ops/api/live-operations/command-plan",
+                           "/ops/api/live-operations/staged-change-plan-impact-preview",
+                           "/ops/api/site-operations/runbook-template-contract",
+                           "/ops/api/site-operations/limited-safe-execution-pilot",
+                           "/ops/api/site-operations/export-handoff-bundle"});
+    out << ",\"actionRouteBoundary\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV380ActionRouteBoundaryItemJson(out, items[i]);
+    }
+    out << "],\"routePolicy\":{"
+        << "\"namespace\":\"/ops/api/actions\","
+        << "\"defaultMethod\":\"GET\","
+        << "\"defaultCacheControl\":\"no-store\","
+        << "\"separateFromV350LiveOperations\":true,"
+        << "\"separateFromV370SiteOperations\":true,"
+        << "\"writeEndpointsReservedForFutureApproval\":true"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"routeBoundaryOnly\":true,"
+        << "\"separateFromV350LiveOperations\":true,"
+        << "\"separateFromV370SiteOperations\":true,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"actionRequestPersisted\":false,"
+        << "\"approvalDecisionPersisted\":false,"
+        << "\"readinessCheckExecuted\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"runbookInstancePersisted\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 struct OpsV370SiteSourceGroupContractItem {
     std::string field;
     std::string json_name;
@@ -35091,6 +35242,20 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            ok.headers["Cache-Control"] = "no-store";
 	                            return ok;
 	                        }
+
+                        if (request.path == "/ops/api/actions/route-boundary") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV380ActionRouteBoundaryJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
 
                         if (request.path == "/ops/api/site-operations/source-group-contract") {
                             if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {

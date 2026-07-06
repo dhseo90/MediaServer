@@ -26,12 +26,12 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 865 |
+| 전체 기능 항목 | 868 |
 | UI 직접 필요 | 382 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 452 |
-| 테스트 필요 | 865 |
-| 안정화 대상 | 855 |
+| UI 비대상 | 455 |
+| 테스트 필요 | 868 |
+| 안정화 대상 | 858 |
 | UI 풀테스트 대상 | 402 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 852개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 855개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -63,6 +63,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | Roadmap scope | Feature IDs | 대표 안정화 verifier | release evidence boundary |
 | --- | --- | --- | --- |
 | v3.8.0 (1) v3.8.0 baseline 정렬 | `OPS-147`, `SAFE-180` | `verify-v380-entry-baseline`, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets` | source `3.8.0`, latest published `v3.7.0`, current roadmap `v3.8.0 Operator-Gated Action Pilot & Outcome Loop` 정렬 기준. v3.8 기능 구현, UI 풀테스트, 30분/120분, GitHub Release publish evidence와는 별도 gate입니다 |
+| v3.8.0 (2) Ops Action Route Boundary | `LAB-111`, `SAFE-181`, `OPS-148` | `verify-v380-ops-action-route-boundary`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory` | `/ops/api/actions/route-boundary` read-only route boundary와 v3.8 action namespace 분리 기준. action execution, action request persist, approval/readiness execution, source recheck, notice send, rule/source/view/runbook/EventRecord/Ops audit write, UI 풀테스트, 30분/120분, GitHub Release publish evidence와는 별도 gate입니다 |
 
 ## latest published baseline v3.7.0 Site-Aware Operations and Safe Runbook Control Plane Coverage Mapping
 
@@ -352,9 +353,9 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | `EVT-001`~`EVT-083` | event/VLM/v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360/v370 verifier family | event log 육안 확인은 UI 풀테스트 |
 | `CLIENT-001`~`CLIENT-039` | client/UI/v350/v360/v370 verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-025` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
-| `LAB-001`~`LAB-110` | lab/VLM/v250/v260/v270/v280/v300/v310/v340/v350/v360/v370 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-180` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-147` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
+| `LAB-001`~`LAB-111` | lab/VLM/v250/v260/v270/v280/v300/v310/v340/v350/v360/v370/v380 fixture verifier family | 제품 UI 비대상 |
+| `SAFE-001`~`SAFE-181` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-148` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
 
 ## VA Manual UI Seed Matrix
 
@@ -1009,6 +1010,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | LAB-108 | V370 Step 15 Limited Safe Execution Pilot harness | 비대상 | 필요 | 안정화 | `verify-v370-limited-safe-execution-pilot`이 runbook ledger, approval ticket workflow, field evidence attachment, client notice preview refs를 approval-gated pilot harness로 연결하되 source recheck, notice queue write/send, runtime/media 작업을 수행하지 않음을 확인 |
 | LAB-109 | V370 Step 16 Outcome Reconciliation harness | 비대상 | 필요 | 안정화 | `verify-v370-outcome-reconciliation`이 limited safe execution pilot, site simulation input pack, source/rule impact diff, site impact graph, client notice refs를 read-only reconciliation harness로 연결하되 pilot execution, source recheck, notice queue write/send, runtime/media 작업을 수행하지 않음을 확인 |
 | LAB-110 | V370 Step 17 Export / Handoff Bundle harness | 비대상 | 필요 | 안정화 | `verify-v370-export-handoff-bundle`이 site registry projection, runbook ledger, field evidence attachment, approval workflow, outcome reconciliation refs를 redacted release-safe handoff bundle harness로 연결하되 file/artifact export, handoff persist, execution/runtime/media 작업을 수행하지 않음을 확인 |
+| LAB-111 | V380 Step 2 action route boundary harness | 비대상 | 필요 | 안정화 | `verify-v380-ops-action-route-boundary`가 `/ops/api/actions/route-boundary`, future action route catalog, v3.5/v3.7 legacy projection refs를 read-only route boundary harness로 연결하되 action execution, readiness execution, source recheck, notice send, rule apply, request/approval/runbook/EventRecord/Ops audit write를 수행하지 않음을 확인 |
 
 ## I. Safety, Boundary, Invariant Contract
 
@@ -1194,6 +1196,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-178 | V370 Step 17 Export / Handoff Bundle boundary | 비대상 | 필요 | 안정화 | `verify-v370-export-handoff-bundle`이 redacted release-safe handoff bundle만 산출하고 artifact export/file write/handoff write, pilot/source recheck/notice queue write/send, source/view/runbook/approval/EventRecord/Ops audit/client/media mutation, raw locator/endpoint/credential/provider/diagnostic/client raw material 노출을 수행하지 않음을 확인 |
 | SAFE-179 | V370 Step 18 stabilization/release readiness boundary | 비대상 | 필요 | 안정화 | `verify-v370-stabilization-release-readiness`가 v3.7 local readiness command, roadmap/stream verification/release policy/evidence index/release records/server dispatch/script inventory 연결을 확인하되 release action, published metadata, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
 | SAFE-180 | V380 Step 1 v3.8 baseline boundary | 비대상 | 필요 | 안정화 | `verify-v380-entry-baseline`이 source `3.8.0`, latest published `v3.7.0`, current roadmap `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`, release records, inventory, server dispatch 연결을 확인하되 v3.8 기능 구현, UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release PASS로 대체하지 않음 |
+| SAFE-181 | V380 Step 2 Ops Action Route Boundary no-mutation boundary | 비대상 | 필요 | 안정화 | `verify-v380-ops-action-route-boundary`가 v3.8 action namespace를 `/ops/api/actions`로 분리하고 action execution, action request persist, approval decision persist, readiness check execution, source recheck, notice send/write, rule/source/view/runbook/EventRecord/Ops audit write, viewer/client payload, Event POST/EventRecord/WebRTC/SSE/WS/media schema 변경, raw locator/credential 노출을 수행하지 않음을 확인 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -1312,6 +1315,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-145 | V370 Step 17 Export / Handoff Bundle 게이트 | 비대상 | 필요 | 안정화 | `verify-v370-export-handoff-bundle`가 `/ops/api/site-operations/export-handoff-bundle` Ops-only route, site/runbook/evidence/approval/outcome refs, redacted release-safe bundle, handoff map, dashboard renderer/CSS, client 비노출, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, artifact/file/handoff write, execution, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-146 | V370 Step 18 Stabilization and Release Readiness 게이트 | 비대상 | 필요 | 안정화 | `verify-v370-stabilization-release-readiness`가 v3.7 Step 1~17 local gates, release policy/evidence index/test records, close-out dry-run command, server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release, field smoke 실행 PASS로 대체하지 않음 |
 | OPS-147 | V380 Step 1 v3.8 baseline 게이트 | 비대상 | 필요 | 안정화 | `verify-v380-entry-baseline`가 VERSION/CMake/README/docs/backlog/source roadmap을 source `3.8.0`, latest published `v3.7.0`, current roadmap `v3.8.0 Operator-Gated Action Pilot & Outcome Loop` 기준으로 정렬했는지 확인하되 v3.8 기능 구현, release publish, PR/main/tag/push, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
+| OPS-148 | V380 Step 2 Ops Action Route Boundary 게이트 | 비대상 | 필요 | 안정화 | `verify-v380-ops-action-route-boundary`가 `/ops/api/actions/route-boundary` Ops-only route, v3.8 action route catalog, v3.5 live-operations/v3.7 site-operations projection 분리, no-store guard, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 action execution, request/approval/readiness persist, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 

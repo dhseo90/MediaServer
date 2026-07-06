@@ -49,6 +49,7 @@ UI 풀테스트, 30분/120분, published metadata, release action, field smoke�
 | Step | Command | Scope |
 | --- | --- | --- |
 | v3.8.0 (1) | `./server.sh verify-v380-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | source `3.8.0`, latest published `v3.7.0`, current roadmap `v3.8.0 Operator-Gated Action Pilot & Outcome Loop` 정렬. v3.8 기능 구현, UI 풀테스트, 30분/120분, tag, push, GitHub Release evidence와는 별도 gate입니다 |
+| v3.8.0 (2) | `./server.sh verify-v380-ops-action-route-boundary` | Ops Action Route Boundary. `/ops/api/actions/route-boundary`가 v3.8 action route namespace와 future action route catalog를 v3.5 live-operations/v3.7 site-operations projection과 분리하고 action execution, action request persist, approval/readiness execution, source recheck, notice send, rule/source/view/runbook/EventRecord/Ops audit write, client/media/schema mutation을 수행하지 않는지 확인합니다 |
 
 ## 최신 published baseline v3.7.0 verifier
 

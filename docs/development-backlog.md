@@ -65,7 +65,7 @@ Product UI -> Evidence/Field -> Release 순서로 진행합니다.
 | 번호 | 제목 | 우선순위 | 상태 | 완료/잔여 내용 |
 | --- | --- | --- | --- | --- |
 | 1 | v3.8.0 (1) v3.8.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/docs/backlog/source roadmap과 `verify-v380-entry-baseline` 기준 정렬 |
-| 2 | v3.8.0 (2) Ops Action Route Boundary | P0 | 미착수 | v3.8 action/runbook route boundary와 helper 배치 필요 |
+| 2 | v3.8.0 (2) Ops Action Route Boundary | P0 | 완료 | `/ops/api/actions/route-boundary`와 `OpsV380ActionRouteBoundaryJson`으로 v3.8 action route namespace boundary를 read-only로 분리 |
 | 3 | v3.8.0 (3) Action Capability Contract | P0 | 미착수 | action capability contract, role/scope, idempotency, immutable boundary 정의 필요 |
 | 4 | v3.8.0 (4) Action Request Ledger Contract | P0 | 미착수 | append-only/read-only action request ledger contract 필요 |
 | 5 | v3.8.0 (5) Approval Decision Gate | P0 | 미착수 | approval decision workflow와 stale decision guard 필요 |
@@ -81,8 +81,9 @@ Product UI -> Evidence/Field -> Release 순서로 진행합니다.
 | 15 | v3.8.0 (15) Default-off Action Explanation | P2 | 미착수 | default-off explanation hint와 no-provider-call boundary 필요 |
 | 16 | v3.8.0 (16) Stabilization and Release Readiness | P0 | 미착수 | v3.8 local verifier suite, release records, close-out dry-run 연결 필요 |
 
-완료 경계: Step 1 완료는 source/version/docs/backlog/verification metadata 정렬입니다.
-Step 2~16은 미착수이며, Step 1 PASS 자체는 v3.8 기능 구현, UI 풀테스트, 30분/120분
+완료 경계: Step 1 완료는 source/version/docs/backlog/verification metadata 정렬이고,
+Step 2 완료는 `/ops/api/actions/route-boundary` read-only route boundary입니다.
+Step 3~16은 미착수이며, Step 1~2 PASS 자체는 v3.8 action execution, UI 풀테스트, 30분/120분
 장시간 테스트, published metadata, release action evidence가 아닙니다.
 
 ## v3.8.0 Step 1 개발 기록
@@ -106,6 +107,31 @@ Step 2~16은 미착수이며, Step 1 PASS 자체는 v3.8 기능 구현, UI 풀�
 `./server.sh verify-v380-entry-baseline`은 이번 source baseline 정렬만 확인합니다.
 UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
 `v3.8.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
+
+## v3.8.0 Step 2 개발 기록
+
+이번 Step 2는 P0 `v3.8.0 (2) Ops Action Route Boundary`입니다.
+
+- `src/ingress/webrtc_http_server.cpp`: `OpsV380ActionRouteBoundaryItem`,
+  `BuildV380ActionRouteBoundaryItems`, `AppendV380ActionRouteBoundaryItemJson`,
+  `OpsV380ActionRouteBoundaryJson`을 추가해 v3.8 action namespace `/ops/api/actions`와
+  future route catalog를 read-only JSON으로 산출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/actions/route-boundary` GET route를
+  `require_ops_principal()`과 `Cache-Control: no-store`로 연결했습니다.
+- route response의 `legacyProjectionRefs`는 v3.5 `/ops/api/live-operations/*`와 v3.7
+  `/ops/api/site-operations/*`를 참조만 하며, 새 action namespace와 분리합니다.
+- boundary flags는 action execution, action request persist, approval decision persist,
+  readiness execution, source recheck, notice send/write, rule/source/view/runbook/EventRecord/Ops audit
+  write, client payload/media/schema 변경, raw locator/credential 노출을 모두 `false`로 둡니다.
+- `scripts/internal/verify_v380_ops_action_route_boundary.mjs`, `server.sh`: `./server.sh verify-v380-ops-action-route-boundary`
+  local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: `LAB-111`, `SAFE-181`, `OPS-148`과 Step 2 verifier/미실행 경계를 기록했습니다.
+
+`./server.sh verify-v380-ops-action-route-boundary`는 route boundary와 read-only/no-mutation
+경계만 확인합니다. Action Capability Contract, Action Request Ledger, approval decision,
+readiness preflight, actual source recheck, client notice send, rule apply, UI 풀테스트,
+30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
 
 ## 최신 published baseline 상세: v3.7.0 Site-Aware Operations and Safe Runbook Control Plane
 
