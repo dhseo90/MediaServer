@@ -10905,13 +10905,13 @@ std::vector<OpsV380ActionRouteBoundaryItem> BuildV380ActionRouteBoundaryItems() 
          "foundation",
          "GET",
          "ops-action-capability",
-         "planned",
+         "implemented-read-only",
          "allowed action, denied action, role/scope, and idempotency contract"},
         {"/ops/api/actions/request-ledger",
          "foundation",
          "GET",
          "ops-action-ledger",
-         "planned",
+         "implemented-read-only",
          "append-only/read-only action request ledger projection"},
         {"/ops/api/actions/approval-decision-gate",
          "workflow",
@@ -11198,6 +11198,149 @@ std::string OpsV380ActionCapabilityContractJson() {
         << "\"opsOnly\":true,"
         << "\"readOnly\":true,"
         << "\"capabilityContractOnly\":true,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"actionRequestPersisted\":false,"
+        << "\"approvalDecisionPersisted\":false,"
+        << "\"readinessCheckExecuted\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"runbookInstancePersisted\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV380ActionRequestLedgerContractItem {
+    std::string field;
+    std::string json_name;
+    std::string type;
+    std::string source;
+    std::string description;
+    bool required{false};
+};
+
+std::vector<OpsV380ActionRequestLedgerContractItem> BuildV380ActionRequestLedgerContractItems() {
+    return {
+        {"actionRequestId",
+         "actionRequestId",
+         "string",
+         "operator-request-envelope",
+         "Stable request identifier used by receipt and readiness projections",
+         true},
+        {"siteId",
+         "siteId",
+         "string",
+         "site/source-group projection",
+         "Site boundary for the requested action",
+         true},
+        {"runbookId",
+         "runbookId",
+         "string",
+         "runbook-template-or-null",
+         "Optional runbook template reference for repeated operator workflows",
+         false},
+        {"requestedBy",
+         "requestedBy",
+         "principal",
+         "ops principal",
+         "Redacted operator identity reference for review and receipt projections",
+         true},
+        {"status",
+         "status",
+         "enum",
+         "request status model",
+         "Read-only request state such as draft, approval-needed, blocked, or completed",
+         true},
+        {"createdAt",
+         "createdAt",
+         "timestamp",
+         "server clock",
+         "UTC creation timestamp for deterministic ledger ordering",
+         true},
+        {"idempotencyKey",
+         "idempotencyKey",
+         "string",
+         "operator-request fingerprint",
+         "Duplicate request guard derived from site, action kind, and request fingerprint",
+         true},
+    };
+}
+
+void AppendV380ActionRequestLedgerContractItemJson(
+    std::ostringstream& out,
+    const OpsV380ActionRequestLedgerContractItem& item) {
+    out << "{"
+        << "\"field\":\"" << JsonEscape(item.field) << "\","
+        << "\"jsonName\":\"" << JsonEscape(item.json_name) << "\","
+        << "\"type\":\"" << JsonEscape(item.type) << "\","
+        << "\"source\":\"" << JsonEscape(item.source) << "\","
+        << "\"required\":" << JsonBool(item.required) << ","
+        << "\"description\":\"" << JsonEscape(item.description) << "\""
+        << "}";
+}
+
+std::string OpsV380ActionRequestLedgerContractJson() {
+    const auto items = BuildV380ActionRequestLedgerContractItems();
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v380-action-request-ledger-contract.v1\","
+        << "\"status\":\"action-request-ledger-contract\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"route\":\"/ops/api/actions/request-ledger\","
+        << "\"capabilityContractRoute\":\"/ops/api/actions/capability-contract\","
+        << "\"actionRequestLedgerContract\":{"
+        << "\"contractOnly\":true,"
+        << "\"appendOnly\":true,"
+        << "\"readOnlyProjection\":true,"
+        << "\"ledgerIdPattern\":\"v380-actions/{siteId}/{actionKind}/{idempotencyKey}\","
+        << "\"idempotencyKey\":\"siteId:actionKind:requestFingerprint\""
+        << "},\"ledgerFields\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV380ActionRequestLedgerContractItemJson(out, items[i]);
+    }
+    out << "],\"statusModel\":";
+    AppendJsonStringArray(out,
+                          {"draft",
+                           "approval-needed",
+                           "approved",
+                           "blocked",
+                           "field-needed",
+                           "rejected",
+                           "expired",
+                           "completed"});
+    out << ",\"appendOnlyPolicy\":{"
+        << "\"contractOnly\":true,"
+        << "\"appendRequiresIdempotencyKey\":true,"
+        << "\"duplicateRequestBehavior\":\"return-existing-read-model\","
+        << "\"requestWritePerformed\":false"
+        << "},\"readOnlyProjection\":{"
+        << "\"enabled\":true,"
+        << "\"sort\":\"createdAt-desc\","
+        << "\"mutableFields\":";
+    AppendJsonStringArray(out, {});
+    out << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"ledgerContractOnly\":true,"
+        << "\"requestWritePerformed\":false,"
         << "\"actionExecutionPerformed\":false,"
         << "\"actionRequestPersisted\":false,"
         << "\"approvalDecisionPersisted\":false,"
@@ -35455,6 +35598,20 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV380ActionCapabilityContractJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/actions/request-ledger") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV380ActionRequestLedgerContractJson());
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

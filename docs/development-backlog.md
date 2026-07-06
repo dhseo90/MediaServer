@@ -20,8 +20,8 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 source roadmap: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
 
 상태: Step 1 source baseline 정렬, Step 2 Ops Action Route Boundary, Step 3 Action
-Capability Contract를 완료했고 Step 4~16 개발은 미착수입니다. 현재 source version은
-`3.8.0`이며, VERSION/CMake/docs/backlog/source roadmap과 v3.8 Step 1~3 local gate를
+Capability Contract, Step 4 Action Request Ledger Contract를 완료했고 Step 5~16 개발은 미착수입니다. 현재 source version은
+`3.8.0`이며, VERSION/CMake/docs/backlog/source roadmap과 v3.8 Step 1~4 local gate를
 `3.8.0` 기준으로 정렬했습니다. 각 step은 실제
 코드/API/UI/문서/검증 산출물이 생긴 뒤에만 완료로 기록합니다.
 
@@ -68,7 +68,7 @@ Product UI -> Evidence/Field -> Release 순서로 진행합니다.
 | 1 | v3.8.0 (1) v3.8.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/docs/backlog/source roadmap과 `verify-v380-entry-baseline` 기준 정렬 |
 | 2 | v3.8.0 (2) Ops Action Route Boundary | P0 | 완료 | `/ops/api/actions/route-boundary`와 `OpsV380ActionRouteBoundaryJson`으로 v3.8 action route namespace boundary를 read-only로 분리 |
 | 3 | v3.8.0 (3) Action Capability Contract | P0 | 완료 | `/ops/api/actions/capability-contract`와 `OpsV380ActionCapabilityContractJson`으로 허용/금지 action, role/scope, idempotency, immutable schema boundary를 read-only로 정의 |
-| 4 | v3.8.0 (4) Action Request Ledger Contract | P0 | 미착수 | append-only/read-only action request ledger contract 필요 |
+| 4 | v3.8.0 (4) Action Request Ledger Contract | P0 | 완료 | `/ops/api/actions/request-ledger`와 `OpsV380ActionRequestLedgerContractJson`으로 actionRequestId/siteId/runbookId/requestedBy/status/createdAt/idempotencyKey ledger contract를 append-only/read-only로 정의 |
 | 5 | v3.8.0 (5) Approval Decision Gate | P0 | 미착수 | approval decision workflow와 stale decision guard 필요 |
 | 6 | v3.8.0 (6) Action Readiness Preflight | P0 | 미착수 | 실행 전 blocker/readiness 판정 필요 |
 | 7 | v3.8.0 (7) Source Recheck Action Pilot | P1 | 미착수 | source health recheck action pilot 후보 준비 필요 |
@@ -85,7 +85,8 @@ Product UI -> Evidence/Field -> Release 순서로 진행합니다.
 완료 경계: Step 1 완료는 source/version/docs/backlog/verification metadata 정렬이고,
 Step 2 완료는 `/ops/api/actions/route-boundary` read-only route boundary입니다.
 Step 3 완료는 `/ops/api/actions/capability-contract` read-only capability contract입니다.
-Step 4~16은 미착수이며, Step 1~3 PASS 자체는 v3.8 action execution, UI 풀테스트, 30분/120분
+Step 4 완료는 `/ops/api/actions/request-ledger` read-only action request ledger contract입니다.
+Step 5~16은 미착수이며, Step 1~4 PASS 자체는 v3.8 action execution, UI 풀테스트, 30분/120분
 장시간 테스트, published metadata, release action evidence가 아닙니다.
 
 ## v3.8.0 Step 1 개발 기록
@@ -159,6 +160,32 @@ readiness preflight, actual source recheck, client notice send, rule apply, UI �
 
 `./server.sh verify-v380-action-capability-contract`는 action capability contract와
 read-only/no-mutation/no-schema-change 경계만 확인합니다. Action Request Ledger, approval decision,
+readiness preflight, actual source recheck, client notice send, rule apply, UI 풀테스트,
+30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
+
+## v3.8.0 Step 4 개발 기록
+
+이번 Step 4는 P0 `v3.8.0 (4) Action Request Ledger Contract`입니다.
+
+- `src/ingress/webrtc_http_server.cpp`: `OpsV380ActionRequestLedgerContractItem`,
+  `BuildV380ActionRequestLedgerContractItems`, `AppendV380ActionRequestLedgerContractItemJson`,
+  `OpsV380ActionRequestLedgerContractJson`을 추가해 `actionRequestId`, `siteId`,
+  `runbookId`, `requestedBy`, `status`, `createdAt`, `idempotencyKey` ledger fields를
+  read-only JSON contract로 산출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/actions/request-ledger` GET route를
+  `require_ops_principal()`과 `Cache-Control: no-store`로 연결했습니다.
+- contract response는 `appendOnlyPolicy`, `readOnlyProjection`, status model, idempotency
+  key pattern을 정의하지만 실제 action request append/write를 수행하지 않습니다.
+- boundary flags는 request write, action execution, action request persist, approval decision persist,
+  readiness execution, source recheck, notice send/write, rule/source/view/runbook/EventRecord/Ops audit
+  write, client payload/media/schema 변경, raw locator/credential 노출을 모두 `false`로 둡니다.
+- `scripts/internal/verify_v380_action_request_ledger_contract.mjs`, `server.sh`: `./server.sh verify-v380-action-request-ledger-contract`
+  local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: `LAB-113`, `SAFE-183`, `OPS-150`과 Step 4 verifier/미실행 경계를 기록했습니다.
+
+`./server.sh verify-v380-action-request-ledger-contract`는 action request ledger contract와
+append-only/read-only/no-mutation/no-schema-change 경계만 확인합니다. Approval Decision Gate,
 readiness preflight, actual source recheck, client notice send, rule apply, UI 풀테스트,
 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
 
