@@ -24,9 +24,9 @@ Capability Contract, Step 4 Action Request Ledger Contract, Step 5 Approval Deci
 Step 6 Action Readiness Preflight, Step 7 Source Recheck Action Pilot, Step 8
 Client Notice Draft Queue, Step 9 Rule Draft Action Package, Step 10 Ops Action
 Control Workspace UI, Step 11 Client-safe Action Notice Preview, Step 12 Outcome Observer and
-Reconciliation, Step 13 Action Receipt Bundle, Step 14 Field Connector Evidence Package를 완료했고 Step 15~16
-개발은 미착수입니다. 현재 source version은 `3.8.0`이며,
-VERSION/CMake/docs/backlog/source roadmap과 v3.8 Step 1~14 local gate를
+Reconciliation, Step 13 Action Receipt Bundle, Step 14 Field Connector Evidence Package, Step 15
+Default-off Action Explanation을 완료했고 Step 16 개발은 미착수입니다. 현재 source version은 `3.8.0`이며,
+VERSION/CMake/docs/backlog/source roadmap과 v3.8 Step 1~15 local gate를
 `3.8.0` 기준으로 정렬했습니다. 각 step은 실제
 코드/API/UI/문서/검증 산출물이 생긴 뒤에만 완료로 기록합니다.
 
@@ -84,7 +84,7 @@ Product UI -> Evidence/Field -> Release 순서로 진행합니다.
 | 12 | v3.8.0 (12) Outcome Observer and Reconciliation | P1 | 완료 | `/ops/api/actions/outcome-reconciliation`과 `/ops` outcome observer UI가 readiness/candidate/observed outcome diff를 source/EventRecord/client/rule 축으로 비교 |
 | 13 | v3.8.0 (13) Action Receipt Bundle | P1 | 완료 | `/ops/api/actions/receipt-bundle`과 `/ops` Action Receipt Bundle UI가 approval/request/readiness/candidate/outcome diff를 redacted release-safe receipt bundle과 handoff map으로 조합 |
 | 14 | v3.8.0 (14) Field Connector Evidence Package | P2 | 완료 | `/ops/api/actions/field-connector-evidence-package`와 `/ops` Field Connector Evidence Package UI가 ONVIF/external WHEP-TURN/cloud provider 조건을 credential/endpoint approval 기반 conditional/not-run package로 분리 |
-| 15 | v3.8.0 (15) Default-off Action Explanation | P2 | 미착수 | default-off explanation hint와 no-provider-call boundary 필요 |
+| 15 | v3.8.0 (15) Default-off Action Explanation | P2 | 완료 | `/ops/api/actions/default-off-explanation`와 `/ops` Default-off Action Explanation UI가 approval blocker/readiness reason/outcome hint를 default-off VLM/runtime explanation으로 요약하고 provider/runtime call을 opt-in 전 미수행으로 고정 |
 | 16 | v3.8.0 (16) Stabilization and Release Readiness | P0 | 미착수 | v3.8 local verifier suite, release records, close-out dry-run 연결 필요 |
 
 완료 경계: Step 1 완료는 source/version/docs/backlog/verification metadata 정렬이고,
@@ -101,7 +101,8 @@ Step 11 완료는 client-safe action notice preview입니다.
 Step 12 완료는 outcome observer and reconciliation read model입니다.
 Step 13 완료는 action receipt bundle read model입니다.
 Step 14 완료는 field connector evidence package read model입니다.
-Step 15~16은 미착수이며, Step 1~14 PASS 자체는 v3.8 action execution, UI 풀테스트, 30분/120분
+Step 15 완료는 default-off action explanation read model입니다.
+Step 16은 미착수이며, Step 1~15 PASS 자체는 v3.8 action execution, UI 풀테스트, 30분/120분
 장시간 테스트, published metadata, release action evidence가 아닙니다.
 
 ## v3.8.0 Step 1 개발 기록
@@ -527,6 +528,52 @@ provider/cloud call, ONVIF 실기기 contact, external WHEP contact, TURN creden
 source recheck execution, source/view/EventRecord/Ops audit write, client/media/schema mutation,
 raw endpoint/locator/credential/provider/debug material inclusion, UI 풀테스트, 30분/120분 장시간 테스트,
 published metadata, release action 완료 evidence가 아닙니다.
+
+## v3.8.0 Step 15 개발 기록
+
+이번 Step 15는 P2 `v3.8.0 (15) Default-off Action Explanation`입니다.
+
+- `src/ingress/webrtc_http_server.cpp`: `OpsV380DefaultOffActionExplanationItem`,
+  `OpsV380DefaultOffActionExplanationSummary`,
+  `BuildV380DefaultOffActionExplanationItems`,
+  `BuildV380DefaultOffActionExplanationSummary`,
+  `AppendV380DefaultOffActionExplanationItemJson`,
+  `AppendV380DefaultOffActionExplanationSummaryJson`,
+  `OpsV380DefaultOffActionExplanationJson`을 추가했습니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/actions/default-off-explanation` GET
+  route를 `require_ops_principal()`, `Cache-Control: no-store`로 연결하고 v3.8 approval,
+  readiness, outcome, receipt, field connector refs를 approval blocker, readiness reason,
+  outcome hint explanation으로 요약했습니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops` dashboard에
+  `ops-default-off-action-explanation` section, `dashDefaultOffActionExplanationBadges`,
+  `dashDefaultOffActionExplanationText`, `dashDefaultOffActionExplanationList`,
+  `dashDefaultOffActionExplanationBoundary` UI control을 추가했습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV380DefaultOffActionExplanation`와
+  `refreshV380DefaultOffActionExplanation`을 추가해 `/ops/api/actions/default-off-explanation`의
+  `defaultOffActionExplanations`, `defaultOffActionExplanationSummary`,
+  `approvalBlockerSummary`, `readinessReasonSummary`, `outcomeHint`, `operatorReviewHint`,
+  `defaultEnabled`, `providerOptInRequired`, `runtimeOptInRequired` 경계를 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `.ops-default-off-action-explanation`,
+  `.ops-default-off-action-explanation-list`, `.ops-default-off-action-explanation-entry`,
+  `.ops-default-off-action-explanation-boundary`를 기존 Ops dashboard card/list/boundary
+  responsive 패턴에 연결했습니다.
+- `scripts/internal/verify_v380_default_off_action_explanation.mjs`, `server.sh`:
+  `./server.sh verify-v380-default-off-action-explanation` local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: `UI-107`, `SRC-064`, `EVT-086`, `LAB-122`,
+  `SAFE-194`, `OPS-161`과 Step 15 verifier/미실행 경계를 기록했습니다.
+- 검증: 최초 `node scripts/internal/verify_v380_default_off_action_explanation.mjs`는 Default-off
+  Action Explanation model, route, `/ops` shell, CSS, backlog/stream verification/inventory/release
+  records/server dispatch가 아직 없어 `pass=1 fail=8`로 기대 실패했습니다. 최종 검증 결과는
+  `docs/release-test-records.md`의 v380 Step 15 결과 행에 기록합니다.
+
+`./server.sh verify-v380-default-off-action-explanation`은 approval blocker, readiness reason,
+outcome hint를 default-off VLM/runtime explanation으로 요약하는 read model과 `/ops` 렌더링 경계만
+확인합니다. Stabilization and Release Readiness 완료 evidence가 아닙니다. VLM/provider/runtime call,
+raw prompt/provider response/credential/endpoint/locator/debug material inclusion, action execution,
+source recheck execution, source/view/EventRecord/Ops audit/operator review write, client/media/schema
+mutation, UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가
+아닙니다.
 
 ## 최신 published baseline 상세: v3.7.0 Site-Aware Operations and Safe Runbook Control Plane
 

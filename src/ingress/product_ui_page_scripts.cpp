@@ -1626,6 +1626,67 @@ void AppendOpsShellScript(std::ostringstream& out,
         const fieldConnectorEvidence = await requestJson(fieldConnectorEvidenceRoute);
         renderV380FieldConnectorEvidencePackage({ fieldConnectorEvidence, fieldConnectorEvidenceRoute });
       };
+      let v380DefaultOffActionExplanationState = {};
+      const v380DefaultOffActionExplanationList = value => Array.isArray(value) ? value : [];
+      const v380DefaultOffActionExplanationEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-default-off-action-explanation-entry ${escapeHtml(tone)}" data-v380-default-off-action-explanation-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV380DefaultOffActionExplanation = (payload = {}) => {
+        const defaultOffActionExplanation = payload.defaultOffActionExplanation || {};
+        const defaultOffActionExplanations =
+          v380DefaultOffActionExplanationList(defaultOffActionExplanation.defaultOffActionExplanations);
+        const defaultOffActionExplanationSummary =
+          defaultOffActionExplanation.defaultOffActionExplanationSummary || {};
+        const boundaryOk =
+          defaultOffActionExplanation.boundaries?.defaultEnabled === false &&
+          defaultOffActionExplanation.boundaries?.vlmProviderCallPerformed === false &&
+          defaultOffActionExplanation.boundaries?.vlmRuntimeCallPerformed === false &&
+          defaultOffActionExplanation.boundaries?.rawVlmPromptIncluded === false &&
+          defaultOffActionExplanation.boundaries?.rawProviderResponseIncluded === false &&
+          defaultOffActionExplanation.boundaries?.actionExecutionPerformed === false &&
+          defaultOffActionExplanation.boundaries?.sourceRegistryWritePerformed === false &&
+          defaultOffActionExplanation.boundaries?.rtspOrWebrtcMediaPathChanged === false;
+        v380DefaultOffActionExplanationState = {
+          defaultOffActionExplanation,
+          defaultOffActionExplanationRoute: payload.defaultOffActionExplanationRoute || '/ops/api/actions/default-off-explanation'
+        };
+        renderBadges('dashDefaultOffActionExplanationBadges', [
+          { text: `hint ${defaultOffActionExplanations.length}` },
+          { text: `approval ${defaultOffActionExplanationSummary.approvalBlockerCount ?? 0}` },
+          { text: `readiness ${defaultOffActionExplanationSummary.readinessReasonCount ?? 0}` },
+          { text: `outcome ${defaultOffActionExplanationSummary.outcomeHintCount ?? 0}` },
+          { text: `default-off ${defaultOffActionExplanationSummary.defaultOffCount ?? 0}` },
+          { text: boundaryOk ? 'no provider call' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashDefaultOffActionExplanationText',
+          payload.error
+            ? `Default-off Action Explanation 로드 실패: ${payload.error}`
+            : `explanations ${defaultOffActionExplanations.length} · provider opt-in ${defaultOffActionExplanationSummary.providerOptInRequiredCount ?? 0} · runtime opt-in ${defaultOffActionExplanationSummary.runtimeOptInRequiredCount ?? 0} · release-safe ${defaultOffActionExplanationSummary.releaseSafeCount ?? 0}`);
+        const list = document.getElementById('dashDefaultOffActionExplanationList');
+        if (list) {
+          list.innerHTML = defaultOffActionExplanations.length > 0
+            ? defaultOffActionExplanations.slice(0, 8).map(item =>
+                v380DefaultOffActionExplanationEntry(
+                  item.defaultOffActionExplanationId || item.explanationKind || 'defaultOffActionExplanation',
+                  item.explanationKind || 'explanationKind',
+                  `${item.approvalBlockerSummary || 'approvalBlockerSummary'} · ${item.readinessReasonSummary || 'readinessReasonSummary'}`,
+                  `outcome=${display(item.outcomeHint || '-')} · review=${display(item.operatorReviewHint || '-')} · defaultEnabled=${item.defaultEnabled === false ? 'false' : '확인 필요'}`,
+                  item.defaultOff === true ? 'warn' : ''))
+              .join('')
+            : '<div class="empty">Default-off Action Explanation 항목이 아직 없습니다.</div>';
+        }
+        setText('dashDefaultOffActionExplanationBoundary',
+          `explanation=${display(v380DefaultOffActionExplanationState.defaultOffActionExplanationRoute)} · approval=${display(defaultOffActionExplanation.approvalDecisionGateRoute)} · readiness=${display(defaultOffActionExplanation.readinessPreflightRoute)} · outcome=${display(defaultOffActionExplanation.outcomeReconciliationRoute)} · receipt=${display(defaultOffActionExplanation.receiptBundleRoute)} · fieldConnector=${display(defaultOffActionExplanation.fieldConnectorEvidencePackageRoute)} · defaultEnabled=${defaultOffActionExplanation.boundaries?.defaultEnabled === false ? 'false' : '확인 필요'} · vlmProviderCallPerformed=${defaultOffActionExplanation.boundaries?.vlmProviderCallPerformed === false ? 'false' : '확인 필요'} · vlmRuntimeCallPerformed=${defaultOffActionExplanation.boundaries?.vlmRuntimeCallPerformed === false ? 'false' : '확인 필요'} · rawVlmPromptIncluded=${defaultOffActionExplanation.boundaries?.rawVlmPromptIncluded === false ? 'false' : '확인 필요'} · rawProviderResponseIncluded=${defaultOffActionExplanation.boundaries?.rawProviderResponseIncluded === false ? 'false' : '확인 필요'} · actionExecutionPerformed=${defaultOffActionExplanation.boundaries?.actionExecutionPerformed === false ? 'false' : '확인 필요'} · sourceRegistryWritePerformed=${defaultOffActionExplanation.boundaries?.sourceRegistryWritePerformed === false ? 'false' : '확인 필요'} · rtspOrWebrtcMediaPathChanged=${defaultOffActionExplanation.boundaries?.rtspOrWebrtcMediaPathChanged === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV380DefaultOffActionExplanation = async ({
+        defaultOffActionExplanationRoute = '/ops/api/actions/default-off-explanation'
+      } = {}) => {
+        const defaultOffActionExplanation = await requestJson(defaultOffActionExplanationRoute);
+        renderV380DefaultOffActionExplanation({ defaultOffActionExplanation, defaultOffActionExplanationRoute });
+      };
       let v370OutcomeReconciliationState = {};
       const v370OutcomeReconciliationList = value => Array.isArray(value) ? value : [];
       const v370OutcomeReconciliationEntry = (kind, title, detail, meta, tone = '') =>
@@ -3134,6 +3195,9 @@ void AppendOpsShellScript(std::ostringstream& out,
         await refreshV380FieldConnectorEvidencePackage({
           fieldConnectorEvidenceRoute: '/ops/api/actions/field-connector-evidence-package'
         }).catch(error => renderV380FieldConnectorEvidencePackage({ error: error.message }));
+        await refreshV380DefaultOffActionExplanation({
+          defaultOffActionExplanationRoute: '/ops/api/actions/default-off-explanation'
+        }).catch(error => renderV380DefaultOffActionExplanation({ error: error.message }));
         await refreshV370RuleVaWhatIfBySite({
           whatIfRoute: '/ops/api/site-operations/rule-va-what-if-by-site'
         }).catch(error => renderV370RuleVaWhatIfBySite({ error: error.message }));

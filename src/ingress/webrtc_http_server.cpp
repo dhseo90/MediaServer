@@ -3052,6 +3052,22 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           fieldSmokeExecuted=false · endpointProbePerformed=false · credentialProbePerformed=false · providerCallPerformed=false · media mutation=false
         </div>
       </section>
+      <section class="section-card ops-workspace-wide ops-default-off-action-explanation" data-testid="ops-default-off-action-explanation" data-v380-default-off-action-explanation="media-server.ops.v380-default-off-action-explanation.v1">
+        <div class="toolbar">
+          <div>
+            <h3>Default-off Action Explanation</h3>
+            <p>approval blocker, readiness reason, outcome hint를 default-off VLM/runtime 설명 후보로 요약하되 provider/runtime call은 수행하지 않습니다.</p>
+          </div>
+        </div>
+        <div id="dashDefaultOffActionExplanationBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashDefaultOffActionExplanationText">default-off action explanation hints를 불러오는 중입니다.</p>
+        <div id="dashDefaultOffActionExplanationList" class="ops-default-off-action-explanation-list">
+          <div class="empty">default-off explanation 항목을 기다립니다.</div>
+        </div>
+        <div id="dashDefaultOffActionExplanationBoundary" class="ops-default-off-action-explanation-boundary">
+          defaultEnabled=false · vlmProviderCallPerformed=false · vlmRuntimeCallPerformed=false · raw prompt/response=false · action execution=false
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide ops-site-client-notice-workspace" data-testid="ops-site-client-notice-workspace" data-v370-client-notice-by-site-view-group="media-server.ops.v370-client-notice-by-site-view-group.v1">
         <div class="toolbar">
           <div>
@@ -11247,6 +11263,12 @@ std::vector<OpsV380ActionRouteBoundaryItem> BuildV380ActionRouteBoundaryItems() 
          "ops-action-field-connector",
          "implemented-read-only",
          "conditional ONVIF, external WHEP/TURN, and cloud provider evidence package"},
+        {"/ops/api/actions/default-off-explanation",
+         "field-ai",
+         "GET",
+         "ops-action-explanation",
+         "implemented-read-only",
+         "default-off approval, readiness, and outcome explanation hints without provider calls"},
     };
 }
 
@@ -25286,6 +25308,447 @@ std::string OpsV380FieldConnectorEvidencePackageJson(
     return out.str();
 }
 
+struct OpsV380DefaultOffActionExplanationItem {
+    std::string default_off_action_explanation_id;
+    std::string explanation_kind;
+    std::string approval_blocker_summary;
+    std::string readiness_reason_summary;
+    std::string outcome_hint;
+    std::string operator_review_hint;
+    std::string action_request_ref;
+    std::string approval_ref;
+    std::string readiness_ref;
+    std::string outcome_ref;
+    std::string receipt_bundle_ref;
+    std::string field_connector_ref;
+    std::string redacted_explanation;
+    std::vector<std::string> evidence_refs;
+    bool default_enabled{false};
+    bool default_off{true};
+    bool runtime_opt_in_required{true};
+    bool provider_opt_in_required{true};
+    bool release_safe{true};
+    bool read_only{true};
+};
+
+struct OpsV380DefaultOffActionExplanationSummary {
+    int explanation_count{0};
+    int approval_blocker_count{0};
+    int readiness_reason_count{0};
+    int outcome_hint_count{0};
+    int default_off_count{0};
+    int provider_opt_in_required_count{0};
+    int runtime_opt_in_required_count{0};
+    int release_safe_count{0};
+    int evidence_ref_count{0};
+    std::vector<std::string> derivation_sources;
+};
+
+std::vector<OpsV380DefaultOffActionExplanationItem>
+BuildV380DefaultOffActionExplanationItems(
+    const std::vector<OpsV380ApprovalDecisionGateItem>& approvalItems,
+    const std::vector<OpsV380ActionReadinessPreflightItem>& readinessItems,
+    const std::vector<OpsV380OutcomeObserverReconciliationItem>& outcomeItems,
+    const std::vector<OpsV380ActionReceiptBundleItem>& receiptItems,
+    const std::vector<OpsV380FieldConnectorEvidencePackageItem>& fieldConnectorItems) {
+    std::vector<OpsV380DefaultOffActionExplanationItem> items;
+    const auto* approval =
+        approvalItems.empty() ? nullptr : &approvalItems.front();
+    const auto* readiness =
+        readinessItems.empty() ? nullptr : &readinessItems.front();
+    const auto* outcome =
+        outcomeItems.empty() ? nullptr : &outcomeItems.front();
+    const auto* receipt =
+        receiptItems.empty() ? nullptr : &receiptItems.front();
+    const auto* field =
+        fieldConnectorItems.empty() ? nullptr : &fieldConnectorItems.front();
+
+    OpsV380DefaultOffActionExplanationItem approval_item;
+    approval_item.default_off_action_explanation_id =
+        "defaultOffActionExplanation:approval-blocker-explanation";
+    approval_item.explanation_kind = "approval-blocker-explanation";
+    approval_item.approval_blocker_summary =
+        approval == nullptr
+            ? "approval blocker summary: approval decision is required before readiness"
+            : "approval blocker summary: " + approval->decision + " requires " +
+                  approval->required_role + " reason before readiness";
+    approval_item.readiness_reason_summary =
+        "readiness reason summary: approval must be approved and not stale";
+    approval_item.outcome_hint =
+        "outcome hint: no outcome is observed until an approved, explicit action path exists";
+    approval_item.operator_review_hint =
+        "operator review hint: choose approve, hold, reject, or field-needed outside this read model";
+    approval_item.action_request_ref =
+        receipt == nullptr ? "actionRequestRef:v380-actions/{siteId}/{actionKind}/{idempotencyKey}"
+                           : receipt->action_request_ref;
+    approval_item.approval_ref = "/ops/api/actions/approval-decision-gate#provider-opt-in-required";
+    approval_item.readiness_ref = "/ops/api/actions/readiness-preflight#approval";
+    approval_item.outcome_ref =
+        outcome == nullptr ? "/ops/api/actions/outcome-reconciliation#pending"
+                           : "/ops/api/actions/outcome-reconciliation#" + outcome->outcome_observer_id;
+    approval_item.receipt_bundle_ref =
+        receipt == nullptr ? "/ops/api/actions/receipt-bundle#redacted-release-safe"
+                           : "/ops/api/actions/receipt-bundle#" + receipt->receipt_bundle_id;
+    approval_item.field_connector_ref =
+        field == nullptr ? "/ops/api/actions/field-connector-evidence-package#conditional-not-run"
+                         : "/ops/api/actions/field-connector-evidence-package#" +
+                               field->connector_evidence_package_id;
+    approval_item.redacted_explanation =
+        "redactedExplanation: approval blocker text only; no raw prompt, provider response, credential, locator, or debug material";
+    approval_item.evidence_refs = {
+        "BuildV380ApprovalDecisionGateItems",
+        "BuildV380ActionReadinessPreflightItems",
+        "/ops/api/actions/approval-decision-gate",
+        "/ops/api/actions/readiness-preflight",
+        "provider-opt-in-required",
+        "runtime-opt-in-required",
+    };
+    items.push_back(std::move(approval_item));
+
+    const auto readiness_source =
+        readiness == nullptr ? std::string("readiness") : readiness->source;
+    OpsV380DefaultOffActionExplanationItem readiness_item;
+    readiness_item.default_off_action_explanation_id =
+        "defaultOffActionExplanation:readiness-reason-explanation";
+    readiness_item.explanation_kind = "readiness-reason-explanation";
+    readiness_item.approval_blocker_summary =
+        "approval blocker summary: readiness remains not-run until approval and field evidence refs are reviewed";
+    readiness_item.readiness_reason_summary =
+        readiness == nullptr
+            ? "readiness reason summary: blocker and source health reasons are pending"
+            : "readiness reason summary: " + readiness->dimension + " expects " +
+                  readiness->expected_state + " but is guarded by " + readiness->blocker;
+    readiness_item.outcome_hint =
+        "outcome hint: readiness reason explains why source recheck, notice, or rule package stays preview-only";
+    readiness_item.operator_review_hint =
+        "operator review hint: inspect " + readiness_source +
+        " and keep provider/runtime explanation default-off";
+    readiness_item.action_request_ref =
+        receipt == nullptr ? "actionRequestRef:v380-actions/{siteId}/{actionKind}/{idempotencyKey}"
+                           : receipt->action_request_ref;
+    readiness_item.approval_ref = "/ops/api/actions/approval-decision-gate#approval-blocker-explanation";
+    readiness_item.readiness_ref =
+        readiness == nullptr ? "/ops/api/actions/readiness-preflight#provider-opt-in-required"
+                             : "/ops/api/actions/readiness-preflight#" + readiness->dimension;
+    readiness_item.outcome_ref =
+        outcome == nullptr ? "/ops/api/actions/outcome-reconciliation#pending"
+                           : "/ops/api/actions/outcome-reconciliation#" + outcome->outcome_observer_id;
+    readiness_item.receipt_bundle_ref =
+        receipt == nullptr ? "/ops/api/actions/receipt-bundle#redacted-release-safe"
+                           : "/ops/api/actions/receipt-bundle#" + receipt->receipt_bundle_id;
+    readiness_item.field_connector_ref =
+        field == nullptr ? "/ops/api/actions/field-connector-evidence-package#conditional-not-run"
+                         : "/ops/api/actions/field-connector-evidence-package#" +
+                               field->connector_evidence_package_id;
+    readiness_item.redacted_explanation =
+        "redactedExplanation: readiness reason summary only; provider/runtime call remains not-run";
+    readiness_item.evidence_refs = {
+        "BuildV380ActionReadinessPreflightItems",
+        "BuildV380FieldConnectorEvidencePackageItems",
+        "/ops/api/actions/readiness-preflight",
+        "/ops/api/actions/field-connector-evidence-package",
+        "provider-opt-in-required",
+        "runtime-opt-in-required",
+    };
+    items.push_back(std::move(readiness_item));
+
+    OpsV380DefaultOffActionExplanationItem outcome_item;
+    outcome_item.default_off_action_explanation_id =
+        "defaultOffActionExplanation:outcome-hint-explanation";
+    outcome_item.explanation_kind = "outcome-hint-explanation";
+    outcome_item.approval_blocker_summary =
+        "approval blocker summary: outcome hints cannot replace approval or readiness";
+    outcome_item.readiness_reason_summary =
+        "readiness reason summary: outcome hints stay explain-only until an explicit approved pilot exists";
+    outcome_item.outcome_hint =
+        outcome == nullptr
+            ? "outcome hint: pending outcome comparison, no EventRecord or client impact mutation"
+            : "outcome hint: " + outcome->reconciliation_status + " with " +
+                  outcome->observed_outcome_ref + " and " + outcome->source_outcome_diff;
+    outcome_item.operator_review_hint =
+        "operator review hint: compare receipt and outcome refs; keep default-off explanation separate from provider calls";
+    outcome_item.action_request_ref =
+        receipt == nullptr ? "actionRequestRef:v380-actions/{siteId}/{actionKind}/{idempotencyKey}"
+                           : receipt->action_request_ref;
+    outcome_item.approval_ref = "/ops/api/actions/approval-decision-gate#approval-blocker-explanation";
+    outcome_item.readiness_ref = "/ops/api/actions/readiness-preflight#readiness-reason-explanation";
+    outcome_item.outcome_ref =
+        outcome == nullptr ? "/ops/api/actions/outcome-reconciliation#pending"
+                           : "/ops/api/actions/outcome-reconciliation#" + outcome->outcome_observer_id;
+    outcome_item.receipt_bundle_ref =
+        receipt == nullptr ? "/ops/api/actions/receipt-bundle#redacted-release-safe"
+                           : "/ops/api/actions/receipt-bundle#" + receipt->receipt_bundle_id;
+    outcome_item.field_connector_ref =
+        field == nullptr ? "/ops/api/actions/field-connector-evidence-package#conditional-not-run"
+                         : "/ops/api/actions/field-connector-evidence-package#" +
+                               field->connector_evidence_package_id;
+    outcome_item.redacted_explanation =
+        "redactedExplanation: outcome hint only; raw prompt, provider response, credential, endpoint, and debug material omitted";
+    outcome_item.evidence_refs = {
+        "BuildV380OutcomeObserverReconciliationItems",
+        "BuildV380ActionReceiptBundleItems",
+        "BuildV380FieldConnectorEvidencePackageItems",
+        "/ops/api/actions/outcome-reconciliation",
+        "/ops/api/actions/receipt-bundle",
+        "/ops/api/actions/field-connector-evidence-package",
+        "provider-opt-in-required",
+        "runtime-opt-in-required",
+    };
+    items.push_back(std::move(outcome_item));
+
+    return items;
+}
+
+OpsV380DefaultOffActionExplanationSummary
+BuildV380DefaultOffActionExplanationSummary(
+    const std::vector<OpsV380DefaultOffActionExplanationItem>& items) {
+    OpsV380DefaultOffActionExplanationSummary summary;
+    summary.derivation_sources = {
+        "BuildV380ApprovalDecisionGateItems",
+        "BuildV380ActionReadinessPreflightItems",
+        "BuildV380OutcomeObserverReconciliationItems",
+        "BuildV380ActionReceiptBundleItems",
+        "BuildV380FieldConnectorEvidencePackageItems",
+    };
+    summary.explanation_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        if (item.explanation_kind == "approval-blocker-explanation") {
+            ++summary.approval_blocker_count;
+        } else if (item.explanation_kind == "readiness-reason-explanation") {
+            ++summary.readiness_reason_count;
+        } else if (item.explanation_kind == "outcome-hint-explanation") {
+            ++summary.outcome_hint_count;
+        }
+        if (item.default_off && !item.default_enabled) {
+            ++summary.default_off_count;
+        }
+        if (item.provider_opt_in_required) {
+            ++summary.provider_opt_in_required_count;
+        }
+        if (item.runtime_opt_in_required) {
+            ++summary.runtime_opt_in_required_count;
+        }
+        if (item.release_safe) {
+            ++summary.release_safe_count;
+        }
+        summary.evidence_ref_count += static_cast<int>(item.evidence_refs.size());
+    }
+    return summary;
+}
+
+void AppendV380DefaultOffActionExplanationSummaryJson(
+    std::ostringstream& out,
+    const OpsV380DefaultOffActionExplanationSummary& summary) {
+    out << "{"
+        << "\"explanationCount\":" << summary.explanation_count << ","
+        << "\"approvalBlockerCount\":" << summary.approval_blocker_count << ","
+        << "\"readinessReasonCount\":" << summary.readiness_reason_count << ","
+        << "\"outcomeHintCount\":" << summary.outcome_hint_count << ","
+        << "\"defaultOffCount\":" << summary.default_off_count << ","
+        << "\"providerOptInRequiredCount\":"
+        << summary.provider_opt_in_required_count << ","
+        << "\"runtimeOptInRequiredCount\":"
+        << summary.runtime_opt_in_required_count << ","
+        << "\"releaseSafeCount\":" << summary.release_safe_count << ","
+        << "\"evidenceRefCount\":" << summary.evidence_ref_count << ","
+        << "\"derivationSources\":";
+    AppendJsonStringArray(out, summary.derivation_sources);
+    out << "}";
+}
+
+void AppendV380DefaultOffActionExplanationItemJson(
+    std::ostringstream& out,
+    const OpsV380DefaultOffActionExplanationItem& item) {
+    out << "{"
+        << "\"defaultOffActionExplanationId\":\""
+        << JsonEscape(item.default_off_action_explanation_id) << "\","
+        << "\"explanationKind\":\"" << JsonEscape(item.explanation_kind) << "\","
+        << "\"approvalBlockerSummary\":\""
+        << JsonEscape(item.approval_blocker_summary) << "\","
+        << "\"readinessReasonSummary\":\""
+        << JsonEscape(item.readiness_reason_summary) << "\","
+        << "\"outcomeHint\":\"" << JsonEscape(item.outcome_hint) << "\","
+        << "\"operatorReviewHint\":\"" << JsonEscape(item.operator_review_hint) << "\","
+        << "\"actionRequestRef\":\"" << JsonEscape(item.action_request_ref) << "\","
+        << "\"approvalRef\":\"" << JsonEscape(item.approval_ref) << "\","
+        << "\"readinessRef\":\"" << JsonEscape(item.readiness_ref) << "\","
+        << "\"outcomeRef\":\"" << JsonEscape(item.outcome_ref) << "\","
+        << "\"receiptBundleRef\":\"" << JsonEscape(item.receipt_bundle_ref) << "\","
+        << "\"fieldConnectorRef\":\"" << JsonEscape(item.field_connector_ref) << "\","
+        << "\"redactedExplanation\":\"" << JsonEscape(item.redacted_explanation) << "\","
+        << "\"evidenceRefs\":";
+    AppendJsonStringArray(out, item.evidence_refs);
+    out << ",\"defaultEnabled\":" << JsonBool(item.default_enabled)
+        << ",\"defaultOff\":" << JsonBool(item.default_off)
+        << ",\"runtimeOptInRequired\":"
+        << JsonBool(item.runtime_opt_in_required)
+        << ",\"providerOptInRequired\":"
+        << JsonBool(item.provider_opt_in_required)
+        << ",\"releaseSafe\":" << JsonBool(item.release_safe)
+        << ",\"readOnly\":" << JsonBool(item.read_only)
+        << "}";
+}
+
+std::string OpsV380DefaultOffActionExplanationJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v380-default-off-action-explanation.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto dryRunResults = BuildV360CommandPlanDryRunResults(commandPlanCandidates);
+    const auto impactDiffs =
+        BuildV360SourceRuleImpactDiffs(context, commandPlanCandidates, stagedChangePlans);
+    const auto readinessItemsV360 =
+        BuildV360SafeApplyReadinessItems(dryRunResults, impactDiffs);
+    const auto v360InputPackItems =
+        BuildV360SimulationInputPackItems(context, commandPlanCandidates, stagedChangePlans);
+    const auto inputSummary = BuildV360SimulationInputPackSummary(v360InputPackItems);
+    const auto simulationRunContract = BuildV360SimulationRunContract();
+    const auto simulationResultEnvelope = BuildV360SimulationResultEnvelope(inputSummary);
+    const auto simulationRunLedgerEntries =
+        BuildV360SimulationRunLedgerEntries(context,
+                                            v360InputPackItems,
+                                            simulationRunContract,
+                                            simulationResultEnvelope,
+                                            dryRunResults,
+                                            impactDiffs,
+                                            readinessItemsV360);
+    const auto projection =
+        BuildV370SiteAwareSourceRegistryProjectionItems(context.sources, context.views);
+    const auto rollups =
+        BuildV370SiteHealthRollupItems(context.sources, context.views, source_health_snapshot);
+    const auto impactGraphNodes = BuildV370SiteImpactGraphNodes(context, projection, rollups);
+    const auto impactGraphEdges = BuildV370SiteImpactGraphEdges(projection);
+    const auto siteSimulationInputPackItems =
+        BuildV370SiteSimulationInputPackItems(context,
+                                             projection,
+                                             rollups,
+                                             impactGraphNodes,
+                                             impactGraphEdges,
+                                             v360InputPackItems);
+    const auto crossSiteReadinessItems =
+        BuildV370CrossSiteSafeApplyReadinessItems(projection,
+                                                 siteSimulationInputPackItems,
+                                                 readinessItemsV360,
+                                                 impactDiffs);
+    const auto runbookTemplateContractItems =
+        BuildV370RunbookTemplateContractItems(commandPlanCandidates,
+                                             dryRunResults,
+                                             impactDiffs,
+                                             readinessItemsV360,
+                                             projection,
+                                             siteSimulationInputPackItems,
+                                             crossSiteReadinessItems);
+    const auto runbookInstanceLedgerEntries =
+        BuildV370RunbookInstanceLedgerEntries(runbookTemplateContractItems,
+                                             crossSiteReadinessItems,
+                                             simulationRunLedgerEntries);
+    const auto approvalTicketWorkflowItems =
+        BuildV370ApprovalTicketWorkflowItems(runbookTemplateContractItems,
+                                            runbookInstanceLedgerEntries,
+                                            crossSiteReadinessItems);
+    const auto fieldBridgeConditionGates = BuildV340FieldBridgeConditionGates();
+    const auto fieldEvidenceIntakeRecords =
+        BuildV350FieldEvidenceIntakeRecords(fieldBridgeConditionGates);
+    const auto fieldEvidenceExecutionConditions =
+        BuildV350FieldEvidenceExecutionConditions(fieldEvidenceIntakeRecords);
+    const auto fieldAttachments =
+        BuildV370FieldEvidenceAttachmentItems(projection,
+                                             siteSimulationInputPackItems,
+                                             runbookInstanceLedgerEntries,
+                                             approvalTicketWorkflowItems,
+                                             fieldEvidenceIntakeRecords,
+                                             fieldEvidenceExecutionConditions);
+    const auto approvalItems = BuildV380ApprovalDecisionGateItems();
+    const auto readinessItems = BuildV380ActionReadinessPreflightItems();
+    const auto sourceRecheckItems = BuildV380SourceRecheckActionPilotItems();
+    const auto outcomeItems = BuildV380OutcomeObserverReconciliationItems();
+    const auto receiptItems = BuildV380ActionReceiptBundleItems();
+    const auto fieldConnectorItems =
+        BuildV380FieldConnectorEvidencePackageItems(readinessItems,
+                                                   sourceRecheckItems,
+                                                   outcomeItems,
+                                                   receiptItems,
+                                                   fieldAttachments);
+    const auto explanations =
+        BuildV380DefaultOffActionExplanationItems(approvalItems,
+                                                 readinessItems,
+                                                 outcomeItems,
+                                                 receiptItems,
+                                                 fieldConnectorItems);
+    const auto summary =
+        BuildV380DefaultOffActionExplanationSummary(explanations);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v380-default-off-action-explanation.v1\","
+        << "\"status\":\"default-off-action-explanation\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"route\":\"/ops/api/actions/default-off-explanation\","
+        << "\"approvalDecisionGateRoute\":\"/ops/api/actions/approval-decision-gate\","
+        << "\"readinessPreflightRoute\":\"/ops/api/actions/readiness-preflight\","
+        << "\"outcomeReconciliationRoute\":\"/ops/api/actions/outcome-reconciliation\","
+        << "\"receiptBundleRoute\":\"/ops/api/actions/receipt-bundle\","
+        << "\"fieldConnectorEvidencePackageRoute\":\"/ops/api/actions/field-connector-evidence-package\","
+        << "\"defaultOffActionExplanationSummary\":";
+    AppendV380DefaultOffActionExplanationSummaryJson(out, summary);
+    out << ",\"defaultOffActionExplanations\":[";
+    for (std::size_t i = 0; i < explanations.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV380DefaultOffActionExplanationItemJson(out, explanations[i]);
+    }
+    out << "],\"explanationPolicy\":{"
+        << "\"explanationHintOnly\":true,"
+        << "\"defaultOff\":true,"
+        << "\"providerOptInRequired\":true,"
+        << "\"runtimeOptInRequired\":true,"
+        << "\"releaseSafe\":true,"
+        << "\"rawMaterial\":\"redacted\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"defaultOff\":true,"
+        << "\"explanationHintOnly\":true,"
+        << "\"runtimeOptInRequired\":true,"
+        << "\"providerOptInRequired\":true,"
+        << "\"defaultEnabled\":false,"
+        << "\"vlmProviderCallPerformed\":false,"
+        << "\"vlmRuntimeCallPerformed\":false,"
+        << "\"rawVlmPromptIncluded\":false,"
+        << "\"rawProviderResponseIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawEndpointIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"ruleApplyPerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"operatorReviewWritePerformed\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 struct OpsV370ClientNoticeBySiteViewGroupItem {
     std::string notice_preview_id;
     std::string site_id;
@@ -37616,6 +38079,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV380FieldConnectorEvidencePackageJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/actions/default-off-explanation") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV380DefaultOffActionExplanationJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

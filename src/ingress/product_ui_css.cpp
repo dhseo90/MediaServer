@@ -651,6 +651,10 @@ std::string ProductUiCss() {
       display: grid;
       gap: var(--space-3);
     }
+    body.ops-shell .ops-default-off-action-explanation {
+      display: grid;
+      gap: var(--space-3);
+    }
     body.ops-shell .ops-site-client-notice-workspace {
       display: grid;
       gap: var(--space-3);
@@ -1337,7 +1341,8 @@ std::string ProductUiCss() {
     .ops-action-control-list,
     .ops-action-outcome-list,
     .ops-action-receipt-list,
-    .ops-field-connector-list {
+    .ops-field-connector-list,
+    .ops-default-off-action-explanation-list {
       display: grid;
       gap: var(--space-2);
     }
@@ -1371,7 +1376,8 @@ std::string ProductUiCss() {
     .ops-action-control-entry,
     .ops-action-outcome-entry,
     .ops-action-receipt-entry,
-    .ops-field-connector-entry {
+    .ops-field-connector-entry,
+    .ops-default-off-action-explanation-entry {
       min-width: 0;
       margin: 0;
       padding: 11px 12px;
@@ -1450,6 +1456,9 @@ std::string ProductUiCss() {
     .ops-field-connector-entry strong,
     .ops-field-connector-entry span,
     .ops-field-connector-entry small,
+    .ops-default-off-action-explanation-entry strong,
+    .ops-default-off-action-explanation-entry span,
+    .ops-default-off-action-explanation-entry small,
     .ops-command-boundary,
     .ops-simulation-boundary,
     .ops-site-operations-boundary,
@@ -1462,7 +1471,8 @@ std::string ProductUiCss() {
     .ops-action-control-boundary,
     .ops-action-outcome-boundary,
     .ops-action-receipt-boundary,
-    .ops-field-connector-boundary {
+    .ops-field-connector-boundary,
+    .ops-default-off-action-explanation-boundary {
       min-width: 0;
       overflow-wrap: anywhere;
     }
@@ -1488,7 +1498,8 @@ std::string ProductUiCss() {
     .ops-action-control-entry strong,
     .ops-action-outcome-entry strong,
     .ops-action-receipt-entry strong,
-    .ops-field-connector-entry strong {
+    .ops-field-connector-entry strong,
+    .ops-default-off-action-explanation-entry strong {
       font-size: 13px;
       line-height: 1.2;
     }
@@ -1538,6 +1549,8 @@ std::string ProductUiCss() {
     .ops-action-receipt-entry small,
     .ops-field-connector-entry span,
     .ops-field-connector-entry small,
+    .ops-default-off-action-explanation-entry span,
+    .ops-default-off-action-explanation-entry small,
     .ops-command-boundary,
     .ops-simulation-boundary,
     .ops-site-operations-boundary,
@@ -1550,7 +1563,8 @@ std::string ProductUiCss() {
     .ops-action-control-boundary,
     .ops-action-outcome-boundary,
     .ops-action-receipt-boundary,
-    .ops-field-connector-boundary {
+    .ops-field-connector-boundary,
+    .ops-default-off-action-explanation-boundary {
       color: var(--color-muted);
       font-size: 12px;
       line-height: 1.35;
@@ -1571,7 +1585,8 @@ std::string ProductUiCss() {
     .ops-action-control-entry.warn,
     .ops-action-outcome-entry.warn,
     .ops-action-receipt-entry.warn,
-    .ops-field-connector-entry.warn {
+    .ops-field-connector-entry.warn,
+    .ops-default-off-action-explanation-entry.warn {
       border-color: color-mix(in srgb, var(--color-warning) 56%, var(--color-border));
     }
     .ops-command-boundary,
@@ -1586,7 +1601,8 @@ std::string ProductUiCss() {
     .ops-action-control-boundary,
     .ops-action-outcome-boundary,
     .ops-action-receipt-boundary,
-    .ops-field-connector-boundary {
+    .ops-field-connector-boundary,
+    .ops-default-off-action-explanation-boundary {
       padding: 9px 10px;
       border: 1px dashed var(--color-border);
       border-radius: 8px;
