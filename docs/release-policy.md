@@ -6,11 +6,11 @@
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.7.0`
+- 현재 소스 버전: `3.8.0`
 - 최신 공개 GitHub Release: `v3.7.0`
 - `v3.7.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap은 `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`입니다.
+- 현재 source roadmap은 `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`입니다.
 
 ## 기본 공개 범위
 
@@ -55,19 +55,20 @@ main merge를 수행하지 않습니다.
 
 ## Public Docs / Assets Refresh
 
-v3.7.0 Step 1 source baseline alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
-source `3.7.0`, current roadmap `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`,
-latest published `v3.7.0` 기준으로 정렬하는 local gate입니다.
+v3.8.0 Step 1 source baseline alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
+source `3.8.0`, current roadmap `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`,
+latest published `v3.7.0` 기준으로 정렬하는 local gate입니다. 최신 published baseline은
+`v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`입니다.
 대상 문서는 `README.md`, `README.en.md`,
 `docs/README.md`, `docs/en/README.md`, `docs/ui-guide.md`,
 `docs/assets/ui/README.md`, 이 정책 문서, [versioning-policy.md](versioning-policy.md)입니다.
 
 Companion local gate:
 
-전용 companion command는 `./server.sh verify-v370-entry-baseline`입니다.
+전용 companion command는 `./server.sh verify-v380-entry-baseline`입니다.
 
 ```bash
-./server.sh verify-v370-entry-baseline
+./server.sh verify-v380-entry-baseline
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-docs-links
 ./server.sh verify-release-metadata
@@ -221,35 +222,33 @@ published metadata, release branch 삭제, Next branch sync는 각각 실행 evi
 close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 삭제 승인이 없으면
 수행하지 않습니다.
 
-## v3.7.0 Source Roadmap Scope
+## v3.8.0 Source Roadmap Scope
 
-현재 `3.7.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
+현재 `3.8.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
 정리합니다. 각 항목은 구현과 직접 evidence가 생긴 뒤에만 완료로 기록합니다. UI
 풀테스트, 30분, 120분, 외부 endpoint field smoke는 실행한 경우에만 release evidence로
 기록합니다.
 
-- v3.7.0 Step 1 source baseline alignment
-- v3.7.0 Step 2 Site / Source Group Contract
-- v3.7.0 Step 3 Site-Aware Source Registry Projection
-- v3.7.0 Step 4 Site Health Rollup
-- v3.7.0 Step 5 Site Impact Graph
-- v3.7.0 Step 6 Site Simulation Input Pack
-- v3.7.0 Step 7 Cross-Site Safe Apply Readiness
-- v3.7.0 Step 8 Runbook Template Contract
-- v3.7.0 Step 9 Runbook Instance Ledger
-- v3.7.0 Step 10 Approval Ticket Workflow
-- v3.7.0 Step 11 Site Operations Workspace UI
-- v3.7.0 Step 12 Client Notice by Site/View Group
-- v3.7.0 Step 13 Rule/VA What-if by Site
-- v3.7.0 Step 14 Field Evidence Attachment
-- v3.7.0 Step 15 Limited Safe Execution Pilot
-- v3.7.0 Step 16 Outcome Reconciliation
-- v3.7.0 Step 17 Export / Handoff Bundle
-- v3.7.0 Step 18 Stabilization and Release Readiness
+- v3.8.0 Step 1 source baseline alignment
+- v3.8.0 Step 2 Ops Action Route Boundary
+- v3.8.0 Step 3 Action Capability Contract
+- v3.8.0 Step 4 Action Request Ledger Contract
+- v3.8.0 Step 5 Approval Decision Gate
+- v3.8.0 Step 6 Action Readiness Preflight
+- v3.8.0 Step 7 Source Recheck Action Pilot
+- v3.8.0 Step 8 Client Notice Draft Queue
+- v3.8.0 Step 9 Rule Draft Action Package
+- v3.8.0 Step 10 Ops Action Control Workspace UI
+- v3.8.0 Step 11 Client-safe Action Notice Preview
+- v3.8.0 Step 12 Outcome Observer and Reconciliation
+- v3.8.0 Step 13 Action Receipt Bundle
+- v3.8.0 Step 14 Field Connector Evidence Package
+- v3.8.0 Step 15 Default-off Action Explanation
+- v3.8.0 Step 16 Stabilization and Release Readiness
 
-`v3.7.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
+`v3.8.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
 있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.7.0`입니다.
-현재 공개 release tag 기준은 `v3.7.0`입니다. 현재 source tag 기준은 `v3.7.0`입니다.
+현재 공개 release tag 기준은 `v3.7.0`입니다. 현재 source tag 기준은 `v3.8.0`입니다.
 
 ## v3.6.0 Published Source Roadmap Scope
 
@@ -753,24 +752,24 @@ Annotation JSON을 확보한 경우:
 ./server.sh verify-actions-security --annotations-json <annotations.json>
 ```
 
-## v3.7.0 Release Note Template
+## v3.8.0 Release Note Template
 
-아래 템플릿은 v3.7.0 source-only GitHub Release note 기준입니다. 실행하지 않은
+아래 템플릿은 v3.8.0 source-only GitHub Release note 기준입니다. 실행하지 않은
 장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다.
 
 ```markdown
-# Media Server v3.7.0
+# Media Server v3.8.0
 
 ## Scope
 
 - Source-only live media server release
-- Site-Aware Operations and Safe Runbook Control Plane source scope
-- Latest published baseline before this release: v3.6.0
+- Operator-Gated Action Pilot & Outcome Loop source scope
+- Latest published baseline before this release: v3.7.0
 - Binary/runtime/model bundle: not included
 
 ## Verification
 
-- v3.7.0 baseline alignment: <fill after docs/release metadata gates>
+- v3.8.0 baseline alignment: <fill after docs/release metadata gates>
 - Local docs/release metadata: <fill after `verify-release-metadata`,
   `verify-docs-links`, `verify-docs-ui-assets`, and required inventory gates>
 - Build: <fill after `./server.sh build`>

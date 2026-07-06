@@ -40,9 +40,19 @@
 | V250-S08 | `./server.sh verify-v250-redacted-incident-evidence-bundle` | release-safe manifest-only evidence bundle guard |
 | V250-S09 | `./server.sh verify-v250-owner-release-readiness` | owner decomposition/release readiness local gate |
 
-## 현재 v3.7.0 verifier
+## 현재 v3.8.0 verifier
 
-아래 명령은 v3.7.0 Site-Aware Operations and Safe Runbook Control Plane의 현재 source gate입니다.
+아래 명령은 v3.8.0 Operator-Gated Action Pilot & Outcome Loop의 현재 source gate입니다.
+UI 풀테스트, 30분/120분, published metadata, release action, field smoke는 실행 evidence가
+있을 때만 별도로 PASS 근거가 됩니다.
+
+| Step | Command | Scope |
+| --- | --- | --- |
+| v3.8.0 (1) | `./server.sh verify-v380-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | source `3.8.0`, latest published `v3.7.0`, current roadmap `v3.8.0 Operator-Gated Action Pilot & Outcome Loop` 정렬. v3.8 기능 구현, UI 풀테스트, 30분/120분, tag, push, GitHub Release evidence와는 별도 gate입니다 |
+
+## 최신 published baseline v3.7.0 verifier
+
+아래 명령은 v3.7.0 Site-Aware Operations and Safe Runbook Control Plane의 latest published baseline source gate입니다.
 UI 풀테스트, 30분/120분, published metadata, release action, field smoke는 실행 evidence가
 있을 때만 별도로 PASS 근거가 됩니다.
 

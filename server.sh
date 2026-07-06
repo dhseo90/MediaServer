@@ -338,6 +338,8 @@ Usage:
                  v3.5.0 Step 12 VLM-assisted Ops Explanation default-off 경계를 검증합니다.
   verify-v350-stabilization-release-readiness
                  v3.5.0 Step 13 Stabilization and Release Readiness local gate 경계를 검증합니다.
+  verify-v380-entry-baseline
+                 v3.8.0 Step 1 source baseline과 latest published v3.7.0 경계를 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v370-site-source-group-contract
@@ -622,6 +624,8 @@ Usage:
                  v3.5.0 Step 8 Client Impact Forecast viewer-safe 경계를 검증합니다.
   verify-v350-stabilization-release-readiness
                  v3.5.0 Step 13 Stabilization and Release Readiness local gate 경계를 검증합니다.
+  verify-v380-entry-baseline
+                 v3.8.0 Step 1 source baseline과 latest published v3.7.0 경계를 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v370-site-source-group-contract
@@ -1724,6 +1728,10 @@ case "${cmd}" in
   verify-v350-stabilization-release-readiness)
     require_internal verify_v350_stabilization_release_readiness.mjs
     exec "${INTERNAL_DIR}/verify_v350_stabilization_release_readiness.mjs" "$@"
+    ;;
+  verify-v380-entry-baseline)
+    require_internal verify_v380_entry_baseline.mjs
+    exec "${INTERNAL_DIR}/verify_v380_entry_baseline.mjs" "$@"
     ;;
   verify-v370-entry-baseline)
     require_internal verify_v370_entry_baseline.mjs

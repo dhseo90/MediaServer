@@ -9,14 +9,14 @@ points to the current public sources.
 - Latest published GitHub Release: [v3.7.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.7.0)
 - Latest published baseline: `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`
 - Previous published baseline: `v3.6.0 Operations Simulation and Safe Apply Readiness`
-- Current source version: `3.7.0`
+- Current source version: `3.8.0`
 - v3.7.0 public status: source-only GitHub Release. Binary, runtime, and model
   bundles are not included.
-- Current source roadmap: `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`
+- Current source roadmap: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
 - Default public distribution: source-only
 - Public docs/assets baseline: `README.md`, `README.en.md`, `docs/README.md`,
   `docs/en/README.md`, `docs/ui-guide.md`, and `docs/assets/ui/README.md`
-  align the v3.7 source roadmap with the latest published baseline while
+  separate the v3.8 source roadmap from the latest published v3.7 baseline while
   keeping the v3.6 baseline as historical reference. Representative
   screenshots are managed by `config/docs_ui_assets.json` and
   `./server.sh verify-docs-ui-assets`; replacements require a separate direct
@@ -42,8 +42,8 @@ points to the current public sources.
 
 - The main product boundary is live source onboarding, live source health, and
   live VA event quality.
-- The current source tree tracks the `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`
-  roadmap baseline. Feature completion still requires the corresponding v3.7
+- The current source tree tracks the `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
+  roadmap baseline. Feature completion still requires the corresponding v3.8
   code/UI/API/verifier evidence.
 - Binary, runtime, and model bundles are excluded from the default public release.
 - Long-term recording, VMS/NVR, playback/archive search, ONVIF Profile G

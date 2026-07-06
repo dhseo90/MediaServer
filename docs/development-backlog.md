@@ -10,7 +10,7 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.7.0` (v3.8.0 baseline 정렬 전)
+- 현재 소스 버전: `3.8.0`
 - 최신 공개 GitHub Release: `v3.7.0`
 - `v3.7.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
@@ -19,10 +19,10 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 source roadmap: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
 
-상태: v3.8.0 roadmap을 적용했고 Step 1~16 개발은 미착수입니다. 현재 source version은
-아직 `3.7.0`이며, Step 1에서 VERSION/CMake/docs/backlog/source roadmap을 `3.8.0`
-기준으로 정렬합니다. 각 step은 실제 코드/API/UI/문서/검증 산출물이 생긴 뒤에만
-완료로 기록합니다.
+상태: Step 1 source baseline 정렬을 완료했고 Step 2~16 개발은 미착수입니다. 현재 source
+version은 `3.8.0`이며, Step 1에서 VERSION/CMake/docs/backlog/source roadmap과
+`verify-v380-entry-baseline`을 `3.8.0` 기준으로 정렬했습니다. 각 step은 실제
+코드/API/UI/문서/검증 산출물이 생긴 뒤에만 완료로 기록합니다.
 
 직접 답: v3.8.0의 1차 선택값은 `Operator-Gated Action Pilot & Outcome Loop`입니다.
 v3.7이 site/source group/runbook approval을 read-only control plane으로 정리했다면,
@@ -64,7 +64,7 @@ Product UI -> Evidence/Field -> Release 순서로 진행합니다.
 
 | 번호 | 제목 | 우선순위 | 상태 | 완료/잔여 내용 |
 | --- | --- | --- | --- | --- |
-| 1 | v3.8.0 (1) v3.8.0 baseline 정렬 | P0 | 미착수 | VERSION/CMake/docs/backlog/source roadmap과 `verify-v380-entry-baseline` 기준 정렬 필요 |
+| 1 | v3.8.0 (1) v3.8.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/docs/backlog/source roadmap과 `verify-v380-entry-baseline` 기준 정렬 |
 | 2 | v3.8.0 (2) Ops Action Route Boundary | P0 | 미착수 | v3.8 action/runbook route boundary와 helper 배치 필요 |
 | 3 | v3.8.0 (3) Action Capability Contract | P0 | 미착수 | action capability contract, role/scope, idempotency, immutable boundary 정의 필요 |
 | 4 | v3.8.0 (4) Action Request Ledger Contract | P0 | 미착수 | append-only/read-only action request ledger contract 필요 |
@@ -81,9 +81,31 @@ Product UI -> Evidence/Field -> Release 순서로 진행합니다.
 | 15 | v3.8.0 (15) Default-off Action Explanation | P2 | 미착수 | default-off explanation hint와 no-provider-call boundary 필요 |
 | 16 | v3.8.0 (16) Stabilization and Release Readiness | P0 | 미착수 | v3.8 local verifier suite, release records, close-out dry-run 연결 필요 |
 
-완료 경계: 위 표는 v3.8.0 개발 순서와 우선순위입니다. 현재 Step 1~16은 모두 미착수이며,
-이 로드맵 적용 자체는 VERSION/CMake baseline 정렬, 코드/API/UI 구현, 안정화 테스트,
-UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action evidence가 아닙니다.
+완료 경계: Step 1 완료는 source/version/docs/backlog/verification metadata 정렬입니다.
+Step 2~16은 미착수이며, Step 1 PASS 자체는 v3.8 기능 구현, UI 풀테스트, 30분/120분
+장시간 테스트, published metadata, release action evidence가 아닙니다.
+
+## v3.8.0 Step 1 개발 기록
+
+이번 Step 1은 source/version/docs/backlog/verification metadata 정렬입니다.
+
+- `VERSION`: source version을 `3.8.0`으로 정렬했습니다.
+- `CMakeLists.txt`: `project(media_server VERSION 3.8.0 LANGUAGES CXX)`로 정렬했습니다.
+- `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`: 현재 source roadmap을
+  `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`로 표시하고 latest published
+  baseline은 `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`으로 유지했습니다.
+- `docs/versioning-policy.md`, `docs/release-policy.md`, `docs/public-repo-final-review.md`,
+  `docs/ui-guide.md`, `docs/assets/ui/README.md`: source `3.8.0`, current roadmap
+  `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`, latest published `v3.7.0`
+  경계를 분리했습니다.
+- `scripts/internal/verify_v380_entry_baseline.mjs`, `server.sh`: `./server.sh verify-v380-entry-baseline`
+  local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: v3.8 Step 1 테스트 항목, verifier, 미실행 경계를 기록했습니다.
+
+`./server.sh verify-v380-entry-baseline`은 이번 source baseline 정렬만 확인합니다.
+UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
+`v3.8.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
 
 ## 최신 published baseline 상세: v3.7.0 Site-Aware Operations and Safe Runbook Control Plane
 

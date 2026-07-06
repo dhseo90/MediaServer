@@ -232,6 +232,19 @@ for (const [prefix, verifiers] of Object.entries(v370VerifierCoverage)) {
   stabilityVerifierByPrefix[prefix].push(...verifiers);
 }
 
+const v380VerifierCoverage = {
+  SAFE: [
+    "verify-v380-entry-baseline",
+  ],
+  OPS: [
+    "verify-v380-entry-baseline",
+  ],
+};
+
+for (const [prefix, verifiers] of Object.entries(v380VerifierCoverage)) {
+  stabilityVerifierByPrefix[prefix].push(...verifiers);
+}
+
 check("inventory row count is stable", () => {
   const declaredTotal = summaryCount(inventory, "전체 기능 항목");
   assert(rows.length === declaredTotal, `expected ${declaredTotal} feature rows, found ${rows.length}`);
