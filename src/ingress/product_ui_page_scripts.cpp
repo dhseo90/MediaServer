@@ -1551,6 +1551,81 @@ void AppendOpsShellScript(std::ostringstream& out,
         const receiptBundle = await requestJson(receiptBundleRoute);
         renderV380ActionReceiptBundle({ receiptBundle, receiptBundleRoute });
       };
+      let v380FieldConnectorEvidencePackageState = {};
+      const v380FieldConnectorEvidenceList = value => Array.isArray(value) ? value : [];
+      const v380FieldConnectorEvidenceEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-field-connector-entry ${escapeHtml(tone)}" data-v380-field-connector-evidence-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV380FieldConnectorEvidencePackage = (payload = {}) => {
+        const fieldConnectorEvidence = payload.fieldConnectorEvidence || {};
+        const fieldConnectorEvidenceItems =
+          v380FieldConnectorEvidenceList(fieldConnectorEvidence.fieldConnectorEvidenceItems);
+        const fieldConnectorEvidenceSummary =
+          fieldConnectorEvidence.fieldConnectorEvidenceSummary || {};
+        const boundaryOk =
+          fieldConnectorEvidence.boundaries?.fieldSmokeExecuted === false &&
+          fieldConnectorEvidence.boundaries?.endpointProbePerformed === false &&
+          fieldConnectorEvidence.boundaries?.credentialProbePerformed === false &&
+          fieldConnectorEvidence.boundaries?.providerCallPerformed === false &&
+          fieldConnectorEvidence.boundaries?.sourceRegistryWritePerformed === false &&
+          fieldConnectorEvidence.boundaries?.actionExecutionPerformed === false &&
+          fieldConnectorEvidence.boundaries?.rtspOrWebrtcMediaPathChanged === false;
+        v380FieldConnectorEvidencePackageState = {
+          fieldConnectorEvidence,
+          fieldConnectorEvidenceRoute: payload.fieldConnectorEvidenceRoute || '/ops/api/actions/field-connector-evidence-package'
+        };
+        renderBadges('dashFieldConnectorEvidenceBadges', [
+          { text: `package ${fieldConnectorEvidenceItems.length}` },
+          { text: `ONVIF ${fieldConnectorEvidenceSummary.onvifConnectorCount ?? 0}` },
+          { text: `WHEP/TURN ${fieldConnectorEvidenceSummary.externalWhepTurnConnectorCount ?? 0}` },
+          { text: `cloud ${fieldConnectorEvidenceSummary.cloudProviderConnectorCount ?? 0}` },
+          { text: `not-run ${fieldConnectorEvidenceSummary.notRunCount ?? 0}` },
+          { text: boundaryOk ? 'conditional only' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashFieldConnectorEvidenceText',
+          payload.error
+            ? `Field Connector Evidence Package 로드 실패: ${payload.error}`
+            : `connector ${fieldConnectorEvidenceItems.length} · endpoint approval ${fieldConnectorEvidenceSummary.endpointApprovalRequiredCount ?? 0} · credential approval ${fieldConnectorEvidenceSummary.credentialApprovalRequiredCount ?? 0} · release-safe ${fieldConnectorEvidenceSummary.releaseSafeCount ?? 0}`);
+        const evidenceList = document.getElementById('dashFieldConnectorEvidenceList');
+        if (evidenceList) {
+          evidenceList.innerHTML = fieldConnectorEvidenceItems.length > 0
+            ? fieldConnectorEvidenceItems.slice(0, 8).map(item =>
+                v380FieldConnectorEvidenceEntry(
+                  item.connectorEvidencePackageId || item.connectorKind || 'fieldConnectorEvidence',
+                  item.connectorKind || 'connectorKind',
+                  `${item.actionRequestRef || 'actionRequestRef'} · ${item.readinessRef || 'readinessRef'} · ${item.receiptBundleRef || 'receiptBundleRef'}`,
+                  `fieldAttachment=${display(item.fieldAttachmentRef || '-')} · fieldSmoke=${display(item.fieldSmokeStatus || 'field-smoke-not-run')} · state=${display(item.connectorEvidenceState || 'conditional-not-run')}`,
+                  item.connectorEvidenceState === 'conditional-not-run' ? 'warn' : ''))
+              .join('')
+            : '<div class="empty">Field Connector Evidence Package 항목이 아직 없습니다.</div>';
+        }
+        const conditionList = document.getElementById('dashFieldConnectorConditionList');
+        if (conditionList) {
+          conditionList.innerHTML = fieldConnectorEvidenceItems.length > 0
+            ? fieldConnectorEvidenceItems.slice(0, 8).map(item => {
+                const conditionRefs = v380FieldConnectorEvidenceList(item.conditionRefs).slice(0, 4).join(', ') || 'condition refs pending';
+                const evidenceRefs = v380FieldConnectorEvidenceList(item.evidenceRefs).slice(0, 4).join(', ') || 'evidence refs pending';
+                return v380FieldConnectorEvidenceEntry(
+                  item.connectorKind || 'connectorCondition',
+                  `${item.endpointApprovalRef || 'endpointApprovalRef'} / ${item.credentialApprovalRef || 'credentialApprovalRef'}`,
+                  `conditionRefs=${conditionRefs}`,
+                  `evidenceRefs=${evidenceRefs} · outcome=${display(item.outcomeRef || '-')} · redaction=${display(item.redactedConnectorEvidence || 'redactedConnectorEvidence')}`,
+                  item.endpointRequired || item.credentialRequired ? 'warn' : '');
+              }).join('')
+            : '<div class="empty">credential/endpoint approval condition refs가 아직 없습니다.</div>';
+        }
+        setText('dashFieldConnectorBoundary',
+          `package=${display(v380FieldConnectorEvidencePackageState.fieldConnectorEvidenceRoute)} · readiness=${display(fieldConnectorEvidence.readinessPreflightRoute)} · sourceRecheck=${display(fieldConnectorEvidence.sourceRecheckActionPilotRoute)} · receipt=${display(fieldConnectorEvidence.receiptBundleRoute)} · fieldAttachment=${display(fieldConnectorEvidence.fieldEvidenceAttachmentRoute)} · fieldSmokeExecuted=${fieldConnectorEvidence.boundaries?.fieldSmokeExecuted === false ? 'false' : '확인 필요'} · endpointProbePerformed=${fieldConnectorEvidence.boundaries?.endpointProbePerformed === false ? 'false' : '확인 필요'} · credentialProbePerformed=${fieldConnectorEvidence.boundaries?.credentialProbePerformed === false ? 'false' : '확인 필요'} · providerCallPerformed=${fieldConnectorEvidence.boundaries?.providerCallPerformed === false ? 'false' : '확인 필요'} · actionExecutionPerformed=${fieldConnectorEvidence.boundaries?.actionExecutionPerformed === false ? 'false' : '확인 필요'} · sourceRegistryWritePerformed=${fieldConnectorEvidence.boundaries?.sourceRegistryWritePerformed === false ? 'false' : '확인 필요'} · rtspOrWebrtcMediaPathChanged=${fieldConnectorEvidence.boundaries?.rtspOrWebrtcMediaPathChanged === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV380FieldConnectorEvidencePackage = async ({
+        fieldConnectorEvidenceRoute = '/ops/api/actions/field-connector-evidence-package'
+      } = {}) => {
+        const fieldConnectorEvidence = await requestJson(fieldConnectorEvidenceRoute);
+        renderV380FieldConnectorEvidencePackage({ fieldConnectorEvidence, fieldConnectorEvidenceRoute });
+      };
       let v370OutcomeReconciliationState = {};
       const v370OutcomeReconciliationList = value => Array.isArray(value) ? value : [];
       const v370OutcomeReconciliationEntry = (kind, title, detail, meta, tone = '') =>
@@ -3056,6 +3131,9 @@ void AppendOpsShellScript(std::ostringstream& out,
         await refreshV380ActionReceiptBundle({
           receiptBundleRoute: '/ops/api/actions/receipt-bundle'
         }).catch(error => renderV380ActionReceiptBundle({ error: error.message }));
+        await refreshV380FieldConnectorEvidencePackage({
+          fieldConnectorEvidenceRoute: '/ops/api/actions/field-connector-evidence-package'
+        }).catch(error => renderV380FieldConnectorEvidencePackage({ error: error.message }));
         await refreshV370RuleVaWhatIfBySite({
           whatIfRoute: '/ops/api/site-operations/rule-va-what-if-by-site'
         }).catch(error => renderV370RuleVaWhatIfBySite({ error: error.message }));

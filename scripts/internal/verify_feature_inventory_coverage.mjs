@@ -238,6 +238,13 @@ const v380VerifierCoverage = {
     "verify-v380-client-safe-action-notice-preview",
     "verify-v380-outcome-observer-reconciliation",
     "verify-v380-action-receipt-bundle",
+    "verify-v380-field-connector-evidence-package",
+  ],
+  SRC: [
+    "verify-v380-field-connector-evidence-package",
+  ],
+  MEDIA: [
+    "verify-v380-field-connector-evidence-package",
   ],
   EVT: [
     "verify-v380-outcome-observer-reconciliation",
@@ -259,6 +266,7 @@ const v380VerifierCoverage = {
     "verify-v380-rule-draft-action-package",
     "verify-v380-outcome-observer-reconciliation",
     "verify-v380-action-receipt-bundle",
+    "verify-v380-field-connector-evidence-package",
   ],
   SAFE: [
     "verify-v380-entry-baseline",
@@ -274,6 +282,7 @@ const v380VerifierCoverage = {
     "verify-v380-client-safe-action-notice-preview",
     "verify-v380-outcome-observer-reconciliation",
     "verify-v380-action-receipt-bundle",
+    "verify-v380-field-connector-evidence-package",
   ],
   OPS: [
     "verify-v380-entry-baseline",
@@ -289,6 +298,7 @@ const v380VerifierCoverage = {
     "verify-v380-client-safe-action-notice-preview",
     "verify-v380-outcome-observer-reconciliation",
     "verify-v380-action-receipt-bundle",
+    "verify-v380-field-connector-evidence-package",
   ],
 };
 

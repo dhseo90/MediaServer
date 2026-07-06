@@ -489,6 +489,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_v380_client_safe_action_notice_preview.mjs",
     "verify_v380_outcome_observer_reconciliation.mjs",
     "verify_v380_action_receipt_bundle.mjs",
+    "verify_v380_field_connector_evidence_package.mjs",
     "verify_v370_entry_baseline.mjs",
     "verify_v370_site_source_group_contract.mjs",
     "verify_v370_site_aware_source_registry_projection.mjs",

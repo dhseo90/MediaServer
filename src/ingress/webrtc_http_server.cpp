@@ -3025,6 +3025,33 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           bundlePersisted=false · artifactFileWritePerformed=false · handoffWritePerformed=false · rawLocatorIncluded=false · credentialMaterialIncluded=false
         </div>
       </section>
+      <section class="section-card ops-workspace-wide ops-field-connector-evidence-package" data-testid="ops-field-connector-evidence-package" data-v380-field-connector-evidence-package="media-server.ops.v380-field-connector-evidence-package.v1">
+        <div class="toolbar">
+          <div>
+            <h3>Field Connector Evidence Package</h3>
+            <p>ONVIF, external WHEP/TURN, cloud provider evidence 조건을 credential/endpoint 승인 기반 not-run package로 분리합니다.</p>
+          </div>
+        </div>
+        <div id="dashFieldConnectorEvidenceBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashFieldConnectorEvidenceText">field connector evidence package를 불러오는 중입니다.</p>
+        <div class="grid ops-field-connector-grid">
+          <div>
+            <h4>Connector Evidence</h4>
+            <div id="dashFieldConnectorEvidenceList" class="ops-field-connector-list">
+              <div class="empty">connector evidence package 항목을 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Approval Conditions</h4>
+            <div id="dashFieldConnectorConditionList" class="ops-field-connector-list">
+              <div class="empty">credential/endpoint approval condition refs를 기다립니다.</div>
+            </div>
+          </div>
+        </div>
+        <div id="dashFieldConnectorBoundary" class="ops-field-connector-boundary">
+          fieldSmokeExecuted=false · endpointProbePerformed=false · credentialProbePerformed=false · providerCallPerformed=false · media mutation=false
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide ops-site-client-notice-workspace" data-testid="ops-site-client-notice-workspace" data-v370-client-notice-by-site-view-group="media-server.ops.v370-client-notice-by-site-view-group.v1">
         <div class="toolbar">
           <div>
@@ -11214,6 +11241,12 @@ std::vector<OpsV380ActionRouteBoundaryItem> BuildV380ActionRouteBoundaryItems() 
          "ops-action-receipt",
          "implemented-read-only",
          "redacted approval/request/readiness/outcome receipt bundle"},
+        {"/ops/api/actions/field-connector-evidence-package",
+         "field-ai",
+         "GET",
+         "ops-action-field-connector",
+         "implemented-read-only",
+         "conditional ONVIF, external WHEP/TURN, and cloud provider evidence package"},
     };
 }
 
@@ -24854,6 +24887,405 @@ std::string OpsV370FieldEvidenceAttachmentJson(
     return out.str();
 }
 
+struct OpsV380FieldConnectorEvidencePackageItem {
+    std::string connector_evidence_package_id;
+    std::string connector_kind;
+    std::string action_request_ref;
+    std::string readiness_ref;
+    std::string source_recheck_ref;
+    std::string outcome_ref;
+    std::string receipt_bundle_ref;
+    std::string field_attachment_ref;
+    std::string endpoint_approval_ref;
+    std::string credential_approval_ref;
+    std::string connector_evidence_state{"conditional-not-run"};
+    std::string field_smoke_status{"field-smoke-not-run"};
+    std::string redacted_connector_evidence;
+    std::vector<std::string> condition_refs;
+    std::vector<std::string> evidence_refs;
+    bool endpoint_required{true};
+    bool credential_required{true};
+    bool operator_approval_required{true};
+    bool release_safe{true};
+    bool read_only{true};
+};
+
+struct OpsV380FieldConnectorEvidencePackageSummary {
+    int connector_package_count{0};
+    int onvif_connector_count{0};
+    int external_whep_turn_connector_count{0};
+    int cloud_provider_connector_count{0};
+    int endpoint_approval_required_count{0};
+    int credential_approval_required_count{0};
+    int operator_approval_required_count{0};
+    int not_run_count{0};
+    int release_safe_count{0};
+    int condition_ref_count{0};
+    std::vector<std::string> derivation_sources;
+};
+
+std::string V380FieldConnectorKindForBridge(const std::string& bridge_kind) {
+    if (bridge_kind == "onvif-real-device") {
+        return "onvif-connector-evidence";
+    }
+    if (bridge_kind == "external-whep-turn") {
+        return "external-whep-turn-connector-evidence";
+    }
+    if (bridge_kind == "real-cloud-vlm-provider") {
+        return "cloud-provider-connector-evidence";
+    }
+    return "field-connector-evidence";
+}
+
+std::vector<OpsV380FieldConnectorEvidencePackageItem>
+BuildV380FieldConnectorEvidencePackageItems(
+    const std::vector<OpsV380ActionReadinessPreflightItem>& readinessItems,
+    const std::vector<OpsV380SourceRecheckActionPilotItem>& sourceRecheckItems,
+    const std::vector<OpsV380OutcomeObserverReconciliationItem>& outcomeItems,
+    const std::vector<OpsV380ActionReceiptBundleItem>& receiptItems,
+    const std::vector<OpsV370FieldEvidenceAttachmentItem>& fieldAttachments) {
+    std::vector<OpsV380FieldConnectorEvidencePackageItem> items;
+    const std::size_t item_count =
+        std::max<std::size_t>(1U,
+                              std::max({fieldAttachments.size(),
+                                        readinessItems.size(),
+                                        sourceRecheckItems.size(),
+                                        receiptItems.size()}));
+
+    for (std::size_t index = 0; index < item_count && index < 8U; ++index) {
+        const auto& readiness =
+            readinessItems.empty() ? OpsV380ActionReadinessPreflightItem{}
+                                   : readinessItems[index % readinessItems.size()];
+        const auto& source =
+            sourceRecheckItems.empty() ? OpsV380SourceRecheckActionPilotItem{}
+                                       : sourceRecheckItems[index % sourceRecheckItems.size()];
+        const auto& outcome =
+            outcomeItems.empty() ? OpsV380OutcomeObserverReconciliationItem{}
+                                 : outcomeItems[index % outcomeItems.size()];
+        const auto& receipt =
+            receiptItems.empty() ? OpsV380ActionReceiptBundleItem{}
+                                 : receiptItems[index % receiptItems.size()];
+        const auto& attachment =
+            fieldAttachments.empty() ? OpsV370FieldEvidenceAttachmentItem{}
+                                     : fieldAttachments[index % fieldAttachments.size()];
+
+        OpsV380FieldConnectorEvidencePackageItem item;
+        item.connector_kind = V380FieldConnectorKindForBridge(attachment.bridge_kind);
+        item.connector_evidence_package_id =
+            "fieldConnectorEvidencePackage:" + item.connector_kind + ":" +
+            std::to_string(index + 1);
+        item.action_request_ref =
+            receipt.action_request_ref.empty()
+                ? "actionRequestRef:v380-actions/{siteId}/{actionKind}/{idempotencyKey}"
+                : receipt.action_request_ref;
+        item.readiness_ref =
+            readiness.dimension.empty()
+                ? "/ops/api/actions/readiness-preflight#fieldEvidence"
+                : "/ops/api/actions/readiness-preflight#" + readiness.dimension;
+        item.source_recheck_ref =
+            source.field.empty()
+                ? "/ops/api/actions/source-recheck-pilot#sourceHealthRecheck"
+                : "/ops/api/actions/source-recheck-pilot#" + source.field;
+        item.outcome_ref =
+            outcome.outcome_observer_id.empty()
+                ? "/ops/api/actions/outcome-reconciliation#pending"
+                : "/ops/api/actions/outcome-reconciliation#" + outcome.outcome_observer_id;
+        item.receipt_bundle_ref =
+            receipt.receipt_bundle_id.empty()
+                ? "/ops/api/actions/receipt-bundle#redacted-release-safe"
+                : "/ops/api/actions/receipt-bundle#" + receipt.receipt_bundle_id;
+        item.field_attachment_ref =
+            attachment.field_evidence_attachment_id.empty()
+                ? "/ops/api/site-operations/field-evidence-attachment#conditional-not-run"
+                : "/ops/api/site-operations/field-evidence-attachment#" +
+                      attachment.field_evidence_attachment_id;
+        item.endpoint_approval_ref =
+            "endpoint-approval-required:" + item.connector_kind;
+        item.credential_approval_ref =
+            "credential-approval-required:" + item.connector_kind;
+        item.connector_evidence_state = "conditional-not-run";
+        item.field_smoke_status =
+            attachment.field_smoke_status.empty() ? "field-smoke-not-run"
+                                                  : attachment.field_smoke_status;
+        item.redacted_connector_evidence =
+            attachment.redacted_field_evidence.empty()
+                ? "redactedConnectorEvidence: endpoint, locator, credential, provider, and debug material omitted"
+                : "redactedConnectorEvidence: " + attachment.redacted_field_evidence;
+        item.condition_refs = attachment.condition_refs;
+        item.condition_refs.push_back("credential-approval-required");
+        item.condition_refs.push_back("endpoint-approval-required");
+        item.condition_refs.push_back(item.field_smoke_status);
+        item.evidence_refs = attachment.evidence_refs;
+        item.evidence_refs.push_back("/ops/api/actions/readiness-preflight");
+        item.evidence_refs.push_back("/ops/api/actions/source-recheck-pilot");
+        item.evidence_refs.push_back("/ops/api/actions/outcome-reconciliation");
+        item.evidence_refs.push_back("/ops/api/actions/receipt-bundle");
+        item.evidence_refs.push_back("/ops/api/site-operations/field-evidence-attachment");
+        item.evidence_refs.push_back("onvif-connector-evidence");
+        item.evidence_refs.push_back("external-whep-turn-connector-evidence");
+        item.evidence_refs.push_back("cloud-provider-connector-evidence");
+        item.endpoint_required = attachment.endpoint_required;
+        item.credential_required = attachment.credential_required;
+        item.operator_approval_required = attachment.operator_approval_required;
+        items.push_back(std::move(item));
+    }
+    return items;
+}
+
+OpsV380FieldConnectorEvidencePackageSummary
+BuildV380FieldConnectorEvidencePackageSummary(
+    const std::vector<OpsV380FieldConnectorEvidencePackageItem>& items) {
+    OpsV380FieldConnectorEvidencePackageSummary summary;
+    summary.derivation_sources = {
+        "BuildV380ActionReadinessPreflightItems",
+        "BuildV380SourceRecheckActionPilotItems",
+        "BuildV380OutcomeObserverReconciliationItems",
+        "BuildV380ActionReceiptBundleItems",
+        "BuildV370FieldEvidenceAttachmentItems",
+    };
+    summary.connector_package_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        if (item.connector_kind == "onvif-connector-evidence") {
+            ++summary.onvif_connector_count;
+        } else if (item.connector_kind == "external-whep-turn-connector-evidence") {
+            ++summary.external_whep_turn_connector_count;
+        } else if (item.connector_kind == "cloud-provider-connector-evidence") {
+            ++summary.cloud_provider_connector_count;
+        }
+        if (item.endpoint_required) {
+            ++summary.endpoint_approval_required_count;
+        }
+        if (item.credential_required) {
+            ++summary.credential_approval_required_count;
+        }
+        if (item.operator_approval_required) {
+            ++summary.operator_approval_required_count;
+        }
+        if (item.connector_evidence_state == "conditional-not-run" ||
+            item.field_smoke_status == "field-smoke-not-run") {
+            ++summary.not_run_count;
+        }
+        if (item.release_safe) {
+            ++summary.release_safe_count;
+        }
+        summary.condition_ref_count += static_cast<int>(item.condition_refs.size());
+    }
+    return summary;
+}
+
+void AppendV380FieldConnectorEvidencePackageSummaryJson(
+    std::ostringstream& out,
+    const OpsV380FieldConnectorEvidencePackageSummary& summary) {
+    out << "{"
+        << "\"connectorPackageCount\":" << summary.connector_package_count << ","
+        << "\"onvifConnectorCount\":" << summary.onvif_connector_count << ","
+        << "\"externalWhepTurnConnectorCount\":"
+        << summary.external_whep_turn_connector_count << ","
+        << "\"cloudProviderConnectorCount\":"
+        << summary.cloud_provider_connector_count << ","
+        << "\"endpointApprovalRequiredCount\":"
+        << summary.endpoint_approval_required_count << ","
+        << "\"credentialApprovalRequiredCount\":"
+        << summary.credential_approval_required_count << ","
+        << "\"operatorApprovalRequiredCount\":"
+        << summary.operator_approval_required_count << ","
+        << "\"notRunCount\":" << summary.not_run_count << ","
+        << "\"releaseSafeCount\":" << summary.release_safe_count << ","
+        << "\"conditionRefCount\":" << summary.condition_ref_count << ","
+        << "\"derivationSources\":";
+    AppendJsonStringArray(out, summary.derivation_sources);
+    out << "}";
+}
+
+void AppendV380FieldConnectorEvidencePackageItemJson(
+    std::ostringstream& out,
+    const OpsV380FieldConnectorEvidencePackageItem& item) {
+    out << "{"
+        << "\"connectorEvidencePackageId\":\""
+        << JsonEscape(item.connector_evidence_package_id) << "\","
+        << "\"connectorKind\":\"" << JsonEscape(item.connector_kind) << "\","
+        << "\"actionRequestRef\":\"" << JsonEscape(item.action_request_ref) << "\","
+        << "\"readinessRef\":\"" << JsonEscape(item.readiness_ref) << "\","
+        << "\"sourceRecheckRef\":\"" << JsonEscape(item.source_recheck_ref) << "\","
+        << "\"outcomeRef\":\"" << JsonEscape(item.outcome_ref) << "\","
+        << "\"receiptBundleRef\":\"" << JsonEscape(item.receipt_bundle_ref) << "\","
+        << "\"fieldAttachmentRef\":\"" << JsonEscape(item.field_attachment_ref) << "\","
+        << "\"endpointApprovalRef\":\"" << JsonEscape(item.endpoint_approval_ref) << "\","
+        << "\"credentialApprovalRef\":\"" << JsonEscape(item.credential_approval_ref) << "\","
+        << "\"operatorApprovalRequired\":"
+        << JsonBool(item.operator_approval_required) << ","
+        << "\"connectorEvidenceState\":\""
+        << JsonEscape(item.connector_evidence_state) << "\","
+        << "\"fieldSmokeStatus\":\"" << JsonEscape(item.field_smoke_status) << "\","
+        << "\"redactedConnectorEvidence\":\""
+        << JsonEscape(item.redacted_connector_evidence) << "\","
+        << "\"conditionRefs\":";
+    AppendJsonStringArray(out, item.condition_refs);
+    out << ",\"evidenceRefs\":";
+    AppendJsonStringArray(out, item.evidence_refs);
+    out << ",\"endpointRequired\":" << JsonBool(item.endpoint_required)
+        << ",\"credentialRequired\":" << JsonBool(item.credential_required)
+        << ",\"releaseSafe\":" << JsonBool(item.release_safe)
+        << ",\"readOnly\":" << JsonBool(item.read_only)
+        << "}";
+}
+
+std::string OpsV380FieldConnectorEvidencePackageJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v380-field-connector-evidence-package.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto dryRunResults = BuildV360CommandPlanDryRunResults(commandPlanCandidates);
+    const auto impactDiffs =
+        BuildV360SourceRuleImpactDiffs(context, commandPlanCandidates, stagedChangePlans);
+    const auto readinessItemsV360 =
+        BuildV360SafeApplyReadinessItems(dryRunResults, impactDiffs);
+    const auto v360InputPackItems =
+        BuildV360SimulationInputPackItems(context, commandPlanCandidates, stagedChangePlans);
+    const auto inputSummary = BuildV360SimulationInputPackSummary(v360InputPackItems);
+    const auto simulationRunContract = BuildV360SimulationRunContract();
+    const auto simulationResultEnvelope = BuildV360SimulationResultEnvelope(inputSummary);
+    const auto simulationRunLedgerEntries =
+        BuildV360SimulationRunLedgerEntries(context,
+                                            v360InputPackItems,
+                                            simulationRunContract,
+                                            simulationResultEnvelope,
+                                            dryRunResults,
+                                            impactDiffs,
+                                            readinessItemsV360);
+    const auto projection =
+        BuildV370SiteAwareSourceRegistryProjectionItems(context.sources, context.views);
+    const auto rollups =
+        BuildV370SiteHealthRollupItems(context.sources, context.views, source_health_snapshot);
+    const auto impactGraphNodes = BuildV370SiteImpactGraphNodes(context, projection, rollups);
+    const auto impactGraphEdges = BuildV370SiteImpactGraphEdges(projection);
+    const auto siteSimulationInputPackItems =
+        BuildV370SiteSimulationInputPackItems(context,
+                                             projection,
+                                             rollups,
+                                             impactGraphNodes,
+                                             impactGraphEdges,
+                                             v360InputPackItems);
+    const auto crossSiteReadinessItems =
+        BuildV370CrossSiteSafeApplyReadinessItems(projection,
+                                                 siteSimulationInputPackItems,
+                                                 readinessItemsV360,
+                                                 impactDiffs);
+    const auto runbookTemplateContractItems =
+        BuildV370RunbookTemplateContractItems(commandPlanCandidates,
+                                             dryRunResults,
+                                             impactDiffs,
+                                             readinessItemsV360,
+                                             projection,
+                                             siteSimulationInputPackItems,
+                                             crossSiteReadinessItems);
+    const auto runbookInstanceLedgerEntries =
+        BuildV370RunbookInstanceLedgerEntries(runbookTemplateContractItems,
+                                             crossSiteReadinessItems,
+                                             simulationRunLedgerEntries);
+    const auto approvalTicketWorkflowItems =
+        BuildV370ApprovalTicketWorkflowItems(runbookTemplateContractItems,
+                                            runbookInstanceLedgerEntries,
+                                            crossSiteReadinessItems);
+    const auto fieldBridgeConditionGates = BuildV340FieldBridgeConditionGates();
+    const auto fieldEvidenceIntakeRecords =
+        BuildV350FieldEvidenceIntakeRecords(fieldBridgeConditionGates);
+    const auto fieldEvidenceExecutionConditions =
+        BuildV350FieldEvidenceExecutionConditions(fieldEvidenceIntakeRecords);
+    const auto fieldAttachments =
+        BuildV370FieldEvidenceAttachmentItems(projection,
+                                             siteSimulationInputPackItems,
+                                             runbookInstanceLedgerEntries,
+                                             approvalTicketWorkflowItems,
+                                             fieldEvidenceIntakeRecords,
+                                             fieldEvidenceExecutionConditions);
+    const auto readinessItems = BuildV380ActionReadinessPreflightItems();
+    const auto sourceRecheckItems = BuildV380SourceRecheckActionPilotItems();
+    const auto outcomeItems = BuildV380OutcomeObserverReconciliationItems();
+    const auto receiptItems = BuildV380ActionReceiptBundleItems();
+    const auto packageItems =
+        BuildV380FieldConnectorEvidencePackageItems(readinessItems,
+                                                   sourceRecheckItems,
+                                                   outcomeItems,
+                                                   receiptItems,
+                                                   fieldAttachments);
+    const auto summary =
+        BuildV380FieldConnectorEvidencePackageSummary(packageItems);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v380-field-connector-evidence-package.v1\","
+        << "\"status\":\"field-connector-evidence-package\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"route\":\"/ops/api/actions/field-connector-evidence-package\","
+        << "\"readinessPreflightRoute\":\"/ops/api/actions/readiness-preflight\","
+        << "\"sourceRecheckActionPilotRoute\":\"/ops/api/actions/source-recheck-pilot\","
+        << "\"outcomeReconciliationRoute\":\"/ops/api/actions/outcome-reconciliation\","
+        << "\"receiptBundleRoute\":\"/ops/api/actions/receipt-bundle\","
+        << "\"fieldEvidenceAttachmentRoute\":\"/ops/api/site-operations/field-evidence-attachment\","
+        << "\"fieldConnectorEvidenceSummary\":";
+    AppendV380FieldConnectorEvidencePackageSummaryJson(out, summary);
+    out << ",\"fieldConnectorEvidenceItems\":[";
+    for (std::size_t i = 0; i < packageItems.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV380FieldConnectorEvidencePackageItemJson(out, packageItems[i]);
+    }
+    out << "],\"connectorEvidencePolicy\":{"
+        << "\"connectorEvidencePackageOnly\":true,"
+        << "\"conditionalNotRunOnly\":true,"
+        << "\"releaseSafe\":true,"
+        << "\"onvif\":\"credential-approval-required; endpoint-approval-required; field-smoke-not-run\","
+        << "\"externalWhepTurn\":\"credential-approval-required; endpoint-approval-required; field-smoke-not-run\","
+        << "\"cloudProvider\":\"credential-approval-required; endpoint-approval-required; field-smoke-not-run\","
+        << "\"rawMaterial\":\"redacted\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"connectorEvidencePackageOnly\":true,"
+        << "\"conditionalNotRunOnly\":true,"
+        << "\"releaseSafe\":true,"
+        << "\"fieldSmokeExecuted\":false,"
+        << "\"endpointProbePerformed\":false,"
+        << "\"credentialProbePerformed\":false,"
+        << "\"providerCallPerformed\":false,"
+        << "\"onvifDeviceContacted\":false,"
+        << "\"externalWhepContacted\":false,"
+        << "\"externalTurnCredentialUsed\":false,"
+        << "\"cloudProviderCalled\":false,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"ruleApplyPerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"rawEndpointIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 struct OpsV370ClientNoticeBySiteViewGroupItem {
     std::string notice_preview_id;
     std::string site_id;
@@ -37164,6 +37596,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV380ActionReceiptBundleJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/actions/field-connector-evidence-package") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV380FieldConnectorEvidencePackageJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

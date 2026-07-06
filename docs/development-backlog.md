@@ -24,9 +24,9 @@ Capability Contract, Step 4 Action Request Ledger Contract, Step 5 Approval Deci
 Step 6 Action Readiness Preflight, Step 7 Source Recheck Action Pilot, Step 8
 Client Notice Draft Queue, Step 9 Rule Draft Action Package, Step 10 Ops Action
 Control Workspace UI, Step 11 Client-safe Action Notice Preview, Step 12 Outcome Observer and
-Reconciliation, Step 13 Action Receipt Bundle을 완료했고 Step 14~16
+Reconciliation, Step 13 Action Receipt Bundle, Step 14 Field Connector Evidence Package를 완료했고 Step 15~16
 개발은 미착수입니다. 현재 source version은 `3.8.0`이며,
-VERSION/CMake/docs/backlog/source roadmap과 v3.8 Step 1~13 local gate를
+VERSION/CMake/docs/backlog/source roadmap과 v3.8 Step 1~14 local gate를
 `3.8.0` 기준으로 정렬했습니다. 각 step은 실제
 코드/API/UI/문서/검증 산출물이 생긴 뒤에만 완료로 기록합니다.
 
@@ -83,7 +83,7 @@ Product UI -> Evidence/Field -> Release 순서로 진행합니다.
 | 11 | v3.8.0 (11) Client-safe Action Notice Preview | P1 | 완료 | `/client/api/views/{id}/events`와 client dashboard/events/live dock에 maintenance/degraded/recovering/available action notice preview만 viewer-safe로 표시 |
 | 12 | v3.8.0 (12) Outcome Observer and Reconciliation | P1 | 완료 | `/ops/api/actions/outcome-reconciliation`과 `/ops` outcome observer UI가 readiness/candidate/observed outcome diff를 source/EventRecord/client/rule 축으로 비교 |
 | 13 | v3.8.0 (13) Action Receipt Bundle | P1 | 완료 | `/ops/api/actions/receipt-bundle`과 `/ops` Action Receipt Bundle UI가 approval/request/readiness/candidate/outcome diff를 redacted release-safe receipt bundle과 handoff map으로 조합 |
-| 14 | v3.8.0 (14) Field Connector Evidence Package | P2 | 미착수 | field connector evidence 조건부 attachment 필요 |
+| 14 | v3.8.0 (14) Field Connector Evidence Package | P2 | 완료 | `/ops/api/actions/field-connector-evidence-package`와 `/ops` Field Connector Evidence Package UI가 ONVIF/external WHEP-TURN/cloud provider 조건을 credential/endpoint approval 기반 conditional/not-run package로 분리 |
 | 15 | v3.8.0 (15) Default-off Action Explanation | P2 | 미착수 | default-off explanation hint와 no-provider-call boundary 필요 |
 | 16 | v3.8.0 (16) Stabilization and Release Readiness | P0 | 미착수 | v3.8 local verifier suite, release records, close-out dry-run 연결 필요 |
 
@@ -100,7 +100,8 @@ Step 10 완료는 `/ops` action control workspace UI입니다.
 Step 11 완료는 client-safe action notice preview입니다.
 Step 12 완료는 outcome observer and reconciliation read model입니다.
 Step 13 완료는 action receipt bundle read model입니다.
-Step 14~16은 미착수이며, Step 1~13 PASS 자체는 v3.8 action execution, UI 풀테스트, 30분/120분
+Step 14 완료는 field connector evidence package read model입니다.
+Step 15~16은 미착수이며, Step 1~14 PASS 자체는 v3.8 action execution, UI 풀테스트, 30분/120분
 장시간 테스트, published metadata, release action evidence가 아닙니다.
 
 ## v3.8.0 Step 1 개발 기록
@@ -480,6 +481,51 @@ Stabilization and Release Readiness 완료 evidence도 아닙니다. Artifact/fi
 action execution, source recheck execution, client notice send/queue write, rule apply/registry
 write, EventRecord/source/view/Ops audit/action result write, client/media/schema mutation,
 raw locator/credential/raw diagnostic inclusion, UI 풀테스트, 30분/120분 장시간 테스트,
+published metadata, release action 완료 evidence가 아닙니다.
+
+## v3.8.0 Step 14 개발 기록
+
+이번 Step 14는 P2 `v3.8.0 (14) Field Connector Evidence Package`입니다.
+
+- `src/ingress/webrtc_http_server.cpp`: `OpsV380FieldConnectorEvidencePackageItem`,
+  `OpsV380FieldConnectorEvidencePackageSummary`,
+  `BuildV380FieldConnectorEvidencePackageItems`,
+  `BuildV380FieldConnectorEvidencePackageSummary`,
+  `AppendV380FieldConnectorEvidencePackageItemJson`,
+  `AppendV380FieldConnectorEvidencePackageSummaryJson`,
+  `OpsV380FieldConnectorEvidencePackageJson`을 추가했습니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/actions/field-connector-evidence-package` GET
+  route를 `require_ops_principal()`, `Cache-Control: no-store`로 연결하고 v3.7 field attachment와
+  v3.8 readiness/source recheck/outcome/receipt refs를 ONVIF, external WHEP/TURN, cloud provider
+  connector evidence package로 조합했습니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops` dashboard에
+  `ops-field-connector-evidence-package` section, `dashFieldConnectorEvidenceBadges`,
+  `dashFieldConnectorEvidenceText`, `dashFieldConnectorEvidenceList`,
+  `dashFieldConnectorConditionList`, `dashFieldConnectorBoundary` UI control을 추가했습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV380FieldConnectorEvidencePackage`와
+  `refreshV380FieldConnectorEvidencePackage`를 추가해 `/ops/api/actions/field-connector-evidence-package`의
+  `fieldConnectorEvidenceItems`, `fieldConnectorEvidenceSummary`, `connectorKind`,
+  `endpointApprovalRef`, `credentialApprovalRef`, `fieldSmokeStatus`, `conditionRefs` 경계를 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `.ops-field-connector-evidence-package`,
+  `.ops-field-connector-grid`, `.ops-field-connector-list`, `.ops-field-connector-entry`,
+  `.ops-field-connector-boundary`를 기존 Ops dashboard card/list/boundary responsive 패턴에 연결했습니다.
+- `scripts/internal/verify_v380_field_connector_evidence_package.mjs`, `server.sh`:
+  `./server.sh verify-v380-field-connector-evidence-package` local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: `UI-106`, `SRC-063`, `MEDIA-026`, `LAB-121`,
+  `SAFE-193`, `OPS-160`과 Step 14 verifier/미실행 경계를 기록했습니다.
+- 검증: 최초 `node scripts/internal/verify_v380_field_connector_evidence_package.mjs`는 Field Connector
+  Evidence Package model, route, `/ops` shell, CSS, backlog/stream verification/inventory/release records/server
+  dispatch가 아직 없어 `pass=1 fail=8`로 기대 실패했습니다. 최종 검증 결과는
+  `docs/release-test-records.md`의 v380 Step 14 결과 행에 기록합니다.
+
+`./server.sh verify-v380-field-connector-evidence-package`는 ONVIF, external WHEP/TURN,
+cloud provider 조건을 credential/endpoint approval 기반 conditional/not-run package로 표시하는
+read model과 `/ops` 렌더링 경계만 확인합니다. Default-off Action Explanation 완료 evidence가 아닙니다.
+Stabilization and Release Readiness 완료 evidence도 아닙니다. Field smoke, endpoint/credential probe,
+provider/cloud call, ONVIF 실기기 contact, external WHEP contact, TURN credential use, action execution,
+source recheck execution, source/view/EventRecord/Ops audit write, client/media/schema mutation,
+raw endpoint/locator/credential/provider/debug material inclusion, UI 풀테스트, 30분/120분 장시간 테스트,
 published metadata, release action 완료 evidence가 아닙니다.
 
 ## 최신 published baseline 상세: v3.7.0 Site-Aware Operations and Safe Runbook Control Plane

@@ -364,6 +364,8 @@ Usage:
                  v3.8.0 Step 12 Outcome Observer and Reconciliation을 검증합니다.
   verify-v380-action-receipt-bundle
                  v3.8.0 Step 13 Action Receipt Bundle을 검증합니다.
+  verify-v380-field-connector-evidence-package
+                 v3.8.0 Step 14 Field Connector Evidence Package를 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v370-site-source-group-contract
@@ -674,6 +676,8 @@ Usage:
                  v3.8.0 Step 12 Outcome Observer and Reconciliation을 검증합니다.
   verify-v380-action-receipt-bundle
                  v3.8.0 Step 13 Action Receipt Bundle을 검증합니다.
+  verify-v380-field-connector-evidence-package
+                 v3.8.0 Step 14 Field Connector Evidence Package를 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v370-site-source-group-contract
@@ -1828,6 +1832,10 @@ case "${cmd}" in
   verify-v380-action-receipt-bundle)
     require_internal verify_v380_action_receipt_bundle.mjs
     exec "${INTERNAL_DIR}/verify_v380_action_receipt_bundle.mjs" "$@"
+    ;;
+  verify-v380-field-connector-evidence-package)
+    require_internal verify_v380_field_connector_evidence_package.mjs
+    exec "${INTERNAL_DIR}/verify_v380_field_connector_evidence_package.mjs" "$@"
     ;;
   verify-v370-entry-baseline)
     require_internal verify_v370_entry_baseline.mjs
