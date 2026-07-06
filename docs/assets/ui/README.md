@@ -46,8 +46,8 @@ Step 1 기준 공개 문서 묶음:
 
 Step 1 기준:
 
-- v3.8.0 source roadmap과 latest published v3.7 source-only baseline을 분리하고,
-  직전 v3.6.0 baseline은 historical reference로만 둡니다.
+- v3.8.0 source roadmap과 latest published v3.8 source-only baseline을 맞추고,
+  직전 v3.7.0 baseline은 historical reference로만 둡니다.
 - 대표 이미지는 `config/docs_ui_assets.json`의 managed asset list 안에서만 README와
   UI guide에 노출합니다.
 - Chrome/CDP fallback 재캡처는 사용자가 명시 승인한 예외일 때만 후보로 둡니다.

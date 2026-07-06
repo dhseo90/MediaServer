@@ -7,8 +7,8 @@
 ## 현재 공개 상태
 
 - 현재 소스 버전: `3.8.0`
-- 최신 공개 GitHub Release: `v3.7.0`
-- `v3.7.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
+- 최신 공개 GitHub Release: `v3.8.0`
+- `v3.8.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
 - 현재 source roadmap은 `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`입니다.
 
@@ -57,8 +57,8 @@ main merge를 수행하지 않습니다.
 
 v3.8.0 Step 1 source baseline alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
 source `3.8.0`, current roadmap `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`,
-latest published `v3.7.0` 기준으로 정렬하는 local gate입니다. 최신 published baseline은
-`v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`입니다.
+latest published `v3.8.0` 기준으로 정렬하는 local gate입니다. 최신 published baseline은
+`v3.8.0 Operator-Gated Action Pilot & Outcome Loop`입니다.
 대상 문서는 `README.md`, `README.en.md`,
 `docs/README.md`, `docs/en/README.md`, `docs/ui-guide.md`,
 `docs/assets/ui/README.md`, 이 정책 문서, [versioning-policy.md](versioning-policy.md)입니다.
@@ -254,9 +254,9 @@ close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 �
 ## v3.8.0 Source Roadmap Scope
 
 현재 `3.8.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
-정리합니다. 각 항목은 구현과 직접 evidence가 생긴 뒤에만 완료로 기록합니다. UI
-풀테스트, 30분, 120분, 외부 endpoint field smoke는 실행한 경우에만 release evidence로
-기록합니다.
+정리했고, source-only latest published baseline으로 닫았습니다. UI 풀테스트, 30분,
+120분은 release evidence로 보존했고, 외부 endpoint field smoke는 실행한 경우에만
+release evidence로 기록합니다.
 
 - v3.8.0 Step 1 source baseline alignment
 - v3.8.0 Step 2 Ops Action Route Boundary
@@ -276,8 +276,8 @@ close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 �
 - v3.8.0 Step 16 Stabilization and Release Readiness
 
 `v3.8.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
-있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.7.0`입니다.
-현재 공개 release tag 기준은 `v3.7.0`입니다. 현재 source tag 기준은 `v3.8.0`입니다.
+있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.8.0`입니다.
+현재 공개 release tag 기준은 `v3.8.0`입니다. 현재 source tag 기준은 `v3.8.0`입니다.
 
 ## v3.8.0 stabilization and release readiness
 
@@ -341,8 +341,8 @@ published metadata, PR/main/tag/GitHub Release, field smoke 실행 evidence를 �
 - v3.6.0 Step 6 Safe Apply Readiness Gate
 
 `v3.6.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
-있을 때만 완료로 기록합니다. v3.7.0 publish 이후 이 절은 직전 published baseline 기록입니다.
-v3.6.0 공개 release tag 기준은 `v3.6.0`이고 현재 latest published release는 `v3.7.0`입니다.
+있을 때만 완료로 기록합니다. v3.8.0 publish 이후 이 절은 historical published baseline 기록입니다.
+v3.6.0 공개 release tag 기준은 `v3.6.0`이고 현재 latest published release는 `v3.8.0`입니다.
 `v3.6.0` release tag는 SSH-signed annotated tag이며 GitHub API tag verification
 `verified=true`/`reason=valid`로 확인했습니다.
 
