@@ -2911,6 +2911,163 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           source/view/runbook/approval write=false · clientNoticeSent=false · media mutation=false
         </div>
       </section>
+      <section class="section-card ops-workspace-wide ops-action-control-workspace" data-testid="ops-action-control-workspace" data-v380-action-control-workspace="media-server.ops.v380-action-control-workspace-ui.v1">
+        <div class="toolbar">
+          <div>
+            <h3>Action Control Workspace</h3>
+            <p>action request, approval state, readiness blocker, pilot candidate, receipt preview를 read-only 흐름으로 탐색합니다.</p>
+          </div>
+        </div>
+        <div id="dashActionControlWorkspaceBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashActionControlWorkspaceText">action control workspace read model을 불러오는 중입니다.</p>
+        <div id="dashActionControlWorkspaceFlow" class="ops-action-control-flow-grid" data-v380-action-control-workspace-flow="request-approval-readiness-pilot-receipt">
+          <div class="empty">request/approval/readiness/pilot/receipt 흐름을 기다립니다.</div>
+        </div>
+        <div class="grid ops-action-control-grid">
+          <div>
+            <h4>Request Ledger</h4>
+            <div id="dashActionControlRequestList" class="ops-action-control-list">
+              <div class="empty">action request ledger contract를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Approval Gate</h4>
+            <div id="dashActionControlApprovalList" class="ops-action-control-list">
+              <div class="empty">approval decision state를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Readiness Blockers</h4>
+            <div id="dashActionControlReadinessList" class="ops-action-control-list">
+              <div class="empty">readiness preflight blocker를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Pilot Candidates</h4>
+            <div id="dashActionControlPilotList" class="ops-action-control-list">
+              <div class="empty">source recheck, notice draft, rule draft 후보를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Receipt Preview</h4>
+            <div id="dashActionControlReceiptList" class="ops-action-control-list">
+              <div class="empty">future receipt bundle ref를 기다립니다.</div>
+            </div>
+          </div>
+        </div>
+        <div id="dashActionControlBoundary" class="ops-action-control-boundary">
+          actionExecutionPerformed=false · actionRequestPersisted=false · approvalDecisionPersisted=false · readinessResultPersisted=false · sourceRecheckExecuted=false · clientNoticeSent=false
+        </div>
+      </section>
+      <section class="section-card ops-workspace-wide ops-action-outcome-observer" data-testid="ops-action-outcome-observer" data-v380-outcome-observer-reconciliation="media-server.ops.v380-outcome-observer-reconciliation.v1">
+        <div class="toolbar">
+          <div>
+            <h3>Outcome Observer</h3>
+            <p>readiness, candidate, observed outcome diff를 not-run 상태로 비교합니다.</p>
+          </div>
+        </div>
+        <div id="dashActionOutcomeObserverBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashActionOutcomeObserverText">outcome observer read model을 불러오는 중입니다.</p>
+        <div class="grid ops-action-outcome-grid">
+          <div>
+            <h4>Source Outcome</h4>
+            <div id="dashActionOutcomeSourceList" class="ops-action-outcome-list">
+              <div class="empty">source outcome diff를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Event / Client Outcome</h4>
+            <div id="dashActionOutcomeEventClientList" class="ops-action-outcome-list">
+              <div class="empty">EventRecord/client outcome diff를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Rule Draft Outcome</h4>
+            <div id="dashActionOutcomeRuleList" class="ops-action-outcome-list">
+              <div class="empty">rule draft outcome diff를 기다립니다.</div>
+            </div>
+          </div>
+        </div>
+        <div id="dashActionOutcomeBoundary" class="ops-action-outcome-boundary">
+          actionExecutionPerformed=false · sourceRecheckExecuted=false · clientNoticeSent=false · ruleApplyPerformed=false · eventRecordWritePerformed=false
+        </div>
+      </section>
+      <section class="section-card ops-workspace-wide ops-action-receipt-bundle" data-testid="ops-action-receipt-bundle" data-v380-action-receipt-bundle="media-server.ops.v380-action-receipt-bundle.v1">
+        <div class="toolbar">
+          <div>
+            <h3>Action Receipt Bundle</h3>
+            <p>request, approval, readiness, candidate, outcome diff를 redacted release-safe receipt로 묶습니다.</p>
+          </div>
+        </div>
+        <div id="dashActionReceiptBundleBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashActionReceiptBundleText">action receipt bundle read model을 불러오는 중입니다.</p>
+        <div class="grid ops-action-receipt-grid">
+          <div>
+            <h4>Receipt Bundle</h4>
+            <div id="dashActionReceiptBundleList" class="ops-action-receipt-list">
+              <div class="empty">redacted receipt bundle 항목을 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Handoff Map</h4>
+            <div id="dashActionReceiptHandoffList" class="ops-action-receipt-list">
+              <div class="empty">release-safe handoff map을 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Redaction Review</h4>
+            <div id="dashActionReceiptRedactionList" class="ops-action-receipt-list">
+              <div class="empty">redaction review 항목을 기다립니다.</div>
+            </div>
+          </div>
+        </div>
+        <div id="dashActionReceiptBundleBoundary" class="ops-action-receipt-boundary">
+          bundlePersisted=false · artifactFileWritePerformed=false · handoffWritePerformed=false · rawLocatorIncluded=false · credentialMaterialIncluded=false
+        </div>
+      </section>
+      <section class="section-card ops-workspace-wide ops-field-connector-evidence-package" data-testid="ops-field-connector-evidence-package" data-v380-field-connector-evidence-package="media-server.ops.v380-field-connector-evidence-package.v1">
+        <div class="toolbar">
+          <div>
+            <h3>Field Connector Evidence Package</h3>
+            <p>ONVIF, external WHEP/TURN, cloud provider evidence 조건을 credential/endpoint 승인 기반 not-run package로 분리합니다.</p>
+          </div>
+        </div>
+        <div id="dashFieldConnectorEvidenceBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashFieldConnectorEvidenceText">field connector evidence package를 불러오는 중입니다.</p>
+        <div class="grid ops-field-connector-grid">
+          <div>
+            <h4>Connector Evidence</h4>
+            <div id="dashFieldConnectorEvidenceList" class="ops-field-connector-list">
+              <div class="empty">connector evidence package 항목을 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Approval Conditions</h4>
+            <div id="dashFieldConnectorConditionList" class="ops-field-connector-list">
+              <div class="empty">credential/endpoint approval condition refs를 기다립니다.</div>
+            </div>
+          </div>
+        </div>
+        <div id="dashFieldConnectorBoundary" class="ops-field-connector-boundary">
+          fieldSmokeExecuted=false · endpointProbePerformed=false · credentialProbePerformed=false · providerCallPerformed=false · media mutation=false
+        </div>
+      </section>
+      <section class="section-card ops-workspace-wide ops-default-off-action-explanation" data-testid="ops-default-off-action-explanation" data-v380-default-off-action-explanation="media-server.ops.v380-default-off-action-explanation.v1">
+        <div class="toolbar">
+          <div>
+            <h3>Default-off Action Explanation</h3>
+            <p>approval blocker, readiness reason, outcome hint를 default-off VLM/runtime 설명 후보로 요약하되 provider/runtime call은 수행하지 않습니다.</p>
+          </div>
+        </div>
+        <div id="dashDefaultOffActionExplanationBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashDefaultOffActionExplanationText">default-off action explanation hints를 불러오는 중입니다.</p>
+        <div id="dashDefaultOffActionExplanationList" class="ops-default-off-action-explanation-list">
+          <div class="empty">default-off explanation 항목을 기다립니다.</div>
+        </div>
+        <div id="dashDefaultOffActionExplanationBoundary" class="ops-default-off-action-explanation-boundary">
+          defaultEnabled=false · vlmProviderCallPerformed=false · vlmRuntimeCallPerformed=false · raw prompt/response=false · action execution=false
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide ops-site-client-notice-workspace" data-testid="ops-site-client-notice-workspace" data-v370-client-notice-by-site-view-group="media-server.ops.v370-client-notice-by-site-view-group.v1">
         <div class="toolbar">
           <div>
@@ -5321,6 +5478,141 @@ std::string ClientOperationsNoticeJson(
     return out.str();
 }
 
+struct ClientActionNoticePreview {
+    bool provided{true};
+    std::string notice_status{"degraded"};
+    std::string viewer_safe_title{"Action notice preview"};
+    std::string viewer_safe_body{"Service status is being reviewed."};
+    std::string timeline_hint{"degraded"};
+};
+
+std::string ClientActionNoticePreviewStatusFor(
+    const SourceViewRegistry::ClientViewAccess& access,
+    const ClientSourceStatusDigest& source_status,
+    const ClientEventSummary& event_summary) {
+    if (!access.view.enabled) {
+        return "degraded";
+    }
+    if (source_status.source_status == "connecting" || source_status.source_status == "stale") {
+        return "recovering";
+    }
+    if (source_status.source_status != "live") {
+        return "degraded";
+    }
+    if (event_summary.warning) {
+        return "maintenance";
+    }
+    return "available";
+}
+
+std::string ClientActionNoticePreviewTitleFor(const std::string& notice_status) {
+    if (notice_status == "maintenance") {
+        return "Maintenance notice";
+    }
+    if (notice_status == "recovering") {
+        return "Recovering notice";
+    }
+    if (notice_status == "available") {
+        return "Available notice";
+    }
+    return "Degraded notice";
+}
+
+std::string ClientActionNoticePreviewBodyFor(const std::string& notice_status) {
+    if (notice_status == "maintenance") {
+        return "A maintenance window may affect this view.";
+    }
+    if (notice_status == "recovering") {
+        return "Service is recovering and should stabilize shortly.";
+    }
+    if (notice_status == "available") {
+        return "Service is available for this view.";
+    }
+    return "Some live views may be degraded while operators review service status.";
+}
+
+std::string ClientActionNoticePreviewTimelineHintFor(const std::string& notice_status) {
+    if (notice_status == "maintenance") {
+        return "maintenance";
+    }
+    if (notice_status == "recovering") {
+        return "recovering";
+    }
+    if (notice_status == "available") {
+        return "available";
+    }
+    return "degraded";
+}
+
+ClientActionNoticePreview ClientActionNoticePreviewFor(
+    const SourceViewRegistry::ClientViewAccess& access,
+    const ClientSourceStatusDigest& source_status,
+    const ClientMaintenanceDigest&,
+    const ClientEventSummary& event_summary) {
+    ClientActionNoticePreview preview;
+    preview.notice_status =
+        ClientActionNoticePreviewStatusFor(access, source_status, event_summary);
+    preview.viewer_safe_title = ClientActionNoticePreviewTitleFor(preview.notice_status);
+    preview.viewer_safe_body = ClientActionNoticePreviewBodyFor(preview.notice_status);
+    preview.timeline_hint = ClientActionNoticePreviewTimelineHintFor(preview.notice_status);
+    return preview;
+}
+
+void AppendClientActionNoticePreviewJson(std::ostringstream& out,
+                                         const ClientActionNoticePreview& preview) {
+    out << "{"
+        << "\"schema\":\"media-server.client.v380-action-notice-preview.v1\","
+        << "\"provided\":" << (preview.provided ? "true" : "false") << ","
+        << "\"viewerSafeActionNoticePreview\":true,"
+        << "\"viewerSafe\":true,"
+        << "\"previewOnly\":true,"
+        << "\"statusTimelineOnly\":true,"
+        << "\"publishedViewScoped\":true,"
+        << "\"noticeStatusCatalog\":[\"maintenance\",\"degraded\",\"recovering\",\"available\"],"
+        << "\"operatorOnlyBlockerDetailIncluded\":false,"
+        << "\"approvalDecisionDetailIncluded\":false,"
+        << "\"readinessBlockerDetailIncluded\":false,"
+        << "\"sourceUrlIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"operatorMaterialIncluded\":false,"
+        << "\"actionControlsIncluded\":false,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeDraftPersisted\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"itemCount\":1,"
+        << "\"noticeItems\":[{"
+        << "\"noticeId\":\"client-action-notice-preview-1\","
+        << "\"noticeStatus\":\"" << JsonEscape(preview.notice_status) << "\","
+        << "\"viewerSafeTitle\":\"" << JsonEscape(preview.viewer_safe_title) << "\","
+        << "\"viewerSafeBody\":\"" << JsonEscape(preview.viewer_safe_body) << "\","
+        << "\"timelineHint\":\"" << JsonEscape(preview.timeline_hint) << "\""
+        << "}]}";
+}
+
+std::string ClientActionNoticePreviewJson(
+    const SourceViewRegistry::ClientViewAccess& access,
+    const ClientSourceStatusDigest& source_status,
+    const ClientMaintenanceDigest& maintenance_digest,
+    const ClientEventSummary& event_summary) {
+    std::ostringstream out;
+    AppendClientActionNoticePreviewJson(
+        out,
+        ClientActionNoticePreviewFor(access, source_status, maintenance_digest, event_summary));
+    return out.str();
+}
+
 ClientEventItem ParseClientEventItem(const std::string& raw) {
     ClientEventItem item;
     item.event_id = ParseStringField(raw, "eventId").value_or("");
@@ -5724,7 +6016,8 @@ void AppendClientEventSummaryJson(std::ostringstream& out,
                                   const std::string& source_status_digest_json = "",
                                   const std::string& maintenance_digest_json = "",
                                   const std::string& client_impact_forecast_json = "",
-                                  const std::string& client_operations_notice_json = "") {
+                                  const std::string& client_operations_notice_json = "",
+                                  const std::string& client_action_notice_preview_json = "") {
     out << "{"
         << "\"provided\":" << (summary.provided ? "true" : "false") << ","
         << "\"storageEnabled\":" << (summary.storage_enabled ? "true" : "false") << ","
@@ -5770,6 +6063,9 @@ void AppendClientEventSummaryJson(std::ostringstream& out,
     }
     if (!client_operations_notice_json.empty()) {
         out << ",\"clientOperationsNotice\":" << client_operations_notice_json;
+    }
+    if (!client_action_notice_preview_json.empty()) {
+        out << ",\"clientActionNoticePreview\":" << client_action_notice_preview_json;
     }
     out << "}";
 }
@@ -5826,6 +6122,8 @@ std::string ClientViewEventsJson(
         ClientImpactForecastJson(access, source_status_digest, maintenance_digest, summary);
     const auto client_operations_notice_json =
         ClientOperationsNoticeJson(access, source_status_digest, maintenance_digest, summary);
+    const auto client_action_notice_preview_json =
+        ClientActionNoticePreviewJson(access, source_status_digest, maintenance_digest, summary);
     std::ostringstream out;
     out << "{\"ok\":true,\"view\":";
     AppendClientViewIdentityJson(out, access);
@@ -5835,7 +6133,8 @@ std::string ClientViewEventsJson(
                                  source_status_digest_json,
                                  maintenance_digest_json,
                                  client_impact_forecast_json,
-                                 client_operations_notice_json);
+                                 client_operations_notice_json,
+                                 client_action_notice_preview_json);
     out << "}";
     return out.str();
 }
@@ -5983,6 +6282,8 @@ std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& 
         ClientImpactForecastJson(access, source_status_digest, maintenance_digest, event_summary);
     const auto client_operations_notice_json =
         ClientOperationsNoticeJson(access, source_status_digest, maintenance_digest, event_summary);
+    const auto client_action_notice_preview_json =
+        ClientActionNoticePreviewJson(access, source_status_digest, maintenance_digest, event_summary);
     const std::optional<std::int64_t> latest_event_time =
         event_summary.latest_event_time_ms.has_value()
             ? event_summary.latest_event_time_ms
@@ -6027,7 +6328,8 @@ std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& 
                                  source_status_digest_json,
                                  maintenance_digest_json,
                                  client_impact_forecast_json,
-                                 client_operations_notice_json);
+                                 client_operations_notice_json,
+                                 client_action_notice_preview_json);
     out << "}";
     return out.str();
 }
@@ -10882,6 +11184,1696 @@ void AppendOpsSourceHealthSummaryJson(std::ostringstream& out, const OpsSourceHe
         << "\"offline\":" << snapshot.offline_count << ","
         << "\"unknown\":" << snapshot.unknown_count
         << "}";
+}
+
+struct OpsV380ActionRouteBoundaryItem {
+    std::string route;
+    std::string family;
+    std::string method;
+    std::string owner;
+    std::string stage;
+    std::string description;
+};
+
+std::vector<OpsV380ActionRouteBoundaryItem> BuildV380ActionRouteBoundaryItems() {
+    return {
+        {"/ops/api/actions/route-boundary",
+         "foundation",
+         "GET",
+         "ops-action-boundary",
+         "implemented-read-only",
+         "v3.8 action namespace boundary and future route catalog"},
+        {"/ops/api/actions/capability-contract",
+         "foundation",
+         "GET",
+         "ops-action-capability",
+         "implemented-read-only",
+         "allowed action, denied action, role/scope, and idempotency contract"},
+        {"/ops/api/actions/request-ledger",
+         "foundation",
+         "GET",
+         "ops-action-ledger",
+         "implemented-read-only",
+         "append-only/read-only action request ledger projection"},
+        {"/ops/api/actions/approval-decision-gate",
+         "workflow",
+         "GET",
+         "ops-action-approval",
+         "implemented-read-only",
+         "approval, hold, reject, field-needed, and stale decision guard"},
+        {"/ops/api/actions/readiness-preflight",
+         "workflow",
+         "GET",
+         "ops-action-readiness",
+         "implemented-read-only",
+         "capability, approval, field evidence, source health, and duplicate blocker preflight"},
+        {"/ops/api/actions/source-recheck-pilot",
+         "execution-pilot",
+         "GET",
+         "ops-action-source-recheck",
+         "implemented-read-only",
+         "lowest-risk source health recheck candidate envelope"},
+        {"/ops/api/actions/client-notice-draft-queue",
+         "execution-pilot",
+         "GET",
+         "ops-action-client-notice",
+         "implemented-read-only",
+         "viewer-safe notice draft queue preview without delivery"},
+        {"/ops/api/actions/rule-draft-package",
+         "execution-pilot",
+         "GET",
+         "ops-action-rule-draft",
+         "implemented-read-only",
+         "rule threshold/scenario draft package without apply"},
+        {"/ops/api/actions/outcome-reconciliation",
+         "evidence",
+         "GET",
+         "ops-action-outcome",
+         "planned",
+         "readiness, execution candidate, and observed outcome diff"},
+        {"/ops/api/actions/receipt-bundle",
+         "evidence",
+         "GET",
+         "ops-action-receipt",
+         "implemented-read-only",
+         "redacted approval/request/readiness/outcome receipt bundle"},
+        {"/ops/api/actions/field-connector-evidence-package",
+         "field-ai",
+         "GET",
+         "ops-action-field-connector",
+         "implemented-read-only",
+         "conditional ONVIF, external WHEP/TURN, and cloud provider evidence package"},
+        {"/ops/api/actions/default-off-explanation",
+         "field-ai",
+         "GET",
+         "ops-action-explanation",
+         "implemented-read-only",
+         "default-off approval, readiness, and outcome explanation hints without provider calls"},
+    };
+}
+
+void AppendV380ActionRouteBoundaryItemJson(std::ostringstream& out,
+                                           const OpsV380ActionRouteBoundaryItem& item) {
+    out << "{"
+        << "\"route\":\"" << JsonEscape(item.route) << "\","
+        << "\"family\":\"" << JsonEscape(item.family) << "\","
+        << "\"method\":\"" << JsonEscape(item.method) << "\","
+        << "\"owner\":\"" << JsonEscape(item.owner) << "\","
+        << "\"stage\":\"" << JsonEscape(item.stage) << "\","
+        << "\"description\":\"" << JsonEscape(item.description) << "\","
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true"
+        << "}";
+}
+
+std::string OpsV380ActionRouteBoundaryJson() {
+    const auto items = BuildV380ActionRouteBoundaryItems();
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v380-action-route-boundary.v1\","
+        << "\"status\":\"action-route-boundary\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"actionNamespace\":\"/ops/api/actions\","
+        << "\"routeBoundaryOnly\":true,"
+        << "\"legacyProjectionRefs\":";
+    AppendJsonStringArray(out,
+                          {"/ops/api/live-operations/command-plan",
+                           "/ops/api/live-operations/staged-change-plan-impact-preview",
+                           "/ops/api/site-operations/runbook-template-contract",
+                           "/ops/api/site-operations/limited-safe-execution-pilot",
+                           "/ops/api/site-operations/export-handoff-bundle"});
+    out << ",\"actionRouteBoundary\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV380ActionRouteBoundaryItemJson(out, items[i]);
+    }
+    out << "],\"routePolicy\":{"
+        << "\"namespace\":\"/ops/api/actions\","
+        << "\"defaultMethod\":\"GET\","
+        << "\"defaultCacheControl\":\"no-store\","
+        << "\"separateFromV350LiveOperations\":true,"
+        << "\"separateFromV370SiteOperations\":true,"
+        << "\"writeEndpointsReservedForFutureApproval\":true"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"routeBoundaryOnly\":true,"
+        << "\"separateFromV350LiveOperations\":true,"
+        << "\"separateFromV370SiteOperations\":true,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"actionRequestPersisted\":false,"
+        << "\"approvalDecisionPersisted\":false,"
+        << "\"readinessCheckExecuted\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"runbookInstancePersisted\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV380ActionCapabilityContractItem {
+    std::string action_kind;
+    std::string action_label;
+    std::string capability;
+    std::string required_role;
+    std::vector<std::string> required_scopes;
+    std::string idempotency_key_pattern;
+    std::string status;
+    std::string description;
+    bool allowed{false};
+};
+
+std::vector<OpsV380ActionCapabilityContractItem> BuildV380ActionCapabilityContractItems() {
+    return {
+        {"source-recheck",
+         "Source health recheck request",
+         "source-health-readiness",
+         "ops",
+         {"ops:read", "ops:actions:request"},
+         "v380-actions/{siteId}/source-recheck/{requestFingerprint}",
+         "allowed-preview-only",
+         "Prepare a source health recheck request without executing the recheck or writing source state",
+         true},
+        {"client-notice-draft",
+         "Client notice draft request",
+         "client-safe-notice-preview",
+         "ops",
+         {"ops:read", "ops:actions:request"},
+         "v380-actions/{siteId}/client-notice-draft/{requestFingerprint}",
+         "allowed-preview-only",
+         "Prepare a viewer-safe notice draft without queue writes or delivery",
+         true},
+        {"rule-draft-package",
+         "Rule draft package request",
+         "rule-draft-review-package",
+         "admin",
+         {"ops:read", "ops:actions:request", "rules:read"},
+         "v380-actions/{siteId}/rule-draft-package/{requestFingerprint}",
+         "allowed-preview-only",
+         "Prepare a rule or scenario draft package without applying registry changes",
+         true},
+        {"receipt-bundle",
+         "Action receipt bundle request",
+         "redacted-action-receipt",
+         "ops",
+         {"ops:read", "ops:actions:request"},
+         "v380-actions/{siteId}/receipt-bundle/{requestFingerprint}",
+         "allowed-preview-only",
+         "Prepare a redacted request, readiness, and outcome receipt bundle",
+         true},
+        {"direct-source-write",
+         "Direct source registry write",
+         "source-registry-mutation",
+         "admin",
+         {"ops:read", "sources:write"},
+         "blocked/direct-source-write",
+         "denied",
+         "Blocked because v3.8 action contracts cannot mutate SourceRegistry or PublishedView state",
+         false},
+        {"direct-rule-apply",
+         "Direct rule apply",
+         "rule-registry-mutation",
+         "admin",
+         {"ops:read", "rules:write"},
+         "blocked/direct-rule-apply",
+         "denied",
+         "Blocked because v3.8 action contracts only prepare review packages",
+         false},
+        {"direct-client-notice-send",
+         "Direct client notice send",
+         "client-notice-delivery",
+         "ops",
+         {"ops:read", "client:notice:send"},
+         "blocked/direct-client-notice-send",
+         "denied",
+         "Blocked because v3.8 action contracts only prepare viewer-safe notice drafts",
+         false},
+        {"media-path-change",
+         "Media path change",
+         "media-session-mutation",
+         "admin",
+         {"ops:read", "media:write"},
+         "blocked/media-path-change",
+         "denied",
+         "Blocked because v3.8 action contracts cannot change RTSP, WebRTC, SSE, WS, or event schemas",
+         false},
+    };
+}
+
+void AppendV380ActionCapabilityContractItemJson(std::ostringstream& out,
+                                                const OpsV380ActionCapabilityContractItem& item) {
+    out << "{"
+        << "\"actionKind\":\"" << JsonEscape(item.action_kind) << "\","
+        << "\"actionLabel\":\"" << JsonEscape(item.action_label) << "\","
+        << "\"capability\":\"" << JsonEscape(item.capability) << "\","
+        << "\"allowed\":" << JsonBool(item.allowed) << ","
+        << "\"requiredRole\":\"" << JsonEscape(item.required_role) << "\","
+        << "\"requiredScopes\":";
+    AppendJsonStringArray(out, item.required_scopes);
+    out << ",\"idempotencyKeyPattern\":\"" << JsonEscape(item.idempotency_key_pattern) << "\","
+        << "\"status\":\"" << JsonEscape(item.status) << "\","
+        << "\"description\":\"" << JsonEscape(item.description) << "\""
+        << "}";
+}
+
+std::string OpsV380ActionCapabilityContractJson() {
+    const auto items = BuildV380ActionCapabilityContractItems();
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v380-action-capability-contract.v1\","
+        << "\"status\":\"action-capability-contract\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"route\":\"/ops/api/actions/capability-contract\","
+        << "\"routeBoundary\":\"/ops/api/actions/route-boundary\","
+        << "\"actionCapabilityContract\":{"
+        << "\"contractOnly\":true,"
+        << "\"requiredRole\":\"ops\","
+        << "\"requiredScopes\":";
+    AppendJsonStringArray(out, {"ops:read", "ops:actions:request"});
+    out << ",\"allowedStatuses\":";
+    AppendJsonStringArray(out, {"allowed-preview-only", "denied"});
+    out << "},\"allowedActionCatalog\":[";
+    bool wrote_allowed = false;
+    for (const auto& item : items) {
+        if (!item.allowed) {
+            continue;
+        }
+        if (wrote_allowed) {
+            out << ",";
+        }
+        AppendV380ActionCapabilityContractItemJson(out, item);
+        wrote_allowed = true;
+    }
+    out << "],\"deniedActionCatalog\":[";
+    bool wrote_denied = false;
+    for (const auto& item : items) {
+        if (item.allowed) {
+            continue;
+        }
+        if (wrote_denied) {
+            out << ",";
+        }
+        AppendV380ActionCapabilityContractItemJson(out, item);
+        wrote_denied = true;
+    }
+    out << "],\"idempotencyPolicy\":{"
+        << "\"required\":true,"
+        << "\"keyOwner\":\"operator-request\","
+        << "\"duplicateRequestBehavior\":\"return-existing-read-model\","
+        << "\"keyMaterial\":\"siteId, actionKind, requestFingerprint\","
+        << "\"requestWritePerformed\":false"
+        << "},\"immutableSchemaBoundary\":{"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"capabilityContractOnly\":true,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"actionRequestPersisted\":false,"
+        << "\"approvalDecisionPersisted\":false,"
+        << "\"readinessCheckExecuted\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"runbookInstancePersisted\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV380ActionRequestLedgerContractItem {
+    std::string field;
+    std::string json_name;
+    std::string type;
+    std::string source;
+    std::string description;
+    bool required{false};
+};
+
+std::vector<OpsV380ActionRequestLedgerContractItem> BuildV380ActionRequestLedgerContractItems() {
+    return {
+        {"actionRequestId",
+         "actionRequestId",
+         "string",
+         "operator-request-envelope",
+         "Stable request identifier used by receipt and readiness projections",
+         true},
+        {"siteId",
+         "siteId",
+         "string",
+         "site/source-group projection",
+         "Site boundary for the requested action",
+         true},
+        {"runbookId",
+         "runbookId",
+         "string",
+         "runbook-template-or-null",
+         "Optional runbook template reference for repeated operator workflows",
+         false},
+        {"requestedBy",
+         "requestedBy",
+         "principal",
+         "ops principal",
+         "Redacted operator identity reference for review and receipt projections",
+         true},
+        {"status",
+         "status",
+         "enum",
+         "request status model",
+         "Read-only request state such as draft, approval-needed, blocked, or completed",
+         true},
+        {"createdAt",
+         "createdAt",
+         "timestamp",
+         "server clock",
+         "UTC creation timestamp for deterministic ledger ordering",
+         true},
+        {"idempotencyKey",
+         "idempotencyKey",
+         "string",
+         "operator-request fingerprint",
+         "Duplicate request guard derived from site, action kind, and request fingerprint",
+         true},
+    };
+}
+
+void AppendV380ActionRequestLedgerContractItemJson(
+    std::ostringstream& out,
+    const OpsV380ActionRequestLedgerContractItem& item) {
+    out << "{"
+        << "\"field\":\"" << JsonEscape(item.field) << "\","
+        << "\"jsonName\":\"" << JsonEscape(item.json_name) << "\","
+        << "\"type\":\"" << JsonEscape(item.type) << "\","
+        << "\"source\":\"" << JsonEscape(item.source) << "\","
+        << "\"required\":" << JsonBool(item.required) << ","
+        << "\"description\":\"" << JsonEscape(item.description) << "\""
+        << "}";
+}
+
+std::string OpsV380ActionRequestLedgerContractJson() {
+    const auto items = BuildV380ActionRequestLedgerContractItems();
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v380-action-request-ledger-contract.v1\","
+        << "\"status\":\"action-request-ledger-contract\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"route\":\"/ops/api/actions/request-ledger\","
+        << "\"capabilityContractRoute\":\"/ops/api/actions/capability-contract\","
+        << "\"actionRequestLedgerContract\":{"
+        << "\"contractOnly\":true,"
+        << "\"appendOnly\":true,"
+        << "\"readOnlyProjection\":true,"
+        << "\"ledgerIdPattern\":\"v380-actions/{siteId}/{actionKind}/{idempotencyKey}\","
+        << "\"idempotencyKey\":\"siteId:actionKind:requestFingerprint\""
+        << "},\"ledgerFields\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV380ActionRequestLedgerContractItemJson(out, items[i]);
+    }
+    out << "],\"statusModel\":";
+    AppendJsonStringArray(out,
+                          {"draft",
+                           "approval-needed",
+                           "approved",
+                           "blocked",
+                           "field-needed",
+                           "rejected",
+                           "expired",
+                           "completed"});
+    out << ",\"appendOnlyPolicy\":{"
+        << "\"contractOnly\":true,"
+        << "\"appendRequiresIdempotencyKey\":true,"
+        << "\"duplicateRequestBehavior\":\"return-existing-read-model\","
+        << "\"requestWritePerformed\":false"
+        << "},\"readOnlyProjection\":{"
+        << "\"enabled\":true,"
+        << "\"sort\":\"createdAt-desc\","
+        << "\"mutableFields\":";
+    AppendJsonStringArray(out, {});
+    out << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"ledgerContractOnly\":true,"
+        << "\"requestWritePerformed\":false,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"actionRequestPersisted\":false,"
+        << "\"approvalDecisionPersisted\":false,"
+        << "\"readinessCheckExecuted\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"runbookInstancePersisted\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV380ApprovalDecisionGateItem {
+    std::string decision;
+    std::string label;
+    std::string required_role;
+    std::vector<std::string> allowed_next_statuses;
+    std::string stale_after;
+    std::string description;
+    bool reason_required{false};
+};
+
+std::vector<OpsV380ApprovalDecisionGateItem> BuildV380ApprovalDecisionGateItems() {
+    return {
+        {"approve",
+         "Approve request",
+         "ops",
+         {"approved", "readiness-required"},
+         "15m",
+         "Marks the request as operator-approved for a later readiness preflight contract",
+         true},
+        {"hold",
+         "Hold request",
+         "ops",
+         {"blocked", "approval-needed"},
+         "15m",
+         "Keeps the request in review with a visible blocker reason",
+         true},
+        {"reject",
+         "Reject request",
+         "ops",
+         {"rejected"},
+         "15m",
+         "Rejects the request for review purposes without executing or writing action state",
+         true},
+        {"field-needed",
+         "Field evidence needed",
+         "ops",
+         {"field-needed", "blocked"},
+         "30m",
+         "Requires external or site evidence before any later readiness preflight can continue",
+         true},
+    };
+}
+
+void AppendV380ApprovalDecisionGateItemJson(std::ostringstream& out,
+                                            const OpsV380ApprovalDecisionGateItem& item) {
+    out << "{"
+        << "\"decision\":\"" << JsonEscape(item.decision) << "\","
+        << "\"label\":\"" << JsonEscape(item.label) << "\","
+        << "\"requiredRole\":\"" << JsonEscape(item.required_role) << "\","
+        << "\"reasonRequired\":" << JsonBool(item.reason_required) << ","
+        << "\"allowedNextStatuses\":";
+    AppendJsonStringArray(out, item.allowed_next_statuses);
+    out << ",\"staleAfter\":\"" << JsonEscape(item.stale_after) << "\","
+        << "\"description\":\"" << JsonEscape(item.description) << "\""
+        << "}";
+}
+
+std::string OpsV380ApprovalDecisionGateJson() {
+    const auto items = BuildV380ApprovalDecisionGateItems();
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v380-approval-decision-gate.v1\","
+        << "\"status\":\"approval-decision-gate\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"route\":\"/ops/api/actions/approval-decision-gate\","
+        << "\"capabilityContractRoute\":\"/ops/api/actions/capability-contract\","
+        << "\"requestLedgerRoute\":\"/ops/api/actions/request-ledger\","
+        << "\"approvalDecisionGate\":{"
+        << "\"contractOnly\":true,"
+        << "\"reviewer\":\"ops-principal-ref\","
+        << "\"reason\":\"required-for-all-decisions\","
+        << "\"auditRef\":\"future-ops-audit-ref\","
+        << "\"approvalGateContractOnly\":true"
+        << "},\"decisionStates\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV380ApprovalDecisionGateItemJson(out, items[i]);
+    }
+    out << "],\"staleDecisionGuard\":{"
+        << "\"enabled\":true,"
+        << "\"defaultStaleAfter\":\"15m\","
+        << "\"fieldNeededStaleAfter\":\"30m\","
+        << "\"staleDecisionBlocksReadiness\":true,"
+        << "\"decisionWritePerformed\":false"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"approvalGateContractOnly\":true,"
+        << "\"decisionWritePerformed\":false,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"actionRequestPersisted\":false,"
+        << "\"approvalDecisionPersisted\":false,"
+        << "\"readinessCheckExecuted\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"runbookInstancePersisted\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV380ActionReadinessPreflightItem {
+    std::string dimension;
+    std::string field;
+    std::string expected_state;
+    std::string blocker;
+    std::string source;
+    std::string description;
+    bool required{false};
+};
+
+std::vector<OpsV380ActionReadinessPreflightItem> BuildV380ActionReadinessPreflightItems() {
+    return {
+        {"capability",
+         "capability.allowed",
+         "ready",
+         "missing-capability",
+         "/ops/api/actions/capability-contract",
+         "Requested action kind must be present in the allowed preview-only catalog",
+         true},
+        {"approval",
+         "approval.decision",
+         "approved",
+         "approval-missing",
+         "/ops/api/actions/approval-decision-gate",
+         "Approval decision must be approved and not stale before any later pilot candidate",
+         true},
+        {"fieldEvidence",
+         "fieldEvidence.status",
+         "ready-or-not-required",
+         "field-evidence-required",
+         "conditional field evidence attachment",
+         "External credential, endpoint, and field evidence requirements remain explicit blockers",
+         false},
+        {"sourceHealth",
+         "sourceHealth.rollup",
+         "healthy-or-recovering",
+         "source-health-degraded",
+         "site/source health projection",
+         "Source health must not indicate offline, degraded, or field-needed state for a pilot candidate",
+         true},
+        {"clientImpact",
+         "clientImpact.safety",
+         "viewer-safe",
+         "client-impact-review-needed",
+         "client impact forecast projection",
+         "Client-facing impact must stay viewer-safe and hide operator-only blocker detail",
+         true},
+        {"duplicateRequest",
+         "idempotencyKey",
+         "unique-or-existing-read-model",
+         "duplicate-request",
+         "/ops/api/actions/request-ledger",
+         "Duplicate request fingerprints must return an existing read model instead of creating a write",
+         true},
+    };
+}
+
+void AppendV380ActionReadinessPreflightItemJson(
+    std::ostringstream& out,
+    const OpsV380ActionReadinessPreflightItem& item) {
+    out << "{"
+        << "\"dimension\":\"" << JsonEscape(item.dimension) << "\","
+        << "\"field\":\"" << JsonEscape(item.field) << "\","
+        << "\"expectedState\":\"" << JsonEscape(item.expected_state) << "\","
+        << "\"blocker\":\"" << JsonEscape(item.blocker) << "\","
+        << "\"source\":\"" << JsonEscape(item.source) << "\","
+        << "\"required\":" << JsonBool(item.required) << ","
+        << "\"description\":\"" << JsonEscape(item.description) << "\""
+        << "}";
+}
+
+std::string OpsV380ActionReadinessPreflightJson() {
+    const auto items = BuildV380ActionReadinessPreflightItems();
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v380-action-readiness-preflight.v1\","
+        << "\"status\":\"action-readiness-preflight\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"route\":\"/ops/api/actions/readiness-preflight\","
+        << "\"capabilityContractRoute\":\"/ops/api/actions/capability-contract\","
+        << "\"approvalDecisionGateRoute\":\"/ops/api/actions/approval-decision-gate\","
+        << "\"requestLedgerRoute\":\"/ops/api/actions/request-ledger\","
+        << "\"readinessPreflight\":{"
+        << "\"contractOnly\":true,"
+        << "\"readinessPreflightContractOnly\":true,"
+        << "\"defaultReadinessState\":\"not-run\","
+        << "\"readyState\":\"ready\","
+        << "\"blockedState\":\"blocked\""
+        << "},\"readinessStates\":";
+    AppendJsonStringArray(out,
+                          {"ready",
+                           "blocked",
+                           "approval-needed",
+                           "field-needed",
+                           "duplicate-request",
+                           "not-run"});
+    out << ",\"preflightBlockers\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV380ActionReadinessPreflightItemJson(out, items[i]);
+    }
+    out << "],\"preflightInputs\":{"
+        << "\"capability\":\"/ops/api/actions/capability-contract\","
+        << "\"approval\":\"/ops/api/actions/approval-decision-gate\","
+        << "\"fieldEvidence\":\"conditional-field-evidence-package\","
+        << "\"sourceHealth\":\"site-source-health-rollup\","
+        << "\"clientImpact\":\"client-safe-impact-forecast\","
+        << "\"duplicateRequest\":\"/ops/api/actions/request-ledger\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"readinessPreflightContractOnly\":true,"
+        << "\"readinessCheckExecuted\":false,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"actionRequestPersisted\":false,"
+        << "\"approvalDecisionPersisted\":false,"
+        << "\"readinessResultPersisted\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"runbookInstancePersisted\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV380SourceRecheckActionPilotItem {
+    std::string field;
+    std::string state;
+    std::string blocker;
+    std::string source;
+    std::string description;
+    bool required{false};
+};
+
+std::vector<OpsV380SourceRecheckActionPilotItem> BuildV380SourceRecheckActionPilotItems() {
+    return {
+        {"readinessRef",
+         "ready",
+         "readiness-blocked",
+         "/ops/api/actions/readiness-preflight",
+         "Pilot candidate requires an existing readiness preflight read model in ready state",
+         true},
+        {"recheckRequest",
+         "not-run",
+         "operator-confirmation-required",
+         "operator action request",
+         "Source health recheck request envelope is prepared without contacting source workers",
+         true},
+        {"sourceHealthRecheck",
+         "not-run",
+         "source-recheck-not-executed",
+         "source health projection",
+         "Actual source health probe stays out of this read-only pilot contract",
+         true},
+        {"dryExecutionResultEnvelope",
+         "not-run",
+         "dry-result-only",
+         "execution preview",
+         "Dry execution result shape is available for receipts without persisting action output",
+         true},
+        {"executionPreview",
+         "blocked",
+         "field-needed",
+         "field evidence condition",
+         "Field-needed and degraded source states stay visible as blockers before any later execution",
+         false},
+    };
+}
+
+void AppendV380SourceRecheckActionPilotItemJson(
+    std::ostringstream& out,
+    const OpsV380SourceRecheckActionPilotItem& item) {
+    out << "{"
+        << "\"field\":\"" << JsonEscape(item.field) << "\","
+        << "\"state\":\"" << JsonEscape(item.state) << "\","
+        << "\"blocker\":\"" << JsonEscape(item.blocker) << "\","
+        << "\"source\":\"" << JsonEscape(item.source) << "\","
+        << "\"required\":" << JsonBool(item.required) << ","
+        << "\"description\":\"" << JsonEscape(item.description) << "\""
+        << "}";
+}
+
+std::string OpsV380SourceRecheckActionPilotJson() {
+    const auto items = BuildV380SourceRecheckActionPilotItems();
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v380-source-recheck-action-pilot.v1\","
+        << "\"status\":\"source-recheck-action-pilot\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"route\":\"/ops/api/actions/source-recheck-pilot\","
+        << "\"readinessPreflightRoute\":\"/ops/api/actions/readiness-preflight\","
+        << "\"capabilityContractRoute\":\"/ops/api/actions/capability-contract\","
+        << "\"approvalDecisionGateRoute\":\"/ops/api/actions/approval-decision-gate\","
+        << "\"requestLedgerRoute\":\"/ops/api/actions/request-ledger\","
+        << "\"sourceRecheckActionPilot\":{"
+        << "\"contractOnly\":true,"
+        << "\"sourceRecheckPilotContractOnly\":true,"
+        << "\"pilotCandidate\":\"source-health-recheck\","
+        << "\"sourceHealthRecheck\":\"not-run\","
+        << "\"recheckRequest\":\"prepared-read-model\","
+        << "\"readinessRef\":\"/ops/api/actions/readiness-preflight\""
+        << "},\"pilotStates\":";
+    AppendJsonStringArray(out, {"ready", "blocked", "degraded", "field-needed", "not-run"});
+    out << ",\"pilotCandidate\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV380SourceRecheckActionPilotItemJson(out, items[i]);
+    }
+    out << "],\"dryExecutionResultEnvelope\":{"
+        << "\"resultState\":\"not-run\","
+        << "\"executionPreview\":\"dry-result-only\","
+        << "\"sourceHealthBefore\":\"source-health-rollup-ref\","
+        << "\"sourceHealthAfter\":\"not-collected\","
+        << "\"receiptRef\":\"future-action-receipt\","
+        << "\"actionResultPersisted\":false"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"sourceRecheckPilotContractOnly\":true,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"sourceHealthWritePerformed\":false,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"actionResultPersisted\":false,"
+        << "\"actionRequestPersisted\":false,"
+        << "\"approvalDecisionPersisted\":false,"
+        << "\"readinessResultPersisted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"runbookInstancePersisted\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV380ClientNoticeDraftQueueItem {
+    std::string field;
+    std::string state;
+    std::string blocker;
+    std::string audience;
+    std::string description;
+    bool required{false};
+};
+
+std::vector<OpsV380ClientNoticeDraftQueueItem> BuildV380ClientNoticeDraftQueueItems() {
+    return {
+        {"readinessRef",
+         "ready",
+         "readiness-blocked",
+         "ops",
+         "Draft queue preview requires an existing readiness preflight read model in ready state",
+         true},
+        {"viewerSafeNoticeDraft",
+         "draft",
+         "redaction-review-required",
+         "viewer",
+         "Viewer-safe maintenance, degraded, recovering, or available copy is prepared without exposing operator detail",
+         true},
+        {"noticeDraft",
+         "redacted",
+         "operator-detail-hidden",
+         "viewer",
+         "Internal blocker, source locator, credential, raw diagnostic, and action rationale details stay out of client copy",
+         true},
+        {"queuePreview",
+         "not-run",
+         "delivery-blocked",
+         "ops",
+         "Queue position and delivery target preview is contract-only and does not write a queue record",
+         true},
+        {"deliveryBlocker",
+         "blocked",
+         "client-notice-send-disabled",
+         "ops",
+         "Actual notice delivery remains blocked until a later explicitly approved execution step",
+         true},
+        {"pilotRef",
+         "not-run",
+         "pilot-result-not-required",
+         "ops",
+         "Source recheck pilot result can be referenced by a later receipt without triggering client delivery",
+         false},
+    };
+}
+
+void AppendV380ClientNoticeDraftQueueItemJson(
+    std::ostringstream& out,
+    const OpsV380ClientNoticeDraftQueueItem& item) {
+    out << "{"
+        << "\"field\":\"" << JsonEscape(item.field) << "\","
+        << "\"state\":\"" << JsonEscape(item.state) << "\","
+        << "\"blocker\":\"" << JsonEscape(item.blocker) << "\","
+        << "\"audience\":\"" << JsonEscape(item.audience) << "\","
+        << "\"required\":" << JsonBool(item.required) << ","
+        << "\"description\":\"" << JsonEscape(item.description) << "\""
+        << "}";
+}
+
+std::string OpsV380ClientNoticeDraftQueueJson() {
+    const auto items = BuildV380ClientNoticeDraftQueueItems();
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v380-client-notice-draft-queue.v1\","
+        << "\"status\":\"client-notice-draft-queue\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"route\":\"/ops/api/actions/client-notice-draft-queue\","
+        << "\"readinessPreflightRoute\":\"/ops/api/actions/readiness-preflight\","
+        << "\"capabilityContractRoute\":\"/ops/api/actions/capability-contract\","
+        << "\"approvalDecisionGateRoute\":\"/ops/api/actions/approval-decision-gate\","
+        << "\"requestLedgerRoute\":\"/ops/api/actions/request-ledger\","
+        << "\"sourceRecheckPilotRoute\":\"/ops/api/actions/source-recheck-pilot\","
+        << "\"clientNoticeDraftQueue\":{"
+        << "\"contractOnly\":true,"
+        << "\"clientNoticeDraftQueueContractOnly\":true,"
+        << "\"viewerSafeNoticeDraft\":\"prepared-read-model\","
+        << "\"noticeDraft\":\"maintenance-degraded-recovering-available\","
+        << "\"queuePreview\":\"delivery-blocked-not-run\","
+        << "\"deliveryBlocker\":\"client-notice-send-disabled\","
+        << "\"redactionBoundary\":\"viewer-safe-no-internal-blocker-detail\","
+        << "\"readinessRef\":\"/ops/api/actions/readiness-preflight\","
+        << "\"pilotRef\":\"/ops/api/actions/source-recheck-pilot\""
+        << "},\"draftStates\":";
+    AppendJsonStringArray(out, {"draft", "blocked", "redacted", "delivery-blocked", "not-run"});
+    out << ",\"viewerSafeNoticeDrafts\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV380ClientNoticeDraftQueueItemJson(out, items[i]);
+    }
+    out << "],\"queuePreview\":{"
+        << "\"queueState\":\"not-run\","
+        << "\"deliveryTarget\":\"viewer-safe-group-ref\","
+        << "\"deliveryBlocker\":\"client-notice-send-disabled\","
+        << "\"noticeDraftPersisted\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"clientNoticeSent\":false"
+        << "},\"redactionBoundary\":{"
+        << "\"viewerSafeStatuses\":";
+    AppendJsonStringArray(out, {"maintenance", "degraded", "recovering", "available"});
+    out << ",\"operatorOnlyBlockerExposedToClient\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"clientNoticeDraftQueueContractOnly\":true,"
+        << "\"noticeDraftPersisted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"operatorOnlyBlockerExposedToClient\":false,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"actionRequestPersisted\":false,"
+        << "\"approvalDecisionPersisted\":false,"
+        << "\"readinessResultPersisted\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"sourceHealthWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"runbookInstancePersisted\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV380RuleDraftActionPackageItem {
+    std::string field;
+    std::string state;
+    std::string blocker;
+    std::string source;
+    std::string description;
+    bool required{false};
+};
+
+std::vector<OpsV380RuleDraftActionPackageItem> BuildV380RuleDraftActionPackageItems() {
+    return {
+        {"readinessRef",
+         "ready",
+         "readiness-blocked",
+         "/ops/api/actions/readiness-preflight",
+         "Rule draft package requires an existing readiness preflight read model in ready state",
+         true},
+        {"ruleThresholdCandidate",
+         "draft",
+         "threshold-review-required",
+         "rule/VA what-if projection",
+         "Rule threshold candidate is prepared for review without writing a rule or profile registry",
+         true},
+        {"scenarioCandidate",
+         "draft",
+         "scenario-review-required",
+         "scenario impact preview",
+         "Scenario candidate is prepared for review without applying runtime or media path changes",
+         true},
+        {"draftPackage",
+         "blocked",
+         "apply-blocked",
+         "operator action package",
+         "Draft package groups rule and scenario candidates with no apply or persistence side effect",
+         true},
+        {"reviewChecklist",
+         "review-needed",
+         "operator-review-required",
+         "manual review checklist",
+         "Operator must review approval, readiness, threshold, scenario impact, and client notice redaction before any later write step",
+         true},
+        {"noticeDraftRef",
+         "not-run",
+         "client-notice-draft-not-required",
+         "/ops/api/actions/client-notice-draft-queue",
+         "Optional notice draft reference can be attached later without sending or queueing client notices",
+         false},
+    };
+}
+
+void AppendV380RuleDraftActionPackageItemJson(
+    std::ostringstream& out,
+    const OpsV380RuleDraftActionPackageItem& item) {
+    out << "{"
+        << "\"field\":\"" << JsonEscape(item.field) << "\","
+        << "\"state\":\"" << JsonEscape(item.state) << "\","
+        << "\"blocker\":\"" << JsonEscape(item.blocker) << "\","
+        << "\"source\":\"" << JsonEscape(item.source) << "\","
+        << "\"required\":" << JsonBool(item.required) << ","
+        << "\"description\":\"" << JsonEscape(item.description) << "\""
+        << "}";
+}
+
+std::string OpsV380RuleDraftActionPackageJson() {
+    const auto items = BuildV380RuleDraftActionPackageItems();
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v380-rule-draft-action-package.v1\","
+        << "\"status\":\"rule-draft-action-package\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"route\":\"/ops/api/actions/rule-draft-package\","
+        << "\"readinessPreflightRoute\":\"/ops/api/actions/readiness-preflight\","
+        << "\"capabilityContractRoute\":\"/ops/api/actions/capability-contract\","
+        << "\"approvalDecisionGateRoute\":\"/ops/api/actions/approval-decision-gate\","
+        << "\"requestLedgerRoute\":\"/ops/api/actions/request-ledger\","
+        << "\"clientNoticeDraftQueueRoute\":\"/ops/api/actions/client-notice-draft-queue\","
+        << "\"ruleDraftActionPackage\":{"
+        << "\"contractOnly\":true,"
+        << "\"ruleDraftActionPackageContractOnly\":true,"
+        << "\"draftPackage\":\"prepared-read-model\","
+        << "\"ruleThresholdCandidate\":\"threshold-scenario-review-only\","
+        << "\"scenarioCandidate\":\"scenario-review-only\","
+        << "\"reviewChecklist\":\"operator-review-required\","
+        << "\"applyBlocker\":\"rule-apply-disabled\","
+        << "\"readinessRef\":\"/ops/api/actions/readiness-preflight\","
+        << "\"noticeDraftRef\":\"/ops/api/actions/client-notice-draft-queue\""
+        << "},\"packageStates\":";
+    AppendJsonStringArray(out, {"draft", "review-needed", "blocked", "apply-blocked", "not-run"});
+    out << ",\"draftPackage\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV380RuleDraftActionPackageItemJson(out, items[i]);
+    }
+    out << "],\"reviewChecklist\":{"
+        << "\"checklistState\":\"review-needed\","
+        << "\"manualReviewRequired\":true,"
+        << "\"requiredChecks\":";
+    AppendJsonStringArray(out,
+                          {"approval-state",
+                           "readiness-state",
+                           "rule-threshold-review",
+                           "scenario-impact-review",
+                           "client-notice-redaction"});
+    out << "},\"applyBlocker\":{"
+        << "\"ruleApplyPerformed\":false,"
+        << "\"scenarioApplyPerformed\":false,"
+        << "\"ruleDraftPersisted\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"profileRegistryWritePerformed\":false"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"ruleDraftActionPackageContractOnly\":true,"
+        << "\"ruleDraftPersisted\":false,"
+        << "\"ruleApplyPerformed\":false,"
+        << "\"scenarioApplyPerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"profileRegistryWritePerformed\":false,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"actionRequestPersisted\":false,"
+        << "\"approvalDecisionPersisted\":false,"
+        << "\"readinessResultPersisted\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"sourceHealthWritePerformed\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"runbookInstancePersisted\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV380OutcomeObserverReconciliationItem {
+    std::string outcome_observer_id;
+    std::string action_request_ref;
+    std::string readiness_ref;
+    std::string execution_candidate_ref;
+    std::string observed_outcome_ref;
+    std::string source_outcome_diff;
+    std::string event_record_outcome_diff;
+    std::string client_impact_outcome_diff;
+    std::string rule_draft_outcome_diff;
+    std::string reconciliation_status{"pending-observation"};
+    std::string pending_reason{"actionExecutionPerformed=false; observedOutcomeRef=not-run"};
+    std::vector<std::string> evidence_refs;
+    std::vector<std::string> observer_signals;
+    bool source_reconciled{false};
+    bool event_record_reconciled{false};
+    bool client_reconciled{false};
+    bool rule_reconciled{false};
+    bool execution_observed{false};
+    bool read_only{true};
+};
+
+struct OpsV380OutcomeObserverReconciliationSummary {
+    int observer_count{0};
+    int source_diff_count{0};
+    int event_record_diff_count{0};
+    int client_diff_count{0};
+    int rule_diff_count{0};
+    int pending_count{0};
+    int execution_observed_count{0};
+    int not_run_count{0};
+    std::vector<std::string> derivation_sources;
+};
+
+std::vector<OpsV380OutcomeObserverReconciliationItem>
+BuildV380OutcomeObserverReconciliationItems() {
+    const auto ledgerFields = BuildV380ActionRequestLedgerContractItems();
+    const auto readinessItems = BuildV380ActionReadinessPreflightItems();
+    const auto sourcePilotItems = BuildV380SourceRecheckActionPilotItems();
+    const auto noticeDraftItems = BuildV380ClientNoticeDraftQueueItems();
+    const auto rulePackageItems = BuildV380RuleDraftActionPackageItems();
+
+    const std::size_t item_count =
+        std::max<std::size_t>(1U,
+                              std::max({sourcePilotItems.size(),
+                                        noticeDraftItems.size(),
+                                        rulePackageItems.size()}));
+    std::vector<OpsV380OutcomeObserverReconciliationItem> items;
+    for (std::size_t index = 0; index < item_count && index < 8U; ++index) {
+        const auto& readiness =
+            readinessItems.empty() ? OpsV380ActionReadinessPreflightItem{}
+                                   : readinessItems[index % readinessItems.size()];
+        const auto& source =
+            sourcePilotItems.empty() ? OpsV380SourceRecheckActionPilotItem{}
+                                     : sourcePilotItems[index % sourcePilotItems.size()];
+        const auto& notice =
+            noticeDraftItems.empty() ? OpsV380ClientNoticeDraftQueueItem{}
+                                     : noticeDraftItems[index % noticeDraftItems.size()];
+        const auto& rule =
+            rulePackageItems.empty() ? OpsV380RuleDraftActionPackageItem{}
+                                     : rulePackageItems[index % rulePackageItems.size()];
+
+        OpsV380OutcomeObserverReconciliationItem item;
+        item.outcome_observer_id =
+            "outcomeObserver:v380:" + std::to_string(index + 1);
+        item.action_request_ref =
+            ledgerFields.empty()
+                ? "actionRequestRef:v380-actions/{siteId}/{actionKind}/{idempotencyKey}"
+                : "actionRequestRef:" + ledgerFields.front().json_name;
+        item.readiness_ref =
+            readiness.dimension.empty()
+                ? "/ops/api/actions/readiness-preflight"
+                : "/ops/api/actions/readiness-preflight#" + readiness.dimension;
+        item.execution_candidate_ref =
+            "executionCandidateRef:" +
+            (source.field.empty() ? std::string("source-recheck-pilot")
+                                  : source.field);
+        item.observed_outcome_ref =
+            "observedOutcomeRef:not-run:future-action-receipt";
+        item.source_outcome_diff =
+            "source-outcome-diff: readiness-to-outcome " +
+            (source.state.empty() ? std::string("not-run") : source.state) +
+            " -> observed:not-run";
+        item.event_record_outcome_diff =
+            "event-record-outcome-diff: candidate-to-observed-outcome no EventRecord write";
+        item.client_impact_outcome_diff =
+            "client-impact-outcome-diff: " +
+            (notice.state.empty() ? std::string("notice-not-run") : notice.state) +
+            " -> clientNoticeSent=false";
+        item.rule_draft_outcome_diff =
+            "rule-draft-outcome-diff: " +
+            (rule.state.empty() ? std::string("draft-not-run") : rule.state) +
+            " -> ruleApplyPerformed=false";
+        item.reconciliation_status =
+            "pending-observation";
+        item.pending_reason =
+            "actionExecutionPerformed=false; sourceRecheckExecuted=false; observedOutcomeRef=not-run";
+        item.evidence_refs = {
+            "/ops/api/actions/request-ledger",
+            "/ops/api/actions/readiness-preflight",
+            "/ops/api/actions/source-recheck-pilot",
+            "/ops/api/actions/client-notice-draft-queue",
+            "/ops/api/actions/rule-draft-package",
+            "future-action-receipt",
+        };
+        item.observer_signals = {
+            "readiness-to-outcome:pending",
+            "candidate-to-observed-outcome:pending",
+            "source-outcome-diff:not-run",
+            "event-record-outcome-diff:not-run",
+            "client-impact-outcome-diff:not-run",
+            "rule-draft-outcome-diff:not-run",
+        };
+        items.push_back(std::move(item));
+    }
+    return items;
+}
+
+OpsV380OutcomeObserverReconciliationSummary
+BuildV380OutcomeObserverReconciliationSummary(
+    const std::vector<OpsV380OutcomeObserverReconciliationItem>& items) {
+    OpsV380OutcomeObserverReconciliationSummary summary;
+    summary.derivation_sources = {
+        "BuildV380ActionRequestLedgerContractItems",
+        "BuildV380ActionReadinessPreflightItems",
+        "BuildV380SourceRecheckActionPilotItems",
+        "BuildV380ClientNoticeDraftQueueItems",
+        "BuildV380RuleDraftActionPackageItems",
+    };
+    summary.observer_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        if (!item.source_outcome_diff.empty()) {
+            ++summary.source_diff_count;
+        }
+        if (!item.event_record_outcome_diff.empty()) {
+            ++summary.event_record_diff_count;
+        }
+        if (!item.client_impact_outcome_diff.empty()) {
+            ++summary.client_diff_count;
+        }
+        if (!item.rule_draft_outcome_diff.empty()) {
+            ++summary.rule_diff_count;
+        }
+        if (item.reconciliation_status.find("pending") != std::string::npos) {
+            ++summary.pending_count;
+        }
+        if (item.execution_observed) {
+            ++summary.execution_observed_count;
+        } else {
+            ++summary.not_run_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV380OutcomeObserverReconciliationSummaryJson(
+    std::ostringstream& out,
+    const OpsV380OutcomeObserverReconciliationSummary& summary) {
+    out << "{"
+        << "\"observerCount\":" << summary.observer_count << ","
+        << "\"sourceDiffCount\":" << summary.source_diff_count << ","
+        << "\"eventRecordDiffCount\":" << summary.event_record_diff_count << ","
+        << "\"clientDiffCount\":" << summary.client_diff_count << ","
+        << "\"ruleDiffCount\":" << summary.rule_diff_count << ","
+        << "\"pendingCount\":" << summary.pending_count << ","
+        << "\"executionObservedCount\":" << summary.execution_observed_count << ","
+        << "\"notRunCount\":" << summary.not_run_count << ","
+        << "\"derivationSources\":";
+    AppendJsonStringArray(out, summary.derivation_sources);
+    out << "}";
+}
+
+void AppendV380OutcomeObserverReconciliationItemJson(
+    std::ostringstream& out,
+    const OpsV380OutcomeObserverReconciliationItem& item) {
+    out << "{"
+        << "\"outcomeObserverId\":\"" << JsonEscape(item.outcome_observer_id) << "\","
+        << "\"actionRequestRef\":\"" << JsonEscape(item.action_request_ref) << "\","
+        << "\"readinessRef\":\"" << JsonEscape(item.readiness_ref) << "\","
+        << "\"executionCandidateRef\":\"" << JsonEscape(item.execution_candidate_ref) << "\","
+        << "\"observedOutcomeRef\":\"" << JsonEscape(item.observed_outcome_ref) << "\","
+        << "\"sourceOutcomeDiff\":\"" << JsonEscape(item.source_outcome_diff) << "\","
+        << "\"eventRecordOutcomeDiff\":\"" << JsonEscape(item.event_record_outcome_diff) << "\","
+        << "\"clientImpactOutcomeDiff\":\"" << JsonEscape(item.client_impact_outcome_diff) << "\","
+        << "\"ruleDraftOutcomeDiff\":\"" << JsonEscape(item.rule_draft_outcome_diff) << "\","
+        << "\"reconciliationStatus\":\"" << JsonEscape(item.reconciliation_status) << "\","
+        << "\"pendingReason\":\"" << JsonEscape(item.pending_reason) << "\","
+        << "\"evidenceRefs\":";
+    AppendJsonStringArray(out, item.evidence_refs);
+    out << ",\"observerSignals\":";
+    AppendJsonStringArray(out, item.observer_signals);
+    out << ",\"sourceReconciled\":" << JsonBool(item.source_reconciled)
+        << ",\"eventRecordReconciled\":" << JsonBool(item.event_record_reconciled)
+        << ",\"clientReconciled\":" << JsonBool(item.client_reconciled)
+        << ",\"ruleReconciled\":" << JsonBool(item.rule_reconciled)
+        << ",\"executionObserved\":" << JsonBool(item.execution_observed)
+        << ",\"readOnly\":" << JsonBool(item.read_only)
+        << "}";
+}
+
+std::string OpsV380OutcomeObserverReconciliationJson() {
+    const auto items = BuildV380OutcomeObserverReconciliationItems();
+    const auto summary = BuildV380OutcomeObserverReconciliationSummary(items);
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v380-outcome-observer-reconciliation.v1\","
+        << "\"status\":\"outcome-observer-reconciliation\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"route\":\"/ops/api/actions/outcome-reconciliation\","
+        << "\"requestLedgerRoute\":\"/ops/api/actions/request-ledger\","
+        << "\"readinessPreflightRoute\":\"/ops/api/actions/readiness-preflight\","
+        << "\"sourceRecheckActionPilotRoute\":\"/ops/api/actions/source-recheck-pilot\","
+        << "\"clientNoticeDraftQueueRoute\":\"/ops/api/actions/client-notice-draft-queue\","
+        << "\"ruleDraftActionPackageRoute\":\"/ops/api/actions/rule-draft-package\","
+        << "\"readinessCompared\":true,"
+        << "\"candidateCompared\":true,"
+        << "\"observedOutcomeCompared\":true,"
+        << "\"executionObserved\":false,"
+        << "\"outcomeObserverSummary\":";
+    AppendV380OutcomeObserverReconciliationSummaryJson(out, summary);
+    out << ",\"outcomeObserverItems\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV380OutcomeObserverReconciliationItemJson(out, items[i]);
+    }
+    out << "],\"observerPolicy\":{"
+        << "\"comparisonAxes\":[\"source-outcome-diff\",\"event-record-outcome-diff\",\"client-impact-outcome-diff\",\"rule-draft-outcome-diff\"],"
+        << "\"readinessRef\":\"required\","
+        << "\"executionCandidateRef\":\"required\","
+        << "\"observedOutcomeRef\":\"not-run until approved action evidence exists\","
+        << "\"executionObserved\":false,"
+        << "\"pendingOutcomeBehavior\":\"preserve pending/not-run; do not synthesize success\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"outcomeObserverOnly\":true,"
+        << "\"readinessCompared\":true,"
+        << "\"candidateCompared\":true,"
+        << "\"observedOutcomeCompared\":true,"
+        << "\"executionObserved\":false,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"ruleApplyPerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"actionResultPersisted\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV380ActionReceiptBundleItem {
+    std::string receipt_bundle_id;
+    std::string action_request_ref;
+    std::string approval_decision_ref;
+    std::string readiness_ref;
+    std::string execution_candidate_ref;
+    std::string outcome_diff_ref;
+    std::string redaction_summary;
+    std::string handoff_map;
+    std::string receipt_state{"redacted-release-safe"};
+    std::string release_safe_label{"release-safe-read-model"};
+    std::vector<std::string> bundle_signals;
+    std::vector<std::string> handoff_refs;
+    std::vector<std::string> redaction_review;
+    bool release_safe{true};
+    bool read_only{true};
+};
+
+struct OpsV380ActionReceiptBundleSummary {
+    int receipt_count{0};
+    int release_safe_count{0};
+    int redaction_review_count{0};
+    int handoff_ref_count{0};
+    int not_run_count{0};
+    std::vector<std::string> derivation_sources;
+};
+
+std::vector<OpsV380ActionReceiptBundleItem> BuildV380ActionReceiptBundleItems() {
+    const auto ledgerFields = BuildV380ActionRequestLedgerContractItems();
+    const auto approvalStates = BuildV380ApprovalDecisionGateItems();
+    const auto readinessItems = BuildV380ActionReadinessPreflightItems();
+    const auto sourcePilotItems = BuildV380SourceRecheckActionPilotItems();
+    const auto noticeDraftItems = BuildV380ClientNoticeDraftQueueItems();
+    const auto rulePackageItems = BuildV380RuleDraftActionPackageItems();
+    const auto outcomeItems = BuildV380OutcomeObserverReconciliationItems();
+
+    const std::size_t item_count =
+        std::max<std::size_t>(1U,
+                              std::max({approvalStates.size(),
+                                        readinessItems.size(),
+                                        sourcePilotItems.size(),
+                                        outcomeItems.size()}));
+    std::vector<OpsV380ActionReceiptBundleItem> items;
+    for (std::size_t index = 0; index < item_count && index < 8U; ++index) {
+        const auto& ledger =
+            ledgerFields.empty() ? OpsV380ActionRequestLedgerContractItem{}
+                                 : ledgerFields[index % ledgerFields.size()];
+        const auto& approval =
+            approvalStates.empty() ? OpsV380ApprovalDecisionGateItem{}
+                                   : approvalStates[index % approvalStates.size()];
+        const auto& readiness =
+            readinessItems.empty() ? OpsV380ActionReadinessPreflightItem{}
+                                   : readinessItems[index % readinessItems.size()];
+        const auto& source =
+            sourcePilotItems.empty() ? OpsV380SourceRecheckActionPilotItem{}
+                                     : sourcePilotItems[index % sourcePilotItems.size()];
+        const auto& notice =
+            noticeDraftItems.empty() ? OpsV380ClientNoticeDraftQueueItem{}
+                                     : noticeDraftItems[index % noticeDraftItems.size()];
+        const auto& rule =
+            rulePackageItems.empty() ? OpsV380RuleDraftActionPackageItem{}
+                                     : rulePackageItems[index % rulePackageItems.size()];
+        const auto& outcome =
+            outcomeItems.empty() ? OpsV380OutcomeObserverReconciliationItem{}
+                                 : outcomeItems[index % outcomeItems.size()];
+
+        OpsV380ActionReceiptBundleItem item;
+        item.receipt_bundle_id =
+            "receiptBundle:v380:" + std::to_string(index + 1);
+        item.action_request_ref =
+            "request-to-receipt:" +
+            (ledger.json_name.empty() ? std::string("actionRequestId") : ledger.json_name);
+        item.approval_decision_ref =
+            "approval-to-receipt:" +
+            (approval.decision.empty() ? std::string("approval-needed") : approval.decision);
+        item.readiness_ref =
+            "readiness-to-receipt:" +
+            (readiness.dimension.empty() ? std::string("readiness-preflight") : readiness.dimension);
+        item.execution_candidate_ref =
+            "candidate-to-receipt:" +
+            (source.field.empty() ? std::string("source-recheck-pilot") : source.field);
+        item.outcome_diff_ref =
+            "outcome-diff-to-receipt:" +
+            (outcome.outcome_observer_id.empty() ? std::string("outcome-observer") : outcome.outcome_observer_id);
+        item.redaction_summary =
+            "redacted: operator, source locator, credential, raw diagnostic, internal blocker detail excluded";
+        item.handoff_map =
+            "release-safe-handoff: ops-reviewer -> release-notes-source";
+        item.receipt_state =
+            "redacted-release-safe";
+        item.release_safe_label =
+            "releaseSafe=true; bundlePersisted=false; artifactFileWritePerformed=false";
+        item.bundle_signals = {
+            "request-to-receipt:present",
+            "approval-to-receipt:present",
+            "readiness-to-receipt:present",
+            "candidate-to-receipt:not-run",
+            "outcome-diff-to-receipt:pending",
+            "release-safe-handoff:ready",
+        };
+        item.handoff_refs = {
+            "/ops/api/actions/request-ledger",
+            "/ops/api/actions/approval-decision-gate",
+            "/ops/api/actions/readiness-preflight",
+            "/ops/api/actions/source-recheck-pilot",
+            "/ops/api/actions/outcome-reconciliation",
+        };
+        item.redaction_review = {
+            notice.field.empty() ? "client-notice-redaction:viewer-safe-only"
+                                 : "client-notice-redaction:" + notice.field,
+            rule.field.empty() ? "rule-draft-redaction:no-rule-apply"
+                               : "rule-draft-redaction:" + rule.field,
+            "raw-locator-excluded",
+            "credential-material-excluded",
+            "raw-diagnostic-json-excluded",
+        };
+        items.push_back(std::move(item));
+    }
+    return items;
+}
+
+OpsV380ActionReceiptBundleSummary BuildV380ActionReceiptBundleSummary(
+    const std::vector<OpsV380ActionReceiptBundleItem>& items) {
+    OpsV380ActionReceiptBundleSummary summary;
+    summary.derivation_sources = {
+        "BuildV380ActionRequestLedgerContractItems",
+        "BuildV380ApprovalDecisionGateItems",
+        "BuildV380ActionReadinessPreflightItems",
+        "BuildV380SourceRecheckActionPilotItems",
+        "BuildV380ClientNoticeDraftQueueItems",
+        "BuildV380RuleDraftActionPackageItems",
+        "BuildV380OutcomeObserverReconciliationItems",
+    };
+    summary.receipt_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        if (item.release_safe) {
+            ++summary.release_safe_count;
+        }
+        summary.redaction_review_count += static_cast<int>(item.redaction_review.size());
+        summary.handoff_ref_count += static_cast<int>(item.handoff_refs.size());
+        if (item.outcome_diff_ref.find("not-run") != std::string::npos ||
+            item.release_safe_label.find("artifactFileWritePerformed=false") != std::string::npos) {
+            ++summary.not_run_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV380ActionReceiptBundleSummaryJson(
+    std::ostringstream& out,
+    const OpsV380ActionReceiptBundleSummary& summary) {
+    out << "{"
+        << "\"receiptCount\":" << summary.receipt_count << ","
+        << "\"releaseSafeCount\":" << summary.release_safe_count << ","
+        << "\"redactionReviewCount\":" << summary.redaction_review_count << ","
+        << "\"handoffRefCount\":" << summary.handoff_ref_count << ","
+        << "\"notRunCount\":" << summary.not_run_count << ","
+        << "\"derivationSources\":";
+    AppendJsonStringArray(out, summary.derivation_sources);
+    out << "}";
+}
+
+void AppendV380ActionReceiptBundleItemJson(
+    std::ostringstream& out,
+    const OpsV380ActionReceiptBundleItem& item) {
+    out << "{"
+        << "\"receiptBundleId\":\"" << JsonEscape(item.receipt_bundle_id) << "\","
+        << "\"actionRequestRef\":\"" << JsonEscape(item.action_request_ref) << "\","
+        << "\"approvalDecisionRef\":\"" << JsonEscape(item.approval_decision_ref) << "\","
+        << "\"readinessRef\":\"" << JsonEscape(item.readiness_ref) << "\","
+        << "\"executionCandidateRef\":\"" << JsonEscape(item.execution_candidate_ref) << "\","
+        << "\"outcomeDiffRef\":\"" << JsonEscape(item.outcome_diff_ref) << "\","
+        << "\"redactionSummary\":\"" << JsonEscape(item.redaction_summary) << "\","
+        << "\"handoffMap\":\"" << JsonEscape(item.handoff_map) << "\","
+        << "\"receiptState\":\"" << JsonEscape(item.receipt_state) << "\","
+        << "\"releaseSafeLabel\":\"" << JsonEscape(item.release_safe_label) << "\","
+        << "\"bundleSignals\":";
+    AppendJsonStringArray(out, item.bundle_signals);
+    out << ",\"handoffRefs\":";
+    AppendJsonStringArray(out, item.handoff_refs);
+    out << ",\"redactionReview\":";
+    AppendJsonStringArray(out, item.redaction_review);
+    out << ",\"releaseSafe\":" << JsonBool(item.release_safe)
+        << ",\"readOnly\":" << JsonBool(item.read_only)
+        << "}";
+}
+
+std::string OpsV380ActionReceiptBundleJson() {
+    const auto items = BuildV380ActionReceiptBundleItems();
+    const auto summary = BuildV380ActionReceiptBundleSummary(items);
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v380-action-receipt-bundle.v1\","
+        << "\"status\":\"action-receipt-bundle\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"route\":\"/ops/api/actions/receipt-bundle\","
+        << "\"requestLedgerRoute\":\"/ops/api/actions/request-ledger\","
+        << "\"approvalDecisionGateRoute\":\"/ops/api/actions/approval-decision-gate\","
+        << "\"readinessPreflightRoute\":\"/ops/api/actions/readiness-preflight\","
+        << "\"sourceRecheckActionPilotRoute\":\"/ops/api/actions/source-recheck-pilot\","
+        << "\"clientNoticeDraftQueueRoute\":\"/ops/api/actions/client-notice-draft-queue\","
+        << "\"ruleDraftActionPackageRoute\":\"/ops/api/actions/rule-draft-package\","
+        << "\"outcomeReconciliationRoute\":\"/ops/api/actions/outcome-reconciliation\","
+        << "\"receiptBundleSummary\":";
+    AppendV380ActionReceiptBundleSummaryJson(out, summary);
+    out << ",\"receiptBundleItems\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV380ActionReceiptBundleItemJson(out, items[i]);
+    }
+    out << "],\"receiptPolicy\":{"
+        << "\"redacted\":true,"
+        << "\"releaseSafe\":true,"
+        << "\"handoffMapOnly\":true,"
+        << "\"requestApprovalReadinessCandidateOutcomeIncluded\":true,"
+        << "\"bundlePersisted\":false,"
+        << "\"artifactFileWritePerformed\":false,"
+        << "\"handoffWritePerformed\":false"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"receiptBundleOnly\":true,"
+        << "\"redacted\":true,"
+        << "\"releaseSafe\":true,"
+        << "\"handoffMapOnly\":true,"
+        << "\"bundlePersisted\":false,"
+        << "\"artifactFileWritePerformed\":false,"
+        << "\"handoffWritePerformed\":false,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"ruleApplyPerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"actionResultPersisted\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawDiagnosticJsonIncluded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
 }
 
 struct OpsV370SiteSourceGroupContractItem {
@@ -22907,6 +24899,846 @@ std::string OpsV370FieldEvidenceAttachmentJson(
         << "\"providerMaterialIncluded\":false,"
         << "\"vlmPromptIncluded\":false,"
         << "\"vlmResponseIncluded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV380FieldConnectorEvidencePackageItem {
+    std::string connector_evidence_package_id;
+    std::string connector_kind;
+    std::string action_request_ref;
+    std::string readiness_ref;
+    std::string source_recheck_ref;
+    std::string outcome_ref;
+    std::string receipt_bundle_ref;
+    std::string field_attachment_ref;
+    std::string endpoint_approval_ref;
+    std::string credential_approval_ref;
+    std::string connector_evidence_state{"conditional-not-run"};
+    std::string field_smoke_status{"field-smoke-not-run"};
+    std::string redacted_connector_evidence;
+    std::vector<std::string> condition_refs;
+    std::vector<std::string> evidence_refs;
+    bool endpoint_required{true};
+    bool credential_required{true};
+    bool operator_approval_required{true};
+    bool release_safe{true};
+    bool read_only{true};
+};
+
+struct OpsV380FieldConnectorEvidencePackageSummary {
+    int connector_package_count{0};
+    int onvif_connector_count{0};
+    int external_whep_turn_connector_count{0};
+    int cloud_provider_connector_count{0};
+    int endpoint_approval_required_count{0};
+    int credential_approval_required_count{0};
+    int operator_approval_required_count{0};
+    int not_run_count{0};
+    int release_safe_count{0};
+    int condition_ref_count{0};
+    std::vector<std::string> derivation_sources;
+};
+
+std::string V380FieldConnectorKindForBridge(const std::string& bridge_kind) {
+    if (bridge_kind == "onvif-real-device") {
+        return "onvif-connector-evidence";
+    }
+    if (bridge_kind == "external-whep-turn") {
+        return "external-whep-turn-connector-evidence";
+    }
+    if (bridge_kind == "real-cloud-vlm-provider") {
+        return "cloud-provider-connector-evidence";
+    }
+    return "field-connector-evidence";
+}
+
+std::vector<OpsV380FieldConnectorEvidencePackageItem>
+BuildV380FieldConnectorEvidencePackageItems(
+    const std::vector<OpsV380ActionReadinessPreflightItem>& readinessItems,
+    const std::vector<OpsV380SourceRecheckActionPilotItem>& sourceRecheckItems,
+    const std::vector<OpsV380OutcomeObserverReconciliationItem>& outcomeItems,
+    const std::vector<OpsV380ActionReceiptBundleItem>& receiptItems,
+    const std::vector<OpsV370FieldEvidenceAttachmentItem>& fieldAttachments) {
+    std::vector<OpsV380FieldConnectorEvidencePackageItem> items;
+    const std::size_t item_count =
+        std::max<std::size_t>(1U,
+                              std::max({fieldAttachments.size(),
+                                        readinessItems.size(),
+                                        sourceRecheckItems.size(),
+                                        receiptItems.size()}));
+
+    for (std::size_t index = 0; index < item_count && index < 8U; ++index) {
+        const auto& readiness =
+            readinessItems.empty() ? OpsV380ActionReadinessPreflightItem{}
+                                   : readinessItems[index % readinessItems.size()];
+        const auto& source =
+            sourceRecheckItems.empty() ? OpsV380SourceRecheckActionPilotItem{}
+                                       : sourceRecheckItems[index % sourceRecheckItems.size()];
+        const auto& outcome =
+            outcomeItems.empty() ? OpsV380OutcomeObserverReconciliationItem{}
+                                 : outcomeItems[index % outcomeItems.size()];
+        const auto& receipt =
+            receiptItems.empty() ? OpsV380ActionReceiptBundleItem{}
+                                 : receiptItems[index % receiptItems.size()];
+        const auto& attachment =
+            fieldAttachments.empty() ? OpsV370FieldEvidenceAttachmentItem{}
+                                     : fieldAttachments[index % fieldAttachments.size()];
+
+        OpsV380FieldConnectorEvidencePackageItem item;
+        item.connector_kind = V380FieldConnectorKindForBridge(attachment.bridge_kind);
+        item.connector_evidence_package_id =
+            "fieldConnectorEvidencePackage:" + item.connector_kind + ":" +
+            std::to_string(index + 1);
+        item.action_request_ref =
+            receipt.action_request_ref.empty()
+                ? "actionRequestRef:v380-actions/{siteId}/{actionKind}/{idempotencyKey}"
+                : receipt.action_request_ref;
+        item.readiness_ref =
+            readiness.dimension.empty()
+                ? "/ops/api/actions/readiness-preflight#fieldEvidence"
+                : "/ops/api/actions/readiness-preflight#" + readiness.dimension;
+        item.source_recheck_ref =
+            source.field.empty()
+                ? "/ops/api/actions/source-recheck-pilot#sourceHealthRecheck"
+                : "/ops/api/actions/source-recheck-pilot#" + source.field;
+        item.outcome_ref =
+            outcome.outcome_observer_id.empty()
+                ? "/ops/api/actions/outcome-reconciliation#pending"
+                : "/ops/api/actions/outcome-reconciliation#" + outcome.outcome_observer_id;
+        item.receipt_bundle_ref =
+            receipt.receipt_bundle_id.empty()
+                ? "/ops/api/actions/receipt-bundle#redacted-release-safe"
+                : "/ops/api/actions/receipt-bundle#" + receipt.receipt_bundle_id;
+        item.field_attachment_ref =
+            attachment.field_evidence_attachment_id.empty()
+                ? "/ops/api/site-operations/field-evidence-attachment#conditional-not-run"
+                : "/ops/api/site-operations/field-evidence-attachment#" +
+                      attachment.field_evidence_attachment_id;
+        item.endpoint_approval_ref =
+            "endpoint-approval-required:" + item.connector_kind;
+        item.credential_approval_ref =
+            "credential-approval-required:" + item.connector_kind;
+        item.connector_evidence_state = "conditional-not-run";
+        item.field_smoke_status =
+            attachment.field_smoke_status.empty() ? "field-smoke-not-run"
+                                                  : attachment.field_smoke_status;
+        item.redacted_connector_evidence =
+            attachment.redacted_field_evidence.empty()
+                ? "redactedConnectorEvidence: endpoint, locator, credential, provider, and debug material omitted"
+                : "redactedConnectorEvidence: " + attachment.redacted_field_evidence;
+        item.condition_refs = attachment.condition_refs;
+        item.condition_refs.push_back("credential-approval-required");
+        item.condition_refs.push_back("endpoint-approval-required");
+        item.condition_refs.push_back(item.field_smoke_status);
+        item.evidence_refs = attachment.evidence_refs;
+        item.evidence_refs.push_back("/ops/api/actions/readiness-preflight");
+        item.evidence_refs.push_back("/ops/api/actions/source-recheck-pilot");
+        item.evidence_refs.push_back("/ops/api/actions/outcome-reconciliation");
+        item.evidence_refs.push_back("/ops/api/actions/receipt-bundle");
+        item.evidence_refs.push_back("/ops/api/site-operations/field-evidence-attachment");
+        item.evidence_refs.push_back("onvif-connector-evidence");
+        item.evidence_refs.push_back("external-whep-turn-connector-evidence");
+        item.evidence_refs.push_back("cloud-provider-connector-evidence");
+        item.endpoint_required = attachment.endpoint_required;
+        item.credential_required = attachment.credential_required;
+        item.operator_approval_required = attachment.operator_approval_required;
+        items.push_back(std::move(item));
+    }
+    return items;
+}
+
+OpsV380FieldConnectorEvidencePackageSummary
+BuildV380FieldConnectorEvidencePackageSummary(
+    const std::vector<OpsV380FieldConnectorEvidencePackageItem>& items) {
+    OpsV380FieldConnectorEvidencePackageSummary summary;
+    summary.derivation_sources = {
+        "BuildV380ActionReadinessPreflightItems",
+        "BuildV380SourceRecheckActionPilotItems",
+        "BuildV380OutcomeObserverReconciliationItems",
+        "BuildV380ActionReceiptBundleItems",
+        "BuildV370FieldEvidenceAttachmentItems",
+    };
+    summary.connector_package_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        if (item.connector_kind == "onvif-connector-evidence") {
+            ++summary.onvif_connector_count;
+        } else if (item.connector_kind == "external-whep-turn-connector-evidence") {
+            ++summary.external_whep_turn_connector_count;
+        } else if (item.connector_kind == "cloud-provider-connector-evidence") {
+            ++summary.cloud_provider_connector_count;
+        }
+        if (item.endpoint_required) {
+            ++summary.endpoint_approval_required_count;
+        }
+        if (item.credential_required) {
+            ++summary.credential_approval_required_count;
+        }
+        if (item.operator_approval_required) {
+            ++summary.operator_approval_required_count;
+        }
+        if (item.connector_evidence_state == "conditional-not-run" ||
+            item.field_smoke_status == "field-smoke-not-run") {
+            ++summary.not_run_count;
+        }
+        if (item.release_safe) {
+            ++summary.release_safe_count;
+        }
+        summary.condition_ref_count += static_cast<int>(item.condition_refs.size());
+    }
+    return summary;
+}
+
+void AppendV380FieldConnectorEvidencePackageSummaryJson(
+    std::ostringstream& out,
+    const OpsV380FieldConnectorEvidencePackageSummary& summary) {
+    out << "{"
+        << "\"connectorPackageCount\":" << summary.connector_package_count << ","
+        << "\"onvifConnectorCount\":" << summary.onvif_connector_count << ","
+        << "\"externalWhepTurnConnectorCount\":"
+        << summary.external_whep_turn_connector_count << ","
+        << "\"cloudProviderConnectorCount\":"
+        << summary.cloud_provider_connector_count << ","
+        << "\"endpointApprovalRequiredCount\":"
+        << summary.endpoint_approval_required_count << ","
+        << "\"credentialApprovalRequiredCount\":"
+        << summary.credential_approval_required_count << ","
+        << "\"operatorApprovalRequiredCount\":"
+        << summary.operator_approval_required_count << ","
+        << "\"notRunCount\":" << summary.not_run_count << ","
+        << "\"releaseSafeCount\":" << summary.release_safe_count << ","
+        << "\"conditionRefCount\":" << summary.condition_ref_count << ","
+        << "\"derivationSources\":";
+    AppendJsonStringArray(out, summary.derivation_sources);
+    out << "}";
+}
+
+void AppendV380FieldConnectorEvidencePackageItemJson(
+    std::ostringstream& out,
+    const OpsV380FieldConnectorEvidencePackageItem& item) {
+    out << "{"
+        << "\"connectorEvidencePackageId\":\""
+        << JsonEscape(item.connector_evidence_package_id) << "\","
+        << "\"connectorKind\":\"" << JsonEscape(item.connector_kind) << "\","
+        << "\"actionRequestRef\":\"" << JsonEscape(item.action_request_ref) << "\","
+        << "\"readinessRef\":\"" << JsonEscape(item.readiness_ref) << "\","
+        << "\"sourceRecheckRef\":\"" << JsonEscape(item.source_recheck_ref) << "\","
+        << "\"outcomeRef\":\"" << JsonEscape(item.outcome_ref) << "\","
+        << "\"receiptBundleRef\":\"" << JsonEscape(item.receipt_bundle_ref) << "\","
+        << "\"fieldAttachmentRef\":\"" << JsonEscape(item.field_attachment_ref) << "\","
+        << "\"endpointApprovalRef\":\"" << JsonEscape(item.endpoint_approval_ref) << "\","
+        << "\"credentialApprovalRef\":\"" << JsonEscape(item.credential_approval_ref) << "\","
+        << "\"operatorApprovalRequired\":"
+        << JsonBool(item.operator_approval_required) << ","
+        << "\"connectorEvidenceState\":\""
+        << JsonEscape(item.connector_evidence_state) << "\","
+        << "\"fieldSmokeStatus\":\"" << JsonEscape(item.field_smoke_status) << "\","
+        << "\"redactedConnectorEvidence\":\""
+        << JsonEscape(item.redacted_connector_evidence) << "\","
+        << "\"conditionRefs\":";
+    AppendJsonStringArray(out, item.condition_refs);
+    out << ",\"evidenceRefs\":";
+    AppendJsonStringArray(out, item.evidence_refs);
+    out << ",\"endpointRequired\":" << JsonBool(item.endpoint_required)
+        << ",\"credentialRequired\":" << JsonBool(item.credential_required)
+        << ",\"releaseSafe\":" << JsonBool(item.release_safe)
+        << ",\"readOnly\":" << JsonBool(item.read_only)
+        << "}";
+}
+
+std::string OpsV380FieldConnectorEvidencePackageJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v380-field-connector-evidence-package.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto dryRunResults = BuildV360CommandPlanDryRunResults(commandPlanCandidates);
+    const auto impactDiffs =
+        BuildV360SourceRuleImpactDiffs(context, commandPlanCandidates, stagedChangePlans);
+    const auto readinessItemsV360 =
+        BuildV360SafeApplyReadinessItems(dryRunResults, impactDiffs);
+    const auto v360InputPackItems =
+        BuildV360SimulationInputPackItems(context, commandPlanCandidates, stagedChangePlans);
+    const auto inputSummary = BuildV360SimulationInputPackSummary(v360InputPackItems);
+    const auto simulationRunContract = BuildV360SimulationRunContract();
+    const auto simulationResultEnvelope = BuildV360SimulationResultEnvelope(inputSummary);
+    const auto simulationRunLedgerEntries =
+        BuildV360SimulationRunLedgerEntries(context,
+                                            v360InputPackItems,
+                                            simulationRunContract,
+                                            simulationResultEnvelope,
+                                            dryRunResults,
+                                            impactDiffs,
+                                            readinessItemsV360);
+    const auto projection =
+        BuildV370SiteAwareSourceRegistryProjectionItems(context.sources, context.views);
+    const auto rollups =
+        BuildV370SiteHealthRollupItems(context.sources, context.views, source_health_snapshot);
+    const auto impactGraphNodes = BuildV370SiteImpactGraphNodes(context, projection, rollups);
+    const auto impactGraphEdges = BuildV370SiteImpactGraphEdges(projection);
+    const auto siteSimulationInputPackItems =
+        BuildV370SiteSimulationInputPackItems(context,
+                                             projection,
+                                             rollups,
+                                             impactGraphNodes,
+                                             impactGraphEdges,
+                                             v360InputPackItems);
+    const auto crossSiteReadinessItems =
+        BuildV370CrossSiteSafeApplyReadinessItems(projection,
+                                                 siteSimulationInputPackItems,
+                                                 readinessItemsV360,
+                                                 impactDiffs);
+    const auto runbookTemplateContractItems =
+        BuildV370RunbookTemplateContractItems(commandPlanCandidates,
+                                             dryRunResults,
+                                             impactDiffs,
+                                             readinessItemsV360,
+                                             projection,
+                                             siteSimulationInputPackItems,
+                                             crossSiteReadinessItems);
+    const auto runbookInstanceLedgerEntries =
+        BuildV370RunbookInstanceLedgerEntries(runbookTemplateContractItems,
+                                             crossSiteReadinessItems,
+                                             simulationRunLedgerEntries);
+    const auto approvalTicketWorkflowItems =
+        BuildV370ApprovalTicketWorkflowItems(runbookTemplateContractItems,
+                                            runbookInstanceLedgerEntries,
+                                            crossSiteReadinessItems);
+    const auto fieldBridgeConditionGates = BuildV340FieldBridgeConditionGates();
+    const auto fieldEvidenceIntakeRecords =
+        BuildV350FieldEvidenceIntakeRecords(fieldBridgeConditionGates);
+    const auto fieldEvidenceExecutionConditions =
+        BuildV350FieldEvidenceExecutionConditions(fieldEvidenceIntakeRecords);
+    const auto fieldAttachments =
+        BuildV370FieldEvidenceAttachmentItems(projection,
+                                             siteSimulationInputPackItems,
+                                             runbookInstanceLedgerEntries,
+                                             approvalTicketWorkflowItems,
+                                             fieldEvidenceIntakeRecords,
+                                             fieldEvidenceExecutionConditions);
+    const auto readinessItems = BuildV380ActionReadinessPreflightItems();
+    const auto sourceRecheckItems = BuildV380SourceRecheckActionPilotItems();
+    const auto outcomeItems = BuildV380OutcomeObserverReconciliationItems();
+    const auto receiptItems = BuildV380ActionReceiptBundleItems();
+    const auto packageItems =
+        BuildV380FieldConnectorEvidencePackageItems(readinessItems,
+                                                   sourceRecheckItems,
+                                                   outcomeItems,
+                                                   receiptItems,
+                                                   fieldAttachments);
+    const auto summary =
+        BuildV380FieldConnectorEvidencePackageSummary(packageItems);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v380-field-connector-evidence-package.v1\","
+        << "\"status\":\"field-connector-evidence-package\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"route\":\"/ops/api/actions/field-connector-evidence-package\","
+        << "\"readinessPreflightRoute\":\"/ops/api/actions/readiness-preflight\","
+        << "\"sourceRecheckActionPilotRoute\":\"/ops/api/actions/source-recheck-pilot\","
+        << "\"outcomeReconciliationRoute\":\"/ops/api/actions/outcome-reconciliation\","
+        << "\"receiptBundleRoute\":\"/ops/api/actions/receipt-bundle\","
+        << "\"fieldEvidenceAttachmentRoute\":\"/ops/api/site-operations/field-evidence-attachment\","
+        << "\"fieldConnectorEvidenceSummary\":";
+    AppendV380FieldConnectorEvidencePackageSummaryJson(out, summary);
+    out << ",\"fieldConnectorEvidenceItems\":[";
+    for (std::size_t i = 0; i < packageItems.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV380FieldConnectorEvidencePackageItemJson(out, packageItems[i]);
+    }
+    out << "],\"connectorEvidencePolicy\":{"
+        << "\"connectorEvidencePackageOnly\":true,"
+        << "\"conditionalNotRunOnly\":true,"
+        << "\"releaseSafe\":true,"
+        << "\"onvif\":\"credential-approval-required; endpoint-approval-required; field-smoke-not-run\","
+        << "\"externalWhepTurn\":\"credential-approval-required; endpoint-approval-required; field-smoke-not-run\","
+        << "\"cloudProvider\":\"credential-approval-required; endpoint-approval-required; field-smoke-not-run\","
+        << "\"rawMaterial\":\"redacted\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"connectorEvidencePackageOnly\":true,"
+        << "\"conditionalNotRunOnly\":true,"
+        << "\"releaseSafe\":true,"
+        << "\"fieldSmokeExecuted\":false,"
+        << "\"endpointProbePerformed\":false,"
+        << "\"credentialProbePerformed\":false,"
+        << "\"providerCallPerformed\":false,"
+        << "\"onvifDeviceContacted\":false,"
+        << "\"externalWhepContacted\":false,"
+        << "\"externalTurnCredentialUsed\":false,"
+        << "\"cloudProviderCalled\":false,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"ruleApplyPerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"rawEndpointIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV380DefaultOffActionExplanationItem {
+    std::string default_off_action_explanation_id;
+    std::string explanation_kind;
+    std::string approval_blocker_summary;
+    std::string readiness_reason_summary;
+    std::string outcome_hint;
+    std::string operator_review_hint;
+    std::string action_request_ref;
+    std::string approval_ref;
+    std::string readiness_ref;
+    std::string outcome_ref;
+    std::string receipt_bundle_ref;
+    std::string field_connector_ref;
+    std::string redacted_explanation;
+    std::vector<std::string> evidence_refs;
+    bool default_enabled{false};
+    bool default_off{true};
+    bool runtime_opt_in_required{true};
+    bool provider_opt_in_required{true};
+    bool release_safe{true};
+    bool read_only{true};
+};
+
+struct OpsV380DefaultOffActionExplanationSummary {
+    int explanation_count{0};
+    int approval_blocker_count{0};
+    int readiness_reason_count{0};
+    int outcome_hint_count{0};
+    int default_off_count{0};
+    int provider_opt_in_required_count{0};
+    int runtime_opt_in_required_count{0};
+    int release_safe_count{0};
+    int evidence_ref_count{0};
+    std::vector<std::string> derivation_sources;
+};
+
+std::vector<OpsV380DefaultOffActionExplanationItem>
+BuildV380DefaultOffActionExplanationItems(
+    const std::vector<OpsV380ApprovalDecisionGateItem>& approvalItems,
+    const std::vector<OpsV380ActionReadinessPreflightItem>& readinessItems,
+    const std::vector<OpsV380OutcomeObserverReconciliationItem>& outcomeItems,
+    const std::vector<OpsV380ActionReceiptBundleItem>& receiptItems,
+    const std::vector<OpsV380FieldConnectorEvidencePackageItem>& fieldConnectorItems) {
+    std::vector<OpsV380DefaultOffActionExplanationItem> items;
+    const auto* approval =
+        approvalItems.empty() ? nullptr : &approvalItems.front();
+    const auto* readiness =
+        readinessItems.empty() ? nullptr : &readinessItems.front();
+    const auto* outcome =
+        outcomeItems.empty() ? nullptr : &outcomeItems.front();
+    const auto* receipt =
+        receiptItems.empty() ? nullptr : &receiptItems.front();
+    const auto* field =
+        fieldConnectorItems.empty() ? nullptr : &fieldConnectorItems.front();
+
+    OpsV380DefaultOffActionExplanationItem approval_item;
+    approval_item.default_off_action_explanation_id =
+        "defaultOffActionExplanation:approval-blocker-explanation";
+    approval_item.explanation_kind = "approval-blocker-explanation";
+    approval_item.approval_blocker_summary =
+        approval == nullptr
+            ? "approval blocker summary: approval decision is required before readiness"
+            : "approval blocker summary: " + approval->decision + " requires " +
+                  approval->required_role + " reason before readiness";
+    approval_item.readiness_reason_summary =
+        "readiness reason summary: approval must be approved and not stale";
+    approval_item.outcome_hint =
+        "outcome hint: no outcome is observed until an approved, explicit action path exists";
+    approval_item.operator_review_hint =
+        "operator review hint: choose approve, hold, reject, or field-needed outside this read model";
+    approval_item.action_request_ref =
+        receipt == nullptr ? "actionRequestRef:v380-actions/{siteId}/{actionKind}/{idempotencyKey}"
+                           : receipt->action_request_ref;
+    approval_item.approval_ref = "/ops/api/actions/approval-decision-gate#provider-opt-in-required";
+    approval_item.readiness_ref = "/ops/api/actions/readiness-preflight#approval";
+    approval_item.outcome_ref =
+        outcome == nullptr ? "/ops/api/actions/outcome-reconciliation#pending"
+                           : "/ops/api/actions/outcome-reconciliation#" + outcome->outcome_observer_id;
+    approval_item.receipt_bundle_ref =
+        receipt == nullptr ? "/ops/api/actions/receipt-bundle#redacted-release-safe"
+                           : "/ops/api/actions/receipt-bundle#" + receipt->receipt_bundle_id;
+    approval_item.field_connector_ref =
+        field == nullptr ? "/ops/api/actions/field-connector-evidence-package#conditional-not-run"
+                         : "/ops/api/actions/field-connector-evidence-package#" +
+                               field->connector_evidence_package_id;
+    approval_item.redacted_explanation =
+        "redactedExplanation: approval blocker text only; no raw prompt, provider response, credential, locator, or debug material";
+    approval_item.evidence_refs = {
+        "BuildV380ApprovalDecisionGateItems",
+        "BuildV380ActionReadinessPreflightItems",
+        "/ops/api/actions/approval-decision-gate",
+        "/ops/api/actions/readiness-preflight",
+        "provider-opt-in-required",
+        "runtime-opt-in-required",
+    };
+    items.push_back(std::move(approval_item));
+
+    const auto readiness_source =
+        readiness == nullptr ? std::string("readiness") : readiness->source;
+    OpsV380DefaultOffActionExplanationItem readiness_item;
+    readiness_item.default_off_action_explanation_id =
+        "defaultOffActionExplanation:readiness-reason-explanation";
+    readiness_item.explanation_kind = "readiness-reason-explanation";
+    readiness_item.approval_blocker_summary =
+        "approval blocker summary: readiness remains not-run until approval and field evidence refs are reviewed";
+    readiness_item.readiness_reason_summary =
+        readiness == nullptr
+            ? "readiness reason summary: blocker and source health reasons are pending"
+            : "readiness reason summary: " + readiness->dimension + " expects " +
+                  readiness->expected_state + " but is guarded by " + readiness->blocker;
+    readiness_item.outcome_hint =
+        "outcome hint: readiness reason explains why source recheck, notice, or rule package stays preview-only";
+    readiness_item.operator_review_hint =
+        "operator review hint: inspect " + readiness_source +
+        " and keep provider/runtime explanation default-off";
+    readiness_item.action_request_ref =
+        receipt == nullptr ? "actionRequestRef:v380-actions/{siteId}/{actionKind}/{idempotencyKey}"
+                           : receipt->action_request_ref;
+    readiness_item.approval_ref = "/ops/api/actions/approval-decision-gate#approval-blocker-explanation";
+    readiness_item.readiness_ref =
+        readiness == nullptr ? "/ops/api/actions/readiness-preflight#provider-opt-in-required"
+                             : "/ops/api/actions/readiness-preflight#" + readiness->dimension;
+    readiness_item.outcome_ref =
+        outcome == nullptr ? "/ops/api/actions/outcome-reconciliation#pending"
+                           : "/ops/api/actions/outcome-reconciliation#" + outcome->outcome_observer_id;
+    readiness_item.receipt_bundle_ref =
+        receipt == nullptr ? "/ops/api/actions/receipt-bundle#redacted-release-safe"
+                           : "/ops/api/actions/receipt-bundle#" + receipt->receipt_bundle_id;
+    readiness_item.field_connector_ref =
+        field == nullptr ? "/ops/api/actions/field-connector-evidence-package#conditional-not-run"
+                         : "/ops/api/actions/field-connector-evidence-package#" +
+                               field->connector_evidence_package_id;
+    readiness_item.redacted_explanation =
+        "redactedExplanation: readiness reason summary only; provider/runtime call remains not-run";
+    readiness_item.evidence_refs = {
+        "BuildV380ActionReadinessPreflightItems",
+        "BuildV380FieldConnectorEvidencePackageItems",
+        "/ops/api/actions/readiness-preflight",
+        "/ops/api/actions/field-connector-evidence-package",
+        "provider-opt-in-required",
+        "runtime-opt-in-required",
+    };
+    items.push_back(std::move(readiness_item));
+
+    OpsV380DefaultOffActionExplanationItem outcome_item;
+    outcome_item.default_off_action_explanation_id =
+        "defaultOffActionExplanation:outcome-hint-explanation";
+    outcome_item.explanation_kind = "outcome-hint-explanation";
+    outcome_item.approval_blocker_summary =
+        "approval blocker summary: outcome hints cannot replace approval or readiness";
+    outcome_item.readiness_reason_summary =
+        "readiness reason summary: outcome hints stay explain-only until an explicit approved pilot exists";
+    outcome_item.outcome_hint =
+        outcome == nullptr
+            ? "outcome hint: pending outcome comparison, no EventRecord or client impact mutation"
+            : "outcome hint: " + outcome->reconciliation_status + " with " +
+                  outcome->observed_outcome_ref + " and " + outcome->source_outcome_diff;
+    outcome_item.operator_review_hint =
+        "operator review hint: compare receipt and outcome refs; keep default-off explanation separate from provider calls";
+    outcome_item.action_request_ref =
+        receipt == nullptr ? "actionRequestRef:v380-actions/{siteId}/{actionKind}/{idempotencyKey}"
+                           : receipt->action_request_ref;
+    outcome_item.approval_ref = "/ops/api/actions/approval-decision-gate#approval-blocker-explanation";
+    outcome_item.readiness_ref = "/ops/api/actions/readiness-preflight#readiness-reason-explanation";
+    outcome_item.outcome_ref =
+        outcome == nullptr ? "/ops/api/actions/outcome-reconciliation#pending"
+                           : "/ops/api/actions/outcome-reconciliation#" + outcome->outcome_observer_id;
+    outcome_item.receipt_bundle_ref =
+        receipt == nullptr ? "/ops/api/actions/receipt-bundle#redacted-release-safe"
+                           : "/ops/api/actions/receipt-bundle#" + receipt->receipt_bundle_id;
+    outcome_item.field_connector_ref =
+        field == nullptr ? "/ops/api/actions/field-connector-evidence-package#conditional-not-run"
+                         : "/ops/api/actions/field-connector-evidence-package#" +
+                               field->connector_evidence_package_id;
+    outcome_item.redacted_explanation =
+        "redactedExplanation: outcome hint only; raw prompt, provider response, credential, endpoint, and debug material omitted";
+    outcome_item.evidence_refs = {
+        "BuildV380OutcomeObserverReconciliationItems",
+        "BuildV380ActionReceiptBundleItems",
+        "BuildV380FieldConnectorEvidencePackageItems",
+        "/ops/api/actions/outcome-reconciliation",
+        "/ops/api/actions/receipt-bundle",
+        "/ops/api/actions/field-connector-evidence-package",
+        "provider-opt-in-required",
+        "runtime-opt-in-required",
+    };
+    items.push_back(std::move(outcome_item));
+
+    return items;
+}
+
+OpsV380DefaultOffActionExplanationSummary
+BuildV380DefaultOffActionExplanationSummary(
+    const std::vector<OpsV380DefaultOffActionExplanationItem>& items) {
+    OpsV380DefaultOffActionExplanationSummary summary;
+    summary.derivation_sources = {
+        "BuildV380ApprovalDecisionGateItems",
+        "BuildV380ActionReadinessPreflightItems",
+        "BuildV380OutcomeObserverReconciliationItems",
+        "BuildV380ActionReceiptBundleItems",
+        "BuildV380FieldConnectorEvidencePackageItems",
+    };
+    summary.explanation_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        if (item.explanation_kind == "approval-blocker-explanation") {
+            ++summary.approval_blocker_count;
+        } else if (item.explanation_kind == "readiness-reason-explanation") {
+            ++summary.readiness_reason_count;
+        } else if (item.explanation_kind == "outcome-hint-explanation") {
+            ++summary.outcome_hint_count;
+        }
+        if (item.default_off && !item.default_enabled) {
+            ++summary.default_off_count;
+        }
+        if (item.provider_opt_in_required) {
+            ++summary.provider_opt_in_required_count;
+        }
+        if (item.runtime_opt_in_required) {
+            ++summary.runtime_opt_in_required_count;
+        }
+        if (item.release_safe) {
+            ++summary.release_safe_count;
+        }
+        summary.evidence_ref_count += static_cast<int>(item.evidence_refs.size());
+    }
+    return summary;
+}
+
+void AppendV380DefaultOffActionExplanationSummaryJson(
+    std::ostringstream& out,
+    const OpsV380DefaultOffActionExplanationSummary& summary) {
+    out << "{"
+        << "\"explanationCount\":" << summary.explanation_count << ","
+        << "\"approvalBlockerCount\":" << summary.approval_blocker_count << ","
+        << "\"readinessReasonCount\":" << summary.readiness_reason_count << ","
+        << "\"outcomeHintCount\":" << summary.outcome_hint_count << ","
+        << "\"defaultOffCount\":" << summary.default_off_count << ","
+        << "\"providerOptInRequiredCount\":"
+        << summary.provider_opt_in_required_count << ","
+        << "\"runtimeOptInRequiredCount\":"
+        << summary.runtime_opt_in_required_count << ","
+        << "\"releaseSafeCount\":" << summary.release_safe_count << ","
+        << "\"evidenceRefCount\":" << summary.evidence_ref_count << ","
+        << "\"derivationSources\":";
+    AppendJsonStringArray(out, summary.derivation_sources);
+    out << "}";
+}
+
+void AppendV380DefaultOffActionExplanationItemJson(
+    std::ostringstream& out,
+    const OpsV380DefaultOffActionExplanationItem& item) {
+    out << "{"
+        << "\"defaultOffActionExplanationId\":\""
+        << JsonEscape(item.default_off_action_explanation_id) << "\","
+        << "\"explanationKind\":\"" << JsonEscape(item.explanation_kind) << "\","
+        << "\"approvalBlockerSummary\":\""
+        << JsonEscape(item.approval_blocker_summary) << "\","
+        << "\"readinessReasonSummary\":\""
+        << JsonEscape(item.readiness_reason_summary) << "\","
+        << "\"outcomeHint\":\"" << JsonEscape(item.outcome_hint) << "\","
+        << "\"operatorReviewHint\":\"" << JsonEscape(item.operator_review_hint) << "\","
+        << "\"actionRequestRef\":\"" << JsonEscape(item.action_request_ref) << "\","
+        << "\"approvalRef\":\"" << JsonEscape(item.approval_ref) << "\","
+        << "\"readinessRef\":\"" << JsonEscape(item.readiness_ref) << "\","
+        << "\"outcomeRef\":\"" << JsonEscape(item.outcome_ref) << "\","
+        << "\"receiptBundleRef\":\"" << JsonEscape(item.receipt_bundle_ref) << "\","
+        << "\"fieldConnectorRef\":\"" << JsonEscape(item.field_connector_ref) << "\","
+        << "\"redactedExplanation\":\"" << JsonEscape(item.redacted_explanation) << "\","
+        << "\"evidenceRefs\":";
+    AppendJsonStringArray(out, item.evidence_refs);
+    out << ",\"defaultEnabled\":" << JsonBool(item.default_enabled)
+        << ",\"defaultOff\":" << JsonBool(item.default_off)
+        << ",\"runtimeOptInRequired\":"
+        << JsonBool(item.runtime_opt_in_required)
+        << ",\"providerOptInRequired\":"
+        << JsonBool(item.provider_opt_in_required)
+        << ",\"releaseSafe\":" << JsonBool(item.release_safe)
+        << ",\"readOnly\":" << JsonBool(item.read_only)
+        << "}";
+}
+
+std::string OpsV380DefaultOffActionExplanationJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v380-default-off-action-explanation.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto dryRunResults = BuildV360CommandPlanDryRunResults(commandPlanCandidates);
+    const auto impactDiffs =
+        BuildV360SourceRuleImpactDiffs(context, commandPlanCandidates, stagedChangePlans);
+    const auto readinessItemsV360 =
+        BuildV360SafeApplyReadinessItems(dryRunResults, impactDiffs);
+    const auto v360InputPackItems =
+        BuildV360SimulationInputPackItems(context, commandPlanCandidates, stagedChangePlans);
+    const auto inputSummary = BuildV360SimulationInputPackSummary(v360InputPackItems);
+    const auto simulationRunContract = BuildV360SimulationRunContract();
+    const auto simulationResultEnvelope = BuildV360SimulationResultEnvelope(inputSummary);
+    const auto simulationRunLedgerEntries =
+        BuildV360SimulationRunLedgerEntries(context,
+                                            v360InputPackItems,
+                                            simulationRunContract,
+                                            simulationResultEnvelope,
+                                            dryRunResults,
+                                            impactDiffs,
+                                            readinessItemsV360);
+    const auto projection =
+        BuildV370SiteAwareSourceRegistryProjectionItems(context.sources, context.views);
+    const auto rollups =
+        BuildV370SiteHealthRollupItems(context.sources, context.views, source_health_snapshot);
+    const auto impactGraphNodes = BuildV370SiteImpactGraphNodes(context, projection, rollups);
+    const auto impactGraphEdges = BuildV370SiteImpactGraphEdges(projection);
+    const auto siteSimulationInputPackItems =
+        BuildV370SiteSimulationInputPackItems(context,
+                                             projection,
+                                             rollups,
+                                             impactGraphNodes,
+                                             impactGraphEdges,
+                                             v360InputPackItems);
+    const auto crossSiteReadinessItems =
+        BuildV370CrossSiteSafeApplyReadinessItems(projection,
+                                                 siteSimulationInputPackItems,
+                                                 readinessItemsV360,
+                                                 impactDiffs);
+    const auto runbookTemplateContractItems =
+        BuildV370RunbookTemplateContractItems(commandPlanCandidates,
+                                             dryRunResults,
+                                             impactDiffs,
+                                             readinessItemsV360,
+                                             projection,
+                                             siteSimulationInputPackItems,
+                                             crossSiteReadinessItems);
+    const auto runbookInstanceLedgerEntries =
+        BuildV370RunbookInstanceLedgerEntries(runbookTemplateContractItems,
+                                             crossSiteReadinessItems,
+                                             simulationRunLedgerEntries);
+    const auto approvalTicketWorkflowItems =
+        BuildV370ApprovalTicketWorkflowItems(runbookTemplateContractItems,
+                                            runbookInstanceLedgerEntries,
+                                            crossSiteReadinessItems);
+    const auto fieldBridgeConditionGates = BuildV340FieldBridgeConditionGates();
+    const auto fieldEvidenceIntakeRecords =
+        BuildV350FieldEvidenceIntakeRecords(fieldBridgeConditionGates);
+    const auto fieldEvidenceExecutionConditions =
+        BuildV350FieldEvidenceExecutionConditions(fieldEvidenceIntakeRecords);
+    const auto fieldAttachments =
+        BuildV370FieldEvidenceAttachmentItems(projection,
+                                             siteSimulationInputPackItems,
+                                             runbookInstanceLedgerEntries,
+                                             approvalTicketWorkflowItems,
+                                             fieldEvidenceIntakeRecords,
+                                             fieldEvidenceExecutionConditions);
+    const auto approvalItems = BuildV380ApprovalDecisionGateItems();
+    const auto readinessItems = BuildV380ActionReadinessPreflightItems();
+    const auto sourceRecheckItems = BuildV380SourceRecheckActionPilotItems();
+    const auto outcomeItems = BuildV380OutcomeObserverReconciliationItems();
+    const auto receiptItems = BuildV380ActionReceiptBundleItems();
+    const auto fieldConnectorItems =
+        BuildV380FieldConnectorEvidencePackageItems(readinessItems,
+                                                   sourceRecheckItems,
+                                                   outcomeItems,
+                                                   receiptItems,
+                                                   fieldAttachments);
+    const auto explanations =
+        BuildV380DefaultOffActionExplanationItems(approvalItems,
+                                                 readinessItems,
+                                                 outcomeItems,
+                                                 receiptItems,
+                                                 fieldConnectorItems);
+    const auto summary =
+        BuildV380DefaultOffActionExplanationSummary(explanations);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v380-default-off-action-explanation.v1\","
+        << "\"status\":\"default-off-action-explanation\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"route\":\"/ops/api/actions/default-off-explanation\","
+        << "\"approvalDecisionGateRoute\":\"/ops/api/actions/approval-decision-gate\","
+        << "\"readinessPreflightRoute\":\"/ops/api/actions/readiness-preflight\","
+        << "\"outcomeReconciliationRoute\":\"/ops/api/actions/outcome-reconciliation\","
+        << "\"receiptBundleRoute\":\"/ops/api/actions/receipt-bundle\","
+        << "\"fieldConnectorEvidencePackageRoute\":\"/ops/api/actions/field-connector-evidence-package\","
+        << "\"defaultOffActionExplanationSummary\":";
+    AppendV380DefaultOffActionExplanationSummaryJson(out, summary);
+    out << ",\"defaultOffActionExplanations\":[";
+    for (std::size_t i = 0; i < explanations.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV380DefaultOffActionExplanationItemJson(out, explanations[i]);
+    }
+    out << "],\"explanationPolicy\":{"
+        << "\"explanationHintOnly\":true,"
+        << "\"defaultOff\":true,"
+        << "\"providerOptInRequired\":true,"
+        << "\"runtimeOptInRequired\":true,"
+        << "\"releaseSafe\":true,"
+        << "\"rawMaterial\":\"redacted\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"defaultOff\":true,"
+        << "\"explanationHintOnly\":true,"
+        << "\"runtimeOptInRequired\":true,"
+        << "\"providerOptInRequired\":true,"
+        << "\"defaultEnabled\":false,"
+        << "\"vlmProviderCallPerformed\":false,"
+        << "\"vlmRuntimeCallPerformed\":false,"
+        << "\"rawVlmPromptIncluded\":false,"
+        << "\"rawProviderResponseIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawEndpointIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"ruleApplyPerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"operatorReviewWritePerformed\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
         << "\"eventPostPayloadChanged\":false,"
         << "\"eventRecordSchemaChanged\":false,"
         << "\"webrtcDataChannelSchemaChanged\":false,"
@@ -35091,6 +37923,186 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            ok.headers["Cache-Control"] = "no-store";
 	                            return ok;
 	                        }
+
+                        if (request.path == "/ops/api/actions/route-boundary") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV380ActionRouteBoundaryJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/actions/capability-contract") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV380ActionCapabilityContractJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/actions/request-ledger") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV380ActionRequestLedgerContractJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/actions/approval-decision-gate") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV380ApprovalDecisionGateJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/actions/readiness-preflight") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV380ActionReadinessPreflightJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/actions/source-recheck-pilot") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV380SourceRecheckActionPilotJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/actions/client-notice-draft-queue") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV380ClientNoticeDraftQueueJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/actions/rule-draft-package") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV380RuleDraftActionPackageJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/actions/outcome-reconciliation") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV380OutcomeObserverReconciliationJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/actions/receipt-bundle") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV380ActionReceiptBundleJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/actions/field-connector-evidence-package") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV380FieldConnectorEvidencePackageJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/actions/default-off-explanation") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV380DefaultOffActionExplanationJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
 
                         if (request.path == "/ops/api/site-operations/source-group-contract") {
                             if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {

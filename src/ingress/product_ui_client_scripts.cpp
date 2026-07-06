@@ -263,6 +263,10 @@ void AppendClientShellScript(std::ostringstream& out) {
       for (const item of operationsNoticeItems) {
         lines.push(`운영 notice: ${item.operationsStatus || 'degraded'} / ${item.timelineHint || 'degraded'}`);
       }
+      const actionNoticeItems = Array.isArray(events.clientActionNoticePreview?.noticeItems) ? events.clientActionNoticePreview.noticeItems.slice(0, 3) : [];
+      for (const item of actionNoticeItems) {
+        lines.push(`Action notice: ${item.noticeStatus || 'degraded'} / ${item.timelineHint || 'degraded'}`);
+      }
       return lines.join('\n');
     };
     const clientStatusSummaryText = (payload = {}) => {
@@ -469,6 +473,34 @@ void AppendClientShellScript(std::ostringstream& out) {
             : items.map(item => `<article class="client-operations-notice-item">
               <strong>${escapeHtml(item.operationsStatus || 'degraded')}</strong>
               <span>${escapeHtml(item.timelineHint || 'degraded')}</span>
+            </article>`).join('')}
+        </div>
+      </section>`;
+    }
+    function renderClientActionNoticePreview(clientActionNoticePreview = {}) {
+      const items = Array.isArray(clientActionNoticePreview.noticeItems) ? clientActionNoticePreview.noticeItems : [];
+      const allowedStatus = value => ['maintenance', 'degraded', 'recovering', 'available'].includes(String(value || '')) ? String(value || '') : 'degraded';
+      return `<section class="client-action-notice-preview" data-testid="client-action-notice-preview" data-client-action-notice-preview="viewer-safe" aria-label="viewer-safe action notice preview" data-client-digest-schema="media-server.client.v380-action-notice-preview.v1">
+        <div class="toolbar">
+          <div>
+            <h3>Action notice</h3>
+            <p>${clientActionNoticePreview.viewerSafe === true ? '상태와 일정만 표시됩니다.' : '상태 확인이 필요합니다.'}</p>
+          </div>
+          <div class="meta">
+            <span class="chip ${clientActionNoticePreview.viewerSafe === true ? 'info' : 'warn'}">viewer-safe</span>
+            <span class="chip ${clientActionNoticePreview.previewOnly === true ? 'info' : 'warn'}">preview</span>
+            <span class="chip info">status/timeline</span>
+          </div>
+        </div>
+        <div class="client-action-notice-list">
+          ${items.length === 0
+            ? emptyState('Action notice 없음', '표시할 viewer-safe action notice가 없습니다.')
+            : items.map(item => `<article class="client-action-notice-item">
+              <div>
+                <strong>${escapeHtml(item.viewerSafeTitle || 'Action notice')}</strong>
+                <span>${escapeHtml(item.viewerSafeBody || 'Service status is being reviewed.')}</span>
+              </div>
+              <small>${escapeHtml(allowedStatus(item.noticeStatus))} · ${escapeHtml(item.timelineHint || allowedStatus(item.noticeStatus))}</small>
             </article>`).join('')}
         </div>
       </section>`;
@@ -1004,6 +1036,7 @@ void AppendClientShellScript(std::ostringstream& out) {
           ${renderClientSafeSourceStatusDigest(events.sourceStatusDigest || {})}
           ${renderClientSafeMaintenanceDigest(events.maintenanceDigest || {})}
           ${renderClientOperationsNotice(events.clientOperationsNotice || {})}
+          ${renderClientActionNoticePreview(events.clientActionNoticePreview || {})}
           ${renderClientImpactForecast(events.clientImpactForecast || {})}
           ${renderClientSafeEventDigest(events.eventDigest || {})}
           ${renderClientSafeResolutionDigest(events.resolutionDigest || {})}
@@ -1091,6 +1124,7 @@ void AppendClientShellScript(std::ostringstream& out) {
         ${renderClientSafeSourceStatusDigest(events.sourceStatusDigest || {})}
         ${renderClientSafeMaintenanceDigest(events.maintenanceDigest || {})}
         ${renderClientOperationsNotice(events.clientOperationsNotice || {})}
+        ${renderClientActionNoticePreview(events.clientActionNoticePreview || {})}
         ${renderClientImpactForecast(events.clientImpactForecast || {})}
         ${renderClientSafeEventDigest(events.eventDigest || {})}
         ${renderClientSafeResolutionDigest(events.resolutionDigest || {})}
@@ -2128,6 +2162,7 @@ void AppendClientShellScript(std::ostringstream& out) {
         ${renderClientSafeSourceStatusDigest(events.sourceStatusDigest || {})}
         ${renderClientSafeMaintenanceDigest(events.maintenanceDigest || {})}
         ${renderClientOperationsNotice(events.clientOperationsNotice || {})}
+        ${renderClientActionNoticePreview(events.clientActionNoticePreview || {})}
         ${renderClientImpactForecast(events.clientImpactForecast || {})}
         ${renderClientSafeEventDigest(events.eventDigest || {})}
 	        ${renderClientSafeResolutionDigest(events.resolutionDigest || {})}

@@ -3,7 +3,7 @@
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Published Release](https://img.shields.io/badge/published-v3.7.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v3.7.0)
-![Source Version](https://img.shields.io/badge/source-3.7.0-informational)
+![Source Version](https://img.shields.io/badge/source-3.8.0-informational)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
 video analytics overlays and rule/scenario live events when analytics are enabled.
@@ -15,9 +15,9 @@ and runtime/model bundle distribution are outside the default public release.
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
 - Latest published GitHub Release: [v3.7.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.7.0)
-- Current source version: `3.7.0`
+- Current source version: `3.8.0`
 - v3.7.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
-- Current source roadmap: `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`
+- Current source roadmap: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
 
 ## At a Glance
 
@@ -34,15 +34,16 @@ and runtime/model bundle distribution are outside the default public release.
   default-on, model/runtime bundle distribution, and guaranteed real-device or
   external-provider success are not included in the default public release.
 
-## v3.7 Source Roadmap
+## v3.8 Source Roadmap
 
 - Latest published release: `v3.7.0` Site-Aware Operations and Safe Runbook Control Plane, source-only.
-- Current source: `3.7.0` Site-Aware Operations and Safe Runbook Control Plane.
-- v3.7 roadmap: extends v3.6 simulation and safe-apply readiness into site,
-  source-group, client-view, and runbook approval boundaries so operators can
-  review impact and blockers across multiple sites in a controlled sequence.
-- Latest published baseline: v3.7.0 Site-Aware Operations and Safe Runbook
-  Control Plane is the published source baseline, while v3.6.0 Operations
+- Current source: `3.8.0` Operator-Gated Action Pilot & Outcome Loop.
+- v3.8 roadmap: builds on the v3.7 site/source group/runbook approval baseline
+  by creating low-risk operations action requests, approval decisions,
+  readiness/preflight checks, limited execution candidates, and outcome
+  reconciliation as one operator-gated loop.
+- Latest published baseline: v3.7.0 Site-Aware Operations and Safe Runbook Control Plane
+  is the published source baseline, while v3.6.0 Operations
   Simulation and Safe Apply Readiness is the previous published baseline.
 - Invariants: Event POST, WebRTC DataChannel, SSE/WS metadata, and RTSP/WebRTC
   media paths are unchanged unless explicitly requested.
@@ -134,7 +135,7 @@ records live in dedicated docs.
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
 - Latest published release notes: [v3.7.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.7.0)
-- Current source roadmap: `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane` in
+- Current source roadmap: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop` in
   [docs/development-backlog.md](docs/development-backlog.md)
 
 ## UI Preview

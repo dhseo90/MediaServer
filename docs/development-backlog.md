@@ -10,14 +10,625 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.7.0`
+- 현재 소스 버전: `3.8.0`
 - 최신 공개 GitHub Release: `v3.7.0`
 - `v3.7.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap: `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`
+- 현재 source roadmap: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
 - 최신 published baseline: `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`
 
-## 현재 source roadmap: v3.7.0 Site-Aware Operations and Safe Runbook Control Plane
+## 현재 source roadmap: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
+
+상태: Step 1 source baseline 정렬, Step 2 Ops Action Route Boundary, Step 3 Action
+Capability Contract, Step 4 Action Request Ledger Contract, Step 5 Approval Decision Gate,
+Step 6 Action Readiness Preflight, Step 7 Source Recheck Action Pilot, Step 8
+Client Notice Draft Queue, Step 9 Rule Draft Action Package, Step 10 Ops Action
+Control Workspace UI, Step 11 Client-safe Action Notice Preview, Step 12 Outcome Observer and
+Reconciliation, Step 13 Action Receipt Bundle, Step 14 Field Connector Evidence Package, Step 15
+Default-off Action Explanation, Step 16 Stabilization and Release Readiness를 완료했습니다. 현재 source version은 `3.8.0`이며,
+VERSION/CMake/docs/backlog/source roadmap과 v3.8 Step 1~16 local gate를
+`3.8.0` 기준으로 정렬했습니다. 각 step은 실제
+코드/API/UI/문서/검증 산출물이 생긴 뒤에만 완료로 기록합니다.
+
+직접 답: v3.8.0의 1차 선택값은 `Operator-Gated Action Pilot & Outcome Loop`입니다.
+v3.7이 site/source group/runbook approval을 read-only control plane으로 정리했다면,
+v3.8은 낮은 위험의 운영 action request를 생성하고, 승인하고, 제한 실행 후보와 결과
+reconciliation까지 연결하는 첫 operator-gated loop를 준비합니다.
+개발은 중요도와 의존 순서를 함께 고려해 Foundation -> Workflow -> Execution Pilot ->
+Product UI -> Evidence/Field -> Release 순서로 진행합니다.
+
+비범위:
+
+- 자동 대량 apply, 자동 recovery cutover, 자동 rule/profile 저장
+- approval 없이 source recheck, notice send, rule draft write, field probe 실행
+- SourceRegistry/PublishedView/EventRecord/Ops audit/client/media mutation의 무제한 허용
+- Event POST payload, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path 변경
+- viewer/client에 source locator, credential, raw diagnostic JSON, operator-only blocker detail 노출
+- VMS/NVR, 장기 녹화, playback/archive search, runtime/model bundle 배포
+- 외부 TURN/WHEP, ONVIF 실기기, cloud/VLM provider 성공을 기본 release PASS로 승격
+
+| 구간 | 제목 | 우선순위 | 개발 내용 |
+| --- | --- | --- | --- |
+| Foundation | v3.8.0 (1) v3.8.0 baseline 정렬 | P0 | VERSION/CMake/README/docs/backlog/source roadmap을 `3.8.0`와 `verify-v380-entry-baseline` 기준으로 정렬 |
+| Foundation | v3.8.0 (2) Ops Action Route Boundary | P0 | v3.8 action/runbook route family를 기존 v3.5~v3.7 projection과 분리해 확장할 수 있는 boundary와 helper 배치 |
+| Foundation | v3.8.0 (3) Action Capability Contract | P0 | 허용 action, 금지 action, required role/scope, idempotency, no-media-schema-change boundary 정의 |
+| Foundation | v3.8.0 (4) Action Request Ledger Contract | P0 | actionRequestId, siteId, runbookId, requestedBy, status, createdAt, idempotency key를 append-only/read-only ledger로 정의 |
+| Workflow | v3.8.0 (5) Approval Decision Gate | P0 | approve/hold/reject/field-needed decision, reviewer, reason, audit ref, stale decision guard를 관리 |
+| Workflow | v3.8.0 (6) Action Readiness Preflight | P0 | capability, approval, field evidence, source health, client impact, duplicate request blocker를 실행 전 판정 |
+| Execution Pilot | v3.8.0 (7) Source Recheck Action Pilot | P1 | SourceRegistry write 없이 가장 낮은 위험의 source health recheck request와 dry execution result envelope 준비 |
+| Execution Pilot | v3.8.0 (8) Client Notice Draft Queue | P1 | 실제 발송 없이 viewer-safe notice draft, queue preview, delivery blocker, redaction boundary 준비 |
+| Execution Pilot | v3.8.0 (9) Rule Draft Action Package | P1 | rule threshold/scenario 후보를 apply 없이 draft package와 review checklist로 조합 |
+| Product UI | v3.8.0 (10) Ops Action Control Workspace UI | P1 | `/ops`에서 action request, approval state, readiness blocker, pilot candidate, receipt를 한 흐름으로 탐색 |
+| Product UI | v3.8.0 (11) Client-safe Action Notice Preview | P1 | viewer/client에는 maintenance/degraded/recovering/available notice preview만 노출하고 내부 blocker detail은 숨김 |
+| Evidence | v3.8.0 (12) Outcome Observer and Reconciliation | P1 | 실행 전 readiness와 실행 후보/결과의 source health, EventRecord, client impact diff를 비교 |
+| Evidence | v3.8.0 (13) Action Receipt Bundle | P1 | approval, request, readiness, execution candidate, outcome diff를 redacted release-safe receipt bundle로 조합 |
+| Field/AI | v3.8.0 (14) Field Connector Evidence Package | P2 | ONVIF, external WHEP/TURN, cloud provider 조건을 credential/endpoint 승인 기반 field evidence로 분리 |
+| Field/AI | v3.8.0 (15) Default-off Action Explanation | P2 | default-off VLM/runtime 설명으로 approval blocker, readiness reason, outcome hint를 요약하되 provider call은 opt-in 전 미수행 |
+| Release | v3.8.0 (16) Stabilization and Release Readiness | P0 | v3.8 local verifier suite, v3.5~v3.7 compatibility gates, inventory, release records, close-out dry-run, `git diff --check` 연결 |
+
+### v3.8.0 진행 상태
+
+| 번호 | 제목 | 우선순위 | 상태 | 완료/잔여 내용 |
+| --- | --- | --- | --- | --- |
+| 1 | v3.8.0 (1) v3.8.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/docs/backlog/source roadmap과 `verify-v380-entry-baseline` 기준 정렬 |
+| 2 | v3.8.0 (2) Ops Action Route Boundary | P0 | 완료 | `/ops/api/actions/route-boundary`와 `OpsV380ActionRouteBoundaryJson`으로 v3.8 action route namespace boundary를 read-only로 분리 |
+| 3 | v3.8.0 (3) Action Capability Contract | P0 | 완료 | `/ops/api/actions/capability-contract`와 `OpsV380ActionCapabilityContractJson`으로 허용/금지 action, role/scope, idempotency, immutable schema boundary를 read-only로 정의 |
+| 4 | v3.8.0 (4) Action Request Ledger Contract | P0 | 완료 | `/ops/api/actions/request-ledger`와 `OpsV380ActionRequestLedgerContractJson`으로 actionRequestId/siteId/runbookId/requestedBy/status/createdAt/idempotencyKey ledger contract를 append-only/read-only로 정의 |
+| 5 | v3.8.0 (5) Approval Decision Gate | P0 | 완료 | `/ops/api/actions/approval-decision-gate`와 `OpsV380ApprovalDecisionGateJson`으로 approve/hold/reject/field-needed, reviewer, reason, auditRef, stale decision guard를 read-only로 정의 |
+| 6 | v3.8.0 (6) Action Readiness Preflight | P0 | 완료 | `/ops/api/actions/readiness-preflight`와 `OpsV380ActionReadinessPreflightJson`으로 capability/approval/field evidence/source health/client impact/duplicate request blocker를 read-only로 정의 |
+| 7 | v3.8.0 (7) Source Recheck Action Pilot | P1 | 완료 | `/ops/api/actions/source-recheck-pilot`와 `OpsV380SourceRecheckActionPilotJson`으로 source health recheck request와 dry execution result envelope를 read-only로 정의 |
+| 8 | v3.8.0 (8) Client Notice Draft Queue | P1 | 완료 | `/ops/api/actions/client-notice-draft-queue`와 `OpsV380ClientNoticeDraftQueueJson`으로 viewer-safe notice draft, queue preview, delivery blocker, redaction boundary를 read-only로 정의 |
+| 9 | v3.8.0 (9) Rule Draft Action Package | P1 | 완료 | `/ops/api/actions/rule-draft-package`와 `OpsV380RuleDraftActionPackageJson`으로 rule threshold/scenario 후보, draft package, review checklist, apply blocker를 read-only로 정의 |
+| 10 | v3.8.0 (10) Ops Action Control Workspace UI | P1 | 완료 | `/ops` action control workspace와 `renderV380OpsActionControlWorkspace`로 action request/approval/readiness/pilot/receipt 흐름을 read-only로 표시 |
+| 11 | v3.8.0 (11) Client-safe Action Notice Preview | P1 | 완료 | `/client/api/views/{id}/events`와 client dashboard/events/live dock에 maintenance/degraded/recovering/available action notice preview만 viewer-safe로 표시 |
+| 12 | v3.8.0 (12) Outcome Observer and Reconciliation | P1 | 완료 | `/ops/api/actions/outcome-reconciliation`과 `/ops` outcome observer UI가 readiness/candidate/observed outcome diff를 source/EventRecord/client/rule 축으로 비교 |
+| 13 | v3.8.0 (13) Action Receipt Bundle | P1 | 완료 | `/ops/api/actions/receipt-bundle`과 `/ops` Action Receipt Bundle UI가 approval/request/readiness/candidate/outcome diff를 redacted release-safe receipt bundle과 handoff map으로 조합 |
+| 14 | v3.8.0 (14) Field Connector Evidence Package | P2 | 완료 | `/ops/api/actions/field-connector-evidence-package`와 `/ops` Field Connector Evidence Package UI가 ONVIF/external WHEP-TURN/cloud provider 조건을 credential/endpoint approval 기반 conditional/not-run package로 분리 |
+| 15 | v3.8.0 (15) Default-off Action Explanation | P2 | 완료 | `/ops/api/actions/default-off-explanation`와 `/ops` Default-off Action Explanation UI가 approval blocker/readiness reason/outcome hint를 default-off VLM/runtime explanation으로 요약하고 provider/runtime call을 opt-in 전 미수행으로 고정 |
+| 16 | v3.8.0 (16) Stabilization and Release Readiness | P0 | 완료 | v3.8 local stabilization, release evidence/not-run 경계, inventory, release records, close-out dry-run, `git diff --check` 연결 |
+
+완료 경계: Step 1 완료는 source/version/docs/backlog/verification metadata 정렬이고,
+Step 2 완료는 `/ops/api/actions/route-boundary` read-only route boundary입니다.
+Step 3 완료는 `/ops/api/actions/capability-contract` read-only capability contract입니다.
+Step 4 완료는 `/ops/api/actions/request-ledger` read-only action request ledger contract입니다.
+Step 5 완료는 `/ops/api/actions/approval-decision-gate` read-only approval decision gate입니다.
+Step 6 완료는 `/ops/api/actions/readiness-preflight` read-only action readiness preflight입니다.
+Step 7 완료는 `/ops/api/actions/source-recheck-pilot` read-only source recheck action pilot입니다.
+Step 8 완료는 `/ops/api/actions/client-notice-draft-queue` read-only client notice draft queue입니다.
+Step 9 완료는 `/ops/api/actions/rule-draft-package` read-only rule draft action package입니다.
+Step 10 완료는 `/ops` action control workspace UI입니다.
+Step 11 완료는 client-safe action notice preview입니다.
+Step 12 완료는 outcome observer and reconciliation read model입니다.
+Step 13 완료는 action receipt bundle read model입니다.
+Step 14 완료는 field connector evidence package read model입니다.
+Step 15 완료는 default-off action explanation read model입니다.
+Step 16 완료는 local stabilization/release readiness gate 연결입니다. Step 1~16 PASS 자체는 v3.8 action execution, UI 풀테스트, 30분/120분
+장시간 테스트, published metadata, release action evidence가 아닙니다.
+
+## v3.8.0 Step 1 개발 기록
+
+이번 Step 1은 source/version/docs/backlog/verification metadata 정렬입니다.
+
+- `VERSION`: source version을 `3.8.0`으로 정렬했습니다.
+- `CMakeLists.txt`: `project(media_server VERSION 3.8.0 LANGUAGES CXX)`로 정렬했습니다.
+- `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`: 현재 source roadmap을
+  `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`로 표시하고 latest published
+  baseline은 `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`으로 유지했습니다.
+- `docs/versioning-policy.md`, `docs/release-policy.md`, `docs/public-repo-final-review.md`,
+  `docs/ui-guide.md`, `docs/assets/ui/README.md`: source `3.8.0`, current roadmap
+  `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`, latest published `v3.7.0`
+  경계를 분리했습니다.
+- `scripts/internal/verify_v380_entry_baseline.mjs`, `server.sh`: `./server.sh verify-v380-entry-baseline`
+  local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: v3.8 Step 1 테스트 항목, verifier, 미실행 경계를 기록했습니다.
+
+`./server.sh verify-v380-entry-baseline`은 이번 source baseline 정렬만 확인합니다.
+UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
+`v3.8.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
+
+## v3.8.0 Step 2 개발 기록
+
+이번 Step 2는 P0 `v3.8.0 (2) Ops Action Route Boundary`입니다.
+
+- `src/ingress/webrtc_http_server.cpp`: `OpsV380ActionRouteBoundaryItem`,
+  `BuildV380ActionRouteBoundaryItems`, `AppendV380ActionRouteBoundaryItemJson`,
+  `OpsV380ActionRouteBoundaryJson`을 추가해 v3.8 action namespace `/ops/api/actions`와
+  future route catalog를 read-only JSON으로 산출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/actions/route-boundary` GET route를
+  `require_ops_principal()`과 `Cache-Control: no-store`로 연결했습니다.
+- route response의 `legacyProjectionRefs`는 v3.5 `/ops/api/live-operations/*`와 v3.7
+  `/ops/api/site-operations/*`를 참조만 하며, 새 action namespace와 분리합니다.
+- boundary flags는 action execution, action request persist, approval decision persist,
+  readiness execution, source recheck, notice send/write, rule/source/view/runbook/EventRecord/Ops audit
+  write, client payload/media/schema 변경, raw locator/credential 노출을 모두 `false`로 둡니다.
+- `scripts/internal/verify_v380_ops_action_route_boundary.mjs`, `server.sh`: `./server.sh verify-v380-ops-action-route-boundary`
+  local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: `LAB-111`, `SAFE-181`, `OPS-148`과 Step 2 verifier/미실행 경계를 기록했습니다.
+
+`./server.sh verify-v380-ops-action-route-boundary`는 route boundary와 read-only/no-mutation
+경계만 확인합니다. Action Capability Contract, Action Request Ledger, approval decision,
+readiness preflight, actual source recheck, client notice send, rule apply, UI 풀테스트,
+30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
+
+## v3.8.0 Step 3 개발 기록
+
+이번 Step 3은 P0 `v3.8.0 (3) Action Capability Contract`입니다.
+
+- `src/ingress/webrtc_http_server.cpp`: `OpsV380ActionCapabilityContractItem`,
+  `BuildV380ActionCapabilityContractItems`, `AppendV380ActionCapabilityContractItemJson`,
+  `OpsV380ActionCapabilityContractJson`을 추가해 `allowedActionCatalog`,
+  `deniedActionCatalog`, `requiredRole`, `requiredScopes`, `idempotencyPolicy`,
+  `immutableSchemaBoundary`를 read-only JSON으로 산출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/actions/capability-contract` GET route를
+  `require_ops_principal()`과 `Cache-Control: no-store`로 연결했습니다.
+- 허용 action catalog는 `source-recheck`, `client-notice-draft`, `rule-draft-package`,
+  `receipt-bundle`을 preview-only contract로 정의하고, 금지 catalog는 direct source write,
+  direct rule apply, direct client notice send, media path change를 `denied`로 분리합니다.
+- boundary flags는 action execution, action request persist, approval decision persist,
+  readiness execution, source recheck, notice send/write, rule/source/view/runbook/EventRecord/Ops audit
+  write, client payload/media/schema 변경, raw locator/credential 노출을 모두 `false`로 둡니다.
+- `scripts/internal/verify_v380_action_capability_contract.mjs`, `server.sh`: `./server.sh verify-v380-action-capability-contract`
+  local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: `LAB-112`, `SAFE-182`, `OPS-149`와 Step 3 verifier/미실행 경계를 기록했습니다.
+
+`./server.sh verify-v380-action-capability-contract`는 action capability contract와
+read-only/no-mutation/no-schema-change 경계만 확인합니다. Action Request Ledger, approval decision,
+readiness preflight, actual source recheck, client notice send, rule apply, UI 풀테스트,
+30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
+
+## v3.8.0 Step 4 개발 기록
+
+이번 Step 4는 P0 `v3.8.0 (4) Action Request Ledger Contract`입니다.
+
+- `src/ingress/webrtc_http_server.cpp`: `OpsV380ActionRequestLedgerContractItem`,
+  `BuildV380ActionRequestLedgerContractItems`, `AppendV380ActionRequestLedgerContractItemJson`,
+  `OpsV380ActionRequestLedgerContractJson`을 추가해 `actionRequestId`, `siteId`,
+  `runbookId`, `requestedBy`, `status`, `createdAt`, `idempotencyKey` ledger fields를
+  read-only JSON contract로 산출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/actions/request-ledger` GET route를
+  `require_ops_principal()`과 `Cache-Control: no-store`로 연결했습니다.
+- contract response는 `appendOnlyPolicy`, `readOnlyProjection`, status model, idempotency
+  key pattern을 정의하지만 실제 action request append/write를 수행하지 않습니다.
+- boundary flags는 request write, action execution, action request persist, approval decision persist,
+  readiness execution, source recheck, notice send/write, rule/source/view/runbook/EventRecord/Ops audit
+  write, client payload/media/schema 변경, raw locator/credential 노출을 모두 `false`로 둡니다.
+- `scripts/internal/verify_v380_action_request_ledger_contract.mjs`, `server.sh`: `./server.sh verify-v380-action-request-ledger-contract`
+  local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: `LAB-113`, `SAFE-183`, `OPS-150`과 Step 4 verifier/미실행 경계를 기록했습니다.
+
+`./server.sh verify-v380-action-request-ledger-contract`는 action request ledger contract와
+append-only/read-only/no-mutation/no-schema-change 경계만 확인합니다. Approval Decision Gate,
+readiness preflight, actual source recheck, client notice send, rule apply, UI 풀테스트,
+30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
+
+## v3.8.0 Step 5 개발 기록
+
+이번 Step 5는 P0 `v3.8.0 (5) Approval Decision Gate`입니다.
+
+- `src/ingress/webrtc_http_server.cpp`: `OpsV380ApprovalDecisionGateItem`,
+  `BuildV380ApprovalDecisionGateItems`, `AppendV380ApprovalDecisionGateItemJson`,
+  `OpsV380ApprovalDecisionGateJson`을 추가해 `approve`, `hold`, `reject`, `field-needed`
+  decision state, `reviewer`, `reason`, `auditRef`, `staleDecisionGuard`를 read-only JSON
+  contract로 산출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/actions/approval-decision-gate` GET route를
+  `require_ops_principal()`과 `Cache-Control: no-store`로 연결했습니다.
+- contract response는 request ledger와 capability contract route를 참조하고 stale decision
+  guard를 정의하지만 실제 approval decision 저장, action 실행, readiness 실행을 수행하지 않습니다.
+- boundary flags는 decision write, action execution, action request persist, approval decision persist,
+  readiness execution, source recheck, notice send/write, rule/source/view/runbook/EventRecord/Ops audit
+  write, client payload/media/schema 변경, raw locator/credential 노출을 모두 `false`로 둡니다.
+- `scripts/internal/verify_v380_approval_decision_gate.mjs`, `server.sh`: `./server.sh verify-v380-approval-decision-gate`
+  local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: `LAB-114`, `SAFE-184`, `OPS-151`과 Step 5 verifier/미실행 경계를 기록했습니다.
+
+`./server.sh verify-v380-approval-decision-gate`는 approval decision gate와
+read-only/no-mutation/no-schema-change 경계만 확인합니다. Action Readiness Preflight,
+actual source recheck, client notice send, rule apply, UI 풀테스트, 30분/120분 장시간 테스트,
+published metadata, release action 완료 evidence가 아닙니다.
+
+## v3.8.0 Step 6 개발 기록
+
+이번 Step 6은 P0 `v3.8.0 (6) Action Readiness Preflight`입니다.
+
+- `src/ingress/webrtc_http_server.cpp`: `OpsV380ActionReadinessPreflightItem`,
+  `BuildV380ActionReadinessPreflightItems`, `AppendV380ActionReadinessPreflightItemJson`,
+  `OpsV380ActionReadinessPreflightJson`을 추가해 `capability`, `approval`,
+  `fieldEvidence`, `sourceHealth`, `clientImpact`, `duplicateRequest` preflight blocker와
+  `ready`, `blocked`, `approval-needed`, `field-needed`, `duplicate-request`, `not-run`
+  readiness state를 read-only JSON contract로 산출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/actions/readiness-preflight` GET route를
+  `require_ops_principal()`과 `Cache-Control: no-store`로 연결했습니다.
+- contract response는 capability contract, approval decision gate, request ledger route를
+  참조하고 실행 전 판정 입력과 blocker를 정의하지만 실제 readiness 실행, result 저장,
+  action 실행, source recheck, client notice send를 수행하지 않습니다.
+- boundary flags는 readiness execution/result persist, action execution, action request persist,
+  approval decision persist, source recheck, notice send/write, rule/source/view/runbook/EventRecord/Ops audit
+  write, client payload/media/schema 변경, raw locator/credential 노출을 모두 `false`로 둡니다.
+- `scripts/internal/verify_v380_action_readiness_preflight.mjs`, `server.sh`: `./server.sh verify-v380-action-readiness-preflight`
+  local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: `LAB-115`, `SAFE-185`, `OPS-152`와 Step 6 verifier/미실행 경계를 기록했습니다.
+
+`./server.sh verify-v380-action-readiness-preflight`는 readiness preflight contract와
+read-only/no-mutation/no-schema-change 경계만 확인합니다. Actual source recheck, client notice send,
+rule apply, UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
+
+## v3.8.0 Step 7 개발 기록
+
+이번 Step 7은 P1 `v3.8.0 (7) Source Recheck Action Pilot`입니다.
+
+- `src/ingress/webrtc_http_server.cpp`: `OpsV380SourceRecheckActionPilotItem`,
+  `BuildV380SourceRecheckActionPilotItems`, `AppendV380SourceRecheckActionPilotItemJson`,
+  `OpsV380SourceRecheckActionPilotJson`을 추가해 `sourceRecheckActionPilot`,
+  `pilotCandidate`, `sourceHealthRecheck`, `recheckRequest`, `executionPreview`,
+  `dryExecutionResultEnvelope`, `readinessRef`를 read-only JSON contract로 산출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/actions/source-recheck-pilot` GET route를
+  `require_ops_principal()`과 `Cache-Control: no-store`로 연결했습니다.
+- contract response는 capability contract, approval decision gate, request ledger, readiness
+  preflight route를 참조하고 source health recheck 후보와 dry execution result envelope를 정의하지만
+  실제 source recheck, source health write, action result persist를 수행하지 않습니다.
+- boundary flags는 source recheck execution, source health write, action execution/result persist,
+  request/approval/readiness persist, notice send/write, rule/source/view/runbook/EventRecord/Ops audit
+  write, client payload/media/schema 변경, raw locator/credential 노출을 모두 `false`로 둡니다.
+- `scripts/internal/verify_v380_source_recheck_action_pilot.mjs`, `server.sh`: `./server.sh verify-v380-source-recheck-action-pilot`
+  local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: `LAB-116`, `SAFE-186`, `OPS-153`과 Step 7 verifier/미실행 경계를 기록했습니다.
+
+`./server.sh verify-v380-source-recheck-action-pilot`는 source recheck pilot contract와
+read-only/no-mutation/no-schema-change 경계만 확인합니다. Actual source recheck, client notice send,
+rule apply, UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
+
+## v3.8.0 Step 8 개발 기록
+
+이번 Step 8은 P1 `v3.8.0 (8) Client Notice Draft Queue`입니다.
+
+- `src/ingress/webrtc_http_server.cpp`: `OpsV380ClientNoticeDraftQueueItem`,
+  `BuildV380ClientNoticeDraftQueueItems`, `AppendV380ClientNoticeDraftQueueItemJson`,
+  `OpsV380ClientNoticeDraftQueueJson`을 추가해 `clientNoticeDraftQueue`,
+  `viewerSafeNoticeDraft`, `noticeDraft`, `queuePreview`, `deliveryBlocker`,
+  `redactionBoundary`, `readinessRef`, `pilotRef`를 read-only JSON contract로 산출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/actions/client-notice-draft-queue` GET route를
+  `require_ops_principal()`과 `Cache-Control: no-store`로 연결했습니다.
+- contract response는 capability contract, approval decision gate, request ledger, readiness
+  preflight, source recheck pilot route를 참조하고 viewer-safe notice draft와 queue preview를
+  정의하지만 실제 client notice delivery, notice draft persist, notice queue write를 수행하지 않습니다.
+- boundary flags는 notice draft persist, client notice send, notice queue write,
+  operator-only blocker client exposure, action execution, source recheck, rule/source/view/runbook/EventRecord/Ops audit
+  write, client payload/media/schema 변경, raw locator/credential 노출을 모두 `false`로 둡니다.
+- `scripts/internal/verify_v380_client_notice_draft_queue.mjs`, `server.sh`: `./server.sh verify-v380-client-notice-draft-queue`
+  local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: `LAB-117`, `SAFE-187`, `OPS-154`와 Step 8 verifier/미실행 경계를 기록했습니다.
+
+`./server.sh verify-v380-client-notice-draft-queue`는 client notice draft queue contract와
+read-only/no-send/no-persist/no-schema-change 경계만 확인합니다. Actual client notice delivery,
+notice queue write, viewer payload mutation, source recheck, rule apply, UI 풀테스트,
+30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
+
+## v3.8.0 Step 9 개발 기록
+
+이번 Step 9는 P1 `v3.8.0 (9) Rule Draft Action Package`입니다.
+
+- `src/ingress/webrtc_http_server.cpp`: `OpsV380RuleDraftActionPackageItem`,
+  `BuildV380RuleDraftActionPackageItems`, `AppendV380RuleDraftActionPackageItemJson`,
+  `OpsV380RuleDraftActionPackageJson`을 추가해 `ruleDraftActionPackage`,
+  `draftPackage`, `ruleThresholdCandidate`, `scenarioCandidate`, `reviewChecklist`,
+  `applyBlocker`, `readinessRef`, `noticeDraftRef`를 read-only JSON contract로 산출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/actions/rule-draft-package` GET route를
+  `require_ops_principal()`과 `Cache-Control: no-store`로 연결했습니다.
+- contract response는 capability contract, approval decision gate, request ledger, readiness
+  preflight, client notice draft queue route를 참조하고 rule threshold/scenario 후보와
+  review checklist를 정의하지만 실제 rule apply, scenario apply, rule draft persist,
+  rule/profile registry write를 수행하지 않습니다.
+- boundary flags는 rule draft persist, rule/scenario apply, rule/profile registry write,
+  action execution, source recheck, notice send/write, source/view/runbook/EventRecord/Ops audit
+  write, client payload/media/schema 변경, raw locator/credential 노출을 모두 `false`로 둡니다.
+- `scripts/internal/verify_v380_rule_draft_action_package.mjs`, `server.sh`: `./server.sh verify-v380-rule-draft-action-package`
+  local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: `LAB-118`, `SAFE-188`, `OPS-155`와 Step 9 verifier/미실행 경계를 기록했습니다.
+
+`./server.sh verify-v380-rule-draft-action-package`는 rule draft action package contract와
+read-only/no-apply/no-persist/no-schema-change 경계만 확인합니다. Actual rule apply,
+scenario apply, rule/profile registry write, source recheck, client notice delivery,
+UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
+
+## v3.8.0 Step 10 개발 기록
+
+이번 Step 10은 P1 `v3.8.0 (10) Ops Action Control Workspace UI`입니다.
+
+- `src/ingress/webrtc_http_server.cpp`: `AppendOpsDashboardPage`에
+  `ops-action-control-workspace` shell과 `media-server.ops.v380-action-control-workspace-ui.v1`
+  schema marker를 추가했습니다. dashboard는 `dashActionControlWorkspaceBadges`,
+  `dashActionControlWorkspaceText`, `dashActionControlWorkspaceFlow`,
+  `dashActionControlRequestList`, `dashActionControlApprovalList`,
+  `dashActionControlReadinessList`, `dashActionControlPilotList`,
+  `dashActionControlReceiptList`, `dashActionControlBoundary`를 고정 DOM hook으로 제공합니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV380OpsActionControlWorkspace`와
+  `refreshV380OpsActionControlWorkspace`를 추가해 `/ops/api/actions/capability-contract`,
+  `/ops/api/actions/request-ledger`, `/ops/api/actions/approval-decision-gate`,
+  `/ops/api/actions/readiness-preflight`, `/ops/api/actions/source-recheck-pilot`,
+  `/ops/api/actions/client-notice-draft-queue`, `/ops/api/actions/rule-draft-package`를
+  GET/read-only로 읽고 request, approval, readiness blocker, pilot/package candidate,
+  receipt placeholder 흐름을 표시합니다.
+- `src/ingress/product_ui_css.cpp`: `.ops-action-control-workspace`,
+  `.ops-action-control-grid`, `.ops-action-control-flow-grid`,
+  `.ops-action-control-list`, `.ops-action-control-entry`,
+  `.ops-action-control-boundary` 반응형 layout과 boundary styling을 추가했습니다.
+- `scripts/internal/verify_v380_ops_action_control_workspace_ui.mjs`, `server.sh`:
+  `./server.sh verify-v380-ops-action-control-workspace-ui` local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: `UI-102`, `SAFE-189`, `OPS-156`과 Step 10 verifier/미실행 경계를 기록했습니다.
+
+`./server.sh verify-v380-ops-action-control-workspace-ui`는 `/ops` action control workspace UI,
+renderer/CSS, 기존 action contract route 연결과 read-only/no-mutation 경계만 확인합니다.
+Actual action execution, action request persist, approval decision persist, readiness result
+persist, source recheck execution, client notice send, rule apply, Action Receipt Bundle 구현,
+Client-safe Action Notice Preview 완료 evidence가 아닙니다. UI 풀테스트, 30분/120분 장시간 테스트,
+published metadata, release action 완료 evidence가 아닙니다.
+
+## v3.8.0 Step 11 개발 기록
+
+이번 Step 11은 P1 `v3.8.0 (11) Client-safe Action Notice Preview`입니다.
+
+- `src/ingress/webrtc_http_server.cpp`: `ClientActionNoticePreview`,
+  `ClientActionNoticePreviewFor`, `AppendClientActionNoticePreviewJson`,
+  `ClientActionNoticePreviewJson`을 추가해 `/client/api/views/{id}/events`와
+  client dashboard `events.clientActionNoticePreview`에
+  `media-server.client.v380-action-notice-preview.v1` viewer-safe preview를 붙였습니다.
+- `src/ingress/webrtc_http_server.cpp`: preview payload는 `maintenance`, `degraded`,
+  `recovering`, `available` notice status, `viewerSafeTitle`, `viewerSafeBody`,
+  `timelineHint`만 노출하고 operator-only blocker detail, approval decision detail,
+  readiness blocker detail, source URL/raw locator/raw JSON/debug/credential material,
+  action controls를 포함하지 않습니다.
+- `src/ingress/product_ui_client_scripts.cpp`: `renderClientActionNoticePreview`를 추가하고
+  client dashboard, client events, live dock events에 `client-action-notice-preview`
+  section을 표시했습니다.
+- `src/ingress/product_ui_css.cpp`: `.client-action-notice-preview`,
+  `.client-action-notice-list`, `.client-action-notice-item`을 기존 client card layout에 연결했습니다.
+- `scripts/internal/verify_v380_client_safe_action_notice_preview.mjs`, `server.sh`:
+  `./server.sh verify-v380-client-safe-action-notice-preview` local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: `UI-103`, `CLIENT-040`, `SAFE-190`, `OPS-157`과
+  Step 11 verifier/미실행 경계를 기록했습니다.
+
+`./server.sh verify-v380-client-safe-action-notice-preview`는 client-safe action notice preview
+payload/UI와 redaction boundary만 확인합니다. Actual client notice send, notice draft persist,
+notice queue write, action execution, source recheck execution, rule apply, Outcome Observer and Reconciliation 완료 evidence가 아닙니다.
+UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
+
+## v3.8.0 Step 12 개발 기록
+
+이번 Step 12는 P1 `v3.8.0 (12) Outcome Observer and Reconciliation`입니다.
+
+- `src/ingress/webrtc_http_server.cpp`: `OpsV380OutcomeObserverReconciliationItem`,
+  `OpsV380OutcomeObserverReconciliationSummary`,
+  `BuildV380OutcomeObserverReconciliationItems`,
+  `BuildV380OutcomeObserverReconciliationSummary`,
+  `AppendV380OutcomeObserverReconciliationItemJson`,
+  `AppendV380OutcomeObserverReconciliationSummaryJson`,
+  `OpsV380OutcomeObserverReconciliationJson`을 추가했습니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/actions/outcome-reconciliation` GET route를
+  `require_ops_principal()`, `Cache-Control: no-store`로 연결하고 readiness/candidate/observed outcome
+  ref를 source/EventRecord/client/rule outcome diff로 비교하는 read-only JSON을 노출했습니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops` dashboard에
+  `ops-action-outcome-observer` section, `dashActionOutcomeObserverBadges`,
+  `dashActionOutcomeObserverText`, `dashActionOutcomeSourceList`,
+  `dashActionOutcomeEventClientList`, `dashActionOutcomeRuleList`,
+  `dashActionOutcomeBoundary` UI control을 추가했습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV380OutcomeObserverReconciliation`,
+  `refreshV380OutcomeObserverReconciliation`, `v380OutcomeObserverEntry`를 추가해
+  `/ops/api/actions/outcome-reconciliation`의 `outcomeObserverItems`와
+  `outcomeObserverSummary`를 source, EventRecord/client, rule diff로 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `.ops-action-outcome-observer`,
+  `.ops-action-outcome-grid`, `.ops-action-outcome-list`, `.ops-action-outcome-entry`,
+  `.ops-action-outcome-boundary`를 기존 Ops dashboard card/list/boundary responsive 패턴에 연결했습니다.
+- `scripts/internal/verify_v380_outcome_observer_reconciliation.mjs`, `server.sh`:
+  `./server.sh verify-v380-outcome-observer-reconciliation` local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: `UI-104`, `EVT-084`, `CLIENT-041`, `LAB-119`,
+  `SAFE-191`, `OPS-158`과 Step 12 verifier/미실행 경계를 기록했습니다.
+
+`./server.sh verify-v380-outcome-observer-reconciliation`은 readiness/candidate/observed
+outcome diff read model과 `/ops` 렌더링 경계만 확인합니다. Actual action execution,
+source recheck execution, client notice send, notice queue write, rule apply, EventRecord write,
+source/view/Ops audit write, action result persist, Action Receipt Bundle 완료 evidence가 아닙니다.
+UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
+
+## v3.8.0 Step 13 개발 기록
+
+이번 Step 13은 P1 `v3.8.0 (13) Action Receipt Bundle`입니다.
+
+- `src/ingress/webrtc_http_server.cpp`: `OpsV380ActionReceiptBundleItem`,
+  `OpsV380ActionReceiptBundleSummary`, `BuildV380ActionReceiptBundleItems`,
+  `BuildV380ActionReceiptBundleSummary`, `AppendV380ActionReceiptBundleItemJson`,
+  `AppendV380ActionReceiptBundleSummaryJson`, `OpsV380ActionReceiptBundleJson`을 추가했습니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/actions/receipt-bundle` GET route를
+  `require_ops_principal()`, `Cache-Control: no-store`로 연결하고 approval/request/readiness/
+  candidate/outcome diff ref를 redacted release-safe receipt bundle과 handoff map으로 조합했습니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops` dashboard에
+  `ops-action-receipt-bundle` section, `dashActionReceiptBundleBadges`,
+  `dashActionReceiptBundleText`, `dashActionReceiptBundleList`,
+  `dashActionReceiptHandoffList`, `dashActionReceiptRedactionList`,
+  `dashActionReceiptBundleBoundary` UI control을 추가했습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV380ActionReceiptBundle`과
+  `refreshV380ActionReceiptBundle`을 추가해 `/ops/api/actions/receipt-bundle`의
+  `receiptBundleItems`, `receiptBundleSummary`, `handoffMap`, `redactionSummary`,
+  `releaseSafe` 경계를 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `.ops-action-receipt-bundle`,
+  `.ops-action-receipt-grid`, `.ops-action-receipt-list`, `.ops-action-receipt-entry`,
+  `.ops-action-receipt-boundary`를 기존 Ops dashboard card/list/boundary responsive 패턴에
+  연결했습니다.
+- `scripts/internal/verify_v380_action_receipt_bundle.mjs`, `server.sh`:
+  `./server.sh verify-v380-action-receipt-bundle` local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: `UI-105`, `EVT-085`, `CLIENT-042`, `LAB-120`,
+  `SAFE-192`, `OPS-159`와 Step 13 verifier/미실행 경계를 기록했습니다.
+- 검증: 최초 `node scripts/internal/verify_v380_action_receipt_bundle.mjs`는 Action Receipt Bundle
+  model, route, `/ops` shell, CSS, backlog/stream verification/inventory/release records/server
+  dispatch가 아직 없어 `pass=1 fail=8`로 기대 실패했습니다. 최종 검증 결과는
+  `docs/release-test-records.md`의 v380 Step 13 결과 행에 기록합니다.
+
+`./server.sh verify-v380-action-receipt-bundle`은 redacted release-safe receipt bundle과
+handoff map read model, redaction review UI, `/ops` 렌더링 경계만 확인합니다.
+Field Connector Evidence Package 완료 evidence가 아닙니다. Default-off Action Explanation,
+Stabilization and Release Readiness 완료 evidence도 아닙니다. Artifact/file/handoff write,
+action execution, source recheck execution, client notice send/queue write, rule apply/registry
+write, EventRecord/source/view/Ops audit/action result write, client/media/schema mutation,
+raw locator/credential/raw diagnostic inclusion, UI 풀테스트, 30분/120분 장시간 테스트,
+published metadata, release action 완료 evidence가 아닙니다.
+
+## v3.8.0 Step 14 개발 기록
+
+이번 Step 14는 P2 `v3.8.0 (14) Field Connector Evidence Package`입니다.
+
+- `src/ingress/webrtc_http_server.cpp`: `OpsV380FieldConnectorEvidencePackageItem`,
+  `OpsV380FieldConnectorEvidencePackageSummary`,
+  `BuildV380FieldConnectorEvidencePackageItems`,
+  `BuildV380FieldConnectorEvidencePackageSummary`,
+  `AppendV380FieldConnectorEvidencePackageItemJson`,
+  `AppendV380FieldConnectorEvidencePackageSummaryJson`,
+  `OpsV380FieldConnectorEvidencePackageJson`을 추가했습니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/actions/field-connector-evidence-package` GET
+  route를 `require_ops_principal()`, `Cache-Control: no-store`로 연결하고 v3.7 field attachment와
+  v3.8 readiness/source recheck/outcome/receipt refs를 ONVIF, external WHEP/TURN, cloud provider
+  connector evidence package로 조합했습니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops` dashboard에
+  `ops-field-connector-evidence-package` section, `dashFieldConnectorEvidenceBadges`,
+  `dashFieldConnectorEvidenceText`, `dashFieldConnectorEvidenceList`,
+  `dashFieldConnectorConditionList`, `dashFieldConnectorBoundary` UI control을 추가했습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV380FieldConnectorEvidencePackage`와
+  `refreshV380FieldConnectorEvidencePackage`를 추가해 `/ops/api/actions/field-connector-evidence-package`의
+  `fieldConnectorEvidenceItems`, `fieldConnectorEvidenceSummary`, `connectorKind`,
+  `endpointApprovalRef`, `credentialApprovalRef`, `fieldSmokeStatus`, `conditionRefs` 경계를 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `.ops-field-connector-evidence-package`,
+  `.ops-field-connector-grid`, `.ops-field-connector-list`, `.ops-field-connector-entry`,
+  `.ops-field-connector-boundary`를 기존 Ops dashboard card/list/boundary responsive 패턴에 연결했습니다.
+- `scripts/internal/verify_v380_field_connector_evidence_package.mjs`, `server.sh`:
+  `./server.sh verify-v380-field-connector-evidence-package` local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: `UI-106`, `SRC-063`, `MEDIA-026`, `LAB-121`,
+  `SAFE-193`, `OPS-160`과 Step 14 verifier/미실행 경계를 기록했습니다.
+- 검증: 최초 `node scripts/internal/verify_v380_field_connector_evidence_package.mjs`는 Field Connector
+  Evidence Package model, route, `/ops` shell, CSS, backlog/stream verification/inventory/release records/server
+  dispatch가 아직 없어 `pass=1 fail=8`로 기대 실패했습니다. 최종 검증 결과는
+  `docs/release-test-records.md`의 v380 Step 14 결과 행에 기록합니다.
+
+`./server.sh verify-v380-field-connector-evidence-package`는 ONVIF, external WHEP/TURN,
+cloud provider 조건을 credential/endpoint approval 기반 conditional/not-run package로 표시하는
+read model과 `/ops` 렌더링 경계만 확인합니다. Default-off Action Explanation 완료 evidence가 아닙니다.
+Stabilization and Release Readiness 완료 evidence도 아닙니다. Field smoke, endpoint/credential probe,
+provider/cloud call, ONVIF 실기기 contact, external WHEP contact, TURN credential use, action execution,
+source recheck execution, source/view/EventRecord/Ops audit write, client/media/schema mutation,
+raw endpoint/locator/credential/provider/debug material inclusion, UI 풀테스트, 30분/120분 장시간 테스트,
+published metadata, release action 완료 evidence가 아닙니다.
+
+## v3.8.0 Step 15 개발 기록
+
+이번 Step 15는 P2 `v3.8.0 (15) Default-off Action Explanation`입니다.
+
+- `src/ingress/webrtc_http_server.cpp`: `OpsV380DefaultOffActionExplanationItem`,
+  `OpsV380DefaultOffActionExplanationSummary`,
+  `BuildV380DefaultOffActionExplanationItems`,
+  `BuildV380DefaultOffActionExplanationSummary`,
+  `AppendV380DefaultOffActionExplanationItemJson`,
+  `AppendV380DefaultOffActionExplanationSummaryJson`,
+  `OpsV380DefaultOffActionExplanationJson`을 추가했습니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/actions/default-off-explanation` GET
+  route를 `require_ops_principal()`, `Cache-Control: no-store`로 연결하고 v3.8 approval,
+  readiness, outcome, receipt, field connector refs를 approval blocker, readiness reason,
+  outcome hint explanation으로 요약했습니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops` dashboard에
+  `ops-default-off-action-explanation` section, `dashDefaultOffActionExplanationBadges`,
+  `dashDefaultOffActionExplanationText`, `dashDefaultOffActionExplanationList`,
+  `dashDefaultOffActionExplanationBoundary` UI control을 추가했습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV380DefaultOffActionExplanation`와
+  `refreshV380DefaultOffActionExplanation`을 추가해 `/ops/api/actions/default-off-explanation`의
+  `defaultOffActionExplanations`, `defaultOffActionExplanationSummary`,
+  `approvalBlockerSummary`, `readinessReasonSummary`, `outcomeHint`, `operatorReviewHint`,
+  `defaultEnabled`, `providerOptInRequired`, `runtimeOptInRequired` 경계를 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `.ops-default-off-action-explanation`,
+  `.ops-default-off-action-explanation-list`, `.ops-default-off-action-explanation-entry`,
+  `.ops-default-off-action-explanation-boundary`를 기존 Ops dashboard card/list/boundary
+  responsive 패턴에 연결했습니다.
+- `scripts/internal/verify_v380_default_off_action_explanation.mjs`, `server.sh`:
+  `./server.sh verify-v380-default-off-action-explanation` local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: `UI-107`, `SRC-064`, `EVT-086`, `LAB-122`,
+  `SAFE-194`, `OPS-161`과 Step 15 verifier/미실행 경계를 기록했습니다.
+- 검증: 최초 `node scripts/internal/verify_v380_default_off_action_explanation.mjs`는 Default-off
+  Action Explanation model, route, `/ops` shell, CSS, backlog/stream verification/inventory/release
+  records/server dispatch가 아직 없어 `pass=1 fail=8`로 기대 실패했습니다. 최종 검증 결과는
+  `docs/release-test-records.md`의 v380 Step 15 결과 행에 기록합니다.
+
+`./server.sh verify-v380-default-off-action-explanation`은 approval blocker, readiness reason,
+outcome hint를 default-off VLM/runtime explanation으로 요약하는 read model과 `/ops` 렌더링 경계만
+확인합니다. Stabilization and Release Readiness 완료 evidence가 아닙니다. VLM/provider/runtime call,
+raw prompt/provider response/credential/endpoint/locator/debug material inclusion, action execution,
+source recheck execution, source/view/EventRecord/Ops audit/operator review write, client/media/schema
+mutation, UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가
+아닙니다.
+
+## v3.8.0 Step 16 개발 기록
+
+- 범위: P0 `v3.8.0 (16) Stabilization and Release Readiness`.
+- `scripts/internal/verify_v380_stabilization_release_readiness.mjs`, `server.sh`: v3.8 Step 1~15 local
+  verifier, release metadata, docs links/assets, project/feature inventory, release evidence index,
+  close-out dry-run, script inventory, `git diff --check`를 같은 local readiness gate로 묶는
+  `./server.sh verify-v380-stabilization-release-readiness`를 추가했습니다.
+- `docs/release-policy.md`, `docs/release-evidence-index.md`, `docs/release-test-records.md`:
+  v3.8 Step 16 companion local gate와 UI 풀테스트 직접 조작, 30분/120분, published metadata,
+  PR/main/tag/GitHub Release, field smoke 미실행 경계를 기록했습니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_feature_inventory_coverage.mjs`,
+  `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_script_inventory.mjs`:
+  `SAFE-195`, `OPS-162`와 Step 16 readiness command를 inventory/coverage/script gate에 연결했습니다.
+- companion local gate:
+  `./server.sh verify-v380-stabilization-release-readiness`,
+  `./server.sh build`,
+  `./server.sh verify-v380-entry-baseline`,
+  `./server.sh verify-v380-ops-action-route-boundary`,
+  `./server.sh verify-v380-action-capability-contract`,
+  `./server.sh verify-v380-action-request-ledger-contract`,
+  `./server.sh verify-v380-approval-decision-gate`,
+  `./server.sh verify-v380-action-readiness-preflight`,
+  `./server.sh verify-v380-source-recheck-action-pilot`,
+  `./server.sh verify-v380-client-notice-draft-queue`,
+  `./server.sh verify-v380-rule-draft-action-package`,
+  `./server.sh verify-v380-ops-action-control-workspace-ui`,
+  `./server.sh verify-v380-client-safe-action-notice-preview`,
+  `./server.sh verify-v380-outcome-observer-reconciliation`,
+  `./server.sh verify-v380-action-receipt-bundle`,
+  `./server.sh verify-v380-field-connector-evidence-package`,
+  `./server.sh verify-v380-default-off-action-explanation`,
+  `./server.sh verify-release-metadata`,
+  `./server.sh verify-docs-links`,
+  `./server.sh verify-docs-ui-assets`,
+  `./server.sh verify-project-inventory`,
+  `./server.sh verify-feature-inventory-coverage`,
+  `./server.sh verify-release-evidence-index`,
+  `./server.sh verify-release-closeout-helper --dry-run`,
+  `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run`,
+  `./server.sh verify-script-inventory`,
+  `git diff --check`.
+- 검증: 최초 `./server.sh verify-v380-stabilization-release-readiness`는 Step 16 roadmap,
+  feature inventory, release policy/evidence index/release records 연결이 아직 없어 `pass=1 fail=5`로
+  기대 실패했습니다. 구현 후 `./server.sh verify-v380-stabilization-release-readiness`는 `pass=6 fail=0`으로
+  통과했습니다. `./server.sh verify-release-closeout-helper --dry-run`와
+  `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run` 최초 실행은 current
+  `v3.8.0 Release Close-out Runbook` heading 누락으로 실패했고, `docs/release-policy.md`에
+  v3.8.0 runbook을 추가한 뒤 두 dry-run 모두 status `pass`로 재검증했습니다. 최종 companion local gate 수치는
+  `docs/release-test-records.md`의 v380 Step 16 결과 행에 기록합니다.
+- 완료 경계: Step 16은 local readiness gate 연결입니다. UI 풀테스트 직접 조작, 30분/120분
+  장시간 테스트, published metadata, PR/main/tag/GitHub Release, field smoke 실행 PASS를 대체하지
+  않습니다.
+
+## 최신 published baseline 상세: v3.7.0 Site-Aware Operations and Safe Runbook Control Plane
 
 상태: Step 1~18 source 기능과 local release readiness를 완료했고 published metadata 보정 중입니다.
 현재 source version은 `3.7.0`이고 latest published baseline은 `v3.7.0`입니다. 각 step은

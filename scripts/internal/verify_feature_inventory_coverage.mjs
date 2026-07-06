@@ -232,6 +232,88 @@ for (const [prefix, verifiers] of Object.entries(v370VerifierCoverage)) {
   stabilityVerifierByPrefix[prefix].push(...verifiers);
 }
 
+const v380VerifierCoverage = {
+  UI: [
+    "verify-v380-ops-action-control-workspace-ui",
+    "verify-v380-client-safe-action-notice-preview",
+    "verify-v380-outcome-observer-reconciliation",
+    "verify-v380-action-receipt-bundle",
+    "verify-v380-field-connector-evidence-package",
+    "verify-v380-default-off-action-explanation",
+  ],
+  SRC: [
+    "verify-v380-field-connector-evidence-package",
+    "verify-v380-default-off-action-explanation",
+  ],
+  MEDIA: [
+    "verify-v380-field-connector-evidence-package",
+  ],
+  EVT: [
+    "verify-v380-outcome-observer-reconciliation",
+    "verify-v380-action-receipt-bundle",
+    "verify-v380-default-off-action-explanation",
+  ],
+  CLIENT: [
+    "verify-v380-client-safe-action-notice-preview",
+    "verify-v380-outcome-observer-reconciliation",
+    "verify-v380-action-receipt-bundle",
+  ],
+  LAB: [
+    "verify-v380-ops-action-route-boundary",
+    "verify-v380-action-capability-contract",
+    "verify-v380-action-request-ledger-contract",
+    "verify-v380-approval-decision-gate",
+    "verify-v380-action-readiness-preflight",
+    "verify-v380-source-recheck-action-pilot",
+    "verify-v380-client-notice-draft-queue",
+    "verify-v380-rule-draft-action-package",
+    "verify-v380-outcome-observer-reconciliation",
+    "verify-v380-action-receipt-bundle",
+    "verify-v380-field-connector-evidence-package",
+    "verify-v380-default-off-action-explanation",
+  ],
+  SAFE: [
+    "verify-v380-entry-baseline",
+    "verify-v380-ops-action-route-boundary",
+    "verify-v380-action-capability-contract",
+    "verify-v380-action-request-ledger-contract",
+    "verify-v380-approval-decision-gate",
+    "verify-v380-action-readiness-preflight",
+    "verify-v380-source-recheck-action-pilot",
+    "verify-v380-client-notice-draft-queue",
+    "verify-v380-rule-draft-action-package",
+    "verify-v380-ops-action-control-workspace-ui",
+    "verify-v380-client-safe-action-notice-preview",
+    "verify-v380-outcome-observer-reconciliation",
+    "verify-v380-action-receipt-bundle",
+    "verify-v380-field-connector-evidence-package",
+    "verify-v380-default-off-action-explanation",
+    "verify-v380-stabilization-release-readiness",
+  ],
+  OPS: [
+    "verify-v380-entry-baseline",
+    "verify-v380-ops-action-route-boundary",
+    "verify-v380-action-capability-contract",
+    "verify-v380-action-request-ledger-contract",
+    "verify-v380-approval-decision-gate",
+    "verify-v380-action-readiness-preflight",
+    "verify-v380-source-recheck-action-pilot",
+    "verify-v380-client-notice-draft-queue",
+    "verify-v380-rule-draft-action-package",
+    "verify-v380-ops-action-control-workspace-ui",
+    "verify-v380-client-safe-action-notice-preview",
+    "verify-v380-outcome-observer-reconciliation",
+    "verify-v380-action-receipt-bundle",
+    "verify-v380-field-connector-evidence-package",
+    "verify-v380-default-off-action-explanation",
+    "verify-v380-stabilization-release-readiness",
+  ],
+};
+
+for (const [prefix, verifiers] of Object.entries(v380VerifierCoverage)) {
+  stabilityVerifierByPrefix[prefix].push(...verifiers);
+}
+
 check("inventory row count is stable", () => {
   const declaredTotal = summaryCount(inventory, "전체 기능 항목");
   assert(rows.length === declaredTotal, `expected ${declaredTotal} feature rows, found ${rows.length}`);

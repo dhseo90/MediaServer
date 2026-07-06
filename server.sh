@@ -338,6 +338,38 @@ Usage:
                  v3.5.0 Step 12 VLM-assisted Ops Explanation default-off 경계를 검증합니다.
   verify-v350-stabilization-release-readiness
                  v3.5.0 Step 13 Stabilization and Release Readiness local gate 경계를 검증합니다.
+  verify-v380-entry-baseline
+                 v3.8.0 Step 1 source baseline과 latest published v3.7.0 경계를 검증합니다.
+  verify-v380-ops-action-route-boundary
+                 v3.8.0 Step 2 Ops Action Route Boundary를 검증합니다.
+  verify-v380-action-capability-contract
+                 v3.8.0 Step 3 Action Capability Contract를 검증합니다.
+  verify-v380-action-request-ledger-contract
+                 v3.8.0 Step 4 Action Request Ledger Contract를 검증합니다.
+  verify-v380-approval-decision-gate
+                 v3.8.0 Step 5 Approval Decision Gate를 검증합니다.
+  verify-v380-action-readiness-preflight
+                 v3.8.0 Step 6 Action Readiness Preflight를 검증합니다.
+  verify-v380-source-recheck-action-pilot
+                 v3.8.0 Step 7 Source Recheck Action Pilot을 검증합니다.
+  verify-v380-client-notice-draft-queue
+                 v3.8.0 Step 8 Client Notice Draft Queue를 검증합니다.
+  verify-v380-rule-draft-action-package
+                 v3.8.0 Step 9 Rule Draft Action Package를 검증합니다.
+  verify-v380-ops-action-control-workspace-ui
+                 v3.8.0 Step 10 Ops Action Control Workspace UI를 검증합니다.
+  verify-v380-client-safe-action-notice-preview
+                 v3.8.0 Step 11 Client-safe Action Notice Preview를 검증합니다.
+  verify-v380-outcome-observer-reconciliation
+                 v3.8.0 Step 12 Outcome Observer and Reconciliation을 검증합니다.
+  verify-v380-action-receipt-bundle
+                 v3.8.0 Step 13 Action Receipt Bundle을 검증합니다.
+  verify-v380-field-connector-evidence-package
+                 v3.8.0 Step 14 Field Connector Evidence Package를 검증합니다.
+  verify-v380-default-off-action-explanation
+                 v3.8.0 Step 15 Default-off Action Explanation을 검증합니다.
+  verify-v380-stabilization-release-readiness
+                 v3.8.0 Step 16 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v370-site-source-group-contract
@@ -622,6 +654,38 @@ Usage:
                  v3.5.0 Step 8 Client Impact Forecast viewer-safe 경계를 검증합니다.
   verify-v350-stabilization-release-readiness
                  v3.5.0 Step 13 Stabilization and Release Readiness local gate 경계를 검증합니다.
+  verify-v380-entry-baseline
+                 v3.8.0 Step 1 source baseline과 latest published v3.7.0 경계를 검증합니다.
+  verify-v380-ops-action-route-boundary
+                 v3.8.0 Step 2 Ops Action Route Boundary를 검증합니다.
+  verify-v380-action-capability-contract
+                 v3.8.0 Step 3 Action Capability Contract를 검증합니다.
+  verify-v380-action-request-ledger-contract
+                 v3.8.0 Step 4 Action Request Ledger Contract를 검증합니다.
+  verify-v380-approval-decision-gate
+                 v3.8.0 Step 5 Approval Decision Gate를 검증합니다.
+  verify-v380-action-readiness-preflight
+                 v3.8.0 Step 6 Action Readiness Preflight를 검증합니다.
+  verify-v380-source-recheck-action-pilot
+                 v3.8.0 Step 7 Source Recheck Action Pilot을 검증합니다.
+  verify-v380-client-notice-draft-queue
+                 v3.8.0 Step 8 Client Notice Draft Queue를 검증합니다.
+  verify-v380-rule-draft-action-package
+                 v3.8.0 Step 9 Rule Draft Action Package를 검증합니다.
+  verify-v380-ops-action-control-workspace-ui
+                 v3.8.0 Step 10 Ops Action Control Workspace UI를 검증합니다.
+  verify-v380-client-safe-action-notice-preview
+                 v3.8.0 Step 11 Client-safe Action Notice Preview를 검증합니다.
+  verify-v380-outcome-observer-reconciliation
+                 v3.8.0 Step 12 Outcome Observer and Reconciliation을 검증합니다.
+  verify-v380-action-receipt-bundle
+                 v3.8.0 Step 13 Action Receipt Bundle을 검증합니다.
+  verify-v380-field-connector-evidence-package
+                 v3.8.0 Step 14 Field Connector Evidence Package를 검증합니다.
+  verify-v380-default-off-action-explanation
+                 v3.8.0 Step 15 Default-off Action Explanation을 검증합니다.
+  verify-v380-stabilization-release-readiness
+                 v3.8.0 Step 16 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v370-site-source-group-contract
@@ -1724,6 +1788,70 @@ case "${cmd}" in
   verify-v350-stabilization-release-readiness)
     require_internal verify_v350_stabilization_release_readiness.mjs
     exec "${INTERNAL_DIR}/verify_v350_stabilization_release_readiness.mjs" "$@"
+    ;;
+  verify-v380-entry-baseline)
+    require_internal verify_v380_entry_baseline.mjs
+    exec "${INTERNAL_DIR}/verify_v380_entry_baseline.mjs" "$@"
+    ;;
+  verify-v380-ops-action-route-boundary)
+    require_internal verify_v380_ops_action_route_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v380_ops_action_route_boundary.mjs" "$@"
+    ;;
+  verify-v380-action-capability-contract)
+    require_internal verify_v380_action_capability_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v380_action_capability_contract.mjs" "$@"
+    ;;
+  verify-v380-action-request-ledger-contract)
+    require_internal verify_v380_action_request_ledger_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v380_action_request_ledger_contract.mjs" "$@"
+    ;;
+  verify-v380-approval-decision-gate)
+    require_internal verify_v380_approval_decision_gate.mjs
+    exec "${INTERNAL_DIR}/verify_v380_approval_decision_gate.mjs" "$@"
+    ;;
+  verify-v380-action-readiness-preflight)
+    require_internal verify_v380_action_readiness_preflight.mjs
+    exec "${INTERNAL_DIR}/verify_v380_action_readiness_preflight.mjs" "$@"
+    ;;
+  verify-v380-source-recheck-action-pilot)
+    require_internal verify_v380_source_recheck_action_pilot.mjs
+    exec "${INTERNAL_DIR}/verify_v380_source_recheck_action_pilot.mjs" "$@"
+    ;;
+  verify-v380-client-notice-draft-queue)
+    require_internal verify_v380_client_notice_draft_queue.mjs
+    exec "${INTERNAL_DIR}/verify_v380_client_notice_draft_queue.mjs" "$@"
+    ;;
+  verify-v380-rule-draft-action-package)
+    require_internal verify_v380_rule_draft_action_package.mjs
+    exec "${INTERNAL_DIR}/verify_v380_rule_draft_action_package.mjs" "$@"
+    ;;
+  verify-v380-ops-action-control-workspace-ui)
+    require_internal verify_v380_ops_action_control_workspace_ui.mjs
+    exec "${INTERNAL_DIR}/verify_v380_ops_action_control_workspace_ui.mjs" "$@"
+    ;;
+  verify-v380-client-safe-action-notice-preview)
+    require_internal verify_v380_client_safe_action_notice_preview.mjs
+    exec "${INTERNAL_DIR}/verify_v380_client_safe_action_notice_preview.mjs" "$@"
+    ;;
+  verify-v380-outcome-observer-reconciliation)
+    require_internal verify_v380_outcome_observer_reconciliation.mjs
+    exec "${INTERNAL_DIR}/verify_v380_outcome_observer_reconciliation.mjs" "$@"
+    ;;
+  verify-v380-action-receipt-bundle)
+    require_internal verify_v380_action_receipt_bundle.mjs
+    exec "${INTERNAL_DIR}/verify_v380_action_receipt_bundle.mjs" "$@"
+    ;;
+  verify-v380-field-connector-evidence-package)
+    require_internal verify_v380_field_connector_evidence_package.mjs
+    exec "${INTERNAL_DIR}/verify_v380_field_connector_evidence_package.mjs" "$@"
+    ;;
+  verify-v380-default-off-action-explanation)
+    require_internal verify_v380_default_off_action_explanation.mjs
+    exec "${INTERNAL_DIR}/verify_v380_default_off_action_explanation.mjs" "$@"
+    ;;
+  verify-v380-stabilization-release-readiness)
+    require_internal verify_v380_stabilization_release_readiness.mjs
+    exec "${INTERNAL_DIR}/verify_v380_stabilization_release_readiness.mjs" "$@"
     ;;
   verify-v370-entry-baseline)
     require_internal verify_v370_entry_baseline.mjs

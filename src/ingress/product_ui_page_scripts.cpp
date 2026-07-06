@@ -1149,6 +1149,544 @@ void AppendOpsShellScript(std::ostringstream& out,
         const bundle = await requestJson(exportHandoffBundleRoute);
         renderV370ExportHandoffBundle({ bundle, exportHandoffBundleRoute });
       };
+      let v380ActionControlWorkspaceState = {};
+      const v380ActionControlWorkspaceList = value => Array.isArray(value) ? value : [];
+      const v380ActionControlEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-action-control-entry ${escapeHtml(tone)}" data-v380-action-control-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV380OpsActionControlWorkspace = (payload = {}) => {
+        const capabilityContract = payload.capabilityContract || {};
+        const actionRequestLedger = payload.actionRequestLedger || {};
+        const approvalDecisionGate = payload.approvalDecisionGate || {};
+        const actionReadinessPreflight = payload.actionReadinessPreflight || {};
+        const sourceRecheckActionPilot = payload.sourceRecheckActionPilot || {};
+        const clientNoticeDraftQueue = payload.clientNoticeDraftQueue || {};
+        const ruleDraftActionPackage = payload.ruleDraftActionPackage || {};
+        const receiptPlaceholder = payload.receiptPlaceholder || {
+          receiptRef: 'future-action-receipt',
+          receiptState: 'not-run',
+          bundleRoute: '/ops/api/actions/receipt-bundle',
+          summary: 'Step 13 Action Receipt Bundle 전까지 receipt는 preview placeholder로만 표시합니다.'
+        };
+        const allowedActionCatalog = v380ActionControlWorkspaceList(capabilityContract.allowedActionCatalog);
+        const ledgerFields = v380ActionControlWorkspaceList(actionRequestLedger.ledgerFields);
+        const decisionStates = v380ActionControlWorkspaceList(approvalDecisionGate.decisionStates);
+        const preflightBlockers = v380ActionControlWorkspaceList(actionReadinessPreflight.preflightBlockers);
+        const pilotCandidates = v380ActionControlWorkspaceList(sourceRecheckActionPilot.pilotCandidate);
+        const noticeDrafts = v380ActionControlWorkspaceList(clientNoticeDraftQueue.viewerSafeNoticeDrafts);
+        const draftPackages = v380ActionControlWorkspaceList(ruleDraftActionPackage.draftPackage);
+        const boundaryOk =
+          capabilityContract.boundaries?.actionExecutionPerformed === false &&
+          actionRequestLedger.boundaries?.actionRequestPersisted === false &&
+          approvalDecisionGate.boundaries?.approvalDecisionPersisted === false &&
+          actionReadinessPreflight.boundaries?.readinessResultPersisted === false &&
+          sourceRecheckActionPilot.boundaries?.sourceRecheckExecuted === false &&
+          clientNoticeDraftQueue.boundaries?.clientNoticeSent === false &&
+          clientNoticeDraftQueue.boundaries?.noticeQueueWritePerformed === false &&
+          ruleDraftActionPackage.boundaries?.ruleApplyPerformed === false &&
+          ruleDraftActionPackage.boundaries?.ruleRegistryWritePerformed === false;
+        v380ActionControlWorkspaceState = {
+          capabilityContract,
+          actionRequestLedger,
+          approvalDecisionGate,
+          actionReadinessPreflight,
+          sourceRecheckActionPilot,
+          clientNoticeDraftQueue,
+          ruleDraftActionPackage,
+          receiptPlaceholder,
+          capabilityRoute: payload.capabilityRoute || '/ops/api/actions/capability-contract',
+          ledgerRoute: payload.ledgerRoute || '/ops/api/actions/request-ledger',
+          approvalRoute: payload.approvalRoute || '/ops/api/actions/approval-decision-gate',
+          readinessRoute: payload.readinessRoute || '/ops/api/actions/readiness-preflight',
+          sourceRecheckRoute: payload.sourceRecheckRoute || '/ops/api/actions/source-recheck-pilot',
+          noticeRoute: payload.noticeRoute || '/ops/api/actions/client-notice-draft-queue',
+          rulePackageRoute: payload.rulePackageRoute || '/ops/api/actions/rule-draft-package'
+        };
+        renderBadges('dashActionControlWorkspaceBadges', [
+          { text: `request ${ledgerFields.length}` },
+          { text: `approval ${decisionStates.length}` },
+          { text: `readiness ${preflightBlockers.length}` },
+          { text: `pilot ${pilotCandidates.length}` },
+          { text: `notice ${noticeDrafts.length}` },
+          { text: `rule ${draftPackages.length}` },
+          { text: boundaryOk ? 'read-only' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashActionControlWorkspaceText',
+          payload.error
+            ? `Action Control Workspace 로드 실패: ${payload.error}`
+            : `request ledger ${ledgerFields.length} · approval ${decisionStates.length} · readiness blockers ${preflightBlockers.length} · pilot candidates ${pilotCandidates.length} · notice drafts ${noticeDrafts.length} · rule packages ${draftPackages.length}`);
+        const flow = document.getElementById('dashActionControlWorkspaceFlow');
+        if (flow) {
+          flow.setAttribute('data-v380-action-control-workspace-flow', 'request-approval-readiness-pilot-receipt');
+          flow.innerHTML = [
+            v380ActionControlEntry('request', 'request', actionRequestLedger.actionRequestLedgerContract?.idempotencyKey || 'siteId:actionKind:requestFingerprint', v380ActionControlWorkspaceState.ledgerRoute),
+            v380ActionControlEntry('approval', 'approval', approvalDecisionGate.approvalDecisionGate?.reason || 'required-for-all-decisions', v380ActionControlWorkspaceState.approvalRoute),
+            v380ActionControlEntry('readiness', 'readiness', actionReadinessPreflight.readinessPreflight?.defaultReadinessState || 'not-run', v380ActionControlWorkspaceState.readinessRoute, 'warn'),
+            v380ActionControlEntry('pilot', 'pilot/package', sourceRecheckActionPilot.sourceRecheckActionPilot?.pilotCandidate || ruleDraftActionPackage.ruleDraftActionPackage?.draftPackage || 'pilot candidate pending', `${v380ActionControlWorkspaceState.sourceRecheckRoute} · ${v380ActionControlWorkspaceState.rulePackageRoute}`),
+            v380ActionControlEntry('receipt', 'receipt', receiptPlaceholder.receiptState || 'not-run', receiptPlaceholder.bundleRoute || '/ops/api/actions/receipt-bundle', 'warn')
+          ].join('');
+        }
+        const requestList = document.getElementById('dashActionControlRequestList');
+        if (requestList) {
+          requestList.innerHTML = ledgerFields.length > 0
+            ? ledgerFields.slice(0, 8).map(item =>
+                v380ActionControlEntry(
+                  item.jsonName || item.field || 'request-field',
+                  item.field || item.jsonName || 'request field',
+                  `${item.type || 'field'} · required=${item.required === true ? 'true' : 'false'}`,
+                  item.description || actionRequestLedger.appendOnlyPolicy?.duplicateRequestBehavior || 'append-only/read-only policy'))
+              .join('')
+            : '<div class="empty">action request ledger field가 아직 없습니다.</div>';
+        }
+        const approvalList = document.getElementById('dashActionControlApprovalList');
+        if (approvalList) {
+          approvalList.innerHTML = decisionStates.length > 0
+            ? decisionStates.slice(0, 8).map(item =>
+                v380ActionControlEntry(
+                  item.decision || 'decision',
+                  item.label || item.decision || 'approval decision',
+                  `next=${v380ActionControlWorkspaceList(item.allowedNextStatuses).join(', ') || 'none'} · stale=${item.staleAfter || '15m'}`,
+                  `role=${item.requiredRole || 'ops'} · reasonRequired=${item.reasonRequired === true ? 'true' : 'false'}`,
+                  ['hold', 'reject', 'field-needed'].includes(String(item.decision || '')) ? 'warn' : ''))
+              .join('')
+            : '<div class="empty">approval decision state가 아직 없습니다.</div>';
+        }
+        const readinessList = document.getElementById('dashActionControlReadinessList');
+        if (readinessList) {
+          readinessList.innerHTML = preflightBlockers.length > 0
+            ? preflightBlockers.slice(0, 8).map(item =>
+                v380ActionControlEntry(
+                  item.dimension || item.field || 'readiness',
+                  item.expectedState || 'not-run',
+                  item.blocker || 'blocker pending',
+                  `${item.source || 'source'} · required=${item.required === true ? 'true' : 'false'}`,
+                  item.required === true ? 'warn' : ''))
+              .join('')
+            : '<div class="empty">readiness preflight blocker가 아직 없습니다.</div>';
+        }
+        const pilotList = document.getElementById('dashActionControlPilotList');
+        if (pilotList) {
+          const pilotRows = [
+            ...allowedActionCatalog.slice(0, 4).map(item => ({
+              kind: item.actionKind || 'allowed-action',
+              title: item.actionLabel || item.actionKind || 'allowed action',
+              detail: item.capability || item.status || 'allowed-preview-only',
+              meta: `role=${item.requiredRole || 'ops'} · allowed=${item.allowed === true ? 'true' : 'false'}`
+            })),
+            ...pilotCandidates.slice(0, 4).map(item => ({
+              kind: item.field || 'source-recheck-pilot',
+              title: item.state || 'source recheck',
+              detail: item.blocker || 'not-run',
+              meta: item.description || item.source || 'source recheck pilot'
+            })),
+            ...noticeDrafts.slice(0, 3).map(item => ({
+              kind: item.field || 'notice-draft',
+              title: item.state || 'notice draft',
+              detail: item.blocker || item.audience || 'viewer-safe',
+              meta: item.description || 'client notice draft queue'
+            })),
+            ...draftPackages.slice(0, 3).map(item => ({
+              kind: item.field || 'rule-draft-package',
+              title: item.state || 'rule draft',
+              detail: item.blocker || 'apply-blocked',
+              meta: item.description || 'rule draft action package'
+            }))
+          ];
+          pilotList.innerHTML = pilotRows.length > 0
+            ? pilotRows.slice(0, 10).map(item =>
+                v380ActionControlEntry(item.kind, item.title, item.detail, item.meta, String(item.detail || '').includes('blocked') ? 'warn' : ''))
+              .join('')
+            : '<div class="empty">action pilot/package 후보가 아직 없습니다.</div>';
+        }
+        const receiptList = document.getElementById('dashActionControlReceiptList');
+        if (receiptList) {
+          const receiptRefs = [
+            `request=${v380ActionControlWorkspaceState.ledgerRoute}`,
+            `approval=${v380ActionControlWorkspaceState.approvalRoute}`,
+            `readiness=${v380ActionControlWorkspaceState.readinessRoute}`,
+            `pilot=${v380ActionControlWorkspaceState.sourceRecheckRoute}`,
+            `notice=${v380ActionControlWorkspaceState.noticeRoute}`,
+            `rule=${v380ActionControlWorkspaceState.rulePackageRoute}`
+          ].join(' · ');
+          receiptList.innerHTML = v380ActionControlEntry(
+            receiptPlaceholder.receiptRef || 'future-action-receipt',
+            receiptPlaceholder.receiptState || 'not-run',
+            receiptPlaceholder.summary || 'receipt bundle is not implemented in Step 10',
+            `${receiptRefs} · bundle=${display(receiptPlaceholder.bundleRoute || '/ops/api/actions/receipt-bundle')}`,
+            'warn');
+        }
+        setText('dashActionControlBoundary',
+          `capability=${display(v380ActionControlWorkspaceState.capabilityRoute)} · request=${display(v380ActionControlWorkspaceState.ledgerRoute)} · approval=${display(v380ActionControlWorkspaceState.approvalRoute)} · readiness=${display(v380ActionControlWorkspaceState.readinessRoute)} · sourceRecheck=${display(v380ActionControlWorkspaceState.sourceRecheckRoute)} · notice=${display(v380ActionControlWorkspaceState.noticeRoute)} · rulePackage=${display(v380ActionControlWorkspaceState.rulePackageRoute)} · actionExecutionPerformed=${capabilityContract.boundaries?.actionExecutionPerformed === false ? 'false' : '확인 필요'} · actionRequestPersisted=${actionRequestLedger.boundaries?.actionRequestPersisted === false ? 'false' : '확인 필요'} · approvalDecisionPersisted=${approvalDecisionGate.boundaries?.approvalDecisionPersisted === false ? 'false' : '확인 필요'} · readinessResultPersisted=${actionReadinessPreflight.boundaries?.readinessResultPersisted === false ? 'false' : '확인 필요'} · sourceRecheckExecuted=${sourceRecheckActionPilot.boundaries?.sourceRecheckExecuted === false ? 'false' : '확인 필요'} · clientNoticeSent=${clientNoticeDraftQueue.boundaries?.clientNoticeSent === false ? 'false' : '확인 필요'} · noticeQueueWritePerformed=${clientNoticeDraftQueue.boundaries?.noticeQueueWritePerformed === false ? 'false' : '확인 필요'} · ruleRegistryWritePerformed=${ruleDraftActionPackage.boundaries?.ruleRegistryWritePerformed === false ? 'false' : '확인 필요'} · receiptRef=${display(receiptPlaceholder.receiptRef || 'future-action-receipt')}`);
+      };
+      const refreshV380OpsActionControlWorkspace = async ({
+        capabilityRoute = '/ops/api/actions/capability-contract',
+        ledgerRoute = '/ops/api/actions/request-ledger',
+        approvalRoute = '/ops/api/actions/approval-decision-gate',
+        readinessRoute = '/ops/api/actions/readiness-preflight',
+        sourceRecheckRoute = '/ops/api/actions/source-recheck-pilot',
+        noticeRoute = '/ops/api/actions/client-notice-draft-queue',
+        rulePackageRoute = '/ops/api/actions/rule-draft-package'
+      } = {}) => {
+        const [
+          capabilityContract,
+          actionRequestLedger,
+          approvalDecisionGate,
+          actionReadinessPreflight,
+          sourceRecheckActionPilot,
+          clientNoticeDraftQueue,
+          ruleDraftActionPackage
+        ] = await Promise.all([
+          requestJson(capabilityRoute).catch(error => ({ error: error.message, allowedActionCatalog: [], boundaries: {} })),
+          requestJson(ledgerRoute).catch(error => ({ error: error.message, ledgerFields: [], boundaries: {} })),
+          requestJson(approvalRoute).catch(error => ({ error: error.message, decisionStates: [], boundaries: {} })),
+          requestJson(readinessRoute).catch(error => ({ error: error.message, preflightBlockers: [], boundaries: {} })),
+          requestJson(sourceRecheckRoute).catch(error => ({ error: error.message, pilotCandidate: [], boundaries: {} })),
+          requestJson(noticeRoute).catch(error => ({ error: error.message, viewerSafeNoticeDrafts: [], boundaries: {} })),
+          requestJson(rulePackageRoute).catch(error => ({ error: error.message, draftPackage: [], boundaries: {} }))
+        ]);
+        const receiptPlaceholder = {
+          receiptRef: 'future-action-receipt',
+          receiptState: 'not-run',
+          bundleRoute: '/ops/api/actions/receipt-bundle',
+          summary: 'Step 13 Action Receipt Bundle에서 approval/request/readiness/pilot/outcome diff를 redacted bundle로 조합합니다.'
+        };
+        renderV380OpsActionControlWorkspace({
+          capabilityContract,
+          actionRequestLedger,
+          approvalDecisionGate,
+          actionReadinessPreflight,
+          sourceRecheckActionPilot,
+          clientNoticeDraftQueue,
+          ruleDraftActionPackage,
+          receiptPlaceholder,
+          capabilityRoute,
+          ledgerRoute,
+          approvalRoute,
+          readinessRoute,
+          sourceRecheckRoute,
+          noticeRoute,
+          rulePackageRoute
+        });
+      };
+      let v380OutcomeObserverReconciliationState = {};
+      const v380OutcomeObserverReconciliationList = value => Array.isArray(value) ? value : [];
+      const v380OutcomeObserverEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-action-outcome-entry ${escapeHtml(tone)}" data-v380-outcome-observer-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV380OutcomeObserverReconciliation = (payload = {}) => {
+        const outcomeObserver = payload.outcomeObserver || {};
+        const outcomeObserverItems =
+          v380OutcomeObserverReconciliationList(outcomeObserver.outcomeObserverItems);
+        const outcomeObserverSummary =
+          outcomeObserver.outcomeObserverSummary || {};
+        const boundaryOk =
+          outcomeObserver.boundaries?.actionExecutionPerformed === false &&
+          outcomeObserver.boundaries?.sourceRecheckExecuted === false &&
+          outcomeObserver.boundaries?.clientNoticeSent === false &&
+          outcomeObserver.boundaries?.noticeQueueWritePerformed === false &&
+          outcomeObserver.boundaries?.ruleApplyPerformed === false &&
+          outcomeObserver.boundaries?.eventRecordWritePerformed === false &&
+          outcomeObserver.boundaries?.viewerClientPayloadChanged === false &&
+          outcomeObserver.boundaries?.rtspOrWebrtcMediaPathChanged === false;
+        v380OutcomeObserverReconciliationState = {
+          outcomeObserver,
+          outcomeObserverRoute: payload.outcomeObserverRoute || '/ops/api/actions/outcome-reconciliation'
+        };
+        renderBadges('dashActionOutcomeObserverBadges', [
+          { text: `outcome ${outcomeObserverItems.length}` },
+          { text: `source ${outcomeObserverSummary.sourceDiffCount ?? 0}` },
+          { text: `event ${outcomeObserverSummary.eventRecordDiffCount ?? 0}` },
+          { text: `client ${outcomeObserverSummary.clientDiffCount ?? 0}` },
+          { text: `rule ${outcomeObserverSummary.ruleDiffCount ?? 0}` },
+          { text: `pending ${outcomeObserverSummary.pendingCount ?? 0}` },
+          { text: boundaryOk ? 'read-only not-run' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashActionOutcomeObserverText',
+          payload.error
+            ? `Outcome Observer 로드 실패: ${payload.error}`
+            : `readiness/outcome diff ${outcomeObserverItems.length} · observed ${outcomeObserverSummary.executionObservedCount ?? 0} · not-run ${outcomeObserverSummary.notRunCount ?? 0}`);
+        const sourceList = document.getElementById('dashActionOutcomeSourceList');
+        if (sourceList) {
+          sourceList.innerHTML = outcomeObserverItems.length > 0
+            ? outcomeObserverItems.slice(0, 8).map(item =>
+                v380OutcomeObserverEntry(
+                  item.outcomeObserverId || 'outcomeObserver',
+                  item.readinessRef || 'readinessRef',
+                  item.sourceOutcomeDiff || 'source-outcome-diff pending',
+                  `candidate=${display(item.executionCandidateRef)} · observed=${display(item.observedOutcomeRef)}`,
+                  item.executionObserved === true ? '' : 'warn'))
+              .join('')
+            : '<div class="empty">source outcome diff가 아직 없습니다.</div>';
+        }
+        const eventClientList = document.getElementById('dashActionOutcomeEventClientList');
+        if (eventClientList) {
+          eventClientList.innerHTML = outcomeObserverItems.length > 0
+            ? outcomeObserverItems.slice(0, 8).map(item => {
+                const observerSignals = v380OutcomeObserverReconciliationList(item.observerSignals).slice(0, 3).join(', ') || 'observer signals pending';
+                return v380OutcomeObserverEntry(
+                  item.reconciliationStatus || 'pending-observation',
+                  item.eventRecordOutcomeDiff || 'event-record-outcome-diff pending',
+                  item.clientImpactOutcomeDiff || 'client-impact-outcome-diff pending',
+                  `${display(observerSignals)} · evidence=${display(v380OutcomeObserverReconciliationList(item.evidenceRefs).slice(0, 3).join(', ') || 'evidence refs pending')}`,
+                  String(item.reconciliationStatus || '').includes('pending') ? 'warn' : '');
+              }).join('')
+            : '<div class="empty">EventRecord/client outcome diff가 아직 없습니다.</div>';
+        }
+        const ruleList = document.getElementById('dashActionOutcomeRuleList');
+        if (ruleList) {
+          ruleList.innerHTML = outcomeObserverItems.length > 0
+            ? outcomeObserverItems.slice(0, 8).map(item =>
+                v380OutcomeObserverEntry(
+                  item.ruleDraftOutcomeDiff || 'rule-draft-outcome-diff pending',
+                  item.pendingReason || 'pending reason',
+                  item.actionRequestRef || 'action request ref',
+                  `readOnly=${item.readOnly === true ? 'true' : 'false'} · executionObserved=${item.executionObserved === true ? 'true' : 'false'}`,
+                  item.executionObserved === true ? '' : 'warn'))
+              .join('')
+            : '<div class="empty">rule draft outcome diff가 아직 없습니다.</div>';
+        }
+        setText('dashActionOutcomeBoundary',
+          `outcome=${display(v380OutcomeObserverReconciliationState.outcomeObserverRoute)} · readiness=${display(outcomeObserver.readinessPreflightRoute)} · sourceRecheck=${display(outcomeObserver.sourceRecheckActionPilotRoute)} · notice=${display(outcomeObserver.clientNoticeDraftQueueRoute)} · rule=${display(outcomeObserver.ruleDraftActionPackageRoute)} · actionExecutionPerformed=${outcomeObserver.boundaries?.actionExecutionPerformed === false ? 'false' : '확인 필요'} · sourceRecheckExecuted=${outcomeObserver.boundaries?.sourceRecheckExecuted === false ? 'false' : '확인 필요'} · clientNoticeSent=${outcomeObserver.boundaries?.clientNoticeSent === false ? 'false' : '확인 필요'} · ruleApplyPerformed=${outcomeObserver.boundaries?.ruleApplyPerformed === false ? 'false' : '확인 필요'} · eventRecordWritePerformed=${outcomeObserver.boundaries?.eventRecordWritePerformed === false ? 'false' : '확인 필요'} · viewerClientPayloadChanged=${outcomeObserver.boundaries?.viewerClientPayloadChanged === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV380OutcomeObserverReconciliation = async ({
+        outcomeObserverRoute = '/ops/api/actions/outcome-reconciliation'
+      } = {}) => {
+        const outcomeObserver = await requestJson(outcomeObserverRoute);
+        renderV380OutcomeObserverReconciliation({ outcomeObserver, outcomeObserverRoute });
+      };
+      let v380ActionReceiptBundleState = {};
+      const v380ActionReceiptBundleList = value => Array.isArray(value) ? value : [];
+      const v380ActionReceiptEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-action-receipt-entry ${escapeHtml(tone)}" data-v380-action-receipt-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV380ActionReceiptBundle = (payload = {}) => {
+        const receiptBundle = payload.receiptBundle || {};
+        const receiptBundleItems = v380ActionReceiptBundleList(receiptBundle.receiptBundleItems);
+        const receiptBundleSummary = receiptBundle.receiptBundleSummary || {};
+        const boundaryOk =
+          receiptBundle.boundaries?.bundlePersisted === false &&
+          receiptBundle.boundaries?.artifactFileWritePerformed === false &&
+          receiptBundle.boundaries?.handoffWritePerformed === false &&
+          receiptBundle.boundaries?.actionExecutionPerformed === false &&
+          receiptBundle.boundaries?.sourceRecheckExecuted === false &&
+          receiptBundle.boundaries?.clientNoticeSent === false &&
+          receiptBundle.boundaries?.ruleApplyPerformed === false &&
+          receiptBundle.boundaries?.eventRecordWritePerformed === false &&
+          receiptBundle.boundaries?.rawLocatorIncluded === false &&
+          receiptBundle.boundaries?.credentialMaterialIncluded === false &&
+          receiptBundle.boundaries?.rawDiagnosticJsonIncluded === false &&
+          receiptBundle.boundaries?.rtspOrWebrtcMediaPathChanged === false;
+        v380ActionReceiptBundleState = {
+          receiptBundle,
+          receiptBundleRoute: payload.receiptBundleRoute || '/ops/api/actions/receipt-bundle'
+        };
+        renderBadges('dashActionReceiptBundleBadges', [
+          { text: `receipt ${receiptBundleItems.length}` },
+          { text: `safe ${receiptBundleSummary.releaseSafeCount ?? 0}` },
+          { text: `redaction ${receiptBundleSummary.redactionReviewCount ?? 0}` },
+          { text: `handoff ${receiptBundleSummary.handoffRefCount ?? 0}` },
+          { text: `not-run ${receiptBundleSummary.notRunCount ?? 0}` },
+          { text: boundaryOk ? 'release-safe read-only' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashActionReceiptBundleText',
+          payload.error
+            ? `Action Receipt Bundle 로드 실패: ${payload.error}`
+            : `redacted release-safe receipt bundle ${receiptBundleItems.length} · handoff map ${receiptBundleSummary.handoffRefCount ?? 0} · redaction review ${receiptBundleSummary.redactionReviewCount ?? 0}`);
+        const bundleList = document.getElementById('dashActionReceiptBundleList');
+        if (bundleList) {
+          bundleList.innerHTML = receiptBundleItems.length > 0
+            ? receiptBundleItems.slice(0, 8).map(item =>
+                v380ActionReceiptEntry(
+                  item.receiptBundleId || 'receiptBundle',
+                  item.receiptState || 'redacted-release-safe',
+                  `${display(item.actionRequestRef)} · ${display(item.approvalDecisionRef)} · ${display(item.readinessRef)}`,
+                  `candidate=${display(item.executionCandidateRef)} · outcome=${display(item.outcomeDiffRef)}`,
+                  item.releaseSafe === true ? '' : 'warn'))
+              .join('')
+            : '<div class="empty">redacted receipt bundle 항목이 아직 없습니다.</div>';
+        }
+        const handoffList = document.getElementById('dashActionReceiptHandoffList');
+        if (handoffList) {
+          const handoffRows = receiptBundleItems.flatMap(item =>
+            v380ActionReceiptBundleList(item.handoffRefs).slice(0, 5).map(ref =>
+              v380ActionReceiptEntry(
+                'handoffMap',
+                item.handoffMap || 'release-safe-handoff',
+                ref,
+                item.releaseSafeLabel || 'releaseSafe=true',
+                '')));
+          handoffList.innerHTML = handoffRows.length > 0
+            ? handoffRows.slice(0, 12).join('')
+            : '<div class="empty">release-safe handoff map ref가 아직 없습니다.</div>';
+        }
+        const redactionList = document.getElementById('dashActionReceiptRedactionList');
+        if (redactionList) {
+          const redactionRows = receiptBundleItems.flatMap(item =>
+            v380ActionReceiptBundleList(item.redactionReview).slice(0, 6).map(ref =>
+              v380ActionReceiptEntry(
+                'redactionSummary',
+                ref,
+                item.redactionSummary || 'redacted release-safe',
+                `${item.receiptBundleId || 'receipt'} · raw locator/credential/raw diagnostic excluded`,
+                '')));
+          redactionList.innerHTML = redactionRows.length > 0
+            ? redactionRows.slice(0, 12).join('')
+            : '<div class="empty">redaction review ref가 아직 없습니다.</div>';
+        }
+        setText('dashActionReceiptBundleBoundary',
+          `bundle=${display(v380ActionReceiptBundleState.receiptBundleRoute)} · request=${display(receiptBundle.requestLedgerRoute)} · approval=${display(receiptBundle.approvalDecisionGateRoute)} · readiness=${display(receiptBundle.readinessPreflightRoute)} · outcome=${display(receiptBundle.outcomeReconciliationRoute)} · bundlePersisted=${receiptBundle.boundaries?.bundlePersisted === false ? 'false' : '확인 필요'} · artifactFileWritePerformed=${receiptBundle.boundaries?.artifactFileWritePerformed === false ? 'false' : '확인 필요'} · handoffWritePerformed=${receiptBundle.boundaries?.handoffWritePerformed === false ? 'false' : '확인 필요'} · rawLocatorIncluded=${receiptBundle.boundaries?.rawLocatorIncluded === false ? 'false' : '확인 필요'} · credentialMaterialIncluded=${receiptBundle.boundaries?.credentialMaterialIncluded === false ? 'false' : '확인 필요'} · rawDiagnosticJsonIncluded=${receiptBundle.boundaries?.rawDiagnosticJsonIncluded === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV380ActionReceiptBundle = async ({
+        receiptBundleRoute = '/ops/api/actions/receipt-bundle'
+      } = {}) => {
+        const receiptBundle = await requestJson(receiptBundleRoute);
+        renderV380ActionReceiptBundle({ receiptBundle, receiptBundleRoute });
+      };
+      let v380FieldConnectorEvidencePackageState = {};
+      const v380FieldConnectorEvidenceList = value => Array.isArray(value) ? value : [];
+      const v380FieldConnectorEvidenceEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-field-connector-entry ${escapeHtml(tone)}" data-v380-field-connector-evidence-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV380FieldConnectorEvidencePackage = (payload = {}) => {
+        const fieldConnectorEvidence = payload.fieldConnectorEvidence || {};
+        const fieldConnectorEvidenceItems =
+          v380FieldConnectorEvidenceList(fieldConnectorEvidence.fieldConnectorEvidenceItems);
+        const fieldConnectorEvidenceSummary =
+          fieldConnectorEvidence.fieldConnectorEvidenceSummary || {};
+        const boundaryOk =
+          fieldConnectorEvidence.boundaries?.fieldSmokeExecuted === false &&
+          fieldConnectorEvidence.boundaries?.endpointProbePerformed === false &&
+          fieldConnectorEvidence.boundaries?.credentialProbePerformed === false &&
+          fieldConnectorEvidence.boundaries?.providerCallPerformed === false &&
+          fieldConnectorEvidence.boundaries?.sourceRegistryWritePerformed === false &&
+          fieldConnectorEvidence.boundaries?.actionExecutionPerformed === false &&
+          fieldConnectorEvidence.boundaries?.rtspOrWebrtcMediaPathChanged === false;
+        v380FieldConnectorEvidencePackageState = {
+          fieldConnectorEvidence,
+          fieldConnectorEvidenceRoute: payload.fieldConnectorEvidenceRoute || '/ops/api/actions/field-connector-evidence-package'
+        };
+        renderBadges('dashFieldConnectorEvidenceBadges', [
+          { text: `package ${fieldConnectorEvidenceItems.length}` },
+          { text: `ONVIF ${fieldConnectorEvidenceSummary.onvifConnectorCount ?? 0}` },
+          { text: `WHEP/TURN ${fieldConnectorEvidenceSummary.externalWhepTurnConnectorCount ?? 0}` },
+          { text: `cloud ${fieldConnectorEvidenceSummary.cloudProviderConnectorCount ?? 0}` },
+          { text: `not-run ${fieldConnectorEvidenceSummary.notRunCount ?? 0}` },
+          { text: boundaryOk ? 'conditional only' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashFieldConnectorEvidenceText',
+          payload.error
+            ? `Field Connector Evidence Package 로드 실패: ${payload.error}`
+            : `connector ${fieldConnectorEvidenceItems.length} · endpoint approval ${fieldConnectorEvidenceSummary.endpointApprovalRequiredCount ?? 0} · credential approval ${fieldConnectorEvidenceSummary.credentialApprovalRequiredCount ?? 0} · release-safe ${fieldConnectorEvidenceSummary.releaseSafeCount ?? 0}`);
+        const evidenceList = document.getElementById('dashFieldConnectorEvidenceList');
+        if (evidenceList) {
+          evidenceList.innerHTML = fieldConnectorEvidenceItems.length > 0
+            ? fieldConnectorEvidenceItems.slice(0, 8).map(item =>
+                v380FieldConnectorEvidenceEntry(
+                  item.connectorEvidencePackageId || item.connectorKind || 'fieldConnectorEvidence',
+                  item.connectorKind || 'connectorKind',
+                  `${item.actionRequestRef || 'actionRequestRef'} · ${item.readinessRef || 'readinessRef'} · ${item.receiptBundleRef || 'receiptBundleRef'}`,
+                  `fieldAttachment=${display(item.fieldAttachmentRef || '-')} · fieldSmoke=${display(item.fieldSmokeStatus || 'field-smoke-not-run')} · state=${display(item.connectorEvidenceState || 'conditional-not-run')}`,
+                  item.connectorEvidenceState === 'conditional-not-run' ? 'warn' : ''))
+              .join('')
+            : '<div class="empty">Field Connector Evidence Package 항목이 아직 없습니다.</div>';
+        }
+        const conditionList = document.getElementById('dashFieldConnectorConditionList');
+        if (conditionList) {
+          conditionList.innerHTML = fieldConnectorEvidenceItems.length > 0
+            ? fieldConnectorEvidenceItems.slice(0, 8).map(item => {
+                const conditionRefs = v380FieldConnectorEvidenceList(item.conditionRefs).slice(0, 4).join(', ') || 'condition refs pending';
+                const evidenceRefs = v380FieldConnectorEvidenceList(item.evidenceRefs).slice(0, 4).join(', ') || 'evidence refs pending';
+                return v380FieldConnectorEvidenceEntry(
+                  item.connectorKind || 'connectorCondition',
+                  `${item.endpointApprovalRef || 'endpointApprovalRef'} / ${item.credentialApprovalRef || 'credentialApprovalRef'}`,
+                  `conditionRefs=${conditionRefs}`,
+                  `evidenceRefs=${evidenceRefs} · outcome=${display(item.outcomeRef || '-')} · redaction=${display(item.redactedConnectorEvidence || 'redactedConnectorEvidence')}`,
+                  item.endpointRequired || item.credentialRequired ? 'warn' : '');
+              }).join('')
+            : '<div class="empty">credential/endpoint approval condition refs가 아직 없습니다.</div>';
+        }
+        setText('dashFieldConnectorBoundary',
+          `package=${display(v380FieldConnectorEvidencePackageState.fieldConnectorEvidenceRoute)} · readiness=${display(fieldConnectorEvidence.readinessPreflightRoute)} · sourceRecheck=${display(fieldConnectorEvidence.sourceRecheckActionPilotRoute)} · receipt=${display(fieldConnectorEvidence.receiptBundleRoute)} · fieldAttachment=${display(fieldConnectorEvidence.fieldEvidenceAttachmentRoute)} · fieldSmokeExecuted=${fieldConnectorEvidence.boundaries?.fieldSmokeExecuted === false ? 'false' : '확인 필요'} · endpointProbePerformed=${fieldConnectorEvidence.boundaries?.endpointProbePerformed === false ? 'false' : '확인 필요'} · credentialProbePerformed=${fieldConnectorEvidence.boundaries?.credentialProbePerformed === false ? 'false' : '확인 필요'} · providerCallPerformed=${fieldConnectorEvidence.boundaries?.providerCallPerformed === false ? 'false' : '확인 필요'} · actionExecutionPerformed=${fieldConnectorEvidence.boundaries?.actionExecutionPerformed === false ? 'false' : '확인 필요'} · sourceRegistryWritePerformed=${fieldConnectorEvidence.boundaries?.sourceRegistryWritePerformed === false ? 'false' : '확인 필요'} · rtspOrWebrtcMediaPathChanged=${fieldConnectorEvidence.boundaries?.rtspOrWebrtcMediaPathChanged === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV380FieldConnectorEvidencePackage = async ({
+        fieldConnectorEvidenceRoute = '/ops/api/actions/field-connector-evidence-package'
+      } = {}) => {
+        const fieldConnectorEvidence = await requestJson(fieldConnectorEvidenceRoute);
+        renderV380FieldConnectorEvidencePackage({ fieldConnectorEvidence, fieldConnectorEvidenceRoute });
+      };
+      let v380DefaultOffActionExplanationState = {};
+      const v380DefaultOffActionExplanationList = value => Array.isArray(value) ? value : [];
+      const v380DefaultOffActionExplanationEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-default-off-action-explanation-entry ${escapeHtml(tone)}" data-v380-default-off-action-explanation-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV380DefaultOffActionExplanation = (payload = {}) => {
+        const defaultOffActionExplanation = payload.defaultOffActionExplanation || {};
+        const defaultOffActionExplanations =
+          v380DefaultOffActionExplanationList(defaultOffActionExplanation.defaultOffActionExplanations);
+        const defaultOffActionExplanationSummary =
+          defaultOffActionExplanation.defaultOffActionExplanationSummary || {};
+        const boundaryOk =
+          defaultOffActionExplanation.boundaries?.defaultEnabled === false &&
+          defaultOffActionExplanation.boundaries?.vlmProviderCallPerformed === false &&
+          defaultOffActionExplanation.boundaries?.vlmRuntimeCallPerformed === false &&
+          defaultOffActionExplanation.boundaries?.rawVlmPromptIncluded === false &&
+          defaultOffActionExplanation.boundaries?.rawProviderResponseIncluded === false &&
+          defaultOffActionExplanation.boundaries?.actionExecutionPerformed === false &&
+          defaultOffActionExplanation.boundaries?.sourceRegistryWritePerformed === false &&
+          defaultOffActionExplanation.boundaries?.rtspOrWebrtcMediaPathChanged === false;
+        v380DefaultOffActionExplanationState = {
+          defaultOffActionExplanation,
+          defaultOffActionExplanationRoute: payload.defaultOffActionExplanationRoute || '/ops/api/actions/default-off-explanation'
+        };
+        renderBadges('dashDefaultOffActionExplanationBadges', [
+          { text: `hint ${defaultOffActionExplanations.length}` },
+          { text: `approval ${defaultOffActionExplanationSummary.approvalBlockerCount ?? 0}` },
+          { text: `readiness ${defaultOffActionExplanationSummary.readinessReasonCount ?? 0}` },
+          { text: `outcome ${defaultOffActionExplanationSummary.outcomeHintCount ?? 0}` },
+          { text: `default-off ${defaultOffActionExplanationSummary.defaultOffCount ?? 0}` },
+          { text: boundaryOk ? 'no provider call' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashDefaultOffActionExplanationText',
+          payload.error
+            ? `Default-off Action Explanation 로드 실패: ${payload.error}`
+            : `explanations ${defaultOffActionExplanations.length} · provider opt-in ${defaultOffActionExplanationSummary.providerOptInRequiredCount ?? 0} · runtime opt-in ${defaultOffActionExplanationSummary.runtimeOptInRequiredCount ?? 0} · release-safe ${defaultOffActionExplanationSummary.releaseSafeCount ?? 0}`);
+        const list = document.getElementById('dashDefaultOffActionExplanationList');
+        if (list) {
+          list.innerHTML = defaultOffActionExplanations.length > 0
+            ? defaultOffActionExplanations.slice(0, 8).map(item =>
+                v380DefaultOffActionExplanationEntry(
+                  item.defaultOffActionExplanationId || item.explanationKind || 'defaultOffActionExplanation',
+                  item.explanationKind || 'explanationKind',
+                  `${item.approvalBlockerSummary || 'approvalBlockerSummary'} · ${item.readinessReasonSummary || 'readinessReasonSummary'}`,
+                  `outcome=${display(item.outcomeHint || '-')} · review=${display(item.operatorReviewHint || '-')} · defaultEnabled=${item.defaultEnabled === false ? 'false' : '확인 필요'}`,
+                  item.defaultOff === true ? 'warn' : ''))
+              .join('')
+            : '<div class="empty">Default-off Action Explanation 항목이 아직 없습니다.</div>';
+        }
+        setText('dashDefaultOffActionExplanationBoundary',
+          `explanation=${display(v380DefaultOffActionExplanationState.defaultOffActionExplanationRoute)} · approval=${display(defaultOffActionExplanation.approvalDecisionGateRoute)} · readiness=${display(defaultOffActionExplanation.readinessPreflightRoute)} · outcome=${display(defaultOffActionExplanation.outcomeReconciliationRoute)} · receipt=${display(defaultOffActionExplanation.receiptBundleRoute)} · fieldConnector=${display(defaultOffActionExplanation.fieldConnectorEvidencePackageRoute)} · defaultEnabled=${defaultOffActionExplanation.boundaries?.defaultEnabled === false ? 'false' : '확인 필요'} · vlmProviderCallPerformed=${defaultOffActionExplanation.boundaries?.vlmProviderCallPerformed === false ? 'false' : '확인 필요'} · vlmRuntimeCallPerformed=${defaultOffActionExplanation.boundaries?.vlmRuntimeCallPerformed === false ? 'false' : '확인 필요'} · rawVlmPromptIncluded=${defaultOffActionExplanation.boundaries?.rawVlmPromptIncluded === false ? 'false' : '확인 필요'} · rawProviderResponseIncluded=${defaultOffActionExplanation.boundaries?.rawProviderResponseIncluded === false ? 'false' : '확인 필요'} · actionExecutionPerformed=${defaultOffActionExplanation.boundaries?.actionExecutionPerformed === false ? 'false' : '확인 필요'} · sourceRegistryWritePerformed=${defaultOffActionExplanation.boundaries?.sourceRegistryWritePerformed === false ? 'false' : '확인 필요'} · rtspOrWebrtcMediaPathChanged=${defaultOffActionExplanation.boundaries?.rtspOrWebrtcMediaPathChanged === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV380DefaultOffActionExplanation = async ({
+        defaultOffActionExplanationRoute = '/ops/api/actions/default-off-explanation'
+      } = {}) => {
+        const defaultOffActionExplanation = await requestJson(defaultOffActionExplanationRoute);
+        renderV380DefaultOffActionExplanation({ defaultOffActionExplanation, defaultOffActionExplanationRoute });
+      };
       let v370OutcomeReconciliationState = {};
       const v370OutcomeReconciliationList = value => Array.isArray(value) ? value : [];
       const v370OutcomeReconciliationEntry = (kind, title, detail, meta, tone = '') =>
@@ -2639,6 +3177,27 @@ void AppendOpsShellScript(std::ostringstream& out,
           impactDiffRoute: '/ops/api/live-operations/simulation/impact-diff',
           readinessRoute: '/ops/api/live-operations/simulation/safe-apply-readiness'
         }).catch(error => renderV360OpsSimulationWorkspace({ error: error.message }));
+        await refreshV380OpsActionControlWorkspace({
+          capabilityRoute: '/ops/api/actions/capability-contract',
+          ledgerRoute: '/ops/api/actions/request-ledger',
+          approvalRoute: '/ops/api/actions/approval-decision-gate',
+          readinessRoute: '/ops/api/actions/readiness-preflight',
+          sourceRecheckRoute: '/ops/api/actions/source-recheck-pilot',
+          noticeRoute: '/ops/api/actions/client-notice-draft-queue',
+          rulePackageRoute: '/ops/api/actions/rule-draft-package'
+        }).catch(error => renderV380OpsActionControlWorkspace({ error: error.message }));
+        await refreshV380OutcomeObserverReconciliation({
+          outcomeObserverRoute: '/ops/api/actions/outcome-reconciliation'
+        }).catch(error => renderV380OutcomeObserverReconciliation({ error: error.message }));
+        await refreshV380ActionReceiptBundle({
+          receiptBundleRoute: '/ops/api/actions/receipt-bundle'
+        }).catch(error => renderV380ActionReceiptBundle({ error: error.message }));
+        await refreshV380FieldConnectorEvidencePackage({
+          fieldConnectorEvidenceRoute: '/ops/api/actions/field-connector-evidence-package'
+        }).catch(error => renderV380FieldConnectorEvidencePackage({ error: error.message }));
+        await refreshV380DefaultOffActionExplanation({
+          defaultOffActionExplanationRoute: '/ops/api/actions/default-off-explanation'
+        }).catch(error => renderV380DefaultOffActionExplanation({ error: error.message }));
         await refreshV370RuleVaWhatIfBySite({
           whatIfRoute: '/ops/api/site-operations/rule-va-what-if-by-site'
         }).catch(error => renderV370RuleVaWhatIfBySite({ error: error.message }));
