@@ -239,6 +239,7 @@ const v380VerifierCoverage = {
     "verify-v380-action-request-ledger-contract",
     "verify-v380-approval-decision-gate",
     "verify-v380-action-readiness-preflight",
+    "verify-v380-source-recheck-action-pilot",
   ],
   SAFE: [
     "verify-v380-entry-baseline",
@@ -247,6 +248,7 @@ const v380VerifierCoverage = {
     "verify-v380-action-request-ledger-contract",
     "verify-v380-approval-decision-gate",
     "verify-v380-action-readiness-preflight",
+    "verify-v380-source-recheck-action-pilot",
   ],
   OPS: [
     "verify-v380-entry-baseline",
@@ -255,6 +257,7 @@ const v380VerifierCoverage = {
     "verify-v380-action-request-ledger-contract",
     "verify-v380-approval-decision-gate",
     "verify-v380-action-readiness-preflight",
+    "verify-v380-source-recheck-action-pilot",
   ],
 };
 

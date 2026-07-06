@@ -10929,7 +10929,7 @@ std::vector<OpsV380ActionRouteBoundaryItem> BuildV380ActionRouteBoundaryItems() 
          "execution-pilot",
          "GET",
          "ops-action-source-recheck",
-         "planned",
+         "implemented-read-only",
          "lowest-risk source health recheck candidate envelope"},
         {"/ops/api/actions/client-notice-draft-queue",
          "execution-pilot",
@@ -11606,6 +11606,131 @@ std::string OpsV380ActionReadinessPreflightJson() {
         << "\"approvalDecisionPersisted\":false,"
         << "\"readinessResultPersisted\":false,"
         << "\"sourceRecheckExecuted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"runbookInstancePersisted\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV380SourceRecheckActionPilotItem {
+    std::string field;
+    std::string state;
+    std::string blocker;
+    std::string source;
+    std::string description;
+    bool required{false};
+};
+
+std::vector<OpsV380SourceRecheckActionPilotItem> BuildV380SourceRecheckActionPilotItems() {
+    return {
+        {"readinessRef",
+         "ready",
+         "readiness-blocked",
+         "/ops/api/actions/readiness-preflight",
+         "Pilot candidate requires an existing readiness preflight read model in ready state",
+         true},
+        {"recheckRequest",
+         "not-run",
+         "operator-confirmation-required",
+         "operator action request",
+         "Source health recheck request envelope is prepared without contacting source workers",
+         true},
+        {"sourceHealthRecheck",
+         "not-run",
+         "source-recheck-not-executed",
+         "source health projection",
+         "Actual source health probe stays out of this read-only pilot contract",
+         true},
+        {"dryExecutionResultEnvelope",
+         "not-run",
+         "dry-result-only",
+         "execution preview",
+         "Dry execution result shape is available for receipts without persisting action output",
+         true},
+        {"executionPreview",
+         "blocked",
+         "field-needed",
+         "field evidence condition",
+         "Field-needed and degraded source states stay visible as blockers before any later execution",
+         false},
+    };
+}
+
+void AppendV380SourceRecheckActionPilotItemJson(
+    std::ostringstream& out,
+    const OpsV380SourceRecheckActionPilotItem& item) {
+    out << "{"
+        << "\"field\":\"" << JsonEscape(item.field) << "\","
+        << "\"state\":\"" << JsonEscape(item.state) << "\","
+        << "\"blocker\":\"" << JsonEscape(item.blocker) << "\","
+        << "\"source\":\"" << JsonEscape(item.source) << "\","
+        << "\"required\":" << JsonBool(item.required) << ","
+        << "\"description\":\"" << JsonEscape(item.description) << "\""
+        << "}";
+}
+
+std::string OpsV380SourceRecheckActionPilotJson() {
+    const auto items = BuildV380SourceRecheckActionPilotItems();
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v380-source-recheck-action-pilot.v1\","
+        << "\"status\":\"source-recheck-action-pilot\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"route\":\"/ops/api/actions/source-recheck-pilot\","
+        << "\"readinessPreflightRoute\":\"/ops/api/actions/readiness-preflight\","
+        << "\"capabilityContractRoute\":\"/ops/api/actions/capability-contract\","
+        << "\"approvalDecisionGateRoute\":\"/ops/api/actions/approval-decision-gate\","
+        << "\"requestLedgerRoute\":\"/ops/api/actions/request-ledger\","
+        << "\"sourceRecheckActionPilot\":{"
+        << "\"contractOnly\":true,"
+        << "\"sourceRecheckPilotContractOnly\":true,"
+        << "\"pilotCandidate\":\"source-health-recheck\","
+        << "\"sourceHealthRecheck\":\"not-run\","
+        << "\"recheckRequest\":\"prepared-read-model\","
+        << "\"readinessRef\":\"/ops/api/actions/readiness-preflight\""
+        << "},\"pilotStates\":";
+    AppendJsonStringArray(out, {"ready", "blocked", "degraded", "field-needed", "not-run"});
+    out << ",\"pilotCandidate\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV380SourceRecheckActionPilotItemJson(out, items[i]);
+    }
+    out << "],\"dryExecutionResultEnvelope\":{"
+        << "\"resultState\":\"not-run\","
+        << "\"executionPreview\":\"dry-result-only\","
+        << "\"sourceHealthBefore\":\"source-health-rollup-ref\","
+        << "\"sourceHealthAfter\":\"not-collected\","
+        << "\"receiptRef\":\"future-action-receipt\","
+        << "\"actionResultPersisted\":false"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"sourceRecheckPilotContractOnly\":true,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"sourceHealthWritePerformed\":false,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"actionResultPersisted\":false,"
+        << "\"actionRequestPersisted\":false,"
+        << "\"approvalDecisionPersisted\":false,"
+        << "\"readinessResultPersisted\":false,"
         << "\"clientNoticeSent\":false,"
         << "\"noticeQueueWritePerformed\":false,"
         << "\"ruleRegistryWritePerformed\":false,"
@@ -35900,6 +36025,20 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV380ActionReadinessPreflightJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/actions/source-recheck-pilot") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV380SourceRecheckActionPilotJson());
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

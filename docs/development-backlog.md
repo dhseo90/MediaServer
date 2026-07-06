@@ -21,8 +21,9 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 상태: Step 1 source baseline 정렬, Step 2 Ops Action Route Boundary, Step 3 Action
 Capability Contract, Step 4 Action Request Ledger Contract, Step 5 Approval Decision Gate,
-Step 6 Action Readiness Preflight를 완료했고 Step 7~16 개발은 미착수입니다. 현재 source
-version은 `3.8.0`이며, VERSION/CMake/docs/backlog/source roadmap과 v3.8 Step 1~6 local gate를
+Step 6 Action Readiness Preflight, Step 7 Source Recheck Action Pilot을 완료했고 Step 8~16
+개발은 미착수입니다. 현재 source version은 `3.8.0`이며,
+VERSION/CMake/docs/backlog/source roadmap과 v3.8 Step 1~7 local gate를
 `3.8.0` 기준으로 정렬했습니다. 각 step은 실제
 코드/API/UI/문서/검증 산출물이 생긴 뒤에만 완료로 기록합니다.
 
@@ -72,7 +73,7 @@ Product UI -> Evidence/Field -> Release 순서로 진행합니다.
 | 4 | v3.8.0 (4) Action Request Ledger Contract | P0 | 완료 | `/ops/api/actions/request-ledger`와 `OpsV380ActionRequestLedgerContractJson`으로 actionRequestId/siteId/runbookId/requestedBy/status/createdAt/idempotencyKey ledger contract를 append-only/read-only로 정의 |
 | 5 | v3.8.0 (5) Approval Decision Gate | P0 | 완료 | `/ops/api/actions/approval-decision-gate`와 `OpsV380ApprovalDecisionGateJson`으로 approve/hold/reject/field-needed, reviewer, reason, auditRef, stale decision guard를 read-only로 정의 |
 | 6 | v3.8.0 (6) Action Readiness Preflight | P0 | 완료 | `/ops/api/actions/readiness-preflight`와 `OpsV380ActionReadinessPreflightJson`으로 capability/approval/field evidence/source health/client impact/duplicate request blocker를 read-only로 정의 |
-| 7 | v3.8.0 (7) Source Recheck Action Pilot | P1 | 미착수 | source health recheck action pilot 후보 준비 필요 |
+| 7 | v3.8.0 (7) Source Recheck Action Pilot | P1 | 완료 | `/ops/api/actions/source-recheck-pilot`와 `OpsV380SourceRecheckActionPilotJson`으로 source health recheck request와 dry execution result envelope를 read-only로 정의 |
 | 8 | v3.8.0 (8) Client Notice Draft Queue | P1 | 미착수 | viewer-safe notice draft queue와 delivery blocker 준비 필요 |
 | 9 | v3.8.0 (9) Rule Draft Action Package | P1 | 미착수 | rule/scenario draft action package와 review checklist 필요 |
 | 10 | v3.8.0 (10) Ops Action Control Workspace UI | P1 | 미착수 | `/ops` action control workspace UI 필요 |
@@ -89,7 +90,8 @@ Step 3 완료는 `/ops/api/actions/capability-contract` read-only capability con
 Step 4 완료는 `/ops/api/actions/request-ledger` read-only action request ledger contract입니다.
 Step 5 완료는 `/ops/api/actions/approval-decision-gate` read-only approval decision gate입니다.
 Step 6 완료는 `/ops/api/actions/readiness-preflight` read-only action readiness preflight입니다.
-Step 7~16은 미착수이며, Step 1~6 PASS 자체는 v3.8 action execution, UI 풀테스트, 30분/120분
+Step 7 완료는 `/ops/api/actions/source-recheck-pilot` read-only source recheck action pilot입니다.
+Step 8~16은 미착수이며, Step 1~7 PASS 자체는 v3.8 action execution, UI 풀테스트, 30분/120분
 장시간 테스트, published metadata, release action evidence가 아닙니다.
 
 ## v3.8.0 Step 1 개발 기록
@@ -242,6 +244,32 @@ published metadata, release action 완료 evidence가 아닙니다.
   `docs/release-test-records.md`: `LAB-115`, `SAFE-185`, `OPS-152`와 Step 6 verifier/미실행 경계를 기록했습니다.
 
 `./server.sh verify-v380-action-readiness-preflight`는 readiness preflight contract와
+read-only/no-mutation/no-schema-change 경계만 확인합니다. Actual source recheck, client notice send,
+rule apply, UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
+
+## v3.8.0 Step 7 개발 기록
+
+이번 Step 7은 P1 `v3.8.0 (7) Source Recheck Action Pilot`입니다.
+
+- `src/ingress/webrtc_http_server.cpp`: `OpsV380SourceRecheckActionPilotItem`,
+  `BuildV380SourceRecheckActionPilotItems`, `AppendV380SourceRecheckActionPilotItemJson`,
+  `OpsV380SourceRecheckActionPilotJson`을 추가해 `sourceRecheckActionPilot`,
+  `pilotCandidate`, `sourceHealthRecheck`, `recheckRequest`, `executionPreview`,
+  `dryExecutionResultEnvelope`, `readinessRef`를 read-only JSON contract로 산출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/actions/source-recheck-pilot` GET route를
+  `require_ops_principal()`과 `Cache-Control: no-store`로 연결했습니다.
+- contract response는 capability contract, approval decision gate, request ledger, readiness
+  preflight route를 참조하고 source health recheck 후보와 dry execution result envelope를 정의하지만
+  실제 source recheck, source health write, action result persist를 수행하지 않습니다.
+- boundary flags는 source recheck execution, source health write, action execution/result persist,
+  request/approval/readiness persist, notice send/write, rule/source/view/runbook/EventRecord/Ops audit
+  write, client payload/media/schema 변경, raw locator/credential 노출을 모두 `false`로 둡니다.
+- `scripts/internal/verify_v380_source_recheck_action_pilot.mjs`, `server.sh`: `./server.sh verify-v380-source-recheck-action-pilot`
+  local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: `LAB-116`, `SAFE-186`, `OPS-153`과 Step 7 verifier/미실행 경계를 기록했습니다.
+
+`./server.sh verify-v380-source-recheck-action-pilot`는 source recheck pilot contract와
 read-only/no-mutation/no-schema-change 경계만 확인합니다. Actual source recheck, client notice send,
 rule apply, UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
 

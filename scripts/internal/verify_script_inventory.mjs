@@ -482,6 +482,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_v380_action_request_ledger_contract.mjs",
     "verify_v380_approval_decision_gate.mjs",
     "verify_v380_action_readiness_preflight.mjs",
+    "verify_v380_source_recheck_action_pilot.mjs",
     "verify_v370_entry_baseline.mjs",
     "verify_v370_site_source_group_contract.mjs",
     "verify_v370_site_aware_source_registry_projection.mjs",
