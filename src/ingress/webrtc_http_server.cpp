@@ -10923,7 +10923,7 @@ std::vector<OpsV380ActionRouteBoundaryItem> BuildV380ActionRouteBoundaryItems() 
          "workflow",
          "GET",
          "ops-action-readiness",
-         "planned",
+         "implemented-read-only",
          "capability, approval, field evidence, source health, and duplicate blocker preflight"},
         {"/ops/api/actions/source-recheck-pilot",
          "execution-pilot",
@@ -11463,6 +11463,148 @@ std::string OpsV380ApprovalDecisionGateJson() {
         << "\"actionRequestPersisted\":false,"
         << "\"approvalDecisionPersisted\":false,"
         << "\"readinessCheckExecuted\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"runbookInstancePersisted\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV380ActionReadinessPreflightItem {
+    std::string dimension;
+    std::string field;
+    std::string expected_state;
+    std::string blocker;
+    std::string source;
+    std::string description;
+    bool required{false};
+};
+
+std::vector<OpsV380ActionReadinessPreflightItem> BuildV380ActionReadinessPreflightItems() {
+    return {
+        {"capability",
+         "capability.allowed",
+         "ready",
+         "missing-capability",
+         "/ops/api/actions/capability-contract",
+         "Requested action kind must be present in the allowed preview-only catalog",
+         true},
+        {"approval",
+         "approval.decision",
+         "approved",
+         "approval-missing",
+         "/ops/api/actions/approval-decision-gate",
+         "Approval decision must be approved and not stale before any later pilot candidate",
+         true},
+        {"fieldEvidence",
+         "fieldEvidence.status",
+         "ready-or-not-required",
+         "field-evidence-required",
+         "conditional field evidence attachment",
+         "External credential, endpoint, and field evidence requirements remain explicit blockers",
+         false},
+        {"sourceHealth",
+         "sourceHealth.rollup",
+         "healthy-or-recovering",
+         "source-health-degraded",
+         "site/source health projection",
+         "Source health must not indicate offline, degraded, or field-needed state for a pilot candidate",
+         true},
+        {"clientImpact",
+         "clientImpact.safety",
+         "viewer-safe",
+         "client-impact-review-needed",
+         "client impact forecast projection",
+         "Client-facing impact must stay viewer-safe and hide operator-only blocker detail",
+         true},
+        {"duplicateRequest",
+         "idempotencyKey",
+         "unique-or-existing-read-model",
+         "duplicate-request",
+         "/ops/api/actions/request-ledger",
+         "Duplicate request fingerprints must return an existing read model instead of creating a write",
+         true},
+    };
+}
+
+void AppendV380ActionReadinessPreflightItemJson(
+    std::ostringstream& out,
+    const OpsV380ActionReadinessPreflightItem& item) {
+    out << "{"
+        << "\"dimension\":\"" << JsonEscape(item.dimension) << "\","
+        << "\"field\":\"" << JsonEscape(item.field) << "\","
+        << "\"expectedState\":\"" << JsonEscape(item.expected_state) << "\","
+        << "\"blocker\":\"" << JsonEscape(item.blocker) << "\","
+        << "\"source\":\"" << JsonEscape(item.source) << "\","
+        << "\"required\":" << JsonBool(item.required) << ","
+        << "\"description\":\"" << JsonEscape(item.description) << "\""
+        << "}";
+}
+
+std::string OpsV380ActionReadinessPreflightJson() {
+    const auto items = BuildV380ActionReadinessPreflightItems();
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v380-action-readiness-preflight.v1\","
+        << "\"status\":\"action-readiness-preflight\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"route\":\"/ops/api/actions/readiness-preflight\","
+        << "\"capabilityContractRoute\":\"/ops/api/actions/capability-contract\","
+        << "\"approvalDecisionGateRoute\":\"/ops/api/actions/approval-decision-gate\","
+        << "\"requestLedgerRoute\":\"/ops/api/actions/request-ledger\","
+        << "\"readinessPreflight\":{"
+        << "\"contractOnly\":true,"
+        << "\"readinessPreflightContractOnly\":true,"
+        << "\"defaultReadinessState\":\"not-run\","
+        << "\"readyState\":\"ready\","
+        << "\"blockedState\":\"blocked\""
+        << "},\"readinessStates\":";
+    AppendJsonStringArray(out,
+                          {"ready",
+                           "blocked",
+                           "approval-needed",
+                           "field-needed",
+                           "duplicate-request",
+                           "not-run"});
+    out << ",\"preflightBlockers\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV380ActionReadinessPreflightItemJson(out, items[i]);
+    }
+    out << "],\"preflightInputs\":{"
+        << "\"capability\":\"/ops/api/actions/capability-contract\","
+        << "\"approval\":\"/ops/api/actions/approval-decision-gate\","
+        << "\"fieldEvidence\":\"conditional-field-evidence-package\","
+        << "\"sourceHealth\":\"site-source-health-rollup\","
+        << "\"clientImpact\":\"client-safe-impact-forecast\","
+        << "\"duplicateRequest\":\"/ops/api/actions/request-ledger\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"readinessPreflightContractOnly\":true,"
+        << "\"readinessCheckExecuted\":false,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"actionRequestPersisted\":false,"
+        << "\"approvalDecisionPersisted\":false,"
+        << "\"readinessResultPersisted\":false,"
         << "\"sourceRecheckExecuted\":false,"
         << "\"clientNoticeSent\":false,"
         << "\"noticeQueueWritePerformed\":false,"
@@ -35744,6 +35886,20 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV380ApprovalDecisionGateJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/actions/readiness-preflight") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV380ActionReadinessPreflightJson());
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }
