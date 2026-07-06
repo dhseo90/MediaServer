@@ -23,9 +23,10 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 Capability Contract, Step 4 Action Request Ledger Contract, Step 5 Approval Decision Gate,
 Step 6 Action Readiness Preflight, Step 7 Source Recheck Action Pilot, Step 8
 Client Notice Draft Queue, Step 9 Rule Draft Action Package, Step 10 Ops Action
-Control Workspace UI, Step 11 Client-safe Action Notice Preview를 완료했고 Step 12~16
+Control Workspace UI, Step 11 Client-safe Action Notice Preview, Step 12 Outcome Observer and
+Reconciliation을 완료했고 Step 13~16
 개발은 미착수입니다. 현재 source version은 `3.8.0`이며,
-VERSION/CMake/docs/backlog/source roadmap과 v3.8 Step 1~11 local gate를
+VERSION/CMake/docs/backlog/source roadmap과 v3.8 Step 1~12 local gate를
 `3.8.0` 기준으로 정렬했습니다. 각 step은 실제
 코드/API/UI/문서/검증 산출물이 생긴 뒤에만 완료로 기록합니다.
 
@@ -80,7 +81,7 @@ Product UI -> Evidence/Field -> Release 순서로 진행합니다.
 | 9 | v3.8.0 (9) Rule Draft Action Package | P1 | 완료 | `/ops/api/actions/rule-draft-package`와 `OpsV380RuleDraftActionPackageJson`으로 rule threshold/scenario 후보, draft package, review checklist, apply blocker를 read-only로 정의 |
 | 10 | v3.8.0 (10) Ops Action Control Workspace UI | P1 | 완료 | `/ops` action control workspace와 `renderV380OpsActionControlWorkspace`로 action request/approval/readiness/pilot/receipt 흐름을 read-only로 표시 |
 | 11 | v3.8.0 (11) Client-safe Action Notice Preview | P1 | 완료 | `/client/api/views/{id}/events`와 client dashboard/events/live dock에 maintenance/degraded/recovering/available action notice preview만 viewer-safe로 표시 |
-| 12 | v3.8.0 (12) Outcome Observer and Reconciliation | P1 | 미착수 | readiness/outcome diff와 observed result projection 필요 |
+| 12 | v3.8.0 (12) Outcome Observer and Reconciliation | P1 | 완료 | `/ops/api/actions/outcome-reconciliation`과 `/ops` outcome observer UI가 readiness/candidate/observed outcome diff를 source/EventRecord/client/rule 축으로 비교 |
 | 13 | v3.8.0 (13) Action Receipt Bundle | P1 | 미착수 | redacted receipt bundle과 handoff map 필요 |
 | 14 | v3.8.0 (14) Field Connector Evidence Package | P2 | 미착수 | field connector evidence 조건부 attachment 필요 |
 | 15 | v3.8.0 (15) Default-off Action Explanation | P2 | 미착수 | default-off explanation hint와 no-provider-call boundary 필요 |
@@ -97,7 +98,8 @@ Step 8 완료는 `/ops/api/actions/client-notice-draft-queue` read-only client n
 Step 9 완료는 `/ops/api/actions/rule-draft-package` read-only rule draft action package입니다.
 Step 10 완료는 `/ops` action control workspace UI입니다.
 Step 11 완료는 client-safe action notice preview입니다.
-Step 12~16은 미착수이며, Step 1~11 PASS 자체는 v3.8 action execution, UI 풀테스트, 30분/120분
+Step 12 완료는 outcome observer and reconciliation read model입니다.
+Step 13~16은 미착수이며, Step 1~12 PASS 자체는 v3.8 action execution, UI 풀테스트, 30분/120분
 장시간 테스트, published metadata, release action evidence가 아닙니다.
 
 ## v3.8.0 Step 1 개발 기록
@@ -396,6 +398,44 @@ published metadata, release action 완료 evidence가 아닙니다.
 `./server.sh verify-v380-client-safe-action-notice-preview`는 client-safe action notice preview
 payload/UI와 redaction boundary만 확인합니다. Actual client notice send, notice draft persist,
 notice queue write, action execution, source recheck execution, rule apply, Outcome Observer and Reconciliation 완료 evidence가 아닙니다.
+UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
+
+## v3.8.0 Step 12 개발 기록
+
+이번 Step 12는 P1 `v3.8.0 (12) Outcome Observer and Reconciliation`입니다.
+
+- `src/ingress/webrtc_http_server.cpp`: `OpsV380OutcomeObserverReconciliationItem`,
+  `OpsV380OutcomeObserverReconciliationSummary`,
+  `BuildV380OutcomeObserverReconciliationItems`,
+  `BuildV380OutcomeObserverReconciliationSummary`,
+  `AppendV380OutcomeObserverReconciliationItemJson`,
+  `AppendV380OutcomeObserverReconciliationSummaryJson`,
+  `OpsV380OutcomeObserverReconciliationJson`을 추가했습니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/actions/outcome-reconciliation` GET route를
+  `require_ops_principal()`, `Cache-Control: no-store`로 연결하고 readiness/candidate/observed outcome
+  ref를 source/EventRecord/client/rule outcome diff로 비교하는 read-only JSON을 노출했습니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops` dashboard에
+  `ops-action-outcome-observer` section, `dashActionOutcomeObserverBadges`,
+  `dashActionOutcomeObserverText`, `dashActionOutcomeSourceList`,
+  `dashActionOutcomeEventClientList`, `dashActionOutcomeRuleList`,
+  `dashActionOutcomeBoundary` UI control을 추가했습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV380OutcomeObserverReconciliation`,
+  `refreshV380OutcomeObserverReconciliation`, `v380OutcomeObserverEntry`를 추가해
+  `/ops/api/actions/outcome-reconciliation`의 `outcomeObserverItems`와
+  `outcomeObserverSummary`를 source, EventRecord/client, rule diff로 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `.ops-action-outcome-observer`,
+  `.ops-action-outcome-grid`, `.ops-action-outcome-list`, `.ops-action-outcome-entry`,
+  `.ops-action-outcome-boundary`를 기존 Ops dashboard card/list/boundary responsive 패턴에 연결했습니다.
+- `scripts/internal/verify_v380_outcome_observer_reconciliation.mjs`, `server.sh`:
+  `./server.sh verify-v380-outcome-observer-reconciliation` local gate를 추가했습니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`: `UI-104`, `EVT-084`, `CLIENT-041`, `LAB-119`,
+  `SAFE-191`, `OPS-158`과 Step 12 verifier/미실행 경계를 기록했습니다.
+
+`./server.sh verify-v380-outcome-observer-reconciliation`은 readiness/candidate/observed
+outcome diff read model과 `/ops` 렌더링 경계만 확인합니다. Actual action execution,
+source recheck execution, client notice send, notice queue write, rule apply, EventRecord write,
+source/view/Ops audit write, action result persist, Action Receipt Bundle 완료 evidence가 아닙니다.
 UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
 
 ## 최신 published baseline 상세: v3.7.0 Site-Aware Operations and Safe Runbook Control Plane

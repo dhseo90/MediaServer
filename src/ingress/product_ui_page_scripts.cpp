@@ -1371,6 +1371,95 @@ void AppendOpsShellScript(std::ostringstream& out,
           rulePackageRoute
         });
       };
+      let v380OutcomeObserverReconciliationState = {};
+      const v380OutcomeObserverReconciliationList = value => Array.isArray(value) ? value : [];
+      const v380OutcomeObserverEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-action-outcome-entry ${escapeHtml(tone)}" data-v380-outcome-observer-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV380OutcomeObserverReconciliation = (payload = {}) => {
+        const outcomeObserver = payload.outcomeObserver || {};
+        const outcomeObserverItems =
+          v380OutcomeObserverReconciliationList(outcomeObserver.outcomeObserverItems);
+        const outcomeObserverSummary =
+          outcomeObserver.outcomeObserverSummary || {};
+        const boundaryOk =
+          outcomeObserver.boundaries?.actionExecutionPerformed === false &&
+          outcomeObserver.boundaries?.sourceRecheckExecuted === false &&
+          outcomeObserver.boundaries?.clientNoticeSent === false &&
+          outcomeObserver.boundaries?.noticeQueueWritePerformed === false &&
+          outcomeObserver.boundaries?.ruleApplyPerformed === false &&
+          outcomeObserver.boundaries?.eventRecordWritePerformed === false &&
+          outcomeObserver.boundaries?.viewerClientPayloadChanged === false &&
+          outcomeObserver.boundaries?.rtspOrWebrtcMediaPathChanged === false;
+        v380OutcomeObserverReconciliationState = {
+          outcomeObserver,
+          outcomeObserverRoute: payload.outcomeObserverRoute || '/ops/api/actions/outcome-reconciliation'
+        };
+        renderBadges('dashActionOutcomeObserverBadges', [
+          { text: `outcome ${outcomeObserverItems.length}` },
+          { text: `source ${outcomeObserverSummary.sourceDiffCount ?? 0}` },
+          { text: `event ${outcomeObserverSummary.eventRecordDiffCount ?? 0}` },
+          { text: `client ${outcomeObserverSummary.clientDiffCount ?? 0}` },
+          { text: `rule ${outcomeObserverSummary.ruleDiffCount ?? 0}` },
+          { text: `pending ${outcomeObserverSummary.pendingCount ?? 0}` },
+          { text: boundaryOk ? 'read-only not-run' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashActionOutcomeObserverText',
+          payload.error
+            ? `Outcome Observer 로드 실패: ${payload.error}`
+            : `readiness/outcome diff ${outcomeObserverItems.length} · observed ${outcomeObserverSummary.executionObservedCount ?? 0} · not-run ${outcomeObserverSummary.notRunCount ?? 0}`);
+        const sourceList = document.getElementById('dashActionOutcomeSourceList');
+        if (sourceList) {
+          sourceList.innerHTML = outcomeObserverItems.length > 0
+            ? outcomeObserverItems.slice(0, 8).map(item =>
+                v380OutcomeObserverEntry(
+                  item.outcomeObserverId || 'outcomeObserver',
+                  item.readinessRef || 'readinessRef',
+                  item.sourceOutcomeDiff || 'source-outcome-diff pending',
+                  `candidate=${display(item.executionCandidateRef)} · observed=${display(item.observedOutcomeRef)}`,
+                  item.executionObserved === true ? '' : 'warn'))
+              .join('')
+            : '<div class="empty">source outcome diff가 아직 없습니다.</div>';
+        }
+        const eventClientList = document.getElementById('dashActionOutcomeEventClientList');
+        if (eventClientList) {
+          eventClientList.innerHTML = outcomeObserverItems.length > 0
+            ? outcomeObserverItems.slice(0, 8).map(item => {
+                const observerSignals = v380OutcomeObserverReconciliationList(item.observerSignals).slice(0, 3).join(', ') || 'observer signals pending';
+                return v380OutcomeObserverEntry(
+                  item.reconciliationStatus || 'pending-observation',
+                  item.eventRecordOutcomeDiff || 'event-record-outcome-diff pending',
+                  item.clientImpactOutcomeDiff || 'client-impact-outcome-diff pending',
+                  `${display(observerSignals)} · evidence=${display(v380OutcomeObserverReconciliationList(item.evidenceRefs).slice(0, 3).join(', ') || 'evidence refs pending')}`,
+                  String(item.reconciliationStatus || '').includes('pending') ? 'warn' : '');
+              }).join('')
+            : '<div class="empty">EventRecord/client outcome diff가 아직 없습니다.</div>';
+        }
+        const ruleList = document.getElementById('dashActionOutcomeRuleList');
+        if (ruleList) {
+          ruleList.innerHTML = outcomeObserverItems.length > 0
+            ? outcomeObserverItems.slice(0, 8).map(item =>
+                v380OutcomeObserverEntry(
+                  item.ruleDraftOutcomeDiff || 'rule-draft-outcome-diff pending',
+                  item.pendingReason || 'pending reason',
+                  item.actionRequestRef || 'action request ref',
+                  `readOnly=${item.readOnly === true ? 'true' : 'false'} · executionObserved=${item.executionObserved === true ? 'true' : 'false'}`,
+                  item.executionObserved === true ? '' : 'warn'))
+              .join('')
+            : '<div class="empty">rule draft outcome diff가 아직 없습니다.</div>';
+        }
+        setText('dashActionOutcomeBoundary',
+          `outcome=${display(v380OutcomeObserverReconciliationState.outcomeObserverRoute)} · readiness=${display(outcomeObserver.readinessPreflightRoute)} · sourceRecheck=${display(outcomeObserver.sourceRecheckActionPilotRoute)} · notice=${display(outcomeObserver.clientNoticeDraftQueueRoute)} · rule=${display(outcomeObserver.ruleDraftActionPackageRoute)} · actionExecutionPerformed=${outcomeObserver.boundaries?.actionExecutionPerformed === false ? 'false' : '확인 필요'} · sourceRecheckExecuted=${outcomeObserver.boundaries?.sourceRecheckExecuted === false ? 'false' : '확인 필요'} · clientNoticeSent=${outcomeObserver.boundaries?.clientNoticeSent === false ? 'false' : '확인 필요'} · ruleApplyPerformed=${outcomeObserver.boundaries?.ruleApplyPerformed === false ? 'false' : '확인 필요'} · eventRecordWritePerformed=${outcomeObserver.boundaries?.eventRecordWritePerformed === false ? 'false' : '확인 필요'} · viewerClientPayloadChanged=${outcomeObserver.boundaries?.viewerClientPayloadChanged === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV380OutcomeObserverReconciliation = async ({
+        outcomeObserverRoute = '/ops/api/actions/outcome-reconciliation'
+      } = {}) => {
+        const outcomeObserver = await requestJson(outcomeObserverRoute);
+        renderV380OutcomeObserverReconciliation({ outcomeObserver, outcomeObserverRoute });
+      };
       let v370OutcomeReconciliationState = {};
       const v370OutcomeReconciliationList = value => Array.isArray(value) ? value : [];
       const v370OutcomeReconciliationEntry = (kind, title, detail, meta, tone = '') =>
@@ -2870,6 +2959,9 @@ void AppendOpsShellScript(std::ostringstream& out,
           noticeRoute: '/ops/api/actions/client-notice-draft-queue',
           rulePackageRoute: '/ops/api/actions/rule-draft-package'
         }).catch(error => renderV380OpsActionControlWorkspace({ error: error.message }));
+        await refreshV380OutcomeObserverReconciliation({
+          outcomeObserverRoute: '/ops/api/actions/outcome-reconciliation'
+        }).catch(error => renderV380OutcomeObserverReconciliation({ error: error.message }));
         await refreshV370RuleVaWhatIfBySite({
           whatIfRoute: '/ops/api/site-operations/rule-va-what-if-by-site'
         }).catch(error => renderV370RuleVaWhatIfBySite({ error: error.message }));

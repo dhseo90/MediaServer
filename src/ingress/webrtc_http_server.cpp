@@ -2959,6 +2959,39 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           actionExecutionPerformed=false · actionRequestPersisted=false · approvalDecisionPersisted=false · readinessResultPersisted=false · sourceRecheckExecuted=false · clientNoticeSent=false
         </div>
       </section>
+      <section class="section-card ops-workspace-wide ops-action-outcome-observer" data-testid="ops-action-outcome-observer" data-v380-outcome-observer-reconciliation="media-server.ops.v380-outcome-observer-reconciliation.v1">
+        <div class="toolbar">
+          <div>
+            <h3>Outcome Observer</h3>
+            <p>readiness, candidate, observed outcome diff를 not-run 상태로 비교합니다.</p>
+          </div>
+        </div>
+        <div id="dashActionOutcomeObserverBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashActionOutcomeObserverText">outcome observer read model을 불러오는 중입니다.</p>
+        <div class="grid ops-action-outcome-grid">
+          <div>
+            <h4>Source Outcome</h4>
+            <div id="dashActionOutcomeSourceList" class="ops-action-outcome-list">
+              <div class="empty">source outcome diff를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Event / Client Outcome</h4>
+            <div id="dashActionOutcomeEventClientList" class="ops-action-outcome-list">
+              <div class="empty">EventRecord/client outcome diff를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Rule Draft Outcome</h4>
+            <div id="dashActionOutcomeRuleList" class="ops-action-outcome-list">
+              <div class="empty">rule draft outcome diff를 기다립니다.</div>
+            </div>
+          </div>
+        </div>
+        <div id="dashActionOutcomeBoundary" class="ops-action-outcome-boundary">
+          actionExecutionPerformed=false · sourceRecheckExecuted=false · clientNoticeSent=false · ruleApplyPerformed=false · eventRecordWritePerformed=false
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide ops-site-client-notice-workspace" data-testid="ops-site-client-notice-workspace" data-v370-client-notice-by-site-view-group="media-server.ops.v370-client-notice-by-site-view-group.v1">
         <div class="toolbar">
           <div>
@@ -12224,6 +12257,271 @@ std::string OpsV380RuleDraftActionPackageJson() {
         << "\"viewerClientPayloadChanged\":false,"
         << "\"rawLocatorExposedToClient\":false,"
         << "\"credentialMaterialExposed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV380OutcomeObserverReconciliationItem {
+    std::string outcome_observer_id;
+    std::string action_request_ref;
+    std::string readiness_ref;
+    std::string execution_candidate_ref;
+    std::string observed_outcome_ref;
+    std::string source_outcome_diff;
+    std::string event_record_outcome_diff;
+    std::string client_impact_outcome_diff;
+    std::string rule_draft_outcome_diff;
+    std::string reconciliation_status{"pending-observation"};
+    std::string pending_reason{"actionExecutionPerformed=false; observedOutcomeRef=not-run"};
+    std::vector<std::string> evidence_refs;
+    std::vector<std::string> observer_signals;
+    bool source_reconciled{false};
+    bool event_record_reconciled{false};
+    bool client_reconciled{false};
+    bool rule_reconciled{false};
+    bool execution_observed{false};
+    bool read_only{true};
+};
+
+struct OpsV380OutcomeObserverReconciliationSummary {
+    int observer_count{0};
+    int source_diff_count{0};
+    int event_record_diff_count{0};
+    int client_diff_count{0};
+    int rule_diff_count{0};
+    int pending_count{0};
+    int execution_observed_count{0};
+    int not_run_count{0};
+    std::vector<std::string> derivation_sources;
+};
+
+std::vector<OpsV380OutcomeObserverReconciliationItem>
+BuildV380OutcomeObserverReconciliationItems() {
+    const auto ledgerFields = BuildV380ActionRequestLedgerContractItems();
+    const auto readinessItems = BuildV380ActionReadinessPreflightItems();
+    const auto sourcePilotItems = BuildV380SourceRecheckActionPilotItems();
+    const auto noticeDraftItems = BuildV380ClientNoticeDraftQueueItems();
+    const auto rulePackageItems = BuildV380RuleDraftActionPackageItems();
+
+    const std::size_t item_count =
+        std::max<std::size_t>(1U,
+                              std::max({sourcePilotItems.size(),
+                                        noticeDraftItems.size(),
+                                        rulePackageItems.size()}));
+    std::vector<OpsV380OutcomeObserverReconciliationItem> items;
+    for (std::size_t index = 0; index < item_count && index < 8U; ++index) {
+        const auto& readiness =
+            readinessItems.empty() ? OpsV380ActionReadinessPreflightItem{}
+                                   : readinessItems[index % readinessItems.size()];
+        const auto& source =
+            sourcePilotItems.empty() ? OpsV380SourceRecheckActionPilotItem{}
+                                     : sourcePilotItems[index % sourcePilotItems.size()];
+        const auto& notice =
+            noticeDraftItems.empty() ? OpsV380ClientNoticeDraftQueueItem{}
+                                     : noticeDraftItems[index % noticeDraftItems.size()];
+        const auto& rule =
+            rulePackageItems.empty() ? OpsV380RuleDraftActionPackageItem{}
+                                     : rulePackageItems[index % rulePackageItems.size()];
+
+        OpsV380OutcomeObserverReconciliationItem item;
+        item.outcome_observer_id =
+            "outcomeObserver:v380:" + std::to_string(index + 1);
+        item.action_request_ref =
+            ledgerFields.empty()
+                ? "actionRequestRef:v380-actions/{siteId}/{actionKind}/{idempotencyKey}"
+                : "actionRequestRef:" + ledgerFields.front().json_name;
+        item.readiness_ref =
+            readiness.dimension.empty()
+                ? "/ops/api/actions/readiness-preflight"
+                : "/ops/api/actions/readiness-preflight#" + readiness.dimension;
+        item.execution_candidate_ref =
+            "executionCandidateRef:" +
+            (source.field.empty() ? std::string("source-recheck-pilot")
+                                  : source.field);
+        item.observed_outcome_ref =
+            "observedOutcomeRef:not-run:future-action-receipt";
+        item.source_outcome_diff =
+            "source-outcome-diff: readiness-to-outcome " +
+            (source.state.empty() ? std::string("not-run") : source.state) +
+            " -> observed:not-run";
+        item.event_record_outcome_diff =
+            "event-record-outcome-diff: candidate-to-observed-outcome no EventRecord write";
+        item.client_impact_outcome_diff =
+            "client-impact-outcome-diff: " +
+            (notice.state.empty() ? std::string("notice-not-run") : notice.state) +
+            " -> clientNoticeSent=false";
+        item.rule_draft_outcome_diff =
+            "rule-draft-outcome-diff: " +
+            (rule.state.empty() ? std::string("draft-not-run") : rule.state) +
+            " -> ruleApplyPerformed=false";
+        item.reconciliation_status =
+            "pending-observation";
+        item.pending_reason =
+            "actionExecutionPerformed=false; sourceRecheckExecuted=false; observedOutcomeRef=not-run";
+        item.evidence_refs = {
+            "/ops/api/actions/request-ledger",
+            "/ops/api/actions/readiness-preflight",
+            "/ops/api/actions/source-recheck-pilot",
+            "/ops/api/actions/client-notice-draft-queue",
+            "/ops/api/actions/rule-draft-package",
+            "future-action-receipt",
+        };
+        item.observer_signals = {
+            "readiness-to-outcome:pending",
+            "candidate-to-observed-outcome:pending",
+            "source-outcome-diff:not-run",
+            "event-record-outcome-diff:not-run",
+            "client-impact-outcome-diff:not-run",
+            "rule-draft-outcome-diff:not-run",
+        };
+        items.push_back(std::move(item));
+    }
+    return items;
+}
+
+OpsV380OutcomeObserverReconciliationSummary
+BuildV380OutcomeObserverReconciliationSummary(
+    const std::vector<OpsV380OutcomeObserverReconciliationItem>& items) {
+    OpsV380OutcomeObserverReconciliationSummary summary;
+    summary.derivation_sources = {
+        "BuildV380ActionRequestLedgerContractItems",
+        "BuildV380ActionReadinessPreflightItems",
+        "BuildV380SourceRecheckActionPilotItems",
+        "BuildV380ClientNoticeDraftQueueItems",
+        "BuildV380RuleDraftActionPackageItems",
+    };
+    summary.observer_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        if (!item.source_outcome_diff.empty()) {
+            ++summary.source_diff_count;
+        }
+        if (!item.event_record_outcome_diff.empty()) {
+            ++summary.event_record_diff_count;
+        }
+        if (!item.client_impact_outcome_diff.empty()) {
+            ++summary.client_diff_count;
+        }
+        if (!item.rule_draft_outcome_diff.empty()) {
+            ++summary.rule_diff_count;
+        }
+        if (item.reconciliation_status.find("pending") != std::string::npos) {
+            ++summary.pending_count;
+        }
+        if (item.execution_observed) {
+            ++summary.execution_observed_count;
+        } else {
+            ++summary.not_run_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV380OutcomeObserverReconciliationSummaryJson(
+    std::ostringstream& out,
+    const OpsV380OutcomeObserverReconciliationSummary& summary) {
+    out << "{"
+        << "\"observerCount\":" << summary.observer_count << ","
+        << "\"sourceDiffCount\":" << summary.source_diff_count << ","
+        << "\"eventRecordDiffCount\":" << summary.event_record_diff_count << ","
+        << "\"clientDiffCount\":" << summary.client_diff_count << ","
+        << "\"ruleDiffCount\":" << summary.rule_diff_count << ","
+        << "\"pendingCount\":" << summary.pending_count << ","
+        << "\"executionObservedCount\":" << summary.execution_observed_count << ","
+        << "\"notRunCount\":" << summary.not_run_count << ","
+        << "\"derivationSources\":";
+    AppendJsonStringArray(out, summary.derivation_sources);
+    out << "}";
+}
+
+void AppendV380OutcomeObserverReconciliationItemJson(
+    std::ostringstream& out,
+    const OpsV380OutcomeObserverReconciliationItem& item) {
+    out << "{"
+        << "\"outcomeObserverId\":\"" << JsonEscape(item.outcome_observer_id) << "\","
+        << "\"actionRequestRef\":\"" << JsonEscape(item.action_request_ref) << "\","
+        << "\"readinessRef\":\"" << JsonEscape(item.readiness_ref) << "\","
+        << "\"executionCandidateRef\":\"" << JsonEscape(item.execution_candidate_ref) << "\","
+        << "\"observedOutcomeRef\":\"" << JsonEscape(item.observed_outcome_ref) << "\","
+        << "\"sourceOutcomeDiff\":\"" << JsonEscape(item.source_outcome_diff) << "\","
+        << "\"eventRecordOutcomeDiff\":\"" << JsonEscape(item.event_record_outcome_diff) << "\","
+        << "\"clientImpactOutcomeDiff\":\"" << JsonEscape(item.client_impact_outcome_diff) << "\","
+        << "\"ruleDraftOutcomeDiff\":\"" << JsonEscape(item.rule_draft_outcome_diff) << "\","
+        << "\"reconciliationStatus\":\"" << JsonEscape(item.reconciliation_status) << "\","
+        << "\"pendingReason\":\"" << JsonEscape(item.pending_reason) << "\","
+        << "\"evidenceRefs\":";
+    AppendJsonStringArray(out, item.evidence_refs);
+    out << ",\"observerSignals\":";
+    AppendJsonStringArray(out, item.observer_signals);
+    out << ",\"sourceReconciled\":" << JsonBool(item.source_reconciled)
+        << ",\"eventRecordReconciled\":" << JsonBool(item.event_record_reconciled)
+        << ",\"clientReconciled\":" << JsonBool(item.client_reconciled)
+        << ",\"ruleReconciled\":" << JsonBool(item.rule_reconciled)
+        << ",\"executionObserved\":" << JsonBool(item.execution_observed)
+        << ",\"readOnly\":" << JsonBool(item.read_only)
+        << "}";
+}
+
+std::string OpsV380OutcomeObserverReconciliationJson() {
+    const auto items = BuildV380OutcomeObserverReconciliationItems();
+    const auto summary = BuildV380OutcomeObserverReconciliationSummary(items);
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v380-outcome-observer-reconciliation.v1\","
+        << "\"status\":\"outcome-observer-reconciliation\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"route\":\"/ops/api/actions/outcome-reconciliation\","
+        << "\"requestLedgerRoute\":\"/ops/api/actions/request-ledger\","
+        << "\"readinessPreflightRoute\":\"/ops/api/actions/readiness-preflight\","
+        << "\"sourceRecheckActionPilotRoute\":\"/ops/api/actions/source-recheck-pilot\","
+        << "\"clientNoticeDraftQueueRoute\":\"/ops/api/actions/client-notice-draft-queue\","
+        << "\"ruleDraftActionPackageRoute\":\"/ops/api/actions/rule-draft-package\","
+        << "\"readinessCompared\":true,"
+        << "\"candidateCompared\":true,"
+        << "\"observedOutcomeCompared\":true,"
+        << "\"executionObserved\":false,"
+        << "\"outcomeObserverSummary\":";
+    AppendV380OutcomeObserverReconciliationSummaryJson(out, summary);
+    out << ",\"outcomeObserverItems\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV380OutcomeObserverReconciliationItemJson(out, items[i]);
+    }
+    out << "],\"observerPolicy\":{"
+        << "\"comparisonAxes\":[\"source-outcome-diff\",\"event-record-outcome-diff\",\"client-impact-outcome-diff\",\"rule-draft-outcome-diff\"],"
+        << "\"readinessRef\":\"required\","
+        << "\"executionCandidateRef\":\"required\","
+        << "\"observedOutcomeRef\":\"not-run until approved action evidence exists\","
+        << "\"executionObserved\":false,"
+        << "\"pendingOutcomeBehavior\":\"preserve pending/not-run; do not synthesize success\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"outcomeObserverOnly\":true,"
+        << "\"readinessCompared\":true,"
+        << "\"candidateCompared\":true,"
+        << "\"observedOutcomeCompared\":true,"
+        << "\"executionObserved\":false,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"ruleApplyPerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"actionResultPersisted\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
         << "\"eventPostPayloadChanged\":false,"
         << "\"eventRecordSchemaChanged\":false,"
         << "\"webrtcDataChannelSchemaChanged\":false,"
@@ -36549,6 +36847,20 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV380RuleDraftActionPackageJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/actions/outcome-reconciliation") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV380OutcomeObserverReconciliationJson());
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

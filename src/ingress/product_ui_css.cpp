@@ -1307,7 +1307,8 @@ std::string ProductUiCss() {
     .ops-site-limited-safe-execution-pilot-list,
     .ops-site-outcome-reconciliation-list,
     .ops-site-export-handoff-bundle-list,
-    .ops-action-control-list {
+    .ops-action-control-list,
+    .ops-action-outcome-list {
       display: grid;
       gap: var(--space-2);
     }
@@ -1338,7 +1339,8 @@ std::string ProductUiCss() {
     .ops-site-limited-safe-execution-pilot-entry,
     .ops-site-outcome-reconciliation-entry,
     .ops-site-export-handoff-bundle-entry,
-    .ops-action-control-entry {
+    .ops-action-control-entry,
+    .ops-action-outcome-entry {
       min-width: 0;
       margin: 0;
       padding: 11px 12px;
@@ -1408,6 +1410,9 @@ std::string ProductUiCss() {
     .ops-action-control-entry strong,
     .ops-action-control-entry span,
     .ops-action-control-entry small,
+    .ops-action-outcome-entry strong,
+    .ops-action-outcome-entry span,
+    .ops-action-outcome-entry small,
     .ops-command-boundary,
     .ops-simulation-boundary,
     .ops-site-operations-boundary,
@@ -1417,7 +1422,8 @@ std::string ProductUiCss() {
     .ops-site-limited-safe-execution-pilot-boundary,
     .ops-site-outcome-reconciliation-boundary,
     .ops-site-export-handoff-bundle-boundary,
-    .ops-action-control-boundary {
+    .ops-action-control-boundary,
+    .ops-action-outcome-boundary {
       min-width: 0;
       overflow-wrap: anywhere;
     }
@@ -1440,7 +1446,8 @@ std::string ProductUiCss() {
     .ops-site-limited-safe-execution-pilot-entry strong,
     .ops-site-outcome-reconciliation-entry strong,
     .ops-site-export-handoff-bundle-entry strong,
-    .ops-action-control-entry strong {
+    .ops-action-control-entry strong,
+    .ops-action-outcome-entry strong {
       font-size: 13px;
       line-height: 1.2;
     }
@@ -1484,6 +1491,8 @@ std::string ProductUiCss() {
     .ops-site-export-handoff-bundle-entry small,
     .ops-action-control-entry span,
     .ops-action-control-entry small,
+    .ops-action-outcome-entry span,
+    .ops-action-outcome-entry small,
     .ops-command-boundary,
     .ops-simulation-boundary,
     .ops-site-operations-boundary,
@@ -1493,7 +1502,8 @@ std::string ProductUiCss() {
     .ops-site-limited-safe-execution-pilot-boundary,
     .ops-site-outcome-reconciliation-boundary,
     .ops-site-export-handoff-bundle-boundary,
-    .ops-action-control-boundary {
+    .ops-action-control-boundary,
+    .ops-action-outcome-boundary {
       color: var(--color-muted);
       font-size: 12px;
       line-height: 1.35;
@@ -1511,7 +1521,8 @@ std::string ProductUiCss() {
     .ops-site-limited-safe-execution-pilot-entry.warn,
     .ops-site-outcome-reconciliation-entry.warn,
     .ops-site-export-handoff-bundle-entry.warn,
-    .ops-action-control-entry.warn {
+    .ops-action-control-entry.warn,
+    .ops-action-outcome-entry.warn {
       border-color: color-mix(in srgb, var(--color-warning) 56%, var(--color-border));
     }
     .ops-command-boundary,
@@ -1523,7 +1534,8 @@ std::string ProductUiCss() {
     .ops-site-limited-safe-execution-pilot-boundary,
     .ops-site-outcome-reconciliation-boundary,
     .ops-site-export-handoff-bundle-boundary,
-    .ops-action-control-boundary {
+    .ops-action-control-boundary,
+    .ops-action-outcome-boundary {
       padding: 9px 10px;
       border: 1px dashed var(--color-border);
       border-radius: 8px;
@@ -4852,6 +4864,7 @@ std::string ProductUiCss() {
       body.ops-shell .ops-action-control-flow-grid,
       body.ops-shell .ops-command-workspace .ops-command-workspace-detail-grid,
       body.ops-shell .ops-action-control-workspace .ops-action-control-grid,
+      body.ops-shell .ops-action-outcome-observer .ops-action-outcome-grid,
       body.ops-shell .ops-channels-main-grid,
       body.ops-shell .ops-users-access-grid,
       body.ops-shell .ops-vlm-containment-grid,
