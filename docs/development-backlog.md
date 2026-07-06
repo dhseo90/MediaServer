@@ -11,11 +11,11 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 공개 상태
 
 - 현재 소스 버전: `3.8.0`
-- 최신 공개 GitHub Release: `v3.7.0`
-- `v3.7.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
+- 최신 공개 GitHub Release: `v3.8.0`
+- `v3.8.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
 - 현재 source roadmap: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
-- 최신 published baseline: `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`
+- 최신 published baseline: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
 
 ## 현재 source roadmap: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
 
@@ -113,11 +113,11 @@ Step 16 완료는 local stabilization/release readiness gate 연결입니다. St
 - `CMakeLists.txt`: `project(media_server VERSION 3.8.0 LANGUAGES CXX)`로 정렬했습니다.
 - `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`: 현재 source roadmap을
   `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`로 표시하고 latest published
-  baseline은 `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`으로 유지했습니다.
+  baseline도 `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`로 정렬했습니다.
 - `docs/versioning-policy.md`, `docs/release-policy.md`, `docs/public-repo-final-review.md`,
   `docs/ui-guide.md`, `docs/assets/ui/README.md`: source `3.8.0`, current roadmap
-  `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`, latest published `v3.7.0`
-  경계를 분리했습니다.
+  `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`, latest published `v3.8.0`
+  기준을 정렬했습니다.
 - `scripts/internal/verify_v380_entry_baseline.mjs`, `server.sh`: `./server.sh verify-v380-entry-baseline`
   local gate를 추가했습니다.
 - `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
@@ -628,10 +628,10 @@ mutation, UI 풀테스트, 30분/120분 장시간 테스트, published metadata,
   장시간 테스트, published metadata, PR/main/tag/GitHub Release, field smoke 실행 PASS를 대체하지
   않습니다.
 
-## 최신 published baseline 상세: v3.7.0 Site-Aware Operations and Safe Runbook Control Plane
+## 직전 published baseline 상세: v3.7.0 Site-Aware Operations and Safe Runbook Control Plane
 
-상태: Step 1~18 source 기능과 local release readiness를 완료했고 published metadata 보정 중입니다.
-현재 source version은 `3.7.0`이고 latest published baseline은 `v3.7.0`입니다. 각 step은
+상태: Step 1~18 source 기능과 local release readiness를 완료했고 published metadata 보정을 마쳤습니다.
+현재 source version은 `3.7.0`이고 previous published baseline은 `v3.7.0`입니다. 각 step은
 실제 코드/API/문서/검증 산출물이 생긴 뒤에만 완료로 기록합니다.
 
 직접 답: v3.7.0의 1차 선택값은 `Site-Aware Operations and Safe Runbook Control Plane`입니다.
@@ -1719,7 +1719,20 @@ close-out dry-run, script inventory, `git diff --check` 연결입니다.
 recovery queue, client digest, search/metrics 구현 완료 evidence가 아닙니다.
 `v3.3.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
 
-## 최신 공개 기준: v3.7.0 Source Release Baseline
+## 최신 공개 기준: v3.8.0 Source Release Baseline
+
+v3.8.0은 Operator-Gated Action Pilot & Outcome Loop source-only 공개 릴리즈입니다. 이 기준은
+Ops Action Route Boundary, Action Capability Contract, Action Request Ledger Contract,
+Approval Decision Gate, Action Readiness Preflight, Source Recheck Action Pilot,
+Client Notice Draft Queue, Rule Draft Action Package, Ops Action Control Workspace UI,
+Client-safe Action Notice Preview, Outcome Observer and Reconciliation, Action Receipt
+Bundle, Field Connector Evidence Package, Default-off Action Explanation, release
+readiness를 local evidence와 release validation evidence로 닫은 latest published
+baseline입니다. 30분/120분 predev와 UI 풀테스트는 실행했고, 별도 runtime-console
+120분과 external field smoke는 실제 endpoint/credential/실기기/provider 조건이 없어
+실행하지 않은 영역으로 계속 분리합니다.
+
+## 직전 공개 기준: v3.7.0 Source Release Baseline
 
 v3.7.0은 Site-Aware Operations and Safe Runbook Control Plane source-only 공개 릴리즈입니다. 이 기준은
 Site / Source Group Contract, Site-Aware Source Registry Projection, Site Health
@@ -1728,18 +1741,18 @@ Readiness, Runbook Template Contract, Runbook Instance Ledger, Approval Ticket
 Workflow, Site Operations Workspace UI, Client Notice by Site/View Group,
 Rule/VA What-if by Site, Field Evidence Attachment, Limited Safe Execution Pilot,
 Outcome Reconciliation, Export / Handoff Bundle, release readiness를 local evidence와
-함께 닫은 latest published baseline입니다. 120분 longrun은 AGENTS 7.6.2 직접 조건이
+함께 닫은 직전 published baseline입니다. 120분 longrun은 AGENTS 7.6.2 직접 조건이
 충족되지 않아 조건부 미실행이며 external field smoke는 실제 endpoint/credential/실기기/provider 조건이 없어
 실행하지 않은 영역으로 계속 분리합니다.
 
-## 직전 공개 기준: v3.6.0 Source Release Baseline
+## 이전 공개 기준: v3.6.0 Source Release Baseline
 
 v3.6.0은 Operations Simulation and Safe Apply Readiness source-only 공개 릴리즈입니다. 이 기준은
 Simulation Input Contract, Operations Simulation Run Contract, Command Plan Dry-run
 Simulator, Source/Rule Impact Diff, Safe Apply Readiness Gate, Ops Simulation Workspace,
 Simulation Run Ledger, Client Notice Preview, Rule/VA What-if Replay Pack,
 Simulation Export Bundle, Field Evidence Simulation Adapter, VLM-assisted Simulation
-Explanation, release readiness를 local evidence와 함께 닫은 직전 published baseline입니다.
+Explanation, release readiness를 local evidence와 함께 닫은 historical published baseline입니다.
 120분 longrun은 PASS했고 external field smoke는 실제 endpoint/credential/실기기/provider 조건이 없어
 실행하지 않은 영역으로 계속 분리합니다.
 
