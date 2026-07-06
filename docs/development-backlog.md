@@ -10,14 +10,82 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.7.0`
+- 현재 소스 버전: `3.7.0` (v3.8.0 baseline 정렬 전)
 - 최신 공개 GitHub Release: `v3.7.0`
 - `v3.7.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap: `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`
+- 현재 source roadmap: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
 - 최신 published baseline: `v3.7.0 Site-Aware Operations and Safe Runbook Control Plane`
 
-## 현재 source roadmap: v3.7.0 Site-Aware Operations and Safe Runbook Control Plane
+## 현재 source roadmap: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
+
+상태: v3.8.0 roadmap을 적용했고 Step 1~16 개발은 미착수입니다. 현재 source version은
+아직 `3.7.0`이며, Step 1에서 VERSION/CMake/docs/backlog/source roadmap을 `3.8.0`
+기준으로 정렬합니다. 각 step은 실제 코드/API/UI/문서/검증 산출물이 생긴 뒤에만
+완료로 기록합니다.
+
+직접 답: v3.8.0의 1차 선택값은 `Operator-Gated Action Pilot & Outcome Loop`입니다.
+v3.7이 site/source group/runbook approval을 read-only control plane으로 정리했다면,
+v3.8은 낮은 위험의 운영 action request를 생성하고, 승인하고, 제한 실행 후보와 결과
+reconciliation까지 연결하는 첫 operator-gated loop를 준비합니다.
+개발은 중요도와 의존 순서를 함께 고려해 Foundation -> Workflow -> Execution Pilot ->
+Product UI -> Evidence/Field -> Release 순서로 진행합니다.
+
+비범위:
+
+- 자동 대량 apply, 자동 recovery cutover, 자동 rule/profile 저장
+- approval 없이 source recheck, notice send, rule draft write, field probe 실행
+- SourceRegistry/PublishedView/EventRecord/Ops audit/client/media mutation의 무제한 허용
+- Event POST payload, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path 변경
+- viewer/client에 source locator, credential, raw diagnostic JSON, operator-only blocker detail 노출
+- VMS/NVR, 장기 녹화, playback/archive search, runtime/model bundle 배포
+- 외부 TURN/WHEP, ONVIF 실기기, cloud/VLM provider 성공을 기본 release PASS로 승격
+
+| 구간 | 제목 | 우선순위 | 개발 내용 |
+| --- | --- | --- | --- |
+| Foundation | v3.8.0 (1) v3.8.0 baseline 정렬 | P0 | VERSION/CMake/README/docs/backlog/source roadmap을 `3.8.0`와 `verify-v380-entry-baseline` 기준으로 정렬 |
+| Foundation | v3.8.0 (2) Ops Action Route Boundary | P0 | v3.8 action/runbook route family를 기존 v3.5~v3.7 projection과 분리해 확장할 수 있는 boundary와 helper 배치 |
+| Foundation | v3.8.0 (3) Action Capability Contract | P0 | 허용 action, 금지 action, required role/scope, idempotency, no-media-schema-change boundary 정의 |
+| Foundation | v3.8.0 (4) Action Request Ledger Contract | P0 | actionRequestId, siteId, runbookId, requestedBy, status, createdAt, idempotency key를 append-only/read-only ledger로 정의 |
+| Workflow | v3.8.0 (5) Approval Decision Gate | P0 | approve/hold/reject/field-needed decision, reviewer, reason, audit ref, stale decision guard를 관리 |
+| Workflow | v3.8.0 (6) Action Readiness Preflight | P0 | capability, approval, field evidence, source health, client impact, duplicate request blocker를 실행 전 판정 |
+| Execution Pilot | v3.8.0 (7) Source Recheck Action Pilot | P1 | SourceRegistry write 없이 가장 낮은 위험의 source health recheck request와 dry execution result envelope 준비 |
+| Execution Pilot | v3.8.0 (8) Client Notice Draft Queue | P1 | 실제 발송 없이 viewer-safe notice draft, queue preview, delivery blocker, redaction boundary 준비 |
+| Execution Pilot | v3.8.0 (9) Rule Draft Action Package | P1 | rule threshold/scenario 후보를 apply 없이 draft package와 review checklist로 조합 |
+| Product UI | v3.8.0 (10) Ops Action Control Workspace UI | P1 | `/ops`에서 action request, approval state, readiness blocker, pilot candidate, receipt를 한 흐름으로 탐색 |
+| Product UI | v3.8.0 (11) Client-safe Action Notice Preview | P1 | viewer/client에는 maintenance/degraded/recovering/available notice preview만 노출하고 내부 blocker detail은 숨김 |
+| Evidence | v3.8.0 (12) Outcome Observer and Reconciliation | P1 | 실행 전 readiness와 실행 후보/결과의 source health, EventRecord, client impact diff를 비교 |
+| Evidence | v3.8.0 (13) Action Receipt Bundle | P1 | approval, request, readiness, execution candidate, outcome diff를 redacted release-safe receipt bundle로 조합 |
+| Field/AI | v3.8.0 (14) Field Connector Evidence Package | P2 | ONVIF, external WHEP/TURN, cloud provider 조건을 credential/endpoint 승인 기반 field evidence로 분리 |
+| Field/AI | v3.8.0 (15) Default-off Action Explanation | P2 | default-off VLM/runtime 설명으로 approval blocker, readiness reason, outcome hint를 요약하되 provider call은 opt-in 전 미수행 |
+| Release | v3.8.0 (16) Stabilization and Release Readiness | P0 | v3.8 local verifier suite, v3.5~v3.7 compatibility gates, inventory, release records, close-out dry-run, `git diff --check` 연결 |
+
+### v3.8.0 진행 상태
+
+| 번호 | 제목 | 우선순위 | 상태 | 완료/잔여 내용 |
+| --- | --- | --- | --- | --- |
+| 1 | v3.8.0 (1) v3.8.0 baseline 정렬 | P0 | 미착수 | VERSION/CMake/docs/backlog/source roadmap과 `verify-v380-entry-baseline` 기준 정렬 필요 |
+| 2 | v3.8.0 (2) Ops Action Route Boundary | P0 | 미착수 | v3.8 action/runbook route boundary와 helper 배치 필요 |
+| 3 | v3.8.0 (3) Action Capability Contract | P0 | 미착수 | action capability contract, role/scope, idempotency, immutable boundary 정의 필요 |
+| 4 | v3.8.0 (4) Action Request Ledger Contract | P0 | 미착수 | append-only/read-only action request ledger contract 필요 |
+| 5 | v3.8.0 (5) Approval Decision Gate | P0 | 미착수 | approval decision workflow와 stale decision guard 필요 |
+| 6 | v3.8.0 (6) Action Readiness Preflight | P0 | 미착수 | 실행 전 blocker/readiness 판정 필요 |
+| 7 | v3.8.0 (7) Source Recheck Action Pilot | P1 | 미착수 | source health recheck action pilot 후보 준비 필요 |
+| 8 | v3.8.0 (8) Client Notice Draft Queue | P1 | 미착수 | viewer-safe notice draft queue와 delivery blocker 준비 필요 |
+| 9 | v3.8.0 (9) Rule Draft Action Package | P1 | 미착수 | rule/scenario draft action package와 review checklist 필요 |
+| 10 | v3.8.0 (10) Ops Action Control Workspace UI | P1 | 미착수 | `/ops` action control workspace UI 필요 |
+| 11 | v3.8.0 (11) Client-safe Action Notice Preview | P1 | 미착수 | client-safe notice preview와 internal detail redaction 필요 |
+| 12 | v3.8.0 (12) Outcome Observer and Reconciliation | P1 | 미착수 | readiness/outcome diff와 observed result projection 필요 |
+| 13 | v3.8.0 (13) Action Receipt Bundle | P1 | 미착수 | redacted receipt bundle과 handoff map 필요 |
+| 14 | v3.8.0 (14) Field Connector Evidence Package | P2 | 미착수 | field connector evidence 조건부 attachment 필요 |
+| 15 | v3.8.0 (15) Default-off Action Explanation | P2 | 미착수 | default-off explanation hint와 no-provider-call boundary 필요 |
+| 16 | v3.8.0 (16) Stabilization and Release Readiness | P0 | 미착수 | v3.8 local verifier suite, release records, close-out dry-run 연결 필요 |
+
+완료 경계: 위 표는 v3.8.0 개발 순서와 우선순위입니다. 현재 Step 1~16은 모두 미착수이며,
+이 로드맵 적용 자체는 VERSION/CMake baseline 정렬, 코드/API/UI 구현, 안정화 테스트,
+UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action evidence가 아닙니다.
+
+## 최신 published baseline 상세: v3.7.0 Site-Aware Operations and Safe Runbook Control Plane
 
 상태: Step 1~18 source 기능과 local release readiness를 완료했고 published metadata 보정 중입니다.
 현재 source version은 `3.7.0`이고 latest published baseline은 `v3.7.0`입니다. 각 step은
