@@ -25,8 +25,8 @@ Step 6 Action Readiness Preflight, Step 7 Source Recheck Action Pilot, Step 8
 Client Notice Draft Queue, Step 9 Rule Draft Action Package, Step 10 Ops Action
 Control Workspace UI, Step 11 Client-safe Action Notice Preview, Step 12 Outcome Observer and
 Reconciliation, Step 13 Action Receipt Bundle, Step 14 Field Connector Evidence Package, Step 15
-Default-off Action Explanation을 완료했고 Step 16 개발은 미착수입니다. 현재 source version은 `3.8.0`이며,
-VERSION/CMake/docs/backlog/source roadmap과 v3.8 Step 1~15 local gate를
+Default-off Action Explanation, Step 16 Stabilization and Release Readiness를 완료했습니다. 현재 source version은 `3.8.0`이며,
+VERSION/CMake/docs/backlog/source roadmap과 v3.8 Step 1~16 local gate를
 `3.8.0` 기준으로 정렬했습니다. 각 step은 실제
 코드/API/UI/문서/검증 산출물이 생긴 뒤에만 완료로 기록합니다.
 
@@ -85,7 +85,7 @@ Product UI -> Evidence/Field -> Release 순서로 진행합니다.
 | 13 | v3.8.0 (13) Action Receipt Bundle | P1 | 완료 | `/ops/api/actions/receipt-bundle`과 `/ops` Action Receipt Bundle UI가 approval/request/readiness/candidate/outcome diff를 redacted release-safe receipt bundle과 handoff map으로 조합 |
 | 14 | v3.8.0 (14) Field Connector Evidence Package | P2 | 완료 | `/ops/api/actions/field-connector-evidence-package`와 `/ops` Field Connector Evidence Package UI가 ONVIF/external WHEP-TURN/cloud provider 조건을 credential/endpoint approval 기반 conditional/not-run package로 분리 |
 | 15 | v3.8.0 (15) Default-off Action Explanation | P2 | 완료 | `/ops/api/actions/default-off-explanation`와 `/ops` Default-off Action Explanation UI가 approval blocker/readiness reason/outcome hint를 default-off VLM/runtime explanation으로 요약하고 provider/runtime call을 opt-in 전 미수행으로 고정 |
-| 16 | v3.8.0 (16) Stabilization and Release Readiness | P0 | 미착수 | v3.8 local verifier suite, release records, close-out dry-run 연결 필요 |
+| 16 | v3.8.0 (16) Stabilization and Release Readiness | P0 | 완료 | v3.8 local stabilization, release evidence/not-run 경계, inventory, release records, close-out dry-run, `git diff --check` 연결 |
 
 완료 경계: Step 1 완료는 source/version/docs/backlog/verification metadata 정렬이고,
 Step 2 완료는 `/ops/api/actions/route-boundary` read-only route boundary입니다.
@@ -102,7 +102,7 @@ Step 12 완료는 outcome observer and reconciliation read model입니다.
 Step 13 완료는 action receipt bundle read model입니다.
 Step 14 완료는 field connector evidence package read model입니다.
 Step 15 완료는 default-off action explanation read model입니다.
-Step 16은 미착수이며, Step 1~15 PASS 자체는 v3.8 action execution, UI 풀테스트, 30분/120분
+Step 16 완료는 local stabilization/release readiness gate 연결입니다. Step 1~16 PASS 자체는 v3.8 action execution, UI 풀테스트, 30분/120분
 장시간 테스트, published metadata, release action evidence가 아닙니다.
 
 ## v3.8.0 Step 1 개발 기록
@@ -574,6 +574,59 @@ raw prompt/provider response/credential/endpoint/locator/debug material inclusio
 source recheck execution, source/view/EventRecord/Ops audit/operator review write, client/media/schema
 mutation, UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가
 아닙니다.
+
+## v3.8.0 Step 16 개발 기록
+
+- 범위: P0 `v3.8.0 (16) Stabilization and Release Readiness`.
+- `scripts/internal/verify_v380_stabilization_release_readiness.mjs`, `server.sh`: v3.8 Step 1~15 local
+  verifier, release metadata, docs links/assets, project/feature inventory, release evidence index,
+  close-out dry-run, script inventory, `git diff --check`를 같은 local readiness gate로 묶는
+  `./server.sh verify-v380-stabilization-release-readiness`를 추가했습니다.
+- `docs/release-policy.md`, `docs/release-evidence-index.md`, `docs/release-test-records.md`:
+  v3.8 Step 16 companion local gate와 UI 풀테스트 직접 조작, 30분/120분, published metadata,
+  PR/main/tag/GitHub Release, field smoke 미실행 경계를 기록했습니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_feature_inventory_coverage.mjs`,
+  `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_script_inventory.mjs`:
+  `SAFE-195`, `OPS-162`와 Step 16 readiness command를 inventory/coverage/script gate에 연결했습니다.
+- companion local gate:
+  `./server.sh verify-v380-stabilization-release-readiness`,
+  `./server.sh build`,
+  `./server.sh verify-v380-entry-baseline`,
+  `./server.sh verify-v380-ops-action-route-boundary`,
+  `./server.sh verify-v380-action-capability-contract`,
+  `./server.sh verify-v380-action-request-ledger-contract`,
+  `./server.sh verify-v380-approval-decision-gate`,
+  `./server.sh verify-v380-action-readiness-preflight`,
+  `./server.sh verify-v380-source-recheck-action-pilot`,
+  `./server.sh verify-v380-client-notice-draft-queue`,
+  `./server.sh verify-v380-rule-draft-action-package`,
+  `./server.sh verify-v380-ops-action-control-workspace-ui`,
+  `./server.sh verify-v380-client-safe-action-notice-preview`,
+  `./server.sh verify-v380-outcome-observer-reconciliation`,
+  `./server.sh verify-v380-action-receipt-bundle`,
+  `./server.sh verify-v380-field-connector-evidence-package`,
+  `./server.sh verify-v380-default-off-action-explanation`,
+  `./server.sh verify-release-metadata`,
+  `./server.sh verify-docs-links`,
+  `./server.sh verify-docs-ui-assets`,
+  `./server.sh verify-project-inventory`,
+  `./server.sh verify-feature-inventory-coverage`,
+  `./server.sh verify-release-evidence-index`,
+  `./server.sh verify-release-closeout-helper --dry-run`,
+  `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run`,
+  `./server.sh verify-script-inventory`,
+  `git diff --check`.
+- 검증: 최초 `./server.sh verify-v380-stabilization-release-readiness`는 Step 16 roadmap,
+  feature inventory, release policy/evidence index/release records 연결이 아직 없어 `pass=1 fail=5`로
+  기대 실패했습니다. 구현 후 `./server.sh verify-v380-stabilization-release-readiness`는 `pass=6 fail=0`으로
+  통과했습니다. `./server.sh verify-release-closeout-helper --dry-run`와
+  `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run` 최초 실행은 current
+  `v3.8.0 Release Close-out Runbook` heading 누락으로 실패했고, `docs/release-policy.md`에
+  v3.8.0 runbook을 추가한 뒤 두 dry-run 모두 status `pass`로 재검증했습니다. 최종 companion local gate 수치는
+  `docs/release-test-records.md`의 v380 Step 16 결과 행에 기록합니다.
+- 완료 경계: Step 16은 local readiness gate 연결입니다. UI 풀테스트 직접 조작, 30분/120분
+  장시간 테스트, published metadata, PR/main/tag/GitHub Release, field smoke 실행 PASS를 대체하지
+  않습니다.
 
 ## 최신 published baseline 상세: v3.7.0 Site-Aware Operations and Safe Runbook Control Plane
 

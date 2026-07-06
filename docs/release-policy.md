@@ -110,6 +110,35 @@ gate 실패 또는 미확인으로 보고하며 제품 runtime/media 회귀와 �
 
 ## GitHub Releases 운영
 
+### v3.8.0 Release Close-out Runbook
+
+아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
+순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
+
+Dry-run checklist:
+
+- `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>`
+- `./server.sh verify-release-closeout-helper --one-shot-dry-run`
+- one-shot schema: `media-server.release-closeout-one-shot-gate.v1`
+- fail-stop: 실패 단계 이후의 release action은 건너뜁니다.
+
+Real close-out checklist:
+
+- Branch close
+- PR merge
+- Main fast-forward/sync
+- public-readiness, bundle policy, Actions status check
+- Tag 전략에 맞춘 signed annotated tag 생성
+- GitHub Release 생성/갱신
+- Latest 확인
+- published metadata 재검증
+- release branch 삭제는 사용자 별도 승인 후 진행
+- Next branch sync
+
+Do not list an item as pass unless it was actually executed. tag, GitHub Release,
+published metadata, release branch 삭제, Next branch sync는 각각 실행 evidence가
+있을 때만 완료로 기록합니다.
+
 ### v3.7.0 Release Close-out Runbook
 
 아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
@@ -249,6 +278,53 @@ close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 �
 `v3.8.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
 있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.7.0`입니다.
 현재 공개 release tag 기준은 `v3.7.0`입니다. 현재 source tag 기준은 `v3.8.0`입니다.
+
+## v3.8.0 stabilization and release readiness
+
+v3.8.0 Step 16 local readiness gate는
+`media-server.v380-stabilization-release-readiness.v1` 기준으로 v3.8.0
+Operator-Gated Action Pilot & Outcome Loop의 Step 1~15 local gates, release policy,
+release evidence index, release test records, docs links/assets, feature/script inventory,
+close-out dry-run command를 같은 범위로 묶습니다. 이 절은 source tree 준비 상태를
+확인할 뿐 release action을 승인하거나 실행하지 않습니다.
+`verify-release-metadata --published` 미실행 상태는 local readiness PASS로 완료 처리하지
+않습니다.
+
+Companion local gate:
+
+```bash
+./server.sh verify-v380-stabilization-release-readiness
+./server.sh build
+./server.sh verify-v380-entry-baseline
+./server.sh verify-v380-ops-action-route-boundary
+./server.sh verify-v380-action-capability-contract
+./server.sh verify-v380-action-request-ledger-contract
+./server.sh verify-v380-approval-decision-gate
+./server.sh verify-v380-action-readiness-preflight
+./server.sh verify-v380-source-recheck-action-pilot
+./server.sh verify-v380-client-notice-draft-queue
+./server.sh verify-v380-rule-draft-action-package
+./server.sh verify-v380-ops-action-control-workspace-ui
+./server.sh verify-v380-client-safe-action-notice-preview
+./server.sh verify-v380-outcome-observer-reconciliation
+./server.sh verify-v380-action-receipt-bundle
+./server.sh verify-v380-field-connector-evidence-package
+./server.sh verify-v380-default-off-action-explanation
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+./server.sh verify-script-inventory
+git diff --check
+```
+
+v3.8.0 Step 16 local readiness gate는 UI 풀테스트 직접 조작, 30분/120분 longrun,
+published metadata, PR/main/tag/GitHub Release, field smoke 실행 evidence를 대체하지
+않습니다.
 
 ## v3.6.0 Published Source Roadmap Scope
 

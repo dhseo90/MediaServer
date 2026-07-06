@@ -749,6 +749,8 @@ check("current feature expansion rows exist", () => {
     "LAB-122",
     "SAFE-194",
     "OPS-161",
+    "SAFE-195",
+    "OPS-162",
   ];
   const ids = new Set(parseFeatureRows(inventory).map(row => row.id));
   for (const id of requiredRows) {
@@ -762,8 +764,8 @@ check("current feature expansion rows exist", () => {
     "`RULE-001`~`RULE-110`",
     "`MEDIA-001`~`MEDIA-026`",
     "`LAB-001`~`LAB-122`",
-    "`SAFE-001`~`SAFE-194`",
-    "`OPS-035`~`OPS-161`",
+    "`SAFE-001`~`SAFE-195`",
+    "`OPS-035`~`OPS-162`",
     "VLM route, control, action, runtime state, sidecar, privacy guard",
     "V300-S02 Frame Bundle Extraction",
     "V300-S03 Feature Schema and Privacy Policy",

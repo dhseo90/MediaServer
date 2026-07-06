@@ -288,6 +288,7 @@ const v380VerifierCoverage = {
     "verify-v380-action-receipt-bundle",
     "verify-v380-field-connector-evidence-package",
     "verify-v380-default-off-action-explanation",
+    "verify-v380-stabilization-release-readiness",
   ],
   OPS: [
     "verify-v380-entry-baseline",
@@ -305,6 +306,7 @@ const v380VerifierCoverage = {
     "verify-v380-action-receipt-bundle",
     "verify-v380-field-connector-evidence-package",
     "verify-v380-default-off-action-explanation",
+    "verify-v380-stabilization-release-readiness",
   ],
 };
 

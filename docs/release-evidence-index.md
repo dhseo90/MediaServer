@@ -256,6 +256,50 @@ Companion local gate:
 git diff --check
 ```
 
+## v3.8.0 Step 16 local readiness gate records
+
+v3.8.0 Step 16 stabilization/release readiness는
+`media-server.v380-stabilization-release-readiness.v1` 기준으로 v3.8.0 Step 1~15
+local verifier와 release records를 묶는 색인입니다. 이 섹션은 release action을
+승인하거나 실행하지 않고, UI 풀테스트 직접 조작, 30분/120분 longrun, published
+metadata, release action evidence를 대체하지 않습니다.
+
+v3.8.0 Step 16 local readiness gate는 v3.8.0 stabilization/release readiness
+문서/명령 연결을 확인할 뿐, UI 풀테스트 직접 조작, 30분/120분 longrun, published
+metadata, release action evidence를 대체하지 않습니다.
+
+Companion local gate:
+
+```bash
+./server.sh verify-v380-stabilization-release-readiness
+./server.sh build
+./server.sh verify-v380-entry-baseline
+./server.sh verify-v380-ops-action-route-boundary
+./server.sh verify-v380-action-capability-contract
+./server.sh verify-v380-action-request-ledger-contract
+./server.sh verify-v380-approval-decision-gate
+./server.sh verify-v380-action-readiness-preflight
+./server.sh verify-v380-source-recheck-action-pilot
+./server.sh verify-v380-client-notice-draft-queue
+./server.sh verify-v380-rule-draft-action-package
+./server.sh verify-v380-ops-action-control-workspace-ui
+./server.sh verify-v380-client-safe-action-notice-preview
+./server.sh verify-v380-outcome-observer-reconciliation
+./server.sh verify-v380-action-receipt-bundle
+./server.sh verify-v380-field-connector-evidence-package
+./server.sh verify-v380-default-off-action-explanation
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+./server.sh verify-script-inventory
+git diff --check
+```
+
 ## v3.7.0 Step 18 local readiness gate records
 
 v3.7.0 Step 18 stabilization/release readiness는

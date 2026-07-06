@@ -368,6 +368,8 @@ Usage:
                  v3.8.0 Step 14 Field Connector Evidence Package를 검증합니다.
   verify-v380-default-off-action-explanation
                  v3.8.0 Step 15 Default-off Action Explanation을 검증합니다.
+  verify-v380-stabilization-release-readiness
+                 v3.8.0 Step 16 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v370-site-source-group-contract
@@ -682,6 +684,8 @@ Usage:
                  v3.8.0 Step 14 Field Connector Evidence Package를 검증합니다.
   verify-v380-default-off-action-explanation
                  v3.8.0 Step 15 Default-off Action Explanation을 검증합니다.
+  verify-v380-stabilization-release-readiness
+                 v3.8.0 Step 16 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v370-site-source-group-contract
@@ -1844,6 +1848,10 @@ case "${cmd}" in
   verify-v380-default-off-action-explanation)
     require_internal verify_v380_default_off_action_explanation.mjs
     exec "${INTERNAL_DIR}/verify_v380_default_off_action_explanation.mjs" "$@"
+    ;;
+  verify-v380-stabilization-release-readiness)
+    require_internal verify_v380_stabilization_release_readiness.mjs
+    exec "${INTERNAL_DIR}/verify_v380_stabilization_release_readiness.mjs" "$@"
     ;;
   verify-v370-entry-baseline)
     require_internal verify_v370_entry_baseline.mjs
