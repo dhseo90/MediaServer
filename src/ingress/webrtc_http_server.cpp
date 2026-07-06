@@ -10935,7 +10935,7 @@ std::vector<OpsV380ActionRouteBoundaryItem> BuildV380ActionRouteBoundaryItems() 
          "execution-pilot",
          "GET",
          "ops-action-client-notice",
-         "planned",
+         "implemented-read-only",
          "viewer-safe notice draft queue preview without delivery"},
         {"/ops/api/actions/rule-draft-package",
          "execution-pilot",
@@ -11733,6 +11733,148 @@ std::string OpsV380SourceRecheckActionPilotJson() {
         << "\"readinessResultPersisted\":false,"
         << "\"clientNoticeSent\":false,"
         << "\"noticeQueueWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"runbookInstancePersisted\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV380ClientNoticeDraftQueueItem {
+    std::string field;
+    std::string state;
+    std::string blocker;
+    std::string audience;
+    std::string description;
+    bool required{false};
+};
+
+std::vector<OpsV380ClientNoticeDraftQueueItem> BuildV380ClientNoticeDraftQueueItems() {
+    return {
+        {"readinessRef",
+         "ready",
+         "readiness-blocked",
+         "ops",
+         "Draft queue preview requires an existing readiness preflight read model in ready state",
+         true},
+        {"viewerSafeNoticeDraft",
+         "draft",
+         "redaction-review-required",
+         "viewer",
+         "Viewer-safe maintenance, degraded, recovering, or available copy is prepared without exposing operator detail",
+         true},
+        {"noticeDraft",
+         "redacted",
+         "operator-detail-hidden",
+         "viewer",
+         "Internal blocker, source locator, credential, raw diagnostic, and action rationale details stay out of client copy",
+         true},
+        {"queuePreview",
+         "not-run",
+         "delivery-blocked",
+         "ops",
+         "Queue position and delivery target preview is contract-only and does not write a queue record",
+         true},
+        {"deliveryBlocker",
+         "blocked",
+         "client-notice-send-disabled",
+         "ops",
+         "Actual notice delivery remains blocked until a later explicitly approved execution step",
+         true},
+        {"pilotRef",
+         "not-run",
+         "pilot-result-not-required",
+         "ops",
+         "Source recheck pilot result can be referenced by a later receipt without triggering client delivery",
+         false},
+    };
+}
+
+void AppendV380ClientNoticeDraftQueueItemJson(
+    std::ostringstream& out,
+    const OpsV380ClientNoticeDraftQueueItem& item) {
+    out << "{"
+        << "\"field\":\"" << JsonEscape(item.field) << "\","
+        << "\"state\":\"" << JsonEscape(item.state) << "\","
+        << "\"blocker\":\"" << JsonEscape(item.blocker) << "\","
+        << "\"audience\":\"" << JsonEscape(item.audience) << "\","
+        << "\"required\":" << JsonBool(item.required) << ","
+        << "\"description\":\"" << JsonEscape(item.description) << "\""
+        << "}";
+}
+
+std::string OpsV380ClientNoticeDraftQueueJson() {
+    const auto items = BuildV380ClientNoticeDraftQueueItems();
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v380-client-notice-draft-queue.v1\","
+        << "\"status\":\"client-notice-draft-queue\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"route\":\"/ops/api/actions/client-notice-draft-queue\","
+        << "\"readinessPreflightRoute\":\"/ops/api/actions/readiness-preflight\","
+        << "\"capabilityContractRoute\":\"/ops/api/actions/capability-contract\","
+        << "\"approvalDecisionGateRoute\":\"/ops/api/actions/approval-decision-gate\","
+        << "\"requestLedgerRoute\":\"/ops/api/actions/request-ledger\","
+        << "\"sourceRecheckPilotRoute\":\"/ops/api/actions/source-recheck-pilot\","
+        << "\"clientNoticeDraftQueue\":{"
+        << "\"contractOnly\":true,"
+        << "\"clientNoticeDraftQueueContractOnly\":true,"
+        << "\"viewerSafeNoticeDraft\":\"prepared-read-model\","
+        << "\"noticeDraft\":\"maintenance-degraded-recovering-available\","
+        << "\"queuePreview\":\"delivery-blocked-not-run\","
+        << "\"deliveryBlocker\":\"client-notice-send-disabled\","
+        << "\"redactionBoundary\":\"viewer-safe-no-internal-blocker-detail\","
+        << "\"readinessRef\":\"/ops/api/actions/readiness-preflight\","
+        << "\"pilotRef\":\"/ops/api/actions/source-recheck-pilot\""
+        << "},\"draftStates\":";
+    AppendJsonStringArray(out, {"draft", "blocked", "redacted", "delivery-blocked", "not-run"});
+    out << ",\"viewerSafeNoticeDrafts\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV380ClientNoticeDraftQueueItemJson(out, items[i]);
+    }
+    out << "],\"queuePreview\":{"
+        << "\"queueState\":\"not-run\","
+        << "\"deliveryTarget\":\"viewer-safe-group-ref\","
+        << "\"deliveryBlocker\":\"client-notice-send-disabled\","
+        << "\"noticeDraftPersisted\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"clientNoticeSent\":false"
+        << "},\"redactionBoundary\":{"
+        << "\"viewerSafeStatuses\":";
+    AppendJsonStringArray(out, {"maintenance", "degraded", "recovering", "available"});
+    out << ",\"operatorOnlyBlockerExposedToClient\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"clientNoticeDraftQueueContractOnly\":true,"
+        << "\"noticeDraftPersisted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"operatorOnlyBlockerExposedToClient\":false,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"actionRequestPersisted\":false,"
+        << "\"approvalDecisionPersisted\":false,"
+        << "\"readinessResultPersisted\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"sourceHealthWritePerformed\":false,"
         << "\"ruleRegistryWritePerformed\":false,"
         << "\"sourceRegistryWritePerformed\":false,"
         << "\"publishedViewWritePerformed\":false,"
@@ -36039,6 +36181,20 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV380SourceRecheckActionPilotJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/actions/client-notice-draft-queue") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV380ClientNoticeDraftQueueJson());
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }
