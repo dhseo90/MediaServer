@@ -241,6 +241,7 @@ const v380VerifierCoverage = {
     "verify-v380-action-readiness-preflight",
     "verify-v380-source-recheck-action-pilot",
     "verify-v380-client-notice-draft-queue",
+    "verify-v380-rule-draft-action-package",
   ],
   SAFE: [
     "verify-v380-entry-baseline",
@@ -251,6 +252,7 @@ const v380VerifierCoverage = {
     "verify-v380-action-readiness-preflight",
     "verify-v380-source-recheck-action-pilot",
     "verify-v380-client-notice-draft-queue",
+    "verify-v380-rule-draft-action-package",
   ],
   OPS: [
     "verify-v380-entry-baseline",
@@ -261,6 +263,7 @@ const v380VerifierCoverage = {
     "verify-v380-action-readiness-preflight",
     "verify-v380-source-recheck-action-pilot",
     "verify-v380-client-notice-draft-queue",
+    "verify-v380-rule-draft-action-package",
   ],
 };
 

@@ -10941,7 +10941,7 @@ std::vector<OpsV380ActionRouteBoundaryItem> BuildV380ActionRouteBoundaryItems() 
          "execution-pilot",
          "GET",
          "ops-action-rule-draft",
-         "planned",
+         "implemented-read-only",
          "rule threshold/scenario draft package without apply"},
         {"/ops/api/actions/outcome-reconciliation",
          "evidence",
@@ -11876,6 +11876,153 @@ std::string OpsV380ClientNoticeDraftQueueJson() {
         << "\"sourceRecheckExecuted\":false,"
         << "\"sourceHealthWritePerformed\":false,"
         << "\"ruleRegistryWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"runbookInstancePersisted\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV380RuleDraftActionPackageItem {
+    std::string field;
+    std::string state;
+    std::string blocker;
+    std::string source;
+    std::string description;
+    bool required{false};
+};
+
+std::vector<OpsV380RuleDraftActionPackageItem> BuildV380RuleDraftActionPackageItems() {
+    return {
+        {"readinessRef",
+         "ready",
+         "readiness-blocked",
+         "/ops/api/actions/readiness-preflight",
+         "Rule draft package requires an existing readiness preflight read model in ready state",
+         true},
+        {"ruleThresholdCandidate",
+         "draft",
+         "threshold-review-required",
+         "rule/VA what-if projection",
+         "Rule threshold candidate is prepared for review without writing a rule or profile registry",
+         true},
+        {"scenarioCandidate",
+         "draft",
+         "scenario-review-required",
+         "scenario impact preview",
+         "Scenario candidate is prepared for review without applying runtime or media path changes",
+         true},
+        {"draftPackage",
+         "blocked",
+         "apply-blocked",
+         "operator action package",
+         "Draft package groups rule and scenario candidates with no apply or persistence side effect",
+         true},
+        {"reviewChecklist",
+         "review-needed",
+         "operator-review-required",
+         "manual review checklist",
+         "Operator must review approval, readiness, threshold, scenario impact, and client notice redaction before any later write step",
+         true},
+        {"noticeDraftRef",
+         "not-run",
+         "client-notice-draft-not-required",
+         "/ops/api/actions/client-notice-draft-queue",
+         "Optional notice draft reference can be attached later without sending or queueing client notices",
+         false},
+    };
+}
+
+void AppendV380RuleDraftActionPackageItemJson(
+    std::ostringstream& out,
+    const OpsV380RuleDraftActionPackageItem& item) {
+    out << "{"
+        << "\"field\":\"" << JsonEscape(item.field) << "\","
+        << "\"state\":\"" << JsonEscape(item.state) << "\","
+        << "\"blocker\":\"" << JsonEscape(item.blocker) << "\","
+        << "\"source\":\"" << JsonEscape(item.source) << "\","
+        << "\"required\":" << JsonBool(item.required) << ","
+        << "\"description\":\"" << JsonEscape(item.description) << "\""
+        << "}";
+}
+
+std::string OpsV380RuleDraftActionPackageJson() {
+    const auto items = BuildV380RuleDraftActionPackageItems();
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v380-rule-draft-action-package.v1\","
+        << "\"status\":\"rule-draft-action-package\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"route\":\"/ops/api/actions/rule-draft-package\","
+        << "\"readinessPreflightRoute\":\"/ops/api/actions/readiness-preflight\","
+        << "\"capabilityContractRoute\":\"/ops/api/actions/capability-contract\","
+        << "\"approvalDecisionGateRoute\":\"/ops/api/actions/approval-decision-gate\","
+        << "\"requestLedgerRoute\":\"/ops/api/actions/request-ledger\","
+        << "\"clientNoticeDraftQueueRoute\":\"/ops/api/actions/client-notice-draft-queue\","
+        << "\"ruleDraftActionPackage\":{"
+        << "\"contractOnly\":true,"
+        << "\"ruleDraftActionPackageContractOnly\":true,"
+        << "\"draftPackage\":\"prepared-read-model\","
+        << "\"ruleThresholdCandidate\":\"threshold-scenario-review-only\","
+        << "\"scenarioCandidate\":\"scenario-review-only\","
+        << "\"reviewChecklist\":\"operator-review-required\","
+        << "\"applyBlocker\":\"rule-apply-disabled\","
+        << "\"readinessRef\":\"/ops/api/actions/readiness-preflight\","
+        << "\"noticeDraftRef\":\"/ops/api/actions/client-notice-draft-queue\""
+        << "},\"packageStates\":";
+    AppendJsonStringArray(out, {"draft", "review-needed", "blocked", "apply-blocked", "not-run"});
+    out << ",\"draftPackage\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV380RuleDraftActionPackageItemJson(out, items[i]);
+    }
+    out << "],\"reviewChecklist\":{"
+        << "\"checklistState\":\"review-needed\","
+        << "\"manualReviewRequired\":true,"
+        << "\"requiredChecks\":";
+    AppendJsonStringArray(out,
+                          {"approval-state",
+                           "readiness-state",
+                           "rule-threshold-review",
+                           "scenario-impact-review",
+                           "client-notice-redaction"});
+    out << "},\"applyBlocker\":{"
+        << "\"ruleApplyPerformed\":false,"
+        << "\"scenarioApplyPerformed\":false,"
+        << "\"ruleDraftPersisted\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"profileRegistryWritePerformed\":false"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"ruleDraftActionPackageContractOnly\":true,"
+        << "\"ruleDraftPersisted\":false,"
+        << "\"ruleApplyPerformed\":false,"
+        << "\"scenarioApplyPerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"profileRegistryWritePerformed\":false,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"actionRequestPersisted\":false,"
+        << "\"approvalDecisionPersisted\":false,"
+        << "\"readinessResultPersisted\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"sourceHealthWritePerformed\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
         << "\"sourceRegistryWritePerformed\":false,"
         << "\"publishedViewWritePerformed\":false,"
         << "\"runbookInstancePersisted\":false,"
@@ -36195,6 +36342,20 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV380ClientNoticeDraftQueueJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/actions/rule-draft-package") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV380RuleDraftActionPackageJson());
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

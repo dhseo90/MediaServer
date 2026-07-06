@@ -354,6 +354,8 @@ Usage:
                  v3.8.0 Step 7 Source Recheck Action Pilot을 검증합니다.
   verify-v380-client-notice-draft-queue
                  v3.8.0 Step 8 Client Notice Draft Queue를 검증합니다.
+  verify-v380-rule-draft-action-package
+                 v3.8.0 Step 9 Rule Draft Action Package를 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v370-site-source-group-contract
@@ -654,6 +656,8 @@ Usage:
                  v3.8.0 Step 7 Source Recheck Action Pilot을 검증합니다.
   verify-v380-client-notice-draft-queue
                  v3.8.0 Step 8 Client Notice Draft Queue를 검증합니다.
+  verify-v380-rule-draft-action-package
+                 v3.8.0 Step 9 Rule Draft Action Package를 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v370-site-source-group-contract
@@ -1788,6 +1792,10 @@ case "${cmd}" in
   verify-v380-client-notice-draft-queue)
     require_internal verify_v380_client_notice_draft_queue.mjs
     exec "${INTERNAL_DIR}/verify_v380_client_notice_draft_queue.mjs" "$@"
+    ;;
+  verify-v380-rule-draft-action-package)
+    require_internal verify_v380_rule_draft_action_package.mjs
+    exec "${INTERNAL_DIR}/verify_v380_rule_draft_action_package.mjs" "$@"
     ;;
   verify-v370-entry-baseline)
     require_internal verify_v370_entry_baseline.mjs
