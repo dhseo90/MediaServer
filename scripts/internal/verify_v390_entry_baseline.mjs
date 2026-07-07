@@ -112,7 +112,7 @@ check("development backlog records v3.9 roadmap, status, review gate, v3.8 histo
     "### v3.9.0 진행 상태",
     "| Foundation | v3.9.0 (1) v3.9.0 baseline 정렬 | P0 | VERSION/docs/backlog/source roadmap 정렬 |",
     "| Foundation | v3.9.0 (2) Feature Completion Inventory/Discovery Gate | P0 |",
-    "| 3 | v3.9.0 (3) User Review Gate / 개발 순서 확정 | P0 | 진행 | 이번 roadmap list-up과 사용자 승인 후 기능 개발 착수 가능 |",
+    "| 3 | v3.9.0 (3) User Review Gate / 개발 순서 확정 | P0 | 완료 | required/candidate/structure/excluded 목록을 review-ready로 고정하고 사용자 승인 전 기능 개발 중단 |",
     "## 이전 source roadmap 기록: v3.8.0 Operator-Gated Action Pilot & Outcome Loop",
     "## 최신 공개 기준: v3.8.0 Source Release Baseline",
     "후속 이슈는 현재 source tree와 현재 v3.9 스텝 범위 안에서",
@@ -176,7 +176,7 @@ check("release records and evidence index track v3.9 source baseline boundary", 
     assertIncludes(files.releaseRecords, snippet, "release test records v3.9 source baseline");
   }
   for (const snippet of [
-    "## v3.9.0 source baseline and feature completion inventory records",
+    "## v3.9.0 source baseline, feature completion inventory, and user review gate records",
     "v3.9.0 source baseline",
     "OPS-163",
     "SAFE-196",

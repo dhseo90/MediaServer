@@ -225,8 +225,10 @@
 | --- | --- | --- |
 | v390 Step 1 RED entry baseline gate | 최초 `./server.sh verify-v390-entry-baseline`은 command dispatch가 아직 없어 `알 수 없는 명령입니다: verify-v390-entry-baseline`로 실패. v3.9 baseline verifier를 추가하기 전 기대 실패이며 제품 회귀가 아님 | fail |
 | v390 Step 2 RED feature completion inventory gate | 최초 `./server.sh verify-v390-feature-completion-inventory`는 command dispatch가 아직 없어 `알 수 없는 명령입니다: verify-v390-feature-completion-inventory`로 실패. inventory verifier를 추가하기 전 기대 실패이며 제품 회귀가 아님 | fail |
+| v390 Step 3 RED user review gate | 최초 `./server.sh verify-v390-user-review-gate`는 command dispatch가 아직 없어 `알 수 없는 명령입니다: verify-v390-user-review-gate`로 실패. User Review Gate verifier를 추가하기 전 기대 실패이며 제품 회귀가 아님 | fail |
 | v390 Step 1 entry baseline final | `./server.sh verify-v390-entry-baseline` 실행. source `3.9.0`, latest published `v3.8.0`, current roadmap `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`, stream verification, project inventory `OPS-163`/`SAFE-196`, release test records, release evidence index, release metadata verifier, server dispatch/script inventory 연결을 확인. feature discovery/dev, UI 풀테스트, 30분/120분, published metadata, release action은 not-run-by-this-command로 분리 | pass |
 | v390 Step 2 feature completion inventory final | `./server.sh verify-v390-feature-completion-inventory` 실행. v3.9 feature completion inventory scaffold, discovery source groups, disposition/test-area vocabulary, user review gate, stream verification, project inventory `OPS-164`/`SAFE-197`, release test records/evidence 연결을 확인. 실제 discovery 완료, 기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트, 30분/120분, published metadata, release action은 not-run-by-this-command로 분리 | pass |
+| v390 Step 3 user review gate final | `./server.sh verify-v390-user-review-gate` 실행. review-ready 목록과 승인 전 기능 개발 중단 경계, backlog Step 3 완료 기록, feature inventory User Review Output, stream verification, project inventory `OPS-165`/`SAFE-198`, release records/evidence, server dispatch/script inventory 연결을 확인. 사용자 approval, 기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트, 30분/120분, published metadata, release action은 not-run-by-this-command로 분리 | pass |
 | v390 discovery user review gate | discovery 결과를 사용자가 승인하지 않았으므로 `fail`로 기록합니다. 이 행은 실행 결과 PASS/FAIL이 아니라 승인 전 개발 금지 경계이며, local verifier PASS를 review 승인 PASS로 승격하지 않습니다 | fail |
 
 #### v3.9.0 미실행/제외
@@ -234,6 +236,7 @@
 | 제목 | 수행내용 | 사유 | 완료 evidence로 사용 가능 여부 |
 | --- | --- | --- | --- |
 | v390 기능 개발 | feature completion inventory에서 required/candidate 개발 항목을 실제 코드/UI/API로 구현 | 사용자 review gate 승인 전이며 이번 Task 7 범위는 문서/verifier 연결 | 사용 불가 |
+| v390 사용자 review approval | required/candidate development list에 대한 사용자 승인 | 승인 전이며 Step 3 verifier PASS로 대체하지 않음 | 사용 불가 |
 | v390 구조 안정화 | v4.0.0 전 구조 안정화 구현 | 이번 Task 7 범위 밖 | 사용 불가 |
 | v390 테스트 방식 전환 구현 | 새 테스트 모델 구현/전환 | 이번 Task 7 범위 밖 | 사용 불가 |
 | v390 30분 longrun | `./server.sh verify-predev --soak-minutes 30` | 사용자 명시 승인 없음. 장시간 테스트 실행 금지 | 사용 불가 |

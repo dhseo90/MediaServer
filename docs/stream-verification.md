@@ -43,14 +43,15 @@
 ## 현재 v3.9.0 verifier
 
 아래 명령은 v3.9.0 Feature Completion, Structure Stabilization, and Test Model
-Preparation의 source baseline과 feature completion inventory 준비 gate입니다. 실제
-feature discovery 완료, feature development, UI 풀테스트, 30분/120분 longrun,
+Preparation의 source baseline, feature completion inventory, user review gate 준비
+gate입니다. 실제 feature development, UI 풀테스트, 30분/120분 longrun,
 published metadata, release action evidence가 아닙니다.
 
 | Step | Command | Scope |
 | --- | --- | --- |
 | v3.9.0 (1) | `./server.sh verify-v390-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | source `3.9.0`, latest published `v3.8.0`, current roadmap `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation` 정렬. v3.9 기능 discovery/dev, UI 풀테스트, 30분/120분, tag, push, GitHub Release evidence와는 별도 gate입니다 |
 | v3.9.0 (2) | `./server.sh verify-v390-feature-completion-inventory` | v3.9 feature completion inventory scaffold, discovery source groups, disposition/test-area vocabulary, user review gate 경계를 확인합니다. 실제 feature discovery 완료, 기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
+| v3.9.0 (3) | `./server.sh verify-v390-user-review-gate` | review-ready required/candidate/structure/excluded list와 사용자 승인 전 기능 개발 중단 경계를 확인합니다. 사용자 승인, 기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
 
 ## 현재 v3.8.0 verifier
 

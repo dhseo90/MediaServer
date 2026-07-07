@@ -56,6 +56,7 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | [versioning-policy.md](versioning-policy.md) | 소스 버전, 공개 릴리즈, semver 기준 |
 | [public-repo-final-review.md](public-repo-final-review.md) | 공개 저장소 점검 기준 |
 | [superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md](superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md) | v3.0/v3.1 event evidence search roadmap design |
+| [superpowers/specs/2026-07-07-v390-preparation-design.md](superpowers/specs/2026-07-07-v390-preparation-design.md) | v3.9 준비 방향과 feature completion first 설계 |
 | [ops-backup-recovery.md](ops-backup-recovery.md) | 운영 설정 백업과 복구 |
 | [sample-fixture-provenance.md](sample-fixture-provenance.md) | sample fixture 공개 판단 |
 | [runtime-model-bundle-rc-rehearsal.md](runtime-model-bundle-rc-rehearsal.md) | runtime/model bundle RC rehearsal 경계 |
@@ -77,6 +78,7 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | [media-server-architecture.md](media-server-architecture.md) | 서버 구조와 요청 흐름 |
 | [stream-verification.md](stream-verification.md) | 검증 명령과 테스트 영역 경계 |
 | [project-feature-test-inventory.md](project-feature-test-inventory.md) | 기능별 테스트 영역 inventory. 실행 evidence가 아니라 coverage 기준 |
+| [v390-feature-completion-inventory.md](v390-feature-completion-inventory.md) | v3.9 feature completion discovery와 user review gate source-of-truth |
 | [video-analysis.md](video-analysis.md) | VA pipeline, rule, scenario, metadata |
 | [event-evidence-contract.md](event-evidence-contract.md) | v3.0 Event Evidence Contract와 FrameRef/retention/non-VMS 경계 |
 | [v310-encoded-event-clip-contract.md](v310-encoded-event-clip-contract.md) | v3.1 Encoded Event Clip Contract와 FrameRef/PTS/non-VMS 경계 |

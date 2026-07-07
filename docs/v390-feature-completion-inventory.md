@@ -72,6 +72,24 @@ wrapper, preflight, dry-run, field smoke, external credential, no-device는 별�
 | Analysis/core/media | `src/analysis/*`, `include/analysis/*`, `src/core/*`, `include/core/*` | checked | Analysis/VLM/Re-ID hooks were scanned for model/runtime/provider gaps; model/runtime bundle and default-on behavior remain excluded. |
 | Verifier dispatch | `server.sh`, `scripts/internal/verify_*.mjs`, `scripts/internal/verify_*.sh`, `scripts/internal/verify_*.py` | checked | v3.9 command dispatch, script inventory, feature inventory coverage, UI wrapper, and release metadata boundaries were checked. |
 
+## User Review Output
+
+Review-ready status: `ready-for-user-review`
+Approval status: `pending-user-approval`
+Feature development status: `blocked-before-user-approval`
+
+Required development list: `V390-REQ-001`, `V390-REQ-002`, `V390-REQ-003`
+
+Candidate development list: `V390-CAND-001`, `V390-CAND-002`, `V390-CAND-003`, `V390-CAND-004`, `V390-CAND-005`, `V390-CAND-006`, `V390-CAND-007`, `V390-CAND-008`, `V390-CAND-009`, `V390-CAND-010`
+
+Structure handoff list: `V390-STRUCT-001`, `V390-STRUCT-002`, `V390-STRUCT-003`, `V390-STRUCT-004`, `V390-STRUCT-005`
+
+Excluded/non-scope list: `V390-EXCL-001`, `V390-EXCL-002`, `V390-EXCL-003`, `V390-EXCL-004`, `V390-EXCL-005`, `V390-EXCL-006`
+
+Next development order after approval: `V390-REQ-001` -> `V390-REQ-002` -> `V390-REQ-003`
+
+Do not implement candidate-development rows until the user approves each candidate or approves a candidate batch.
+
 ## Review Gate
 
 Discovery is not complete until:
@@ -84,3 +102,5 @@ Discovery is not complete until:
 - the user reviews and approves the required/candidate development list
 
 Until this review gate passes, this file remains a discovery tracking scaffold only. It must not be cited as proof that discovery is complete, that a feature is implemented, or that any test area has passed.
+
+The review-ready output above does not mean the user has approved feature development.

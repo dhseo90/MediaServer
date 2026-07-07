@@ -318,10 +318,12 @@ const v390VerifierCoverage = {
   SAFE: [
     "verify-v390-entry-baseline",
     "verify-v390-feature-completion-inventory",
+    "verify-v390-user-review-gate",
   ],
   OPS: [
     "verify-v390-entry-baseline",
     "verify-v390-feature-completion-inventory",
+    "verify-v390-user-review-gate",
   ],
 };
 

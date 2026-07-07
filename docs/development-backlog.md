@@ -19,9 +19,10 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 source roadmap: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation
 
-상태: Foundation 단계에서 baseline과 feature completion inventory/discovery를 먼저
-정렬했습니다. Discovery 결과를 사용자에게 보고하고 승인받기 전에는 미완성 기능 개발,
-구조 안정화 리팩토링, 테스트 방식 전환 구현으로 넘어가지 않습니다. 즉, discovery 결과 승인 전 기능 개발 금지를 v3.9.0의 현재 hard gate로 둡니다.
+상태: Foundation 단계에서 baseline, feature completion inventory/discovery, 사용자
+review gate를 먼저 정렬했습니다. Discovery 결과를 사용자에게 보고하고 승인받기
+전에는 미완성 기능 개발, 구조 안정화 리팩토링, 테스트 방식 전환 구현으로 넘어가지
+않습니다. 즉, discovery 결과 승인 전 기능 개발 금지를 v3.9.0의 현재 hard gate로 둡니다.
 
 직접 답: v3.9.0의 1차 선택값은 `Feature Completion First with Dedicated Inventory`입니다.
 목적: v1.0.0부터 v3.8.0까지 노출/약속/부분 구현된 기능을 직접 대조하고,
@@ -76,7 +77,7 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | --- | --- | --- | --- | --- |
 | 1 | v3.9.0 (1) v3.9.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/README/docs/backlog/source roadmap과 `verify-v390-entry-baseline` 기준 정렬 |
 | 2 | v3.9.0 (2) Feature Completion Inventory/Discovery Gate | P0 | 완료 | `docs/v390-feature-completion-inventory.md`에 required/candidate/structure/excluded 항목과 checked source group 반영 |
-| 3 | v3.9.0 (3) User Review Gate / 개발 순서 확정 | P0 | 진행 | 이번 roadmap list-up과 사용자 승인 후 기능 개발 착수 가능 |
+| 3 | v3.9.0 (3) User Review Gate / 개발 순서 확정 | P0 | 완료 | required/candidate/structure/excluded 목록을 review-ready로 고정하고 사용자 승인 전 기능 개발 중단 |
 | 4 | v3.9.0 (4) Manual UI 기준서 v3.9 current화 | P0 | 미진행 | `V390-REQ-001` 개발 필요 |
 | 5 | v3.9.0 (5) 장시간/UI 테스트 시작 조건 v3.9화 | P0 | 미진행 | `V390-REQ-002` 개발 필요 |
 | 6 | v3.9.0 (6) v3.5-v3.8 UI coverage bridge | P0 | 미진행 | `V390-REQ-003` 개발 필요 |
@@ -92,6 +93,37 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action evidence가
 아닙니다. `v3.9.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
 있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.8.0`입니다.
+
+## v3.9.0 Foundation 개발 기록
+
+이번 Foundation 범위는 `v3.9.0 (1)`~`v3.9.0 (3)`입니다.
+
+- Step 1 `v3.9.0 baseline 정렬`: `VERSION`, `CMakeLists.txt`, README 계열,
+  `docs/README.md`, `docs/en/README.md`, `docs/development-backlog.md`,
+  `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`, `docs/release-evidence-index.md`,
+  `scripts/internal/verify_v390_entry_baseline.mjs`, `server.sh`에 source `3.9.0`와
+  latest published `v3.8.0` 경계를 연결했습니다.
+- Step 2 `Feature Completion Inventory/Discovery Gate`:
+  `docs/v390-feature-completion-inventory.md`에 required/candidate/structure/excluded
+  목록, source group checked 상태, disposition/test-area vocabulary, review gate를
+  고정하고 `scripts/internal/verify_v390_feature_completion_inventory.mjs`와
+  `./server.sh verify-v390-feature-completion-inventory`로 검증합니다.
+- Step 3 `User Review Gate / 개발 순서 확정`:
+  `docs/v390-feature-completion-inventory.md`의 `User Review Output`에 review-ready
+  required/candidate/structure/excluded 목록과 승인 전 차단 상태를 기록하고,
+  `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`, `docs/release-evidence-index.md`,
+  `scripts/internal/verify_v390_user_review_gate.mjs`, `server.sh`에
+  `./server.sh verify-v390-user-review-gate`를 연결했습니다.
+
+Foundation review-ready 상태:
+
+- 승인 상태: `pending-user-approval`
+- 기능 개발 상태: `blocked-before-user-approval`
+- 다음 개발 순서: `V390-REQ-001` -> `V390-REQ-002` -> `V390-REQ-003`, 이후 사용자
+  승인 범위 안에서 `V390-CAND-*` 또는 `V390-STRUCT-*`로 이동합니다.
+- 다음 개발 착수는 사용자가 v3.9 required/candidate list를 승인한 뒤에만 가능합니다.
 
 ## 이전 source roadmap 기록: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
 
