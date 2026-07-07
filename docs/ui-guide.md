@@ -6,8 +6,12 @@
 [video-analysis.md](./video-analysis.md)를 봅니다.
 제품 화면은 Ops/Client 기준으로 두고, 개발/검증 API는 별도로 유지합니다.
 
-현재 소스 버전은 `3.8.0`입니다. 최신 공개 GitHub Release는 `v3.8.0` source-only
-release이며, 이 문서는 현재 source tree의 UI 구조와 v3.8.0 Operator-Gated Action Pilot & Outcome Loop roadmap 경계를 설명합니다.
+현재 소스 버전은 `3.9.0`입니다. 최신 공개 GitHub Release는 `v3.8.0` source-only
+release이며, 최신 published baseline은 `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`입니다.
+이 문서는 현재 source tree의 UI 구조와 v3.9.0 Feature Completion, Structure
+Stabilization, and Test Model Preparation roadmap 경계를 설명합니다. v3.9 publish
+완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을
+때만 완료로 기록합니다.
 UI 풀테스트 직접 조작 evidence는 별도 실행한 경우에만 PASS로 기록합니다.
 
 ## 목차

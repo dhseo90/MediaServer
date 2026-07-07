@@ -10,14 +10,90 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.8.0`
+- 현재 소스 버전: `3.9.0`
 - 최신 공개 GitHub Release: `v3.8.0`
-- `v3.8.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
+- `v3.9.0` 준비 상태: source-only preparation branch. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
+- 현재 source roadmap: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
 - 최신 published baseline: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
 
-## 현재 source roadmap: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
+## 현재 source roadmap: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation
+
+상태: Foundation 단계에서 baseline과 feature completion inventory/discovery를 먼저
+정렬했습니다. Discovery 결과를 사용자에게 보고하고 승인받기 전에는 미완성 기능 개발,
+구조 안정화 리팩토링, 테스트 방식 전환 구현으로 넘어가지 않습니다. 즉, discovery 결과 승인 전 기능 개발 금지를 v3.9.0의 현재 hard gate로 둡니다.
+
+직접 답: v3.9.0의 1차 선택값은 `Feature Completion First with Dedicated Inventory`입니다.
+목적: v1.0.0부터 v3.8.0까지 노출/약속/부분 구현된 기능을 직접 대조하고,
+v4.0 구조 안정화와 새 테스트 체계로 넘어가기 전 필요한 기능 완성 항목을 닫는
+준비 릴리즈입니다.
+
+비범위:
+
+- 자동 대량 apply
+- 승인 없는 action/source/rule/client/media mutation
+- discovery 승인 전 미완성 기능 임의 개발
+- feature completion close-out 전 구조 전면 리팩토링 착수
+- 새 테스트 모델을 다섯 번째 AGENTS 테스트 영역으로 추가
+- Event POST payload, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media schema/path 변경
+- Auth/Role/Scope, SourceRegistry/PublishedView, Rule/Profile 저장 payload 계약 변경
+- viewer/client에 source locator, credential, raw diagnostic JSON, operator-only blocker detail 노출
+- 외부 credential/endpoint/실기기 성공을 기본 PASS로 승격
+- 사용자 승인 없는 30분/120분/UI 풀테스트, PR, main merge, tag, GitHub Release, 후속 브랜치 생성
+- v3.9 published 완료 주장
+
+개발은 중요도와 의존 순서를 함께 고려해 Foundation -> Required Closeout ->
+Evidence/Test Gate -> Test Model Prep -> Product Completion -> Conditional Field/AI ->
+Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0에서 개발을 진행할
+때의 기준 순서입니다.
+
+| 구간 | 제목 | 우선순위 | 개발 내용 |
+| --- | --- | --- | --- |
+| Foundation | v3.9.0 (1) v3.9.0 baseline 정렬 | P0 | VERSION/docs/backlog/source roadmap 정렬 |
+| Foundation | v3.9.0 (2) Feature Completion Inventory/Discovery Gate | P0 | `docs/v390-feature-completion-inventory.md`에 required/candidate/structure/excluded 목록과 source group checked 상태를 고정 |
+| Foundation | v3.9.0 (3) User Review Gate / 개발 순서 확정 | P0 | Required development, candidate development, structure-stabilization handoff, excluded/non-scope를 보고하고 사용자 승인 전 기능 개발 중단 |
+| Required Closeout | v3.9.0 (4) Manual UI 기준서 v3.9 current화 | P0 | `V390-REQ-001`: manual UI fulltest/checklist/result template의 v2.x current-looking 기준을 v3.9 기준 또는 historical archive로 정리 |
+| Required Closeout | v3.9.0 (5) 장시간/UI 테스트 시작 조건 v3.9화 | P0 | `V390-REQ-002`: long-test/UI start condition을 v3.9 feature completion inventory와 review gate 기준으로 정렬 |
+| Required Closeout | v3.9.0 (6) v3.5-v3.8 UI coverage bridge | P0 | `V390-REQ-003`: manual UI docs에 v3.5-v3.8 route/control/action coverage를 추가하거나 project inventory delegate를 명시 |
+| Evidence/Test Gate | v3.9.0 (7) UI wrapper/result schema 오판 방지 | P0 | `V390-CAND-007`: wrapper PASS와 UI/longrun/manual evidence PASS를 분리하는 result schema와 문구 정리 |
+| Evidence/Test Gate | v3.9.0 (8) feature inventory coverage wording 오판 방지 | P0 | `V390-CAND-008`: coverage mapping PASS를 실행 PASS로 오해하지 않도록 covered/missing 중심 문구로 정리 |
+| Test Model Prep | v3.9.0 (9) AI-minimized server longrun runner 기준 | P0 | 30분/120분 서버 테스트를 단순 스크립트 실행, case-by-case stop-on-fail, 상세 오류 출력 방식으로 설계 |
+| Test Model Prep | v3.9.0 (10) AI-minimized UI automation adapter 기준 | P0 | 무료 UI 자동화 도구 후보를 평가하고, 실패 상황과 재현 정보를 남기는 UI test runner 기준을 설계 |
+| Product Completion | v3.9.0 (11) ONVIF credential/provider status summary | P1 | `V390-CAND-001`: secret/reference value를 노출하지 않는 Ops-only provider readiness/status 요약 여부 결정 |
+| Product Completion | v3.9.0 (12) ONVIF live import persist decision | P1 | `V390-CAND-002`: 승인된 ONVIF probe/import를 source/view 저장까지 연결할지 결정하고 scope guard 설계 |
+| Product Completion | v3.9.0 (13) VLM rule suggestion draft bridge | P1 | `V390-CAND-003`: VLM rule suggestion review-to-draft 흐름과 no-auto-apply evidence를 보강 |
+| Product Completion | v3.9.0 (14) VLM profile promotion guard | P1 | `V390-CAND-004`: passed evaluation 후보의 profile save/activation guard와 default-off boundary를 명확히 함 |
+| Product Completion | v3.9.0 (15) backup/recovery handoff validation | P1 | `V390-CAND-005`: source reliability handoff에 staging restore validation checklist/result를 연결할지 결정 |
+| Product Completion | v3.9.0 (16) operator-gated action limited execution decision | P1 | `V390-CAND-006`: v3.8 read-only action pilot을 제한 실행으로 확장할지, 아니면 명시 defer할지 결정 |
+| Conditional Field | v3.9.0 (17) field evidence bridge | P2 | `V390-CAND-009`: 외부 endpoint/credential/provider 승인 기반 field evidence bridge를 추가할지 결정 |
+| Conditional AI | v3.9.0 (18) Re-ID appearance assist model-backed path decision | P2 | `V390-CAND-010`: Re-ID assist를 model/config/provenance 기반으로 실동작시킬지 opt-in/defer할지 결정 |
+| Structure | v3.9.0 (19) structure stabilization handoff 상세계획 | P0 | `V390-STRUCT-001`~`V390-STRUCT-005`: route/API/UI/VLM/manual UI 문서 구조 안정화 범위를 동작 보존 리팩토링 계획으로 넘김 |
+| Release | v3.9.0 (20) stabilization and release readiness | P0 | AGENTS 네 테스트 영역 판정, evidence, cleanup, release close-out dry-run을 실제 실행/미실행으로 분리 |
+
+### v3.9.0 진행 상태
+
+| 번호 | 제목 | 우선순위 | 상태 | 완료/잔여 내용 |
+| --- | --- | --- | --- | --- |
+| 1 | v3.9.0 (1) v3.9.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/README/docs/backlog/source roadmap과 `verify-v390-entry-baseline` 기준 정렬 |
+| 2 | v3.9.0 (2) Feature Completion Inventory/Discovery Gate | P0 | 완료 | `docs/v390-feature-completion-inventory.md`에 required/candidate/structure/excluded 항목과 checked source group 반영 |
+| 3 | v3.9.0 (3) User Review Gate / 개발 순서 확정 | P0 | 진행 | 이번 roadmap list-up과 사용자 승인 후 기능 개발 착수 가능 |
+| 4 | v3.9.0 (4) Manual UI 기준서 v3.9 current화 | P0 | 미진행 | `V390-REQ-001` 개발 필요 |
+| 5 | v3.9.0 (5) 장시간/UI 테스트 시작 조건 v3.9화 | P0 | 미진행 | `V390-REQ-002` 개발 필요 |
+| 6 | v3.9.0 (6) v3.5-v3.8 UI coverage bridge | P0 | 미진행 | `V390-REQ-003` 개발 필요 |
+| 7 | v3.9.0 (7) UI wrapper/result schema 오판 방지 | P0 | 미진행 | `V390-CAND-007` 개발 여부 확정 필요 |
+| 8 | v3.9.0 (8) feature inventory coverage wording 오판 방지 | P0 | 미진행 | `V390-CAND-008` 개발 여부 확정 필요 |
+| 9 | v3.9.0 (9) AI-minimized server longrun runner 기준 | P0 | 미진행 | 30분/120분 script runner 설계/구현 필요 |
+| 10 | v3.9.0 (10) AI-minimized UI automation adapter 기준 | P0 | 미진행 | 무료 UI 자동화 도구 후보와 실패 report schema 설계/구현 필요 |
+| 11-18 | v3.9.0 (11)~(18) Product/Field/AI completion decisions | P1/P2 | 미진행 | 인벤토리 `V390-CAND-001`~`V390-CAND-006`, `V390-CAND-009`, `V390-CAND-010` 순서대로 검토/개발 |
+| 19 | v3.9.0 (19) structure stabilization handoff 상세계획 | P0 | 미진행 | 인벤토리 `V390-STRUCT-001`~`V390-STRUCT-005`를 안정화 계획으로 이관 |
+| 20 | v3.9.0 (20) stabilization and release readiness | P0 | 미진행 | AGENTS 네 테스트 영역 판정과 release close-out evidence 필요 |
+
+완료 경계: v3.9 source baseline/inventory 준비는 실제 기능 개발, discovery 완료,
+UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action evidence가
+아닙니다. `v3.9.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
+있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.8.0`입니다.
+
+## 이전 source roadmap 기록: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
 
 상태: Step 1 source baseline 정렬, Step 2 Ops Action Route Boundary, Step 3 Action
 Capability Contract, Step 4 Action Request Ledger Contract, Step 5 Approval Decision Gate,
@@ -3283,6 +3359,6 @@ v2.7.0의 예정 항목 완료 evidence로 재사용하지 않습니다.
 
 ## 후속 이슈 추천 규칙
 
-후속 이슈는 현재 `2.8.0` source tree와 현재 스텝 범위 안에서 실제로 처리 가능한 항목만
+후속 이슈는 현재 source tree와 현재 v3.9 스텝 범위 안에서 실제로 처리 가능한 항목만
 기록합니다. 다음 버전 후보, 별도 Phase 후보, 사용자 승인이 필요한 새 제품 범위는 이
 문서에 추천하지 않습니다.

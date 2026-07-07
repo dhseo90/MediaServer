@@ -256,6 +256,30 @@ Companion local gate:
 git diff --check
 ```
 
+## v3.9.0 source baseline and feature completion inventory records
+
+v3.9.0 Task 7 evidence index는 source baseline과 feature completion inventory follow-up을
+stream verification, project inventory, release test records, release metadata verifier에
+연결하는 색인입니다. 이 섹션은 실제 UI 풀테스트 직접 조작, 30분/120분 longrun,
+published metadata, PR/main/tag/GitHub Release, field smoke evidence가 아닙니다.
+
+| Evidence | 연결 | PASS/FAIL 결과표 위치 | 미실행/제외 위치 | 대체 금지 |
+| --- | --- | --- | --- | --- |
+| v3.9.0 source baseline | `./server.sh verify-v390-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, [stream-verification.md](./stream-verification.md), [project-feature-test-inventory.md](./project-feature-test-inventory.md) `OPS-163`/`SAFE-196` | [release-test-records.md](./release-test-records.md) v3.9.0 `v390 Step 1 entry baseline final` | [release-test-records.md](./release-test-records.md) v3.9.0 미실행/제외 | feature discovery/dev, UI 풀테스트, 30분/120분, published metadata, release action evidence |
+| v3.9.0 feature completion inventory | `./server.sh verify-v390-feature-completion-inventory`, [v390-feature-completion-inventory.md](./v390-feature-completion-inventory.md), [project-feature-test-inventory.md](./project-feature-test-inventory.md) `OPS-164`/`SAFE-197` | [release-test-records.md](./release-test-records.md) v3.9.0 `v390 Step 2 feature completion inventory final` | [release-test-records.md](./release-test-records.md) v3.9.0 `v390 discovery user review gate`와 미실행/제외 | 실제 discovery 완료, 기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트, 30분/120분, published metadata, release action evidence |
+
+Companion local gate:
+
+```bash
+./server.sh verify-v390-entry-baseline
+./server.sh verify-v390-feature-completion-inventory
+./server.sh verify-release-metadata
+./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-script-inventory
+git diff --check
+```
+
 ## v3.8.0 Step 16 local readiness gate records
 
 v3.8.0 Step 16 stabilization/release readiness는

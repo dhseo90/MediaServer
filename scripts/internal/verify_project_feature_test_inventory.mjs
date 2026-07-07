@@ -44,6 +44,7 @@ const seedFixtureText = readText(seedFixturePath);
 const seedFixture = JSON.parse(seedFixtureText);
 const currentVersion = readText("VERSION").trim();
 const currentTag = `v${currentVersion}`;
+const latestPublishedTag = "v3.8.0";
 
 const checks = [];
 
@@ -751,6 +752,10 @@ check("current feature expansion rows exist", () => {
     "OPS-161",
     "SAFE-195",
     "OPS-162",
+    "OPS-163",
+    "SAFE-196",
+    "OPS-164",
+    "SAFE-197",
   ];
   const ids = new Set(parseFeatureRows(inventory).map(row => row.id));
   for (const id of requiredRows) {
@@ -764,8 +769,8 @@ check("current feature expansion rows exist", () => {
     "`RULE-001`~`RULE-110`",
     "`MEDIA-001`~`MEDIA-026`",
     "`LAB-001`~`LAB-122`",
-    "`SAFE-001`~`SAFE-195`",
-    "`OPS-035`~`OPS-162`",
+    "`SAFE-001`~`SAFE-197`",
+    "`OPS-035`~`OPS-164`",
     "VLM route, control, action, runtime state, sidecar, privacy guard",
     "V300-S02 Frame Bundle Extraction",
     "V300-S03 Feature Schema and Privacy Policy",
@@ -1109,7 +1114,9 @@ check("AGENTS requires individual future feature test rows", () => {
 
 check("manual UI VA seed matrix covers required current release cases", () => {
   assert(seedFixture.schema === "media-server.manual-ui-fulltest-va-seed-matrix.v1", "unexpected seed fixture schema");
-  assert(seedFixture.releaseTarget === currentTag, `seed fixture must pin ${currentTag}`);
+  assert(seedFixture.releaseTarget === latestPublishedTag, `seed fixture must preserve latest published manual UI seed baseline ${latestPublishedTag}`);
+  requireText(inventory, "VA seed 데이터", "inventory missing VA seed boundary row");
+  requireText(inventory, "준비 기준일 뿐 실행 증거 아님", "inventory must not promote VA seed fixture to execution evidence");
   assert(seedFixture.usageBoundary?.notEvidenceUntilAppliedAndVerified === true, "seed fixture must not be evidence by itself");
   assert(seedFixture.usageBoundary?.keepFinalRulesForEventLogReview === true, "seed fixture must preserve final rules for event review");
   assert(seedFixture.usageBoundary?.separateCrudFromScenarioEventReview === true, "seed fixture must separate CRUD from event review");

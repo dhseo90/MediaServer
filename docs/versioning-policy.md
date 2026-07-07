@@ -5,18 +5,21 @@
 
 ## 현재 기준
 
-- 현재 소스 버전: `3.8.0`
-- 현재 source roadmap: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
+- 현재 소스 버전: `3.9.0`
+- 현재 source roadmap: `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`
 - 최신 공개 GitHub Release: `v3.8.0`
 - 최신 공개 roadmap: `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`
 - `v3.8.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- source-only release 기준 tag는 published tag `v3.8.0`와 현재 source tag `v3.8.0`를 함께 기록합니다.
+- source-only release 기준 tag는 published tag `v3.8.0`와 현재 source tag `v3.9.0`를 함께 기록합니다.
 - `v3.8.0` release tag는 SSH-signed annotated tag이며 GitHub API tag verification `verified=true`/`reason=valid`로 확인했습니다.
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
 
-현재 소스 트리의 `3.8.0` roadmap은 v3.8.0 Operator-Gated Action Pilot & Outcome Loop
-source-only/live-only active source roadmap이자 latest published baseline입니다.
-v3.7.0 previous published baseline, v3.6.0 historical published baseline과 후속 기능별
+현재 소스 트리의 `3.9.0` roadmap은 v3.9.0 Feature Completion, Structure Stabilization,
+and Test Model Preparation source-only/live-only active source roadmap입니다. 최신
+published baseline은 v3.8.0 Operator-Gated Action Pilot & Outcome Loop입니다.
+v3.9.0 publish 완료는 tag, GitHub Release, `verify-release-metadata --published`
+evidence가 있을 때만 기록합니다. v3.8.0 latest published baseline, v3.7.0 previous
+published baseline, v3.6.0 historical published baseline과 후속 기능별
 완료 evidence는 계속 분리해 기록합니다. 기본 공개 형태는 계속 source-only이며
 binary/runtime/model bundle을 공개 asset으로 포함하지 않습니다.
 
@@ -56,10 +59,40 @@ binary/runtime/model bundle을 공개 asset으로 포함하지 않습니다.
 - `3.8.0`은 v3.7 Site-Aware Operations and Safe Runbook Control Plane 위에서
   operator-gated action request, approval decision, readiness preflight, limited execution
   candidate, outcome reconciliation을 순서대로 준비하는 minor line입니다.
+- `3.9.0`은 v3.8 Operator-Gated Action Pilot & Outcome Loop까지 노출/약속/부분
+  구현된 기능을 전수 확인하고, v4.0.0 구조 안정화와 새 테스트 체계로 넘어가기 전
+  feature completion, structure stabilization, test model preparation 항목을 분리하는
+  minor line입니다.
 - 3.0 전에는 자동 Rule/Profile 적용, 외부 알림 실제 발송 보장, VLM default-on,
   runtime/model bundle default 배포를 2.x 완료 조건으로 승격하지 않습니다.
 
-## 3.8.0 active source roadmap 범위
+## 3.9.0 active source roadmap 범위
+
+- v3.9.0 source baseline alignment
+- Feature Completion Inventory
+- User Review Gate
+- Feature completion development items after user approval
+- Structure stabilization preparation
+- Test model preparation
+
+위 항목은 현재 active source roadmap입니다. Task 7 기준 local verifier는
+`verify-v390-entry-baseline`, `verify-v390-feature-completion-inventory`,
+`verify-release-metadata`, `verify-project-inventory`, `verify-feature-inventory-coverage`,
+`verify-script-inventory` 연결만 확인합니다. 이 PASS는 실제 feature discovery 완료,
+기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트, 30분/120분,
+published metadata, PR/main/tag/GitHub Release evidence가 아닙니다.
+
+`v3.9.0 source-of-truth 정렬`은 `README.md`, `README.en.md`, `docs/README.md`,
+`docs/en/README.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`,
+release/version policy가 source `3.9.0`, current roadmap
+`v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`,
+latest published `v3.8.0`를 분리하는지 확인하는 local gate입니다. 최신 published
+baseline은 v3.8.0 Operator-Gated Action Pilot & Outcome Loop입니다. 대표 UI 이미지는
+`config/docs_ui_assets.json`의 managed asset list로 관리하며, image recapture, 직접
+브라우저 검수 PASS, UI 풀테스트, published metadata, tag/push/GitHub Release는 source
+baseline 정렬 PASS로 대체하지 않습니다.
+
+## v3.8.0 latest published source-only release 범위
 
 - v3.8.0 source roadmap baseline 정렬
 - Ops Action Route Boundary
@@ -82,15 +115,6 @@ binary/runtime/model bundle을 공개 asset으로 포함하지 않습니다.
 30분/120분 장시간 테스트와 UI 풀테스트는 v3.8.0 release evidence로 보존했고,
 외부 field smoke는 실제 endpoint/credential/실기기/provider 조건이 없어 실행하지
 않은 영역으로 계속 분리합니다.
-
-`v3.8.0 source-of-truth 정렬`은 `README.md`, `README.en.md`, `docs/README.md`,
-`docs/en/README.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`,
-release/version policy가 source `3.8.0`, current roadmap
-`v3.8.0 Operator-Gated Action Pilot & Outcome Loop`, latest published `v3.8.0`를 정렬하는지
-확인하는 local gate입니다. v3.8 published baseline은 최신 공개 기준입니다. 대표 UI 이미지는 `config/docs_ui_assets.json`의 managed
-asset list로 관리하며, image recapture, 직접 브라우저 검수 PASS, UI 풀테스트,
-published metadata, tag/push/GitHub Release는 source baseline 정렬 PASS로 대체하지
-않습니다.
 
 ## v3.7.0 previous published source-only release 범위
 

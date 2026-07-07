@@ -40,6 +40,18 @@
 | V250-S08 | `./server.sh verify-v250-redacted-incident-evidence-bundle` | release-safe manifest-only evidence bundle guard |
 | V250-S09 | `./server.sh verify-v250-owner-release-readiness` | owner decomposition/release readiness local gate |
 
+## 현재 v3.9.0 verifier
+
+아래 명령은 v3.9.0 Feature Completion, Structure Stabilization, and Test Model
+Preparation의 source baseline과 feature completion inventory 준비 gate입니다. 실제
+feature discovery 완료, feature development, UI 풀테스트, 30분/120분 longrun,
+published metadata, release action evidence가 아닙니다.
+
+| Step | Command | Scope |
+| --- | --- | --- |
+| v3.9.0 (1) | `./server.sh verify-v390-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | source `3.9.0`, latest published `v3.8.0`, current roadmap `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation` 정렬. v3.9 기능 discovery/dev, UI 풀테스트, 30분/120분, tag, push, GitHub Release evidence와는 별도 gate입니다 |
+| v3.9.0 (2) | `./server.sh verify-v390-feature-completion-inventory` | v3.9 feature completion inventory scaffold, discovery source groups, disposition/test-area vocabulary, user review gate 경계를 확인합니다. 실제 feature discovery 완료, 기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
+
 ## 현재 v3.8.0 verifier
 
 아래 명령은 v3.8.0 Operator-Gated Action Pilot & Outcome Loop의 현재 source gate입니다.

@@ -314,6 +314,21 @@ for (const [prefix, verifiers] of Object.entries(v380VerifierCoverage)) {
   stabilityVerifierByPrefix[prefix].push(...verifiers);
 }
 
+const v390VerifierCoverage = {
+  SAFE: [
+    "verify-v390-entry-baseline",
+    "verify-v390-feature-completion-inventory",
+  ],
+  OPS: [
+    "verify-v390-entry-baseline",
+    "verify-v390-feature-completion-inventory",
+  ],
+};
+
+for (const [prefix, verifiers] of Object.entries(v390VerifierCoverage)) {
+  stabilityVerifierByPrefix[prefix].push(...verifiers);
+}
+
 check("inventory row count is stable", () => {
   const declaredTotal = summaryCount(inventory, "전체 기능 항목");
   assert(rows.length === declaredTotal, `expected ${declaredTotal} feature rows, found ${rows.length}`);

@@ -339,7 +339,7 @@ Usage:
   verify-v350-stabilization-release-readiness
                  v3.5.0 Step 13 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-v380-entry-baseline
-                 v3.8.0 Step 1 source baseline과 latest published v3.7.0 경계를 검증합니다.
+                 v3.8.0 Step 1 source baseline과 latest published v3.8.0 경계를 검증합니다.
   verify-v380-ops-action-route-boundary
                  v3.8.0 Step 2 Ops Action Route Boundary를 검증합니다.
   verify-v380-action-capability-contract
@@ -370,6 +370,10 @@ Usage:
                  v3.8.0 Step 15 Default-off Action Explanation을 검증합니다.
   verify-v380-stabilization-release-readiness
                  v3.8.0 Step 16 Stabilization and Release Readiness local gate 경계를 검증합니다.
+  verify-v390-entry-baseline
+                 v3.9.0 source baseline, roadmap, docs, feature inventory scaffold, dispatch 경계를 검증합니다.
+  verify-v390-feature-completion-inventory
+                 v3.9.0 기능 완성 인벤토리 구조와 discovery review gate를 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v370-site-source-group-contract
@@ -655,7 +659,7 @@ Usage:
   verify-v350-stabilization-release-readiness
                  v3.5.0 Step 13 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-v380-entry-baseline
-                 v3.8.0 Step 1 source baseline과 latest published v3.7.0 경계를 검증합니다.
+                 v3.8.0 Step 1 source baseline과 latest published v3.8.0 경계를 검증합니다.
   verify-v380-ops-action-route-boundary
                  v3.8.0 Step 2 Ops Action Route Boundary를 검증합니다.
   verify-v380-action-capability-contract
@@ -686,6 +690,10 @@ Usage:
                  v3.8.0 Step 15 Default-off Action Explanation을 검증합니다.
   verify-v380-stabilization-release-readiness
                  v3.8.0 Step 16 Stabilization and Release Readiness local gate 경계를 검증합니다.
+  verify-v390-entry-baseline
+                 v3.9.0 source baseline, roadmap, docs, feature inventory scaffold, dispatch 경계를 검증합니다.
+  verify-v390-feature-completion-inventory
+                 v3.9.0 기능 완성 인벤토리 구조와 discovery review gate를 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v370-site-source-group-contract
@@ -1852,6 +1860,14 @@ case "${cmd}" in
   verify-v380-stabilization-release-readiness)
     require_internal verify_v380_stabilization_release_readiness.mjs
     exec "${INTERNAL_DIR}/verify_v380_stabilization_release_readiness.mjs" "$@"
+    ;;
+  verify-v390-entry-baseline)
+    require_internal verify_v390_entry_baseline.mjs
+    exec "${INTERNAL_DIR}/verify_v390_entry_baseline.mjs" "$@"
+    ;;
+  verify-v390-feature-completion-inventory)
+    require_internal verify_v390_feature_completion_inventory.mjs
+    exec "${INTERNAL_DIR}/verify_v390_feature_completion_inventory.mjs" "$@"
     ;;
   verify-v370-entry-baseline)
     require_internal verify_v370_entry_baseline.mjs

@@ -6,11 +6,16 @@
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.8.0`
+- 현재 소스 버전: `3.9.0`
 - 최신 공개 GitHub Release: `v3.8.0`
 - `v3.8.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap은 `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`입니다.
+- 현재 source roadmap은 `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`입니다.
+- 현재 latest published release는 `v3.8.0`입니다.
+- 현재 공개 release tag 기준은 `v3.8.0`입니다.
+- 현재 source tag 기준은 `v3.9.0`입니다.
+- `v3.9.0` GitHub Release publish 완료는 tag, GitHub Release,
+  `verify-release-metadata --published` evidence가 있을 때만 완료로 기록합니다.
 
 ## 기본 공개 범위
 
@@ -55,9 +60,10 @@ main merge를 수행하지 않습니다.
 
 ## Public Docs / Assets Refresh
 
-v3.8.0 Step 1 source baseline alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
-source `3.8.0`, current roadmap `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`,
-latest published `v3.8.0` 기준으로 정렬하는 local gate입니다. 최신 published baseline은
+v3.9.0 source baseline alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
+source `3.9.0`, current roadmap
+`v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`,
+latest published `v3.8.0` 기준으로 분리하는 local gate입니다. 최신 published baseline은
 `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`입니다.
 대상 문서는 `README.md`, `README.en.md`,
 `docs/README.md`, `docs/en/README.md`, `docs/ui-guide.md`,
@@ -65,10 +71,10 @@ latest published `v3.8.0` 기준으로 정렬하는 local gate입니다. 최신 
 
 Companion local gate:
 
-전용 companion command는 `./server.sh verify-v380-entry-baseline`입니다.
+전용 companion command는 `./server.sh verify-v390-entry-baseline`입니다.
 
 ```bash
-./server.sh verify-v380-entry-baseline
+./server.sh verify-v390-entry-baseline
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-docs-links
 ./server.sh verify-release-metadata
@@ -109,6 +115,36 @@ published metadata 확인에는 GitHub Releases list/view/latest, GitHub API
 gate 실패 또는 미확인으로 보고하며 제품 runtime/media 회귀와 섞지 않습니다.
 
 ## GitHub Releases 운영
+
+### v3.9.0 Release Close-out Runbook
+
+아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
+순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
+v3.9.0은 현재 source branch이며 publish 완료 evidence가 아직 없습니다.
+
+Dry-run checklist:
+
+- `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>`
+- `./server.sh verify-release-closeout-helper --one-shot-dry-run`
+- one-shot schema: `media-server.release-closeout-one-shot-gate.v1`
+- fail-stop: 실패 단계 이후의 release action은 건너뜁니다.
+
+Real close-out checklist:
+
+- Branch close
+- PR merge
+- Main fast-forward/sync
+- public-readiness, bundle policy, Actions status check
+- Tag 전략에 맞춘 signed annotated tag 생성
+- GitHub Release 생성/갱신
+- Latest 확인
+- published metadata 재검증
+- release branch 삭제는 사용자 별도 승인 후 진행
+- Next branch sync
+
+Do not list an item as pass unless it was actually executed. tag, GitHub Release,
+published metadata, release branch 삭제, Next branch sync는 각각 실행 evidence가
+있을 때만 완료로 기록합니다.
 
 ### v3.8.0 Release Close-out Runbook
 
@@ -251,7 +287,26 @@ published metadata, release branch 삭제, Next branch sync는 각각 실행 evi
 close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 삭제 승인이 없으면
 수행하지 않습니다.
 
-## v3.8.0 Source Roadmap Scope
+## v3.9.0 Source Roadmap Scope
+
+현재 `3.9.0` source tree는 아래 roadmap을 source 기능과 local verifier 기준으로
+준비 중입니다. 이 범위는 latest published baseline이 아니며, publish 완료는 tag,
+GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
+
+- Source Baseline Alignment
+- Feature Completion Inventory
+- User Review Gate
+- Feature completion development items after user approval
+- Structure stabilization preparation
+- Test model preparation
+
+현재 local gate는 `verify-v390-entry-baseline`, `verify-v390-feature-completion-inventory`,
+`verify-release-metadata`, `verify-project-inventory`, `verify-feature-inventory-coverage`,
+`verify-script-inventory` 연결을 확인합니다. 이 PASS는 실제 feature discovery 완료,
+기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트, 30분/120분,
+published metadata, PR/main/tag/GitHub Release evidence가 아닙니다.
+
+## v3.8.0 Published Source Roadmap Scope
 
 현재 `3.8.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
 정리했고, source-only latest published baseline으로 닫았습니다. UI 풀테스트, 30분,
@@ -776,9 +831,9 @@ Not-run/excluded boundary:
 
 ## Tag 전략
 
-- 현재 공개 release tag 기준은 `v3.2.0`입니다.
-- 현재 source tag 기준은 `v3.2.0`입니다.
-- `v3.2.0` release tag는 signed annotated tag로 생성했습니다.
+- 현재 공개 release tag 기준은 `v3.8.0`입니다.
+- 현재 source tag 기준은 `v3.9.0`입니다.
+- `v3.8.0` release tag는 signed annotated tag로 생성했습니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다.
 - unsigned annotated tag와 lightweight tag는 새 release tag로 사용하지 않습니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만
@@ -828,24 +883,24 @@ Annotation JSON을 확보한 경우:
 ./server.sh verify-actions-security --annotations-json <annotations.json>
 ```
 
-## v3.8.0 Release Note Template
+## v3.9.0 Release Note Template
 
-아래 템플릿은 v3.8.0 source-only GitHub Release note 기준입니다. 실행하지 않은
+아래 템플릿은 v3.9.0 source-only GitHub Release note 기준입니다. 실행하지 않은
 장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다.
 
 ```markdown
-# Media Server v3.8.0
+# Media Server v3.9.0
 
 ## Scope
 
 - Source-only live media server release
-- Operator-Gated Action Pilot & Outcome Loop source scope
-- Latest published baseline before this release: v3.7.0
+- Feature Completion, Structure Stabilization, and Test Model Preparation source scope
+- Latest published baseline before this release: v3.8.0
 - Binary/runtime/model bundle: not included
 
 ## Verification
 
-- v3.8.0 baseline alignment: <fill after docs/release metadata gates>
+- v3.9.0 baseline alignment: <fill after docs/release metadata gates>
 - Local docs/release metadata: <fill after `verify-release-metadata`,
   `verify-docs-links`, `verify-docs-ui-assets`, and required inventory gates>
 - Build: <fill after `./server.sh build`>
