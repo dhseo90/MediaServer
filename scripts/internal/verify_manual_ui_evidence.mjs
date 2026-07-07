@@ -51,6 +51,10 @@ check("manual UI docs are current release baseline", () => {
     `현재 release 목표는 \`${currentTag}\``,
     "현재 제품 UI 직접 조작 evidence 없이 완료 판정에 포함하지 않습니다.",
     `${currentTag} release UI gate`,
+    "V390-REQ-001",
+    "V390-REQ-002",
+    "V390-REQ-003",
+    "v3.5-v3.8 UI coverage bridge",
     "`/setup`",
     "`/login`",
     "`/ops/rules`",
@@ -60,6 +64,11 @@ check("manual UI docs are current release baseline", () => {
   ], "docs/manual-ui-checklist.md");
   assertIncludes(fulltest, [
     "현재 제품 UI 기준",
+    `${currentTag} Feature Completion`,
+    "V390-REQ-001",
+    "V390-REQ-002",
+    "V390-REQ-003",
+    "v3.5-v3.8 UI coverage bridge",
     "지원 가능한 모든 기능을 실제 UI 조작으로 확인",
     "테스트 영역 역할 분리",
     "UI 풀테스트는 `스크립트 테스트`와 별도 영역입니다.",
@@ -67,6 +76,41 @@ check("manual UI docs are current release baseline", () => {
     "UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다.",
     "카테고리 묶음 판정은 금지합니다.",
     "제외 기록",
+  ], "docs/manual-ui-fulltest.md");
+});
+
+check("manual UI docs pin v3.9 required closeout and coverage bridge", () => {
+  assertIncludes(checklist, [
+    "v3.9.0 Required Closeout / v3.5-v3.8 coverage bridge",
+    "Manual UI 기준서 v3.9 current화",
+    "장시간/UI 테스트 시작 조건 v3.9화",
+    "v3.5-v3.8 UI coverage bridge",
+    "UI-080",
+    "UI-107",
+  ], "docs/manual-ui-checklist.md");
+  assertIncludes(fulltest, [
+    "v3.9.0 Required Closeout coverage bridge",
+    "V390-REQ-001",
+    "V390-REQ-002",
+    "V390-REQ-003",
+    "UI-080",
+    "UI-107",
+    "이 bridge를 만족해도 인앱 브라우저 UI 풀테스트",
+  ], "docs/manual-ui-fulltest.md");
+  assertIncludes(template, [
+    "## v3.9.0 Required Closeout 기록 기준",
+    "V390-REQ-001",
+    "V390-REQ-002",
+    "V390-REQ-003",
+    "v3.5-v3.8 UI coverage bridge",
+    "UI-080",
+    "UI-107",
+  ], "docs/manual-ui-result-template.md");
+  assertNotIncludes(checklist, [
+    "현재 release 목표는 `v2.9.0`",
+  ], "docs/manual-ui-checklist.md");
+  assertNotIncludes(fulltest, [
+    "최신 공개 release 기준은 `v2.8.0 Operator-Supervised Action Readiness`",
   ], "docs/manual-ui-fulltest.md");
 });
 

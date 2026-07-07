@@ -5,11 +5,14 @@
 세부 기준으로 삼고, 기능별 UI 필요 여부와 테스트 영역은
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 합니다. 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
-사용합니다. 최신 공개 release 기준은 `v2.8.0`이고 현재 release 목표는 `v2.9.0`이며,
-UI 문서 기준은 `v2.9.0 Final 2.x Closure & Compatibility Baseline`입니다. UI 풀테스트
-기준은 해당 작업 범위에 포함된 제품 route, 권한, 기능 baseline만 대상으로 합니다.
-현재 release 목표는 `v2.9.0`, v2.9.0 release UI gate는 현재 release target의 UI evidence 경계를 뜻하며, UI
-재배치 문서 준비나 자동 smoke만으로 UI 풀테스트 PASS를 뜻하지 않습니다.
+사용합니다. 최신 공개 release 기준은 `v3.8.0`이고 현재 release 목표는 `v3.9.0`이며,
+UI 문서 기준은 `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`입니다.
+UI 풀테스트 기준은 해당 작업 범위에 포함된 제품 route, 권한, 기능 baseline만 대상으로 합니다.
+현재 release 목표는 `v3.9.0`, v3.9.0 release UI gate는 현재 release target의 UI evidence 경계를 뜻하며, UI
+재배치 문서 준비나 자동 smoke만으로 UI 풀테스트 PASS를 뜻하지 않습니다. 이번
+Required Closeout의 `V390-REQ-001`, `V390-REQ-002`, `V390-REQ-003`은 manual UI
+기준서 current화, 장시간/UI 테스트 시작 조건 current화, `v3.5-v3.8 UI coverage bridge`
+정렬을 닫는 문서/test-source gate입니다.
 문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
 현재 제품 UI 직접 조작 evidence 없이 완료 판정에 포함하지 않습니다.
 전용 throwaway 서버부터 core/auth 클릭 검증까지 한 번에 실행해야 할 때는
@@ -55,8 +58,10 @@ UI 풀테스트도 버전 로드맵 완료 시 수행 대상이지만, 실제 �
   아니므로, 행이 있다는 이유만으로 완료 처리하지 않습니다.
 - 현재 scope 밖 기능, release 비범위, 실장비/외부 credential이 필요한 흐름은
   임의로 확장하지 않습니다.
-- v2.9.0 release UI gate는 새 route 추가가 아니라 현재 2.x route/control/action/
-  role/viewport/theme freeze입니다. `/setup`, `/login`, `/password/change`,
+- v3.9.0 release UI gate는 새 route 추가가 아니라 현재 v3.9 source tree 기준
+  route/control/action/role/viewport/theme freeze입니다.
+  `docs/v390-feature-completion-inventory.md`의 `V390-REQ-001`~`V390-REQ-003`와
+  `v3.5-v3.8 UI coverage bridge`를 먼저 확인한 뒤 `/setup`, `/login`, `/password/change`,
   `/invite/setup`, `/ops/home`, `/ops/dashboard`, `/ops/sources`, `/ops/rules`,
   `/ops/users`, `/ops/events`, `/ops/vlm`, `/client/live`, `/client/dashboard`,
   `/client/events`, `/client/request-access`를 실제로 열고, admin/operator/viewer/
@@ -116,9 +121,10 @@ UI 풀테스트도 버전 로드맵 완료 시 수행 대상이지만, 실제 �
   `/client/events`에서 VLM model/prompt/raw response/provider/internal review card가
   보이지 않는지 확인합니다.
 - coverage mapping은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의
-  `v2.6.0 Operational Hardening Coverage Mapping`과 `Coverage Start Conditions`를
-  기준으로 확인합니다. 이 mapping은 실행 결과가 아니라 안정화/30분/120분/UI
-  풀테스트에 포함할 대상을 빠뜨리지 않기 위한 기준입니다.
+  현재 기능 ID 행과 `docs/v390-feature-completion-inventory.md`의 required closeout
+  행을 기준으로 확인합니다. v2.x coverage mapping은 historical archive이며 현재
+  v3.9 시작 조건을 단독으로 대체하지 않습니다. 이 mapping은 실행 결과가 아니라
+  안정화/30분/120분/UI 풀테스트에 포함할 대상을 빠뜨리지 않기 위한 기준입니다.
 - destructive action은 throwaway 계정, 채널, 접근 요청으로만 수행합니다.
 - UI smoke 전용 HTML selector 검증은 필요 시 별도 서버에서
   `./server.sh verify-ops-client-ui --screenshots`로 실행하되, 이 결과만으로
@@ -135,20 +141,36 @@ UI 풀테스트도 버전 로드맵 완료 시 수행 대상이지만, 실제 �
 
 아래 항목이 하나라도 비어 있으면 30분, 120분, UI 풀테스트를 시작하지 않습니다.
 
-- 기능/route/control/action mapping: `v2.6.0 Operational Hardening Coverage Mapping`,
-  `Coverage Start Conditions`, `/ops/vlm`, `/client/events`, VLM client redaction.
+- 기능/route/control/action mapping: `docs/v390-feature-completion-inventory.md`의
+  `V390-REQ-001`~`V390-REQ-003`, `v3.5-v3.8 UI coverage bridge`,
+  `project-feature-test-inventory.md`의 현재 UI/control/action ID, `/ops/vlm`,
+  `/client/events`, VLM client redaction.
 - auth/env: auth verifier password env 5개가 `SET`인지, users file과 session state가
   throwaway인지 확인합니다.
 - fixture/output: source/view/analysis/event/snapshot/clip 경로, seed dry-run 결과,
   output dir, summary/report/log/evidence JSON 경로를 시작 전에 고정합니다.
 - UI blocker: native dialog guard, blocking dialog policy, browser automation 권한,
   viewport/theme 목록을 먼저 확인합니다.
-- longrun blocker: 120분은 30분 또는 high-risk 안정화 조건 PASS, 사용자 승인,
-  RC/high-risk 사유, memory/runtime 관찰 항목이 모두 있어야 시작합니다.
+- longrun blocker: 30분, UI 풀테스트, 120분은 사용자 지시 또는 명시 승인 범위에서만
+  시작합니다. 120분은 30분 또는 high-risk 안정화 조건 PASS, 사용자 승인,
+  AGENTS 7.6.2 직접 조건, RC/high-risk 사유, memory/runtime 관찰 항목이 모두 있어야
+  시작합니다.
 
 시작 조건 실패는 긴 테스트 실패로 과장하지 않습니다. 문서/mapping/fixture/env 문제를
 고친 뒤 해당 안정화 조건만 다시 확인하고, 아직 시작하지 않은 30분/120분/UI 결과는
 `미실행`으로 남깁니다.
+
+### v3.9.0 Required Closeout / v3.5-v3.8 coverage bridge
+
+이 표는 `V390-REQ-001`, `V390-REQ-002`, `V390-REQ-003`의 checklist 기준입니다.
+아래 delegation은 UI 풀테스트 실행 PASS가 아니라 current v3.9 UI 대상 누락 방지용
+시작 조건입니다.
+
+| Required Closeout | 확인 기준 | Evidence 경계 |
+| --- | --- | --- |
+| `V390-REQ-001` Manual UI 기준서 v3.9 current화 | 이 checklist, `manual-ui-fulltest.md`, `manual-ui-result-template.md`가 `v3.9.0` current target과 historical v2.x/v3.x bridge를 분리 | `verify-manual-ui-evidence` PASS는 문서 기준 PASS이며 직접 UI 풀테스트 PASS가 아님 |
+| `V390-REQ-002` 장시간/UI 테스트 시작 조건 v3.9화 | 긴 테스트 시작 조건이 v3.9 feature completion inventory, required closeout, current project inventory를 기준으로 함 | 30분/120분/UI는 사용자 지시 또는 승인 전 미실행으로 기록 |
+| `V390-REQ-003` v3.5-v3.8 UI coverage bridge | v3.5 `UI-080`~`UI-087`, v3.6 `UI-088`~`UI-094`, v3.7 `UI-095`~`UI-101`, v3.8 `UI-102`~`UI-107` 및 관련 `CLIENT-*` rows를 project feature inventory에서 확인 | feature inventory delegation은 coverage 기준이며 route/control/action 직접 조작 evidence가 아님 |
 
 ### v2.2.0 UI Evidence Close-out coverage mapping
 

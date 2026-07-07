@@ -5,9 +5,15 @@
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 삼고, 실행 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md), 결과 기록은
 [manual-ui-result-template.md](./manual-ui-result-template.md)를 사용합니다.
-최신 공개 release 기준은 `v2.8.0 Operator-Supervised Action Readiness`이고 현재 release
-목표와 UI 문서 기준은 `v2.9.0 Final 2.x Closure & Compatibility Baseline`입니다. 현재 제품 UI 기준으로
-지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은 경우에는 완료로 쓰지 않습니다.
+최신 공개 release 기준은 `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`이고
+현재 소스/UI 문서 기준은
+`v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`입니다.
+이번 v3.9.0 Required Closeout은 `V390-REQ-001`, `V390-REQ-002`,
+`V390-REQ-003` 기준으로 manual UI 기준서 current화, 장시간/UI 테스트 시작 조건
+current화, `v3.5-v3.8 UI coverage bridge`를 닫습니다. 아래 v2.x/v3.x release별
+기준 섹션은 historical coverage bridge이며 현재 gate로 단독 사용하지 않습니다.
+현재 제품 UI 기준으로 지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은
+경우에는 완료로 쓰지 않습니다.
 
 ## 1. 정의
 
@@ -67,16 +73,24 @@ UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다. 모든 기능�
 30분, 120분, UI 풀테스트는 시작 전에 실패 가능성이 높은 준비 문제를 먼저 끊어냅니다.
 아래 항목이 정리되지 않으면 긴 테스트를 시작하지 않습니다.
 
-- `project-feature-test-inventory.md`의 `v2.6.0 Operational Hardening Coverage Mapping`과
-  `Coverage Start Conditions`를 확인해 누락된
-  route/control/action을 먼저 고칩니다.
+- `docs/v390-feature-completion-inventory.md`의 `V390-REQ-001`,
+  `V390-REQ-002`, `V390-REQ-003` 상태와
+  [project-feature-test-inventory.md](./project-feature-test-inventory.md)의 현재
+  route/control/action coverage를 먼저 확인합니다. 이 확인은 실행 PASS가 아니라
+  빠뜨릴 대상을 정하는 시작 조건입니다.
+- `docs/manual-ui-checklist.md`와 `docs/manual-ui-result-template.md`가
+  `v3.9.0 release UI gate`, `## v3.9.0 Release Evidence Index`,
+  `v3.5-v3.8 UI coverage bridge`를 포함하지 않으면 30분, 120분, UI 풀테스트를
+  시작하지 않습니다.
 - `/ops/vlm`, `/ops/events`, `/client/live`, `/client/dashboard`, `/client/events`의
-  VLM 관련 UI/비노출 항목이 result template에 없으면 UI 풀테스트를 시작하지 않습니다.
+  VLM 관련 UI/비노출 항목과 v3.5~v3.8에서 추가된 Ops/Client route/control/action
+  항목이 result template 또는 project feature inventory delegation으로 연결돼 있어야 합니다.
 - auth 테스트 비밀번호 환경변수, throwaway users/source/view/analysis/event/snapshot/clip
   경로, seed dry-run/registry dir, output artifact 경로를 시작 전에 기록합니다.
 - `verify-product-ui-no-native-dialogs`와 `verify-ui-blocking-dialog-policy`를 UI 전
   선수 gate로 계획합니다. native dialog가 남아 있으면 UI 풀테스트를 시작하지 않습니다.
-- 120분은 30분 또는 해당 high-risk short gate, 사용자 승인, RC/high-risk 사유,
+- 30분, UI 풀테스트, 120분은 사용자 지시 또는 명시 승인 범위에서만 실행합니다.
+  120분은 AGENTS 7.6.2 직접 조건, 사용자 승인, RC/high-risk 사유,
   memory/runtime 관찰 항목이 없으면 시작하지 않습니다.
 
 실패 후 재검수 범위:
@@ -114,6 +128,23 @@ UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다. 모든 기능�
 `테스트 필요 여부`, `테스트 영역`, `PASS 판정 기준`을 고정하는 문서입니다. 따라서
 inventory에 행이 있다는 이유만으로 해당 기능의 UI 풀테스트나 안정화 테스트가
 완료됐다고 쓰지 않습니다.
+
+### v3.9.0 Required Closeout coverage bridge
+
+이 절은 `V390-REQ-001`, `V390-REQ-002`, `V390-REQ-003`의 manual UI 문서 기준입니다.
+`v3.5-v3.8 UI coverage bridge`는 실행 evidence가 아니라, current v3.9 UI 풀테스트를
+시작하기 전에 이전 release에서 추가된 route/control/action을 빠뜨리지 않도록
+project feature inventory에 위임하는 기준입니다.
+
+| Release range | Coverage delegation | Current v3.9 시작 조건 |
+| --- | --- | --- |
+| v3.5 Live Operations Control Plane | `docs/project-feature-test-inventory.md`의 `UI-080`~`UI-087`, `CLIENT-031`~`CLIENT-032`, v3.5 `verify-v350-*` rows | `/ops` live operations graph/command/staged/drill/export/field/VLM explanation controls와 `/client/live`, `/client/dashboard`, `/client/events` client-safe notice/impact rows가 결과 문서 대상에 포함돼야 함 |
+| v3.6 Operations Simulation Workspace | `UI-088`~`UI-094`, v3.6 `verify-v360-*` rows | `/ops` simulation input/run/diff/safe-apply/export/field/default-off explanation controls가 결과 문서 대상에 포함돼야 함 |
+| v3.7 Site-Aware Operations and Safe Runbook Control Plane | `UI-095`~`UI-101`, `CLIENT-037`~`CLIENT-039`, v3.7 `verify-v370-*` rows | site/source group, runbook, approval, site-aware notice, rule/VA what-if, field evidence, limited execution pilot, outcome/export controls가 결과 문서 대상에 포함돼야 함 |
+| v3.8 Operator-Gated Action Pilot & Outcome Loop | `UI-102`~`UI-107`, `CLIENT-040`~`CLIENT-042`, v3.8 `verify-v380-*` rows | `/ops` action control workspace와 `/client/*` action notice preview, approval/readiness/receipt/default-off explanation controls가 결과 문서 대상에 포함돼야 함 |
+
+이 bridge를 만족해도 인앱 브라우저 UI 풀테스트, 30분, 120분, published metadata,
+release action이 실행된 것은 아닙니다. 각 실행 결과는 별도 evidence로만 기록합니다.
 
 v2.2.0 UI Evidence Close-out은 F02~F06 follow-up을 기능 inventory, manual UI checklist,
 result template에 연결하는 준비 기준입니다. F06는 UI 풀테스트 실행 결과가 아니라

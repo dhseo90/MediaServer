@@ -20,9 +20,11 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 source roadmap: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation
 
 상태: Foundation 단계에서 baseline, feature completion inventory/discovery, 사용자
-review gate를 먼저 정렬했습니다. Discovery 결과를 사용자에게 보고하고 승인받기
-전에는 미완성 기능 개발, 구조 안정화 리팩토링, 테스트 방식 전환 구현으로 넘어가지
-않습니다. 즉, discovery 결과 승인 전 기능 개발 금지를 v3.9.0의 현재 hard gate로 둡니다.
+review gate를 먼저 정렬했고, Required Closeout `V390-REQ-001`~`V390-REQ-003`은
+manual UI 기준서 current화, 장시간/UI 시작 조건 current화, v3.5-v3.8 UI coverage
+bridge 문서/test-source 기준으로 닫았습니다. Candidate development, 구조 안정화
+리팩토링, 테스트 방식 전환 구현은 별도 사용자 승인 전에는 진행하지 않습니다.
+Candidate/structure 영역은 여전히 discovery 결과 승인 전 기능 개발 금지 경계를 따릅니다.
 
 직접 답: v3.9.0의 1차 선택값은 `Feature Completion First with Dedicated Inventory`입니다.
 목적: v1.0.0부터 v3.8.0까지 노출/약속/부분 구현된 기능을 직접 대조하고,
@@ -78,9 +80,9 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 1 | v3.9.0 (1) v3.9.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/README/docs/backlog/source roadmap과 `verify-v390-entry-baseline` 기준 정렬 |
 | 2 | v3.9.0 (2) Feature Completion Inventory/Discovery Gate | P0 | 완료 | `docs/v390-feature-completion-inventory.md`에 required/candidate/structure/excluded 항목과 checked source group 반영 |
 | 3 | v3.9.0 (3) User Review Gate / 개발 순서 확정 | P0 | 완료 | required/candidate/structure/excluded 목록을 review-ready로 고정하고 사용자 승인 전 기능 개발 중단 |
-| 4 | v3.9.0 (4) Manual UI 기준서 v3.9 current화 | P0 | 미진행 | `V390-REQ-001` 개발 필요 |
-| 5 | v3.9.0 (5) 장시간/UI 테스트 시작 조건 v3.9화 | P0 | 미진행 | `V390-REQ-002` 개발 필요 |
-| 6 | v3.9.0 (6) v3.5-v3.8 UI coverage bridge | P0 | 미진행 | `V390-REQ-003` 개발 필요 |
+| 4 | v3.9.0 (4) Manual UI 기준서 v3.9 current화 | P0 | 완료 | `V390-REQ-001`: `docs/manual-ui-fulltest.md`, `docs/manual-ui-checklist.md`, `docs/manual-ui-result-template.md`가 v3.9 current target과 historical v2.x/v3.x 기준을 분리하고 `verify-manual-ui-evidence`가 이를 확인 |
+| 5 | v3.9.0 (5) 장시간/UI 테스트 시작 조건 v3.9화 | P0 | 완료 | `V390-REQ-002`: 긴 테스트 시작 조건을 v3.9 feature completion inventory, current project inventory, 사용자 승인/AGENTS 7.6.2 조건 기준으로 정렬 |
+| 6 | v3.9.0 (6) v3.5-v3.8 UI coverage bridge | P0 | 완료 | `V390-REQ-003`: manual UI docs가 v3.5~v3.8 UI/control/action rows를 project feature inventory로 위임하고 실행 PASS와 coverage mapping을 분리 |
 | 7 | v3.9.0 (7) UI wrapper/result schema 오판 방지 | P0 | 미진행 | `V390-CAND-007` 개발 여부 확정 필요 |
 | 8 | v3.9.0 (8) feature inventory coverage wording 오판 방지 | P0 | 미진행 | `V390-CAND-008` 개발 여부 확정 필요 |
 | 9 | v3.9.0 (9) AI-minimized server longrun runner 기준 | P0 | 미진행 | 30분/120분 script runner 설계/구현 필요 |
@@ -124,6 +126,31 @@ Foundation review-ready 상태:
 - 다음 개발 순서: `V390-REQ-001` -> `V390-REQ-002` -> `V390-REQ-003`, 이후 사용자
   승인 범위 안에서 `V390-CAND-*` 또는 `V390-STRUCT-*`로 이동합니다.
 - 다음 개발 착수는 사용자가 v3.9 required/candidate list를 승인한 뒤에만 가능합니다.
+
+## v3.9.0 Required Closeout 개발 기록
+
+이번 Required Closeout 범위는 `v3.9.0 (4)`~`v3.9.0 (6)`입니다.
+
+- Step 4 `Manual UI 기준서 v3.9 current화`: `docs/manual-ui-fulltest.md`,
+  `docs/manual-ui-checklist.md`, `docs/manual-ui-result-template.md`에 source/UI 기준을
+  `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`으로
+  고정하고, v2.x/v3.x 과거 기준은 historical coverage bridge로 분리했습니다.
+- Step 5 `장시간/UI 테스트 시작 조건 v3.9화`: `docs/manual-ui-fulltest.md`의
+  `긴 테스트 전 fail-fast 기준`, `docs/manual-ui-checklist.md`의
+  `긴 테스트 시작 조건 확인`, `docs/manual-ui-result-template.md`의
+  `네 단계 시작 조건 / 재시작 경계`를 v3.9 feature completion inventory,
+  current project inventory, 사용자 승인, AGENTS 7.6.2 조건 기준으로 정렬했습니다.
+- Step 6 `v3.5-v3.8 UI coverage bridge`: manual UI 기준 문서와 result template에
+  `v3.5-v3.8 UI coverage bridge` 표를 추가해 v3.5 `UI-080`~v3.8 `UI-107` 및
+  관련 `CLIENT-*` rows를 `docs/project-feature-test-inventory.md`로 위임했습니다.
+- `scripts/internal/verify_manual_ui_evidence.mjs`는 `V390-REQ-001`,
+  `V390-REQ-002`, `V390-REQ-003`, `v3.5-v3.8 UI coverage bridge`,
+  `## v3.9.0 Release Evidence Index`가 manual UI 문서에서 누락되면 실패하도록
+  보강했습니다.
+- 이번 범위는 문서/test-source closeout입니다. 제품 API schema, Event payload,
+  WebRTC/SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, UI runtime behavior는
+  변경하지 않았습니다. 30분, 120분, 인앱 브라우저 UI 풀테스트, published metadata,
+  PR/main/tag/GitHub Release는 이번 step에서 실행하지 않았고 PASS evidence로 쓰지 않습니다.
 
 ## 이전 source roadmap 기록: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
 

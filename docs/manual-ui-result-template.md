@@ -10,7 +10,7 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 
 ## 검수 메타데이터
 
-## v2.9.0 Release Evidence Index
+## v3.9.0 Release Evidence Index
 
 - run id:
 - 검수자:
@@ -65,7 +65,9 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 
 | 항목 | 기대 상태 | 실제 상태 | 판정 | 후속 |
 | --- | --- | --- | --- | --- |
-| 기능 목록 freeze | `v2.9.0 Final 2.x Closure & Compatibility Baseline`과 기능 ID 목록 확인 |  | PASS/FAIL |  |
+| 기능 목록 freeze | `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`, `docs/v390-feature-completion-inventory.md`, 기능 ID 목록 확인 |  | PASS/FAIL |  |
+| v3.9 required closeout | `V390-REQ-001`, `V390-REQ-002`, `V390-REQ-003`가 manual UI 기준서/current 시작 조건/coverage bridge로 반영되고 `verify-manual-ui-evidence`가 통과 |  | PASS/FAIL |  |
+| v3.5-v3.8 coverage bridge | v3.5~v3.8 UI/control/action 대상이 `project-feature-test-inventory.md` delegation으로 연결됨 |  | PASS/FAIL |  |
 | VLM UI 대상 | `/ops/vlm`, `/ops/events`, `/client/live`, `/client/dashboard`, `/client/events` 결과 행 존재 |  | PASS/FAIL |  |
 | auth verifier env | auth test password env 5개 모두 `SET` |  | PASS/FAIL |  |
 | throwaway fixture | users/source/view/analysis/event/snapshot/clip 경로 고정 |  | PASS/FAIL |  |
@@ -83,6 +85,25 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 - 부분 재검수 가능 범위:
 - retained artifact로 재판정 가능한 항목:
 - retained artifact가 부족해 미확인으로 남길 항목:
+
+## v3.9.0 Required Closeout 기록 기준
+
+이 표는 이번 source-only Required Closeout의 문서/test-source evidence를 기록하는
+자리입니다. 아래 항목은 실제 인앱 브라우저 UI 풀테스트, 30분, 120분, published
+metadata, release action PASS를 뜻하지 않습니다.
+
+| Closeout ID | 준비 기준 | 확인 evidence | 판정 |
+| --- | --- | --- | --- |
+| V390-REQ-001 | `manual-ui-fulltest.md`, `manual-ui-checklist.md`, 이 템플릿이 `v3.9.0` current release target과 historical v2.x/v3.x material을 분리 | `./server.sh verify-manual-ui-evidence`, `./server.sh verify-docs-links` | PASS/FAIL |
+| V390-REQ-002 | 긴 테스트 시작 조건이 v3.9 feature completion inventory, current project inventory, 사용자 승인/AGENTS 7.6.2 조건을 기준으로 함 | 시작 조건 표, `docs/release-test-records.md` 미실행/제외 기록 | PASS/FAIL |
+| V390-REQ-003 | `v3.5-v3.8 UI coverage bridge`가 project feature inventory의 UI/control/action rows로 위임됨 | `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-project-inventory` | PASS/FAIL |
+
+| Release range | Delegated UI/control/action rows | 결과 기록 방식 |
+| --- | --- | --- |
+| v3.5 | `UI-080`~`UI-087`, `CLIENT-031`~`CLIENT-032`, v3.5 `verify-v350-*` rows | 직접 조작한 route/control/action만 아래 UI 풀테스트 기록에 PASS/FAIL로 적음 |
+| v3.6 | `UI-088`~`UI-094`, v3.6 `verify-v360-*` rows | 직접 조작한 route/control/action만 아래 UI 풀테스트 기록에 PASS/FAIL로 적음 |
+| v3.7 | `UI-095`~`UI-101`, `CLIENT-037`~`CLIENT-039`, v3.7 `verify-v370-*` rows | 직접 조작한 route/control/action만 아래 UI 풀테스트 기록에 PASS/FAIL로 적음 |
+| v3.8 | `UI-102`~`UI-107`, `CLIENT-040`~`CLIENT-042`, v3.8 `verify-v380-*` rows | 직접 조작한 route/control/action만 아래 UI 풀테스트 기록에 PASS/FAIL로 적음 |
 
 ## v2.2.0 UI Evidence Close-out 기록 기준
 
@@ -104,10 +125,12 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 - 인앱 브라우저 UI 풀테스트: 판정은 PASS 또는 FAIL, 실행하지 않았으면 미실행 사유
 - 실기기/외부 credential 조건: 별도 테스트 영역으로 쓰지 않고 안정화/UI 제외 기록에 사유
 
-## v2.7.0 Release Evidence Index
+## v2.7.0 Historical Release Evidence Index
 
-이 섹션은 현재 release UI gate에서 직접 조작 evidence를 route/control/action 단위로
-남기는 자리입니다. 자동 smoke나 raw JSON 확인만으로 채우지 않습니다.
+이 섹션은 historical release UI gate에서 직접 조작 evidence를 route/control/action
+단위로 남기는 자리입니다. 현재 v3.9.0 gate는 위의 `v3.9.0 Release Evidence Index`와
+`v3.9.0 Required Closeout 기록 기준`을 사용합니다. 자동 smoke나 raw JSON 확인만으로
+채우지 않습니다.
 카테고리 묶음 판정은 금지합니다.
 
 | route | 직접 조작 | 반영 상태/로그 확인 | 판정 | 증적 |
