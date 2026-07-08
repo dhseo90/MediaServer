@@ -107,6 +107,64 @@ check("pass fixture writes complete summary and report without claiming real lon
   assertIncludes(report, "fixture-only-not-real-duration", "pass fixture report");
 });
 
+check("predev summary fixture preserves delegated first failure step", () => {
+  const fixtureSummaryPath = path.join(
+    "/tmp",
+    `media_server_v390_longrun_predev_summary_${process.pid}.json`,
+  );
+  writeJson(fixtureSummaryPath, {
+    kind: "predev",
+    status: "fail",
+    pass: 2,
+    fail: 1,
+    skip: 0,
+    durationSec: 12,
+    steps: [
+      {
+        name: "server-start-queue-256",
+        result: "pass",
+        command: "run_server_foreground",
+        logFile: "/tmp/predev/server.log",
+        durationSec: 0,
+      },
+      {
+        name: "integrated-smoke",
+        result: "fail",
+        command: "./server.sh test --no-start --include-va-events",
+        logFile: "/tmp/predev/integrated_smoke.log",
+        durationSec: 11,
+      },
+      {
+        name: "soak-1-va-events",
+        result: "pass",
+        command: "./server.sh verify-va-events --duration 30",
+        logFile: "/tmp/predev/soak_1_va_events.log",
+        durationSec: 1,
+      },
+    ],
+  });
+  const run = runFixture("predev-summary-fail", [
+    "--fixture-fail-phase",
+    "soak-case-loop",
+    "--fixture-predev-summary",
+    fixtureSummaryPath,
+  ]);
+  assert(run.status === "failed-as-expected", `predev summary fixture should exit non-zero, got ${run.status}`);
+  const summary = readJson(run.summaryPath);
+  assert(summary.result === "FAIL", "predev summary fixture result must be FAIL");
+  assert(summary.failedPhase === "soak-case-loop", "top-level failedPhase must remain soak-case-loop");
+  assert(summary.failedCase === "integrated-smoke", "failedCase must preserve delegated first failed predev step");
+  assert(summary.delegatedFailure?.name === "integrated-smoke", "delegatedFailure must include failed predev step name");
+  assert(summary.delegatedFailure?.logFile === "/tmp/predev/integrated_smoke.log", "delegatedFailure must preserve predev log path");
+  const phase = summary.phases.find(item => item.id === "soak-case-loop");
+  assert(phase?.summaryPath === fixtureSummaryPath, "soak-case-loop phase must point at delegated predev summary");
+  assert(phase?.tail?.some(line => line.includes("delegated predev first failure: integrated-smoke")),
+    "phase tail must name delegated first failure");
+  const report = readTextAbsolute(run.reportPath);
+  assertIncludes(report, "failedCase: integrated-smoke", "predev summary fixture report");
+  assertIncludes(report, "delegatedFailure: integrated-smoke", "predev summary fixture report");
+});
+
 check("runner rejects unsupported longrun durations", () => {
   const run = runFixture("bad-duration", ["--duration-minutes", "1", "--fixture-pass"]);
   assert(run.status === "failed-as-expected", `bad duration fixture should exit non-zero, got ${run.status}`);
@@ -250,6 +308,10 @@ function readTextAbsolute(filePath) {
 
 function readJson(filePath) {
   return JSON.parse(readTextAbsolute(filePath));
+}
+
+function writeJson(filePath, payload) {
+  fs.writeFileSync(filePath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
 }
 
 function assertIncludes(text, snippet, label) {

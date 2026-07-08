@@ -78,7 +78,7 @@ v3.9.0 Test Model Prep의 서버 longrun runner는 30분/120분을 새 테스트
 | one command | 하나의 명령이 suite를 시작하고 command line을 summary/report에 남깁니다. |
 | fixed phase order | build/preflight/seed/start/integrated smoke/soak iteration/cleanup/report 같은 phase 순서가 고정됩니다. |
 | stop-on-first-fail | 첫 실패에서 suite를 중단하고 이후 phase는 `not-run`으로 남깁니다. |
-| failure evidence | command, exit code, phase, port, route, log path, summary path, report path, cleanup state, likely investigation files를 포함합니다. |
+| failure evidence | command, exit code, phase, port, route, log path, summary path, report path, cleanup state, delegated predev first failed step, likely investigation files를 포함합니다. |
 | reproducible inputs | 같은 command와 fixture로 재현할 수 있어야 합니다. |
 | artifact policy | 임시 artifact는 cleanup하거나 보존 이유를 명시합니다. `/tmp` 경로를 최종 evidence로 쓰지 않습니다. |
 | category boundary | wrapper, preflight, dry-run, field smoke, no-device는 다섯 번째 테스트 영역이 아니며 안정화/30분/120분/UI 중 해당 위치에만 기록합니다. |
@@ -90,9 +90,10 @@ v3.9.0 R1 implementation command:
 - `./server.sh verify-v390-server-longrun-runner-contract`
 
 R1 summary schema is `media-server.v390-server-longrun.v1`. The contract verifier checks
-`stop-on-first-fail`, later phase `not-run`, cleanup fields, and `fixture-only-not-real-duration`
-fixture output. Fixture output is implementation/contract evidence only and is not real
-30-minute or 120-minute duration evidence.
+`stop-on-first-fail`, later phase `not-run`, cleanup fields, delegated predev first-failure
+preservation via `failedCase`/`delegatedFailure`, and `fixture-only-not-real-duration` fixture
+output. Fixture output is implementation/contract evidence only and is not real 30-minute or
+120-minute duration evidence.
 
 Console progress output:
 

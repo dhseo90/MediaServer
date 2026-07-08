@@ -24,6 +24,8 @@ Options:
   --output-dir <path>          Directory for summary.json, report.md, and phase logs.
   --fixture-pass               Fast contract fixture: mark all phases PASS without real duration execution.
   --fixture-fail-phase <id>    Fast contract fixture: fail at one phase and mark later phases not-run.
+  --fixture-predev-summary <path>
+                               Fast contract fixture: attach a predev summary to a failed phase.
   -h, --help                   Show help.
 
 Notes:
@@ -37,6 +39,7 @@ assertKnownOptions(rawArgs, [
   "output-dir",
   "fixture-pass",
   "fixture-fail-phase",
+  "fixture-predev-summary",
   "h",
   "help",
 ]);
@@ -63,6 +66,7 @@ const phases = [];
 let failedPhase = "";
 let failedCase = "";
 let exitCode = 0;
+let delegatedFailure = null;
 
 fs.mkdirSync(outputDir, { recursive: true });
 
@@ -93,6 +97,7 @@ const summary = {
   summaryPath,
   reportPath,
   cleanup,
+  delegatedFailure,
   realDurationEvidence: !fixtureMode && result === "PASS",
   longrunEvidenceStatus: longrunEvidenceStatus(fixtureMode, result),
   phases,
@@ -152,6 +157,7 @@ function parseArgs(args) {
     outputDir: "",
     fixturePass: false,
     fixtureFailPhase: "",
+    fixturePredevSummary: "",
   };
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
@@ -166,6 +172,9 @@ function parseArgs(args) {
     } else if (arg === "--fixture-fail-phase") {
       parsed.fixtureFailPhase = args[index + 1] || "";
       index += 1;
+    } else if (arg === "--fixture-predev-summary") {
+      parsed.fixturePredevSummary = args[index + 1] || "";
+      index += 1;
     }
   }
   assert(parsed.durationMinutes !== null, "--duration-minutes is required");
@@ -174,6 +183,9 @@ function parseArgs(args) {
   if (parsed.fixtureFailPhase) {
     assert(phaseIds.includes(parsed.fixtureFailPhase), `unknown fixture fail phase: ${parsed.fixtureFailPhase}`);
     assert(!["cleanup", "report"].includes(parsed.fixtureFailPhase), "fixture failure phase must be before cleanup/report");
+  }
+  if (parsed.fixturePredevSummary) {
+    assert(parsed.fixtureFailPhase, "--fixture-predev-summary requires --fixture-fail-phase");
   }
   return parsed;
 }
@@ -186,17 +198,24 @@ function phaseStatusFor(phaseId) {
 
 function runFixturePhase(phaseId) {
   if (options.fixtureFailPhase === phaseId) {
+    const delegated = readDelegatedFailure(options.fixturePredevSummary);
+    if (delegated) delegatedFailure = delegated;
     failedPhase = phaseId;
-    failedCase = `fixture-${phaseId}`;
+    failedCase = delegated?.name || `fixture-${phaseId}`;
     exitCode = 1;
+    const tail = [`fixture failure at ${phaseId}`];
+    if (delegated) {
+      tail.push(`delegated predev first failure: ${delegated.name}`);
+      tail.push(`delegated predev log: ${delegated.logFile}`);
+    }
     phases.push(makePhase({
       id: phaseId,
       status: "FAIL",
       command: `fixture fail ${phaseId}`,
       exitCode: 1,
       logPath: writePhaseLog(phaseId, [`fixture failure at ${phaseId}`]),
-      summaryPath: "",
-      tail: [`fixture failure at ${phaseId}`],
+      summaryPath: options.fixturePredevSummary,
+      tail,
     }));
     return;
   }
@@ -234,6 +253,7 @@ async function runRealPhase(phaseId) {
       "verify-predev runs integrated-smoke after starting the isolated test server",
     ]));
   } else if (phaseId === "soak-case-loop") {
+    const predevSummaryPath = path.join(outputDir, "predev-summary.json");
     await runCommandPhase(phaseId, [
       "./server.sh",
       "verify-predev",
@@ -241,12 +261,12 @@ async function runRealPhase(phaseId) {
       String(options.durationMinutes),
       "--skip-build",
       "--summary-file",
-      path.join(outputDir, "predev-summary.json"),
+      predevSummaryPath,
       "--report-file",
       path.join(outputDir, "predev-report.md"),
       "--report-html-file",
       path.join(outputDir, "predev-report.html"),
-    ]);
+    ], predevSummaryPath);
   } else if (phaseId === "runtime-idle") {
     phases.push(passPhase(phaseId, "runtime idle delegated to verify-predev cleanup checks", ["runtime idle state recorded by predev summary"]));
   } else if (phaseId === "cleanup") {
@@ -256,7 +276,7 @@ async function runRealPhase(phaseId) {
   }
 }
 
-function runCommandPhase(phaseId, commandParts) {
+function runCommandPhase(phaseId, commandParts, phaseSummaryPath = "") {
   const logPath = path.join(outputDir, `${phaseId}.log`);
   return new Promise((resolve) => {
     const chunks = [];
@@ -283,20 +303,21 @@ function runCommandPhase(phaseId, commandParts) {
       const message = `${error instanceof Error ? error.message : String(error)}\n`;
       chunks.push(message);
       logStream.write(message);
-      finishCommandPhase(phaseId, commandParts, logPath, chunks.join(""), 1);
+      finishCommandPhase(phaseId, commandParts, logPath, chunks.join(""), 1, phaseSummaryPath);
       logStream.end(resolve);
     });
     child.on("close", (code) => {
       if (settled) return;
       settled = true;
       const phaseExitCode = Number.isInteger(code) ? code : 1;
-      finishCommandPhase(phaseId, commandParts, logPath, chunks.join(""), phaseExitCode);
+      finishCommandPhase(phaseId, commandParts, logPath, chunks.join(""), phaseExitCode, phaseSummaryPath);
       logStream.end(resolve);
     });
   });
 }
 
-function finishCommandPhase(phaseId, commandParts, logPath, output, phaseExitCode) {
+function finishCommandPhase(phaseId, commandParts, logPath, output, phaseExitCode, phaseSummaryPath = "") {
+  const delegated = readDelegatedFailure(phaseSummaryPath);
   if (phaseExitCode === 0) {
     phases.push(makePhase({
       id: phaseId,
@@ -304,22 +325,28 @@ function finishCommandPhase(phaseId, commandParts, logPath, output, phaseExitCod
       command: commandParts.join(" "),
       exitCode: 0,
       logPath,
-      summaryPath: "",
+      summaryPath: phaseSummaryPath,
       tail: tailLines(output),
     }));
     return;
   }
+  if (delegated) delegatedFailure = delegated;
   failedPhase = phaseId;
-  failedCase = phaseId;
+  failedCase = delegated?.name || phaseId;
   exitCode = phaseExitCode;
+  const tail = tailLines(output);
+  if (delegated) {
+    tail.push(`delegated predev first failure: ${delegated.name}`);
+    tail.push(`delegated predev log: ${delegated.logFile}`);
+  }
   phases.push(makePhase({
     id: phaseId,
     status: "FAIL",
     command: commandParts.join(" "),
     exitCode,
     logPath,
-    summaryPath: "",
-    tail: tailLines(output),
+    summaryPath: phaseSummaryPath,
+    tail,
   }));
 }
 
@@ -363,6 +390,7 @@ function writeReport(filePath, payload) {
     `stopOnFirstFail: ${payload.stopOnFirstFail}`,
     `failedPhase: ${payload.failedPhase}`,
     `failedCase: ${payload.failedCase}`,
+    `delegatedFailure: ${payload.delegatedFailure?.name || ""}`,
     `realDurationEvidence: ${payload.realDurationEvidence}`,
     `longrunEvidenceStatus: ${payload.longrunEvidenceStatus}`,
     "",
@@ -400,6 +428,26 @@ function longrunEvidenceStatus(isFixture, runResult) {
   if (isFixture) return "fixture-only-not-real-duration";
   if (runResult === "PASS") return "real-duration-evidence";
   return "real-duration-failed-no-pass-evidence";
+}
+
+function readDelegatedFailure(summaryFilePath) {
+  if (!summaryFilePath || !fs.existsSync(summaryFilePath)) return null;
+  try {
+    const summary = JSON.parse(fs.readFileSync(summaryFilePath, "utf8"));
+    const failedStep = Array.isArray(summary.steps)
+      ? summary.steps.find(step => step?.result === "fail")
+      : null;
+    if (!failedStep?.name) return null;
+    return {
+      name: String(failedStep.name),
+      command: String(failedStep.command || ""),
+      logFile: String(failedStep.logFile || ""),
+      durationSec: Number(failedStep.durationSec || 0),
+      summaryPath: path.resolve(rootDir, summaryFilePath),
+    };
+  } catch {
+    return null;
+  }
 }
 
 function assert(condition, message) {
