@@ -108,6 +108,35 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         { collapseEmpty: false }
       );
     }
+    function renderOnvifCredentialProviderStatus(payload = null) {
+      const readiness = payload?.providerReadiness || {};
+      const decision = payload?.decision || {};
+      const redaction = payload?.redactionSummary || {};
+      const primarySelection = String(decision.primarySelection || readiness.primaryProvider || 'none');
+      const fallbackSelection = String(decision.fallbackSelection || readiness.fallbackProvider || 'in-memory-fixture');
+      const status = String(payload?.status || 'sanitizedCredentialProviderStatusSummary');
+      const referenceValueExposed = redaction.referenceValueExposed === true || redaction.credentialReferenceValueIncluded === true;
+      const credentialMaterialExposed = redaction.credentialMaterialExposed === true;
+      setFeedback(
+        onvifCredentialGateStatus,
+        `providerReadiness: ${status} / primarySelection=${primarySelection} / fallback=${fallbackSelection} / persistent store deferred / referenceValueExposed=${referenceValueExposed ? 'true' : 'false'} / credentialMaterialExposed=${credentialMaterialExposed ? 'true' : 'false'}`,
+        referenceValueExposed || credentialMaterialExposed,
+        { collapseEmpty: false }
+      );
+    }
+    async function loadOnvifCredentialProviderStatus() {
+      try {
+        const payload = await requestJson('/ops/api/onvif/credential-provider-status');
+        renderOnvifCredentialProviderStatus(payload);
+      } catch (error) {
+        setFeedback(
+          onvifCredentialGateStatus,
+          `providerReadiness 불러오기 실패: ${error.message}`,
+          true,
+          { collapseEmpty: false }
+        );
+      }
+    }
     const opsPrincipalScopes = () => Array.isArray(opsPrincipal?.scopes) ? opsPrincipal.scopes.map(item => String(item || '')) : [];
     const opsPrincipalHasScope = scope => opsPrincipal?.role === 'admin' || opsPrincipalScopes().includes('*') || opsPrincipalScopes().includes(scope);
     const canWriteSources = () => opsPrincipalHasScope('source:write');
@@ -1337,10 +1366,14 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       renderOnvifCredentialGate();
       setOnvifProbeDraftStatus('');
     });
-    document.querySelector('#refresh').addEventListener('click', () => loadAll().catch(error => setStatus(error.message, true)));
+    document.querySelector('#refresh').addEventListener('click', () => {
+      loadOnvifCredentialProviderStatus();
+      loadAll().catch(error => setStatus(error.message, true));
+    });
     document.querySelector('#channel-audit-refresh')?.addEventListener('click', () => renderOpsAuditTrail('channel-audit-list', 'channels'));
     renderOpsAuditTrail('channel-audit-list', 'channels');
     renderOnvifCredentialGate();
+    loadOnvifCredentialProviderStatus();
     loadAll().catch(error => setStatus(error.message, true));
   </script>
 )OPSSOURCES";

@@ -87,7 +87,8 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 8 | v3.9.0 (8) feature inventory coverage wording 오판 방지 | P0 | 완료 | `V390-CAND-008`: feature coverage report를 `coverageStatus: covered/missing`, `executionEvidenceStatus: not-execution-evidence` 중심으로 바꾸고 mapping coverage와 실행 PASS를 분리 |
 | 9 | v3.9.0 (9) AI-minimized server longrun runner 기준 | P0 | 완료 | 30분/120분 script runner의 one command, fixed phase order, stop-on-first-fail, later phase `not-run`, failure evidence, cleanup/artifact policy 기준을 `stream-verification.md`와 verifier로 고정 |
 | 10 | v3.9.0 (10) AI-minimized UI automation adapter 기준 | P0 | 완료 | Playwright 우선, Selenium fallback, SikuliX visual fallback과 route/viewport/theme/account-role/action/expected-actual/screenshot/trace-console/log/cleanup/manual-intervention failure report 기준을 `manual-ui-fulltest.md`와 verifier로 고정 |
-| 11-18 | v3.9.0 (11)~(18) Product/Field/AI completion decisions | P1/P2 | 미진행 | 인벤토리 `V390-CAND-001`~`V390-CAND-006`, `V390-CAND-009`, `V390-CAND-010` 순서대로 검토/개발 |
+| 11 | v3.9.0 (11) ONVIF credential/provider status summary | P1 | 완료 | `V390-CAND-001`: `/ops/api/onvif/credential-provider-status`와 `/ops/sources` ONVIF provider summary가 primary provider `none`, fallback `in-memory-fixture`, persistent/external secret store defer 결정을 secret/reference value 비노출 상태로 표시 |
+| 12-18 | v3.9.0 (12)~(18) Product/Field/AI completion decisions | P1/P2 | 미진행 | 인벤토리 `V390-CAND-002`~`V390-CAND-006`, `V390-CAND-009`, `V390-CAND-010` 순서대로 검토/개발 |
 | 19 | v3.9.0 (19) structure stabilization handoff 상세계획 | P0 | 미진행 | 인벤토리 `V390-STRUCT-001`~`V390-STRUCT-005`를 안정화 계획으로 이관 |
 | 20 | v3.9.0 (20) stabilization and release readiness | P0 | 미진행 | AGENTS 네 테스트 영역 판정과 release close-out evidence 필요 |
 
@@ -177,6 +178,19 @@ Foundation review-ready 상태:
   WebRTC/SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, UI runtime behavior는
   변경하지 않았습니다. 30분, 120분, 인앱 브라우저 UI 풀테스트, published metadata,
   PR/main/tag/GitHub Release는 이번 step에서 실행하지 않았고 PASS evidence로 쓰지 않습니다.
+
+## v3.9.0 Product Completion 개발 기록
+
+이번 Product Completion 범위는 `v3.9.0 (11)`~`v3.9.0 (16)`입니다.
+
+- Step 11 `ONVIF credential/provider status summary`:
+  - 1차 선택값: 제품 persistent credential provider는 `none`으로 둡니다.
+  - fallback: no-device/test fixture 확인용 `in-memory-fixture`만 fallback으로 표시합니다.
+  - 제외/defer: `local-encrypted`, `external-secret-manager`, plaintext API field는 v3.9 Step 11 범위에서 제외하고 별도 security/field roadmap 승인 전까지 defer합니다.
+  - `src/ingress/webrtc_http_server.cpp`에 `OpsV390OnvifCredentialProviderStatusSummaryJson`과 GET `/ops/api/onvif/credential-provider-status` route를 추가했습니다. 이 route는 `require_ops_principal()`, `Cache-Control: no-store`, `media-server.ops.v390-onvif-credential-provider-status.v1` schema, `providerReadiness`, `redactionSummary`, `boundaries`를 반환하며 credential lookup/source-view write/client exposure/schema/media 변경을 수행하지 않습니다.
+  - `src/ingress/product_ui_ops_sources_script.cpp`에 `loadOnvifCredentialProviderStatus`와 `renderOnvifCredentialProviderStatus`를 추가해 `/ops/sources` ONVIF 도구 영역이 `primarySelection=none`, fallback `in-memory-fixture`, `persistent store deferred`, `referenceValueExposed=false`, `credentialMaterialExposed=false` 상태를 표시합니다.
+  - `scripts/internal/verify_v390_onvif_credential_provider_status.mjs`와 `./server.sh verify-v390-onvif-credential-provider-status`를 추가해 route/UI/docs/inventory/release records 연결과 secret/reference value 비노출 경계를 검증합니다.
+  - 이 step은 provider readiness/status summary 완성입니다. ONVIF 실기기 credential 성공, persistent secret store, external secret manager, source/view persist decision, UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence가 아닙니다.
 
 ## 이전 source roadmap 기록: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
 

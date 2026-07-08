@@ -11349,6 +11349,71 @@ std::string OpsV380ActionRouteBoundaryJson() {
     return out.str();
 }
 
+std::string OpsV390OnvifCredentialProviderStatusSummaryJson() {
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v390-onvif-credential-provider-status.v1\","
+        << "\"status\":\"sanitizedCredentialProviderStatusSummary\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"route\":\"/ops/api/onvif/credential-provider-status\","
+        << "\"requiredScope\":\"ops:read\","
+        << "\"decision\":{"
+        << "\"featureId\":\"V390-CAND-001\","
+        << "\"primarySelection\":\"none\","
+        << "\"primaryDecision\":\"defer-product-persistent-store\","
+        << "\"fallbackSelection\":\"in-memory-fixture\","
+        << "\"fallbackUse\":\"test-fixture-and-loopback-only\","
+        << "\"credentialReferencePolicy\":\"reference-status-only\","
+        << "\"operatorAnswer\":\"use sanitized provider readiness only; do not expose credential reference values or secret material\""
+        << "},\"providerReadiness\":{"
+        << "\"primaryProvider\":\"none\","
+        << "\"primaryProviderReady\":false,"
+        << "\"fallbackProvider\":\"in-memory-fixture\","
+        << "\"fallbackProviderReady\":true,"
+        << "\"productPersistentSecretStoreEnabled\":false,"
+        << "\"externalSecretManagerEnabled\":false,"
+        << "\"statusSummaryOnly\":true"
+        << "},\"excludedProviders\":";
+    AppendJsonStringArray(out, {"local-encrypted", "external-secret-manager", "plaintext-api-field"});
+    out << ",\"excludedReasons\":{"
+        << "\"localEncrypted\":\"requires separate security roadmap and encrypted storage design\","
+        << "\"externalSecretManager\":\"requires external provider credential approval and field smoke\","
+        << "\"plaintextApiField\":\"credential material must not be accepted or exposed by product API/UI\""
+        << "},\"fallbacks\":";
+    AppendJsonStringArray(out, {"in-memory-fixture", "credential-reference-absent"});
+    out << ",\"redactionSummary\":{"
+        << "\"credentialLookupPerformed\":false,"
+        << "\"credentialReferenceValueIncluded\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"secretMaterialStored\":false,"
+        << "\"referenceValueExposed\":false,"
+        << "\"sourceRegistrySecretFields\":false,"
+        << "\"publishedViewSecretFields\":false,"
+        << "\"clientViewerExposureAdded\":false"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"statusSummaryOnly\":true,"
+        << "\"credentialLookupPerformed\":false,"
+        << "\"credentialReferenceValueIncluded\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"secretMaterialStored\":false,"
+        << "\"productPersistentSecretStoreEnabled\":false,"
+        << "\"externalSecretManagerEnabled\":false,"
+        << "\"sourceRegistrySecretFields\":false,"
+        << "\"publishedViewSecretFields\":false,"
+        << "\"clientViewerExposureAdded\":false,"
+        << "\"authRoleScopeChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 struct OpsV380ActionCapabilityContractItem {
     std::string action_kind;
     std::string action_label;
@@ -39609,6 +39674,20 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             HttpResponse ok = RegistryHttpResponse(BuildOnvifLiveImportDraft(request.body));
                             ok.headers["Cache-Control"] = "no-store";
                             return ok;
+                        }
+
+                        if (request.path == "/ops/api/onvif/credential-provider-status") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV390OnvifCredentialProviderStatusSummaryJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
                         }
 
                         if (request.path.rfind("/ops/api/sources/", 0) == 0) {
