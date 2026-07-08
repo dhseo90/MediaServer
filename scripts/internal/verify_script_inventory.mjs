@@ -495,6 +495,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_v390_entry_baseline.mjs",
     "verify_v390_feature_completion_inventory.mjs",
     "verify_v390_user_review_gate.mjs",
+    "verify_v390_evidence_test_gate_prep.mjs",
     "verify_v370_entry_baseline.mjs",
     "verify_v370_site_source_group_contract.mjs",
     "verify_v370_site_aware_source_registry_projection.mjs",

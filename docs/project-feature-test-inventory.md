@@ -26,12 +26,12 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 928 |
+| 전체 기능 항목 | 936 |
 | UI 직접 필요 | 391 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 506 |
-| 테스트 필요 | 928 |
-| 안정화 대상 | 918 |
+| UI 비대상 | 514 |
+| 테스트 필요 | 936 |
+| 안정화 대상 | 926 |
 | UI 풀테스트 대상 | 411 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
@@ -50,7 +50,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | 120분 테스트 매핑 | memory leak/runtime drift 조건부 대상 분리 | 기준표 작성 완료 |
 | VA seed 데이터 | `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`로 numeric ID/API payload 기준 full UI seed matrix를 고정 | 준비 기준일 뿐 실행 증거 아님 |
 | UI 풀테스트 결과 | 기능 ID별 result template 기록란은 별도 문서가 관리 | 결과 문서 없이 inventory만으로 UI PASS 판정 불가 |
-| Coverage gate | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-inventory-coverage.v1` report로 기능 ID별 연결을 점검 | `missing coverage target` 누락 ID는 release gate에서 FAIL |
+| Coverage gate | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-inventory-coverage.v1` report로 기능 ID별 연결을 점검 | `coverageStatus: covered/missing`, `executionEvidenceStatus: not-execution-evidence`, `missing coverage target` 누락 ID는 release gate에서 FAIL. covered는 mapping coverage이며 실행 PASS가 아님 |
 | VLM current expansion | VLM route, control, action, runtime state, sidecar, privacy guard, feature-only retention과 v3.9 source baseline/feature completion inventory active roadmap, v3.8 operator-gated action pilot latest published baseline, v3.7 site-aware operations previous published baseline, v3.6 simulation input/run/dry-run/impact diff/safe apply readiness/field evidence adapter/default-off simulation explanation historical baseline, v3.5 live operations historical baseline을 현재 기능 ID에 연결 | 실행 증거 아님 |
 
 ## v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation Coverage Mapping
@@ -65,6 +65,10 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | v3.9.0 (1) v3.9.0 baseline 정렬 | `OPS-163`, `SAFE-196` | `verify-v390-entry-baseline`, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory` | source `3.9.0`, latest published `v3.8.0`, current roadmap `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation` 정렬 기준. v3.9 feature discovery/dev, UI 풀테스트, 30분/120분, published metadata, PR/main/tag/GitHub Release evidence와는 별도 gate입니다 |
 | v3.9.0 (2) Feature Completion Inventory/Discovery Gate | `OPS-164`, `SAFE-197` | `verify-v390-feature-completion-inventory`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory` | v3.9 feature completion inventory scaffold, discovery source groups, disposition/test-area vocabulary, user review gate 경계 기준. 실제 feature discovery 완료, 기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트, 30분/120분, published metadata, PR/main/tag/GitHub Release evidence와는 별도 gate입니다 |
 | v3.9.0 (3) User Review Gate / 개발 순서 확정 | `OPS-165`, `SAFE-198` | `verify-v390-user-review-gate`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory` | review-ready required/candidate/structure/excluded list와 `blocked-before-user-approval` 경계 기준. 사용자 승인, 기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트, 30분/120분, published metadata, PR/main/tag/GitHub Release evidence와는 별도 gate입니다 |
+| v3.9.0 (7) UI wrapper/result schema 오판 방지 | `OPS-166`, `SAFE-199` | `verify-v390-evidence-test-gate-prep`, `verify-ui-fulltest-one-shot`, `verify-feature-inventory-coverage`, `verify-script-inventory` | UI wrapper `wrapperResult`, `resultScope`, `uiFulltestEvidenceStatus`, `manualResultStatus`, `longrunStatus` schema와 문서 경계를 확인합니다. wrapper PASS를 UI 풀테스트 직접 조작, 30분/120분, manual result, published metadata evidence로 승격하지 않습니다 |
+| v3.9.0 (8) feature inventory coverage wording 오판 방지 | `OPS-167`, `SAFE-200` | `verify-v390-evidence-test-gate-prep`, `verify-feature-inventory-coverage`, `verify-project-inventory`, `verify-script-inventory` | feature inventory coverage report가 `coverageStatus: covered/missing`와 `executionEvidenceStatus: not-execution-evidence`를 사용해 mapping coverage와 실행 PASS를 분리합니다 |
+| v3.9.0 (9) AI-minimized server longrun runner 기준 | `OPS-168`, `SAFE-201` | `verify-v390-evidence-test-gate-prep`, `verify-runtime-media-longrun-trigger-matrix`, `verify-longrun-separation`, `verify-rc-release-gate` | 30분/120분 runner의 one command, fixed phase order, stop-on-first-fail, later phase `not-run`, failure evidence, cleanup/artifact policy 기준을 문서/test-source로 고정합니다. 실제 30분/120분 longrun 실행 evidence가 아닙니다 |
+| v3.9.0 (10) AI-minimized UI automation adapter 기준 | `OPS-169`, `SAFE-202` | `verify-v390-evidence-test-gate-prep`, `verify-ui-fulltest-one-shot`, `verify-manual-ui-evidence`, `verify-script-inventory` | 무료 UI automation adapter 후보와 failure report 필드 기준을 문서/test-source로 고정합니다. Playwright/Selenium/SikuliX 후보 검토 기준이며 실제 UI 풀테스트 직접 조작 PASS가 아닙니다 |
 
 ## v3.8.0 Operator-Gated Action Pilot & Outcome Loop Coverage Mapping
 
@@ -381,8 +385,8 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | `CLIENT-001`~`CLIENT-042` | client/UI/v350/v360/v370/v380 verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-026` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
 | `LAB-001`~`LAB-122` | lab/VLM/v250/v260/v270/v280/v300/v310/v340/v350/v360/v370/v380 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-198` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-165` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
+| `SAFE-001`~`SAFE-202` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-169` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
 
 ## VA Manual UI Seed Matrix
 
@@ -1267,6 +1271,10 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-196 | V390 Step 0 source baseline no-overclaim boundary | 비대상 | 필요 | 안정화 | `verify-v390-entry-baseline`과 `verify-release-metadata`가 source `3.9.0`, latest published `v3.8.0`, current roadmap `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`, stream verification, release records/evidence, project inventory, script inventory 연결을 확인하되 feature discovery/dev, UI 풀테스트, 30분/120분, published metadata, release action PASS로 대체하지 않음 |
 | SAFE-197 | V390 Step 1 feature completion inventory review boundary | 비대상 | 필요 | 안정화 | `verify-v390-feature-completion-inventory`가 feature completion inventory scaffold, discovery source groups, disposition vocabulary, user review gate, project inventory/release records/evidence 연결을 확인하되 실제 discovery 완료, 기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트, 30분/120분, published metadata, release action PASS로 대체하지 않음 |
 | SAFE-198 | V390 Step 3 user review approval boundary | 비대상 | 필요 | 안정화 | `verify-v390-user-review-gate`가 review-ready required/candidate/structure/excluded list와 `blocked-before-user-approval` 경계를 확인하되 사용자 승인, 기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트, 30분/120분, published metadata, release action PASS로 대체하지 않음 |
+| SAFE-199 | V390 Step 7 UI wrapper result schema truthfulness boundary | 비대상 | 필요 | 안정화 | `verify-v390-evidence-test-gate-prep`가 `verify-ui-fulltest-one-shot` summary의 `wrapperResult`, `resultScope`, `uiFulltestEvidenceStatus`, `manualResultStatus`, `longrunStatus`, `evidenceBoundary`를 확인하되 wrapper PASS를 UI 풀테스트 직접 조작, 30분/120분, manual result, published metadata PASS로 대체하지 않음 |
+| SAFE-200 | V390 Step 8 feature coverage wording truthfulness boundary | 비대상 | 필요 | 안정화 | `verify-v390-evidence-test-gate-prep`와 `verify-feature-inventory-coverage`가 per-feature report를 `coverageStatus: covered/missing`, `executionEvidenceStatus: not-execution-evidence`로 기록하는지 확인하되 coverage mapping을 실행 PASS로 대체하지 않음 |
+| SAFE-201 | V390 Step 9 longrun runner stop-on-fail boundary | 비대상 | 필요 | 안정화 | `verify-v390-evidence-test-gate-prep`가 30분/120분 runner 기준의 one command, fixed phase order, stop-on-first-fail, later phase `not-run`, failure evidence, cleanup/artifact policy를 확인하되 실제 30분/120분 longrun PASS로 대체하지 않음 |
+| SAFE-202 | V390 Step 10 UI automation adapter failure report boundary | 비대상 | 필요 | 안정화 | `verify-v390-evidence-test-gate-prep`가 Playwright 우선, Selenium fallback, SikuliX visual fallback, route/viewport/theme/account-role/action/expected-actual/screenshot/trace-console/server-log/cleanup/manual-intervention failure report 기준을 확인하되 UI 풀테스트 직접 조작 PASS로 대체하지 않음 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -1403,6 +1411,10 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-163 | V390 Step 0 Source Baseline Alignment 게이트 | 비대상 | 필요 | 안정화 | `verify-v390-entry-baseline`, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 v3.9 source baseline과 v3.8 latest published baseline 경계를 연결하되 feature discovery/dev, UI 풀테스트, 30분/120분, published metadata, PR/main/tag/GitHub Release 실행 PASS로 대체하지 않음 |
 | OPS-164 | V390 Step 2 Feature Completion Inventory/Discovery Gate | 비대상 | 필요 | 안정화 | `verify-v390-feature-completion-inventory`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 v3.9 feature completion inventory scaffold와 user review gate를 연결하되 실제 discovery 완료, 기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트, 30분/120분, published metadata, PR/main/tag/GitHub Release 실행 PASS로 대체하지 않음 |
 | OPS-165 | V390 Step 3 User Review Gate / 개발 순서 확정 | 비대상 | 필요 | 안정화 | `verify-v390-user-review-gate`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 review-ready required/candidate/structure/excluded list와 `blocked-before-user-approval` 경계를 연결하되 사용자 승인, 기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release 실행 PASS로 대체하지 않음 |
+| OPS-166 | V390 Step 7 UI wrapper/result schema 오판 방지 gate | 비대상 | 필요 | 안정화 | `verify-v390-evidence-test-gate-prep`, `verify-ui-fulltest-one-shot`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 wrapper result schema와 manual UI 문서 경계를 연결하되 wrapper PASS를 UI 풀테스트 직접 조작, 30분/120분, manual result, release 실행 PASS로 대체하지 않음 |
+| OPS-167 | V390 Step 8 feature inventory coverage wording gate | 비대상 | 필요 | 안정화 | `verify-v390-evidence-test-gate-prep`, `verify-feature-inventory-coverage`, `verify-project-inventory`, `verify-script-inventory`가 coverage mapping을 `covered/missing`으로 기록하고 `not-execution-evidence` 경계를 확인하되 기능 실행/테스트 PASS로 대체하지 않음 |
+| OPS-168 | V390 Step 9 AI-minimized server longrun runner 기준 gate | 비대상 | 필요 | 안정화 | `verify-v390-evidence-test-gate-prep`, `verify-runtime-media-longrun-trigger-matrix`, `verify-longrun-separation`, `verify-rc-release-gate`가 30분/120분 stop-on-fail runner 기준과 failure report 필드를 문서/test-source로 확인하되 실제 longrun 실행 PASS가 아님 |
+| OPS-169 | V390 Step 10 AI-minimized UI automation adapter 기준 gate | 비대상 | 필요 | 안정화 | `verify-v390-evidence-test-gate-prep`, `verify-ui-fulltest-one-shot`, `verify-manual-ui-evidence`, `verify-script-inventory`가 무료 UI automation adapter 후보와 실패 report 기준을 확인하되 UI 풀테스트 직접 조작 PASS가 아님 |
 
 ## Coverage Review To Do
 

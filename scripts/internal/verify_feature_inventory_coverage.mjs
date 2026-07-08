@@ -319,11 +319,13 @@ const v390VerifierCoverage = {
     "verify-v390-entry-baseline",
     "verify-v390-feature-completion-inventory",
     "verify-v390-user-review-gate",
+    "verify-v390-evidence-test-gate-prep",
   ],
   OPS: [
     "verify-v390-entry-baseline",
     "verify-v390-feature-completion-inventory",
     "verify-v390-user-review-gate",
+    "verify-v390-evidence-test-gate-prep",
   ],
 };
 
@@ -357,10 +359,12 @@ check("coverage docs and server command are wired", () => {
     readText("docs/development-backlog.md"),
   ].join("\n");
   const server = readText("server.sh");
-  for (const snippet of [
+for (const snippet of [
     "verify-feature-inventory-coverage",
     "media-server.feature-inventory-coverage.v1",
     "missing coverage target",
+    "coverageStatus: covered/missing",
+    "executionEvidenceStatus: not-execution-evidence",
     "누락 ID는 release gate에서 FAIL",
   ]) {
     assert(docs.includes(snippet), `docs missing coverage snippet: ${snippet}`);
@@ -379,7 +383,8 @@ check("negative missing-ID fixture fails", () => {
   const brokenRow = { ...rows.find(row => row.id === "UI-001"), area: "안정화" };
   const report = buildCoverageReport([brokenRow], brokenMap);
   assert(report.summary.missing === 1, `negative fixture should have one missing row, got ${report.summary.missing}`);
-  assert(report.items[0].status === "FAIL", "negative fixture row must be FAIL");
+  assert(report.items[0].coverageStatus === "missing", "negative fixture row must be missing");
+  assert(report.items[0].executionEvidenceStatus === "not-execution-evidence", "negative fixture row must not become execution evidence");
 });
 
 const report = buildCoverageReport(rows, stabilityVerifierByPrefix);
@@ -428,7 +433,8 @@ function buildCoverageReport(featureRows, verifierMap) {
       feature: row.feature,
       area: row.area,
       targets,
-      status: targets.length > 0 ? "PASS" : "FAIL",
+      coverageStatus: targets.length > 0 ? "covered" : "missing",
+      executionEvidenceStatus: "not-execution-evidence",
       reason: targets.length > 0 ? "" : "missing coverage target",
     };
   });
@@ -437,8 +443,8 @@ function buildCoverageReport(featureRows, verifierMap) {
     generatedAt: new Date().toISOString(),
     summary: {
       total: items.length,
-      covered: items.filter(item => item.status === "PASS").length,
-      missing: items.filter(item => item.status === "FAIL").length,
+      covered: items.filter(item => item.coverageStatus === "covered").length,
+      missing: items.filter(item => item.coverageStatus === "missing").length,
     },
     items,
   };
@@ -511,12 +517,12 @@ function renderMarkdown(report) {
     `- covered: ${report.summary.covered}`,
     `- missing: ${report.summary.missing}`,
     "",
-    "| feature ID | feature | area | status | targets | reason |",
+    "| feature ID | feature | area | coverage status / execution evidence | targets | reason |",
     "| --- | --- | --- | --- | --- | --- |",
   ];
   for (const item of report.items) {
     const targets = item.targets.map(target => `${target.kind}:${target.command}`).join("<br>");
-    lines.push(`| ${item.id} | ${escapeCell(item.feature)} | ${escapeCell(item.area)} | ${item.status} | ${escapeCell(targets)} | ${escapeCell(item.reason)} |`);
+    lines.push(`| ${item.id} | ${escapeCell(item.feature)} | ${escapeCell(item.area)} | ${item.coverageStatus} / ${item.executionEvidenceStatus} | ${escapeCell(targets)} | ${escapeCell(item.reason)} |`);
   }
   return `${lines.join("\n")}\n`;
 }

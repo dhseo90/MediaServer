@@ -203,6 +203,45 @@ Chrome/CDP runner evidence를 별도로 기록합니다. 다음 행위가 자동
 그 항목은 제품 FAIL이 아니라 테스트 harness FAIL입니다. harness FAIL 상태에서
 해당 기능을 PASS로 기록하지 않습니다.
 
+### v3.9.0 AI-minimized UI automation adapter 기준
+
+v3.9.0 Test Model Prep의 UI automation adapter는 사람이 브라우저를 매번 수동으로
+운전하지 않아도 실패 원인을 재현할 수 있는 evidence를 남기는 기준입니다. 이 기준은
+UI 풀테스트를 다섯 번째 테스트 영역으로 만들지 않고, AGENTS의 `UI` 영역 안에 둡니다.
+
+도구 우선순위:
+
+- 1차 후보는 무료 web automation 도구인 Playwright입니다. 제품 UI가 웹 기반이고
+  route/control/action/console/trace/screenshot evidence를 한 실행에서 남길 수 있기
+  때문입니다.
+- 2차 후보는 Selenium입니다. Playwright를 사용할 수 없는 환경의 web automation
+  fallback으로만 봅니다.
+- DOM-level 확인만으로 video viewport, overlay, crop, visual artifact를 판정하기
+  어려운 경우에만 SikuliX 같은 image-based fallback을 검토합니다. 이 fallback도
+  raw screenshot 생성만으로 UI PASS를 만들 수 없습니다.
+
+failure report 필수 필드:
+
+| 필드 | 기록 기준 |
+| --- | --- |
+| route | 실패한 제품 route 또는 route group |
+| viewport | width/height와 responsive target |
+| theme | light/dark 또는 미적용 사유 |
+| account/role | 사용한 계정 유형과 role/scope |
+| control/action | 클릭/타이핑/선택한 control과 action |
+| expected result | 기대한 UI state, URL, DOM state, log/event |
+| actual result | 실제 화면/DOM/log/event 차이 |
+| screenshot | 실패 순간 screenshot 경로 |
+| trace/video | Playwright trace/video 등 지원되는 경우의 artifact 경로 |
+| browser console | console error/warning 요약 |
+| server log reference | 관련 server log path와 tail marker |
+| cleanup/port state | 테스트 종료 후 throwaway server/port cleanup 상태 |
+| manual intervention | 사용자 클릭, pane attach, OS dialog 수동 확인이 있었는지 여부 |
+
+manual intervention이 있으면 해당 run은 자동 clean PASS가 아닙니다. 보고서는
+`manual intervention: yes`와 사유를 남기고, 최종 UI 풀테스트 PASS 여부는 개별
+route/control/action 결과표에서 다시 판정합니다.
+
 UI 풀테스트 결과는 모든 개별 기능, route, control, action 단위로 답합니다.
 카테고리 묶음 판정은 금지합니다. 예를 들어 `Rules PASS`, `Auth FAIL`처럼 묶지
 않고, `RULE-041 presence EventRecord 발생`, `AUTH-022 reset 후 must-change`,
@@ -222,6 +261,16 @@ E2E를 순서대로 실행하고 `summary.json`과 `summary.md`를 남깁니다.
 `--manual-result <result.md>`를 지정하면 기존 manual result 문서 구조를 함께
 검증합니다. manual result 구조 검증은 opt-in이며, manual result를 지정하지 않으면
 해당 step은 skip됩니다. wrapper PASS는 full UI 풀테스트 PASS가 아닙니다.
+v3.9.0부터 wrapper summary는 아래 필드를 반드시 포함합니다.
+
+| 필드 | 의미 | PASS로 승격 금지 |
+| --- | --- | --- |
+| `wrapperResult` | wrapper command 자체의 성공/실패입니다. | UI 풀테스트, 30분, 120분, manual result 실행 PASS가 아닙니다. |
+| `resultScope` | `wrapper-only`로 고정해 wrapper 결과 범위를 표시합니다. | release/UI 실행 범위 확장 근거가 아닙니다. |
+| `uiFulltestEvidenceStatus` | 인앱 브라우저 evidence JSON 제공 여부입니다. | `provided`여도 route/control/action 직접 결과표가 없으면 UI 풀테스트 PASS가 아닙니다. |
+| `manualResultStatus` | manual result 문서 제공/skip/not-provided 상태입니다. | `skipped` 또는 `not-provided`는 manual UI 결과 PASS가 아닙니다. |
+| `longrunStatus` | 30분, 120분 predev, runtime console 120분을 `not-run-by-this-wrapper`로 기록합니다. | longrun 실행 evidence로 사용할 수 없습니다. |
+
 auth UI flow를 포함하므로 아래 환경변수는 실행자가 직접 지정해야 합니다.
 
 - `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`

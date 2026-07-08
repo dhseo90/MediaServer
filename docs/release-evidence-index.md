@@ -270,6 +270,7 @@ field smoke evidence가 아닙니다.
 | v3.9.0 feature completion inventory | `./server.sh verify-v390-feature-completion-inventory`, [v390-feature-completion-inventory.md](./v390-feature-completion-inventory.md), [project-feature-test-inventory.md](./project-feature-test-inventory.md) `OPS-164`/`SAFE-197` | [release-test-records.md](./release-test-records.md) v3.9.0 `v390 Step 2 feature completion inventory final` | [release-test-records.md](./release-test-records.md) v3.9.0 `v390 discovery user review gate`와 미실행/제외 | 실제 discovery 완료, 기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트, 30분/120분, published metadata, release action evidence |
 | v3.9.0 user review gate | `./server.sh verify-v390-user-review-gate`, [v390-feature-completion-inventory.md](./v390-feature-completion-inventory.md) User Review Output, [project-feature-test-inventory.md](./project-feature-test-inventory.md) `OPS-165`/`SAFE-198` | [release-test-records.md](./release-test-records.md) v3.9.0 `v390 Step 3 user review gate final` | [release-test-records.md](./release-test-records.md) v3.9.0 `v390 사용자 review approval`와 미실행/제외 | 사용자 승인, 기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트, 30분/120분, published metadata, release action evidence |
 | v3.9.0 Required Closeout manual UI evidence | `./server.sh verify-manual-ui-evidence`, [manual-ui-fulltest.md](./manual-ui-fulltest.md), [manual-ui-checklist.md](./manual-ui-checklist.md), [manual-ui-result-template.md](./manual-ui-result-template.md), [v390-feature-completion-inventory.md](./v390-feature-completion-inventory.md) `V390-REQ-001`~`V390-REQ-003` | [release-test-records.md](./release-test-records.md) v3.9.0 `v390 Required Closeout manual UI evidence final` | [release-test-records.md](./release-test-records.md) v3.9.0 `v390 30분 longrun`, `v390 120분 longrun`, `v390 UI 풀테스트`, `v390 published metadata` | UI 풀테스트 직접 조작, 30분/120분, published metadata, release action evidence |
+| v3.9.0 Evidence/Test Gate and Test Model Prep | `./server.sh verify-v390-evidence-test-gate-prep`, [manual-ui-fulltest.md](./manual-ui-fulltest.md), [stream-verification.md](./stream-verification.md), [project-feature-test-inventory.md](./project-feature-test-inventory.md) `OPS-166`~`OPS-169`/`SAFE-199`~`SAFE-202`, [v390-feature-completion-inventory.md](./v390-feature-completion-inventory.md) `V390-CAND-007`/`V390-CAND-008`/`V390-CLOSED-003`/`V390-CLOSED-004` | [release-test-records.md](./release-test-records.md) v3.9.0 `v390 Evidence/Test Gate and Test Model Prep final` | [release-test-records.md](./release-test-records.md) v3.9.0 `v390 30분 longrun`, `v390 120분 longrun`, `v390 UI 풀테스트`, `v390 published metadata` | UI 풀테스트 직접 조작, 30분/120분 longrun 실행, published metadata, release action evidence |
 
 Companion local gate:
 
@@ -278,9 +279,11 @@ Companion local gate:
 ./server.sh verify-v390-feature-completion-inventory
 ./server.sh verify-v390-user-review-gate
 ./server.sh verify-manual-ui-evidence
+./server.sh verify-v390-evidence-test-gate-prep
 ./server.sh verify-release-metadata
 ./server.sh verify-project-inventory
 ./server.sh verify-feature-inventory-coverage
+./server.sh verify-release-evidence-index
 ./server.sh verify-script-inventory
 git diff --check
 ```

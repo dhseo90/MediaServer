@@ -83,10 +83,10 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 4 | v3.9.0 (4) Manual UI 기준서 v3.9 current화 | P0 | 완료 | `V390-REQ-001`: `docs/manual-ui-fulltest.md`, `docs/manual-ui-checklist.md`, `docs/manual-ui-result-template.md`가 v3.9 current target과 historical v2.x/v3.x 기준을 분리하고 `verify-manual-ui-evidence`가 이를 확인 |
 | 5 | v3.9.0 (5) 장시간/UI 테스트 시작 조건 v3.9화 | P0 | 완료 | `V390-REQ-002`: 긴 테스트 시작 조건을 v3.9 feature completion inventory, current project inventory, 사용자 승인/AGENTS 7.6.2 조건 기준으로 정렬 |
 | 6 | v3.9.0 (6) v3.5-v3.8 UI coverage bridge | P0 | 완료 | `V390-REQ-003`: manual UI docs가 v3.5~v3.8 UI/control/action rows를 project feature inventory로 위임하고 실행 PASS와 coverage mapping을 분리 |
-| 7 | v3.9.0 (7) UI wrapper/result schema 오판 방지 | P0 | 미진행 | `V390-CAND-007` 개발 여부 확정 필요 |
-| 8 | v3.9.0 (8) feature inventory coverage wording 오판 방지 | P0 | 미진행 | `V390-CAND-008` 개발 여부 확정 필요 |
-| 9 | v3.9.0 (9) AI-minimized server longrun runner 기준 | P0 | 미진행 | 30분/120분 script runner 설계/구현 필요 |
-| 10 | v3.9.0 (10) AI-minimized UI automation adapter 기준 | P0 | 미진행 | 무료 UI 자동화 도구 후보와 실패 report schema 설계/구현 필요 |
+| 7 | v3.9.0 (7) UI wrapper/result schema 오판 방지 | P0 | 완료 | `V390-CAND-007`: `verify-ui-fulltest-one-shot` summary에 `wrapperResult`/`resultScope`/`uiFulltestEvidenceStatus`/`manualResultStatus`/`longrunStatus`/`evidenceBoundary`를 추가하고 `verify-v390-evidence-test-gate-prep`가 오판 방지 경계를 확인 |
+| 8 | v3.9.0 (8) feature inventory coverage wording 오판 방지 | P0 | 완료 | `V390-CAND-008`: feature coverage report를 `coverageStatus: covered/missing`, `executionEvidenceStatus: not-execution-evidence` 중심으로 바꾸고 mapping coverage와 실행 PASS를 분리 |
+| 9 | v3.9.0 (9) AI-minimized server longrun runner 기준 | P0 | 완료 | 30분/120분 script runner의 one command, fixed phase order, stop-on-first-fail, later phase `not-run`, failure evidence, cleanup/artifact policy 기준을 `stream-verification.md`와 verifier로 고정 |
+| 10 | v3.9.0 (10) AI-minimized UI automation adapter 기준 | P0 | 완료 | Playwright 우선, Selenium fallback, SikuliX visual fallback과 route/viewport/theme/account-role/action/expected-actual/screenshot/trace-console/log/cleanup/manual-intervention failure report 기준을 `manual-ui-fulltest.md`와 verifier로 고정 |
 | 11-18 | v3.9.0 (11)~(18) Product/Field/AI completion decisions | P1/P2 | 미진행 | 인벤토리 `V390-CAND-001`~`V390-CAND-006`, `V390-CAND-009`, `V390-CAND-010` 순서대로 검토/개발 |
 | 19 | v3.9.0 (19) structure stabilization handoff 상세계획 | P0 | 미진행 | 인벤토리 `V390-STRUCT-001`~`V390-STRUCT-005`를 안정화 계획으로 이관 |
 | 20 | v3.9.0 (20) stabilization and release readiness | P0 | 미진행 | AGENTS 네 테스트 영역 판정과 release close-out evidence 필요 |
@@ -118,6 +118,32 @@ UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release a
   `docs/release-test-records.md`, `docs/release-evidence-index.md`,
   `scripts/internal/verify_v390_user_review_gate.mjs`, `server.sh`에
   `./server.sh verify-v390-user-review-gate`를 연결했습니다.
+
+## v3.9.0 Evidence/Test Gate and Test Model Prep 개발 기록
+
+이번 범위는 `v3.9.0 (7)`~`v3.9.0 (10)`입니다.
+
+- Step 7 `UI wrapper/result schema 오판 방지`:
+  `scripts/internal/verify_ui_fulltest_one_shot.mjs`가 summary JSON/Markdown에
+  `wrapperResult`, `resultScope`, `uiFulltestEvidenceStatus`, `manualResultStatus`,
+  `longrunStatus`, `evidenceBoundary`를 기록합니다. `wrapperResult=PASS`는 UI 풀테스트
+  직접 조작, 30분/120분 longrun, manual result, published metadata PASS가 아닙니다.
+- Step 8 `feature inventory coverage wording 오판 방지`:
+  `scripts/internal/verify_feature_inventory_coverage.mjs`의 per-feature report가
+  `coverageStatus: covered/missing`와 `executionEvidenceStatus: not-execution-evidence`를
+  사용합니다. command-level verifier pass/fail과 feature mapping coverage를 분리합니다.
+- Step 9 `AI-minimized server longrun runner 기준`:
+  `docs/stream-verification.md`에 one command, fixed phase order,
+  stop-on-first-fail, later phase `not-run`, command/exit code/phase/port/route/log/summary/report/cleanup
+  failure evidence, reproducible fixture, artifact cleanup/preserve reason 기준을 기록했습니다.
+- Step 10 `AI-minimized UI automation adapter 기준`:
+  `docs/manual-ui-fulltest.md`에 Playwright 1차, Selenium 2차, SikuliX/image fallback 조건과
+  route/viewport/theme/account-role/control-action/expected-actual/screenshot/trace-video/browser-console/server-log/cleanup/manual-intervention
+  failure report 기준을 기록했습니다.
+- 통합 확인:
+  `scripts/internal/verify_v390_evidence_test_gate_prep.mjs`와
+  `./server.sh verify-v390-evidence-test-gate-prep`가 Step 7~10 문서, schema, inventory,
+  release records/evidence, server dispatch, script inventory 연결을 확인합니다.
 
 Foundation review-ready 상태:
 

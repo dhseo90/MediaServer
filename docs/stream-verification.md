@@ -22,7 +22,7 @@
 | `./server.sh verify-docs-links` | Markdown link/index guard |
 | `./server.sh verify-docs-ui-assets` | README/UI screenshot asset guard |
 | `./server.sh verify-project-inventory` | feature/test inventory 구조 guard |
-| `./server.sh verify-feature-inventory-coverage` | `media-server.feature-inventory-coverage.v1`, `missing coverage target`, 누락 ID는 release gate에서 FAIL |
+| `./server.sh verify-feature-inventory-coverage` | `media-server.feature-inventory-coverage.v1`, `coverageStatus: covered/missing`, `executionEvidenceStatus: not-execution-evidence`, `missing coverage target`, 누락 ID는 release gate에서 FAIL |
 | `./server.sh verify-release-metadata` | VERSION/CMake/release docs consistency guard |
 | `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>` | release close-out dry-run. tag/push/GitHub Release 생성 없음 |
 
@@ -53,6 +53,23 @@ published metadata, release action evidence가 아닙니다.
 | v3.9.0 (2) | `./server.sh verify-v390-feature-completion-inventory` | v3.9 feature completion inventory scaffold, discovery source groups, disposition/test-area vocabulary, user review gate 경계를 확인합니다. 실제 feature discovery 완료, 기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
 | v3.9.0 (3) | `./server.sh verify-v390-user-review-gate` | review-ready required/candidate/structure/excluded list와 사용자 승인 전 기능 개발 중단 경계를 확인합니다. 사용자 승인, 기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현, UI 풀테스트, 30분/120분, published metadata, release action evidence가 아닙니다 |
 | v3.9.0 (4)~(6) | `./server.sh verify-manual-ui-evidence`, `./server.sh verify-v390-feature-completion-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-project-inventory` | Required Closeout `V390-REQ-001`~`V390-REQ-003` 문서/test-source gate입니다. manual UI 기준서 v3.9 current화, 장시간/UI 테스트 시작 조건 v3.9화, `v3.5-v3.8 UI coverage bridge`를 확인합니다. UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence가 아닙니다 |
+| v3.9.0 (7)~(10) | `./server.sh verify-v390-evidence-test-gate-prep`, `./server.sh verify-ui-fulltest-one-shot`, `./server.sh verify-feature-inventory-coverage` | Evidence/Test Gate와 Test Model Prep 문서/test-source gate입니다. UI wrapper `wrapperResult`/`uiFulltestEvidenceStatus`/`manualResultStatus`/`longrunStatus`, feature coverage `covered/missing` wording, AI-minimized 30분/120분 stop-on-fail runner 기준, 무료 UI automation adapter failure report 기준을 확인합니다. UI 풀테스트 직접 조작, 30분/120분 longrun 실행, published metadata, release action evidence가 아닙니다 |
+
+### v3.9.0 AI-minimized server longrun runner 기준
+
+v3.9.0 Test Model Prep의 서버 longrun runner는 30분/120분을 새 테스트 영역으로
+만들지 않고 AGENTS의 `30분`과 `120분` 영역 안에 남깁니다. runner 기준은 아래와
+같습니다.
+
+| 기준 | 요구사항 |
+| --- | --- |
+| one command | 하나의 명령이 suite를 시작하고 command line을 summary/report에 남깁니다. |
+| fixed phase order | build/preflight/seed/start/integrated smoke/soak iteration/cleanup/report 같은 phase 순서가 고정됩니다. |
+| stop-on-first-fail | 첫 실패에서 suite를 중단하고 이후 phase는 `not-run`으로 남깁니다. |
+| failure evidence | command, exit code, phase, port, route, log path, summary path, report path, cleanup state, likely investigation files를 포함합니다. |
+| reproducible inputs | 같은 command와 fixture로 재현할 수 있어야 합니다. |
+| artifact policy | 임시 artifact는 cleanup하거나 보존 이유를 명시합니다. `/tmp` 경로를 최종 evidence로 쓰지 않습니다. |
+| category boundary | wrapper, preflight, dry-run, field smoke, no-device는 다섯 번째 테스트 영역이 아니며 안정화/30분/120분/UI 중 해당 위치에만 기록합니다. |
 
 ## 현재 v3.8.0 verifier
 
