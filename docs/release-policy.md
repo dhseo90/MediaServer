@@ -101,6 +101,33 @@ git diff --check
 `docs/release-artifacts/<version>/<run-id>/` 같은 저장소 보존 위치로 이동하고,
 redaction/크기/보존 사유를 기록합니다.
 
+## v3.9.0 Longrun Runner 역할
+
+v3.9.0 release-grade longrun runner는 `./server.sh verify-v390-server-longrun`입니다.
+
+- `verify-predev` remains legacy/compatibility cumulative predev runner.
+- `verify-v390-server-longrun` is the release-grade first-fail runner.
+- `verify-v390-server-longrun --duration-minutes 30`은 v3.9.0 30분 release-grade evidence를
+  생성할 때 사용합니다.
+- `verify-v390-server-longrun --duration-minutes 120`은 사용자 승인 또는 high-risk 조건으로
+  120분이 필요한 경우 사용합니다.
+- historical `verify-predev --soak-minutes 30` evidence remains preserved.
+- historical `verify-predev --soak-minutes 120` evidence remains preserved.
+
+이 역할 분리는 과거 evidence를 다시 해석하지 않습니다. 이전 release의
+`verify-predev --soak-minutes 30/120` PASS 행은 historical/compatibility evidence로
+남기고, v3.9.0 이후 release-grade first-fail 장시간 evidence는
+`verify-v390-server-longrun` summary/report로 분리합니다.
+
+RC gate artifact 보존은 별도 정책입니다.
+
+- `rc-release-checklist`는 RC gate summary/report를 작성하는 명령입니다.
+- `media-server-rc-gate` GitHub Actions artifact는 CI 보존 evidence입니다.
+- `rc-artifact-archive` 외부 archive는 CI artifact 밖 장기 보존 경로입니다.
+- 임시 `/tmp` 경로는 staging/local-only evidence이며 release-grade 보존 완료가 아닙니다.
+- release-grade 보존 완료는 `media-server-rc-gate` artifact 또는 외부 archive manifest와
+  checksum이 확인된 뒤에만 기록합니다.
+
 ## Published Release 확인
 
 GitHub Release를 실제 publish한 뒤에만 아래 명령으로 외부 공개 상태를 확인합니다.

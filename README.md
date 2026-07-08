@@ -223,7 +223,7 @@ release 전 로컬 기준선:
 ./server.sh verify-predev --quick
 ```
 
-UI/Auth/VA/장기 soak 검증의 전체 명령과 실행 조건은
+UI/Auth/VA/장기 soak/부하 검증의 전체 명령과 실행 조건은
 [docs/stream-verification.md](docs/stream-verification.md)에 정리되어 있습니다.
 실장비 endpoint, 외부 credential, 고객/운영 영상 URL은 문서와 artifact에 남기지 않습니다.
 

@@ -129,7 +129,7 @@ failure evidence가 나와야 합니다.
 | R1 | P0 | AI-minimized server longrun runner 실제 구현 | `docs/stream-verification.md`에 기준만 있고, 기존 `verify-predev`는 여러 step을 `|| true`로 계속 실행하는 누적형 runner | 30분/120분 서버 테스트를 하나의 명령으로 시작하고 첫 실패에서 즉시 중단하며 이후 phase를 `not-run`으로 기록하는 새 runner 또는 stop-on-first-fail mode 구현 | `./server.sh verify-v390-server-longrun-runner-contract`, 실제 30분 명령 PASS, 실패 fixture에서 first-fail/not-run evidence PASS |
 | R2 | P0 | AI-minimized UI automation runner 실제 구현 | `verify-v390-ui-automation`/`verify-v390-ui-automation-report`/`verify-v390-ui-automation-runner-contract` 구현으로 runner/report/fixture guard는 준비됨. 실제 UI automation suite는 사용자 승인 전 미실행 | 무료 UI 자동화 도구 우선순위에 맞춘 runner를 구현하고 route/control/action 단위 실패 report, screenshot, trace/video, console, server log, cleanup evidence를 남김 | `./server.sh verify-v390-ui-automation-runner-contract`, 실제 UI automation suite PASS, 실패 fixture에서 failure report PASS |
 | R3 | P0 | 사용자가 재실행 가능한 v3.9 test acceptance bundle | `verify-v390-test-acceptance-bundle --dry-run`과 contract verifier가 구현되어 R1/R2 산출물, 승인 필요 UI, 조건부 120분, published/release action not-run boundary를 한 summary로 고정함. 실제 acceptance bundle 실행은 사용자 승인 전 미실행 | R1/R2 산출물을 포함한 final acceptance command set을 문서와 script dispatch에 고정하고, 각 command의 summary/report 경로를 release evidence로 복사 가능하게 함 | `./server.sh verify-v390-test-acceptance-bundle --dry-run`, `./server.sh verify-v390-test-acceptance-bundle-contract`, `./server.sh verify-script-inventory`, `./server.sh verify-release-evidence-index` |
-| R4 | P1 | legacy `verify-predev`와 새 runner 관계 정리 | 기존 longrun trigger matrix는 `verify-predev --soak-minutes 30/120`를 가리킴 | 기존 command를 유지할지, 새 command로 matrix를 바꿀지 결정하고 docs/project inventory/release policy가 같은 runner를 가리키게 정렬 | `./server.sh verify-runtime-media-longrun-trigger-matrix`, `./server.sh verify-longrun-separation`, `./server.sh verify-rc-release-gate` |
+| R4 | P1 | legacy `verify-predev`와 새 runner 관계 정리 | R4 선택 option 3으로 정리됨. `verify-predev`는 legacy/compatibility cumulative predev runner, `verify-v390-server-longrun`은 release-grade first-fail runner | 기존 command를 유지할지, 새 command로 matrix를 바꿀지 결정하고 docs/project inventory/release policy가 같은 runner를 가리키게 정렬 | `./server.sh verify-v390-longrun-runner-role-alignment`, `./server.sh verify-runtime-media-longrun-trigger-matrix`, `./server.sh verify-longrun-separation`, `./server.sh verify-rc-release-gate` |
 | R5 | P1 | UI result/release evidence replay guard | R2 runner의 `verify-v390-ui-automation-report --summary <summary.json>`가 summary schema, route/control/action 개별 행, manual intervention 없음, screenshot/trace/log 존재를 1차 검증함. 실제 UI suite 보존 summary replay는 아직 미실행 | UI runner summary를 입력으로 받아 route/control/action 개별 행, manual intervention 없음, failed interaction 0, screenshot/trace/log 존재를 검증하는 replay verifier 구현 | `./server.sh verify-v390-ui-automation-report --summary <summary.json>` |
 
 ### R1. AI-minimized server longrun runner 구현 계약
@@ -407,7 +407,9 @@ bundle summary는 아래 항목을 분리해야 합니다.
 ./server.sh verify-va-runtime-console-longrun --duration-minutes 120
 ```
 
-R1 구현 후 반드시 아래 중 하나를 선택합니다.
+R4 선택: option 3.
+
+R1 구현 후 아래 선택지 중 3번을 채택했습니다.
 
 1. 기존 command에 `--stop-on-first-fail` mode를 추가하고 release policy가 그 mode를
    사용하도록 정렬합니다.
@@ -416,12 +418,17 @@ R1 구현 후 반드시 아래 중 하나를 선택합니다.
 3. `verify-predev`는 short/predev 누적형, `verify-v390-server-longrun`은 release-grade
    first-fail runner로 역할을 분리합니다.
 
-권장 선택은 3번입니다. 기존 evidence와 verifier 의미를 덜 흔들면서 사용자가 원하는 새 테스트
-방식만 명확히 추가할 수 있습니다.
+선택 근거: 기존 evidence와 verifier 의미를 덜 흔들면서 사용자가 원하는 새 테스트
+방식만 명확히 추가할 수 있습니다. `verify-predev` remains legacy/compatibility cumulative
+predev runner. `verify-v390-server-longrun` is the release-grade first-fail runner.
+historical `verify-predev --soak-minutes 30` evidence remains preserved.
+historical `verify-predev --soak-minutes 120` evidence remains preserved.
+`./server.sh verify-predev --soak-minutes 120`은 상시 실행하지 않고 release candidate 또는 고위험 변경 gate로만 실행합니다.
 
 R4 완료 판정:
 
 ```bash
+./server.sh verify-v390-longrun-runner-role-alignment
 ./server.sh verify-runtime-media-longrun-trigger-matrix
 ./server.sh verify-longrun-separation
 ./server.sh verify-rc-release-gate

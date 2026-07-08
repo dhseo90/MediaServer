@@ -158,6 +158,27 @@ Boundary: dry-run does not execute 30-minute, UI automation, 120-minute, publish
 or release-action suites. UI automation PASS, 120분 PASS, published metadata PASS, and release
 action completion require their own approved evidence.
 
+### v3.9.0 R4 longrun runner role alignment
+
+R4 선택: option 3.
+
+- `verify-predev` remains legacy/compatibility cumulative predev runner.
+- `verify-v390-server-longrun` is the release-grade first-fail runner.
+- `verify-v390-server-longrun --duration-minutes 30` is the v3.9.0 release-grade longrun runner
+  for 30분 evidence.
+- `verify-v390-server-longrun --duration-minutes 120` is the v3.9.0 release-grade longrun runner
+  for approval-gated or high-risk 120분 evidence.
+- historical `verify-predev --soak-minutes 30` evidence remains preserved.
+- historical `verify-predev --soak-minutes 120` evidence remains preserved.
+
+R4 verifier:
+
+- `./server.sh verify-v390-longrun-runner-role-alignment`
+
+This role split does not rewrite historical evidence. Existing `verify-predev` rows remain
+compatibility/predev evidence, while v3.9.0 R1/R4 release-grade evidence uses
+`verify-v390-server-longrun` summary/report and stop-on-first-fail semantics.
+
 ## 현재 v3.9.0 verifier
 
 아래 명령은 v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation의 현재 source gate입니다.
@@ -432,6 +453,7 @@ short stability, 30분 soak, 120분 predev, 120분 runtime console, UI 풀테스
 `vlm-queue-timeout-nonblocking`, `vlm-memory-runtime-cache`,
 `vlm-provider-timeout-cloud`, `vlm-model-install-state`는 trigger matrix의 대표
 분류입니다. 30분 soak는 120분 longrun PASS를 대체하지 않습니다.
+외부 source/TURN/장시간 테스트는 별도 gate로 분리합니다.
 
 ## 장기 테스트 명령
 
@@ -450,6 +472,32 @@ short stability, 30분 soak, 120분 predev, 120분 runtime console, UI 풀테스
 | `./server.sh verify-runtime-dashboard-longrun-template` | runtime dashboard 120분 longrun template guard |
 | `./server.sh verify-runtime-media-longrun-trigger-matrix` | `media-server.runtime-media-longrun-trigger-matrix.v1` trigger matrix |
 | `./server.sh verify-rc-release-gate` | RC release gate summary |
+
+### RC 전용 Release Gate
+
+RC 전용 Release Gate는 상시 실행하지 않습니다. release candidate 또는 AGENTS 기준
+고위험 runtime/media 변경에서만 사용자 승인 후 실행합니다.
+
+RC command set:
+
+- `./server.sh verify-predev --soak-minutes 120`
+- `./server.sh verify-va-runtime-console-longrun --duration-minutes 120`
+- `--include-sidechannel`
+- `--include-dashboard`
+- `--include-rtsp`
+- `--idle-after-cleanup-minutes 30`
+- `./server.sh rc-release-checklist`
+- `--history-dir`
+- `index.md`
+
+보존 위치 정책:
+
+- `/tmp` 경로는 local-only staging evidence입니다.
+- `artifacts/rc-gate/`는 CI run 내부 staging 위치입니다.
+- `media-server-rc-gate` GitHub Actions artifact로 release-grade 보존 완료 상태를 확인합니다.
+- `rc-artifact-archive`는 외부 archive 이관 명령입니다.
+- `external-artifact-manifest.json`, `SHA256SUMS`, `NOT PRESERVED` 상태를 기록해
+  외부 보존 여부와 미보존 사유를 분리합니다.
 
 ## Runtime Dashboard Longrun Evidence
 
