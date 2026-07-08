@@ -320,10 +320,12 @@ const v390VerifierCoverage = {
     "verify-v390-onvif-live-import-persist-decision",
     "verify-v390-vlm-rule-suggestion-draft-bridge",
     "verify-v390-vlm-evaluation-promotion-guard",
+    "verify-v390-backup-recovery-handoff-validation",
   ],
   SRC: [
     "verify-v390-onvif-credential-provider-status",
     "verify-v390-onvif-live-import-persist-decision",
+    "verify-v390-backup-recovery-handoff-validation",
   ],
   RULE: [
     "verify-v390-vlm-rule-suggestion-draft-bridge",
@@ -340,6 +342,7 @@ const v390VerifierCoverage = {
     "verify-v390-onvif-live-import-persist-decision",
     "verify-v390-vlm-rule-suggestion-draft-bridge",
     "verify-v390-vlm-evaluation-promotion-guard",
+    "verify-v390-backup-recovery-handoff-validation",
   ],
   OPS: [
     "verify-v390-entry-baseline",
@@ -350,6 +353,7 @@ const v390VerifierCoverage = {
     "verify-v390-onvif-live-import-persist-decision",
     "verify-v390-vlm-rule-suggestion-draft-bridge",
     "verify-v390-vlm-evaluation-promotion-guard",
+    "verify-v390-backup-recovery-handoff-validation",
   ],
 };
 

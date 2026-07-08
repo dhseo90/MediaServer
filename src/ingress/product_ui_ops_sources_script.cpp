@@ -20,6 +20,9 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const sourceBackupHandoffStatus = document.querySelector('#source-backup-handoff-status');
     const sourceBackupHandoffInputList = document.querySelector('#source-backup-handoff-input-list');
     const sourceRecoveryValidationPlanList = document.querySelector('#source-recovery-validation-plan-list');
+    const sourceStagingRestoreValidationStatus = document.querySelector('#sourceStagingRestoreValidationStatus');
+    const sourceStagingRestoreChecklistList = document.querySelector('#source-staging-restore-checklist-list');
+    const sourceStagingRestoreResultArtifactList = document.querySelector('#source-staging-restore-result-artifact-list');
     const sourceContinuityDrillStatus = document.querySelector('#source-continuity-drill-status');
     const sourceContinuityDrillPackageList = document.querySelector('#source-continuity-drill-package-list');
     const sourceContinuityDrillValidationList = document.querySelector('#source-continuity-drill-validation-list');
@@ -617,6 +620,36 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         <span>sourceHealthSnapshotPersisted: ${escapeHtml(boundaries.sourceHealthSnapshotPersisted === true ? 'true' : 'false')}</span>
         <span>recoveryValidationPlanPersisted: ${escapeHtml(boundaries.recoveryValidationPlanPersisted === true ? 'true' : 'false')}</span>
       </div>`;
+    }
+    function renderStagingRestoreValidationHandoff(payload = {}) {
+      const checklist = Array.isArray(payload.stagingRestoreValidationChecklist) ? payload.stagingRestoreValidationChecklist : [];
+      const artifact = payload.resultArtifactContract || {};
+      const boundaries = payload.boundaries || {};
+      if (sourceStagingRestoreValidationStatus) {
+        sourceStagingRestoreValidationStatus.textContent =
+          `${payload.selectedMode || 'staging-restore-validation-checklist-result-handoff'} / checklist ${checklist.length} / resultArtifactPersistedByRoute=${boundaries.resultArtifactPersistedByRoute === true ? 'true' : 'false'} / productionRestorePerformed=${boundaries.productionRestorePerformed === true ? 'true' : 'false'} / automaticRecoveryPerformed=${boundaries.automaticRecoveryPerformed === true ? 'true' : 'false'}`;
+      }
+      if (sourceStagingRestoreChecklistList) {
+        sourceStagingRestoreChecklistList.innerHTML = checklist.map(item => (
+          `<article class="source-backup-handoff-card" data-source-staging-restore-checklist="${escapeHtml(item.key || 'check')}">
+            <strong>${escapeHtml(item.label || item.key || 'staging restore check')}</strong>
+            <span>${escapeHtml(item.status || 'operator-required')} · ${escapeHtml(item.source || 'handoff source')}</span>
+            <small>${escapeHtml((item.requiredEvidence || []).join(' / ') || 'evidence required')}</small>
+          </article>`
+        )).join('') || '<span class="empty">staging restore checklist 없음</span>';
+      }
+      if (sourceStagingRestoreResultArtifactList) {
+        const fields = Array.isArray(artifact.requiredFields) ? artifact.requiredFields : [];
+        sourceStagingRestoreResultArtifactList.innerHTML = `<article class="source-backup-handoff-card" data-source-staging-restore-result-artifact="${escapeHtml(artifact.schema || 'result-artifact')}">
+          <strong>${escapeHtml(artifact.schema || 'media-server.ops.v390-staging-restore-validation-result.v1')}</strong>
+          <span>${escapeHtml(artifact.artifactStatus || 'operator-supplied-after-staging-run')} · ${escapeHtml(artifact.storageScope || 'change-ticket-only')}</span>
+          <small>${escapeHtml(fields.join(' / ') || 'required fields')}</small>
+        </article><div class="source-backup-handoff-boundary" data-source-staging-restore-result-artifact="boundary">
+          <span>resultArtifactPersistedByRoute: ${escapeHtml(boundaries.resultArtifactPersistedByRoute === true ? 'true' : 'false')}</span>
+          <span>productionRestorePerformed: ${escapeHtml(boundaries.productionRestorePerformed === true ? 'true' : 'false')}</span>
+          <span>automaticRecoveryPerformed: ${escapeHtml(boundaries.automaticRecoveryPerformed === true ? 'true' : 'false')}</span>
+        </div>`;
+      }
     }
     function renderOpsContinuityDrillWorkspace(contractPayload = {}, packagePayload = {}, driftPayload = {}) {
       const packageSummary = packagePayload.recoveryCandidatePackageSummary || {};
@@ -1245,7 +1278,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       return { channelId, sourcePayload, viewPayload };
     }
     async function loadAll() {
-      const [sources, views, clientViews, onboardingQuality, reliabilityTimeline, reliabilitySearchMetrics, backupRecoveryHandoff, continuityDrillContract, recoveryCandidatePackage, sourceHealthReplayDriftDiff, approvalGatedRecoveryChecklist, drillEvidenceExportCleanupManifest, fieldBridgeConditionGates, principal] = await Promise.all([
+      const [sources, views, clientViews, onboardingQuality, reliabilityTimeline, reliabilitySearchMetrics, backupRecoveryHandoff, stagingRestoreValidationHandoff, continuityDrillContract, recoveryCandidatePackage, sourceHealthReplayDriftDiff, approvalGatedRecoveryChecklist, drillEvidenceExportCleanupManifest, fieldBridgeConditionGates, principal] = await Promise.all([
         requestJson('/ops/api/sources'),
         requestJson('/ops/api/views'),
         requestJson('/client/api/views'),
@@ -1253,6 +1286,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         requestJson('/ops/api/source-registry/reliability-timeline'),
         requestJson('/ops/api/source-registry/reliability-search-metrics'),
         requestJson('/ops/api/source-registry/backup-recovery-handoff'),
+        requestJson('/ops/api/source-registry/staging-restore-validation-handoff'),
         requestJson('/ops/api/source-registry/continuity-drill/contract'),
         requestJson('/ops/api/source-registry/recovery-candidate-package'),
         requestJson('/ops/api/source-registry/source-health-replay-drift-diff'),
@@ -1269,6 +1303,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       renderReliabilityTimelineHealthHistory(reliabilityTimeline);
       renderSourceReliabilitySearchMetrics(reliabilitySearchMetrics);
       renderBackupRecoverySourceHandoff(backupRecoveryHandoff);
+      renderStagingRestoreValidationHandoff(stagingRestoreValidationHandoff);
       renderOpsContinuityDrillWorkspace(continuityDrillContract, recoveryCandidatePackage, sourceHealthReplayDriftDiff);
       renderApprovalGatedRecoveryChecklistAudit(approvalGatedRecoveryChecklist);
       renderDrillEvidenceExportCleanupManifest(drillEvidenceExportCleanupManifest);

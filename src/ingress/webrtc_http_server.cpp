@@ -6794,6 +6794,17 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             <div id="source-recovery-validation-plan-list" class="source-recovery-validation-plan-list"></div>
           </div>
         </div>
+        <div class="source-backup-handoff-grid" data-source-staging-restore-validation-handoff="media-server.ops.v390-staging-restore-validation-handoff.v1">
+          <div>
+            <h4>staging restore checklist</h4>
+            <p id="sourceStagingRestoreValidationStatus">staging restore validation handoff를 확인 중입니다. resultArtifactPersistedByRoute=false / productionRestorePerformed=false / automaticRecoveryPerformed=false</p>
+            <div id="source-staging-restore-checklist-list" class="source-recovery-validation-plan-list"></div>
+          </div>
+          <div>
+            <h4>result artifact contract</h4>
+            <div id="source-staging-restore-result-artifact-list" class="source-recovery-validation-plan-list"></div>
+          </div>
+        </div>
       </section>
       <section class="section-card ops-workspace-wide" data-channel-task="ops-continuity-drill-workspace" data-testid="ops-continuity-drill-workspace">
         <div class="toolbar">
@@ -16063,6 +16074,84 @@ OpsAuditQueryResult QueryOpsAuditEntries(const app::AppConfig& config,
     }
     result.has_more = offset + static_cast<int>(result.entries.size()) < result.total;
     return result;
+}
+
+std::string OpsV390StagingRestoreValidationHandoffJson() {
+    return R"JSON({
+  "ok": true,
+  "schema": "media-server.ops.v390-staging-restore-validation-handoff.v1",
+  "targetStep": "v3.9.0 (15)",
+  "featureId": "V390-CAND-005",
+  "selectedMode": "staging-restore-validation-checklist-result-handoff",
+  "sourceHandoffRoute": "/ops/api/source-registry/backup-recovery-handoff",
+  "stagingHarnessCommand": "./server.sh verify-v340-staging-restore-validation-harness",
+  "opsUiRoute": "/ops/sources",
+  "stagingRestoreValidationChecklist": [
+    {
+      "key": "registryRestoreValidation",
+      "label": "SourceRegistry staging restore validation",
+      "status": "operator-required",
+      "source": "source registry snapshot",
+      "requiredEvidence": ["sourceId", "source kind", "canonical source key", "owner/site/group context", "JSON parse result"]
+    },
+    {
+      "key": "publishedViewRestoreValidation",
+      "label": "PublishedView staging restore validation",
+      "status": "operator-required",
+      "source": "PublishedView registry",
+      "requiredEvidence": ["viewId", "sourceId link", "enabled state", "dashboard/events flags", "maxTiles", "viewer scope"]
+    },
+    {
+      "key": "sourceHealthSnapshotValidation",
+      "label": "Source health staging validation",
+      "status": "operator-required",
+      "source": "fresh source health snapshot",
+      "requiredEvidence": ["live count", "stale count", "offline count", "reconnect count", "warning drift"]
+    },
+    {
+      "key": "viewerScopeValidation",
+      "label": "Viewer scope validation",
+      "status": "operator-required",
+      "source": "scoped client API",
+      "requiredEvidence": ["/client/api/views", "client route scope", "viewer/integrator traffic reconnect approval"]
+    }
+  ],
+  "resultArtifactContract": {
+    "schema": "media-server.ops.v390-staging-restore-validation-result.v1",
+    "artifactStatus": "operator-supplied-after-staging-run",
+    "storageScope": "change-ticket-or-release-evidence-only",
+    "requiredFields": [
+      "sourceRegistryValidation",
+      "publishedViewValidation",
+      "sourceHealthSnapshotValidation",
+      "viewerScopeValidation",
+      "operator",
+      "generatedAt",
+      "failureOrSkipReason"
+    ]
+  },
+  "boundaries": {
+    "opsOnly": true,
+    "readOnly": true,
+    "stagingOnly": true,
+    "resultArtifactPersistedByRoute": false,
+    "sourceRegistryWritePerformed": false,
+    "publishedViewWritePerformed": false,
+    "sourceHealthSnapshotPersisted": false,
+    "productionRestorePerformed": false,
+    "automaticRecoveryPerformed": false,
+    "viewerScopeChanged": false,
+    "viewerClientExposureAdded": false,
+    "rawLocatorExposedToClient": false,
+    "credentialMaterialExposed": false,
+    "eventRecordSchemaChanged": false,
+    "eventPostPayloadChanged": false,
+    "webrtcDataChannelSchemaChanged": false,
+    "sseMetadataSchemaChanged": false,
+    "wsMetadataSchemaChanged": false,
+    "rtspOrWebrtcMediaPathChanged": false
+  }
+})JSON";
 }
 
 struct OpsV330ReliabilityTimelineEvent {
@@ -39767,6 +39856,18 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }
+                        }
+
+                        if (request.method == "GET" && request.path == "/ops/api/source-registry/staging-restore-validation-handoff") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            HttpResponse ok = JsonResponse(
+                                200,
+                                "OK",
+                                OpsV390StagingRestoreValidationHandoffJson());
+                            ok.headers["Cache-Control"] = "no-store";
+                            return ok;
                         }
 
                         if (request.path == "/ops/api/source-registry/backup-recovery-handoff") {

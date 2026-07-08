@@ -163,6 +163,23 @@ recovery validation plan은 아래 순서로 같은 change ticket에 기록합�
 4. viewer scope validation: `/client/api/views`와 scoped client route를 확인한 뒤 외부
    viewer나 integrator traffic을 다시 붙입니다.
 
+### v3.9 staging restore validation handoff
+
+`/ops/api/source-registry/staging-restore-validation-handoff`는 staging restore validation checklist/result artifact
+계약을 Ops handoff flow에 연결합니다. 이 route는 source registry, PublishedView,
+source health, viewer scope 검증 항목과 `media-server.ops.v390-staging-restore-validation-result.v1`
+result artifact required fields를 보여 주지만, result artifact를 저장하거나 production
+restore cutover를 수행하지 않습니다.
+
+result artifact에는 최소한 아래 내용을 change ticket 또는 release evidence에 남깁니다.
+
+| 항목 | result evidence | 완료로 보지 않는 것 |
+| --- | --- | --- |
+| source registry validation | sourceId, source kind, canonical source key, owner/site/group context, JSON parse result | SourceRegistry write, production restore cutover |
+| PublishedView validation | viewId, sourceId link, enabled state, dashboard/events flag, maxTiles, viewer scope | PublishedView write, viewer scope 자동 변경 |
+| source health validation | fresh source health live/stale/offline/reconnect/warning drift | source health snapshot persist, 장시간 안정화 PASS |
+| viewer scope validation | `/client/api/views`, scoped client route, viewer/integrator reconnect approval | external viewer traffic reconnect 실행 완료 |
+
 경계:
 
 - 이 handoff는 source registry, PublishedView, EventRecord, Event POST payload,
