@@ -117,6 +117,25 @@ Boundaries:
 - AI-minimized server longrun runner criteria are not 30분/120분 longrun execution evidence.
 - UI automation adapter criteria are not UI 풀테스트 PASS evidence.
 
+## Structure Stabilization Handoff Output
+
+Structure handoff status: `handoff-planned-with-evidence`
+
+Handoff plan: `docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md`
+
+Verifier: `./server.sh verify-v390-structure-stabilization-handoff`
+
+Handoff list: `V390-STRUCT-001`, `V390-STRUCT-002`, `V390-STRUCT-003`, `V390-STRUCT-004`, `V390-STRUCT-005`
+
+Structure implementation status: `not-run-by-this-step`
+
+Boundary:
+
+- Do not treat this handoff as route/API/UI extraction completion.
+- Do not treat this handoff as manual UI template archive split completion.
+- Do not treat this handoff as VLM contract index implementation completion.
+- This handoff is not UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, PR/main/tag/GitHub Release evidence.
+
 ## Review Gate
 
 Discovery is not complete until:

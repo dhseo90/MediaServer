@@ -95,7 +95,7 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 16 | v3.9.0 (16) action execution deferral decision | P1 | 완료 | `V390-CAND-006`: `/ops/api/actions/execution-deferral-decision`와 `/ops` Action Control Workspace가 `defer-all-action-writes`, source recheck/client notice/rule apply write deferred, approval-gated execution disabled를 표시하고 action execution/write/external delivery는 수행하지 않음 |
 | 17 | v3.9.0 (17) field evidence bridge | P2 | 완료 | `V390-CAND-009`: `/ops/api/field-evidence/bridge-decision`와 `/ops` dashboard가 `approval-only-minimal-field-evidence-bridge`, ONVIF/external WHEP-TURN/cloud-VLM 승인 조건, minimal evidence contract, not-run/no-field-execution boundary를 표시하고 field smoke/provider call/write는 수행하지 않음 |
 | 18 | v3.9.0 (18) Re-ID appearance assist model-backed path decision | P2 | 완료 | `V390-CAND-010`: `/ops/api/analysis/reid-assist-decision`와 `/ops` dashboard가 `explicit-opt-in-provenance-gated-assist`, model/checksum/provenance gate, no-op fallback, tracker-none forces off boundary를 표시하고 model-backed execution/embedding/crop serialization은 수행하지 않음 |
-| 19 | v3.9.0 (19) structure stabilization handoff 상세계획 | P0 | 미진행 | 인벤토리 `V390-STRUCT-001`~`V390-STRUCT-005`를 안정화 계획으로 이관 |
+| 19 | v3.9.0 (19) structure stabilization handoff 상세계획 | P0 | 완료 | 인벤토리 `V390-STRUCT-001`~`V390-STRUCT-005`를 `docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md`로 이관하고 `verify-v390-structure-stabilization-handoff` gate로 구조 변경 미실행 경계를 고정 |
 | 20 | v3.9.0 (20) stabilization and release readiness | P0 | 미진행 | AGENTS 네 테스트 영역 판정과 release close-out evidence 필요 |
 
 완료 경계: v3.9 source baseline/inventory 준비는 실제 기능 개발, discovery 완료,
@@ -261,6 +261,18 @@ Foundation review-ready 상태:
   - `src/ingress/product_ui_page_scripts.cpp`와 `/ops` dashboard에 `renderV390ReidAssistDecision`, `dashReidAssistDecisionBadges`, `dashReidAssistDecisionList`, `dashReidAssistDecisionBoundary`를 추가해 explicit opt-in, model/checksum/provenance gate, no-op fallback, `modelBackedExecutionPerformed=false`, `embeddingSerialized=false`, `cropSerialized=false`를 표시합니다.
   - `scripts/internal/verify_v390_conditional_field_ai_decisions.mjs`와 `./server.sh verify-v390-conditional-field-ai-decisions`가 `verify-reid-advanced-tracking`, `verify-analysis-state`와 함께 Re-ID assist UI selection, model-backed readiness, privacy boundary를 분리합니다.
   - 이 step은 Re-ID assist model-backed path decision 완성입니다. 실제 model-backed Re-ID 실행, default-on 승격, identity search, embedding/crop/model path 외부 metadata 노출, UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence가 아닙니다.
+
+## v3.9.0 Structure & Release 개발 기록
+
+이번 Structure & Release 범위는 `v3.9.0 (19)`~`v3.9.0 (20)`입니다.
+
+- Step 19 `structure stabilization handoff 상세계획`:
+  - 1차 선택값: `behavior-preserving stabilization handoff`를 선택합니다. 이번 단계는 대형 route/API/UI/docs/VLM 경계를 v4.0.0 구조 안정화 작업 단위로 넘기는 계획이며 실제 route/API/UI extraction 구현은 수행하지 않습니다.
+  - 계획 위치: `docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md`에 `V390-STRUCT-001`~`V390-STRUCT-005`를 `Route/API Ownership Extraction Map`, `Product UI Workspace Split Map`, `Source Registry Read-model Boundary Map`, `Manual UI Result Template Archive Plan`, `VLM Contract Index Consolidation Plan`으로 나눠 기록했습니다.
+  - 불변 조건: Event POST payload, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, SourceRegistry/PublishedView, Rule/Profile payload 계약은 변경하지 않습니다.
+  - `docs/v390-feature-completion-inventory.md`에 `Structure Stabilization Handoff Output`을 추가해 handoff status를 `handoff-planned-with-evidence`, structure implementation status를 `not-run-by-this-step`으로 분리했습니다.
+  - `scripts/internal/verify_v390_structure_stabilization_handoff.mjs`와 `./server.sh verify-v390-structure-stabilization-handoff`를 추가해 계획 문서, backlog, v3.9 inventory, stream verification, project inventory `SAFE-211`/`OPS-178`, release records/evidence, server dispatch/script inventory 연결을 검증합니다.
+  - 이 step은 구조 안정화 이관 계획 완료입니다. 실제 `webrtc_http_server.cpp` 분리, product UI script 분리, manual UI template archive split, VLM contract index 구현, UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence가 아닙니다.
 
 ## 이전 source roadmap 기록: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
 

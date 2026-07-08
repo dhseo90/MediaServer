@@ -81,6 +81,16 @@ v3.9.0 Test Model Prep의 서버 longrun runner는 30분/120분을 새 테스트
 | artifact policy | 임시 artifact는 cleanup하거나 보존 이유를 명시합니다. `/tmp` 경로를 최종 evidence로 쓰지 않습니다. |
 | category boundary | wrapper, preflight, dry-run, field smoke, no-device는 다섯 번째 테스트 영역이 아니며 안정화/30분/120분/UI 중 해당 위치에만 기록합니다. |
 
+## 현재 v3.9.0 verifier
+
+아래 명령은 v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation의 현재 source gate입니다.
+UI 풀테스트, 30분/120분, published metadata, release action, field smoke는 실행 evidence가
+있을 때만 별도로 PASS 근거가 됩니다.
+
+| Step | Command | Scope |
+| --- | --- | --- |
+| v3.9.0 (19) | `./server.sh verify-v390-structure-stabilization-handoff` | v3.9.0 structure stabilization handoff. `V390-STRUCT-001`~`V390-STRUCT-005`를 behavior-preserving extraction plan으로 이관하고 route/API/UI extraction implementation, UI 풀테스트, 30분/120분, published metadata evidence를 대체하지 않음 |
+
 ## 현재 v3.8.0 verifier
 
 아래 명령은 v3.8.0 Operator-Gated Action Pilot & Outcome Loop의 현재 source gate입니다.

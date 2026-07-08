@@ -392,6 +392,8 @@ Usage:
                  v3.9.0 Step 16 action execution deferral decision을 검증합니다.
   verify-v390-conditional-field-ai-decisions
                  v3.9.0 Step 17~18 conditional field / Re-ID assist decisions를 검증합니다.
+  verify-v390-structure-stabilization-handoff
+                 v3.9.0 Step 19 structure stabilization handoff 계획과 경계를 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v370-site-source-group-contract
@@ -728,6 +730,10 @@ Usage:
                  v3.9.0 Step 15 backup/recovery handoff validation을 검증합니다.
   verify-v390-action-execution-deferral-decision
                  v3.9.0 Step 16 action execution deferral decision을 검증합니다.
+  verify-v390-conditional-field-ai-decisions
+                 v3.9.0 Step 17~18 conditional field / Re-ID assist decisions를 검증합니다.
+  verify-v390-structure-stabilization-handoff
+                 v3.9.0 Step 19 structure stabilization handoff 계획과 경계를 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v370-site-source-group-contract
@@ -1938,6 +1944,10 @@ case "${cmd}" in
   verify-v390-conditional-field-ai-decisions)
     require_internal verify_v390_conditional_field_ai_decisions.mjs
     exec "${INTERNAL_DIR}/verify_v390_conditional_field_ai_decisions.mjs" "$@"
+    ;;
+  verify-v390-structure-stabilization-handoff)
+    require_internal verify_v390_structure_stabilization_handoff.mjs
+    exec "${INTERNAL_DIR}/verify_v390_structure_stabilization_handoff.mjs" "$@"
     ;;
   verify-v370-entry-baseline)
     require_internal verify_v370_entry_baseline.mjs
