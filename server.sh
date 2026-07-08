@@ -150,6 +150,12 @@ Usage:
                  제품/test UI blocking dialog 허용 기준과 fail-fast 정책을 검증합니다.
   verify-ui-fulltest-one-shot
                  throwaway seed/server와 UI 풀테스트 verifier 묶음을 한 번에 실행합니다.
+  verify-v390-ui-automation
+                 v3.9.0 R2 UI automation runner summary/report를 생성합니다.
+  verify-v390-ui-automation-report
+                 v3.9.0 R2 UI automation summary case evidence를 검증합니다.
+  verify-v390-ui-automation-runner-contract
+                 v3.9.0 R2 UI automation runner contract와 fixture evidence를 검증합니다.
   prepare-manual-ui-fulltest-seed
                  수동 UI 풀테스트용 VA seed fixture를 dry-run 검증하고, 명시 승인 시 throwaway 서버에 적용합니다.
   verify-docs-links
@@ -382,6 +388,12 @@ Usage:
                  v3.9.0 R1 server longrun stop-on-first-fail runner를 실행합니다.
   verify-v390-server-longrun-runner-contract
                  v3.9.0 R1 server longrun runner contract와 fixture evidence를 검증합니다.
+  verify-v390-ui-automation
+                 v3.9.0 R2 UI automation runner summary/report를 생성합니다.
+  verify-v390-ui-automation-report
+                 v3.9.0 R2 UI automation summary case evidence를 검증합니다.
+  verify-v390-ui-automation-runner-contract
+                 v3.9.0 R2 UI automation runner contract와 fixture evidence를 검증합니다.
   verify-v390-onvif-credential-provider-status
                  v3.9.0 Step 11 ONVIF credential/provider status summary를 검증합니다.
   verify-v390-onvif-live-import-persist-decision
@@ -1936,6 +1948,18 @@ case "${cmd}" in
   verify-v390-server-longrun-runner-contract)
     require_internal verify_v390_server_longrun_runner_contract.mjs
     exec "${INTERNAL_DIR}/verify_v390_server_longrun_runner_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-automation)
+    require_internal verify_v390_ui_automation.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_automation.mjs" "$@"
+    ;;
+  verify-v390-ui-automation-report)
+    require_internal verify_v390_ui_automation_report.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_automation_report.mjs" "$@"
+    ;;
+  verify-v390-ui-automation-runner-contract)
+    require_internal verify_v390_ui_automation_runner_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_automation_runner_contract.mjs" "$@"
     ;;
   verify-v390-onvif-credential-provider-status)
     require_internal verify_v390_onvif_credential_provider_status.mjs

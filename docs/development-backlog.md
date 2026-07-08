@@ -127,10 +127,10 @@ failure evidence가 나와야 합니다.
 | --- | --- | --- | --- | --- | --- |
 | R0 | P0 | `V390-CAND-001` inventory 상태 불일치 정리 | 실제 route/UI/verifier는 존재하지만 `docs/v390-feature-completion-inventory.md` 원 표 행은 아직 `candidate-development` | inventory 원 행을 Step 11 구현 상태와 맞춰 `closed-with-evidence`로 정리하고, Candidate/Closed 목록 문구가 서로 모순되지 않게 보정 | `./server.sh verify-v390-feature-completion-inventory`, `./server.sh verify-v390-onvif-credential-provider-status`, `git diff --check` |
 | R1 | P0 | AI-minimized server longrun runner 실제 구현 | `docs/stream-verification.md`에 기준만 있고, 기존 `verify-predev`는 여러 step을 `|| true`로 계속 실행하는 누적형 runner | 30분/120분 서버 테스트를 하나의 명령으로 시작하고 첫 실패에서 즉시 중단하며 이후 phase를 `not-run`으로 기록하는 새 runner 또는 stop-on-first-fail mode 구현 | `./server.sh verify-v390-server-longrun-runner-contract`, 실제 30분 명령 PASS, 실패 fixture에서 first-fail/not-run evidence PASS |
-| R2 | P0 | AI-minimized UI automation runner 실제 구현 | `verify-ui-fulltest-one-shot` wrapper와 Playwright/Selenium/SikuliX 기준은 있으나, 독립 Playwright/Selenium/SikuliX 기반 full UI runner는 없음 | 무료 UI 자동화 도구 우선순위에 맞춘 runner를 구현하고 route/control/action 단위 실패 report, screenshot, trace/video, console, server log, cleanup evidence를 남김 | planned command name `verify-v390-ui-automation-runner-contract`, 실제 UI automation suite PASS, 실패 fixture에서 failure report PASS |
+| R2 | P0 | AI-minimized UI automation runner 실제 구현 | `verify-v390-ui-automation`/`verify-v390-ui-automation-report`/`verify-v390-ui-automation-runner-contract` 구현으로 runner/report/fixture guard는 준비됨. 실제 UI automation suite는 사용자 승인 전 미실행 | 무료 UI 자동화 도구 우선순위에 맞춘 runner를 구현하고 route/control/action 단위 실패 report, screenshot, trace/video, console, server log, cleanup evidence를 남김 | `./server.sh verify-v390-ui-automation-runner-contract`, 실제 UI automation suite PASS, 실패 fixture에서 failure report PASS |
 | R3 | P0 | 사용자가 재실행 가능한 v3.9 test acceptance bundle | 현재 Step 20 local readiness는 장시간/UI 실행 evidence가 아니며, release evidence가 not-run을 분리함 | R1/R2 산출물을 포함한 final acceptance command set을 문서와 script dispatch에 고정하고, 각 command의 summary/report 경로를 release evidence로 복사 가능하게 함 | planned command name `verify-v390-test-acceptance-bundle --dry-run`, `./server.sh verify-script-inventory`, `./server.sh verify-release-evidence-index` |
 | R4 | P1 | legacy `verify-predev`와 새 runner 관계 정리 | 기존 longrun trigger matrix는 `verify-predev --soak-minutes 30/120`를 가리킴 | 기존 command를 유지할지, 새 command로 matrix를 바꿀지 결정하고 docs/project inventory/release policy가 같은 runner를 가리키게 정렬 | `./server.sh verify-runtime-media-longrun-trigger-matrix`, `./server.sh verify-longrun-separation`, `./server.sh verify-rc-release-gate` |
-| R5 | P1 | UI result/release evidence replay guard | wrapper PASS와 UI fulltest PASS 분리는 되어 있으나, 새 runner summary를 검증하는 replay verifier가 없음 | UI runner summary를 입력으로 받아 route/control/action 개별 행, manual intervention 없음, failed interaction 0, screenshot/trace/log 존재를 검증하는 replay verifier 구현 | planned command name `verify-v390-ui-automation-report --summary <summary.json>` |
+| R5 | P1 | UI result/release evidence replay guard | R2 runner의 `verify-v390-ui-automation-report --summary <summary.json>`가 summary schema, route/control/action 개별 행, manual intervention 없음, screenshot/trace/log 존재를 1차 검증함. 실제 UI suite 보존 summary replay는 아직 미실행 | UI runner summary를 입력으로 받아 route/control/action 개별 행, manual intervention 없음, failed interaction 0, screenshot/trace/log 존재를 검증하는 replay verifier 구현 | `./server.sh verify-v390-ui-automation-report --summary <summary.json>` |
 
 ### R1. AI-minimized server longrun runner 구현 계약
 
@@ -251,14 +251,14 @@ R1 구현 완료와 120분 실행 완료는 서로 다른 evidence입니다.
 - 실패 시 어떤 route/control/action에서 무엇이 기대와 달랐는지 사용자가 summary/report만
   보고 재현할 수 있어야 합니다.
 
-권장 command 이름:
+구현 command 이름:
 
 ```bash
-planned command name: verify-v390-ui-automation --browser-mode playwright --output-dir <path>
-planned command name: verify-v390-ui-automation --browser-mode selenium --output-dir <path>
-planned command name: verify-v390-ui-automation --browser-mode sikulix --visual-only --output-dir <path>
-planned command name: verify-v390-ui-automation-runner-contract
-planned command name: verify-v390-ui-automation-report --summary <summary.json>
+./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir <path>
+./server.sh verify-v390-ui-automation --browser-mode selenium --output-dir <path>
+./server.sh verify-v390-ui-automation --browser-mode sikulix --output-dir <path>
+./server.sh verify-v390-ui-automation-runner-contract
+./server.sh verify-v390-ui-automation-report --summary <summary.json>
 ```
 
 구현 위치 기준:
@@ -326,7 +326,7 @@ planned command name: verify-v390-ui-automation-report --summary <summary.json>
 {
   "schema": "media-server.v390-ui-automation.v1",
   "runId": "v390-ui-automation-...",
-  "command": "planned command name: verify-v390-ui-automation --browser-mode playwright --output-dir ...",
+  "command": "./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir ...",
   "browserMode": "playwright",
   "result": "PASS",
   "manualIntervention": false,
@@ -352,9 +352,9 @@ planned command name: verify-v390-ui-automation-report --summary <summary.json>
 R2 완료 판정:
 
 ```bash
-planned command name: verify-v390-ui-automation-runner-contract
-planned command name: verify-v390-ui-automation --browser-mode playwright --output-dir docs/release-artifacts/v3.9.0/ui-automation-playwright-final
-planned command name: verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json
+./server.sh verify-v390-ui-automation-runner-contract
+./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir docs/release-artifacts/v3.9.0/ui-automation-playwright-final
+./server.sh verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json
 git diff --check
 ```
 
@@ -437,7 +437,7 @@ git diff --check
 권장 command:
 
 ```bash
-planned command name: verify-v390-ui-automation-report --summary <summary.json>
+./server.sh verify-v390-ui-automation-report --summary <summary.json>
 ```
 
 검증해야 할 것:
@@ -453,7 +453,7 @@ planned command name: verify-v390-ui-automation-report --summary <summary.json>
 R5 완료 판정:
 
 ```bash
-planned command name: verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json
+./server.sh verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json
 git diff --check
 ```
 

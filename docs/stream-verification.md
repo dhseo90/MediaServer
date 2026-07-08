@@ -109,6 +109,35 @@ Approved real-duration R1 evidence:
 - 120분: not run. The 30분 PASS does not become 120분, UI fulltest, published metadata,
   release action, or field smoke evidence.
 
+### v3.9.0 R2 AI-minimized UI automation runner 실제 구현
+
+이 절은 roadmap의 `AI-minimized UI automation runner 실제 구현` 항목입니다.
+
+v3.9.0 R2 runner는 무료 UI automation 도구 우선순위를 Playwright, Selenium,
+SikuliX/image fallback 순서로 고정하고, auth-off throwaway server를 직접 시작한 뒤
+case manifest의 `route/control/action` 단위로 summary/report를 남깁니다. 콘솔에는 각 case가 시작될 때
+`[progress] (n/total) <case> <route> <controlAction> test; remaining=<count>` 형식의
+진행 상태가 출력됩니다.
+
+v3.9.0 R2 implementation command:
+
+- `./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir <path>`
+- `./server.sh verify-v390-ui-automation --browser-mode selenium --output-dir <path>`
+- `./server.sh verify-v390-ui-automation --browser-mode sikulix --output-dir <path>`
+- `./server.sh verify-v390-ui-automation-report --summary <summary.json>`
+- `./server.sh verify-v390-ui-automation-runner-contract`
+
+R2 summary schema is `media-server.v390-ui-automation.v1`. The report verifier checks
+case counts, `route/control/action` granularity, failure investigation fields,
+cleanup fields, `expectedMarkers`, and `manualIntervention=false`. Real mode does not delegate
+to `verify-ui-fulltest-one-shot`; it starts the throwaway server, opens the target route, checks
+UI markers, and stores screenshot/trace/server-log references per case.
+
+Boundary: `automationResult is not manual UI fulltest, 30-minute, 120-minute,
+published, or release-action evidence`. Fixture output and report replay are
+implementation/contract evidence only. 실제 UI automation suite와 UI 풀테스트 직접 조작
+evidence는 사용자 실행 승인과 별도 보존 summary/report가 있을 때만 PASS로 기록합니다.
+
 ## 현재 v3.9.0 verifier
 
 아래 명령은 v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation의 현재 source gate입니다.

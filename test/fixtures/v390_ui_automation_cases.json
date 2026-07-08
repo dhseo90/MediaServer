@@ -1,0 +1,82 @@
+{
+  "schema": "media-server.v390-ui-automation-cases.v1",
+  "cases": [
+    {
+      "caseId": "UI-108",
+      "featureId": "UI-108",
+      "route": "/ops/sources",
+      "viewport": { "width": 390, "height": 844 },
+      "theme": "light",
+      "accountRole": "operator",
+      "controlAction": "inspect-onvif-provider-status",
+      "expectedResult": "provider status card shows primarySelection=none and credentialMaterialExposed=false",
+      "expectedMarkers": ["providerReadiness", "primarySelection=none", "credentialMaterialExposed=false"]
+    },
+    {
+      "caseId": "UI-109",
+      "featureId": "UI-109",
+      "route": "/ops/sources",
+      "viewport": { "width": 390, "height": 844 },
+      "theme": "light",
+      "accountRole": "operator",
+      "controlAction": "inspect-live-import-persist-decision",
+      "expectedResult": "persist decision card shows manual form-save handoff and oneShotPersist=false",
+      "expectedMarkers": ["persistDecision", "manual-form-save-handoff", "oneShotPersist=false"]
+    },
+    {
+      "caseId": "UI-110",
+      "featureId": "UI-110",
+      "route": "/ops/rules",
+      "viewport": { "width": 390, "height": 844 },
+      "theme": "light",
+      "accountRole": "operator",
+      "controlAction": "inspect-vlm-rule-draft-bridge",
+      "expectedResult": "rule suggestion bridge shows manualSaveRequired=true and autoApply=false",
+      "expectedMarkers": ["ops-review-to-rule-draft-bridge", "manual-save-only", "autoApply=false"]
+    },
+    {
+      "caseId": "UI-111",
+      "featureId": "UI-111",
+      "route": "/ops/vlm",
+      "viewport": { "width": 390, "height": 844 },
+      "theme": "light",
+      "accountRole": "operator",
+      "controlAction": "inspect-vlm-evaluation-promotion-guard",
+      "expectedResult": "promotion guard shows operator-save-then-activation-review",
+      "expectedMarkers": ["operator-save-then-activation-review"]
+    },
+    {
+      "caseId": "UI-113",
+      "featureId": "UI-113",
+      "route": "/ops",
+      "viewport": { "width": 390, "height": 844 },
+      "theme": "light",
+      "accountRole": "operator",
+      "controlAction": "inspect-action-execution-deferral",
+      "expectedResult": "action execution decision shows defer-all-action-writes",
+      "expectedMarkers": ["defer-all-action-writes"]
+    },
+    {
+      "caseId": "UI-114",
+      "featureId": "UI-114",
+      "route": "/ops",
+      "viewport": { "width": 390, "height": 844 },
+      "theme": "light",
+      "accountRole": "operator",
+      "controlAction": "inspect-field-evidence-bridge",
+      "expectedResult": "field evidence bridge shows approval-only minimal evidence",
+      "expectedMarkers": ["approval-only-minimal-field-evidence-bridge"]
+    },
+    {
+      "caseId": "UI-115",
+      "featureId": "UI-115",
+      "route": "/ops",
+      "viewport": { "width": 390, "height": 844 },
+      "theme": "light",
+      "accountRole": "operator",
+      "controlAction": "inspect-reid-assist-decision",
+      "expectedResult": "Re-ID assist decision shows explicit opt-in provenance gate",
+      "expectedMarkers": ["explicit-opt-in-provenance-gated-assist"]
+    }
+  ]
+}
