@@ -184,6 +184,44 @@ check("roadmap, stream verification, inventory, and release records map v3.9 Ste
   }
 });
 
+check("v3.9 feature completion inventory closes V390-CAND-001 with Step 11 evidence", () => {
+  const row = markdownTableRow(files.v390Inventory, "V390-CAND-001");
+  for (const snippet of [
+    "/ops/api/onvif/credential-provider-status",
+    "/ops/sources",
+    "Ops-only sanitized credential provider status summary exists",
+    "Closed with `sanitized-credential-provider-status-summary`",
+    "primary provider `none`",
+    "fallback `in-memory-fixture`",
+    "persistent/external stores deferred",
+    `\`${command}\` proves route/UI/artifact docs`,
+    "provider readiness/redaction state",
+    "no secret/reference leakage",
+    "required | not-run | not-run | conditional | closed-with-evidence",
+    "UI-108",
+    "SRC-065",
+    "SAFE-203",
+    "OPS-170",
+    "Credential lookup, source/view write, persistent secret store, external secret manager, UI fulltest, 30-minute/120-minute longrun, and field credential success were not run",
+  ]) {
+    assertIncludes(row, snippet, "v390 feature completion inventory V390-CAND-001 row");
+  }
+  assert(!row.includes("candidate-development"), "V390-CAND-001 row must not remain candidate-development");
+  assert(!row.includes("Decide whether"), "V390-CAND-001 row must not remain an undecided candidate");
+});
+
+check("v3.9 feature completion inventory separates original review candidates from current active candidates", () => {
+  const section = extractBlock(files.v390Inventory, "## User Review Output", "## Required Closeout Output");
+  assertIncludes(section, "Original candidate development review list:", "v390 user review output");
+  assertIncludes(section, "Current active candidate development list: `없음`", "v390 user review output");
+  assertIncludes(section, "Closed candidate development list:", "v390 user review output");
+  const activeLine = lineStartingWith(section, "Current active candidate development list:");
+  assert(!activeLine.includes("V390-CAND-001"), "V390-CAND-001 must not be listed as an active candidate");
+  const closedLine = lineStartingWith(section, "Closed candidate development list:");
+  assertIncludes(closedLine, "V390-CAND-001", "closed candidate list");
+  assertIncludes(closedLine, "V390-CAND-010", "closed candidate list");
+});
+
 check("server entrypoint and inventory verifiers include v3.9 Step 11 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, targetScript, "server.sh script dispatch");
@@ -206,6 +244,7 @@ function loadFiles() {
     opsSourcesScript: readText("src/ingress/product_ui_ops_sources_script.cpp"),
     backlog: readText("docs/development-backlog.md"),
     streamVerification: readText("docs/stream-verification.md"),
+    v390Inventory: readText("docs/v390-feature-completion-inventory.md"),
     featureInventory: readText("docs/project-feature-test-inventory.md"),
     featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
     projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
@@ -234,6 +273,19 @@ function assertFlagFalse(text, flag) {
   const index = text.indexOf(flag);
   assert(index >= 0, `missing boundary flag: ${flag}`);
   assert(text.slice(index, index + 160).includes("false"), `boundary flag must be false: ${flag}`);
+}
+
+function markdownTableRow(text, firstCell) {
+  const prefix = `| ${firstCell} |`;
+  const row = text.split(/\r?\n/).find(line => line.startsWith(prefix));
+  assert(row, `missing markdown table row: ${firstCell}`);
+  return row;
+}
+
+function lineStartingWith(text, prefix) {
+  const line = text.split(/\r?\n/).find(item => item.startsWith(prefix));
+  assert(line, `missing line starting with: ${prefix}`);
+  return line;
 }
 
 function finish(title, summary) {

@@ -69,14 +69,16 @@ check("feature inventory exposes the fixed review output lists", () => {
   for (const snippet of [
     "## User Review Output",
     "Review-ready status: `ready-for-user-review`",
-    "Approval status: `pending-user-approval`",
-    "Feature development status: `blocked-before-user-approval`",
+    "Approval status at review gate: `pending-user-approval`",
+    "Feature development status at review gate: `blocked-before-user-approval`",
     "Required development list: `V390-REQ-001`, `V390-REQ-002`, `V390-REQ-003`",
-    "Candidate development list: `V390-CAND-001`, `V390-CAND-002`, `V390-CAND-003`, `V390-CAND-004`, `V390-CAND-005`, `V390-CAND-006`, `V390-CAND-007`, `V390-CAND-008`, `V390-CAND-009`, `V390-CAND-010`",
+    "Original candidate development review list: `V390-CAND-001`, `V390-CAND-002`, `V390-CAND-003`, `V390-CAND-004`, `V390-CAND-005`, `V390-CAND-006`, `V390-CAND-007`, `V390-CAND-008`, `V390-CAND-009`, `V390-CAND-010`",
+    "Current active candidate development list: `없음`",
+    "Closed candidate development list: `V390-CAND-001`, `V390-CAND-002`, `V390-CAND-003`, `V390-CAND-004`, `V390-CAND-005`, `V390-CAND-006`, `V390-CAND-007`, `V390-CAND-008`, `V390-CAND-009`, `V390-CAND-010`",
     "Structure handoff list: `V390-STRUCT-001`, `V390-STRUCT-002`, `V390-STRUCT-003`, `V390-STRUCT-004`, `V390-STRUCT-005`",
     "Excluded/non-scope list: `V390-EXCL-001`, `V390-EXCL-002`, `V390-EXCL-003`, `V390-EXCL-004`, `V390-EXCL-005`, `V390-EXCL-006`",
     "Next development order after approval: `V390-REQ-001` -> `V390-REQ-002` -> `V390-REQ-003`",
-    "Do not implement candidate-development rows until the user approves each candidate or approves a candidate batch.",
+    "Future candidate-development rows remain blocked until the user approves each candidate or approves a candidate batch.",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory user review output");
   }
@@ -148,8 +150,10 @@ console.log("== v3.9.0 user review gate summary ==");
 console.log("- schema: media-server.v390-user-review-gate.v1");
 console.log(`- command: ${command}`);
 console.log("- reviewReadyStatus: ready-for-user-review");
-console.log("- approvalStatus: pending-user-approval");
-console.log("- featureDevelopment: blocked-before-user-approval");
+console.log("- approvalStatusAtReviewGate: pending-user-approval");
+console.log("- featureDevelopmentAtReviewGate: blocked-before-user-approval");
+console.log("- currentActiveCandidateDevelopment: none");
+console.log("- closedCandidateDevelopment: V390-CAND-001..V390-CAND-010");
 console.log("- userApproval: not-run-by-this-command");
 console.log("- featureImplementation: not-run-by-this-command");
 console.log("- uiFulltest: not-run-by-this-command");
