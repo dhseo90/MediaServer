@@ -3084,6 +3084,38 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           approvalGatedExecutionEnabled=false · sourceRecheckExecuted=false · clientNoticeSent=false · ruleApplyPerformed=false
         </div>
       </section>
+      <section class="section-card ops-workspace-wide ops-field-evidence-bridge-decision" data-testid="ops-field-evidence-bridge-decision" data-v390-field-evidence-bridge-decision="media-server.ops.v390-field-evidence-bridge-decision.v1">
+        <div class="toolbar">
+          <div>
+            <h3>Field Evidence Bridge</h3>
+            <p>external endpoint, credential, provider field evidence를 승인 기반 최소 evidence 계약으로만 분리합니다.</p>
+          </div>
+        </div>
+        <div id="dashFieldEvidenceBridgeBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashFieldEvidenceBridgeText">field evidence bridge decision을 불러오는 중입니다.</p>
+        <div id="dashFieldEvidenceBridgeList" class="ops-field-connector-list">
+          <div class="empty">field evidence bridge decision 항목을 기다립니다.</div>
+        </div>
+        <div id="dashFieldEvidenceBridgeBoundary" class="ops-field-connector-boundary">
+          fieldSmokeExecuted=false · endpointProbePerformed=false · credentialProbePerformed=false · providerCallPerformed=false · releasePassClaimed=false
+        </div>
+      </section>
+      <section class="section-card ops-workspace-wide ops-reid-assist-decision" data-testid="ops-reid-assist-decision" data-v390-reid-assist-decision="media-server.ops.v390-reid-assist-decision.v1">
+        <div class="toolbar">
+          <div>
+            <h3>Re-ID Assist Decision</h3>
+            <p>Re-ID assist를 명시 opt-in, model provenance, no-op fallback 기준으로 구분합니다.</p>
+          </div>
+        </div>
+        <div id="dashReidAssistDecisionBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashReidAssistDecisionText">Re-ID assist decision을 불러오는 중입니다.</p>
+        <div id="dashReidAssistDecisionList" class="ops-action-control-list">
+          <div class="empty">Re-ID assist gate 항목을 기다립니다.</div>
+        </div>
+        <div id="dashReidAssistDecisionBoundary" class="ops-action-control-boundary">
+          explicitOptInRequired=true · modelBackedExecutionPerformed=false · embeddingSerialized=false · cropSerialized=false
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide ops-site-client-notice-workspace" data-testid="ops-site-client-notice-workspace" data-v370-client-notice-by-site-view-group="media-server.ops.v370-client-notice-by-site-view-group.v1">
         <div class="toolbar">
           <div>
@@ -25956,6 +25988,174 @@ std::string OpsV390ActionExecutionDeferralDecisionJson() {
     return out.str();
 }
 
+std::string OpsV390FieldEvidenceBridgeDecisionJson() {
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v390-field-evidence-bridge-decision.v1\","
+        << "\"targetStep\":\"v3.9.0 (17)\","
+        << "\"featureId\":\"V390-CAND-009\","
+        << "\"selectedMode\":\"approval-only-minimal-field-evidence-bridge\","
+        << "\"route\":\"/ops/api/field-evidence/bridge-decision\","
+        << "\"fieldConnectorEvidencePackageRoute\":\"/ops/api/actions/field-connector-evidence-package\","
+        << "\"fieldEvidenceIntakeRoute\":\"/ops/api/live-operations/field-evidence-intake\","
+        << "\"fieldEvidenceAttachmentRoute\":\"/ops/api/site-operations/field-evidence-attachment\","
+        << "\"externalTurnWhepFieldGateCommand\":\"verify-external-turn-whep-field-gate\","
+        << "\"fieldEvidenceBridgeDecisionSummary\":{"
+        << "\"decisionStatus\":\"approval-only-minimal-field-evidence-bridge\","
+        << "\"bridgeCandidateCount\":3,"
+        << "\"approvedRunCount\":0,"
+        << "\"notRunCount\":3,"
+        << "\"minimalEvidenceOnly\":true,"
+        << "\"approvalRequired\":true,"
+        << "\"fieldPassClaimed\":false,"
+        << "\"releasePassClaimed\":false,"
+        << "\"decisionReason\":\"external endpoint, credential, and provider field runs require explicit operator approval; not-run or failed runs cannot become release PASS\""
+        << "},\"fieldEvidenceBridgeDecisions\":["
+        << "{\"bridgeKind\":\"onvif-device-field-smoke\","
+        << "\"status\":\"not-run\","
+        << "\"approvalState\":\"approval-required\","
+        << "\"minimalEvidenceContract\":\"redacted endpoint class, credential reference presence, run id, status, timestamps, and failure reason only\","
+        << "\"sourceRef\":\"/ops/api/source-registry/field-bridge-condition-gates\","
+        << "\"writeBoundary\":\"fieldSmokeExecuted=false; endpointProbePerformed=false; credentialProbePerformed=false; sourceRegistryWritePerformed=false\"},"
+        << "{\"bridgeKind\":\"external-whep-turn\","
+        << "\"status\":\"not-run\","
+        << "\"approvalState\":\"approval-required\","
+        << "\"minimalEvidenceContract\":\"redacted WHEP/TURN condition id, operator approval ref, run status, and error class only\","
+        << "\"sourceRef\":\"/ops/api/actions/field-connector-evidence-package\","
+        << "\"writeBoundary\":\"externalWhepTurnContacted=false; turnCredentialUsed=false; rtspOrWebrtcMediaPathChanged=false\"},"
+        << "{\"bridgeKind\":\"cloud-vlm-provider\","
+        << "\"status\":\"not-run\","
+        << "\"approvalState\":\"approval-required\","
+        << "\"minimalEvidenceContract\":\"provider class, redaction result, approval ref, run status, and bounded summary only\","
+        << "\"sourceRef\":\"/ops/api/live-operations/field-evidence-intake\","
+        << "\"writeBoundary\":\"cloudProviderCalled=false; vlmProviderCalled=false; rawProviderMaterialIncluded=false\"}"
+        << "],\"minimalEvidenceFields\":["
+        << "\"runId\","
+        << "\"conditionId\","
+        << "\"approvalRef\","
+        << "\"status\","
+        << "\"startedAt\","
+        << "\"finishedAt\","
+        << "\"redactionStatus\","
+        << "\"failureClass\""
+        << "],\"excludedMaterial\":["
+        << "\"raw endpoint\","
+        << "\"credential material\","
+        << "\"provider request\","
+        << "\"provider response\","
+        << "\"raw media\","
+        << "\"source locator\""
+        << "],\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"approvalRequired\":true,"
+        << "\"minimalEvidenceOnly\":true,"
+        << "\"fieldSmokeExecuted\":false,"
+        << "\"endpointProbePerformed\":false,"
+        << "\"credentialProbePerformed\":false,"
+        << "\"onvifDeviceContacted\":false,"
+        << "\"externalWhepTurnContacted\":false,"
+        << "\"turnCredentialUsed\":false,"
+        << "\"cloudProviderCalled\":false,"
+        << "\"vlmProviderCalled\":false,"
+        << "\"minimalEvidencePersistedByRoute\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"fieldPassClaimed\":false,"
+        << "\"releasePassClaimed\":false,"
+        << "\"rawEndpointIncluded\":false,"
+        << "\"rawCredentialMaterialIncluded\":false,"
+        << "\"rawProviderMaterialIncluded\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+std::string OpsV390ReidAssistDecisionJson(const app::AppConfig& config) {
+    const bool appearance_enabled = config.analysis_appearance_enabled;
+    const bool extractor_selected = config.analysis_appearance_extractor == "onnx-reid";
+    const bool model_configured = !config.analysis_appearance_model_path.empty();
+    const bool checksum_configured = !config.analysis_appearance_model_sha256.empty();
+    const bool provenance_configured = !config.analysis_appearance_model_provenance.empty();
+    const bool model_backed_ready =
+        appearance_enabled && extractor_selected && model_configured && checksum_configured &&
+        provenance_configured;
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v390-reid-assist-decision.v1\","
+        << "\"targetStep\":\"v3.9.0 (18)\","
+        << "\"featureId\":\"V390-CAND-010\","
+        << "\"selectedMode\":\"explicit-opt-in-provenance-gated-assist\","
+        << "\"route\":\"/ops/api/analysis/reid-assist-decision\","
+        << "\"analysisStateCommand\":\"verify-analysis-state\","
+        << "\"reidAdvancedTrackingCommand\":\"verify-reid-advanced-tracking\","
+        << "\"reidAssistDecisionSummary\":{"
+        << "\"decisionStatus\":\"explicit-opt-in-provenance-gated-assist\","
+        << "\"defaultEnabled\":false,"
+        << "\"explicitOptInRequired\":true,"
+        << "\"associationAssistOnly\":true,"
+        << "\"trackerNoneForcesReidOff\":true,"
+        << "\"modelBackedExecutionReady\":" << JsonBool(model_backed_ready) << ","
+        << "\"noOpFallbackVisible\":" << JsonBool(!model_backed_ready) << ","
+        << "\"decisionReason\":\"Re-ID assist remains an opt-in association helper; model-backed execution requires enabled appearance analysis, onnx-reid extractor, model path, checksum, and provenance\""
+        << "},\"reidAssistRuntimeGate\":{"
+        << "\"appearanceEnabled\":" << JsonBool(appearance_enabled) << ","
+        << "\"configuredExtractor\":\"" << JsonEscape(config.analysis_appearance_extractor) << "\","
+        << "\"onnxReidExtractorSelected\":" << JsonBool(extractor_selected) << ","
+        << "\"modelPathConfigured\":" << JsonBool(model_configured) << ","
+        << "\"modelChecksumConfigured\":" << JsonBool(checksum_configured) << ","
+        << "\"modelProvenanceConfigured\":" << JsonBool(provenance_configured) << ","
+        << "\"modelBackedExecutionReady\":" << JsonBool(model_backed_ready) << ","
+        << "\"fallbackMode\":\"" << (model_backed_ready ? "configured-not-executed-by-route" : "no-op-visible") << "\""
+        << "},\"policyDecisions\":["
+        << "{\"policy\":\"tracker-with-reid-assist\","
+        << "\"decision\":\"allowed-when-explicitly-selected\","
+        << "\"runtimeMeaning\":\"selected tracker association assist only\","
+        << "\"externalMetadataBoundary\":\"no embedding, crop, model path, checksum, or identity material is serialized\"},"
+        << "{\"policy\":\"tracker-none-with-reid-assist\","
+        << "\"decision\":\"forced-off\","
+        << "\"runtimeMeaning\":\"tracker=none disables Re-ID assist\","
+        << "\"externalMetadataBoundary\":\"no assist opt-in without selected tracker\"},"
+        << "{\"policy\":\"model-backed-assist\","
+        << "\"decision\":\"provenance-gated\","
+        << "\"runtimeMeaning\":\"requires model path, checksum, provenance, enabled appearance config, and explicit operator opt-in\","
+        << "\"externalMetadataBoundary\":\"model-backed execution is distinguished from UI selection and field smoke evidence\"}"
+        << "],\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"explicitOptInRequired\":true,"
+        << "\"modelBackedExecutionPerformed\":false,"
+        << "\"appearanceExtractorCreatedByRoute\":false,"
+        << "\"runtimeReidCallPerformed\":false,"
+        << "\"embeddingSerialized\":false,"
+        << "\"cropSerialized\":false,"
+        << "\"modelPathExposed\":false,"
+        << "\"modelChecksumExposed\":false,"
+        << "\"identitySearchEnabled\":false,"
+        << "\"faceRecognitionEnabled\":false,"
+        << "\"watchlistMatchingEnabled\":false,"
+        << "\"clientViewerExposureAdded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 std::string OpsV380DefaultOffActionExplanationJson(
     const app::AppConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
@@ -38538,6 +38738,34 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV390ActionExecutionDeferralDecisionJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/field-evidence/bridge-decision") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV390FieldEvidenceBridgeDecisionJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/analysis/reid-assist-decision") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV390ReidAssistDecisionJson(config));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

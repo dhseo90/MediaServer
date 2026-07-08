@@ -1752,6 +1752,136 @@ void AppendOpsShellScript(std::ostringstream& out,
           actionExecutionDeferralRoute
         });
       };
+      let v390FieldEvidenceBridgeDecisionState = {};
+      const v390FieldEvidenceBridgeDecisionList = value => Array.isArray(value) ? value : [];
+      const v390FieldEvidenceBridgeEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-field-connector-entry ${escapeHtml(tone)}" data-v390-field-evidence-bridge-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV390FieldEvidenceBridgeDecision = (payload = {}) => {
+        const decision = payload.fieldEvidenceBridgeDecision || {};
+        const summary = decision.fieldEvidenceBridgeDecisionSummary || {};
+        const bridgeDecisions =
+          v390FieldEvidenceBridgeDecisionList(decision.fieldEvidenceBridgeDecisions);
+        const boundaryOk =
+          decision.boundaries?.fieldSmokeExecuted === false &&
+          decision.boundaries?.endpointProbePerformed === false &&
+          decision.boundaries?.credentialProbePerformed === false &&
+          decision.boundaries?.cloudProviderCalled === false &&
+          decision.boundaries?.vlmProviderCalled === false &&
+          decision.boundaries?.fieldPassClaimed === false &&
+          decision.boundaries?.releasePassClaimed === false &&
+          decision.boundaries?.rawCredentialMaterialIncluded === false &&
+          decision.boundaries?.rawProviderMaterialIncluded === false &&
+          decision.boundaries?.rtspOrWebrtcMediaPathChanged === false;
+        v390FieldEvidenceBridgeDecisionState = {
+          fieldEvidenceBridgeDecision: decision,
+          fieldEvidenceBridgeRoute: payload.fieldEvidenceBridgeRoute || '/ops/api/field-evidence/bridge-decision'
+        };
+        renderBadges('dashFieldEvidenceBridgeBadges', [
+          { text: `candidates ${summary.bridgeCandidateCount ?? bridgeDecisions.length}` },
+          { text: `approved ${summary.approvedRunCount ?? 0}` },
+          { text: summary.approvalRequired === true ? 'approval required' : 'approval 확인 필요', tone: summary.approvalRequired === true ? 'warn' : 'warn' },
+          { text: boundaryOk ? 'no field execution' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashFieldEvidenceBridgeText',
+          payload.error
+            ? `Field Evidence Bridge 로드 실패: ${payload.error}`
+            : `decision ${display(summary.decisionStatus || decision.selectedMode || 'approval-only-minimal-field-evidence-bridge')} · fieldPassClaimed=${summary.fieldPassClaimed === false ? 'false' : '확인 필요'} · releasePassClaimed=${summary.releasePassClaimed === false ? 'false' : '확인 필요'}`);
+        const list = document.getElementById('dashFieldEvidenceBridgeList');
+        if (list) {
+          const rows = bridgeDecisions.length > 0 ? bridgeDecisions : [
+            { bridgeKind: 'onvif-device-field-smoke', status: 'not-run', approvalState: 'approval-required', writeBoundary: 'fieldSmokeExecuted=false' },
+            { bridgeKind: 'external-whep-turn', status: 'not-run', approvalState: 'approval-required', writeBoundary: 'externalWhepTurnContacted=false' },
+            { bridgeKind: 'cloud-vlm-provider', status: 'not-run', approvalState: 'approval-required', writeBoundary: 'cloudProviderCalled=false' }
+          ];
+          list.innerHTML = rows.slice(0, 8).map(item =>
+            v390FieldEvidenceBridgeEntry(
+              item.bridgeKind || 'field-evidence-bridge',
+              item.bridgeKind || 'field evidence bridge',
+              `${item.status || 'not-run'} · ${item.approvalState || 'approval-required'}`,
+              `${display(item.sourceRef || '-')} · ${display(item.writeBoundary || item.minimalEvidenceContract || '-')}`,
+              item.status === 'not-run' ? 'warn' : ''))
+            .join('');
+        }
+        setText('dashFieldEvidenceBridgeBoundary',
+          `decision=${display(v390FieldEvidenceBridgeDecisionState.fieldEvidenceBridgeRoute)} · connector=${display(decision.fieldConnectorEvidencePackageRoute)} · intake=${display(decision.fieldEvidenceIntakeRoute)} · attachment=${display(decision.fieldEvidenceAttachmentRoute)} · fieldSmokeExecuted=${decision.boundaries?.fieldSmokeExecuted === false ? 'false' : '확인 필요'} · endpointProbePerformed=${decision.boundaries?.endpointProbePerformed === false ? 'false' : '확인 필요'} · credentialProbePerformed=${decision.boundaries?.credentialProbePerformed === false ? 'false' : '확인 필요'} · cloudProviderCalled=${decision.boundaries?.cloudProviderCalled === false ? 'false' : '확인 필요'} · vlmProviderCalled=${decision.boundaries?.vlmProviderCalled === false ? 'false' : '확인 필요'} · fieldPassClaimed=${decision.boundaries?.fieldPassClaimed === false ? 'false' : '확인 필요'} · releasePassClaimed=${decision.boundaries?.releasePassClaimed === false ? 'false' : '확인 필요'} · rtspOrWebrtcMediaPathChanged=${decision.boundaries?.rtspOrWebrtcMediaPathChanged === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV390FieldEvidenceBridgeDecision = async ({
+        fieldEvidenceBridgeRoute = '/ops/api/field-evidence/bridge-decision'
+      } = {}) => {
+        const fieldEvidenceBridgeDecision = await requestJson(fieldEvidenceBridgeRoute);
+        renderV390FieldEvidenceBridgeDecision({
+          fieldEvidenceBridgeDecision,
+          fieldEvidenceBridgeRoute
+        });
+      };
+      let v390ReidAssistDecisionState = {};
+      const v390ReidAssistDecisionList = value => Array.isArray(value) ? value : [];
+      const v390ReidAssistDecisionEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-action-control-entry ${escapeHtml(tone)}" data-v390-reid-assist-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV390ReidAssistDecision = (payload = {}) => {
+        const decision = payload.reidAssistDecision || {};
+        const summary = decision.reidAssistDecisionSummary || {};
+        const runtimeGate = decision.reidAssistRuntimeGate || {};
+        const policyDecisions = v390ReidAssistDecisionList(decision.policyDecisions);
+        const boundaryOk =
+          decision.boundaries?.modelBackedExecutionPerformed === false &&
+          decision.boundaries?.appearanceExtractorCreatedByRoute === false &&
+          decision.boundaries?.runtimeReidCallPerformed === false &&
+          decision.boundaries?.embeddingSerialized === false &&
+          decision.boundaries?.cropSerialized === false &&
+          decision.boundaries?.modelPathExposed === false &&
+          decision.boundaries?.identitySearchEnabled === false &&
+          decision.boundaries?.rtspOrWebrtcMediaPathChanged === false;
+        v390ReidAssistDecisionState = {
+          reidAssistDecision: decision,
+          reidAssistDecisionRoute: payload.reidAssistDecisionRoute || '/ops/api/analysis/reid-assist-decision'
+        };
+        renderBadges('dashReidAssistDecisionBadges', [
+          { text: summary.explicitOptInRequired === true ? 'explicit opt-in' : 'opt-in 확인 필요', tone: summary.explicitOptInRequired === true ? 'info' : 'warn' },
+          { text: runtimeGate.modelBackedExecutionReady === true ? 'model ready' : 'no-op fallback', tone: runtimeGate.modelBackedExecutionReady === true ? 'info' : 'warn' },
+          { text: summary.associationAssistOnly === true ? 'association assist' : 'policy 확인 필요', tone: summary.associationAssistOnly === true ? 'info' : 'warn' },
+          { text: boundaryOk ? 'no Re-ID execution' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashReidAssistDecisionText',
+          payload.error
+            ? `Re-ID Assist Decision 로드 실패: ${payload.error}`
+            : `decision ${display(summary.decisionStatus || decision.selectedMode || 'explicit-opt-in-provenance-gated-assist')} · modelBackedExecutionReady=${runtimeGate.modelBackedExecutionReady === true ? 'true' : 'false'} · fallback=${display(runtimeGate.fallbackMode || '-')}`);
+        const list = document.getElementById('dashReidAssistDecisionList');
+        if (list) {
+          const rows = policyDecisions.length > 0 ? policyDecisions : [
+            { policy: 'tracker-with-reid-assist', decision: 'allowed-when-explicitly-selected', runtimeMeaning: 'selected tracker association assist only', externalMetadataBoundary: 'no embedding/crop serialized' },
+            { policy: 'tracker-none-with-reid-assist', decision: 'forced-off', runtimeMeaning: 'tracker=none disables Re-ID assist', externalMetadataBoundary: 'no assist without tracker' },
+            { policy: 'model-backed-assist', decision: 'provenance-gated', runtimeMeaning: 'model/checksum/provenance required', externalMetadataBoundary: 'UI selection is not execution evidence' }
+          ];
+          list.innerHTML = rows.slice(0, 8).map(item =>
+            v390ReidAssistDecisionEntry(
+              item.policy || 'reid-assist',
+              item.policy || 'Re-ID assist',
+              item.decision || 'decision',
+              `${display(item.runtimeMeaning || '-')} · ${display(item.externalMetadataBoundary || '-')}`,
+              item.decision === 'forced-off' ? 'warn' : ''))
+            .join('');
+        }
+        setText('dashReidAssistDecisionBoundary',
+          `decision=${display(v390ReidAssistDecisionState.reidAssistDecisionRoute)} · appearanceEnabled=${runtimeGate.appearanceEnabled === true ? 'true' : 'false'} · extractor=${display(runtimeGate.configuredExtractor || '-')} · modelPathConfigured=${runtimeGate.modelPathConfigured === true ? 'true' : 'false'} · modelChecksumConfigured=${runtimeGate.modelChecksumConfigured === true ? 'true' : 'false'} · modelProvenanceConfigured=${runtimeGate.modelProvenanceConfigured === true ? 'true' : 'false'} · modelBackedExecutionPerformed=${decision.boundaries?.modelBackedExecutionPerformed === false ? 'false' : '확인 필요'} · runtimeReidCallPerformed=${decision.boundaries?.runtimeReidCallPerformed === false ? 'false' : '확인 필요'} · embeddingSerialized=${decision.boundaries?.embeddingSerialized === false ? 'false' : '확인 필요'} · cropSerialized=${decision.boundaries?.cropSerialized === false ? 'false' : '확인 필요'} · modelPathExposed=${decision.boundaries?.modelPathExposed === false ? 'false' : '확인 필요'} · rtspOrWebrtcMediaPathChanged=${decision.boundaries?.rtspOrWebrtcMediaPathChanged === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV390ReidAssistDecision = async ({
+        reidAssistDecisionRoute = '/ops/api/analysis/reid-assist-decision'
+      } = {}) => {
+        const reidAssistDecision = await requestJson(reidAssistDecisionRoute);
+        renderV390ReidAssistDecision({
+          reidAssistDecision,
+          reidAssistDecisionRoute
+        });
+      };
       let v370OutcomeReconciliationState = {};
       const v370OutcomeReconciliationList = value => Array.isArray(value) ? value : [];
       const v370OutcomeReconciliationEntry = (kind, title, detail, meta, tone = '') =>
@@ -3266,6 +3396,12 @@ void AppendOpsShellScript(std::ostringstream& out,
         await refreshV390ActionExecutionDeferralDecision({
           actionExecutionDeferralRoute: '/ops/api/actions/execution-deferral-decision'
         }).catch(error => renderV390ActionExecutionDeferralDecision({ error: error.message }));
+        await refreshV390FieldEvidenceBridgeDecision({
+          fieldEvidenceBridgeRoute: '/ops/api/field-evidence/bridge-decision'
+        }).catch(error => renderV390FieldEvidenceBridgeDecision({ error: error.message }));
+        await refreshV390ReidAssistDecision({
+          reidAssistDecisionRoute: '/ops/api/analysis/reid-assist-decision'
+        }).catch(error => renderV390ReidAssistDecision({ error: error.message }));
         await refreshV370RuleVaWhatIfBySite({
           whatIfRoute: '/ops/api/site-operations/rule-va-what-if-by-site'
         }).catch(error => renderV370RuleVaWhatIfBySite({ error: error.message }));

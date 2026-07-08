@@ -26,13 +26,13 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 960 |
-| UI 직접 필요 | 398 |
-| UI 간접 필요 | 34 |
-| UI 비대상 | 528 |
-| 테스트 필요 | 960 |
-| 안정화 대상 | 950 |
-| UI 풀테스트 대상 | 421 |
+| 전체 기능 항목 | 970 |
+| UI 직접 필요 | 400 |
+| UI 간접 필요 | 35 |
+| UI 비대상 | 535 |
+| 테스트 필요 | 970 |
+| 안정화 대상 | 960 |
+| UI 풀테스트 대상 | 424 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
 
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 960개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 970개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -75,6 +75,8 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | v3.9.0 (14) VLM evaluation promotion guard | `UI-111`, `LAB-123`, `SAFE-206`, `OPS-173` | `verify-v390-vlm-evaluation-promotion-guard`, `verify-vlm-evaluation-result-workflow`, `verify-vlm-profile-storage` | `/ops/api/vlm/evaluation-promotion-guard`와 `/ops/vlm`가 passed evaluation 후보의 profile draft promotion을 operator-save-then-activation-review 경계로 표시합니다. profile write/activation/runtime/provider call, client/viewer exposure, EventRecord/Event POST/WebRTC/SSE/WS/media schema 변경, UI 풀테스트 직접 조작, 30분/120분 PASS가 아닙니다 |
 | v3.9.0 (15) backup/recovery handoff validation | `UI-112`, `SRC-067`, `SAFE-207`, `OPS-174` | `verify-v390-backup-recovery-handoff-validation`, `verify-v340-staging-restore-validation-harness`, `verify-v330-ops-backup-recovery-source-handoff` | `/ops/api/source-registry/staging-restore-validation-handoff`와 `/ops/sources`가 source registry, PublishedView, source health, viewer scope staging restore checklist/result artifact contract를 표시합니다. production restore cutover, SourceRegistry/PublishedView write, automatic recovery, client exposure, UI 풀테스트 직접 조작, 30분/120분 PASS가 아닙니다 |
 | v3.9.0 (16) action execution deferral decision | `UI-113`, `EVT-087`, `SAFE-208`, `OPS-175` | `verify-v390-action-execution-deferral-decision`, `verify-v380-ops-action-control-workspace-ui`, `verify-v380-default-off-action-explanation` | `/ops/api/actions/execution-deferral-decision`와 `/ops` Action Control Workspace가 `defer-all-action-writes`, source recheck/client notice/rule apply deferred, approval-gated execution disabled를 표시합니다. action execution, source recheck, client notice send, rule apply, request/approval/readiness/outcome/receipt persist, external delivery, UI 풀테스트 직접 조작, 30분/120분 PASS가 아닙니다 |
+| v3.9.0 (17) field evidence bridge | `UI-114`, `SRC-068`, `MEDIA-027`, `LAB-124`, `SAFE-209`, `OPS-176` | `verify-v390-conditional-field-ai-decisions`, `verify-v380-field-connector-evidence-package`, `verify-v350-field-evidence-intake` | `/ops/api/field-evidence/bridge-decision`와 `/ops` dashboard가 external endpoint/credential/provider field evidence를 approval-only minimal evidence bridge로 분리합니다. field smoke, endpoint/credential probe, provider call, source/view/EventRecord/Ops audit write, raw endpoint/credential/provider material, media/schema 변경, UI 풀테스트 직접 조작, 30분/120분 PASS가 아닙니다 |
+| v3.9.0 (18) Re-ID appearance assist model-backed path decision | `UI-115`, `LAB-125`, `SAFE-210`, `OPS-177` | `verify-v390-conditional-field-ai-decisions`, `verify-reid-advanced-tracking`, `verify-analysis-state` | `/ops/api/analysis/reid-assist-decision`와 `/ops` dashboard가 Re-ID assist를 explicit opt-in, model/checksum/provenance gate, no-op fallback으로 분리합니다. model-backed execution, embedding/crop/model path serialization, identity search, client/viewer exposure, media/schema 변경, UI 풀테스트 직접 조작, 30분/120분 PASS가 아닙니다 |
 
 ## v3.8.0 Operator-Gated Action Pilot & Outcome Loop Coverage Mapping
 
@@ -383,16 +385,16 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 
 | 기능 ID 범위 | 안정화 verifier 후보 | 비고 |
 | --- | --- | --- |
-| `UI-001`~`UI-018`, `UI-022`~`UI-113` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360/v370/v380/v390 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
+| `UI-001`~`UI-018`, `UI-022`~`UI-115` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360/v370/v380/v390 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
-| `SRC-001`~`SRC-067` | source/ONVIF/UI/v340/v350/v360/v370/v380/v390 verifier family | ONVIF field success는 approved environment only |
+| `SRC-001`~`SRC-068` | source/ONVIF/UI/v340/v350/v360/v370/v380/v390 verifier family | ONVIF field success는 approved environment only |
 | `RULE-001`~`RULE-111` | rule/VA/v350/v360/v370/v390 verifier family | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
 | `EVT-001`~`EVT-087` | event/VLM/v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360/v370/v380/v390 verifier family | event log 육안 확인은 UI 풀테스트 |
 | `CLIENT-001`~`CLIENT-042` | client/UI/v350/v360/v370/v380 verifier family | viewer 비노출은 브라우저 확인 필요 |
-| `MEDIA-001`~`MEDIA-026` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
-| `LAB-001`~`LAB-123` | lab/VLM/v250/v260/v270/v280/v300/v310/v340/v350/v360/v370/v380/v390 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-208` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-175` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
+| `MEDIA-001`~`MEDIA-027` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
+| `LAB-001`~`LAB-125` | lab/VLM/v250/v260/v270/v280/v300/v310/v340/v350/v360/v370/v380/v390 fixture verifier family | 제품 UI 비대상 |
+| `SAFE-001`~`SAFE-210` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-177` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
 
 ## VA Manual UI Seed Matrix
 
@@ -553,6 +555,8 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | UI-111 | V390 Step 14 VLM evaluation promotion guard UI | 필요 | 필요 | 안정화, UI | `/ops/vlm` Evaluation result workflow 영역이 `media-server.ops.v390-vlm-evaluation-promotion-guard.v1` 기반 `passed-evaluation-manual-promotion-guard`, `operatorSaveRequired=true`, `activationGuard=true`, `runtimeCall=false`, `providerCall=false`를 표시하고 자동 저장/자동 활성화 완료처럼 표시하지 않음 |
 | UI-112 | V390 Step 15 staging restore validation handoff UI | 필요 | 필요 | 안정화, UI | `/ops/sources` Backup Handoff 영역이 `media-server.ops.v390-staging-restore-validation-handoff.v1` 기반 staging restore checklist와 result artifact contract, `resultArtifactPersistedByRoute=false`, `productionRestorePerformed=false`, `automaticRecoveryPerformed=false`를 표시하고 restore/cutover 완료처럼 표시하지 않음 |
 | UI-113 | V390 Step 16 action execution deferral decision UI | 필요 | 필요 | 안정화, UI | `/ops` Action Control Workspace 인근이 `media-server.ops.v390-action-execution-deferral-decision.v1` 기반 `defer-all-action-writes`, `approvalGatedExecutionEnabled=false`, `sourceRecheckExecuted=false`, `clientNoticeSent=false`, `ruleApplyPerformed=false`를 표시하고 action 실행 버튼이나 완료처럼 표시하지 않음 |
+| UI-114 | V390 Step 17 field evidence bridge decision UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v390-field-evidence-bridge-decision.v1` 기반 `approval-only-minimal-field-evidence-bridge`, `fieldSmokeExecuted=false`, `endpointProbePerformed=false`, `credentialProbePerformed=false`, `fieldPassClaimed=false`, `releasePassClaimed=false`를 표시하고 field 실행 버튼이나 release PASS처럼 표시하지 않음 |
+| UI-115 | V390 Step 18 Re-ID assist decision UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v390-reid-assist-decision.v1` 기반 `explicit-opt-in-provenance-gated-assist`, model/checksum/provenance gate, no-op fallback, `modelBackedExecutionPerformed=false`, `embeddingSerialized=false`, `cropSerialized=false`를 표시하고 Re-ID 실행 완료처럼 표시하지 않음 |
 
 ## B. Auth, Account, Role, Scope
 
@@ -672,6 +676,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SRC-065 | V390 Step 11 ONVIF provider readiness status summary | 간접 | 필요 | 안정화, UI | `verify-v390-onvif-credential-provider-status`가 `/ops/api/onvif/credential-provider-status`를 SourceRegistry/PublishedView write와 분리된 status summary로 검증하고, provider decision이 `none`/`in-memory-fixture`/persistent store deferred로 표시되며 raw locator, credential reference value, secret material을 source/view/client payload에 포함하지 않음을 확인 |
 | SRC-066 | V390 Step 12 ONVIF manual persist handoff | 간접 | 필요 | 안정화, UI | `verify-v390-onvif-live-import-persist-decision`가 `/ops/api/onvif/live-import-persist-decision`을 SourceRegistry/PublishedView write와 분리된 read-only decision summary로 검증하고, `/ops/api/onvif/import-draft`는 `notSaved:true`를 유지하며 실제 persist는 기존 `source:write` 수동 저장 route로만 수행됨을 확인 |
 | SRC-067 | V390 Step 15 staging restore validation source/view refs | 간접 | 필요 | 안정화, UI | `verify-v390-backup-recovery-handoff-validation`이 SourceRegistry snapshot, PublishedView registry, source health snapshot, viewer scope validation을 staging restore checklist/result artifact contract로 연결하되 source registry/PublishedView write, production restore cutover, raw locator/credential 노출을 수행하지 않음을 확인 |
+| SRC-068 | V390 Step 17 field evidence source approval boundary | 간접 | 필요 | 안정화, UI | `verify-v390-conditional-field-ai-decisions`가 ONVIF/source field evidence를 approval-only minimal evidence bridge로만 표시하고 SourceRegistry/PublishedView write, endpoint probe, credential probe, raw locator/credential 노출, field success PASS 승격을 수행하지 않음을 확인 |
 
 ## D. Rule, Profile, Scenario, Tracker
 
@@ -958,6 +963,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | MEDIA-024 | V360 Step 12 external WHEP/TURN simulation field evidence adapter | 비대상 | 필요 | 안정화 | `verify-v360-field-evidence-simulation-adapter`가 external WHEP/TURN 조건을 conditional/not-run simulation evidence로만 연결하고 WHEP 접속, TURN credential 사용, endpoint probe, media path 변경을 수행하지 않음을 확인 |
 | MEDIA-025 | V370 Step 14 external WHEP/TURN field evidence attachment | 비대상 | 필요 | 안정화 | `verify-v370-field-evidence-attachment`가 external WHEP/TURN 조건부 evidence를 site/runbook attachment ref로만 연결하고 WHEP 접속, TURN credential 사용, endpoint probe, field smoke, media path 변경을 수행하지 않음을 확인 |
 | MEDIA-026 | V380 Step 14 external WHEP/TURN connector evidence | 비대상 | 필요 | 안정화 | `verify-v380-field-connector-evidence-package`가 external WHEP/TURN connector evidence를 credential/endpoint approval condition과 receipt/readiness refs로만 연결하고 WHEP 접속, TURN credential 사용, endpoint probe, field smoke, RTSP/WebRTC media path 변경을 수행하지 않음을 확인 |
+| MEDIA-027 | V390 Step 17 external WHEP/TURN field evidence bridge | 비대상 | 필요 | 안정화 | `verify-v390-conditional-field-ai-decisions`가 external WHEP/TURN evidence를 approval-only minimal evidence bridge로만 분리하고 WHEP 접속, TURN credential 사용, endpoint probe, field smoke, RTSP/WebRTC media path 변경을 수행하지 않음을 확인 |
 
 ## H. Lab, Development API, Metadata
 
@@ -1086,6 +1092,8 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | LAB-121 | V380 Step 14 Field Connector Evidence Package harness | 비대상 | 필요 | 안정화 | `verify-v380-field-connector-evidence-package`가 `/ops/api/actions/field-connector-evidence-package`, ONVIF/external WHEP-TURN/cloud provider connector evidence, credential/endpoint approval refs, no-store guard, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 field smoke/endpoint/credential/provider/action/media 작업을 수행하지 않음을 확인 |
 | LAB-122 | V380 Step 15 default-off action explanation harness | 비대상 | 필요 | 안정화 | `verify-v380-default-off-action-explanation`이 `/ops/api/actions/default-off-explanation`, approval/readiness/outcome/receipt/field connector refs, no-store guard, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 VLM/provider/runtime/action/source/media 작업을 수행하지 않음을 확인 |
 | LAB-123 | V390 Step 14 VLM passed evaluation promotion guard | 비대상 | 필요 | 안정화 | `verify-v390-vlm-evaluation-promotion-guard`, `verify-vlm-evaluation-result-workflow`, `verify-vlm-profile-storage`가 passed evaluation 후보를 profile draft promotion 후보로만 연결하고 저장/활성화 invalid state reject, runtime/provider call default-off, sidecar/write 없음 경계를 확인 |
+| LAB-124 | V390 Step 17 cloud/VLM provider field evidence bridge | 비대상 | 필요 | 안정화 | `verify-v390-conditional-field-ai-decisions`가 cloud/VLM provider field evidence를 approval-only minimal evidence bridge로만 분리하고 provider call, VLM prompt/response 저장, raw provider material 노출, release PASS 승격을 수행하지 않음을 확인 |
+| LAB-125 | V390 Step 18 Re-ID assist runtime gate | 비대상 | 필요 | 안정화 | `verify-v390-conditional-field-ai-decisions`, `verify-reid-advanced-tracking`, `verify-analysis-state`가 Re-ID assist를 explicit opt-in association assist, model/checksum/provenance gate, no-op fallback으로 분리하고 model-backed execution과 UI selection을 혼동하지 않음을 확인 |
 
 ## I. Safety, Boundary, Invariant Contract
 
@@ -1299,6 +1307,8 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-206 | V390 Step 14 VLM activation/save/runtime boundary | 비대상 | 필요 | 안정화 | `verify-v390-vlm-evaluation-promotion-guard`가 promotion guard route가 read-only이고 profileWritePerformedByGuard=false, activationPerformedByGuard=false, runtimeVlmCallPerformed=false, cloudProviderApiCalled=false, sidecarWritePerformed=false, client/viewer/media/schema 변경 false임을 확인 |
 | SAFE-207 | V390 Step 15 no-production-restore boundary | 비대상 | 필요 | 안정화 | `verify-v390-backup-recovery-handoff-validation`이 staging restore validation handoff route가 read-only이고 resultArtifactPersistedByRoute=false, sourceRegistryWritePerformed=false, publishedViewWritePerformed=false, productionRestorePerformed=false, automaticRecoveryPerformed=false, viewerClientExposureAdded=false, media/schema 변경 false임을 확인 |
 | SAFE-208 | V390 Step 16 no-action-execution boundary | 비대상 | 필요 | 안정화 | `verify-v390-action-execution-deferral-decision`이 action execution deferral route가 read-only이고 approvalGatedExecutionEnabled=false, actionExecutionPerformed=false, sourceRecheckExecuted=false, clientNoticeSent=false, ruleApplyPerformed=false, ruleRegistryWritePerformed=false, externalDeliveryPerformed=false, media/schema 변경 false임을 확인 |
+| SAFE-209 | V390 Step 17 no-field-execution boundary | 비대상 | 필요 | 안정화 | `verify-v390-conditional-field-ai-decisions`가 field evidence bridge route가 read-only이고 fieldSmokeExecuted=false, endpointProbePerformed=false, credentialProbePerformed=false, provider calls false, raw endpoint/credential/provider material false, fieldPassClaimed=false, media/schema 변경 false임을 확인 |
+| SAFE-210 | V390 Step 18 Re-ID privacy/model boundary | 비대상 | 필요 | 안정화 | `verify-v390-conditional-field-ai-decisions`가 Re-ID assist decision route가 read-only이고 modelBackedExecutionPerformed=false, embeddingSerialized=false, cropSerialized=false, modelPathExposed=false, identitySearchEnabled=false, client/viewer/media/schema 변경 false임을 확인 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -1445,6 +1455,8 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-173 | V390 Step 14 VLM evaluation promotion decision gate | 비대상 | 필요 | 안정화 | `verify-v390-vlm-evaluation-promotion-guard`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 `/ops/api/vlm/evaluation-promotion-guard`, `/ops/vlm` promotion guard status, roadmap/release records/inventory/server dispatch 연결을 확인하되 profile save/activation/runtime/provider call, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-174 | V390 Step 15 backup/recovery validation handoff gate | 비대상 | 필요 | 안정화 | `verify-v390-backup-recovery-handoff-validation`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 `/ops/api/source-registry/staging-restore-validation-handoff`, `/ops/sources` checklist/result artifact status, roadmap/release records/inventory/server dispatch 연결을 확인하되 production restore, automatic recovery, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-175 | V390 Step 16 action execution deferral gate | 비대상 | 필요 | 안정화 | `verify-v390-action-execution-deferral-decision`, `verify-v380-ops-action-control-workspace-ui`, `verify-v380-default-off-action-explanation`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 `/ops/api/actions/execution-deferral-decision`, `/ops` deferral decision UI, roadmap/release records/inventory/server dispatch 연결을 확인하되 action execution, source recheck, client notice send, rule apply, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
+| OPS-176 | V390 Step 17 field evidence bridge gate | 비대상 | 필요 | 안정화 | `verify-v390-conditional-field-ai-decisions`, `verify-v380-field-connector-evidence-package`, `verify-v350-field-evidence-intake`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 `/ops/api/field-evidence/bridge-decision`, `/ops` field evidence bridge UI, roadmap/release records/inventory/server dispatch 연결을 확인하되 field smoke, endpoint/provider execution, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
+| OPS-177 | V390 Step 18 Re-ID assist decision gate | 비대상 | 필요 | 안정화 | `verify-v390-conditional-field-ai-decisions`, `verify-reid-advanced-tracking`, `verify-analysis-state`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 `/ops/api/analysis/reid-assist-decision`, `/ops` Re-ID assist decision UI, roadmap/release records/inventory/server dispatch 연결을 확인하되 model-backed execution, identity search, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 

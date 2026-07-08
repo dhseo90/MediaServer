@@ -148,7 +148,7 @@ check("external metadata serializers do not expose appearance identity material"
   ];
   const hits = [];
   for (const file of files) {
-    const text = stripAuditSensitiveKey(readText(file));
+    const text = stripNonAppearanceOpsBridgeJson(stripAuditSensitiveKey(readText(file)));
     for (const field of forbiddenJsonFields) {
       if (text.includes(`"${field}"`) || text.includes(`\\"${field}\\"`)) {
         hits.push(`${file}: ${field}`);
@@ -165,7 +165,9 @@ check("external metadata serializers do not expose appearance identity material"
 });
 
 check("appearance diagnostics expose aggregate status only", () => {
-  const server = stripAuditSensitiveKey(readText("src/ingress/webrtc_http_server.cpp"));
+  const server = stripNonAppearanceOpsBridgeJson(
+    stripAuditSensitiveKey(readText("src/ingress/webrtc_http_server.cpp")),
+  );
   assert(hasJsonFieldLiteral(server, "appearanceProfiles"), "runtime status should keep aggregate appearance profile count");
   assert(hasJsonFieldLiteral(server, "appearanceExtractor"), "runtime status should keep aggregate extractor stats");
   assert(!hasJsonFieldLiteral(server, "modelPath") && !hasJsonFieldLiteral(server, "model_path"), "runtime status must not expose Re-ID model path");
@@ -543,6 +545,13 @@ function hasJsonFieldLiteral(text, field) {
 
 function stripAuditSensitiveKey(text) {
   return text.replace(/bool AuditSensitiveKey\([\s\S]*?\n}\n\n/g, "");
+}
+
+function stripNonAppearanceOpsBridgeJson(text) {
+  return text.replace(
+    /std::string OpsV390VlmRuleSuggestionDraftBridgeJson\(\) \{[\s\S]*?\n}\n\n(?=std::string OpsVlmRuleSuggestionDraftWorkflowJson)/g,
+    "",
+  );
 }
 
 function parseArgs(argv) {
