@@ -394,6 +394,8 @@ Usage:
                  v3.9.0 Step 17~18 conditional field / Re-ID assist decisions를 검증합니다.
   verify-v390-structure-stabilization-handoff
                  v3.9.0 Step 19 structure stabilization handoff 계획과 경계를 검증합니다.
+  verify-v390-stabilization-release-readiness
+                 v3.9.0 Step 20 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v370-site-source-group-contract
@@ -734,6 +736,8 @@ Usage:
                  v3.9.0 Step 17~18 conditional field / Re-ID assist decisions를 검증합니다.
   verify-v390-structure-stabilization-handoff
                  v3.9.0 Step 19 structure stabilization handoff 계획과 경계를 검증합니다.
+  verify-v390-stabilization-release-readiness
+                 v3.9.0 Step 20 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v370-site-source-group-contract
@@ -1948,6 +1952,10 @@ case "${cmd}" in
   verify-v390-structure-stabilization-handoff)
     require_internal verify_v390_structure_stabilization_handoff.mjs
     exec "${INTERNAL_DIR}/verify_v390_structure_stabilization_handoff.mjs" "$@"
+    ;;
+  verify-v390-stabilization-release-readiness)
+    require_internal verify_v390_stabilization_release_readiness.mjs
+    exec "${INTERNAL_DIR}/verify_v390_stabilization_release_readiness.mjs" "$@"
     ;;
   verify-v370-entry-baseline)
     require_internal verify_v370_entry_baseline.mjs

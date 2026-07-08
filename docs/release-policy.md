@@ -125,7 +125,7 @@ v3.9.0은 현재 source branch이며 publish 완료 evidence가 아직 없습니
 Dry-run checklist:
 
 - `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>`
-- `./server.sh verify-release-closeout-helper --one-shot-dry-run`
+- `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run`
 - one-shot schema: `media-server.release-closeout-one-shot-gate.v1`
 - fail-stop: 실패 단계 이후의 release action은 건너뜁니다.
 
@@ -333,6 +333,51 @@ release evidence로 기록합니다.
 `v3.8.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
 있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.8.0`입니다.
 현재 공개 release tag 기준은 `v3.8.0`입니다. 현재 source tag 기준은 `v3.8.0`입니다.
+
+## v3.9.0 stabilization and release readiness
+
+v3.9.0 Step 20 local readiness gate는
+`media-server.v390-stabilization-release-readiness.v1` 기준으로 v3.9.0 Feature
+Completion, Structure Stabilization, and Test Model Preparation의 Step 1~19 local
+gates, AGENTS 테스트 카테고리 판정, release policy, release evidence index, release
+test records, docs links/assets, feature/script inventory, close-out dry-run command를
+같은 범위로 묶습니다. 이 절은 source tree 준비 상태를 확인할 뿐 release action을
+승인하거나 실행하지 않습니다. `verify-release-metadata --published` 미실행 상태는
+local readiness PASS로 완료 처리하지 않습니다.
+
+Companion local gate:
+
+```bash
+./server.sh verify-v390-stabilization-release-readiness
+./server.sh build
+./server.sh verify-v390-entry-baseline
+./server.sh verify-v390-feature-completion-inventory
+./server.sh verify-v390-user-review-gate
+./server.sh verify-manual-ui-evidence
+./server.sh verify-v390-evidence-test-gate-prep
+./server.sh verify-v390-onvif-credential-provider-status
+./server.sh verify-v390-onvif-live-import-persist-decision
+./server.sh verify-v390-vlm-rule-suggestion-draft-bridge
+./server.sh verify-v390-vlm-evaluation-promotion-guard
+./server.sh verify-v390-backup-recovery-handoff-validation
+./server.sh verify-v390-action-execution-deferral-decision
+./server.sh verify-v390-conditional-field-ai-decisions
+./server.sh verify-v390-structure-stabilization-handoff
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+./server.sh verify-script-inventory
+git diff --check
+```
+
+v3.9.0 Step 20 local readiness gate는 UI 풀테스트 직접 조작, 30분/120분 longrun,
+published metadata, PR/main/tag/GitHub Release, field smoke 실행 evidence를 대체하지
+않습니다.
 
 ## v3.8.0 stabilization and release readiness
 

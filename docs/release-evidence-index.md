@@ -272,6 +272,7 @@ field smoke evidence가 아닙니다.
 | v3.9.0 Required Closeout manual UI evidence | `./server.sh verify-manual-ui-evidence`, [manual-ui-fulltest.md](./manual-ui-fulltest.md), [manual-ui-checklist.md](./manual-ui-checklist.md), [manual-ui-result-template.md](./manual-ui-result-template.md), [v390-feature-completion-inventory.md](./v390-feature-completion-inventory.md) `V390-REQ-001`~`V390-REQ-003` | [release-test-records.md](./release-test-records.md) v3.9.0 `v390 Required Closeout manual UI evidence final` | [release-test-records.md](./release-test-records.md) v3.9.0 `v390 30분 longrun`, `v390 120분 longrun`, `v390 UI 풀테스트`, `v390 published metadata` | UI 풀테스트 직접 조작, 30분/120분, published metadata, release action evidence |
 | v3.9.0 Evidence/Test Gate and Test Model Prep | `./server.sh verify-v390-evidence-test-gate-prep`, [manual-ui-fulltest.md](./manual-ui-fulltest.md), [stream-verification.md](./stream-verification.md), [project-feature-test-inventory.md](./project-feature-test-inventory.md) `OPS-166`~`OPS-169`/`SAFE-199`~`SAFE-202`, [v390-feature-completion-inventory.md](./v390-feature-completion-inventory.md) `V390-CAND-007`/`V390-CAND-008`/`V390-CLOSED-003`/`V390-CLOSED-004` | [release-test-records.md](./release-test-records.md) v3.9.0 `v390 Evidence/Test Gate and Test Model Prep final` | [release-test-records.md](./release-test-records.md) v3.9.0 `v390 30분 longrun`, `v390 120분 longrun`, `v390 UI 풀테스트`, `v390 published metadata` | UI 풀테스트 직접 조작, 30분/120분 longrun 실행, published metadata, release action evidence |
 | v3.9.0 Structure Stabilization Handoff | `./server.sh verify-v390-structure-stabilization-handoff`, [v390-feature-completion-inventory.md](./v390-feature-completion-inventory.md) `V390-STRUCT-001`~`V390-STRUCT-005`, [project-feature-test-inventory.md](./project-feature-test-inventory.md) `OPS-178`/`SAFE-211`, [2026-07-08-v390-structure-stabilization-handoff.md](./superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md) | [release-test-records.md](./release-test-records.md) v3.9.0 `v390 Step 19 structure stabilization handoff final` | [release-test-records.md](./release-test-records.md) v3.9.0 `v390 구조 안정화 구현`, `v390 UI 풀테스트`, `v390 30분 longrun`, `v390 120분 longrun`, `v390 published metadata` | 실제 route/API/UI extraction 구현, manual UI archive split, VLM contract index implementation, UI 풀테스트, 30분/120분 longrun, published metadata, release action evidence |
+| v3.9.0 Stabilization and Release Readiness | `./server.sh verify-v390-stabilization-release-readiness`, `./server.sh build`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-release-evidence-index`, `./server.sh verify-release-closeout-helper --dry-run`, `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run`, [project-feature-test-inventory.md](./project-feature-test-inventory.md) `OPS-179`/`SAFE-212` | [release-test-records.md](./release-test-records.md) v3.9.0 `v390 Step 20 stabilization/release readiness final` | [release-test-records.md](./release-test-records.md) v3.9.0 `v390 Step 20 UI 풀테스트`, `v390 Step 20 30분 longrun`, `v390 Step 20 120분 longrun`, `v390 Step 20 published metadata`, `v390 Step 20 PR/main/tag/GitHub Release` | UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence, field smoke |
 
 Companion local gate:
 
@@ -281,11 +282,66 @@ Companion local gate:
 ./server.sh verify-v390-user-review-gate
 ./server.sh verify-manual-ui-evidence
 ./server.sh verify-v390-evidence-test-gate-prep
+./server.sh verify-v390-onvif-credential-provider-status
+./server.sh verify-v390-onvif-live-import-persist-decision
+./server.sh verify-v390-vlm-rule-suggestion-draft-bridge
+./server.sh verify-v390-vlm-evaluation-promotion-guard
+./server.sh verify-v390-backup-recovery-handoff-validation
+./server.sh verify-v390-action-execution-deferral-decision
+./server.sh verify-v390-conditional-field-ai-decisions
 ./server.sh verify-v390-structure-stabilization-handoff
+./server.sh verify-v390-stabilization-release-readiness
+./server.sh build
 ./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
 ./server.sh verify-project-inventory
 ./server.sh verify-feature-inventory-coverage
 ./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+./server.sh verify-script-inventory
+git diff --check
+```
+
+## v3.9.0 Step 20 local readiness gate records
+
+v3.9.0 Step 20 stabilization/release readiness는
+`media-server.v390-stabilization-release-readiness.v1` 기준으로 v3.9.0 Step 1~19
+local verifier와 release records를 묶는 색인입니다. 이 섹션은 release action을
+승인하거나 실행하지 않고, UI 풀테스트 직접 조작, 30분/120분 longrun, published
+metadata, release action evidence를 대체하지 않습니다.
+
+v3.9.0 Step 20 local readiness gate는 v3.9.0 stabilization/release readiness
+문서/명령 연결을 확인할 뿐, UI 풀테스트 직접 조작, 30분/120분 longrun, published
+metadata, release action evidence를 대체하지 않습니다.
+
+Companion local gate:
+
+```bash
+./server.sh verify-v390-stabilization-release-readiness
+./server.sh build
+./server.sh verify-v390-entry-baseline
+./server.sh verify-v390-feature-completion-inventory
+./server.sh verify-v390-user-review-gate
+./server.sh verify-manual-ui-evidence
+./server.sh verify-v390-evidence-test-gate-prep
+./server.sh verify-v390-onvif-credential-provider-status
+./server.sh verify-v390-onvif-live-import-persist-decision
+./server.sh verify-v390-vlm-rule-suggestion-draft-bridge
+./server.sh verify-v390-vlm-evaluation-promotion-guard
+./server.sh verify-v390-backup-recovery-handoff-validation
+./server.sh verify-v390-action-execution-deferral-decision
+./server.sh verify-v390-conditional-field-ai-decisions
+./server.sh verify-v390-structure-stabilization-handoff
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
 ./server.sh verify-script-inventory
 git diff --check
 ```

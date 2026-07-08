@@ -90,6 +90,7 @@ UI 풀테스트, 30분/120분, published metadata, release action, field smoke�
 | Step | Command | Scope |
 | --- | --- | --- |
 | v3.9.0 (19) | `./server.sh verify-v390-structure-stabilization-handoff` | v3.9.0 structure stabilization handoff. `V390-STRUCT-001`~`V390-STRUCT-005`를 behavior-preserving extraction plan으로 이관하고 route/API/UI extraction implementation, UI 풀테스트, 30분/120분, published metadata evidence를 대체하지 않음 |
+| v3.9.0 (20) | `./server.sh verify-v390-stabilization-release-readiness` | v3.9.0 local stabilization and release readiness. Step 1~19 verifier, release metadata/docs/assets/inventory/evidence/script, close-out dry-run, `git diff --check` companion gate 연결을 확인합니다. UI 풀테스트 직접 조작, 30분/120분, published metadata, release action evidence를 대체하지 않음 |
 
 ## 현재 v3.8.0 verifier
 

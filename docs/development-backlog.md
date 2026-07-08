@@ -96,7 +96,7 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 17 | v3.9.0 (17) field evidence bridge | P2 | 완료 | `V390-CAND-009`: `/ops/api/field-evidence/bridge-decision`와 `/ops` dashboard가 `approval-only-minimal-field-evidence-bridge`, ONVIF/external WHEP-TURN/cloud-VLM 승인 조건, minimal evidence contract, not-run/no-field-execution boundary를 표시하고 field smoke/provider call/write는 수행하지 않음 |
 | 18 | v3.9.0 (18) Re-ID appearance assist model-backed path decision | P2 | 완료 | `V390-CAND-010`: `/ops/api/analysis/reid-assist-decision`와 `/ops` dashboard가 `explicit-opt-in-provenance-gated-assist`, model/checksum/provenance gate, no-op fallback, tracker-none forces off boundary를 표시하고 model-backed execution/embedding/crop serialization은 수행하지 않음 |
 | 19 | v3.9.0 (19) structure stabilization handoff 상세계획 | P0 | 완료 | 인벤토리 `V390-STRUCT-001`~`V390-STRUCT-005`를 `docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md`로 이관하고 `verify-v390-structure-stabilization-handoff` gate로 구조 변경 미실행 경계를 고정 |
-| 20 | v3.9.0 (20) stabilization and release readiness | P0 | 미진행 | AGENTS 네 테스트 영역 판정과 release close-out evidence 필요 |
+| 20 | v3.9.0 (20) stabilization and release readiness | P0 | 완료 | AGENTS 네 테스트 영역 판정과 release close-out evidence를 실제 실행/미실행으로 분리 |
 
 완료 경계: v3.9 source baseline/inventory 준비는 실제 기능 개발, discovery 완료,
 UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action evidence가
@@ -273,6 +273,50 @@ Foundation review-ready 상태:
   - `docs/v390-feature-completion-inventory.md`에 `Structure Stabilization Handoff Output`을 추가해 handoff status를 `handoff-planned-with-evidence`, structure implementation status를 `not-run-by-this-step`으로 분리했습니다.
   - `scripts/internal/verify_v390_structure_stabilization_handoff.mjs`와 `./server.sh verify-v390-structure-stabilization-handoff`를 추가해 계획 문서, backlog, v3.9 inventory, stream verification, project inventory `SAFE-211`/`OPS-178`, release records/evidence, server dispatch/script inventory 연결을 검증합니다.
   - 이 step은 구조 안정화 이관 계획 완료입니다. 실제 `webrtc_http_server.cpp` 분리, product UI script 분리, manual UI template archive split, VLM contract index 구현, UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence가 아닙니다.
+- Step 20 `stabilization and release readiness`:
+  - 1차 선택값: `local stabilization readiness gate with explicit not-run boundaries`를 선택합니다. 이번 단계는 v3.9.0 source branch의 local readiness 문서/evidence/dispatch 연결을 닫는 작업이며 PR/main/tag/GitHub Release/published metadata/release branch 후속 action을 실행하지 않습니다.
+  - AGENTS 테스트 카테고리 판정:
+
+    | 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+    | --- | --- | --- | --- | --- |
+    | 안정화 테스트 | 진행 대상 | Step 20 local readiness는 source tree build, verifier, docs/evidence/index/dispatch, close-out dry-run 연결을 확인해야 함 | `v3.9.0 (20)`, `SAFE-212`, `OPS-179` | 현재 Step 20 범위에서 실행 |
+    | 30분 테스트 | 진행 대상 | AGENTS 7.6.2 기준 버전별 로드맵 완료와 release 가능 판정에는 30분 evidence가 필요하나 장시간 실행은 별도 명시 승인 필요 | `v3.9.0 (20)`, release evidence/not-run boundary | 사용자 명시 실행 승인 없음 - 미실행 필수 blocker |
+    | 120분 테스트 | 조건부 진행 | AGENTS 7.6.2의 high-risk/120분 trigger 또는 사용자 장시간 승인 조건이 있을 때만 진행 | `v3.9.0 (20)`, release evidence/not-run boundary | 사용자 명시 실행 승인 없음 - 미실행 조건부 |
+    | UI 풀테스트 | 진행 대상 | release checklist 전체 route/control/action 직접 조작 evidence는 local/static verifier와 대체 불가 | `v3.9.0 (20)`, release evidence/not-run boundary | 사용자 명시 실행 승인 없음 - 미실행 필수 blocker |
+
+  - Companion local gate:
+
+    ```bash
+    ./server.sh verify-v390-stabilization-release-readiness
+    ./server.sh build
+    ./server.sh verify-v390-entry-baseline
+    ./server.sh verify-v390-feature-completion-inventory
+    ./server.sh verify-v390-user-review-gate
+    ./server.sh verify-manual-ui-evidence
+    ./server.sh verify-v390-evidence-test-gate-prep
+    ./server.sh verify-v390-onvif-credential-provider-status
+    ./server.sh verify-v390-onvif-live-import-persist-decision
+    ./server.sh verify-v390-vlm-rule-suggestion-draft-bridge
+    ./server.sh verify-v390-vlm-evaluation-promotion-guard
+    ./server.sh verify-v390-backup-recovery-handoff-validation
+    ./server.sh verify-v390-action-execution-deferral-decision
+    ./server.sh verify-v390-conditional-field-ai-decisions
+    ./server.sh verify-v390-structure-stabilization-handoff
+    ./server.sh verify-release-metadata
+    ./server.sh verify-docs-links
+    ./server.sh verify-docs-ui-assets
+    ./server.sh verify-project-inventory
+    ./server.sh verify-feature-inventory-coverage
+    ./server.sh verify-release-evidence-index
+    ./server.sh verify-release-closeout-helper --dry-run
+    ./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+    ./server.sh verify-script-inventory
+    git diff --check
+    ```
+
+  - `scripts/internal/verify_v390_stabilization_release_readiness.mjs`와 `./server.sh verify-v390-stabilization-release-readiness`를 추가해 roadmap, stream verification, project inventory `SAFE-212`/`OPS-179`, release policy/evidence/records, AGENTS 테스트 판정표, server dispatch/script inventory 연결을 검증합니다.
+  - release action 승인 없음 - 미실행: PR 생성, main merge, signed tag, GitHub Release 생성/갱신, `verify-release-metadata --published`, 후속 브랜치 생성, release branch 삭제, field smoke는 이번 Step 20 local readiness PASS로 완료 처리하지 않습니다.
+  - 이 step은 local stabilization/readiness 연결 완료입니다. UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, PR/main/tag/GitHub Release, field smoke PASS가 아닙니다.
 
 ## 이전 source roadmap 기록: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
 

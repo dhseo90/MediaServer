@@ -356,6 +356,7 @@ const v390VerifierCoverage = {
     "verify-v390-action-execution-deferral-decision",
     "verify-v390-conditional-field-ai-decisions",
     "verify-v390-structure-stabilization-handoff",
+    "verify-v390-stabilization-release-readiness",
   ],
   OPS: [
     "verify-v390-entry-baseline",
@@ -370,6 +371,7 @@ const v390VerifierCoverage = {
     "verify-v390-action-execution-deferral-decision",
     "verify-v390-conditional-field-ai-decisions",
     "verify-v390-structure-stabilization-handoff",
+    "verify-v390-stabilization-release-readiness",
   ],
 };
 

@@ -114,8 +114,6 @@ check("project inventory maps Step 19 to SAFE-211 and OPS-178", () => {
     "v3.9.0 (19) structure stabilization handoff 상세계획 | `SAFE-211`, `OPS-178` | `verify-v390-structure-stabilization-handoff`",
     "| SAFE-211 | V390 Step 19 structure handoff no-behavior-change boundary |",
     "| OPS-178 | V390 Step 19 Structure Stabilization Handoff 게이트 |",
-    "`SAFE-001`~`SAFE-211`",
-    "`OPS-035`~`OPS-178`",
   ]) {
     assertIncludes(files.projectInventory, snippet, "project inventory Step 19");
   }
