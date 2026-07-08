@@ -378,6 +378,10 @@ Usage:
                  v3.9.0 User Review Gate와 승인 전 기능 개발 중단 경계를 검증합니다.
   verify-v390-evidence-test-gate-prep
                  v3.9.0 Evidence/Test Gate와 Test Model Prep 오판 방지 기준을 검증합니다.
+  verify-v390-server-longrun
+                 v3.9.0 R1 server longrun stop-on-first-fail runner를 실행합니다.
+  verify-v390-server-longrun-runner-contract
+                 v3.9.0 R1 server longrun runner contract와 fixture evidence를 검증합니다.
   verify-v390-onvif-credential-provider-status
                  v3.9.0 Step 11 ONVIF credential/provider status summary를 검증합니다.
   verify-v390-onvif-live-import-persist-decision
@@ -720,6 +724,10 @@ Usage:
                  v3.9.0 User Review Gate와 승인 전 기능 개발 중단 경계를 검증합니다.
   verify-v390-evidence-test-gate-prep
                  v3.9.0 Evidence/Test Gate와 Test Model Prep 오판 방지 기준을 검증합니다.
+  verify-v390-server-longrun
+                 v3.9.0 R1 server longrun stop-on-first-fail runner를 실행합니다.
+  verify-v390-server-longrun-runner-contract
+                 v3.9.0 R1 server longrun runner contract와 fixture evidence를 검증합니다.
   verify-v390-onvif-credential-provider-status
                  v3.9.0 Step 11 ONVIF credential/provider status summary를 검증합니다.
   verify-v390-onvif-live-import-persist-decision
@@ -1920,6 +1928,14 @@ case "${cmd}" in
   verify-v390-evidence-test-gate-prep)
     require_internal verify_v390_evidence_test_gate_prep.mjs
     exec "${INTERNAL_DIR}/verify_v390_evidence_test_gate_prep.mjs" "$@"
+    ;;
+  verify-v390-server-longrun)
+    require_internal verify_v390_server_longrun.mjs
+    exec "${INTERNAL_DIR}/verify_v390_server_longrun.mjs" "$@"
+    ;;
+  verify-v390-server-longrun-runner-contract)
+    require_internal verify_v390_server_longrun_runner_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_server_longrun_runner_contract.mjs" "$@"
     ;;
   verify-v390-onvif-credential-provider-status)
     require_internal verify_v390_onvif_credential_provider_status.mjs

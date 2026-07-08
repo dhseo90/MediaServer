@@ -19,11 +19,13 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 source roadmap: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation
 
-상태: Foundation 단계에서 baseline, feature completion inventory/discovery, 사용자
-review gate를 먼저 정렬했고, Required Closeout `V390-REQ-001`~`V390-REQ-003`은
-manual UI 기준서 current화, 장시간/UI 시작 조건 current화, v3.5-v3.8 UI coverage
-bridge 문서/test-source 기준으로 닫았습니다. Candidate development, 구조 안정화
-리팩토링, 테스트 방식 전환 구현은 별도 사용자 승인 전에는 진행하지 않습니다.
+상태: Step 1~20 local gate는 v3.9.0 source branch 기준으로 닫혔지만, 여기서
+`완료`라고 표시한 값은 각 step의 문서, read-only decision route, UI status, verifier,
+release evidence boundary가 연결되었다는 뜻입니다. 실제 30분/120분 stop-on-first-fail
+runner 구현, 무료 UI 자동화 runner 구현, 구조 안정화 리팩토링, UI 풀테스트 직접 실행,
+30분/120분 장시간 실행, published metadata, release action은 별도 evidence가 있을
+때만 완료로 봅니다. 아래 `v3.9.0 남은 구현 목표` 섹션은 다른 개발 채팅이 이 대화의
+맥락 없이도 구현해야 할 실제 목표와 통과 조건을 이해하도록 남긴 source-of-truth입니다.
 Candidate/structure 영역은 여전히 discovery 결과 승인 전 기능 개발 금지 경계를 따릅니다.
 
 직접 답: v3.9.0의 1차 선택값은 `Feature Completion First with Dedicated Inventory`입니다.
@@ -102,6 +104,374 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action evidence가
 아닙니다. `v3.9.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
 있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.8.0`입니다.
+
+## v3.9.0 남은 구현 목표: 다른 개발 채팅 인계용 상세 계약
+
+이 섹션은 v3.9.0을 닫기 전에 실제로 구현해야 할 미완성 부분을 명시합니다.
+다른 채팅이나 에이전트는 이 섹션만 읽어도 사용자가 원하는 최종 기능을 구현할 수
+있어야 합니다. 특히 테스트 자동화는 "에이전트가 직접 눌러서 확인했다"가 아니라
+사용자 또는 다른 채팅이 같은 명령을 그대로 실행했을 때 같은 PASS/FAIL과 같은
+failure evidence가 나와야 합니다.
+
+중요한 용어:
+
+- `criteria complete`: 기준, 문서, verifier 문구, not-run boundary가 정리된 상태입니다.
+- `implementation complete`: 실제 실행 가능한 script/route/UI가 있고, 실패 시 상세
+  evidence를 남기며, 사용자가 같은 command를 재실행해 같은 판정을 얻을 수 있는 상태입니다.
+- 현재 Step 9와 Step 10은 `criteria complete`입니다. 아래 R1/R2가 끝나야 사용자가 목표로 한
+  `implementation complete` 테스트 방식입니다.
+
+### v3.9.0 잔여 구현 순서
+
+| 순서 | 우선순위 | 대상 | 현재 상태 | 반드시 구현할 내용 | 완료 evidence |
+| --- | --- | --- | --- | --- | --- |
+| R0 | P0 | `V390-CAND-001` inventory 상태 불일치 정리 | 실제 route/UI/verifier는 존재하지만 `docs/v390-feature-completion-inventory.md` 원 표 행은 아직 `candidate-development` | inventory 원 행을 Step 11 구현 상태와 맞춰 `closed-with-evidence`로 정리하고, Candidate/Closed 목록 문구가 서로 모순되지 않게 보정 | `./server.sh verify-v390-feature-completion-inventory`, `./server.sh verify-v390-onvif-credential-provider-status`, `git diff --check` |
+| R1 | P0 | AI-minimized server longrun runner 실제 구현 | `docs/stream-verification.md`에 기준만 있고, 기존 `verify-predev`는 여러 step을 `|| true`로 계속 실행하는 누적형 runner | 30분/120분 서버 테스트를 하나의 명령으로 시작하고 첫 실패에서 즉시 중단하며 이후 phase를 `not-run`으로 기록하는 새 runner 또는 stop-on-first-fail mode 구현 | `./server.sh verify-v390-server-longrun-runner-contract`, 실제 30분 명령 PASS, 실패 fixture에서 first-fail/not-run evidence PASS |
+| R2 | P0 | AI-minimized UI automation runner 실제 구현 | `verify-ui-fulltest-one-shot` wrapper와 Playwright/Selenium/SikuliX 기준은 있으나, 독립 Playwright/Selenium/SikuliX 기반 full UI runner는 없음 | 무료 UI 자동화 도구 우선순위에 맞춘 runner를 구현하고 route/control/action 단위 실패 report, screenshot, trace/video, console, server log, cleanup evidence를 남김 | planned command name `verify-v390-ui-automation-runner-contract`, 실제 UI automation suite PASS, 실패 fixture에서 failure report PASS |
+| R3 | P0 | 사용자가 재실행 가능한 v3.9 test acceptance bundle | 현재 Step 20 local readiness는 장시간/UI 실행 evidence가 아니며, release evidence가 not-run을 분리함 | R1/R2 산출물을 포함한 final acceptance command set을 문서와 script dispatch에 고정하고, 각 command의 summary/report 경로를 release evidence로 복사 가능하게 함 | planned command name `verify-v390-test-acceptance-bundle --dry-run`, `./server.sh verify-script-inventory`, `./server.sh verify-release-evidence-index` |
+| R4 | P1 | legacy `verify-predev`와 새 runner 관계 정리 | 기존 longrun trigger matrix는 `verify-predev --soak-minutes 30/120`를 가리킴 | 기존 command를 유지할지, 새 command로 matrix를 바꿀지 결정하고 docs/project inventory/release policy가 같은 runner를 가리키게 정렬 | `./server.sh verify-runtime-media-longrun-trigger-matrix`, `./server.sh verify-longrun-separation`, `./server.sh verify-rc-release-gate` |
+| R5 | P1 | UI result/release evidence replay guard | wrapper PASS와 UI fulltest PASS 분리는 되어 있으나, 새 runner summary를 검증하는 replay verifier가 없음 | UI runner summary를 입력으로 받아 route/control/action 개별 행, manual intervention 없음, failed interaction 0, screenshot/trace/log 존재를 검증하는 replay verifier 구현 | planned command name `verify-v390-ui-automation-report --summary <summary.json>` |
+
+### R1. AI-minimized server longrun runner 구현 계약
+
+목표:
+
+- 사용자는 장시간 서버 테스트를 직접 해석하거나 에이전트가 서버를 손으로 보살피지 않아도 됩니다.
+- 하나의 command가 30분 또는 120분 suite를 시작하고, command line과 모든 phase 결과를
+  summary/report에 남깁니다.
+- 첫 실패가 발생하면 즉시 suite를 중단하고, 실패 phase 이후의 phase는 실행하지 않고
+  `not-run`으로 기록합니다.
+- 최종 exit code는 PASS면 `0`, FAIL이면 non-zero입니다.
+
+권장 command 이름:
+
+```bash
+./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir <path>
+./server.sh verify-v390-server-longrun --duration-minutes 120 --output-dir <path>
+./server.sh verify-v390-server-longrun-runner-contract
+```
+
+구현 위치 기준:
+
+- dispatch: `server.sh`
+- runner: `scripts/internal/verify_v390_server_longrun.mjs` 또는 `.sh`
+- contract verifier: `scripts/internal/verify_v390_server_longrun_runner_contract.mjs`
+- docs: `docs/stream-verification.md`, `docs/release-test-records.md`,
+  `docs/release-evidence-index.md`, `docs/project-feature-test-inventory.md`
+
+필수 phase 순서:
+
+| phase | 목적 | 실패 시 evidence |
+| --- | --- | --- |
+| preflight | command, duration, output dir, ports, required tools, fixture 존재 확인 | missing tool/file/port와 해결 파일 경로 |
+| build | `./server.sh build` 또는 명시적 skip 사유 | build command, exit code, build log path |
+| seed | throwaway registry/event/snapshot/clip path 준비 | seed file/path, cleanup 대상 |
+| start-server | isolated RTSP/HTTP port로 서버 시작 | port, health URL, server log path, tail |
+| integrated-smoke | 기존 `./server.sh test --no-start ...` 또는 동등 smoke | command, exit code, log path, tail |
+| soak-case-loop | VA event, event-post schema/recovery/queue, redaction 등 case를 순서대로 실행 | 실패 case id, route, command, exit code, case log, summary |
+| runtime-idle | session/stream/tap/SSE/WS idle 확인 | final runtime counts, route, log path |
+| cleanup | server terminate, ports clean, temporary artifact cleanup/preserve reason | cleanup state, remaining process/port/path |
+| report | summary JSON과 Markdown report 생성 | report write failure path |
+
+필수 summary schema:
+
+```json
+{
+  "schema": "media-server.v390-server-longrun.v1",
+  "runId": "v390-server-longrun-...",
+  "command": "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir ...",
+  "durationMinutes": 30,
+  "result": "PASS",
+  "stopOnFirstFail": true,
+  "failedPhase": "",
+  "failedCase": "",
+  "exitCode": 0,
+  "ports": { "http": 0, "rtsp": 0 },
+  "outputDir": "",
+  "summaryPath": "",
+  "reportPath": "",
+  "cleanup": {
+    "serverStopped": true,
+    "portsClean": true,
+    "temporaryArtifactsRemoved": true,
+    "preservedArtifacts": []
+  },
+  "phases": [
+    {
+      "id": "integrated-smoke",
+      "status": "PASS",
+      "command": "",
+      "exitCode": 0,
+      "logPath": "",
+      "summaryPath": "",
+      "tail": []
+    }
+  ]
+}
+```
+
+실패 fixture 요구사항:
+
+- contract verifier는 실제 30분을 기다리지 않고 의도적으로 실패하는 작은 fixture를 실행해
+  first-fail 동작을 확인해야 합니다.
+- 실패 fixture 결과는 `failedPhase`와 `failedCase`가 채워져야 합니다.
+- 실패 phase 이후 phase는 `SKIPPED`가 아니라 `not-run`으로 명확히 기록해야 합니다.
+- 실패 report에는 command, exit code, phase, route 또는 health URL, port, log path,
+  summary path, report path, cleanup state, likely investigation files가 있어야 합니다.
+
+기존 `verify-predev`와의 차이:
+
+- 현재 `scripts/internal/verify_predev_stability.sh`는 일부 step에 `|| true`를 사용해
+  실패를 누적한 뒤 마지막에 FAIL을 반환합니다. 이것은 R1 목표인 first-fail runner가 아닙니다.
+- 기존 `verify-predev`를 고치려면 compatibility risk를 문서화하고, 기존 release evidence를
+  깨지 않는 `--stop-on-first-fail` opt-in mode로 시작하는 것을 권장합니다.
+- 더 안전한 선택은 `verify-v390-server-longrun` 새 command를 만들고, release trigger matrix가
+  새 command를 가리키도록 R4에서 정렬하는 것입니다.
+
+R1 완료 판정:
+
+```bash
+./server.sh verify-v390-server-longrun-runner-contract
+./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir docs/release-artifacts/v3.9.0/server-longrun-30min-final
+git diff --check
+```
+
+120분은 AGENTS 7.6.2 high-risk/RC 조건 또는 사용자의 명시 승인 후에만 실행합니다.
+R1 구현 완료와 120분 실행 완료는 서로 다른 evidence입니다.
+
+### R2. AI-minimized UI automation runner 구현 계약
+
+목표:
+
+- 에이전트가 인앱 브라우저를 직접 클릭하지 않아도 UI test suite가 실행됩니다.
+- 무료 도구 우선순위는 Playwright, Selenium, SikuliX/image fallback 순서입니다.
+- 기본 runner는 Playwright를 우선합니다. Selenium은 Playwright 실행 불가 환경의 fallback,
+  SikuliX는 DOM만으로 video viewport, overlay, crop, visual artifact를 판정하기 어려울 때만
+  별도 visual fallback으로 둡니다.
+- 실패 시 어떤 route/control/action에서 무엇이 기대와 달랐는지 사용자가 summary/report만
+  보고 재현할 수 있어야 합니다.
+
+권장 command 이름:
+
+```bash
+planned command name: verify-v390-ui-automation --browser-mode playwright --output-dir <path>
+planned command name: verify-v390-ui-automation --browser-mode selenium --output-dir <path>
+planned command name: verify-v390-ui-automation --browser-mode sikulix --visual-only --output-dir <path>
+planned command name: verify-v390-ui-automation-runner-contract
+planned command name: verify-v390-ui-automation-report --summary <summary.json>
+```
+
+구현 위치 기준:
+
+- dispatch: `server.sh`
+- runner: `scripts/internal/verify_v390_ui_automation.mjs`
+- report verifier: `scripts/internal/verify_v390_ui_automation_report.mjs`
+- contract verifier: `scripts/internal/verify_v390_ui_automation_runner_contract.mjs`
+- case manifest: `test/fixtures/v390_ui_automation_cases.json`
+- docs: `docs/manual-ui-fulltest.md`, `docs/manual-ui-checklist.md`,
+  `docs/manual-ui-result-template.md`, `docs/release-test-records.md`,
+  `docs/release-evidence-index.md`, `docs/project-feature-test-inventory.md`
+
+필수 실행 모델:
+
+| phase | 목적 | 실패 시 evidence |
+| --- | --- | --- |
+| preflight | browser tool, dependency, output dir, auth env, fixture 확인 | missing dependency/env와 설치/설정 위치 |
+| seed | core/auth throwaway registry/users/event path 생성 | seed plan, registry dir |
+| start-core-server | auth off core UI 서버 시작 | health URL, port, server log |
+| start-auth-server | auth auto UI 서버 시작 | users file, health URL, port, server log |
+| case-loop | route/control/action manifest를 순서대로 실행 | case id, route, viewport, theme, role, control/action |
+| visual-capture | screenshot/trace/video/console/server log reference 수집 | artifact path |
+| cleanup | browser context, servers, ports, temp files 정리 | cleanup state |
+| report | summary JSON, Markdown report, optional HTML/index 생성 | report path |
+
+필수 case granularity:
+
+- case는 `Rules PASS`, `Auth PASS` 같은 큰 묶음으로 판정하지 않습니다.
+- 모든 case는 기능 ID와 route/control/action을 가져야 합니다.
+- 예시:
+  - `UI-108 onvif-provider-status visible on /ops/sources`
+  - `UI-109 onvif-live-import-persist-decision visible on /ops/sources`
+  - `UI-110 vlm-rule-suggestion-draft-bridge visible on /ops/rules`
+  - `UI-111 vlm-evaluation-promotion-guard visible on /ops/vlm`
+  - `UI-113 action-execution-deferral visible on /ops`
+  - `UI-114 field-evidence-bridge visible on /ops`
+  - `UI-115 reid-assist-decision visible on /ops`
+
+필수 failure report 필드:
+
+```json
+{
+  "caseId": "UI-108",
+  "route": "/ops/sources",
+  "viewport": { "width": 390, "height": 844 },
+  "theme": "light",
+  "accountRole": "operator",
+  "controlAction": "open-source-tools-panel",
+  "expectedResult": "provider status card shows primarySelection=none",
+  "actualResult": "card not found",
+  "screenshotPath": "",
+  "tracePath": "",
+  "videoPath": "",
+  "browserConsole": [],
+  "serverLogReference": "",
+  "cleanupPortState": "clean",
+  "manualIntervention": false
+}
+```
+
+필수 summary schema:
+
+```json
+{
+  "schema": "media-server.v390-ui-automation.v1",
+  "runId": "v390-ui-automation-...",
+  "command": "planned command name: verify-v390-ui-automation --browser-mode playwright --output-dir ...",
+  "browserMode": "playwright",
+  "result": "PASS",
+  "manualIntervention": false,
+  "caseCount": 0,
+  "pass": 0,
+  "fail": 0,
+  "notRun": 0,
+  "failedCaseId": "",
+  "outputDir": "",
+  "summaryPath": "",
+  "reportPath": "",
+  "screenshotsDir": "",
+  "tracesDir": "",
+  "cleanup": {
+    "coreServerStopped": true,
+    "authServerStopped": true,
+    "portsClean": true
+  },
+  "cases": []
+}
+```
+
+R2 완료 판정:
+
+```bash
+planned command name: verify-v390-ui-automation-runner-contract
+planned command name: verify-v390-ui-automation --browser-mode playwright --output-dir docs/release-artifacts/v3.9.0/ui-automation-playwright-final
+planned command name: verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json
+git diff --check
+```
+
+주의:
+
+- `verify-ui-fulltest-one-shot` wrapper PASS는 계속 wrapper PASS입니다. R2 runner가 PASS하더라도
+  release UI 풀테스트 PASS로 쓰려면 route/control/action 결과표와 summary/report가 함께 있어야 합니다.
+- manual intervention이 `true`인 run은 자동 clean PASS가 아닙니다.
+- screenshot만 있고 DOM/console/server log/report가 없으면 UI PASS가 아닙니다.
+
+### R3. v3.9 test acceptance bundle 구현 계약
+
+목표:
+
+- 다른 채팅이 "통과했다"고 보고할 때 사용자가 같은 command set을 그대로 재실행할 수 있어야 합니다.
+- local/static verifier PASS, server longrun PASS, UI automation PASS, not-run boundary가 서로 섞이지
+  않아야 합니다.
+
+권장 command:
+
+```bash
+planned command name: verify-v390-test-acceptance-bundle --dry-run
+planned command name: verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-final
+```
+
+`--dry-run`은 command 존재, output path, required env, case manifest, report schema만 확인하고
+장시간 테스트를 실행하지 않습니다. 실제 `--output-dir` 실행은 사용자 승인 후에만 30분/UI/조건부 120분을
+실행합니다.
+
+bundle summary는 아래 항목을 분리해야 합니다.
+
+| 항목 | PASS 조건 | PASS 대체 금지 |
+| --- | --- | --- |
+| local readiness | Step 1~20 local verifier와 docs/evidence/script inventory PASS | UI/30분/120분 실행 evidence |
+| server 30분 | R1 runner 30분 command summary `result=PASS` | contract verifier PASS |
+| server 120분 | 사용자 승인 또는 high-risk 조건에서 R1/R4 120분 summary `result=PASS` | 30분 PASS |
+| UI automation | R2 runner route/control/action summary `result=PASS`, `manualIntervention=false` | wrapper PASS, screenshot-only |
+| published metadata | `./server.sh verify-release-metadata --published` PASS | local `verify-release-metadata` |
+| release action | PR/main/tag/GitHub Release/후속 브랜치 각각 사용자 승인 후 evidence | local readiness PASS |
+
+### R4. 기존 longrun command와 새 runner 정렬 계약
+
+현재 문서와 trigger matrix에는 기존 command가 남아 있습니다.
+
+```bash
+./server.sh verify-predev --soak-minutes 30
+./server.sh verify-predev --soak-minutes 120
+./server.sh verify-va-runtime-console-longrun --duration-minutes 120
+```
+
+R1 구현 후 반드시 아래 중 하나를 선택합니다.
+
+1. 기존 command에 `--stop-on-first-fail` mode를 추가하고 release policy가 그 mode를
+   사용하도록 정렬합니다.
+2. 새 `verify-v390-server-longrun` command를 30분/120분 표준으로 채택하고 기존 command는
+   legacy/compatibility runner로 남깁니다.
+3. `verify-predev`는 short/predev 누적형, `verify-v390-server-longrun`은 release-grade
+   first-fail runner로 역할을 분리합니다.
+
+권장 선택은 3번입니다. 기존 evidence와 verifier 의미를 덜 흔들면서 사용자가 원하는 새 테스트
+방식만 명확히 추가할 수 있습니다.
+
+R4 완료 판정:
+
+```bash
+./server.sh verify-runtime-media-longrun-trigger-matrix
+./server.sh verify-longrun-separation
+./server.sh verify-rc-release-gate
+./server.sh verify-v390-server-longrun-runner-contract
+git diff --check
+```
+
+### R5. UI automation report replay guard 구현 계약
+
+목표:
+
+- 다른 채팅이 UI automation 결과를 보고할 때 summary JSON만 주면, 사용자가 verifier로
+  report 신뢰성을 다시 확인할 수 있어야 합니다.
+
+권장 command:
+
+```bash
+planned command name: verify-v390-ui-automation-report --summary <summary.json>
+```
+
+검증해야 할 것:
+
+- `schema`가 `media-server.v390-ui-automation.v1`
+- `result=PASS`이면 `fail=0`, `notRun=0`, `manualIntervention=false`
+- 모든 case에 `caseId`, `route`, `viewport`, `theme`, `accountRole`, `controlAction`,
+  `expectedResult`, `actualResult`, `screenshotPath`, `serverLogReference`, `cleanupPortState` 존재
+- artifact path가 실제 존재하거나, report가 보존하지 않은 사유를 명시
+- `browserConsole` error/warning이 있으면 PASS 불가 또는 명시적 허용 사유 필요
+- 실패 report에는 failed case 이후 case가 `not-run`으로 남아야 함
+
+R5 완료 판정:
+
+```bash
+planned command name: verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json
+git diff --check
+```
+
+### v3.9.0 잔여 구현 완료 전 금지되는 완료 주장
+
+아래 문장은 R0~R5와 필요한 실제 실행 evidence가 생기기 전에는 쓰지 않습니다.
+
+- `v3.9.0 테스트 방식 전환 구현 완료`
+- `v3.9.0 UI 풀테스트 PASS`
+- `v3.9.0 30분 PASS`
+- `v3.9.0 120분 PASS`
+- `verify-ui-fulltest-one-shot PASS이므로 UI 풀테스트 PASS`
+- `verify-v390-evidence-test-gate-prep PASS이므로 테스트 방식 구현 완료`
+- `verify-v390-stabilization-release-readiness PASS이므로 release 준비 완료`
+- `Step 19 완료이므로 구조 안정화 구현 완료`
+
+R0~R5가 끝난 뒤에도 release close-out은 AGENTS 4장과 7장에 따라 별도 승인, 별도 실행,
+별도 evidence로만 진행합니다.
 
 ## v3.9.0 Foundation 개발 기록
 

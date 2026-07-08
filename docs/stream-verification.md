@@ -67,6 +67,8 @@ Re-ID privacy/default-off gate는 Step 18에서도 유지합니다. `--reid-poli
 
 ### v3.9.0 AI-minimized server longrun runner 기준
 
+이 절은 roadmap의 `v3.9.0 (9) AI-minimized server longrun runner 기준` 항목입니다.
+
 v3.9.0 Test Model Prep의 서버 longrun runner는 30분/120분을 새 테스트 영역으로
 만들지 않고 AGENTS의 `30분`과 `120분` 영역 안에 남깁니다. runner 기준은 아래와
 같습니다.
@@ -80,6 +82,32 @@ v3.9.0 Test Model Prep의 서버 longrun runner는 30분/120분을 새 테스트
 | reproducible inputs | 같은 command와 fixture로 재현할 수 있어야 합니다. |
 | artifact policy | 임시 artifact는 cleanup하거나 보존 이유를 명시합니다. `/tmp` 경로를 최종 evidence로 쓰지 않습니다. |
 | category boundary | wrapper, preflight, dry-run, field smoke, no-device는 다섯 번째 테스트 영역이 아니며 안정화/30분/120분/UI 중 해당 위치에만 기록합니다. |
+
+v3.9.0 R1 implementation command:
+
+- `./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir <path>`
+- `./server.sh verify-v390-server-longrun --duration-minutes 120 --output-dir <path>`
+- `./server.sh verify-v390-server-longrun-runner-contract`
+
+R1 summary schema is `media-server.v390-server-longrun.v1`. The contract verifier checks
+`stop-on-first-fail`, later phase `not-run`, cleanup fields, and `fixture-only-not-real-duration`
+fixture output. Fixture output is implementation/contract evidence only and is not real
+30-minute or 120-minute duration evidence.
+
+Console progress output:
+
+- The runner prints top-level phase progress as `[progress] (1/9) preflight test; remaining=8`.
+- Child command output is streamed to the console while also being written to the phase log, so
+  delegated `verify-predev` heartbeat lines such as soak iteration progress remain visible during
+  long runs.
+
+Approved real-duration R1 evidence:
+
+- 30분: `./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir docs/release-artifacts/v3.9.0/server-longrun-30min-final`
+  produced `longrunEvidenceStatus=real-duration-evidence`, runner `result=PASS`, and delegated
+  predev `status=pass`, `pass=118`, `fail=0`, `skip=2`, `durationSec=2341`.
+- 120분: not run. The 30분 PASS does not become 120분, UI fulltest, published metadata,
+  release action, or field smoke evidence.
 
 ## 현재 v3.9.0 verifier
 
