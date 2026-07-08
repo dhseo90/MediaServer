@@ -319,6 +319,7 @@ const v390VerifierCoverage = {
     "verify-v390-onvif-credential-provider-status",
     "verify-v390-onvif-live-import-persist-decision",
     "verify-v390-vlm-rule-suggestion-draft-bridge",
+    "verify-v390-vlm-evaluation-promotion-guard",
   ],
   SRC: [
     "verify-v390-onvif-credential-provider-status",
@@ -326,6 +327,9 @@ const v390VerifierCoverage = {
   ],
   RULE: [
     "verify-v390-vlm-rule-suggestion-draft-bridge",
+  ],
+  LAB: [
+    "verify-v390-vlm-evaluation-promotion-guard",
   ],
   SAFE: [
     "verify-v390-entry-baseline",
@@ -335,6 +339,7 @@ const v390VerifierCoverage = {
     "verify-v390-onvif-credential-provider-status",
     "verify-v390-onvif-live-import-persist-decision",
     "verify-v390-vlm-rule-suggestion-draft-bridge",
+    "verify-v390-vlm-evaluation-promotion-guard",
   ],
   OPS: [
     "verify-v390-entry-baseline",
@@ -344,6 +349,7 @@ const v390VerifierCoverage = {
     "verify-v390-onvif-credential-provider-status",
     "verify-v390-onvif-live-import-persist-decision",
     "verify-v390-vlm-rule-suggestion-draft-bridge",
+    "verify-v390-vlm-evaluation-promotion-guard",
   ],
 };
 

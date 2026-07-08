@@ -84,7 +84,7 @@ fallback/disable 상태와 함께 저장하고, 저장된 profile 목록에서 �
 git diff --check
 ```
 
-`verify-vlm-profile-storage`는 API/UI/schema/fixture/document wiring을 확인합니다.
+`verify-vlm-profile-storage`는 API/UI/schema/fixture/document wiring과 profile CRUD smoke 문서 연결을 확인합니다.
 `verify-vlm-runtime-opt-in-contract`는 S01 runtime 상태 분리와 default-off invariant를
 확인합니다.
 `verify-auth-routes`는 unauth/viewer 차단, readonly operator read 허용, readonly

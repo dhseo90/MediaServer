@@ -90,7 +90,9 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 11 | v3.9.0 (11) ONVIF credential/provider status summary | P1 | 완료 | `V390-CAND-001`: `/ops/api/onvif/credential-provider-status`와 `/ops/sources` ONVIF provider summary가 primary provider `none`, fallback `in-memory-fixture`, persistent/external secret store defer 결정을 secret/reference value 비노출 상태로 표시 |
 | 12 | v3.9.0 (12) ONVIF live import persist decision | P1 | 완료 | `V390-CAND-002`: `/ops/api/onvif/live-import-persist-decision`와 `/ops/sources`가 manual form-save handoff, import draft `notSaved:true`, one-shot persist disabled, existing `source:write` save route 결정을 표시 |
 | 13 | v3.9.0 (13) VLM rule suggestion draft bridge | P1 | 완료 | `V390-CAND-003`: `/ops/api/vlm/rule-suggestion-draft-bridge`와 `/ops/rules`가 incident review provenance를 기존 VLM rule suggestion draft-only/manual-save workflow로 연결하고 rule/profile write, auto-apply, provider/runtime call은 수행하지 않음 |
-| 14-18 | v3.9.0 (14)~(18) Product/Field/AI completion decisions | P1/P2 | 미진행 | 인벤토리 `V390-CAND-004`~`V390-CAND-006`, `V390-CAND-009`, `V390-CAND-010` 순서대로 검토/개발 |
+| 14 | v3.9.0 (14) VLM evaluation promotion guard | P1 | 완료 | `V390-CAND-004`: `/ops/api/vlm/evaluation-promotion-guard`와 `/ops/vlm`가 passed evaluation 후보를 operator-save-then-activation-review 경계로 표시하고 profile write/activation/runtime/provider call은 수행하지 않음 |
+| 15-16 | v3.9.0 (15)~(16) Product completion decisions | P1 | 미진행 | 인벤토리 `V390-CAND-005`~`V390-CAND-006` 순서대로 검토/개발 |
+| 17-18 | v3.9.0 (17)~(18) Conditional Field/AI decisions | P2 | 미진행 | 이번 `/goal` 범위 밖. 사용자 별도 지시 전까지 `V390-CAND-009`, `V390-CAND-010`은 미진행 |
 | 19 | v3.9.0 (19) structure stabilization handoff 상세계획 | P0 | 미진행 | 인벤토리 `V390-STRUCT-001`~`V390-STRUCT-005`를 안정화 계획으로 이관 |
 | 20 | v3.9.0 (20) stabilization and release readiness | P0 | 미진행 | AGENTS 네 테스트 영역 판정과 release close-out evidence 필요 |
 
@@ -209,6 +211,14 @@ Foundation review-ready 상태:
   - `src/ingress/product_ui_page_scripts.cpp`와 `/ops/rules` VLM Rule draft 영역에 `loadOpsVlmRuleSuggestionDraftBridge`, `renderOpsVlmRuleSuggestionDraftBridge`, `opsVlmRuleDraftBridgeStatus`를 추가해 `ops-review-to-rule-draft-bridge`, `provenance=incident-review-provenance`, `manualSaveRequired=true`, `autoApply=false`, `ruleRegistryWrite=false`를 표시합니다.
   - `scripts/internal/verify_v390_vlm_rule_suggestion_draft_bridge.mjs`와 `./server.sh verify-v390-vlm-rule-suggestion-draft-bridge`를 추가해 route/UI/docs/inventory/release records 연결, existing draft workflow manual-save boundary, no-auto-apply/no-provider-call boundary를 검증합니다.
   - 이 step은 VLM rule suggestion review-to-draft bridge 완성입니다. 자동 rule/profile 저장, 자동 적용, 실제 VLM/provider 품질 평가, UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence가 아닙니다.
+- Step 14 `VLM evaluation promotion guard`:
+  - 1차 선택값: `passed-evaluation-manual-promotion-guard`를 선택합니다. 기존 evaluation result 후보를 새 저장/활성화 route로 자동 승격하지 않고, passed 후보만 profile draft promotion 후보로 표시합니다.
+  - persistence 방식: promotion guard route는 read-only decision/evidence summary만 반환합니다. 실제 저장은 기존 `/ops/api/vlm/profiles` operator save route와 `rule:write` scope를 거치며, 활성화는 기존 profile validation의 passed evaluation + active/enabled guard를 통과해야 합니다.
+  - boundary: Step 14 guard route 자체는 profile write, activation execution, VLM runtime/provider call, sidecar write, client/viewer exposure, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경을 수행하지 않습니다.
+  - `src/ingress/webrtc_http_server.cpp`에 `OpsV390VlmEvaluationPromotionGuardJson`과 GET `/ops/api/vlm/evaluation-promotion-guard` route를 추가했습니다. 이 route는 `require_ops_principal()`, `Cache-Control: no-store`, `media-server.ops.v390-vlm-evaluation-promotion-guard.v1` schema, `promotionFlow`, `activationGuard`, `workflowContract`를 반환합니다.
+  - `src/ingress/product_ui_page_scripts.cpp`와 `/ops/vlm` Evaluation result workflow 영역에 `loadOpsVlmEvaluationPromotionGuard`, `renderOpsVlmEvaluationPromotionGuard`, `opsVlmEvaluationPromotionGuardStatus`를 추가해 `passed-evaluation-manual-promotion-guard`, `operatorSaveRequired=true`, `activationGuard=true`, `runtimeCall=false`, `providerCall=false`를 표시합니다.
+  - `scripts/internal/verify_v390_vlm_evaluation_promotion_guard.mjs`와 `./server.sh verify-v390-vlm-evaluation-promotion-guard`를 추가해 route/UI/docs/inventory/release records 연결, existing evaluation result workflow/profile storage validation boundary, no-runtime/no-provider-call boundary를 검증합니다.
+  - 이 step은 VLM evaluation promotion guard 완성입니다. 자동 profile 저장, 자동 활성화, 실제 VLM/provider 호출, UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence가 아닙니다.
 
 ## 이전 source roadmap 기록: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
 

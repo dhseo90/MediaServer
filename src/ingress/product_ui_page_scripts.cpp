@@ -3231,6 +3231,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       let opsVlmLastPayload = null;
       let opsVlmRuntimeStatusPayload = null;
       let opsVlmEvaluationPayload = null;
+      let opsVlmEvaluationPromotionGuardPayload = null;
       let opsVlmSelectedEvaluationCandidateId = '';
       let opsVlmProfiles = [];
       let opsVlmPendingDelete = '';
@@ -3427,6 +3428,18 @@ void AppendOpsShellScript(std::ostringstream& out,
           ? `${selected.model} · ${selected.promptProfile?.id || '-'} · ${selected.evaluation?.status || 'not-run'} 상태를 profile draft에 반영했습니다.`
           : `추천 평가 후보 ${recommended}; 아직 profile draft에는 반영하지 않았습니다.`);
       };
+      const renderOpsVlmEvaluationPromotionGuard = () => {
+        const payload = opsVlmEvaluationPromotionGuardPayload;
+        const contract = payload?.workflowContract || {};
+        const guard = payload?.activationGuard || {};
+        setText('opsVlmEvaluationPromotionGuardStatus', payload
+          ? `promotion guard: ${payload.selectedMode || 'passed-evaluation-manual-promotion-guard'} / flow=${payload.promotionFlow?.operatorFlow || 'operator-save-then-activation-review'} / operatorSaveRequired=${guard.operatorSaveRequired === true} / activationGuard=${guard.passedEvaluationRequiredForActive === true} / runtimeCall=${contract.runtimeVlmCallPerformed === true} / providerCall=${contract.cloudProviderApiCalled === true}`
+          : 'promotion guard: not-loaded / operatorSaveRequired=true / activationGuard=true / runtimeCall=false / providerCall=false');
+      };
+      async function loadOpsVlmEvaluationPromotionGuard() {
+        opsVlmEvaluationPromotionGuardPayload = await requestJson('/ops/api/vlm/evaluation-promotion-guard');
+        renderOpsVlmEvaluationPromotionGuard();
+      }
       const applyOpsVlmEvaluationCandidate = candidate => {
         if (!candidate) return;
         if (candidate?.selection?.profileDraftAllowed !== true) {
@@ -3462,6 +3475,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         }
         renderOpsVlmOptions(opsVlmLastPayload);
         renderOpsVlmEvaluationResults();
+        renderOpsVlmEvaluationPromotionGuard();
         syncOpsVlmProfileDraft(opsVlmSelectedOption(), opsVlmLastPayload);
       };
       async function refreshOpsVlmEvaluationResults() {
@@ -3831,6 +3845,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderOpsVlmDisabled(payload);
         renderOpsVlmRuntimeStatus(payload);
         renderOpsVlmEvaluationResults();
+        renderOpsVlmEvaluationPromotionGuard();
         renderRaw('opsVlmRaw', 'opsVlmPretty', payload);
         window.MediaServerUi?.translatePage?.();
       }
@@ -3874,6 +3889,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         });
         refreshOpsVlmProfiles().catch(error => opsVlmProfileStatus(error.message, true));
         refreshOpsVlmEvaluationResults().catch(error => setText('opsVlmEvaluationSelectionSummary', `evaluation 결과 조회 실패: ${error.message}`));
+        loadOpsVlmEvaluationPromotionGuard().catch(error => setText('opsVlmEvaluationPromotionGuardStatus', `promotion guard 조회 실패: ${error.message}`));
       };
       const OPS_EVENT_RECORD_LIMIT = 25;
       let opsEventRecordsOffset = 0;

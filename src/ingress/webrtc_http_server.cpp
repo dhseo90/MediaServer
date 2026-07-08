@@ -4670,6 +4670,7 @@ void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
           </table>
         </div>
         <p id="opsVlmEvaluationSelectionSummary">평가 후보를 profile draft에 반영하지 않았습니다.</p>
+        <p id="opsVlmEvaluationPromotionGuardStatus" class="form-note" data-promotion-flow="operator-save-then-activation-review">promotion guard 로딩 중입니다.</p>
       </section>
       <section class="section-card ops-vlm-aux-panel ops-vlm-options-panel" data-testid="ops-vlm-options-panel" data-vlm-task="ops-aux">
         <div class="toolbar">
@@ -10396,6 +10397,56 @@ std::string OpsVlmEvaluationResultWorkflowJson() {
     "cloudProviderApiCalled": false,
     "modelArtifactDownloaded": false,
     "sidecarStored": false,
+    "eventPostPayloadChanged": false,
+    "webrtcDataChannelSchemaChanged": false,
+    "sseMetadataSchemaChanged": false,
+    "wsMetadataSchemaChanged": false,
+    "rtspOrWebrtcMediaPathChanged": false,
+    "viewerClientExposureAdded": false
+  }
+})JSON";
+}
+
+std::string OpsV390VlmEvaluationPromotionGuardJson() {
+    return R"JSON({
+  "schema": "media-server.ops.v390-vlm-evaluation-promotion-guard.v1",
+  "targetStep": "v3.9.0 (14)",
+  "featureId": "V390-CAND-004",
+  "selectedMode": "passed-evaluation-manual-promotion-guard",
+  "sourceEvaluationRoute": "/ops/api/vlm/evaluation-results",
+  "profileSaveRoute": "/ops/api/vlm/profiles",
+  "opsUiRoute": "/ops/vlm",
+  "passedCandidateId": "eval-qwen8b-event-review-default",
+  "promotionFlow": {
+    "source": "fixture evaluation candidate",
+    "draftAction": "profile draft field population",
+    "operatorFlow": "operator-save-then-activation-review",
+    "saveBoundary": "existing profile save route only",
+    "activationBoundary": "existing profile validation rejects invalid active/enabled states"
+  },
+  "activationGuard": {
+    "passedEvaluationRequiredForActive": true,
+    "operatorSaveRequired": true,
+    "operatorActivationReviewRequired": true,
+    "defaultOffPreserved": true,
+    "invalidStatesRejected": [
+      "review-required-active",
+      "failed-active",
+      "enabled-without-active-status",
+      "active-without-enabled"
+    ]
+  },
+  "workflowContract": {
+    "opsOnly": true,
+    "readOnly": true,
+    "manualPromotionRequired": true,
+    "operatorSaveRequired": true,
+    "operatorActivationReviewRequired": true,
+    "profileWritePerformedByGuard": false,
+    "activationPerformedByGuard": false,
+    "runtimeVlmCallPerformed": false,
+    "cloudProviderApiCalled": false,
+    "sidecarWritePerformed": false,
     "eventPostPayloadChanged": false,
     "webrtcDataChannelSchemaChanged": false,
     "sseMetadataSchemaChanged": false,
@@ -37974,6 +38025,16 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            ok.headers["Cache-Control"] = "no-store";
 	                            return ok;
 	                        }
+
+                            if (request.method == "GET" && request.path == "/ops/api/vlm/evaluation-promotion-guard") {
+                                if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                    return *auth_response;
+                                }
+                                HttpResponse ok =
+                                    JsonResponse(200, "OK", OpsV390VlmEvaluationPromotionGuardJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
 
                             if (request.method == "GET" && request.path == "/ops/api/vlm/rule-suggestion-draft-bridge") {
                                 if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
