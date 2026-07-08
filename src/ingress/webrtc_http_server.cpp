@@ -6989,6 +6989,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
                 <span class="chip warn">secret store off</span>
               </div>
               <p id="onvifCredentialGateStatus" class="hint" aria-live="polite">primaryStoreProvider: none / credentialRef redacted / URL credential reject</p>
+              <p id="onvifPersistDecisionStatus" class="hint" aria-live="polite">persistDecision: manual-form-save-handoff / importDraftNotSaved=true / oneShotPersist=false</p>
             </div>
             <label>ONVIF probe fixture
               <textarea id="onvifProbeDraftInput" rows="5" spellcheck="false" autocomplete="off" placeholder="test/fixtures/onvif_probe_result_stub.json 내용을 붙여넣기"></textarea>
@@ -11341,6 +11342,65 @@ std::string OpsV380ActionRouteBoundaryJson() {
         << "\"credentialMaterialExposed\":false,"
         << "\"eventPostPayloadChanged\":false,"
         << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+std::string OpsV390OnvifLiveImportPersistDecisionJson() {
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v390-onvif-live-import-persist-decision.v1\","
+        << "\"status\":\"manualImportPersistDecision\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"route\":\"/ops/api/onvif/live-import-persist-decision\","
+        << "\"requiredScope\":\"ops:read\","
+        << "\"decision\":{"
+        << "\"featureId\":\"V390-CAND-002\","
+        << "\"selectedMode\":\"manual-form-save-handoff\","
+        << "\"approvedPersistPath\":\"operator-save-channel-form\","
+        << "\"importDraftRoute\":\"/ops/api/onvif/import-draft\","
+        << "\"sourceSaveRoute\":\"/ops/api/sources/{channelId}\","
+        << "\"publishedViewSaveRoute\":\"/ops/api/views/{channelId}\","
+        << "\"oneShotPersistEnabled\":false,"
+        << "\"autoSourceViewWriteEnabled\":false,"
+        << "\"importDraftNotSavedPreserved\":true,"
+        << "\"operatorAnswer\":\"apply probe/import draft to the channel form, then require an explicit operator save for SourceRegistry and PublishedView\""
+        << "},\"scopeAndAudit\":{"
+        << "\"sourceWriteRequiredForManualSave\":true,"
+        << "\"manualSaveUsesExistingSourceViewRoutes\":true,"
+        << "\"auditBoundary\":\"existing source/view save audit trail\","
+        << "\"rollbackModel\":\"operator edit or delete after explicit save; decision route performs no rollback write\","
+        << "\"operatorReviewRequired\":true"
+        << "},\"rollbackModel\":{"
+        << "\"preSaveRollback\":\"clear or edit the draft form\","
+        << "\"postSaveRollback\":\"operator edit/delete through existing channel management routes\","
+        << "\"decisionRouteRollbackWritePerformed\":false"
+        << "},\"evidenceChecks\":";
+    AppendJsonStringArray(out,
+                          {"import-draft-notSaved",
+                           "manual-save-source-write-scope",
+                           "source-view-audit-boundary",
+                           "rollback-wording",
+                           "no-direct-persist-route"});
+    out << ",\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"importDraftEndpointNotSaved\":true,"
+        << "\"sourceWriteRequiredForManualSave\":true,"
+        << "\"oneShotPersistEnabled\":false,"
+        << "\"autoSourceViewWriteEnabled\":false,"
+        << "\"importDraftAutoPersistPerformed\":false,"
+        << "\"sourceRegistryWritePerformedByDecisionRoute\":false,"
+        << "\"publishedViewWritePerformedByDecisionRoute\":false,"
+        << "\"directPersistRouteAdded\":false,"
+        << "\"clientViewerExposureAdded\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
         << "\"webrtcDataChannelSchemaChanged\":false,"
         << "\"sseMetadataSchemaChanged\":false,"
         << "\"wsMetadataSchemaChanged\":false,"
@@ -39674,6 +39734,20 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             HttpResponse ok = RegistryHttpResponse(BuildOnvifLiveImportDraft(request.body));
                             ok.headers["Cache-Control"] = "no-store";
                             return ok;
+                        }
+
+                        if (request.path == "/ops/api/onvif/live-import-persist-decision") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV390OnvifLiveImportPersistDecisionJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
                         }
 
                         if (request.path == "/ops/api/onvif/credential-provider-status") {

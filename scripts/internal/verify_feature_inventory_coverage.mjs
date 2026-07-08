@@ -317,9 +317,11 @@ for (const [prefix, verifiers] of Object.entries(v380VerifierCoverage)) {
 const v390VerifierCoverage = {
   UI: [
     "verify-v390-onvif-credential-provider-status",
+    "verify-v390-onvif-live-import-persist-decision",
   ],
   SRC: [
     "verify-v390-onvif-credential-provider-status",
+    "verify-v390-onvif-live-import-persist-decision",
   ],
   SAFE: [
     "verify-v390-entry-baseline",
@@ -327,6 +329,7 @@ const v390VerifierCoverage = {
     "verify-v390-user-review-gate",
     "verify-v390-evidence-test-gate-prep",
     "verify-v390-onvif-credential-provider-status",
+    "verify-v390-onvif-live-import-persist-decision",
   ],
   OPS: [
     "verify-v390-entry-baseline",
@@ -334,6 +337,7 @@ const v390VerifierCoverage = {
     "verify-v390-user-review-gate",
     "verify-v390-evidence-test-gate-prep",
     "verify-v390-onvif-credential-provider-status",
+    "verify-v390-onvif-live-import-persist-decision",
   ],
 };
 

@@ -88,7 +88,8 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 9 | v3.9.0 (9) AI-minimized server longrun runner 기준 | P0 | 완료 | 30분/120분 script runner의 one command, fixed phase order, stop-on-first-fail, later phase `not-run`, failure evidence, cleanup/artifact policy 기준을 `stream-verification.md`와 verifier로 고정 |
 | 10 | v3.9.0 (10) AI-minimized UI automation adapter 기준 | P0 | 완료 | Playwright 우선, Selenium fallback, SikuliX visual fallback과 route/viewport/theme/account-role/action/expected-actual/screenshot/trace-console/log/cleanup/manual-intervention failure report 기준을 `manual-ui-fulltest.md`와 verifier로 고정 |
 | 11 | v3.9.0 (11) ONVIF credential/provider status summary | P1 | 완료 | `V390-CAND-001`: `/ops/api/onvif/credential-provider-status`와 `/ops/sources` ONVIF provider summary가 primary provider `none`, fallback `in-memory-fixture`, persistent/external secret store defer 결정을 secret/reference value 비노출 상태로 표시 |
-| 12-18 | v3.9.0 (12)~(18) Product/Field/AI completion decisions | P1/P2 | 미진행 | 인벤토리 `V390-CAND-002`~`V390-CAND-006`, `V390-CAND-009`, `V390-CAND-010` 순서대로 검토/개발 |
+| 12 | v3.9.0 (12) ONVIF live import persist decision | P1 | 완료 | `V390-CAND-002`: `/ops/api/onvif/live-import-persist-decision`와 `/ops/sources`가 manual form-save handoff, import draft `notSaved:true`, one-shot persist disabled, existing `source:write` save route 결정을 표시 |
+| 13-18 | v3.9.0 (13)~(18) Product/Field/AI completion decisions | P1/P2 | 미진행 | 인벤토리 `V390-CAND-003`~`V390-CAND-006`, `V390-CAND-009`, `V390-CAND-010` 순서대로 검토/개발 |
 | 19 | v3.9.0 (19) structure stabilization handoff 상세계획 | P0 | 미진행 | 인벤토리 `V390-STRUCT-001`~`V390-STRUCT-005`를 안정화 계획으로 이관 |
 | 20 | v3.9.0 (20) stabilization and release readiness | P0 | 미진행 | AGENTS 네 테스트 영역 판정과 release close-out evidence 필요 |
 
@@ -191,6 +192,14 @@ Foundation review-ready 상태:
   - `src/ingress/product_ui_ops_sources_script.cpp`에 `loadOnvifCredentialProviderStatus`와 `renderOnvifCredentialProviderStatus`를 추가해 `/ops/sources` ONVIF 도구 영역이 `primarySelection=none`, fallback `in-memory-fixture`, `persistent store deferred`, `referenceValueExposed=false`, `credentialMaterialExposed=false` 상태를 표시합니다.
   - `scripts/internal/verify_v390_onvif_credential_provider_status.mjs`와 `./server.sh verify-v390-onvif-credential-provider-status`를 추가해 route/UI/docs/inventory/release records 연결과 secret/reference value 비노출 경계를 검증합니다.
   - 이 step은 provider readiness/status summary 완성입니다. ONVIF 실기기 credential 성공, persistent secret store, external secret manager, source/view persist decision, UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence가 아닙니다.
+- Step 12 `ONVIF live import persist decision`:
+  - 1차 선택값: `/ops/api/onvif/import-draft`는 계속 `notSaved:true` draft API로 유지하고, one-shot source/view persist route는 열지 않습니다.
+  - persist 방식: `manual-form-save-handoff`를 선택합니다. Probe/import draft는 `/ops/sources` 채널 form에 적용되고, 실제 SourceRegistry/PublishedView 저장은 기존 operator save flow와 `source:write` scope를 거칩니다.
+  - rollback/audit 경계: save 전에는 draft form clear/edit, save 후에는 기존 channel edit/delete route로 rollback합니다. Step 12 decision route 자체는 SourceRegistry/PublishedView write, rollback write, client exposure, schema/media mutation을 수행하지 않습니다.
+  - `src/ingress/webrtc_http_server.cpp`에 `OpsV390OnvifLiveImportPersistDecisionJson`과 GET `/ops/api/onvif/live-import-persist-decision` route를 추가했습니다. 이 route는 `require_ops_principal()`, `Cache-Control: no-store`, `media-server.ops.v390-onvif-live-import-persist-decision.v1` schema, `decision`, `scopeAndAudit`, `rollbackModel`, `boundaries`를 반환합니다.
+  - `src/ingress/product_ui_ops_sources_script.cpp`와 `/ops/sources` ONVIF 도구 영역에 `loadOnvifLiveImportPersistDecision`, `renderOnvifLiveImportPersistDecision`, `onvifPersistDecisionStatus`를 추가해 `manual-form-save-handoff`, `importDraftNotSaved=true`, `oneShotPersist=false`, `sourceWriteRequired=true`를 표시합니다.
+  - `scripts/internal/verify_v390_onvif_live_import_persist_decision.mjs`와 `./server.sh verify-v390-onvif-live-import-persist-decision`를 추가해 route/UI/docs/inventory/release records 연결, import-draft `notSaved:true`, source/view write boundary, manual save handoff를 검증합니다.
+  - 이 step은 live import persist product decision 완성입니다. one-shot persist, SourceRegistry/PublishedView write by decision route, ONVIF 실기기 success, UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence가 아닙니다.
 
 ## 이전 source roadmap 기록: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
 

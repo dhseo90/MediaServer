@@ -50,6 +50,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const onvifProbeDraftClearButton = document.querySelector('#onvifProbeDraftClear');
     const onvifProbeDraftStatus = document.querySelector('#onvifProbeDraftStatus');
     const onvifCredentialGateStatus = document.querySelector('#onvifCredentialGateStatus');
+    const onvifPersistDecisionStatus = document.querySelector('#onvifPersistDecisionStatus');
     const streamRoute = ")OPSSOURCES" << stream_route_json << R"OPSSOURCES(";
     const rtspPort = )OPSSOURCES" << rtsp_port << R"OPSSOURCES(;
     let loadedSources = [];
@@ -132,6 +133,39 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         setFeedback(
           onvifCredentialGateStatus,
           `providerReadiness 불러오기 실패: ${error.message}`,
+          true,
+          { collapseEmpty: false }
+        );
+      }
+    }
+    function renderOnvifLiveImportPersistDecision(payload = null) {
+      const defaultOnvifPersistDecisionLabel =
+        'manual-form-save-handoff / importDraftNotSaved=true / oneShotPersist=false / sourceWriteRequired=true';
+      const decision = payload?.decision || {};
+      const boundaries = payload?.boundaries || {};
+      const scopeAndAudit = payload?.scopeAndAudit || {};
+      const selectedMode = String(decision.selectedMode || defaultOnvifPersistDecisionLabel.split(' / ')[0]);
+      const oneShotPersist = decision.oneShotPersistEnabled === true || boundaries.oneShotPersistEnabled === true;
+      const importDraftNotSaved = decision.importDraftNotSavedPreserved !== false &&
+        boundaries.importDraftEndpointNotSaved !== false;
+      const sourceWriteRequired = scopeAndAudit.sourceWriteRequiredForManualSave !== false &&
+        boundaries.sourceWriteRequiredForManualSave !== false;
+      const rollbackModel = String(scopeAndAudit.rollbackModel || payload?.rollbackModel?.postSaveRollback || 'operator edit/delete through existing channel management routes');
+      setFeedback(
+        onvifPersistDecisionStatus,
+        `persistDecision: ${selectedMode} / importDraftNotSaved=${importDraftNotSaved ? 'true' : 'false'} / oneShotPersist=${oneShotPersist ? 'true' : 'false'} / sourceWriteRequired=${sourceWriteRequired ? 'true' : 'false'} / rollback=${rollbackModel}`,
+        oneShotPersist || !importDraftNotSaved,
+        { collapseEmpty: false }
+      );
+    }
+    async function loadOnvifLiveImportPersistDecision() {
+      try {
+        const payload = await requestJson('/ops/api/onvif/live-import-persist-decision');
+        renderOnvifLiveImportPersistDecision(payload);
+      } catch (error) {
+        setFeedback(
+          onvifPersistDecisionStatus,
+          `persistDecision 불러오기 실패: ${error.message}`,
           true,
           { collapseEmpty: false }
         );
@@ -1368,12 +1402,14 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     });
     document.querySelector('#refresh').addEventListener('click', () => {
       loadOnvifCredentialProviderStatus();
+      loadOnvifLiveImportPersistDecision();
       loadAll().catch(error => setStatus(error.message, true));
     });
     document.querySelector('#channel-audit-refresh')?.addEventListener('click', () => renderOpsAuditTrail('channel-audit-list', 'channels'));
     renderOpsAuditTrail('channel-audit-list', 'channels');
     renderOnvifCredentialGate();
     loadOnvifCredentialProviderStatus();
+    loadOnvifLiveImportPersistDecision();
     loadAll().catch(error => setStatus(error.message, true));
   </script>
 )OPSSOURCES";

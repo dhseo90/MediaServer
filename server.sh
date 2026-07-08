@@ -380,6 +380,8 @@ Usage:
                  v3.9.0 Evidence/Test Gate와 Test Model Prep 오판 방지 기준을 검증합니다.
   verify-v390-onvif-credential-provider-status
                  v3.9.0 Step 11 ONVIF credential/provider status summary를 검증합니다.
+  verify-v390-onvif-live-import-persist-decision
+                 v3.9.0 Step 12 ONVIF live import persist decision을 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v370-site-source-group-contract
@@ -706,6 +708,8 @@ Usage:
                  v3.9.0 Evidence/Test Gate와 Test Model Prep 오판 방지 기준을 검증합니다.
   verify-v390-onvif-credential-provider-status
                  v3.9.0 Step 11 ONVIF credential/provider status summary를 검증합니다.
+  verify-v390-onvif-live-import-persist-decision
+                 v3.9.0 Step 12 ONVIF live import persist decision을 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v370-site-source-group-contract
@@ -1892,6 +1896,10 @@ case "${cmd}" in
   verify-v390-onvif-credential-provider-status)
     require_internal verify_v390_onvif_credential_provider_status.mjs
     exec "${INTERNAL_DIR}/verify_v390_onvif_credential_provider_status.mjs" "$@"
+    ;;
+  verify-v390-onvif-live-import-persist-decision)
+    require_internal verify_v390_onvif_live_import_persist_decision.mjs
+    exec "${INTERNAL_DIR}/verify_v390_onvif_live_import_persist_decision.mjs" "$@"
     ;;
   verify-v370-entry-baseline)
     require_internal verify_v370_entry_baseline.mjs
