@@ -138,6 +138,26 @@ published, or release-action evidence`. Fixture output and report replay are
 implementation/contract evidence only. 실제 UI automation suite와 UI 풀테스트 직접 조작
 evidence는 사용자 실행 승인과 별도 보존 summary/report가 있을 때만 PASS로 기록합니다.
 
+### v3.9.0 R3 test acceptance bundle
+
+이 절은 roadmap의 `사용자가 재실행 가능한 v3.9 test acceptance bundle` 항목입니다.
+
+v3.9.0 R3 dry-run command는 final acceptance command set과 evidence boundary를 같은
+summary/report schema로 고정합니다.
+
+- `./server.sh verify-v390-test-acceptance-bundle --dry-run`
+- `./server.sh verify-v390-test-acceptance-bundle --dry-run --output-dir <path>`
+- `./server.sh verify-v390-test-acceptance-bundle-contract`
+
+R3 summary schema is `media-server.v390-test-acceptance-bundle.v1`. The dry-run reads
+existing preserved R1 30분 evidence, records R2 UI automation as `approval-required-not-run`,
+records 120분 as `conditional-not-run`, and records published metadata/release action as
+`not-run-by-dry-run`.
+
+Boundary: dry-run does not execute 30-minute, UI automation, 120-minute, published metadata,
+or release-action suites. UI automation PASS, 120분 PASS, published metadata PASS, and release
+action completion require their own approved evidence.
+
 ## 현재 v3.9.0 verifier
 
 아래 명령은 v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation의 현재 source gate입니다.
