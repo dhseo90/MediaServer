@@ -19,6 +19,9 @@ Checks:
   - summary schema is media-server.v390-ui-automation.v1
   - every case has route/control/action granularity
   - failure reports include screenshot/trace/console/server-log/cleanup/manualIntervention fields
+  - PASS reports require fail=0, notRun=0, manualIntervention=false, failed interaction 0
+  - artifact paths exist or artifactPreservationReason explains why they are not preserved
+  - browserConsole warnings/errors require browserConsoleAllowReason
   - wrapper/static evidence is not promoted to manual UI fulltest evidence
 `);
 }
@@ -46,6 +49,14 @@ check("summary counts match case statuses", () => {
   assert(summary.fail === fail, `fail count mismatch: ${summary.fail} vs ${fail}`);
   assert(summary.notRun === notRun, `notRun count mismatch: ${summary.notRun} vs ${notRun}`);
   assert(summary.result === (fail > 0 ? "FAIL" : "PASS"), "result does not match fail count");
+  const failedInteractionCount = Number(summary.failedInteractionCount ?? fail);
+  assert(Number.isInteger(failedInteractionCount) && failedInteractionCount === fail, `failedInteractionCount mismatch: ${summary.failedInteractionCount} vs ${fail}`);
+  if (summary.result === "PASS") {
+    assert(summary.fail === 0, "PASS summary must have fail=0");
+    assert(summary.notRun === 0, "PASS summary must have notRun=0");
+    assert(summary.manualIntervention === false, "PASS summary must have manualIntervention=false");
+    assert(failedInteractionCount === 0, "PASS summary must have failed interaction 0");
+  }
 });
 
 check("cases keep route/control/action granularity", () => {
@@ -56,6 +67,11 @@ check("cases keep route/control/action granularity", () => {
     assert(item.viewport && Number.isInteger(item.viewport.width) && Number.isInteger(item.viewport.height), `${item.caseId} missing viewport`);
     assert(Array.isArray(item.expectedMarkers) && item.expectedMarkers.length > 0, `${item.caseId} missing expectedMarkers`);
     assert(["PASS", "FAIL", "not-run"].includes(item.status), `${item.caseId} invalid status ${item.status}`);
+    assert(item.manualIntervention === false, `${item.caseId} must have manualIntervention=false`);
+    assert(Boolean(item.cleanupPortState), `${item.caseId} missing cleanupPortState`);
+    assert(Array.isArray(item.browserConsole), `${item.caseId} browserConsole must be an array`);
+    assertCaseArtifacts(item);
+    assertBrowserConsoleAllowed(item);
   }
 });
 
@@ -74,6 +90,16 @@ check("failure report includes investigation evidence fields", () => {
     }
     assert(item.manualIntervention === false, `${item.caseId} must not require manual intervention`);
     assert(Array.isArray(item.browserConsole), `${item.caseId} browserConsole must be an array`);
+  }
+});
+
+check("failure stops later cases as not-run", () => {
+  let sawFailure = false;
+  for (const item of getCases()) {
+    if (sawFailure) {
+      assert(item.status === "not-run", `${item.caseId} must be not-run after first failed interaction`);
+    }
+    if (item.status === "FAIL") sawFailure = true;
   }
 });
 
@@ -108,6 +134,35 @@ function getCases() {
   return summary.cases;
 }
 
+function assertCaseArtifacts(item) {
+  const preservationReason = String(item.artifactPreservationReason || summary.artifactPreservationReason || "").trim();
+  for (const field of ["screenshotPath", "tracePath", "videoPath", "serverLogReference"]) {
+    const value = item[field];
+    if (!value) {
+      assert(preservationReason, `${item.caseId} missing ${field} and artifactPreservationReason`);
+      continue;
+    }
+    const resolved = path.resolve(path.dirname(summaryPath), value);
+    if (!fs.existsSync(resolved)) {
+      assert(preservationReason, `${item.caseId} ${field} does not exist: ${value}`);
+    }
+  }
+}
+
+function assertBrowserConsoleAllowed(item) {
+  const noisyEntries = item.browserConsole.filter(entry => isConsoleWarningOrError(entry));
+  if (noisyEntries.length === 0) return;
+  const allowReason = String(item.browserConsoleAllowReason || item.browserConsoleAllowedReason || summary.browserConsoleAllowReason || "").trim();
+  assert(allowReason, `${item.caseId} browserConsole warnings/errors require browserConsoleAllowReason`);
+}
+
+function isConsoleWarningOrError(entry) {
+  if (entry === null || entry === undefined) return false;
+  if (typeof entry === "string") return /\b(error|warning|warn)\b/i.test(entry);
+  const level = String(entry.level || entry.severity || entry.type || "").toLowerCase();
+  return level === "error" || level === "warning" || level === "warn";
+}
+
 function check(name, fn) {
   checks.push({ name, fn });
 }
@@ -115,7 +170,12 @@ function check(name, fn) {
 function runChecks() {
   let pass = 0;
   let fail = 0;
-  for (const item of checks) {
+  const total = checks.length;
+  for (let index = 0; index < checks.length; index += 1) {
+    const item = checks[index];
+    const current = index + 1;
+    const remaining = total - current;
+    console.log(`[progress] (${current}/${total}) ${item.name} test; remaining=${remaining}`);
     try {
       item.fn();
       pass += 1;

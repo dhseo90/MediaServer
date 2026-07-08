@@ -106,6 +106,7 @@ const summary = {
   automationResult: failCount > 0 ? "FAIL" : "PASS",
   evidenceBoundary: "automationResult is not manual UI fulltest, 30-minute, 120-minute, published, or release-action evidence",
   manualIntervention: false,
+  failedInteractionCount: failCount,
   caseCount: normalizedCases.length,
   pass: passCount,
   fail: failCount,

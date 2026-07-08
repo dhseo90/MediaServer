@@ -126,12 +126,35 @@ v3.9.0 R2 implementation command:
 - `./server.sh verify-v390-ui-automation --browser-mode sikulix --output-dir <path>`
 - `./server.sh verify-v390-ui-automation-report --summary <summary.json>`
 - `./server.sh verify-v390-ui-automation-runner-contract`
+- `./server.sh verify-v390-ui-automation-report-replay-guard`
 
 R2 summary schema is `media-server.v390-ui-automation.v1`. The report verifier checks
 case counts, `route/control/action` granularity, failure investigation fields,
 cleanup fields, `expectedMarkers`, and `manualIntervention=false`. Real mode does not delegate
 to `verify-ui-fulltest-one-shot`; it starts the throwaway server, opens the target route, checks
 UI markers, and stores screenshot/trace/server-log references per case.
+
+### v3.9.0 R5 UI automation report replay guard
+
+R5는 UI automation suite 자체를 실행하는 gate가 아니라, 이미 생성된
+`media-server.v390-ui-automation.v1` summary를 다시 읽어 release evidence로 사용할 수
+있는 최소 조건을 확인하는 replay guard입니다. `./server.sh verify-v390-ui-automation-report
+--summary <summary.json>`는 각 check를 `[progress] (n/total) <check> test; remaining=<count>`
+형식으로 출력합니다.
+
+R5 replay guard 조건:
+
+- PASS summary는 `fail=0`, `notRun=0`, `manualIntervention=false`, failed interaction 0이어야 합니다.
+- 모든 case는 `route/control/action`, `expectedMarkers`, `screenshotPath`, `tracePath`,
+  `videoPath`, `serverLogReference`, `cleanupPortState`, `browserConsole`,
+  `manualIntervention=false`를 기록해야 합니다.
+- artifact path가 현재 replay 환경에 없으면 case 또는 summary에
+  `artifactPreservationReason`을 남겨야 합니다.
+- `browserConsole` warning/error가 있으면 PASS가 아니거나
+  `browserConsoleAllowReason`을 남겨야 합니다.
+- 첫 `FAIL` 이후 case는 모두 `not-run`이어야 하며 계속 실행한 PASS case를 허용하지 않습니다.
+- 이 replay PASS는 UI 풀테스트 직접 조작 PASS가 아님. 30분/120분, published metadata,
+  release action evidence로도 승격하지 않습니다.
 
 Boundary: `automationResult is not manual UI fulltest, 30-minute, 120-minute,
 published, or release-action evidence`. Fixture output and report replay are

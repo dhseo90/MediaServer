@@ -394,6 +394,8 @@ Usage:
                  v3.9.0 R2 UI automation summary case evidence를 검증합니다.
   verify-v390-ui-automation-runner-contract
                  v3.9.0 R2 UI automation runner contract와 fixture evidence를 검증합니다.
+  verify-v390-ui-automation-report-replay-guard
+                 v3.9.0 R5 UI automation report replay guard contract를 검증합니다.
   verify-v390-test-acceptance-bundle
                  v3.9.0 R3 test acceptance bundle dry-run summary/report를 생성합니다.
   verify-v390-test-acceptance-bundle-contract
@@ -1966,6 +1968,10 @@ case "${cmd}" in
   verify-v390-ui-automation-runner-contract)
     require_internal verify_v390_ui_automation_runner_contract.mjs
     exec "${INTERNAL_DIR}/verify_v390_ui_automation_runner_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-automation-report-replay-guard)
+    require_internal verify_v390_ui_automation_report_replay_guard_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_automation_report_replay_guard_contract.mjs" "$@"
     ;;
   verify-v390-test-acceptance-bundle)
     require_internal verify_v390_test_acceptance_bundle.mjs
