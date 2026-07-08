@@ -3443,6 +3443,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           <div>
             <h3>VLM Rule draft</h3>
             <p id="opsVlmRuleDraftSummary">저장된 VLM observation 후보를 이벤트 템플릿 폼 초안으로만 가져옵니다.</p>
+            <p id="opsVlmRuleDraftBridgeStatus" class="form-note">review-to-draft bridge: ops-review-to-rule-draft-bridge / provenance=incident-review-provenance / manual-save-only / autoApply=false / ruleRegistryWrite=false</p>
           </div>
           <div class="actions">
             <label>후보 종류
@@ -29787,6 +29788,64 @@ std::string OpsVlmEventReviewJson(const std::string& event_json) {
     return out.str();
 }
 
+std::string OpsV390VlmRuleSuggestionDraftBridgeJson() {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v390-vlm-rule-suggestion-draft-bridge.v1\","
+        << "\"status\":\"ops-review-to-rule-draft-bridge\","
+        << "\"featureId\":\"V390-CAND-003\","
+        << "\"selectedMode\":\"ops-review-to-rule-draft-bridge\","
+        << "\"bridgeDecision\":\"manual-save-only\","
+        << "\"sourceCandidateReportRoute\":\"/ops/api/vlm/rule-suggestion-drafts\","
+        << "\"sourceCandidateSchema\":\"media-server.vlm-rule-suggestion-candidates.v1\","
+        << "\"incidentReviewSchema\":\"media-server.ops.incident-rule-suggestion-review.v1\","
+        << "\"manualReviewRoute\":\"/ops/events\","
+        << "\"manualDraftRoute\":\"/ops/rules\","
+        << "\"draftApiRoute\":\"/ops/api/vlm/rule-suggestion-drafts\","
+        << "\"reviewToDraftBridge\":{"
+        << "\"mode\":\"ops-review-to-rule-draft-bridge\","
+        << "\"provenance\":\"incident-review-provenance\","
+        << "\"draftTarget\":\"ops-rules-event-template-form\","
+        << "\"candidateSource\":\"matchingRuleSuggestion\","
+        << "\"sourceReportField\":\"sourceCandidateReport\","
+        << "\"operatorAction\":\"apply-form-draft-then-manual-save\","
+        << "\"manualSaveOnly\":true,"
+        << "\"reviewableDraft\":true,"
+        << "\"noAutoApply\":true"
+        << "},"
+        << "\"evidenceTrail\":{"
+        << "\"provenanceMode\":\"incident-review-provenance\","
+        << "\"candidateReport\":\"sourceCandidateReport\","
+        << "\"matchingSuggestion\":\"matchingRuleSuggestion\","
+        << "\"reviewCard\":\"media-server.ops.incident-rule-suggestion-review.v1\","
+        << "\"draftWorkflow\":\"media-server.vlm-rule-suggestion-draft-workflow.v1\","
+        << "\"auditExpectation\":\"existing-ops-rules-manual-save-audit\""
+        << "},"
+        << "\"workflowContract\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"reviewableDraft\":true,"
+        << "\"manualSaveRequired\":true,"
+        << "\"approvalRequiredBeforeSave\":true,"
+        << "\"candidateProvenanceIncluded\":true,"
+        << "\"ruleRegistryWritePerformedByBridge\":false,"
+        << "\"profileRegistryWritePerformedByBridge\":false,"
+        << "\"eventRecordWritePerformedByBridge\":false,"
+        << "\"autoApplyEnabled\":false,"
+        << "\"runtimeVlmCallPerformed\":false,"
+        << "\"cloudProviderApiCalled\":false,"
+        << "\"clientViewerExposureAdded\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}"
+        << "}";
+    return out.str();
+}
+
 std::string OpsVlmRuleSuggestionDraftWorkflowJson(
     const std::unordered_map<std::string, std::string>& query,
     std::string* error_message) {
@@ -37915,6 +37974,16 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            ok.headers["Cache-Control"] = "no-store";
 	                            return ok;
 	                        }
+
+                            if (request.method == "GET" && request.path == "/ops/api/vlm/rule-suggestion-draft-bridge") {
+                                if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                    return *auth_response;
+                                }
+                                HttpResponse ok =
+                                    JsonResponse(200, "OK", OpsV390VlmRuleSuggestionDraftBridgeJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
 
                             if (request.method == "GET" && request.path == "/ops/api/vlm/rule-suggestion-drafts") {
                                 if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {

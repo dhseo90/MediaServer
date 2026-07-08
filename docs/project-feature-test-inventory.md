@@ -26,13 +26,13 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 944 |
-| UI 직접 필요 | 393 |
+| 전체 기능 항목 | 948 |
+| UI 직접 필요 | 395 |
 | UI 간접 필요 | 33 |
-| UI 비대상 | 518 |
-| 테스트 필요 | 944 |
-| 안정화 대상 | 934 |
-| UI 풀테스트 대상 | 415 |
+| UI 비대상 | 520 |
+| 테스트 필요 | 948 |
+| 안정화 대상 | 938 |
+| UI 풀테스트 대상 | 417 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
 
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 944개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 948개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -71,6 +71,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | v3.9.0 (10) AI-minimized UI automation adapter 기준 | `OPS-169`, `SAFE-202` | `verify-v390-evidence-test-gate-prep`, `verify-ui-fulltest-one-shot`, `verify-manual-ui-evidence`, `verify-script-inventory` | 무료 UI automation adapter 후보와 failure report 필드 기준을 문서/test-source로 고정합니다. Playwright/Selenium/SikuliX 후보 검토 기준이며 실제 UI 풀테스트 직접 조작 PASS가 아닙니다 |
 | v3.9.0 (11) ONVIF credential/provider status summary | `UI-108`, `SRC-065`, `SAFE-203`, `OPS-170` | `verify-v390-onvif-credential-provider-status`, `verify-ops-client-ui` | `/ops/api/onvif/credential-provider-status`와 `/ops/sources`가 primary provider `none`, fallback `in-memory-fixture`, persistent/external secret store defer, secret/reference value 비노출 상태를 Ops-only read-only summary로 표시합니다. ONVIF 실기기 credential success, persistent secret store, source/view write, UI 풀테스트 직접 조작, 30분/120분, field smoke PASS가 아닙니다 |
 | v3.9.0 (12) ONVIF live import persist decision | `UI-109`, `SRC-066`, `SAFE-204`, `OPS-171` | `verify-v390-onvif-live-import-persist-decision`, `verify-ops-client-ui` | `/ops/api/onvif/live-import-persist-decision`와 `/ops/sources`가 manual form-save handoff 결정을 표시하고 `/ops/api/onvif/import-draft`의 `notSaved:true` 경계와 source:write 수동 저장 경로를 분리합니다. one-shot persist route, SourceRegistry/PublishedView write by decision route, UI 풀테스트 직접 조작, 30분/120분, field smoke PASS가 아닙니다 |
+| v3.9.0 (13) VLM rule suggestion draft bridge | `UI-110`, `RULE-111`, `SAFE-205`, `OPS-172` | `verify-v390-vlm-rule-suggestion-draft-bridge`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-rule-ui` | `/ops/api/vlm/rule-suggestion-draft-bridge`와 `/ops/rules`가 incident review provenance를 기존 VLM rule suggestion draft-only/manual-save workflow로 연결합니다. rule/profile registry write, auto-apply, runtime/provider call, client/viewer exposure, EventRecord/Event POST/WebRTC/SSE/WS/media schema 변경, UI 풀테스트 직접 조작, 30분/120분 PASS가 아닙니다 |
 
 ## v3.8.0 Operator-Gated Action Pilot & Outcome Loop Coverage Mapping
 
@@ -379,16 +380,16 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 
 | 기능 ID 범위 | 안정화 verifier 후보 | 비고 |
 | --- | --- | --- |
-| `UI-001`~`UI-018`, `UI-022`~`UI-109` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360/v370/v380/v390 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
+| `UI-001`~`UI-018`, `UI-022`~`UI-110` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360/v370/v380/v390 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
 | `SRC-001`~`SRC-066` | source/ONVIF/UI/v340/v350/v360/v370/v380/v390 verifier family | ONVIF field success는 approved environment only |
-| `RULE-001`~`RULE-110` | rule/VA/v350/v360/v370 verifier family | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
+| `RULE-001`~`RULE-111` | rule/VA/v350/v360/v370/v390 verifier family | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
 | `EVT-001`~`EVT-086` | event/VLM/v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360/v370/v380 verifier family | event log 육안 확인은 UI 풀테스트 |
 | `CLIENT-001`~`CLIENT-042` | client/UI/v350/v360/v370/v380 verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-026` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
 | `LAB-001`~`LAB-122` | lab/VLM/v250/v260/v270/v280/v300/v310/v340/v350/v360/v370/v380 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-204` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-171` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
+| `SAFE-001`~`SAFE-205` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-172` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
 
 ## VA Manual UI Seed Matrix
 
@@ -545,6 +546,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | UI-107 | V380 Step 15 Default-off Action Explanation UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard의 Action Control Workspace가 `media-server.ops.v380-default-off-action-explanation.v1` 기반 approval blocker, readiness reason, outcome hint를 default-off explanation으로 표시하고 VLM/provider/runtime call, raw prompt/provider response, credential/locator/debug material, action execution을 수행하지 않음 |
 | UI-108 | V390 Step 11 ONVIF credential/provider status UI | 필요 | 필요 | 안정화, UI | `/ops/sources` ONVIF 도구 영역이 `media-server.ops.v390-onvif-credential-provider-status.v1` 기반 primary provider `none`, fallback `in-memory-fixture`, persistent store deferred, `referenceValueExposed=false`, `credentialMaterialExposed=false`를 표시하고 credential reference value나 secret material을 노출하지 않음 |
 | UI-109 | V390 Step 12 ONVIF live import persist decision UI | 필요 | 필요 | 안정화, UI | `/ops/sources` ONVIF 도구 영역이 `media-server.ops.v390-onvif-live-import-persist-decision.v1` 기반 manual-form-save-handoff, `importDraftNotSaved=true`, `oneShotPersist=false`, `sourceWriteRequired=true`를 표시하고 direct persist route나 source/view write 완료처럼 표시하지 않음 |
+| UI-110 | V390 Step 13 VLM rule suggestion draft bridge UI | 필요 | 필요 | 안정화, UI | `/ops/rules` VLM Rule draft 영역이 `media-server.ops.v390-vlm-rule-suggestion-draft-bridge.v1` 기반 `ops-review-to-rule-draft-bridge`, `provenance=incident-review-provenance`, `manualSaveRequired=true`, `autoApply=false`, `ruleRegistryWrite=false`를 표시하고 자동 저장/자동 적용 완료처럼 표시하지 않음 |
 
 ## B. Auth, Account, Role, Scope
 
@@ -778,6 +780,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | RULE-108 | V360 Step 5 rule impact diff | 비대상 | 필요 | 안정화 | `verify-v360-source-rule-impact-diff`가 rule follow-up 변경 후보 전후의 event risk diff를 read-only로 표시하고 Rule/Profile registry write, rule follow-up apply, media/schema 변경을 수행하지 않음을 확인 |
 | RULE-109 | V360 Step 10 Rule/VA what-if candidates | 비대상 | 필요 | 안정화 | `verify-v360-rule-va-what-if-replay-pack`이 rule threshold, preset, scenario 후보의 what-if delta를 계산-only로 표시하고 Rule/Profile registry write, rule apply, media/schema 변경을 수행하지 않음을 확인 |
 | RULE-110 | V370 Step 13 site-scoped Rule/VA what-if candidates | 비대상 | 필요 | 안정화 | `verify-v370-rule-va-what-if-by-site`가 site/source group 기준 rule threshold/scenario 후보의 what-if delta를 계산-only로 표시하고 Rule/Profile registry write, rule apply, media/schema 변경을 수행하지 않음을 확인 |
+| RULE-111 | V390 Step 13 VLM review-to-rule draft bridge | 필요 | 필요 | 안정화, UI | `verify-v390-vlm-rule-suggestion-draft-bridge`와 `verify-vlm-rule-suggestion-draft-workflow`가 incident review provenance와 sidecar rule suggestion 후보를 `/ops/rules` 이벤트 템플릿 draft로만 연결하고 기존 저장 버튼 전 Rule/Profile registry write, auto-apply, provider/runtime call, EventRecord/Event POST/WebRTC/SSE/WS/media path 변경을 만들지 않음을 확인 |
 
 ## E. Runtime, Dashboard, Events
 
@@ -1283,6 +1286,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-202 | V390 Step 10 UI automation adapter failure report boundary | 비대상 | 필요 | 안정화 | `verify-v390-evidence-test-gate-prep`가 Playwright 우선, Selenium fallback, SikuliX visual fallback, route/viewport/theme/account-role/action/expected-actual/screenshot/trace-console/server-log/cleanup/manual-intervention failure report 기준을 확인하되 UI 풀테스트 직접 조작 PASS로 대체하지 않음 |
 | SAFE-203 | V390 Step 11 ONVIF credential provider redaction boundary | 비대상 | 필요 | 안정화 | `verify-v390-onvif-credential-provider-status`가 credential lookup, credential reference value inclusion, secret material storage/exposure, product persistent secret store, external secret manager, SourceRegistry/PublishedView secret fields, client/viewer exposure, Auth/Role/Scope/schema/media 변경이 모두 false임을 확인 |
 | SAFE-204 | V390 Step 12 ONVIF import notSaved/write boundary | 비대상 | 필요 | 안정화 | `verify-v390-onvif-live-import-persist-decision`가 one-shot persist, import-draft auto-persist, decision route SourceRegistry/PublishedView write, direct persist route, client exposure, credential material exposure, RTSP/WebRTC media path 변경이 모두 false이고 manual save에만 `source:write`가 필요함을 확인 |
+| SAFE-205 | V390 Step 13 VLM rule suggestion no-auto-apply boundary | 비대상 | 필요 | 안정화 | `verify-v390-vlm-rule-suggestion-draft-bridge`가 rule/profile registry write, EventRecord write, auto-apply, provider/runtime call, client/viewer exposure, Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path 변경이 모두 false이고 기존 `/ops/rules` manual save 전까지 draft-only임을 확인 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -1425,6 +1429,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-169 | V390 Step 10 AI-minimized UI automation adapter 기준 gate | 비대상 | 필요 | 안정화 | `verify-v390-evidence-test-gate-prep`, `verify-ui-fulltest-one-shot`, `verify-manual-ui-evidence`, `verify-script-inventory`가 무료 UI automation adapter 후보와 실패 report 기준을 확인하되 UI 풀테스트 직접 조작 PASS가 아님 |
 | OPS-170 | V390 Step 11 ONVIF provider status gate | 비대상 | 필요 | 안정화 | `verify-v390-onvif-credential-provider-status`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 `/ops/api/onvif/credential-provider-status`, `/ops/sources` 상태 표시, roadmap/release records/inventory/server dispatch 연결을 확인하되 ONVIF 실기기 credential success, persistent secret store, source/view persist, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-171 | V390 Step 12 ONVIF persist decision gate | 비대상 | 필요 | 안정화 | `verify-v390-onvif-live-import-persist-decision`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 `/ops/api/onvif/live-import-persist-decision`, `/ops/sources` persist decision 표시, roadmap/release records/inventory/server dispatch 연결을 확인하되 one-shot persist, source/view write, ONVIF 실기기 success, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
+| OPS-172 | V390 Step 13 VLM draft bridge decision gate | 비대상 | 필요 | 안정화 | `verify-v390-vlm-rule-suggestion-draft-bridge`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 `/ops/api/vlm/rule-suggestion-draft-bridge`, `/ops/rules` bridge status, roadmap/release records/inventory/server dispatch 연결을 확인하되 rule/profile write, auto-apply, provider/runtime call, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 

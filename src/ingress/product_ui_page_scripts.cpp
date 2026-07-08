@@ -6771,6 +6771,33 @@ void AppendOpsShellScript(std::ostringstream& out,
             </article>`;
         }).join('');
       }
+      function renderOpsVlmRuleSuggestionDraftBridge(payload = {}) {
+        const status = document.getElementById('opsVlmRuleDraftBridgeStatus');
+        if (!status) return;
+        if (payload?.error) {
+          status.textContent = `review-to-draft bridge: unavailable / ${payload.error}`;
+          return;
+        }
+        const contract = payload.workflowContract || {};
+        const bridge = payload.reviewToDraftBridge || {};
+        const fallbackProvenanceLabel = 'provenance=incident-review-provenance';
+        const manualSaveRequiredLabel = contract.manualSaveRequired === true ? 'manualSaveRequired=true' : 'manualSaveRequired=false';
+        const autoApplyLabel = contract.autoApplyEnabled === true ? 'autoApply=true' : 'autoApply=false';
+        const ruleRegistryWriteLabel = contract.ruleRegistryWritePerformedByBridge === true ? 'ruleRegistryWrite=true' : 'ruleRegistryWrite=false';
+        status.textContent = [
+          `review-to-draft bridge: ${payload.selectedMode || bridge.mode || 'ops-review-to-rule-draft-bridge'}`,
+          bridge.provenance ? `provenance=${bridge.provenance}` : fallbackProvenanceLabel,
+          manualSaveRequiredLabel,
+          autoApplyLabel,
+          ruleRegistryWriteLabel,
+          `draftRoute=${payload.manualDraftRoute || '/ops/rules'}`
+        ].join(' / ');
+      }
+      async function loadOpsVlmRuleSuggestionDraftBridge() {
+        const payload = await requestJson('/ops/api/vlm/rule-suggestion-draft-bridge');
+        renderOpsVlmRuleSuggestionDraftBridge(payload);
+        return payload;
+      }
       async function refreshOpsVlmRuleDrafts() {
         const kind = String(document.getElementById('opsVlmRuleDraftKindSelect')?.value || '').trim();
         const params = new URLSearchParams();
@@ -9747,6 +9774,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderOpsScenarioBuilder();
         renderOpsRuleWhatIfDraftContext();
         renderOpsApprovalGatedRuleDraftContext();
+        loadOpsVlmRuleSuggestionDraftBridge().catch((error) => renderOpsVlmRuleSuggestionDraftBridge({ error: error.message || 'VLM rule suggestion draft bridge 로드 실패' }));
         refreshOpsVlmRuleDrafts().catch((error) => renderOpsVlmRuleDrafts({ error: error.message || 'VLM rule draft 후보 로드 실패' }));
         renderOpsVaRules(filteredVaRules);
         renderOpsEventRules(filteredRules);
