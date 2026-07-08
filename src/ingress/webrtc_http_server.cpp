@@ -3068,6 +3068,22 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           defaultEnabled=false · vlmProviderCallPerformed=false · vlmRuntimeCallPerformed=false · raw prompt/response=false · action execution=false
         </div>
       </section>
+      <section class="section-card ops-workspace-wide ops-action-execution-deferral-decision" data-testid="ops-action-execution-deferral-decision" data-v390-action-execution-deferral-decision="media-server.ops.v390-action-execution-deferral-decision.v1">
+        <div class="toolbar">
+          <div>
+            <h3>Action Execution Deferral</h3>
+            <p>source recheck, client notice send, rule apply 실행을 별도 승인 전까지 모두 deferred 상태로 고정합니다.</p>
+          </div>
+        </div>
+        <div id="dashActionExecutionDeferralBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashActionExecutionDeferralText">action execution deferral decision을 불러오는 중입니다.</p>
+        <div id="dashActionExecutionDeferralList" class="ops-action-control-list">
+          <div class="empty">deferred action decision 항목을 기다립니다.</div>
+        </div>
+        <div id="dashActionExecutionDeferralBoundary" class="ops-action-control-boundary">
+          approvalGatedExecutionEnabled=false · sourceRecheckExecuted=false · clientNoticeSent=false · ruleApplyPerformed=false
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide ops-site-client-notice-workspace" data-testid="ops-site-client-notice-workspace" data-v370-client-notice-by-site-view-group="media-server.ops.v370-client-notice-by-site-view-group.v1">
         <div class="toolbar">
           <div>
@@ -25855,6 +25871,91 @@ void AppendV380DefaultOffActionExplanationItemJson(
         << "}";
 }
 
+std::string OpsV390ActionExecutionDeferralDecisionJson() {
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v390-action-execution-deferral-decision.v1\","
+        << "\"targetStep\":\"v3.9.0 (16)\","
+        << "\"featureId\":\"V390-CAND-006\","
+        << "\"selectedMode\":\"defer-all-action-writes\","
+        << "\"route\":\"/ops/api/actions/execution-deferral-decision\","
+        << "\"sourceRecheckActionPilotRoute\":\"/ops/api/actions/source-recheck-pilot\","
+        << "\"clientNoticeDraftQueueRoute\":\"/ops/api/actions/client-notice-draft-queue\","
+        << "\"ruleDraftActionPackageRoute\":\"/ops/api/actions/rule-draft-package\","
+        << "\"approvalDecisionGateRoute\":\"/ops/api/actions/approval-decision-gate\","
+        << "\"readinessPreflightRoute\":\"/ops/api/actions/readiness-preflight\","
+        << "\"outcomeReconciliationRoute\":\"/ops/api/actions/outcome-reconciliation\","
+        << "\"receiptBundleRoute\":\"/ops/api/actions/receipt-bundle\","
+        << "\"defaultOffExplanationRoute\":\"/ops/api/actions/default-off-explanation\","
+        << "\"actionExecutionDeferralDecisionSummary\":{"
+        << "\"deferredActionCount\":3,"
+        << "\"mutatingActionEnabledCount\":0,"
+        << "\"approvalGatedExecutionEnabled\":false,"
+        << "\"deferAllWrites\":true,"
+        << "\"decisionStatus\":\"all-action-writes-deferred\","
+        << "\"decisionReason\":\"v3.8 action pilot remains read-only; selected action types require a separate approved execution roadmap before any write or external side effect\""
+        << "},\"deferredActionKinds\":["
+        << "{\"actionKind\":\"source-recheck-execution\","
+        << "\"decision\":\"deferred\","
+        << "\"currentRoute\":\"/ops/api/actions/source-recheck-pilot\","
+        << "\"requiredFutureGate\":\"source health recheck execution design with scope, dry-run/result evidence, rollback wording, and field smoke approval\","
+        << "\"writeBoundary\":\"sourceRecheckExecuted=false; sourceRegistryWritePerformed=false; sourceHealthSnapshotPersisted=false\"},"
+        << "{\"actionKind\":\"client-notice-send\","
+        << "\"decision\":\"deferred\","
+        << "\"currentRoute\":\"/ops/api/actions/client-notice-draft-queue\","
+        << "\"requiredFutureGate\":\"viewer-safe notice delivery design with queue persistence, external delivery approval, redaction evidence, and rollback wording\","
+        << "\"writeBoundary\":\"clientNoticeSent=false; noticeQueueWritePerformed=false; externalDeliveryPerformed=false\"},"
+        << "{\"actionKind\":\"rule-apply\","
+        << "\"decision\":\"deferred\","
+        << "\"currentRoute\":\"/ops/api/actions/rule-draft-package\","
+        << "\"requiredFutureGate\":\"operator approved rule apply design with rule registry write scope, dry-run/result evidence, and rollback wording\","
+        << "\"writeBoundary\":\"ruleApplyPerformed=false; ruleRegistryWritePerformed=false; eventRecordWritePerformed=false\"}"
+        << "],\"decisionEvidenceRefs\":["
+        << "\"/ops/api/actions/route-boundary\","
+        << "\"/ops/api/actions/capability-contract\","
+        << "\"/ops/api/actions/request-ledger\","
+        << "\"/ops/api/actions/approval-decision-gate\","
+        << "\"/ops/api/actions/readiness-preflight\","
+        << "\"/ops/api/actions/source-recheck-pilot\","
+        << "\"/ops/api/actions/client-notice-draft-queue\","
+        << "\"/ops/api/actions/rule-draft-package\","
+        << "\"/ops/api/actions/outcome-reconciliation\","
+        << "\"/ops/api/actions/receipt-bundle\","
+        << "\"/ops/api/actions/default-off-explanation\""
+        << "],\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"deferAllWrites\":true,"
+        << "\"approvalGatedExecutionEnabled\":false,"
+        << "\"actionExecutionPerformed\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"noticeQueueWritePerformed\":false,"
+        << "\"ruleApplyPerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"actionRequestPersisted\":false,"
+        << "\"approvalDecisionPersisted\":false,"
+        << "\"readinessResultPersisted\":false,"
+        << "\"outcomePersisted\":false,"
+        << "\"receiptBundlePersisted\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"externalDeliveryPerformed\":false,"
+        << "\"fieldSmokeExecuted\":false,"
+        << "\"viewerClientPayloadChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 std::string OpsV380DefaultOffActionExplanationJson(
     const app::AppConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
@@ -38423,6 +38524,20 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV380FieldConnectorEvidencePackageJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/actions/execution-deferral-decision") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV390ActionExecutionDeferralDecisionJson());
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

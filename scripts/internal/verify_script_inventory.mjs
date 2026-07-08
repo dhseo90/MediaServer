@@ -501,6 +501,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_v390_vlm_rule_suggestion_draft_bridge.mjs",
     "verify_v390_vlm_evaluation_promotion_guard.mjs",
     "verify_v390_backup_recovery_handoff_validation.mjs",
+    "verify_v390_action_execution_deferral_decision.mjs",
     "verify_v370_entry_baseline.mjs",
     "verify_v370_site_source_group_contract.mjs",
     "verify_v370_site_aware_source_registry_projection.mjs",

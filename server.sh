@@ -388,6 +388,8 @@ Usage:
                  v3.9.0 Step 14 VLM evaluation promotion guard를 검증합니다.
   verify-v390-backup-recovery-handoff-validation
                  v3.9.0 Step 15 backup/recovery handoff validation을 검증합니다.
+  verify-v390-action-execution-deferral-decision
+                 v3.9.0 Step 16 action execution deferral decision을 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v370-site-source-group-contract
@@ -722,6 +724,8 @@ Usage:
                  v3.9.0 Step 14 VLM evaluation promotion guard를 검증합니다.
   verify-v390-backup-recovery-handoff-validation
                  v3.9.0 Step 15 backup/recovery handoff validation을 검증합니다.
+  verify-v390-action-execution-deferral-decision
+                 v3.9.0 Step 16 action execution deferral decision을 검증합니다.
   verify-v370-entry-baseline
                  v3.7.0 Step 1 source baseline과 latest published v3.6.0 경계를 검증합니다.
   verify-v370-site-source-group-contract
@@ -1924,6 +1928,10 @@ case "${cmd}" in
   verify-v390-backup-recovery-handoff-validation)
     require_internal verify_v390_backup_recovery_handoff_validation.mjs
     exec "${INTERNAL_DIR}/verify_v390_backup_recovery_handoff_validation.mjs" "$@"
+    ;;
+  verify-v390-action-execution-deferral-decision)
+    require_internal verify_v390_action_execution_deferral_decision.mjs
+    exec "${INTERNAL_DIR}/verify_v390_action_execution_deferral_decision.mjs" "$@"
     ;;
   verify-v370-entry-baseline)
     require_internal verify_v370_entry_baseline.mjs

@@ -67,7 +67,7 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | Product Completion | v3.9.0 (13) VLM rule suggestion draft bridge | P1 | `V390-CAND-003`: VLM rule suggestion review-to-draft 흐름과 no-auto-apply evidence를 보강 |
 | Product Completion | v3.9.0 (14) VLM profile promotion guard | P1 | `V390-CAND-004`: passed evaluation 후보의 profile save/activation guard와 default-off boundary를 명확히 함 |
 | Product Completion | v3.9.0 (15) backup/recovery handoff validation | P1 | `V390-CAND-005`: source reliability handoff에 staging restore validation checklist/result를 연결할지 결정 |
-| Product Completion | v3.9.0 (16) operator-gated action limited execution decision | P1 | `V390-CAND-006`: v3.8 read-only action pilot을 제한 실행으로 확장할지, 아니면 명시 defer할지 결정 |
+| Product Completion | v3.9.0 (16) action execution deferral decision | P1 | `V390-CAND-006`: v3.8 read-only action pilot의 source recheck, client notice send, rule apply write를 명시 defer |
 | Conditional Field | v3.9.0 (17) field evidence bridge | P2 | `V390-CAND-009`: 외부 endpoint/credential/provider 승인 기반 field evidence bridge를 추가할지 결정 |
 | Conditional AI | v3.9.0 (18) Re-ID appearance assist model-backed path decision | P2 | `V390-CAND-010`: Re-ID assist를 model/config/provenance 기반으로 실동작시킬지 opt-in/defer할지 결정 |
 | Structure | v3.9.0 (19) structure stabilization handoff 상세계획 | P0 | `V390-STRUCT-001`~`V390-STRUCT-005`: route/API/UI/VLM/manual UI 문서 구조 안정화 범위를 동작 보존 리팩토링 계획으로 넘김 |
@@ -92,7 +92,7 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 13 | v3.9.0 (13) VLM rule suggestion draft bridge | P1 | 완료 | `V390-CAND-003`: `/ops/api/vlm/rule-suggestion-draft-bridge`와 `/ops/rules`가 incident review provenance를 기존 VLM rule suggestion draft-only/manual-save workflow로 연결하고 rule/profile write, auto-apply, provider/runtime call은 수행하지 않음 |
 | 14 | v3.9.0 (14) VLM evaluation promotion guard | P1 | 완료 | `V390-CAND-004`: `/ops/api/vlm/evaluation-promotion-guard`와 `/ops/vlm`가 passed evaluation 후보를 operator-save-then-activation-review 경계로 표시하고 profile write/activation/runtime/provider call은 수행하지 않음 |
 | 15 | v3.9.0 (15) backup/recovery handoff validation | P1 | 완료 | `V390-CAND-005`: `/ops/api/source-registry/staging-restore-validation-handoff`와 `/ops/sources`가 staging restore checklist/result artifact contract를 source registry, PublishedView, source health, viewer scope 기준으로 표시하고 production restore/write/recovery는 수행하지 않음 |
-| 16 | v3.9.0 (16) operator-gated action limited execution decision | P1 | 미진행 | 인벤토리 `V390-CAND-006` 검토/개발 |
+| 16 | v3.9.0 (16) action execution deferral decision | P1 | 완료 | `V390-CAND-006`: `/ops/api/actions/execution-deferral-decision`와 `/ops` Action Control Workspace가 `defer-all-action-writes`, source recheck/client notice/rule apply write deferred, approval-gated execution disabled를 표시하고 action execution/write/external delivery는 수행하지 않음 |
 | 17-18 | v3.9.0 (17)~(18) Conditional Field/AI decisions | P2 | 미진행 | 이번 `/goal` 범위 밖. 사용자 별도 지시 전까지 `V390-CAND-009`, `V390-CAND-010`은 미진행 |
 | 19 | v3.9.0 (19) structure stabilization handoff 상세계획 | P0 | 미진행 | 인벤토리 `V390-STRUCT-001`~`V390-STRUCT-005`를 안정화 계획으로 이관 |
 | 20 | v3.9.0 (20) stabilization and release readiness | P0 | 미진행 | AGENTS 네 테스트 영역 판정과 release close-out evidence 필요 |
@@ -228,6 +228,14 @@ Foundation review-ready 상태:
   - `src/ingress/product_ui_ops_sources_script.cpp`와 `/ops/sources` Backup Handoff 영역에 `renderStagingRestoreValidationHandoff`, `sourceStagingRestoreValidationStatus`, `source-staging-restore-checklist-list`, `source-staging-restore-result-artifact-list`를 추가해 `resultArtifactPersistedByRoute=false`, `productionRestorePerformed=false`, `automaticRecoveryPerformed=false`를 표시합니다.
   - `scripts/internal/verify_v390_backup_recovery_handoff_validation.mjs`와 `./server.sh verify-v390-backup-recovery-handoff-validation`을 추가해 route/UI/docs/inventory/release records 연결, v3.3 handoff route와 v3.4 staging harness 연결, no-production-restore boundary를 검증합니다.
   - 이 step은 backup/recovery staging restore validation handoff 완성입니다. 실제 restore/cutover, automatic recovery, UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence가 아닙니다.
+- Step 16 `action execution deferral decision`:
+  - 1차 선택값: `defer-all-action-writes`를 선택합니다. v3.8 read-only action pilot을 이번 Step 16에서 제한 실행으로 열지 않고, source recheck execution, client notice send, rule apply를 별도 승인된 execution roadmap 전까지 모두 deferred 상태로 고정합니다.
+  - execution 방식: `/ops/api/actions/execution-deferral-decision`는 기존 v3.8 action/read-model route들을 evidence ref로 참조하는 read-only decision summary만 반환합니다. 새 mutating route, action request persist, approval persist, readiness result persist, receipt/outcome persist, external delivery route는 만들지 않습니다.
+  - boundary: Step 16 route 자체는 action execution, source recheck, client notice send, notice queue write, rule apply, rule registry write, SourceRegistry/PublishedView/EventRecord/Ops audit write, external delivery, field smoke, client payload/schema/media 변경을 수행하지 않습니다.
+  - `src/ingress/webrtc_http_server.cpp`에 `OpsV390ActionExecutionDeferralDecisionJson`과 GET `/ops/api/actions/execution-deferral-decision` route를 추가했습니다. 이 route는 `require_ops_principal()`, `Cache-Control: no-store`, `media-server.ops.v390-action-execution-deferral-decision.v1` schema, `actionExecutionDeferralDecisionSummary`, `deferredActionKinds`, `boundaries`를 반환합니다.
+  - `src/ingress/product_ui_page_scripts.cpp`와 `/ops` Action Control Workspace 인근에 `renderV390ActionExecutionDeferralDecision`, `dashActionExecutionDeferralBadges`, `dashActionExecutionDeferralList`, `dashActionExecutionDeferralBoundary`를 추가해 `approvalGatedExecutionEnabled=false`, `sourceRecheckExecuted=false`, `clientNoticeSent=false`, `ruleApplyPerformed=false`를 표시합니다.
+  - `scripts/internal/verify_v390_action_execution_deferral_decision.mjs`와 `./server.sh verify-v390-action-execution-deferral-decision`을 추가해 route/UI/docs/inventory/release records 연결, v3.8 action workspace/default-off explanation 연결, no-action-execution boundary를 검증합니다.
+  - 이 step은 action execution deferral decision 완성입니다. 실제 source recheck 실행, client notice 발송, rule apply, action/request/approval/readiness/outcome/receipt persist, UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence가 아닙니다.
 
 ## 이전 source roadmap 기록: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
 
