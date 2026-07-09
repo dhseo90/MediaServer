@@ -23,7 +23,7 @@ Usage:
 Checks:
   - report replay accepts a complete PASS summary
   - PASS summaries require zero fail/not-run/manual-intervention counts
-  - every case records screenshot/trace/video/server-log/cleanup artifacts or a preservation reason
+  - every case records existing screenshot/trace/video/browser-console/server-log artifacts
   - PASS summaries reject browser console warnings/errors unless an allow reason is recorded
   - FAIL summaries require later cases to remain not-run
   - docs, release evidence, script inventory, and server dispatch expose the R5 guard
@@ -69,19 +69,28 @@ check("PASS summary rejects not-run, fail, and manual-intervention drift", () =>
   });
 });
 
-check("case artifacts are required unless a preservation reason is recorded", () => {
+check("case artifact fields are required", () => {
   expectReportFailure("missing-screenshot-field", summary => {
     delete summary.cases[0].screenshotPath;
   });
+});
+
+check("screenshot, trace, and log artifact files must exist", () => {
   expectReportFailure("missing-screenshot-file", summary => {
     fs.rmSync(summary.cases[0].screenshotPath, { force: true });
   });
-  const workspace = makeWorkspace("missing-file-with-reason");
-  const summary = makeBaseSummary(workspace);
-  fs.rmSync(summary.cases[0].screenshotPath, { force: true });
-  summary.cases[0].artifactPreservationReason = "artifact intentionally omitted from replay fixture";
-  const run = runReport(writeSummary(workspace, summary));
-  assert(run.status === "passed", `missing artifact with preservation reason should pass:\n${run.stdout}\n${run.stderr}`);
+  expectReportFailure("missing-trace-file-with-reason", summary => {
+    fs.rmSync(summary.cases[0].tracePath, { force: true });
+    summary.cases[0].artifactPreservationReason = "artifact intentionally omitted from replay fixture";
+  });
+  expectReportFailure("missing-browser-console-log-with-reason", summary => {
+    fs.rmSync(summary.cases[0].browserConsolePath, { force: true });
+    summary.cases[0].artifactPreservationReason = "artifact intentionally omitted from replay fixture";
+  });
+  expectReportFailure("missing-server-log-with-reason", summary => {
+    fs.rmSync(summary.cases[0].serverLogReference, { force: true });
+    summary.cases[0].artifactPreservationReason = "artifact intentionally omitted from replay fixture";
+  });
 });
 
 check("PASS summary rejects browser console warnings or errors without an allow reason", () => {
@@ -125,7 +134,7 @@ check("docs and release evidence record the R5 replay guard without overclaiming
     guardCommand,
     "failed interaction 0",
     "browserConsole",
-    "artifactPreservationReason",
+    "artifact files exist",
     "UI 풀테스트 직접 조작 PASS가 아님",
   ]) {
     assertIncludes(combinedDocs, snippet, "R5 docs/evidence");

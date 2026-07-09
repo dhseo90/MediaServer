@@ -20,7 +20,7 @@ Checks:
   - every case has route/control/action granularity
   - failure reports include screenshot/trace/console/server-log/cleanup/manualIntervention fields
   - PASS reports require fail=0, notRun=0, manualIntervention=false, failed interaction 0
-  - artifact paths exist or artifactPreservationReason explains why they are not preserved
+  - artifact paths exist for screenshot/trace/video/browser-console/server-log evidence
   - browserConsole warnings/errors require browserConsoleAllowReason
   - wrapper/static evidence is not promoted to manual UI fulltest evidence
 `);
@@ -138,17 +138,11 @@ function getCases() {
 }
 
 function assertCaseArtifacts(item) {
-  const preservationReason = String(item.artifactPreservationReason || summary.artifactPreservationReason || "").trim();
   for (const field of ["screenshotPath", "tracePath", "videoPath", "browserConsolePath", "serverLogReference"]) {
     const value = item[field];
-    if (!value) {
-      assert(preservationReason, `${item.caseId} missing ${field} and artifactPreservationReason`);
-      continue;
-    }
+    assert(Boolean(value), `${item.caseId} missing ${field}`);
     const resolved = path.resolve(path.dirname(summaryPath), value);
-    if (!fs.existsSync(resolved)) {
-      assert(preservationReason, `${item.caseId} ${field} does not exist: ${value}`);
-    }
+    assert(fs.existsSync(resolved), `${item.caseId} ${field} does not exist: ${value}`);
   }
 }
 
@@ -164,12 +158,8 @@ function assertBrowserConsoleAllowed(item) {
 
 function readBrowserConsoleArtifact(consolePath) {
   if (!consolePath) return [];
-  const preservationReason = String(summary.artifactPreservationReason || "").trim();
   const resolved = path.resolve(path.dirname(summaryPath), consolePath);
-  if (!fs.existsSync(resolved)) {
-    assert(preservationReason, `browser console artifact does not exist: ${consolePath}`);
-    return [];
-  }
+  assert(fs.existsSync(resolved), `browser console artifact does not exist: ${consolePath}`);
   const payload = JSON.parse(fs.readFileSync(resolved, "utf8"));
   assert(Array.isArray(payload), `browser console artifact must be an array: ${consolePath}`);
   return payload;

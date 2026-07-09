@@ -130,7 +130,7 @@ failure evidence가 나와야 합니다.
 | R2 | P0 | AI-minimized UI automation runner 실제 구현 | `verify-v390-ui-automation`/`verify-v390-ui-automation-report`/`verify-v390-ui-automation-runner-contract` 구현과 실제 Playwright-mode UI automation suite PASS evidence가 보존됨. 현재 환경에서는 Playwright package 부재로 `chrome-cdp-fallback` adapter를 명시 기록 | 무료 UI 자동화 도구 우선순위에 맞춘 runner를 구현하고 route/control/action 단위 실패 report, screenshot, trace/video, console, server log, cleanup evidence를 남김 | `./server.sh verify-v390-ui-automation-runner-contract`, `./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir docs/release-artifacts/v3.9.0/ui-automation-playwright-final --allow-chrome-fallback=1`, `./server.sh verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json`, 실패 fixture에서 failure report PASS |
 | R3 | P0 | 사용자가 재실행 가능한 v3.9 test acceptance bundle | `verify-v390-test-acceptance-bundle --dry-run`과 contract verifier가 구현되어 `finalAcceptanceCommandSet`, R1 30분 preserved evidence `pass-existing-evidence`, R2 UI automation preserved evidence `pass-existing-evidence`, 조건부 120분, published/release action not-run boundary를 한 summary/report로 고정함. 실제 acceptance bundle 실행은 사용자 승인 전 미실행 | R1/R2 산출물을 포함한 final acceptance command set을 문서와 script dispatch에 고정하고, 각 command의 summary/report 경로를 release evidence로 복사 가능하게 함 | `./server.sh verify-v390-test-acceptance-bundle --dry-run`, `./server.sh verify-v390-test-acceptance-bundle-contract`, `./server.sh verify-script-inventory`, `./server.sh verify-release-evidence-index` |
 | R4 | P1 | legacy `verify-predev`와 새 runner 관계 정리 | R4 선택 option 3으로 정리됨. `verify-predev`는 legacy/compatibility cumulative predev runner, `verify-v390-server-longrun`은 release-grade first-fail runner이며 runtime/media trigger matrix row도 새 runner를 표준 trigger로 사용 | 기존 command를 유지할지, 새 command로 matrix를 바꿀지 결정하고 docs/project inventory/release policy가 같은 runner를 가리키게 정렬 | `./server.sh verify-v390-longrun-runner-role-alignment`, `./server.sh verify-runtime-media-longrun-trigger-matrix`, `./server.sh verify-longrun-separation`, `./server.sh verify-rc-release-gate` |
-| R5 | P1 | UI result/release evidence replay guard | v3.9.0 R5 UI automation report replay guard 구현됨. `verify-v390-ui-automation-report --summary <summary.json>`가 progress output과 함께 PASS zero-fail/not-run/manual-intervention, artifact 보존, browserConsole warning/error 허용 사유, first-fail 이후 not-run 순서를 검증함. 실제 R2 suite 보존 summary replay도 PASS로 실행됨 | UI runner summary를 입력으로 받아 route/control/action 개별 행, manual intervention 없음, failed interaction 0, screenshot/trace/log 존재를 검증하는 replay verifier 구현 | `./server.sh verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json`, `./server.sh verify-v390-ui-automation-report-replay-guard` |
+| R5 | P1 | UI result/release evidence replay guard | v3.9.0 R5 UI automation report replay guard 구현됨. `verify-v390-ui-automation-report --summary <summary.json>`가 progress output과 함께 PASS zero-fail/not-run/manual-intervention, screenshot/trace/video/browser-console/server-log artifact file existence, browserConsole warning/error 허용 사유, first-fail 이후 not-run 순서를 검증함. 실제 R2 suite 보존 summary replay도 PASS로 실행됨 | UI runner summary를 입력으로 받아 route/control/action 개별 행, manual intervention 없음, failed interaction 0, screenshot/trace/log 존재를 검증하는 replay verifier 구현 | `./server.sh verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json`, `./server.sh verify-v390-ui-automation-report-replay-guard` |
 
 ### R1. AI-minimized server longrun runner 구현 계약
 
@@ -480,7 +480,9 @@ git diff --check
 - `result=PASS`이면 `fail=0`, `notRun=0`, `manualIntervention=false`
 - 모든 case에 `caseId`, `route`, `viewport`, `theme`, `accountRole`, `controlAction`,
   `expectedResult`, `actualResult`, `screenshotPath`, `serverLogReference`, `cleanupPortState` 존재
-- artifact path가 실제 존재하거나, report가 보존하지 않은 사유를 명시
+- `screenshotPath`, `tracePath`, `videoPath`, `browserConsolePath`, `serverLogReference`
+  artifact path가 실제 존재. R5 replay guard에서는 보존하지 않은 사유를 누락 artifact
+  대체 evidence로 인정하지 않음.
 - `browserConsole` error/warning이 있으면 PASS 불가 또는 명시적 허용 사유 필요
 - 실패 report에는 failed case 이후 case가 `not-run`으로 남아야 함
 
@@ -499,11 +501,12 @@ R5 구현 기록:
   `[progress] (n/total) <check> test; remaining=<count>` 형식으로 진행 상황을 출력합니다.
   PASS summary는 `fail=0`, `notRun=0`, `manualIntervention=false`, failed interaction 0이어야
   하며, 모든 case의 `screenshotPath`, `tracePath`, `videoPath`, `serverLogReference`,
-  `cleanupPortState`, `browserConsole`, `manualIntervention=false`를 확인합니다.
+  `browserConsolePath`, `cleanupPortState`, `browserConsole`, `manualIntervention=false`를 확인하고,
+  screenshot/trace/video/browser-console/server-log 파일이 실제 존재해야 통과합니다.
 - `scripts/internal/verify_v390_ui_automation_report_replay_guard_contract.mjs`:
-  missing artifact, `artifactPreservationReason` 누락, `browserConsole` warning/error 무허용,
-  PASS summary의 not-run/manual intervention, failure 이후 계속 실행된 PASS case를 fixture로
-  검증합니다.
+  missing artifact field, missing screenshot/trace/browser-console/server-log file,
+  `browserConsole` warning/error 무허용, PASS summary의 not-run/manual intervention,
+  failure 이후 계속 실행된 PASS case를 fixture로 검증합니다.
 - `scripts/internal/verify_v390_ui_automation.mjs`:
   summary에 `failedInteractionCount`를 기록해 replay guard가 failed interaction 0을 직접
   확인할 수 있게 했습니다.

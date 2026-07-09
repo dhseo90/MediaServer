@@ -152,10 +152,12 @@ R5 replay guard 조건:
 
 - PASS summary는 `fail=0`, `notRun=0`, `manualIntervention=false`, failed interaction 0이어야 합니다.
 - 모든 case는 `route/control/action`, `expectedMarkers`, `screenshotPath`, `tracePath`,
-  `videoPath`, `serverLogReference`, `cleanupPortState`, `browserConsole`,
-  `manualIntervention=false`를 기록해야 합니다.
-- artifact path가 현재 replay 환경에 없으면 case 또는 summary에
-  `artifactPreservationReason`을 남겨야 합니다.
+  `videoPath`, `browserConsolePath`, `serverLogReference`, `cleanupPortState`,
+  `browserConsole`, `manualIntervention=false`를 기록해야 합니다.
+- `screenshotPath`, `tracePath`, `videoPath`, `browserConsolePath`,
+  `serverLogReference`는 replay 시점에 실제 파일로 존재해야 합니다. R5에서는
+  `artifactPreservationReason`을 누락 artifact 대체 evidence로 인정하지 않습니다
+  (`artifact files exist`).
 - `browserConsole` warning/error가 있으면 PASS가 아니거나
   `browserConsoleAllowReason`을 남겨야 합니다.
 - 첫 `FAIL` 이후 case는 모두 `not-run`이어야 하며 계속 실행한 PASS case를 허용하지 않습니다.
