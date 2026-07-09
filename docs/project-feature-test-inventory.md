@@ -42,10 +42,10 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 970개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
-| 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
-| 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
-| 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
+| 기능 ID 목록 | 974개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리하고 `media-server.feature-implementation-evidence.v1` manifest와 exact-ID 집합을 고정 | 행별 evidence 대조 완료, 실행 증거 아님 |
+| 코드 로직 위치 | 974개 ID별 tracked owner file과 exact anchor를 implementation evidence manifest에 지정 | anchor 존재 대조 완료, 실행 증거 아님 |
+| 제품 UI 위치 | UI 필요/간접 또는 UI absence boundary 440개 ID별 product UI file/anchor를 지정하고 실제 UI 테스트 영역 424개에 동일한 manual case ID를 지정 | control/state anchor 대조 완료, inventory 단독으로 UI PASS 판정 불가 |
+| 안정화 테스트 매핑 | 974개 ID별 verifier file/asserted anchor와 dispatch command를 exact-ID manifest에 지정 | verifier source 대조 완료, 실제 실행 PASS 아님 |
 | 30분 테스트 매핑 | 30분 대상 기능을 media/session/runtime 중심으로 분리 | 기준표 작성 완료 |
 | 120분 테스트 매핑 | memory leak/runtime drift 조건부 대상 분리 | 기준표 작성 완료 |
 | VA seed 데이터 | `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`로 numeric ID/API payload 기준 full UI seed matrix를 고정 | 준비 기준일 뿐 실행 증거 아님 |
@@ -379,7 +379,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | `UI-*` | `src/ingress/product_ui_*`, `src/ingress/webrtc_http_server.cpp` | Auth/Ops/Client shell | UI/auth/ops/v250 verifier family |
 | `AUTH-*` | `src/ingress/http_auth.cpp`, product auth pages/users scripts | `/setup`, `/login`, `/password/change`, `/invite/setup`, `/ops/users` | auth verifier family |
 | `SRC-*` | source registry/factory/ONVIF import/ops source scripts | `/ops/sources`, `/ops/api/source-registry/snapshot`, `/client/live`, `/client/dashboard` | source/ONVIF/UI verifier family |
-| `RULE-*` | analysis query/scenario/rule engine | `/ops/rules`, `/client/live` overlay | rule/VA verifier family |
+| `RULE-*` | analysis query/scenario/rule engine, `webrtc_http_server.cpp` AnalysisDocumentRegistry/AnalysisRegistry와 Lab analysis CRUD route | `/ops/rules` controller/actions, `/client/live` overlay | rule/VA verifier family |
 | `EVT-*` | event manager/storage/webrtc HTTP server | `/ops/dashboard`, `/ops/events`, `/ops/home` | event/VLM/v250 verifier family |
 | `CLIENT-*` | client UI scripts/CSS, WebRTC egress/session | `/client/live`, `/client/dashboard`, `/client/request-access` | client/UI verifier family |
 | `MEDIA-*` | session manager, source factory, stream registry, RTSP/WebRTC adapters | video-visible client routes only | codec/WebRTC/longrun verifier family |
@@ -391,7 +391,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 
 | 기능 ID 범위 | 안정화 verifier 후보 | 비고 |
 | --- | --- | --- |
-| `UI-001`~`UI-018`, `UI-022`~`UI-115` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360/v370/v380/v390 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
+| `UI-001`~`UI-115` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360/v370/v380/v390 UI verifier family | route/control/action source anchor는 exact-ID manifest가 관리하며 UI 직접 조작 evidence는 별도 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
 | `SRC-001`~`SRC-068` | source/ONVIF/UI/v340/v350/v360/v370/v380/v390 verifier family | ONVIF field success는 approved environment only |
 | `RULE-001`~`RULE-111` | rule/VA/v350/v360/v370/v390 verifier family | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
@@ -528,41 +528,41 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | UI-078 | V340 Step 9 Drill Evidence Export and Cleanup Manifest UI | 필요 | 필요 | 안정화, UI | `/ops/sources`가 `media-server.ops.v340-drill-evidence-export-cleanup-manifest.v1` 기반 redacted drill artifact manifest, minimum retained evidence, /tmp cleanup manifest, sensitive material scan boundary를 read-only로 표시하고 source URL/raw locator/raw JSON/debug/credential material/raw audit body를 노출하지 않음 |
 | UI-079 | V340 Step 10 Field Bridge Condition Gates UI | 필요 | 필요 | 안정화, UI | `/ops/sources`가 `media-server.ops.v340-field-bridge-condition-gates.v1` 기반 ONVIF 실기기, external WHEP/TURN, real cloud/VLM provider 조건 gate와 source-only PASS boundary를 read-only로 표시하고 endpoint URL/raw locator/raw JSON/debug/credential/provider material을 노출하지 않음 |
 | UI-080 | V350 Step 4 incident command handoff detail | 필요 | 필요 | 안정화, UI | `/ops/events` selected detail이 `media-server.ops.v350-incident-command-handoff.v1` 기반 source 원인, continuity drill 후보, command plan 초안을 read-only로 표시하고 source/view/rule write, client notice 발송, media/schema mutation을 만들지 않음 |
-| UI-081 | V350 Step 6 Ops Command Workspace UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v350-command-workspace-ui.v1` 기반 incident, source, drill, staged plan, client impact flow를 read-only로 표시하고 source URL/raw locator/raw JSON/debug/credential material과 command execution/source-view-rule write를 노출하지 않음 |
-| UI-082 | V350 Step 7 Drill Run Ledger and Plan Comparison UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v350-drill-run-ledger.v1` 기반 drill run id, operator note, blocker, evidence refs, previous run diff를 read-only로 표시하고 drill run write/operator note write/command execution을 수행하지 않음 |
+| UI-081 | V350 Step 6 Ops Command Workspace UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard`가 `media-server.ops.v350-command-workspace-ui.v1` 기반 incident, source, drill, staged plan, client impact flow를 read-only로 표시하고 source URL/raw locator/raw JSON/debug/credential material과 command execution/source-view-rule write를 노출하지 않음 |
+| UI-082 | V350 Step 7 Drill Run Ledger and Plan Comparison UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard`가 `media-server.ops.v350-drill-run-ledger.v1` 기반 drill run id, operator note, blocker, evidence refs, previous run diff를 read-only로 표시하고 drill run write/operator note write/command execution을 수행하지 않음 |
 | UI-083 | V350 Step 8 Client Impact Forecast UI | 필요 | 필요 | 안정화, UI | `/client/live`, `/client/dashboard`, `/client/events`가 `media-server.client.v350-impact-forecast.v1` 기반 source/view/command plan 영향 forecast를 viewer-safe로 표시하고 source URL/raw locator/debug/operator/command detail을 노출하지 않음 |
 | UI-084 | V350 Step 9 Client-safe Operations Notice UI | 필요 | 필요 | 안정화, UI | `/client/live`, `/client/dashboard`, `/client/events`가 `media-server.client.v350-operations-notice.v1` 기반 maintenance/degraded/recovering/available 상태와 timeline hint만 표시하고 source URL/raw locator/debug/operator/command/incident detail을 노출하지 않음 |
-| UI-085 | V350 Step 10 Operations Export Bundle and Handoff Map UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v350-export-bundle-handoff-map.v1` 기반 Operations Export Bundle과 Handoff Map을 표시하고 command plan refs, drill ledger refs, field evidence refs, client impact forecast refs를 release-safe/read-only로만 노출함 |
-| UI-086 | V350 Step 11 Field Evidence Intake UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v350-field-evidence-intake.v1` 기반 Field Evidence Intake를 표시하고 ONVIF, external WHEP/TURN, cloud/VLM provider의 redacted field evidence, execution conditions, not-run 상태를 raw endpoint/credential/provider/VLM material 없이 노출함 |
-| UI-087 | V350 Step 12 VLM-assisted Ops Explanation UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v350-vlm-assisted-explanation.v1` 기반 VLM-assisted Ops Explanation을 default-off로 표시하고 command plan blocker, incident/source relation, operator review hint를 raw prompt/provider response/credential material 없이 노출함 |
-| UI-088 | V360 Step 7 Ops Simulation Workspace UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v360-simulation-workspace-ui.v1` 기반 simulation input, run, impact diff, readiness blocker를 read-only로 표시하고 command execution/source-view-rule write/client notice 발송을 수행하지 않음 |
-| UI-089 | V360 Step 8 Simulation Run Ledger and Comparison UI | 필요 | 필요 | 안정화, UI | `/ops` simulation workspace가 `media-server.ops.v360-simulation-run-ledger.v1` 기반 simulation run id, input ref, result diff, operator note, previous run diff를 read-only로 표시하고 simulation 실행/operator note write/client notice 발송을 수행하지 않음 |
-| UI-090 | V360 Step 9 Client Notice Preview UI | 필요 | 필요 | 안정화, UI | `/ops` simulation workspace가 `media-server.ops.v360-client-notice-preview.v1` 기반 maintenance/degraded/recovering notice preview를 preview-only로 표시하고 client notice send/persist 또는 viewer client payload 변경을 수행하지 않음 |
-| UI-091 | V360 Step 10 Rule/VA What-if Replay Pack UI | 필요 | 필요 | 안정화, UI | `/ops` simulation workspace가 `media-server.ops.v360-rule-va-what-if-replay-pack.v1` 기반 rule threshold, preset, scenario what-if 후보를 read-only로 표시하고 rule apply/EventRecord write/media mutation을 수행하지 않음 |
-| UI-092 | V360 Step 11 Simulation Export Bundle UI | 필요 | 필요 | 안정화, UI | `/ops` simulation workspace가 `media-server.ops.v360-simulation-export-bundle.v1` 기반 simulation input/output, blocker, handoff map refs를 redacted release-safe bundle으로 표시하고 artifact export/file write/handoff write를 수행하지 않음 |
-| UI-093 | V360 Step 12 Field Evidence Simulation Adapter UI | 필요 | 필요 | 안정화, UI | `/ops` simulation workspace가 `media-server.ops.v360-field-evidence-simulation-adapter.v1` 기반 ONVIF, external WHEP/TURN, cloud/VLM provider 조건부/not-run evidence와 readiness blocker ref를 raw endpoint/credential/provider material 없이 표시함 |
-| UI-094 | V360 Step 13 VLM-assisted Simulation Explanation UI | 필요 | 필요 | 안정화, UI | `/ops` simulation workspace가 `media-server.ops.v360-vlm-assisted-simulation-explanation.v1` 기반 VLM-assisted Simulation Explanation을 default-off로 표시하고 blocker, impact diff, operator review hint를 raw prompt/provider response/credential material 없이 노출함 |
-| UI-095 | V370 Step 11 Site Operations Workspace UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v370-site-operations-workspace-ui.v1` 기반 site list, health rollup, runbook queue, impact detail을 read-only로 표시하고 source URL/raw locator/raw JSON/debug/credential/operator material과 source/view/runbook/approval write를 노출하지 않음 |
-| UI-096 | V370 Step 12 Client Notice by Site/View Group UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v370-client-notice-by-site-view-group.v1` 기반 site/view group viewer-safe notice preview와 delivery queue를 preview-only로 표시하고 client notice send/persist 또는 viewer client payload 변경을 수행하지 않음 |
-| UI-097 | V370 Step 13 Rule/VA What-if by Site UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v370-rule-va-what-if-by-site.v1` 기반 site-scoped rule threshold/scenario what-if 후보, site impact delta, EventRecord/VA fixture refs를 read-only로 표시하고 rule apply/EventRecord write/media mutation을 수행하지 않음 |
-| UI-098 | V370 Step 14 Field Evidence Attachment UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v370-field-evidence-attachment.v1` 기반 site/runbook field evidence attachment, condition refs, approval/runbook refs, not-run/conditional evidence boundary를 표시하고 field smoke, endpoint/provider 실행, source/view/runbook/approval write, raw endpoint/credential/provider material 노출을 수행하지 않음 |
-| UI-099 | V370 Step 15 Limited Safe Execution Pilot UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v370-limited-safe-execution-pilot.v1` 기반 source recheck 또는 notice queue pilot 후보, approval gate state, execution preview, idempotency key를 표시하고 source recheck 실행, notice send/queue write, source/view/runbook/approval write를 수행하지 않음 |
-| UI-100 | V370 Step 16 Outcome Reconciliation UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v370-outcome-reconciliation.v1` 기반 pre-simulation ref, post-execution not-run ref, source impact diff, EventRecord/client impact diff, pending reason을 표시하고 pilot execution, EventRecord write, client notice send, source/view/client/media mutation을 수행하지 않음 |
-| UI-101 | V370 Step 17 Export / Handoff Bundle UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v370-export-handoff-bundle.v1` 기반 bundle item, handoff map, redaction review, release safety boundary를 표시하고 artifact/file/handoff write, client notice send, raw material 노출을 수행하지 않음 |
-| UI-102 | V380 Step 10 Ops Action Control Workspace UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v380-action-control-workspace-ui.v1` 기반 request/approval/readiness/pilot/receipt flow를 read-only로 표시하고 action execution, request persist, approval persist, readiness persist, source recheck, notice send, rule apply, client/media/schema mutation을 수행하지 않음 |
+| UI-085 | V350 Step 10 Operations Export Bundle and Handoff Map UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard`가 `media-server.ops.v350-export-bundle-handoff-map.v1` 기반 Operations Export Bundle과 Handoff Map을 표시하고 command plan refs, drill ledger refs, field evidence refs, client impact forecast refs를 release-safe/read-only로만 노출함 |
+| UI-086 | V350 Step 11 Field Evidence Intake UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard`가 `media-server.ops.v350-field-evidence-intake.v1` 기반 Field Evidence Intake를 표시하고 ONVIF, external WHEP/TURN, cloud/VLM provider의 redacted field evidence, execution conditions, not-run 상태를 raw endpoint/credential/provider/VLM material 없이 노출함 |
+| UI-087 | V350 Step 12 VLM-assisted Ops Explanation UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard`가 `media-server.ops.v350-vlm-assisted-explanation.v1` 기반 VLM-assisted Ops Explanation을 default-off로 표시하고 command plan blocker, incident/source relation, operator review hint를 raw prompt/provider response/credential material 없이 노출함 |
+| UI-088 | V360 Step 7 Ops Simulation Workspace UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard`가 `media-server.ops.v360-simulation-workspace-ui.v1` 기반 simulation input, run, impact diff, readiness blocker를 read-only로 표시하고 command execution/source-view-rule write/client notice 발송을 수행하지 않음 |
+| UI-089 | V360 Step 8 Simulation Run Ledger and Comparison UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard` simulation workspace가 `media-server.ops.v360-simulation-run-ledger.v1` 기반 simulation run id, input ref, result diff, operator note, previous run diff를 read-only로 표시하고 simulation 실행/operator note write/client notice 발송을 수행하지 않음 |
+| UI-090 | V360 Step 9 Client Notice Preview UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard` simulation workspace가 `media-server.ops.v360-client-notice-preview.v1` 기반 maintenance/degraded/recovering notice preview를 preview-only로 표시하고 client notice send/persist 또는 viewer client payload 변경을 수행하지 않음 |
+| UI-091 | V360 Step 10 Rule/VA What-if Replay Pack UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard` simulation workspace가 `media-server.ops.v360-rule-va-what-if-replay-pack.v1` 기반 rule threshold, preset, scenario what-if 후보를 read-only로 표시하고 rule apply/EventRecord write/media mutation을 수행하지 않음 |
+| UI-092 | V360 Step 11 Simulation Export Bundle UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard` simulation workspace가 `media-server.ops.v360-simulation-export-bundle.v1` 기반 simulation input/output, blocker, handoff map refs를 redacted release-safe bundle으로 표시하고 artifact export/file write/handoff write를 수행하지 않음 |
+| UI-093 | V360 Step 12 Field Evidence Simulation Adapter UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard` simulation workspace가 `media-server.ops.v360-field-evidence-simulation-adapter.v1` 기반 ONVIF, external WHEP/TURN, cloud/VLM provider 조건부/not-run evidence와 readiness blocker ref를 raw endpoint/credential/provider material 없이 표시함 |
+| UI-094 | V360 Step 13 VLM-assisted Simulation Explanation UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard` simulation workspace가 `media-server.ops.v360-vlm-assisted-simulation-explanation.v1` 기반 VLM-assisted Simulation Explanation을 default-off로 표시하고 blocker, impact diff, operator review hint를 raw prompt/provider response/credential material 없이 노출함 |
+| UI-095 | V370 Step 11 Site Operations Workspace UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard`가 `media-server.ops.v370-site-operations-workspace-ui.v1` 기반 site list, health rollup, runbook queue, impact detail을 read-only로 표시하고 source URL/raw locator/raw JSON/debug/credential/operator material과 source/view/runbook/approval write를 노출하지 않음 |
+| UI-096 | V370 Step 12 Client Notice by Site/View Group UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard`가 `media-server.ops.v370-client-notice-by-site-view-group.v1` 기반 site/view group viewer-safe notice preview와 delivery queue를 preview-only로 표시하고 client notice send/persist 또는 viewer client payload 변경을 수행하지 않음 |
+| UI-097 | V370 Step 13 Rule/VA What-if by Site UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard`가 `media-server.ops.v370-rule-va-what-if-by-site.v1` 기반 site-scoped rule threshold/scenario what-if 후보, site impact delta, EventRecord/VA fixture refs를 read-only로 표시하고 rule apply/EventRecord write/media mutation을 수행하지 않음 |
+| UI-098 | V370 Step 14 Field Evidence Attachment UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard`가 `media-server.ops.v370-field-evidence-attachment.v1` 기반 site/runbook field evidence attachment, condition refs, approval/runbook refs, not-run/conditional evidence boundary를 표시하고 field smoke, endpoint/provider 실행, source/view/runbook/approval write, raw endpoint/credential/provider material 노출을 수행하지 않음 |
+| UI-099 | V370 Step 15 Limited Safe Execution Pilot UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard`가 `media-server.ops.v370-limited-safe-execution-pilot.v1` 기반 source recheck 또는 notice queue pilot 후보, approval gate state, execution preview, idempotency key를 표시하고 source recheck 실행, notice send/queue write, source/view/runbook/approval write를 수행하지 않음 |
+| UI-100 | V370 Step 16 Outcome Reconciliation UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard`가 `media-server.ops.v370-outcome-reconciliation.v1` 기반 pre-simulation ref, post-execution not-run ref, source impact diff, EventRecord/client impact diff, pending reason을 표시하고 pilot execution, EventRecord write, client notice send, source/view/client/media mutation을 수행하지 않음 |
+| UI-101 | V370 Step 17 Export / Handoff Bundle UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard`가 `media-server.ops.v370-export-handoff-bundle.v1` 기반 bundle item, handoff map, redaction review, release safety boundary를 표시하고 artifact/file/handoff write, client notice send, raw material 노출을 수행하지 않음 |
+| UI-102 | V380 Step 10 Ops Action Control Workspace UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard`가 `media-server.ops.v380-action-control-workspace-ui.v1` 기반 request/approval/readiness/pilot/receipt flow를 read-only로 표시하고 action execution, request persist, approval persist, readiness persist, source recheck, notice send, rule apply, client/media/schema mutation을 수행하지 않음 |
 | UI-103 | V380 Step 11 Client-safe Action Notice Preview UI | 필요 | 필요 | 안정화, UI | `/client/dashboard`, `/client/events`, `/client/live`가 `media-server.client.v380-action-notice-preview.v1` 기반 maintenance/degraded/recovering/available action notice preview를 status/timeline-only로 표시하고 internal blocker, approval/readiness detail, source locator, credential, raw diagnostic, Ops-only action material을 노출하지 않음 |
-| UI-104 | V380 Step 12 Outcome Observer and Reconciliation UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard의 Action Control Workspace가 `media-server.ops.v380-outcome-observer-reconciliation.v1` 기반 readiness, execution candidate, observed outcome diff를 source/EventRecord/client/rule 축으로 표시하고 action execution, EventRecord write, client notice send, rule apply, media/schema mutation을 수행하지 않음 |
-| UI-105 | V380 Step 13 Action Receipt Bundle UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard의 Action Control Workspace가 `media-server.ops.v380-action-receipt-bundle.v1` 기반 redacted release-safe receipt bundle, handoff map, redaction review를 표시하고 artifact/file/handoff write, action execution, raw locator/credential/raw diagnostic 노출을 수행하지 않음 |
-| UI-106 | V380 Step 14 Field Connector Evidence Package UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard의 Action Control Workspace가 `media-server.ops.v380-field-connector-evidence-package.v1` 기반 ONVIF/external WHEP-TURN/cloud provider connector evidence package와 credential/endpoint approval condition을 표시하고 field smoke, endpoint/credential probe, provider call, raw endpoint/locator/credential/provider/debug material 노출을 수행하지 않음 |
-| UI-107 | V380 Step 15 Default-off Action Explanation UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard의 Action Control Workspace가 `media-server.ops.v380-default-off-action-explanation.v1` 기반 approval blocker, readiness reason, outcome hint를 default-off explanation으로 표시하고 VLM/provider/runtime call, raw prompt/provider response, credential/locator/debug material, action execution을 수행하지 않음 |
+| UI-104 | V380 Step 12 Outcome Observer and Reconciliation UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard`의 Action Control Workspace가 `media-server.ops.v380-outcome-observer-reconciliation.v1` 기반 readiness, execution candidate, observed outcome diff를 source/EventRecord/client/rule 축으로 표시하고 action execution, EventRecord write, client notice send, rule apply, media/schema mutation을 수행하지 않음 |
+| UI-105 | V380 Step 13 Action Receipt Bundle UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard`의 Action Control Workspace가 `media-server.ops.v380-action-receipt-bundle.v1` 기반 redacted release-safe receipt bundle, handoff map, redaction review를 표시하고 artifact/file/handoff write, action execution, raw locator/credential/raw diagnostic 노출을 수행하지 않음 |
+| UI-106 | V380 Step 14 Field Connector Evidence Package UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard`의 Action Control Workspace가 `media-server.ops.v380-field-connector-evidence-package.v1` 기반 ONVIF/external WHEP-TURN/cloud provider connector evidence package와 credential/endpoint approval condition을 표시하고 field smoke, endpoint/credential probe, provider call, raw endpoint/locator/credential/provider/debug material 노출을 수행하지 않음 |
+| UI-107 | V380 Step 15 Default-off Action Explanation UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard`의 Action Control Workspace가 `media-server.ops.v380-default-off-action-explanation.v1` 기반 approval blocker, readiness reason, outcome hint를 default-off explanation으로 표시하고 VLM/provider/runtime call, raw prompt/provider response, credential/locator/debug material, action execution을 수행하지 않음 |
 | UI-108 | V390 Step 11 ONVIF credential/provider status UI | 필요 | 필요 | 안정화, UI | `/ops/sources` ONVIF 도구 영역이 `media-server.ops.v390-onvif-credential-provider-status.v1` 기반 primary provider `none`, fallback `in-memory-fixture`, persistent store deferred, `referenceValueExposed=false`, `credentialMaterialExposed=false`를 표시하고 credential reference value나 secret material을 노출하지 않음 |
 | UI-109 | V390 Step 12 ONVIF live import persist decision UI | 필요 | 필요 | 안정화, UI | `/ops/sources` ONVIF 도구 영역이 `media-server.ops.v390-onvif-live-import-persist-decision.v1` 기반 manual-form-save-handoff, `importDraftNotSaved=true`, `oneShotPersist=false`, `sourceWriteRequired=true`를 표시하고 direct persist route나 source/view write 완료처럼 표시하지 않음 |
 | UI-110 | V390 Step 13 VLM rule suggestion draft bridge UI | 필요 | 필요 | 안정화, UI | `/ops/rules` VLM Rule draft 영역이 `media-server.ops.v390-vlm-rule-suggestion-draft-bridge.v1` 기반 `ops-review-to-rule-draft-bridge`, `provenance=incident-review-provenance`, `manualSaveRequired=true`, `autoApply=false`, `ruleRegistryWrite=false`를 표시하고 자동 저장/자동 적용 완료처럼 표시하지 않음 |
 | UI-111 | V390 Step 14 VLM evaluation promotion guard UI | 필요 | 필요 | 안정화, UI | `/ops/vlm` Evaluation result workflow 영역이 `media-server.ops.v390-vlm-evaluation-promotion-guard.v1` 기반 `passed-evaluation-manual-promotion-guard`, `operatorSaveRequired=true`, `activationGuard=true`, `runtimeCall=false`, `providerCall=false`를 표시하고 자동 저장/자동 활성화 완료처럼 표시하지 않음 |
 | UI-112 | V390 Step 15 staging restore validation handoff UI | 필요 | 필요 | 안정화, UI | `/ops/sources` Backup Handoff 영역이 `media-server.ops.v390-staging-restore-validation-handoff.v1` 기반 staging restore checklist와 result artifact contract, `resultArtifactPersistedByRoute=false`, `productionRestorePerformed=false`, `automaticRecoveryPerformed=false`를 표시하고 restore/cutover 완료처럼 표시하지 않음 |
-| UI-113 | V390 Step 16 action execution deferral decision UI | 필요 | 필요 | 안정화, UI | `/ops` Action Control Workspace 인근이 `media-server.ops.v390-action-execution-deferral-decision.v1` 기반 `defer-all-action-writes`, `approvalGatedExecutionEnabled=false`, `sourceRecheckExecuted=false`, `clientNoticeSent=false`, `ruleApplyPerformed=false`를 표시하고 action 실행 버튼이나 완료처럼 표시하지 않음 |
-| UI-114 | V390 Step 17 field evidence bridge decision UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v390-field-evidence-bridge-decision.v1` 기반 `approval-only-minimal-field-evidence-bridge`, `fieldSmokeExecuted=false`, `endpointProbePerformed=false`, `credentialProbePerformed=false`, `fieldPassClaimed=false`, `releasePassClaimed=false`를 표시하고 field 실행 버튼이나 release PASS처럼 표시하지 않음 |
-| UI-115 | V390 Step 18 Re-ID assist decision UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v390-reid-assist-decision.v1` 기반 `explicit-opt-in-provenance-gated-assist`, model/checksum/provenance gate, no-op fallback, `modelBackedExecutionPerformed=false`, `embeddingSerialized=false`, `cropSerialized=false`를 표시하고 Re-ID 실행 완료처럼 표시하지 않음 |
+| UI-113 | V390 Step 16 action execution deferral decision UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard` Action Control Workspace 인근이 `media-server.ops.v390-action-execution-deferral-decision.v1` 기반 `defer-all-action-writes`, `approvalGatedExecutionEnabled=false`, `sourceRecheckExecuted=false`, `clientNoticeSent=false`, `ruleApplyPerformed=false`를 표시하고 action 실행 버튼이나 완료처럼 표시하지 않음 |
+| UI-114 | V390 Step 17 field evidence bridge decision UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard`가 `media-server.ops.v390-field-evidence-bridge-decision.v1` 기반 `approval-only-minimal-field-evidence-bridge`, `fieldSmokeExecuted=false`, `endpointProbePerformed=false`, `credentialProbePerformed=false`, `fieldPassClaimed=false`, `releasePassClaimed=false`를 표시하고 field 실행 버튼이나 release PASS처럼 표시하지 않음 |
+| UI-115 | V390 Step 18 Re-ID assist decision UI | 필요 | 필요 | 안정화, UI | `/ops/dashboard`가 `media-server.ops.v390-reid-assist-decision.v1` 기반 `explicit-opt-in-provenance-gated-assist`, model/checksum/provenance gate, no-op fallback, `modelBackedExecutionPerformed=false`, `embeddingSerialized=false`, `cropSerialized=false`를 표시하고 Re-ID 실행 완료처럼 표시하지 않음 |
 
 ## B. Auth, Account, Role, Scope
 
@@ -596,10 +596,10 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | AUTH-026 | role: viewer | 필요 | 필요 | 안정화, UI | client만 접근, ops/lab 차단 |
 | AUTH-027 | role: integrator | 필요 | 필요 | 안정화, UI | API/scope 중심 접근과 제품 UI 경계 확인 |
 | AUTH-028 | scope: ops 읽기 | 간접 | 필요 | 안정화, UI | read-only route/API 허용, write action 차단 |
-| AUTH-029 | scope: ops 쓰기 | 간접 | 필요 | 안정화, UI | permitted write action만 성공 |
+| AUTH-029 | scope: source/rule 쓰기 | 간접 | 필요 | 안정화, UI | `source:write`는 source/view mutation, `rule:write`는 Rule/Profile mutation만 허용하고 다른 write action은 차단 |
 | AUTH-030 | scope: client/view 접근 | 간접 | 필요 | 안정화, UI | assigned view만 client 화면에 표시 |
 | AUTH-031 | scope: lab 읽기 | 비대상 | 필요 | 안정화 | lab API read guard가 scope와 일치 |
-| AUTH-032 | scope: lab 쓰기 | 비대상 | 필요 | 안정화 | lab API write guard가 scope와 일치 |
+| AUTH-032 | Lab API operator 또는 `lab:read` guard | 비대상 | 필요 | 안정화 | 별도 `lab:write` scope를 만들지 않고 `require_lab_principal`이 operator role 또는 `lab:read` scope만 허용 |
 | AUTH-033 | 초대 생성 | 필요 | 필요 | 안정화, UI | invite 생성 UI/API 성공, 원문 token 기록 금지 |
 | AUTH-034 | 초대 수락 | 필요 | 필요 | 안정화, UI | invite setup 후 login/client 접근 확인 |
 | AUTH-035 | 초대 만료/무효 처리 | 간접 | 필요 | 안정화, UI | expired/consumed token이 거부됨 |
@@ -615,7 +615,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 
 | ID | 기능 | UI 필요 | 테스트 필요 | 테스트 영역 | PASS 기준 |
 | --- | --- | --- | --- | --- | --- |
-| SRC-001 | file source 등록 | 필요 | 필요 | 안정화, UI | file source form save 후 목록/view에서 사용 가능 |
+| SRC-001 | file source 등록 | 필요 | 필요 | 안정화, UI | `/ops/sources` file source form의 `kind=file` 저장 후 `/ops/api/sources` 목록과 PublishedView 선택에서 사용 가능 |
 | SRC-002 | RTSP pull source 등록 | 필요 | 필요 | 안정화, UI, 30분 | RTSP URL 저장, health/session 지속성 확인 |
 | SRC-003 | HTTP/HLS URI source 등록 | 필요 | 필요 | 안정화, UI, 30분 | URI 저장, 재생/health 상태 확인 |
 | SRC-004 | external WHEP playback URL source 등록 | 필요 | 필요 | 안정화, UI, 30분 | WHEP URL 저장, client wrapper session 생성/삭제, WHEP source sample ready 확인 |
@@ -623,8 +623,8 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SRC-006 | source 목록 조회 | 필요 | 필요 | 안정화, UI | 목록 row/count/status가 API와 일치 |
 | SRC-007 | source 상세 조회 | 필요 | 필요 | 안정화, UI | detail panel/route가 source fields를 표시 |
 | SRC-008 | source 생성 | 필요 | 필요 | 안정화, UI | create validation, 빈 채널 이름 거부, 성공 row 반영 |
-| SRC-009 | source 수정 | 필요 | 필요 | 안정화, UI | edit save 후 변경 값 반영 |
-| SRC-010 | source 삭제 | 필요 | 필요 | 안정화, UI | delete 후 목록/view 참조 정리 확인 |
+| SRC-009 | source 수정 | 필요 | 필요 | 안정화, UI | `/ops/sources` edit save가 `PUT /ops/api/sources/{sourceId}`로 반영되고 source API와 table row가 같은 displayName/zone을 표시 |
+| SRC-010 | source 비활성화 (`DELETE`) | 필요 | 필요 | 안정화, UI | `DELETE /ops/api/sources/{sourceId}`가 record를 제거하지 않고 `enabled=false`로 soft-disable하며 연결된 view/session 접근은 비활성 source guard로 차단 |
 | SRC-011 | source 활성/비활성 상태 | 필요 | 필요 | 안정화, UI | disabled source가 view/session/rule에서 차단됨 |
 | SRC-012 | source health 조회 | 필요 | 필요 | 안정화, UI, 30분 | health status가 dashboard/list와 V240-S04 client-safe source health summary에 반영 |
 | SRC-013 | source health bulk 조회 | 간접 | 필요 | 안정화 | bulk response schema와 status 집계 확인 |
@@ -633,7 +633,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SRC-016 | PublishedView 목록 조회 | 필요 | 필요 | 안정화, UI | view 목록/count/scope 표시 확인 |
 | SRC-017 | PublishedView 생성 | 필요 | 필요 | 안정화, UI | create 후 client/viewer scope에서 선택 가능 |
 | SRC-018 | PublishedView 수정 | 필요 | 필요 | 안정화, UI | source/rule/scope 변경 후 반영 |
-| SRC-019 | PublishedView 삭제 | 필요 | 필요 | 안정화, UI | 삭제 후 client view와 session 접근 차단 |
+| SRC-019 | PublishedView 비활성화 (`DELETE`) | 필요 | 필요 | 안정화, UI | `DELETE /ops/api/views/{viewId}`가 record를 제거하지 않고 `enabled=false`로 soft-disable한 뒤 client view와 신규 session 접근을 차단 |
 | SRC-020 | PublishedView 활성/비활성 | 필요 | 필요 | 안정화, UI | inactive view가 client/rule/session에서 차단 |
 | SRC-021 | View별 source 연결 | 필요 | 필요 | 안정화, UI | view-source mapping이 client live에 반영 |
 | SRC-022 | View별 allowed rule list | 필요 | 필요 | 안정화, UI | PublishedView `allowedRuleIds`가 client list/detail API에 유지되고 허용 rule만 client session/metadata에 반영 |
@@ -858,7 +858,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | EVT-052 | Ops operational action pack view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews` 응답의 `operationalActionPack`이 release-safe bundle/rule draft/alert dry-run/source health recheck 수동 workflow link를 요약하고 EventRecord/Event POST/WebRTC/SSE/WS/media path/client viewer 노출을 바꾸지 않음 |
 | EVT-053 | Ops rule what-if preview view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews` 응답의 `ruleWhatIfPreview`가 selected incident/EventRecord와 matching rule suggestion 후보의 condition preview/draft comparison/manual draft route를 요약하고 EventRecord/Event POST/WebRTC/SSE/WS/media path/client viewer 노출을 바꾸지 않음 |
 | EVT-054 | Ops operator outcome memory view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews` 응답의 `operatorOutcomeMemory`가 기존 review state의 accept/dismiss/review-needed 결과와 audit action reference를 deterministic history hint로 요약하고 EventRecord/Event POST/WebRTC/SSE/WS/media path/client viewer 노출을 바꾸지 않음 |
-| EVT-055 | Ops incident action readiness queue view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews` 또는 후속 Ops API가 follow-up 후보를 ready/blocked/field-smoke-needed/not-run으로 요약하되 EventRecord/Event POST/WebRTC/SSE/WS/media path/client viewer 노출을 바꾸지 않음 |
+| EVT-055 | Ops incident action readiness queue view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews`가 follow-up 후보를 ready/blocked/field-smoke-needed/not-run으로 요약하되 EventRecord/Event POST/WebRTC/SSE/WS/media path/client viewer 노출을 바꾸지 않음 |
 | EVT-056 | Ops approval-gated rule draft readiness state | 필요 | 필요 | 안정화, UI | staged rule draft readiness가 approval state와 validation summary만 제공하고 EventRecord top-level, Event POST/WebRTC/SSE/WS payload, Rule/Profile registry 자동 write를 만들지 않음 |
 | EVT-057 | Ops evidence intake field readiness view model | 필요 | 필요 | 안정화, UI | evidence intake/field readiness 상태가 passed/failed/blocked/not-run을 분리하고 credential/source/raw/debug/provider material을 EventRecord/Event POST/WebRTC/SSE/WS/client에 노출하지 않음 |
 | EVT-058 | Ops runtime evidence window view model | 필요 | 필요 | 안정화, UI | incident-linked runtime/source/event evidence window가 bounded summary만 제공하고 장기 저장소, 30분/120분 PASS, Event POST/WebRTC/SSE/WS/media path/client viewer 변경을 만들지 않음 |
@@ -956,7 +956,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | MEDIA-011 | shared stream reuse | 비대상 | 필요 | 안정화, 30분, 120분 | 다중 session이 source worker를 재사용 |
 | MEDIA-012 | source worker lifecycle | 비대상 | 필요 | 안정화, 30분, 120분 | start/stop/reconnect 후 worker leak 없음 |
 | MEDIA-013 | stream registry | 비대상 | 필요 | 안정화, 30분 | registry add/remove/counter 일치 |
-| MEDIA-014 | RTSP TCP 강제 옵션 | 비대상 | 필요 | 안정화 | TCP 옵션 적용과 기존 path 유지 |
+| MEDIA-014 | RTSP TCP 강제 옵션 | 비대상 | 필요 | 안정화 | `MEDIA_SERVER_FORCE_RTSP_TCP=1`이 `AppConfig.force_rtsp_tcp`와 GStreamer source transport에 반영되고 `verify-server-start-modes`가 기존 RTSP path 유지 확인 |
 | MEDIA-015 | codec capability | 비대상 | 필요 | 안정화 | codec capability response와 negotiation 유지 |
 | MEDIA-016 | H.264 sample playback | 필요 | 필요 | 안정화, UI, 30분 | sample 영상 표시. 단, 모든 VA 이벤트 검증으로 쓰지 않음 |
 | MEDIA-017 | multi-channel playback | 필요 | 필요 | 안정화, UI, 30분 | 여러 tile/channel 동시 재생과 layout 안정성 확인 |
@@ -1053,10 +1053,10 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | LAB-076 | V270-S03 operational action pack static guard | 비대상 | 필요 | 안정화 | `verify-v270-operational-action-pack`이 action pack wrapper schema, release-safe bundle/rule draft/alert dry-run/source health recheck 연결, command/docs/inventory wiring, external delivery/auto rule/schema/media 비범위를 정적 검증함 |
 | LAB-077 | V270-S04 rule what-if preview static guard | 비대상 | 필요 | 안정화 | `verify-v270-rule-what-if-preview`가 rule what-if preview wrapper schema, selected incident/rule suggestion condition preview, `/ops/rules` draft-only link, command/docs/inventory wiring, full replay/auto apply/schema/media 비범위를 정적 검증함 |
 | LAB-078 | V270-S05 operator outcome memory static guard | 비대상 | 필요 | 안정화 | `verify-v270-operator-outcome-memory`이 operator outcome memory wrapper schema, review state/audit action 기반 deterministic history hint, command/docs/inventory wiring, persistent write/client/schema/media 비범위를 정적 검증함 |
-| LAB-079 | V280-S02 incident action readiness queue static guard | 비대상 | 필요 | 안정화 | 후보 `verify-v280-incident-action-readiness-queue`가 readiness queue wrapper schema, ready/blocked/not-run status, command/docs/inventory wiring, external delivery/auto write/schema/media 비범위를 정적 검증해야 함 |
-| LAB-080 | V280-S03 approval-gated rule draft static guard | 비대상 | 필요 | 안정화 | 후보 `verify-v280-approval-gated-rule-draft`가 approval state, staged draft, validation summary, command/docs/inventory wiring, auto save/auto apply/full replay/schema/media 비범위를 정적 검증해야 함 |
-| LAB-081 | V280-S04 evidence intake field readiness static guard | 비대상 | 필요 | 안정화 | 후보 `verify-v280-evidence-intake-field-readiness`가 redacted intake, source health recheck, field smoke precondition, credential/source/raw redaction, endpoint/credential 미실행 경계를 정적 검증해야 함 |
-| LAB-082 | V280-S05 runtime evidence window static guard | 비대상 | 필요 | 안정화 | 후보 `verify-v280-runtime-evidence-window`가 bounded runtime/source/event evidence window, no longrun substitute, no persistent archive, command/docs/inventory wiring을 정적 검증해야 함 |
+| LAB-079 | V280-S02 incident action readiness queue static guard | 비대상 | 필요 | 안정화 | `verify-v280-incident-action-readiness-queue`가 `/ops/api/events/reviews`의 `incidentActionReadinessQueue`, ready/blocked/not-run status, command/docs/inventory wiring, external delivery/auto write/schema/media 비범위를 정적 검증 |
+| LAB-080 | V280-S03 approval-gated rule draft static guard | 비대상 | 필요 | 안정화 | `verify-v280-approval-gated-rule-draft`가 `/ops/api/events/reviews`의 `approvalGatedRuleDraftReadiness`, approval state, staged draft, validation summary, auto save/auto apply/full replay/schema/media 비범위를 정적 검증 |
+| LAB-081 | V280-S04 evidence intake field readiness static guard | 비대상 | 필요 | 안정화 | `verify-v280-evidence-intake-field-readiness`가 `/ops/api/events/reviews`의 `evidenceIntakeFieldReadiness`, redacted intake, source health recheck, field smoke precondition, credential/source/raw redaction, endpoint/credential 미실행 경계를 정적 검증 |
+| LAB-082 | V280-S05 runtime evidence window static guard | 비대상 | 필요 | 안정화 | `verify-v280-runtime-evidence-window`가 `/ops/api/events/reviews`의 `runtimeEvidenceWindow`, bounded runtime/source/event evidence, no longrun substitute, no persistent archive, command/docs/inventory wiring을 정적 검증 |
 | LAB-083 | V300-S03 feature schema fixture | 비대상 | 필요 | 안정화 | `verify-v300-feature-schema-privacy`가 `media-server.event-feature-set.v1` fixture의 FeatureSet envelope, allowed namespace feature values, confidence/uncertainty/evidenceRef, raw prompt/response non-retention, disallowed identity feature matrix를 검증하되 VLM runtime/provider call, Search DSL, `/ops/events` UI를 만들지 않음 |
 | LAB-084 | V300-S04 VLM feature queue fixture | 비대상 | 필요 | 안정화, 30분 | `verify-v300-vlm-feature-queue`와 `verify-analysis-state`가 background queue, lazy trigger, missing-runtime, queue-timeout, invalid-output outcome과 structured FeatureSet revision을 검증하되 real provider call, Search DSL, `/ops/events` UI를 만들지 않음 |
 | LAB-085 | V300-S05 feature-only retention fixture | 비대상 | 필요 | 안정화 | `verify-v300-feature-only-retention`와 `verify-analysis-state`가 FeatureSet revision store, raw prompt/response rejection, reanalysis revision policy, previous revision preservation을 검증하되 Search DSL, Retention/Pin/Cleanup, `/ops/events` UI를 만들지 않음 |
@@ -1468,21 +1468,30 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-178 | V390 Step 19 Structure Stabilization Handoff 게이트 | 비대상 | 필요 | 안정화 | `verify-v390-structure-stabilization-handoff`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 structure handoff plan, backlog, v390 inventory, stream verification, release records/evidence 연결을 확인하되 실제 route/API/UI extraction, manual UI archive split, VLM contract index implementation, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-179 | V390 Step 20 Stabilization and Release Readiness 게이트 | 비대상 | 필요 | 안정화 | `verify-v390-stabilization-release-readiness`, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-release-evidence-index`, `verify-release-closeout-helper --dry-run`, `verify-script-inventory`가 release readiness 문서/evidence/dispatch 연결을 확인하되 UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, PR/main/tag/GitHub Release, field smoke PASS로 대체하지 않음 |
 
-## Coverage Review To Do
+## Completed Exact-ID Coverage Review
 
-이 문서 다음 단계는 실행이 아니라 대조입니다.
+2026-07-10에 974개 기능 행을 `test/fixtures/project_feature_implementation_evidence.json`
+`media-server.feature-implementation-evidence.v1` manifest와 1:1 대조했습니다. 이 완료는
+tracked source/UI/verifier anchor와 longrun mapping 존재 확인이며 제품 테스트 실행 PASS가
+아닙니다. manifest 갱신은 `--refresh-manifest`를 명시한 source 변경으로만 수행하고,
+기본 verifier는 read-only로 drift를 검사합니다.
 
-| 작업 | 산출물 |
-| --- | --- |
-| 코드 로직 존재 대조 | 기능 ID별 source/API/route 위치 |
-| 제품 UI 존재 대조 | 기능 ID별 route/control/state 위치 |
-| 안정화 테스트 존재 대조 | 기능 ID별 verifier/script/API smoke 존재 여부 |
-| 30분 테스트 존재 대조 | 기능 ID별 soak/long session 포함 여부 |
-| 120분 대조 | 기능 ID별 longrun 필요 조건과 사용자 승인 기준 |
-| UI 풀테스트 항목 대조 | 기능 ID별 직접 클릭/타이핑/viewport/theme evidence 항목 |
+| 대조 항목 | exact-ID 결과 | 검증 경계 |
+| --- | ---: | --- |
+| 기능 ID 집합 | 974/974 | inventory와 manifest의 ID, section, feature, UI 필요, 테스트 영역이 완전 일치 |
+| 코드 로직 owner/anchor | 974/974 | tracked production 또는 gate owner file 안 exact anchor 존재; 실행 PASS 아님 |
+| 제품 UI route/control/state anchor | 440/440 | UI 필요/간접 또는 UI absence boundary 행별 `screenRoute`, product UI file/anchor; 직접 클릭 PASS 아님 |
+| manual UI exact case | 424/424 | 테스트 영역 `UI` 행별 동일 `manualUiCaseId`; 실행 결과 없이 PASS 아님 |
+| 안정화 verifier assertion | 974/974 | 행별 verifier file/anchor와 `server.sh` direct 또는 transitive dispatch command 존재 |
+| 30분 mapping | 49/49 | `verify-v390-server-longrun --duration-minutes 30`, 사용자 명시 승인 전 미실행 |
+| 120분 mapping | 7/7 | `verify-v390-server-longrun --duration-minutes 120`, 사용자 명시 승인 전 조건부 미실행 |
+| negative fixture | 11/11 | missing/duplicate/wrong-section ID, source/UI/verifier file·anchor, screen route, dispatch, legacy longrun, inventory hash drift가 FAIL되는지 확인 |
 
-coverage 대조 전에는 `테스트 있음`, `UI 있음`, `완료`라고 보고하지 않습니다.
-정적 대조는 `./server.sh verify-feature-inventory-coverage`로 수행하며, 새 기능 ID가 안정화 verifier, manual UI fulltest, 30분/120분 승인 조건 중 어디에도 연결되지 않으면 누락 ID는 release gate에서 FAIL입니다. 네 테스트 영역 밖 분류는 coverage 대조에서 거부합니다.
+정적 대조는 `./server.sh verify-feature-implementation-evidence`와
+`./server.sh verify-feature-inventory-coverage`로 수행합니다. `coverageStatus=covered`는
+mapping coverage만 뜻하고 `executionEvidenceStatus=not-execution-evidence`를 유지합니다.
+누락 ID, 존재하지 않는 source/UI/verifier anchor, legacy `verify-predev` current mapping은
+release gate에서 FAIL합니다. 네 테스트 영역 밖 분류도 거부합니다.
 
 ## Script Inventory Boundary
 

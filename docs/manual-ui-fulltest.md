@@ -5,6 +5,9 @@
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 삼고, 실행 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md), 결과 기록은
 [manual-ui-result-template.md](./manual-ui-result-template.md)를 사용합니다.
+exact-ID 실행 목록은 `test/fixtures/project_feature_implementation_evidence.json`의
+UI 테스트 영역 424개 `manualUiCaseId`, `uiEvidence.screenRoute`, product UI anchor를
+사용하며 inventory ID와 manifest ID가 다르면 UI 풀테스트를 시작하지 않습니다.
 최신 공개 release 기준은 `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`이고
 현재 소스/UI 문서 기준은
 `v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`입니다.

@@ -133,7 +133,7 @@ UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release a
 | 번호 | ID | 구간 | 제목 | 우선순위 | 상태 | 완료 조건 |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | V390-ADD1-01 | Foundation | 미추적 파일 정리 | P0 | 완료 | 삭제 이력이 있는 미추적 파일 30개를 현재 참조·삭제 의도·blob 이력과 대조하고 복구 0, 삭제 30, 별도 보존 0으로 확정한 뒤 worktree에서 제거 |
-| 2 | V390-ADD1-02 | Feature Closure | 전체 기능 인벤토리 확정 | P0 | 진행 예정 | 974개 기능 행을 실제 route/UI control/action/verifier와 1:1 대조하고 남은 TODO 제거 |
+| 2 | V390-ADD1-02 | Feature Closure | 전체 기능 인벤토리 확정 | P0 | 완료 | 974개 기능 행을 exact manifest로 실제 route/UI control/state/verifier와 1:1 대조하고 stale TODO/오류 문구 제거, negative fixture와 local gate 통과 |
 | 3 | V390-ADD1-03 | Product Correctness | VLM 승격 신뢰 경계 | P0 | 진행 예정 | 클라이언트 `passed` 선언을 제거하고 서버가 후보 ID, 평가 결과, provenance를 검증한 뒤 승격 |
 | 4 | V390-ADD1-04 | Product Correctness | Re-ID 준비 상태 정합성 | P0 | 진행 예정 | 설정 문자열 외 파일 존재, SHA 일치, provenance, OpenSSL·ONNX runtime 가용성을 함께 검사 |
 | 5 | V390-ADD1-05 | Product Correctness | ONVIF 저장 원자성 | P0 | 진행 예정 | source/view 연속 PUT의 부분 저장을 막는 원자 저장 또는 검증 가능한 rollback 적용 |
@@ -204,6 +204,72 @@ V390-ADD1-01 직접 결과:
 
 테스트 사용량: token start `169879`, token end `174558`, token consumed `4679`,
 elapsed 약 `3초`, source `Codex goal usage`.
+
+### V390-ADD1-02 전체 기능 인벤토리 exact-ID closure
+
+기존 `verify-feature-inventory-coverage`는 ID prefix 하나에 같은 prefix의 verifier family
+전체를 붙이고 target 하나만 있어도 `covered`로 판정했습니다. 이 방식은 잘못된 route,
+scope, action 의미, 삭제된 owner를 행별로 검출하지 못하므로 exact-ID manifest 기준으로
+교체했습니다.
+
+- `test/fixtures/project_feature_implementation_evidence.json`:
+  `media-server.feature-implementation-evidence.v1` schema로 inventory 974개 ID 각각에
+  section/surface, tracked source file+anchor, UI 필요/간접 또는 absence boundary 440행의
+  screen route와 product UI file+anchor, verifier file+asserted anchor+direct/transitive
+  dispatch command, UI 테스트 영역 424행의 동일한 `manualUiCaseId`, canonical v3.9
+  30/120분 runner를 고정했습니다.
+- `scripts/internal/feature_implementation_manifest_lib.mjs`:
+  manifest explicit refresh와 read-only validation, tracked file/anchor, exact ID set/hash,
+  UI screen route, verifier dispatch, longrun mapping을 검증합니다.
+- `scripts/internal/verify_feature_implementation_evidence.mjs`와
+  `./server.sh verify-feature-implementation-evidence`:
+  기본 read-only validator와 missing/duplicate/wrong-section ID, source/UI/verifier
+  file·anchor, screen route, dispatch, legacy longrun, inventory hash drift negative fixture를
+  제공합니다. `--refresh-manifest`는 명시적 source 변경으로만 사용합니다.
+- `scripts/internal/verify_feature_inventory_coverage.mjs`:
+  prefix fan-out을 제거하고 exact manifest item에서 implementation/UI/verifier/longrun
+  target을 구성합니다. UI target report의 `undefined` 출력도 제거했습니다.
+- `scripts/internal/verify_project_feature_test_inventory.mjs`:
+  누락돼 있던 J section과 completed exact-ID section을 요구하고 manifest 974행을 직접
+  검증합니다.
+- `docs/project-feature-test-inventory.md`:
+  잘못된 `970개`를 `974개`로 정정하고 `UI-001`~`UI-115` 범위를 복원했습니다.
+  27개 dashboard 행을 실제 `/ops/dashboard`로 정렬하고, `AUTH-029`/`AUTH-032` scope,
+  `SRC-010`/`SRC-019` soft-disable 의미, `EVT-055` 확정 route, `MEDIA-014` TCP config,
+  `LAB-079`~`LAB-082` stale 후보 문구를 실제 source/verifier에 맞게 수정했습니다.
+  `Coverage Review To Do`는 974/974 exact-ID 완료 결과로 교체했습니다.
+- manual UI 기준 3문서는 manifest의 UI 테스트 영역 424개 `manualUiCaseId`, screen route,
+  product UI anchor를 exact 실행/결과 집합으로 사용하고 prefix/range delegation으로
+  누락 ID를 대체하지 않게 정렬했습니다.
+
+이번 단계는 source/UI/verifier anchor 대조 완료이며, 해당 974개 기능의 제품 실행,
+UI 직접 조작, 30분/120분 장시간 PASS를 새로 만들었다는 뜻이 아닙니다.
+
+테스트 필요성 판정:
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | inventory/manifest/parser/dispatch/docs를 직접 변경해 구조·negative fixture·문서 연결 검증 필요 | `V390-ADD1-02`, 974 manifest rows | 단계 범위에서 실행 |
+| 30분 테스트 | 미진행 | 구현/runtime/media path는 변경하지 않고 mapping source만 exact-ID로 교체 | `V390-ADD1-02` 변경 파일 | 장시간 실행 승인 없음 |
+| 120분 테스트 | 미진행 | AGENTS 7.6.2 media/lifecycle/high-risk trigger 없음 | `V390-ADD1-02` 변경 파일 | 장시간 실행 승인 없음 |
+| UI 풀테스트 | 미진행 | manual case source를 확정했지만 제품 UI 동작은 변경하지 않음 | manifest UI anchor 440, manual case 424 | 직접 실행 승인 없음 |
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| implementation manifest refresh | `./server.sh verify-feature-implementation-evidence --refresh-manifest`: inventory/manifest/source/verifier 974, UI anchor 440, manual case 424, negative fixture 11/11 | pass | explicit source refresh 후 default read-only 검증과 분리 |
+| implementation evidence read-only | `./server.sh verify-feature-implementation-evidence`: validationErrors 0, negative fixture 11/11 | pass | 실패 이력 없음 |
+| feature coverage | `./server.sh verify-feature-inventory-coverage`: featureRows 974, covered 974, missing 0, pass 6/fail 0 | pass | 최초 UI absence boundary가 null UI evidence를 역참조해 TypeError fail; UI area 424/manual case와 UI anchor 440을 분리하고 처음부터 재실행 pass |
+| project inventory | `./server.sh verify-project-inventory`: featureRows 974, summary/manifest/current rows/seed, pass 14/fail 0 | pass | 최초 exact-ID 문구 교체 뒤 기존 `inventory 단독으로 UI PASS 판정 불가` boundary 문구 guard fail; 문구 복원 후 처음부터 재실행 pass |
+| manual UI evidence criteria | `./server.sh verify-manual-ui-evidence`: template/checklist 기준 pass 24/fail 0 | pass | 실제 UI 풀테스트 결과 입력 없음, UI 직접 조작 PASS 아님 |
+| script inventory | `./server.sh verify-script-inventory`: pass 11/fail 0 | pass | 새 dispatch/helper 추적·참조 확인 |
+| docs links | `./server.sh verify-docs-links`: Markdown 141, links 776, images 22, anchors 99, failures 0 | pass | 실패 이력 없음 |
+| unresolved closure wording | inventory/manifest의 `TODO`, `TBD`, `FIXME`, `review-required`, `not-approved`, 후속 API/검증 필요/후보 verifier 검색 결과 0 | pass | stale closure 문구 없음 |
+| manifest cardinality audit | items 974, source 974, verifier 974, missing command 0, generic self owner 0, UI anchor 440, manual case 424, 30분 49, 120분 7 | pass | `jq` read-only audit |
+| diff 무결성 | `git diff --check`: exit 0 | pass | 실패 이력 없음 |
+
+테스트 사용량: token start `438676`, token end `494210`, token consumed `55534`,
+elapsed 약 `226초`, source `Codex goal usage`. 최초 실패 2건은 같은 단계 안에서 원인과
+수정 내용을 보존하고 전체 안정화 묶음을 처음부터 재실행했습니다.
 
 ## v3.9.0 남은 구현 목표: 다른 개발 채팅 인계용 상세 계약
 

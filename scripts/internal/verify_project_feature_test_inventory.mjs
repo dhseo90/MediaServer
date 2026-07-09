@@ -7,6 +7,10 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import {
+  loadImplementationManifest,
+  validateImplementationManifest,
+} from "./feature_implementation_manifest_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -22,6 +26,7 @@ Checks:
   - docs/project-feature-test-inventory.md is indexed
   - inventory pins the current release and states it is not execution evidence
   - all feature IDs use the current UI/test-area matrix shape
+  - the independent 974-row implementation/UI/verifier evidence manifest matches exactly
   - coverage, verifier, VA seed, 30-minute, 120-minute, and four-area boundaries exist
   - manual UI docs reference the feature inventory
   - the manual UI VA seed matrix fixture covers API-ready numeric IDs, basic events, scenarios, presets, tracker/Re-ID policies, and invalid policy cases
@@ -32,6 +37,14 @@ Checks:
 assertKnownOptions(rawArgs, ["help"]);
 
 const inventory = readText("docs/project-feature-test-inventory.md");
+const featureRows = parseFeatureRows(inventory);
+const implementationManifest = loadImplementationManifest(rootDir);
+const implementationValidation = validateImplementationManifest({
+  rootDir,
+  inventoryText: inventory,
+  rows: featureRows,
+  manifest: implementationManifest,
+});
 const docsIndex = readText("docs/README.md");
 const fulltest = readText("docs/manual-ui-fulltest.md");
 const checklist = readText("docs/manual-ui-checklist.md");
@@ -78,14 +91,15 @@ check("required sections exist", () => {
     "## G. Media And Streaming",
     "## H. Lab, Development API, Metadata",
     "## I. Safety, Boundary, Invariant Contract",
-    "## Coverage Review To Do",
+    "## J. Ops Evidence And Release Readiness",
+    "## Completed Exact-ID Coverage Review",
   ]) {
     requireText(inventory, heading, `inventory missing section: ${heading}`);
   }
 });
 
 check("summary counts match current feature IDs", () => {
-  const rows = parseFeatureRows(inventory);
+  const rows = featureRows;
   const declaredTotal = summaryCount(inventory, "전체 기능 항목");
   assert(rows.length === declaredTotal, `expected ${declaredTotal} feature rows, found ${rows.length}`);
   const ids = rows.map(row => row.id);
@@ -119,6 +133,16 @@ check("summary counts match current feature IDs", () => {
     requireText(inventory, `| ${label} | ${count} |`, `summary count mismatch for ${label}: ${count}`);
     console.log(`[pass] inventory summary count ${label} ${count}`);
   }
+});
+
+check("implementation evidence manifest matches all feature rows", () => {
+  assert(implementationValidation.ok, implementationValidation.errors.slice(0, 5).join("; "));
+  assert(implementationValidation.summary.manifestRows === featureRows.length,
+    "implementation manifest row count mismatch");
+  assert(implementationValidation.summary.sourceEvidenceRows === featureRows.length,
+    "implementation source evidence row count mismatch");
+  assert(implementationValidation.summary.verifierEvidenceRows === featureRows.length,
+    "implementation verifier evidence row count mismatch");
 });
 
 check("feature rows have required matrix columns", () => {
@@ -810,7 +834,7 @@ check("current feature expansion rows exist", () => {
     assert(ids.has(id), `missing current expanded feature row: ${id}`);
   }
   for (const snippet of [
-    "`UI-001`~`UI-018`, `UI-022`~`UI-115`",
+    "`UI-001`~`UI-115`",
     "`SRC-001`~`SRC-068`",
     "`CLIENT-001`~`CLIENT-042`",
     "`EVT-001`~`EVT-087`",

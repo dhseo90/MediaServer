@@ -584,6 +584,8 @@ Usage:
                  코드 기능/UI 접근 기능/검증 명령 inventory 문서가 현재 command/route 범위를 덮는지 점검합니다.
   verify-feature-inventory-coverage
                  기능 ID가 verifier/UI evidence/장시간 승인/field exclusion 중 하나에 연결됐는지 점검합니다.
+  verify-feature-implementation-evidence
+                 974개 기능 ID별 실제 owner/UI/verifier anchor manifest와 canonical longrun mapping을 점검합니다.
   verify-v300-entry-baseline
                  v3.0.0 S00 source baseline과 latest published v3.0.0 경계를 검증합니다.
   verify-v300-event-evidence-contract
@@ -1576,6 +1578,10 @@ case "${cmd}" in
   verify-feature-inventory-coverage)
     require_internal verify_feature_inventory_coverage.mjs
     exec "${INTERNAL_DIR}/verify_feature_inventory_coverage.mjs" "$@"
+    ;;
+  verify-feature-implementation-evidence)
+    require_internal verify_feature_implementation_evidence.mjs
+    exec "${INTERNAL_DIR}/verify_feature_implementation_evidence.mjs" "$@"
     ;;
   verify-v290-final-contract-freeze)
     require_internal verify_v290_final_contract_freeze.mjs

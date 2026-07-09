@@ -7,6 +7,9 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 기능별 UI 필요 여부와 테스트 영역은
 [project-feature-test-inventory.md](./project-feature-test-inventory.md), 실행 순서는
 [manual-ui-checklist.md](./manual-ui-checklist.md)를 봅니다.
+결과 행의 exact-ID 집합은 `test/fixtures/project_feature_implementation_evidence.json`의
+UI 테스트 영역 424개 `manualUiCaseId`이며, 각 행에 대응하는 `uiEvidence.screenRoute`와
+product UI anchor를 route/control/action evidence로 함께 기록합니다.
 
 ## 검수 메타데이터
 
