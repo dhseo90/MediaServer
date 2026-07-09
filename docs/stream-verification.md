@@ -171,17 +171,21 @@ evidence는 사용자 실행 승인과 별도 보존 summary/report가 있을 �
 
 이 절은 roadmap의 `사용자가 재실행 가능한 v3.9 test acceptance bundle` 항목입니다.
 
-v3.9.0 R3 dry-run command는 final acceptance command set과 evidence boundary를 같은
-summary/report schema로 고정합니다.
+v3.9.0 R3 dry-run command는 `finalAcceptanceCommandSet`과 evidence boundary를 같은
+summary/report schema로 고정합니다. 이 command는 R1 30분 longrun preserved evidence와
+R2 UI automation preserved evidence를 각각 `pass-existing-evidence`로 읽고, 사용자가
+같은 command를 다시 실행해 같은 PASS/FAIL 판정과 summary/report 경로를 확인할 수 있게
+합니다.
 
 - `./server.sh verify-v390-test-acceptance-bundle --dry-run`
 - `./server.sh verify-v390-test-acceptance-bundle --dry-run --output-dir <path>`
 - `./server.sh verify-v390-test-acceptance-bundle-contract`
 
 R3 summary schema is `media-server.v390-test-acceptance-bundle.v1`. The dry-run reads
-existing preserved R1 30분 evidence, records R2 UI automation as `approval-required-not-run`,
-records 120분 as `conditional-not-run`, and records published metadata/release action as
-`not-run-by-dry-run`.
+existing preserved R1 30분 evidence, records R2 UI automation preserved evidence as
+`pass-existing-evidence` when `docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json`
+and `report.md` are valid, records 120분 as `conditional-not-run`, and records published
+metadata/release action as `not-run-by-dry-run`.
 
 Boundary: dry-run does not execute 30-minute, UI automation, 120-minute, published metadata,
 or release-action suites. UI automation PASS, 120분 PASS, published metadata PASS, and release

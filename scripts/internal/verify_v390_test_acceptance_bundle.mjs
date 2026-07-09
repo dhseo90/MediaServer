@@ -42,16 +42,19 @@ assert(options.dryRun, "actual acceptance bundle execution requires explicit app
 fs.mkdirSync(outputDir, { recursive: true });
 
 const longrun30 = readLongrun30Evidence();
+const uiAutomation = readUiAutomationEvidence();
+const finalAcceptanceCommandSet = buildFinalAcceptanceCommandSet();
 const summary = {
   schema: "media-server.v390-test-acceptance-bundle.v1",
   runId,
   command: `./server.sh verify-v390-test-acceptance-bundle ${rawArgs.join(" ")}`,
   dryRun: true,
-  result: longrun30.status === "pass-existing-evidence" ? "PASS" : "FAIL",
+  result: longrun30.status === "pass-existing-evidence" && uiAutomation.status === "pass-existing-evidence" ? "PASS" : "FAIL",
   evidenceBoundary: "dry-run does not execute 30-minute, UI automation, 120-minute, published metadata, or release-action suites",
   outputDir,
   summaryPath,
   reportPath,
+  finalAcceptanceCommandSet,
   localReadiness: {
     status: "not-run-by-dry-run",
     commands: [
@@ -72,12 +75,7 @@ const summary = {
     command: "./server.sh verify-v390-server-longrun --duration-minutes 120 --output-dir docs/release-artifacts/v3.9.0/server-longrun-120min-final",
     condition: "AGENTS 120-minute gate or explicit user approval required",
   },
-  uiAutomation: {
-    status: "approval-required-not-run",
-    command: "./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir docs/release-artifacts/v3.9.0/ui-automation-playwright-final",
-    reportCommand: "./server.sh verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json",
-    plannedSummaryPath: "docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json",
-  },
+  uiAutomation,
   publishedMetadata: {
     status: "not-run-by-dry-run",
     command: "./server.sh verify-release-metadata --published",
@@ -148,6 +146,92 @@ function readLongrun30Evidence() {
   };
 }
 
+function readUiAutomationEvidence() {
+  const relativeSummaryPath = "docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json";
+  const relativeReportPath = "docs/release-artifacts/v3.9.0/ui-automation-playwright-final/report.md";
+  const fullSummaryPath = path.join(rootDir, relativeSummaryPath);
+  const fullReportPath = path.join(rootDir, relativeReportPath);
+  const command = "./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir docs/release-artifacts/v3.9.0/ui-automation-playwright-final --allow-chrome-fallback=1";
+  const reportCommand = `./server.sh verify-v390-ui-automation-report --summary ${relativeSummaryPath}`;
+  if (!fs.existsSync(fullSummaryPath)) {
+    return {
+      status: "missing-existing-evidence",
+      command,
+      reportCommand,
+      summaryPath: relativeSummaryPath,
+      reportPath: relativeReportPath,
+      reason: "R2 UI automation summary is missing",
+    };
+  }
+  const payload = JSON.parse(fs.readFileSync(fullSummaryPath, "utf8"));
+  const pass = payload.schema === "media-server.v390-ui-automation.v1"
+    && payload.result === "PASS"
+    && payload.automationResult === "PASS"
+    && payload.manualIntervention === false
+    && Number(payload.failedInteractionCount) === 0
+    && Number(payload.fail) === 0
+    && Number(payload.notRun) === 0
+    && fs.existsSync(fullReportPath);
+  return {
+    status: pass ? "pass-existing-evidence" : "invalid-existing-evidence",
+    command,
+    reportCommand,
+    summaryPath: relativeSummaryPath,
+    reportPath: relativeReportPath,
+    result: payload.result || "",
+    automationResult: payload.automationResult || "",
+    selectedAdapter: payload.selectedAdapter?.engine || payload.selectedAdapter?.tool || "",
+    fallbackUsed: payload.selectedAdapter?.fallbackUsed === true,
+    manualIntervention: payload.manualIntervention === true,
+    failedInteractionCount: Number(payload.failedInteractionCount ?? 0),
+    caseCount: Number(payload.caseCount ?? 0),
+    pass: Number(payload.pass ?? 0),
+    fail: Number(payload.fail ?? 0),
+    notRun: Number(payload.notRun ?? 0),
+    reportExists: fs.existsSync(fullReportPath),
+    automationEvidenceStatus: "not-manual-ui-fulltest",
+  };
+}
+
+function buildFinalAcceptanceCommandSet() {
+  return [
+    {
+      id: "local-readiness",
+      status: "not-run-by-dry-run",
+      command: "./server.sh verify-v390-stabilization-release-readiness",
+      evidence: "local readiness verifier output",
+    },
+    {
+      id: "server-longrun-30",
+      status: "existing-evidence-required",
+      command: "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir docs/release-artifacts/v3.9.0/server-longrun-30min-final",
+      summaryPath: "docs/release-artifacts/v3.9.0/server-longrun-30min-final/summary.json",
+      reportPath: "docs/release-artifacts/v3.9.0/server-longrun-30min-final/report.md",
+    },
+    {
+      id: "ui-automation-r2",
+      status: "existing-evidence-required",
+      command: "./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir docs/release-artifacts/v3.9.0/ui-automation-playwright-final --allow-chrome-fallback=1",
+      replayCommand: "./server.sh verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json",
+      summaryPath: "docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json",
+      reportPath: "docs/release-artifacts/v3.9.0/ui-automation-playwright-final/report.md",
+    },
+    {
+      id: "acceptance-dry-run",
+      status: "replayable-command",
+      command: "./server.sh verify-v390-test-acceptance-bundle --dry-run --output-dir <path>",
+      summaryPath: "<path>/summary.json",
+      reportPath: "<path>/report.md",
+    },
+    {
+      id: "acceptance-contract",
+      status: "replayable-command",
+      command: "./server.sh verify-v390-test-acceptance-bundle-contract",
+      evidence: "contract verifier output",
+    },
+  ];
+}
+
 function writeReport(filePath, payload) {
   const lines = [
     "# v3.9.0 Test Acceptance Bundle Dry Run",
@@ -157,12 +241,28 @@ function writeReport(filePath, payload) {
     `dryRun: ${payload.dryRun}`,
     `evidenceBoundary: ${payload.evidenceBoundary}`,
     "",
+    "## Final acceptance command set",
+    "",
+    "| ID | Status | Command | Evidence |",
+    "| --- | --- | --- | --- |",
+    ...payload.finalAcceptanceCommandSet.map((item) => {
+      const evidence = [
+        item.summaryPath ? `summary: ${item.summaryPath}` : "",
+        item.reportPath ? `report: ${item.reportPath}` : "",
+        item.replayCommand ? `replay: ${item.replayCommand}` : "",
+        item.evidence || "",
+      ].filter(Boolean).join("<br>");
+      return `| ${item.id} | ${item.status} | ${item.command} | ${evidence} |`;
+    }),
+    "",
+    "## Evidence boundary summary",
+    "",
     "| Area | Status | Command/Evidence |",
     "| --- | --- | --- |",
     `| local readiness | ${payload.localReadiness.status} | ${payload.localReadiness.commands.join("<br>")} |`,
     `| server 30분 | ${payload.longrun30.status} | ${payload.longrun30.summaryPath} |`,
     `| server 120분 | ${payload.longrun120.status} | ${payload.longrun120.command} |`,
-    `| UI automation | ${payload.uiAutomation.status} | ${payload.uiAutomation.command} |`,
+    `| UI automation | ${payload.uiAutomation.status} | ${payload.uiAutomation.summaryPath}<br>${payload.uiAutomation.reportCommand} |`,
     `| published metadata | ${payload.publishedMetadata.status} | ${payload.publishedMetadata.command} |`,
     `| release action | ${payload.releaseAction.status} | ${payload.releaseAction.actions.join(", ")} |`,
     "",

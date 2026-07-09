@@ -73,7 +73,18 @@ check("dry-run writes replayable acceptance summary without executing gated suit
   assert(summary.result === "PASS", "dry-run result must be PASS");
   assert(summary.dryRun === true, "summary must mark dryRun=true");
   assert(summary.longrun30?.status === "pass-existing-evidence", "30-minute evidence status mismatch");
-  assert(summary.uiAutomation?.status === "approval-required-not-run", "UI automation status mismatch");
+  assert(summary.uiAutomation?.status === "pass-existing-evidence", "UI automation preserved evidence status mismatch");
+  assert(summary.uiAutomation?.summaryPath === "docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json", "UI automation summary path mismatch");
+  assert(summary.uiAutomation?.reportPath === "docs/release-artifacts/v3.9.0/ui-automation-playwright-final/report.md", "UI automation report path mismatch");
+  assert(summary.uiAutomation?.manualIntervention === false, "UI automation manual intervention must be false");
+  assert(summary.uiAutomation?.caseCount === 7, "UI automation case count mismatch");
+  assert(summary.uiAutomation?.pass === 7, "UI automation pass count mismatch");
+  assert(summary.uiAutomation?.fail === 0, "UI automation fail count mismatch");
+  assert(summary.uiAutomation?.notRun === 0, "UI automation not-run count mismatch");
+  assert(Array.isArray(summary.finalAcceptanceCommandSet), "missing final acceptance command set");
+  assert(summary.finalAcceptanceCommandSet.some((item) => item.command === "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir docs/release-artifacts/v3.9.0/server-longrun-30min-final"), "missing R1 longrun command in final acceptance set");
+  assert(summary.finalAcceptanceCommandSet.some((item) => item.command === "./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir docs/release-artifacts/v3.9.0/ui-automation-playwright-final --allow-chrome-fallback=1"), "missing R2 UI automation command in final acceptance set");
+  assert(summary.finalAcceptanceCommandSet.some((item) => item.command === "./server.sh verify-v390-test-acceptance-bundle --dry-run --output-dir <path>"), "missing replayable R3 dry-run command in final acceptance set");
   assert(summary.longrun120?.status === "conditional-not-run", "120-minute status mismatch");
   assert(summary.publishedMetadata?.status === "not-run-by-dry-run", "published metadata status mismatch");
   assert(summary.releaseAction?.status === "not-run-by-dry-run", "release action status mismatch");
@@ -89,6 +100,8 @@ check("docs and release evidence record R3 without overclaiming gated tests", ()
     contractCommand,
     "media-server.v390-test-acceptance-bundle.v1",
     "dry-run does not execute",
+    "finalAcceptanceCommandSet",
+    "R2 UI automation preserved evidence",
   ]) {
     assertIncludes(files.streamVerification + "\n" + files.projectInventory, snippet, "R3 stream/project docs");
   }
@@ -96,7 +109,7 @@ check("docs and release evidence record R3 without overclaiming gated tests", ()
     "v390 R3 RED test acceptance bundle contract",
     "v390 R3 test acceptance bundle dry-run final",
     "v390 R3 actual acceptance bundle",
-    "approval-required-not-run",
+    "R2 UI automation preserved evidence `pass-existing-evidence`",
   ]) {
     assertIncludes(files.releaseRecords, snippet, "R3 release records");
   }
@@ -104,7 +117,8 @@ check("docs and release evidence record R3 without overclaiming gated tests", ()
     "v3.9.0 R3 test acceptance bundle",
     command,
     contractCommand,
-    "UI automation PASS",
+    "R1/R2 preserved summary",
+    "UI 풀테스트 직접 조작 PASS",
   ]) {
     assertIncludes(files.releaseEvidence, snippet, "R3 release evidence");
   }
