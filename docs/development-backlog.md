@@ -74,6 +74,15 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | Conditional AI | v3.9.0 (18) Re-ID appearance assist model-backed path decision | P2 | `V390-CAND-010`: Re-ID assist를 model/config/provenance 기반으로 실동작시킬지 opt-in/defer할지 결정 |
 | Structure | v3.9.0 (19) structure stabilization handoff 상세계획 | P0 | `V390-STRUCT-001`~`V390-STRUCT-005`: route/API/UI/VLM/manual UI 문서 구조 안정화 범위를 동작 보존 리팩토링 계획으로 넘김 |
 | Release | v3.9.0 (20) stabilization and release readiness | P0 | AGENTS 네 테스트 영역 판정, evidence, cleanup, release close-out dry-run을 실제 실행/미실행으로 분리 |
+| Post-review Test Closure | v3.9.0 (21) actual test acceptance bundle 실행 모드 | P0 | `verify-v390-test-acceptance-bundle`의 실제 실행 모드를 구현해 dry-run이 아니라 R1/R2 evidence 또는 새 실행 결과를 stop-on-first-fail summary/report로 묶음 |
+| Post-review Test Closure | v3.9.0 (22) v3.9 UI automation case completeness | P0 | `UI-112` staging restore validation handoff 누락을 포함해 v3.9 신규 UI-108~UI-115 case manifest와 replay evidence를 완전하게 정렬 |
+| Post-review Test Closure | v3.9.0 (23) native free UI automation adapter proof | P0 | Playwright/Selenium/SikuliX 중 실제 선택 adapter가 native로 실행되는지 증명하고, `chrome-cdp-fallback`은 fallback evidence로만 남김 |
+| Post-review Test Closure | v3.9.0 (24) server longrun true first-fail case runner | P0 | `verify-predev` 누적형 의존을 줄이거나 `--stop-on-first-fail` opt-in을 추가해 실패 즉시 이후 case를 `not-run`으로 남기는 실제 case runner 구현 |
+| Post-review UI Full Coverage | v3.9.0 (25) route/control/action automation coverage matrix | P0 | v1.0~v3.9 current UI 기능 ID를 manifest화하고 자동 runner가 각 route/control/action을 실행/반영/로그 단위로 검증하게 정렬 |
+| Post-review Release Evidence | v3.9.0 (26) final evidence re-run and cleanup | P0 | post-review 잔여 구현 후 local gate, 30분, UI automation/full coverage, 조건부 120분 판정, cleanup/evidence 보존을 최종 release action 전 다시 실행 |
+| Product Scope Lock | v3.9.0 (27) deferred product decision owner sign-off | P1 | action execution, persistent credential store, field smoke, provider call, model-backed Re-ID 등 의도적으로 defer된 기능을 v3.9 non-goal로 닫을지 실제 구현할지 owner decision으로 고정 |
+| Structure | v3.9.0 (28) structure stabilization implementation readiness | P1 | Step 19 handoff가 실제 refactor가 아니므로 v4.0 전/후 어느 branch에서 route/API/UI extraction을 실행할지 slice와 검증 순서를 확정 |
+| Conditional Field | v3.9.0 (29) real external field smoke gate | P2 | ONVIF 실기기, external WHEP/TURN, cloud/VLM provider credential/endpoint가 제공되는 경우에만 real field smoke를 실행하고 기본 PASS와 분리 |
 
 ### v3.9.0 진행 상태
 
@@ -99,6 +108,15 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 18 | v3.9.0 (18) Re-ID appearance assist model-backed path decision | P2 | 완료 | `V390-CAND-010`: `/ops/api/analysis/reid-assist-decision`와 `/ops` dashboard가 `explicit-opt-in-provenance-gated-assist`, model/checksum/provenance gate, no-op fallback, tracker-none forces off boundary를 표시하고 model-backed execution/embedding/crop serialization은 수행하지 않음 |
 | 19 | v3.9.0 (19) structure stabilization handoff 상세계획 | P0 | 완료 | 인벤토리 `V390-STRUCT-001`~`V390-STRUCT-005`를 `docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md`로 이관하고 `verify-v390-structure-stabilization-handoff` gate로 구조 변경 미실행 경계를 고정 |
 | 20 | v3.9.0 (20) stabilization and release readiness | P0 | 완료 | AGENTS 네 테스트 영역 판정과 release close-out evidence를 실제 실행/미실행으로 분리 |
+| 21 | v3.9.0 (21) actual test acceptance bundle 실행 모드 | P0 | 미완료/post-review 잔여 | `verify-v390-test-acceptance-bundle --dry-run`은 구현됐지만 실제 acceptance bundle 실행은 미실행/완료 evidence 아님. 사용자가 그대로 재실행할 수 있는 actual mode와 final summary/report가 필요 |
+| 22 | v3.9.0 (22) v3.9 UI automation case completeness | P0 | 미완료/post-review 잔여 | R2 case manifest와 보존 summary가 `UI-112`를 포함하지 않음. `UI-108`~`UI-115` 전부를 route/control/action 단위로 실행하고 replay guard가 artifact 존재를 확인해야 함 |
+| 23 | v3.9.0 (23) native free UI automation adapter proof | P0 | 미완료/post-review 잔여 | R2 실제 evidence는 `browserMode=playwright`지만 `selectedAdapter.engine=chrome-cdp-fallback`임. Playwright/Selenium/SikuliX native 실행 또는 명확한 preflight FAIL/설치 안내가 필요 |
+| 24 | v3.9.0 (24) server longrun true first-fail case runner | P0 | 부분 완료/post-review 잔여 | R1 runner는 `stopOnFirstFail` summary와 delegated failure 보존이 있지만 핵심 duration loop는 cumulative `verify-predev`에 위임됨. 실제 case-by-case first-fail runner 보강 필요 |
+| 25 | v3.9.0 (25) route/control/action automation coverage matrix | P0 | 미완료/post-review 잔여 | 현재 R2 자동화는 v3.9 신규 일부 case 중심임. v1.0~v3.9 current UI 기능 ID에 대한 자동화 coverage matrix와 미지원/제외 사유가 필요 |
+| 26 | v3.9.0 (26) final evidence re-run and cleanup | P0 | 미완료/post-review 잔여 | post-review 잔여 구현 후 Step 20 local gate, 30분, UI automation/full coverage, 조건부 120분 판정, cleanup/evidence를 release action 전 다시 닫아야 함 |
+| 27 | v3.9.0 (27) deferred product decision owner sign-off | P1 | 미완료/owner decision 필요 | 실행형 action, field smoke, persistent credential store, provider call, model-backed Re-ID는 read-only/defer 상태임. v3.9에서 non-goal로 닫을지 실제 구현할지 명시 decision 필요 |
+| 28 | v3.9.0 (28) structure stabilization implementation readiness | P1 | 미완료/structure handoff 후속 | Step 19는 실제 구조 안정화 구현이 아니라 계획 이관임. `webrtc_http_server.cpp`/UI script extraction 실행 branch와 slice별 검증 순서 확정 필요 |
+| 29 | v3.9.0 (29) real external field smoke gate | P2 | 조건부 미실행 | 외부 credential/endpoint/실기기/provider 조건이 없으면 기본 release PASS가 아님. 조건 제공 시 별도 field smoke evidence로만 닫음 |
 
 완료 경계: v3.9 source baseline/inventory 준비는 실제 기능 개발, discovery 완료,
 UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action evidence가
@@ -118,8 +136,10 @@ failure evidence가 나와야 합니다.
 - `criteria complete`: 기준, 문서, verifier 문구, not-run boundary가 정리된 상태입니다.
 - `implementation complete`: 실제 실행 가능한 script/route/UI가 있고, 실패 시 상세
   evidence를 남기며, 사용자가 같은 command를 재실행해 같은 판정을 얻을 수 있는 상태입니다.
-- 현재 Step 9와 Step 10은 `criteria complete`입니다. 아래 R1/R2가 끝나야 사용자가 목표로 한
-  `implementation complete` 테스트 방식입니다.
+- Step 9와 Step 10은 먼저 `criteria complete`로 닫혔고, R1/R2/R5에서 실제 runner와
+  replay evidence가 추가되었습니다. 다만 post-review 확인 결과 R3 actual bundle, `UI-112`
+  case completeness, native free UI adapter proof, true first-fail longrun loop, full route/control/action
+  coverage는 아직 `implementation complete`가 아닙니다.
 
 ### v3.9.0 잔여 구현 순서
 
@@ -131,6 +151,39 @@ failure evidence가 나와야 합니다.
 | R3 | P0 | 사용자가 재실행 가능한 v3.9 test acceptance bundle | `verify-v390-test-acceptance-bundle --dry-run`과 contract verifier가 구현되어 `finalAcceptanceCommandSet`, R1 30분 preserved evidence `pass-existing-evidence`, R2 UI automation preserved evidence `pass-existing-evidence`, 조건부 120분, published/release action not-run boundary를 한 summary/report로 고정함. 실제 acceptance bundle 실행은 사용자 승인 전 미실행 | R1/R2 산출물을 포함한 final acceptance command set을 문서와 script dispatch에 고정하고, 각 command의 summary/report 경로를 release evidence로 복사 가능하게 함 | `./server.sh verify-v390-test-acceptance-bundle --dry-run`, `./server.sh verify-v390-test-acceptance-bundle-contract`, `./server.sh verify-script-inventory`, `./server.sh verify-release-evidence-index` |
 | R4 | P1 | legacy `verify-predev`와 새 runner 관계 정리 | R4 선택 option 3으로 정리됨. `verify-predev`는 legacy/compatibility cumulative predev runner, `verify-v390-server-longrun`은 release-grade first-fail runner이며 runtime/media trigger matrix row도 새 runner를 표준 trigger로 사용 | 기존 command를 유지할지, 새 command로 matrix를 바꿀지 결정하고 docs/project inventory/release policy가 같은 runner를 가리키게 정렬 | `./server.sh verify-v390-longrun-runner-role-alignment`, `./server.sh verify-runtime-media-longrun-trigger-matrix`, `./server.sh verify-longrun-separation`, `./server.sh verify-rc-release-gate` |
 | R5 | P1 | UI result/release evidence replay guard | v3.9.0 R5 UI automation report replay guard 구현됨. `verify-v390-ui-automation-report --summary <summary.json>`가 progress output과 함께 PASS zero-fail/not-run/manual-intervention, screenshot/trace/video/browser-console/server-log artifact file existence, browserConsole warning/error 허용 사유, first-fail 이후 not-run 순서를 검증함. 실제 R2 suite 보존 summary replay도 PASS로 실행됨 | UI runner summary를 입력으로 받아 route/control/action 개별 행, manual intervention 없음, failed interaction 0, screenshot/trace/log 존재를 검증하는 replay verifier 구현 | `./server.sh verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json`, `./server.sh verify-v390-ui-automation-report-replay-guard` |
+
+### v3.9.0 post-review 잔여 이슈: 테스트 철저화와 release 전 재확인
+
+이 섹션은 2026-07-09 post-review에서 문서 완료 표기를 믿지 않고 실제 구현과 evidence를
+다시 대조한 결과입니다. 아래 항목은 v3.9.0 이후 구현 내용을 다시 건드리지 않는다는
+전제에서 release action 전에 닫아야 하는 테스트/증적 잔여 이슈입니다. 이 표는 이전
+요청과 같은 `구간 | 제목 | 우선순위 | 개발 내용` 형식으로 유지합니다.
+
+| 구간 | 제목 | 우선순위 | 개발 내용 |
+| --- | --- | --- | --- |
+| Test Closure | R6 actual acceptance bundle 실행 모드 | P0 | `verify-v390-test-acceptance-bundle`이 `--dry-run` 없이 실행될 때 local readiness, R1 30분, R2 UI automation, 조건부 120분 판정, cleanup/evidence copy를 stop-on-first-fail summary/report로 생성하게 구현. 현재 `release-test-records.md`의 `v390 R3 actual acceptance bundle`은 미실행/FAIL 경계이므로 완료 evidence로 사용 금지 |
+| UI Automation | R7 `UI-112`와 v3.9 신규 UI case completeness | P0 | `test/fixtures/v390_ui_automation_cases.json`과 보존 summary가 `UI-112` staging restore validation handoff를 누락함. `UI-108`~`UI-115` 전 case를 manifest, actual run, replay guard, release evidence에 포함하고 누락 case가 있으면 PASS 불가 처리 |
+| UI Automation | R8 native free UI automation adapter proof | P0 | 현재 R2 실제 run은 `browserMode=playwright`지만 Playwright package 부재로 `selectedAdapter.engine=chrome-cdp-fallback`을 사용함. Playwright/Selenium/SikuliX 중 하나를 native adapter evidence로 실행하거나, native adapter 부재 시 명확한 preflight FAIL과 설치/설정 안내를 남기고 fallback PASS를 primary PASS로 쓰지 않게 함 |
+| Server Longrun | R9 true first-fail longrun loop | P0 | R1 runner가 summary-level `stopOnFirstFail`과 delegated failure 보존은 하지만 duration loop는 cumulative `verify-predev`에 위임됨. `verify-v390-server-longrun` 자체 case loop 또는 `verify-predev --stop-on-first-fail` opt-in으로 실제 첫 실패 이후 case를 실행하지 않고 `not-run`으로 남기게 구현 |
+| UI Full Coverage | R10 v1.0~v3.9 route/control/action automation coverage matrix | P0 | 현재 R2 자동화는 v3.9 신규 일부 case 중심임. `docs/project-feature-test-inventory.md`의 current UI IDs를 source로 자동화 manifest를 생성/검증하고, 각 route/control/action의 조작, UI 반영, console/server log, artifact를 개별 행으로 남김. 자동화 불가 case는 제외 사유와 manual UI 필요성을 별도 기록 |
+| Release Evidence | R11 post-review final evidence re-run and cleanup | P0 | R6~R10 수정 후 `verify-v390-stabilization-release-readiness`, Step 1~20 companion gates, actual 30분, UI automation/full coverage, 조건부 120분 판정, cleanup/evidence 보존을 다시 실행하고 release action 전 최신 evidence로 교체/추가 |
+| Product Scope Lock | R12 deferred product decision owner sign-off | P1 | action execution, persistent credential store, field smoke, provider call, model-backed Re-ID는 현재 read-only/defer 상태임. v3.9에서 non-goal로 닫는지 실제 구현할지 owner decision을 문서/evidence에 명확히 남김. owner decision 없이 완료 주장 금지 |
+| Structure | R13 structure stabilization implementation readiness | P1 | Step 19는 실제 route/API/UI extraction이 아니라 handoff임. v4.0 전/후 어느 branch에서 `webrtc_http_server.cpp`, product UI script, manual UI archive, VLM contract index를 slice별로 분리할지 실행 순서와 verifier를 확정 |
+| Conditional Field | R14 real external field smoke gate | P2 | ONVIF 실기기, external WHEP/TURN, cloud/VLM provider endpoint/credential이 제공될 때만 real field smoke를 실행. 조건 미제공이면 `조건부 미실행`으로 남기고 local/UI/30분 PASS로 field PASS를 대체하지 않음 |
+
+#### post-review 잔여 이슈 완료 evidence 기준
+
+| 이슈 | 완료 evidence | 완료로 인정하지 않는 것 |
+| --- | --- | --- |
+| R6 | `./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-final` actual summary/report와 contract PASS | `--dry-run` PASS, R1/R2 preserved evidence를 읽기만 한 summary |
+| R7 | `UI-112` 포함 `UI-108`~`UI-115` 전 case actual UI automation PASS와 replay guard PASS | `UI-112`가 빠진 caseCount 7 summary |
+| R8 | native Playwright/Selenium/SikuliX adapter selected evidence 또는 native 부재 시 preflight FAIL/설치 안내 | `chrome-cdp-fallback`을 primary Playwright PASS처럼 해석 |
+| R9 | 실제 longrun case loop에서 fixture failure 이후 case가 `not-run`이고 cumulative `verify-predev`가 이후 case를 계속 실행하지 않았다는 evidence | delegated predev summary만 읽어 첫 실패 이름을 보존한 것 |
+| R10 | current UI ID coverage matrix와 route/control/action별 actualResult/artifact/log 개별 report | 일부 v3.9 신규 card marker만 확인한 자동화 |
+| R11 | post-review 수정 이후 새 final evidence, cleanup 기록, `git diff --check` PASS | Step 20 이전 local readiness PASS 재사용 |
+| R12 | owner decision이 `deferred-by-owner` 또는 `implement-before-release`로 명시되고 release notes/evidence에 반영 | read-only route 존재만으로 실제 실행 기능 완료 주장 |
+| R13 | 구조 안정화 실행 branch/slice/verifier 순서가 확정되고 구현 대상과 비대상이 분리 | Step 19 handoff PASS를 실제 refactor 완료로 해석 |
+| R14 | endpoint/credential/실기기/provider 조건이 주어진 실제 field smoke summary/report | 조건 미제공 상태의 local verifier PASS |
 
 ### R1. AI-minimized server longrun runner 구현 계약
 
