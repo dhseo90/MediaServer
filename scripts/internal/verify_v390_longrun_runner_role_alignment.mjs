@@ -40,6 +40,7 @@ const files = {
   releaseRecords: readText("docs/release-test-records.md"),
   releaseEvidence: readText("docs/release-evidence-index.md"),
   backlog: readText("docs/development-backlog.md"),
+  runtimeMatrix: readText("scripts/internal/verify_runtime_media_longrun_trigger_matrix.mjs"),
 };
 
 check("server dispatch exposes R4 role alignment verifier", () => {
@@ -71,6 +72,19 @@ check("trigger matrix and release policy name v390 release-grade runner without 
   ]) {
     assertIncludes(files.streamVerification + "\n" + files.releasePolicy, snippet, "R4 trigger/release policy");
   }
+});
+
+check("runtime trigger matrix rows use v390 release-grade longrun runner", () => {
+  for (const snippet of [
+    "verify-v390-server-longrun --duration-minutes 30",
+    "verify-v390-server-longrun --duration-minutes 120",
+  ]) {
+    assertIncludes(files.runtimeMatrix, snippet, "runtime trigger matrix release-grade runner");
+  }
+  assert(
+    !/triggers:\s*\[[^\]]*"verify-predev --soak-minutes (30|120)"/.test(files.runtimeMatrix),
+    "runtime trigger matrix row triggers must not point directly at legacy verify-predev soak commands",
+  );
 });
 
 check("inventory and evidence records keep old and new longrun evidence separate", () => {

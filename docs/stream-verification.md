@@ -480,12 +480,16 @@ evidence로 재사용하지 않습니다.
 ## Runtime/media longrun trigger matrix
 
 장기 테스트 실행 여부는 `media-server.runtime-media-longrun-trigger-matrix.v1` 기준으로
-short stability, 30분 soak, 120분 predev, 120분 runtime console, UI 풀테스트를
-분리해 판단합니다. `docs-policy-only`, `rtsp-gstreamer-webrtc-session-lifecycle`,
+short stability, v3.9.0 release-grade longrun runner, 120분 runtime console,
+UI 풀테스트를 분리해 판단합니다. `docs-policy-only`, `rtsp-gstreamer-webrtc-session-lifecycle`,
 `runtime-dashboard-metadata-fanout`, `VLM longrun trigger matrix`,
 `vlm-queue-timeout-nonblocking`, `vlm-memory-runtime-cache`,
 `vlm-provider-timeout-cloud`, `vlm-model-install-state`는 trigger matrix의 대표
 분류입니다. 30분 soak는 120분 longrun PASS를 대체하지 않습니다.
+v3.9.0 release-grade matrix row는 `verify-v390-server-longrun --duration-minutes 30`과
+`verify-v390-server-longrun --duration-minutes 120`을 표준 trigger로 사용하고,
+historical `verify-predev --soak-minutes 30/120` evidence는 legacy/compatibility
+evidence로만 보존합니다.
 외부 source/TURN/장시간 테스트는 별도 gate로 분리합니다.
 
 ## 장기 테스트 명령
@@ -494,8 +498,10 @@ short stability, 30분 soak, 120분 predev, 120분 runtime console, UI 풀테스
 
 | 명령 | 역할 |
 | --- | --- |
-| `./server.sh verify-predev --soak-minutes 30` | 30분 soak |
-| `./server.sh verify-predev --soak-minutes 120` | 120분 soak |
+| `./server.sh verify-v390-server-longrun --duration-minutes 30` | v3.9.0 release-grade 30분 first-fail server longrun |
+| `./server.sh verify-v390-server-longrun --duration-minutes 120` | v3.9.0 release-grade 120분 first-fail server longrun |
+| `./server.sh verify-predev --soak-minutes 30` | legacy/compatibility cumulative 30분 predev soak |
+| `./server.sh verify-predev --soak-minutes 120` | legacy/compatibility cumulative 120분 predev soak |
 | `./server.sh verify-uri-longrun` | URI source longrun |
 | `./server.sh verify-event-post-longrun` | Event POST longrun |
 | `./server.sh verify-va-runtime-console-longrun` | VA runtime console longrun |
@@ -513,7 +519,8 @@ RC 전용 Release Gate는 상시 실행하지 않습니다. release candidate �
 
 RC command set:
 
-- `./server.sh verify-predev --soak-minutes 120`
+- `./server.sh verify-v390-server-longrun --duration-minutes 120`
+- historical compatibility: `./server.sh verify-predev --soak-minutes 120`
 - `./server.sh verify-va-runtime-console-longrun --duration-minutes 120`
 - `--include-sidechannel`
 - `--include-dashboard`

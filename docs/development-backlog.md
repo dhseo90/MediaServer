@@ -129,7 +129,7 @@ failure evidence가 나와야 합니다.
 | R1 | P0 | AI-minimized server longrun runner 실제 구현 | `verify-v390-server-longrun`과 contract verifier가 구현됨. 사용자 승인 후 30분 actual final evidence가 보존됐고 120분은 조건부/승인 전 미실행 | 30분/120분 서버 테스트를 하나의 명령으로 시작하고 첫 실패에서 즉시 중단하며 이후 phase를 `not-run`으로 기록하는 새 runner 또는 stop-on-first-fail mode 구현. predev delegated summary가 실패하면 내부 첫 실패 step을 `failedCase`/`delegatedFailure`로 보존 | `./server.sh verify-v390-server-longrun-runner-contract`, 실제 30분 명령 PASS, 실패 fixture에서 first-fail/not-run/delegated predev failure evidence PASS |
 | R2 | P0 | AI-minimized UI automation runner 실제 구현 | `verify-v390-ui-automation`/`verify-v390-ui-automation-report`/`verify-v390-ui-automation-runner-contract` 구현과 실제 Playwright-mode UI automation suite PASS evidence가 보존됨. 현재 환경에서는 Playwright package 부재로 `chrome-cdp-fallback` adapter를 명시 기록 | 무료 UI 자동화 도구 우선순위에 맞춘 runner를 구현하고 route/control/action 단위 실패 report, screenshot, trace/video, console, server log, cleanup evidence를 남김 | `./server.sh verify-v390-ui-automation-runner-contract`, `./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir docs/release-artifacts/v3.9.0/ui-automation-playwright-final --allow-chrome-fallback=1`, `./server.sh verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json`, 실패 fixture에서 failure report PASS |
 | R3 | P0 | 사용자가 재실행 가능한 v3.9 test acceptance bundle | `verify-v390-test-acceptance-bundle --dry-run`과 contract verifier가 구현되어 `finalAcceptanceCommandSet`, R1 30분 preserved evidence `pass-existing-evidence`, R2 UI automation preserved evidence `pass-existing-evidence`, 조건부 120분, published/release action not-run boundary를 한 summary/report로 고정함. 실제 acceptance bundle 실행은 사용자 승인 전 미실행 | R1/R2 산출물을 포함한 final acceptance command set을 문서와 script dispatch에 고정하고, 각 command의 summary/report 경로를 release evidence로 복사 가능하게 함 | `./server.sh verify-v390-test-acceptance-bundle --dry-run`, `./server.sh verify-v390-test-acceptance-bundle-contract`, `./server.sh verify-script-inventory`, `./server.sh verify-release-evidence-index` |
-| R4 | P1 | legacy `verify-predev`와 새 runner 관계 정리 | R4 선택 option 3으로 정리됨. `verify-predev`는 legacy/compatibility cumulative predev runner, `verify-v390-server-longrun`은 release-grade first-fail runner | 기존 command를 유지할지, 새 command로 matrix를 바꿀지 결정하고 docs/project inventory/release policy가 같은 runner를 가리키게 정렬 | `./server.sh verify-v390-longrun-runner-role-alignment`, `./server.sh verify-runtime-media-longrun-trigger-matrix`, `./server.sh verify-longrun-separation`, `./server.sh verify-rc-release-gate` |
+| R4 | P1 | legacy `verify-predev`와 새 runner 관계 정리 | R4 선택 option 3으로 정리됨. `verify-predev`는 legacy/compatibility cumulative predev runner, `verify-v390-server-longrun`은 release-grade first-fail runner이며 runtime/media trigger matrix row도 새 runner를 표준 trigger로 사용 | 기존 command를 유지할지, 새 command로 matrix를 바꿀지 결정하고 docs/project inventory/release policy가 같은 runner를 가리키게 정렬 | `./server.sh verify-v390-longrun-runner-role-alignment`, `./server.sh verify-runtime-media-longrun-trigger-matrix`, `./server.sh verify-longrun-separation`, `./server.sh verify-rc-release-gate` |
 | R5 | P1 | UI result/release evidence replay guard | v3.9.0 R5 UI automation report replay guard 구현됨. `verify-v390-ui-automation-report --summary <summary.json>`가 progress output과 함께 PASS zero-fail/not-run/manual-intervention, artifact 보존, browserConsole warning/error 허용 사유, first-fail 이후 not-run 순서를 검증함. 실제 R2 suite 보존 summary replay도 PASS로 실행됨 | UI runner summary를 입력으로 받아 route/control/action 개별 행, manual intervention 없음, failed interaction 0, screenshot/trace/log 존재를 검증하는 replay verifier 구현 | `./server.sh verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json`, `./server.sh verify-v390-ui-automation-report-replay-guard` |
 
 ### R1. AI-minimized server longrun runner 구현 계약
@@ -418,7 +418,7 @@ bundle summary는 `scripts/internal/verify_v390_test_acceptance_bundle.mjs`의
 
 ### R4. 기존 longrun command와 새 runner 정렬 계약
 
-현재 문서와 trigger matrix에는 기존 command가 남아 있습니다.
+현재 historical evidence와 compatibility 문맥에는 기존 command가 남아 있습니다.
 
 ```bash
 ./server.sh verify-predev --soak-minutes 30
@@ -440,9 +440,15 @@ R1 구현 후 아래 선택지 중 3번을 채택했습니다.
 선택 근거: 기존 evidence와 verifier 의미를 덜 흔들면서 사용자가 원하는 새 테스트
 방식만 명확히 추가할 수 있습니다. `verify-predev` remains legacy/compatibility cumulative
 predev runner. `verify-v390-server-longrun` is the release-grade first-fail runner.
+Runtime/media trigger matrix row의 30분/120분 server longrun trigger는
+`verify-v390-server-longrun --duration-minutes 30`과
+`verify-v390-server-longrun --duration-minutes 120`을 가리킵니다.
 historical `verify-predev --soak-minutes 30` evidence remains preserved.
 historical `verify-predev --soak-minutes 120` evidence remains preserved.
-`./server.sh verify-predev --soak-minutes 120`은 상시 실행하지 않고 release candidate 또는 고위험 변경 gate로만 실행합니다.
+`./server.sh verify-v390-server-longrun --duration-minutes 120`은 상시 실행하지 않고 release candidate 또는 고위험 변경 gate로만 실행합니다.
+`./server.sh verify-predev --soak-minutes 120`은 runner 내부 delegated predev summary 또는
+historical compatibility evidence 문맥으로만 남기며, v3.9.0 release-grade 120분
+server longrun 표준 trigger는 새 runner입니다.
 
 R4 완료 판정:
 

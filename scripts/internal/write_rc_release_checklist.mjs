@@ -20,8 +20,8 @@ Options:
   --output <path>                 Markdown checklist 출력 경로입니다.
   --html-output <path>            HTML checklist 출력 경로입니다.
   --history-dir <path>            run별 summary/report/checklist history 디렉터리입니다.
-  --predev-summary <path>         verify-predev summary JSON입니다.
-  --predev-report <path>          verify-predev Markdown report입니다.
+  --predev-summary <path>         v3.9.0 server longrun summary JSON입니다. 옵션 이름은 기존 RC checklist 호환을 위해 유지합니다.
+  --predev-report <path>          v3.9.0 server longrun Markdown report입니다. 옵션 이름은 기존 RC checklist 호환을 위해 유지합니다.
   --runtime-summary <path>        VA runtime longrun summary JSON입니다.
   --runtime-report <path>         VA runtime longrun Markdown report입니다.
   --artifact-name <name>          CI artifact 이름입니다.
@@ -66,8 +66,8 @@ if (historyDir) {
 const gates = [
   {
     id: "predev-120m",
-    title: "Predev 120m soak",
-    command: "./server.sh verify-predev --soak-minutes 120",
+    title: "Server 120m release-grade longrun",
+    command: "./server.sh verify-v390-server-longrun --duration-minutes 120 --output-dir <path>",
     summaryFile: args.predevSummary || "",
     reportFile: args.predevReport || "",
   },
@@ -215,7 +215,7 @@ function buildMarkdown(items, context = {}) {
     "",
     `- generatedAt: ${generatedAt}`,
     `- overall: ${overall.label}`,
-    "- scope: 120분 predev soak와 120분 VA runtime longrun 결과 연결",
+    "- scope: 120분 server release-grade longrun과 120분 VA runtime longrun 결과 연결",
     context.artifactName ? `- ciArtifact: ${context.artifactName}` : "- ciArtifact: (local)",
     context.artifactRetentionDays ? `- artifactRetentionDays: ${context.artifactRetentionDays}` : "- artifactRetentionDays: (local)",
     context.runnerLabel ? `- runner: ${context.runnerLabel}` : "- runner: (local)",

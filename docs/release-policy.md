@@ -118,6 +118,10 @@ v3.9.0 release-grade longrun runner는 `./server.sh verify-v390-server-longrun`�
 `verify-predev --soak-minutes 30/120` PASS 행은 historical/compatibility evidence로
 남기고, v3.9.0 이후 release-grade first-fail 장시간 evidence는
 `verify-v390-server-longrun` summary/report로 분리합니다.
+`media-server.runtime-media-longrun-trigger-matrix.v1`의 v3.9.0 release-grade 30분/120분
+server longrun row도 `verify-v390-server-longrun --duration-minutes 30/120`을 표준
+trigger로 가리킵니다. 기존 `verify-predev --soak-minutes 30/120` command는 runner
+내부 delegated predev summary 또는 historical compatibility evidence 문맥에서만 사용합니다.
 
 RC gate artifact 보존은 별도 정책입니다.
 

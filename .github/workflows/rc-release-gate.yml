@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       run_predev_120:
-        description: "Run ./server.sh verify-predev --soak-minutes 120"
+        description: "Run ./server.sh verify-v390-server-longrun --duration-minutes 120"
         required: true
         default: "false"
         type: choice
@@ -54,13 +54,14 @@ jobs:
         shell: bash
         run: |
           mkdir -p artifacts/rc-gate
-          cat > artifacts/rc-gate/predev-summary.json <<'JSON'
-          {"status":"missing","failCount":0,"passCount":0,"note":"run_predev_120=false"}
+          mkdir -p artifacts/rc-gate/server-longrun-120m
+          cat > artifacts/rc-gate/server-longrun-120m/summary.json <<'JSON'
+          {"schema":"media-server.v390-server-longrun.v1","result":"not-run","failCount":0,"passCount":0,"note":"run_predev_120=false"}
           JSON
           cat > artifacts/rc-gate/runtime-summary.json <<'JSON'
           {"status":"missing","failCount":0,"passCount":0,"note":"run_va_runtime_120=false"}
           JSON
-          printf '# predev\n\nNot run in this workflow invocation.\n' > artifacts/rc-gate/predev-report.md
+          printf '# server longrun\n\nNot run in this workflow invocation.\n' > artifacts/rc-gate/server-longrun-120m/report.md
           printf '# va runtime\n\nNot run in this workflow invocation.\n' > artifacts/rc-gate/runtime-report.md
 
       - name: Check RC gate assets
@@ -103,14 +104,13 @@ jobs:
             exit 1
           fi
 
-      - name: Run predev 120m soak
+      - name: Run server 120m release-grade longrun
         if: ${{ inputs.run_predev_120 == 'true' }}
         shell: bash
         run: |
-          ./server.sh verify-predev \
-            --soak-minutes 120 \
-            --summary-file artifacts/rc-gate/predev-summary.json \
-            --report-file artifacts/rc-gate/predev-report.md
+          ./server.sh verify-v390-server-longrun \
+            --duration-minutes 120 \
+            --output-dir artifacts/rc-gate/server-longrun-120m
 
       - name: Run VA runtime 120m longrun
         if: ${{ inputs.run_va_runtime_120 == 'true' }}
@@ -130,8 +130,8 @@ jobs:
         shell: bash
         run: |
           ./server.sh rc-release-checklist \
-            --predev-summary artifacts/rc-gate/predev-summary.json \
-            --predev-report artifacts/rc-gate/predev-report.md \
+            --predev-summary artifacts/rc-gate/server-longrun-120m/summary.json \
+            --predev-report artifacts/rc-gate/server-longrun-120m/report.md \
             --runtime-summary artifacts/rc-gate/runtime-summary.json \
             --runtime-report artifacts/rc-gate/runtime-report.md \
             --output artifacts/rc-gate/rc-release-checklist.md \
