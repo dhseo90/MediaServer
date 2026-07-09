@@ -38,6 +38,7 @@
 #include <vector>
 
 #include "app_config.h"
+#include "analysis/appearance_extractor.h"
 #include "analysis/category_tokens.h"
 #include "analysis/detector.h"
 #include "analysis/event_feature_search_index.h"
@@ -26071,14 +26072,7 @@ std::string OpsV390FieldEvidenceBridgeDecisionJson() {
 }
 
 std::string OpsV390ReidAssistDecisionJson(const app::AppConfig& config) {
-    const bool appearance_enabled = config.analysis_appearance_enabled;
-    const bool extractor_selected = config.analysis_appearance_extractor == "onnx-reid";
-    const bool model_configured = !config.analysis_appearance_model_path.empty();
-    const bool checksum_configured = !config.analysis_appearance_model_sha256.empty();
-    const bool provenance_configured = !config.analysis_appearance_model_provenance.empty();
-    const bool model_backed_ready =
-        appearance_enabled && extractor_selected && model_configured && checksum_configured &&
-        provenance_configured;
+    const auto readiness = analysis::InspectAppearanceModelReadiness(config);
 
     std::ostringstream out;
     out << "{"
@@ -26096,18 +26090,42 @@ std::string OpsV390ReidAssistDecisionJson(const app::AppConfig& config) {
         << "\"explicitOptInRequired\":true,"
         << "\"associationAssistOnly\":true,"
         << "\"trackerNoneForcesReidOff\":true,"
-        << "\"modelBackedExecutionReady\":" << JsonBool(model_backed_ready) << ","
-        << "\"noOpFallbackVisible\":" << JsonBool(!model_backed_ready) << ","
-        << "\"decisionReason\":\"Re-ID assist remains an opt-in association helper; model-backed execution requires enabled appearance analysis, onnx-reid extractor, model path, checksum, and provenance\""
+        << "\"modelBackedPreflightReady\":"
+        << JsonBool(readiness.model_backed_preflight_ready) << ","
+        << "\"modelBackedExecutionReady\":false,"
+        << "\"modelSessionLoadValidated\":false,"
+        << "\"noOpFallbackVisible\":"
+        << JsonBool(!readiness.model_backed_preflight_ready) << ","
+        << "\"decisionReason\":\"Re-ID assist remains an opt-in association helper; the server-owned preflight checks the configured regular model file, SHA-256 match, trimmed provenance, OpenSSL runtime, and ONNX Runtime before the extractor performs its separate session-load validation\""
         << "},\"reidAssistRuntimeGate\":{"
-        << "\"appearanceEnabled\":" << JsonBool(appearance_enabled) << ","
+        << "\"readinessAuthority\":\"analysis::InspectAppearanceModelReadiness\","
+        << "\"appearanceEnabled\":" << JsonBool(readiness.appearance_enabled) << ","
         << "\"configuredExtractor\":\"" << JsonEscape(config.analysis_appearance_extractor) << "\","
-        << "\"onnxReidExtractorSelected\":" << JsonBool(extractor_selected) << ","
-        << "\"modelPathConfigured\":" << JsonBool(model_configured) << ","
-        << "\"modelChecksumConfigured\":" << JsonBool(checksum_configured) << ","
-        << "\"modelProvenanceConfigured\":" << JsonBool(provenance_configured) << ","
-        << "\"modelBackedExecutionReady\":" << JsonBool(model_backed_ready) << ","
-        << "\"fallbackMode\":\"" << (model_backed_ready ? "configured-not-executed-by-route" : "no-op-visible") << "\""
+        << "\"onnxReidExtractorSelected\":"
+        << JsonBool(readiness.onnx_reid_extractor_selected) << ","
+        << "\"modelPathConfigured\":" << JsonBool(readiness.model_path_configured) << ","
+        << "\"modelFileExists\":" << JsonBool(readiness.model_file_exists) << ","
+        << "\"modelFileRegular\":" << JsonBool(readiness.model_file_regular) << ","
+        << "\"modelChecksumConfigured\":" << JsonBool(readiness.checksum_configured) << ","
+        << "\"modelChecksumFormatValid\":"
+        << JsonBool(readiness.checksum_format_valid) << ","
+        << "\"openSslRuntimeAvailable\":"
+        << JsonBool(readiness.openssl_runtime_available) << ","
+        << "\"modelChecksumReadable\":" << JsonBool(readiness.checksum_readable) << ","
+        << "\"modelChecksumMatches\":" << JsonBool(readiness.checksum_matches) << ","
+        << "\"modelProvenanceConfigured\":"
+        << JsonBool(readiness.provenance_configured) << ","
+        << "\"provenanceValidationScope\":\"trimmed-non-empty-operator-assertion\","
+        << "\"onnxRuntimeAvailable\":" << JsonBool(readiness.onnxruntime_available) << ","
+        << "\"modelBackedPreflightReady\":"
+        << JsonBool(readiness.model_backed_preflight_ready) << ","
+        << "\"modelSessionLoadValidated\":false,"
+        << "\"modelBackedExecutionReady\":false,"
+        << "\"readinessReason\":\"" << JsonEscape(readiness.fallback_reason) << "\","
+        << "\"fallbackMode\":\""
+        << (readiness.model_backed_preflight_ready ? "preflight-ready-session-not-validated"
+                                                   : "no-op-visible")
+        << "\""
         << "},\"policyDecisions\":["
         << "{\"policy\":\"tracker-with-reid-assist\","
         << "\"decision\":\"allowed-when-explicitly-selected\","
@@ -26119,19 +26137,21 @@ std::string OpsV390ReidAssistDecisionJson(const app::AppConfig& config) {
         << "\"externalMetadataBoundary\":\"no assist opt-in without selected tracker\"},"
         << "{\"policy\":\"model-backed-assist\","
         << "\"decision\":\"provenance-gated\","
-        << "\"runtimeMeaning\":\"requires model path, checksum, provenance, enabled appearance config, and explicit operator opt-in\","
+        << "\"runtimeMeaning\":\"requires server-verified regular model file, SHA-256 match, trimmed provenance, OpenSSL and ONNX Runtime availability, enabled appearance config, and explicit operator opt-in; extractor session load remains the final gate\","
         << "\"externalMetadataBoundary\":\"model-backed execution is distinguished from UI selection and field smoke evidence\"}"
         << "],\"boundaries\":{"
         << "\"opsOnly\":true,"
         << "\"readOnly\":true,"
         << "\"explicitOptInRequired\":true,"
         << "\"modelBackedExecutionPerformed\":false,"
+        << "\"modelSessionLoadPerformed\":false,"
         << "\"appearanceExtractorCreatedByRoute\":false,"
         << "\"runtimeReidCallPerformed\":false,"
         << "\"embeddingSerialized\":false,"
         << "\"cropSerialized\":false,"
         << "\"modelPathExposed\":false,"
         << "\"modelChecksumExposed\":false,"
+        << "\"modelProvenanceExposed\":false,"
         << "\"identitySearchEnabled\":false,"
         << "\"faceRecognitionEnabled\":false,"
         << "\"watchlistMatchingEnabled\":false,"

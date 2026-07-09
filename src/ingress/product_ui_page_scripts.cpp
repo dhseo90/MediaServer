@@ -1833,11 +1833,14 @@ void AppendOpsShellScript(std::ostringstream& out,
         const policyDecisions = v390ReidAssistDecisionList(decision.policyDecisions);
         const boundaryOk =
           decision.boundaries?.modelBackedExecutionPerformed === false &&
+          decision.boundaries?.modelSessionLoadPerformed === false &&
           decision.boundaries?.appearanceExtractorCreatedByRoute === false &&
           decision.boundaries?.runtimeReidCallPerformed === false &&
           decision.boundaries?.embeddingSerialized === false &&
           decision.boundaries?.cropSerialized === false &&
           decision.boundaries?.modelPathExposed === false &&
+          decision.boundaries?.modelChecksumExposed === false &&
+          decision.boundaries?.modelProvenanceExposed === false &&
           decision.boundaries?.identitySearchEnabled === false &&
           decision.boundaries?.rtspOrWebrtcMediaPathChanged === false;
         v390ReidAssistDecisionState = {
@@ -1846,14 +1849,15 @@ void AppendOpsShellScript(std::ostringstream& out,
         };
         renderBadges('dashReidAssistDecisionBadges', [
           { text: summary.explicitOptInRequired === true ? 'explicit opt-in' : 'opt-in 확인 필요', tone: summary.explicitOptInRequired === true ? 'info' : 'warn' },
-          { text: runtimeGate.modelBackedExecutionReady === true ? 'model ready' : 'no-op fallback', tone: runtimeGate.modelBackedExecutionReady === true ? 'info' : 'warn' },
+          { text: runtimeGate.modelBackedPreflightReady === true ? 'preflight ready' : `no-op: ${display(runtimeGate.readinessReason || 'unready')}`, tone: runtimeGate.modelBackedPreflightReady === true ? 'info' : 'warn' },
+          { text: runtimeGate.modelSessionLoadValidated === false ? 'session not tested by route' : 'session 확인 필요', tone: runtimeGate.modelSessionLoadValidated === false ? 'info' : 'warn' },
           { text: summary.associationAssistOnly === true ? 'association assist' : 'policy 확인 필요', tone: summary.associationAssistOnly === true ? 'info' : 'warn' },
           { text: boundaryOk ? 'no Re-ID execution' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
         ]);
         setText('dashReidAssistDecisionText',
           payload.error
             ? `Re-ID Assist Decision 로드 실패: ${payload.error}`
-            : `decision ${display(summary.decisionStatus || decision.selectedMode || 'explicit-opt-in-provenance-gated-assist')} · modelBackedExecutionReady=${runtimeGate.modelBackedExecutionReady === true ? 'true' : 'false'} · fallback=${display(runtimeGate.fallbackMode || '-')}`);
+            : `decision ${display(summary.decisionStatus || decision.selectedMode || 'explicit-opt-in-provenance-gated-assist')} · modelBackedPreflightReady=${runtimeGate.modelBackedPreflightReady === true ? 'true' : 'false'} · reason=${display(runtimeGate.readinessReason || '-')} · fallback=${display(runtimeGate.fallbackMode || '-')}`);
         const list = document.getElementById('dashReidAssistDecisionList');
         if (list) {
           const rows = policyDecisions.length > 0 ? policyDecisions : [
@@ -1871,7 +1875,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             .join('');
         }
         setText('dashReidAssistDecisionBoundary',
-          `decision=${display(v390ReidAssistDecisionState.reidAssistDecisionRoute)} · appearanceEnabled=${runtimeGate.appearanceEnabled === true ? 'true' : 'false'} · extractor=${display(runtimeGate.configuredExtractor || '-')} · modelPathConfigured=${runtimeGate.modelPathConfigured === true ? 'true' : 'false'} · modelChecksumConfigured=${runtimeGate.modelChecksumConfigured === true ? 'true' : 'false'} · modelProvenanceConfigured=${runtimeGate.modelProvenanceConfigured === true ? 'true' : 'false'} · modelBackedExecutionPerformed=${decision.boundaries?.modelBackedExecutionPerformed === false ? 'false' : '확인 필요'} · runtimeReidCallPerformed=${decision.boundaries?.runtimeReidCallPerformed === false ? 'false' : '확인 필요'} · embeddingSerialized=${decision.boundaries?.embeddingSerialized === false ? 'false' : '확인 필요'} · cropSerialized=${decision.boundaries?.cropSerialized === false ? 'false' : '확인 필요'} · modelPathExposed=${decision.boundaries?.modelPathExposed === false ? 'false' : '확인 필요'} · rtspOrWebrtcMediaPathChanged=${decision.boundaries?.rtspOrWebrtcMediaPathChanged === false ? 'false' : '확인 필요'}`);
+          `decision=${display(v390ReidAssistDecisionState.reidAssistDecisionRoute)} · authority=${display(runtimeGate.readinessAuthority || '-')} · appearance=${runtimeGate.appearanceEnabled === true ? 'true' : 'false'} · extractor=${runtimeGate.onnxReidExtractorSelected === true ? 'onnx-reid' : 'not-selected'} · file=${runtimeGate.modelFileExists === true && runtimeGate.modelFileRegular === true ? 'regular' : 'missing/not-regular'} · shaFormat=${runtimeGate.modelChecksumFormatValid === true ? 'valid' : 'invalid'} · shaReadable=${runtimeGate.modelChecksumReadable === true ? 'true' : 'false'} · shaMatch=${runtimeGate.modelChecksumMatches === true ? 'true' : 'false'} · provenance=${runtimeGate.modelProvenanceConfigured === true ? display(runtimeGate.provenanceValidationScope || 'configured') : 'missing'} · OpenSSL=${runtimeGate.openSslRuntimeAvailable === true ? 'available' : 'unavailable'} · ONNX=${runtimeGate.onnxRuntimeAvailable === true ? 'available' : 'unavailable'} · sessionLoadValidated=${runtimeGate.modelSessionLoadValidated === true ? 'true' : 'false'} · rawModelMaterialExposed=${decision.boundaries?.modelPathExposed === false && decision.boundaries?.modelChecksumExposed === false && decision.boundaries?.modelProvenanceExposed === false ? 'false' : '확인 필요'} · rtspOrWebrtcMediaPathChanged=${decision.boundaries?.rtspOrWebrtcMediaPathChanged === false ? 'false' : '확인 필요'}`);
       };
       const refreshV390ReidAssistDecision = async ({
         reidAssistDecisionRoute = '/ops/api/analysis/reid-assist-decision'

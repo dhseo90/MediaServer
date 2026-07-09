@@ -582,9 +582,9 @@ BoT-SORT/DeepSORT의 dependency/privacy/bundle research 경계는
 | --- | --- | --- |
 | `MEDIA_SERVER_ANALYSIS_APPEARANCE_ENABLED` | `0` | appearance extraction 활성화 |
 | `MEDIA_SERVER_ANALYSIS_APPEARANCE_EXTRACTOR` | `noop` | `noop` 또는 실험용 extractor |
-| `MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL` | empty | model path |
-| `MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_SHA256` | empty | Re-ID model opt-in checksum gate. missing/invalid/mismatched model 또는 비어 있거나 불일치하면 NoOp fallback |
-| `MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_PROVENANCE` | empty | Re-ID model opt-in provenance gate. 비어 있으면 NoOp fallback이며 privacy/retention approval 경계 안에서만 사용 |
+| `MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL` | empty | model path. 존재하는 regular file이어야 하며 missing/directory/special file은 NoOp fallback |
+| `MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_SHA256` | empty | Re-ID model opt-in checksum gate. 64자리 hex 형식, OpenSSL SHA-256 runtime 가용성, 파일 읽기, 실제 digest 일치가 모두 필요 |
+| `MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_PROVENANCE` | empty | Re-ID model opt-in provenance gate. trim 후 non-empty인 operator assertion만 허용하며, 외부 서명/진위 인증을 뜻하지 않음 |
 | `MEDIA_SERVER_ANALYSIS_APPEARANCE_INPUT_WIDTH` | `128` | crop input width |
 | `MEDIA_SERVER_ANALYSIS_APPEARANCE_INPUT_HEIGHT` | `256` | crop input height |
 | `MEDIA_SERVER_ANALYSIS_APPEARANCE_MAX_EMBEDDING_DIM` | `4096` | embedding 상한 |
@@ -599,6 +599,14 @@ BoT-SORT/DeepSORT의 dependency/privacy/bundle research 경계는
 | `MEDIA_SERVER_ANALYSIS_APPEARANCE_ON_TRACK_LOST` | `0` | lost trigger |
 | `MEDIA_SERVER_ANALYSIS_APPEARANCE_ON_REACQUIRE_CANDIDATE` | `1` | reacquire 후보 trigger |
 | `MEDIA_SERVER_ANALYSIS_APPEARANCE_ON_LOW_CONFIDENCE_ASSOCIATION` | `1` | 낮은 association confidence trigger |
+
+`InspectAppearanceModelReadiness`가 extractor factory와
+`GET /ops/api/analysis/reid-assist-decision`에서 동일하게 위 모델 gate를 판정합니다.
+OpenSSL 또는 ONNX Runtime이 현재 build/process에서 가용하지 않으면 model preflight는
+실패하고 NoOp이 유지됩니다. Ops route는 모델을 로드하지 않으므로
+`modelBackedPreflightReady`와 `modelSessionLoadValidated=false`를 분리해 반환합니다.
+preflight PASS는 실제 ONNX session load/inference PASS가 아니며, raw model path, checksum,
+provenance 원문은 응답에 포함되지 않습니다.
 
 ## Scenario env
 

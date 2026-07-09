@@ -1,7 +1,7 @@
 {
   "schema": "media-server.feature-implementation-evidence.v1",
   "expectedFeatureRows": 974,
-  "inventorySha256": "503e79c5e65fcd7899fd1211f5c43ab905a9215f90d13b6e441a8eb70b3aeb6e",
+  "inventorySha256": "7b9fd7f75a3ea3997e15649dceb40489d8b36c9ea16efa5ed7e73c859c7a6915",
   "generatedFrom": "docs/project-feature-test-inventory.md",
   "generationPolicy": "explicit-refresh-only; verifier never rewrites this manifest",
   "executionEvidenceStatus": "not-execution-evidence",
@@ -4111,7 +4111,7 @@
       "id": "UI-115",
       "section": "A",
       "surfaceKind": "ui-route-control-action",
-      "feature": "V390 Step 18 Re-ID assist decision UI",
+      "feature": "V390 Re-ID server readiness evidence UI",
       "uiNeed": "필요",
       "testNeed": "필요",
       "testAreas": [
@@ -4120,14 +4120,14 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "src/ingress/webrtc_http_server.cpp",
-        "anchor": "media-server.ops.v390-reid-assist-decision.v1",
-        "anchorKind": "code-span"
+        "file": "src/ingress/product_ui_page_scripts.cpp",
+        "anchor": "renderV390ReidAssistDecision",
+        "anchorKind": "identifier"
       },
       "uiEvidence": {
-        "file": "src/ingress/webrtc_http_server.cpp",
-        "anchor": "media-server.ops.v390-reid-assist-decision.v1",
-        "anchorKind": "code-span",
+        "file": "src/ingress/product_ui_page_scripts.cpp",
+        "anchor": "renderV390ReidAssistDecision",
+        "anchorKind": "identifier",
         "screenRoute": "/ops/dashboard"
       },
       "verifierEvidence": {
@@ -20142,8 +20142,8 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "include/analysis/event_feature_search_index.h",
-        "anchor": "provider",
+        "file": "src/analysis/appearance_extractor.cpp",
+        "anchor": "readiness",
         "anchorKind": "identifier"
       },
       "uiEvidence": null,
@@ -20172,8 +20172,8 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "include/analysis/analysis_types.h",
-        "anchor": "instance",
+        "file": "src/analysis/appearance_extractor.cpp",
+        "anchor": "readiness",
         "anchorKind": "identifier"
       },
       "uiEvidence": null,
@@ -20824,7 +20824,7 @@
       "id": "LAB-125",
       "section": "H",
       "surfaceKind": "lab-api-runtime-contract",
-      "feature": "V390 Step 18 Re-ID assist runtime gate",
+      "feature": "V390 Re-ID shared readiness evaluator matrix",
       "uiNeed": "비대상",
       "testNeed": "필요",
       "testAreas": [
@@ -20832,16 +20832,16 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "include/analysis/analysis_types.h",
-        "anchor": "association",
+        "file": "include/analysis/appearance_extractor.h",
+        "anchor": "InspectAppearanceModelReadiness",
         "anchorKind": "identifier"
       },
       "uiEvidence": null,
       "verifierEvidence": {
-        "file": "scripts/internal/verify_v390_conditional_field_ai_decisions.mjs",
-        "anchor": "Re-ID",
+        "file": "scripts/internal/verify_v390_reid_readiness_consistency.mjs",
+        "anchor": "InspectAppearanceModelReadiness",
         "anchorKind": "identifier",
-        "command": "verify-v390-conditional-field-ai-decisions"
+        "command": "verify-v390-reid-readiness-consistency"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {
@@ -27460,7 +27460,7 @@
       "id": "SAFE-210",
       "section": "I",
       "surfaceKind": "safety-boundary-invariant",
-      "feature": "V390 Step 18 Re-ID privacy/model boundary",
+      "feature": "V390 Re-ID false-ready/privacy boundary",
       "uiNeed": "비대상",
       "testNeed": "필요",
       "testAreas": [
@@ -27474,10 +27474,10 @@
       },
       "uiEvidence": null,
       "verifierEvidence": {
-        "file": "scripts/internal/verify_v390_conditional_field_ai_decisions.mjs",
+        "file": "scripts/internal/verify_v390_reid_readiness_consistency.mjs",
         "anchor": "Re-ID",
         "anchorKind": "identifier",
-        "command": "verify-v390-conditional-field-ai-decisions"
+        "command": "verify-v390-reid-readiness-consistency"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {
@@ -31810,7 +31810,7 @@
       "id": "OPS-177",
       "section": "J",
       "surfaceKind": "ops-evidence-release-gate",
-      "feature": "V390 Step 18 Re-ID assist decision gate",
+      "feature": "V390 Re-ID readiness consistency gate",
       "uiNeed": "비대상",
       "testNeed": "필요",
       "testAreas": [
@@ -31824,10 +31824,10 @@
       },
       "uiEvidence": null,
       "verifierEvidence": {
-        "file": "scripts/internal/verify_v390_conditional_field_ai_decisions.mjs",
-        "anchor": "/ops/api/analysis/reid-assist-decision",
-        "anchorKind": "route",
-        "command": "verify-v390-conditional-field-ai-decisions"
+        "file": "scripts/internal/verify_v390_reid_readiness_consistency.mjs",
+        "anchor": "Re-ID",
+        "anchorKind": "identifier",
+        "command": "verify-v390-reid-readiness-consistency"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {

@@ -417,6 +417,8 @@ Usage:
                  v3.9.0 Step 16 action execution deferral decision을 검증합니다.
   verify-v390-conditional-field-ai-decisions
                  v3.9.0 Step 17~18 conditional field / Re-ID assist decisions를 검증합니다.
+  verify-v390-reid-readiness-consistency
+                 V390-ADD1-04 Re-ID 파일/SHA/provenance/OpenSSL/ONNX 공용 readiness를 검증합니다.
   verify-v390-structure-stabilization-handoff
                  v3.9.0 Step 19 structure stabilization handoff 계획과 경계를 검증합니다.
   verify-v390-stabilization-release-readiness
@@ -767,6 +769,8 @@ Usage:
                  v3.9.0 Step 16 action execution deferral decision을 검증합니다.
   verify-v390-conditional-field-ai-decisions
                  v3.9.0 Step 17~18 conditional field / Re-ID assist decisions를 검증합니다.
+  verify-v390-reid-readiness-consistency
+                 V390-ADD1-04 Re-ID 파일/SHA/provenance/OpenSSL/ONNX 공용 readiness를 검증합니다.
   verify-v390-structure-stabilization-handoff
                  v3.9.0 Step 19 structure stabilization handoff 계획과 경계를 검증합니다.
   verify-v390-stabilization-release-readiness
@@ -2025,6 +2029,10 @@ case "${cmd}" in
   verify-v390-conditional-field-ai-decisions)
     require_internal verify_v390_conditional_field_ai_decisions.mjs
     exec "${INTERNAL_DIR}/verify_v390_conditional_field_ai_decisions.mjs" "$@"
+    ;;
+  verify-v390-reid-readiness-consistency)
+    require_internal verify_v390_reid_readiness_consistency.mjs
+    exec "${INTERNAL_DIR}/verify_v390_reid_readiness_consistency.mjs" "$@"
     ;;
   verify-v390-structure-stabilization-handoff)
     require_internal verify_v390_structure_stabilization_handoff.mjs

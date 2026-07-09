@@ -106,10 +106,20 @@ check("appearance execution stays bounded outside media hot path", () => {
   for (const snippet of [
     "model_sha256",
     "model_provenance",
+    "InspectAppearanceModelReadiness",
+    "model_file_regular",
+    "checksum_format_valid",
+    "openssl_runtime_available",
+    "checksum_readable",
+    "checksum_matches",
+    "onnxruntime_available",
+    "model_backed_preflight_ready",
     "ComputeFileSha256",
-    "ONNX Re-ID model checksum is missing",
-    "ONNX Re-ID model checksum mismatch",
-    "ONNX Re-ID model provenance is missing",
+    "model-checksum-missing",
+    "model-checksum-mismatch",
+    "model-provenance-missing",
+    "openssl-runtime-unavailable",
+    "onnxruntime-unavailable",
   ]) {
     assert(extractor.includes(snippet), `ONNX Re-ID extractor missing model opt-in gate snippet: ${snippet}`);
   }
@@ -117,7 +127,7 @@ check("appearance execution stays bounded outside media hot path", () => {
     worker: "async bounded",
     concurrency: "try_to_lock",
     fallback: "noop",
-    modelGate: "path+sha256+provenance",
+    modelGate: "regular-file+sha256+provenance+openssl+onnxruntime",
   };
 });
 
@@ -144,7 +154,6 @@ check("external metadata serializers do not expose appearance identity material"
     "modelSha256",
     "modelChecksum",
     "modelProvenance",
-    "provenance",
   ];
   const hits = [];
   for (const file of files) {
@@ -172,7 +181,7 @@ check("appearance diagnostics expose aggregate status only", () => {
   assert(hasJsonFieldLiteral(server, "appearanceExtractor"), "runtime status should keep aggregate extractor stats");
   assert(!hasJsonFieldLiteral(server, "modelPath") && !hasJsonFieldLiteral(server, "model_path"), "runtime status must not expose Re-ID model path");
   assert(!hasJsonFieldLiteral(server, "modelSha256") && !hasJsonFieldLiteral(server, "modelChecksum"), "runtime status must not expose Re-ID model checksum");
-  assert(!hasJsonFieldLiteral(server, "modelProvenance") && !hasJsonFieldLiteral(server, "provenance"), "runtime status must not expose Re-ID model provenance");
+  assert(!hasJsonFieldLiteral(server, "modelProvenance"), "runtime status must not expose Re-ID model provenance");
   assert(!hasJsonFieldLiteral(server, "embedding") && !hasJsonFieldLiteral(server, "appearanceProfile"), "runtime status must not expose appearance vectors/profiles");
   return {
     allowed: ["appearanceProfiles", "appearanceExtractor"],
@@ -205,6 +214,13 @@ check("model checksum provenance opt-in gate is wired", () => {
   ]) {
     assert(appConfig.includes(snippet), `app_config reader missing env var: ${snippet}`);
     assert(configReference.includes(snippet), `config reference missing env var: ${snippet}`);
+  }
+  for (const snippet of [
+    "InspectAppearanceModelReadiness",
+    "modelBackedPreflightReady",
+    "modelSessionLoadValidated=false",
+  ]) {
+    assert(configReference.includes(snippet), `config reference missing readiness contract: ${snippet}`);
   }
   for (const snippet of [
     "Re-ID model path without checksum/provenance gate must fall back",

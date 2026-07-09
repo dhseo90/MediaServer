@@ -68,6 +68,25 @@ struct AppearanceExtractorOptions {
     int max_job_age_ms{app_config::kDefaultAnalysisAppearanceMaxJobAgeMs};
 };
 
+// Re-ID 모델을 실제 extractor에 전달하기 전에 확인하는 서버 소유 준비 상태다.
+// 원본 path/checksum/provenance는 포함하지 않아 Ops API가 민감한 설정을 노출하지 않는다.
+struct AppearanceModelReadiness {
+    bool appearance_enabled{false};
+    bool onnx_reid_extractor_selected{false};
+    bool model_path_configured{false};
+    bool model_file_exists{false};
+    bool model_file_regular{false};
+    bool checksum_configured{false};
+    bool checksum_format_valid{false};
+    bool openssl_runtime_available{false};
+    bool checksum_readable{false};
+    bool checksum_matches{false};
+    bool provenance_configured{false};
+    bool onnxruntime_available{false};
+    bool model_backed_preflight_ready{false};
+    std::string fallback_reason{"appearance-disabled"};
+};
+
 struct AppearanceUpdatePolicy {
     bool enabled{app_config::kDefaultAnalysisAppearanceEnabled};
     bool on_track_created{app_config::kDefaultAnalysisAppearanceOnTrackCreated};
@@ -130,6 +149,9 @@ public:
 
 AppearanceUpdatePolicy BuildAppearanceUpdatePolicyFromConfig(const app::AppConfig& config);
 AppearanceExtractorOptions BuildAppearanceExtractorOptionsFromConfig(const app::AppConfig& config);
+AppearanceModelReadiness InspectAppearanceModelReadiness(
+    const AppearanceExtractorOptions& options);
+AppearanceModelReadiness InspectAppearanceModelReadiness(const app::AppConfig& config);
 std::shared_ptr<IAppearanceExtractor> CreateAppearanceExtractorFromConfig(const app::AppConfig& config);
 
 }  // namespace analysis

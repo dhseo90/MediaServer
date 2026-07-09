@@ -75,8 +75,8 @@
       "theme": "light",
       "accountRole": "operator",
       "controlAction": "inspect-reid-assist-decision",
-      "expectedResult": "Re-ID assist decision shows explicit opt-in provenance gate",
-      "expectedMarkers": ["explicit-opt-in-provenance-gated-assist"]
+      "expectedResult": "Re-ID assist decision shows server-owned file/SHA/provenance/runtime preflight without execution claim",
+      "expectedMarkers": ["explicit-opt-in-provenance-gated-assist", "reason=", "OpenSSL", "ONNX", "session not tested by route"]
     }
   ]
 }

@@ -31,6 +31,8 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v390-conditional-field-ai-decisions";
 const targetScript = "verify_v390_conditional_field_ai_decisions.mjs";
+const readinessCommand = "verify-v390-reid-readiness-consistency";
+const readinessScript = "verify_v390_reid_readiness_consistency.mjs";
 const fieldSchema = "media-server.ops.v390-field-evidence-bridge-decision.v1";
 const reidSchema = "media-server.ops.v390-reid-assist-decision.v1";
 const fieldRoute = "/ops/api/field-evidence/bridge-decision";
@@ -68,6 +70,9 @@ check("Ops server exposes the v3.9 conditional field and Re-ID decisions", () =>
     "explicit-opt-in-provenance-gated-assist",
     "reidAssistDecisionSummary",
     "reidAssistRuntimeGate",
+    "analysis::InspectAppearanceModelReadiness",
+    "modelBackedPreflightReady",
+    "modelSessionLoadValidated",
     "modelBackedExecutionReady",
   ]) {
     assertIncludes(files.server, snippet, "v390 conditional field / Re-ID server model");
@@ -171,12 +176,14 @@ check("Re-ID assist decision preserves explicit opt-in and privacy boundaries", 
     "readOnly",
     "explicitOptInRequired",
     "modelBackedExecutionPerformed",
+    "modelSessionLoadPerformed",
     "appearanceExtractorCreatedByRoute",
     "runtimeReidCallPerformed",
     "embeddingSerialized",
     "cropSerialized",
     "modelPathExposed",
     "modelChecksumExposed",
+    "modelProvenanceExposed",
     "identitySearchEnabled",
     "faceRecognitionEnabled",
     "watchlistMatchingEnabled",
@@ -192,12 +199,14 @@ check("Re-ID assist decision preserves explicit opt-in and privacy boundaries", 
   }
   for (const flag of [
     "modelBackedExecutionPerformed",
+    "modelSessionLoadPerformed",
     "appearanceExtractorCreatedByRoute",
     "runtimeReidCallPerformed",
     "embeddingSerialized",
     "cropSerialized",
     "modelPathExposed",
     "modelChecksumExposed",
+    "modelProvenanceExposed",
     "identitySearchEnabled",
     "faceRecognitionEnabled",
     "watchlistMatchingEnabled",
@@ -283,7 +292,11 @@ check("/ops dashboard renders conditional field and Re-ID decisions", () => {
     reidRoute,
     "reidAssistDecisionSummary",
     "reidAssistRuntimeGate",
-    "modelBackedExecutionReady",
+    "modelBackedPreflightReady",
+    "modelSessionLoadValidated",
+    "readinessReason",
+    "openSslRuntimeAvailable",
+    "onnxRuntimeAvailable",
     "dashReidAssistDecisionList",
     "requestJson(fieldEvidenceBridgeRoute)",
     "requestJson(reidAssistDecisionRoute)",
@@ -310,6 +323,9 @@ check("client/viewer scripts do not receive field or Re-ID internals", () => {
     "rawProviderMaterialIncluded",
     "reidAssistDecisionSummary",
     "reidAssistRuntimeGate",
+    "modelBackedPreflightReady",
+    "modelSessionLoadValidated",
+    "readinessReason",
     "modelBackedExecutionReady",
     "embeddingSerialized",
     "cropSerialized",
@@ -335,7 +351,7 @@ check("roadmap, stream verification, inventory, and release records map v3.9 Ste
   }
   for (const snippet of [
     `| v3.9.0 (17) | \`./server.sh ${command}\` | Field evidence bridge decision.`,
-    `| v3.9.0 (18) | \`./server.sh ${command}\` | Re-ID appearance assist decision.`,
+    `| v3.9.0 (18) / V390-ADD1-04 | \`./server.sh ${readinessCommand}\`, \`./server.sh ${command}\` | Re-ID readiness consistency.`,
     "approval-only-minimal-field-evidence-bridge",
     "explicit-opt-in-provenance-gated-assist",
   ]) {
@@ -343,17 +359,17 @@ check("roadmap, stream verification, inventory, and release records map v3.9 Ste
   }
   for (const snippet of [
     `v3.9.0 (17) field evidence bridge | \`UI-114\`, \`SRC-068\`, \`MEDIA-027\`, \`LAB-124\`, \`SAFE-209\`, \`OPS-176\` | \`${command}\`, \`verify-v380-field-connector-evidence-package\`, \`verify-v350-field-evidence-intake\``,
-    `v3.9.0 (18) Re-ID appearance assist model-backed path decision | \`UI-115\`, \`LAB-125\`, \`SAFE-210\`, \`OPS-177\` | \`${command}\`, \`verify-reid-advanced-tracking\`, \`verify-analysis-state\``,
+    `v3.9.0 (18) / V390-ADD1-04 Re-ID readiness consistency | \`UI-115\`, \`LAB-125\`, \`SAFE-210\`, \`OPS-177\` | \`${readinessCommand}\`, \`${command}\`, \`verify-reid-advanced-tracking\`, \`verify-analysis-state\``,
     "UI-114 | V390 Step 17 field evidence bridge decision UI",
     "SRC-068 | V390 Step 17 field evidence source approval boundary",
     "MEDIA-027 | V390 Step 17 external WHEP/TURN field evidence bridge",
     "LAB-124 | V390 Step 17 cloud/VLM provider field evidence bridge",
     "SAFE-209 | V390 Step 17 no-field-execution boundary",
     "OPS-176 | V390 Step 17 field evidence bridge gate",
-    "UI-115 | V390 Step 18 Re-ID assist decision UI",
-    "LAB-125 | V390 Step 18 Re-ID assist runtime gate",
-    "SAFE-210 | V390 Step 18 Re-ID privacy/model boundary",
-    "OPS-177 | V390 Step 18 Re-ID assist decision gate",
+    "UI-115 | V390 Re-ID server readiness evidence UI",
+    "LAB-125 | V390 Re-ID shared readiness evaluator matrix",
+    "SAFE-210 | V390 Re-ID false-ready/privacy boundary",
+    "OPS-177 | V390 Re-ID readiness consistency gate",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.9 Steps 17~18");
   }
@@ -363,6 +379,7 @@ check("roadmap, stream verification, inventory, and release records map v3.9 Ste
     "v390 Step 17-18 RED conditional field/AI decisions gate",
     "v390 Step 17 field evidence bridge final",
     "v390 Step 18 Re-ID assist decision final",
+    "V390-ADD1-04 Re-ID readiness consistency final",
     "v390 Step 17-18 UI 풀테스트",
     "v390 Step 17-18 30분/120분 longrun",
   ]) {
@@ -377,6 +394,7 @@ check("roadmap, stream verification, inventory, and release records map v3.9 Ste
     "OPS-176",
     "| V390-CAND-010 |",
     "Closed with `explicit-opt-in-provenance-gated-assist`",
+    "Hardened by V390-ADD1-04",
     reidRoute,
     "UI-115",
     "SAFE-210",
@@ -389,7 +407,10 @@ check("roadmap, stream verification, inventory, and release records map v3.9 Ste
 check("server entrypoint and inventory verifiers include v3.9 Steps 17~18 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, targetScript, "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.serverSh, readinessCommand, "server.sh readiness command");
+  assertIncludes(files.serverSh, readinessScript, "server.sh readiness script dispatch");
+  assertIncludes(files.featureInventory, command, "feature inventory conditional verifier mapping");
+  assertIncludes(files.featureInventory, readinessCommand, "feature inventory readiness verifier mapping");
   for (const id of featureIds) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }

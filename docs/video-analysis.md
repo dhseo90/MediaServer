@@ -722,13 +722,23 @@ AppearanceProfile과 IAppearanceExtractor는 향후 Re-ID/attribute 분석을 �
 
 - 기본값은 비활성
 - 기본 extractor는 `NoOpAppearanceExtractor`
-- 실험용 ONNX Re-ID extractor hook은 모델 파일, SHA-256 checksum, provenance가 모두 있을 때만 사용
-- 모델 파일이 없거나 checksum/provenance gate가 비어 있거나 불일치하거나 ONNX Runtime 빌드가 아니면 NoOp으로 fallback
+- 실험용 ONNX Re-ID extractor hook은 존재하는 regular model file, 64자리 SHA-256,
+  OpenSSL로 읽은 실제 digest 일치, trim 후 non-empty operator provenance, 현재 process의
+  OpenSSL·ONNX Runtime 가용성이 모두 확인될 때만 session load 단계로 이동합니다.
+- `InspectAppearanceModelReadiness`를 extractor factory와 Ops decision route가 공유합니다.
+  missing/directory/unreadable model, checksum 누락·형식 오류·불일치, whitespace provenance,
+  OpenSSL/ONNX Runtime 미가용은 모두 안전한 reason code와 NoOp fallback으로 귀결됩니다.
+  이 검사는 기존 checksum/provenance gate를 파일 및 runtime capability까지 확장합니다.
+- Ops decision route의 `modelBackedPreflightReady`는 file/digest/runtime preflight이며,
+  `modelSessionLoadValidated=false`를 함께 표시합니다. 실제 ONNX graph/session load와
+  inference 성공 evidence로 승격하지 않습니다.
 - everyNSeconds, onTrackLost, onReacquireCandidate, onLowConfidenceAssociation 같은 policy trigger에서만 실행 후보 생성
 - rule/vaRule의 `analysis.trackingPolicy.reid=assist`가 선택된 tracker와 함께 적용된
   경우에만 association 보조 hook으로 사용
 - async queue, per-stream rate limit, global queue 상한, stale job drop으로 media pipeline blocking 방지
-- embedding/crop/model path 같은 Re-ID identity material은 WebRTC/SSE/WS/Event/debug 외부 metadata payload에 직렬화하지 않습니다.
+- embedding/crop/model path/checksum/provenance 원문 같은 Re-ID identity/model material은
+  WebRTC/SSE/WS/Event/debug/Ops 외부 payload에 직렬화하지 않습니다.
+  특히 appearance identity material은 외부 metadata payload에 직렬화하지 않습니다.
 - `./server.sh verify-reid-advanced-tracking`은 default-off, privacy review, close-object benchmark command boundary를 정적 검증합니다.
 - v1.8.0 Re-ID opt-in model provenance/fallback approval은 model path/checksum/provenance
   gate와 privacy/retention approval을 함께 확인합니다. missing/invalid/mismatched model은

@@ -18,6 +18,14 @@
 #include <numeric>
 #include <sstream>
 
+#ifndef MEDIA_SERVER_USE_ONNXRUNTIME
+#define MEDIA_SERVER_USE_ONNXRUNTIME 0
+#endif
+
+#ifndef MEDIA_SERVER_USE_OPENSSL
+#define MEDIA_SERVER_USE_OPENSSL 0
+#endif
+
 #if MEDIA_SERVER_USE_ONNXRUNTIME
 #include <onnxruntime_cxx_api.h>
 #endif
@@ -58,6 +66,16 @@ bool IsSha256Hex(const std::string& value) {
 }
 
 #if MEDIA_SERVER_USE_OPENSSL
+bool OpenSslSha256RuntimeAvailable() {
+    EVP_MD_CTX* ctx = EVP_MD_CTX_new();
+    if (ctx == nullptr) {
+        return false;
+    }
+    const bool available = EVP_DigestInit_ex(ctx, EVP_sha256(), nullptr) == 1;
+    EVP_MD_CTX_free(ctx);
+    return available;
+}
+
 std::optional<std::string> ComputeFileSha256(const std::string& path) {
     std::ifstream input(path, std::ios::binary);
     if (!input.is_open()) {
@@ -110,6 +128,19 @@ std::optional<std::string> ComputeFileSha256(const std::string& path) {
     return out.str();
 }
 #endif
+
+bool OnnxRuntimeAvailable() {
+#if MEDIA_SERVER_USE_ONNXRUNTIME
+    const OrtApiBase* api_base = OrtGetApiBase();
+    if (api_base == nullptr || api_base->GetApi(ORT_API_VERSION) == nullptr) {
+        return false;
+    }
+    const char* version = api_base->GetVersionString();
+    return version != nullptr && version[0] != '\0';
+#else
+    return false;
+#endif
+}
 
 std::int64_t TimestampMs(std::int64_t timestamp_ns) {
     return timestamp_ns / 1000000LL;
@@ -468,49 +499,83 @@ AppearanceExtractorOptions BuildAppearanceExtractorOptionsFromConfig(const app::
     return options;
 }
 
-std::shared_ptr<IAppearanceExtractor> CreateAppearanceExtractorFromConfig(const app::AppConfig& config) {
-    const auto options = BuildAppearanceExtractorOptionsFromConfig(config);
-    if (!options.enabled || options.extractor_name.empty() || options.extractor_name == "noop") {
-        return std::make_shared<NoOpAppearanceExtractor>();
-    }
-    if (options.extractor_name != "onnx-reid") {
-        std::cerr << "[analysis][appearance] unsupported extractor '" << options.extractor_name
-                  << "', falling back to NoOp\n";
-        return std::make_shared<NoOpAppearanceExtractor>();
-    }
-    if (options.model_path.empty() || !std::filesystem::exists(options.model_path)) {
-        std::cerr << "[analysis][appearance] ONNX Re-ID model is missing, falling back to NoOp: "
-                  << options.model_path << "\n";
-        return std::make_shared<NoOpAppearanceExtractor>();
-    }
-    if (options.model_sha256.empty()) {
-        std::cerr << "[analysis][appearance] ONNX Re-ID model checksum is missing, falling back to NoOp\n";
-        return std::make_shared<NoOpAppearanceExtractor>();
-    }
-    if (!IsSha256Hex(options.model_sha256)) {
-        std::cerr << "[analysis][appearance] ONNX Re-ID model checksum is invalid, falling back to NoOp\n";
-        return std::make_shared<NoOpAppearanceExtractor>();
-    }
-    if (options.model_provenance.empty()) {
-        std::cerr << "[analysis][appearance] ONNX Re-ID model provenance is missing, falling back to NoOp\n";
-        return std::make_shared<NoOpAppearanceExtractor>();
+AppearanceModelReadiness InspectAppearanceModelReadiness(
+    const AppearanceExtractorOptions& options) {
+    AppearanceModelReadiness readiness;
+    readiness.appearance_enabled = options.enabled;
+    readiness.onnx_reid_extractor_selected = options.extractor_name == "onnx-reid";
+    readiness.model_path_configured = !options.model_path.empty();
+    readiness.checksum_configured = !options.model_sha256.empty();
+    readiness.checksum_format_valid =
+        readiness.checksum_configured && IsSha256Hex(options.model_sha256);
+    readiness.provenance_configured = !TrimCopy(options.model_provenance).empty();
+
+    std::error_code filesystem_error;
+    if (readiness.model_path_configured) {
+        readiness.model_file_exists = std::filesystem::exists(options.model_path, filesystem_error);
+        if (!filesystem_error && readiness.model_file_exists) {
+            readiness.model_file_regular =
+                std::filesystem::is_regular_file(options.model_path, filesystem_error);
+        }
     }
 
 #if MEDIA_SERVER_USE_OPENSSL
-    const auto actual_sha256 = ComputeFileSha256(options.model_path);
-    if (!actual_sha256.has_value()) {
-        std::cerr << "[analysis][appearance] ONNX Re-ID model checksum could not be read, falling back to NoOp\n";
-        return std::make_shared<NoOpAppearanceExtractor>();
+    readiness.openssl_runtime_available = OpenSslSha256RuntimeAvailable();
+    if (readiness.model_file_regular && readiness.checksum_format_valid &&
+        readiness.openssl_runtime_available) {
+        const auto actual_sha256 = ComputeFileSha256(options.model_path);
+        readiness.checksum_readable = actual_sha256.has_value();
+        readiness.checksum_matches =
+            actual_sha256.has_value() && ToLower(*actual_sha256) == ToLower(options.model_sha256);
     }
-    if (*actual_sha256 != options.model_sha256) {
-        std::cerr << "[analysis][appearance] ONNX Re-ID model checksum mismatch, falling back to NoOp\n";
-        return std::make_shared<NoOpAppearanceExtractor>();
-    }
-#else
-    std::cerr << "[analysis][appearance] ONNX Re-ID model checksum verification requires OpenSSL, "
-                 "falling back to NoOp\n";
-    return std::make_shared<NoOpAppearanceExtractor>();
 #endif
+    readiness.onnxruntime_available = OnnxRuntimeAvailable();
+
+    if (!readiness.appearance_enabled) {
+        readiness.fallback_reason = "appearance-disabled";
+    } else if (!readiness.onnx_reid_extractor_selected) {
+        readiness.fallback_reason = "onnx-reid-extractor-not-selected";
+    } else if (!readiness.model_path_configured) {
+        readiness.fallback_reason = "model-path-missing";
+    } else if (!readiness.model_file_exists) {
+        readiness.fallback_reason = "model-file-missing";
+    } else if (!readiness.model_file_regular) {
+        readiness.fallback_reason = "model-file-not-regular";
+    } else if (!readiness.checksum_configured) {
+        readiness.fallback_reason = "model-checksum-missing";
+    } else if (!readiness.checksum_format_valid) {
+        readiness.fallback_reason = "model-checksum-invalid";
+    } else if (!readiness.provenance_configured) {
+        readiness.fallback_reason = "model-provenance-missing";
+    } else if (!readiness.openssl_runtime_available) {
+        readiness.fallback_reason = "openssl-runtime-unavailable";
+    } else if (!readiness.checksum_readable) {
+        readiness.fallback_reason = "model-checksum-unreadable";
+    } else if (!readiness.checksum_matches) {
+        readiness.fallback_reason = "model-checksum-mismatch";
+    } else if (!readiness.onnxruntime_available) {
+        readiness.fallback_reason = "onnxruntime-unavailable";
+    } else {
+        readiness.model_backed_preflight_ready = true;
+        readiness.fallback_reason = "ready";
+    }
+    return readiness;
+}
+
+AppearanceModelReadiness InspectAppearanceModelReadiness(const app::AppConfig& config) {
+    return InspectAppearanceModelReadiness(BuildAppearanceExtractorOptionsFromConfig(config));
+}
+
+std::shared_ptr<IAppearanceExtractor> CreateAppearanceExtractorFromConfig(const app::AppConfig& config) {
+    const auto options = BuildAppearanceExtractorOptionsFromConfig(config);
+    const auto readiness = InspectAppearanceModelReadiness(options);
+    if (!readiness.model_backed_preflight_ready) {
+        if (options.enabled) {
+            std::cerr << "[analysis][appearance] ONNX Re-ID readiness failed ("
+                      << readiness.fallback_reason << "), falling back to NoOp\n";
+        }
+        return std::make_shared<NoOpAppearanceExtractor>();
+    }
 
 #if MEDIA_SERVER_USE_ONNXRUNTIME
     auto extractor = std::make_shared<ExperimentalOnnxReidExtractor>(options);

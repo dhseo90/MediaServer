@@ -135,7 +135,7 @@ UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release a
 | 1 | V390-ADD1-01 | Foundation | 미추적 파일 정리 | P0 | 완료 | 삭제 이력이 있는 미추적 파일 30개를 현재 참조·삭제 의도·blob 이력과 대조하고 복구 0, 삭제 30, 별도 보존 0으로 확정한 뒤 worktree에서 제거 |
 | 2 | V390-ADD1-02 | Feature Closure | 전체 기능 인벤토리 확정 | P0 | 완료 | 974개 기능 행을 exact manifest로 실제 route/UI control/state/verifier와 1:1 대조하고 stale TODO/오류 문구 제거, negative fixture와 local gate 통과 |
 | 3 | V390-ADD1-03 | Product Correctness | VLM 승격 신뢰 경계 | P0 | 완료 | 클라이언트 result/status 선언을 제거하고 shared server catalog가 후보 ID/revision/digest, 평가 결과/provenance, option/model/prompt binding을 검증·canonicalize한 뒤 저장하며 reload 불일치 profile을 quarantine |
-| 4 | V390-ADD1-04 | Product Correctness | Re-ID 준비 상태 정합성 | P0 | 진행 예정 | 설정 문자열 외 파일 존재, SHA 일치, provenance, OpenSSL·ONNX runtime 가용성을 함께 검사 |
+| 4 | V390-ADD1-04 | Product Correctness | Re-ID 준비 상태 정합성 | P0 | 완료 | extractor factory와 Ops API가 공용 server-owned readiness를 사용해 regular file, SHA 형식·읽기·일치, trim provenance, OpenSSL·ONNX Runtime을 검사하고 preflight/session-load/execution을 분리 |
 | 5 | V390-ADD1-05 | Product Correctness | ONVIF 저장 원자성 | P0 | 진행 예정 | source/view 연속 PUT의 부분 저장을 막는 원자 저장 또는 검증 가능한 rollback 적용 |
 
 ### V390-ADD1-01 미추적 파일 전수 판정
@@ -351,6 +351,84 @@ status/source/caseIds/dimensions/score를 PUT하고, `PrepareVlmProfileDocumentL
 
 테스트 사용량: token start `494210`, token end `902804`, token consumed `408594`,
 elapsed 약 `2500초`, source `Codex goal usage`/step boundary 추정.
+
+### V390-ADD1-04 Re-ID 준비 상태 정합성
+
+직접 감사에서 실제 `CreateAppearanceExtractorFromConfig`는 model path, SHA-256,
+provenance, OpenSSL, ONNX Runtime, session start를 확인하지만
+`OpsV390ReidAssistDecisionJson`은 설정 문자열 non-empty만 AND해
+`modelBackedExecutionReady=true`를 만들고 있음을 확인했습니다. 따라서 missing/directory
+model, invalid/mismatched SHA, whitespace provenance, OpenSSL/ONNX 미가용 상태에서 실제
+factory는 NoOp인데 Ops가 ready라고 표시할 수 있었습니다.
+
+개발 위치와 로직:
+
+- `include/analysis/appearance_extractor.h`, `src/analysis/appearance_extractor.cpp`:
+  raw path/SHA/provenance를 담지 않는 `AppearanceModelReadiness`와
+  `InspectAppearanceModelReadiness`를 추가했습니다. enabled/extractor, path configured,
+  exists/regular file, checksum configured/64-hex/readable/matches, trim provenance,
+  OpenSSL SHA-256 runtime, ONNX Runtime API availability를 결정적 reason code로 판정합니다.
+  factory도 이 판정기를 먼저 소비하고 PASS 뒤에만 기존 ONNX session `Start`를 최종
+  gate로 수행합니다.
+- `src/ingress/webrtc_http_server.cpp`:
+  `/ops/api/analysis/reid-assist-decision`이 같은 inspector 결과를 사용합니다.
+  `modelBackedPreflightReady`, `modelSessionLoadValidated=false`,
+  `modelBackedExecutionReady=false`, safe `readinessReason`을 분리하여 decision route가
+  실제 model load/execution을 증명하지 않게 했습니다. raw path/SHA/provenance는 반환하지
+  않습니다.
+- `src/ingress/product_ui_page_scripts.cpp`:
+  `renderV390ReidAssistDecision`이 file, SHA format/read/match, provenance validation scope,
+  OpenSSL, ONNX, reason, preflight/session boundary를 표시합니다. incomplete gate는 명시적
+  NoOp 사유로 표시하고 실행 완료 badge로 승격하지 않습니다.
+- `scripts/internal/reid_readiness_smoke.cpp`,
+  `scripts/internal/verify_reid_readiness_smoke.sh`:
+  OpenSSL/ONNX가 모두 없는 compile과 OpenSSL만 있는 compile을 각각 만들어 early gate,
+  digest mismatch/대문자 digest match, capability reason, factory NoOp을 검사합니다.
+- `test/fixtures/v390_reid_readiness_consistency/cases.json`,
+  `scripts/internal/verify_v390_reid_readiness_consistency.mjs`,
+  `./server.sh verify-v390-reid-readiness-consistency`:
+  AI build의 auth-off throwaway server를 케이스별로 재시작해 disabled, wrong extractor,
+  empty/missing/directory path, missing/invalid/mismatched SHA, whitespace provenance,
+  complete preflight의 실제 HTTP 10개 행렬과 raw material 비노출을 검증합니다.
+- `UI-115`, `LAB-125`, `SAFE-210`, `OPS-177` 네 기존 inventory 행을 공용 readiness와
+  신규 verifier 기준으로 갱신했습니다. 총 feature row는 974를 유지합니다.
+
+provenance 범위는 현재 계약에 맞춰 trim 후 non-empty operator assertion입니다. 별도
+서명/URI/schema가 없는 상태에서 진위 인증으로 과장하지 않습니다. Ops GET은 최신 파일
+변경을 즉시 반영하도록 매 요청에서 digest를 다시 검사하며, ops-only/no-store route이므로
+이번 단계에서는 stale cache를 도입하지 않았습니다.
+
+테스트 필요성 판정:
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | C++ factory gate, filesystem/hash/runtime probe, Ops API/UI, fixture/dispatch/docs/inventory를 변경 | `V390-ADD1-04`, `UI-115`, `LAB-125`, `SAFE-210`, `OPS-177` | 단계 범위에서 실행 |
+| 30분 테스트 | 미진행 | media path나 지속 실행 lifecycle을 바꾸지 않고 config preflight와 단기 HTTP matrix만 변경 | V390-ADD1-04 변경 범위 | 장시간 실행 승인 없음 |
+| 120분 테스트 | 미진행 | AGENTS 7.6.2의 media/lifecycle/high-risk trigger 없음 | V390-ADD1-04 변경 범위 | 장시간 실행 승인 없음 |
+| UI 풀테스트 | 미진행 | Ops 표시 로직을 변경해 release 전 직접 UI evidence는 필요하지만 최신 지시는 UI 풀테스트 실행 승인이 아님 | `UI-115`, `/ops/dashboard` | 직접 실행 승인 없음 |
+
+안정화 실행 결과:
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| C++ build | `./server.sh build`: 공용 inspector, OpenSSL/ONNX probe, Ops route/UI compile/link, target 100% | pass | 최초 빌드부터 통과 |
+| readiness C++/HTTP matrix | `./server.sh verify-v390-reid-readiness-consistency`: capability compile 2종, actual HTTP 10개, failures 0 | pass | 첫 HTTP 실행은 5개 통과 뒤 verifier process 종료/port 회수 timeout; 종료를 await하고 HTTP/RTSP port 분리 후 전체 재실행 pass |
+| Step 18/static privacy regression | `./server.sh verify-v390-conditional-field-ai-decisions`: pass 8/fail 0; `./server.sh verify-reid-advanced-tracking`: pass 12/fail 0 | pass | 새 preflight/session/raw-material 경계로 verifier와 문서 정렬 후 통과 |
+| analysis state | `./server.sh verify-analysis-state`: pass 178/fail 0 | pass | 기존 factory NoOp/appearance/tracking/scenario/event 회귀 통과; 신규 capability matrix가 missing branches 보완 |
+| implementation manifest | explicit refresh: inventory/source/verifier 974, UI 440, manual 424, validation 0, negative 11/11 | pass | 첫 refresh는 신규 verifier가 아직 index에 없어 tracked evidence 3건 fail; 단계 커밋 대상 신규 파일 stage 후 전체 재실행 pass |
+| UI automation contract | `./server.sh verify-v390-ui-automation-runner-contract`: pass 6/fail 0 | pass | UI-115 marker source 갱신, 실제 UI 직접 조작 결과는 아님 |
+| inventory/docs/release gates | feature completion 13/0, feature coverage 6/0(974/974), project inventory 14/0, script inventory 11/0, docs links failures 0, release evidence 8/0 | pass | 최종 inventory/manifest/docs 연결 뒤 재검증 |
+| auth route verifier | `verify-auth-routes` | 미실행 | 필수 password env 5개 모두 absent. 실제 HTTP matrix는 auth-off throwaway server이고 auth/role/scope 구현은 변경하지 않음; 완료 evidence로 사용하지 않음 |
+| 장시간/UI 직접 실행 | 30분, 120분, UI 풀테스트 | 미실행 | 사용자 별도 실행 승인 없음; 완료 evidence로 사용하지 않음 |
+| diff 무결성 | `git diff --check`: 출력 없음 | pass | 최종 파일 상태 확인 |
+
+실패 이력은 verifier lifecycle 1건과 manifest tracked-file 순서 1건이며 제품 readiness
+판정의 false-positive case는 최종 행렬에서 모두 제거했습니다. 실제 ONNX graph/session
+load와 inference 성공은 모델 artifact가 필요한 별도 실행 evidence이며 이번 preflight
+PASS로 대체하지 않습니다.
+
+테스트 사용량: token start `902804`, token end `1252561`, token consumed `349757`,
+elapsed 약 `2161초`, source `Codex goal usage`/step boundary 추정.
 
 ## v3.9.0 남은 구현 목표: 다른 개발 채팅 인계용 상세 계약
 
