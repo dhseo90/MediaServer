@@ -123,6 +123,88 @@ UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release a
 아닙니다. `v3.9.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
 있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.8.0`입니다.
 
+## v3.9.0 (13) 추가 로드맵 (1)
+
+이 섹션은 2026-07-10 요청으로 승인된 추가 로드맵의 source 개발 상태를 기록합니다.
+각 단계의 `완료`는 해당 구현과 단계별 local verifier 통과만 뜻하며, UI 풀테스트,
+30분/120분 장시간 실행, published metadata, release action 완료를 뜻하지 않습니다.
+단계는 아래 순서대로만 진행합니다.
+
+| 번호 | ID | 구간 | 제목 | 우선순위 | 상태 | 완료 조건 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | V390-ADD1-01 | Foundation | 미추적 파일 정리 | P0 | 완료 | 삭제 이력이 있는 미추적 파일 30개를 현재 참조·삭제 의도·blob 이력과 대조하고 복구 0, 삭제 30, 별도 보존 0으로 확정한 뒤 worktree에서 제거 |
+| 2 | V390-ADD1-02 | Feature Closure | 전체 기능 인벤토리 확정 | P0 | 진행 예정 | 974개 기능 행을 실제 route/UI control/action/verifier와 1:1 대조하고 남은 TODO 제거 |
+| 3 | V390-ADD1-03 | Product Correctness | VLM 승격 신뢰 경계 | P0 | 진행 예정 | 클라이언트 `passed` 선언을 제거하고 서버가 후보 ID, 평가 결과, provenance를 검증한 뒤 승격 |
+| 4 | V390-ADD1-04 | Product Correctness | Re-ID 준비 상태 정합성 | P0 | 진행 예정 | 설정 문자열 외 파일 존재, SHA 일치, provenance, OpenSSL·ONNX runtime 가용성을 함께 검사 |
+| 5 | V390-ADD1-05 | Product Correctness | ONVIF 저장 원자성 | P0 | 진행 예정 | source/view 연속 PUT의 부분 저장을 막는 원자 저장 또는 검증 가능한 rollback 적용 |
+
+### V390-ADD1-01 미추적 파일 전수 판정
+
+공통 판정 기준은 현재 tracked 참조, 삭제 커밋의 의도, 현재 blob과 삭제 직전 blob,
+대체 route/verifier, Git history 보존 여부입니다. 아래 30개 외 ignored runtime/build
+경로는 이번 단계에서 삭제하지 않았습니다.
+
+| 경로 | 삭제 이력/현재 상태 | 판정 | 근거 |
+| --- | --- | --- | --- |
+| `docs/assets/diagrams/README.md` | `af15be8a`에서 placeholder 삭제, 삭제 직전 blob과 동일 | 삭제 | 현재 tracked 참조 0, 예정 이미지 placeholder는 Git history에 보존 |
+| `docs/assets/ui/analysis-developer-url.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 현재 문서 자산 manifest 비대상 |
+| `docs/assets/ui/analysis-preview.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 현재 문서 자산 manifest 비대상 |
+| `docs/assets/ui/analysis-region-canvas.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 현재 문서 자산 manifest 비대상 |
+| `docs/assets/ui/analysis-rule-editor-basic.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 제품 룰 UI는 `/ops/rules` |
+| `docs/assets/ui/analysis-rule-editor-scenario.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 제품 룰 UI는 `/ops/rules` |
+| `docs/assets/ui/analysis-rule-list.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 제품 룰 UI는 `/ops/rules` |
+| `docs/assets/ui/analysis-runtime-dashboard-metadata.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 현재 문서 자산 manifest 비대상 |
+| `docs/assets/ui/analysis-runtime-dashboard-records-issues.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 현재 문서 자산 manifest 비대상 |
+| `docs/assets/ui/analysis-runtime-dashboard-records.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 현재 문서 자산 manifest 비대상 |
+| `docs/assets/ui/analysis-runtime-dashboard-runtime.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 현재 문서 자산 manifest 비대상 |
+| `docs/assets/ui/analysis-runtime-dashboard-scenarios.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 현재 문서 자산 manifest 비대상 |
+| `docs/assets/ui/analysis-runtime-dashboard-tracking-issues.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 현재 문서 자산 manifest 비대상 |
+| `docs/assets/ui/analysis-runtime-dashboard-tracks.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 현재 문서 자산 manifest 비대상 |
+| `docs/assets/ui/analysis-runtime-dashboard-trend.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 현재 문서 자산 manifest 비대상 |
+| `docs/assets/ui/analysis-runtime-dashboard.png` | `8147b0c6`에서 legacy Lab 자산 퇴역, 삭제 직전보다 오래된 blob | 삭제 | 현재 tracked 참조 0, 현재 문서 자산 manifest 비대상 |
+| `docs/history/development-history.md` | `e351db0f`에서 backlog로 통합, 삭제 직전보다 오래된 구본 | 삭제 | 현재 tracked 참조 0, 후속 기록이 누락된 중복 history |
+| `docs/history/verification-history.md` | `e351db0f`에서 backlog로 통합, 삭제 직전보다 오래된 구본 | 삭제 | 현재 tracked 참조 0, 후속 정정·검증 기록이 누락된 중복 history |
+| `docs/manual-ui-result-2026-05-25-ui-fulltest-restart.md` | `bb7db525`에서 release ledger로 통합, 삭제 직전 blob과 동일 | 삭제 | 원문은 Git history, 요약은 release evidence/test records에 보존; verifier 참조는 존재 금지가 아니라 하드코딩 금지 검사 |
+| `include/ingress/lab_import_manager.h` | `a74d9b81`에서 legacy `/lab/import` manager 제거, 삭제 직전 blob과 동일 | 삭제 | CMake/current code 참조 0, 제품 import 경계는 `/ops/sources` |
+| `scripts/internal/auto_start_server.sh` | `1379aa31`에서 중복 lifecycle helper 제거, 삭제 직전 blob과 동일 | 삭제 | dispatch/current tracked 참조 0, `server.sh` lifecycle 명령이 대체 |
+| `scripts/internal/browser_webrtc_publish_consume_check.mjs` | `ee36c323`에서 legacy browser harness 제거, 삭제 직전보다 오래된 active 구본 | 삭제 | current tracked 참조 0, `/client/live`와 current verifier가 대체 |
+| `scripts/internal/rule_ui_smoke_check.mjs` | `a74d9b81`에서 `/lab/rules` smoke 제거, 삭제 직전보다 오래된 구본 | 삭제 | 미추적 wrapper 외 참조 0, Ops native rule verifier가 대체 |
+| `scripts/internal/verify_lab_import_ui.sh` | `a74d9b81`에서 `/lab/import` UI verifier 제거, 삭제 직전 blob과 동일 | 삭제 | dispatch/current tracked 참조 0, `/ops/sources`가 제품 UI |
+| `scripts/internal/verify_lab_layout.mjs` | `a74d9b81`에서 legacy Lab layout verifier 제거, 삭제 직전 blob과 동일 | 삭제 | dispatch/current tracked 참조 0, `/ops`·`/client` UI verifier가 대체 |
+| `scripts/internal/verify_manual_ui_evidence_runner.mjs` | `ec511cdc`에서 오판 가능 runner 제거, 삭제 직전보다 오래된 구본 | 삭제 | current inventory와 고정 count 불일치, manual UI/v3.9 automation 기준이 대체 |
+| `scripts/internal/verify_multichannel_webrtc.sh` | `ee36c323`에서 legacy `/webrtc/test` multichannel verifier 제거, 삭제 직전보다 오래된 구본 | 삭제 | 미추적 browser harness 외 참조 0, client workspace/tile verifier가 대체 |
+| `scripts/internal/verify_rule_ui_smoke.sh` | `a74d9b81`에서 `/lab/rules` wrapper 제거, 삭제 직전 blob과 동일 | 삭제 | 미추적 구형 script 외 참조 0, `verify_ops_rules_embed_smoke.mjs`가 대체 |
+| `scripts/internal/verify_webrtc_va_metadata_sync.mjs` | `a74d9b81`에서 Lab viewer 기반 verifier 통합 제거, 삭제 직전 blob과 동일 | 삭제 | dispatch/current tracked 참조 0, `verify_webrtc_va_metadata.mjs`가 대체 |
+| `src/ingress/lab_import_manager.cpp` | `a74d9b81`에서 legacy `/lab/import` manager 제거, 삭제 직전 blob과 동일 | 삭제 | CMake/current code 참조 0, 제품 import 경계는 `/ops/sources` |
+
+V390-ADD1-01 직접 결과:
+
+- 복구: 0개
+- 삭제: 30개, 총 약 4.2 MiB
+- 별도 보존: 0개. 필요한 과거 원문은 기존 Git object와 통합 ledger에서 조회 가능
+- 범위 밖 미삭제: ignored runtime/build 산출물과 이번 30개에 포함되지 않은 경로
+- 제품/API/UI/media 동작 변경: 없음
+
+테스트 필요성 판정:
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | Foundation 정리 후 tracked 문서, 문서 자산, script dispatch/inventory와 diff 무결성 확인이 단계 완료 조건 | `V390-ADD1-01`, AGENTS 3.5/7.1 | 단계 범위에서 실행 |
+| 30분 테스트 | 미진행 | 문서 기록과 삭제된 미추적 legacy 파일 정리는 runtime/media lifecycle을 변경하지 않음 | `V390-ADD1-01` 변경 범위 | 장시간 실행 승인 없음 |
+| 120분 테스트 | 미진행 | AGENTS 7.6.2의 media/lifecycle/high-risk trigger 없음 | `V390-ADD1-01` 변경 범위 | 장시간 실행 승인 없음 |
+| UI 풀테스트 | 미진행 | 제품 UI 동작/자산을 변경하지 않고 이미 퇴역한 미추적 자산만 제거 | `V390-ADD1-01` 변경 범위 | 직접 실행 승인 없음 |
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| 미추적 경로 잔존 확인 | `git ls-files --others --exclude-standard`: 대상 30개 제거 후 출력 0개 | pass | ignored runtime/build 경로는 명령 대상과 판정에서 제외 |
+| 문서 diff 무결성 | `git diff --check`: exit 0 | pass | 실패 이력 없음 |
+| 문서 링크 | `./server.sh verify-docs-links`: Markdown 141, local links 776, images 22, anchors 99, failures 0 | pass | 실패 이력 없음 |
+| 문서 UI 자산 | `./server.sh verify-docs-ui-assets`: pass 10, fail 0 | pass | legacy `analysis-*` 자산이 current manifest 비대상임을 확인 |
+| script inventory | `./server.sh verify-script-inventory`: pass 11, fail 0 | pass | 삭제된 미추적 legacy verifier가 dispatch/inventory 비대상임을 확인 |
+
+테스트 사용량: token start `169879`, token end `174558`, token consumed `4679`,
+elapsed 약 `3초`, source `Codex goal usage`.
+
 ## v3.9.0 남은 구현 목표: 다른 개발 채팅 인계용 상세 계약
 
 이 섹션은 v3.9.0을 닫기 전에 실제로 구현해야 할 미완성 부분을 명시합니다.
