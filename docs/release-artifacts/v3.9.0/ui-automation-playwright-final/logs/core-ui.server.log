@@ -1,0 +1,105 @@
+[env] skipped local override: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/.media_server.env
+[1/2] configure (GStreamer ON, AI 1, YouTube 0)
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/build-gst-onnx
+[2/2] build
+[  1%] Building CXX object CMakeFiles/media_server.dir/src/analysis/analysis_manager.cpp.o
+[  2%] Building CXX object CMakeFiles/media_server.dir/src/analysis/appearance_extractor.cpp.o
+[  4%] Building CXX object CMakeFiles/media_server.dir/src/analysis/category_tokens.cpp.o
+[  5%] Building CXX object CMakeFiles/media_server.dir/src/analysis/detector_factory.cpp.o
+[  6%] Building CXX object CMakeFiles/media_server.dir/src/analysis/dummy_detector.cpp.o
+[  8%] Building CXX object CMakeFiles/media_server.dir/src/analysis/event_manager.cpp.o
+[  9%] Building CXX object CMakeFiles/media_server.dir/src/analysis/event_feature_search_index.cpp.o
+[ 11%] Building CXX object CMakeFiles/media_server.dir/src/analysis/event_post_dispatcher.cpp.o
+[ 12%] Building CXX object CMakeFiles/media_server.dir/src/analysis/event_retention_cleanup.cpp.o
+[ 13%] Building CXX object CMakeFiles/media_server.dir/src/analysis/event_rule_engine.cpp.o
+[ 15%] Building CXX object CMakeFiles/media_server.dir/src/analysis/event_search_query.cpp.o
+[ 16%] Building CXX object CMakeFiles/media_server.dir/src/analysis/event_storage.cpp.o
+[ 18%] Building CXX object CMakeFiles/media_server.dir/src/analysis/incident_memory.cpp.o
+[ 19%] Building CXX object CMakeFiles/media_server.dir/src/analysis/image_frame_loader.cpp.o
+[ 20%] Building CXX object CMakeFiles/media_server.dir/src/analysis/intrusion_after_line_crossing_scenario.cpp.o
+[ 22%] Building CXX object CMakeFiles/media_server.dir/src/analysis/intrusion_dwell_scenario.cpp.o
+[ 23%] Building CXX object CMakeFiles/media_server.dir/src/analysis/loitering_scenario.cpp.o
+[ 25%] Building CXX object CMakeFiles/media_server.dir/src/analysis/metadata_subscription_filter.cpp.o
+[ 26%] Building CXX object CMakeFiles/media_server.dir/src/analysis/object_tracker.cpp.o
+[ 27%] Building CXX object CMakeFiles/media_server.dir/src/analysis/overlay_renderer.cpp.o
+[ 29%] Building CXX object CMakeFiles/media_server.dir/src/analysis/raw_video_decoder.cpp.o
+[ 30%] Building CXX object CMakeFiles/media_server.dir/src/analysis/re_entry_scenario.cpp.o
+[ 31%] Building CXX object CMakeFiles/media_server.dir/src/analysis/scene_context_builder.cpp.o
+[ 33%] Building CXX object CMakeFiles/media_server.dir/src/analysis/scenario_engine.cpp.o
+[ 34%] Building CXX object CMakeFiles/media_server.dir/src/analysis/snapshot_encoder.cpp.o
+[ 36%] Building CXX object CMakeFiles/media_server.dir/src/analysis/track_state_manager.cpp.o
+[ 37%] Building CXX object CMakeFiles/media_server.dir/src/analysis/tracked_object_metadata.cpp.o
+[ 38%] Building CXX object CMakeFiles/media_server.dir/src/analysis/va_runtime_metadata.cpp.o
+[ 40%] Building CXX object CMakeFiles/media_server.dir/src/analysis/vlm_feature_retention.cpp.o
+[ 41%] Building CXX object CMakeFiles/media_server.dir/src/analysis/vlm_feature_queue.cpp.o
+[ 43%] Building CXX object CMakeFiles/media_server.dir/src/analysis/vlm_observation_store.cpp.o
+[ 44%] Building CXX object CMakeFiles/media_server.dir/src/analysis/wrong_direction_scenario.cpp.o
+[ 45%] Building CXX object CMakeFiles/media_server.dir/src/analysis/zone_occupancy_scenario.cpp.o
+[ 47%] Building CXX object CMakeFiles/media_server.dir/src/analysis/yolo_onnx_detector.cpp.o
+[ 48%] Building CXX object CMakeFiles/media_server.dir/src/app_config.cpp.o
+[ 50%] Building CXX object CMakeFiles/media_server.dir/src/main.cpp.o
+[ 51%] Building CXX object CMakeFiles/media_server.dir/src/core/command_runner.cpp.o
+[ 52%] Building CXX object CMakeFiles/media_server.dir/src/core/shared_stream.cpp.o
+[ 54%] Building CXX object CMakeFiles/media_server.dir/src/core/source_factory.cpp.o
+[ 55%] Building CXX object CMakeFiles/media_server.dir/src/core/stream_registry.cpp.o
+[ 56%] Building CXX object CMakeFiles/media_server.dir/src/core/stream_key.cpp.o
+[ 58%] Building CXX object CMakeFiles/media_server.dir/src/core/resource_guard.cpp.o
+[ 59%] Building CXX object CMakeFiles/media_server.dir/src/core/session_manager.cpp.o
+[ 61%] Building CXX object CMakeFiles/media_server.dir/src/ingress/gst_pipeline_builder.cpp.o
+[ 62%] Building CXX object CMakeFiles/media_server.dir/src/ingress/analysis_overlay_probe.cpp.o
+[ 63%] Building CXX object CMakeFiles/media_server.dir/src/ingress/analysis_query.cpp.o
+[ 65%] Building CXX object CMakeFiles/media_server.dir/src/ingress/http_auth.cpp.o
+[ 66%] Building CXX object CMakeFiles/media_server.dir/src/ingress/onvif_credential_provider.cpp.o
+[ 68%] Building CXX object CMakeFiles/media_server.dir/src/ingress/onvif_live_import.cpp.o
+[ 69%] Building CXX object CMakeFiles/media_server.dir/src/ingress/ops_event_route_owner.cpp.o
+[ 70%] Building CXX object CMakeFiles/media_server.dir/src/ingress/rtsp_request_context.cpp.o
+[ 72%] Building CXX object CMakeFiles/media_server.dir/src/ingress/request_parser.cpp.o
+[ 73%] Building CXX object CMakeFiles/media_server.dir/src/ingress/product_ui_assets.cpp.o
+[ 75%] Building CXX object CMakeFiles/media_server.dir/src/ingress/product_ui_auth_pages.cpp.o
+[ 76%] Building CXX object CMakeFiles/media_server.dir/src/ingress/product_ui_components.cpp.o
+[ 77%] Building CXX object CMakeFiles/media_server.dir/src/ingress/product_ui_client_css.cpp.o
+[ 79%] Building CXX object CMakeFiles/media_server.dir/src/ingress/product_ui_client_scripts.cpp.o
+[ 80%] Building CXX object CMakeFiles/media_server.dir/src/ingress/product_ui_css.cpp.o
+[ 81%] Building CXX object CMakeFiles/media_server.dir/src/ingress/product_ui_js.cpp.o
+[ 83%] Building CXX object CMakeFiles/media_server.dir/src/ingress/product_ui_ops_sources_script.cpp.o
+[ 84%] Building CXX object CMakeFiles/media_server.dir/src/ingress/product_ui_ops_users_script.cpp.o
+[ 86%] Building CXX object CMakeFiles/media_server.dir/src/ingress/product_ui_page_scripts.cpp.o
+[ 87%] Building CXX object CMakeFiles/media_server.dir/src/ingress/rtsp_egress_session.cpp.o
+[ 88%] Building CXX object CMakeFiles/media_server.dir/src/ingress/source_view_registry.cpp.o
+[ 90%] Building CXX object CMakeFiles/media_server.dir/src/ingress/webrtc_egress_session.cpp.o
+[ 91%] Building CXX object CMakeFiles/media_server.dir/src/ingress/webrtc_gst_utils.cpp.o
+[ 93%] Building CXX object CMakeFiles/media_server.dir/src/ingress/webrtc_source_registry.cpp.o
+[ 94%] Building CXX object CMakeFiles/media_server.dir/src/ingress/webrtc_source_session.cpp.o
+[ 95%] Building CXX object CMakeFiles/media_server.dir/src/ingress/webrtc_http_server.cpp.o
+[ 97%] Building CXX object CMakeFiles/media_server.dir/src/ingress/rtsp_adapter.cpp.o
+[ 98%] Building CXX object CMakeFiles/media_server.dir/src/ingress/gstreamer_rtsp_server.cpp.o
+[100%] Linking CXX executable media_server
+[100%] Built target media_server
+run mode: foreground
+listen: rtsp://127.0.0.1:18739/dhseo
+ops: http://127.0.0.1:18239/ops/home
+client: http://127.0.0.1:18239/client/live
+file root: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/video
+default file: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/video/sample_h264.mp4
+file test url: rtsp://127.0.0.1:18739/dhseo?file=sample_h264.mp4
+stop: Ctrl-C
+media-server skeleton (C++)
+default route: /dhseo
+[gst] forcing RTSP lower transport to TCP only
+[gst] forcing RTSP lower transport to TCP only
+[gst] forcing RTSP lower transport to TCP only
+[gst] forcing RTSP lower transport to TCP only
+[gst] forcing RTSP lower transport to TCP only
+[gst] forcing RTSP lower transport to TCP only
+[gst] forcing RTSP lower transport to TCP only
+[gst] forcing RTSP lower transport to TCP only
+[gst] forcing RTSP lower transport to TCP only
+gstreamer rtsp server started: yes
+webrtc http server started: yes
+listen: rtsp://127.0.0.1:18739/dhseo
+ops console: http://127.0.0.1:18239/ops/home
+client live: http://127.0.0.1:18239/client/live
+file test url: rtsp://127.0.0.1:18739/dhseo?file=sample_h264.mp4
+running... (SIGINT/SIGTERM to stop)

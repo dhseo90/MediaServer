@@ -32,7 +32,7 @@
       "accountRole": "operator",
       "controlAction": "inspect-vlm-rule-draft-bridge",
       "expectedResult": "rule suggestion bridge shows manualSaveRequired=true and autoApply=false",
-      "expectedMarkers": ["ops-review-to-rule-draft-bridge", "manual-save-only", "autoApply=false"]
+      "expectedMarkers": ["ops-review-to-rule-draft-bridge", "manualSaveRequired=true", "autoApply=false"]
     },
     {
       "caseId": "UI-111",

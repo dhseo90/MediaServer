@@ -68,21 +68,27 @@ const reportPath = path.join(outputDir, "report.md");
 const screenshotsDir = path.join(outputDir, "screenshots");
 const tracesDir = path.join(outputDir, "traces");
 const logsDir = path.join(outputDir, "logs");
+const registryDir = path.join(outputDir, "core-registry");
+const eventStoragePath = path.join(outputDir, "core-events.jsonl");
+const eventSnapshotDir = path.join(outputDir, "core-snapshots");
+const eventClipDir = path.join(outputDir, "core-clips");
 const runId = `v390-ui-automation-${new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14)}-${process.pid}`;
 const cases = loadCases(options.caseManifest);
 const fixtureMode = options.fixturePass || options.fixtureFailCase !== "";
+const adapterPlan = buildAdapterPlan(options.browserMode);
+let selectedAdapter = selectSyntheticAdapter(fixtureMode ? "fixture" : (options.oneShotSummary ? "one-shot-summary" : "pending"));
+let adapterAttempts = [makeAdapterAttempt(selectedAdapter.tool, selectedAdapter.engine, "pending", "runtime adapter not resolved yet")];
 let cleanupState = {
   coreServerStopped: true,
   authServerStopped: true,
   portsClean: true,
+  temporaryArtifactsRemoved: true,
+  removedTemporaryArtifacts: [],
 };
 
-fs.mkdirSync(screenshotsDir, { recursive: true });
-fs.mkdirSync(tracesDir, { recursive: true });
-fs.mkdirSync(logsDir, { recursive: true });
+prepareOutputDir();
 
 let normalizedCases;
-let toolSelection = freeToolPriority(options.browserMode);
 
 if (fixtureMode) {
   normalizedCases = runFixtureCases();
@@ -101,7 +107,10 @@ const summary = {
   runId,
   command: `./server.sh verify-v390-ui-automation ${rawArgs.join(" ")}`,
   browserMode: options.browserMode,
-  toolSelection,
+  toolSelection: adapterPlan,
+  adapterPlan,
+  selectedAdapter,
+  adapterAttempts,
   result: failCount > 0 ? "FAIL" : "PASS",
   automationResult: failCount > 0 ? "FAIL" : "PASS",
   evidenceBoundary: "automationResult is not manual UI fulltest, 30-minute, 120-minute, published, or release-action evidence",
@@ -182,6 +191,8 @@ function parseArgs(args) {
     } else if (arg === "--timeout-ms") {
       parsed.timeoutMs = args[index + 1] || "";
       index += 1;
+    } else if (arg.startsWith("--allow-chrome-fallback=")) {
+      parsed.allowChromeFallback = arg.slice("--allow-chrome-fallback=".length) || "1";
     } else if (arg === "--allow-chrome-fallback") {
       parsed.allowChromeFallback = args[index + 1] && !args[index + 1].startsWith("--") ? args[index + 1] : "1";
       if (parsed.allowChromeFallback === args[index + 1]) index += 1;
@@ -225,15 +236,53 @@ function assertPositiveNumberOrEmpty(value, label) {
   assert(Number.isFinite(parsed) && parsed > 0, `${label} must be a positive number`);
 }
 
-function freeToolPriority(selected) {
+function buildAdapterPlan(selected) {
   return [
-    { tool: "playwright", priority: 1, selected: selected === "playwright" },
-    { tool: "selenium", priority: 2, selected: selected === "selenium" },
-    { tool: "sikulix", priority: 3, selected: selected === "sikulix", visualOnly: true },
+    {
+      tool: "playwright",
+      priority: 1,
+      selected: selected === "playwright",
+      role: "primary-dom-automation",
+    },
+    {
+      tool: "selenium",
+      priority: 2,
+      selected: selected === "selenium",
+      role: "webdriver-fallback",
+    },
+    {
+      tool: "sikulix",
+      priority: 3,
+      selected: selected === "sikulix",
+      role: "visual-fallback",
+      visualOnly: true,
+    },
   ];
 }
 
+function selectSyntheticAdapter(engine) {
+  return {
+    tool: options.browserMode,
+    engine: `${options.browserMode}-${engine}`,
+    fallbackUsed: false,
+    fallbackReason: "",
+    visualOnly: options.browserMode === "sikulix",
+    dependencyStatus: engine,
+  };
+}
+
+function makeAdapterAttempt(tool, engine, status, reason = "") {
+  return {
+    tool,
+    engine,
+    status,
+    reason,
+  };
+}
+
 function runFixtureCases() {
+  selectedAdapter = selectSyntheticAdapter("fixture");
+  adapterAttempts = [makeAdapterAttempt(options.browserMode, selectedAdapter.engine, "selected", "contract fixture mode")];
   let failed = false;
   return cases.map((item, index) => {
     printProgress(index + 1, cases.length, item);
@@ -250,6 +299,8 @@ function runFixtureCases() {
 }
 
 function normalizeOneShotSummary() {
+  selectedAdapter = selectSyntheticAdapter("one-shot-summary");
+  adapterAttempts = [makeAdapterAttempt(options.browserMode, selectedAdapter.engine, "selected", "normalized one-shot summary mode")];
   const oneShot = JSON.parse(fs.readFileSync(path.resolve(rootDir, options.oneShotSummary), "utf8"));
   assert(oneShot.schema === "media-server.ui-fulltest-one-shot.v1", "unexpected one-shot summary schema");
   const result = oneShot.result === "PASS" ? "PASS" : "FAIL";
@@ -271,14 +322,30 @@ async function runRealUiAutomation() {
   };
   const debugPortBase = Number(options.debugPortBase || 15200);
   const timeoutMs = Number(options.timeoutMs || 30000);
+  let runtimeAdapter;
+  try {
+    runtimeAdapter = await resolveRuntimeAdapter();
+    selectedAdapter = runtimeAdapter.summary;
+    adapterAttempts = runtimeAdapter.attempts;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    selectedAdapter = {
+      tool: options.browserMode,
+      engine: "unavailable",
+      fallbackUsed: false,
+      fallbackReason: message,
+      visualOnly: options.browserMode === "sikulix",
+      dependencyStatus: "unavailable",
+    };
+    adapterAttempts = [makeAdapterAttempt(options.browserMode, "unavailable", "failed", message)];
+    return makePreflightFailureCases(message);
+  }
   const server = await startCoreServer(ports);
   const httpBase = `http://127.0.0.1:${ports.http}`;
   let failed = false;
   const results = [];
   try {
     await waitForHealth(`${httpBase}/health`, timeoutMs);
-    const chromePath = options.chromePath || findChrome();
-    assert(chromePath, "browser executable not available; pass --chrome-path or --allow-chrome-fallback in Codex sessions");
     for (let index = 0; index < cases.length; index += 1) {
       const item = cases[index];
       printProgress(index + 1, cases.length, item);
@@ -290,7 +357,7 @@ async function runRealUiAutomation() {
       try {
         const artifact = await runBrowserCase(item, {
           httpBase,
-          chromePath,
+          runtimeAdapter,
           debugPort: debugPortBase + index,
           timeoutMs,
           serverLogReference: server.logPath,
@@ -298,28 +365,120 @@ async function runRealUiAutomation() {
         results.push(makeCase(item, "PASS", "all expected UI markers found", artifact));
       } catch (error) {
         failed = true;
-        const artifact = writeCaseArtifacts(item, { serverLogReference: server.logPath });
+        const artifact = error?.artifact || writeCaseArtifacts(item, { serverLogReference: server.logPath });
         results.push(makeCase(item, "FAIL", error instanceof Error ? error.message : String(error), artifact));
       }
     }
   } finally {
     if (!options.keepServer) {
       await stopServer(server);
+      cleanupTemporaryArtifacts();
     } else {
       cleanupState.coreServerStopped = false;
       cleanupState.portsClean = false;
+      cleanupState.temporaryArtifactsRemoved = false;
     }
   }
   return results;
 }
 
-async function runBrowserCase(item, { httpBase, chromePath, debugPort, timeoutMs, serverLogReference }) {
+function makePreflightFailureCases(message) {
+  let failed = false;
+  return cases.map((item, index) => {
+    printProgress(index + 1, cases.length, item);
+    const artifact = writeCaseArtifacts(item);
+    if (failed) return makeCase(item, "not-run", "not run after UI automation preflight failure", artifact);
+    failed = true;
+    return makeCase(item, "FAIL", `preflight failed: ${message}`, artifact);
+  });
+}
+
+async function resolveRuntimeAdapter() {
+  const attempts = [];
+  const requestedMode = options.browserMode;
+  if (requestedMode === "playwright") {
+    const playwright = await optionalImport("playwright");
+    if (playwright.module?.chromium) {
+      attempts.push(makeAdapterAttempt("playwright", "playwright", "selected", "playwright chromium module available"));
+      return {
+        summary: {
+          tool: "playwright",
+          engine: "playwright",
+          fallbackUsed: false,
+          fallbackReason: "",
+          visualOnly: false,
+          dependencyStatus: "available",
+        },
+        attempts,
+        openPage: openPlaywrightPage.bind(null, playwright.module),
+      };
+    }
+    attempts.push(makeAdapterAttempt("playwright", "playwright", "unavailable", playwright.errorMessage));
+    return resolveChromeCdpFallback(requestedMode, attempts, "playwright package unavailable");
+  }
+  if (requestedMode === "selenium") {
+    const seleniumRemoteUrl = process.env.MEDIA_SERVER_SELENIUM_REMOTE_URL || process.env.SELENIUM_REMOTE_URL || "";
+    if (seleniumRemoteUrl) {
+      attempts.push(makeAdapterAttempt("selenium", "selenium-webdriver", "selected", `remote endpoint ${seleniumRemoteUrl}`));
+      return {
+        summary: {
+          tool: "selenium",
+          engine: "selenium-webdriver",
+          fallbackUsed: false,
+          fallbackReason: "",
+          visualOnly: false,
+          dependencyStatus: "remote-endpoint",
+        },
+        attempts,
+        openPage: openSeleniumPage.bind(null, seleniumRemoteUrl),
+      };
+    }
+    attempts.push(makeAdapterAttempt("selenium", "selenium-webdriver", "unavailable", "MEDIA_SERVER_SELENIUM_REMOTE_URL/SELENIUM_REMOTE_URL is not set"));
+    return resolveChromeCdpFallback(requestedMode, attempts, "selenium remote endpoint unavailable");
+  }
+  const sikulixCommand = process.env.MEDIA_SERVER_SIKULIX_CMD || process.env.SIKULIX_CMD || "";
+  if (sikulixCommand) {
+    attempts.push(makeAdapterAttempt("sikulix", "sikulix-visual", "selected", `visual command ${sikulixCommand}`));
+    return resolveChromeCdpFallback(requestedMode, attempts, "SikuliX visual capture command is recorded; DOM marker check uses CDP companion");
+  }
+  attempts.push(makeAdapterAttempt("sikulix", "sikulix-visual", "unavailable", "MEDIA_SERVER_SIKULIX_CMD/SIKULIX_CMD is not set"));
+  return resolveChromeCdpFallback(requestedMode, attempts, "sikulix visual command unavailable");
+}
+
+async function optionalImport(specifier) {
+  try {
+    return { module: await import(specifier), errorMessage: "" };
+  } catch (error) {
+    return { module: null, errorMessage: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+function resolveChromeCdpFallback(requestedMode, attempts, fallbackReason) {
+  const chromePath = options.chromePath || findChrome();
+  if (!chromePath) {
+    throw new Error(`${fallbackReason}; browser executable not available; pass --chrome-path or --allow-chrome-fallback in Codex sessions`);
+  }
+  attempts.push(makeAdapterAttempt(requestedMode, "chrome-cdp-fallback", "selected", fallbackReason));
+  return {
+    summary: {
+      tool: requestedMode,
+      engine: "chrome-cdp-fallback",
+      fallbackUsed: true,
+      fallbackReason,
+      visualOnly: requestedMode === "sikulix",
+      dependencyStatus: "chrome-cdp-fallback",
+    },
+    attempts,
+    openPage: openChromeCdpPage.bind(null, chromePath),
+  };
+}
+
+async function runBrowserCase(item, { httpBase, runtimeAdapter, debugPort, timeoutMs, serverLogReference }) {
   const artifact = writeCaseArtifacts(item, { serverLogReference });
-  const browser = await openBrowserPage({
+  const browser = await runtimeAdapter.openPage({
     httpBase,
     pagePath: item.route,
     timeoutMs,
-    chromePath,
     debugPort,
     width: item.viewport?.width || 390,
     height: item.viewport?.height || 844,
@@ -347,17 +506,23 @@ async function runBrowserCase(item, { httpBase, chromePath, debugPort, timeoutMs
       10000,
     );
     await browser.screenshot(artifact.screenshotPath);
+    const browserConsole = browser.consoleEntries ? browser.consoleEntries() : [];
+    writeJson(artifact.browserConsolePath, browserConsole);
     writeJson(artifact.tracePath, {
       schema: "media-server.v390-ui-automation-trace.v1",
       caseId: item.caseId,
       route: item.route,
       controlAction: item.controlAction,
       browserMode: options.browserMode,
+      adapter: selectedAdapter,
       expectedMarkers: item.expectedMarkers || [],
+      browserConsolePath: artifact.browserConsolePath,
       result,
     });
     if (!result?.ok) {
-      throw new Error(`missing UI markers: ${(result?.missing || []).join(", ") || "(unknown)"}`);
+      const failure = new Error(`missing UI markers: ${(result?.missing || []).join(", ") || "(unknown)"}`);
+      failure.artifact = artifact;
+      throw failure;
     }
     return artifact;
   } finally {
@@ -368,12 +533,12 @@ async function runBrowserCase(item, { httpBase, chromePath, debugPort, timeoutMs
 async function startCoreServer(ports) {
   const logPath = path.join(logsDir, "core-ui.server.log");
   const log = fs.createWriteStream(logPath, { flags: "a" });
-  const registryDir = path.join(outputDir, "core-registry");
   fs.mkdirSync(registryDir, { recursive: true });
   const child = spawn("./server.sh", ["foreground"], {
     cwd: rootDir,
     env: {
       ...process.env,
+      MEDIA_SERVER_SKIP_LOCAL_ENV: "1",
       MEDIA_SERVER_AUTH_MODE: "off",
       MEDIA_SERVER_LISTEN_ADDRESS: "127.0.0.1",
       MEDIA_SERVER_HTTP_LISTEN_ADDRESS: "127.0.0.1",
@@ -382,15 +547,151 @@ async function startCoreServer(ports) {
       MEDIA_SERVER_SOURCE_REGISTRY: path.join(registryDir, "sources.json"),
       MEDIA_SERVER_PUBLISHED_VIEWS: path.join(registryDir, "views.json"),
       MEDIA_SERVER_ANALYSIS_REGISTRY: path.join(registryDir, "analysis.json"),
-      MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH: path.join(outputDir, "core-events.jsonl"),
-      MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_DIR: path.join(outputDir, "core-snapshots"),
-      MEDIA_SERVER_ANALYSIS_EVENT_CLIP_DIR: path.join(outputDir, "core-clips"),
+      MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH: eventStoragePath,
+      MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_DIR: eventSnapshotDir,
+      MEDIA_SERVER_ANALYSIS_EVENT_CLIP_DIR: eventClipDir,
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
   child.stdout.on("data", chunk => log.write(chunk));
   child.stderr.on("data", chunk => log.write(chunk));
   return { child, log, logPath, ports };
+}
+
+function prepareOutputDir() {
+  for (const target of [
+    screenshotsDir,
+    tracesDir,
+    logsDir,
+    registryDir,
+    eventStoragePath,
+    eventSnapshotDir,
+    eventClipDir,
+  ]) {
+    fs.rmSync(target, { recursive: true, force: true });
+  }
+  fs.mkdirSync(screenshotsDir, { recursive: true });
+  fs.mkdirSync(tracesDir, { recursive: true });
+  fs.mkdirSync(logsDir, { recursive: true });
+}
+
+function cleanupTemporaryArtifacts() {
+  const removed = [];
+  for (const target of [registryDir, eventStoragePath, eventSnapshotDir, eventClipDir]) {
+    if (!fs.existsSync(target)) continue;
+    fs.rmSync(target, { recursive: true, force: true });
+    removed.push(target);
+  }
+  cleanupState.temporaryArtifactsRemoved = true;
+  cleanupState.removedTemporaryArtifacts = removed;
+}
+
+async function openChromeCdpPage(chromePath, args) {
+  return openBrowserPage({
+    ...args,
+    chromePath,
+  });
+}
+
+async function openPlaywrightPage(playwright, {
+  httpBase,
+  pagePath,
+  timeoutMs,
+  chromePath,
+  width = 390,
+  height = 844,
+}) {
+  const consoleEntries = [];
+  const browser = await playwright.chromium.launch({
+    headless: true,
+    ...(chromePath ? { executablePath: chromePath } : {}),
+  });
+  const context = await browser.newContext({ viewport: { width, height } });
+  const page = await context.newPage();
+  page.on("console", message => {
+    consoleEntries.push({
+      level: message.type(),
+      text: message.text(),
+    });
+  });
+  page.on("pageerror", error => {
+    consoleEntries.push({
+      level: "error",
+      text: error instanceof Error ? error.message : String(error),
+    });
+  });
+  await page.goto(new URL(pagePath, `${httpBase}/`).toString(), {
+    waitUntil: "load",
+    timeout: timeoutMs,
+  });
+  return {
+    evaluate: (expression, evalTimeoutMs) => page.evaluate(`(() => ${expression})()`, { timeout: evalTimeoutMs }),
+    screenshot: (outputFile) => page.screenshot({ path: outputFile }),
+    consoleEntries: () => consoleEntries,
+    close: async () => {
+      await context.close();
+      await browser.close();
+    },
+  };
+}
+
+async function openSeleniumPage(remoteUrl, {
+  httpBase,
+  pagePath,
+  timeoutMs,
+  width = 390,
+  height = 844,
+}) {
+  const endpoint = remoteUrl.replace(/\/+$/, "");
+  const sessionResponse = await fetch(`${endpoint}/session`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      capabilities: {
+        alwaysMatch: {
+          browserName: "chrome",
+          "goog:chromeOptions": {
+            args: [`--window-size=${width},${height}`, "--headless=new", "--no-first-run", "--no-default-browser-check"],
+          },
+        },
+      },
+    }),
+  });
+  if (!sessionResponse.ok) {
+    throw new Error(`selenium session failed: HTTP ${sessionResponse.status}`);
+  }
+  const sessionPayload = await sessionResponse.json();
+  const sessionId = sessionPayload.sessionId || sessionPayload.value?.sessionId;
+  assert(sessionId, "selenium session id missing");
+  const command = async (pathSuffix, body = {}) => {
+    const response = await fetch(`${endpoint}/session/${sessionId}${pathSuffix}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+    if (!response.ok) throw new Error(`selenium command ${pathSuffix} failed: HTTP ${response.status}`);
+    return response.json();
+  };
+  await command("/url", { url: new URL(pagePath, `${httpBase}/`).toString() });
+  await waitForDocumentReady(expression => command("/execute/sync", {
+    script: `return (${expression});`,
+    args: [],
+  }).then(payload => payload.value), timeoutMs);
+  return {
+    evaluate: (expression) => command("/execute/sync", {
+      script: `return (${expression});`,
+      args: [],
+    }).then(payload => payload.value),
+    screenshot: async (outputFile) => {
+      const payload = await command("/screenshot", {});
+      fs.writeFileSync(outputFile, Buffer.from(payload.value || "", "base64"));
+    },
+    consoleEntries: () => [],
+    close: async () => {
+      await fetch(`${endpoint}/session/${sessionId}`, { method: "DELETE" }).catch(() => {});
+    },
+  };
 }
 
 async function stopServer(server) {
@@ -449,12 +750,14 @@ function writeCaseArtifacts(item, { serverLogReference = "" } = {}) {
   const screenshotPath = path.join(screenshotsDir, `${safeId}.png`);
   const tracePath = path.join(tracesDir, `${safeId}.trace.json`);
   const videoPath = path.join(tracesDir, `${safeId}.video.txt`);
+  const browserConsolePath = path.join(logsDir, `${safeId}.browser-console.json`);
   const serverLogPath = serverLogReference || path.join(logsDir, `${safeId}.server.log`);
   if (!fs.existsSync(screenshotPath)) fs.writeFileSync(screenshotPath, `fixture screenshot placeholder for ${item.caseId}\n`, "utf8");
-  writeJson(tracePath, { schema: "media-server.v390-ui-automation-trace.v1", caseId: item.caseId, fixture: true });
-  fs.writeFileSync(videoPath, `fixture video placeholder for ${item.caseId}\n`, "utf8");
+  if (!fs.existsSync(tracePath)) writeJson(tracePath, { schema: "media-server.v390-ui-automation-trace.v1", caseId: item.caseId, fixture: true });
+  if (!fs.existsSync(videoPath)) fs.writeFileSync(videoPath, `fixture video placeholder for ${item.caseId}\n`, "utf8");
+  if (!fs.existsSync(browserConsolePath)) writeJson(browserConsolePath, []);
   if (!serverLogReference) fs.writeFileSync(serverLogPath, `fixture server log reference for ${item.caseId}\n`, "utf8");
-  return { screenshotPath, tracePath, videoPath, serverLogReference: serverLogPath };
+  return { screenshotPath, tracePath, videoPath, browserConsolePath, serverLogReference: serverLogPath };
 }
 
 function printProgress(current, total, item) {
@@ -478,10 +781,19 @@ function makeCase(item, status, actualResult, artifact) {
     screenshotPath: artifact.screenshotPath,
     tracePath: artifact.tracePath,
     videoPath: artifact.videoPath,
+    browserConsolePath: artifact.browserConsolePath,
     browserConsole: [],
     serverLogReference: artifact.serverLogReference,
     cleanupPortState: "clean",
     manualIntervention: false,
+    adapterEvidence: {
+      tool: selectedAdapter.tool,
+      engine: selectedAdapter.engine,
+      fallbackUsed: selectedAdapter.fallbackUsed,
+      fallbackReason: selectedAdapter.fallbackReason,
+      dependencyStatus: selectedAdapter.dependencyStatus,
+      visualOnly: selectedAdapter.visualOnly,
+    },
   };
 }
 

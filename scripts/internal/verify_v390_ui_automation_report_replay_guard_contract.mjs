@@ -150,7 +150,24 @@ function makeBaseSummary(workspace) {
     runId: `v390-ui-automation-r5-contract-${process.pid}`,
     command: "./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir docs/release-artifacts/v3.9.0/ui-automation-playwright-final",
     browserMode: "playwright",
-    toolSelection: [{ tool: "playwright", priority: 1, selected: true }],
+    toolSelection: makeAdapterPlan(),
+    adapterPlan: makeAdapterPlan(),
+    selectedAdapter: {
+      tool: "playwright",
+      engine: "playwright-fixture",
+      fallbackUsed: false,
+      fallbackReason: "",
+      visualOnly: false,
+      dependencyStatus: "fixture",
+    },
+    adapterAttempts: [
+      {
+        tool: "playwright",
+        engine: "playwright-fixture",
+        status: "selected",
+        reason: "R5 replay guard fixture",
+      },
+    ],
     result: "PASS",
     automationResult: "PASS",
     evidenceBoundary: "automationResult is not manual UI fulltest, 30-minute, 120-minute, published, or release-action evidence",
@@ -181,11 +198,13 @@ function makeCase(workspace, caseId, status) {
   const screenshotPath = path.join(workspace, "screenshots", `${safeId}.png`);
   const tracePath = path.join(workspace, "traces", `${safeId}.trace.json`);
   const videoPath = path.join(workspace, "traces", `${safeId}.video.txt`);
+  const browserConsolePath = path.join(workspace, "logs", `${safeId}.browser-console.json`);
   const serverLogReference = path.join(workspace, "logs", `${safeId}.server.log`);
   for (const [filePath, content] of [
     [screenshotPath, "fixture screenshot\n"],
     [tracePath, "{}\n"],
     [videoPath, "fixture video\n"],
+    [browserConsolePath, "[]\n"],
     [serverLogReference, "fixture server log\n"],
   ]) {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
@@ -206,11 +225,28 @@ function makeCase(workspace, caseId, status) {
     screenshotPath,
     tracePath,
     videoPath,
+    browserConsolePath,
     browserConsole: [],
     serverLogReference,
     cleanupPortState: "clean",
     manualIntervention: false,
+    adapterEvidence: {
+      tool: "playwright",
+      engine: "playwright-fixture",
+      fallbackUsed: false,
+      fallbackReason: "",
+      dependencyStatus: "fixture",
+      visualOnly: false,
+    },
   };
+}
+
+function makeAdapterPlan() {
+  return [
+    { tool: "playwright", priority: 1, selected: true, role: "primary-dom-automation" },
+    { tool: "selenium", priority: 2, selected: false, role: "webdriver-fallback" },
+    { tool: "sikulix", priority: 3, selected: false, role: "visual-fallback", visualOnly: true },
+  ];
 }
 
 function expectReportFailure(label, mutate) {

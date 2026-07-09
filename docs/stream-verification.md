@@ -134,6 +134,11 @@ case counts, `route/control/action` granularity, failure investigation fields,
 cleanup fields, `expectedMarkers`, and `manualIntervention=false`. Real mode does not delegate
 to `verify-ui-fulltest-one-shot`; it starts the throwaway server, opens the target route, checks
 UI markers, and stores screenshot/trace/server-log references per case.
+The summary also records `adapterPlan`, `selectedAdapter`, `adapterAttempts`, and per-case
+`adapterEvidence`/`browserConsolePath`. In Codex sessions without a local Playwright package,
+`--allow-chrome-fallback=1` records the explicit `chrome-cdp-fallback` selection instead of
+pretending native Playwright ran. The throwaway server sets `MEDIA_SERVER_SKIP_LOCAL_ENV=1` so
+local `.media_server.env` defaults cannot override the isolated R2 HTTP/RTSP ports.
 
 ### v3.9.0 R5 UI automation report replay guard
 

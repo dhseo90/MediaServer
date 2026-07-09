@@ -37,6 +37,7 @@ check("summary uses v390 UI automation schema", () => {
   assert(typeof summary.runId === "string" && summary.runId.startsWith("v390-ui-automation-"), "missing v390 runId");
   assert(["PASS", "FAIL"].includes(summary.result), `invalid result: ${summary.result}`);
   assert(summary.evidenceBoundary === "automationResult is not manual UI fulltest, 30-minute, 120-minute, published, or release-action evidence", "missing evidence boundary");
+  assertAdapterPlan();
 });
 
 check("summary counts match case statuses", () => {
@@ -70,6 +71,8 @@ check("cases keep route/control/action granularity", () => {
     assert(item.manualIntervention === false, `${item.caseId} must have manualIntervention=false`);
     assert(Boolean(item.cleanupPortState), `${item.caseId} missing cleanupPortState`);
     assert(Array.isArray(item.browserConsole), `${item.caseId} browserConsole must be an array`);
+    assert(item.adapterEvidence && item.adapterEvidence.tool === summary.browserMode, `${item.caseId} missing adapterEvidence`);
+    assert(item.adapterEvidence.engine === summary.selectedAdapter.engine, `${item.caseId} adapterEvidence engine mismatch`);
     assertCaseArtifacts(item);
     assertBrowserConsoleAllowed(item);
   }
@@ -136,7 +139,7 @@ function getCases() {
 
 function assertCaseArtifacts(item) {
   const preservationReason = String(item.artifactPreservationReason || summary.artifactPreservationReason || "").trim();
-  for (const field of ["screenshotPath", "tracePath", "videoPath", "serverLogReference"]) {
+  for (const field of ["screenshotPath", "tracePath", "videoPath", "browserConsolePath", "serverLogReference"]) {
     const value = item[field];
     if (!value) {
       assert(preservationReason, `${item.caseId} missing ${field} and artifactPreservationReason`);
@@ -150,10 +153,35 @@ function assertCaseArtifacts(item) {
 }
 
 function assertBrowserConsoleAllowed(item) {
-  const noisyEntries = item.browserConsole.filter(entry => isConsoleWarningOrError(entry));
+  const noisyEntries = [
+    ...item.browserConsole,
+    ...readBrowserConsoleArtifact(item.browserConsolePath),
+  ].filter(entry => isConsoleWarningOrError(entry));
   if (noisyEntries.length === 0) return;
   const allowReason = String(item.browserConsoleAllowReason || item.browserConsoleAllowedReason || summary.browserConsoleAllowReason || "").trim();
   assert(allowReason, `${item.caseId} browserConsole warnings/errors require browserConsoleAllowReason`);
+}
+
+function readBrowserConsoleArtifact(consolePath) {
+  if (!consolePath) return [];
+  const preservationReason = String(summary.artifactPreservationReason || "").trim();
+  const resolved = path.resolve(path.dirname(summaryPath), consolePath);
+  if (!fs.existsSync(resolved)) {
+    assert(preservationReason, `browser console artifact does not exist: ${consolePath}`);
+    return [];
+  }
+  const payload = JSON.parse(fs.readFileSync(resolved, "utf8"));
+  assert(Array.isArray(payload), `browser console artifact must be an array: ${consolePath}`);
+  return payload;
+}
+
+function assertAdapterPlan() {
+  assert(Array.isArray(summary.adapterPlan), "summary.adapterPlan must be an array");
+  const order = summary.adapterPlan.map(item => item.tool).join(">");
+  assert(order === "playwright>selenium>sikulix", `adapter plan order mismatch: ${order}`);
+  assert(summary.selectedAdapter && summary.selectedAdapter.tool === summary.browserMode, "selectedAdapter must match browserMode");
+  assert(Boolean(summary.selectedAdapter.engine), "selectedAdapter.engine is required");
+  assert(Array.isArray(summary.adapterAttempts) && summary.adapterAttempts.length > 0, "summary.adapterAttempts required");
 }
 
 function isConsoleWarningOrError(entry) {

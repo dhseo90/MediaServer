@@ -64,6 +64,14 @@ check("server.sh and script inventory expose R2 UI automation commands", () => {
   assert(!files.runner.includes('"verify-ui-fulltest-one-shot"'), "R2 runner must not delegate real mode to verify-ui-fulltest-one-shot");
 });
 
+check("runner parser supports documented equals-form chrome fallback option", () => {
+  assertIncludes(files.runner, 'arg.startsWith("--allow-chrome-fallback=")', "R2 runner allow chrome fallback equals parser");
+});
+
+check("runner isolates throwaway ports from local env overrides", () => {
+  assertIncludes(files.runner, 'MEDIA_SERVER_SKIP_LOCAL_ENV: "1"', "R2 runner skip local env override");
+});
+
 check("failure fixture records case failure fields and later cases as not-run", () => {
   const run = runFixture("fail", ["--fixture-fail-case", "UI-110"]);
   assert(run.status === "failed-as-expected", `failure fixture should exit non-zero, got ${run.status}`);
@@ -78,6 +86,8 @@ check("failure fixture records case failure fields and later cases as not-run", 
   assert(Array.isArray(failedCase.expectedMarkers) && failedCase.expectedMarkers.includes("autoApply=false"), "UI-110 expectedMarkers mismatch");
   assert(failedCase.manualIntervention === false, "failure fixture must not require manual intervention");
   assert(Array.isArray(failedCase.browserConsole), "browserConsole must be an array");
+  assertAdapterEvidence(summary, failedCase);
+  assertArtifactExists(summary, failedCase.browserConsolePath, "UI-110 browserConsolePath");
   assert(summary.cases.some(item => item.caseId === "UI-111" && item.status === "not-run"), "later case UI-111 must be not-run");
   runReportVerifier(run.summaryPath);
 });
@@ -90,6 +100,11 @@ check("pass fixture validates through report replay verifier", () => {
   assert(summary.manualIntervention === false, "pass fixture must not require manual intervention");
   assert(summary.cases.every(item => item.status === "PASS"), "all pass fixture cases must PASS");
   assert(summary.evidenceBoundary.includes("automationResult is not manual UI fulltest"), "evidence boundary missing");
+  assertAdapterPlan(summary);
+  for (const item of summary.cases) {
+    assertAdapterEvidence(summary, item);
+    assertArtifactExists(summary, item.browserConsolePath, `${item.caseId} browserConsolePath`);
+  }
   runReportVerifier(run.summaryPath);
 });
 
@@ -213,6 +228,28 @@ function readJson(filePath) {
 
 function assertIncludes(text, snippet, label) {
   assert(text.includes(snippet), `${label} missing snippet: ${snippet}`);
+}
+
+function assertAdapterPlan(summary) {
+  assert(Array.isArray(summary.adapterPlan), "summary.adapterPlan must be an array");
+  const order = summary.adapterPlan.map(item => item.tool).join(">");
+  assert(order === "playwright>selenium>sikulix", `adapter plan order mismatch: ${order}`);
+  assert(summary.selectedAdapter && summary.selectedAdapter.tool === summary.browserMode, "selectedAdapter must match browserMode");
+  assert(Boolean(summary.selectedAdapter.engine), "selectedAdapter.engine is required");
+  assert(Array.isArray(summary.adapterAttempts) && summary.adapterAttempts.length > 0, "summary.adapterAttempts required");
+}
+
+function assertAdapterEvidence(summary, item) {
+  assertAdapterPlan(summary);
+  assert(item.adapterEvidence && item.adapterEvidence.tool === summary.browserMode, `${item.caseId} adapterEvidence tool mismatch`);
+  assert(item.adapterEvidence.engine === summary.selectedAdapter.engine, `${item.caseId} adapterEvidence engine mismatch`);
+  assert(Object.prototype.hasOwnProperty.call(item.adapterEvidence, "fallbackUsed"), `${item.caseId} adapterEvidence fallbackUsed missing`);
+}
+
+function assertArtifactExists(summary, artifactPath, label) {
+  assert(Boolean(artifactPath), `${label} missing`);
+  const resolved = path.resolve(path.dirname(summary.summaryPath), artifactPath);
+  assert(fs.existsSync(resolved), `${label} does not exist: ${artifactPath}`);
 }
 
 function assert(condition, message) {
