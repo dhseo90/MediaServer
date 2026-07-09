@@ -409,6 +409,7 @@ Usage:
   verify-v390-vlm-rule-suggestion-draft-bridge
                  v3.9.0 Step 13 VLM rule suggestion draft bridge를 검증합니다.
   verify-v390-vlm-evaluation-promotion-guard
+  verify-v390-vlm-promotion-trust-boundary
                  v3.9.0 Step 14 VLM evaluation promotion guard를 검증합니다.
   verify-v390-backup-recovery-handoff-validation
                  v3.9.0 Step 15 backup/recovery handoff validation을 검증합니다.
@@ -758,6 +759,8 @@ Usage:
                  v3.9.0 Step 13 VLM rule suggestion draft bridge를 검증합니다.
   verify-v390-vlm-evaluation-promotion-guard
                  v3.9.0 Step 14 VLM evaluation promotion guard를 검증합니다.
+  verify-v390-vlm-promotion-trust-boundary
+                 V390-ADD1-03 candidate/result/provenance 서버 권위 승격 경계를 실제 HTTP로 검증합니다.
   verify-v390-backup-recovery-handoff-validation
                  v3.9.0 Step 15 backup/recovery handoff validation을 검증합니다.
   verify-v390-action-execution-deferral-decision
@@ -2006,6 +2009,10 @@ case "${cmd}" in
   verify-v390-vlm-evaluation-promotion-guard)
     require_internal verify_v390_vlm_evaluation_promotion_guard.mjs
     exec "${INTERNAL_DIR}/verify_v390_vlm_evaluation_promotion_guard.mjs" "$@"
+    ;;
+  verify-v390-vlm-promotion-trust-boundary)
+    require_internal verify_v390_vlm_promotion_trust_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_vlm_promotion_trust_boundary.mjs" "$@"
     ;;
   verify-v390-backup-recovery-handoff-validation)
     require_internal verify_v390_backup_recovery_handoff_validation.mjs

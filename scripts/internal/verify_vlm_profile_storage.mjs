@@ -33,6 +33,8 @@ const checks = [];
 
 check("registry persists VLM profiles with strict validation", () => {
   const server = readText("src/ingress/webrtc_http_server.cpp");
+  const promotion = readText("src/ingress/vlm_evaluation_promotion.cpp");
+  const implementation = `${server}\n${promotion}`;
   for (const snippet of [
     "VlmProfilesJson",
     "VlmProfileJson",
@@ -46,7 +48,13 @@ check("registry persists VLM profiles with strict validation", () => {
     "media-server.vlm-profile-registry.v1",
     "selectedOptionId",
     "promptProfile.id",
-    "evaluation.status",
+    "ValidateVlmEvaluationPromotion",
+    "expectedCatalogRevision",
+    "expectedProvenanceDigest",
+    "server-verified-evaluation-catalog",
+    "media-server.vlm-evaluation-provenance.v1",
+    "CanonicalizeStoredVlmProfileLocked",
+    "quarantinedProfileCount",
     "activation.status",
     "ValidateVlmRuntimeOptInContract",
     "runtimeContract",
@@ -82,7 +90,7 @@ check("registry persists VLM profiles with strict validation", () => {
     "rtspOrWebrtcMediaPathChanged",
     "viewerClientExposureAdded",
   ]) {
-    assert(server.includes(snippet), `server missing VLM profile storage snippet: ${snippet}`);
+    assert(implementation.includes(snippet), `server missing VLM profile storage snippet: ${snippet}`);
   }
   for (const forbidden of [
     "\"apiKey\"",
@@ -152,6 +160,10 @@ check("ops UI renders profile storage controls and saved profile table", () => {
   ]) {
     assert(script.includes(snippet), `page script missing VLM profile behavior snippet: ${snippet}`);
   }
+  assert(server.includes('id="opsVlmEvaluationStatus" value="not-run" readonly'), "evaluation status must be read-only");
+  assert(!/evaluation:\s*\{\s*status:/s.test(script), "client must not declare evaluation.status");
+  assert(script.includes("expectedCatalogRevision"), "client missing catalog revision reference");
+  assert(script.includes("expectedProvenanceDigest"), "client missing provenance digest reference");
 });
 
 check("invalid profile fixture covers rejection classes", () => {
@@ -196,7 +208,7 @@ check("docs, inventory, server command, and script inventory are wired", () => {
   ].join("\n");
   const serverSh = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
-  const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+  const implementationManifest = readText("test/fixtures/project_feature_implementation_evidence.json");
   for (const snippet of [
     "V200-S05",
     "VLM profile 저장",
@@ -213,7 +225,7 @@ check("docs, inventory, server command, and script inventory are wired", () => {
   assert(serverSh.includes("verify-vlm-profile-storage"), "server.sh missing VLM profile verifier command");
   assert(serverSh.includes("verify_vlm_profile_storage.mjs"), "server.sh missing VLM profile verifier dispatch");
   assert(scriptInventory.includes("verify_vlm_profile_storage.mjs"), "script inventory missing VLM profile verifier");
-  assert(coverage.includes("verify-vlm-profile-storage"), "feature inventory coverage missing VLM profile verifier");
+  assert(implementationManifest.includes("verify-vlm-profile-storage"), "feature implementation manifest missing VLM profile verifier");
 });
 
 let pass = 0;

@@ -1,0 +1,59 @@
+{
+  "schema": "media-server.v390-vlm-promotion-trust-boundary-fixtures.v1",
+  "targetStep": "V390-ADD1-03",
+  "catalogRevision": "v390-add1-03-2026-07-10",
+  "reloadCases": 1,
+  "candidates": {
+    "passed": {
+      "id": "eval-qwen8b-event-review-default",
+      "selectedOptionId": "local-qwen3-vl-8b",
+      "model": "Qwen/Qwen3-VL-8B-Instruct",
+      "promptProfile": { "id": "event-review-default", "version": "v1", "language": "ko-en" },
+      "digest": "910bd13342f8f7f587e4f7e371ee462f1674b599d3328a6882dd7f495db6adca",
+      "status": "passed"
+    },
+    "review": {
+      "id": "eval-qwen4b-false-positive-review",
+      "selectedOptionId": "local-qwen3-vl-4b",
+      "model": "Qwen/Qwen3-VL-4B-Instruct",
+      "promptProfile": { "id": "false-positive-review", "version": "v1", "language": "ko" },
+      "digest": "dd028b2697c381000c66ff94989c033e9edfe093fe512d4f484fa074baf56024",
+      "status": "review-required"
+    },
+    "failed": {
+      "id": "eval-qwen4b-operator-question-review",
+      "selectedOptionId": "local-qwen3-vl-4b",
+      "model": "Qwen/Qwen3-VL-4B-Instruct",
+      "promptProfile": { "id": "operator-question-review", "version": "v1", "language": "en" },
+      "digest": "595eabd467be4a2d01d166ce69323e35cd3fd063a847f46c8c7a504b91cb9349",
+      "status": "failed"
+    }
+  },
+  "cases": [
+    { "id": "passed-active-server-canonical", "candidate": "passed", "activation": "active", "expectedHttp": 200, "expectedStoredStatus": "passed" },
+    { "id": "passed-pending-server-canonical", "candidate": "passed", "activation": "pending", "expectedHttp": 200, "expectedStoredStatus": "passed" },
+    { "id": "review-pending-server-canonical", "candidate": "review", "activation": "pending", "expectedHttp": 200, "expectedStoredStatus": "review-required" },
+    { "id": "no-candidate-server-not-run", "candidate": "none", "activation": "disabled", "expectedHttp": 200, "expectedStoredStatus": "not-run" },
+    { "id": "client-declared-passed-rejected", "candidate": "none", "activation": "active", "mutation": "declare-passed", "expectedHttp": 400, "expectedError": "accepts candidateId, expectedCatalogRevision, and expectedProvenanceDigest only" },
+    { "id": "unknown-candidate-rejected", "candidate": "passed", "activation": "pending", "mutation": "unknown-candidate", "expectedHttp": 400, "expectedError": "candidateId is unknown" },
+    { "id": "stale-revision-rejected", "candidate": "passed", "activation": "pending", "mutation": "stale-revision", "expectedHttp": 400, "expectedError": "catalog revision is missing or stale" },
+    { "id": "stale-provenance-rejected", "candidate": "passed", "activation": "pending", "mutation": "stale-digest", "expectedHttp": 400, "expectedError": "provenance digest is missing or stale" },
+    { "id": "option-binding-rejected", "candidate": "passed", "activation": "pending", "mutation": "wrong-option", "expectedHttp": 400, "expectedError": "selectedOptionId does not match server evidence" },
+    { "id": "model-binding-rejected", "candidate": "passed", "activation": "pending", "mutation": "wrong-model", "expectedHttp": 400, "expectedError": "model does not match server evidence" },
+    { "id": "prompt-binding-rejected", "candidate": "passed", "activation": "pending", "mutation": "wrong-prompt", "expectedHttp": 400, "expectedError": "prompt profile does not match server evidence" },
+    { "id": "failed-candidate-draft-rejected", "candidate": "failed", "activation": "disabled", "expectedHttp": 400, "expectedError": "not eligible for profile draft promotion" },
+    { "id": "review-active-rejected", "candidate": "review", "activation": "active", "expectedHttp": 400, "expectedError": "requires passed evaluation and active activation" },
+    { "id": "rejected-update-preserves-original", "candidate": "none", "activation": "disabled", "mutation": "rejected-update", "expectedHttp": 400, "expectedError": "accepts candidateId, expectedCatalogRevision, and expectedProvenanceDigest only", "expectedStoredStatus": "not-run" }
+  ],
+  "contractInvariants": {
+    "runtimeVlmCallPerformed": false,
+    "cloudProviderApiCalled": false,
+    "sidecarStored": false,
+    "eventPostPayloadChanged": false,
+    "webrtcDataChannelSchemaChanged": false,
+    "sseMetadataSchemaChanged": false,
+    "wsMetadataSchemaChanged": false,
+    "rtspOrWebrtcMediaPathChanged": false,
+    "viewerClientExposureAdded": false
+  }
+}

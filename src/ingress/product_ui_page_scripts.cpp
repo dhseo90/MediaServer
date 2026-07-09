@@ -3637,8 +3637,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         const contract = payload?.workflowContract || {};
         const guard = payload?.activationGuard || {};
         setText('opsVlmEvaluationPromotionGuardStatus', payload
-          ? `promotion guard: ${payload.selectedMode || 'passed-evaluation-manual-promotion-guard'} / flow=${payload.promotionFlow?.operatorFlow || 'operator-save-then-activation-review'} / operatorSaveRequired=${guard.operatorSaveRequired === true} / activationGuard=${guard.passedEvaluationRequiredForActive === true} / runtimeCall=${contract.runtimeVlmCallPerformed === true} / providerCall=${contract.cloudProviderApiCalled === true}`
-          : 'promotion guard: not-loaded / operatorSaveRequired=true / activationGuard=true / runtimeCall=false / providerCall=false');
+          ? `promotion guard: ${payload.selectedMode || 'server-verified-evaluation-promotion'} / flow=${payload.promotionFlow?.operatorFlow || 'operator-select-candidate-then-server-verify-save'} / serverVerification=${contract.serverVerificationRequired === true} / clientDeclaredEvaluationRejected=${guard.clientDeclaredEvaluationRejected === true} / runtimeCall=${contract.runtimeVlmCallPerformed === true} / providerCall=${contract.cloudProviderApiCalled === true}`
+          : 'promotion guard: not-loaded / serverVerification=true / clientDeclaredEvaluationRejected=true / runtimeCall=false / providerCall=false');
       };
       async function loadOpsVlmEvaluationPromotionGuard() {
         opsVlmEvaluationPromotionGuardPayload = await requestJson('/ops/api/vlm/evaluation-promotion-guard');
@@ -3654,10 +3654,12 @@ void AppendOpsShellScript(std::ostringstream& out,
         const options = Array.isArray(opsVlmLastPayload?.options) ? opsVlmLastPayload.options : [];
         const matchingOption = options.find(option =>
           option?.selectable === true &&
-          String(option?.model || '') === String(candidate.selectedOptionModel || candidate.model || ''));
-        if (matchingOption) {
-          opsVlmSelectedOptionId = matchingOption.id;
+          String(option?.id || '') === String(candidate.selectedOptionId || ''));
+        if (!matchingOption) {
+          setText('opsVlmEvaluationSelectionSummary', `${candidate.id || '-'} 평가 후보와 일치하는 선택 가능 option이 없습니다.`);
+          return;
         }
+        opsVlmSelectedOptionId = matchingOption.id;
         const profileId = document.getElementById('opsVlmProfileId');
         if (profileId) {
           profileId.value = `vlm-eval-${opsVlmSlug(candidate.selectedOptionModel || candidate.model)}-${opsVlmSlug(candidate.promptProfile?.id || 'prompt')}`;
@@ -3666,7 +3668,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         const prompt = document.getElementById('opsVlmPromptProfile');
         if (prompt && candidate.promptProfile?.id) prompt.value = candidate.promptProfile.id;
         const evaluation = document.getElementById('opsVlmEvaluationStatus');
-        if (evaluation) evaluation.value = candidate.evaluation?.status || 'review-required';
+        if (evaluation) evaluation.value = `${candidate.evaluation?.status || 'review-required'} (server catalog)`;
         const activation = document.getElementById('opsVlmActivationStatus');
         if (activation) activation.value = candidate.selection?.activationDefault || 'pending-evaluation';
         const enabled = document.getElementById('opsVlmProfileEnabled');
@@ -3806,9 +3808,9 @@ void AppendOpsShellScript(std::ostringstream& out,
         }
         const activation = document.getElementById('opsVlmActivationStatus');
         const enabled = document.getElementById('opsVlmProfileEnabled');
-        const evaluation = document.getElementById('opsVlmEvaluationStatus');
-        if (activation && enabled && evaluation) {
-          if (enabled.checked && evaluation.value === 'passed') {
+        const evaluation = opsVlmSelectedEvaluationCandidate();
+        if (activation && enabled) {
+          if (enabled.checked && evaluation?.evaluation?.status === 'passed') {
             activation.value = 'active';
           } else if (!enabled.checked && activation.value === 'active') {
             activation.value = 'pending-evaluation';
@@ -3907,7 +3909,6 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (!selected) throw new Error('저장할 VLM dry-run 후보를 먼저 선택하세요.');
         const id = opsVlmControlValue('opsVlmProfileId').trim();
         const promptId = opsVlmControlValue('opsVlmPromptProfile', 'event-review-default');
-        const evaluationStatus = opsVlmControlValue('opsVlmEvaluationStatus', 'not-run');
         const activationStatus = opsVlmControlValue('opsVlmActivationStatus', 'pending-evaluation');
         const enabled = document.getElementById('opsVlmProfileEnabled')?.checked === true;
         const fallbackProfileId = opsVlmControlValue('opsVlmFallbackProfileId').trim();
@@ -3953,18 +3954,13 @@ void AppendOpsShellScript(std::ostringstream& out,
           },
           promptProfile: {
             id: promptId,
-            version: 'v1',
-            language: 'ko-en'
+            version: selectedEvaluation?.promptProfile?.version || 'v1',
+            language: selectedEvaluation?.promptProfile?.language || 'ko-en'
           },
           evaluation: {
-            status: evaluationStatus,
-            source: selectedEvaluation ? 'v210-s06-evaluation-result-workflow' : 'manual-s05-profile-state',
-            workflowSchema: selectedEvaluation ? opsVlmEvaluationPayload?.schema : null,
-            sourceReportSchema: selectedEvaluation ? opsVlmEvaluationPayload?.sourceReportSchema : null,
-            candidateId: selectedEvaluation?.id || null,
-            caseIds: selectedEvaluation?.caseIds || [],
-            dimensions: selectedEvaluation?.dimensions || {},
-            score: selectedEvaluation?.score || null
+            candidateId: selectedEvaluation?.id || '',
+            expectedCatalogRevision: selectedEvaluation ? (opsVlmEvaluationPayload?.catalogRevision || '') : '',
+            expectedProvenanceDigest: selectedEvaluation ? (selectedEvaluation?.provenanceRef?.candidateDigest || '') : ''
           },
           activation: {
             enabled,
@@ -3991,12 +3987,13 @@ void AppendOpsShellScript(std::ostringstream& out,
       };
       async function saveOpsVlmProfile() {
         const payload = buildOpsVlmProfilePayload();
-        await requestJson(`/ops/api/vlm/profiles/${encodeURIComponent(payload.id)}`, {
+        const saved = await requestJson(`/ops/api/vlm/profiles/${encodeURIComponent(payload.id)}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-        opsVlmProfileStatus(`VLM profile '${payload.id}'를 저장했습니다.`);
+        const serverStatus = saved?.vlmProfile?.evaluation?.status || 'not-run';
+        opsVlmProfileStatus(`VLM profile '${payload.id}'를 저장했습니다. 서버 평가: ${serverStatus}`);
         await refreshOpsVlmProfiles();
       }
       async function deleteOpsVlmProfile(id) {
@@ -4057,7 +4054,6 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('opsVlmRefresh')?.addEventListener('click', () => refreshOpsVlmInstallConnection().catch(error => setFeedback(document.getElementById('opsVlmStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsVlmProfileId')?.addEventListener('input', event => { event.target.dataset.userEdited = '1'; });
         document.getElementById('opsVlmProfileEnabled')?.addEventListener('change', () => syncOpsVlmProfileDraft(opsVlmSelectedOption(), opsVlmLastPayload));
-        document.getElementById('opsVlmEvaluationStatus')?.addEventListener('change', () => syncOpsVlmProfileDraft(opsVlmSelectedOption(), opsVlmLastPayload));
         document.getElementById('opsVlmExternalTransferWarningAck')?.addEventListener('change', () => {
           renderOpsVlmPrivacyTransferGuard(opsVlmLastPayload);
           syncOpsVlmProfileDraft(opsVlmSelectedOption(), opsVlmLastPayload);

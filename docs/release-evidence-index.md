@@ -292,6 +292,7 @@ Companion local gate:
 ./server.sh verify-v390-onvif-live-import-persist-decision
 ./server.sh verify-v390-vlm-rule-suggestion-draft-bridge
 ./server.sh verify-v390-vlm-evaluation-promotion-guard
+./server.sh verify-v390-vlm-promotion-trust-boundary
 ./server.sh verify-v390-backup-recovery-handoff-validation
 ./server.sh verify-v390-action-execution-deferral-decision
 ./server.sh verify-v390-conditional-field-ai-decisions
@@ -336,6 +337,7 @@ Companion local gate:
 ./server.sh verify-v390-onvif-live-import-persist-decision
 ./server.sh verify-v390-vlm-rule-suggestion-draft-bridge
 ./server.sh verify-v390-vlm-evaluation-promotion-guard
+./server.sh verify-v390-vlm-promotion-trust-boundary
 ./server.sh verify-v390-backup-recovery-handoff-validation
 ./server.sh verify-v390-action-execution-deferral-decision
 ./server.sh verify-v390-conditional-field-ai-decisions

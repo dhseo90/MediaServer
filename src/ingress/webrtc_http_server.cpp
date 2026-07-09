@@ -67,6 +67,7 @@
 #include "ingress/product_ui_js.h"
 #include "ingress/product_ui_page_scripts.h"
 #include "ingress/source_view_registry.h"
+#include "ingress/vlm_evaluation_promotion.h"
 #include "ingress/webrtc_egress_session.h"
 #include "ingress/webrtc_source_registry.h"
 #include "ingress/webrtc_source_session.h"
@@ -430,6 +431,66 @@ std::optional<std::string> ExtractDelimitedField(const std::string& body,
 // JSON 문자열에서 object field 본문을 추출한다.
 std::optional<std::string> ExtractObjectField(const std::string& body, const std::string& field) {
     return ExtractDelimitedField(body, field, '{', '}');
+}
+
+std::size_t CountJsonFieldOccurrences(const std::string& body, const std::string& field) {
+    const std::string needle = "\"" + field + "\"";
+    std::size_t count = 0;
+    std::size_t pos = 0;
+    while ((pos = body.find(needle, pos)) != std::string::npos) {
+        ++count;
+        pos += needle.size();
+    }
+    return count;
+}
+
+bool JsonFieldIsNull(const std::string& body, const std::string& field) {
+    const std::string needle = "\"" + field + "\"";
+    std::size_t pos = body.find(needle);
+    if (pos == std::string::npos) {
+        return false;
+    }
+    pos = body.find(':', pos + needle.size());
+    if (pos == std::string::npos) {
+        return false;
+    }
+    ++pos;
+    while (pos < body.size() && std::isspace(static_cast<unsigned char>(body[pos])) != 0) {
+        ++pos;
+    }
+    return body.compare(pos, 4, "null") == 0;
+}
+
+std::optional<std::string> ExtractDelimitedValueAt(const std::string& body,
+                                                   std::size_t start,
+                                                   char open_ch,
+                                                   char close_ch);
+
+bool ReplaceObjectField(std::string* body,
+                        const std::string& field,
+                        const std::string& replacement) {
+    if (body == nullptr || replacement.empty() || replacement.front() != '{' || replacement.back() != '}') {
+        return false;
+    }
+    const std::string needle = "\"" + field + "\"";
+    const std::size_t field_pos = body->find(needle);
+    if (field_pos == std::string::npos) {
+        return false;
+    }
+    const std::size_t colon = body->find(':', field_pos + needle.size());
+    if (colon == std::string::npos) {
+        return false;
+    }
+    const std::size_t object_start = body->find('{', colon + 1);
+    if (object_start == std::string::npos) {
+        return false;
+    }
+    const auto current = ExtractDelimitedValueAt(*body, object_start, '{', '}');
+    if (!current.has_value()) {
+        return false;
+    }
+    body->replace(object_start, current->size(), replacement);
+    return true;
 }
 
 // JSON 문자열에서 array field 본문을 추출한다.
@@ -841,6 +902,7 @@ public:
         out << "{\"status\":\"registry\","
             << "\"schema\":\"media-server.vlm-profile-registry.v1\","
             << "\"storagePath\":\"" << JsonEscape(storage_path_.string()) << "\","
+            << "\"quarantinedProfileCount\":" << vlm_profiles_quarantined_on_load_ << ","
             << "\"scope\":\"V200-S05 stores selected VLM provider/model/runtime/prompt/privacy/evaluation/activation metadata only; V200-S11 adds privacy transfer guard review; runtime calls and sidecar writes remain later steps.\","
             << "\"promptProfiles\":["
             << "{\"id\":\"event-review-default\",\"version\":\"v1\",\"language\":\"ko-en\"},"
@@ -1134,6 +1196,17 @@ private:
         LoadDocumentsLocked("rules", content, &rules_);
         LoadDocumentsLocked("vaRules", content, &va_rules_);
         LoadDocumentsLocked("vlmProfiles", content, &vlm_profiles_);
+        const std::size_t loaded_vlm_profiles = vlm_profiles_.size();
+        std::vector<Document> canonical_vlm_profiles;
+        canonical_vlm_profiles.reserve(vlm_profiles_.size());
+        for (const auto& document : vlm_profiles_) {
+            if (const auto canonical = CanonicalizeStoredVlmProfileLocked(document);
+                canonical.has_value()) {
+                canonical_vlm_profiles.push_back(*canonical);
+            }
+        }
+        vlm_profiles_ = std::move(canonical_vlm_profiles);
+        vlm_profiles_quarantined_on_load_ = loaded_vlm_profiles - vlm_profiles_.size();
     }
 
     static void LoadDocumentsLocked(const std::string& field,
@@ -1465,17 +1538,52 @@ private:
             return std::nullopt;
         }
         const auto prompt_profile = ExtractObjectField(body, "promptProfile");
-        if (!prompt_profile.has_value() || Trim(ParseStringField(*prompt_profile, "id").value_or("")).empty()) {
+        const std::string prompt_profile_id =
+            prompt_profile.has_value() ? Trim(ParseStringField(*prompt_profile, "id").value_or("")) : std::string();
+        const std::string prompt_profile_version =
+            prompt_profile.has_value() ? Trim(ParseStringField(*prompt_profile, "version").value_or("")) : std::string();
+        const std::string prompt_profile_language =
+            prompt_profile.has_value() ? Trim(ParseStringField(*prompt_profile, "language").value_or("")) : std::string();
+        if (!prompt_profile.has_value() || prompt_profile_id.empty()) {
             SetRegistryError(error_message, "VLM profile promptProfile.id is required");
             return std::nullopt;
         }
-        const auto evaluation = ExtractObjectField(body, "evaluation");
-        const std::string evaluation_status =
-            evaluation.has_value() ? Trim(ParseStringField(*evaluation, "status").value_or("")) : std::string();
-        if (!IsOneOf(evaluation_status, {"not-run", "passed", "failed", "review-required"})) {
-            SetRegistryError(error_message, "VLM profile evaluation.status is not supported");
+        if (CountJsonFieldOccurrences(body, "evaluation") != 1) {
+            SetRegistryError(error_message, "VLM profile must include exactly one evaluation object");
             return std::nullopt;
         }
+        const auto evaluation = ExtractObjectField(body, "evaluation");
+        if (!evaluation.has_value() || CountJsonFieldOccurrences(*evaluation, "candidateId") != 1 ||
+            CountJsonFieldOccurrences(*evaluation, "expectedCatalogRevision") != 1 ||
+            CountJsonFieldOccurrences(*evaluation, "expectedProvenanceDigest") != 1) {
+            SetRegistryError(error_message,
+                             "VLM profile evaluation requires candidateId, expectedCatalogRevision, and expectedProvenanceDigest");
+            return std::nullopt;
+        }
+        bool client_declared_result_fields = false;
+        for (const std::string& field :
+             {"status", "source", "workflowSchema", "sourceReportSchema", "caseIds", "dimensions", "score", "provenance"}) {
+            if (CountJsonFieldOccurrences(*evaluation, field) != 0) {
+                client_declared_result_fields = true;
+                break;
+            }
+        }
+        const VlmEvaluationPromotionResult evaluation_promotion = ValidateVlmEvaluationPromotion({
+            Trim(ParseStringField(*evaluation, "candidateId").value_or("")),
+            Trim(ParseStringField(*evaluation, "expectedCatalogRevision").value_or("")),
+            Trim(ParseStringField(*evaluation, "expectedProvenanceDigest").value_or("")),
+            selected_option_id,
+            model,
+            prompt_profile_id,
+            prompt_profile_version,
+            prompt_profile_language,
+            client_declared_result_fields,
+        });
+        if (!evaluation_promotion.accepted) {
+            SetRegistryError(error_message, evaluation_promotion.error);
+            return std::nullopt;
+        }
+        const std::string evaluation_status = evaluation_promotion.evaluation_status;
         const auto activation = ExtractObjectField(body, "activation");
         if (!activation.has_value()) {
             SetRegistryError(error_message, "VLM profile activation object is required");
@@ -1539,7 +1647,12 @@ private:
                 return std::nullopt;
             }
         }
-        return Document{id, Trim(body)};
+        std::string normalized = Trim(body);
+        if (!ReplaceObjectField(&normalized, "evaluation", evaluation_promotion.canonical_evaluation_json)) {
+            SetRegistryError(error_message, "VLM profile evaluation canonicalization failed");
+            return std::nullopt;
+        }
+        return Document{id, normalized};
     }
 
     static bool IsSafeVlmProfileId(const std::string& value) {
@@ -1741,6 +1854,57 @@ private:
         return false;
     }
 
+    static std::optional<Document> CanonicalizeStoredVlmProfileLocked(const Document& document) {
+        const auto evaluation = ExtractObjectField(document.body, "evaluation");
+        const auto prompt_profile = ExtractObjectField(document.body, "promptProfile");
+        if (!evaluation.has_value() || !prompt_profile.has_value() ||
+            ParseStringField(*evaluation, "source").value_or("") !=
+                "server-verified-evaluation-catalog") {
+            std::cerr << "[vlm-profile-quarantine] id=" << document.id
+                      << " validation=missing server canonical evaluation\n";
+            return std::nullopt;
+        }
+        const bool no_candidate = JsonFieldIsNull(*evaluation, "candidateId");
+        const std::string candidate_id = no_candidate
+                                             ? std::string()
+                                             : Trim(ParseStringField(*evaluation, "candidateId").value_or(""));
+        const auto provenance = ExtractObjectField(*evaluation, "provenance");
+        if (!provenance.has_value()) {
+            std::cerr << "[vlm-profile-quarantine] id=" << document.id
+                      << " validation=missing server provenance\n";
+            return std::nullopt;
+        }
+        const VlmEvaluationPromotionResult validation = ValidateVlmEvaluationPromotion({
+            candidate_id,
+            candidate_id.empty()
+                ? std::string()
+                : Trim(ParseStringField(*provenance, "catalogRevision").value_or("")),
+            candidate_id.empty()
+                ? std::string()
+                : Trim(ParseStringField(*provenance, "candidateDigest").value_or("")),
+            Trim(ParseStringField(document.body, "selectedOptionId").value_or("")),
+            Trim(ParseStringField(document.body, "model").value_or("")),
+            Trim(ParseStringField(*prompt_profile, "id").value_or("")),
+            Trim(ParseStringField(*prompt_profile, "version").value_or("")),
+            Trim(ParseStringField(*prompt_profile, "language").value_or("")),
+            false,
+        });
+        if (!validation.accepted) {
+            std::cerr << "[vlm-profile-quarantine] id=" << document.id
+                      << " validation=" << validation.error << "\n";
+            return std::nullopt;
+        }
+        std::string canonical_body = document.body;
+        if (!ReplaceObjectField(&canonical_body,
+                                "evaluation",
+                                validation.canonical_evaluation_json)) {
+            std::cerr << "[vlm-profile-quarantine] id=" << document.id
+                      << " validation=canonical replacement failed\n";
+            return std::nullopt;
+        }
+        return Document{document.id, canonical_body};
+    }
+
     std::string NextVaRuleIdLocked() const {
         std::uint64_t next_id = 1;
         for (const auto& item : va_rules_) {
@@ -1820,6 +1984,7 @@ private:
     std::vector<Document> rules_;
     std::vector<Document> va_rules_;
     std::vector<Document> vlm_profiles_;
+    std::size_t vlm_profiles_quarantined_on_load_{0};
 };
 
 AnalysisDocumentRegistry& AnalysisRegistry() {
@@ -4718,7 +4883,7 @@ void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
           </table>
         </div>
         <p id="opsVlmEvaluationSelectionSummary">평가 후보를 profile draft에 반영하지 않았습니다.</p>
-        <p id="opsVlmEvaluationPromotionGuardStatus" class="form-note" data-promotion-flow="operator-save-then-activation-review">promotion guard 로딩 중입니다.</p>
+        <p id="opsVlmEvaluationPromotionGuardStatus" class="form-note" data-promotion-flow="operator-select-candidate-then-server-verify-save">promotion guard 로딩 중입니다.</p>
       </section>
       <section class="section-card ops-vlm-aux-panel ops-vlm-options-panel" data-testid="ops-vlm-options-panel" data-vlm-task="ops-aux">
         <div class="toolbar">
@@ -4788,13 +4953,8 @@ void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
               <option value="operator-question-review">operator-question-review</option>
             </select>
           </label>
-          <label>Evaluation
-            <select id="opsVlmEvaluationStatus">
-              <option value="not-run" selected>not-run</option>
-              <option value="review-required">review-required</option>
-              <option value="failed">failed</option>
-              <option value="passed">passed</option>
-            </select>
+          <label>Evaluation (server verified)
+            <input id="opsVlmEvaluationStatus" value="not-run" readonly aria-readonly="true">
           </label>
           <label>Activation
             <select id="opsVlmActivationStatus">
@@ -10288,205 +10448,33 @@ std::string OpsVlmNoSideEffectsJson() {
 }
 
 std::string OpsVlmEvaluationResultWorkflowJson() {
-    return R"JSON({
-  "schema": "media-server.ops.vlm-evaluation-result-workflow.v1",
-  "targetStep": "V210-S06",
-  "sourceReportSchema": "media-server.vlm-evaluation-report.v1",
-  "sourceFixture": "test/fixtures/vlm_evaluation_harness/cases.json",
-  "status": "ready-for-operator-selection",
-  "scope": "ops-only-evaluation-result-profile-selection",
-  "summary": {
-    "sampleCases": 2,
-    "caseCandidates": 4,
-    "profileCandidates": 3,
-    "passedProfileCandidates": 1,
-    "reviewRequiredProfileCandidates": 1,
-    "failedProfileCandidates": 1,
-    "recommendedCandidateId": "eval-qwen8b-event-review-default"
-  },
-  "selectionPolicy": {
-    "singleProfileCandidateSelection": true,
-    "operatorMustSaveProfile": true,
-    "autoActivateSelectedProfile": false,
-    "runtimeCallAllowed": false,
-    "providerCallAllowed": false,
-    "profileDraftMayCopyEvaluationStatus": true
-  },
-  "profileCandidates": [
-    {
-      "id": "eval-qwen8b-event-review-default",
-      "model": "Qwen/Qwen3-VL-8B-Instruct",
-      "selectedOptionModel": "Qwen/Qwen3-VL-8B-Instruct",
-      "promptProfile": {
-        "id": "event-review-default",
-        "version": "v1",
-        "language": "ko-en"
-      },
-      "caseIds": ["line-crossing-ko-ab", "intrusion-en-json-stability"],
-      "latencyMs": {
-        "p50": 8200,
-        "p95": 9700
-      },
-      "dimensions": {
-        "latency": "passed",
-        "jsonStability": "passed",
-        "explanationQuality": "passed",
-        "hallucinationRisk": "passed",
-        "languageQuality": "passed"
-      },
-      "score": {
-        "total": 0.93,
-        "latency": 1.0,
-        "jsonStability": 1.0,
-        "explanationQuality": 0.88,
-        "hallucinationRisk": 1.0,
-        "languageQuality": 1.0
-      },
-      "evaluation": {
-        "status": "passed",
-        "source": "v210-s06-evaluation-result-workflow"
-      },
-      "selection": {
-        "profileDraftAllowed": true,
-        "activationDefault": "pending-evaluation",
-        "enabledDefault": false,
-        "reason": "Best fixture-passed profile candidate across Korean and English sample events."
-      }
-    },
-    {
-      "id": "eval-qwen4b-false-positive-review",
-      "model": "Qwen/Qwen3-VL-4B-Instruct",
-      "selectedOptionModel": "Qwen/Qwen3-VL-4B-Instruct",
-      "promptProfile": {
-        "id": "false-positive-review",
-        "version": "v1",
-        "language": "ko"
-      },
-      "caseIds": ["line-crossing-ko-ab"],
-      "latencyMs": {
-        "p50": 6100,
-        "p95": 6100
-      },
-      "dimensions": {
-        "latency": "passed",
-        "jsonStability": "passed",
-        "explanationQuality": "passed",
-        "hallucinationRisk": "passed",
-        "languageQuality": "review-required"
-      },
-      "score": {
-        "total": 0.82,
-        "latency": 1.0,
-        "jsonStability": 1.0,
-        "explanationQuality": 0.75,
-        "hallucinationRisk": 1.0,
-        "languageQuality": 0.5
-      },
-      "evaluation": {
-        "status": "review-required",
-        "source": "v210-s06-evaluation-result-workflow"
-      },
-      "selection": {
-        "profileDraftAllowed": true,
-        "activationDefault": "pending-evaluation",
-        "enabledDefault": false,
-        "reason": "Local low-spec fallback can be saved only as review-required until English quality is evaluated."
-      }
-    },
-    {
-      "id": "eval-qwen4b-operator-question-review",
-      "model": "Qwen/Qwen3-VL-4B-Instruct",
-      "selectedOptionModel": "Qwen/Qwen3-VL-4B-Instruct",
-      "promptProfile": {
-        "id": "operator-question-review",
-        "version": "v1",
-        "language": "en"
-      },
-      "caseIds": ["intrusion-en-json-stability"],
-      "latencyMs": {
-        "p50": 34000,
-        "p95": 34000
-      },
-      "dimensions": {
-        "latency": "failed",
-        "jsonStability": "failed",
-        "explanationQuality": "review-required",
-        "hallucinationRisk": "failed",
-        "languageQuality": "passed"
-      },
-      "score": {
-        "total": 0.18,
-        "latency": 0.0,
-        "jsonStability": 0.0,
-        "explanationQuality": 0.25,
-        "hallucinationRisk": 0.0,
-        "languageQuality": 1.0
-      },
-      "evaluation": {
-        "status": "failed",
-        "source": "v210-s06-evaluation-result-workflow"
-      },
-      "selection": {
-        "profileDraftAllowed": false,
-        "activationDefault": "disabled",
-        "enabledDefault": false,
-        "reason": "Invalid JSON, latency threshold miss, and hallucination fixture failure exclude this prompt profile."
-      }
-    }
-  ],
-  "caseResults": [
-    {
-      "caseId": "line-crossing-ko-ab",
-      "eventType": "line-crossing",
-      "language": "ko",
-      "bestCandidateId": "qwen8b-default-ko",
-      "candidateIds": ["qwen8b-default-ko", "qwen4b-fp-ko"]
-    },
-    {
-      "caseId": "intrusion-en-json-stability",
-      "eventType": "intrusion-dwell",
-      "language": "en",
-      "bestCandidateId": "qwen8b-default-en",
-      "candidateIds": ["qwen8b-default-en", "bad-json-hallucination-en"]
-    }
-  ],
-  "contractInvariants": {
-    "runtimeMode": "fixture-captured-output-only",
-    "runtimeVlmCallPerformed": false,
-    "cloudProviderApiCalled": false,
-    "modelArtifactDownloaded": false,
-    "sidecarStored": false,
-    "eventPostPayloadChanged": false,
-    "webrtcDataChannelSchemaChanged": false,
-    "sseMetadataSchemaChanged": false,
-    "wsMetadataSchemaChanged": false,
-    "rtspOrWebrtcMediaPathChanged": false,
-    "viewerClientExposureAdded": false
-  }
-})JSON";
+    return VlmEvaluationResultWorkflowJson();
 }
 
 std::string OpsV390VlmEvaluationPromotionGuardJson() {
     return R"JSON({
   "schema": "media-server.ops.v390-vlm-evaluation-promotion-guard.v1",
-  "targetStep": "v3.9.0 (14)",
-  "featureId": "V390-CAND-004",
-  "selectedMode": "passed-evaluation-manual-promotion-guard",
+  "targetStep": "V390-ADD1-03",
+  "featureId": "V390-ADD1-03",
+  "selectedMode": "server-verified-evaluation-promotion",
   "sourceEvaluationRoute": "/ops/api/vlm/evaluation-results",
   "profileSaveRoute": "/ops/api/vlm/profiles",
   "opsUiRoute": "/ops/vlm",
   "passedCandidateId": "eval-qwen8b-event-review-default",
   "promotionFlow": {
-    "source": "fixture evaluation candidate",
-    "draftAction": "profile draft field population",
-    "operatorFlow": "operator-save-then-activation-review",
-    "saveBoundary": "existing profile save route only",
-    "activationBoundary": "existing profile validation rejects invalid active/enabled states"
+    "source": "server-owned immutable evaluation candidate catalog",
+    "draftAction": "candidate reference only",
+    "operatorFlow": "operator-select-candidate-then-server-verify-save",
+    "saveBoundary": "profile save validates candidate, catalog revision, provenance digest, model, option, and prompt binding",
+    "activationBoundary": "server-derived passed evaluation required for active/enabled"
   },
   "activationGuard": {
     "passedEvaluationRequiredForActive": true,
     "operatorSaveRequired": true,
     "operatorActivationReviewRequired": true,
+    "clientDeclaredEvaluationRejected": true,
+    "serverCanonicalEvaluationStored": true,
+    "catalogRevision": "v390-add1-03-2026-07-10",
     "defaultOffPreserved": true,
     "invalidStatesRejected": [
       "review-required-active",
@@ -10499,6 +10487,8 @@ std::string OpsV390VlmEvaluationPromotionGuardJson() {
     "opsOnly": true,
     "readOnly": true,
     "manualPromotionRequired": true,
+    "serverVerificationRequired": true,
+    "candidateReferenceOnly": true,
     "operatorSaveRequired": true,
     "operatorActivationReviewRequired": true,
     "profileWritePerformedByGuard": false,

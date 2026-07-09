@@ -1,7 +1,7 @@
 {
   "schema": "media-server.feature-implementation-evidence.v1",
   "expectedFeatureRows": 974,
-  "inventorySha256": "3b291d2db3569f744c1d77af0d484b799077203c54f62f0a200ab8a9ddd2da51",
+  "inventorySha256": "503e79c5e65fcd7899fd1211f5c43ab905a9215f90d13b6e441a8eb70b3aeb6e",
   "generatedFrom": "docs/project-feature-test-inventory.md",
   "generationPolicy": "explicit-refresh-only; verifier never rewrites this manifest",
   "executionEvidenceStatus": "not-execution-evidence",
@@ -677,10 +677,10 @@
         "screenRoute": "/ops"
       },
       "verifierEvidence": {
-        "file": "scripts/internal/verify_auth_ui_smoke.mjs",
-        "anchor": "token",
-        "anchorKind": "identifier",
-        "command": "verify-auth-ui-smoke"
+        "file": "scripts/internal/verify_feature_implementation_evidence.mjs",
+        "anchor": "UI-019",
+        "anchorKind": "feature-id",
+        "command": "verify-feature-implementation-evidence"
       },
       "manualUiCaseId": "UI-019",
       "longrunEvidence": {
@@ -3967,7 +3967,7 @@
       "id": "UI-111",
       "section": "A",
       "surfaceKind": "ui-route-control-action",
-      "feature": "V390 Step 14 VLM evaluation promotion guard UI",
+      "feature": "V390 VLM server-verified promotion UI",
       "uiNeed": "필요",
       "testNeed": "필요",
       "testAreas": [
@@ -3977,20 +3977,20 @@
       "status": "closed-with-evidence",
       "sourceEvidence": {
         "file": "src/ingress/webrtc_http_server.cpp",
-        "anchor": "media-server.ops.v390-vlm-evaluation-promotion-guard.v1",
+        "anchor": "server verified",
         "anchorKind": "code-span"
       },
       "uiEvidence": {
         "file": "src/ingress/webrtc_http_server.cpp",
-        "anchor": "media-server.ops.v390-vlm-evaluation-promotion-guard.v1",
+        "anchor": "server verified",
         "anchorKind": "code-span",
         "screenRoute": "/ops/vlm"
       },
       "verifierEvidence": {
-        "file": "scripts/internal/verify_v390_ui_automation_runner_contract.mjs",
-        "anchor": "UI-111",
-        "anchorKind": "feature-id",
-        "command": "verify-v390-ui-automation-runner-contract"
+        "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
+        "anchor": "server verified",
+        "anchorKind": "code-span",
+        "command": "verify-v390-vlm-promotion-trust-boundary"
       },
       "manualUiCaseId": "UI-111",
       "longrunEvidence": {
@@ -17233,10 +17233,10 @@
       },
       "uiEvidence": null,
       "verifierEvidence": {
-        "file": "scripts/internal/verify_vlm_closeout_readiness.mjs",
+        "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
         "anchor": "reference",
         "anchorKind": "identifier",
-        "command": "verify-vlm-closeout-readiness"
+        "command": "verify-v390-vlm-promotion-trust-boundary"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {
@@ -17353,10 +17353,10 @@
       },
       "uiEvidence": null,
       "verifierEvidence": {
-        "file": "scripts/internal/verify_vlm_closeout_readiness.mjs",
+        "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
         "anchor": "reference",
         "anchorKind": "identifier",
-        "command": "verify-vlm-closeout-readiness"
+        "command": "verify-v390-vlm-promotion-trust-boundary"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {
@@ -17473,10 +17473,10 @@
       },
       "uiEvidence": null,
       "verifierEvidence": {
-        "file": "scripts/internal/verify_vlm_closeout_readiness.mjs",
+        "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
         "anchor": "reference",
         "anchorKind": "identifier",
-        "command": "verify-vlm-closeout-readiness"
+        "command": "verify-v390-vlm-promotion-trust-boundary"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {
@@ -18250,7 +18250,7 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "src/ingress/webrtc_http_server.cpp",
+        "file": "src/ingress/vlm_evaluation_promotion.cpp",
         "anchor": "media-server.vlm-evaluation-report.v1",
         "anchorKind": "code-span"
       },
@@ -18616,10 +18616,10 @@
       },
       "uiEvidence": null,
       "verifierEvidence": {
-        "file": "scripts/internal/verify_vlm_profile_storage.mjs",
+        "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
         "anchor": "runtimeContract",
         "anchorKind": "identifier",
-        "command": "verify-vlm-profile-storage"
+        "command": "verify-v390-vlm-promotion-trust-boundary"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {
@@ -18851,7 +18851,7 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "src/ingress/webrtc_http_server.cpp",
+        "file": "src/ingress/vlm_evaluation_promotion.cpp",
         "anchor": "media-server.ops.vlm-evaluation-result-workflow.v1",
         "anchorKind": "code-span"
       },
@@ -20764,7 +20764,7 @@
       "id": "LAB-123",
       "section": "H",
       "surfaceKind": "lab-api-runtime-contract",
-      "feature": "V390 Step 14 VLM passed evaluation promotion guard",
+      "feature": "V390 VLM server-owned evaluation catalog binding",
       "uiNeed": "비대상",
       "testNeed": "필요",
       "testAreas": [
@@ -20772,16 +20772,16 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "src/analysis/event_feature_search_index.cpp",
-        "anchor": "default-off",
+        "file": "include/ingress/vlm_evaluation_promotion.h",
+        "anchor": "ValidateVlmEvaluationPromotion",
         "anchorKind": "identifier"
       },
       "uiEvidence": null,
       "verifierEvidence": {
-        "file": "scripts/internal/verify_v390_vlm_evaluation_promotion_guard.mjs",
-        "anchor": "passed",
+        "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
+        "anchor": "ValidateVlmEvaluationPromotion",
         "anchorKind": "identifier",
-        "command": "verify-v390-vlm-evaluation-promotion-guard"
+        "command": "verify-v390-vlm-promotion-trust-boundary"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {
@@ -20892,9 +20892,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_auth_workflow.sh",
-        "anchor": "DataChannel",
-        "anchorKind": "identifier"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-002",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -20922,9 +20922,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_actions_security.mjs",
-        "anchor": "baseline",
-        "anchorKind": "identifier"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-003",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -20952,9 +20952,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_actions_security.mjs",
-        "anchor": "baseline",
-        "anchorKind": "identifier"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-004",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -20982,9 +20982,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_script_inventory.mjs",
-        "anchor": "Intrusion",
-        "anchorKind": "identifier"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-005",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -21012,9 +21012,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_ops_backup_restore_dry_run.mjs",
-        "anchor": "LineCrossing",
-        "anchorKind": "identifier"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-006",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -21042,9 +21042,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_analysis_state_smoke.sh",
-        "anchor": "scenario",
-        "anchorKind": "identifier"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-007",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -21073,9 +21073,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_client_action_reduction.mjs",
-        "anchor": "playback",
-        "anchorKind": "identifier"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-008",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -21104,9 +21104,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_client_action_reduction.mjs",
-        "anchor": "playback",
-        "anchorKind": "identifier"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-009",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -21134,9 +21134,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_onvif_credential_reference_policy.mjs",
-        "anchor": "SourceRegistry",
-        "anchorKind": "identifier"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-010",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -21164,9 +21164,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_auth_workflow.sh",
-        "anchor": "PublishedView",
-        "anchorKind": "identifier"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-011",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -21194,9 +21194,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_actions_security.mjs",
-        "anchor": "baseline",
-        "anchorKind": "identifier"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-012",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -21224,9 +21224,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "src/ingress/webrtc_http_server.cpp",
-        "anchor": "vaRule=<id>",
-        "anchorKind": "code-span"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-013",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -21256,9 +21256,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_runtime_media_longrun_trigger_matrix.mjs",
-        "anchor": "non-blocking",
-        "anchorKind": "identifier"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-014",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -21287,9 +21287,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_auth_regression_matrix.mjs",
-        "anchor": "/client",
-        "anchorKind": "route"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-015",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": {
         "file": "src/ingress/product_ui_auth_pages.cpp",
@@ -21323,9 +21323,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_auth_workflow.sh",
-        "anchor": "undefined",
-        "anchorKind": "identifier"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-016",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": {
         "file": "src/ingress/product_ui_client_scripts.cpp",
@@ -21359,9 +21359,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_adaptive_tuner.sh",
-        "anchor": "/lab",
-        "anchorKind": "route"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-017",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": {
         "file": "src/ingress/product_ui_assets.cpp",
@@ -21370,10 +21370,10 @@
         "screenRoute": "/lab"
       },
       "verifierEvidence": {
-        "file": "scripts/internal/verify_auth_regression_matrix.mjs",
+        "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
         "anchor": "/lab",
         "anchorKind": "route",
-        "command": "verify-auth-regression-matrix"
+        "command": "verify-v390-vlm-promotion-trust-boundary"
       },
       "manualUiCaseId": "SAFE-017",
       "longrunEvidence": {
@@ -21431,9 +21431,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_actions_security.mjs",
-        "anchor": "artifact",
-        "anchorKind": "identifier"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-019",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": {
         "file": "src/ingress/product_ui_auth_pages.cpp",
@@ -21467,9 +21467,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_auth_regression_matrix.mjs",
-        "anchor": "/client",
-        "anchorKind": "route"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-020",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": {
         "file": "src/ingress/product_ui_auth_pages.cpp",
@@ -21568,9 +21568,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_auth_regression_matrix.mjs",
-        "anchor": "credential",
-        "anchorKind": "identifier"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-023",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -21664,9 +21664,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_vlm_boundary.mjs",
-        "anchor": "safetensors",
-        "anchorKind": "identifier"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-026",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -21725,9 +21725,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_auth_regression_matrix.mjs",
-        "anchor": "/client",
-        "anchorKind": "route"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-028",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": {
         "file": "src/ingress/product_ui_auth_pages.cpp",
@@ -21790,9 +21790,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_auth_regression_matrix.mjs",
-        "anchor": "/client",
-        "anchorKind": "route"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-030",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -21821,9 +21821,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_auth_regression_matrix.mjs",
-        "anchor": "/client",
-        "anchorKind": "route"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-031",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": {
         "file": "src/ingress/product_ui_auth_pages.cpp",
@@ -21856,16 +21856,16 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_auth_workflow.sh",
-        "anchor": "invalid-output",
-        "anchorKind": "identifier"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-032",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
-        "file": "scripts/internal/verify_bot_sort_deepsort_research_boundary.mjs",
-        "anchor": "metadata",
+        "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
+        "anchor": "missing-model",
         "anchorKind": "identifier",
-        "command": "verify-bot-sort-deepsort-research-boundary"
+        "command": "verify-v390-vlm-promotion-trust-boundary"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {
@@ -21983,9 +21983,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_auth_workflow.sh",
-        "anchor": "invalid-output",
-        "anchorKind": "identifier"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-036",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -22013,9 +22013,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_auth_workflow.sh",
-        "anchor": "DataChannel",
-        "anchorKind": "identifier"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-037",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -22211,9 +22211,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_client_live_workspace.mjs",
-        "anchor": "debugCounters",
-        "anchorKind": "identifier"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-043",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -22241,9 +22241,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_event_post_dispatch.sh",
-        "anchor": "EventRecord",
-        "anchorKind": "identifier"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-044",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -22937,9 +22937,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_manual_ui_evidence.mjs",
-        "anchor": "2.8.0",
-        "anchorKind": "code-span"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-064",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -23177,9 +23177,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_manual_ui_evidence.mjs",
-        "anchor": "2.9.0",
-        "anchorKind": "code-span"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-071",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -23567,9 +23567,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_manual_ui_evidence.mjs",
-        "anchor": "/ops/events",
-        "anchorKind": "route"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-084",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -27138,9 +27138,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_ui_fulltest_one_shot.mjs",
-        "anchor": "uiFulltestEvidenceStatus",
-        "anchorKind": "identifier"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "SAFE-199",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -27340,7 +27340,7 @@
       "id": "SAFE-206",
       "section": "I",
       "surfaceKind": "safety-boundary-invariant",
-      "feature": "V390 Step 14 VLM activation/save/runtime boundary",
+      "feature": "V390 VLM client-forged promotion rejection boundary",
       "uiNeed": "비대상",
       "testNeed": "필요",
       "testAreas": [
@@ -27354,10 +27354,10 @@
       },
       "uiEvidence": null,
       "verifierEvidence": {
-        "file": "scripts/internal/verify_v390_vlm_evaluation_promotion_guard.mjs",
-        "anchor": "activation",
+        "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
+        "anchor": "promotion",
         "anchorKind": "identifier",
-        "command": "verify-v390-vlm-evaluation-promotion-guard"
+        "command": "verify-v390-vlm-promotion-trust-boundary"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {
@@ -27678,9 +27678,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_manual_ui_evidence.mjs",
-        "anchor": "2.8.0",
-        "anchorKind": "code-span"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "OPS-039",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -27738,9 +27738,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_manual_ui_evidence.mjs",
-        "anchor": "2.9.0",
-        "anchorKind": "code-span"
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "anchor": "OPS-041",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -31690,7 +31690,7 @@
       "id": "OPS-173",
       "section": "J",
       "surfaceKind": "ops-evidence-release-gate",
-      "feature": "V390 Step 14 VLM evaluation promotion decision gate",
+      "feature": "V390 VLM promotion trust boundary gate",
       "uiNeed": "비대상",
       "testNeed": "필요",
       "testAreas": [
@@ -31704,10 +31704,10 @@
       },
       "uiEvidence": null,
       "verifierEvidence": {
-        "file": "scripts/internal/verify_v390_vlm_evaluation_promotion_guard.mjs",
-        "anchor": "/ops/api/vlm/evaluation-promotion-guard",
-        "anchorKind": "route",
-        "command": "verify-v390-vlm-evaluation-promotion-guard"
+        "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
+        "anchor": "promotion",
+        "anchorKind": "identifier",
+        "command": "verify-v390-vlm-promotion-trust-boundary"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {

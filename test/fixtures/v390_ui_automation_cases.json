@@ -42,8 +42,8 @@
       "theme": "light",
       "accountRole": "operator",
       "controlAction": "inspect-vlm-evaluation-promotion-guard",
-      "expectedResult": "promotion guard shows operator-save-then-activation-review",
-      "expectedMarkers": ["operator-save-then-activation-review"]
+      "expectedResult": "promotion guard shows server-verified candidate save",
+      "expectedMarkers": ["operator-select-candidate-then-server-verify-save"]
     },
     {
       "caseId": "UI-113",

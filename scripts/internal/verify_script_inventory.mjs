@@ -509,6 +509,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_v390_onvif_live_import_persist_decision.mjs",
     "verify_v390_vlm_rule_suggestion_draft_bridge.mjs",
     "verify_v390_vlm_evaluation_promotion_guard.mjs",
+    "verify_v390_vlm_promotion_trust_boundary.mjs",
     "verify_v390_backup_recovery_handoff_validation.mjs",
     "verify_v390_action_execution_deferral_decision.mjs",
     "verify_v390_conditional_field_ai_decisions.mjs",

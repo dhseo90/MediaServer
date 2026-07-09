@@ -44,10 +44,11 @@ check("Ops server exposes the v3.9 VLM evaluation promotion guard", () => {
     "OpsV390VlmEvaluationPromotionGuardJson",
     schema,
     route,
-    "V390-CAND-004",
-    "passed-evaluation-manual-promotion-guard",
-    "eval-qwen8b-event-review-default",
-    "operator-save-then-activation-review",
+    "V390-ADD1-03",
+    "server-verified-evaluation-promotion",
+    "operator-select-candidate-then-server-verify-save",
+    "clientDeclaredEvaluationRejected",
+    "serverCanonicalEvaluationStored",
     "invalidStatesRejected",
     "sourceEvaluationRoute",
     "profileSaveRoute",
@@ -136,6 +137,13 @@ check("existing profile validation rejects invalid promotion/activation states",
     assertIncludes(files.server, snippet, "VLM profile activation validation");
   }
   assertIncludes(files.profileVerifier, "active-requires-passed-evaluation", "profile verifier invalid fixture coverage");
+  for (const snippet of [
+    "ValidateVlmEvaluationPromotion",
+    "expected_catalog_revision",
+    "expected_provenance_digest",
+    "server-candidate-option-model-prompt-revision-digest-binding",
+    "server-verified-evaluation-catalog",
+  ]) assertIncludes(files.promotionModule, snippet, "server-owned VLM promotion validator");
 });
 
 check("Ops VLM UI renders the promotion guard and keeps manual save wording", () => {
@@ -144,9 +152,9 @@ check("Ops VLM UI renders the promotion guard and keeps manual save wording", ()
     "loadOpsVlmEvaluationPromotionGuard",
     "renderOpsVlmEvaluationPromotionGuard",
     "opsVlmEvaluationPromotionGuardStatus",
-    "passed-evaluation-manual-promotion-guard",
-    "operatorSaveRequired=true",
-    "activationGuard=true",
+    "server-verified-evaluation-promotion",
+    "serverVerification=true",
+    "clientDeclaredEvaluationRejected=true",
     "runtimeCall=false",
     "providerCall=false",
   ]) {
@@ -155,7 +163,7 @@ check("Ops VLM UI renders the promotion guard and keeps manual save wording", ()
   for (const snippet of [
     "opsVlmEvaluationPromotionGuardStatus",
     "promotion guard",
-    "operator-save-then-activation-review",
+    "operator-select-candidate-then-server-verify-save",
   ]) {
     assertIncludes(files.server, snippet, "v390 VLM evaluation promotion guard UI shell");
   }
@@ -174,17 +182,17 @@ check("roadmap, stream verification, inventory, and release records map v3.9 Ste
   }
   for (const snippet of [
     `| v3.9.0 (14) | \`./server.sh ${command}\` | VLM evaluation promotion guard.`,
-    "passed-evaluation-manual-promotion-guard",
-    "operator-save-then-activation-review",
+    "server-verified-evaluation-promotion",
+    "operator-select-candidate-then-server-verify-save",
   ]) {
     assertIncludes(files.streamVerification, snippet, "stream verification v3.9 Step 14");
   }
   for (const snippet of [
-    `v3.9.0 (14) VLM evaluation promotion guard | \`UI-111\`, \`LAB-123\`, \`SAFE-206\`, \`OPS-173\` | \`${command}\`, \`verify-vlm-evaluation-result-workflow\`, \`verify-vlm-profile-storage\``,
-    "UI-111 | V390 Step 14 VLM evaluation promotion guard UI",
-    "LAB-123 | V390 Step 14 VLM passed evaluation promotion guard",
-    "SAFE-206 | V390 Step 14 VLM activation/save/runtime boundary",
-    "OPS-173 | V390 Step 14 VLM evaluation promotion decision gate",
+    "V390-ADD1-03 VLM evaluation promotion trust boundary",
+    "UI-111 | V390 VLM server-verified promotion UI",
+    "LAB-123 | V390 VLM server-owned evaluation catalog binding",
+    "SAFE-206 | V390 VLM client-forged promotion rejection boundary",
+    "OPS-173 | V390 VLM promotion trust boundary gate",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.9 Step 14");
   }
@@ -203,7 +211,7 @@ check("roadmap, stream verification, inventory, and release records map v3.9 Ste
 check("server entrypoint and inventory verifiers include v3.9 Step 14 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, targetScript, "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.implementationManifest, "verify-v390-vlm-promotion-trust-boundary", "feature implementation manifest");
   for (const id of featureIds) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
@@ -219,13 +227,14 @@ finish("== v3.9.0 VLM evaluation promotion guard ==", {
 function loadFiles() {
   return {
     server: readText("src/ingress/webrtc_http_server.cpp"),
+    promotionModule: readText("src/ingress/vlm_evaluation_promotion.cpp"),
     pageScript: readText("src/ingress/product_ui_page_scripts.cpp"),
     opsClientUiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
     profileVerifier: readText("scripts/internal/verify_vlm_profile_storage.mjs"),
     backlog: readText("docs/development-backlog.md"),
     streamVerification: readText("docs/stream-verification.md"),
     featureInventory: readText("docs/project-feature-test-inventory.md"),
-    featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
+    implementationManifest: readText("test/fixtures/project_feature_implementation_evidence.json"),
     projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
     scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
     releaseRecords: readText("docs/release-test-records.md"),

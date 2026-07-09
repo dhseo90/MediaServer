@@ -101,7 +101,7 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 11 | v3.9.0 (11) ONVIF credential/provider status summary | P1 | 완료 | `V390-CAND-001`: `/ops/api/onvif/credential-provider-status`와 `/ops/sources` ONVIF provider summary가 primary provider `none`, fallback `in-memory-fixture`, persistent/external secret store defer 결정을 secret/reference value 비노출 상태로 표시 |
 | 12 | v3.9.0 (12) ONVIF live import persist decision | P1 | 완료 | `V390-CAND-002`: `/ops/api/onvif/live-import-persist-decision`와 `/ops/sources`가 manual form-save handoff, import draft `notSaved:true`, one-shot persist disabled, existing `source:write` save route 결정을 표시 |
 | 13 | v3.9.0 (13) VLM rule suggestion draft bridge | P1 | 완료 | `V390-CAND-003`: `/ops/api/vlm/rule-suggestion-draft-bridge`와 `/ops/rules`가 incident review provenance를 기존 VLM rule suggestion draft-only/manual-save workflow로 연결하고 rule/profile write, auto-apply, provider/runtime call은 수행하지 않음 |
-| 14 | v3.9.0 (14) VLM evaluation promotion guard | P1 | 완료 | `V390-CAND-004`: `/ops/api/vlm/evaluation-promotion-guard`와 `/ops/vlm`가 passed evaluation 후보를 operator-save-then-activation-review 경계로 표시하고 profile write/activation/runtime/provider call은 수행하지 않음 |
+| 14 | v3.9.0 (14) VLM evaluation promotion guard | P1 | 완료 | `V390-CAND-004`/`V390-ADD1-03`: `/ops/api/vlm/evaluation-promotion-guard`와 `/ops/vlm`가 server-verified candidate promotion을 표시하고 profile save가 candidate/revision/digest/result/provenance 및 option/model/prompt binding을 검증함. runtime/provider call은 수행하지 않음 |
 | 15 | v3.9.0 (15) backup/recovery handoff validation | P1 | 완료 | `V390-CAND-005`: `/ops/api/source-registry/staging-restore-validation-handoff`와 `/ops/sources`가 staging restore checklist/result artifact contract를 source registry, PublishedView, source health, viewer scope 기준으로 표시하고 production restore/write/recovery는 수행하지 않음 |
 | 16 | v3.9.0 (16) action execution deferral decision | P1 | 완료 | `V390-CAND-006`: `/ops/api/actions/execution-deferral-decision`와 `/ops` Action Control Workspace가 `defer-all-action-writes`, source recheck/client notice/rule apply write deferred, approval-gated execution disabled를 표시하고 action execution/write/external delivery는 수행하지 않음 |
 | 17 | v3.9.0 (17) field evidence bridge | P2 | 완료 | `V390-CAND-009`: `/ops/api/field-evidence/bridge-decision`와 `/ops` dashboard가 `approval-only-minimal-field-evidence-bridge`, ONVIF/external WHEP-TURN/cloud-VLM 승인 조건, minimal evidence contract, not-run/no-field-execution boundary를 표시하고 field smoke/provider call/write는 수행하지 않음 |
@@ -134,7 +134,7 @@ UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release a
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | V390-ADD1-01 | Foundation | 미추적 파일 정리 | P0 | 완료 | 삭제 이력이 있는 미추적 파일 30개를 현재 참조·삭제 의도·blob 이력과 대조하고 복구 0, 삭제 30, 별도 보존 0으로 확정한 뒤 worktree에서 제거 |
 | 2 | V390-ADD1-02 | Feature Closure | 전체 기능 인벤토리 확정 | P0 | 완료 | 974개 기능 행을 exact manifest로 실제 route/UI control/state/verifier와 1:1 대조하고 stale TODO/오류 문구 제거, negative fixture와 local gate 통과 |
-| 3 | V390-ADD1-03 | Product Correctness | VLM 승격 신뢰 경계 | P0 | 진행 예정 | 클라이언트 `passed` 선언을 제거하고 서버가 후보 ID, 평가 결과, provenance를 검증한 뒤 승격 |
+| 3 | V390-ADD1-03 | Product Correctness | VLM 승격 신뢰 경계 | P0 | 완료 | 클라이언트 result/status 선언을 제거하고 shared server catalog가 후보 ID/revision/digest, 평가 결과/provenance, option/model/prompt binding을 검증·canonicalize한 뒤 저장하며 reload 불일치 profile을 quarantine |
 | 4 | V390-ADD1-04 | Product Correctness | Re-ID 준비 상태 정합성 | P0 | 진행 예정 | 설정 문자열 외 파일 존재, SHA 일치, provenance, OpenSSL·ONNX runtime 가용성을 함께 검사 |
 | 5 | V390-ADD1-05 | Product Correctness | ONVIF 저장 원자성 | P0 | 진행 예정 | source/view 연속 PUT의 부분 저장을 막는 원자 저장 또는 검증 가능한 rollback 적용 |
 
@@ -270,6 +270,87 @@ UI 직접 조작, 30분/120분 장시간 PASS를 새로 만들었다는 뜻이 �
 테스트 사용량: token start `438676`, token end `494210`, token consumed `55534`,
 elapsed 약 `226초`, source `Codex goal usage`. 최초 실패 2건은 같은 단계 안에서 원인과
 수정 내용을 보존하고 전체 안정화 묶음을 처음부터 재실행했습니다.
+
+### V390-ADD1-03 VLM 승격 신뢰 경계
+
+직접 감사에서 `/ops/vlm`이 editable Evaluation select의 `passed`와
+status/source/caseIds/dimensions/score를 PUT하고, `PrepareVlmProfileDocumentLocked`는
+허용 status 문자열과 active/enabled 조합만 확인한다는 결함을 재현했습니다. 기존
+`/ops/api/vlm/evaluation-promotion-guard`는 read-only 설명 route여서 profile 저장
+경로의 candidate/result/provenance를 enforce하지 않았습니다.
+
+개발 위치와 로직:
+
+- `include/ingress/vlm_evaluation_promotion.h`,
+  `src/ingress/vlm_evaluation_promotion.cpp`:
+  평가 API와 저장 validator가 공유하는 immutable candidate catalog,
+  `VlmEvaluationResultWorkflowJson`, `ValidateVlmEvaluationPromotion`을 추가했습니다.
+  catalog revision, workflow/harness/evaluator/model-catalog SHA-256, candidate digest,
+  option/model/prompt binding을 검증하고 server-canonical
+  `media-server.vlm-evaluation-provenance.v1` JSON을 생성합니다.
+- `src/ingress/webrtc_http_server.cpp`:
+  `PrepareVlmProfileDocumentLocked`가 정확히 하나의 evaluation object와
+  candidate ID/catalog revision/provenance digest만 받습니다. client-declared
+  status/source/caseIds/dimensions/score/provenance와 duplicate evaluation/candidate
+  field를 거부하고, 검증 뒤 request evaluation을 canonical server result로 교체합니다.
+  active/enabled 판정은 이 서버 파생 status에만 의존합니다.
+  registry reload 때 canonical evaluation/provenance를 다시 검증하고 불일치 profile은
+  `quarantinedProfileCount`로 계수해 메모리 registry와 GET 결과에서 제외합니다.
+- `src/ingress/product_ui_page_scripts.cpp`, `src/ingress/webrtc_http_server.cpp` Ops UI:
+  editable passed select를 read-only `Evaluation (server verified)` input으로 교체했습니다.
+  candidate 적용은 model 문자열 추정이 아니라 exact `selectedOptionId`를 사용하고,
+  저장 payload는 candidate ID/revision/digest만 보냅니다. 저장 응답의 server status를
+  readback message에 사용합니다.
+- `test/fixtures/v390_vlm_promotion_trust_boundary/cases.json`,
+  `scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs`,
+  `./server.sh verify-v390-vlm-promotion-trust-boundary`:
+  auth-off throwaway registry/server에서 valid passed/pending/non-passed/no-candidate,
+  forged passed, unknown/stale candidate, option/model/prompt mismatch, failed/non-passed active,
+  rejected update 원본 보존을 포함한 14개 실제 PUT/GET case와 변조 registry restart
+  quarantine 1개 case를 정의했습니다.
+- `UI-111`, `LAB-123`, `SAFE-206`, `OPS-173`은 신규 server-authoritative 기준과 실제
+  HTTP verifier로 갱신했습니다. inventory 총 행 수는 974를 유지하고 manifest는
+  명시적 refresh 대상으로 둡니다.
+
+테스트 필요성 판정:
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | C++ profile 저장 validator, Ops UI payload, 실제 registry write/read, dispatch/docs/inventory를 변경 | `V390-ADD1-03`, `UI-111`, `LAB-123`, `SAFE-206`, `OPS-173` | 단계 범위에서 실행 |
+| 30분 테스트 | 미진행 | runtime/provider/media lifecycle은 호출하지 않고 profile metadata validation만 변경 | `contractInvariants.*=false`, actual HTTP fixture | 장시간 실행 승인 없음 |
+| 120분 테스트 | 미진행 | AGENTS 7.6.2의 media/lifecycle/high-risk trigger가 없고 실제 server run은 단기 throwaway matrix | V390-ADD1-03 변경 범위 | 장시간 실행 승인 없음 |
+| UI 풀테스트 | 미진행 | UI control/payload를 변경했으므로 최종 release에는 직접 조작 evidence가 필요하지만 이번 최신 지시는 UI 풀테스트 실행 승인 아님 | `UI-111`, `/ops/vlm` | 직접 실행 승인 없음 |
+
+안정화 실행 전 개별 항목:
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| C++ build | `./server.sh build`: shared catalog/profile validator compile/link, target 100% | pass | 최종 incremental clean gate 통과 |
+| promotion HTTP trust matrix | `MEDIA_SERVER_SKIP_BUILD=1 ./server.sh verify-v390-vlm-promotion-trust-boundary`: HTTP 14, restart quarantine 1, failures 0 | pass | 최초 sandbox loopback `EPERM`; 권한 재실행 후 readback wrapper 경로 오류, reload raw formatting/null 처리 오류를 순차 수정하고 전체 재실행 pass |
+| promotion guard regression | `./server.sh verify-v390-vlm-evaluation-promotion-guard`: pass 7, fail 0 | pass | 최초 exact manifest 전환 전 옛 coverage 문자열 요구로 pass 6/fail 1; manifest 기준으로 수정 후 pass |
+| evaluation workflow regression | `./server.sh verify-vlm-evaluation-result-workflow`: pass 6, fail 0 | pass | client-owned status/result field 부재와 shared catalog 확인 |
+| profile storage regression | `./server.sh verify-vlm-profile-storage`: pass 6, fail 0 | pass | 최초 옛 coverage 문자열 요구로 pass 5/fail 1; manifest 기준으로 수정 후 pass |
+| inventory manifest refresh/read-only | explicit refresh 및 `./server.sh verify-feature-implementation-evidence`: rows 974, source/verifier 974, UI 440, manual 424, validation 0, negative 11/11 | pass | `UI-111`/`LAB-123`/`SAFE-206`/`OPS-173` existing rows만 갱신 |
+| UI automation contract | `./server.sh verify-v390-ui-automation-runner-contract`: pass 6, fail 0 | pass | UI-111 current marker 갱신, 실제 UI 풀테스트 실행 아님 |
+| project/feature/script/docs/release gate | project inventory 14/0, feature coverage 6/0(974/974), feature completion 13/0, script inventory 11/0, docs links failures 0, release evidence 8/0 | pass | 모두 최종 묶음 재실행 |
+| auth route execution | `verify-auth-routes` | 미실행 | required password env 없음; static auth route/payload 연결은 profile verifier가 확인, 완료 evidence로 사용하지 않음 |
+| diff 무결성 | `git diff --check`: 출력 없음 | pass | 실패 이력 없음 |
+
+실패 이력과 수정:
+
+1. sandbox loopback bind는 `listen EPERM`으로 실패해 승인된 권한 실행으로 재시도했습니다.
+2. 첫 HTTP matrix는 GET wrapper `vlmProfile`을 검증기가 누락해 첫 readback에서 실패했고,
+   wrapper 경로를 수정한 뒤 14/14가 통과했습니다.
+3. 기존 promotion/profile verifier 2개는 Step 2 exact manifest 전환 뒤에도 옛 coverage
+   script 문자열을 요구해 각각 6/1, 5/1로 실패했고 manifest evidence 기준으로 수정했습니다.
+4. reload quarantine 추가 후 첫 실행은 valid profile까지 6개를 격리했고, 다음 실행은
+   4개를 격리했습니다. 원인은 pretty JSON 공백의 raw 비교, `candidateId: null` 공백 탐지,
+   `1.0` 숫자 표현 정규화였습니다. reload는 trusted revision/digest/binding을 검증한 뒤
+   evaluation 전체를 server canonical JSON으로 재생성하도록 바꾸고 최종 14+1 전체를
+   처음부터 재실행해 통과했습니다.
+
+테스트 사용량: token start `494210`, token end `902804`, token consumed `408594`,
+elapsed 약 `2500초`, source `Codex goal usage`/step boundary 추정.
 
 ## v3.9.0 남은 구현 목표: 다른 개발 채팅 인계용 상세 계약
 
@@ -845,13 +926,13 @@ Foundation review-ready 상태:
   - `src/ingress/product_ui_page_scripts.cpp`와 `/ops/rules` VLM Rule draft 영역에 `loadOpsVlmRuleSuggestionDraftBridge`, `renderOpsVlmRuleSuggestionDraftBridge`, `opsVlmRuleDraftBridgeStatus`를 추가해 `ops-review-to-rule-draft-bridge`, `provenance=incident-review-provenance`, `manualSaveRequired=true`, `autoApply=false`, `ruleRegistryWrite=false`를 표시합니다.
   - `scripts/internal/verify_v390_vlm_rule_suggestion_draft_bridge.mjs`와 `./server.sh verify-v390-vlm-rule-suggestion-draft-bridge`를 추가해 route/UI/docs/inventory/release records 연결, existing draft workflow manual-save boundary, no-auto-apply/no-provider-call boundary를 검증합니다.
   - 이 step은 VLM rule suggestion review-to-draft bridge 완성입니다. 자동 rule/profile 저장, 자동 적용, 실제 VLM/provider 품질 평가, UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence가 아닙니다.
-- Step 14 `VLM evaluation promotion guard`:
-  - 1차 선택값: `passed-evaluation-manual-promotion-guard`를 선택합니다. 기존 evaluation result 후보를 새 저장/활성화 route로 자동 승격하지 않고, passed 후보만 profile draft promotion 후보로 표시합니다.
-  - persistence 방식: promotion guard route는 read-only decision/evidence summary만 반환합니다. 실제 저장은 기존 `/ops/api/vlm/profiles` operator save route와 `rule:write` scope를 거치며, 활성화는 기존 profile validation의 passed evaluation + active/enabled guard를 통과해야 합니다.
+- Step 14 `VLM evaluation promotion guard` (V390-ADD1-03에서 correctness 보강):
+  - 1차 선택값: `server-verified-evaluation-promotion`을 선택합니다. 기존 evaluation result 후보를 새 저장/활성화 route로 자동 승격하지 않고, 클라이언트는 candidate ID/revision/digest reference만 제출합니다.
+  - persistence 방식: promotion guard route는 read-only decision/evidence summary를 반환합니다. 실제 저장은 기존 `/ops/api/vlm/profiles`와 `rule:write` scope를 거치며, profile validator가 shared catalog의 result/provenance와 option/model/prompt binding을 확인한 뒤 canonical evaluation을 저장합니다.
   - boundary: Step 14 guard route 자체는 profile write, activation execution, VLM runtime/provider call, sidecar write, client/viewer exposure, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경을 수행하지 않습니다.
   - `src/ingress/webrtc_http_server.cpp`에 `OpsV390VlmEvaluationPromotionGuardJson`과 GET `/ops/api/vlm/evaluation-promotion-guard` route를 추가했습니다. 이 route는 `require_ops_principal()`, `Cache-Control: no-store`, `media-server.ops.v390-vlm-evaluation-promotion-guard.v1` schema, `promotionFlow`, `activationGuard`, `workflowContract`를 반환합니다.
-  - `src/ingress/product_ui_page_scripts.cpp`와 `/ops/vlm` Evaluation result workflow 영역에 `loadOpsVlmEvaluationPromotionGuard`, `renderOpsVlmEvaluationPromotionGuard`, `opsVlmEvaluationPromotionGuardStatus`를 추가해 `passed-evaluation-manual-promotion-guard`, `operatorSaveRequired=true`, `activationGuard=true`, `runtimeCall=false`, `providerCall=false`를 표시합니다.
-  - `scripts/internal/verify_v390_vlm_evaluation_promotion_guard.mjs`와 `./server.sh verify-v390-vlm-evaluation-promotion-guard`를 추가해 route/UI/docs/inventory/release records 연결, existing evaluation result workflow/profile storage validation boundary, no-runtime/no-provider-call boundary를 검증합니다.
+  - `src/ingress/product_ui_page_scripts.cpp`와 `/ops/vlm` Evaluation result workflow 영역은 `server-verified-evaluation-promotion`, `serverVerification=true`, `clientDeclaredEvaluationRejected=true`, `runtimeCall=false`, `providerCall=false`를 표시합니다.
+  - `verify-v390-vlm-evaluation-promotion-guard`가 route/UI/docs 경계를, `verify-v390-vlm-promotion-trust-boundary`가 14개 실제 HTTP save/read/reject/no-write case를 검증합니다.
   - 이 step은 VLM evaluation promotion guard 완성입니다. 자동 profile 저장, 자동 활성화, 실제 VLM/provider 호출, UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence가 아닙니다.
 - Step 15 `backup/recovery handoff validation`:
   - 1차 선택값: `staging-restore-validation-checklist-result-handoff`를 선택합니다. 기존 v3.3 backup/recovery source handoff와 v3.4 staging restore validation harness를 연결하되 production restore/cutover를 수행하지 않습니다.
