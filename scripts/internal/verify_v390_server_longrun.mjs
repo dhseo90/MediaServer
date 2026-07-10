@@ -67,6 +67,7 @@ let failedPhase = "";
 let failedCase = "";
 let exitCode = 0;
 let delegatedFailure = null;
+let failure = null;
 
 fs.mkdirSync(outputDir, { recursive: true });
 
@@ -98,6 +99,8 @@ const summary = {
   reportPath,
   cleanup,
   delegatedFailure,
+  delegatedFirstFailContractSatisfied: delegatedFailure?.firstFailContractSatisfied ?? true,
+  failure,
   realDurationEvidence: !fixtureMode && result === "PASS",
   longrunEvidenceStatus: longrunEvidenceStatus(fixtureMode, result),
   phases,
@@ -113,6 +116,7 @@ console.log(`- result: ${summary.result}`);
 console.log(`- durationMinutes: ${summary.durationMinutes}`);
 console.log(`- stopOnFirstFail: ${summary.stopOnFirstFail}`);
 console.log(`- failedPhase: ${summary.failedPhase}`);
+console.log(`- failedCase: ${summary.failedCase}`);
 console.log(`- longrunEvidenceStatus: ${summary.longrunEvidenceStatus}`);
 console.log(`- summaryPath: ${summary.summaryPath}`);
 console.log(`- reportPath: ${summary.reportPath}`);
@@ -203,6 +207,23 @@ function runFixturePhase(phaseId) {
     failedPhase = phaseId;
     failedCase = delegated?.name || `fixture-${phaseId}`;
     exitCode = 1;
+    const context = delegated?.context || `fixture phase ${phaseId} failed`;
+    const stderrTail = delegated?.stderrTail?.length > 0
+      ? delegated.stderrTail
+      : [`fixture stderr at ${phaseId}`];
+    const reproductionCommand = delegated?.reproductionCommand || `fixture fail ${phaseId}`;
+    failure = makeFailure({
+      phase: phaseId,
+      caseName: failedCase,
+      context,
+      stderrTail,
+      reproductionCommand,
+      command: `fixture fail ${phaseId}`,
+      failureExitCode: 1,
+      logPath: "",
+      phaseSummaryPath: options.fixturePredevSummary,
+    });
+    printFirstFailure(failure);
     const tail = [`fixture failure at ${phaseId}`];
     if (delegated) {
       tail.push(`delegated predev first failure: ${delegated.name}`);
@@ -216,6 +237,10 @@ function runFixturePhase(phaseId) {
       logPath: writePhaseLog(phaseId, [`fixture failure at ${phaseId}`]),
       summaryPath: options.fixturePredevSummary,
       tail,
+      context,
+      stdoutTail: [],
+      stderrTail,
+      reproductionCommand,
     }));
     return;
   }
@@ -280,7 +305,8 @@ async function runRealPhase(phaseId) {
 function runCommandPhase(phaseId, commandParts, phaseSummaryPath = "") {
   const logPath = path.join(outputDir, `${phaseId}.log`);
   return new Promise((resolve) => {
-    const chunks = [];
+    const stdoutChunks = [];
+    const stderrChunks = [];
     const logStream = fs.createWriteStream(logPath, { flags: "w" });
     let settled = false;
 
@@ -289,45 +315,50 @@ function runCommandPhase(phaseId, commandParts, phaseSummaryPath = "") {
       stdio: ["ignore", "pipe", "pipe"],
     });
 
-    const collect = (chunk, stream) => {
+    const collect = (chunk, stream, chunks) => {
       const text = String(chunk);
       chunks.push(text);
       logStream.write(text);
       stream.write(text);
     };
 
-    child.stdout.on("data", chunk => collect(chunk, process.stdout));
-    child.stderr.on("data", chunk => collect(chunk, process.stderr));
+    child.stdout.on("data", chunk => collect(chunk, process.stdout, stdoutChunks));
+    child.stderr.on("data", chunk => collect(chunk, process.stderr, stderrChunks));
     child.on("error", (error) => {
       if (settled) return;
       settled = true;
       const message = `${error instanceof Error ? error.message : String(error)}\n`;
-      chunks.push(message);
+      stderrChunks.push(message);
       logStream.write(message);
-      finishCommandPhase(phaseId, commandParts, logPath, chunks.join(""), 1, phaseSummaryPath);
+      finishCommandPhase(phaseId, commandParts, logPath, stdoutChunks.join(""), stderrChunks.join(""), 1, phaseSummaryPath);
       logStream.end(resolve);
     });
     child.on("close", (code) => {
       if (settled) return;
       settled = true;
       const phaseExitCode = Number.isInteger(code) ? code : 1;
-      finishCommandPhase(phaseId, commandParts, logPath, chunks.join(""), phaseExitCode, phaseSummaryPath);
+      finishCommandPhase(phaseId, commandParts, logPath, stdoutChunks.join(""), stderrChunks.join(""), phaseExitCode, phaseSummaryPath);
       logStream.end(resolve);
     });
   });
 }
 
-function finishCommandPhase(phaseId, commandParts, logPath, output, phaseExitCode, phaseSummaryPath = "") {
+function finishCommandPhase(phaseId, commandParts, logPath, stdout, stderr, phaseExitCode, phaseSummaryPath = "") {
   const delegated = readDelegatedFailure(phaseSummaryPath);
+  const command = commandParts.join(" ");
   if (phaseExitCode === 0) {
     phases.push(makePhase({
       id: phaseId,
       status: "PASS",
-      command: commandParts.join(" "),
+      command,
       exitCode: 0,
       logPath,
       summaryPath: phaseSummaryPath,
-      tail: tailLines(output),
+      tail: tailLines(`${stdout}\n${stderr}`),
+      context: `phase=${phaseId}; result=PASS`,
+      stdoutTail: tailLines(stdout),
+      stderrTail: tailLines(stderr),
+      reproductionCommand: command,
     }));
     return;
   }
@@ -335,19 +366,44 @@ function finishCommandPhase(phaseId, commandParts, logPath, output, phaseExitCod
   failedPhase = phaseId;
   failedCase = delegated?.name || phaseId;
   exitCode = phaseExitCode;
-  const tail = tailLines(output);
+  const tail = tailLines(`${stdout}\n${stderr}`);
   if (delegated) {
     tail.push(`delegated predev first failure: ${delegated.name}`);
     tail.push(`delegated predev log: ${delegated.logFile}`);
   }
+  const context = delegated?.context || [
+    `phase=${phaseId}`,
+    `case=${failedCase}`,
+    `httpPort=${Number(process.env.MEDIA_SERVER_VERIFY_PREDEV_HTTP_PORT || 8081)}`,
+    `rtspPort=${Number(process.env.MEDIA_SERVER_VERIFY_PREDEV_RTSP_PORT || 8555)}`,
+    `outputDir=${outputDir}`,
+  ].join("; ");
+  const stderrTail = delegated?.stderrTail?.length > 0 ? delegated.stderrTail : tailLines(stderr);
+  const reproductionCommand = delegated?.reproductionCommand || command;
+  failure = makeFailure({
+    phase: phaseId,
+    caseName: failedCase,
+    context,
+    stderrTail,
+    reproductionCommand,
+    command,
+    failureExitCode: exitCode,
+    logPath,
+    phaseSummaryPath,
+  });
+  printFirstFailure(failure);
   phases.push(makePhase({
     id: phaseId,
     status: "FAIL",
-    command: commandParts.join(" "),
+    command,
     exitCode,
     logPath,
     summaryPath: phaseSummaryPath,
     tail,
+    context,
+    stdoutTail: tailLines(stdout),
+    stderrTail,
+    reproductionCommand,
   }));
 }
 
@@ -360,10 +416,26 @@ function passPhase(id, command, lines) {
     logPath: writePhaseLog(id, lines),
     summaryPath: "",
     tail: lines.slice(-5),
+    context: `phase=${id}; result=PASS`,
+    stdoutTail: lines.slice(-5),
+    stderrTail: [],
+    reproductionCommand: command,
   });
 }
 
-function makePhase({ id, status, command, exitCode: phaseExitCode, logPath, summaryPath: phaseSummaryPath, tail }) {
+function makePhase({
+  id,
+  status,
+  command,
+  exitCode: phaseExitCode,
+  logPath,
+  summaryPath: phaseSummaryPath,
+  tail,
+  context = "",
+  stdoutTail = [],
+  stderrTail = [],
+  reproductionCommand = "",
+}) {
   return {
     id,
     status,
@@ -372,6 +444,10 @@ function makePhase({ id, status, command, exitCode: phaseExitCode, logPath, summ
     logPath,
     summaryPath: phaseSummaryPath,
     tail,
+    context,
+    stdoutTail,
+    stderrTail,
+    reproductionCommand,
   };
 }
 
@@ -392,6 +468,10 @@ function writeReport(filePath, payload) {
     `failedPhase: ${payload.failedPhase || "(none)"}`,
     `failedCase: ${payload.failedCase || "(none)"}`,
     `delegatedFailure: ${payload.delegatedFailure?.name || "(none)"}`,
+    `delegatedFirstFailContractSatisfied: ${payload.delegatedFirstFailContractSatisfied}`,
+    `failureContext: ${reportValue(payload.failure?.context)}`,
+    `stderrTail: ${reportValue(payload.failure?.stderrTail?.join(" | "))}`,
+    `reproductionCommand: ${reportValue(payload.failure?.reproductionCommand)}`,
     `realDurationEvidence: ${payload.realDurationEvidence}`,
     `longrunEvidenceStatus: ${payload.longrunEvidenceStatus}`,
     "",
@@ -434,20 +514,81 @@ function readDelegatedFailure(summaryFilePath) {
   if (!summaryFilePath || !fs.existsSync(summaryFilePath)) return null;
   try {
     const summary = JSON.parse(fs.readFileSync(summaryFilePath, "utf8"));
-    const failedStep = Array.isArray(summary.steps)
-      ? summary.steps.find(step => step?.result === "fail")
-      : null;
+    const steps = Array.isArray(summary.steps) ? summary.steps : [];
+    const failedIndex = steps.findIndex(step => step?.result === "fail");
+    const failedStep = failedIndex >= 0 ? steps[failedIndex] : null;
     if (!failedStep?.name) return null;
+    const mandatoryAfterFailure = new Set(["ports-clean", "summary-report", "summary-report-refresh"]);
+    const laterSteps = steps.slice(failedIndex + 1);
+    const laterNotRunCases = laterSteps
+      .filter(step => step?.result === "not-run")
+      .map(step => String(step.name || ""))
+      .filter(Boolean);
+    const executedAfterFailure = laterSteps
+      .filter(step => !["not-run"].includes(String(step?.result || "")) && !mandatoryAfterFailure.has(String(step?.name || "")))
+      .map(step => String(step.name || ""))
+      .filter(Boolean);
+    const hasSeparatedStderrField = Object.prototype.hasOwnProperty.call(failedStep, "stderrFile");
+    const stderrTail = Array.isArray(failedStep.stderrTail) && failedStep.stderrTail.length > 0
+      ? failedStep.stderrTail.map(line => String(line))
+      : readTailFromFile(hasSeparatedStderrField ? failedStep.stderrFile : failedStep.logFile);
     return {
       name: String(failedStep.name),
       command: String(failedStep.command || ""),
       logFile: String(failedStep.logFile || ""),
+      stdoutFile: String(failedStep.stdoutFile || ""),
+      stderrFile: String(failedStep.stderrFile || ""),
+      stderrTail,
+      context: String(failedStep.context || `predev case ${failedStep.name} failed`),
+      reproductionCommand: String(failedStep.reproductionCommand || failedStep.command || ""),
       durationSec: Number(failedStep.durationSec || 0),
       summaryPath: path.resolve(rootDir, summaryFilePath),
+      laterNotRunCases,
+      executedAfterFailure,
+      firstFailContractSatisfied: executedAfterFailure.length === 0,
     };
   } catch {
     return null;
   }
+}
+
+function makeFailure({ phase, caseName, context, stderrTail, reproductionCommand, command, failureExitCode, logPath, phaseSummaryPath }) {
+  return {
+    phase,
+    case: caseName,
+    context,
+    stderrTail,
+    reproductionCommand,
+    command,
+    exitCode: failureExitCode,
+    logPath,
+    summaryPath: phaseSummaryPath,
+  };
+}
+
+function printFirstFailure(details) {
+  console.log(`[first-fail] phase: ${details.phase}`);
+  console.log(`[first-fail] case: ${details.case}`);
+  console.log(`[first-fail] context: ${details.context}`);
+  if (details.stderrTail.length === 0) {
+    console.log("[first-fail] stderr: (empty)");
+  } else {
+    for (const line of details.stderrTail) console.log(`[first-fail] stderr: ${line}`);
+  }
+  console.log(`[first-fail] reproduce: ${details.reproductionCommand}`);
+}
+
+function readTailFromFile(filePath) {
+  if (!filePath || !fs.existsSync(filePath)) return [];
+  try {
+    return tailLines(fs.readFileSync(filePath, "utf8"));
+  } catch {
+    return [];
+  }
+}
+
+function reportValue(value) {
+  return value ? String(value).replace(/\r?\n/g, " | ") : "(none)";
 }
 
 function assert(condition, message) {

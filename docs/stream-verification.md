@@ -79,8 +79,8 @@ v3.9.0 Test Model Prep의 서버 longrun runner는 30분/120분을 새 테스트
 | --- | --- |
 | one command | 하나의 명령이 suite를 시작하고 command line을 summary/report에 남깁니다. |
 | fixed phase order | build/preflight/seed/start/integrated smoke/soak iteration/cleanup/report 같은 phase 순서가 고정됩니다. |
-| stop-on-first-fail | 첫 실패에서 suite를 중단하고 이후 phase는 `not-run`으로 남깁니다. |
-| failure evidence | command, exit code, phase, port, route, log path, summary path, report path, cleanup state, delegated predev first failed step, likely investigation files를 포함합니다. |
+| stop-on-first-fail | 첫 실패에서 suite와 delegated duration case loop를 즉시 중단하고 이후 phase/case는 `not-run`으로 남깁니다. |
+| failure evidence | command, exit code, phase, port, route, log path, summary path, report path, cleanup state, case, context, separated stderr tail, reproduction command, stdout/stderr path, delegated predev first failed step, likely investigation files를 포함합니다. |
 | reproducible inputs | 같은 command와 fixture로 재현할 수 있어야 합니다. |
 | artifact policy | 임시 artifact는 cleanup하거나 보존 이유를 명시합니다. `/tmp` 경로를 최종 evidence로 쓰지 않습니다. |
 | category boundary | wrapper, preflight, dry-run, field smoke, no-device는 다섯 번째 테스트 영역이 아니며 안정화/30분/120분/UI 중 해당 위치에만 기록합니다. |
@@ -92,10 +92,15 @@ v3.9.0 R1 implementation command:
 - `./server.sh verify-v390-server-longrun-runner-contract`
 
 R1 summary schema is `media-server.v390-server-longrun.v1`. The contract verifier checks
-`stop-on-first-fail`, later phase `not-run`, cleanup fields, delegated predev first-failure
-preservation via `failedCase`/`delegatedFailure`, and `fixture-only-not-real-duration` fixture
-output. Fixture output is implementation/contract evidence only and is not real 30-minute or
-120-minute duration evidence.
+`stop-on-first-fail`, later phase/case `not-run`, cleanup fields, delegated predev first-failure
+preservation via `failedCase`/`delegatedFailure`, context, separated stderr tail, reproduction
+command, and `fixture-only-not-real-duration` fixture output. `V390-ADD1-10`부터
+`verify-predev --fail-fast`의 soak case 사이에도 fail-fast 경계를 두며, contract 전용
+`--fixture-first-fail`이 두 번째 case 실패 뒤 세 번째 case `not-run`과 분리 stdout/stderr를
+실행 검증합니다. 같은 ordered-case helper를 사용하는 `--fixture-cumulative-fail`은 legacy
+mode가 실패를 기록한 뒤 세 번째 case를 계속 실행하는 역할 분리를 검증합니다. Fixture
+output은 implementation/contract evidence일 뿐 실제 30분/120분 duration evidence가
+아닙니다.
 
 Console progress output:
 
@@ -111,6 +116,11 @@ Approved real-duration R1 evidence:
   predev `status=pass`, `pass=118`, `fail=0`, `skip=2`, `durationSec=2341`.
 - 120분: not run. The 30분 PASS does not become 120분, UI fulltest, published metadata,
   release action, or field smoke evidence.
+
+V390-ADD1-10 진단 출력은 첫 실패 시점에 `[first-fail] phase`, `case`, `context`,
+각 stderr tail 행, `reproduce`를 console에 출력하고 같은 값을 summary `failure`, failed
+phase, Markdown report에 보존합니다. Delegated predev summary는 첫 failed step 뒤의
+일반 case가 모두 `not-run`인지 확인하며 cleanup/report case만 실패 뒤 실행할 수 있습니다.
 
 ### v3.9.0 R2 AI-minimized UI automation runner 실제 구현
 

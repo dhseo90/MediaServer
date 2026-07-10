@@ -111,9 +111,9 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 21 | v3.9.0 (21) actual test acceptance bundle 실행 모드 | P0 | 완료 | V390-ADD1-06 actual mode final summary/report가 build→기능→real 30분→UI automation/replay→conditional 120 decision→cleanup을 단일 실행으로 PASS |
 | 22 | v3.9.0 (22) v3.9 UI automation case completeness | P0 | 완료 | V390-ADD1-07 case schema v2와 actual summary가 `UI-112` 포함 exact `UI-108`~`UI-115` 8개 route/control/action/state/failure/artifact를 검증하고 replay PASS |
 | 23 | v3.9.0 (23) native free UI automation adapter proof | P0 | 완료 | bundled Playwright 1.61.1과 system Chrome을 선택해 standalone 7개 native action 및 UI-108~115의 native dispatch 8/8을 fallback 없이 실행하고 module/browser provenance를 보존 |
-| 24 | v3.9.0 (24) server longrun true first-fail case runner | P0 | 부분 완료/post-review 잔여 | R1 runner는 `stopOnFirstFail` summary와 delegated failure 보존이 있지만 핵심 duration loop는 cumulative `verify-predev`에 위임됨. 실제 case-by-case first-fail runner 보강 필요 |
+| 24 | v3.9.0 (24) server longrun true first-fail case runner | P0 | 완료 | V390-ADD1-10이 `verify-predev --fail-fast`의 duration case 사이를 즉시 중단하고 later case를 `not-run`으로 기록하며 runner console/summary/report에 context, 분리 stderr tail, 재현 명령을 보존 |
 | 25 | v3.9.0 (25) route/control/action automation coverage matrix | P0 | 미완료/post-review 잔여 | 현재 R2 자동화는 v3.9 신규 일부 case 중심임. v1.0~v3.9 current UI 기능 ID에 대한 자동화 coverage matrix와 미지원/제외 사유가 필요 |
-| 26 | v3.9.0 (26) final evidence re-run and cleanup | P0 | 완료 | 6~9 통합 acceptance 재실행에서 build/26개 기능 gate/실제 30분 118-0/UI-108~115 native visible DOM 8-0/replay/조건부 120 판정/cleanup을 단일 run으로 닫음 |
+| 26 | v3.9.0 (26) final evidence re-run and cleanup | P0 | 부분 완료/Step 25 후 재실행 | 6~9 통합 acceptance의 build/30분/UI/cleanup evidence는 보존하지만 V390-ADD1-10 이후 새 duration evidence와 Step 25 full coverage가 없어 release 전 final evidence로 재사용하지 않음 |
 | 27 | v3.9.0 (27) deferred product decision owner sign-off | P1 | 미완료/owner decision 필요 | 실행형 action, field smoke, persistent credential store, provider call, model-backed Re-ID는 read-only/defer 상태임. v3.9에서 non-goal로 닫을지 실제 구현할지 명시 decision 필요 |
 | 28 | v3.9.0 (28) structure stabilization implementation readiness | P1 | 미완료/structure handoff 후속 | Step 19는 실제 구조 안정화 구현이 아니라 계획 이관임. `webrtc_http_server.cpp`/UI script extraction 실행 branch와 slice별 검증 순서 확정 필요 |
 | 29 | v3.9.0 (29) real external field smoke gate | P2 | 조건부 미실행 | 외부 credential/endpoint/실기기/provider 조건이 없으면 기본 release PASS가 아님. 조건 제공 시 별도 field smoke evidence로만 닫음 |
@@ -141,6 +141,7 @@ UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release a
 | 7 | V390-ADD1-07 | UI Test | UI 케이스 누락 보완 | P0 | 완료 | `UI-112`를 포함한 `UI-108`~`UI-115` 전 case의 실제 route/control/action/state/failure/artifact evidence를 검증 |
 | 8 | V390-ADD1-08 | UI Test | 무료 네이티브 자동화 어댑터 | P0 | 완료 | bundled Playwright와 설치된 Chrome을 사용하는 독립 adapter가 실제 wait/click/fill/type/select/screenshot을 실행하고 UI 8-case도 `playwright-native` dispatch/provenance/fallback false로 검증 |
 | 9 | V390-ADD1-09 | UI Test | 거짓 PASS 방지 | P0 | 완료 | case schema v3 exact-selector `visibleAssertions`와 trusted native action 뒤 computed visibility/visible innerText만 판정하며 source/script/outerHTML/whole-page marker PASS를 negative contract로 거부 |
+| 10 | V390-ADD1-10 | Test Foundation | Longrun first-fail 진단 실행기 | P0 | 완료 | delegated duration case의 첫 실패 직후 후속 case를 실행하지 않고 `not-run`으로 남기며 console/summary/report에 context, 분리 stderr, 재현 명령을 출력 |
 
 ### V390-ADD1-06 실제 acceptance bundle — 실행 전 등록
 
@@ -719,17 +720,17 @@ failure evidence가 나와야 합니다.
 - `criteria complete`: 기준, 문서, verifier 문구, not-run boundary가 정리된 상태입니다.
 - `implementation complete`: 실제 실행 가능한 script/route/UI가 있고, 실패 시 상세
   evidence를 남기며, 사용자가 같은 command를 재실행해 같은 판정을 얻을 수 있는 상태입니다.
-- Step 9와 Step 10은 먼저 `criteria complete`로 닫혔고, R1/R2/R5에서 실제 runner와
-  replay evidence가 추가되었습니다. 다만 post-review 확인 결과 R3 actual bundle, `UI-112`
-  case completeness, native free UI adapter proof, true first-fail longrun loop, full route/control/action
-  coverage는 아직 `implementation complete`가 아닙니다.
+- Step 9와 Step 10은 먼저 `criteria complete`로 닫혔고, R1/R2/R5와
+  V390-ADD1-06~10에서 actual bundle, `UI-112` case completeness, native free UI adapter,
+  visible DOM assertion, true first-fail longrun loop가 `implementation complete`로 보강됐습니다.
+  full route/control/action coverage는 아직 `implementation complete`가 아닙니다.
 
 ### v3.9.0 잔여 구현 순서
 
 | 순서 | 우선순위 | 대상 | 현재 상태 | 반드시 구현할 내용 | 완료 evidence |
 | --- | --- | --- | --- | --- | --- |
 | R0 | P0 | `V390-CAND-001` inventory 상태 불일치 정리 | `docs/v390-feature-completion-inventory.md` 원 표 행과 Candidate/Closed 목록이 Step 11 evidence 기준 `closed-with-evidence`로 정리됨 | inventory 원 행을 Step 11 구현 상태와 맞춰 `closed-with-evidence`로 정리하고, Candidate/Closed 목록 문구가 서로 모순되지 않게 보정 | `./server.sh verify-v390-feature-completion-inventory`, `./server.sh verify-v390-onvif-credential-provider-status`, `git diff --check` |
-| R1 | P0 | AI-minimized server longrun runner 실제 구현 | `verify-v390-server-longrun`과 contract verifier가 구현됨. 사용자 승인 후 30분 actual final evidence가 보존됐고 120분은 조건부/승인 전 미실행 | 30분/120분 서버 테스트를 하나의 명령으로 시작하고 첫 실패에서 즉시 중단하며 이후 phase를 `not-run`으로 기록하는 새 runner 또는 stop-on-first-fail mode 구현. predev delegated summary가 실패하면 내부 첫 실패 step을 `failedCase`/`delegatedFailure`로 보존 | `./server.sh verify-v390-server-longrun-runner-contract`, 실제 30분 명령 PASS, 실패 fixture에서 first-fail/not-run/delegated predev failure evidence PASS |
+| R1 | P0 | AI-minimized server longrun runner 실제 구현 | V390-ADD1-10까지 구현됨. `verify-v390-server-longrun`과 `verify-predev --fail-fast`가 phase/case first-fail, later `not-run`, context/stderr/reproduction을 보존합니다. 과거 사용자 승인 30분 evidence는 남아 있지만 새 code 기준 30분/120분은 미실행 | 30분/120분 서버 테스트를 하나의 명령으로 시작하고 첫 실패에서 즉시 중단하며 이후 phase/case를 `not-run`으로 기록. predev delegated summary의 내부 첫 실패와 진단 정보를 `failure`/`failedCase`/`delegatedFailure`로 보존 | `./server.sh verify-v390-server-longrun-runner-contract`, fast predev first-fail fixture, 새 code 기준 실제 30분/120분은 별도 승인 evidence |
 | R2 | P0 | AI-minimized UI automation runner 실제 구현 | `verify-v390-ui-automation`/`verify-v390-ui-automation-report`/`verify-v390-ui-automation-runner-contract` 구현과 실제 Playwright-mode UI automation suite PASS evidence가 보존됨. 현재 환경에서는 Playwright package 부재로 `chrome-cdp-fallback` adapter를 명시 기록 | 무료 UI 자동화 도구 우선순위에 맞춘 runner를 구현하고 route/control/action 단위 실패 report, screenshot, trace/video, console, server log, cleanup evidence를 남김 | `./server.sh verify-v390-ui-automation-runner-contract`, `./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir docs/release-artifacts/v3.9.0/ui-automation-playwright-final --allow-chrome-fallback=1`, `./server.sh verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json`, 실패 fixture에서 failure report PASS |
 | R3 | P0 | 사용자가 재실행 가능한 v3.9 test acceptance bundle | `verify-v390-test-acceptance-bundle --dry-run`과 contract verifier가 구현되어 `finalAcceptanceCommandSet`, R1 30분 preserved evidence `pass-existing-evidence`, R2 UI automation preserved evidence `pass-existing-evidence`, 조건부 120분, published/release action not-run boundary를 한 summary/report로 고정함. 실제 acceptance bundle 실행은 사용자 승인 전 미실행 | R1/R2 산출물을 포함한 final acceptance command set을 문서와 script dispatch에 고정하고, 각 command의 summary/report 경로를 release evidence로 복사 가능하게 함 | `./server.sh verify-v390-test-acceptance-bundle --dry-run`, `./server.sh verify-v390-test-acceptance-bundle-contract`, `./server.sh verify-script-inventory`, `./server.sh verify-release-evidence-index` |
 | R4 | P1 | legacy `verify-predev`와 새 runner 관계 정리 | R4 선택 option 3으로 정리됨. `verify-predev`는 legacy/compatibility cumulative predev runner, `verify-v390-server-longrun`은 release-grade first-fail runner이며 runtime/media trigger matrix row도 새 runner를 표준 trigger로 사용 | 기존 command를 유지할지, 새 command로 matrix를 바꿀지 결정하고 docs/project inventory/release policy가 같은 runner를 가리키게 정렬 | `./server.sh verify-v390-longrun-runner-role-alignment`, `./server.sh verify-runtime-media-longrun-trigger-matrix`, `./server.sh verify-longrun-separation`, `./server.sh verify-rc-release-gate` |
@@ -747,7 +748,7 @@ failure evidence가 나와야 합니다.
 | Test Closure | R6 actual acceptance bundle 실행 모드 | P0 | `verify-v390-test-acceptance-bundle`이 `--dry-run` 없이 실행될 때 local readiness, R1 30분, R2 UI automation, 조건부 120분 판정, cleanup/evidence copy를 stop-on-first-fail summary/report로 생성하게 구현. 현재 `release-test-records.md`의 `v390 R3 actual acceptance bundle`은 미실행/FAIL 경계이므로 완료 evidence로 사용 금지 |
 | UI Automation | R7 `UI-112`와 v3.9 신규 UI case completeness | P0 | `test/fixtures/v390_ui_automation_cases.json`과 보존 summary가 `UI-112` staging restore validation handoff를 누락함. `UI-108`~`UI-115` 전 case를 manifest, actual run, replay guard, release evidence에 포함하고 누락 case가 있으면 PASS 불가 처리 |
 | UI Automation | R8 native free UI automation adapter proof | P0 | 현재 R2 실제 run은 `browserMode=playwright`지만 Playwright package 부재로 `selectedAdapter.engine=chrome-cdp-fallback`을 사용함. Playwright/Selenium/SikuliX 중 하나를 native adapter evidence로 실행하거나, native adapter 부재 시 명확한 preflight FAIL과 설치/설정 안내를 남기고 fallback PASS를 primary PASS로 쓰지 않게 함 |
-| Server Longrun | R9 true first-fail longrun loop | P0 | R1 runner가 summary-level `stopOnFirstFail`과 delegated failure 보존은 하지만 duration loop는 cumulative `verify-predev`에 위임됨. `verify-v390-server-longrun` 자체 case loop 또는 `verify-predev --stop-on-first-fail` opt-in으로 실제 첫 실패 이후 case를 실행하지 않고 `not-run`으로 남기게 구현 |
+| Server Longrun | R9 true first-fail longrun loop | P0 | V390-ADD1-10 완료. `verify-predev --fail-fast`가 duration iteration의 각 case 뒤 실패를 확인해 같은 iteration의 later case와 future iteration을 `not-run`으로 남기며, `verify-v390-server-longrun`이 context/stderr/reproduction을 console/summary/report에 보존 |
 | UI Full Coverage | R10 v1.0~v3.9 route/control/action automation coverage matrix | P0 | 현재 R2 자동화는 v3.9 신규 일부 case 중심임. `docs/project-feature-test-inventory.md`의 current UI IDs를 source로 자동화 manifest를 생성/검증하고, 각 route/control/action의 조작, UI 반영, console/server log, artifact를 개별 행으로 남김. 자동화 불가 case는 제외 사유와 manual UI 필요성을 별도 기록 |
 | Release Evidence | R11 post-review final evidence re-run and cleanup | P0 | R6~R10 수정 후 `verify-v390-stabilization-release-readiness`, Step 1~20 companion gates, actual 30분, UI automation/full coverage, 조건부 120분 판정, cleanup/evidence 보존을 다시 실행하고 release action 전 최신 evidence로 교체/추가 |
 | Product Scope Lock | R12 deferred product decision owner sign-off | P1 | action execution, persistent credential store, field smoke, provider call, model-backed Re-ID는 현재 read-only/defer 상태임. v3.9에서 non-goal로 닫는지 실제 구현할지 owner decision을 문서/evidence에 명확히 남김. owner decision 없이 완료 주장 금지 |
@@ -1384,6 +1385,101 @@ Foundation review-ready 상태:
   - `scripts/internal/verify_v390_stabilization_release_readiness.mjs`와 `./server.sh verify-v390-stabilization-release-readiness`를 추가해 roadmap, stream verification, project inventory `SAFE-212`/`OPS-179`, release policy/evidence/records, AGENTS 테스트 판정표, server dispatch/script inventory 연결을 검증합니다.
   - release action 승인 없음 - 미실행: PR 생성, main merge, signed tag, GitHub Release 생성/갱신, `verify-release-metadata --published`, 후속 브랜치 생성, release branch 삭제, field smoke는 이번 Step 20 local readiness PASS로 완료 처리하지 않습니다.
   - 이 step은 local stabilization/readiness 연결 완료입니다. UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, PR/main/tag/GitHub Release, field smoke PASS가 아닙니다.
+
+## v3.9.0 (14) 장시간 실행기 — V390-ADD1-10
+
+이번 단계의 구현 계획 source-of-truth는
+`docs/superpowers/plans/2026-07-10-v390-longrun-first-fail-diagnostics.md`입니다. 기존 R1
+runner는 phase-level `stopOnFirstFail`과 delegated first failure 이름을 보존했지만,
+`verify-predev` soak iteration 내부 case 사이의 즉시 중단과 context/stderr/재현 명령
+출력 계약은 닫히지 않았습니다. 이번 변경은 product API/schema/media/auth를 변경하지 않고
+longrun/predev orchestration과 failure evidence만 보강했습니다.
+
+테스트 필요성 판정:
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | longrun runner, delegated predev fail-fast, contract, docs/inventory를 직접 변경 | `V390-ADD1-10`, `OPS-168`, `SAFE-201` | 최신 goal에서 10번 개발 승인 |
+| 30분 테스트 | 미진행 | 최신 요청은 실행기 개발이며 실제 30분 duration 명령 실행을 명시하지 않음 | AGENTS 7.6.2/7.7, `V390-ADD1-10` | duration 실행 승인 없음 |
+| 120분 테스트 | 미진행 | 실제 runtime/media path를 변경하지 않고 AGENTS 7.6.2 high-risk trigger와 명시 실행 지시가 없음 | `V390-ADD1-10` 변경 범위 | 조건·실행 승인 없음 |
+| UI 풀테스트 | 미진행 | backend/test orchestration과 failure evidence만 변경하고 제품 UI route/control을 변경하지 않음 | `V390-ADD1-10`, `OPS-168`, `SAFE-201` | UI 실행 지시 없음 |
+
+개발 위치와 로직:
+
+- `scripts/internal/verify_predev_stability.sh`: `run_step`이 stdout/stderr를 별도 파일과
+  tail로 보존하고 첫 실패 순간 context/stderr/reproduction을 출력합니다.
+  real soak와 fast fixture가 같은 `run_ordered_case_sequence`를 사용하며, `run_soak_loop`는
+  `--fail-fast`일 때 case 사이마다 실패를 확인하고 같은 iteration의
+  later case, future iteration, 이후 main/queue case를 `not-run`으로 기록합니다.
+  `run_failure_contract_fixture`는 두 번째 case 실패와 세 번째 case 미실행을 빠르게
+  재현합니다. `--fail-fast`가 없는 legacy cumulative 동작은 계속 후속 case를 수행합니다.
+- `scripts/internal/verify_v390_server_longrun.mjs`: `finishCommandPhase`,
+  `readDelegatedFailure`, `printFirstFailure`가 phase/case/context/stderr/reproduction과
+  delegated later-not-run/contract 상태를 summary `failure`, failed phase, Markdown report,
+  console에 보존합니다.
+- `scripts/internal/verify_v390_server_longrun_runner_contract.mjs`: phase failure/pass,
+  delegated summary, executable predev first-fail fixture, 잘못된 duration, docs/evidence를
+  7개 독립 check로 검증합니다.
+- `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`,
+  `docs/release-test-records.md`, `docs/release-evidence-index.md`와 exact 974행 implementation
+  manifest가 `V390-ADD1-10`, `OPS-168`, `SAFE-201`을 같은 경계로 연결합니다.
+
+실패 후 수정 이력:
+
+| 순서 | 최초 실패 | 원인 | 수정 | 재검증 |
+| --- | --- | --- | --- | --- |
+| 1 | first-fail contract `pass=3 fail=4` | 기존 summary/report에 context/stderr/reproduction이 없고 predev executable fixture가 없음 | 계약을 먼저 RED로 고정한 뒤 runner/predev 진단과 fixture 구현 | contract `pass=7 fail=0` |
+| 2 | direct predev fixture exit 127, summary 없음 | `run_failure_contract_fixture`가 Python heredoc 안에 잘못 삽입됨 | Bash 함수 정의를 heredoc 밖으로 이동 | executable fixture가 fail 1/notRun 1과 분리 stderr를 기록, contract PASS |
+| 3 | evidence/test gate `pass=8 fail=1` | 새 필드를 기존 문서 필드 사이에 넣어 verifier의 호환 문자열이 끊김 | 기존 `command...cleanup state` 순서를 보존하고 새 case/context/stderr/reproduction을 뒤에 추가 | gate `pass=9 fail=0` |
+| 4 | manifest refresh가 관련 없는 valid anchor도 재선택 | generator의 현재 탐색 순서가 여러 valid anchor 중 다른 항목을 선택 | `SAFE-201`/`OPS-168`/inventory hash 외 unrelated anchor churn을 원래 값으로 복구 | implementation evidence 974/974, validation error 0, negative 11/11 |
+
+안정화 실행 결과:
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| Bash syntax | `bash -n scripts/internal/verify_predev_stability.sh`, exit 0 | pass | fixture 함수 위치 수정 후 재확인 |
+| Node runner syntax | `node --check scripts/internal/verify_v390_server_longrun.mjs`, exit 0 | pass | summary/failure helper syntax 확인 |
+| Node contract syntax | `node --check scripts/internal/verify_v390_server_longrun_runner_contract.mjs`, exit 0 | pass | executable fixture helper syntax 확인 |
+| first-fail contract RED | `./server.sh verify-v390-server-longrun-runner-contract`, pass 3/fail 4 | fail | context, delegated diagnostics, executable fixture, docs 계약 부재를 예상대로 재현 |
+| first-fail contract final | 같은 명령, phase/delegated/predev fixture/duration/docs 7개 check | pass | 최종 pass 7/fail 0 |
+| role alignment | `./server.sh verify-v390-longrun-runner-role-alignment` | pass | option 3, legacy cumulative와 release-grade first-fail 역할 5/0 |
+| longrun separation | `./server.sh verify-longrun-separation` | pass | 기본 test와 explicit longrun 분리 7/0 |
+| runtime/media trigger matrix | `./server.sh verify-runtime-media-longrun-trigger-matrix` | pass | 13행, 30분 7행, 120분 server 3행, runtime 4행, checks 8/0 |
+| RC release gate | `./server.sh verify-rc-release-gate` | pass | RC-only/승인 경계 10/0 |
+| acceptance compatibility | `./server.sh verify-v390-test-acceptance-bundle-contract` | pass | actual fixture order/first-fail/cleanup/report/120 조건 6/0 |
+| implementation evidence | `./server.sh verify-feature-implementation-evidence` | pass | 974/974, validation 0, negative 11/11 |
+| feature coverage | `./server.sh verify-feature-inventory-coverage` | pass | covered 974, missing 0, checks 6/0 |
+| project inventory | `./server.sh verify-project-inventory` | pass | featureRows 974, checks 14/0 |
+| script inventory | `./server.sh verify-script-inventory` | pass | dispatch/options/auth/default 경계 11/0 |
+| docs links | `./server.sh verify-docs-links` | pass | Markdown 155, local links 788, failures 0 |
+| release evidence index | `./server.sh verify-release-evidence-index` | pass | 상세 결과 source 분리 8/0 |
+| evidence/test gate 최초 | `./server.sh verify-v390-evidence-test-gate-prep` | fail | 문서 호환 문자열 수정 전 8/1 |
+| evidence/test gate 최종 | 같은 명령 | pass | 수정 후 9/0 |
+| feature completion inventory | `./server.sh verify-v390-feature-completion-inventory` | pass | source-of-truth/review/test-area 경계 13/0 |
+| stabilization readiness | `./server.sh verify-v390-stabilization-release-readiness` | pass | local readiness/not-run 경계 7/0 |
+| diff hygiene | `git diff --check` | pass | 최종 실행 결과 출력 없음 |
+
+장시간/UI 경계:
+
+- 실제 30분: 미실행. 새 first-fail code의 duration PASS evidence로 사용하지 않습니다.
+- 실제 120분: 미실행. 직접 trigger와 실행 승인이 없습니다.
+- UI 풀테스트: 미실행. 제품 UI 변경이 없고 직접 실행 지시가 없습니다.
+- 과거 30분/통합 acceptance PASS는 historical evidence로만 보존하며 이번 code의 duration
+  PASS로 승격하지 않습니다.
+
+임시 산출물 cleanup:
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| `/tmp/v390-debug-summary.json` | direct fixture summary | 4KB | 삭제 | 경로 없음 | final evidence가 아닌 재현용 임시 JSON |
+| `/tmp/v390-debug-report.md` | direct fixture report | 4KB | 삭제 | 경로 없음 | final evidence가 아닌 재현용 임시 report |
+| `/tmp/media_server_predev-1783682373-45267` | fixture stdout/stderr/log | 24KB | 삭제 | 경로 없음 | contract가 동일 정보를 재생성 가능 |
+| `/private/tmp/media_server_predev-*` 이번 실행 잔여 3개 | 초기 실패/contract 빈 workdir | 0B | 삭제 | 최근 잔여 경로 0개 | 첫 fixture 함수 연결 실패와 contract 재실행 산출물 |
+| contract output dirs/files | phase/predev fixture summary/report/log | 재현 가능 임시 산출물 | process-exit cleanup | glob 잔여 0개 | contract verifier cleanup과 후속 직접 확인 |
+
+테스트 사용량: token start `159662`, token end `526159`, token consumed `366497`,
+elapsed `1313초`, source `Codex goal usage` (실행 전 등록 snapshot과 최종 안정화 직후
+snapshot 차이).
 
 ## 이전 source roadmap 기록: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
 

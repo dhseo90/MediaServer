@@ -21,7 +21,8 @@ Usage:
 
 Checks:
   - verify-v390-server-longrun exists as a server.sh command and script
-  - fixture failure stops at the first failed phase and records later phases as not-run
+  - fixture failure stops at the first failed phase/case and records later work as not-run
+  - failure output preserves context, separate stderr, and a reproduction command
   - fixture pass writes summary/report with cleanup evidence
   - docs, release records/evidence, project inventory, script inventory, and dispatch are wired
 `);
@@ -49,6 +50,7 @@ const files = {
   releaseRecords: readText("docs/release-test-records.md"),
   releaseEvidence: readText("docs/release-evidence-index.md"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
+  predevRunner: readText("scripts/internal/verify_predev_stability.sh"),
 };
 
 check("server.sh and script inventory expose the R1 longrun runner commands", () => {
@@ -64,6 +66,15 @@ check("server.sh and script inventory expose the R1 longrun runner commands", ()
   assertIncludes(files.scriptInventory, runnerScript, "script inventory R1 runner");
   assertIncludes(files.scriptInventory, contractScript, "script inventory R1 contract");
   assertIncludes(readTextAbsolute(runnerPath), "real-duration-failed-no-pass-evidence", "runner real failure evidence status");
+  for (const snippet of [
+    "print_first_failure_evidence",
+    "run_ordered_case_sequence",
+    'print_first_failure_evidence "server-start-queue-${queue_size}"',
+    'print_first_failure_evidence "ports-clean"',
+    'print_first_failure_evidence "summary-report-refresh"',
+  ]) {
+    assertIncludes(files.predevRunner, snippet, "predev immediate failure diagnostics");
+  }
 });
 
 check("failure fixture records first failure and later phases as not-run", () => {
@@ -81,6 +92,12 @@ check("failure fixture records first failure and later phases as not-run", () =>
   assert(summary.cleanup.serverStopped === true, "cleanup.serverStopped must be true");
   assert(summary.cleanup.portsClean === true, "cleanup.portsClean must be true");
   assert(summary.cleanup.temporaryArtifactsRemoved === true, "cleanup.temporaryArtifactsRemoved must be true");
+  assert(summary.failure?.context === "fixture phase integrated-smoke failed", "failure fixture must preserve context");
+  assert(summary.failure?.stderrTail?.includes("fixture stderr at integrated-smoke"), "failure fixture must preserve stderr");
+  assert(summary.failure?.reproductionCommand === "fixture fail integrated-smoke", "failure fixture must preserve reproduction command");
+  assertIncludes(run.stdout, "[first-fail] context: fixture phase integrated-smoke failed", "failure fixture console context");
+  assertIncludes(run.stdout, "[first-fail] stderr: fixture stderr at integrated-smoke", "failure fixture console stderr");
+  assertIncludes(run.stdout, "[first-fail] reproduce: fixture fail integrated-smoke", "failure fixture console reproduction");
   assertPhaseStatus(summary, "preflight", "PASS");
   assertPhaseStatus(summary, "build", "PASS");
   assertPhaseStatus(summary, "seed", "PASS");
@@ -92,6 +109,9 @@ check("failure fixture records first failure and later phases as not-run", () =>
   assertPhaseStatus(summary, "report", "PASS");
   const report = readTextAbsolute(run.reportPath);
   assertIncludes(report, "failedPhase: integrated-smoke", "failure fixture report");
+  assertIncludes(report, "failureContext: fixture phase integrated-smoke failed", "failure fixture report");
+  assertIncludes(report, "stderrTail: fixture stderr at integrated-smoke", "failure fixture report");
+  assertIncludes(report, "reproductionCommand: fixture fail integrated-smoke", "failure fixture report");
   assertIncludes(report, "| soak-case-loop | not-run |", "failure fixture report");
 });
 
@@ -139,14 +159,21 @@ check("predev summary fixture preserves delegated first failure step", () => {
         result: "fail",
         command: "./server.sh test --no-start --include-va-events",
         logFile: "/tmp/predev/integrated_smoke.log",
+        stdoutFile: "/tmp/predev/integrated_smoke.stdout.log",
+        stderrFile: "/tmp/predev/integrated_smoke.stderr.log",
+        stderrTail: ["fixture delegated stderr"],
+        context: "predev case integrated-smoke failed after server start",
+        reproductionCommand: "./server.sh test --no-start --include-va-events",
         durationSec: 11,
       },
       {
         name: "soak-1-va-events",
-        result: "pass",
+        result: "not-run",
         command: "./server.sh verify-va-events --duration 30",
-        logFile: "/tmp/predev/soak_1_va_events.log",
-        durationSec: 1,
+        logFile: "",
+        context: "not run after first failure integrated-smoke",
+        reproductionCommand: "./server.sh verify-va-events --duration 30",
+        durationSec: 0,
       },
     ],
   });
@@ -163,6 +190,15 @@ check("predev summary fixture preserves delegated first failure step", () => {
   assert(summary.failedCase === "integrated-smoke", "failedCase must preserve delegated first failed predev step");
   assert(summary.delegatedFailure?.name === "integrated-smoke", "delegatedFailure must include failed predev step name");
   assert(summary.delegatedFailure?.logFile === "/tmp/predev/integrated_smoke.log", "delegatedFailure must preserve predev log path");
+  assert(summary.delegatedFailure?.context === "predev case integrated-smoke failed after server start", "delegatedFailure must preserve context");
+  assert(summary.delegatedFailure?.stderrTail?.includes("fixture delegated stderr"), "delegatedFailure must preserve stderr tail");
+  assert(summary.delegatedFailure?.reproductionCommand === "./server.sh test --no-start --include-va-events", "delegatedFailure must preserve reproduction command");
+  assert(summary.delegatedFailure?.laterNotRunCases?.includes("soak-1-va-events"), "delegatedFailure must preserve later not-run cases");
+  assert(summary.delegatedFirstFailContractSatisfied === true, "delegated summary must satisfy first-fail sequence contract");
+  assert(summary.failure?.case === "integrated-smoke", "top-level failure must name delegated case");
+  assertIncludes(run.stdout, "[first-fail] context: predev case integrated-smoke failed after server start", "delegated failure console context");
+  assertIncludes(run.stdout, "[first-fail] stderr: fixture delegated stderr", "delegated failure console stderr");
+  assertIncludes(run.stdout, "[first-fail] reproduce: ./server.sh test --no-start --include-va-events", "delegated failure console reproduction");
   const phase = summary.phases.find(item => item.id === "soak-case-loop");
   assert(phase?.summaryPath === fixtureSummaryPath, "soak-case-loop phase must point at delegated predev summary");
   assert(phase?.tail?.some(line => line.includes("delegated predev first failure: integrated-smoke")),
@@ -170,6 +206,38 @@ check("predev summary fixture preserves delegated first failure step", () => {
   const report = readTextAbsolute(run.reportPath);
   assertIncludes(report, "failedCase: integrated-smoke", "predev summary fixture report");
   assertIncludes(report, "delegatedFailure: integrated-smoke", "predev summary fixture report");
+});
+
+check("predev executable fixtures separate first-fail and legacy cumulative case loops", () => {
+  const run = runPredevFailureFixture("--fixture-first-fail", "first_fail");
+  assert(run.status === "failed-as-expected", `predev first-fail fixture should exit non-zero, got ${run.status}`);
+  const summary = readJson(run.summaryPath);
+  temporaryOutputDirs.add(summary.workDir);
+  assert(summary.status === "fail", "predev fixture status must be fail");
+  assert(summary.fail === 1, `predev fixture must record one failure, got ${summary.fail}`);
+  assert(summary.notRun >= 1, "predev fixture must record later not-run cases");
+  const failedIndex = summary.steps.findIndex(step => step.result === "fail");
+  assert(failedIndex >= 0, "predev fixture must contain a failed case");
+  assert(summary.steps.slice(failedIndex + 1).every(step => ["not-run", "pass"].includes(step.result)),
+    "after first failure only explicit not-run or mandatory cleanup/report may appear");
+  const failed = summary.steps[failedIndex];
+  assert(failed.name === "fixture-second", "fixture must fail at fixture-second");
+  assert(fs.existsSync(failed.stdoutFile), "failed fixture stdout file must exist during contract replay");
+  assert(fs.existsSync(failed.stderrFile), "failed fixture stderr file must exist during contract replay");
+  assert(failed.stderrTail?.includes("fixture delegated stderr"), "failed fixture must preserve stderr tail");
+  assertIncludes(failed.context, "fixture-second", "failed fixture context");
+  assertIncludes(failed.reproductionCommand, "fixture delegated stderr", "failed fixture reproduction command");
+  const later = summary.steps.find(step => step.name === "fixture-third");
+  assert(later?.result === "not-run", "fixture-third must be not-run");
+
+  const cumulativeRun = runPredevFailureFixture("--fixture-cumulative-fail", "cumulative_fail");
+  assert(cumulativeRun.status === "failed-as-expected", `predev cumulative fixture should exit non-zero, got ${cumulativeRun.status}`);
+  const cumulative = readJson(cumulativeRun.summaryPath);
+  temporaryOutputDirs.add(cumulative.workDir);
+  assert(cumulative.fail === 1, "cumulative fixture must retain the failure");
+  assert(cumulative.notRun === 0, "cumulative fixture must not synthesize not-run cases");
+  assert(cumulative.steps.find(step => step.name === "fixture-third")?.result === "pass",
+    "legacy cumulative fixture must continue to fixture-third");
 });
 
 check("runner rejects unsupported longrun durations", () => {
@@ -185,14 +253,15 @@ check("docs and release evidence record R1 implementation without overclaiming r
     `\`./server.sh ${contractCommand}\``,
     "media-server.v390-server-longrun.v1",
     "stop-on-first-fail",
+    "context, separated stderr tail, reproduction command",
     "[progress] (1/9) preflight test; remaining=8",
-    "later phase `not-run`",
+    "later phase/case `not-run`",
     "fixture-only-not-real-duration",
   ]) {
     assertIncludes(files.streamVerification, snippet, "stream verification R1 runner");
   }
   for (const snippet of [
-    "v3.9.0 R1 AI-minimized server longrun runner 실제 구현",
+    "v3.9.0 R1 / V390-ADD1-10 AI-minimized server longrun first-fail runner",
     "OPS-168",
     "SAFE-201",
     command,
@@ -212,7 +281,7 @@ check("docs and release evidence record R1 implementation without overclaiming r
     assertIncludes(files.releaseRecords, snippet, "release records R1 runner");
   }
   for (const snippet of [
-    "v3.9.0 R1 server longrun runner",
+    "v3.9.0 R1 / V390-ADD1-10 server longrun first-fail runner",
     command,
     contractCommand,
     "v390 30분 longrun R1 runner actual final",
@@ -265,6 +334,37 @@ function runFixture(label, extraArgs) {
     stdout,
     stderr,
   };
+}
+
+function runPredevFailureFixture(modeOption, label) {
+  const outputDir = path.join("/tmp", `media_server_v390_predev_${label}_${process.pid}`);
+  temporaryOutputDirs.add(outputDir);
+  fs.rmSync(outputDir, { recursive: true, force: true });
+  fs.mkdirSync(outputDir, { recursive: true });
+  const summaryPath = path.join(outputDir, "summary.json");
+  const reportPath = path.join(outputDir, "report.md");
+  const reportHtmlPath = path.join(outputDir, "report.html");
+  let stdout = "";
+  let stderr = "";
+  let status = "passed";
+  try {
+    stdout = execFileSync(path.join(rootDir, "server.sh"), [
+      "verify-predev",
+      modeOption,
+      "--summary-file", summaryPath,
+      "--report-file", reportPath,
+      "--report-html-file", reportHtmlPath,
+    ], {
+      cwd: rootDir,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch (error) {
+    status = "failed-as-expected";
+    stdout = error?.stdout ? String(error.stdout) : "";
+    stderr = error?.stderr ? String(error.stderr) : "";
+  }
+  return { status, outputDir, summaryPath, reportPath, stdout, stderr };
 }
 
 function assertPhaseStatus(summary, id, expectedStatus) {

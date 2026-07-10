@@ -1,7 +1,7 @@
 {
   "schema": "media-server.feature-implementation-evidence.v1",
   "expectedFeatureRows": 974,
-  "inventorySha256": "68cc86d40ad26de8e54bf376484e8f7eafe730fae6cbbba26a53675b4cab32a2",
+  "inventorySha256": "17f687799b098bfdbba718a118e51fb790c8aca47ac1f1c36b5c0e93d7482058",
   "generatedFrom": "docs/project-feature-test-inventory.md",
   "generationPolicy": "explicit-refresh-only; verifier never rewrites this manifest",
   "executionEvidenceStatus": "not-execution-evidence",
@@ -27190,7 +27190,7 @@
       "id": "SAFE-201",
       "section": "I",
       "surfaceKind": "safety-boundary-invariant",
-      "feature": "V390 R1 longrun runner stop-on-fail boundary",
+      "feature": "V390 R1/V390-ADD1-10 longrun runner first-fail boundary",
       "uiNeed": "비대상",
       "testNeed": "필요",
       "testAreas": [
@@ -31540,7 +31540,7 @@
       "id": "OPS-168",
       "section": "J",
       "surfaceKind": "ops-evidence-release-gate",
-      "feature": "V390 R1 AI-minimized server longrun runner gate",
+      "feature": "V390 R1/V390-ADD1-10 AI-minimized server longrun first-fail gate",
       "uiNeed": "비대상",
       "testNeed": "필요",
       "testAreas": [
