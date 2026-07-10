@@ -11,7 +11,7 @@ const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
 const inventory = readText("docs/project-feature-test-inventory.md");
-const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+const implementationEvidence = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
 
 check("ops events page exposes similar incident lookup shell", () => {
@@ -96,7 +96,12 @@ check("ops smoke, inventory, and coverage track S06 markers", () => {
   ]) {
     assertIncludes(inventory, snippet, "feature inventory S06 row");
   }
-  assertIncludes(coverage, "verify-v250-similar-incident-lookup", "feature coverage S06 verifier");
+  assertExactVerifierMapping(
+    implementationEvidence,
+    "UI-042",
+    "verify-v250-similar-incident-lookup",
+    "scripts/internal/verify_v250_similar_incident_lookup.mjs",
+  );
 });
 
 check("server command is registered", () => {
@@ -134,4 +139,14 @@ function assert(condition, message) {
 
 function assertIncludes(text, needle, label) {
   assert(text.includes(needle), `${label} missing snippet: ${needle}`);
+}
+
+function assertExactVerifierMapping(manifest, featureId, command, file) {
+  const item = manifest.items?.find(entry => entry.id === featureId);
+  assert(item?.verifierEvidence?.command === command,
+    `${featureId} exact verifier command mismatch: ${item?.verifierEvidence?.command}`);
+  assert(item?.verifierEvidence?.file === file,
+    `${featureId} exact verifier file mismatch: ${item?.verifierEvidence?.file}`);
+  assert(item?.verifierEvidence?.anchor === featureId,
+    `${featureId} exact verifier assertion anchor mismatch: ${item?.verifierEvidence?.anchor}`);
 }

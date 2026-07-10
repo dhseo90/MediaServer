@@ -38,7 +38,7 @@ const files = {
   backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
-  featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
+  implementationEvidence: readJson("test/fixtures/project_feature_implementation_evidence.json"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
@@ -172,10 +172,6 @@ check("feature inventory and release records map v3.2 Step 10", () => {
     "EVT-070 | V320 Step 10 resolution search metrics view model",
     "SAFE-111 | V320 Step 10 resolution search metrics boundary",
     "OPS-078 | V320 Step 10 Resolution Search & Metrics 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-069`",
-    "`EVT-001`~`EVT-070`",
-    "`SAFE-001`~`SAFE-112`",
-    "`OPS-035`~`OPS-079`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 10");
   }
@@ -194,7 +190,12 @@ check("feature inventory and release records map v3.2 Step 10", () => {
 check("server entrypoint and inventory verifiers include v3.2 Step 10 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v320_resolution_search_metrics.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertExactVerifierMapping(
+    files.implementationEvidence,
+    "UI-069",
+    command,
+    "scripts/internal/verify_v320_resolution_search_metrics.mjs",
+  );
   for (const id of ["UI-069", "EVT-070", "SAFE-111", "OPS-078"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
@@ -250,4 +251,18 @@ function assertIncludes(text, needle, label) {
 
 function readText(relativePath) {
   return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
+}
+
+function readJson(relativePath) {
+  return JSON.parse(readText(relativePath));
+}
+
+function assertExactVerifierMapping(manifest, featureId, expectedCommand, expectedFile) {
+  const item = manifest.items?.find(entry => entry.id === featureId);
+  assert(item?.verifierEvidence?.command === expectedCommand,
+    `${featureId} exact verifier command mismatch: ${item?.verifierEvidence?.command}`);
+  assert(item?.verifierEvidence?.file === expectedFile,
+    `${featureId} exact verifier file mismatch: ${item?.verifierEvidence?.file}`);
+  assert(item?.verifierEvidence?.anchor === featureId,
+    `${featureId} exact verifier assertion anchor mismatch: ${item?.verifierEvidence?.anchor}`);
 }

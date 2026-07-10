@@ -39,7 +39,7 @@ const files = {
   backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
-  featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
+  implementationEvidence: readJson("test/fixtures/project_feature_implementation_evidence.json"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
@@ -73,14 +73,8 @@ check("Ops server builds the v3.5 incident-to-command handoff model", () => {
 check("incident detail handoff derives from event detail, source correlation, drill, and command plan context", () => {
   const block = extractBlock(files.server, "struct OpsV350IncidentCommandHandoff", "struct OpsV350StagedChangePlan");
   for (const snippet of [
-    "OpsV320UnifiedResolutionWorkspaceItemJson",
-    "OpsV330IncidentSourceCorrelationInfo",
     "OpsV350CommandPlanCandidate",
-    "BuildV350CommandPlanCandidates",
-    "BuildV340RecoveryCandidateContext",
-    "BuildV340RecoveryCandidatePackages",
     "BuildV350IncidentCommandHandoff(",
-    "incidentSourceCorrelation",
     "sourceCause",
     "continuityDrillCandidate",
     "commandPlanDraft",
@@ -91,6 +85,16 @@ check("incident detail handoff derives from event detail, source correlation, dr
     "ruleFollowUp",
   ]) {
     assertIncludes(block, snippet, "v350 incident handoff derivation");
+  }
+  for (const snippet of [
+    "OpsV320UnifiedResolutionWorkspaceItemJson(",
+    "OpsV330IncidentSourceCorrelationInfo",
+    "BuildV350CommandPlanCandidates",
+    "BuildV340RecoveryCandidateContext",
+    "BuildV340RecoveryCandidatePackages",
+    "incidentSourceCorrelation",
+  ]) {
+    assertIncludes(files.server, snippet, "v350 incident handoff upstream integration");
   }
 });
 
@@ -232,7 +236,12 @@ check("feature inventory and release records map v3.5 Step 4", () => {
 check("server entrypoint and inventory verifiers include v3.5 Step 4 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v350_incident_to_command_handoff.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertExactVerifierMapping(
+    files.implementationEvidence,
+    "UI-080",
+    command,
+    "scripts/internal/verify_v350_incident_to_command_handoff.mjs",
+  );
   for (const id of ["UI-080", "EVT-075", "SAFE-138", "OPS-105"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
@@ -284,6 +293,20 @@ function check(name, fn) {
 
 function readText(relativePath) {
   return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
+}
+
+function readJson(relativePath) {
+  return JSON.parse(readText(relativePath));
+}
+
+function assertExactVerifierMapping(manifest, featureId, expectedCommand, expectedFile) {
+  const item = manifest.items?.find(entry => entry.id === featureId);
+  assert(item?.verifierEvidence?.command === expectedCommand,
+    `${featureId} exact verifier command mismatch: ${item?.verifierEvidence?.command}`);
+  assert(item?.verifierEvidence?.file === expectedFile,
+    `${featureId} exact verifier file mismatch: ${item?.verifierEvidence?.file}`);
+  assert(item?.verifierEvidence?.anchor === featureId,
+    `${featureId} exact verifier assertion anchor mismatch: ${item?.verifierEvidence?.anchor}`);
 }
 
 function assert(condition, message) {

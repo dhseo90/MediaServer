@@ -112,8 +112,8 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 22 | v3.9.0 (22) v3.9 UI automation case completeness | P0 | 완료 | V390-ADD1-07 case schema v2와 actual summary가 `UI-112` 포함 exact `UI-108`~`UI-115` 8개 route/control/action/state/failure/artifact를 검증하고 replay PASS |
 | 23 | v3.9.0 (23) native free UI automation adapter proof | P0 | 완료 | bundled Playwright 1.61.1과 system Chrome을 선택해 standalone 7개 native action 및 UI-108~115의 native dispatch 8/8을 fallback 없이 실행하고 module/browser provenance를 보존 |
 | 24 | v3.9.0 (24) server longrun true first-fail case runner | P0 | 완료 | V390-ADD1-10이 `verify-predev --fail-fast`의 duration case 사이를 즉시 중단하고 later case를 `not-run`으로 기록하며 runner console/summary/report에 context, 분리 stderr tail, 재현 명령을 보존 |
-| 25 | v3.9.0 (25) route/control/action automation coverage matrix | P0 | 완료/V390-ADD1-11 | current `UI-001`~`UI-115` exact matrix가 실제 자동화 8, 미지원/not-run 106, 제품 UI positive 제외 1을 route/control/action별 actualResult/artifact/log와 사유로 기록하고 drift negative contract를 통과 |
-| 26 | v3.9.0 (26) final evidence re-run and cleanup | P0 | 미완료/Step 25 gap 반영 후 재실행 | 6~9 통합 acceptance의 build/30분/UI/cleanup evidence는 보존하지만 V390-ADD1-10 이후 새 duration evidence와 Step 25의 unsupported 106개가 있어 release 전 final evidence로 재사용하지 않음 |
+| 25 | v3.9.0 (25) route/control/action automation coverage matrix | P0 | 완료/V390-ADD1-11 exact-ID 보정 | 974개 inventory에서 prefix/range 판정 없이 exact `manualUiCaseId` 424개를 선택해 featureId/testId/route/control-action anchor/stability verifier/automation caseId를 연결하고, 실제 자동화 8·미지원/not-run 415·제품 UI positive 제외 1을 기록하며 cross-prefix drift negative contract를 통과 |
+| 26 | v3.9.0 (26) final evidence re-run and cleanup | P0 | 미완료/Step 25 exact-ID 보정 반영 후 재실행 | 6~9 통합 acceptance의 build/30분/UI/cleanup evidence는 보존하지만 V390-ADD1-10 이후 새 duration evidence와 Step 25의 unsupported 415개가 있어 release 전 final evidence로 재사용하지 않음 |
 | 27 | v3.9.0 (27) deferred product decision owner sign-off | P1 | 미완료/owner decision 필요 | 실행형 action, field smoke, persistent credential store, provider call, model-backed Re-ID는 read-only/defer 상태임. v3.9에서 non-goal로 닫을지 실제 구현할지 명시 decision 필요 |
 | 28 | v3.9.0 (28) structure stabilization implementation readiness | P1 | 미완료/structure handoff 후속 | Step 19는 실제 구조 안정화 구현이 아니라 계획 이관임. `webrtc_http_server.cpp`/UI script extraction 실행 branch와 slice별 검증 순서 확정 필요 |
 | 29 | v3.9.0 (29) real external field smoke gate | P2 | 조건부 미실행 | 외부 credential/endpoint/실기기/provider 조건이 없으면 기본 release PASS가 아님. 조건 제공 시 별도 field smoke evidence로만 닫음 |
@@ -142,7 +142,7 @@ UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release a
 | 8 | V390-ADD1-08 | UI Test | 무료 네이티브 자동화 어댑터 | P0 | 완료 | bundled Playwright와 설치된 Chrome을 사용하는 독립 adapter가 실제 wait/click/fill/type/select/screenshot을 실행하고 UI 8-case도 `playwright-native` dispatch/provenance/fallback false로 검증 |
 | 9 | V390-ADD1-09 | UI Test | 거짓 PASS 방지 | P0 | 완료 | case schema v3 exact-selector `visibleAssertions`와 trusted native action 뒤 computed visibility/visible innerText만 판정하며 source/script/outerHTML/whole-page marker PASS를 negative contract로 거부 |
 | 10 | V390-ADD1-10 | Test Foundation | Longrun first-fail 진단 실행기 | P0 | 완료 | delegated duration case의 첫 실패 직후 후속 case를 실행하지 않고 `not-run`으로 남기며 console/summary/report에 context, 분리 stderr, 재현 명령을 출력 |
-| 11 | V390-ADD1-11 | UI Test | route/control/action 자동화 coverage matrix | P0 | 완료 | current `UI-001`~`UI-115` exact matrix가 actual automation evidence와 unsupported/manual/excluded 사유를 개별 행으로 기록하고 누락·route drift·artifact 누락을 FAIL 처리 |
+| 11 | V390-ADD1-11 | UI Test | route/control/action 자동화 coverage matrix | P0 | 완료/exact-ID 보정 | exact UI test ID 424개를 featureId/route/control-action/stability verifier/automation caseId에 직접 연결하고 prefix/range 판정 제거, cross-prefix 누락·중복·route/action drift·artifact 누락을 FAIL 처리 |
 
 ### V390-ADD1-06 실제 acceptance bundle — 실행 전 등록
 
@@ -750,7 +750,7 @@ failure evidence가 나와야 합니다.
 | UI Automation | R7 `UI-112`와 v3.9 신규 UI case completeness | P0 | `test/fixtures/v390_ui_automation_cases.json`과 보존 summary가 `UI-112` staging restore validation handoff를 누락함. `UI-108`~`UI-115` 전 case를 manifest, actual run, replay guard, release evidence에 포함하고 누락 case가 있으면 PASS 불가 처리 |
 | UI Automation | R8 native free UI automation adapter proof | P0 | 현재 R2 실제 run은 `browserMode=playwright`지만 Playwright package 부재로 `selectedAdapter.engine=chrome-cdp-fallback`을 사용함. Playwright/Selenium/SikuliX 중 하나를 native adapter evidence로 실행하거나, native adapter 부재 시 명확한 preflight FAIL과 설치/설정 안내를 남기고 fallback PASS를 primary PASS로 쓰지 않게 함 |
 | Server Longrun | R9 true first-fail longrun loop | P0 | V390-ADD1-10 완료. `verify-predev --fail-fast`가 duration iteration의 각 case 뒤 실패를 확인해 같은 iteration의 later case와 future iteration을 `not-run`으로 남기며, `verify-v390-server-longrun`이 context/stderr/reproduction을 console/summary/report에 보존 |
-| UI Full Coverage | R10 v1.0~v3.9 route/control/action automation coverage matrix | P0 | V390-ADD1-11 완료. `docs/project-feature-test-inventory.md`의 exact `UI-001`~`UI-115`를 source로 115행 matrix를 생성하고 실제 native visible-DOM 8개는 actualResult/screenshot/trace/video/console/server log, 106개는 unsupported/not-run 사유, `UI-018`은 positive UI 제외/manual negative route 필요성을 기록. Matrix PASS를 full automation/UI 풀테스트 PASS로 승격하지 않음 |
+| UI Full Coverage | R10 v1.0~v3.9 route/control/action automation coverage matrix | P0 | V390-ADD1-11 exact-ID 보정 완료. 974개 inventory의 reviewed implementation manifest에서 prefix/range가 아닌 exact `manualUiCaseId` 424개를 선택하고 featureId/testId/route/control-action anchor/stability verifier/automation caseId를 연결. 실제 native visible-DOM 8개는 actualResult/screenshot/trace/video/console/server log, 415개는 unsupported/not-run 사유, `UI-018`은 positive UI 제외/manual negative route 필요성을 기록. Matrix PASS를 full automation/UI 풀테스트 PASS로 승격하지 않음 |
 | Release Evidence | R11 post-review final evidence re-run and cleanup | P0 | R6~R10 수정 후 `verify-v390-stabilization-release-readiness`, Step 1~20 companion gates, actual 30분, UI automation/full coverage, 조건부 120분 판정, cleanup/evidence 보존을 다시 실행하고 release action 전 최신 evidence로 교체/추가 |
 | Product Scope Lock | R12 deferred product decision owner sign-off | P1 | action execution, persistent credential store, field smoke, provider call, model-backed Re-ID는 현재 read-only/defer 상태임. v3.9에서 non-goal로 닫는지 실제 구현할지 owner decision을 문서/evidence에 명확히 남김. owner decision 없이 완료 주장 금지 |
 | Structure | R13 structure stabilization implementation readiness | P1 | Step 19는 실제 route/API/UI extraction이 아니라 handoff임. v4.0 전/후 어느 branch에서 `webrtc_http_server.cpp`, product UI script, manual UI archive, VLM contract index를 slice별로 분리할지 실행 순서와 verifier를 확정 |
@@ -764,7 +764,7 @@ failure evidence가 나와야 합니다.
 | R7 | `UI-112` 포함 `UI-108`~`UI-115` 전 case actual UI automation PASS와 replay guard PASS | `UI-112`가 빠진 caseCount 7 summary |
 | R8 | native Playwright/Selenium/SikuliX adapter selected evidence 또는 native 부재 시 preflight FAIL/설치 안내 | `chrome-cdp-fallback`을 primary Playwright PASS처럼 해석 |
 | R9 | 실제 longrun case loop에서 fixture failure 이후 case가 `not-run`이고 cumulative `verify-predev`가 이후 case를 계속 실행하지 않았다는 evidence | delegated predev summary만 읽어 첫 실패 이름을 보존한 것 |
-| R10 | current UI ID coverage matrix와 route/control/action별 actualResult/artifact/log 개별 report | 일부 v3.9 신규 card marker만 확인한 자동화 |
+| R10 | exact UI test ID 424개 전수 집합과 featureId/route/control-action/stability verifier/automation caseId별 actualResult/artifact/log 개별 report, prefix/range 판정 제거 contract | 일부 prefix 행 또는 v3.9 신규 card marker만 확인한 자동화 |
 | R11 | post-review 수정 이후 새 final evidence, cleanup 기록, `git diff --check` PASS | Step 20 이전 local readiness PASS 재사용 |
 | R12 | owner decision이 `deferred-by-owner` 또는 `implement-before-release`로 명시되고 release notes/evidence에 반영 | read-only route 존재만으로 실제 실행 기능 완료 주장 |
 | R13 | 구조 안정화 실행 branch/slice/verifier 순서가 확정되고 구현 대상과 비대상이 분리 | Step 19 handoff PASS를 실제 refactor 완료로 해석 |
@@ -1486,33 +1486,42 @@ snapshot 차이).
 
 구현 계획 source-of-truth는
 `docs/superpowers/plans/2026-07-10-v390-ui-automation-coverage-matrix.md`입니다. 이 단계는
-기존 v3.9 actual 8-case automation을 current UI 전체 PASS로 확대하지 않고, inventory의
-`UI-001`~`UI-115`를 실제 자동화/미지원/manual/positive UI 제외로 분류하는 검증 가능한
-matrix를 추가했습니다. Product route/API/schema/media/auth 동작은 변경하지 않았습니다.
+기존 v3.9 actual 8-case automation을 current UI 전체 PASS로 확대하지 않고, 974개 inventory의
+reviewed implementation manifest에서 exact `manualUiCaseId` 424개를 선택해 실제 자동화/
+미지원/manual/positive UI 제외로 분류하는 검증 가능한 matrix로 보정했습니다. feature ID
+prefix/range 판정은 제거했고, testId/featureId/route/control-action anchor/stability verifier/
+automation caseId를 독립 연결합니다. Product route/API/schema/media/auth 동작은 변경하지 않았습니다.
 
 테스트 필요성 판정:
 
 | 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
 | --- | --- | --- | --- | --- |
-| 안정화 테스트 | 진행 대상 | coverage verifier/contract/policy/docs/server dispatch/script inventory를 변경 | `V390-ADD1-11`, `OPS-169`, `SAFE-202`, `UI-001`~`UI-115` | 최신 요청의 다음 스텝 개발 승인 |
+| 안정화 테스트 | 진행 대상 | coverage verifier/contract/policy/docs와 exact-ID matrix를 변경 | `V390-ADD1-11`, exact UI test ID 424개, `OPS-169`, `SAFE-202` | 최신 `/goal`의 11번 개발 승인 |
 | 30분 테스트 | 미진행 | test/docs coverage tooling만 변경하고 media/session/runtime path를 변경하지 않음 | AGENTS 7.6.2, V390-ADD1-11 변경 범위 | duration 실행 승인 없음 |
 | 120분 테스트 | 미진행 | high-risk runtime/media trigger가 없고 명시 실행 지시도 없음 | AGENTS 7.6.2, V390-ADD1-11 변경 범위 | 조건·실행 승인 없음 |
-| UI 풀테스트 | 미진행 | 보존된 actual 8-case summary는 재검증했지만 115개 current UI 전체 직접 조작은 최신 요청에서 승인되지 않음 | matrix unsupported 106개, `manualUiFulltestEvidence=false` | 직접 UI 풀테스트 승인 없음 |
+| UI 풀테스트 | 미진행 | 보존된 actual 8-case summary는 재검증하지만 exact UI test ID 424개 전체 직접 조작은 최신 요청에서 승인되지 않음 | matrix unsupported 415개, `manualUiFulltestEvidence=false` | 직접 UI 풀테스트 승인 없음 |
 
 개발 위치와 로직:
 
-- `test/fixtures/v390_ui_automation_coverage_policy.json`: exact `UI-001`~`UI-115`
-  범위와 automated `UI-108`~`UI-115`, unsupported `UI-001`~`UI-107` 중 `UI-018`
-  제외, positive UI exclusion `UI-018`, required artifact 종류를 고정합니다.
+- `test/fixtures/v390_ui_automation_coverage_policy.json`: schema v2가 974/424/8/415/1
+  count, automated exact case ID 8개, positive UI exclusion `UI-018`, required artifact
+  종류만 고정하며 feature prefix와 numeric range로 unsupported 행을 판정하지 않습니다.
 - `scripts/internal/verify_v390_ui_automation_coverage.mjs`: inventory, implementation evidence,
-  case manifest, 보존 actual summary를 교차 검증하고 115행 summary/report를 생성합니다.
-  Automated 행은 route/control/action, `automationStatus`, `actualResult`, screenshot,
+  case manifest, 보존 actual summary를 교차 검증하고 exact UI test ID 424행 summary/report를
+  생성합니다. exact `manualUiCaseId`를 selection source로 쓰고 featureId, route,
+  control/action source anchor, stability verifier command/assertion, automation caseId를
+  연결합니다. Automated 행은 route/control/action, `automationStatus`, `actualResult`, screenshot,
   trace/video, browser console, server log를 보존합니다. 미지원 행은 `not-run`과 사유,
   `UI-018`은 `not-applicable`과 manual negative route 필요성을 남깁니다.
 - `scripts/internal/verify_v390_ui_automation_coverage_contract.mjs`: exact ID/count/boundary,
-  automated evidence, unsupported/excluded 사유, policy ID 누락, implementation route drift,
-  artifact 누락, durable docs/dispatch wiring을 8개 check로 검증합니다.
-- `docs/v390-ui-automation-coverage-matrix.md`: `mapped-with-explicit-gaps` 115행을 durable
+  automated evidence, unsupported/excluded 사유, cross-prefix test ID 누락/중복,
+  route/control-action drift, automation featureId→caseId drift, artifact 누락,
+  prefix/range 판정 제거, reviewed manifest refresh 보존, durable docs/dispatch wiring을
+  12개 check로 검증합니다.
+- `scripts/internal/feature_implementation_manifest_lib.mjs`: 명시 refresh에서도 기존 reviewed
+  UI route/control-action/verifier와 exact test ID를 보존합니다. Prefix별 route fallback은
+  제거했으며 신규 UI mapping에 명시 route가 없으면 refresh를 실패 처리합니다.
+- `docs/v390-ui-automation-coverage-matrix.md`: `mapped-with-explicit-gaps` 424행을 durable
   source-backed matrix로 보존합니다. `fullAutomationCoverage=false`,
   `manualUiFulltestEvidence=false`입니다.
 
@@ -1524,14 +1533,21 @@ matrix를 추가했습니다. Product route/API/schema/media/auth 동작은 변�
 | 2 | 첫 matrix generation `UI-006 manualUiCaseId mismatch` | UI 계열 ID라는 이유로 안정화 전용 `UI-006`에도 manual case를 강제 | inventory `testAreas`에 UI가 있는 114개만 manual case를 요구하고 `UI-006`은 stability-only로 분리 | exact 115행 generation PASS |
 | 3 | feature evidence/coverage/project inventory SHA drift | project inventory에 Step 25 mapping 행을 추가해 exact manifest 문서 SHA 변경 | 974개 ID/anchor는 그대로 두고 inventory SHA만 explicit refresh | 974/974 validation 0, coverage 6/0, project 14/0 |
 | 4 | matrix review에서 automated `actualResult`가 단순 PASS로 축약 | status와 actual result를 한 필드로 사용 | `automationStatus=PASS`와 보존 summary 실제 결과 문장을 분리 | coverage와 contract 재실행 PASS |
+| 5 | exact-ID correction contract `pass=1 fail=10` | 기존 matrix가 `UI-*` prefix/range 115행만 선택하고 타 prefix exact UI test ID 310개를 누락 | selection을 974개 manifest의 exact `manualUiCaseId` 424개로 바꾸고 schema/policy/contract를 v2로 보정 | 최종 contract 재검증 대상 |
+| 6 | v2 첫 generation `UI-020 route/action source mapping invalid` | UI action anchor 소유 파일과 screen route 소유 파일이 분리되는데 같은 파일 포함을 강제 | action anchor는 지정 source file, route는 전체 product UI route source에서 각각 검증 | v2 generation 974/424/8/415/1 PASS |
+| 7 | route source cache 초기화/파일 matcher 재실행 실패 | top-level 검증보다 뒤의 cache `let` TDZ와 `webrtc_http_server.cpp`를 누락한 filename regex | cache 선언을 검증 전으로 이동하고 exact product UI source filename matcher로 수정 | v2 generation PASS |
+| 8 | exact 전용 verifier 최초 실행 6개 FAIL | feature coverage script 본문 command 문자열, 과거 UI range, 제거된 helper를 고정한 stale assertion | implementation manifest의 exact verifier command/file/anchor와 현재 upstream integration을 직접 확인하도록 UI-042/043/069/074/080/107 verifier 보정 | 6/0, 4/0, 8/0, 8/0, 9/0, 9/0 PASS; UI-110 6/0 유지 |
+| 9 | feature implementation evidence SHA drift | project inventory의 Step 25 exact-ID mapping 행 변경으로 inventory SHA 불일치 | 974개 exact ID를 유지하고 이번 단계의 route/verifier mapping 8개를 직접 검토한 뒤 inventory SHA만 current 값으로 갱신 | 974/974, validation 0, negative 11/11 PASS |
+| 10 | 후속 점검에서 manifest refresh prefix route 재도입 가능성 확인 | matrix runner는 exact ID를 사용하지만 upstream generator의 prefix별 screen route fallback이 남아 있었음 | reviewed UI evidence/verifier/manualUiCaseId를 exact 보존하고 신규 UI mapping의 명시 route 부재를 FAIL 처리하도록 fallback 제거 | contract refresh-preservation check 포함 12/0, feature evidence 974/974 validation 0 PASS |
 
 안정화 실행 결과:
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
 | Node syntax | coverage/contract 두 `.mjs`의 `node --check` | pass | option/parser/module syntax 확인 |
-| coverage generation | `verify-v390-ui-automation-coverage --output-dir /tmp/media_server_v390_ui_coverage_final` | pass | 115/8/106/1, mapped-with-explicit-gaps |
-| coverage contract | `verify-v390-ui-automation-coverage-contract` | pass | positive/negative/docs 8/0 |
+| coverage generation | `verify-v390-ui-automation-coverage --output-dir /tmp/media_server_v390_ui_coverage_final_v2` | pass | schema v2, 974/424/8/415/1, exact-manual-ui-test-id, prefixRangeClassification removed |
+| coverage contract | `verify-v390-ui-automation-coverage-contract` | pass | positive/cross-prefix/refresh/negative/docs 12/0 |
+| exact mapped feature verifiers | UI-042/043/069/074/080/107/110 전용 command | pass | 각각 6/0, 4/0, 8/0, 8/0, 9/0, 9/0, 6/0 |
 | existing UI runner contract | `verify-v390-ui-automation-runner-contract` | pass | exact visible-DOM runner 9/0 |
 | replay guard | `verify-v390-ui-automation-report-replay-guard` | pass | summary/artifact false-PASS guard 8/0 |
 | actual summary replay | `verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/summary.json` | pass | 보존 actual 8-case replay 7/0 |
@@ -1545,9 +1561,10 @@ matrix를 추가했습니다. Product route/API/schema/media/auth 동작은 변�
 완료 경계와 남은 gap:
 
 - Matrix integrity와 actual 8-case artifact 재검증은 완료했습니다.
-- `unsupported-manual` 106개는 미지원 사유가 기록된 `not-run` gap이며 PASS가 아닙니다.
+- `unsupported-manual` 415개는 exact test ID/route/control-action/verifier 연결과 미지원
+  사유가 기록된 `not-run` gap이며 PASS가 아닙니다.
 - `UI-018`은 positive product UI 자동화 비대상이지만 manual negative route 확인은 유지합니다.
-- 115개 전체 UI 풀테스트 직접 조작, 실제 30분/120분, published metadata, release action은
+- exact UI test ID 424개 전체 UI 풀테스트 직접 조작, 실제 30분/120분, published metadata, release action은
   미실행이며 이 단계 PASS로 대체하지 않습니다.
 
 임시 산출물 cleanup:
@@ -1557,12 +1574,20 @@ matrix를 추가했습니다. Product route/API/schema/media/auth 동작은 변�
 | `/tmp/media_server_v390_ui_coverage_dev` | 148KB | 초기/보강 matrix summary/report 삭제 | 경로 없음 |
 | `/tmp/media_server_v390_ui_coverage_final` | 152KB | 최종 재현 가능 summary/report 삭제 | 경로 없음 |
 | `/tmp/media_server_v390_ui_coverage_regenerate` | 152KB | EOF 형식 수정 후 재생성 산출물 삭제 | 사용자 명시 승인 후 경로 없음 |
+| `/tmp/media_server_v390_ui_coverage_dev_v2` | 696KB | exact-ID v2 개발/문서 재생성 summary/report 삭제 | 경로 없음 |
+| `/tmp/media_server_v390_ui_coverage_final_v2` | 696KB | exact-ID v2 최종 안정화 summary/report 삭제 | 경로 없음 |
+| `/tmp/media_server_v390_ui_coverage_final_exact` | 696KB | manifest refresh 보정 후 최종 exact-ID summary/report 삭제 | 경로 없음 |
 | contract `/tmp` workdir | process-exit cleanup | positive/negative fixture 자동 삭제 | `media_server_v390_ui_coverage_contract_*` glob 0개 |
 | 8081/8555 listener | 없음 | 직접 확인 | listener 0개 |
 
 테스트 사용량: token start `526159`, token end `1079640`, token consumed `553481`,
 elapsed `796초`, source `Codex goal usage` (V390-ADD1-10 최종 snapshot과 Step 25
 cleanup blocker 기록 직후 최종 goal snapshot 차이).
+
+exact-ID correction 안정화 사용량: token start `313188`, token end `496236`,
+token consumed `183048`, elapsed `931초`, source `Codex goal usage` (최종 안정화 시작 전과
+manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 snapshot 차이). 이 값은 UI 풀테스트/30분/120분 실행
+사용량이 아닙니다.
 
 ## 이전 source roadmap 기록: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
 

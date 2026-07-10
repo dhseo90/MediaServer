@@ -78,7 +78,7 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | [media-server-architecture.md](media-server-architecture.md) | 서버 구조와 요청 흐름 |
 | [stream-verification.md](stream-verification.md) | 검증 명령과 테스트 영역 경계 |
 | [project-feature-test-inventory.md](project-feature-test-inventory.md) | 기능별 테스트 영역 inventory. 실행 evidence가 아니라 coverage 기준 |
-| [v390-ui-automation-coverage-matrix.md](v390-ui-automation-coverage-matrix.md) | current `UI-001`~`UI-115` actual automation/unsupported/manual/excluded matrix |
+| [v390-ui-automation-coverage-matrix.md](v390-ui-automation-coverage-matrix.md) | v1.0~v3.9 exact UI test ID 424개 route/control/action와 actual automation/unsupported/excluded matrix |
 | [v390-feature-completion-inventory.md](v390-feature-completion-inventory.md) | v3.9 feature completion discovery와 user review gate source-of-truth |
 | [video-analysis.md](video-analysis.md) | VA pipeline, rule, scenario, metadata |
 | [event-evidence-contract.md](event-evidence-contract.md) | v3.0 Event Evidence Contract와 FrameRef/retention/non-VMS 경계 |

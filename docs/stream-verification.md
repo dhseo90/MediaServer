@@ -152,14 +152,16 @@ The summary also records `adapterPlan`, `selectedAdapter`, `adapterAttempts`, an
 pretending native Playwright ran. The throwaway server sets `MEDIA_SERVER_SKIP_LOCAL_ENV=1` so
 local `.media_server.env` defaults cannot override the isolated R2 HTTP/RTSP ports.
 
-### V390-ADD1-11 current UI automation coverage matrix
+### V390-ADD1-11 full-feature exact-ID UI automation coverage matrix
 
 Step 25/R10은 R2의 8개 actual automation case를 current UI 전체 자동화 PASS로 확대
 해석하지 않습니다. `./server.sh verify-v390-ui-automation-coverage --output-dir <path>`는
-`docs/project-feature-test-inventory.md`와 exact implementation evidence를 source로
-`UI-001`~`UI-115` 115행 route/control/action matrix를 생성합니다. 결과는
+974개 feature inventory와 reviewed implementation evidence를 source로, feature ID prefix나
+숫자 range가 아니라 exact `manualUiCaseId`가 있는 424개 테스트를 선택합니다. 각 행은
+`testId`, `featureId`, route, source-backed control/action anchor, stability verifier command/
+assertion anchor, automation `caseId`를 독립 연결합니다. 결과는
 `mapped-with-explicit-gaps`: native visible-DOM actual evidence가 있는 `UI-108`~`UI-115`
-8개만 `automated/PASS`, automation case가 없는 106개는 `unsupported-manual/not-run`,
+8개만 `automated/PASS`, automation case가 없는 415개는 `unsupported-manual/not-run`,
 제품 UI 미제공 negative route인 `UI-018`은 `excluded-positive-ui/not-applicable`입니다.
 
 검증 명령:
@@ -168,8 +170,9 @@ Step 25/R10은 R2의 8개 actual automation case를 current UI 전체 자동화 
 - `./server.sh verify-v390-ui-automation-coverage-contract`
 
 Coverage verifier는 automated 행의 screenshot, trace/video, browser console, server log
-파일을 모두 확인하고, policy ID 누락, implementation route drift, artifact 누락을
-실패 처리합니다. 고정 matrix는
+파일을 모두 확인하고, cross-prefix exact test ID 누락/중복, route/control/action source
+drift, automation featureId→caseId drift, artifact 누락을 실패 처리합니다. prefix/range 판정 제거
+상태도 contract로 고정합니다. 고정 matrix는
 `docs/v390-ui-automation-coverage-matrix.md`에 보존합니다. Matrix validation PASS는
 `fullAutomationCoverage=false`, `manualUiFulltestEvidence=false`,
 `executionEvidenceStatus=partial-automation-evidence`이며 UI 풀테스트 직접 조작,

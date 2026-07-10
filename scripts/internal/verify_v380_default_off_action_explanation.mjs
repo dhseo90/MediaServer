@@ -46,7 +46,7 @@ const files = {
   backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
-  featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
+  implementationEvidence: readJson("test/fixtures/project_feature_implementation_evidence.json"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
@@ -333,7 +333,12 @@ check("roadmap, stream verification, inventory, and release records map v3.8 Ste
 check("server entrypoint and inventory verifiers include v3.8 Step 15 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v380_default_off_action_explanation.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertExactVerifierMapping(
+    files.implementationEvidence,
+    "UI-107",
+    command,
+    "scripts/internal/verify_v380_default_off_action_explanation.mjs",
+  );
   for (const id of featureIds) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
@@ -372,8 +377,18 @@ function runChecks() {
 
 function check(name, fn) { checks.push({ name, fn }); }
 function readText(relativePath) { return fs.readFileSync(path.join(rootDir, relativePath), "utf8"); }
+function readJson(relativePath) { return JSON.parse(readText(relativePath)); }
 function assert(condition, message) { if (!condition) throw new Error(message); }
 function assertIncludes(text, needle, label) { assert(text.includes(needle), `${label} missing snippet: ${needle}`); }
+function assertExactVerifierMapping(manifest, featureId, expectedCommand, expectedFile) {
+  const item = manifest.items?.find(entry => entry.id === featureId);
+  assert(item?.verifierEvidence?.command === expectedCommand,
+    `${featureId} exact verifier command mismatch: ${item?.verifierEvidence?.command}`);
+  assert(item?.verifierEvidence?.file === expectedFile,
+    `${featureId} exact verifier file mismatch: ${item?.verifierEvidence?.file}`);
+  assert(item?.verifierEvidence?.anchor === featureId,
+    `${featureId} exact verifier assertion anchor mismatch: ${item?.verifierEvidence?.anchor}`);
+}
 function extractBlock(text, startNeedle, endNeedle) {
   const start = text.indexOf(startNeedle);
   assert(start !== -1, `block start not found: ${startNeedle}`);

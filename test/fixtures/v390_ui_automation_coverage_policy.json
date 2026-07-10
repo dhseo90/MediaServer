@@ -1,16 +1,19 @@
 {
-  "schema": "media-server.v390-ui-automation-coverage-policy.v1",
+  "schema": "media-server.v390-ui-automation-coverage-policy.v2",
   "inventorySource": "docs/project-feature-test-inventory.md",
   "implementationEvidenceSource": "test/fixtures/project_feature_implementation_evidence.json",
   "automationCaseManifestSource": "test/fixtures/v390_ui_automation_cases.json",
   "actualAutomationSummarySource": "docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/summary.json",
-  "expectedUiIdRange": {
-    "start": "UI-001",
-    "end": "UI-115"
+  "expectedCounts": {
+    "inventoryFeatures": 974,
+    "exactUiTestIds": 424,
+    "automated": 8,
+    "unsupportedManual": 415,
+    "excludedPositiveUi": 1
   },
   "classifications": {
     "automated": {
-      "ids": [
+      "caseIds": [
         "UI-108",
         "UI-109",
         "UI-110",
@@ -22,17 +25,6 @@
       ],
       "reasonCode": "native-visible-dom-actual-evidence"
     },
-    "unsupportedManual": {
-      "range": {
-        "start": "UI-001",
-        "end": "UI-107"
-      },
-      "exclude": [
-        "UI-018"
-      ],
-      "reasonCode": "no-current-native-exact-selector-case",
-      "reason": "현재 native exact-selector automation case manifest에 없으므로 자동화 PASS로 보지 않고 manual UI 필요 여부를 inventory에서 유지"
-    },
     "excludedPositiveUi": [
       {
         "id": "UI-018",
@@ -40,6 +32,10 @@
         "reason": "제품 UI 미제공/404를 확인하는 negative route case이므로 positive product UI automation에서 제외하고 별도 안정화 및 manual route 확인을 유지"
       }
     ]
+  },
+  "unsupportedManual": {
+    "reasonCode": "no-current-native-exact-selector-case",
+    "reason": "exact manualUiCaseId는 있으나 현재 native exact-selector automation case manifest에 없으므로 자동화 PASS가 아닌 not-run으로 유지"
   },
   "requiredAutomatedArtifacts": [
     "screenshotPath",

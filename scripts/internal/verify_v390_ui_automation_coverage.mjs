@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: current UI inventory와 실제 v3.9 UI evidence를 대조해 route/control/action coverage matrix를 생성한다.
+// 파일 용도: 974개 feature inventory의 exact UI test ID와 actual v3.9 UI evidence를 대조한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -11,19 +11,25 @@ import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const rawArgs = process.argv.slice(2);
+let cachedProductUiRouteSource = null;
 
 if (hasHelpFlag(rawArgs)) {
-  printUsageAndExit(`v3.9.0 UI automation coverage matrix
+  printUsageAndExit(`v3.9.0 full-feature UI automation coverage matrix
 
 Usage:
   ./server.sh verify-v390-ui-automation-coverage --output-dir <path> [options]
 
 Options:
   --output-dir <path>          summary.json과 report.md 출력 경로
-  --policy <path>              coverage policy JSON. 기본 test/fixtures/v390_ui_automation_coverage_policy.json
+  --policy <path>              coverage policy JSON
   --automation-summary <path>  실제 UI automation summary override
   --update-doc <path>          검증된 Markdown matrix를 지정 문서에도 기록
   -h, --help                   도움말 출력
+
+Selection:
+  feature ID prefix나 numeric range를 사용하지 않습니다. Reviewed implementation manifest에서
+  manualUiCaseId가 명시된 exact 424개 test ID만 선택하고 featureId, route,
+  control/action anchor, stability verifier, automation caseId를 각각 연결합니다.
 
 Boundary:
   이 명령의 PASS는 exact matrix와 source evidence 정합성 PASS입니다. Full automation,
@@ -52,55 +58,89 @@ const automationSummaryPath = options.automationSummary
   ? resolveRootPath(options.automationSummary)
   : resolvePolicySource(policy.actualAutomationSummarySource, policyPath);
 
-const inventoryRows = parseUiInventory(inventoryPath);
-const expectedIds = expandRange(policy.expectedUiIdRange.start, policy.expectedUiIdRange.end);
-assertExactIds(inventoryRows.map(item => item.id), expectedIds, "inventory UI IDs");
+const inventoryRows = parseFeatureInventory(inventoryPath);
+assertUnique(inventoryRows.map(item => item.id), "inventory feature IDs");
 
 const implementation = readJson(implementationPath);
-const implementationById = new Map((implementation.items || []).map(item => [item.id, item]));
+assert(implementation.schema === "media-server.feature-implementation-evidence.v1",
+  "unexpected implementation evidence schema");
+assert(Array.isArray(implementation.items), "implementation evidence items missing");
+assertUnique(implementation.items.map(item => item.id), "implementation feature IDs");
+assertExact(implementation.items.map(item => item.id), inventoryRows.map(item => item.id),
+  "inventory/implementation feature IDs");
+
+const inventoryById = new Map(inventoryRows.map(item => [item.id, item]));
+const exactUiTests = implementation.items.filter(item => item.manualUiCaseId !== null);
+const exactTestIds = exactUiTests.map(item => item.manualUiCaseId);
+assertUnique(exactTestIds, "exact manual UI test IDs");
+
+for (const item of implementation.items) {
+  const inventory = inventoryById.get(item.id);
+  validateInventoryImplementationPair(inventory, item);
+}
+
 const caseManifest = readJson(caseManifestPath);
-assert(caseManifest.schema === "media-server.v390-ui-automation-cases.v3", "unexpected automation case manifest schema");
+assert(caseManifest.schema === "media-server.v390-ui-automation-cases.v3",
+  "unexpected automation case manifest schema");
 const manifestCases = Array.isArray(caseManifest.cases) ? caseManifest.cases : [];
-const manifestById = new Map(manifestCases.map(item => [item.caseId, item]));
+assertUnique(manifestCases.map(item => item.caseId), "automation case IDs");
+assertUnique(manifestCases.map(item => item.featureId), "automation feature IDs");
+assertExact(manifestCases.map(item => item.caseId), policy.classifications.automated.caseIds,
+  "policy/manifest automation case IDs");
+const manifestByFeatureId = new Map(manifestCases.map(item => [item.featureId, item]));
 
 const automationSummary = readJson(automationSummaryPath);
 validateAutomationSummary(automationSummary);
-const actualById = new Map(automationSummary.cases.map(item => [item.caseId, item]));
-const classifications = buildClassifications(policy, expectedIds);
+assertUnique(automationSummary.cases.map(item => item.caseId), "actual automation case IDs");
+assertExact(automationSummary.cases.map(item => item.caseId), manifestCases.map(item => item.caseId),
+  "manifest/actual automation case IDs");
+const actualByCaseId = new Map(automationSummary.cases.map(item => [item.caseId, item]));
 
-const automatedIds = policy.classifications.automated.ids;
-assertExactIds(manifestCases.map(item => item.caseId), automatedIds, "automation case manifest IDs");
-assertExactIds(automationSummary.cases.map(item => item.caseId), automatedIds, "actual automation summary IDs");
+const exclusionByTestId = new Map();
+for (const exclusion of policy.classifications.excludedPositiveUi) {
+  assert(!exclusionByTestId.has(exclusion.id), `duplicate positive UI exclusion: ${exclusion.id}`);
+  exclusionByTestId.set(exclusion.id, exclusion);
+}
+for (const testId of exclusionByTestId.keys()) {
+  assert(exactTestIds.includes(testId), `positive UI exclusion references unknown exact test ID: ${testId}`);
+}
 
-const rows = inventoryRows.map(item => buildMatrixRow({
-  inventory: item,
-  implementation: implementationById.get(item.id),
-  classification: classifications.get(item.id),
-  manifestCase: manifestById.get(item.id),
-  actualCase: actualById.get(item.id),
+const rows = exactUiTests.map(implementationItem => buildMatrixRow({
+  inventory: inventoryById.get(implementationItem.id),
+  implementation: implementationItem,
+  manifestCase: manifestByFeatureId.get(implementationItem.id),
+  actualByCaseId,
+  exclusion: exclusionByTestId.get(implementationItem.manualUiCaseId),
   policy,
 }));
 
+for (const manifestCase of manifestCases) {
+  const row = rows.find(item => item.featureId === manifestCase.featureId);
+  assert(row, `${manifestCase.caseId} featureId has no exact manual UI test mapping: ${manifestCase.featureId}`);
+  assert(row.automationCaseId === manifestCase.caseId,
+    `${manifestCase.caseId} exact automation case mapping missing`);
+}
+
 const counts = {
-  inventoryUiIds: rows.length,
+  inventoryFeatures: inventoryRows.length,
+  exactUiTestIds: rows.length,
   automated: rows.filter(item => item.automationDisposition === "automated").length,
   unsupportedManual: rows.filter(item => item.automationDisposition === "unsupported-manual").length,
   excludedPositiveUi: rows.filter(item => item.automationDisposition === "excluded-positive-ui").length,
-  manualUiFulltestRequired: rows.filter(item => item.manualUiFulltestRequired).length,
 };
-
-assert(counts.inventoryUiIds === 115, `expected 115 current UI IDs, got ${counts.inventoryUiIds}`);
-assert(counts.automated === 8, `expected 8 automated IDs, got ${counts.automated}`);
-assert(counts.unsupportedManual === 106, `expected 106 unsupported/manual IDs, got ${counts.unsupportedManual}`);
-assert(counts.excludedPositiveUi === 1, `expected 1 positive UI exclusion, got ${counts.excludedPositiveUi}`);
+for (const [key, expected] of Object.entries(policy.expectedCounts)) {
+  assert(counts[key] === expected, `expected ${key}=${expected}, got ${counts[key]}`);
+}
 
 const outputDir = path.resolve(rootDir, options.outputDir);
 const summaryPath = path.join(outputDir, "summary.json");
 const reportPath = path.join(outputDir, "report.md");
 const summary = {
-  schema: "media-server.v390-ui-automation-coverage.v1",
+  schema: "media-server.v390-ui-automation-coverage.v2",
   matrixValidationResult: "PASS",
   coverageStatus: "mapped-with-explicit-gaps",
+  selectionModel: "exact-manual-ui-test-id",
+  prefixRangeClassification: "removed",
   executionEvidenceStatus: policy.boundaries.executionEvidenceStatus,
   fullAutomationCoverage: policy.boundaries.fullAutomationCoverage,
   manualUiFulltestEvidence: policy.boundaries.manualUiFulltestEvidence,
@@ -127,11 +167,14 @@ if (options.updateDoc) {
 }
 
 console.log("");
-console.log("== v3.9.0 UI automation coverage matrix summary ==");
+console.log("== v3.9.0 full-feature UI automation coverage matrix summary ==");
 console.log(`- schema: ${summary.schema}`);
 console.log(`- matrixValidationResult: ${summary.matrixValidationResult}`);
 console.log(`- coverageStatus: ${summary.coverageStatus}`);
-console.log(`- inventoryUiIds: ${counts.inventoryUiIds}`);
+console.log(`- selectionModel: ${summary.selectionModel}`);
+console.log(`- prefixRangeClassification: ${summary.prefixRangeClassification}`);
+console.log(`- inventoryFeatures: ${counts.inventoryFeatures}`);
+console.log(`- exactUiTestIds: ${counts.exactUiTestIds}`);
 console.log(`- automated: ${counts.automated}`);
 console.log(`- unsupportedManual: ${counts.unsupportedManual}`);
 console.log(`- excludedPositiveUi: ${counts.excludedPositiveUi}`);
@@ -170,33 +213,87 @@ function parseArgs(args) {
 }
 
 function validatePolicyShape(value) {
-  assert(value.schema === "media-server.v390-ui-automation-coverage-policy.v1", "unexpected coverage policy schema");
-  assert(value.expectedUiIdRange?.start && value.expectedUiIdRange?.end, "policy expectedUiIdRange missing");
-  assert(Array.isArray(value.classifications?.automated?.ids), "policy automated IDs missing");
-  assert(value.classifications?.unsupportedManual?.range, "policy unsupportedManual range missing");
+  assert(value.schema === "media-server.v390-ui-automation-coverage-policy.v2",
+    "unexpected coverage policy schema");
+  assert(value.expectedCounts && typeof value.expectedCounts === "object", "policy expectedCounts missing");
+  for (const key of [
+    "inventoryFeatures", "exactUiTestIds", "automated", "unsupportedManual", "excludedPositiveUi",
+  ]) {
+    assert(Number.isInteger(value.expectedCounts[key]), `policy expectedCounts.${key} missing`);
+  }
+  assert(Array.isArray(value.classifications?.automated?.caseIds), "policy automated case IDs missing");
   assert(Array.isArray(value.classifications?.excludedPositiveUi), "policy excludedPositiveUi missing");
+  assert(value.unsupportedManual?.reasonCode && value.unsupportedManual?.reason,
+    "policy unsupportedManual reason missing");
   assert(Array.isArray(value.requiredAutomatedArtifacts), "policy requiredAutomatedArtifacts missing");
   assert(value.boundaries?.fullAutomationCoverage === false, "policy must not claim full automation coverage");
-  assert(value.boundaries?.manualUiFulltestEvidence === false, "policy must not claim manual UI fulltest evidence");
+  assert(value.boundaries?.manualUiFulltestEvidence === false,
+    "policy must not claim manual UI fulltest evidence");
 }
 
-function parseUiInventory(filePath) {
+function parseFeatureInventory(filePath) {
   const rows = [];
   for (const line of fs.readFileSync(filePath, "utf8").split(/\r?\n/)) {
-    if (!/^\| UI-\d{3} \|/.test(line)) continue;
     const cells = line.split("|").slice(1, -1).map(value => value.trim());
-    assert(cells.length >= 6, `invalid UI inventory row: ${line}`);
+    if (cells.length < 6 || !/^[A-Z]+-\d{3}$/.test(cells[0] || "")) continue;
     rows.push({
       id: cells[0],
       feature: cells[1],
       uiNeed: cells[2],
       testNeed: cells[3],
-      testAreas: cells[4].split(",").map(value => value.trim()).filter(Boolean),
+      testAreas: splitAreas(cells[4]),
       expectedEvidence: cells[5],
     });
   }
-  assert(rows.length > 0, "no UI inventory rows found");
+  assert(rows.length > 0, "no feature inventory rows found");
   return rows;
+}
+
+function validateInventoryImplementationPair(inventory, implementationItem) {
+  assert(inventory, `${implementationItem.id} inventory row missing`);
+  assert(implementationItem.feature === inventory.feature, `${inventory.id} feature drift`);
+  assert(implementationItem.uiNeed === inventory.uiNeed, `${inventory.id} uiNeed drift`);
+  assert(implementationItem.testNeed === inventory.testNeed, `${inventory.id} testNeed drift`);
+  assertExact(implementationItem.testAreas, inventory.testAreas, `${inventory.id} testAreas`);
+  const requiresManualUiTest = inventory.testAreas.includes("UI");
+  if (requiresManualUiTest) {
+    assert(typeof implementationItem.manualUiCaseId === "string" && implementationItem.manualUiCaseId.length > 0,
+      `${inventory.id} manualUiCaseId missing`);
+    assert(implementationItem.uiEvidence, `${inventory.id} UI evidence missing`);
+    validateRouteActionSourceMapping(inventory.id, implementationItem.uiEvidence);
+  } else {
+    assert(implementationItem.manualUiCaseId === null,
+      `${inventory.id} without UI test area must not declare manualUiCaseId`);
+  }
+  assert(implementationItem.verifierEvidence?.command,
+    `${inventory.id} stability verifier command missing`);
+  assert(implementationItem.verifierEvidence?.anchor,
+    `${inventory.id} stability verifier assertion anchor missing`);
+}
+
+function validateRouteActionSourceMapping(featureId, uiEvidence) {
+  assert(typeof uiEvidence.screenRoute === "string" && uiEvidence.screenRoute.startsWith("/"),
+    `${featureId} route/action source mapping invalid: screenRoute missing`);
+  assert(typeof uiEvidence.anchor === "string" && uiEvidence.anchor.length > 0,
+    `${featureId} route/action source mapping invalid: control/action anchor missing`);
+  const sourcePath = path.resolve(rootDir, uiEvidence.file || "");
+  assert(isWithinRoot(sourcePath) && fs.existsSync(sourcePath),
+    `${featureId} route/action source mapping invalid: source file missing`);
+  const source = fs.readFileSync(sourcePath, "utf8");
+  assert(source.includes(uiEvidence.anchor),
+    `${featureId} route/action source mapping invalid: action anchor drift`);
+  assert(productUiRouteSource().includes(uiEvidence.screenRoute),
+    `${featureId} route/action source mapping invalid: route drift`);
+}
+
+function productUiRouteSource() {
+  if (cachedProductUiRouteSource !== null) return cachedProductUiRouteSource;
+  const ingressDir = path.join(rootDir, "src/ingress");
+  cachedProductUiRouteSource = fs.readdirSync(ingressDir)
+    .filter(name => /^(?:product_ui_.*|webrtc_http_server|http_auth)\.(?:cpp|hpp)$/.test(name))
+    .map(name => fs.readFileSync(path.join(ingressDir, name), "utf8"))
+    .join("\n");
+  return cachedProductUiRouteSource;
 }
 
 function validateAutomationSummary(value) {
@@ -211,91 +308,47 @@ function validateAutomationSummary(value) {
   assert(Array.isArray(value.cases), "actual automation cases missing");
 }
 
-function buildClassifications(value, inventoryIds) {
-  const map = new Map();
-  const automated = value.classifications.automated;
-  for (const id of automated.ids) {
-    addClassification(map, id, {
-      disposition: "automated",
-      reasonCode: automated.reasonCode,
-      reason: "native visible-DOM actual summary와 artifact/log가 보존된 exact-selector automation case",
-    });
-  }
-
-  const unsupported = value.classifications.unsupportedManual;
-  const excludedFromUnsupported = new Set(unsupported.exclude || []);
-  for (const id of expandRange(unsupported.range.start, unsupported.range.end)) {
-    if (excludedFromUnsupported.has(id)) continue;
-    addClassification(map, id, {
-      disposition: "unsupported-manual",
-      reasonCode: unsupported.reasonCode,
-      reason: unsupported.reason,
-    });
-  }
-
-  for (const item of value.classifications.excludedPositiveUi) {
-    addClassification(map, item.id, {
-      disposition: "excluded-positive-ui",
-      reasonCode: item.reasonCode,
-      reason: item.reason,
-    });
-  }
-
-  const unclassified = inventoryIds.filter(id => !map.has(id));
-  const unknown = [...map.keys()].filter(id => !inventoryIds.includes(id));
-  assert(unclassified.length === 0, `unclassified inventory UI IDs: ${unclassified.join(", ")}`);
-  assert(unknown.length === 0, `policy references unknown UI IDs: ${unknown.join(", ")}`);
-  return map;
-}
-
-function addClassification(map, id, value) {
-  assert(!map.has(id), `duplicate coverage classification: ${id}`);
-  map.set(id, value);
-}
-
-function buildMatrixRow({ inventory, implementation, classification, manifestCase, actualCase, policy: currentPolicy }) {
-  assert(implementation, `${inventory.id} implementation evidence missing`);
-  const manualUiFulltestRequired = inventory.testAreas.includes("UI");
-  if (manualUiFulltestRequired) {
-    assert(implementation.manualUiCaseId === inventory.id, `${inventory.id} manualUiCaseId mismatch`);
-  } else {
-    assert(implementation.manualUiCaseId === null, `${inventory.id} stability-only UI row must not claim manualUiCaseId`);
-  }
-  assert(implementation.uiEvidence?.screenRoute, `${inventory.id} implementation route missing`);
-  assert(implementation.uiEvidence?.anchor, `${inventory.id} implementation control/action anchor missing`);
-
+function buildMatrixRow({ inventory, implementation, manifestCase, actualByCaseId, exclusion, policy: currentPolicy }) {
   const base = {
-    id: inventory.id,
+    testId: implementation.manualUiCaseId,
+    featureId: implementation.id,
     feature: inventory.feature,
     route: implementation.uiEvidence.screenRoute,
-    controlAction: manualUiFulltestRequired ? `manual-ui-case:${inventory.id}` : `stability-only:${inventory.id}`,
-    controlAnchor: implementation.uiEvidence.anchor,
-    uiNeed: inventory.uiNeed,
-    testAreas: inventory.testAreas,
-    manualUiFulltestRequired,
-    automationDisposition: classification.disposition,
-    automationStatus: classification.disposition === "excluded-positive-ui" ? "not-applicable" : "not-run",
-    actualResult: classification.disposition === "excluded-positive-ui" ? "not-applicable" : "not-run",
-    unsupportedReasonCode: classification.reasonCode,
-    unsupportedReason: classification.reason,
+    controlAction: implementation.uiEvidence.anchor,
+    controlActionAnchor: implementation.uiEvidence.anchor,
+    expectedResult: inventory.expectedEvidence,
+    stabilityVerifier: {
+      command: implementation.verifierEvidence.command,
+      assertionAnchor: implementation.verifierEvidence.anchor,
+      file: implementation.verifierEvidence.file,
+    },
+    automationCaseId: null,
+    automationDisposition: exclusion ? "excluded-positive-ui" : "unsupported-manual",
+    automationStatus: exclusion ? "not-applicable" : "not-run",
+    actualResult: exclusion ? "not-applicable" : "not-run",
+    unsupportedReasonCode: exclusion?.reasonCode || currentPolicy.unsupportedManual.reasonCode,
+    unsupportedReason: exclusion?.reason || currentPolicy.unsupportedManual.reason,
+    targetSelector: "",
     evidence: emptyEvidence(),
   };
 
-  if (classification.disposition !== "automated") {
-    assert(!manifestCase && !actualCase, `${inventory.id} non-automated classification has automation evidence`);
-    return base;
-  }
-
-  assert(manifestCase, `${inventory.id} automation manifest case missing`);
-  assert(actualCase, `${inventory.id} actual automation case missing`);
+  if (!manifestCase) return base;
+  assert(!exclusion, `${implementation.id} cannot be both automated and excluded`);
+  const actualCase = actualByCaseId.get(manifestCase.caseId);
+  assert(actualCase, `${manifestCase.caseId} actual automation case missing`);
+  assert(actualCase.featureId === manifestCase.featureId,
+    `${manifestCase.caseId} featureId mismatch: manifest=${manifestCase.featureId} actual=${actualCase.featureId}`);
+  assert(manifestCase.featureId === implementation.id,
+    `${manifestCase.caseId} featureId mismatch: manifest=${manifestCase.featureId} implementation=${implementation.id}`);
   assert(manifestCase.route === implementation.uiEvidence.screenRoute,
-    `${inventory.id} route mismatch: manifest=${manifestCase.route} implementation=${implementation.uiEvidence.screenRoute}`);
-  assert(actualCase.route === implementation.uiEvidence.screenRoute,
-    `${inventory.id} route mismatch: actual=${actualCase.route} implementation=${implementation.uiEvidence.screenRoute}`);
-  assert(actualCase.controlAction === manifestCase.controlAction, `${inventory.id} controlAction mismatch`);
-  assert(actualCase.status === "PASS", `${inventory.id} actual status must PASS, got ${actualCase.status}`);
-  assert(actualCase.actualResult, `${inventory.id} actualResult missing`);
-  assert(actualCase.manualIntervention === false, `${inventory.id} manualIntervention must be false`);
+    `${manifestCase.caseId} route mismatch: manifest=${manifestCase.route} implementation=${implementation.uiEvidence.screenRoute}`);
+  assert(actualCase.route === manifestCase.route,
+    `${manifestCase.caseId} route mismatch: actual=${actualCase.route} manifest=${manifestCase.route}`);
+  assert(actualCase.controlAction === manifestCase.controlAction,
+    `${manifestCase.caseId} controlAction mismatch`);
+  assert(actualCase.status === "PASS", `${manifestCase.caseId} actual status must PASS, got ${actualCase.status}`);
+  assert(actualCase.actualResult, `${manifestCase.caseId} actualResult missing`);
+  assert(actualCase.manualIntervention === false, `${manifestCase.caseId} manualIntervention must be false`);
 
   const evidence = {};
   const artifactMapping = {
@@ -307,16 +360,18 @@ function buildMatrixRow({ inventory, implementation, classification, manifestCas
   };
   for (const artifactKey of currentPolicy.requiredAutomatedArtifacts) {
     const artifactPath = actualCase[artifactKey];
-    assert(typeof artifactPath === "string" && artifactPath.length > 0, `${inventory.id} ${artifactKey} missing`);
+    assert(typeof artifactPath === "string" && artifactPath.length > 0,
+      `${manifestCase.caseId} ${artifactKey} missing`);
     const absolutePath = path.isAbsolute(artifactPath) ? path.resolve(artifactPath) : path.resolve(rootDir, artifactPath);
-    assert(fs.existsSync(absolutePath), `${inventory.id} ${artifactKey} does not exist: ${artifactPath}`);
-    assert(isWithinRoot(absolutePath), `${inventory.id} ${artifactKey} must stay inside repository`);
+    assert(fs.existsSync(absolutePath), `${manifestCase.caseId} ${artifactKey} does not exist: ${artifactPath}`);
+    assert(isWithinRoot(absolutePath), `${manifestCase.caseId} ${artifactKey} must stay inside repository`);
     evidence[artifactMapping[artifactKey]] = repoRelative(absolutePath);
   }
 
   return {
     ...base,
     controlAction: actualCase.controlAction,
+    automationCaseId: manifestCase.caseId,
     automationDisposition: "automated",
     automationStatus: actualCase.status,
     actualResult: actualCase.actualResult,
@@ -329,23 +384,25 @@ function buildMatrixRow({ inventory, implementation, classification, manifestCas
 
 function renderReport(value) {
   const lines = [
-    "# v3.9.0 UI Automation Coverage Matrix",
+    "# v3.9.0 Full-Feature UI Automation Coverage Matrix",
     "",
-    "이 문서는 current UI inventory와 보존된 actual native visible-DOM evidence를 교차 검증해 생성합니다.",
-    "Matrix validation PASS는 full automation 또는 UI 풀테스트 직접 조작 PASS가 아닙니다.",
+    "이 문서는 974개 feature inventory의 reviewed implementation manifest에서 exact manual UI test ID를 선택하고 actual native visible-DOM evidence를 교차 검증해 생성합니다.",
+    "Feature ID prefix와 numeric range는 coverage 판정에 사용하지 않습니다. Matrix validation PASS는 full automation 또는 UI 풀테스트 직접 조작 PASS가 아닙니다.",
     "",
     `schema: \`${value.schema}\``,
     `matrixValidationResult: \`${value.matrixValidationResult}\``,
     `coverageStatus: \`${value.coverageStatus}\``,
+    `selectionModel: \`${value.selectionModel}\``,
+    `prefixRangeClassification: \`${value.prefixRangeClassification}\``,
     `executionEvidenceStatus: \`${value.executionEvidenceStatus}\``,
     `fullAutomationCoverage: \`${value.fullAutomationCoverage}\``,
     `manualUiFulltestEvidence: \`${value.manualUiFulltestEvidence}\``,
     "",
-    `- inventory UI IDs \`${value.counts.inventoryUiIds}\``,
+    `- inventory features \`${value.counts.inventoryFeatures}\``,
+    `- exact UI test IDs \`${value.counts.exactUiTestIds}\``,
     `- automated \`${value.counts.automated}\``,
     `- unsupported-manual \`${value.counts.unsupportedManual}\``,
     `- excluded-positive-ui \`${value.counts.excludedPositiveUi}\``,
-    `- manual UI fulltest required \`${value.counts.manualUiFulltestRequired}\``,
     "",
     "## Source of Truth",
     "",
@@ -357,38 +414,42 @@ function renderReport(value) {
     "",
     "## Matrix",
     "",
-    "| ID | feature | route | control/action | disposition | actualResult | artifact/log | reason | manual UI |",
-    "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+    "| test ID | feature ID | feature | route | control/action anchor | stability verifier | automation case ID | disposition | actualResult | artifact/log | reason |",
+    "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
   ];
 
   for (const row of value.rows) {
-    const artifacts = Object.values(row.evidence).filter(Boolean).map(repoPath => `\`${repoPath}\``).join("<br>") || "-";
+    const artifacts = Object.values(row.evidence).filter(Boolean)
+      .map(repoPath => `\`${repoPath}\``).join("<br>") || "-";
     const reason = row.unsupportedReason
       ? `${row.unsupportedReasonCode}: ${row.unsupportedReason}`
       : "actual native visible-DOM evidence";
-    lines.push(`| ${row.id} | ${escapeCell(row.feature)} | \`${escapeCell(row.route)}\` | ${escapeCell(row.controlAction)}<br>\`${escapeCell(row.controlAnchor)}\` | ${row.automationDisposition} | ${escapeCell(row.automationStatus)}: ${escapeCell(row.actualResult)} | ${artifacts} | ${escapeCell(reason)} | ${row.manualUiFulltestRequired ? "required" : "not-required-by-inventory"} |`);
+    const verifier = `\`${row.stabilityVerifier.command}\`<br>\`${escapeCell(row.stabilityVerifier.assertionAnchor)}\``;
+    const automationCaseId = row.automationCaseId ? `\`${row.automationCaseId}\`` : "-";
+    lines.push(`| ${row.testId} | ${row.featureId} | ${escapeCell(row.feature)} | \`${escapeCell(row.route)}\` | ${escapeCell(row.controlAction)}<br>\`${escapeCell(row.controlActionAnchor)}\` | ${verifier} | ${automationCaseId} | ${row.automationDisposition} | ${escapeCell(row.automationStatus)}: ${escapeCell(row.actualResult)} | ${artifacts} | ${escapeCell(reason)} |`);
   }
   return `${lines.join("\n")}\n`;
+}
+
+function splitAreas(value) {
+  return String(value).split(",").map(item => item.trim()).filter(Boolean);
 }
 
 function emptyEvidence() {
   return { screenshot: "", trace: "", video: "", browserConsole: "", serverLog: "" };
 }
 
-function expandRange(start, end) {
-  const startValue = parseUiId(start);
-  const endValue = parseUiId(end);
-  assert(startValue <= endValue, `invalid UI ID range: ${start}..${end}`);
-  return Array.from({ length: endValue - startValue + 1 }, (_, index) => `UI-${String(startValue + index).padStart(3, "0")}`);
+function assertUnique(values, label) {
+  const seen = new Set();
+  const duplicates = new Set();
+  for (const value of values) {
+    if (seen.has(value)) duplicates.add(value);
+    seen.add(value);
+  }
+  assert(duplicates.size === 0, `duplicate ${label}: ${[...duplicates].join(", ")}`);
 }
 
-function parseUiId(value) {
-  const match = String(value).match(/^UI-(\d{3})$/);
-  assert(match, `invalid UI ID: ${value}`);
-  return Number(match[1]);
-}
-
-function assertExactIds(actual, expected, label) {
+function assertExact(actual, expected, label) {
   assert(JSON.stringify(actual) === JSON.stringify(expected),
     `${label} mismatch: expected=${expected.join(",")} actual=${actual.join(",")}`);
 }
@@ -419,7 +480,8 @@ function repoRelative(filePath) {
 
 function isWithinRoot(filePath) {
   const relative = path.relative(rootDir, path.resolve(filePath));
-  return relative !== "" && !relative.startsWith(`..${path.sep}`) && relative !== ".." && !path.isAbsolute(relative);
+  return relative !== "" && !relative.startsWith(`..${path.sep}`) &&
+    relative !== ".." && !path.isAbsolute(relative);
 }
 
 function escapeCell(value) {

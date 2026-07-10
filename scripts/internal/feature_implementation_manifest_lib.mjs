@@ -79,7 +79,12 @@ export function parseFeatureRows(text) {
 export function generateImplementationManifest({ rootDir, inventoryText, rows }) {
   const repository = readRepositoryIndex(rootDir);
   const dispatch = parseServerDispatch(repository.textByFile.get("server.sh") || "");
-  const items = rows.map(row => buildItem(row, repository, dispatch));
+  const reviewedManifestPath = path.join(rootDir, IMPLEMENTATION_MANIFEST_PATH);
+  const reviewedManifest = fs.existsSync(reviewedManifestPath)
+    ? JSON.parse(fs.readFileSync(reviewedManifestPath, "utf8"))
+    : { items: [] };
+  const reviewedById = new Map((reviewedManifest.items || []).map(item => [item.id, item]));
+  const items = rows.map(row => buildItem(row, repository, dispatch, reviewedById.get(row.id)));
   return {
     schema: IMPLEMENTATION_MANIFEST_SCHEMA,
     expectedFeatureRows: EXPECTED_FEATURE_ROWS,
@@ -252,7 +257,7 @@ export function writeImplementationManifest(rootDir, manifest) {
   fs.writeFileSync(target, `${JSON.stringify(manifest, null, 2)}\n`);
 }
 
-function buildItem(row, repository, dispatch) {
+function buildItem(row, repository, dispatch, reviewedItem = null) {
   const prefix = featurePrefix(row.id);
   const areas = splitAreas(row.area);
   const requiresUiEvidence = row.uiNeed !== "비대상" || areas.includes("UI");
@@ -275,12 +280,17 @@ function buildItem(row, repository, dispatch) {
   const sourceEvidence = bestEvidence(row, anchors, sourceCandidates, "source");
   if (!sourceEvidence) throw new Error(`${row.id} has no production implementation anchor`);
   const uiEvidence = requiresUiEvidence
-    ? bestEvidence(row, anchors, uiCandidates, "ui")
+    ? structuredClone(reviewedItem?.uiEvidence) || bestEvidence(row, anchors, uiCandidates, "ui")
     : null;
   if (requiresUiEvidence && !uiEvidence) {
     throw new Error(`${row.id} has no product UI anchor`);
   }
-  if (uiEvidence) uiEvidence.screenRoute = uiScreenRoute(row);
+  if (uiEvidence && !uiEvidence.screenRoute) {
+    uiEvidence.screenRoute = explicitUiScreenRoute(row);
+  }
+  if (uiEvidence && !uiEvidence.screenRoute) {
+    throw new Error(`${row.id} has no reviewed exact UI screenRoute mapping`);
+  }
   const explicitCommands = explicitVerifierCommands(row.pass);
   const explicitEvidence = explicitCommands
     .map(command => {
@@ -296,7 +306,10 @@ function buildItem(row, repository, dispatch) {
       };
     })
     .find(Boolean);
-  const verifierEvidence = explicitEvidence ||
+  const reviewedVerifierEvidence = areas.includes("UI")
+    ? structuredClone(reviewedItem?.verifierEvidence)
+    : null;
+  const verifierEvidence = reviewedVerifierEvidence || explicitEvidence ||
     bestEvidence(row, anchors, verifierCandidates, "verifier", dispatch);
   if (!verifierEvidence) throw new Error(`${row.id} has no verifier assertion anchor`);
   if (!verifierEvidence.command) {
@@ -319,7 +332,9 @@ function buildItem(row, repository, dispatch) {
     sourceEvidence,
     uiEvidence,
     verifierEvidence,
-    manualUiCaseId: areas.includes("UI") ? row.id : null,
+    manualUiCaseId: areas.includes("UI")
+      ? reviewedItem?.manualUiCaseId || row.id
+      : null,
     longrunEvidence: {
       soak30: areas.includes("30분")
         ? "./server.sh verify-v390-server-longrun --duration-minutes 30"
@@ -454,29 +469,12 @@ function explicitVerifierCommands(text) {
   return [...text.matchAll(/`(verify-[^`\s,]+)(?:\s+[^`]*)?`/g)].map(match => match[1]);
 }
 
-function uiScreenRoute(row) {
+function explicitUiScreenRoute(row) {
   const text = `${row.feature} ${row.pass}`;
   const explicit = [...text.matchAll(/`(\/(?!ops\/api|client\/api|lab\/api)[A-Za-z0-9_./{}:-]*)`/g)]
     .map(match => match[1])
     .find(route => !route.includes("{") && !route.startsWith("/ws/"));
-  if (explicit) return explicit;
-  const prefix = featurePrefix(row.id);
-  if (prefix === "AUTH") {
-    if (/invite|초대/.test(text)) return "/invite/setup";
-    if (/password|비밀번호/.test(text)) return "/password/change";
-    if (/login|로그인/.test(text)) return "/login";
-    if (/client 접근 요청/.test(text)) return "/client/request-access";
-    return "/ops/users";
-  }
-  if (prefix === "SRC") return "/ops/sources";
-  if (prefix === "RULE") return "/ops/rules";
-  if (prefix === "EVT") return /event|incident|alert|audit|review/i.test(text)
-    ? "/ops/events"
-    : "/ops/dashboard";
-  if (prefix === "CLIENT") return /dashboard/i.test(text) ? "/client/dashboard" : "/client/live";
-  if (prefix === "MEDIA") return "/client/live";
-  if (prefix === "SAFE") return /client|viewer/i.test(text) ? "/client/live" : "/ops";
-  return "/ops";
+  return explicit || null;
 }
 
 function readRepositoryIndex(rootDir) {

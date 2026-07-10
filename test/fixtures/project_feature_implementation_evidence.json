@@ -1,7 +1,7 @@
 {
   "schema": "media-server.feature-implementation-evidence.v1",
   "expectedFeatureRows": 974,
-  "inventorySha256": "bcce89d5ef31f5420da320eeedd1b53f0a805ad73f19cfc3513cbb2ea6bdb0a4",
+  "inventorySha256": "9597770a7bc27b3839e5537ebfc6da0b1634c94c5c72bce8d3cb3b45b0045a23",
   "generatedFrom": "docs/project-feature-test-inventory.md",
   "generationPolicy": "explicit-refresh-only; verifier never rewrites this manifest",
   "executionEvidenceStatus": "not-execution-evidence",
@@ -1503,10 +1503,10 @@
         "screenRoute": "/ops/events"
       },
       "verifierEvidence": {
-        "file": "scripts/internal/verify_v250_owner_release_readiness.mjs",
+        "file": "scripts/internal/verify_v250_similar_incident_lookup.mjs",
         "anchor": "UI-042",
         "anchorKind": "feature-id",
-        "command": "verify-v250-owner-release-readiness"
+        "command": "verify-v250-similar-incident-lookup"
       },
       "manualUiCaseId": "UI-042",
       "longrunEvidence": {
@@ -1539,10 +1539,10 @@
         "screenRoute": "/ops/events"
       },
       "verifierEvidence": {
-        "file": "scripts/internal/verify_v250_owner_release_readiness.mjs",
+        "file": "scripts/internal/verify_v250_redacted_incident_evidence_bundle.mjs",
         "anchor": "UI-043",
         "anchorKind": "feature-id",
-        "command": "verify-v250-owner-release-readiness"
+        "command": "verify-v250-redacted-incident-evidence-bundle"
       },
       "manualUiCaseId": "UI-043",
       "longrunEvidence": {
@@ -2475,10 +2475,10 @@
         "screenRoute": "/ops/events"
       },
       "verifierEvidence": {
-        "file": "scripts/internal/verify_v320_action_readiness_checklist.mjs",
+        "file": "scripts/internal/verify_v320_resolution_search_metrics.mjs",
         "anchor": "UI-069",
         "anchorKind": "feature-id",
-        "command": "verify-v320-action-readiness-checklist"
+        "command": "verify-v320-resolution-search-metrics"
       },
       "manualUiCaseId": "UI-069",
       "longrunEvidence": {
@@ -2655,10 +2655,10 @@
         "screenRoute": "/ops/sources"
       },
       "verifierEvidence": {
-        "file": "scripts/internal/verify_v330_client_safe_source_status_digest.mjs",
+        "file": "scripts/internal/verify_v330_ops_backup_recovery_source_handoff.mjs",
         "anchor": "UI-074",
         "anchorKind": "feature-id",
-        "command": "verify-v330-client-safe-source-status-digest"
+        "command": "verify-v330-ops-backup-recovery-source-handoff"
       },
       "manualUiCaseId": "UI-074",
       "longrunEvidence": {
@@ -2871,10 +2871,10 @@
         "screenRoute": "/ops/events"
       },
       "verifierEvidence": {
-        "file": "scripts/internal/verify_manual_ui_evidence.mjs",
+        "file": "scripts/internal/verify_v350_incident_to_command_handoff.mjs",
         "anchor": "UI-080",
         "anchorKind": "feature-id",
-        "command": "verify-manual-ui-evidence"
+        "command": "verify-v350-incident-to-command-handoff"
       },
       "manualUiCaseId": "UI-080",
       "longrunEvidence": {
@@ -3843,10 +3843,10 @@
         "screenRoute": "/ops/dashboard"
       },
       "verifierEvidence": {
-        "file": "scripts/internal/verify_manual_ui_evidence.mjs",
+        "file": "scripts/internal/verify_v380_default_off_action_explanation.mjs",
         "anchor": "UI-107",
         "anchorKind": "feature-id",
-        "command": "verify-manual-ui-evidence"
+        "command": "verify-v380-default-off-action-explanation"
       },
       "manualUiCaseId": "UI-107",
       "longrunEvidence": {
@@ -3951,10 +3951,10 @@
         "screenRoute": "/ops/rules"
       },
       "verifierEvidence": {
-        "file": "scripts/internal/verify_v390_ui_automation_runner_contract.mjs",
+        "file": "scripts/internal/verify_v390_vlm_rule_suggestion_draft_bridge.mjs",
         "anchor": "UI-110",
         "anchorKind": "feature-id",
-        "command": "verify-v390-ui-automation-runner-contract"
+        "command": "verify-v390-vlm-rule-suggestion-draft-bridge"
       },
       "manualUiCaseId": "UI-110",
       "longrunEvidence": {
@@ -4810,7 +4810,7 @@
         "file": "src/ingress/product_ui_auth_pages.cpp",
         "anchor": "action",
         "anchorKind": "identifier",
-        "screenRoute": "/login"
+        "screenRoute": "/ops/users"
       },
       "verifierEvidence": {
         "file": "scripts/internal/verify_auth_regression_matrix.mjs",
