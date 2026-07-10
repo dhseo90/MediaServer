@@ -31,6 +31,7 @@ assertKnownOptions(rawArgs, ["summary", "h", "help"]);
 const summaryPath = parseSummaryPath(rawArgs);
 const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
 const checks = [];
+const requiredCaseIds = ["UI-108", "UI-109", "UI-110", "UI-111", "UI-112", "UI-113", "UI-114", "UI-115"];
 
 check("summary uses v390 UI automation schema", () => {
   assert(summary.schema === "media-server.v390-ui-automation.v1", `unexpected schema: ${summary.schema}`);
@@ -57,6 +58,38 @@ check("summary counts match case statuses", () => {
     assert(summary.notRun === 0, "PASS summary must have notRun=0");
     assert(summary.manualIntervention === false, "PASS summary must have manualIntervention=false");
     assert(failedInteractionCount === 0, "PASS summary must have failed interaction 0");
+  }
+});
+
+check("v2 case manifest keeps exact UI-108 through UI-115 coverage", () => {
+  if (summary.caseManifestSchema !== "media-server.v390-ui-automation-cases.v2") return;
+  assert(JSON.stringify(summary.requiredCaseIds) === JSON.stringify(requiredCaseIds), "requiredCaseIds mismatch");
+  assert(JSON.stringify(getCases().map(item => item.caseId)) === JSON.stringify(requiredCaseIds),
+    `case IDs must be exact ordered set: ${requiredCaseIds.join(", ")}`);
+  const implementationManifest = JSON.parse(fs.readFileSync(
+    path.resolve(path.dirname(new URL(import.meta.url).pathname), "../../test/fixtures/project_feature_implementation_evidence.json"),
+    "utf8",
+  ));
+  const implementationById = new Map((implementationManifest.items || []).map(item => [item.id, item]));
+  for (const item of getCases()) {
+    const implementation = implementationById.get(item.caseId);
+    assert(implementation?.uiEvidence?.screenRoute === item.route, `${item.caseId} route differs from exact manifest`);
+    assert(item.interaction?.kind === "click" && Boolean(item.interaction.selector), `${item.caseId} missing interaction`);
+    assert(Boolean(item.targetSelector), `${item.caseId} missing targetSelector`);
+    assert(Array.isArray(item.stateSelectors) && item.stateSelectors.length > 0, `${item.caseId} missing stateSelectors`);
+    assert(item.interactionEvidence && typeof item.interactionEvidence.executed === "boolean", `${item.caseId} missing interactionEvidence`);
+    assert(item.stateEvidence && Array.isArray(item.stateEvidence.after), `${item.caseId} missing stateEvidence`);
+    assert(Object.prototype.hasOwnProperty.call(item, "failureEvidence"), `${item.caseId} missing failureEvidence`);
+    if (summary.selectedAdapter.engine !== "playwright-fixture" && !summary.selectedAdapter.engine.endsWith("-fixture")) {
+      if (item.status === "PASS") {
+        assert(item.interactionEvidence.executed === true, `${item.caseId} PASS must execute its control action`);
+        assert(item.stateEvidence.target?.visible === true, `${item.caseId} PASS target must be visible`);
+        assert(item.stateEvidence.after.every(state => state.exists && state.text), `${item.caseId} PASS state evidence incomplete`);
+      }
+      if (item.status === "FAIL") {
+        assert(item.failureEvidence?.reason, `${item.caseId} FAIL missing failure reason`);
+      }
+    }
   }
 });
 
@@ -88,6 +121,7 @@ check("failure report includes investigation evidence fields", () => {
       "serverLogReference",
       "cleanupPortState",
       "manualIntervention",
+      "failureEvidence",
     ]) {
       assert(Object.prototype.hasOwnProperty.call(item, field), `${item.caseId} missing failure field ${field}`);
     }

@@ -130,7 +130,7 @@ check("docs and release evidence record the R5 replay guard without overclaiming
     readText("docs/stream-verification.md"),
   ].join("\n");
   for (const snippet of [
-    "v3.9.0 R5 UI automation report replay guard",
+    "v3.9.0 R5 / V390-ADD1-07 UI automation report replay guard",
     guardCommand,
     "failed interaction 0",
     "browserConsole",

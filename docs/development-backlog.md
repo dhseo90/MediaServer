@@ -108,8 +108,8 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 18 | v3.9.0 (18) Re-ID appearance assist model-backed path decision | P2 | 완료 | `V390-CAND-010`: `/ops/api/analysis/reid-assist-decision`와 `/ops` dashboard가 `explicit-opt-in-provenance-gated-assist`, model/checksum/provenance gate, no-op fallback, tracker-none forces off boundary를 표시하고 model-backed execution/embedding/crop serialization은 수행하지 않음 |
 | 19 | v3.9.0 (19) structure stabilization handoff 상세계획 | P0 | 완료 | 인벤토리 `V390-STRUCT-001`~`V390-STRUCT-005`를 `docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md`로 이관하고 `verify-v390-structure-stabilization-handoff` gate로 구조 변경 미실행 경계를 고정 |
 | 20 | v3.9.0 (20) stabilization and release readiness | P0 | 완료 | AGENTS 네 테스트 영역 판정과 release close-out evidence를 실제 실행/미실행으로 분리 |
-| 21 | v3.9.0 (21) actual test acceptance bundle 실행 모드 | P0 | 미완료/post-review 잔여 | `verify-v390-test-acceptance-bundle --dry-run`은 구현됐지만 실제 acceptance bundle 실행은 미실행/완료 evidence 아님. 사용자가 그대로 재실행할 수 있는 actual mode와 final summary/report가 필요 |
-| 22 | v3.9.0 (22) v3.9 UI automation case completeness | P0 | 미완료/post-review 잔여 | R2 case manifest와 보존 summary가 `UI-112`를 포함하지 않음. `UI-108`~`UI-115` 전부를 route/control/action 단위로 실행하고 replay guard가 artifact 존재를 확인해야 함 |
+| 21 | v3.9.0 (21) actual test acceptance bundle 실행 모드 | P0 | 완료 | V390-ADD1-06 actual mode final summary/report가 build→기능→real 30분→UI automation/replay→conditional 120 decision→cleanup을 단일 실행으로 PASS |
+| 22 | v3.9.0 (22) v3.9 UI automation case completeness | P0 | 완료 | V390-ADD1-07 case schema v2와 actual summary가 `UI-112` 포함 exact `UI-108`~`UI-115` 8개 route/control/action/state/failure/artifact를 검증하고 replay PASS |
 | 23 | v3.9.0 (23) native free UI automation adapter proof | P0 | 미완료/post-review 잔여 | R2 실제 evidence는 `browserMode=playwright`지만 `selectedAdapter.engine=chrome-cdp-fallback`임. Playwright/Selenium/SikuliX native 실행 또는 명확한 preflight FAIL/설치 안내가 필요 |
 | 24 | v3.9.0 (24) server longrun true first-fail case runner | P0 | 부분 완료/post-review 잔여 | R1 runner는 `stopOnFirstFail` summary와 delegated failure 보존이 있지만 핵심 duration loop는 cumulative `verify-predev`에 위임됨. 실제 case-by-case first-fail runner 보강 필요 |
 | 25 | v3.9.0 (25) route/control/action automation coverage matrix | P0 | 미완료/post-review 잔여 | 현재 R2 자동화는 v3.9 신규 일부 case 중심임. v1.0~v3.9 current UI 기능 ID에 대한 자동화 coverage matrix와 미지원/제외 사유가 필요 |
@@ -138,7 +138,7 @@ UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release a
 | 4 | V390-ADD1-04 | Product Correctness | Re-ID 준비 상태 정합성 | P0 | 완료 | extractor factory와 Ops API가 공용 server-owned readiness를 사용해 regular file, SHA 형식·읽기·일치, trim provenance, OpenSSL·ONNX Runtime을 검사하고 preflight/session-load/execution을 분리 |
 | 5 | V390-ADD1-05 | Product Correctness | ONVIF 저장 원자성 | P0 | 완료 | ONVIF form save/toggle의 source/view 연속 PUT을 single-lock paired route로 교체하고 두 번째 파일 실패 시 실제 교체된 파일을 pre-transaction snapshot으로 rollback |
 | 6 | V390-ADD1-06 | Test Foundation | 실제 acceptance bundle | P0 | 완료 | dry-run 강제를 해제하고 build→현재 기능 gate→실제 30분→실제 UI automation→조건부 120분을 stop-on-first-fail 단일 진입점으로 실행하며 summary/report/cleanup을 보존 |
-| 7 | V390-ADD1-07 | UI Test | UI 케이스 누락 보완 | P0 | 미진행 | `UI-112`를 포함한 `UI-108`~`UI-115` 전 case의 실제 route/control/action/state/failure/artifact evidence를 검증 |
+| 7 | V390-ADD1-07 | UI Test | UI 케이스 누락 보완 | P0 | 완료 | `UI-112`를 포함한 `UI-108`~`UI-115` 전 case의 실제 route/control/action/state/failure/artifact evidence를 검증 |
 | 8 | V390-ADD1-08 | UI Test | 무료 네이티브 자동화 어댑터 | P0 | 미진행 | native Playwright/Selenium/SikuliX 중 선택된 무료 adapter가 실제 wait/click/type/select/screenshot을 실행하고 재현 가능한 provenance를 기록 |
 | 9 | V390-ADD1-09 | UI Test | 거짓 PASS 방지 | P0 | 미진행 | `outerHTML`·script 문자열·whole-page marker 성공 판정을 제거하고 visible DOM 상태와 실제 사용자 action 전후 결과로만 판정 |
 
@@ -197,6 +197,53 @@ conditional 120 decision, cleanup, docs/inventory/script gate, `git diff --check
 
 테스트 사용량: token start `0`, token end `901969`, token consumed `901969`,
 elapsed 약 `6636초`, source `Codex goal usage`.
+
+### V390-ADD1-07 UI 케이스 누락 보완 — 실행 전 등록
+
+Step 7은 `test/fixtures/v390_ui_automation_cases.json`을 exact `UI-108`~`UI-115`
+8개 집합으로 고정하고, 각 case가 manifest와 같은 route, 실제 refresh/inspect control,
+action 전후 state, failure reason, screenshot/trace/console/server-log artifact를 기록하는지
+runner/report/contract에서 검증합니다. 이 단계의 DOM action은 현재 adapter를 통해 실행하되,
+native wait/click/type/select adapter 승격은 Step 8, whole-page marker 제거는 Step 9 범위입니다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | case manifest/runner/report/contract/docs 변경 | `V390-ADD1-07`, `UI-108`~`UI-115` | 최신 goal에서 7번 개발 승인 |
+| 30분 테스트 | 미진행 | UI case coverage/evidence schema만 변경하고 runtime/media lifecycle은 변경하지 않음 | Step 7 변경 범위 | Step 6 final real 30분과 분리 |
+| 120분 테스트 | 미진행 | AGENTS 7.6.2 trigger 없음 | Step 7 변경 범위 | 조건 미충족 |
+| UI 풀테스트 | 미진행 | 8-case actual automation은 실행하지만 Codex 인앱 전체 UI 직접 조작 풀테스트와 구분 | `UI-108`~`UI-115` | 직접 UI 풀테스트 승인 없음 |
+
+### V390-ADD1-07 UI 케이스 누락 보완 — 개발 및 실행 결과
+
+- `test/fixtures/v390_ui_automation_cases.json`을
+  `media-server.v390-ui-automation-cases.v2`로 올리고 exact ordered ID를
+  `UI-108`~`UI-115` 8개로 고정했습니다. `UI-112` staging restore validation handoff를
+  `/ops/sources`의 refresh, checklist, result artifact 상태와 함께 추가했습니다.
+- UI-113~UI-115 route를 exact implementation manifest와 같은 `/ops/dashboard`로
+  수정했습니다. UI-108/109는 채널 추가→ONVIF select→refresh, UI-110/111은 해당
+  refresh control, UI-112는 source refresh, UI-113~115는 dashboard refresh를 실행합니다.
+- `scripts/internal/verify_v390_ui_automation.mjs`는 case ID/route를 974행 implementation
+  manifest와 대조하고 setup/primary interaction, target, before/after state,
+  `failureEvidence`, screenshot/trace/video/console/server-log를 summary에 기록합니다.
+- `scripts/internal/verify_v390_ui_automation_report.mjs`는 v2 summary의 exact 8-case,
+  action 실행, visible target, non-empty state, failure reason, artifact를 replay합니다.
+  `scripts/internal/verify_v390_ui_automation_runner_contract.mjs`는 UI-112 누락과
+  UI-113 wrong route negative manifest를 반드시 거부합니다.
+- 실제 실행 `docs/release-artifacts/v3.9.0/ui-automation-case-completeness-final/summary.json`은
+  `caseCount=8`, `pass=8`, `fail=0`, `notRun=0`; replay는 `pass=7 fail=0`입니다.
+  이 실행은 DOM-dispatch interaction evidence이며 native adapter 승격은 Step 8에서,
+  whole-page marker 제거는 Step 9에서 닫습니다.
+
+실패 후 수정 이력:
+
+| 순서 | 실패 | 수정 | 재검증 |
+| --- | --- | --- | --- |
+| 1 | exact ID RED가 `false`로 종료: UI-112 누락 | UI-112와 exact 8-case/route manifest gate 추가 | contract exact set PASS |
+| 2 | 첫 actual run UI-108 target hidden, 뒤 7 case not-run | 채널 추가와 ONVIF select setup action 추가 | failure evidence에 hidden target 보존 |
+| 3 | setup click 직후 비동기 form reset 전에 select 실행되어 다시 hidden | setup interaction을 순차 await하도록 수정 | actual 8/0, replay 7/0 |
+
+테스트 사용량: token start `901969`, token end `1080515`, token consumed `178546`,
+elapsed 약 `547초`, source `Codex goal usage`.
 
 ### V390-ADD1-01 미추적 파일 전수 판정
 

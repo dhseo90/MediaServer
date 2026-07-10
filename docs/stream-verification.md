@@ -152,8 +152,12 @@ R5는 UI automation suite 자체를 실행하는 gate가 아니라, 이미 생�
 
 R5 replay guard 조건:
 
+- case manifest v2 summary는 implementation manifest와 같은 exact ordered
+  `UI-108`~`UI-115` 8개 ID/route여야 하며 `UI-112` 누락이나 `/ops`/`/ops/dashboard`
+  route drift를 허용하지 않습니다.
 - PASS summary는 `fail=0`, `notRun=0`, `manualIntervention=false`, failed interaction 0이어야 합니다.
-- 모든 case는 `route/control/action`, `expectedMarkers`, `screenshotPath`, `tracePath`,
+- 모든 v2 case는 `route/control/action`, setup/primary `interactionEvidence`, visible target,
+  before/after `stateEvidence`, `failureEvidence`, `expectedMarkers`, `screenshotPath`, `tracePath`,
   `videoPath`, `browserConsolePath`, `serverLogReference`, `cleanupPortState`,
   `browserConsole`, `manualIntervention=false`를 기록해야 합니다.
 - `screenshotPath`, `tracePath`, `videoPath`, `browserConsolePath`,
@@ -170,6 +174,13 @@ Boundary: `automationResult is not manual UI fulltest, 30-minute, 120-minute,
 published, or release-action evidence`. Fixture output and report replay are
 implementation/contract evidence only. 실제 UI automation suite와 UI 풀테스트 직접 조작
 evidence는 사용자 실행 승인과 별도 보존 summary/report가 있을 때만 PASS로 기록합니다.
+
+V390-ADD1-07 actual case completeness evidence는
+`docs/release-artifacts/v3.9.0/ui-automation-case-completeness-final/summary.json`에
+보존합니다. 결과는 exact 8 case `pass=8 fail=0 notRun=0`, report replay
+`pass=7 fail=0`이며 UI-112 staging restore checklist/result artifact가 포함됩니다.
+이 실행의 interaction dispatch는 DOM 기반이며 native free adapter 증명은 V390-ADD1-08,
+whole-page marker 제거는 V390-ADD1-09에서 별도로 닫습니다.
 
 ### v3.9.0 R3 test acceptance bundle
 

@@ -73,6 +73,7 @@ const eventStoragePath = path.join(outputDir, "core-events.jsonl");
 const eventSnapshotDir = path.join(outputDir, "core-snapshots");
 const eventClipDir = path.join(outputDir, "core-clips");
 const runId = `v390-ui-automation-${new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14)}-${process.pid}`;
+const requiredCaseIds = ["UI-108", "UI-109", "UI-110", "UI-111", "UI-112", "UI-113", "UI-114", "UI-115"];
 const cases = loadCases(options.caseManifest);
 const fixtureMode = options.fixturePass || options.fixtureFailCase !== "";
 const adapterPlan = buildAdapterPlan(options.browserMode);
@@ -116,6 +117,8 @@ const summary = {
   evidenceBoundary: "automationResult is not manual UI fulltest, 30-minute, 120-minute, published, or release-action evidence",
   manualIntervention: false,
   failedInteractionCount: failCount,
+  requiredCaseIds,
+  caseManifestSchema: "media-server.v390-ui-automation-cases.v2",
   caseCount: normalizedCases.length,
   pass: passCount,
   fail: failCount,
@@ -222,8 +225,26 @@ function parseArgs(args) {
 function loadCases(manifestPath) {
   const fullPath = path.resolve(rootDir, manifestPath);
   const payload = JSON.parse(fs.readFileSync(fullPath, "utf8"));
-  assert(payload.schema === "media-server.v390-ui-automation-cases.v1", "unexpected UI automation case manifest schema");
+  assert(payload.schema === "media-server.v390-ui-automation-cases.v2", "unexpected UI automation case manifest schema");
   assert(Array.isArray(payload.cases) && payload.cases.length > 0, "case manifest must contain cases");
+  const actualCaseIds = payload.cases.map(item => item.caseId);
+  assert(JSON.stringify(actualCaseIds) === JSON.stringify(requiredCaseIds),
+    `case manifest must contain exact ordered IDs ${requiredCaseIds.join(", ")}`);
+  const implementationManifest = JSON.parse(fs.readFileSync(
+    path.join(rootDir, "test/fixtures/project_feature_implementation_evidence.json"),
+    "utf8",
+  ));
+  const implementationById = new Map((implementationManifest.items || []).map(item => [item.id, item]));
+  for (const item of payload.cases) {
+    const implementation = implementationById.get(item.caseId);
+    assert(item.featureId === item.caseId, `${item.caseId} featureId must match caseId`);
+    assert(implementation?.manualUiCaseId === item.caseId, `${item.caseId} missing exact manual UI manifest mapping`);
+    assert(implementation?.uiEvidence?.screenRoute === item.route,
+      `${item.caseId} route mismatch: ${item.route} vs ${implementation?.uiEvidence?.screenRoute || "missing"}`);
+    assert(item.interaction?.kind === "click" && Boolean(item.interaction.selector), `${item.caseId} missing click interaction`);
+    assert(Boolean(item.targetSelector), `${item.caseId} missing targetSelector`);
+    assert(Array.isArray(item.stateSelectors) && item.stateSelectors.length > 0, `${item.caseId} missing stateSelectors`);
+  }
   if (options.fixtureFailCase) {
     assert(payload.cases.some(item => item.caseId === options.fixtureFailCase), `unknown fixture fail case: ${options.fixtureFailCase}`);
   }
@@ -362,7 +383,7 @@ async function runRealUiAutomation() {
           timeoutMs,
           serverLogReference: server.logPath,
         });
-        results.push(makeCase(item, "PASS", "all expected UI markers found", artifact));
+        results.push(makeCase(item, "PASS", "control action executed and expected UI state captured", artifact));
       } catch (error) {
         failed = true;
         const artifact = error?.artifact || writeCaseArtifacts(item, { serverLogReference: server.logPath });
@@ -488,15 +509,65 @@ async function runBrowserCase(item, { httpBase, runtimeAdapter, debugPort, timeo
     await delay(500);
     const result = await browser.evaluate(
       `
-        (() => {
+        (async () => {
+          const setupInteractions = ${JSON.stringify(item.setupInteractions || [])};
+          const interaction = ${JSON.stringify(item.interaction)};
+          const targetSelector = ${JSON.stringify(item.targetSelector)};
+          const stateSelectors = ${JSON.stringify(item.stateSelectors)};
           const markers = ${JSON.stringify(item.expectedMarkers || [])};
+          const readState = () => stateSelectors.map((selector) => {
+            const element = document.querySelector(selector);
+            const rect = element ? element.getBoundingClientRect() : null;
+            return {
+              selector,
+              exists: Boolean(element),
+              visible: Boolean(rect && rect.width > 0 && rect.height > 0),
+              text: String(element?.innerText || element?.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 1200),
+            };
+          });
+          const executeInteraction = (step) => {
+            const element = document.querySelector(step.selector);
+            if (!element) return { ...step, executed: false };
+            if (step.kind === 'click') element.click();
+            if (step.kind === 'select') {
+              element.value = step.value;
+              element.dispatchEvent(new Event('input', { bubbles: true }));
+              element.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            return { ...step, executed: true };
+          };
+          const setupEvidence = [];
+          for (const step of setupInteractions) {
+            setupEvidence.push(executeInteraction(step));
+            await new Promise((resolve) => setTimeout(resolve, 250));
+          }
+          const beforeState = readState();
+          const control = document.querySelector(interaction.selector);
+          if (control) control.click();
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          const afterState = readState();
+          const target = document.querySelector(targetSelector);
+          const targetRect = target ? target.getBoundingClientRect() : null;
+          const targetVisible = Boolean(targetRect && targetRect.width > 0 && targetRect.height > 0);
           const text = document.body ? document.body.innerText : "";
           const html = document.documentElement ? document.documentElement.outerHTML : "";
           const haystack = String(text + "\\n" + html);
           const missing = markers.filter((marker) => !haystack.includes(marker));
+          const missingStateSelectors = afterState.filter((state) => !state.exists || !state.text).map((state) => state.selector);
           return {
-            ok: missing.length === 0,
+            ok: setupEvidence.every((step) => step.executed) && Boolean(control) && targetVisible && missingStateSelectors.length === 0 && missing.length === 0,
             missing,
+            missingStateSelectors,
+            interaction: {
+              kind: interaction.kind,
+              selector: interaction.selector,
+              executed: Boolean(control),
+              dispatch: 'dom-click',
+              setup: setupEvidence,
+            },
+            target: { selector: targetSelector, exists: Boolean(target), visible: targetVisible },
+            beforeState,
+            afterState,
             markerCount: markers.length,
             title: document.title,
             textSnippet: text.replace(/\\s+/g, " ").slice(0, 800),
@@ -505,6 +576,12 @@ async function runBrowserCase(item, { httpBase, runtimeAdapter, debugPort, timeo
       `,
       10000,
     );
+    artifact.interactionEvidence = result?.interaction || defaultInteractionEvidence(item);
+    artifact.stateEvidence = {
+      target: result?.target || { selector: item.targetSelector, exists: false, visible: false },
+      before: result?.beforeState || [],
+      after: result?.afterState || [],
+    };
     await browser.screenshot(artifact.screenshotPath);
     const browserConsole = browser.consoleEntries ? browser.consoleEntries() : [];
     writeJson(artifact.browserConsolePath, browserConsole);
@@ -516,11 +593,20 @@ async function runBrowserCase(item, { httpBase, runtimeAdapter, debugPort, timeo
       browserMode: options.browserMode,
       adapter: selectedAdapter,
       expectedMarkers: item.expectedMarkers || [],
+      interactionEvidence: artifact.interactionEvidence,
+      stateEvidence: artifact.stateEvidence,
       browserConsolePath: artifact.browserConsolePath,
       result,
     });
     if (!result?.ok) {
-      const failure = new Error(`missing UI markers: ${(result?.missing || []).join(", ") || "(unknown)"}`);
+      const reasons = [];
+      const missingSetup = (result?.interaction?.setup || []).filter(step => !step.executed).map(step => step.selector);
+      if (missingSetup.length > 0) reasons.push(`setup control not found: ${missingSetup.join(", ")}`);
+      if (!result?.interaction?.executed) reasons.push(`control not found: ${item.interaction.selector}`);
+      if (!result?.target?.visible) reasons.push(`target not visible: ${item.targetSelector}`);
+      if ((result?.missingStateSelectors || []).length > 0) reasons.push(`missing state: ${result.missingStateSelectors.join(", ")}`);
+      if ((result?.missing || []).length > 0) reasons.push(`missing UI markers: ${result.missing.join(", ")}`);
+      const failure = new Error(reasons.join("; ") || "UI action/state verification failed");
       failure.artifact = artifact;
       throw failure;
     }
@@ -757,7 +843,28 @@ function writeCaseArtifacts(item, { serverLogReference = "" } = {}) {
   if (!fs.existsSync(videoPath)) fs.writeFileSync(videoPath, `fixture video placeholder for ${item.caseId}\n`, "utf8");
   if (!fs.existsSync(browserConsolePath)) writeJson(browserConsolePath, []);
   if (!serverLogReference) fs.writeFileSync(serverLogPath, `fixture server log reference for ${item.caseId}\n`, "utf8");
-  return { screenshotPath, tracePath, videoPath, browserConsolePath, serverLogReference: serverLogPath };
+  return {
+    screenshotPath,
+    tracePath,
+    videoPath,
+    browserConsolePath,
+    serverLogReference: serverLogPath,
+    interactionEvidence: defaultInteractionEvidence(item),
+    stateEvidence: {
+      target: { selector: item.targetSelector, exists: false, visible: false },
+      before: [],
+      after: [],
+    },
+  };
+}
+
+function defaultInteractionEvidence(item) {
+  return {
+    kind: item.interaction?.kind || "",
+    selector: item.interaction?.selector || "",
+    executed: false,
+    dispatch: fixtureMode ? "fixture-not-executed" : "not-executed",
+  };
 }
 
 function printProgress(current, total, item) {
@@ -774,10 +881,28 @@ function makeCase(item, status, actualResult, artifact) {
     theme: item.theme,
     accountRole: item.accountRole,
     controlAction: item.controlAction,
+    setupInteractions: item.setupInteractions || [],
+    interaction: item.interaction,
+    targetSelector: item.targetSelector,
+    stateSelectors: item.stateSelectors,
     expectedResult: item.expectedResult,
     expectedMarkers: item.expectedMarkers || [],
     actualResult,
     status,
+    interactionEvidence: artifact.interactionEvidence,
+    stateEvidence: artifact.stateEvidence,
+    failureEvidence: status === "FAIL" ? {
+      reason: actualResult,
+      failedAction: item.interaction,
+      stateEvidence: artifact.stateEvidence,
+      screenshotPath: artifact.screenshotPath,
+      tracePath: artifact.tracePath,
+      browserConsolePath: artifact.browserConsolePath,
+      serverLogReference: artifact.serverLogReference,
+    } : (status === "not-run" ? {
+      reason: actualResult,
+      blockedByPreviousFailure: true,
+    } : null),
     screenshotPath: artifact.screenshotPath,
     tracePath: artifact.tracePath,
     videoPath: artifact.videoPath,

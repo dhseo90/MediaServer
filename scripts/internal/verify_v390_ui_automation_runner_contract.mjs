@@ -37,6 +37,12 @@ const reportScript = "verify_v390_ui_automation_report.mjs";
 const contractScript = "verify_v390_ui_automation_runner_contract.mjs";
 const runnerPath = path.join(rootDir, "scripts/internal", runnerScript);
 const checks = [];
+const temporaryOutputDirs = new Set();
+process.on("exit", () => {
+  for (const outputDir of temporaryOutputDirs) {
+    fs.rmSync(outputDir, { recursive: true, force: true });
+  }
+});
 
 const files = {
   serverSh: readText("server.sh"),
@@ -72,6 +78,38 @@ check("runner isolates throwaway ports from local env overrides", () => {
   assertIncludes(files.runner, 'MEDIA_SERVER_SKIP_LOCAL_ENV: "1"', "R2 runner skip local env override");
 });
 
+check("case manifest covers exact UI-108 through UI-115 actions and states", () => {
+  const run = runFixture("case-completeness", ["--fixture-pass"]);
+  assert(run.status === "passed", `case completeness fixture should pass, got ${run.status}`);
+  const summary = readJson(run.summaryPath);
+  const required = ["UI-108", "UI-109", "UI-110", "UI-111", "UI-112", "UI-113", "UI-114", "UI-115"];
+  assert(summary.caseManifestSchema === "media-server.v390-ui-automation-cases.v2", "case manifest schema must be v2");
+  assert(JSON.stringify(summary.requiredCaseIds) === JSON.stringify(required), "requiredCaseIds mismatch");
+  assert(JSON.stringify(summary.cases.map(item => item.caseId)) === JSON.stringify(required), "exact case coverage mismatch");
+  const ui112 = summary.cases.find(item => item.caseId === "UI-112");
+  assert(ui112?.route === "/ops/sources", "UI-112 route mismatch");
+  assert(ui112?.interaction?.selector === "#refresh", "UI-112 interaction mismatch");
+  assert(ui112?.targetSelector === "[data-source-staging-restore-validation-handoff]", "UI-112 target mismatch");
+  for (const item of summary.cases) {
+    assert(item.interaction?.kind === "click", `${item.caseId} missing click interaction`);
+    assert(Array.isArray(item.stateSelectors) && item.stateSelectors.length > 0, `${item.caseId} missing state selectors`);
+    assert(item.interactionEvidence && typeof item.interactionEvidence.executed === "boolean", `${item.caseId} missing interaction evidence`);
+    assert(item.stateEvidence && Array.isArray(item.stateEvidence.after), `${item.caseId} missing state evidence`);
+    assert(Object.prototype.hasOwnProperty.call(item, "failureEvidence"), `${item.caseId} missing failure evidence field`);
+  }
+  runReportVerifier(run.summaryPath);
+});
+
+check("missing UI-112 and wrong manifest route are rejected", () => {
+  const source = readJson(path.join(rootDir, "test/fixtures/v390_ui_automation_cases.json"));
+  const missing = structuredClone(source);
+  missing.cases = missing.cases.filter(item => item.caseId !== "UI-112");
+  expectManifestFailure("missing-ui-112", missing, "case manifest must contain exact ordered IDs");
+  const wrongRoute = structuredClone(source);
+  wrongRoute.cases.find(item => item.caseId === "UI-113").route = "/ops";
+  expectManifestFailure("wrong-ui-113-route", wrongRoute, "UI-113 route mismatch");
+});
+
 check("failure fixture records case failure fields and later cases as not-run", () => {
   const run = runFixture("fail", ["--fixture-fail-case", "UI-110"]);
   assert(run.status === "failed-as-expected", `failure fixture should exit non-zero, got ${run.status}`);
@@ -86,9 +124,12 @@ check("failure fixture records case failure fields and later cases as not-run", 
   assert(Array.isArray(failedCase.expectedMarkers) && failedCase.expectedMarkers.includes("autoApply=false"), "UI-110 expectedMarkers mismatch");
   assert(failedCase.manualIntervention === false, "failure fixture must not require manual intervention");
   assert(Array.isArray(failedCase.browserConsole), "browserConsole must be an array");
+  assert(failedCase.failureEvidence?.reason, "UI-110 failure reason missing");
+  assert(failedCase.failureEvidence?.failedAction?.selector === "#opsVlmRuleDraftRefresh", "UI-110 failed action mismatch");
   assertAdapterEvidence(summary, failedCase);
   assertArtifactExists(summary, failedCase.browserConsolePath, "UI-110 browserConsolePath");
   assert(summary.cases.some(item => item.caseId === "UI-111" && item.status === "not-run"), "later case UI-111 must be not-run");
+  assert(summary.cases.some(item => item.caseId === "UI-112" && item.status === "not-run"), "later case UI-112 must be not-run");
   runReportVerifier(run.summaryPath);
 });
 
@@ -110,7 +151,7 @@ check("pass fixture validates through report replay verifier", () => {
 
 check("docs and release evidence record R2 without overclaiming UI fulltest", () => {
   for (const snippet of [
-    "v3.9.0 R2 AI-minimized UI automation runner 실제 구현",
+    "v3.9.0 R2 / V390-ADD1-07 UI automation exact case runner",
     command,
     reportCommand,
     contractCommand,
@@ -129,7 +170,7 @@ check("docs and release evidence record R2 without overclaiming UI fulltest", ()
     assertIncludes(files.releaseRecords, snippet, "R2 release records");
   }
   for (const snippet of [
-    "v3.9.0 R2 UI automation runner",
+    "v3.9.0 R2 / V390-ADD1-07 UI automation exact case runner",
     command,
     reportCommand,
     contractCommand,
@@ -153,6 +194,7 @@ if (results.fail > 0) process.exit(1);
 
 function runFixture(label, extraArgs) {
   const outputDir = path.join("/tmp", `media_server_v390_ui_automation_contract_${label}_${process.pid}`);
+  temporaryOutputDirs.add(outputDir);
   fs.rmSync(outputDir, { recursive: true, force: true });
   const args = [
     runnerPath,
@@ -196,6 +238,36 @@ function runReportVerifier(summaryPath) {
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
   });
+}
+
+function expectManifestFailure(label, manifest, expectedMessage) {
+  const fixtureDir = path.join("/tmp", `media_server_v390_ui_manifest_negative_${label}_${process.pid}`);
+  const manifestPath = path.join(fixtureDir, "cases.json");
+  const outputDir = path.join(fixtureDir, "output");
+  fs.rmSync(fixtureDir, { recursive: true, force: true });
+  fs.mkdirSync(fixtureDir, { recursive: true });
+  fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+  let failed = false;
+  try {
+    execFileSync(process.execPath, [
+      runnerPath,
+      "--browser-mode", "playwright",
+      "--output-dir", outputDir,
+      "--case-manifest", manifestPath,
+      "--fixture-pass",
+    ], {
+      cwd: rootDir,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch (error) {
+    failed = true;
+    const output = `${String(error?.stdout || "")}\n${String(error?.stderr || "")}`;
+    assert(output.includes(expectedMessage), `${label} missing expected error: ${expectedMessage}`);
+  } finally {
+    fs.rmSync(fixtureDir, { recursive: true, force: true });
+  }
+  assert(failed, `${label} must fail`);
 }
 
 function runChecks() {
