@@ -152,6 +152,29 @@ The summary also records `adapterPlan`, `selectedAdapter`, `adapterAttempts`, an
 pretending native Playwright ran. The throwaway server sets `MEDIA_SERVER_SKIP_LOCAL_ENV=1` so
 local `.media_server.env` defaults cannot override the isolated R2 HTTP/RTSP ports.
 
+### V390-ADD1-11 current UI automation coverage matrix
+
+Step 25/R10은 R2의 8개 actual automation case를 current UI 전체 자동화 PASS로 확대
+해석하지 않습니다. `./server.sh verify-v390-ui-automation-coverage --output-dir <path>`는
+`docs/project-feature-test-inventory.md`와 exact implementation evidence를 source로
+`UI-001`~`UI-115` 115행 route/control/action matrix를 생성합니다. 결과는
+`mapped-with-explicit-gaps`: native visible-DOM actual evidence가 있는 `UI-108`~`UI-115`
+8개만 `automated/PASS`, automation case가 없는 106개는 `unsupported-manual/not-run`,
+제품 UI 미제공 negative route인 `UI-018`은 `excluded-positive-ui/not-applicable`입니다.
+
+검증 명령:
+
+- `./server.sh verify-v390-ui-automation-coverage --output-dir <path>`
+- `./server.sh verify-v390-ui-automation-coverage-contract`
+
+Coverage verifier는 automated 행의 screenshot, trace/video, browser console, server log
+파일을 모두 확인하고, policy ID 누락, implementation route drift, artifact 누락을
+실패 처리합니다. 고정 matrix는
+`docs/v390-ui-automation-coverage-matrix.md`에 보존합니다. Matrix validation PASS는
+`fullAutomationCoverage=false`, `manualUiFulltestEvidence=false`,
+`executionEvidenceStatus=partial-automation-evidence`이며 UI 풀테스트 직접 조작,
+30분/120분, published metadata, release action PASS가 아닙니다.
+
 ### v3.9.0 R5 UI automation report replay guard
 
 R5는 UI automation suite 자체를 실행하는 gate가 아니라, 이미 생성된

@@ -1,0 +1,56 @@
+{
+  "schema": "media-server.v390-ui-automation-coverage-policy.v1",
+  "inventorySource": "docs/project-feature-test-inventory.md",
+  "implementationEvidenceSource": "test/fixtures/project_feature_implementation_evidence.json",
+  "automationCaseManifestSource": "test/fixtures/v390_ui_automation_cases.json",
+  "actualAutomationSummarySource": "docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/summary.json",
+  "expectedUiIdRange": {
+    "start": "UI-001",
+    "end": "UI-115"
+  },
+  "classifications": {
+    "automated": {
+      "ids": [
+        "UI-108",
+        "UI-109",
+        "UI-110",
+        "UI-111",
+        "UI-112",
+        "UI-113",
+        "UI-114",
+        "UI-115"
+      ],
+      "reasonCode": "native-visible-dom-actual-evidence"
+    },
+    "unsupportedManual": {
+      "range": {
+        "start": "UI-001",
+        "end": "UI-107"
+      },
+      "exclude": [
+        "UI-018"
+      ],
+      "reasonCode": "no-current-native-exact-selector-case",
+      "reason": "현재 native exact-selector automation case manifest에 없으므로 자동화 PASS로 보지 않고 manual UI 필요 여부를 inventory에서 유지"
+    },
+    "excludedPositiveUi": [
+      {
+        "id": "UI-018",
+        "reasonCode": "product-ui-absence-negative-check",
+        "reason": "제품 UI 미제공/404를 확인하는 negative route case이므로 positive product UI automation에서 제외하고 별도 안정화 및 manual route 확인을 유지"
+      }
+    ]
+  },
+  "requiredAutomatedArtifacts": [
+    "screenshotPath",
+    "tracePath",
+    "videoPath",
+    "browserConsolePath",
+    "serverLogReference"
+  ],
+  "boundaries": {
+    "fullAutomationCoverage": false,
+    "manualUiFulltestEvidence": false,
+    "executionEvidenceStatus": "partial-automation-evidence"
+  }
+}

@@ -156,6 +156,10 @@ Usage:
                  v3.9.0 R2 UI automation summary case evidence를 검증합니다.
   verify-v390-ui-automation-runner-contract
                  v3.9.0 R2 UI automation runner contract와 fixture evidence를 검증합니다.
+  verify-v390-ui-automation-coverage
+                 V390-ADD1-11 current UI route/control/action coverage matrix를 생성·검증합니다.
+  verify-v390-ui-automation-coverage-contract
+                 V390-ADD1-11 coverage 누락·route drift·artifact 누락 계약을 검증합니다.
   verify-v390-ui-native-adapter
                  V390-ADD1-08 native Playwright wait/click/fill/select/screenshot을 실제 검증합니다.
   verify-v390-ui-native-adapter-contract
@@ -398,6 +402,10 @@ Usage:
                  v3.9.0 R2 UI automation summary case evidence를 검증합니다.
   verify-v390-ui-automation-runner-contract
                  v3.9.0 R2 UI automation runner contract와 fixture evidence를 검증합니다.
+  verify-v390-ui-automation-coverage
+                 V390-ADD1-11 current UI route/control/action coverage matrix를 생성·검증합니다.
+  verify-v390-ui-automation-coverage-contract
+                 V390-ADD1-11 coverage 누락·route drift·artifact 누락 계약을 검증합니다.
   verify-v390-ui-automation-report-replay-guard
                  v3.9.0 R5 UI automation report replay guard contract를 검증합니다.
   verify-v390-ui-native-adapter
@@ -1993,6 +2001,14 @@ case "${cmd}" in
   verify-v390-ui-automation-runner-contract)
     require_internal verify_v390_ui_automation_runner_contract.mjs
     exec "${INTERNAL_DIR}/verify_v390_ui_automation_runner_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-automation-coverage)
+    require_internal verify_v390_ui_automation_coverage.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_automation_coverage.mjs" "$@"
+    ;;
+  verify-v390-ui-automation-coverage-contract)
+    require_internal verify_v390_ui_automation_coverage_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_automation_coverage_contract.mjs" "$@"
     ;;
   verify-v390-ui-automation-report-replay-guard)
     require_internal verify_v390_ui_automation_report_replay_guard_contract.mjs
