@@ -1,7 +1,7 @@
 {
   "schema": "media-server.feature-implementation-evidence.v1",
   "expectedFeatureRows": 974,
-  "inventorySha256": "8a9f51e83f1c6c7e46e516f99870e76d73408289d0c0f7f016b8d20079e7619a",
+  "inventorySha256": "967a041790ae04fa68f173a628bcf78555938161321ee3eeaa139689048debb1",
   "generatedFrom": "docs/project-feature-test-inventory.md",
   "generationPolicy": "explicit-refresh-only; verifier never rewrites this manifest",
   "executionEvidenceStatus": "not-execution-evidence",
@@ -27520,7 +27520,7 @@
       "id": "SAFE-212",
       "section": "I",
       "surfaceKind": "safety-boundary-invariant",
-      "feature": "V390 Step 20 release readiness no-overclaim boundary",
+      "feature": "V390 actual acceptance no-overclaim boundary",
       "uiNeed": "비대상",
       "testNeed": "필요",
       "testAreas": [
@@ -27534,10 +27534,10 @@
       },
       "uiEvidence": null,
       "verifierEvidence": {
-        "file": "scripts/internal/verify_v390_stabilization_release_readiness.mjs",
-        "anchor": "release",
+        "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "knownUiClosureBlockers",
         "anchorKind": "identifier",
-        "command": "verify-v390-stabilization-release-readiness"
+        "command": "verify-v390-test-acceptance-bundle"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {
@@ -31870,30 +31870,31 @@
       "id": "OPS-179",
       "section": "J",
       "surfaceKind": "ops-evidence-release-gate",
-      "feature": "V390 Step 20 Stabilization and Release Readiness 게이트",
+      "feature": "V390 actual acceptance bundle 실행 게이트",
       "uiNeed": "비대상",
       "testNeed": "필요",
       "testAreas": [
-        "안정화"
+        "안정화",
+        "30분"
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_v390_stabilization_release_readiness.mjs",
-        "anchor": "OPS-179",
-        "anchorKind": "feature-id"
+        "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "runActualBundle",
+        "anchorKind": "identifier"
       },
       "uiEvidence": null,
       "verifierEvidence": {
-        "file": "scripts/internal/verify_v390_stabilization_release_readiness.mjs",
-        "anchor": "Stabilization",
+        "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "anchor": "runActualBundle",
         "anchorKind": "identifier",
-        "command": "verify-v390-stabilization-release-readiness"
+        "command": "verify-v390-test-acceptance-bundle"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {
-        "soak30": null,
+        "soak30": "./server.sh verify-v390-server-longrun --duration-minutes 30",
         "soak120": null,
-        "approval": null
+        "approval": "explicit-user-approval-required"
       }
     }
   ]

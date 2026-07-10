@@ -1,4 +1,5 @@
 #pragma once
+// 파일 용도: VLM 평가 후보를 서버 권위의 결과와 provenance로 검증해 승격하는 계약을 정의한다.
 
 #include <string>
 

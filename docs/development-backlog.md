@@ -137,6 +137,66 @@ UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release a
 | 3 | V390-ADD1-03 | Product Correctness | VLM 승격 신뢰 경계 | P0 | 완료 | 클라이언트 result/status 선언을 제거하고 shared server catalog가 후보 ID/revision/digest, 평가 결과/provenance, option/model/prompt binding을 검증·canonicalize한 뒤 저장하며 reload 불일치 profile을 quarantine |
 | 4 | V390-ADD1-04 | Product Correctness | Re-ID 준비 상태 정합성 | P0 | 완료 | extractor factory와 Ops API가 공용 server-owned readiness를 사용해 regular file, SHA 형식·읽기·일치, trim provenance, OpenSSL·ONNX Runtime을 검사하고 preflight/session-load/execution을 분리 |
 | 5 | V390-ADD1-05 | Product Correctness | ONVIF 저장 원자성 | P0 | 완료 | ONVIF form save/toggle의 source/view 연속 PUT을 single-lock paired route로 교체하고 두 번째 파일 실패 시 실제 교체된 파일을 pre-transaction snapshot으로 rollback |
+| 6 | V390-ADD1-06 | Test Foundation | 실제 acceptance bundle | P0 | 완료 | dry-run 강제를 해제하고 build→현재 기능 gate→실제 30분→실제 UI automation→조건부 120분을 stop-on-first-fail 단일 진입점으로 실행하며 summary/report/cleanup을 보존 |
+| 7 | V390-ADD1-07 | UI Test | UI 케이스 누락 보완 | P0 | 미진행 | `UI-112`를 포함한 `UI-108`~`UI-115` 전 case의 실제 route/control/action/state/failure/artifact evidence를 검증 |
+| 8 | V390-ADD1-08 | UI Test | 무료 네이티브 자동화 어댑터 | P0 | 미진행 | native Playwright/Selenium/SikuliX 중 선택된 무료 adapter가 실제 wait/click/type/select/screenshot을 실행하고 재현 가능한 provenance를 기록 |
+| 9 | V390-ADD1-09 | UI Test | 거짓 PASS 방지 | P0 | 미진행 | `outerHTML`·script 문자열·whole-page marker 성공 판정을 제거하고 visible DOM 상태와 실제 사용자 action 전후 결과로만 판정 |
+
+### V390-ADD1-06 실제 acceptance bundle — 실행 전 등록
+
+구현 계획 source-of-truth는
+`docs/superpowers/plans/2026-07-10-v390-additional-roadmap-6-9.md`입니다. Step 6은
+`scripts/internal/verify_v390_test_acceptance_bundle.mjs`의 non-dry mode가 기존 evidence를
+읽기만 하지 않고 build, 현재 기능 gate, 실제 30분 server longrun, 실제 UI automation,
+조건부 120분 판정, cleanup/report를 순서대로 직접 실행하는 것을 완료 조건으로 둡니다.
+
+테스트 필요성 판정:
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | acceptance runner/contract/docs/inventory 변경 | `V390-ADD1-06`, `OPS-179`, `SAFE-212` | 최신 goal에서 6번 개발 승인 |
+| 30분 테스트 | 진행 대상 | 사용자 제시 완료 조건이 build→기능→30분→UI 실제 실행을 명시 | `V390-ADD1-06`, R1 real-duration runner | 최신 goal에서 실제 acceptance 승인 |
+| 120분 테스트 | 조건부 진행 | 사용자 문구가 조건부 120분이며 AGENTS 7.6.2 high-risk trigger 필요 | `V390-ADD1-06`, `SAFE-201` | 현재 trigger 없음; 새 signal 발생 시 실행 |
+| UI 풀테스트 | 미진행 | bundle의 UI는 R2 actual automation이며 Codex 인앱 브라우저 전체 수동 UI와 구분 | `OPS-169`, `SAFE-202` | 직접 UI 풀테스트 승인 없음 |
+
+Step 6 개별 검증 항목은 non-dry RED, actual-mode fixture pass/fail contract, build,
+current feature command set, 실제 30분 summary, 실제 UI automation summary/replay,
+conditional 120 decision, cleanup, docs/inventory/script gate, `git diff --check`입니다.
+
+### V390-ADD1-06 실제 acceptance bundle — 개발 및 실행 결과
+
+- `scripts/internal/verify_v390_test_acceptance_bundle.mjs`의 `runActualBundle`은
+  preflight, build, 26개 current feature gate, real 30-minute server longrun,
+  UI automation/replay, 120-minute decision/run, cleanup, report를 고정 순서로 직접
+  실행합니다. 일반 단계는 첫 실패 뒤 `not-run`이고 cleanup/report는 항상 실행합니다.
+- `scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs`는 dry-run, actual
+  fixture PASS, first-failure later `not-run`, explicit 120, cleanup failure를 검증합니다.
+- `scripts/internal/verify_predev_stability.sh --fail-fast`와
+  `scripts/internal/verify_v390_server_longrun.mjs` 연결은 하위 integrated smoke 실패 뒤
+  soak/queue 일반 검증을 계속하지 않고 cleanup/report만 수행합니다.
+- v3.9 단계 verifier 다섯 곳과 Step 20 verifier는 command 문자열 하드코딩 대신
+  `verify_feature_inventory_coverage.mjs`의 exact implementation manifest gate를 확인합니다.
+- 최종 증적은 `docs/release-artifacts/v3.9.0/test-acceptance-final/summary.json`과
+  `report.md`, `runs/v390-test-acceptance-20260710083909-44592/`에 보존했습니다.
+  최종 단일 run은 build/feature gates, real 30-minute `118 pass / 0 fail`, UI automation
+  `7 pass / 0 fail`, replay, cleanup을 통과했습니다. 120분은 trigger가 없어
+  `conditional-not-run`이며 PASS로 계산하지 않았습니다.
+- 최종 summary의 `knownUiClosureBlockers`는 `UI-112` 누락, Chrome CDP fallback,
+  whole-page marker 판정을 후속 7~9번 범위로 명시합니다. 따라서 Step 6의 자동
+  acceptance 실행은 완료지만 UI 직접 조작 풀테스트 완료를 뜻하지 않습니다.
+
+실패 후 수정 이력:
+
+| 순서 | 실패 | 수정 | 재검증 |
+| --- | --- | --- | --- |
+| 1 | non-dry 구현 전 명령이 dry-run만 허용 | actual stage orchestrator와 summary validator 구현 | contract 6/0 |
+| 2 | 기존 Step 20/11 verifier가 data-driven coverage verifier에 자기 command 문자열을 요구 | exact implementation manifest gate 확인으로 정렬 | 관련 v3.9 verifier PASS |
+| 3 | 통합 smoke code-comment policy에서 신규 VLM header 용도 주석과 영문 주석 1개 실패 | 한글 파일 용도/설명 주석 추가 | `verify-code-comments` missing 0, english-only 0 |
+| 4 | 하위 integrated smoke 실패 뒤 soak가 계속됨 | `verify-predev --fail-fast` 추가 및 longrun 연결 | longrun/acceptance contract PASS |
+| 5 | 첫 actual UI run에서 UI-109의 과거 `compensating-rollback` marker 불일치 | 현재 표시 rollback model 문구로 fixture 정렬 | standalone UI 7/0, 최종 bundle UI 7/0 |
+
+테스트 사용량: token start `0`, token end `901969`, token consumed `901969`,
+elapsed 약 `6636초`, source `Codex goal usage`.
 
 ### V390-ADD1-01 미추적 파일 전수 판정
 

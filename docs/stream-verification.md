@@ -176,13 +176,17 @@ evidence는 사용자 실행 승인과 별도 보존 summary/report가 있을 �
 이 절은 roadmap의 `사용자가 재실행 가능한 v3.9 test acceptance bundle` 항목입니다.
 
 v3.9.0 R3 dry-run command는 `finalAcceptanceCommandSet`과 evidence boundary를 같은
-summary/report schema로 고정합니다. 이 command는 R1 30분 longrun preserved evidence와
-R2 UI automation preserved evidence를 각각 `pass-existing-evidence`로 읽고, 사용자가
-같은 command를 다시 실행해 같은 PASS/FAIL 판정과 summary/report 경로를 확인할 수 있게
-합니다.
+summary/report schema로 고정합니다. V390-ADD1-06 non-dry command는 preserved evidence를
+PASS로 재사용하지 않고 preflight→build→26개 current feature command→실제 30분
+server longrun→실제 UI automation→UI replay→조건부 120분 decision/run→cleanup→report를
+순서대로 직접 실행합니다. 첫 실패 뒤 일반 stage는 `not-run`이고 cleanup/report만 항상
+실행합니다.
 
 - `./server.sh verify-v390-test-acceptance-bundle --dry-run`
 - `./server.sh verify-v390-test-acceptance-bundle --dry-run --output-dir <path>`
+- `./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-final`
+- `./server.sh verify-v390-test-acceptance-bundle --output-dir <path> --allow-chrome-fallback=1`
+- `./server.sh verify-v390-test-acceptance-bundle --output-dir <path> --run-120`
 - `./server.sh verify-v390-test-acceptance-bundle-contract`
 
 R3 summary schema is `media-server.v390-test-acceptance-bundle.v1`. The dry-run reads
@@ -191,9 +195,12 @@ existing preserved R1 30분 evidence, records R2 UI automation preserved evidenc
 and `report.md` are valid, records 120분 as `conditional-not-run`, and records published
 metadata/release action as `not-run-by-dry-run`.
 
-Boundary: dry-run does not execute 30-minute, UI automation, 120-minute, published metadata,
-or release-action suites. UI automation PASS, 120분 PASS, published metadata PASS, and release
-action completion require their own approved evidence.
+Boundary: dry-run does not execute build, feature gates, 30-minute, UI automation, 120-minute,
+published metadata, or release-action suites. Actual mode의 `result=PASS`는 명령이 실행한
+자동 acceptance stage와 cleanup PASS입니다. `knownUiClosureBlockers`가 남으면
+`automatedAcceptanceStatus=executed-with-known-ui-closure-blockers`로 분리하며 UI 풀테스트
+직접 조작, published metadata, release action PASS가 아닙니다. 120분은 `--run-120`과
+AGENTS 7.6.2 직접 근거가 있을 때만 실행합니다.
 
 ### v3.9.0 R4 longrun runner role alignment
 

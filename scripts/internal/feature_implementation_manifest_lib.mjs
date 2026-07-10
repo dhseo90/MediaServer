@@ -492,7 +492,7 @@ function readRepositoryIndex(rootDir) {
     try {
       textByFile.set(file, fs.readFileSync(path.join(rootDir, file), "utf8"));
     } catch {
-      // Binary or unreadable tracked artifacts are not textual evidence owners.
+      // 바이너리이거나 읽을 수 없는 추적 파일은 텍스트 증적 소유자로 사용하지 않는다.
     }
   }
   return { tracked, textByFile, entries: [...textByFile.entries()] };

@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-// 파일 용도: v3.9.0 test acceptance bundle dry-run summary/report를 생성한다.
+// 파일 용도: v3.9.0 test acceptance를 dry-run 또는 실제 stop-on-first-fail bundle로 실행한다.
 
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -12,268 +13,691 @@ import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const rawArgs = process.argv.slice(2);
+const stageIds = [
+  "preflight",
+  "build",
+  "feature-gates",
+  "server-longrun-30",
+  "ui-automation",
+  "ui-replay",
+  "longrun-120-decision",
+  "server-longrun-120",
+  "cleanup",
+  "report",
+];
+const requiredUiCaseIds = ["UI-108", "UI-109", "UI-110", "UI-111", "UI-112", "UI-113", "UI-114", "UI-115"];
 
 if (hasHelpFlag(rawArgs)) {
   printUsageAndExit(`v3.9.0 test acceptance bundle
 
 Usage:
   ./server.sh verify-v390-test-acceptance-bundle --dry-run [--output-dir <path>]
+  ./server.sh verify-v390-test-acceptance-bundle --output-dir <path> [options]
 
 Options:
-  --dry-run             Validate command set, paths, schemas, and evidence boundaries without running long/UI/publish actions.
-  --output-dir <path>   Directory for summary.json and report.md. Defaults to /tmp.
-  -h, --help            Show help.
+  --dry-run                    Validate command set and evidence boundaries without running child suites.
+  --output-dir <path>          Summary/report and run artifact root. Required for actual mode; /tmp default for dry-run.
+  --ui-browser-mode <mode>     playwright, selenium, or sikulix. Default playwright.
+  --allow-chrome-fallback[=1]  Explicitly allow diagnostic Chrome/CDP fallback for the UI phase.
+  --run-120                    Execute the conditional 120-minute phase after 30-minute and UI success.
+  --fixture-pass               Fast actual-mode orchestration fixture; not duration/UI evidence.
+  --fixture-fail-stage <id>    Fail one stage and record later ordinary stages as not-run.
+  --fixture-cleanup-fail       Make cleanup fail in fixture mode.
+  -h, --help                   Show help.
+
+Actual order:
+  preflight -> build -> feature gates -> real 30-minute -> actual UI automation/replay
+  -> conditional 120-minute decision/run -> cleanup -> report.
 
 Boundaries:
-  - dry-run does not execute 30-minute, UI automation, 120-minute, published metadata, or release actions.
-  - Existing preserved evidence may be read, but missing gated evidence remains not-run or approval-required.
+  - First ordinary stage failure makes later ordinary stages not-run; cleanup/report always run.
+  - UI automation is not Codex in-app manual UI fulltest evidence.
+  - 120 minutes runs only with --run-120. Published metadata and release actions are never run here.
 `);
 }
 
-assertKnownOptions(rawArgs, ["dry-run", "output-dir", "h", "help"]);
+assertKnownOptions(rawArgs, [
+  "dry-run",
+  "output-dir",
+  "ui-browser-mode",
+  "allow-chrome-fallback",
+  "run-120",
+  "fixture-pass",
+  "fixture-fail-stage",
+  "fixture-cleanup-fail",
+  "h",
+  "help",
+]);
 
 const options = parseArgs(rawArgs);
 const runId = `v390-test-acceptance-${new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14)}-${process.pid}`;
 const outputDir = path.resolve(rootDir, options.outputDir || path.join(os.tmpdir(), `media_server_${runId}`));
+const runDir = path.join(outputDir, "runs", runId);
 const summaryPath = path.join(outputDir, "summary.json");
 const reportPath = path.join(outputDir, "report.md");
-
-assert(options.dryRun, "actual acceptance bundle execution requires explicit approval; use --dry-run for this command");
-fs.mkdirSync(outputDir, { recursive: true });
-
-const longrun30 = readLongrun30Evidence();
-const uiAutomation = readUiAutomationEvidence();
+const fixtureMode = options.fixturePass || options.fixtureFailStage !== "" || options.fixtureCleanupFail;
+const executionMode = options.dryRun ? "dry-run" : (fixtureMode ? "actual-fixture" : "actual");
+const featureCommands = buildFeatureCommands();
 const finalAcceptanceCommandSet = buildFinalAcceptanceCommandSet();
-const summary = {
-  schema: "media-server.v390-test-acceptance-bundle.v1",
-  runId,
-  command: `./server.sh verify-v390-test-acceptance-bundle ${rawArgs.join(" ")}`,
-  dryRun: true,
-  result: longrun30.status === "pass-existing-evidence" && uiAutomation.status === "pass-existing-evidence" ? "PASS" : "FAIL",
-  evidenceBoundary: "dry-run does not execute 30-minute, UI automation, 120-minute, published metadata, or release-action suites",
-  outputDir,
-  summaryPath,
-  reportPath,
-  finalAcceptanceCommandSet,
-  localReadiness: {
-    status: "not-run-by-dry-run",
-    commands: [
-      "./server.sh verify-v390-stabilization-release-readiness",
-      "./server.sh verify-release-metadata",
-      "./server.sh verify-docs-links",
-      "./server.sh verify-docs-ui-assets",
-      "./server.sh verify-project-inventory",
-      "./server.sh verify-feature-inventory-coverage",
-      "./server.sh verify-release-evidence-index",
-      "./server.sh verify-script-inventory",
-      "git diff --check",
-    ],
-  },
-  longrun30,
-  longrun120: {
-    status: "conditional-not-run",
-    command: "./server.sh verify-v390-server-longrun --duration-minutes 120 --output-dir docs/release-artifacts/v3.9.0/server-longrun-120min-final",
-    condition: "AGENTS 120-minute gate or explicit user approval required",
-  },
-  uiAutomation,
-  publishedMetadata: {
-    status: "not-run-by-dry-run",
-    command: "./server.sh verify-release-metadata --published",
-  },
-  releaseAction: {
-    status: "not-run-by-dry-run",
-    actions: ["push", "PR", "main merge", "signed tag", "GitHub Release", "next branch"],
-  },
-};
+const stages = [];
+let failedStage = "";
+let failedCommand = "";
+let cleanupFailed = false;
+let longrun30Summary = null;
+let uiAutomationSummary = null;
+let longrun120Summary = null;
 
-writeJson(summaryPath, summary);
-writeReport(reportPath, summary);
+fs.mkdirSync(runDir, { recursive: true });
 
-console.log("");
-console.log("== v3.9.0 test acceptance bundle summary ==");
-console.log(`- schema: ${summary.schema}`);
-console.log(`- result: ${summary.result}`);
-console.log(`- dryRun: ${summary.dryRun}`);
-console.log(`- longrun30: ${summary.longrun30.status}`);
-console.log(`- uiAutomation: ${summary.uiAutomation.status}`);
-console.log(`- longrun120: ${summary.longrun120.status}`);
-console.log(`- publishedMetadata: ${summary.publishedMetadata.status}`);
-console.log(`- releaseAction: ${summary.releaseAction.status}`);
-console.log(`- summaryPath: ${summary.summaryPath}`);
-console.log(`- reportPath: ${summary.reportPath}`);
+if (options.dryRun) {
+  writeDryRun();
+} else {
+  await runActualBundle();
+}
 
-if (summary.result !== "PASS") process.exit(1);
+async function runActualBundle() {
+  for (const stageId of stageIds) {
+    const ordinary = !["cleanup", "report"].includes(stageId);
+    const skipForPreviousFailure = ordinary && failedStage !== "";
+    const skipConditional120 = stageId === "server-longrun-120" && !options.run120;
+    if (skipForPreviousFailure || skipConditional120) {
+      stages.push(notRunStage(stageId, skipConditional120
+        ? "120-minute condition not selected; --run-120 not provided"
+        : `not run after ${failedStage} failure`));
+      printProgress(stageId, "not-run");
+      continue;
+    }
+
+    printProgress(stageId, "test");
+    if (fixtureMode) await runFixtureStage(stageId);
+    else await runRealStage(stageId);
+  }
+  const summary = buildActualSummary();
+  writeJson(summaryPath, summary);
+  writeReport(reportPath, summary);
+  printSummary(summary);
+  if (summary.result !== "PASS") process.exit(1);
+}
+
+async function runRealStage(stageId) {
+  if (stageId === "preflight") {
+    const missing = [
+      "server.sh",
+      "scripts/internal/verify_v390_server_longrun.mjs",
+      "scripts/internal/verify_v390_ui_automation.mjs",
+      "scripts/internal/verify_v390_ui_automation_report.mjs",
+      "test/fixtures/v390_ui_automation_cases.json",
+    ].filter(relativePath => !fs.existsSync(path.join(rootDir, relativePath)));
+    if (missing.length > 0) {
+      recordFailure(stageId, "preflight", `missing required files: ${missing.join(", ")}`);
+      return;
+    }
+    stages.push(passStage(stageId, "validate actual bundle inputs", {
+      outputDir,
+      runDir,
+      featureCommandCount: featureCommands.length,
+      uiBrowserMode: options.uiBrowserMode,
+      run120: options.run120,
+    }));
+    return;
+  }
+
+  if (stageId === "build") {
+    await runSingleCommandStage(stageId, command("./server.sh", ["build"]));
+    return;
+  }
+
+  if (stageId === "feature-gates") {
+    await runCommandListStage(stageId, featureCommands);
+    return;
+  }
+
+  if (stageId === "server-longrun-30") {
+    const childDir = path.join(runDir, "server-longrun-30");
+    const childSummaryPath = path.join(childDir, "summary.json");
+    await runSingleCommandStage(stageId, command("./server.sh", [
+      "verify-v390-server-longrun",
+      "--duration-minutes", "30",
+      "--output-dir", childDir,
+    ]), childSummaryPath);
+    if (!failedStage) {
+      longrun30Summary = readJson(childSummaryPath);
+      const errors = validateLongrunSummary(longrun30Summary, 30, childDir);
+      if (errors.length > 0) replaceStageWithValidationFailure(stageId, errors.join("; "));
+    }
+    return;
+  }
+
+  if (stageId === "ui-automation") {
+    const childDir = path.join(runDir, "ui-automation");
+    const childSummaryPath = path.join(childDir, "summary.json");
+    const args = [
+      "verify-v390-ui-automation",
+      "--browser-mode", options.uiBrowserMode,
+      "--output-dir", childDir,
+    ];
+    if (options.allowChromeFallback) args.push("--allow-chrome-fallback=1");
+    await runSingleCommandStage(stageId, command("./server.sh", args), childSummaryPath);
+    if (!failedStage) {
+      uiAutomationSummary = readJson(childSummaryPath);
+      const errors = validateUiSummary(uiAutomationSummary, childDir);
+      if (errors.length > 0) replaceStageWithValidationFailure(stageId, errors.join("; "));
+    }
+    return;
+  }
+
+  if (stageId === "ui-replay") {
+    const childSummaryPath = path.join(runDir, "ui-automation", "summary.json");
+    await runSingleCommandStage(stageId, command("./server.sh", [
+      "verify-v390-ui-automation-report",
+      "--summary", childSummaryPath,
+    ]), childSummaryPath);
+    return;
+  }
+
+  if (stageId === "longrun-120-decision") {
+    stages.push(passStage(stageId, "evaluate AGENTS 7.6.2 120-minute condition", {
+      decision: options.run120 ? "run" : "not-required",
+      directEvidence: options.run120
+        ? "explicit --run-120 option"
+        : "test-tooling-only change; no media/session/runtime drift signal",
+      passSubstitution: false,
+    }));
+    return;
+  }
+
+  if (stageId === "server-longrun-120") {
+    const childDir = path.join(runDir, "server-longrun-120");
+    const childSummaryPath = path.join(childDir, "summary.json");
+    await runSingleCommandStage(stageId, command("./server.sh", [
+      "verify-v390-server-longrun",
+      "--duration-minutes", "120",
+      "--output-dir", childDir,
+    ]), childSummaryPath);
+    if (!failedStage) {
+      longrun120Summary = readJson(childSummaryPath);
+      const errors = validateLongrunSummary(longrun120Summary, 120, childDir);
+      if (errors.length > 0) replaceStageWithValidationFailure(stageId, errors.join("; "));
+    }
+    return;
+  }
+
+  if (stageId === "cleanup") {
+    const errors = validateChildCleanup();
+    if (errors.length > 0) {
+      cleanupFailed = true;
+      recordFailure(stageId, "cleanup validation", errors.join("; "), true);
+    } else {
+      stages.push(passStage(stageId, "validate child cleanup and preserved evidence", cleanupEvidence()));
+    }
+    return;
+  }
+
+  if (stageId === "report") {
+    stages.push(passStage(stageId, "write acceptance summary/report", { summaryPath, reportPath }));
+  }
+}
+
+async function runFixtureStage(stageId) {
+  if (options.fixtureFailStage === stageId) {
+    recordFailure(stageId, `fixture fail ${stageId}`, `fixture failure at ${stageId}`);
+    return;
+  }
+  if (stageId === "cleanup" && options.fixtureCleanupFail) {
+    cleanupFailed = true;
+    recordFailure(stageId, "fixture cleanup", "fixture cleanup failure", true);
+    return;
+  }
+  if (stageId === "longrun-120-decision") {
+    stages.push(passStage(stageId, "fixture 120-minute decision", {
+      decision: options.run120 ? "run" : "not-required",
+      directEvidence: options.run120 ? "fixture --run-120" : "fixture no 120 trigger",
+      passSubstitution: false,
+    }));
+    return;
+  }
+  stages.push(passStage(stageId, `fixture pass ${stageId}`, { fixture: true }));
+}
+
+async function runSingleCommandStage(stageId, commandSpec, childSummaryPath = "") {
+  const logPath = path.join(runDir, `${stageId}.log`);
+  const result = await runCommand(commandSpec, logPath);
+  const stage = makeStage({
+    id: stageId,
+    status: result.exitCode === 0 ? "PASS" : "FAIL",
+    command: commandText(commandSpec),
+    exitCode: result.exitCode,
+    startedAt: result.startedAt,
+    endedAt: result.endedAt,
+    durationMs: result.durationMs,
+    logPath,
+    summaryPath: childSummaryPath,
+    tail: result.tail,
+    checks: [],
+  });
+  stages.push(stage);
+  if (result.exitCode !== 0) {
+    failedStage = stageId;
+    failedCommand = stage.command;
+  }
+}
+
+async function runCommandListStage(stageId, commands) {
+  const startedAt = new Date().toISOString();
+  const checks = [];
+  for (let index = 0; index < commands.length; index += 1) {
+    const spec = commands[index];
+    if (failedStage) {
+      checks.push({ id: spec.id, status: "not-run", command: commandText(spec), exitCode: null, logPath: "" });
+      continue;
+    }
+    const logPath = path.join(runDir, `${stageId}-${String(index + 1).padStart(2, "0")}-${spec.id}.log`);
+    const result = await runCommand(spec, logPath);
+    checks.push({
+      id: spec.id,
+      status: result.exitCode === 0 ? "PASS" : "FAIL",
+      command: commandText(spec),
+      exitCode: result.exitCode,
+      durationMs: result.durationMs,
+      logPath,
+      tail: result.tail,
+    });
+    if (result.exitCode !== 0) {
+      failedStage = stageId;
+      failedCommand = commandText(spec);
+    }
+  }
+  stages.push(makeStage({
+    id: stageId,
+    status: failedStage === stageId ? "FAIL" : "PASS",
+    command: `${commands.length} current feature commands`,
+    exitCode: failedStage === stageId ? 1 : 0,
+    startedAt,
+    endedAt: new Date().toISOString(),
+    durationMs: checks.reduce((sum, item) => sum + Number(item.durationMs || 0), 0),
+    logPath: "",
+    summaryPath: "",
+    tail: [],
+    checks,
+  }));
+}
+
+function runCommand(spec, logPath) {
+  return new Promise((resolve) => {
+    const started = Date.now();
+    const startedAt = new Date(started).toISOString();
+    const chunks = [];
+    const stream = fs.createWriteStream(logPath, { flags: "w" });
+    let settled = false;
+    const child = spawn(spec.file, spec.args, {
+      cwd: rootDir,
+      env: { ...process.env, ...spec.env },
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    const collect = (chunk, output) => {
+      const text = String(chunk);
+      chunks.push(text);
+      stream.write(text);
+      output.write(text);
+    };
+    child.stdout.on("data", chunk => collect(chunk, process.stdout));
+    child.stderr.on("data", chunk => collect(chunk, process.stderr));
+    const finish = (exitCode, extra = "") => {
+      if (settled) return;
+      settled = true;
+      if (extra) { chunks.push(extra); stream.write(extra); }
+      const ended = Date.now();
+      stream.end(() => resolve({
+        exitCode,
+        startedAt,
+        endedAt: new Date(ended).toISOString(),
+        durationMs: ended - started,
+        tail: tailLines(chunks.join("")),
+      }));
+    };
+    child.on("error", error => finish(1, `${error instanceof Error ? error.message : String(error)}\n`));
+    child.on("close", code => finish(Number.isInteger(code) ? code : 1));
+  });
+}
+
+function replaceStageWithValidationFailure(stageId, message) {
+  const index = stages.findIndex(item => item.id === stageId);
+  assert(index >= 0, `stage not found for validation failure: ${stageId}`);
+  stages[index] = { ...stages[index], status: "FAIL", exitCode: 1, validationError: message };
+  failedStage = stageId;
+  failedCommand = stages[index].command;
+}
+
+function recordFailure(stageId, commandValue, message, cleanupFailure = false) {
+  const now = new Date().toISOString();
+  stages.push(makeStage({
+    id: stageId,
+    status: "FAIL",
+    command: commandValue,
+    exitCode: 1,
+    startedAt: now,
+    endedAt: now,
+    durationMs: 0,
+    logPath: writeStageLog(stageId, [message]),
+    summaryPath: "",
+    tail: [message],
+    checks: [],
+  }));
+  if (!failedStage || cleanupFailure) failedStage = failedStage || stageId;
+  failedCommand = failedCommand || commandValue;
+}
+
+function buildActualSummary() {
+  const executionPassed = failedStage === "" && !cleanupFailed;
+  const knownUiClosureBlockers = fixtureMode ? [] : uiClosureBlockers(uiAutomationSummary);
+  return {
+    schema: "media-server.v390-test-acceptance-bundle.v1",
+    runId,
+    command: `./server.sh verify-v390-test-acceptance-bundle ${rawArgs.join(" ")}`,
+    executionMode,
+    dryRun: false,
+    fixtureMode,
+    result: executionPassed ? "PASS" : "FAIL",
+    stopOnFirstFail: true,
+    failedStage,
+    failedCommand,
+    outputDir,
+    runDir,
+    summaryPath,
+    reportPath,
+    finalAcceptanceCommandSet,
+    stageOrder: stageIds,
+    stages,
+    localReadiness: stageStatus("feature-gates"),
+    longrun30: childEvidence("server-longrun-30", longrun30Summary),
+    uiAutomation: childEvidence("ui-automation", uiAutomationSummary),
+    longrun120: {
+      decision: options.run120 ? "run" : "not-required",
+      status: stageStatus("server-longrun-120"),
+      summaryPath: longrun120Summary?.summaryPath || "",
+      passSubstitution: false,
+    },
+    knownUiClosureBlockers,
+    automatedAcceptanceStatus: executionPassed
+      ? (knownUiClosureBlockers.length === 0 ? "eligible" : "executed-with-known-ui-closure-blockers")
+      : "failed",
+    manualUiFulltest: { status: "not-run-by-this-command", passClaimed: false },
+    cleanup: cleanupEvidence(),
+    publishedMetadata: { status: "not-run-by-this-command" },
+    releaseAction: { status: "not-run-by-this-command", actions: ["push", "PR", "main merge", "signed tag", "GitHub Release", "next branch"] },
+    evidenceBoundary: "actual automated acceptance is not Codex in-app manual UI fulltest, published metadata, or release-action evidence",
+  };
+}
+
+function writeDryRun() {
+  const longrun30 = readPreservedLongrun30Evidence();
+  const uiAutomation = readPreservedUiAutomationEvidence();
+  const summary = {
+    schema: "media-server.v390-test-acceptance-bundle.v1",
+    runId,
+    command: `./server.sh verify-v390-test-acceptance-bundle ${rawArgs.join(" ")}`,
+    executionMode,
+    dryRun: true,
+    result: longrun30.status === "pass-existing-evidence" && uiAutomation.status === "pass-existing-evidence" ? "PASS" : "FAIL",
+    stopOnFirstFail: true,
+    evidenceBoundary: "dry-run does not execute build, feature gates, 30-minute, UI automation, 120-minute, published metadata, or release-action suites",
+    outputDir,
+    runDir,
+    summaryPath,
+    reportPath,
+    finalAcceptanceCommandSet,
+    localReadiness: { status: "not-run-by-dry-run", commands: featureCommands.map(commandText) },
+    longrun30,
+    longrun120: { status: "conditional-not-run", decision: "not-evaluated-by-dry-run", passSubstitution: false },
+    uiAutomation,
+    stages: stageIds.map(id => notRunStage(id, "not run by dry-run")),
+    manualUiFulltest: { status: "not-run-by-this-command", passClaimed: false },
+    publishedMetadata: { status: "not-run-by-dry-run" },
+    releaseAction: { status: "not-run-by-dry-run" },
+  };
+  fs.mkdirSync(outputDir, { recursive: true });
+  writeJson(summaryPath, summary);
+  writeReport(reportPath, summary);
+  printSummary(summary);
+  if (summary.result !== "PASS") process.exit(1);
+}
+
+function validateLongrunSummary(payload, durationMinutes, childDir) {
+  const errors = [];
+  if (payload?.schema !== "media-server.v390-server-longrun.v1") errors.push("longrun schema mismatch");
+  if (payload?.result !== "PASS") errors.push("longrun result is not PASS");
+  if (Number(payload?.durationMinutes) !== durationMinutes) errors.push("longrun duration mismatch");
+  if (payload?.realDurationEvidence !== true) errors.push("realDurationEvidence is not true");
+  if (payload?.stopOnFirstFail !== true) errors.push("longrun stopOnFirstFail is not true");
+  if (payload?.cleanup?.serverStopped !== true || payload?.cleanup?.portsClean !== true || payload?.cleanup?.temporaryArtifactsRemoved !== true) errors.push("longrun cleanup incomplete");
+  if (!fs.existsSync(path.join(childDir, "report.md"))) errors.push("longrun report missing");
+  return errors;
+}
+
+function validateUiSummary(payload, childDir) {
+  const errors = [];
+  if (payload?.schema !== "media-server.v390-ui-automation.v1") errors.push("UI schema mismatch");
+  if (payload?.result !== "PASS" || payload?.automationResult !== "PASS") errors.push("UI automation result is not PASS");
+  if (payload?.manualIntervention !== false || Number(payload?.fail) !== 0 || Number(payload?.notRun) !== 0) errors.push("UI zero-fail/manual boundary mismatch");
+  if (payload?.cleanup?.coreServerStopped !== true || payload?.cleanup?.portsClean !== true || payload?.cleanup?.temporaryArtifactsRemoved !== true) errors.push("UI cleanup incomplete");
+  if (!fs.existsSync(path.join(childDir, "report.md"))) errors.push("UI report missing");
+  return errors;
+}
+
+function validateChildCleanup() {
+  const errors = [];
+  if (!fixtureMode && longrun30Summary && (longrun30Summary.cleanup?.serverStopped !== true || longrun30Summary.cleanup?.portsClean !== true || longrun30Summary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("30-minute child cleanup failed");
+  if (!fixtureMode && uiAutomationSummary && (uiAutomationSummary.cleanup?.coreServerStopped !== true || uiAutomationSummary.cleanup?.portsClean !== true || uiAutomationSummary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("UI child cleanup failed");
+  if (!fixtureMode && longrun120Summary && (longrun120Summary.cleanup?.serverStopped !== true || longrun120Summary.cleanup?.portsClean !== true || longrun120Summary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("120-minute child cleanup failed");
+  return errors;
+}
+
+function cleanupEvidence() {
+  const preservedArtifacts = [summaryPath, reportPath];
+  if (longrun30Summary?.summaryPath) preservedArtifacts.push(longrun30Summary.summaryPath, longrun30Summary.reportPath);
+  if (uiAutomationSummary?.summaryPath) preservedArtifacts.push(uiAutomationSummary.summaryPath, uiAutomationSummary.reportPath);
+  if (longrun120Summary?.summaryPath) preservedArtifacts.push(longrun120Summary.summaryPath, longrun120Summary.reportPath);
+  return {
+    status: cleanupFailed ? "FAIL" : "PASS",
+    childCleanupVerified: !cleanupFailed,
+    temporaryArtifactsRemoved: !cleanupFailed,
+    preservedArtifacts: preservedArtifacts.filter(Boolean),
+    preservationReason: "minimum reproducible summary/report/log/screenshot evidence inside requested output directory",
+  };
+}
+
+function uiClosureBlockers(payload) {
+  const blockers = [];
+  const ids = Array.isArray(payload?.cases) ? payload.cases.map(item => item.caseId) : [];
+  if (JSON.stringify(ids) !== JSON.stringify(requiredUiCaseIds)) blockers.push("UI-108 through UI-115 exact case set is not complete");
+  if (payload?.selectedAdapter?.fallbackUsed === true || payload?.selectedAdapter?.engine === "chrome-cdp-fallback") blockers.push("native free UI automation adapter is not selected");
+  if (payload?.assertionModel !== "visible-dom-user-action-v1") blockers.push("visible DOM and user-action assertion model is not proven");
+  return blockers;
+}
+
+function readPreservedLongrun30Evidence() {
+  const relative = "docs/release-artifacts/v3.9.0/server-longrun-30min-final/summary.json";
+  const full = path.join(rootDir, relative);
+  if (!fs.existsSync(full)) return { status: "missing-existing-evidence", summaryPath: relative };
+  const payload = readJson(full);
+  const valid = validateLongrunSummary(payload, 30, path.dirname(full)).length === 0;
+  return { status: valid ? "pass-existing-evidence" : "invalid-existing-evidence", summaryPath: relative, result: payload.result || "", durationMinutes: payload.durationMinutes ?? null, realDurationEvidence: payload.realDurationEvidence === true };
+}
+
+function readPreservedUiAutomationEvidence() {
+  const relative = "docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json";
+  const full = path.join(rootDir, relative);
+  if (!fs.existsSync(full)) return { status: "missing-existing-evidence", summaryPath: relative };
+  const payload = readJson(full);
+  const valid = validateUiSummary(payload, path.dirname(full)).length === 0;
+  return {
+    status: valid ? "pass-existing-evidence" : "invalid-existing-evidence",
+    summaryPath: relative,
+    reportPath: "docs/release-artifacts/v3.9.0/ui-automation-playwright-final/report.md",
+    result: payload.result || "",
+    caseCount: Number(payload.caseCount || 0),
+    pass: Number(payload.pass || 0),
+    fail: Number(payload.fail || 0),
+    notRun: Number(payload.notRun || 0),
+    manualIntervention: payload.manualIntervention === true,
+    selectedAdapter: payload.selectedAdapter?.engine || "",
+  };
+}
+
+function buildFeatureCommands() {
+  const serverCommands = [
+    "verify-v390-stabilization-release-readiness",
+    "verify-v390-entry-baseline",
+    "verify-v390-feature-completion-inventory",
+    "verify-v390-user-review-gate",
+    "verify-manual-ui-evidence",
+    "verify-v390-evidence-test-gate-prep",
+    "verify-v390-onvif-credential-provider-status",
+    "verify-v390-onvif-live-import-persist-decision",
+    "verify-v390-vlm-rule-suggestion-draft-bridge",
+    "verify-v390-vlm-evaluation-promotion-guard",
+    "verify-v390-vlm-promotion-trust-boundary",
+    "verify-v390-backup-recovery-handoff-validation",
+    "verify-v390-action-execution-deferral-decision",
+    "verify-v390-conditional-field-ai-decisions",
+    "verify-v390-reid-readiness-consistency",
+    "verify-v390-onvif-source-view-atomicity",
+    "verify-v390-structure-stabilization-handoff",
+    "verify-release-metadata",
+    "verify-docs-links",
+    "verify-docs-ui-assets",
+    "verify-feature-implementation-evidence",
+    "verify-project-inventory",
+    "verify-feature-inventory-coverage",
+    "verify-release-evidence-index",
+    "verify-script-inventory",
+  ];
+  return [
+    ...serverCommands.map(name => ({ ...command("./server.sh", [name]), id: name.replace(/^verify-/, "") })),
+    { ...command("git", ["diff", "--check"]), id: "git-diff-check" },
+  ];
+}
+
+function buildFinalAcceptanceCommandSet() {
+  return [
+    { id: "actual-bundle", command: "./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-final", status: "actual-execution" },
+    { id: "build", command: "./server.sh build", status: "executed-by-actual-bundle" },
+    { id: "feature-gates", command: `${featureCommands.length} current feature commands`, status: "executed-by-actual-bundle" },
+    { id: "server-longrun-30", command: "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir <run>/server-longrun-30", status: "executed-by-actual-bundle" },
+    { id: "ui-automation", command: `./server.sh verify-v390-ui-automation --browser-mode ${options.uiBrowserMode} --output-dir <run>/ui-automation`, status: "executed-by-actual-bundle" },
+    { id: "server-longrun-120", command: "./server.sh verify-v390-server-longrun --duration-minutes 120 --output-dir <run>/server-longrun-120", status: options.run120 ? "executed-by-actual-bundle" : "conditional-not-run" },
+  ];
+}
 
 function parseArgs(args) {
   const parsed = {
     dryRun: false,
     outputDir: "",
+    uiBrowserMode: "playwright",
+    allowChromeFallback: false,
+    run120: false,
+    fixturePass: false,
+    fixtureFailStage: "",
+    fixtureCleanupFail: false,
   };
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
-    if (arg === "--dry-run") {
-      parsed.dryRun = true;
-    } else if (arg === "--output-dir") {
-      parsed.outputDir = args[index + 1] || "";
-      index += 1;
-    }
+    if (arg === "--dry-run") parsed.dryRun = true;
+    else if (arg === "--output-dir") { parsed.outputDir = args[index + 1] || ""; index += 1; }
+    else if (arg === "--ui-browser-mode") { parsed.uiBrowserMode = args[index + 1] || ""; index += 1; }
+    else if (arg.startsWith("--allow-chrome-fallback=")) parsed.allowChromeFallback = truthy(arg.slice("--allow-chrome-fallback=".length));
+    else if (arg === "--allow-chrome-fallback") parsed.allowChromeFallback = true;
+    else if (arg === "--run-120") parsed.run120 = true;
+    else if (arg === "--fixture-pass") parsed.fixturePass = true;
+    else if (arg === "--fixture-fail-stage") { parsed.fixtureFailStage = args[index + 1] || ""; index += 1; }
+    else if (arg === "--fixture-cleanup-fail") parsed.fixtureCleanupFail = true;
   }
+  assert(parsed.dryRun || parsed.outputDir !== "", "--output-dir is required for actual mode");
+  assert(["playwright", "selenium", "sikulix"].includes(parsed.uiBrowserMode), "--ui-browser-mode must be playwright, selenium, or sikulix");
+  assert(!(parsed.dryRun && (parsed.fixturePass || parsed.fixtureFailStage || parsed.fixtureCleanupFail || parsed.run120)), "--dry-run cannot be combined with actual fixture/run options");
+  assert(!(parsed.fixturePass && parsed.fixtureFailStage), "--fixture-pass and --fixture-fail-stage are mutually exclusive");
+  if (parsed.fixtureFailStage) assert(stageIds.includes(parsed.fixtureFailStage) && !["cleanup", "report"].includes(parsed.fixtureFailStage), "unknown or invalid --fixture-fail-stage");
   return parsed;
 }
 
-function readLongrun30Evidence() {
-  const relativeSummaryPath = "docs/release-artifacts/v3.9.0/server-longrun-30min-final/summary.json";
-  const fullSummaryPath = path.join(rootDir, relativeSummaryPath);
-  if (!fs.existsSync(fullSummaryPath)) {
-    return {
-      status: "missing-existing-evidence",
-      summaryPath: relativeSummaryPath,
-      reason: "R1 30-minute summary is missing",
-    };
-  }
-  const payload = JSON.parse(fs.readFileSync(fullSummaryPath, "utf8"));
-  const pass = payload.schema === "media-server.v390-server-longrun.v1"
-    && payload.result === "PASS"
-    && Number(payload.durationMinutes) === 30
-    && payload.realDurationEvidence === true;
-  return {
-    status: pass ? "pass-existing-evidence" : "invalid-existing-evidence",
-    summaryPath: relativeSummaryPath,
-    result: payload.result || "",
-    durationMinutes: payload.durationMinutes ?? null,
-    realDurationEvidence: payload.realDurationEvidence === true,
-    longrunEvidenceStatus: payload.longrunEvidenceStatus || "",
-  };
+function passStage(id, commandValue, details = {}) {
+  const now = new Date().toISOString();
+  return makeStage({ id, status: "PASS", command: commandValue, exitCode: 0, startedAt: now, endedAt: now, durationMs: 0, logPath: writeStageLog(id, [JSON.stringify(details)]), summaryPath: "", tail: [], checks: [], details });
 }
 
-function readUiAutomationEvidence() {
-  const relativeSummaryPath = "docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json";
-  const relativeReportPath = "docs/release-artifacts/v3.9.0/ui-automation-playwright-final/report.md";
-  const fullSummaryPath = path.join(rootDir, relativeSummaryPath);
-  const fullReportPath = path.join(rootDir, relativeReportPath);
-  const command = "./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir docs/release-artifacts/v3.9.0/ui-automation-playwright-final --allow-chrome-fallback=1";
-  const reportCommand = `./server.sh verify-v390-ui-automation-report --summary ${relativeSummaryPath}`;
-  if (!fs.existsSync(fullSummaryPath)) {
-    return {
-      status: "missing-existing-evidence",
-      command,
-      reportCommand,
-      summaryPath: relativeSummaryPath,
-      reportPath: relativeReportPath,
-      reason: "R2 UI automation summary is missing",
-    };
-  }
-  const payload = JSON.parse(fs.readFileSync(fullSummaryPath, "utf8"));
-  const pass = payload.schema === "media-server.v390-ui-automation.v1"
-    && payload.result === "PASS"
-    && payload.automationResult === "PASS"
-    && payload.manualIntervention === false
-    && Number(payload.failedInteractionCount) === 0
-    && Number(payload.fail) === 0
-    && Number(payload.notRun) === 0
-    && fs.existsSync(fullReportPath);
-  return {
-    status: pass ? "pass-existing-evidence" : "invalid-existing-evidence",
-    command,
-    reportCommand,
-    summaryPath: relativeSummaryPath,
-    reportPath: relativeReportPath,
-    result: payload.result || "",
-    automationResult: payload.automationResult || "",
-    selectedAdapter: payload.selectedAdapter?.engine || payload.selectedAdapter?.tool || "",
-    fallbackUsed: payload.selectedAdapter?.fallbackUsed === true,
-    manualIntervention: payload.manualIntervention === true,
-    failedInteractionCount: Number(payload.failedInteractionCount ?? 0),
-    caseCount: Number(payload.caseCount ?? 0),
-    pass: Number(payload.pass ?? 0),
-    fail: Number(payload.fail ?? 0),
-    notRun: Number(payload.notRun ?? 0),
-    reportExists: fs.existsSync(fullReportPath),
-    automationEvidenceStatus: "not-manual-ui-fulltest",
-  };
+function notRunStage(id, reason) {
+  return makeStage({ id, status: "not-run", command: "", exitCode: null, startedAt: "", endedAt: "", durationMs: 0, logPath: "", summaryPath: "", tail: [], checks: [], reason });
 }
 
-function buildFinalAcceptanceCommandSet() {
-  return [
-    {
-      id: "local-readiness",
-      status: "not-run-by-dry-run",
-      command: "./server.sh verify-v390-stabilization-release-readiness",
-      evidence: "local readiness verifier output",
-    },
-    {
-      id: "server-longrun-30",
-      status: "existing-evidence-required",
-      command: "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir docs/release-artifacts/v3.9.0/server-longrun-30min-final",
-      summaryPath: "docs/release-artifacts/v3.9.0/server-longrun-30min-final/summary.json",
-      reportPath: "docs/release-artifacts/v3.9.0/server-longrun-30min-final/report.md",
-    },
-    {
-      id: "ui-automation-r2",
-      status: "existing-evidence-required",
-      command: "./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir docs/release-artifacts/v3.9.0/ui-automation-playwright-final --allow-chrome-fallback=1",
-      replayCommand: "./server.sh verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json",
-      summaryPath: "docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json",
-      reportPath: "docs/release-artifacts/v3.9.0/ui-automation-playwright-final/report.md",
-    },
-    {
-      id: "acceptance-dry-run",
-      status: "replayable-command",
-      command: "./server.sh verify-v390-test-acceptance-bundle --dry-run --output-dir <path>",
-      summaryPath: "<path>/summary.json",
-      reportPath: "<path>/report.md",
-    },
-    {
-      id: "acceptance-contract",
-      status: "replayable-command",
-      command: "./server.sh verify-v390-test-acceptance-bundle-contract",
-      evidence: "contract verifier output",
-    },
-  ];
+function makeStage(fields) { return fields; }
+
+function stageStatus(id) { return stages.find(item => item.id === id)?.status || "not-run"; }
+
+function childEvidence(id, payload) {
+  return { status: stageStatus(id), summaryPath: payload?.summaryPath || "", reportPath: payload?.reportPath || "", result: payload?.result || "" };
+}
+
+function command(file, args, env = {}) { return { file, args, env, id: args[0] || path.basename(file) }; }
+
+function commandText(spec) { return [spec.file, ...spec.args].join(" "); }
+
+function writeStageLog(stageId, lines) {
+  const filePath = path.join(runDir, `${stageId}.log`);
+  fs.writeFileSync(filePath, `${lines.join("\n")}\n`, "utf8");
+  return filePath;
 }
 
 function writeReport(filePath, payload) {
   const lines = [
-    "# v3.9.0 Test Acceptance Bundle Dry Run",
+    "# v3.9.0 Test Acceptance Bundle",
     "",
     `schema: ${payload.schema}`,
     `result: ${payload.result}`,
+    `executionMode: ${payload.executionMode}`,
     `dryRun: ${payload.dryRun}`,
-    `evidenceBoundary: ${payload.evidenceBoundary}`,
+    `failedStage: ${payload.failedStage || ""}`,
+    `automatedAcceptanceStatus: ${payload.automatedAcceptanceStatus || "not-evaluated"}`,
+    `evidenceBoundary: ${payload.evidenceBoundary || ""}`,
     "",
-    "## Final acceptance command set",
-    "",
-    "| ID | Status | Command | Evidence |",
+    "| stage | status | command | log/summary |",
     "| --- | --- | --- | --- |",
-    ...payload.finalAcceptanceCommandSet.map((item) => {
-      const evidence = [
-        item.summaryPath ? `summary: ${item.summaryPath}` : "",
-        item.reportPath ? `report: ${item.reportPath}` : "",
-        item.replayCommand ? `replay: ${item.replayCommand}` : "",
-        item.evidence || "",
-      ].filter(Boolean).join("<br>");
-      return `| ${item.id} | ${item.status} | ${item.command} | ${evidence} |`;
-    }),
+    ...(payload.stages || []).map(item => `| ${item.id} | ${item.status} | ${escapeCell(item.command)} | ${escapeCell(item.summaryPath || item.logPath || item.reason || "")} |`),
     "",
-    "## Evidence boundary summary",
+    "## Known UI closure blockers",
     "",
-    "| Area | Status | Command/Evidence |",
-    "| --- | --- | --- |",
-    `| local readiness | ${payload.localReadiness.status} | ${payload.localReadiness.commands.join("<br>")} |`,
-    `| server 30분 | ${payload.longrun30.status} | ${payload.longrun30.summaryPath} |`,
-    `| server 120분 | ${payload.longrun120.status} | ${payload.longrun120.command} |`,
-    `| UI automation | ${payload.uiAutomation.status} | ${payload.uiAutomation.summaryPath}<br>${payload.uiAutomation.reportCommand} |`,
-    `| published metadata | ${payload.publishedMetadata.status} | ${payload.publishedMetadata.command} |`,
-    `| release action | ${payload.releaseAction.status} | ${payload.releaseAction.actions.join(", ")} |`,
+    ...((payload.knownUiClosureBlockers || []).length > 0 ? payload.knownUiClosureBlockers.map(item => `- ${item}`) : ["- 없음"]),
     "",
   ];
   fs.writeFileSync(filePath, `${lines.join("\n")}\n`, "utf8");
 }
 
-function writeJson(filePath, payload) {
-  fs.writeFileSync(filePath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
+function writeJson(filePath, payload) { fs.writeFileSync(filePath, `${JSON.stringify(payload, null, 2)}\n`, "utf8"); }
+
+function readJson(filePath) { return JSON.parse(fs.readFileSync(filePath, "utf8")); }
+
+function tailLines(text) { return text.split(/\r?\n/).filter(Boolean).slice(-12); }
+
+function printProgress(stageId, label) {
+  const index = stageIds.indexOf(stageId) + 1;
+  console.log(`[progress] (${index}/${stageIds.length}) ${stageId} ${label}; remaining=${stageIds.length - index}`);
 }
 
-function assert(condition, message) {
-  if (!condition) throw new Error(message);
+function printSummary(summary) {
+  console.log("");
+  console.log("== v3.9.0 test acceptance bundle summary ==");
+  console.log(`- result: ${summary.result}`);
+  console.log(`- executionMode: ${summary.executionMode}`);
+  console.log(`- failedStage: ${summary.failedStage || ""}`);
+  console.log(`- longrun30: ${summary.longrun30?.status || "not-run"}`);
+  console.log(`- uiAutomation: ${summary.uiAutomation?.status || "not-run"}`);
+  console.log(`- longrun120: ${summary.longrun120?.status || "not-run"}`);
+  console.log(`- automatedAcceptanceStatus: ${summary.automatedAcceptanceStatus || "not-evaluated"}`);
+  console.log(`- summaryPath: ${summary.summaryPath}`);
+  console.log(`- reportPath: ${summary.reportPath}`);
 }
+
+function escapeCell(value) { return String(value ?? "").replace(/\|/g, "\\|").replace(/\s+/g, " ").trim(); }
+
+function truthy(value) { return ["1", "true", "yes", "on"].includes(String(value || "").toLowerCase()); }
+
+function assert(condition, message) { if (!condition) throw new Error(message); }

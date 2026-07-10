@@ -117,7 +117,7 @@ check("project inventory maps Step 19 to SAFE-211 and OPS-178", () => {
   ]) {
     assertIncludes(files.projectInventory, snippet, "project inventory Step 19");
   }
-  assertIncludes(files.coverageVerifier, command, "feature coverage verifier Step 19");
+  assertIncludes(files.coverageVerifier, 'check("exact implementation evidence manifest is valid"', "feature coverage verifier data-driven manifest gate");
   assertIncludes(files.projectInventoryVerifier, '"SAFE-211"', "project inventory verifier SAFE-211");
   assertIncludes(files.projectInventoryVerifier, '"OPS-178"', "project inventory verifier OPS-178");
 });

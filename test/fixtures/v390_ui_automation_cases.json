@@ -21,7 +21,7 @@
       "accountRole": "operator",
       "controlAction": "inspect-live-import-persist-decision",
       "expectedResult": "persist decision card shows manual paired save rollback and oneShotPersist=false",
-      "expectedMarkers": ["persistDecision", "manual-form-save-handoff", "oneShotPersist=false", "pairedSave=/ops/api/onvif/channels/{channelId}", "compensating-rollback"]
+      "expectedMarkers": ["persistDecision", "manual-form-save-handoff", "oneShotPersist=false", "pairedSave=/ops/api/onvif/channels/{channelId}", "rollback=server restores every registry file replaced before a paired save failure"]
     },
     {
       "caseId": "UI-110",

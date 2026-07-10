@@ -110,12 +110,16 @@ check("AGENTS test category judgment table separates execution approval and evid
 check("feature inventory maps v3.9 Step 20 to SAFE-212 and OPS-179", () => {
   for (const snippet of [
     "v3.9.0 (20) stabilization and release readiness | `SAFE-212`, `OPS-179` | `verify-v390-stabilization-release-readiness`, `verify-release-metadata`, `verify-release-evidence-index`, `verify-release-closeout-helper --dry-run`",
-    "SAFE-212 | V390 Step 20 release readiness no-overclaim boundary",
-    "OPS-179 | V390 Step 20 Stabilization and Release Readiness 게이트",
+    "SAFE-212 | V390 actual acceptance no-overclaim boundary",
+    "OPS-179 | V390 actual acceptance bundle 실행 게이트",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.9 Step 20");
   }
-  assertIncludes(files.coverageVerifier, commandName, "feature coverage verifier");
+  assertIncludes(
+    files.coverageVerifier,
+    'check("exact implementation evidence manifest is valid"',
+    "feature coverage verifier data-driven implementation manifest gate",
+  );
   assertIncludes(files.projectInventoryVerifier, '"SAFE-212"', "project inventory verifier SAFE-212");
   assertIncludes(files.projectInventoryVerifier, '"OPS-179"', "project inventory verifier OPS-179");
 });

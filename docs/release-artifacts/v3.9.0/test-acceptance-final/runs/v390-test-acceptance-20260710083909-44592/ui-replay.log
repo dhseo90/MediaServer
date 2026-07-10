@@ -1,0 +1,18 @@
+[progress] (1/6) summary uses v390 UI automation schema test; remaining=5
+[pass] summary uses v390 UI automation schema
+[progress] (2/6) summary counts match case statuses test; remaining=4
+[pass] summary counts match case statuses
+[progress] (3/6) cases keep route/control/action granularity test; remaining=3
+[pass] cases keep route/control/action granularity
+[progress] (4/6) failure report includes investigation evidence fields test; remaining=2
+[pass] failure report includes investigation evidence fields
+[progress] (5/6) failure stops later cases as not-run test; remaining=1
+[pass] failure stops later cases as not-run
+[progress] (6/6) cleanup and report artifacts are recorded test; remaining=0
+[pass] cleanup and report artifacts are recorded
+
+== v3.9.0 UI automation report summary ==
+- schema: media-server.v390-ui-automation.v1
+- summary: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710083909-44592/ui-automation/summary.json
+- pass: 6
+- fail: 0

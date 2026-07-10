@@ -33,6 +33,7 @@ QUICK_MODE=0
 INCLUDE_EXTERNAL_TURN=0
 INCLUDE_EXTERNAL_CLIENT=0
 INCLUDE_REDACTION="${MEDIA_SERVER_VERIFY_PREDEV_INCLUDE_REDACTION:-1}"
+FAIL_FAST=0
 
 mkdir -p "${WORK_DIR}"
 
@@ -63,6 +64,7 @@ Options:
                            LAN IP 외부 클라이언트 접근성도 hard gate로 포함
   --skip-redaction         사람 객체 자동 모자이크 검증을 predev 묶음에서 제외
   --heartbeat-interval <n> 긴 step 진행 중 상태 출력 주기. 기본 ${HEARTBEAT_INTERVAL_S}초, 0이면 끔
+  --fail-fast             첫 실패 뒤 일반 검증을 중단하고 cleanup/report만 수행
   -h, --help               도움말 출력
 
 기준:
@@ -138,6 +140,10 @@ parse_args() {
       --heartbeat-interval)
         HEARTBEAT_INTERVAL_S="${2:-}"
         shift 2
+        ;;
+      --fail-fast)
+        FAIL_FAST=1
+        shift
         ;;
       -h|--help)
         usage
@@ -273,6 +279,11 @@ run_step() {
   echo "[fail] ${name} (${duration}s) log=${log_file}"
   tail -n 80 "${log_file}" || true
   return 1
+}
+
+# fail-fast 모드에서 이미 실패가 기록됐는지 확인한다.
+fail_fast_triggered() {
+  [[ "${FAIL_FAST}" == "1" && "${FAIL_COUNT}" -gt 0 ]]
 }
 
 # 외부 운영 TURN credential과 relay policy가 준비된 경우에만 hard gate를 수행한다.
@@ -604,20 +615,22 @@ main() {
     echo "[skip] build: --skip-build"
   fi
 
-  start_server 256 || true
-  if [[ -n "${SERVER_PID}" ]] && kill -0 "${SERVER_PID}" >/dev/null 2>&1; then
+  if ! fail_fast_triggered; then
+    start_server 256 || true
+  fi
+  if ! fail_fast_triggered && [[ -n "${SERVER_PID}" ]] && kill -0 "${SERVER_PID}" >/dev/null 2>&1; then
     local rule_ui_option="--include-rule-ui"
     if is_codex_in_app_browser_environment && [[ -z "${MEDIA_SERVER_VERIFY_RULE_UI_CHROME_PATH:-}" ]]; then
       rule_ui_option=""
     fi
     run_step "integrated-smoke" \
       "MEDIA_SERVER_LISTEN_PORT=${RTSP_PORT} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_LISTEN_ADDRESS=${RTSP_LISTEN_ADDRESS} MEDIA_SERVER_HTTP_LISTEN_ADDRESS=${HTTP_LISTEN_ADDRESS} MEDIA_SERVER_SKIP_LOCAL_ENV=${MEDIA_SERVER_VERIFY_PREDEV_SKIP_LOCAL_ENV:-1} MEDIA_SERVER_AUTH_MODE=${AUTH_MODE} ./server.sh test --no-start ${external_client_option} --include-rules ${rule_ui_option} --include-va-events --include-image-analysis $([[ "${INCLUDE_REDACTION}" == "1" ]] && printf -- '--include-redaction')" || true
-    run_external_turn_gate || true
-    run_soak_loop
-    assert_runtime_idle "main-runtime-idle" || true
+    if ! fail_fast_triggered; then run_external_turn_gate || true; fi
+    if ! fail_fast_triggered; then run_soak_loop; fi
+    if ! fail_fast_triggered; then assert_runtime_idle "main-runtime-idle" || true; fi
   fi
 
-  if restart_server_with_queue 2; then
+  if ! fail_fast_triggered && restart_server_with_queue 2; then
     run_step "event-post-queue" \
       "MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=${HTTP_BASE} ./server.sh verify-event-post --mode queue" || true
     assert_runtime_idle "queue-runtime-idle" || true

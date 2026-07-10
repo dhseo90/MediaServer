@@ -397,7 +397,7 @@ Usage:
   verify-v390-ui-automation-report-replay-guard
                  v3.9.0 R5 UI automation report replay guard contract를 검증합니다.
   verify-v390-test-acceptance-bundle
-                 v3.9.0 R3 test acceptance bundle dry-run summary/report를 생성합니다.
+                 v3.9.0 R3/V390-ADD1-06 dry-run 또는 실제 build→기능→30분→UI→조건부 120분 bundle을 실행합니다.
   verify-v390-test-acceptance-bundle-contract
                  v3.9.0 R3 test acceptance bundle command/docs/evidence contract를 검증합니다.
   verify-v390-longrun-runner-role-alignment

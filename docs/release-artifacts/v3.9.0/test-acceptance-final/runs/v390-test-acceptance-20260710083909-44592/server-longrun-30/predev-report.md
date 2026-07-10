@@ -1,0 +1,1457 @@
+# MediaServer 검증 요약
+
+| 파일 | 유형 | 상태 | pass | fail | skip | 핵심 detail |
+| --- | --- | --- | ---: | ---: | ---: | --- |
+| /tmp/media_server_evtpost-1783675127-82320_summary.json | event-post | pass | 11 | 0 | 0 | mode=queue received=1 paths={'/slow': 1} |
+| /tmp/media_server_redaction-1783675082-81899_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783675079-81752_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783675076-81658_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783675001-80690_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783674997-80528_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783674994-80438_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783674917-79459_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783674914-79313_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783674911-79223_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783674835-78216_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783674831-78071_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783674828-77964_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783674751-76957_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783674748-76824_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783674745-76734_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783674670-75767_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783674666-75604_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783674663-75513_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783674588-74496_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783674584-74335_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783674581-74245_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783674505-73248_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783674501-73103_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783674498-72996_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783674422-71952_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783674419-71806_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783674416-71715_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783674339-70701_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783674336-70554_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783674333-70463_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783674257-69461_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783674253-69307_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783674250-69210_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783674173-68224_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783674169-68046_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783674166-67951_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783674090-66949_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783674086-66787_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783674082-66697_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783674006-65741_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783674002-65580_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783673999-65490_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783673924-64448_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783673920-64283_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783673916-64192_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783673841-63246_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783673837-63083_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783673834-62974_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783673758-61987_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783673753-61848_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783673750-61751_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783673674-60731_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783673671-60599_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783673668-60495_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783673592-59487_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783673589-59355_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783673586-59250_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783673510-58255_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783673506-58108_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783673503-57987_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783673426-56973_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783673422-56801_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783673419-56685_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783673343-55486_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783673340-55347_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=13 paths={'/flaky': 13} |
+| /tmp/media_server_evtpost-1783673336-55243_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_image-analysis-1783673300-54471_tracking_summary.json | image-analysis | info | 1 | 0 | 0 | default={'total': 47, 'tracked': 15, 'labels': ['bicycle', 'bus', 'car', 'motorcycle', 'person']}, empty={'total': 47, 'tracked': 0, 'labels': []}, animal={'total': 47, 'tracked': 2, 'labels': ['bird', 'dog']}, road={'total': 47, 'tracked': 3, 'labels': ['traffic light']} |
+| /tmp/media_server_redaction-1783673219-53213_summary.json | redaction | pass | 4 | 0 | 3 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783672656-41971_summary.json | event-post | pass | 11 | 0 | 0 | mode=queue received=1 paths={'/slow': 1} |
+| /tmp/media_server_redaction-1783672611-41601_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783672607-41424_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783672603-41334_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783672529-40335_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783672526-40188_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783672523-40097_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783672447-39098_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783672444-38952_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783672441-38861_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783672365-37866_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783672361-37718_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783672358-37614_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783672282-36627_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783672278-36450_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783672275-36360_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783672198-35375_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783672195-35243_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783672192-35152_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783672117-34145_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783672113-34014_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783672110-33894_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783672031-32839_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783672028-32693_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783672025-32603_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783671950-31643_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783671946-31466_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783671943-31376_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783671866-30386_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783671862-30248_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783671859-30150_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783671783-29153_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783671780-29006_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783671777-28916_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783671700-27868_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783671697-27738_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783671694-27632_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783671618-26643_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783671614-26496_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783671611-26391_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783671534-25373_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783671530-25226_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783671527-25100_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783671452-24110_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783671448-23964_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783671445-23844_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783671368-22814_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783671364-22669_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783671361-22563_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783671286-21571_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783671282-21426_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783671279-21316_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783671202-20292_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783671198-20134_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=13 paths={'/flaky': 13} |
+| /tmp/media_server_evtpost-1783671195-20044_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783671119-19073_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783671116-18927_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783671113-18838_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783671035-17793_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783671031-17633_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783671028-17528_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783670952-16521_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783670949-16374_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=24 paths={'/flaky': 24} |
+| /tmp/media_server_evtpost-1783670946-16284_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_redaction-1783670871-15331_summary.json | redaction | pass | 3 | 0 | 4 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_evtpost-1783670867-15141_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=34 paths={'/flaky': 34} |
+| /tmp/media_server_evtpost-1783670863-15051_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_image-analysis-1783670827-14257_tracking_summary.json | image-analysis | info | 1 | 0 | 0 | default={'total': 47, 'tracked': 15, 'labels': ['bicycle', 'bus', 'car', 'motorcycle', 'person']}, empty={'total': 47, 'tracked': 0, 'labels': []}, animal={'total': 47, 'tracked': 2, 'labels': ['bird', 'dog']}, road={'total': 47, 'tracked': 3, 'labels': ['traffic light']} |
+| /tmp/media_server_redaction-1783670746-12952_summary.json | redaction | pass | 4 | 0 | 3 | mode=person-mosaic classes=person steps=7 failed= |
+| /tmp/media_server_v390_longrun_predev_summary_3430.json | predev | fail | 2 | 1 | 0 | durationSec=12 steps=3 failed=integrated-smoke skipped= |
+| /tmp/media_server_evtpost-1783670178-1095_summary.json | event-post | pass | 12 | 0 | 1 | mode=recovery received=13 paths={'/flaky': 13} |
+| /tmp/media_server_evtpost-1783670175-998_summary.json | event-post | pass | 9 | 0 | 0 | mode=schema received=8 paths={'/event': 4, '/fail': 4} |
+| /tmp/media_server_image-analysis-1783670139-99946_tracking_summary.json | image-analysis | info | 1 | 0 | 0 | default={'total': 47, 'tracked': 15, 'labels': ['bicycle', 'bus', 'car', 'motorcycle', 'person']}, empty={'total': 47, 'tracked': 0, 'labels': []}, animal={'total': 47, 'tracked': 2, 'labels': ['bird', 'dog']}, road={'total': 47, 'tracked': 3, 'labels': ['traffic light']} |
+| /tmp/media_server_redaction-1783670057-98630_summary.json | redaction | pass | 4 | 0 | 3 | mode=person-mosaic classes=person steps=7 failed= |
+
+## 상세
+
+### media_server_evtpost-1783675127-82320_summary.json
+
+- mode: `queue`
+- receivedCount: `1`
+- receivedPathCounts: `{'/slow': 1}`
+- status: `{}`
+
+### media_server_redaction-1783675082-81899_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783675082-81899/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783675079-81752_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783675076-81658_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783675001-80690_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783675001-80690/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783674997-80528_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783674994-80438_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783674917-79459_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783674917-79459/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783674914-79313_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783674911-79223_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783674835-78216_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`30.0` log=`/tmp/media_server_redaction-1783674835-78216/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783674831-78071_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783674828-77964_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783674751-76957_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783674751-76957/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783674748-76824_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783674745-76734_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783674670-75767_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783674670-75767/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783674666-75604_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783674663-75513_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783674588-74496_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783674588-74496/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783674584-74335_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783674581-74245_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783674505-73248_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783674505-73248/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783674501-73103_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783674498-72996_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783674422-71952_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783674422-71952/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783674419-71806_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783674416-71715_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783674339-70701_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783674339-70701/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783674336-70554_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783674333-70463_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783674257-69461_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783674257-69461/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783674253-69307_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783674250-69210_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783674173-68224_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783674173-68224/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783674169-68046_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783674166-67951_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783674090-66949_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783674090-66949/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783674086-66787_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783674082-66697_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783674006-65741_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783674006-65741/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783674002-65580_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783673999-65490_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783673924-64448_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783673924-64448/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783673920-64283_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783673916-64192_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783673841-63246_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783673841-63246/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783673837-63083_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783673834-62974_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783673758-61987_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783673758-61987/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783673753-61848_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783673750-61751_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783673674-60731_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783673674-60731/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783673671-60599_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783673668-60495_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783673592-59487_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783673592-59487/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783673589-59355_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783673586-59250_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783673510-58255_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783673510-58255/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783673506-58108_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783673503-57987_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783673426-56973_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783673426-56973/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783673422-56801_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783673419-56685_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783673343-55486_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783673343-55486/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783673340-55347_summary.json
+
+- mode: `recovery`
+- receivedCount: `13`
+- receivedPathCounts: `{'/flaky': 13}`
+- status: `{}`
+
+### media_server_evtpost-1783673336-55243_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_image-analysis-1783673300-54471_tracking_summary.json
+
+- default: `{'total': 47, 'tracked': 15, 'labels': ['bicycle', 'bus', 'car', 'motorcycle', 'person']}`
+- empty: `{'total': 47, 'tracked': 0, 'labels': []}`
+- animal: `{'total': 47, 'tracked': 2, 'labels': ['bird', 'dog']}`
+- road: `{'total': 47, 'tracked': 3, 'labels': ['traffic light']}`
+- sports: `{'total': 47, 'tracked': 0, 'labels': []}`
+- tableware: `{'total': 47, 'tracked': 7, 'labels': ['bottle', 'bowl', 'cup']}`
+- food: `{'total': 47, 'tracked': 1, 'labels': ['pizza']}`
+- furniture: `{'total': 47, 'tracked': 11, 'labels': ['bench', 'chair', 'couch', 'dining table', 'potted plant']}`
+- device: `{'total': 47, 'tracked': 5, 'labels': ['clock', 'laptop', 'microwave', 'oven', 'tv']}`
+- object: `{'total': 47, 'tracked': 3, 'labels': ['backpack', 'umbrella']}`
+- all: `{'total': 47, 'tracked': 47, 'labels': ['backpack', 'bench', 'bicycle', 'bird', 'bottle', 'bowl', 'bus', 'car', 'chair', 'clock', 'couch', 'cup', 'dining table', 'dog', 'laptop', 'microwave', 'motorcycle', 'oven', 'person', 'pizza', 'potted plant', 'traffic light', 'tv', 'umbrella']}`
+- mixedAnimalCar: `{'total': 47, 'tracked': 6, 'labels': ['bird', 'car', 'dog']}`
+
+### media_server_redaction-1783673219-53213_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `pass` duration=`0.0` log=`/tmp/media_server_redaction-1783673219-53213/static_pixel_diff.json`
+- step `live-va-redaction`: `pass` duration=`27.0` log=`/tmp/media_server_redaction-1783673219-53213/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783672656-41971_summary.json
+
+- mode: `queue`
+- receivedCount: `1`
+- receivedPathCounts: `{'/slow': 1}`
+- status: `{}`
+
+### media_server_redaction-1783672611-41601_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783672611-41601/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783672607-41424_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783672603-41334_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783672529-40335_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`30.0` log=`/tmp/media_server_redaction-1783672529-40335/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783672526-40188_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783672523-40097_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783672447-39098_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783672447-39098/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783672444-38952_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783672441-38861_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783672365-37866_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783672365-37866/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783672361-37718_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783672358-37614_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783672282-36627_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783672282-36627/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783672278-36450_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783672275-36360_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783672198-35375_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783672198-35375/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783672195-35243_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783672192-35152_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783672117-34145_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783672117-34145/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783672113-34014_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783672110-33894_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783672031-32839_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783672031-32839/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783672028-32693_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783672025-32603_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783671950-31643_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783671950-31643/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783671946-31466_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783671943-31376_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783671866-30386_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783671866-30386/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783671862-30248_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783671859-30150_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783671783-29153_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783671783-29153/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783671780-29006_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783671777-28916_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783671700-27868_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783671700-27868/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783671697-27738_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783671694-27632_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783671618-26643_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`30.0` log=`/tmp/media_server_redaction-1783671618-26643/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783671614-26496_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783671611-26391_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783671534-25373_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783671534-25373/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783671530-25226_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783671527-25100_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783671452-24110_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783671452-24110/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783671448-23964_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783671445-23844_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783671368-22814_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783671368-22814/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783671364-22669_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783671361-22563_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783671286-21571_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783671286-21571/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783671282-21426_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783671279-21316_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783671202-20292_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783671202-20292/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783671198-20134_summary.json
+
+- mode: `recovery`
+- receivedCount: `13`
+- receivedPathCounts: `{'/flaky': 13}`
+- status: `{}`
+
+### media_server_evtpost-1783671195-20044_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783671119-19073_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783671119-19073/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783671116-18927_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783671113-18838_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783671035-17793_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783671035-17793/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783671031-17633_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783671028-17528_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783670952-16521_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783670952-16521/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783670949-16374_summary.json
+
+- mode: `recovery`
+- receivedCount: `24`
+- receivedPathCounts: `{'/flaky': 24}`
+- status: `{}`
+
+### media_server_evtpost-1783670946-16284_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_redaction-1783670871-15331_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `skip` duration=`0.0` log=``
+- step `live-va-redaction`: `pass` duration=`29.0` log=`/tmp/media_server_redaction-1783670871-15331/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_evtpost-1783670867-15141_summary.json
+
+- mode: `recovery`
+- receivedCount: `34`
+- receivedPathCounts: `{'/flaky': 34}`
+- status: `{}`
+
+### media_server_evtpost-1783670863-15051_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_image-analysis-1783670827-14257_tracking_summary.json
+
+- default: `{'total': 47, 'tracked': 15, 'labels': ['bicycle', 'bus', 'car', 'motorcycle', 'person']}`
+- empty: `{'total': 47, 'tracked': 0, 'labels': []}`
+- animal: `{'total': 47, 'tracked': 2, 'labels': ['bird', 'dog']}`
+- road: `{'total': 47, 'tracked': 3, 'labels': ['traffic light']}`
+- sports: `{'total': 47, 'tracked': 0, 'labels': []}`
+- tableware: `{'total': 47, 'tracked': 7, 'labels': ['bottle', 'bowl', 'cup']}`
+- food: `{'total': 47, 'tracked': 1, 'labels': ['pizza']}`
+- furniture: `{'total': 47, 'tracked': 11, 'labels': ['bench', 'chair', 'couch', 'dining table', 'potted plant']}`
+- device: `{'total': 47, 'tracked': 5, 'labels': ['clock', 'laptop', 'microwave', 'oven', 'tv']}`
+- object: `{'total': 47, 'tracked': 3, 'labels': ['backpack', 'umbrella']}`
+- all: `{'total': 47, 'tracked': 47, 'labels': ['backpack', 'bench', 'bicycle', 'bird', 'bottle', 'bowl', 'bus', 'car', 'chair', 'clock', 'couch', 'cup', 'dining table', 'dog', 'laptop', 'microwave', 'motorcycle', 'oven', 'person', 'pizza', 'potted plant', 'traffic light', 'tv', 'umbrella']}`
+- mixedAnimalCar: `{'total': 47, 'tracked': 6, 'labels': ['bird', 'car', 'dog']}`
+
+### media_server_redaction-1783670746-12952_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `pass` duration=`0.0` log=`/tmp/media_server_redaction-1783670746-12952/static_pixel_diff.json`
+- step `live-va-redaction`: `pass` duration=`27.0` log=`/tmp/media_server_redaction-1783670746-12952/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``
+
+### media_server_v390_longrun_predev_summary_3430.json
+
+- durationSec: `12`
+- soakMinutes: `-`
+- step `server-start-queue-256`: `pass` duration=`0` log=`/tmp/predev/server.log`
+- step `integrated-smoke`: `fail` duration=`11` log=`/tmp/predev/integrated_smoke.log`
+- step `soak-1-va-events`: `pass` duration=`1` log=`/tmp/predev/soak_1_va_events.log`
+
+### media_server_evtpost-1783670178-1095_summary.json
+
+- mode: `recovery`
+- receivedCount: `13`
+- receivedPathCounts: `{'/flaky': 13}`
+- status: `{}`
+
+### media_server_evtpost-1783670175-998_summary.json
+
+- mode: `schema`
+- receivedCount: `8`
+- receivedPathCounts: `{'/event': 4, '/fail': 4}`
+- status: `{}`
+
+### media_server_image-analysis-1783670139-99946_tracking_summary.json
+
+- default: `{'total': 47, 'tracked': 15, 'labels': ['bicycle', 'bus', 'car', 'motorcycle', 'person']}`
+- empty: `{'total': 47, 'tracked': 0, 'labels': []}`
+- animal: `{'total': 47, 'tracked': 2, 'labels': ['bird', 'dog']}`
+- road: `{'total': 47, 'tracked': 3, 'labels': ['traffic light']}`
+- sports: `{'total': 47, 'tracked': 0, 'labels': []}`
+- tableware: `{'total': 47, 'tracked': 7, 'labels': ['bottle', 'bowl', 'cup']}`
+- food: `{'total': 47, 'tracked': 1, 'labels': ['pizza']}`
+- furniture: `{'total': 47, 'tracked': 11, 'labels': ['bench', 'chair', 'couch', 'dining table', 'potted plant']}`
+- device: `{'total': 47, 'tracked': 5, 'labels': ['clock', 'laptop', 'microwave', 'oven', 'tv']}`
+- object: `{'total': 47, 'tracked': 3, 'labels': ['backpack', 'umbrella']}`
+- all: `{'total': 47, 'tracked': 47, 'labels': ['backpack', 'bench', 'bicycle', 'bird', 'bottle', 'bowl', 'bus', 'car', 'chair', 'clock', 'couch', 'cup', 'dining table', 'dog', 'laptop', 'microwave', 'motorcycle', 'oven', 'person', 'pizza', 'potted plant', 'traffic light', 'tv', 'umbrella']}`
+- mixedAnimalCar: `{'total': 47, 'tracked': 6, 'labels': ['bird', 'car', 'dog']}`
+
+### media_server_redaction-1783670057-98630_summary.json
+
+- videoFile: `va_four_scene_sample.mp4`
+- imageAsset: `va-four-scene-sample.png`
+- redaction: `{'mode': 'person-mosaic', 'classes': 'person', 'blockSize': 20, 'marginRatio': 0.08}`
+- step `health`: `pass` duration=`0.0` log=``
+- step `runtime-idle-precheck`: `pass` duration=`0.0` log=``
+- step `static-redaction`: `pass` duration=`0.0` log=`/tmp/media_server_redaction-1783670057-98630/static_pixel_diff.json`
+- step `live-va-redaction`: `pass` duration=`27.0` log=`/tmp/media_server_redaction-1783670057-98630/live_va_redaction.log`
+- step `event-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `tracker-redaction-compatibility`: `skip` duration=`0.0` log=``
+- step `uri-redaction-readiness`: `skip` duration=`0.0` log=``

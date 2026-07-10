@@ -225,7 +225,7 @@ check("v3.9 feature completion inventory separates original review candidates fr
 check("server entrypoint and inventory verifiers include v3.9 Step 11 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, targetScript, "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureCoverageVerifier, 'check("exact implementation evidence manifest is valid"', "feature coverage verifier data-driven manifest gate");
   for (const id of featureIds) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }

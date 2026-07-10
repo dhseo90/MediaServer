@@ -260,6 +260,7 @@ async function runRealPhase(phaseId) {
       "--soak-minutes",
       String(options.durationMinutes),
       "--skip-build",
+      "--fail-fast",
       "--summary-file",
       predevSummaryPath,
       "--report-file",
