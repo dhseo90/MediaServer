@@ -1,7 +1,7 @@
 {
   "schema": "media-server.feature-implementation-evidence.v1",
-  "expectedFeatureRows": 982,
-  "inventorySha256": "2cfcd11321f172da990ff87e7789db8f2ebf7bc8781f0ae099bbc9f0286768ad",
+  "expectedFeatureRows": 984,
+  "inventorySha256": "f7246339afc1d325f54008a4fe70fc096521ff7643a641b78252a9c7f5bc0180",
   "generatedFrom": "docs/project-feature-test-inventory.md",
   "generationPolicy": "explicit-refresh-only; verifier never rewrites this manifest",
   "executionEvidenceStatus": "not-execution-evidence",
@@ -27702,6 +27702,36 @@
       }
     },
     {
+      "id": "SAFE-216",
+      "section": "I",
+      "surfaceKind": "safety-boundary-invariant",
+      "feature": "V390 external field smoke no-device false-PASS boundary",
+      "uiNeed": "비대상",
+      "testNeed": "필요",
+      "testAreas": [
+        "안정화"
+      ],
+      "status": "closed-with-evidence",
+      "sourceEvidence": {
+        "file": "scripts/internal/verify_v390_external_field_smoke_no_device_closure.mjs",
+        "anchor": "SAFE-216",
+        "anchorKind": "feature-id"
+      },
+      "uiEvidence": null,
+      "verifierEvidence": {
+        "file": "scripts/internal/verify_v390_external_field_smoke_no_device_closure.mjs",
+        "anchor": "external",
+        "anchorKind": "identifier",
+        "command": "verify-v390-external-field-smoke-no-device-closure"
+      },
+      "manualUiCaseId": null,
+      "longrunEvidence": {
+        "soak30": null,
+        "soak120": null,
+        "approval": null
+      }
+    },
+    {
       "id": "OPS-035",
       "section": "J",
       "surfaceKind": "ops-evidence-release-gate",
@@ -32134,6 +32164,36 @@
         "anchor": "structure",
         "anchorKind": "identifier",
         "command": "verify-v390-structure-stabilization-readiness"
+      },
+      "manualUiCaseId": null,
+      "longrunEvidence": {
+        "soak30": null,
+        "soak120": null,
+        "approval": null
+      }
+    },
+    {
+      "id": "OPS-183",
+      "section": "J",
+      "surfaceKind": "ops-evidence-release-gate",
+      "feature": "V390 external field smoke no-device closure gate",
+      "uiNeed": "비대상",
+      "testNeed": "필요",
+      "testAreas": [
+        "안정화"
+      ],
+      "status": "closed-with-evidence",
+      "sourceEvidence": {
+        "file": "scripts/internal/verify_v390_external_field_smoke_no_device_closure.mjs",
+        "anchor": "OPS-183",
+        "anchorKind": "feature-id"
+      },
+      "uiEvidence": null,
+      "verifierEvidence": {
+        "file": "scripts/internal/verify_v390_external_field_smoke_no_device_closure.mjs",
+        "anchor": "external",
+        "anchorKind": "identifier",
+        "command": "verify-v390-external-field-smoke-no-device-closure"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {

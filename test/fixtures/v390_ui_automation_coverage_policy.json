@@ -5,7 +5,7 @@
   "automationCaseManifestSource": "test/fixtures/v390_ui_automation_cases.json",
   "actualAutomationSummarySource": "docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/summary.json",
   "expectedCounts": {
-    "inventoryFeatures": 982,
+    "inventoryFeatures": 984,
     "exactUiTestIds": 424,
     "automated": 8,
     "unsupportedManual": 415,

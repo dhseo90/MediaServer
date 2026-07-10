@@ -116,7 +116,7 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 26 | v3.9.0 (26) final evidence re-run and cleanup | P0 | 완료/Evidence 13~14 | Evidence 13은 `b6cac906d8b138aee5e0e2e88743ca9aa9a53529`로 완료. Evidence 14는 첫 `server-longrun-30` code-comment 실패를 영구 보존하고 복구 source `8fe583d815ce31628cbb8d1f4188b3e6455b396a`에서 독립 bundle을 전체 재실행해 build·26 feature gate·30분 118/0·soak 22회·UI 8/8·replay 7/0·실측 cleanup·final integrity 7/0을 PASS함 |
 | 27 | v3.9.0 (27) deferred product decision owner sign-off | P1 | 완료/Development 16 owner sign-off | 사용자 `/goal` 승인에 따라 역할 기반 owner를 Product, Security, Release, Privacy/Security, Product/ML로 지정하고 action execution·persistent credential store·external provider·model-backed Re-ID는 `excluded-from-v3.9`, 실제 field smoke는 `deferred-until-approved-field-run`으로 근거·재개 조건과 함께 고정. 개인 이름은 추정하지 않으며 구현/field/release PASS를 주장하지 않음 |
 | 28 | v3.9.0 (28) structure stabilization implementation readiness | P1 | 완료/Development 17 readiness | 실제 실행은 v3.9 closure가 아니라 사용자 명시 승인 뒤 `v4.0.0` branch에서만 허용합니다. transport/UI/application/domain·registry/analysis/core-media 경계, 단방향 의존성, 9개 contract 보존, 6개 slice 순서와 entry/exit/stop gate를 machine-readable contract로 확정했으며 branch/refactor는 미실행입니다 |
-| 29 | v3.9.0 (29) real external field smoke gate | P2 | 조건부 미실행 | 외부 credential/endpoint/실기기/provider 조건이 없으면 기본 release PASS가 아님. 조건 제공 시 별도 field smoke evidence로만 닫음 |
+| 29 | v3.9.0 (29) real external field smoke gate | P2 | 완료/Development 18 조건부 미실행 closure | 사용자 지시와 AGENTS 외부 조건 규칙에 따라 TURN/WHEP, ONVIF 실기기, 외부 VLM/provider는 device·credential·endpoint·실행 승인 부재로 모두 `not-run`입니다. external network/device/provider 접촉은 0이며 field/release PASS를 주장하지 않고 재개 조건만 보존합니다 |
 
 ### v3.9.0 (17) Evidence/Closure 13~18 개발 기록
 
@@ -127,7 +127,7 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 15 | Feature Closure | VLM incident-to-rule provenance | P1 | 완료/검증 PASS/커밋 준비 | `UI-110`/`RULE-112`/`LAB-126`/`SAFE-213`/`OPS-180`: event·candidate·evaluation source를 generated rule의 optional `vlmProvenance`와 `/lab/analysis/rules/{id}` save/readback까지 보존하고 ID/route mismatch는 no-write로 거부합니다. 실제 HTTP save/readback 1건과 negative no-write 2건, `/ops/rules` 인앱 focused smoke, rule/VA 회귀를 통과했습니다 |
 | 16 | Product Decision | 보류 기능 소유자 승인 | P1 | 완료/검증 PASS/커밋 준비 | `test/fixtures/v390_deferred_product_owner_signoff.json`과 feature inventory에 5개 deferred 항목의 owner role·v3.9 결정·직접 근거·재개 조건·사용자 승인 출처를 고정하고 `SAFE-214`/`OPS-181` gate로 false PASS를 차단합니다 |
 | 17 | Stabilization | 구조 안정화 착수 조건 | P1 | 완료/검증 PASS/커밋 준비 | `v4.0.0` 실행 branch 조건, module owner 7개, 허용/금지 의존성, 9개 보존 contract, 6개 고정 slice와 entry/exit/stop gate를 `test/fixtures/v390_structure_stabilization_readiness.json`과 `SAFE-215`/`OPS-182`에 고정했습니다. branch 생성과 실제 refactor는 미실행입니다 |
-| 18 | Field Smoke | 외부 환경 검증 | P2 | 대기/17 완료 후 | 실기기·credential·endpoint 부재를 `not-run`으로 기록하고 field/release PASS를 주장하지 않은 채 종료합니다 |
+| 18 | Field Smoke | 외부 환경 검증 | P2 | 완료/조건부 미실행/커밋 준비 | `external-turn-whep`, `onvif-real-device`, `external-vlm-provider`를 실기기·credential·endpoint·실행 승인 부재로 `not-run` closure하고 `SAFE-216`/`OPS-183`으로 외부 네트워크 미시도와 false-PASS 금지를 검증합니다 |
 
 완료 경계: Evidence 13의 contract PASS는 실제 30분/UI 자동화 재실행 evidence가 아닙니다.
 Evidence 14는 실제 30분과 UI-108~115 자동화를 포함하지만 exact 424개 UI 풀테스트,

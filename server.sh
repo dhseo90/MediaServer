@@ -457,6 +457,8 @@ Usage:
                  v3.9.0 Step 19 structure stabilization handoff 계획과 경계를 검증합니다.
   verify-v390-structure-stabilization-readiness
                  v3.9.0 (17) Development 17 구조 안정화 착수 조건을 검증합니다.
+  verify-v390-external-field-smoke-no-device-closure
+                 v3.9.0 (17) Development 18 외부 환경 부재 not-run closure를 검증합니다.
   verify-v390-stabilization-release-readiness
                  v3.9.0 Step 20 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-v370-entry-baseline
@@ -624,7 +626,7 @@ Usage:
   verify-feature-inventory-coverage
                  기능 ID가 verifier/UI evidence/장시간 승인/field exclusion 중 하나에 연결됐는지 점검합니다.
   verify-feature-implementation-evidence
-                 982개 기능 ID별 실제 owner/UI/verifier anchor manifest와 canonical longrun mapping을 점검합니다.
+                 984개 기능 ID별 실제 owner/UI/verifier anchor manifest와 canonical longrun mapping을 점검합니다.
   verify-v300-entry-baseline
                  v3.0.0 S00 source baseline과 latest published v3.0.0 경계를 검증합니다.
   verify-v300-event-evidence-contract
@@ -817,6 +819,8 @@ Usage:
                  v3.9.0 Step 19 structure stabilization handoff 계획과 경계를 검증합니다.
   verify-v390-structure-stabilization-readiness
                  v3.9.0 (17) Development 17 구조 안정화 착수 조건을 검증합니다.
+  verify-v390-external-field-smoke-no-device-closure
+                 v3.9.0 (17) Development 18 외부 환경 부재 not-run closure를 검증합니다.
   verify-v390-stabilization-release-readiness
                  v3.9.0 Step 20 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-v370-entry-baseline
@@ -2129,6 +2133,10 @@ case "${cmd}" in
   verify-v390-structure-stabilization-readiness)
     require_internal verify_v390_structure_stabilization_readiness.mjs
     exec "${INTERNAL_DIR}/verify_v390_structure_stabilization_readiness.mjs" "$@"
+    ;;
+  verify-v390-external-field-smoke-no-device-closure)
+    require_internal verify_v390_external_field_smoke_no_device_closure.mjs
+    exec "${INTERNAL_DIR}/verify_v390_external_field_smoke_no_device_closure.mjs" "$@"
     ;;
   verify-v390-stabilization-release-readiness)
     require_internal verify_v390_stabilization_release_readiness.mjs

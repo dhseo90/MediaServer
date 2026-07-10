@@ -26,12 +26,12 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 982 |
+| 전체 기능 항목 | 984 |
 | UI 직접 필요 | 400 |
 | UI 간접 필요 | 36 |
-| UI 비대상 | 546 |
-| 테스트 필요 | 982 |
-| 안정화 대상 | 972 |
+| UI 비대상 | 548 |
+| 테스트 필요 | 984 |
+| 안정화 대상 | 974 |
 | UI 풀테스트 대상 | 424 |
 | 30분 soak 대상 | 50 |
 | 120분 대상 | 7 |
@@ -42,10 +42,10 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 982개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리하고 `media-server.feature-implementation-evidence.v1` manifest와 exact-ID 집합을 고정 | 행별 evidence 대조 완료, 실행 증거 아님 |
-| 코드 로직 위치 | 982개 ID별 tracked owner file과 exact anchor를 implementation evidence manifest에 지정 | anchor 존재 대조 완료, 실행 증거 아님 |
+| 기능 ID 목록 | 984개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리하고 `media-server.feature-implementation-evidence.v1` manifest와 exact-ID 집합을 고정 | 행별 evidence 대조 완료, 실행 증거 아님 |
+| 코드 로직 위치 | 984개 ID별 tracked owner file과 exact anchor를 implementation evidence manifest에 지정 | anchor 존재 대조 완료, 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접 또는 UI absence boundary 440개 ID별 product UI file/anchor를 지정하고 실제 UI 테스트 영역 424개에 동일한 manual case ID를 지정 | control/state anchor 대조 완료, inventory 단독으로 UI PASS 판정 불가 |
-| 안정화 테스트 매핑 | 982개 ID별 verifier file/asserted anchor와 dispatch command를 exact-ID manifest에 지정 | verifier source 대조 완료, 실제 실행 PASS 아님 |
+| 안정화 테스트 매핑 | 984개 ID별 verifier file/asserted anchor와 dispatch command를 exact-ID manifest에 지정 | verifier source 대조 완료, 실제 실행 PASS 아님 |
 | 30분 테스트 매핑 | 30분 대상 기능을 media/session/runtime 중심으로 분리 | 기준표 작성 완료 |
 | 120분 테스트 매핑 | memory leak/runtime drift 조건부 대상 분리 | 기준표 작성 완료 |
 | VA seed 데이터 | `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`로 numeric ID/API payload 기준 full UI seed matrix를 고정 | 준비 기준일 뿐 실행 증거 아님 |
@@ -76,6 +76,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | v3.9.0 (17) Development 15 VLM incident-to-rule provenance | `UI-110`, `RULE-112`, `LAB-126`, `SAFE-213`, `OPS-180` | `verify-v390-vlm-incident-rule-provenance`, `verify-v390-vlm-rule-suggestion-draft-bridge`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-rule-ui` | sidecar 후보의 event/observation/source, candidate/kind, provider/model/prompt/privacy 출처를 optional `vlmProvenance`로 `/ops/rules` 수동 draft와 `/lab/analysis/rules/{id}` PUT 저장까지 전달하고 서버가 generated rule ID/save route 일치를 검증합니다. auto-save/apply, provider/runtime call, EventRecord/Event POST/WebRTC/SSE/WS/media contract 변경, UI 풀테스트, 30분/120분 PASS가 아닙니다 |
 | v3.9.0 (17) Development 16 deferred product owner sign-off | `SAFE-214`, `OPS-181` | `verify-v390-deferred-product-owner-signoff`, `verify-v390-action-execution-deferral-decision`, `verify-v390-conditional-field-ai-decisions`, `verify-v390-reid-readiness-consistency` | action execution, persistent credential store, real external field smoke, external VLM provider call, model-backed Re-ID session의 owner role·v3.9 결정·근거·재개 조건을 사용자 승인 출처와 함께 고정합니다. 역할은 개인 이름을 추정하지 않으며 implementation/field/release PASS를 주장하지 않습니다 |
 | v3.9.0 (17) Development 17 structure stabilization readiness | `SAFE-215`, `OPS-182` | `verify-v390-structure-stabilization-readiness`, `verify-v390-structure-stabilization-handoff`, `verify-v390-test-acceptance-bundle-contract` | `v4.0.0` branch 착수 전제, module/dependency direction, 9개 contract preservation, 6개 slice 순서와 entry/exit/stop gate를 고정합니다. branch 생성과 실제 route/API/UI extraction은 미실행입니다 |
+| v3.9.0 (17) Development 18 external field smoke no-device closure | `SAFE-216`, `OPS-183` | `verify-v390-external-field-smoke-no-device-closure`, `verify-v390-conditional-field-ai-decisions`, `verify-v380-field-connector-evidence-package` | TURN/WHEP, ONVIF 실기기, 외부 VLM/provider가 환경 부재로 `not-run`이며 external network/endpoint/credential/device/provider 접촉과 artifact 생성이 없고 field/release PASS를 주장하지 않음을 검증합니다 |
 | v3.9.0 R4 longrun runner role alignment | `OPS-168`, `SAFE-201` | `verify-v390-longrun-runner-role-alignment`, `verify-runtime-media-longrun-trigger-matrix`, `verify-longrun-separation`, `verify-rc-release-gate`, `verify-v390-server-longrun-runner-contract` | `verify-predev`를 legacy/compatibility runner로 보존하고 `verify-v390-server-longrun`을 release-grade first-fail runner로 채택합니다. Runtime/media trigger matrix row의 30분/120분 server longrun trigger는 `verify-v390-server-longrun --duration-minutes 30/120`을 가리키며, R1 30분 runner actual final과 historical `verify-predev` evidence를 서로 대체하지 않습니다 |
 | v3.9.0 R5 / V390-ADD1-07~09 UI automation report replay guard | `OPS-169`, `SAFE-202`, `UI-108`, `UI-109`, `UI-110`, `UI-111`, `UI-112`, `UI-113`, `UI-114`, `UI-115` | `verify-v390-ui-automation-report`, `verify-v390-ui-automation-report-replay-guard`, `verify-v390-ui-automation-runner-contract`, `verify-script-inventory` | v3 replay는 exact 8개 ID/route, trusted interaction executed, visible target, exact-selector assertion pass/visibility/source boundary, failure evidence, artifact files, console 허용 사유, first-fail 이후 `not-run`을 검증합니다. R5에서는 `artifactPreservationReason`을 누락 artifact 대체 evidence로 인정하지 않으며 replay PASS는 UI 풀테스트 직접 조작 PASS가 아닙니다 |
 | v3.9.0 (10) AI-minimized UI automation adapter 기준 | `OPS-169`, `SAFE-202` | `verify-v390-evidence-test-gate-prep`, `verify-ui-fulltest-one-shot`, `verify-manual-ui-evidence`, `verify-script-inventory` | 무료 UI automation adapter 후보와 failure report 필드 기준을 문서/test-source로 고정합니다. Playwright/Selenium/SikuliX 후보 검토 기준이며 실제 UI 풀테스트 직접 조작 PASS가 아닙니다 |
@@ -405,8 +406,8 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | `CLIENT-001`~`CLIENT-042` | client/UI/v350/v360/v370/v380 verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-027` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
 | `LAB-001`~`LAB-126` | lab/VLM/v250/v260/v270/v280/v300/v310/v340/v350/v360/v370/v380/v390 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-215` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-182` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
+| `SAFE-001`~`SAFE-216` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-183` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
 
 ## VA Manual UI Seed Matrix
 
@@ -1328,6 +1329,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-213 | V390 incident-to-rule provenance contract guard | 비대상 | 필요 | 안정화 | optional provenance가 없던 기존 rule payload는 유지하고, provenance가 있으면 required source fields, manual-review/no-auto-apply, generated rule ID/save route, raw credential/source URL/frame/prompt/response 비포함을 검증합니다. EventRecord/Event POST/WebRTC/SSE/WS/media schema/path는 변경하지 않습니다 |
 | SAFE-214 | V390 deferred owner decision false-PASS boundary | 비대상 | 필요 | 안정화 | `verify-v390-deferred-product-owner-signoff`가 5개 deferred 항목의 역할 기반 owner, v3.9 결정, 근거, 재개 조건, 사용자 승인 출처와 `implementationExecuted=false`, `fieldPassClaimed=false`, `releasePassClaimed=false`를 검증합니다. 개인 담당자 추정, 실제 구현, field smoke, UI/longrun, release PASS evidence가 아닙니다 |
 | SAFE-215 | V390 structure stabilization contract-preservation boundary | 비대상 | 필요 | 안정화 | `verify-v390-structure-stabilization-readiness`가 analysis/core/media→ingress/UI 역의존, circular dependency, 새 registry write owner를 금지하고 Event POST, WebRTC DataChannel, SSE/WS, RTSP/WebRTC media, Auth/Role/Scope, SourceRegistry/PublishedView, Rule/Profile, HTTP route/status/error, DOM/test ID 9개 contract를 `changeAllowed=false`로 고정합니다 |
+| SAFE-216 | V390 external field smoke no-device false-PASS boundary | 비대상 | 필요 | 안정화 | `verify-v390-external-field-smoke-no-device-closure`가 external network, endpoint probe, credential access, device contact, provider call, artifact 생성이 모두 false이고 TURN/WHEP·ONVIF·external VLM target status가 `not-run`, field/release PASS claim이 false임을 확인합니다. 외부 실행 evidence가 아닙니다 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -1477,14 +1479,15 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-176 | V390 Step 17 field evidence bridge gate | 비대상 | 필요 | 안정화 | `verify-v390-conditional-field-ai-decisions`, `verify-v380-field-connector-evidence-package`, `verify-v350-field-evidence-intake`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 `/ops/api/field-evidence/bridge-decision`, `/ops` field evidence bridge UI, roadmap/release records/inventory/server dispatch 연결을 확인하되 field smoke, endpoint/provider execution, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-177 | V390 Re-ID readiness consistency gate | 비대상 | 필요 | 안정화 | `verify-v390-reid-readiness-consistency`, `verify-v390-conditional-field-ai-decisions`, `verify-reid-advanced-tracking`, `verify-analysis-state`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 공용 readiness owner, C++ capability 2종, HTTP 10개 case, Ops UI, roadmap/release records/dispatch를 확인하되 실제 ONNX session 성공, identity search, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-178 | V390 Step 19 Structure Stabilization Handoff 게이트 | 비대상 | 필요 | 안정화 | `verify-v390-structure-stabilization-handoff`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 structure handoff plan, backlog, v390 inventory, stream verification, release records/evidence 연결을 확인하되 실제 route/API/UI extraction, manual UI archive split, VLM contract index implementation, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
-| OPS-179 | V390 actual acceptance bundle 실행 게이트 | 비대상 | 필요 | 안정화, 30분 | `verify-v390-test-acceptance-bundle --output-dir <path>`가 build, 29개 current feature command(Development 15 provenance, Development 16 owner sign-off, Development 17 structure readiness 포함), 실제 30분 server longrun, 실제 UI automation/replay, 조건부 120분 decision, cleanup/report를 직접 실행하고 child summary schema/result/duration/cleanup/artifact를 검증합니다. contract fixture는 actual duration/UI evidence가 아니며 UI 풀테스트 직접 조작, published metadata, release action을 실행하지 않습니다 |
+| OPS-179 | V390 actual acceptance bundle 실행 게이트 | 비대상 | 필요 | 안정화, 30분 | `verify-v390-test-acceptance-bundle --output-dir <path>`가 build, 30개 current feature command(Development 15~18 closure gate 포함), 실제 30분 server longrun, 실제 UI automation/replay, 조건부 120분 decision, cleanup/report를 직접 실행하고 child summary schema/result/duration/cleanup/artifact를 검증합니다. contract fixture는 actual duration/UI evidence가 아니며 UI 풀테스트 직접 조작, published metadata, release action을 실행하지 않습니다 |
 | OPS-180 | V390 incident-to-rule provenance closure gate | 비대상 | 필요 | 안정화 | `verify-v390-vlm-incident-rule-provenance`가 candidate API→Ops draft→generated rule payload→save API/readback의 provenance chain과 backlog/inventory/release record wiring을 검증합니다. 실제 provider evaluation 실행이나 auto rule apply evidence가 아닙니다 |
 | OPS-181 | V390 deferred product owner sign-off gate | 비대상 | 필요 | 안정화 | `verify-v390-deferred-product-owner-signoff`가 machine-readable decision fixture, feature inventory, roadmap, stream verification, release records/evidence, server dispatch를 대조하고 action/credential/field/provider/Re-ID deferred 범위를 닫습니다. owner sign-off는 해당 구현·field/release 실행 PASS가 아닙니다 |
 | OPS-182 | V390 structure stabilization readiness gate | 비대상 | 필요 | 안정화 | `verify-v390-structure-stabilization-readiness`가 handoff plan, machine-readable readiness fixture, roadmap, inventory, release records/evidence, server dispatch와 future acceptance command를 대조합니다. `v4.0.0` branch 생성, 실제 source extraction, UI/longrun, release action PASS가 아닙니다 |
+| OPS-183 | V390 external field smoke no-device closure gate | 비대상 | 필요 | 안정화 | `verify-v390-external-field-smoke-no-device-closure`가 machine-readable closure, feature inventory, roadmap, release records/evidence, server dispatch와 future acceptance command를 대조합니다. 실제 external field smoke나 field/release PASS evidence가 아닙니다 |
 
 ## Completed Exact-ID Coverage Review
 
-2026-07-11에 982개 기능 행을 `test/fixtures/project_feature_implementation_evidence.json`
+2026-07-11에 984개 기능 행을 `test/fixtures/project_feature_implementation_evidence.json`
 `media-server.feature-implementation-evidence.v1` manifest와 1:1 대조했습니다. 이 완료는
 tracked source/UI/verifier anchor와 longrun mapping 존재 확인이며 제품 테스트 실행 PASS가
 아닙니다. manifest 갱신은 `--refresh-manifest`를 명시한 source 변경으로만 수행하고,
@@ -1492,11 +1495,11 @@ tracked source/UI/verifier anchor와 longrun mapping 존재 확인이며 제품 
 
 | 대조 항목 | exact-ID 결과 | 검증 경계 |
 | --- | ---: | --- |
-| 기능 ID 집합 | 982/982 | inventory와 manifest의 ID, section, feature, UI 필요, 테스트 영역이 완전 일치 |
-| 코드 로직 owner/anchor | 982/982 | tracked production 또는 gate owner file 안 exact anchor 존재; 실행 PASS 아님 |
+| 기능 ID 집합 | 984/984 | inventory와 manifest의 ID, section, feature, UI 필요, 테스트 영역이 완전 일치 |
+| 코드 로직 owner/anchor | 984/984 | tracked production 또는 gate owner file 안 exact anchor 존재; 실행 PASS 아님 |
 | 제품 UI route/control/state anchor | 441/441 | UI 필요/간접 또는 UI absence boundary 행별 `screenRoute`, product UI file/anchor; 직접 클릭 PASS 아님 |
 | manual UI exact case | 424/424 | 테스트 영역 `UI` 행별 동일 `manualUiCaseId`; 실행 결과 없이 PASS 아님 |
-| 안정화 verifier assertion | 982/982 | 행별 verifier file/anchor와 `server.sh` direct 또는 transitive dispatch command 존재 |
+| 안정화 verifier assertion | 984/984 | 행별 verifier file/anchor와 `server.sh` direct 또는 transitive dispatch command 존재 |
 | 30분 mapping | 49/49 | `verify-v390-server-longrun --duration-minutes 30`, 사용자 명시 승인 전 미실행 |
 | 120분 mapping | 7/7 | `verify-v390-server-longrun --duration-minutes 120`, 사용자 명시 승인 전 조건부 미실행 |
 | negative fixture | 11/11 | missing/duplicate/wrong-section ID, source/UI/verifier file·anchor, screen route, dispatch, legacy longrun, inventory hash drift가 FAIL되는지 확인 |

@@ -68,6 +68,7 @@ published metadata, release action evidence가 아닙니다.
 | v3.9.0 (17) Development 15 | `./server.sh verify-v390-vlm-incident-rule-provenance` | VLM sidecar candidate의 event/observation/source, candidate/kind, observation-context-only evaluation metadata가 optional `vlmProvenance`를 통해 `/ops/rules` 수동 draft와 `/lab/analysis/rules/{id}` PUT/save/readback까지 보존되는지 실제 HTTP로 확인합니다. generated rule ID 또는 save route mismatch는 no-write로 거부하며 auto-save/apply, 실제 provider evaluation, EventRecord/Event POST/WebRTC/SSE/WS/media 변경, UI 풀테스트, 30분/120분 PASS가 아닙니다 |
 | v3.9.0 (17) Development 16 | `./server.sh verify-v390-deferred-product-owner-signoff` | action execution, persistent credential store, real external field smoke, external VLM provider call, model-backed Re-ID session에 역할 기반 owner, v3.9 구현/제외 결정, 직접 근거, 재개 조건과 사용자 승인 출처를 고정합니다. 개인 이름을 추정하지 않으며 owner role sign-off를 실제 구현, field smoke, provider call, Re-ID session, UI 풀테스트, 30분/120분, release PASS로 승격하지 않습니다 |
 | v3.9.0 (17) Development 17 | `./server.sh verify-v390-structure-stabilization-readiness` | v3.9.0 release correctness 이후 사용자 명시 승인으로 만드는 `v4.0.0` branch, module boundary와 단방향 dependency, 9개 preserved contract, 6개 fixed slice의 entry/exit/stop gate를 검증합니다. branch 생성·실제 refactor·route/API/UI extraction·UI 풀테스트·30분/120분·release action PASS가 아닙니다 |
+| v3.9.0 (17) Development 18 | `./server.sh verify-v390-external-field-smoke-no-device-closure` | 외부 네트워크 호출 없이 TURN/WHEP, ONVIF 실기기, 외부 VLM/provider가 device·credential·endpoint·실행 승인 부재로 모두 `not-run`인지 검증합니다. endpoint/credential/device/provider probe와 artifact 생성은 0이고 not-run을 field/release PASS로 승격하지 않습니다 |
 
 Re-ID privacy/default-off gate는 Step 18에서도 유지합니다. `--reid-policy assist`는 selected tracker의 association assist decision일 뿐이며, `verify-reid-advanced-tracking`와 `verify-close-object-fixture-matrix --modes off,diagnostic,enforce`는 `default-on candidate=False`와 별도 review 상태를 확인합니다. Matrix gate 상태 정의: `warning`은 안정적이라는 뜻이 아니며, `matrix-ok`는 명령/gate 결과입니다. `[matrix-default-on-decision]`과 `[matrix-product-default-on]`은 fixture별 후보로만 기록하고, `field-driving-live`, observed issue counter, trackingIssueObservationCounts, defaultOnDecision, productDefaultOn, candidateCount, defaultOnReason, reid-fixture-default-on-candidates.md를 함께 확인해야 합니다.
 
@@ -296,7 +297,7 @@ UI-113의 source-only `defer-all-action-writes`와 hidden element text가 PASS�
 
 v3.9.0 R3 dry-run command는 `finalAcceptanceCommandSet`과 evidence boundary를 같은
 summary/report schema로 고정합니다. V390-ADD1-06 non-dry command는 preserved evidence를
-PASS로 재사용하지 않고 preflight→build→29개 current feature command→실제 30분
+PASS로 재사용하지 않고 preflight→build→30개 current feature command→실제 30분
 server longrun→실제 UI automation→UI replay→조건부 120분 decision/run→cleanup→report를
 순서대로 직접 실행합니다. 첫 실패 뒤 일반 stage는 `not-run`이고 cleanup/report만 항상
 실행합니다.

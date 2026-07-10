@@ -342,11 +342,11 @@ check("roadmap, stream verification, inventory, and release records map v3.8 Ste
 check("server entrypoint and inventory verifiers include v3.8 Step 14 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v380_field_connector_evidence_package.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureCoverageVerifier, 'check("exact implementation evidence manifest is valid"', "feature coverage verifier data-driven manifest gate");
   for (const id of featureIds) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.scriptInventory, "verify_v380_field_connector_evidence_package.mjs", "script inventory");
+  assertIncludes(files.scriptInventory, 'check("server.sh dispatch targets exist and are executable"', "script inventory data-driven dispatch gate");
 });
 
 const results = runChecks();

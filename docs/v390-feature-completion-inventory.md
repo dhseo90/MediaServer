@@ -190,3 +190,26 @@ Machine-readable source: `test/fixtures/v390_deferred_product_owner_signoff.json
 Decision boundary: 모든 항목에서 `implementationExecuted=false`, `fieldPassClaimed=false`,
 `releasePassClaimed=false`입니다. 이 owner sign-off는 구현·field smoke·UI 풀테스트·30분/120분
 longrun·published metadata·release action PASS가 아닙니다.
+
+## Development 18 External Field Smoke No-Device Closure
+
+Approval source: `/goal v3.9.0 (17) Development 18`
+
+Execution policy: `not-run-missing-required-external-environment`
+
+| 대상 | 실행 상태 | 미실행 직접 근거 | 재개 조건 |
+| --- | --- | --- | --- |
+| `external-turn-whep` | `not-run` | 승인된 WHEP endpoint·TURN service·credential·reachable network·실행 승인 없음 | Release/Security owner가 환경을 제공하고 사용자가 command·artifact·cleanup을 승인 |
+| `onvif-real-device` | `not-run` | 물리 ONVIF 실기기·address·credential·isolated network·실행 승인 없음 | 실기기와 redacted credential을 제공하고 device contact·artifact·cleanup을 승인 |
+| `external-vlm-provider` | `not-run` | provider endpoint·credential·privacy transfer·cost/timeout policy·실행 승인 없음 | Privacy/Security/Release owner가 환경·정책을 제공하고 provider call을 명시 승인 |
+
+Machine-readable source: `test/fixtures/v390_external_field_smoke_no_device_closure.json`
+
+Closure flags: `externalNetworkAttempted=false`, `endpointProbeAttempted=false`,
+`credentialAccessAttempted=false`, `deviceContactAttempted=false`,
+`providerCallAttempted=false`, `artifactCreated=false`, `fieldPassClaimed=false`,
+`releasePassClaimed=false`.
+
+`not-run은 PASS가 아닙니다`. 이 closure는 외부 endpoint 확인, credential 검증, 실기기 접촉,
+provider 호출, field smoke, release PASS evidence가 아니며 조건이 갖춰지면 별도 승인된 field run으로
+다시 열어야 합니다.
