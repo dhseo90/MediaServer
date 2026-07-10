@@ -40,7 +40,7 @@
 
 1. 다른 문서가 AGENTS.md보다 넓은 완료/통과/푸시 권한을 주는 것처럼 보이는 경우
 2. roadmap이나 release evidence의 `완료` 표기가 실제 직접 evidence와 맞지 않는 경우
-3. verifier 설명이 UI 직접 조작, 30분, 120분, field smoke, publish evidence까지 대체할 수 있는 것처럼 보이는 경우
+3. verifier 설명이 7.6.3 Policy v4 적격 기준을 충족하지 않은 UI smoke/replay/fixture, 30분, 120분, field smoke, publish evidence까지 대체할 수 있는 것처럼 보이는 경우
 4. 사용자의 최신 지시와 기존 문서/과거 대화가 충돌하는 경우
 
 조사, 검토, 목록화, 근거 제시, 문서 리뷰 요청은 구현 착수, 테스트 실행, 커밋, 푸시 승인이 아니다. 사용자가 "확인해", "찾아", "리스트업", "근거 제시", "리뷰"라고 말한 경우에는 그 범위를 보고 작업으로만 처리한다. 코드/문서 수정, 커밋, 푸시가 필요하면 사용자가 별도로 명시한 경우에만 진행한다.
@@ -492,7 +492,7 @@ test: 테스트 추가
 - "기준을 정함"과 "실제 대상을 선택함"을 혼동
 - "검토 절차를 만듦"과 "검토를 완료함"을 혼동
 - "테스트 준비 가능"과 "테스트 실행 PASS"를 혼동
-- "UI 자동 smoke" 또는 raw JSON/API 확인을 "제품 UI 직접 확인"으로 보고
+- 정적/부분 `UI 자동 smoke`, screenshot-only, raw JSON/API 확인을 Policy v4 적격 실제 브라우저 실행 또는 제품 UI 직접 확인으로 보고
 - 브라우저 확인 없이 UI 검수 완료라고 보고
 - raw JSON만 확인하고 제품 UI를 확인했다고 보고
 - sandbox/포트/권한 문제를 제품 회귀처럼 단정
@@ -523,7 +523,7 @@ gate 준비 완료:
 - 사용자가 요구한 핵심 산출물이 아직 없음
 ```
 
-`verify-*` 명령 통과는 "그 명령이 검사한 범위 통과"만 뜻한다. verifier가 모델 선택, license 검토, UI 직접 조작, 장시간 안정화, 운영 반영을 검사하지 않았다면 그 항목을 완료 evidence로 사용하지 않는다.
+`verify-*` 명령 통과는 "그 명령이 검사한 범위 통과"만 뜻한다. verifier가 모델 선택, license 검토, Policy v4 적격 UI 실행, 장시간 안정화, 운영 반영을 검사하지 않았다면 그 항목을 완료 evidence로 사용하지 않는다. Policy v4 qualifier 자체가 PASS해도 입력 actual UI evidence의 `uiFulltestPass`가 false이면 UI 풀테스트 PASS가 아니다.
 
 ### 6.3 선택/결정/후보군 단계의 특별 완료 조건
 
@@ -865,7 +865,7 @@ deprecated 항목은 삭제하거나 결과표에서 몰래 빼지 않는다. �
 | 안정화 테스트 | build, static, API/schema, auth route, media path, verifier 중심의 선수 테스트. 30분/120분/UI 테스트 전에 먼저 통과해야 하며, 로드맵 각 스텝 종료 시 수행 대상이다. 릴리즈 close-out에서는 사용자 지시 또는 승인 범위만 실행한다 | 실제 실행한 명령, exit code, summary/report, 로그, 실패/skip 사유 | 30분/120분 장시간 PASS, 브라우저 UI 직접 조작 주장 |
 | 30분 테스트 | 장기간 테스트 지시 시 기본으로 수행하는 soak. 각 버전별 로드맵 개발 완료와 릴리즈 완료/출시 가능 판정의 필수 evidence다. 사용자 승인 없이 자동 실행하지 않지만, 미실행/FAIL이면 사용자 강제 진행 승인 전 릴리즈 불가다 | `verify-predev --soak-minutes 30` summary/report/log | 안정화 테스트, 120분 메모리 감시, UI 풀테스트 |
 | 120분 테스트 | 메모리 릭, 장시간 누수, runtime drift 감시용. 무조건 실행하지 않고 필요 시 사용자에게 먼저 말한다 | `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120` summary/report/log | 안정화 테스트, 30분 기본 soak, UI 풀테스트 |
-| UI 풀테스트 | 인앱 브라우저에서 제품 화면을 직접 열고 클릭/타이핑/선택/반응형/시각 품질/role guard 확인. 각 버전별 로드맵 개발 완료와 릴리즈 완료/출시 가능 판정의 필수 evidence다. 사용자 승인 없이 자동 실행하지 않지만, 미실행/FAIL이면 사용자 강제 진행 승인 전 릴리즈 불가다 | 실제 조작한 route, 계정/권한, viewport/theme, screenshot/artifact, 재검수 결과 | 30분/120분 안정화 통과, raw JSON/API-only 확인, 자동 screenshot만 생성 |
+| UI 풀테스트 | 인앱 브라우저 직접 실행 또는 7.6.3 Policy v4 적격 실제 브라우저 자동화로 제품 화면의 클릭/타이핑/선택/반응형/시각 품질/role guard를 확인. 각 버전별 로드맵 개발 완료와 릴리즈 완료/출시 가능 판정의 필수 evidence다. 사용자 승인 없이 실행하지 않으며, 미실행/FAIL이면 사용자 강제 진행 승인 전 릴리즈 불가다 | evidence mode, 실제 조작한 route/control/action, 계정/권한, viewport/theme, 전후 상태/completion oracle, screenshot/trace/log/artifact, 재검수 결과 | 30분/120분 안정화 통과, raw JSON/API-only, fixture/wrapper/replay/coverage 단독 PASS, 자동 screenshot만 생성 |
 
 보고 시에는 아래 항목을 별도 섹션으로 나눈다.
 
@@ -878,8 +878,10 @@ deprecated 항목은 삭제하거나 결과표에서 몰래 빼지 않는다. �
 - 토큰 사용량:
 
 UI 풀테스트:
-- 직접 확인한 화면:
-- 직접 조작한 기능:
+- evidence mode(direct-browser/qualified-native-automation/hybrid):
+- 실제 브라우저로 확인한 화면:
+- 실제 조작한 기능:
+- exact 대상/pass/fail/not-run/unsupported:
 - 반응형/시각 품질:
 - 제외 기록:
 - 토큰 사용량:
@@ -894,11 +896,53 @@ UI 풀테스트:
 UI 풀테스트도 버전별 로드맵 개발 완료와 릴리즈 완료/출시 가능 판정의 필수 항목이다. 실행 전 사용자 지시 또는 승인을 확인하지만, 실행 전까지는 `미실행 필수 blocker`로 보고한다. 미실행/FAIL 상태에서는 사용자가 그 blocker를 알고도 강제로 릴리즈 진행을 명시 승인하지 않는 한 릴리즈는 원천적으로 불가능하다.
 30분/120분 테스트를 통과해도 UI 풀테스트 완료가 아니며, UI 풀테스트를 모두 수행해도 30분/120분 안정화 테스트 완료가 아니다.
 
-UI 풀테스트 판정은 `PASS`와 `FAIL`만 사용한다. 모든 기능을 인앱 브라우저에서 실행하고, 실제 수행 결과가 제품 상태에 반영됐는지 확인하고, 관련 로그를 확인한 경우에만 `PASS`다. VA rule 또는 scenario는 EventRecord/이벤트 발생 이력까지 모두 확인해야 `PASS`다. 그 외는 모두 `FAIL`이다. 실행하지 않음, 일부만 실행, 화면만 열고 기능 결과 미확인, 자동 smoke만 통과, raw JSON/API-only 확인은 모두 `FAIL`이다. 사용자가 실기기 없음 등으로 의도적으로 빼라고 한 항목은 UI 풀테스트 기준에서 제외하고 별도 `제외 기록`에만 남긴다.
+UI 풀테스트 판정은 `PASS`와 `FAIL`만 사용한다. 모든 대상 기능을 direct-browser 또는 7.6.3 Policy v4 적격 실제 브라우저 자동화로 실행하고, 실제 수행 결과가 제품 상태에 반영됐는지 확인하고, 관련 로그를 확인한 경우에만 `PASS`다. VA rule 또는 scenario는 EventRecord/이벤트 발생 이력까지 모두 확인해야 `PASS`다. 그 외는 모두 `FAIL`이다. 실행하지 않음, 일부만 실행, 화면만 열고 기능 결과 미확인, 정적/부분 자동 smoke만 통과, raw JSON/API-only 확인은 모두 `FAIL`이다. 사용자가 실기기 없음 등으로 의도적으로 빼라고 한 항목은 UI 풀테스트 기준에서 제외하고 별도 `제외 기록`에만 남긴다.
 
 UI 풀테스트 결과는 모든 개별 기능, route, control, action 단위로 답한다. 카테고리 묶음 판정은 금지한다. 예를 들어 Auth, Rules, VA 같은 카테고리로 묶어 PASS/FAIL을 대신하지 않고, 기능 ID와 조작/반영/로그 확인 결과를 개별 행으로 나열한다.
 
 Auth verifier는 테스트 실행자가 지정한 비밀번호 환경변수를 사용한다. `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`, `MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD`, `MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD`, `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE`, `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO`가 없으면 auth 테스트를 시작하지 않고 실패로 보고한다. 스크립트나 문서에 고정 기본 비밀번호를 만들지 않는다.
+
+#### 7.6.3 Policy v4 UI 대체 evidence 기준
+
+Policy v4는 다섯 번째 테스트 영역이 아니다. UI 풀테스트 영역 안에서 evidence mode를
+`direct-browser`, `qualified-native-automation`, `hybrid`로 구분한다. 브라우저/도구
+이름만으로 PASS 또는 FAIL을 정하지 않고 실제 evidence 품질로 판정한다.
+
+개별 UI case의 direct-browser evidence를 자동화 evidence로 대체하려면 아래 조건을
+모두 만족해야 한다.
+
+1. 실제 제품 브라우저 실행이어야 하며 fixture, one-shot wrapper, static smoke,
+   API/raw JSON-only, screenshot-only, source/script/hidden marker 판정이 아니어야 한다.
+2. project implementation evidence의 exact test ID, route, control/action을 사용하고
+   requested/observed role·scope, viewport, theme가 일치해야 한다.
+3. 신뢰된 visible/enabled control을 실제 조작하고, `DOM 전이`, `network response + DOM`,
+   `persisted state readback`, `EventRecord`, `server log` 중 하나 이상의 상관된
+   completion oracle로 반영 결과를 확인해야 한다. 조작 전부터 보이던 동일 문자열만으로
+   PASS하지 않는다.
+4. exact-selector visible assertion, screenshot, trace, browser console, server log,
+   지원 시 실제 video, adapter/browser/version provenance, source/policy/manifest/runner
+   fingerprint, 실행 시각과 재현 명령을 보존해야 한다.
+5. artifact는 허용된 run root 안에 있어야 하고 hash/type/path containment와 redaction을
+   통과해야 한다. placeholder video, 경로 escape, hash 불일치, credential/session/token/
+   viewer source URL/raw debug material 노출은 FAIL이다.
+6. fallback 사용 여부를 숨기지 않고, `manualIntervention=false`, failed interaction 0,
+   unapproved console error/warning 0, server/port/temp cleanup PASS여야 한다.
+7. video viewport, VA overlay, crop, clipping, contrast, focus, accessibility처럼 DOM text만으로
+   닫히지 않는 항목은 `compare-ui-visual-baseline` 같은 명시적 visual/geometry evidence와
+   reviewRequired 해소가 있거나 direct evidence를 결합한 `hybrid`로 남긴다.
+
+전체 UI 풀테스트 `PASS`는 각 case의 대체 적격과 별개다. 현재 release 범위의 exact UI
+test ID 전수가 `direct-pass` 또는 `automation-equivalent-pass`이고, `fail`, `notRun`,
+`unsupported`, `unapproved exclusion`, `manual intervention`이 0이며, 반응형 320/390/760/
+1180, light/dark, role/scope guard, client/viewer redaction, video/overlay, 시각 품질과
+accessibility 교차 항목이 모두 닫혀야 한다. 부분 자동화, coverage mapping, replay,
+Policy v4 contract/verifier PASS만으로 suite PASS를 만들지 않는다.
+
+기계 검증 기준은 `test/fixtures/ui_fulltest_evidence_policy_v4.json`과
+`./server.sh verify-ui-fulltest-evidence-policy-v4`가 이 절을 구현한다. JSON fixture와
+verifier는 이 절보다 넓은 권한을 만들 수 없고, verifier 출력의 `policyValidationResult`
+와 `uiFulltestPass`를 반드시 분리해 보고한다. Policy v4 전 historical evidence는 당시
+정책 기록으로 보존하며 소급해 PASS로 승격하지 않는다.
 
 ### 7.7 장시간 테스트
 
@@ -940,14 +984,14 @@ verify-predev: 실행하지 않음
 
 ### 7.9 버전 로드맵 완료 후 UI 풀테스트
 
-해당 버전의 로드맵에 명시된 개발 내용을 모두 마친 경우, 완료 판정은 스크립트만으로 대체하지 않는다. 단, UI 풀테스트 실행은 사용자가 직접 지시했거나 에이전트가 진행 여부를 물어 승인받은 경우에만 수행한다.
+해당 버전의 로드맵에 명시된 개발 내용을 모두 마친 경우, 완료 판정은 정적/부분 스크립트만으로 대체하지 않는다. 단, direct-browser 또는 Policy v4 적격 자동화 방식의 UI 풀테스트 실행은 사용자가 직접 지시했거나 에이전트가 진행 여부를 물어 승인받은 경우에만 수행한다.
 UI 풀테스트는 릴리즈 완료/출시 가능 판정의 필수 항목이다. 사용자가 실행을 승인하기 전에는 실행하지 않지만, 실행하지 않은 상태는 조건부/선택/생략 가능이 아니라 `미실행 필수 blocker`다. 사용자가 그 blocker를 알고도 강제로 릴리즈 진행을 명시 승인하지 않는 한 릴리즈는 원천적으로 불가능하다.
 
-1. 브라우저에서 제품 UI를 직접 열고 로드맵에 포함된 기능을 하나하나 눌러 실행한다.
-2. `/setup`, `/login`, `/ops`, `/client`, 관련 rule/source/dashboard 흐름을 해당 버전 범위에 맞게 수동 확인한다.
-3. 영상이 포함된 기능은 실제 영상 표시, control, status, 가능하면 VA overlay까지 눈으로 확인한다.
-4. 스크립트 검증은 보조 evidence로만 사용한다. UI 풀테스트를 하지 않았다면 로드맵 전체 완료라고 보고하지 않는다.
-5. UI 풀테스트에서 이상이 발견되면 수정 후 같은 UI 흐름을 다시 직접 실행한다.
+1. 실제 브라우저에서 제품 UI를 열고 로드맵에 포함된 exact 기능 case를 하나하나 조작해 실행한다.
+2. `/setup`, `/login`, `/ops`, `/client`, 관련 rule/source/dashboard 흐름을 해당 버전 범위에 맞게 direct-browser 또는 Policy v4 적격 자동화 evidence로 확인한다.
+3. 영상이 포함된 기능은 실제 영상 표시, control, status, 가능하면 VA overlay까지 direct visual 또는 Policy v4 visual/hybrid evidence로 확인한다.
+4. 정적/API/fixture/wrapper/replay/coverage 검증은 보조 evidence로만 사용한다. Policy v4-qualified UI 실행을 하지 않았다면 로드맵 전체 완료라고 보고하지 않는다.
+5. UI 풀테스트에서 이상이 발견되면 수정 후 같은 UI 흐름을 동일 evidence mode 또는 더 강한 mode로 다시 실행한다.
 6. 열어보지 않은 화면, 누르지 않은 기능, 실행하지 않은 흐름은 UI 풀테스트 대상이면 `FAIL`로 보고한다. 사용자가 명시 제외한 실기기/외부 credential 항목은 판정에서 빼고 별도 `제외 기록`에만 남긴다.
 
 ### 7.10 기능 추가 시 테스트 항목 정리
@@ -960,7 +1004,7 @@ UI 풀테스트는 릴리즈 완료/출시 가능 판정의 필수 항목이다.
 4. API/CLI/backend 정책처럼 제품 UI가 없어야 정상인 기능은 억지로 UI를 만들지 않고 `비대상: UI 없어야 정상`으로 표기한다.
 5. 실기기/외부 endpoint가 필요한 기능도 별도 테스트 영역으로 빼지 않는다. 해당 조건은 `안정화 테스트`의 조건부 verifier 또는 `UI 테스트`의 제외 기록으로 편입하고, 사용자가 제외하라고 한 경우 사유를 `제외 기록`에 적는다.
 6. 기능 개발 중 기존 코드가 구버전 레거시가 되면 호환 명목으로 남겨두지 않는다. 현재 릴리즈 제품 route/API/UI에서 쓰지 않는 레거시 화면, route, helper, verifier 문자열은 영향 범위를 확인한 뒤 같은 작업 범위에서 삭제한다.
-7. UI 테스트는 Codex 인앱 브라우저에서 직접 클릭/타이핑/반응형 확인으로 수행한다. raw JSON, curl, Playwright 스크립트만으로 제품 UI 수동 확인을 대체했다고 보고하지 않는다.
+7. UI 테스트는 Codex 인앱 브라우저 direct-browser 또는 7.6.3 Policy v4 적격 실제 브라우저 자동화로 클릭/타이핑/반응형을 확인한다. raw JSON, curl, static/fixture/부분 Playwright runner만으로 제품 UI evidence를 대체했다고 보고하지 않는다.
 8. VA rule, scenario, tracker, Re-ID처럼 기능 축이 늘어나는 경우에는 새 기능을 카테고리 한 줄로 묶지 않는다. 각 event type, scenario type, line direction, tracker policy, Re-ID policy, invalid 조합, runtime 반영, EventRecord 발생 여부를 각각 독립 기능 ID/결과 행으로 추가한다.
 9. 기능별 테스트 결과 행의 판정값은 `PASS`와 `FAIL`만 쓴다. 테스트 대상인데 실행하지 않았거나 일부 조건만 확인한 항목은 `FAIL`이다. 사용자가 실기기/외부 endpoint 등으로 명시 제외한 항목은 테스트 결과 행에서 빼고 `제외 기록`에만 남긴다.
 
@@ -1025,7 +1069,7 @@ UI 작업은 현재 화면의 사용 흐름과 기존 design token을 유지하�
 4. client/viewer 화면에는 source URL, Developer URL, raw JSON, debugCounters, BBox diagnostics, rule/profile editor를 노출하지 않는다.
 5. `/ops/rules` smoke selector와 Rule/Profile 저장 흐름을 깨지 않는다.
 6. 개발/검증 editor를 제품 화면에 되살리거나 embed하지 않는다.
-7. UI 화면을 보지 않았으면 수동 확인했다고 쓰지 않는다.
+7. UI 화면을 보지 않았으면 수동 확인했다고 쓰지 않는다. 자동화 evidence는 수동 확인으로 이름을 바꾸지 말고 Policy v4 evidence mode와 실제 실행 범위를 기록한다.
 
 ### 9.2 Ops 화면
 
@@ -1174,7 +1218,86 @@ MVP 완료
 
 ## 13. 이슈 로드맵 및 후속 이슈 추천 규칙
 
-이슈 로드맵을 제시하거나 전체 단계가 끝난 뒤 후속 이슈를 추천할 때는 각 이슈에 추천 분석 모델명과 권장 추론 강도를 함께 적는다. 이 규칙은 2장의 릴리즈 잔여 이슈 순서표, 3장의 단계 결과 보고, 그 밖의 roadmap/backlog 제안에 모두 적용한다. 여러 이슈에 같은 모델을 추천하더라도 각 이슈 행이나 항목에 모델명과 추론 강도를 생략하지 않는다.
+이슈 로드맵을 제시하거나 전체 단계가 끝난 뒤 후속 이슈를 추천할 때는 각 이슈에 추천 분석 모델명, 권장 추론 수준, 선정 근거를 함께 적는다. 이 규칙은 2장의 릴리즈 잔여 이슈 순서표, 3장의 단계 결과 보고, 그 밖의 roadmap/backlog 제안에 모두 적용한다. 여러 이슈에 같은 모델을 추천하더라도 각 이슈 행이나 항목에서 모델명, 추론 수준, 선정 근거를 생략하지 않는다.
+
+### 13.1 GPT-5.6 공식 모델 기준
+
+모델 명칭과 추론 수준은 OpenAI GPT-5.6 모델 가이드를 기준으로 한다.
+
+- 공식 기준: <https://developers.openai.com/api/docs/guides/latest-model>
+- `5.6 Sol` (`gpt-5.6-sol`): 최상위 성능이 필요한 flagship 작업
+- `5.6 Terra` (`gpt-5.6-terra`): 지능과 비용의 균형이 필요한 작업
+- `5.6 Luna` (`gpt-5.6-luna`): 고효율, 반복, 대량 처리 작업
+- 공식 명칭은 `Luna`다. `Runa`로 표기하지 않는다.
+
+작업 종류에 따른 초기 후보는 아래와 같다.
+
+1. 반복, 대량 분류, 정형 변환, 이미 정해진 verifier 반복 실행은 `5.6 Luna`를 우선한다.
+2. 범위가 작고 요구사항과 검증 방법이 분명한 간단한 개발 작업은 `5.6 Terra`를 우선한다.
+3. 위 두 종류로 명확히 분류되지 않는 기본 작업, 다중 모듈 분석, 구조 설계, 고위험 검토는 `5.6 Sol`을 우선한다.
+4. 초기 후보는 13.2의 VATester 점수와 13.4의 상향 규칙을 적용해 최종 확정한다.
+5. 실제 환경에서 추천 모델을 선택할 수 없으면 임의의 모델로 선택했다고 보고하지 않는다. 추천 모델, 실제 사용 모델 또는 선택 불가 상태, 영향 범위를 분리해 적는다.
+
+### 13.2 VATester 모델 점수 기준
+
+VATester 분류는 `영향도`, `불확실성`, `검증 난이도`, `변경 범위`를 각각 0~2점으로 평가한다. 총점은 0~8점이다. 점수와 판단 근거를 숨기지 않고 모델 선정 근거에 남긴다.
+
+| 평가 항목 | 0점 | 1점 | 2점 |
+| --- | --- | --- | --- |
+| 영향도 | 읽기/정리/정형 반복처럼 제품 동작에 영향 없음 | 단일 기능 또는 내부 동작에 제한된 영향 | 사용자 동작, 릴리즈 gate, API/계약, 운영 데이터에 광범위한 영향 |
+| 불확실성 | 요구사항, 대상, 정답, 기존 패턴이 명확함 | 일부 추론 또는 의존성 확인 필요 | 미확인 구현, 복수 원인, 상충 요구, 구조적 판단 필요 |
+| 검증 난이도 | 단일 정적 검사 또는 결정적 verifier로 확인 | 여러 단위/통합 테스트 또는 상태 대조 필요 | 장시간, UI, 외부 환경, 동등성, 복합 evidence 검증 필요 |
+| 변경 범위 | 무변경, 정형 반복, 한 파일의 작은 변경 | 단일 모듈 또는 소수 파일의 제한된 변경 | 다중 모듈, API/schema, 저장 경계, 구조/의존성 변경 |
+
+총점에 따른 기본 모델은 아래와 같다.
+
+| 총점 | 기본 모델 | 기본 해석 |
+| --- | --- | --- |
+| 0~2점 | `5.6 Luna` | 반복적이고 결정적이며 영향 범위가 작은 작업 |
+| 3~5점 | `5.6 Terra` | 간단하거나 중간 규모이며 지능과 비용의 균형이 필요한 작업 |
+| 6~8점 | `5.6 Sol` | 복잡도, 영향, 불확실성, 검증 비용이 큰 작업 |
+
+13.1의 작업 종류 초기 후보와 점수 결과가 다르면 더 높은 역량의 모델을 선택한다. 단, 반복 작업이라는 이유만으로 정확도나 데이터 위험을 무시해 `Luna`로 낮추지 않는다.
+
+### 13.3 추론 수준 기준
+
+GPT-5.6 추론 수준은 `none`, `low`, `medium`, `high`, `xhigh`, `max`만 사용한다. 한글 보고에는 아래 대응을 함께 쓴다.
+
+| 추론 수준 | 한글 표기 | 적용 기준 |
+| --- | --- | --- |
+| `none` | 없음 | 의미 판단이 없고 결과가 완전히 결정적인 기계적 변환에만 사용 |
+| `low` | 낮음 | 저위험 반복 작업이나 latency 우선 작업에 사용 |
+| `medium` | 중간 | 모든 작업의 기본 출발점 |
+| `high` | 높음 | 추가 추론이 실제 품질 향상을 만들 것으로 예상되거나 검증 경계가 여러 개인 작업 |
+| `xhigh` | 매우 높음 | 구조적 불확실성, 고위험 계약, 어려운 교차 검증처럼 높은 품질 향상이 필요한 작업 |
+| `max` | 최대 | 가장 어려운 품질 우선 작업에만 사용하며 latency와 비용보다 정확성이 우선일 때 적용 |
+
+1. 기본값은 `medium`이다. 단지 우선순위가 P0이거나 파일 수가 많다는 이유만으로 `high` 이상을 선택하지 않는다.
+2. `high` 또는 `xhigh`는 더 높은 추론이 품질을 높일 구체적 이유를 선정 근거에 적을 수 있을 때만 사용한다.
+3. `max`는 8점이거나 13.4의 중대한 상향 조건이 있고, `xhigh`보다 추가 탐색과 검증이 필요한 이유를 명시할 수 있는 가장 어려운 품질 우선 작업에만 사용한다.
+4. 반복 실행과 정형 evidence 수집은 기본적으로 `low` 또는 `medium`을 검토하고, 실패 원인 분석이나 설계 판단 단계만 별도로 상향한다.
+
+### 13.4 정확도 및 위험 상향 규칙
+
+아래 조건은 VATester 총점과 별도로 모델과 추론 수준을 상향한다.
+
+1. 정확도, 동등성, 보안, 데이터 손상 위험이 실질적으로 존재하면 점수 결과보다 모델을 한 단계 상향하고 추론 수준은 최소 `high`로 한다.
+2. auth/role/scope, 외부 쓰기, 비가역 데이터 손실, 공개 API/schema/event payload, RTSP/WebRTC media path, release correctness를 변경하거나 검증하면 `5.6 Sol`을 사용하고 추론 수준은 최소 `high`로 한다.
+3. 여러 계약 경계에 걸친 보안 또는 데이터 손상 가능성, 전면 구조 변경, 거짓 PASS가 릴리즈를 허용할 위험이 있으면 `xhigh`를 우선 검토한다.
+4. `max`는 자동 상향값이 아니다. 가장 어려운 품질 우선 작업이라는 근거와 `xhigh`로 부족한 이유를 별도로 적어야 한다.
+5. 상향 규칙을 적용했으면 원래 점수 모델과 최종 상향 모델을 선정 근거에 함께 적는다.
+
+### 13.5 모델 추천 보고 형식
+
+개발, 검토, 테스트 설계, 로드맵/잔여 이슈 추천에서 모델 추천을 제시할 때는 아래 형식을 사용한다.
+
+```text
+추천 모델: 5.6 Terra
+추론 수준: 높음 (high)
+선정 근거: 영향도 1, 불확실성 1, 검증 난이도 2, 변경 범위 1로 총 5점이다. 여러 스크립트와 Docker 빌드 경계를 검증하지만 모델 정확도 계약을 변경하지 않는 통합 작업이다.
+```
+
+표로 제시할 때도 `추천 모델`, `추론 수준`, `선정 근거` 열을 각각 둔다. 선정 근거에는 최소한 네 평가 점수, 총점, 상향 규칙 적용 여부를 포함한다.
 
 후속 이슈는 현재 버전과 현재 스텝 범위 안에서 실제로 처리 가능한 항목만 언급한다.
 
@@ -1197,10 +1320,8 @@ MVP 완료
 4. 예상 검증
 5. 현재 버전/현재 스텝 범위에 속한다는 근거
 6. 추천 분석 모델명
-7. 권장 추론 강도
-8. 모델과 추론 강도 선정 근거
-
-분석 모델 추천은 `추천 분석 모델: <모델명> <추론 강도>` 형식으로 표기한다. 예: `추천 분석 모델: 5.6 sol 매우높음`. 추론 강도는 작업의 범위, 복잡도, 위험도, 검증 비용을 근거로 `낮음`, `중간`, `높음`, `매우높음` 중에서 고른다.
+7. 권장 추론 수준
+8. 모델과 추론 수준 선정 근거
 
 예시:
 
@@ -1210,8 +1331,9 @@ MVP 완료
    이유: 이번 버전 release checklist에서 직접 클릭 evidence가 비어 있음
    검증: 브라우저 수동 UI 풀테스트, verify-docs-ui-assets
    범위: 현재 버전 release checklist closure 내부
-   추천 분석 모델: 5.6 sol 높음
-   선정 근거: 실제 UI 조작 evidence와 문서 상태를 교차 검증해야 함
+   추천 모델: 5.6 Sol
+   추론 수준: 높음 (high)
+   선정 근거: 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1로 총 6점이다. 실제 UI 조작 evidence와 문서 상태를 교차 검증해야 하며 별도 상향 규칙은 적용하지 않았다.
 ```
 
 ---
