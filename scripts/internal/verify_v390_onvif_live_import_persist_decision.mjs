@@ -21,8 +21,8 @@ Usage:
 Checks:
   - /ops/api/onvif/live-import-persist-decision exposes the Step 12 product decision
   - the decision keeps /ops/api/onvif/import-draft as notSaved:true and selects manual form-save handoff
-  - source/view persistence remains scope-guarded, auditable, rollback-aware, and operator controlled
-  - route/UI/docs/inventory/release records/dispatch are wired without adding direct import persist writes
+  - explicit operator save uses one source/view paired route with server-owned compensating rollback
+  - route/UI/docs/inventory/release records/dispatch are wired without adding import-draft auto-persist
 `);
 }
 
@@ -30,6 +30,8 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v390-onvif-live-import-persist-decision";
 const targetScript = "verify_v390_onvif_live_import_persist_decision.mjs";
+const atomicityCommand = "verify-v390-onvif-source-view-atomicity";
+const atomicityScript = "verify_v390_onvif_source_view_atomicity.mjs";
 const schema = "media-server.ops.v390-onvif-live-import-persist-decision.v1";
 const route = "/ops/api/onvif/live-import-persist-decision";
 const importDraftRoute = "/ops/api/onvif/import-draft";
@@ -44,11 +46,14 @@ check("Ops server exposes the v3.9 ONVIF live import persist decision", () => {
     route,
     "V390-CAND-002",
     "manual-form-save-handoff",
-    "operator-save-channel-form",
+    "operator-save-channel-form-paired-rollback",
     "importDraftNotSavedPreserved",
     "oneShotPersistEnabled",
     "autoSourceViewWriteEnabled",
     "rollbackModel",
+    "manualPairedSaveRoute",
+    "paired-write-with-compensating-rollback",
+    "second-write-failure-source-rollback",
   ]) {
     assertIncludes(files.server, snippet, "v390 ONVIF live import persist decision server model");
   }
@@ -64,6 +69,7 @@ check("ONVIF live import decision preserves source/view write boundaries", () =>
     "opsOnly",
     "readOnly",
     "sourceWriteRequiredForManualSave",
+    "manualPairedSaveRouteAdded",
     "importDraftEndpointNotSaved",
     "importDraftAutoPersistPerformed",
     "sourceRegistryWritePerformedByDecisionRoute",
@@ -88,6 +94,7 @@ check("ONVIF live import decision preserves source/view write boundaries", () =>
   ]) {
     assertFlagFalse(block, flag);
   }
+  assertFlagTrue(block, "manualPairedSaveRouteAdded");
   for (const forbidden of [
     "SourceViewRegistry::Instance().UpsertSource",
     "SourceViewRegistry::Instance().UpsertPublishedView",
@@ -124,6 +131,9 @@ check("Ops sources UI renders the manual persist handoff decision", () => {
     "oneShotPersist=false",
     "importDraftNotSaved=true",
     "sourceWriteRequired=true",
+    "/ops/api/onvif/channels/{channelId}",
+    "saveChannelSourceViewPair",
+    "publishedView: viewPayload",
   ]) {
     assertIncludes(files.opsSourcesScript, snippet, "v390 ONVIF live import persist decision UI script");
   }
@@ -140,18 +150,18 @@ check("roadmap, stream verification, inventory, and release records map v3.9 Ste
     assertIncludes(files.backlog, snippet, "backlog v3.9 Step 12");
   }
   for (const snippet of [
-    `| v3.9.0 (12) | \`./server.sh ${command}\` | ONVIF live import persist decision.`,
-    "manual form-save handoff",
-    "import draft `notSaved:true`",
+    `| v3.9.0 (12) / V390-ADD1-05 | \`./server.sh ${atomicityCommand}\`, \`./server.sh ${command}\` | ONVIF import draft는 \`notSaved:true\``,
+    "second-file failure source rollback",
+    "actual HTTP 8개 case",
   ]) {
     assertIncludes(files.streamVerification, snippet, "stream verification v3.9 Step 12");
   }
   for (const snippet of [
-    `v3.9.0 (12) ONVIF live import persist decision | \`UI-109\`, \`SRC-066\`, \`SAFE-204\`, \`OPS-171\` | \`${command}\`, \`verify-ops-client-ui\``,
-    "UI-109 | V390 Step 12 ONVIF live import persist decision UI",
-    "SRC-066 | V390 Step 12 ONVIF manual persist handoff",
-    "SAFE-204 | V390 Step 12 ONVIF import notSaved/write boundary",
-    "OPS-171 | V390 Step 12 ONVIF persist decision gate",
+    `v3.9.0 (12) / V390-ADD1-05 ONVIF source/view paired save | \`UI-109\`, \`SRC-066\`, \`SAFE-204\`, \`OPS-171\` | \`${atomicityCommand}\`, \`${command}\`, \`verify-ops-client-ui\``,
+    "UI-109 | V390 ONVIF paired save status UI",
+    "SRC-066 | V390 ONVIF paired source/view save",
+    "SAFE-204 | V390 ONVIF partial-save rollback boundary",
+    "OPS-171 | V390 ONVIF source/view atomicity gate",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.9 Step 12");
   }
@@ -160,6 +170,7 @@ check("roadmap, stream verification, inventory, and release records map v3.9 Ste
     `\`./server.sh ${command}\``,
     "v390 Step 12 RED ONVIF live import persist decision gate",
     "v390 Step 12 ONVIF live import persist decision final",
+    "V390-ADD1-05 ONVIF source/view atomicity final",
     "v390 Step 12 UI 풀테스트",
     "v390 Step 12 30분/120분 longrun",
   ]) {
@@ -170,7 +181,10 @@ check("roadmap, stream verification, inventory, and release records map v3.9 Ste
 check("server entrypoint and inventory verifiers include v3.9 Step 12 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, targetScript, "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.serverSh, atomicityCommand, "server.sh atomicity command");
+  assertIncludes(files.serverSh, atomicityScript, "server.sh atomicity script dispatch");
+  assertIncludes(files.featureInventory, command, "feature inventory decision verifier mapping");
+  assertIncludes(files.featureInventory, atomicityCommand, "feature inventory atomicity verifier mapping");
   for (const id of featureIds) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
@@ -191,7 +205,6 @@ function loadFiles() {
     backlog: readText("docs/development-backlog.md"),
     streamVerification: readText("docs/stream-verification.md"),
     featureInventory: readText("docs/project-feature-test-inventory.md"),
-    featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
     projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
     scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
     releaseRecords: readText("docs/release-test-records.md"),
@@ -220,6 +233,12 @@ function assertFlagFalse(text, flag) {
   assert(text.slice(index, index + 180).includes("false"), `boundary flag must be false: ${flag}`);
 }
 
+function assertFlagTrue(text, flag) {
+  const index = text.indexOf(flag);
+  assert(index >= 0, `missing boundary flag: ${flag}`);
+  assert(text.slice(index, index + 180).includes("true"), `boundary flag must be true: ${flag}`);
+}
+
 function finish(title, summary) {
   const results = runChecks();
   console.log("");
@@ -227,8 +246,8 @@ function finish(title, summary) {
   for (const [key, value] of Object.entries(summary)) {
     console.log(`- ${key}: ${value}`);
   }
-  console.log("- decision: manual form-save handoff; import-draft remains notSaved:true; no one-shot persist route");
-  console.log("- writes: no source/view write by decision route, no client exposure, no schema/media mutation");
+  console.log("- decision: manual paired save handoff; import-draft remains notSaved:true; no one-shot import persist");
+  console.log("- writes: paired source/view save uses compensating rollback; decision route remains read-only");
   console.log("- uiFulltest: not-run-by-this-command");
   console.log("- longrun30Or120: not-run-by-this-command");
   console.log(`- pass: ${results.pass}`);

@@ -1,0 +1,16 @@
+{
+  "schema": "media-server.v390-onvif-source-view-atomicity-fixtures.v1",
+  "targetStep": "V390-ADD1-05",
+  "routeTemplate": "/ops/api/onvif/channels/{channelId}",
+  "channelId": "9901",
+  "cases": [
+    "committed-create",
+    "prevalidation-missing-published-view",
+    "prevalidation-non-onvif-source",
+    "prevalidation-view-id-mismatch",
+    "second-write-failure-source-rollback",
+    "retry-after-fault",
+    "concurrent-pair-no-mix",
+    "restart-pair-consistency"
+  ]
+}

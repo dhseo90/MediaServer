@@ -11464,36 +11464,41 @@ std::string OpsV390OnvifLiveImportPersistDecisionJson() {
         << "\"decision\":{"
         << "\"featureId\":\"V390-CAND-002\","
         << "\"selectedMode\":\"manual-form-save-handoff\","
-        << "\"approvedPersistPath\":\"operator-save-channel-form\","
+        << "\"approvedPersistPath\":\"operator-save-channel-form-paired-rollback\","
         << "\"importDraftRoute\":\"/ops/api/onvif/import-draft\","
-        << "\"sourceSaveRoute\":\"/ops/api/sources/{channelId}\","
-        << "\"publishedViewSaveRoute\":\"/ops/api/views/{channelId}\","
+        << "\"manualPairedSaveRoute\":\"/ops/api/onvif/channels/{channelId}\","
+        << "\"legacySourceSaveRoute\":\"/ops/api/sources/{channelId}\","
+        << "\"legacyPublishedViewSaveRoute\":\"/ops/api/views/{channelId}\","
         << "\"oneShotPersistEnabled\":false,"
         << "\"autoSourceViewWriteEnabled\":false,"
         << "\"importDraftNotSavedPreserved\":true,"
-        << "\"operatorAnswer\":\"apply probe/import draft to the channel form, then require an explicit operator save for SourceRegistry and PublishedView\""
+        << "\"operatorAnswer\":\"apply probe/import draft to the channel form, then require an explicit operator paired save with compensating rollback for SourceRegistry and PublishedView\""
         << "},\"scopeAndAudit\":{"
         << "\"sourceWriteRequiredForManualSave\":true,"
-        << "\"manualSaveUsesExistingSourceViewRoutes\":true,"
-        << "\"auditBoundary\":\"existing source/view save audit trail\","
-        << "\"rollbackModel\":\"operator edit or delete after explicit save; decision route performs no rollback write\","
+        << "\"manualSaveUsesPairedSourceViewRoute\":true,"
+        << "\"storageMode\":\"paired-write-with-compensating-rollback\","
+        << "\"auditBoundary\":\"successful paired save enters the existing channel audit trail\","
+        << "\"rollbackModel\":\"server restores every registry file replaced before a paired save failure; rollback failure is reported as manual-recovery-required\","
         << "\"operatorReviewRequired\":true"
         << "},\"rollbackModel\":{"
         << "\"preSaveRollback\":\"clear or edit the draft form\","
-        << "\"postSaveRollback\":\"operator edit/delete through existing channel management routes\","
+        << "\"writeFailureRollback\":\"server-owned exact pre-transaction source/view snapshot restore\","
+        << "\"postCommitRollback\":\"operator edit/delete through existing channel management routes\","
         << "\"decisionRouteRollbackWritePerformed\":false"
         << "},\"evidenceChecks\":";
     AppendJsonStringArray(out,
                           {"import-draft-notSaved",
                            "manual-save-source-write-scope",
-                           "source-view-audit-boundary",
-                           "rollback-wording",
+                           "paired-source-view-save",
+                           "second-write-failure-source-rollback",
+                           "restart-consistency",
                            "no-direct-persist-route"});
     out << ",\"boundaries\":{"
         << "\"opsOnly\":true,"
         << "\"readOnly\":true,"
         << "\"importDraftEndpointNotSaved\":true,"
         << "\"sourceWriteRequiredForManualSave\":true,"
+        << "\"manualPairedSaveRouteAdded\":true,"
         << "\"oneShotPersistEnabled\":false,"
         << "\"autoSourceViewWriteEnabled\":false,"
         << "\"importDraftAutoPersistPerformed\":false,"
@@ -40318,6 +40323,48 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             HttpResponse ok = RegistryHttpResponse(BuildOnvifLiveImportDraft(request.body));
                             ok.headers["Cache-Control"] = "no-store";
                             return ok;
+                        }
+
+                        if (request.path.rfind("/ops/api/onvif/channels/", 0) == 0) {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method != "PUT") {
+                                return JsonResponse(405,
+                                                    "Method Not Allowed",
+                                                    "{\"error\":\"method not allowed\"}");
+                            }
+                            if (const auto auth_response = require_source_write_principal();
+                                auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            constexpr std::size_t kOnvifPairedSaveMaxBodyBytes = 128 * 1024;
+                            if (request.body.size() > kOnvifPairedSaveMaxBodyBytes) {
+                                return JsonResponse(413,
+                                                    "Payload Too Large",
+                                                    "{\"error\":\"ONVIF paired save body is too large\"}");
+                            }
+                            if (CountJsonFieldOccurrences(request.body, "source") != 1 ||
+                                CountJsonFieldOccurrences(request.body, "publishedView") != 1) {
+                                return JsonResponse(
+                                    400,
+                                    "Bad Request",
+                                    "{\"error\":\"ONVIF paired save requires exactly one source and publishedView object\"}");
+                            }
+                            const auto source = ExtractObjectField(request.body, "source");
+                            const auto published_view =
+                                ExtractObjectField(request.body, "publishedView");
+                            if (!source.has_value() || !published_view.has_value()) {
+                                return JsonResponse(
+                                    400,
+                                    "Bad Request",
+                                    "{\"error\":\"ONVIF paired save requires source and publishedView objects\"}");
+                            }
+                            const std::string source_id = UrlDecode(request.path.substr(
+                                std::string("/ops/api/onvif/channels/").size()));
+                            return RegistryHttpResponse(
+                                SourceViewRegistry::Instance().UpsertOnvifSourceView(
+                                    source_id, *source, *published_view));
                         }
 
                         if (request.path == "/ops/api/onvif/live-import-persist-decision") {

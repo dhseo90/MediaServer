@@ -154,6 +154,9 @@ public:
 
     RegistryResult CreateSource(const std::string& body);
     RegistryResult UpsertSource(const std::string& source_id, const std::string& body);
+    RegistryResult UpsertOnvifSourceView(const std::string& source_id,
+                                         const std::string& source_body,
+                                         const std::string& published_view_body);
     RegistryResult DisableSource(const std::string& source_id);
 
     RegistryResult CreateView(const std::string& body);
@@ -163,9 +166,11 @@ public:
 private:
     bool EnsureLoadedLocked(std::string* error_message);
     bool SaveSourcesLocked(const std::vector<SourceRecord>& sources,
-                           std::string* error_message) const;
+                           std::string* error_message,
+                           bool* target_replaced = nullptr) const;
     bool SaveViewsLocked(const std::vector<PublishedViewRecord>& views,
-                         std::string* error_message) const;
+                         std::string* error_message,
+                         bool* target_replaced = nullptr) const;
 
     mutable std::mutex mu_;
     bool loaded_{false};

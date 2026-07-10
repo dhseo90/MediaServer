@@ -20,8 +20,8 @@
       "theme": "light",
       "accountRole": "operator",
       "controlAction": "inspect-live-import-persist-decision",
-      "expectedResult": "persist decision card shows manual form-save handoff and oneShotPersist=false",
-      "expectedMarkers": ["persistDecision", "manual-form-save-handoff", "oneShotPersist=false"]
+      "expectedResult": "persist decision card shows manual paired save rollback and oneShotPersist=false",
+      "expectedMarkers": ["persistDecision", "manual-form-save-handoff", "oneShotPersist=false", "pairedSave=/ops/api/onvif/channels/{channelId}", "compensating-rollback"]
     },
     {
       "caseId": "UI-110",

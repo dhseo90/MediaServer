@@ -153,10 +153,11 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         boundaries.importDraftEndpointNotSaved !== false;
       const sourceWriteRequired = scopeAndAudit.sourceWriteRequiredForManualSave !== false &&
         boundaries.sourceWriteRequiredForManualSave !== false;
-      const rollbackModel = String(scopeAndAudit.rollbackModel || payload?.rollbackModel?.postSaveRollback || 'operator edit/delete through existing channel management routes');
+      const pairedSaveRoute = String(decision.manualPairedSaveRoute || '/ops/api/onvif/channels/{channelId}');
+      const rollbackModel = String(scopeAndAudit.rollbackModel || payload?.rollbackModel?.writeFailureRollback || 'server restores replaced source/view files on paired save failure');
       setFeedback(
         onvifPersistDecisionStatus,
-        `persistDecision: ${selectedMode} / importDraftNotSaved=${importDraftNotSaved ? 'true' : 'false'} / oneShotPersist=${oneShotPersist ? 'true' : 'false'} / sourceWriteRequired=${sourceWriteRequired ? 'true' : 'false'} / rollback=${rollbackModel}`,
+        `persistDecision: ${selectedMode} / importDraftNotSaved=${importDraftNotSaved ? 'true' : 'false'} / oneShotPersist=${oneShotPersist ? 'true' : 'false'} / sourceWriteRequired=${sourceWriteRequired ? 'true' : 'false'} / pairedSave=${pairedSaveRoute} / rollback=${rollbackModel}`,
         oneShotPersist || !importDraftNotSaved,
         { collapseEmpty: false }
       );
@@ -1277,6 +1278,25 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       };
       return { channelId, sourcePayload, viewPayload };
     }
+    async function saveChannelSourceViewPair(channelId, sourcePayload, viewPayload) {
+      if (hasSourceTag(sourcePayload, 'onvif')) {
+        return requestJson(`/ops/api/onvif/channels/${encodeURIComponent(channelId)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ source: sourcePayload, publishedView: viewPayload })
+        });
+      }
+      await requestJson(`/ops/api/sources/${encodeURIComponent(channelId)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sourcePayload)
+      });
+      return requestJson(`/ops/api/views/${encodeURIComponent(channelId)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(viewPayload)
+      });
+    }
     async function loadAll() {
       const [sources, views, clientViews, onboardingQuality, reliabilityTimeline, reliabilitySearchMetrics, backupRecoveryHandoff, stagingRestoreValidationHandoff, continuityDrillContract, recoveryCandidatePackage, sourceHealthReplayDriftDiff, approvalGatedRecoveryChecklist, drillEvidenceExportCleanupManifest, fieldBridgeConditionGates, principal] = await Promise.all([
         requestJson('/ops/api/sources'),
@@ -1334,16 +1354,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       const beforeSource = findSource(channelId);
       const beforeView = findChannelView(channelId);
       try {
-        await requestJson(`/ops/api/sources/${encodeURIComponent(channelId)}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(sourcePayload)
-        });
-        await requestJson(`/ops/api/views/${encodeURIComponent(channelId)}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(viewPayload)
-        });
+        await saveChannelSourceViewPair(channelId, sourcePayload, viewPayload);
         await loadAll();
         await recordOpsAudit({
           area: 'channels',
@@ -1369,17 +1380,10 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       const view = findChannelView(id) || { viewId: id, sourceId: source.sourceId };
       const enabled = !(source.enabled !== false && view.enabled !== false);
       const before = { source, view };
+      const nextSource = sourcePayloadFromRecord(source, enabled);
+      const nextView = viewPayloadFromRecord(view, source, enabled);
       try {
-        await requestJson(`/ops/api/sources/${encodeURIComponent(source.sourceId)}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(sourcePayloadFromRecord(source, enabled))
-        });
-        await requestJson(`/ops/api/views/${encodeURIComponent(view.viewId || id)}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(viewPayloadFromRecord(view, source, enabled))
-        });
+        await saveChannelSourceViewPair(id, nextSource, nextView);
         await loadAll();
         await recordOpsAudit({
           area: 'channels',
@@ -1387,8 +1391,8 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
           target: `channel:${id}`,
           before,
           after: {
-            source: sourcePayloadFromRecord(source, enabled),
-            view: viewPayloadFromRecord(view, source, enabled)
+            source: nextSource,
+            view: nextView
           }
         });
         renderOpsAuditTrail('channel-audit-list', 'channels');

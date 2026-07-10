@@ -99,7 +99,7 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 9 | v3.9.0 (9) AI-minimized server longrun runner 기준 | P0 | 완료 | 30분/120분 script runner의 one command, fixed phase order, stop-on-first-fail, later phase `not-run`, failure evidence, cleanup/artifact policy 기준을 `stream-verification.md`와 verifier로 고정 |
 | 10 | v3.9.0 (10) AI-minimized UI automation adapter 기준 | P0 | 완료 | Playwright 우선, Selenium fallback, SikuliX visual fallback과 route/viewport/theme/account-role/action/expected-actual/screenshot/trace-console/log/cleanup/manual-intervention failure report 기준을 `manual-ui-fulltest.md`와 verifier로 고정 |
 | 11 | v3.9.0 (11) ONVIF credential/provider status summary | P1 | 완료 | `V390-CAND-001`: `/ops/api/onvif/credential-provider-status`와 `/ops/sources` ONVIF provider summary가 primary provider `none`, fallback `in-memory-fixture`, persistent/external secret store defer 결정을 secret/reference value 비노출 상태로 표시 |
-| 12 | v3.9.0 (12) ONVIF live import persist decision | P1 | 완료 | `V390-CAND-002`: `/ops/api/onvif/live-import-persist-decision`와 `/ops/sources`가 manual form-save handoff, import draft `notSaved:true`, one-shot persist disabled, existing `source:write` save route 결정을 표시 |
+| 12 | v3.9.0 (12) ONVIF live import persist decision | P1 | 완료 | `V390-CAND-002`: import draft `notSaved:true`와 one-shot persist disabled를 유지하고, explicit operator save는 `source:write` paired source/view route와 compensating rollback을 사용 |
 | 13 | v3.9.0 (13) VLM rule suggestion draft bridge | P1 | 완료 | `V390-CAND-003`: `/ops/api/vlm/rule-suggestion-draft-bridge`와 `/ops/rules`가 incident review provenance를 기존 VLM rule suggestion draft-only/manual-save workflow로 연결하고 rule/profile write, auto-apply, provider/runtime call은 수행하지 않음 |
 | 14 | v3.9.0 (14) VLM evaluation promotion guard | P1 | 완료 | `V390-CAND-004`/`V390-ADD1-03`: `/ops/api/vlm/evaluation-promotion-guard`와 `/ops/vlm`가 server-verified candidate promotion을 표시하고 profile save가 candidate/revision/digest/result/provenance 및 option/model/prompt binding을 검증함. runtime/provider call은 수행하지 않음 |
 | 15 | v3.9.0 (15) backup/recovery handoff validation | P1 | 완료 | `V390-CAND-005`: `/ops/api/source-registry/staging-restore-validation-handoff`와 `/ops/sources`가 staging restore checklist/result artifact contract를 source registry, PublishedView, source health, viewer scope 기준으로 표시하고 production restore/write/recovery는 수행하지 않음 |
@@ -136,7 +136,7 @@ UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release a
 | 2 | V390-ADD1-02 | Feature Closure | 전체 기능 인벤토리 확정 | P0 | 완료 | 974개 기능 행을 exact manifest로 실제 route/UI control/state/verifier와 1:1 대조하고 stale TODO/오류 문구 제거, negative fixture와 local gate 통과 |
 | 3 | V390-ADD1-03 | Product Correctness | VLM 승격 신뢰 경계 | P0 | 완료 | 클라이언트 result/status 선언을 제거하고 shared server catalog가 후보 ID/revision/digest, 평가 결과/provenance, option/model/prompt binding을 검증·canonicalize한 뒤 저장하며 reload 불일치 profile을 quarantine |
 | 4 | V390-ADD1-04 | Product Correctness | Re-ID 준비 상태 정합성 | P0 | 완료 | extractor factory와 Ops API가 공용 server-owned readiness를 사용해 regular file, SHA 형식·읽기·일치, trim provenance, OpenSSL·ONNX Runtime을 검사하고 preflight/session-load/execution을 분리 |
-| 5 | V390-ADD1-05 | Product Correctness | ONVIF 저장 원자성 | P0 | 진행 예정 | source/view 연속 PUT의 부분 저장을 막는 원자 저장 또는 검증 가능한 rollback 적용 |
+| 5 | V390-ADD1-05 | Product Correctness | ONVIF 저장 원자성 | P0 | 완료 | ONVIF form save/toggle의 source/view 연속 PUT을 single-lock paired route로 교체하고 두 번째 파일 실패 시 실제 교체된 파일을 pre-transaction snapshot으로 rollback |
 
 ### V390-ADD1-01 미추적 파일 전수 판정
 
@@ -429,6 +429,82 @@ PASS로 대체하지 않습니다.
 
 테스트 사용량: token start `902804`, token end `1252561`, token consumed `349757`,
 elapsed 약 `2161초`, source `Codex goal usage`/step boundary 추정.
+
+### V390-ADD1-05 ONVIF source/view 저장 원자성
+
+직접 감사에서 `/ops/sources` ONVIF form submit과 enable/disable toggle이 source PUT 성공
+후 view PUT을 별도 요청으로 실행하고, 두 번째 요청 실패 시 catch가 오류만 표시해 첫 source
+저장이 파일·메모리에 남는 것을 확인했습니다. `SourceViewRegistry`의 각 JSON 파일은
+temp write/fsync/rename으로 개별 원자 교체되지만 두 API 호출 사이에는 공통 lock,
+사전검증, transaction, rollback이 없었습니다.
+
+개발 위치와 로직:
+
+- `include/ingress/source_view_registry.h`, `src/ingress/source_view_registry.cpp`:
+  `UpsertOnvifSourceView`를 추가했습니다. 한 mutex 구간에서 source/path ID와 canonical
+  duplicate, `onvif`/`live` tag를 검증하고 candidate source set을 만든 뒤 그 set으로
+  PublishedView의 path/view/source ID와 참조를 검증합니다. 검증이 모두 끝나기 전에는
+  파일 write를 시작하지 않습니다.
+- source 파일 저장 뒤 view 파일 저장이 실패하면 pre-transaction `sources_` snapshot을
+  같은 atomic writer로 복구합니다. writer는 `target_replaced`를 반환하여 rename 전 실패와
+  rename 후 parent fsync 실패를 구분하고, 실제 교체된 view만 추가 복구합니다. 두 파일이
+  모두 성공한 뒤에만 in-memory source/view vector를 함께 교체합니다.
+- 실패 응답은 `paired-write-with-compensating-rollback`, failed stage, source/view write,
+  rollback attempted/succeeded, `partialSave`, consistency status를 안전한 boolean/token으로
+  반환합니다. rollback 실패는 `manual-recovery-required`로 숨기지 않습니다. 이는 process
+  crash journal까지 제공하는 cross-file atomic transaction이 아니라 검증 가능한 보상
+  rollback입니다.
+- `src/ingress/webrtc_http_server.cpp`:
+  `PUT /ops/api/onvif/channels/{channelId}`를 추가했습니다. `ops` principal과
+  `source:write`, 128 KiB body 상한, 정확히 하나의 `source`/`publishedView` object를
+  요구하고 paired registry method만 호출합니다. 기존 개별 source/view API는 호환을 위해
+  유지합니다.
+- `src/ingress/product_ui_ops_sources_script.cpp`:
+  `saveChannelSourceViewPair`가 ONVIF form save와 ONVIF toggle을 단일 paired route로
+  전환했습니다. 비-ONVIF channel flow는 현재 단계 범위를 벗어나 기존 API를 유지합니다.
+  import draft는 계속 `notSaved:true`, one-shot=false이며 저장 버튼을 누르기 전 write하지
+  않습니다.
+- `scripts/internal/verify_onvif_rtsp_downstream.mjs`의 기존 성공 경로도 연속 PUT 대신 paired
+  route를 사용하도록 이관했습니다.
+- `test/fixtures/v390_onvif_source_view_atomicity/cases.json`,
+  `scripts/internal/verify_v390_onvif_source_view_atomicity.mjs`,
+  `./server.sh verify-v390-onvif-source-view-atomicity`:
+  committed create, missing pair/non-ONVIF/mismatched view prevalidation, view parent ENOTDIR
+  second-write failure, exact source rollback, fault 제거 후 retry, concurrent pair no-mix,
+  restart consistency를 actual auth-off HTTP 8개 case로 검증합니다. API memory와 source/view
+  disk bytes, temp file 잔존도 함께 확인합니다.
+- `UI-109`, `SRC-066`, `SAFE-204`, `OPS-171` 네 기존 inventory 행을 paired route와
+  rollback verifier로 갱신했으며 전체 feature row 974개는 유지합니다.
+
+테스트 필요성 판정:
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | SourceRegistry/PublishedView write semantics, Ops route/UI, actual disk failure/restart fixture, docs/inventory 변경 | `V390-ADD1-05`, `UI-109`, `SRC-066`, `SAFE-204`, `OPS-171` | 단계 범위에서 실행 |
+| 30분 테스트 | 미진행 | registry save는 요청 단위이고 media streaming lifecycle을 변경하지 않음 | paired write/rollback 변경 범위 | 장시간 실행 승인 없음 |
+| 120분 테스트 | 미진행 | AGENTS 7.6.2의 media/lifecycle/high-risk trigger 없음 | paired write/rollback 변경 범위 | 장시간 실행 승인 없음 |
+| UI 풀테스트 | 미진행 | ONVIF form submit/toggle JS를 변경해 release 전 직접 UI evidence는 필요하지만 최신 지시는 UI 풀테스트 실행 승인이 아님 | `UI-109`, `/ops/sources` | 직접 실행 승인 없음 |
+
+안정화 실행 결과:
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| C++ build | `./server.sh build`: paired registry method, route, Ops UI compile/link, target 100% | pass | 두 차례 incremental build 통과 |
+| paired atomicity HTTP matrix | `./server.sh verify-v390-onvif-source-view-atomicity`: actual cases 8, injected failure partialSave=false, restartConsistency=true, failures 0 | pass | 최초 실행은 제품 요청 전 verifier C++ string escape 오판으로 정적 precheck fail; escape 수정 후 처음부터 재실행 pass |
+| rollback disk evidence | source write 성공/view parent ENOTDIR 실패 뒤 source bytes 복구, view saved bytes 불변, API snapshot 불변, retry/restart pair 일치, `.tmp.*` 0 | pass | path component fault 제거와 temp workdir cleanup 완료 |
+| 기존 ONVIF contract/HTTP 호환 | `verify-onvif-live-import-contract` 12/0, local auth-off `verify-onvif-import-draft-api` 22개 check/0 failure, `verify-onvif-rtsp-downstream` paired save/client redaction failures 0 | pass | 외부 ONVIF 실기기에 접속하지 않고 local fixture/RTSP locator로 검증 |
+| UI/decision 정적 회귀 | `verify-v390-onvif-live-import-persist-decision` 6/0, `verify-v390-ui-automation-runner-contract` 6/0, `verify-ops-client-ui --browser-mode static` 28/0 | pass | static mode의 rendered leak/admin form 조작은 skip; UI 풀테스트 직접 evidence가 아님 |
+| inventory/docs/script gate | implementation evidence 974행/validation 0/negative 11, feature coverage 974/974 및 6/0, project inventory 14/0, feature completion 13/0, script inventory 11/0, docs links 0, release evidence 8/0 | pass | manifest의 `UI-109`/`SRC-066`/`SAFE-204`/`OPS-171`를 실제 route/function/verifier anchor로 고정 |
+| auth route matrix | `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`, `PREVIOUS_PASSWORD`, `SECOND_PREVIOUS_PASSWORD`, `WRONG_PASSWORD_ONE`, `WRONG_PASSWORD_TWO` | 미실행 | 필수 password env 5개가 모두 없어 AGENTS auth 조건에 따라 실행하지 않음 |
+| 임시 산출물 cleanup | `/tmp/media_server_v390_add1_05_compat` 8KB와 verifier throwaway workdir | pass | source/view JSON 2개 삭제 후 경로 부재 및 atomicity workdir 0 확인; 보존 파일 없음 |
+| 장시간/UI 직접 실행 | 30분, 120분, UI 풀테스트 | 미실행 | 사용자 별도 실행 승인 없음; 완료 evidence로 사용하지 않음 |
+
+범위 밖 후속으로 DELETE의 view/source 병렬 disable과 multi-process file lock/journal은 이번
+요청의 연속 PUT 결함에 포함하지 않았습니다. 이번 paired route의 product 후속 이슈는 관련
+회귀·inventory·문서 gate까지 통과하면 남기지 않습니다.
+
+테스트 사용량: token start `1252561`, token end `1526311`, token consumed `273750`,
+elapsed 약 `1146초`, source `Codex goal usage`/step boundary 추정.
 
 ## v3.9.0 남은 구현 목표: 다른 개발 채팅 인계용 상세 계약
 

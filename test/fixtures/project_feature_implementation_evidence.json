@@ -1,7 +1,7 @@
 {
   "schema": "media-server.feature-implementation-evidence.v1",
   "expectedFeatureRows": 974,
-  "inventorySha256": "7b9fd7f75a3ea3997e15649dceb40489d8b36c9ea16efa5ed7e73c859c7a6915",
+  "inventorySha256": "8a9f51e83f1c6c7e46e516f99870e76d73408289d0c0f7f016b8d20079e7619a",
   "generatedFrom": "docs/project-feature-test-inventory.md",
   "generationPolicy": "explicit-refresh-only; verifier never rewrites this manifest",
   "executionEvidenceStatus": "not-execution-evidence",
@@ -3895,7 +3895,7 @@
       "id": "UI-109",
       "section": "A",
       "surfaceKind": "ui-route-control-action",
-      "feature": "V390 Step 12 ONVIF live import persist decision UI",
+      "feature": "V390 ONVIF paired save status UI",
       "uiNeed": "필요",
       "testNeed": "필요",
       "testAreas": [
@@ -3904,14 +3904,14 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "src/ingress/webrtc_http_server.cpp",
-        "anchor": "media-server.ops.v390-onvif-live-import-persist-decision.v1",
-        "anchorKind": "code-span"
+        "file": "src/ingress/product_ui_ops_sources_script.cpp",
+        "anchor": "saveChannelSourceViewPair",
+        "anchorKind": "identifier"
       },
       "uiEvidence": {
-        "file": "src/ingress/webrtc_http_server.cpp",
-        "anchor": "media-server.ops.v390-onvif-live-import-persist-decision.v1",
-        "anchorKind": "code-span",
+        "file": "src/ingress/product_ui_ops_sources_script.cpp",
+        "anchor": "saveChannelSourceViewPair",
+        "anchorKind": "identifier",
         "screenRoute": "/ops/sources"
       },
       "verifierEvidence": {
@@ -7784,7 +7784,7 @@
       "id": "SRC-066",
       "section": "C",
       "surfaceKind": "source-view-route-action",
-      "feature": "V390 Step 12 ONVIF manual persist handoff",
+      "feature": "V390 ONVIF paired source/view save",
       "uiNeed": "간접",
       "testNeed": "필요",
       "testAreas": [
@@ -7793,21 +7793,21 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "src/ingress/webrtc_http_server.cpp",
-        "anchor": "/ops/api/onvif/live-import-persist-decision",
-        "anchorKind": "route"
+        "file": "include/ingress/source_view_registry.h",
+        "anchor": "UpsertOnvifSourceView",
+        "anchorKind": "identifier"
       },
       "uiEvidence": {
         "file": "src/ingress/product_ui_ops_sources_script.cpp",
-        "anchor": "/ops/api/onvif/live-import-persist-decision",
-        "anchorKind": "route",
+        "anchor": "saveChannelSourceViewPair",
+        "anchorKind": "identifier",
         "screenRoute": "/ops/sources"
       },
       "verifierEvidence": {
-        "file": "scripts/internal/verify_v390_onvif_live_import_persist_decision.mjs",
-        "anchor": "/ops/api/onvif/live-import-persist-decision",
-        "anchorKind": "route",
-        "command": "verify-v390-onvif-live-import-persist-decision"
+        "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs",
+        "anchor": "UpsertOnvifSourceView",
+        "anchorKind": "identifier",
+        "command": "verify-v390-onvif-source-view-atomicity"
       },
       "manualUiCaseId": "SRC-066",
       "longrunEvidence": {
@@ -27280,7 +27280,7 @@
       "id": "SAFE-204",
       "section": "I",
       "surfaceKind": "safety-boundary-invariant",
-      "feature": "V390 Step 12 ONVIF import notSaved/write boundary",
+      "feature": "V390 ONVIF partial-save rollback boundary",
       "uiNeed": "비대상",
       "testNeed": "필요",
       "testAreas": [
@@ -27288,16 +27288,16 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_v390_onvif_live_import_persist_decision.mjs",
-        "anchor": "SAFE-204",
-        "anchorKind": "feature-id"
+        "file": "src/ingress/source_view_registry.cpp",
+        "anchor": "UpsertOnvifSourceView",
+        "anchorKind": "identifier"
       },
       "uiEvidence": null,
       "verifierEvidence": {
-        "file": "scripts/internal/verify_v390_onvif_live_import_persist_decision.mjs",
+        "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs",
         "anchor": "ONVIF",
         "anchorKind": "identifier",
-        "command": "verify-v390-onvif-live-import-persist-decision"
+        "command": "verify-v390-onvif-source-view-atomicity"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {
@@ -31630,7 +31630,7 @@
       "id": "OPS-171",
       "section": "J",
       "surfaceKind": "ops-evidence-release-gate",
-      "feature": "V390 Step 12 ONVIF persist decision gate",
+      "feature": "V390 ONVIF source/view atomicity gate",
       "uiNeed": "비대상",
       "testNeed": "필요",
       "testAreas": [
@@ -31638,16 +31638,16 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_v390_onvif_live_import_persist_decision.mjs",
-        "anchor": "OPS-171",
-        "anchorKind": "feature-id"
+        "file": "src/ingress/webrtc_http_server.cpp",
+        "anchor": "/ops/api/onvif/channels/",
+        "anchorKind": "route"
       },
       "uiEvidence": null,
       "verifierEvidence": {
-        "file": "scripts/internal/verify_v390_onvif_live_import_persist_decision.mjs",
-        "anchor": "/ops/api/onvif/live-import-persist-decision",
-        "anchorKind": "route",
-        "command": "verify-v390-onvif-live-import-persist-decision"
+        "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs",
+        "anchor": "ONVIF",
+        "anchorKind": "identifier",
+        "command": "verify-v390-onvif-source-view-atomicity"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {

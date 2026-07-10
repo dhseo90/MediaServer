@@ -30,7 +30,7 @@ Options:
 
 Checks:
   - 공개 RTSP URL을 ONVIF selected streamUri처럼 넣어 import draft를 생성
-  - draft source/view를 기존 /ops/api/sources, /ops/api/views 경로로 저장
+  - draft source/view를 /ops/api/onvif/channels/{channelId} paired rollback 경로로 저장
   - ops API에는 source locator가 보이지만 client API에는 RTSP URL, ONVIF endpoint, credential reference가 보이지 않음
   - smoke 종료 시 만든 source/view를 비활성화
 `);
@@ -84,25 +84,18 @@ try {
   console.log("[pass] public RTSP import draft created");
 
   const sourcePayload = { ...draft.sourceDraft, allowDuplicateSource: true };
-  const sourceSaved = await requestJson(`/ops/api/sources/${encodeURIComponent(sourceId)}`, {
+  const pairedSave = await requestJson(`/ops/api/onvif/channels/${encodeURIComponent(sourceId)}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(sourcePayload),
+    body: JSON.stringify({ source: sourcePayload, publishedView: draft.publishedViewDraft }),
     expectedStatus: 201,
   });
-  assert(sourceSaved.ok === true, "source save must return ok");
+  assert(pairedSave.ok === true, "paired source/view save must return ok");
+  assert(pairedSave.transactionStatus === "committed", "paired save must commit");
+  assert(pairedSave.partialSave === false, "paired save must not report partial state");
   wroteSource = true;
-  console.log("[pass] public RTSP source draft saved through SourceRegistry API");
-
-  const viewSaved = await requestJson(`/ops/api/views/${encodeURIComponent(sourceId)}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(draft.publishedViewDraft),
-    expectedStatus: 201,
-  });
-  assert(viewSaved.ok === true, "PublishedView save must return ok");
   wroteView = true;
-  console.log("[pass] public RTSP PublishedView draft saved through PublishedView API");
+  console.log("[pass] public RTSP source/PublishedView drafts saved through paired rollback route");
 
   const sources = await requestJson("/ops/api/sources");
   const savedSource = findRecord(sources.sources, "sourceId", sourceId);

@@ -1494,7 +1494,11 @@ bool FsyncParentDirectory(const std::filesystem::path& file_path, std::string* e
 bool WriteRegistryFileAtomically(const std::filesystem::path& file_path,
                                  const std::string& body,
                                  const std::string& label,
-                                 std::string* error_message) {
+                                 std::string* error_message,
+                                 bool* target_replaced) {
+    if (target_replaced != nullptr) {
+        *target_replaced = false;
+    }
     if (file_path.empty()) {
         return SetError(error_message, label + " path is empty");
     }
@@ -1537,6 +1541,9 @@ bool WriteRegistryFileAtomically(const std::filesystem::path& file_path,
         (void)::unlink(temp_path.c_str());
         return SetError(error_message, message);
     }
+    if (target_replaced != nullptr) {
+        *target_replaced = true;
+    }
     return FsyncParentDirectory(file_path, error_message);
 }
 
@@ -1545,7 +1552,11 @@ bool WriteRegistryFileAtomically(const std::filesystem::path& file_path,
 bool WriteRegistryFileAtomically(const std::filesystem::path& file_path,
                                  const std::string& body,
                                  const std::string& label,
-                                 std::string* error_message) {
+                                 std::string* error_message,
+                                 bool* target_replaced) {
+    if (target_replaced != nullptr) {
+        *target_replaced = false;
+    }
     if (file_path.empty()) {
         return SetError(error_message, label + " path is empty");
     }
@@ -1573,6 +1584,9 @@ bool WriteRegistryFileAtomically(const std::filesystem::path& file_path,
     if (ec) {
         std::filesystem::remove(temp_path);
         return SetError(error_message, "failed to replace " + label + " file: " + ec.message());
+    }
+    if (target_replaced != nullptr) {
+        *target_replaced = true;
     }
     return true;
 }
@@ -2013,6 +2027,187 @@ RegistryResult SourceViewRegistry::UpsertSource(const std::string& source_id, co
                           "\",\"source\":" + SourceJson(*source, true) + "}");
 }
 
+RegistryResult SourceViewRegistry::UpsertOnvifSourceView(
+    const std::string& source_id,
+    const std::string& source_body,
+    const std::string& published_view_body) {
+    std::lock_guard lock(mu_);
+    std::string load_error;
+    if (!EnsureLoadedLocked(&load_error)) {
+        return ErrorResult(500, "Internal Server Error", load_error);
+    }
+
+    std::string source_error;
+    const auto source = ParseSourceRecord(source_body, source_id, &source_error);
+    if (!source.has_value()) {
+        return ErrorResult(400, "Bad Request", source_error);
+    }
+    if (!HasSourceTag(*source, "onvif") || !HasSourceTag(*source, "live")) {
+        return ErrorResult(400,
+                           "Bad Request",
+                           "ONVIF paired save requires onvif and live source tags");
+    }
+    const bool allow_duplicate_source =
+        ParseBoolField(source_body, "allowDuplicateSource").value_or(false);
+    if (!allow_duplicate_source) {
+        if (const auto duplicate =
+                FindDuplicateSourceId(sources_, source->canonical_source_key, source->source_id);
+            duplicate.has_value()) {
+            return JsonResult(409,
+                              "Conflict",
+                              "{\"ok\":false,\"error\":\"duplicate source\",\"duplicateSourceId\":\"" +
+                                  JsonEscape(*duplicate) + "\"}");
+        }
+    }
+
+    bool source_updated = false;
+    auto next_sources = sources_;
+    for (auto& item : next_sources) {
+        if (item.source_id == source->source_id) {
+            item = *source;
+            source_updated = true;
+            break;
+        }
+    }
+    if (!source_updated) {
+        next_sources.push_back(*source);
+    }
+
+    std::string view_error;
+    const auto view =
+        ParsePublishedViewRecord(published_view_body, source_id, next_sources, &view_error);
+    if (!view.has_value()) {
+        return ErrorResult(400, "Bad Request", view_error);
+    }
+    if (view->view_id != source->source_id || view->source_id != source->source_id) {
+        return ErrorResult(400,
+                           "Bad Request",
+                           "ONVIF paired save requires identical sourceId and viewId");
+    }
+
+    bool view_updated = false;
+    auto next_views = views_;
+    for (auto& item : next_views) {
+        if (item.view_id == view->view_id) {
+            item = *view;
+            view_updated = true;
+            break;
+        }
+    }
+    if (!view_updated) {
+        next_views.push_back(*view);
+    }
+
+    auto transaction_failure = [&](const std::string& failed_stage,
+                                   const std::string& save_error,
+                                   bool source_write_succeeded,
+                                   bool view_write_succeeded,
+                                   bool source_rollback_attempted,
+                                   bool source_rollback_succeeded,
+                                   bool view_rollback_attempted,
+                                   bool view_rollback_succeeded) {
+        const bool rollback_succeeded =
+            (!source_rollback_attempted || source_rollback_succeeded) &&
+            (!view_rollback_attempted || view_rollback_succeeded);
+        const bool partial_save = !rollback_succeeded;
+        const bool rollback_attempted = source_rollback_attempted || view_rollback_attempted;
+        std::ostringstream out;
+        out << "{"
+            << "\"ok\":false,"
+            << "\"schema\":\"media-server.onvif-source-view-paired-save.v1\","
+            << "\"storageMode\":\"paired-write-with-compensating-rollback\","
+            << "\"transactionStatus\":\""
+            << (partial_save ? "rollback-failed"
+                             : (rollback_attempted ? "rolled-back" : "aborted-before-commit"))
+            << "\","
+            << "\"consistencyStatus\":\""
+            << (partial_save ? "manual-recovery-required" : "pre-transaction-state-restored")
+            << "\","
+            << "\"failedStage\":\"" << JsonEscape(failed_stage) << "\","
+            << "\"sourceWriteSucceeded\":" << (source_write_succeeded ? "true" : "false")
+            << ",\"publishedViewWriteSucceeded\":"
+            << (view_write_succeeded ? "true" : "false")
+            << ",\"sourceRollbackAttempted\":"
+            << (source_rollback_attempted ? "true" : "false")
+            << ",\"sourceRollbackSucceeded\":"
+            << (source_rollback_succeeded ? "true" : "false")
+            << ",\"publishedViewRollbackAttempted\":"
+            << (view_rollback_attempted ? "true" : "false")
+            << ",\"publishedViewRollbackSucceeded\":"
+            << (view_rollback_succeeded ? "true" : "false")
+            << ",\"partialSave\":" << (partial_save ? "true" : "false")
+            << ",\"error\":\"" << JsonEscape(save_error) << "\"}";
+        return JsonResult(500, "Internal Server Error", out.str());
+    };
+
+    bool source_replaced = false;
+    std::string save_error;
+    if (!SaveSourcesLocked(next_sources, &save_error, &source_replaced)) {
+        bool source_rollback_succeeded = false;
+        if (source_replaced) {
+            std::string rollback_error;
+            source_rollback_succeeded =
+                SaveSourcesLocked(sources_, &rollback_error, nullptr);
+            if (!source_rollback_succeeded && !rollback_error.empty()) {
+                save_error += "; source rollback failed: " + rollback_error;
+            }
+        }
+        return transaction_failure("source-save",
+                                   save_error,
+                                   false,
+                                   false,
+                                   source_replaced,
+                                   source_rollback_succeeded,
+                                   false,
+                                   false);
+    }
+
+    bool view_replaced = false;
+    if (!SaveViewsLocked(next_views, &save_error, &view_replaced)) {
+        std::string source_rollback_error;
+        const bool source_rollback_succeeded =
+            SaveSourcesLocked(sources_, &source_rollback_error, nullptr);
+        bool view_rollback_succeeded = false;
+        std::string view_rollback_error;
+        if (view_replaced) {
+            view_rollback_succeeded =
+                SaveViewsLocked(views_, &view_rollback_error, nullptr);
+        }
+        if (!source_rollback_succeeded && !source_rollback_error.empty()) {
+            save_error += "; source rollback failed: " + source_rollback_error;
+        }
+        if (view_replaced && !view_rollback_succeeded && !view_rollback_error.empty()) {
+            save_error += "; PublishedView rollback failed: " + view_rollback_error;
+        }
+        return transaction_failure("published-view-save",
+                                   save_error,
+                                   true,
+                                   false,
+                                   true,
+                                   source_rollback_succeeded,
+                                   view_replaced,
+                                   view_rollback_succeeded);
+    }
+
+    sources_ = std::move(next_sources);
+    views_ = std::move(next_views);
+    const bool created = !source_updated || !view_updated;
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.onvif-source-view-paired-save.v1\","
+        << "\"storageMode\":\"paired-write-with-compensating-rollback\","
+        << "\"transactionStatus\":\"committed\","
+        << "\"consistencyStatus\":\"source-view-pair-committed\","
+        << "\"sourceWriteSucceeded\":true,"
+        << "\"publishedViewWriteSucceeded\":true,"
+        << "\"rollbackAttempted\":false,"
+        << "\"partialSave\":false,"
+        << "\"source\":" << SourceJson(*source, true) << ","
+        << "\"publishedView\":" << PublishedViewJson(*view) << "}";
+    return JsonResult(created ? 201 : 200, created ? "Created" : "OK", out.str());
+}
+
 RegistryResult SourceViewRegistry::DisableSource(const std::string& source_id) {
     std::lock_guard lock(mu_);
     std::string load_error;
@@ -2182,19 +2377,23 @@ bool SourceViewRegistry::EnsureLoadedLocked(std::string* error_message) {
 }
 
 bool SourceViewRegistry::SaveSourcesLocked(const std::vector<SourceRecord>& sources,
-                                           std::string* error_message) const {
+                                           std::string* error_message,
+                                           bool* target_replaced) const {
     return WriteRegistryFileAtomically(source_storage_path_,
                                        SourcesDocumentJson(sources),
                                        "source registry",
-                                       error_message);
+                                       error_message,
+                                       target_replaced);
 }
 
 bool SourceViewRegistry::SaveViewsLocked(const std::vector<PublishedViewRecord>& views,
-                                         std::string* error_message) const {
+                                         std::string* error_message,
+                                         bool* target_replaced) const {
     return WriteRegistryFileAtomically(views_storage_path_,
                                        ViewsDocumentJson(views),
                                        "published view registry",
-                                       error_message);
+                                       error_message,
+                                       target_replaced);
 }
 
 }  // namespace ingress

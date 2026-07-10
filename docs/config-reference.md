@@ -448,7 +448,14 @@ SourceRegistry:
   tag를 기준으로 기존 source/view 저장 payload를 사용합니다.
 - 제품 UI: 숫자 채널로 묶어 `/ops/sources`에 표시
 - Seed 조건: registry가 비어 있으면 기본 file/VA file/공개 RTSP/HLS 채널 추가
-- 저장 방식: atomic write/fsync/rename
+- 개별 파일 저장 방식: temp write/file fsync/rename/parent fsync. 이는 SourceRegistry 파일
+  하나 또는 PublishedView 파일 하나의 원자 교체이며 두 파일을 함께 commit한다는 뜻은 아닙니다.
+- ONVIF 명시적 수동 저장: `PUT /ops/api/onvif/channels/{channelId}`가 source와
+  `publishedView`를 한 요청으로 받아 모두 선검증하고 single registry lock에서 paired write를
+  수행합니다. 두 번째 파일 실패 시 writer의 `target_replaced` 결과에 따라 실제 교체된
+  파일만 pre-transaction snapshot으로 복구합니다. 이 모델은
+  `paired-write-with-compensating-rollback`이며 process crash까지 포괄하는 cross-file atomic
+  transaction이라고 표현하지 않습니다. rollback 실패는 `manual-recovery-required`입니다.
 
 Registry 오류 정책:
 
