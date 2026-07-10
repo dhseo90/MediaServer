@@ -133,12 +133,23 @@ Handoff list: `V390-STRUCT-001`, `V390-STRUCT-002`, `V390-STRUCT-003`, `V390-STR
 
 Structure implementation status: `not-run-by-this-step`
 
+Development 17 readiness status: `ready-after-v3.9-release-and-explicit-approval`
+
+Execution branch: `v4.0.0`
+
+Branch creation status: `not-performed`
+
+Readiness contract: `test/fixtures/v390_structure_stabilization_readiness.json`
+
+Readiness verifier: `./server.sh verify-v390-structure-stabilization-readiness`
+
 Boundary:
 
 - Do not treat this handoff as route/API/UI extraction completion.
 - Do not treat this handoff as manual UI template archive split completion.
 - Do not treat this handoff as VLM contract index implementation completion.
 - This handoff is not UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, PR/main/tag/GitHub Release evidence.
+- Development 17 readiness is not actual route/API/UI extraction or a created `v4.0.0` branch.
 
 ## Review Gate
 

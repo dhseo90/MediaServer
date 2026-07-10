@@ -1,7 +1,7 @@
 {
   "schema": "media-server.feature-implementation-evidence.v1",
-  "expectedFeatureRows": 980,
-  "inventorySha256": "7a7375d7de836edb8d8734d758635ec68ce0d490f2ebb3f48fe80b6d51f66f68",
+  "expectedFeatureRows": 982,
+  "inventorySha256": "2cfcd11321f172da990ff87e7789db8f2ebf7bc8781f0ae099bbc9f0286768ad",
   "generatedFrom": "docs/project-feature-test-inventory.md",
   "generationPolicy": "explicit-refresh-only; verifier never rewrites this manifest",
   "executionEvidenceStatus": "not-execution-evidence",
@@ -27672,6 +27672,36 @@
       }
     },
     {
+      "id": "SAFE-215",
+      "section": "I",
+      "surfaceKind": "safety-boundary-invariant",
+      "feature": "V390 structure stabilization contract-preservation boundary",
+      "uiNeed": "비대상",
+      "testNeed": "필요",
+      "testAreas": [
+        "안정화"
+      ],
+      "status": "closed-with-evidence",
+      "sourceEvidence": {
+        "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
+        "anchor": "SAFE-215",
+        "anchorKind": "feature-id"
+      },
+      "uiEvidence": null,
+      "verifierEvidence": {
+        "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
+        "anchor": "structure",
+        "anchorKind": "identifier",
+        "command": "verify-v390-structure-stabilization-readiness"
+      },
+      "manualUiCaseId": null,
+      "longrunEvidence": {
+        "soak30": null,
+        "soak120": null,
+        "approval": null
+      }
+    },
+    {
       "id": "OPS-035",
       "section": "J",
       "surfaceKind": "ops-evidence-release-gate",
@@ -32074,6 +32104,36 @@
         "anchor": "deferred",
         "anchorKind": "identifier",
         "command": "verify-v390-deferred-product-owner-signoff"
+      },
+      "manualUiCaseId": null,
+      "longrunEvidence": {
+        "soak30": null,
+        "soak120": null,
+        "approval": null
+      }
+    },
+    {
+      "id": "OPS-182",
+      "section": "J",
+      "surfaceKind": "ops-evidence-release-gate",
+      "feature": "V390 structure stabilization readiness gate",
+      "uiNeed": "비대상",
+      "testNeed": "필요",
+      "testAreas": [
+        "안정화"
+      ],
+      "status": "closed-with-evidence",
+      "sourceEvidence": {
+        "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
+        "anchor": "OPS-182",
+        "anchorKind": "feature-id"
+      },
+      "uiEvidence": null,
+      "verifierEvidence": {
+        "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
+        "anchor": "structure",
+        "anchorKind": "identifier",
+        "command": "verify-v390-structure-stabilization-readiness"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {

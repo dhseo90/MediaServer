@@ -786,6 +786,7 @@ function buildFeatureCommands() {
     "verify-v390-reid-readiness-consistency",
     "verify-v390-onvif-source-view-atomicity",
     "verify-v390-structure-stabilization-handoff",
+    "verify-v390-structure-stabilization-readiness",
     "verify-release-metadata",
     "verify-docs-links",
     "verify-docs-ui-assets",

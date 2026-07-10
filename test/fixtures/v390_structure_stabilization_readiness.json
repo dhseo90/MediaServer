@@ -1,0 +1,162 @@
+{
+  "schema": "media-server.v390-structure-stabilization-readiness.v1",
+  "sourceRelease": "v3.9.0",
+  "executionRelease": "v4.0.0",
+  "executionBranch": "v4.0.0",
+  "requiredApproval": "explicit-structure-refactor-start",
+  "currentStepRefactorExecuted": false,
+  "branchCreationPerformed": false,
+  "baseRequirements": [
+    "v3.9.0 release correctness commits are included in the selected base commit",
+    "latest main and the signed v3.9.0 release tag commit relationship is verified",
+    "worktree is clean and no feature development is active in the same slice",
+    "baseline build, exact inventory, targeted contract verifiers, and git diff --check pass"
+  ],
+  "moduleBoundaries": [
+    {
+      "id": "transport-and-auth-adapter",
+      "owner": "src/ingress HTTP request parsing, principal guard, response/cache/error adapter",
+      "mayDependOn": ["application-service-interfaces", "stable-contract-dtos"]
+    },
+    {
+      "id": "ops-route-groups",
+      "owner": "ONVIF, VLM, action, field, source and rule Ops route adapters",
+      "mayDependOn": ["application-service-interfaces", "stable-contract-dtos"]
+    },
+    {
+      "id": "product-ui-workspaces",
+      "owner": "HTML/JavaScript renderers, stable route strings, DOM IDs and data-testid values",
+      "mayDependOn": ["stable-contract-dtos"]
+    },
+    {
+      "id": "application-service-interfaces",
+      "owner": "read/write use-case orchestration without HTTP or DOM knowledge",
+      "mayDependOn": ["domain-and-registry-owners", "analysis-services"]
+    },
+    {
+      "id": "domain-and-registry-owners",
+      "owner": "SourceRegistry, PublishedView, Rule/Profile and persistence invariants",
+      "mayDependOn": ["core-utilities"]
+    },
+    {
+      "id": "analysis-services",
+      "owner": "VLM observation, VA, tracking and Re-ID analysis behavior",
+      "mayDependOn": ["domain-and-registry-owners", "core-media-interfaces"]
+    },
+    {
+      "id": "core-media-interfaces",
+      "owner": "RTSP/WebRTC/GStreamer runtime and media lifecycle",
+      "mayDependOn": ["core-utilities"]
+    }
+  ],
+  "allowedDependencyDirections": [
+    "product-ui-workspaces -> stable-contract-dtos",
+    "transport-and-auth-adapter -> application-service-interfaces",
+    "ops-route-groups -> application-service-interfaces",
+    "application-service-interfaces -> domain-and-registry-owners",
+    "application-service-interfaces -> analysis-services",
+    "analysis-services -> core-media-interfaces"
+  ],
+  "forbiddenDependencies": [
+    "analysis-services -> transport-and-auth-adapter",
+    "analysis-services -> product-ui-workspaces",
+    "core-media-interfaces -> ingress-or-product-ui",
+    "domain-and-registry-owners -> HTTP-request-or-DOM-types",
+    "product-ui-workspaces -> persistence-files-or-registry-internals",
+    "production-modules -> test-fixtures-or-documentation"
+  ],
+  "preservedContracts": [
+    {
+      "id": "event-post-payload",
+      "changeAllowed": false,
+      "verifiers": ["verify-event-post", "verify-v290-final-contract-freeze"]
+    },
+    {
+      "id": "webrtc-datachannel-metadata",
+      "changeAllowed": false,
+      "verifiers": ["verify-webrtc-va-metadata", "verify-v290-final-contract-freeze"]
+    },
+    {
+      "id": "sse-ws-metadata",
+      "changeAllowed": false,
+      "verifiers": ["verify-sse-metadata", "verify-ws-metadata"]
+    },
+    {
+      "id": "rtsp-webrtc-media-path",
+      "changeAllowed": false,
+      "verifiers": ["build", "verify-va-replay"]
+    },
+    {
+      "id": "auth-role-scope",
+      "changeAllowed": false,
+      "verifiers": ["verify-auth-regression-matrix"]
+    },
+    {
+      "id": "source-registry-published-view",
+      "changeAllowed": false,
+      "verifiers": ["verify-v390-onvif-source-view-atomicity", "verify-v390-backup-recovery-handoff-validation"]
+    },
+    {
+      "id": "rule-profile-payload",
+      "changeAllowed": false,
+      "verifiers": ["verify-v390-vlm-incident-rule-provenance", "verify-v390-vlm-promotion-trust-boundary"]
+    },
+    {
+      "id": "http-route-status-error",
+      "changeAllowed": false,
+      "verifiers": ["verify-ops-rules-roundtrip", "verify-v390-conditional-field-ai-decisions"]
+    },
+    {
+      "id": "product-ui-dom-test-id",
+      "changeAllowed": false,
+      "verifiers": ["verify-ops-client-ui", "verify-rule-ui", "verify-v390-ui-automation-coverage-contract"]
+    }
+  ],
+  "slices": [
+    {
+      "order": 1,
+      "id": "baseline-and-ownership-map",
+      "entryGates": ["explicit start approval", "clean v4.0.0 branch", "baseline verifier set passes"],
+      "exitGates": ["route and module ownership catalog exists", "no handler or response behavior moved", "baseline verifier set and git diff --check pass"]
+    },
+    {
+      "order": 2,
+      "id": "pure-json-builder-extraction",
+      "entryGates": ["slice 1 committed", "golden response fixtures captured", "allowed file set declared"],
+      "exitGates": ["pure builders moved without route guard change", "response bytes/schema/status stay stable", "targeted contract verifiers pass"]
+    },
+    {
+      "order": 3,
+      "id": "route-handler-group-extraction",
+      "entryGates": ["slice 2 committed", "one route group selected", "auth and error baselines pass"],
+      "exitGates": ["only selected route group moved", "auth/status/cache/error behavior stays stable", "build and route contract verifiers pass"]
+    },
+    {
+      "order": 4,
+      "id": "product-ui-workspace-split",
+      "entryGates": ["route contracts stable", "one renderer family selected", "DOM/test-id baseline captured"],
+      "exitGates": ["one renderer family moved with state", "route strings and DOM/test IDs stay stable", "static and approved focused UI checks pass"]
+    },
+    {
+      "order": 5,
+      "id": "source-read-model-boundary",
+      "entryGates": ["previous slices committed", "source read/write owners mapped", "registry baselines pass"],
+      "exitGates": ["read model naming/ownership is explicit", "no new write route or disk owner exists", "registry/PublishedView/restart verifiers pass"]
+    },
+    {
+      "order": 6,
+      "id": "docs-template-and-vlm-index",
+      "entryGates": ["production slices committed", "historical evidence preservation paths listed", "docs source-of-truth selected"],
+      "exitGates": ["current template and historical archive are separated", "single VLM contract index avoids policy duplication", "docs links/manual UI/VLM gates pass"]
+    }
+  ],
+  "stopConditions": [
+    "any preserved contract snapshot or payload changes",
+    "any auth role or scope behavior changes",
+    "any RTSP/WebRTC/GStreamer media regression appears",
+    "any DOM ID, data-testid, route label or control behavior drifts",
+    "any new registry write owner or partial-write path appears",
+    "any forbidden dependency edge or circular dependency appears",
+    "any required verifier, build, cleanup or git diff check fails"
+  ]
+}

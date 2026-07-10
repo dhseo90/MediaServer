@@ -26,6 +26,96 @@
 
 Evidence boundary: UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, PR/main/tag/GitHub Release evidence가 아닙니다.
 
+## Development 17 Structure Stabilization Readiness
+
+Execution branch: `v4.0.0`
+
+Source release: `v3.9.0`
+
+Current v3.9 refactor execution: `not-run`
+
+Branch creation: `not-performed`
+
+Required start authority: `explicit-structure-refactor-start`
+
+`v4.0.0` branch는 이번 단계에서 만들지 않습니다. v3.9.0 release correctness commit이 모두
+포함된 latest main과 signed v3.9.0 tag 대상 commit 관계를 확인하고, 사용자가 구조 리팩터링
+착수와 branch 생성을 명시 승인한 뒤에만 생성합니다. clean worktree, 동시 feature 개발 없음,
+baseline build·exact inventory·contract verifier·`git diff --check` PASS가 공통 entry 조건입니다.
+
+Machine-readable source: `test/fixtures/v390_structure_stabilization_readiness.json`
+
+## Module Boundary and Dependency Direction
+
+| Module owner | 책임 | 허용 의존성 방향 |
+| --- | --- | --- |
+| transport/auth adapter | HTTP parsing, principal guard, status/cache/error response | application service interface, stable DTO로만 향함 |
+| Ops route groups | ONVIF/VLM/action/field/source/rule route adapter | application service interface, stable DTO로만 향함 |
+| product UI workspaces | HTML/JS renderer, route string, DOM ID, `data-testid` | stable DTO/route contract로만 향함 |
+| application services | HTTP/DOM을 모르는 use-case orchestration | domain/registry owner와 analysis service로만 향함 |
+| domain/registry owners | SourceRegistry, PublishedView, Rule/Profile persistence invariant | core utility로만 향함 |
+| analysis services | VLM observation, VA, tracking, Re-ID | domain/registry와 core media interface로만 향함 |
+| core media interfaces | RTSP/WebRTC/GStreamer lifecycle | core utility로만 향함 |
+
+허용 방향은 UI/transport → application service → domain·analysis → core입니다.
+analysis/core/media -> ingress/product UI 의존 금지, domain/registry → HTTP·DOM type 의존 금지,
+product UI → persistence file/registry internal 의존 금지, production → test fixture/docs 의존 금지를
+강제합니다. 역방향 또는 circular dependency가 생기면 해당 slice는 즉시 실패합니다.
+
+## Contract Preservation Matrix
+
+| Contract ID | 보존 기준 | 대표 gate |
+| --- | --- | --- |
+| `event-post-payload` | field/type/freeze payload 변경 금지 | `verify-event-post`, `verify-v290-final-contract-freeze` |
+| `webrtc-datachannel-metadata` | DataChannel metadata schema 변경 금지 | `verify-webrtc-va-metadata`, `verify-v290-final-contract-freeze` |
+| `sse-ws-metadata` | SSE/WS metadata field/type 변경 금지 | `verify-sse-metadata`, `verify-ws-metadata` |
+| `rtsp-webrtc-media-path` | GStreamer/RTSP/WebRTC lifecycle·codec path 변경 금지 | `build`, `verify-va-replay` |
+| `auth-role-scope` | principal guard, role, scope 결과 변경 금지 | `verify-auth-regression-matrix` |
+| `source-registry-published-view` | registry/view identity, paired write, restart 의미 변경 금지 | `verify-v390-onvif-source-view-atomicity`, backup/recovery gate |
+| `rule-profile-payload` | Rule/Profile optional/required payload와 validation 의미 변경 금지 | provenance/promotion trust gate |
+| `http-route-status-error` | route, method, status, cache, error body 의미 변경 금지 | route별 HTTP verifier |
+| `product-ui-dom-test-id` | route label, control behavior, DOM ID, `data-testid` 변경 금지 | Ops/rule/static/coverage gate |
+
+각 contract는 `changeAllowed=false`입니다. 구조 이동이 response/status/payload/UI contract를 바꾸어야
+한다면 리팩터링 slice가 아니라 별도 product change로 중단하고 사용자 승인을 다시 받습니다.
+
+## Fixed Refactoring Slice Order
+
+| 순서 | Slice ID | 범위 | 완료 경계 |
+| ---: | --- | --- | --- |
+| 1 | `baseline-and-ownership-map` | route/module owner catalog와 golden baseline만 추가 | handler/response 이동 없음, baseline PASS |
+| 2 | `pure-json-builder-extraction` | side effect 없는 JSON/DTO builder 한 family | route guard/status/schema byte 의미 보존 |
+| 3 | `route-handler-group-extraction` | 한 번에 한 Ops route group | auth/cache/error/write owner 보존 |
+| 4 | `product-ui-workspace-split` | 한 번에 한 renderer family와 상태 | route string/DOM/test ID 보존 |
+| 5 | `source-read-model-boundary` | source read owner와 write owner 명명/분리 | 새 write route/file owner 금지 |
+| 6 | `docs-template-and-vlm-index` | current/historical UI template 경계와 단일 VLM index | historical evidence 보존, policy 중복 금지 |
+
+순서를 건너뛰거나 여러 route/renderer family를 한 커밋에 섞지 않습니다. 각 slice는 이전 slice의
+검증·기록·사용자 커밋 승인이 닫힌 뒤에만 시작합니다.
+
+## Entry, Exit, and Stop Gates
+
+공통 entry gate:
+
+- 사용자 `explicit-structure-refactor-start` 승인과 `v4.0.0` branch 생성 승인
+- v3.9.0 correctness를 포함한 base commit, clean worktree, 한 slice의 allowed file set
+- baseline build, exact inventory, 해당 contract verifier, 테스트 필요성 판정표 PASS
+
+공통 exit gate:
+
+- allowed file set과 한 module/route/renderer family만 변경
+- build, slice별 targeted verifier, contract freeze, `git diff --check` PASS
+- 임시 산출물/port/process cleanup, roadmap/evidence와 영향·회귀 가능성 기록
+
+stop gate:
+
+- schema/payload/status/auth/media/DOM/test ID/registry write 의미 drift
+- forbidden/circular dependency 또는 새 write owner
+- build/verifier/cleanup/diff failure
+
+`first failure stops every later slice`. 실패 뒤 단계는 모두 `건너뜀`으로 기록하며 현재
+Development 17은 readiness만 확정하고 실제 source extraction이나 branch 생성은 하지 않습니다.
+
 ## File Structure
 
 - Modify later: `src/ingress/webrtc_http_server.cpp`
