@@ -93,7 +93,7 @@ check("roadmap and evidence map Development 16 without false completion claims",
   const records = read("docs/release-test-records.md");
   const evidence = read("docs/release-evidence-index.md");
   for (const [label, text, snippets] of [
-    ["backlog", backlog, ["deferred product decision owner sign-off", "완료/Development 16 owner sign-off", "보류 기능 소유자 승인", "완료/검증 PASS/커밋 준비"]],
+    ["backlog", backlog, ["deferred product decision owner sign-off", "완료/Development 16 owner sign-off", "보류 기능 소유자 승인", "완료/커밋 `7a100f8f`"]],
     ["stream verification", stream, [command, "Development 16", "owner role"]],
     ["project inventory", projectInventory, ["SAFE-214", "OPS-181", command]],
     ["release records", records, ["V390 Deferred Product Owner Sign-off", "Development 16 owner sign-off final", command]],

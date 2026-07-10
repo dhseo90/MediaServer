@@ -72,6 +72,7 @@ for (const [label, content] of Object.entries({ backlog: files.backlog, inventor
     assert(content.includes(snippet), `${label} missing ${snippet}`);
   }
 }
+assert(files.backlog.includes("완료/커밋 `260cbd9e`"), "backlog missing Development 15 commit reconciliation");
 
 try {
   prepareObservationFixture();

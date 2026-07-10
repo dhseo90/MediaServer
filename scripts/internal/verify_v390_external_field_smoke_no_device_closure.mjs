@@ -90,7 +90,7 @@ check("roadmap and release evidence close the step as not-run, not PASS", () => 
   const evidence = read("docs/release-evidence-index.md");
   const stream = read("docs/stream-verification.md");
   for (const [label, text, snippets] of [
-    ["backlog", backlog, ["real external field smoke gate", "완료/Development 18 조건부 미실행 closure", "외부 환경 검증", "완료/조건부 미실행/커밋 준비"]],
+    ["backlog", backlog, ["real external field smoke gate", "완료/Development 18 조건부 미실행 closure", "외부 환경 검증", "완료/조건부 미실행/커밋 `6575e3b9`"]],
     ["project inventory", projectInventory, ["SAFE-216", "OPS-183", command]],
     ["records", records, ["V390 External Field Smoke No-Device Closure", "Development 18 no-device closure final", "Development 18 external field smoke not-run"]],
     ["evidence", evidence, ["Development 18 external field smoke no-device closure", "SAFE-216", "OPS-183"]],

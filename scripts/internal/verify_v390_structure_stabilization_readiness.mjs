@@ -114,7 +114,7 @@ check("roadmap and evidence expose Development 17 readiness without refactor ove
   const evidence = read("docs/release-evidence-index.md");
   const stream = read("docs/stream-verification.md");
   for (const [label, text, snippets] of [
-    ["backlog", backlog, ["structure stabilization implementation readiness", "완료/Development 17 readiness", "구조 안정화 착수 조건", "완료/검증 PASS/커밋 준비"]],
+    ["backlog", backlog, ["structure stabilization implementation readiness", "완료/Development 17 readiness", "구조 안정화 착수 조건", "완료/커밋 `fcfe9f0d`"]],
     ["inventory", inventory, ["SAFE-215", "OPS-182", command]],
     ["records", records, ["V390 Structure Stabilization Readiness", "Development 17 structure readiness final", "Development 17 실제 refactor/UI/longrun"]],
     ["evidence", evidence, ["Development 17 structure stabilization readiness", "SAFE-215", "OPS-182"]],
