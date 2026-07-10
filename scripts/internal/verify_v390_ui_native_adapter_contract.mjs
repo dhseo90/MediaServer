@@ -1,0 +1,150 @@
+#!/usr/bin/env node
+// 파일 용도: native Playwright adapter의 모듈 탐색, capability, fallback 거부, 실제 evidence 연결을 검증한다.
+
+import fs from "node:fs";
+import path from "node:path";
+import process from "node:process";
+import { fileURLToPath } from "node:url";
+
+import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { nativeCapabilities, resolvePlaywrightModule } from "./v390_ui_native_adapter.mjs";
+
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const rootDir = path.resolve(scriptDir, "../..");
+const rawArgs = process.argv.slice(2);
+
+if (hasHelpFlag(rawArgs)) {
+  printUsageAndExit(`v3.9.0 native UI adapter contract verification
+
+Usage:
+  ./server.sh verify-v390-ui-native-adapter-contract
+
+Checks module discovery, missing-module hard failure, native action capabilities,
+runner integration, dispatch/docs, and preserved standalone native evidence.
+`);
+}
+assertKnownOptions(rawArgs, ["h", "help"]);
+
+const adapterSource = readText("scripts/internal/v390_ui_native_adapter.mjs");
+const runnerSource = readText("scripts/internal/verify_v390_ui_automation.mjs");
+const serverSh = readText("server.sh");
+const docs = [
+  readText("docs/development-backlog.md"),
+  readText("docs/stream-verification.md"),
+  readText("docs/project-feature-test-inventory.md"),
+  readText("docs/release-test-records.md"),
+  readText("docs/release-evidence-index.md"),
+].join("\n");
+const checks = [];
+
+check("bundled Playwright module resolves with provenance", () => {
+  const resolved = resolvePlaywrightModule();
+  assert(Boolean(resolved.playwright?.chromium), "chromium browser type missing");
+  assert(Boolean(resolved.modulePath), "modulePath missing");
+  assert(/^\d+\./.test(resolved.moduleVersion), `invalid moduleVersion: ${resolved.moduleVersion}`);
+  assert(resolved.attempts.some(item => item.status === "selected"), "selected module attempt missing");
+});
+
+check("explicit missing module fails without fallback", () => {
+  let failed = false;
+  try {
+    resolvePlaywrightModule({ modulePath: "/tmp/media-server-missing-playwright", requireExplicit: true });
+  } catch (error) {
+    failed = true;
+    assert(String(error.message).includes("native Playwright module unavailable"), "missing-module reason mismatch");
+    assert(Array.isArray(error.attempts) && error.attempts[0]?.status === "missing-package-json", "missing-module attempt evidence missing");
+  }
+  assert(failed, "missing explicit module must fail");
+});
+
+check("adapter exposes native wait click fill type select screenshot", () => {
+  for (const capability of ["wait", "click", "fill", "type", "select", "screenshot", "evaluate"]) {
+    assert(nativeCapabilities.includes(capability), `missing capability ${capability}`);
+  }
+  for (const snippet of ["waitForSelector", "page.locator(selector).click", "page.locator(selector).fill", "pressSequentially", "selectOption", "page.screenshot"]) {
+    assert(adapterSource.includes(snippet), `adapter source missing ${snippet}`);
+  }
+});
+
+check("UI runner selects native Playwright and rejects CDP promotion", () => {
+  for (const snippet of [
+    "createNativePlaywrightAdapter",
+    'engine: "playwright-native"',
+    "Chrome/CDP fallback is not accepted as Playwright PASS",
+    "playwrightModulePath",
+  ]) {
+    assert((runnerSource + "\n" + adapterSource).includes(snippet), `runner native integration missing ${snippet}`);
+  }
+});
+
+check("server dispatch and docs expose reproducible native commands", () => {
+  for (const command of ["verify-v390-ui-native-adapter", "verify-v390-ui-native-adapter-contract"]) {
+    assert(serverSh.includes(command), `server.sh missing ${command}`);
+    assert(docs.includes(command), `docs missing ${command}`);
+  }
+  for (const snippet of ["V390-ADD1-08", "playwright-native", "wait/click/fill/select/screenshot"]) {
+    assert(docs.includes(snippet), `docs missing ${snippet}`);
+  }
+});
+
+check("preserved standalone evidence proves native actions", () => {
+  const summaryPath = path.join(rootDir, "docs/release-artifacts/v3.9.0/ui-native-adapter-final/summary.json");
+  assert(fs.existsSync(summaryPath), "native adapter summary missing");
+  const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
+  assert(summary.schema === "media-server.v390-ui-native-adapter.v1", "native adapter schema mismatch");
+  assert(summary.result === "PASS", "native adapter result must PASS");
+  assert(summary.selectedAdapter?.engine === "playwright-native", "native engine not selected");
+  assert(summary.selectedAdapter?.fallbackUsed === false, "fallback must be false");
+  for (const kind of ["wait", "fill", "type", "select", "click", "screenshot"]) {
+    assert(summary.actions.some(action => action.kind === kind && action.status === "PASS"), `missing PASS action ${kind}`);
+  }
+  assert(summary.finalState === "native-adapter:ready:typed", "native final state mismatch");
+  for (const field of ["screenshotPath", "tracePath"]) {
+    assert(fs.existsSync(summary[field]), `native artifact missing ${field}`);
+  }
+});
+
+check("preserved UI suite evidence uses native dispatch without fallback", () => {
+  const summaryPath = path.join(rootDir, "docs/release-artifacts/v3.9.0/ui-automation-native-final/summary.json");
+  assert(fs.existsSync(summaryPath), "native UI suite summary missing");
+  const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
+  assert(summary.result === "PASS" && summary.pass === 8 && summary.fail === 0, "native UI suite result mismatch");
+  assert(summary.nativeAdapterRequired === true, "nativeAdapterRequired must be true");
+  assert(summary.selectedAdapter?.engine === "playwright-native", "native UI engine not selected");
+  assert(summary.selectedAdapter?.fallbackUsed === false, "native UI fallback must be false");
+  for (const item of summary.cases || []) {
+    assert(item.interactionEvidence?.dispatch === "playwright-native", `${item.caseId} primary dispatch mismatch`);
+    assert((item.interactionEvidence?.setup || []).every(step => step.dispatch === "playwright-native"), `${item.caseId} setup dispatch mismatch`);
+  }
+});
+
+let pass = 0;
+let fail = 0;
+for (const item of checks) {
+  try {
+    item.fn();
+    pass += 1;
+    console.log(`[pass] ${item.name}`);
+  } catch (error) {
+    fail += 1;
+    console.log(`[fail] ${item.name}: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+console.log("");
+console.log("== v3.9.0 native UI adapter contract summary ==");
+console.log(`- capabilities: ${nativeCapabilities.join(",")}`);
+console.log(`- pass: ${pass}`);
+console.log(`- fail: ${fail}`);
+if (fail > 0) process.exit(1);
+
+function check(name, fn) {
+  checks.push({ name, fn });
+}
+
+function readText(relativePath) {
+  return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
+}
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+}

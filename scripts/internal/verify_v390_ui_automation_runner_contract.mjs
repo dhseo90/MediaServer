@@ -151,7 +151,7 @@ check("pass fixture validates through report replay verifier", () => {
 
 check("docs and release evidence record R2 without overclaiming UI fulltest", () => {
   for (const snippet of [
-    "v3.9.0 R2 / V390-ADD1-07 UI automation exact case runner",
+    "v3.9.0 R2 / V390-ADD1-07~08 native UI automation exact case runner",
     command,
     reportCommand,
     contractCommand,
@@ -170,7 +170,7 @@ check("docs and release evidence record R2 without overclaiming UI fulltest", ()
     assertIncludes(files.releaseRecords, snippet, "R2 release records");
   }
   for (const snippet of [
-    "v3.9.0 R2 / V390-ADD1-07 UI automation exact case runner",
+    "v3.9.0 R2 / V390-ADD1-07~08 native UI automation exact case runner",
     command,
     reportCommand,
     contractCommand,

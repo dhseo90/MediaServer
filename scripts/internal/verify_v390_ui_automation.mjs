@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { findChrome, openBrowserPage } from "./ui_visual_smoke_lib.mjs";
+import { createNativePlaywrightAdapter } from "./v390_ui_native_adapter.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -30,6 +31,8 @@ Options:
   --rtsp-port <port>          Throwaway auth-off UI server RTSP port. Default is first free port from 18739.
   --debug-port-base <port>    Browser/CDP debug port base. Default 15200.
   --chrome-path <path>        Chrome/Chromium executable for browser evidence.
+  --playwright-module-path <path>
+                              Explicit native Playwright package directory.
   --timeout-ms <ms>           Health/browser wait timeout. Default 30000.
   --allow-chrome-fallback[=1] Allow Chrome/CDP browser evidence in Codex sessions.
   --keep-server               Leave throwaway server running after the run.
@@ -51,6 +54,7 @@ assertKnownOptions(rawArgs, [
   "rtsp-port",
   "debug-port-base",
   "chrome-path",
+  "playwright-module-path",
   "timeout-ms",
   "allow-chrome-fallback",
   "keep-server",
@@ -112,6 +116,7 @@ const summary = {
   adapterPlan,
   selectedAdapter,
   adapterAttempts,
+  nativeAdapterRequired: options.browserMode === "playwright" && !fixtureMode && !options.oneShotSummary,
   result: failCount > 0 ? "FAIL" : "PASS",
   automationResult: failCount > 0 ? "FAIL" : "PASS",
   evidenceBoundary: "automationResult is not manual UI fulltest, 30-minute, 120-minute, published, or release-action evidence",
@@ -161,6 +166,7 @@ function parseArgs(args) {
     rtspPort: "",
     debugPortBase: "15200",
     chromePath: "",
+    playwrightModulePath: "",
     timeoutMs: "30000",
     allowChromeFallback: false,
     keepServer: false,
@@ -190,6 +196,11 @@ function parseArgs(args) {
       index += 1;
     } else if (arg === "--chrome-path") {
       parsed.chromePath = args[index + 1] || "";
+      index += 1;
+    } else if (arg.startsWith("--playwright-module-path=")) {
+      parsed.playwrightModulePath = arg.slice("--playwright-module-path=".length);
+    } else if (arg === "--playwright-module-path") {
+      parsed.playwrightModulePath = args[index + 1] || "";
       index += 1;
     } else if (arg === "--timeout-ms") {
       parsed.timeoutMs = args[index + 1] || "";
@@ -358,7 +369,15 @@ async function runRealUiAutomation() {
       visualOnly: options.browserMode === "sikulix",
       dependencyStatus: "unavailable",
     };
-    adapterAttempts = [makeAdapterAttempt(options.browserMode, "unavailable", "failed", message)];
+    adapterAttempts = Array.isArray(error?.attempts) && error.attempts.length > 0
+      ? error.attempts.map(item => ({
+          tool: options.browserMode,
+          engine: "playwright-native",
+          status: item.status || "failed",
+          reason: item.reason || item.candidate || message,
+          modulePath: item.candidate || "",
+        }))
+      : [makeAdapterAttempt(options.browserMode, "unavailable", "failed", message)];
     return makePreflightFailureCases(message);
   }
   const server = await startCoreServer(ports);
@@ -418,24 +437,17 @@ async function resolveRuntimeAdapter() {
   const attempts = [];
   const requestedMode = options.browserMode;
   if (requestedMode === "playwright") {
-    const playwright = await optionalImport("playwright");
-    if (playwright.module?.chromium) {
-      attempts.push(makeAdapterAttempt("playwright", "playwright", "selected", "playwright chromium module available"));
-      return {
-        summary: {
-          tool: "playwright",
-          engine: "playwright",
-          fallbackUsed: false,
-          fallbackReason: "",
-          visualOnly: false,
-          dependencyStatus: "available",
-        },
-        attempts,
-        openPage: openPlaywrightPage.bind(null, playwright.module),
-      };
+    try {
+      return await createNativePlaywrightAdapter({
+        modulePath: options.playwrightModulePath,
+        chromePath: options.chromePath,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const adapterError = new Error(`${message}; native adapter preflight failed and Chrome/CDP fallback is not accepted as Playwright PASS`);
+      adapterError.attempts = error?.attempts || [];
+      throw adapterError;
     }
-    attempts.push(makeAdapterAttempt("playwright", "playwright", "unavailable", playwright.errorMessage));
-    return resolveChromeCdpFallback(requestedMode, attempts, "playwright package unavailable");
   }
   if (requestedMode === "selenium") {
     const seleniumRemoteUrl = process.env.MEDIA_SERVER_SELENIUM_REMOTE_URL || process.env.SELENIUM_REMOTE_URL || "";
@@ -507,10 +519,14 @@ async function runBrowserCase(item, { httpBase, runtimeAdapter, debugPort, timeo
   });
   try {
     await delay(500);
+    const nativeEvidence = selectedAdapter.engine === "playwright-native"
+      ? await performNativeInteractions(browser, item, timeoutMs)
+      : null;
     const result = await browser.evaluate(
       `
         (async () => {
-          const setupInteractions = ${JSON.stringify(item.setupInteractions || [])};
+          const setupInteractions = ${JSON.stringify(selectedAdapter.engine === "playwright-native" ? [] : (item.setupInteractions || []))};
+          const nativeEvidence = ${JSON.stringify(nativeEvidence)};
           const interaction = ${JSON.stringify(item.interaction)};
           const targetSelector = ${JSON.stringify(item.targetSelector)};
           const stateSelectors = ${JSON.stringify(item.stateSelectors)};
@@ -536,14 +552,14 @@ async function runBrowserCase(item, { httpBase, runtimeAdapter, debugPort, timeo
             }
             return { ...step, executed: true };
           };
-          const setupEvidence = [];
+          const setupEvidence = nativeEvidence ? nativeEvidence.setup : [];
           for (const step of setupInteractions) {
             setupEvidence.push(executeInteraction(step));
             await new Promise((resolve) => setTimeout(resolve, 250));
           }
-          const beforeState = readState();
+          const beforeState = nativeEvidence ? nativeEvidence.beforeState : readState();
           const control = document.querySelector(interaction.selector);
-          if (control) control.click();
+          if (control && !nativeEvidence) control.click();
           await new Promise((resolve) => setTimeout(resolve, 500));
           const afterState = readState();
           const target = document.querySelector(targetSelector);
@@ -562,7 +578,7 @@ async function runBrowserCase(item, { httpBase, runtimeAdapter, debugPort, timeo
               kind: interaction.kind,
               selector: interaction.selector,
               executed: Boolean(control),
-              dispatch: 'dom-click',
+              dispatch: nativeEvidence ? 'playwright-native' : 'dom-click',
               setup: setupEvidence,
             },
             target: { selector: targetSelector, exists: Boolean(target), visible: targetVisible },
@@ -614,6 +630,37 @@ async function runBrowserCase(item, { httpBase, runtimeAdapter, debugPort, timeo
   } finally {
     await browser.close();
   }
+}
+
+async function performNativeInteractions(browser, item, timeoutMs) {
+  const setup = [];
+  for (const step of item.setupInteractions || []) {
+    await browser.waitForSelector(step.selector, { state: "visible", timeout: timeoutMs });
+    if (step.kind === "click") await browser.click(step.selector);
+    else if (step.kind === "select") await browser.select(step.selector, step.value);
+    else throw new Error(`unsupported native setup interaction: ${step.kind}`);
+    setup.push({ ...step, executed: true, dispatch: "playwright-native" });
+    await delay(250);
+  }
+  const beforeState = await readNativeState(browser, item.stateSelectors || []);
+  await browser.waitForSelector(item.interaction.selector, { state: "visible", timeout: timeoutMs });
+  if (item.interaction.kind === "click") await browser.click(item.interaction.selector);
+  else if (item.interaction.kind === "select") await browser.select(item.interaction.selector, item.interaction.value);
+  else throw new Error(`unsupported native interaction: ${item.interaction.kind}`);
+  return { setup, beforeState };
+}
+
+async function readNativeState(browser, selectors) {
+  return browser.evaluate(`(() => ${JSON.stringify(selectors)}.map((selector) => {
+    const element = document.querySelector(selector);
+    const rect = element ? element.getBoundingClientRect() : null;
+    return {
+      selector,
+      exists: Boolean(element),
+      visible: Boolean(rect && rect.width > 0 && rect.height > 0),
+      text: String(element?.innerText || element?.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 1200),
+    };
+  }))()`);
 }
 
 async function startCoreServer(ports) {
@@ -918,6 +965,10 @@ function makeCase(item, status, actualResult, artifact) {
       fallbackReason: selectedAdapter.fallbackReason,
       dependencyStatus: selectedAdapter.dependencyStatus,
       visualOnly: selectedAdapter.visualOnly,
+      modulePath: selectedAdapter.modulePath || "",
+      moduleVersion: selectedAdapter.moduleVersion || "",
+      browserExecutable: selectedAdapter.browserExecutable || "",
+      capabilities: selectedAdapter.capabilities || [],
     },
   };
 }
@@ -930,13 +981,12 @@ function writeReport(filePath, payload) {
     `result: ${payload.result}`,
     `browserMode: ${payload.browserMode}`,
     `manualIntervention: ${payload.manualIntervention}`,
-    `failedCaseId: ${payload.failedCaseId}`,
+    `failedCaseId: ${payload.failedCaseId || "(none)"}`,
     `evidenceBoundary: ${payload.evidenceBoundary}`,
     "",
     "| case | status | route | control/action | expected | actual |",
     "| --- | --- | --- | --- | --- | --- |",
     ...payload.cases.map(item => `| ${escapeCell(item.caseId)} | ${item.status} | ${escapeCell(item.route)} | ${escapeCell(item.controlAction)} | ${escapeCell(item.expectedResult)} | ${escapeCell(item.actualResult)} |`),
-    "",
   ];
   fs.writeFileSync(filePath, `${lines.join("\n")}\n`, "utf8");
 }

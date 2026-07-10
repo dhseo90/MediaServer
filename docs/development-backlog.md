@@ -110,7 +110,7 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 20 | v3.9.0 (20) stabilization and release readiness | P0 | 완료 | AGENTS 네 테스트 영역 판정과 release close-out evidence를 실제 실행/미실행으로 분리 |
 | 21 | v3.9.0 (21) actual test acceptance bundle 실행 모드 | P0 | 완료 | V390-ADD1-06 actual mode final summary/report가 build→기능→real 30분→UI automation/replay→conditional 120 decision→cleanup을 단일 실행으로 PASS |
 | 22 | v3.9.0 (22) v3.9 UI automation case completeness | P0 | 완료 | V390-ADD1-07 case schema v2와 actual summary가 `UI-112` 포함 exact `UI-108`~`UI-115` 8개 route/control/action/state/failure/artifact를 검증하고 replay PASS |
-| 23 | v3.9.0 (23) native free UI automation adapter proof | P0 | 미완료/post-review 잔여 | R2 실제 evidence는 `browserMode=playwright`지만 `selectedAdapter.engine=chrome-cdp-fallback`임. Playwright/Selenium/SikuliX native 실행 또는 명확한 preflight FAIL/설치 안내가 필요 |
+| 23 | v3.9.0 (23) native free UI automation adapter proof | P0 | 완료 | bundled Playwright 1.61.1과 system Chrome을 선택해 standalone 7개 native action 및 UI-108~115의 native dispatch 8/8을 fallback 없이 실행하고 module/browser provenance를 보존 |
 | 24 | v3.9.0 (24) server longrun true first-fail case runner | P0 | 부분 완료/post-review 잔여 | R1 runner는 `stopOnFirstFail` summary와 delegated failure 보존이 있지만 핵심 duration loop는 cumulative `verify-predev`에 위임됨. 실제 case-by-case first-fail runner 보강 필요 |
 | 25 | v3.9.0 (25) route/control/action automation coverage matrix | P0 | 미완료/post-review 잔여 | 현재 R2 자동화는 v3.9 신규 일부 case 중심임. v1.0~v3.9 current UI 기능 ID에 대한 자동화 coverage matrix와 미지원/제외 사유가 필요 |
 | 26 | v3.9.0 (26) final evidence re-run and cleanup | P0 | 미완료/post-review 잔여 | post-review 잔여 구현 후 Step 20 local gate, 30분, UI automation/full coverage, 조건부 120분 판정, cleanup/evidence를 release action 전 다시 닫아야 함 |
@@ -139,7 +139,7 @@ UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release a
 | 5 | V390-ADD1-05 | Product Correctness | ONVIF 저장 원자성 | P0 | 완료 | ONVIF form save/toggle의 source/view 연속 PUT을 single-lock paired route로 교체하고 두 번째 파일 실패 시 실제 교체된 파일을 pre-transaction snapshot으로 rollback |
 | 6 | V390-ADD1-06 | Test Foundation | 실제 acceptance bundle | P0 | 완료 | dry-run 강제를 해제하고 build→현재 기능 gate→실제 30분→실제 UI automation→조건부 120분을 stop-on-first-fail 단일 진입점으로 실행하며 summary/report/cleanup을 보존 |
 | 7 | V390-ADD1-07 | UI Test | UI 케이스 누락 보완 | P0 | 완료 | `UI-112`를 포함한 `UI-108`~`UI-115` 전 case의 실제 route/control/action/state/failure/artifact evidence를 검증 |
-| 8 | V390-ADD1-08 | UI Test | 무료 네이티브 자동화 어댑터 | P0 | 미진행 | native Playwright/Selenium/SikuliX 중 선택된 무료 adapter가 실제 wait/click/type/select/screenshot을 실행하고 재현 가능한 provenance를 기록 |
+| 8 | V390-ADD1-08 | UI Test | 무료 네이티브 자동화 어댑터 | P0 | 완료 | bundled Playwright와 설치된 Chrome을 사용하는 독립 adapter가 실제 wait/click/fill/type/select/screenshot을 실행하고 UI 8-case도 `playwright-native` dispatch/provenance/fallback false로 검증 |
 | 9 | V390-ADD1-09 | UI Test | 거짓 PASS 방지 | P0 | 미진행 | `outerHTML`·script 문자열·whole-page marker 성공 판정을 제거하고 visible DOM 상태와 실제 사용자 action 전후 결과로만 판정 |
 
 ### V390-ADD1-06 실제 acceptance bundle — 실행 전 등록
@@ -244,6 +244,48 @@ native wait/click/type/select adapter 승격은 Step 8, whole-page marker 제거
 
 테스트 사용량: token start `901969`, token end `1080515`, token consumed `178546`,
 elapsed 약 `547초`, source `Codex goal usage`.
+
+### V390-ADD1-08 무료 네이티브 자동화 어댑터 — 실행 전 등록
+
+Step 8은 `browserMode=playwright`라는 label과 실제 native engine을 분리합니다. 저장소
+의존성 설치 없이 explicit env, workspace dependency, 현재 Node runtime 인접 bundled
+module 순서로 Playwright를 찾고, 찾지 못하면 Chrome/CDP fallback을 primary PASS로 쓰지
+않고 native preflight FAIL을 반환합니다. 독립 adapter는 wait, click, fill/type, select,
+screenshot과 console/provenance를 제공하고 standalone reproduction이 실제 동작을 수행해야
+합니다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | native adapter/module resolver/runner/dispatch/docs 추가 | `V390-ADD1-08`, `OPS-169`, `SAFE-202` | 최신 goal에서 8번 개발 승인 |
+| 30분 테스트 | 미진행 | UI automation adapter만 변경하고 server runtime/media lifecycle은 변경하지 않음 | Step 8 변경 범위 | 장시간 trigger 없음 |
+| 120분 테스트 | 미진행 | AGENTS 7.6.2 trigger 없음 | Step 8 변경 범위 | 조건 미충족 |
+| UI 풀테스트 | 미진행 | native adapter actual 8-case는 실행하지만 Codex 인앱 전체 UI 직접 조작과 구분 | `UI-108`~`UI-115` | 직접 UI 풀테스트 승인 없음 |
+
+### V390-ADD1-08 무료 네이티브 자동화 어댑터 — 개발 및 실행 결과
+
+- `scripts/internal/v390_ui_native_adapter.mjs`가 explicit module/env/workspace/Node 인접/Codex bundled Playwright를 탐색하고 module realpath/version, system Chrome executable, capability를 기록합니다. Playwright 전용 browser가 없어도 설치된 Chrome을 `executablePath`로 직접 실행하며 CDP fallback은 사용하지 않습니다.
+- `scripts/internal/verify_v390_ui_native_adapter.mjs`가 독립 로컬 페이지에서 wait, fill, type, select, click, state wait, screenshot을 실제 수행하고 `media-server.v390-ui-native-adapter.v1` summary/trace/report/PNG를 생성합니다.
+- `scripts/internal/verify_v390_ui_automation.mjs`의 UI-108~115 setup/primary 동작을 page-context `element.click()`/event dispatch가 아니라 Playwright locator의 `waitFor`, `click`, `selectOption`으로 실행하며 각 trace에 `dispatch=playwright-native`를 기록합니다.
+- `scripts/internal/verify_v390_ui_native_adapter_contract.mjs`와 `server.sh` dispatch가 module provenance, missing explicit module hard fail, capability, runner 연결, 문서/evidence와 preserved standalone PASS를 재현합니다.
+
+실행 결과:
+
+| 항목 | 명령/결과 | 판정 |
+| --- | --- | --- |
+| RED | Step 7 actual summary의 `selectedAdapter.engine=chrome-cdp-fallback`, `fallbackUsed=true`라 native 조건 `jq -e`가 false/exit 1 | 예상 실패 |
+| 첫 standalone | bundled Playwright 1.61.1은 발견했으나 Playwright-managed Chromium 미설치로 launch FAIL | 수정 후 재실행 |
+| standalone final | `./server.sh verify-v390-ui-native-adapter --output-dir docs/release-artifacts/v3.9.0/ui-native-adapter-final`: system Chrome, `engine=playwright-native`, fallback false, action 7/7, final state `native-adapter:ready:typed` | PASS |
+| native UI 8-case final | `./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir docs/release-artifacts/v3.9.0/ui-automation-native-final`: UI-108~115 8/8, setup/primary dispatch 전부 `playwright-native`, cleanup true | PASS |
+| replay/contract | actual report replay 7/0, native adapter contract 7/0, runner contract 8/0 | PASS |
+| UI 풀테스트 | Codex 인앱 전체 UI 직접 조작 풀테스트는 실행하지 않음 | 미실행 |
+
+첫 실패는 native browser 탐색이 기존 CDP fallback permission helper에 묶여 system Chrome을
+선택하지 못한 것이 원인이었습니다. native adapter 전용 executable resolver를 추가해 외부
+다운로드 없이 해결했습니다. Step 9의 whole-page marker 제거는 아직 이 단계의 PASS에
+포함하지 않습니다.
+
+테스트 사용량: token start `1080515`, token end `1301950`, token consumed `221435`,
+elapsed 약 `902초`, source `Codex goal usage`.
 
 ### V390-ADD1-01 미추적 파일 전수 판정
 

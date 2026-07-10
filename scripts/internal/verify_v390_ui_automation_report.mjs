@@ -39,6 +39,17 @@ check("summary uses v390 UI automation schema", () => {
   assert(["PASS", "FAIL"].includes(summary.result), `invalid result: ${summary.result}`);
   assert(summary.evidenceBoundary === "automationResult is not manual UI fulltest, 30-minute, 120-minute, published, or release-action evidence", "missing evidence boundary");
   assertAdapterPlan();
+  if (summary.nativeAdapterRequired === true) {
+    assert(summary.selectedAdapter.engine === "playwright-native", "native-required summary must select playwright-native");
+    assert(summary.selectedAdapter.fallbackUsed === false, "native-required summary must reject fallback");
+    for (const capability of ["wait", "click", "select", "screenshot"]) {
+      assert(summary.selectedAdapter.capabilities?.includes(capability), `native-required summary missing ${capability}`);
+    }
+    for (const item of getCases()) {
+      assert(item.interactionEvidence?.dispatch === "playwright-native", `${item.caseId} primary dispatch must be playwright-native`);
+      assert((item.interactionEvidence?.setup || []).every(step => step.dispatch === "playwright-native"), `${item.caseId} setup dispatch must be playwright-native`);
+    }
+  }
 });
 
 check("summary counts match case statuses", () => {

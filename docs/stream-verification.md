@@ -179,8 +179,34 @@ V390-ADD1-07 actual case completeness evidence는
 `docs/release-artifacts/v3.9.0/ui-automation-case-completeness-final/summary.json`에
 보존합니다. 결과는 exact 8 case `pass=8 fail=0 notRun=0`, report replay
 `pass=7 fail=0`이며 UI-112 staging restore checklist/result artifact가 포함됩니다.
-이 실행의 interaction dispatch는 DOM 기반이며 native free adapter 증명은 V390-ADD1-08,
-whole-page marker 제거는 V390-ADD1-09에서 별도로 닫습니다.
+이 historical 실행의 interaction dispatch는 DOM 기반입니다. V390-ADD1-08에서 별도
+native final evidence로 교체했으며 whole-page marker 제거는 V390-ADD1-09에서 닫습니다.
+
+### V390-ADD1-08 native free UI adapter
+
+`scripts/internal/v390_ui_native_adapter.mjs`는 explicit
+`MEDIA_SERVER_PLAYWRIGHT_MODULE_PATH`, workspace/current Node 인접 module, Codex primary
+runtime bundled module 순서로 무료 Playwright를 탐색합니다. 선택된 adapter는
+`engine=playwright-native`, `fallbackUsed=false`, module path/version, browser executable,
+`wait/click/fill/select/screenshot` capability를 기록합니다. native module이 없으면
+preflight FAIL이며 `chrome-cdp-fallback`을 Playwright PASS로 승격하지 않습니다.
+
+- `./server.sh verify-v390-ui-native-adapter --output-dir docs/release-artifacts/v3.9.0/ui-native-adapter-final`
+- `./server.sh verify-v390-ui-native-adapter --output-dir <path> --playwright-module-path <package-dir>`
+- `./server.sh verify-v390-ui-native-adapter-contract`
+- `./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir <path>`
+
+Standalone verifier는 로컬 reproduction page에서 wait→fill→type→select→click→state
+wait→screenshot을 실제 실행합니다. UI runner도 같은 native module을 사용하며 module
+부재 시 명확한 preflight failure reason과 discovery attempts를 summary에 보존합니다.
+
+보존 evidence:
+
+- `docs/release-artifacts/v3.9.0/ui-native-adapter-final/summary.json`: Playwright 1.61.1, system Chrome, action 7/7, fallback false
+- `docs/release-artifacts/v3.9.0/ui-automation-native-final/summary.json`: UI-108~115 8/8, setup/primary `dispatch=playwright-native`, cleanup true
+
+이 automation PASS는 Codex 인앱 UI 풀테스트 직접 조작, V390-ADD1-09 visible DOM
+assertion, 30분/120분, published metadata, release action PASS가 아닙니다.
 
 ### v3.9.0 R3 test acceptance bundle
 
