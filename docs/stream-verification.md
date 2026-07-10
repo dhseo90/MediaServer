@@ -335,6 +335,14 @@ summary도 cleanup 근거로 읽고, 재시도 전 최초 실패 command/context
 artifact hash/tail을 canonical root의 `first-failure.json`/`first-failure.md`로 보존합니다.
 이 기록은 재시도 PASS를 최초 실행 PASS로 바꾸지 않습니다.
 
+복구 source `8fe583d815ce31628cbb8d1f4188b3e6455b396a`의 final run
+`v390-test-acceptance-20260710160754-54907`은 build, 26개 feature gate, 실제 30분
+`118/0/2`, soak 22회, main/queue idle, ports-clean, UI-108~115 `8/8`, replay `7/0`,
+cleanup/report를 PASS했습니다. screenshot 참조 8개는 물리 PNG 4개로 canonicalize했고
+최종 hash 중복과 placeholder video는 0입니다. 120분은 media/session/runtime high-risk
+signal이 없어 `not-required`/`not-run`이며 PASS로 대체하지 않습니다. final integrity는
+`7/0`, canonical은 76 files/1,315,746 bytes이고 최초 실패 요약 2개를 보존합니다.
+
 ### v3.9.0 R4 longrun runner role alignment
 
 R4 선택: option 3.

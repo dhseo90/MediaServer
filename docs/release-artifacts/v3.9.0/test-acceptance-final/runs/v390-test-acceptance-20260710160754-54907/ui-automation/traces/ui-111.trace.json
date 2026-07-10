@@ -1,0 +1,181 @@
+{
+  "schema": "media-server.v390-ui-automation-trace.v1",
+  "caseId": "UI-111",
+  "route": "/ops/vlm",
+  "controlAction": "inspect-vlm-evaluation-promotion-guard",
+  "browserMode": "playwright",
+  "adapter": {
+    "tool": "playwright",
+    "engine": "playwright-native",
+    "fallbackUsed": false,
+    "fallbackReason": "",
+    "visualOnly": false,
+    "dependencyStatus": "bundled-module-available",
+    "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+    "moduleVersion": "1.61.1",
+    "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "capabilities": [
+      "wait",
+      "click",
+      "fill",
+      "type",
+      "select",
+      "screenshot",
+      "evaluate"
+    ]
+  },
+  "assertionModel": "visible-dom-user-action-v1",
+  "visibleAssertions": [
+    {
+      "selector": "#opsVlmEvaluationPromotionGuardStatus",
+      "textIncludes": [
+        "operator-select-candidate-then-server-verify-save"
+      ]
+    },
+    {
+      "selector": "#opsVlmEvaluationSelectionSummary",
+      "textNotEmpty": true
+    }
+  ],
+  "interactionEvidence": {
+    "kind": "click",
+    "selector": "#opsVlmRefresh",
+    "executed": true,
+    "dispatch": "playwright-native",
+    "setup": []
+  },
+  "stateEvidence": {
+    "target": {
+      "selector": "#opsVlmEvaluationPromotionGuardStatus",
+      "exists": true,
+      "visible": true
+    },
+    "before": [
+      {
+        "selector": "#opsVlmEvaluationPromotionGuardStatus",
+        "exists": true,
+        "visible": true,
+        "text": "promotion guard: server-verified-evaluation-promotion / flow=operator-select-candidate-then-server-verify-save / serverVerification=true / clientDeclaredEvaluationRejected=true / runtimeCall=false / providerCall=false"
+      },
+      {
+        "selector": "#opsVlmEvaluationSelectionSummary",
+        "exists": true,
+        "visible": true,
+        "text": "추천 평가 후보 eval-qwen8b-event-review-default; 아직 profile draft에는 반영하지 않았습니다."
+      }
+    ],
+    "after": [
+      {
+        "selector": "#opsVlmEvaluationPromotionGuardStatus",
+        "exists": true,
+        "visible": true,
+        "text": "promotion guard: server-verified-evaluation-promotion / flow=operator-select-candidate-then-server-verify-save / serverVerification=true / clientDeclaredEvaluationRejected=true / runtimeCall=false / providerCall=false"
+      },
+      {
+        "selector": "#opsVlmEvaluationSelectionSummary",
+        "exists": true,
+        "visible": true,
+        "text": "추천 평가 후보 eval-qwen8b-event-review-default; 아직 profile draft에는 반영하지 않았습니다."
+      }
+    ],
+    "assertions": [
+      {
+        "selector": "#opsVlmEvaluationPromotionGuardStatus",
+        "exists": true,
+        "visible": true,
+        "text": "promotion guard: server-verified-evaluation-promotion / flow=operator-select-candidate-then-server-verify-save / serverVerification=true / clientDeclaredEvaluationRejected=true / runtimeCall=false / providerCall=false",
+        "textNotEmpty": true,
+        "expectedTextIncludes": [
+          "operator-select-candidate-then-server-verify-save"
+        ],
+        "missingText": [],
+        "pass": true,
+        "sourceBoundary": "exact-selector-visible-innerText-only"
+      },
+      {
+        "selector": "#opsVlmEvaluationSelectionSummary",
+        "exists": true,
+        "visible": true,
+        "text": "추천 평가 후보 eval-qwen8b-event-review-default; 아직 profile draft에는 반영하지 않았습니다.",
+        "textNotEmpty": true,
+        "expectedTextIncludes": [],
+        "missingText": [],
+        "pass": true,
+        "sourceBoundary": "exact-selector-visible-innerText-only"
+      }
+    ]
+  },
+  "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-final/runs/v390-test-acceptance-20260710160754-54907/ui-automation/logs/ui-111.browser-console.json",
+  "result": {
+    "ok": true,
+    "missingStateSelectors": [],
+    "interaction": {
+      "kind": "click",
+      "selector": "#opsVlmRefresh",
+      "executed": true,
+      "dispatch": "playwright-native",
+      "setup": []
+    },
+    "target": {
+      "selector": "#opsVlmEvaluationPromotionGuardStatus",
+      "exists": true,
+      "visible": true
+    },
+    "beforeState": [
+      {
+        "selector": "#opsVlmEvaluationPromotionGuardStatus",
+        "exists": true,
+        "visible": true,
+        "text": "promotion guard: server-verified-evaluation-promotion / flow=operator-select-candidate-then-server-verify-save / serverVerification=true / clientDeclaredEvaluationRejected=true / runtimeCall=false / providerCall=false"
+      },
+      {
+        "selector": "#opsVlmEvaluationSelectionSummary",
+        "exists": true,
+        "visible": true,
+        "text": "추천 평가 후보 eval-qwen8b-event-review-default; 아직 profile draft에는 반영하지 않았습니다."
+      }
+    ],
+    "afterState": [
+      {
+        "selector": "#opsVlmEvaluationPromotionGuardStatus",
+        "exists": true,
+        "visible": true,
+        "text": "promotion guard: server-verified-evaluation-promotion / flow=operator-select-candidate-then-server-verify-save / serverVerification=true / clientDeclaredEvaluationRejected=true / runtimeCall=false / providerCall=false"
+      },
+      {
+        "selector": "#opsVlmEvaluationSelectionSummary",
+        "exists": true,
+        "visible": true,
+        "text": "추천 평가 후보 eval-qwen8b-event-review-default; 아직 profile draft에는 반영하지 않았습니다."
+      }
+    ],
+    "title": "운영 콘솔",
+    "assertionModel": "visible-dom-user-action-v1",
+    "visibleAssertions": [
+      {
+        "selector": "#opsVlmEvaluationPromotionGuardStatus",
+        "exists": true,
+        "visible": true,
+        "text": "promotion guard: server-verified-evaluation-promotion / flow=operator-select-candidate-then-server-verify-save / serverVerification=true / clientDeclaredEvaluationRejected=true / runtimeCall=false / providerCall=false",
+        "textNotEmpty": true,
+        "expectedTextIncludes": [
+          "operator-select-candidate-then-server-verify-save"
+        ],
+        "missingText": [],
+        "pass": true,
+        "sourceBoundary": "exact-selector-visible-innerText-only"
+      },
+      {
+        "selector": "#opsVlmEvaluationSelectionSummary",
+        "exists": true,
+        "visible": true,
+        "text": "추천 평가 후보 eval-qwen8b-event-review-default; 아직 profile draft에는 반영하지 않았습니다.",
+        "textNotEmpty": true,
+        "expectedTextIncludes": [],
+        "missingText": [],
+        "pass": true,
+        "sourceBoundary": "exact-selector-visible-innerText-only"
+      }
+    ]
+  }
+}
