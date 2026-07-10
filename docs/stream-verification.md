@@ -327,6 +327,14 @@ conditional 120 decision, cleanup/report를 PASS했습니다. `knownUiClosureBlo
 `not-run`으로 남겼습니다. 첫 시도의 local HTTP H264/AAC `/opus` 20초 timeout은 상위
 fail-fast로 뒤 UI/replay를 중단했고 clean 재시도에서 동일 경로와 전체 묶음이 통과했습니다.
 
+Evidence 14 canonical 첫 실행은 source `b6cac906`에서 build와 26개 feature gate를
+통과한 뒤 30분 runner의 통합 smoke 선행 `verify-code-comments`가 Policy v4 library의
+상단 용도 주석 누락 1건을 검출해 중단했습니다. UI/replay/120분은 `not-run`이며 child
+longrun의 server/port/predev temp cleanup은 실측 PASS였습니다. 복구 runner는 실패 child
+summary도 cleanup 근거로 읽고, 재시도 전 최초 실패 command/context/reproduction 및 진단
+artifact hash/tail을 canonical root의 `first-failure.json`/`first-failure.md`로 보존합니다.
+이 기록은 재시도 PASS를 최초 실행 PASS로 바꾸지 않습니다.
+
 ### v3.9.0 R4 longrun runner role alignment
 
 R4 선택: option 3.

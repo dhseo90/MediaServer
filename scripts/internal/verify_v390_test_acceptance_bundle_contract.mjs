@@ -157,6 +157,31 @@ check("actual-mode fixture stops on first failure and still runs cleanup/report"
   fs.rmSync(outputDir, { recursive: true, force: true });
 });
 
+check("rerun preserves the earliest first failure after canonical output replacement", () => {
+  const outputDir = fixtureDir("preserved-first-fail");
+  const failed = runBundle(["--output-dir", outputDir, "--fixture-fail-stage", "feature-gates"]);
+  assert(failed.status !== 0, "first fixture run must fail");
+
+  const passed = runBundle(["--output-dir", outputDir, "--fixture-pass"]);
+  assert(passed.status === 0, `retry fixture must pass: ${passed.stderr}`);
+  const summary = readJson(path.join(outputDir, "summary.json"));
+  const firstFailurePath = path.join(outputDir, "first-failure.json");
+  const firstFailureReportPath = path.join(outputDir, "first-failure.md");
+  assert(summary.result === "PASS", "retry summary must pass");
+  assert(summary.firstFailure === null, "retry execution must not claim a current failure");
+  assert(summary.priorFirstFailure?.failedStage === "feature-gates", "earliest failure stage was not preserved");
+  assert(summary.priorFirstFailure?.firstFailure?.command === "fixture fail feature-gates", "earliest failure command was not preserved");
+  assert(summary.outputPreparation?.previousFailurePreserved === true, "output preparation must record preserved failure evidence");
+  assert(fs.existsSync(firstFailurePath), "first-failure.json must survive the retry");
+  assert(fs.existsSync(firstFailureReportPath), "first-failure.md must survive the retry");
+  const preserved = readJson(firstFailurePath);
+  assert(preserved.schema === "media-server.v390-acceptance-first-failure.v1", "preserved failure schema mismatch");
+  assert(preserved.failedStage === "feature-gates", "preserved failure stage mismatch");
+  assert(preserved.firstFailure?.context?.includes("fixture failure at feature-gates"), "preserved failure context missing");
+  assert(readTextFile(firstFailureReportPath).includes("fixture fail feature-gates"), "preserved failure report command missing");
+  fs.rmSync(outputDir, { recursive: true, force: true });
+});
+
 check("actual-mode fixture runs explicit 120 and rejects cleanup failure", () => {
   const run120Dir = fixtureDir("run-120");
   const run120 = runBundle(["--output-dir", run120Dir, "--fixture-pass", "--run-120"]);
@@ -243,6 +268,10 @@ function readText(relativePath) {
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
+}
+
+function readTextFile(filePath) {
+  return fs.readFileSync(filePath, "utf8");
 }
 
 function fixtureDir(label) {

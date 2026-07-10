@@ -1,7 +1,7 @@
 {
   "schema": "media-server.feature-implementation-evidence.v1",
   "expectedFeatureRows": 974,
-  "inventorySha256": "8c00e933391e9897be3c679768854f094c0ed15bc4e978efb764cd77f1dba6ba",
+  "inventorySha256": "1699f2c807d2aba9758f04101680885b3146ad5ef5c53d2752d77a7d9345e9dd",
   "generatedFrom": "docs/project-feature-test-inventory.md",
   "generationPolicy": "explicit-refresh-only; verifier never rewrites this manifest",
   "executionEvidenceStatus": "not-execution-evidence",

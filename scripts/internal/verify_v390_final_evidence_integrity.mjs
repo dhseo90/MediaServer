@@ -62,6 +62,29 @@ check("first failure record matches summary state", () => {
   assert(Boolean(summary.firstFailure?.reproductionCommand), "first failure reproduction command missing");
 });
 
+check("recovered retry preserves its earliest first failure", () => {
+  if (summary.outputPreparation?.previousFailurePreserved !== true) {
+    assert(summary.priorFirstFailure === null || summary.priorFirstFailure === undefined, "unexpected prior first failure without replacement record");
+    return;
+  }
+  const prior = summary.priorFirstFailure;
+  assert(prior?.schema === "media-server.v390-acceptance-first-failure.v1", "prior first failure schema mismatch");
+  assert(Boolean(prior.failedStage), "prior failed stage missing");
+  assert(Boolean(prior.firstFailure?.command), "prior failure command missing");
+  assert(Boolean(prior.firstFailure?.context), "prior failure context missing");
+  assert(Boolean(prior.firstFailure?.reproductionCommand), "prior failure reproduction command missing");
+  assert(Array.isArray(prior.diagnosticArtifacts) && prior.diagnosticArtifacts.length > 0, "prior failure diagnostic snapshots missing");
+  assert(prior.diagnosticArtifacts.every(item => /^[a-f0-9]{64}$/.test(String(item.sha256 || "")) && Number(item.bytes) >= 0 && Array.isArray(item.tail)), "prior failure diagnostic snapshot incomplete");
+  const preservedPaths = summary.outputPreparation?.preservedFirstFailurePaths || [];
+  assert(preservedPaths.length === 2, "preserved first failure path set mismatch");
+  for (const filePath of preservedPaths) {
+    const resolved = path.resolve(filePath);
+    const relative = path.relative(outputDir, resolved);
+    assert(relative && !relative.startsWith("..") && !path.isAbsolute(relative), `preserved first failure path escapes output: ${resolved}`);
+    assert(fs.existsSync(resolved), `preserved first failure file missing: ${resolved}`);
+  }
+});
+
 check("canonical artifacts contain no duplicate screenshots or video placeholders", () => {
   const scan = scanArtifactTree(outputDir);
   assert(scan.duplicateScreenshotFiles === 0, `duplicate screenshot files remain: ${JSON.stringify(scan.duplicateScreenshotGroups)}`);

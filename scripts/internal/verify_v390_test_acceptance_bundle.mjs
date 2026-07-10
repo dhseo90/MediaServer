@@ -14,6 +14,7 @@ import {
   isInside,
   listFiles,
   scanArtifactTree,
+  sha256File,
 } from "./evidence_integrity_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -94,6 +95,7 @@ let uiAutomationSummary = null;
 let longrun120Summary = null;
 
 const sourceProvenance = collectSourceProvenance(rootDir);
+const priorFirstFailure = options.dryRun ? null : readPriorFirstFailure();
 const outputPreparation = options.dryRun ? {
   replacedExisting: false,
   removedFiles: 0,
@@ -102,7 +104,10 @@ const outputPreparation = options.dryRun ? {
   removedDuplicateScreenshotFiles: 0,
   removedPlaceholderVideoFiles: 0,
   verificationSource: "dry-run-does-not-replace-output",
+  previousFailurePreserved: false,
+  preservedFirstFailurePaths: [],
 } : prepareOutputRoot();
+if (priorFirstFailure) writePriorFirstFailure(priorFirstFailure);
 fs.mkdirSync(runDir, { recursive: true });
 
 if (options.dryRun) {
@@ -177,8 +182,8 @@ async function runRealStage(stageId) {
       "--duration-minutes", "30",
       "--output-dir", childDir,
     ]), childSummaryPath);
+    if (fs.existsSync(childSummaryPath)) longrun30Summary = readJson(childSummaryPath);
     if (!failedStage) {
-      longrun30Summary = readJson(childSummaryPath);
       const errors = validateLongrunSummary(longrun30Summary, 30, childDir);
       if (errors.length > 0) replaceStageWithValidationFailure(stageId, errors.join("; "));
     }
@@ -195,8 +200,8 @@ async function runRealStage(stageId) {
     ];
     if (options.allowChromeFallback) args.push("--allow-chrome-fallback=1");
     await runSingleCommandStage(stageId, command("./server.sh", args), childSummaryPath);
+    if (fs.existsSync(childSummaryPath)) uiAutomationSummary = readJson(childSummaryPath);
     if (!failedStage) {
-      uiAutomationSummary = readJson(childSummaryPath);
       const errors = validateUiSummary(uiAutomationSummary, childDir);
       if (errors.length > 0) replaceStageWithValidationFailure(stageId, errors.join("; "));
     }
@@ -231,8 +236,8 @@ async function runRealStage(stageId) {
       "--duration-minutes", "120",
       "--output-dir", childDir,
     ]), childSummaryPath);
+    if (fs.existsSync(childSummaryPath)) longrun120Summary = readJson(childSummaryPath);
     if (!failedStage) {
-      longrun120Summary = readJson(childSummaryPath);
       const errors = validateLongrunSummary(longrun120Summary, 120, childDir);
       if (errors.length > 0) replaceStageWithValidationFailure(stageId, errors.join("; "));
     }
@@ -434,6 +439,7 @@ function buildActualSummary() {
     stages,
     executedCommands: buildExecutedCommandLedger(),
     firstFailure,
+    priorFirstFailure,
     localReadiness: stageStatus("feature-gates"),
     longrun30: childEvidence("server-longrun-30", longrun30Summary),
     uiAutomation: childEvidence("ui-automation", uiAutomationSummary),
@@ -526,6 +532,9 @@ function validateUiSummary(payload, childDir) {
 
 function validateChildCleanup() {
   const errors = [];
+  if (!fixtureMode && stageWasAttempted("server-longrun-30") && !longrun30Summary) errors.push("30-minute child cleanup summary missing");
+  if (!fixtureMode && stageWasAttempted("ui-automation") && !uiAutomationSummary) errors.push("UI child cleanup summary missing");
+  if (!fixtureMode && stageWasAttempted("server-longrun-120") && !longrun120Summary) errors.push("120-minute child cleanup summary missing");
   if (!fixtureMode && longrun30Summary && (longrun30Summary.cleanup?.serverStopped !== true || longrun30Summary.cleanup?.portsClean !== true || longrun30Summary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("30-minute child cleanup failed");
   if (!fixtureMode && uiAutomationSummary && (uiAutomationSummary.cleanup?.coreServerStopped !== true || uiAutomationSummary.cleanup?.portsClean !== true || uiAutomationSummary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("UI child cleanup failed");
   if (!fixtureMode && longrun120Summary && (longrun120Summary.cleanup?.serverStopped !== true || longrun120Summary.cleanup?.portsClean !== true || longrun120Summary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("120-minute child cleanup failed");
@@ -537,6 +546,7 @@ function validateChildCleanup() {
 
 function cleanupEvidence() {
   const preservedArtifacts = [summaryPath, reportPath];
+  if (priorFirstFailure) preservedArtifacts.push(path.join(outputDir, "first-failure.json"), path.join(outputDir, "first-failure.md"));
   if (longrun30Summary?.summaryPath) preservedArtifacts.push(longrun30Summary.summaryPath, longrun30Summary.reportPath);
   if (uiAutomationSummary?.summaryPath) preservedArtifacts.push(uiAutomationSummary.summaryPath, uiAutomationSummary.reportPath);
   if (longrun120Summary?.summaryPath) preservedArtifacts.push(longrun120Summary.summaryPath, longrun120Summary.reportPath);
@@ -574,7 +584,7 @@ function prepareOutputRoot() {
     duplicateScreenshotFiles: 0,
     placeholderVideoFiles: [],
   };
-  const retainedNames = new Set(["summary.json", "report.md"]);
+  const retainedNames = new Set(["summary.json", "report.md", "first-failure.json", "first-failure.md"]);
   const retainedFiles = [];
   if (existed) {
     for (const entry of fs.readdirSync(outputDir, { withFileTypes: true })) {
@@ -596,8 +606,97 @@ function prepareOutputRoot() {
     removedDuplicateScreenshotFiles: before.duplicateScreenshotFiles,
     removedPlaceholderVideoFiles: before.placeholderVideoFiles.length,
     retainedUntilReportWrite: retainedFiles,
+    previousFailurePreserved: priorFirstFailure !== null,
+    preservedFirstFailurePaths: priorFirstFailure
+      ? [path.join(outputDir, "first-failure.json"), path.join(outputDir, "first-failure.md")]
+      : [],
     verificationSource: "filesystem-scan-before-remove-and-absence-after-remove",
   };
+}
+
+function readPriorFirstFailure() {
+  const preservedPath = path.join(outputDir, "first-failure.json");
+  if (fs.existsSync(preservedPath)) {
+    const preserved = readJson(preservedPath);
+    if (preserved?.schema === "media-server.v390-acceptance-first-failure.v1") return preserved;
+  }
+
+  const existingSummaryPath = path.join(outputDir, "summary.json");
+  if (!fs.existsSync(existingSummaryPath)) return null;
+  const existing = readJson(existingSummaryPath);
+  if (existing?.result !== "FAIL" || !existing?.firstFailure) return null;
+  const failedStageRecord = (existing.stages || []).find(item => item.id === existing.failedStage && item.status === "FAIL");
+  const childSummaryPath = failedStageRecord?.summaryPath || "";
+  const child = childSummaryPath && fs.existsSync(childSummaryPath) ? readJson(childSummaryPath) : null;
+  const diagnosticPaths = new Set();
+  for (const candidate of [
+    existing.firstFailure?.logPath,
+    child?.failure?.logPath,
+    child?.delegatedFailure?.logFile,
+    child?.delegatedFailure?.stdoutFile,
+    child?.delegatedFailure?.stderrFile,
+  ]) {
+    if (candidate && fs.existsSync(candidate) && fs.statSync(candidate).isFile()) diagnosticPaths.add(candidate);
+  }
+  const diagnosticArtifacts = [...diagnosticPaths].map(filePath => ({
+    originalPath: filePath,
+    bytes: fs.statSync(filePath).size,
+    sha256: sha256File(filePath),
+    tail: fs.readFileSync(filePath, "utf8").split(/\r?\n/).filter(Boolean).slice(-200),
+  }));
+  return {
+    schema: "media-server.v390-acceptance-first-failure.v1",
+    recordedAt: new Date().toISOString(),
+    capturedFromSummary: existingSummaryPath,
+    sourceProvenance: existing.sourceProvenance || null,
+    acceptanceCommand: existing.command || "",
+    failedStage: existing.failedStage || "",
+    failedCommand: existing.failedCommand || "",
+    firstFailure: existing.firstFailure,
+    childFailure: child?.failure || null,
+    delegatedFailure: child?.delegatedFailure || null,
+    cleanup: {
+      acceptance: existing.cleanup || null,
+      child: child?.cleanup || null,
+    },
+    diagnosticArtifacts,
+  };
+}
+
+function writePriorFirstFailure(payload) {
+  const jsonPath = path.join(outputDir, "first-failure.json");
+  const markdownPath = path.join(outputDir, "first-failure.md");
+  fs.mkdirSync(outputDir, { recursive: true });
+  writeJson(jsonPath, payload);
+  const lines = [
+    "# v3.9.0 Acceptance First Failure",
+    "",
+    `schema: ${payload.schema}`,
+    `recordedAt: ${payload.recordedAt}`,
+    `sourceCommitSha: ${payload.sourceProvenance?.commitSha || ""}`,
+    `failedStage: ${payload.failedStage || ""}`,
+    `failedCommand: ${payload.failedCommand || ""}`,
+    `reproductionCommand: ${payload.firstFailure?.reproductionCommand || ""}`,
+    `context: ${payload.firstFailure?.context || ""}`,
+    `childFailurePhase: ${payload.childFailure?.phase || ""}`,
+    `childFailureCase: ${payload.childFailure?.case || ""}`,
+    `childCleanupStatus: ${payload.cleanup?.child?.status || ""}`,
+    "",
+    "## Diagnostic artifact snapshots",
+    "",
+    ...(payload.diagnosticArtifacts || []).flatMap(item => [
+      `### ${item.originalPath}`,
+      "",
+      `bytes: ${item.bytes}`,
+      `sha256: ${item.sha256}`,
+      "",
+      "```text",
+      ...item.tail,
+      "```",
+      "",
+    ]),
+  ];
+  fs.writeFileSync(markdownPath, `${lines.join("\n").replace(/\n+$/, "")}\n`, "utf8");
 }
 
 function buildExecutedCommandLedger() {
@@ -754,6 +853,8 @@ function notRunStage(id, reason) {
 function makeStage(fields) { return fields; }
 
 function stageStatus(id) { return stages.find(item => item.id === id)?.status || "not-run"; }
+
+function stageWasAttempted(id) { return ["PASS", "FAIL"].includes(stageStatus(id)); }
 
 function childEvidence(id, payload) {
   return { status: stageStatus(id), summaryPath: payload?.summaryPath || "", reportPath: payload?.reportPath || "", result: payload?.result || "" };

@@ -1,3 +1,5 @@
+// 파일 용도: UI fulltest Evidence Policy v4와 실행 evidence의 적격성을 검증한다.
+
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";

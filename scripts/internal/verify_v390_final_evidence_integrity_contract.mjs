@@ -80,6 +80,26 @@ check("failed cleanup and missing source commit are rejected", () => {
   assert(runIntegrity(workspace, true).status !== 0, "failed cleanup/missing commit must fail");
 });
 
+check("preserved first failure files are required after a recovered retry", () => {
+  const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "media-server-v390-final-integrity-recovered-"));
+  workspaces.push(workspace);
+  const failed = spawnSync(path.join(rootDir, "server.sh"), [
+    "verify-v390-test-acceptance-bundle",
+    "--output-dir", workspace,
+    "--fixture-fail-stage", "feature-gates",
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(failed.status !== 0, "recovered fixture first execution must fail");
+  const passed = spawnSync(path.join(rootDir, "server.sh"), [
+    "verify-v390-test-acceptance-bundle",
+    "--output-dir", workspace,
+    "--fixture-pass",
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(passed.status === 0, `recovered fixture retry failed: ${passed.stdout}\n${passed.stderr}`);
+  assert(runIntegrity(workspace, true).status === 0, "recovered fixture integrity must pass with preserved failure files");
+  fs.rmSync(path.join(workspace, "first-failure.md"), { force: true });
+  assert(runIntegrity(workspace, true).status !== 0, "missing first-failure.md must fail integrity verification");
+});
+
 const result = runChecks();
 console.log("");
 console.log("== v3.9.0 final evidence integrity contract summary ==");
