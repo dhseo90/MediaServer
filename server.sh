@@ -160,6 +160,10 @@ Usage:
                  V390-ADD1-11 current UI route/control/action coverage matrix를 생성·검증합니다.
   verify-v390-ui-automation-coverage-contract
                  V390-ADD1-11 coverage 누락·route drift·artifact 누락 계약을 검증합니다.
+  verify-ui-fulltest-evidence-policy-v4
+                 V390-ADD1-12 Policy v4 UI 대체 evidence 자격과 현재 부분 coverage를 판정합니다.
+  verify-ui-fulltest-evidence-policy-v4-contract
+                 V390-ADD1-12 Policy v4 false-PASS negative contract를 검증합니다.
   verify-v390-ui-native-adapter
                  V390-ADD1-08 native Playwright wait/click/fill/select/screenshot을 실제 검증합니다.
   verify-v390-ui-native-adapter-contract
@@ -406,6 +410,10 @@ Usage:
                  V390-ADD1-11 current UI route/control/action coverage matrix를 생성·검증합니다.
   verify-v390-ui-automation-coverage-contract
                  V390-ADD1-11 coverage 누락·route drift·artifact 누락 계약을 검증합니다.
+  verify-ui-fulltest-evidence-policy-v4
+                 V390-ADD1-12 Policy v4 UI 대체 evidence 자격과 현재 부분 coverage를 판정합니다.
+  verify-ui-fulltest-evidence-policy-v4-contract
+                 V390-ADD1-12 Policy v4 false-PASS negative contract를 검증합니다.
   verify-v390-ui-automation-report-replay-guard
                  v3.9.0 R5 UI automation report replay guard contract를 검증합니다.
   verify-v390-ui-native-adapter
@@ -2009,6 +2017,14 @@ case "${cmd}" in
   verify-v390-ui-automation-coverage-contract)
     require_internal verify_v390_ui_automation_coverage_contract.mjs
     exec "${INTERNAL_DIR}/verify_v390_ui_automation_coverage_contract.mjs" "$@"
+    ;;
+  verify-ui-fulltest-evidence-policy-v4)
+    require_internal verify_ui_fulltest_evidence_policy_v4.mjs
+    exec "${INTERNAL_DIR}/verify_ui_fulltest_evidence_policy_v4.mjs" "$@"
+    ;;
+  verify-ui-fulltest-evidence-policy-v4-contract)
+    require_internal verify_ui_fulltest_evidence_policy_v4_contract.mjs
+    exec "${INTERNAL_DIR}/verify_ui_fulltest_evidence_policy_v4_contract.mjs" "$@"
     ;;
   verify-v390-ui-automation-report-replay-guard)
     require_internal verify_v390_ui_automation_report_replay_guard_contract.mjs

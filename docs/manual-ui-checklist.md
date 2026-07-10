@@ -17,17 +17,20 @@ Required Closeout의 `V390-REQ-001`, `V390-REQ-002`, `V390-REQ-003`은 manual UI
 기준서 current화, 장시간/UI 테스트 시작 조건 current화, `v3.5-v3.8 UI coverage bridge`
 정렬을 닫는 문서/test-source gate입니다.
 문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
-현재 제품 UI 직접 조작 evidence 없이 완료 판정에 포함하지 않습니다.
+현재 제품 UI actual-browser evidence 없이 완료 판정에 포함하지 않습니다. Evidence mode는
+`direct-browser`, `qualified-native-automation`, `hybrid` 중 하나이며 자동화 mode는
+`AGENTS.md` 7.6.3 Policy v4 qualifier를 통과해야 합니다.
 전용 throwaway 서버부터 core/auth 클릭 검증까지 한 번에 실행해야 할 때는
 `./server.sh verify-ui-fulltest-one-shot --output-dir <dir>`을 사용합니다.
 이 wrapper는 UI 풀테스트 선수/보조 verifier 묶음만 실행하며 30분/120분 장시간
 테스트는 실행하지 않습니다.
 
-UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라우저에서 제품
-화면을 직접 열고 클릭과 타이핑으로 수행하는 end-to-end 검수입니다. API-only
-확인, screenshot 생성만 있는 항목, 열지 않은 화면은 `FAIL`입니다. Evidence index에는
-`/setup`, `/login`, `/ops`, `/client`, `/ops/rules`, `/client/live` route를 포함해 실제로
-열고 조작한 화면만 기록합니다. raw JSON/API-only 확인만 있는 항목의 판정은 `PASS` 또는 `FAIL`만 사용합니다.
+UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라 실제 브라우저에서 제품 화면을
+열고 클릭과 타이핑으로 수행하는 end-to-end 검수입니다. 인앱 직접 조작 또는 Policy v4
+적격 자동화만 case evidence가 될 수 있습니다. API-only 확인, screenshot 생성만 있는
+항목, 열지 않은 화면은 `FAIL`입니다. Evidence index에는 `/setup`, `/login`, `/ops`,
+`/client`, `/ops/rules`, `/client/live` route를 포함해 실제로 열고 조작한 화면과 evidence
+mode를 기록합니다.
 스크립트 테스트, 30분 안정화, 120분 장시간 테스트는
 [stream-verification.md](./stream-verification.md)의 별도 영역입니다. UI 풀테스트와
 스크립트 안정화 테스트는 서로 대체하지 않으며 결과 문서에서 판정을 분리합니다.
@@ -71,8 +74,9 @@ UI 풀테스트도 버전 로드맵 완료 시 수행 대상이지만, 실제 �
   integrator role guard, 320px/390px/760px/1180px viewport, light/dark theme,
   nav/tab/button/menu/details, textbox/textarea/password, select/checkbox/toggle/
   segmented control, copy/export/preview/play/stop/reconnect action을 개별 기능
-  행으로 기록합니다. raw JSON/API-only/static smoke/screenshot-only/Chrome fallback은
-  UI 풀테스트 PASS로 쓰지 않습니다.
+  행으로 기록합니다. raw JSON/API-only/static smoke/screenshot-only는 UI 풀테스트 PASS로
+  쓰지 않습니다. 외부 browser runner는 Policy v4 qualifier를 통과한 경우에만 exact case
+  대체 evidence가 됩니다.
 
 ## 2. 데이터 리셋과 서버 준비
 
@@ -194,27 +198,27 @@ UI 풀테스트 결과 문서를 쓰기 전에는 아래 항목이 개별 route/
 | V220-F05 | `/client/live`, `/client/dashboard`, `/client/events` admin preview, viewer-safe 비노출 |
 | V220-F06 | 기능 inventory, manual UI checklist, UI 풀테스트 결과 기록 기준 |
 
-30분 soak, 120분 longrun, 인앱 브라우저 UI 풀테스트를 실행하지 않았으면 결과 문서의
+30분 soak, 120분 longrun, Policy v4-qualified UI 풀테스트를 실행하지 않았으면 결과 문서의
 스크립트 테스트 또는 UI 풀테스트 영역에 PASS로 쓰지 않고 `미실행`으로 남깁니다.
 
 ## 3. 실행 원칙
 
-- 모든 웹 UI 검수는 인앱 브라우저에서 수행합니다.
-- Codex가 실행하는 검수는 인앱 브라우저 evidence를 우선합니다. Codex 밖에서 사용자가
-  직접 실행하는 자동 검수는 Chrome/CDP를 사용할 수 있습니다.
-- Codex 세션에서 Chrome/CDP가 꼭 필요한 예외는 `MEDIA_SERVER_UI_BROWSER_MODE=chrome`과
-  `MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1`을 함께 남긴 경우로 제한하고, 결과 문서에
-  왜 인앱 브라우저가 아닌지 기록합니다.
+- 웹 UI 검수는 실제 브라우저에서 수행하고 evidence mode를 기록합니다.
+- Codex가 실행하는 검수는 인앱 브라우저 direct evidence를 우선합니다. Playwright,
+  Selenium, Chrome/CDP actual runner도 Policy v4 qualifier를 통과하면 exact case 대체
+  evidence가 될 수 있습니다.
+- adapter engine/version/fallback/provenance와 qualifier 결과를 기록합니다. 도구 이름만으로
+  PASS하지 않고 fallback 또는 manual intervention을 숨기지 않습니다.
 - 클릭, 타이핑, select 변경, checkbox/toggle, copy button, nav 이동, route guard를
   실제 UI 조작으로 확인합니다.
 - 모든 결과는 개별 기능, route, control, action 단위로 기록합니다. 카테고리 묶음
   판정은 금지합니다. `Auth PASS`, `Rules FAIL`처럼 묶지 않고 기능 ID별 개별 행으로
   `PASS` 또는 `FAIL`만 적습니다.
-- 개별 기능은 인앱 브라우저에서 실행하고, 실제 수행 결과가 제품 상태에 반영됐는지
-  확인하고, 관련 로그 또는 이벤트 이력을 확인해야 `PASS`입니다. 하나라도 빠지면
-  `FAIL`입니다.
-- 자동 스크립트는 보조 evidence입니다. 자동 smoke 통과만으로 화면을 확인했다고
-  쓰지 않습니다.
+- 개별 기능은 actual browser에서 실행하고, 실제 수행 결과가 제품 상태에 반영됐는지
+  completion oracle로 확인하고, 관련 로그 또는 이벤트 이력을 확인해야 `PASS`입니다.
+  자동화 case는 추가로 Policy v4 qualifier를 통과해야 하며 하나라도 빠지면 `FAIL`입니다.
+- 정적/부분 자동 스크립트는 보조 evidence입니다. 자동 smoke 통과만으로 화면을
+  확인했다고 쓰지 않습니다.
 - `verify-predev --soak-minutes 30`, `verify-predev --soak-minutes 120`,
   `verify-va-runtime-console-longrun --duration-minutes 120`은 스크립트 안정화
   테스트입니다. 실행 여부와 PASS/FAIL은 UI 풀테스트 판정과 별도 섹션에 기록합니다.
@@ -307,7 +311,7 @@ Codex 세션의 UI 조작 evidence는 인앱 브라우저 직접 조작을 우�
 
 아래 표는 v2.7.0 UI route/control/action 누락을 막기 위한 기준입니다. 각 행은 인앱
 브라우저에서 직접 클릭/타이핑/선택하고, 실제 화면 상태와 관련 로그 또는 EventRecord/
-감사 이력에 반영됐을 때만 `PASS`입니다. raw JSON/API-only/static smoke/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.
+감사 이력에 반영됐을 때만 `PASS`입니다. raw JSON/API-only/static smoke/Policy v4 미적격 browser fallback은 UI 풀테스트 PASS로 쓰지 않습니다.
 
 | Roadmap scope | Feature IDs | Route | 직접 확인할 control/action | 자동 verifier 연결 |
 | --- | --- | --- | --- | --- |
@@ -320,7 +324,7 @@ Codex 세션의 UI 조작 evidence는 인앱 브라우저 직접 조작을 우�
 
 아래 표는 v2.8.0 Operator-Supervised Action Readiness UI 풀테스트 기준입니다. 각 행은 인앱
 브라우저에서 직접 클릭/타이핑/선택하고, 실제 화면 상태와 관련 로그 또는 EventRecord/
-감사 이력에 반영됐을 때만 `PASS`입니다. raw JSON/API-only/static smoke/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.
+감사 이력에 반영됐을 때만 `PASS`입니다. raw JSON/API-only/static smoke/Policy v4 미적격 browser fallback은 UI 풀테스트 PASS로 쓰지 않습니다.
 
 | V280-S02 Incident Action Readiness Queue | `UI-055`, `EVT-055`, `LAB-079`, `SAFE-065` | `/ops/events` | Incident Action Readiness Queue card, ready/blocked/field-smoke-needed/not-run count, blockerReasons, fieldSmokeRequired, follow-up 후보, manual approval required, external delivery/auto action write 없음, client/viewer 비노출 | `verify-v280-incident-action-readiness-queue`, `verify-ops-client-ui` |
 | V280-S03 Approval-gated Rule Draft Readiness | `UI-056`, `RULE-104`, `EVT-056`, `LAB-080`, `SAFE-066` | `/ops/events`, `/ops/rules` | Approval-gated Rule Draft Readiness card, approvalState, validationSummary, stagedDraft, `/ops/rules` approvalDraft context, no-auto-save/no-auto-apply, full replay 미실행, rule/profile registry 자동 write 없음, client/viewer 비노출 | `verify-v280-approval-gated-rule-draft`, `verify-v270-rule-what-if-preview`, `verify-rule-ui`, `verify-ops-client-ui` |
@@ -332,7 +336,7 @@ Codex 세션의 UI 조작 evidence는 인앱 브라우저 직접 조작을 우�
 아래 표는 v3.1.0 Encoded Event Clip and Safe Sharing Expansion UI 풀테스트 기준입니다. 각 행은
 인앱 브라우저에서 직접 클릭/타이핑/선택하고, 실제 화면 상태와 관련 로그 또는
 EventRecord/감사 이력에 반영됐을 때만 `PASS`입니다. raw JSON/API-only/static smoke/
-Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.
+Policy v4 qualifier를 통과하지 않은 Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.
 
 | V310-S04 Client-safe Event Digest | `CLIENT-025`, `SAFE-096` | `/client/live`, `/client/dashboard`, `/client/events` | Client-safe Event Digest card, `eventDigest`, `media-server.client.event-digest.v1`, summaryText/eventType/status/severity/timelineHint/time만 표시, source/raw/debug/provider/feature provenance/encoded clip path/rule editor/action control 비노출, viewer PublishedView scope 유지 | `verify-v310-client-safe-event-digest`, `verify-v250-client-safe-incident-digest`, `verify-v280-client-safe-followup-digest`, `verify-ops-client-ui` |
 | V310-S06 Operator Feature Correction | `UI-061`, `EVT-061`, `SAFE-098`, `OPS-065` | `/ops/events` | Operator Feature Correction card, event review row의 correctedFeatureLabel/featureAliases/reanalysisRequested/reanalysisReason controls, 기존 review 저장 버튼 반영, audit `operator-feature-correction-update`, EventRecord/Event POST/WebRTC/SSE/WS/media path/client viewer 노출 변경 없음 | `verify-v310-operator-feature-correction`, `verify-ops-client-ui` |
@@ -340,7 +344,7 @@ Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.
 아래 표는 v3.2.0 Operations Resolution Workspace UI 풀테스트 기준입니다. 각 행은 인앱
 브라우저에서 직접 클릭/타이핑/선택하고, 실제 화면 상태와 관련 로그 또는 EventRecord/
 감사 이력에 반영됐을 때만 `PASS`입니다. raw JSON/API-only/static smoke/
-Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.
+Policy v4 qualifier를 통과하지 않은 Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.
 
 | V320 Step 3 Unified Ops Events Workspace | `UI-062`, `EVT-064`, `SAFE-104`, `OPS-071` | `/ops/events` | Resolution queue/detail/timeline workspace, resolution status/reason context, timeline row/detail 전환, client/viewer 비노출, source URL/raw JSON/debug material 비노출 | `verify-v320-unified-ops-events-workspace`, `verify-ops-client-ui` |
 | V320 Step 4 Evidence Quality Layer | `UI-063`, `EVT-065`, `SAFE-105`, `OPS-072` | `/ops/events` | Evidence Quality card, completeness/confidence/replay coverage hint, evidence 상태 badge, 부족 evidence hint 표시, client/viewer 비노출, raw evidence/source/debug/provider material 비노출 | `verify-v320-evidence-quality-layer`, `verify-ops-client-ui` |
@@ -371,7 +375,7 @@ UI 풀테스트 기준입니다. 정적 verifier나 API 응답만으로 PASS 처
 
 아래 표는 v2.6.0 UI route/control/action 누락을 막기 위한 기준입니다. 각 행은 인앱
 브라우저에서 직접 클릭/타이핑/선택하고, 실제 화면 상태와 관련 로그 또는 EventRecord/
-감사 이력에 반영됐을 때만 `PASS`입니다. raw JSON/API-only/static smoke/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.
+감사 이력에 반영됐을 때만 `PASS`입니다. raw JSON/API-only/static smoke/Policy v4 미적격 browser fallback은 UI 풀테스트 PASS로 쓰지 않습니다.
 
 | Roadmap scope | Feature IDs | Route | 직접 확인할 control/action | 자동 verifier 연결 |
 | --- | --- | --- | --- | --- |

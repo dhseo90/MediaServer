@@ -503,6 +503,8 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_v390_ui_automation_runner_contract.mjs",
     "verify_v390_ui_automation_coverage.mjs",
     "verify_v390_ui_automation_coverage_contract.mjs",
+    "verify_ui_fulltest_evidence_policy_v4.mjs",
+    "verify_ui_fulltest_evidence_policy_v4_contract.mjs",
     "verify_v390_ui_automation_report_replay_guard_contract.mjs",
     "verify_v390_test_acceptance_bundle.mjs",
     "verify_v390_test_acceptance_bundle_contract.mjs",

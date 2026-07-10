@@ -88,6 +88,20 @@ git diff --check
 이미지 검수와 `verify-docs-ui-assets` 재실행 결과를 별도 release test record에
 남깁니다.
 
+## Policy v4 UI evidence release gate
+
+UI 풀테스트는 안정화/30분/120분과 분리된 기존 UI 테스트 영역을 유지합니다.
+`AGENTS.md` 7.6.3에 따라 direct-browser, qualified-native-automation, hybrid evidence를
+허용하되 도구 이름이 아니라 exact case별 실제 조작과 evidence 품질로 판정합니다.
+
+Release UI PASS에는 현재 exact UI test ID 전수의 direct 또는 automation-equivalent
+PASS, fail/not-run/unsupported/unapproved exclusion/manual intervention 0, source binding,
+completion oracle, role/viewport/theme, artifact integrity/redaction, visual/replay/cleanup,
+교차 반응형·시각·role·client redaction·video/overlay·accessibility closure가 필요합니다.
+`./server.sh verify-ui-fulltest-evidence-policy-v4`의 policy validation PASS는 이 실행
+PASS를 대신하지 않으며 출력의 `uiFulltestPass=true`를 별도로 확인해야 합니다.
+Policy v4 전 historical evidence는 당시 결과로 보존하고 소급 승격하지 않습니다.
+
 ## 릴리즈 테스트 기록
 
 테스트 항목 상세와 버전별 테스트 결과는
@@ -406,7 +420,7 @@ Companion local gate:
 git diff --check
 ```
 
-v3.9.0 Step 20 local readiness gate는 UI 풀테스트 직접 조작, 30분/120분 longrun,
+v3.9.0 Step 20 local readiness gate는 Policy v4-qualified UI fulltest 실행, 30분/120분 longrun,
 published metadata, PR/main/tag/GitHub Release, field smoke 실행 evidence를 대체하지
 않습니다.
 

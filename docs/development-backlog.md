@@ -143,6 +143,29 @@ UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release a
 | 9 | V390-ADD1-09 | UI Test | 거짓 PASS 방지 | P0 | 완료 | case schema v3 exact-selector `visibleAssertions`와 trusted native action 뒤 computed visibility/visible innerText만 판정하며 source/script/outerHTML/whole-page marker PASS를 negative contract로 거부 |
 | 10 | V390-ADD1-10 | Test Foundation | Longrun first-fail 진단 실행기 | P0 | 완료 | delegated duration case의 첫 실패 직후 후속 case를 실행하지 않고 `not-run`으로 남기며 console/summary/report에 context, 분리 stderr, 재현 명령을 출력 |
 | 11 | V390-ADD1-11 | UI Test | route/control/action 자동화 coverage matrix | P0 | 완료/exact-ID 보정 | exact UI test ID 424개를 featureId/route/control-action/stability verifier/automation caseId에 직접 연결하고 prefix/range 판정 제거, cross-prefix 누락·중복·route/action drift·artifact 누락을 FAIL 처리 |
+| 12 | V390-ADD1-12 | Test Policy | Policy v4 테스트 정책 전환 | P0 | 완료 | native visible-DOM 자동화가 exact case 단위로 direct evidence를 대체할 수 있는 동등성 조건과 전체 UI 풀테스트 PASS 경계를 Policy v4 fixture/evaluator/negative contract로 기계 검증하고, 현재 legacy 8/424 부분 자동화는 ineligible/FAIL로 유지 |
+
+### V390-ADD1-12 Policy v4 테스트 정책 전환 — 실행 전 등록
+
+구현 계획 source-of-truth는
+`docs/superpowers/plans/2026-07-10-v390-test-policy-v4.md`입니다. Policy v4는
+안정화/30분/120분/UI 네 테스트 영역을 유지하고, UI 영역 안에서만
+`direct-browser`, `qualified-native-automation`, `hybrid` evidence mode를 구분합니다.
+자동화 대체는 exact case 단위이며, suite PASS는 424개 exact UI test ID와
+시각/반응형/role/security 교차 항목 전수가 닫힌 경우에만 허용합니다.
+
+테스트 필요성 판정:
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | AGENTS/manual UI/release policy, policy fixture/evaluator/contract, dispatch/docs/inventory를 직접 변경 | `V390-ADD1-12`, `OPS-169`, `SAFE-202` | 최신 `/goal`의 12번 개발 승인 |
+| 30분 테스트 | 미진행 | test policy와 evidence 판정만 변경하고 media/session/runtime path를 변경하지 않음 | AGENTS 7.6.2, `V390-ADD1-12` 변경 범위 | duration 실행 승인 없음 |
+| 120분 테스트 | 미진행 | high-risk runtime/media trigger가 없고 명시 실행 지시도 없음 | AGENTS 7.6.2, `V390-ADD1-12` 변경 범위 | 조건·실행 승인 없음 |
+| UI 풀테스트 | 미진행 | Policy v4 계약과 current 8/424 보존 evidence를 평가하지만 424개 전체 제품 UI를 새로 실행하는 요청은 아님 | exact UI test ID 424개, current automated 8/unsupported 415/excluded 1 | 전체 UI 실행 승인 없음 |
+
+실행 전 개별 검증 항목은 policy schema/네 영역 고정/evidence mode, case 동등성 필수
+필드, suite closure, current partial evidence 판정, forbidden fixture/static/screenshot-only
+승격, 문서 정책 정렬, server dispatch, inventory/evidence 연결입니다.
 
 ### V390-ADD1-06 실제 acceptance bundle — 실행 전 등록
 
@@ -1588,6 +1611,75 @@ exact-ID correction 안정화 사용량: token start `313188`, token end `496236
 token consumed `183048`, elapsed `931초`, source `Codex goal usage` (최종 안정화 시작 전과
 manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 snapshot 차이). 이 값은 UI 풀테스트/30분/120분 실행
 사용량이 아닙니다.
+
+## V390-ADD1-12 Policy v4 테스트 정책 전환 개발 기록
+
+- `AGENTS.md` 7.6.3: UI 풀테스트를 다섯 번째 영역으로 늘리지 않고 UI 영역 안에서
+  `direct-browser`, `qualified-native-automation`, `hybrid` evidence mode를 정의했습니다.
+  exact case 동등성과 전체 suite PASS를 분리하고 fixture/wrapper/static/API/screenshot-only/
+  legacy replay/부분 coverage의 승격을 금지합니다.
+- `test/fixtures/ui_fulltest_evidence_policy_v4.json`: 네 영역, 세 evidence mode, allowed
+  completion oracle, exact-selector boundary, source/build/policy/manifest/runner fingerprint,
+  artifact/redaction/visual/suite closure를 `media-server.ui-fulltest-evidence-policy.v4`로
+  고정했습니다.
+- `scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs`: case별 role·viewport·theme,
+  trusted interaction, completion oracle, assertion, actual PNG/JSON/log hash/type/realpath containment,
+  symlink escape, redaction, visual baseline, replay, cleanup, current source binding을 판정합니다.
+- `scripts/internal/verify_ui_fulltest_evidence_policy_v4.mjs`: policy validation과 actual evidence
+  qualification을 분리합니다. 현재 legacy v1 summary와 424/8/415/1 coverage를 읽어
+  `partial-automation-evidence`, `evidenceEligibility=ineligible`, `uiFulltestPass=false`를
+  출력합니다. `--require-eligible`일 때만 미적격 evidence를 command FAIL로 처리합니다.
+- `scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs`: contract-only scoped case와
+  exact 424 suite 알고리즘을 검증하고 legacy/fixture/fallback/manual intervention/partial coverage/
+  동일 pre-existing state/role-theme-viewport drift/path escape/symlink/hash/fake PNG/redaction/
+  visual/replay/cleanup negative를 거부합니다. Contract fixture는 실행 evidence가 아닙니다.
+- `server.sh`, manual UI 기준서/checklist/result template, release policy, stream verification,
+  project inventory `OPS-169`/`SAFE-202`, release records/evidence index, implementation manifest를
+  Policy v4 vocabulary와 command로 연결했습니다. Historical evidence는 소급 변경하지 않았습니다.
+
+실패와 수정 이력:
+
+| 순서 | 최초 실패 | 원인 | 수정 | 재검증 |
+| --- | --- | --- | --- | --- |
+| 1 | `verify-ui-fulltest-evidence-policy-v4` exit 1, unknown command | Policy v4 evaluator/dispatch 구현 전 RED | policy fixture/lib/evaluator/contract와 `server.sh` dispatch 추가 | evaluator PASS, contract 10/0 |
+| 2 | `verify-manual-ui-evidence` 20/4, `verify-v390-evidence-test-gate-prep` 8/1 | 기존 verifier가 인앱/직접-only pre-v4 정확 문구를 고정 | verifier를 evidence-mode/qualifier/completion-oracle 기준으로 정렬 | manual 24/0, evidence/test 9/0 |
+| 3 | manifest refresh 후 현재 스텝 외 source anchor 6개 churn | heuristic refresh가 기존 reviewed owner보다 route/verifier anchor를 재선택 | inventory SHA와 OPS-169/SAFE-202만 남기고 unrelated anchor 복원 | feature evidence 974/974 validation 0, negative 11/11 |
+| 4 | feature evidence에서 `SAFE-202` source anchor missing | 새 contract source anchor 문자열 선택 오류 | 실제 보존 output boundary 문자열로 exact anchor 수정 | feature coverage 6/0, project inventory 14/0 |
+| 5 | 후속 감사에서 artifact symlink escape와 current source/build binding 보강 필요 | lexical containment와 hash 형식만으로 realpath/current revision을 증명할 수 없음 | realpath containment, symlink negative, version/commit/worktree patch/build path+hash 비교 추가 | Policy v4 contract 10/0 재통과 |
+
+안정화 실행 결과:
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| Policy v4 evaluator | `./server.sh verify-ui-fulltest-evidence-policy-v4` | pass | policy PASS; current evidence partial/ineligible, `uiFulltestPass=false` |
+| Policy v4 negative contract | `./server.sh verify-ui-fulltest-evidence-policy-v4-contract` | pass | 10/0, contract fixture는 실행 evidence 아님 |
+| manual/evidence policy gates | `verify-manual-ui-evidence`, `verify-v390-evidence-test-gate-prep` | pass | 24/0, 9/0 |
+| implementation/inventory | feature implementation, feature coverage, project inventory, script inventory | pass | 974/974 validation 0 negative 11/11; 6/0; 14/0; 11/0 |
+| existing UI compatibility | coverage contract, runner contract, replay guard, actual summary replay, native adapter contract | pass | 12/0, 9/0, 8/0, 7/0, 7/0 |
+| release compatibility | acceptance contract, stabilization readiness, feature completion, release evidence | pass | 6/0, 7/0, 13/0, 8/0 |
+| docs/diff | `verify-docs-links`, `git diff --check` | pass | link failures 0, diff 출력 없음 |
+
+완료 경계:
+
+- Policy v4 기준과 qualifier 구현은 완료했습니다.
+- 현재 v3.9 보존 automation은 legacy schema v1, exact 8/424, unsupported 415,
+  positive UI 제외 1이므로 Policy v4 대체 적격 0, 전체 UI 결과 FAIL입니다.
+- 424-case actual UI 풀테스트, 30분/120분, published metadata, release action은 이번 단계에서
+  실행하지 않았고 Policy v4 gate PASS로 대체하지 않습니다.
+- 제품 C++/API/schema/Event payload/WebRTC/SSE/WS/RTSP/WebRTC media path/Auth/Role/Scope는
+  변경하지 않았습니다.
+
+임시 산출물 cleanup:
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| `/tmp/media_server_policy_v4_debug` | evaluator debug JSON/Markdown | 8KB | 결과 수치 확인 후 삭제 | 경로 없음 | `test ! -e` PASS |
+| `/tmp`/`/private/tmp` `media_server_ui_policy_v4_contract_*` | contract positive/negative fixture | process-exit cleanup | contract `finally` 삭제 | glob 0개 | 최종 `find` 출력 없음 |
+| 8081/8555 listener | 없음 | 0 | 확인 | listener 0개 | `lsof -nP ... -sTCP:LISTEN` 출력 없음 |
+
+후속 이슈: 없음. 추천 분석 모델: GPT-5.5 높음. 선정 근거: Policy v4 계약, verifier,
+문서 source-of-truth, false-PASS negative와 historical evidence 경계를 교차 검증한 뒤 현재
+스텝 내부 결함을 모두 수정했습니다.
 
 ## 이전 source roadmap 기록: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
 

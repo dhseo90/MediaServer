@@ -1,0 +1,126 @@
+{
+  "schema": "media-server.ui-fulltest-evidence-policy.v4",
+  "policyVersion": 4,
+  "testCategories": [
+    "stabilization",
+    "30-minute",
+    "120-minute",
+    "ui-fulltest"
+  ],
+  "uiEvidenceModes": [
+    "direct-browser",
+    "qualified-native-automation",
+    "hybrid"
+  ],
+  "caseEquivalence": {
+    "level": "exact-case",
+    "allowedExecutionKinds": [
+      "actual-native-visible-dom"
+    ],
+    "allowedAdapterEngines": [
+      "playwright-native",
+      "selenium-native",
+      "chrome-cdp-native"
+    ],
+    "forbiddenEvidenceKinds": [
+      "legacy-v1",
+      "fixture",
+      "one-shot-wrapper",
+      "static-smoke",
+      "api-only",
+      "raw-json-only",
+      "screenshot-only",
+      "source-marker",
+      "hidden-dom-marker"
+    ],
+    "requiredAdapterCapabilities": [
+      "wait",
+      "query",
+      "assert",
+      "click",
+      "type",
+      "select",
+      "evaluate",
+      "screenshot"
+    ],
+    "allowedCompletionOracles": [
+      "dom-transition",
+      "network-response-and-dom",
+      "persisted-state-readback",
+      "eventrecord-correlation",
+      "server-log-correlation"
+    ],
+    "requiredAssertionBoundary": "exact-selector-visible-innerText-only",
+    "requiredArtifacts": [
+      "screenshot",
+      "trace",
+      "browserConsole",
+      "serverLog"
+    ],
+    "optionalArtifacts": [
+      "video"
+    ],
+    "visualBaselineSchema": "media-server.ui-visual-baseline-diff.v1",
+    "maxEvidenceAgeHours": 24
+  },
+  "suiteClosure": {
+    "expectedExactUiTestIds": 424,
+    "allowedCaseStatuses": [
+      "direct-pass",
+      "automation-equivalent-pass"
+    ],
+    "requiredZeroCounts": [
+      "fail",
+      "notRun",
+      "unsupported",
+      "unapprovedExclusions",
+      "manualIntervention"
+    ],
+    "requiredCrossCuttingObligations": [
+      "visual-quality",
+      "responsive-320-390-760-1180",
+      "light-dark-theme",
+      "role-scope-guards",
+      "client-viewer-redaction",
+      "video-overlay-crop",
+      "accessibility-focus-contrast"
+    ]
+  },
+  "sourceBinding": {
+    "requiredFields": [
+      "version",
+      "gitCommit",
+      "worktreePatchSha256",
+      "buildPath",
+      "buildSha256",
+      "policyPath",
+      "policySha256",
+      "caseManifestPath",
+      "caseManifestSha256",
+      "runnerPath",
+      "runnerSha256",
+      "artifactRoot"
+    ],
+    "sha256Pattern": "^[a-f0-9]{64}$",
+    "requireCurrentSourceVerification": true
+  },
+  "security": {
+    "redactionStatus": "PASS",
+    "unapprovedConsoleMessages": 0,
+    "forbiddenMaterial": [
+      "credential",
+      "session-cookie",
+      "auth-token",
+      "password",
+      "viewer-source-url",
+      "raw-debug-json"
+    ]
+  },
+  "boundaries": {
+    "policyVerifierPassIsUiFulltestPass": false,
+    "replayAloneIsUiFulltestPass": false,
+    "coverageMappingAloneIsUiFulltestPass": false,
+    "partialAutomationIsUiFulltestPass": false,
+    "historicalEvidenceIsRetroactivelyUpgraded": false
+  }
+}

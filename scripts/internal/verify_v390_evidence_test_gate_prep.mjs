@@ -130,7 +130,6 @@ check("stream verification records AI-minimized longrun runner criteria", () => 
 
 check("manual UI docs record free automation adapter criteria and failure fields", () => {
   for (const snippet of [
-    "v3.9.0 AI-minimized UI automation adapter 기준",
     "Playwright",
     "Selenium",
     "SikuliX",
@@ -146,7 +145,7 @@ check("manual UI docs record free automation adapter criteria and failure fields
     "server log reference",
     "cleanup/port state",
     "manual intervention",
-    "v3.9.0 (10) AI-minimized UI automation adapter 기준",
+    "v3.9.0 AI-minimized UI automation adapter / Policy v4 기준",
     "`OPS-169`, `SAFE-202`",
   ]) {
     assertIncludes(files.manualUi + "\n" + files.projectInventory, snippet, "UI automation adapter criteria");

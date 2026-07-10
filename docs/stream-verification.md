@@ -175,8 +175,31 @@ drift, automation featureId→caseId drift, artifact 누락을 실패 처리합�
 상태도 contract로 고정합니다. 고정 matrix는
 `docs/v390-ui-automation-coverage-matrix.md`에 보존합니다. Matrix validation PASS는
 `fullAutomationCoverage=false`, `manualUiFulltestEvidence=false`,
-`executionEvidenceStatus=partial-automation-evidence`이며 UI 풀테스트 직접 조작,
+`executionEvidenceStatus=partial-automation-evidence`이며 Policy v4-qualified UI 풀테스트 실행,
 30분/120분, published metadata, release action PASS가 아닙니다.
+
+### V390-ADD1-12 Policy v4 UI evidence qualification
+
+Policy v4는 새 테스트 영역이 아닙니다. 안정화/30분/120분/UI 네 영역을 유지하고,
+UI 영역의 실행 evidence mode만 `direct-browser`, `qualified-native-automation`,
+`hybrid`로 구분합니다.
+
+- `./server.sh verify-ui-fulltest-evidence-policy-v4 --summary <summary.json> --output-dir <path>`
+- `./server.sh verify-ui-fulltest-evidence-policy-v4-contract`
+
+native automation은 exact case별 actual-browser provenance, fallback/manual intervention
+부재, route/control/action, requested/observed role·viewport·theme, pre/action/post 또는
+network/persisted/EventRecord·log completion oracle, exact visible assertion, 실제 artifact
+hash/type/path containment, redaction, visual evidence, replay, cleanup을 모두 만족한 경우에만
+`automation-equivalent-pass`가 될 수 있습니다. wrapper/static/API/screenshot-only/fixture와
+legacy v1 replay는 보조 evidence입니다.
+
+전체 UI PASS는 exact UI test ID 전수가 `direct-pass` 또는
+`automation-equivalent-pass`이고 fail/not-run/unsupported/unapproved exclusion이 0이며
+시각 품질, 반응형, role guard, client redaction, video/overlay 등 교차 의무가 닫힌
+경우에만 가능합니다. 현재 matrix의 8 automated, 415 unsupported, positive UI 제외 1은
+`partial-automation-evidence`이며 Policy v4 verifier 자체가 PASS해도 UI 풀테스트는
+`FAIL/not-qualified`입니다.
 
 ### v3.9.0 R5 UI automation report replay guard
 
@@ -203,13 +226,14 @@ R5 replay guard 조건:
 - `browserConsole` warning/error가 있으면 PASS가 아니거나
   `browserConsoleAllowReason`을 남겨야 합니다.
 - 첫 `FAIL` 이후 case는 모두 `not-run`이어야 하며 계속 실행한 PASS case를 허용하지 않습니다.
-- 이 replay PASS는 UI 풀테스트 직접 조작 PASS가 아님. 30분/120분, published metadata,
+- 이 replay PASS만으로는 Policy v4-qualified UI 풀테스트 PASS가 아님. 30분/120분, published metadata,
   release action evidence로도 승격하지 않습니다.
 
-Boundary: `automationResult is not manual UI fulltest, 30-minute, 120-minute,
+Legacy boundary: `automationResult is not manual UI fulltest, 30-minute, 120-minute,
 published, or release-action evidence`. Fixture output and report replay are
-implementation/contract evidence only. 실제 UI automation suite와 UI 풀테스트 직접 조작
-evidence는 사용자 실행 승인과 별도 보존 summary/report가 있을 때만 PASS로 기록합니다.
+implementation/contract evidence only. Policy v4에서는 actual UI summary를 qualifier에
+입력해 case 단위 적격성을 별도 판정하며, replay/partial runner PASS 자체는 suite PASS가
+아닙니다.
 
 V390-ADD1-07 actual case completeness evidence는
 `docs/release-artifacts/v3.9.0/ui-automation-case-completeness-final/summary.json`에
@@ -259,8 +283,8 @@ visibility와 visible `innerText`만 snapshot으로 만들고 Node-side evaluato
 UI-113의 source-only `defer-all-action-writes`와 hidden element text가 PASS하지 못하고 실제
 표시값 `all-action-writes-deferred`만 통과함을 검증합니다.
 
-이 automation PASS는 Codex 인앱 UI 풀테스트 직접 조작, 30분/120분,
-published metadata, release action PASS가 아닙니다.
+이 automation PASS는 exact 8/424 부분 coverage이므로 Policy v4-qualified 전체 UI
+풀테스트, 30분/120분, published metadata, release action PASS가 아닙니다.
 
 ### v3.9.0 R3 test acceptance bundle
 

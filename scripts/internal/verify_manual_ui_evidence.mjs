@@ -49,7 +49,9 @@ const checks = [];
 check("manual UI docs are current release baseline", () => {
   assertIncludes(checklist, [
     `현재 release 목표는 \`${currentTag}\``,
-    "현재 제품 UI 직접 조작 evidence 없이 완료 판정에 포함하지 않습니다.",
+    "현재 제품 UI actual-browser evidence 없이 완료 판정에 포함하지 않습니다.",
+    "qualified-native-automation",
+    "Policy v4 qualifier",
     `${currentTag} release UI gate`,
     "V390-REQ-001",
     "V390-REQ-002",
@@ -69,7 +71,8 @@ check("manual UI docs are current release baseline", () => {
     "V390-REQ-002",
     "V390-REQ-003",
     "v3.5-v3.8 UI coverage bridge",
-    "지원 가능한 모든 기능을 실제 UI 조작으로 확인",
+    "지원 가능한 모든 exact 기능 case를 실제 브라우저 조작으로",
+    "Policy v4",
     "테스트 영역 역할 분리",
     "UI 풀테스트는 `스크립트 테스트`와 별도 영역입니다.",
     "열지 않은 화면",
@@ -117,7 +120,9 @@ check("manual UI docs pin v3.9 required closeout and coverage bridge", () => {
 check("manual result template covers required screens", () => {
   assertIncludes(template, [
     "# Manual UI Result Template",
-    "브라우저: 자율 Chrome/CDP 또는 인앱 브라우저",
+    "evidence mode: direct-browser / qualified-native-automation / hybrid",
+    "policy validation result:",
+    "UI fulltest pass:",
     "`/setup`",
     "`/login`",
     "`/password/change`",
@@ -185,7 +190,7 @@ check("manual result template splits event record keys", () => {
   ], "docs/manual-ui-result-template.md");
 });
 
-check("manual result template separates automation from direct browser evidence", () => {
+check("manual result template separates qualified UI execution from support smoke", () => {
   assertIncludes(template, [
     "## 테스트 영역별 판정",
     "스크립트 테스트와 UI 풀테스트는 서로 대체하지 않습니다.",
@@ -199,7 +204,10 @@ check("manual result template separates automation from direct browser evidence"
     "verify-ops-click-e2e",
     "## 확인됨",
     "실제로 열고 클릭한 화면만 적습니다.",
-    "자율 Chrome/CDP 세션 또는 인앱 브라우저",
+    "Policy v4 qualifier",
+    "completion oracle",
+    "policyValidationResult",
+    "uiFulltestPass",
     "자동 smoke나 raw JSON 확인만으로 채우지 않습니다.",
     "raw JSON/API-only로만 확인한 항목",
     "## 제외 기록",
@@ -250,7 +258,7 @@ check("manual UI docs require native-dialog-free autonomous UI flow", () => {
     "첫 클릭에는 write POST가",
   ], "docs/manual-ui-fulltest.md");
   assertIncludes(template, [
-    "자율 Chrome/CDP 또는 인앱 브라우저 직접 조작",
+    "direct-browser 또는 Policy v4-qualified actual-browser 조작",
     "verify-product-ui-no-native-dialogs",
     "verify-ops-click-e2e",
   ], "docs/manual-ui-result-template.md");

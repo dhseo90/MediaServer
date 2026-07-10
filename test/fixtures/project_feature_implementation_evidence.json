@@ -1,7 +1,7 @@
 {
   "schema": "media-server.feature-implementation-evidence.v1",
   "expectedFeatureRows": 974,
-  "inventorySha256": "9597770a7bc27b3839e5537ebfc6da0b1634c94c5c72bce8d3cb3b45b0045a23",
+  "inventorySha256": "5481c57698564deb8e08f76796d67d8d62a064816098306d1f5e4d4a2bdc9126",
   "generatedFrom": "docs/project-feature-test-inventory.md",
   "generationPolicy": "explicit-refresh-only; verifier never rewrites this manifest",
   "executionEvidenceStatus": "not-execution-evidence",
@@ -27220,7 +27220,7 @@
       "id": "SAFE-202",
       "section": "I",
       "surfaceKind": "safety-boundary-invariant",
-      "feature": "V390 Step 10 UI automation adapter failure report boundary",
+      "feature": "V390 UI automation / Policy v4 false-PASS boundary",
       "uiNeed": "비대상",
       "testNeed": "필요",
       "testAreas": [
@@ -27228,16 +27228,16 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
-        "anchor": "SAFE-202",
-        "anchorKind": "feature-id"
+        "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
+        "anchor": "contract fixtures are not UI fulltest execution evidence",
+        "anchorKind": "identifier"
       },
       "uiEvidence": null,
       "verifierEvidence": {
-        "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
-        "anchor": "automation",
+        "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
+        "anchor": "Policy v4 evidence contract summary",
         "anchorKind": "identifier",
-        "command": "verify-v390-evidence-test-gate-prep"
+        "command": "verify-ui-fulltest-evidence-policy-v4-contract"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {
@@ -31570,7 +31570,7 @@
       "id": "OPS-169",
       "section": "J",
       "surfaceKind": "ops-evidence-release-gate",
-      "feature": "V390 Step 10 AI-minimized UI automation adapter 기준 gate",
+      "feature": "V390 UI automation / Policy v4 evidence qualification gate",
       "uiNeed": "비대상",
       "testNeed": "필요",
       "testAreas": [
@@ -31584,10 +31584,10 @@
       },
       "uiEvidence": null,
       "verifierEvidence": {
-        "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
-        "anchor": "AI-minimized",
+        "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4.mjs",
+        "anchor": "automation",
         "anchorKind": "identifier",
-        "command": "verify-v390-evidence-test-gate-prep"
+        "command": "verify-ui-fulltest-evidence-policy-v4"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {

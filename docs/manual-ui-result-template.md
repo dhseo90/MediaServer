@@ -1,7 +1,7 @@
 # Manual UI Result Template
 
-이 템플릿은 프로젝트 verifier의 자율 Chrome/CDP 세션 또는 인앱 브라우저에서
-실제로 눌러 확인한 UI 풀테스트 결과를 남길 때 사용합니다. 자동 smoke,
+이 템플릿은 인앱 브라우저 direct 실행 또는 `AGENTS.md` 7.6.3 Policy v4 qualifier를
+통과한 actual browser automation으로 확인한 UI 풀테스트 결과를 남길 때 사용합니다. 자동 smoke,
 screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니다.
 기준 정의는 [manual-ui-fulltest.md](./manual-ui-fulltest.md),
 기능별 UI 필요 여부와 테스트 영역은
@@ -23,11 +23,13 @@ product UI anchor를 route/control/action evidence로 함께 기록합니다.
 - auth mode:
 - users/source/view/analysis fixture:
 - 데이터 리셋 방법:
-- 브라우저: 자율 Chrome/CDP 또는 인앱 브라우저
-- 브라우저 선택: Codex 실행은 인앱 브라우저 evidence 우선, Codex 밖 사용자 실행은
-  Chrome/CDP 허용. Codex 세션의 Chrome/CDP 예외는
-  `MEDIA_SERVER_UI_BROWSER_MODE=chrome` + `MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1`
-  지정과 사유를 기록.
+- evidence mode: direct-browser / qualified-native-automation / hybrid
+- browser/adapter/engine/version:
+- fallback/manual intervention: false/true와 사유
+- execution provenance/reproduction command:
+- policy qualifier summary:
+- policy validation result:
+- UI fulltest pass:
 - viewport:
 - theme:
 - evidence index:
@@ -43,8 +45,9 @@ product UI anchor를 route/control/action evidence로 함께 기록합니다.
 
 스크립트 테스트와 UI 풀테스트는 서로 대체하지 않습니다. UI 풀테스트 판정은
 `PASS`와 `FAIL`만 사용합니다. PASS 조건은 모든 개별 기능을 실제 브라우저에서
-실행하고, 실제 수행 결과가 제품 상태에 반영됐는지 확인하고, 관련 로그 또는
-이벤트 이력을 확인하는 것입니다. 하나라도 빠지면 해당 개별 기능은 `FAIL`입니다.
+실행하고, 실제 수행 결과가 제품 상태에 반영됐는지 completion oracle로 확인하고,
+관련 로그 또는 이벤트 이력을 확인하는 것입니다. 자동화 case는 Policy v4 qualifier까지
+통과해야 하며 하나라도 빠지면 해당 개별 기능은 `FAIL`입니다.
 사용자가 의도적으로 제외한 실기기/외부 credential/scope 밖 항목은 UI 풀테스트
 판정표에서 빼고 `제외 기록`에만 남깁니다.
 기능 inventory의 행은 실행 evidence가 아니며, 아래 판정은 실제 실행/조작 결과가
@@ -55,7 +58,23 @@ product UI anchor를 route/control/action evidence로 함께 기록합니다.
 | 안정화 테스트 | 로드맵 스텝 종료 및 30분/120분/UI 테스트 전 선수 확인 | 명령, exit code, summary/report | 실행 여부, exit code, 실패 사유 |
 | 30분 테스트 | `verify-predev --soak-minutes 30`, 장기간 테스트 기본값/버전 완료 soak | summary/report/log | 실행 여부, summary/report/log |
 | 120분 테스트 | `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120`, 메모리 릭 감시 필요 시 | summary/report/log | 실행 여부, summary/report/log |
-| UI 풀테스트 | 버전 완료 후 자율 Chrome/CDP 또는 인앱 브라우저 직접 조작, 반응형, 시각 품질 | 개별 기능별 직접 조작, 반영 상태, 로그/EventRecord, screenshot/artifact, 재검수 결과 | PASS/FAIL |
+| UI 풀테스트 | 버전 완료 후 direct-browser 또는 Policy v4-qualified actual-browser 조작, 반응형, 시각 품질 | evidence mode, exact 기능별 실제 조작, completion oracle, role/viewport/theme, 로그/EventRecord, screenshot/trace/console/server-log/visual artifact, replay/cleanup | PASS/FAIL |
+
+Policy v4 자동화/혼합 evidence 요약:
+
+| 항목 | 값 |
+| --- | --- |
+| exact target/pass/fail/notRun/unsupported/unapproved exclusion |  |
+| source/policy/manifest/runner fingerprint |  |
+| requested/observed role·viewport·theme 일치 |  |
+| completion oracle 종류/상관 ID 또는 evidence ref |  |
+| artifact hash/type/path containment |  |
+| redaction/console/forbidden material |  |
+| visual baseline/geometry reviewRequired |  |
+| replay status |  |
+| server/port/temp cleanup |  |
+| `policyValidationResult` | PASS/FAIL |
+| `uiFulltestPass` | PASS/FAIL |
 
 모든 영역은 평균 산출을 위해 `token start`, `token end`, `token consumed`, `elapsed`,
 `source`를 함께 기록합니다. Codex goal usage 같은 자동 집계값이 있으면 그 값을
@@ -103,10 +122,10 @@ metadata, release action PASS를 뜻하지 않습니다.
 
 | Release range | Delegated UI/control/action rows | 결과 기록 방식 |
 | --- | --- | --- |
-| v3.5 | `UI-080`~`UI-087`, `CLIENT-031`~`CLIENT-032`, v3.5 `verify-v350-*` rows | 직접 조작한 route/control/action만 아래 UI 풀테스트 기록에 PASS/FAIL로 적음 |
-| v3.6 | `UI-088`~`UI-094`, v3.6 `verify-v360-*` rows | 직접 조작한 route/control/action만 아래 UI 풀테스트 기록에 PASS/FAIL로 적음 |
-| v3.7 | `UI-095`~`UI-101`, `CLIENT-037`~`CLIENT-039`, v3.7 `verify-v370-*` rows | 직접 조작한 route/control/action만 아래 UI 풀테스트 기록에 PASS/FAIL로 적음 |
-| v3.8 | `UI-102`~`UI-107`, `CLIENT-040`~`CLIENT-042`, v3.8 `verify-v380-*` rows | 직접 조작한 route/control/action만 아래 UI 풀테스트 기록에 PASS/FAIL로 적음 |
+| v3.5 | `UI-080`~`UI-087`, `CLIENT-031`~`CLIENT-032`, v3.5 `verify-v350-*` rows | actual-browser로 조작하고 direct 또는 automation-equivalent로 판정한 route/control/action만 아래 UI 풀테스트 기록에 PASS/FAIL로 적음 |
+| v3.6 | `UI-088`~`UI-094`, v3.6 `verify-v360-*` rows | actual-browser로 조작하고 direct 또는 automation-equivalent로 판정한 route/control/action만 아래 UI 풀테스트 기록에 PASS/FAIL로 적음 |
+| v3.7 | `UI-095`~`UI-101`, `CLIENT-037`~`CLIENT-039`, v3.7 `verify-v370-*` rows | actual-browser로 조작하고 direct 또는 automation-equivalent로 판정한 route/control/action만 아래 UI 풀테스트 기록에 PASS/FAIL로 적음 |
+| v3.8 | `UI-102`~`UI-107`, `CLIENT-040`~`CLIENT-042`, v3.8 `verify-v380-*` rows | actual-browser로 조작하고 direct 또는 automation-equivalent로 판정한 route/control/action만 아래 UI 풀테스트 기록에 PASS/FAIL로 적음 |
 
 ## v2.2.0 UI Evidence Close-out 기록 기준
 
@@ -533,7 +552,9 @@ admin이 client 화면을 확인한 경우에는 `Client Preview as admin` 상�
 ## 최종 판정
 
 - 최종 결론: PASS 또는 FAIL
-- PASS 조건: 개별 기능 실패 행 0개, 제외 기록은 판정표 밖에만 존재
+- PASS 조건: exact 대상 전수가 direct-pass 또는 automation-equivalent-pass,
+  fail/notRun/unsupported/unapproved exclusion/manualIntervention 0, Policy v4 교차
+  visual/반응형/theme/role/redaction/video/accessibility 의무 PASS
 - 제품 회귀 여부:
 - 환경/sandbox 한계:
 - 수정 필요 이슈:
@@ -541,5 +562,7 @@ admin이 client 화면을 확인한 경우에는 `Client Preview as admin` 상�
 - 푸시 가능:
 - 푸시 수행 여부: 수행하지 않음
 
-결과 문서를 저장한 뒤 `./server.sh verify-manual-ui-evidence`로 UI 풀테스트
-PASS/FAIL 이원화, 개별 기능 결과, 제외 기록이 누락되지 않았는지 점검합니다.
+결과 문서를 저장한 뒤 `./server.sh verify-manual-ui-evidence`와
+`./server.sh verify-ui-fulltest-evidence-policy-v4 --summary <summary.json>`로 UI 풀테스트
+PASS/FAIL 이원화, 개별 기능 결과, 제외 기록, 대체 evidence 자격이 누락되지 않았는지
+점검합니다. Policy verifier PASS와 `uiFulltestPass`를 같은 값으로 쓰지 않습니다.
