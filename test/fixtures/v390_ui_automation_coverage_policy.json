@@ -40,7 +40,6 @@
   "requiredAutomatedArtifacts": [
     "screenshotPath",
     "tracePath",
-    "videoPath",
     "browserConsolePath",
     "serverLogReference"
   ],

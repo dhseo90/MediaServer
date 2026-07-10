@@ -2,12 +2,14 @@
 // 파일 용도: v3.9.0 server longrun을 하나의 stop-on-first-fail runner와 summary/report evidence로 실행한다.
 
 import fs from "node:fs";
+import net from "node:net";
 import path from "node:path";
 import process from "node:process";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { collectSourceProvenance, scanArtifactTree } from "./evidence_integrity_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -68,22 +70,27 @@ let failedCase = "";
 let exitCode = 0;
 let delegatedFailure = null;
 let failure = null;
+let predevSummaryPath = "";
+let cleanup = {
+  status: "pending",
+  verificationSource: "predev-summary-filesystem-and-port-observation",
+  serverStopped: false,
+  portsClean: false,
+  temporaryArtifactsRemoved: false,
+  preservedArtifacts: [],
+  checks: [],
+};
 
 fs.mkdirSync(outputDir, { recursive: true });
 
 await runPhases();
 
 const result = exitCode === 0 ? "PASS" : "FAIL";
-const cleanup = {
-  serverStopped: true,
-  portsClean: true,
-  temporaryArtifactsRemoved: true,
-  preservedArtifacts: [],
-};
 const summary = {
   schema: "media-server.v390-server-longrun.v1",
   runId,
   command: `./server.sh verify-v390-server-longrun ${rawArgs.join(" ")}`,
+  sourceProvenance: collectSourceProvenance(rootDir),
   durationMinutes: options.durationMinutes,
   result,
   stopOnFirstFail: true,
@@ -244,6 +251,22 @@ function runFixturePhase(phaseId) {
     }));
     return;
   }
+  if (phaseId === "cleanup") {
+    cleanup = {
+      status: "PASS",
+      verificationSource: "fixture-filesystem-and-port-observation",
+      serverStopped: true,
+      portsClean: true,
+      temporaryArtifactsRemoved: true,
+      preservedArtifacts: [],
+      checks: [
+        { check: "fixture-server-not-started", status: "PASS", observed: true },
+        { check: "fixture-temporary-paths-absent", status: "PASS", observed: true },
+      ],
+    };
+    phases.push(passPhase(phaseId, "fixture cleanup observation", cleanup.checks.map(item => `${item.check}=${item.status}`)));
+    return;
+  }
   phases.push(makePhase({
     id: phaseId,
     status: "PASS",
@@ -278,7 +301,7 @@ async function runRealPhase(phaseId) {
       "verify-predev runs integrated-smoke after starting the isolated test server",
     ]));
   } else if (phaseId === "soak-case-loop") {
-    const predevSummaryPath = path.join(outputDir, "predev-summary.json");
+    predevSummaryPath = path.join(outputDir, "predev-summary.json");
     await runCommandPhase(phaseId, [
       "./server.sh",
       "verify-predev",
@@ -296,10 +319,119 @@ async function runRealPhase(phaseId) {
   } else if (phaseId === "runtime-idle") {
     phases.push(passPhase(phaseId, "runtime idle delegated to verify-predev cleanup checks", ["runtime idle state recorded by predev summary"]));
   } else if (phaseId === "cleanup") {
-    phases.push(passPhase(phaseId, "cleanup phase", ["serverStopped=true", "portsClean=true"]));
+    cleanup = await measureAndApplyCleanup();
+    if (cleanup.status === "PASS") {
+      phases.push(passPhase(phaseId, "measured cleanup phase", cleanup.checks.map(item => `${item.check}=${item.status}`)));
+    } else {
+      if (!failedPhase) {
+        failedPhase = phaseId;
+        failedCase = "cleanup-observation";
+        failure = makeFailure({
+          phase: phaseId,
+          caseName: failedCase,
+          context: "measured cleanup check failed",
+          stderrTail: cleanup.checks.filter(item => item.status === "FAIL").map(item => `${item.check}: ${item.path || item.port || ""}`),
+          reproductionCommand: `./server.sh verify-v390-server-longrun --duration-minutes ${options.durationMinutes} --output-dir ${outputDir}`,
+          command: "measured cleanup phase",
+          failureExitCode: 1,
+          logPath: "",
+          phaseSummaryPath: predevSummaryPath,
+        });
+      }
+      exitCode = exitCode || 1;
+      phases.push(makePhase({
+        id: phaseId,
+        status: "FAIL",
+        command: "measured cleanup phase",
+        exitCode: 1,
+        logPath: writePhaseLog(phaseId, cleanup.checks.map(item => `${item.check}=${item.status}`)),
+        summaryPath: predevSummaryPath,
+        tail: cleanup.checks.filter(item => item.status === "FAIL").map(item => `${item.check}=FAIL`),
+      }));
+    }
   } else if (phaseId === "report") {
     phases.push(passPhase(phaseId, "report phase", [`summaryPath=${summaryPath}`, `reportPath=${reportPath}`]));
   }
+}
+
+async function measureAndApplyCleanup() {
+  const httpPort = Number(process.env.MEDIA_SERVER_VERIFY_PREDEV_HTTP_PORT || 8081);
+  const rtspPort = Number(process.env.MEDIA_SERVER_VERIFY_PREDEV_RTSP_PORT || 8555);
+  const httpPortClean = await canListen(httpPort);
+  const rtspPortClean = await canListen(rtspPort);
+  let predevSummary = null;
+  if (predevSummaryPath && fs.existsSync(predevSummaryPath)) {
+    predevSummary = JSON.parse(fs.readFileSync(predevSummaryPath, "utf8"));
+  }
+  const portsStep = predevSummary?.steps?.find(step => step?.name === "ports-clean");
+  const workDir = String(predevSummary?.workDir || "");
+  const before = workDir && fs.existsSync(workDir) ? scanArtifactTree(workDir) : null;
+  if (predevSummary) preserveFailureAndSanitizeTemporaryPaths(predevSummary, workDir);
+  if (workDir) fs.rmSync(workDir, { recursive: true, force: true });
+  const workDirRemoved = !workDir || !fs.existsSync(workDir);
+  const checks = [
+    { check: "http-port-clean", status: httpPortClean ? "PASS" : "FAIL", port: httpPort, observed: httpPortClean },
+    { check: "rtsp-port-clean", status: rtspPortClean ? "PASS" : "FAIL", port: rtspPort, observed: rtspPortClean },
+    {
+      check: "delegated-ports-clean-step",
+      status: !predevSummary || portsStep?.result === "pass" ? "PASS" : "FAIL",
+      observed: portsStep?.result || "not-run-no-predev",
+    },
+    {
+      check: "predev-temporary-workdir-removed",
+      status: workDirRemoved ? "PASS" : "FAIL",
+      path: workDir,
+      existedBefore: Boolean(before),
+      bytesBefore: Number(before?.totalBytes || 0),
+      existsAfter: workDir ? fs.existsSync(workDir) : false,
+    },
+  ];
+  const passed = checks.every(item => item.status === "PASS");
+  return {
+    status: passed ? "PASS" : "FAIL",
+    verificationSource: "predev-summary-filesystem-and-port-observation",
+    serverStopped: httpPortClean && rtspPortClean,
+    portsClean: httpPortClean && rtspPortClean && (!predevSummary || portsStep?.result === "pass"),
+    temporaryArtifactsRemoved: workDirRemoved,
+    removedTemporaryArtifacts: workDir ? [workDir] : [],
+    preservedArtifacts: delegatedFailure ? [delegatedFailure.logFile, delegatedFailure.stdoutFile, delegatedFailure.stderrFile].filter(Boolean) : [],
+    checks,
+  };
+}
+
+function preserveFailureAndSanitizeTemporaryPaths(predevSummary, workDir) {
+  const failureDir = path.join(outputDir, "failure-artifacts");
+  for (const step of predevSummary.steps || []) {
+    for (const field of ["logFile", "stdoutFile", "stderrFile"]) {
+      const sourcePath = String(step[field] || "");
+      if (!sourcePath) continue;
+      if (step.result === "fail" && fs.existsSync(sourcePath)) {
+        fs.mkdirSync(failureDir, { recursive: true });
+        const targetPath = path.join(failureDir, `${String(step.name || "failure").replace(/[^a-zA-Z0-9_-]/g, "-")}-${field}-${path.basename(sourcePath)}`);
+        fs.copyFileSync(sourcePath, targetPath);
+        step[field] = targetPath;
+        if (delegatedFailure) delegatedFailure[field] = targetPath;
+      } else if (workDir && path.resolve(sourcePath).startsWith(`${path.resolve(workDir)}${path.sep}`)) {
+        step[field] = "";
+        step.temporaryArtifactCleanup = "removed-after-summary-capture";
+      }
+    }
+  }
+  predevSummary.temporaryWorkDirCleanup = {
+    path: workDir,
+    action: "remove-after-preserving-first-failure",
+  };
+  predevSummary.workDir = "";
+  fs.writeFileSync(predevSummaryPath, `${JSON.stringify(predevSummary, null, 2)}\n`, "utf8");
+}
+
+function canListen(port) {
+  return new Promise(resolve => {
+    const server = net.createServer();
+    server.once("error", () => resolve(false));
+    server.once("listening", () => server.close(() => resolve(true)));
+    server.listen(port, "127.0.0.1");
+  });
 }
 
 function runCommandPhase(phaseId, commandParts, phaseSummaryPath = "") {

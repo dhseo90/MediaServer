@@ -164,11 +164,19 @@ check("pass fixture validates through report replay verifier", () => {
   assert(summary.manualIntervention === false, "pass fixture must not require manual intervention");
   assert(summary.cases.every(item => item.status === "PASS"), "all pass fixture cases must PASS");
   assert(summary.evidenceBoundary.includes("automationResult is not manual UI fulltest"), "evidence boundary missing");
+  assert(summary.sourceProvenance?.commitSha?.match(/^[a-f0-9]{40}$/), "source commit SHA missing");
+  assert(summary.cleanup?.verificationSource === "filesystem-and-port-observation", "cleanup verification source missing");
+  assert(Array.isArray(summary.cleanup?.checks) && summary.cleanup.checks.length > 0, "cleanup measured checks missing");
+  assert(summary.artifactIntegrity?.placeholderVideoFiles === 0, "placeholder video files must be absent");
+  assert(summary.artifactIntegrity?.duplicateScreenshotFilesRemoved > 0, "fixture duplicate screenshot files must be deduplicated");
   assertAdapterPlan(summary);
   for (const item of summary.cases) {
     assertAdapterEvidence(summary, item);
     assertArtifactExists(summary, item.browserConsolePath, `${item.caseId} browserConsolePath`);
+    assert(item.videoPath === "", `${item.caseId} videoPath must be empty when capture is unsupported`);
+    assert(item.videoEvidence?.status === "not-captured", `${item.caseId} video evidence status missing`);
   }
+  assert(!listFiles(summary.outputDir).some(filePath => filePath.endsWith(".video.txt")), "video placeholder file remains");
   runReportVerifier(run.summaryPath);
 });
 
@@ -261,6 +269,17 @@ function runReportVerifier(summaryPath) {
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
   });
+}
+
+function listFiles(root) {
+  if (!fs.existsSync(root)) return [];
+  const files = [];
+  for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
+    const entryPath = path.join(root, entry.name);
+    if (entry.isDirectory()) files.push(...listFiles(entryPath));
+    else files.push(entryPath);
+  }
+  return files;
 }
 
 function expectManifestFailure(label, manifest, expectedMessage) {

@@ -17,6 +17,11 @@ import {
   validateVisibleAssertionSchema,
   visibleDomAssertionModel,
 } from "./v390_visible_dom_assertions.mjs";
+import {
+  collectSourceProvenance,
+  deduplicateScreenshotArtifacts,
+  scanArtifactTree,
+} from "./evidence_integrity_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -89,11 +94,16 @@ const adapterPlan = buildAdapterPlan(options.browserMode);
 let selectedAdapter = selectSyntheticAdapter(fixtureMode ? "fixture" : (options.oneShotSummary ? "one-shot-summary" : "pending"));
 let adapterAttempts = [makeAdapterAttempt(selectedAdapter.tool, selectedAdapter.engine, "pending", "runtime adapter not resolved yet")];
 let cleanupState = {
-  coreServerStopped: true,
+  status: "pending",
+  verificationSource: "filesystem-and-port-observation",
+  coreServerStarted: false,
+  coreServerStopped: false,
+  authServerStarted: false,
   authServerStopped: true,
-  portsClean: true,
-  temporaryArtifactsRemoved: true,
+  portsClean: false,
+  temporaryArtifactsRemoved: false,
   removedTemporaryArtifacts: [],
+  checks: [],
 };
 
 prepareOutputDir();
@@ -106,6 +116,21 @@ if (fixtureMode) {
   normalizedCases = normalizeOneShotSummary();
 } else {
   normalizedCases = await runRealUiAutomation();
+}
+
+if (cleanupState.status === "pending") finalizeNoServerCleanup();
+const screenshotIntegrity = deduplicateScreenshotArtifacts(normalizedCases);
+const artifactScan = scanArtifactTree(outputDir);
+const artifactIntegrity = {
+  referencedScreenshots: screenshotIntegrity.referencedScreenshots,
+  uniqueScreenshotFiles: screenshotIntegrity.uniqueScreenshotFiles,
+  duplicateScreenshotFilesRemoved: screenshotIntegrity.duplicateScreenshotFilesRemoved,
+  removedDuplicateScreenshots: screenshotIntegrity.removed,
+  placeholderVideoFiles: artifactScan.placeholderVideoFiles.length,
+  placeholderVideoPaths: artifactScan.placeholderVideoFiles,
+};
+for (const item of normalizedCases) {
+  item.cleanupPortState = cleanupState.portsClean ? "clean" : "not-clean";
 }
 
 const failCount = normalizedCases.filter(item => item.status === "FAIL").length;
@@ -122,7 +147,8 @@ const summary = {
   selectedAdapter,
   adapterAttempts,
   nativeAdapterRequired: options.browserMode === "playwright" && !fixtureMode && !options.oneShotSummary,
-  result: failCount > 0 ? "FAIL" : "PASS",
+  sourceProvenance: collectSourceProvenance(rootDir),
+  result: failCount > 0 || cleanupState.status !== "PASS" || artifactIntegrity.placeholderVideoFiles > 0 ? "FAIL" : "PASS",
   automationResult: failCount > 0 ? "FAIL" : "PASS",
   evidenceBoundary: "automationResult is not manual UI fulltest, 30-minute, 120-minute, published, or release-action evidence",
   manualIntervention: false,
@@ -142,6 +168,7 @@ const summary = {
   tracesDir,
   logsDir,
   cleanup: cleanupState,
+  artifactIntegrity,
   cases: normalizedCases,
 };
 
@@ -388,6 +415,9 @@ async function runRealUiAutomation() {
     return makePreflightFailureCases(message);
   }
   const server = await startCoreServer(ports);
+  cleanupState.coreServerStarted = true;
+  cleanupState.coreServerStopped = false;
+  cleanupState.checks.push({ check: "core-server-started", status: "PASS", observed: true, source: server.logPath });
   const httpBase = `http://127.0.0.1:${ports.http}`;
   let failed = false;
   const results = [];
@@ -705,13 +735,41 @@ function prepareOutputDir() {
 
 function cleanupTemporaryArtifacts() {
   const removed = [];
+  const checks = [];
   for (const target of [registryDir, eventStoragePath, eventSnapshotDir, eventClipDir]) {
-    if (!fs.existsSync(target)) continue;
-    fs.rmSync(target, { recursive: true, force: true });
-    removed.push(target);
+    const existedBefore = fs.existsSync(target);
+    if (existedBefore) {
+      fs.rmSync(target, { recursive: true, force: true });
+      removed.push(target);
+    }
+    const existsAfter = fs.existsSync(target);
+    checks.push({ check: "temporary-path-removed", path: target, existedBefore, existsAfter, status: existsAfter ? "FAIL" : "PASS" });
   }
-  cleanupState.temporaryArtifactsRemoved = true;
+  cleanupState.temporaryArtifactsRemoved = checks.every(item => item.status === "PASS");
   cleanupState.removedTemporaryArtifacts = removed;
+  cleanupState.checks.push(...checks);
+  finalizeCleanupStatus();
+}
+
+function finalizeNoServerCleanup() {
+  cleanupState.coreServerStopped = cleanupState.coreServerStarted === false;
+  cleanupState.portsClean = cleanupState.coreServerStarted === false;
+  cleanupState.checks.push({
+    check: "core-server-not-started",
+    status: cleanupState.coreServerStopped ? "PASS" : "FAIL",
+    observed: cleanupState.coreServerStarted,
+  });
+  cleanupTemporaryArtifacts();
+}
+
+function finalizeCleanupStatus() {
+  cleanupState.status = cleanupState.coreServerStopped
+    && cleanupState.authServerStopped
+    && cleanupState.portsClean
+    && cleanupState.temporaryArtifactsRemoved
+    && cleanupState.checks.every(item => item.status === "PASS")
+    ? "PASS"
+    : "FAIL";
 }
 
 async function openChromeCdpPage(chromePath, args) {
@@ -824,22 +882,32 @@ async function openSeleniumPage(remoteUrl, {
 
 async function stopServer(server) {
   if (!server?.child) return;
-  if (!server.child.killed) {
-    server.child.kill("SIGTERM");
-  }
-  await new Promise(resolve => {
-    const timer = setTimeout(() => {
-      if (!server.child.killed) server.child.kill("SIGKILL");
-      resolve();
-    }, 5000);
-    server.child.once("exit", () => {
-      clearTimeout(timer);
+  let observedExit = server.child.exitCode !== null || server.child.signalCode !== null;
+  const exitPromise = new Promise(resolve => {
+    if (observedExit) resolve();
+    else server.child.once("exit", () => {
+      observedExit = true;
       resolve();
     });
   });
+  if (!server.child.killed) {
+    server.child.kill("SIGTERM");
+  }
+  await Promise.race([exitPromise, delay(5000)]);
+  if (!observedExit) {
+    server.child.kill("SIGKILL");
+    await Promise.race([exitPromise, delay(1000)]);
+  }
   server.log?.end();
-  cleanupState.coreServerStopped = true;
-  cleanupState.portsClean = await canListen(server.ports.http) && await canListen(server.ports.rtsp);
+  cleanupState.coreServerStopped = observedExit;
+  const httpPortClean = await canListen(server.ports.http);
+  const rtspPortClean = await canListen(server.ports.rtsp);
+  cleanupState.portsClean = httpPortClean && rtspPortClean;
+  cleanupState.checks.push(
+    { check: "core-server-exited", status: observedExit ? "PASS" : "FAIL", observed: observedExit },
+    { check: "http-port-clean", status: httpPortClean ? "PASS" : "FAIL", port: server.ports.http, observed: httpPortClean },
+    { check: "rtsp-port-clean", status: rtspPortClean ? "PASS" : "FAIL", port: server.ports.rtsp, observed: rtspPortClean },
+  );
 }
 
 async function waitForHealth(url, timeoutMs) {
@@ -877,18 +945,24 @@ function writeCaseArtifacts(item, { serverLogReference = "" } = {}) {
   const safeId = item.caseId.toLowerCase().replace(/[^a-z0-9_-]/g, "-");
   const screenshotPath = path.join(screenshotsDir, `${safeId}.png`);
   const tracePath = path.join(tracesDir, `${safeId}.trace.json`);
-  const videoPath = path.join(tracesDir, `${safeId}.video.txt`);
+  const videoPath = "";
   const browserConsolePath = path.join(logsDir, `${safeId}.browser-console.json`);
   const serverLogPath = serverLogReference || path.join(logsDir, `${safeId}.server.log`);
-  if (!fs.existsSync(screenshotPath)) fs.writeFileSync(screenshotPath, `fixture screenshot placeholder for ${item.caseId}\n`, "utf8");
+  if ((fixtureMode || options.oneShotSummary) && !fs.existsSync(screenshotPath)) writeFixturePng(screenshotPath);
   if (!fs.existsSync(tracePath)) writeJson(tracePath, { schema: "media-server.v390-ui-automation-trace.v1", caseId: item.caseId, fixture: true });
-  if (!fs.existsSync(videoPath)) fs.writeFileSync(videoPath, `fixture video placeholder for ${item.caseId}\n`, "utf8");
   if (!fs.existsSync(browserConsolePath)) writeJson(browserConsolePath, []);
   if (!serverLogReference) fs.writeFileSync(serverLogPath, `fixture server log reference for ${item.caseId}\n`, "utf8");
   return {
     screenshotPath,
     tracePath,
     videoPath,
+    videoEvidence: {
+      status: "not-captured",
+      reason: fixtureMode || options.oneShotSummary
+        ? "contract fixture does not capture video"
+        : "selected native adapter does not advertise video capture",
+      placeholderCreated: false,
+    },
     browserConsolePath,
     serverLogReference: serverLogPath,
     interactionEvidence: defaultInteractionEvidence(item),
@@ -899,6 +973,11 @@ function writeCaseArtifacts(item, { serverLogReference = "" } = {}) {
       assertions: [],
     },
   };
+}
+
+function writeFixturePng(filePath) {
+  const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64");
+  fs.writeFileSync(filePath, png);
 }
 
 function defaultInteractionEvidence(item) {
@@ -950,6 +1029,7 @@ function makeCase(item, status, actualResult, artifact) {
     screenshotPath: artifact.screenshotPath,
     tracePath: artifact.tracePath,
     videoPath: artifact.videoPath,
+    videoEvidence: artifact.videoEvidence,
     browserConsolePath: artifact.browserConsolePath,
     browserConsole: [],
     serverLogReference: artifact.serverLogReference,

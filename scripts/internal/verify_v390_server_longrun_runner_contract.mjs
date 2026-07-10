@@ -92,6 +92,9 @@ check("failure fixture records first failure and later phases as not-run", () =>
   assert(summary.cleanup.serverStopped === true, "cleanup.serverStopped must be true");
   assert(summary.cleanup.portsClean === true, "cleanup.portsClean must be true");
   assert(summary.cleanup.temporaryArtifactsRemoved === true, "cleanup.temporaryArtifactsRemoved must be true");
+  assert(summary.cleanup.verificationSource === "fixture-filesystem-and-port-observation", "fixture cleanup verification source missing");
+  assert(Array.isArray(summary.cleanup.checks) && summary.cleanup.checks.length > 0, "cleanup measured checks missing");
+  assert(summary.sourceProvenance?.commitSha?.match(/^[a-f0-9]{40}$/), "source commit SHA missing");
   assert(summary.failure?.context === "fixture phase integrated-smoke failed", "failure fixture must preserve context");
   assert(summary.failure?.stderrTail?.includes("fixture stderr at integrated-smoke"), "failure fixture must preserve stderr");
   assert(summary.failure?.reproductionCommand === "fixture fail integrated-smoke", "failure fixture must preserve reproduction command");
@@ -125,6 +128,7 @@ check("pass fixture writes complete summary and report without claiming real lon
   assert(summary.durationMinutes === 30, "fixture durationMinutes must preserve requested duration");
   assert(summary.realDurationEvidence === false, "fixture pass must not claim real duration evidence");
   assert(summary.longrunEvidenceStatus === "fixture-only-not-real-duration", "fixture status must not overclaim");
+  assert(summary.cleanup.verificationSource === "fixture-filesystem-and-port-observation", "fixture cleanup source mismatch");
   for (const phase of summary.phases) {
     assert(phase.status === "PASS", `pass fixture phase must PASS: ${phase.id}`);
   }

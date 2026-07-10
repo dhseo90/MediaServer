@@ -6,6 +6,7 @@ import path from "node:path";
 import process from "node:process";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { isRealPng, scanArtifactTree, sha256File } from "./evidence_integrity_lib.mjs";
 
 const rawArgs = process.argv.slice(2);
 
@@ -20,7 +21,7 @@ Checks:
   - every case has route/control/action granularity
   - failure reports include screenshot/trace/console/server-log/cleanup/manualIntervention fields
   - PASS reports require fail=0, notRun=0, manualIntervention=false, failed interaction 0
-  - artifact paths exist for screenshot/trace/video/browser-console/server-log evidence
+  - screenshot/trace/browser-console/server-log artifacts exist; unsupported video is explicit without placeholders
   - browserConsole warnings/errors require browserConsoleAllowReason
   - wrapper/static evidence is not promoted to manual UI fulltest evidence
 `);
@@ -39,6 +40,7 @@ check("summary uses v390 UI automation schema", () => {
   assert(["PASS", "FAIL"].includes(summary.result), `invalid result: ${summary.result}`);
   assert(summary.evidenceBoundary === "automationResult is not manual UI fulltest, 30-minute, 120-minute, published, or release-action evidence", "missing evidence boundary");
   assert(summary.assertionModel === "visible-dom-user-action-v1", "visible DOM assertion model missing");
+  assert(summary.sourceProvenance?.commitSha?.match(/^[a-f0-9]{40}$/), "source commit SHA missing");
   assertAdapterPlan();
   if (summary.nativeAdapterRequired === true) {
     assert(summary.selectedAdapter.engine === "playwright-native", "native-required summary must select playwright-native");
@@ -161,6 +163,14 @@ check("cleanup and report artifacts are recorded", () => {
   assert(summary.cleanup && summary.cleanup.coreServerStopped === true, "cleanup.coreServerStopped must be true");
   assert(summary.cleanup.authServerStopped === true, "cleanup.authServerStopped must be true");
   assert(summary.cleanup.portsClean === true, "cleanup.portsClean must be true");
+  assert(summary.cleanup.temporaryArtifactsRemoved === true, "cleanup.temporaryArtifactsRemoved must be true");
+  assert(summary.cleanup.verificationSource === "filesystem-and-port-observation", "cleanup verification source mismatch");
+  assert(Array.isArray(summary.cleanup.checks) && summary.cleanup.checks.length > 0, "cleanup measured checks missing");
+  assert(summary.cleanup.checks.every(item => item.status === "PASS"), "cleanup contains failed measured check");
+  assert(summary.artifactIntegrity?.placeholderVideoFiles === 0, "placeholder video artifact remains");
+  const scan = scanArtifactTree(summary.outputDir);
+  assert(scan.placeholderVideoFiles.length === 0, `placeholder video files remain: ${scan.placeholderVideoFiles.join(", ")}`);
+  assert(scan.duplicateScreenshotFiles === 0, "duplicate screenshot files were not canonicalized");
   for (const field of ["outputDir", "summaryPath", "reportPath", "screenshotsDir", "tracesDir"]) {
     assert(Boolean(summary[field]), `summary missing ${field}`);
   }
@@ -189,12 +199,20 @@ function getCases() {
 }
 
 function assertCaseArtifacts(item) {
-  for (const field of ["screenshotPath", "tracePath", "videoPath", "browserConsolePath", "serverLogReference"]) {
+  for (const field of ["screenshotPath", "tracePath", "browserConsolePath", "serverLogReference"]) {
     const value = item[field];
     assert(Boolean(value), `${item.caseId} missing ${field}`);
     const resolved = path.resolve(path.dirname(summaryPath), value);
     assert(fs.existsSync(resolved), `${item.caseId} ${field} does not exist: ${value}`);
+    if (field === "screenshotPath") {
+      assert(isRealPng(resolved), `${item.caseId} screenshot is not a real PNG`);
+      assert(item.screenshotEvidence?.status === "captured", `${item.caseId} screenshot evidence status mismatch`);
+      assert(item.screenshotEvidence?.sha256 === sha256File(resolved), `${item.caseId} screenshot SHA mismatch`);
+    }
   }
+  assert(item.videoPath === "", `${item.caseId} unsupported videoPath must be empty`);
+  assert(item.videoEvidence?.status === "not-captured", `${item.caseId} video not-captured status missing`);
+  assert(item.videoEvidence?.placeholderCreated === false, `${item.caseId} video placeholder must not be created`);
 }
 
 function assertBrowserConsoleAllowed(item) {

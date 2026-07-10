@@ -424,6 +424,10 @@ Usage:
                  v3.9.0 R3/V390-ADD1-06 dry-run 또는 실제 build→기능→30분→UI→조건부 120분 bundle을 실행합니다.
   verify-v390-test-acceptance-bundle-contract
                  v3.9.0 R3 test acceptance bundle command/docs/evidence contract를 검증합니다.
+  verify-v390-final-evidence-integrity
+                 v3.9.0 Evidence 13~14 final artifact/provenance/cleanup 무결성을 검증합니다.
+  verify-v390-final-evidence-integrity-contract
+                 v3.9.0 final evidence 무결성 negative fixture를 검증합니다.
   verify-v390-longrun-runner-role-alignment
                  v3.9.0 R4 legacy predev와 release-grade longrun runner 역할 정렬을 검증합니다.
   verify-v390-onvif-credential-provider-status
@@ -2045,6 +2049,14 @@ case "${cmd}" in
   verify-v390-test-acceptance-bundle-contract)
     require_internal verify_v390_test_acceptance_bundle_contract.mjs
     exec "${INTERNAL_DIR}/verify_v390_test_acceptance_bundle_contract.mjs" "$@"
+    ;;
+  verify-v390-final-evidence-integrity)
+    require_internal verify_v390_final_evidence_integrity.mjs
+    exec "${INTERNAL_DIR}/verify_v390_final_evidence_integrity.mjs" "$@"
+    ;;
+  verify-v390-final-evidence-integrity-contract)
+    require_internal verify_v390_final_evidence_integrity_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_final_evidence_integrity_contract.mjs" "$@"
     ;;
   verify-v390-longrun-runner-role-alignment)
     require_internal verify_v390_longrun_runner_role_alignment.mjs

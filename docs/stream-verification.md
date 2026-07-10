@@ -64,6 +64,7 @@ published metadata, release action evidence가 아닙니다.
 | v3.9.0 (16) | `./server.sh verify-v390-action-execution-deferral-decision` | Action execution deferral decision. `/ops/api/actions/execution-deferral-decision`와 `/ops` Action Control Workspace가 `defer-all-action-writes`, source recheck, client notice send, rule apply deferred 상태를 표시하고 기존 v3.8 action pilot/default-off explanation 경계를 유지하는지 확인합니다. action execution, request/approval/readiness/outcome/receipt persist, source recheck, client notice send, rule apply, external delivery, EventRecord/Event POST/WebRTC/SSE/WS/schema/media 변경, UI 풀테스트 직접 조작, 30분/120분 longrun evidence가 아닙니다 |
 | v3.9.0 (17) | `./server.sh verify-v390-conditional-field-ai-decisions` | Field evidence bridge decision. `/ops/api/field-evidence/bridge-decision`와 `/ops` dashboard가 `approval-only-minimal-field-evidence-bridge`, ONVIF/external WHEP-TURN/cloud-VLM 승인 조건, minimal evidence contract, not-run boundary를 표시하는지 확인합니다. field smoke, endpoint/credential probe, provider call, source/view/EventRecord/Ops audit write, raw endpoint/credential/provider material, media/schema 변경, UI 풀테스트 직접 조작, 30분/120분 longrun evidence가 아닙니다 |
 | v3.9.0 (18) / V390-ADD1-04 | `./server.sh verify-v390-reid-readiness-consistency`, `./server.sh verify-v390-conditional-field-ai-decisions` | Re-ID readiness consistency. `explicit-opt-in-provenance-gated-assist`를 유지하면서 extractor factory와 `/ops/api/analysis/reid-assist-decision`가 공용 `InspectAppearanceModelReadiness`를 사용하고 regular file, SHA format/read/match, trim provenance, OpenSSL·ONNX Runtime을 확인하는지 no-crypto/no-ONNX C++ 2종과 실제 HTTP 10개 case로 검증합니다. Ops UI는 preflight와 session load/execution을 분리하며 raw path/SHA/provenance를 노출하지 않습니다. 실제 ONNX session 성공, identity search, UI 풀테스트 직접 조작, 30분/120분 longrun evidence가 아닙니다 |
+| v3.9.0 (17) Evidence 13~14 | `./server.sh verify-v390-final-evidence-integrity --summary <acceptance-summary.json>`, `./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-final` | Final evidence integrity와 독립 acceptance 재실행입니다. canonical root 교체 전 기존 screenshot/video placeholder 수와 크기를 기록하고, 새 bundle은 screenshot content dedupe, placeholder video 부재, source commit SHA·명령·first failure, child/filesystem/port 실측 cleanup을 보존합니다. 실제 bundle의 30분/UI-108~115 자동화는 exact 424개 UI 풀테스트, 조건 미충족 120분, published metadata, release action PASS가 아닙니다 |
 
 Re-ID privacy/default-off gate는 Step 18에서도 유지합니다. `--reid-policy assist`는 selected tracker의 association assist decision일 뿐이며, `verify-reid-advanced-tracking`와 `verify-close-object-fixture-matrix --modes off,diagnostic,enforce`는 `default-on candidate=False`와 별도 review 상태를 확인합니다. Matrix gate 상태 정의: `warning`은 안정적이라는 뜻이 아니며, `matrix-ok`는 명령/gate 결과입니다. `[matrix-default-on-decision]`과 `[matrix-product-default-on]`은 fixture별 후보로만 기록하고, `field-driving-live`, observed issue counter, trackingIssueObservationCounts, defaultOnDecision, productDefaultOn, candidateCount, defaultOnReason, reid-fixture-default-on-candidates.md를 함께 확인해야 합니다.
 
@@ -305,11 +306,11 @@ server longrun→실제 UI automation→UI replay→조건부 120분 decision/ru
 - `./server.sh verify-v390-test-acceptance-bundle --output-dir <path> --run-120`
 - `./server.sh verify-v390-test-acceptance-bundle-contract`
 
-R3 summary schema is `media-server.v390-test-acceptance-bundle.v1`. The dry-run reads
-existing preserved R1 30분 evidence, records R2 UI automation preserved evidence as
-`pass-existing-evidence` when `docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/summary.json`
-and `report.md` are valid, records 120분 as `conditional-not-run`, and records published
-metadata/release action as `not-run-by-dry-run`.
+R3 summary schema is `media-server.v390-test-acceptance-bundle.v1`. Dry-run은 command/schema
+경계를 확인하되 Evidence 13 이전 R1/R2 보존본을 measured-cleanup/placeholder/dedupe 정책의
+final evidence로 재사용하지 않습니다. 해당 보존본은 `invalid-existing-evidence`, 전체 상태는
+`historical-evidence-requires-final-rerun`으로 기록합니다. 120분은 `conditional-not-run`,
+published metadata/release action은 `not-run-by-dry-run`입니다.
 
 Boundary: dry-run does not execute build, feature gates, 30-minute, UI automation, 120-minute,
 published metadata, or release-action suites. Actual mode의 `result=PASS`는 명령이 실행한

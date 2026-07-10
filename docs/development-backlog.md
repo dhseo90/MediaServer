@@ -113,10 +113,21 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 23 | v3.9.0 (23) native free UI automation adapter proof | P0 | 완료 | bundled Playwright 1.61.1과 system Chrome을 선택해 standalone 7개 native action 및 UI-108~115의 native dispatch 8/8을 fallback 없이 실행하고 module/browser provenance를 보존 |
 | 24 | v3.9.0 (24) server longrun true first-fail case runner | P0 | 완료 | V390-ADD1-10이 `verify-predev --fail-fast`의 duration case 사이를 즉시 중단하고 later case를 `not-run`으로 기록하며 runner console/summary/report에 context, 분리 stderr tail, 재현 명령을 보존 |
 | 25 | v3.9.0 (25) route/control/action automation coverage matrix | P0 | 완료/V390-ADD1-11 exact-ID 보정 | 974개 inventory에서 prefix/range 판정 없이 exact `manualUiCaseId` 424개를 선택해 featureId/testId/route/control-action anchor/stability verifier/automation caseId를 연결하고, 실제 자동화 8·미지원/not-run 415·제품 UI positive 제외 1을 기록하며 cross-prefix drift negative contract를 통과 |
-| 26 | v3.9.0 (26) final evidence re-run and cleanup | P0 | 미완료/Step 25 exact-ID 보정 반영 후 재실행 | 6~9 통합 acceptance의 build/30분/UI/cleanup evidence는 보존하지만 V390-ADD1-10 이후 새 duration evidence와 Step 25의 unsupported 415개가 있어 release 전 final evidence로 재사용하지 않음 |
+| 26 | v3.9.0 (26) final evidence re-run and cleanup | P0 | 진행/Evidence 13~14 | 기존 acceptance evidence는 보존 이력일 뿐 final로 재사용하지 않음. Evidence 13에서 screenshot dedupe, video placeholder 제거, 실측 cleanup, commit/command/first-failure provenance를 구현한 뒤 Evidence 14에서 독립 bundle을 재실행함 |
 | 27 | v3.9.0 (27) deferred product decision owner sign-off | P1 | 미완료/owner decision 필요 | 실행형 action, field smoke, persistent credential store, provider call, model-backed Re-ID는 read-only/defer 상태임. v3.9에서 non-goal로 닫을지 실제 구현할지 명시 decision 필요 |
 | 28 | v3.9.0 (28) structure stabilization implementation readiness | P1 | 미완료/structure handoff 후속 | Step 19는 실제 구조 안정화 구현이 아니라 계획 이관임. `webrtc_http_server.cpp`/UI script extraction 실행 branch와 slice별 검증 순서 확정 필요 |
 | 29 | v3.9.0 (29) real external field smoke gate | P2 | 조건부 미실행 | 외부 credential/endpoint/실기기/provider 조건이 없으면 기본 release PASS가 아님. 조건 제공 시 별도 field smoke evidence로만 닫음 |
+
+### v3.9.0 (17) Evidence 13~14 개발 기록
+
+| 번호 | 구간 | 제목 | 우선순위 | 상태 | 구현/검증 위치 |
+| --- | --- | --- | --- | --- | --- |
+| 13 | Evidence | 최종 evidence 무결성 | P0 | 개발 완료/검증 PASS/커밋 가능 | `verify_v390_ui_automation.mjs`, `verify_v390_server_longrun.mjs`, `verify_v390_test_acceptance_bundle.mjs`, `verify-v390-final-evidence-integrity`에서 screenshot dedupe, video placeholder 금지, 실측 cleanup, source commit/command/first-failure 기록을 구현·검증. RED 3종과 actual UI 최초 환경 실패/재실행 8/8 이력을 `release-test-records.md`에 기록 |
+| 14 | Evidence | 최종 전체 재실행·정리 | P0 | 미개발/13 완료 후 진행 | canonical `docs/release-artifacts/v3.9.0/test-acceptance-final`을 교체해 독립 acceptance bundle, 첫 실패 기록, 최종 artifact cleanup을 실행하고 `docs/release-test-records.md`에 결과를 보존 |
+
+완료 경계: Evidence 13의 contract PASS는 실제 30분/UI 자동화 재실행 evidence가 아닙니다.
+Evidence 14는 실제 30분과 UI-108~115 자동화를 포함하지만 exact 424개 UI 풀테스트,
+조건 미충족 120분, published metadata, release action PASS로 승격하지 않습니다.
 
 완료 경계: v3.9 source baseline/inventory 준비는 실제 기능 개발, discovery 완료,
 UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action evidence가

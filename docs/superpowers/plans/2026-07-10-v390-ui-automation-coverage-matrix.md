@@ -31,7 +31,8 @@ featureId→caseId drift, artifact 누락과 prefix/range 판정 재도입을 ne
 - [x] 974개 inventory와 implementation evidence의 exact `manualUiCaseId` 424개,
   featureId/route/control-action anchor/stability verifier를 읽습니다.
 - [x] `UI-108`~`UI-115`는 보존 native visible-DOM summary의 actualResult,
-  screenshot, trace/video, console, server log를 개별 행에 연결합니다.
+  screenshot, trace, console, server log를 개별 행에 연결합니다. video는 adapter가 실제
+  capture를 지원할 때만 연결하며 placeholder 파일은 evidence로 만들지 않습니다.
 - [x] 자동화 manifest가 없는 exact test ID는 `unsupported-manual`, 제품 UI 부재 negative case는
   `excluded-positive-ui`로 분리하고 각 행에 사유와 manual UI 필요성을 기록합니다.
 - [x] summary가 matrix validation PASS와 full automation/UI fulltest PASS를 분리합니다.

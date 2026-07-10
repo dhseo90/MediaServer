@@ -9,6 +9,12 @@ import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import {
+  collectSourceProvenance,
+  isInside,
+  listFiles,
+  scanArtifactTree,
+} from "./evidence_integrity_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -87,6 +93,16 @@ let longrun30Summary = null;
 let uiAutomationSummary = null;
 let longrun120Summary = null;
 
+const sourceProvenance = collectSourceProvenance(rootDir);
+const outputPreparation = options.dryRun ? {
+  replacedExisting: false,
+  removedFiles: 0,
+  removedBytes: 0,
+  removedScreenshotFiles: 0,
+  removedDuplicateScreenshotFiles: 0,
+  removedPlaceholderVideoFiles: 0,
+  verificationSource: "dry-run-does-not-replace-output",
+} : prepareOutputRoot();
 fs.mkdirSync(runDir, { recursive: true });
 
 if (options.dryRun) {
@@ -225,11 +241,15 @@ async function runRealStage(stageId) {
 
   if (stageId === "cleanup") {
     const errors = validateChildCleanup();
+    const measuredCleanup = cleanupEvidence();
+    if (measuredCleanup.status !== "PASS") {
+      errors.push(...measuredCleanup.checks.filter(item => item.status === "FAIL").map(item => `${item.check} failed`));
+    }
     if (errors.length > 0) {
       cleanupFailed = true;
       recordFailure(stageId, "cleanup validation", errors.join("; "), true);
     } else {
-      stages.push(passStage(stageId, "validate child cleanup and preserved evidence", cleanupEvidence()));
+      stages.push(passStage(stageId, "validate child cleanup and preserved evidence", measuredCleanup));
     }
     return;
   }
@@ -391,10 +411,13 @@ function recordFailure(stageId, commandValue, message, cleanupFailure = false) {
 function buildActualSummary() {
   const executionPassed = failedStage === "" && !cleanupFailed;
   const knownUiClosureBlockers = fixtureMode ? [] : uiClosureBlockers(uiAutomationSummary);
+  const firstFailure = buildFirstFailure();
   return {
     schema: "media-server.v390-test-acceptance-bundle.v1",
     runId,
     command: `./server.sh verify-v390-test-acceptance-bundle ${rawArgs.join(" ")}`,
+    sourceProvenance,
+    outputPreparation,
     executionMode,
     dryRun: false,
     fixtureMode,
@@ -409,6 +432,8 @@ function buildActualSummary() {
     finalAcceptanceCommandSet,
     stageOrder: stageIds,
     stages,
+    executedCommands: buildExecutedCommandLedger(),
+    firstFailure,
     localReadiness: stageStatus("feature-gates"),
     longrun30: childEvidence("server-longrun-30", longrun30Summary),
     uiAutomation: childEvidence("ui-automation", uiAutomationSummary),
@@ -437,9 +462,11 @@ function writeDryRun() {
     schema: "media-server.v390-test-acceptance-bundle.v1",
     runId,
     command: `./server.sh verify-v390-test-acceptance-bundle ${rawArgs.join(" ")}`,
+    sourceProvenance,
+    outputPreparation,
     executionMode,
     dryRun: true,
-    result: longrun30.status === "pass-existing-evidence" && uiAutomation.status === "pass-existing-evidence" ? "PASS" : "FAIL",
+    result: "PASS",
     stopOnFirstFail: true,
     evidenceBoundary: "dry-run does not execute build, feature gates, 30-minute, UI automation, 120-minute, published metadata, or release-action suites",
     outputDir,
@@ -451,7 +478,12 @@ function writeDryRun() {
     longrun30,
     longrun120: { status: "conditional-not-run", decision: "not-evaluated-by-dry-run", passSubstitution: false },
     uiAutomation,
+    preservedEvidenceStatus: longrun30.status === "pass-existing-evidence" && uiAutomation.status === "pass-existing-evidence"
+      ? "eligible-existing-evidence"
+      : "historical-evidence-requires-final-rerun",
     stages: stageIds.map(id => notRunStage(id, "not run by dry-run")),
+    executedCommands: [],
+    firstFailure: null,
     manualUiFulltest: { status: "not-run-by-this-command", passClaimed: false },
     publishedMetadata: { status: "not-run-by-dry-run" },
     releaseAction: { status: "not-run-by-dry-run" },
@@ -472,6 +504,8 @@ function validateLongrunSummary(payload, durationMinutes, childDir) {
   if (payload?.realDurationEvidence !== true) errors.push("realDurationEvidence is not true");
   if (payload?.stopOnFirstFail !== true) errors.push("longrun stopOnFirstFail is not true");
   if (payload?.cleanup?.serverStopped !== true || payload?.cleanup?.portsClean !== true || payload?.cleanup?.temporaryArtifactsRemoved !== true) errors.push("longrun cleanup incomplete");
+  if (payload?.cleanup?.verificationSource !== "predev-summary-filesystem-and-port-observation") errors.push("longrun cleanup is not measured");
+  if (!Array.isArray(payload?.cleanup?.checks) || payload.cleanup.checks.some(item => item.status !== "PASS")) errors.push("longrun measured cleanup checks incomplete");
   if (!fs.existsSync(path.join(childDir, "report.md"))) errors.push("longrun report missing");
   return errors;
 }
@@ -482,6 +516,10 @@ function validateUiSummary(payload, childDir) {
   if (payload?.result !== "PASS" || payload?.automationResult !== "PASS") errors.push("UI automation result is not PASS");
   if (payload?.manualIntervention !== false || Number(payload?.fail) !== 0 || Number(payload?.notRun) !== 0) errors.push("UI zero-fail/manual boundary mismatch");
   if (payload?.cleanup?.coreServerStopped !== true || payload?.cleanup?.portsClean !== true || payload?.cleanup?.temporaryArtifactsRemoved !== true) errors.push("UI cleanup incomplete");
+  if (payload?.cleanup?.verificationSource !== "filesystem-and-port-observation") errors.push("UI cleanup is not measured");
+  if (!Array.isArray(payload?.cleanup?.checks) || payload.cleanup.checks.some(item => item.status !== "PASS")) errors.push("UI measured cleanup checks incomplete");
+  if (payload?.artifactIntegrity?.placeholderVideoFiles !== 0) errors.push("UI placeholder video remains");
+  if (scanArtifactTree(childDir).duplicateScreenshotFiles !== 0) errors.push("UI duplicate screenshot file remains");
   if (!fs.existsSync(path.join(childDir, "report.md"))) errors.push("UI report missing");
   return errors;
 }
@@ -491,6 +529,9 @@ function validateChildCleanup() {
   if (!fixtureMode && longrun30Summary && (longrun30Summary.cleanup?.serverStopped !== true || longrun30Summary.cleanup?.portsClean !== true || longrun30Summary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("30-minute child cleanup failed");
   if (!fixtureMode && uiAutomationSummary && (uiAutomationSummary.cleanup?.coreServerStopped !== true || uiAutomationSummary.cleanup?.portsClean !== true || uiAutomationSummary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("UI child cleanup failed");
   if (!fixtureMode && longrun120Summary && (longrun120Summary.cleanup?.serverStopped !== true || longrun120Summary.cleanup?.portsClean !== true || longrun120Summary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("120-minute child cleanup failed");
+  if (!fixtureMode && longrun30Summary?.cleanup?.verificationSource !== "predev-summary-filesystem-and-port-observation") errors.push("30-minute child cleanup source is not measured");
+  if (!fixtureMode && uiAutomationSummary?.cleanup?.verificationSource !== "filesystem-and-port-observation") errors.push("UI child cleanup source is not measured");
+  if (!fixtureMode && longrun120Summary && longrun120Summary.cleanup?.verificationSource !== "predev-summary-filesystem-and-port-observation") errors.push("120-minute child cleanup source is not measured");
   return errors;
 }
 
@@ -499,12 +540,91 @@ function cleanupEvidence() {
   if (longrun30Summary?.summaryPath) preservedArtifacts.push(longrun30Summary.summaryPath, longrun30Summary.reportPath);
   if (uiAutomationSummary?.summaryPath) preservedArtifacts.push(uiAutomationSummary.summaryPath, uiAutomationSummary.reportPath);
   if (longrun120Summary?.summaryPath) preservedArtifacts.push(longrun120Summary.summaryPath, longrun120Summary.reportPath);
+  const artifactScan = scanArtifactTree(runDir);
+  const remainingTemporaryPaths = listFiles(runDir).filter(filePath => /\/(core-registry|core-clips|core-snapshots)(?:\/|$)/.test(filePath));
+  const checks = [
+    { check: "child-cleanup-validation", status: cleanupFailed ? "FAIL" : "PASS", observed: !cleanupFailed },
+    { check: "temporary-run-paths-absent", status: remainingTemporaryPaths.length === 0 ? "PASS" : "FAIL", paths: remainingTemporaryPaths },
+    { check: "placeholder-video-files-absent", status: artifactScan.placeholderVideoFiles.length === 0 ? "PASS" : "FAIL", paths: artifactScan.placeholderVideoFiles },
+    { check: "duplicate-screenshot-files-absent", status: artifactScan.duplicateScreenshotFiles === 0 ? "PASS" : "FAIL", groups: artifactScan.duplicateScreenshotGroups },
+  ];
+  const passed = checks.every(item => item.status === "PASS");
   return {
-    status: cleanupFailed ? "FAIL" : "PASS",
-    childCleanupVerified: !cleanupFailed,
-    temporaryArtifactsRemoved: !cleanupFailed,
+    status: passed ? "PASS" : "FAIL",
+    verificationSource: "child-summary-and-filesystem",
+    childCleanupVerified: checks[0].status === "PASS",
+    temporaryArtifactsRemoved: checks[1].status === "PASS",
+    placeholderVideoFilesAbsent: checks[2].status === "PASS",
+    duplicateScreenshotFilesAbsent: checks[3].status === "PASS",
     preservedArtifacts: preservedArtifacts.filter(Boolean),
     preservationReason: "minimum reproducible summary/report/log/screenshot evidence inside requested output directory",
+    checks,
+  };
+}
+
+function prepareOutputRoot() {
+  const allowedReleaseRoot = path.join(rootDir, "docs/release-artifacts/v3.9.0");
+  const allowedTempRoots = [os.tmpdir(), "/tmp", "/private/tmp"].map(value => path.resolve(value));
+  assert(isInside(allowedReleaseRoot, outputDir) || allowedTempRoots.some(tempRoot => isInside(tempRoot, outputDir)), `unsafe acceptance output directory: ${outputDir}`);
+  const existed = fs.existsSync(outputDir);
+  const before = existed ? scanArtifactTree(outputDir) : {
+    fileCount: 0,
+    totalBytes: 0,
+    screenshotFiles: 0,
+    duplicateScreenshotFiles: 0,
+    placeholderVideoFiles: [],
+  };
+  const retainedNames = new Set(["summary.json", "report.md"]);
+  const retainedFiles = [];
+  if (existed) {
+    for (const entry of fs.readdirSync(outputDir, { withFileTypes: true })) {
+      const entryPath = path.join(outputDir, entry.name);
+      if (entry.isFile() && retainedNames.has(entry.name)) {
+        retainedFiles.push(entryPath);
+        continue;
+      }
+      fs.rmSync(entryPath, { recursive: true, force: true });
+      assert(!fs.existsSync(entryPath), `acceptance output replacement failed: ${entryPath}`);
+    }
+  }
+  const retainedBytes = retainedFiles.reduce((sum, filePath) => sum + fs.statSync(filePath).size, 0);
+  return {
+    replacedExisting: existed,
+    removedFiles: before.fileCount - retainedFiles.length,
+    removedBytes: before.totalBytes - retainedBytes,
+    removedScreenshotFiles: before.screenshotFiles,
+    removedDuplicateScreenshotFiles: before.duplicateScreenshotFiles,
+    removedPlaceholderVideoFiles: before.placeholderVideoFiles.length,
+    retainedUntilReportWrite: retainedFiles,
+    verificationSource: "filesystem-scan-before-remove-and-absence-after-remove",
+  };
+}
+
+function buildExecutedCommandLedger() {
+  const ledger = [];
+  for (const stage of stages) {
+    if (stage.command) ledger.push({ stage: stage.id, id: stage.id, status: stage.status, command: stage.command, exitCode: stage.exitCode, logPath: stage.logPath || "" });
+    for (const check of stage.checks || []) {
+      ledger.push({ stage: stage.id, id: check.id, status: check.status, command: check.command, exitCode: check.exitCode, logPath: check.logPath || "" });
+    }
+  }
+  return ledger;
+}
+
+function buildFirstFailure() {
+  if (!failedStage) return null;
+  const stage = stages.find(item => item.id === failedStage && item.status === "FAIL") || stages.find(item => item.status === "FAIL");
+  const failedCheck = stage?.checks?.find(item => item.status === "FAIL");
+  const commandValue = failedCheck?.command || failedCommand || stage?.command || "";
+  const context = failedCheck?.tail?.join(" | ") || stage?.validationError || stage?.tail?.join(" | ") || "";
+  return {
+    stage: failedStage,
+    command: commandValue,
+    context,
+    exitCode: failedCheck?.exitCode ?? stage?.exitCode ?? 1,
+    logPath: failedCheck?.logPath || stage?.logPath || "",
+    stderrTail: failedCheck?.tail || stage?.tail || [],
+    reproductionCommand: commandValue,
   };
 }
 
@@ -657,7 +777,12 @@ function writeReport(filePath, payload) {
     `result: ${payload.result}`,
     `executionMode: ${payload.executionMode}`,
     `dryRun: ${payload.dryRun}`,
+    `sourceCommitSha: ${payload.sourceProvenance?.commitSha || ""}`,
+    `sourceBranch: ${payload.sourceProvenance?.branch || ""}`,
+    `sourceWorktreeClean: ${payload.sourceProvenance?.worktreeClean ?? ""}`,
     `failedStage: ${payload.failedStage || "(none)"}`,
+    `firstFailureCommand: ${payload.firstFailure?.command || "(none)"}`,
+    `firstFailureContext: ${payload.firstFailure?.context || "(none)"}`,
     `automatedAcceptanceStatus: ${payload.automatedAcceptanceStatus || "not-evaluated"}`,
     `evidenceBoundary: ${payload.evidenceBoundary || ""}`,
     "",
@@ -668,6 +793,12 @@ function writeReport(filePath, payload) {
     "## Known UI closure blockers",
     "",
     ...((payload.knownUiClosureBlockers || []).length > 0 ? payload.knownUiClosureBlockers.map(item => `- ${item}`) : ["- 없음"]),
+    "",
+    "## Executed command ledger",
+    "",
+    "| stage | id | status | command | exit | log |",
+    "| --- | --- | --- | --- | ---: | --- |",
+    ...((payload.executedCommands || []).map(item => `| ${escapeCell(item.stage)} | ${escapeCell(item.id)} | ${escapeCell(item.status)} | ${escapeCell(item.command)} | ${item.exitCode ?? ""} | ${escapeCell(item.logPath)} |`)),
   ];
   fs.writeFileSync(filePath, `${lines.join("\n")}\n`, "utf8");
 }

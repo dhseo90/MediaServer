@@ -166,10 +166,11 @@ check("automated rows map exact featureId to caseId and preserve every artifact/
     assert(item.automationStatus === "PASS", `${item.featureId} automationStatus must PASS`);
     assert(item.actualResult === "control action executed and expected UI state captured",
       `${item.featureId} actualResult must preserve the executed UI result`);
-    for (const key of ["screenshot", "trace", "video", "browserConsole", "serverLog"]) {
+    for (const key of ["screenshot", "trace", "browserConsole", "serverLog"]) {
       assert(item.evidence?.[key], `${item.featureId} ${key} evidence missing`);
       assert(fs.existsSync(path.join(rootDir, item.evidence[key])), `${item.featureId} ${key} file missing`);
     }
+    assert(!item.evidence?.video, `${item.featureId} placeholder video evidence must not be required`);
   }
 });
 

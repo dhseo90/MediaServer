@@ -9,6 +9,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { sha256File } from "./evidence_integrity_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -199,9 +200,26 @@ function makeBaseSummary(workspace) {
     tracesDir: path.join(workspace, "traces"),
     logsDir: path.join(workspace, "logs"),
     cleanup: {
+      status: "PASS",
+      verificationSource: "filesystem-and-port-observation",
+      coreServerStarted: false,
       coreServerStopped: true,
+      authServerStarted: false,
       authServerStopped: true,
       portsClean: true,
+      temporaryArtifactsRemoved: true,
+      checks: [{ check: "contract-cleanup", status: "PASS", observed: true }],
+    },
+    sourceProvenance: {
+      commitSha: "0".repeat(40),
+      branch: "contract-fixture",
+      worktreeClean: true,
+      worktreeStatusSha256: "0".repeat(64),
+      capturedAt: new Date().toISOString(),
+    },
+    artifactIntegrity: {
+      placeholderVideoFiles: 0,
+      duplicateScreenshotFilesRemoved: 0,
     },
     cases,
   };
@@ -211,19 +229,23 @@ function makeCase(workspace, caseId, status) {
   const safeId = caseId.toLowerCase();
   const screenshotPath = path.join(workspace, "screenshots", `${safeId}.png`);
   const tracePath = path.join(workspace, "traces", `${safeId}.trace.json`);
-  const videoPath = path.join(workspace, "traces", `${safeId}.video.txt`);
+  const videoPath = "";
   const browserConsolePath = path.join(workspace, "logs", `${safeId}.browser-console.json`);
   const serverLogReference = path.join(workspace, "logs", `${safeId}.server.log`);
   for (const [filePath, content] of [
-    [screenshotPath, "fixture screenshot\n"],
     [tracePath, "{}\n"],
-    [videoPath, "fixture video\n"],
     [browserConsolePath, "[]\n"],
     [serverLogReference, "fixture server log\n"],
   ]) {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
     fs.writeFileSync(filePath, content, "utf8");
   }
+  fs.mkdirSync(path.dirname(screenshotPath), { recursive: true });
+  const png = Buffer.concat([
+    Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64"),
+    Buffer.from(caseId, "utf8"),
+  ]);
+  fs.writeFileSync(screenshotPath, png);
   return {
     caseId,
     featureId: "SAFE-202",
@@ -238,8 +260,20 @@ function makeCase(workspace, caseId, status) {
     actualResult: status === "PASS" ? "fixture pass" : "not run",
     status,
     screenshotPath,
+    screenshotEvidence: {
+      status: "captured",
+      sha256: sha256File(screenshotPath),
+      canonicalPath: screenshotPath,
+      deduplicated: false,
+      duplicateOfCaseId: "",
+    },
     tracePath,
     videoPath,
+    videoEvidence: {
+      status: "not-captured",
+      reason: "contract fixture does not capture video",
+      placeholderCreated: false,
+    },
     browserConsolePath,
     browserConsole: [],
     serverLogReference,

@@ -80,8 +80,9 @@ check("dry-run writes replayable acceptance summary without executing gated suit
   assert(summary.schema === "media-server.v390-test-acceptance-bundle.v1", "unexpected summary schema");
   assert(summary.result === "PASS", "dry-run result must be PASS");
   assert(summary.dryRun === true, "summary must mark dryRun=true");
-  assert(summary.longrun30?.status === "pass-existing-evidence", "30-minute evidence status mismatch");
-  assert(summary.uiAutomation?.status === "pass-existing-evidence", "UI automation preserved evidence status mismatch");
+  assert(summary.longrun30?.status === "invalid-existing-evidence", "legacy 30-minute evidence must require final rerun after measured-cleanup policy");
+  assert(summary.uiAutomation?.status === "invalid-existing-evidence", "legacy UI evidence must require final rerun after placeholder/dedupe policy");
+  assert(summary.preservedEvidenceStatus === "historical-evidence-requires-final-rerun", "dry-run preserved evidence boundary mismatch");
   assert(summary.uiAutomation?.summaryPath === "docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/summary.json", "UI automation summary path mismatch");
   assert(summary.uiAutomation?.reportPath === "docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/report.md", "UI automation report path mismatch");
   assert(summary.uiAutomation?.manualIntervention === false, "UI automation manual intervention must be false");
@@ -104,6 +105,12 @@ check("dry-run writes replayable acceptance summary without executing gated suit
 
 check("actual-mode fixture executes the fixed stage order and conditional 120 decision", () => {
   const outputDir = fixtureDir("pass");
+  const staleScreenshot = path.join(outputDir, "runs", "stale", "screenshots", "duplicate.png");
+  const staleVideo = path.join(outputDir, "runs", "stale", "traces", "placeholder.video.txt");
+  fs.mkdirSync(path.dirname(staleScreenshot), { recursive: true });
+  fs.mkdirSync(path.dirname(staleVideo), { recursive: true });
+  fs.writeFileSync(staleScreenshot, "stale duplicate screenshot\n", "utf8");
+  fs.writeFileSync(staleVideo, "fixture video placeholder\n", "utf8");
   const result = runBundle(["--output-dir", outputDir, "--fixture-pass"]);
   assert(result.status === 0, `fixture pass command failed: ${result.stderr}`);
   const summary = readJson(path.join(outputDir, "summary.json"));
@@ -118,6 +125,15 @@ check("actual-mode fixture executes the fixed stage order and conditional 120 de
   assert(summary.stages.find(item => item.id === "server-longrun-120")?.status === "not-run", "120 stage must be not-run without trigger");
   assert(summary.longrun120?.decision === "not-required", "120 decision mismatch");
   assert(summary.cleanup?.status === "PASS", "fixture cleanup must pass");
+  assert(summary.cleanup?.verificationSource === "child-summary-and-filesystem", "cleanup must record its verification source");
+  assert(Array.isArray(summary.cleanup?.checks) && summary.cleanup.checks.length > 0, "cleanup must contain measured checks");
+  assert(summary.outputPreparation?.replacedExisting === true, "existing canonical output must be replaced");
+  assert(summary.outputPreparation?.removedScreenshotFiles === 1, "stale screenshot removal count mismatch");
+  assert(summary.outputPreparation?.removedPlaceholderVideoFiles === 1, "stale placeholder video removal count mismatch");
+  assert(summary.sourceProvenance?.commitSha?.match(/^[a-f0-9]{40}$/), "source commit SHA missing");
+  assert(Boolean(summary.sourceProvenance?.branch), "source branch missing");
+  assert(Array.isArray(summary.executedCommands) && summary.executedCommands.length > 0, "executed command ledger missing");
+  assert(summary.firstFailure === null, "passing fixture must record firstFailure=null");
   assert(summary.publishedMetadata?.status === "not-run-by-this-command", "published metadata boundary mismatch");
   assert(summary.releaseAction?.status === "not-run-by-this-command", "release action boundary mismatch");
   fs.rmSync(outputDir, { recursive: true, force: true });
@@ -130,6 +146,9 @@ check("actual-mode fixture stops on first failure and still runs cleanup/report"
   const summary = readJson(path.join(outputDir, "summary.json"));
   assert(summary.result === "FAIL", "failure fixture summary must fail");
   assert(summary.failedStage === "feature-gates", "failedStage mismatch");
+  assert(summary.firstFailure?.stage === "feature-gates", "firstFailure stage mismatch");
+  assert(summary.firstFailure?.command === "fixture fail feature-gates", "firstFailure command mismatch");
+  assert(summary.firstFailure?.context?.includes("fixture failure at feature-gates"), "firstFailure context missing");
   for (const id of ["server-longrun-30", "ui-automation", "ui-replay", "longrun-120-decision", "server-longrun-120"]) {
     assert(summary.stages.find(item => item.id === id)?.status === "not-run", `${id} must be not-run after failure`);
   }
@@ -164,15 +183,15 @@ check("docs and release evidence record R3 without overclaiming gated tests", ()
     "media-server.v390-test-acceptance-bundle.v1",
     "dry-run does not execute",
     "finalAcceptanceCommandSet",
-    "R2 UI automation preserved evidence",
+    "historical-evidence-requires-final-rerun",
   ]) {
     assertIncludes(files.streamVerification + "\n" + files.projectInventory, snippet, "R3 stream/project docs");
   }
   for (const snippet of [
     "v390 R3 RED test acceptance bundle contract",
-    "v390 R3 test acceptance bundle dry-run final",
+    "v390 R3 test acceptance bundle dry-run historical",
     "v390 R3 actual acceptance bundle",
-    "R2 UI automation preserved evidence `pass-existing-evidence`",
+    "invalid-existing-evidence",
   ]) {
     assertIncludes(files.releaseRecords, snippet, "R3 release records");
   }
