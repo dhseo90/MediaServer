@@ -1,0 +1,22 @@
+[pass] no-crypto readiness matrix
+[analysis][appearance] ONNX Re-ID readiness failed (onnxruntime-unavailable), falling back to NoOp
+[pass] crypto-no-onnx readiness matrix
+[pass] Re-ID readiness compile capability matrix
+[pass] appearance-disabled: appearance-disabled
+[pass] extractor-not-selected: onnx-reid-extractor-not-selected
+[pass] path-missing: model-path-missing
+[pass] file-missing: model-file-missing
+[pass] file-not-regular: model-file-not-regular
+[pass] checksum-missing: model-checksum-missing
+[pass] checksum-invalid: model-checksum-invalid
+[pass] provenance-whitespace: model-provenance-missing
+[pass] checksum-mismatch: model-checksum-mismatch
+[pass] complete-preflight: ready
+
+== v3.9.0 Re-ID readiness consistency ==
+- C++ capability matrices: 2
+- actual HTTP cases: 10
+- server-owned shared readiness: true
+- preflight/session execution separated: true
+- raw model material exposed: false
+- failures: 0

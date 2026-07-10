@@ -115,6 +115,7 @@ async function runActualBundle() {
   const summary = buildActualSummary();
   writeJson(summaryPath, summary);
   writeReport(reportPath, summary);
+  normalizeTextArtifacts(outputDir);
   printSummary(summary);
   if (summary.result !== "PASS") process.exit(1);
 }
@@ -458,6 +459,7 @@ function writeDryRun() {
   fs.mkdirSync(outputDir, { recursive: true });
   writeJson(summaryPath, summary);
   writeReport(reportPath, summary);
+  normalizeTextArtifacts(outputDir);
   printSummary(summary);
   if (summary.result !== "PASS") process.exit(1);
 }
@@ -525,7 +527,7 @@ function readPreservedLongrun30Evidence() {
 }
 
 function readPreservedUiAutomationEvidence() {
-  const relative = "docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json";
+  const relative = "docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/summary.json";
   const full = path.join(rootDir, relative);
   if (!fs.existsSync(full)) return { status: "missing-existing-evidence", summaryPath: relative };
   const payload = readJson(full);
@@ -533,7 +535,7 @@ function readPreservedUiAutomationEvidence() {
   return {
     status: valid ? "pass-existing-evidence" : "invalid-existing-evidence",
     summaryPath: relative,
-    reportPath: "docs/release-artifacts/v3.9.0/ui-automation-playwright-final/report.md",
+    reportPath: "docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/report.md",
     result: payload.result || "",
     caseCount: Number(payload.caseCount || 0),
     pass: Number(payload.pass || 0),
@@ -655,7 +657,7 @@ function writeReport(filePath, payload) {
     `result: ${payload.result}`,
     `executionMode: ${payload.executionMode}`,
     `dryRun: ${payload.dryRun}`,
-    `failedStage: ${payload.failedStage || ""}`,
+    `failedStage: ${payload.failedStage || "(none)"}`,
     `automatedAcceptanceStatus: ${payload.automatedAcceptanceStatus || "not-evaluated"}`,
     `evidenceBoundary: ${payload.evidenceBoundary || ""}`,
     "",
@@ -666,12 +668,23 @@ function writeReport(filePath, payload) {
     "## Known UI closure blockers",
     "",
     ...((payload.knownUiClosureBlockers || []).length > 0 ? payload.knownUiClosureBlockers.map(item => `- ${item}`) : ["- 없음"]),
-    "",
   ];
   fs.writeFileSync(filePath, `${lines.join("\n")}\n`, "utf8");
 }
 
 function writeJson(filePath, payload) { fs.writeFileSync(filePath, `${JSON.stringify(payload, null, 2)}\n`, "utf8"); }
+
+function normalizeTextArtifacts(targetDir) {
+  if (!fs.existsSync(targetDir)) return;
+  for (const entry of fs.readdirSync(targetDir, { withFileTypes: true })) {
+    const entryPath = path.join(targetDir, entry.name);
+    if (entry.isDirectory()) normalizeTextArtifacts(entryPath);
+    else if (/\.(log|md|txt)$/i.test(entry.name)) {
+      const content = fs.readFileSync(entryPath, "utf8");
+      fs.writeFileSync(entryPath, `${content.replace(/[ \t]+$/gm, "").replace(/\n+$/, "")}\n`, "utf8");
+    }
+  }
+}
 
 function readJson(filePath) { return JSON.parse(fs.readFileSync(filePath, "utf8")); }
 

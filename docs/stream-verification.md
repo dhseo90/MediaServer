@@ -133,9 +133,9 @@ v3.9.0 R2 implementation command:
 
 R2 summary schema is `media-server.v390-ui-automation.v1`. The report verifier checks
 case counts, `route/control/action` granularity, failure investigation fields,
-cleanup fields, `expectedMarkers`, and `manualIntervention=false`. Real mode does not delegate
+cleanup fields, exact-selector `visibleAssertions`, and `manualIntervention=false`. Real mode does not delegate
 to `verify-ui-fulltest-one-shot`; it starts the throwaway server, opens the target route, checks
-UI markers, and stores screenshot/trace/server-log references per case.
+visible state after a trusted native action, and stores screenshot/trace/server-log references per case.
 The summary also records `adapterPlan`, `selectedAdapter`, `adapterAttempts`, and per-case
 `adapterEvidence`/`browserConsolePath`. In Codex sessions without a local Playwright package,
 `--allow-chrome-fallback=1` records the explicit `chrome-cdp-fallback` selection instead of
@@ -152,12 +152,12 @@ R5는 UI automation suite 자체를 실행하는 gate가 아니라, 이미 생�
 
 R5 replay guard 조건:
 
-- case manifest v2 summary는 implementation manifest와 같은 exact ordered
+- case manifest v3 summary는 implementation manifest와 같은 exact ordered
   `UI-108`~`UI-115` 8개 ID/route여야 하며 `UI-112` 누락이나 `/ops`/`/ops/dashboard`
   route drift를 허용하지 않습니다.
 - PASS summary는 `fail=0`, `notRun=0`, `manualIntervention=false`, failed interaction 0이어야 합니다.
-- 모든 v2 case는 `route/control/action`, setup/primary `interactionEvidence`, visible target,
-  before/after `stateEvidence`, `failureEvidence`, `expectedMarkers`, `screenshotPath`, `tracePath`,
+- 모든 v3 case는 `route/control/action`, setup/primary `interactionEvidence`, visible target,
+  before/after `stateEvidence`, exact-selector `visibleAssertions`, `failureEvidence`, `screenshotPath`, `tracePath`,
   `videoPath`, `browserConsolePath`, `serverLogReference`, `cleanupPortState`,
   `browserConsole`, `manualIntervention=false`를 기록해야 합니다.
 - `screenshotPath`, `tracePath`, `videoPath`, `browserConsolePath`,
@@ -179,8 +179,8 @@ V390-ADD1-07 actual case completeness evidence는
 `docs/release-artifacts/v3.9.0/ui-automation-case-completeness-final/summary.json`에
 보존합니다. 결과는 exact 8 case `pass=8 fail=0 notRun=0`, report replay
 `pass=7 fail=0`이며 UI-112 staging restore checklist/result artifact가 포함됩니다.
-이 historical 실행의 interaction dispatch는 DOM 기반입니다. V390-ADD1-08에서 별도
-native final evidence로 교체했으며 whole-page marker 제거는 V390-ADD1-09에서 닫습니다.
+이 historical 실행의 interaction dispatch는 DOM 기반입니다. V390-ADD1-08 native final과
+V390-ADD1-09 exact-selector visible DOM final evidence로 교체했습니다.
 
 ### V390-ADD1-08 native free UI adapter
 
@@ -205,8 +205,26 @@ wait→screenshot을 실제 실행합니다. UI runner도 같은 native module�
 - `docs/release-artifacts/v3.9.0/ui-native-adapter-final/summary.json`: Playwright 1.61.1, system Chrome, action 7/7, fallback false
 - `docs/release-artifacts/v3.9.0/ui-automation-native-final/summary.json`: UI-108~115 8/8, setup/primary `dispatch=playwright-native`, cleanup true
 
-이 automation PASS는 Codex 인앱 UI 풀테스트 직접 조작, V390-ADD1-09 visible DOM
-assertion, 30분/120분, published metadata, release action PASS가 아닙니다.
+### V390-ADD1-09 exact-selector visible DOM assertion
+
+case manifest v3의 `visibleAssertions`는 각 `stateSelectors`와 정확히 일치합니다.
+runner는 trusted Playwright setup/primary action 뒤 exact selector element의 computed
+visibility와 visible `innerText`만 snapshot으로 만들고 Node-side evaluator에서 포함 값을
+검사합니다. `document.body.innerText`, `document.documentElement.outerHTML`, script/source
+문자열, whole-page marker는 PASS 계산에 사용하지 않습니다.
+
+- `./server.sh verify-v390-ui-automation --browser-mode playwright --output-dir docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final`
+- `./server.sh verify-v390-ui-automation-report --summary docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/summary.json`
+- `./server.sh verify-v390-ui-automation-runner-contract`
+
+보존 summary는 `assertionModel=visible-dom-user-action-v1`, exact UI-108~115 8/8,
+`engine=playwright-native`, fallback false, 모든 assertion `visible=true`/`missingText=[]`/
+`sourceBoundary=exact-selector-visible-innerText-only`를 기록합니다. contract negative는
+UI-113의 source-only `defer-all-action-writes`와 hidden element text가 PASS하지 못하고 실제
+표시값 `all-action-writes-deferred`만 통과함을 검증합니다.
+
+이 automation PASS는 Codex 인앱 UI 풀테스트 직접 조작, 30분/120분,
+published metadata, release action PASS가 아닙니다.
 
 ### v3.9.0 R3 test acceptance bundle
 
@@ -222,13 +240,14 @@ server longrun→실제 UI automation→UI replay→조건부 120분 decision/ru
 - `./server.sh verify-v390-test-acceptance-bundle --dry-run`
 - `./server.sh verify-v390-test-acceptance-bundle --dry-run --output-dir <path>`
 - `./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-final`
+- `./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final`
 - `./server.sh verify-v390-test-acceptance-bundle --output-dir <path> --allow-chrome-fallback=1`
 - `./server.sh verify-v390-test-acceptance-bundle --output-dir <path> --run-120`
 - `./server.sh verify-v390-test-acceptance-bundle-contract`
 
 R3 summary schema is `media-server.v390-test-acceptance-bundle.v1`. The dry-run reads
 existing preserved R1 30분 evidence, records R2 UI automation preserved evidence as
-`pass-existing-evidence` when `docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json`
+`pass-existing-evidence` when `docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/summary.json`
 and `report.md` are valid, records 120분 as `conditional-not-run`, and records published
 metadata/release action as `not-run-by-dry-run`.
 
@@ -238,6 +257,14 @@ published metadata, or release-action suites. Actual mode의 `result=PASS`는 �
 `automatedAcceptanceStatus=executed-with-known-ui-closure-blockers`로 분리하며 UI 풀테스트
 직접 조작, published metadata, release action PASS가 아닙니다. 120분은 `--run-120`과
 AGENTS 7.6.2 직접 근거가 있을 때만 실행합니다.
+
+6~9 통합 후 final run `v390-test-acceptance-20260710100233-58896`은 build, 26개
+current feature gate, 실제 30분 server longrun(`predev pass=118 fail=0 skip=2`, soak
+22회, main/queue idle, ports clean), native visible-DOM UI 8/8, replay 7/0,
+conditional 120 decision, cleanup/report를 PASS했습니다. `knownUiClosureBlockers=[]`,
+`automatedAcceptanceStatus=eligible`이며 120분은 trigger가 없어 `not-required`/
+`not-run`으로 남겼습니다. 첫 시도의 local HTTP H264/AAC `/opus` 20초 timeout은 상위
+fail-fast로 뒤 UI/replay를 중단했고 clean 재시도에서 동일 경로와 전체 묶음이 통과했습니다.
 
 ### v3.9.0 R4 longrun runner role alignment
 

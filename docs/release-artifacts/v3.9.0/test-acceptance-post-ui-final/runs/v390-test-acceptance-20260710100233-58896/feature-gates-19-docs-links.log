@@ -1,0 +1,9 @@
+
+== Docs link verification summary ==
+- markdown files: 150
+- local links: 788
+- local images: 22
+- local anchors: 99
+- indexed docs: 77
+- index coverage exclusions: 64
+- failures: 0

@@ -36,6 +36,10 @@ const reportCommand = "verify-v390-ui-automation-report";
 const guardCommand = "verify-v390-ui-automation-report-replay-guard";
 const guardScript = "verify_v390_ui_automation_report_replay_guard_contract.mjs";
 const checks = [];
+const temporaryWorkspaces = new Set();
+process.on("exit", () => {
+  for (const workspace of temporaryWorkspaces) fs.rmSync(workspace, { recursive: true, force: true });
+});
 
 check("server dispatch and script inventory expose the R5 replay guard", () => {
   const serverSh = readText("server.sh");
@@ -130,7 +134,7 @@ check("docs and release evidence record the R5 replay guard without overclaiming
     readText("docs/stream-verification.md"),
   ].join("\n");
   for (const snippet of [
-    "v3.9.0 R5 / V390-ADD1-07 UI automation report replay guard",
+    "v3.9.0 R5 / V390-ADD1-07~09 UI automation report replay guard",
     guardCommand,
     "failed interaction 0",
     "browserConsole",
@@ -180,6 +184,7 @@ function makeBaseSummary(workspace) {
     result: "PASS",
     automationResult: "PASS",
     evidenceBoundary: "automationResult is not manual UI fulltest, 30-minute, 120-minute, published, or release-action evidence",
+    assertionModel: "visible-dom-user-action-v1",
     manualIntervention: false,
     failedInteractionCount: 0,
     caseCount: cases.length,
@@ -228,7 +233,8 @@ function makeCase(workspace, caseId, status) {
     accountRole: "operator",
     controlAction: "r5-replay-fixture",
     expectedResult: "all expected replay evidence is present",
-    expectedMarkers: ["manualIntervention=false"],
+    visibleAssertions: [{ selector: "#r5-status", textIncludes: ["manualIntervention=false"] }],
+    assertionModel: "visible-dom-user-action-v1",
     actualResult: status === "PASS" ? "fixture pass" : "not run",
     status,
     screenshotPath,
@@ -239,6 +245,22 @@ function makeCase(workspace, caseId, status) {
     serverLogReference,
     cleanupPortState: "clean",
     manualIntervention: false,
+    stateEvidence: {
+      target: { selector: "#r5-status", exists: true, visible: true },
+      before: [],
+      after: [{ selector: "#r5-status", exists: true, visible: true, text: "manualIntervention=false" }],
+      assertions: [{
+        selector: "#r5-status",
+        exists: true,
+        visible: true,
+        text: "manualIntervention=false",
+        textNotEmpty: true,
+        expectedTextIncludes: ["manualIntervention=false"],
+        missingText: [],
+        pass: true,
+        sourceBoundary: "exact-selector-visible-innerText-only",
+      }],
+    },
     adapterEvidence: {
       tool: "playwright",
       engine: "playwright-fixture",
@@ -275,7 +297,9 @@ function writeSummary(workspace, summary) {
 }
 
 function makeWorkspace(label) {
-  return fs.mkdtempSync(path.join(os.tmpdir(), `media_server_v390_r5_${label}_${process.pid}_`));
+  const workspace = fs.mkdtempSync(path.join(os.tmpdir(), `media_server_v390_r5_${label}_${process.pid}_`));
+  temporaryWorkspaces.add(workspace);
+  return workspace;
 }
 
 function runReport(summaryPath) {

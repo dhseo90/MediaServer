@@ -1,0 +1,23 @@
+[pass] negative fixture missing-id
+[pass] negative fixture duplicate-id
+[pass] negative fixture wrong-section-prefix
+[pass] negative fixture missing-source-file
+[pass] negative fixture missing-source-anchor
+[pass] negative fixture missing-ui-control-anchor
+[pass] negative fixture missing-ui-screen-route
+[pass] negative fixture unknown-verifier-command
+[pass] negative fixture missing-verifier-assertion
+[pass] negative fixture legacy-longrun-command
+[pass] negative fixture inventory-hash-drift
+
+== Feature implementation evidence summary ==
+- expectedFeatureRows: 974
+- inventoryRows: 974
+- manifestRows: 974
+- sourceEvidenceRows: 974
+- uiEvidenceRows: 440
+- verifierEvidenceRows: 974
+- manualUiCaseRows: 424
+- validationErrors: 0
+- negativeFixtures: 11/11
+- executionEvidenceStatus: not-execution-evidence

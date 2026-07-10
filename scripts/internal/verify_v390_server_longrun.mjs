@@ -389,16 +389,15 @@ function writeReport(filePath, payload) {
     `result: ${payload.result}`,
     `durationMinutes: ${payload.durationMinutes}`,
     `stopOnFirstFail: ${payload.stopOnFirstFail}`,
-    `failedPhase: ${payload.failedPhase}`,
-    `failedCase: ${payload.failedCase}`,
-    `delegatedFailure: ${payload.delegatedFailure?.name || ""}`,
+    `failedPhase: ${payload.failedPhase || "(none)"}`,
+    `failedCase: ${payload.failedCase || "(none)"}`,
+    `delegatedFailure: ${payload.delegatedFailure?.name || "(none)"}`,
     `realDurationEvidence: ${payload.realDurationEvidence}`,
     `longrunEvidenceStatus: ${payload.longrunEvidenceStatus}`,
     "",
     "| phase | status | command | log |",
     "| --- | --- | --- | --- |",
     ...payload.phases.map(phase => `| ${phase.id} | ${phase.status} | ${escapeCell(phase.command)} | ${escapeCell(phase.logPath)} |`),
-    "",
   ];
   fs.writeFileSync(filePath, `${lines.join("\n")}\n`, "utf8");
 }

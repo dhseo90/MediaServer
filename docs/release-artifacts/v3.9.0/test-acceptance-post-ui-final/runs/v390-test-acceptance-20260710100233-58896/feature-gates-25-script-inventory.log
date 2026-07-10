@@ -1,0 +1,15 @@
+[pass] server.sh dispatch targets exist and are executable
+[pass] documented server.sh commands resolve to dispatch table
+[pass] tracked scripts are classified and referenced
+[pass] project inventory delegates script file inventory to this verifier
+[pass] project inventory maps verifier families without duplicating dispatch details
+[pass] CMake does not define a separate untracked CTest registry
+[pass] test entry scripts are reachable from test_all
+[pass] auth verifier has no hardcoded test password defaults
+[pass] VA EventRecord dispatch verifier fails early and dispatches every poll by default
+[pass] critical verifier pass output avoids grouped feature-result wording
+[pass] user-facing JS option parsers reject unknown options
+
+== Script inventory verification summary ==
+- pass: 11
+- fail: 0

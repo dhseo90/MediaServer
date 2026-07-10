@@ -8,6 +8,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { evaluateVisibleAssertions } from "./v390_visible_dom_assertions.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -64,8 +65,11 @@ check("server.sh and script inventory expose R2 UI automation commands", () => {
   for (const snippet of [command, reportCommand, contractCommand]) {
     assertIncludes(files.serverSh, snippet, "server.sh R2 command");
   }
-  for (const snippet of ["startCoreServer", "openBrowserPage", "expectedMarkers", "waitForHealth"]) {
+  for (const snippet of ["startCoreServer", "openBrowserPage", "evaluateVisibleAssertions", "visibleDomAssertionModel", "waitForHealth"]) {
     assertIncludes(files.runner, snippet, "R2 runner real mode");
+  }
+  for (const forbidden of ["document.documentElement.outerHTML", "document.body.innerText", "expectedMarkers", "haystack"]) {
+    assert(!files.runner.includes(forbidden), `R2 runner forbidden whole-page/source assertion: ${forbidden}`);
   }
   assert(!files.runner.includes('"verify-ui-fulltest-one-shot"'), "R2 runner must not delegate real mode to verify-ui-fulltest-one-shot");
 });
@@ -83,7 +87,8 @@ check("case manifest covers exact UI-108 through UI-115 actions and states", () 
   assert(run.status === "passed", `case completeness fixture should pass, got ${run.status}`);
   const summary = readJson(run.summaryPath);
   const required = ["UI-108", "UI-109", "UI-110", "UI-111", "UI-112", "UI-113", "UI-114", "UI-115"];
-  assert(summary.caseManifestSchema === "media-server.v390-ui-automation-cases.v2", "case manifest schema must be v2");
+  assert(summary.caseManifestSchema === "media-server.v390-ui-automation-cases.v3", "case manifest schema must be v3");
+  assert(summary.assertionModel === "visible-dom-user-action-v1", "assertion model mismatch");
   assert(JSON.stringify(summary.requiredCaseIds) === JSON.stringify(required), "requiredCaseIds mismatch");
   assert(JSON.stringify(summary.cases.map(item => item.caseId)) === JSON.stringify(required), "exact case coverage mismatch");
   const ui112 = summary.cases.find(item => item.caseId === "UI-112");
@@ -93,11 +98,29 @@ check("case manifest covers exact UI-108 through UI-115 actions and states", () 
   for (const item of summary.cases) {
     assert(item.interaction?.kind === "click", `${item.caseId} missing click interaction`);
     assert(Array.isArray(item.stateSelectors) && item.stateSelectors.length > 0, `${item.caseId} missing state selectors`);
+    assert(Array.isArray(item.visibleAssertions) && item.visibleAssertions.length > 0, `${item.caseId} missing visible assertions`);
     assert(item.interactionEvidence && typeof item.interactionEvidence.executed === "boolean", `${item.caseId} missing interaction evidence`);
     assert(item.stateEvidence && Array.isArray(item.stateEvidence.after), `${item.caseId} missing state evidence`);
     assert(Object.prototype.hasOwnProperty.call(item, "failureEvidence"), `${item.caseId} missing failure evidence field`);
   }
   runReportVerifier(run.summaryPath);
+});
+
+check("script strings and hidden text cannot satisfy visible DOM assertions", () => {
+  const expectation = [{ selector: "#status", textIncludes: ["defer-all-action-writes"] }];
+  const scriptOnly = evaluateVisibleAssertions(expectation, [{
+    selector: "#status",
+    exists: true,
+    visible: true,
+    text: "all-action-writes-deferred",
+    documentSource: "<script>const policy='defer-all-action-writes'</script>",
+  }]);
+  assert(scriptOnly.pass === false, "script-only marker must not pass");
+  assert(scriptOnly.assertions[0].missingText.includes("defer-all-action-writes"), "script-only missing text evidence absent");
+  const hidden = evaluateVisibleAssertions(expectation, [{ selector: "#status", exists: true, visible: false, text: "defer-all-action-writes" }]);
+  assert(hidden.pass === false, "hidden text must not pass");
+  const visible = evaluateVisibleAssertions(expectation, [{ selector: "#status", exists: true, visible: true, text: "defer-all-action-writes" }]);
+  assert(visible.pass === true, "visible exact-selector text should pass");
 });
 
 check("missing UI-112 and wrong manifest route are rejected", () => {
@@ -121,7 +144,7 @@ check("failure fixture records case failure fields and later cases as not-run", 
   assert(failedCase && failedCase.status === "FAIL", "UI-110 must fail");
   assert(failedCase.route === "/ops/rules", "UI-110 route mismatch");
   assert(failedCase.controlAction === "inspect-vlm-rule-draft-bridge", "UI-110 controlAction mismatch");
-  assert(Array.isArray(failedCase.expectedMarkers) && failedCase.expectedMarkers.includes("autoApply=false"), "UI-110 expectedMarkers mismatch");
+  assert(failedCase.visibleAssertions?.some(assertion => assertion.textIncludes?.includes("autoApply=false")), "UI-110 visibleAssertions mismatch");
   assert(failedCase.manualIntervention === false, "failure fixture must not require manual intervention");
   assert(Array.isArray(failedCase.browserConsole), "browserConsole must be an array");
   assert(failedCase.failureEvidence?.reason, "UI-110 failure reason missing");
@@ -151,7 +174,7 @@ check("pass fixture validates through report replay verifier", () => {
 
 check("docs and release evidence record R2 without overclaiming UI fulltest", () => {
   for (const snippet of [
-    "v3.9.0 R2 / V390-ADD1-07~08 native UI automation exact case runner",
+    "v3.9.0 R2 / V390-ADD1-07~09 native visible DOM UI automation exact case runner",
     command,
     reportCommand,
     contractCommand,
@@ -170,7 +193,7 @@ check("docs and release evidence record R2 without overclaiming UI fulltest", ()
     assertIncludes(files.releaseRecords, snippet, "R2 release records");
   }
   for (const snippet of [
-    "v3.9.0 R2 / V390-ADD1-07~08 native UI automation exact case runner",
+    "v3.9.0 R2 / V390-ADD1-07~09 native visible DOM UI automation exact case runner",
     command,
     reportCommand,
     contractCommand,

@@ -12,6 +12,11 @@ import { fileURLToPath } from "node:url";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { findChrome, openBrowserPage } from "./ui_visual_smoke_lib.mjs";
 import { createNativePlaywrightAdapter } from "./v390_ui_native_adapter.mjs";
+import {
+  evaluateVisibleAssertions,
+  validateVisibleAssertionSchema,
+  visibleDomAssertionModel,
+} from "./v390_visible_dom_assertions.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -123,7 +128,8 @@ const summary = {
   manualIntervention: false,
   failedInteractionCount: failCount,
   requiredCaseIds,
-  caseManifestSchema: "media-server.v390-ui-automation-cases.v2",
+  caseManifestSchema: "media-server.v390-ui-automation-cases.v3",
+  assertionModel: visibleDomAssertionModel,
   caseCount: normalizedCases.length,
   pass: passCount,
   fail: failCount,
@@ -236,7 +242,7 @@ function parseArgs(args) {
 function loadCases(manifestPath) {
   const fullPath = path.resolve(rootDir, manifestPath);
   const payload = JSON.parse(fs.readFileSync(fullPath, "utf8"));
-  assert(payload.schema === "media-server.v390-ui-automation-cases.v2", "unexpected UI automation case manifest schema");
+  assert(payload.schema === "media-server.v390-ui-automation-cases.v3", "unexpected UI automation case manifest schema");
   assert(Array.isArray(payload.cases) && payload.cases.length > 0, "case manifest must contain cases");
   const actualCaseIds = payload.cases.map(item => item.caseId);
   assert(JSON.stringify(actualCaseIds) === JSON.stringify(requiredCaseIds),
@@ -255,6 +261,7 @@ function loadCases(manifestPath) {
     assert(item.interaction?.kind === "click" && Boolean(item.interaction.selector), `${item.caseId} missing click interaction`);
     assert(Boolean(item.targetSelector), `${item.caseId} missing targetSelector`);
     assert(Array.isArray(item.stateSelectors) && item.stateSelectors.length > 0, `${item.caseId} missing stateSelectors`);
+    validateVisibleAssertionSchema(item.visibleAssertions, item.stateSelectors);
   }
   if (options.fixtureFailCase) {
     assert(payload.cases.some(item => item.caseId === options.fixtureFailCase), `unknown fixture fail case: ${options.fixtureFailCase}`);
@@ -519,84 +526,67 @@ async function runBrowserCase(item, { httpBase, runtimeAdapter, debugPort, timeo
   });
   try {
     await delay(500);
-    const nativeEvidence = selectedAdapter.engine === "playwright-native"
-      ? await performNativeInteractions(browser, item, timeoutMs)
-      : null;
+    if (typeof browser.waitForSelector !== "function" || typeof browser.click !== "function") {
+      throw new Error(`adapter ${selectedAdapter.engine} does not expose trusted user-action methods`);
+    }
+    const nativeEvidence = await performNativeInteractions(browser, item, timeoutMs);
     const result = await browser.evaluate(
       `
         (async () => {
-          const setupInteractions = ${JSON.stringify(selectedAdapter.engine === "playwright-native" ? [] : (item.setupInteractions || []))};
           const nativeEvidence = ${JSON.stringify(nativeEvidence)};
           const interaction = ${JSON.stringify(item.interaction)};
           const targetSelector = ${JSON.stringify(item.targetSelector)};
           const stateSelectors = ${JSON.stringify(item.stateSelectors)};
-          const markers = ${JSON.stringify(item.expectedMarkers || [])};
           const readState = () => stateSelectors.map((selector) => {
             const element = document.querySelector(selector);
             const rect = element ? element.getBoundingClientRect() : null;
+            const style = element ? getComputedStyle(element) : null;
             return {
               selector,
               exists: Boolean(element),
-              visible: Boolean(rect && rect.width > 0 && rect.height > 0),
-              text: String(element?.innerText || element?.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 1200),
+              visible: Boolean(rect && rect.width > 0 && rect.height > 0 && style && style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity || 1) > 0),
+              text: String(element?.innerText || '').replace(/\\s+/g, ' ').trim().slice(0, 1200),
             };
           });
-          const executeInteraction = (step) => {
-            const element = document.querySelector(step.selector);
-            if (!element) return { ...step, executed: false };
-            if (step.kind === 'click') element.click();
-            if (step.kind === 'select') {
-              element.value = step.value;
-              element.dispatchEvent(new Event('input', { bubbles: true }));
-              element.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-            return { ...step, executed: true };
-          };
-          const setupEvidence = nativeEvidence ? nativeEvidence.setup : [];
-          for (const step of setupInteractions) {
-            setupEvidence.push(executeInteraction(step));
-            await new Promise((resolve) => setTimeout(resolve, 250));
-          }
-          const beforeState = nativeEvidence ? nativeEvidence.beforeState : readState();
+          const setupEvidence = nativeEvidence.setup;
+          const beforeState = nativeEvidence.beforeState;
           const control = document.querySelector(interaction.selector);
-          if (control && !nativeEvidence) control.click();
           await new Promise((resolve) => setTimeout(resolve, 500));
           const afterState = readState();
           const target = document.querySelector(targetSelector);
           const targetRect = target ? target.getBoundingClientRect() : null;
-          const targetVisible = Boolean(targetRect && targetRect.width > 0 && targetRect.height > 0);
-          const text = document.body ? document.body.innerText : "";
-          const html = document.documentElement ? document.documentElement.outerHTML : "";
-          const haystack = String(text + "\\n" + html);
-          const missing = markers.filter((marker) => !haystack.includes(marker));
+          const targetStyle = target ? getComputedStyle(target) : null;
+          const targetVisible = Boolean(targetRect && targetRect.width > 0 && targetRect.height > 0 && targetStyle && targetStyle.display !== 'none' && targetStyle.visibility !== 'hidden' && Number(targetStyle.opacity || 1) > 0);
           const missingStateSelectors = afterState.filter((state) => !state.exists || !state.text).map((state) => state.selector);
           return {
-            ok: setupEvidence.every((step) => step.executed) && Boolean(control) && targetVisible && missingStateSelectors.length === 0 && missing.length === 0,
-            missing,
+            ok: setupEvidence.every((step) => step.executed) && Boolean(control) && targetVisible && missingStateSelectors.length === 0,
             missingStateSelectors,
             interaction: {
               kind: interaction.kind,
               selector: interaction.selector,
               executed: Boolean(control),
-              dispatch: nativeEvidence ? 'playwright-native' : 'dom-click',
+              dispatch: nativeEvidence.dispatch,
               setup: setupEvidence,
             },
             target: { selector: targetSelector, exists: Boolean(target), visible: targetVisible },
             beforeState,
             afterState,
-            markerCount: markers.length,
             title: document.title,
-            textSnippet: text.replace(/\\s+/g, " ").slice(0, 800),
           };
         })()
       `,
       10000,
     );
+    const assertionEvidence = evaluateVisibleAssertions(item.visibleAssertions, result?.afterState || []);
+    result.assertionModel = assertionEvidence.model;
+    result.visibleAssertions = assertionEvidence.assertions;
+    result.ok = result.ok === true && assertionEvidence.pass === true;
     artifact.interactionEvidence = result?.interaction || defaultInteractionEvidence(item);
     artifact.stateEvidence = {
       target: result?.target || { selector: item.targetSelector, exists: false, visible: false },
       before: result?.beforeState || [],
       after: result?.afterState || [],
+      assertions: assertionEvidence.assertions,
     };
     await browser.screenshot(artifact.screenshotPath);
     const browserConsole = browser.consoleEntries ? browser.consoleEntries() : [];
@@ -608,7 +598,8 @@ async function runBrowserCase(item, { httpBase, runtimeAdapter, debugPort, timeo
       controlAction: item.controlAction,
       browserMode: options.browserMode,
       adapter: selectedAdapter,
-      expectedMarkers: item.expectedMarkers || [],
+      assertionModel: visibleDomAssertionModel,
+      visibleAssertions: item.visibleAssertions,
       interactionEvidence: artifact.interactionEvidence,
       stateEvidence: artifact.stateEvidence,
       browserConsolePath: artifact.browserConsolePath,
@@ -621,7 +612,10 @@ async function runBrowserCase(item, { httpBase, runtimeAdapter, debugPort, timeo
       if (!result?.interaction?.executed) reasons.push(`control not found: ${item.interaction.selector}`);
       if (!result?.target?.visible) reasons.push(`target not visible: ${item.targetSelector}`);
       if ((result?.missingStateSelectors || []).length > 0) reasons.push(`missing state: ${result.missingStateSelectors.join(", ")}`);
-      if ((result?.missing || []).length > 0) reasons.push(`missing UI markers: ${result.missing.join(", ")}`);
+      const failedAssertions = (result?.visibleAssertions || []).filter(assertion => !assertion.pass);
+      if (failedAssertions.length > 0) {
+        reasons.push(`visible DOM assertion failed: ${failedAssertions.map(assertion => `${assertion.selector}[${assertion.missingText.join("|") || "not-visible-or-empty"}]`).join(", ")}`);
+      }
       const failure = new Error(reasons.join("; ") || "UI action/state verification failed");
       failure.artifact = artifact;
       throw failure;
@@ -639,7 +633,7 @@ async function performNativeInteractions(browser, item, timeoutMs) {
     if (step.kind === "click") await browser.click(step.selector);
     else if (step.kind === "select") await browser.select(step.selector, step.value);
     else throw new Error(`unsupported native setup interaction: ${step.kind}`);
-    setup.push({ ...step, executed: true, dispatch: "playwright-native" });
+    setup.push({ ...step, executed: true, dispatch: selectedAdapter.engine });
     await delay(250);
   }
   const beforeState = await readNativeState(browser, item.stateSelectors || []);
@@ -647,18 +641,19 @@ async function performNativeInteractions(browser, item, timeoutMs) {
   if (item.interaction.kind === "click") await browser.click(item.interaction.selector);
   else if (item.interaction.kind === "select") await browser.select(item.interaction.selector, item.interaction.value);
   else throw new Error(`unsupported native interaction: ${item.interaction.kind}`);
-  return { setup, beforeState };
+  return { setup, beforeState, dispatch: selectedAdapter.engine };
 }
 
 async function readNativeState(browser, selectors) {
   return browser.evaluate(`(() => ${JSON.stringify(selectors)}.map((selector) => {
     const element = document.querySelector(selector);
     const rect = element ? element.getBoundingClientRect() : null;
+    const style = element ? getComputedStyle(element) : null;
     return {
       selector,
       exists: Boolean(element),
-      visible: Boolean(rect && rect.width > 0 && rect.height > 0),
-      text: String(element?.innerText || element?.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 1200),
+      visible: Boolean(rect && rect.width > 0 && rect.height > 0 && style && style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity || 1) > 0),
+      text: String(element?.innerText || '').replace(/\\s+/g, ' ').trim().slice(0, 1200),
     };
   }))()`);
 }
@@ -901,6 +896,7 @@ function writeCaseArtifacts(item, { serverLogReference = "" } = {}) {
       target: { selector: item.targetSelector, exists: false, visible: false },
       before: [],
       after: [],
+      assertions: [],
     },
   };
 }
@@ -933,7 +929,8 @@ function makeCase(item, status, actualResult, artifact) {
     targetSelector: item.targetSelector,
     stateSelectors: item.stateSelectors,
     expectedResult: item.expectedResult,
-    expectedMarkers: item.expectedMarkers || [],
+    visibleAssertions: item.visibleAssertions,
+    assertionModel: visibleDomAssertionModel,
     actualResult,
     status,
     interactionEvidence: artifact.interactionEvidence,

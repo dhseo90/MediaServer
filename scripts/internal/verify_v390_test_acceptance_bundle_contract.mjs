@@ -36,6 +36,10 @@ const contractCommand = "verify-v390-test-acceptance-bundle-contract";
 const script = "verify_v390_test_acceptance_bundle.mjs";
 const contractScript = "verify_v390_test_acceptance_bundle_contract.mjs";
 const checks = [];
+const temporaryOutputDirs = new Set();
+process.on("exit", () => {
+  for (const outputDir of temporaryOutputDirs) fs.rmSync(outputDir, { recursive: true, force: true });
+});
 
 const files = {
   serverSh: readText("server.sh"),
@@ -60,6 +64,7 @@ check("server.sh and script inventory expose R3 acceptance bundle commands", () 
 
 check("dry-run writes replayable acceptance summary without executing gated suites", () => {
   const outputDir = path.join("/tmp", `media_server_v390_acceptance_contract_${process.pid}`);
+  temporaryOutputDirs.add(outputDir);
   fs.rmSync(outputDir, { recursive: true, force: true });
   execFileSync(path.join(rootDir, "server.sh"), [
     command,
@@ -77,8 +82,8 @@ check("dry-run writes replayable acceptance summary without executing gated suit
   assert(summary.dryRun === true, "summary must mark dryRun=true");
   assert(summary.longrun30?.status === "pass-existing-evidence", "30-minute evidence status mismatch");
   assert(summary.uiAutomation?.status === "pass-existing-evidence", "UI automation preserved evidence status mismatch");
-  assert(summary.uiAutomation?.summaryPath === "docs/release-artifacts/v3.9.0/ui-automation-playwright-final/summary.json", "UI automation summary path mismatch");
-  assert(summary.uiAutomation?.reportPath === "docs/release-artifacts/v3.9.0/ui-automation-playwright-final/report.md", "UI automation report path mismatch");
+  assert(summary.uiAutomation?.summaryPath === "docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/summary.json", "UI automation summary path mismatch");
+  assert(summary.uiAutomation?.reportPath === "docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/report.md", "UI automation report path mismatch");
   assert(summary.uiAutomation?.manualIntervention === false, "UI automation manual intervention must be false");
   const manifest = readJson(path.join(rootDir, "test/fixtures/v390_ui_automation_cases.json"));
   assert(summary.uiAutomation?.caseCount === manifest.cases.length, "UI automation case count mismatch");
@@ -223,6 +228,7 @@ function readJson(filePath) {
 
 function fixtureDir(label) {
   const outputDir = path.join("/tmp", `media_server_v390_acceptance_contract_${label}_${process.pid}`);
+  temporaryOutputDirs.add(outputDir);
   fs.rmSync(outputDir, { recursive: true, force: true });
   return outputDir;
 }

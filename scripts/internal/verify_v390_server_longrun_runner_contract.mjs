@@ -35,6 +35,12 @@ const runnerScript = "verify_v390_server_longrun.mjs";
 const contractScript = "verify_v390_server_longrun_runner_contract.mjs";
 const runnerPath = path.join(rootDir, "scripts/internal", runnerScript);
 const checks = [];
+const temporaryOutputDirs = new Set();
+const temporaryFiles = new Set();
+process.on("exit", () => {
+  for (const outputDir of temporaryOutputDirs) fs.rmSync(outputDir, { recursive: true, force: true });
+  for (const filePath of temporaryFiles) fs.rmSync(filePath, { force: true });
+});
 
 const files = {
   serverSh: readText("server.sh"),
@@ -112,6 +118,7 @@ check("predev summary fixture preserves delegated first failure step", () => {
     "/tmp",
     `media_server_v390_longrun_predev_summary_${process.pid}.json`,
   );
+  temporaryFiles.add(fixtureSummaryPath);
   writeJson(fixtureSummaryPath, {
     kind: "predev",
     status: "fail",
@@ -220,6 +227,7 @@ finish();
 
 function runFixture(label, extraArgs) {
   const outputDir = path.join("/tmp", `media_server_v390_longrun_contract_${label}_${process.pid}`);
+  temporaryOutputDirs.add(outputDir);
   fs.rmSync(outputDir, { recursive: true, force: true });
   const args = [
     runnerPath,

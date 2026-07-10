@@ -1,0 +1,187 @@
+{
+  "schema": "media-server.v390-ui-automation-trace.v1",
+  "caseId": "UI-110",
+  "route": "/ops/rules",
+  "controlAction": "inspect-vlm-rule-draft-bridge",
+  "browserMode": "playwright",
+  "adapter": {
+    "tool": "playwright",
+    "engine": "playwright-native",
+    "fallbackUsed": false,
+    "fallbackReason": "",
+    "visualOnly": false,
+    "dependencyStatus": "bundled-module-available",
+    "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+    "moduleVersion": "1.61.1",
+    "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "capabilities": [
+      "wait",
+      "click",
+      "fill",
+      "type",
+      "select",
+      "screenshot",
+      "evaluate"
+    ]
+  },
+  "assertionModel": "visible-dom-user-action-v1",
+  "visibleAssertions": [
+    {
+      "selector": "#opsVlmRuleDraftBridgeStatus",
+      "textIncludes": [
+        "ops-review-to-rule-draft-bridge",
+        "manualSaveRequired=true",
+        "autoApply=false"
+      ]
+    },
+    {
+      "selector": "#opsVlmRuleDraftSummary",
+      "textNotEmpty": true
+    }
+  ],
+  "interactionEvidence": {
+    "kind": "click",
+    "selector": "#opsVlmRuleDraftRefresh",
+    "executed": true,
+    "dispatch": "playwright-native",
+    "setup": []
+  },
+  "stateEvidence": {
+    "target": {
+      "selector": "[data-testid=\"ops-vlm-rule-draft-workflow\"]",
+      "exists": true,
+      "visible": true
+    },
+    "before": [
+      {
+        "selector": "#opsVlmRuleDraftBridgeStatus",
+        "exists": true,
+        "visible": true,
+        "text": "review-to-draft bridge: ops-review-to-rule-draft-bridge / provenance=incident-review-provenance / manualSaveRequired=true / autoApply=false / ruleRegistryWrite=false / draftRoute=/ops/rules"
+      },
+      {
+        "selector": "#opsVlmRuleDraftSummary",
+        "exists": true,
+        "visible": true,
+        "text": "수동 저장 후보 0/0개 · 자동 적용 제외 0개 · 저장 전 registry write 없음"
+      }
+    ],
+    "after": [
+      {
+        "selector": "#opsVlmRuleDraftBridgeStatus",
+        "exists": true,
+        "visible": true,
+        "text": "review-to-draft bridge: ops-review-to-rule-draft-bridge / provenance=incident-review-provenance / manualSaveRequired=true / autoApply=false / ruleRegistryWrite=false / draftRoute=/ops/rules"
+      },
+      {
+        "selector": "#opsVlmRuleDraftSummary",
+        "exists": true,
+        "visible": true,
+        "text": "수동 저장 후보 0/0개 · 자동 적용 제외 0개 · 저장 전 registry write 없음"
+      }
+    ],
+    "assertions": [
+      {
+        "selector": "#opsVlmRuleDraftBridgeStatus",
+        "exists": true,
+        "visible": true,
+        "text": "review-to-draft bridge: ops-review-to-rule-draft-bridge / provenance=incident-review-provenance / manualSaveRequired=true / autoApply=false / ruleRegistryWrite=false / draftRoute=/ops/rules",
+        "textNotEmpty": true,
+        "expectedTextIncludes": [
+          "ops-review-to-rule-draft-bridge",
+          "manualSaveRequired=true",
+          "autoApply=false"
+        ],
+        "missingText": [],
+        "pass": true,
+        "sourceBoundary": "exact-selector-visible-innerText-only"
+      },
+      {
+        "selector": "#opsVlmRuleDraftSummary",
+        "exists": true,
+        "visible": true,
+        "text": "수동 저장 후보 0/0개 · 자동 적용 제외 0개 · 저장 전 registry write 없음",
+        "textNotEmpty": true,
+        "expectedTextIncludes": [],
+        "missingText": [],
+        "pass": true,
+        "sourceBoundary": "exact-selector-visible-innerText-only"
+      }
+    ]
+  },
+  "browserConsolePath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/logs/ui-110.browser-console.json",
+  "result": {
+    "ok": true,
+    "missingStateSelectors": [],
+    "interaction": {
+      "kind": "click",
+      "selector": "#opsVlmRuleDraftRefresh",
+      "executed": true,
+      "dispatch": "playwright-native",
+      "setup": []
+    },
+    "target": {
+      "selector": "[data-testid=\"ops-vlm-rule-draft-workflow\"]",
+      "exists": true,
+      "visible": true
+    },
+    "beforeState": [
+      {
+        "selector": "#opsVlmRuleDraftBridgeStatus",
+        "exists": true,
+        "visible": true,
+        "text": "review-to-draft bridge: ops-review-to-rule-draft-bridge / provenance=incident-review-provenance / manualSaveRequired=true / autoApply=false / ruleRegistryWrite=false / draftRoute=/ops/rules"
+      },
+      {
+        "selector": "#opsVlmRuleDraftSummary",
+        "exists": true,
+        "visible": true,
+        "text": "수동 저장 후보 0/0개 · 자동 적용 제외 0개 · 저장 전 registry write 없음"
+      }
+    ],
+    "afterState": [
+      {
+        "selector": "#opsVlmRuleDraftBridgeStatus",
+        "exists": true,
+        "visible": true,
+        "text": "review-to-draft bridge: ops-review-to-rule-draft-bridge / provenance=incident-review-provenance / manualSaveRequired=true / autoApply=false / ruleRegistryWrite=false / draftRoute=/ops/rules"
+      },
+      {
+        "selector": "#opsVlmRuleDraftSummary",
+        "exists": true,
+        "visible": true,
+        "text": "수동 저장 후보 0/0개 · 자동 적용 제외 0개 · 저장 전 registry write 없음"
+      }
+    ],
+    "title": "운영 콘솔",
+    "assertionModel": "visible-dom-user-action-v1",
+    "visibleAssertions": [
+      {
+        "selector": "#opsVlmRuleDraftBridgeStatus",
+        "exists": true,
+        "visible": true,
+        "text": "review-to-draft bridge: ops-review-to-rule-draft-bridge / provenance=incident-review-provenance / manualSaveRequired=true / autoApply=false / ruleRegistryWrite=false / draftRoute=/ops/rules",
+        "textNotEmpty": true,
+        "expectedTextIncludes": [
+          "ops-review-to-rule-draft-bridge",
+          "manualSaveRequired=true",
+          "autoApply=false"
+        ],
+        "missingText": [],
+        "pass": true,
+        "sourceBoundary": "exact-selector-visible-innerText-only"
+      },
+      {
+        "selector": "#opsVlmRuleDraftSummary",
+        "exists": true,
+        "visible": true,
+        "text": "수동 저장 후보 0/0개 · 자동 적용 제외 0개 · 저장 전 registry write 없음",
+        "textNotEmpty": true,
+        "expectedTextIncludes": [],
+        "missingText": [],
+        "pass": true,
+        "sourceBoundary": "exact-selector-visible-innerText-only"
+      }
+    ]
+  }
+}

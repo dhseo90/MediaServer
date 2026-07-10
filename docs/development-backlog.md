@@ -113,7 +113,7 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 23 | v3.9.0 (23) native free UI automation adapter proof | P0 | 완료 | bundled Playwright 1.61.1과 system Chrome을 선택해 standalone 7개 native action 및 UI-108~115의 native dispatch 8/8을 fallback 없이 실행하고 module/browser provenance를 보존 |
 | 24 | v3.9.0 (24) server longrun true first-fail case runner | P0 | 부분 완료/post-review 잔여 | R1 runner는 `stopOnFirstFail` summary와 delegated failure 보존이 있지만 핵심 duration loop는 cumulative `verify-predev`에 위임됨. 실제 case-by-case first-fail runner 보강 필요 |
 | 25 | v3.9.0 (25) route/control/action automation coverage matrix | P0 | 미완료/post-review 잔여 | 현재 R2 자동화는 v3.9 신규 일부 case 중심임. v1.0~v3.9 current UI 기능 ID에 대한 자동화 coverage matrix와 미지원/제외 사유가 필요 |
-| 26 | v3.9.0 (26) final evidence re-run and cleanup | P0 | 미완료/post-review 잔여 | post-review 잔여 구현 후 Step 20 local gate, 30분, UI automation/full coverage, 조건부 120분 판정, cleanup/evidence를 release action 전 다시 닫아야 함 |
+| 26 | v3.9.0 (26) final evidence re-run and cleanup | P0 | 완료 | 6~9 통합 acceptance 재실행에서 build/26개 기능 gate/실제 30분 118-0/UI-108~115 native visible DOM 8-0/replay/조건부 120 판정/cleanup을 단일 run으로 닫음 |
 | 27 | v3.9.0 (27) deferred product decision owner sign-off | P1 | 미완료/owner decision 필요 | 실행형 action, field smoke, persistent credential store, provider call, model-backed Re-ID는 read-only/defer 상태임. v3.9에서 non-goal로 닫을지 실제 구현할지 명시 decision 필요 |
 | 28 | v3.9.0 (28) structure stabilization implementation readiness | P1 | 미완료/structure handoff 후속 | Step 19는 실제 구조 안정화 구현이 아니라 계획 이관임. `webrtc_http_server.cpp`/UI script extraction 실행 branch와 slice별 검증 순서 확정 필요 |
 | 29 | v3.9.0 (29) real external field smoke gate | P2 | 조건부 미실행 | 외부 credential/endpoint/실기기/provider 조건이 없으면 기본 release PASS가 아님. 조건 제공 시 별도 field smoke evidence로만 닫음 |
@@ -140,7 +140,7 @@ UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release a
 | 6 | V390-ADD1-06 | Test Foundation | 실제 acceptance bundle | P0 | 완료 | dry-run 강제를 해제하고 build→현재 기능 gate→실제 30분→실제 UI automation→조건부 120분을 stop-on-first-fail 단일 진입점으로 실행하며 summary/report/cleanup을 보존 |
 | 7 | V390-ADD1-07 | UI Test | UI 케이스 누락 보완 | P0 | 완료 | `UI-112`를 포함한 `UI-108`~`UI-115` 전 case의 실제 route/control/action/state/failure/artifact evidence를 검증 |
 | 8 | V390-ADD1-08 | UI Test | 무료 네이티브 자동화 어댑터 | P0 | 완료 | bundled Playwright와 설치된 Chrome을 사용하는 독립 adapter가 실제 wait/click/fill/type/select/screenshot을 실행하고 UI 8-case도 `playwright-native` dispatch/provenance/fallback false로 검증 |
-| 9 | V390-ADD1-09 | UI Test | 거짓 PASS 방지 | P0 | 미진행 | `outerHTML`·script 문자열·whole-page marker 성공 판정을 제거하고 visible DOM 상태와 실제 사용자 action 전후 결과로만 판정 |
+| 9 | V390-ADD1-09 | UI Test | 거짓 PASS 방지 | P0 | 완료 | case schema v3 exact-selector `visibleAssertions`와 trusted native action 뒤 computed visibility/visible innerText만 판정하며 source/script/outerHTML/whole-page marker PASS를 negative contract로 거부 |
 
 ### V390-ADD1-06 실제 acceptance bundle — 실행 전 등록
 
@@ -286,6 +286,57 @@ screenshot과 console/provenance를 제공하고 standalone reproduction이 실�
 
 테스트 사용량: token start `1080515`, token end `1301950`, token consumed `221435`,
 elapsed 약 `902초`, source `Codex goal usage`.
+
+### V390-ADD1-09 거짓 PASS 방지 — 실행 전 등록
+
+Step 9은 case manifest를 exact selector별 visible assertion schema로 바꾸고, runner가
+`document.body.innerText`, `document.documentElement.outerHTML`, script/source marker를
+성공 근거로 읽지 못하게 합니다. 실제 native action 뒤 exact state element가 존재하고
+computed visible이며, 그 element의 visible `innerText`가 명시된 값을 포함할 때만 PASS입니다.
+UI-113의 `defer-all-action-writes`처럼 source에는 있지만 실제 표시 텍스트에는 없는 값은
+negative fixture에서 반드시 FAIL해야 합니다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | case schema/runner/report/negative contract/docs 변경 | `V390-ADD1-09`, `UI-108`~`UI-115`, `OPS-169`, `SAFE-202` | 최신 goal에서 9번 개발 승인 |
+| 30분 테스트 | 미진행 | assertion/evidence 로직만 변경하며 server runtime/media lifecycle은 변경하지 않음 | Step 9 변경 범위 | 장시간 trigger 없음; 6~9 통합 후 별도 판정 |
+| 120분 테스트 | 미진행 | AGENTS 7.6.2 high-risk trigger 없음 | Step 9 변경 범위 | 조건 미충족 |
+| UI 풀테스트 | 미진행 | native 8-case visible assertion은 실행하지만 Codex 인앱 전체 UI 직접 조작과 구분 | `UI-108`~`UI-115` | 직접 UI 풀테스트 승인 없음 |
+
+RED: runner source 검사에서 `document.documentElement.outerHTML`,
+`document.body.innerText`, `expectedMarkers`가 모두 발견돼 exit 1로 실패했습니다. 또한
+UI-113 actual visible state는 `all-action-writes-deferred`지만 기존 expected marker
+`defer-all-action-writes`가 source/script 문자열만으로 통과한 것을 보존 summary로
+재현했습니다.
+
+### V390-ADD1-09 거짓 PASS 방지 — 개발 및 실행 결과
+
+- `test/fixtures/v390_ui_automation_cases.json`을 schema v3로 올리고 각 `stateSelectors`와 exact 일치하는 `visibleAssertions`를 정의했습니다. UI-113은 source-only `defer-all-action-writes`가 아니라 실제 표시값 `all-action-writes-deferred`를 검증합니다.
+- `scripts/internal/v390_visible_dom_assertions.mjs`가 exact selector snapshot의 `exists`, computed `visible`, visible `innerText`, `textIncludes`만 평가하고 `sourceBoundary=exact-selector-visible-innerText-only` evidence를 생성합니다.
+- `scripts/internal/verify_v390_ui_automation.mjs`가 `document.body.innerText`, `outerHTML`, source marker, DOM-dispatch action을 제거했습니다. trusted adapter action이 없으면 FAIL하고, native action 뒤 selector별 snapshot을 Node-side evaluator에서 판정합니다.
+- report/runner/native adapter/acceptance contract가 schema v3, `assertionModel=visible-dom-user-action-v1`, 모든 assertion PASS/visibility/source boundary와 fallback false를 replay합니다.
+- acceptance dry-run의 stale 7-case preserved path를 `ui-automation-visible-dom-final`로 교체하고 acceptance/longrun contract fixture가 예외 종료에도 `/tmp` 산출물을 자동 제거하도록 process-exit cleanup을 추가했습니다.
+
+실행 결과:
+
+| 항목 | 결과 | 판정 |
+| --- | --- | --- |
+| source/hidden negative | whole-page/source assertion forbidden 4종 부재, script-only `defer-all-action-writes`와 hidden text FAIL, exact visible text PASS | PASS, contract 9/0 |
+| visible DOM UI final | `docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final`: UI-108~115 8/8, native dispatch, fallback false, 모든 assertion visible/missing 0 | PASS |
+| visible DOM replay | schema v3/exact route/action/assertion/failure/artifact/cleanup | PASS 7/0 |
+| acceptance first run | local HTTP H264/AAC `/opus` ffprobe 20초 timeout 1건으로 longrun FAIL; UI/replay/120 not-run, cleanup/report PASS | FAIL, 재시도 |
+| acceptance retry final | run `v390-test-acceptance-20260710100233-58896`: build, 26 feature gates, 실제 30분 predev 118/0/2와 soak 22회, UI 8/8, replay 7/0, cleanup PASS | PASS |
+| 120분 | runtime/media high-risk trigger 없음, decision `not-required`, pass substitution false | 조건부 미실행 |
+| UI 풀테스트 | native exact-selector 자동 UI는 실행했지만 Codex 인앱 전체 UI 직접 조작은 실행하지 않음 | 미실행 |
+
+첫 acceptance 실패는 같은 source의 `/default`, `/h264`, WebRTC와 다음 video-only case는
+통과하고 `/opus` ffprobe만 timeout난 일시적 readiness 실패였습니다. 코드/timeout을
+완화하지 않고 clean 재시도했으며 동일 `/opus` 경로와 전체 30분이 통과했습니다. 실패
+run 608KB, 통합 로그 260KB, predev/contract fixture temp를 삭제했고 최종 acceptance
+1.4MB와 visible-DOM UI 608KB만 보존했습니다.
+
+테스트 사용량: token start `1301950`, token end `1902440`, token consumed `600490`,
+elapsed 약 `4133초`, source `Codex goal usage`.
 
 ### V390-ADD1-01 미추적 파일 전수 판정
 

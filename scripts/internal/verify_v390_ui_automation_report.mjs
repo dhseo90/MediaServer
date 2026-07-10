@@ -38,6 +38,7 @@ check("summary uses v390 UI automation schema", () => {
   assert(typeof summary.runId === "string" && summary.runId.startsWith("v390-ui-automation-"), "missing v390 runId");
   assert(["PASS", "FAIL"].includes(summary.result), `invalid result: ${summary.result}`);
   assert(summary.evidenceBoundary === "automationResult is not manual UI fulltest, 30-minute, 120-minute, published, or release-action evidence", "missing evidence boundary");
+  assert(summary.assertionModel === "visible-dom-user-action-v1", "visible DOM assertion model missing");
   assertAdapterPlan();
   if (summary.nativeAdapterRequired === true) {
     assert(summary.selectedAdapter.engine === "playwright-native", "native-required summary must select playwright-native");
@@ -72,8 +73,8 @@ check("summary counts match case statuses", () => {
   }
 });
 
-check("v2 case manifest keeps exact UI-108 through UI-115 coverage", () => {
-  if (summary.caseManifestSchema !== "media-server.v390-ui-automation-cases.v2") return;
+check("v3 case manifest keeps exact UI-108 through UI-115 visible assertions", () => {
+  if (summary.caseManifestSchema !== "media-server.v390-ui-automation-cases.v3") return;
   assert(JSON.stringify(summary.requiredCaseIds) === JSON.stringify(requiredCaseIds), "requiredCaseIds mismatch");
   assert(JSON.stringify(getCases().map(item => item.caseId)) === JSON.stringify(requiredCaseIds),
     `case IDs must be exact ordered set: ${requiredCaseIds.join(", ")}`);
@@ -88,6 +89,8 @@ check("v2 case manifest keeps exact UI-108 through UI-115 coverage", () => {
     assert(item.interaction?.kind === "click" && Boolean(item.interaction.selector), `${item.caseId} missing interaction`);
     assert(Boolean(item.targetSelector), `${item.caseId} missing targetSelector`);
     assert(Array.isArray(item.stateSelectors) && item.stateSelectors.length > 0, `${item.caseId} missing stateSelectors`);
+    assert(Array.isArray(item.visibleAssertions) && item.visibleAssertions.length > 0, `${item.caseId} missing visibleAssertions`);
+    assert(JSON.stringify(item.visibleAssertions.map(assertion => assertion.selector)) === JSON.stringify(item.stateSelectors), `${item.caseId} visible assertion selectors mismatch`);
     assert(item.interactionEvidence && typeof item.interactionEvidence.executed === "boolean", `${item.caseId} missing interactionEvidence`);
     assert(item.stateEvidence && Array.isArray(item.stateEvidence.after), `${item.caseId} missing stateEvidence`);
     assert(Object.prototype.hasOwnProperty.call(item, "failureEvidence"), `${item.caseId} missing failureEvidence`);
@@ -96,6 +99,8 @@ check("v2 case manifest keeps exact UI-108 through UI-115 coverage", () => {
         assert(item.interactionEvidence.executed === true, `${item.caseId} PASS must execute its control action`);
         assert(item.stateEvidence.target?.visible === true, `${item.caseId} PASS target must be visible`);
         assert(item.stateEvidence.after.every(state => state.exists && state.text), `${item.caseId} PASS state evidence incomplete`);
+        assert(item.stateEvidence.assertions?.length === item.visibleAssertions.length, `${item.caseId} visible assertion evidence count mismatch`);
+        assert(item.stateEvidence.assertions.every(assertion => assertion.pass && assertion.visible && assertion.sourceBoundary === "exact-selector-visible-innerText-only"), `${item.caseId} visible assertion evidence incomplete`);
       }
       if (item.status === "FAIL") {
         assert(item.failureEvidence?.reason, `${item.caseId} FAIL missing failure reason`);
@@ -110,7 +115,8 @@ check("cases keep route/control/action granularity", () => {
       assert(Boolean(item[field]), `${item.caseId || "(unknown)"} missing ${field}`);
     }
     assert(item.viewport && Number.isInteger(item.viewport.width) && Number.isInteger(item.viewport.height), `${item.caseId} missing viewport`);
-    assert(Array.isArray(item.expectedMarkers) && item.expectedMarkers.length > 0, `${item.caseId} missing expectedMarkers`);
+    assert(Array.isArray(item.visibleAssertions) && item.visibleAssertions.length > 0, `${item.caseId} missing visibleAssertions`);
+    assert(item.assertionModel === "visible-dom-user-action-v1", `${item.caseId} assertion model mismatch`);
     assert(["PASS", "FAIL", "not-run"].includes(item.status), `${item.caseId} invalid status ${item.status}`);
     assert(item.manualIntervention === false, `${item.caseId} must have manualIntervention=false`);
     assert(Boolean(item.cleanupPortState), `${item.caseId} missing cleanupPortState`);

@@ -104,17 +104,19 @@ check("preserved standalone evidence proves native actions", () => {
   }
 });
 
-check("preserved UI suite evidence uses native dispatch without fallback", () => {
-  const summaryPath = path.join(rootDir, "docs/release-artifacts/v3.9.0/ui-automation-native-final/summary.json");
+check("preserved UI suite evidence uses native visible DOM dispatch without fallback", () => {
+  const summaryPath = path.join(rootDir, "docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/summary.json");
   assert(fs.existsSync(summaryPath), "native UI suite summary missing");
   const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
   assert(summary.result === "PASS" && summary.pass === 8 && summary.fail === 0, "native UI suite result mismatch");
   assert(summary.nativeAdapterRequired === true, "nativeAdapterRequired must be true");
+  assert(summary.assertionModel === "visible-dom-user-action-v1", "visible DOM assertion model missing");
   assert(summary.selectedAdapter?.engine === "playwright-native", "native UI engine not selected");
   assert(summary.selectedAdapter?.fallbackUsed === false, "native UI fallback must be false");
   for (const item of summary.cases || []) {
     assert(item.interactionEvidence?.dispatch === "playwright-native", `${item.caseId} primary dispatch mismatch`);
     assert((item.interactionEvidence?.setup || []).every(step => step.dispatch === "playwright-native"), `${item.caseId} setup dispatch mismatch`);
+    assert(item.stateEvidence?.assertions?.every(assertion => assertion.pass && assertion.visible), `${item.caseId} visible assertion mismatch`);
   }
 });
 
