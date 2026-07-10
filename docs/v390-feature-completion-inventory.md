@@ -154,3 +154,28 @@ Discovery is not complete until:
 Until this review gate passes, this file remains a discovery tracking scaffold only. It must not be cited as proof that discovery is complete, that a feature is implemented, or that any test area has passed.
 
 The review-ready output above does not mean the user has approved feature development.
+
+## Deferred Product Owner Sign-off (Development 16)
+
+Approval authority: `user-approved-owner-role-assignment`
+
+Approval source: `/goal v3.9.0 (17) Development 16`
+
+Approval date: `2026-07-11`
+
+Owner identity policy: owner role은 개인 이름을 추정하지 않고 제품 책임 역할로 고정합니다.
+실제 개인 배정이 필요한 조직 운영 작업은 이 저장소의 완료 주장 범위가 아닙니다.
+
+| Deferred item | Owner role | v3.9 decision | 직접 근거 | 재개 조건 요약 |
+| --- | --- | --- | --- | --- |
+| `action-execution` | `Product Owner` | `excluded-from-v3.9` | v3.8/v3.9 action workspace는 read-only/default-off이며 source recheck, client notice send, rule apply의 rollback·audit·authorization 제품 계약이 없음 | 실행형 roadmap, Security 승인, execution/rollback/UI/longrun evidence 계획 |
+| `persistent-credential-store` | `Security Owner` | `excluded-from-v3.9` | sanitized provider status와 in-memory fixture만 존재하고 persistent secret backend threat model·rotation·audit·recovery 정책이 미승인 | secret backend/threat model, rotation·audit·recovery, 비노출 negative/integration test 승인 |
+| `real-external-field-smoke` | `Release Owner` | `deferred-until-approved-field-run` | TURN/WHEP endpoint·credential, ONVIF 실기기, 외부 provider 환경이 제공되지 않아 실제 접속 미실행 | endpoint/실기기/credential, 실행 승인, sanitized artifact·cleanup·실패 중단 기준 |
+| `external-vlm-provider-call` | `Privacy and Security Owner` | `excluded-from-v3.9` | privacy transfer·retention·redaction·비용·provider 장애 정책과 credential이 미승인 | privacy/security 승인, provider 환경, redaction negative와 field 계획 |
+| `model-backed-reid-session` | `Product and ML Owner` | `excluded-from-v3.9` | provenance-gated preflight와 deterministic no-op만 보장하고 model bundle·license/privacy·정확도·실환경 기준이 미확정 | model/license/accuracy, privacy 경계, 실제 ONNX session/performance/field 계획 |
+
+Machine-readable source: `test/fixtures/v390_deferred_product_owner_signoff.json`
+
+Decision boundary: 모든 항목에서 `implementationExecuted=false`, `fieldPassClaimed=false`,
+`releasePassClaimed=false`입니다. 이 owner sign-off는 구현·field smoke·UI 풀테스트·30분/120분
+longrun·published metadata·release action PASS가 아닙니다.

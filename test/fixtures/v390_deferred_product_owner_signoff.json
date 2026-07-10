@@ -1,0 +1,101 @@
+{
+  "schema": "media-server.v390-deferred-product-owner-signoff.v1",
+  "release": "v3.9.0",
+  "developmentItem": 16,
+  "approvalDate": "2026-07-11",
+  "approvalSource": "/goal v3.9.0 (17) Development 16",
+  "approvedByAuthority": "user-approved-owner-role-assignment",
+  "ownerIdentityPolicy": "role-owned-no-personal-name-inference",
+  "decisions": [
+    {
+      "id": "action-execution",
+      "ownerRole": "Product Owner",
+      "decision": "excluded-from-v3.9",
+      "implementationExecuted": false,
+      "fieldPassClaimed": false,
+      "releasePassClaimed": false,
+      "rationale": "v3.9의 action workspace는 read-only/default-off pilot이며 source recheck, client notice send, rule apply를 활성화할 rollback·audit·authorization 제품 계약이 승인되지 않았습니다.",
+      "evidence": [
+        "docs/v390-feature-completion-inventory.md#user-review-output",
+        "scripts/internal/verify_v390_action_execution_deferral_decision.mjs"
+      ],
+      "reopenConditions": [
+        "Product Owner가 실행형 action roadmap과 허용 action 종류를 승인",
+        "Security Owner가 authorization, audit, rollback, external side-effect 경계를 승인",
+        "실제 execution negative/rollback/UI/longrun evidence 계획을 승인"
+      ]
+    },
+    {
+      "id": "persistent-credential-store",
+      "ownerRole": "Security Owner",
+      "decision": "excluded-from-v3.9",
+      "implementationExecuted": false,
+      "fieldPassClaimed": false,
+      "releasePassClaimed": false,
+      "rationale": "v3.9은 sanitized provider status와 in-memory fixture fallback만 제공하며 persistent secret backend의 threat model, rotation, audit, recovery 정책이 제품 범위로 승인되지 않았습니다.",
+      "evidence": [
+        "docs/onvif-credential-reference-policy.md",
+        "docs/onvif-credential-store-integration-design.md"
+      ],
+      "reopenConditions": [
+        "Security Owner가 secret backend와 threat model을 승인",
+        "credential rotation, revocation, audit, backup/recovery 정책을 확정",
+        "raw secret 비노출 negative test와 실제 backend integration test를 승인"
+      ]
+    },
+    {
+      "id": "real-external-field-smoke",
+      "ownerRole": "Release Owner",
+      "decision": "deferred-until-approved-field-run",
+      "implementationExecuted": false,
+      "fieldPassClaimed": false,
+      "releasePassClaimed": false,
+      "rationale": "현재 TURN/WHEP endpoint와 credential, ONVIF 실기기, 외부 provider 환경이 제공되지 않았으므로 실제 접속을 수행하지 않으며 local/static gate를 field 또는 release PASS로 사용할 수 없습니다.",
+      "evidence": [
+        "docs/external-turn-whep-field-gate.md",
+        "docs/onvif-field-smoke-gate.md"
+      ],
+      "reopenConditions": [
+        "Release Owner가 대상 endpoint와 실행 시간을 승인",
+        "redacted credential 또는 실기기 접근 조건을 안전하게 제공",
+        "sanitized artifact, cleanup, 실패 중단 기준을 사전 승인"
+      ]
+    },
+    {
+      "id": "external-vlm-provider-call",
+      "ownerRole": "Privacy and Security Owner",
+      "decision": "excluded-from-v3.9",
+      "implementationExecuted": false,
+      "fieldPassClaimed": false,
+      "releasePassClaimed": false,
+      "rationale": "외부 VLM 호출은 credential, privacy transfer, retention, redaction, 비용 한도와 provider 장애 정책이 승인되지 않아 v3.9 runtime/default-on 제품 범위에서 제외합니다.",
+      "evidence": [
+        "docs/vlm-cloud-provider-field-smoke-gate.md",
+        "docs/vlm-privacy-transfer-guard.md"
+      ],
+      "reopenConditions": [
+        "Privacy and Security Owner가 data transfer와 retention 정책을 승인",
+        "provider credential, endpoint, budget, timeout/retry 정책을 제공",
+        "redaction negative test와 approved field smoke 계획을 승인"
+      ]
+    },
+    {
+      "id": "model-backed-reid-session",
+      "ownerRole": "Product and ML Owner",
+      "decision": "excluded-from-v3.9",
+      "implementationExecuted": false,
+      "fieldPassClaimed": false,
+      "releasePassClaimed": false,
+      "rationale": "v3.9은 provenance-gated preflight와 deterministic no-op만 보장하며 배포 가능한 model bundle, license/privacy 승인, 성능·정확도·실환경 session success 기준이 확정되지 않았습니다.",
+      "evidence": [
+        "docs/reid-default-off-research-continuation.md",
+        "scripts/internal/verify_v390_reid_readiness_consistency.mjs"
+      ],
+      "reopenConditions": [
+        "Product and ML Owner가 model bundle, license, accuracy 목표를 승인",
+        "Privacy Owner가 crop, embedding, identity retention 경계를 승인",
+        "실제 ONNX session, performance, field negative/positive evidence 계획을 승인"
+      ]
+    }
+  ]
+}

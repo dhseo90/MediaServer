@@ -1,7 +1,7 @@
 {
   "schema": "media-server.feature-implementation-evidence.v1",
-  "expectedFeatureRows": 978,
-  "inventorySha256": "91ae6f29a70b19e49a4489799e1e6a6470420b8d15a5a9d7a433a14a97d47a34",
+  "expectedFeatureRows": 980,
+  "inventorySha256": "7a7375d7de836edb8d8734d758635ec68ce0d490f2ebb3f48fe80b6d51f66f68",
   "generatedFrom": "docs/project-feature-test-inventory.md",
   "generationPolicy": "explicit-refresh-only; verifier never rewrites this manifest",
   "executionEvidenceStatus": "not-execution-evidence",
@@ -27642,6 +27642,36 @@
       }
     },
     {
+      "id": "SAFE-214",
+      "section": "I",
+      "surfaceKind": "safety-boundary-invariant",
+      "feature": "V390 deferred owner decision false-PASS boundary",
+      "uiNeed": "비대상",
+      "testNeed": "필요",
+      "testAreas": [
+        "안정화"
+      ],
+      "status": "closed-with-evidence",
+      "sourceEvidence": {
+        "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
+        "anchor": "SAFE-214",
+        "anchorKind": "feature-id"
+      },
+      "uiEvidence": null,
+      "verifierEvidence": {
+        "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
+        "anchor": "implementationExecuted=false",
+        "anchorKind": "code-span",
+        "command": "verify-v390-deferred-product-owner-signoff"
+      },
+      "manualUiCaseId": null,
+      "longrunEvidence": {
+        "soak30": null,
+        "soak120": null,
+        "approval": null
+      }
+    },
+    {
       "id": "OPS-035",
       "section": "J",
       "surfaceKind": "ops-evidence-release-gate",
@@ -32014,6 +32044,36 @@
         "anchor": "incident-to-rule",
         "anchorKind": "identifier",
         "command": "verify-v390-vlm-incident-rule-provenance"
+      },
+      "manualUiCaseId": null,
+      "longrunEvidence": {
+        "soak30": null,
+        "soak120": null,
+        "approval": null
+      }
+    },
+    {
+      "id": "OPS-181",
+      "section": "J",
+      "surfaceKind": "ops-evidence-release-gate",
+      "feature": "V390 deferred product owner sign-off gate",
+      "uiNeed": "비대상",
+      "testNeed": "필요",
+      "testAreas": [
+        "안정화"
+      ],
+      "status": "closed-with-evidence",
+      "sourceEvidence": {
+        "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
+        "anchor": "OPS-181",
+        "anchorKind": "feature-id"
+      },
+      "uiEvidence": null,
+      "verifierEvidence": {
+        "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
+        "anchor": "deferred",
+        "anchorKind": "identifier",
+        "command": "verify-v390-deferred-product-owner-signoff"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {

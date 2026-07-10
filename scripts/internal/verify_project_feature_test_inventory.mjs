@@ -26,7 +26,7 @@ Checks:
   - docs/project-feature-test-inventory.md is indexed
   - inventory pins the current release and states it is not execution evidence
   - all feature IDs use the current UI/test-area matrix shape
-  - the independent 978-row implementation/UI/verifier evidence manifest matches exactly
+  - the independent 980-row implementation/UI/verifier evidence manifest matches exactly
   - coverage, verifier, VA seed, 30-minute, 120-minute, and four-area boundaries exist
   - manual UI docs reference the feature inventory
   - the manual UI VA seed matrix fixture covers API-ready numeric IDs, basic events, scenarios, presets, tracker/Re-ID policies, and invalid policy cases
@@ -841,8 +841,8 @@ check("current feature expansion rows exist", () => {
     "`RULE-001`~`RULE-112`",
     "`MEDIA-001`~`MEDIA-027`",
     "`LAB-001`~`LAB-126`",
-    "`SAFE-001`~`SAFE-213`",
-    "`OPS-035`~`OPS-180`",
+    "`SAFE-001`~`SAFE-214`",
+    "`OPS-035`~`OPS-181`",
     "VLM route, control, action, runtime state, sidecar, privacy guard",
     "V300-S02 Frame Bundle Extraction",
     "V300-S03 Feature Schema and Privacy Policy",

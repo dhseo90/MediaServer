@@ -1,4 +1,4 @@
-// 파일 용도: project feature inventory 978개 행의 구현/UI/verifier evidence manifest를 생성하고 검증한다.
+// 파일 용도: project feature inventory 980개 행의 구현/UI/verifier evidence manifest를 생성하고 검증한다.
 
 import crypto from "node:crypto";
 import fs from "node:fs";
@@ -7,7 +7,7 @@ import { execFileSync } from "node:child_process";
 
 export const IMPLEMENTATION_MANIFEST_SCHEMA =
   "media-server.feature-implementation-evidence.v1";
-export const EXPECTED_FEATURE_ROWS = 978;
+export const EXPECTED_FEATURE_ROWS = 980;
 export const IMPLEMENTATION_MANIFEST_PATH =
   "test/fixtures/project_feature_implementation_evidence.json";
 
