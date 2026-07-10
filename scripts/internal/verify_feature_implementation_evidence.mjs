@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: 974개 feature ID의 exact implementation/UI/verifier manifest를 검증한다.
+// 파일 용도: 978개 feature ID의 exact implementation/UI/verifier manifest를 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -28,7 +28,7 @@ Usage:
   ./server.sh verify-feature-implementation-evidence [options]
 
 Options:
-  --refresh-manifest  Explicitly rebuild the reviewed 974-row manifest.
+  --refresh-manifest  Explicitly rebuild the reviewed 978-row manifest.
   --json-report PATH  Write the validation report.
   -h, --help          Show help.
 

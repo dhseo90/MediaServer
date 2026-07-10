@@ -6189,6 +6189,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       let opsVaRuleTemplateId = '';
       let opsRulesCurrentRecord = null;
       let opsVlmRuleDraftPayload = null;
+      let opsVlmRuleDraftProvenance = null;
       function opsRuleWhatIfDraftContextFromLocation() {
         const params = new URLSearchParams(window.location.search || '');
         const draftEventId = String(params.get('draftEventId') || '').trim();
@@ -7049,6 +7050,9 @@ void AppendOpsShellScript(std::ostringstream& out,
           throw new Error(`지원하지 않는 VLM rule draft 종류입니다: ${type || 'unknown'}`);
         }
         await openOpsRulesEditor('event-rule', 'new');
+        opsVlmRuleDraftProvenance = candidate?.provenance
+          ? opsRulesClone(candidate.provenance)
+          : null;
         const modeSelect = document.getElementById('opsEventRuleModeSelect');
         if (modeSelect) modeSelect.value = opsEventRuleModeForType(type);
         opsEventRuleRefreshTypeOptions(type);
@@ -8603,6 +8607,18 @@ void AppendOpsShellScript(std::ostringstream& out,
           },
           event
         };
+        const draftProvenance = opsVlmRuleDraftProvenance || base.vlmProvenance || null;
+        if (draftProvenance) {
+          payload.vlmProvenance = {
+            ...opsRulesClone(draftProvenance),
+            generatedRule: {
+              id: payload.id,
+              saveApiRoute: `/lab/analysis/rules/${payload.id}`,
+              saveMethod: 'PUT',
+              manualSaveRequired: true
+            }
+          };
+        }
         delete payload.match;
         delete payload.outputs;
         delete payload.eventActions;
@@ -8936,6 +8952,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       }
       function resetOpsRulesEditorState() {
         opsRulesCurrentRecord = null;
+        opsVlmRuleDraftProvenance = null;
         opsVaRuleTemplateId = '';
         opsRulesShowNativeForm('');
         setOpsRulesComposer('', 'closed');

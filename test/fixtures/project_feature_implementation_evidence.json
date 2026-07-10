@@ -1,7 +1,7 @@
 {
   "schema": "media-server.feature-implementation-evidence.v1",
-  "expectedFeatureRows": 974,
-  "inventorySha256": "90a98706f2c2dbce2e015eb4b9628e8585b3d1dc900dc672255911854f4f5b29",
+  "expectedFeatureRows": 978,
+  "inventorySha256": "91ae6f29a70b19e49a4489799e1e6a6470420b8d15a5a9d7a433a14a97d47a34",
   "generatedFrom": "docs/project-feature-test-inventory.md",
   "generationPolicy": "explicit-refresh-only; verifier never rewrites this manifest",
   "executionEvidenceStatus": "not-execution-evidence",
@@ -1276,9 +1276,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "src/ingress/product_ui_js.cpp",
-        "anchor": "폼에 적용",
-        "anchorKind": "code-span"
+        "file": "src/ingress/product_ui_page_scripts.cpp",
+        "anchor": "/lab/analysis/rules",
+        "anchorKind": "route"
       },
       "uiEvidence": {
         "file": "src/ingress/product_ui_js.cpp",
@@ -3904,9 +3904,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "src/ingress/product_ui_ops_sources_script.cpp",
-        "anchor": "saveChannelSourceViewPair",
-        "anchorKind": "identifier"
+        "file": "src/ingress/product_ui_auth_pages.cpp",
+        "anchor": "/ops/sources",
+        "anchorKind": "route"
       },
       "uiEvidence": {
         "file": "src/ingress/product_ui_ops_sources_script.cpp",
@@ -4120,9 +4120,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "src/ingress/product_ui_page_scripts.cpp",
-        "anchor": "renderV390ReidAssistDecision",
-        "anchorKind": "identifier"
+        "file": "src/ingress/product_ui_js.cpp",
+        "anchor": "/ops/dashboard",
+        "anchorKind": "route"
       },
       "uiEvidence": {
         "file": "src/ingress/product_ui_page_scripts.cpp",
@@ -11851,6 +11851,41 @@
       }
     },
     {
+      "id": "RULE-112",
+      "section": "D",
+      "surfaceKind": "rule-profile-scenario-action",
+      "feature": "V390 (17) Development 15 generated rule provenance persistence",
+      "uiNeed": "간접",
+      "testNeed": "필요",
+      "testAreas": [
+        "안정화"
+      ],
+      "status": "closed-with-evidence",
+      "sourceEvidence": {
+        "file": "src/ingress/webrtc_http_server.cpp",
+        "anchor": "/lab/analysis/rules/",
+        "anchorKind": "route"
+      },
+      "uiEvidence": {
+        "file": "src/ingress/product_ui_page_scripts.cpp",
+        "anchor": "/lab/analysis/rules/",
+        "anchorKind": "route",
+        "screenRoute": "/ops/rules"
+      },
+      "verifierEvidence": {
+        "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
+        "anchor": "/ops/rules",
+        "anchorKind": "route",
+        "command": "verify-v390-vlm-incident-rule-provenance"
+      },
+      "manualUiCaseId": null,
+      "longrunEvidence": {
+        "soak30": null,
+        "soak120": null,
+        "approval": null
+      }
+    },
+    {
       "id": "EVT-001",
       "section": "E",
       "surfaceKind": "runtime-event-route-state",
@@ -18676,10 +18711,10 @@
       },
       "uiEvidence": null,
       "verifierEvidence": {
-        "file": "scripts/internal/verify_vlm_install_connection_dry_run.mjs",
+        "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
         "anchor": "observation",
         "anchorKind": "identifier",
-        "command": "verify-vlm-install-connection-dry-run"
+        "command": "verify-v390-vlm-incident-rule-provenance"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {
@@ -18736,10 +18771,10 @@
       },
       "uiEvidence": null,
       "verifierEvidence": {
-        "file": "scripts/internal/verify_v390_vlm_rule_suggestion_draft_bridge.mjs",
+        "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
         "anchor": "/ops/rules",
         "anchorKind": "route",
-        "command": "verify-v390-vlm-rule-suggestion-draft-bridge"
+        "command": "verify-v390-vlm-incident-rule-provenance"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {
@@ -20851,6 +20886,36 @@
       }
     },
     {
+      "id": "LAB-126",
+      "section": "H",
+      "surfaceKind": "lab-api-runtime-contract",
+      "feature": "V390 incident-to-rule provenance save/readback",
+      "uiNeed": "비대상",
+      "testNeed": "필요",
+      "testAreas": [
+        "안정화"
+      ],
+      "status": "closed-with-evidence",
+      "sourceEvidence": {
+        "file": "src/analysis/vlm_observation_store.cpp",
+        "anchor": "/lab/analysis/rules/{id}",
+        "anchorKind": "route"
+      },
+      "uiEvidence": null,
+      "verifierEvidence": {
+        "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
+        "anchor": "LAB-126",
+        "anchorKind": "feature-id",
+        "command": "verify-v390-vlm-incident-rule-provenance"
+      },
+      "manualUiCaseId": null,
+      "longrunEvidence": {
+        "soak30": null,
+        "soak120": null,
+        "approval": null
+      }
+    },
+    {
       "id": "SAFE-001",
       "section": "I",
       "surfaceKind": "safety-boundary-invariant",
@@ -21287,7 +21352,7 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "file": "scripts/internal/verify_v390_ui_automation_coverage_contract.mjs",
         "anchor": "SAFE-015",
         "anchorKind": "feature-id"
       },
@@ -27228,16 +27293,16 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
-        "anchor": "contract fixtures are not UI fulltest execution evidence",
-        "anchorKind": "identifier"
+        "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
+        "anchor": "SAFE-202",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
-        "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
-        "anchor": "Policy v4 evidence contract summary",
+        "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
+        "anchor": "automation",
         "anchorKind": "identifier",
-        "command": "verify-ui-fulltest-evidence-policy-v4-contract"
+        "command": "verify-v390-evidence-test-gate-prep"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {
@@ -27288,9 +27353,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "src/ingress/source_view_registry.cpp",
-        "anchor": "UpsertOnvifSourceView",
-        "anchorKind": "identifier"
+        "file": "scripts/internal/verify_v390_onvif_live_import_persist_decision.mjs",
+        "anchor": "SAFE-204",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -27538,6 +27603,36 @@
         "anchor": "knownUiClosureBlockers",
         "anchorKind": "identifier",
         "command": "verify-v390-test-acceptance-bundle"
+      },
+      "manualUiCaseId": null,
+      "longrunEvidence": {
+        "soak30": null,
+        "soak120": null,
+        "approval": null
+      }
+    },
+    {
+      "id": "SAFE-213",
+      "section": "I",
+      "surfaceKind": "safety-boundary-invariant",
+      "feature": "V390 incident-to-rule provenance contract guard",
+      "uiNeed": "비대상",
+      "testNeed": "필요",
+      "testAreas": [
+        "안정화"
+      ],
+      "status": "closed-with-evidence",
+      "sourceEvidence": {
+        "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
+        "anchor": "SAFE-213",
+        "anchorKind": "feature-id"
+      },
+      "uiEvidence": null,
+      "verifierEvidence": {
+        "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
+        "anchor": "SAFE-213",
+        "anchorKind": "feature-id",
+        "command": "verify-v390-vlm-incident-rule-provenance"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {
@@ -31638,9 +31733,9 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "src/ingress/webrtc_http_server.cpp",
-        "anchor": "/ops/api/onvif/channels/",
-        "anchorKind": "route"
+        "file": "scripts/internal/verify_v390_onvif_live_import_persist_decision.mjs",
+        "anchor": "OPS-171",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
@@ -31879,14 +31974,14 @@
       ],
       "status": "closed-with-evidence",
       "sourceEvidence": {
-        "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
-        "anchor": "runActualBundle",
-        "anchorKind": "identifier"
+        "file": "scripts/internal/verify_v390_stabilization_release_readiness.mjs",
+        "anchor": "OPS-179",
+        "anchorKind": "feature-id"
       },
       "uiEvidence": null,
       "verifierEvidence": {
         "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
-        "anchor": "runActualBundle",
+        "anchor": "actual",
         "anchorKind": "identifier",
         "command": "verify-v390-test-acceptance-bundle"
       },
@@ -31895,6 +31990,36 @@
         "soak30": "./server.sh verify-v390-server-longrun --duration-minutes 30",
         "soak120": null,
         "approval": "explicit-user-approval-required"
+      }
+    },
+    {
+      "id": "OPS-180",
+      "section": "J",
+      "surfaceKind": "ops-evidence-release-gate",
+      "feature": "V390 incident-to-rule provenance closure gate",
+      "uiNeed": "비대상",
+      "testNeed": "필요",
+      "testAreas": [
+        "안정화"
+      ],
+      "status": "closed-with-evidence",
+      "sourceEvidence": {
+        "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
+        "anchor": "OPS-180",
+        "anchorKind": "feature-id"
+      },
+      "uiEvidence": null,
+      "verifierEvidence": {
+        "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
+        "anchor": "incident-to-rule",
+        "anchorKind": "identifier",
+        "command": "verify-v390-vlm-incident-rule-provenance"
+      },
+      "manualUiCaseId": null,
+      "longrunEvidence": {
+        "soak30": null,
+        "soak120": null,
+        "approval": null
       }
     }
   ]

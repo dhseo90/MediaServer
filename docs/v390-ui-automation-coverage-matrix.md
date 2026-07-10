@@ -1,6 +1,6 @@
 # v3.9.0 Full-Feature UI Automation Coverage Matrix
 
-이 문서는 974개 feature inventory의 reviewed implementation manifest에서 exact manual UI test ID를 선택하고 actual native visible-DOM evidence를 교차 검증해 생성합니다.
+이 문서는 978개 feature inventory의 reviewed implementation manifest에서 exact manual UI test ID를 선택하고 actual native visible-DOM evidence를 교차 검증해 생성합니다.
 Feature ID prefix와 numeric range는 coverage 판정에 사용하지 않습니다. Matrix validation PASS는 full automation 또는 UI 풀테스트 직접 조작 PASS가 아닙니다.
 
 schema: `media-server.v390-ui-automation-coverage.v2`
@@ -12,7 +12,7 @@ executionEvidenceStatus: `partial-automation-evidence`
 fullAutomationCoverage: `false`
 manualUiFulltestEvidence: `false`
 
-- inventory features `974`
+- inventory features `978`
 - exact UI test IDs `424`
 - automated `8`
 - unsupported-manual `415`

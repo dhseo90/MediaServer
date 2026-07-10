@@ -25,7 +25,7 @@ Usage:
   ./server.sh verify-v390-ui-automation-coverage-contract
 
 Checks:
-  - 974-feature inventory에서 prefix/range가 아닌 exact manualUiCaseId 424개 선택
+  - 978-feature inventory에서 prefix/range가 아닌 exact manualUiCaseId 424개 선택
   - featureId/testId/route/control-action anchor/stability verifier exact 연결
   - UI-108~UI-115 automation featureId→caseId actual artifact/log 연결
   - cross-prefix 누락·중복·route/action drift와 artifact 누락 negative fixture
@@ -76,7 +76,7 @@ check("positive matrix covers the exact 424 manual UI test IDs from all feature 
   assert(summary.executionEvidenceStatus === "partial-automation-evidence", "execution evidence boundary mismatch");
   assert(summary.fullAutomationCoverage === false, "matrix must not claim full automation coverage");
   assert(summary.manualUiFulltestEvidence === false, "matrix must not claim manual UI fulltest evidence");
-  assert(summary.counts.inventoryFeatures === 974, "inventory feature count must be 974");
+  assert(summary.counts.inventoryFeatures === 978, "inventory feature count must be 978");
   assert(summary.counts.exactUiTestIds === 424, "exact UI test ID count must be 424");
   assert(summary.counts.automated === 8, "automated count must be 8");
   assert(summary.counts.unsupportedManual === 415, "unsupported/manual count must be 415");
@@ -265,7 +265,7 @@ check("durable matrix and release docs record exact-ID partial coverage boundari
     .map(item => item.manualUiCaseId);
   assertExact(matrixTestIds, expected, "durable matrix exact test ID set");
   for (const snippet of [
-    "inventory features `974`",
+    "inventory features `978`",
     "exact UI test IDs `424`",
     "automated `8`",
     "unsupported-manual `415`",
@@ -292,7 +292,7 @@ const result = summarizeChecks();
 console.log("");
 console.log("== v3.9.0 full-feature UI automation coverage matrix contract summary ==");
 console.log("- schema: media-server.v390-ui-automation-coverage.v2");
-console.log("- inventoryFeatures: 974");
+console.log("- inventoryFeatures: 978");
 console.log("- exactUiTestIds: 424");
 console.log("- automated: 8");
 console.log("- unsupportedManual: 415");

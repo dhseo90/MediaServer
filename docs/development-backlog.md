@@ -118,12 +118,16 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 28 | v3.9.0 (28) structure stabilization implementation readiness | P1 | 미완료/structure handoff 후속 | Step 19는 실제 구조 안정화 구현이 아니라 계획 이관임. `webrtc_http_server.cpp`/UI script extraction 실행 branch와 slice별 검증 순서 확정 필요 |
 | 29 | v3.9.0 (29) real external field smoke gate | P2 | 조건부 미실행 | 외부 credential/endpoint/실기기/provider 조건이 없으면 기본 release PASS가 아님. 조건 제공 시 별도 field smoke evidence로만 닫음 |
 
-### v3.9.0 (17) Evidence 13~14 개발 기록
+### v3.9.0 (17) Evidence/Closure 13~18 개발 기록
 
 | 번호 | 구간 | 제목 | 우선순위 | 상태 | 구현/검증 위치 |
 | --- | --- | --- | --- | --- | --- |
 | 13 | Evidence | 최종 evidence 무결성 | P0 | 완료/커밋 `b6cac906` | `verify_v390_ui_automation.mjs`, `verify_v390_server_longrun.mjs`, `verify_v390_test_acceptance_bundle.mjs`, `verify-v390-final-evidence-integrity`에서 screenshot dedupe, video placeholder 금지, 실측 cleanup, source commit/command/first-failure 기록을 구현·검증. RED 3종과 actual UI 최초 환경 실패/재실행 8/8 이력을 `release-test-records.md`에 기록 |
 | 14 | Evidence | 최종 전체 재실행·정리 | P0 | 완료/검증 PASS/최종 커밋 준비 | source `b6cac906`의 첫 bundle은 `integrated-smoke` 선행 code-comment gate에서 중단됐고 뒤 단계는 `not-run`, child cleanup은 PASS였습니다. 복구 source `8fe583d8`의 전체 재실행은 30분 118/0·soak 22회·UI-108~115 8/8·replay 7/0·cleanup PASS, 120분 조건부 미실행, final integrity 7/0입니다. 최초 실패는 canonical `first-failure.json`/`.md`에 보존했습니다 |
+| 15 | Feature Closure | VLM incident-to-rule provenance | P1 | 완료/검증 PASS/커밋 준비 | `UI-110`/`RULE-112`/`LAB-126`/`SAFE-213`/`OPS-180`: event·candidate·evaluation source를 generated rule의 optional `vlmProvenance`와 `/lab/analysis/rules/{id}` save/readback까지 보존하고 ID/route mismatch는 no-write로 거부합니다. 실제 HTTP save/readback 1건과 negative no-write 2건, `/ops/rules` 인앱 focused smoke, rule/VA 회귀를 통과했습니다 |
+| 16 | Product Decision | 보류 기능 소유자 승인 | P1 | 다음 진행/15 커밋 후 | action execution, persistent credential store, field smoke, provider call, model-backed Re-ID의 owner role·결정·근거·재개 조건을 확정합니다 |
+| 17 | Stabilization | 구조 안정화 착수 조건 | P1 | 대기/16 완료 후 | 실행 branch, module boundary, dependency direction, contract preservation, slice/verifier 순서를 확정합니다 |
+| 18 | Field Smoke | 외부 환경 검증 | P2 | 대기/17 완료 후 | 실기기·credential·endpoint 부재를 `not-run`으로 기록하고 field/release PASS를 주장하지 않은 채 종료합니다 |
 
 완료 경계: Evidence 13의 contract PASS는 실제 30분/UI 자동화 재실행 evidence가 아닙니다.
 Evidence 14는 실제 30분과 UI-108~115 자동화를 포함하지만 exact 424개 UI 풀테스트,

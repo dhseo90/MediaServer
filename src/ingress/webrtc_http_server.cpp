@@ -792,6 +792,88 @@ bool ValidateTrackingPolicyContract(const std::string& body,
     return true;
 }
 
+bool ValidateVlmIncidentRuleProvenanceContract(const std::string& body,
+                                               const std::string& rule_id,
+                                               std::string* error_message) {
+    const auto set_error = [error_message](const std::string& message) {
+        if (error_message != nullptr) {
+            *error_message = message;
+        }
+    };
+    const auto provenance = ExtractObjectField(body, "vlmProvenance");
+    if (!provenance.has_value()) {
+        if (CountJsonFieldOccurrences(body, "vlmProvenance") != 0) {
+            set_error("rule vlmProvenance must be a JSON object");
+            return false;
+        }
+        return true;
+    }
+    if (ParseStringField(*provenance, "schema").value_or("") !=
+        "media-server.vlm-incident-to-rule-provenance.v1") {
+        set_error("rule vlmProvenance schema is invalid");
+        return false;
+    }
+    const auto event_source = ExtractObjectField(*provenance, "eventSource");
+    const auto candidate_source = ExtractObjectField(*provenance, "candidateSource");
+    const auto evaluation_source = ExtractObjectField(*provenance, "evaluationSource");
+    const auto generated_rule = ExtractObjectField(*provenance, "generatedRule");
+    if (!event_source.has_value() || !candidate_source.has_value() ||
+        !evaluation_source.has_value() || !generated_rule.has_value()) {
+        set_error("rule vlmProvenance requires eventSource, candidateSource, evaluationSource, and generatedRule");
+        return false;
+    }
+    for (const char* field : {"eventId", "observationId", "sourceId", "sourceSchema"}) {
+        if (Trim(ParseStringField(*event_source, field).value_or("")).empty()) {
+            set_error(std::string("rule vlmProvenance eventSource.") + field + " is required");
+            return false;
+        }
+    }
+    for (const char* field : {"candidateId", "proposedRuleKind", "source", "sourceSchema", "targetRoute"}) {
+        if (Trim(ParseStringField(*candidate_source, field).value_or("")).empty()) {
+            set_error(std::string("rule vlmProvenance candidateSource.") + field + " is required");
+            return false;
+        }
+    }
+    if (!ParseBoolField(*candidate_source, "manualReviewRequired").value_or(false) ||
+        ParseBoolField(*candidate_source, "autoApply").value_or(true)) {
+        set_error("rule vlmProvenance candidate must remain manual-review and no-auto-apply");
+        return false;
+    }
+    for (const char* field : {"status", "source", "provider", "model", "promptProfile", "privacyMode"}) {
+        if (Trim(ParseStringField(*evaluation_source, field).value_or("")).empty()) {
+            set_error(std::string("rule vlmProvenance evaluationSource.") + field + " is required");
+            return false;
+        }
+    }
+    if (ParseBoolField(*evaluation_source, "evaluationExecuted").value_or(true)) {
+        set_error("rule vlmProvenance must not claim an unverified evaluation execution");
+        return false;
+    }
+    const std::string generated_rule_id =
+        Trim(ParseStringField(*generated_rule, "id").value_or(""));
+    if (generated_rule_id != rule_id) {
+        set_error("generated rule id must match provenance");
+        return false;
+    }
+    const std::string expected_route = "/lab/analysis/rules/" + rule_id;
+    if (Trim(ParseStringField(*generated_rule, "saveApiRoute").value_or("")) != expected_route) {
+        set_error("generated rule save API route must match rule id");
+        return false;
+    }
+    if (ParseStringField(*generated_rule, "saveMethod").value_or("") != "PUT" ||
+        !ParseBoolField(*generated_rule, "manualSaveRequired").value_or(false)) {
+        set_error("generated rule provenance requires manual PUT save");
+        return false;
+    }
+    for (const char* forbidden : {"credential", "sourceUrl", "rawPrompt", "rawResponse", "rawFrameBytes"}) {
+        if (CountJsonFieldOccurrences(*provenance, forbidden) != 0) {
+            set_error(std::string("rule vlmProvenance must not include ") + forbidden);
+            return false;
+        }
+    }
+    return true;
+}
+
 // object 본문 안의 string array field가 비어 있지 않은지 확인한다.
 bool HasNonEmptyStringArrayField(const std::string& body, const std::string& field) {
     const auto array = ExtractArrayField(body, field);
@@ -1326,6 +1408,9 @@ private:
                 return std::nullopt;
             }
             if (!ValidateTrackingPolicyContract(body, *analysis, "rule", error_message)) {
+                return std::nullopt;
+            }
+            if (!ValidateVlmIncidentRuleProvenanceContract(body, *id, error_message)) {
                 return std::nullopt;
             }
         }

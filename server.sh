@@ -438,6 +438,8 @@ Usage:
                  V390-ADD1-05 ONVIF source/view paired save와 rollback을 검증합니다.
   verify-v390-vlm-rule-suggestion-draft-bridge
                  v3.9.0 Step 13 VLM rule suggestion draft bridge를 검증합니다.
+  verify-v390-vlm-incident-rule-provenance
+                 v3.9.0 (17) Development 15 VLM incident-to-rule 저장 provenance를 검증합니다.
   verify-v390-vlm-evaluation-promotion-guard
   verify-v390-vlm-promotion-trust-boundary
                  v3.9.0 Step 14 VLM evaluation promotion guard를 검증합니다.
@@ -618,7 +620,7 @@ Usage:
   verify-feature-inventory-coverage
                  기능 ID가 verifier/UI evidence/장시간 승인/field exclusion 중 하나에 연결됐는지 점검합니다.
   verify-feature-implementation-evidence
-                 974개 기능 ID별 실제 owner/UI/verifier anchor manifest와 canonical longrun mapping을 점검합니다.
+                 978개 기능 ID별 실제 owner/UI/verifier anchor manifest와 canonical longrun mapping을 점검합니다.
   verify-v300-entry-baseline
                  v3.0.0 S00 source baseline과 latest published v3.0.0 경계를 검증합니다.
   verify-v300-event-evidence-contract
@@ -791,6 +793,8 @@ Usage:
                  V390-ADD1-05 ONVIF source/view paired save와 rollback을 검증합니다.
   verify-v390-vlm-rule-suggestion-draft-bridge
                  v3.9.0 Step 13 VLM rule suggestion draft bridge를 검증합니다.
+  verify-v390-vlm-incident-rule-provenance
+                 v3.9.0 (17) Development 15 VLM incident-to-rule 저장 provenance를 검증합니다.
   verify-v390-vlm-evaluation-promotion-guard
                  v3.9.0 Step 14 VLM evaluation promotion guard를 검증합니다.
   verify-v390-vlm-promotion-trust-boundary
@@ -2077,6 +2081,10 @@ case "${cmd}" in
   verify-v390-vlm-rule-suggestion-draft-bridge)
     require_internal verify_v390_vlm_rule_suggestion_draft_bridge.mjs
     exec "${INTERNAL_DIR}/verify_v390_vlm_rule_suggestion_draft_bridge.mjs" "$@"
+    ;;
+  verify-v390-vlm-incident-rule-provenance)
+    require_internal verify_v390_vlm_incident_rule_provenance.mjs
+    exec "${INTERNAL_DIR}/verify_v390_vlm_incident_rule_provenance.mjs" "$@"
     ;;
   verify-v390-vlm-evaluation-promotion-guard)
     require_internal verify_v390_vlm_evaluation_promotion_guard.mjs

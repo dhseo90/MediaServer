@@ -23,7 +23,7 @@
 | `./server.sh verify-docs-ui-assets` | README/UI screenshot asset guard |
 | `./server.sh verify-project-inventory` | feature/test inventory 구조 guard |
 | `./server.sh verify-feature-inventory-coverage` | `media-server.feature-inventory-coverage.v1`, `coverageStatus: covered/missing`, `executionEvidenceStatus: not-execution-evidence`, `missing coverage target`, 누락 ID는 release gate에서 FAIL |
-| `./server.sh verify-feature-implementation-evidence` | `media-server.feature-implementation-evidence.v1` manifest의 974개 ID별 owner source anchor, UI control/state anchor, verifier assertion anchor, canonical 30/120분 mapping을 검증. `--refresh-manifest`는 명시적 source 갱신이며 default 검증은 read-only |
+| `./server.sh verify-feature-implementation-evidence` | `media-server.feature-implementation-evidence.v1` manifest의 978개 ID별 owner source anchor, UI control/state anchor, verifier assertion anchor, canonical 30/120분 mapping을 검증. `--refresh-manifest`는 명시적 source 갱신이며 default 검증은 read-only |
 | `./server.sh verify-release-metadata` | VERSION/CMake/release docs consistency guard |
 | `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>` | release close-out dry-run. tag/push/GitHub Release 생성 없음 |
 
@@ -65,6 +65,7 @@ published metadata, release action evidence가 아닙니다.
 | v3.9.0 (17) | `./server.sh verify-v390-conditional-field-ai-decisions` | Field evidence bridge decision. `/ops/api/field-evidence/bridge-decision`와 `/ops` dashboard가 `approval-only-minimal-field-evidence-bridge`, ONVIF/external WHEP-TURN/cloud-VLM 승인 조건, minimal evidence contract, not-run boundary를 표시하는지 확인합니다. field smoke, endpoint/credential probe, provider call, source/view/EventRecord/Ops audit write, raw endpoint/credential/provider material, media/schema 변경, UI 풀테스트 직접 조작, 30분/120분 longrun evidence가 아닙니다 |
 | v3.9.0 (18) / V390-ADD1-04 | `./server.sh verify-v390-reid-readiness-consistency`, `./server.sh verify-v390-conditional-field-ai-decisions` | Re-ID readiness consistency. `explicit-opt-in-provenance-gated-assist`를 유지하면서 extractor factory와 `/ops/api/analysis/reid-assist-decision`가 공용 `InspectAppearanceModelReadiness`를 사용하고 regular file, SHA format/read/match, trim provenance, OpenSSL·ONNX Runtime을 확인하는지 no-crypto/no-ONNX C++ 2종과 실제 HTTP 10개 case로 검증합니다. Ops UI는 preflight와 session load/execution을 분리하며 raw path/SHA/provenance를 노출하지 않습니다. 실제 ONNX session 성공, identity search, UI 풀테스트 직접 조작, 30분/120분 longrun evidence가 아닙니다 |
 | v3.9.0 (17) Evidence 13~14 | `./server.sh verify-v390-final-evidence-integrity --summary <acceptance-summary.json>`, `./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-final` | Final evidence integrity와 독립 acceptance 재실행입니다. canonical root 교체 전 기존 screenshot/video placeholder 수와 크기를 기록하고, 새 bundle은 screenshot content dedupe, placeholder video 부재, source commit SHA·명령·first failure, child/filesystem/port 실측 cleanup을 보존합니다. 실제 bundle의 30분/UI-108~115 자동화는 exact 424개 UI 풀테스트, 조건 미충족 120분, published metadata, release action PASS가 아닙니다 |
+| v3.9.0 (17) Development 15 | `./server.sh verify-v390-vlm-incident-rule-provenance` | VLM sidecar candidate의 event/observation/source, candidate/kind, observation-context-only evaluation metadata가 optional `vlmProvenance`를 통해 `/ops/rules` 수동 draft와 `/lab/analysis/rules/{id}` PUT/save/readback까지 보존되는지 실제 HTTP로 확인합니다. generated rule ID 또는 save route mismatch는 no-write로 거부하며 auto-save/apply, 실제 provider evaluation, EventRecord/Event POST/WebRTC/SSE/WS/media 변경, UI 풀테스트, 30분/120분 PASS가 아닙니다 |
 
 Re-ID privacy/default-off gate는 Step 18에서도 유지합니다. `--reid-policy assist`는 selected tracker의 association assist decision일 뿐이며, `verify-reid-advanced-tracking`와 `verify-close-object-fixture-matrix --modes off,diagnostic,enforce`는 `default-on candidate=False`와 별도 review 상태를 확인합니다. Matrix gate 상태 정의: `warning`은 안정적이라는 뜻이 아니며, `matrix-ok`는 명령/gate 결과입니다. `[matrix-default-on-decision]`과 `[matrix-product-default-on]`은 fixture별 후보로만 기록하고, `field-driving-live`, observed issue counter, trackingIssueObservationCounts, defaultOnDecision, productDefaultOn, candidateCount, defaultOnReason, reid-fixture-default-on-candidates.md를 함께 확인해야 합니다.
 
@@ -157,7 +158,7 @@ local `.media_server.env` defaults cannot override the isolated R2 HTTP/RTSP por
 
 Step 25/R10은 R2의 8개 actual automation case를 current UI 전체 자동화 PASS로 확대
 해석하지 않습니다. `./server.sh verify-v390-ui-automation-coverage --output-dir <path>`는
-974개 feature inventory와 reviewed implementation evidence를 source로, feature ID prefix나
+978개 feature inventory와 reviewed implementation evidence를 source로, feature ID prefix나
 숫자 range가 아니라 exact `manualUiCaseId`가 있는 424개 테스트를 선택합니다. 각 행은
 `testId`, `featureId`, route, source-backed control/action anchor, stability verifier command/
 assertion anchor, automation `caseId`를 독립 연결합니다. 결과는
