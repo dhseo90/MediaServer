@@ -7,6 +7,10 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import {
+  loadV390EntryBaselineExpectation,
+  validateV390EntryBaselineSteps,
+} from "./v390_entry_baseline_state_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -57,6 +61,7 @@ const files = {
   releaseMetadataVerifier: readText("scripts/internal/verify_release_metadata_consistency.mjs"),
   featureInventory: readText("docs/v390-feature-completion-inventory.md"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
+  acceptanceRunner: readText("scripts/internal/verify_v390_test_acceptance_bundle.mjs"),
   serverSh: readText("server.sh"),
 };
 
@@ -112,13 +117,26 @@ check("development backlog records v3.9 roadmap, status, review gate, v3.8 histo
     "### v3.9.0 진행 상태",
     "| Foundation | v3.9.0 (1) v3.9.0 baseline 정렬 | P0 | VERSION/docs/backlog/source roadmap 정렬 |",
     "| Foundation | v3.9.0 (2) Feature Completion Inventory/Discovery Gate | P0 |",
-    "| 3 | v3.9.0 (3) User Review Gate / 개발 순서 확정 | P0 | 완료 | required/candidate/structure/excluded 목록을 review-ready로 고정하고 사용자 승인 전 기능 개발 중단 |",
     "## 이전 source roadmap 기록: v3.8.0 Operator-Gated Action Pilot & Outcome Loop",
     "## 최신 공개 기준: v3.8.0 Source Release Baseline",
     "후속 이슈는 현재 source tree와 현재 v3.9 스텝 범위 안에서",
   ]) {
     assertIncludes(files.backlog, snippet, "development backlog");
   }
+});
+
+check("development backlog current Step 1-3 state matches the structured expectation", () => {
+  const expectation = loadV390EntryBaselineExpectation(rootDir);
+  const result = validateV390EntryBaselineSteps(files.backlog, expectation);
+  assert(result.ok, result.errors.join("; "));
+});
+
+check("actual acceptance command list uses the same v3.9 entry verifier", () => {
+  assertIncludes(
+    files.acceptanceRunner,
+    '"verify-v390-entry-baseline",',
+    "v3.9 actual acceptance feature command list",
+  );
 });
 
 check("v3.9 feature completion inventory scaffold has title, source-of-truth relation, seed row, and review gate", () => {
@@ -212,6 +230,8 @@ check("UI asset policy records v3.9 source and v3.8 published baseline boundary"
 check("server entrypoint dispatches v3.9 entry baseline", () => {
   assertIncludes(files.serverSh, command, "server.sh");
   assertIncludes(files.serverSh, targetScript, "server.sh");
+  assertIncludes(files.serverSh, "verify-v390-entry-baseline-contract", "server.sh");
+  assertIncludes(files.serverSh, "verify_v390_entry_baseline_contract.mjs", "server.sh");
 });
 
 check("script inventory explicitly tracks v3.9 entry baseline script", () => {

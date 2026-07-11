@@ -390,6 +390,8 @@ Usage:
                  v3.8.0 Step 16 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-v390-entry-baseline
                  v3.9.0 source baseline, roadmap, docs, feature inventory scaffold, dispatch 경계를 검증합니다.
+  verify-v390-entry-baseline-contract
+                 v3.9.0 current backlog Step 상태 parser의 positive/negative contract를 검증합니다.
   verify-v390-feature-completion-inventory
                  v3.9.0 기능 완성 인벤토리 구조와 discovery review gate를 검증합니다.
   verify-v390-user-review-gate
@@ -781,6 +783,8 @@ Usage:
                  v3.8.0 Step 16 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-v390-entry-baseline
                  v3.9.0 source baseline, roadmap, docs, feature inventory scaffold, dispatch 경계를 검증합니다.
+  verify-v390-entry-baseline-contract
+                 v3.9.0 current backlog Step 상태 parser의 positive/negative contract를 검증합니다.
   verify-v390-feature-completion-inventory
                  v3.9.0 기능 완성 인벤토리 구조와 discovery review gate를 검증합니다.
   verify-v390-user-review-gate
@@ -1997,6 +2001,10 @@ case "${cmd}" in
   verify-v390-entry-baseline)
     require_internal verify_v390_entry_baseline.mjs
     exec "${INTERNAL_DIR}/verify_v390_entry_baseline.mjs" "$@"
+    ;;
+  verify-v390-entry-baseline-contract)
+    require_internal verify_v390_entry_baseline_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_entry_baseline_contract.mjs" "$@"
     ;;
   verify-v390-feature-completion-inventory)
     require_internal verify_v390_feature_completion_inventory.mjs

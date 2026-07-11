@@ -1723,7 +1723,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 
 | 번호 | ID | 구간 | 제목 | 우선순위 | 상태 | 개발 내용 | 추천 모델 | 추론 수준 | 선정 근거 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 19 | V390-REVIEW2-19 | Foundation | current entry baseline gate 정렬 | P0 | 미완료 | 현재 backlog Step 3 상태를 구조적으로 읽도록 entry verifier를 보정하고 acceptance feature gate의 결정적 문자열 불일치를 제거 | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 0, 검증 난이도 0, 변경 범위 0, 총 2점이나 release correctness 직접 영향으로 Sol/high 상향 |
+| 19 | V390-REVIEW2-19 | Foundation | current entry baseline gate 정렬 | P0 | 완료 | `v390_entry_baseline_state_lib.mjs`와 단일 expectation fixture가 backlog Step 1~3 상태를 구조적으로 읽고, 독립 contract가 current positive·historical wording·missing·duplicate를 판정하며 acceptance가 동일 entry command를 사용함 | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 0, 검증 난이도 0, 변경 범위 0, 총 2점이나 release correctness 직접 영향으로 Sol/high 상향 |
 | 20 | V390-REVIEW2-20 | Feature Closure | 984행 semantic implementation closure | P0 | 미완료 | 자동 substring anchor와 일괄 `closed-with-evidence`를 제거하고 feature별 route handler, control action, state transition, verifier assertion을 의미 단위로 1:1 검증 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 전 기능 정확도·동등성 상향 적용 |
 | 21 | V390-REVIEW2-21 | Product Correctness | Analysis Registry durable write contract | P0 | 미완료 | profile/rule/VLM upsert의 파일 저장 실패를 호출자에게 전달하고 메모리 rollback 또는 persist-before-publish를 적용해 실패 시 HTTP 5xx와 no-write를 보장 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점, 데이터 손상·거짓 성공 위험 상향 적용 |
 | 22 | V390-REVIEW2-22 | UI Policy | Policy v4 canonical 424 exact-ID binding | P0 | 미완료 | evaluator가 hash 대상 case manifest를 실제 파싱해 canonical test ID, route, role, viewport, theme, control/action과 evidence case를 대조하고 임의 424개 합성 case를 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+1=6점, 거짓 UI fulltest PASS 위험 상향 적용 |
@@ -1745,14 +1745,26 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 
 #### V390-REVIEW2-19 current entry baseline gate 정렬
 
-- 직접 문제: `verify_v390_entry_baseline.mjs`가 과거 Step 3 exact 문장을 요구하지만 현재 backlog는
-  `완료/initial snapshot historical/current closed` 상태입니다. current acceptance bundle은 이
-  command를 필수 feature gate로 호출하므로 실행 전부터 불일치가 결정적입니다.
-- 구현: Markdown 전체 문장 고정 대신 진행 상태 표를 parse해 Step ID, 제목, current 상태와
-  historical boundary를 검증합니다. 현재 상태가 바뀌면 fixture/expected state를 한 곳에서만
-  갱신하게 합니다.
-- 완료 조건: current backlog positive, 과거 exact 문구 negative, 누락/중복 Step negative가
-  독립 contract에서 판정되고 acceptance command list와 동일 verifier를 사용합니다.
+- 직접 문제: `verify_v390_entry_baseline.mjs`가 과거 Step 3 exact 문장을 요구했지만 현재 backlog는
+  `완료/initial snapshot historical/current closed` 상태여서 current acceptance bundle의 필수
+  feature gate가 실행 전부터 결정적으로 실패했습니다.
+- 구현 위치:
+  - `test/fixtures/v390_entry_baseline_steps.json`: Step 1~3의 ID, 제목, priority, current status,
+    historical/current detail boundary를 단일 expected state로 고정했습니다.
+  - `scripts/internal/v390_entry_baseline_state_lib.mjs`의 `parseV390ProgressTable()`과
+    `validateV390EntryBaselineSteps()`: `### v3.9.0 진행 상태` 표를 column/row 구조로 parse하고
+    누락·중복·status/detail drift를 판정합니다.
+  - `scripts/internal/verify_v390_entry_baseline.mjs`: 과거 Step 3 전체 문자열 고정을 제거하고
+    공용 validator를 호출하며 `verify_v390_test_acceptance_bundle.mjs`가 같은
+    `verify-v390-entry-baseline` command를 사용하는지 확인합니다.
+  - `scripts/internal/verify_v390_entry_baseline_contract.mjs`, `server.sh`: current backlog positive,
+    과거 exact wording, 누락 Step, 중복 Step negative 4개와 독립 dispatch를 추가했습니다.
+- RED/검증: 최초 contract는 공용 library 미구현으로 `ERR_MODULE_NOT_FOUND` exit 1이었고,
+  구현 후 contract 4/0과 entry baseline 13/0을 통과했습니다. 최종 companion 안정화 결과는
+  `docs/release-test-records.md`에 보존합니다.
+- 경계: C++ 제품 동작, API/schema/Event payload/WebRTC/SSE/WS/RTSP/WebRTC media path,
+  Auth/Role/Scope를 변경하지 않았습니다. 30분/120분/UI 풀테스트/published metadata/release
+  action은 실행하지 않았습니다.
 
 #### V390-REVIEW2-20 984행 semantic implementation closure
 
