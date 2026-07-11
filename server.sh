@@ -393,7 +393,7 @@ Usage:
   verify-v390-feature-completion-inventory
                  v3.9.0 기능 완성 인벤토리 구조와 discovery review gate를 검증합니다.
   verify-v390-user-review-gate
-                 v3.9.0 User Review Gate와 승인 전 기능 개발 중단 경계를 검증합니다.
+                 v3.9.0 initial review gate와 current 승인/closure reconciliation을 검증합니다.
   verify-v390-evidence-test-gate-prep
                  v3.9.0 Evidence/Test Gate와 Test Model Prep 오판 방지 기준을 검증합니다.
   verify-v390-server-longrun
@@ -421,7 +421,7 @@ Usage:
   verify-v390-ui-native-adapter-contract
                  V390-ADD1-08 native Playwright module/capability/evidence contract를 검증합니다.
   verify-v390-test-acceptance-bundle
-                 v3.9.0 R3/V390-ADD1-06 dry-run 또는 실제 build→기능→30분→UI→조건부 120분 bundle을 실행합니다.
+                 v3.9.0 R3/V390-ADD1-06 dry-run 또는 clean source의 build→기능→30분→UI→120분 bundle을 실행합니다. current final actual은 --run-120 필수입니다.
   verify-v390-test-acceptance-bundle-contract
                  v3.9.0 R3 test acceptance bundle command/docs/evidence contract를 검증합니다.
   verify-v390-final-evidence-integrity
@@ -784,7 +784,7 @@ Usage:
   verify-v390-feature-completion-inventory
                  v3.9.0 기능 완성 인벤토리 구조와 discovery review gate를 검증합니다.
   verify-v390-user-review-gate
-                 v3.9.0 User Review Gate와 승인 전 기능 개발 중단 경계를 검증합니다.
+                 v3.9.0 initial review gate와 current 승인/closure reconciliation을 검증합니다.
   verify-v390-evidence-test-gate-prep
                  v3.9.0 Evidence/Test Gate와 Test Model Prep 오판 방지 기준을 검증합니다.
   verify-v390-server-longrun

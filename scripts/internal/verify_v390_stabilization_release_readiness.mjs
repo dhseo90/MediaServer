@@ -30,6 +30,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const commandName = "verify-v390-stabilization-release-readiness";
 const command = `./server.sh ${commandName}`;
+const currentFinalCommand = "./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final --run-120";
 const targetScript = "verify_v390_stabilization_release_readiness.mjs";
 const schema = "media-server.v390-stabilization-release-readiness.v1";
 const companionCommands = [
@@ -43,11 +44,15 @@ const companionCommands = [
   "./server.sh verify-v390-onvif-credential-provider-status",
   "./server.sh verify-v390-onvif-live-import-persist-decision",
   "./server.sh verify-v390-vlm-rule-suggestion-draft-bridge",
+  "./server.sh verify-v390-vlm-incident-rule-provenance",
   "./server.sh verify-v390-vlm-evaluation-promotion-guard",
   "./server.sh verify-v390-backup-recovery-handoff-validation",
   "./server.sh verify-v390-action-execution-deferral-decision",
+  "./server.sh verify-v390-deferred-product-owner-signoff",
   "./server.sh verify-v390-conditional-field-ai-decisions",
   "./server.sh verify-v390-structure-stabilization-handoff",
+  "./server.sh verify-v390-structure-stabilization-readiness",
+  "./server.sh verify-v390-external-field-smoke-no-device-closure",
   "./server.sh verify-release-metadata",
   "./server.sh verify-docs-links",
   "./server.sh verify-docs-ui-assets",
@@ -77,7 +82,7 @@ const checks = [];
 
 check("roadmap and stream verification expose v3.9 Step 20 stabilization readiness", () => {
   for (const snippet of [
-    "| 20 | v3.9.0 (20) stabilization and release readiness | P0 | 완료 |",
+    "| 20 | v3.9.0 (20) stabilization and release readiness | P0 | 보강 완료/current test pending |",
     "AGENTS 네 테스트 영역 판정과 release close-out evidence를 실제 실행/미실행으로 분리",
     command,
     "## v3.9.0 Structure & Release 개발 기록",
@@ -98,9 +103,10 @@ check("AGENTS test category judgment table separates execution approval and evid
   for (const snippet of [
     "| 안정화 테스트 | 진행 대상 |",
     "| 30분 테스트 | 진행 대상 |",
-    "| 120분 테스트 | 조건부 진행 |",
+    "| 120분 테스트 | 진행 대상 |",
     "| UI 풀테스트 | 진행 대상 |",
     "사용자 명시 실행 승인 없음 - 미실행 필수 blocker",
+    "실행 목록 포함 승인/현재 미실행",
     "release action 승인 없음 - 미실행",
   ]) {
     assertIncludes(files.backlog, snippet, "Step 20 test category judgment");
@@ -130,6 +136,14 @@ check("release policy, evidence index, and records list v3.9 companion local gat
     assertIncludes(files.releasePolicy, item, `release policy command ${item}`);
     assertIncludes(files.releaseEvidenceIndex, item, `release evidence index command ${item}`);
     assertIncludes(files.releaseRecords, item, `release records command ${item}`);
+  }
+  for (const [name, text] of [
+    ["release policy", files.releasePolicy],
+    ["release evidence index", files.releaseEvidenceIndex],
+    ["release records", files.releaseRecords],
+  ]) {
+    assertIncludes(text, currentFinalCommand, `${name} current final acceptance command`);
+    assertIncludes(text, "clean worktree", `${name} current final clean source boundary`);
   }
   for (const snippet of [
     "## v3.9.0 stabilization and release readiness",

@@ -22,6 +22,7 @@ Usage:
 Checks:
   - acceptance bundle dry-run command exists
   - actual-mode fixture executes the fixed stage order
+  - current final actual mode rejects missing --run-120 and a dirty worktree before build
   - first failure makes later stages not-run while cleanup/report still execute
   - conditional 120-minute and cleanup failure paths are explicit
   - dry-run summary separates local/static, 30-minute, UI automation, 120-minute, published, and release action evidence
@@ -42,6 +43,7 @@ process.on("exit", () => {
 });
 
 const files = {
+  bundle: readText("scripts/internal/verify_v390_test_acceptance_bundle.mjs"),
   serverSh: readText("server.sh"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   streamVerification: readText("docs/stream-verification.md"),
@@ -50,6 +52,26 @@ const files = {
   releaseEvidence: readText("docs/release-evidence-index.md"),
   backlog: readText("docs/development-backlog.md"),
 };
+
+check("current final actual preflight requires 120 minutes and a clean worktree", () => {
+  for (const snippet of [
+    "current final actual acceptance requires explicit --run-120",
+    "current final actual acceptance requires a clean worktree; commit approved changes before running",
+    "test-acceptance-current-final --run-120",
+  ]) {
+    assertIncludes(files.bundle, snippet, "current final preflight contract");
+  }
+
+  const missing120Dir = fixtureDir("missing-required-120");
+  const missing120 = runBundle(["--output-dir", missing120Dir]);
+  assert(missing120.status !== 0, "current final actual mode must reject missing --run-120");
+  const missing120Summary = readJson(path.join(missing120Dir, "summary.json"));
+  assert(missing120Summary.failedStage === "preflight", "missing --run-120 must fail at preflight");
+  assert(missing120Summary.firstFailure?.context?.includes("requires explicit --run-120"), "missing --run-120 failure context missing");
+  assert(missing120Summary.stages.find(item => item.id === "build")?.status === "not-run", "build must not run after missing --run-120");
+  fs.rmSync(missing120Dir, { recursive: true, force: true });
+
+});
 
 check("server.sh and script inventory expose R3 acceptance bundle commands", () => {
   for (const name of [script, contractScript]) {

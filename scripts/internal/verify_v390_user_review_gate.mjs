@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v3.9.0 Foundation 사용자 review gate와 승인 전 기능 개발 중단 경계를 검증한다.
+// 파일 용도: v3.9.0 initial review gate snapshot과 current 사용자 승인/closure reconciliation을 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -19,13 +19,13 @@ Usage:
   ./server.sh verify-v390-user-review-gate
 
 Checks:
-  - v3.9.0 Foundation Step 3 is recorded as a review-ready gate, not feature approval
+  - v3.9.0 Foundation Step 3 initial review-ready state is preserved as a historical snapshot
+  - later recorded user goals reconcile the current state to approved/closed-with-evidence
   - required/candidate/structure/excluded lists are fixed for user review
-  - feature development remains blocked until explicit user approval
+  - initial feature development remained blocked until explicit user approval
   - stream verification, project inventory, release records/evidence, server dispatch, and script inventory track this gate
 
 Not run by this command:
-  - user approval of the development list
   - feature implementation
   - UI fulltest
   - 30/120 minute longrun
@@ -50,24 +50,28 @@ const files = {
 
 const checks = [];
 
-check("development backlog closes Step 3 as review-ready and keeps approval pending", () => {
+check("development backlog preserves the initial gate and records current approval closure", () => {
   for (const snippet of [
-    "| 3 | v3.9.0 (3) User Review Gate / 개발 순서 확정 | P0 | 완료 | required/candidate/structure/excluded 목록을 review-ready로 고정하고 사용자 승인 전 기능 개발 중단 |",
+    "| 3 | v3.9.0 (3) User Review Gate / 개발 순서 확정 | P0 | 완료/initial snapshot historical/current closed |",
     "## v3.9.0 Foundation 개발 기록",
     "Step 3 `User Review Gate / 개발 순서 확정`",
     "`scripts/internal/verify_v390_user_review_gate.mjs`",
     "`./server.sh verify-v390-user-review-gate`",
+    "Foundation initial review-ready 상태(historical snapshot)",
     "승인 상태: `pending-user-approval`",
     "기능 개발 상태: `blocked-before-user-approval`",
     "다음 개발 착수는 사용자가 v3.9 required/candidate list를 승인한 뒤에만 가능",
+    "Current user approval/closure reconciliation",
+    "current 승인 상태: `approved-through-recorded-user-goals`",
+    "current 기능 개발 상태: `closed-with-evidence`",
   ]) {
     assertIncludes(files.backlog, snippet, "development backlog");
   }
 });
 
-check("feature inventory exposes the fixed review output lists", () => {
+check("feature inventory separates the initial snapshot from current closure", () => {
   for (const snippet of [
-    "## User Review Output",
+    "## Initial User Review Output (Historical Snapshot)",
     "Review-ready status: `ready-for-user-review`",
     "Approval status at review gate: `pending-user-approval`",
     "Feature development status at review gate: `blocked-before-user-approval`",
@@ -79,13 +83,20 @@ check("feature inventory exposes the fixed review output lists", () => {
     "Excluded/non-scope list: `V390-EXCL-001`, `V390-EXCL-002`, `V390-EXCL-003`, `V390-EXCL-004`, `V390-EXCL-005`, `V390-EXCL-006`",
     "Next development order after approval: `V390-REQ-001` -> `V390-REQ-002` -> `V390-REQ-003`",
     "Future candidate-development rows remain blocked until the user approves each candidate or approves a candidate batch.",
+    "## Current User Approval and Closure Status",
+    "Current approval status: `approved-through-recorded-user-goals`",
+    "Current feature development status: `closed-with-evidence`",
+    "Current active required development list: `없음`",
+    "Current active candidate development list: `없음`",
+    "Initial `pending-user-approval`/`blocked-before-user-approval` 값은 Step 3 당시의 historical",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory user review output");
   }
 });
 
-check("review gate section still requires explicit user approval before feature development", () => {
+check("initial review gate rules remain preserved without overriding current closure", () => {
   for (const snippet of [
+    "## Review Gate (Initial Historical Rules)",
     "Discovery is not complete until",
     "the user reviews and approves the required/candidate development list",
     "Until this review gate passes, this file remains a discovery tracking scaffold only.",
@@ -99,8 +110,9 @@ check("stream verification and project inventory map Step 3", () => {
   for (const snippet of [
     "v3.9.0 (3)",
     command,
-    "review-ready required/candidate/structure/excluded list",
-    "사용자 승인 전 기능 개발 중단",
+    "initial historical review-ready snapshot",
+    "approved-through-recorded-user-goals",
+    "closed-with-evidence",
   ]) {
     assertIncludes(files.streamVerification, snippet, "stream verification");
   }
@@ -121,8 +133,9 @@ check("release records and evidence index track Step 3 without approval overclai
     "v390 Step 3 RED user review gate",
     "v390 Step 3 user review gate final",
     "review-ready 목록과 승인 전 기능 개발 중단 경계",
-    "사용자 review approval",
-    "승인 전이며 Step 3 verifier PASS로 대체하지 않음",
+    "v390 initial 사용자 review approval",
+    "initial historical snapshot에서는 승인 전",
+    "v390 current user approval closure reconciliation",
   ]) {
     assertIncludes(files.releaseRecords, snippet, "release records");
   }
@@ -131,7 +144,10 @@ check("release records and evidence index track Step 3 without approval overclai
     command,
     "OPS-165",
     "SAFE-198",
-    "사용자 승인, 기능 구현, 구조 안정화 구현, 테스트 방식 전환 구현",
+    "current 승인/기능 closure는 기록하되",
+    "UI 풀테스트, 30분/120분, published metadata, release action evidence로 대체하지 않음",
+    "Initial Historical Snapshot",
+    "Current User Approval and Closure Status",
   ]) {
     assertIncludes(files.releaseEvidence, snippet, "release evidence");
   }
@@ -140,7 +156,7 @@ check("release records and evidence index track Step 3 without approval overclai
 check("server.sh and script inventory include the Step 3 verifier", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, targetScript, "server.sh dispatch target");
-  assertIncludes(files.serverSh, "v3.9.0 User Review Gate와 승인 전 기능 개발 중단 경계를 검증합니다.", "server.sh help phrase");
+  assertIncludes(files.serverSh, "v3.9.0 initial review gate와 current 승인/closure reconciliation을 검증합니다.", "server.sh help phrase");
   assertIncludes(files.scriptInventory, targetScript, "script inventory");
 });
 
@@ -152,9 +168,11 @@ console.log(`- command: ${command}`);
 console.log("- reviewReadyStatus: ready-for-user-review");
 console.log("- approvalStatusAtReviewGate: pending-user-approval");
 console.log("- featureDevelopmentAtReviewGate: blocked-before-user-approval");
+console.log("- currentApprovalStatus: approved-through-recorded-user-goals");
+console.log("- currentFeatureDevelopmentStatus: closed-with-evidence");
 console.log("- currentActiveCandidateDevelopment: none");
 console.log("- closedCandidateDevelopment: V390-CAND-001..V390-CAND-010");
-console.log("- userApproval: not-run-by-this-command");
+console.log("- userApprovalReconciliation: verified-by-this-command");
 console.log("- featureImplementation: not-run-by-this-command");
 console.log("- uiFulltest: not-run-by-this-command");
 console.log("- longrun30Or120: not-run-by-this-command");

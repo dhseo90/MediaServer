@@ -46,7 +46,7 @@ Options:
   --output-dir <path>          Summary/report and run artifact root. Required for actual mode; /tmp default for dry-run.
   --ui-browser-mode <mode>     playwright, selenium, or sikulix. Default playwright.
   --allow-chrome-fallback[=1]  Explicitly allow diagnostic Chrome/CDP fallback for the UI phase.
-  --run-120                    Execute the conditional 120-minute phase after 30-minute and UI success.
+  --run-120                    Execute the 120-minute phase after 30-minute and UI success. Required for current final actual mode.
   --fixture-pass               Fast actual-mode orchestration fixture; not duration/UI evidence.
   --fixture-fail-stage <id>    Fail one stage and record later ordinary stages as not-run.
   --fixture-cleanup-fail       Make cleanup fail in fixture mode.
@@ -59,7 +59,8 @@ Actual order:
 Boundaries:
   - First ordinary stage failure makes later ordinary stages not-run; cleanup/report always run.
   - UI automation is not Codex in-app manual UI fulltest evidence.
-  - 120 minutes runs only with --run-120. Published metadata and release actions are never run here.
+  - Current final actual mode requires a clean worktree and --run-120 before build starts.
+  - Published metadata and release actions are never run here.
 `);
 }
 
@@ -152,6 +153,14 @@ async function runRealStage(stageId) {
     ].filter(relativePath => !fs.existsSync(path.join(rootDir, relativePath)));
     if (missing.length > 0) {
       recordFailure(stageId, "preflight", `missing required files: ${missing.join(", ")}`);
+      return;
+    }
+    if (!fixtureMode && !options.run120) {
+      recordFailure(stageId, "preflight", "current final actual acceptance requires explicit --run-120");
+      return;
+    }
+    if (!fixtureMode && sourceProvenance.worktreeClean !== true) {
+      recordFailure(stageId, "preflight", "current final actual acceptance requires a clean worktree; commit approved changes before running");
       return;
     }
     stages.push(passStage(stageId, "validate actual bundle inputs", {
@@ -805,7 +814,7 @@ function buildFeatureCommands() {
 
 function buildFinalAcceptanceCommandSet() {
   return [
-    { id: "actual-bundle", command: "./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-final", status: "actual-execution" },
+    { id: "actual-bundle", command: "./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final --run-120", status: "actual-execution" },
     { id: "build", command: "./server.sh build", status: "executed-by-actual-bundle" },
     { id: "feature-gates", command: `${featureCommands.length} current feature commands`, status: "executed-by-actual-bundle" },
     { id: "server-longrun-30", command: "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir <run>/server-longrun-30", status: "executed-by-actual-bundle" },
