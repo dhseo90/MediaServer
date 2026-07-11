@@ -20,13 +20,16 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 source roadmap: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation
 
 상태: Step 1~29 기능·결정·readiness local gate는 한 차례 닫혔으나, 2026-07-11 실제 구현
-재검토에서 `V390-REVIEW2-19`~`V390-REVIEW2-35` 잔여가 확인되어 영향받는 완료 표기를
-재오픈했습니다. 아래 과거 `완료` 행과 재검토 잔여가 충돌하면 재검토 섹션이 우선합니다. 여기서
+재검토에서 `V390-REVIEW2-19`~`V390-REVIEW2-35` 잔여가 확인되었습니다. 이후 구현됐다고
+기록된 항목을 2026-07-12 다시 source-level로 감사한 결과 semantic closure, exact 424 UI
+automation, Policy v4 actual evidence producer, acceptance 연결, durability, 구조 graph 검증에
+잔여 결함이 확인되어 `V390-REVIEW3-36`~`V390-REVIEW3-49`로 재오픈했습니다. 아래 과거
+`완료` 행과 재검토 결과가 충돌하면 **2026-07-12 REVIEW3 섹션이 최우선**입니다. 여기서
 `완료`라고 표시한 값은 각 step의 문서, read-only decision route, UI status, verifier,
-release evidence boundary가 연결되었다는 뜻입니다. 실제 30분/120분 stop-on-first-fail
-runner 구현, 무료 UI 자동화 runner 구현, 구조 안정화 리팩토링, UI 풀테스트 직접 실행,
-30분/120분 장시간 실행, published metadata, release action은 별도 evidence가 있을
-때만 완료로 봅니다. 아래 `v3.9.0 남은 구현 목표` 섹션은 다른 개발 채팅이 이 대화의
+release evidence boundary가 연결되었다는 뜻이며 제품 의미의 구현 완료와 같지 않습니다.
+실제 30분/120분 runner, 무료 UI 자동화 runner, 구조 안정화 리팩토링, UI 풀테스트 직접 실행,
+30분/120분 장시간 실행, published metadata, release action은 각 직접 evidence가 있을
+때만 완료로 봅니다. 아래 REVIEW3 잔여 구현 목표는 다른 개발 채팅이 이 대화의
 맥락 없이도 구현해야 할 실제 목표와 통과 조건을 이해하도록 남긴 source-of-truth입니다.
 Candidate/structure 영역은 여전히 discovery 결과 승인 전 기능 개발 금지 경계를 따릅니다.
 
@@ -2117,7 +2120,157 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 - current Policy v4 UI evidence는 `ineligible`, qualified 0, `uiFulltestPass=false`입니다. 실제 UI
   풀테스트와 30분/120분 실행은 이번 goal에서 수행하지 않았으며 contract/fixture PASS로 대체하지 않습니다.
 - owner/field/structure의 decision-record, conditional-not-run, gate-ready 상태도 구현/PASS/complete가 아닙니다.
-- 26~35 범위의 추가 구현 후속 이슈는 없으며 release action은 별도 승인 대상입니다.
+- 2026-07-12 source-level 재감사에서 26~35 일부의 구현 범위가 문서 표현보다 좁음이 확인됐습니다.
+  따라서 `추가 구현 후속 이슈 없음`은 historical 판단이며 아래 REVIEW3이 현재 상태를 대체합니다.
+
+## v3.9.0 (19) 2026-07-12 실제 구현 3차 감사와 잔여 로드맵 36~49
+
+이 섹션은 통합 v3.9 순번 `V390-ADD1-01`~`V390-ADD1-12`, Evidence/Closure 13~18,
+`V390-REVIEW2-19`~`V390-REVIEW2-35`를 문서의 완료 표기나 과거 verifier PASS를 evidence로
+사용하지 않고 source, function, route, UI control, runner, fixture, schema 소비 경로를 직접 대조한
+결과입니다. 이번 감사에서는 테스트, build, server, browser, 30분/120분을 실행하지 않았습니다.
+따라서 아래 판정은 runtime PASS/FAIL이 아니라 **현재 source 구현의 충분성 판정**입니다.
+
+### 통합 순번 1~35 직접 판정
+
+| 번호 | ID/구간 | 문서상 상태 | 2026-07-12 직접 판정 | 직접 확인 결과/잔여 경계 |
+| ---: | --- | --- | --- | --- |
+| 1 | V390-ADD1-01 | 완료 | 구현 확인 | 삭제 대상 부재와 current untracked 0 확인. 과거 blob byte 동일성은 현 worktree만으로 재구성 불가 |
+| 2 | V390-ADD1-02 | 완료 | 미완성 | 986행 locator/digest는 존재하지만 무관 symbol/control 연결이 있어 전 기능 1:1 의미 closure가 아님 |
+| 3 | V390-ADD1-03 | 완료 | 구현 확인 | VLM candidate revision/digest/result/provenance와 option/model/prompt server-owned 검증·저장 경로 존재 |
+| 4 | V390-ADD1-04 | 완료 | 구현 확인 | Re-ID 공용 readiness와 NoOp fallback 경계 존재. 실제 model session/inference는 의도적 비범위 |
+| 5 | V390-ADD1-05 | 완료 | 구현 확인 | ONVIF paired source/view save와 process 내 보상 rollback 존재. crash journal은 비범위 |
+| 6 | V390-ADD1-06 | 완료 | 부분 구현 | acceptance orchestrator는 있으나 기본 8-case summary를 424 gate에 넣고 v4 producer도 없어 current canonical PASS 불가 |
+| 7 | V390-ADD1-07 | 완료 | 구현 확인/8-case 한정 | UI-108~UI-115 route/control/artifact case는 존재하나 exact 424 전체 UI 구현이 아님 |
+| 8 | V390-ADD1-08 | 완료 | 구현 확인/adapter 한정 | Playwright native wait/click/fill/type/select/screenshot adapter 존재. 전체 기능 workflow와 별개 |
+| 9 | V390-ADD1-09 | 완료 | 부분 구현 | source/outerHTML marker는 거부하지만 visibility와 사후 network correlation false-PASS가 남음 |
+| 10 | V390-ADD1-10 | 완료 | 구현 확인 | delegated duration case 첫 실패 후 later case not-run과 stderr/context/reproduction 보존 경로 존재 |
+| 11 | V390-ADD1-11 | 완료 | 부분 구현 | exact ID 424 집합은 있으나 route/action anchor가 실제 handler/action 결합을 증명하지 못함 |
+| 12 | V390-ADD1-12 | 완료 | 부분 구현 | Policy v4 evaluator/contract는 있으나 actual evidence v4 producer와 responsive/theme actual source가 없음 |
+| 13 | Evidence integrity | 완료 | 부분 구현 | dedupe/placeholder/first-failure 검사는 있으나 current HEAD 직접 결속과 child path containment가 불충분 |
+| 14 | Final re-run/cleanup | historical PASS | current 미완료 | source `8fe583d8` historical run만 있고 current 986/32-command source 재실행은 미실행 |
+| 15 | VLM provenance | 완료 | 부분 구현 | observation/EventRecord 대조는 있으나 observation-context-only evaluation과 duplicate JSON key 위험 존재 |
+| 16 | Owner sign-off | decision record | 결정 기록 | role 기반 decision만 존재하고 implementation과 실제 개인 owner 승인 evidence는 없음 |
+| 17 | Structure readiness | gate 준비 | gate 준비 | `refactorEntryReady=false`, implementation not-executed. 실제 구조 안정화가 아님 |
+| 18 | External field | 조건부 미실행 | 조건부 미실행 | endpoint/credential/device/provider contact와 field PASS evidence 없음 |
+| 19 | V390-REVIEW2-19 | 완료 | 구현 확인 | backlog Step parser와 missing/duplicate/state drift gate 존재 |
+| 20 | V390-REVIEW2-20 | 완료 | 미완성 | 986행 다수가 declaration/shared context locator이며 일괄 reviewer approval로 의미 closure를 대체함 |
+| 21 | V390-REVIEW2-21 | 완료 | 부분 구현 | persist-before-publish와 file fsync/rename/HTTP 500은 있으나 rename 후 parent directory fsync 없음 |
+| 22 | V390-REVIEW2-22 | 완료 | 부분 구현 | ordered 424/hash binding은 구현됐지만 binding source인 semantic manifest가 신뢰되지 않음 |
+| 23 | V390-REVIEW2-23 | 완료 | 부분 구현 | artifact path/hash/type/correlation은 검사하지만 visual PASS는 실제 pixel/baseline 계산이 아님 |
+| 24 | V390-REVIEW2-24 | 완료 | 미완성 | 223개 navigation-only, 201개 generic tag action이며 기능별 입력·조작·readback을 구현하지 않음 |
+| 25 | V390-REVIEW2-25 | 완료 | 부분 구현 | before/after 동일은 거부하지만 임의 DOM 변화만으로 expected behavior와 무관하게 PASS 가능 |
+| 26 | V390-REVIEW2-26 | 완료 | end-to-end 미완성 | exact runner v1 output과 Policy v4 required schema가 달라 native run→qualification→eligible 경로가 끊김 |
+| 27 | V390-REVIEW2-27 | 완료 | 부분 구현 | placeholder 삭제와 historical-invalid 격리는 됐으나 coverage policy에 stale 0/423/1 설명이 남음 |
+| 28 | V390-REVIEW2-28 | 완료 | 부분 구현 | save/reload 공용 validator는 있으나 non-structural first-field parser와 duplicate-key 우회 가능성 존재 |
+| 29 | V390-REVIEW2-29 | 완료 | 구현 확인/save-time 한정 | EventRecord/observation provenance 대조와 no-write 존재. restart 시 저장 rule provenance 재대조는 없음 |
+| 30 | V390-REVIEW2-30 | 완료 | 구현 확인 | bytes/existence/mode snapshot과 atomic restore/remove 존재. process crash journal은 비범위 |
+| 31 | V390-REVIEW2-31 | 완료 | 부분 구현 | synthetic parent PASS는 제거했으나 delegated expected case 전수·중복·순서 검증이 부족 |
+| 32 | V390-REVIEW2-32 | 완료 | 구현 확인 | NoOp Enabled/stats/worker/crop/queue disabled 의미가 일치함 |
+| 33 | V390-REVIEW2-33 | gate 준비 완료 | gate 준비/부분 구현 | 미래 9-module model이 actual file classifier와 연결되지 않고 실제 graph는 4분류와 일부 edge만 검사 |
+| 34 | V390-REVIEW2-34 | 완료 | 부분 구현 | 986/50/7 count와 36개 bridge ID는 맞지만 locator 존재를 의미상 route/control/action closure로 과장 |
+| 35 | V390-REVIEW2-35 | 완료 | 부분 구현 | fixture status vocabulary는 맞지만 문서별 독립 위치/claim과 top-level field flag를 전수 검사하지 않음 |
+
+집계: 구현 확인 11, 부분 구현 16, 미완성 4, 결정/gate/조건부 4입니다. `구현 확인`도 이번
+정적 감사에서 source 경로가 확인됐다는 뜻이며, 실행하지 않은 테스트 PASS를 뜻하지 않습니다.
+
+### REVIEW3 잔여 구현 순서
+
+| 번호 | ID | 구간 | 제목 | 우선순위 | 상태 | 개발 내용 | 추천 모델 | 추론 수준 | 선정 근거 |
+| ---: | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 36 | V390-REVIEW3-36 | Discovery | 누락 기능과 전체 문서 ledger | P0 | 미완료 | 173개 Markdown과 source explicit incomplete marker를 파일별 ledger로 감사하고 RulesJson의 두 `notImplementedYet` 항목을 구현/제외 결정 및 inventory에 등록 | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 2, 검증 난이도 1, 변경 범위 1, 총 6점. 기능 누락 정확도 상향 적용 |
+| 37 | V390-REVIEW3-37 | Feature Closure | 986행 semantic closure 전면 재감사 | P0 | 미완료 | 36번에서 확정한 inventory를 기준으로 자동 token 최고점과 일괄 approval을 제거하고 각 기능을 실제 owner symbol→route/control→action→state/readback→verifier assertion 호출 관계로 재작성 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. 전 기능 정확도 직접 영향 |
+| 38 | V390-REVIEW3-38 | Persistence | Analysis Registry crash durability | P0 | 미완료 | rename 후 parent directory fsync와 mode 보존을 추가하고 mutation×fault stage matrix 및 crash/restart recovery를 검증 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점. 데이터 손상 위험 상향 적용 |
+| 39 | V390-REVIEW3-39 | VLM Integrity | 구조적 JSON과 provenance 재검증 | P0 | 미완료 | first-field 문자열 검색을 구조 parser로 교체하고 duplicate key/top-level scope를 강제하며 reload rule provenance도 server record와 재대조 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. provenance·보안·데이터 무결성 상향 적용 |
+| 40 | V390-REVIEW3-40 | Long-run | delegated exact phase ledger | P0 | 미완료 | expected case ID/order/uniqueness/count를 parent가 검증하고 누락·중복·부분 summary를 PASS로 투영하지 않음 | 5.6 Sol | 높음 (high) | 2+1+2+1=6점. 테스트 결과 정확도 상향 적용 |
+| 41 | V390-REVIEW3-41 | UI Automation | exact 424 기능별 native workflow | P0 | 미완료 | 37번 semantic source를 기준으로 navigation-only/generic tag action을 case별 setup/input/action/expected result/cleanup으로 교체하고 hidden/non-action selector를 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. 대량 UI 동등성과 false-PASS 상향 적용 |
+| 42 | V390-REVIEW3-42 | UI Correctness | semantic completion oracle | P0 | 미완료 | DOM 임의 변화 대신 case별 endpoint+DOM, persisted readback, EventRecord, server log 중 실제 기대 결과를 요구하고 진짜 request correlation을 사용 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+1=7점. 거짓 PASS 정확도 상향 적용 |
+| 43 | V390-REVIEW3-43 | UI Policy | Policy v4 actual evidence producer | P0 | 미완료 | 41~42번 exact runner가 `media-server.ui-automation-evidence.v4` actual summary와 attested case/cross-cutting artifacts를 직접 생성하도록 구현 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. release correctness와 evidence 보안 상향 적용 |
+| 44 | V390-REVIEW3-44 | Visual Evidence | responsive/theme/visual 실제 판정 | P0 | 미완료 | 320/390/760/1180, light/dark, overlay/clipping/contrast/focus를 실제 browser artifact와 pixel/geometry 결과로 산출하고 자기선언 PASS를 금지 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+1=7점. 시각 동등성과 false-PASS 상향 적용 |
+| 45 | V390-REVIEW3-45 | Acceptance | canonical one-command 실행 경로 | P0 | 미완료 | 40~44번 결과를 424 runner→v4 qualification→acceptance/final integrity 한 command로 연결하고 120분은 AGENTS 조건/명시 option과 일치시킴 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점. release correctness 상향 적용 |
+| 46 | V390-REVIEW3-46 | Evidence | current HEAD와 artifact containment | P0 | 미완료 | final integrity가 current commit, clean state, child summary root containment, canonical command, stale historical source 차단을 직접 검증 | 5.6 Sol | 높음 (high) | 2+1+2+1=6점. release correctness 상향 적용 |
+| 47 | V390-REVIEW3-47 | Evidence | stale policy/historical artifact 정리 | P1 | 미완료 | coverage policy의 0/423/1 설명과 actual exact manifest를 정합화하고 historical PASS를 current consumer가 읽지 못하게 source binding 강화 | 5.6 Sol | 높음 (high) | 1+1+1+1=4점이나 evidence 정확도 상향 적용 |
+| 48 | V390-REVIEW3-48 | Structure | actual module dependency graph | P1 | 미완료 | 9개 declared module owner를 실제 파일/target에 매핑하고 include/link graph, forbidden edge, SCC, slice entry/exit를 실경로로 검증 | 5.6 Sol | 높음 (high) | 1+2+2+1=6점. 구조 전면 안정화 진입 정확도 상향 적용 |
+| 49 | V390-REVIEW3-49 | Structure Decision | 구조 안정화 실행 범위 확정 | P1 | 미완료 decision | 48번 actual graph 결과를 근거로 42,726-line HTTP server와 10,217-line UI script의 실제 refactor를 v3.9 안정화 단계에서 할지 v4.0으로 넘길지 사용자 결정을 source-of-truth에 고정 | 5.6 Sol | 높음 (high) | 2+2+1+1=6점. 광범위 구조 변경과 release 경계 상향 적용 |
+
+### REVIEW3 상세 구현 계약
+
+#### V390-REVIEW3-36 discovery prerequisite
+
+- strict `모든 문서 파악` evidence는 저장소의 Markdown 173개 각각에 분류, 전문 확인 여부,
+  current logic 불일치, 중복/복잡도, 조치를 기록하는 ledger입니다. 8개 source group의 `checked` 문구나
+  파일 glob만으로 전수 검토를 완료 처리하지 않습니다.
+- `AnalysisDocumentRegistry::RulesJson()`이 노출하는 `automatic rule matching for non-VA streams`와
+  `long-running RTSP/WebRTC route matching validation`을 completion inventory에 등록하고 v3.9 구현,
+  구조 단계 이관, excluded 중 하나로 사용자 승인받습니다.
+- 완료 조건: 문서와 source incomplete marker 전수 ledger에서 미분류 항목이 0이고, 확정된 기능 수와
+  project inventory/semantic manifest expected row 수가 일치해야 37번으로 넘어갑니다.
+
+#### V390-REVIEW3-37 semantic closure
+
+- 현재 결함 예시: `SAFE-140`의 v3.5 command workspace action owner가 무관한
+  `OpsV380ClientNoticeDraftQueueJson`으로 연결되고, `RULE-017` state owner가 일반
+  `ExtractObjectField`로 연결됩니다. locator/hash가 맞아도 기능 의미가 맞지 않습니다.
+- generator는 신규/변경 행을 자동 approve하지 않습니다. reviewed owner symbol과 실제 call/dispatch/data-flow
+  관계를 machine-readable edge로 기록하고, verifier는 그 edge를 source에서 확인합니다.
+- 완료 조건: 986행 개별 reviewer reason이 기능별로 구체적이고, generic/shared/unrelated owner,
+  same-file token, bulk approval, ID-only verifier가 모두 negative fixture에서 FAIL합니다.
+
+#### V390-REVIEW3-38~40 persistence, provenance, longrun foundation
+
+- Analysis Registry atomic replace는 file fsync 뒤 rename뿐 아니라 parent directory fsync까지 완료한 뒤
+  success를 publish합니다. 기존 mode를 보존하고 crash point별 recovery contract를 둡니다.
+- VLM profile/rule parser는 구조화된 JSON parser로 exact top-level/object scope와 duplicate key를 거부합니다.
+  저장 시뿐 아니라 reload 시 canonical provenance가 현재 EventRecord/observation과 일치하는지 검증합니다.
+- longrun parent는 expected delegated case manifest와 summary를 ID/order/count/uniqueness로 대조합니다.
+  한 개 soak row 또는 일부 runtime row만 존재하는 summary는 PASS가 아닙니다.
+- 완료 조건: 38~40 각각의 failure matrix와 negative contract가 독립적으로 닫힌 뒤 UI/acceptance 구현으로
+  넘어갑니다. 세 항목은 병렬 개발 가능하지만 각 항목은 별도 완료 evidence를 가집니다.
+
+#### V390-REVIEW3-41~45 exact UI와 Policy v4
+
+- 현재 exact manifest는 424개 모두 390x844/light이며 223개가 route-root navigation-only입니다.
+  201개 interaction 중 대부분은 case별 endpoint가 없고 runtime element tag에 따라 임의 동작합니다.
+- 각 case는 필요한 seed/account/role/scope, 입력값, control sequence, expected endpoint/status,
+  persisted cleanup을 명시합니다. 예를 들어 hidden `#opsEventRuleIdInput`은 visible action control로
+  사용하지 않고 hidden 상태 자체를 geometry/visibility assertion으로 확인합니다.
+- actual runner는 requested 값을 observed로 복사하지 않고 browser URL, role session, viewport,
+  media query/theme, control visibility와 action 결과를 실제 관측합니다.
+- `media-server.ui-automation-evidence.v4` summary, screenshot/trace/console/server log, visual diff,
+  redaction scan, cross-cutting evidence를 한 실행 root에 생성합니다. 1x1 PNG와 fixture status PASS는
+  actual evidence가 될 수 없습니다.
+- completion oracle은 단순 input value 변화가 아니라 case가 선언한 제품 결과를 확인합니다.
+  request correlation은 action request에 연결된 URL/method/request ID 또는 readback identity를 사용합니다.
+- 완료 조건: repo-native one command가 exact 424와 cross-cutting을 실행하고 Policy v4 eligible summary를
+  생성해 acceptance가 외부 수작업 summary 없이 소비할 수 있어야 합니다. 첫 실패 뒤 later case는
+  not-run이며 재현 command와 cleanup을 남깁니다.
+
+#### V390-REVIEW3-46~47 final evidence integrity
+
+- final evidence는 summary 안 commit 형식만 확인하지 않고 실행 직전/직후 `HEAD`, dirty state,
+  command set과 source binding을 직접 기록합니다. child artifact는 approved run root 밖을 참조할 수 없습니다.
+- current coverage/evidence policy는 actual manifest 존재와 not-run 상태를 모순 없이 표현하고 historical
+  artifact는 audit-only path로만 접근합니다.
+- 46번은 current HEAD/run root 검증을 구현하고, 47번이 stale policy/historical binding을 정리한 뒤
+  두 항목을 함께 재검증합니다. 이 단계 전 historical PASS를 current final evidence로 사용하지 않습니다.
+
+#### V390-REVIEW3-48~49 structure entry decision
+
+- structure verifier는 미래 module fixture와 실제 파일 graph를 같은 node identity로 연결합니다.
+- 구조 안정화는 현재 readiness 문서만 있고 실제 source extraction은 없습니다. 현재
+  `src/ingress/webrtc_http_server.cpp` 42,726줄과 `product_ui_page_scripts.cpp` 10,217줄 상태를 기준으로
+  48번 actual dependency graph를 먼저 확정한 뒤 v3.9 안정화에서 수행할지 v4.0에서 수행할지 결정합니다.
+  결정 전 `구조 안정화 완료`를 보고하지 않습니다.
+
+### REVIEW3 완료 경계
+
+- REVIEW3 등록은 개발 완료가 아니라 source-level 결함과 구현 계약의 등록입니다.
+- 36~49가 닫히기 전 `전 기능 exact closure`, `AI-minimized 전체 UI 자동화 구현 완료`,
+  `Policy v4 end-to-end 준비 완료`, `v3.9 테스트 제외 개발 전체 완료`를 보고하지 않습니다.
+- 14번 current final rerun, 30분, 120분, UI 풀테스트, published metadata, release action은 별도 실행
+  evidence이며 이번 문서 반영에서 실행하지 않았습니다.
+- 각 항목은 구현, 개별 테스트 등록, 승인된 테스트 실행, roadmap/evidence, `git diff --check`, 사용자
+  커밋 승인을 독립적으로 닫습니다.
 
 ## 이전 source roadmap 기록: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
 
