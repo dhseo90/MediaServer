@@ -25,6 +25,7 @@
 | `./server.sh verify-feature-inventory-coverage` | `media-server.feature-inventory-coverage.v1`, `coverageStatus: covered/missing`, `executionEvidenceStatus: not-execution-evidence`, `missing coverage target`, 누락 ID는 release gate에서 FAIL |
 | `./server.sh verify-feature-implementation-evidence` | `media-server.feature-implementation-evidence.v2` manifest의 986개 ID별 exact handler/route/control/action/state locator, reviewer-bound semantic digest, semantic verifier assertion, canonical 30/120분 mapping을 검증. 변경 행은 명시 reviewer 승인 전 `review-required`이며 default 검증은 read-only |
 | `./server.sh verify-feature-semantic-closure-contract` | 986행 semantic closure와 `UI-002 /setup` exact handler positive, wrong handler/unrelated same-file anchor/route·action·state drift/generic-alone/ID-only assertion/unapproved review negative를 검증. 실행 테스트 PASS가 아님 |
+| `./server.sh verify-v390-review3-discovery-ledger` | V390-REVIEW3-36의 `AGENTS.md` 별도 전문 감사, 나머지 tracked Markdown 173개 파일별 full-read SHA-256/classification/status marker/duplicate/action, source/tooling explicit incomplete marker disposition, RulesJson 두 scope decision과 986-row 불변을 검증. 문서/source 정적 coverage이며 UI/30분/120분 실행 PASS가 아님 |
 | `./server.sh verify-release-metadata` | VERSION/CMake/release docs consistency guard |
 | `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>` | release close-out dry-run. tag/push/GitHub Release 생성 없음 |
 

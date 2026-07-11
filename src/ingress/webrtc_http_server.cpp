@@ -1179,8 +1179,8 @@ public:
             << "\"method\":\"POST\",\"url\":\"string\",\"payloadFormat\":\"media-server.va.event.v1\"}}},"
             << "\"rules\":";
         AppendDocumentsArray(out, rules_);
-        out << ",\"notImplementedYet\":[\"automatic rule matching for non-VA streams\","
-               "\"long-running RTSP/WebRTC route matching validation\"]}";
+        out << ",\"scopeDecisions\":{\"automaticNonVaRuleMatching\":\"excluded-by-design\","
+               "\"longRunningRtspWebRtcRouteMatching\":\"RTSP/WebRTC validation transferred-to-test-condition\"}}";
         return out.str();
     }
 

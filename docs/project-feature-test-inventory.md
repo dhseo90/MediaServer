@@ -53,6 +53,23 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | Coverage gate | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-inventory-coverage.v1` report로 기능 ID별 연결을 점검 | `coverageStatus: covered/missing`, `executionEvidenceStatus: not-execution-evidence`, `missing coverage target` 누락 ID는 release gate에서 FAIL. covered는 mapping coverage이며 실행 PASS가 아님 |
 | VLM current expansion | VLM route, control, action, runtime state, sidecar, privacy guard, feature-only retention과 v3.9 source baseline/feature completion inventory active roadmap, v3.8 operator-gated action pilot latest published baseline, v3.7 site-aware operations previous published baseline, v3.6 simulation input/run/dry-run/impact diff/safe apply readiness/field evidence adapter/default-off simulation explanation historical baseline, v3.5 live operations historical baseline을 현재 기능 ID에 연결 | 실행 증거 아님 |
 
+## V390-REVIEW3-36 RulesJson Scope Decisions
+
+`AnalysisDocumentRegistry::RulesJson()`에 남아 있던 두 `notImplementedYet` 문자열은 제품 기능
+행이 아니었습니다. 아래 결정은 기능 row 수를 늘리지 않으며, JSON ledger
+`test/fixtures/v390_review3_discovery_ledger.json`과
+`./server.sh verify-v390-review3-discovery-ledger`가 source 경계를 대조합니다.
+
+| 결정 ID | 기존 marker | disposition | inventory 영향 | 테스트 영역 | 결정 근거 |
+| --- | --- | --- | ---: | --- | --- |
+| V390-RULESJSON-NON-VA-AUTO-MATCH | automatic rule matching for non-VA streams | excluded-by-design | 0 | 안정화 | 저장 rule 선택은 명시적으로 VA가 활성화되어 analysis tap이 붙은 뒤에만 수행합니다. 비-VA media path에 분석을 자동 부착하면 제품 분석 경계를 바꾸므로 v3.9 기능에서 제외하고 미구현 광고 문자열을 제거했습니다. |
+| V390-RULESJSON-RTSP-WEBRTC-LONGRUN | long-running RTSP/WebRTC route matching validation | transferred-to-test-condition | 0 | 120분 | 기존 route/profile matching의 duration evidence이며 제품 기능이 아닙니다. RTSP/WebRTC media path 변경 또는 선수 테스트 risk signal과 사용자 실행 승인이 있을 때 AGENTS 7.6.2의 조건부 120분 검증으로 수행합니다. 이번 단계에서는 실행 PASS로 기록하지 않습니다. |
+
+두 결정 뒤 전체 기능 항목은 계속 986개입니다. Markdown ledger는 `AGENTS.md`를 별도 전문
+감사하고, 나머지 tracked Markdown 173개에 대해 full-read byte count, SHA-256, 문서 분류,
+명시 상태 marker, exact paragraph 중복, 조치를 파일별로 보존합니다. 이 정적 ledger는 문서
+내용과 source marker coverage evidence일 뿐 UI 풀테스트·30분·120분 실행 evidence가 아닙니다.
+
 ## v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation Coverage Mapping
 
 이 절은 현재 active source target의 baseline/inventory 연결만 남깁니다. 아래 행은

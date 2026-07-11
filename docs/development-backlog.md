@@ -2178,7 +2178,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 
 | 번호 | ID | 구간 | 제목 | 우선순위 | 상태 | 개발 내용 | 추천 모델 | 추론 수준 | 선정 근거 |
 | ---: | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 36 | V390-REVIEW3-36 | Discovery | 누락 기능과 전체 문서 ledger | P0 | 미완료 | 173개 Markdown과 source explicit incomplete marker를 파일별 ledger로 감사하고 RulesJson의 두 `notImplementedYet` 항목을 구현/제외 결정 및 inventory에 등록 | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 2, 검증 난이도 1, 변경 범위 1, 총 6점. 기능 누락 정확도 상향 적용 |
+| 36 | V390-REVIEW3-36 | Discovery | 누락 기능과 전체 문서 ledger | P0 | 완료 | `AGENTS.md` 별도 전문 감사와 tracked Markdown 173개 파일별 full-read SHA-256/classification/status marker/duplicate/action ledger, 604개 source/tooling file marker 분류를 구현했습니다. RulesJson 두 항목은 non-VA 분석 자동부착 `excluded-by-design`, RTSP/WebRTC 장시간 검증 `transferred-to-test-condition`으로 inventory에 등록하고 `notImplementedYet` 응답을 제거했습니다. | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 2, 검증 난이도 1, 변경 범위 1, 총 6점. 기능 누락 정확도 상향 적용 |
 | 37 | V390-REVIEW3-37 | Feature Closure | 986행 semantic closure 전면 재감사 | P0 | 미완료 | 36번에서 확정한 inventory를 기준으로 자동 token 최고점과 일괄 approval을 제거하고 각 기능을 실제 owner symbol→route/control→action→state/readback→verifier assertion 호출 관계로 재작성 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. 전 기능 정확도 직접 영향 |
 | 38 | V390-REVIEW3-38 | Persistence | Analysis Registry crash durability | P0 | 미완료 | rename 후 parent directory fsync와 mode 보존을 추가하고 mutation×fault stage matrix 및 crash/restart recovery를 검증 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점. 데이터 손상 위험 상향 적용 |
 | 39 | V390-REVIEW3-39 | VLM Integrity | 구조적 JSON과 provenance 재검증 | P0 | 미완료 | first-field 문자열 검색을 구조 parser로 교체하고 duplicate key/top-level scope를 강제하며 reload rule provenance도 server record와 재대조 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. provenance·보안·데이터 무결성 상향 적용 |
@@ -2205,6 +2205,18 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
   구조 단계 이관, excluded 중 하나로 사용자 승인받습니다.
 - 완료 조건: 문서와 source incomplete marker 전수 ledger에서 미분류 항목이 0이고, 확정된 기능 수와
   project inventory/semantic manifest expected row 수가 일치해야 37번으로 넘어갑니다.
+
+구현 기록(2026-07-12):
+
+- `scripts/internal/verify_v390_review3_discovery_ledger.mjs`가 `AGENTS.md`와 나머지 tracked
+  Markdown 173개를 각각 끝까지 읽고 byte count/SHA-256/classification/status marker/exact
+  paragraph duplicate/action을 `test/fixtures/v390_review3_discovery_ledger.json`에 고정합니다.
+- 동일 verifier가 `src`, `include`, `scripts/internal`, `server.sh` 604개 파일의 explicit
+  incomplete marker를 파일/행/context hash/disposition으로 기록하고 미분류 0을 강제합니다.
+- `AnalysisDocumentRegistry::RulesJson()`의 non-VA 자동 분석 부착은 제품 분석 경계를 유지하기
+  위해 제외했고, RTSP/WebRTC 장시간 route matching은 기능이 아니라 AGENTS 7.6.2 조건부 120분
+  검증으로 이관했습니다. 두 결정은 feature row delta 0이며 inventory/semantic manifest는 986행을
+  유지합니다. 이번 단계에서 장시간 실행 PASS를 주장하지 않습니다.
 
 #### V390-REVIEW3-37 semantic closure
 
