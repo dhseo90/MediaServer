@@ -23,7 +23,8 @@
 | `./server.sh verify-docs-ui-assets` | README/UI screenshot asset guard |
 | `./server.sh verify-project-inventory` | feature/test inventory 구조 guard |
 | `./server.sh verify-feature-inventory-coverage` | `media-server.feature-inventory-coverage.v1`, `coverageStatus: covered/missing`, `executionEvidenceStatus: not-execution-evidence`, `missing coverage target`, 누락 ID는 release gate에서 FAIL |
-| `./server.sh verify-feature-implementation-evidence` | `media-server.feature-implementation-evidence.v1` manifest의 978개 ID별 owner source anchor, UI control/state anchor, verifier assertion anchor, canonical 30/120분 mapping을 검증. `--refresh-manifest`는 명시적 source 갱신이며 default 검증은 read-only |
+| `./server.sh verify-feature-implementation-evidence` | `media-server.feature-implementation-evidence.v2` manifest의 984개 ID별 exact handler/route/control/action/state locator, reviewer-bound semantic digest, semantic verifier assertion, canonical 30/120분 mapping을 검증. 변경 행은 명시 reviewer 승인 전 `review-required`이며 default 검증은 read-only |
+| `./server.sh verify-feature-semantic-closure-contract` | 984행 semantic closure와 `UI-002 /setup` exact handler positive, wrong handler/unrelated same-file anchor/route·action·state drift/generic-alone/ID-only assertion/unapproved review negative를 검증. 실행 테스트 PASS가 아님 |
 | `./server.sh verify-release-metadata` | VERSION/CMake/release docs consistency guard |
 | `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>` | release close-out dry-run. tag/push/GitHub Release 생성 없음 |
 

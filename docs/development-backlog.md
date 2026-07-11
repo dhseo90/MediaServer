@@ -1724,7 +1724,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 | 번호 | ID | 구간 | 제목 | 우선순위 | 상태 | 개발 내용 | 추천 모델 | 추론 수준 | 선정 근거 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 19 | V390-REVIEW2-19 | Foundation | current entry baseline gate 정렬 | P0 | 완료 | `v390_entry_baseline_state_lib.mjs`와 단일 expectation fixture가 backlog Step 1~3 상태를 구조적으로 읽고, 독립 contract가 current positive·historical wording·missing·duplicate를 판정하며 acceptance가 동일 entry command를 사용함 | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 0, 검증 난이도 0, 변경 범위 0, 총 2점이나 release correctness 직접 영향으로 Sol/high 상향 |
-| 20 | V390-REVIEW2-20 | Feature Closure | 984행 semantic implementation closure | P0 | 미완료 | 자동 substring anchor와 일괄 `closed-with-evidence`를 제거하고 feature별 route handler, control action, state transition, verifier assertion을 의미 단위로 1:1 검증 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 전 기능 정확도·동등성 상향 적용 |
+| 20 | V390-REVIEW2-20 | Feature Closure | 984행 semantic implementation closure | P0 | 완료 | v2 manifest가 984행 exact handler/route/control/action/state/assertion locator와 reviewer-bound unique digest를 검증하고, 자동 closure·generic-alone·wrong/unrelated/drift/ID-only/unapproved를 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 전 기능 정확도·동등성 상향 적용 |
 | 21 | V390-REVIEW2-21 | Product Correctness | Analysis Registry durable write contract | P0 | 미완료 | profile/rule/VLM upsert의 파일 저장 실패를 호출자에게 전달하고 메모리 rollback 또는 persist-before-publish를 적용해 실패 시 HTTP 5xx와 no-write를 보장 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점, 데이터 손상·거짓 성공 위험 상향 적용 |
 | 22 | V390-REVIEW2-22 | UI Policy | Policy v4 canonical 424 exact-ID binding | P0 | 미완료 | evaluator가 hash 대상 case manifest를 실제 파싱해 canonical test ID, route, role, viewport, theme, control/action과 evidence case를 대조하고 임의 424개 합성 case를 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+1=6점, 거짓 UI fulltest PASS 위험 상향 적용 |
 | 23 | V390-REVIEW2-23 | UI Policy | Policy v4 evidence attestation 강화 | P0 | 미완료 | completion/visual/cross-cutting evidenceRef의 실파일·hash·case correlation, 실제 image decode, trace schema, redaction scan을 검증하고 summary 자기선언을 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 정확도·보안·false-PASS 상향 적용 |
@@ -1768,16 +1768,36 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 
 #### V390-REVIEW2-20 984행 semantic implementation closure
 
-- 직접 문제: generator가 검색 점수가 높은 문자열을 owner로 선택하고 모든 item에
-  `status=closed-with-evidence`를 자동 부여합니다. validator는 tracked file 안 `includes(anchor)`만
-  확인합니다. `UI-002 /setup`이 `/password` anchor로 닫히는 실제 오매핑이 존재합니다.
-- 구현: 각 feature row에 reviewed `handler`, `route`, `controlSelector`, `actionHandler`,
-  `stateOracle`, `verifierAssertion`을 구조화합니다. source 생성기가 상태를 결정하지 않고
-  reviewer가 승인한 item만 closed로 전환합니다. generic route/`analysis`/`condition`처럼 여러
-  unrelated feature에 재사용된 anchor는 단독 completion evidence로 금지합니다.
-- 완료 조건: 984개 행 모두 exact owner symbol과 호출/dispatch 관계를 가지며, 잘못된 handler,
-  같은 파일의 무관 anchor, route/action drift, verifier가 ID 문자열만 확인하는 fixture가 FAIL합니다.
-  `coverageStatus`는 semantic closure와 execution evidence를 계속 분리합니다.
+- 직접 문제: 기존 generator가 검색 점수가 높은 substring을 owner로 선택하고 모든 item에
+  `status=closed-with-evidence`를 자동 부여했으며, validator는 tracked file 안 `includes(anchor)`만
+  확인했습니다. 실제 `UI-002 /setup`은 `/password`로 오매핑됐고 generic/shared anchor가 반복됐습니다.
+- 구현 위치:
+  - `scripts/internal/feature_semantic_evidence_lib.mjs`: exact file/symbol/line/context hash locator,
+    route dispatch, product control selector 또는 비대상 사유, action handler, state oracle,
+    handler→action→state relation, semantic verifier assertion, 행별 digest와 explicit reviewer approval을
+    생성·검증합니다. include/comment anchor와 manifest 자기 참조를 owner로 사용하지 않습니다.
+  - `scripts/internal/feature_implementation_manifest_lib.mjs`: schema를
+    `media-server.feature-implementation-evidence.v2`로 전환하고 일반 refresh는 신규/변경 행을
+    `review-required`로 유지합니다. 이미 승인된 동일 row/digest는 보존하지만 source context drift는
+    read-only validator에서 FAIL합니다.
+  - `scripts/internal/verify_feature_implementation_evidence.mjs`: reviewer/date/reason을 모두 요구하는
+    명시 approval flow와 semantic reviewed/unique digest summary를 추가했습니다.
+  - `scripts/internal/verify_feature_semantic_closure_contract.mjs`, `server.sh`: 984행 positive와
+    `UI-002 /setup` 교정, wrong handler, same-file unrelated anchor, route/action/state drift,
+    generic-alone, ID-only assertion, unapproved review negative 10개를 독립 검증합니다.
+  - `verify_feature_inventory_coverage.mjs`, `verify_v390_ui_automation_coverage.mjs`와 contract,
+    project inventory, stream verification, durable UI coverage matrix가 v2 semantic source를 소비합니다.
+- 직접 결과: 984/984 `semantic-reviewed`, unique semantic digest 984/984, validation error 0,
+  legacy negative 11/11, semantic contract 10/10입니다. `UI-002`는
+  `WebRtcHttpServer::Start`의 `/setup` dispatch, `SetupPageHtml`,
+  `[data-testid="auth-setup-form"]`로 연결됩니다. feature coverage는 984/984, UI matrix는
+  exact 424개·automated 8·unsupported 415·positive exclusion 1 경계를 유지합니다.
+- 실패/수정: 최초 RED는 semantic library 부재로 `ERR_MODULE_NOT_FOUND`였고, 첫 approval validation은
+  UI 간접 8행의 backend file이 product UI owner로 남아 error 8이었습니다. UI 직접/간접 owner를
+  함께 보정하고 route-owner mismatch를 재감사한 뒤 validation 0으로 재승인했습니다.
+- 경계: `coverageStatus=covered`와 semantic closure는 실행 evidence가 아닙니다. UI 풀테스트,
+  30분/120분, published metadata, release action은 실행하지 않았고 제품 C++/API/schema/media path를
+  변경하지 않았습니다.
 
 #### V390-REVIEW2-21 Analysis Registry durable write contract
 

@@ -97,14 +97,19 @@ check("cross-prefix rows preserve exact test ID, route, control/action anchor, a
   ]) {
     const row = summary.rows.find(item => item.featureId === featureId);
     const source = implementationById.get(featureId);
+    const semantic = source.semanticEvidence;
+    const expectedRoute = semantic.controlSelector?.screenRoute ||
+      (semantic.route?.applicability === "http-or-product-route" ? semantic.route.value : source.uiEvidence.screenRoute);
     assert(row, `${featureId} cross-prefix matrix row missing`);
     assert(row.testId === source.manualUiCaseId, `${featureId} exact manual test ID mismatch`);
-    assert(row.route === source.uiEvidence.screenRoute, `${featureId} exact route mismatch`);
-    assert(row.controlActionAnchor === source.uiEvidence.anchor, `${featureId} control/action anchor mismatch`);
-    assert(row.stabilityVerifier.command === source.verifierEvidence.command,
+    assert(row.route === expectedRoute, `${featureId} exact route mismatch`);
+    assert(row.controlActionAnchor === semantic.actionHandler.anchor, `${featureId} control/action anchor mismatch`);
+    assert(row.stabilityVerifier.command === semantic.verifierAssertion.command,
       `${featureId} stability verifier command mismatch`);
-    assert(row.stabilityVerifier.assertionAnchor === source.verifierEvidence.anchor,
+    assert(row.stabilityVerifier.assertionAnchor === semantic.verifierAssertion.assertionAnchor,
       `${featureId} stability verifier assertion mismatch`);
+    assert(row.stabilityVerifier.assertedSemanticDigest === source.review.semanticDigest,
+      `${featureId} semantic verifier digest mismatch`);
   }
 });
 

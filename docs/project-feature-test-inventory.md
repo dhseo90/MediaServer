@@ -42,10 +42,10 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 984개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리하고 `media-server.feature-implementation-evidence.v1` manifest와 exact-ID 집합을 고정 | 행별 evidence 대조 완료, 실행 증거 아님 |
-| 코드 로직 위치 | 984개 ID별 tracked owner file과 exact anchor를 implementation evidence manifest에 지정 | anchor 존재 대조 완료, 실행 증거 아님 |
-| 제품 UI 위치 | UI 필요/간접 또는 UI absence boundary 440개 ID별 product UI file/anchor를 지정하고 실제 UI 테스트 영역 424개에 동일한 manual case ID를 지정 | control/state anchor 대조 완료, inventory 단독으로 UI PASS 판정 불가 |
-| 안정화 테스트 매핑 | 984개 ID별 verifier file/asserted anchor와 dispatch command를 exact-ID manifest에 지정 | verifier source 대조 완료, 실제 실행 PASS 아님 |
+| 기능 ID 목록 | 984개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리하고 `media-server.feature-implementation-evidence.v2` manifest와 exact-ID 집합을 고정 | 행별 semantic evidence 대조 완료, 실행 증거 아님 |
+| 코드 로직 위치 | 984개 ID별 exact handler file/symbol/line context hash, route dispatch, action handler, state oracle를 reviewer-bound semantic digest로 지정 | substring 존재가 아니라 locator·relation·digest 대조 완료, 실행 증거 아님 |
+| 제품 UI 위치 | UI 필요/간접 또는 UI absence boundary 441개 ID별 product UI action owner와 screen route를 지정하고 실제 UI 테스트 영역 424개에 동일한 manual case ID를 지정 | exact control selector 또는 route/read-only 비대상 사유와 action/state relation 대조 완료, inventory 단독으로 UI PASS 판정 불가 |
+| 안정화 테스트 매핑 | 984개 ID별 semantic verifier assertion과 `verify-feature-implementation-evidence` dispatch, asserted digest를 지정 | ID 문자열만 확인하지 않고 handler/route/action/state relation을 검증, 실제 실행 PASS 아님 |
 | 30분 테스트 매핑 | 30분 대상 기능을 media/session/runtime 중심으로 분리 | 기준표 작성 완료 |
 | 120분 테스트 매핑 | memory leak/runtime drift 조건부 대상 분리 | 기준표 작성 완료 |
 | VA seed 데이터 | `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`로 numeric ID/API payload 기준 full UI seed matrix를 고정 | 준비 기준일 뿐 실행 증거 아님 |
@@ -1488,21 +1488,22 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 ## Completed Exact-ID Coverage Review
 
 2026-07-11에 984개 기능 행을 `test/fixtures/project_feature_implementation_evidence.json`
-`media-server.feature-implementation-evidence.v1` manifest와 1:1 대조했습니다. 이 완료는
-tracked source/UI/verifier anchor와 longrun mapping 존재 확인이며 제품 테스트 실행 PASS가
-아닙니다. manifest 갱신은 `--refresh-manifest`를 명시한 source 변경으로만 수행하고,
-기본 verifier는 read-only로 drift를 검사합니다.
+`media-server.feature-implementation-evidence.v2` manifest와 1:1 대조했습니다. 이 완료는
+exact handler/route/control/action/state/assertion locator와 reviewer-bound semantic digest 확인이며
+제품 테스트 실행 PASS가 아닙니다. manifest 갱신은 `--refresh-manifest`를 명시한 source 변경으로만
+수행하고, 변경된 행은 `review-required`가 되며 명시 reviewer 승인 전 semantic closure로 전환되지
+않습니다. 기본 verifier는 read-only로 source context와 relation drift를 검사합니다.
 
 | 대조 항목 | exact-ID 결과 | 검증 경계 |
 | --- | ---: | --- |
 | 기능 ID 집합 | 984/984 | inventory와 manifest의 ID, section, feature, UI 필요, 테스트 영역이 완전 일치 |
-| 코드 로직 owner/anchor | 984/984 | tracked production 또는 gate owner file 안 exact anchor 존재; 실행 PASS 아님 |
-| 제품 UI route/control/state anchor | 441/441 | UI 필요/간접 또는 UI absence boundary 행별 `screenRoute`, product UI file/anchor; 직접 클릭 PASS 아님 |
+| 코드 로직 handler/route/action/state | 984/984 | exact file/symbol/line context hash와 relation, 행별 고유 semantic digest; 실행 PASS 아님 |
+| 제품 UI route/control/state anchor | 441/441 | UI 필요/간접 또는 UI absence boundary 행별 screen route, product UI action owner, exact selector 또는 비대상 사유; 직접 클릭 PASS 아님 |
 | manual UI exact case | 424/424 | 테스트 영역 `UI` 행별 동일 `manualUiCaseId`; 실행 결과 없이 PASS 아님 |
-| 안정화 verifier assertion | 984/984 | 행별 verifier file/anchor와 `server.sh` direct 또는 transitive dispatch command 존재 |
+| 안정화 semantic verifier assertion | 984/984 | `validateSemanticItem`이 handler/route/action/state locator와 reviewer digest를 검증하며 ID-only assertion을 거부 |
 | 30분 mapping | 49/49 | `verify-v390-server-longrun --duration-minutes 30`, 사용자 명시 승인 전 미실행 |
 | 120분 mapping | 7/7 | `verify-v390-server-longrun --duration-minutes 120`, 사용자 명시 승인 전 조건부 미실행 |
-| negative fixture | 11/11 | missing/duplicate/wrong-section ID, source/UI/verifier file·anchor, screen route, dispatch, legacy longrun, inventory hash drift가 FAIL되는지 확인 |
+| negative fixture | 21/21 | 기존 11개와 wrong handler, unrelated same-file anchor, route/action/state drift, generic-alone, ID-only assertion, unapproved review를 포함한 semantic contract 10개 |
 
 정적 대조는 `./server.sh verify-feature-implementation-evidence`와
 `./server.sh verify-feature-inventory-coverage`로 수행합니다. `coverageStatus=covered`는

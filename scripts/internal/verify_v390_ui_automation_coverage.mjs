@@ -62,7 +62,7 @@ const inventoryRows = parseFeatureInventory(inventoryPath);
 assertUnique(inventoryRows.map(item => item.id), "inventory feature IDs");
 
 const implementation = readJson(implementationPath);
-assert(implementation.schema === "media-server.feature-implementation-evidence.v1",
+assert(implementation.schema === "media-server.feature-implementation-evidence.v2",
   "unexpected implementation evidence schema");
 assert(Array.isArray(implementation.items), "implementation evidence items missing");
 assertUnique(implementation.items.map(item => item.id), "implementation feature IDs");
@@ -260,7 +260,7 @@ function validateInventoryImplementationPair(inventory, implementationItem) {
     assert(typeof implementationItem.manualUiCaseId === "string" && implementationItem.manualUiCaseId.length > 0,
       `${inventory.id} manualUiCaseId missing`);
     assert(implementationItem.uiEvidence, `${inventory.id} UI evidence missing`);
-    validateRouteActionSourceMapping(inventory.id, implementationItem.uiEvidence);
+    validateRouteActionSourceMapping(inventory.id, implementationItem);
   } else {
     assert(implementationItem.manualUiCaseId === null,
       `${inventory.id} without UI test area must not declare manualUiCaseId`);
@@ -271,7 +271,13 @@ function validateInventoryImplementationPair(inventory, implementationItem) {
     `${inventory.id} stability verifier assertion anchor missing`);
 }
 
-function validateRouteActionSourceMapping(featureId, uiEvidence) {
+function validateRouteActionSourceMapping(featureId, implementationItem) {
+  const uiEvidence = implementationItem.uiEvidence;
+  const semantic = implementationItem.semanticEvidence;
+  assert(implementationItem.status === "semantic-reviewed" && implementationItem.review?.decision === "approved",
+    `${featureId} semantic review approval missing`);
+  assert(semantic?.handler && semantic?.actionHandler && semantic?.stateOracle?.locator,
+    `${featureId} semantic handler/action/state mapping missing`);
   assert(typeof uiEvidence.screenRoute === "string" && uiEvidence.screenRoute.startsWith("/"),
     `${featureId} route/action source mapping invalid: screenRoute missing`);
   assert(typeof uiEvidence.anchor === "string" && uiEvidence.anchor.length > 0,
@@ -309,18 +315,23 @@ function validateAutomationSummary(value) {
 }
 
 function buildMatrixRow({ inventory, implementation, manifestCase, actualByCaseId, exclusion, policy: currentPolicy }) {
+  const semantic = implementation.semanticEvidence;
+  const screenRoute = semantic.controlSelector?.screenRoute ||
+    (semantic.route?.applicability === "http-or-product-route" ? semantic.route.value : implementation.uiEvidence.screenRoute);
+  const controlAction = semantic.controlSelector?.value || semantic.actionHandler.symbol;
   const base = {
     testId: implementation.manualUiCaseId,
     featureId: implementation.id,
     feature: inventory.feature,
-    route: implementation.uiEvidence.screenRoute,
-    controlAction: implementation.uiEvidence.anchor,
-    controlActionAnchor: implementation.uiEvidence.anchor,
+    route: screenRoute,
+    controlAction,
+    controlActionAnchor: semantic.actionHandler.anchor,
     expectedResult: inventory.expectedEvidence,
     stabilityVerifier: {
-      command: implementation.verifierEvidence.command,
-      assertionAnchor: implementation.verifierEvidence.anchor,
-      file: implementation.verifierEvidence.file,
+      command: semantic.verifierAssertion.command,
+      assertionAnchor: semantic.verifierAssertion.assertionAnchor,
+      file: semantic.verifierAssertion.file,
+      assertedSemanticDigest: semantic.verifierAssertion.assertedSemanticDigest,
     },
     automationCaseId: null,
     automationDisposition: exclusion ? "excluded-positive-ui" : "unsupported-manual",
@@ -340,8 +351,8 @@ function buildMatrixRow({ inventory, implementation, manifestCase, actualByCaseI
     `${manifestCase.caseId} featureId mismatch: manifest=${manifestCase.featureId} actual=${actualCase.featureId}`);
   assert(manifestCase.featureId === implementation.id,
     `${manifestCase.caseId} featureId mismatch: manifest=${manifestCase.featureId} implementation=${implementation.id}`);
-  assert(manifestCase.route === implementation.uiEvidence.screenRoute,
-    `${manifestCase.caseId} route mismatch: manifest=${manifestCase.route} implementation=${implementation.uiEvidence.screenRoute}`);
+  assert(manifestCase.route === screenRoute,
+    `${manifestCase.caseId} route mismatch: manifest=${manifestCase.route} implementation=${screenRoute}`);
   assert(actualCase.route === manifestCase.route,
     `${manifestCase.caseId} route mismatch: actual=${actualCase.route} manifest=${manifestCase.route}`);
   assert(actualCase.controlAction === manifestCase.controlAction,

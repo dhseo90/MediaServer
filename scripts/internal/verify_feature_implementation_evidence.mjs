@@ -15,6 +15,10 @@ import {
   validateImplementationManifest,
   writeImplementationManifest,
 } from "./feature_implementation_manifest_lib.mjs";
+import {
+  approveSemanticReview,
+  summarizeSemanticClosure,
+} from "./feature_semantic_evidence_lib.mjs";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -29,6 +33,10 @@ Usage:
 
 Options:
   --refresh-manifest  Explicitly rebuild the reviewed 984-row manifest.
+  --approve-semantic-review  Bind the refreshed candidate to an explicit reviewer decision.
+  --reviewer VALUE            Reviewer identity required with approval.
+  --reviewed-on YYYY-MM-DD    Review date required with approval.
+  --approval-reason VALUE     Review rationale required with approval.
   --json-report PATH  Write the validation report.
   -h, --help          Show help.
 
@@ -36,7 +44,16 @@ The default command is read-only. --refresh-manifest is an explicit source updat
 must be reviewed before commit. This verifier does not execute product tests.`);
 }
 
-assertKnownOptions(rawArgs, ["refresh-manifest", "json-report", "h", "help"]);
+assertKnownOptions(rawArgs, [
+  "refresh-manifest",
+  "approve-semantic-review",
+  "reviewer",
+  "reviewed-on",
+  "approval-reason",
+  "json-report",
+  "h",
+  "help",
+]);
 const args = parseArgs(rawArgs);
 const inventoryText = fs.readFileSync(
   path.join(rootDir, "docs/project-feature-test-inventory.md"),
@@ -45,9 +62,26 @@ const inventoryText = fs.readFileSync(
 const rows = parseFeatureRows(inventoryText);
 
 if (args.refreshManifest) {
-  const generated = generateImplementationManifest({ rootDir, inventoryText, rows });
+  const reviewApproval = args.approveSemanticReview
+    ? {
+        reviewer: args.reviewer,
+        reviewedOn: args.reviewedOn,
+        reason: args.approvalReason,
+      }
+    : null;
+  const generated = generateImplementationManifest({ rootDir, inventoryText, rows, reviewApproval });
   writeImplementationManifest(rootDir, generated);
-  console.log(`[pass] refreshed ${IMPLEMENTATION_MANIFEST_PATH}`);
+  console.log(`[pass] refreshed ${IMPLEMENTATION_MANIFEST_PATH} (${reviewApproval ? "semantic review approved" : "review required"})`);
+} else if (args.approveSemanticReview) {
+  const candidate = loadImplementationManifest(rootDir);
+  candidate.items = approveSemanticReview(candidate.items, {
+    reviewer: args.reviewer,
+    reviewedOn: args.reviewedOn,
+    reason: args.approvalReason,
+  });
+  candidate.semanticClosureSummary = summarizeSemanticClosure({ rows, manifest: candidate });
+  writeImplementationManifest(rootDir, candidate);
+  console.log(`[pass] approved current semantic review candidate in ${IMPLEMENTATION_MANIFEST_PATH}`);
 }
 
 const manifest = loadImplementationManifest(rootDir);
@@ -79,6 +113,8 @@ console.log(`- sourceEvidenceRows: ${result.summary.sourceEvidenceRows}`);
 console.log(`- uiEvidenceRows: ${result.summary.uiEvidenceRows}`);
 console.log(`- verifierEvidenceRows: ${result.summary.verifierEvidenceRows}`);
 console.log(`- manualUiCaseRows: ${result.summary.manualUiCaseRows}`);
+console.log(`- semanticReviewedRows: ${result.summary.semanticReviewedRows}`);
+console.log(`- uniqueSemanticDigests: ${result.summary.uniqueSemanticDigests}`);
 console.log(`- validationErrors: ${result.summary.errors}`);
 console.log(`- negativeFixtures: ${negativeChecks.filter(check => check.pass).length}/${negativeChecks.length}`);
 console.log("- executionEvidenceStatus: not-execution-evidence");
@@ -167,12 +203,29 @@ function runNegativeFixtures({ rootDir, inventoryText, rows, manifest }) {
 }
 
 function parseArgs(argsList) {
-  const parsed = { refreshManifest: false, jsonReport: "" };
+  const parsed = {
+    refreshManifest: false,
+    approveSemanticReview: false,
+    reviewer: "",
+    reviewedOn: "",
+    approvalReason: "",
+    jsonReport: "",
+  };
   for (let index = 0; index < argsList.length; index += 1) {
     const token = argsList[index];
     if (token === "--refresh-manifest") parsed.refreshManifest = true;
+    else if (token === "--approve-semantic-review") parsed.approveSemanticReview = true;
+    else if (token.startsWith("--reviewer=")) parsed.reviewer = token.slice("--reviewer=".length);
+    else if (token === "--reviewer") parsed.reviewer = argsList[++index];
+    else if (token.startsWith("--reviewed-on=")) parsed.reviewedOn = token.slice("--reviewed-on=".length);
+    else if (token === "--reviewed-on") parsed.reviewedOn = argsList[++index];
+    else if (token.startsWith("--approval-reason=")) parsed.approvalReason = token.slice("--approval-reason=".length);
+    else if (token === "--approval-reason") parsed.approvalReason = argsList[++index];
     else if (token.startsWith("--json-report=")) parsed.jsonReport = token.slice("--json-report=".length);
     else if (token === "--json-report") parsed.jsonReport = argsList[++index];
+  }
+  if (parsed.approveSemanticReview && (!parsed.reviewer || !parsed.reviewedOn || !parsed.approvalReason)) {
+    throw new Error("semantic approval requires --reviewer, --reviewed-on, and --approval-reason");
   }
   return parsed;
 }

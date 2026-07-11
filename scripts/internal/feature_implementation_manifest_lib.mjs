@@ -5,8 +5,17 @@ import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 
+import {
+  SEMANTIC_CLOSURE_SCHEMA,
+  approveSemanticReview,
+  bindSemanticEvidence,
+  buildSemanticEvidence,
+  summarizeSemanticClosure,
+  validateSemanticItem,
+} from "./feature_semantic_evidence_lib.mjs";
+
 export const IMPLEMENTATION_MANIFEST_SCHEMA =
-  "media-server.feature-implementation-evidence.v1";
+  "media-server.feature-implementation-evidence.v2";
 export const EXPECTED_FEATURE_ROWS = 984;
 export const IMPLEMENTATION_MANIFEST_PATH =
   "test/fixtures/project_feature_implementation_evidence.json";
@@ -76,7 +85,7 @@ export function parseFeatureRows(text) {
     });
 }
 
-export function generateImplementationManifest({ rootDir, inventoryText, rows }) {
+export function generateImplementationManifest({ rootDir, inventoryText, rows, reviewApproval = null }) {
   const repository = readRepositoryIndex(rootDir);
   const dispatch = parseServerDispatch(repository.textByFile.get("server.sh") || "");
   const reviewedManifestPath = path.join(rootDir, IMPLEMENTATION_MANIFEST_PATH);
@@ -84,16 +93,21 @@ export function generateImplementationManifest({ rootDir, inventoryText, rows })
     ? JSON.parse(fs.readFileSync(reviewedManifestPath, "utf8"))
     : { items: [] };
   const reviewedById = new Map((reviewedManifest.items || []).map(item => [item.id, item]));
-  const items = rows.map(row => buildItem(row, repository, dispatch, reviewedById.get(row.id)));
-  return {
+  let items = rows.map(row => buildItem(rootDir, row, repository, dispatch, reviewedById.get(row.id)));
+  if (reviewApproval) items = approveSemanticReview(items, reviewApproval);
+  const manifest = {
     schema: IMPLEMENTATION_MANIFEST_SCHEMA,
+    semanticClosureSchema: SEMANTIC_CLOSURE_SCHEMA,
     expectedFeatureRows: EXPECTED_FEATURE_ROWS,
     inventorySha256: sha256(inventoryText),
     generatedFrom: "docs/project-feature-test-inventory.md",
-    generationPolicy: "explicit-refresh-only; verifier never rewrites this manifest",
+    generationPolicy: "explicit-refresh-only; unchanged approved semantic digests are preserved, new or changed rows require explicit reviewer approval",
+    semanticClosurePolicy: "exact handler/route/control/action/state/assertion locators plus reviewer-bound digest",
     executionEvidenceStatus: "not-execution-evidence",
     items,
   };
+  manifest.semanticClosureSummary = summarizeSemanticClosure({ rows, manifest });
+  return manifest;
 }
 
 export function validateImplementationManifest({ rootDir, inventoryText, rows, manifest }) {
@@ -105,6 +119,9 @@ export function validateImplementationManifest({ rootDir, inventoryText, rows, m
 
   if (manifest?.schema !== IMPLEMENTATION_MANIFEST_SCHEMA) {
     errors.push(`schema must be ${IMPLEMENTATION_MANIFEST_SCHEMA}`);
+  }
+  if (manifest?.semanticClosureSchema !== SEMANTIC_CLOSURE_SCHEMA) {
+    errors.push(`semanticClosureSchema must be ${SEMANTIC_CLOSURE_SCHEMA}`);
   }
   if (manifest?.expectedFeatureRows !== EXPECTED_FEATURE_ROWS) {
     errors.push(`expectedFeatureRows must be ${EXPECTED_FEATURE_ROWS}`);
@@ -162,9 +179,7 @@ export function validateImplementationManifest({ rootDir, inventoryText, rows, m
         : actual === expected;
       if (!same) errors.push(`${row.id} ${field} drift`);
     }
-    if (item.status !== "closed-with-evidence") {
-      errors.push(`${row.id} status must be closed-with-evidence`);
-    }
+    errors.push(...validateSemanticItem({ rootDir, row, item }));
     validateEvidence(`${row.id} sourceEvidence`, item.sourceEvidence, {
       errors,
       repository,
@@ -242,6 +257,8 @@ export function validateImplementationManifest({ rootDir, inventoryText, rows, m
       uiEvidenceRows: manifest.items.filter(item => item?.uiEvidence).length,
       verifierEvidenceRows: manifest.items.filter(item => item?.verifierEvidence).length,
       manualUiCaseRows: manifest.items.filter(item => item?.manualUiCaseId).length,
+      semanticReviewedRows: manifest.items.filter(item => item?.status === "semantic-reviewed").length,
+      uniqueSemanticDigests: new Set(manifest.items.map(item => item?.review?.semanticDigest).filter(Boolean)).size,
       errors: errors.length,
     },
   };
@@ -257,9 +274,17 @@ export function writeImplementationManifest(rootDir, manifest) {
   fs.writeFileSync(target, `${JSON.stringify(manifest, null, 2)}\n`);
 }
 
-function buildItem(row, repository, dispatch, reviewedItem = null) {
+function buildItem(rootDir, row, repository, dispatch, reviewedItem = null) {
   const prefix = featurePrefix(row.id);
   const areas = splitAreas(row.area);
+  if (reviewedItem?.status === "semantic-reviewed" &&
+      reviewedItem?.review?.decision === "approved" &&
+      reviewedItem.feature === row.feature &&
+      reviewedItem.uiNeed === row.uiNeed &&
+      reviewedItem.testNeed === row.testNeed &&
+      JSON.stringify(reviewedItem.testAreas) === JSON.stringify(areas)) {
+    return structuredClone(reviewedItem);
+  }
   const requiresUiEvidence = row.uiNeed !== "비대상" || areas.includes("UI");
   const anchors = evidenceAnchors(row);
   const sourceCandidates = repository.entries.filter(([file]) => {
@@ -320,7 +345,7 @@ function buildItem(row, repository, dispatch, reviewedItem = null) {
     );
   }
 
-  return {
+  const item = {
     id: row.id,
     section: sectionByPrefix[prefix],
     surfaceKind: surfaceKindByPrefix[prefix],
@@ -328,7 +353,14 @@ function buildItem(row, repository, dispatch, reviewedItem = null) {
     uiNeed: row.uiNeed,
     testNeed: row.testNeed,
     testAreas: areas,
-    status: "closed-with-evidence",
+    status: "review-required",
+    review: {
+      decision: "pending",
+      reviewer: null,
+      reviewedOn: null,
+      reason: "explicit semantic source review required",
+      semanticDigest: null,
+    },
     sourceEvidence,
     uiEvidence,
     verifierEvidence,
@@ -347,6 +379,10 @@ function buildItem(row, repository, dispatch, reviewedItem = null) {
         : null,
     },
   };
+  return bindSemanticEvidence(
+    item,
+    buildSemanticEvidence({ rootDir, row, legacyItem: item }),
+  );
 }
 
 function bestEvidence(row, anchors, candidates, kind, dispatch = null) {
@@ -561,6 +597,8 @@ function emptySummary(rows) {
     uiEvidenceRows: 0,
     verifierEvidenceRows: 0,
     manualUiCaseRows: 0,
+    semanticReviewedRows: 0,
+    uniqueSemanticDigests: 0,
     errors: 1,
   };
 }

@@ -81,7 +81,7 @@ for (const snippet of [
     "verify-feature-inventory-coverage",
     "verify-feature-implementation-evidence",
     "media-server.feature-inventory-coverage.v1",
-    "media-server.feature-implementation-evidence.v1",
+    "media-server.feature-implementation-evidence.v2",
     "missing coverage target",
     "coverageStatus: covered/missing",
     "executionEvidenceStatus: not-execution-evidence",
@@ -186,30 +186,38 @@ function buildCoverageReport(featureRows, manifest) {
 
 function coverageTargets(row, item) {
   if (!item) return [];
-  if (!item.sourceEvidence || !item.verifierEvidence ||
+  const semantic = item.semanticEvidence;
+  if (item.status !== "semantic-reviewed" || item.review?.decision !== "approved" ||
+      !semantic?.handler || !semantic?.actionHandler || !semantic?.stateOracle?.locator ||
+      !semantic?.verifierAssertion ||
       (hasArea(row.area, "UI") && (!item.uiEvidence || !item.manualUiCaseId))) {
     return [];
   }
   const targets = [];
   targets.push({
     kind: "implementation",
-    file: item.sourceEvidence.file,
-    anchor: item.sourceEvidence.anchor,
+    file: semantic.handler.file,
+    anchor: semantic.handler.anchor,
+    symbol: semantic.handler.symbol,
+    semanticDigest: item.review.semanticDigest,
   });
   if (hasArea(row.area, "안정화")) {
     targets.push({
       kind: "stability",
-      command: `./server.sh ${item.verifierEvidence.command}`,
-      file: item.verifierEvidence.file,
-      anchor: item.verifierEvidence.anchor,
+      command: `./server.sh ${semantic.verifierAssertion.command}`,
+      file: semantic.verifierAssertion.file,
+      anchor: semantic.verifierAssertion.assertionAnchor,
+      assertedSemanticDigest: semantic.verifierAssertion.assertedSemanticDigest,
     });
   }
   if (hasArea(row.area, "UI")) {
     targets.push({
       kind: "manual-ui-fulltest",
-      screenRoute: item.uiEvidence.screenRoute,
-      file: item.uiEvidence.file,
-      anchor: item.uiEvidence.anchor,
+      screenRoute: semantic.controlSelector?.screenRoute || semantic.route?.value || item.uiEvidence.screenRoute,
+      file: semantic.actionHandler.file,
+      anchor: semantic.controlSelector?.value || semantic.actionHandler.anchor,
+      actionSymbol: semantic.actionHandler.symbol,
+      stateSymbol: semantic.stateOracle.locator.symbol,
       manualUiCaseId: item.manualUiCaseId,
     });
   }
