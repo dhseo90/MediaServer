@@ -4,7 +4,9 @@
 #include "ingress/webrtc_http_server.h"
 
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include <netinet/in.h>
+#include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/time.h>
@@ -942,6 +944,165 @@ std::vector<std::string> ExtractJsonObjectArray(const std::string& body, const s
     return objects;
 }
 
+struct AnalysisRegistryWriteResult {
+    bool ok{false};
+    std::string stage;
+    std::string detail;
+};
+
+enum class AnalysisRegistryMutationFailure {
+    None,
+    InvalidRequest,
+    NotFound,
+    Persistence,
+};
+
+struct AnalysisRegistryMutationResult {
+    bool ok{false};
+    AnalysisRegistryMutationFailure failure{AnalysisRegistryMutationFailure::None};
+    std::string response_body;
+    std::string error_message;
+    std::string persistence_stage;
+};
+
+AnalysisRegistryMutationResult AnalysisRegistrySuccess(std::string response_body) {
+    return {true,
+            AnalysisRegistryMutationFailure::None,
+            std::move(response_body),
+            std::string(),
+            std::string()};
+}
+
+AnalysisRegistryMutationResult AnalysisRegistryFailure(AnalysisRegistryMutationFailure failure,
+                                                        std::string error_message,
+                                                        std::string persistence_stage = {}) {
+    return {false,
+            failure,
+            std::string(),
+            std::move(error_message),
+            std::move(persistence_stage)};
+}
+
+std::string AnalysisRegistryFaultStage() {
+    const char* value = std::getenv("MEDIA_SERVER_ANALYSIS_REGISTRY_FAULT_STAGE");
+    return value == nullptr ? std::string() : Trim(value);
+}
+
+// V390-REVIEW2-21의 SAFE-217/OPS-184는 atomic 저장 성공 전 메모리 publish를 금지한다.
+AnalysisRegistryWriteResult WriteAnalysisRegistryFileAtomically(
+    const std::filesystem::path& storage_path,
+    const std::string& body) {
+    auto failure = [](std::string stage, std::string detail) {
+        return AnalysisRegistryWriteResult{false, std::move(stage), std::move(detail)};
+    };
+    if (storage_path.empty()) {
+        return failure("path", "analysis registry path is empty");
+    }
+    const std::string fault_stage = AnalysisRegistryFaultStage();
+    const std::filesystem::path parent = storage_path.parent_path().empty()
+                                             ? std::filesystem::path(".")
+                                             : storage_path.parent_path();
+    std::error_code directory_error;
+    std::filesystem::create_directories(parent, directory_error);
+    if (directory_error) {
+        return failure("parent", "failed to prepare analysis registry parent: " + directory_error.message());
+    }
+
+    const std::string base = storage_path.string() + ".tmp." +
+                             std::to_string(static_cast<long long>(::getpid())) + ".";
+    std::filesystem::path temp_path;
+    int fd = -1;
+    if (fault_stage == "open") {
+        return failure("open", "injected analysis registry open failure");
+    }
+    int open_flags = O_WRONLY | O_CREAT | O_EXCL;
+#if defined(O_CLOEXEC)
+    open_flags |= O_CLOEXEC;
+#endif
+#if defined(O_NOFOLLOW)
+    open_flags |= O_NOFOLLOW;
+#endif
+    for (int attempt = 0; attempt < 64; ++attempt) {
+        temp_path = base + std::to_string(attempt);
+        fd = ::open(temp_path.c_str(), open_flags, 0644);
+        if (fd >= 0) {
+            break;
+        }
+        if (errno != EEXIST) {
+            return failure("open", std::string("failed to open analysis registry temp file: ") + std::strerror(errno));
+        }
+    }
+    if (fd < 0) {
+        return failure("open", "failed to allocate unique analysis registry temp file");
+    }
+
+    auto cleanup_temp = [&]() {
+        if (fd >= 0) {
+            (void)::close(fd);
+            fd = -1;
+        }
+        (void)::unlink(temp_path.c_str());
+    };
+    if (fault_stage == "write") {
+        if (!body.empty()) {
+            (void)::write(fd, body.data(), std::min<std::size_t>(body.size(), 7));
+        }
+        cleanup_temp();
+        return failure("write", "injected analysis registry short write");
+    }
+    const char* cursor = body.data();
+    std::size_t remaining = body.size();
+    while (remaining > 0) {
+        const ssize_t written = ::write(fd, cursor, remaining);
+        if (written < 0) {
+            if (errno == EINTR) {
+                continue;
+            }
+            const std::string detail = std::string("failed to write analysis registry temp file: ") +
+                                       std::strerror(errno);
+            cleanup_temp();
+            return failure("write", detail);
+        }
+        if (written == 0) {
+            cleanup_temp();
+            return failure("write", "analysis registry temp file short write");
+        }
+        cursor += written;
+        remaining -= static_cast<std::size_t>(written);
+    }
+    if (fault_stage == "flush") {
+        cleanup_temp();
+        return failure("flush", "injected analysis registry flush failure");
+    }
+    while (::fsync(fd) != 0) {
+        if (errno == EINTR) {
+            continue;
+        }
+        const std::string detail = std::string("failed to flush analysis registry temp file: ") +
+                                   std::strerror(errno);
+        cleanup_temp();
+        return failure("flush", detail);
+    }
+    if (::close(fd) != 0) {
+        fd = -1;
+        (void)::unlink(temp_path.c_str());
+        return failure("flush", std::string("failed to close analysis registry temp file: ") +
+                                    std::strerror(errno));
+    }
+    fd = -1;
+    if (fault_stage == "rename") {
+        (void)::unlink(temp_path.c_str());
+        return failure("rename", "injected analysis registry rename failure");
+    }
+    if (::rename(temp_path.c_str(), storage_path.c_str()) != 0) {
+        const std::string detail = std::string("failed to replace analysis registry file: ") +
+                                   std::strerror(errno);
+        (void)::unlink(temp_path.c_str());
+        return failure("rename", detail);
+    }
+    return {true, "none", std::string()};
+}
+
 class AnalysisDocumentRegistry {
 public:
     std::string ProfilesJson() {
@@ -1091,69 +1252,78 @@ public:
         return out;
     }
 
-    bool CreateProfile(const std::string& body, std::string* response, std::string* error_message) {
-        return CreateDocument(true, body, response, error_message);
+    AnalysisRegistryMutationResult CreateProfile(const std::string& body) {
+        return CreateDocument(true, body);
     }
 
-    bool CreateRule(const std::string& body, std::string* response, std::string* error_message) {
-        return CreateDocument(false, body, response, error_message);
+    AnalysisRegistryMutationResult CreateRule(const std::string& body) {
+        return CreateDocument(false, body);
     }
 
-    bool CreateVaRule(const std::string& body, std::string* response, std::string* error_message) {
+    AnalysisRegistryMutationResult CreateVaRule(const std::string& body) {
         std::lock_guard lock(mu_);
         EnsureLoadedLocked();
-        const auto prepared = PrepareVaRuleDocumentLocked("", body, error_message);
+        std::string error_message;
+        const auto prepared = PrepareVaRuleDocumentLocked("", body, &error_message);
         if (!prepared.has_value()) {
-            return false;
+            return AnalysisRegistryFailure(AnalysisRegistryMutationFailure::InvalidRequest,
+                                           error_message);
         }
         if (FindDocumentLocked(va_rules_, prepared->id).has_value()) {
-            SetRegistryError(error_message, "vaRule id already exists");
-            return false;
+            return AnalysisRegistryFailure(AnalysisRegistryMutationFailure::InvalidRequest,
+                                           "vaRule id already exists");
         }
-        va_rules_.push_back(*prepared);
-        SaveLocked();
-        if (response != nullptr) {
-            *response = DocumentResponseJson("vaRule", *prepared);
-        }
-        return true;
+        auto candidate = va_rules_;
+        candidate.push_back(*prepared);
+        return PersistAndPublishLocked(profiles_,
+                                       rules_,
+                                       std::move(candidate),
+                                       vlm_profiles_,
+                                       DocumentResponseJson("vaRule", *prepared));
     }
 
-    bool CreateVlmProfile(const std::string& body, std::string* response, std::string* error_message) {
+    AnalysisRegistryMutationResult CreateVlmProfile(const std::string& body) {
         std::lock_guard lock(mu_);
         EnsureLoadedLocked();
-        const auto prepared = PrepareVlmProfileDocumentLocked("", body, error_message);
+        std::string error_message;
+        const auto prepared = PrepareVlmProfileDocumentLocked("", body, &error_message);
         if (!prepared.has_value()) {
-            return false;
+            return AnalysisRegistryFailure(AnalysisRegistryMutationFailure::InvalidRequest,
+                                           error_message);
         }
         if (FindDocumentLocked(vlm_profiles_, prepared->id).has_value()) {
-            SetRegistryError(error_message, "VLM profile id already exists");
-            return false;
+            return AnalysisRegistryFailure(AnalysisRegistryMutationFailure::InvalidRequest,
+                                           "VLM profile id already exists");
         }
-        vlm_profiles_.push_back(*prepared);
-        SaveLocked();
-        if (response != nullptr) {
-            *response = DocumentResponseJson("vlmProfile", *prepared);
-        }
-        return true;
+        auto candidate = vlm_profiles_;
+        candidate.push_back(*prepared);
+        return PersistAndPublishLocked(profiles_,
+                                       rules_,
+                                       va_rules_,
+                                       std::move(candidate),
+                                       DocumentResponseJson("vlmProfile", *prepared));
     }
 
-    bool UpsertProfile(const std::string& id, const std::string& body, std::string* response, std::string* error_message) {
-        return UpsertDocument(true, id, body, response, error_message);
+    AnalysisRegistryMutationResult UpsertProfile(const std::string& id, const std::string& body) {
+        return UpsertDocument(true, id, body);
     }
 
-    bool UpsertRule(const std::string& id, const std::string& body, std::string* response, std::string* error_message) {
-        return UpsertDocument(false, id, body, response, error_message);
+    AnalysisRegistryMutationResult UpsertRule(const std::string& id, const std::string& body) {
+        return UpsertDocument(false, id, body);
     }
 
-    bool UpsertVaRule(const std::string& id, const std::string& body, std::string* response, std::string* error_message) {
+    AnalysisRegistryMutationResult UpsertVaRule(const std::string& id, const std::string& body) {
         std::lock_guard lock(mu_);
         EnsureLoadedLocked();
-        const auto prepared = PrepareVaRuleDocumentLocked(id, body, error_message);
+        std::string error_message;
+        const auto prepared = PrepareVaRuleDocumentLocked(id, body, &error_message);
         if (!prepared.has_value()) {
-            return false;
+            return AnalysisRegistryFailure(AnalysisRegistryMutationFailure::InvalidRequest,
+                                           error_message);
         }
+        auto candidate = va_rules_;
         bool updated = false;
-        for (auto& item : va_rules_) {
+        for (auto& item : candidate) {
             if (item.id == prepared->id) {
                 item = *prepared;
                 updated = true;
@@ -1161,27 +1331,29 @@ public:
             }
         }
         if (!updated) {
-            va_rules_.push_back(*prepared);
+            candidate.push_back(*prepared);
         }
-        SaveLocked();
-        if (response != nullptr) {
-            *response = DocumentResponseJson("vaRule", *prepared, updated ? "updated" : "created");
-        }
-        return true;
+        return PersistAndPublishLocked(
+            profiles_,
+            rules_,
+            std::move(candidate),
+            vlm_profiles_,
+            DocumentResponseJson("vaRule", *prepared, updated ? "updated" : "created"));
     }
 
-    bool UpsertVlmProfile(const std::string& id,
-                          const std::string& body,
-                          std::string* response,
-                          std::string* error_message) {
+    AnalysisRegistryMutationResult UpsertVlmProfile(const std::string& id,
+                                                    const std::string& body) {
         std::lock_guard lock(mu_);
         EnsureLoadedLocked();
-        const auto prepared = PrepareVlmProfileDocumentLocked(id, body, error_message);
+        std::string error_message;
+        const auto prepared = PrepareVlmProfileDocumentLocked(id, body, &error_message);
         if (!prepared.has_value()) {
-            return false;
+            return AnalysisRegistryFailure(AnalysisRegistryMutationFailure::InvalidRequest,
+                                           error_message);
         }
+        auto candidate = vlm_profiles_;
         bool updated = false;
-        for (auto& item : vlm_profiles_) {
+        for (auto& item : candidate) {
             if (item.id == prepared->id) {
                 item = *prepared;
                 updated = true;
@@ -1189,56 +1361,78 @@ public:
             }
         }
         if (!updated) {
-            vlm_profiles_.push_back(*prepared);
+            candidate.push_back(*prepared);
         }
-        SaveLocked();
-        if (response != nullptr) {
-            *response = DocumentResponseJson("vlmProfile", *prepared, updated ? "updated" : "created");
-        }
-        return true;
+        return PersistAndPublishLocked(
+            profiles_,
+            rules_,
+            va_rules_,
+            std::move(candidate),
+            DocumentResponseJson("vlmProfile", *prepared, updated ? "updated" : "created"));
     }
 
-    bool DeleteProfile(const std::string& id) {
+    AnalysisRegistryMutationResult DeleteProfile(const std::string& id) {
         std::lock_guard lock(mu_);
         EnsureLoadedLocked();
         if (IsBuiltInAnalysisProfileId(id)) {
-            return false;
+            return AnalysisRegistryFailure(AnalysisRegistryMutationFailure::NotFound,
+                                           "analysis profile not found or built-in");
         }
-        const bool removed = RemoveDocumentLocked(profiles_, id);
-        if (removed) {
-            SaveLocked();
+        auto candidate = profiles_;
+        if (!RemoveDocumentLocked(candidate, id)) {
+            return AnalysisRegistryFailure(AnalysisRegistryMutationFailure::NotFound,
+                                           "analysis profile not found or built-in");
         }
-        return removed;
+        return PersistAndPublishLocked(std::move(candidate),
+                                       rules_,
+                                       va_rules_,
+                                       vlm_profiles_,
+                                       DeletedResponseJson(id));
     }
 
-    bool DeleteRule(const std::string& id) {
+    AnalysisRegistryMutationResult DeleteRule(const std::string& id) {
         std::lock_guard lock(mu_);
         EnsureLoadedLocked();
-        const bool removed = RemoveDocumentLocked(rules_, id);
-        if (removed) {
-            SaveLocked();
+        auto candidate = rules_;
+        if (!RemoveDocumentLocked(candidate, id)) {
+            return AnalysisRegistryFailure(AnalysisRegistryMutationFailure::NotFound,
+                                           "analysis rule not found");
         }
-        return removed;
+        return PersistAndPublishLocked(profiles_,
+                                       std::move(candidate),
+                                       va_rules_,
+                                       vlm_profiles_,
+                                       DeletedResponseJson(id));
     }
 
-    bool DeleteVaRule(const std::string& id) {
+    AnalysisRegistryMutationResult DeleteVaRule(const std::string& id) {
         std::lock_guard lock(mu_);
         EnsureLoadedLocked();
-        const bool removed = RemoveDocumentLocked(va_rules_, id);
-        if (removed) {
-            SaveLocked();
+        auto candidate = va_rules_;
+        if (!RemoveDocumentLocked(candidate, id)) {
+            return AnalysisRegistryFailure(AnalysisRegistryMutationFailure::NotFound,
+                                           "vaRule not found");
         }
-        return removed;
+        return PersistAndPublishLocked(profiles_,
+                                       rules_,
+                                       std::move(candidate),
+                                       vlm_profiles_,
+                                       DeletedResponseJson(id));
     }
 
-    bool DeleteVlmProfile(const std::string& id) {
+    AnalysisRegistryMutationResult DeleteVlmProfile(const std::string& id) {
         std::lock_guard lock(mu_);
         EnsureLoadedLocked();
-        const bool removed = RemoveDocumentLocked(vlm_profiles_, id);
-        if (removed) {
-            SaveLocked();
+        auto candidate = vlm_profiles_;
+        if (!RemoveDocumentLocked(candidate, id)) {
+            return AnalysisRegistryFailure(AnalysisRegistryMutationFailure::NotFound,
+                                           "VLM profile not found");
         }
-        return removed;
+        return PersistAndPublishLocked(profiles_,
+                                       rules_,
+                                       va_rules_,
+                                       std::move(candidate),
+                                       DeletedResponseJson(id));
     }
 
 private:
@@ -1307,45 +1501,57 @@ private:
         }
     }
 
-    bool CreateDocument(bool profile, const std::string& body, std::string* response, std::string* error_message) {
+    AnalysisRegistryMutationResult CreateDocument(bool profile, const std::string& body) {
         std::lock_guard lock(mu_);
         EnsureLoadedLocked();
-        const auto prepared = PrepareDocumentLocked(profile, "", body, error_message);
+        std::string error_message;
+        const auto prepared = PrepareDocumentLocked(profile, "", body, &error_message);
         if (!prepared.has_value()) {
-            return false;
+            return AnalysisRegistryFailure(AnalysisRegistryMutationFailure::InvalidRequest,
+                                           error_message);
         }
-        auto& target = profile ? profiles_ : rules_;
+        const auto& target = profile ? profiles_ : rules_;
         if (FindDocumentLocked(target, prepared->id).has_value() ||
             (profile && IsBuiltInAnalysisProfileId(prepared->id))) {
-            SetRegistryError(error_message, "analysis document id already exists");
-            return false;
+            return AnalysisRegistryFailure(AnalysisRegistryMutationFailure::InvalidRequest,
+                                           "analysis document id already exists");
         }
-        target.push_back(*prepared);
-        SaveLocked();
-        if (response != nullptr) {
-            *response = DocumentResponseJson(profile ? "profile" : "rule", *prepared);
+        if (profile) {
+            auto candidate = profiles_;
+            candidate.push_back(*prepared);
+            return PersistAndPublishLocked(std::move(candidate),
+                                           rules_,
+                                           va_rules_,
+                                           vlm_profiles_,
+                                           DocumentResponseJson("profile", *prepared));
         }
-        return true;
+        auto candidate = rules_;
+        candidate.push_back(*prepared);
+        return PersistAndPublishLocked(profiles_,
+                                       std::move(candidate),
+                                       va_rules_,
+                                       vlm_profiles_,
+                                       DocumentResponseJson("rule", *prepared));
     }
 
-    bool UpsertDocument(bool profile,
-                        const std::string& id,
-                        const std::string& body,
-                        std::string* response,
-                        std::string* error_message) {
+    AnalysisRegistryMutationResult UpsertDocument(bool profile,
+                                                  const std::string& id,
+                                                  const std::string& body) {
         std::lock_guard lock(mu_);
         EnsureLoadedLocked();
         if (profile && IsBuiltInAnalysisProfileId(id)) {
-            SetRegistryError(error_message, "built-in profile cannot be modified");
-            return false;
+            return AnalysisRegistryFailure(AnalysisRegistryMutationFailure::InvalidRequest,
+                                           "built-in profile cannot be modified");
         }
-        const auto prepared = PrepareDocumentLocked(profile, id, body, error_message);
+        std::string error_message;
+        const auto prepared = PrepareDocumentLocked(profile, id, body, &error_message);
         if (!prepared.has_value()) {
-            return false;
+            return AnalysisRegistryFailure(AnalysisRegistryMutationFailure::InvalidRequest,
+                                           error_message);
         }
-        auto& target = profile ? profiles_ : rules_;
+        auto candidate = profile ? profiles_ : rules_;
         bool updated = false;
-        for (auto& item : target) {
+        for (auto& item : candidate) {
             if (item.id == prepared->id) {
                 item = *prepared;
                 updated = true;
@@ -1353,13 +1559,22 @@ private:
             }
         }
         if (!updated) {
-            target.push_back(*prepared);
+            candidate.push_back(*prepared);
         }
-        SaveLocked();
-        if (response != nullptr) {
-            *response = DocumentResponseJson(profile ? "profile" : "rule", *prepared, updated ? "updated" : "created");
+        const std::string response_body = DocumentResponseJson(
+            profile ? "profile" : "rule", *prepared, updated ? "updated" : "created");
+        if (profile) {
+            return PersistAndPublishLocked(std::move(candidate),
+                                           rules_,
+                                           va_rules_,
+                                           vlm_profiles_,
+                                           response_body);
         }
-        return true;
+        return PersistAndPublishLocked(profiles_,
+                                       std::move(candidate),
+                                       va_rules_,
+                                       vlm_profiles_,
+                                       response_body);
     }
 
     std::optional<Document> PrepareDocumentLocked(bool profile,
@@ -2032,35 +2247,57 @@ private:
         return "{\"ok\":true,\"status\":\"" + JsonEscape(status) + "\",\"" + key + "\":" + document.body + "}";
     }
 
+    static std::string DeletedResponseJson(const std::string& id) {
+        return "{\"ok\":true,\"deleted\":\"" + JsonEscape(id) + "\"}";
+    }
+
     static void SetRegistryError(std::string* error_message, const std::string& message) {
         if (error_message != nullptr) {
             *error_message = message;
         }
     }
 
-    void SaveLocked() const {
-        if (storage_path_.empty()) {
-            return;
-        }
-        const auto parent = storage_path_.parent_path();
-        std::error_code ec;
-        if (!parent.empty()) {
-            std::filesystem::create_directories(parent, ec);
-        }
-        std::ofstream out(storage_path_, std::ios::trunc);
-        if (!out) {
-            std::cerr << "[analysis-registry] failed to open " << storage_path_ << " for write\n";
-            return;
-        }
+    static std::string SerializeRegistry(const std::vector<Document>& profiles,
+                                         const std::vector<Document>& rules,
+                                         const std::vector<Document>& va_rules,
+                                         const std::vector<Document>& vlm_profiles) {
+        std::ostringstream out;
         out << "{\n  \"profiles\": ";
-        AppendDocumentsArray(out, profiles_);
+        AppendDocumentsArray(out, profiles);
         out << ",\n  \"rules\": ";
-        AppendDocumentsArray(out, rules_);
+        AppendDocumentsArray(out, rules);
         out << ",\n  \"vaRules\": ";
-        AppendDocumentsArray(out, va_rules_);
+        AppendDocumentsArray(out, va_rules);
         out << ",\n  \"vlmProfiles\": ";
-        AppendDocumentsArray(out, vlm_profiles_);
+        AppendDocumentsArray(out, vlm_profiles);
         out << "\n}\n";
+        return out.str();
+    }
+
+    AnalysisRegistryMutationResult PersistAndPublishLocked(
+        std::vector<Document> candidate_profiles,
+        std::vector<Document> candidate_rules,
+        std::vector<Document> candidate_va_rules,
+        std::vector<Document> candidate_vlm_profiles,
+        std::string response_body) {
+        const AnalysisRegistryWriteResult write_result = WriteAnalysisRegistryFileAtomically(
+            storage_path_,
+            SerializeRegistry(candidate_profiles,
+                              candidate_rules,
+                              candidate_va_rules,
+                              candidate_vlm_profiles));
+        if (!write_result.ok) {
+            std::cerr << "[analysis-registry] persistence failure stage=" << write_result.stage
+                      << " detail=" << write_result.detail << "\n";
+            return AnalysisRegistryFailure(AnalysisRegistryMutationFailure::Persistence,
+                                           "analysis registry persistence failed",
+                                           write_result.stage);
+        }
+        profiles_ = std::move(candidate_profiles);
+        rules_ = std::move(candidate_rules);
+        va_rules_ = std::move(candidate_va_rules);
+        vlm_profiles_ = std::move(candidate_vlm_profiles);
+        return AnalysisRegistrySuccess(std::move(response_body));
     }
 
     mutable std::mutex mu_;
@@ -2497,6 +2734,23 @@ HttpResponse JsonResponse(int status, const std::string& status_text, const std:
     response.content_type = "application/json; charset=utf-8";
     response.body = body;
     return response;
+}
+
+HttpResponse AnalysisRegistryMutationErrorResponse(
+    const AnalysisRegistryMutationResult& result,
+    int default_status,
+    const std::string& default_status_text) {
+    if (result.failure == AnalysisRegistryMutationFailure::Persistence) {
+        return JsonResponse(
+            500,
+            "Internal Server Error",
+            "{\"error\":\"analysis registry persistence failed\","
+            "\"code\":\"analysis-registry-persistence-failed\","
+            "\"stage\":\"" + JsonEscape(result.persistence_stage) + "\"}");
+    }
+    return JsonResponse(default_status,
+                        default_status_text,
+                        "{\"error\":\"" + JsonEscape(result.error_message) + "\"}");
 }
 
 HttpResponse RegistryHttpResponse(const RegistryResult& result) {
@@ -38569,14 +38823,13 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     if (const auto auth_response = require_rule_write_principal(); auth_response.has_value()) {
                                         return *auth_response;
                                     }
-                                    std::string response_body;
-                                    std::string error_message;
-                                    if (!AnalysisRegistry().CreateVlmProfile(request.body, &response_body, &error_message)) {
-                                        return JsonResponse(400,
-                                                            "Bad Request",
-                                                            "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                                    const auto result = AnalysisRegistry().CreateVlmProfile(request.body);
+                                    if (!result.ok) {
+                                        return AnalysisRegistryMutationErrorResponse(result,
+                                                                                     400,
+                                                                                     "Bad Request");
                                     }
-                                    return JsonResponse(201, "Created", response_body);
+                                    return JsonResponse(201, "Created", result.response_body);
                                 }
                             }
 
@@ -38607,14 +38860,13 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     if (const auto auth_response = require_rule_write_principal(); auth_response.has_value()) {
                                         return *auth_response;
                                     }
-                                    std::string response_body;
-                                    std::string error_message;
-                                    if (!AnalysisRegistry().UpsertVlmProfile(id, request.body, &response_body, &error_message)) {
-                                        return JsonResponse(400,
-                                                            "Bad Request",
-                                                            "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                                    const auto result = AnalysisRegistry().UpsertVlmProfile(id, request.body);
+                                    if (!result.ok) {
+                                        return AnalysisRegistryMutationErrorResponse(result,
+                                                                                     400,
+                                                                                     "Bad Request");
                                     }
-                                    return JsonResponse(200, "OK", response_body);
+                                    return JsonResponse(200, "OK", result.response_body);
                                 }
                                 if (request.method == "DELETE") {
                                     if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
@@ -38623,12 +38875,13 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     if (const auto auth_response = require_rule_write_principal(); auth_response.has_value()) {
                                         return *auth_response;
                                     }
-                                    if (!AnalysisRegistry().DeleteVlmProfile(id)) {
-                                        return JsonResponse(404, "Not Found",
-                                                            "{\"error\":\"VLM profile not found\"}");
+                                    const auto result = AnalysisRegistry().DeleteVlmProfile(id);
+                                    if (!result.ok) {
+                                        return AnalysisRegistryMutationErrorResponse(result,
+                                                                                     404,
+                                                                                     "Not Found");
                                     }
-                                    return JsonResponse(200, "OK",
-                                                        "{\"ok\":true,\"deleted\":\"" + JsonEscape(id) + "\"}");
+                                    return JsonResponse(200, "OK", result.response_body);
                                 }
                             }
 
@@ -41297,13 +41550,11 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 auth_response.has_value()) {
                                 return *auth_response;
                             }
-                            std::string response_body;
-                            std::string error_message;
-                            if (!AnalysisRegistry().CreateProfile(request.body, &response_body, &error_message)) {
-                                return JsonResponse(400, "Bad Request",
-                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                            const auto result = AnalysisRegistry().CreateProfile(request.body);
+                            if (!result.ok) {
+                                return AnalysisRegistryMutationErrorResponse(result, 400, "Bad Request");
                             }
-                            return JsonResponse(201, "Created", response_body);
+                            return JsonResponse(201, "Created", result.response_body);
                         }
 
                         if (request.method == "GET" && request.path == "/lab/analysis/rules") {
@@ -41315,13 +41566,11 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 auth_response.has_value()) {
                                 return *auth_response;
                             }
-                            std::string response_body;
-                            std::string error_message;
-                            if (!AnalysisRegistry().CreateRule(request.body, &response_body, &error_message)) {
-                                return JsonResponse(400, "Bad Request",
-                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                            const auto result = AnalysisRegistry().CreateRule(request.body);
+                            if (!result.ok) {
+                                return AnalysisRegistryMutationErrorResponse(result, 400, "Bad Request");
                             }
-                            return JsonResponse(201, "Created", response_body);
+                            return JsonResponse(201, "Created", result.response_body);
                         }
 
                         if (request.method == "GET" && request.path == "/lab/analysis/va-rules") {
@@ -41333,13 +41582,11 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 auth_response.has_value()) {
                                 return *auth_response;
                             }
-                            std::string response_body;
-                            std::string error_message;
-                            if (!AnalysisRegistry().CreateVaRule(request.body, &response_body, &error_message)) {
-                                return JsonResponse(400, "Bad Request",
-                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                            const auto result = AnalysisRegistry().CreateVaRule(request.body);
+                            if (!result.ok) {
+                                return AnalysisRegistryMutationErrorResponse(result, 400, "Bad Request");
                             }
-                            return JsonResponse(201, "Created", response_body);
+                            return JsonResponse(201, "Created", result.response_body);
                         }
 
                         const auto analysis_profile_prefix = std::string("/lab/analysis/profiles/");
@@ -41363,25 +41610,22 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     auth_response.has_value()) {
                                     return *auth_response;
                                 }
-                                std::string response_body;
-                                std::string error_message;
-                                if (!AnalysisRegistry().UpsertProfile(id, request.body, &response_body, &error_message)) {
-                                    return JsonResponse(400, "Bad Request",
-                                                        "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                                const auto result = AnalysisRegistry().UpsertProfile(id, request.body);
+                                if (!result.ok) {
+                                    return AnalysisRegistryMutationErrorResponse(result, 400, "Bad Request");
                                 }
-                                return JsonResponse(200, "OK", response_body);
+                                return JsonResponse(200, "OK", result.response_body);
                             }
                             if (request.method == "DELETE") {
                                 if (const auto auth_response = require_rule_write_principal();
                                     auth_response.has_value()) {
                                     return *auth_response;
                                 }
-                                if (!AnalysisRegistry().DeleteProfile(id)) {
-                                    return JsonResponse(404, "Not Found",
-                                                        "{\"error\":\"analysis profile not found or built-in\"}");
+                                const auto result = AnalysisRegistry().DeleteProfile(id);
+                                if (!result.ok) {
+                                    return AnalysisRegistryMutationErrorResponse(result, 404, "Not Found");
                                 }
-                                return JsonResponse(200, "OK",
-                                                    "{\"ok\":true,\"deleted\":\"" + JsonEscape(id) + "\"}");
+                                return JsonResponse(200, "OK", result.response_body);
                             }
                         }
 
@@ -41406,25 +41650,22 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     auth_response.has_value()) {
                                     return *auth_response;
                                 }
-                                std::string response_body;
-                                std::string error_message;
-                                if (!AnalysisRegistry().UpsertRule(id, request.body, &response_body, &error_message)) {
-                                    return JsonResponse(400, "Bad Request",
-                                                        "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                                const auto result = AnalysisRegistry().UpsertRule(id, request.body);
+                                if (!result.ok) {
+                                    return AnalysisRegistryMutationErrorResponse(result, 400, "Bad Request");
                                 }
-                                return JsonResponse(200, "OK", response_body);
+                                return JsonResponse(200, "OK", result.response_body);
                             }
                             if (request.method == "DELETE") {
                                 if (const auto auth_response = require_rule_write_principal();
                                     auth_response.has_value()) {
                                     return *auth_response;
                                 }
-                                if (!AnalysisRegistry().DeleteRule(id)) {
-                                    return JsonResponse(404, "Not Found",
-                                                        "{\"error\":\"analysis rule not found\"}");
+                                const auto result = AnalysisRegistry().DeleteRule(id);
+                                if (!result.ok) {
+                                    return AnalysisRegistryMutationErrorResponse(result, 404, "Not Found");
                                 }
-                                return JsonResponse(200, "OK",
-                                                    "{\"ok\":true,\"deleted\":\"" + JsonEscape(id) + "\"}");
+                                return JsonResponse(200, "OK", result.response_body);
                             }
                         }
 
@@ -41449,25 +41690,22 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     auth_response.has_value()) {
                                     return *auth_response;
                                 }
-                                std::string response_body;
-                                std::string error_message;
-                                if (!AnalysisRegistry().UpsertVaRule(id, request.body, &response_body, &error_message)) {
-                                    return JsonResponse(400, "Bad Request",
-                                                        "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                                const auto result = AnalysisRegistry().UpsertVaRule(id, request.body);
+                                if (!result.ok) {
+                                    return AnalysisRegistryMutationErrorResponse(result, 400, "Bad Request");
                                 }
-                                return JsonResponse(200, "OK", response_body);
+                                return JsonResponse(200, "OK", result.response_body);
                             }
                             if (request.method == "DELETE") {
                                 if (const auto auth_response = require_rule_write_principal();
                                     auth_response.has_value()) {
                                     return *auth_response;
                                 }
-                                if (!AnalysisRegistry().DeleteVaRule(id)) {
-                                    return JsonResponse(404, "Not Found",
-                                                        "{\"error\":\"vaRule not found\"}");
+                                const auto result = AnalysisRegistry().DeleteVaRule(id);
+                                if (!result.ok) {
+                                    return AnalysisRegistryMutationErrorResponse(result, 404, "Not Found");
                                 }
-                                return JsonResponse(200, "OK",
-                                                    "{\"ok\":true,\"deleted\":\"" + JsonEscape(id) + "\"}");
+                                return JsonResponse(200, "OK", result.response_body);
                             }
                         }
 

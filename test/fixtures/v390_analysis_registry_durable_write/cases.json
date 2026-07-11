@@ -1,0 +1,19 @@
+{
+  "schema": "media-server.v390-analysis-registry-durable-write-fixtures.v1",
+  "targetStep": "V390-REVIEW2-21",
+  "failureStages": ["parent", "open", "write", "flush", "rename"],
+  "cases": [
+    { "id": "profile-create-parent", "kind": "profile", "mutation": "create", "faultStage": "parent", "method": "POST", "route": "/lab/analysis/profiles" },
+    { "id": "profile-update-open", "kind": "profile", "mutation": "update", "faultStage": "open", "method": "PUT", "route": "/lab/analysis/profiles/601" },
+    { "id": "profile-delete-write", "kind": "profile", "mutation": "delete", "faultStage": "write", "method": "DELETE", "route": "/lab/analysis/profiles/601" },
+    { "id": "rule-create-flush", "kind": "rule", "mutation": "create", "faultStage": "flush", "method": "POST", "route": "/lab/analysis/rules" },
+    { "id": "rule-update-rename", "kind": "rule", "mutation": "update", "faultStage": "rename", "method": "PUT", "route": "/lab/analysis/rules/701" },
+    { "id": "rule-delete-open", "kind": "rule", "mutation": "delete", "faultStage": "open", "method": "DELETE", "route": "/lab/analysis/rules/701" },
+    { "id": "va-rule-create-write", "kind": "vaRule", "mutation": "create", "faultStage": "write", "method": "POST", "route": "/lab/analysis/va-rules" },
+    { "id": "va-rule-update-flush", "kind": "vaRule", "mutation": "update", "faultStage": "flush", "method": "PUT", "route": "/lab/analysis/va-rules/801" },
+    { "id": "va-rule-delete-rename", "kind": "vaRule", "mutation": "delete", "faultStage": "rename", "method": "DELETE", "route": "/lab/analysis/va-rules/801" },
+    { "id": "vlm-profile-create-open", "kind": "vlmProfile", "mutation": "create", "faultStage": "open", "method": "POST", "route": "/ops/api/vlm/profiles" },
+    { "id": "vlm-profile-update-write", "kind": "vlmProfile", "mutation": "update", "faultStage": "write", "method": "PUT", "route": "/ops/api/vlm/profiles/vlm-durable-base" },
+    { "id": "vlm-profile-delete-flush", "kind": "vlmProfile", "mutation": "delete", "faultStage": "flush", "method": "DELETE", "route": "/ops/api/vlm/profiles/vlm-durable-base" }
+  ]
+}

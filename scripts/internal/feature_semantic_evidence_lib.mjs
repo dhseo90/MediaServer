@@ -324,7 +324,7 @@ export function runSemanticClosureContract({ rootDir, rows, manifest }) {
   const cases = [];
   const summary = summarizeSemanticClosure({ rows, manifest });
   cases.push(resultCase(
-    "all-984-reviewed-semantic-closures",
+    "all-986-reviewed-semantic-closures",
     summary.semanticReviewedRows === rows.length && summary.uniqueSemanticDigests === rows.length,
     `reviewed=${summary.semanticReviewedRows} unique=${summary.uniqueSemanticDigests}`,
   ));
@@ -856,8 +856,8 @@ function ownerScore(prefix, file) {
     CLIENT: [/product_ui_client/, /webrtc_http_server/, /session_manager/],
     MEDIA: [/rtsp/, /webrtc/, /session_manager/, /stream_registry/, /source_factory/],
     LAB: [/analysis/, /vlm/, /webrtc_http_server/],
-    SAFE: [/verify_/, /http_auth/, /webrtc_http_server/],
-    OPS: [/verify_/, /release/, /readiness/, /evidence/],
+    SAFE: [/webrtc_http_server/, /http_auth/, /verify_/],
+    OPS: [/webrtc_http_server/, /verify_/, /release/, /readiness/, /evidence/],
   };
   const index = (rules[prefix] || []).findIndex(pattern => pattern.test(file));
   return index < 0 ? 0 : 520 - index * 55;

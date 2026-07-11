@@ -412,6 +412,7 @@ Companion local gate:
 ./server.sh verify-v390-structure-stabilization-handoff
 ./server.sh verify-v390-structure-stabilization-readiness
 ./server.sh verify-v390-external-field-smoke-no-device-closure
+./server.sh verify-v390-analysis-registry-durable-write
 ./server.sh verify-release-metadata
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets

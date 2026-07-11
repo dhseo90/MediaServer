@@ -1,4 +1,4 @@
-// 파일 용도: project feature inventory 984개 행의 구현/UI/verifier evidence manifest를 생성하고 검증한다.
+// 파일 용도: project feature inventory 986개 행의 구현/UI/verifier evidence manifest를 생성하고 검증한다.
 
 import crypto from "node:crypto";
 import fs from "node:fs";
@@ -16,7 +16,7 @@ import {
 
 export const IMPLEMENTATION_MANIFEST_SCHEMA =
   "media-server.feature-implementation-evidence.v2";
-export const EXPECTED_FEATURE_ROWS = 984;
+export const EXPECTED_FEATURE_ROWS = 986;
 export const IMPLEMENTATION_MANIFEST_PATH =
   "test/fixtures/project_feature_implementation_evidence.json";
 
@@ -282,7 +282,8 @@ function buildItem(rootDir, row, repository, dispatch, reviewedItem = null) {
       reviewedItem.feature === row.feature &&
       reviewedItem.uiNeed === row.uiNeed &&
       reviewedItem.testNeed === row.testNeed &&
-      JSON.stringify(reviewedItem.testAreas) === JSON.stringify(areas)) {
+      JSON.stringify(reviewedItem.testAreas) === JSON.stringify(areas) &&
+      validateSemanticItem({ rootDir, row, item: reviewedItem }).length === 0) {
     return structuredClone(reviewedItem);
   }
   const requiresUiEvidence = row.uiNeed !== "비대상" || areas.includes("UI");
@@ -388,7 +389,12 @@ function buildItem(rootDir, row, repository, dispatch, reviewedItem = null) {
 function bestEvidence(row, anchors, candidates, kind, dispatch = null) {
   const direct = candidates
     .filter(([, text]) => text.includes(row.id))
-    .map(([file]) => ({ file, anchor: row.id, anchorKind: "feature-id", score: 10000 }));
+    .map(([file]) => ({
+      file,
+      anchor: row.id,
+      anchorKind: "feature-id",
+      score: 10000 + ownerScore(featurePrefix(row.id), file, kind),
+    }));
   const matches = [...direct];
   for (const anchor of anchors) {
     for (const [file, text] of candidates) {
@@ -460,8 +466,8 @@ function ownerScore(prefix, file, kind) {
     CLIENT: [/product_ui_client/, /webrtc_http_server/, /session_manager/],
     MEDIA: [/session_manager/, /source_factory/, /stream_registry/, /webrtc/, /rtsp/],
     LAB: [/analysis/, /vlm/, /webrtc_http_server/],
-    SAFE: [/verify_/, /webrtc_http_server/, /http_auth/],
-    OPS: [/verify_/, /release/, /server\.sh/],
+    SAFE: [/webrtc_http_server/, /http_auth/, /verify_/],
+    OPS: [/webrtc_http_server/, /verify_/, /release/, /server\.sh/],
   };
   const index = (rules[prefix] || []).findIndex(pattern => pattern.test(file));
   return index < 0 ? 0 : 400 - index * 40;

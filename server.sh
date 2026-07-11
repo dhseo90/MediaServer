@@ -440,6 +440,8 @@ Usage:
                  v3.9.0 Step 12 ONVIF live import persist decision을 검증합니다.
   verify-v390-onvif-source-view-atomicity
                  V390-ADD1-05 ONVIF source/view paired save와 rollback을 검증합니다.
+  verify-v390-analysis-registry-durable-write
+                 V390-REVIEW2-21 Analysis Registry durable write와 HTTP 5xx/no-write를 검증합니다.
   verify-v390-vlm-rule-suggestion-draft-bridge
                  v3.9.0 Step 13 VLM rule suggestion draft bridge를 검증합니다.
   verify-v390-vlm-incident-rule-provenance
@@ -805,6 +807,8 @@ Usage:
                  v3.9.0 Step 12 ONVIF live import persist decision을 검증합니다.
   verify-v390-onvif-source-view-atomicity
                  V390-ADD1-05 ONVIF source/view paired save와 rollback을 검증합니다.
+  verify-v390-analysis-registry-durable-write
+                 V390-REVIEW2-21 Analysis Registry durable write와 HTTP 5xx/no-write를 검증합니다.
   verify-v390-vlm-rule-suggestion-draft-bridge
                  v3.9.0 Step 13 VLM rule suggestion draft bridge를 검증합니다.
   verify-v390-vlm-incident-rule-provenance
@@ -2105,6 +2109,10 @@ case "${cmd}" in
   verify-v390-onvif-source-view-atomicity)
     require_internal verify_v390_onvif_source_view_atomicity.mjs
     exec "${INTERNAL_DIR}/verify_v390_onvif_source_view_atomicity.mjs" "$@"
+    ;;
+  verify-v390-analysis-registry-durable-write)
+    require_internal verify_v390_analysis_registry_durable_write.mjs
+    exec "${INTERNAL_DIR}/verify_v390_analysis_registry_durable_write.mjs" "$@"
     ;;
   verify-v390-vlm-rule-suggestion-draft-bridge)
     require_internal verify_v390_vlm_rule_suggestion_draft_bridge.mjs

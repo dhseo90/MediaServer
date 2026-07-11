@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: 984개 feature inventory의 exact UI test ID와 actual v3.9 UI evidence를 대조한다.
+// 파일 용도: 986개 feature inventory의 exact UI test ID와 actual v3.9 UI evidence를 대조한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -397,7 +397,7 @@ function renderReport(value) {
   const lines = [
     "# v3.9.0 Full-Feature UI Automation Coverage Matrix",
     "",
-    "이 문서는 984개 feature inventory의 reviewed implementation manifest에서 exact manual UI test ID를 선택하고 actual native visible-DOM evidence를 교차 검증해 생성합니다.",
+    "이 문서는 986개 feature inventory의 reviewed implementation manifest에서 exact manual UI test ID를 선택하고 actual native visible-DOM evidence를 교차 검증해 생성합니다.",
     "Feature ID prefix와 numeric range는 coverage 판정에 사용하지 않습니다. Matrix validation PASS는 full automation 또는 UI 풀테스트 직접 조작 PASS가 아닙니다.",
     "",
     `schema: \`${value.schema}\``,

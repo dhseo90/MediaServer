@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: 984행 semantic implementation closure의 false-positive negative contract를 검증한다.
+// 파일 용도: 986행 semantic implementation closure의 false-positive negative contract를 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -24,7 +24,7 @@ Usage:
   ./server.sh verify-feature-semantic-closure-contract
 
 Checks:
-  - all 984 rows are reviewer-approved semantic closures
+  - all 986 rows are reviewer-approved semantic closures
   - UI-002 maps /setup to its exact handler rather than /password
   - wrong handler, unrelated same-file anchor, route/action/state drift,
     generic anchor, ID-only assertion, and unapproved review fixtures fail

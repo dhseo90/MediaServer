@@ -797,6 +797,7 @@ function buildFeatureCommands() {
     "verify-v390-structure-stabilization-handoff",
     "verify-v390-structure-stabilization-readiness",
     "verify-v390-external-field-smoke-no-device-closure",
+    "verify-v390-analysis-registry-durable-write",
     "verify-release-metadata",
     "verify-docs-links",
     "verify-docs-ui-assets",

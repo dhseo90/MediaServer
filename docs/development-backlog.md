@@ -110,12 +110,12 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 18 | v3.9.0 (18) Re-ID appearance assist model-backed path decision | P2 | 완료 | `V390-CAND-010`: `/ops/api/analysis/reid-assist-decision`와 `/ops` dashboard가 `explicit-opt-in-provenance-gated-assist`, model/checksum/provenance gate, no-op fallback, tracker-none forces off boundary를 표시하고 model-backed execution/embedding/crop serialization은 수행하지 않음 |
 | 19 | v3.9.0 (19) structure stabilization handoff 상세계획 | P0 | 완료 | 인벤토리 `V390-STRUCT-001`~`V390-STRUCT-005`를 `docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md`로 이관하고 `verify-v390-structure-stabilization-handoff` gate로 구조 변경 미실행 경계를 고정 |
 | 20 | v3.9.0 (20) stabilization and release readiness | P0 | 보강 완료/current test pending | AGENTS 네 테스트 영역 판정과 release close-out evidence를 실제 실행/미실행으로 분리하고 Development 15~18 verifier를 companion gate에 포함. current final close-out은 clean worktree에서 안정화→30개 feature gate→30분→8-case UI automation/replay→120분(`--run-120`)→Policy v4 전체 UI→cleanup/evidence 순서로 실행 대기 |
-| 21 | v3.9.0 (21) actual test acceptance bundle 실행 모드 | P0 | historical PASS/current `--run-120` 재실행 대기 | V390-ADD1-06 historical actual mode는 build→기능→real 30분→UI automation/replay→conditional 120 decision→cleanup을 PASS했습니다. current final actual preflight는 clean worktree와 Development 15~18을 포함한 30개 command, 명시적 `--run-120`을 요구하고 누락 시 build 전에 중단합니다 |
+| 21 | v3.9.0 (21) actual test acceptance bundle 실행 모드 | P0 | historical PASS/current `--run-120` 재실행 대기 | V390-ADD1-06 historical actual mode는 build→기능→real 30분→UI automation/replay→conditional 120 decision→cleanup을 PASS했습니다. current final actual preflight는 clean worktree와 Development 15~18 및 Review2-21을 포함한 31개 command, 명시적 `--run-120`을 요구하고 누락 시 build 전에 중단합니다 |
 | 22 | v3.9.0 (22) v3.9 UI automation case completeness | P0 | 완료 | V390-ADD1-07 case schema v2와 actual summary가 `UI-112` 포함 exact `UI-108`~`UI-115` 8개 route/control/action/state/failure/artifact를 검증하고 replay PASS |
 | 23 | v3.9.0 (23) native free UI automation adapter proof | P0 | 완료 | bundled Playwright 1.61.1과 system Chrome을 선택해 standalone 7개 native action 및 UI-108~115의 native dispatch 8/8을 fallback 없이 실행하고 module/browser provenance를 보존 |
 | 24 | v3.9.0 (24) server longrun true first-fail case runner | P0 | 완료 | V390-ADD1-10이 `verify-predev --fail-fast`의 duration case 사이를 즉시 중단하고 later case를 `not-run`으로 기록하며 runner console/summary/report에 context, 분리 stderr tail, 재현 명령을 보존 |
-| 25 | v3.9.0 (25) route/control/action automation coverage matrix | P0 | 완료/current 984 exact-ID | current 984개 inventory에서 prefix/range 판정 없이 exact `manualUiCaseId` 424개를 선택합니다. historical V390-ADD1-11의 974/424/8/415/1 결과는 당시 evidence로 보존하고, current matrix는 984/424/8/415/1입니다 |
-| 26 | v3.9.0 (26) final evidence re-run and cleanup | P0 | current 30-command 재실행 대기 | Evidence 14의 source `8fe583d8`·26-command·30분 118/0·UI 8/8·cleanup/integrity PASS는 historical evidence로 보존합니다. Development 15~18 이후 current 984 inventory·30-command source에 대한 안정화와 `--run-120` acceptance(30분→8-case UI→120분), Policy v4 전체 UI, cleanup canonical 재실행은 미실행입니다 |
+| 25 | v3.9.0 (25) route/control/action automation coverage matrix | P0 | 완료/current 986 exact-ID | current 986개 inventory에서 prefix/range 판정 없이 exact `manualUiCaseId` 424개를 선택합니다. historical V390-ADD1-11의 974/424/8/415/1과 Review2-20의 984/424/8/415/1 결과는 당시 evidence로 보존하고, current matrix는 986/424/8/415/1입니다 |
+| 26 | v3.9.0 (26) final evidence re-run and cleanup | P0 | current 31-command 재실행 대기 | Evidence 14의 source `8fe583d8`·26-command·30분 118/0·UI 8/8·cleanup/integrity PASS는 historical evidence로 보존합니다. Development 15~18 및 Review2-21 이후 current 986 inventory·31-command source에 대한 안정화와 `--run-120` acceptance(30분→8-case UI→120분), Policy v4 전체 UI, cleanup canonical 재실행은 미실행입니다 |
 | 27 | v3.9.0 (27) deferred product decision owner sign-off | P1 | 완료/Development 16 owner sign-off | 사용자 `/goal` 승인에 따라 역할 기반 owner를 Product, Security, Release, Privacy/Security, Product/ML로 지정하고 action execution·persistent credential store·external provider·model-backed Re-ID는 `excluded-from-v3.9`, 실제 field smoke는 `deferred-until-approved-field-run`으로 근거·재개 조건과 함께 고정. 개인 이름은 추정하지 않으며 구현/field/release PASS를 주장하지 않음 |
 | 28 | v3.9.0 (28) structure stabilization implementation readiness | P1 | 완료/Development 17 readiness | 실제 실행은 v3.9 closure가 아니라 사용자 명시 승인 뒤 `v4.0.0` branch에서만 허용합니다. transport/UI/application/domain·registry/analysis/core-media 경계, 단방향 의존성, 9개 contract 보존, 6개 slice 순서와 entry/exit/stop gate를 machine-readable contract로 확정했으며 branch/refactor는 미실행입니다 |
 | 29 | v3.9.0 (29) real external field smoke gate | P2 | 완료/Development 18 조건부 미실행 closure | 사용자 지시와 AGENTS 외부 조건 규칙에 따라 TURN/WHEP, ONVIF 실기기, 외부 VLM/provider는 device·credential·endpoint·실행 승인 부재로 모두 `not-run`입니다. external network/device/provider 접촉은 0이며 field/release PASS를 주장하지 않고 재개 조건만 보존합니다 |
@@ -125,7 +125,7 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 번호 | 구간 | 제목 | 우선순위 | 상태 | 구현/검증 위치 |
 | --- | --- | --- | --- | --- | --- |
 | 13 | Evidence | 최종 evidence 무결성 | P0 | 완료/커밋 `b6cac906` | `verify_v390_ui_automation.mjs`, `verify_v390_server_longrun.mjs`, `verify_v390_test_acceptance_bundle.mjs`, `verify-v390-final-evidence-integrity`에서 screenshot dedupe, video placeholder 금지, 실측 cleanup, source commit/command/first-failure 기록을 구현·검증. RED 3종과 actual UI 최초 환경 실패/재실행 8/8 이력을 `release-test-records.md`에 기록 |
-| 14 | Evidence | 최종 전체 재실행·정리 | P0 | historical PASS/current 30-command 재실행 대기 | source `b6cac906`의 첫 bundle은 `integrated-smoke` 선행 code-comment gate에서 중단됐고 뒤 단계는 `not-run`, child cleanup은 PASS였습니다. 복구 source `8fe583d8`의 974개/26-command 전체 재실행은 30분 118/0·soak 22회·UI-108~115 8/8·replay 7/0·cleanup PASS, 당시 120분 조건부 미실행, final integrity 7/0인 historical evidence입니다. Development 15~18 이후 current 984개/30-command source의 안정화·30분·120분·UI·cleanup은 미실행입니다 |
+| 14 | Evidence | 최종 전체 재실행·정리 | P0 | historical PASS/current 31-command 재실행 대기 | source `b6cac906`의 첫 bundle은 `integrated-smoke` 선행 code-comment gate에서 중단됐고 뒤 단계는 `not-run`, child cleanup은 PASS였습니다. 복구 source `8fe583d8`의 974개/26-command 전체 재실행은 30분 118/0·soak 22회·UI-108~115 8/8·replay 7/0·cleanup PASS, 당시 120분 조건부 미실행, final integrity 7/0인 historical evidence입니다. Development 15~18 및 Review2-21 이후 current 986개/31-command source의 안정화·30분·120분·UI·cleanup은 미실행입니다 |
 | 15 | Feature Closure | VLM incident-to-rule provenance | P1 | 완료/커밋 `260cbd9e` | `UI-110`/`RULE-112`/`LAB-126`/`SAFE-213`/`OPS-180`: event·candidate·evaluation source를 generated rule의 optional `vlmProvenance`와 `/lab/analysis/rules/{id}` save/readback까지 보존하고 ID/route mismatch는 no-write로 거부합니다. 실제 HTTP save/readback 1건과 negative no-write 2건, `/ops/rules` 인앱 focused smoke, rule/VA 회귀를 통과했습니다 |
 | 16 | Product Decision | 보류 기능 소유자 승인 | P1 | 완료/커밋 `7a100f8f` | `test/fixtures/v390_deferred_product_owner_signoff.json`과 feature inventory에 5개 deferred 항목의 owner role·v3.9 결정·직접 근거·재개 조건·사용자 승인 출처를 고정하고 `SAFE-214`/`OPS-181` gate로 false PASS를 차단합니다 |
 | 17 | Stabilization | 구조 안정화 착수 조건 | P1 | 완료/커밋 `fcfe9f0d` | `v4.0.0` 실행 branch 조건, module owner 7개, 허용/금지 의존성, 9개 보존 contract, 6개 고정 slice와 entry/exit/stop gate를 `test/fixtures/v390_structure_stabilization_readiness.json`과 `SAFE-215`/`OPS-182`에 고정했습니다. branch 생성과 실제 refactor는 미실행입니다 |
@@ -1725,7 +1725,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 19 | V390-REVIEW2-19 | Foundation | current entry baseline gate 정렬 | P0 | 완료 | `v390_entry_baseline_state_lib.mjs`와 단일 expectation fixture가 backlog Step 1~3 상태를 구조적으로 읽고, 독립 contract가 current positive·historical wording·missing·duplicate를 판정하며 acceptance가 동일 entry command를 사용함 | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 0, 검증 난이도 0, 변경 범위 0, 총 2점이나 release correctness 직접 영향으로 Sol/high 상향 |
 | 20 | V390-REVIEW2-20 | Feature Closure | 984행 semantic implementation closure | P0 | 완료 | v2 manifest가 984행 exact handler/route/control/action/state/assertion locator와 reviewer-bound unique digest를 검증하고, 자동 closure·generic-alone·wrong/unrelated/drift/ID-only/unapproved를 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 전 기능 정확도·동등성 상향 적용 |
-| 21 | V390-REVIEW2-21 | Product Correctness | Analysis Registry durable write contract | P0 | 미완료 | profile/rule/VLM upsert의 파일 저장 실패를 호출자에게 전달하고 메모리 rollback 또는 persist-before-publish를 적용해 실패 시 HTTP 5xx와 no-write를 보장 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점, 데이터 손상·거짓 성공 위험 상향 적용 |
+| 21 | V390-REVIEW2-21 | Product Correctness | Analysis Registry durable write contract | P0 | 완료 | profile/rule/VA rule/VLM profile create·update·delete가 atomic persist-before-publish를 사용하고 parent/open/write/flush/rename 실패를 HTTP 5xx로 전파하며 memory/file/restart no-change를 보장 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점, 데이터 손상·거짓 성공 위험 상향 적용 |
 | 22 | V390-REVIEW2-22 | UI Policy | Policy v4 canonical 424 exact-ID binding | P0 | 미완료 | evaluator가 hash 대상 case manifest를 실제 파싱해 canonical test ID, route, role, viewport, theme, control/action과 evidence case를 대조하고 임의 424개 합성 case를 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+1=6점, 거짓 UI fulltest PASS 위험 상향 적용 |
 | 23 | V390-REVIEW2-23 | UI Policy | Policy v4 evidence attestation 강화 | P0 | 미완료 | completion/visual/cross-cutting evidenceRef의 실파일·hash·case correlation, 실제 image decode, trace schema, redaction scan을 검증하고 summary 자기선언을 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 정확도·보안·false-PASS 상향 적용 |
 | 24 | V390-REVIEW2-24 | UI Automation | exact 424 native automation case 구현 | P0 | 미완료 | 현재 8 automated/415 unsupported를 424 exact case 실행 가능 manifest와 native action/oracle/artifact로 확장하고 UI-018 negative route는 별도 판정 유지 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 대량 cross-version UI 구현 |
@@ -1738,7 +1738,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 | 31 | V390-REVIEW2-31 | Long-run | parent/delegated phase ledger 정합성 | P0 | 미완료 | parent runner의 start-server/integrated-smoke/runtime-idle 상태를 nested predev summary에서 가져오고 실행 전 synthetic PASS 기록을 제거 | 5.6 Sol | 높음 (high) | 2+1+2+1=6점, 테스트 결과 정확도 상향 적용 |
 | 32 | V390-REVIEW2-32 | Re-ID | NoOp fallback runtime state 정합성 | P1 | 미완료 | NoOp의 `Enabled()`/stats/policy 의미를 하나로 맞추고 readiness 실패 시 불필요한 crop, queue, worker 경로가 활성화되지 않도록 함 | 5.6 Terra | 높음 (high) | 1+1+1+1=4점, 단일 subsystem runtime 정합성 |
 | 33 | V390-REVIEW2-33 | Structure | readiness dependency graph 검증 | P1 | gate 준비 | fixture의 mayDependOn/allowed direction을 상호 검증하고 실제 include/build graph, forbidden edge, cycle을 검사해 readiness를 문구 존재가 아닌 구조 evidence로 전환 | 5.6 Sol | 높음 (high) | 1+2+2+1=6점, 구조 전면 리팩토링 진입 gate |
-| 34 | V390-REVIEW2-34 | Inventory | bridge·count·anchor reconciliation | P1 | 미완료 | v3.5~v3.8 전 UI ID를 개별 대조하고 30분 대상 50행과 오래된 49/49 표, stale line/count/anchor를 current 984 source 기준으로 정렬 | 5.6 Terra | 중간 (medium) | 1+1+1+1=4점, 문서·manifest 정합성 작업 |
+| 34 | V390-REVIEW2-34 | Inventory | bridge·count·anchor reconciliation | P1 | 미완료 | v3.5~v3.8 전 UI ID를 개별 대조하고 30분 대상 50행과 오래된 49/49 표, stale line/count/anchor를 current 986 source 기준으로 정렬 | 5.6 Terra | 중간 (medium) | 1+1+1+1=4점, 문서·manifest 정합성 작업 |
 | 35 | V390-REVIEW2-35 | Truthfulness | owner/field/structure 상태 표현 정정 | P1 | 미완료 | owner role record는 decision record, field smoke는 조건부 미실행, structure readiness는 gate 준비로 표기하고 implementation/PASS/완료 표현과 분리 | 5.6 Terra | 중간 (medium) | 1+1+1+0=3점, 상태·evidence 진실성 정리 |
 
 ### 19~35 상세 구현 계약
@@ -1803,10 +1803,26 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 
 - 직접 문제: `UpsertVlmProfile`, `UpsertRule` 등은 메모리를 변경한 뒤 반환값 없는
   `SaveLocked()`를 호출합니다. open/write/flush 실패는 stderr만 남기고 API 성공을 반환합니다.
-- 구현: atomic temp-write/flush/rename 결과를 typed error로 반환하고, 저장 성공 전 메모리 publish를
-  금지하거나 실패 시 이전 vector를 복구합니다. create/update/delete 전 경로에 같은 정책을 적용합니다.
-- 완료 조건: unwritable parent, open failure, short/write/flush/rename failure injection에서 HTTP 5xx,
-  메모리 GET no-change, 파일 byte no-change, restart no-change를 각각 확인합니다.
+- 구현: `src/ingress/webrtc_http_server.cpp`의 `WriteAnalysisRegistryFileAtomically`이 same-directory
+  temp file 전체 write, file `fsync`, `rename`과 실패 temp cleanup을 담당합니다.
+  `AnalysisDocumentRegistry::PersistAndPublishLocked`는 profile/rule/VA rule/VLM profile의 candidate
+  snapshot을 durable 저장한 뒤에만 vector를 publish합니다. create/update/delete 전 경로가
+  `AnalysisRegistryMutationResult`를 반환하며 `AnalysisRegistryMutationErrorResponse`가 persistence
+  failure를 HTTP 500, code `analysis-registry-persistence-failed`, safe stage로 매핑합니다.
+- 전용 검증: `./server.sh verify-v390-analysis-registry-durable-write`가 profile/rule/VA rule/VLM profile의
+  create/update/delete와 parent/open/short-write/flush/rename 장애 주입을 actual HTTP로 실행합니다.
+- route 범위: `/lab/analysis/profiles/{id}`, `/lab/analysis/rules/{id}`,
+  `/lab/analysis/va-rules/{id}`, `/ops/api/vlm/profiles/{id}`의 mutation failure path를 변경했고
+  기존 validation 400, not-found 404 경계는 유지했습니다.
+- 직접 결과: 전용 verifier mutation 12개, failure stage parent/open/write/flush/rename, HTTP 5xx,
+  memory/file/restart no-change, temp 0, failures 0. `verify-analysis-state` 178/0,
+  `verify-ops-rules-roundtrip` 전체 PASS, VA replay 15개 baseline, VA events 31/0,
+  focused in-app `verify-rule-ui` PASS를 확인했습니다.
+- 후속 보정: current inventory를 986개, UI 비대상 550개, 안정화 대상 976개로 정렬하고
+  semantic manifest 986/986 재승인, project inventory 14/0, feature coverage 986/986,
+  UI coverage contract 12/0, acceptance contract 8/0, stabilization readiness 7/0으로 닫았습니다.
+- 경계: focused rule UI smoke는 Policy v4 424 exact-ID 전체 UI 풀테스트 PASS가 아닙니다.
+  30분/120분 longrun, published metadata, release action, external field smoke는 실행하지 않았습니다.
 
 #### V390-REVIEW2-22~26 Policy v4와 full UI automation closure
 

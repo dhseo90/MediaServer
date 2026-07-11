@@ -26,7 +26,7 @@ Checks:
   - docs/project-feature-test-inventory.md is indexed
   - inventory pins the current release and states it is not execution evidence
   - all feature IDs use the current UI/test-area matrix shape
-  - the independent 984-row implementation/UI/verifier evidence manifest matches exactly
+  - the independent 986-row implementation/UI/verifier evidence manifest matches exactly
   - coverage, verifier, VA seed, 30-minute, 120-minute, and four-area boundaries exist
   - manual UI docs reference the feature inventory
   - the manual UI VA seed matrix fixture covers API-ready numeric IDs, basic events, scenarios, presets, tracker/Re-ID policies, and invalid policy cases
