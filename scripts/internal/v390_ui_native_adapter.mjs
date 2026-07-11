@@ -119,6 +119,7 @@ async function openNativePlaywrightPage(playwright, {
   colorScheme = "light",
 }) {
   const consoleEntries = [];
+  const networkEntries = [];
   const browser = await playwright.chromium.launch({
     headless: true,
     ...(executablePath ? { executablePath } : {}),
@@ -135,6 +136,13 @@ async function openNativePlaywrightPage(playwright, {
   });
   page.on("pageerror", error => {
     consoleEntries.push({ level: "error", text: error instanceof Error ? error.message : String(error) });
+  });
+  page.on("response", response => {
+    networkEntries.push({
+      method: response.request().method(),
+      status: response.status(),
+      url: response.url(),
+    });
   });
   const navigationResponse = await page.goto(new URL(pagePath, `${httpBase}/`).toString(), {
     waitUntil: "load",
@@ -169,9 +177,25 @@ async function openNativePlaywrightPage(playwright, {
       await page.locator(selector).filter({ hasText: String(expected) }).waitFor({ state: "visible", timeout: waitTimeoutMs });
       return page.locator(selector).innerText();
     },
+    snapshot: (selector) => page.evaluate(`(() => {
+      const element = document.querySelector(${JSON.stringify(selector)});
+      const rect = element ? element.getBoundingClientRect() : null;
+      const style = element ? getComputedStyle(element) : null;
+      return {
+        selector: ${JSON.stringify(selector)},
+        exists: Boolean(element),
+        visible: Boolean(rect && rect.width > 0 && rect.height > 0 && style && style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity || 1) > 0),
+        text: String(element?.innerText || '').replace(/\\s+/g, ' ').trim().slice(0, 4000),
+        value: element && 'value' in element ? String(element.value || '') : '',
+        checked: Boolean(element && 'checked' in element && element.checked),
+        selectedValues: element?.tagName === 'SELECT' ? Array.from(element.selectedOptions).map(option => String(option.value)) : [],
+        url: location.href,
+      };
+    })()`),
     evaluate: (expression) => page.evaluate(expression),
     screenshot: outputFile => page.screenshot({ path: outputFile, fullPage: false }),
     consoleEntries: () => consoleEntries,
+    networkEntries: () => networkEntries.map(item => ({ ...item })),
     close: async () => {
       await context.close();
       await browser.close();

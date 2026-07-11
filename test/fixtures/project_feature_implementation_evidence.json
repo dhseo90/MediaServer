@@ -2,7 +2,7 @@
   "schema": "media-server.feature-implementation-evidence.v2",
   "semanticClosureSchema": "media-server.feature-semantic-implementation-closure.v1",
   "expectedFeatureRows": 986,
-  "inventorySha256": "b08140f21ea29268ff2bfc8b4f22bba31104dabc98292c33181355891918a76e",
+  "inventorySha256": "7c7f7b8f32f339df078d22af5f7de87da735e743f7a6c5b8f23d8e424df46239",
   "generatedFrom": "docs/project-feature-test-inventory.md",
   "generationPolicy": "explicit-refresh-only; unchanged approved semantic digests are preserved, new or changed rows require explicit reviewer approval",
   "semanticClosurePolicy": "exact handler/route/control/action/state/assertion locators plus reviewer-bound digest",

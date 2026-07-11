@@ -80,6 +80,21 @@ check("case artifact fields are required", () => {
   });
 });
 
+check("PASS summary requires a correlated completion oracle", () => {
+  expectReportFailure("missing-completion-oracle", summary => {
+    delete summary.cases[0].completionOracle;
+  });
+  expectReportFailure("no-op-dom-transition", summary => {
+    summary.cases[0].completionOracle.source = "dom-transition";
+    summary.cases[0].completionOracle.beforeDigest = "a".repeat(64);
+    summary.cases[0].completionOracle.afterDigest = "a".repeat(64);
+    summary.cases[0].completionOracle.networkResponses = [];
+  });
+  expectReportFailure("wrong-network-correlation", summary => {
+    summary.cases[0].completionOracle.networkResponses[0].url = "/health";
+  });
+});
+
 check("screenshot, trace, and log artifact files must exist", () => {
   expectReportFailure("missing-screenshot-file", summary => {
     fs.rmSync(summary.cases[0].screenshotPath, { force: true });
@@ -279,6 +294,23 @@ function makeCase(workspace, caseId, status) {
     serverLogReference,
     cleanupPortState: "clean",
     manualIntervention: false,
+    completionOracleSpec: {
+      networkUrlIncludes: ["/ops/api/r5-replay"],
+    },
+    completionOracle: {
+      pass: true,
+      source: "network-dom",
+      reason: "",
+      correlationId: `${caseId}:primary`,
+      beforeDigest: "a".repeat(64),
+      afterDigest: "a".repeat(64),
+      networkResponses: [{
+        correlationId: `${caseId}:primary`,
+        status: 200,
+        method: "GET",
+        url: "/ops/api/r5-replay",
+      }],
+    },
     stateEvidence: {
       target: { selector: "#r5-status", exists: true, visible: true },
       before: [],

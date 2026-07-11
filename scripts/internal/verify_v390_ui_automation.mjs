@@ -12,6 +12,7 @@ import { fileURLToPath } from "node:url";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { findChrome, openBrowserPage } from "./ui_visual_smoke_lib.mjs";
 import { createNativePlaywrightAdapter } from "./v390_ui_native_adapter.mjs";
+import { evaluateCompletionOracle } from "./v390_ui_completion_oracle_lib.mjs";
 import {
   evaluateVisibleAssertions,
   validateVisibleAssertionSchema,
@@ -286,6 +287,10 @@ function loadCases(manifestPath) {
     assert(implementation?.uiEvidence?.screenRoute === item.route,
       `${item.caseId} route mismatch: ${item.route} vs ${implementation?.uiEvidence?.screenRoute || "missing"}`);
     assert(item.interaction?.kind === "click" && Boolean(item.interaction.selector), `${item.caseId} missing click interaction`);
+    assert(Array.isArray(item.completionOracle?.networkUrlIncludes) && item.completionOracle.networkUrlIncludes.length > 0,
+      `${item.caseId} missing completion network URL pattern`);
+    assert(item.completionOracle.networkUrlIncludes.every(value => typeof value === "string" && value.startsWith("/")),
+      `${item.caseId} invalid completion network URL pattern`);
     assert(Boolean(item.targetSelector), `${item.caseId} missing targetSelector`);
     assert(Array.isArray(item.stateSelectors) && item.stateSelectors.length > 0, `${item.caseId} missing stateSelectors`);
     validateVisibleAssertionSchema(item.visibleAssertions, item.stateSelectors);
@@ -608,10 +613,34 @@ async function runBrowserCase(item, { httpBase, runtimeAdapter, debugPort, timeo
       10000,
     );
     const assertionEvidence = evaluateVisibleAssertions(item.visibleAssertions, result?.afterState || []);
+    const networkResponses = typeof browser.networkEntries === "function"
+      ? browser.networkEntries().slice(nativeEvidence.networkStartIndex).map(entry => ({
+          ...entry,
+          correlationId: nativeEvidence.correlationId,
+        }))
+      : [];
+    const completionOracle = evaluateCompletionOracle({
+      action: {
+        kind: item.interaction.kind,
+        executed: result?.interaction?.executed === true,
+        correlationId: nativeEvidence.correlationId,
+        dispatch: nativeEvidence.dispatch,
+        expectedNetworkUrlIncludes: item.completionOracle.networkUrlIncludes,
+      },
+      before: result?.beforeState || [],
+      after: result?.afterState || [],
+      networkResponses,
+    });
+    assert(typeof completionOracle.beforeDigest === "string", `${item.caseId} completion beforeDigest missing`);
+    assert(typeof completionOracle.afterDigest === "string", `${item.caseId} completion afterDigest missing`);
+    assert(Array.isArray(completionOracle.networkResponses), `${item.caseId} completion networkResponses missing`);
     result.assertionModel = assertionEvidence.model;
     result.visibleAssertions = assertionEvidence.assertions;
-    result.ok = result.ok === true && assertionEvidence.pass === true;
+    result.networkResponses = networkResponses;
+    result.completionOracle = completionOracle;
+    result.ok = result.ok === true && assertionEvidence.pass === true && completionOracle.pass === true;
     artifact.interactionEvidence = result?.interaction || defaultInteractionEvidence(item);
+    artifact.completionOracle = completionOracle;
     artifact.stateEvidence = {
       target: result?.target || { selector: item.targetSelector, exists: false, visible: false },
       before: result?.beforeState || [],
@@ -632,6 +661,7 @@ async function runBrowserCase(item, { httpBase, runtimeAdapter, debugPort, timeo
       visibleAssertions: item.visibleAssertions,
       interactionEvidence: artifact.interactionEvidence,
       stateEvidence: artifact.stateEvidence,
+      completionOracle,
       browserConsolePath: artifact.browserConsolePath,
       result,
     });
@@ -645,6 +675,9 @@ async function runBrowserCase(item, { httpBase, runtimeAdapter, debugPort, timeo
       const failedAssertions = (result?.visibleAssertions || []).filter(assertion => !assertion.pass);
       if (failedAssertions.length > 0) {
         reasons.push(`visible DOM assertion failed: ${failedAssertions.map(assertion => `${assertion.selector}[${assertion.missingText.join("|") || "not-visible-or-empty"}]`).join(", ")}`);
+      }
+      if (!result?.completionOracle?.pass) {
+        reasons.push(`completion oracle failed: ${result?.completionOracle?.reason || "missing"}`);
       }
       const failure = new Error(reasons.join("; ") || "UI action/state verification failed");
       failure.artifact = artifact;
@@ -667,11 +700,13 @@ async function performNativeInteractions(browser, item, timeoutMs) {
     await delay(250);
   }
   const beforeState = await readNativeState(browser, item.stateSelectors || []);
+  const correlationId = `${item.caseId}:primary`;
+  const networkStartIndex = typeof browser.networkEntries === "function" ? browser.networkEntries().length : 0;
   await browser.waitForSelector(item.interaction.selector, { state: "visible", timeout: timeoutMs });
   if (item.interaction.kind === "click") await browser.click(item.interaction.selector);
   else if (item.interaction.kind === "select") await browser.select(item.interaction.selector, item.interaction.value);
   else throw new Error(`unsupported native interaction: ${item.interaction.kind}`);
-  return { setup, beforeState, dispatch: selectedAdapter.engine };
+  return { setup, beforeState, dispatch: selectedAdapter.engine, correlationId, networkStartIndex };
 }
 
 async function readNativeState(browser, selectors) {
@@ -972,6 +1007,7 @@ function writeCaseArtifacts(item, { serverLogReference = "" } = {}) {
       after: [],
       assertions: [],
     },
+    completionOracle: null,
   };
 }
 
@@ -1005,6 +1041,7 @@ function makeCase(item, status, actualResult, artifact) {
     controlAction: item.controlAction,
     setupInteractions: item.setupInteractions || [],
     interaction: item.interaction,
+    completionOracleSpec: item.completionOracle,
     targetSelector: item.targetSelector,
     stateSelectors: item.stateSelectors,
     expectedResult: item.expectedResult,
@@ -1014,6 +1051,7 @@ function makeCase(item, status, actualResult, artifact) {
     status,
     interactionEvidence: artifact.interactionEvidence,
     stateEvidence: artifact.stateEvidence,
+    completionOracle: artifact.completionOracle || syntheticCompletionOracle(item, status),
     failureEvidence: status === "FAIL" ? {
       reason: actualResult,
       failedAction: item.interaction,
@@ -1047,6 +1085,27 @@ function makeCase(item, status, actualResult, artifact) {
       browserExecutable: selectedAdapter.browserExecutable || "",
       capabilities: selectedAdapter.capabilities || [],
     },
+  };
+}
+
+function syntheticCompletionOracle(item, status) {
+  if (!(fixtureMode || options.oneShotSummary) || status === "not-run") return null;
+  const correlationId = `${item.caseId}:synthetic-contract`;
+  const pattern = item.completionOracle?.networkUrlIncludes?.[0] || "/fixture-only";
+  return {
+    pass: status === "PASS",
+    source: status === "PASS" ? "network-dom" : "",
+    reason: status === "PASS" ? "fixture-only-not-actual-completion" : "fixture-failure",
+    correlationId,
+    beforeDigest: "0".repeat(64),
+    afterDigest: "0".repeat(64),
+    networkResponses: status === "PASS" ? [{
+      correlationId,
+      status: 200,
+      method: "GET",
+      url: pattern,
+      evidenceStatus: "fixture-only-not-actual",
+    }] : [],
   };
 }
 

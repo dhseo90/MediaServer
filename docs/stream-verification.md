@@ -221,6 +221,13 @@ native action/oracle seed/artifact plan, unsupported 0을 검증하지만 actual
 `uiFulltestPass=false`입니다. Historical 8-case summary와 Policy v4 current `8/415/1` 판정은
 Step 26 eligibility 통합 전까지 별도 evidence로 유지합니다.
 
+`V390-REVIEW2-25`부터 trusted click/select/fill/type은 동작 전후의 동일 visible text만으로 PASS하지
+않습니다. `./server.sh verify-v390-ui-completion-oracle-contract`가 DOM transition, case가 명시한
+endpoint와 일치하는 action-window network+DOM, persisted readback, EventRecord, server-log correlation
+positive와 no-op/pre-existing text/wrong URL·correlation/action 미실행 negative를 검증합니다. Actual
+UI-108~115 summary는 `verify-v390-ui-automation-report`와 replay guard가 completion digest/source/
+endpoint를 다시 읽습니다. Contract fixture와 targeted 8-case PASS는 exact 424 UI 풀테스트가 아닙니다.
+
 전체 UI PASS는 exact UI test ID 전수가 `direct-pass` 또는
 `automation-equivalent-pass`이고 fail/not-run/unsupported/unapproved exclusion이 0이며
 시각 품질, 반응형, role guard, client redaction, video/overlay 등 교차 의무가 닫힌

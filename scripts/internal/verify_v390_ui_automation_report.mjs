@@ -7,6 +7,7 @@ import process from "node:process";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { isRealPng, scanArtifactTree, sha256File } from "./evidence_integrity_lib.mjs";
+import { allowedCompletionSources } from "./v390_ui_completion_oracle_lib.mjs";
 
 const rawArgs = process.argv.slice(2);
 
@@ -125,6 +126,7 @@ check("cases keep route/control/action granularity", () => {
     assert(Array.isArray(item.browserConsole), `${item.caseId} browserConsole must be an array`);
     assert(item.adapterEvidence && item.adapterEvidence.tool === summary.browserMode, `${item.caseId} missing adapterEvidence`);
     assert(item.adapterEvidence.engine === summary.selectedAdapter.engine, `${item.caseId} adapterEvidence engine mismatch`);
+    assertCompletionOracle(item);
     assertCaseArtifacts(item);
     assertBrowserConsoleAllowed(item);
   }
@@ -213,6 +215,37 @@ function assertCaseArtifacts(item) {
   assert(item.videoPath === "", `${item.caseId} unsupported videoPath must be empty`);
   assert(item.videoEvidence?.status === "not-captured", `${item.caseId} video not-captured status missing`);
   assert(item.videoEvidence?.placeholderCreated === false, `${item.caseId} video placeholder must not be created`);
+}
+
+function assertCompletionOracle(item) {
+  if (item.status === "not-run") return;
+  const completion = item.completionOracle;
+  assert(completion && typeof completion === "object", `${item.caseId} completionOracle missing`);
+  assert(typeof completion.beforeDigest === "string", `${item.caseId} completion beforeDigest missing`);
+  assert(typeof completion.afterDigest === "string", `${item.caseId} completion afterDigest missing`);
+  assert(Array.isArray(completion.networkResponses), `${item.caseId} completion networkResponses missing`);
+  if (item.status === "PASS") {
+    assert(completion.pass === true, `${item.caseId} PASS completion oracle must pass`);
+    assert(allowedCompletionSources.includes(completion.source), `${item.caseId} completion source invalid`);
+    if (completion.source === "dom-transition") {
+      assert(/^[a-f0-9]{64}$/.test(completion.beforeDigest), `${item.caseId} beforeDigest invalid`);
+      assert(/^[a-f0-9]{64}$/.test(completion.afterDigest), `${item.caseId} afterDigest invalid`);
+      assert(completion.beforeDigest !== completion.afterDigest, `${item.caseId} dom-transition digest did not change`);
+    }
+    if (completion.source === "network-dom") {
+      const correlationId = String(completion.correlationId || "");
+      const patterns = item.completionOracleSpec?.networkUrlIncludes || [];
+      assert(correlationId, `${item.caseId} network completion correlationId missing`);
+      assert(Array.isArray(patterns) && patterns.length > 0, `${item.caseId} network completion URL patterns missing`);
+      assert(completion.networkResponses.length > 0, `${item.caseId} correlated network response missing`);
+      assert(completion.networkResponses.every(response =>
+        response.correlationId === correlationId &&
+        Number(response.status) >= 200 &&
+        Number(response.status) < 400 &&
+        patterns.some(pattern => String(response.url || "").includes(pattern))),
+      `${item.caseId} uncorrelated network completion response`);
+    }
+  }
 }
 
 function assertBrowserConsoleAllowed(item) {

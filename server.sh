@@ -164,6 +164,8 @@ Usage:
                  V390-REVIEW2-24 canonical exact 424 native 실행 manifest를 생성·검증합니다.
   verify-v390-ui-native-exact-cases-contract
                  V390-REVIEW2-24 exact case/API route/negative route/unsupported false-PASS 계약을 검증합니다.
+  verify-v390-ui-completion-oracle-contract
+                 V390-REVIEW2-25 no-op action/pre-existing visible state false-PASS 계약을 검증합니다.
   run-v390-ui-native-exact-cases
                  V390-REVIEW2-24 exact 424 native case runner를 plan-only 또는 actual browser mode로 실행합니다.
   verify-ui-fulltest-evidence-policy-v4
@@ -424,6 +426,8 @@ Usage:
                  V390-REVIEW2-24 canonical exact 424 native 실행 manifest를 생성·검증합니다.
   verify-v390-ui-native-exact-cases-contract
                  V390-REVIEW2-24 exact case/API route/negative route/unsupported false-PASS 계약을 검증합니다.
+  verify-v390-ui-completion-oracle-contract
+                 V390-REVIEW2-25 no-op action/pre-existing visible state false-PASS 계약을 검증합니다.
   run-v390-ui-native-exact-cases
                  V390-REVIEW2-24 exact 424 native case runner를 plan-only 또는 actual browser mode로 실행합니다.
   verify-ui-fulltest-evidence-policy-v4
@@ -2077,6 +2081,10 @@ case "${cmd}" in
   verify-v390-ui-native-exact-cases-contract)
     require_internal verify_v390_ui_native_exact_cases_contract.mjs
     exec "${INTERNAL_DIR}/verify_v390_ui_native_exact_cases_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-completion-oracle-contract)
+    require_internal verify_v390_ui_completion_oracle_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_completion_oracle_contract.mjs" "$@"
     ;;
   run-v390-ui-native-exact-cases)
     require_internal run_v390_ui_native_exact_cases.mjs

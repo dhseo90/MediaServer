@@ -2,6 +2,8 @@
 
 import crypto from "node:crypto";
 
+import { allowedCompletionSources } from "./v390_ui_completion_oracle_lib.mjs";
+
 export const nativeExactManifestSchema = "media-server.v390-ui-native-exact-cases.v1";
 export const canonicalManifestSchema = "media-server.ui-fulltest-canonical-case-manifest.v1";
 export const implementationManifestSchema = "media-server.feature-implementation-evidence.v2";
@@ -50,6 +52,7 @@ export function buildNativeExactManifest({ canonical, implementation }) {
     const sourceKind = implementationItem.semanticEvidence?.stateOracle?.oracleKind || "";
     const expectedBehavior = implementationItem.semanticEvidence?.stateOracle?.expectedBehavior || "";
     const expectedBehaviorSha256 = implementationItem.semanticEvidence?.stateOracle?.expectedBehaviorSha256 || "";
+    const expectedNetworkUrlIncludes = inferNetworkUrlIncludes(canonicalCase);
     const actions = [nativeAction("navigate", {
       route: screenRoute,
       expectedCanonicalRoute: canonicalCase.route,
@@ -63,6 +66,7 @@ export function buildNativeExactManifest({ canonical, implementation }) {
         actions.push(nativeAction("interact", {
           selector: canonicalSelector,
           strategy: "runtime-control",
+          expectedNetworkUrlIncludes,
         }));
       }
       if (crossRouteNegative) {
@@ -72,6 +76,22 @@ export function buildNativeExactManifest({ canonical, implementation }) {
         }));
       }
     }
+    const hasInteraction = actions.some(action => action.kind === "interact");
+    const interactionHasNetworkOracle = actions.some(action =>
+      action.kind === "interact" && action.expectedNetworkUrlIncludes.length > 0,
+    );
+    const hasCrossRouteNegative = actions.some(action => action.kind === "navigate-negative");
+    const completionSources = negativeRoute || hasCrossRouteNegative
+      ? ["negative-route-status"]
+      : (hasInteraction
+          ? [
+              "dom-transition",
+              ...(interactionHasNetworkOracle ? ["network-dom"] : []),
+              "persisted-readback",
+              "event-record",
+              "server-log",
+            ]
+          : ["navigation-network-dom"]);
     return {
       caseId: canonicalCase.testId,
       featureId: canonicalCase.featureId,
@@ -92,12 +112,15 @@ export function buildNativeExactManifest({ canonical, implementation }) {
       oracle: {
         kind: negativeRoute
           ? "negative-route-status"
-          : (crossRouteNegative ? "cross-route-negative-status" : initialOracleKind(sourceKind)),
+          : (hasCrossRouteNegative
+              ? "cross-route-negative-status"
+              : (hasInteraction ? "correlated-action-completion" : "navigation-network-dom")),
         sourceKind,
         expectedBehavior,
         expectedBehaviorSha256,
         allowedStatuses: negativeRoute ? [404] : [200],
-        completionRequired: !negativeRoute && !["read-or-rendered-state", "negative-invariant-state"].includes(sourceKind),
+        completionRequired: true,
+        allowedCompletionSources: completionSources,
       },
       artifacts: {
         screenshot: true,
@@ -161,6 +184,9 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
       `${item.caseId} oracle digest drift`);
     assert(/^[a-f0-9]{64}$/.test(item.oracle.expectedBehaviorSha256), `${item.caseId} oracle digest invalid`);
     assert(JSON.stringify(item.oracle) === JSON.stringify(expectedItem.oracle), `${item.caseId} oracle contract drift`);
+    assert(item.oracle.completionRequired === true, `${item.caseId} completionRequired must be true`);
+    assert(item.oracle.allowedCompletionSources.every(source => allowedCompletionSources.includes(source)),
+      `${item.caseId} unknown completion source`);
     assert(JSON.stringify(item.artifacts) === JSON.stringify(expectedItem.artifacts), `${item.caseId} artifact plan drift`);
   }
 
@@ -202,14 +228,15 @@ function normalizeCanonicalSelector(value) {
   return value;
 }
 
-function nativeAction(kind, fields) {
-  return { kind, dispatch: "playwright-native", ...fields };
+function inferNetworkUrlIncludes(canonicalCase) {
+  const candidates = [canonicalCase.route, canonicalCase.controlAction?.actionAnchor]
+    .filter(value => typeof value === "string" && value.includes("/api/"))
+    .map(value => value.includes("{") ? value.slice(0, value.indexOf("{")) : value);
+  return [...new Set(candidates)];
 }
 
-function initialOracleKind(sourceKind) {
-  if (sourceKind === "read-or-rendered-state") return "navigation-dom";
-  if (sourceKind === "negative-invariant-state") return "navigation-dom-invariant";
-  return "action-completion-pending-v390-review2-25";
+function nativeAction(kind, fields) {
+  return { kind, dispatch: "playwright-native", ...fields };
 }
 
 function sha256Json(value) {

@@ -1729,7 +1729,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 | 22 | V390-REVIEW2-22 | UI Policy | Policy v4 canonical 424 exact-ID binding | P0 | 완료 | canonical v1 manifest 424행을 implementation evidence hash·ordered test/feature ID·route·selector/action anchor에 묶고 evidence requested/observed role·viewport·theme까지 exact 대조하며 합성 424개와 hash-valid drift를 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+1=6점, 거짓 UI fulltest PASS 위험 상향 적용 |
 | 23 | V390-REVIEW2-23 | UI Policy | Policy v4 evidence attestation 강화 | P0 | 완료 | evidenceRef v1이 completion/visual/cross-cutting/redaction 실파일의 contained path·bytes·SHA-256·type·case/correlation을 대조하고 PNG CRC/IDAT decode, trace/payload schema, 독립 secret scan으로 자기선언 PASS를 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 정확도·보안·false-PASS 상향 적용 |
 | 24 | V390-REVIEW2-24 | UI Automation | exact 424 native automation case 구현 | P0 | 완료 | `v390_ui_native_exact_cases.json`이 canonical ordered 424개를 423 native-executable+UI-018 negative-route로 고정하고 unsupported 0, raw API→product screen 정규화, Playwright-native action/oracle seed/artifact plan과 외부 role-state actual runner를 제공. actual 424 UI 실행과 Step 26 eligibility는 미실행 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 대량 cross-version UI 구현 |
-| 25 | V390-REVIEW2-25 | UI Automation | no-op action false-PASS 차단 | P0 | 미완료 | before/after digest, network+DOM, persisted readback, EventRecord, server-log 중 case별 completion oracle을 요구하고 pre-existing visible text만 남은 click을 FAIL 처리 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+1=6점, 거짓 PASS 위험 상향 적용 |
+| 25 | V390-REVIEW2-25 | UI Automation | no-op action false-PASS 차단 | P0 | 완료 | 공용 completion evaluator가 action별 before/after DOM digest, expected endpoint-correlated network+DOM, persisted readback, EventRecord, server-log를 판정하고 pre-existing visible text/no-op/unrelated response/action 미실행을 거부. Exact 424 pending 0, legacy UI-108~115 actual 8/8과 replay guard 재검증 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+1=6점, 거짓 PASS 위험 상향 적용 |
 | 26 | V390-REVIEW2-26 | Acceptance | Policy v4 full-suite eligibility 통합 | P0 | 미완료 | acceptance/final integrity가 8-case 부분 automation을 `eligible`로 승격하지 못하게 하고 424 exact closure, unsupported 0, Policy v4 `uiFulltestPass`를 별도 필수 입력으로 연결 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+1=6점, release false-PASS 상향 적용 |
 | 27 | V390-REVIEW2-27 | Evidence | stale placeholder artifact 제거·재바인딩 | P0 | 미완료 | durable coverage matrix가 참조하는 `*.video.txt` fixture placeholder와 stale summary를 제거하고 placeholder-free current source provenance에 재생성하거나 invalid historical evidence로 격리 | 5.6 Sol | 높음 (high) | 2+0+1+1=4점, evidence 정확도 상향 적용 |
 | 28 | V390-REVIEW2-28 | Product Correctness | VLM reload full-contract quarantine | P0 | 미완료 | reload 시 candidate binding뿐 아니라 activation, runtime/privacy, forbidden field, invariant, ID/schema 전체 save contract를 재검증하고 변조 profile을 quarantine | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 보안·데이터 무결성 상향 적용 |
@@ -1917,10 +1917,35 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 
 #### V390-REVIEW2-25 no-op action false-PASS 차단
 
-- legacy UI-108~115를 포함한 click/select/fill은 before/after 동일이고 상관 network/persisted/EventRecord/
-  server-log completion이 없으면 FAIL합니다. Pre-existing visible text는 completion evidence가 아닙니다.
-- 각 exact case는 navigation+DOM, DOM transition, network+DOM, persisted readback, EventRecord, server log 중
-  action 종류에 맞는 허용 oracle과 correlation을 실제 trace에 남깁니다.
+- 직접 문제: Step 24 runner는 action 실행과 visible target만 확인해 click이 실제로 상태를 바꾸지 않아도
+  pre-existing text로 PASS할 수 있었습니다. 첫 보강은 action 이후 모든 network response를 같은
+  correlation ID로 묶어 dashboard background fetch 51개 중 unrelated response도 completion이 될 수 있었습니다.
+- 구현 위치:
+  - `v390_ui_completion_oracle_lib.mjs`의 `domSnapshotDigest()`와 `evaluateCompletionOracle()`이
+    native action 실행 여부/dispatch, before/after digest, expected endpoint pattern과 일치하는 2xx/3xx
+    action-window response+visible DOM, persisted digest change, EventRecord, server-log correlation을 판정합니다.
+    동일 digest+기존 visible text, wrong URL/correlation, action 미실행은 `no-correlated-completion` 또는
+    `action-not-executed`로 FAIL합니다.
+  - `v390_ui_native_adapter.mjs`는 navigation response, response method/status/URL, exact selector의
+    visible text/value/checked/selected/url snapshot을 제공합니다.
+  - Exact runner는 각 action trace에 beforeDigest/afterDigest/networkResponses/completion source를 기록하고
+    case manifest가 허용한 source가 하나도 없으면 실패합니다. Exact 424 oracle은 201 correlated-action,
+    221 navigation-network-DOM, UI-018 negative 1, SAFE-017 cross-route negative 1이며 pending 0입니다.
+  - Legacy `verify_v390_ui_automation.mjs`와 8-case manifest는 UI-108~115 각각의 기대 endpoint를 고정하고
+    visible assertion과 별도로 completion PASS를 요구합니다. Report verifier/replay guard도 oracle field,
+    digest 변화, endpoint/correlation을 다시 읽어 누락·no-op·wrong URL summary를 거부합니다.
+- RED/검증: 테스트 정의 후 첫 contract는 library 부재 `ERR_MODULE_NOT_FOUND` exit 1이었습니다.
+  첫 구현 contract는 runner source에 completion digest field 보장 검사가 없어 `8/1`이었고, 두 runner가
+  before/after/network fields를 실제 assert하도록 보강해 최종 completion contract `9/0`을 통과했습니다.
+- 실제 targeted 자동화: sandbox 실행은 loopback port 18239~18438 bind 불가로 browser/server 시작 전에
+  실패했습니다. 승인된 로컬 loopback 재실행은 native Playwright 1.61.1, fallback=false, UI-108~115
+  8/8, cleanup/ports PASS였습니다. Broad temporal network 결함을 찾아 case별 endpoint pattern으로 보강한
+  뒤 다시 8/8 PASS했고 각 case는 기대 endpoint 1개만 `network-dom` completion으로 보존했습니다.
+- replay/inventory 후속: actual summary report `7/0`, replay negative contract `9/0`을 통과했습니다.
+  Step 25 inventory mapping 추가로 첫 project inventory는 hash drift `13/1`이었고 986 semantic row/digest/review를
+  유지한 채 inventory/canonical/native source binding만 갱신해 재검증합니다.
+- 경계: targeted UI-108~115 8건은 exact 424 UI 풀테스트가 아닙니다. Actual exact 424, 30분/120분,
+  published metadata, release action과 Step 26 full-suite eligibility는 실행하지 않았습니다.
 
 #### V390-REVIEW2-26 Policy v4 full-suite eligibility 통합
 

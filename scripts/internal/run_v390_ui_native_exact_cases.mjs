@@ -4,9 +4,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 
 import { createNativePlaywrightAdapter } from "./v390_ui_native_adapter.mjs";
+import { evaluateCompletionOracle } from "./v390_ui_completion_oracle_lib.mjs";
 import { validateNativeExactManifest } from "./v390_ui_native_exact_cases_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -95,7 +97,7 @@ const summary = {
   unsupported: 0,
   manualIntervention: false,
   uiFulltestPass: false,
-  evidenceBoundary: "actual runner output requires Step 25 oracle qualification and Step 26 suite eligibility before UI fulltest PASS",
+  evidenceBoundary: "actual runner output requires Step 26 suite eligibility before UI fulltest PASS",
   cases: results,
 };
 writeJson(summaryPath, summary);
@@ -126,6 +128,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     },
     navigation: browser.navigation,
     actions: [],
+    completionEvents: [],
   };
   const screenshotPath = path.join(screenshotsDir, `${item.caseId}.png`);
   const tracePath = path.join(tracesDir, `${item.caseId}.trace.json`);
@@ -133,6 +136,16 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
   try {
     assert(item.oracle.allowedStatuses.includes(browser.navigation.status),
       `${item.caseId} navigation status ${browser.navigation.status} not in ${item.oracle.allowedStatuses.join(",")}`);
+    const initialSnapshot = await browser.snapshot(item.controlAction.targetSelector);
+    const initialCompletion = evaluateCompletionOracle({
+      action: completionAction(item.disposition === "negative-route" ? "navigate-negative" : "navigate", item, "navigation"),
+      after: initialSnapshot,
+      navigation: browser.navigation,
+      allowedStatuses: item.oracle.allowedStatuses,
+    });
+    assertCompletionEvidence(initialCompletion, item.caseId);
+    assert(initialCompletion.pass, `${item.caseId} navigation completion failed: ${initialCompletion.reason}`);
+    trace.completionEvents.push(initialCompletion);
     if (item.disposition === "negative-route") {
       trace.actions.push({ kind: "navigate", status: "PASS", observedStatus: browser.navigation.status });
     } else {
@@ -141,15 +154,34 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
           await browser.waitForSelector(action.selector);
           trace.actions.push({ ...action, status: "PASS" });
         } else if (action.kind === "interact") {
-          trace.actions.push(await interactWithRuntimeControl(browser, item, action));
+          const result = await interactWithRuntimeControl(browser, item, action);
+          trace.actions.push(result.actionEvidence);
+          trace.completionEvents.push(result.completionOracle);
         } else if (action.kind === "navigate-negative") {
+          const before = await browser.snapshot(item.controlAction.targetSelector);
+          const networkStart = browser.networkEntries().length;
           const observed = await browser.navigate(action.route);
           assert(action.allowedStatuses.includes(observed.status),
             `${item.caseId} negative navigation status ${observed.status} not in ${action.allowedStatuses.join(",")}`);
+          const after = await browser.snapshot("body");
+          const networkResponses = correlateNetwork(browser.networkEntries().slice(networkStart), item, "negative-navigation");
+          const completionOracle = evaluateCompletionOracle({
+            action: completionAction("navigate-negative", item, "negative-navigation"),
+            before,
+            after,
+            navigation: observed,
+            allowedStatuses: action.allowedStatuses,
+            networkResponses,
+          });
+          assertCompletionEvidence(completionOracle, item.caseId);
+          assert(completionOracle.pass, `${item.caseId} negative navigation completion failed: ${completionOracle.reason}`);
           trace.actions.push({ ...action, observed, status: "PASS" });
+          trace.completionEvents.push(completionOracle);
         }
       }
     }
+    assert(trace.completionEvents.some(event => event.pass && item.oracle.allowedCompletionSources.includes(event.source)),
+      `${item.caseId} has no allowed completion oracle`);
     await browser.screenshot(screenshotPath);
     writeJson(consolePath, {
       schema: "media-server.v390-ui-native-browser-console.v1",
@@ -168,6 +200,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       observed: trace.requested,
       navigation: browser.navigation,
       oracleSeed: item.oracle,
+      completionOracle: trace.completionEvents,
       screenshotPath,
       tracePath,
       browserConsolePath: consolePath,
@@ -179,6 +212,9 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
 }
 
 async function interactWithRuntimeControl(browser, item, action) {
+  const correlationId = `${item.caseId}:primary`;
+  const before = await browser.snapshot(action.selector);
+  const networkStart = browser.networkEntries().length;
   const control = await browser.evaluate(`(() => {
     const element = document.querySelector(${JSON.stringify(action.selector)});
     if (!element) return null;
@@ -202,7 +238,39 @@ async function interactWithRuntimeControl(browser, item, action) {
   } else {
     await browser.click(action.selector);
   }
-  return { ...action, executedKind, status: "PASS" };
+  await delay(350);
+  const after = await browser.snapshot(action.selector);
+  const networkResponses = browser.networkEntries().slice(networkStart).map(item => ({ ...item, correlationId }));
+  const actionEvidence = { ...action, executed: true, executedKind, correlationId, status: "PASS" };
+  const completionOracle = evaluateCompletionOracle({
+    action: actionEvidence,
+    before,
+    after,
+    networkResponses,
+  });
+  assertCompletionEvidence(completionOracle, item.caseId);
+  assert(completionOracle.pass, `${item.caseId} ${executedKind} completion failed: ${completionOracle.reason}`);
+  return { actionEvidence, completionOracle };
+}
+
+function completionAction(kind, item, suffix) {
+  return {
+    kind,
+    executed: true,
+    correlationId: `${item.caseId}:${suffix}`,
+    dispatch: "playwright-native",
+  };
+}
+
+function correlateNetwork(entries, item, suffix) {
+  const correlationId = `${item.caseId}:${suffix}`;
+  return entries.map(entry => ({ ...entry, correlationId }));
+}
+
+function assertCompletionEvidence(value, caseId) {
+  assert(typeof value?.beforeDigest === "string", `${caseId} completion beforeDigest missing`);
+  assert(typeof value?.afterDigest === "string", `${caseId} completion afterDigest missing`);
+  assert(Array.isArray(value?.networkResponses), `${caseId} completion networkResponses missing`);
 }
 
 function resolveRoleState(role, roleStateMap) {

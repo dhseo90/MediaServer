@@ -20,13 +20,13 @@
 
 ## Task 2 — V390-REVIEW2-25 no-op false-PASS guard
 
-- [ ] Register the no-op oracle test definition before RED.
-- [ ] RED: a pre-existing visible string with identical before/after state passes or lacks a deterministic rejection.
-- [ ] Capture before/after DOM digest and correlated network responses for each native action.
-- [ ] Require one allowed completion oracle: changed DOM, network+DOM, persisted readback, EventRecord, or server-log correlation; navigation/negative-route cases use their dedicated response+DOM/status oracle.
-- [ ] Reject identical before/after action state with no correlated response, even when expected visible text already exists.
-- [ ] Add contract negatives for click/select/fill no-op and pre-existing marker false-PASS.
-- [ ] Run focused contract/compatibility stabilization, record RED/final results and cleanup, update roadmap status, and commit Step 25 only.
+- [x] Register the no-op oracle test definition before RED.
+- [x] RED: a pre-existing visible string with identical before/after state passes or lacks a deterministic rejection.
+- [x] Capture before/after DOM digest and correlated network responses for each native action.
+- [x] Require one allowed completion oracle: changed DOM, network+DOM, persisted readback, EventRecord, or server-log correlation; navigation/negative-route cases use their dedicated response+DOM/status oracle.
+- [x] Reject identical before/after action state with no correlated response, even when expected visible text already exists.
+- [x] Add contract negatives for click/select/fill no-op and pre-existing marker false-PASS.
+- [x] Run focused contract/compatibility stabilization, record RED/final results and cleanup, update roadmap status, and commit Step 25 only.
 
 ## Boundaries
 
