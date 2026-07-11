@@ -6,6 +6,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import zlib from "node:zlib";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -47,6 +48,16 @@ try {
     assert(result.evidenceEligibility === "eligible", result.reasons.join("; "));
     assert(result.qualifiedCaseCount === 1, "scoped qualified case count mismatch");
     assert(result.uiFulltestPass === false, "scoped evidence must not become full-suite PASS");
+  });
+
+  check("attested server-log completion oracle remains eligible", () => {
+    const candidate = makeCandidate(tempRoot, policy, 1, "scoped-change");
+    const item = candidate.cases[0];
+    item.completionOracle.type = "server-log-correlation";
+    item.completionOracle.evidenceRef = evidenceRef(item.artifacts.serverLog, policy);
+    const result = evaluate(candidate, tempRoot);
+    assert(result.evidenceEligibility === "eligible", result.reasons.join("; "));
+    assert(result.qualifiedCaseCount === 1, "server-log scoped case did not qualify");
   });
 
   check("contract-only exact 424 closure satisfies suite algorithm", () => {
@@ -110,6 +121,96 @@ try {
     assert(result.reasons.includes("source-binding-caseManifestSha256-drift"), "manifest hash check was skipped");
   });
 
+  check("self-declared evidence refs and redaction PASS are not attested evidence", () => {
+    const candidate = makeCandidate(tempRoot, policy, 1, "scoped-change");
+    candidate.cases[0].completionOracle.evidenceRef = "trace.json";
+    candidate.cases[0].visualEvidence.evidenceRef = "visual-diff.json";
+    delete candidate.cases[0].security.evidenceRef;
+    delete candidate.security.evidenceRef;
+    candidate.crossCuttingObligations[0].evidenceRef = "visual-quality.json";
+    const result = evaluate(candidate, tempRoot);
+    for (const reason of [
+      "UI-001:completion-evidence-ref-not-attested",
+      "UI-001:visual-evidence-ref-not-attested",
+      "UI-001:case-redaction-evidence-ref-not-attested",
+      "suite-redaction-evidence-ref-not-attested",
+      "cross-cutting-visual-quality-evidence-ref-not-attested",
+    ]) {
+      assert(result.reasons.includes(reason), `self-declared evidence passed: ${reason}`);
+    }
+  });
+
+  check("decode schema correlation payload and independent redaction negatives are rejected", () => {
+    let candidate = makeCandidate(tempRoot, policy, 1, "scoped-change");
+    let item = candidate.cases[0];
+    let artifactRoot = path.join(tempRoot, candidate.sourceBinding.artifactRoot);
+    let filePath = path.join(artifactRoot, item.artifacts.screenshot.path);
+    fs.writeFileSync(filePath, Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+    item.artifacts.screenshot = artifactMeta(filePath, "image/png", artifactRoot, item.testId, item.completionOracle.correlationId);
+    let result = evaluate(candidate, tempRoot);
+    assert(result.reasons.some(reason => reason.endsWith(":artifact-screenshot-not-decodable-png")), "PNG signature-only artifact passed");
+
+    candidate = makeCandidate(tempRoot, policy, 1, "scoped-change");
+    item = candidate.cases[0];
+    artifactRoot = path.join(tempRoot, candidate.sourceBinding.artifactRoot);
+    filePath = path.join(artifactRoot, item.artifacts.trace.path);
+    writeJson(filePath, { schema: "forged.trace", caseId: item.testId, correlationId: item.completionOracle.correlationId });
+    item.artifacts.trace = artifactMeta(filePath, "application/json", artifactRoot, item.testId, item.completionOracle.correlationId);
+    item.completionOracle.evidenceRef = evidenceRef(item.artifacts.trace, policy);
+    result = evaluate(candidate, tempRoot);
+    assert(result.reasons.some(reason => reason.endsWith(":completion-trace-schema-invalid")), "forged trace schema passed");
+
+    candidate = makeCandidate(tempRoot, policy, 1, "scoped-change");
+    item = candidate.cases[0];
+    item.completionOracle.evidenceRef.caseId = "SAFE-999";
+    result = evaluate(candidate, tempRoot);
+    assert(result.reasons.some(reason => reason.endsWith(":completion-evidence-ref-case-correlation-mismatch")), "completion case correlation drift passed");
+
+    candidate = makeCandidate(tempRoot, policy, 1, "scoped-change");
+    item = candidate.cases[0];
+    artifactRoot = path.join(tempRoot, candidate.sourceBinding.artifactRoot);
+    filePath = path.join(artifactRoot, item.artifacts.visualDiff.path);
+    const visualPayload = JSON.parse(fs.readFileSync(filePath, "utf8"));
+    visualPayload.screenshotSha256 = "0".repeat(64);
+    writeJson(filePath, visualPayload);
+    item.artifacts.visualDiff = artifactMeta(filePath, "application/json", artifactRoot, item.testId, item.completionOracle.correlationId);
+    item.visualEvidence.evidenceRef = evidenceRef(item.artifacts.visualDiff, policy);
+    result = evaluate(candidate, tempRoot);
+    assert(result.reasons.some(reason => reason.endsWith(":visual-evidence-payload-invalid")), "hash-valid forged visual payload passed");
+
+    candidate = makeCandidate(tempRoot, policy, 1, "scoped-change");
+    artifactRoot = path.join(tempRoot, candidate.sourceBinding.artifactRoot);
+    const obligation = candidate.crossCuttingObligations[0];
+    filePath = path.join(artifactRoot, obligation.evidenceRef.path);
+    const crossPayload = JSON.parse(fs.readFileSync(filePath, "utf8"));
+    crossPayload.obligationId = "forged-obligation";
+    writeJson(filePath, crossPayload);
+    obligation.evidenceRef = evidenceRef(artifactMeta(filePath, "application/json", artifactRoot, "__suite__", obligation.correlationId), policy);
+    result = evaluate(candidate, tempRoot);
+    assert(result.reasons.includes("cross-cutting-visual-quality-payload-invalid"), "hash-valid forged cross-cutting payload passed");
+
+    candidate = makeCandidate(tempRoot, policy, 1, "scoped-change");
+    item = candidate.cases[0];
+    artifactRoot = path.join(tempRoot, candidate.sourceBinding.artifactRoot);
+    filePath = path.join(artifactRoot, item.artifacts.serverLog.path);
+    fs.writeFileSync(filePath, `caseId=${item.testId} correlationId=${item.completionOracle.correlationId} Authorization: Bearer supersecrettoken\n`, "utf8");
+    item.artifacts.serverLog = artifactMeta(filePath, "text/plain", artifactRoot, item.testId, item.completionOracle.correlationId);
+    result = evaluate(candidate, tempRoot);
+    assert(result.reasons.some(reason => reason.endsWith(":artifact-serverLog-forbidden-material-authorization-header")), "actual secret material passed redaction");
+
+    candidate = makeCandidate(tempRoot, policy, 1, "scoped-change");
+    item = candidate.cases[0];
+    artifactRoot = path.join(tempRoot, candidate.sourceBinding.artifactRoot);
+    filePath = path.join(artifactRoot, item.artifacts.redactionScan.path);
+    const redactionPayload = JSON.parse(fs.readFileSync(filePath, "utf8"));
+    redactionPayload.scannedArtifacts = [];
+    writeJson(filePath, redactionPayload);
+    item.artifacts.redactionScan = artifactMeta(filePath, "application/json", artifactRoot, item.testId, item.completionOracle.correlationId);
+    item.security.evidenceRef = evidenceRef(item.artifacts.redactionScan, policy);
+    result = evaluate(candidate, tempRoot);
+    assert(result.reasons.some(reason => reason.endsWith(":case-redaction-evidence-payload-invalid")), "forged redaction scan output passed");
+  });
+
   check("legacy and actual-mode contract fixture are ineligible", () => {
     const legacy = evaluateEvidence(policy, { schema: "media-server.v390-ui-automation.v1" }, { rootDir: tempRoot });
     assert(legacy.evidenceEligibility === "ineligible", "legacy v1 must be ineligible");
@@ -164,15 +265,17 @@ try {
     const fakePng = clone(base);
     const fakePath = path.join(tempRoot, "artifacts", "fake.png");
     fs.writeFileSync(fakePath, "not a png", "utf8");
-    fakePng.cases[0].artifacts.screenshot = artifactMeta(fakePath, "image/png", path.join(tempRoot, "artifacts"));
+    fakePng.cases[0].artifacts.screenshot = artifactMeta(fakePath, "image/png", path.join(tempRoot, "artifacts"),
+      fakePng.cases[0].testId, fakePng.cases[0].completionOracle.correlationId);
     result = evaluate(fakePng, tempRoot);
-    assert(result.reasons.some(reason => reason.endsWith(":artifact-screenshot-not-real-png")), "fake PNG passed");
+    assert(result.reasons.some(reason => reason.endsWith(":artifact-screenshot-not-decodable-png")), "fake PNG passed");
     const symlink = clone(base);
     const outsidePath = path.join(tempRoot, "outside.json");
     const linkPath = path.join(tempRoot, "artifacts", "link.json");
     fs.writeFileSync(outsidePath, "{}\n", "utf8");
     fs.symlinkSync(outsidePath, linkPath);
-    symlink.cases[0].artifacts.trace = artifactMeta(linkPath, "application/json", path.join(tempRoot, "artifacts"));
+    symlink.cases[0].artifacts.trace = artifactMeta(linkPath, "application/json", path.join(tempRoot, "artifacts"),
+      symlink.cases[0].testId, symlink.cases[0].completionOracle.correlationId);
     result = evaluate(symlink, tempRoot);
     assert(result.reasons.some(reason => reason.endsWith(":artifact-trace-path-invalid")), "symlink escape passed");
   });
@@ -222,51 +325,42 @@ function makeCandidate(tempRoot, policyValue, count, scopeKind) {
   fs.writeFileSync(runnerPath, "// contract runner fingerprint\n", "utf8");
   fs.mkdirSync(path.dirname(buildPath), { recursive: true });
   fs.writeFileSync(buildPath, "contract build\n", "utf8");
-  const pngPath = path.join(artifactRoot, "screen.png");
-  const tracePath = path.join(artifactRoot, "trace.json");
-  const consolePath = path.join(artifactRoot, "console.json");
-  const logPath = path.join(artifactRoot, "server.log");
-  fs.writeFileSync(pngPath, Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
-  fs.writeFileSync(tracePath, `${JSON.stringify({ schema: "contract.trace.v4" })}\n`, "utf8");
-  fs.writeFileSync(consolePath, "[]\n", "utf8");
-  fs.writeFileSync(logPath, "contract log\n", "utf8");
-  const baseCase = {
-    evidenceStatus: "automation-equivalent-pass",
-    status: "PASS",
-    interaction: { executed: true, trusted: true },
-    completionOracle: { type: "network-response-and-dom", evidenceRef: "trace.json", correlationId: "contract-correlation", statusCode: 200 },
-    visibleAssertions: [{ pass: true, visible: true, sourceBoundary: "exact-selector-visible-innerText-only" }],
-    visualEvidence: { schema: "media-server.ui-visual-baseline-diff.v1", status: "PASS", reviewRequired: false, evidenceRef: "visual-diff.json" },
-    security: { redactionStatus: "PASS", forbiddenMaterialFindings: 0 },
-    manualIntervention: false,
-    artifacts: {
-      screenshot: artifactMeta(pngPath, "image/png", artifactRoot),
-      trace: artifactMeta(tracePath, "application/json", artifactRoot),
-      browserConsole: artifactMeta(consolePath, "application/json", artifactRoot),
-      serverLog: artifactMeta(logPath, "text/plain", artifactRoot)
-    }
-  };
   const canonicalCases = canonicalManifestSource.cases.slice(0, count);
   assert(canonicalCases.length === count, `requested ${count} canonical cases, got ${canonicalCases.length}`);
-  const cases = canonicalCases.map(canonicalCase => ({
-    ...clone(baseCase),
-    testId: canonicalCase.testId,
-    featureId: canonicalCase.featureId,
-    requested: {
-      route: canonicalCase.route,
-      accountRole: canonicalCase.accountRole,
-      theme: canonicalCase.theme,
-      viewport: clone(canonicalCase.viewport),
-      controlAction: clone(canonicalCase.controlAction),
-    },
-    observed: {
-      route: canonicalCase.route,
-      accountRole: canonicalCase.accountRole,
-      theme: canonicalCase.theme,
-      viewport: clone(canonicalCase.viewport),
-      controlAction: clone(canonicalCase.controlAction),
-    },
-  }));
+  const cases = canonicalCases.map(canonicalCase => makeAttestedCase(artifactRoot, policyValue, canonicalCase));
+  const caseSetSha256 = sha256Text(JSON.stringify(cases.map(item => item.testId)));
+  const crossCuttingObligations = policyValue.suiteClosure.requiredCrossCuttingObligations.map(id => {
+    const correlationId = `contract-cross-${id}`;
+    const filePath = path.join(artifactRoot, "cross-cutting", `${id}.json`);
+    writeJson(filePath, {
+      schema: policyValue.attestation.crossCuttingSchema,
+      obligationId: id,
+      status: "PASS",
+      correlationId,
+      caseSetSha256,
+    });
+    return {
+      id,
+      status: "PASS",
+      correlationId,
+      evidenceRef: evidenceRef(artifactMeta(filePath, "application/json", artifactRoot, "__suite__", correlationId), policyValue),
+    };
+  });
+  const suiteCorrelationId = "contract-suite-redaction";
+  const suiteRedactionPath = path.join(artifactRoot, "suite-redaction.json");
+  writeJson(suiteRedactionPath, {
+    schema: policyValue.attestation.redactionScanSchema,
+    scope: "suite",
+    status: "PASS",
+    correlationId: suiteCorrelationId,
+    caseIds: cases.map(item => item.testId),
+    caseAttestations: cases.map(item => ({ caseId: item.testId, sha256: item.security.evidenceRef.sha256 })),
+    findings: [],
+  });
+  const suiteRedactionRef = evidenceRef(
+    artifactMeta(suiteRedactionPath, "application/json", artifactRoot, "__suite__", suiteCorrelationId),
+    policyValue,
+  );
   const now = Date.now();
   return {
     schema: "media-server.ui-automation-evidence.v4",
@@ -301,7 +395,13 @@ function makeCandidate(tempRoot, policyValue, count, scopeKind) {
       artifactRoot: "artifacts",
       currentSourceVerified: true
     },
-    security: { redactionStatus: "PASS", unapprovedConsoleMessages: 0, forbiddenMaterialFindings: 0 },
+    security: {
+      redactionStatus: "PASS",
+      unapprovedConsoleMessages: 0,
+      forbiddenMaterialFindings: 0,
+      correlationId: suiteCorrelationId,
+      evidenceRef: suiteRedactionRef,
+    },
     cleanup: { serversStopped: true, portsClean: true, temporaryArtifactsRemoved: true },
     coverage: {
       targetCount: count,
@@ -312,14 +412,160 @@ function makeCandidate(tempRoot, policyValue, count, scopeKind) {
       unapprovedExclusions: 0,
       manualIntervention: 0
     },
-    crossCuttingObligations: policyValue.suiteClosure.requiredCrossCuttingObligations.map(id => ({ id, status: "PASS", evidenceRef: `${id}.json` })),
+    crossCuttingObligations,
     cases
   };
 }
 
-function artifactMeta(filePath, contentType, artifactRoot) {
+function makeAttestedCase(artifactRoot, policyValue, canonicalCase) {
+  const correlationId = `contract-${canonicalCase.testId}`;
+  const caseRoot = path.join(artifactRoot, "cases", canonicalCase.testId);
+  fs.mkdirSync(caseRoot, { recursive: true });
+  const pngPath = path.join(caseRoot, "screen.png");
+  const tracePath = path.join(caseRoot, "trace.json");
+  const consolePath = path.join(caseRoot, "console.json");
+  const logPath = path.join(caseRoot, "server.log");
+  const visualPath = path.join(caseRoot, "visual-diff.json");
+  const redactionPath = path.join(caseRoot, "redaction.json");
+  fs.writeFileSync(pngPath, createPng());
+  writeJson(tracePath, {
+    schema: policyValue.attestation.interactionTraceSchema,
+    caseId: canonicalCase.testId,
+    correlationId,
+    route: canonicalCase.route,
+    controlAction: canonicalCase.controlAction,
+    events: [
+      { type: "trusted-interaction", trusted: true },
+      { type: "network-response", statusCode: 200, correlationId },
+      { type: "completion", status: "PASS", oracleType: "network-response-and-dom" },
+    ],
+  });
+  writeJson(consolePath, {
+    schema: policyValue.attestation.browserConsoleSchema,
+    caseId: canonicalCase.testId,
+    correlationId,
+    messages: [],
+  });
+  fs.writeFileSync(logPath, `caseId=${canonicalCase.testId} correlationId=${correlationId} status=PASS\n`, "utf8");
+  const screenshot = artifactMeta(pngPath, "image/png", artifactRoot, canonicalCase.testId, correlationId);
+  const trace = artifactMeta(tracePath, "application/json", artifactRoot, canonicalCase.testId, correlationId);
+  const browserConsole = artifactMeta(consolePath, "application/json", artifactRoot, canonicalCase.testId, correlationId);
+  const serverLog = artifactMeta(logPath, "text/plain", artifactRoot, canonicalCase.testId, correlationId);
+  writeJson(visualPath, {
+    schema: policyValue.caseEquivalence.visualBaselineSchema,
+    status: "PASS",
+    reviewRequired: false,
+    caseId: canonicalCase.testId,
+    correlationId,
+    screenshotSha256: screenshot.sha256,
+  });
+  const visualDiff = artifactMeta(visualPath, "application/json", artifactRoot, canonicalCase.testId, correlationId);
+  const scannedArtifacts = [screenshot, trace, browserConsole, serverLog, visualDiff]
+    .map(item => ({ path: item.path, sha256: item.sha256 }));
+  writeJson(redactionPath, {
+    schema: policyValue.attestation.redactionScanSchema,
+    scope: "case",
+    status: "PASS",
+    caseId: canonicalCase.testId,
+    correlationId,
+    scannedArtifacts,
+    findings: [],
+  });
+  const redactionScan = artifactMeta(redactionPath, "application/json", artifactRoot, canonicalCase.testId, correlationId);
+  return {
+    testId: canonicalCase.testId,
+    featureId: canonicalCase.featureId,
+    evidenceStatus: "automation-equivalent-pass",
+    status: "PASS",
+    requested: {
+      route: canonicalCase.route,
+      accountRole: canonicalCase.accountRole,
+      theme: canonicalCase.theme,
+      viewport: clone(canonicalCase.viewport),
+      controlAction: clone(canonicalCase.controlAction),
+    },
+    observed: {
+      route: canonicalCase.route,
+      accountRole: canonicalCase.accountRole,
+      theme: canonicalCase.theme,
+      viewport: clone(canonicalCase.viewport),
+      controlAction: clone(canonicalCase.controlAction),
+    },
+    interaction: { executed: true, trusted: true },
+    completionOracle: {
+      type: "network-response-and-dom",
+      evidenceRef: evidenceRef(trace, policyValue),
+      correlationId,
+      statusCode: 200,
+    },
+    visibleAssertions: [{ pass: true, visible: true, sourceBoundary: "exact-selector-visible-innerText-only" }],
+    visualEvidence: {
+      schema: policyValue.caseEquivalence.visualBaselineSchema,
+      status: "PASS",
+      reviewRequired: false,
+      correlationId,
+      evidenceRef: evidenceRef(visualDiff, policyValue),
+    },
+    security: {
+      redactionStatus: "PASS",
+      forbiddenMaterialFindings: 0,
+      correlationId,
+      evidenceRef: evidenceRef(redactionScan, policyValue),
+    },
+    manualIntervention: false,
+    artifacts: { screenshot, trace, browserConsole, serverLog, visualDiff, redactionScan },
+  };
+}
+
+function artifactMeta(filePath, contentType, artifactRoot, caseId, correlationId) {
   const stat = fs.statSync(filePath);
-  return { path: path.relative(artifactRoot, filePath), bytes: stat.size, sha256: sha256File(filePath), contentType };
+  return {
+    path: path.relative(artifactRoot, filePath),
+    bytes: stat.size,
+    sha256: sha256File(filePath),
+    contentType,
+    caseId,
+    correlationId,
+  };
+}
+
+function evidenceRef(metadata, policyValue) {
+  return { schema: policyValue.attestation.evidenceRefSchema, ...clone(metadata) };
+}
+
+function writeJson(filePath, payload) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
+}
+
+function createPng() {
+  const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(1, 0);
+  ihdr.writeUInt32BE(1, 4);
+  ihdr[8] = 8;
+  ihdr[9] = 6;
+  const raw = Buffer.from([0, 0, 0, 0, 0]);
+  return Buffer.concat([signature, pngChunk("IHDR", ihdr), pngChunk("IDAT", zlib.deflateSync(raw)), pngChunk("IEND", Buffer.alloc(0))]);
+}
+
+function pngChunk(type, data) {
+  const typeBytes = Buffer.from(type, "ascii");
+  const output = Buffer.alloc(data.length + 12);
+  output.writeUInt32BE(data.length, 0);
+  typeBytes.copy(output, 4);
+  data.copy(output, 8);
+  output.writeUInt32BE(crc32(Buffer.concat([typeBytes, data])), data.length + 8);
+  return output;
+}
+
+function crc32(bytes) {
+  let crc = 0xffffffff;
+  for (const value of bytes) {
+    crc ^= value;
+    for (let bit = 0; bit < 8; bit += 1) crc = (crc >>> 1) ^ ((crc & 1) ? 0xedb88320 : 0);
+  }
+  return (crc ^ 0xffffffff) >>> 0;
 }
 
 function evaluate(candidate, tempRoot) {

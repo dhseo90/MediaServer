@@ -3,6 +3,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import zlib from "node:zlib";
 
 const sha256Pattern = /^[a-f0-9]{64}$/;
 
@@ -19,6 +20,9 @@ export function validatePolicy(policy) {
   }
   for (const capability of ["wait", "query", "assert", "click", "type", "select", "evaluate", "screenshot"]) {
     expectIncludes(policy?.caseEquivalence?.requiredAdapterCapabilities, capability, `required adapter capability ${capability}`, errors);
+  }
+  for (const artifact of ["screenshot", "trace", "browserConsole", "serverLog", "visualDiff", "redactionScan"]) {
+    expectIncludes(policy?.caseEquivalence?.requiredArtifacts, artifact, `required case artifact ${artifact}`, errors);
   }
   for (const oracle of ["dom-transition", "network-response-and-dom", "persisted-state-readback", "eventrecord-correlation", "server-log-correlation"]) {
     expectIncludes(policy?.caseEquivalence?.allowedCompletionOracles, oracle, `completion oracle ${oracle}`, errors);
@@ -42,8 +46,23 @@ export function validatePolicy(policy) {
   expect(policy?.sourceBinding?.canonicalImplementationEvidenceSchema === "media-server.feature-implementation-evidence.v2", "canonical implementation evidence schema mismatch", errors);
   expect(policy?.sourceBinding?.sha256Pattern === "^[a-f0-9]{64}$", "source binding sha256 pattern mismatch", errors);
   expect(policy?.sourceBinding?.requireCurrentSourceVerification === true, "current source verification must be required", errors);
+  expect(policy?.attestation?.evidenceRefSchema === "media-server.ui-evidence-ref.v1", "evidence ref schema mismatch", errors);
+  expect(policy?.attestation?.interactionTraceSchema === "media-server.ui-interaction-trace.v1", "interaction trace schema mismatch", errors);
+  expect(policy?.attestation?.browserConsoleSchema === "media-server.ui-browser-console.v1", "browser console schema mismatch", errors);
+  expect(policy?.attestation?.crossCuttingSchema === "media-server.ui-cross-cutting-evidence.v1", "cross-cutting schema mismatch", errors);
+  expect(policy?.attestation?.redactionScanSchema === "media-server.ui-evidence-redaction-scan.v1", "redaction scan schema mismatch", errors);
+  expect(Number.isInteger(policy?.attestation?.maxArtifactBytes) && policy.attestation.maxArtifactBytes > 0, "maxArtifactBytes must be positive", errors);
   expect(policy?.security?.redactionStatus === "PASS", "security redactionStatus must be PASS", errors);
   expect(policy?.security?.unapprovedConsoleMessages === 0, "unapproved console messages must be zero", errors);
+  expect(Array.isArray(policy?.security?.forbiddenMaterialPatterns) && policy.security.forbiddenMaterialPatterns.length > 0, "forbidden material patterns missing", errors);
+  for (const pattern of policy?.security?.forbiddenMaterialPatterns || []) {
+    expect(typeof pattern?.id === "string" && typeof pattern?.source === "string", "forbidden material pattern invalid", errors);
+    try {
+      new RegExp(pattern.source, pattern.flags || "");
+    } catch {
+      errors.push(`forbidden material pattern does not compile: ${pattern?.id || "unknown"}`);
+    }
+  }
   for (const value of Object.values(policy?.boundaries || {})) {
     expect(value === false, "all Policy v4 false-PASS boundaries must be false", errors);
   }
@@ -77,10 +96,10 @@ export function evaluateEvidence(policy, summary, options = {}) {
   });
   const canonicalBinding = loadCanonicalCaseBinding(policy, summary, rootDir, reasons);
   validateAdapter(policy, summary, reasons);
-  validateSecurity(policy, summary, reasons);
+  const cases = Array.isArray(summary.cases) ? summary.cases : [];
+  validateSecurity(policy, summary, rootDir, cases, reasons);
   validateCleanup(summary, reasons);
 
-  const cases = Array.isArray(summary.cases) ? summary.cases : [];
   const eligibleCaseIds = [];
   const caseIds = new Set();
   for (const item of cases) {
@@ -105,9 +124,28 @@ export function evaluateEvidence(policy, summary, options = {}) {
   }
 
   const crossCutting = new Map((summary.crossCuttingObligations || []).map(item => [item.id, item]));
+  const caseSetSha256 = sha256Text(JSON.stringify(cases.map(item => item.testId)));
   for (const obligation of policy.suiteClosure.requiredCrossCuttingObligations) {
     const item = crossCutting.get(obligation);
-    if (!item || item.status !== "PASS" || !item.evidenceRef) reasons.push(`cross-cutting-${obligation}-not-pass`);
+    if (!item || item.status !== "PASS" || !item.evidenceRef) {
+      reasons.push(`cross-cutting-${obligation}-not-pass`);
+      continue;
+    }
+    const prefix = `cross-cutting-${obligation}-evidence-ref`;
+    const attested = validateEvidenceRef(policy, summary, rootDir, item.evidenceRef, {
+      expectedCaseId: "__suite__",
+      expectedCorrelationId: item.correlationId,
+      expectedContentType: "application/json",
+      prefix,
+    }, reasons);
+    if (attested) {
+      const payload = readJsonFile(attested.path);
+      if (payload?.schema !== policy.attestation.crossCuttingSchema || payload?.obligationId !== obligation ||
+          payload?.status !== "PASS" || payload?.caseSetSha256 !== caseSetSha256 ||
+          payload?.correlationId !== item.correlationId) {
+        reasons.push(`cross-cutting-${obligation}-payload-invalid`);
+      }
+    }
   }
 
   const allCasesEligible = cases.length > 0 && eligibleCaseIds.length === cases.length;
@@ -262,10 +300,32 @@ function validateAdapter(policy, summary, reasons) {
   }
 }
 
-function validateSecurity(policy, summary, reasons) {
+function validateSecurity(policy, summary, rootDir, cases, reasons) {
   if (summary.security?.redactionStatus !== policy.security.redactionStatus) reasons.push("redaction-not-pass");
   if (summary.security?.unapprovedConsoleMessages !== policy.security.unapprovedConsoleMessages) reasons.push("unapproved-console-message-present");
   if (summary.security?.forbiddenMaterialFindings !== 0) reasons.push("forbidden-material-found");
+  const ref = summary.security?.evidenceRef;
+  const correlationId = summary.security?.correlationId;
+  const attested = validateEvidenceRef(policy, summary, rootDir, ref, {
+    expectedCaseId: "__suite__",
+    expectedCorrelationId: correlationId,
+    expectedContentType: "application/json",
+    prefix: "suite-redaction-evidence-ref",
+  }, reasons);
+  if (!attested) return;
+  const payload = readJsonFile(attested.path);
+  const expectedCaseIds = cases.map(item => item.testId);
+  const expectedAttestations = cases.map(item => ({
+    caseId: item.testId,
+    sha256: item.security?.evidenceRef?.sha256,
+  }));
+  if (payload?.schema !== policy.attestation.redactionScanSchema || payload?.scope !== "suite" ||
+      payload?.status !== "PASS" || payload?.correlationId !== correlationId ||
+      JSON.stringify(payload?.caseIds) !== JSON.stringify(expectedCaseIds) ||
+      JSON.stringify(payload?.caseAttestations) !== JSON.stringify(expectedAttestations) ||
+      !Array.isArray(payload?.findings) || payload.findings.length !== 0) {
+    reasons.push("suite-redaction-evidence-payload-invalid");
+  }
 }
 
 function validateCleanup(summary, reasons) {
@@ -294,15 +354,50 @@ function validateCase(policy, item, summary, rootDir, { verifyArtifacts, canonic
   const oracle = item?.completionOracle || {};
   if (!policy.caseEquivalence.allowedCompletionOracles.includes(oracle.type)) reasons.push("completion-oracle-not-qualified");
   if (!oracle.evidenceRef) reasons.push("completion-oracle-evidence-missing");
+  if (!oracle.correlationId) reasons.push("completion-oracle-correlation-missing");
   if (oracle.type === "dom-transition" && oracle.beforeDigest === oracle.afterDigest) reasons.push("dom-transition-did-not-change");
   if (oracle.type === "network-response-and-dom" && (!oracle.correlationId || !(oracle.statusCode >= 200 && oracle.statusCode < 400))) reasons.push("network-completion-correlation-missing");
+  const completionArtifactName = oracle.type === "server-log-correlation" ? "serverLog" : "trace";
+  const completionContentType = oracle.type === "server-log-correlation" ? "text/plain" : "application/json";
+  const completionRef = validateEvidenceRef(policy, summary, rootDir, oracle.evidenceRef, {
+    expectedCaseId: item?.testId,
+    expectedCorrelationId: oracle.correlationId,
+    expectedContentType: completionContentType,
+    prefix: "completion-evidence-ref",
+  }, reasons);
+  if (completionRef && !sameArtifactReference(oracle.evidenceRef, item?.artifacts?.[completionArtifactName])) reasons.push("completion-evidence-ref-artifact-mismatch");
+  if (completionRef) validateCompletionEvidence(policy, item, canonicalCase, oracle, completionRef.path, reasons);
   const assertions = Array.isArray(item?.visibleAssertions) ? item.visibleAssertions : [];
   if (assertions.length === 0) reasons.push("visible-assertions-missing");
   for (const assertion of assertions) {
     if (assertion.pass !== true || assertion.visible !== true || assertion.sourceBoundary !== policy.caseEquivalence.requiredAssertionBoundary) reasons.push("visible-assertion-not-qualified");
   }
-  if (item?.visualEvidence?.schema !== policy.caseEquivalence.visualBaselineSchema || item?.visualEvidence?.status !== "PASS" || item?.visualEvidence?.reviewRequired !== false || !item?.visualEvidence?.evidenceRef) reasons.push("visual-evidence-not-qualified");
+  if (item?.visualEvidence?.schema !== policy.caseEquivalence.visualBaselineSchema || item?.visualEvidence?.status !== "PASS" || item?.visualEvidence?.reviewRequired !== false || !item?.visualEvidence?.evidenceRef || !item?.visualEvidence?.correlationId) reasons.push("visual-evidence-not-qualified");
+  const visualRef = validateEvidenceRef(policy, summary, rootDir, item?.visualEvidence?.evidenceRef, {
+    expectedCaseId: item?.testId,
+    expectedCorrelationId: item?.visualEvidence?.correlationId,
+    expectedContentType: "application/json",
+    prefix: "visual-evidence-ref",
+  }, reasons);
+  if (visualRef && !sameArtifactReference(item?.visualEvidence?.evidenceRef, item?.artifacts?.visualDiff)) reasons.push("visual-evidence-ref-artifact-mismatch");
+  if (visualRef) {
+    const payload = readJsonFile(visualRef.path);
+    if (payload?.schema !== policy.caseEquivalence.visualBaselineSchema || payload?.status !== "PASS" ||
+        payload?.reviewRequired !== false || payload?.caseId !== item?.testId ||
+        payload?.correlationId !== item?.visualEvidence?.correlationId ||
+        payload?.screenshotSha256 !== item?.artifacts?.screenshot?.sha256) {
+      reasons.push("visual-evidence-payload-invalid");
+    }
+  }
   if (item?.security?.redactionStatus !== "PASS" || item?.security?.forbiddenMaterialFindings !== 0) reasons.push("case-redaction-not-pass");
+  const redactionRef = validateEvidenceRef(policy, summary, rootDir, item?.security?.evidenceRef, {
+    expectedCaseId: item?.testId,
+    expectedCorrelationId: item?.security?.correlationId,
+    expectedContentType: "application/json",
+    prefix: "case-redaction-evidence-ref",
+  }, reasons);
+  if (redactionRef && !sameArtifactReference(item?.security?.evidenceRef, item?.artifacts?.redactionScan)) reasons.push("case-redaction-evidence-ref-artifact-mismatch");
+  if (redactionRef) validateCaseRedaction(policy, item, summary, rootDir, redactionRef.path, reasons);
   if (item?.manualIntervention !== false) reasons.push("case-manual-intervention-present");
   if (verifyArtifacts) validateArtifacts(policy, item, summary, rootDir, reasons);
   return [...new Set(reasons)];
@@ -327,17 +422,140 @@ function validateArtifacts(policy, item, summary, rootDir, reasons) {
     }
     const stat = fs.statSync(resolved);
     if (!stat.isFile() || stat.size !== artifact.bytes || sha256File(resolved) !== artifact.sha256) reasons.push(`artifact-${name}-integrity-failed`);
+    if (stat.size > policy.attestation.maxArtifactBytes) reasons.push(`artifact-${name}-too-large`);
     if (!sha256Pattern.test(artifact.sha256 || "")) reasons.push(`artifact-${name}-sha256-invalid`);
-    if (name === "screenshot" && !isPng(resolved, artifact.contentType)) reasons.push("artifact-screenshot-not-real-png");
+    if (artifact.caseId !== item.testId || artifact.correlationId !== item.completionOracle?.correlationId) reasons.push(`artifact-${name}-case-correlation-mismatch`);
+    if (name === "screenshot" && !decodePng(resolved, artifact.contentType, policy.attestation.maxArtifactBytes)) reasons.push("artifact-screenshot-not-decodable-png");
     if (name === "trace" && !isJson(resolved, artifact.contentType)) reasons.push("artifact-trace-not-json");
-    if (name === "browserConsole" && !isJson(resolved, artifact.contentType)) reasons.push("artifact-browser-console-not-json");
-    if (name === "serverLog" && artifact.contentType !== "text/plain") reasons.push("artifact-server-log-not-text");
+    if (name === "browserConsole") {
+      const payload = isJson(resolved, artifact.contentType) ? readJsonFile(resolved) : null;
+      if (!payload) reasons.push("artifact-browser-console-not-json");
+      else if (payload.schema !== policy.attestation.browserConsoleSchema || payload.caseId !== item.testId ||
+          payload.correlationId !== item.completionOracle?.correlationId || !Array.isArray(payload.messages)) {
+        reasons.push("artifact-browser-console-schema-invalid");
+      }
+    }
+    if (name === "serverLog") {
+      if (artifact.contentType !== "text/plain") reasons.push("artifact-server-log-not-text");
+      else {
+        const text = fs.readFileSync(resolved, "utf8");
+        if (!text.includes(`caseId=${item.testId}`) || !text.includes(`correlationId=${item.completionOracle?.correlationId}`)) {
+          reasons.push("artifact-server-log-case-correlation-missing");
+        }
+      }
+    }
   }
+  scanArtifactFiles(policy, item, artifactRoot, reasons);
   const video = item.artifacts?.video;
   if (video) {
     const resolved = resolveContained(artifactRoot, video.path);
     if (!resolved || !isInside(artifactRoot, resolved) || !fs.existsSync(resolved)) reasons.push("artifact-video-path-invalid");
     else if (/fixture video placeholder/i.test(fs.readFileSync(resolved, "utf8"))) reasons.push("artifact-video-placeholder-rejected");
+  }
+}
+
+function validateEvidenceRef(policy, summary, rootDir, ref, expectations, reasons) {
+  const { prefix, expectedCaseId, expectedCorrelationId, expectedContentType } = expectations;
+  if (!ref || typeof ref !== "object" || Array.isArray(ref) || ref.schema !== policy.attestation.evidenceRefSchema) {
+    reasons.push(`${prefix}-not-attested`);
+    return null;
+  }
+  if (ref.caseId !== expectedCaseId || !expectedCorrelationId || ref.correlationId !== expectedCorrelationId) {
+    reasons.push(`${prefix}-case-correlation-mismatch`);
+  }
+  if (ref.contentType !== expectedContentType) reasons.push(`${prefix}-content-type-mismatch`);
+  if (!sha256Pattern.test(ref.sha256 || "") || !Number.isInteger(ref.bytes) || ref.bytes < 0) {
+    reasons.push(`${prefix}-metadata-invalid`);
+  }
+  const artifactRoot = resolveContained(rootDir, summary.sourceBinding?.artifactRoot);
+  if (!artifactRoot || !fs.existsSync(artifactRoot)) {
+    reasons.push(`${prefix}-artifact-root-invalid`);
+    return null;
+  }
+  const resolved = resolveContained(artifactRoot, ref.path);
+  if (!resolved || !fs.existsSync(resolved)) {
+    reasons.push(`${prefix}-path-invalid`);
+    return null;
+  }
+  const stat = fs.statSync(resolved);
+  if (!stat.isFile() || stat.size !== ref.bytes || stat.size > policy.attestation.maxArtifactBytes ||
+      sha256File(resolved) !== ref.sha256) {
+    reasons.push(`${prefix}-integrity-failed`);
+    return null;
+  }
+  for (const finding of forbiddenFindings(policy, resolved)) reasons.push(`${prefix}-forbidden-material-${finding}`);
+  return { path: resolved, ref };
+}
+
+function sameArtifactReference(ref, artifact) {
+  return Boolean(ref && artifact && ref.path === artifact.path && ref.sha256 === artifact.sha256 &&
+    ref.bytes === artifact.bytes && ref.contentType === artifact.contentType &&
+    ref.caseId === artifact.caseId && ref.correlationId === artifact.correlationId);
+}
+
+function validateCompletionEvidence(policy, item, canonicalCase, oracle, evidencePath, reasons) {
+  if (oracle.type === "server-log-correlation") {
+    const text = fs.readFileSync(evidencePath, "utf8");
+    if (!text.includes(`caseId=${item?.testId}`) || !text.includes(`correlationId=${oracle.correlationId}`)) {
+      reasons.push("completion-server-log-correlation-missing");
+    }
+    return;
+  }
+  const payload = readJsonFile(evidencePath);
+  if (payload?.schema !== policy.attestation.interactionTraceSchema || payload?.caseId !== item?.testId ||
+      payload?.correlationId !== oracle.correlationId || payload?.route !== canonicalCase?.route ||
+      JSON.stringify(payload?.controlAction) !== JSON.stringify(canonicalCase?.controlAction) ||
+      !Array.isArray(payload?.events)) {
+    reasons.push("completion-trace-schema-invalid");
+    return;
+  }
+  const trusted = payload.events.some(event => event?.type === "trusted-interaction" && event?.trusted === true);
+  const completion = payload.events.some(event => event?.type === "completion" && event?.status === "PASS" && event?.oracleType === oracle.type);
+  if (!trusted || !completion) reasons.push("completion-trace-events-incomplete");
+  if (oracle.type === "network-response-and-dom") {
+    const network = payload.events.some(event => event?.type === "network-response" &&
+      event?.statusCode === oracle.statusCode && event?.correlationId === oracle.correlationId);
+    if (!network) reasons.push("completion-trace-network-correlation-missing");
+  }
+}
+
+function validateCaseRedaction(policy, item, summary, rootDir, scanPath, reasons) {
+  const payload = readJsonFile(scanPath);
+  const correlationId = item?.security?.correlationId;
+  const expectedArtifacts = policy.caseEquivalence.requiredArtifacts
+    .filter(name => name !== "redactionScan")
+    .map(name => ({ path: item?.artifacts?.[name]?.path, sha256: item?.artifacts?.[name]?.sha256 }));
+  if (payload?.schema !== policy.attestation.redactionScanSchema || payload?.scope !== "case" ||
+      payload?.status !== "PASS" || payload?.caseId !== item?.testId || payload?.correlationId !== correlationId ||
+      JSON.stringify(payload?.scannedArtifacts) !== JSON.stringify(expectedArtifacts) ||
+      !Array.isArray(payload?.findings) || payload.findings.length !== 0) {
+    reasons.push("case-redaction-evidence-payload-invalid");
+  }
+  const artifactRoot = resolveContained(rootDir, summary.sourceBinding?.artifactRoot);
+  if (!artifactRoot) reasons.push("case-redaction-artifact-root-invalid");
+}
+
+function scanArtifactFiles(policy, item, artifactRoot, reasons) {
+  for (const [name, artifact] of Object.entries(item.artifacts || {})) {
+    const resolved = resolveContained(artifactRoot, artifact?.path);
+    if (!resolved || !fs.existsSync(resolved) || !fs.statSync(resolved).isFile()) continue;
+    if (fs.statSync(resolved).size > policy.attestation.maxArtifactBytes) continue;
+    for (const finding of forbiddenFindings(policy, resolved)) reasons.push(`artifact-${name}-forbidden-material-${finding}`);
+  }
+}
+
+function forbiddenFindings(policy, filePath) {
+  const text = fs.readFileSync(filePath).toString("utf8");
+  return (policy.security.forbiddenMaterialPatterns || [])
+    .filter(pattern => new RegExp(pattern.source, pattern.flags || "").test(text))
+    .map(pattern => pattern.id);
+}
+
+function readJsonFile(filePath) {
+  try {
+    return JSON.parse(fs.readFileSync(filePath, "utf8"));
+  } catch {
+    return null;
   }
 }
 
@@ -380,10 +598,72 @@ function isInside(baseDir, candidate) {
   return relative !== "" && !relative.startsWith("..") && !path.isAbsolute(relative);
 }
 
-function isPng(filePath, contentType) {
-  if (contentType !== "image/png") return false;
-  const bytes = fs.readFileSync(filePath).subarray(0, 8);
-  return bytes.equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+function decodePng(filePath, contentType, maxDecodedBytes) {
+  if (contentType !== "image/png") return null;
+  try {
+    const bytes = fs.readFileSync(filePath);
+    const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+    if (bytes.length < 33 || !bytes.subarray(0, 8).equals(signature)) return null;
+    let offset = 8;
+    let ihdr = null;
+    let sawIend = false;
+    const idat = [];
+    while (offset + 12 <= bytes.length) {
+      const length = bytes.readUInt32BE(offset);
+      const chunkEnd = offset + 12 + length;
+      if (chunkEnd > bytes.length) return null;
+      const typeBytes = bytes.subarray(offset + 4, offset + 8);
+      const type = typeBytes.toString("ascii");
+      const data = bytes.subarray(offset + 8, offset + 8 + length);
+      const expectedCrc = bytes.readUInt32BE(offset + 8 + length);
+      if (crc32(Buffer.concat([typeBytes, data])) !== expectedCrc) return null;
+      if (type === "IHDR") {
+        if (ihdr || length !== 13) return null;
+        ihdr = {
+          width: data.readUInt32BE(0),
+          height: data.readUInt32BE(4),
+          bitDepth: data[8],
+          colorType: data[9],
+          compression: data[10],
+          filter: data[11],
+          interlace: data[12],
+        };
+      } else if (type === "IDAT") {
+        idat.push(data);
+      } else if (type === "IEND") {
+        if (length !== 0) return null;
+        sawIend = true;
+        offset = chunkEnd;
+        break;
+      }
+      offset = chunkEnd;
+    }
+    if (!ihdr || !sawIend || offset !== bytes.length || idat.length === 0 ||
+        ihdr.width <= 0 || ihdr.height <= 0 || ihdr.bitDepth !== 8 ||
+        ihdr.compression !== 0 || ihdr.filter !== 0 || ihdr.interlace !== 0) return null;
+    const channels = new Map([[0, 1], [2, 3], [4, 2], [6, 4]]).get(ihdr.colorType);
+    if (!channels) return null;
+    const rowBytes = ihdr.width * channels;
+    const expectedDecodedBytes = ihdr.height * (rowBytes + 1);
+    if (!Number.isSafeInteger(expectedDecodedBytes) || expectedDecodedBytes > maxDecodedBytes) return null;
+    const decoded = zlib.inflateSync(Buffer.concat(idat), { maxOutputLength: maxDecodedBytes });
+    if (decoded.length !== expectedDecodedBytes) return null;
+    for (let row = 0; row < ihdr.height; row += 1) {
+      if (decoded[row * (rowBytes + 1)] > 4) return null;
+    }
+    return { width: ihdr.width, height: ihdr.height, colorType: ihdr.colorType };
+  } catch {
+    return null;
+  }
+}
+
+function crc32(bytes) {
+  let crc = 0xffffffff;
+  for (const value of bytes) {
+    crc ^= value;
+    for (let bit = 0; bit < 8; bit += 1) crc = (crc >>> 1) ^ ((crc & 1) ? 0xedb88320 : 0);
+  }
+  return (crc ^ 0xffffffff) >>> 0;
 }
 
 function isJson(filePath, contentType) {

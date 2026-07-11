@@ -98,6 +98,11 @@ Release UI PASS에는 현재 exact UI test ID 전수의 direct 또는 automation
 PASS, fail/not-run/unsupported/unapproved exclusion/manual intervention 0, source binding,
 completion oracle, role/viewport/theme, artifact integrity/redaction, visual/replay/cleanup,
 교차 반응형·시각·role·client redaction·video/overlay·accessibility closure가 필요합니다.
+Completion/visual/cross-cutting/redaction evidence는 artifact root 안 실파일의
+bytes/SHA-256/content type/case·correlation ID에 attested되어야 합니다. PNG signature만,
+임의 JSON trace, 문자열 evidenceRef, summary의 redaction PASS/0 자기선언은 release evidence가
+아닙니다. Evaluator의 image decode, trace/payload schema, 독립 forbidden-material scan을
+통과해야 합니다.
 `./server.sh verify-ui-fulltest-evidence-policy-v4`의 policy validation PASS는 이 실행
 PASS를 대신하지 않으며 출력의 `uiFulltestPass=true`를 별도로 확인해야 합니다.
 Policy v4 전 historical evidence는 당시 결과로 보존하고 소급 승격하지 않습니다.

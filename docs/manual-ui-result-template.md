@@ -67,10 +67,11 @@ Policy v4 자동화/혼합 evidence 요약:
 | exact target/pass/fail/notRun/unsupported/unapproved exclusion |  |
 | source/policy/manifest/runner fingerprint |  |
 | requested/observed role·viewport·theme 일치 |  |
-| completion oracle 종류/상관 ID 또는 evidence ref |  |
-| artifact hash/type/path containment |  |
-| redaction/console/forbidden material |  |
-| visual baseline/geometry reviewRequired |  |
+| completion oracle 종류/상관 ID/attested evidence ref |  |
+| artifact hash/type/path containment + bytes/SHA-256/content type/case correlation |  |
+| PNG decode/trace schema 결과 |  |
+| redaction scan output/독립 forbidden-material 재스캔 |  |
+| visual/cross-cutting payload schema/reviewRequired/case-set correlation |  |
 | replay status |  |
 | server/port/temp cleanup |  |
 | `policyValidationResult` | PASS/FAIL |

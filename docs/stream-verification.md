@@ -201,6 +201,14 @@ hash/type/path containment, redaction, visual evidence, replay, cleanup을 모�
 `automation-equivalent-pass`가 될 수 있습니다. wrapper/static/API/screenshot-only/fixture와
 legacy v1 replay는 보조 evidence입니다.
 
+`V390-REVIEW2-23`부터 completion/visual/cross-cutting/redaction `evidenceRef`는 문자열이나
+summary의 PASS boolean이 아니라 `media-server.ui-evidence-ref.v1` metadata로 기록합니다.
+각 ref의 contained path, bytes, SHA-256, content type, case/correlation ID를 실파일과 대조하고,
+PNG는 chunk CRC와 IDAT inflate까지 decode합니다. Interaction trace는 trusted action과
+completion/network correlation event schema를, visual/cross-cutting/redaction JSON은 각각의
+payload schema와 case set/hash를 검증합니다. Evaluator는 scan output과 별도로 보존 artifact의
+authorization/bearer/secret assignment/viewer RTSP URL/raw debug material을 직접 재스캔합니다.
+
 전체 UI PASS는 exact UI test ID 전수가 `direct-pass` 또는
 `automation-equivalent-pass`이고 fail/not-run/unsupported/unapproved exclusion이 0이며
 시각 품질, 반응형, role guard, client redaction, video/overlay 등 교차 의무가 닫힌

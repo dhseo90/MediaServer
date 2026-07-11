@@ -55,13 +55,23 @@
       "screenshot",
       "trace",
       "browserConsole",
-      "serverLog"
+      "serverLog",
+      "visualDiff",
+      "redactionScan"
     ],
     "optionalArtifacts": [
       "video"
     ],
     "visualBaselineSchema": "media-server.ui-visual-baseline-diff.v1",
     "maxEvidenceAgeHours": 24
+  },
+  "attestation": {
+    "evidenceRefSchema": "media-server.ui-evidence-ref.v1",
+    "interactionTraceSchema": "media-server.ui-interaction-trace.v1",
+    "browserConsoleSchema": "media-server.ui-browser-console.v1",
+    "crossCuttingSchema": "media-server.ui-cross-cutting-evidence.v1",
+    "redactionScanSchema": "media-server.ui-evidence-redaction-scan.v1",
+    "maxArtifactBytes": 16777216
   },
   "suiteClosure": {
     "expectedExactUiTestIds": 424,
@@ -117,6 +127,33 @@
       "password",
       "viewer-source-url",
       "raw-debug-json"
+    ],
+    "forbiddenMaterialPatterns": [
+      {
+        "id": "authorization-header",
+        "source": "authorization\\s*:",
+        "flags": "i"
+      },
+      {
+        "id": "bearer-token",
+        "source": "bearer\\s+[A-Za-z0-9._~-]{8,}",
+        "flags": "i"
+      },
+      {
+        "id": "secret-assignment",
+        "source": "(?:password|session(?:id|cookie)?|authtoken|token|cookie)\\s*[=:]\\s*[\\\"']?[^\\s,;\\\"']+",
+        "flags": "i"
+      },
+      {
+        "id": "viewer-source-url",
+        "source": "(?:rtsp|rtsps)://[^\\s\\\"']+",
+        "flags": "i"
+      },
+      {
+        "id": "raw-debug-json",
+        "source": "\\\"(?:passwordHash|tokenHash|debugCounters|sourceUrl)\\\"\\s*:",
+        "flags": "i"
+      }
     ]
   },
   "boundaries": {

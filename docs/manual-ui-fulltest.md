@@ -267,6 +267,9 @@ Policy v4 자동화 동등성은 아래 추가 조건을 모두 요구합니다.
   EventRecord, server log 중 하나의 completion oracle
 - exact-selector visible assertion과 실제 screenshot/trace/console/server-log artifact
 - source/policy/manifest/runner fingerprint, artifact hash/type/path containment, redaction
+- completion/visual/cross-cutting/redaction ref의 실파일 bytes/SHA-256/content type과
+  exact case/correlation ID, PNG chunk/CRC/IDAT decode, interaction trace/payload schema
+- redaction scan output의 scanned artifact hash 목록과 evaluator의 독립 forbidden-material 재스캔
 - visual baseline/geometry evidence 또는 direct visual evidence가 필요한 항목의 hybrid 처리
 - replay PASS, failed/not-run/unsupported/manualIntervention 0, server/port/temp cleanup PASS
 

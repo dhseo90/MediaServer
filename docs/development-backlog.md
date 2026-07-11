@@ -1727,7 +1727,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 | 20 | V390-REVIEW2-20 | Feature Closure | 984행 semantic implementation closure | P0 | 완료 | v2 manifest가 984행 exact handler/route/control/action/state/assertion locator와 reviewer-bound unique digest를 검증하고, 자동 closure·generic-alone·wrong/unrelated/drift/ID-only/unapproved를 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 전 기능 정확도·동등성 상향 적용 |
 | 21 | V390-REVIEW2-21 | Product Correctness | Analysis Registry durable write contract | P0 | 완료 | profile/rule/VA rule/VLM profile create·update·delete가 atomic persist-before-publish를 사용하고 parent/open/write/flush/rename 실패를 HTTP 5xx로 전파하며 memory/file/restart no-change를 보장 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점, 데이터 손상·거짓 성공 위험 상향 적용 |
 | 22 | V390-REVIEW2-22 | UI Policy | Policy v4 canonical 424 exact-ID binding | P0 | 완료 | canonical v1 manifest 424행을 implementation evidence hash·ordered test/feature ID·route·selector/action anchor에 묶고 evidence requested/observed role·viewport·theme까지 exact 대조하며 합성 424개와 hash-valid drift를 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+1=6점, 거짓 UI fulltest PASS 위험 상향 적용 |
-| 23 | V390-REVIEW2-23 | UI Policy | Policy v4 evidence attestation 강화 | P0 | 미완료 | completion/visual/cross-cutting evidenceRef의 실파일·hash·case correlation, 실제 image decode, trace schema, redaction scan을 검증하고 summary 자기선언을 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 정확도·보안·false-PASS 상향 적용 |
+| 23 | V390-REVIEW2-23 | UI Policy | Policy v4 evidence attestation 강화 | P0 | 완료 | evidenceRef v1이 completion/visual/cross-cutting/redaction 실파일의 contained path·bytes·SHA-256·type·case/correlation을 대조하고 PNG CRC/IDAT decode, trace/payload schema, 독립 secret scan으로 자기선언 PASS를 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 정확도·보안·false-PASS 상향 적용 |
 | 24 | V390-REVIEW2-24 | UI Automation | exact 424 native automation case 구현 | P0 | 미완료 | 현재 8 automated/415 unsupported를 424 exact case 실행 가능 manifest와 native action/oracle/artifact로 확장하고 UI-018 negative route는 별도 판정 유지 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 대량 cross-version UI 구현 |
 | 25 | V390-REVIEW2-25 | UI Automation | no-op action false-PASS 차단 | P0 | 미완료 | before/after digest, network+DOM, persisted readback, EventRecord, server-log 중 case별 completion oracle을 요구하고 pre-existing visible text만 남은 click을 FAIL 처리 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+1=6점, 거짓 PASS 위험 상향 적용 |
 | 26 | V390-REVIEW2-26 | Acceptance | Policy v4 full-suite eligibility 통합 | P0 | 미완료 | acceptance/final integrity가 8-case 부분 automation을 `eligible`로 승격하지 못하게 하고 424 exact closure, unsupported 0, Policy v4 `uiFulltestPass`를 별도 필수 입력으로 연결 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+1=6점, release false-PASS 상향 적용 |
@@ -1850,7 +1850,38 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
   summary는 legacy v1, automated 8/unsupported 415/excluded 1이므로 `uiFulltestPass=false`입니다.
   30분/120분, published metadata, release action은 실행하지 않았습니다.
 
-#### V390-REVIEW2-23~26 Policy v4 evidence와 full UI automation closure
+#### V390-REVIEW2-23 Policy v4 evidence attestation 강화
+
+- 직접 문제: completion/visual/cross-cutting `evidenceRef`는 문자열 존재만 검사했고 case/suite
+  redaction은 `PASS`와 findings 0 자기선언을 신뢰했습니다. Screenshot은 PNG signature 8 bytes만,
+  trace/browser console은 임의 JSON이면 통과해 artifact와 case/correlation의 실질 연결이 없었습니다.
+- 구현 위치:
+  - `ui_fulltest_evidence_policy_v4.json`은 case 필수 artifact에 visual diff/redaction scan을 추가하고
+    evidence ref, interaction trace, browser console, cross-cutting, redaction scan schema와 16MiB 한계,
+    authorization/bearer/secret/RTSP/raw-debug forbidden pattern을 고정합니다.
+  - `ui_fulltest_evidence_policy_v4_lib.mjs`의 `validateEvidenceRef()`는 artifact root containment,
+    bytes/SHA-256/content type/case/correlation과 max size를 실파일에서 검증합니다. Completion ref는
+    trace artifact, visual ref는 visual diff, case redaction ref는 redaction scan artifact와 exact 연결됩니다.
+  - PNG validator는 IHDR/IDAT/IEND chunk 경계와 CRC를 확인하고 IDAT를 inflate해 scanline/filter와
+    decoded size를 검증합니다. Trace는 trusted interaction, completion oracle, network response correlation,
+    visual/cross-cutting/redaction은 payload schema와 screenshot/case-set/artifact hash를 대조합니다.
+  - evaluator는 scan JSON과 별도로 case artifact 및 모든 attested ref 파일을 forbidden pattern으로
+    재스캔해 summary `PASS/0`이 실제 secret material을 가리지 못하게 합니다.
+- RED/검증: 기존 문자열 ref/자기선언 candidate가 attested failure reason 없이 통과해 최초 contract가
+  `14/1`로 실패했습니다. 구현 후 canonical positive와 문자열 ref, PNG header-only, forged trace,
+  case correlation drift, hash-valid visual/cross-cutting payload, 실제 bearer/authorization 삽입, forged
+  redaction output과 attested server-log oracle positive를 포함한 contract `17/0`을 통과했습니다.
+- 실패/수정: 첫 companion은 build 100% 뒤 manual result template의 기존 exact wording이 바뀌어
+  `policyValidationResult=FAIL`로 중단됐습니다. 새 attestation wording에 기존 verifier anchor를 함께
+  보존하고 실패 경계부터 재실행해 Policy v4 PASS, manual UI `24/0`, evidence prep `9/0`으로 닫았습니다.
+- 직접 결과: implementation evidence `986/986` validation 0·negative `11/11`, UI coverage contract
+  `12/0`, project inventory `14/0`, feature coverage `986/986`·`6/0`, script `11/0`, release evidence
+  `8/0`, docs links failures 0, build 100%, JS syntax와 `git diff --check`를 통과했습니다.
+- 경계: contract의 실제 decode/attestation fixture는 제품 브라우저 실행이 아닙니다. current summary는
+  legacy v1, automated 8/unsupported 415/excluded 1이라 `uiFulltestPass=false`이며 30분/120분,
+  published metadata, release action은 실행하지 않았습니다.
+
+#### V390-REVIEW2-24~26 full UI automation closure
 
 - canonical case source는 `project_feature_implementation_evidence.json`의 reviewed 424 exact UI ID와
   Policy v4 case manifest입니다. evaluator는 summary가 제시한 count/ID를 자기 대조하지 않고 이
