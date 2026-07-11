@@ -36,7 +36,7 @@ wrapper, preflight, dry-run, field smoke, external credential, no-device는 별�
 | V390-CLOSED-002 | `server.sh`, `scripts/internal/verify_v390_feature_completion_inventory.mjs`, release records/evidence | feature completion inventory scaffold and verifier command exist | None for scaffold; actual candidate approval and development remain separate | `verify-v390-feature-completion-inventory` passes and records state that feature discovery, implementation, UI fulltest, 30-minute, 120-minute, and published metadata are not run by this command | required | not-run | not-run | not-run | closed-with-evidence | no runtime/API/media behavior change | Closed setup item. This row is not evidence that any candidate feature below is implemented. |
 | V390-REQ-001 | `docs/manual-ui-fulltest.md`, `docs/manual-ui-checklist.md`, `docs/manual-ui-result-template.md` | manual UI standards/checklist/template now identify v3.9.0 as current source/UI baseline and mark older v2.x/v3.x material as historical bridge | None | Manual UI docs identify v3.9.0 as the current source-only preparation baseline, old v2.x blocks are not used as current gates, and `verify-manual-ui-evidence` enforces the current gate | required | not-run | not-run | conditional | closed-with-evidence | docs/test evidence wording only | Closed by Required Closeout Step 4. Evidence: `docs/manual-ui-fulltest.md`, `docs/manual-ui-checklist.md`, `docs/manual-ui-result-template.md`, `scripts/internal/verify_manual_ui_evidence.mjs`. This is documentation/test-source completion, not UI execution. |
 | V390-REQ-002 | `docs/manual-ui-fulltest.md`, `docs/manual-ui-checklist.md`, `docs/manual-ui-result-template.md`, `docs/v390-feature-completion-inventory.md` | long-test start conditions now reference v3.9 feature completion inventory, current project inventory, user approval, and AGENTS 7.6.2 conditions | None | Start-condition sections point to v3.9 inventory/release records/current UI mapping; old v2.x conditions are historical and no longer presented as current long-test start criteria | required | not-run | conditional | conditional | closed-with-evidence | test gate wording only | Closed by Required Closeout Step 5. 30/120/UI execution remains approval-gated and was not run by this closeout. |
-| V390-REQ-003 | manual UI docs plus `docs/project-feature-test-inventory.md` | manual UI docs now delegate v3.5.0-v3.8.0 route/control/action UI surfaces to current project feature inventory rows | None | Manual UI docs and linked inventory cover v3.5-v3.8 UI/control/action IDs including v3.8 action pilot rows, and stale coverage cannot be mistaken for current UI execution evidence | required | not-run | not-run | conditional | closed-with-evidence | UI test-source coverage only | Closed by Required Closeout Step 6. Evidence bridge covers v3.5 `UI-080` through v3.8 `UI-107` plus related `CLIENT-*` rows. |
+| V390-REQ-003 | manual UI docs plus `docs/project-feature-test-inventory.md` | manual UI docs delegate v3.5.0-v3.8.0 route/control/action UI surfaces to current project feature inventory rows | None | `verify-manual-ui-evidence` exact bridge는 `UI-080`~`UI-107`, `CLIENT-031`~`CLIENT-032`, `CLIENT-037`~`CLIENT-042` 36개를 route/control/action/state semantic evidence와 대조하고 middle-ID omission을 거부 | required | not-run | not-run | conditional | closed-with-evidence | UI test-source coverage only | V390-REVIEW2-34에서 current 986-row manifest exact binding으로 보강. 이 closure는 UI 실행 evidence가 아님. |
 | V390-CAND-001 | `docs/onvif-credential-reference-policy.md`, `/ops/api/onvif/credential-provider-status`, `/ops/sources` | Ops-only sanitized credential provider status summary exists; primary provider `none`, fallback `in-memory-fixture`, persistent/external stores deferred | Closed with `sanitized-credential-provider-status-summary`: expose provider readiness/redaction status only, with no credential lookup, source/view write, persistent secret store, or external secret manager | `verify-v390-onvif-credential-provider-status` proves route/UI/artifact docs, provider readiness/redaction state, no secret/reference leakage, and docs/inventory/release-record wiring | required | not-run | not-run | conditional | closed-with-evidence | credential secrecy and redaction boundary | Closed by v3.9.0 (11). Evidence: `OpsV390OnvifCredentialProviderStatusSummaryJson`, `/ops/api/onvif/credential-provider-status`, `renderOnvifCredentialProviderStatus`, `UI-108`/`SRC-065`/`SAFE-203`/`OPS-170`. Credential lookup, source/view write, persistent secret store, external secret manager, UI fulltest, 30-minute/120-minute longrun, and field credential success were not run. |
 | V390-CAND-002 | `src/ingress/onvif_live_import.cpp`, `src/ingress/product_ui_ops_sources_script.cpp`, `src/ingress/source_view_registry.cpp`, `src/ingress/webrtc_http_server.cpp` | ONVIF live import validates/form-applies a draft and reports `notSaved:true`; explicit source/view persistence is a separate operator flow | Closed with `manual-form-save-handoff` and hardened by V390-ADD1-05: operator save uses one `source:write` paired route with full prevalidation and compensating rollback instead of sequential source/view PUT | `verify-v390-onvif-source-view-atomicity` proves committed create/retry, invalid zero-write, injected second-file failure source rollback, concurrency no-mix, restart consistency and temp cleanup; decision verifier preserves notSaved/oneShot=false | required | not-run | not-run | conditional | closed-with-evidence | source registry write semantics | Hardened by V390-ADD1-05. Evidence: `UpsertOnvifSourceView`, `/ops/api/onvif/channels/{channelId}`, `saveChannelSourceViewPair`, `UI-109`/`SRC-066`/`SAFE-204`/`OPS-171`. Process-crash atomicity, ONVIF field success, UI fulltest, and longrun were not run. |
 | V390-CAND-003 | `docs/vlm-rule-suggestion-candidates.md`, `/ops/api/vlm/rule-suggestion-drafts`, `/ops/api/vlm/rule-suggestion-draft-bridge`, `/lab/analysis/rules/{id}` | VLM rule suggestion workflow remains draft-only/manual-save; Development 15 now carries incident, candidate, and observation-context evaluation provenance through the generated rule document and save API | Closed with `ops-review-to-rule-draft-bridge` and hardened by Development 15 `incident-to-rule-provenance`: the optional server-validated `vlmProvenance` joins event/candidate/evaluation source with the generated rule ID and exact PUT route without automatic registry write | `verify-v390-vlm-incident-rule-provenance` proves actual candidate fetch, rule PUT/readback/registry preservation, generated ID/route mismatch no-write, privacy-field rejection boundary, while the existing draft verifiers preserve manual-save/no-provider-call behavior | required | not-run | not-run | conditional | closed-with-evidence | rule write/manual-approval and provenance integrity boundary | Hardened by v3.9.0 (17) Development 15. Evidence: `AppendVlmRuleSuggestionCandidateJson`, `opsRulesReadEventTemplateForm`, `ValidateVlmIncidentRuleProvenanceContract`, `UI-110`/`RULE-112`/`LAB-126`/`SAFE-213`/`OPS-180`. `evaluationSource.status=observation-context-only` does not claim a provider evaluation; auto save/apply, provider/runtime call, UI fulltest, 30-minute/120-minute longrun were not run. |
@@ -152,7 +152,13 @@ Handoff list: `V390-STRUCT-001`, `V390-STRUCT-002`, `V390-STRUCT-003`, `V390-STR
 
 Structure implementation status: `not-run-by-this-step`
 
-Development 17 readiness status: `ready-after-v3.9-release-and-explicit-approval`
+Development 17 record kind: `refactor-readiness-gate`
+
+Development 17 status: `gate-ready`
+
+Development 17 implementation status: `not-executed`
+
+Development 17 evidence status: `gate-contract-not-refactor-evidence`
 
 Execution branch: `v4.0.0`
 
@@ -210,17 +216,23 @@ Decision boundary: 모든 항목에서 `implementationExecuted=false`, `fieldPas
 `releasePassClaimed=false`입니다. 이 owner sign-off는 구현·field smoke·UI 풀테스트·30분/120분
 longrun·published metadata·release action PASS가 아닙니다.
 
+Record kind: `decision-record`; implementation status: `not-executed`; evidence status:
+`decision-only-not-implementation-evidence`.
+
 ## Development 18 External Field Smoke No-Device Closure
 
 Approval source: `/goal v3.9.0 (17) Development 18`
 
 Execution policy: `not-run-missing-required-external-environment`
 
+Record kind: `conditional-execution-record`; execution status: `conditional-not-run`; evidence status:
+`condition-record-not-field-pass`.
+
 | 대상 | 실행 상태 | 미실행 직접 근거 | 재개 조건 |
 | --- | --- | --- | --- |
-| `external-turn-whep` | `not-run` | 승인된 WHEP endpoint·TURN service·credential·reachable network·실행 승인 없음 | Release/Security owner가 환경을 제공하고 사용자가 command·artifact·cleanup을 승인 |
-| `onvif-real-device` | `not-run` | 물리 ONVIF 실기기·address·credential·isolated network·실행 승인 없음 | 실기기와 redacted credential을 제공하고 device contact·artifact·cleanup을 승인 |
-| `external-vlm-provider` | `not-run` | provider endpoint·credential·privacy transfer·cost/timeout policy·실행 승인 없음 | Privacy/Security/Release owner가 환경·정책을 제공하고 provider call을 명시 승인 |
+| `external-turn-whep` | `conditional-not-run` | 승인된 WHEP endpoint·TURN service·credential·reachable network·실행 승인 없음 | Release/Security owner가 환경을 제공하고 사용자가 command·artifact·cleanup을 승인 |
+| `onvif-real-device` | `conditional-not-run` | 물리 ONVIF 실기기·address·credential·isolated network·실행 승인 없음 | 실기기와 redacted credential을 제공하고 device contact·artifact·cleanup을 승인 |
+| `external-vlm-provider` | `conditional-not-run` | provider endpoint·credential·privacy transfer·cost/timeout policy·실행 승인 없음 | Privacy/Security/Release owner가 환경·정책을 제공하고 provider call을 명시 승인 |
 
 Machine-readable source: `test/fixtures/v390_external_field_smoke_no_device_closure.json`
 

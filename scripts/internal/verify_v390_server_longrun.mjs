@@ -27,7 +27,7 @@ Options:
   --fixture-pass               Fast contract fixture: mark all phases PASS without real duration execution.
   --fixture-fail-phase <id>    Fast contract fixture: fail at one phase and mark later phases not-run.
   --fixture-predev-summary <path>
-                               Fast contract fixture: attach a predev summary to a failed phase.
+                               Fast contract fixture: project a delegated predev summary into the parent phase ledger.
   -h, --help                   Show help.
 
 Notes:
@@ -63,7 +63,7 @@ const outputDir = path.resolve(rootDir, options.outputDir);
 const summaryPath = path.join(outputDir, "summary.json");
 const reportPath = path.join(outputDir, "report.md");
 const runId = `v390-server-longrun-${new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14)}-${process.pid}`;
-const fixtureMode = options.fixturePass || options.fixtureFailPhase !== "";
+const fixtureMode = options.fixturePass || options.fixtureFailPhase !== "" || options.fixturePredevSummary !== "";
 const phases = [];
 let failedPhase = "";
 let failedCase = "";
@@ -131,7 +131,12 @@ console.log(`- reportPath: ${summary.reportPath}`);
 if (exitCode !== 0) process.exit(exitCode);
 
 async function runPhases() {
+  const delegatedProjectionMode = !options.fixturePass && Boolean(options.fixturePredevSummary);
   for (const phaseId of phaseIds) {
+    if (delegatedProjectionMode && ["start-server", "integrated-smoke", "runtime-idle"].includes(phaseId)) {
+      printProgress(phaseId, "delegated-pending");
+      continue;
+    }
     const status = phaseStatusFor(phaseId);
     printProgress(phaseId, status);
     if (status === "not-run") {
@@ -147,7 +152,9 @@ async function runPhases() {
       continue;
     }
 
-    if (fixtureMode) {
+    if (delegatedProjectionMode && phaseId === "soak-case-loop") {
+      runDelegatedFixturePhase();
+    } else if (fixtureMode) {
       runFixturePhase(phaseId);
     } else {
       await runRealPhase(phaseId);
@@ -195,9 +202,7 @@ function parseArgs(args) {
     assert(phaseIds.includes(parsed.fixtureFailPhase), `unknown fixture fail phase: ${parsed.fixtureFailPhase}`);
     assert(!["cleanup", "report"].includes(parsed.fixtureFailPhase), "fixture failure phase must be before cleanup/report");
   }
-  if (parsed.fixturePredevSummary) {
-    assert(parsed.fixtureFailPhase, "--fixture-predev-summary requires --fixture-fail-phase");
-  }
+  assert(!(parsed.fixturePass && parsed.fixturePredevSummary), "--fixture-pass and --fixture-predev-summary are mutually exclusive");
   return parsed;
 }
 
@@ -278,6 +283,18 @@ function runFixturePhase(phaseId) {
   }));
 }
 
+function runDelegatedFixturePhase() {
+  const command = `fixture delegated summary ${options.fixturePredevSummary}`;
+  const logPath = writePhaseLog("soak-case-loop", [command]);
+  projectDelegatedPhaseLedger(readPredevSummary(options.fixturePredevSummary), {
+    command,
+    logPath,
+    summaryPath: options.fixturePredevSummary,
+    stdoutTail: [],
+    stderrTail: [],
+  });
+}
+
 async function runRealPhase(phaseId) {
   if (phaseId === "preflight") {
     phases.push(passPhase(phaseId, "validate duration/output-dir/tools", [
@@ -295,11 +312,9 @@ async function runRealPhase(phaseId) {
     });
     phases.push(passPhase(phaseId, `write ${seedPath}`, [`seedPath=${seedPath}`]));
   } else if (phaseId === "start-server") {
-    phases.push(passPhase(phaseId, "delegated to verify-predev", ["verify-predev owns isolated test server lifecycle"]));
+    printProgress(phaseId, "delegated-pending");
   } else if (phaseId === "integrated-smoke") {
-    phases.push(passPhase(phaseId, "delegated to verify-predev integrated-smoke", [
-      "verify-predev runs integrated-smoke after starting the isolated test server",
-    ]));
+    printProgress(phaseId, "delegated-pending");
   } else if (phaseId === "soak-case-loop") {
     predevSummaryPath = path.join(outputDir, "predev-summary.json");
     await runCommandPhase(phaseId, [
@@ -316,8 +331,16 @@ async function runRealPhase(phaseId) {
       "--report-html-file",
       path.join(outputDir, "predev-report.html"),
     ], predevSummaryPath);
+    const delegatedCommandPhase = phases.pop();
+    projectDelegatedPhaseLedger(readPredevSummary(predevSummaryPath), {
+      command: delegatedCommandPhase?.command || "./server.sh verify-predev",
+      logPath: delegatedCommandPhase?.logPath || "",
+      summaryPath: predevSummaryPath,
+      stdoutTail: delegatedCommandPhase?.stdoutTail || [],
+      stderrTail: delegatedCommandPhase?.stderrTail || [],
+    });
   } else if (phaseId === "runtime-idle") {
-    phases.push(passPhase(phaseId, "runtime idle delegated to verify-predev cleanup checks", ["runtime idle state recorded by predev summary"]));
+    printProgress(phaseId, "delegated-pending");
   } else if (phaseId === "cleanup") {
     cleanup = await measureAndApplyCleanup();
     if (cleanup.status === "PASS") {
@@ -351,6 +374,119 @@ async function runRealPhase(phaseId) {
     }
   } else if (phaseId === "report") {
     phases.push(passPhase(phaseId, "report phase", [`summaryPath=${summaryPath}`, `reportPath=${reportPath}`]));
+  }
+}
+
+function projectDelegatedPhaseLedger(predevSummary, commandEvidence) {
+  const steps = Array.isArray(predevSummary?.steps) ? predevSummary.steps : [];
+  const exact = name => steps.filter(step => String(step?.name || "") === name);
+  const startSteps = exact("server-start-queue-256");
+  const integratedSteps = exact("integrated-smoke");
+  const soakSteps = steps.filter(step => /^soak-[0-9]+-/.test(String(step?.name || "")));
+  const runtimeStart = steps.findIndex(step => String(step?.name || "") === "main-runtime-idle");
+  const runtimeSteps = runtimeStart < 0
+    ? []
+    : steps.slice(runtimeStart).filter(step => !["ports-clean", "summary-report", "summary-report-refresh"].includes(String(step?.name || "")));
+  const projections = [
+    { id: "start-server", delegated: startSteps, required: "server-start-queue-256" },
+    { id: "integrated-smoke", delegated: integratedSteps, required: "integrated-smoke" },
+    { id: "soak-case-loop", delegated: soakSteps, required: "soak-<iteration>-<case>" },
+    { id: "runtime-idle", delegated: runtimeSteps, required: "main-runtime-idle" },
+  ];
+  let priorFailure = false;
+  let projectedFailure = false;
+  delegatedFailure = readDelegatedFailure(commandEvidence.summaryPath);
+
+  for (const projection of projections) {
+    let status = priorFailure ? "not-run" : delegatedProjectionStatus(projection.delegated);
+    if (!priorFailure && projection.delegated.length === 0) status = "FAIL";
+    const delegatedNames = projection.delegated.map(step => String(step.name || "")).filter(Boolean);
+    const failedStep = projection.delegated.find(step => step?.result === "fail");
+    const tail = status === "not-run"
+      ? [`delegated ${projection.id} not-run after first parent failure`]
+      : [
+          `required=${projection.required}`,
+          `delegated=${delegatedNames.join(",") || "missing"}`,
+          `results=${projection.delegated.map(step => `${step.name}:${step.result}`).join(",") || "missing"}`,
+        ];
+    phases.push(makePhase({
+      id: projection.id,
+      status,
+      command: status === "not-run" ? "" : commandEvidence.command,
+      exitCode: status === "PASS" ? 0 : status === "FAIL" ? 1 : null,
+      logPath: status === "not-run" ? "" : commandEvidence.logPath,
+      summaryPath: commandEvidence.summaryPath,
+      tail,
+      context: `delegated projection parent=${projection.id}; status=${status}`,
+      stdoutTail: commandEvidence.stdoutTail,
+      stderrTail: commandEvidence.stderrTail,
+      reproductionCommand: status === "not-run" ? "" : commandEvidence.command,
+    }));
+    if (status === "FAIL" && !projectedFailure) {
+      projectedFailure = true;
+      priorFailure = true;
+      failedPhase = projection.id;
+      failedCase = String(failedStep?.name || delegatedFailure?.name || `missing-${projection.required}`);
+      exitCode = exitCode || 1;
+      const context = delegatedFailure?.context || `delegated parent projection ${projection.id} failed: ${failedCase}`;
+      const stderrTail = delegatedFailure?.stderrTail?.length > 0
+        ? delegatedFailure.stderrTail
+        : commandEvidence.stderrTail;
+      const reproductionCommand = delegatedFailure?.reproductionCommand || commandEvidence.command;
+      failure = makeFailure({
+        phase: projection.id,
+        caseName: failedCase,
+        context,
+        stderrTail,
+        reproductionCommand,
+        command: commandEvidence.command,
+        failureExitCode: exitCode,
+        logPath: commandEvidence.logPath,
+        phaseSummaryPath: commandEvidence.summaryPath,
+      });
+      printFirstFailure(failure);
+    }
+  }
+
+  if (!projectedFailure && predevSummary?.status !== "pass") {
+    const last = phases.find(phase => phase.id === "runtime-idle");
+    if (last) {
+      last.status = "FAIL";
+      last.exitCode = 1;
+      last.tail.push(`delegated-summary-status=${String(predevSummary?.status || "missing")}`);
+    }
+    failedPhase = "runtime-idle";
+    failedCase = delegatedFailure?.name || "delegated-summary-status";
+    exitCode = exitCode || 1;
+    failure = makeFailure({
+      phase: failedPhase,
+      caseName: failedCase,
+      context: delegatedFailure?.context || "delegated summary did not report pass",
+      stderrTail: delegatedFailure?.stderrTail || commandEvidence.stderrTail,
+      reproductionCommand: delegatedFailure?.reproductionCommand || commandEvidence.command,
+      command: commandEvidence.command,
+      failureExitCode: exitCode,
+      logPath: commandEvidence.logPath,
+      phaseSummaryPath: commandEvidence.summaryPath,
+    });
+    printFirstFailure(failure);
+  }
+}
+
+function delegatedProjectionStatus(steps) {
+  if (steps.some(step => step?.result === "fail")) return "FAIL";
+  if (steps.some(step => step?.result === "not-run")) return "not-run";
+  return steps.length > 0 && steps.every(step => ["pass", "skip"].includes(String(step?.result || "")))
+    ? "PASS"
+    : "FAIL";
+}
+
+function readPredevSummary(summaryFilePath) {
+  if (!summaryFilePath || !fs.existsSync(summaryFilePath)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(summaryFilePath, "utf8"));
+  } catch {
+    return null;
   }
 }
 

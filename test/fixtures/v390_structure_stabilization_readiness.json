@@ -6,6 +6,12 @@
   "requiredApproval": "explicit-structure-refactor-start",
   "currentStepRefactorExecuted": false,
   "branchCreationPerformed": false,
+  "recordKind": "refactor-readiness-gate",
+  "status": "gate-ready",
+  "implementationStatus": "not-executed",
+  "evidenceStatus": "gate-contract-not-refactor-evidence",
+  "graphStatus": "legacy-forbidden-edges-baselined-refactor-not-executed",
+  "refactorEntryReady": false,
   "baseRequirements": [
     "v3.9.0 release correctness commits are included in the selected base commit",
     "latest main and the signed v3.9.0 release tag commit relationship is verified",
@@ -47,15 +53,30 @@
       "id": "core-media-interfaces",
       "owner": "RTSP/WebRTC/GStreamer runtime and media lifecycle",
       "mayDependOn": ["core-utilities"]
+    },
+    {
+      "id": "stable-contract-dtos",
+      "owner": "behavior-stable route, payload and UI contract value types",
+      "mayDependOn": []
+    },
+    {
+      "id": "core-utilities",
+      "owner": "dependency-free process, stream key and shared utility primitives",
+      "mayDependOn": []
     }
   ],
   "allowedDependencyDirections": [
     "product-ui-workspaces -> stable-contract-dtos",
     "transport-and-auth-adapter -> application-service-interfaces",
+    "transport-and-auth-adapter -> stable-contract-dtos",
     "ops-route-groups -> application-service-interfaces",
+    "ops-route-groups -> stable-contract-dtos",
     "application-service-interfaces -> domain-and-registry-owners",
     "application-service-interfaces -> analysis-services",
-    "analysis-services -> core-media-interfaces"
+    "domain-and-registry-owners -> core-utilities",
+    "analysis-services -> domain-and-registry-owners",
+    "analysis-services -> core-media-interfaces",
+    "core-media-interfaces -> core-utilities"
   ],
   "forbiddenDependencies": [
     "analysis-services -> transport-and-auth-adapter",
@@ -65,6 +86,31 @@
     "product-ui-workspaces -> persistence-files-or-registry-internals",
     "production-modules -> test-fixtures-or-documentation"
   ],
+  "actualGraphPolicy": {
+    "productionRoots": ["src", "include"],
+    "sourceExtensions": [".cpp", ".h"],
+    "moduleClassifiers": [
+      {"id": "analysis-services", "prefixes": ["src/analysis/", "include/analysis/"]},
+      {"id": "core-media-interfaces", "prefixes": ["src/core/", "include/core/"]},
+      {"id": "ingress-or-product-ui", "prefixes": ["src/ingress/", "include/ingress/"]},
+      {"id": "shared-app-contracts", "prefixes": ["src/", "include/"]}
+    ],
+    "cycleModules": ["analysis-services", "core-media-interfaces", "ingress-or-product-ui"],
+    "forbiddenModuleEdges": [
+      "analysis-services -> ingress-or-product-ui",
+      "core-media-interfaces -> ingress-or-product-ui"
+    ],
+    "legacyForbiddenIncludeEdges": [
+      "include/core/session_manager.h -> ingress/request_parser.h",
+      "src/core/session_manager.cpp -> ingress/analysis_query.h",
+      "src/core/source_factory.cpp -> ingress/webrtc_source_registry.h"
+    ],
+    "legacyCycleComponents": [
+      ["analysis-services", "core-media-interfaces", "ingress-or-product-ui"]
+    ],
+    "cmakeFile": "CMakeLists.txt",
+    "cmakeTarget": "media_server"
+  },
   "preservedContracts": [
     {
       "id": "event-post-payload",
@@ -116,36 +162,42 @@
     {
       "order": 1,
       "id": "baseline-and-ownership-map",
+      "dependsOnSlice": null,
       "entryGates": ["explicit start approval", "clean v4.0.0 branch", "baseline verifier set passes"],
       "exitGates": ["route and module ownership catalog exists", "no handler or response behavior moved", "baseline verifier set and git diff --check pass"]
     },
     {
       "order": 2,
       "id": "pure-json-builder-extraction",
+      "dependsOnSlice": "baseline-and-ownership-map",
       "entryGates": ["slice 1 committed", "golden response fixtures captured", "allowed file set declared"],
       "exitGates": ["pure builders moved without route guard change", "response bytes/schema/status stay stable", "targeted contract verifiers pass"]
     },
     {
       "order": 3,
       "id": "route-handler-group-extraction",
+      "dependsOnSlice": "pure-json-builder-extraction",
       "entryGates": ["slice 2 committed", "one route group selected", "auth and error baselines pass"],
       "exitGates": ["only selected route group moved", "auth/status/cache/error behavior stays stable", "build and route contract verifiers pass"]
     },
     {
       "order": 4,
       "id": "product-ui-workspace-split",
+      "dependsOnSlice": "route-handler-group-extraction",
       "entryGates": ["route contracts stable", "one renderer family selected", "DOM/test-id baseline captured"],
       "exitGates": ["one renderer family moved with state", "route strings and DOM/test IDs stay stable", "static and approved focused UI checks pass"]
     },
     {
       "order": 5,
       "id": "source-read-model-boundary",
+      "dependsOnSlice": "product-ui-workspace-split",
       "entryGates": ["previous slices committed", "source read/write owners mapped", "registry baselines pass"],
       "exitGates": ["read model naming/ownership is explicit", "no new write route or disk owner exists", "registry/PublishedView/restart verifiers pass"]
     },
     {
       "order": 6,
       "id": "docs-template-and-vlm-index",
+      "dependsOnSlice": "source-read-model-boundary",
       "entryGates": ["production slices committed", "historical evidence preservation paths listed", "docs source-of-truth selected"],
       "exitGates": ["current template and historical archive are separated", "single VLM contract index avoids policy duplication", "docs links/manual UI/VLM gates pass"]
     }

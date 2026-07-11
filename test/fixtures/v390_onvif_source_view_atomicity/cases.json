@@ -8,9 +8,14 @@
     "prevalidation-missing-published-view",
     "prevalidation-non-onvif-source",
     "prevalidation-view-id-mismatch",
-    "second-write-failure-source-rollback",
+    "byte-exact-update-second-write-failure",
+    "source-only-existence-rollback",
+    "view-only-existence-rollback",
+    "first-replace-failure-zero-write",
+    "rollback-failure-reported",
     "retry-after-fault",
     "concurrent-pair-no-mix",
-    "restart-pair-consistency"
+    "restart-pair-consistency",
+    "temporary-registry-files-cleaned"
   ]
 }

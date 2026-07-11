@@ -5,6 +5,9 @@
   "closureDate": "2026-07-11",
   "approvalSource": "/goal v3.9.0 (17) Development 18",
   "executionPolicy": "not-run-missing-required-external-environment",
+  "recordKind": "conditional-execution-record",
+  "executionStatus": "conditional-not-run",
+  "evidenceStatus": "condition-record-not-field-pass",
   "externalNetworkAttempted": false,
   "endpointProbeAttempted": false,
   "credentialAccessAttempted": false,
@@ -16,7 +19,7 @@
   "targets": [
     {
       "id": "external-turn-whep",
-      "status": "not-run",
+      "status": "conditional-not-run",
       "reason": "missing-device-credential-endpoint-and-execution-approval",
       "requiredConditions": [
         "approved WHEP endpoint",
@@ -42,7 +45,7 @@
     },
     {
       "id": "onvif-real-device",
-      "status": "not-run",
+      "status": "conditional-not-run",
       "reason": "missing-device-credential-endpoint-and-execution-approval",
       "requiredConditions": [
         "physical ONVIF device",
@@ -68,7 +71,7 @@
     },
     {
       "id": "external-vlm-provider",
-      "status": "not-run",
+      "status": "conditional-not-run",
       "reason": "missing-device-credential-endpoint-and-execution-approval",
       "requiredConditions": [
         "approved external provider endpoint",

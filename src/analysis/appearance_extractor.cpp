@@ -217,7 +217,7 @@ float EmbeddingQuality(const std::vector<float>& embedding, float detection_conf
 }  // namespace
 
 bool NoOpAppearanceExtractor::Enabled() const {
-    return true;
+    return false;
 }
 
 AppearanceExtractorStats NoOpAppearanceExtractor::Stats() const {

@@ -73,7 +73,7 @@ function validateFixture() {
   assert(fixture.targetStep === "V390-ADD1-03", "fixture targetStep mismatch");
   assert(fixture.catalogRevision === "v390-add1-03-2026-07-10", "catalog revision mismatch");
   assert(Array.isArray(fixture.cases) && fixture.cases.length >= 14, "expected at least 14 trust boundary cases");
-  assert(fixture.reloadCases === 1, "expected one reload quarantine case");
+  assert(fixture.reloadCases === 9, "expected nine reload quarantine cases");
   for (const [key, value] of Object.entries(fixture.contractInvariants || {})) {
     assert(value === false, `contract invariant must remain false: ${key}`);
   }
@@ -106,6 +106,7 @@ function verifySourceContract() {
     "evaluation_promotion.canonical_evaluation_json",
     "ReplaceObjectField(&normalized, \"evaluation\"",
     "CanonicalizeStoredVlmProfileLocked",
+    "ValidateCanonicalVlmProfileEnvelopeLocked",
     "quarantinedProfileCount",
   ]) assert(server.includes(snippet), `server validator missing ${snippet}`);
   assert(!/evaluation:\s*\{\s*status:/s.test(client), "client profile payload must not declare evaluation.status");
@@ -125,21 +126,36 @@ async function verifyReloadQuarantine(baseUrl, ports) {
   const registry = JSON.parse(fs.readFileSync(registryPath, "utf8"));
   const canonical = registry.vlmProfiles?.find(profile => profile?.evaluation?.status === "passed");
   assert(canonical, "reload quarantine setup missing canonical passed profile");
-  const tampered = structuredClone(canonical);
-  tampered.id = "trust-tampered-reload";
-  tampered.evaluation.provenance.candidateDigest = "0".repeat(64);
-  registry.vlmProfiles.push(tampered);
+  const tamperedProfiles = [];
+  const addTampered = (suffix, mutate) => {
+    const profile = structuredClone(canonical);
+    profile.id = `trust-tampered-${suffix}`;
+    mutate(profile);
+    tamperedProfiles.push(profile);
+  };
+  addTampered("digest", profile => { profile.evaluation.provenance.candidateDigest = "0".repeat(64); });
+  addTampered("activation", profile => { profile.activation.enabled = false; profile.activation.status = "active"; });
+  addTampered("privacy", profile => { profile.privacyMode = "cloud-allowed"; });
+  addTampered("forbidden", profile => { profile.rawPrompt = "must-never-reload"; });
+  addTampered("runtime-side-effect", profile => { profile.runtimeContract.sideEffects.runtimeVlmCallPerformed = true; });
+  addTampered("invariant", profile => { profile.contractInvariants.runtimeVlmCallPerformed = true; });
+  addTampered("schema", profile => { profile.schema = "media-server.vlm-profile.v2"; });
+  addTampered("provider-model", profile => { profile.provider = "cloud-provider-api"; });
+  addTampered("unsafe/id", () => {});
+  registry.vlmProfiles.push(...tamperedProfiles);
   fs.writeFileSync(registryPath, `${JSON.stringify(registry, null, 2)}\n`);
 
   serverProcess = startServer(ports);
   await waitForHealth(baseUrl);
   const list = await request(baseUrl, "GET", "/ops/api/vlm/profiles");
   assert(list.status === 200, `reload quarantine list HTTP ${list.status}`);
-  assert(list.json.quarantinedProfileCount === 1,
+  assert(list.json.quarantinedProfileCount === tamperedProfiles.length,
     `tampered reload profile quarantine count mismatch: ${list.json.quarantinedProfileCount}; profiles=${(list.json.profiles || []).map(profile => profile.id).join(",")}; logs=${serverLog.slice(-20).join(" | ")}`);
-  assert(!(list.json.profiles || []).some(profile => profile.id === tampered.id), "tampered reload profile remained visible");
-  const absent = await request(baseUrl, "GET", `/ops/api/vlm/profiles/${tampered.id}`);
-  assert(absent.status === 404, "tampered reload profile remained addressable");
+  for (const tampered of tamperedProfiles) {
+    assert(!(list.json.profiles || []).some(profile => profile.id === tampered.id), `${tampered.id} remained visible`);
+    const absent = await request(baseUrl, "GET", `/ops/api/vlm/profiles/${encodeURIComponent(tampered.id)}`);
+    assert(absent.status === 404, `${tampered.id} remained addressable`);
+  }
 }
 
 async function verifyCatalogApi(baseUrl) {

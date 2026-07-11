@@ -1,0 +1,15 @@
+{
+  "schema": "media-server.v390-ui-current-evidence-state.v1",
+  "version": "3.9.0",
+  "status": "not-run",
+  "actualBrowserExecution": false,
+  "uiFulltestPass": false,
+  "automatedCaseCount": 0,
+  "fail": 0,
+  "notRun": 424,
+  "unsupported": 423,
+  "excludedPositiveUi": 1,
+  "historicalInvalidManifest": "docs/release-artifacts/v3.9.0/historical-invalid-ui-evidence.json",
+  "requiredNextEvidence": "new current-source placeholder-free Policy v4 browser execution with source provenance and integrity attestation",
+  "boundary": "not-run is not PASS and historical UI summaries are not current evidence"
+}

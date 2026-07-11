@@ -103,16 +103,15 @@ check("dry-run writes replayable acceptance summary without executing gated suit
   assert(summary.result === "PASS", "dry-run result must be PASS");
   assert(summary.dryRun === true, "summary must mark dryRun=true");
   assert(summary.longrun30?.status === "invalid-existing-evidence", "legacy 30-minute evidence must require final rerun after measured-cleanup policy");
-  assert(summary.uiAutomation?.status === "invalid-existing-evidence", "legacy UI evidence must require final rerun after placeholder/dedupe policy");
+  assert(summary.uiAutomation?.status === "current-not-run", "current UI evidence must remain explicit not-run");
   assert(summary.preservedEvidenceStatus === "historical-evidence-requires-final-rerun", "dry-run preserved evidence boundary mismatch");
-  assert(summary.uiAutomation?.summaryPath === "docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/summary.json", "UI automation summary path mismatch");
-  assert(summary.uiAutomation?.reportPath === "docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/report.md", "UI automation report path mismatch");
+  assert(summary.uiAutomation?.summaryPath === "test/fixtures/v390_ui_current_evidence_state.json", "UI current-state path mismatch");
+  assert(summary.uiAutomation?.reportPath === "", "not-run current state must not invent a report path");
   assert(summary.uiAutomation?.manualIntervention === false, "UI automation manual intervention must be false");
-  const manifest = readJson(path.join(rootDir, "test/fixtures/v390_ui_automation_cases.json"));
-  assert(summary.uiAutomation?.caseCount === manifest.cases.length, "UI automation case count mismatch");
-  assert(summary.uiAutomation?.pass === manifest.cases.length, "UI automation pass count mismatch");
+  assert(summary.uiAutomation?.caseCount === 0, "not-run current state must have zero executed cases");
+  assert(summary.uiAutomation?.pass === 0, "not-run current state must have zero pass cases");
   assert(summary.uiAutomation?.fail === 0, "UI automation fail count mismatch");
-  assert(summary.uiAutomation?.notRun === 0, "UI automation not-run count mismatch");
+  assert(summary.uiAutomation?.notRun === 424, "UI automation not-run count mismatch");
   assert(Array.isArray(summary.finalAcceptanceCommandSet), "missing final acceptance command set");
   assert(summary.finalAcceptanceCommandSet.some((item) => item.id === "server-longrun-30" && item.status === "executed-by-actual-bundle"), "missing R1 longrun execution in final acceptance set");
   assert(summary.finalAcceptanceCommandSet.some((item) => item.id === "ui-automation" && item.status === "executed-by-actual-bundle"), "missing R2 UI automation execution in final acceptance set");
@@ -142,8 +141,15 @@ check("actual-mode fixture executes the fixed stage order and conditional 120 de
   assert(summary.stopOnFirstFail === true, "fixture stopOnFirstFail missing");
   assert(JSON.stringify(summary.stageOrder) === JSON.stringify([
     "preflight", "build", "feature-gates", "server-longrun-30", "ui-automation", "ui-replay",
-    "longrun-120-decision", "server-longrun-120", "cleanup", "report",
+    "ui-fulltest-qualification", "longrun-120-decision", "server-longrun-120", "cleanup", "report",
   ]), "fixture stage order mismatch");
+  assert(summary.stages.find(item => item.id === "ui-fulltest-qualification")?.status === "PASS",
+    "fixture orchestration qualification phase must execute as a contract phase");
+  assert(summary.automatedAcceptanceStatus === "executed-with-known-ui-closure-blockers",
+    "fixture execution must not become automated acceptance eligible");
+  assert(summary.finalEvidenceEligible === false, "fixture execution must not become final evidence eligible");
+  assert(summary.uiFulltestQualification?.uiFulltestPass === false,
+    "fixture orchestration must not claim Policy v4 UI fulltest PASS");
   assert(summary.stages.find(item => item.id === "server-longrun-120")?.status === "not-run", "120 stage must be not-run without trigger");
   assert(summary.longrun120?.decision === "not-required", "120 decision mismatch");
   assert(summary.cleanup?.status === "PASS", "fixture cleanup must pass");
@@ -171,7 +177,7 @@ check("actual-mode fixture stops on first failure and still runs cleanup/report"
   assert(summary.firstFailure?.stage === "feature-gates", "firstFailure stage mismatch");
   assert(summary.firstFailure?.command === "fixture fail feature-gates", "firstFailure command mismatch");
   assert(summary.firstFailure?.context?.includes("fixture failure at feature-gates"), "firstFailure context missing");
-  for (const id of ["server-longrun-30", "ui-automation", "ui-replay", "longrun-120-decision", "server-longrun-120"]) {
+  for (const id of ["server-longrun-30", "ui-automation", "ui-replay", "ui-fulltest-qualification", "longrun-120-decision", "server-longrun-120"]) {
     assert(summary.stages.find(item => item.id === id)?.status === "not-run", `${id} must be not-run after failure`);
   }
   assert(summary.stages.find(item => item.id === "cleanup")?.status === "PASS", "cleanup must run after failure");

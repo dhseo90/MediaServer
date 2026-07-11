@@ -175,6 +175,12 @@ export function approveSemanticReview(items, { reviewer, reviewedOn, reason }) {
   }
   return items.map(item => {
     const digest = semanticDigest(item, item.semanticEvidence);
+    if (item.status === SEMANTIC_REVIEW_STATUS &&
+        item.review?.decision === "approved" &&
+        item.review?.semanticDigest === digest &&
+        item.semanticEvidence?.verifierAssertion?.assertedSemanticDigest === digest) {
+      return item;
+    }
     item.semanticEvidence.verifierAssertion.assertedSemanticDigest = digest;
     item.status = SEMANTIC_REVIEW_STATUS;
     item.review = {

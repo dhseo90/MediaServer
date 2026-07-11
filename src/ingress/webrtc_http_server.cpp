@@ -793,7 +793,6 @@ bool ValidateTrackingPolicyContract(const std::string& body,
     }
     return true;
 }
-
 bool ValidateVlmIncidentRuleProvenanceContract(const std::string& body,
                                                const std::string& rule_id,
                                                std::string* error_message) {
@@ -851,6 +850,7 @@ bool ValidateVlmIncidentRuleProvenanceContract(const std::string& body,
         set_error("rule vlmProvenance must not claim an unverified evaluation execution");
         return false;
     }
+    if (!analysis::ValidateVlmIncidentRuleProvenanceServerRecords(*event_source, *candidate_source, *evaluation_source, error_message)) return false;
     const std::string generated_rule_id =
         Trim(ParseStringField(*generated_rule, "id").value_or(""));
     if (generated_rule_id != rule_id) {
@@ -1953,7 +1953,7 @@ private:
             SetRegistryError(error_message, "VLM profile evaluation canonicalization failed");
             return std::nullopt;
         }
-        return Document{id, normalized};
+        return ValidateCanonicalVlmProfileEnvelopeLocked(id, normalized, error_message) ? std::optional<Document>(Document{id, normalized}) : std::nullopt;
     }
 
     static bool IsSafeVlmProfileId(const std::string& value) {
@@ -2154,7 +2154,7 @@ private:
         }
         return false;
     }
-
+    static bool ValidateCanonicalVlmProfileEnvelopeLocked(const std::string& expected_id, const std::string& body, std::string* error_message);
     static std::optional<Document> CanonicalizeStoredVlmProfileLocked(const Document& document) {
         const auto evaluation = ExtractObjectField(document.body, "evaluation");
         const auto prompt_profile = ExtractObjectField(document.body, "promptProfile");
@@ -2203,7 +2203,7 @@ private:
                       << " validation=canonical replacement failed\n";
             return std::nullopt;
         }
-        return Document{document.id, canonical_body};
+        std::string envelope_error; if (!ValidateCanonicalVlmProfileEnvelopeLocked(document.id, canonical_body, &envelope_error)) { std::cerr << "[vlm-profile-quarantine] id=" << document.id << " reason=" << envelope_error << "\n"; return std::nullopt; } return Document{document.id, canonical_body};
     }
 
     std::string NextVaRuleIdLocked() const {
@@ -42502,5 +42502,225 @@ void WebRtcHttpServer::Stop() {
 bool WebRtcHttpServer::IsRunning() const {
     return running_.load();
 }
+
+namespace {
+
+std::size_t CountTopLevelJsonFieldOccurrences(const std::string& body,
+                                              const std::string& field) {
+    std::size_t count = 0;
+    int object_depth = 0;
+    bool in_string = false;
+    bool escaped = false;
+    for (std::size_t pos = 0; pos < body.size(); ++pos) {
+        const char ch = body[pos];
+        if (in_string) {
+            if (escaped) {
+                escaped = false;
+            } else if (ch == '\\') {
+                escaped = true;
+            } else if (ch == '"') {
+                in_string = false;
+            }
+            continue;
+        }
+        if (ch == '{') {
+            ++object_depth;
+            continue;
+        }
+        if (ch == '}') {
+            --object_depth;
+            continue;
+        }
+        if (ch != '"') {
+            continue;
+        }
+        const std::size_t key_start = pos + 1;
+        std::size_t key_end = key_start;
+        bool key_escaped = false;
+        for (; key_end < body.size(); ++key_end) {
+            if (key_escaped) {
+                key_escaped = false;
+                continue;
+            }
+            if (body[key_end] == '\\') {
+                key_escaped = true;
+                continue;
+            }
+            if (body[key_end] == '"') {
+                break;
+            }
+        }
+        if (key_end >= body.size()) {
+            break;
+        }
+        std::size_t colon = key_end + 1;
+        while (colon < body.size() &&
+               std::isspace(static_cast<unsigned char>(body[colon])) != 0) {
+            ++colon;
+        }
+        if (object_depth == 1 && colon < body.size() && body[colon] == ':' &&
+            body.substr(key_start, key_end - key_start) == field) {
+            ++count;
+        }
+        pos = key_end;
+    }
+    return count;
+}
+
+bool AnalysisDocumentRegistry::ValidateCanonicalVlmProfileEnvelopeLocked(
+    const std::string& expected_id,
+    const std::string& body,
+    std::string* error_message) {
+    if (!LooksLikeJsonObject(body)) {
+        SetRegistryError(error_message, "VLM profile must be a JSON object");
+        return false;
+    }
+    if (ContainsForbiddenVlmProfileField(body)) {
+        SetRegistryError(error_message,
+                         "VLM profile must not include credentials, prompts, raw responses, source locators, or frame bytes");
+        return false;
+    }
+    if (CountTopLevelJsonFieldOccurrences(body, "schema") != 1 ||
+        ParseStringField(body, "schema").value_or("") != "media-server.vlm-profile.v1") {
+        SetRegistryError(error_message, "VLM profile schema must be media-server.vlm-profile.v1");
+        return false;
+    }
+    if (CountTopLevelJsonFieldOccurrences(body, "id") != 1) {
+        SetRegistryError(error_message, "VLM profile must include exactly one id");
+        return false;
+    }
+    const std::string id = Trim(ParseStringField(body, "id").value_or(""));
+    if (!IsSafeVlmProfileId(id) || id != expected_id) {
+        SetRegistryError(error_message, "stored VLM profile id is invalid or mismatched");
+        return false;
+    }
+    const std::string selected_option_id =
+        Trim(ParseStringField(body, "selectedOptionId").value_or(""));
+    if (!IsSafeVlmProfileId(selected_option_id)) {
+        SetRegistryError(error_message, "VLM profile selectedOptionId is required");
+        return false;
+    }
+    const std::string provider = Trim(ParseStringField(body, "provider").value_or(""));
+    const std::string model = Trim(ParseStringField(body, "model").value_or(""));
+    const std::string runtime = Trim(ParseStringField(body, "runtime").value_or(""));
+    const std::string privacy_mode = Trim(ParseStringField(body, "privacyMode").value_or(""));
+    if (!IsOneOf(provider, {"user-supplied-local-runtime", "cloud-provider-api"}) ||
+        !IsOneOf(model,
+                 {"Qwen/Qwen3-VL-4B-Instruct",
+                  "Qwen/Qwen3-VL-8B-Instruct",
+                  "Qwen/Qwen3-VL-30B-A3B-Instruct",
+                  "gemini-2.5-flash"}) ||
+        !IsOneOf(runtime, {"ollama", "vllm", "provider-api", "not-configured"}) ||
+        !IsOneOf(privacy_mode, {"local-only", "cloud-disabled", "cloud-allowed"})) {
+        SetRegistryError(error_message, "VLM profile provider/model/runtime/privacy contract is invalid");
+        return false;
+    }
+    const bool cloud_profile = provider == "cloud-provider-api";
+    const bool cloud_opt_in_acknowledged =
+        ParseBoolField(body, "cloudOptInAcknowledged").value_or(false);
+    if (cloud_profile) {
+        if (model != "gemini-2.5-flash" || runtime != "provider-api" ||
+            privacy_mode != "cloud-allowed" || !cloud_opt_in_acknowledged) {
+            SetRegistryError(error_message, "cloud VLM profile contract is invalid");
+            return false;
+        }
+    } else if (model == "gemini-2.5-flash" || runtime == "provider-api" ||
+               privacy_mode == "cloud-allowed") {
+        SetRegistryError(error_message, "local VLM profile must remain local-only or cloud-disabled");
+        return false;
+    }
+    if (!ValidateVlmPrivacyGuardContract(body, cloud_profile, error_message)) {
+        return false;
+    }
+    if (CountTopLevelJsonFieldOccurrences(body, "promptProfile") != 1) {
+        SetRegistryError(error_message, "VLM profile must include exactly one promptProfile");
+        return false;
+    }
+    const auto prompt_profile = ExtractObjectField(body, "promptProfile");
+    if (!prompt_profile.has_value() ||
+        Trim(ParseStringField(*prompt_profile, "id").value_or("")).empty()) {
+        SetRegistryError(error_message, "VLM profile promptProfile.id is required");
+        return false;
+    }
+    if (CountTopLevelJsonFieldOccurrences(body, "evaluation") != 1) {
+        SetRegistryError(error_message, "VLM profile must include exactly one evaluation object");
+        return false;
+    }
+    const auto evaluation = ExtractObjectField(body, "evaluation");
+    if (!evaluation.has_value() ||
+        ParseStringField(*evaluation, "source").value_or("") !=
+            "server-verified-evaluation-catalog" ||
+        !ExtractObjectField(*evaluation, "provenance").has_value() ||
+        !IsOneOf(Trim(ParseStringField(*evaluation, "status").value_or("")),
+                 {"passed", "review-required", "failed", "not-run"})) {
+        SetRegistryError(error_message, "VLM profile evaluation must be server canonical");
+        return false;
+    }
+    if (CountTopLevelJsonFieldOccurrences(body, "activation") != 1) {
+        SetRegistryError(error_message, "VLM profile must include exactly one activation object");
+        return false;
+    }
+    const auto activation = ExtractObjectField(body, "activation");
+    if (!activation.has_value()) {
+        SetRegistryError(error_message, "VLM profile activation object is required");
+        return false;
+    }
+    const std::string evaluation_status =
+        Trim(ParseStringField(*evaluation, "status").value_or(""));
+    const std::string activation_status =
+        Trim(ParseStringField(*activation, "status").value_or(""));
+    const bool activation_enabled = ParseBoolField(*activation, "enabled").value_or(false);
+    const std::string fallback_profile_id =
+        Trim(ParseStringField(*activation, "fallbackProfileId").value_or(""));
+    const std::string disabled_reason =
+        Trim(ParseStringField(*activation, "disabledReason").value_or(""));
+    if (!IsOneOf(activation_status, {"pending-evaluation", "active", "disabled", "fallback"}) ||
+        (activation_enabled && (evaluation_status != "passed" || activation_status != "active")) ||
+        (!activation_enabled && activation_status == "active") ||
+        (activation_status == "disabled" && disabled_reason.empty()) ||
+        (activation_status == "fallback" &&
+         (fallback_profile_id.empty() || !IsSafeVlmProfileId(fallback_profile_id) ||
+          fallback_profile_id == id))) {
+        SetRegistryError(error_message, "VLM profile activation contract is invalid");
+        return false;
+    }
+    if (CountTopLevelJsonFieldOccurrences(body, "runtimeContract") != 1 ||
+        !ValidateVlmRuntimeOptInContract(body,
+                                         provider,
+                                         runtime,
+                                         activation_enabled,
+                                         activation_status,
+                                         error_message)) {
+        return false;
+    }
+    if (CountTopLevelJsonFieldOccurrences(body, "contractInvariants") != 1) {
+        SetRegistryError(error_message, "VLM profile must include exactly one contractInvariants object");
+        return false;
+    }
+    const auto invariants = ExtractObjectField(body, "contractInvariants");
+    if (!invariants.has_value()) {
+        SetRegistryError(error_message, "VLM profile contractInvariants object is required");
+        return false;
+    }
+    for (const std::string& field :
+         {"runtimeVlmCallPerformed",
+          "sidecarStored",
+          "cloudProviderApiCalled",
+          "credentialStored",
+          "eventPostPayloadChanged",
+          "webrtcDataChannelSchemaChanged",
+          "sseMetadataSchemaChanged",
+          "wsMetadataSchemaChanged",
+          "rtspOrWebrtcMediaPathChanged",
+          "viewerClientExposureAdded"}) {
+        if (ParseBoolField(*invariants, field).value_or(true)) {
+            SetRegistryError(error_message, "VLM profile invariant must be false: " + field);
+            return false;
+        }
+    }
+    return true;
+}
+
+}  // namespace
 
 }  // namespace ingress

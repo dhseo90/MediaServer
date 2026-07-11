@@ -103,6 +103,12 @@ check("appearance execution stays bounded outside media hot path", () => {
   }
   assert(extractor.includes("std::try_to_lock"), "ONNX Re-ID extractor must avoid blocking on concurrent inference");
   assert(extractor.includes("falling back to NoOp"), "ONNX Re-ID extractor must keep NoOp fallback paths");
+  assert(/bool NoOpAppearanceExtractor::Enabled\(\) const \{\s*return false;\s*\}/.test(extractor),
+    "NoOp fallback must report Enabled=false");
+  assert(manager.includes("!appearance_extractor_->Enabled() || appearance_worker_.joinable()"),
+    "NoOp fallback must be rejected before appearance worker start");
+  assert(manager.includes("appearance_extractor_ == nullptr || !appearance_extractor_->Enabled()"),
+    "NoOp fallback must be rejected before crop/update and queue paths");
   for (const snippet of [
     "model_sha256",
     "model_provenance",
@@ -126,7 +132,7 @@ check("appearance execution stays bounded outside media hot path", () => {
   return {
     worker: "async bounded",
     concurrency: "try_to_lock",
-    fallback: "noop",
+    fallback: "noop-disabled-zero-worker-queue-crop",
     modelGate: "regular-file+sha256+provenance+openssl+onnxruntime",
   };
 });

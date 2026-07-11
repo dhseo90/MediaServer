@@ -2,7 +2,7 @@
   "schema": "media-server.feature-implementation-evidence.v2",
   "semanticClosureSchema": "media-server.feature-semantic-implementation-closure.v1",
   "expectedFeatureRows": 986,
-  "inventorySha256": "7c7f7b8f32f339df078d22af5f7de87da735e743f7a6c5b8f23d8e424df46239",
+  "inventorySha256": "7cb2b9f355039318c81ba87b5ba94b450d1350dc89de6f503e4304f30381b172",
   "generatedFrom": "docs/project-feature-test-inventory.md",
   "generationPolicy": "explicit-refresh-only; unchanged approved semantic digests are preserved, new or changed rows require explicit reviewer approval",
   "semanticClosurePolicy": "exact handler/route/control/action/state/assertion locators plus reviewer-bound digest",
@@ -20020,10 +20020,10 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW2-21",
-        "reviewedOn": "2026-07-11",
-        "reason": "V390-REVIEW2-21-inventory-summary-reconciliation",
-        "semanticDigest": "0398596098c968ce3e76680755ce5e84dc250599b73cfafde5b53eb5ed991052"
+        "reviewer": "Codex-V390-REVIEW2-34",
+        "reviewedOn": "2026-07-12",
+        "reason": "V390-REVIEW2-26-34-reviewed-current-contracts-counts-and-anchor-reconciliation",
+        "semanticDigest": "3409bf96a39135e8e363e5100cc80e2ba50fec38c30b879d7a48dcda9fe47b1a"
       },
       "sourceEvidence": {
         "file": "src/ingress/source_view_registry.cpp",
@@ -20058,7 +20058,7 @@
           "anchorKind": "identifier",
           "anchorStrength": "exact-semantic-token",
           "occurrence": 46,
-          "line": 2243,
+          "line": 2241,
           "contextSha256": "2e3ed67eb1f2a722458b7b9bc9b30f4915f28d959720158c2e763828b0b4f6ca"
         },
         "route": {
@@ -20095,7 +20095,7 @@
             "anchorKind": "identifier",
             "anchorStrength": "exact-semantic-token",
             "occurrence": 46,
-            "line": 2243,
+            "line": 2241,
             "contextSha256": "2e3ed67eb1f2a722458b7b9bc9b30f4915f28d959720158c2e763828b0b4f6ca"
           }
         },
@@ -20112,7 +20112,7 @@
           "assertionKind": "exact-locator-relation-and-review-digest",
           "assertionAnchor": "validateSemanticItem",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "0398596098c968ce3e76680755ce5e84dc250599b73cfafde5b53eb5ed991052"
+          "assertedSemanticDigest": "3409bf96a39135e8e363e5100cc80e2ba50fec38c30b879d7a48dcda9fe47b1a"
         }
       }
     },
@@ -21681,10 +21681,10 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW2-21",
-        "reviewedOn": "2026-07-11",
-        "reason": "V390-REVIEW2-21-inventory-summary-reconciliation",
-        "semanticDigest": "089e2c35942c517ff4623e10a62bc164c07b5934bcfd57f7e0a140ebd7cdd4c7"
+        "reviewer": "Codex-V390-REVIEW2-34",
+        "reviewedOn": "2026-07-12",
+        "reason": "V390-REVIEW2-26-34-reviewed-current-contracts-counts-and-anchor-reconciliation",
+        "semanticDigest": "9e08ec0cc7f69911bd1e520ebb5b6762c2d12aefe82aac912e2141efb3085a8c"
       },
       "sourceEvidence": {
         "file": "src/ingress/source_view_registry.cpp",
@@ -21718,8 +21718,8 @@
           "anchor": "registry",
           "anchorKind": "identifier",
           "anchorStrength": "exact-semantic-token",
-          "occurrence": 33,
-          "line": 2384,
+          "occurrence": 38,
+          "line": 2382,
           "contextSha256": "5517a981826a309753ac0748df2b6710e36859a9c0a648d861cd68a95dbbb506"
         },
         "route": {
@@ -21755,8 +21755,8 @@
             "anchor": "registry",
             "anchorKind": "identifier",
             "anchorStrength": "exact-semantic-token",
-            "occurrence": 33,
-            "line": 2384,
+            "occurrence": 38,
+            "line": 2382,
             "contextSha256": "5517a981826a309753ac0748df2b6710e36859a9c0a648d861cd68a95dbbb506"
           }
         },
@@ -21773,7 +21773,7 @@
           "assertionKind": "exact-locator-relation-and-review-digest",
           "assertionAnchor": "validateSemanticItem",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "089e2c35942c517ff4623e10a62bc164c07b5934bcfd57f7e0a140ebd7cdd4c7"
+          "assertedSemanticDigest": "9e08ec0cc7f69911bd1e520ebb5b6762c2d12aefe82aac912e2141efb3085a8c"
         }
       }
     },
@@ -23112,10 +23112,10 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW2-21",
-        "reviewedOn": "2026-07-11",
-        "reason": "V390-REVIEW2-21-inventory-summary-reconciliation",
-        "semanticDigest": "1388100950ac6b09ccd822a0f1c1165250f415bdf0abe654d1af19a734e1c334"
+        "reviewer": "Codex-V390-REVIEW2-34",
+        "reviewedOn": "2026-07-12",
+        "reason": "V390-REVIEW2-26-34-reviewed-current-contracts-counts-and-anchor-reconciliation",
+        "semanticDigest": "a02359626d6d47e9c825a67e15155b0409f631dea4c0114000a6db32b7b2ba62"
       },
       "sourceEvidence": {
         "file": "src/ingress/source_view_registry.cpp",
@@ -23181,7 +23181,7 @@
             "anchorKind": "identifier",
             "anchorStrength": "exact-semantic-token",
             "occurrence": 45,
-            "line": 2207,
+            "line": 2205,
             "contextSha256": "64fdd7f9fc9682c55c487133ae4966c7bf5b5607146cf84a276bc9a8d422cec1"
           }
         },
@@ -23198,7 +23198,7 @@
           "assertionKind": "exact-locator-relation-and-review-digest",
           "assertionAnchor": "validateSemanticItem",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "1388100950ac6b09ccd822a0f1c1165250f415bdf0abe654d1af19a734e1c334"
+          "assertedSemanticDigest": "a02359626d6d47e9c825a67e15155b0409f631dea4c0114000a6db32b7b2ba62"
         }
       }
     },
@@ -23627,10 +23627,10 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW2-21",
-        "reviewedOn": "2026-07-11",
-        "reason": "V390-REVIEW2-21-inventory-summary-reconciliation",
-        "semanticDigest": "40647ed8fb7f4c4e89f06120e008c305591c2448676fc56ef800c720e6a79998"
+        "reviewer": "Codex-V390-REVIEW2-34",
+        "reviewedOn": "2026-07-12",
+        "reason": "V390-REVIEW2-26-34-reviewed-current-contracts-counts-and-anchor-reconciliation",
+        "semanticDigest": "ec75bb1a1126bc91cd097124e5a97bd5279e7a250551e15f9bf8e48bd6c0835e"
       },
       "sourceEvidence": {
         "file": "src/ingress/source_view_registry.cpp",
@@ -23696,7 +23696,7 @@
             "anchorKind": "identifier",
             "anchorStrength": "exact-semantic-token",
             "occurrence": 45,
-            "line": 2207,
+            "line": 2205,
             "contextSha256": "64fdd7f9fc9682c55c487133ae4966c7bf5b5607146cf84a276bc9a8d422cec1"
           }
         },
@@ -23713,7 +23713,7 @@
           "assertionKind": "exact-locator-relation-and-review-digest",
           "assertionAnchor": "validateSemanticItem",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "40647ed8fb7f4c4e89f06120e008c305591c2448676fc56ef800c720e6a79998"
+          "assertedSemanticDigest": "ec75bb1a1126bc91cd097124e5a97bd5279e7a250551e15f9bf8e48bd6c0835e"
         }
       }
     },
@@ -24348,10 +24348,10 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW2-21",
-        "reviewedOn": "2026-07-11",
-        "reason": "V390-REVIEW2-21-inventory-summary-reconciliation",
-        "semanticDigest": "f3239c94aa3b8a48acf7d9e9fd45dfceaabe2667120a69447df4172b1596b9e3"
+        "reviewer": "Codex-V390-REVIEW2-34",
+        "reviewedOn": "2026-07-12",
+        "reason": "V390-REVIEW2-26-34-reviewed-current-contracts-counts-and-anchor-reconciliation",
+        "semanticDigest": "41eaed38cd22e858d7b76e8a548c3bb3ced428d52af5af265eb1bb476009c2d0"
       },
       "sourceEvidence": {
         "file": "src/ingress/source_view_registry.cpp",
@@ -24381,7 +24381,7 @@
           "anchorKind": "identifier",
           "anchorStrength": "exact-semantic-token",
           "occurrence": 45,
-          "line": 2207,
+          "line": 2205,
           "contextSha256": "64fdd7f9fc9682c55c487133ae4966c7bf5b5607146cf84a276bc9a8d422cec1"
         },
         "route": {
@@ -24402,7 +24402,7 @@
           "anchorKind": "identifier",
           "anchorStrength": "exact-semantic-token",
           "occurrence": 45,
-          "line": 2207,
+          "line": 2205,
           "contextSha256": "64fdd7f9fc9682c55c487133ae4966c7bf5b5607146cf84a276bc9a8d422cec1"
         },
         "stateOracle": {
@@ -24417,7 +24417,7 @@
             "anchorKind": "identifier",
             "anchorStrength": "exact-semantic-token",
             "occurrence": 45,
-            "line": 2207,
+            "line": 2205,
             "contextSha256": "64fdd7f9fc9682c55c487133ae4966c7bf5b5607146cf84a276bc9a8d422cec1"
           }
         },
@@ -24434,7 +24434,7 @@
           "assertionKind": "exact-locator-relation-and-review-digest",
           "assertionAnchor": "validateSemanticItem",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "f3239c94aa3b8a48acf7d9e9fd45dfceaabe2667120a69447df4172b1596b9e3"
+          "assertedSemanticDigest": "41eaed38cd22e858d7b76e8a548c3bb3ced428d52af5af265eb1bb476009c2d0"
         }
       }
     },
@@ -70541,10 +70541,10 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW2-21",
-        "reviewedOn": "2026-07-11",
-        "reason": "V390-REVIEW2-21-inventory-summary-reconciliation",
-        "semanticDigest": "91a810030a047161da045d88f99c59e61360840e45366e7c15f3834c86756ed4"
+        "reviewer": "Codex-V390-REVIEW2-34",
+        "reviewedOn": "2026-07-12",
+        "reason": "V390-REVIEW2-26-34-reviewed-current-contracts-counts-and-anchor-reconciliation",
+        "semanticDigest": "c7a0400a178b3e2b3c20b7ee0a38b1ce8aeeab17f72c7951fa4f493086c52e82"
       },
       "sourceEvidence": {
         "file": "scripts/internal/verify_v390_ui_automation_coverage_contract.mjs",
@@ -70579,7 +70579,7 @@
           "anchorKind": "legacy-review-seed",
           "anchorStrength": "exact-semantic-token",
           "occurrence": 0,
-          "line": 96,
+          "line": 97,
           "contextSha256": "69a638cdd09e2a218a98dfc9ae26ed1f5503fe0a94518b063899464c2ccff178"
         },
         "route": {
@@ -70616,7 +70616,7 @@
             "anchorKind": "legacy-review-seed",
             "anchorStrength": "exact-semantic-token",
             "occurrence": 0,
-            "line": 96,
+            "line": 97,
             "contextSha256": "69a638cdd09e2a218a98dfc9ae26ed1f5503fe0a94518b063899464c2ccff178"
           }
         },
@@ -70633,7 +70633,7 @@
           "assertionKind": "exact-locator-relation-and-review-digest",
           "assertionAnchor": "validateSemanticItem",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "91a810030a047161da045d88f99c59e61360840e45366e7c15f3834c86756ed4"
+          "assertedSemanticDigest": "c7a0400a178b3e2b3c20b7ee0a38b1ce8aeeab17f72c7951fa4f493086c52e82"
         }
       }
     },
@@ -72364,10 +72364,10 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW2-21",
-        "reviewedOn": "2026-07-11",
-        "reason": "V390-REVIEW2-21-inventory-summary-reconciliation",
-        "semanticDigest": "636fa1b8578eec4463ae1a181e1ec52f5a75abe47d3ba16105aa14635f4861cd"
+        "reviewer": "Codex-V390-REVIEW2-34",
+        "reviewedOn": "2026-07-12",
+        "reason": "V390-REVIEW2-26-34-reviewed-current-contracts-counts-and-anchor-reconciliation",
+        "semanticDigest": "0bb81e99d07f31435e9dd2bdd5bc24435e450bd4a33aa81c2c4709039288889c"
       },
       "sourceEvidence": {
         "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
@@ -72397,7 +72397,7 @@
           "anchorKind": "identifier",
           "anchorStrength": "exact-semantic-token",
           "occurrence": 0,
-          "line": 261,
+          "line": 277,
           "contextSha256": "58f4131f0596a337711ccdbf18f65f27a9260d608bb6d647e3120ad1cda2a2f0"
         },
         "route": {
@@ -72418,7 +72418,7 @@
           "anchorKind": "identifier",
           "anchorStrength": "exact-semantic-token",
           "occurrence": 0,
-          "line": 261,
+          "line": 277,
           "contextSha256": "58f4131f0596a337711ccdbf18f65f27a9260d608bb6d647e3120ad1cda2a2f0"
         },
         "stateOracle": {
@@ -72433,7 +72433,7 @@
             "anchorKind": "identifier",
             "anchorStrength": "exact-semantic-token",
             "occurrence": 0,
-            "line": 261,
+            "line": 277,
             "contextSha256": "58f4131f0596a337711ccdbf18f65f27a9260d608bb6d647e3120ad1cda2a2f0"
           }
         },
@@ -72450,7 +72450,7 @@
           "assertionKind": "exact-locator-relation-and-review-digest",
           "assertionAnchor": "validateSemanticItem",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "636fa1b8578eec4463ae1a181e1ec52f5a75abe47d3ba16105aa14635f4861cd"
+          "assertedSemanticDigest": "0bb81e99d07f31435e9dd2bdd5bc24435e450bd4a33aa81c2c4709039288889c"
         }
       }
     },
@@ -76634,10 +76634,10 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW2-21",
-        "reviewedOn": "2026-07-11",
-        "reason": "V390-REVIEW2-21-inventory-summary-reconciliation",
-        "semanticDigest": "e6bbe42d7b0c7af9b546c6d74c00bf1d2fe312fc05807ddbc58e0c8862d7317a"
+        "reviewer": "Codex-V390-REVIEW2-34",
+        "reviewedOn": "2026-07-12",
+        "reason": "V390-REVIEW2-26-34-reviewed-current-contracts-counts-and-anchor-reconciliation",
+        "semanticDigest": "6b41f8de50d016a8490478c64ad64dd1b2cccb91a1f7dd4ef641a6c83a47abdb"
       },
       "sourceEvidence": {
         "file": "scripts/internal/verify_manual_ui_evidence.mjs",
@@ -76667,7 +76667,7 @@
           "anchorKind": "reviewed-code-span",
           "anchorStrength": "exact-semantic-token",
           "occurrence": 0,
-          "line": 113,
+          "line": 115,
           "contextSha256": "d1ae66c393918959f40a2c02326b5d985d5d01d56ae9aee1b85027d547880d77"
         },
         "route": {
@@ -76688,7 +76688,7 @@
           "anchorKind": "reviewed-code-span",
           "anchorStrength": "exact-semantic-token",
           "occurrence": 0,
-          "line": 113,
+          "line": 115,
           "contextSha256": "d1ae66c393918959f40a2c02326b5d985d5d01d56ae9aee1b85027d547880d77"
         },
         "stateOracle": {
@@ -76703,7 +76703,7 @@
             "anchorKind": "reviewed-code-span",
             "anchorStrength": "exact-semantic-token",
             "occurrence": 0,
-            "line": 113,
+            "line": 115,
             "contextSha256": "d1ae66c393918959f40a2c02326b5d985d5d01d56ae9aee1b85027d547880d77"
           }
         },
@@ -76720,7 +76720,7 @@
           "assertionKind": "exact-locator-relation-and-review-digest",
           "assertionAnchor": "validateSemanticItem",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "e6bbe42d7b0c7af9b546c6d74c00bf1d2fe312fc05807ddbc58e0c8862d7317a"
+          "assertedSemanticDigest": "6b41f8de50d016a8490478c64ad64dd1b2cccb91a1f7dd4ef641a6c83a47abdb"
         }
       }
     },
@@ -91372,10 +91372,10 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW2-21",
-        "reviewedOn": "2026-07-11",
-        "reason": "V390-REVIEW2-21-inventory-summary-reconciliation",
-        "semanticDigest": "b9f041c8973589adfc5f165b56a67243ab9847b158b91ace947844db058a62c9"
+        "reviewer": "Codex-V390-REVIEW2-35",
+        "reviewedOn": "2026-07-12",
+        "reason": "V390-REVIEW2-35-reviewed-current-32-command-acceptance-boundary",
+        "semanticDigest": "3c0aa42fca500557367672c2529f241b077dd18f2841311e0b8c0461e117d130"
       },
       "sourceEvidence": {
         "file": "scripts/internal/verify_v390_stabilization_release_readiness.mjs",
@@ -91431,8 +91431,8 @@
         },
         "stateOracle": {
           "oracleKind": "negative-invariant-state",
-          "expectedBehaviorSha256": "35c7adbab319b69ba5fd41fdcf45cf59be3ee16cd1457cb22cee4a1fa7ff99c4",
-          "expectedBehavior": "`verify-v390-test-acceptance-bundle` current final actual preflight가 clean worktree와 `--run-120`을 강제하고 build→current 31-command feature gate→실제 30분→실제 UI automation/replay→120분의 stop-on-first-fail stage, later `not-run`, cleanup/report를 확인합니다. `result=PASS`와 Policy v4 전체 UI/published metadata/release action을 분리합니다",
+          "expectedBehaviorSha256": "a4b89ace21d425e1445aae548da25e4b8505fdee63c5a9102786133e035aa9f8",
+          "expectedBehavior": "`verify-v390-test-acceptance-bundle` current final actual preflight가 clean worktree와 `--run-120`을 강제하고 build→current 32-command feature gate(Review2-35 truthfulness 포함)→실제 30분→실제 UI automation/replay→120분의 stop-on-first-fail stage, later `not-run`, cleanup/report를 확인합니다. `result=PASS`와 Policy v4 전체 UI/published metadata/release action을 분리합니다",
           "locator": {
             "file": "scripts/internal/verify_v390_stabilization_release_readiness.mjs",
             "symbol": "currentFinalCommand",
@@ -91450,7 +91450,7 @@
           "handlerSymbol": "currentFinalCommand",
           "actionSymbol": "currentFinalCommand",
           "stateSymbol": "currentFinalCommand",
-          "semanticKey": "SAFE-212:35c7adbab319b69ba5fd41fd"
+          "semanticKey": "SAFE-212:a4b89ace21d425e1445aae54"
         },
         "verifierAssertion": {
           "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
@@ -91458,7 +91458,7 @@
           "assertionKind": "exact-locator-relation-and-review-digest",
           "assertionAnchor": "validateSemanticItem",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "b9f041c8973589adfc5f165b56a67243ab9847b158b91ace947844db058a62c9"
+          "assertedSemanticDigest": "3c0aa42fca500557367672c2529f241b077dd18f2841311e0b8c0461e117d130"
         }
       }
     },
@@ -91578,10 +91578,10 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW2-21",
-        "reviewedOn": "2026-07-11",
-        "reason": "V390-REVIEW2-21-inventory-summary-reconciliation",
-        "semanticDigest": "bfdff1d09f31512f604262aa2a60420da4ee9b09ac80b46a9057920d491132f1"
+        "reviewer": "Codex-V390-REVIEW2-35",
+        "reviewedOn": "2026-07-12",
+        "reason": "V390-REVIEW2-35-reviewed-truthful-owner-field-structure-status-contracts",
+        "semanticDigest": "5379322b8f3fc7b966c20a775a2dcbdd7cdb253ba5c900ec6bbdb849398b483b"
       },
       "sourceEvidence": {
         "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
@@ -91591,8 +91591,8 @@
       "uiEvidence": null,
       "verifierEvidence": {
         "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
-        "anchor": "implementationExecuted=false",
-        "anchorKind": "code-span",
+        "anchor": "decision-record",
+        "anchorKind": "identifier",
         "command": "verify-v390-deferred-product-owner-signoff"
       },
       "manualUiCaseId": null,
@@ -91611,7 +91611,7 @@
           "anchorKind": "reviewed-code-span",
           "anchorStrength": "exact-semantic-token",
           "occurrence": 0,
-          "line": 81,
+          "line": 84,
           "contextSha256": "2d4c6e3eefd1600750c7fd84ddbf5a2fa1484d28174683ea328b24a2b3e179e1"
         },
         "route": {
@@ -91632,13 +91632,13 @@
           "anchorKind": "reviewed-code-span",
           "anchorStrength": "exact-semantic-token",
           "occurrence": 0,
-          "line": 81,
+          "line": 84,
           "contextSha256": "2d4c6e3eefd1600750c7fd84ddbf5a2fa1484d28174683ea328b24a2b3e179e1"
         },
         "stateOracle": {
           "oracleKind": "negative-invariant-state",
-          "expectedBehaviorSha256": "a20596616207ae96ee900373b9dff3e99c16a4627673feb814e726a9a5114c39",
-          "expectedBehavior": "`verify-v390-deferred-product-owner-signoff`가 5개 deferred 항목의 역할 기반 owner, v3.9 결정, 근거, 재개 조건, 사용자 승인 출처와 `implementationExecuted=false`, `fieldPassClaimed=false`, `releasePassClaimed=false`를 검증합니다. 개인 담당자 추정, 실제 구현, field smoke, UI/longrun, release PASS evidence가 아닙니다",
+          "expectedBehaviorSha256": "9f9462287c36fd4509b21f563c595e9c7e4ccbe635368907896f356ca69087a4",
+          "expectedBehavior": "`verify-v390-deferred-product-owner-signoff`와 `verify-v390-truthfulness-status-vocabulary`가 5개 deferred 항목을 `decision-record`, implementation `not-executed`로 분리하고 역할 기반 owner, v3.9 결정, 근거, 재개 조건, 사용자 승인 출처와 `implementationExecuted=false`, `fieldPassClaimed=false`, `releasePassClaimed=false`를 검증합니다. 개인 담당자 추정, 실제 구현, field smoke, UI/longrun, release PASS evidence가 아닙니다",
           "locator": {
             "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
             "symbol": "check:feature inventory records the durable owner sign-off",
@@ -91647,7 +91647,7 @@
             "anchorKind": "reviewed-code-span",
             "anchorStrength": "exact-semantic-token",
             "occurrence": 0,
-            "line": 83,
+            "line": 86,
             "contextSha256": "5a2c2c5c1d9236156b64dc49f1aa62c0df836f14d4710dfbdbd5be2e54823386"
           }
         },
@@ -91656,7 +91656,7 @@
           "handlerSymbol": "check:feature inventory records the durable owner sign-off",
           "actionSymbol": "check:feature inventory records the durable owner sign-off",
           "stateSymbol": "check:feature inventory records the durable owner sign-off",
-          "semanticKey": "SAFE-214:a20596616207ae96ee900373"
+          "semanticKey": "SAFE-214:9f9462287c36fd4509b21f56"
         },
         "verifierAssertion": {
           "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
@@ -91664,7 +91664,7 @@
           "assertionKind": "exact-locator-relation-and-review-digest",
           "assertionAnchor": "validateSemanticItem",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "bfdff1d09f31512f604262aa2a60420da4ee9b09ac80b46a9057920d491132f1"
+          "assertedSemanticDigest": "5379322b8f3fc7b966c20a775a2dcbdd7cdb253ba5c900ec6bbdb849398b483b"
         }
       }
     },
@@ -91681,20 +91681,20 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW2-21",
-        "reviewedOn": "2026-07-11",
-        "reason": "V390-REVIEW2-21-inventory-summary-reconciliation",
-        "semanticDigest": "63c5b82099f8127def5ba7eda5c44bdb9e485828ba6a4acad334ba33ff7deb66"
+        "reviewer": "Codex-V390-REVIEW2-35",
+        "reviewedOn": "2026-07-12",
+        "reason": "V390-REVIEW2-35-reviewed-truthful-owner-field-structure-status-contracts",
+        "semanticDigest": "ed4e09cc81faf11fce823365b7e468feba4642bc70ca05750a4f59bdf9903499"
       },
       "sourceEvidence": {
         "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-        "anchor": "stabilization",
+        "anchor": "gate-ready",
         "anchorKind": "semantic-handler-token"
       },
       "uiEvidence": null,
       "verifierEvidence": {
         "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-        "anchor": "structure",
+        "anchor": "gate-ready",
         "anchorKind": "identifier",
         "command": "verify-v390-structure-stabilization-readiness"
       },
@@ -91708,14 +91708,14 @@
         "schema": "media-server.feature-semantic-implementation-closure.v1",
         "handler": {
           "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-          "symbol": "file-scope:verify_v390_structure_stabilization_readiness.mjs:L19",
-          "symbolKind": "declaration-or-file-scope",
-          "anchor": "stabilization",
+          "symbol": "check:machine-readable readiness contract is complete",
+          "symbolKind": "function-or-method",
+          "anchor": "gate-ready",
           "anchorKind": "identifier",
           "anchorStrength": "exact-semantic-token",
-          "occurrence": 1,
-          "line": 19,
-          "contextSha256": "3d9c3d97b33841acb1b301ea5919b098835387f0e31e6f3721d16b587ba88fe2"
+          "occurrence": 0,
+          "line": 68,
+          "contextSha256": "1b5cad48f83b2eb88b1dd134955a15ce9e2466c1dd3439829a9cc22057adc8f7"
         },
         "route": {
           "applicability": "not-applicable",
@@ -91729,37 +91729,37 @@
         },
         "actionHandler": {
           "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-          "symbol": "file-scope:verify_v390_structure_stabilization_readiness.mjs:L19",
-          "symbolKind": "declaration-or-file-scope",
-          "anchor": "stabilization",
+          "symbol": "check:machine-readable readiness contract is complete",
+          "symbolKind": "function-or-method",
+          "anchor": "gate-ready",
           "anchorKind": "identifier",
           "anchorStrength": "exact-semantic-token",
-          "occurrence": 1,
-          "line": 19,
-          "contextSha256": "3d9c3d97b33841acb1b301ea5919b098835387f0e31e6f3721d16b587ba88fe2"
+          "occurrence": 0,
+          "line": 68,
+          "contextSha256": "1b5cad48f83b2eb88b1dd134955a15ce9e2466c1dd3439829a9cc22057adc8f7"
         },
         "stateOracle": {
           "oracleKind": "negative-invariant-state",
-          "expectedBehaviorSha256": "215724376ad445a4b634bd7b9bf7d976f0052f6e52777c2e683f24b57a46c87a",
-          "expectedBehavior": "`verify-v390-structure-stabilization-readiness`가 analysis/core/media→ingress/UI 역의존, circular dependency, 새 registry write owner를 금지하고 Event POST, WebRTC DataChannel, SSE/WS, RTSP/WebRTC media, Auth/Role/Scope, SourceRegistry/PublishedView, Rule/Profile, HTTP route/status/error, DOM/test ID 9개 contract를 `changeAllowed=false`로 고정합니다",
+          "expectedBehaviorSha256": "d67fbf83bdee3b764652b507a05d0fee65590694f9cd818f9c2edfd87a6a0ea9",
+          "expectedBehavior": "`verify-v390-structure-stabilization-readiness`와 `verify-v390-truthfulness-status-vocabulary`가 structure를 `gate-ready`, implementation `not-executed`로 분리하고 analysis/core/media→ingress/UI 역의존, circular dependency, 새 registry write owner를 금지하며 9개 contract를 `changeAllowed=false`로 고정합니다",
           "locator": {
             "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-            "symbol": "file-scope:verify_v390_structure_stabilization_readiness.mjs:L19",
-            "symbolKind": "declaration-or-file-scope",
-            "anchor": "stabilization",
+            "symbol": "check:machine-readable readiness contract is complete",
+            "symbolKind": "function-or-method",
+            "anchor": "gate-ready",
             "anchorKind": "identifier",
             "anchorStrength": "exact-semantic-token",
-            "occurrence": 1,
-            "line": 19,
-            "contextSha256": "3d9c3d97b33841acb1b301ea5919b098835387f0e31e6f3721d16b587ba88fe2"
+            "occurrence": 0,
+            "line": 68,
+            "contextSha256": "1b5cad48f83b2eb88b1dd134955a15ce9e2466c1dd3439829a9cc22057adc8f7"
           }
         },
         "relation": {
           "kind": "invariant-owner-assertion-state",
-          "handlerSymbol": "file-scope:verify_v390_structure_stabilization_readiness.mjs:L19",
-          "actionSymbol": "file-scope:verify_v390_structure_stabilization_readiness.mjs:L19",
-          "stateSymbol": "file-scope:verify_v390_structure_stabilization_readiness.mjs:L19",
-          "semanticKey": "SAFE-215:215724376ad445a4b634bd7b"
+          "handlerSymbol": "check:machine-readable readiness contract is complete",
+          "actionSymbol": "check:machine-readable readiness contract is complete",
+          "stateSymbol": "check:machine-readable readiness contract is complete",
+          "semanticKey": "SAFE-215:d67fbf83bdee3b764652b507"
         },
         "verifierAssertion": {
           "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
@@ -91767,7 +91767,7 @@
           "assertionKind": "exact-locator-relation-and-review-digest",
           "assertionAnchor": "validateSemanticItem",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "63c5b82099f8127def5ba7eda5c44bdb9e485828ba6a4acad334ba33ff7deb66"
+          "assertedSemanticDigest": "ed4e09cc81faf11fce823365b7e468feba4642bc70ca05750a4f59bdf9903499"
         }
       }
     },
@@ -91784,20 +91784,20 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW2-21",
-        "reviewedOn": "2026-07-11",
-        "reason": "V390-REVIEW2-21-inventory-summary-reconciliation",
-        "semanticDigest": "642f7cd13757aee4f078b03ad0396049c678fe6682bd46f6cb9af5767bde7818"
+        "reviewer": "Codex-V390-REVIEW2-35",
+        "reviewedOn": "2026-07-12",
+        "reason": "V390-REVIEW2-35-reviewed-truthful-owner-field-structure-status-contracts",
+        "semanticDigest": "73fcd5fcf6aa3a2b0196211d18e4e9b4fc60d64194afa98430e370ca922ee854"
       },
       "sourceEvidence": {
         "file": "scripts/internal/verify_v390_external_field_smoke_no_device_closure.mjs",
-        "anchor": "credential",
+        "anchor": "conditional-not-run",
         "anchorKind": "semantic-handler-token"
       },
       "uiEvidence": null,
       "verifierEvidence": {
         "file": "scripts/internal/verify_v390_external_field_smoke_no_device_closure.mjs",
-        "anchor": "external",
+        "anchor": "conditional-not-run",
         "anchorKind": "identifier",
         "command": "verify-v390-external-field-smoke-no-device-closure"
       },
@@ -91811,14 +91811,14 @@
         "schema": "media-server.feature-semantic-implementation-closure.v1",
         "handler": {
           "file": "scripts/internal/verify_v390_external_field_smoke_no_device_closure.mjs",
-          "symbol": "file-scope:verify_v390_external_field_smoke_no_device_closure.mjs:L23",
-          "symbolKind": "declaration-or-file-scope",
-          "anchor": "credential",
+          "symbol": "check:closure fixture records exact no-device not-run state",
+          "symbolKind": "function-or-method",
+          "anchor": "conditional-not-run",
           "anchorKind": "identifier",
           "anchorStrength": "exact-semantic-token",
           "occurrence": 0,
-          "line": 23,
-          "contextSha256": "acad58393aef22be745951fa14885fc87ca5a46fb1226b83f4ccad82477b67f8"
+          "line": 45,
+          "contextSha256": "2a6704939571fc3dfab40eb883e1928a23707b02d368a9df92dd8367b1060fe8"
         },
         "route": {
           "applicability": "not-applicable",
@@ -91832,37 +91832,37 @@
         },
         "actionHandler": {
           "file": "scripts/internal/verify_v390_external_field_smoke_no_device_closure.mjs",
-          "symbol": "file-scope:verify_v390_external_field_smoke_no_device_closure.mjs:L23",
-          "symbolKind": "declaration-or-file-scope",
-          "anchor": "credential",
+          "symbol": "check:closure fixture records exact no-device not-run state",
+          "symbolKind": "function-or-method",
+          "anchor": "conditional-not-run",
           "anchorKind": "identifier",
           "anchorStrength": "exact-semantic-token",
           "occurrence": 0,
-          "line": 23,
-          "contextSha256": "acad58393aef22be745951fa14885fc87ca5a46fb1226b83f4ccad82477b67f8"
+          "line": 45,
+          "contextSha256": "2a6704939571fc3dfab40eb883e1928a23707b02d368a9df92dd8367b1060fe8"
         },
         "stateOracle": {
           "oracleKind": "create-readback-state",
-          "expectedBehaviorSha256": "b5bef54d91a1618bcd4610c60f6cd13e91f178a360ba18ea7a84621bde742b5d",
-          "expectedBehavior": "`verify-v390-external-field-smoke-no-device-closure`가 external network, endpoint probe, credential access, device contact, provider call, artifact 생성이 모두 false이고 TURN/WHEP·ONVIF·external VLM target status가 `not-run`, field/release PASS claim이 false임을 확인합니다. 외부 실행 evidence가 아닙니다",
+          "expectedBehaviorSha256": "78e14917fdc1d974b66225d4d310013751ba1c87f57054281a90b7e502b7de47",
+          "expectedBehavior": "`verify-v390-external-field-smoke-no-device-closure`와 `verify-v390-truthfulness-status-vocabulary`가 external network, endpoint probe, credential access, device contact, provider call, artifact 생성이 모두 false이고 TURN/WHEP·ONVIF·external VLM target status가 `conditional-not-run`, field/release PASS claim이 false임을 확인합니다. 외부 실행 evidence가 아닙니다",
           "locator": {
             "file": "scripts/internal/verify_v390_external_field_smoke_no_device_closure.mjs",
-            "symbol": "file-scope:verify_v390_external_field_smoke_no_device_closure.mjs:L23",
-            "symbolKind": "declaration-or-file-scope",
-            "anchor": "credential",
+            "symbol": "check:closure fixture records exact no-device not-run state",
+            "symbolKind": "function-or-method",
+            "anchor": "conditional-not-run",
             "anchorKind": "identifier",
             "anchorStrength": "exact-semantic-token",
             "occurrence": 0,
-            "line": 23,
-            "contextSha256": "acad58393aef22be745951fa14885fc87ca5a46fb1226b83f4ccad82477b67f8"
+            "line": 45,
+            "contextSha256": "2a6704939571fc3dfab40eb883e1928a23707b02d368a9df92dd8367b1060fe8"
           }
         },
         "relation": {
           "kind": "invariant-owner-assertion-state",
-          "handlerSymbol": "file-scope:verify_v390_external_field_smoke_no_device_closure.mjs:L23",
-          "actionSymbol": "file-scope:verify_v390_external_field_smoke_no_device_closure.mjs:L23",
-          "stateSymbol": "file-scope:verify_v390_external_field_smoke_no_device_closure.mjs:L23",
-          "semanticKey": "SAFE-216:b5bef54d91a1618bcd4610c6"
+          "handlerSymbol": "check:closure fixture records exact no-device not-run state",
+          "actionSymbol": "check:closure fixture records exact no-device not-run state",
+          "stateSymbol": "check:closure fixture records exact no-device not-run state",
+          "semanticKey": "SAFE-216:78e14917fdc1d974b66225d4"
         },
         "verifierAssertion": {
           "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
@@ -91870,7 +91870,7 @@
           "assertionKind": "exact-locator-relation-and-review-digest",
           "assertionAnchor": "validateSemanticItem",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "642f7cd13757aee4f078b03ad0396049c678fe6682bd46f6cb9af5767bde7818"
+          "assertedSemanticDigest": "73fcd5fcf6aa3a2b0196211d18e4e9b4fc60d64194afa98430e370ca922ee854"
         }
       }
     },
@@ -106044,10 +106044,10 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW2-21",
-        "reviewedOn": "2026-07-11",
-        "reason": "V390-REVIEW2-21-inventory-summary-reconciliation",
-        "semanticDigest": "cfe42b099e1783b3023f52e69842bb08839ae59d88ed27da8e5061a51549519a"
+        "reviewer": "Codex-V390-REVIEW2-34",
+        "reviewedOn": "2026-07-12",
+        "reason": "V390-REVIEW2-26-34-reviewed-current-contracts-counts-and-anchor-reconciliation",
+        "semanticDigest": "44f10ebdf11a16f178edf8f0b792095c1ba0a3dedd2bd28be5b4c5cc7dfe5ab2"
       },
       "sourceEvidence": {
         "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
@@ -106103,8 +106103,8 @@
         },
         "stateOracle": {
           "oracleKind": "read-or-rendered-state",
-          "expectedBehaviorSha256": "0cec3d2b24e7b067542ba414152b4930d597c64a687f4908d128c2fea7f2526d",
-          "expectedBehavior": "기존 native visible-DOM runner/replay/coverage와 `verify-ui-fulltest-evidence-policy-v4`가 exact case별 actual browser provenance, completion oracle, role·viewport·theme, artifact integrity/redaction/visual/replay/cleanup을 판정합니다. Current 8/424, unsupported 415, excluded 1은 partial/ineligible이며 exact 전수와 교차 의무가 닫히기 전 전체 UI PASS가 아님",
+          "expectedBehaviorSha256": "bbb7610a6f8730b0458101a6ac9a4b792a7ae5dabfb6b4b03ad6e10f99a9ca3c",
+          "expectedBehavior": "기존 native visible-DOM runner/replay/coverage와 `verify-ui-fulltest-evidence-policy-v4`가 exact case별 actual browser provenance, completion oracle, role·viewport·theme, artifact integrity/redaction/visual/replay/cleanup을 판정합니다. Current not-run은 automated 0/unsupported 423/excluded 1이며 exact 전수와 교차 의무가 닫히기 전 전체 UI PASS가 아님",
           "locator": {
             "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
             "symbol": "file-scope:verify_v390_evidence_test_gate_prep.mjs:L25",
@@ -106122,7 +106122,7 @@
           "handlerSymbol": "file-scope:verify_v390_evidence_test_gate_prep.mjs:L25",
           "actionSymbol": "file-scope:verify_v390_evidence_test_gate_prep.mjs:L25",
           "stateSymbol": "file-scope:verify_v390_evidence_test_gate_prep.mjs:L25",
-          "semanticKey": "OPS-169:0cec3d2b24e7b067542ba414"
+          "semanticKey": "OPS-169:bbb7610a6f8730b0458101a6"
         },
         "verifierAssertion": {
           "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
@@ -106130,7 +106130,7 @@
           "assertionKind": "exact-locator-relation-and-review-digest",
           "assertionAnchor": "validateSemanticItem",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "cfe42b099e1783b3023f52e69842bb08839ae59d88ed27da8e5061a51549519a"
+          "assertedSemanticDigest": "44f10ebdf11a16f178edf8f0b792095c1ba0a3dedd2bd28be5b4c5cc7dfe5ab2"
         }
       }
     },
@@ -106253,10 +106253,10 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW2-21",
-        "reviewedOn": "2026-07-11",
-        "reason": "V390-REVIEW2-21-inventory-summary-reconciliation",
-        "semanticDigest": "54f55b9cc50773122f1d903eceab3e9433440c8a630c772692f3e0b8cdd91c8e"
+        "reviewer": "Codex-V390-REVIEW2-34",
+        "reviewedOn": "2026-07-12",
+        "reason": "V390-REVIEW2-26-34-reviewed-current-contracts-counts-and-anchor-reconciliation",
+        "semanticDigest": "5fc526b1eb1e2220168599a504b04c8daaedb752e4705f1a45e966e6ca6197aa"
       },
       "sourceEvidence": {
         "file": "scripts/internal/verify_v390_onvif_live_import_persist_decision.mjs",
@@ -106312,8 +106312,8 @@
         },
         "stateOracle": {
           "oracleKind": "read-or-rendered-state",
-          "expectedBehaviorSha256": "3510c3863b671816743d95858e2ba91401d4cca20b59643f7f6a69a39c891063",
-          "expectedBehavior": "`verify-v390-onvif-source-view-atomicity`, `verify-v390-onvif-live-import-persist-decision`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 paired route, rollback outcome, 8 HTTP case, UI/roadmap/release/dispatch를 확인하되 one-shot import persist, ONVIF 실기기 success, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음",
+          "expectedBehaviorSha256": "b912957ae50c082257d79bb0d1a144555116d73a8dc28695d529f6772899c3f3",
+          "expectedBehavior": "`verify-v390-onvif-source-view-atomicity`, `verify-v390-onvif-live-import-persist-decision`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 paired route, byte-exact snapshot rollback outcome, 13 HTTP/file case, UI/roadmap/release/dispatch를 확인하되 one-shot import persist, ONVIF 실기기 success, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음",
           "locator": {
             "file": "scripts/internal/verify_v390_onvif_live_import_persist_decision.mjs",
             "symbol": "check:roadmap, stream verification, inventory, and release records map v3.9 Step 12",
@@ -106331,7 +106331,7 @@
           "handlerSymbol": "check:roadmap, stream verification, inventory, and release records map v3.9 Step 12",
           "actionSymbol": "check:roadmap, stream verification, inventory, and release records map v3.9 Step 12",
           "stateSymbol": "check:roadmap, stream verification, inventory, and release records map v3.9 Step 12",
-          "semanticKey": "OPS-171:3510c3863b671816743d9585"
+          "semanticKey": "OPS-171:b912957ae50c082257d79bb0"
         },
         "verifierAssertion": {
           "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
@@ -106339,7 +106339,7 @@
           "assertionKind": "exact-locator-relation-and-review-digest",
           "assertionAnchor": "validateSemanticItem",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "54f55b9cc50773122f1d903eceab3e9433440c8a630c772692f3e0b8cdd91c8e"
+          "assertedSemanticDigest": "5fc526b1eb1e2220168599a504b04c8daaedb752e4705f1a45e966e6ca6197aa"
         }
       }
     },
@@ -106462,10 +106462,10 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW2-21",
-        "reviewedOn": "2026-07-11",
-        "reason": "V390-REVIEW2-21-inventory-summary-reconciliation",
-        "semanticDigest": "1c6449830c6ab7895aca4be5c592e42a4b1c1601333930aa4dd3ba2abf859fce"
+        "reviewer": "Codex-V390-REVIEW2-34",
+        "reviewedOn": "2026-07-12",
+        "reason": "V390-REVIEW2-26-34-reviewed-current-contracts-counts-and-anchor-reconciliation",
+        "semanticDigest": "89b16524df69d79cb4bf6ab144c741a3d970c3390fcce0294b1d7f60c56590d6"
       },
       "sourceEvidence": {
         "file": "scripts/internal/verify_v390_vlm_evaluation_promotion_guard.mjs",
@@ -106521,8 +106521,8 @@
         },
         "stateOracle": {
           "oracleKind": "negative-invariant-state",
-          "expectedBehaviorSha256": "fb37e3b3384100b9026ae5b6e701197a5f40251b50d24fc242a92fea3b01a0c4",
-          "expectedBehavior": "`verify-v390-vlm-promotion-trust-boundary`, `verify-v390-vlm-evaluation-promotion-guard`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 14개 HTTP positive/negative case와 1개 restart quarantine case, canonical provenance readback, no-write-on-reject, roadmap/release records/dispatch 연결을 확인하되 runtime/provider 호출, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음",
+          "expectedBehaviorSha256": "783620b9a3dc656c0863904d5f779f057fc38390591a150e23b9d57af4ea6dbd",
+          "expectedBehavior": "`verify-v390-vlm-promotion-trust-boundary`, `verify-v390-vlm-evaluation-promotion-guard`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 14개 HTTP positive/negative case와 9개 restart full-contract quarantine case, canonical provenance readback, no-write-on-reject, roadmap/release records/dispatch 연결을 확인하되 runtime/provider 호출, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음",
           "locator": {
             "file": "scripts/internal/verify_v390_vlm_evaluation_promotion_guard.mjs",
             "symbol": "check:promotion guard is read-only and preserves runtime/provider boundaries",
@@ -106540,7 +106540,7 @@
           "handlerSymbol": "check:promotion guard is read-only and preserves runtime/provider boundaries",
           "actionSymbol": "check:promotion guard is read-only and preserves runtime/provider boundaries",
           "stateSymbol": "check:promotion guard is read-only and preserves runtime/provider boundaries",
-          "semanticKey": "OPS-173:fb37e3b3384100b9026ae5b6"
+          "semanticKey": "OPS-173:783620b9a3dc656c0863904d"
         },
         "verifierAssertion": {
           "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
@@ -106548,7 +106548,7 @@
           "assertionKind": "exact-locator-relation-and-review-digest",
           "assertionAnchor": "validateSemanticItem",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "1c6449830c6ab7895aca4be5c592e42a4b1c1601333930aa4dd3ba2abf859fce"
+          "assertedSemanticDigest": "89b16524df69d79cb4bf6ab144c741a3d970c3390fcce0294b1d7f60c56590d6"
         }
       }
     },
@@ -107090,10 +107090,10 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW2-21",
-        "reviewedOn": "2026-07-11",
-        "reason": "V390-REVIEW2-21-inventory-summary-reconciliation",
-        "semanticDigest": "abb4ed05f2f4b6ce24fdc6a09d4111bc1fcfc47b06a92e9a033b92c08d5e9f00"
+        "reviewer": "Codex-V390-REVIEW2-35",
+        "reviewedOn": "2026-07-12",
+        "reason": "V390-REVIEW2-35-reviewed-current-32-command-acceptance-boundary",
+        "semanticDigest": "0683179f0c81bd557fc1bf75c2d247624d2c844a2377db68d6904291cbfc4c88"
       },
       "sourceEvidence": {
         "file": "scripts/internal/verify_v390_stabilization_release_readiness.mjs",
@@ -107149,8 +107149,8 @@
         },
         "stateOracle": {
           "oracleKind": "read-or-rendered-state",
-          "expectedBehaviorSha256": "928dcc87849932939813a0bda3d35faffdbad3100257829c5c0214fcf0e58a36",
-          "expectedBehavior": "current final command `verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final --run-120`은 clean worktree를 요구하고 build, 31개 current feature command(Development 15~18 및 Review2-21 durable write gate 포함), 실제 30분, UI automation/replay, 실제 120분, cleanup/report를 실행합니다. contract fixture는 actual duration/UI evidence가 아니며 Policy v4 전체 UI, published metadata, release action을 실행하지 않습니다",
+          "expectedBehaviorSha256": "1e921b5d4252d3a4b9f2bc9a1d70b14e3af5503bf40818c33d1a199e6092013c",
+          "expectedBehavior": "current final command `verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final --run-120`은 clean worktree를 요구하고 build, 32개 current feature command(Development 15~18, Review2-21 durable write, Review2-35 truthfulness gate 포함), 실제 30분, UI automation/replay, 실제 120분, cleanup/report를 실행합니다. contract fixture는 actual duration/UI evidence가 아니며 Policy v4 전체 UI, published metadata, release action을 실행하지 않습니다",
           "locator": {
             "file": "scripts/internal/verify_v390_stabilization_release_readiness.mjs",
             "symbol": "currentFinalCommand",
@@ -107168,7 +107168,7 @@
           "handlerSymbol": "currentFinalCommand",
           "actionSymbol": "currentFinalCommand",
           "stateSymbol": "currentFinalCommand",
-          "semanticKey": "OPS-179:928dcc87849932939813a0bd"
+          "semanticKey": "OPS-179:1e921b5d4252d3a4b9f2bc9a"
         },
         "verifierAssertion": {
           "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
@@ -107176,7 +107176,7 @@
           "assertionKind": "exact-locator-relation-and-review-digest",
           "assertionAnchor": "validateSemanticItem",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "abb4ed05f2f4b6ce24fdc6a09d4111bc1fcfc47b06a92e9a033b92c08d5e9f00"
+          "assertedSemanticDigest": "0683179f0c81bd557fc1bf75c2d247624d2c844a2377db68d6904291cbfc4c88"
         }
       }
     },
@@ -107296,20 +107296,20 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW2-21",
-        "reviewedOn": "2026-07-11",
-        "reason": "V390-REVIEW2-21-inventory-summary-reconciliation",
-        "semanticDigest": "6c3887681d1a6fb492b82a50cf58fedef852f17b3f2d78af41a717792dd2dbfb"
+        "reviewer": "Codex-V390-REVIEW2-35",
+        "reviewedOn": "2026-07-12",
+        "reason": "V390-REVIEW2-35-reviewed-truthful-owner-field-structure-status-contracts",
+        "semanticDigest": "95f4d2071af1f9ff575256d99b1be52ebf99724003a26fc75c63154b3e30eece"
       },
       "sourceEvidence": {
         "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
-        "anchor": "verification",
+        "anchor": "decision-record",
         "anchorKind": "semantic-handler-token"
       },
       "uiEvidence": null,
       "verifierEvidence": {
         "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
-        "anchor": "deferred",
+        "anchor": "decision-record",
         "anchorKind": "identifier",
         "command": "verify-v390-deferred-product-owner-signoff"
       },
@@ -107323,14 +107323,14 @@
         "schema": "media-server.feature-semantic-implementation-closure.v1",
         "handler": {
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
-          "symbol": "check:roadmap and evidence map Development 16 without false completion claims",
+          "symbol": "check:owner decision fixture is complete and role-owned",
           "symbolKind": "function-or-method",
-          "anchor": "verification",
+          "anchor": "decision-record",
           "anchorKind": "identifier",
           "anchorStrength": "exact-semantic-token",
-          "occurrence": 1,
-          "line": 91,
-          "contextSha256": "44d8679aae4dc76505addb530190aee433e7b6277f91998e7901ba39828003bb"
+          "occurrence": 0,
+          "line": 52,
+          "contextSha256": "2b004a5ed4c357454aae2e6568b7af8274706e0c61524f6ed436567369993ceb"
         },
         "route": {
           "applicability": "not-applicable",
@@ -107344,37 +107344,37 @@
         },
         "actionHandler": {
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
-          "symbol": "check:roadmap and evidence map Development 16 without false completion claims",
+          "symbol": "check:owner decision fixture is complete and role-owned",
           "symbolKind": "function-or-method",
-          "anchor": "verification",
+          "anchor": "decision-record",
           "anchorKind": "identifier",
           "anchorStrength": "exact-semantic-token",
-          "occurrence": 1,
-          "line": 91,
-          "contextSha256": "44d8679aae4dc76505addb530190aee433e7b6277f91998e7901ba39828003bb"
+          "occurrence": 0,
+          "line": 52,
+          "contextSha256": "2b004a5ed4c357454aae2e6568b7af8274706e0c61524f6ed436567369993ceb"
         },
         "stateOracle": {
           "oracleKind": "read-or-rendered-state",
-          "expectedBehaviorSha256": "aa3aa948c7feb9cdefdddf9e42a70be7a58381fa1eea87d4b90c4aab80b69747",
-          "expectedBehavior": "`verify-v390-deferred-product-owner-signoff`가 machine-readable decision fixture, feature inventory, roadmap, stream verification, release records/evidence, server dispatch를 대조하고 action/credential/field/provider/Re-ID deferred 범위를 닫습니다. owner sign-off는 해당 구현·field/release 실행 PASS가 아닙니다",
+          "expectedBehaviorSha256": "683306833e7f34e48e9d483e2d1ecceaff1f52d4e46c3821b3269de7ced1b497",
+          "expectedBehavior": "`verify-v390-deferred-product-owner-signoff`와 `verify-v390-truthfulness-status-vocabulary`가 machine-readable `decision-record`와 implementation `not-executed`를 대조합니다. owner sign-off는 해당 구현·field/release 실행 PASS가 아닙니다",
           "locator": {
             "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
-            "symbol": "check:roadmap and evidence map Development 16 without false completion claims",
+            "symbol": "check:owner decision fixture is complete and role-owned",
             "symbolKind": "function-or-method",
-            "anchor": "verification",
+            "anchor": "decision-record",
             "anchorKind": "identifier",
             "anchorStrength": "exact-semantic-token",
-            "occurrence": 1,
-            "line": 91,
-            "contextSha256": "44d8679aae4dc76505addb530190aee433e7b6277f91998e7901ba39828003bb"
+            "occurrence": 0,
+            "line": 52,
+            "contextSha256": "2b004a5ed4c357454aae2e6568b7af8274706e0c61524f6ed436567369993ceb"
           }
         },
         "relation": {
           "kind": "ops-gate-dispatch-assertion-state",
-          "handlerSymbol": "check:roadmap and evidence map Development 16 without false completion claims",
-          "actionSymbol": "check:roadmap and evidence map Development 16 without false completion claims",
-          "stateSymbol": "check:roadmap and evidence map Development 16 without false completion claims",
-          "semanticKey": "OPS-181:aa3aa948c7feb9cdefdddf9e"
+          "handlerSymbol": "check:owner decision fixture is complete and role-owned",
+          "actionSymbol": "check:owner decision fixture is complete and role-owned",
+          "stateSymbol": "check:owner decision fixture is complete and role-owned",
+          "semanticKey": "OPS-181:683306833e7f34e48e9d483e"
         },
         "verifierAssertion": {
           "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
@@ -107382,7 +107382,7 @@
           "assertionKind": "exact-locator-relation-and-review-digest",
           "assertionAnchor": "validateSemanticItem",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "6c3887681d1a6fb492b82a50cf58fedef852f17b3f2d78af41a717792dd2dbfb"
+          "assertedSemanticDigest": "95f4d2071af1f9ff575256d99b1be52ebf99724003a26fc75c63154b3e30eece"
         }
       }
     },
@@ -107399,20 +107399,20 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW2-21",
-        "reviewedOn": "2026-07-11",
-        "reason": "V390-REVIEW2-21-inventory-summary-reconciliation",
-        "semanticDigest": "38cfb24702117d29818be496d44eb5ff70c98cac69cf23f100a6a80ae4aaae24"
+        "reviewer": "Codex-V390-REVIEW2-35",
+        "reviewedOn": "2026-07-12",
+        "reason": "V390-REVIEW2-35-reviewed-truthful-owner-field-structure-status-contracts",
+        "semanticDigest": "b1dfaaaa015824603a2ec2cb90a04f4dc19b120d75345c3600713716c06d7759"
       },
       "sourceEvidence": {
         "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-        "anchor": "machine-readable",
+        "anchor": "gate-ready",
         "anchorKind": "semantic-handler-token"
       },
       "uiEvidence": null,
       "verifierEvidence": {
         "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-        "anchor": "structure",
+        "anchor": "gate-ready",
         "anchorKind": "identifier",
         "command": "verify-v390-structure-stabilization-readiness"
       },
@@ -107426,14 +107426,14 @@
         "schema": "media-server.feature-semantic-implementation-closure.v1",
         "handler": {
           "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-          "symbol": "check:machine-readable readiness contract is complete",
-          "symbolKind": "javascript-function",
-          "anchor": "machine-readable",
+          "symbol": "check:roadmap and evidence expose Development 17 readiness without refactor overclaim",
+          "symbolKind": "declaration-or-file-scope",
+          "anchor": "gate-ready",
           "anchorKind": "identifier",
           "anchorStrength": "exact-semantic-token",
-          "occurrence": 0,
-          "line": 57,
-          "contextSha256": "d0a48a2fd5a83a1e7a785472ed76a04806c0a8ec21c5114de485f60692b29334"
+          "occurrence": 2,
+          "line": 182,
+          "contextSha256": "3d76e0abe9c0f04719b9b3a4a174c9c12a5f2fb73c94aa1909826604a3212b7f"
         },
         "route": {
           "applicability": "not-applicable",
@@ -107447,37 +107447,37 @@
         },
         "actionHandler": {
           "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-          "symbol": "check:machine-readable readiness contract is complete",
-          "symbolKind": "javascript-function",
-          "anchor": "machine-readable",
+          "symbol": "check:roadmap and evidence expose Development 17 readiness without refactor overclaim",
+          "symbolKind": "declaration-or-file-scope",
+          "anchor": "gate-ready",
           "anchorKind": "identifier",
           "anchorStrength": "exact-semantic-token",
-          "occurrence": 0,
-          "line": 57,
-          "contextSha256": "d0a48a2fd5a83a1e7a785472ed76a04806c0a8ec21c5114de485f60692b29334"
+          "occurrence": 2,
+          "line": 182,
+          "contextSha256": "3d76e0abe9c0f04719b9b3a4a174c9c12a5f2fb73c94aa1909826604a3212b7f"
         },
         "stateOracle": {
           "oracleKind": "create-readback-state",
-          "expectedBehaviorSha256": "132787aec20e8d51758c55ebeeb23463cdea0cff5a6430d7bb07c22d475bb322",
-          "expectedBehavior": "`verify-v390-structure-stabilization-readiness`가 handoff plan, machine-readable readiness fixture, roadmap, inventory, release records/evidence, server dispatch와 future acceptance command를 대조합니다. `v4.0.0` branch 생성, 실제 source extraction, UI/longrun, release action PASS가 아닙니다",
+          "expectedBehaviorSha256": "9a3f6dd0b96e30f65842b55d3dd78e5e7a593d04100607d485aef30a9d160832",
+          "expectedBehavior": "`verify-v390-structure-stabilization-readiness`와 `verify-v390-truthfulness-status-vocabulary`가 readiness `gate-ready`와 implementation `not-executed`를 대조합니다. `v4.0.0` branch 생성, 실제 source extraction, UI/longrun, release action PASS가 아닙니다",
           "locator": {
             "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-            "symbol": "check:machine-readable readiness contract is complete",
-            "symbolKind": "javascript-function",
-            "anchor": "machine-readable",
+            "symbol": "check:roadmap and evidence expose Development 17 readiness without refactor overclaim",
+            "symbolKind": "declaration-or-file-scope",
+            "anchor": "gate-ready",
             "anchorKind": "identifier",
             "anchorStrength": "exact-semantic-token",
-            "occurrence": 0,
-            "line": 57,
-            "contextSha256": "d0a48a2fd5a83a1e7a785472ed76a04806c0a8ec21c5114de485f60692b29334"
+            "occurrence": 2,
+            "line": 182,
+            "contextSha256": "3d76e0abe9c0f04719b9b3a4a174c9c12a5f2fb73c94aa1909826604a3212b7f"
           }
         },
         "relation": {
           "kind": "ops-gate-dispatch-assertion-state",
-          "handlerSymbol": "check:machine-readable readiness contract is complete",
-          "actionSymbol": "check:machine-readable readiness contract is complete",
-          "stateSymbol": "check:machine-readable readiness contract is complete",
-          "semanticKey": "OPS-182:132787aec20e8d51758c55eb"
+          "handlerSymbol": "check:roadmap and evidence expose Development 17 readiness without refactor overclaim",
+          "actionSymbol": "check:roadmap and evidence expose Development 17 readiness without refactor overclaim",
+          "stateSymbol": "check:roadmap and evidence expose Development 17 readiness without refactor overclaim",
+          "semanticKey": "OPS-182:9a3f6dd0b96e30f65842b55d"
         },
         "verifierAssertion": {
           "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
@@ -107485,7 +107485,7 @@
           "assertionKind": "exact-locator-relation-and-review-digest",
           "assertionAnchor": "validateSemanticItem",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "38cfb24702117d29818be496d44eb5ff70c98cac69cf23f100a6a80ae4aaae24"
+          "assertedSemanticDigest": "b1dfaaaa015824603a2ec2cb90a04f4dc19b120d75345c3600713716c06d7759"
         }
       }
     },
@@ -107502,20 +107502,20 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW2-21",
-        "reviewedOn": "2026-07-11",
-        "reason": "V390-REVIEW2-21-inventory-summary-reconciliation",
-        "semanticDigest": "57ae9b8e81aa0f3ca0cbb07ca4b843fe715c038b2f600d74342d0f649f6fb384"
+        "reviewer": "Codex-V390-REVIEW2-35",
+        "reviewedOn": "2026-07-12",
+        "reason": "V390-REVIEW2-35-reviewed-truthful-owner-field-structure-status-contracts",
+        "semanticDigest": "f76e58283941cb5cd2f9b40f71e7115ebcd29954b9fb4d8e6962e66c2fc98fde"
       },
       "sourceEvidence": {
         "file": "scripts/internal/verify_v390_external_field_smoke_no_device_closure.mjs",
-        "anchor": "no-device",
+        "anchor": "conditional-not-run",
         "anchorKind": "semantic-handler-token"
       },
       "uiEvidence": null,
       "verifierEvidence": {
         "file": "scripts/internal/verify_v390_external_field_smoke_no_device_closure.mjs",
-        "anchor": "external",
+        "anchor": "conditional-not-run",
         "anchorKind": "identifier",
         "command": "verify-v390-external-field-smoke-no-device-closure"
       },
@@ -107529,14 +107529,14 @@
         "schema": "media-server.feature-semantic-implementation-closure.v1",
         "handler": {
           "file": "scripts/internal/verify_v390_external_field_smoke_no_device_closure.mjs",
-          "symbol": "file-scope:verify_v390_external_field_smoke_no_device_closure.mjs:L19",
+          "symbol": "check:roadmap and release evidence close the step as not-run, not PASS",
           "symbolKind": "declaration-or-file-scope",
-          "anchor": "no-device",
+          "anchor": "conditional-not-run",
           "anchorKind": "identifier",
           "anchorStrength": "exact-semantic-token",
-          "occurrence": 1,
-          "line": 19,
-          "contextSha256": "9c5f968dca1d16cc9023c350d74e82147af43ab603c17b6160196b15b406894f"
+          "occurrence": 4,
+          "line": 100,
+          "contextSha256": "7910735d5803d12f6cd505c3634f82ec169bc25e1918cfeab0774af3281ea538"
         },
         "route": {
           "applicability": "not-applicable",
@@ -107550,37 +107550,37 @@
         },
         "actionHandler": {
           "file": "scripts/internal/verify_v390_external_field_smoke_no_device_closure.mjs",
-          "symbol": "file-scope:verify_v390_external_field_smoke_no_device_closure.mjs:L19",
+          "symbol": "check:roadmap and release evidence close the step as not-run, not PASS",
           "symbolKind": "declaration-or-file-scope",
-          "anchor": "no-device",
+          "anchor": "conditional-not-run",
           "anchorKind": "identifier",
           "anchorStrength": "exact-semantic-token",
-          "occurrence": 1,
-          "line": 19,
-          "contextSha256": "9c5f968dca1d16cc9023c350d74e82147af43ab603c17b6160196b15b406894f"
+          "occurrence": 4,
+          "line": 100,
+          "contextSha256": "7910735d5803d12f6cd505c3634f82ec169bc25e1918cfeab0774af3281ea538"
         },
         "stateOracle": {
           "oracleKind": "negative-invariant-state",
-          "expectedBehaviorSha256": "20537538b988a5ce02fa879c686afd06322cdfac84b2a7510a68e5ec082c128b",
-          "expectedBehavior": "`verify-v390-external-field-smoke-no-device-closure`가 machine-readable closure, feature inventory, roadmap, release records/evidence, server dispatch와 future acceptance command를 대조합니다. 실제 external field smoke나 field/release PASS evidence가 아닙니다",
+          "expectedBehaviorSha256": "ee6c96a40450478d9225aa54870ef3e09fece9c285ce5512f67c119d170135cb",
+          "expectedBehavior": "`verify-v390-external-field-smoke-no-device-closure`와 `verify-v390-truthfulness-status-vocabulary`가 field `conditional-not-run`과 field/release claim false를 대조합니다. 실제 external field smoke나 field/release PASS evidence가 아닙니다",
           "locator": {
             "file": "scripts/internal/verify_v390_external_field_smoke_no_device_closure.mjs",
-            "symbol": "file-scope:verify_v390_external_field_smoke_no_device_closure.mjs:L19",
+            "symbol": "check:roadmap and release evidence close the step as not-run, not PASS",
             "symbolKind": "declaration-or-file-scope",
-            "anchor": "no-device",
+            "anchor": "conditional-not-run",
             "anchorKind": "identifier",
             "anchorStrength": "exact-semantic-token",
-            "occurrence": 1,
-            "line": 19,
-            "contextSha256": "9c5f968dca1d16cc9023c350d74e82147af43ab603c17b6160196b15b406894f"
+            "occurrence": 4,
+            "line": 100,
+            "contextSha256": "7910735d5803d12f6cd505c3634f82ec169bc25e1918cfeab0774af3281ea538"
           }
         },
         "relation": {
           "kind": "ops-gate-dispatch-assertion-state",
-          "handlerSymbol": "file-scope:verify_v390_external_field_smoke_no_device_closure.mjs:L19",
-          "actionSymbol": "file-scope:verify_v390_external_field_smoke_no_device_closure.mjs:L19",
-          "stateSymbol": "file-scope:verify_v390_external_field_smoke_no_device_closure.mjs:L19",
-          "semanticKey": "OPS-183:20537538b988a5ce02fa879c"
+          "handlerSymbol": "check:roadmap and release evidence close the step as not-run, not PASS",
+          "actionSymbol": "check:roadmap and release evidence close the step as not-run, not PASS",
+          "stateSymbol": "check:roadmap and release evidence close the step as not-run, not PASS",
+          "semanticKey": "OPS-183:ee6c96a40450478d9225aa54"
         },
         "verifierAssertion": {
           "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
@@ -107588,7 +107588,7 @@
           "assertionKind": "exact-locator-relation-and-review-digest",
           "assertionAnchor": "validateSemanticItem",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "57ae9b8e81aa0f3ca0cbb07ca4b843fe715c038b2f600d74342d0f649f6fb384"
+          "assertedSemanticDigest": "f76e58283941cb5cd2f9b40f71e7115ebcd29954b9fb4d8e6962e66c2fc98fde"
         }
       }
     },

@@ -8,7 +8,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
-import { evaluateEvidence, sha256Text, validatePolicy } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
+import { evaluateEvidence, sha256File, sha256Text, validatePolicy } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -28,8 +28,8 @@ Options:
   --require-eligible        Exit non-zero unless the supplied summary qualifies as full UI PASS.
   -h, --help                Show help.
 
-The default command validates Policy v4 and deliberately reports the current 8/424 legacy
-evidence as partial/ineligible. Policy validation PASS is separate from UI fulltest PASS.
+The default command validates Policy v4 and deliberately reports the current not-run state
+as ineligible. Policy validation PASS is separate from UI fulltest PASS.
 `);
 }
 
@@ -53,8 +53,8 @@ const currentCounts = coveragePolicy.expectedCounts || {};
 const currentCoverageValid =
   coveragePolicy.schema === "media-server.v390-ui-automation-coverage-policy.v2" &&
   currentCounts.exactUiTestIds === 424 &&
-  currentCounts.automated === 8 &&
-  currentCounts.unsupportedManual === 415 &&
+  currentCounts.automated === 0 &&
+  currentCounts.unsupportedManual === 423 &&
   currentCounts.excludedPositiveUi === 1 &&
   coveragePolicy.boundaries?.fullAutomationCoverage === false &&
   coveragePolicy.boundaries?.manualUiFulltestEvidence === false;
@@ -71,8 +71,9 @@ const result = {
   policyValidationResult: policyErrors.length === 0 ? "PASS" : "FAIL",
   policyErrors,
   sourceSummary: path.relative(rootDir, summaryPath),
+  sourceSummarySha256: sha256File(summaryPath),
   sourceEvidenceSchema: summary.schema || "",
-  currentEvidenceStatus: currentCoverageValid ? "partial-automation-evidence" : "coverage-boundary-drift",
+  currentEvidenceStatus: currentCoverageValid ? "not-run-current-evidence" : "coverage-boundary-drift",
   currentCoverage: {
     exactUiTestIds: currentCounts.exactUiTestIds ?? null,
     automated: currentCounts.automated ?? null,
@@ -80,6 +81,18 @@ const result = {
     excludedPositiveUi: currentCounts.excludedPositiveUi ?? null,
   },
   qualification: evaluation,
+  suiteClosure: {
+    actualBrowserExecution: summary.schema === "media-server.ui-automation-evidence.v4" &&
+      summary.contractFixture !== true && summary.fixture === false,
+    requestedExactCases: Number(summary.coverage?.targetCount ?? summary.cases?.length ?? summary.automatedCaseCount ?? 0),
+    pass: Array.isArray(summary.cases) ? summary.cases.filter(item =>
+      ["direct-pass", "automation-equivalent-pass", "PASS"].includes(item.status)).length : 0,
+    fail: Number(summary.coverage?.fail ?? 0),
+    notRun: Number(summary.coverage?.notRun ?? summary.notRun ?? 0),
+    unsupported: Number(summary.coverage?.unsupported ?? summary.unsupported ?? 0),
+    unapprovedExclusions: Number(summary.coverage?.unapprovedExclusions ?? 0),
+    manualIntervention: Number(summary.coverage?.manualIntervention ?? (summary.manualIntervention === true ? 1 : 0)),
+  },
   uiFulltestPass: evaluation.uiFulltestPass === true,
   boundary: "policy-verifier-pass-is-not-ui-fulltest-pass",
 };
@@ -103,7 +116,7 @@ if (options.requireEligible && !result.uiFulltestPass) process.exit(1);
 function parseArgs(args) {
   const parsed = {
     policy: "test/fixtures/ui_fulltest_evidence_policy_v4.json",
-    summary: "docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/summary.json",
+    summary: "test/fixtures/v390_ui_current_evidence_state.json",
     coveragePolicy: "test/fixtures/v390_ui_automation_coverage_policy.json",
     outputDir: "",
     requireEligible: false,
@@ -144,7 +157,7 @@ function validatePolicyDocuments() {
   };
   const required = [
     ["AGENTS.md", files.agents, ["#### 7.6.3 Policy v4 UI 대체 evidence 기준", "direct-browser", "qualified-native-automation", "policyValidationResult", "uiFulltestPass"]],
-    ["docs/manual-ui-fulltest.md", files.fulltest, ["actual browser", "Policy v4 qualifier", "completion oracle", "automated 8", "unsupported 415"]],
+    ["docs/manual-ui-fulltest.md", files.fulltest, ["actual browser", "Policy v4 qualifier", "completion oracle", "current not-run", "unsupported 423"]],
     ["docs/manual-ui-checklist.md", files.checklist, ["Policy v4 qualifier", "actual-browser evidence", "completion oracle"]],
     ["docs/manual-ui-result-template.md", files.template, ["qualified-native-automation", "Policy v4 자동화/혼합 evidence 요약", "artifact hash/type/path containment", "uiFulltestPass"]],
     ["docs/release-policy.md", files.releasePolicy, ["## Policy v4 UI evidence release gate", "uiFulltestPass=true"]],

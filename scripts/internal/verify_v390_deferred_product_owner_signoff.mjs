@@ -49,6 +49,9 @@ check("owner decision fixture is complete and role-owned", () => {
   assert(fixture.approvalSource === "/goal v3.9.0 (17) Development 16", "approval source must identify the user goal");
   assert(fixture.approvalDate === "2026-07-11", "approval date must be 2026-07-11");
   assert(fixture.approvedByAuthority === "user-approved-owner-role-assignment", "approval authority must remain explicit");
+  assert(fixture.recordKind === "decision-record", "owner output must be a decision-record");
+  assert(fixture.implementationStatus === "not-executed", "owner implementation status must remain not-executed");
+  assert(fixture.evidenceStatus === "decision-only-not-implementation-evidence", "owner evidence status mismatch");
   assert(Array.isArray(fixture.decisions) && fixture.decisions.length === expected.size, "exactly five decisions are required");
 
   const actualIds = new Set();
@@ -93,8 +96,8 @@ check("roadmap and evidence map Development 16 without false completion claims",
   const records = read("docs/release-test-records.md");
   const evidence = read("docs/release-evidence-index.md");
   for (const [label, text, snippets] of [
-    ["backlog", backlog, ["deferred product decision owner sign-off", "완료/Development 16 owner sign-off", "보류 기능 소유자 승인", "완료/커밋 `7a100f8f`"]],
-    ["stream verification", stream, [command, "Development 16", "owner role"]],
+    ["backlog", backlog, ["deferred product decision owner sign-off", "decision record", "보류 기능 소유자 승인", "decision record/커밋 `7a100f8f`"]],
+    ["stream verification", stream, [command, "Development 16", "decision-record", "not-executed"]],
     ["project inventory", projectInventory, ["SAFE-214", "OPS-181", command]],
     ["release records", records, ["V390 Deferred Product Owner Sign-off", "Development 16 owner sign-off final", command]],
     ["release evidence", evidence, ["Development 16 deferred product owner sign-off", "SAFE-214", "OPS-181"]],
@@ -121,6 +124,8 @@ for (const item of checks) {
 }
 console.log("\n== v3.9.0 deferred product owner sign-off ==");
 console.log("- decisions: 5");
+console.log("- recordKind: decision-record");
+console.log("- implementationStatus: not-executed");
 console.log("- implementationExecuted: false");
 console.log("- fieldPassClaimed: false");
 console.log("- releasePassClaimed: false");

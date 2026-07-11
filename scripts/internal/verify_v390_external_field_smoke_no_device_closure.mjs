@@ -41,6 +41,9 @@ check("closure fixture records exact no-device not-run state", () => {
   assert(fixture.release === "v3.9.0", "release must be v3.9.0");
   assert(fixture.developmentItem === 18, "development item must be 18");
   assert(fixture.approvalSource === "/goal v3.9.0 (17) Development 18", "approval source mismatch");
+  assert(fixture.recordKind === "conditional-execution-record", "record kind mismatch");
+  assert(fixture.executionStatus === "conditional-not-run", "execution status must be conditional-not-run");
+  assert(fixture.evidenceStatus === "condition-record-not-field-pass", "evidence status mismatch");
   for (const flag of [
     "externalNetworkAttempted",
     "endpointProbeAttempted",
@@ -56,7 +59,7 @@ check("closure fixture records exact no-device not-run state", () => {
   assert(Array.isArray(fixture.targets) && fixture.targets.length === expectedTargets.length, "exactly three targets are required");
   assert(JSON.stringify(fixture.targets.map(item => item.id)) === JSON.stringify(expectedTargets), "target order/set mismatch");
   for (const target of fixture.targets) {
-    assert(target.status === "not-run", `${target.id}: status must be not-run`);
+    assert(target.status === "conditional-not-run", `${target.id}: status must be conditional-not-run`);
     assert(target.reason === "missing-device-credential-endpoint-and-execution-approval", `${target.id}: reason mismatch`);
     assert(Array.isArray(target.requiredConditions) && target.requiredConditions.length >= 3, `${target.id}: required conditions incomplete`);
     assert(Array.isArray(target.missingConditions) && target.missingConditions.length === target.requiredConditions.length, `${target.id}: missing conditions must match requirements`);
@@ -90,11 +93,11 @@ check("roadmap and release evidence close the step as not-run, not PASS", () => 
   const evidence = read("docs/release-evidence-index.md");
   const stream = read("docs/stream-verification.md");
   for (const [label, text, snippets] of [
-    ["backlog", backlog, ["real external field smoke gate", "완료/Development 18 조건부 미실행 closure", "외부 환경 검증", "완료/조건부 미실행/커밋 `6575e3b9`"]],
+    ["backlog", backlog, ["real external field smoke gate", "조건부 미실행", "외부 환경 검증", "조건부 미실행/커밋 `6575e3b9`"]],
     ["project inventory", projectInventory, ["SAFE-216", "OPS-183", command]],
     ["records", records, ["V390 External Field Smoke No-Device Closure", "Development 18 no-device closure final", "Development 18 external field smoke not-run"]],
     ["evidence", evidence, ["Development 18 external field smoke no-device closure", "SAFE-216", "OPS-183"]],
-    ["stream", stream, ["Development 18", command, "외부 네트워크 호출 없이"]],
+    ["stream", stream, ["Development 18", command, "conditional-not-run", "condition-record-not-field-pass"]],
   ]) {
     for (const snippet of snippets) assert(text.includes(snippet), `${label} missing snippet: ${snippet}`);
   }
@@ -110,7 +113,7 @@ const failed = checks.filter(item => !item.ok);
 for (const item of checks) console.log(`[${item.ok ? "pass" : "fail"}] ${item.name}${item.error ? `: ${item.error}` : ""}`);
 console.log("\n== v3.9.0 external field smoke no-device closure ==");
 console.log("- targets: 3");
-console.log("- executionStatus: not-run");
+console.log("- executionStatus: conditional-not-run");
 console.log("- externalNetworkAttempted: false");
 console.log("- fieldPassClaimed: false");
 console.log("- releasePassClaimed: false");

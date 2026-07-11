@@ -40,6 +40,21 @@ void ExpectReason(const analysis::AppearanceExtractorOptions& options,
             reason + ": got " + readiness.fallback_reason);
 }
 
+void ExpectDisabledNoOp(const std::shared_ptr<analysis::IAppearanceExtractor>& extractor,
+                        const std::string& context) {
+    Require(extractor != nullptr, context + ": missing extractor");
+    Require(!extractor->Enabled(), context + ": NoOp must report Enabled=false");
+    const auto stats = extractor->Stats();
+    Require(!stats.enabled && stats.extractor_name == "noop",
+            context + ": NoOp stats must report disabled/noop");
+    Require(stats.request_count == 0 && stats.queued_count == 0 &&
+                stats.completed_count == 0 && stats.failed_count == 0 &&
+                stats.dropped_count == 0 && stats.missing_crop_count == 0,
+            context + ": NoOp counters must remain zero");
+    Require(!extractor->Extract(analysis::AppearanceExtractionInput{}, nullptr).has_value(),
+            context + ": NoOp must not produce a profile");
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -107,8 +122,8 @@ int main(int argc, char** argv) {
         config.analysis_appearance_model_sha256 = kModelSha256;
         config.analysis_appearance_model_provenance = "operator-reviewed:test-fixture";
         const auto extractor = analysis::CreateAppearanceExtractorFromConfig(config);
-        Require(extractor != nullptr && !extractor->Stats().enabled,
-                "factory must consume shared no-ONNX readiness and return NoOp");
+        ExpectDisabledNoOp(extractor,
+                           "factory must consume shared no-ONNX readiness and return NoOp");
     } else {
         Require(false, "unknown mode: " + mode);
     }

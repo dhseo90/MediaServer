@@ -35,7 +35,6 @@ const fixture = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
 const workDir = fs.mkdtempSync(path.join(os.tmpdir(), `media-server-v390-onvif-atomicity-${process.pid}-`));
 const sourceDir = path.join(workDir, "source-registry");
 const viewDir = path.join(workDir, "view-registry");
-const savedViewDir = path.join(workDir, "view-registry.saved");
 const sourcePath = path.join(sourceDir, "sources.json");
 const viewPath = path.join(viewDir, "views.json");
 const channelId = fixture.channelId;
@@ -72,39 +71,94 @@ try {
   await assertPrevalidationFailure("prevalidation-view-id-mismatch", mismatched,
     "path viewId and body viewId must match", 400);
 
-  const sourceBeforeFailure = fs.readFileSync(sourcePath, "utf8");
-  const viewBeforeFailure = fs.readFileSync(viewPath, "utf8");
+  await stopServer();
+  serverProcess = null;
+  const sourceDocument = JSON.parse(fs.readFileSync(sourcePath, "utf8"));
+  const viewDocument = JSON.parse(fs.readFileSync(viewPath, "utf8"));
+  sourceDocument.vendorRootExtension = { preserved: true, order: [3, 1, 2] };
+  viewDocument.vendorRootExtension = { preserved: true, note: "view extension" };
+  sourceDocument.sources.find(item => item.sourceId === channelId).vendorSourceExtension = { codec: "H265", profile: 7 };
+  viewDocument.views.find(item => item.viewId === channelId).vendorViewExtension = { layout: "primary" };
+  fs.writeFileSync(sourcePath, customDocument("sources", sourceDocument.sources, sourceDocument.vendorRootExtension));
+  fs.writeFileSync(viewPath, customDocument("views", viewDocument.views, viewDocument.vendorRootExtension));
+  fs.chmodSync(sourcePath, 0o600);
+  fs.chmodSync(viewPath, 0o640);
+  const sourceSnapshot = fileSnapshot(sourcePath);
+  const viewSnapshot = fileSnapshot(viewPath);
+
+  serverProcess = startServer(ports, "published view registry:before-replace");
+  await waitForHealth();
   const apiBeforeFailure = await pairSnapshot();
-  fs.renameSync(viewDir, savedViewDir);
-  fs.writeFileSync(viewDir, "fault: view registry parent is not a directory\n");
-  try {
-    const failedPayload = pairPayload("should-roll-back");
-    const failed = await request("PUT", route(), failedPayload, 500);
-    assert(failed.json.transactionStatus === "rolled-back", "second-write failure must report rolled-back");
-    assert(failed.json.failedStage === "published-view-save", "wrong failed stage");
-    assert(failed.json.sourceWriteSucceeded === true, "source write should precede injected view failure");
-    assert(failed.json.publishedViewWriteSucceeded === false, "view write must fail");
-    assert(failed.json.sourceRollbackAttempted === true, "source rollback was not attempted");
-    assert(failed.json.sourceRollbackSucceeded === true, "source rollback did not succeed");
-    assert(failed.json.publishedViewRollbackAttempted === false,
-      "view rollback should not run when writer reports target not replaced");
-    assert(failed.json.partialSave === false, "failed transaction reported a partial save");
-    assert(!failed.text.includes(sourcePath) && !failed.text.includes(viewPath),
-      "failure response exposed registry storage paths");
-    assert(!failed.text.includes(failedPayload.source.rtspUrl),
-      "failure response exposed source locator");
-    assert(fs.readFileSync(sourcePath, "utf8") === sourceBeforeFailure,
-      "source document changed after rollback");
-    assert(fs.readFileSync(path.join(savedViewDir, "views.json"), "utf8") === viewBeforeFailure,
-      "PublishedView document changed during injected failure");
-    const apiAfterFailure = await pairSnapshot();
-    assert(JSON.stringify(apiAfterFailure) === JSON.stringify(apiBeforeFailure),
-      "in-memory source/view pair changed after rollback");
-    console.log("[pass] second-write-failure-source-rollback");
-  } finally {
-    fs.rmSync(viewDir, { force: true });
-    fs.renameSync(savedViewDir, viewDir);
-  }
+  const failedPayload = pairPayload("should-roll-back-byte-exact");
+  const failed = await request("PUT", route(), failedPayload, 500);
+  assert(failed.json.transactionStatus === "rolled-back", "second-write failure must report rolled-back");
+  assert(failed.json.failedStage === "published-view-save", "wrong failed stage");
+  assert(failed.json.sourceWriteSucceeded === true, "source write should precede injected view failure");
+  assert(failed.json.publishedViewWriteSucceeded === false, "view write must fail");
+  assert(failed.json.sourceRollbackAttempted === true && failed.json.sourceRollbackSucceeded === true,
+    "source byte snapshot rollback did not succeed");
+  assert(failed.json.publishedViewRollbackAttempted === false,
+    "view rollback should not run before target replacement");
+  assert(failed.json.partialSave === false, "failed transaction reported a partial save");
+  assert(!failed.text.includes(sourcePath) && !failed.text.includes(viewPath),
+    "failure response exposed registry storage paths");
+  assert(!failed.text.includes(failedPayload.source.rtspUrl), "failure response exposed source locator");
+  assertFileSnapshot(sourcePath, sourceSnapshot, "byte-exact source update rollback");
+  assertFileSnapshot(viewPath, viewSnapshot, "unchanged view update rollback");
+  assert(JSON.stringify(await pairSnapshot()) === JSON.stringify(apiBeforeFailure),
+    "in-memory source/view pair changed after rollback");
+  console.log("[pass] byte-exact-update-second-write-failure");
+
+  await restartServer(ports, "published view registry:before-replace");
+  const sourceOnlyApi = await pairSnapshot();
+  fs.rmSync(viewPath);
+  const sourceOnly = await request("PUT", route(), pairPayload("source-only-rollback"), 500);
+  assert(sourceOnly.json.transactionStatus === "rolled-back" && sourceOnly.json.partialSave === false,
+    "source-only rollback did not restore pre-transaction existence");
+  assertFileSnapshot(sourcePath, sourceSnapshot, "source-only source bytes");
+  assert(!fs.existsSync(viewPath), "source-only rollback created an absent view file");
+  assert(JSON.stringify(await pairSnapshot()) === JSON.stringify(sourceOnlyApi), "source-only API memory changed");
+  restoreSnapshot(viewPath, viewSnapshot);
+  console.log("[pass] source-only-existence-rollback");
+
+  await restartServer(ports, "published view registry:before-replace");
+  const viewOnlyApi = await pairSnapshot();
+  fs.rmSync(sourcePath);
+  const viewOnly = await request("PUT", route(), pairPayload("view-only-rollback"), 500);
+  assert(viewOnly.json.transactionStatus === "rolled-back" && viewOnly.json.partialSave === false,
+    "view-only rollback did not restore pre-transaction existence");
+  assert(!fs.existsSync(sourcePath), "view-only rollback retained a newly created source file");
+  assertFileSnapshot(viewPath, viewSnapshot, "view-only view bytes");
+  assert(JSON.stringify(await pairSnapshot()) === JSON.stringify(viewOnlyApi), "view-only API memory changed");
+  restoreSnapshot(sourcePath, sourceSnapshot);
+  console.log("[pass] view-only-existence-rollback");
+
+  await restartServer(ports, "source registry:before-replace");
+  const firstFailure = await request("PUT", route(), pairPayload("first-replace-failure"), 500);
+  assert(firstFailure.json.failedStage === "source-save" && firstFailure.json.transactionStatus === "aborted-before-commit",
+    "first replace failure status mismatch");
+  assert(firstFailure.json.sourceWriteSucceeded === false && firstFailure.json.sourceRollbackAttempted === false,
+    "first replace failure must remain zero-write");
+  assertFileSnapshot(sourcePath, sourceSnapshot, "first replace source bytes");
+  assertFileSnapshot(viewPath, viewSnapshot, "first replace view bytes");
+  console.log("[pass] first-replace-failure-zero-write");
+
+  await restartServer(ports,
+    "published view registry:before-replace,source registry rollback snapshot:before-replace");
+  const rollbackFailure = await request("PUT", route(), pairPayload("rollback-failure"), 500);
+  assert(rollbackFailure.json.failedStage === "published-view-save" &&
+    rollbackFailure.json.transactionStatus === "rollback-failed" &&
+    rollbackFailure.json.sourceRollbackAttempted === true &&
+    rollbackFailure.json.sourceRollbackSucceeded === false &&
+    rollbackFailure.json.partialSave === true,
+  "rollback failure was not reported as manual recovery required");
+  assertFileSnapshot(viewPath, viewSnapshot, "rollback failure untouched view bytes");
+  assert(!fs.readFileSync(sourcePath).equals(sourceSnapshot.bytes),
+    "rollback failure fixture unexpectedly restored source bytes");
+  restoreSnapshot(sourcePath, sourceSnapshot);
+  console.log("[pass] rollback-failure-reported");
+
+  await restartServer(ports);
 
   const retried = await request("PUT", route(), pairPayload("retry-committed"), 200);
   assertCommitted(retried.json, "retry-after-fault");
@@ -143,12 +197,12 @@ try {
   console.log(`- schema: ${fixture.schema}`);
   console.log(`- cases: ${fixture.cases.length}`);
   console.log("- storageMode: paired-write-with-compensating-rollback");
-  console.log("- partialSaveAfterInjectedFailure: false");
+  console.log("- successfulRollbackPartialSave: false");
+  console.log("- injectedRollbackFailureReported: true");
   console.log("- restartConsistency: true");
   console.log("- failures: 0");
 } finally {
   await stopServer();
-  if (fs.existsSync(savedViewDir) && !fs.existsSync(viewDir)) fs.renameSync(savedViewDir, viewDir);
   fs.rmSync(workDir, { recursive: true, force: true });
 }
 
@@ -156,7 +210,7 @@ function validateFixture() {
   assert(fixture.schema === "media-server.v390-onvif-source-view-atomicity-fixtures.v1", "fixture schema mismatch");
   assert(fixture.targetStep === "V390-ADD1-05", "fixture target step mismatch");
   assert(fixture.routeTemplate === "/ops/api/onvif/channels/{channelId}", "route template mismatch");
-  assert(Array.isArray(fixture.cases) && fixture.cases.length === 8, "expected eight atomicity cases");
+  assert(Array.isArray(fixture.cases) && fixture.cases.length === 13, "expected thirteen atomicity cases");
 }
 
 function verifySourceContract() {
@@ -167,6 +221,8 @@ function verifySourceContract() {
   for (const snippet of [
     "UpsertOnvifSourceView", "target_replaced", "paired-write-with-compensating-rollback",
     "sourceRollbackAttempted", "publishedViewRollbackAttempted", "partialSave",
+    "RegistryFileSnapshot", "CaptureRegistryFileSnapshot", "RestoreRegistryFileSnapshot",
+    "pre-transaction-file-snapshot", "MEDIA_SERVER_TEST_REGISTRY_WRITE_FAILURES",
   ]) assert(`${registryHeader}\n${registrySource}`.includes(snippet), `registry contract missing ${snippet}`);
   for (const snippet of [
     "/ops/api/onvif/channels/", "require_source_write_principal", "exactly one source and publishedView",
@@ -256,7 +312,43 @@ function route() {
   return fixture.routeTemplate.replace("{channelId}", encodeURIComponent(channelId));
 }
 
-function startServer(ports) {
+function customDocument(key, items, extension) {
+  return `{\n\t"vendorRootExtension" : ${JSON.stringify(extension)},\n\t"${key}" : ${JSON.stringify(items, null, 3)}\n}\n\n`;
+}
+
+function fileSnapshot(filePath) {
+  return {
+    exists: fs.existsSync(filePath),
+    bytes: fs.existsSync(filePath) ? fs.readFileSync(filePath) : Buffer.alloc(0),
+    mode: fs.existsSync(filePath) ? fs.statSync(filePath).mode & 0o777 : null,
+  };
+}
+
+function assertFileSnapshot(filePath, snapshot, label) {
+  assert(fs.existsSync(filePath) === snapshot.exists, `${label}: existence drift`);
+  if (!snapshot.exists) return;
+  assert(fs.readFileSync(filePath).equals(snapshot.bytes), `${label}: byte drift`);
+  assert((fs.statSync(filePath).mode & 0o777) === snapshot.mode, `${label}: mode drift`);
+}
+
+function restoreSnapshot(filePath, snapshot) {
+  if (!snapshot.exists) {
+    fs.rmSync(filePath, { force: true });
+    return;
+  }
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, snapshot.bytes);
+  fs.chmodSync(filePath, snapshot.mode);
+}
+
+async function restartServer(ports, failureInjection = "") {
+  await stopServer();
+  serverProcess = null;
+  serverProcess = startServer(ports, failureInjection);
+  await waitForHealth();
+}
+
+function startServer(ports, failureInjection = "") {
   const child = spawn("./server.sh", ["foreground"], {
     cwd: rootDir,
     env: {
@@ -273,6 +365,8 @@ function startServer(ports) {
       MEDIA_SERVER_PUBLISHED_VIEWS: viewPath,
       MEDIA_SERVER_ANALYSIS_REGISTRY: path.join(workDir, "analysis.json"),
       MEDIA_SERVER_AUTH_USERS_FILE: path.join(workDir, "users.json"),
+      MEDIA_SERVER_ENABLE_TEST_FAILURE_INJECTION: failureInjection ? "1" : "0",
+      MEDIA_SERVER_TEST_REGISTRY_WRITE_FAILURES: failureInjection,
     },
     stdio: ["ignore", "pipe", "pipe"],
   });

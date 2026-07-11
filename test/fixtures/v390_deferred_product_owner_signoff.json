@@ -6,6 +6,9 @@
   "approvalSource": "/goal v3.9.0 (17) Development 16",
   "approvedByAuthority": "user-approved-owner-role-assignment",
   "ownerIdentityPolicy": "role-owned-no-personal-name-inference",
+  "recordKind": "decision-record",
+  "implementationStatus": "not-executed",
+  "evidenceStatus": "decision-only-not-implementation-evidence",
   "decisions": [
     {
       "id": "action-execution",

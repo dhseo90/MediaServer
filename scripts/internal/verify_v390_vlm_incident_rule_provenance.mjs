@@ -59,6 +59,13 @@ for (const snippet of [
   "generated rule id must match provenance",
   "generated rule save API route must match rule id",
 ]) assert(files.server.includes(snippet), `rule save validator missing ${snippet}`);
+for (const snippet of [
+  "ValidateVlmIncidentRuleProvenanceServerRecords",
+  "QueryEventRecords",
+  "QueryVlmObservations",
+  "include_archives = true",
+  "rule VLM provenance does not match server records",
+]) assert(files.store.includes(snippet), `server-owned provenance comparison missing ${snippet}`);
 
 for (const snippet of [
   "opsVlmRuleDraftProvenance",
@@ -76,9 +83,9 @@ assert(files.backlog.includes("완료/커밋 `260cbd9e`"), "backlog missing Deve
 
 try {
   prepareObservationFixture();
-  const ports = { http: await freePort(), rtsp: await freePort() };
+  let ports = { http: await freePort(), rtsp: await freePort() };
   serverProcess = startServer(ports);
-  const baseUrl = `http://127.0.0.1:${ports.http}`;
+  let baseUrl = `http://127.0.0.1:${ports.http}`;
   await waitForHealth(baseUrl);
   const candidateResponse = await request(baseUrl, "GET", "/ops/api/vlm/rule-suggestion-drafts?sourceId=front-door&limit=1");
   assert(candidateResponse.status === 200, `candidate API HTTP ${candidateResponse.status}: ${candidateResponse.text}`);
@@ -97,18 +104,92 @@ try {
   assert(readback.json?.rule?.vlmProvenance?.candidateSource?.candidateId === candidate.candidateId, "readback lost candidate provenance");
   assert(readback.json?.rule?.vlmProvenance?.evaluationSource?.provider === candidate.provider, "readback lost evaluation source");
 
-  const wrongId = buildRule("702", candidate.provenance);
+  await stopServer();
+  ports = { http: await freePort(), rtsp: await freePort() };
+  serverProcess = startServer(ports);
+  baseUrl = `http://127.0.0.1:${ports.http}`;
+  await waitForHealth(baseUrl);
+  const restartReadback = await request(baseUrl, "GET", "/lab/analysis/rules/701");
+  assert(restartReadback.status === 200, `restart readback HTTP ${restartReadback.status}`);
+  assert(JSON.stringify(restartReadback.json?.rule?.vlmProvenance) === JSON.stringify(valid.vlmProvenance),
+    "restart readback changed canonical provenance");
+
+  const mutationCases = [
+    ["event-id", provenance => { provenance.eventSource.eventId = "evt-forged"; }],
+    ["observation-id", provenance => { provenance.eventSource.observationId = "vlmobs-forged"; }],
+    ["source-id", provenance => { provenance.eventSource.sourceId = "forged-source"; }],
+    ["event-source-schema", provenance => { provenance.eventSource.sourceSchema = "media-server.forged.v1"; }],
+    ["candidate-id", provenance => { provenance.candidateSource.candidateId = "candidate-forged"; }],
+    ["candidate-kind", provenance => { provenance.candidateSource.proposedRuleKind = "intrusion"; }],
+    ["candidate-source", provenance => { provenance.candidateSource.source = "client-declared"; }],
+    ["candidate-schema", provenance => { provenance.candidateSource.sourceSchema = "media-server.forged.v1"; }],
+    ["candidate-route", provenance => { provenance.candidateSource.targetRoute = "/ops/forged"; }],
+    ["evaluation-status", provenance => { provenance.evaluationSource.status = "passed"; }],
+    ["evaluation-source", provenance => { provenance.evaluationSource.source = "client-declared"; }],
+    ["provider", provenance => { provenance.evaluationSource.provider = "forged-provider"; }],
+    ["model", provenance => { provenance.evaluationSource.model = "forged-model"; }],
+    ["prompt-profile", provenance => { provenance.evaluationSource.promptProfile = "forged-prompt"; }],
+    ["privacy-mode", provenance => { provenance.evaluationSource.privacyMode = "cloud-allowed"; }],
+  ];
+  let nextRuleId = 720;
+  for (const [label, mutate] of mutationCases) {
+    const id = String(nextRuleId++);
+    const forged = buildRule(id, candidate.provenance);
+    mutate(forged.vlmProvenance);
+    const rejected = await request(baseUrl, "PUT", `/lab/analysis/rules/${id}`, forged);
+    assert(rejected.status === 400 && rejected.text.includes("rule VLM provenance does not match server records"),
+      `${label} forged provenance was not rejected: HTTP ${rejected.status} ${rejected.text}`);
+    const absent = await request(baseUrl, "GET", `/lab/analysis/rules/${id}`);
+    assert(absent.status === 404, `${label} forged provenance write was persisted`);
+  }
+
+  const duplicateCases = [
+    ["event-id", "790", '"eventId"', candidate.eventId],
+    ["provider", "791", '"provider"', candidate.provider],
+  ];
+  for (const [label, id, key, value] of duplicateCases) {
+    const raw = JSON.stringify(buildRule(id, candidate.provenance)).replace(
+      `${key}:${JSON.stringify(value)}`,
+      `${key}:${JSON.stringify(value)},${key}:"forged-duplicate"`);
+    const rejected = await request(baseUrl, "PUT", `/lab/analysis/rules/${id}`, raw);
+    assert(rejected.status === 400 && rejected.text.includes("rule VLM provenance does not match server records"),
+      `${label} duplicate provenance field was not rejected`);
+    assert((await request(baseUrl, "GET", `/lab/analysis/rules/${id}`)).status === 404,
+      `${label} duplicate provenance field write was persisted`);
+  }
+
+  const observationBytes = fs.readFileSync(observationPath);
+  fs.writeFileSync(observationPath, "");
+  const deletedObservation = buildRule("770", candidate.provenance);
+  const rejectedDeletedObservation = await request(baseUrl, "PUT", "/lab/analysis/rules/770", deletedObservation);
+  assert(rejectedDeletedObservation.status === 400 && rejectedDeletedObservation.text.includes("rule VLM provenance does not match server records"),
+    "deleted observation provenance was not rejected");
+  assert((await request(baseUrl, "GET", "/lab/analysis/rules/770")).status === 404,
+    "deleted observation provenance write was persisted");
+  fs.writeFileSync(observationPath, observationBytes);
+
+  const eventBytes = fs.readFileSync(eventPath);
+  fs.writeFileSync(eventPath, "");
+  const deletedEvent = buildRule("771", candidate.provenance);
+  const rejectedDeletedEvent = await request(baseUrl, "PUT", "/lab/analysis/rules/771", deletedEvent);
+  assert(rejectedDeletedEvent.status === 400 && rejectedDeletedEvent.text.includes("rule VLM provenance does not match server records"),
+    "deleted EventRecord provenance was not rejected");
+  assert((await request(baseUrl, "GET", "/lab/analysis/rules/771")).status === 404,
+    "deleted EventRecord provenance write was persisted");
+  fs.writeFileSync(eventPath, eventBytes);
+
+  const wrongId = buildRule("780", candidate.provenance);
   wrongId.vlmProvenance.generatedRule.id = "701";
-  const rejectedId = await request(baseUrl, "PUT", "/lab/analysis/rules/702", wrongId);
+  const rejectedId = await request(baseUrl, "PUT", "/lab/analysis/rules/780", wrongId);
   assert(rejectedId.status === 400 && rejectedId.text.includes("generated rule id must match provenance"), "mismatched rule id was not rejected");
-  const absentId = await request(baseUrl, "GET", "/lab/analysis/rules/702");
+  const absentId = await request(baseUrl, "GET", "/lab/analysis/rules/780");
   assert(absentId.status === 404, "mismatched rule id write was persisted");
 
-  const wrongRoute = buildRule("703", candidate.provenance);
+  const wrongRoute = buildRule("781", candidate.provenance);
   wrongRoute.vlmProvenance.generatedRule.saveApiRoute = "/lab/analysis/rules/999";
-  const rejectedRoute = await request(baseUrl, "PUT", "/lab/analysis/rules/703", wrongRoute);
+  const rejectedRoute = await request(baseUrl, "PUT", "/lab/analysis/rules/781", wrongRoute);
   assert(rejectedRoute.status === 400 && rejectedRoute.text.includes("generated rule save API route must match rule id"), "mismatched save route was not rejected");
-  const absentRoute = await request(baseUrl, "GET", "/lab/analysis/rules/703");
+  const absentRoute = await request(baseUrl, "GET", "/lab/analysis/rules/781");
   assert(absentRoute.status === 404, "mismatched save route write was persisted");
 
   const registry = JSON.parse(fs.readFileSync(registryPath, "utf8"));
@@ -119,8 +200,11 @@ try {
   console.log("- schema: media-server.vlm-incident-to-rule-provenance.v1");
   console.log("- event/candidate/evaluation source mapped: true");
   console.log("- generated rule/save API binding validator: true");
-  console.log("- HTTP positive cases: 1");
-  console.log("- HTTP negative no-write cases: 2");
+  console.log("- HTTP positive save/readback/restart cases: 3");
+  console.log(`- forged field no-write cases: ${mutationCases.length}`);
+  console.log(`- duplicate field no-write cases: ${duplicateCases.length}`);
+  console.log("- deleted observation/EventRecord no-write cases: 2");
+  console.log("- generated rule binding no-write cases: 2");
   console.log("- failures: 0");
 } finally {
   await stopServer();
@@ -132,6 +216,32 @@ function prepareObservationFixture() {
   const observations = fixture.cases?.[0]?.observations || [];
   assert(observations.length > 0, "VLM rule suggestion fixture observations are missing");
   fs.writeFileSync(observationPath, `${observations.map(item => JSON.stringify(item)).join("\n")}\n`);
+  const observation = observations[0];
+  const eventRecord = {
+    schema: "media-server.va.event-record.v1",
+    eventId: observation.eventId,
+    eventType: "line-crossing",
+    streamId: observation.sourceId,
+    channelId: observation.sourceId,
+    trackId: 1,
+    classId: 0,
+    className: "person",
+    startTime: 1000,
+    updateTime: 1100,
+    endTime: 1200,
+    status: "emitted",
+    zoneId: "",
+    lineId: "front-door-line",
+    scenarioName: observation.scenarioId,
+    scenarioPhase: "active",
+    confidence: 0.91,
+    snapshotPath: "",
+    clipPath: "",
+    preEventMs: 0,
+    postEventMs: 0,
+    metadata: { sourceId: observation.sourceId },
+  };
+  fs.writeFileSync(eventPath, `${JSON.stringify(eventRecord)}\n`);
 }
 
 function buildRule(id, provenance) {
@@ -166,6 +276,7 @@ function startServer(ports) {
       MEDIA_SERVER_LISTEN_PORT: String(ports.rtsp),
       MEDIA_SERVER_HTTP_LISTEN_PORT: String(ports.http),
       MEDIA_SERVER_ANALYSIS_REGISTRY: registryPath,
+      MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_ENABLED: "1",
       MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH: eventPath,
       MEDIA_SERVER_SOURCE_REGISTRY: path.join(workDir, "sources.json"),
       MEDIA_SERVER_PUBLISHED_VIEWS: path.join(workDir, "views.json"),
@@ -213,7 +324,7 @@ async function request(baseUrl, method, route, body) {
   const response = await fetch(`${baseUrl}${route}`, {
     method,
     headers: body === undefined ? {} : { "Content-Type": "application/json" },
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body === undefined ? undefined : (typeof body === "string" ? body : JSON.stringify(body)),
   });
   const text = await response.text();
   let json = {};

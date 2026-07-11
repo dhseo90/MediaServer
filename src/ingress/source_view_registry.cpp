@@ -1490,7 +1490,7 @@ bool FsyncParentDirectory(const std::filesystem::path& file_path, std::string* e
     }
     return CloseFdChecked(dir_fd, "registry directory", error_message);
 }
-
+bool ShouldInjectRegistryWriteFailure(const std::string& label, const std::string& phase);
 bool WriteRegistryFileAtomically(const std::filesystem::path& file_path,
                                  const std::string& body,
                                  const std::string& label,
@@ -1536,7 +1536,7 @@ bool WriteRegistryFileAtomically(const std::filesystem::path& file_path,
         (void)::unlink(temp_path.c_str());
         return false;
     }
-    if (::rename(temp_path.c_str(), file_path.c_str()) != 0) {
+    if (ShouldInjectRegistryWriteFailure(label, "before-replace") || ::rename(temp_path.c_str(), file_path.c_str()) != 0) {
         const std::string message = ErrnoMessage("failed to replace " + label + " file");
         (void)::unlink(temp_path.c_str());
         return SetError(error_message, message);
@@ -1592,7 +1592,7 @@ bool WriteRegistryFileAtomically(const std::filesystem::path& file_path,
 }
 
 #endif
-
+struct RegistryFileSnapshot { bool exists{false}; std::string bytes; std::filesystem::perms mode{std::filesystem::perms::unknown}; }; bool CaptureRegistryFileSnapshot(const std::filesystem::path& file_path, const std::string& label, RegistryFileSnapshot* snapshot, std::string* error_message); bool RestoreRegistryFileSnapshot(const std::filesystem::path& file_path, const RegistryFileSnapshot& snapshot, const std::string& label, std::string* error_message);
 bool ReadTextFile(const std::filesystem::path& path,
                   const std::string& label,
                   std::string* body,
@@ -2140,14 +2140,14 @@ RegistryResult SourceViewRegistry::UpsertOnvifSourceView(
         return JsonResult(500, "Internal Server Error", out.str());
     };
 
+    RegistryFileSnapshot source_snapshot, view_snapshot; std::string snapshot_error; if (!CaptureRegistryFileSnapshot(source_storage_path_, "source registry", &source_snapshot, &snapshot_error) || !CaptureRegistryFileSnapshot(views_storage_path_, "published view registry", &view_snapshot, &snapshot_error)) return transaction_failure("pre-transaction-file-snapshot", snapshot_error, false, false, false, false, false, false);
     bool source_replaced = false;
     std::string save_error;
     if (!SaveSourcesLocked(next_sources, &save_error, &source_replaced)) {
         bool source_rollback_succeeded = false;
         if (source_replaced) {
             std::string rollback_error;
-            source_rollback_succeeded =
-                SaveSourcesLocked(sources_, &rollback_error, nullptr);
+            source_rollback_succeeded = RestoreRegistryFileSnapshot(source_storage_path_, source_snapshot, "source registry rollback snapshot", &rollback_error);
             if (!source_rollback_succeeded && !rollback_error.empty()) {
                 save_error += "; source rollback failed: " + rollback_error;
             }
@@ -2165,13 +2165,11 @@ RegistryResult SourceViewRegistry::UpsertOnvifSourceView(
     bool view_replaced = false;
     if (!SaveViewsLocked(next_views, &save_error, &view_replaced)) {
         std::string source_rollback_error;
-        const bool source_rollback_succeeded =
-            SaveSourcesLocked(sources_, &source_rollback_error, nullptr);
+        const bool source_rollback_succeeded = RestoreRegistryFileSnapshot(source_storage_path_, source_snapshot, "source registry rollback snapshot", &source_rollback_error);
         bool view_rollback_succeeded = false;
         std::string view_rollback_error;
         if (view_replaced) {
-            view_rollback_succeeded =
-                SaveViewsLocked(views_, &view_rollback_error, nullptr);
+            view_rollback_succeeded = RestoreRegistryFileSnapshot(views_storage_path_, view_snapshot, "published view registry rollback snapshot", &view_rollback_error);
         }
         if (!source_rollback_succeeded && !source_rollback_error.empty()) {
             save_error += "; source rollback failed: " + source_rollback_error;
@@ -2395,5 +2393,125 @@ bool SourceViewRegistry::SaveViewsLocked(const std::vector<PublishedViewRecord>&
                                        error_message,
                                        target_replaced);
 }
+
+namespace {
+
+bool ShouldInjectRegistryWriteFailure(const std::string& label,
+                                      const std::string& phase) {
+    const char* enabled = std::getenv("MEDIA_SERVER_ENABLE_TEST_FAILURE_INJECTION");
+    const char* configured = std::getenv("MEDIA_SERVER_TEST_REGISTRY_WRITE_FAILURES");
+    if (enabled == nullptr || std::string(enabled) != "1" || configured == nullptr) {
+        return false;
+    }
+    const std::string expected = label + ":" + phase;
+    std::istringstream input(configured);
+    std::string item;
+    while (std::getline(input, item, ',')) {
+        if (Trim(item) == expected) {
+            errno = EIO;
+            return true;
+        }
+    }
+    return false;
+}
+
+
+bool CaptureRegistryFileSnapshot(const std::filesystem::path& file_path,
+                                 const std::string& label,
+                                 RegistryFileSnapshot* snapshot,
+                                 std::string* error_message) {
+    if (snapshot == nullptr) {
+        return SetError(error_message, label + " snapshot output is required");
+    }
+    *snapshot = RegistryFileSnapshot{};
+    std::error_code ec;
+    snapshot->exists = std::filesystem::exists(file_path, ec);
+    if (ec) {
+        return SetError(error_message, "failed to inspect " + label + " snapshot: " + ec.message());
+    }
+    if (!snapshot->exists) {
+        return true;
+    }
+    const auto status = std::filesystem::status(file_path, ec);
+    if (ec || !std::filesystem::is_regular_file(status)) {
+        return SetError(error_message, "failed to inspect regular " + label + " snapshot");
+    }
+    snapshot->mode = status.permissions();
+    std::ifstream input(file_path, std::ios::binary);
+    if (!input) {
+        return SetError(error_message, "failed to open " + label + " snapshot");
+    }
+    std::ostringstream bytes;
+    bytes << input.rdbuf();
+    if (!input.good() && !input.eof()) {
+        return SetError(error_message, "failed to read " + label + " snapshot");
+    }
+    snapshot->bytes = bytes.str();
+    return true;
+}
+
+bool RestoreRegistryFileSnapshot(const std::filesystem::path& file_path,
+                                 const RegistryFileSnapshot& snapshot,
+                                 const std::string& label,
+                                 std::string* error_message) {
+    if (!snapshot.exists) {
+        std::error_code ec;
+        const bool removed = std::filesystem::remove(file_path, ec);
+        if (ec) {
+            return SetError(error_message, "failed to remove newly created " + label + ": " + ec.message());
+        }
+        if (!removed && std::filesystem::exists(file_path, ec)) {
+            return SetError(error_message, "failed to restore absent " + label);
+        }
+#if !defined(_WIN32)
+        return FsyncParentDirectory(file_path, error_message);
+#else
+        if (error_message != nullptr) {
+            error_message->clear();
+        }
+        return true;
+#endif
+    }
+    bool target_replaced = false;
+    if (!WriteRegistryFileAtomically(file_path,
+                                     snapshot.bytes,
+                                     label,
+                                     error_message,
+                                     &target_replaced)) {
+        return false;
+    }
+    std::error_code ec;
+    std::filesystem::permissions(file_path,
+                                 snapshot.mode,
+                                 std::filesystem::perm_options::replace,
+                                 ec);
+    if (ec) {
+        return SetError(error_message, "failed to restore " + label + " mode: " + ec.message());
+    }
+#if !defined(_WIN32)
+    const int fd = ::open(file_path.c_str(), O_RDONLY | O_CLOEXEC);
+    if (fd < 0) {
+        return SetError(error_message, ErrnoMessage("failed to open restored " + label));
+    }
+    if (!FsyncFd(fd, "restored " + label, error_message)) {
+        (void)::close(fd);
+        return false;
+    }
+    if (!CloseFdChecked(fd, "restored " + label, error_message)) {
+        return false;
+    }
+#endif
+#if !defined(_WIN32)
+    return FsyncParentDirectory(file_path, error_message);
+#else
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+#endif
+}
+
+
+}  // namespace
 
 }  // namespace ingress

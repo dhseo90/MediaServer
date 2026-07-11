@@ -57,20 +57,22 @@ published metadata, release action evidence가 아닙니다.
 | v3.9.0 (4)~(6) | `./server.sh verify-manual-ui-evidence`, `./server.sh verify-v390-feature-completion-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-project-inventory` | Required Closeout `V390-REQ-001`~`V390-REQ-003` 문서/test-source gate입니다. manual UI 기준서 v3.9 current화, 장시간/UI 테스트 시작 조건 v3.9화, `v3.5-v3.8 UI coverage bridge`를 확인합니다. UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence가 아닙니다 |
 | v3.9.0 (7)~(10) | `./server.sh verify-v390-evidence-test-gate-prep`, `./server.sh verify-ui-fulltest-one-shot`, `./server.sh verify-feature-inventory-coverage` | Evidence/Test Gate와 Test Model Prep 문서/test-source gate입니다. UI wrapper `wrapperResult`/`uiFulltestEvidenceStatus`/`manualResultStatus`/`longrunStatus`, feature coverage `covered/missing` wording, AI-minimized 30분/120분 stop-on-fail runner 기준, 무료 UI automation adapter failure report 기준을 확인합니다. UI 풀테스트 직접 조작, 30분/120분 longrun 실행, published metadata, release action evidence가 아닙니다 |
 | v3.9.0 (11) | `./server.sh verify-v390-onvif-credential-provider-status` | ONVIF credential/provider status summary. `/ops/api/onvif/credential-provider-status`와 `/ops/sources`가 primary provider `none`, fallback `in-memory-fixture`, persistent/external secret store defer, secret/reference value 비노출 상태를 Ops-only read-only summary로 표시하는지 확인합니다. credential lookup, credential material/reference value exposure, source/view write, Auth/Role/Scope/schema/media 변경, UI 풀테스트 직접 조작, 30분/120분 longrun, field credential success evidence가 아닙니다 |
-| v3.9.0 (12) / V390-ADD1-05 | `./server.sh verify-v390-onvif-source-view-atomicity`, `./server.sh verify-v390-onvif-live-import-persist-decision` | ONVIF import draft는 `notSaved:true`, `oneShotPersist=false`를 유지합니다. 명시적 form save/toggle은 `/ops/api/onvif/channels/{channelId}` paired route를 사용하며 양쪽 선검증, second-file failure source rollback, API/disk/restart consistency, concurrent pair no-mix, temp cleanup을 actual HTTP 8개 case로 확인합니다. process crash atomicity, ONVIF 실기기, UI 풀테스트 직접 조작, 30분/120분 longrun, field success evidence가 아닙니다 |
+| v3.9.0 (12) / V390-ADD1-05 | `./server.sh verify-v390-onvif-source-view-atomicity`, `./server.sh verify-v390-onvif-live-import-persist-decision` | ONVIF import draft는 `notSaved:true`, `oneShotPersist=false`를 유지합니다. 명시적 form save/toggle은 `/ops/api/onvif/channels/{channelId}` paired route를 사용하며 양쪽 선검증, existence/raw bytes/mode snapshot rollback, failure reporting, API/disk/restart consistency, concurrent pair no-mix, temp cleanup을 actual HTTP/file 13개 case로 확인합니다. process crash atomicity, ONVIF 실기기, UI 풀테스트 직접 조작, 30분/120분 longrun, field success evidence가 아닙니다 |
 | v3.9.0 (21) / V390-REVIEW2-21 | `./server.sh verify-v390-analysis-registry-durable-write` | Analysis Registry의 profile/rule/VA rule/VLM profile create·update·delete를 persist-before-publish와 atomic temp-write/fsync/rename으로 저장합니다. parent/open/short-write/flush/rename failure matrix는 HTTP 500, memory/file/restart no-change, temp file cleanup을 확인하며 UI 풀테스트, 30분/120분 longrun, release action evidence가 아닙니다 |
 | v3.9.0 (13) | `./server.sh verify-v390-vlm-rule-suggestion-draft-bridge` | VLM rule suggestion draft bridge. `/ops/api/vlm/rule-suggestion-draft-bridge`와 `/ops/rules`가 review-to-draft bridge, incident review provenance, manual-save-only boundary를 표시하고 기존 `/ops/api/vlm/rule-suggestion-drafts` workflow를 유지하는지 확인합니다. rule/profile registry write, auto-apply, provider/runtime call, client/viewer exposure, EventRecord/Event POST/WebRTC/SSE/WS/schema/media 변경, UI 풀테스트 직접 조작, 30분/120분 longrun evidence가 아닙니다 |
 | v3.9.0 (14) | `./server.sh verify-v390-vlm-evaluation-promotion-guard` | VLM evaluation promotion guard. `/ops/api/vlm/evaluation-promotion-guard`와 `/ops/vlm`가 `server-verified-evaluation-promotion`, `operator-select-candidate-then-server-verify-save`, candidate-reference-only boundary를 표시하는지 확인합니다. 실제 forged request HTTP matrix는 V390-ADD1-03 verifier가 담당하며 UI 풀테스트·장시간 evidence가 아닙니다 |
-| V390-ADD1-03 | `./server.sh verify-v390-vlm-promotion-trust-boundary` | auth-off throwaway registry/server에서 shared catalog revision/digest, valid canonical readback, client-declared passed, unknown/stale candidate, option/model/prompt mismatch, failed/non-passed active, rejected update no-write 등 14개 PUT/GET case와 변조 profile restart quarantine 1개 case를 실행합니다. runtime/provider/sidecar 호출, client/viewer payload, Event POST/WebRTC/SSE/WS/media schema 변경, UI 풀테스트 직접 조작, 30분/120분 longrun evidence가 아닙니다 |
+| V390-ADD1-03 / V390-REVIEW2-28 | `./server.sh verify-v390-vlm-promotion-trust-boundary` | 14개 PUT/GET promotion case와 restart full-contract quarantine matrix를 실행합니다. Reload는 digest뿐 아니라 activation/privacy/forbidden/runtime side effect/invariant/schema/provider-model/unsafe ID 변조를 격리합니다. runtime/provider/sidecar 호출, client/viewer payload, Event POST/WebRTC/SSE/WS/media schema 변경, UI 풀테스트 직접 조작, 30분/120분 evidence가 아닙니다 |
+| V390-REVIEW2-29 | `./server.sh verify-v390-vlm-incident-rule-provenance` | 실제 EventRecord와 VLM observation/ruleSuggestion을 준비해 정상 save/readback/restart 및 event/source/observation/candidate/evaluation provenance 변조·stale/deleted no-write matrix를 실행합니다. Auto-save/apply, provider/runtime 호출, EventRecord/Event POST/WebRTC/SSE/WS/media schema 변경, UI 풀테스트 직접 조작, 30분/120분 evidence가 아닙니다 |
+| V390-REVIEW2-30 | `./server.sh verify-v390-onvif-source-view-atomicity` | Pre-transaction source/view file snapshot의 existence/raw bytes/mode를 기준으로 unknown extension/format, create/update, source-only/view-only, first/second replace failure, rollback failure를 검증합니다. HTTP/API schema, ONVIF 실기기, UI 풀테스트, 30분/120분 evidence가 아닙니다 |
 | v3.9.0 (15) | `./server.sh verify-v390-backup-recovery-handoff-validation` | Backup/recovery handoff validation. `/ops/api/source-registry/staging-restore-validation-handoff`와 `/ops/sources`가 `staging-restore-validation-checklist-result-handoff`, source registry, PublishedView, source health, viewer scope checklist/result artifact contract를 표시하고 기존 `/ops/api/source-registry/backup-recovery-handoff`와 `verify-v340-staging-restore-validation-harness` 경계를 유지하는지 확인합니다. production restore cutover, SourceRegistry/PublishedView write, automatic recovery, client/viewer exposure, EventRecord/Event POST/WebRTC/SSE/WS/schema/media 변경, UI 풀테스트 직접 조작, 30분/120분 longrun evidence가 아닙니다 |
 | v3.9.0 (16) | `./server.sh verify-v390-action-execution-deferral-decision` | Action execution deferral decision. `/ops/api/actions/execution-deferral-decision`와 `/ops` Action Control Workspace가 `defer-all-action-writes`, source recheck, client notice send, rule apply deferred 상태를 표시하고 기존 v3.8 action pilot/default-off explanation 경계를 유지하는지 확인합니다. action execution, request/approval/readiness/outcome/receipt persist, source recheck, client notice send, rule apply, external delivery, EventRecord/Event POST/WebRTC/SSE/WS/schema/media 변경, UI 풀테스트 직접 조작, 30분/120분 longrun evidence가 아닙니다 |
 | v3.9.0 (17) | `./server.sh verify-v390-conditional-field-ai-decisions` | Field evidence bridge decision. `/ops/api/field-evidence/bridge-decision`와 `/ops` dashboard가 `approval-only-minimal-field-evidence-bridge`, ONVIF/external WHEP-TURN/cloud-VLM 승인 조건, minimal evidence contract, not-run boundary를 표시하는지 확인합니다. field smoke, endpoint/credential probe, provider call, source/view/EventRecord/Ops audit write, raw endpoint/credential/provider material, media/schema 변경, UI 풀테스트 직접 조작, 30분/120분 longrun evidence가 아닙니다 |
 | v3.9.0 (18) / V390-ADD1-04 | `./server.sh verify-v390-reid-readiness-consistency`, `./server.sh verify-v390-conditional-field-ai-decisions` | Re-ID readiness consistency. `explicit-opt-in-provenance-gated-assist`를 유지하면서 extractor factory와 `/ops/api/analysis/reid-assist-decision`가 공용 `InspectAppearanceModelReadiness`를 사용하고 regular file, SHA format/read/match, trim provenance, OpenSSL·ONNX Runtime을 확인하는지 no-crypto/no-ONNX C++ 2종과 실제 HTTP 10개 case로 검증합니다. Ops UI는 preflight와 session load/execution을 분리하며 raw path/SHA/provenance를 노출하지 않습니다. 실제 ONNX session 성공, identity search, UI 풀테스트 직접 조작, 30분/120분 longrun evidence가 아닙니다 |
 | v3.9.0 (17) Evidence 13~14 | `./server.sh verify-v390-final-evidence-integrity --summary <acceptance-summary.json>`, `./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-final` | Final evidence integrity와 독립 acceptance 재실행입니다. canonical root 교체 전 기존 screenshot/video placeholder 수와 크기를 기록하고, 새 bundle은 screenshot content dedupe, placeholder video 부재, source commit SHA·명령·first failure, child/filesystem/port 실측 cleanup을 보존합니다. 실제 bundle의 30분/UI-108~115 자동화는 exact 424개 UI 풀테스트, 조건 미충족 120분, published metadata, release action PASS가 아닙니다 |
 | v3.9.0 (17) Development 15 | `./server.sh verify-v390-vlm-incident-rule-provenance` | VLM sidecar candidate의 event/observation/source, candidate/kind, observation-context-only evaluation metadata가 optional `vlmProvenance`를 통해 `/ops/rules` 수동 draft와 `/lab/analysis/rules/{id}` PUT/save/readback까지 보존되는지 실제 HTTP로 확인합니다. generated rule ID 또는 save route mismatch는 no-write로 거부하며 auto-save/apply, 실제 provider evaluation, EventRecord/Event POST/WebRTC/SSE/WS/media 변경, UI 풀테스트, 30분/120분 PASS가 아닙니다 |
-| v3.9.0 (17) Development 16 | `./server.sh verify-v390-deferred-product-owner-signoff` | action execution, persistent credential store, real external field smoke, external VLM provider call, model-backed Re-ID session에 역할 기반 owner, v3.9 구현/제외 결정, 직접 근거, 재개 조건과 사용자 승인 출처를 고정합니다. 개인 이름을 추정하지 않으며 owner role sign-off를 실제 구현, field smoke, provider call, Re-ID session, UI 풀테스트, 30분/120분, release PASS로 승격하지 않습니다 |
-| v3.9.0 (17) Development 17 | `./server.sh verify-v390-structure-stabilization-readiness` | v3.9.0 release correctness 이후 사용자 명시 승인으로 만드는 `v4.0.0` branch, module boundary와 단방향 dependency, 9개 preserved contract, 6개 fixed slice의 entry/exit/stop gate를 검증합니다. branch 생성·실제 refactor·route/API/UI extraction·UI 풀테스트·30분/120분·release action PASS가 아닙니다 |
-| v3.9.0 (17) Development 18 | `./server.sh verify-v390-external-field-smoke-no-device-closure` | 외부 네트워크 호출 없이 TURN/WHEP, ONVIF 실기기, 외부 VLM/provider가 device·credential·endpoint·실행 승인 부재로 모두 `not-run`인지 검증합니다. endpoint/credential/device/provider probe와 artifact 생성은 0이고 not-run을 field/release PASS로 승격하지 않습니다 |
+| v3.9.0 (17) Development 16 | `./server.sh verify-v390-deferred-product-owner-signoff`, `./server.sh verify-v390-truthfulness-status-vocabulary` | owner output은 `decision-record`, implementation `not-executed`, `decision-only-not-implementation-evidence`입니다. 역할·결정·근거·재개 조건을 기록하지만 실제 구현/field/UI/longrun/release PASS가 아닙니다 |
+| v3.9.0 (17) Development 17 | `./server.sh verify-v390-structure-stabilization-readiness`, `./server.sh verify-v390-truthfulness-status-vocabulary` | structure output은 `gate-ready`, implementation `not-executed`, `gate-contract-not-refactor-evidence`입니다. branch/refactor/route/API/UI extraction 완료 또는 UI/longrun/release PASS가 아닙니다 |
+| v3.9.0 (17) Development 18 | `./server.sh verify-v390-external-field-smoke-no-device-closure`, `./server.sh verify-v390-truthfulness-status-vocabulary` | 세 external target은 `conditional-not-run`, `condition-record-not-field-pass`입니다. 외부 contact/artifact/PASS claim은 0이며 실제 field/release PASS가 아닙니다 |
 
 Re-ID privacy/default-off gate는 Step 18에서도 유지합니다. `--reid-policy assist`는 selected tracker의 association assist decision일 뿐이며, `verify-reid-advanced-tracking`와 `verify-close-object-fixture-matrix --modes off,diagnostic,enforce`는 `default-on candidate=False`와 별도 review 상태를 확인합니다. Matrix gate 상태 정의: `warning`은 안정적이라는 뜻이 아니며, `matrix-ok`는 명령/gate 결과입니다. `[matrix-default-on-decision]`과 `[matrix-product-default-on]`은 fixture별 후보로만 기록하고, `field-driving-live`, observed issue counter, trackingIssueObservationCounts, defaultOnDecision, productDefaultOn, candidateCount, defaultOnReason, reid-fixture-default-on-candidates.md를 함께 확인해야 합니다.
 
@@ -108,6 +110,19 @@ command, and `fixture-only-not-real-duration` fixture output. `V390-ADD1-10`부�
 mode가 실패를 기록한 뒤 세 번째 case를 계속 실행하는 역할 분리를 검증합니다. Fixture
 output은 implementation/contract evidence일 뿐 실제 30분/120분 duration evidence가
 아닙니다.
+
+`V390-REVIEW2-31`부터 real/delegated summary 경로는 `start-server`, `integrated-smoke`,
+`runtime-idle`을 실행 전에 PASS로 기록하지 않습니다. Child summary의
+`server-start-queue-256`, exact `integrated-smoke`, `soak-N-*`, `main-runtime-idle` 이후 runtime
+steps를 parent ledger로 투영하고, delegated failure가 발생한 parent phase를 FAIL로 바꾼 뒤
+later ordinary phase를 `not-run`으로 유지합니다. Cleanup/report는 first-fail 뒤에도 실행됩니다.
+Contract fixture의 이 projection PASS는 실제 duration evidence가 아닙니다.
+
+`V390-REVIEW2-33` structure readiness는 선언 배열 수만 세지 않습니다. Complete module
+`mayDependOn` graph와 allowed directions, 실제 `src`/`include` include resolution, CMake production
+source coverage, forbidden edge와 cycle negative, slice dependency를 검사합니다. 현재 core→ingress
+3-edge와 analysis/core/ingress SCC는 refactor 전 legacy baseline으로 명시되며 gate PASS는 해당
+dependency 제거나 structure refactor 완료를 뜻하지 않습니다.
 
 Console progress output:
 
@@ -168,7 +183,7 @@ Step 25/R10은 R2의 8개 actual automation case를 current UI 전체 자동화 
 `testId`, `featureId`, route, source-backed control/action anchor, stability verifier command/
 assertion anchor, automation `caseId`를 독립 연결합니다. 결과는
 `mapped-with-explicit-gaps`: native visible-DOM actual evidence가 있는 `UI-108`~`UI-115`
-8개만 `automated/PASS`, automation case가 없는 415개는 `unsupported-manual/not-run`,
+historical 8개는 historical-invalid로 격리하고 current automated 0, 423개는 `unsupported-manual/not-run`,
 제품 UI 미제공 negative route인 `UI-018`은 `excluded-positive-ui/not-applicable`입니다.
 
 검증 명령:
@@ -228,11 +243,24 @@ positive와 no-op/pre-existing text/wrong URL·correlation/action 미실행 nega
 UI-108~115 summary는 `verify-v390-ui-automation-report`와 replay guard가 completion digest/source/
 endpoint를 다시 읽습니다. Contract fixture와 targeted 8-case PASS는 exact 424 UI 풀테스트가 아닙니다.
 
+`V390-REVIEW2-26`의 `./server.sh verify-v390-full-suite-eligibility-contract`는 acceptance와
+final integrity가 execution PASS, exact 424 closure, unsupported 0, Policy v4
+`policyValidationResult`, `evidenceEligibility`, `uiFulltestPass`를 독립 입력으로 소비하는지
+검증합니다. Targeted 8-case·plan-only·fixture·누락/변조 qualification은 `eligible` 또는
+`finalEvidenceEligible`이 될 수 없습니다. Contract positive는 알고리즘 fixture이며 actual
+Policy v4 UI 풀테스트 실행 evidence가 아닙니다.
+
+`V390-REVIEW2-27`의 `./server.sh verify-v390-current-ui-evidence-contract`는 current coverage와
+Policy 기본 입력이 `v390_ui_current_evidence_state.json`의 `not-run` 상태를 사용하고, tracked
+`*.video.txt` placeholder가 0이며 과거 summary root가 historical-invalid manifest에만 존재하는지
+검증합니다. `verify-v390-ui-automation-coverage`의 automated 0/unsupported 423/excluded 1 PASS는
+현재 actual UI 실행이 없다는 정합성 PASS이지 UI 기능 실행 PASS가 아닙니다.
+
 전체 UI PASS는 exact UI test ID 전수가 `direct-pass` 또는
 `automation-equivalent-pass`이고 fail/not-run/unsupported/unapproved exclusion이 0이며
 시각 품질, 반응형, role guard, client redaction, video/overlay 등 교차 의무가 닫힌
-경우에만 가능합니다. 현재 matrix의 8 automated, 415 unsupported, positive UI 제외 1은
-`partial-automation-evidence`이며 Policy v4 verifier 자체가 PASS해도 UI 풀테스트는
+경우에만 가능합니다. 현재 matrix의 0 automated, 423 unsupported, positive UI 제외 1은
+`no-current-execution-evidence`이며 Policy v4 verifier 자체가 PASS해도 UI 풀테스트는
 `FAIL/not-qualified`입니다.
 
 ### v3.9.0 R5 UI automation report replay guard
@@ -317,7 +345,7 @@ visibility와 visible `innerText`만 snapshot으로 만들고 Node-side evaluato
 UI-113의 source-only `defer-all-action-writes`와 hidden element text가 PASS하지 못하고 실제
 표시값 `all-action-writes-deferred`만 통과함을 검증합니다.
 
-이 automation PASS는 exact 8/424 부분 coverage이므로 Policy v4-qualified 전체 UI
+이 historical automation PASS는 current evidence에서 격리됐으므로 Policy v4-qualified 전체 UI
 풀테스트, 30분/120분, published metadata, release action PASS가 아닙니다.
 
 ### v3.9.0 R3 test acceptance bundle
@@ -406,7 +434,7 @@ UI 풀테스트, 30분/120분, published metadata, release action, field smoke�
 | Step | Command | Scope |
 | --- | --- | --- |
 | v3.9.0 (19) | `./server.sh verify-v390-structure-stabilization-handoff` | v3.9.0 structure stabilization handoff. `V390-STRUCT-001`~`V390-STRUCT-005`를 behavior-preserving extraction plan으로 이관하고 route/API/UI extraction implementation, UI 풀테스트, 30분/120분, published metadata evidence를 대체하지 않음 |
-| v3.9.0 (20) | `./server.sh verify-v390-stabilization-release-readiness` | v3.9.0 local stabilization and release readiness. Step 1~19, Development 15~18, Review2-21 verifier, current inventory 986개/acceptance 31-command, release metadata/docs/assets/inventory/evidence/script, close-out dry-run, `git diff --check` companion gate 연결을 확인합니다. current final은 clean worktree에서 stabilization→31개 feature gate→30분→8-case UI automation/replay→120분(`--run-120`)→Policy v4 전체 UI→cleanup/evidence 순서이며 실제 실행 evidence를 대체하지 않음 |
+| v3.9.0 (20) | `./server.sh verify-v390-stabilization-release-readiness` | v3.9.0 local stabilization and release readiness. Step 1~19, Development 15~18, Review2-21 verifier, current inventory 986개/acceptance 32-command, release metadata/docs/assets/inventory/evidence/script, close-out dry-run, `git diff --check` companion gate 연결을 확인합니다. current final은 clean worktree에서 stabilization→32개 feature gate→30분→8-case UI automation/replay→120분(`--run-120`)→Policy v4 전체 UI→cleanup/evidence 순서이며 실제 실행 evidence를 대체하지 않음 |
 
 ## 현재 v3.8.0 verifier
 

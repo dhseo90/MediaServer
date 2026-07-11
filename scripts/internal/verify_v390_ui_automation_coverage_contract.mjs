@@ -27,8 +27,8 @@ Usage:
 Checks:
   - 986-feature inventory에서 prefix/range가 아닌 exact manualUiCaseId 424개 선택
   - featureId/testId/route/control-action anchor/stability verifier exact 연결
-  - UI-108~UI-115 automation featureId→caseId actual artifact/log 연결
-  - cross-prefix 누락·중복·route/action drift와 artifact 누락 negative fixture
+  - UI-108~UI-115 automation capability와 current not-run evidence 분리
+  - cross-prefix 누락·중복·route/action drift와 historical stale summary negative fixture
   - full automation/UI fulltest 거짓 PASS 금지와 durable evidence wiring
 `);
 }
@@ -73,13 +73,14 @@ check("positive matrix covers the exact 424 manual UI test IDs from all feature 
   assert(summary.schema === "media-server.v390-ui-automation-coverage.v2", "coverage schema mismatch");
   assert(summary.matrixValidationResult === "PASS", "matrix validation must PASS");
   assert(summary.coverageStatus === "mapped-with-explicit-gaps", "coverage status mismatch");
-  assert(summary.executionEvidenceStatus === "partial-automation-evidence", "execution evidence boundary mismatch");
+  assert(summary.executionEvidenceStatus === "no-current-execution-evidence", "execution evidence boundary mismatch");
+  assert(summary.currentEvidenceStatus === "not-run", "current evidence status mismatch");
   assert(summary.fullAutomationCoverage === false, "matrix must not claim full automation coverage");
   assert(summary.manualUiFulltestEvidence === false, "matrix must not claim manual UI fulltest evidence");
   assert(summary.counts.inventoryFeatures === 986, "inventory feature count must be 986");
   assert(summary.counts.exactUiTestIds === 424, "exact UI test ID count must be 424");
-  assert(summary.counts.automated === 8, "automated count must be 8");
-  assert(summary.counts.unsupportedManual === 415, "unsupported/manual count must be 415");
+  assert(summary.counts.automated === 0, "automated count must be 0 without current execution");
+  assert(summary.counts.unsupportedManual === 423, "unsupported/manual count must be 423");
   assert(summary.counts.excludedPositiveUi === 1, "positive UI exclusion count must be 1");
   assertExact(summary.rows.map(item => item.testId), expectedTestIds,
     "matrix must preserve the exact ordered manualUiCaseId set");
@@ -154,35 +155,22 @@ check("explicit manifest refresh preserves all reviewed exact UI mappings", () =
   }
 });
 
-check("automated rows map exact featureId to caseId and preserve every artifact/log", () => {
+check("automation capability remains mapped without inventing current artifacts", () => {
   const summary = readPositiveSummary();
   const manifest = readJson(caseManifestPath);
-  const manifestByFeature = new Map(manifest.cases.map(item => [item.featureId, item]));
   const automated = summary.rows.filter(item => item.automationDisposition === "automated");
-  assertExact(automated.map(item => item.automationCaseId), manifest.cases.map(item => item.caseId),
-    "automated exact case IDs");
-  for (const item of automated) {
-    const source = manifestByFeature.get(item.featureId);
-    assert(source, `${item.featureId} automation feature mapping missing`);
-    assert(item.testId === source.featureId, `${item.featureId} manual test ID/feature mapping mismatch`);
-    assert(item.automationCaseId === source.caseId, `${item.featureId} automation case ID mismatch`);
-    assert(item.route === source.route, `${item.featureId} automated route mismatch`);
-    assert(item.controlAction === source.controlAction, `${item.featureId} automated action mismatch`);
-    assert(item.automationStatus === "PASS", `${item.featureId} automationStatus must PASS`);
-    assert(item.actualResult === "control action executed and expected UI state captured",
-      `${item.featureId} actualResult must preserve the executed UI result`);
-    for (const key of ["screenshot", "trace", "browserConsole", "serverLog"]) {
-      assert(item.evidence?.[key], `${item.featureId} ${key} evidence missing`);
-      assert(fs.existsSync(path.join(rootDir, item.evidence[key])), `${item.featureId} ${key} file missing`);
-    }
-    assert(!item.evidence?.video, `${item.featureId} placeholder video evidence must not be required`);
+  assert(automated.length === 0, "not-run current state invented automated PASS rows");
+  assert(manifest.cases.length === 8, "native capability manifest must retain 8 explicit cases");
+  for (const item of summary.rows) {
+    assert(Object.values(item.evidence || {}).every(value => value === ""),
+      `${item.featureId} current not-run row carries invented artifact`);
   }
 });
 
 check("unsupported/manual and excluded exact test IDs remain explicit non-PASS work", () => {
   const summary = readPositiveSummary();
   const manual = summary.rows.filter(item => item.automationDisposition === "unsupported-manual");
-  assert(manual.length === 415, "unsupported/manual row count mismatch");
+  assert(manual.length === 423, "unsupported/manual row count mismatch");
   for (const item of manual) {
     assert(item.testId, `${item.featureId} unsupported row exact test ID missing`);
     assert(item.automationCaseId === null, `${item.featureId} unsupported row must not invent automation case ID`);
@@ -235,7 +223,7 @@ check("cross-prefix route and control/action drift are rejected", () => {
     "cross-prefix action drift failure");
 });
 
-check("automation feature mapping drift and missing artifact are rejected", () => {
+check("automation feature mapping drift and stale historical summary are rejected", () => {
   const manifest = readJson(caseManifestPath);
   manifest.cases.find(item => item.caseId === "UI-113").featureId = "AUTH-004";
   const modifiedManifest = path.join(tempRoot, "feature-mapping-drift-cases.json");
@@ -249,15 +237,12 @@ check("automation feature mapping drift and missing artifact are rejected", () =
   assertIncludes(`${mappingRun.stdout}\n${mappingRun.stderr}`, "UI-113 featureId mismatch",
     "automation feature mapping drift failure");
 
-  const actual = readJson(path.join(rootDir,
-    "docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/summary.json"));
-  actual.cases.find(item => item.caseId === "UI-108").screenshotPath = path.join(tempRoot, "missing-ui-108.png");
-  const modifiedSummary = path.join(tempRoot, "missing-artifact-summary.json");
-  writeJson(modifiedSummary, actual);
-  const artifactRun = runCoverage("missing-artifact", ["--automation-summary", modifiedSummary], true);
-  assert(artifactRun.status === "failed-as-expected", "missing artifact fixture must fail");
-  assertIncludes(`${artifactRun.stdout}\n${artifactRun.stderr}`, "UI-108 screenshotPath does not exist",
-    "missing artifact failure");
+  const staleSummary = path.join(rootDir,
+    "docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/summary.json");
+  const staleRun = runCoverage("stale-historical-summary", ["--automation-summary", staleSummary], true);
+  assert(staleRun.status === "failed-as-expected", "historical stale summary must fail");
+  assertIncludes(`${staleRun.stdout}\n${staleRun.stderr}`, "actual automation source provenance missing",
+    "stale summary failure");
 });
 
 check("durable matrix and release docs record exact-ID partial coverage boundaries", () => {
@@ -272,8 +257,9 @@ check("durable matrix and release docs record exact-ID partial coverage boundari
   for (const snippet of [
     "inventory features `986`",
     "exact UI test IDs `424`",
-    "automated `8`",
-    "unsupported-manual `415`",
+    "currentEvidenceStatus: `not-run`",
+    "automated `0`",
+    "unsupported-manual `423`",
     "excluded-positive-ui `1`",
     "fullAutomationCoverage: `false`",
     "manualUiFulltestEvidence: `false`",
@@ -299,8 +285,8 @@ console.log("== v3.9.0 full-feature UI automation coverage matrix contract summa
 console.log("- schema: media-server.v390-ui-automation-coverage.v2");
 console.log("- inventoryFeatures: 986");
 console.log("- exactUiTestIds: 424");
-console.log("- automated: 8");
-console.log("- unsupportedManual: 415");
+console.log("- automated: 0");
+console.log("- unsupportedManual: 423");
 console.log("- excludedPositiveUi: 1");
 console.log("- prefixRangeClassification: removed");
 console.log(`- pass: ${result.pass}`);

@@ -1,7 +1,7 @@
 // 파일 요약: VLM observation JSONL 저장소와 EventRecord correlation report를 구현한다.
 // 동작 요약: observation은 별도 파일에 append하고 EventRecord는 eventId reference만 사용한다.
 #include "analysis/vlm_observation_store.h"
-
+#include "analysis/event_storage.h"
 #include "app_config.h"
 
 #include <algorithm>
@@ -1136,6 +1136,179 @@ std::string BuildVlmObservationCorrelationReportJson(const std::string& event_re
         << "\"rtspOrWebrtcMediaPathChanged\":false"
         << "}";
     return out.str();
+}
+
+bool ValidateVlmIncidentRuleProvenanceServerRecords(
+    const std::string& event_source,
+    const std::string& candidate_source,
+    const std::string& evaluation_source,
+    std::string* error_message) {
+    const auto fail = [error_message]() {
+        if (error_message != nullptr) {
+            *error_message = "rule VLM provenance does not match server records";
+        }
+        return false;
+    };
+    const auto has_exact_fields = [](const std::string& json,
+                                     const std::vector<std::string>& fields) {
+        for (const auto& expected : fields) {
+            std::size_t count = 0;
+            std::size_t pos = 0;
+            SkipWhitespace(json, &pos);
+            if (pos >= json.size() || json[pos++] != '{') {
+                return false;
+            }
+            while (pos < json.size()) {
+                SkipWhitespace(json, &pos);
+                if (pos < json.size() && json[pos] == '}') {
+                    break;
+                }
+                std::string key;
+                if (!SkipJsonString(json, &pos, &key)) {
+                    return false;
+                }
+                SkipWhitespace(json, &pos);
+                if (pos >= json.size() || json[pos++] != ':') {
+                    return false;
+                }
+                if (key == expected) {
+                    ++count;
+                }
+                if (!SkipJsonValue(json, &pos)) {
+                    return false;
+                }
+                SkipWhitespace(json, &pos);
+                if (pos < json.size() && json[pos] == ',') {
+                    ++pos;
+                    continue;
+                }
+                if (pos < json.size() && json[pos] == '}') {
+                    break;
+                }
+                return false;
+            }
+            if (count != 1) {
+                return false;
+            }
+        }
+        return true;
+    };
+    if (!has_exact_fields(event_source,
+                          {"eventId", "observationId", "sourceId", "sourceSchema",
+                           "originalRuleId", "scenarioId"}) ||
+        !has_exact_fields(candidate_source,
+                          {"candidateId", "proposedRuleKind", "source", "sourceSchema",
+                           "targetRoute", "manualReviewRequired", "autoApply"}) ||
+        !has_exact_fields(evaluation_source,
+                          {"status", "evaluationExecuted", "source", "provider", "model",
+                           "promptProfile", "privacyMode"})) {
+        return fail();
+    }
+
+    const std::string event_id = TrimCopy(ExtractTopLevelString(event_source, "eventId").value_or(""));
+    const std::string observation_id =
+        TrimCopy(ExtractTopLevelString(event_source, "observationId").value_or(""));
+    const std::string source_id = TrimCopy(ExtractTopLevelString(event_source, "sourceId").value_or(""));
+    if (event_id.empty() || observation_id.empty() || source_id.empty() ||
+        ExtractTopLevelString(event_source, "sourceSchema").value_or("") !=
+            "media-server.vlm-observation.v1") {
+        return fail();
+    }
+
+    EventRecordQueryOptions event_options;
+    event_options.event_id = event_id;
+    event_options.include_archives = true;
+    event_options.limit = 100;
+    EventRecordQueryResult event_result;
+    std::string query_error;
+    if (!QueryEventRecords(event_options, &event_result, &query_error)) {
+        return fail();
+    }
+    const bool event_matches = std::any_of(
+        event_result.records_json.begin(), event_result.records_json.end(),
+        [&](const std::string& event_json) {
+            if (ExtractTopLevelString(event_json, "eventId").value_or("") != event_id) {
+                return false;
+            }
+            if (ExtractTopLevelString(event_json, "streamId").value_or("") == source_id ||
+                ExtractTopLevelString(event_json, "channelId").value_or("") == source_id) {
+                return true;
+            }
+            const auto metadata = ExtractTopLevelJsonValue(event_json, "metadata");
+            return metadata.has_value() &&
+                   ExtractTopLevelString(*metadata, "sourceId").value_or("") == source_id;
+        });
+    if (!event_matches) {
+        return fail();
+    }
+
+    VlmObservationQueryOptions observation_options;
+    observation_options.event_id = event_id;
+    observation_options.source_id = source_id;
+    observation_options.limit = 100;
+    VlmObservationQueryResult observation_result;
+    if (!QueryVlmObservations(DefaultVlmObservationStorePath(), observation_options,
+                              &observation_result, &query_error)) {
+        return fail();
+    }
+    const auto observation_it = std::find_if(
+        observation_result.observations_json.begin(), observation_result.observations_json.end(),
+        [&](const std::string& observation_json) {
+            return ExtractTopLevelString(observation_json, "observationId").value_or("") == observation_id &&
+                   ExtractTopLevelString(observation_json, "eventId").value_or("") == event_id &&
+                   ExtractTopLevelString(observation_json, "sourceId").value_or("") == source_id;
+        });
+    if (observation_it == observation_result.observations_json.end()) {
+        return fail();
+    }
+
+    const std::string& observation = *observation_it;
+    const auto suggestion = ExtractTopLevelJsonValue(observation, "ruleSuggestion");
+    if (!suggestion.has_value()) {
+        return fail();
+    }
+    const std::string expected_target_route =
+        TrimCopy(ExtractTopLevelString(*suggestion, "targetRoute").value_or("/ops/rules"));
+    if (ExtractTopLevelString(candidate_source, "candidateId").value_or("") !=
+            ExtractTopLevelString(*suggestion, "candidateId").value_or("") ||
+        ExtractTopLevelString(candidate_source, "proposedRuleKind").value_or("") !=
+            ExtractTopLevelString(*suggestion, "kind").value_or("") ||
+        ExtractTopLevelString(candidate_source, "source").value_or("") !=
+            "vlm-observation-sidecar-rule-suggestion" ||
+        ExtractTopLevelString(candidate_source, "sourceSchema").value_or("") !=
+            "media-server.vlm-rule-suggestion-candidate.v1" ||
+        TrimCopy(ExtractTopLevelString(candidate_source, "targetRoute").value_or("")) !=
+            expected_target_route ||
+        !ExtractTopLevelBool(*suggestion, "manualReviewRequired").value_or(false) ||
+        ExtractTopLevelBool(*suggestion, "autoApply").value_or(true) ||
+        ExtractTopLevelString(event_source, "originalRuleId").value_or("") !=
+            ExtractTopLevelString(observation, "ruleId").value_or("") ||
+        ExtractTopLevelString(event_source, "scenarioId").value_or("") !=
+            ExtractTopLevelString(observation, "scenarioId").value_or("")) {
+        return fail();
+    }
+
+    const bool matches =
+        ExtractTopLevelString(evaluation_source, "status").value_or("") ==
+            "observation-context-only" &&
+        !ExtractTopLevelBool(evaluation_source, "evaluationExecuted").value_or(true) &&
+        ExtractTopLevelString(evaluation_source, "source").value_or("") ==
+            "vlm-observation-sidecar-metadata" &&
+        ExtractTopLevelString(evaluation_source, "provider").value_or("") ==
+            ExtractTopLevelString(observation, "provider").value_or("") &&
+        ExtractTopLevelString(evaluation_source, "model").value_or("") ==
+            ExtractTopLevelString(observation, "model").value_or("") &&
+        ExtractTopLevelString(evaluation_source, "promptProfile").value_or("") ==
+            ExtractTopLevelString(observation, "promptProfile").value_or("") &&
+        ExtractTopLevelString(evaluation_source, "privacyMode").value_or("") ==
+            ExtractTopLevelString(observation, "privacyMode").value_or("");
+    if (!matches) {
+        return fail();
+    }
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
 }
 
 }  // namespace analysis

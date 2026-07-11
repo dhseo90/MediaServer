@@ -16,6 +16,7 @@ import {
   scanArtifactTree,
   sha256File,
 } from "./evidence_integrity_lib.mjs";
+import { evaluateV390FullSuiteEligibility } from "./v390_full_suite_eligibility_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -27,12 +28,15 @@ const stageIds = [
   "server-longrun-30",
   "ui-automation",
   "ui-replay",
+  "ui-fulltest-qualification",
   "longrun-120-decision",
   "server-longrun-120",
   "cleanup",
   "report",
 ];
 const requiredUiCaseIds = ["UI-108", "UI-109", "UI-110", "UI-111", "UI-112", "UI-113", "UI-114", "UI-115"];
+const canonicalUiCaseIds = readJson(path.join(rootDir, "test/fixtures/ui_fulltest_case_manifest_policy_v4.json"))
+  .cases.map(item => item.testId);
 
 if (hasHelpFlag(rawArgs)) {
   printUsageAndExit(`v3.9.0 test acceptance bundle
@@ -46,6 +50,7 @@ Options:
   --output-dir <path>          Summary/report and run artifact root. Required for actual mode; /tmp default for dry-run.
   --ui-browser-mode <mode>     playwright, selenium, or sikulix. Default playwright.
   --allow-chrome-fallback[=1]  Explicitly allow diagnostic Chrome/CDP fallback for the UI phase.
+  --ui-fulltest-summary <path>  Policy v4 actual full-suite evidence summary. Defaults to the targeted child summary, which is ineligible.
   --run-120                    Execute the 120-minute phase after 30-minute and UI success. Required for current final actual mode.
   --fixture-pass               Fast actual-mode orchestration fixture; not duration/UI evidence.
   --fixture-fail-stage <id>    Fail one stage and record later ordinary stages as not-run.
@@ -69,6 +74,7 @@ assertKnownOptions(rawArgs, [
   "output-dir",
   "ui-browser-mode",
   "allow-chrome-fallback",
+  "ui-fulltest-summary",
   "run-120",
   "fixture-pass",
   "fixture-fail-stage",
@@ -93,6 +99,7 @@ let failedCommand = "";
 let cleanupFailed = false;
 let longrun30Summary = null;
 let uiAutomationSummary = null;
+let policyEvaluation = null;
 let longrun120Summary = null;
 
 const sourceProvenance = collectSourceProvenance(rootDir);
@@ -223,6 +230,22 @@ async function runRealStage(stageId) {
       "verify-v390-ui-automation-report",
       "--summary", childSummaryPath,
     ]), childSummaryPath);
+    return;
+  }
+
+  if (stageId === "ui-fulltest-qualification") {
+    const evidenceSummaryPath = options.uiFulltestSummary
+      ? path.resolve(rootDir, options.uiFulltestSummary)
+      : path.join(runDir, "ui-automation", "summary.json");
+    const qualificationDir = path.join(runDir, "ui-fulltest-qualification");
+    const evaluationPath = path.join(qualificationDir, "evaluation.json");
+    await runSingleCommandStage(stageId, command("./server.sh", [
+      "verify-ui-fulltest-evidence-policy-v4",
+      "--summary", evidenceSummaryPath,
+      "--output-dir", qualificationDir,
+      "--require-eligible",
+    ]), evaluationPath);
+    if (fs.existsSync(evaluationPath)) policyEvaluation = readJson(evaluationPath);
     return;
   }
 
@@ -424,7 +447,16 @@ function recordFailure(stageId, commandValue, message, cleanupFailure = false) {
 
 function buildActualSummary() {
   const executionPassed = failedStage === "" && !cleanupFailed;
-  const knownUiClosureBlockers = fixtureMode ? [] : uiClosureBlockers(uiAutomationSummary);
+  const fullSuiteEligibility = evaluateV390FullSuiteEligibility({
+    executionPassed,
+    executionMode,
+    policyEvaluation,
+    canonicalCaseIds: canonicalUiCaseIds,
+  });
+  const knownUiClosureBlockers = [
+    ...uiClosureBlockers(uiAutomationSummary),
+    ...fullSuiteEligibility.reasons,
+  ];
   const firstFailure = buildFirstFailure();
   return {
     schema: "media-server.v390-test-acceptance-bundle.v1",
@@ -459,9 +491,12 @@ function buildActualSummary() {
       passSubstitution: false,
     },
     knownUiClosureBlockers,
-    automatedAcceptanceStatus: executionPassed
-      ? (knownUiClosureBlockers.length === 0 ? "eligible" : "executed-with-known-ui-closure-blockers")
-      : "failed",
+    policyV4Evaluation: policyEvaluation,
+    uiFulltestQualification: fullSuiteEligibility,
+    automatedAcceptanceStatus: fullSuiteEligibility.status === "eligible"
+      ? "eligible"
+      : (executionPassed ? "executed-with-known-ui-closure-blockers" : "failed"),
+    finalEvidenceEligible: fullSuiteEligibility.finalEvidenceEligible,
     manualUiFulltest: { status: "not-run-by-this-command", passClaimed: false },
     cleanup: cleanupEvidence(),
     publishedMetadata: { status: "not-run-by-this-command" },
@@ -493,6 +528,15 @@ function writeDryRun() {
     longrun30,
     longrun120: { status: "conditional-not-run", decision: "not-evaluated-by-dry-run", passSubstitution: false },
     uiAutomation,
+    policyV4Evaluation: null,
+    uiFulltestQualification: evaluateV390FullSuiteEligibility({
+      executionPassed: false,
+      executionMode,
+      policyEvaluation: null,
+      canonicalCaseIds: canonicalUiCaseIds,
+    }),
+    automatedAcceptanceStatus: "not-run",
+    finalEvidenceEligible: false,
     preservedEvidenceStatus: longrun30.status === "pass-existing-evidence" && uiAutomation.status === "pass-existing-evidence"
       ? "eligible-existing-evidence"
       : "historical-evidence-requires-final-rerun",
@@ -755,22 +799,23 @@ function readPreservedLongrun30Evidence() {
 }
 
 function readPreservedUiAutomationEvidence() {
-  const relative = "docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/summary.json";
+  const relative = "test/fixtures/v390_ui_current_evidence_state.json";
   const full = path.join(rootDir, relative);
   if (!fs.existsSync(full)) return { status: "missing-existing-evidence", summaryPath: relative };
   const payload = readJson(full);
-  const valid = validateUiSummary(payload, path.dirname(full)).length === 0;
   return {
-    status: valid ? "pass-existing-evidence" : "invalid-existing-evidence",
+    status: payload.schema === "media-server.v390-ui-current-evidence-state.v1" && payload.status === "not-run"
+      ? "current-not-run"
+      : "invalid-current-evidence-state",
     summaryPath: relative,
-    reportPath: "docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/report.md",
-    result: payload.result || "",
-    caseCount: Number(payload.caseCount || 0),
-    pass: Number(payload.pass || 0),
-    fail: Number(payload.fail || 0),
-    notRun: Number(payload.notRun || 0),
-    manualIntervention: payload.manualIntervention === true,
-    selectedAdapter: payload.selectedAdapter?.engine || "",
+    reportPath: "",
+    result: "not-run",
+    caseCount: 0,
+    pass: 0,
+    fail: 0,
+    notRun: Number(payload.notRun || 424),
+    manualIntervention: false,
+    selectedAdapter: "",
   };
 }
 
@@ -797,6 +842,7 @@ function buildFeatureCommands() {
     "verify-v390-structure-stabilization-handoff",
     "verify-v390-structure-stabilization-readiness",
     "verify-v390-external-field-smoke-no-device-closure",
+    "verify-v390-truthfulness-status-vocabulary",
     "verify-v390-analysis-registry-durable-write",
     "verify-release-metadata",
     "verify-docs-links",
@@ -820,6 +866,7 @@ function buildFinalAcceptanceCommandSet() {
     { id: "feature-gates", command: `${featureCommands.length} current feature commands`, status: "executed-by-actual-bundle" },
     { id: "server-longrun-30", command: "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir <run>/server-longrun-30", status: "executed-by-actual-bundle" },
     { id: "ui-automation", command: `./server.sh verify-v390-ui-automation --browser-mode ${options.uiBrowserMode} --output-dir <run>/ui-automation`, status: "executed-by-actual-bundle" },
+    { id: "ui-fulltest-qualification", command: "./server.sh verify-ui-fulltest-evidence-policy-v4 --summary <actual-policy-v4-summary> --output-dir <run>/ui-fulltest-qualification --require-eligible", status: "executed-by-actual-bundle" },
     { id: "server-longrun-120", command: "./server.sh verify-v390-server-longrun --duration-minutes 120 --output-dir <run>/server-longrun-120", status: options.run120 ? "executed-by-actual-bundle" : "conditional-not-run" },
   ];
 }
@@ -830,6 +877,7 @@ function parseArgs(args) {
     outputDir: "",
     uiBrowserMode: "playwright",
     allowChromeFallback: false,
+    uiFulltestSummary: "",
     run120: false,
     fixturePass: false,
     fixtureFailStage: "",
@@ -842,6 +890,7 @@ function parseArgs(args) {
     else if (arg === "--ui-browser-mode") { parsed.uiBrowserMode = args[index + 1] || ""; index += 1; }
     else if (arg.startsWith("--allow-chrome-fallback=")) parsed.allowChromeFallback = truthy(arg.slice("--allow-chrome-fallback=".length));
     else if (arg === "--allow-chrome-fallback") parsed.allowChromeFallback = true;
+    else if (arg === "--ui-fulltest-summary") { parsed.uiFulltestSummary = args[index + 1] || ""; index += 1; }
     else if (arg === "--run-120") parsed.run120 = true;
     else if (arg === "--fixture-pass") parsed.fixturePass = true;
     else if (arg === "--fixture-fail-stage") { parsed.fixtureFailStage = args[index + 1] || ""; index += 1; }

@@ -4,6 +4,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -88,13 +89,27 @@ assertUnique(manifestCases.map(item => item.featureId), "automation feature IDs"
 assertExact(manifestCases.map(item => item.caseId), policy.classifications.automated.caseIds,
   "policy/manifest automation case IDs");
 const manifestByFeatureId = new Map(manifestCases.map(item => [item.featureId, item]));
+const implementationById = new Map(implementation.items.map(item => [item.id, item]));
+for (const manifestCase of manifestCases) {
+  const item = implementationById.get(manifestCase.featureId);
+  assert(item, `${manifestCase.caseId} featureId mapping missing: ${manifestCase.featureId}`);
+  assert(item.manualUiCaseId === manifestCase.caseId,
+    `${manifestCase.caseId} featureId mismatch: manifest=${manifestCase.featureId} implementation=${item.id}`);
+}
 
 const automationSummary = readJson(automationSummaryPath);
-validateAutomationSummary(automationSummary);
-assertUnique(automationSummary.cases.map(item => item.caseId), "actual automation case IDs");
-assertExact(automationSummary.cases.map(item => item.caseId), manifestCases.map(item => item.caseId),
-  "manifest/actual automation case IDs");
-const actualByCaseId = new Map(automationSummary.cases.map(item => [item.caseId, item]));
+const currentEvidenceAvailable = automationSummary.schema === "media-server.v390-ui-automation.v1";
+if (currentEvidenceAvailable) {
+  validateAutomationSummary(automationSummary, automationSummaryPath);
+  assertUnique(automationSummary.cases.map(item => item.caseId), "actual automation case IDs");
+  assertExact(automationSummary.cases.map(item => item.caseId), manifestCases.map(item => item.caseId),
+    "manifest/actual automation case IDs");
+} else {
+  validateCurrentEvidenceState(automationSummary);
+}
+const actualByCaseId = new Map(currentEvidenceAvailable
+  ? automationSummary.cases.map(item => [item.caseId, item])
+  : []);
 
 const exclusionByTestId = new Map();
 for (const exclusion of policy.classifications.excludedPositiveUi) {
@@ -112,9 +127,10 @@ const rows = exactUiTests.map(implementationItem => buildMatrixRow({
   actualByCaseId,
   exclusion: exclusionByTestId.get(implementationItem.manualUiCaseId),
   policy,
+  currentEvidenceAvailable,
 }));
 
-for (const manifestCase of manifestCases) {
+for (const manifestCase of currentEvidenceAvailable ? manifestCases : []) {
   const row = rows.find(item => item.featureId === manifestCase.featureId);
   assert(row, `${manifestCase.caseId} featureId has no exact manual UI test mapping: ${manifestCase.featureId}`);
   assert(row.automationCaseId === manifestCase.caseId,
@@ -142,6 +158,7 @@ const summary = {
   selectionModel: "exact-manual-ui-test-id",
   prefixRangeClassification: "removed",
   executionEvidenceStatus: policy.boundaries.executionEvidenceStatus,
+  currentEvidenceStatus: currentEvidenceAvailable ? "current-actual-execution" : automationSummary.status,
   fullAutomationCoverage: policy.boundaries.fullAutomationCoverage,
   manualUiFulltestEvidence: policy.boundaries.manualUiFulltestEvidence,
   sourceOfTruth: {
@@ -302,7 +319,7 @@ function productUiRouteSource() {
   return cachedProductUiRouteSource;
 }
 
-function validateAutomationSummary(value) {
+function validateAutomationSummary(value, summaryPathValue) {
   assert(value.schema === "media-server.v390-ui-automation.v1", "unexpected actual automation summary schema");
   assert(value.result === "PASS", `actual automation summary must PASS, got ${value.result}`);
   assert(value.automationResult === "PASS", "actual automationResult must PASS");
@@ -312,9 +329,33 @@ function validateAutomationSummary(value) {
   assert(value.manualIntervention === false, "actual automation manualIntervention must be false");
   assert(value.fail === 0 && value.notRun === 0, "actual automation must have fail=0 and notRun=0");
   assert(Array.isArray(value.cases), "actual automation cases missing");
+  assert(value.sourceProvenance && typeof value.sourceProvenance.commitSha === "string",
+    "actual automation source provenance missing");
+  assert(value.sourceProvenance.worktreeClean === true, "actual automation source worktree must be clean");
+  assert(value.sourceProvenance?.commitSha === currentHead(), "actual automation source commit is stale");
+  assert(value.artifactIntegrity?.placeholderVideoFiles === 0, "actual automation placeholder video remains");
+  const historical = readJson(path.join(rootDir, "docs/release-artifacts/v3.9.0/historical-invalid-ui-evidence.json"));
+  const summaryDir = path.dirname(path.resolve(summaryPathValue));
+  assert(!historical.roots.some(item => summaryDir === path.resolve(rootDir, item.path) ||
+    summaryDir.startsWith(`${path.resolve(rootDir, item.path)}${path.sep}`)),
+  "historical-invalid UI summary cannot be current evidence");
 }
 
-function buildMatrixRow({ inventory, implementation, manifestCase, actualByCaseId, exclusion, policy: currentPolicy }) {
+function validateCurrentEvidenceState(value) {
+  assert(value.schema === "media-server.v390-ui-current-evidence-state.v1",
+    "unexpected current UI evidence state schema");
+  assert(value.status === "not-run", "current UI evidence state must remain not-run without a new execution");
+  assert(value.actualBrowserExecution === false && value.uiFulltestPass === false,
+    "not-run current UI state cannot claim execution or PASS");
+  assert(value.automatedCaseCount === 0 && value.unsupported === 423 && value.excludedPositiveUi === 1,
+    "current UI evidence state counts mismatch");
+}
+
+function currentHead() {
+  return execFileSync("git", ["rev-parse", "HEAD"], { cwd: rootDir, encoding: "utf8" }).trim();
+}
+
+function buildMatrixRow({ inventory, implementation, manifestCase, actualByCaseId, exclusion, policy: currentPolicy, currentEvidenceAvailable }) {
   const semantic = implementation.semanticEvidence;
   const screenRoute = semantic.controlSelector?.screenRoute ||
     (semantic.route?.applicability === "http-or-product-route" ? semantic.route.value : implementation.uiEvidence.screenRoute);
@@ -345,14 +386,15 @@ function buildMatrixRow({ inventory, implementation, manifestCase, actualByCaseI
 
   if (!manifestCase) return base;
   assert(!exclusion, `${implementation.id} cannot be both automated and excluded`);
-  const actualCase = actualByCaseId.get(manifestCase.caseId);
-  assert(actualCase, `${manifestCase.caseId} actual automation case missing`);
-  assert(actualCase.featureId === manifestCase.featureId,
-    `${manifestCase.caseId} featureId mismatch: manifest=${manifestCase.featureId} actual=${actualCase.featureId}`);
   assert(manifestCase.featureId === implementation.id,
     `${manifestCase.caseId} featureId mismatch: manifest=${manifestCase.featureId} implementation=${implementation.id}`);
   assert(manifestCase.route === screenRoute,
     `${manifestCase.caseId} route mismatch: manifest=${manifestCase.route} implementation=${screenRoute}`);
+  if (!currentEvidenceAvailable) return base;
+  const actualCase = actualByCaseId.get(manifestCase.caseId);
+  assert(actualCase, `${manifestCase.caseId} actual automation case missing`);
+  assert(actualCase.featureId === manifestCase.featureId,
+    `${manifestCase.caseId} featureId mismatch: manifest=${manifestCase.featureId} actual=${actualCase.featureId}`);
   assert(actualCase.route === manifestCase.route,
     `${manifestCase.caseId} route mismatch: actual=${actualCase.route} manifest=${manifestCase.route}`);
   assert(actualCase.controlAction === manifestCase.controlAction,
@@ -406,6 +448,7 @@ function renderReport(value) {
     `selectionModel: \`${value.selectionModel}\``,
     `prefixRangeClassification: \`${value.prefixRangeClassification}\``,
     `executionEvidenceStatus: \`${value.executionEvidenceStatus}\``,
+    `currentEvidenceStatus: \`${value.currentEvidenceStatus}\``,
     `fullAutomationCoverage: \`${value.fullAutomationCoverage}\``,
     `manualUiFulltestEvidence: \`${value.manualUiFulltestEvidence}\``,
     "",

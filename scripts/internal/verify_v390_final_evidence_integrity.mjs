@@ -6,7 +6,8 @@ import path from "node:path";
 import process from "node:process";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
-import { scanArtifactTree } from "./evidence_integrity_lib.mjs";
+import { scanArtifactTree, sha256File } from "./evidence_integrity_lib.mjs";
+import { evaluateV390FullSuiteEligibility } from "./v390_full_suite_eligibility_lib.mjs";
 
 const rawArgs = process.argv.slice(2);
 if (hasHelpFlag(rawArgs)) {
@@ -33,12 +34,32 @@ const summaryPath = path.resolve(options.summary);
 const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
 const outputDir = path.resolve(summary.outputDir || path.dirname(summaryPath));
 const checks = [];
+const canonicalUiCaseIds = JSON.parse(fs.readFileSync(path.resolve(
+  "test/fixtures/ui_fulltest_case_manifest_policy_v4.json"), "utf8")).cases.map(item => item.testId);
+const fullSuiteEligibility = evaluateV390FullSuiteEligibility({
+  executionPassed: summary.result === "PASS",
+  executionMode: summary.executionMode,
+  policyEvaluation: summary.policyV4Evaluation,
+  canonicalCaseIds: canonicalUiCaseIds,
+});
 
 check("acceptance summary and actual eligibility", () => {
   assert(summary.schema === "media-server.v390-test-acceptance-bundle.v1", "acceptance schema mismatch");
   assert(summary.executionMode === "actual" || options.allowFixture, `final evidence requires actual execution, got ${summary.executionMode}`);
   assert(summary.dryRun === false, "dry-run is not final evidence");
   assert(summary.result === "PASS", `acceptance result is not PASS: ${summary.result}`);
+  assert(summary.finalEvidenceEligible === fullSuiteEligibility.finalEvidenceEligible,
+    "summary finalEvidenceEligible does not match independent full-suite evaluation");
+  assert(summary.automatedAcceptanceStatus === (fullSuiteEligibility.finalEvidenceEligible
+    ? "eligible"
+    : "executed-with-known-ui-closure-blockers"), "automated acceptance status mismatch");
+  if (options.allowFixture) {
+    assert(fullSuiteEligibility.finalEvidenceEligible === false,
+      "contract fixture must not become final evidence eligible");
+  } else {
+    assert(fullSuiteEligibility.finalEvidenceEligible === true,
+      `actual final evidence lacks Policy v4 full-suite eligibility: ${fullSuiteEligibility.reasons.join(", ")}`);
+  }
 });
 
 check("source provenance and command ledger are complete", () => {
@@ -49,6 +70,23 @@ check("source provenance and command ledger are complete", () => {
   assert(/^[a-f0-9]{64}$/.test(String(summary.sourceProvenance?.worktreeStatusSha256 || "")), "source worktree status hash missing");
   assert(Array.isArray(summary.executedCommands) && summary.executedCommands.length > 0, "executed command ledger missing");
   assert(summary.executedCommands.every(item => item.stage && item.id && item.status && item.command), "executed command ledger entry incomplete");
+});
+
+check("Policy v4 evaluation is bound to its actual source summary", () => {
+  if (options.allowFixture) {
+    assert(summary.policyV4Evaluation === null || summary.policyV4Evaluation === undefined,
+      "fixture unexpectedly carries promotable Policy v4 evaluation");
+    return;
+  }
+  const sourceRelative = summary.policyV4Evaluation?.sourceSummary || "";
+  assert(sourceRelative && !path.isAbsolute(sourceRelative), "Policy v4 source summary path must be repository-relative");
+  const sourcePath = path.resolve(sourceRelative);
+  const relative = path.relative(process.cwd(), sourcePath);
+  assert(relative && !relative.startsWith("..") && !path.isAbsolute(relative),
+    "Policy v4 source summary escapes repository root");
+  assert(fs.existsSync(sourcePath), "Policy v4 source summary file missing");
+  assert(sha256File(sourcePath) === summary.policyV4Evaluation.sourceSummarySha256,
+    "Policy v4 source summary hash mismatch");
 });
 
 check("first failure record matches summary state", () => {
@@ -119,7 +157,9 @@ console.log("");
 console.log("== v3.9.0 final evidence integrity summary ==");
 console.log(`- summary: ${summaryPath}`);
 console.log(`- executionMode: ${summary.executionMode}`);
-console.log(`- finalEvidenceEligible: ${summary.executionMode === "actual" && summary.result === "PASS"}`);
+console.log(`- finalEvidenceEligible: ${fullSuiteEligibility.finalEvidenceEligible}`);
+console.log(`- uiFulltestPass: ${fullSuiteEligibility.uiFulltestPass}`);
+console.log(`- qualifiedCaseCount: ${fullSuiteEligibility.qualifiedCaseCount}`);
 console.log(`- sourceCommitSha: ${summary.sourceProvenance?.commitSha || ""}`);
 console.log(`- pass: ${result.pass}`);
 console.log(`- fail: ${result.fail}`);

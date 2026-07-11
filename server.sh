@@ -166,6 +166,10 @@ Usage:
                  V390-REVIEW2-24 exact case/API route/negative route/unsupported false-PASS 계약을 검증합니다.
   verify-v390-ui-completion-oracle-contract
                  V390-REVIEW2-25 no-op action/pre-existing visible state false-PASS 계약을 검증합니다.
+  verify-v390-full-suite-eligibility-contract
+                 V390-REVIEW2-26 acceptance/final Policy v4 exact 424 eligibility 계약을 검증합니다.
+  verify-v390-current-ui-evidence-contract
+                 V390-REVIEW2-27 stale placeholder/current UI evidence binding 제거를 검증합니다.
   run-v390-ui-native-exact-cases
                  V390-REVIEW2-24 exact 424 native case runner를 plan-only 또는 actual browser mode로 실행합니다.
   verify-ui-fulltest-evidence-policy-v4
@@ -428,6 +432,10 @@ Usage:
                  V390-REVIEW2-24 exact case/API route/negative route/unsupported false-PASS 계약을 검증합니다.
   verify-v390-ui-completion-oracle-contract
                  V390-REVIEW2-25 no-op action/pre-existing visible state false-PASS 계약을 검증합니다.
+  verify-v390-full-suite-eligibility-contract
+                 V390-REVIEW2-26 acceptance/final Policy v4 exact 424 eligibility 계약을 검증합니다.
+  verify-v390-current-ui-evidence-contract
+                 V390-REVIEW2-27 stale placeholder/current UI evidence binding 제거를 검증합니다.
   run-v390-ui-native-exact-cases
                  V390-REVIEW2-24 exact 424 native case runner를 plan-only 또는 actual browser mode로 실행합니다.
   verify-ui-fulltest-evidence-policy-v4
@@ -481,6 +489,8 @@ Usage:
                  v3.9.0 (17) Development 17 구조 안정화 착수 조건을 검증합니다.
   verify-v390-external-field-smoke-no-device-closure
                  v3.9.0 (17) Development 18 외부 환경 부재 not-run closure를 검증합니다.
+  verify-v390-truthfulness-status-vocabulary
+                 V390-REVIEW2-35 owner/field/structure 상태 진실성 vocabulary를 검증합니다.
   verify-v390-stabilization-release-readiness
                  v3.9.0 Step 20 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-v370-entry-baseline
@@ -849,6 +859,8 @@ Usage:
                  v3.9.0 (17) Development 17 구조 안정화 착수 조건을 검증합니다.
   verify-v390-external-field-smoke-no-device-closure
                  v3.9.0 (17) Development 18 외부 환경 부재 not-run closure를 검증합니다.
+  verify-v390-truthfulness-status-vocabulary
+                 V390-REVIEW2-35 owner/field/structure 상태 진실성 vocabulary를 검증합니다.
   verify-v390-stabilization-release-readiness
                  v3.9.0 Step 20 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-v370-entry-baseline
@@ -2086,6 +2098,14 @@ case "${cmd}" in
     require_internal verify_v390_ui_completion_oracle_contract.mjs
     exec "${INTERNAL_DIR}/verify_v390_ui_completion_oracle_contract.mjs" "$@"
     ;;
+  verify-v390-full-suite-eligibility-contract)
+    require_internal verify_v390_full_suite_eligibility_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_full_suite_eligibility_contract.mjs" "$@"
+    ;;
+  verify-v390-current-ui-evidence-contract)
+    require_internal verify_v390_current_ui_evidence_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_current_ui_evidence_contract.mjs" "$@"
+    ;;
   run-v390-ui-native-exact-cases)
     require_internal run_v390_ui_native_exact_cases.mjs
     exec "${INTERNAL_DIR}/run_v390_ui_native_exact_cases.mjs" "$@"
@@ -2193,6 +2213,10 @@ case "${cmd}" in
   verify-v390-external-field-smoke-no-device-closure)
     require_internal verify_v390_external_field_smoke_no_device_closure.mjs
     exec "${INTERNAL_DIR}/verify_v390_external_field_smoke_no_device_closure.mjs" "$@"
+    ;;
+  verify-v390-truthfulness-status-vocabulary)
+    require_internal verify_v390_truthfulness_status_vocabulary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_truthfulness_status_vocabulary.mjs" "$@"
     ;;
   verify-v390-stabilization-release-readiness)
     require_internal verify_v390_stabilization_release_readiness.mjs

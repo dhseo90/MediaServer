@@ -275,7 +275,7 @@ Policy v4 자동화 동등성은 아래 추가 조건을 모두 요구합니다.
 
 전체 UI 풀테스트 PASS는 current exact UI test ID 424개와 교차 viewport/theme/role/
 redaction/video/overlay/visual/accessibility 의무가 모두 direct 또는 automation-equivalent
-PASS일 때만 가능합니다. 현재 v3.9 matrix의 automated 8, unsupported 415,
+PASS일 때만 가능합니다. 현재 v3.9 current not-run matrix의 automated 0, unsupported 423,
 positive UI 제외 1은 부분 evidence이며 suite PASS가 아닙니다.
 
 풀테스트 harness 자체를 한 번에 실행할 때는

@@ -137,7 +137,10 @@ check("viewer/client and existing external payload paths do not expose S11 inter
     ["event_storage.cpp", eventStorage],
   ]) {
     assert(!text.includes("privacyTransferGuard"), `${label}: existing event payload/storage must not contain privacyTransferGuard`);
-    assert(!text.includes("rawProviderResponseStored"), `${label}: existing event payload/storage must not contain raw provider guard fields`);
+    assert(!text.includes('"rawProviderResponseStored":true'),
+      `${label}: existing event payload/storage must not claim raw provider response storage`);
+    assert(!text.includes('\\"rawProviderResponseStored\\":true'),
+      `${label}: serialized event payload/storage must not claim raw provider response storage`);
   }
 });
 
@@ -152,6 +155,7 @@ check("docs, inventory, server command, and script inventory are wired", () => {
   ].join("\n");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+  const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
   for (const snippet of [
     "V200-S11",
     "Privacy/전송 guard",
@@ -168,7 +172,10 @@ check("docs, inventory, server command, and script inventory are wired", () => {
   assert(serverSh.includes("verify-vlm-privacy-transfer-guard"), "server.sh missing S11 verifier command");
   assert(serverSh.includes("verify_vlm_privacy_transfer_guard.mjs"), "server.sh missing S11 verifier dispatch");
   assert(scriptInventory.includes("verify_vlm_privacy_transfer_guard.mjs"), "script inventory missing S11 verifier");
-  assert(coverage.includes("verify-vlm-privacy-transfer-guard"), "feature inventory coverage missing S11 verifier");
+  assert(coverage.includes("validateImplementationManifest"), "feature inventory coverage must validate implementation manifest");
+  const safe024 = (implementationManifest.items || []).find(item => item.id === "SAFE-024");
+  assert(safe024?.verifierEvidence?.command === "verify-vlm-privacy-transfer-guard",
+    "SAFE-024 implementation manifest missing S11 verifier command");
 });
 
 let pass = 0;

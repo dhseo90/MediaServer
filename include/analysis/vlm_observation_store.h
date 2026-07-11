@@ -95,5 +95,6 @@ bool BuildVlmRuleSuggestionCandidatesJson(const std::string& path,
                                           std::string* error_message);
 std::string BuildVlmObservationCorrelationReportJson(const std::string& event_record_json,
                                                      const std::string& observation_json);
+bool ValidateVlmIncidentRuleProvenanceServerRecords(const std::string& event_source_json, const std::string& candidate_source_json, const std::string& evaluation_source_json, std::string* error_message);
 
 }  // namespace analysis

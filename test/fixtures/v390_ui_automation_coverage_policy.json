@@ -3,12 +3,12 @@
   "inventorySource": "docs/project-feature-test-inventory.md",
   "implementationEvidenceSource": "test/fixtures/project_feature_implementation_evidence.json",
   "automationCaseManifestSource": "test/fixtures/v390_ui_automation_cases.json",
-  "actualAutomationSummarySource": "docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/summary.json",
+  "actualAutomationSummarySource": "test/fixtures/v390_ui_current_evidence_state.json",
   "expectedCounts": {
     "inventoryFeatures": 986,
     "exactUiTestIds": 424,
-    "automated": 8,
-    "unsupportedManual": 415,
+    "automated": 0,
+    "unsupportedManual": 423,
     "excludedPositiveUi": 1
   },
   "classifications": {
@@ -46,6 +46,6 @@
   "boundaries": {
     "fullAutomationCoverage": false,
     "manualUiFulltestEvidence": false,
-    "executionEvidenceStatus": "partial-automation-evidence"
+    "executionEvidenceStatus": "no-current-execution-evidence"
   }
 }

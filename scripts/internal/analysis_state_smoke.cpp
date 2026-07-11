@@ -762,6 +762,13 @@ void VerifyTrackStateManagerAndHealth() {
     Expect(issue_json.find("association=") == std::string::npos,
            "Tracking issue report messages must avoid raw counter-only wording");
 
+    RawVideoFrame noop_frame;
+    noop_frame.source_key = "stream-a";
+    noop_frame.width = 20;
+    noop_frame.height = 20;
+    noop_frame.format = PixelFormat::RGB;
+    noop_frame.pts = Ms(1000);
+    noop_frame.data.assign(static_cast<std::size_t>(noop_frame.width * noop_frame.height * 3), 127U);
     TrackStateManager appearance_manager([&] {
         TrackStateManagerOptions appearance_options = options;
         appearance_options.appearance_update_policy.enabled = true;
@@ -770,14 +777,24 @@ void VerifyTrackStateManagerAndHealth() {
         appearance_options.appearance_update_policy.on_low_confidence_association = true;
         return appearance_options;
     }());
-    appearance_manager.Update("stream-a", "1", {MakeObject(30, 1, 1000, 0.2F, 0.2F)}, Ms(1000));
+    appearance_manager.Update("stream-a",
+                              "1",
+                              {MakeObject(30, 1, 1000, 0.2F, 0.2F)},
+                              Ms(1000),
+                              &noop_frame);
     const auto appearance_states = appearance_manager.Snapshot("1");
     const auto* appearance_track = FindTrack(appearance_states, 30);
     Expect(appearance_track != nullptr && !appearance_track->appearance_profile.has_value(),
            "NoOpAppearanceExtractor must not attach an appearance profile");
+    const auto noop_stats = appearance_manager.Metrics().appearance_extractor_stats;
+    Expect(!noop_stats.enabled && noop_stats.extractor_name == "noop" &&
+               noop_stats.request_count == 0 && noop_stats.queued_count == 0 &&
+               noop_stats.completed_count == 0 && noop_stats.dropped_count == 0 &&
+               noop_stats.missing_crop_count == 0,
+           "NoOp fallback must not start appearance work, build crops, or enqueue jobs");
 
     NoOpAppearanceExtractor no_op;
-    Expect(no_op.Enabled(), "NoOpAppearanceExtractor must be callable when policy enables hooks");
+    Expect(!no_op.Enabled(), "NoOpAppearanceExtractor must report disabled runtime state");
     Expect(!no_op.Extract(AppearanceExtractionInput{}, nullptr).has_value(),
            "NoOpAppearanceExtractor must not call a real model");
 
@@ -925,7 +942,8 @@ void VerifyTrackStateManagerAndHealth() {
     Pass("TrackingIssueReport serializes v1 schema");
     Pass("TrackingIssueReport omits raw counter-only wording");
     Pass("NoOpAppearanceExtractor leaves appearance profile absent");
-    Pass("NoOpAppearanceExtractor is callable when policy enables hooks");
+    Pass("NoOpAppearanceExtractor reports disabled runtime state");
+    Pass("NoOp fallback leaves worker queue and crop counters at zero");
     Pass("NoOpAppearanceExtractor does not call real model");
     Pass("TrackStateManager passes bounded RGB bbox crop");
     Pass("TrackStateManager attaches appearance embedding");

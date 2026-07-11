@@ -1,0 +1,99 @@
+#!/usr/bin/env node
+// 파일 용도: current UI evidence가 stale placeholder/historical summary를 PASS 입력으로 재사용하지 않는지 검증한다.
+
+import fs from "node:fs";
+import path from "node:path";
+import process from "node:process";
+import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+
+import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+
+const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const args = process.argv.slice(2);
+if (hasHelpFlag(args)) {
+  printUsageAndExit(`v3.9.0 current UI evidence hygiene contract
+
+Usage:
+  ./server.sh verify-v390-current-ui-evidence-contract
+
+Checks current not-run binding, historical-invalid roots, tracked placeholder absence,
+coverage 0/423/1, and active consumer stale-path removal. This command does not run UI.
+`);
+}
+assertKnownOptions(args, ["h", "help"]);
+
+const checks = [];
+check("current state is explicit not-run and not PASS", () => {
+  const state = readJson("test/fixtures/v390_ui_current_evidence_state.json");
+  assert(state.schema === "media-server.v390-ui-current-evidence-state.v1", "current state schema mismatch");
+  assert(state.status === "not-run", "current state must be not-run");
+  assert(state.actualBrowserExecution === false && state.uiFulltestPass === false,
+    "current state claims execution/PASS");
+  assert(state.automatedCaseCount === 0 && state.notRun === 424 && state.unsupported === 423 &&
+    state.excludedPositiveUi === 1, "current state count mismatch");
+});
+
+check("all stale roots are historical-invalid and never current eligible", () => {
+  const manifest = readJson("docs/release-artifacts/v3.9.0/historical-invalid-ui-evidence.json");
+  assert(manifest.schema === "media-server.v390-historical-invalid-ui-evidence.v1", "historical manifest schema mismatch");
+  assert(manifest.eligibleForCurrentCoverage === false, "historical manifest became current eligible");
+  const expected = [
+    "ui-automation-playwright-final", "ui-automation-case-completeness-final",
+    "ui-automation-native-final", "ui-automation-visible-dom-final",
+    "test-acceptance-post-ui-final", "test-acceptance-final",
+  ];
+  for (const suffix of expected) {
+    const item = manifest.roots.find(entry => entry.path.endsWith(suffix));
+    assert(item?.status === "historical-invalid", `historical-invalid root missing: ${suffix}`);
+    assert(fs.existsSync(path.join(rootDir, item.path)), `historical root missing: ${item.path}`);
+  }
+  assert(manifest.cleanup?.historicalSummariesRewritten === false,
+    "historical summaries must remain immutable");
+});
+
+check("tracked fixture video placeholders are absent", () => {
+  const tracked = execFileSync("git", ["ls-files", "*.video.txt"], { cwd: rootDir, encoding: "utf8" })
+    .split(/\r?\n/).filter(Boolean).filter(relative => fs.existsSync(path.join(rootDir, relative)));
+  assert(tracked.length === 0, `tracked placeholder video remains: ${tracked.join(", ")}`);
+});
+
+check("active consumers use current state instead of stale summary", () => {
+  const stale = "docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/summary.json";
+  const consumers = [
+    "test/fixtures/v390_ui_automation_coverage_policy.json",
+    "scripts/internal/verify_ui_fulltest_evidence_policy_v4.mjs",
+    "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+    "scripts/internal/verify_v390_ui_native_adapter_contract.mjs",
+  ];
+  for (const file of consumers) {
+    assert(!read(file).includes(stale), `${file} still binds stale summary`);
+    assert(read(file).includes("v390_ui_current_evidence_state.json"), `${file} missing current state binding`);
+  }
+});
+
+check("durable matrix records current not-run 0/423/1", () => {
+  const matrix = read("docs/v390-ui-automation-coverage-matrix.md");
+  for (const snippet of [
+    "currentEvidenceStatus: `not-run`", "automated `0`", "unsupported-manual `423`",
+    "excluded-positive-ui `1`", "no-current-execution-evidence",
+  ]) assert(matrix.includes(snippet), `durable matrix missing: ${snippet}`);
+  assert(!matrix.includes("ui-automation-visible-dom-final/summary.json"), "durable matrix retains stale source");
+});
+
+let pass = 0;
+let fail = 0;
+for (const item of checks) {
+  try { item.fn(); pass += 1; console.log(`[pass] ${item.name}`); }
+  catch (error) { fail += 1; console.log(`[fail] ${item.name}: ${error instanceof Error ? error.message : String(error)}`); }
+}
+console.log("\n== v3.9.0 current UI evidence hygiene summary ==");
+console.log(`- pass: ${pass}`);
+console.log(`- fail: ${fail}`);
+console.log("- actualBrowserExecution: not-run-by-this-contract");
+if (fail > 0) process.exit(1);
+
+function read(relative) { return fs.readFileSync(path.join(rootDir, relative), "utf8"); }
+function readJson(relative) { return JSON.parse(read(relative)); }
+function check(name, fn) { checks.push({ name, fn }); }
+function assert(condition, message) { if (!condition) throw new Error(message); }
