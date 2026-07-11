@@ -403,11 +403,15 @@ Companion local gate:
 ./server.sh verify-v390-onvif-credential-provider-status
 ./server.sh verify-v390-onvif-live-import-persist-decision
 ./server.sh verify-v390-vlm-rule-suggestion-draft-bridge
+./server.sh verify-v390-vlm-incident-rule-provenance
 ./server.sh verify-v390-vlm-evaluation-promotion-guard
 ./server.sh verify-v390-backup-recovery-handoff-validation
 ./server.sh verify-v390-action-execution-deferral-decision
+./server.sh verify-v390-deferred-product-owner-signoff
 ./server.sh verify-v390-conditional-field-ai-decisions
 ./server.sh verify-v390-structure-stabilization-handoff
+./server.sh verify-v390-structure-stabilization-readiness
+./server.sh verify-v390-external-field-smoke-no-device-closure
 ./server.sh verify-release-metadata
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
@@ -423,6 +427,14 @@ git diff --check
 v3.9.0 Step 20 local readiness gate는 Policy v4-qualified UI fulltest 실행, 30분/120분 longrun,
 published metadata, PR/main/tag/GitHub Release, field smoke 실행 evidence를 대체하지
 않습니다.
+
+현재 v3.9.0 final close-out 테스트 순서는 `stabilization -> 30개 feature gate -> 30분 ->
+8-case UI automation/replay -> 120분(--run-120) -> Policy v4 전체 UI -> cleanup/evidence`입니다.
+최신 사용자 지시에 따라 120분은 이번 final 실행에서 생략할 수 없는 항목이며, actual bundle에
+`--run-120`을 명시합니다. canonical command는
+`./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final --run-120`이며,
+actual preflight는 clean worktree가 아니거나 `--run-120`이 없으면 build 전에 실패해야 합니다.
+실제 실행 전에는 PASS evidence로 기록하지 않습니다.
 
 ## v3.8.0 stabilization and release readiness
 

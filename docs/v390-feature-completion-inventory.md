@@ -74,7 +74,7 @@ wrapper, preflight, dry-run, field smoke, external credential, no-device는 별�
 | Analysis/core/media | `src/analysis/*`, `include/analysis/*`, `src/core/*`, `include/core/*` | checked | Analysis/VLM/Re-ID hooks were scanned for model/runtime/provider gaps; model/runtime bundle and default-on behavior remain excluded. |
 | Verifier dispatch | `server.sh`, `scripts/internal/verify_*.mjs`, `scripts/internal/verify_*.sh`, `scripts/internal/verify_*.py` | checked | v3.9 command dispatch, script inventory, feature inventory coverage, UI wrapper, and release metadata boundaries were checked. |
 
-## User Review Output
+## Initial User Review Output (Historical Snapshot)
 
 Review-ready status: `ready-for-user-review`
 Approval status at review gate: `pending-user-approval`
@@ -95,6 +95,25 @@ Excluded/non-scope list: `V390-EXCL-001`, `V390-EXCL-002`, `V390-EXCL-003`, `V39
 Next development order after approval: `V390-REQ-001` -> `V390-REQ-002` -> `V390-REQ-003`
 
 Future candidate-development rows remain blocked until the user approves each candidate or approves a candidate batch.
+
+## Current User Approval and Closure Status
+
+Current approval status: `approved-through-recorded-user-goals`
+
+Current feature development status: `closed-with-evidence`
+
+Current active required development list: `없음`
+
+Current active candidate development list: `없음`
+
+Closed required development list: `V390-REQ-001`, `V390-REQ-002`, `V390-REQ-003`
+
+Closed candidate development list: `V390-CAND-001`, `V390-CAND-002`, `V390-CAND-003`, `V390-CAND-004`, `V390-CAND-005`, `V390-CAND-006`, `V390-CAND-007`, `V390-CAND-008`, `V390-CAND-009`, `V390-CAND-010`
+
+Approval evidence: 후속 `/goal` 범위별 개발 지시와 Development 15~18 closure commit/evidence.
+Initial `pending-user-approval`/`blocked-before-user-approval` 값은 Step 3 당시의 historical
+snapshot이며 current 상태가 아닙니다. 이 closure는 UI 풀테스트, 30분/120분,
+published metadata, release action PASS가 아닙니다.
 
 ## Required Closeout Output
 
@@ -151,7 +170,7 @@ Boundary:
 - This handoff is not UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, PR/main/tag/GitHub Release evidence.
 - Development 17 readiness is not actual route/API/UI extraction or a created `v4.0.0` branch.
 
-## Review Gate
+## Review Gate (Initial Historical Rules)
 
 Discovery is not complete until:
 

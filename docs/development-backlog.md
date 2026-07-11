@@ -19,7 +19,7 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 source roadmap: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation
 
-상태: Step 1~20 local gate는 v3.9.0 source branch 기준으로 닫혔지만, 여기서
+상태: Step 1~29 기능·결정·readiness local gate는 v3.9.0 source branch 기준으로 닫혔지만, 여기서
 `완료`라고 표시한 값은 각 step의 문서, read-only decision route, UI status, verifier,
 release evidence boundary가 연결되었다는 뜻입니다. 실제 30분/120분 stop-on-first-fail
 runner 구현, 무료 UI 자동화 runner 구현, 구조 안정화 리팩토링, UI 풀테스트 직접 실행,
@@ -90,7 +90,7 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | --- | --- | --- | --- | --- |
 | 1 | v3.9.0 (1) v3.9.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/README/docs/backlog/source roadmap과 `verify-v390-entry-baseline` 기준 정렬 |
 | 2 | v3.9.0 (2) Feature Completion Inventory/Discovery Gate | P0 | 완료 | `docs/v390-feature-completion-inventory.md`에 required/candidate/structure/excluded 항목과 checked source group 반영 |
-| 3 | v3.9.0 (3) User Review Gate / 개발 순서 확정 | P0 | 완료 | required/candidate/structure/excluded 목록을 review-ready로 고정하고 사용자 승인 전 기능 개발 중단 |
+| 3 | v3.9.0 (3) User Review Gate / 개발 순서 확정 | P0 | 완료/initial snapshot historical/current closed | initial review-ready·승인 전 차단 상태는 historical snapshot으로 보존하고, 후속 사용자 goal 승인으로 required/candidate 개발이 모두 `closed-with-evidence`, current active candidate가 없음으로 reconciliation |
 | 4 | v3.9.0 (4) Manual UI 기준서 v3.9 current화 | P0 | 완료 | `V390-REQ-001`: `docs/manual-ui-fulltest.md`, `docs/manual-ui-checklist.md`, `docs/manual-ui-result-template.md`가 v3.9 current target과 historical v2.x/v3.x 기준을 분리하고 `verify-manual-ui-evidence`가 이를 확인 |
 | 5 | v3.9.0 (5) 장시간/UI 테스트 시작 조건 v3.9화 | P0 | 완료 | `V390-REQ-002`: 긴 테스트 시작 조건을 v3.9 feature completion inventory, current project inventory, 사용자 승인/AGENTS 7.6.2 조건 기준으로 정렬 |
 | 6 | v3.9.0 (6) v3.5-v3.8 UI coverage bridge | P0 | 완료 | `V390-REQ-003`: manual UI docs가 v3.5~v3.8 UI/control/action rows를 project feature inventory로 위임하고 실행 PASS와 coverage mapping을 분리 |
@@ -107,13 +107,13 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 17 | v3.9.0 (17) field evidence bridge | P2 | 완료 | `V390-CAND-009`: `/ops/api/field-evidence/bridge-decision`와 `/ops` dashboard가 `approval-only-minimal-field-evidence-bridge`, ONVIF/external WHEP-TURN/cloud-VLM 승인 조건, minimal evidence contract, not-run/no-field-execution boundary를 표시하고 field smoke/provider call/write는 수행하지 않음 |
 | 18 | v3.9.0 (18) Re-ID appearance assist model-backed path decision | P2 | 완료 | `V390-CAND-010`: `/ops/api/analysis/reid-assist-decision`와 `/ops` dashboard가 `explicit-opt-in-provenance-gated-assist`, model/checksum/provenance gate, no-op fallback, tracker-none forces off boundary를 표시하고 model-backed execution/embedding/crop serialization은 수행하지 않음 |
 | 19 | v3.9.0 (19) structure stabilization handoff 상세계획 | P0 | 완료 | 인벤토리 `V390-STRUCT-001`~`V390-STRUCT-005`를 `docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md`로 이관하고 `verify-v390-structure-stabilization-handoff` gate로 구조 변경 미실행 경계를 고정 |
-| 20 | v3.9.0 (20) stabilization and release readiness | P0 | 완료 | AGENTS 네 테스트 영역 판정과 release close-out evidence를 실제 실행/미실행으로 분리 |
-| 21 | v3.9.0 (21) actual test acceptance bundle 실행 모드 | P0 | 완료 | V390-ADD1-06 actual mode final summary/report가 build→기능→real 30분→UI automation/replay→conditional 120 decision→cleanup을 단일 실행으로 PASS |
+| 20 | v3.9.0 (20) stabilization and release readiness | P0 | 보강 완료/current test pending | AGENTS 네 테스트 영역 판정과 release close-out evidence를 실제 실행/미실행으로 분리하고 Development 15~18 verifier를 companion gate에 포함. current final close-out은 clean worktree에서 안정화→30개 feature gate→30분→8-case UI automation/replay→120분(`--run-120`)→Policy v4 전체 UI→cleanup/evidence 순서로 실행 대기 |
+| 21 | v3.9.0 (21) actual test acceptance bundle 실행 모드 | P0 | historical PASS/current `--run-120` 재실행 대기 | V390-ADD1-06 historical actual mode는 build→기능→real 30분→UI automation/replay→conditional 120 decision→cleanup을 PASS했습니다. current final actual preflight는 clean worktree와 Development 15~18을 포함한 30개 command, 명시적 `--run-120`을 요구하고 누락 시 build 전에 중단합니다 |
 | 22 | v3.9.0 (22) v3.9 UI automation case completeness | P0 | 완료 | V390-ADD1-07 case schema v2와 actual summary가 `UI-112` 포함 exact `UI-108`~`UI-115` 8개 route/control/action/state/failure/artifact를 검증하고 replay PASS |
 | 23 | v3.9.0 (23) native free UI automation adapter proof | P0 | 완료 | bundled Playwright 1.61.1과 system Chrome을 선택해 standalone 7개 native action 및 UI-108~115의 native dispatch 8/8을 fallback 없이 실행하고 module/browser provenance를 보존 |
 | 24 | v3.9.0 (24) server longrun true first-fail case runner | P0 | 완료 | V390-ADD1-10이 `verify-predev --fail-fast`의 duration case 사이를 즉시 중단하고 later case를 `not-run`으로 기록하며 runner console/summary/report에 context, 분리 stderr tail, 재현 명령을 보존 |
-| 25 | v3.9.0 (25) route/control/action automation coverage matrix | P0 | 완료/V390-ADD1-11 exact-ID 보정 | 974개 inventory에서 prefix/range 판정 없이 exact `manualUiCaseId` 424개를 선택해 featureId/testId/route/control-action anchor/stability verifier/automation caseId를 연결하고, 실제 자동화 8·미지원/not-run 415·제품 UI positive 제외 1을 기록하며 cross-prefix drift negative contract를 통과 |
-| 26 | v3.9.0 (26) final evidence re-run and cleanup | P0 | 완료/Evidence 13~14 | Evidence 13은 `b6cac906d8b138aee5e0e2e88743ca9aa9a53529`로 완료. Evidence 14는 첫 `server-longrun-30` code-comment 실패를 영구 보존하고 복구 source `8fe583d815ce31628cbb8d1f4188b3e6455b396a`에서 독립 bundle을 전체 재실행해 build·26 feature gate·30분 118/0·soak 22회·UI 8/8·replay 7/0·실측 cleanup·final integrity 7/0을 PASS함 |
+| 25 | v3.9.0 (25) route/control/action automation coverage matrix | P0 | 완료/current 984 exact-ID | current 984개 inventory에서 prefix/range 판정 없이 exact `manualUiCaseId` 424개를 선택합니다. historical V390-ADD1-11의 974/424/8/415/1 결과는 당시 evidence로 보존하고, current matrix는 984/424/8/415/1입니다 |
+| 26 | v3.9.0 (26) final evidence re-run and cleanup | P0 | current 30-command 재실행 대기 | Evidence 14의 source `8fe583d8`·26-command·30분 118/0·UI 8/8·cleanup/integrity PASS는 historical evidence로 보존합니다. Development 15~18 이후 current 984 inventory·30-command source에 대한 안정화와 `--run-120` acceptance(30분→8-case UI→120분), Policy v4 전체 UI, cleanup canonical 재실행은 미실행입니다 |
 | 27 | v3.9.0 (27) deferred product decision owner sign-off | P1 | 완료/Development 16 owner sign-off | 사용자 `/goal` 승인에 따라 역할 기반 owner를 Product, Security, Release, Privacy/Security, Product/ML로 지정하고 action execution·persistent credential store·external provider·model-backed Re-ID는 `excluded-from-v3.9`, 실제 field smoke는 `deferred-until-approved-field-run`으로 근거·재개 조건과 함께 고정. 개인 이름은 추정하지 않으며 구현/field/release PASS를 주장하지 않음 |
 | 28 | v3.9.0 (28) structure stabilization implementation readiness | P1 | 완료/Development 17 readiness | 실제 실행은 v3.9 closure가 아니라 사용자 명시 승인 뒤 `v4.0.0` branch에서만 허용합니다. transport/UI/application/domain·registry/analysis/core-media 경계, 단방향 의존성, 9개 contract 보존, 6개 slice 순서와 entry/exit/stop gate를 machine-readable contract로 확정했으며 branch/refactor는 미실행입니다 |
 | 29 | v3.9.0 (29) real external field smoke gate | P2 | 완료/Development 18 조건부 미실행 closure | 사용자 지시와 AGENTS 외부 조건 규칙에 따라 TURN/WHEP, ONVIF 실기기, 외부 VLM/provider는 device·credential·endpoint·실행 승인 부재로 모두 `not-run`입니다. external network/device/provider 접촉은 0이며 field/release PASS를 주장하지 않고 재개 조건만 보존합니다 |
@@ -123,7 +123,7 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 번호 | 구간 | 제목 | 우선순위 | 상태 | 구현/검증 위치 |
 | --- | --- | --- | --- | --- | --- |
 | 13 | Evidence | 최종 evidence 무결성 | P0 | 완료/커밋 `b6cac906` | `verify_v390_ui_automation.mjs`, `verify_v390_server_longrun.mjs`, `verify_v390_test_acceptance_bundle.mjs`, `verify-v390-final-evidence-integrity`에서 screenshot dedupe, video placeholder 금지, 실측 cleanup, source commit/command/first-failure 기록을 구현·검증. RED 3종과 actual UI 최초 환경 실패/재실행 8/8 이력을 `release-test-records.md`에 기록 |
-| 14 | Evidence | 최종 전체 재실행·정리 | P0 | 완료/검증 PASS/최종 커밋 준비 | source `b6cac906`의 첫 bundle은 `integrated-smoke` 선행 code-comment gate에서 중단됐고 뒤 단계는 `not-run`, child cleanup은 PASS였습니다. 복구 source `8fe583d8`의 전체 재실행은 30분 118/0·soak 22회·UI-108~115 8/8·replay 7/0·cleanup PASS, 120분 조건부 미실행, final integrity 7/0입니다. 최초 실패는 canonical `first-failure.json`/`.md`에 보존했습니다 |
+| 14 | Evidence | 최종 전체 재실행·정리 | P0 | historical PASS/current 30-command 재실행 대기 | source `b6cac906`의 첫 bundle은 `integrated-smoke` 선행 code-comment gate에서 중단됐고 뒤 단계는 `not-run`, child cleanup은 PASS였습니다. 복구 source `8fe583d8`의 974개/26-command 전체 재실행은 30분 118/0·soak 22회·UI-108~115 8/8·replay 7/0·cleanup PASS, 당시 120분 조건부 미실행, final integrity 7/0인 historical evidence입니다. Development 15~18 이후 current 984개/30-command source의 안정화·30분·120분·UI·cleanup은 미실행입니다 |
 | 15 | Feature Closure | VLM incident-to-rule provenance | P1 | 완료/커밋 `260cbd9e` | `UI-110`/`RULE-112`/`LAB-126`/`SAFE-213`/`OPS-180`: event·candidate·evaluation source를 generated rule의 optional `vlmProvenance`와 `/lab/analysis/rules/{id}` save/readback까지 보존하고 ID/route mismatch는 no-write로 거부합니다. 실제 HTTP save/readback 1건과 negative no-write 2건, `/ops/rules` 인앱 focused smoke, rule/VA 회귀를 통과했습니다 |
 | 16 | Product Decision | 보류 기능 소유자 승인 | P1 | 완료/커밋 `7a100f8f` | `test/fixtures/v390_deferred_product_owner_signoff.json`과 feature inventory에 5개 deferred 항목의 owner role·v3.9 결정·직접 근거·재개 조건·사용자 승인 출처를 고정하고 `SAFE-214`/`OPS-181` gate로 false PASS를 차단합니다 |
 | 17 | Stabilization | 구조 안정화 착수 조건 | P1 | 완료/커밋 `fcfe9f0d` | `v4.0.0` 실행 branch 조건, module owner 7개, 허용/금지 의존성, 9개 보존 contract, 6개 고정 slice와 entry/exit/stop gate를 `test/fixtures/v390_structure_stabilization_readiness.json`과 `SAFE-215`/`OPS-182`에 고정했습니다. branch 생성과 실제 refactor는 미실행입니다 |
@@ -1259,13 +1259,21 @@ R0~R5가 끝난 뒤에도 release close-out은 AGENTS 4장과 7장에 따라 별
   `./server.sh verify-v390-evidence-test-gate-prep`가 Step 7~10 문서, schema, inventory,
   release records/evidence, server dispatch, script inventory 연결을 확인합니다.
 
-Foundation review-ready 상태:
+Foundation initial review-ready 상태(historical snapshot):
 
 - 승인 상태: `pending-user-approval`
 - 기능 개발 상태: `blocked-before-user-approval`
 - 다음 개발 순서: `V390-REQ-001` -> `V390-REQ-002` -> `V390-REQ-003`, 이후 사용자
   승인 범위 안에서 `V390-CAND-*` 또는 `V390-STRUCT-*`로 이동합니다.
 - 다음 개발 착수는 사용자가 v3.9 required/candidate list를 승인한 뒤에만 가능합니다.
+
+Current user approval/closure reconciliation:
+
+- current 승인 상태: `approved-through-recorded-user-goals`
+- current 기능 개발 상태: `closed-with-evidence`
+- current active required/candidate 개발: `없음`
+- required `V390-REQ-001`~`003`과 candidate `V390-CAND-001`~`010`은 후속 사용자 goal 범위에서 모두 닫혔습니다.
+- 이 current 승인/closure는 UI 풀테스트, 30분/120분, published metadata, release action PASS가 아닙니다.
 
 ## v3.9.0 Required Closeout 개발 기록
 
@@ -1388,7 +1396,7 @@ Foundation review-ready 상태:
     | --- | --- | --- | --- | --- |
     | 안정화 테스트 | 진행 대상 | Step 20 local readiness는 source tree build, verifier, docs/evidence/index/dispatch, close-out dry-run 연결을 확인해야 함 | `v3.9.0 (20)`, `SAFE-212`, `OPS-179` | 현재 Step 20 범위에서 실행 |
     | 30분 테스트 | 진행 대상 | AGENTS 7.6.2 기준 버전별 로드맵 완료와 release 가능 판정에는 30분 evidence가 필요하나 장시간 실행은 별도 명시 승인 필요 | `v3.9.0 (20)`, release evidence/not-run boundary | 사용자 명시 실행 승인 없음 - 미실행 필수 blocker |
-    | 120분 테스트 | 조건부 진행 | AGENTS 7.6.2의 high-risk/120분 trigger 또는 사용자 장시간 승인 조건이 있을 때만 진행 | `v3.9.0 (20)`, release evidence/not-run boundary | 사용자 명시 실행 승인 없음 - 미실행 조건부 |
+    | 120분 테스트 | 진행 대상 | 최신 사용자 지시가 v3.9.0 final close-out 테스트 순서에 120분 포함을 명시 | `v3.9.0 (20)`, 2026-07-11 current close-out decision | 실행 목록 포함 승인/현재 미실행 |
     | UI 풀테스트 | 진행 대상 | release checklist 전체 route/control/action 직접 조작 evidence는 local/static verifier와 대체 불가 | `v3.9.0 (20)`, release evidence/not-run boundary | 사용자 명시 실행 승인 없음 - 미실행 필수 blocker |
 
   - Companion local gate:
@@ -1404,11 +1412,15 @@ Foundation review-ready 상태:
     ./server.sh verify-v390-onvif-credential-provider-status
     ./server.sh verify-v390-onvif-live-import-persist-decision
     ./server.sh verify-v390-vlm-rule-suggestion-draft-bridge
+    ./server.sh verify-v390-vlm-incident-rule-provenance
     ./server.sh verify-v390-vlm-evaluation-promotion-guard
     ./server.sh verify-v390-backup-recovery-handoff-validation
     ./server.sh verify-v390-action-execution-deferral-decision
+    ./server.sh verify-v390-deferred-product-owner-signoff
     ./server.sh verify-v390-conditional-field-ai-decisions
     ./server.sh verify-v390-structure-stabilization-handoff
+    ./server.sh verify-v390-structure-stabilization-readiness
+    ./server.sh verify-v390-external-field-smoke-no-device-closure
     ./server.sh verify-release-metadata
     ./server.sh verify-docs-links
     ./server.sh verify-docs-ui-assets
