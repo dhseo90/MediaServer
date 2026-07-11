@@ -160,6 +160,12 @@ Usage:
                  V390-ADD1-11 current UI route/control/action coverage matrix를 생성·검증합니다.
   verify-v390-ui-automation-coverage-contract
                  V390-ADD1-11 coverage 누락·route drift·artifact 누락 계약을 검증합니다.
+  verify-v390-ui-native-exact-cases
+                 V390-REVIEW2-24 canonical exact 424 native 실행 manifest를 생성·검증합니다.
+  verify-v390-ui-native-exact-cases-contract
+                 V390-REVIEW2-24 exact case/API route/negative route/unsupported false-PASS 계약을 검증합니다.
+  run-v390-ui-native-exact-cases
+                 V390-REVIEW2-24 exact 424 native case runner를 plan-only 또는 actual browser mode로 실행합니다.
   verify-ui-fulltest-evidence-policy-v4
                  V390-ADD1-12 Policy v4 UI 대체 evidence 자격과 현재 부분 coverage를 판정합니다.
   verify-ui-fulltest-evidence-policy-v4-contract
@@ -414,6 +420,12 @@ Usage:
                  V390-ADD1-11 current UI route/control/action coverage matrix를 생성·검증합니다.
   verify-v390-ui-automation-coverage-contract
                  V390-ADD1-11 coverage 누락·route drift·artifact 누락 계약을 검증합니다.
+  verify-v390-ui-native-exact-cases
+                 V390-REVIEW2-24 canonical exact 424 native 실행 manifest를 생성·검증합니다.
+  verify-v390-ui-native-exact-cases-contract
+                 V390-REVIEW2-24 exact case/API route/negative route/unsupported false-PASS 계약을 검증합니다.
+  run-v390-ui-native-exact-cases
+                 V390-REVIEW2-24 exact 424 native case runner를 plan-only 또는 actual browser mode로 실행합니다.
   verify-ui-fulltest-evidence-policy-v4
                  V390-ADD1-12 Policy v4 UI 대체 evidence 자격과 현재 부분 coverage를 판정합니다.
   verify-ui-fulltest-evidence-policy-v4-contract
@@ -2057,6 +2069,18 @@ case "${cmd}" in
   verify-v390-ui-automation-coverage-contract)
     require_internal verify_v390_ui_automation_coverage_contract.mjs
     exec "${INTERNAL_DIR}/verify_v390_ui_automation_coverage_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-native-exact-cases)
+    require_internal verify_v390_ui_native_exact_cases.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_native_exact_cases.mjs" "$@"
+    ;;
+  verify-v390-ui-native-exact-cases-contract)
+    require_internal verify_v390_ui_native_exact_cases_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_native_exact_cases_contract.mjs" "$@"
+    ;;
+  run-v390-ui-native-exact-cases)
+    require_internal run_v390_ui_native_exact_cases.mjs
+    exec "${INTERNAL_DIR}/run_v390_ui_native_exact_cases.mjs" "$@"
     ;;
   verify-ui-fulltest-evidence-policy-v4)
     require_internal verify_ui_fulltest_evidence_policy_v4.mjs

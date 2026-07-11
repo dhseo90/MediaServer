@@ -4,7 +4,7 @@
   "implementationEvidence": {
     "path": "test/fixtures/project_feature_implementation_evidence.json",
     "schema": "media-server.feature-implementation-evidence.v2",
-    "sha256": "8aae6296efa877158a0dfba30c2708eda18732008263e891152b8f12482190da"
+      "sha256": "e23e4954924dec78a616d63ce39353aaeb744ce0dfc8ee4bfd5879cbb8fa3a66"
   },
   "caseCount": 424,
   "cases": [

@@ -8,7 +8,7 @@ import process from "node:process";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-export const nativeCapabilities = ["wait", "click", "fill", "type", "select", "screenshot", "evaluate"];
+export const nativeCapabilities = ["navigate", "wait", "click", "fill", "type", "select", "screenshot", "evaluate"];
 
 export function discoverPlaywrightCandidates(explicitModulePath = "") {
   const nodePathCandidates = String(process.env.NODE_PATH || "")
@@ -115,13 +115,19 @@ async function openNativePlaywrightPage(playwright, {
   width = 390,
   height = 844,
   executablePath = "",
+  storageStatePath = "",
+  colorScheme = "light",
 }) {
   const consoleEntries = [];
   const browser = await playwright.chromium.launch({
     headless: true,
     ...(executablePath ? { executablePath } : {}),
   });
-  const context = await browser.newContext({ viewport: { width, height } });
+  const context = await browser.newContext({
+    viewport: { width, height },
+    colorScheme,
+    ...(storageStatePath ? { storageState: storageStatePath } : {}),
+  });
   const page = await context.newPage();
   page.setDefaultTimeout(timeoutMs);
   page.on("console", message => {
@@ -130,12 +136,23 @@ async function openNativePlaywrightPage(playwright, {
   page.on("pageerror", error => {
     consoleEntries.push({ level: "error", text: error instanceof Error ? error.message : String(error) });
   });
-  await page.goto(new URL(pagePath, `${httpBase}/`).toString(), {
+  const navigationResponse = await page.goto(new URL(pagePath, `${httpBase}/`).toString(), {
     waitUntil: "load",
     timeout: timeoutMs,
   });
   return {
+    navigation: {
+      status: navigationResponse?.status() || 0,
+      url: page.url(),
+    },
     waitForSelector: (selector, options = {}) => page.locator(selector).waitFor({ state: options.state || "visible", timeout: options.timeout || timeoutMs }),
+    navigate: async (nextPagePath) => {
+      const response = await page.goto(new URL(nextPagePath, `${httpBase}/`).toString(), {
+        waitUntil: "load",
+        timeout: timeoutMs,
+      });
+      return { status: response?.status() || 0, url: page.url() };
+    },
     click: async (selector) => {
       await page.locator(selector).click();
     },

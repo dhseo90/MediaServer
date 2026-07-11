@@ -209,6 +209,18 @@ completion/network correlation event schema를, visual/cross-cutting/redaction J
 payload schema와 case set/hash를 검증합니다. Evaluator는 scan output과 별도로 보존 artifact의
 authorization/bearer/secret assignment/viewer RTSP URL/raw debug material을 직접 재스캔합니다.
 
+`V390-REVIEW2-24`의 exact native 실행 구현은 아래 명령으로 검증합니다.
+
+- `./server.sh verify-v390-ui-native-exact-cases`
+- `./server.sh verify-v390-ui-native-exact-cases-contract`
+- `./server.sh run-v390-ui-native-exact-cases --output-dir <path> --plan-only`
+
+실제 실행은 `--http-base`, role별 Playwright storage state map, server log를 별도로 제공해야 하며
+first failure 뒤 case는 `not-run`입니다. Plan-only/contract는 canonical 424개, product-screen route,
+native action/oracle seed/artifact plan, unsupported 0을 검증하지만 actual UI execution이 아니고
+`uiFulltestPass=false`입니다. Historical 8-case summary와 Policy v4 current `8/415/1` 판정은
+Step 26 eligibility 통합 전까지 별도 evidence로 유지합니다.
+
 전체 UI PASS는 exact UI test ID 전수가 `direct-pass` 또는
 `automation-equivalent-pass`이고 fail/not-run/unsupported/unapproved exclusion이 0이며
 시각 품질, 반응형, role guard, client redaction, video/overlay 등 교차 의무가 닫힌

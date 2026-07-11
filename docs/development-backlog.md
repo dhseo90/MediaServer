@@ -1728,7 +1728,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 | 21 | V390-REVIEW2-21 | Product Correctness | Analysis Registry durable write contract | P0 | 완료 | profile/rule/VA rule/VLM profile create·update·delete가 atomic persist-before-publish를 사용하고 parent/open/write/flush/rename 실패를 HTTP 5xx로 전파하며 memory/file/restart no-change를 보장 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점, 데이터 손상·거짓 성공 위험 상향 적용 |
 | 22 | V390-REVIEW2-22 | UI Policy | Policy v4 canonical 424 exact-ID binding | P0 | 완료 | canonical v1 manifest 424행을 implementation evidence hash·ordered test/feature ID·route·selector/action anchor에 묶고 evidence requested/observed role·viewport·theme까지 exact 대조하며 합성 424개와 hash-valid drift를 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+1=6점, 거짓 UI fulltest PASS 위험 상향 적용 |
 | 23 | V390-REVIEW2-23 | UI Policy | Policy v4 evidence attestation 강화 | P0 | 완료 | evidenceRef v1이 completion/visual/cross-cutting/redaction 실파일의 contained path·bytes·SHA-256·type·case/correlation을 대조하고 PNG CRC/IDAT decode, trace/payload schema, 독립 secret scan으로 자기선언 PASS를 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 정확도·보안·false-PASS 상향 적용 |
-| 24 | V390-REVIEW2-24 | UI Automation | exact 424 native automation case 구현 | P0 | 미완료 | 현재 8 automated/415 unsupported를 424 exact case 실행 가능 manifest와 native action/oracle/artifact로 확장하고 UI-018 negative route는 별도 판정 유지 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 대량 cross-version UI 구현 |
+| 24 | V390-REVIEW2-24 | UI Automation | exact 424 native automation case 구현 | P0 | 완료 | `v390_ui_native_exact_cases.json`이 canonical ordered 424개를 423 native-executable+UI-018 negative-route로 고정하고 unsupported 0, raw API→product screen 정규화, Playwright-native action/oracle seed/artifact plan과 외부 role-state actual runner를 제공. actual 424 UI 실행과 Step 26 eligibility는 미실행 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 대량 cross-version UI 구현 |
 | 25 | V390-REVIEW2-25 | UI Automation | no-op action false-PASS 차단 | P0 | 미완료 | before/after digest, network+DOM, persisted readback, EventRecord, server-log 중 case별 completion oracle을 요구하고 pre-existing visible text만 남은 click을 FAIL 처리 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+1=6점, 거짓 PASS 위험 상향 적용 |
 | 26 | V390-REVIEW2-26 | Acceptance | Policy v4 full-suite eligibility 통합 | P0 | 미완료 | acceptance/final integrity가 8-case 부분 automation을 `eligible`로 승격하지 못하게 하고 424 exact closure, unsupported 0, Policy v4 `uiFulltestPass`를 별도 필수 입력으로 연결 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+1=6점, release false-PASS 상향 적용 |
 | 27 | V390-REVIEW2-27 | Evidence | stale placeholder artifact 제거·재바인딩 | P0 | 미완료 | durable coverage matrix가 참조하는 `*.video.txt` fixture placeholder와 stale summary를 제거하고 placeholder-free current source provenance에 재생성하거나 invalid historical evidence로 격리 | 5.6 Sol | 높음 (high) | 2+0+1+1=4점, evidence 정확도 상향 적용 |
@@ -1881,22 +1881,52 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
   legacy v1, automated 8/unsupported 415/excluded 1이라 `uiFulltestPass=false`이며 30분/120분,
   published metadata, release action은 실행하지 않았습니다.
 
-#### V390-REVIEW2-24~26 full UI automation closure
+#### V390-REVIEW2-24 exact 424 native automation case 구현
 
-- canonical case source는 `project_feature_implementation_evidence.json`의 reviewed 424 exact UI ID와
-  Policy v4 case manifest입니다. evaluator는 summary가 제시한 count/ID를 자기 대조하지 않고 이
-  canonical source를 파싱해 ID·route·role·viewport·theme·control/action을 비교합니다.
-- evidenceRef는 artifact root 안 실파일, hash, content type, case ID/correlation ID까지 대조합니다.
-  visual/cross-cutting/redaction은 `PASS` boolean만 신뢰하지 않고 실제 diff/scan output을 읽습니다.
-- 415 unsupported case를 native manifest와 실행 adapter로 구현합니다. 반복 가능한 read-only refresh뿐
-  아니라 create/update/delete, role guard, persisted readback, EventRecord, responsive/theme/visual case를
-  inventory 기준으로 분리합니다.
-- legacy UI-108~115도 before/after 동일이면 FAIL합니다. 각 case는 허용 completion oracle 하나 이상을
-  실제로 생성합니다.
-- acceptance의 `automatedAcceptanceStatus`와 final integrity의 `finalEvidenceEligible`은 8-case subset을
-  전체 UI closure로 승격하지 않습니다. subset PASS는 별도 이름으로 보존합니다.
-- 완료 조건: arbitrary `CONTRACT-001~424`, pre-existing text/no-op click, missing evidenceRef,
-  fake PNG header, forged redaction PASS, unsupported 1개, canonical route/action drift가 모두 FAIL합니다.
+- 직접 문제: legacy runner와 coverage policy는 `UI-108`~`UI-115` 8건만 native case로 허용하고
+  exact 424개 중 415건을 `unsupported-manual`, `UI-018`을 positive UI exclusion으로 고정했습니다.
+  Canonical manifest의 38건은 `/ops/api/*`·`/client/api/*` raw endpoint를 screen route처럼 가리켜
+  그대로 browser navigation을 허용하면 raw JSON/API-only false-PASS가 될 수 있었습니다.
+- 구현 위치:
+  - `v390_ui_native_exact_cases_lib.mjs`가 Policy v4 canonical manifest와 reviewed semantic
+    implementation evidence를 exact ordered ID로 결합합니다. `/ops/api/events/reviews`→`/ops/events`,
+    source/onvif API→`/ops/sources`, client events API→`/client/events`, audit API→`/ops/users`로
+    product screen을 정규화하며 prefix/range selection을 사용하지 않습니다.
+  - `v390_ui_native_exact_cases.json`은 424개 각 case의 feature ID, canonical/product route,
+    requested role/viewport/theme, Playwright-native navigate/wait/interact plan, semantic state-oracle seed,
+    screenshot/trace/browser-console/server-log artifact plan을 명시합니다. 결과는 423 native-executable,
+    `UI-018` negative-route 1, unsupported 0입니다.
+  - `run_v390_ui_native_exact_cases.mjs`는 actual mode에서 native Playwright, role별 storage state,
+    first-fail/later not-run, case artifact를 사용합니다. `--plan-only`는 실행 계획만 검증하고
+    `actualBrowserExecution=false`, `uiFulltestPass=false`를 보존합니다.
+  - `verify_v390_ui_native_exact_cases.mjs`와 contract, `server.sh`가 deterministic generation,
+    exact order/count, API route, negative route, unsupported, role/viewport/theme/oracle/artifact drift를 검증합니다.
+- RED/검증: 테스트 정의 후 첫 contract는 library 부재 `ERR_MODULE_NOT_FOUND` exit 1로 실패했습니다.
+  구현 후 첫 contract는 raw API negative가 기대 문구보다 앞선 product-route drift로 거부돼 `6/1`이었고,
+  raw API 거부 순서를 명시한 뒤 `7/0`으로 통과했습니다. 커밋 전 후속 점검에서 `SAFE-017`의
+  `/lab` 404 동작이 `/ops` 정규화 뒤 사라진 결함을 찾아 product screen 진입 후 native
+  `navigate-negative`/404 oracle을 추가했고 최종 contract `8/0`으로 닫았습니다. Plan-only runner는
+  424/unsupported 0과 `uiFulltestPass=false`를 기록했습니다.
+- companion 실패/수정: Step 24 inventory mapping 추가로 implementation manifest source hash가 stale해
+  첫 `verify-project-inventory`가 `13/1`로 중단됐습니다. 986개 semantic row/digest/review는 그대로 두고
+  inventory hash, canonical implementation hash, exact native manifest source binding만 갱신한 뒤
+  project inventory `14/0`으로 재통과했습니다.
+- 경계: historical 8-case actual evidence, coverage policy `8/415/1`, Policy v4 current ineligible 결과,
+  acceptance/final integrity는 Step 26 전까지 변경하지 않습니다. Actual exact 424 UI 풀테스트,
+  30분/120분, published metadata, release action은 실행하지 않았습니다.
+
+#### V390-REVIEW2-25 no-op action false-PASS 차단
+
+- legacy UI-108~115를 포함한 click/select/fill은 before/after 동일이고 상관 network/persisted/EventRecord/
+  server-log completion이 없으면 FAIL합니다. Pre-existing visible text는 completion evidence가 아닙니다.
+- 각 exact case는 navigation+DOM, DOM transition, network+DOM, persisted readback, EventRecord, server log 중
+  action 종류에 맞는 허용 oracle과 correlation을 실제 trace에 남깁니다.
+
+#### V390-REVIEW2-26 Policy v4 full-suite eligibility 통합
+
+- acceptance의 `automatedAcceptanceStatus`와 final integrity의 `finalEvidenceEligible`은 8-case subset 또는
+  plan-only manifest를 전체 UI closure로 승격하지 않습니다. Exact 424 actual closure, unsupported 0,
+  Policy v4 `uiFulltestPass`를 독립 필수 입력으로 사용합니다.
 
 #### V390-REVIEW2-27 stale artifact cleanup
 
