@@ -19,7 +19,9 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 source roadmap: v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation
 
-상태: Step 1~29 기능·결정·readiness local gate는 v3.9.0 source branch 기준으로 닫혔지만, 여기서
+상태: Step 1~29 기능·결정·readiness local gate는 한 차례 닫혔으나, 2026-07-11 실제 구현
+재검토에서 `V390-REVIEW2-19`~`V390-REVIEW2-35` 잔여가 확인되어 영향받는 완료 표기를
+재오픈했습니다. 아래 과거 `완료` 행과 재검토 잔여가 충돌하면 재검토 섹션이 우선합니다. 여기서
 `완료`라고 표시한 값은 각 step의 문서, read-only decision route, UI status, verifier,
 release evidence boundary가 연결되었다는 뜻입니다. 실제 30분/120분 stop-on-first-fail
 runner 구현, 무료 UI 자동화 runner 구현, 구조 안정화 리팩토링, UI 풀테스트 직접 실행,
@@ -1707,6 +1709,157 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 후속 이슈: 없음. 추천 분석 모델: GPT-5.5 높음. 선정 근거: Policy v4 계약, verifier,
 문서 source-of-truth, false-PASS negative와 historical evidence 경계를 교차 검증한 뒤 현재
 스텝 내부 결함을 모두 수정했습니다.
+
+## v3.9.0 (18) 실제 구현 재검토 잔여 로드맵 19~35
+
+이 섹션은 2026-07-11 전체 정적 재검토에서 문서의 `완료` 표기를 evidence로 사용하지 않고
+실제 C++/JavaScript/shell route, 저장 경계, UI action, verifier 제어 흐름을 직접 대조한
+결과입니다. 테스트 실행은 재검토 범위에서 제외했습니다. 따라서 아래 항목은 테스트 FAIL이
+아니라 **source 구현 자체에서 직접 확인된 미완성, 오판 가능성, 계약 불일치**입니다.
+
+이 섹션은 기존 `V390-ADD1-01`~`V390-ADD1-12`와 Evidence/Closure 13~18 뒤에 이어지는
+현재 active roadmap입니다. 19~35가 닫히기 전에는 `v3.9.0 테스트 제외 개발 전체 완료`,
+`전 기능 exact closure`, `Policy v4 UI 자동화 완료`, `final evidence eligible`을 보고하지 않습니다.
+
+| 번호 | ID | 구간 | 제목 | 우선순위 | 상태 | 개발 내용 | 추천 모델 | 추론 수준 | 선정 근거 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 19 | V390-REVIEW2-19 | Foundation | current entry baseline gate 정렬 | P0 | 미완료 | 현재 backlog Step 3 상태를 구조적으로 읽도록 entry verifier를 보정하고 acceptance feature gate의 결정적 문자열 불일치를 제거 | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 0, 검증 난이도 0, 변경 범위 0, 총 2점이나 release correctness 직접 영향으로 Sol/high 상향 |
+| 20 | V390-REVIEW2-20 | Feature Closure | 984행 semantic implementation closure | P0 | 미완료 | 자동 substring anchor와 일괄 `closed-with-evidence`를 제거하고 feature별 route handler, control action, state transition, verifier assertion을 의미 단위로 1:1 검증 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 전 기능 정확도·동등성 상향 적용 |
+| 21 | V390-REVIEW2-21 | Product Correctness | Analysis Registry durable write contract | P0 | 미완료 | profile/rule/VLM upsert의 파일 저장 실패를 호출자에게 전달하고 메모리 rollback 또는 persist-before-publish를 적용해 실패 시 HTTP 5xx와 no-write를 보장 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점, 데이터 손상·거짓 성공 위험 상향 적용 |
+| 22 | V390-REVIEW2-22 | UI Policy | Policy v4 canonical 424 exact-ID binding | P0 | 미완료 | evaluator가 hash 대상 case manifest를 실제 파싱해 canonical test ID, route, role, viewport, theme, control/action과 evidence case를 대조하고 임의 424개 합성 case를 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+1=6점, 거짓 UI fulltest PASS 위험 상향 적용 |
+| 23 | V390-REVIEW2-23 | UI Policy | Policy v4 evidence attestation 강화 | P0 | 미완료 | completion/visual/cross-cutting evidenceRef의 실파일·hash·case correlation, 실제 image decode, trace schema, redaction scan을 검증하고 summary 자기선언을 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 정확도·보안·false-PASS 상향 적용 |
+| 24 | V390-REVIEW2-24 | UI Automation | exact 424 native automation case 구현 | P0 | 미완료 | 현재 8 automated/415 unsupported를 424 exact case 실행 가능 manifest와 native action/oracle/artifact로 확장하고 UI-018 negative route는 별도 판정 유지 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 대량 cross-version UI 구현 |
+| 25 | V390-REVIEW2-25 | UI Automation | no-op action false-PASS 차단 | P0 | 미완료 | before/after digest, network+DOM, persisted readback, EventRecord, server-log 중 case별 completion oracle을 요구하고 pre-existing visible text만 남은 click을 FAIL 처리 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+1=6점, 거짓 PASS 위험 상향 적용 |
+| 26 | V390-REVIEW2-26 | Acceptance | Policy v4 full-suite eligibility 통합 | P0 | 미완료 | acceptance/final integrity가 8-case 부분 automation을 `eligible`로 승격하지 못하게 하고 424 exact closure, unsupported 0, Policy v4 `uiFulltestPass`를 별도 필수 입력으로 연결 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+1=6점, release false-PASS 상향 적용 |
+| 27 | V390-REVIEW2-27 | Evidence | stale placeholder artifact 제거·재바인딩 | P0 | 미완료 | durable coverage matrix가 참조하는 `*.video.txt` fixture placeholder와 stale summary를 제거하고 placeholder-free current source provenance에 재생성하거나 invalid historical evidence로 격리 | 5.6 Sol | 높음 (high) | 2+0+1+1=4점, evidence 정확도 상향 적용 |
+| 28 | V390-REVIEW2-28 | Product Correctness | VLM reload full-contract quarantine | P0 | 미완료 | reload 시 candidate binding뿐 아니라 activation, runtime/privacy, forbidden field, invariant, ID/schema 전체 save contract를 재검증하고 변조 profile을 quarantine | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 보안·데이터 무결성 상향 적용 |
+| 29 | V390-REVIEW2-29 | Product Correctness | VLM incident provenance server canonicalization | P0 | 미완료 | rule save 시 event/candidate/evaluation provenance를 observation/event store의 실제 record와 대조하거나 server canonical provenance로 교체하고 forged provenance를 no-write 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, provenance 정확도·보안 상향 적용 |
+| 30 | V390-REVIEW2-30 | Product Correctness | ONVIF byte-exact transaction rollback | P0 | 미완료 | source/view paired save 전에 실제 파일 bytes·존재 상태를 보존하고 두 번째 write 실패 시 exact pre-transaction snapshot을 복구하며 unknown extension field와 파일 형식을 손실하지 않음 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 데이터 손상 위험 상향 적용 |
+| 31 | V390-REVIEW2-31 | Long-run | parent/delegated phase ledger 정합성 | P0 | 미완료 | parent runner의 start-server/integrated-smoke/runtime-idle 상태를 nested predev summary에서 가져오고 실행 전 synthetic PASS 기록을 제거 | 5.6 Sol | 높음 (high) | 2+1+2+1=6점, 테스트 결과 정확도 상향 적용 |
+| 32 | V390-REVIEW2-32 | Re-ID | NoOp fallback runtime state 정합성 | P1 | 미완료 | NoOp의 `Enabled()`/stats/policy 의미를 하나로 맞추고 readiness 실패 시 불필요한 crop, queue, worker 경로가 활성화되지 않도록 함 | 5.6 Terra | 높음 (high) | 1+1+1+1=4점, 단일 subsystem runtime 정합성 |
+| 33 | V390-REVIEW2-33 | Structure | readiness dependency graph 검증 | P1 | gate 준비 | fixture의 mayDependOn/allowed direction을 상호 검증하고 실제 include/build graph, forbidden edge, cycle을 검사해 readiness를 문구 존재가 아닌 구조 evidence로 전환 | 5.6 Sol | 높음 (high) | 1+2+2+1=6점, 구조 전면 리팩토링 진입 gate |
+| 34 | V390-REVIEW2-34 | Inventory | bridge·count·anchor reconciliation | P1 | 미완료 | v3.5~v3.8 전 UI ID를 개별 대조하고 30분 대상 50행과 오래된 49/49 표, stale line/count/anchor를 current 984 source 기준으로 정렬 | 5.6 Terra | 중간 (medium) | 1+1+1+1=4점, 문서·manifest 정합성 작업 |
+| 35 | V390-REVIEW2-35 | Truthfulness | owner/field/structure 상태 표현 정정 | P1 | 미완료 | owner role record는 decision record, field smoke는 조건부 미실행, structure readiness는 gate 준비로 표기하고 implementation/PASS/완료 표현과 분리 | 5.6 Terra | 중간 (medium) | 1+1+1+0=3점, 상태·evidence 진실성 정리 |
+
+### 19~35 상세 구현 계약
+
+#### V390-REVIEW2-19 current entry baseline gate 정렬
+
+- 직접 문제: `verify_v390_entry_baseline.mjs`가 과거 Step 3 exact 문장을 요구하지만 현재 backlog는
+  `완료/initial snapshot historical/current closed` 상태입니다. current acceptance bundle은 이
+  command를 필수 feature gate로 호출하므로 실행 전부터 불일치가 결정적입니다.
+- 구현: Markdown 전체 문장 고정 대신 진행 상태 표를 parse해 Step ID, 제목, current 상태와
+  historical boundary를 검증합니다. 현재 상태가 바뀌면 fixture/expected state를 한 곳에서만
+  갱신하게 합니다.
+- 완료 조건: current backlog positive, 과거 exact 문구 negative, 누락/중복 Step negative가
+  독립 contract에서 판정되고 acceptance command list와 동일 verifier를 사용합니다.
+
+#### V390-REVIEW2-20 984행 semantic implementation closure
+
+- 직접 문제: generator가 검색 점수가 높은 문자열을 owner로 선택하고 모든 item에
+  `status=closed-with-evidence`를 자동 부여합니다. validator는 tracked file 안 `includes(anchor)`만
+  확인합니다. `UI-002 /setup`이 `/password` anchor로 닫히는 실제 오매핑이 존재합니다.
+- 구현: 각 feature row에 reviewed `handler`, `route`, `controlSelector`, `actionHandler`,
+  `stateOracle`, `verifierAssertion`을 구조화합니다. source 생성기가 상태를 결정하지 않고
+  reviewer가 승인한 item만 closed로 전환합니다. generic route/`analysis`/`condition`처럼 여러
+  unrelated feature에 재사용된 anchor는 단독 completion evidence로 금지합니다.
+- 완료 조건: 984개 행 모두 exact owner symbol과 호출/dispatch 관계를 가지며, 잘못된 handler,
+  같은 파일의 무관 anchor, route/action drift, verifier가 ID 문자열만 확인하는 fixture가 FAIL합니다.
+  `coverageStatus`는 semantic closure와 execution evidence를 계속 분리합니다.
+
+#### V390-REVIEW2-21 Analysis Registry durable write contract
+
+- 직접 문제: `UpsertVlmProfile`, `UpsertRule` 등은 메모리를 변경한 뒤 반환값 없는
+  `SaveLocked()`를 호출합니다. open/write/flush 실패는 stderr만 남기고 API 성공을 반환합니다.
+- 구현: atomic temp-write/flush/rename 결과를 typed error로 반환하고, 저장 성공 전 메모리 publish를
+  금지하거나 실패 시 이전 vector를 복구합니다. create/update/delete 전 경로에 같은 정책을 적용합니다.
+- 완료 조건: unwritable parent, open failure, short/write/flush/rename failure injection에서 HTTP 5xx,
+  메모리 GET no-change, 파일 byte no-change, restart no-change를 각각 확인합니다.
+
+#### V390-REVIEW2-22~26 Policy v4와 full UI automation closure
+
+- canonical case source는 `project_feature_implementation_evidence.json`의 reviewed 424 exact UI ID와
+  Policy v4 case manifest입니다. evaluator는 summary가 제시한 count/ID를 자기 대조하지 않고 이
+  canonical source를 파싱해 ID·route·role·viewport·theme·control/action을 비교합니다.
+- evidenceRef는 artifact root 안 실파일, hash, content type, case ID/correlation ID까지 대조합니다.
+  visual/cross-cutting/redaction은 `PASS` boolean만 신뢰하지 않고 실제 diff/scan output을 읽습니다.
+- 415 unsupported case를 native manifest와 실행 adapter로 구현합니다. 반복 가능한 read-only refresh뿐
+  아니라 create/update/delete, role guard, persisted readback, EventRecord, responsive/theme/visual case를
+  inventory 기준으로 분리합니다.
+- legacy UI-108~115도 before/after 동일이면 FAIL합니다. 각 case는 허용 completion oracle 하나 이상을
+  실제로 생성합니다.
+- acceptance의 `automatedAcceptanceStatus`와 final integrity의 `finalEvidenceEligible`은 8-case subset을
+  전체 UI closure로 승격하지 않습니다. subset PASS는 별도 이름으로 보존합니다.
+- 완료 조건: arbitrary `CONTRACT-001~424`, pre-existing text/no-op click, missing evidenceRef,
+  fake PNG header, forged redaction PASS, unsupported 1개, canonical route/action drift가 모두 FAIL합니다.
+
+#### V390-REVIEW2-27 stale artifact cleanup
+
+- 직접 문제: durable matrix의 UI-108~115 artifact 열이 `fixture video placeholder` 텍스트 파일을
+  actual native evidence로 링크합니다. current integrity policy와 충돌합니다.
+- 구현: stale artifact를 historical-invalid로 이동하거나 제거하고 current clean source에서 생성한
+  placeholder-free summary로 matrix를 재생성합니다. historical evidence를 current PASS 입력으로 읽는
+  기본값을 제거합니다.
+- 완료 조건: durable matrix의 모든 actual artifact가 current source binding과 integrity scan을
+  통과하며 placeholder path, duplicate screenshot, stale commit binding이 0입니다.
+
+#### V390-REVIEW2-28 VLM reload full-contract quarantine
+
+- 직접 문제: reload canonicalization은 candidate/revision/digest/option/model/prompt binding만 재검증합니다.
+  정상 save에서 검사하는 activation, runtime/privacy, forbidden material, contract invariant는 생략됩니다.
+- 구현: save와 reload가 같은 full validator를 공유합니다. reload는 server canonical evaluation으로
+  교체하기 전에 전체 document를 검증하고 실패 profile은 사유와 함께 quarantine합니다.
+- 완료 조건: review-required profile의 active/enabled 변조, cloud privacy 변조, forbidden field 삽입,
+  invariant 변조, body/path ID 불일치가 restart 후 목록·상세에서 격리됩니다.
+
+#### V390-REVIEW2-29 VLM incident provenance canonicalization
+
+- 직접 문제: 현재 rule validator는 provenance field 존재와 몇 개 boolean만 확인하고 실제 observation,
+  event, candidate와 대조하지 않습니다.
+- 구현: candidate 발급 시 server nonce/digest 또는 immutable ID를 만들고 rule PUT에서 observation store와
+  event store의 eventId/sourceId/candidateId/evaluation source를 재조회해 canonical provenance를 저장합니다.
+- 완료 조건: forged event/provider/model/prompt/source, stale candidate, deleted observation, route/rule ID
+  mismatch가 no-write이며 정상 save/readback/restart는 canonical provenance를 보존합니다.
+
+#### V390-REVIEW2-30 ONVIF byte-exact rollback
+
+- 직접 문제: second-file 실패 rollback은 transaction 전 file bytes가 아니라 파싱된 `sources_`/`views_`를
+  재직렬화합니다. parser가 모르는 확장 필드와 원본 파일 표현은 소실될 수 있습니다.
+- 구현: 두 대상 파일의 존재 여부, bytes, mode를 transaction snapshot으로 보존하거나 단일 transactional
+  store로 교체합니다. rollback 실패는 partial save와 recovery artifact를 정확히 보고합니다.
+- 완료 조건: unknown extension field, non-canonical formatting, source-only/view-only 기존 상태, create/update,
+  first/second rename failure, rollback failure에서 byte-for-byte 결과와 API 상태를 검증합니다.
+
+#### V390-REVIEW2-31 longrun phase ledger
+
+- 직접 문제: parent runner가 nested `verify-predev`를 실행하기 전에 start-server와 integrated-smoke를
+  PASS로 기록합니다. delegated failure가 나중에 보존돼도 parent phase 표에는 실행 전 PASS가 남습니다.
+- 구현: nested summary의 exact case 결과를 parent phase로 projection하거나 delegated 영역을 하나의 phase로
+  표시합니다. 실행 전 상태는 pending/not-run만 허용합니다.
+- 완료 조건: server-start 또는 integrated-smoke fixture 실패 시 해당 parent phase가 FAIL, 이후 ordinary
+  phase가 not-run, cleanup/report만 실행되며 선행 synthetic PASS가 없습니다.
+
+#### V390-REVIEW2-32~35 readiness와 상태 정합성
+
+- Re-ID NoOp fallback은 `Enabled()`, `Stats().enabled`, worker start, crop/job enqueue 의미를 하나로 맞춥니다.
+  model readiness 실패 상태에서 실제 inference worker와 queue가 활성화되지 않아야 합니다.
+- structure readiness verifier는 fixture 배열 길이가 아니라 `mayDependOn`과 allowed direction의 일치,
+  실제 include graph forbidden edge, cycle, slice entry/exit gate를 검사합니다.
+- v3.5~v3.8 bridge는 범위 양 끝 ID가 아니라 각 UI ID의 route/control/action을 전수 대조합니다.
+  inventory summary의 30분 대상 50과 49/49 stale 표를 current manifest에서 자동 산출합니다.
+- owner role fixture는 `decision record`, external field는 `조건부 미실행`, structure는 `gate 준비 완료`로
+  표기합니다. 실제 구현, field PASS, refactor 완료와 같은 상태값을 사용하지 않습니다.
+- 완료 조건: NoOp worker 미기동, forbidden dependency/cycle negative, bridge 중간 ID 누락 negative,
+  count 자동 일치, 상태 vocabulary verifier가 각각 독립적으로 PASS해야 합니다.
+
+### 재검토 완료 경계
+
+- 이번 19~35 등록은 개발 완료가 아니라 잔여 이슈의 source roadmap 등록입니다.
+- 테스트, verifier, build, UI 실행은 이 등록 단계에서 수행하지 않습니다.
+- 기존 historical PASS와 문서 `완료` 표기는 19~35의 직접 구현 결함을 덮어쓰지 않습니다.
+- 각 항목 개발 시 AGENTS 단계 규칙에 따라 구현, 관련 개별 테스트 등록·실행, evidence 기록,
+  `git diff --check`, 사용자 커밋 승인을 독립적으로 닫아야 합니다.
+- 19~35 전체가 닫히기 전에는 v3.9.0 개발 전체 완료 또는 release readiness를 보고하지 않습니다.
 
 ## 이전 source roadmap 기록: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
 
