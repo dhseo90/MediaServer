@@ -1726,7 +1726,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 | 19 | V390-REVIEW2-19 | Foundation | current entry baseline gate 정렬 | P0 | 완료 | `v390_entry_baseline_state_lib.mjs`와 단일 expectation fixture가 backlog Step 1~3 상태를 구조적으로 읽고, 독립 contract가 current positive·historical wording·missing·duplicate를 판정하며 acceptance가 동일 entry command를 사용함 | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 0, 검증 난이도 0, 변경 범위 0, 총 2점이나 release correctness 직접 영향으로 Sol/high 상향 |
 | 20 | V390-REVIEW2-20 | Feature Closure | 984행 semantic implementation closure | P0 | 완료 | v2 manifest가 984행 exact handler/route/control/action/state/assertion locator와 reviewer-bound unique digest를 검증하고, 자동 closure·generic-alone·wrong/unrelated/drift/ID-only/unapproved를 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 전 기능 정확도·동등성 상향 적용 |
 | 21 | V390-REVIEW2-21 | Product Correctness | Analysis Registry durable write contract | P0 | 완료 | profile/rule/VA rule/VLM profile create·update·delete가 atomic persist-before-publish를 사용하고 parent/open/write/flush/rename 실패를 HTTP 5xx로 전파하며 memory/file/restart no-change를 보장 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점, 데이터 손상·거짓 성공 위험 상향 적용 |
-| 22 | V390-REVIEW2-22 | UI Policy | Policy v4 canonical 424 exact-ID binding | P0 | 미완료 | evaluator가 hash 대상 case manifest를 실제 파싱해 canonical test ID, route, role, viewport, theme, control/action과 evidence case를 대조하고 임의 424개 합성 case를 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+1=6점, 거짓 UI fulltest PASS 위험 상향 적용 |
+| 22 | V390-REVIEW2-22 | UI Policy | Policy v4 canonical 424 exact-ID binding | P0 | 완료 | canonical v1 manifest 424행을 implementation evidence hash·ordered test/feature ID·route·selector/action anchor에 묶고 evidence requested/observed role·viewport·theme까지 exact 대조하며 합성 424개와 hash-valid drift를 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+1=6점, 거짓 UI fulltest PASS 위험 상향 적용 |
 | 23 | V390-REVIEW2-23 | UI Policy | Policy v4 evidence attestation 강화 | P0 | 미완료 | completion/visual/cross-cutting evidenceRef의 실파일·hash·case correlation, 실제 image decode, trace schema, redaction scan을 검증하고 summary 자기선언을 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 정확도·보안·false-PASS 상향 적용 |
 | 24 | V390-REVIEW2-24 | UI Automation | exact 424 native automation case 구현 | P0 | 미완료 | 현재 8 automated/415 unsupported를 424 exact case 실행 가능 manifest와 native action/oracle/artifact로 확장하고 UI-018 negative route는 별도 판정 유지 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 대량 cross-version UI 구현 |
 | 25 | V390-REVIEW2-25 | UI Automation | no-op action false-PASS 차단 | P0 | 미완료 | before/after digest, network+DOM, persisted readback, EventRecord, server-log 중 case별 completion oracle을 요구하고 pre-existing visible text만 남은 click을 FAIL 처리 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+1=6점, 거짓 PASS 위험 상향 적용 |
@@ -1824,7 +1824,33 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 - 경계: focused rule UI smoke는 Policy v4 424 exact-ID 전체 UI 풀테스트 PASS가 아닙니다.
   30분/120분 longrun, published metadata, release action, external field smoke는 실행하지 않았습니다.
 
-#### V390-REVIEW2-22~26 Policy v4와 full UI automation closure
+#### V390-REVIEW2-22 Policy v4 canonical 424 exact-ID binding
+
+- 직접 문제: 기존 contract의 full-suite candidate는 `CONTRACT-001`~`CONTRACT-424` 합성 ID와
+  `{count: 424}`만 든 hash 대상 manifest로 `uiFulltestPass=true`가 됐습니다. evaluator는 manifest
+  내용을 파싱하지 않아 reviewed 424 exact UI ID와 route/action/variant를 대조하지 않았습니다.
+- 구현 위치:
+  - `test/fixtures/ui_fulltest_case_manifest_policy_v4.json`: implementation evidence의 exact
+    `manualUiCaseId` 424개를 ordered `testId`/`featureId`/route/control selector/action anchor에 묶고
+    case별 canonical role/390x844 viewport/light theme를 보존합니다.
+  - `ui_fulltest_evidence_policy_v4_lib.mjs`의 `loadCanonicalCaseBinding()`은 summary가 hash로 제시한
+    manifest 경로·schema·count·implementation evidence 실파일/hash를 확인하고 424개 source row를
+    직접 다시 파싱해 ID/feature/route/control-action drift를 거부합니다.
+  - 각 evidence case는 canonical feature ID와 requested route/role/viewport/theme/control-action이
+    같아야 하며 requested/observed도 기존 계약대로 같아야 합니다. full-suite는 canonical ordered
+    ID 전수와 exact count가 모두 일치해야 합니다.
+- RED/검증: 새 negative contract의 최초 실행은 합성 ID suite가 PASS해 `pass=10 fail=1`이었습니다.
+  구현 후 canonical full-suite positive와 합성 ID, field drift 6종, hash-valid manifest drift를 포함해
+  Policy v4 contract `14/0`, implementation evidence `986/986` validation 0·negative `11/11`, UI coverage
+  contract `12/0`, project inventory `14/0`, feature coverage `986/986`·`6/0`을 통과했습니다.
+- 실패/수정: 테스트 정의 행 추가 뒤 implementation manifest의 inventory hash가 stale해 첫 companion
+  실행이 validation error 1로 중단됐습니다. feature/semantic row 변경 없이 inventory hash와 canonical
+  manifest의 implementation hash만 갱신하고 실패 경계부터 재실행해 validation error 0으로 닫았습니다.
+- 경계: contract fixture의 canonical 424 PASS는 실제 브라우저 실행 evidence가 아닙니다. current 실제
+  summary는 legacy v1, automated 8/unsupported 415/excluded 1이므로 `uiFulltestPass=false`입니다.
+  30분/120분, published metadata, release action은 실행하지 않았습니다.
+
+#### V390-REVIEW2-23~26 Policy v4 evidence와 full UI automation closure
 
 - canonical case source는 `project_feature_implementation_evidence.json`의 reviewed 424 exact UI ID와
   Policy v4 case manifest입니다. evaluator는 summary가 제시한 count/ID를 자기 대조하지 않고 이

@@ -1,0 +1,6372 @@
+{
+  "schema": "media-server.ui-fulltest-canonical-case-manifest.v1",
+  "version": "3.9.0",
+  "implementationEvidence": {
+    "path": "test/fixtures/project_feature_implementation_evidence.json",
+    "schema": "media-server.feature-implementation-evidence.v2",
+    "sha256": "42cfd38ce4472034b3a4f4fd3985ce7858c36a42b409414af92efc1d037a09cd"
+  },
+  "caseCount": 424,
+  "cases": [
+    {
+      "testId": "UI-001",
+      "featureId": "UI-001",
+      "route": "/",
+      "accountRole": "anonymous",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "auth"
+      }
+    },
+    {
+      "testId": "UI-002",
+      "featureId": "UI-002",
+      "route": "/setup",
+      "accountRole": "anonymous",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"auth-setup-form\"]",
+        "actionAnchor": "/setup"
+      }
+    },
+    {
+      "testId": "UI-003",
+      "featureId": "UI-003",
+      "route": "/login",
+      "accountRole": "anonymous",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"auth-login-form\"]",
+        "actionAnchor": "/login"
+      }
+    },
+    {
+      "testId": "UI-004",
+      "featureId": "UI-004",
+      "route": "/password/change",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"auth-password-change-form\"]",
+        "actionAnchor": "/password/change"
+      }
+    },
+    {
+      "testId": "UI-005",
+      "featureId": "UI-005",
+      "route": "/logout",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"auth-password-change-form\"]",
+        "actionAnchor": "/logout"
+      }
+    },
+    {
+      "testId": "UI-007",
+      "featureId": "UI-007",
+      "route": "/invite/setup",
+      "accountRole": "anonymous",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"auth-invite-setup-form\"]",
+        "actionAnchor": "/invite/setup"
+      }
+    },
+    {
+      "testId": "UI-008",
+      "featureId": "UI-008",
+      "route": "/client/request-access",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/client/request-access"
+      }
+    },
+    {
+      "testId": "UI-009",
+      "featureId": "UI-009",
+      "route": "/ops/home",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"ops-context-actions\"]",
+        "actionAnchor": "summary"
+      }
+    },
+    {
+      "testId": "UI-010",
+      "featureId": "UI-010",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/dashboard"
+      }
+    },
+    {
+      "testId": "UI-011",
+      "featureId": "UI-011",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/sources"
+      }
+    },
+    {
+      "testId": "UI-012",
+      "featureId": "UI-012",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/rules"
+      }
+    },
+    {
+      "testId": "UI-013",
+      "featureId": "UI-013",
+      "route": "/ops/users",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "request"
+      }
+    },
+    {
+      "testId": "UI-014",
+      "featureId": "UI-014",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsIncidentSearchInput",
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-015",
+      "featureId": "UI-015",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"client-live-action-reduction\"]",
+        "actionAnchor": "client-live-workspace"
+      }
+    },
+    {
+      "testId": "UI-016",
+      "featureId": "UI-016",
+      "route": "/client/dashboard",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"client-dashboard-shell\"]",
+        "actionAnchor": "client-viewer-dashboard"
+      }
+    },
+    {
+      "testId": "UI-017",
+      "featureId": "UI-017",
+      "route": "/client/events",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#clientDashboardPresetStatus",
+        "actionAnchor": "client-viewer-events"
+      }
+    },
+    {
+      "testId": "UI-018",
+      "featureId": "UI-018",
+      "route": "/lab",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/lab"
+      }
+    },
+    {
+      "testId": "UI-019",
+      "featureId": "UI-019",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "token"
+      }
+    },
+    {
+      "testId": "UI-020",
+      "featureId": "UI-020",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"ops-context-actions\"]",
+        "actionAnchor": "table"
+      }
+    },
+    {
+      "testId": "UI-021",
+      "featureId": "UI-021",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "control"
+      }
+    },
+    {
+      "testId": "UI-022",
+      "featureId": "UI-022",
+      "route": "/ops/vlm",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashSiteClientNoticePreviewList",
+        "actionAnchor": "boundary"
+      }
+    },
+    {
+      "testId": "UI-023",
+      "featureId": "UI-023",
+      "route": "/ops/vlm",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVlmProfileEnabled",
+        "actionAnchor": "fallback"
+      }
+    },
+    {
+      "testId": "UI-024",
+      "featureId": "UI-024",
+      "route": "/ops/vlm",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVlmPrivacyGuardList",
+        "actionAnchor": "retention"
+      }
+    },
+    {
+      "testId": "UI-025",
+      "featureId": "UI-025",
+      "route": "/ops/vlm",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVlmDisabledReason",
+        "actionAnchor": "recommendation"
+      }
+    },
+    {
+      "testId": "UI-026",
+      "featureId": "UI-026",
+      "route": "/ops/vlm",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVlmStatus",
+        "actionAnchor": "download"
+      }
+    },
+    {
+      "testId": "UI-027",
+      "featureId": "UI-027",
+      "route": "/ops/vlm",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVlmRuntimeStatusList",
+        "actionAnchor": "credential"
+      }
+    },
+    {
+      "testId": "UI-028",
+      "featureId": "UI-028",
+      "route": "/ops/vlm",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVlmProfileEnabled",
+        "actionAnchor": "disabled"
+      }
+    },
+    {
+      "testId": "UI-029",
+      "featureId": "UI-029",
+      "route": "/ops/vlm",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#v320ActionReadinessChecklistGrid",
+        "actionAnchor": "EventRecord"
+      }
+    },
+    {
+      "testId": "UI-030",
+      "featureId": "UI-030",
+      "route": "/ops/vlm",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVlmStatus",
+        "actionAnchor": "evaluation"
+      }
+    },
+    {
+      "testId": "UI-031",
+      "featureId": "UI-031",
+      "route": "/ops/vlm",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "diagnostic"
+      }
+    },
+    {
+      "testId": "UI-032",
+      "featureId": "UI-032",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsIncidentSearchInput",
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-033",
+      "featureId": "UI-033",
+      "route": "/ops/vlm",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "default-off"
+      }
+    },
+    {
+      "testId": "UI-034",
+      "featureId": "UI-034",
+      "route": "/ops/vlm",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVlmEvaluationRows",
+        "actionAnchor": "explanation"
+      }
+    },
+    {
+      "testId": "UI-035",
+      "featureId": "UI-035",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsIncidentSearchInput",
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-036",
+      "featureId": "UI-036",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRuleIdInput",
+        "actionAnchor": "/lab/analysis/rules"
+      }
+    },
+    {
+      "testId": "UI-037",
+      "featureId": "UI-037",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-038",
+      "featureId": "UI-038",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-039",
+      "featureId": "UI-039",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-040",
+      "featureId": "UI-040",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-041",
+      "featureId": "UI-041",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-042",
+      "featureId": "UI-042",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-043",
+      "featureId": "UI-043",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-044",
+      "featureId": "UI-044",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-045",
+      "featureId": "UI-045",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsIncidentSearchInput",
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-046",
+      "featureId": "UI-046",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRulePresetSelect",
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-047",
+      "featureId": "UI-047",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/sources"
+      }
+    },
+    {
+      "testId": "UI-048",
+      "featureId": "UI-048",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/dashboard"
+      }
+    },
+    {
+      "testId": "UI-049",
+      "featureId": "UI-049",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"ops-incident-rule-suggestion-review\"]",
+        "actionAnchor": "/ops/rules"
+      }
+    },
+    {
+      "testId": "UI-050",
+      "featureId": "UI-050",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-051",
+      "featureId": "UI-051",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsIncidentTriageBoardRows",
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-052",
+      "featureId": "UI-052",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashRuntimeOpsList",
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-053",
+      "featureId": "UI-053",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRulePresetSelect",
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-054",
+      "featureId": "UI-054",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-055",
+      "featureId": "UI-055",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-056",
+      "featureId": "UI-056",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/rules"
+      }
+    },
+    {
+      "testId": "UI-057",
+      "featureId": "UI-057",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-058",
+      "featureId": "UI-058",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-059",
+      "featureId": "UI-059",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-060",
+      "featureId": "UI-060",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-061",
+      "featureId": "UI-061",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-062",
+      "featureId": "UI-062",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsV320ResolutionTimeline",
+        "actionAnchor": "media-server.ops.v320-unified-events-workspace.v1"
+      }
+    },
+    {
+      "testId": "UI-063",
+      "featureId": "UI-063",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "UI-064",
+      "featureId": "UI-064",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#v320SourceReliabilityGrid",
+        "actionAnchor": "media-server.ops.v320-source-reliability-context.v1"
+      }
+    },
+    {
+      "testId": "UI-065",
+      "featureId": "UI-065",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#v320AiReviewQualityGrid",
+        "actionAnchor": "media-server.ops.v320-ai-review-quality-context.v1"
+      }
+    },
+    {
+      "testId": "UI-066",
+      "featureId": "UI-066",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#v320OperatorResolutionFlowGrid",
+        "actionAnchor": "media-server.ops.v320-operator-resolution-flow.v1"
+      }
+    },
+    {
+      "testId": "UI-067",
+      "featureId": "UI-067",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#v320ActionReadinessChecklistGrid",
+        "actionAnchor": "media-server.ops.v320-action-readiness-checklist.v1"
+      }
+    },
+    {
+      "testId": "UI-068",
+      "featureId": "UI-068",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"client-safe-resolution-digest\"]",
+        "actionAnchor": "media-server.client.resolution-digest.v1"
+      }
+    },
+    {
+      "testId": "UI-069",
+      "featureId": "UI-069",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#v320ResolutionSearchMetricsGrid",
+        "actionAnchor": "media-server.ops.v320-resolution-search-metrics.v1"
+      }
+    },
+    {
+      "testId": "UI-070",
+      "featureId": "UI-070",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#v330IncidentSourceCorrelationGrid",
+        "actionAnchor": "media-server.ops.v330-incident-source-correlation.v1"
+      }
+    },
+    {
+      "testId": "UI-071",
+      "featureId": "UI-071",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#v330OperatorRecheckRecoveryQueueGrid",
+        "actionAnchor": "media-server.ops.v330-operator-recheck-recovery-queue.v1"
+      }
+    },
+    {
+      "testId": "UI-072",
+      "featureId": "UI-072",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"client-safe-source-status-digest\"]",
+        "actionAnchor": "media-server.client.source-status-digest.v1"
+      }
+    },
+    {
+      "testId": "UI-073",
+      "featureId": "UI-073",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/sources"
+      }
+    },
+    {
+      "testId": "UI-074",
+      "featureId": "UI-074",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/sources"
+      }
+    },
+    {
+      "testId": "UI-075",
+      "featureId": "UI-075",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/sources"
+      }
+    },
+    {
+      "testId": "UI-076",
+      "featureId": "UI-076",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/sources"
+      }
+    },
+    {
+      "testId": "UI-077",
+      "featureId": "UI-077",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"client-safe-maintenance-digest\"]",
+        "actionAnchor": "media-server.client.v340-maintenance-digest.v1"
+      }
+    },
+    {
+      "testId": "UI-078",
+      "featureId": "UI-078",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/sources"
+      }
+    },
+    {
+      "testId": "UI-079",
+      "featureId": "UI-079",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/sources"
+      }
+    },
+    {
+      "testId": "UI-080",
+      "featureId": "UI-080",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#v350IncidentCommandHandoffGrid",
+        "actionAnchor": "media-server.ops.v350-incident-command-handoff.v1"
+      }
+    },
+    {
+      "testId": "UI-081",
+      "featureId": "UI-081",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/dashboard"
+      }
+    },
+    {
+      "testId": "UI-082",
+      "featureId": "UI-082",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/dashboard"
+      }
+    },
+    {
+      "testId": "UI-083",
+      "featureId": "UI-083",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"client-impact-forecast\"]",
+        "actionAnchor": "media-server.client.v350-impact-forecast.v1"
+      }
+    },
+    {
+      "testId": "UI-084",
+      "featureId": "UI-084",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"client-operations-notice\"]",
+        "actionAnchor": "media-server.client.v350-operations-notice.v1"
+      }
+    },
+    {
+      "testId": "UI-085",
+      "featureId": "UI-085",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashCommandWorkspaceExportBundleMap",
+        "actionAnchor": "media-server.ops.v350-export-bundle-handoff-map.v1"
+      }
+    },
+    {
+      "testId": "UI-086",
+      "featureId": "UI-086",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/dashboard"
+      }
+    },
+    {
+      "testId": "UI-087",
+      "featureId": "UI-087",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashCommandWorkspaceVlmAssistedExplanation",
+        "actionAnchor": "media-server.ops.v350-vlm-assisted-explanation.v1"
+      }
+    },
+    {
+      "testId": "UI-088",
+      "featureId": "UI-088",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/dashboard"
+      }
+    },
+    {
+      "testId": "UI-089",
+      "featureId": "UI-089",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/dashboard"
+      }
+    },
+    {
+      "testId": "UI-090",
+      "featureId": "UI-090",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/dashboard"
+      }
+    },
+    {
+      "testId": "UI-091",
+      "featureId": "UI-091",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsIncidentActionReadinessQueueRows",
+        "actionAnchor": "/ops/dashboard"
+      }
+    },
+    {
+      "testId": "UI-092",
+      "featureId": "UI-092",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/dashboard"
+      }
+    },
+    {
+      "testId": "UI-093",
+      "featureId": "UI-093",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/dashboard"
+      }
+    },
+    {
+      "testId": "UI-094",
+      "featureId": "UI-094",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/dashboard"
+      }
+    },
+    {
+      "testId": "UI-095",
+      "featureId": "UI-095",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/dashboard"
+      }
+    },
+    {
+      "testId": "UI-096",
+      "featureId": "UI-096",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/dashboard"
+      }
+    },
+    {
+      "testId": "UI-097",
+      "featureId": "UI-097",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/dashboard"
+      }
+    },
+    {
+      "testId": "UI-098",
+      "featureId": "UI-098",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/dashboard"
+      }
+    },
+    {
+      "testId": "UI-099",
+      "featureId": "UI-099",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/dashboard"
+      }
+    },
+    {
+      "testId": "UI-100",
+      "featureId": "UI-100",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/dashboard"
+      }
+    },
+    {
+      "testId": "UI-101",
+      "featureId": "UI-101",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/dashboard"
+      }
+    },
+    {
+      "testId": "UI-102",
+      "featureId": "UI-102",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsIncidentActionReadinessQueueRows",
+        "actionAnchor": "/ops/dashboard"
+      }
+    },
+    {
+      "testId": "UI-103",
+      "featureId": "UI-103",
+      "route": "/client/dashboard",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"client-action-notice-preview\"]",
+        "actionAnchor": "media-server.client.v380-action-notice-preview.v1"
+      }
+    },
+    {
+      "testId": "UI-104",
+      "featureId": "UI-104",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsIncidentActionReadinessQueueRows",
+        "actionAnchor": "/ops/dashboard"
+      }
+    },
+    {
+      "testId": "UI-105",
+      "featureId": "UI-105",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsIncidentActionReadinessQueueRows",
+        "actionAnchor": "/ops/dashboard"
+      }
+    },
+    {
+      "testId": "UI-106",
+      "featureId": "UI-106",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/dashboard"
+      }
+    },
+    {
+      "testId": "UI-107",
+      "featureId": "UI-107",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsIncidentActionReadinessQueueRows",
+        "actionAnchor": "/ops/dashboard"
+      }
+    },
+    {
+      "testId": "UI-108",
+      "featureId": "UI-108",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/sources"
+      }
+    },
+    {
+      "testId": "UI-109",
+      "featureId": "UI-109",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/sources"
+      }
+    },
+    {
+      "testId": "UI-110",
+      "featureId": "UI-110",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVlmRuleDraftBridgeStatus",
+        "actionAnchor": "provenance=incident-review-provenance"
+      }
+    },
+    {
+      "testId": "UI-111",
+      "featureId": "UI-111",
+      "route": "/ops/vlm",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVlmExternalTransferWarningAck",
+        "actionAnchor": "expectedProvenanceDigest"
+      }
+    },
+    {
+      "testId": "UI-112",
+      "featureId": "UI-112",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/sources"
+      }
+    },
+    {
+      "testId": "UI-113",
+      "featureId": "UI-113",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashActionExecutionDeferralList",
+        "actionAnchor": "sourceRecheckExecuted=false"
+      }
+    },
+    {
+      "testId": "UI-114",
+      "featureId": "UI-114",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashFieldEvidenceBridgeList",
+        "actionAnchor": "fieldSmokeExecuted=false"
+      }
+    },
+    {
+      "testId": "UI-115",
+      "featureId": "UI-115",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "renderV390ReidAssistDecision"
+      }
+    },
+    {
+      "testId": "AUTH-004",
+      "featureId": "AUTH-004",
+      "route": "/login",
+      "accountRole": "anonymous",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"auth-login-form\"]",
+        "actionAnchor": "login"
+      }
+    },
+    {
+      "testId": "AUTH-005",
+      "featureId": "AUTH-005",
+      "route": "/setup",
+      "accountRole": "anonymous",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"auth-login-form\"]",
+        "actionAnchor": "/login"
+      }
+    },
+    {
+      "testId": "AUTH-006",
+      "featureId": "AUTH-006",
+      "route": "/setup",
+      "accountRole": "anonymous",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"auth-setup-form\"]",
+        "actionAnchor": "username"
+      }
+    },
+    {
+      "testId": "AUTH-007",
+      "featureId": "AUTH-007",
+      "route": "/login",
+      "accountRole": "anonymous",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"auth-password-policy\"]",
+        "actionAnchor": "password"
+      }
+    },
+    {
+      "testId": "AUTH-012",
+      "featureId": "AUTH-012",
+      "route": "/ops/users",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "admin"
+      }
+    },
+    {
+      "testId": "AUTH-013",
+      "featureId": "AUTH-013",
+      "route": "/ops/users",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "admin"
+      }
+    },
+    {
+      "testId": "AUTH-014",
+      "featureId": "AUTH-014",
+      "route": "/login",
+      "accountRole": "anonymous",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"auth-login-form\"]",
+        "actionAnchor": "/login"
+      }
+    },
+    {
+      "testId": "AUTH-015",
+      "featureId": "AUTH-015",
+      "route": "/invite/setup",
+      "accountRole": "anonymous",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"auth-invite-setup-form\"]",
+        "actionAnchor": "invite"
+      }
+    },
+    {
+      "testId": "AUTH-016",
+      "featureId": "AUTH-016",
+      "route": "/ops/users",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "role"
+      }
+    },
+    {
+      "testId": "AUTH-018",
+      "featureId": "AUTH-018",
+      "route": "/ops/users",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "create"
+      }
+    },
+    {
+      "testId": "AUTH-019",
+      "featureId": "AUTH-019",
+      "route": "/ops/users",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "detail"
+      }
+    },
+    {
+      "testId": "AUTH-020",
+      "featureId": "AUTH-020",
+      "route": "/ops/users",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "disable"
+      }
+    },
+    {
+      "testId": "AUTH-021",
+      "featureId": "AUTH-021",
+      "route": "/ops/users",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "disabled"
+      }
+    },
+    {
+      "testId": "AUTH-022",
+      "featureId": "AUTH-022",
+      "route": "/ops/users",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "password"
+      }
+    },
+    {
+      "testId": "AUTH-023",
+      "featureId": "AUTH-023",
+      "route": "/ops/users",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "disable"
+      }
+    },
+    {
+      "testId": "AUTH-024",
+      "featureId": "AUTH-024",
+      "route": "/ops/users",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "action"
+      }
+    },
+    {
+      "testId": "AUTH-025",
+      "featureId": "AUTH-025",
+      "route": "/ops/users",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "operator"
+      }
+    },
+    {
+      "testId": "AUTH-026",
+      "featureId": "AUTH-026",
+      "route": "/ops/users",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "viewer"
+      }
+    },
+    {
+      "testId": "AUTH-027",
+      "featureId": "AUTH-027",
+      "route": "/ops/users",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "integrator"
+      }
+    },
+    {
+      "testId": "AUTH-028",
+      "featureId": "AUTH-028",
+      "route": "/ops/users",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "action"
+      }
+    },
+    {
+      "testId": "AUTH-029",
+      "featureId": "AUTH-029",
+      "route": "/ops/users",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "source:write"
+      }
+    },
+    {
+      "testId": "AUTH-030",
+      "featureId": "AUTH-030",
+      "route": "/ops/users",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "client"
+      }
+    },
+    {
+      "testId": "AUTH-033",
+      "featureId": "AUTH-033",
+      "route": "/invite/setup",
+      "accountRole": "anonymous",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"auth-invite-setup-form\"]",
+        "actionAnchor": "invite"
+      }
+    },
+    {
+      "testId": "AUTH-034",
+      "featureId": "AUTH-034",
+      "route": "/invite/setup",
+      "accountRole": "anonymous",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"auth-invite-setup-form\"]",
+        "actionAnchor": "invite"
+      }
+    },
+    {
+      "testId": "AUTH-035",
+      "featureId": "AUTH-035",
+      "route": "/invite/setup",
+      "accountRole": "anonymous",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"auth-invite-setup-form\"]",
+        "actionAnchor": "token"
+      }
+    },
+    {
+      "testId": "AUTH-036",
+      "featureId": "AUTH-036",
+      "route": "/login",
+      "accountRole": "anonymous",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#request-form",
+        "actionAnchor": "request"
+      }
+    },
+    {
+      "testId": "AUTH-037",
+      "featureId": "AUTH-037",
+      "route": "/invite/setup",
+      "accountRole": "anonymous",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"auth-invite-setup-form\"]",
+        "actionAnchor": "invite"
+      }
+    },
+    {
+      "testId": "AUTH-038",
+      "featureId": "AUTH-038",
+      "route": "/invite/setup",
+      "accountRole": "anonymous",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"auth-invite-setup-form\"]",
+        "actionAnchor": "invite"
+      }
+    },
+    {
+      "testId": "AUTH-039",
+      "featureId": "AUTH-039",
+      "route": "/ops/users",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "pending"
+      }
+    },
+    {
+      "testId": "AUTH-040",
+      "featureId": "AUTH-040",
+      "route": "/ops/users",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "role"
+      }
+    },
+    {
+      "testId": "SRC-001",
+      "featureId": "SRC-001",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/sources"
+      }
+    },
+    {
+      "testId": "SRC-002",
+      "featureId": "SRC-002",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "health"
+      }
+    },
+    {
+      "testId": "SRC-003",
+      "featureId": "SRC-003",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "health"
+      }
+    },
+    {
+      "testId": "SRC-004",
+      "featureId": "SRC-004",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "external"
+      }
+    },
+    {
+      "testId": "SRC-005",
+      "featureId": "SRC-005",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "sourceId"
+      }
+    },
+    {
+      "testId": "SRC-006",
+      "featureId": "SRC-006",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "count"
+      }
+    },
+    {
+      "testId": "SRC-007",
+      "featureId": "SRC-007",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "detail"
+      }
+    },
+    {
+      "testId": "SRC-008",
+      "featureId": "SRC-008",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "validation"
+      }
+    },
+    {
+      "testId": "SRC-009",
+      "featureId": "SRC-009",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/sources"
+      }
+    },
+    {
+      "testId": "SRC-010",
+      "featureId": "SRC-010",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "sourceId"
+      }
+    },
+    {
+      "testId": "SRC-011",
+      "featureId": "SRC-011",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#channelScopePolicy",
+        "actionAnchor": "disabled"
+      }
+    },
+    {
+      "testId": "SRC-012",
+      "featureId": "SRC-012",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "summary"
+      }
+    },
+    {
+      "testId": "SRC-014",
+      "featureId": "SRC-014",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "redacted"
+      }
+    },
+    {
+      "testId": "SRC-016",
+      "featureId": "SRC-016",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "PublishedView"
+      }
+    },
+    {
+      "testId": "SRC-017",
+      "featureId": "SRC-017",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "PublishedView"
+      }
+    },
+    {
+      "testId": "SRC-018",
+      "featureId": "SRC-018",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "PublishedView"
+      }
+    },
+    {
+      "testId": "SRC-019",
+      "featureId": "SRC-019",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "PublishedView"
+      }
+    },
+    {
+      "testId": "SRC-020",
+      "featureId": "SRC-020",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "PublishedView"
+      }
+    },
+    {
+      "testId": "SRC-021",
+      "featureId": "SRC-021",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "client"
+      }
+    },
+    {
+      "testId": "SRC-022",
+      "featureId": "SRC-022",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "allowedRuleIds"
+      }
+    },
+    {
+      "testId": "SRC-023",
+      "featureId": "SRC-023",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "viewer"
+      }
+    },
+    {
+      "testId": "SRC-024",
+      "featureId": "SRC-024",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#add-channel",
+        "actionAnchor": "WebRTC"
+      }
+    },
+    {
+      "testId": "SRC-025",
+      "featureId": "SRC-025",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "data"
+      }
+    },
+    {
+      "testId": "SRC-026",
+      "featureId": "SRC-026",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "data"
+      }
+    },
+    {
+      "testId": "SRC-028",
+      "featureId": "SRC-028",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "client"
+      }
+    },
+    {
+      "testId": "SRC-029",
+      "featureId": "SRC-029",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "client"
+      }
+    },
+    {
+      "testId": "SRC-030",
+      "featureId": "SRC-030",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "client"
+      }
+    },
+    {
+      "testId": "SRC-031",
+      "featureId": "SRC-031",
+      "route": "/ops/api/onvif/import-draft",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/onvif/import-draft"
+      }
+    },
+    {
+      "testId": "SRC-032",
+      "featureId": "SRC-032",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "credential"
+      }
+    },
+    {
+      "testId": "SRC-034",
+      "featureId": "SRC-034",
+      "route": "/ops/api/source-registry/onboarding-quality",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/source-registry/onboarding-quality"
+      }
+    },
+    {
+      "testId": "SRC-035",
+      "featureId": "SRC-035",
+      "route": "/ops/api/source-registry/reliability-timeline",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/source-registry/reliability-timeline"
+      }
+    },
+    {
+      "testId": "SRC-036",
+      "featureId": "SRC-036",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "SRC-037",
+      "featureId": "SRC-037",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "SRC-038",
+      "featureId": "SRC-038",
+      "route": "/client/api/views/{id}/events",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"${escapeHtml(testId)}\"]",
+        "actionAnchor": "client-safe"
+      }
+    },
+    {
+      "testId": "SRC-039",
+      "featureId": "SRC-039",
+      "route": "/ops/api/source-registry/reliability-search-metrics",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/source-registry/reliability-search-metrics"
+      }
+    },
+    {
+      "testId": "SRC-040",
+      "featureId": "SRC-040",
+      "route": "/ops/api/source-registry/backup-recovery-handoff",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/source-registry/backup-recovery-handoff"
+      }
+    },
+    {
+      "testId": "SRC-065",
+      "featureId": "SRC-065",
+      "route": "/ops/api/onvif/credential-provider-status",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/onvif/credential-provider-status"
+      }
+    },
+    {
+      "testId": "SRC-066",
+      "featureId": "SRC-066",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "registry"
+      }
+    },
+    {
+      "testId": "SRC-067",
+      "featureId": "SRC-067",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "PublishedView"
+      }
+    },
+    {
+      "testId": "SRC-068",
+      "featureId": "SRC-068",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "PublishedView"
+      }
+    },
+    {
+      "testId": "RULE-001",
+      "featureId": "RULE-001",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#v320ActionReadinessChecklistGrid",
+        "actionAnchor": "/ops/rules"
+      }
+    },
+    {
+      "testId": "RULE-002",
+      "featureId": "RULE-002",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/rules"
+      }
+    },
+    {
+      "testId": "RULE-003",
+      "featureId": "RULE-003",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#v320ActionReadinessChecklistGrid",
+        "actionAnchor": "/ops/rules"
+      }
+    },
+    {
+      "testId": "RULE-004",
+      "featureId": "RULE-004",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVaRuleIdInput",
+        "actionAnchor": "analysis"
+      }
+    },
+    {
+      "testId": "RULE-005",
+      "featureId": "RULE-005",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVaRuleTemplateSeedSelect",
+        "actionAnchor": "analysis"
+      }
+    },
+    {
+      "testId": "RULE-006",
+      "featureId": "RULE-006",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVaRuleTemplateSeedSelect",
+        "actionAnchor": "analysis"
+      }
+    },
+    {
+      "testId": "RULE-007",
+      "featureId": "RULE-007",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRuleIdInput",
+        "actionAnchor": "analysis"
+      }
+    },
+    {
+      "testId": "RULE-008",
+      "featureId": "RULE-008",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVaRuleTemplateSeedSelect",
+        "actionAnchor": "analysis"
+      }
+    },
+    {
+      "testId": "RULE-009",
+      "featureId": "RULE-009",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsRulesValidationList",
+        "actionAnchor": "validation"
+      }
+    },
+    {
+      "testId": "RULE-010",
+      "featureId": "RULE-010",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVaRuleTrackingSummary",
+        "actionAnchor": "analysis"
+      }
+    },
+    {
+      "testId": "RULE-011",
+      "featureId": "RULE-011",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVaRuleIdInput",
+        "actionAnchor": "analysis"
+      }
+    },
+    {
+      "testId": "RULE-012",
+      "featureId": "RULE-012",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVaRuleIdInput",
+        "actionAnchor": "analysis"
+      }
+    },
+    {
+      "testId": "RULE-013",
+      "featureId": "RULE-013",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVaRuleGeometryMinimumText",
+        "actionAnchor": "direction"
+      }
+    },
+    {
+      "testId": "RULE-014",
+      "featureId": "RULE-014",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "analysis"
+      }
+    },
+    {
+      "testId": "RULE-015",
+      "featureId": "RULE-015",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "analysis"
+      }
+    },
+    {
+      "testId": "RULE-016",
+      "featureId": "RULE-016",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "numeric"
+      }
+    },
+    {
+      "testId": "RULE-017",
+      "featureId": "RULE-017",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRuleIdInput",
+        "actionAnchor": "vaRule"
+      }
+    },
+    {
+      "testId": "RULE-018",
+      "featureId": "RULE-018",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRulePresetSelect",
+        "actionAnchor": "scenario"
+      }
+    },
+    {
+      "testId": "RULE-019",
+      "featureId": "RULE-019",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
+        "actionAnchor": "condition"
+      }
+    },
+    {
+      "testId": "RULE-020",
+      "featureId": "RULE-020",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsRulesValidationList",
+        "actionAnchor": "validation"
+      }
+    },
+    {
+      "testId": "RULE-021",
+      "featureId": "RULE-021",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEvidenceIntakeFieldReadinessRows",
+        "actionAnchor": "condition"
+      }
+    },
+    {
+      "testId": "RULE-022",
+      "featureId": "RULE-022",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVaRuleReidSelect",
+        "actionAnchor": "analysis"
+      }
+    },
+    {
+      "testId": "RULE-023",
+      "featureId": "RULE-023",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVaRuleIdInput",
+        "actionAnchor": "analysis"
+      }
+    },
+    {
+      "testId": "RULE-024",
+      "featureId": "RULE-024",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsRulesValidationList",
+        "actionAnchor": "validation"
+      }
+    },
+    {
+      "testId": "RULE-025",
+      "featureId": "RULE-025",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRuleIdInput",
+        "actionAnchor": "analysis"
+      }
+    },
+    {
+      "testId": "RULE-026",
+      "featureId": "RULE-026",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsProfileDetectorSelect",
+        "actionAnchor": "detector:"
+      }
+    },
+    {
+      "testId": "RULE-027",
+      "featureId": "RULE-027",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsProfileDetectorSelect",
+        "actionAnchor": "detector:"
+      }
+    },
+    {
+      "testId": "RULE-028",
+      "featureId": "RULE-028",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsRulesValidationList",
+        "actionAnchor": "validation"
+      }
+    },
+    {
+      "testId": "RULE-029",
+      "featureId": "RULE-029",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsRulesValidationList",
+        "actionAnchor": "validation"
+      }
+    },
+    {
+      "testId": "RULE-030",
+      "featureId": "RULE-030",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRuleIdInput",
+        "actionAnchor": "confidence"
+      }
+    },
+    {
+      "testId": "RULE-031",
+      "featureId": "RULE-031",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsRulesValidationList",
+        "actionAnchor": "validation"
+      }
+    },
+    {
+      "testId": "RULE-032",
+      "featureId": "RULE-032",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsRulesValidationList",
+        "actionAnchor": "validation"
+      }
+    },
+    {
+      "testId": "RULE-033",
+      "featureId": "RULE-033",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRuleModeSelect",
+        "actionAnchor": "category"
+      }
+    },
+    {
+      "testId": "RULE-034",
+      "featureId": "RULE-034",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVaRuleTrackerSelect",
+        "actionAnchor": "tracker"
+      }
+    },
+    {
+      "testId": "RULE-035",
+      "featureId": "RULE-035",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashIncidentTimeline",
+        "actionAnchor": "runtime"
+      }
+    },
+    {
+      "testId": "RULE-036",
+      "featureId": "RULE-036",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVaRuleTrackerSelect",
+        "actionAnchor": "kalman-lite"
+      }
+    },
+    {
+      "testId": "RULE-037",
+      "featureId": "RULE-037",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVaRuleTrackerSelect",
+        "actionAnchor": "bytetrack"
+      }
+    },
+    {
+      "testId": "RULE-038",
+      "featureId": "RULE-038",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "off"
+      }
+    },
+    {
+      "testId": "RULE-039",
+      "featureId": "RULE-039",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVaRuleTrackerSelect",
+        "actionAnchor": "tracker"
+      }
+    },
+    {
+      "testId": "RULE-040",
+      "featureId": "RULE-040",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashReidAssistDecisionList",
+        "actionAnchor": "tracker=none"
+      }
+    },
+    {
+      "testId": "RULE-041",
+      "featureId": "RULE-041",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashRootCauseList",
+        "actionAnchor": "EventRecord"
+      }
+    },
+    {
+      "testId": "RULE-042",
+      "featureId": "RULE-042",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashRootCauseList",
+        "actionAnchor": "EventRecord"
+      }
+    },
+    {
+      "testId": "RULE-043",
+      "featureId": "RULE-043",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashRootCauseList",
+        "actionAnchor": "EventRecord"
+      }
+    },
+    {
+      "testId": "RULE-044",
+      "featureId": "RULE-044",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "line-crossing"
+      }
+    },
+    {
+      "testId": "RULE-045",
+      "featureId": "RULE-045",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsScenarioBuilderClasses",
+        "actionAnchor": "direction:"
+      }
+    },
+    {
+      "testId": "RULE-046",
+      "featureId": "RULE-046",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRuleTriggerDirectionSelect",
+        "actionAnchor": "direction:"
+      }
+    },
+    {
+      "testId": "RULE-047",
+      "featureId": "RULE-047",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsScenarioBuilderClasses",
+        "actionAnchor": "direction:"
+      }
+    },
+    {
+      "testId": "RULE-048",
+      "featureId": "RULE-048",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRuleTypeSelect",
+        "actionAnchor": "intrusion-dwell"
+      }
+    },
+    {
+      "testId": "RULE-049",
+      "featureId": "RULE-049",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsScenarioBuilderType",
+        "actionAnchor": "EventRecord"
+      }
+    },
+    {
+      "testId": "RULE-050",
+      "featureId": "RULE-050",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"ops-scenario-builder\"]",
+        "actionAnchor": "wrong-direction"
+      }
+    },
+    {
+      "testId": "RULE-051",
+      "featureId": "RULE-051",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRuleSettingsHeading",
+        "actionAnchor": "intrusion-after-line-crossing"
+      }
+    },
+    {
+      "testId": "RULE-052",
+      "featureId": "RULE-052",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsScenarioBuilderType",
+        "actionAnchor": "EventRecord"
+      }
+    },
+    {
+      "testId": "RULE-053",
+      "featureId": "RULE-053",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRulePresetSummary",
+        "actionAnchor": "zone-occupancy"
+      }
+    },
+    {
+      "testId": "RULE-054",
+      "featureId": "RULE-054",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
+        "actionAnchor": "condition"
+      }
+    },
+    {
+      "testId": "RULE-055",
+      "featureId": "RULE-055",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
+        "actionAnchor": "condition"
+      }
+    },
+    {
+      "testId": "RULE-056",
+      "featureId": "RULE-056",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
+        "actionAnchor": "condition"
+      }
+    },
+    {
+      "testId": "RULE-057",
+      "featureId": "RULE-057",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
+        "actionAnchor": "condition"
+      }
+    },
+    {
+      "testId": "RULE-058",
+      "featureId": "RULE-058",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
+        "actionAnchor": "condition"
+      }
+    },
+    {
+      "testId": "RULE-059",
+      "featureId": "RULE-059",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
+        "actionAnchor": "condition"
+      }
+    },
+    {
+      "testId": "RULE-060",
+      "featureId": "RULE-060",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
+        "actionAnchor": "condition"
+      }
+    },
+    {
+      "testId": "RULE-061",
+      "featureId": "RULE-061",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
+        "actionAnchor": "condition"
+      }
+    },
+    {
+      "testId": "RULE-062",
+      "featureId": "RULE-062",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
+        "actionAnchor": "condition"
+      }
+    },
+    {
+      "testId": "RULE-063",
+      "featureId": "RULE-063",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
+        "actionAnchor": "condition"
+      }
+    },
+    {
+      "testId": "RULE-064",
+      "featureId": "RULE-064",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
+        "actionAnchor": "condition"
+      }
+    },
+    {
+      "testId": "RULE-065",
+      "featureId": "RULE-065",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashVaQualityFilterInput",
+        "actionAnchor": "scenario"
+      }
+    },
+    {
+      "testId": "RULE-066",
+      "featureId": "RULE-066",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRuleTypeSelect",
+        "actionAnchor": "intrusion-dwell"
+      }
+    },
+    {
+      "testId": "RULE-067",
+      "featureId": "RULE-067",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRulePresetSummary",
+        "actionAnchor": "intrusion-dwell"
+      }
+    },
+    {
+      "testId": "RULE-068",
+      "featureId": "RULE-068",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRulePresetSummary",
+        "actionAnchor": "intrusion-dwell"
+      }
+    },
+    {
+      "testId": "RULE-069",
+      "featureId": "RULE-069",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRulePresetSummary",
+        "actionAnchor": "intrusion-dwell"
+      }
+    },
+    {
+      "testId": "RULE-070",
+      "featureId": "RULE-070",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRulePresetSummary",
+        "actionAnchor": "re-entry"
+      }
+    },
+    {
+      "testId": "RULE-071",
+      "featureId": "RULE-071",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsRulesValidationList",
+        "actionAnchor": "validation"
+      }
+    },
+    {
+      "testId": "RULE-072",
+      "featureId": "RULE-072",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsRulesValidationList",
+        "actionAnchor": "validation"
+      }
+    },
+    {
+      "testId": "RULE-073",
+      "featureId": "RULE-073",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsRulesComposerSave",
+        "actionAnchor": "wrong-direction"
+      }
+    },
+    {
+      "testId": "RULE-074",
+      "featureId": "RULE-074",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVaRuleTemplateSeedSelect",
+        "actionAnchor": "any"
+      }
+    },
+    {
+      "testId": "RULE-075",
+      "featureId": "RULE-075",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsRulesComposerSave",
+        "actionAnchor": "wrong-direction"
+      }
+    },
+    {
+      "testId": "RULE-076",
+      "featureId": "RULE-076",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRulePresetSummary",
+        "actionAnchor": "intrusion-after-line-crossing"
+      }
+    },
+    {
+      "testId": "RULE-077",
+      "featureId": "RULE-077",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRulePresetSummary",
+        "actionAnchor": "intrusion-after-line-crossing"
+      }
+    },
+    {
+      "testId": "RULE-078",
+      "featureId": "RULE-078",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"ops-scenario-builder\"]",
+        "actionAnchor": "intrusion-after-line-crossing"
+      }
+    },
+    {
+      "testId": "RULE-079",
+      "featureId": "RULE-079",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRulePresetSummary",
+        "actionAnchor": "intrusion-after-line-crossing"
+      }
+    },
+    {
+      "testId": "RULE-080",
+      "featureId": "RULE-080",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRulePresetSummary",
+        "actionAnchor": "intrusion-after-line-crossing"
+      }
+    },
+    {
+      "testId": "RULE-081",
+      "featureId": "RULE-081",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRulePresetSummary",
+        "actionAnchor": "intrusion-after-line-crossing"
+      }
+    },
+    {
+      "testId": "RULE-082",
+      "featureId": "RULE-082",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"ops-scenario-builder\"]",
+        "actionAnchor": "loitering"
+      }
+    },
+    {
+      "testId": "RULE-083",
+      "featureId": "RULE-083",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsRulesValidationList",
+        "actionAnchor": "validation"
+      }
+    },
+    {
+      "testId": "RULE-084",
+      "featureId": "RULE-084",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsRulesValidationList",
+        "actionAnchor": "validation"
+      }
+    },
+    {
+      "testId": "RULE-085",
+      "featureId": "RULE-085",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsRulesValidationList",
+        "actionAnchor": "validation"
+      }
+    },
+    {
+      "testId": "RULE-086",
+      "featureId": "RULE-086",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsRulesValidationList",
+        "actionAnchor": "validation"
+      }
+    },
+    {
+      "testId": "RULE-087",
+      "featureId": "RULE-087",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRuleLoiteringGroundPlaneToggle",
+        "actionAnchor": "scenario.useGroundPlaneMovementRadius"
+      }
+    },
+    {
+      "testId": "RULE-088",
+      "featureId": "RULE-088",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"ops-scenario-builder\"]",
+        "actionAnchor": "zone-occupancy"
+      }
+    },
+    {
+      "testId": "RULE-089",
+      "featureId": "RULE-089",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRulePresetSummary",
+        "actionAnchor": "zone-occupancy"
+      }
+    },
+    {
+      "testId": "RULE-090",
+      "featureId": "RULE-090",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRulePresetSummary",
+        "actionAnchor": "zone-occupancy"
+      }
+    },
+    {
+      "testId": "RULE-091",
+      "featureId": "RULE-091",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRulePresetSummary",
+        "actionAnchor": "zone-occupancy"
+      }
+    },
+    {
+      "testId": "RULE-092",
+      "featureId": "RULE-092",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"ops-incident-rule-suggestion-review\"]",
+        "actionAnchor": "/ops/rules"
+      }
+    },
+    {
+      "testId": "RULE-093",
+      "featureId": "RULE-093",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "templateStart.ruleId"
+      }
+    },
+    {
+      "testId": "RULE-094",
+      "featureId": "RULE-094",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "templateStart.ruleId"
+      }
+    },
+    {
+      "testId": "RULE-095",
+      "featureId": "RULE-095",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/rules"
+      }
+    },
+    {
+      "testId": "RULE-096",
+      "featureId": "RULE-096",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"ops-incident-rule-suggestion-review\"]",
+        "actionAnchor": "/ops/rules"
+      }
+    },
+    {
+      "testId": "RULE-097",
+      "featureId": "RULE-097",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashSiteClientNoticePreviewList",
+        "actionAnchor": "viewer"
+      }
+    },
+    {
+      "testId": "RULE-098",
+      "featureId": "RULE-098",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVlmRuleDraftKindSelect",
+        "actionAnchor": "/ops/rules"
+      }
+    },
+    {
+      "testId": "RULE-100",
+      "featureId": "RULE-100",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"ops-incident-rule-suggestion-review\"]",
+        "actionAnchor": "/ops/rules"
+      }
+    },
+    {
+      "testId": "RULE-101",
+      "featureId": "RULE-101",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRuleIdInput",
+        "actionAnchor": "analysis.classes"
+      }
+    },
+    {
+      "testId": "RULE-102",
+      "featureId": "RULE-102",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRulePresetSelect",
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "RULE-103",
+      "featureId": "RULE-103",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "configured-zones"
+      }
+    },
+    {
+      "testId": "RULE-104",
+      "featureId": "RULE-104",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsOperatorOutcomeMemoryRows",
+        "actionAnchor": "approval-gated"
+      }
+    },
+    {
+      "testId": "RULE-111",
+      "featureId": "RULE-111",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVlmRuleDraftKindSelect",
+        "actionAnchor": "/ops/rules"
+      }
+    },
+    {
+      "testId": "EVT-001",
+      "featureId": "EVT-001",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashRuntimeTrendSparkline",
+        "actionAnchor": "dashboard"
+      }
+    },
+    {
+      "testId": "EVT-003",
+      "featureId": "EVT-003",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashRootCauseActionOutput",
+        "actionAnchor": "dashboard"
+      }
+    },
+    {
+      "testId": "EVT-004",
+      "featureId": "EVT-004",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "diagnostics"
+      }
+    },
+    {
+      "testId": "EVT-007",
+      "featureId": "EVT-007",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "EVT-016",
+      "featureId": "EVT-016",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsV320ResolutionTimeline",
+        "actionAnchor": "events"
+      }
+    },
+    {
+      "testId": "EVT-017",
+      "featureId": "EVT-017",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "EVT-018",
+      "featureId": "EVT-018",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashRuntimeOpsList",
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "EVT-019",
+      "featureId": "EVT-019",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"ops-vlm-event-review-card\"]",
+        "actionAnchor": "EventRecord"
+      }
+    },
+    {
+      "testId": "EVT-020",
+      "featureId": "EVT-020",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "evidence"
+      }
+    },
+    {
+      "testId": "EVT-021",
+      "featureId": "EVT-021",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#eventReviewRows",
+        "actionAnchor": "false-positive"
+      }
+    },
+    {
+      "testId": "EVT-022",
+      "featureId": "EVT-022",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashRootCauseActionOutput",
+        "actionAnchor": "filter"
+      }
+    },
+    {
+      "testId": "EVT-023",
+      "featureId": "EVT-023",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashCommandWorkspaceLedgerList",
+        "actionAnchor": "viewer-safe"
+      }
+    },
+    {
+      "testId": "EVT-024",
+      "featureId": "EVT-024",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashRuntimeTrendSparkline",
+        "actionAnchor": "dashboard"
+      }
+    },
+    {
+      "testId": "EVT-025",
+      "featureId": "EVT-025",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashRuntimeTrendSparkline",
+        "actionAnchor": "dashboard"
+      }
+    },
+    {
+      "testId": "EVT-026",
+      "featureId": "EVT-026",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashRootCauseList",
+        "actionAnchor": "dashboard"
+      }
+    },
+    {
+      "testId": "EVT-028",
+      "featureId": "EVT-028",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "EVT-030",
+      "featureId": "EVT-030",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsRulesReviewEventRecordLink",
+        "actionAnchor": "EventRecord"
+      }
+    },
+    {
+      "testId": "EVT-031",
+      "featureId": "EVT-031",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"ops-vlm-event-review-card\"]",
+        "actionAnchor": "operatorReviewQuestions"
+      }
+    },
+    {
+      "testId": "EVT-036",
+      "featureId": "EVT-036",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsRulesDetailPanel",
+        "actionAnchor": "sourceCandidateReport"
+      }
+    },
+    {
+      "testId": "EVT-037",
+      "featureId": "EVT-037",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "media-server"
+      }
+    },
+    {
+      "testId": "EVT-038",
+      "featureId": "EVT-038",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "alert-delivery-dry-run"
+      }
+    },
+    {
+      "testId": "EVT-041",
+      "featureId": "EVT-041",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "EVT-042",
+      "featureId": "EVT-042",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "EVT-043",
+      "featureId": "EVT-043",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "EVT-044",
+      "featureId": "EVT-044",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "EVT-046",
+      "featureId": "EVT-046",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "EVT-047",
+      "featureId": "EVT-047",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "EVT-048",
+      "featureId": "EVT-048",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/runtime/status"
+      }
+    },
+    {
+      "testId": "EVT-049",
+      "featureId": "EVT-049",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#eventRecordsEvidenceSelect",
+        "actionAnchor": "EventRecord"
+      }
+    },
+    {
+      "testId": "EVT-050",
+      "featureId": "EVT-050",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "EVT-051",
+      "featureId": "EVT-051",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "EVT-052",
+      "featureId": "EVT-052",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "EVT-053",
+      "featureId": "EVT-053",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "EVT-054",
+      "featureId": "EVT-054",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "EVT-055",
+      "featureId": "EVT-055",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "EVT-056",
+      "featureId": "EVT-056",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsApprovalGatedRuleDraftReadinessRows",
+        "actionAnchor": "approval-gated"
+      }
+    },
+    {
+      "testId": "EVT-057",
+      "featureId": "EVT-057",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEvidenceIntakeFieldReadinessRows",
+        "actionAnchor": "EventRecord"
+      }
+    },
+    {
+      "testId": "EVT-058",
+      "featureId": "EVT-058",
+      "route": "/ops/dashboard",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashRuntimeTrendSparkline",
+        "actionAnchor": "evidence"
+      }
+    },
+    {
+      "testId": "EVT-061",
+      "featureId": "EVT-061",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "EVT-064",
+      "featureId": "EVT-064",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "EVT-065",
+      "featureId": "EVT-065",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "EVT-066",
+      "featureId": "EVT-066",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "EVT-067",
+      "featureId": "EVT-067",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "EVT-068",
+      "featureId": "EVT-068",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "EVT-069",
+      "featureId": "EVT-069",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "EVT-070",
+      "featureId": "EVT-070",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "EVT-071",
+      "featureId": "EVT-071",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "EVT-072",
+      "featureId": "EVT-072",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "EVT-075",
+      "featureId": "EVT-075",
+      "route": "/ops/api/events/reviews",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/events/reviews"
+      }
+    },
+    {
+      "testId": "CLIENT-001",
+      "featureId": "CLIENT-001",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "assigned"
+      }
+    },
+    {
+      "testId": "CLIENT-002",
+      "featureId": "CLIENT-002",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "session"
+      }
+    },
+    {
+      "testId": "CLIENT-005",
+      "featureId": "CLIENT-005",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "reconnect"
+      }
+    },
+    {
+      "testId": "CLIENT-006",
+      "featureId": "CLIENT-006",
+      "route": "/client/dashboard",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "dashboard"
+      }
+    },
+    {
+      "testId": "CLIENT-007",
+      "featureId": "CLIENT-007",
+      "route": "/client/events",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"${escapeHtml(testId)}\"]",
+        "actionAnchor": "client-safe"
+      }
+    },
+    {
+      "testId": "CLIENT-009",
+      "featureId": "CLIENT-009",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "preference"
+      }
+    },
+    {
+      "testId": "CLIENT-010",
+      "featureId": "CLIENT-010",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "preference"
+      }
+    },
+    {
+      "testId": "CLIENT-011",
+      "featureId": "CLIENT-011",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "viewer"
+      }
+    },
+    {
+      "testId": "CLIENT-012",
+      "featureId": "CLIENT-012",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "client"
+      }
+    },
+    {
+      "testId": "CLIENT-013",
+      "featureId": "CLIENT-013",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "client"
+      }
+    },
+    {
+      "testId": "CLIENT-014",
+      "featureId": "CLIENT-014",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"client-live-dock-event-feed\"]",
+        "actionAnchor": "details"
+      }
+    },
+    {
+      "testId": "CLIENT-015",
+      "featureId": "CLIENT-015",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "client"
+      }
+    },
+    {
+      "testId": "CLIENT-016",
+      "featureId": "CLIENT-016",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "client"
+      }
+    },
+    {
+      "testId": "CLIENT-017",
+      "featureId": "CLIENT-017",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"client-live-va-overlay-toggle\"]",
+        "actionAnchor": "controls"
+      }
+    },
+    {
+      "testId": "CLIENT-018",
+      "featureId": "CLIENT-018",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"client-dashboard-shell\"]",
+        "actionAnchor": "preview"
+      }
+    },
+    {
+      "testId": "CLIENT-019",
+      "featureId": "CLIENT-019",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "video"
+      }
+    },
+    {
+      "testId": "CLIENT-020",
+      "featureId": "CLIENT-020",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "reconnect"
+      }
+    },
+    {
+      "testId": "CLIENT-021",
+      "featureId": "CLIENT-021",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"client-safe-followup-digest\"]",
+        "actionAnchor": "metadata"
+      }
+    },
+    {
+      "testId": "CLIENT-022",
+      "featureId": "CLIENT-022",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "selected-tile"
+      }
+    },
+    {
+      "testId": "CLIENT-023",
+      "featureId": "CLIENT-023",
+      "route": "/client/api/views/{id}/events",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"client-safe-incident-digest\"]",
+        "actionAnchor": "incident-digest"
+      }
+    },
+    {
+      "testId": "CLIENT-024",
+      "featureId": "CLIENT-024",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "PublishedView"
+      }
+    },
+    {
+      "testId": "CLIENT-025",
+      "featureId": "CLIENT-025",
+      "route": "/client/events",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"client-safe-event-digest\"]",
+        "actionAnchor": "media-server.client.event-digest.v1"
+      }
+    },
+    {
+      "testId": "CLIENT-027",
+      "featureId": "CLIENT-027",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"client-safe-resolution-digest\"]",
+        "actionAnchor": "media-server.client.resolution-digest.v1"
+      }
+    },
+    {
+      "testId": "CLIENT-028",
+      "featureId": "CLIENT-028",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"client-safe-source-status-digest\"]",
+        "actionAnchor": "media-server.client.source-status-digest.v1"
+      }
+    },
+    {
+      "testId": "CLIENT-029",
+      "featureId": "CLIENT-029",
+      "route": "/client/api/views/{id}/events",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"client-safe-maintenance-digest\"]",
+        "actionAnchor": "media-server.client.v340-maintenance-digest.v1"
+      }
+    },
+    {
+      "testId": "CLIENT-031",
+      "featureId": "CLIENT-031",
+      "route": "/client/api/views/{id}/events",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"client-impact-forecast\"]",
+        "actionAnchor": "clientImpactForecast"
+      }
+    },
+    {
+      "testId": "CLIENT-032",
+      "featureId": "CLIENT-032",
+      "route": "/client/api/views/{id}/events",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"client-operations-notice\"]",
+        "actionAnchor": "clientOperationsNotice"
+      }
+    },
+    {
+      "testId": "CLIENT-040",
+      "featureId": "CLIENT-040",
+      "route": "/client/api/views/{id}/events",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"client-action-notice-preview\"]",
+        "actionAnchor": "clientActionNoticePreview"
+      }
+    },
+    {
+      "testId": "CLIENT-041",
+      "featureId": "CLIENT-041",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/client"
+      }
+    },
+    {
+      "testId": "CLIENT-042",
+      "featureId": "CLIENT-042",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/client"
+      }
+    },
+    {
+      "testId": "MEDIA-016",
+      "featureId": "MEDIA-016",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "playback"
+      }
+    },
+    {
+      "testId": "MEDIA-017",
+      "featureId": "MEDIA-017",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "playback"
+      }
+    },
+    {
+      "testId": "SAFE-015",
+      "featureId": "SAFE-015",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-016",
+      "featureId": "SAFE-016",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "undefined"
+      }
+    },
+    {
+      "testId": "SAFE-017",
+      "featureId": "SAFE-017",
+      "route": "/lab",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/lab"
+      }
+    },
+    {
+      "testId": "SAFE-018",
+      "featureId": "SAFE-018",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "debug"
+      }
+    },
+    {
+      "testId": "SAFE-019",
+      "featureId": "SAFE-019",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "session"
+      }
+    },
+    {
+      "testId": "SAFE-020",
+      "featureId": "SAFE-020",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-021",
+      "featureId": "SAFE-021",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-024",
+      "featureId": "SAFE-024",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-028",
+      "featureId": "SAFE-028",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "bytes"
+      }
+    },
+    {
+      "testId": "SAFE-031",
+      "featureId": "SAFE-031",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-033",
+      "featureId": "SAFE-033",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-038",
+      "featureId": "SAFE-038",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVlmRuleDraftKindSelect",
+        "actionAnchor": "/ops/rules"
+      }
+    },
+    {
+      "testId": "SAFE-041",
+      "featureId": "SAFE-041",
+      "route": "/ops/api/audit",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/api/audit"
+      }
+    },
+    {
+      "testId": "SAFE-042",
+      "featureId": "SAFE-042",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-045",
+      "featureId": "SAFE-045",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "SAFE-046",
+      "featureId": "SAFE-046",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-047",
+      "featureId": "SAFE-047",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-048",
+      "featureId": "SAFE-048",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-049",
+      "featureId": "SAFE-049",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-050",
+      "featureId": "SAFE-050",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-052",
+      "featureId": "SAFE-052",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsIncidentSearchInput",
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "SAFE-053",
+      "featureId": "SAFE-053",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRulePresetSelect",
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "SAFE-054",
+      "featureId": "SAFE-054",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-055",
+      "featureId": "SAFE-055",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-056",
+      "featureId": "SAFE-056",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-058",
+      "featureId": "SAFE-058",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "SAFE-059",
+      "featureId": "SAFE-059",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "SAFE-060",
+      "featureId": "SAFE-060",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#dashRuntimeOpsList",
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "SAFE-061",
+      "featureId": "SAFE-061",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRulePresetSelect",
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "SAFE-062",
+      "featureId": "SAFE-062",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-065",
+      "featureId": "SAFE-065",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-066",
+      "featureId": "SAFE-066",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-067",
+      "featureId": "SAFE-067",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "debug"
+      }
+    },
+    {
+      "testId": "SAFE-068",
+      "featureId": "SAFE-068",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-069",
+      "featureId": "SAFE-069",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-098",
+      "featureId": "SAFE-098",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-104",
+      "featureId": "SAFE-104",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "SAFE-105",
+      "featureId": "SAFE-105",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-106",
+      "featureId": "SAFE-106",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-107",
+      "featureId": "SAFE-107",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-108",
+      "featureId": "SAFE-108",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-109",
+      "featureId": "SAFE-109",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-110",
+      "featureId": "SAFE-110",
+      "route": "/client/api/views/{id}/events",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"client-safe-resolution-digest\"]",
+        "actionAnchor": "viewer-safe"
+      }
+    },
+    {
+      "testId": "SAFE-111",
+      "featureId": "SAFE-111",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-117",
+      "featureId": "SAFE-117",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-118",
+      "featureId": "SAFE-118",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-119",
+      "featureId": "SAFE-119",
+      "route": "/client/api/views/{id}/events",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "sourceStatusDigest"
+      }
+    },
+    {
+      "testId": "SAFE-121",
+      "featureId": "SAFE-121",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-122",
+      "featureId": "SAFE-122",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-129",
+      "featureId": "SAFE-129",
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops/sources"
+      }
+    },
+    {
+      "testId": "SAFE-130",
+      "featureId": "SAFE-130",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-131",
+      "featureId": "SAFE-131",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-132",
+      "featureId": "SAFE-132",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    },
+    {
+      "testId": "SAFE-138",
+      "featureId": "SAFE-138",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsEventRulePresetSelect",
+        "actionAnchor": "/ops/events"
+      }
+    },
+    {
+      "testId": "SAFE-140",
+      "featureId": "SAFE-140",
+      "route": "/ops",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "/ops"
+      }
+    }
+  ]
+}

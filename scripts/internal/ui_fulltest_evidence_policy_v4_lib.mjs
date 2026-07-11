@@ -37,6 +37,9 @@ export function validatePolicy(policy) {
   for (const field of ["version", "gitCommit", "worktreePatchSha256", "buildPath", "buildSha256", "policyPath", "policySha256", "caseManifestPath", "caseManifestSha256", "runnerPath", "runnerSha256", "artifactRoot"]) {
     expectIncludes(policy?.sourceBinding?.requiredFields, field, `source binding field ${field}`, errors);
   }
+  expect(policy?.sourceBinding?.canonicalCaseManifestPath === "test/fixtures/ui_fulltest_case_manifest_policy_v4.json", "canonical case manifest path mismatch", errors);
+  expect(policy?.sourceBinding?.canonicalCaseManifestSchema === "media-server.ui-fulltest-canonical-case-manifest.v1", "canonical case manifest schema mismatch", errors);
+  expect(policy?.sourceBinding?.canonicalImplementationEvidenceSchema === "media-server.feature-implementation-evidence.v2", "canonical implementation evidence schema mismatch", errors);
   expect(policy?.sourceBinding?.sha256Pattern === "^[a-f0-9]{64}$", "source binding sha256 pattern mismatch", errors);
   expect(policy?.sourceBinding?.requireCurrentSourceVerification === true, "current source verification must be required", errors);
   expect(policy?.security?.redactionStatus === "PASS", "security redactionStatus must be PASS", errors);
@@ -72,6 +75,7 @@ export function evaluateEvidence(policy, summary, options = {}) {
     verifyCurrentSource: options.verifyCurrentSource !== false,
     currentSource: options.currentSource,
   });
+  const canonicalBinding = loadCanonicalCaseBinding(policy, summary, rootDir, reasons);
   validateAdapter(policy, summary, reasons);
   validateSecurity(policy, summary, reasons);
   validateCleanup(summary, reasons);
@@ -80,7 +84,10 @@ export function evaluateEvidence(policy, summary, options = {}) {
   const eligibleCaseIds = [];
   const caseIds = new Set();
   for (const item of cases) {
-    const caseReasons = validateCase(policy, item, summary, rootDir, { verifyArtifacts });
+    const caseReasons = validateCase(policy, item, summary, rootDir, {
+      verifyArtifacts,
+      canonicalCase: canonicalBinding.byTestId.get(item?.testId),
+    });
     if (caseIds.has(item?.testId)) caseReasons.push("duplicate-test-id");
     caseIds.add(item?.testId);
     if (caseReasons.length === 0) eligibleCaseIds.push(item.testId);
@@ -106,6 +113,9 @@ export function evaluateEvidence(policy, summary, options = {}) {
   const allCasesEligible = cases.length > 0 && eligibleCaseIds.length === cases.length;
   const suiteCandidate = summary.scopeKind === "full-suite";
   if (suiteCandidate && coverage.targetCount !== policy.suiteClosure.expectedExactUiTestIds) reasons.push("full-suite-exact-id-count-mismatch");
+  if (suiteCandidate && JSON.stringify(cases.map(item => item.testId)) !== JSON.stringify(canonicalBinding.orderedTestIds)) {
+    reasons.push("canonical-case-id-set-mismatch");
+  }
   const uiFulltestPass = policyErrors.length === 0 && suiteCandidate && allCasesEligible && reasons.length === 0;
   return finish(policy, summary, reasons, eligibleCaseIds, uiFulltestPass);
 }
@@ -131,17 +141,116 @@ function validateSourceBinding(policy, summary, rootDir, reasons, { verifyCurren
     if (binding[field] && !sha256Pattern.test(binding[field])) reasons.push(`source-binding-${field}-invalid-sha256`);
   }
   if (binding.currentSourceVerified !== true) reasons.push("current-source-not-verified");
-  if (!verifyCurrentSource) return;
   for (const [pathField, hashField] of [["policyPath", "policySha256"], ["caseManifestPath", "caseManifestSha256"], ["runnerPath", "runnerSha256"], ["buildPath", "buildSha256"]]) {
     const resolved = resolveContained(rootDir, binding[pathField]);
     if (!resolved || !fs.existsSync(resolved)) reasons.push(`source-binding-${pathField}-missing-file`);
     else if (sha256File(resolved) !== binding[hashField]) reasons.push(`source-binding-${hashField}-drift`);
   }
+  if (!verifyCurrentSource) return;
   if (currentSource) {
     if (binding.version !== currentSource.version) reasons.push("source-binding-version-drift");
     if (binding.gitCommit !== currentSource.gitCommit) reasons.push("source-binding-gitCommit-drift");
     if (binding.worktreePatchSha256 !== currentSource.worktreePatchSha256) reasons.push("source-binding-worktreePatchSha256-drift");
   }
+}
+
+function loadCanonicalCaseBinding(policy, summary, rootDir, reasons) {
+  const empty = { orderedTestIds: [], byTestId: new Map() };
+  const binding = summary.sourceBinding || {};
+  const canonicalPath = policy.sourceBinding?.canonicalCaseManifestPath;
+  if (binding.caseManifestPath !== canonicalPath) {
+    reasons.push("source-binding-caseManifestPath-not-canonical");
+    return empty;
+  }
+  const manifestPath = resolveContained(rootDir, canonicalPath);
+  if (!manifestPath || !fs.existsSync(manifestPath)) {
+    reasons.push("canonical-case-manifest-missing-file");
+    return empty;
+  }
+  let manifest;
+  try {
+    manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  } catch {
+    reasons.push("canonical-case-manifest-invalid-json");
+    return empty;
+  }
+  if (manifest.schema !== policy.sourceBinding.canonicalCaseManifestSchema) reasons.push("canonical-case-manifest-schema-mismatch");
+  if (manifest.version !== binding.version) reasons.push("canonical-case-manifest-version-mismatch");
+  const manifestCases = Array.isArray(manifest.cases) ? manifest.cases : [];
+  if (manifest.caseCount !== manifestCases.length) reasons.push("canonical-case-manifest-count-mismatch");
+  if (manifestCases.length !== policy.suiteClosure.expectedExactUiTestIds) reasons.push("canonical-case-manifest-exact-count-mismatch");
+  const testIds = manifestCases.map(item => item?.testId);
+  const featureIds = manifestCases.map(item => item?.featureId);
+  if (new Set(testIds).size !== testIds.length) reasons.push("canonical-case-manifest-duplicate-test-id");
+  if (new Set(featureIds).size !== featureIds.length) reasons.push("canonical-case-manifest-duplicate-feature-id");
+
+  const implementationRef = manifest.implementationEvidence || {};
+  const implementationPath = resolveContained(rootDir, implementationRef.path);
+  let implementation = null;
+  if (!implementationPath || !fs.existsSync(implementationPath)) {
+    reasons.push("canonical-implementation-evidence-missing-file");
+  } else {
+    if (sha256File(implementationPath) !== implementationRef.sha256) reasons.push("canonical-implementation-evidence-hash-drift");
+    try {
+      implementation = JSON.parse(fs.readFileSync(implementationPath, "utf8"));
+    } catch {
+      reasons.push("canonical-implementation-evidence-invalid-json");
+    }
+  }
+  if (implementationRef.schema !== policy.sourceBinding.canonicalImplementationEvidenceSchema ||
+      implementation?.schema !== policy.sourceBinding.canonicalImplementationEvidenceSchema) {
+    reasons.push("canonical-implementation-evidence-schema-mismatch");
+  }
+
+  const implementationCases = Array.isArray(implementation?.items)
+    ? implementation.items.filter(item => item.manualUiCaseId !== null).map(implementationCanonicalCase)
+    : [];
+  if (implementationCases.length !== policy.suiteClosure.expectedExactUiTestIds) reasons.push("canonical-implementation-exact-count-mismatch");
+  if (manifestCases.length === implementationCases.length) {
+    for (let index = 0; index < manifestCases.length; index += 1) {
+      const manifestCase = manifestCases[index] || {};
+      const implementationCase = implementationCases[index] || {};
+      for (const field of ["testId", "featureId", "route", "controlAction"]) {
+        if (JSON.stringify(manifestCase[field]) !== JSON.stringify(implementationCase[field])) {
+          reasons.push(`canonical-case-manifest-implementation-${field}-drift`);
+        }
+      }
+    }
+  } else {
+    reasons.push("canonical-case-manifest-implementation-order-drift");
+  }
+
+  for (const item of manifestCases) {
+    if (!item?.testId || !item?.featureId) reasons.push("canonical-case-identity-missing");
+    if (typeof item?.route !== "string" || !item.route.startsWith("/")) reasons.push("canonical-case-route-invalid");
+    if (!["anonymous", "operator", "viewer"].includes(item?.accountRole)) reasons.push("canonical-case-account-role-invalid");
+    if (!Number.isInteger(item?.viewport?.width) || item.viewport.width <= 0 ||
+        !Number.isInteger(item?.viewport?.height) || item.viewport.height <= 0) reasons.push("canonical-case-viewport-invalid");
+    if (!["light", "dark"].includes(item?.theme)) reasons.push("canonical-case-theme-invalid");
+    if (typeof item?.controlAction?.actionAnchor !== "string" || item.controlAction.actionAnchor.length === 0 ||
+        !(item.controlAction.selector === null || typeof item.controlAction.selector === "string")) {
+      reasons.push("canonical-case-control-action-invalid");
+    }
+  }
+  return {
+    orderedTestIds: testIds,
+    byTestId: new Map(manifestCases.map(item => [item.testId, item])),
+  };
+}
+
+function implementationCanonicalCase(item) {
+  const semantic = item.semanticEvidence || {};
+  const route = semantic.controlSelector?.screenRoute ||
+    (semantic.route?.applicability === "http-or-product-route" ? semantic.route.value : item.uiEvidence?.screenRoute);
+  return {
+    testId: item.manualUiCaseId,
+    featureId: item.id,
+    route,
+    controlAction: {
+      selector: semantic.controlSelector?.value ?? null,
+      actionAnchor: semantic.actionHandler?.anchor,
+    },
+  };
 }
 
 function validateAdapter(policy, summary, reasons) {
@@ -165,9 +274,17 @@ function validateCleanup(summary, reasons) {
   }
 }
 
-function validateCase(policy, item, summary, rootDir, { verifyArtifacts }) {
+function validateCase(policy, item, summary, rootDir, { verifyArtifacts, canonicalCase }) {
   const reasons = [];
   if (!item?.testId) reasons.push("test-id-missing");
+  if (!canonicalCase) {
+    reasons.push("unknown-canonical-case-id");
+  } else {
+    if (item?.featureId !== canonicalCase.featureId) reasons.push("canonical-feature-id-mismatch");
+    for (const field of ["route", "accountRole", "viewport", "theme", "controlAction"]) {
+      if (JSON.stringify(item?.requested?.[field]) !== JSON.stringify(canonicalCase[field])) reasons.push(`canonical-${field}-mismatch`);
+    }
+  }
   if (!["direct-pass", "automation-equivalent-pass"].includes(item?.evidenceStatus)) reasons.push("evidence-status-not-qualified");
   if (item?.status !== "PASS") reasons.push("case-status-not-pass");
   for (const field of ["route", "accountRole", "theme", "viewport", "controlAction"]) {

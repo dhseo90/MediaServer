@@ -87,6 +87,9 @@
     ]
   },
   "sourceBinding": {
+    "canonicalCaseManifestPath": "test/fixtures/ui_fulltest_case_manifest_policy_v4.json",
+    "canonicalCaseManifestSchema": "media-server.ui-fulltest-canonical-case-manifest.v1",
+    "canonicalImplementationEvidenceSchema": "media-server.feature-implementation-evidence.v2",
     "requiredFields": [
       "version",
       "gitCommit",
