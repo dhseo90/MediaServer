@@ -149,7 +149,15 @@ check("actual child evidence uses measured cleanup", () => {
   assert(ui.cleanup?.verificationSource === "filesystem-and-port-observation", "UI cleanup source mismatch");
   assert(ui.cleanup?.checks?.every(item => item.status === "PASS"), "UI cleanup check failed");
   assert(ui.artifactIntegrity?.placeholderVideoFiles === 0, "UI placeholder video remains");
-  assert((ui.cases || []).every(item => item.videoPath === "" && item.videoEvidence?.status === "not-captured" && item.videoEvidence?.placeholderCreated === false), "UI video boundary mismatch");
+  if (ui.schema === "media-server.ui-automation-evidence.v4") {
+    assert(ui.cleanup?.serversStopped === true && ui.cleanup?.portsClean === true, "exact UI server/port cleanup mismatch");
+    assert(ui.coverage?.targetCount === 424 && ui.coverage?.fail === 0 && ui.coverage?.notRun === 0 && ui.coverage?.unsupported === 0,
+      "exact UI coverage closure mismatch");
+    assert((ui.cases || []).every(item => item.artifacts?.screenshot && item.artifacts?.visualMeasurement && item.artifacts?.visualDiff),
+      "exact UI visual artifact boundary mismatch");
+  } else {
+    assert((ui.cases || []).every(item => item.videoPath === "" && item.videoEvidence?.status === "not-captured" && item.videoEvidence?.placeholderCreated === false), "UI video boundary mismatch");
+  }
 });
 
 const result = runChecks();

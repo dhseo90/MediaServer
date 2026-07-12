@@ -459,7 +459,7 @@ Usage:
   verify-v390-ui-native-adapter-contract
                  V390-ADD1-08 native Playwright module/capability/evidence contract를 검증합니다.
   verify-v390-test-acceptance-bundle
-                 v3.9.0 R3/V390-ADD1-06 dry-run 또는 clean source의 build→기능→30분→UI→120분 bundle을 실행합니다. current final actual은 --run-120 필수입니다.
+                 v3.9.0 canonical build→기능→30분→exact 424→Policy v4→조건부 120분→final integrity bundle을 실행합니다.
   verify-v390-test-acceptance-bundle-contract
                  v3.9.0 R3 test acceptance bundle command/docs/evidence contract를 검증합니다.
   verify-v390-final-evidence-integrity

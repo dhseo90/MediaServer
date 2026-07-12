@@ -2187,7 +2187,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 | 42 | V390-REVIEW3-42 | UI Correctness | semantic completion oracle | P0 | 완료 | Exact 424의 848 action plan이 request-header에서 실제 관측된 request ID/method/path/status와 case별 exact semantic readback identity를 함께 요구합니다. DOM digest-only와 사후 correlation 부착을 차단하고 persisted/EventRecord/server-log 대안은 attested schema만 허용합니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+1=7점. 거짓 PASS 정확도 상향 적용 |
 | 43 | V390-REVIEW3-43 | UI Policy | Policy v4 actual evidence producer | P0 | 완료 | exact runner actual mode가 `media-server.ui-automation-evidence.v4` summary와 case trace/console/server-log/visual/redaction, suite cross-cutting/redaction attestation을 실행 root에서 직접 생성합니다. 44번 visual 측정과 45번 acceptance-owned cleanup 전에는 `uiFulltestPass=false`입니다 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. release correctness와 evidence 보안 상향 적용 |
 | 44 | V390-REVIEW3-44 | Visual Evidence | responsive/theme/visual 실제 판정 | P0 | 완료 | actual PNG dimension/hash와 browser DOM geometry/computed-style/focus/video-overlay 측정에서 case visual 및 320/390/760/1180×light/dark cross-cutting status를 계산하고 Policy qualifier가 attested input을 재계산합니다 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+1=7점. 시각 동등성과 false-PASS 상향 적용 |
-| 45 | V390-REVIEW3-45 | Acceptance | canonical one-command 실행 경로 | P0 | 미완료 | 40~44번 결과를 424 runner→v4 qualification→acceptance/final integrity 한 command로 연결하고 120분은 AGENTS 조건/명시 option과 일치시킴 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점. release correctness 상향 적용 |
+| 45 | V390-REVIEW3-45 | Acceptance | canonical one-command 실행 경로 | P0 | 완료 | canonical bundle이 30분→exact 424 v4 producer→throwaway server cleanup→Policy qualification→AGENTS 7.6.2 조건부 120분→cleanup→final integrity를 연결하며 legacy 8-case와 외부 summary 주입을 제거했습니다 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점. release correctness 상향 적용 |
 | 46 | V390-REVIEW3-46 | Evidence | current HEAD와 artifact containment | P0 | 미완료 | final integrity가 current commit, clean state, child summary root containment, canonical command, stale historical source 차단을 직접 검증 | 5.6 Sol | 높음 (high) | 2+1+2+1=6점. release correctness 상향 적용 |
 | 47 | V390-REVIEW3-47 | Evidence | stale policy/historical artifact 정리 | P1 | 미완료 | coverage policy의 0/423/1 설명과 actual exact manifest를 정합화하고 historical PASS를 current consumer가 읽지 못하게 source binding 강화 | 5.6 Sol | 높음 (high) | 1+1+1+1=4점이나 evidence 정확도 상향 적용 |
 | 48 | V390-REVIEW3-48 | Structure | actual module dependency graph | P1 | 미완료 | 9개 declared module owner를 실제 파일/target에 매핑하고 include/link graph, forbidden edge, SCC, slice entry/exit를 실경로로 검증 | 5.6 Sol | 높음 (high) | 1+2+2+1=6점. 구조 전면 안정화 진입 정확도 상향 적용 |
@@ -2413,6 +2413,23 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
   contract 5/0은 8개 viewport/theme variant와 clipping·저대비·focus·overlay·dimension negative를 확인했고,
   Policy v4 contract 18/0은 low-contrast visual과 measurement-ref 없는 cross-cutting 자기선언 PASS를 거부했습니다.
 - 실제 exact 424 browser UI 풀테스트, 30분, 120분은 실행하지 않았으며 fixture/contract PASS로 대체하지 않습니다.
+
+45번 구현 기록(2026-07-12):
+
+- `verify-v390-test-acceptance-bundle`의 canonical stage를 preflight→build→feature gates→30분→
+  exact 424 native runner→explicit throwaway UI server/PID/HTTP·RTSP cleanup→Policy v4 qualification→
+  AGENTS 7.6.2 조건부 120분 decision/run→cleanup→final integrity→report로 교체했습니다.
+- Canonical 경로에서 legacy `verify-v390-ui-automation` 8-case/replay와 `--ui-fulltest-summary` 외부 주입을
+  제거했습니다. Exact child summary를 qualifier가 직접 소비하고 final integrity도 같은 command 안에서
+  provisional/final summary를 독립 재검증합니다.
+- 120분은 더 이상 actual preflight의 무조건 조건이 아니며 `--run-120` 또는 AGENTS 7.6.2 직접 trigger가
+  있을 때만 실행합니다. Actual exact UI는 loopback throwaway URL, role-state map, server log, 명시 PID와
+  RTSP port를 요구하고 media_server identity를 확인한 뒤 종료/port cleanup을 attestation에 반영합니다.
+- Screenshot content dedupe를 exact case/matrix artifact 생성 전에 적용해 final artifact duplicate를 막고,
+  final integrity는 v4 exact child의 424 coverage와 visual measurement/diff artifact를 인식합니다.
+- 강화한 acceptance contract 최초 실행은 old 8-case/외부 summary/120 강제/stage mismatch로 4/5 RED였습니다.
+  구현 뒤 9/0이 canonical source, fixed order, first-fail, conditional 120, cleanup/final-integrity fixture를
+  확인했습니다. Fixture/dry-run은 실제 30분, exact 424 UI, 120분 evidence가 아닙니다.
 
 #### V390-REVIEW3-46~47 final evidence integrity
 

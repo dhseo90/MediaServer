@@ -366,17 +366,16 @@ UI-113의 source-only `defer-all-action-writes`와 hidden element text가 PASS�
 
 v3.9.0 R3 dry-run command는 `finalAcceptanceCommandSet`과 evidence boundary를 같은
 summary/report schema로 고정합니다. V390-ADD1-06 non-dry command는 preserved evidence를
-PASS로 재사용하지 않고 preflight→build→31개 current feature command→실제 30분
-server longrun→실제 UI automation→UI replay→조건부 120분 decision/run→cleanup→report를
-순서대로 직접 실행합니다. 첫 실패 뒤 일반 stage는 `not-run`이고 cleanup/report만 항상
+PASS로 재사용하지 않고 preflight→build→current feature command→실제 30분
+server longrun→exact 424 Policy v4 producer→throwaway server cleanup→Policy v4 qualification→
+조건부 120분 decision/run→cleanup→final integrity→report를 순서대로 직접 실행합니다.
+첫 실패 뒤 일반 stage는 `not-run`이고 UI server cleanup/cleanup/report만 항상
 실행합니다.
 
 - `./server.sh verify-v390-test-acceptance-bundle --dry-run`
 - `./server.sh verify-v390-test-acceptance-bundle --dry-run --output-dir <path>`
-- `./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-final`
-- `./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-post-ui-final`
-- `./server.sh verify-v390-test-acceptance-bundle --output-dir <path> --allow-chrome-fallback=1`
-- `./server.sh verify-v390-test-acceptance-bundle --output-dir <path> --run-120`
+- `./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final --ui-http-base <loopback-url> --ui-role-state-map <roles.json> --ui-server-log <server.log> --ui-server-pid <pid> --ui-rtsp-port <port>`
+- 위 canonical command에 AGENTS 7.6.2 trigger가 있으면 `--run-120` 추가
 - `./server.sh verify-v390-test-acceptance-bundle-contract`
 
 R3 summary schema is `media-server.v390-test-acceptance-bundle.v1`. Dry-run은 command/schema
@@ -385,7 +384,7 @@ final evidence로 재사용하지 않습니다. 해당 보존본은 `invalid-exi
 `historical-evidence-requires-final-rerun`으로 기록합니다. 120분은 `conditional-not-run`,
 published metadata/release action은 `not-run-by-dry-run`입니다.
 
-Boundary: dry-run does not execute build, feature gates, 30-minute, UI automation, 120-minute,
+Boundary: dry-run does not execute build, feature gates, 30-minute, exact 424 UI, 120-minute,
 published metadata, or release-action suites. Actual mode의 `result=PASS`는 명령이 실행한
 자동 acceptance stage와 cleanup PASS입니다. `knownUiClosureBlockers`가 남으면
 `automatedAcceptanceStatus=executed-with-known-ui-closure-blockers`로 분리하며 UI 풀테스트

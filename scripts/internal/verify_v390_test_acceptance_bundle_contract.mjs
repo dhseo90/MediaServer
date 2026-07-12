@@ -22,7 +22,7 @@ Usage:
 Checks:
   - acceptance bundle dry-run command exists
   - actual-mode fixture executes the fixed stage order
-  - current final actual mode rejects missing --run-120 and a dirty worktree before build
+  - current final actual mode treats 120 minutes as AGENTS 7.6.2 conditional and rejects a dirty worktree before build
   - first failure makes later stages not-run while cleanup/report still execute
   - conditional 120-minute and cleanup failure paths are explicit
   - dry-run summary separates local/static, 30-minute, UI automation, 120-minute, published, and release action evidence
@@ -53,24 +53,23 @@ const files = {
   backlog: readText("docs/development-backlog.md"),
 };
 
-check("current final actual preflight requires 120 minutes and a clean worktree", () => {
+check("current final actual preflight keeps 120 conditional and requires a clean worktree", () => {
+  assert(!files.bundle.includes("current final actual acceptance requires explicit --run-120"),
+    "actual preflight still makes conditional 120 mandatory");
   for (const snippet of [
-    "current final actual acceptance requires explicit --run-120",
     "current final actual acceptance requires a clean worktree; commit approved changes before running",
-    "test-acceptance-current-final --run-120",
-  ]) {
-    assertIncludes(files.bundle, snippet, "current final preflight contract");
-  }
+    "AGENTS 7.6.2 conditional 120-minute decision",
+  ]) assertIncludes(files.bundle, snippet, "current final preflight contract");
+});
 
-  const missing120Dir = fixtureDir("missing-required-120");
-  const missing120 = runBundle(["--output-dir", missing120Dir]);
-  assert(missing120.status !== 0, "current final actual mode must reject missing --run-120");
-  const missing120Summary = readJson(path.join(missing120Dir, "summary.json"));
-  assert(missing120Summary.failedStage === "preflight", "missing --run-120 must fail at preflight");
-  assert(missing120Summary.firstFailure?.context?.includes("requires explicit --run-120"), "missing --run-120 failure context missing");
-  assert(missing120Summary.stages.find(item => item.id === "build")?.status === "not-run", "build must not run after missing --run-120");
-  fs.rmSync(missing120Dir, { recursive: true, force: true });
-
+check("canonical source removes legacy 8-case and external summary injection", () => {
+  assert(!files.bundle.includes('"verify-v390-ui-automation"'), "canonical bundle still executes legacy 8-case runner");
+  assert(!files.bundle.includes("--ui-fulltest-summary"), "canonical bundle still accepts external UI summary injection");
+  for (const snippet of [
+    "run-v390-ui-native-exact-cases",
+    "verify-ui-fulltest-evidence-policy-v4",
+    "verify-v390-final-evidence-integrity",
+  ]) assertIncludes(files.bundle, snippet, "canonical exact/Policy/final source");
 });
 
 check("server.sh and script inventory expose R3 acceptance bundle commands", () => {
@@ -114,7 +113,8 @@ check("dry-run writes replayable acceptance summary without executing gated suit
   assert(summary.uiAutomation?.notRun === 424, "UI automation not-run count mismatch");
   assert(Array.isArray(summary.finalAcceptanceCommandSet), "missing final acceptance command set");
   assert(summary.finalAcceptanceCommandSet.some((item) => item.id === "server-longrun-30" && item.status === "executed-by-actual-bundle"), "missing R1 longrun execution in final acceptance set");
-  assert(summary.finalAcceptanceCommandSet.some((item) => item.id === "ui-automation" && item.status === "executed-by-actual-bundle"), "missing R2 UI automation execution in final acceptance set");
+  assert(summary.finalAcceptanceCommandSet.some((item) => item.id === "ui-exact-424" && item.status === "executed-by-actual-bundle"), "missing exact 424 execution in final acceptance set");
+  assert(summary.finalAcceptanceCommandSet.some((item) => item.id === "final-integrity" && item.status === "executed-by-actual-bundle"), "missing final integrity execution in final acceptance set");
   assert(summary.finalAcceptanceCommandSet.some((item) => item.id === "actual-bundle" && item.status === "actual-execution"), "missing actual bundle command in final acceptance set");
   assert(summary.longrun120?.status === "conditional-not-run", "120-minute status mismatch");
   assert(summary.publishedMetadata?.status === "not-run-by-dry-run", "published metadata status mismatch");
@@ -140,8 +140,8 @@ check("actual-mode fixture executes the fixed stage order and conditional 120 de
   assert(summary.result === "PASS", "fixture pass result mismatch");
   assert(summary.stopOnFirstFail === true, "fixture stopOnFirstFail missing");
   assert(JSON.stringify(summary.stageOrder) === JSON.stringify([
-    "preflight", "build", "feature-gates", "server-longrun-30", "ui-automation", "ui-replay",
-    "ui-fulltest-qualification", "longrun-120-decision", "server-longrun-120", "cleanup", "report",
+    "preflight", "build", "feature-gates", "server-longrun-30", "ui-exact-424", "ui-server-cleanup",
+    "ui-fulltest-qualification", "longrun-120-decision", "server-longrun-120", "cleanup", "final-integrity", "report",
   ]), "fixture stage order mismatch");
   assert(summary.stages.find(item => item.id === "ui-fulltest-qualification")?.status === "PASS",
     "fixture orchestration qualification phase must execute as a contract phase");
@@ -177,7 +177,7 @@ check("actual-mode fixture stops on first failure and still runs cleanup/report"
   assert(summary.firstFailure?.stage === "feature-gates", "firstFailure stage mismatch");
   assert(summary.firstFailure?.command === "fixture fail feature-gates", "firstFailure command mismatch");
   assert(summary.firstFailure?.context?.includes("fixture failure at feature-gates"), "firstFailure context missing");
-  for (const id of ["server-longrun-30", "ui-automation", "ui-replay", "ui-fulltest-qualification", "longrun-120-decision", "server-longrun-120"]) {
+  for (const id of ["server-longrun-30", "ui-exact-424", "ui-fulltest-qualification", "longrun-120-decision", "server-longrun-120", "final-integrity"]) {
     assert(summary.stages.find(item => item.id === id)?.status === "not-run", `${id} must be not-run after failure`);
   }
   assert(summary.stages.find(item => item.id === "cleanup")?.status === "PASS", "cleanup must run after failure");

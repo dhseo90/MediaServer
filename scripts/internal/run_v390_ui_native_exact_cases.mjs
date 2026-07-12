@@ -11,6 +11,7 @@ import { createNativePlaywrightAdapter } from "./v390_ui_native_adapter.mjs";
 import { evaluateCompletionOracle } from "./v390_ui_completion_oracle_lib.mjs";
 import { validateNativeExactManifest } from "./v390_ui_native_exact_cases_lib.mjs";
 import { producePolicyV4Evidence } from "./v390_ui_policy_v4_evidence_producer.mjs";
+import { deduplicateScreenshotArtifacts } from "./evidence_integrity_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -93,6 +94,7 @@ const notRun = results.filter(item => item.status === "not-run").length;
 const visualMatrixProbes = fail === 0 && notRun === 0
   ? await executeVisualMatrix(adapter, roleStateMap)
   : [];
+deduplicateScreenshotArtifacts([...results, ...visualMatrixProbes]);
 const produced = producePolicyV4Evidence({
   rootDir,
   outputDir,

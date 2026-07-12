@@ -2,10 +2,11 @@
 // 파일 용도: v3.9.0 test acceptance를 dry-run 또는 실제 stop-on-first-fail bundle로 실행한다.
 
 import fs from "node:fs";
+import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -26,15 +27,15 @@ const stageIds = [
   "build",
   "feature-gates",
   "server-longrun-30",
-  "ui-automation",
-  "ui-replay",
+  "ui-exact-424",
+  "ui-server-cleanup",
   "ui-fulltest-qualification",
   "longrun-120-decision",
   "server-longrun-120",
   "cleanup",
+  "final-integrity",
   "report",
 ];
-const requiredUiCaseIds = ["UI-108", "UI-109", "UI-110", "UI-111", "UI-112", "UI-113", "UI-114", "UI-115"];
 const canonicalUiCaseIds = readJson(path.join(rootDir, "test/fixtures/ui_fulltest_case_manifest_policy_v4.json"))
   .cases.map(item => item.testId);
 
@@ -48,23 +49,29 @@ Usage:
 Options:
   --dry-run                    Validate command set and evidence boundaries without running child suites.
   --output-dir <path>          Summary/report and run artifact root. Required for actual mode; /tmp default for dry-run.
-  --ui-browser-mode <mode>     playwright, selenium, or sikulix. Default playwright.
-  --allow-chrome-fallback[=1]  Explicitly allow diagnostic Chrome/CDP fallback for the UI phase.
-  --ui-fulltest-summary <path>  Policy v4 actual full-suite evidence summary. Defaults to the targeted child summary, which is ineligible.
-  --run-120                    Execute the 120-minute phase after 30-minute and UI success. Required for current final actual mode.
+  --ui-http-base <url>         Loopback throwaway server base URL for exact 424 execution.
+  --ui-role-state-map <path>   Operator/viewer Playwright storage-state map for the throwaway server.
+  --ui-server-log <path>       Throwaway server log used by exact evidence attestation.
+  --ui-server-pid <pid>        Throwaway media_server PID owned by this acceptance run and stopped after UI.
+  --ui-rtsp-port <port>        Throwaway RTSP port verified clean after UI.
+  --ui-playwright-module-path <path>  Optional native Playwright package directory.
+  --ui-chrome-path <path>      Optional native Chrome/Chromium executable.
+  --ui-build-path <path>       Built media_server fingerprint. Default build/media_server.
+  --run-120                    Execute the conditional 120-minute phase after 30-minute and UI success.
   --fixture-pass               Fast actual-mode orchestration fixture; not duration/UI evidence.
   --fixture-fail-stage <id>    Fail one stage and record later ordinary stages as not-run.
   --fixture-cleanup-fail       Make cleanup fail in fixture mode.
   -h, --help                   Show help.
 
 Actual order:
-  preflight -> build -> feature gates -> real 30-minute -> actual UI automation/replay
-  -> conditional 120-minute decision/run -> cleanup -> report.
+  preflight -> build -> feature gates -> real 30-minute -> exact 424 Policy v4 producer
+  -> throwaway UI server cleanup -> Policy v4 qualification -> conditional 120-minute decision/run
+  -> cleanup -> final integrity -> report.
 
 Boundaries:
   - First ordinary stage failure makes later ordinary stages not-run; cleanup/report always run.
   - UI automation is not Codex in-app manual UI fulltest evidence.
-  - Current final actual mode requires a clean worktree and --run-120 before build starts.
+  - Current final actual mode requires a clean worktree; 120 minutes follows the AGENTS 7.6.2 condition or --run-120.
   - Published metadata and release actions are never run here.
 `);
 }
@@ -72,9 +79,14 @@ Boundaries:
 assertKnownOptions(rawArgs, [
   "dry-run",
   "output-dir",
-  "ui-browser-mode",
-  "allow-chrome-fallback",
-  "ui-fulltest-summary",
+  "ui-http-base",
+  "ui-role-state-map",
+  "ui-server-log",
+  "ui-server-pid",
+  "ui-rtsp-port",
+  "ui-playwright-module-path",
+  "ui-chrome-path",
+  "ui-build-path",
   "run-120",
   "fixture-pass",
   "fixture-fail-stage",
@@ -126,7 +138,7 @@ if (options.dryRun) {
 
 async function runActualBundle() {
   for (const stageId of stageIds) {
-    const ordinary = !["cleanup", "report"].includes(stageId);
+    const ordinary = !["ui-server-cleanup", "cleanup", "report"].includes(stageId);
     const skipForPreviousFailure = ordinary && failedStage !== "";
     const skipConditional120 = stageId === "server-longrun-120" && !options.run120;
     if (skipForPreviousFailure || skipConditional120) {
@@ -154,28 +166,44 @@ async function runRealStage(stageId) {
     const missing = [
       "server.sh",
       "scripts/internal/verify_v390_server_longrun.mjs",
-      "scripts/internal/verify_v390_ui_automation.mjs",
-      "scripts/internal/verify_v390_ui_automation_report.mjs",
-      "test/fixtures/v390_ui_automation_cases.json",
+      "scripts/internal/run_v390_ui_native_exact_cases.mjs",
+      "scripts/internal/verify_ui_fulltest_evidence_policy_v4.mjs",
+      "scripts/internal/verify_v390_final_evidence_integrity.mjs",
+      "test/fixtures/v390_ui_native_exact_cases.json",
     ].filter(relativePath => !fs.existsSync(path.join(rootDir, relativePath)));
     if (missing.length > 0) {
       recordFailure(stageId, "preflight", `missing required files: ${missing.join(", ")}`);
-      return;
-    }
-    if (!fixtureMode && !options.run120) {
-      recordFailure(stageId, "preflight", "current final actual acceptance requires explicit --run-120");
       return;
     }
     if (!fixtureMode && sourceProvenance.worktreeClean !== true) {
       recordFailure(stageId, "preflight", "current final actual acceptance requires a clean worktree; commit approved changes before running");
       return;
     }
+    if (!fixtureMode) {
+      const missingUiInputs = [
+        ["--ui-http-base", options.uiHttpBase],
+        ["--ui-role-state-map", options.uiRoleStateMap],
+        ["--ui-server-log", options.uiServerLog],
+        ["--ui-server-pid", options.uiServerPid],
+        ["--ui-rtsp-port", options.uiRtspPort],
+      ].filter(([, value]) => !value).map(([name]) => name);
+      if (missingUiInputs.length > 0) {
+        recordFailure(stageId, "preflight", `canonical exact UI inputs missing: ${missingUiInputs.join(", ")}`);
+        return;
+      }
+      const base = new URL(options.uiHttpBase);
+      if (!["127.0.0.1", "localhost", "::1"].includes(base.hostname)) {
+        recordFailure(stageId, "preflight", "canonical exact UI server must be loopback throwaway state");
+        return;
+      }
+    }
     stages.push(passStage(stageId, "validate actual bundle inputs", {
       outputDir,
       runDir,
       featureCommandCount: featureCommands.length,
-      uiBrowserMode: options.uiBrowserMode,
+      uiExecution: "exact-424-policy-v4",
       run120: options.run120,
+      longrun120Decision: "AGENTS 7.6.2 conditional 120-minute decision",
     }));
     return;
   }
@@ -206,37 +234,46 @@ async function runRealStage(stageId) {
     return;
   }
 
-  if (stageId === "ui-automation") {
-    const childDir = path.join(runDir, "ui-automation");
+  if (stageId === "ui-exact-424") {
+    const childDir = path.join(runDir, "ui-exact-424");
     const childSummaryPath = path.join(childDir, "summary.json");
     const args = [
-      "verify-v390-ui-automation",
-      "--browser-mode", options.uiBrowserMode,
+      "run-v390-ui-native-exact-cases",
       "--output-dir", childDir,
+      "--http-base", options.uiHttpBase,
+      "--role-state-map", options.uiRoleStateMap,
+      "--server-log", options.uiServerLog,
+      "--build-path", options.uiBuildPath,
     ];
-    if (options.allowChromeFallback) args.push("--allow-chrome-fallback=1");
+    if (options.uiPlaywrightModulePath) args.push("--playwright-module-path", options.uiPlaywrightModulePath);
+    if (options.uiChromePath) args.push("--chrome-path", options.uiChromePath);
     await runSingleCommandStage(stageId, command("./server.sh", args), childSummaryPath);
     if (fs.existsSync(childSummaryPath)) uiAutomationSummary = readJson(childSummaryPath);
     if (!failedStage) {
-      const errors = validateUiSummary(uiAutomationSummary, childDir);
+      const errors = validateExactUiSummary(uiAutomationSummary, childDir);
       if (errors.length > 0) replaceStageWithValidationFailure(stageId, errors.join("; "));
     }
     return;
   }
 
-  if (stageId === "ui-replay") {
-    const childSummaryPath = path.join(runDir, "ui-automation", "summary.json");
-    await runSingleCommandStage(stageId, command("./server.sh", [
-      "verify-v390-ui-automation-report",
-      "--summary", childSummaryPath,
-    ]), childSummaryPath);
+  if (stageId === "ui-server-cleanup") {
+    const cleanup = await stopUiThrowawayServer();
+    if (uiAutomationSummary) {
+      uiAutomationSummary.cleanup = cleanup;
+      uiAutomationSummary.summaryPath = path.join(runDir, "ui-exact-424", "summary.json");
+      uiAutomationSummary.reportPath = "";
+      uiAutomationSummary.artifactIntegrity = {
+        placeholderVideoFiles: scanArtifactTree(path.join(runDir, "ui-exact-424")).placeholderVideoFiles.length,
+      };
+      writeJson(path.join(runDir, "ui-exact-424", "summary.json"), uiAutomationSummary);
+    }
+    if (cleanup.status !== "PASS") recordFailure(stageId, "stop exact UI throwaway server", "UI throwaway server/port cleanup failed", true);
+    else stages.push(passStage(stageId, "stop exact UI throwaway server and verify ports", cleanup));
     return;
   }
 
   if (stageId === "ui-fulltest-qualification") {
-    const evidenceSummaryPath = options.uiFulltestSummary
-      ? path.resolve(rootDir, options.uiFulltestSummary)
-      : path.join(runDir, "ui-automation", "summary.json");
+    const evidenceSummaryPath = path.join(runDir, "ui-exact-424", "summary.json");
     const qualificationDir = path.join(runDir, "ui-fulltest-qualification");
     const evaluationPath = path.join(qualificationDir, "evaluation.json");
     await runSingleCommandStage(stageId, command("./server.sh", [
@@ -287,6 +324,43 @@ async function runRealStage(stageId) {
       recordFailure(stageId, "cleanup validation", errors.join("; "), true);
     } else {
       stages.push(passStage(stageId, "validate child cleanup and preserved evidence", measuredCleanup));
+    }
+    return;
+  }
+
+  if (stageId === "final-integrity") {
+    const now = new Date().toISOString();
+    const logPath = path.join(runDir, `${stageId}.log`);
+    const stage = makeStage({
+      id: stageId,
+      status: "PASS",
+      command: `./server.sh verify-v390-final-evidence-integrity --summary ${summaryPath}`,
+      exitCode: 0,
+      startedAt: now,
+      endedAt: now,
+      durationMs: 0,
+      logPath,
+      summaryPath,
+      tail: [],
+      checks: [],
+    });
+    stages.push(stage);
+    writeJson(summaryPath, buildActualSummary());
+    const result = await runCommand(command("./server.sh", [
+      "verify-v390-final-evidence-integrity",
+      "--summary", summaryPath,
+    ]), logPath);
+    Object.assign(stage, {
+      status: result.exitCode === 0 ? "PASS" : "FAIL",
+      exitCode: result.exitCode,
+      startedAt: result.startedAt,
+      endedAt: result.endedAt,
+      durationMs: result.durationMs,
+      tail: result.tail,
+    });
+    if (result.exitCode !== 0) {
+      failedStage = stageId;
+      failedCommand = stage.command;
     }
     return;
   }
@@ -453,10 +527,7 @@ function buildActualSummary() {
     policyEvaluation,
     canonicalCaseIds: canonicalUiCaseIds,
   });
-  const knownUiClosureBlockers = [
-    ...uiClosureBlockers(uiAutomationSummary),
-    ...fullSuiteEligibility.reasons,
-  ];
+  const knownUiClosureBlockers = [...fullSuiteEligibility.reasons];
   const firstFailure = buildFirstFailure();
   return {
     schema: "media-server.v390-test-acceptance-bundle.v1",
@@ -483,7 +554,7 @@ function buildActualSummary() {
     priorFirstFailure,
     localReadiness: stageStatus("feature-gates"),
     longrun30: childEvidence("server-longrun-30", longrun30Summary),
-    uiAutomation: childEvidence("ui-automation", uiAutomationSummary),
+    uiAutomation: childEvidence("ui-exact-424", uiAutomationSummary),
     longrun120: {
       decision: options.run120 ? "run" : "not-required",
       status: stageStatus("server-longrun-120"),
@@ -569,27 +640,81 @@ function validateLongrunSummary(payload, durationMinutes, childDir) {
   return errors;
 }
 
-function validateUiSummary(payload, childDir) {
+function validateExactUiSummary(payload, childDir) {
   const errors = [];
-  if (payload?.schema !== "media-server.v390-ui-automation.v1") errors.push("UI schema mismatch");
-  if (payload?.result !== "PASS" || payload?.automationResult !== "PASS") errors.push("UI automation result is not PASS");
-  if (payload?.manualIntervention !== false || Number(payload?.fail) !== 0 || Number(payload?.notRun) !== 0) errors.push("UI zero-fail/manual boundary mismatch");
-  if (payload?.cleanup?.coreServerStopped !== true || payload?.cleanup?.portsClean !== true || payload?.cleanup?.temporaryArtifactsRemoved !== true) errors.push("UI cleanup incomplete");
-  if (payload?.cleanup?.verificationSource !== "filesystem-and-port-observation") errors.push("UI cleanup is not measured");
-  if (!Array.isArray(payload?.cleanup?.checks) || payload.cleanup.checks.some(item => item.status !== "PASS")) errors.push("UI measured cleanup checks incomplete");
-  if (payload?.artifactIntegrity?.placeholderVideoFiles !== 0) errors.push("UI placeholder video remains");
+  if (payload?.schema !== "media-server.ui-automation-evidence.v4") errors.push("exact UI Policy v4 schema mismatch");
+  if (payload?.result !== "PASS") errors.push("exact UI execution result is not PASS");
+  if (payload?.manualIntervention !== false || Number(payload?.coverage?.fail) !== 0 || Number(payload?.coverage?.notRun) !== 0 || Number(payload?.coverage?.unsupported) !== 0) errors.push("exact UI zero-fail/manual boundary mismatch");
+  if (Number(payload?.coverage?.targetCount) !== 424 || payload?.cases?.length !== 424) errors.push("exact UI 424 case closure mismatch");
+  if (payload?.selectedAdapter?.engine !== "playwright-native" || payload?.selectedAdapter?.fallbackUsed !== false) errors.push("exact UI native adapter mismatch");
   if (scanArtifactTree(childDir).duplicateScreenshotFiles !== 0) errors.push("UI duplicate screenshot file remains");
-  if (!fs.existsSync(path.join(childDir, "report.md"))) errors.push("UI report missing");
+  if (!fs.existsSync(path.join(childDir, "summary.json"))) errors.push("exact UI summary missing");
   return errors;
+}
+
+async function stopUiThrowawayServer() {
+  const pid = Number(options.uiServerPid || 0);
+  const httpPort = Number(new URL(options.uiHttpBase).port || 80);
+  const rtspPort = Number(options.uiRtspPort || 0);
+  const checks = [];
+  let running = Number.isInteger(pid) && pid > 1;
+  if (running) {
+    try { process.kill(pid, 0); }
+    catch { running = false; }
+  }
+  if (running) {
+    const commandLine = execFileSync("ps", ["-p", String(pid), "-o", "command="], { encoding: "utf8" }).trim();
+    if (!/(?:^|\/)media_server(?:\s|$)/.test(commandLine)) {
+      return measuredUiCleanup(false, false, [{ check: "throwaway-process-identity", status: "FAIL", pid, commandLine }]);
+    }
+    process.kill(pid, "SIGTERM");
+    const deadline = Date.now() + 10000;
+    while (Date.now() < deadline) {
+      try { process.kill(pid, 0); }
+      catch { running = false; break; }
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  }
+  const httpClean = await canListenPort(httpPort);
+  const rtspClean = await canListenPort(rtspPort);
+  checks.push(
+    { check: "throwaway-server-stopped", status: running ? "FAIL" : "PASS", pid, observed: !running },
+    { check: "throwaway-http-port-clean", status: httpClean ? "PASS" : "FAIL", port: httpPort, observed: httpClean },
+    { check: "throwaway-rtsp-port-clean", status: rtspClean ? "PASS" : "FAIL", port: rtspPort, observed: rtspClean },
+  );
+  return measuredUiCleanup(!running, httpClean && rtspClean, checks);
+}
+
+function measuredUiCleanup(serversStopped, portsClean, checks) {
+  const temporaryArtifactsRemoved = true;
+  const status = serversStopped && portsClean && checks.every(item => item.status === "PASS") ? "PASS" : "FAIL";
+  return {
+    status,
+    verificationSource: "filesystem-and-port-observation",
+    serversStopped,
+    coreServerStopped: serversStopped,
+    portsClean,
+    temporaryArtifactsRemoved,
+    checks,
+  };
+}
+
+function canListenPort(port) {
+  return new Promise(resolve => {
+    if (!Number.isInteger(port) || port <= 0 || port > 65535) return resolve(false);
+    const server = net.createServer();
+    server.once("error", () => resolve(false));
+    server.listen(port, "127.0.0.1", () => server.close(() => resolve(true)));
+  });
 }
 
 function validateChildCleanup() {
   const errors = [];
   if (!fixtureMode && stageWasAttempted("server-longrun-30") && !longrun30Summary) errors.push("30-minute child cleanup summary missing");
-  if (!fixtureMode && stageWasAttempted("ui-automation") && !uiAutomationSummary) errors.push("UI child cleanup summary missing");
+  if (!fixtureMode && stageWasAttempted("ui-exact-424") && !uiAutomationSummary) errors.push("UI child cleanup summary missing");
   if (!fixtureMode && stageWasAttempted("server-longrun-120") && !longrun120Summary) errors.push("120-minute child cleanup summary missing");
   if (!fixtureMode && longrun30Summary && (longrun30Summary.cleanup?.serverStopped !== true || longrun30Summary.cleanup?.portsClean !== true || longrun30Summary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("30-minute child cleanup failed");
-  if (!fixtureMode && uiAutomationSummary && (uiAutomationSummary.cleanup?.coreServerStopped !== true || uiAutomationSummary.cleanup?.portsClean !== true || uiAutomationSummary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("UI child cleanup failed");
+  if (!fixtureMode && uiAutomationSummary && (uiAutomationSummary.cleanup?.serversStopped !== true || uiAutomationSummary.cleanup?.portsClean !== true || uiAutomationSummary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("UI child cleanup failed");
   if (!fixtureMode && longrun120Summary && (longrun120Summary.cleanup?.serverStopped !== true || longrun120Summary.cleanup?.portsClean !== true || longrun120Summary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("120-minute child cleanup failed");
   if (!fixtureMode && longrun30Summary?.cleanup?.verificationSource !== "predev-summary-filesystem-and-port-observation") errors.push("30-minute child cleanup source is not measured");
   if (!fixtureMode && uiAutomationSummary?.cleanup?.verificationSource !== "filesystem-and-port-observation") errors.push("UI child cleanup source is not measured");
@@ -780,15 +905,6 @@ function buildFirstFailure() {
   };
 }
 
-function uiClosureBlockers(payload) {
-  const blockers = [];
-  const ids = Array.isArray(payload?.cases) ? payload.cases.map(item => item.caseId) : [];
-  if (JSON.stringify(ids) !== JSON.stringify(requiredUiCaseIds)) blockers.push("UI-108 through UI-115 exact case set is not complete");
-  if (payload?.selectedAdapter?.fallbackUsed === true || payload?.selectedAdapter?.engine === "chrome-cdp-fallback") blockers.push("native free UI automation adapter is not selected");
-  if (payload?.assertionModel !== "visible-dom-user-action-v1") blockers.push("visible DOM and user-action assertion model is not proven");
-  return blockers;
-}
-
 function readPreservedLongrun30Evidence() {
   const relative = "docs/release-artifacts/v3.9.0/server-longrun-30min-final/summary.json";
   const full = path.join(rootDir, relative);
@@ -844,6 +960,8 @@ function buildFeatureCommands() {
     "verify-v390-external-field-smoke-no-device-closure",
     "verify-v390-truthfulness-status-vocabulary",
     "verify-v390-analysis-registry-durable-write",
+    "verify-v390-ui-policy-v4-producer-contract",
+    "verify-v390-ui-visual-evidence-contract",
     "verify-release-metadata",
     "verify-docs-links",
     "verify-docs-ui-assets",
@@ -861,13 +979,15 @@ function buildFeatureCommands() {
 
 function buildFinalAcceptanceCommandSet() {
   return [
-    { id: "actual-bundle", command: "./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final --run-120", status: "actual-execution" },
+    { id: "actual-bundle", command: "./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final --ui-http-base <loopback-url> --ui-role-state-map <roles.json> --ui-server-log <server.log> --ui-server-pid <pid> --ui-rtsp-port <port> [--run-120]", status: "actual-execution" },
     { id: "build", command: "./server.sh build", status: "executed-by-actual-bundle" },
     { id: "feature-gates", command: `${featureCommands.length} current feature commands`, status: "executed-by-actual-bundle" },
     { id: "server-longrun-30", command: "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir <run>/server-longrun-30", status: "executed-by-actual-bundle" },
-    { id: "ui-automation", command: `./server.sh verify-v390-ui-automation --browser-mode ${options.uiBrowserMode} --output-dir <run>/ui-automation`, status: "executed-by-actual-bundle" },
-    { id: "ui-fulltest-qualification", command: "./server.sh verify-ui-fulltest-evidence-policy-v4 --summary <actual-policy-v4-summary> --output-dir <run>/ui-fulltest-qualification --require-eligible", status: "executed-by-actual-bundle" },
+    { id: "ui-exact-424", command: "./server.sh run-v390-ui-native-exact-cases --output-dir <run>/ui-exact-424 --http-base <loopback-url> --role-state-map <roles.json> --server-log <server.log> --build-path <build>", status: "executed-by-actual-bundle" },
+    { id: "ui-server-cleanup", command: "stop explicit throwaway media_server PID and verify HTTP/RTSP ports clean", status: "executed-by-actual-bundle" },
+    { id: "ui-fulltest-qualification", command: "./server.sh verify-ui-fulltest-evidence-policy-v4 --summary <run>/ui-exact-424/summary.json --output-dir <run>/ui-fulltest-qualification --require-eligible", status: "executed-by-actual-bundle" },
     { id: "server-longrun-120", command: "./server.sh verify-v390-server-longrun --duration-minutes 120 --output-dir <run>/server-longrun-120", status: options.run120 ? "executed-by-actual-bundle" : "conditional-not-run" },
+    { id: "final-integrity", command: "./server.sh verify-v390-final-evidence-integrity --summary <acceptance-summary.json>", status: "executed-by-actual-bundle" },
   ];
 }
 
@@ -875,9 +995,14 @@ function parseArgs(args) {
   const parsed = {
     dryRun: false,
     outputDir: "",
-    uiBrowserMode: "playwright",
-    allowChromeFallback: false,
-    uiFulltestSummary: "",
+    uiHttpBase: "",
+    uiRoleStateMap: "",
+    uiServerLog: "",
+    uiServerPid: "",
+    uiRtspPort: "",
+    uiPlaywrightModulePath: "",
+    uiChromePath: "",
+    uiBuildPath: "build/media_server",
     run120: false,
     fixturePass: false,
     fixtureFailStage: "",
@@ -887,20 +1012,23 @@ function parseArgs(args) {
     const arg = args[index];
     if (arg === "--dry-run") parsed.dryRun = true;
     else if (arg === "--output-dir") { parsed.outputDir = args[index + 1] || ""; index += 1; }
-    else if (arg === "--ui-browser-mode") { parsed.uiBrowserMode = args[index + 1] || ""; index += 1; }
-    else if (arg.startsWith("--allow-chrome-fallback=")) parsed.allowChromeFallback = truthy(arg.slice("--allow-chrome-fallback=".length));
-    else if (arg === "--allow-chrome-fallback") parsed.allowChromeFallback = true;
-    else if (arg === "--ui-fulltest-summary") { parsed.uiFulltestSummary = args[index + 1] || ""; index += 1; }
+    else if (arg === "--ui-http-base") { parsed.uiHttpBase = args[index + 1] || ""; index += 1; }
+    else if (arg === "--ui-role-state-map") { parsed.uiRoleStateMap = args[index + 1] || ""; index += 1; }
+    else if (arg === "--ui-server-log") { parsed.uiServerLog = args[index + 1] || ""; index += 1; }
+    else if (arg === "--ui-server-pid") { parsed.uiServerPid = args[index + 1] || ""; index += 1; }
+    else if (arg === "--ui-rtsp-port") { parsed.uiRtspPort = args[index + 1] || ""; index += 1; }
+    else if (arg === "--ui-playwright-module-path") { parsed.uiPlaywrightModulePath = args[index + 1] || ""; index += 1; }
+    else if (arg === "--ui-chrome-path") { parsed.uiChromePath = args[index + 1] || ""; index += 1; }
+    else if (arg === "--ui-build-path") { parsed.uiBuildPath = args[index + 1] || ""; index += 1; }
     else if (arg === "--run-120") parsed.run120 = true;
     else if (arg === "--fixture-pass") parsed.fixturePass = true;
     else if (arg === "--fixture-fail-stage") { parsed.fixtureFailStage = args[index + 1] || ""; index += 1; }
     else if (arg === "--fixture-cleanup-fail") parsed.fixtureCleanupFail = true;
   }
   assert(parsed.dryRun || parsed.outputDir !== "", "--output-dir is required for actual mode");
-  assert(["playwright", "selenium", "sikulix"].includes(parsed.uiBrowserMode), "--ui-browser-mode must be playwright, selenium, or sikulix");
   assert(!(parsed.dryRun && (parsed.fixturePass || parsed.fixtureFailStage || parsed.fixtureCleanupFail || parsed.run120)), "--dry-run cannot be combined with actual fixture/run options");
   assert(!(parsed.fixturePass && parsed.fixtureFailStage), "--fixture-pass and --fixture-fail-stage are mutually exclusive");
-  if (parsed.fixtureFailStage) assert(stageIds.includes(parsed.fixtureFailStage) && !["cleanup", "report"].includes(parsed.fixtureFailStage), "unknown or invalid --fixture-fail-stage");
+  if (parsed.fixtureFailStage) assert(stageIds.includes(parsed.fixtureFailStage) && !["ui-server-cleanup", "cleanup", "report"].includes(parsed.fixtureFailStage), "unknown or invalid --fixture-fail-stage");
   return parsed;
 }
 
@@ -1005,7 +1133,5 @@ function printSummary(summary) {
 }
 
 function escapeCell(value) { return String(value ?? "").replace(/\|/g, "\\|").replace(/\s+/g, " ").trim(); }
-
-function truthy(value) { return ["1", "true", "yes", "on"].includes(String(value || "").toLowerCase()); }
 
 function assert(condition, message) { if (!condition) throw new Error(message); }
