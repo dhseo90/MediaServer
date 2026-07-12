@@ -2183,7 +2183,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 | 38 | V390-REVIEW3-38 | Persistence | Analysis Registry crash durability | P0 | 완료 | 기존 mode를 temp에 복원하고 file fsync/close→parent directory open→rename→directory fsync 뒤에만 성공합니다. 12 success, 12 mutation×9 fault=108, 12×3 crash=36 actual HTTP/restart matrix와 startup stale-temp recovery를 구현했습니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점. 데이터 손상 위험 상향 적용 |
 | 39 | V390-REVIEW3-39 | VLM Integrity | 구조적 JSON과 provenance 재검증 | P0 | 완료 | 공용 strict JSON parser로 모든 object scope의 decoded duplicate key와 malformed/trailing JSON을 거부하고 profile/rule의 top-level/nested type을 exact 조회합니다. Profile reload 13종과 rule provenance reload의 forged/duplicate/nested/deleted server-record를 quarantine합니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. provenance·보안·데이터 무결성 상향 적용 |
 | 40 | V390-REVIEW3-40 | Long-run | delegated exact phase ledger | P0 | 완료 | expected case ID/order/uniqueness/count를 parent가 검증하고 누락·중복·부분 summary를 PASS로 투영하지 않음 | 5.6 Sol | 높음 (high) | 2+1+2+1=6점. 테스트 결과 정확도 상향 적용 |
-| 41 | V390-REVIEW3-41 | UI Automation | exact 424 기능별 native workflow | P0 | 미완료 | 37번 semantic source를 기준으로 navigation-only/generic tag action을 case별 setup/input/action/expected result/cleanup으로 교체하고 hidden/non-action selector를 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. 대량 UI 동등성과 false-PASS 상향 적용 |
+| 41 | V390-REVIEW3-41 | UI Automation | exact 424 기능별 native workflow | P0 | 완료 | 424개 각각에 unique workflow와 role/semantic seed, input, explicit control sequence, reviewed state/readback 결과, reversible cleanup을 고정하고 runtime tag 추측을 제거했습니다. Hidden 10개와 disabled/non-action/read-model을 actionable control과 분리합니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. 대량 UI 동등성과 false-PASS 상향 적용 |
 | 42 | V390-REVIEW3-42 | UI Correctness | semantic completion oracle | P0 | 미완료 | DOM 임의 변화 대신 case별 endpoint+DOM, persisted readback, EventRecord, server log 중 실제 기대 결과를 요구하고 진짜 request correlation을 사용 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+1=7점. 거짓 PASS 정확도 상향 적용 |
 | 43 | V390-REVIEW3-43 | UI Policy | Policy v4 actual evidence producer | P0 | 미완료 | 41~42번 exact runner가 `media-server.ui-automation-evidence.v4` actual summary와 attested case/cross-cutting artifacts를 직접 생성하도록 구현 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. release correctness와 evidence 보안 상향 적용 |
 | 44 | V390-REVIEW3-44 | Visual Evidence | responsive/theme/visual 실제 판정 | P0 | 미완료 | 320/390/760/1180, light/dark, overlay/clipping/contrast/focus를 실제 browser artifact와 pixel/geometry 결과로 산출하고 자기선언 PASS를 금지 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+1=7점. 시각 동등성과 false-PASS 상향 적용 |
@@ -2325,6 +2325,22 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
   넘어갑니다. 세 항목은 병렬 개발 가능하지만 각 항목은 별도 완료 evidence를 가집니다.
 
 #### V390-REVIEW3-41~45 exact UI와 Policy v4
+
+41번 구현 기록(2026-07-12):
+
+- `verify-v390-ui-native-exact-cases-contract`는 424개 각각의 unique workflow ID, role/seed setup,
+  case input, explicit control sequence, expected result, persisted/local cleanup을 검증합니다.
+- runner와 manifest의 `runtime-control`/generic `interact`를 금지하고, hidden control은 hidden assertion,
+  disabled/non-action element는 명시적 상태/read-model assertion으로만 처리합니다.
+- exact contract와 plan-only runner만 실행하며 실제 Policy v4 exact 424 browser fulltest, 30분, 120분은
+  별도 실행 승인 전 미실행입니다.
+- v2 manifest는 424 navigate와 `route-read-model` 220, visible read-model 130, form contract 16,
+  hidden 10, explicit fill/select/toggle 38, details 2, enabled/disabled/seeded/link 9,
+  SAFE-017 cross-route negative 1을 exact count로 고정합니다. UI-018은 독립 negative route입니다.
+- Contract RED는 v1 manifest의 workflow 부재를 `8/1`로 재현했습니다. 최종 `10/0`은 workflow
+  누락·중복, generic action, 미분류 selector를 거부합니다. Plan-only는 424 not-run과
+  `uiFulltestPass=false`를 유지했고 native adapter는 sandbox bind EPERM 최초 실패 뒤 동일 명령 외부
+  재시도에서 7/7 PASS였습니다.
 
 - 현재 exact manifest는 424개 모두 390x844/light이며 223개가 route-root navigation-only입니다.
   201개 interaction 중 대부분은 case별 endpoint가 없고 runtime element tag에 따라 임의 동작합니다.

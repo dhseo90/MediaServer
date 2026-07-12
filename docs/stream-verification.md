@@ -91,6 +91,7 @@ v3.9.0 Test Model Prep의 서버 longrun runner는 30분/120분을 새 테스트
 | fixed phase order | build/preflight/seed/start/integrated smoke/soak iteration/cleanup/report 같은 phase 순서가 고정됩니다. |
 | stop-on-first-fail | 첫 실패에서 suite와 delegated duration case loop를 즉시 중단하고 이후 phase/case는 `not-run`으로 남깁니다. |
 | delegated exact ledger | V390-REVIEW3-40 parent는 start/smoke/runtime fixed ID와 각 soak iteration의 `va-events`→`event-post-schema`→`event-post-recovery`→`redaction`→`runtime-idle`를 exact ID/order/uniqueness/count로 검증하며 partial·duplicate·reordered·unknown summary를 PASS로 투영하지 않습니다. |
+| exact case-native UI workflow | V390-REVIEW3-41은 canonical 424 각각에 role/semantic seed, input, explicit control sequence, reviewed state/readback expected result, reversible cleanup을 고정합니다. Runtime DOM tag 추측, generic action, hidden/non-action click, 미분류 selector는 contract FAIL이며 plan-only/adapter 단기 검증을 actual exact 424 UI 풀테스트 PASS로 승격하지 않습니다. |
 | failure evidence | command, exit code, phase, port, route, log path, summary path, report path, cleanup state, case, context, separated stderr tail, reproduction command, stdout/stderr path, delegated predev first failed step, likely investigation files를 포함합니다. |
 | reproducible inputs | 같은 command와 fixture로 재현할 수 있어야 합니다. |
 | artifact policy | 임시 artifact는 cleanup하거나 보존 이유를 명시합니다. `/tmp` 경로를 최종 evidence로 쓰지 않습니다. |

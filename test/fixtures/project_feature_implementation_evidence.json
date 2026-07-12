@@ -2,7 +2,7 @@
   "schema": "media-server.feature-implementation-evidence.v2",
   "semanticClosureSchema": "media-server.feature-semantic-implementation-closure.v2",
   "expectedFeatureRows": 986,
-  "inventorySha256": "3825c65a113f9d7ed47fa6b2eba66201be52bd33ccc2b9135a3e0ef61fcc2bd7",
+  "inventorySha256": "b1f59cb6516f294738078698ea50bb988b2c13291cce2a3a2d563635d0d00327",
   "generatedFrom": "docs/project-feature-test-inventory.md",
   "generationPolicy": "reviewed-map-only; unrelated source changes preserve approved rows; changed rows become review-required; token scoring and bulk approval are forbidden",
   "semanticClosurePolicy": "986 explicit owner -> route/control -> action -> state -> readback -> verifier chains with content-addressed locators and per-feature review reasons",

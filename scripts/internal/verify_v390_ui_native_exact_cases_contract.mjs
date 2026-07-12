@@ -83,6 +83,91 @@ check("all cases declare native action, oracle seed, and artifact plan", () => {
   }
 });
 
+check("REVIEW3-41 requires case-native setup input control result and cleanup without generic dispatch", () => {
+  assert(manifest.schema === "media-server.v390-ui-native-exact-cases.v2", "REVIEW3-41 manifest schema v2 missing");
+  const workflowIds = [];
+  for (const item of manifest.cases) {
+    const workflow = item.workflow;
+    assert(workflow?.schema === "media-server.v390-ui-case-native-workflow.v1", `${item.caseId} workflow schema missing`);
+    assert(workflow.workflowId === `${item.caseId}:native-workflow`, `${item.caseId} workflow ID mismatch`);
+    workflowIds.push(workflow.workflowId);
+    for (const field of ["setup", "inputs", "controlSequence", "expectedResults", "cleanup"]) {
+      assert(Array.isArray(workflow[field]) && workflow[field].length > 0, `${item.caseId} ${field} missing`);
+    }
+    const serialized = JSON.stringify(workflow);
+    assert(!serialized.includes("runtime-control"), `${item.caseId} runtime-control is forbidden`);
+    assert(!workflow.controlSequence.some(action => action.kind === "interact"), `${item.caseId} generic interact is forbidden`);
+  }
+  assert(new Set(workflowIds).size === 424, "workflow IDs must be unique");
+  assert(!runnerSource.includes("interactWithRuntimeControl"), "runner generic runtime-control function is forbidden");
+  assert(!runnerSource.includes('strategy: "runtime-control"'), "runner runtime-control strategy is forbidden");
+
+  const hiddenCases = manifest.cases.filter(item => ["#opsEventRuleIdInput", "#opsVaRuleIdInput"].includes(item.controlAction.selector));
+  assert(hiddenCases.length > 0, "hidden control cases missing");
+  for (const item of hiddenCases) {
+    assert(item.workflow.controlSequence.some(action => action.kind === "assert-hidden-control"),
+      `${item.caseId} hidden control must use a hidden assertion`);
+    assert(!item.workflow.controlSequence.some(action => ["click", "fill", "select", "set-checked"].includes(action.kind)),
+      `${item.caseId} hidden control must not be actionable`);
+  }
+
+  const actionCounts = countKinds(manifest.cases.flatMap(item => item.workflow.controlSequence));
+  const expectedCounts = {
+    navigate: 424,
+    "wait-visible": 413,
+    "assert-route-read-model": 220,
+    "assert-form-contract": 16,
+    "toggle-details": 2,
+    "fill-control": 9,
+    "assert-visible-read-model": 130,
+    "toggle-checkbox": 3,
+    "assert-hidden-control": 10,
+    "select-control": 24,
+    "assert-disabled-control": 1,
+    "assert-enabled-control": 3,
+    "assert-seeded-select": 4,
+    "assert-link-target": 1,
+    "navigate-negative": 1,
+  };
+  assert(JSON.stringify(actionCounts) === JSON.stringify(expectedCounts),
+    `exact workflow action counts drift: ${JSON.stringify(actionCounts)}`);
+  assert(manifest.cases.every(item => item.workflow.setup.some(setup => setup.kind === "seed-reviewed-state")),
+    "all 424 cases must declare reviewed state seed");
+  assert(manifest.cases.every(item => item.workflow.cleanup.some(cleanup => cleanup.kind === "assert-no-persisted-mutation")),
+    "all 424 cases must declare persisted cleanup boundary");
+  assert(manifest.cases.every(item => item.workflow.expectedResults.every(result =>
+    /^[a-f0-9]{64}$/.test(result.expectedBehaviorSha256) && result.stateLocator?.file && result.readbackLocator?.file)),
+  "all 424 cases must bind expected result state/readback locators");
+  for (const caseId of ["SRC-038", "CLIENT-007"]) {
+    const item = manifest.cases.find(candidate => candidate.caseId === caseId);
+    assert(item?.controlAction.selector === '[data-testid="client-dashboard-safe-summary"]',
+      `${caseId} rendered template selector was not resolved`);
+    assert(item.workflow.controlSequence.some(action => action.kind === "assert-visible-read-model"),
+      `${caseId} rendered selector must be a visible read-model workflow`);
+  }
+});
+
+check("REVIEW3-41 rejects workflow omission duplicate generic action and unknown selector", () => {
+  expectInvalid("workflow-cleanup", mutate(value => { value.cases[0].workflow.cleanup = []; }), "workflow cleanup missing");
+  expectInvalid("workflow-id-duplicate", mutate(value => {
+    value.cases[1].workflow.workflowId = value.cases[0].workflow.workflowId;
+  }), "workflow IDs contain duplicates");
+  expectInvalid("generic-workflow-action", mutate(value => {
+    value.cases[0].workflow.controlSequence.push({ kind: "interact", dispatch: "playwright-native" });
+  }), "action/workflow drift");
+  const unknown = structuredClone(canonical);
+  const candidate = unknown.cases.find(item => item.testId === "UI-001");
+  candidate.controlAction.selector = "#unclassified-runtime-control";
+  let failed = false;
+  try {
+    buildNativeExactManifest({ canonical: unknown, implementation });
+  } catch (error) {
+    failed = true;
+    assert(String(error.message).includes("no exact native workflow classification"), `unexpected unknown selector error: ${error.message}`);
+  }
+  assert(failed, "unclassified selector must fail manifest generation");
+});
+
 check("runner owns native execution, role state, first-fail, and artifact fields", () => {
   for (const snippet of [
     "createNativePlaywrightAdapter",
@@ -136,6 +221,12 @@ function expectInvalid(label, value, expectedMessage) {
     assert(String(error.message).includes(expectedMessage), `${label} missing error ${expectedMessage}: ${error.message}`);
   }
   assert(failed, `${label} must fail`);
+}
+
+function countKinds(items) {
+  const counts = {};
+  for (const item of items) counts[item.kind] = (counts[item.kind] || 0) + 1;
+  return counts;
 }
 
 function check(name, fn) {

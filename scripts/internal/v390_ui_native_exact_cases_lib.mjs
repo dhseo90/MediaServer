@@ -4,9 +4,10 @@ import crypto from "node:crypto";
 
 import { allowedCompletionSources } from "./v390_ui_completion_oracle_lib.mjs";
 
-export const nativeExactManifestSchema = "media-server.v390-ui-native-exact-cases.v1";
+export const nativeExactManifestSchema = "media-server.v390-ui-native-exact-cases.v2";
 export const canonicalManifestSchema = "media-server.ui-fulltest-canonical-case-manifest.v1";
 export const implementationManifestSchema = "media-server.feature-implementation-evidence.v2";
+export const caseNativeWorkflowSchema = "media-server.v390-ui-case-native-workflow.v1";
 
 const dynamicSelectorPattern = /\$\{|<%|\{\{/.source;
 const productScreenRoutes = new Set([
@@ -28,6 +29,109 @@ const productScreenRoutes = new Set([
   "/client/live",
   "/client/dashboard",
   "/client/events",
+]);
+
+const formContracts = new Map([
+  ['[data-testid="auth-setup-form"]', { method: "post", action: "/setup", fields: ["username", "password", "confirm"] }],
+  ['[data-testid="auth-login-form"]', { method: "post", action: "/login", fields: ["username", "password"] }],
+  ['[data-testid="auth-password-change-form"]', { method: "post", action: "/password/change", fields: ["currentPassword", "password", "confirm"] }],
+  ['[data-testid="auth-invite-setup-form"]', { method: "post", action: "/invite/setup", fields: ["token", "password", "confirm"] }],
+  ["#request-form", { method: "", action: "", fields: ["username", "displayName", "contact", "viewId", "reason"] }],
+]);
+
+const fillControls = new Set([
+  "#opsIncidentSearchInput",
+  "#opsVlmDisabledReason",
+  "#opsScenarioBuilderClasses",
+  "#dashVaQualityFilterInput",
+]);
+
+const checkboxControls = new Set([
+  "#opsVlmProfileEnabled",
+  "#opsEventRuleLoiteringGroundPlaneToggle",
+]);
+
+const disabledControls = new Set(["#opsVlmExternalTransferWarningAck"]);
+const hiddenControls = new Set(["#opsEventRuleIdInput", "#opsVaRuleIdInput"]);
+const detailsControls = new Set(['[data-testid="ops-context-actions"]']);
+const enabledControls = new Set(["#add-channel", "#opsRulesComposerSave"]);
+const linkControls = new Set(["#opsRulesReviewEventRecordLink"]);
+
+const selectControls = new Map([
+  ["#opsEventRulePresetSelect", "road"],
+  ["#opsVaRuleReidSelect", "assist"],
+  ["#opsProfileDetectorSelect", "dummy"],
+  ["#opsEventRuleModeSelect", "scenario"],
+  ["#opsVaRuleTrackerSelect", "kalman-lite"],
+  ["#opsEventRuleTriggerDirectionSelect", "forward"],
+  ["#opsEventRuleTypeSelect", "re-entry"],
+  ["#opsScenarioBuilderType", "re-entry"],
+  ["#opsVlmRuleDraftKindSelect", "line-crossing"],
+  ["#eventRecordsEvidenceSelect", "snapshot"],
+]);
+
+const seededSelectControls = new Set(["#opsVaRuleTemplateSeedSelect"]);
+
+const readModelControls = new Set([
+  '[data-testid="client-live-action-reduction"]',
+  '[data-testid="client-dashboard-shell"]',
+  '[data-testid="client-dashboard-safe-summary"]',
+  "#clientDashboardPresetStatus",
+  "#dashSiteClientNoticePreviewList",
+  "#opsVlmPrivacyGuardList",
+  "#opsVlmStatus",
+  "#opsVlmRuntimeStatusList",
+  "#v320ActionReadinessChecklistGrid",
+  "#opsVlmEvaluationRows",
+  '[data-testid="ops-incident-rule-suggestion-review"]',
+  "#opsIncidentTriageBoardRows",
+  "#dashRuntimeOpsList",
+  "#opsV320ResolutionTimeline",
+  "#v320SourceReliabilityGrid",
+  "#v320AiReviewQualityGrid",
+  "#v320OperatorResolutionFlowGrid",
+  '[data-testid="client-safe-resolution-digest"]',
+  "#v320ResolutionSearchMetricsGrid",
+  "#v330IncidentSourceCorrelationGrid",
+  "#v330OperatorRecheckRecoveryQueueGrid",
+  '[data-testid="client-safe-source-status-digest"]',
+  '[data-testid="client-safe-maintenance-digest"]',
+  "#v350IncidentCommandHandoffGrid",
+  '[data-testid="client-impact-forecast"]',
+  '[data-testid="client-operations-notice"]',
+  "#dashCommandWorkspaceExportBundleMap",
+  "#dashCommandWorkspaceVlmAssistedExplanation",
+  "#opsIncidentActionReadinessQueueRows",
+  '[data-testid="client-action-notice-preview"]',
+  "#opsVlmRuleDraftBridgeStatus",
+  "#dashActionExecutionDeferralList",
+  "#dashFieldEvidenceBridgeList",
+  '[data-testid="auth-password-policy"]',
+  "#channelScopePolicy",
+  "#opsRulesValidationList",
+  "#opsVaRuleTrackingSummary",
+  "#opsVaRuleGeometryMinimumText",
+  "#dashSimulationWorkspaceVlmAssistedExplanationList",
+  "#opsEvidenceIntakeFieldReadinessRows",
+  "#dashIncidentTimeline",
+  "#dashReidAssistDecisionList",
+  "#dashRootCauseList",
+  '[data-testid="ops-scenario-builder"]',
+  "#opsEventRuleSettingsHeading",
+  "#opsEventRulePresetSummary",
+  "#opsOperatorOutcomeMemoryRows",
+  "#dashRuntimeTrendSparkline",
+  "#dashRootCauseActionOutput",
+  '[data-testid="ops-vlm-event-review-card"]',
+  "#eventReviewRows",
+  "#dashCommandWorkspaceLedgerList",
+  "#opsRulesDetailPanel",
+  "#opsApprovalGatedRuleDraftReadinessRows",
+  '[data-testid="client-live-dock-event-feed"]',
+  '[data-testid="client-live-va-overlay-toggle"]',
+  '[data-testid="client-safe-followup-digest"]',
+  '[data-testid="client-safe-incident-digest"]',
+  '[data-testid="client-safe-event-digest"]',
 ]);
 
 export function buildNativeExactManifest({ canonical, implementation }) {
@@ -53,33 +157,23 @@ export function buildNativeExactManifest({ canonical, implementation }) {
     const expectedBehavior = implementationItem.semanticEvidence?.stateOracle?.expectedBehavior || "";
     const expectedBehaviorSha256 = implementationItem.semanticEvidence?.stateOracle?.expectedBehaviorSha256 || "";
     const expectedNetworkUrlIncludes = inferNetworkUrlIncludes(canonicalCase);
-    const actions = [nativeAction("navigate", {
-      route: screenRoute,
-      expectedCanonicalRoute: canonicalCase.route,
-    })];
-    if (!negativeRoute) {
-      actions.push(nativeAction("wait-visible", {
-        selector: targetSelector,
-        selectorSource: canonicalSelector ? "canonical-control" : "route-root-fallback",
-      }));
-      if (canonicalSelector) {
-        actions.push(nativeAction("interact", {
-          selector: canonicalSelector,
-          strategy: "runtime-control",
-          expectedNetworkUrlIncludes,
-        }));
-      }
-      if (crossRouteNegative) {
-        actions.push(nativeAction("navigate-negative", {
-          route: canonicalCase.route,
-          allowedStatuses: [404],
-        }));
-      }
-    }
-    const hasInteraction = actions.some(action => action.kind === "interact");
-    const interactionHasNetworkOracle = actions.some(action =>
-      action.kind === "interact" && action.expectedNetworkUrlIncludes.length > 0,
-    );
+    const workflowParts = buildCaseNativeWorkflow({
+      canonicalCase,
+      implementationItem,
+      screenRoute,
+      canonicalSelector,
+      targetSelector,
+      negativeRoute,
+      crossRouteNegative,
+    });
+    const actions = workflowParts.controlSequence;
+    const hasInteraction = actions.some(action => [
+      "toggle-details",
+      "fill-control",
+      "toggle-checkbox",
+      "select-control",
+    ].includes(action.kind));
+    const interactionHasNetworkOracle = expectedNetworkUrlIncludes.length > 0;
     const hasCrossRouteNegative = actions.some(action => action.kind === "navigate-negative");
     const completionSources = negativeRoute || hasCrossRouteNegative
       ? ["negative-route-status"]
@@ -104,11 +198,28 @@ export function buildNativeExactManifest({ canonical, implementation }) {
       theme: canonicalCase.theme,
       controlAction: {
         selector: canonicalSelector,
-        selectorSource: canonicalSelector ? "canonical-control" : "route-root-fallback",
+        selectorSource: canonicalSelector ? "canonical-control" : "semantic-read-model",
         actionAnchor: canonicalCase.controlAction?.actionAnchor || "",
         targetSelector,
       },
       actions,
+      workflow: {
+        schema: caseNativeWorkflowSchema,
+        workflowId: `${canonicalCase.testId}:native-workflow`,
+        setup: workflowParts.setup,
+        inputs: workflowParts.inputs,
+        controlSequence: actions,
+        expectedResults: [{
+          resultId: `${canonicalCase.testId}:semantic-result`,
+          kind: negativeRoute || crossRouteNegative ? "negative-route-status" : "reviewed-semantic-result",
+          expectedBehavior,
+          expectedBehaviorSha256,
+          endpointHints: expectedNetworkUrlIncludes,
+          stateLocator: compactLocator(implementationItem.semanticEvidence?.stateOracle?.locator),
+          readbackLocator: compactLocator(implementationItem.semanticEvidence?.callChain?.roles?.readback),
+        }],
+        cleanup: workflowParts.cleanup,
+      },
       oracle: {
         kind: negativeRoute
           ? "negative-route-status"
@@ -162,6 +273,7 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
   assertExact(manifest.cases.map(item => item.caseId), canonical.cases.map(item => item.testId),
     "canonical ordered case IDs");
   assertUnique(manifest.cases.map(item => item.caseId), "native exact case IDs");
+  assertUnique(manifest.cases.map(item => item.workflow?.workflowId), "native exact workflow IDs");
 
   for (let index = 0; index < manifest.cases.length; index += 1) {
     const item = manifest.cases[index];
@@ -179,6 +291,18 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
     assert(Array.isArray(item.actions) && item.actions.length > 0, `${item.caseId} native actions missing`);
     assert(item.actions.every(action => action.dispatch === "playwright-native"), `${item.caseId} native action dispatch drift`);
     assert(JSON.stringify(item.actions) === JSON.stringify(expectedItem.actions), `${item.caseId} action plan drift`);
+    assert(item.workflow?.schema === caseNativeWorkflowSchema, `${item.caseId} workflow schema drift`);
+    assert(item.workflow.workflowId === `${item.caseId}:native-workflow`, `${item.caseId} workflow ID drift`);
+    for (const field of ["setup", "inputs", "controlSequence", "expectedResults", "cleanup"]) {
+      assert(Array.isArray(item.workflow[field]) && item.workflow[field].length > 0, `${item.caseId} workflow ${field} missing`);
+    }
+    assert(JSON.stringify(item.actions) === JSON.stringify(item.workflow.controlSequence), `${item.caseId} action/workflow drift`);
+    assert(!JSON.stringify(item.workflow).includes("runtime-control"), `${item.caseId} runtime-control is forbidden`);
+    assert(!item.workflow.controlSequence.some(action => action.kind === "interact"), `${item.caseId} generic interact is forbidden`);
+    if (hiddenControls.has(item.controlAction.selector)) {
+      assert(item.workflow.controlSequence.some(action => action.kind === "assert-hidden-control"),
+        `${item.caseId} hidden control assertion missing`);
+    }
     assert(item.oracle?.sourceKind === expectedItem.oracle.sourceKind, `${item.caseId} oracle source kind drift`);
     assert(item.oracle?.expectedBehaviorSha256 === expectedItem.oracle.expectedBehaviorSha256,
       `${item.caseId} oracle digest drift`);
@@ -214,6 +338,204 @@ export function normalizeProductScreenRoute(route) {
   return route;
 }
 
+function buildCaseNativeWorkflow({
+  canonicalCase,
+  implementationItem,
+  screenRoute,
+  canonicalSelector,
+  targetSelector,
+  negativeRoute,
+  crossRouteNegative,
+}) {
+  const caseId = canonicalCase.testId;
+  const semanticDigest = implementationItem.semanticEvidence?.callChain?.digest || "";
+  const setup = [
+    {
+      kind: "bind-role-session",
+      setupId: `${caseId}:role-session`,
+      accountRole: canonicalCase.accountRole,
+      required: canonicalCase.accountRole !== "anonymous",
+    },
+    {
+      kind: "seed-reviewed-state",
+      setupId: `${caseId}:reviewed-state`,
+      strategy: negativeRoute ? "negative-route" : (canonicalSelector ? "existing-product-control" : "existing-read-model"),
+      route: screenRoute,
+      semanticCallChainSha256: semanticDigest,
+      persistedMutation: false,
+    },
+  ];
+  const inputs = [{
+    inputId: `${caseId}:semantic-expectation`,
+    kind: "reviewed-semantic-expectation",
+    valueSha256: implementationItem.semanticEvidence?.stateOracle?.expectedBehaviorSha256 || "",
+    sensitive: false,
+  }];
+  const controlSequence = [nativeAction("navigate", {
+    actionId: `${caseId}:navigate`,
+    route: screenRoute,
+    expectedCanonicalRoute: canonicalCase.route,
+  })];
+  const cleanup = [{
+    kind: "assert-no-persisted-mutation",
+    cleanupId: `${caseId}:no-persisted-mutation`,
+    semanticCallChainSha256: semanticDigest,
+  }];
+
+  if (!negativeRoute) {
+    if (hiddenControls.has(canonicalSelector)) {
+      controlSequence.push(nativeAction("assert-hidden-control", {
+        actionId: `${caseId}:assert-hidden-control`,
+        selector: canonicalSelector,
+        expectedExists: true,
+      }));
+    } else {
+      controlSequence.push(nativeAction("wait-visible", {
+        actionId: `${caseId}:wait-visible`,
+        selector: targetSelector,
+        selectorSource: canonicalSelector ? "canonical-control" : "semantic-read-model",
+      }));
+      appendExactControlAction({ caseId, selector: canonicalSelector, targetSelector, inputs, controlSequence, cleanup });
+    }
+    if (crossRouteNegative) {
+      controlSequence.push(nativeAction("navigate-negative", {
+        actionId: `${caseId}:navigate-negative`,
+        route: canonicalCase.route,
+        allowedStatuses: [404],
+      }));
+      cleanup.push({
+        kind: "restore-route",
+        cleanupId: `${caseId}:restore-route`,
+        route: screenRoute,
+      });
+    }
+  }
+
+  return { setup, inputs, controlSequence, cleanup };
+}
+
+function appendExactControlAction({ caseId, selector, targetSelector, inputs, controlSequence, cleanup }) {
+  if (!selector) {
+    controlSequence.push(nativeAction("assert-route-read-model", {
+      actionId: `${caseId}:assert-route-read-model`,
+      selector: targetSelector,
+    }));
+    return;
+  }
+  if (formContracts.has(selector)) {
+    const contract = formContracts.get(selector);
+    inputs.push({
+      inputId: `${caseId}:form-contract`,
+      kind: "form-field-contract",
+      fields: [...contract.fields],
+      submit: false,
+      reason: "credential or persistent form submission requires a dedicated reversible seed",
+    });
+    controlSequence.push(nativeAction("assert-form-contract", {
+      actionId: `${caseId}:assert-form-contract`,
+      selector,
+      method: contract.method,
+      action: contract.action,
+      fields: [...contract.fields],
+    }));
+    return;
+  }
+  if (detailsControls.has(selector)) {
+    controlSequence.push(nativeAction("toggle-details", {
+      actionId: `${caseId}:toggle-details`,
+      selector,
+    }));
+    cleanup.push({ kind: "restore-details-open", cleanupId: `${caseId}:restore-details`, selector });
+    return;
+  }
+  if (fillControls.has(selector)) {
+    const value = `${caseId.toLowerCase()}-exact`;
+    inputs.push({ inputId: `${caseId}:control-value`, kind: "literal-control-value", value, sensitive: false });
+    controlSequence.push(nativeAction("fill-control", {
+      actionId: `${caseId}:fill-control`,
+      selector,
+      value,
+    }));
+    cleanup.push({ kind: "restore-control-value", cleanupId: `${caseId}:restore-value`, selector });
+    return;
+  }
+  if (checkboxControls.has(selector)) {
+    inputs.push({ inputId: `${caseId}:checked-value`, kind: "initial-state-inversion", value: "logical-not-initial", sensitive: false });
+    controlSequence.push(nativeAction("toggle-checkbox", {
+      actionId: `${caseId}:toggle-checkbox`,
+      selector,
+      checkedFrom: "logical-not-initial",
+    }));
+    cleanup.push({ kind: "restore-control-checked", cleanupId: `${caseId}:restore-checked`, selector });
+    return;
+  }
+  if (disabledControls.has(selector)) {
+    controlSequence.push(nativeAction("assert-disabled-control", {
+      actionId: `${caseId}:assert-disabled-control`,
+      selector,
+    }));
+    return;
+  }
+  if (selectControls.has(selector)) {
+    const value = selectControls.get(selector);
+    inputs.push({ inputId: `${caseId}:select-value`, kind: "literal-select-value", value, sensitive: false });
+    controlSequence.push(nativeAction("select-control", {
+      actionId: `${caseId}:select-control`,
+      selector,
+      value,
+    }));
+    cleanup.push({ kind: "restore-control-value", cleanupId: `${caseId}:restore-value`, selector });
+    return;
+  }
+  if (seededSelectControls.has(selector)) {
+    inputs.push({
+      inputId: `${caseId}:seeded-option`,
+      kind: "server-seeded-option",
+      minimumNonEmptyOptions: 1,
+      sensitive: false,
+    });
+    controlSequence.push(nativeAction("assert-seeded-select", {
+      actionId: `${caseId}:assert-seeded-select`,
+      selector,
+      minimumNonEmptyOptions: 1,
+    }));
+    return;
+  }
+  if (enabledControls.has(selector)) {
+    controlSequence.push(nativeAction("assert-enabled-control", {
+      actionId: `${caseId}:assert-enabled-control`,
+      selector,
+      reason: "persistent create/save requires an independently reversible server seed",
+    }));
+    return;
+  }
+  if (linkControls.has(selector)) {
+    controlSequence.push(nativeAction("assert-link-target", {
+      actionId: `${caseId}:assert-link-target`,
+      selector,
+      requireSameOriginPath: true,
+    }));
+    return;
+  }
+  if (readModelControls.has(selector)) {
+    controlSequence.push(nativeAction("assert-visible-read-model", {
+      actionId: `${caseId}:assert-visible-read-model`,
+      selector,
+    }));
+    return;
+  }
+  throw new Error(`${caseId} canonical selector has no exact native workflow classification: ${selector}`);
+}
+
+function compactLocator(value) {
+  if (!value || typeof value !== "object") return null;
+  return {
+    file: value.file || "",
+    symbol: value.symbol || "",
+    contextSha256: value.contextSha256 || "",
+  };
+}
+
 function routeRootSelector(route) {
   if (route.startsWith("/ops")) return "body.ops-shell";
   if (route.startsWith("/client") && route !== "/client/request-access") return "body.client-shell";
@@ -224,6 +546,9 @@ function routeRootSelector(route) {
 
 function normalizeCanonicalSelector(value) {
   if (typeof value !== "string" || !value.trim()) return null;
+  if (value === '[data-testid="${escapeHtml(testId)}"]') {
+    return '[data-testid="client-dashboard-safe-summary"]';
+  }
   if (new RegExp(dynamicSelectorPattern).test(value)) return null;
   return value;
 }

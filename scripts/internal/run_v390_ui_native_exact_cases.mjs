@@ -127,16 +127,22 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       theme: item.theme,
     },
     navigation: browser.navigation,
+    setup: [],
+    inputs: structuredClone(item.workflow.inputs),
     actions: [],
     completionEvents: [],
+    expectedResults: structuredClone(item.workflow.expectedResults),
+    cleanup: [],
   };
+  const runtimeState = new Map();
   const screenshotPath = path.join(screenshotsDir, `${item.caseId}.png`);
   const tracePath = path.join(tracesDir, `${item.caseId}.trace.json`);
   const consolePath = path.join(logsDir, `${item.caseId}.browser-console.json`);
   try {
+    executeWorkflowSetup(item, storageStatePath, trace);
     assert(item.oracle.allowedStatuses.includes(browser.navigation.status),
       `${item.caseId} navigation status ${browser.navigation.status} not in ${item.oracle.allowedStatuses.join(",")}`);
-    const initialSnapshot = await browser.snapshot(item.controlAction.targetSelector);
+    const initialSnapshot = await browser.snapshot("body");
     const initialCompletion = evaluateCompletionOracle({
       action: completionAction(item.disposition === "negative-route" ? "navigate-negative" : "navigate", item, "navigation"),
       after: initialSnapshot,
@@ -153,10 +159,6 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
         if (action.kind === "wait-visible") {
           await browser.waitForSelector(action.selector);
           trace.actions.push({ ...action, status: "PASS" });
-        } else if (action.kind === "interact") {
-          const result = await interactWithRuntimeControl(browser, item, action);
-          trace.actions.push(result.actionEvidence);
-          trace.completionEvents.push(result.completionOracle);
         } else if (action.kind === "navigate-negative") {
           const before = await browser.snapshot(item.controlAction.targetSelector);
           const networkStart = browser.networkEntries().length;
@@ -177,12 +179,17 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
           assert(completionOracle.pass, `${item.caseId} negative navigation completion failed: ${completionOracle.reason}`);
           trace.actions.push({ ...action, observed, status: "PASS" });
           trace.completionEvents.push(completionOracle);
+        } else {
+          const result = await executeCaseNativeAction(browser, item, action, runtimeState);
+          trace.actions.push(result.actionEvidence);
+          if (result.completionOracle) trace.completionEvents.push(result.completionOracle);
         }
       }
     }
     assert(trace.completionEvents.some(event => event.pass && item.oracle.allowedCompletionSources.includes(event.source)),
       `${item.caseId} has no allowed completion oracle`);
     await browser.screenshot(screenshotPath);
+    await executeWorkflowCleanup(browser, item, runtimeState, trace);
     writeJson(consolePath, {
       schema: "media-server.v390-ui-native-browser-console.v1",
       caseId: item.caseId,
@@ -211,46 +218,143 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
   }
 }
 
-async function interactWithRuntimeControl(browser, item, action) {
-  const correlationId = `${item.caseId}:primary`;
+function executeWorkflowSetup(item, storageStatePath, trace) {
+  for (const setup of item.workflow.setup) {
+    if (setup.kind === "bind-role-session") {
+      assert(setup.accountRole === item.accountRole, `${item.caseId} role setup drift`);
+      assert(setup.required === (item.accountRole !== "anonymous"), `${item.caseId} role requirement drift`);
+      if (setup.required) assert(storageStatePath, `${item.caseId} required role storage state missing`);
+    } else if (setup.kind === "seed-reviewed-state") {
+      assert(/^[a-f0-9]{64}$/.test(setup.semanticCallChainSha256), `${item.caseId} semantic seed digest invalid`);
+      assert(setup.persistedMutation === false, `${item.caseId} undeclared persisted seed mutation`);
+    } else {
+      throw new Error(`${item.caseId} unsupported setup kind: ${setup.kind}`);
+    }
+    trace.setup.push({ ...setup, status: "PASS" });
+  }
+}
+
+async function executeCaseNativeAction(browser, item, action, runtimeState) {
+  if (action.kind === "assert-form-contract") {
+    const observed = await browser.evaluate(`(() => {
+      const form = document.querySelector(${JSON.stringify(action.selector)});
+      if (!form) return null;
+      return {
+        method: String(form.getAttribute('method') || '').toLowerCase(),
+        action: String(form.getAttribute('action') || ''),
+        fields: ${JSON.stringify(action.fields)}.filter(name => Boolean(form.querySelector('[name="' + CSS.escape(name) + '"]'))),
+      };
+    })()`);
+    assert(observed, `${item.caseId} form missing: ${action.selector}`);
+    assert(observed.method === action.method, `${item.caseId} form method mismatch`);
+    assert(observed.action === action.action, `${item.caseId} form action mismatch`);
+    assert(JSON.stringify(observed.fields) === JSON.stringify(action.fields), `${item.caseId} form fields mismatch`);
+    return assertionResult(action, observed);
+  }
+
   const before = await browser.snapshot(action.selector);
+  assert(before.exists, `${item.caseId} control missing: ${action.selector}`);
+  if (action.kind === "assert-route-read-model" || action.kind === "assert-visible-read-model") {
+    assert(before.visible, `${item.caseId} read model is not visible: ${action.selector}`);
+    return assertionResult(action, before);
+  }
+  if (action.kind === "assert-hidden-control") {
+    assert(action.expectedExists === true && !before.visible, `${item.caseId} hidden control state mismatch`);
+    return assertionResult(action, before);
+  }
+  if (action.kind === "assert-disabled-control") {
+    assert(before.disabled === true, `${item.caseId} control is not disabled: ${action.selector}`);
+    return assertionResult(action, before);
+  }
+  if (action.kind === "assert-enabled-control") {
+    assert(before.visible && before.disabled === false, `${item.caseId} control is not enabled: ${action.selector}`);
+    return assertionResult(action, before);
+  }
+  if (action.kind === "assert-link-target") {
+    assert(before.tag === "a" && before.href.startsWith("/"), `${item.caseId} same-origin link target missing`);
+    return assertionResult(action, before);
+  }
+  if (action.kind === "assert-seeded-select") {
+    const nonEmpty = before.optionValues.filter(Boolean);
+    assert(before.tag === "select" && nonEmpty.length >= action.minimumNonEmptyOptions,
+      `${item.caseId} server-seeded select option missing`);
+    return assertionResult(action, { ...before, nonEmptyOptionCount: nonEmpty.length });
+  }
+
+  runtimeState.set(action.selector, { kind: action.kind, snapshot: before });
   const networkStart = browser.networkEntries().length;
-  const control = await browser.evaluate(`(() => {
-    const element = document.querySelector(${JSON.stringify(action.selector)});
-    if (!element) return null;
-    return {
-      tag: element.tagName.toLowerCase(),
-      type: String(element.getAttribute('type') || '').toLowerCase(),
-      value: 'value' in element ? String(element.value || '') : '',
-      options: element.tagName === 'SELECT' ? Array.from(element.options).filter(option => !option.disabled).map(option => String(option.value)) : [],
-    };
-  })()`);
-  assert(control, `${item.caseId} runtime control missing: ${action.selector}`);
-  let executedKind = "click";
-  if (control.tag === "select") {
-    const next = control.options.find(value => value !== control.value);
-    assert(next !== undefined, `${item.caseId} select has no alternate option`);
-    await browser.select(action.selector, next);
-    executedKind = "select";
-  } else if (["input", "textarea"].includes(control.tag) && !["button", "submit", "checkbox", "radio"].includes(control.type)) {
-    await browser.fill(action.selector, `${item.caseId}-native`);
+  const correlationId = `${item.caseId}:${action.actionId}`;
+  let executedKind = "";
+  if (action.kind === "toggle-details") {
+    assert(before.tag === "details", `${item.caseId} details contract mismatch`);
+    await browser.click(`${action.selector} > summary`);
+    executedKind = "click";
+  } else if (action.kind === "fill-control") {
+    assert(["input", "textarea"].includes(before.tag), `${item.caseId} fill control contract mismatch`);
+    await browser.fill(action.selector, action.value);
     executedKind = "fill";
-  } else {
+  } else if (action.kind === "toggle-checkbox") {
+    assert(before.tag === "input", `${item.caseId} checkbox control contract mismatch`);
     await browser.click(action.selector);
+    executedKind = "click";
+  } else if (action.kind === "select-control") {
+    assert(before.tag === "select" && before.optionValues.includes(action.value),
+      `${item.caseId} exact select option missing: ${action.value}`);
+    await browser.select(action.selector, action.value);
+    executedKind = "select";
+  } else {
+    throw new Error(`${item.caseId} unsupported case-native action: ${action.kind}`);
   }
   await delay(350);
   const after = await browser.snapshot(action.selector);
-  const networkResponses = browser.networkEntries().slice(networkStart).map(item => ({ ...item, correlationId }));
-  const actionEvidence = { ...action, executed: true, executedKind, correlationId, status: "PASS" };
-  const completionOracle = evaluateCompletionOracle({
-    action: actionEvidence,
-    before,
-    after,
-    networkResponses,
-  });
+  if (action.kind === "toggle-checkbox") {
+    assert(after.checked !== before.checked, `${item.caseId} checkbox did not toggle`);
+  }
+  const networkResponses = browser.networkEntries().slice(networkStart).map(entry => ({ ...entry, correlationId }));
+  const actionEvidence = { ...action, executed: true, executedKind, correlationId, before, after, status: "PASS" };
+  const completionOracle = evaluateCompletionOracle({ action: actionEvidence, before, after, networkResponses });
   assertCompletionEvidence(completionOracle, item.caseId);
-  assert(completionOracle.pass, `${item.caseId} ${executedKind} completion failed: ${completionOracle.reason}`);
+  assert(completionOracle.pass, `${item.caseId} ${action.kind} completion failed: ${completionOracle.reason}`);
   return { actionEvidence, completionOracle };
+}
+
+function assertionResult(action, observed) {
+  return {
+    actionEvidence: { ...action, executed: true, observed, status: "PASS" },
+    completionOracle: null,
+  };
+}
+
+async function executeWorkflowCleanup(browser, item, runtimeState, trace) {
+  for (const cleanup of item.workflow.cleanup) {
+    if (cleanup.kind === "assert-no-persisted-mutation") {
+      assert(/^[a-f0-9]{64}$/.test(cleanup.semanticCallChainSha256), `${item.caseId} cleanup semantic digest invalid`);
+    } else if (cleanup.kind === "restore-control-value") {
+      const state = runtimeState.get(cleanup.selector);
+      assert(state, `${item.caseId} cleanup value snapshot missing`);
+      if (state.kind === "select-control") {
+        await browser.select(cleanup.selector, state.snapshot.selectedValues[0] || "");
+      } else {
+        await browser.fill(cleanup.selector, state.snapshot.value);
+      }
+    } else if (cleanup.kind === "restore-control-checked") {
+      const state = runtimeState.get(cleanup.selector);
+      assert(state, `${item.caseId} cleanup checked snapshot missing`);
+      const current = await browser.snapshot(cleanup.selector);
+      if (current.checked !== state.snapshot.checked) await browser.click(cleanup.selector);
+    } else if (cleanup.kind === "restore-details-open") {
+      const state = runtimeState.get(cleanup.selector);
+      assert(state, `${item.caseId} cleanup details snapshot missing`);
+      const current = await browser.snapshot(cleanup.selector);
+      if (current.open !== state.snapshot.open) await browser.click(`${cleanup.selector} > summary`);
+    } else if (cleanup.kind === "restore-route") {
+      const observed = await browser.navigate(cleanup.route);
+      assert(observed.status >= 200 && observed.status < 400, `${item.caseId} route cleanup failed`);
+    } else {
+      throw new Error(`${item.caseId} unsupported cleanup kind: ${cleanup.kind}`);
+    }
+    trace.cleanup.push({ ...cleanup, status: "PASS" });
+  }
 }
 
 function completionAction(kind, item, suffix) {
