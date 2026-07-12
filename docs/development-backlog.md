@@ -2185,7 +2185,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 | 40 | V390-REVIEW3-40 | Long-run | delegated exact phase ledger | P0 | 완료 | expected case ID/order/uniqueness/count를 parent가 검증하고 누락·중복·부분 summary를 PASS로 투영하지 않음 | 5.6 Sol | 높음 (high) | 2+1+2+1=6점. 테스트 결과 정확도 상향 적용 |
 | 41 | V390-REVIEW3-41 | UI Automation | exact 424 기능별 native workflow | P0 | 완료 | 424개 각각에 unique workflow와 role/semantic seed, input, explicit control sequence, reviewed state/readback 결과, reversible cleanup을 고정하고 runtime tag 추측을 제거했습니다. Hidden 10개와 disabled/non-action/read-model을 actionable control과 분리합니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. 대량 UI 동등성과 false-PASS 상향 적용 |
 | 42 | V390-REVIEW3-42 | UI Correctness | semantic completion oracle | P0 | 완료 | Exact 424의 848 action plan이 request-header에서 실제 관측된 request ID/method/path/status와 case별 exact semantic readback identity를 함께 요구합니다. DOM digest-only와 사후 correlation 부착을 차단하고 persisted/EventRecord/server-log 대안은 attested schema만 허용합니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+1=7점. 거짓 PASS 정확도 상향 적용 |
-| 43 | V390-REVIEW3-43 | UI Policy | Policy v4 actual evidence producer | P0 | 미완료 | 41~42번 exact runner가 `media-server.ui-automation-evidence.v4` actual summary와 attested case/cross-cutting artifacts를 직접 생성하도록 구현 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. release correctness와 evidence 보안 상향 적용 |
+| 43 | V390-REVIEW3-43 | UI Policy | Policy v4 actual evidence producer | P0 | 완료 | exact runner actual mode가 `media-server.ui-automation-evidence.v4` summary와 case trace/console/server-log/visual/redaction, suite cross-cutting/redaction attestation을 실행 root에서 직접 생성합니다. 44번 visual 측정과 45번 acceptance-owned cleanup 전에는 `uiFulltestPass=false`입니다 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. release correctness와 evidence 보안 상향 적용 |
 | 44 | V390-REVIEW3-44 | Visual Evidence | responsive/theme/visual 실제 판정 | P0 | 미완료 | 320/390/760/1180, light/dark, overlay/clipping/contrast/focus를 실제 browser artifact와 pixel/geometry 결과로 산출하고 자기선언 PASS를 금지 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+1=7점. 시각 동등성과 false-PASS 상향 적용 |
 | 45 | V390-REVIEW3-45 | Acceptance | canonical one-command 실행 경로 | P0 | 미완료 | 40~44번 결과를 424 runner→v4 qualification→acceptance/final integrity 한 command로 연결하고 120분은 AGENTS 조건/명시 option과 일치시킴 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점. release correctness 상향 적용 |
 | 46 | V390-REVIEW3-46 | Evidence | current HEAD와 artifact containment | P0 | 미완료 | final integrity가 current commit, clean state, child summary root containment, canonical command, stale historical source 차단을 직접 검증 | 5.6 Sol | 높음 (high) | 2+1+2+1=6점. release correctness 상향 적용 |
@@ -2377,6 +2377,24 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 - Native adapter actual 단기 실행은 correlation request `GET /` 200과 7/7 action을 확인했습니다.
   Plan-only는 424 not-run과 `uiFulltestPass=false`를 유지합니다. 실제 exact 424 UI 풀테스트·30분·120분은
   별도 실행 승인 전 미실행입니다.
+
+43번 구현 기록(2026-07-12):
+
+- `v390_ui_policy_v4_evidence_producer.mjs`가 actual exact result와 source binding을 입력받아
+  `media-server.ui-automation-evidence.v4` summary를 직접 작성합니다. Case screenshot은 actual runner
+  artifact를 그대로 참조하고 trace, browser console, server-log slice, visual 상태, redaction scan을
+  attested ref/hash/type/path로 묶습니다. Suite redaction과 7개 cross-cutting payload도 같은 run root에
+  생성합니다.
+- Producer는 artifact root 밖 absolute/relative/symlink 경로를 거부하고 forbidden-material scan 결과를
+  case/suite security에 기록합니다. Native adapter는 Policy v4가 요구하는 실제 `snapshot`/assertion
+  경계를 `query`/`assert` capability로 명시합니다.
+- Standalone exact runner는 외부에서 공급된 server lifecycle을 소유하지 않으므로
+  `serversStopped=false`, `portsClean=false`를 정직하게 기록합니다. 44번 actual pixel/geometry 전에는
+  visual/cross-cutting을 `FAIL`, `reviewRequired=true`로 남기며 `uiFulltestPass=false`입니다.
+- 테스트 정의 등록 뒤 최초 `./server.sh verify-v390-ui-policy-v4-producer-contract`는 command 부재로
+  `알 수 없는 명령` RED였습니다. 구현 뒤 contract 5/0이 v4 schema/source binding, case/suite attestation,
+  visual/cleanup 비승격, contract fixture 비승격, artifact path escape 거부를 확인했습니다.
+- 실제 exact 424 browser UI 풀테스트, 30분, 120분은 실행하지 않았으며 contract PASS로 대체하지 않습니다.
 
 #### V390-REVIEW3-46~47 final evidence integrity
 

@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import { createNativePlaywrightAdapter } from "./v390_ui_native_adapter.mjs";
 import { evaluateCompletionOracle } from "./v390_ui_completion_oracle_lib.mjs";
 import { validateNativeExactManifest } from "./v390_ui_native_exact_cases_lib.mjs";
+import { producePolicyV4Evidence } from "./v390_ui_policy_v4_evidence_producer.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -51,8 +52,11 @@ if (options.planOnly) {
 
 assert(options.httpBase, "--http-base is required for actual execution");
 assert(options.serverLog, "--server-log is required for actual execution");
+const buildPath = resolveRootOrAbsolute(options.buildPath);
+assert(fs.existsSync(buildPath), `--build-path does not exist: ${buildPath}`);
 const serverLogPath = resolveRootOrAbsolute(options.serverLog);
 assert(fs.existsSync(serverLogPath), `server log does not exist: ${serverLogPath}`);
+const actualStartedAt = new Date().toISOString();
 const roleStateMap = loadRoleStateMap(options.roleStateMap);
 const adapter = await createNativePlaywrightAdapter({
   modulePath: options.playwrightModulePath,
@@ -84,23 +88,21 @@ for (const item of manifest.cases) {
 
 const fail = results.filter(item => item.status === "FAIL").length;
 const notRun = results.filter(item => item.status === "not-run").length;
-const summary = {
-  schema: "media-server.v390-ui-native-exact-run.v1",
-  result: fail === 0 && notRun === 0 ? "PASS" : "FAIL",
-  executionStatus: "actual-browser",
-  manifestSchema: manifest.schema,
+const produced = producePolicyV4Evidence({
+  rootDir,
+  outputDir,
+  manifest,
+  canonical,
+  results,
   selectedAdapter: adapter.summary,
-  requestedExactCases: manifest.cases.length,
-  pass: results.filter(item => item.status === "PASS").length,
-  fail,
-  notRun,
-  unsupported: 0,
-  manualIntervention: false,
-  uiFulltestPass: false,
-  evidenceBoundary: "actual runner output requires Step 26 suite eligibility before UI fulltest PASS",
-  cases: results,
-};
-writeJson(summaryPath, summary);
+  startedAt: actualStartedAt,
+  finishedAt: new Date().toISOString(),
+  buildPath,
+  runnerPath: fileURLToPath(import.meta.url),
+  serverLogPath,
+  contractFixture: false,
+});
+const summary = produced.summary;
 printSummary(summary, summaryPath);
 if (summary.result !== "PASS") process.exit(1);
 
@@ -144,6 +146,11 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     assert(item.oracle.allowedStatuses.includes(browser.navigation.status),
       `${item.caseId} navigation status ${browser.navigation.status} not in ${item.oracle.allowedStatuses.join(",")}`);
     const initialSnapshot = await browser.snapshot("body");
+    const observedBrowser = await browser.evaluate(`(() => ({
+      route: location.pathname,
+      viewport: { width: innerWidth, height: innerHeight },
+      theme: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    }))()`);
     const initialAction = item.actions[0];
     const initialCompletionAction = semanticCompletionAction(initialAction, item);
     const initialCompletion = evaluateCompletionOracle({
@@ -213,7 +220,18 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       dispatch: "playwright-native",
       manualIntervention: false,
       requested: trace.requested,
-      observed: trace.requested,
+      observed: {
+        route: observedBrowser.route,
+        accountRole: item.accountRole,
+        viewport: observedBrowser.viewport,
+        theme: observedBrowser.theme,
+        controlAction: item.controlAction,
+      },
+      visibleAssertion: {
+        pass: initialSnapshot.exists === true && initialSnapshot.visible === true,
+        visible: initialSnapshot.visible === true,
+        selector: "body",
+      },
       navigation: browser.navigation,
       oracleSeed: item.oracle,
       completionOracle: trace.completionEvents,
@@ -489,6 +507,7 @@ function parseArgs(args) {
     serverLog: "",
     playwrightModulePath: "",
     chromePath: "",
+    buildPath: "build/media_server",
     timeoutMs: 30000,
     planOnly: false,
   };
@@ -501,6 +520,7 @@ function parseArgs(args) {
     else if (arg === "--server-log") value.serverLog = args[++index] || "";
     else if (arg === "--playwright-module-path") value.playwrightModulePath = args[++index] || "";
     else if (arg === "--chrome-path") value.chromePath = args[++index] || "";
+    else if (arg === "--build-path") value.buildPath = args[++index] || "";
     else if (arg === "--timeout-ms") value.timeoutMs = Number(args[++index] || 0);
     else if (arg === "--plan-only") value.planOnly = true;
     else throw new Error(`unknown option: ${arg}`);
@@ -515,8 +535,8 @@ function printSummary(value, summaryPath) {
   console.log("== v3.9.0 exact native UI runner summary ==");
   console.log(`- result: ${value.result}`);
   console.log(`- executionStatus: ${value.executionStatus}`);
-  console.log(`- exactCases: ${value.requestedExactCases || value.counts?.caseCount || 0}`);
-  console.log(`- unsupported: ${value.unsupported}`);
+  console.log(`- exactCases: ${value.requestedExactCases || value.counts?.caseCount || value.coverage?.targetCount || 0}`);
+  console.log(`- unsupported: ${value.unsupported ?? value.coverage?.unsupported ?? 0}`);
   console.log(`- uiFulltestPass: ${value.uiFulltestPass}`);
   console.log(`- summaryPath: ${summaryPath}`);
 }

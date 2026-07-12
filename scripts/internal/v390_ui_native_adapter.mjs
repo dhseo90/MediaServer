@@ -11,6 +11,8 @@ const require = createRequire(import.meta.url);
 export const nativeCapabilities = [
   "navigate",
   "wait",
+  "query",
+  "assert",
   "click",
   "fill",
   "type",
