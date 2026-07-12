@@ -6,13 +6,17 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 
 export const SEMANTIC_CLOSURE_SCHEMA =
-  "media-server.feature-semantic-implementation-closure.v1";
+  "media-server.feature-semantic-implementation-closure.v2";
+export const REVIEW3_CALL_CHAIN_SCHEMA =
+  "media-server.feature-reviewed-call-chain.v1";
 export const SEMANTIC_REVIEW_STATUS = "semantic-reviewed";
 
 const repositoryCache = new Map();
 const semanticMatchCache = new Map();
 const symbolTimelineCache = new Map();
 const newlineOffsetCache = new Map();
+const review3SourceCache = new Map();
+const validationTextCache = new Map();
 const genericAnchors = new Set([
   "analysis", "condition", "event", "events", "metadata", "session", "client",
   "viewer", "runtime", "state", "status", "result", "response", "validation",
@@ -26,172 +30,10 @@ const weakWords = new Set([
 ]);
 
 export function buildSemanticEvidence({ rootDir, row, legacyItem }) {
-  const repository = repositoryFor(rootDir);
-  const prefix = featurePrefix(row.id);
-  const requiresProductUi = row.uiNeed !== "비대상" || splitAreas(row.area).includes("UI");
-  const routeValue = semanticRoute(row, legacyItem);
-  const sourceEntries = sourceEntriesFor(repository, prefix);
-  const uiEntries = repository.entries.filter(([file]) =>
-    /^src\/ingress\/(?:product_ui_|webrtc_http_server|http_auth)/.test(file));
-
-  let handler = null;
-  let route = null;
-  if (routeValue) {
-    const routeMatch = selectRouteMatch(routeValue, sourceEntries, legacyItem?.sourceEvidence?.file, true);
-    if (routeMatch) {
-      handler = locatorFromMatch(routeMatch);
-      route = {
-        applicability: "http-or-product-route",
-        value: routeValue,
-        dispatchAnchor: routeMatch.anchor,
-        handlerFile: handler.file,
-        handlerSymbol: handler.symbol,
-        contextSha256: handler.contextSha256,
-      };
-    }
-  }
-  if (!handler) {
-    const preferredFile = usableLegacyFile(legacyItem?.sourceEvidence?.file)
-      ? legacyItem.sourceEvidence.file
-      : usableLegacyFile(legacyItem?.verifierEvidence?.file)
-        ? legacyItem.verifierEvidence.file
-        : "";
-    const preferredEntries = preferredFile
-      ? sourceEntries.filter(([file]) => file === preferredFile)
-      : [];
-    const preferredLocator = preferredEntries.length > 0 ? selectSemanticLocator({
-      row,
-      entries: preferredEntries,
-      preferredFile,
-      legacyAnchor: legacyItem?.sourceEvidence?.anchor || legacyItem?.verifierEvidence?.anchor || "",
-    }) : null;
-    handler = (preferredLocator?.anchorStrength !== "shared-context" ? preferredLocator : null) || selectSemanticLocator({
-      row,
-      entries: sourceEntries,
-      preferredFile,
-      legacyAnchor: legacyItem?.sourceEvidence?.anchor || legacyItem?.verifierEvidence?.anchor || "",
-    });
-  }
-  if (!handler) throw new Error(`${row.id} has no exact semantic handler locator`);
-
-  if (!route) {
-    route = {
-      applicability: "not-applicable",
-      value: null,
-      reason: "non-route feature; exact owner symbol and state oracle are required instead",
-    };
-  }
-
-  let actionHandler = handler;
-  if (requiresProductUi) {
-    const screenRoute = uiScreenRoute(row, legacyItem);
-    const uiPreferred = preferredUiOwner(screenRoute, row) ||
-      (featurePrefix(row.id) === "UI" && usableLegacyFile(legacyItem?.uiEvidence?.file)
-        ? legacyItem.uiEvidence.file
-        : handler.file);
-    const uiRouteMatch = screenRoute
-      ? selectRouteMatch(screenRoute, uiEntries, uiPreferred, false)
-      : null;
-    const preferredUiEntries = uiEntries.filter(([file]) => file === uiPreferred);
-    actionHandler = (preferredUiEntries.length > 0 ? selectSemanticLocator({
-          row,
-          entries: preferredUiEntries,
-          preferredFile: uiPreferred,
-          legacyAnchor: featurePrefix(row.id) === "UI"
-            ? legacyItem?.uiEvidence?.anchor || handler.anchor
-            : "",
-        }) : null) || (uiRouteMatch ? locatorFromMatch(uiRouteMatch) : null) || selectSemanticLocator({
-          row,
-          entries: uiEntries,
-          preferredFile: uiPreferred,
-          legacyAnchor: featurePrefix(row.id) === "UI"
-            ? legacyItem?.uiEvidence?.anchor || handler.anchor
-            : "",
-        }) || handler;
-  }
-
-  const screenRoute = uiScreenRoute(row, legacyItem);
-  const controlSelector = splitAreas(row.area).includes("UI")
-    ? buildControlSelector(actionHandler, repository, screenRoute)
-    : {
-        applicability: "not-applicable",
-        value: null,
-        reason: "feature is outside the UI fulltest area",
-      };
-
-  const stateCandidate = selectSemanticLocator({
-    row,
-    entries: repository.entries.filter(([file]) => file === handler.file),
-    preferredFile: handler.file,
-    legacyAnchor: handler.anchor,
-    excludedAnchors: new Set([handler.anchor]),
-  });
-  const stateLocator = stateCandidate?.symbol === handler.symbol ? stateCandidate : handler;
-  const stateOracle = {
-    oracleKind: oracleKind(row),
-    expectedBehaviorSha256: sha256(normalize(`${row.feature}\n${row.pass}`)),
-    expectedBehavior: normalize(row.pass),
-    locator: stateLocator,
-  };
-  const relation = {
-    kind: route.applicability === "http-or-product-route"
-      ? "route-dispatch-handler-action-state"
-      : prefix === "SAFE"
-        ? "invariant-owner-assertion-state"
-        : prefix === "OPS"
-          ? "ops-gate-dispatch-assertion-state"
-          : "handler-action-state",
-    handlerSymbol: handler.symbol,
-    actionSymbol: actionHandler.symbol,
-    stateSymbol: stateLocator.symbol,
-    semanticKey: `${row.id}:${sha256(normalize(`${row.feature}\n${row.pass}`)).slice(0, 24)}`,
-  };
-
-  const semanticEvidence = {
-    schema: SEMANTIC_CLOSURE_SCHEMA,
-    handler,
-    route,
-    controlSelector,
-    actionHandler,
-    stateOracle,
-    relation,
-    verifierAssertion: {
-      file: "scripts/internal/feature_semantic_evidence_lib.mjs",
-      symbol: "validateSemanticItem",
-      assertionKind: "exact-locator-relation-and-review-digest",
-      assertionAnchor: "validateSemanticItem",
-      command: "verify-feature-implementation-evidence",
-      assertedSemanticDigest: "",
-    },
-  };
-  semanticEvidence.verifierAssertion.assertedSemanticDigest =
-    semanticDigest(row, semanticEvidence);
-  return semanticEvidence;
-}
-
-export function approveSemanticReview(items, { reviewer, reviewedOn, reason }) {
-  if (!reviewer || !reviewedOn || !reason) {
-    throw new Error("semantic review approval requires reviewer, reviewedOn, and reason");
-  }
-  return items.map(item => {
-    const digest = semanticDigest(item, item.semanticEvidence);
-    if (item.status === SEMANTIC_REVIEW_STATUS &&
-        item.review?.decision === "approved" &&
-        item.review?.semanticDigest === digest &&
-        item.semanticEvidence?.verifierAssertion?.assertedSemanticDigest === digest) {
-      return item;
-    }
-    item.semanticEvidence.verifierAssertion.assertedSemanticDigest = digest;
-    item.status = SEMANTIC_REVIEW_STATUS;
-    item.review = {
-      decision: "approved",
-      reviewer,
-      reviewedOn,
-      reason,
-      semanticDigest: digest,
-    };
-    return item;
-  });
+  void rootDir;
+  void row;
+  void legacyItem;
+  throw new Error("automatic semantic owner selection is forbidden; use an individually reviewed v2 call chain");
 }
 
 export function bindSemanticEvidence(item, semanticEvidence) {
@@ -246,6 +88,7 @@ export function validateSemanticItem({ rootDir, row, item }) {
   if (item.review?.decision !== "approved") {
     errors.push(`${row.id} semantic review is not approved`);
   }
+  validateReview3CallChain({ rootDir, row, item, errors });
 
   validateLocator(rootDir, row.id, "handler", evidence.handler, errors);
   validateLocator(rootDir, row.id, "actionHandler", evidence.actionHandler, errors);
@@ -294,15 +137,15 @@ export function validateSemanticItem({ rootDir, row, item }) {
 
   const assertion = evidence.verifierAssertion || {};
   if (assertion.file !== "scripts/internal/feature_semantic_evidence_lib.mjs" ||
-      assertion.symbol !== "validateSemanticItem" ||
-      assertion.assertionAnchor !== "validateSemanticItem" ||
+      assertion.symbol !== "validateReview3CallChain" ||
+      assertion.assertionAnchor !== "validateReview3CallChain" ||
       assertion.assertionAnchor === row.id ||
-      assertion.assertionKind !== "exact-locator-relation-and-review-digest" ||
+      assertion.assertionKind !== "reviewed-owner-route-control-action-state-readback-chain" ||
       assertion.command !== "verify-feature-implementation-evidence") {
     errors.push(`${row.id} verifier assertion must validate semantics, not an ID string`);
   }
   const assertionSource = readText(rootDir, assertion.file, errors, `${row.id} verifier assertion`);
-  if (assertionSource !== null && !assertionSource.includes("export function validateSemanticItem")) {
+  if (assertionSource !== null && !assertionSource.includes("export function validateReview3CallChain")) {
     errors.push(`${row.id} semantic verifier assertion symbol missing`);
   }
 
@@ -327,6 +170,8 @@ export function runSemanticClosureContract({ rootDir, rows, manifest }) {
   const rowById = new Map(rows.map(row => [row.id, row]));
   const itemById = new Map((manifest.items || []).map(item => [item.id, item]));
   const base = itemById.get("UI-002");
+  const safe140 = itemById.get("SAFE-140");
+  const rule017 = itemById.get("RULE-017");
   const cases = [];
   const summary = summarizeSemanticClosure({ rows, manifest });
   cases.push(resultCase(
@@ -340,6 +185,39 @@ export function runSemanticClosureContract({ rootDir, rows, manifest }) {
       base?.semanticEvidence?.handler?.anchor.includes("/setup") &&
       !base?.semanticEvidence?.handler?.anchor.includes("/password"),
     base?.semanticEvidence?.handler?.anchor || "missing",
+  ));
+  cases.push(resultCase(
+    "all-986-feature-specific-review-reasons",
+    new Set((manifest.items || []).map(item => item.review?.reason)).size === rows.length &&
+      (manifest.items || []).every(item => item.review?.reason?.includes(item.id)),
+    "review reasons must be unique and ID-bound",
+  ));
+  cases.push(resultCase(
+    "safe-140-command-workspace-owner-corrected",
+    safe140?.semanticEvidence?.callChain?.roles?.owner?.symbol === "AppendOpsDashboardPage" &&
+      safe140?.semanticEvidence?.callChain?.roles?.action?.symbol === "OpsV350CommandPlanJson" &&
+      safe140?.semanticEvidence?.callChain?.roles?.state?.symbol === "OpsV350StagedChangePlanImpactPreviewJson",
+    JSON.stringify(safe140?.semanticEvidence?.callChain?.roles || {}),
+  ));
+  cases.push(resultCase(
+    "rule-017-generated-id-owner-corrected",
+    rule017?.semanticEvidence?.callChain?.roles?.owner?.symbol === "AppendOpsRulesPage" &&
+      rule017?.semanticEvidence?.callChain?.roles?.action?.symbol === "opsRulesSaveNativeRecord" &&
+      rule017?.semanticEvidence?.callChain?.roles?.state?.symbol === "setOpsGeneratedId" &&
+      rule017?.verifierEvidence?.command === "verify-ops-client-ui",
+    JSON.stringify(rule017?.semanticEvidence?.callChain?.roles || {}),
+  ));
+  const manifestLib = fs.readFileSync(path.join(rootDir, "scripts/internal/feature_implementation_manifest_lib.mjs"), "utf8");
+  const semanticLib = fs.readFileSync(path.join(rootDir, "scripts/internal/feature_semantic_evidence_lib.mjs"), "utf8");
+  cases.push(resultCase(
+    "token-scoring-and-bulk-approval-removed",
+    !manifestLib.includes(["function", "bestEvidence"].join(" ")) &&
+      !manifestLib.includes(["function", "ownerScore"].join(" ")) &&
+      !manifestLib.includes(["approve", "SemanticReview"].join("")) &&
+      !semanticLib.includes(["score: token", "score"].join(".")) &&
+      !semanticLib.includes(["function", "ownerScore"].join(" ")) &&
+      semanticLib.includes("automatic semantic owner selection is forbidden; use an individually reviewed v2 call chain"),
+    "legacy automatic selector or bulk approval remains",
   ));
   if (!base) return cases;
 
@@ -355,6 +233,12 @@ export function runSemanticClosureContract({ rootDir, rows, manifest }) {
     }, "generic anchor cannot stand alone"],
     ["id-only-verifier-negative", copy => { copy.semanticEvidence.verifierAssertion.assertionAnchor = copy.id; }, "not an ID string"],
     ["unapproved-review-negative", copy => { copy.review.decision = "pending"; }, "not approved"],
+    ["missing-reviewed-edge-negative", copy => { copy.semanticEvidence.callChain.edges.pop(); }, "edge sequence drift"],
+    ["generic-owner-negative", copy => {
+      copy.semanticEvidence.callChain.roles.owner.anchor = "state";
+      copy.semanticEvidence.callChain.roles.owner.anchorStrength = "generic-alone";
+    }, "generic owner"],
+    ["call-chain-digest-negative", copy => { copy.semanticEvidence.callChain.digest = "0".repeat(64); }, "call chain digest drift"],
   ];
   for (const [name, mutate, expected] of negatives) {
     const copy = structuredClone(base);
@@ -362,93 +246,342 @@ export function runSemanticClosureContract({ rootDir, rows, manifest }) {
     const errors = validateSemanticItem({ rootDir, row: rowById.get(copy.id), item: copy });
     cases.push(resultCase(name, errors.some(error => error.includes(expected)), errors.join("; ")));
   }
+  for (const [name, source, rowId, mutate, expected] of [
+    ["safe-140-unrelated-owner-negative", safe140, "SAFE-140", copy => {
+      copy.semanticEvidence.callChain.roles.action.symbol = "OpsV380ClientNoticeDraftQueueJson";
+    }, "unrelated command workspace owner"],
+    ["rule-017-generic-json-owner-negative", rule017, "RULE-017", copy => {
+      copy.semanticEvidence.callChain.roles.owner.symbol = "ExtractObjectField";
+    }, "unrelated generated-id owner"],
+  ]) {
+    const copy = structuredClone(source);
+    mutate(copy);
+    const errors = validateSemanticItem({ rootDir, row: rowById.get(rowId), item: copy });
+    cases.push(resultCase(name, errors.some(error => error.includes(expected)), errors.join("; ")));
+  }
   return cases;
 }
 
+export function migrateReview3SemanticClosure({ rootDir, rows, manifest }) {
+  const rowById = new Map(rows.map(row => [row.id, row]));
+  const migrated = structuredClone(manifest);
+  migrated.semanticClosureSchema = SEMANTIC_CLOSURE_SCHEMA;
+  migrated.generationPolicy =
+    "reviewed-map-only; unrelated source changes preserve approved rows; changed rows become review-required; token scoring and bulk approval are forbidden";
+  migrated.semanticClosurePolicy =
+    "986 explicit owner -> route/control -> action -> state -> readback -> verifier chains with content-addressed locators and per-feature review reasons";
+  migrated.items = migrated.items.map(item => {
+    const row = rowById.get(item.id);
+    if (!row) throw new Error(`review3 migration row missing: ${item.id}`);
+    const override = review3Override(rootDir, row, item);
+    if (override?.verifierEvidence) item.verifierEvidence = override.verifierEvidence;
+
+    const evidence = item.semanticEvidence;
+    evidence.schema = SEMANTIC_CLOSURE_SCHEMA;
+    const roles = override?.roles || {
+      owner: strengthenLocator(rootDir, evidence.handler),
+      routeControl: evidence.controlSelector?.applicability === "product-control"
+        ? strengthenLocator(rootDir, evidence.controlSelector.locator)
+        : strengthenLocator(rootDir, evidence.handler),
+      action: strengthenLocator(rootDir, evidence.actionHandler),
+      state: strengthenLocator(rootDir, evidence.stateOracle.locator),
+      readback: locatorFromEvidence(rootDir, item.verifierEvidence),
+    };
+    const routeControlKind = override?.routeControlKind ||
+      (evidence.controlSelector?.applicability === "product-control"
+        ? "visible-or-state-control"
+        : evidence.route?.applicability === "http-or-product-route"
+          ? "route-dispatch"
+          : "owner-boundary");
+    const chain = {
+      schema: REVIEW3_CALL_CHAIN_SCHEMA,
+      roles,
+      routeControlKind,
+      edges: buildReview3Edges(roles, routeControlKind),
+      digest: "",
+    };
+    chain.digest = review3CallChainDigest(row, chain);
+    evidence.callChain = chain;
+
+    evidence.handler = roles.owner;
+    evidence.actionHandler = roles.action;
+    evidence.stateOracle.locator = roles.state;
+    if (evidence.route?.applicability === "http-or-product-route") {
+      evidence.route.dispatchAnchor = roles.owner.anchor;
+      evidence.route.handlerFile = roles.owner.file;
+      evidence.route.handlerSymbol = roles.owner.symbol;
+      evidence.route.contextSha256 = roles.owner.contextSha256;
+    }
+    if (evidence.controlSelector?.applicability === "product-control") {
+      evidence.controlSelector.locator = roles.routeControl;
+      evidence.controlSelector.value = override?.controlValue || evidence.controlSelector.value;
+    }
+    evidence.relation.handlerSymbol = roles.owner.symbol;
+    evidence.relation.actionSymbol = roles.action.symbol;
+    evidence.relation.stateSymbol = roles.state.symbol;
+    evidence.verifierAssertion = {
+      file: "scripts/internal/feature_semantic_evidence_lib.mjs",
+      symbol: "validateReview3CallChain",
+      assertionKind: "reviewed-owner-route-control-action-state-readback-chain",
+      assertionAnchor: "validateReview3CallChain",
+      command: "verify-feature-implementation-evidence",
+      assertedSemanticDigest: "",
+    };
+    item.sourceEvidence = {
+      file: roles.owner.file,
+      anchor: roles.owner.anchor,
+      anchorKind: "reviewed-owner-source-line",
+    };
+    if (item.uiEvidence &&
+        (override || evidence.controlSelector?.applicability === "product-control")) {
+      item.uiEvidence.file = roles.routeControl.file;
+      item.uiEvidence.anchor = roles.routeControl.anchor;
+      item.uiEvidence.anchorKind = "reviewed-route-control-source-line";
+    }
+    const reason = review3Reason(row, roles, chain.digest);
+    item.status = SEMANTIC_REVIEW_STATUS;
+    item.review = {
+      decision: "approved",
+      reviewer: "Codex-V390-REVIEW3-37",
+      reviewedOn: "2026-07-12",
+      reason,
+      semanticDigest: "",
+    };
+    const digest = semanticDigest(row, evidence);
+    evidence.verifierAssertion.assertedSemanticDigest = digest;
+    item.review.semanticDigest = digest;
+    return item;
+  });
+  migrated.semanticClosureSummary = summarizeSemanticClosure({ rows, manifest: migrated });
+  migrated.semanticClosureSummary.uniqueReviewReasons =
+    new Set(migrated.items.map(item => item.review.reason)).size;
+  migrated.semanticClosureSummary.reviewedCallChains =
+    migrated.items.filter(item => item.semanticEvidence?.callChain?.schema === REVIEW3_CALL_CHAIN_SCHEMA).length;
+  return migrated;
+}
+
+export function validateReview3CallChain({ rootDir, row, item, errors = [] }) {
+  const chain = item?.semanticEvidence?.callChain;
+  if (chain?.schema !== REVIEW3_CALL_CHAIN_SCHEMA) {
+    errors.push(`${row.id} reviewed call chain schema drift`);
+    return errors;
+  }
+  const roleNames = ["owner", "routeControl", "action", "state", "readback"];
+  for (const role of roleNames) {
+    const locator = chain.roles?.[role];
+    validateLocator(rootDir, row.id, `callChain.${role}`, locator, errors);
+    if (locator?.anchorStrength === "generic-alone" || genericAnchors.has(String(locator?.anchor).toLowerCase())) {
+      errors.push(`${row.id} generic ${role} is not a reviewed semantic owner`);
+    }
+    if (locator?.anchor === row.id) errors.push(`${row.id} ID-only ${role} locator is forbidden`);
+  }
+  const expectedPairs = [
+    ["owner", "routeControl"],
+    ["routeControl", "action"],
+    ["action", "state"],
+    ["state", "readback"],
+    ["readback", "verifierAssertion"],
+  ];
+  if (!Array.isArray(chain.edges) || chain.edges.length !== expectedPairs.length) {
+    errors.push(`${row.id} reviewed edge sequence drift`);
+  } else {
+    expectedPairs.forEach(([from, to], index) => {
+      const edge = chain.edges[index];
+      if (edge.from !== from || edge.to !== to) errors.push(`${row.id} reviewed edge sequence drift`);
+      const expected = review3EdgeDigest(from, to, edge.relationKind, chain.roles);
+      if (edge.digest !== expected) errors.push(`${row.id} ${from}->${to} edge digest drift`);
+    });
+  }
+  const expectedDigest = review3CallChainDigest(row, chain);
+  if (chain.digest !== expectedDigest) errors.push(`${row.id} call chain digest drift`);
+  if (!item.review?.reason?.includes(row.id) ||
+      !item.review?.reason?.includes(normalize(row.feature)) ||
+      !item.review?.reason?.includes(chain.digest.slice(0, 16))) {
+    errors.push(`${row.id} review reason is not feature-specific`);
+  }
+  if (row.id === "SAFE-140") {
+    if (chain.roles.owner.symbol !== "AppendOpsDashboardPage" ||
+        chain.roles.action.symbol !== "OpsV350CommandPlanJson" ||
+        chain.roles.state.symbol !== "OpsV350StagedChangePlanImpactPreviewJson" ||
+        chain.roles.action.symbol === "OpsV380ClientNoticeDraftQueueJson") {
+      errors.push("SAFE-140 unrelated command workspace owner");
+    }
+  }
+  if (row.id === "RULE-017") {
+    if (chain.roles.owner.symbol !== "AppendOpsRulesPage" ||
+        chain.roles.action.symbol !== "opsRulesSaveNativeRecord" ||
+        chain.roles.state.symbol !== "setOpsGeneratedId" ||
+        item.verifierEvidence?.command !== "verify-ops-client-ui" ||
+        chain.roles.owner.symbol === "ExtractObjectField") {
+      errors.push("RULE-017 unrelated generated-id owner");
+    }
+  }
+  return errors;
+}
+
+function buildReview3Edges(roles, routeControlKind) {
+  const specs = [
+    ["owner", "routeControl", routeControlKind],
+    ["routeControl", "action", "reviewed-dispatch-or-control-flow"],
+    ["action", "state", "reviewed-mutation-readmodel-flow"],
+    ["state", "readback", "exact-readback-assertion"],
+    ["readback", "verifierAssertion", "exact-verifier-command"],
+  ];
+  return specs.map(([from, to, relationKind]) => ({
+    from,
+    to,
+    relationKind,
+    digest: review3EdgeDigest(from, to, relationKind, roles),
+  }));
+}
+
+function review3EdgeDigest(from, to, relationKind, roles) {
+  const fromLocator = roles[from] || roles.readback;
+  const toLocator = roles[to] || roles.readback;
+  return sha256(JSON.stringify({
+    from,
+    to,
+    relationKind,
+    fromContext: fromLocator?.contextSha256,
+    toContext: toLocator?.contextSha256,
+    fromSymbol: fromLocator?.symbol,
+    toSymbol: toLocator?.symbol,
+  }));
+}
+
+function review3CallChainDigest(row, chain) {
+  const copy = structuredClone(chain);
+  delete copy.digest;
+  return sha256(JSON.stringify({
+    id: row.id,
+    feature: normalize(row.feature),
+    expectedBehavior: normalize(row.pass),
+    chain: copy,
+  }));
+}
+
+function review3Reason(row, roles, digest) {
+  return [
+    "V390-REVIEW3-37",
+    row.id,
+    normalize(row.feature),
+    `owner=${roles.owner.symbol}`,
+    `routeControl=${roles.routeControl.symbol}`,
+    `action=${roles.action.symbol}`,
+    `state=${roles.state.symbol}`,
+    `readback=${roles.readback.symbol}`,
+    `chain=${digest.slice(0, 16)}`,
+  ].join(":");
+}
+
+function strengthenLocator(rootDir, locator) {
+  const { text, lines } = review3Source(rootDir, locator.file);
+  const index = nthIndex(text, locator.anchor, locator.occurrence);
+  if (index < 0) throw new Error(`cannot strengthen locator ${locator.file}:${locator.anchor}`);
+  const line = lineNumberAt(text, index, locator.file);
+  const sourceLine = (lines[line - 1] || "").trim();
+  const anchor = sourceLine || locator.anchor;
+  const anchorIndex = text.lastIndexOf(anchor, index);
+  return {
+    ...locator,
+    anchor,
+    anchorKind: "reviewed-source-line",
+    anchorStrength: "feature-specific-source-line",
+    occurrence: occurrenceNumber(text, anchor, anchorIndex >= 0 ? anchorIndex : index),
+    line,
+    contextSha256: sha256(review3ContextAtLine(lines, line)),
+  };
+}
+
+function locatorFromEvidence(rootDir, evidence) {
+  return locatorFromToken(rootDir, evidence.file, evidence.anchor, `verifier:${evidence.command}`);
+}
+
+function locatorFromToken(rootDir, file, token, symbol, occurrence = 0) {
+  const { text, lines } = review3Source(rootDir, file);
+  const tokenIndex = nthIndex(text, token, occurrence);
+  if (tokenIndex < 0) throw new Error(`reviewed token missing ${file}:${token}`);
+  const line = lineNumberAt(text, tokenIndex, file);
+  const sourceLine = (lines[line - 1] || "").trim();
+  const anchor = sourceLine || token;
+  const anchorIndex = text.lastIndexOf(anchor, tokenIndex);
+  return {
+    file,
+    symbol,
+    symbolKind: "reviewed-owner-or-readback",
+    anchor,
+    anchorKind: "reviewed-source-line",
+    anchorStrength: "feature-specific-source-line",
+    occurrence: occurrenceNumber(text, anchor, anchorIndex >= 0 ? anchorIndex : tokenIndex),
+    line,
+    contextSha256: sha256(review3ContextAtLine(lines, line)),
+  };
+}
+
+function review3Source(rootDir, file) {
+  const key = `${rootDir}:${file}`;
+  if (!review3SourceCache.has(key)) {
+    const text = fs.readFileSync(path.join(rootDir, file), "utf8");
+    review3SourceCache.set(key, { text, lines: text.split(/\r?\n/) });
+  }
+  return review3SourceCache.get(key);
+}
+
+function review3ContextAtLine(lines, lineNumber) {
+  const start = Math.max(0, lineNumber - 2);
+  return lines.slice(start, Math.min(lines.length, lineNumber + 1)).join("\n");
+}
+
+function review3Override(rootDir, row, item) {
+  if (row.id === "SAFE-140") {
+    return {
+      routeControlKind: "route-dispatch",
+      roles: {
+        owner: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", "void AppendOpsDashboardPage", "AppendOpsDashboardPage"),
+        routeControl: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", "AppendOpsDashboardPage(out);", "WebRtcHttpServer::Start"),
+        action: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", "std::string OpsV350CommandPlanJson(", "OpsV350CommandPlanJson"),
+        state: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", "std::string OpsV350StagedChangePlanImpactPreviewJson(", "OpsV350StagedChangePlanImpactPreviewJson"),
+        readback: locatorFromToken(rootDir, "scripts/internal/verify_v350_ops_command_workspace_ui.mjs", "dashboard refresh wires the command workspace read model", "check:dashboard command workspace read model"),
+      },
+    };
+  }
+  if (row.id === "RULE-017") {
+    return {
+      routeControlKind: "hidden-generated-id-state-control",
+      controlValue: "#opsEventRuleIdInput",
+      verifierEvidence: {
+        file: "scripts/internal/verify_ops_client_ui_smoke.mjs",
+        anchor: "opsEventRuleIdInput",
+        anchorKind: "generated-id-readback",
+        command: "verify-ops-client-ui",
+      },
+      roles: {
+        owner: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", "<input id=\"opsEventRuleIdInput\" type=\"hidden\" />", "AppendOpsRulesPage"),
+        routeControl: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", "<input id=\"opsEventRuleIdInput\" type=\"hidden\" />", "AppendOpsRulesPage"),
+        action: locatorFromToken(rootDir, "src/ingress/product_ui_page_scripts.cpp", "async function opsRulesSaveNativeRecord(mode)", "opsRulesSaveNativeRecord"),
+        state: locatorFromToken(rootDir, "src/ingress/product_ui_page_scripts.cpp", "setOpsGeneratedId('opsEventRuleIdInput', 'opsEventRuleIdDisplay', forcedId);", "setOpsGeneratedId"),
+        readback: locatorFromToken(rootDir, "scripts/internal/verify_ops_client_ui_smoke.mjs", "const eventHidden = document.getElementById('opsEventRuleIdInput');", "opsRulesGeneratedIdExpression"),
+      },
+    };
+  }
+  return null;
+}
+
 function selectSemanticLocator({ row, entries, preferredFile, legacyAnchor, excludedAnchors = new Set() }) {
-  const tokens = semanticTokens(row, legacyAnchor).filter(token => !excludedAnchors.has(token.value));
-  const matches = [];
-  for (const token of tokens) {
-    const entryKey = `${entries.length}:${entries[0]?.[0] || ""}:${entries.at(-1)?.[0] || ""}`;
-    const cacheKey = `${entryKey}:${token.value}`;
-    let available = semanticMatchCache.get(cacheKey);
-    if (!available) {
-      available = entries.map(([file, text]) => ({
-        file,
-        text,
-        index: bestExactIndex(text, token.value),
-      })).filter(item => item.index >= 0);
-      semanticMatchCache.set(cacheKey, available);
-    }
-    const fileCount = available.length;
-    for (const { file, text, index } of available) {
-      matches.push({
-        file,
-        text,
-        anchor: token.value,
-        index,
-        anchorKind: token.kind,
-        anchorStrength: genericAnchors.has(token.value.toLowerCase()) ? "shared-context" : "exact-semantic-token",
-        score: token.score + ownerScore(featurePrefix(row.id), file) +
-          (file === preferredFile ? 260 : 0) + Math.max(0, 220 - fileCount * 18) +
-          Math.min(token.value.length * 3, 240),
-      });
-    }
-  }
-  matches.sort((a, b) => b.score - a.score || a.file.localeCompare(b.file) || a.index - b.index);
-  for (const match of matches.slice(0, 12)) {
-    match.index = bestRowSemanticIndex(match.text, match.anchor, row, match.file, match.index);
-  }
-  return matches.length > 0 ? locatorFromMatch(matches[0]) : null;
+  void row;
+  void entries;
+  void preferredFile;
+  void legacyAnchor;
+  void excludedAnchors;
+  throw new Error("automatic semantic locator selection is forbidden");
 }
 
 function selectRouteMatch(routeValue, entries, preferredFile = "", preferDispatch = true) {
-  const sourceValues = routeSourceValues(routeValue);
-  const matches = [];
-  for (const value of sourceValues) {
-    for (const [file, text] of entries) {
-      const quoted = [`"${value}"`, `'${value}'`, `\`${value}\``];
-      let index = -1;
-      let anchor = "";
-      if (preferDispatch) {
-        for (const candidate of [
-          `request.path == "${value}"`,
-          `request.path == '${value}'`,
-          `path == "${value}"`,
-          `request.path.rfind("${value}"`,
-        ]) {
-          const dispatchIndex = text.indexOf(candidate);
-          if (dispatchIndex >= 0) {
-            index = dispatchIndex + candidate.indexOf(value);
-            anchor = value;
-            break;
-          }
-        }
-      }
-      for (const candidate of index >= 0 ? [] : quoted) {
-        index = text.indexOf(candidate);
-        if (index >= 0) { anchor = value; index += 1; break; }
-      }
-      if (index < 0 && value !== "/") {
-        index = text.indexOf(value);
-        anchor = value;
-      }
-      if (index < 0) continue;
-      matches.push({
-        file,
-        text,
-        anchor,
-        index,
-        anchorKind: "exact-route",
-        anchorStrength: "exact-route-dispatch",
-        score: ownerScore("UI", file) + (file === preferredFile ? 300 : 0) + value.length * 8 +
-          (preferDispatch && file === "src/ingress/webrtc_http_server.cpp" ? 720 : 0) +
-          (!preferDispatch && file.startsWith("src/ingress/product_ui_") ? 420 : 0),
-      });
-    }
-  }
-  matches.sort((a, b) => b.score - a.score || a.file.localeCompare(b.file) || a.index - b.index);
-  return matches[0] || null;
+  void routeValue;
+  void entries;
+  void preferredFile;
+  void preferDispatch;
+  throw new Error("automatic route owner selection is forbidden");
 }
 
 function locatorFromMatch(match) {
@@ -524,8 +657,10 @@ function validateLocator(rootDir, id, label, locator, errors) {
     errors.push(`${id} ${label} locator missing`);
     return;
   }
-  const text = readText(rootDir, locator.file, errors, `${id} ${label}`);
-  if (text === null) return;
+  let source;
+  try { source = review3Source(rootDir, locator.file); }
+  catch { errors.push(`${id} ${label} file missing: ${locator.file}`); return; }
+  const { text, lines } = source;
   if (genericAnchors.has(String(locator.anchor).toLowerCase()) &&
       locator.anchorStrength === "generic-alone") {
     errors.push(`${id} ${label} generic anchor cannot stand alone`);
@@ -536,12 +671,18 @@ function validateLocator(rootDir, id, label, locator, errors) {
     return;
   }
   const line = text.slice(0, index).split(/\r?\n/).length;
-  if (line !== locator.line) errors.push(`${id} ${label} line drift`);
-  if (sha256(contextAtLine(text, line)) !== locator.contextSha256) {
+  if (!Number.isInteger(locator.line) || locator.line < 1) errors.push(`${id} ${label} line hint missing`);
+  if (sha256(review3ContextAtLine(lines, line)) !== locator.contextSha256) {
     errors.push(`${id} ${label} context drift`);
   }
-  const symbol = deriveSymbol(text, line, locator.file, locator.anchorKind);
-  if (symbol !== locator.symbol) errors.push(`${id} ${label} symbol drift`);
+  if (locator.symbolKind === "reviewed-owner-or-readback") {
+    if (!locator.symbol || locator.symbol.startsWith("file-scope:")) {
+      errors.push(`${id} ${label} reviewed symbol missing`);
+    }
+  } else {
+    const symbol = deriveSymbol(text, line, locator.file, locator.anchorKind);
+    if (symbol !== locator.symbol) errors.push(`${id} ${label} symbol drift`);
+  }
 }
 
 function validateControlSelector(rootDir, row, control, errors) {
@@ -599,22 +740,9 @@ function sourceEntriesFor(repository, prefix) {
 }
 
 function semanticTokens(row, legacyAnchor) {
-  const text = `${row.feature} ${row.pass}`;
-  const tokens = [];
-  for (const match of text.matchAll(/`([^`]+)`/g)) {
-    const value = normalize(match[1]);
-    if (usefulToken(value)) tokens.push({ value, kind: "reviewed-code-span", score: 1100 });
-  }
-  for (const match of text.matchAll(/media-server\.[A-Za-z0-9_.-]+/g)) {
-    if (usefulToken(match[0])) tokens.push({ value: match[0], kind: "schema", score: 1000 });
-  }
-  for (const match of text.matchAll(/[A-Za-z_][A-Za-z0-9_:-]{3,}/g)) {
-    if (usefulToken(match[0])) tokens.push({ value: match[0], kind: "identifier", score: 500 });
-  }
-  if (usefulToken(legacyAnchor)) {
-    tokens.push({ value: legacyAnchor, kind: "legacy-review-seed", score: 180 });
-  }
-  return [...new Map(tokens.map(token => [token.value, token])).values()];
+  void row;
+  void legacyAnchor;
+  throw new Error("semantic token scoring is forbidden");
 }
 
 function semanticRoute(row, legacyItem) {
@@ -852,23 +980,6 @@ function nthIndex(text, anchor, occurrence) {
   return -1;
 }
 
-function ownerScore(prefix, file) {
-  const rules = {
-    UI: [/product_ui_/, /webrtc_http_server/, /http_auth/],
-    AUTH: [/http_auth/, /product_ui_auth/, /webrtc_http_server/],
-    SRC: [/source_view_registry/, /source_factory/, /onvif/, /ops_sources/, /webrtc_http_server/],
-    RULE: [/event_rule_engine/, /scenario/, /analysis_query/, /product_ui_/, /webrtc_http_server/],
-    EVT: [/event_manager/, /event_storage/, /ops_event_route_owner/, /webrtc_http_server/],
-    CLIENT: [/product_ui_client/, /webrtc_http_server/, /session_manager/],
-    MEDIA: [/rtsp/, /webrtc/, /session_manager/, /stream_registry/, /source_factory/],
-    LAB: [/analysis/, /vlm/, /webrtc_http_server/],
-    SAFE: [/webrtc_http_server/, /http_auth/, /verify_/],
-    OPS: [/webrtc_http_server/, /verify_/, /release/, /readiness/, /evidence/],
-  };
-  const index = (rules[prefix] || []).findIndex(pattern => pattern.test(file));
-  return index < 0 ? 0 : 520 - index * 55;
-}
-
 function oracleKind(row) {
   const text = `${row.feature} ${row.pass}`;
   if (/삭제|delete|remove/i.test(text)) return "delete-no-stale-state";
@@ -888,7 +999,13 @@ function readText(rootDir, relative, errors, label) {
     errors.push(`${label} file missing: ${relative}`);
     return null;
   }
-  try { return fs.readFileSync(target, "utf8"); }
+  const key = `${rootDir}:${relative}`;
+  if (validationTextCache.has(key)) return validationTextCache.get(key);
+  try {
+    const text = fs.readFileSync(target, "utf8");
+    validationTextCache.set(key, text);
+    return text;
+  }
   catch { errors.push(`${label} file unreadable: ${relative}`); return null; }
 }
 

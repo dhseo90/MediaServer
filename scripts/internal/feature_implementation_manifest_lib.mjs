@@ -7,9 +7,6 @@ import { execFileSync } from "node:child_process";
 
 import {
   SEMANTIC_CLOSURE_SCHEMA,
-  approveSemanticReview,
-  bindSemanticEvidence,
-  buildSemanticEvidence,
   summarizeSemanticClosure,
   validateSemanticItem,
 } from "./feature_semantic_evidence_lib.mjs";
@@ -86,6 +83,9 @@ export function parseFeatureRows(text) {
 }
 
 export function generateImplementationManifest({ rootDir, inventoryText, rows, reviewApproval = null }) {
+  if (reviewApproval) {
+    throw new Error("bulk semantic approval is forbidden; provide per-feature reviewed call-chain decisions");
+  }
   const repository = readRepositoryIndex(rootDir);
   const dispatch = parseServerDispatch(repository.textByFile.get("server.sh") || "");
   const reviewedManifestPath = path.join(rootDir, IMPLEMENTATION_MANIFEST_PATH);
@@ -93,16 +93,15 @@ export function generateImplementationManifest({ rootDir, inventoryText, rows, r
     ? JSON.parse(fs.readFileSync(reviewedManifestPath, "utf8"))
     : { items: [] };
   const reviewedById = new Map((reviewedManifest.items || []).map(item => [item.id, item]));
-  let items = rows.map(row => buildItem(rootDir, row, repository, dispatch, reviewedById.get(row.id)));
-  if (reviewApproval) items = approveSemanticReview(items, reviewApproval);
+  const items = rows.map(row => buildItem(rootDir, row, repository, dispatch, reviewedById.get(row.id)));
   const manifest = {
     schema: IMPLEMENTATION_MANIFEST_SCHEMA,
     semanticClosureSchema: SEMANTIC_CLOSURE_SCHEMA,
     expectedFeatureRows: EXPECTED_FEATURE_ROWS,
     inventorySha256: sha256(inventoryText),
     generatedFrom: "docs/project-feature-test-inventory.md",
-    generationPolicy: "explicit-refresh-only; unchanged approved semantic digests are preserved, new or changed rows require explicit reviewer approval",
-    semanticClosurePolicy: "exact handler/route/control/action/state/assertion locators plus reviewer-bound digest",
+    generationPolicy: "reviewed-map-only; unchanged reviewed rows are preserved; changed rows become review-required; token scoring and bulk approval are forbidden",
+    semanticClosurePolicy: "owner/route-or-control/action/state/readback/verifier reviewed call-chain plus per-feature reason and content digest",
     executionEvidenceStatus: "not-execution-evidence",
     items,
   };
@@ -247,6 +246,12 @@ export function validateImplementationManifest({ rootDir, inventoryText, rows, m
     }
   }
 
+  const reviewReasons = manifest.items.map(item => item?.review?.reason || "");
+  if (reviewReasons.some(reason => !reason)) errors.push("every feature requires a review reason");
+  if (new Set(reviewReasons).size !== manifest.items.length) {
+    errors.push("bulk or duplicate semantic review reason detected");
+  }
+
   return {
     ok: errors.length === 0,
     errors,
@@ -259,6 +264,8 @@ export function validateImplementationManifest({ rootDir, inventoryText, rows, m
       manualUiCaseRows: manifest.items.filter(item => item?.manualUiCaseId).length,
       semanticReviewedRows: manifest.items.filter(item => item?.status === "semantic-reviewed").length,
       uniqueSemanticDigests: new Set(manifest.items.map(item => item?.review?.semanticDigest).filter(Boolean)).size,
+      uniqueReviewReasons: new Set(manifest.items.map(item => item?.review?.reason).filter(Boolean)).size,
+      reviewedCallChains: manifest.items.filter(item => item?.semanticEvidence?.callChain).length,
       errors: errors.length,
     },
   };
@@ -275,248 +282,27 @@ export function writeImplementationManifest(rootDir, manifest) {
 }
 
 function buildItem(rootDir, row, repository, dispatch, reviewedItem = null) {
-  const prefix = featurePrefix(row.id);
   const areas = splitAreas(row.area);
-  if (reviewedItem?.status === "semantic-reviewed" &&
-      reviewedItem?.review?.decision === "approved" &&
+  if (reviewedItem &&
       reviewedItem.feature === row.feature &&
       reviewedItem.uiNeed === row.uiNeed &&
       reviewedItem.testNeed === row.testNeed &&
-      JSON.stringify(reviewedItem.testAreas) === JSON.stringify(areas) &&
-      validateSemanticItem({ rootDir, row, item: reviewedItem }).length === 0) {
-    return structuredClone(reviewedItem);
-  }
-  const requiresUiEvidence = row.uiNeed !== "비대상" || areas.includes("UI");
-  const anchors = evidenceAnchors(row);
-  const sourceCandidates = repository.entries.filter(([file]) => {
-    if (/verify_(?:project_feature_test_inventory|feature_inventory_coverage|feature_implementation_evidence)/.test(file)) {
-      return false;
-    }
-    if (/^(SAFE|OPS)$/.test(prefix)) {
-      return /^(src|include|config|scripts\/internal|test)\//.test(file);
-    }
-    return /^(src|include|config)\//.test(file);
-  });
-  const uiCandidates = repository.entries.filter(([file]) =>
-    /^src\/ingress\/(product_ui_|webrtc_http_server|http_auth)/.test(file));
-  const verifierCandidates = repository.entries.filter(([file]) =>
-    /^scripts\/internal\/verify/.test(file) &&
-    !/verify_(?:project_feature_test_inventory|feature_inventory_coverage)/.test(file));
-
-  const sourceEvidence = bestEvidence(row, anchors, sourceCandidates, "source");
-  if (!sourceEvidence) throw new Error(`${row.id} has no production implementation anchor`);
-  const uiEvidence = requiresUiEvidence
-    ? structuredClone(reviewedItem?.uiEvidence) || bestEvidence(row, anchors, uiCandidates, "ui")
-    : null;
-  if (requiresUiEvidence && !uiEvidence) {
-    throw new Error(`${row.id} has no product UI anchor`);
-  }
-  if (uiEvidence && !uiEvidence.screenRoute) {
-    uiEvidence.screenRoute = explicitUiScreenRoute(row);
-  }
-  if (uiEvidence && !uiEvidence.screenRoute) {
-    throw new Error(`${row.id} has no reviewed exact UI screenRoute mapping`);
-  }
-  const explicitCommands = explicitVerifierCommands(row.pass);
-  const explicitEvidence = explicitCommands
-    .map(command => {
-      const file = dispatch.commandToScript.get(command);
-      if (!file) return null;
-      const text = repository.textByFile.get(file) || "";
-      const asserted = anchors.find(item => text.includes(item.value));
-      return {
-        file,
-        anchor: asserted?.value || command,
-        anchorKind: asserted?.kind || "dispatch-command",
-        command,
-      };
-    })
-    .find(Boolean);
-  const reviewedVerifierEvidence = areas.includes("UI")
-    ? structuredClone(reviewedItem?.verifierEvidence)
-    : null;
-  const verifierEvidence = reviewedVerifierEvidence || explicitEvidence ||
-    bestEvidence(row, anchors, verifierCandidates, "verifier", dispatch);
-  if (!verifierEvidence) throw new Error(`${row.id} has no verifier assertion anchor`);
-  if (!verifierEvidence.command) {
-    verifierEvidence.command = resolveTransitiveCommand(
-      verifierEvidence.file,
-      repository,
-      dispatch,
-    );
-  }
-
-  const item = {
-    id: row.id,
-    section: sectionByPrefix[prefix],
-    surfaceKind: surfaceKindByPrefix[prefix],
-    feature: row.feature,
-    uiNeed: row.uiNeed,
-    testNeed: row.testNeed,
-    testAreas: areas,
-    status: "review-required",
-    review: {
+      JSON.stringify(reviewedItem.testAreas) === JSON.stringify(areas)) {
+    const copy = structuredClone(reviewedItem);
+    const reviewErrors = validateSemanticItem({ rootDir, row, item: copy });
+    if (reviewErrors.length === 0) return copy;
+    copy.status = "review-required";
+    copy.review = {
       decision: "pending",
       reviewer: null,
       reviewedOn: null,
-      reason: "explicit semantic source review required",
+      reason: `${row.id}: source or reviewed call-chain drift requires an explicit per-feature decision`,
       semanticDigest: null,
-    },
-    sourceEvidence,
-    uiEvidence,
-    verifierEvidence,
-    manualUiCaseId: areas.includes("UI")
-      ? reviewedItem?.manualUiCaseId || row.id
-      : null,
-    longrunEvidence: {
-      soak30: areas.includes("30분")
-        ? "./server.sh verify-v390-server-longrun --duration-minutes 30"
-        : null,
-      soak120: areas.includes("120분")
-        ? "./server.sh verify-v390-server-longrun --duration-minutes 120"
-        : null,
-      approval: areas.some(area => area === "30분" || area === "120분")
-        ? "explicit-user-approval-required"
-        : null,
-    },
-  };
-  return bindSemanticEvidence(
-    item,
-    buildSemanticEvidence({ rootDir, row, legacyItem: item }),
-  );
-}
-
-function bestEvidence(row, anchors, candidates, kind, dispatch = null) {
-  const direct = candidates
-    .filter(([, text]) => text.includes(row.id))
-    .map(([file]) => ({
-      file,
-      anchor: row.id,
-      anchorKind: "feature-id",
-      score: 10000 + ownerScore(featurePrefix(row.id), file, kind),
-    }));
-  const matches = [...direct];
-  for (const anchor of anchors) {
-    for (const [file, text] of candidates) {
-      if (!text.includes(anchor.value)) continue;
-      const ownerBonus = ownerScore(featurePrefix(row.id), file, kind);
-      const routeBonus = anchor.kind === "route" && anchor.value.includes("/api/") ? 240 : 0;
-      matches.push({
-        file,
-        anchor: anchor.value,
-        anchorKind: anchor.kind,
-        score: anchor.score + ownerBonus + routeBonus + Math.min(anchor.value.length * 4, 320),
-      });
-    }
-  }
-  matches.sort((a, b) => b.score - a.score || a.file.localeCompare(b.file));
-  const selected = matches[0];
-  if (!selected) return null;
-  const evidence = {
-    file: selected.file,
-    anchor: selected.anchor,
-    anchorKind: selected.anchorKind,
-  };
-  if (kind === "verifier" && dispatch) {
-    evidence.command = dispatch.scriptToCommands.get(selected.file)?.[0] || null;
-  }
-  return evidence;
-}
-
-function ownerScore(prefix, file, kind) {
-  if (kind === "verifier") {
-    const verifierRules = {
-      UI: [/ui/, /auth/, /ops/],
-      AUTH: [/auth/],
-      SRC: [/source/, /onvif/, /ops_ui_click/],
-      RULE: [/rule/, /scenario/, /va_/],
-      EVT: [/event/, /runtime/, /vlm/],
-      CLIENT: [/client/, /webrtc/],
-      MEDIA: [/webrtc/, /rtsp/, /codec/, /media/],
-      LAB: [/vlm/, /analysis/, /lab/],
-      SAFE: [/boundary/, /guard/, /auth/, /schema/],
-      OPS: [/release/, /readiness/, /evidence/],
+      validationErrors: reviewErrors,
     };
-    const verifierIndex = (verifierRules[prefix] || []).findIndex(pattern => pattern.test(file));
-    return verifierIndex < 0 ? 0 : 480 - verifierIndex * 40;
+    return copy;
   }
-  if (kind === "ui") {
-    const uiRules = {
-      UI: [/product_ui_/, /webrtc_http_server/],
-      AUTH: [/product_ui_auth/, /http_auth/, /webrtc_http_server/],
-      SRC: [/product_ui_ops_sources/, /webrtc_http_server/],
-      RULE: [/product_ui_page_scripts/, /webrtc_http_server/],
-      EVT: [/product_ui_page_scripts/, /webrtc_http_server/],
-      CLIENT: [/product_ui_client/, /webrtc_http_server/],
-      MEDIA: [/product_ui_client/, /webrtc_http_server/],
-      SAFE: [/product_ui_/, /webrtc_http_server/, /http_auth/],
-    };
-    const uiIndex = (uiRules[prefix] || []).findIndex(pattern => pattern.test(file));
-    if (uiIndex >= 0) return 620 - uiIndex * 60;
-    if (file.includes("product_ui_")) return 400;
-    if (file.endsWith("webrtc_http_server.cpp")) return 300;
-    return 100;
-  }
-  const rules = {
-    UI: [/product_ui_/, /webrtc_http_server/],
-    AUTH: [/http_auth/, /webrtc_http_server/, /product_ui_/],
-    SRC: [/source_view_registry/, /source_factory/, /onvif/, /webrtc_http_server/, /product_ui_ops_sources/],
-    RULE: [/event_rule_engine/, /scenario/, /analysis_query/, /webrtc_http_server/, /product_ui_/],
-    EVT: [/event_manager/, /event_storage/, /ops_event_route_owner/, /webrtc_http_server/, /product_ui_/],
-    CLIENT: [/product_ui_client/, /webrtc_http_server/, /session_manager/],
-    MEDIA: [/session_manager/, /source_factory/, /stream_registry/, /webrtc/, /rtsp/],
-    LAB: [/analysis/, /vlm/, /webrtc_http_server/],
-    SAFE: [/webrtc_http_server/, /http_auth/, /verify_/],
-    OPS: [/webrtc_http_server/, /verify_/, /release/, /server\.sh/],
-  };
-  const index = (rules[prefix] || []).findIndex(pattern => pattern.test(file));
-  return index < 0 ? 0 : 400 - index * 40;
-}
-
-function evidenceAnchors(row) {
-  const text = `${row.feature} ${row.pass}`;
-  const values = [];
-  for (const match of text.matchAll(/`([^`]+)`/g)) {
-    const value = match[1].trim();
-    if (isUsefulAnchor(value)) values.push({ value, kind: "code-span", score: 900 });
-  }
-  for (const match of text.matchAll(/\/(?:ops|client|lab|setup|login|logout|password|invite|webrtc|ws)[A-Za-z0-9_?&=./:{}-]*/g)) {
-    const value = match[0];
-    if (isUsefulAnchor(value)) {
-      values.push({ value, kind: "route", score: 850 });
-      const templateIndex = value.indexOf("{");
-      if (templateIndex > 0) {
-        values.push({ value: value.slice(0, templateIndex), kind: "route", score: 840 });
-      }
-    }
-  }
-  for (const match of text.matchAll(/[A-Za-z_][A-Za-z0-9_:-]{4,}/g)) {
-    const value = match[0];
-    if (isUsefulAnchor(value)) values.push({ value, kind: "identifier", score: 300 });
-  }
-  for (const match of text.matchAll(/[가-힣]{4,}/g)) {
-    const value = match[0];
-    if (isUsefulAnchor(value)) values.push({ value, kind: "ui-copy", score: 250 });
-  }
-  return [...new Map(values.map(item => [item.value, item])).values()];
-}
-
-function isUsefulAnchor(value) {
-  return value.length >= 3 && value.length <= 180 &&
-    !stopAnchors.has(value) && !/^v\d/i.test(value) && !/^\d+$/.test(value) &&
-    !value.startsWith("verify-");
-}
-
-function explicitVerifierCommands(text) {
-  return [...text.matchAll(/`(verify-[^`\s,]+)(?:\s+[^`]*)?`/g)].map(match => match[1]);
-}
-
-function explicitUiScreenRoute(row) {
-  const text = `${row.feature} ${row.pass}`;
-  const explicit = [...text.matchAll(/`(\/(?!ops\/api|client\/api|lab\/api)[A-Za-z0-9_./{}:-]*)`/g)]
-    .map(match => match[1])
-    .find(route => !route.includes("{") && !route.startsWith("/ws/"));
-  return explicit || null;
+  throw new Error(`${row.id} has no reviewed semantic call-chain map; automatic token selection is forbidden`);
 }
 
 function readRepositoryIndex(rootDir) {
@@ -554,15 +340,6 @@ function parseServerDispatch(serverText) {
     }
   }
   return { commandToScript, scriptToCommands };
-}
-
-function resolveTransitiveCommand(verifierFile, repository, dispatch) {
-  const basename = path.basename(verifierFile);
-  for (const [entryScript, commands] of dispatch.scriptToCommands.entries()) {
-    const text = repository.textByFile.get(entryScript) || "";
-    if (text.includes(basename)) return commands[0] || null;
-  }
-  return null;
 }
 
 function validateEvidence(label, evidence, { errors, repository, tracked, allowedPrefix }) {

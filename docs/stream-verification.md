@@ -23,8 +23,8 @@
 | `./server.sh verify-docs-ui-assets` | README/UI screenshot asset guard |
 | `./server.sh verify-project-inventory` | feature/test inventory 구조 guard |
 | `./server.sh verify-feature-inventory-coverage` | `media-server.feature-inventory-coverage.v1`, `coverageStatus: covered/missing`, `executionEvidenceStatus: not-execution-evidence`, `missing coverage target`, 누락 ID는 release gate에서 FAIL |
-| `./server.sh verify-feature-implementation-evidence` | `media-server.feature-implementation-evidence.v2` manifest의 986개 ID별 exact handler/route/control/action/state locator, reviewer-bound semantic digest, semantic verifier assertion, canonical 30/120분 mapping을 검증. 변경 행은 명시 reviewer 승인 전 `review-required`이며 default 검증은 read-only |
-| `./server.sh verify-feature-semantic-closure-contract` | 986행 semantic closure와 `UI-002 /setup` exact handler positive, wrong handler/unrelated same-file anchor/route·action·state drift/generic-alone/ID-only assertion/unapproved review negative를 검증. 실행 테스트 PASS가 아님 |
+| `./server.sh verify-feature-implementation-evidence` | `media-server.feature-implementation-evidence.v2` manifest의 986개 ID별 closure schema v2 content-addressed owner→route/control→action→state→readback→verifier 5-edge, 고유 review reason/digest, canonical 30/120분 mapping을 검증. Refresh는 reviewed map만 보존하고 drift 행을 review-required로 남기며 token scoring/bulk approval을 사용하지 않음. 실행 PASS가 아님 |
+| `./server.sh verify-feature-semantic-closure-contract` | 986행/986 unique call-chain과 `UI-002`, 교정된 `SAFE-140`/`RULE-017` positive, wrong/unrelated/same-file/generic/ID-only/missing-edge/digest/bulk-review negative 19개를 검증. 실행 테스트 PASS가 아님 |
 | `./server.sh verify-v390-review3-discovery-ledger` | V390-REVIEW3-36의 `AGENTS.md` 별도 전문 감사, 나머지 tracked Markdown 173개 파일별 full-read SHA-256/classification/status marker/duplicate/action, source/tooling explicit incomplete marker disposition, RulesJson 두 scope decision과 986-row 불변을 검증. 문서/source 정적 coverage이며 UI/30분/120분 실행 PASS가 아님 |
 | `./server.sh verify-release-metadata` | VERSION/CMake/release docs consistency guard |
 | `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>` | release close-out dry-run. tag/push/GitHub Release 생성 없음 |
@@ -228,6 +228,7 @@ authorization/bearer/secret assignment/viewer RTSP URL/raw debug material을 직
 `V390-REVIEW2-24`의 exact native 실행 구현은 아래 명령으로 검증합니다.
 
 - `./server.sh verify-v390-ui-native-exact-cases`
+- `./server.sh verify-v390-ui-native-exact-cases --update-canonical-binding`
 - `./server.sh verify-v390-ui-native-exact-cases-contract`
 - `./server.sh run-v390-ui-native-exact-cases --output-dir <path> --plan-only`
 
@@ -236,6 +237,11 @@ first failure 뒤 case는 `not-run`입니다. Plan-only/contract는 canonical 42
 native action/oracle seed/artifact plan, unsupported 0을 검증하지만 actual UI execution이 아니고
 `uiFulltestPass=false`입니다. Historical 8-case summary와 Policy v4 current `8/415/1` 판정은
 Step 26 eligibility 통합 전까지 별도 evidence로 유지합니다.
+
+semantic implementation manifest가 변경되면 `--update-canonical-binding`이 canonical 424개의
+implementation SHA와 exact route/control/action symbol을 동기화하고 native manifest도 함께
+재생성합니다. 일반 검증은 read-only이며 stale hash/control은 FAIL합니다. 이 source binding 갱신은
+Policy v4 actual execution evidence가 아닙니다.
 
 `V390-REVIEW2-25`부터 trusted click/select/fill/type은 동작 전후의 동일 visible text만으로 PASS하지
 않습니다. `./server.sh verify-v390-ui-completion-oracle-contract`가 DOM transition, case가 명시한

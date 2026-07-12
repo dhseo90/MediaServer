@@ -16,7 +16,7 @@ import {
   writeImplementationManifest,
 } from "./feature_implementation_manifest_lib.mjs";
 import {
-  approveSemanticReview,
+  migrateReview3SemanticClosure,
   summarizeSemanticClosure,
 } from "./feature_semantic_evidence_lib.mjs";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -33,10 +33,7 @@ Usage:
 
 Options:
   --refresh-manifest  Explicitly rebuild the reviewed 986-row manifest.
-  --approve-semantic-review  Bind the refreshed candidate to an explicit reviewer decision.
-  --reviewer VALUE            Reviewer identity required with approval.
-  --reviewed-on YYYY-MM-DD    Review date required with approval.
-  --approval-reason VALUE     Review rationale required with approval.
+  --migrate-review3           One-time v2 call-chain migration with 986 feature-specific reasons.
   --json-report PATH  Write the validation report.
   -h, --help          Show help.
 
@@ -46,10 +43,7 @@ must be reviewed before commit. This verifier does not execute product tests.`);
 
 assertKnownOptions(rawArgs, [
   "refresh-manifest",
-  "approve-semantic-review",
-  "reviewer",
-  "reviewed-on",
-  "approval-reason",
+  "migrate-review3",
   "json-report",
   "h",
   "help",
@@ -62,26 +56,17 @@ const inventoryText = fs.readFileSync(
 const rows = parseFeatureRows(inventoryText);
 
 if (args.refreshManifest) {
-  const reviewApproval = args.approveSemanticReview
-    ? {
-        reviewer: args.reviewer,
-        reviewedOn: args.reviewedOn,
-        reason: args.approvalReason,
-      }
-    : null;
-  const generated = generateImplementationManifest({ rootDir, inventoryText, rows, reviewApproval });
+  const generated = generateImplementationManifest({ rootDir, inventoryText, rows });
   writeImplementationManifest(rootDir, generated);
-  console.log(`[pass] refreshed ${IMPLEMENTATION_MANIFEST_PATH} (${reviewApproval ? "semantic review approved" : "review required"})`);
-} else if (args.approveSemanticReview) {
-  const candidate = loadImplementationManifest(rootDir);
-  candidate.items = approveSemanticReview(candidate.items, {
-    reviewer: args.reviewer,
-    reviewedOn: args.reviewedOn,
-    reason: args.approvalReason,
+  console.log(`[pass] refreshed ${IMPLEMENTATION_MANIFEST_PATH} (reviewed rows preserved; drift remains review-required)`);
+} else if (args.migrateReview3) {
+  const candidate = migrateReview3SemanticClosure({
+    rootDir,
+    rows,
+    manifest: loadImplementationManifest(rootDir),
   });
-  candidate.semanticClosureSummary = summarizeSemanticClosure({ rows, manifest: candidate });
   writeImplementationManifest(rootDir, candidate);
-  console.log(`[pass] approved current semantic review candidate in ${IMPLEMENTATION_MANIFEST_PATH}`);
+  console.log(`[pass] migrated ${IMPLEMENTATION_MANIFEST_PATH} to REVIEW3 call-chain closure`);
 }
 
 const manifest = loadImplementationManifest(rootDir);
@@ -115,6 +100,8 @@ console.log(`- verifierEvidenceRows: ${result.summary.verifierEvidenceRows}`);
 console.log(`- manualUiCaseRows: ${result.summary.manualUiCaseRows}`);
 console.log(`- semanticReviewedRows: ${result.summary.semanticReviewedRows}`);
 console.log(`- uniqueSemanticDigests: ${result.summary.uniqueSemanticDigests}`);
+console.log(`- reviewedCallChains: ${result.summary.reviewedCallChains}`);
+console.log(`- uniqueReviewReasons: ${result.summary.uniqueReviewReasons}`);
 console.log(`- validationErrors: ${result.summary.errors}`);
 console.log(`- negativeFixtures: ${negativeChecks.filter(check => check.pass).length}/${negativeChecks.length}`);
 console.log("- executionEvidenceStatus: not-execution-evidence");
@@ -190,6 +177,32 @@ function runNegativeFixtures({ rootDir, inventoryText, rows, manifest }) {
       mutate(copy) { copy.inventorySha256 = "0".repeat(64); },
       expect: "inventorySha256 drift",
     },
+    {
+      name: "missing-reviewed-call-chain",
+      mutate(copy) { delete copy.items[0].semanticEvidence.callChain; },
+      expect: "reviewed call chain schema drift",
+    },
+    {
+      name: "bulk-review-reason",
+      mutate(copy) { copy.items[1].review.reason = copy.items[0].review.reason; },
+      expect: "bulk or duplicate semantic review reason detected",
+    },
+    {
+      name: "safe-140-unrelated-owner",
+      mutate(copy) {
+        const item = copy.items.find(entry => entry.id === "SAFE-140");
+        item.semanticEvidence.callChain.roles.action.symbol = "OpsV380ClientNoticeDraftQueueJson";
+      },
+      expect: "SAFE-140 unrelated command workspace owner",
+    },
+    {
+      name: "rule-017-generic-json-owner",
+      mutate(copy) {
+        const item = copy.items.find(entry => entry.id === "RULE-017");
+        item.semanticEvidence.callChain.roles.owner.symbol = "ExtractObjectField";
+      },
+      expect: "RULE-017 unrelated generated-id owner",
+    },
   ];
   return cases.map(testCase => {
     const copy = structuredClone(manifest);
@@ -205,27 +218,15 @@ function runNegativeFixtures({ rootDir, inventoryText, rows, manifest }) {
 function parseArgs(argsList) {
   const parsed = {
     refreshManifest: false,
-    approveSemanticReview: false,
-    reviewer: "",
-    reviewedOn: "",
-    approvalReason: "",
+    migrateReview3: false,
     jsonReport: "",
   };
   for (let index = 0; index < argsList.length; index += 1) {
     const token = argsList[index];
     if (token === "--refresh-manifest") parsed.refreshManifest = true;
-    else if (token === "--approve-semantic-review") parsed.approveSemanticReview = true;
-    else if (token.startsWith("--reviewer=")) parsed.reviewer = token.slice("--reviewer=".length);
-    else if (token === "--reviewer") parsed.reviewer = argsList[++index];
-    else if (token.startsWith("--reviewed-on=")) parsed.reviewedOn = token.slice("--reviewed-on=".length);
-    else if (token === "--reviewed-on") parsed.reviewedOn = argsList[++index];
-    else if (token.startsWith("--approval-reason=")) parsed.approvalReason = token.slice("--approval-reason=".length);
-    else if (token === "--approval-reason") parsed.approvalReason = argsList[++index];
+    else if (token === "--migrate-review3") parsed.migrateReview3 = true;
     else if (token.startsWith("--json-report=")) parsed.jsonReport = token.slice("--json-report=".length);
     else if (token === "--json-report") parsed.jsonReport = argsList[++index];
-  }
-  if (parsed.approveSemanticReview && (!parsed.reviewer || !parsed.reviewedOn || !parsed.approvalReason)) {
-    throw new Error("semantic approval requires --reviewer, --reviewed-on, and --approval-reason");
   }
   return parsed;
 }

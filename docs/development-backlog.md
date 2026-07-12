@@ -2179,7 +2179,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 | 번호 | ID | 구간 | 제목 | 우선순위 | 상태 | 개발 내용 | 추천 모델 | 추론 수준 | 선정 근거 |
 | ---: | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 36 | V390-REVIEW3-36 | Discovery | 누락 기능과 전체 문서 ledger | P0 | 완료 | `AGENTS.md` 별도 전문 감사와 tracked Markdown 173개 파일별 full-read SHA-256/classification/status marker/duplicate/action ledger, 604개 source/tooling file marker 분류를 구현했습니다. RulesJson 두 항목은 non-VA 분석 자동부착 `excluded-by-design`, RTSP/WebRTC 장시간 검증 `transferred-to-test-condition`으로 inventory에 등록하고 `notImplementedYet` 응답을 제거했습니다. | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 2, 검증 난이도 1, 변경 범위 1, 총 6점. 기능 누락 정확도 상향 적용 |
-| 37 | V390-REVIEW3-37 | Feature Closure | 986행 semantic closure 전면 재감사 | P0 | 미완료 | 36번에서 확정한 inventory를 기준으로 자동 token 최고점과 일괄 approval을 제거하고 각 기능을 실제 owner symbol→route/control→action→state/readback→verifier assertion 호출 관계로 재작성 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. 전 기능 정확도 직접 영향 |
+| 37 | V390-REVIEW3-37 | Feature Closure | 986행 semantic closure 전면 재감사 | P0 | 완료 | 자동 token 최고점과 bulk approval API를 제거하고 986개 기능 각각을 content-addressed owner→route/control→action→state→readback→verifier 5-edge chain, 986개 고유 review reason/digest로 재작성했습니다. `SAFE-140`은 v3.5 command workspace owner로, `RULE-017`은 hidden/generated ID save/readback owner와 `verify-ops-client-ui`로 교정했습니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. 전 기능 정확도 직접 영향 |
 | 38 | V390-REVIEW3-38 | Persistence | Analysis Registry crash durability | P0 | 미완료 | rename 후 parent directory fsync와 mode 보존을 추가하고 mutation×fault stage matrix 및 crash/restart recovery를 검증 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점. 데이터 손상 위험 상향 적용 |
 | 39 | V390-REVIEW3-39 | VLM Integrity | 구조적 JSON과 provenance 재검증 | P0 | 미완료 | first-field 문자열 검색을 구조 parser로 교체하고 duplicate key/top-level scope를 강제하며 reload rule provenance도 server record와 재대조 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. provenance·보안·데이터 무결성 상향 적용 |
 | 40 | V390-REVIEW3-40 | Long-run | delegated exact phase ledger | P0 | 미완료 | expected case ID/order/uniqueness/count를 parent가 검증하고 누락·중복·부분 summary를 PASS로 투영하지 않음 | 5.6 Sol | 높음 (high) | 2+1+2+1=6점. 테스트 결과 정확도 상향 적용 |
@@ -2227,6 +2227,29 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
   관계를 machine-readable edge로 기록하고, verifier는 그 edge를 source에서 확인합니다.
 - 완료 조건: 986행 개별 reviewer reason이 기능별로 구체적이고, generic/shared/unrelated owner,
   same-file token, bulk approval, ID-only verifier가 모두 negative fixture에서 FAIL합니다.
+
+구현 기록(2026-07-12):
+
+- `scripts/internal/feature_semantic_evidence_lib.mjs`의 closure schema v2가 986행 각각에
+  content-addressed `owner`, `routeControl`, `action`, `state`, `readback` role과 고정된 5개
+  edge, 기능/기대 동작/role symbol/chain digest를 포함한 고유 review reason을 요구합니다.
+- `scripts/internal/feature_implementation_manifest_lib.mjs`에서 token score/owner score 기반
+  `bestEvidence` 경로를 제거했습니다. Refresh는 승인된 call-chain이 source와 일치하면 보존하고,
+  drift가 있으면 해당 행만 `review-required`로 남기며 새 행을 자동 선택하지 않습니다. 동일
+  reason을 전체 행에 넣는 bulk approval API/CLI도 제거했습니다. 과거 자동 selector의 공개
+  entry도 명시 오류로 봉쇄해 개별 검토 v2 chain 외 생성 경로를 허용하지 않습니다.
+- `SAFE-140`은 `AppendOpsDashboardPage` → `/ops` dispatch → `OpsV350CommandPlanJson` →
+  `OpsV350StagedChangePlanImpactPreviewJson` → command workspace verifier로 교정했습니다.
+  `RULE-017`은 hidden `opsEventRuleIdInput` → `opsRulesSaveNativeRecord` → `setOpsGeneratedId` →
+  `opsRulesGeneratedIdExpression`과 `verify-ops-client-ui` readback으로 교정했습니다.
+- `verify-feature-implementation-evidence`는 986/986 call-chain, 986 unique digest/reason,
+  missing chain, duplicate reason, unrelated SAFE-140, generic RULE-017 negative를 검사합니다.
+  `verify-feature-semantic-closure-contract`는 19개 positive/negative contract를 독립 확인합니다.
+- semantic manifest 변경에 종속된 Policy v4 canonical/native 424 binding은
+  `verify-v390-ui-native-exact-cases --update-canonical-binding`으로 implementation hash와 exact
+  route/control을 동기화합니다. Source line 전체를 실행 artifact에 복제하지 않고 API anchor 또는
+  검토 action symbol만 사용하며 Policy v4 contract 17/0, native contract 8/0으로 재검증했습니다.
+  이 결과는 semantic source closure이며 제품 실행/UI 풀테스트/30분/120분 PASS가 아닙니다.
 
 #### V390-REVIEW3-38~40 persistence, provenance, longrun foundation
 

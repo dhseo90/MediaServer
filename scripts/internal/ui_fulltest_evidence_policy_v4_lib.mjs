@@ -276,17 +276,57 @@ function loadCanonicalCaseBinding(policy, summary, rootDir, reasons) {
   };
 }
 
+export function refreshCanonicalCaseManifest({ canonical, implementation, implementationSha256 }) {
+  if (!canonical || canonical.schema !== "media-server.ui-fulltest-canonical-case-manifest.v1") {
+    throw new Error("unexpected canonical case manifest schema");
+  }
+  if (!implementation || implementation.schema !== "media-server.feature-implementation-evidence.v2") {
+    throw new Error("unexpected implementation evidence schema");
+  }
+  const implementationByManualId = new Map(
+    (implementation.items || [])
+      .filter(item => typeof item.manualUiCaseId === "string" && item.manualUiCaseId)
+      .map(item => [item.manualUiCaseId, item]),
+  );
+  if (implementationByManualId.size !== canonical.cases.length) {
+    throw new Error("canonical implementation exact case count drift");
+  }
+  const refreshed = structuredClone(canonical);
+  refreshed.implementationEvidence = {
+    ...refreshed.implementationEvidence,
+    schema: implementation.schema,
+    sha256: implementationSha256,
+  };
+  refreshed.cases = refreshed.cases.map(item => {
+    const implementationItem = implementationByManualId.get(item.testId);
+    if (!implementationItem) throw new Error(`${item.testId} implementation item missing`);
+    return {
+      ...item,
+      ...implementationCanonicalCase(implementationItem),
+      accountRole: item.accountRole,
+      viewport: item.viewport,
+      theme: item.theme,
+    };
+  });
+  refreshed.caseCount = refreshed.cases.length;
+  return refreshed;
+}
+
 function implementationCanonicalCase(item) {
   const semantic = item.semanticEvidence || {};
   const route = semantic.controlSelector?.screenRoute ||
     (semantic.route?.applicability === "http-or-product-route" ? semantic.route.value : item.uiEvidence?.screenRoute);
+  const reviewedAction = semantic.actionHandler || {};
+  const actionAnchor = typeof reviewedAction.anchor === "string" && reviewedAction.anchor.includes("/api/")
+    ? reviewedAction.anchor
+    : reviewedAction.symbol;
   return {
     testId: item.manualUiCaseId,
     featureId: item.id,
     route,
     controlAction: {
       selector: semantic.controlSelector?.value ?? null,
-      actionAnchor: semantic.actionHandler?.anchor,
+      actionAnchor,
     },
   };
 }

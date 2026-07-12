@@ -405,7 +405,7 @@ Usage:
   verify-v390-entry-baseline-contract
                  v3.9.0 current backlog Step 상태 parser의 positive/negative contract를 검증합니다.
   verify-feature-semantic-closure-contract
-                 984행 semantic handler/route/action/state/assertion false-positive contract를 검증합니다.
+                 986행 REVIEW3 owner/route-control/action/state/readback call-chain contract를 검증합니다.
   verify-v390-review3-discovery-ledger
                  V390-REVIEW3-36 Markdown/source 전수 ledger와 RulesJson scope 결정을 검증합니다.
   verify-v390-feature-completion-inventory
@@ -818,7 +818,7 @@ Usage:
   verify-v390-entry-baseline-contract
                  v3.9.0 current backlog Step 상태 parser의 positive/negative contract를 검증합니다.
   verify-feature-semantic-closure-contract
-                 984행 semantic handler/route/action/state/assertion false-positive contract를 검증합니다.
+                 986행 REVIEW3 owner/route-control/action/state/readback call-chain contract를 검증합니다.
   verify-v390-review3-discovery-ledger
                  V390-REVIEW3-36 Markdown/source 전수 ledger와 RulesJson scope 결정을 검증합니다.
   verify-v390-feature-completion-inventory

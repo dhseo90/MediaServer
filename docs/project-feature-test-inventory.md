@@ -43,9 +43,9 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
 | 기능 ID 목록 | 986개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리하고 `media-server.feature-implementation-evidence.v2` manifest와 exact-ID 집합을 고정 | 행별 semantic evidence 대조 완료, 실행 증거 아님 |
-| 코드 로직 위치 | 986개 ID별 exact handler file/symbol/line context hash, route dispatch, action handler, state oracle를 reviewer-bound semantic digest로 지정 | substring 존재가 아니라 locator·relation·digest 대조 완료, 실행 증거 아님 |
+| 코드 로직 위치 | 986개 ID별 content-addressed owner symbol→route/control→action→state→readback→verifier 5-edge chain과 기능별 고유 review reason/digest를 지정 | token 최고점, same-file token, bulk approval이 아니라 exact source-line context와 role/edge/digest를 대조. 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접 또는 UI absence boundary 441개 ID별 product UI action owner와 screen route를 지정하고 실제 UI 테스트 영역 424개에 동일한 manual case ID를 지정 | exact control selector 또는 route/read-only 비대상 사유와 action/state relation 대조 완료, inventory 단독으로 UI PASS 판정 불가 |
-| 안정화 테스트 매핑 | 986개 ID별 semantic verifier assertion과 `verify-feature-implementation-evidence` dispatch, asserted digest를 지정 | ID 문자열만 확인하지 않고 handler/route/action/state relation을 검증, 실제 실행 PASS 아님 |
+| 안정화 테스트 매핑 | 986개 ID별 `validateReview3CallChain` assertion, exact readback verifier command와 asserted digest를 지정 | ID 문자열만 확인하지 않고 owner/route-control/action/state/readback/verifier relation을 검증, 실제 실행 PASS 아님 |
 | 30분 테스트 매핑 | 30분 대상 기능을 media/session/runtime 중심으로 분리 | 기준표 작성 완료 |
 | 120분 테스트 매핑 | memory leak/runtime drift 조건부 대상 분리 | 기준표 작성 완료 |
 | VA seed 데이터 | `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`로 numeric ID/API payload 기준 full UI seed matrix를 고정 | 준비 기준일 뿐 실행 증거 아님 |
@@ -1518,7 +1518,8 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 
 2026-07-11에 기존 984개 기능 행을 대조했고 V390-REVIEW2-21에서 `SAFE-217`/`OPS-184`를 추가해 현재 986개 기능 행을 `test/fixtures/project_feature_implementation_evidence.json`
 `media-server.feature-implementation-evidence.v2` manifest와 1:1 대조했습니다. 이 완료는
-exact handler/route/control/action/state/assertion locator와 reviewer-bound semantic digest 확인이며
+content-addressed owner/route-control/action/state/readback 5-edge와 verifier assertion,
+reviewer-bound semantic digest 확인이며
 제품 테스트 실행 PASS가 아닙니다. manifest 갱신은 `--refresh-manifest`를 명시한 source 변경으로만
 수행하고, 변경된 행은 `review-required`가 되며 명시 reviewer 승인 전 semantic closure로 전환되지
 않습니다. 기본 verifier는 read-only로 source context와 relation drift를 검사합니다.
@@ -1526,13 +1527,14 @@ exact handler/route/control/action/state/assertion locator와 reviewer-bound sem
 | 대조 항목 | exact-ID 결과 | 검증 경계 |
 | --- | ---: | --- |
 | 기능 ID 집합 | 986/986 | inventory와 manifest의 ID, section, feature, UI 필요, 테스트 영역이 완전 일치 |
-| 코드 로직 handler/route/action/state | 986/986 | exact file/symbol/line context hash와 relation, 행별 고유 semantic digest; 실행 PASS 아님 |
+| 코드 로직 owner/route-control/action/state/readback | 986/986 | exact file/symbol/content context hash와 5-edge chain, 행별 고유 semantic digest/reason; 실행 PASS 아님 |
 | 제품 UI route/control/state anchor | 441/441 | UI 필요/간접 또는 UI absence boundary 행별 screen route, product UI action owner, exact selector 또는 비대상 사유; 직접 클릭 PASS 아님 |
 | manual UI exact case | 424/424 | 테스트 영역 `UI` 행별 동일 `manualUiCaseId`; 실행 결과 없이 PASS 아님 |
-| 안정화 semantic verifier assertion | 986/986 | `validateSemanticItem`이 handler/route/action/state locator와 reviewer digest를 검증하며 ID-only assertion을 거부 |
+| 안정화 semantic verifier assertion | 986/986 | `validateSemanticItem`/`validateReview3CallChain`이 5개 role/edge, content locator, reviewer/chain digest를 검증하며 missing edge, ID-only, generic/unrelated owner를 거부 |
 | 30분 mapping | 50/50 | `verify-v390-server-longrun --duration-minutes 30`, current 986-row manifest에서 자동 산출, 사용자 명시 승인 전 미실행 |
 | 120분 mapping | 7/7 | `verify-v390-server-longrun --duration-minutes 120`, 사용자 명시 승인 전 조건부 미실행 |
-| negative fixture | 21/21 | 기존 11개와 wrong handler, unrelated same-file anchor, route/action/state drift, generic-alone, ID-only assertion, unapproved review를 포함한 semantic contract 10개 |
+| manifest negative fixture | 15/15 | 기존 11개와 missing reviewed chain, duplicate bulk reason, unrelated SAFE-140, generic RULE-017 owner를 거부 |
+| semantic closure contract | 19/19 | 986 reviewed/unique reason, 알려진 2건 교정, 자동 selector 봉쇄와 wrong role/anchor/edge/digest/reviewer/generic owner negative를 독립 확인 |
 
 정적 대조는 `./server.sh verify-feature-implementation-evidence`와
 `./server.sh verify-feature-inventory-coverage`로 수행합니다. `coverageStatus=covered`는

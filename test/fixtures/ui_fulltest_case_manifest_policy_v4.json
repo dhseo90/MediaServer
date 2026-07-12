@@ -4,7 +4,7 @@
   "implementationEvidence": {
     "path": "test/fixtures/project_feature_implementation_evidence.json",
     "schema": "media-server.feature-implementation-evidence.v2",
-    "sha256": "a5690475feecbbb2e7bc8ceeb6afa4287a8a6afff4dc9b1d74c9d489ba04c526"
+    "sha256": "ac5da02b9e118784d89063a5e9cdd57977fc20e4dadd3311932c8d62a5b3d8c4"
   },
   "caseCount": 424,
   "cases": [
@@ -20,7 +20,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "auth"
+        "actionAnchor": "currentLanguage"
       }
     },
     {
@@ -35,7 +35,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"auth-setup-form\"]",
-        "actionAnchor": "/setup"
+        "actionAnchor": "SetupPageHtml"
       }
     },
     {
@@ -50,7 +50,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"auth-login-form\"]",
-        "actionAnchor": "/login"
+        "actionAnchor": "LoginPageHtml"
       }
     },
     {
@@ -65,7 +65,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"auth-password-change-form\"]",
-        "actionAnchor": "/password/change"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -80,7 +80,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"auth-password-change-form\"]",
-        "actionAnchor": "/logout"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -95,7 +95,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"auth-invite-setup-form\"]",
-        "actionAnchor": "/invite/setup"
+        "actionAnchor": "SetupPageHtml"
       }
     },
     {
@@ -110,7 +110,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/client/request-access"
+        "actionAnchor": "loadDetail"
       }
     },
     {
@@ -125,7 +125,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"ops-context-actions\"]",
-        "actionAnchor": "summary"
+        "actionAnchor": "opsContextActionsHtml"
       }
     },
     {
@@ -140,7 +140,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/dashboard"
+        "actionAnchor": "dashboardIncidentTimelineItems"
       }
     },
     {
@@ -155,7 +155,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/sources"
+        "actionAnchor": "blockedSources"
       }
     },
     {
@@ -170,7 +170,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/rules"
+        "actionAnchor": "renderApprovalGatedRuleDraftReadiness"
       }
     },
     {
@@ -185,7 +185,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "request"
+        "actionAnchor": "AppendOpsUsersPageScript"
       }
     },
     {
@@ -200,7 +200,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsIncidentSearchInput",
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderVlmSummaryCandidateReview"
       }
     },
     {
@@ -215,7 +215,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"client-live-action-reduction\"]",
-        "actionAnchor": "client-live-workspace"
+        "actionAnchor": "liveMonitorHtml"
       }
     },
     {
@@ -230,7 +230,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"client-dashboard-shell\"]",
-        "actionAnchor": "client-viewer-dashboard"
+        "actionAnchor": "renderDashboard"
       }
     },
     {
@@ -245,7 +245,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#clientDashboardPresetStatus",
-        "actionAnchor": "client-viewer-events"
+        "actionAnchor": "renderDashboard"
       }
     },
     {
@@ -260,7 +260,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/lab"
+        "actionAnchor": "areaLabel"
       }
     },
     {
@@ -275,7 +275,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "token"
+        "actionAnchor": "currentLanguage"
       }
     },
     {
@@ -290,7 +290,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"ops-context-actions\"]",
-        "actionAnchor": "table"
+        "actionAnchor": "tableCellHtml"
       }
     },
     {
@@ -305,7 +305,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "control"
+        "actionAnchor": "currentLanguage"
       }
     },
     {
@@ -320,7 +320,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashSiteClientNoticePreviewList",
-        "actionAnchor": "boundary"
+        "actionAnchor": "renderV370ClientNoticeBySiteViewGroup"
       }
     },
     {
@@ -335,7 +335,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVlmProfileEnabled",
-        "actionAnchor": "fallback"
+        "actionAnchor": "buildOpsVlmProfilePayload"
       }
     },
     {
@@ -350,7 +350,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVlmPrivacyGuardList",
-        "actionAnchor": "retention"
+        "actionAnchor": "renderOpsVlmPrivacyTransferGuard"
       }
     },
     {
@@ -365,7 +365,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVlmDisabledReason",
-        "actionAnchor": "recommendation"
+        "actionAnchor": "buildOpsVlmRuntimeContract"
       }
     },
     {
@@ -380,7 +380,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVlmStatus",
-        "actionAnchor": "download"
+        "actionAnchor": "evidenceHref"
       }
     },
     {
@@ -395,7 +395,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVlmRuntimeStatusList",
-        "actionAnchor": "credential"
+        "actionAnchor": "renderOpsVlmRuntimeStatus"
       }
     },
     {
@@ -410,7 +410,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVlmProfileEnabled",
-        "actionAnchor": "disabled"
+        "actionAnchor": "buildOpsVlmProfilePayload"
       }
     },
     {
@@ -425,7 +425,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#v320ActionReadinessChecklistGrid",
-        "actionAnchor": "EventRecord"
+        "actionAnchor": "renderV320ActionReadinessChecklist"
       }
     },
     {
@@ -440,7 +440,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVlmStatus",
-        "actionAnchor": "evaluation"
+        "actionAnchor": "saveOpsVlmProfile"
       }
     },
     {
@@ -455,7 +455,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "diagnostic"
+        "actionAnchor": "requestJson('/ops/api/diagnostics/log-tail?limit=120').catch(error => ({ error: error.message, lines: [] })),"
       }
     },
     {
@@ -470,7 +470,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsIncidentSearchInput",
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderVlmSummaryCandidateReview"
       }
     },
     {
@@ -485,7 +485,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "default-off"
+        "actionAnchor": "opsVlmRuntimeStatusSummary"
       }
     },
     {
@@ -500,7 +500,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVlmEvaluationRows",
-        "actionAnchor": "explanation"
+        "actionAnchor": "opsVlmEvaluationDimensionText"
       }
     },
     {
@@ -515,7 +515,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsIncidentSearchInput",
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderVlmSummaryCandidateReview"
       }
     },
     {
@@ -530,7 +530,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRuleIdInput",
-        "actionAnchor": "/lab/analysis/rules"
+        "actionAnchor": "opsRulesReadEventTemplateForm"
       }
     },
     {
@@ -545,7 +545,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderV320UnifiedOpsEventsWorkspace"
       }
     },
     {
@@ -560,7 +560,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderV320UnifiedOpsEventsWorkspace"
       }
     },
     {
@@ -575,7 +575,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "dashboardIncidentTimelineItems"
       }
     },
     {
@@ -590,7 +590,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderV320UnifiedOpsEventsWorkspace"
       }
     },
     {
@@ -605,7 +605,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderV320UnifiedOpsEventsWorkspace"
       }
     },
     {
@@ -620,7 +620,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderV320UnifiedOpsEventsWorkspace"
       }
     },
     {
@@ -635,7 +635,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderV320UnifiedOpsEventsWorkspace"
       }
     },
     {
@@ -650,7 +650,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "dashboardIncidentTimelineItems"
       }
     },
     {
@@ -665,7 +665,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsIncidentSearchInput",
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderVlmSummaryCandidateReview"
       }
     },
     {
@@ -680,7 +680,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRulePresetSelect",
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "opsRulesReviewCoverageHref"
       }
     },
     {
@@ -695,7 +695,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/sources"
+        "actionAnchor": "blockedSources"
       }
     },
     {
@@ -710,7 +710,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/dashboard"
+        "actionAnchor": "dashboardIncidentTimelineItems"
       }
     },
     {
@@ -725,7 +725,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"ops-incident-rule-suggestion-review\"]",
-        "actionAnchor": "/ops/rules"
+        "actionAnchor": "renderIncidentRuleSuggestionReview"
       }
     },
     {
@@ -740,7 +740,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "dashboardIncidentTimelineItems"
       }
     },
     {
@@ -755,7 +755,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsIncidentTriageBoardRows",
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderVlmSummaryCandidateReview"
       }
     },
     {
@@ -770,7 +770,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashRuntimeOpsList",
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "dashboardRuntimeOpsNextAction"
       }
     },
     {
@@ -785,7 +785,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRulePresetSelect",
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "opsRulesReviewCoverageHref"
       }
     },
     {
@@ -800,7 +800,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderV320UnifiedOpsEventsWorkspace"
       }
     },
     {
@@ -815,7 +815,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderV320UnifiedOpsEventsWorkspace"
       }
     },
     {
@@ -830,7 +830,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/rules"
+        "actionAnchor": "renderApprovalGatedRuleDraftReadiness"
       }
     },
     {
@@ -845,7 +845,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderV320UnifiedOpsEventsWorkspace"
       }
     },
     {
@@ -860,7 +860,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderV320UnifiedOpsEventsWorkspace"
       }
     },
     {
@@ -875,7 +875,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderV320UnifiedOpsEventsWorkspace"
       }
     },
     {
@@ -890,7 +890,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderV320UnifiedOpsEventsWorkspace"
       }
     },
     {
@@ -905,7 +905,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderV320UnifiedOpsEventsWorkspace"
       }
     },
     {
@@ -920,7 +920,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsV320ResolutionTimeline",
-        "actionAnchor": "media-server.ops.v320-unified-events-workspace.v1"
+        "actionAnchor": "renderV320UnifiedOpsEventsWorkspace"
       }
     },
     {
@@ -935,7 +935,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderV320UnifiedOpsEventsWorkspace"
       }
     },
     {
@@ -950,7 +950,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#v320SourceReliabilityGrid",
-        "actionAnchor": "media-server.ops.v320-source-reliability-context.v1"
+        "actionAnchor": "renderV320SourceReliabilityContext"
       }
     },
     {
@@ -965,7 +965,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#v320AiReviewQualityGrid",
-        "actionAnchor": "media-server.ops.v320-ai-review-quality-context.v1"
+        "actionAnchor": "renderV320AiReviewQualityContext"
       }
     },
     {
@@ -980,7 +980,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#v320OperatorResolutionFlowGrid",
-        "actionAnchor": "media-server.ops.v320-operator-resolution-flow.v1"
+        "actionAnchor": "renderV320OperatorResolutionFlow"
       }
     },
     {
@@ -995,7 +995,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#v320ActionReadinessChecklistGrid",
-        "actionAnchor": "media-server.ops.v320-action-readiness-checklist.v1"
+        "actionAnchor": "renderV320ActionReadinessChecklist"
       }
     },
     {
@@ -1010,7 +1010,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"client-safe-resolution-digest\"]",
-        "actionAnchor": "media-server.client.resolution-digest.v1"
+        "actionAnchor": "renderClientSafeResolutionDigest"
       }
     },
     {
@@ -1025,7 +1025,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#v320ResolutionSearchMetricsGrid",
-        "actionAnchor": "media-server.ops.v320-resolution-search-metrics.v1"
+        "actionAnchor": "renderV320ResolutionSearchMetrics"
       }
     },
     {
@@ -1040,7 +1040,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#v330IncidentSourceCorrelationGrid",
-        "actionAnchor": "media-server.ops.v330-incident-source-correlation.v1"
+        "actionAnchor": "renderV330IncidentSourceCorrelationLayer"
       }
     },
     {
@@ -1055,7 +1055,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#v330OperatorRecheckRecoveryQueueGrid",
-        "actionAnchor": "media-server.ops.v330-operator-recheck-recovery-queue.v1"
+        "actionAnchor": "renderV330OperatorRecheckRecoveryQueue"
       }
     },
     {
@@ -1070,7 +1070,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"client-safe-source-status-digest\"]",
-        "actionAnchor": "media-server.client.source-status-digest.v1"
+        "actionAnchor": "renderClientSafeSourceStatusDigest"
       }
     },
     {
@@ -1085,7 +1085,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/sources"
+        "actionAnchor": "renderSourceReliabilitySearchMetrics"
       }
     },
     {
@@ -1100,7 +1100,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/sources"
+        "actionAnchor": "renderBackupRecoverySourceHandoff"
       }
     },
     {
@@ -1115,7 +1115,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/sources"
+        "actionAnchor": "blockedSources"
       }
     },
     {
@@ -1130,7 +1130,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/sources"
+        "actionAnchor": "blockedSources"
       }
     },
     {
@@ -1145,7 +1145,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"client-safe-maintenance-digest\"]",
-        "actionAnchor": "media-server.client.v340-maintenance-digest.v1"
+        "actionAnchor": "renderClientSafeMaintenanceDigest"
       }
     },
     {
@@ -1160,7 +1160,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/sources"
+        "actionAnchor": "renderDrillEvidenceExportCleanupManifest"
       }
     },
     {
@@ -1175,7 +1175,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/sources"
+        "actionAnchor": "blockedSources"
       }
     },
     {
@@ -1190,7 +1190,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#v350IncidentCommandHandoffGrid",
-        "actionAnchor": "media-server.ops.v350-incident-command-handoff.v1"
+        "actionAnchor": "renderV350IncidentCommandHandoff"
       }
     },
     {
@@ -1205,7 +1205,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/dashboard"
+        "actionAnchor": "dashboardIncidentTimelineItems"
       }
     },
     {
@@ -1220,7 +1220,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/dashboard"
+        "actionAnchor": "dashboardIncidentTimelineItems"
       }
     },
     {
@@ -1235,7 +1235,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"client-impact-forecast\"]",
-        "actionAnchor": "media-server.client.v350-impact-forecast.v1"
+        "actionAnchor": "renderClientImpactForecast"
       }
     },
     {
@@ -1250,7 +1250,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"client-operations-notice\"]",
-        "actionAnchor": "media-server.client.v350-operations-notice.v1"
+        "actionAnchor": "renderClientOperationsNotice"
       }
     },
     {
@@ -1265,7 +1265,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashCommandWorkspaceExportBundleMap",
-        "actionAnchor": "media-server.ops.v350-export-bundle-handoff-map.v1"
+        "actionAnchor": "drillNode"
       }
     },
     {
@@ -1280,7 +1280,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/dashboard"
+        "actionAnchor": "dashboardIncidentTimelineItems"
       }
     },
     {
@@ -1295,7 +1295,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashCommandWorkspaceVlmAssistedExplanation",
-        "actionAnchor": "media-server.ops.v350-vlm-assisted-explanation.v1"
+        "actionAnchor": "drillNode"
       }
     },
     {
@@ -1310,7 +1310,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/dashboard"
+        "actionAnchor": "dashboardIncidentTimelineItems"
       }
     },
     {
@@ -1325,7 +1325,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/dashboard"
+        "actionAnchor": "dashboardIncidentTimelineItems"
       }
     },
     {
@@ -1340,7 +1340,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/dashboard"
+        "actionAnchor": "dashboardIncidentTimelineItems"
       }
     },
     {
@@ -1355,7 +1355,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsIncidentActionReadinessQueueRows",
-        "actionAnchor": "/ops/dashboard"
+        "actionAnchor": "renderOperationalActionPack"
       }
     },
     {
@@ -1370,7 +1370,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/dashboard"
+        "actionAnchor": "dashboardIncidentTimelineItems"
       }
     },
     {
@@ -1385,7 +1385,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/dashboard"
+        "actionAnchor": "dashboardIncidentTimelineItems"
       }
     },
     {
@@ -1400,7 +1400,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/dashboard"
+        "actionAnchor": "dashboardIncidentTimelineItems"
       }
     },
     {
@@ -1415,7 +1415,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/dashboard"
+        "actionAnchor": "dashboardIncidentTimelineItems"
       }
     },
     {
@@ -1430,7 +1430,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/dashboard"
+        "actionAnchor": "dashboardIncidentTimelineItems"
       }
     },
     {
@@ -1445,7 +1445,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/dashboard"
+        "actionAnchor": "dashboardIncidentTimelineItems"
       }
     },
     {
@@ -1460,7 +1460,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/dashboard"
+        "actionAnchor": "dashboardIncidentTimelineItems"
       }
     },
     {
@@ -1475,7 +1475,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/dashboard"
+        "actionAnchor": "dashboardIncidentTimelineItems"
       }
     },
     {
@@ -1490,7 +1490,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/dashboard"
+        "actionAnchor": "dashboardIncidentTimelineItems"
       }
     },
     {
@@ -1505,7 +1505,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/dashboard"
+        "actionAnchor": "dashboardIncidentTimelineItems"
       }
     },
     {
@@ -1520,7 +1520,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsIncidentActionReadinessQueueRows",
-        "actionAnchor": "/ops/dashboard"
+        "actionAnchor": "renderOperationalActionPack"
       }
     },
     {
@@ -1535,7 +1535,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"client-action-notice-preview\"]",
-        "actionAnchor": "media-server.client.v380-action-notice-preview.v1"
+        "actionAnchor": "allowedStatus"
       }
     },
     {
@@ -1550,7 +1550,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsIncidentActionReadinessQueueRows",
-        "actionAnchor": "/ops/dashboard"
+        "actionAnchor": "renderOperationalActionPack"
       }
     },
     {
@@ -1565,7 +1565,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsIncidentActionReadinessQueueRows",
-        "actionAnchor": "/ops/dashboard"
+        "actionAnchor": "renderOperationalActionPack"
       }
     },
     {
@@ -1580,7 +1580,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/dashboard"
+        "actionAnchor": "dashboardIncidentTimelineItems"
       }
     },
     {
@@ -1595,7 +1595,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsIncidentActionReadinessQueueRows",
-        "actionAnchor": "/ops/dashboard"
+        "actionAnchor": "renderOperationalActionPack"
       }
     },
     {
@@ -1610,7 +1610,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/sources"
+        "actionAnchor": "blockedSources"
       }
     },
     {
@@ -1625,7 +1625,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/sources"
+        "actionAnchor": "blockedSources"
       }
     },
     {
@@ -1640,7 +1640,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVlmRuleDraftBridgeStatus",
-        "actionAnchor": "provenance=incident-review-provenance"
+        "actionAnchor": "renderOpsVlmRuleSuggestionDraftBridge"
       }
     },
     {
@@ -1655,7 +1655,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVlmExternalTransferWarningAck",
-        "actionAnchor": "expectedProvenanceDigest"
+        "actionAnchor": "buildOpsVlmProfilePayload"
       }
     },
     {
@@ -1670,7 +1670,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/sources"
+        "actionAnchor": "renderBackupRecoverySourceHandoff"
       }
     },
     {
@@ -1685,7 +1685,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashActionExecutionDeferralList",
-        "actionAnchor": "sourceRecheckExecuted=false"
+        "actionAnchor": "{ actionKind: 'source-recheck-execution', decision: 'deferred', currentRoute: '/ops/api/actions/source-recheck-pilot', writeBoundary: 'sourceRecheckExecuted=false' },"
       }
     },
     {
@@ -1700,7 +1700,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashFieldEvidenceBridgeList",
-        "actionAnchor": "fieldSmokeExecuted=false"
+        "actionAnchor": "renderV390FieldEvidenceBridgeDecision"
       }
     },
     {
@@ -1730,7 +1730,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"auth-login-form\"]",
-        "actionAnchor": "login"
+        "actionAnchor": "LoginPageHtml"
       }
     },
     {
@@ -1745,7 +1745,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"auth-login-form\"]",
-        "actionAnchor": "/login"
+        "actionAnchor": "LoginPageHtml"
       }
     },
     {
@@ -1760,7 +1760,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"auth-setup-form\"]",
-        "actionAnchor": "username"
+        "actionAnchor": "SetupPageHtml"
       }
     },
     {
@@ -1775,7 +1775,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"auth-password-policy\"]",
-        "actionAnchor": "password"
+        "actionAnchor": "LoginPageHtml"
       }
     },
     {
@@ -1790,7 +1790,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "admin"
+        "actionAnchor": "roleLabel"
       }
     },
     {
@@ -1805,7 +1805,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "admin"
+        "actionAnchor": "roleLabel"
       }
     },
     {
@@ -1820,7 +1820,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"auth-login-form\"]",
-        "actionAnchor": "/login"
+        "actionAnchor": "LoginPageHtml"
       }
     },
     {
@@ -1835,7 +1835,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"auth-invite-setup-form\"]",
-        "actionAnchor": "invite"
+        "actionAnchor": "SetupPageHtml"
       }
     },
     {
@@ -1850,7 +1850,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "role"
+        "actionAnchor": "scopeTemplateForRole"
       }
     },
     {
@@ -1865,7 +1865,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "create"
+        "actionAnchor": "AppendOpsUsersPageScript"
       }
     },
     {
@@ -1880,7 +1880,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "detail"
+        "actionAnchor": "AppendOpsUsersPageScript"
       }
     },
     {
@@ -1895,7 +1895,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "disable"
+        "actionAnchor": "setFormDisabled"
       }
     },
     {
@@ -1910,7 +1910,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "disabled"
+        "actionAnchor": "setFormDisabled"
       }
     },
     {
@@ -1925,7 +1925,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "password"
+        "actionAnchor": "resetUserPassword"
       }
     },
     {
@@ -1940,7 +1940,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "disable"
+        "actionAnchor": "setFormDisabled"
       }
     },
     {
@@ -1955,7 +1955,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "action"
+        "actionAnchor": "setEnabled"
       }
     },
     {
@@ -1970,7 +1970,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "operator"
+        "actionAnchor": "scopeTemplateForRole"
       }
     },
     {
@@ -1985,7 +1985,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "viewer"
+        "actionAnchor": "updateScopeTemplatePreview"
       }
     },
     {
@@ -2000,7 +2000,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "integrator"
+        "actionAnchor": "scopeTemplateForRole"
       }
     },
     {
@@ -2015,7 +2015,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "action"
+        "actionAnchor": "appendUserRow"
       }
     },
     {
@@ -2030,7 +2030,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "source:write"
+        "actionAnchor": "scopeTemplateForRole"
       }
     },
     {
@@ -2045,7 +2045,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "client"
+        "actionAnchor": "clientViewLocationParts"
       }
     },
     {
@@ -2060,7 +2060,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"auth-invite-setup-form\"]",
-        "actionAnchor": "invite"
+        "actionAnchor": "SetupPageHtml"
       }
     },
     {
@@ -2075,7 +2075,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"auth-invite-setup-form\"]",
-        "actionAnchor": "invite"
+        "actionAnchor": "SetupPageHtml"
       }
     },
     {
@@ -2090,7 +2090,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"auth-invite-setup-form\"]",
-        "actionAnchor": "token"
+        "actionAnchor": "SetupPageHtml"
       }
     },
     {
@@ -2105,7 +2105,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#request-form",
-        "actionAnchor": "request"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -2120,7 +2120,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"auth-invite-setup-form\"]",
-        "actionAnchor": "invite"
+        "actionAnchor": "SetupPageHtml"
       }
     },
     {
@@ -2135,7 +2135,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"auth-invite-setup-form\"]",
-        "actionAnchor": "invite"
+        "actionAnchor": "SetupPageHtml"
       }
     },
     {
@@ -2150,7 +2150,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "pending"
+        "actionAnchor": "AppendOpsUsersPageScript"
       }
     },
     {
@@ -2165,7 +2165,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "role"
+        "actionAnchor": "scopeTemplateForRole"
       }
     },
     {
@@ -2180,7 +2180,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/sources"
+        "actionAnchor": "await requestJson(`/ops/api/sources/${encodeURIComponent(channelId)}`, {"
       }
     },
     {
@@ -2195,7 +2195,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "health"
+        "actionAnchor": "renderReliabilityTimelineHealthHistory"
       }
     },
     {
@@ -2210,7 +2210,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "health"
+        "actionAnchor": "renderReliabilityTimelineHealthHistory"
       }
     },
     {
@@ -2225,7 +2225,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "external"
+        "actionAnchor": "renderFieldBridgeConditionGates"
       }
     },
     {
@@ -2240,7 +2240,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "sourceId"
+        "actionAnchor": "viewPayloadFromRecord"
       }
     },
     {
@@ -2255,7 +2255,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "count"
+        "actionAnchor": "renderApprovalGatedRecoveryChecklistAudit"
       }
     },
     {
@@ -2270,7 +2270,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "detail"
+        "actionAnchor": "AppendOpsSourcesPageScript"
       }
     },
     {
@@ -2285,7 +2285,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "validation"
+        "actionAnchor": "AppendOpsSourcesPageScript"
       }
     },
     {
@@ -2300,7 +2300,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/sources"
+        "actionAnchor": "blockedSources"
       }
     },
     {
@@ -2315,7 +2315,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "sourceId"
+        "actionAnchor": "viewPayloadFromRecord"
       }
     },
     {
@@ -2330,7 +2330,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#channelScopePolicy",
-        "actionAnchor": "disabled"
+        "actionAnchor": "sourceWriteDisabledAttr"
       }
     },
     {
@@ -2345,7 +2345,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "summary"
+        "actionAnchor": "renderApprovalGatedRecoveryChecklistAudit"
       }
     },
     {
@@ -2360,7 +2360,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "redacted"
+        "actionAnchor": "renderDrillEvidenceExportCleanupManifest"
       }
     },
     {
@@ -2375,7 +2375,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "PublishedView"
+        "actionAnchor": "renderOnboardingQualitySummary"
       }
     },
     {
@@ -2390,7 +2390,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "PublishedView"
+        "actionAnchor": "openClientLiveForChannel"
       }
     },
     {
@@ -2405,7 +2405,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "PublishedView"
+        "actionAnchor": "openClientLiveForChannel"
       }
     },
     {
@@ -2420,7 +2420,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "PublishedView"
+        "actionAnchor": "openClientLiveForChannel"
       }
     },
     {
@@ -2435,7 +2435,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "PublishedView"
+        "actionAnchor": "openClientLiveForChannel"
       }
     },
     {
@@ -2450,7 +2450,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "client"
+        "actionAnchor": "openClientLiveForChannel"
       }
     },
     {
@@ -2465,7 +2465,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "allowedRuleIds"
+        "actionAnchor": "viewPayloadFromRecord"
       }
     },
     {
@@ -2480,7 +2480,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "viewer"
+        "actionAnchor": "renderDrillEvidenceExportCleanupManifest"
       }
     },
     {
@@ -2495,7 +2495,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#add-channel",
-        "actionAnchor": "WebRTC"
+        "actionAnchor": "kindLabel"
       }
     },
     {
@@ -2510,7 +2510,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "data"
+        "actionAnchor": "viewPayloadFromRecord"
       }
     },
     {
@@ -2525,7 +2525,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "data"
+        "actionAnchor": "viewPayloadFromRecord"
       }
     },
     {
@@ -2540,7 +2540,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "client"
+        "actionAnchor": "openClientLiveForChannel"
       }
     },
     {
@@ -2555,7 +2555,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "client"
+        "actionAnchor": "openClientLiveForChannel"
       }
     },
     {
@@ -2570,7 +2570,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "client"
+        "actionAnchor": "openClientLiveForChannel"
       }
     },
     {
@@ -2585,7 +2585,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/onvif/import-draft"
+        "actionAnchor": "<< \"\\\"importDraftRoute\\\":\\\"/ops/api/onvif/import-draft\\\",\""
       }
     },
     {
@@ -2600,7 +2600,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "credential"
+        "actionAnchor": "const payload = await requestJson('/ops/api/onvif/credential-provider-status');"
       }
     },
     {
@@ -2615,7 +2615,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/source-registry/onboarding-quality"
+        "actionAnchor": "if (request.path == \"/ops/api/source-registry/onboarding-quality\") {"
       }
     },
     {
@@ -2630,7 +2630,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/source-registry/reliability-timeline"
+        "actionAnchor": "if (request.path == \"/ops/api/source-registry/reliability-timeline\") {"
       }
     },
     {
@@ -2645,7 +2645,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "<< \"\\\"operatorNoteRoute\\\":\\\"/ops/api/events/reviews/{eventId}\\\",\""
       }
     },
     {
@@ -2660,7 +2660,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "<< \"\\\"operatorNoteRoute\\\":\\\"/ops/api/events/reviews/{eventId}\\\",\""
       }
     },
     {
@@ -2675,7 +2675,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"${escapeHtml(testId)}\"]",
-        "actionAnchor": "client-safe"
+        "actionAnchor": "clientSafeStatusSummaryHtml"
       }
     },
     {
@@ -2690,7 +2690,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/source-registry/reliability-search-metrics"
+        "actionAnchor": "if (request.path == \"/ops/api/source-registry/reliability-search-metrics\") {"
       }
     },
     {
@@ -2705,7 +2705,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/source-registry/backup-recovery-handoff"
+        "actionAnchor": "\"sourceHandoffRoute\": \"/ops/api/source-registry/backup-recovery-handoff\","
       }
     },
     {
@@ -2720,7 +2720,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/onvif/credential-provider-status"
+        "actionAnchor": "<< \"\\\"route\\\":\\\"/ops/api/onvif/credential-provider-status\\\",\""
       }
     },
     {
@@ -2735,7 +2735,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "registry"
+        "actionAnchor": "requestJson('/ops/api/source-registry/onboarding-quality'),"
       }
     },
     {
@@ -2750,7 +2750,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "PublishedView"
+        "actionAnchor": "renderBackupRecoverySourceHandoff"
       }
     },
     {
@@ -2765,7 +2765,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "PublishedView"
+        "actionAnchor": "renderChannels"
       }
     },
     {
@@ -2780,7 +2780,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#v320ActionReadinessChecklistGrid",
-        "actionAnchor": "/ops/rules"
+        "actionAnchor": "renderV320ActionReadinessChecklist"
       }
     },
     {
@@ -2795,7 +2795,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/rules"
+        "actionAnchor": "renderApprovalGatedRuleDraftReadiness"
       }
     },
     {
@@ -2810,7 +2810,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#v320ActionReadinessChecklistGrid",
-        "actionAnchor": "/ops/rules"
+        "actionAnchor": "renderV320ActionReadinessChecklist"
       }
     },
     {
@@ -2825,7 +2825,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVaRuleIdInput",
-        "actionAnchor": "analysis"
+        "actionAnchor": "opsRulesSaveNativeRecord"
       }
     },
     {
@@ -2840,7 +2840,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVaRuleTemplateSeedSelect",
-        "actionAnchor": "analysis"
+        "actionAnchor": "opsRulesUpdateVaRuleFormSummary"
       }
     },
     {
@@ -2855,7 +2855,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVaRuleTemplateSeedSelect",
-        "actionAnchor": "analysis"
+        "actionAnchor": "opsRulesVaRuleSkeleton"
       }
     },
     {
@@ -2870,7 +2870,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRuleIdInput",
-        "actionAnchor": "analysis"
+        "actionAnchor": "opsRulesReadEventTemplateForm"
       }
     },
     {
@@ -2885,7 +2885,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVaRuleTemplateSeedSelect",
-        "actionAnchor": "analysis"
+        "actionAnchor": "opsRulesUpdateVaRuleFormSummary"
       }
     },
     {
@@ -2900,7 +2900,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsRulesValidationList",
-        "actionAnchor": "validation"
+        "actionAnchor": "opsRulesRenderValidationIssues"
       }
     },
     {
@@ -2915,7 +2915,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVaRuleTrackingSummary",
-        "actionAnchor": "analysis"
+        "actionAnchor": "opsRulesEventTemplateSkeleton"
       }
     },
     {
@@ -2930,7 +2930,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVaRuleIdInput",
-        "actionAnchor": "analysis"
+        "actionAnchor": "opsRulesSaveNativeRecord"
       }
     },
     {
@@ -2945,7 +2945,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVaRuleIdInput",
-        "actionAnchor": "analysis"
+        "actionAnchor": "opsRulesSaveNativeRecord"
       }
     },
     {
@@ -2960,7 +2960,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVaRuleGeometryMinimumText",
-        "actionAnchor": "direction"
+        "actionAnchor": "opsRulesUpdateGeometryStatus"
       }
     },
     {
@@ -2975,7 +2975,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "analysis"
+        "actionAnchor": "mismatches"
       }
     },
     {
@@ -2990,7 +2990,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "analysis"
+        "actionAnchor": "runtimeCounts"
       }
     },
     {
@@ -3005,7 +3005,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "numeric"
+        "actionAnchor": "opsRulesNextNumericId"
       }
     },
     {
@@ -3020,7 +3020,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRuleIdInput",
-        "actionAnchor": "vaRule"
+        "actionAnchor": "opsRulesSaveNativeRecord"
       }
     },
     {
@@ -3035,7 +3035,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRulePresetSelect",
-        "actionAnchor": "scenario"
+        "actionAnchor": "opsRulesReviewEventType"
       }
     },
     {
@@ -3050,7 +3050,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
-        "actionAnchor": "condition"
+        "actionAnchor": "conditionRows"
       }
     },
     {
@@ -3065,7 +3065,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsRulesValidationList",
-        "actionAnchor": "validation"
+        "actionAnchor": "opsRulesRenderValidationIssues"
       }
     },
     {
@@ -3080,7 +3080,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEvidenceIntakeFieldReadinessRows",
-        "actionAnchor": "condition"
+        "actionAnchor": "renderEvidenceIntakeFieldReadiness"
       }
     },
     {
@@ -3095,7 +3095,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVaRuleReidSelect",
-        "actionAnchor": "analysis"
+        "actionAnchor": "opsRulesSetTrackingPolicyControls"
       }
     },
     {
@@ -3110,7 +3110,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVaRuleIdInput",
-        "actionAnchor": "analysis"
+        "actionAnchor": "opsRulesSaveNativeRecord"
       }
     },
     {
@@ -3125,7 +3125,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsRulesValidationList",
-        "actionAnchor": "validation"
+        "actionAnchor": "opsRulesRenderValidationIssues"
       }
     },
     {
@@ -3140,7 +3140,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRuleIdInput",
-        "actionAnchor": "analysis"
+        "actionAnchor": "opsRulesReadEventTemplateForm"
       }
     },
     {
@@ -3155,7 +3155,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsProfileDetectorSelect",
-        "actionAnchor": "detector:"
+        "actionAnchor": "opsRulesReadProfileForm"
       }
     },
     {
@@ -3170,7 +3170,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsProfileDetectorSelect",
-        "actionAnchor": "detector:"
+        "actionAnchor": "opsRulesReadProfileForm"
       }
     },
     {
@@ -3185,7 +3185,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsRulesValidationList",
-        "actionAnchor": "validation"
+        "actionAnchor": "opsRulesRenderValidationIssues"
       }
     },
     {
@@ -3200,7 +3200,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsRulesValidationList",
-        "actionAnchor": "validation"
+        "actionAnchor": "opsRulesRenderValidationIssues"
       }
     },
     {
@@ -3215,7 +3215,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRuleIdInput",
-        "actionAnchor": "confidence"
+        "actionAnchor": "opsRulesSaveNativeRecord"
       }
     },
     {
@@ -3230,7 +3230,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsRulesValidationList",
-        "actionAnchor": "validation"
+        "actionAnchor": "opsRulesRenderValidationIssues"
       }
     },
     {
@@ -3245,7 +3245,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsRulesValidationList",
-        "actionAnchor": "validation"
+        "actionAnchor": "opsRulesRenderValidationIssues"
       }
     },
     {
@@ -3260,7 +3260,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRuleModeSelect",
-        "actionAnchor": "category"
+        "actionAnchor": "opsRulesRenderCategorySelector"
       }
     },
     {
@@ -3275,7 +3275,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVaRuleTrackerSelect",
-        "actionAnchor": "tracker"
+        "actionAnchor": "opsRulesSetTrackingPolicyControls"
       }
     },
     {
@@ -3290,7 +3290,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashIncidentTimeline",
-        "actionAnchor": "runtime"
+        "actionAnchor": "runtimeWarningCount"
       }
     },
     {
@@ -3305,7 +3305,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVaRuleTrackerSelect",
-        "actionAnchor": "kalman-lite"
+        "actionAnchor": "opsRulesNormalizeTrackerPolicy"
       }
     },
     {
@@ -3320,7 +3320,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVaRuleTrackerSelect",
-        "actionAnchor": "bytetrack"
+        "actionAnchor": "opsRulesNormalizeTrackerPolicy"
       }
     },
     {
@@ -3335,7 +3335,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "off"
+        "actionAnchor": "countByStatus"
       }
     },
     {
@@ -3350,7 +3350,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVaRuleTrackerSelect",
-        "actionAnchor": "tracker"
+        "actionAnchor": "opsRulesSetTrackingPolicyControls"
       }
     },
     {
@@ -3365,7 +3365,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashReidAssistDecisionList",
-        "actionAnchor": "tracker=none"
+        "actionAnchor": "renderV390ReidAssistDecision"
       }
     },
     {
@@ -3380,7 +3380,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashRootCauseList",
-        "actionAnchor": "EventRecord"
+        "actionAnchor": "dashboardIncidentEventRecords"
       }
     },
     {
@@ -3395,7 +3395,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashRootCauseList",
-        "actionAnchor": "EventRecord"
+        "actionAnchor": "dashboardIncidentEventRecords"
       }
     },
     {
@@ -3410,7 +3410,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashRootCauseList",
-        "actionAnchor": "EventRecord"
+        "actionAnchor": "dashboardIncidentEventRecords"
       }
     },
     {
@@ -3425,7 +3425,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "line-crossing"
+        "actionAnchor": "opsRulesPresetBaselineSummary"
       }
     },
     {
@@ -3440,7 +3440,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsScenarioBuilderClasses",
-        "actionAnchor": "direction:"
+        "actionAnchor": "opsScenarioBuilderDraft"
       }
     },
     {
@@ -3455,7 +3455,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRuleTriggerDirectionSelect",
-        "actionAnchor": "direction:"
+        "actionAnchor": "opsRulesReadEventTemplateForm"
       }
     },
     {
@@ -3470,7 +3470,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsScenarioBuilderClasses",
-        "actionAnchor": "direction:"
+        "actionAnchor": "opsScenarioBuilderDraft"
       }
     },
     {
@@ -3485,7 +3485,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRuleTypeSelect",
-        "actionAnchor": "intrusion-dwell"
+        "actionAnchor": "opsEventRuleUpdatePresetSummary"
       }
     },
     {
@@ -3500,7 +3500,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsScenarioBuilderType",
-        "actionAnchor": "EventRecord"
+        "actionAnchor": "opsRulesUpdateReviewLoop"
       }
     },
     {
@@ -3515,7 +3515,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"ops-scenario-builder\"]",
-        "actionAnchor": "wrong-direction"
+        "actionAnchor": "opsScenarioBuilderDraft"
       }
     },
     {
@@ -3530,7 +3530,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRuleSettingsHeading",
-        "actionAnchor": "intrusion-after-line-crossing"
+        "actionAnchor": "opsEventRuleUpdateModeUi"
       }
     },
     {
@@ -3545,7 +3545,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsScenarioBuilderType",
-        "actionAnchor": "EventRecord"
+        "actionAnchor": "opsRulesUpdateReviewLoop"
       }
     },
     {
@@ -3560,7 +3560,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
-        "actionAnchor": "zone-occupancy"
+        "actionAnchor": "opsRulesPresetWarningText"
       }
     },
     {
@@ -3575,7 +3575,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
-        "actionAnchor": "condition"
+        "actionAnchor": "conditionRows"
       }
     },
     {
@@ -3590,7 +3590,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
-        "actionAnchor": "condition"
+        "actionAnchor": "conditionRows"
       }
     },
     {
@@ -3605,7 +3605,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
-        "actionAnchor": "condition"
+        "actionAnchor": "conditionRows"
       }
     },
     {
@@ -3620,7 +3620,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
-        "actionAnchor": "condition"
+        "actionAnchor": "conditionRows"
       }
     },
     {
@@ -3635,7 +3635,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
-        "actionAnchor": "condition"
+        "actionAnchor": "conditionRows"
       }
     },
     {
@@ -3650,7 +3650,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
-        "actionAnchor": "condition"
+        "actionAnchor": "conditionRows"
       }
     },
     {
@@ -3665,7 +3665,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
-        "actionAnchor": "condition"
+        "actionAnchor": "conditionRows"
       }
     },
     {
@@ -3680,7 +3680,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
-        "actionAnchor": "condition"
+        "actionAnchor": "conditionRows"
       }
     },
     {
@@ -3695,7 +3695,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
-        "actionAnchor": "condition"
+        "actionAnchor": "conditionRows"
       }
     },
     {
@@ -3710,7 +3710,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
-        "actionAnchor": "condition"
+        "actionAnchor": "conditionRows"
       }
     },
     {
@@ -3725,7 +3725,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList",
-        "actionAnchor": "condition"
+        "actionAnchor": "conditionRows"
       }
     },
     {
@@ -3740,7 +3740,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashVaQualityFilterInput",
-        "actionAnchor": "scenario"
+        "actionAnchor": "scenarioPhaseTone"
       }
     },
     {
@@ -3755,7 +3755,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRuleTypeSelect",
-        "actionAnchor": "intrusion-dwell"
+        "actionAnchor": "opsEventRuleUpdateModeUi"
       }
     },
     {
@@ -3770,7 +3770,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
-        "actionAnchor": "intrusion-dwell"
+        "actionAnchor": "opsRulesPresetBaselineSummary"
       }
     },
     {
@@ -3785,7 +3785,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
-        "actionAnchor": "intrusion-dwell"
+        "actionAnchor": "opsRulesPresetBaselineSummary"
       }
     },
     {
@@ -3800,7 +3800,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
-        "actionAnchor": "intrusion-dwell"
+        "actionAnchor": "opsRulesPresetBaselineSummary"
       }
     },
     {
@@ -3815,7 +3815,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
-        "actionAnchor": "re-entry"
+        "actionAnchor": "opsRulesPresetWarningText"
       }
     },
     {
@@ -3830,7 +3830,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsRulesValidationList",
-        "actionAnchor": "validation"
+        "actionAnchor": "opsRulesRenderValidationIssues"
       }
     },
     {
@@ -3845,7 +3845,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsRulesValidationList",
-        "actionAnchor": "validation"
+        "actionAnchor": "opsRulesRenderValidationIssues"
       }
     },
     {
@@ -3860,7 +3860,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsRulesComposerSave",
-        "actionAnchor": "wrong-direction"
+        "actionAnchor": "opsVaRuleStartMeta"
       }
     },
     {
@@ -3875,7 +3875,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVaRuleTemplateSeedSelect",
-        "actionAnchor": "any"
+        "actionAnchor": "opsRulesLineDirectionLabel"
       }
     },
     {
@@ -3890,7 +3890,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsRulesComposerSave",
-        "actionAnchor": "wrong-direction"
+        "actionAnchor": "opsVaRuleStartMeta"
       }
     },
     {
@@ -3905,7 +3905,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
-        "actionAnchor": "intrusion-after-line-crossing"
+        "actionAnchor": "opsRulesPresetBaselineSummary"
       }
     },
     {
@@ -3920,7 +3920,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
-        "actionAnchor": "intrusion-after-line-crossing"
+        "actionAnchor": "opsRulesPresetBaselineSummary"
       }
     },
     {
@@ -3935,7 +3935,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"ops-scenario-builder\"]",
-        "actionAnchor": "intrusion-after-line-crossing"
+        "actionAnchor": "opsScenarioBuilderDraft"
       }
     },
     {
@@ -3950,7 +3950,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
-        "actionAnchor": "intrusion-after-line-crossing"
+        "actionAnchor": "opsRulesPresetBaselineSummary"
       }
     },
     {
@@ -3965,7 +3965,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
-        "actionAnchor": "intrusion-after-line-crossing"
+        "actionAnchor": "opsRulesPresetBaselineSummary"
       }
     },
     {
@@ -3980,7 +3980,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
-        "actionAnchor": "intrusion-after-line-crossing"
+        "actionAnchor": "opsRulesPresetBaselineSummary"
       }
     },
     {
@@ -3995,7 +3995,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"ops-scenario-builder\"]",
-        "actionAnchor": "loitering"
+        "actionAnchor": "opsScenarioBuilderDraft"
       }
     },
     {
@@ -4010,7 +4010,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsRulesValidationList",
-        "actionAnchor": "validation"
+        "actionAnchor": "opsRulesRenderValidationIssues"
       }
     },
     {
@@ -4025,7 +4025,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsRulesValidationList",
-        "actionAnchor": "validation"
+        "actionAnchor": "opsRulesRenderValidationIssues"
       }
     },
     {
@@ -4040,7 +4040,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsRulesValidationList",
-        "actionAnchor": "validation"
+        "actionAnchor": "opsRulesRenderValidationIssues"
       }
     },
     {
@@ -4055,7 +4055,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsRulesValidationList",
-        "actionAnchor": "validation"
+        "actionAnchor": "opsRulesRenderValidationIssues"
       }
     },
     {
@@ -4070,7 +4070,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRuleLoiteringGroundPlaneToggle",
-        "actionAnchor": "scenario.useGroundPlaneMovementRadius"
+        "actionAnchor": "opsRulesReadEventTemplateForm"
       }
     },
     {
@@ -4085,7 +4085,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"ops-scenario-builder\"]",
-        "actionAnchor": "zone-occupancy"
+        "actionAnchor": "opsScenarioBuilderDraft"
       }
     },
     {
@@ -4100,7 +4100,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
-        "actionAnchor": "zone-occupancy"
+        "actionAnchor": "opsRulesPresetBaselineSummary"
       }
     },
     {
@@ -4115,7 +4115,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
-        "actionAnchor": "zone-occupancy"
+        "actionAnchor": "opsRulesPresetBaselineSummary"
       }
     },
     {
@@ -4130,7 +4130,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
-        "actionAnchor": "zone-occupancy"
+        "actionAnchor": "opsRulesPresetWarningText"
       }
     },
     {
@@ -4145,7 +4145,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"ops-incident-rule-suggestion-review\"]",
-        "actionAnchor": "/ops/rules"
+        "actionAnchor": "renderIncidentRuleSuggestionReview"
       }
     },
     {
@@ -4160,7 +4160,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "templateStart.ruleId"
+        "actionAnchor": "renderOpsApprovalGatedRuleDraftContext"
       }
     },
     {
@@ -4175,7 +4175,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "templateStart.ruleId"
+        "actionAnchor": "renderOpsApprovalGatedRuleDraftContext"
       }
     },
     {
@@ -4190,7 +4190,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/rules"
+        "actionAnchor": "mismatches"
       }
     },
     {
@@ -4205,7 +4205,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"ops-incident-rule-suggestion-review\"]",
-        "actionAnchor": "/ops/rules"
+        "actionAnchor": "renderIncidentRuleSuggestionReview"
       }
     },
     {
@@ -4220,7 +4220,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashSiteClientNoticePreviewList",
-        "actionAnchor": "viewer"
+        "actionAnchor": "renderV370ClientNoticeBySiteViewGroup"
       }
     },
     {
@@ -4235,7 +4235,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVlmRuleDraftKindSelect",
-        "actionAnchor": "/ops/rules"
+        "actionAnchor": "renderOpsVlmRuleSuggestionDraftBridge"
       }
     },
     {
@@ -4250,7 +4250,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"ops-incident-rule-suggestion-review\"]",
-        "actionAnchor": "/ops/rules"
+        "actionAnchor": "renderIncidentRuleSuggestionReview"
       }
     },
     {
@@ -4265,7 +4265,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRuleIdInput",
-        "actionAnchor": "analysis.classes"
+        "actionAnchor": "opsRulesSaveNativeRecord"
       }
     },
     {
@@ -4280,7 +4280,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRulePresetSelect",
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "opsRulesReviewCoverageHref"
       }
     },
     {
@@ -4295,7 +4295,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "configured-zones"
+        "actionAnchor": "opsRulesConditionHtml"
       }
     },
     {
@@ -4310,7 +4310,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsOperatorOutcomeMemoryRows",
-        "actionAnchor": "approval-gated"
+        "actionAnchor": "renderApprovalGatedRuleDraftReadiness"
       }
     },
     {
@@ -4325,7 +4325,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVlmRuleDraftKindSelect",
-        "actionAnchor": "/ops/rules"
+        "actionAnchor": "renderOpsVlmRuleSuggestionDraftBridge"
       }
     },
     {
@@ -4340,7 +4340,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashRuntimeTrendSparkline",
-        "actionAnchor": "dashboard"
+        "actionAnchor": "renderDashboardRuntimeTrend"
       }
     },
     {
@@ -4355,7 +4355,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashRootCauseActionOutput",
-        "actionAnchor": "dashboard"
+        "actionAnchor": "sourceHealthTargetIds"
       }
     },
     {
@@ -4370,7 +4370,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "diagnostics"
+        "actionAnchor": "match"
       }
     },
     {
@@ -4385,7 +4385,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderV320UnifiedOpsEventsWorkspace"
       }
     },
     {
@@ -4400,7 +4400,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsV320ResolutionTimeline",
-        "actionAnchor": "events"
+        "actionAnchor": "renderV320UnifiedOpsEventsWorkspace"
       }
     },
     {
@@ -4415,7 +4415,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderV320UnifiedOpsEventsWorkspace"
       }
     },
     {
@@ -4430,7 +4430,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashRuntimeOpsList",
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "dashboardRuntimeOpsNextAction"
       }
     },
     {
@@ -4445,7 +4445,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"ops-vlm-event-review-card\"]",
-        "actionAnchor": "EventRecord"
+        "actionAnchor": "eventReviewVlmHtml"
       }
     },
     {
@@ -4460,7 +4460,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "evidence"
+        "actionAnchor": "fieldEvidenceSimulationAdapterRoute: payload.fieldEvidenceSimulationAdapterRoute || '/ops/api/live-operations/simulation/field-evidence-adapter',"
       }
     },
     {
@@ -4475,7 +4475,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#eventReviewRows",
-        "actionAnchor": "false-positive"
+        "actionAnchor": "renderEventReviewRows"
       }
     },
     {
@@ -4490,7 +4490,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashRootCauseActionOutput",
-        "actionAnchor": "filter"
+        "actionAnchor": "sourceHealthBulkTargetIds"
       }
     },
     {
@@ -4505,7 +4505,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashCommandWorkspaceLedgerList",
-        "actionAnchor": "viewer-safe"
+        "actionAnchor": "drillNode"
       }
     },
     {
@@ -4520,7 +4520,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashRuntimeTrendSparkline",
-        "actionAnchor": "dashboard"
+        "actionAnchor": "renderDashboardRuntimeTrend"
       }
     },
     {
@@ -4535,7 +4535,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashRuntimeTrendSparkline",
-        "actionAnchor": "dashboard"
+        "actionAnchor": "dashboardSourceHealthCounts"
       }
     },
     {
@@ -4550,7 +4550,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashRootCauseList",
-        "actionAnchor": "dashboard"
+        "actionAnchor": "dashboardIncidentEventRecords"
       }
     },
     {
@@ -4565,7 +4565,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderV320UnifiedOpsEventsWorkspace"
       }
     },
     {
@@ -4580,7 +4580,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsRulesReviewEventRecordLink",
-        "actionAnchor": "EventRecord"
+        "actionAnchor": "opsRulesUpdateReviewLoop"
       }
     },
     {
@@ -4595,7 +4595,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"ops-vlm-event-review-card\"]",
-        "actionAnchor": "operatorReviewQuestions"
+        "actionAnchor": "eventReviewVlmHtml"
       }
     },
     {
@@ -4610,7 +4610,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsRulesDetailPanel",
-        "actionAnchor": "sourceCandidateReport"
+        "actionAnchor": "opsVlmRuleDraftCandidates"
       }
     },
     {
@@ -4625,7 +4625,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "media-server"
+        "actionAnchor": "bindEventReviewActions"
       }
     },
     {
@@ -4640,7 +4640,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "alert-delivery-dry-run"
+        "actionAnchor": "bindAlertDeliveryRowActions"
       }
     },
     {
@@ -4655,7 +4655,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "\"/ops/api/events/reviews\","
       }
     },
     {
@@ -4670,7 +4670,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "\"/ops/api/events/reviews\","
       }
     },
     {
@@ -4685,7 +4685,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "\"/ops/api/events/reviews\","
       }
     },
     {
@@ -4700,7 +4700,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "<< \"\\\"operatorResolutionFlowWritePath\\\":\\\"/ops/api/events/reviews/{eventId}\\\",\""
       }
     },
     {
@@ -4715,7 +4715,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "\"/ops/api/events/reviews\","
       }
     },
     {
@@ -4730,7 +4730,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "\"/ops/api/events/reviews\","
       }
     },
     {
@@ -4745,7 +4745,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/runtime/status"
+        "actionAnchor": "requestJson('/ops/api/runtime/status'),"
       }
     },
     {
@@ -4760,7 +4760,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#eventRecordsEvidenceSelect",
-        "actionAnchor": "EventRecord"
+        "actionAnchor": "eventRecordQueryParams"
       }
     },
     {
@@ -4775,7 +4775,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "\"/ops/api/events/reviews\","
       }
     },
     {
@@ -4790,7 +4790,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "<< \"\\\"eventRecordRoute\\\":\\\"/ops/api/events/reviews\\\",\""
       }
     },
     {
@@ -4805,7 +4805,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "<< \"\\\"eventRecordRoute\\\":\\\"/ops/api/events/reviews\\\",\""
       }
     },
     {
@@ -4820,7 +4820,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "\"/ops/api/events/reviews\","
       }
     },
     {
@@ -4835,7 +4835,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "\"/ops/api/events/reviews\","
       }
     },
     {
@@ -4850,7 +4850,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "<< \"\\\"operatorResolutionFlowWritePath\\\":\\\"/ops/api/events/reviews/{eventId}\\\",\""
       }
     },
     {
@@ -4865,7 +4865,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsApprovalGatedRuleDraftReadinessRows",
-        "actionAnchor": "approval-gated"
+        "actionAnchor": "renderApprovalGatedRuleDraftReadiness"
       }
     },
     {
@@ -4880,7 +4880,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEvidenceIntakeFieldReadinessRows",
-        "actionAnchor": "EventRecord"
+        "actionAnchor": "renderEvidenceIntakeFieldReadiness"
       }
     },
     {
@@ -4895,7 +4895,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashRuntimeTrendSparkline",
-        "actionAnchor": "evidence"
+        "actionAnchor": "renderDashboardRuntimeTrend"
       }
     },
     {
@@ -4910,7 +4910,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "\"/ops/api/events/reviews\","
       }
     },
     {
@@ -4925,7 +4925,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "\"/ops/api/events/reviews\","
       }
     },
     {
@@ -4940,7 +4940,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "\"/ops/api/events/reviews\","
       }
     },
     {
@@ -4955,7 +4955,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "<< \"\\\"operatorNoteRoute\\\":\\\"/ops/api/events/reviews/{eventId}\\\",\""
       }
     },
     {
@@ -4970,7 +4970,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "\"/ops/api/events/reviews\","
       }
     },
     {
@@ -4985,7 +4985,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "<< \"\\\"operatorResolutionFlowWritePath\\\":\\\"/ops/api/events/reviews/{eventId}\\\",\""
       }
     },
     {
@@ -5000,7 +5000,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "<< \"\\\"operatorResolutionFlowWritePath\\\":\\\"/ops/api/events/reviews/{eventId}\\\",\""
       }
     },
     {
@@ -5015,7 +5015,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "\"/ops/api/events/reviews\","
       }
     },
     {
@@ -5030,7 +5030,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "<< \"\\\"eventRecordRoute\\\":\\\"/ops/api/events/reviews\\\",\""
       }
     },
     {
@@ -5045,7 +5045,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "<< \"\\\"operatorResolutionFlowWritePath\\\":\\\"/ops/api/events/reviews/{eventId}\\\",\""
       }
     },
     {
@@ -5060,7 +5060,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/events/reviews"
+        "actionAnchor": "\"/ops/api/events/reviews\","
       }
     },
     {
@@ -5075,7 +5075,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "assigned"
+        "actionAnchor": "assignedTileCountForView"
       }
     },
     {
@@ -5090,7 +5090,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "session"
+        "actionAnchor": "cleanupClientLiveSession"
       }
     },
     {
@@ -5105,7 +5105,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "reconnect"
+        "actionAnchor": "restartLiveTile"
       }
     },
     {
@@ -5120,7 +5120,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "dashboard"
+        "actionAnchor": "requestJson(`/client/api/views/${encodeURIComponent(selectedViewId)}/dashboard`),"
       }
     },
     {
@@ -5135,7 +5135,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"${escapeHtml(testId)}\"]",
-        "actionAnchor": "client-safe"
+        "actionAnchor": "clientSafeStatusSummaryHtml"
       }
     },
     {
@@ -5150,7 +5150,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "preference"
+        "actionAnchor": "applyLiveLayoutPreference"
       }
     },
     {
@@ -5165,7 +5165,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "preference"
+        "actionAnchor": "applyLiveLayoutPreference"
       }
     },
     {
@@ -5180,7 +5180,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "viewer"
+        "actionAnchor": "clientEventSummaryText"
       }
     },
     {
@@ -5195,7 +5195,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "client"
+        "actionAnchor": "AppendClientShellScript"
       }
     },
     {
@@ -5210,7 +5210,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "client"
+        "actionAnchor": "AppendClientShellScript"
       }
     },
     {
@@ -5225,7 +5225,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"client-live-dock-event-feed\"]",
-        "actionAnchor": "details"
+        "actionAnchor": "liveSourceTreeHtml"
       }
     },
     {
@@ -5240,7 +5240,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "client"
+        "actionAnchor": "clientEventSummaryText"
       }
     },
     {
@@ -5255,7 +5255,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "client"
+        "actionAnchor": "clientEventSummaryText"
       }
     },
     {
@@ -5270,7 +5270,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"client-live-va-overlay-toggle\"]",
-        "actionAnchor": "controls"
+        "actionAnchor": "liveTileHtml"
       }
     },
     {
@@ -5285,7 +5285,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"client-dashboard-shell\"]",
-        "actionAnchor": "preview"
+        "actionAnchor": "renderDashboard"
       }
     },
     {
@@ -5300,7 +5300,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "video"
+        "actionAnchor": "clientHealthSummaryLabel"
       }
     },
     {
@@ -5315,7 +5315,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "reconnect"
+        "actionAnchor": "restartLiveTile"
       }
     },
     {
@@ -5330,7 +5330,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"client-safe-followup-digest\"]",
-        "actionAnchor": "metadata"
+        "actionAnchor": "normalizeOverlayMode"
       }
     },
     {
@@ -5345,7 +5345,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "selected-tile"
+        "actionAnchor": "liveCurrentLayoutSnapshot"
       }
     },
     {
@@ -5360,7 +5360,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"client-safe-incident-digest\"]",
-        "actionAnchor": "incident-digest"
+        "actionAnchor": "renderClientSafeIncidentDigest"
       }
     },
     {
@@ -5375,7 +5375,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "PublishedView"
+        "actionAnchor": "renderAssignedViews"
       }
     },
     {
@@ -5390,7 +5390,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"client-safe-event-digest\"]",
-        "actionAnchor": "media-server.client.event-digest.v1"
+        "actionAnchor": "renderClientSafeEventDigest"
       }
     },
     {
@@ -5405,7 +5405,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"client-safe-resolution-digest\"]",
-        "actionAnchor": "media-server.client.resolution-digest.v1"
+        "actionAnchor": "renderClientSafeResolutionDigest"
       }
     },
     {
@@ -5420,7 +5420,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"client-safe-source-status-digest\"]",
-        "actionAnchor": "media-server.client.source-status-digest.v1"
+        "actionAnchor": "renderClientSafeSourceStatusDigest"
       }
     },
     {
@@ -5435,7 +5435,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"client-safe-maintenance-digest\"]",
-        "actionAnchor": "media-server.client.v340-maintenance-digest.v1"
+        "actionAnchor": "renderClientSafeMaintenanceDigest"
       }
     },
     {
@@ -5450,7 +5450,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"client-impact-forecast\"]",
-        "actionAnchor": "clientImpactForecast"
+        "actionAnchor": "renderClientImpactForecast"
       }
     },
     {
@@ -5465,7 +5465,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"client-operations-notice\"]",
-        "actionAnchor": "clientOperationsNotice"
+        "actionAnchor": "renderClientOperationsNotice"
       }
     },
     {
@@ -5480,7 +5480,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"client-action-notice-preview\"]",
-        "actionAnchor": "clientActionNoticePreview"
+        "actionAnchor": "renderClientActionNoticePreview"
       }
     },
     {
@@ -5495,7 +5495,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/client"
+        "actionAnchor": "\"/ops/api/actions/client-notice-draft-queue\","
       }
     },
     {
@@ -5510,7 +5510,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/client"
+        "actionAnchor": "<< \"\\\"clientNoticeDraftQueueRoute\\\":\\\"/ops/api/actions/client-notice-draft-queue\\\",\""
       }
     },
     {
@@ -5525,7 +5525,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "playback"
+        "actionAnchor": "playbackNumber"
       }
     },
     {
@@ -5540,7 +5540,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "playback"
+        "actionAnchor": "validateChannelForm"
       }
     },
     {
@@ -5555,7 +5555,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -5570,7 +5570,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "undefined"
+        "actionAnchor": "ms"
       }
     },
     {
@@ -5585,7 +5585,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/lab"
+        "actionAnchor": "NormalizeReidPolicyToken"
       }
     },
     {
@@ -5600,7 +5600,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "debug"
+        "actionAnchor": "DefaultScopesForRole"
       }
     },
     {
@@ -5615,7 +5615,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "session"
+        "actionAnchor": "AuthModeName"
       }
     },
     {
@@ -5630,7 +5630,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -5645,7 +5645,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -5660,7 +5660,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -5675,7 +5675,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "bytes"
+        "actionAnchor": "GenerateSessionId"
       }
     },
     {
@@ -5690,7 +5690,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -5705,7 +5705,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -5720,7 +5720,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVlmRuleDraftKindSelect",
-        "actionAnchor": "/ops/rules"
+        "actionAnchor": "renderOpsVlmRuleSuggestionDraftBridge"
       }
     },
     {
@@ -5735,7 +5735,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/api/audit"
+        "actionAnchor": "if (request.path == \"/ops/api/audit\") {"
       }
     },
     {
@@ -5750,7 +5750,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -5765,7 +5765,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderV320UnifiedOpsEventsWorkspace"
       }
     },
     {
@@ -5780,7 +5780,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -5795,7 +5795,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -5810,7 +5810,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -5825,7 +5825,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -5840,7 +5840,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -5855,7 +5855,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsIncidentSearchInput",
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderVlmSummaryCandidateReview"
       }
     },
     {
@@ -5870,7 +5870,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRulePresetSelect",
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "opsRulesReviewCoverageHref"
       }
     },
     {
@@ -5885,7 +5885,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -5900,7 +5900,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -5915,7 +5915,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -5930,7 +5930,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "dashboardIncidentTimelineItems"
       }
     },
     {
@@ -5945,7 +5945,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderV320UnifiedOpsEventsWorkspace"
       }
     },
     {
@@ -5960,7 +5960,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashRuntimeOpsList",
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "dashboardRuntimeOpsNextAction"
       }
     },
     {
@@ -5975,7 +5975,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRulePresetSelect",
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "opsRulesReviewCoverageHref"
       }
     },
     {
@@ -5990,7 +5990,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -6005,7 +6005,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -6020,7 +6020,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -6035,7 +6035,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "debug"
+        "actionAnchor": "DefaultScopesForRole"
       }
     },
     {
@@ -6050,7 +6050,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -6065,7 +6065,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -6080,7 +6080,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -6095,7 +6095,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "renderV320UnifiedOpsEventsWorkspace"
       }
     },
     {
@@ -6110,7 +6110,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -6125,7 +6125,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -6140,7 +6140,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -6155,7 +6155,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -6170,7 +6170,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -6185,7 +6185,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"client-safe-resolution-digest\"]",
-        "actionAnchor": "viewer-safe"
+        "actionAnchor": "renderClientSafeResolutionDigest"
       }
     },
     {
@@ -6200,7 +6200,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -6215,7 +6215,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -6230,7 +6230,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -6245,7 +6245,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "sourceStatusDigest"
+        "actionAnchor": "clientEventSummaryText"
       }
     },
     {
@@ -6260,7 +6260,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -6275,7 +6275,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -6290,7 +6290,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops/sources"
+        "actionAnchor": "blockedSources"
       }
     },
     {
@@ -6305,7 +6305,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -6320,7 +6320,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -6335,7 +6335,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "ClientAccessRequestPageHtml"
       }
     },
     {
@@ -6350,7 +6350,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRulePresetSelect",
-        "actionAnchor": "/ops/events"
+        "actionAnchor": "opsRulesReviewCoverageHref"
       }
     },
     {
@@ -6365,7 +6365,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "/ops"
+        "actionAnchor": "OpsV350CommandPlanJson"
       }
     }
   ]
