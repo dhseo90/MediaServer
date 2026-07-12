@@ -88,8 +88,8 @@ check("roadmap, inventory, records, and evidence use the same truthful status vo
   const backlog = read("docs/development-backlog.md");
   assert(backlog.includes("| 27 | v3.9.0 (27) deferred product decision owner sign-off | P1 | decision record |"),
     "Development 16 roadmap status must be decision record");
-  assert(backlog.includes("| 28 | v3.9.0 (28) structure stabilization implementation readiness | P1 | gate 준비 |"),
-    "Development 17 roadmap status must be gate 준비");
+  assert(backlog.includes("| 28 | v3.9.0 (28) structure stabilization implementation readiness | P1 | historical readiness / REVIEW4-51 superseded |"),
+    "Development 17 roadmap status must preserve the superseded readiness boundary");
   assert(backlog.includes("| 29 | v3.9.0 (29) real external field smoke gate | P2 | 조건부 미실행 |"),
     "Development 18 roadmap status must be 조건부 미실행");
 });

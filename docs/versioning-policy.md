@@ -17,6 +17,9 @@
 현재 소스 트리의 `3.9.0` roadmap은 v3.9.0 Feature Completion, Structure Stabilization,
 and Test Model Preparation source-only/live-only active source roadmap입니다. 최신
 published baseline은 v3.8.0 Operator-Gated Action Pilot & Outcome Loop입니다.
+REVIEW4-51의 최신 승인에 따라 REVIEW4-50~63 완료 뒤 실제 동작 보존 구조 안정화와
+리팩토링을 같은 `v3.9.0` 브랜치의 REVIEW4-64에서 수행하고, REVIEW4-65에서 독립
+acceptance를 실행합니다. 실제 리팩토링을 v4.0.0으로 이관하지 않습니다.
 v3.9.0 publish 완료는 tag, GitHub Release, `verify-release-metadata --published`
 evidence가 있을 때만 기록합니다. v3.8.0 latest published baseline, v3.7.0 previous
 published baseline, v3.6.0 historical published baseline과 후속 기능별
@@ -60,9 +63,9 @@ binary/runtime/model bundle을 공개 asset으로 포함하지 않습니다.
   operator-gated action request, approval decision, readiness preflight, limited execution
   candidate, outcome reconciliation을 순서대로 준비하는 minor line입니다.
 - `3.9.0`은 v3.8 Operator-Gated Action Pilot & Outcome Loop까지 노출/약속/부분
-  구현된 기능을 전수 확인하고, v4.0.0 구조 안정화와 새 테스트 체계로 넘어가기 전
-  feature completion, structure stabilization, test model preparation 항목을 분리하는
-  minor line입니다.
+  구현된 기능을 전수 확인하고, REVIEW4-50~63 기능·저장·UI·테스트 실행기 개발 뒤
+  REVIEW4-64 동작 보존 구조 안정화와 REVIEW4-65 독립 acceptance까지 같은 브랜치에서
+  순서대로 닫는 minor line입니다.
 - 3.0 전에는 자동 Rule/Profile 적용, 외부 알림 실제 발송 보장, VLM default-on,
   runtime/model bundle default 배포를 2.x 완료 조건으로 승격하지 않습니다.
 

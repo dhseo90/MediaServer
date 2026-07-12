@@ -2,10 +2,10 @@
   "schema": "media-server.feature-implementation-evidence.v2",
   "semanticClosureSchema": "media-server.feature-semantic-implementation-closure.v2",
   "expectedFeatureRows": 986,
-  "inventorySha256": "f30494fbcde3c20bca0d4bfa0ec6ad63e9762f1f302e294e0023d4fc3443fca4",
+  "inventorySha256": "ff3caa44049ad7a0a67d54e4c2eb6bbadd3ed6ad00e3cb05d78431f5cce9a287",
   "generatedFrom": "docs/project-feature-test-inventory.md",
-  "generationPolicy": "reviewed-map-only; unrelated source changes preserve approved rows; changed rows become review-required; token scoring and bulk approval are forbidden",
-  "semanticClosurePolicy": "986 explicit owner -> route/control -> action -> state -> readback -> verifier chains with content-addressed locators and per-feature review reasons",
+  "generationPolicy": "reviewed-map-only; unchanged reviewed rows are preserved; changed rows become review-required; token scoring and bulk approval are forbidden",
+  "semanticClosurePolicy": "owner/route-or-control/action/state/readback/verifier reviewed call-chain plus per-feature reason and content digest",
   "executionEvidenceStatus": "not-execution-evidence",
   "items": [
     {
@@ -197226,8 +197226,8 @@
         "decision": "approved",
         "reviewer": "Codex-V390-REVIEW3-37",
         "reviewedOn": "2026-07-12",
-        "reason": "V390-REVIEW3-37:OPS-169:V390 UI automation / Policy v4 evidence qualification gate:owner=file-scope:verify_v390_evidence_test_gate_prep.mjs:L25:routeControl=file-scope:verify_v390_evidence_test_gate_prep.mjs:L25:action=file-scope:verify_v390_evidence_test_gate_prep.mjs:L25:state=file-scope:verify_v390_evidence_test_gate_prep.mjs:L25:readback=verifier:verify-ui-fulltest-evidence-policy-v4:chain=12aad75258113617",
-        "semanticDigest": "34415eab2e203669a029b443401803def69146b2ec62693f969deff511c9f9b2"
+        "reason": "V390-REVIEW3-37:OPS-169:V390 UI automation / Policy v4 evidence qualification gate:owner=file-scope:verify_v390_evidence_test_gate_prep.mjs:L25:routeControl=file-scope:verify_v390_evidence_test_gate_prep.mjs:L25:action=file-scope:verify_v390_evidence_test_gate_prep.mjs:L25:state=file-scope:verify_v390_evidence_test_gate_prep.mjs:L25:readback=verifier:verify-ui-fulltest-evidence-policy-v4:chain=c0df30486939fc0d",
+        "semanticDigest": "6d1749cf85edd3ddae94293fe726ea93bde7bb971c3f1d51a50f07154903cd02"
       },
       "sourceEvidence": {
         "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
@@ -197310,7 +197310,7 @@
           "assertionKind": "reviewed-owner-route-control-action-state-readback-chain",
           "assertionAnchor": "validateReview3CallChain",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "34415eab2e203669a029b443401803def69146b2ec62693f969deff511c9f9b2"
+          "assertedSemanticDigest": "6d1749cf85edd3ddae94293fe726ea93bde7bb971c3f1d51a50f07154903cd02"
         },
         "callChain": {
           "schema": "media-server.feature-reviewed-call-chain.v1",
@@ -197368,7 +197368,7 @@
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
               "line": 54,
-              "contextSha256": "60baa6e6d00f0e68725f3686f03bd85f6cdc0d0487fa79e4d89e32b0d395d8ed"
+              "contextSha256": "7f437e5c5e096467946454e51b0cb9a7981c01789aa6067fc8cac15b4127a8a4"
             }
           },
           "routeControlKind": "owner-boundary",
@@ -197395,16 +197395,16 @@
               "from": "state",
               "to": "readback",
               "relationKind": "exact-readback-assertion",
-              "digest": "6a992dc07ba5985877f19b8bd01b1de088478a98bdedae0921af8915eb88f6b5"
+              "digest": "fd8e5fad69844b48036bf6bd2589ccd81b235f24c96b35802e30294830ef0ee5"
             },
             {
               "from": "readback",
               "to": "verifierAssertion",
               "relationKind": "exact-verifier-command",
-              "digest": "aa97be10eaf67b032d1dd90d9abd53d5c9b7eb99400aa29d06dd12df2b1b22fe"
+              "digest": "6c2cd99a9c3853592e0450619a627e98a3777eea7e88e308e17c08c10695c0a8"
             }
           ],
-          "digest": "12aad75258113617377878b1d2e28eba4fbd759b8c0264de13f79b8d0a6a0eab"
+          "digest": "c0df30486939fc0d82cf3a37a58462e6c758e539c3a5aa406c5e9dc0e49b669d"
         }
       }
     },
@@ -200383,8 +200383,6 @@
   "semanticClosureSummary": {
     "inventoryRows": 986,
     "semanticReviewedRows": 986,
-    "uniqueSemanticDigests": 986,
-    "uniqueReviewReasons": 986,
-    "reviewedCallChains": 986
+    "uniqueSemanticDigests": 986
   }
 }

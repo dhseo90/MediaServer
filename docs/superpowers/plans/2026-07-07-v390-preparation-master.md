@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-독자: MediaServer 개발/검증 에이전트. Lifecycle: v3.9.0 준비와 기능 완성 발견 단계의 실행 계획. Source-of-truth: `AGENTS.md`, `docs/superpowers/specs/2026-07-07-v390-preparation-design.md`, `docs/development-backlog.md`, `docs/v390-feature-completion-inventory.md`, `docs/release-test-records.md`.
+독자: MediaServer 개발/검증 에이전트. Lifecycle: historical initial v3.9.0 준비·기능 완성 발견 실행 계획이며, current claim은 `V390-REVIEW4-50`/`V390-REVIEW4-51`에 의해 superseded되었습니다. 아래 당시 계획·RED·수치는 과거 사실로 보존하지만 현재 구조 실행 버전·상태 evidence로 사용하지 않습니다. Current source-of-truth는 `AGENTS.md`, `docs/development-backlog.md`, `docs/v390-feature-completion-inventory.md`, `docs/release-test-records.md`, `test/fixtures/v390_structure_execution_scope_decision.json`입니다.
 
 **Goal:** Establish the v3.9.0 baseline, create the feature-completion inventory system, discover unfinished v1.0.0-v3.8.0 functionality, and stop for user review before feature development.
 

@@ -1,7 +1,7 @@
 # V300 VLM Feature Queue
 
 독자: v3.0 Event Evidence Search MVP를 구현/검증하는 개발자와 테스트 에이전트.
-Lifecycle: v3.0.0 `V300-S04 VLM Feature Queue` active release target 동안 유지합니다.
+Lifecycle: v3.0.0 `V300-S04 VLM Feature Queue`에서 시작한 historical-origin/current-contract 문서이며, 현재 source tree가 이 queue 계약을 사용하는 동안 유지합니다.
 Source-of-truth: AGENTS.md는 개발/테스트/보고 권한의 최상위 규칙이고, 이 문서는 V300-S04 queue contract와 VLM-only failure 경계만 정의합니다.
 
 ## Scope

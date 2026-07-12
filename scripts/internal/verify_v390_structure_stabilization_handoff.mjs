@@ -63,11 +63,13 @@ check("handoff plan covers each structure target and keeps behavior unchanged", 
     "behavior-preserving",
     "do not change Event POST payload, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, SourceRegistry/PublishedView, or Rule/Profile payload contracts",
     "UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, PR/main/tag/GitHub Release evidence가 아닙니다",
-    "Task 1: Route/API Ownership Extraction Map",
-    "Task 2: Product UI Workspace Split Map",
-    "Task 3: Source Registry Read-model Boundary Map",
-    "Task 4: Manual UI Result Template Archive Plan",
-    "Task 5: VLM Contract Index Consolidation Plan",
+    "REVIEW4-64 Slice 1: `baseline-and-ownership-map`",
+    "REVIEW4-64 Slice 2: `pure-json-builder-extraction`",
+    "REVIEW4-64 Slice 3: `route-handler-group-extraction`",
+    "REVIEW4-64 Slice 4: `product-ui-workspace-split`",
+    "REVIEW4-64 Slice 5: `source-read-model-boundary`",
+    "REVIEW4-64 Slice 6: `docs-template-and-vlm-index`",
+    "approved-scheduled-after-review4-50-63",
   ]) {
     assertIncludes(files.plan, snippet, "structure handoff plan");
   }

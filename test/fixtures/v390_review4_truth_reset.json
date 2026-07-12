@@ -1,5 +1,5 @@
 {
-  "schema": "media-server.v390-review4-truth-reset.v1",
+  "schema": "media-server.v390-review4-truth-reset.v2",
   "sourceRelease": "v3.9.0",
   "auditBaseCommit": "f5dc8ed4086cc8fe46d2fad8155bdfa8956b6095",
   "classificationBoundary": "source-implementation-only-not-runtime-pass",
@@ -14,13 +14,13 @@
     "incompleteSource": 4,
     "total": 35
   },
-  "currentMetrics": {
+  "review4_50SnapshotMetrics": {
     "discoverySourceFiles": 606,
     "httpServerLines": 42897,
     "productUiScriptLines": 10217
   },
   "coverageBoundary": {
-    "exactNativeWorkflowReadinessComplete": true,
+    "exactNativeWorkflowReadinessComplete": false,
     "actualAutomationExecutionComplete": false,
     "manualUiFulltestEvidence": false
   }

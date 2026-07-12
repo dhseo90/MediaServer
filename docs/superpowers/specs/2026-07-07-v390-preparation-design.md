@@ -2,6 +2,12 @@
 
 ## Status
 
+> Lifecycle: historical initial v3.9 preparation design. Its planning context is preserved,
+> but any current claim that actual structure refactoring is transferred to v4.0.0 is
+> superseded by `V390-REVIEW4-51`. Current execution order and status are owned by
+> `docs/development-backlog.md` and
+> `test/fixtures/v390_structure_execution_scope_decision.json`.
+
 This design records the approved direction for `v3.9.0` preparation.
 It is a planning artifact, not implementation, test, release, or completion
 evidence.

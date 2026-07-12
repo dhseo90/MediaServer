@@ -22,12 +22,12 @@
   "classifications": {
     "nativeExecutable": {
       "disposition": "native-executable",
-      "reasonCode": "exact-native-workflow-ready"
+      "reasonCode": "review4-workflow-rebuild-required"
     },
     "negativeRoute": {
       "caseIds": ["UI-018"],
       "disposition": "negative-route",
-      "reasonCode": "negative-route-workflow-ready"
+      "reasonCode": "review4-negative-workflow-rebuild-required"
     }
   },
   "requiredActualArtifacts": [
@@ -39,7 +39,7 @@
     "visualDiff"
   ],
   "boundaries": {
-    "exactNativeWorkflowReadinessComplete": true,
+    "exactNativeWorkflowReadinessComplete": false,
     "actualAutomationExecutionComplete": false,
     "manualUiFulltestEvidence": false,
     "executionEvidenceStatus": "current-not-run",

@@ -18,7 +18,7 @@ Usage:
 
 Checks:
   - 통합 순번 1~35 source 판정 18/13/4와 exact partition
-  - discovery source 606, HTTP server 42,897줄, UI script 10,217줄 current 실측
+  - REVIEW4-50 시점 discovery source 606 snapshot과 HTTP/UI current line 수의 의미 경계
   - exact workflow readiness와 actual automation execution 완료 field 분리
   - REVIEW3 완료 표현을 historical source claim으로 제한
 `);
@@ -34,7 +34,7 @@ const featureInventory = readText("docs/v390-feature-completion-inventory.md");
 const checks = [];
 
 check("source implementation classifications form an exact 1..35 partition", () => {
-  assert(fixture.schema === "media-server.v390-review4-truth-reset.v1", "truth reset schema mismatch");
+  assert(fixture.schema === "media-server.v390-review4-truth-reset.v2", "truth reset schema mismatch");
   const groups = fixture.classifications;
   for (const [key, expected] of Object.entries(fixture.expectedCounts)) {
     if (key === "total") continue;
@@ -49,20 +49,22 @@ check("source implementation classifications form an exact 1..35 partition", () 
     "source/runtime boundary missing");
 });
 
-check("current repository metrics are measured from independent sources", () => {
-  assert(discovery.summary?.sourceFiles === fixture.currentMetrics.discoverySourceFiles,
-    "discovery source file count drift");
-  assert(lineCount("src/ingress/webrtc_http_server.cpp") === fixture.currentMetrics.httpServerLines,
+check("REVIEW4-50 source snapshot is separated from current line metrics", () => {
+  assert(fixture.review4_50SnapshotMetrics.discoverySourceFiles === 606,
+    "REVIEW4-50 discovery snapshot drift");
+  assert(discovery.summary?.sourceFiles >= fixture.review4_50SnapshotMetrics.discoverySourceFiles,
+    "current discovery source set predates REVIEW4-50 snapshot");
+  assert(lineCount("src/ingress/webrtc_http_server.cpp") === fixture.review4_50SnapshotMetrics.httpServerLines,
     "HTTP server line count drift");
-  assert(lineCount("src/ingress/product_ui_page_scripts.cpp") === fixture.currentMetrics.productUiScriptLines,
+  assert(lineCount("src/ingress/product_ui_page_scripts.cpp") === fixture.review4_50SnapshotMetrics.productUiScriptLines,
     "product UI script line count drift");
 });
 
 check("coverage policy separates readiness from actual execution", () => {
   assert(coverage.schema === "media-server.v390-ui-automation-coverage-policy.v4",
     "coverage policy schema mismatch");
-  assert(coverage.boundaries?.exactNativeWorkflowReadinessComplete === true,
-    "exact workflow readiness boundary missing");
+  assert(coverage.boundaries?.exactNativeWorkflowReadinessComplete === false,
+    "exact workflow readiness must remain false until REVIEW4-56~60");
   assert(coverage.boundaries?.actualAutomationExecutionComplete === false,
     "actual automation execution boundary mismatch");
   assert(coverage.boundaries?.manualUiFulltestEvidence === false,
@@ -70,7 +72,7 @@ check("coverage policy separates readiness from actual execution", () => {
   assert(!Object.hasOwn(coverage.boundaries || {}, "fullAutomationCoverage"),
     "ambiguous fullAutomationCoverage field remains");
   for (const snippet of [
-    "exactNativeWorkflowReadinessComplete: `true`",
+    "exactNativeWorkflowReadinessComplete: `false`",
     "actualAutomationExecutionComplete: `false`",
     "manualUiFulltestEvidence: `false`",
   ]) assert(coverageDoc.includes(snippet), `coverage document missing ${snippet}`);

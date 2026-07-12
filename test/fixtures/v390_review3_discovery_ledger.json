@@ -1,16 +1,16 @@
 {
   "schema": "media-server.v390-review3-discovery-ledger.v1",
-  "generatedAt": "2026-07-12T01:38:37.503Z",
+  "generatedAt": "2026-07-12T07:33:01.364Z",
   "sourceBoundary": {
     "markdown": "all repository Markdown except AGENTS.md, which is audited separately",
     "source": "src/include product code plus server.sh and scripts/internal verifier/runtime tooling",
     "evidenceBoundary": "full-content static audit; not runtime, UI fulltest, 30-minute, or 120-minute PASS evidence"
   },
   "summary": {
-    "markdownFiles": 173,
-    "markdownBytes": 5821983,
-    "sourceFiles": 606,
-    "sourceMarkers": 37,
+    "markdownFiles": 176,
+    "markdownBytes": 5906712,
+    "sourceFiles": 613,
+    "sourceMarkers": 38,
     "unclassifiedSourceMarkers": 0
   },
   "agentsDocument": {
@@ -69,10 +69,10 @@
     {
       "path": "README.en.md",
       "classification": "public-entry",
-      "bytes": 8713,
-      "fullReadBytes": 8713,
+      "bytes": 8801,
+      "fullReadBytes": 8801,
       "lines": 225,
-      "sha256": "e1b334446474cc9519b194f8d124ab86006f373b602432ebb93403149f67bbab",
+      "sha256": "c5de77d4fec6574e6269d74d62e5e2689b4501287665f550a38c40d3e16af95b",
       "explicitStatusMarkerCount": 0,
       "duplicateParagraphGroupCount": 1,
       "currentLogicMismatch": "none-detected-by-strict-static-audit",
@@ -82,10 +82,10 @@
     {
       "path": "README.md",
       "classification": "public-entry",
-      "bytes": 10543,
-      "fullReadBytes": 10543,
-      "lines": 242,
-      "sha256": "61871422d9c4afe0a2b07f4e424a0ec962c19b44e5af2b76f5c978707db97436",
+      "bytes": 10633,
+      "fullReadBytes": 10633,
+      "lines": 244,
+      "sha256": "1db1c5973a2fe5ed3a078616893a497786d8ede1ae43bf7ccc918b009cfda90a",
       "explicitStatusMarkerCount": 0,
       "duplicateParagraphGroupCount": 1,
       "currentLogicMismatch": "none-detected-by-strict-static-audit",
@@ -121,10 +121,10 @@
     {
       "path": "docs/README.md",
       "classification": "current-documentation",
-      "bytes": 11952,
-      "fullReadBytes": 11952,
-      "lines": 162,
-      "sha256": "6ccb736d8da2540e6782870f5b8ae6195da7b555ae7849441d07899db51f3813",
+      "bytes": 12031,
+      "fullReadBytes": 12031,
+      "lines": 164,
+      "sha256": "527f4e84c94ba3f0faed96b19f24aa0fbcb5165bdcac35e5acf899f6ed930fa3",
       "explicitStatusMarkerCount": 0,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "none-detected-by-strict-static-audit",
@@ -147,10 +147,10 @@
     {
       "path": "docs/assets/ui/README.md",
       "classification": "current-documentation",
-      "bytes": 9583,
-      "fullReadBytes": 9583,
-      "lines": 166,
-      "sha256": "c47735280be550a41add3e97815d2802e3e613af3d6aee1fa385b65e9c38bd4f",
+      "bytes": 9759,
+      "fullReadBytes": 9759,
+      "lines": 168,
+      "sha256": "80b84c1fd4371a5804313ec0e428e5c6706c499b2de04762b071bff134579ad1",
       "explicitStatusMarkerCount": 2,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "reviewed-explicit-status-markers",
@@ -212,11 +212,11 @@
     {
       "path": "docs/development-backlog.md",
       "classification": "current-documentation",
-      "bytes": 731436,
-      "fullReadBytes": 731436,
-      "lines": 5641,
-      "sha256": "5970be837533cb4bc6481d974f564905bba59bbd5f23603ac2c83e13fed6fcb6",
-      "explicitStatusMarkerCount": 25,
+      "bytes": 761130,
+      "fullReadBytes": 761130,
+      "lines": 5859,
+      "sha256": "e5f0f56b2f3b828608f7630eb803380d2c8b520ec7ac6d5725cbdcc444011ffa",
+      "explicitStatusMarkerCount": 16,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "reviewed-explicit-status-markers",
       "duplicateComplexity": "none-detected",
@@ -251,10 +251,10 @@
     {
       "path": "docs/en/README.md",
       "classification": "public-entry",
-      "bytes": 3977,
-      "fullReadBytes": 3977,
+      "bytes": 4127,
+      "fullReadBytes": 4127,
       "lines": 75,
-      "sha256": "10864f6a7db8f787fbf3826eb46fee3a5963880b1d6735c649e281a8d725b6eb",
+      "sha256": "82fe60db2fe3ce93233788fb8008f4ccf0e3c56541bd12373c8598128c8979ee",
       "explicitStatusMarkerCount": 0,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "none-detected-by-strict-static-audit",
@@ -277,10 +277,10 @@
     {
       "path": "docs/event-feature-schema-privacy.md",
       "classification": "current-documentation",
-      "bytes": 6064,
-      "fullReadBytes": 6064,
+      "bytes": 6171,
+      "fullReadBytes": 6171,
       "lines": 131,
-      "sha256": "edbd9cb225f344d6e4220204752fd141adebe028ee0f286fd23ab3fe933473d7",
+      "sha256": "cf5a7793a1265fe4facae675fe3bca55fbf998d4edb05d6ae09b866f175e613c",
       "explicitStatusMarkerCount": 0,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "none-detected-by-strict-static-audit",
@@ -316,10 +316,10 @@
     {
       "path": "docs/live-event-metadata-contracts.md",
       "classification": "current-documentation",
-      "bytes": 21614,
-      "fullReadBytes": 21614,
+      "bytes": 21621,
+      "fullReadBytes": 21621,
       "lines": 365,
-      "sha256": "c71ac2c4f59a0192c66cd73bab86dd5c3249f9ce2cdc5789a67a2f157458ccd6",
+      "sha256": "eca16b59e27a696272a75af686dbce87d86cfbf3d84ba0c6599fe3c476efa6d0",
       "explicitStatusMarkerCount": 0,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "none-detected-by-strict-static-audit",
@@ -329,10 +329,10 @@
     {
       "path": "docs/live-source-health.md",
       "classification": "current-documentation",
-      "bytes": 15476,
-      "fullReadBytes": 15476,
+      "bytes": 15483,
+      "fullReadBytes": 15483,
       "lines": 348,
-      "sha256": "a219dc4d99ef0767d59343087c57aa3159a4e09a0030b66e21864b748050eace",
+      "sha256": "56fca545c9f3758ec23e71892590c95176754794e6fd075200fcd3b28efe22db",
       "explicitStatusMarkerCount": 1,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "reviewed-explicit-status-markers",
@@ -355,10 +355,10 @@
     {
       "path": "docs/manual-ui-fulltest.md",
       "classification": "current-documentation",
-      "bytes": 37234,
-      "fullReadBytes": 37234,
-      "lines": 576,
-      "sha256": "6aabdad3515c2bb1b5e7ead70f1a0f7e2c7f36dd3a773b4aca26b7bb47de730f",
+      "bytes": 37319,
+      "fullReadBytes": 37319,
+      "lines": 577,
+      "sha256": "367401e1fa442f8f7c48c11151aada52540d56630d40be87d16f03911b26eb8c",
       "explicitStatusMarkerCount": 1,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "reviewed-explicit-status-markers",
@@ -511,10 +511,10 @@
     {
       "path": "docs/onvif-live-source-support.md",
       "classification": "current-documentation",
-      "bytes": 17262,
-      "fullReadBytes": 17262,
+      "bytes": 17269,
+      "fullReadBytes": 17269,
       "lines": 348,
-      "sha256": "a1ee832b342c43c42b2637e6b592fdd0efeaba188f5cd0ce835a31b6e25ba836",
+      "sha256": "658e9abc5ad0535f8ad16d1df15b1d29bf68f1b7c98ac4152a6a88455fd9720c",
       "explicitStatusMarkerCount": 2,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "reviewed-explicit-status-markers",
@@ -615,10 +615,10 @@
     {
       "path": "docs/project-feature-test-inventory.md",
       "classification": "current-documentation",
-      "bytes": 447363,
-      "fullReadBytes": 447363,
-      "lines": 1549,
-      "sha256": "3825c65a113f9d7ed47fa6b2eba66201be52bd33ccc2b9135a3e0ef61fcc2bd7",
+      "bytes": 453602,
+      "fullReadBytes": 453602,
+      "lines": 1562,
+      "sha256": "ff3caa44049ad7a0a67d54e4c2eb6bbadd3ed6ad00e3cb05d78431f5cce9a287",
       "explicitStatusMarkerCount": 3,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "reviewed-explicit-status-markers",
@@ -1148,10 +1148,10 @@
     {
       "path": "docs/release-evidence-index.md",
       "classification": "current-documentation",
-      "bytes": 225620,
-      "fullReadBytes": 225620,
-      "lines": 1113,
-      "sha256": "b432ea2d6e75f9b75ca624c56604cbd0467cfbe185454adbae139ad624933767",
+      "bytes": 232306,
+      "fullReadBytes": 232306,
+      "lines": 1124,
+      "sha256": "8cc175775f9e5734d35d9418a90d8b085f23e8405bc356dd48313166b4432dbe",
       "explicitStatusMarkerCount": 18,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "reviewed-explicit-status-markers",
@@ -1174,10 +1174,10 @@
     {
       "path": "docs/release-test-records.md",
       "classification": "current-documentation",
-      "bytes": 802551,
-      "fullReadBytes": 802551,
-      "lines": 2270,
-      "sha256": "ffd36f8ad78c39a18ba01faf681e329d0c192b1e0900a8f8f415ff9969b4e7b9",
+      "bytes": 820092,
+      "fullReadBytes": 820092,
+      "lines": 2298,
+      "sha256": "93da827f73fcdf4f2fba5efa38f9f87dd2bc2f3630b281d63f44a1208951f95a",
       "explicitStatusMarkerCount": 5,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "reviewed-explicit-status-markers",
@@ -1226,10 +1226,10 @@
     {
       "path": "docs/scenario-timeline-debug.md",
       "classification": "current-documentation",
-      "bytes": 6089,
-      "fullReadBytes": 6089,
+      "bytes": 6096,
+      "fullReadBytes": 6096,
       "lines": 180,
-      "sha256": "f4e68df3102d979b0e8c3c9ec8d37d434d83a48623cfc4455f672504601619e9",
+      "sha256": "392740c8428d1ad8aead04ae1cdcb10c5dd4206bb1a04c3d7409cdbca9116934",
       "explicitStatusMarkerCount": 0,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "none-detected-by-strict-static-audit",
@@ -1239,10 +1239,10 @@
     {
       "path": "docs/stream-verification.md",
       "classification": "current-documentation",
-      "bytes": 117986,
-      "fullReadBytes": 117986,
-      "lines": 854,
-      "sha256": "428f145932946f795e46d392a93f62cde29776b970c1367d0f39261eacd013e2",
+      "bytes": 121386,
+      "fullReadBytes": 121386,
+      "lines": 864,
+      "sha256": "85773c176663d2af8fefd65e8f3b868cb54de48280eec67a2d2c95cd9a53b34e",
       "explicitStatusMarkerCount": 2,
       "duplicateParagraphGroupCount": 1,
       "currentLogicMismatch": "reviewed-explicit-status-markers",
@@ -1304,10 +1304,10 @@
     {
       "path": "docs/superpowers/plans/2026-07-07-v390-preparation-master.md",
       "classification": "implementation-plan",
-      "bytes": 53503,
-      "fullReadBytes": 53503,
+      "bytes": 53768,
+      "fullReadBytes": 53768,
       "lines": 1199,
-      "sha256": "f6df428f76ae9e59de15f00ee61a6835bafe30b7405ca2c24b97c845ec5070a7",
+      "sha256": "c0ef60b52485e3de8473735a44d548ef4b361c447be16a04555d65b2a81c5f91",
       "explicitStatusMarkerCount": 3,
       "duplicateParagraphGroupCount": 3,
       "currentLogicMismatch": "reviewed-explicit-status-markers",
@@ -1343,10 +1343,10 @@
     {
       "path": "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md",
       "classification": "implementation-plan",
-      "bytes": 15335,
-      "fullReadBytes": 15335,
-      "lines": 292,
-      "sha256": "a623833f3fc9a77fec21d44c2381f4d109b3ca40628eed66da735ecbc8f091d0",
+      "bytes": 16699,
+      "fullReadBytes": 16699,
+      "lines": 254,
+      "sha256": "c9bcb3bf0a94ae74365081de6e29320315ba6d8820b3626e5e15677659001267",
       "explicitStatusMarkerCount": 0,
       "duplicateParagraphGroupCount": 1,
       "currentLogicMismatch": "none-detected-by-strict-static-audit",
@@ -1434,10 +1434,10 @@
     {
       "path": "docs/superpowers/plans/2026-07-11-v390-review2-19-20.md",
       "classification": "implementation-plan",
-      "bytes": 2829,
-      "fullReadBytes": 2829,
+      "bytes": 3054,
+      "fullReadBytes": 3054,
       "lines": 34,
-      "sha256": "2c433d41c5768bc947aeb1344615669721acf8eb840d375332d39bc73db83938",
+      "sha256": "e4ffa62d42833d4da2c8e8703a16d08b4de7c5165171c18ebf29ffedab7d3790",
       "explicitStatusMarkerCount": 0,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "none-detected-by-strict-static-audit",
@@ -1447,10 +1447,10 @@
     {
       "path": "docs/superpowers/plans/2026-07-11-v390-review2-21.md",
       "classification": "implementation-plan",
-      "bytes": 2365,
-      "fullReadBytes": 2365,
-      "lines": 37,
-      "sha256": "e60bf697728870e48fb1058def19b79a51805018293ee8bd56085d01c6a83a4d",
+      "bytes": 2628,
+      "fullReadBytes": 2628,
+      "lines": 40,
+      "sha256": "69dc47cb9236cd013d527dd35e32a7f728eea267d1628c43252c50621c552d7b",
       "explicitStatusMarkerCount": 0,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "none-detected-by-strict-static-audit",
@@ -1460,10 +1460,10 @@
     {
       "path": "docs/superpowers/plans/2026-07-11-v390-review2-24-25-ui-automation.md",
       "classification": "implementation-plan",
-      "bytes": 3484,
-      "fullReadBytes": 3484,
-      "lines": 36,
-      "sha256": "118440129628f5edb7b5b6e3dfbb221bdfba9c465391ce8b8e050dfd971e9bd1",
+      "bytes": 3789,
+      "fullReadBytes": 3789,
+      "lines": 40,
+      "sha256": "817961b7e76eb3c52bcab1af4692ad15ce09196c50a6541b36219261f180b5a7",
       "explicitStatusMarkerCount": 0,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "none-detected-by-strict-static-audit",
@@ -1473,10 +1473,49 @@
     {
       "path": "docs/superpowers/plans/2026-07-12-v390-review2-26-35.md",
       "classification": "implementation-plan",
-      "bytes": 2304,
-      "fullReadBytes": 2304,
+      "bytes": 2555,
+      "fullReadBytes": 2555,
       "lines": 22,
-      "sha256": "fcb4ca0d6a14623287faf44c501e36618ed5b917495a42ec97b646c3a685e48a",
+      "sha256": "cf10c113e20837a0ac2cec37ef43dc6b53d52544e14a2b5c84a10e850fb8485b",
+      "explicitStatusMarkerCount": 0,
+      "duplicateParagraphGroupCount": 0,
+      "currentLogicMismatch": "none-detected-by-strict-static-audit",
+      "duplicateComplexity": "none-detected",
+      "action": "preserve-plan-history"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-12-v390-review3-36-42.md",
+      "classification": "implementation-plan",
+      "bytes": 1412,
+      "fullReadBytes": 1412,
+      "lines": 19,
+      "sha256": "54cae3defd48a3ff2dcefb6313218efaafd84a6b90d0135c9f2bc8428912e79e",
+      "explicitStatusMarkerCount": 0,
+      "duplicateParagraphGroupCount": 0,
+      "currentLogicMismatch": "none-detected-by-strict-static-audit",
+      "duplicateComplexity": "none-detected",
+      "action": "preserve-plan-history"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-12-v390-review3-43-49.md",
+      "classification": "implementation-plan",
+      "bytes": 3530,
+      "fullReadBytes": 3530,
+      "lines": 30,
+      "sha256": "bafa805c0c5521f7382923d10573e5daa193614dc924045a7678743a23501ccf",
+      "explicitStatusMarkerCount": 0,
+      "duplicateParagraphGroupCount": 0,
+      "currentLogicMismatch": "none-detected-by-strict-static-audit",
+      "duplicateComplexity": "none-detected",
+      "action": "preserve-plan-history"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-12-v390-review4-50-62.md",
+      "classification": "implementation-plan",
+      "bytes": 4472,
+      "fullReadBytes": 4472,
+      "lines": 55,
+      "sha256": "25c691772f31c19d522fd14f9e31fd873f992b04a4686c8493ad1bf3fe80e37e",
       "explicitStatusMarkerCount": 0,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "none-detected-by-strict-static-audit",
@@ -1499,10 +1538,10 @@
     {
       "path": "docs/superpowers/specs/2026-07-07-v390-preparation-design.md",
       "classification": "implementation-plan",
-      "bytes": 12308,
-      "fullReadBytes": 12308,
-      "lines": 302,
-      "sha256": "ba1afb25333147df5dd0fea5911f8a1290c8f9d0c935197254ab59f55cf4875b",
+      "bytes": 12670,
+      "fullReadBytes": 12670,
+      "lines": 308,
+      "sha256": "af42631945a4dae23be35e9ea18a55624ecf6e11a4e4d95aeeae720cdbecc604",
       "explicitStatusMarkerCount": 1,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "reviewed-explicit-status-markers",
@@ -1733,10 +1772,10 @@
     {
       "path": "docs/v300-feature-only-retention.md",
       "classification": "current-documentation",
-      "bytes": 3330,
-      "fullReadBytes": 3330,
+      "bytes": 3432,
+      "fullReadBytes": 3432,
       "lines": 80,
-      "sha256": "d021b71b6ddad6f6dff463205bbab78b7df49483dc9e741cd738bd1f5e521700",
+      "sha256": "4d5da08bbcbf08ebd0e56d6b0316b5b91d36b65a49d98e9965958e7f80d9859a",
       "explicitStatusMarkerCount": 0,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "none-detected-by-strict-static-audit",
@@ -1746,10 +1785,10 @@
     {
       "path": "docs/v300-feature-search-index.md",
       "classification": "current-documentation",
-      "bytes": 3678,
-      "fullReadBytes": 3678,
+      "bytes": 3776,
+      "fullReadBytes": 3776,
       "lines": 83,
-      "sha256": "198eb4bf1e87558442ed8d779d692ce754098d69edb096add932f5dc6a5bf698",
+      "sha256": "47d28e71ce832635067b2b9b1906b42bae5c7728e686cecbfe9e650ae4a1a9ed",
       "explicitStatusMarkerCount": 0,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "none-detected-by-strict-static-audit",
@@ -1759,10 +1798,10 @@
     {
       "path": "docs/v300-retention-pin-cleanup.md",
       "classification": "current-documentation",
-      "bytes": 2786,
-      "fullReadBytes": 2786,
+      "bytes": 2886,
+      "fullReadBytes": 2886,
       "lines": 61,
-      "sha256": "c65321bf96307cd97bd26f057d39a14be80c0831562b2bfb1e56ba1850be2dcc",
+      "sha256": "29e2928c3733a11981835b8929d8d2d7f8ec1ed579709a128cd9cd8e0aefdccf",
       "explicitStatusMarkerCount": 0,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "none-detected-by-strict-static-audit",
@@ -1772,10 +1811,10 @@
     {
       "path": "docs/v300-search-dsl-query-convert.md",
       "classification": "current-documentation",
-      "bytes": 3974,
-      "fullReadBytes": 3974,
+      "bytes": 4072,
+      "fullReadBytes": 4072,
       "lines": 113,
-      "sha256": "3756ff561797e9facc55c8365eaf1881ce2724e1027463549aa7c9262e641262",
+      "sha256": "cd494713ab095389f02f7549dff3ef6a4fa09f36656e993d9ffa447d9bddae0d",
       "explicitStatusMarkerCount": 0,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "none-detected-by-strict-static-audit",
@@ -1785,10 +1824,10 @@
     {
       "path": "docs/v300-vlm-feature-queue.md",
       "classification": "current-documentation",
-      "bytes": 4399,
-      "fullReadBytes": 4399,
+      "bytes": 4497,
+      "fullReadBytes": 4497,
       "lines": 109,
-      "sha256": "25ce31c3063d4e38e8b68021bd557976becb4183dfb61c25b4ffc92340c503cf",
+      "sha256": "1033d2e4aa9754be1b325c2a0e6e78933c01073598a678d2ede5dc697d05ef29",
       "explicitStatusMarkerCount": 0,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "none-detected-by-strict-static-audit",
@@ -1811,10 +1850,10 @@
     {
       "path": "docs/v390-feature-completion-inventory.md",
       "classification": "current-documentation",
-      "bytes": 37173,
-      "fullReadBytes": 37173,
-      "lines": 247,
-      "sha256": "f8821bfb9e7bbe1b1e52a405ae8939badcaf3641c29b4e504ae5827853fc4a02",
+      "bytes": 37398,
+      "fullReadBytes": 37398,
+      "lines": 250,
+      "sha256": "261ee3dd4dc59b28ae1e2b14d379dd7e6e26472cc8a532b3df3821c0cea2bfb5",
       "explicitStatusMarkerCount": 0,
       "duplicateParagraphGroupCount": 1,
       "currentLogicMismatch": "none-detected-by-strict-static-audit",
@@ -1824,10 +1863,10 @@
     {
       "path": "docs/v390-ui-automation-coverage-matrix.md",
       "classification": "current-documentation",
-      "bytes": 186976,
-      "fullReadBytes": 186976,
-      "lines": 458,
-      "sha256": "a7c5346eba966c3f10869125f4da2db66de81ce6b0a9fc217029d248f676abe1",
+      "bytes": 193845,
+      "fullReadBytes": 193845,
+      "lines": 461,
+      "sha256": "30fef744e44d418a2136e3cc9f9eb6efd9c8274a0046a07766db299ae56a4771",
       "explicitStatusMarkerCount": 0,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "none-detected-by-strict-static-audit",
@@ -1837,10 +1876,10 @@
     {
       "path": "docs/versioning-policy.md",
       "classification": "current-documentation",
-      "bytes": 14920,
-      "fullReadBytes": 14920,
-      "lines": 312,
-      "sha256": "2fd039db0cf44ffcb6239dbcd0d39db446e59cebc4da97b9a04d8cbf864c51a1",
+      "bytes": 15247,
+      "fullReadBytes": 15247,
+      "lines": 315,
+      "sha256": "cc783dc7efdfc3fa0f0dd13442c187809704c68991a767f09014934529cf4f46",
       "explicitStatusMarkerCount": 0,
       "duplicateParagraphGroupCount": 0,
       "currentLogicMismatch": "none-detected-by-strict-static-audit",
@@ -2281,251 +2320,369 @@
     {
       "path": "scripts/internal/onvif_probe_adapter_smoke.cpp",
       "line": 105,
+      "column": 64,
+      "startOffset": 3923,
+      "occurrence": 1,
       "marker": "not implemented",
       "contextSha256": "2e4e9f3a9425d513236dedb27b14bdf6ecc76b4f72a4b55de64a0f63d7108bd4",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "unsupported-soap-operation-negative-fixture"
     },
     {
       "path": "scripts/internal/verify_v290_2x_compatibility_baseline.mjs",
       "line": 123,
+      "column": 70,
+      "startOffset": 4715,
+      "occurrence": 1,
       "marker": "미구현",
       "contextSha256": "f0c2fda456254056e3359f3fd1204be79083591e94682d503f68f0485476218f",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "historical-red-command-evidence-string"
     },
     {
       "path": "scripts/internal/verify_v290_final_contract_freeze.mjs",
       "line": 158,
+      "column": 66,
+      "startOffset": 5627,
+      "occurrence": 1,
       "marker": "미구현",
       "contextSha256": "b1aee43d61cd8b2ab81c81aad0a44f7d7d5ce3de64d307c284c9df201ffcb4c2",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "historical-red-command-evidence-string"
     },
     {
       "path": "scripts/internal/verify_v290_final_stabilization_run.mjs",
       "line": 105,
+      "column": 68,
+      "startOffset": 4788,
+      "occurrence": 1,
       "marker": "미구현",
       "contextSha256": "523b9be651924c037b4ee3ad64132c7e96b1ad4a06bd1f775081be7161a8a705",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "historical-red-command-evidence-string"
     },
     {
       "path": "scripts/internal/verify_v290_owner_release_readiness.mjs",
       "line": 127,
+      "column": 68,
+      "startOffset": 5844,
+      "occurrence": 1,
       "marker": "미구현",
       "contextSha256": "a9ae85660050a1ff1127e6b7cb018a8dc70a050e5eaa4d56623def3cfc811ad0",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "historical-red-command-evidence-string"
     },
     {
       "path": "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
       "line": 175,
+      "column": 71,
+      "startOffset": 7796,
+      "occurrence": 1,
       "marker": "미구현",
       "contextSha256": "31c23596306b804771f52e66caa66aca65d411a65f27915b16f17258daabe9e2",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "historical-red-command-evidence-string"
     },
     {
       "path": "scripts/internal/verify_v290_release_evidence_hygiene.mjs",
       "line": 106,
+      "column": 69,
+      "startOffset": 4651,
+      "occurrence": 1,
       "marker": "미구현",
       "contextSha256": "9209142cb5e7079316361d7f924548db8416afacbe15844ca7fd9cc1a9349237",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "historical-red-command-evidence-string"
     },
     {
       "path": "scripts/internal/verify_v290_release_test_records_enforcement.mjs",
       "line": 95,
+      "column": 77,
+      "startOffset": 3610,
+      "occurrence": 1,
       "marker": "미구현",
       "contextSha256": "06b9f144808b0354960a5e612c17f4cc7a4ecb7bda79025e489d9af021df020a",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "historical-red-command-evidence-string"
     },
     {
       "path": "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs",
       "line": 122,
+      "column": 72,
+      "startOffset": 6109,
+      "occurrence": 1,
       "marker": "미구현",
       "contextSha256": "8c21eb9e251e5b2becb8a447d4b87303869dc934d19fddeb374b70d8f95fc8ce",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "historical-red-command-evidence-string"
     },
     {
       "path": "scripts/internal/verify_v290_v28_regression_bundle.mjs",
       "line": 104,
+      "column": 66,
+      "startOffset": 3730,
+      "occurrence": 1,
       "marker": "미구현",
       "contextSha256": "34ed5c38d7d646b36dfc258216a8dfa2357b3df3c080c20b8dfb90596cba32f6",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "historical-red-command-evidence-string"
     },
     {
       "path": "scripts/internal/verify_v300_entry_baseline.mjs",
       "line": 135,
+      "column": 59,
+      "startOffset": 7020,
+      "occurrence": 1,
       "marker": "미구현",
       "contextSha256": "f0d11fbac8a6c7c7d8895a41853cf762abc2dbdf1bbc708bb8c530fef1164ebc",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "historical-red-command-evidence-string"
     },
     {
       "path": "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
       "line": 136,
+      "column": 76,
+      "startOffset": 6552,
+      "occurrence": 1,
       "marker": "미구현",
       "contextSha256": "f0e46d877098e8425fa2f617cff843e003fdecee4adb8cdef795a57fb820aacc",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "historical-red-command-evidence-string"
     },
     {
       "path": "scripts/internal/verify_v310_stabilization_release_readiness.mjs",
       "line": 137,
+      "column": 76,
+      "startOffset": 6357,
+      "occurrence": 1,
       "marker": "미구현",
       "contextSha256": "dea804ad60a4f99ead7395756d0a45e76834411d083cdf6a9878c59c404fa0e3",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "historical-red-command-evidence-string"
     },
     {
       "path": "scripts/internal/verify_v320_entry_baseline.mjs",
       "line": 142,
+      "column": 59,
+      "startOffset": 7950,
+      "occurrence": 1,
       "marker": "미구현",
       "contextSha256": "6f896768957d813837915b50dff22d462ce09da691e99f2213770d8464e3d6d1",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "historical-red-command-evidence-string"
     },
     {
       "path": "scripts/internal/verify_v320_stabilization_release_readiness.mjs",
       "line": 138,
+      "column": 76,
+      "startOffset": 6543,
+      "occurrence": 1,
       "marker": "미구현",
       "contextSha256": "27909fde25934e86f728186ea753693d509b6ac6a77063e1c2eafa96939fe5ca",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "historical-red-command-evidence-string"
     },
     {
       "path": "scripts/internal/verify_v330_source_registry_snapshot_identity.mjs",
       "line": 86,
+      "column": 77,
+      "startOffset": 3226,
+      "occurrence": 1,
       "marker": "not implemented",
       "contextSha256": "5a8fd55da17ebb2ea876b7a72a4365125bd6b98e308a3dc1191c69e1d7637e0a",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "historical-step-local-negative-capability-boundary"
     },
     {
       "path": "scripts/internal/verify_v330_stabilization_release_readiness.mjs",
       "line": 137,
+      "column": 76,
+      "startOffset": 6550,
+      "occurrence": 1,
       "marker": "미구현",
       "contextSha256": "8f86b2648788f91771cc2d8492cf34b4ceb032dd0e727f471780a1185292bf58",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "historical-red-command-evidence-string"
     },
     {
       "path": "scripts/internal/verify_v340_stabilization_release_readiness.mjs",
       "line": 137,
+      "column": 76,
+      "startOffset": 6526,
+      "occurrence": 1,
       "marker": "미구현",
       "contextSha256": "1e54ec5082a36da1022d6a78c040a7f2d680a1450b3ff11ae1e1ca83f9375b06",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "historical-red-command-evidence-string"
     },
     {
       "path": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
       "line": 24,
+      "column": 5,
+      "startOffset": 749,
+      "occurrence": 1,
       "marker": "미구현",
       "contextSha256": "45a3e3eca5e1ddc1fa1d0253b74d1c7631c62fbbedaf7cb0dca5634c2afb1dcd",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "truthful-not-executed-policy-help-text"
     },
     {
       "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
       "line": 27,
+      "column": 46,
+      "startOffset": 1016,
+      "occurrence": 1,
       "marker": "notImplementedYet",
       "contextSha256": "911fa5259c4d673cea88b92d10a4794a080b1e1dba9f67ce4692f7be4833e418",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "rules-json-closure-help-text"
     },
     {
       "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
-      "line": 61,
+      "line": 94,
+      "column": 28,
+      "startOffset": 4638,
+      "occurrence": 1,
       "marker": "notImplementedYet",
       "contextSha256": "871740aced228adb07b36ceeba7e91f289675e0aa272164841e584d941096a06",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "rules-json-closure-assertion-token"
     },
     {
       "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
-      "line": 61,
+      "line": 94,
+      "column": 74,
+      "startOffset": 4684,
+      "occurrence": 2,
       "marker": "notImplementedYet",
       "contextSha256": "871740aced228adb07b36ceeba7e91f289675e0aa272164841e584d941096a06",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "rules-json-closure-assertion-message"
     },
     {
       "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
-      "line": 151,
+      "line": 185,
+      "column": 57,
+      "startOffset": 8964,
+      "occurrence": 1,
       "marker": "TODO",
       "contextSha256": "236d4b905e7649f4a4dd3387e313a0733829864446f032db4a3fc4a67fe700e4",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "markdown-status-scanner-pattern-literal"
     },
     {
       "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
-      "line": 151,
+      "line": 185,
+      "column": 62,
+      "startOffset": 8969,
+      "occurrence": 1,
       "marker": "FIXME",
       "contextSha256": "236d4b905e7649f4a4dd3387e313a0733829864446f032db4a3fc4a67fe700e4",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "markdown-status-scanner-pattern-literal"
     },
     {
       "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
-      "line": 151,
+      "line": 185,
+      "column": 83,
+      "startOffset": 8990,
+      "occurrence": 1,
       "marker": "후속 예정",
       "contextSha256": "236d4b905e7649f4a4dd3387e313a0733829864446f032db4a3fc4a67fe700e4",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "markdown-status-scanner-pattern-literal"
     },
     {
       "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
-      "line": 223,
+      "line": 257,
+      "column": 34,
+      "startOffset": 11981,
+      "occurrence": 1,
       "marker": "TODO",
       "contextSha256": "a6e00764a2e607edbc6631a7cd8f1afc3250e39da811bb0b0c309a655e624e5d",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "source-incomplete-scanner-pattern-literal"
     },
     {
       "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
-      "line": 223,
+      "line": 257,
+      "column": 39,
+      "startOffset": 11986,
+      "occurrence": 1,
       "marker": "FIXME",
       "contextSha256": "a6e00764a2e607edbc6631a7cd8f1afc3250e39da811bb0b0c309a655e624e5d",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "source-incomplete-scanner-pattern-literal"
     },
     {
       "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
-      "line": 223,
+      "line": 257,
+      "column": 45,
+      "startOffset": 11992,
+      "occurrence": 1,
       "marker": "XXX",
       "contextSha256": "a6e00764a2e607edbc6631a7cd8f1afc3250e39da811bb0b0c309a655e624e5d",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "source-incomplete-scanner-pattern-literal"
     },
     {
       "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
-      "line": 223,
+      "line": 257,
+      "column": 52,
+      "startOffset": 11999,
+      "occurrence": 1,
       "marker": "notImplementedYet",
       "contextSha256": "a6e00764a2e607edbc6631a7cd8f1afc3250e39da811bb0b0c309a655e624e5d",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "source-incomplete-scanner-pattern-literal"
     },
     {
       "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
-      "line": 223,
+      "line": 257,
+      "column": 121,
+      "startOffset": 12068,
+      "occurrence": 1,
       "marker": "미구현",
       "contextSha256": "a6e00764a2e607edbc6631a7cd8f1afc3250e39da811bb0b0c309a655e624e5d",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "source-incomplete-scanner-pattern-literal"
     },
     {
       "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
-      "line": 223,
+      "line": 257,
+      "column": 125,
+      "startOffset": 12072,
+      "occurrence": 1,
       "marker": "미완성",
       "contextSha256": "a6e00764a2e607edbc6631a7cd8f1afc3250e39da811bb0b0c309a655e624e5d",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "source-incomplete-scanner-pattern-literal"
     },
     {
       "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
-      "line": 223,
+      "line": 257,
+      "column": 129,
+      "startOffset": 12076,
+      "occurrence": 1,
       "marker": "후속 예정",
       "contextSha256": "a6e00764a2e607edbc6631a7cd8f1afc3250e39da811bb0b0c309a655e624e5d",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "source-incomplete-scanner-pattern-literal"
     },
     {
       "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
-      "line": 235,
+      "line": 330,
+      "column": 72,
+      "startOffset": 15440,
+      "occurrence": 1,
       "marker": "미완성",
       "contextSha256": "405dca1bdfe5ca157a1352586986a37a57a619e165bdf2817a1864970ef09041",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "product-state-classifier-pattern-literal"
     },
     {
       "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
-      "line": 238,
+      "line": 333,
+      "column": 97,
+      "startOffset": 15595,
+      "occurrence": 1,
       "marker": "not implemented",
       "contextSha256": "77e81aa004e901cd5c406826d2c974d700954779d16f760b0c8e0c4490844855",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "step-boundary-classifier-pattern-literal"
     },
     {
       "path": "scripts/internal/verify_v390_review3_discovery_ledger.mjs",
-      "line": 260,
+      "line": 355,
+      "column": 84,
+      "startOffset": 16728,
+      "occurrence": 1,
       "marker": "notImplementedYet",
       "contextSha256": "6bb983384067ec8ad54f37ef376e621d94337927aec3a7bb676fdf6b2db26c6c",
-      "disposition": "verifier-contract-or-historical-wording"
+      "disposition": "rules-json-scope-decision-evidence-text"
+    },
+    {
+      "path": "scripts/internal/verify_v390_review4_truth_reset.mjs",
+      "line": 83,
+      "column": 51,
+      "startOffset": 4142,
+      "occurrence": 1,
+      "marker": "미완성",
+      "contextSha256": "5ce2e322837a842ebdc65909c707ef6500ccab8fbdf2bb8ee450411783cf8c80",
+      "disposition": "truth-reset-status-summary-copy"
     },
     {
       "path": "src/ingress/product_ui_js.cpp",
       "line": 703,
+      "column": 17,
+      "startOffset": 38836,
+      "occurrence": 1,
       "marker": "미완성",
       "contextSha256": "e30cd286a9db8c1939069235d647fd5e988ccbb1d14ad21d7da637b27f137b04",
       "disposition": "product-state-copy-not-code-gap"
@@ -2533,6 +2690,9 @@
     {
       "path": "src/ingress/product_ui_page_scripts.cpp",
       "line": 1317,
+      "column": 62,
+      "startOffset": 100072,
+      "occurrence": 1,
       "marker": "not implemented",
       "contextSha256": "7fd0a31e25b095ced817e89c51f158b8ed4c8bd69ec3b372b0101963a3628d96",
       "disposition": "preserved-step-boundary-copy"

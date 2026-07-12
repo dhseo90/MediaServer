@@ -25,7 +25,7 @@ points to the current public sources.
 
 - Latest published release: `v3.8.0` Operator-Gated Action Pilot & Outcome Loop, source-only.
 - Current source: `3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation.
-- The v3.9 roadmap audits exposed, promised, and partially implemented functionality from v1.0.0 through v3.8.0, completes necessary feature gaps before v4.0.0, then prepares structure stabilization and the new test model.
+- The v3.9 roadmap audits exposed, promised, and partially implemented functionality from v1.0.0 through v3.8.0, closes REVIEW4 items 50 through 63, then executes the approved behavior-preserving REVIEW4-64 refactor on the current `v3.9.0` branch before REVIEW4-65 independent acceptance. The actual refactor is not transferred to v4.0.0 and is not yet execution-complete.
 - Latest published baseline: v3.8.0 Operator-Gated Action Pilot & Outcome Loop. v3.9.0 is a preparation branch with no publish evidence yet.
 
 ## Start Here

@@ -13,6 +13,8 @@ Client Live 이미지는 source tree, dock event feed, workspace preset,
 tile-level disconnect/action, VA overlay tile이 보이는 제품 구조를 설명합니다.
 Semantic Incident Memory 검색/timeline/brief 화면, VLM 전용 `/ops/vlm`, `/ops/events`
 리뷰 보조 화면의 전체 UI 증거도 아니며, UI 풀테스트 PASS 증거도 아닙니다.
+또한 REVIEW4-59의 viewport/theme별 `/client/live` ready video, VA overlay containment,
+crop/control/geometry/contrast/focus current visual matrix evidence가 아닙니다.
 
 README, README.en, `docs/ui-guide.md`, `docs/video-analysis.md`에서 참조하는 UI/VA
 이미지는 `verify-docs-ui-assets` 정적 gate로 관리합니다. 정적 gate만 실행하고

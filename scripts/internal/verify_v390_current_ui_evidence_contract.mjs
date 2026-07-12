@@ -102,7 +102,7 @@ check("durable matrix separates exact native readiness from current execution", 
   for (const snippet of [
     "currentEvidenceStatus: `not-run`", "native-executable-positive `423`",
     "negative-route-executable `1`", "unsupported `0`", "executed-pass `0`", "not-run `424`",
-    "exact-native-ready-current-not-run",
+    "review4-workflow-rebuild-pending",
   ]) assert(matrix.includes(snippet), `durable matrix missing: ${snippet}`);
   assert(!matrix.includes("ui-automation-visible-dom-final/summary.json"), "durable matrix retains stale source");
 });

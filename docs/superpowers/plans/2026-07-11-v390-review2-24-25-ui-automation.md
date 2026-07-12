@@ -2,6 +2,10 @@
 
 > **For agentic workers:** Follow `AGENTS.md` and the repository Superpowers discipline. Register changed test items before RED, implement one numbered roadmap item at a time, rerun from the failed boundary, preserve false-PASS failures, and commit only the completed current item.
 
+> Lifecycle: historical REVIEW2 24~25 실행 계획. Exact 424 workflow와 completion oracle의
+> current 완료 주장은 `V390-REVIEW4-56`~`V390-REVIEW4-58`에 의해 superseded되었습니다.
+> 아래 당시 구현 사실은 보존하지만 current actual UI/Policy v4 PASS evidence가 아닙니다.
+
 **Goal:** Close `V390-REVIEW2-24` and `V390-REVIEW2-25` without changing product API/schema/media/auth contracts: first make all canonical exact 424 UI IDs executable by the native adapter, then reject user actions that have no correlated completion oracle.
 
 **Architecture:** Keep the historical 8-case evidence immutable. Add a canonical native execution manifest derived from the reviewed Policy v4 case binding and semantic implementation evidence. The manifest owns exact ID/feature/role/viewport/theme, product-screen route normalization, native action plan, and oracle contract. The runner owns Playwright-native dispatch, before/after and network capture, artifact creation, first-fail behavior, and negative-route handling. Acceptance/full-suite eligibility remains Step 26 scope.

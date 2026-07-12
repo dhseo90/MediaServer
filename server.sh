@@ -412,6 +412,8 @@ Usage:
                  986행 REVIEW3 owner/route-control/action/state/readback call-chain contract를 검증합니다.
   verify-v390-review3-discovery-ledger
                  V390-REVIEW3-36 Markdown/source 전수 ledger와 RulesJson scope 결정을 검증합니다.
+  verify-v390-review4-semantic-discovery-ledger
+                 V390-REVIEW4-52 문서/source marker 의미, actual owner, evidence ledger를 검증합니다.
   verify-v390-feature-completion-inventory
                  v3.9.0 기능 완성 인벤토리 구조와 discovery review gate를 검증합니다.
   verify-v390-user-review-gate
@@ -833,6 +835,8 @@ Usage:
                  986행 REVIEW3 owner/route-control/action/state/readback call-chain contract를 검증합니다.
   verify-v390-review3-discovery-ledger
                  V390-REVIEW3-36 Markdown/source 전수 ledger와 RulesJson scope 결정을 검증합니다.
+  verify-v390-review4-semantic-discovery-ledger
+                 V390-REVIEW4-52 문서/source marker 의미, actual owner, evidence ledger를 검증합니다.
   verify-v390-feature-completion-inventory
                  v3.9.0 기능 완성 인벤토리 구조와 discovery review gate를 검증합니다.
   verify-v390-user-review-gate
@@ -2069,6 +2073,10 @@ case "${cmd}" in
   verify-v390-review3-discovery-ledger)
     require_internal verify_v390_review3_discovery_ledger.mjs
     exec "${INTERNAL_DIR}/verify_v390_review3_discovery_ledger.mjs" "$@"
+    ;;
+  verify-v390-review4-semantic-discovery-ledger)
+    require_internal verify_v390_review4_semantic_discovery_ledger.mjs
+    exec "${INTERNAL_DIR}/verify_v390_review4_semantic_discovery_ledger.mjs" "$@"
     ;;
   verify-v390-feature-completion-inventory)
     require_internal verify_v390_feature_completion_inventory.mjs

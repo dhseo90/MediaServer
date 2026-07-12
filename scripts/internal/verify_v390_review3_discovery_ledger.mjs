@@ -22,8 +22,8 @@ Usage:
   ./server.sh verify-v390-review3-discovery-ledger [--write-ledger]
 
 Checks:
-  - AGENTS.md와 분리된 tracked Markdown 173개를 파일별로 끝까지 읽고 SHA-256/분류/marker/중복 ledger를 고정
-  - src/include 및 검증 tooling의 explicit incomplete marker를 전수 분류
+  - AGENTS.md와 분리된 tracked Markdown 176개 historical content ledger를 고정
+  - src/include 및 검증 tooling의 explicit incomplete marker를 exact context별로 분류
   - AnalysisDocumentRegistry::RulesJson()의 두 notImplementedYet 항목이 승인된 제외/테스트 이관 결정으로 닫힘
   - feature inventory 986행 수가 비기능 scope decision 때문에 변하지 않음
 `);
@@ -42,10 +42,10 @@ if (writeLedger) {
 
 const stored = readJson(ledgerRelativePath);
 const checks = [];
-check("AGENTS.md is audited separately from the 173-file document ledger", () => {
+check("AGENTS.md is audited separately from the 176-file document ledger", () => {
   assert(current.agentsDocument.path === "AGENTS.md", "AGENTS.md audit boundary is missing");
   assert(current.agentsDocument.fullReadBytes === current.agentsDocument.bytes, "AGENTS.md was not fully read");
-  assert(current.summary.markdownFiles === 173, `expected 173 Markdown files, got ${current.summary.markdownFiles}`);
+  assert(current.summary.markdownFiles === 176, `expected 176 Markdown files, got ${current.summary.markdownFiles}`);
   assert(current.markdown.every(item => item.fullReadBytes === item.bytes), "a Markdown file was not fully read");
 });
 check("stored Markdown ledger exactly matches current full-file content", () => {
@@ -53,8 +53,41 @@ check("stored Markdown ledger exactly matches current full-file content", () => 
   assertStableEqual(stored.agentsDocument, current.agentsDocument, "AGENTS.md ledger drift");
 });
 check("source incomplete marker ledger exactly matches current source", () => {
+  const identities = current.sourceMarkers.map(sourceMarkerIdentity);
+  assert(new Set(identities).size === identities.length, "duplicate source marker identity remains");
+  assert(current.sourceMarkers.every(item => Number.isInteger(item.occurrence) && item.occurrence >= 1),
+    "source marker occurrence is missing");
+  assert(current.sourceMarkers.every(item => Number.isInteger(item.column) && item.column >= 1),
+    "source marker column is missing");
+  assert(current.sourceMarkers.every(item => Number.isInteger(item.startOffset) && item.startOffset >= 0),
+    "source marker startOffset is missing");
+  assert(current.sourceMarkers.every(item => item.disposition !== "unclassified"), "unclassified source marker remains");
   assertStableEqual(stored.sourceMarkers, current.sourceMarkers, "source marker ledger drift");
-  assert(stored.sourceMarkers.every(item => item.disposition !== "unclassified"), "unclassified source marker remains");
+});
+check("source marker dispositions preserve every exact semantic role", () => {
+  const expectedCounts = new Map([
+    ["historical-red-command-evidence-string", 16],
+    ["unsupported-soap-operation-negative-fixture", 1],
+    ["historical-step-local-negative-capability-boundary", 1],
+    ["truthful-not-executed-policy-help-text", 1],
+    ["rules-json-closure-help-text", 1],
+    ["rules-json-closure-assertion-token", 1],
+    ["rules-json-closure-assertion-message", 1],
+    ["markdown-status-scanner-pattern-literal", 3],
+    ["source-incomplete-scanner-pattern-literal", 7],
+    ["product-state-classifier-pattern-literal", 1],
+    ["step-boundary-classifier-pattern-literal", 1],
+    ["rules-json-scope-decision-evidence-text", 1],
+    ["truth-reset-status-summary-copy", 1],
+    ["product-state-copy-not-code-gap", 1],
+    ["preserved-step-boundary-copy", 1],
+  ]);
+  const actualCounts = new Map();
+  for (const marker of current.sourceMarkers) {
+    actualCounts.set(marker.disposition, (actualCounts.get(marker.disposition) ?? 0) + 1);
+  }
+  assertStableEqual([...actualCounts.entries()].sort(), [...expectedCounts.entries()].sort(),
+    "source marker exact disposition count mismatch");
 });
 check("RulesJson incomplete markers are closed by explicit decisions", () => {
   const source = readText("src/ingress/webrtc_http_server.cpp");
@@ -76,7 +109,8 @@ check("roadmap and retained test records identify REVIEW3-36 implementation", ()
   const backlog = readText("docs/development-backlog.md");
   const records = readText("docs/release-test-records.md");
   assert(backlog.includes("V390-REVIEW3-36"), "roadmap item is missing");
-  assert(/^\| 36 \| V390-REVIEW3-36 \| Discovery \|[^\n]*\| 완료 \|/m.test(backlog), "roadmap does not record REVIEW3-36 completion");
+  assert(/^\| 36 \| V390-REVIEW3-36 \| Discovery \|[^\n]*\| historical source claim \/ REVIEW4 재검증 \|/m.test(backlog),
+    "roadmap does not preserve REVIEW3-36 historical source claim");
   assert(records.includes("V390-REVIEW3-36 discovery ledger"), "release test record entry is missing");
 });
 
@@ -224,14 +258,75 @@ function auditSourceMarkers(relativePath) {
     .map(item => ({
       path: relativePath,
       line: item.line,
+      column: item.column,
+      startOffset: item.startOffset,
+      occurrence: item.occurrence,
       marker: item.match,
       contextSha256: sha256(item.context),
-      disposition: sourceMarkerDisposition(relativePath, item.context),
+      disposition: sourceMarkerDisposition(relativePath, item),
     }));
 }
 
-function sourceMarkerDisposition(file, context) {
-  if (file.startsWith("scripts/internal/")) return "verifier-contract-or-historical-wording";
+function sourceMarkerDisposition(file, item) {
+  const { context, occurrence } = item;
+  const historicalRedEvidenceFiles = new Set([
+    "scripts/internal/verify_v290_2x_compatibility_baseline.mjs",
+    "scripts/internal/verify_v290_final_contract_freeze.mjs",
+    "scripts/internal/verify_v290_final_stabilization_run.mjs",
+    "scripts/internal/verify_v290_owner_release_readiness.mjs",
+    "scripts/internal/verify_v290_public_docs_assets_refresh.mjs",
+    "scripts/internal/verify_v290_release_evidence_hygiene.mjs",
+    "scripts/internal/verify_v290_release_test_records_enforcement.mjs",
+    "scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs",
+    "scripts/internal/verify_v290_v28_regression_bundle.mjs",
+    "scripts/internal/verify_v300_entry_baseline.mjs",
+    "scripts/internal/verify_v300_stabilization_release_readiness.mjs",
+    "scripts/internal/verify_v310_stabilization_release_readiness.mjs",
+    "scripts/internal/verify_v320_entry_baseline.mjs",
+    "scripts/internal/verify_v320_stabilization_release_readiness.mjs",
+    "scripts/internal/verify_v330_stabilization_release_readiness.mjs",
+    "scripts/internal/verify_v340_stabilization_release_readiness.mjs",
+  ]);
+  if (historicalRedEvidenceFiles.has(file) && context.includes("최초 `./server.sh")) {
+    return "historical-red-command-evidence-string";
+  }
+  if (file === "scripts/internal/onvif_probe_adapter_smoke.cpp" && context.includes("OnvifSoapResponse")) {
+    return "unsupported-soap-operation-negative-fixture";
+  }
+  if (file === "scripts/internal/verify_v330_source_registry_snapshot_identity.mjs") {
+    return "historical-step-local-negative-capability-boundary";
+  }
+  if (file === "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs") {
+    return "truthful-not-executed-policy-help-text";
+  }
+  if (file === "scripts/internal/verify_v390_review4_truth_reset.mjs") {
+    return "truth-reset-status-summary-copy";
+  }
+  if (file === "scripts/internal/verify_v390_review3_discovery_ledger.mjs") {
+    if (context.includes("AnalysisDocumentRegistry::RulesJson()")) {
+      return "rules-json-closure-help-text";
+    }
+    if (context.includes("assert(!source.includes")) {
+      return occurrence === 1
+        ? "rules-json-closure-assertion-token"
+        : "rules-json-closure-assertion-message";
+    }
+    if (context.includes("const explicitStatusMarkers = lineMatches")) {
+      return "markdown-status-scanner-pattern-literal";
+    }
+    if (context.includes("return lineMatches(text")) {
+      return "source-incomplete-scanner-pattern-literal";
+    }
+    if (context.includes('file === "src/ingress/product_ui_js.cpp"')) {
+      return "product-state-classifier-pattern-literal";
+    }
+    if (context.includes('file === "src/ingress/product_ui_page_scripts.cpp"')) {
+      return "step-boundary-classifier-pattern-literal";
+    }
+    if (context.includes("completionEvidence:")) {
+      return "rules-json-scope-decision-evidence-text";
+    }
+  }
   if (file === "src/ingress/product_ui_js.cpp" && context.includes("입력 미완성")) {
     return "product-state-copy-not-code-gap";
   }
@@ -279,13 +374,42 @@ function scopeDecisions() {
 function lineMatches(text, expression) {
   const matches = [];
   const lines = text.split(/\r?\n/);
+  let lineStartOffset = 0;
   for (let index = 0; index < lines.length; index += 1) {
     expression.lastIndex = 0;
+    const occurrences = new Map();
     for (const match of lines[index].matchAll(expression)) {
-      matches.push({ line: index + 1, match: match[0], context: lines[index].trim() });
+      const normalizedMarker = match[0].toLowerCase();
+      const occurrence = (occurrences.get(normalizedMarker) ?? 0) + 1;
+      occurrences.set(normalizedMarker, occurrence);
+      matches.push({
+        line: index + 1,
+        column: (match.index ?? 0) + 1,
+        startOffset: lineStartOffset + (match.index ?? 0),
+        occurrence,
+        match: match[0],
+        context: lines[index].trim(),
+      });
+    }
+    lineStartOffset += lines[index].length;
+    if (text.startsWith("\r\n", lineStartOffset)) {
+      lineStartOffset += 2;
+    } else if (text.startsWith("\n", lineStartOffset)) {
+      lineStartOffset += 1;
     }
   }
   return matches;
+}
+
+function sourceMarkerIdentity(item) {
+  return [
+    item.path,
+    item.line,
+    item.column,
+    item.startOffset,
+    item.occurrence,
+    item.marker,
+  ].join(":");
 }
 
 function check(name, fn) {

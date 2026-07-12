@@ -1,6 +1,6 @@
 # Scenario Timeline Debug Fields
 
-이 문서는 현재 main 기준의 Scenario timeline/debug
+이 문서는 현재 source tree 기준의 Scenario timeline/debug
 필드 확장 기준과 운영자 읽기 전용 표시 경계를 정의합니다. 목적은 운영자가 situation event의 오탐/미탐
 원인을 읽기 전용으로 추적하게 하는 것입니다.
 

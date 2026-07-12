@@ -50,7 +50,7 @@ const currentSource = {
 };
 const evaluation = evaluateEvidence(policy, summary, { rootDir, verifyArtifacts: true, currentSource });
 const currentCounts = coveragePolicy.expectedReadiness || {};
-const currentCoverageValid =
+const currentCoverageContractValid =
   coveragePolicy.schema === "media-server.v390-ui-automation-coverage-policy.v4" &&
   currentCounts.exactUiTestIds === 424 &&
   currentCounts.nativeExecutablePositive === 423 &&
@@ -58,10 +58,12 @@ const currentCoverageValid =
   currentCounts.unsupported === 0 &&
   coveragePolicy.defaultExecutionState?.pass === 0 &&
   coveragePolicy.defaultExecutionState?.notRun === 424 &&
-  coveragePolicy.boundaries?.exactNativeWorkflowReadinessComplete === true &&
+  typeof coveragePolicy.boundaries?.exactNativeWorkflowReadinessComplete === "boolean" &&
   coveragePolicy.boundaries?.actualAutomationExecutionComplete === false &&
   coveragePolicy.boundaries?.manualUiFulltestEvidence === false &&
   coveragePolicy.boundaries?.historicalConsumerPolicy === "deny-current-evidence";
+const currentWorkflowReady = currentCoverageContractValid &&
+  coveragePolicy.boundaries.exactNativeWorkflowReadinessComplete === true;
 
 const historicalSource = isHistoricalSource(summaryPath, coveragePolicy);
 const currentActualSource = summary.schema === "media-server.ui-automation-evidence.v4" &&
@@ -84,9 +86,15 @@ if (historicalSource || (summary.schema === "media-server.ui-automation-evidence
   evaluation.evidenceEligibility = "ineligible";
 }
 
-if (!currentCoverageValid) {
+if (!currentCoverageContractValid) {
   evaluation.reasons.push("current-v390-coverage-boundary-drift");
   evaluation.reasons.sort();
+}
+if (!currentWorkflowReady) {
+  evaluation.reasons.push("review4-exact-workflow-readiness-incomplete");
+  evaluation.reasons = [...new Set(evaluation.reasons)].sort();
+  evaluation.uiFulltestPass = false;
+  evaluation.evidenceEligibility = "ineligible";
 }
 
 const result = {
@@ -98,13 +106,15 @@ const result = {
   sourceSummary: path.relative(rootDir, summaryPath),
   sourceSummarySha256: sha256File(summaryPath),
   sourceEvidenceSchema: summary.schema || "",
-  currentEvidenceStatus: !currentCoverageValid
+  currentEvidenceStatus: !currentCoverageContractValid
     ? "coverage-boundary-drift"
     : (historicalSource
       ? "audit-only-historical-denied"
+      : (!currentWorkflowReady
+        ? "workflow-readiness-review-required"
       : (currentActualSource
         ? "actual-current-source-evidence"
-        : (currentNotRunSource ? "not-run-current-source" : "non-current-or-contract-evidence"))),
+        : (currentNotRunSource ? "not-run-current-source" : "non-current-or-contract-evidence")))),
   currentCoverage: {
     exactUiTestIds: currentCounts.exactUiTestIds ?? null,
     nativeExecutablePositive: currentCounts.nativeExecutablePositive ?? null,
@@ -143,7 +153,7 @@ console.log(`- uiFulltestPass: ${result.uiFulltestPass}`);
 console.log(`- reasonCount: ${evaluation.reasons.length}`);
 for (const reason of evaluation.reasons) console.log(`  - ${reason}`);
 
-if (policyErrors.length > 0 || !currentCoverageValid) process.exit(1);
+if (policyErrors.length > 0 || !currentCoverageContractValid) process.exit(1);
 if (options.requireEligible && !result.uiFulltestPass) process.exit(1);
 
 function parseArgs(args) {
@@ -206,11 +216,11 @@ function validatePolicyDocuments() {
   };
   const required = [
     ["AGENTS.md", files.agents, ["#### 7.6.3 Policy v4 UI 대체 evidence 기준", "direct-browser", "qualified-native-automation", "policyValidationResult", "uiFulltestPass"]],
-    ["docs/manual-ui-fulltest.md", files.fulltest, ["actual browser", "Policy v4 qualifier", "completion oracle", "current not-run", "unsupported 0 readiness"]],
+    ["docs/manual-ui-fulltest.md", files.fulltest, ["actual browser", "Policy v4 qualifier", "completion oracle", "Current 실행은 pass 0/not-run 424", "historical source classification"]],
     ["docs/manual-ui-checklist.md", files.checklist, ["Policy v4 qualifier", "actual-browser evidence", "completion oracle"]],
     ["docs/manual-ui-result-template.md", files.template, ["qualified-native-automation", "Policy v4 자동화/혼합 evidence 요약", "artifact hash/type/path containment", "uiFulltestPass"]],
     ["docs/release-policy.md", files.releasePolicy, ["## Policy v4 UI evidence release gate", "uiFulltestPass=true"]],
-    ["docs/stream-verification.md", files.stream, ["### V390-ADD1-12 Policy v4 UI evidence qualification", "exact-native-ready-current-not-run"]],
+    ["docs/stream-verification.md", files.stream, ["### V390-ADD1-12 Policy v4 UI evidence qualification", "review4-workflow-rebuild-pending"]],
     ["docs/project-feature-test-inventory.md", files.inventory, ["V390-ADD1-12 Policy v4 UI evidence transition", "Policy v4 evidence qualification gate"]],
     ["docs/development-backlog.md", files.backlog, ["V390-ADD1-12", "Policy v4 테스트 정책 전환"]],
     ["docs/release-test-records.md", files.releaseRecords, ["Policy v4 UI Fulltest Evidence Qualification"]],

@@ -1,7 +1,7 @@
 # v3.0 Search DSL and Query Convert
 
 Audience: MediaServer 개발/테스트 에이전트와 운영 검색 계약 검토자입니다.
-Lifecycle: v3.0.0 `V300-S06 Search DSL and Query Convert` active release target 동안 유지합니다.
+Lifecycle: v3.0.0 `V300-S06 Search DSL and Query Convert`에서 시작한 historical-origin/current-contract 문서이며, 현재 source tree가 이 query 계약을 사용하는 동안 유지합니다.
 Source-of-truth: AGENTS.md는 개발/테스트/보고 권한의 최상위 규칙이고, 이 문서는 V300-S06 query convert와 Search DSL 경계만 정의합니다.
 
 ## Scope

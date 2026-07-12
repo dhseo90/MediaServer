@@ -6,6 +6,8 @@
 
 **Architecture:** 이 계획은 behavior-preserving stabilization handoff다. 새 product route, write path, UI control, schema, media path를 만들지 않고, 기존 대형 translation unit과 문서 source-of-truth를 작은 소유권 단위로 나누기 위한 순서와 검증만 정의한다.
 
+**Execution status:** `approved-scheduled-after-review4-50-63`; actual REVIEW4-64 implementation은 `not-executed`입니다.
+
 **Tech Stack:** C++17, GStreamer/ONNX 기반 MediaServer, `server.sh` verifier dispatch, Node.js static verifier, Markdown release/test evidence.
 
 ---
@@ -168,179 +170,84 @@ stop gate:
 - forbidden/circular dependency 또는 새 write owner
 - build/verifier/cleanup/diff failure
 
-`first failure stops every later slice`. 실패 뒤 단계는 모두 `건너뜀`으로 기록하며 현재
-Development 17은 readiness만 확정하고 실제 source extraction이나 branch 생성은 하지 않습니다.
+`first failure stops every later slice`. 실패 뒤 단계는 모두 `건너뜀`으로 기록합니다. 과거
+Development 17은 readiness만 확정했고 실제 source extraction이나 branch 생성을 하지 않았습니다.
+최신 결정은 새 branch 없이 현재 `v3.9.0`에서 REVIEW4-64를 실행하는 것이지만, 50~63 완료와
+공통 entry gate 전에는 여전히 `not-executed`이며 이 계획 자체도 refactor 완료 evidence가 아닙니다.
 
 ## File Structure
 
-- Modify later: `src/ingress/webrtc_http_server.cpp`
-  - Current route/API/UI glue concentration owner. Future work extracts named route groups and JSON builders without changing responses.
-- Modify later: `src/ingress/product_ui_page_scripts.cpp`
-  - Ops dashboard/rules/VLM/action workspace script concentration owner. Future work splits stable workspace renderers while preserving test IDs.
-- Modify later: `src/ingress/product_ui_ops_sources_script.cpp`
-  - Source registry, PublishedView, source health, restore/field handoff UI concentration owner.
-- Modify later: `docs/manual-ui-result-template.md`
-  - Current manual UI result fields remain current-only; historical v2.x/v3.x material moves behind archive links or appendix boundaries.
-- Modify later: VLM docs under `docs/vlm-*.md`
-  - A single contract index should link default-off, profile storage, provider field smoke, dry-run, and exclusion boundaries.
-- Verify now: `scripts/internal/verify_v390_structure_stabilization_handoff.mjs`
-  - Static gate for this handoff plan and release/test records.
+- REVIEW4-64 future production owner: `src/ingress/webrtc_http_server.cpp` and focused
+  composition-root/DTO/route units created by one approved slice at a time.
+- REVIEW4-64 future UI owner: `src/ingress/product_ui_page_scripts.cpp` and focused
+  `src/ingress/product_ui_*` units, with route strings, DOM IDs, `data-testid`, and behavior preserved.
+- REVIEW4-64 future source read-model owner: `src/ingress/product_ui_ops_sources_script.cpp`
+  and the existing SourceRegistry/PublishedView route boundary, without a new write owner.
+- REVIEW4-64 future docs/VLM owner: `docs/manual-ui-result-template.md` and current
+  `docs/vlm-*.md`; historical evidence remains discoverable and current policy text is not duplicated.
+- Current decision/readiness owners: `test/fixtures/v390_structure_execution_scope_decision.json`,
+  `test/fixtures/v390_structure_stabilization_readiness.json`,
+  `test/fixtures/v390_actual_module_dependency_graph.json`,
+  `scripts/internal/verify_v390_review4_structure_scope_decision.mjs`,
+  `scripts/internal/verify_v390_structure_stabilization_readiness.mjs`, and
+  `scripts/internal/verify_v390_structure_stabilization_handoff.mjs`.
 
-### Task 1: Route/API Ownership Extraction Map
+The three current verifiers above own authorization, baseline debt, contract preservation, slice order,
+and entry/exit/stop boundaries only. REVIEW4-64 must register each slice's actual changed symbols and
+targeted regression tests before RED; no planned verifier name is treated as an existing command.
 
-**Files:**
-- Modify later: `src/ingress/webrtc_http_server.cpp`
-- Verify before/after: existing v3.9 verifier family and `./server.sh verify-v390-structure-stabilization-handoff`
+### REVIEW4-64 Slice 1: `baseline-and-ownership-map`
 
-- [ ] **Step 1: Write the failing ownership-map test**
+- [ ] Record the exact allowed file set, current handler/renderer/write owners, graph hash, and rollback
+  point before moving production code.
+- [ ] Re-run `verify-v390-review4-structure-scope-decision`,
+  `verify-v390-structure-stabilization-readiness`, and
+  `verify-v390-structure-stabilization-handoff` as the entry boundary.
+- [ ] Keep this slice metadata-only: no handler/response/UI behavior relocation and no refactor-complete claim.
 
-```js
-// scripts/internal/verify_v400_route_ownership_map.mjs
-assertIncludes(routeCatalog, "/ops/api/onvif/credential-provider-status", "ONVIF route group");
-assertIncludes(routeCatalog, "/ops/api/vlm/rule-suggestion-draft-bridge", "VLM route group");
-assertIncludes(routeCatalog, "/ops/api/actions/execution-deferral-decision", "actions route group");
-assertIncludes(routeCatalog, "/ops/api/field-evidence/bridge-decision", "field evidence route group");
-```
+### REVIEW4-64 Slice 2: `pure-json-builder-extraction`
 
-- [ ] **Step 2: Run the test and confirm RED**
+- [ ] Select one side-effect-free JSON/DTO builder family from
+  `src/ingress/webrtc_http_server.cpp` and register exact symbol/output baselines before RED.
+- [ ] Extract only that family, preserving serialized field/type/status/cache/error meaning byte-for-byte.
+- [ ] Run the relevant existing route verifier plus contract-freeze, build, graph, and diff gates; a new
+  target or source file must be reflected in CMake and the actual graph evidence.
 
-Run: `node scripts/internal/verify_v400_route_ownership_map.mjs`
+### REVIEW4-64 Slice 3: `route-handler-group-extraction`
 
-Expected: FAIL because no route ownership map module exists yet.
+- [ ] Select exactly one Ops route family and bind its method/path, principal guard, request parsing,
+  response/status, mutation owner, and readback verifier before RED.
+- [ ] Move the selected handler family without changing public API, Auth/Role/Scope, registry writes,
+  EventRecord, metadata, or media behavior.
+- [ ] Run that route family's existing HTTP/auth verifier, the nine preserved-contract gates, build,
+  dependency graph, cleanup, and `git diff --check` before considering another family.
 
-- [ ] **Step 3: Extract only named ownership metadata**
+### REVIEW4-64 Slice 4: `product-ui-workspace-split`
 
-Create a read-only route catalog helper or comments-backed catalog first. Do not move handler logic until the catalog passes.
+- [ ] Select one renderer/workspace family from `product_ui_page_scripts.cpp` with its state and exact
+  route/control/DOM/test-ID baseline.
+- [ ] Move only that family; preserve visible behavior, labels, selectors, local transitions, requests,
+  readbacks, and existing CSS ownership.
+- [ ] Run `verify-ops-client-ui`, `verify-rule-ui`, the relevant v3.9 product verifier, exact-case contract,
+  build, graph, and diff gates. Static PASS is not actual UI fulltest evidence.
 
-- [ ] **Step 4: Verify behavior is unchanged**
+### REVIEW4-64 Slice 5: `source-read-model-boundary`
 
-Run: `./server.sh verify-v390-onvif-credential-provider-status`, `./server.sh verify-v390-vlm-rule-suggestion-draft-bridge`, `./server.sh verify-v390-action-execution-deferral-decision`, `./server.sh verify-v390-conditional-field-ai-decisions`, `git diff --check`.
+- [ ] Map each selected SourceRegistry, PublishedView, and source-health read to its existing read/write
+  owner before extraction; do not add a route, file format, or write owner.
+- [ ] Preserve source/view identity, paired-write, restart, retry, mode, and error semantics.
+- [ ] Run `verify-v390-onvif-live-import-persist-decision`,
+  `verify-v390-onvif-source-view-atomicity`, the backup/recovery gate, feature inventory, build, graph,
+  cleanup, and diff checks.
 
-Expected: all PASS; response schema and route guards unchanged.
+### REVIEW4-64 Slice 6: `docs-template-and-vlm-index`
 
-### Task 2: Product UI Workspace Split Map
+- [ ] Separate current manual UI result fields from historical archive material without deleting evidence.
+- [ ] Consolidate VLM contract links only where one current owner avoids duplication; preserve default-off,
+  profile storage, privacy, field-smoke, dry-run, and provider-not-PASS boundaries.
+- [ ] Run `verify-manual-ui-evidence`, `verify-docs-links`, feature inventory, the existing VLM boundary
+  verifiers, and `git diff --check`.
 
-**Files:**
-- Modify later: `src/ingress/product_ui_page_scripts.cpp`
-- Modify later: focused `src/ingress/product_ui_*` script units if the split is approved
-
-- [ ] **Step 1: Write a failing UI workspace split verifier**
-
-```js
-assertIncludes(scriptModules, "renderV390ActionExecutionDeferralDecision", "action workspace renderer");
-assertIncludes(scriptModules, "renderV390FieldEvidenceBridgeDecision", "field evidence renderer");
-assertIncludes(scriptModules, "renderV390ReidAssistDecision", "Re-ID renderer");
-assertIncludes(scriptModules, "stable test id preservation", "test id boundary");
-```
-
-- [ ] **Step 2: Run the verifier and confirm RED**
-
-Run: `node scripts/internal/verify_v400_product_ui_workspace_split.mjs`
-
-Expected: FAIL because the module split catalog is not present yet.
-
-- [ ] **Step 3: Split one renderer family at a time**
-
-Move one renderer family and its state variables together. Keep DOM IDs, `data-testid`, route labels, and status text unchanged unless a later test explicitly requires a change.
-
-- [ ] **Step 4: Verify UI static gates**
-
-Run: `./server.sh verify-ops-client-ui`, `./server.sh verify-rule-ui`, relevant v3.9 verifier, and `git diff --check`.
-
-Expected: all PASS. This is not UI 풀테스트 직접 조작 evidence.
-
-### Task 3: Source Registry Read-model Boundary Map
-
-**Files:**
-- Modify later: `src/ingress/product_ui_ops_sources_script.cpp`
-- Modify later: source registry route helpers under the existing ingress ownership boundary
-
-- [ ] **Step 1: Write a failing source read-model verifier**
-
-```js
-assertIncludes(sourceBoundary, "SourceRegistry read", "source read boundary");
-assertIncludes(sourceBoundary, "PublishedView read", "published view read boundary");
-assertIncludes(sourceBoundary, "source health read", "source health boundary");
-assertIncludes(sourceBoundary, "handoff read-only", "handoff boundary");
-```
-
-- [ ] **Step 2: Run the verifier and confirm RED**
-
-Run: `node scripts/internal/verify_v400_source_registry_read_model_boundary.mjs`
-
-Expected: FAIL because the boundary map has not been created.
-
-- [ ] **Step 3: Create the boundary map before extraction**
-
-Define read/write ownership names and map each existing route/UI panel to one owner. Do not create a new write route.
-
-- [ ] **Step 4: Verify no write/schema drift**
-
-Run: `./server.sh verify-v390-onvif-live-import-persist-decision`, `./server.sh verify-v390-backup-recovery-handoff-validation`, `./server.sh verify-feature-inventory-coverage`, `git diff --check`.
-
-Expected: all PASS.
-
-### Task 4: Manual UI Result Template Archive Plan
-
-**Files:**
-- Modify later: `docs/manual-ui-result-template.md`
-- Modify later if approved: historical archive docs under `docs/release-artifacts/` or a stable docs appendix
-
-- [ ] **Step 1: Write a failing archive-boundary verifier**
-
-```js
-assertIncludes(template, "current gate fields only", "current template boundary");
-assertIncludes(template, "historical archive link", "historical archive boundary");
-assertNotIncludes(currentTemplateSection, "v2.2");
-assertNotIncludes(currentTemplateSection, "v2.4");
-```
-
-- [ ] **Step 2: Run the verifier and confirm RED**
-
-Run: `node scripts/internal/verify_v400_manual_ui_result_template_archive.mjs`
-
-Expected: FAIL until the template exposes a current-only section and archive boundary.
-
-- [ ] **Step 3: Split historical material without deleting evidence**
-
-Keep historical evidence discoverable, but prevent old sections from being copied into new current release results.
-
-- [ ] **Step 4: Verify docs and manual UI gates**
-
-Run: `./server.sh verify-manual-ui-evidence`, `./server.sh verify-docs-links`, `./server.sh verify-feature-inventory-coverage`, `git diff --check`.
-
-Expected: all PASS.
-
-### Task 5: VLM Contract Index Consolidation Plan
-
-**Files:**
-- Modify later: `docs/vlm-runtime-opt-in-contract.md`
-- Modify later: `docs/vlm-profile-storage.md`
-- Modify later: `docs/vlm-cloud-provider-field-smoke-gate.md`
-- Modify later: `docs/vlm-install-connection-dry-run.md`
-- Create later only if approved: `docs/vlm-contract-index.md`
-
-- [ ] **Step 1: Write a failing VLM contract index verifier**
-
-```js
-assertIncludes(vlmIndex, "default-off", "runtime default boundary");
-assertIncludes(vlmIndex, "profile storage", "profile boundary");
-assertIncludes(vlmIndex, "field smoke", "provider field boundary");
-assertIncludes(vlmIndex, "dry-run is not provider PASS", "dry-run boundary");
-```
-
-- [ ] **Step 2: Run the verifier and confirm RED**
-
-Run: `node scripts/internal/verify_v400_vlm_contract_index.mjs`
-
-Expected: FAIL because the consolidated index is not present yet.
-
-- [ ] **Step 3: Add the index or consolidate links in an existing source-of-truth**
-
-Prefer a single stable index only if it avoids duplication. Do not copy long policy text into multiple files.
-
-- [ ] **Step 4: Verify VLM boundary gates**
-
-Run: `./server.sh verify-v390-vlm-rule-suggestion-draft-bridge`, `./server.sh verify-v390-vlm-evaluation-promotion-guard`, `./server.sh verify-v390-conditional-field-ai-decisions`, `./server.sh verify-docs-links`, `git diff --check`.
-
-Expected: all PASS.
+Each slice remains `not-executed` until its own implementation, targeted verification, cleanup, evidence
+record, and approved commit boundary are complete. Only after all six slices close may REVIEW4-64 be
+reported complete and REVIEW4-65 independent acceptance begin.

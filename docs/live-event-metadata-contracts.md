@@ -1,6 +1,6 @@
 # Live Event and Metadata Contracts
 
-이 문서는 현재 main 기준의 live event delivery contract를 정리합니다.
+이 문서는 현재 source tree 기준의 live event delivery contract를 정리합니다.
 기존 Event POST payload, WebRTC DataChannel schema, SSE/WS runtime metadata
 schema를 변경하지 않고, 각 소비 경로의 역할과 검증 기준을 한곳에 모읍니다.
 

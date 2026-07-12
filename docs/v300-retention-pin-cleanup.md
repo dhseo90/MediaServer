@@ -1,6 +1,6 @@
 # v3.0.0 Retention/Pin/Cleanup
 
-Lifecycle: v3.0.0 `V300-S09 Retention/Pin/Cleanup` active release target 동안 유지합니다.
+Lifecycle: v3.0.0 `V300-S09 Retention/Pin/Cleanup`에서 시작한 historical-origin/current-contract 문서이며, 현재 source tree가 이 cleanup 계약을 사용하는 동안 유지합니다.
 Source of truth: `docs/development-backlog.md`의 V300-S09 행과 이 문서입니다.
 
 이 문서는 Event Evidence Search MVP의 retention cleanup 계약을 정의합니다. S09는

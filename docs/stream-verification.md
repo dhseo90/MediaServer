@@ -74,7 +74,7 @@ published metadata, release action evidence가 아닙니다.
 | v3.9.0 (17) Development 16 | `./server.sh verify-v390-deferred-product-owner-signoff`, `./server.sh verify-v390-truthfulness-status-vocabulary` | owner output은 `decision-record`, implementation `not-executed`, `decision-only-not-implementation-evidence`입니다. 역할·결정·근거·재개 조건을 기록하지만 실제 구현/field/UI/longrun/release PASS가 아닙니다 |
 | v3.9.0 (17) Development 17 | `./server.sh verify-v390-structure-stabilization-readiness`, `./server.sh verify-v390-truthfulness-status-vocabulary` | structure output은 `approved-scheduled-after-review4-50-63`, implementation `not-executed`, `approved-decision-contract-not-refactor-evidence`입니다. REVIEW4-64 refactor나 65 acceptance 완료/PASS가 아닙니다 |
 | V390-REVIEW3-48 actual module graph | `./server.sh verify-v390-structure-stabilization-readiness` | actual C++ 148개/CMake cpp declared 74·default active 73를 9 owner와 single target/link에 묶고 32 include direction, 25 target violation, legacy 3 edge, 8-owner SCC, 6 slice binding을 검사합니다. PASS는 current debt baseline이며 refactor 완료가 아닙니다 |
-| V390-REVIEW3-49 structure execution scope decision | `./server.sh verify-v390-structure-stabilization-readiness` | actual graph hash/metrics와 4개 defer factor를 근거로 v3.9 `graph-guard-decision-only`, actual refactor `v4.0.0`, explicit start+branch approval을 고정합니다. Decision PASS는 branch/refactor 실행 PASS가 아닙니다 |
+| V390-REVIEW3-49 superseded historical structure execution scope decision | `./server.sh verify-v390-structure-stabilization-readiness` | 당시 graph/guard-only와 v4.0.0 이관 결정을 보존합니다. REVIEW4-51이 이를 supersede해 50~63 뒤 current v3.9.0에서 64를 실행하며, 어느 decision PASS도 refactor 실행 PASS가 아닙니다 |
 | V390-REVIEW4-51 v3.9 actual refactor scope decision | `./server.sh verify-v390-review4-structure-scope-decision` | 최신 사용자 지시가 50~63 완료 뒤 64번 actual refactor를 current `v3.9.0` branch에서 실행하고 v4.0.0 이관을 금지한 결정을 `approved-actual-refactor-after-review4-50-63` mode, base `027678ba`, 9 preserved contract, 6 slice, 64 뒤 `V390-REVIEW4-65` acceptance와 결속합니다. Decision PASS는 refactor/acceptance 실행 PASS가 아닙니다 |
 | v3.9.0 (17) Development 18 | `./server.sh verify-v390-external-field-smoke-no-device-closure`, `./server.sh verify-v390-truthfulness-status-vocabulary` | 세 external target은 `conditional-not-run`, `condition-record-not-field-pass`입니다. 외부 contact/artifact/PASS claim은 0이며 실제 field/release PASS가 아닙니다 |
 
@@ -94,12 +94,12 @@ v3.9.0 Test Model Prep의 서버 longrun runner는 30분/120분을 새 테스트
 | fixed phase order | build/preflight/seed/start/integrated smoke/soak iteration/cleanup/report 같은 phase 순서가 고정됩니다. |
 | stop-on-first-fail | 첫 실패에서 suite와 delegated duration case loop를 즉시 중단하고 이후 phase/case는 `not-run`으로 남깁니다. |
 | delegated exact ledger | V390-REVIEW3-40 parent는 start/smoke/runtime fixed ID와 각 soak iteration의 `va-events`→`event-post-schema`→`event-post-recovery`→`redaction`→`runtime-idle`를 exact ID/order/uniqueness/count로 검증하며 partial·duplicate·reordered·unknown summary를 PASS로 투영하지 않습니다. |
-| exact case-native UI workflow | V390-REVIEW3-41은 canonical 424 각각에 role/semantic seed, input, explicit control sequence, reviewed state/readback expected result, reversible cleanup을 고정합니다. Runtime DOM tag 추측, generic action, hidden/non-action click, 미분류 selector는 contract FAIL이며 plan-only/adapter 단기 검증을 actual exact 424 UI 풀테스트 PASS로 승격하지 않습니다. |
-| semantic completion oracle | V390-REVIEW3-42 exact runner는 header에서 실제 관측한 request ID/method/path/status와 case/action별 exact readback identity/value를 함께 요구합니다. Arbitrary DOM digest 변화, 사후 correlation 부착, schema/record/log 위치가 없는 persisted/EventRecord/server-log evidence는 FAIL이며 actual 424 UI 풀테스트는 별도입니다. |
-| Policy v4 actual evidence producer | V390-REVIEW3-43 exact runner actual mode는 `media-server.ui-automation-evidence.v4` summary와 case/suite attested artifact를 같은 run root에 직접 생성합니다. `./server.sh verify-v390-ui-policy-v4-producer-contract`는 producer와 containment를 검증하지만 실제 424 UI 실행, visual cross-cutting, acceptance cleanup PASS를 대체하지 않습니다. |
-| actual responsive/theme/visual evidence | V390-REVIEW3-44는 actual screenshot PNG와 browser geometry/computed-style/focus/video-overlay measurement에서 v2 visual status와 320/390/760/1180×light/dark matrix를 계산합니다. `./server.sh verify-v390-ui-visual-evidence-contract`와 Policy v4 재계산 contract는 자기선언 PASS를 거부하지만 실제 424 UI 실행 evidence가 아닙니다. |
+| exact case-native UI workflow | V390-REVIEW3-41의 canonical 424 workflow는 historical source claim입니다. REVIEW4-56이 기능별 input/control/action/state/readback/cleanup을 다시 작성하기 전 current readiness가 아니며 plan-only/adapter 단기 검증을 actual UI PASS로 승격하지 않습니다. |
+| semantic completion oracle | V390-REVIEW3-42의 request/readback contract는 historical source claim입니다. REVIEW4-58이 실제 primary action과 독립 readback을 다시 결속하기 전 current oracle 완료가 아니며 arbitrary DOM/self-comparison은 FAIL입니다. |
+| Policy v4 actual evidence producer | V390-REVIEW3-43 producer는 historical source claim입니다. REVIEW4-60이 native trace에서 action/request/readback/visual을 독립 재계산하고 producer 자기선언·순환 신뢰를 제거하기 전 current producer/qualifier 완료가 아닙니다. |
+| actual responsive/theme/visual evidence | V390-REVIEW3-44의 visual contract는 historical source claim입니다. REVIEW4-59의 대표 route, 320/390/760/1180×light/dark, `/client/live` ready video/overlay/crop/control matrix를 실제 실행하기 전 current visual readiness가 아닙니다. |
 | current HEAD/artifact containment | V390-REVIEW3-46 acceptance는 start/end provenance와 canonical command-set hash를 기록하고 final integrity는 current HEAD·branch·source-clean 및 output/run/child/Policy/UI artifact의 realpath containment를 독립 재검증합니다. `./server.sh verify-v390-final-evidence-integrity-contract`의 9/0은 변조 거부 계약이며 실제 30분/424 UI/120분 실행 evidence가 아닙니다. |
-| current exact readiness/historical isolation | V390-REVIEW3-47은 native exact positive 423+negative 1/unsupported 0 readiness와 pass 0/not-run 424 execution을 분리합니다. Historical root는 `audit-only-historical`이며 coverage/Policy current consumer가 realpath/source kind에서 거부합니다. Contract 6/0·12/0·18/0은 actual exact 424 UI 실행 evidence가 아닙니다. |
+| historical exact readiness/current isolation | V390-REVIEW3-47의 positive 423+negative 1/unsupported 0은 historical source classification입니다. REVIEW4-56~60 전 current readiness가 아니며 pass 0/not-run 424 실행 상태와 audit-only historical root 거부 경계만 보존합니다. |
 | failure evidence | command, exit code, phase, port, route, log path, summary path, report path, cleanup state, case, context, separated stderr tail, reproduction command, stdout/stderr path, delegated predev first failed step, likely investigation files를 포함합니다. |
 | reproducible inputs | 같은 command와 fixture로 재현할 수 있어야 합니다. |
 | artifact policy | 임시 artifact는 cleanup하거나 보존 이유를 명시합니다. `/tmp` 경로를 최종 evidence로 쓰지 않습니다. |
@@ -192,10 +192,12 @@ Step 25/R10은 R2의 8개 historical automation case를 current UI 전체 자동
 986개 feature inventory와 reviewed implementation evidence를 source로, feature ID prefix나
 숫자 range가 아니라 exact `manualUiCaseId`가 있는 424개 테스트를 선택합니다. 각 행은
 `testId`, `featureId`, route, source-backed control/action anchor, stability verifier command/
-assertion anchor, automation `caseId`를 독립 연결합니다. 결과는
-`exact-native-ready-current-not-run`: positive 423개와 제품 UI 미제공 negative route `UI-018`
-1개 모두 current exact native workflow가 있고 unsupported는 0입니다. Current 실행은 pass 0/not-run
-424이며 historical 8개와 과거 acceptance root는 `audit-only-historical`로 격리합니다.
+assertion anchor, automation `caseId`를 독립 연결합니다. 기존 matrix는 positive 423개와
+제품 UI 미제공 negative route `UI-018` 1개,
+unsupported 0으로 분류했습니다. 이는 REVIEW4-56~60 전 historical source classification이며
+current exact native workflow readiness가 아닙니다. 상태는 `review4-workflow-rebuild-pending`이며
+current 실행은 pass 0/not-run 424이고
+historical 8개와 과거 acceptance root는 `audit-only-historical`로 격리합니다.
 
 검증 명령:
 
@@ -206,9 +208,9 @@ Coverage verifier는 actual 실행 행의 screenshot, trace, browser console, se
 파일을 모두 확인하고, cross-prefix exact test ID 누락/중복, route/control/action source
 drift, automation featureId→caseId drift, artifact 누락을 실패 처리합니다. prefix/range 판정 제거
 상태도 contract로 고정합니다. 고정 matrix는
-`docs/v390-ui-automation-coverage-matrix.md`에 보존합니다. Matrix validation PASS는
-`exactNativeWorkflowReadinessComplete=true`, `actualAutomationExecutionComplete=false`, `manualUiFulltestEvidence=false`,
-`executionEvidenceStatus=current-not-run`이며 readiness는 Policy v4-qualified UI 풀테스트 실행,
+`docs/v390-ui-automation-coverage-matrix.md`에 보존합니다. Matrix `REVIEW_REQUIRED`는
+`exactNativeWorkflowReadinessComplete=false`, `actualAutomationExecutionComplete=false`, `manualUiFulltestEvidence=false`,
+`executionEvidenceStatus=current-not-run`이며 REVIEW4-56~60 전 matrix는 Policy v4-qualified UI 풀테스트 실행,
 30분/120분, published metadata, release action PASS가 아닙니다.
 
 ### V390-ADD1-12 Policy v4 UI evidence qualification

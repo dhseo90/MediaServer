@@ -36,10 +36,10 @@ release evidence boundary가 연결되었다는 뜻이며 제품 의미의 구�
 맥락 없이도 구현해야 할 실제 목표와 통과 조건을 이해하도록 남긴 source-of-truth입니다.
 Candidate/structure 영역은 여전히 discovery 결과 승인 전 기능 개발 금지 경계를 따릅니다.
 
-직접 답: v3.9.0의 1차 선택값은 `Feature Completion First with Dedicated Inventory`입니다.
-목적: v1.0.0부터 v3.8.0까지 노출/약속/부분 구현된 기능을 직접 대조하고,
-v4.0 구조 안정화와 새 테스트 체계로 넘어가기 전 필요한 기능 완성 항목을 닫는
-준비 릴리즈입니다.
+직접 답: v3.9.0의 1차 선택값은 `Feature Completion First with Dedicated Inventory`였으며,
+REVIEW4-51의 최신 승인으로 REVIEW4-50~63을 먼저 닫은 뒤 실제 동작 보존 구조 안정화와
+리팩토링을 같은 `v3.9.0` 브랜치의 REVIEW4-64에서 수행합니다. REVIEW4-65 독립
+acceptance가 그 뒤를 따르며 실제 리팩토링을 v4.0.0으로 이관하지 않습니다.
 
 비범위:
 
@@ -89,7 +89,7 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | Post-review UI Full Coverage | v3.9.0 (25) route/control/action automation coverage matrix | P0 | v1.0~v3.9 current UI 기능 ID를 manifest화하고 자동 runner가 각 route/control/action을 실행/반영/로그 단위로 검증하게 정렬 |
 | Post-review Release Evidence | v3.9.0 (26) final evidence re-run and cleanup | P0 | post-review 잔여 구현 후 local gate, 30분, UI automation/full coverage, 조건부 120분 판정, cleanup/evidence 보존을 최종 release action 전 다시 실행 |
 | Product Scope Lock | v3.9.0 (27) deferred product decision owner sign-off | P1 | action execution, persistent credential store, field smoke, provider call, model-backed Re-ID 등 의도적으로 defer된 기능을 v3.9 non-goal로 닫을지 실제 구현할지 owner decision으로 고정 |
-| Structure | v3.9.0 (28) structure stabilization implementation readiness | P1 | Step 19 handoff가 실제 refactor가 아니므로 v4.0 전/후 어느 branch에서 route/API/UI extraction을 실행할지 slice와 검증 순서를 확정 |
+| Structure | v3.9.0 (28) structure stabilization implementation readiness | P1 | Step 19 handoff가 실제 refactor가 아니므로 slice와 검증 순서를 확정. 실행 branch 결정은 REVIEW4-51이 current `v3.9.0`으로 supersede |
 | Conditional Field | v3.9.0 (29) real external field smoke gate | P2 | ONVIF 실기기, external WHEP/TURN, cloud/VLM provider credential/endpoint가 제공되는 경우에만 real field smoke를 실행하고 기본 PASS와 분리 |
 
 ### v3.9.0 진행 상태
@@ -120,10 +120,10 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 22 | v3.9.0 (22) v3.9 UI automation case completeness | P0 | 완료 | V390-ADD1-07 case schema v2와 actual summary가 `UI-112` 포함 exact `UI-108`~`UI-115` 8개 route/control/action/state/failure/artifact를 검증하고 replay PASS |
 | 23 | v3.9.0 (23) native free UI automation adapter proof | P0 | 완료 | bundled Playwright 1.61.1과 system Chrome을 선택해 standalone 7개 native action 및 UI-108~115의 native dispatch 8/8을 fallback 없이 실행하고 module/browser provenance를 보존 |
 | 24 | v3.9.0 (24) server longrun true first-fail case runner | P0 | 완료 | V390-ADD1-10이 `verify-predev --fail-fast`의 duration case 사이를 즉시 중단하고 later case를 `not-run`으로 기록하며 runner console/summary/report에 context, 분리 stderr tail, 재현 명령을 보존 |
-| 25 | v3.9.0 (25) route/control/action automation coverage matrix | P0 | 완료/current 986 exact-ID | current 986개 inventory에서 prefix/range 판정 없이 exact `manualUiCaseId` 424개를 선택합니다. historical V390-ADD1-11의 974/424/8/415/1과 Review2-20의 984/424/8/415/1 결과는 당시 evidence로 보존하고, current matrix는 986/424/8/415/1입니다 |
+| 25 | v3.9.0 (25) route/control/action automation coverage matrix | P0 | historical source claim / REVIEW4-56~60 대기 | 986개 inventory와 exact `manualUiCaseId` 424개 선택 수치는 유지하지만, 기존 423+negative 1 readiness는 기능별 workflow·canonical schema·primary action oracle·visual matrix·Policy 독립성 완료 근거가 아닙니다. REVIEW4-56~60이 current workflow readiness를 다시 닫습니다 |
 | 26 | v3.9.0 (26) final evidence re-run and cleanup | P0 | current 32-command 재실행 대기 | Evidence 14의 source `8fe583d8`·26-command·30분 118/0·UI 8/8·cleanup/integrity PASS는 historical evidence로 보존합니다. Development 15~18 및 Review2-21/35 이후 current 986 inventory·32-command source에 대한 안정화와 `--run-120` acceptance(30분→UI automation→120분), Policy v4 전체 UI, cleanup canonical 재실행은 미실행입니다 |
 | 27 | v3.9.0 (27) deferred product decision owner sign-off | P1 | decision record | `decision-record`로 역할 기반 owner와 excluded/deferred 결정을 기록합니다. implementation은 `not-executed`이며 개인 이름, 실제 구현, field/release PASS를 주장하지 않습니다 |
-| 28 | v3.9.0 (28) structure stabilization implementation readiness | P1 | gate 준비 | `gate-ready`는 dependency/contract/slice gate 정의가 준비됐다는 뜻입니다. `refactorEntryReady=false`, implementation `not-executed`이며 v4.0.0 branch/refactor 완료가 아닙니다 |
+| 28 | v3.9.0 (28) structure stabilization implementation readiness | P1 | historical readiness / REVIEW4-51 superseded | 당시 `gate-ready`는 dependency/contract/slice gate 정의만 뜻했습니다. 최신 결정은 50~63 완료 뒤 current `v3.9.0`에서 REVIEW4-64를 실행하는 것이며 implementation은 아직 `not-executed`입니다 |
 | 29 | v3.9.0 (29) real external field smoke gate | P2 | 조건부 미실행 | TURN/WHEP, ONVIF 실기기, 외부 VLM/provider는 조건 부재로 `conditional-not-run`입니다. external contact 0, field/release claim false이며 실행 완료/PASS가 아닙니다 |
 
 ### v3.9.0 (17) Evidence/Closure 13~18 개발 기록
@@ -184,7 +184,7 @@ UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release a
 | 안정화 테스트 | 진행 대상 | AGENTS/manual UI/release policy, policy fixture/evaluator/contract, dispatch/docs/inventory를 직접 변경 | `V390-ADD1-12`, `OPS-169`, `SAFE-202` | 최신 `/goal`의 12번 개발 승인 |
 | 30분 테스트 | 미진행 | test policy와 evidence 판정만 변경하고 media/session/runtime path를 변경하지 않음 | AGENTS 7.6.2, `V390-ADD1-12` 변경 범위 | duration 실행 승인 없음 |
 | 120분 테스트 | 미진행 | high-risk runtime/media trigger가 없고 명시 실행 지시도 없음 | AGENTS 7.6.2, `V390-ADD1-12` 변경 범위 | 조건·실행 승인 없음 |
-| UI 풀테스트 | 미진행 | Policy v4 계약은 검증하지만 424개 전체 제품 UI를 새로 실행하는 요청은 아님 | exact UI test ID 424개, current readiness native 423+negative 1/unsupported 0, execution pass 0/not-run 424 | 전체 UI 실행 승인 없음 |
+| UI 풀테스트 | 미진행 | Policy v4 계약은 검증하지만 424개 전체 제품 UI를 새로 실행하는 요청은 아님 | exact UI test ID 424개, historical readiness claim 423+negative 1/unsupported 0, execution pass 0/not-run 424; REVIEW4-56~60 current closure 대기 | 전체 UI 실행 승인 없음 |
 
 실행 전 개별 검증 항목은 policy schema/네 영역 고정/evidence mode, case 동등성 필수
 필드, suite closure, current partial evidence 판정, forbidden fixture/static/screenshot-only
@@ -2185,7 +2185,7 @@ implementation claim일 뿐 current 제품 의미 완료가 아닙니다. REVIEW
 - source 부분 구현 13: 5, 6, 9, 10, 11, 12, 21, 22, 23, 24, 25, 26, 34
 - source 미완성 4: 14, 16, 17, 18
 
-집계: source 구현 확인 18, source 부분 구현 13, source 미완성 4입니다. source 구현 확인은 runtime, UI, 30분, 120분 PASS가 아닙니다. Discovery current source는 606개이며,
+집계: source 구현 확인 18, source 부분 구현 13, source 미완성 4입니다. source 구현 확인은 runtime, UI, 30분, 120분 PASS가 아닙니다. Discovery source 606개는 REVIEW4-50 시점 snapshot이며,
 `webrtc_http_server.cpp` 42,897줄, `product_ui_page_scripts.cpp` 10,217줄입니다.
 
 ### REVIEW3 잔여 구현 순서
@@ -2541,9 +2541,9 @@ REVIEW4는 아래 순서를 고정합니다. 앞 단계가 FAIL이면 뒤 단계
 
 | 순서 | ID | 구간 | 제목 | 우선순위 | 상태 | 개발 내용 | 추천 모델 | 추론 수준 | 선정 근거 |
 | ---: | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 50 | V390-REVIEW4-50 | Foundation | roadmap truth reset과 current 기준 정렬 | P0 | 완료 | REVIEW3 완료 표기를 historical source claim으로 낮추고, 통합 순번 1~35를 source 구현 확인 18, 부분 13, 미완성 4로 고정했습니다. readiness는 `exactNativeWorkflowReadinessComplete`, 실행 완료는 `actualAutomationExecutionComplete`로 분리하고 source 606, HTTP server 42,897, UI script 10,217 current 실측에 맞췄습니다. | 5.6 Terra | 중간 (medium) | 영향도 1, 불확실성 1, 검증 난이도 1, 변경 범위 1, 총 4점. 문서와 상태 schema 정렬이며 상향 규칙 없음 |
+| 50 | V390-REVIEW4-50 | Foundation | roadmap truth reset과 current 기준 정렬 | P0 | 완료 | REVIEW3 완료 표기를 historical source claim으로 낮추고, 통합 순번 1~35를 source 구현 확인 18, 부분 13, 미완성 4로 고정했습니다. readiness와 actual execution 필드를 분리했으며 source 606은 REVIEW4-50 audit snapshot, HTTP server 42,897와 UI script 10,217은 보존 source line 기준입니다. REVIEW4-52 의미 감사에서 workflow readiness는 56~60 전 `false`로 재정렬했습니다. | 5.6 Terra | 중간 (medium) | 영향도 1, 불확실성 1, 검증 난이도 1, 변경 범위 1, 총 4점. 문서와 상태 schema 정렬이며 상향 규칙 없음 |
 | 51 | V390-REVIEW4-51 | Scope Gate | 구조 안정화 버전 범위 재확정 | P0 | 완료 decision / 64 미실행 | 최신 사용자 지시로 50~63 완료 뒤 64번 actual refactor를 current `v3.9.0` branch에서 실행하고 v4.0.0 이관을 취소했습니다. Base `027678ba`, branch 비생성, 9 preserved contract, 6 ordered slice, 64 뒤 65 acceptance를 machine-readable decision v2에 고정했습니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. 전면 구조 변경과 release 경계 상향 적용 |
-| 52 | V390-REVIEW4-52 | Discovery | 문서와 source 의미 전수 감사 | P0 | 대기 | checksum, byte count, status marker만으로 full review를 판정하지 않습니다. tracked 문서와 incomplete marker 각각에 현재 구현과의 의미 일치, 실제 owner, 처리 결정, 근거 위치를 기록하고 scripts/internal 일괄 분류를 제거합니다. 미분류, stale current claim, 상충 수치가 0이어야 합니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 1, 총 7점. 기능 누락 정확도 상향 적용 |
+| 52 | V390-REVIEW4-52 | Discovery | 문서와 source 의미 전수 감사 | P0 | 완료 | AGENTS와 분리한 tracked Markdown 176개 각각에 semantic role, lifecycle/alignment, decision, actual owner, source-backed evidence와 semantic digest를 기록했습니다. Release artifact 36개를 wrapper/predev aggregate/release-note/acceptance/UI producer/adapter subtype으로 분리하고 source marker 38개를 occurrence/column identity와 exact disposition 15종으로 닫았습니다. current 문서 32개를 실제 v3.9 refactor 결정, HTTP 8080, historical lifecycle, 986/424 pending 의미로 교정했으며 generic/self-owner/stale claim/missing evidence negative를 거부합니다. UI coverage는 56~60 전 `REVIEW_REQUIRED`, readiness false, pass 0/not-run 424입니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 1, 총 7점. 기능 누락 정확도 상향 적용 |
 | 53 | V390-REVIEW4-53 | Feature Closure | 986행 semantic call-chain 독립 재구축 | P0 | 대기 | migration이 locator, edge, reason, approval을 동시에 생성하지 못하게 분리합니다. 986개 각각의 owner, dispatch, action, state mutation, readback, verifier 관계를 실제 symbol/call/data-flow에서 독립 확인하고 `UI-001` 같은 무관 anchor, generic shared owner, 동일 DOM 자체 비교를 negative fixture로 거부합니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. 전 기능 정확도와 거짓 closure 위험 상향 적용 |
 | 54 | V390-REVIEW4-54 | Persistence | Analysis Registry 실패 원자성 복구 | P0 | 대기 | 신규 target mode를 계약값 `0640`으로 맞추고 rename 뒤 directory fsync 실패의 API, file, memory, restart 의미를 하나로 확정합니다. HTTP 500인데 candidate가 file/memory에 publish되는 모호성을 제거하고, retry/idempotency와 crash recovery matrix가 success 또는 failure 계약 중 하나만 관측하게 합니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 2, 총 7점. 운영 데이터 손상 위험 상향 적용 |
 | 55 | V390-REVIEW4-55 | Persistence | ONVIF source/view crash transaction 완성 | P0 | 대기 | 현재 순차 replace와 보상 rollback을 crash-atomic으로 과장하지 않습니다. journal 또는 recoverable transaction marker로 두 파일 사이 process crash를 복구하거나, 제품 계약과 route/result 명칭을 보상 rollback 범위로 명확히 제한합니다. bytes, existence, mode, restart, retry를 crash point별로 검증합니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 2, 총 7점. source/view 데이터 정합성 상향 적용 |

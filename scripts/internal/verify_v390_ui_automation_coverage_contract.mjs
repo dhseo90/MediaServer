@@ -71,12 +71,12 @@ check("positive matrix covers the exact 424 manual UI test IDs from all feature 
     .filter(item => item.manualUiCaseId !== null)
     .map(item => item.manualUiCaseId);
   assert(summary.schema === "media-server.v390-ui-automation-coverage.v4", "coverage schema mismatch");
-  assert(summary.matrixValidationResult === "PASS", "matrix validation must PASS");
-  assert(summary.coverageStatus === "exact-native-ready-current-not-run", "coverage status mismatch");
+  assert(summary.matrixValidationResult === "REVIEW_REQUIRED", "matrix must remain review-required");
+  assert(summary.coverageStatus === "review4-workflow-rebuild-pending", "coverage status mismatch");
   assert(summary.executionEvidenceStatus === "current-not-run", "execution evidence boundary mismatch");
   assert(summary.currentEvidenceStatus === "not-run", "current evidence status mismatch");
-  assert(summary.exactNativeWorkflowReadinessComplete === true,
-    "matrix exact native readiness coverage mismatch");
+  assert(summary.exactNativeWorkflowReadinessComplete === false,
+    "matrix must not claim exact native readiness before REVIEW4-56~60");
   assert(summary.actualAutomationExecutionComplete === false,
     "matrix must not claim current actual automation execution");
   assert(summary.manualUiFulltestEvidence === false, "matrix must not claim manual UI fulltest evidence");
@@ -174,7 +174,7 @@ check("exact native capability remains mapped without inventing current artifact
   }
 });
 
-check("positive and negative exact workflows are ready but remain explicit non-PASS execution state", () => {
+check("positive and negative classifications remain review-required and non-PASS", () => {
   const summary = readPositiveSummary();
   assert(summary.rows.every(item => item.automationStatus === "not-run" && item.actualResult === "not-run"),
     "readiness was promoted to execution PASS");
@@ -259,7 +259,7 @@ check("durable matrix and release docs record exact-ID partial coverage boundari
     "unsupported `0`",
     "executed-pass `0`",
     "not-run `424`",
-    "exactNativeWorkflowReadinessComplete: `true`",
+    "exactNativeWorkflowReadinessComplete: `false`",
     "actualAutomationExecutionComplete: `false`",
     "manualUiFulltestEvidence: `false`",
   ]) {
@@ -273,7 +273,7 @@ check("durable matrix and release docs record exact-ID partial coverage boundari
     "docs/release-evidence-index.md",
   ].map(readText).join("\n");
   for (const snippet of ["V390-ADD1-11", command, contractCommand,
-    "exact UI test ID 424", "prefix/range 판정 제거", "exact-native-ready-current-not-run"]) {
+    "exact UI test ID 424", "prefix/range 판정 제거", "review4-workflow-rebuild-pending"]) {
     assertIncludes(docs, snippet, "V390-ADD1-11 docs/evidence");
   }
 });

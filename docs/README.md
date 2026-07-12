@@ -24,7 +24,9 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 
 - 최신 공개 릴리즈: `v3.8.0` Operator-Gated Action Pilot & Outcome Loop, source-only.
 - 현재 소스: `3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation.
-- v3.9 로드맵: v1.0.0부터 v3.8.0까지 노출/약속/부분 구현된 기능을 전수 확인하고, v4.0.0 구조 안정화와 새 테스트 체계로 넘어가기 전 필요한 기능 완성 항목을 닫습니다.
+- v3.9 로드맵: v1.0.0부터 v3.8.0까지 노출/약속/부분 구현된 기능을 전수 확인하고,
+  REVIEW4-50~63을 닫은 뒤 같은 v3.9.0 브랜치에서 동작 보존 구조 안정화와 리팩토링을
+  REVIEW4-64로 수행하며, REVIEW4-65에서 독립 acceptance를 실행합니다.
 - 최신 공개 기준: v3.8.0 Operator-Gated Action Pilot & Outcome Loop는 published baseline이며, v3.9.0은 아직 publish evidence가 없는 준비 브랜치입니다.
 
 ## 먼저 볼 문서

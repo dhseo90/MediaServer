@@ -38,7 +38,7 @@ and runtime/model bundle distribution are outside the default public release.
 
 - Latest published release: `v3.8.0` Operator-Gated Action Pilot & Outcome Loop, source-only.
 - Current source: `3.9.0` Feature Completion, Structure Stabilization, and Test Model Preparation.
-- The v3.9 roadmap audits exposed, promised, and partially implemented functionality from v1.0.0 through v3.8.0, completes necessary feature gaps before v4.0.0, then prepares structure stabilization and the new test model.
+- The v3.9 roadmap audits exposed, promised, and partially implemented functionality from v1.0.0 through v3.8.0. After REVIEW4-50 through REVIEW4-63 close, behavior-preserving structure stabilization and refactoring run on the same v3.9.0 branch as REVIEW4-64, followed by independent acceptance in REVIEW4-65.
 - Latest published baseline: v3.8.0 Operator-Gated Action Pilot & Outcome Loop. v3.9.0 is a preparation branch with no publish evidence yet.
 - Invariants: Event POST, WebRTC DataChannel, SSE/WS metadata, and RTSP/WebRTC
   media paths are unchanged unless explicitly requested.
@@ -77,7 +77,7 @@ Related docs:
 Open:
 
 ```text
-http://127.0.0.1:8081/
+http://127.0.0.1:8080/
 ```
 
 Stop:

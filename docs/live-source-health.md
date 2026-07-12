@@ -1,6 +1,6 @@
 # Live Source Health
 
-이 문서는 현재 main 기준의 live source health 1차 구현 기준과
+이 문서는 현재 source tree 기준의 live source health 1차 구현 기준과
 운영자/client 노출 경계를 정의합니다.
 목표는 `/ops/dashboard`, source health API, client dashboard가 같은 상태 의미를
 공유하되 노출 범위를 다르게 유지하는 것입니다.
