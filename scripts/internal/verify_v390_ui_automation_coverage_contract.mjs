@@ -41,7 +41,7 @@ const runnerScript = "verify_v390_ui_automation_coverage.mjs";
 const contractScript = "verify_v390_ui_automation_coverage_contract.mjs";
 const policyPath = path.join(rootDir, "test/fixtures/v390_ui_automation_coverage_policy.json");
 const implementationPath = path.join(rootDir, "test/fixtures/project_feature_implementation_evidence.json");
-const caseManifestPath = path.join(rootDir, "test/fixtures/v390_ui_automation_cases.json");
+const caseManifestPath = path.join(rootDir, "test/fixtures/v390_ui_native_exact_cases.json");
 const durableMatrixPath = path.join(rootDir, "docs/v390-ui-automation-coverage-matrix.md");
 const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "media_server_v390_ui_coverage_contract_"));
 const checks = [];
@@ -70,18 +70,20 @@ check("positive matrix covers the exact 424 manual UI test IDs from all feature 
   const expectedTestIds = implementation.items
     .filter(item => item.manualUiCaseId !== null)
     .map(item => item.manualUiCaseId);
-  assert(summary.schema === "media-server.v390-ui-automation-coverage.v2", "coverage schema mismatch");
+  assert(summary.schema === "media-server.v390-ui-automation-coverage.v3", "coverage schema mismatch");
   assert(summary.matrixValidationResult === "PASS", "matrix validation must PASS");
-  assert(summary.coverageStatus === "mapped-with-explicit-gaps", "coverage status mismatch");
-  assert(summary.executionEvidenceStatus === "no-current-execution-evidence", "execution evidence boundary mismatch");
+  assert(summary.coverageStatus === "exact-native-ready-current-not-run", "coverage status mismatch");
+  assert(summary.executionEvidenceStatus === "current-not-run", "execution evidence boundary mismatch");
   assert(summary.currentEvidenceStatus === "not-run", "current evidence status mismatch");
-  assert(summary.fullAutomationCoverage === false, "matrix must not claim full automation coverage");
+  assert(summary.fullAutomationCoverage === true, "matrix exact native readiness coverage mismatch");
   assert(summary.manualUiFulltestEvidence === false, "matrix must not claim manual UI fulltest evidence");
   assert(summary.counts.inventoryFeatures === 986, "inventory feature count must be 986");
   assert(summary.counts.exactUiTestIds === 424, "exact UI test ID count must be 424");
-  assert(summary.counts.automated === 0, "automated count must be 0 without current execution");
-  assert(summary.counts.unsupportedManual === 423, "unsupported/manual count must be 423");
-  assert(summary.counts.excludedPositiveUi === 1, "positive UI exclusion count must be 1");
+  assert(summary.counts.nativeExecutablePositive === 423, "native executable positive count must be 423");
+  assert(summary.counts.negativeRouteExecutable === 1, "negative route executable count must be 1");
+  assert(summary.counts.unsupported === 0, "unsupported count must be 0");
+  assert(summary.counts.pass === 0 && summary.counts.notRun === 424,
+    "execution state must remain pass 0/not-run 424");
   assertExact(summary.rows.map(item => item.testId), expectedTestIds,
     "matrix must preserve the exact ordered manualUiCaseId set");
   assert(new Set(summary.rows.map(item => item.testId)).size === 424,
@@ -127,12 +129,12 @@ check("coverage selection contains no UI-prefix or numeric-range classification"
   }
   for (const required of [
     "reviewedById.get(row.id)",
-    "structuredClone(reviewedItem?.uiEvidence)",
-    "structuredClone(reviewedItem?.verifierEvidence)",
-    "has no reviewed exact UI screenRoute mapping",
+    "structuredClone(reviewedItem)",
   ]) {
     assertIncludes(implementationManifestLib, required, "reviewed exact UI mapping generator");
   }
+  assertIncludes(runner, "automationSummary.cases.map(item => item.testId)",
+    "Policy v4 actual case identity binding");
 });
 
 check("explicit manifest refresh preserves all reviewed exact UI mappings", () => {
@@ -155,38 +157,29 @@ check("explicit manifest refresh preserves all reviewed exact UI mappings", () =
   }
 });
 
-check("automation capability remains mapped without inventing current artifacts", () => {
+check("exact native capability remains mapped without inventing current artifacts", () => {
   const summary = readPositiveSummary();
   const manifest = readJson(caseManifestPath);
-  const automated = summary.rows.filter(item => item.automationDisposition === "automated");
-  assert(automated.length === 0, "not-run current state invented automated PASS rows");
-  assert(manifest.cases.length === 8, "native capability manifest must retain 8 explicit cases");
+  const native = summary.rows.filter(item => item.automationDisposition === "native-executable");
+  assert(native.length === 423, "exact native positive readiness mismatch");
+  assert(manifest.cases.length === 424, "native exact manifest must retain 424 explicit cases");
   for (const item of summary.rows) {
+    assert(item.automationCaseId === item.testId, `${item.featureId} exact native case mapping missing`);
+    assert(item.automationStatus === "not-run", `${item.featureId} invented execution status`);
     assert(Object.values(item.evidence || {}).every(value => value === ""),
       `${item.featureId} current not-run row carries invented artifact`);
   }
 });
 
-check("unsupported/manual and excluded exact test IDs remain explicit non-PASS work", () => {
+check("positive and negative exact workflows are ready but remain explicit non-PASS execution state", () => {
   const summary = readPositiveSummary();
-  const manual = summary.rows.filter(item => item.automationDisposition === "unsupported-manual");
-  assert(manual.length === 423, "unsupported/manual row count mismatch");
-  for (const item of manual) {
-    assert(item.testId, `${item.featureId} unsupported row exact test ID missing`);
-    assert(item.automationCaseId === null, `${item.featureId} unsupported row must not invent automation case ID`);
-    assert(item.automationStatus === "not-run", `${item.featureId} unsupported status must be not-run`);
-    assert(item.actualResult === "not-run", `${item.featureId} unsupported row must be not-run`);
-    assert(item.unsupportedReasonCode === "no-current-native-exact-selector-case",
-      `${item.featureId} reason code mismatch`);
-    assert(item.unsupportedReason, `${item.featureId} unsupported reason missing`);
-    assert(Object.values(item.evidence || {}).every(value => value === ""),
-      `${item.featureId} must not carry fake artifacts`);
-  }
-  const excluded = summary.rows.find(item => item.testId === "UI-018");
-  assert(excluded?.automationDisposition === "excluded-positive-ui", "UI-018 exclusion disposition mismatch");
-  assert(excluded?.automationStatus === "not-applicable", "UI-018 automation status mismatch");
-  assert(excluded?.actualResult === "not-applicable", "UI-018 actual result mismatch");
-  assert(excluded?.unsupportedReasonCode === "product-ui-absence-negative-check", "UI-018 reason code mismatch");
+  assert(summary.rows.every(item => item.automationStatus === "not-run" && item.actualResult === "not-run"),
+    "readiness was promoted to execution PASS");
+  assert(summary.rows.every(item => item.automationDisposition !== "unsupported"),
+    "exact native manifest retains unsupported work");
+  const negative = summary.rows.find(item => item.testId === "UI-018");
+  assert(negative?.automationDisposition === "negative-route", "UI-018 negative route disposition mismatch");
+  assert(negative?.automationCaseId === "UI-018", "UI-018 exact native workflow missing");
 });
 
 check("missing cross-prefix exact test ID is rejected", () => {
@@ -234,14 +227,14 @@ check("automation feature mapping drift and stale historical summary are rejecte
   writeJson(modifiedPolicy, policy);
   const mappingRun = runCoverage("feature-mapping-drift", ["--policy", modifiedPolicy], true);
   assert(mappingRun.status === "failed-as-expected", "automation feature mapping drift must fail");
-  assertIncludes(`${mappingRun.stdout}\n${mappingRun.stderr}`, "UI-113 featureId mismatch",
+  assertIncludes(`${mappingRun.stdout}\n${mappingRun.stderr}`, "duplicate automation feature IDs: AUTH-004",
     "automation feature mapping drift failure");
 
   const staleSummary = path.join(rootDir,
     "docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/summary.json");
   const staleRun = runCoverage("stale-historical-summary", ["--automation-summary", staleSummary], true);
   assert(staleRun.status === "failed-as-expected", "historical stale summary must fail");
-  assertIncludes(`${staleRun.stdout}\n${staleRun.stderr}`, "actual automation source provenance missing",
+  assertIncludes(`${staleRun.stdout}\n${staleRun.stderr}`, "audit-only historical UI summary cannot be current evidence",
     "stale summary failure");
 });
 
@@ -258,10 +251,12 @@ check("durable matrix and release docs record exact-ID partial coverage boundari
     "inventory features `986`",
     "exact UI test IDs `424`",
     "currentEvidenceStatus: `not-run`",
-    "automated `0`",
-    "unsupported-manual `423`",
-    "excluded-positive-ui `1`",
-    "fullAutomationCoverage: `false`",
+    "native-executable-positive `423`",
+    "negative-route-executable `1`",
+    "unsupported `0`",
+    "executed-pass `0`",
+    "not-run `424`",
+    "fullAutomationCoverage: `true`",
     "manualUiFulltestEvidence: `false`",
   ]) {
     assertIncludes(matrix, snippet, "durable matrix boundary");
@@ -274,7 +269,7 @@ check("durable matrix and release docs record exact-ID partial coverage boundari
     "docs/release-evidence-index.md",
   ].map(readText).join("\n");
   for (const snippet of ["V390-ADD1-11", command, contractCommand,
-    "exact UI test ID 424", "prefix/range 판정 제거", "mapped-with-explicit-gaps"]) {
+    "exact UI test ID 424", "prefix/range 판정 제거", "exact-native-ready-current-not-run"]) {
     assertIncludes(docs, snippet, "V390-ADD1-11 docs/evidence");
   }
 });
@@ -282,12 +277,14 @@ check("durable matrix and release docs record exact-ID partial coverage boundari
 const result = summarizeChecks();
 console.log("");
 console.log("== v3.9.0 full-feature UI automation coverage matrix contract summary ==");
-console.log("- schema: media-server.v390-ui-automation-coverage.v2");
+console.log("- schema: media-server.v390-ui-automation-coverage.v3");
 console.log("- inventoryFeatures: 986");
 console.log("- exactUiTestIds: 424");
-console.log("- automated: 0");
-console.log("- unsupportedManual: 423");
-console.log("- excludedPositiveUi: 1");
+console.log("- nativeExecutablePositive: 423");
+console.log("- negativeRouteExecutable: 1");
+console.log("- unsupported: 0");
+console.log("- executedPass: 0");
+console.log("- notRun: 424");
 console.log("- prefixRangeClassification: removed");
 console.log(`- pass: ${result.pass}`);
 console.log(`- fail: ${result.fail}`);

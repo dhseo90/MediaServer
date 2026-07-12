@@ -22,7 +22,7 @@ Usage:
 
 Options:
   --policy <path>           Policy fixture. Default test/fixtures/ui_fulltest_evidence_policy_v4.json.
-  --summary <path>          UI evidence summary. Default current v3.9 visible-DOM legacy summary.
+  --summary <path>          UI evidence summary. Default current v3.9 not-run state.
   --coverage-policy <path>  Current coverage policy used for partial-evidence counts.
   --output-dir <path>       Optional directory for evaluation.json and report.md.
   --require-eligible        Exit non-zero unless the supplied summary qualifies as full UI PASS.
@@ -49,15 +49,39 @@ const currentSource = {
   worktreePatchSha256: sha256Text(execFileSync("git", ["diff", "--binary", "HEAD"], { cwd: rootDir, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 })),
 };
 const evaluation = evaluateEvidence(policy, summary, { rootDir, verifyArtifacts: true, currentSource });
-const currentCounts = coveragePolicy.expectedCounts || {};
+const currentCounts = coveragePolicy.expectedReadiness || {};
 const currentCoverageValid =
-  coveragePolicy.schema === "media-server.v390-ui-automation-coverage-policy.v2" &&
+  coveragePolicy.schema === "media-server.v390-ui-automation-coverage-policy.v3" &&
   currentCounts.exactUiTestIds === 424 &&
-  currentCounts.automated === 0 &&
-  currentCounts.unsupportedManual === 423 &&
-  currentCounts.excludedPositiveUi === 1 &&
-  coveragePolicy.boundaries?.fullAutomationCoverage === false &&
-  coveragePolicy.boundaries?.manualUiFulltestEvidence === false;
+  currentCounts.nativeExecutablePositive === 423 &&
+  currentCounts.negativeRouteExecutable === 1 &&
+  currentCounts.unsupported === 0 &&
+  coveragePolicy.defaultExecutionState?.pass === 0 &&
+  coveragePolicy.defaultExecutionState?.notRun === 424 &&
+  coveragePolicy.boundaries?.fullAutomationCoverage === true &&
+  coveragePolicy.boundaries?.manualUiFulltestEvidence === false &&
+  coveragePolicy.boundaries?.historicalConsumerPolicy === "deny-current-evidence";
+
+const historicalSource = isHistoricalSource(summaryPath, coveragePolicy);
+const currentActualSource = summary.schema === "media-server.ui-automation-evidence.v4" &&
+  summary.contractFixture !== true && summary.fixture === false &&
+  summary.sourceBinding?.currentSourceVerified === true && summary.sourceBinding?.gitCommit === currentSource.gitCommit;
+const currentNotRunSource = summary.schema === "media-server.v390-ui-current-evidence-state.v2" &&
+  summary.sourceKind === "current-not-run-state" && summary.status === "not-run";
+if (currentNotRunSource) {
+  evaluation.reasons = evaluation.reasons.filter(reason =>
+    !reason.startsWith("legacy-or-unsupported-schema:media-server.v390-ui-current-evidence-state."));
+  evaluation.reasons.push("current-exact-424-execution-not-run");
+}
+if (historicalSource) evaluation.reasons.push("audit-only-historical-source-denied");
+if (summary.schema === "media-server.ui-automation-evidence.v4" && !currentActualSource) {
+  evaluation.reasons.push("actual-evidence-current-source-binding-missing");
+}
+evaluation.reasons = [...new Set(evaluation.reasons)].sort();
+if (historicalSource || (summary.schema === "media-server.ui-automation-evidence.v4" && !currentActualSource)) {
+  evaluation.uiFulltestPass = false;
+  evaluation.evidenceEligibility = "ineligible";
+}
 
 if (!currentCoverageValid) {
   evaluation.reasons.push("current-v390-coverage-boundary-drift");
@@ -73,12 +97,20 @@ const result = {
   sourceSummary: path.relative(rootDir, summaryPath),
   sourceSummarySha256: sha256File(summaryPath),
   sourceEvidenceSchema: summary.schema || "",
-  currentEvidenceStatus: currentCoverageValid ? "not-run-current-evidence" : "coverage-boundary-drift",
+  currentEvidenceStatus: !currentCoverageValid
+    ? "coverage-boundary-drift"
+    : (historicalSource
+      ? "audit-only-historical-denied"
+      : (currentActualSource
+        ? "actual-current-source-evidence"
+        : (currentNotRunSource ? "not-run-current-source" : "non-current-or-contract-evidence"))),
   currentCoverage: {
     exactUiTestIds: currentCounts.exactUiTestIds ?? null,
-    automated: currentCounts.automated ?? null,
-    unsupported: currentCounts.unsupportedManual ?? null,
-    excludedPositiveUi: currentCounts.excludedPositiveUi ?? null,
+    nativeExecutablePositive: currentCounts.nativeExecutablePositive ?? null,
+    negativeRouteExecutable: currentCounts.negativeRouteExecutable ?? null,
+    unsupported: currentCounts.unsupported ?? null,
+    executedPass: coveragePolicy.defaultExecutionState?.pass ?? null,
+    notRun: coveragePolicy.defaultExecutionState?.notRun ?? null,
   },
   qualification: evaluation,
   suiteClosure: {
@@ -140,6 +172,22 @@ function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
 
+function isHistoricalSource(candidatePath, coverage) {
+  const manifestPath = resolveRoot(coverage.historicalManifestSource || "");
+  if (!fs.existsSync(manifestPath)) return true;
+  const historical = readJson(manifestPath);
+  if (historical.schema !== "media-server.v390-historical-invalid-ui-evidence.v2" ||
+      historical.sourceKind !== "audit-only-historical" ||
+      historical.consumerPolicy !== "deny-current-evidence") return true;
+  const candidate = fs.realpathSync(candidatePath);
+  return (historical.roots || []).some(item => {
+    const historicalRoot = resolveRoot(item.path || "");
+    if (!fs.existsSync(historicalRoot)) return false;
+    const relative = path.relative(fs.realpathSync(historicalRoot), candidate);
+    return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
+  });
+}
+
 function validatePolicyDocuments() {
   const errors = [];
   const files = {
@@ -157,11 +205,11 @@ function validatePolicyDocuments() {
   };
   const required = [
     ["AGENTS.md", files.agents, ["#### 7.6.3 Policy v4 UI 대체 evidence 기준", "direct-browser", "qualified-native-automation", "policyValidationResult", "uiFulltestPass"]],
-    ["docs/manual-ui-fulltest.md", files.fulltest, ["actual browser", "Policy v4 qualifier", "completion oracle", "current not-run", "unsupported 423"]],
+    ["docs/manual-ui-fulltest.md", files.fulltest, ["actual browser", "Policy v4 qualifier", "completion oracle", "current not-run", "unsupported 0 readiness"]],
     ["docs/manual-ui-checklist.md", files.checklist, ["Policy v4 qualifier", "actual-browser evidence", "completion oracle"]],
     ["docs/manual-ui-result-template.md", files.template, ["qualified-native-automation", "Policy v4 자동화/혼합 evidence 요약", "artifact hash/type/path containment", "uiFulltestPass"]],
     ["docs/release-policy.md", files.releasePolicy, ["## Policy v4 UI evidence release gate", "uiFulltestPass=true"]],
-    ["docs/stream-verification.md", files.stream, ["### V390-ADD1-12 Policy v4 UI evidence qualification", "partial-automation-evidence"]],
+    ["docs/stream-verification.md", files.stream, ["### V390-ADD1-12 Policy v4 UI evidence qualification", "exact-native-ready-current-not-run"]],
     ["docs/project-feature-test-inventory.md", files.inventory, ["V390-ADD1-12 Policy v4 UI evidence transition", "Policy v4 evidence qualification gate"]],
     ["docs/development-backlog.md", files.backlog, ["V390-ADD1-12", "Policy v4 테스트 정책 전환"]],
     ["docs/release-test-records.md", files.releaseRecords, ["Policy v4 UI Fulltest Evidence Qualification"]],

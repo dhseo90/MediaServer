@@ -928,7 +928,8 @@ function readPreservedUiAutomationEvidence() {
   if (!fs.existsSync(full)) return { status: "missing-existing-evidence", summaryPath: relative };
   const payload = readJson(full);
   return {
-    status: payload.schema === "media-server.v390-ui-current-evidence-state.v1" && payload.status === "not-run"
+    status: payload.schema === "media-server.v390-ui-current-evidence-state.v2" &&
+      payload.sourceKind === "current-not-run-state" && payload.status === "not-run"
       ? "current-not-run"
       : "invalid-current-evidence-state",
     summaryPath: relative,
@@ -937,7 +938,7 @@ function readPreservedUiAutomationEvidence() {
     caseCount: 0,
     pass: 0,
     fail: 0,
-    notRun: Number(payload.notRun || 424),
+    notRun: Number(payload.execution?.notRun || 424),
     manualIntervention: false,
     selectedAdapter: "",
   };

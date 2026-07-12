@@ -2,6 +2,7 @@
 // 파일 용도: current UI evidence가 stale placeholder/historical summary를 PASS 입력으로 재사용하지 않는지 검증한다.
 
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { execFileSync } from "node:child_process";
@@ -17,8 +18,8 @@ if (hasHelpFlag(args)) {
 Usage:
   ./server.sh verify-v390-current-ui-evidence-contract
 
-Checks current not-run binding, historical-invalid roots, tracked placeholder absence,
-coverage 0/423/1, and active consumer stale-path removal. This command does not run UI.
+Checks current not-run binding, exact 423+1 native readiness, unsupported 0,
+historical audit-only roots, and active consumer stale-path denial. This command does not run UI.
 `);
 }
 assertKnownOptions(args, ["h", "help"]);
@@ -26,17 +27,22 @@ assertKnownOptions(args, ["h", "help"]);
 const checks = [];
 check("current state is explicit not-run and not PASS", () => {
   const state = readJson("test/fixtures/v390_ui_current_evidence_state.json");
-  assert(state.schema === "media-server.v390-ui-current-evidence-state.v1", "current state schema mismatch");
+  assert(state.schema === "media-server.v390-ui-current-evidence-state.v2", "current state schema mismatch");
+  assert(state.sourceKind === "current-not-run-state", "current state source kind mismatch");
   assert(state.status === "not-run", "current state must be not-run");
   assert(state.actualBrowserExecution === false && state.uiFulltestPass === false,
     "current state claims execution/PASS");
-  assert(state.automatedCaseCount === 0 && state.notRun === 424 && state.unsupported === 423 &&
-    state.excludedPositiveUi === 1, "current state count mismatch");
+  assert(state.readiness?.nativeExecutablePositive === 423 && state.readiness?.negativeRouteExecutable === 1 &&
+    state.readiness?.unsupported === 0, "current exact readiness mismatch");
+  assert(state.execution?.pass === 0 && state.execution?.notRun === 424 && state.execution?.unsupported === 0,
+    "current execution state mismatch");
 });
 
 check("all stale roots are historical-invalid and never current eligible", () => {
   const manifest = readJson("docs/release-artifacts/v3.9.0/historical-invalid-ui-evidence.json");
-  assert(manifest.schema === "media-server.v390-historical-invalid-ui-evidence.v1", "historical manifest schema mismatch");
+  assert(manifest.schema === "media-server.v390-historical-invalid-ui-evidence.v2", "historical manifest schema mismatch");
+  assert(manifest.sourceKind === "audit-only-historical", "historical source kind mismatch");
+  assert(manifest.consumerPolicy === "deny-current-evidence", "historical consumer policy mismatch");
   assert(manifest.eligibleForCurrentCoverage === false, "historical manifest became current eligible");
   const expected = [
     "ui-automation-playwright-final", "ui-automation-case-completeness-final",
@@ -72,11 +78,31 @@ check("active consumers use current state instead of stale summary", () => {
   }
 });
 
-check("durable matrix records current not-run 0/423/1", () => {
+check("Policy v4 consumer marks historical roots audit-only and ineligible", () => {
+  const output = fs.mkdtempSync(path.join(os.tmpdir(), "media-server-v390-historical-policy-"));
+  try {
+    execFileSync(path.join(rootDir, "server.sh"), [
+      "verify-ui-fulltest-evidence-policy-v4",
+      "--summary", "docs/release-artifacts/v3.9.0/ui-automation-visible-dom-final/summary.json",
+      "--output-dir", output,
+    ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+    const evaluation = JSON.parse(fs.readFileSync(path.join(output, "evaluation.json"), "utf8"));
+    assert(evaluation.currentEvidenceStatus === "audit-only-historical-denied",
+      "Policy qualifier did not deny historical source");
+    assert(evaluation.uiFulltestPass === false &&
+      evaluation.qualification?.reasons?.includes("audit-only-historical-source-denied"),
+    "historical Policy source became UI PASS");
+  } finally {
+    fs.rmSync(output, { recursive: true, force: true });
+  }
+});
+
+check("durable matrix separates exact native readiness from current execution", () => {
   const matrix = read("docs/v390-ui-automation-coverage-matrix.md");
   for (const snippet of [
-    "currentEvidenceStatus: `not-run`", "automated `0`", "unsupported-manual `423`",
-    "excluded-positive-ui `1`", "no-current-execution-evidence",
+    "currentEvidenceStatus: `not-run`", "native-executable-positive `423`",
+    "negative-route-executable `1`", "unsupported `0`", "executed-pass `0`", "not-run `424`",
+    "exact-native-ready-current-not-run",
   ]) assert(matrix.includes(snippet), `durable matrix missing: ${snippet}`);
   assert(!matrix.includes("ui-automation-visible-dom-final/summary.json"), "durable matrix retains stale source");
 });

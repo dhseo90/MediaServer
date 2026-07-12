@@ -2,7 +2,7 @@
   "schema": "media-server.feature-implementation-evidence.v2",
   "semanticClosureSchema": "media-server.feature-semantic-implementation-closure.v2",
   "expectedFeatureRows": 986,
-  "inventorySha256": "a7801022c55c05374795f0fb5b3c1b57577b468d3975505ae011a1d748c7f19f",
+  "inventorySha256": "5d751b51b461ba8d9bcdade5a394269ec05ab52b4e3ee6c4456ec5d9c3e78ecf",
   "generatedFrom": "docs/project-feature-test-inventory.md",
   "generationPolicy": "reviewed-map-only; unrelated source changes preserve approved rows; changed rows become review-required; token scoring and bulk approval are forbidden",
   "semanticClosurePolicy": "986 explicit owner -> route/control -> action -> state -> readback -> verifier chains with content-addressed locators and per-feature review reasons",
@@ -169394,8 +169394,8 @@
         "decision": "approved",
         "reviewer": "Codex-V390-REVIEW3-37",
         "reviewedOn": "2026-07-12",
-        "reason": "V390-REVIEW3-37:SAFE-212:V390 actual acceptance no-overclaim boundary:owner=currentFinalCommand:routeControl=currentFinalCommand:action=currentFinalCommand:state=currentFinalCommand:readback=verifier:verify-v390-test-acceptance-bundle:chain=a2aa88c7b3fa2492",
-        "semanticDigest": "4b3da350d0ce2183543466e8c49e79520f07a7cbeb4aa69e30738fad4c2f2220"
+        "reason": "V390-REVIEW3-37:SAFE-212:V390 actual acceptance no-overclaim boundary:owner=currentFinalCommand:routeControl=currentFinalCommand:action=currentFinalCommand:state=currentFinalCommand:readback=verifier:verify-v390-test-acceptance-bundle:chain=bf492fd7d54605ca",
+        "semanticDigest": "0f832247172e08759b29cac99688ad530a1e7132e82710cce8fc7e48fc7b76e3"
       },
       "sourceEvidence": {
         "file": "scripts/internal/verify_v390_stabilization_release_readiness.mjs",
@@ -169451,8 +169451,8 @@
         },
         "stateOracle": {
           "oracleKind": "negative-invariant-state",
-          "expectedBehaviorSha256": "a4b89ace21d425e1445aae548da25e4b8505fdee63c5a9102786133e035aa9f8",
-          "expectedBehavior": "`verify-v390-test-acceptance-bundle` current final actual preflight가 clean worktree와 `--run-120`을 강제하고 build→current 32-command feature gate(Review2-35 truthfulness 포함)→실제 30분→실제 UI automation/replay→120분의 stop-on-first-fail stage, later `not-run`, cleanup/report를 확인합니다. `result=PASS`와 Policy v4 전체 UI/published metadata/release action을 분리합니다",
+          "expectedBehaviorSha256": "a9dddf8a84e9a1b349b42b3c7b74c3cb444f0d1374553d1a5994f81fc0c58fff",
+          "expectedBehavior": "`verify-v390-test-acceptance-bundle`이 clean worktree, loopback throwaway server/PID/role state/log을 요구하고 build→feature gate→30분→exact 424→Policy v4→조건부 120분→final integrity를 stop-on-first-fail로 연결합니다. Legacy 8-case, 외부 summary, fixture/dry-run을 actual/UI fulltest/published/release PASS로 승격하지 않습니다",
           "locator": {
             "file": "scripts/internal/verify_v390_stabilization_release_readiness.mjs",
             "symbol": "currentFinalCommand",
@@ -169470,7 +169470,7 @@
           "handlerSymbol": "currentFinalCommand",
           "actionSymbol": "currentFinalCommand",
           "stateSymbol": "currentFinalCommand",
-          "semanticKey": "SAFE-212:a4b89ace21d425e1445aae54"
+          "semanticKey": "SAFE-212:a9dddf8a84e9a1b349b42b3c"
         },
         "verifierAssertion": {
           "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
@@ -169478,7 +169478,7 @@
           "assertionKind": "reviewed-owner-route-control-action-state-readback-chain",
           "assertionAnchor": "validateReview3CallChain",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "4b3da350d0ce2183543466e8c49e79520f07a7cbeb4aa69e30738fad4c2f2220"
+          "assertedSemanticDigest": "0f832247172e08759b29cac99688ad530a1e7132e82710cce8fc7e48fc7b76e3"
         },
         "callChain": {
           "schema": "media-server.feature-reviewed-call-chain.v1",
@@ -169531,12 +169531,12 @@
               "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
               "symbol": "verifier:verify-v390-test-acceptance-bundle",
               "symbolKind": "reviewed-owner-or-readback",
-              "anchor": "--run-120                    Execute the 120-minute phase after 30-minute and UI success. Required for current final actual mode.",
+              "anchor": "--run-120                    Execute the conditional 120-minute phase after 30-minute and UI success.",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 54,
-              "contextSha256": "a6e68fbaa83a104de953e98264bd1ffd04438bf63a9040a874b53c4f13846abd"
+              "line": 62,
+              "contextSha256": "f2e71bfa62f0ecdff5d77f6b7ffaf14d3e0ff718b54086156a1533c68e5ad507"
             }
           },
           "routeControlKind": "owner-boundary",
@@ -169563,16 +169563,16 @@
               "from": "state",
               "to": "readback",
               "relationKind": "exact-readback-assertion",
-              "digest": "a8f45108df59911ad5371e169d207f1749897eb4a6ef06c45ab5ee0921e3461e"
+              "digest": "0636ba2be83623dc6f914aa489bd40e4cc5c7639208f0a7989912cb299bca04c"
             },
             {
               "from": "readback",
               "to": "verifierAssertion",
               "relationKind": "exact-verifier-command",
-              "digest": "6a3830ec9a651f8a8d9eab78683ca8d8f4d8372142983931bae73c21460fc442"
+              "digest": "8d754d097afa6cbd7284d1370b5860507342bce944ca81885bb266feba8a7173"
             }
           ],
-          "digest": "a2aa88c7b3fa2492e90b7927a171785b2b7f9d1d9c6e65e73fe17bb7756c68ad"
+          "digest": "bf492fd7d54605ca58812dff8b8cd8bbfeba14b8798ae2096fbf7e4c6e1094e5"
         }
       }
     },
@@ -197226,8 +197226,8 @@
         "decision": "approved",
         "reviewer": "Codex-V390-REVIEW3-37",
         "reviewedOn": "2026-07-12",
-        "reason": "V390-REVIEW3-37:OPS-169:V390 UI automation / Policy v4 evidence qualification gate:owner=file-scope:verify_v390_evidence_test_gate_prep.mjs:L25:routeControl=file-scope:verify_v390_evidence_test_gate_prep.mjs:L25:action=file-scope:verify_v390_evidence_test_gate_prep.mjs:L25:state=file-scope:verify_v390_evidence_test_gate_prep.mjs:L25:readback=verifier:verify-ui-fulltest-evidence-policy-v4:chain=e64a26cd5ab2d05f",
-        "semanticDigest": "f0552dfdc8c4cd808054db592cd0b8416b123be1994a905ebbe04706049b7642"
+        "reason": "V390-REVIEW3-37:OPS-169:V390 UI automation / Policy v4 evidence qualification gate:owner=file-scope:verify_v390_evidence_test_gate_prep.mjs:L25:routeControl=file-scope:verify_v390_evidence_test_gate_prep.mjs:L25:action=file-scope:verify_v390_evidence_test_gate_prep.mjs:L25:state=file-scope:verify_v390_evidence_test_gate_prep.mjs:L25:readback=verifier:verify-ui-fulltest-evidence-policy-v4:chain=5b1432b37c7b7775",
+        "semanticDigest": "66abf0470b80fff3b331b8c961f3bd92fd1a9eed137158987866ad47c41b2886"
       },
       "sourceEvidence": {
         "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
@@ -197283,8 +197283,8 @@
         },
         "stateOracle": {
           "oracleKind": "read-or-rendered-state",
-          "expectedBehaviorSha256": "bbb7610a6f8730b0458101a6ac9a4b792a7ae5dabfb6b4b03ad6e10f99a9ca3c",
-          "expectedBehavior": "기존 native visible-DOM runner/replay/coverage와 `verify-ui-fulltest-evidence-policy-v4`가 exact case별 actual browser provenance, completion oracle, role·viewport·theme, artifact integrity/redaction/visual/replay/cleanup을 판정합니다. Current not-run은 automated 0/unsupported 423/excluded 1이며 exact 전수와 교차 의무가 닫히기 전 전체 UI PASS가 아님",
+          "expectedBehaviorSha256": "2ac4013da039bd0b8c6a7d831cf3acfedeadf16d36360f26275f3c6501716ddf",
+          "expectedBehavior": "exact native runner/coverage와 `verify-ui-fulltest-evidence-policy-v4`가 423 positive+1 negative route의 provenance, completion oracle, role·viewport·theme, artifact integrity/redaction/visual/replay/cleanup을 판정합니다. Unsupported 0 readiness와 pass 0/not-run 424 execution은 분리되며 actual 전수와 교차 의무가 닫히기 전 전체 UI PASS가 아님",
           "locator": {
             "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
             "symbol": "file-scope:verify_v390_evidence_test_gate_prep.mjs:L25",
@@ -197302,7 +197302,7 @@
           "handlerSymbol": "file-scope:verify_v390_evidence_test_gate_prep.mjs:L25",
           "actionSymbol": "file-scope:verify_v390_evidence_test_gate_prep.mjs:L25",
           "stateSymbol": "file-scope:verify_v390_evidence_test_gate_prep.mjs:L25",
-          "semanticKey": "OPS-169:bbb7610a6f8730b0458101a6"
+          "semanticKey": "OPS-169:2ac4013da039bd0b8c6a7d83"
         },
         "verifierAssertion": {
           "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
@@ -197310,7 +197310,7 @@
           "assertionKind": "reviewed-owner-route-control-action-state-readback-chain",
           "assertionAnchor": "validateReview3CallChain",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "f0552dfdc8c4cd808054db592cd0b8416b123be1994a905ebbe04706049b7642"
+          "assertedSemanticDigest": "66abf0470b80fff3b331b8c961f3bd92fd1a9eed137158987866ad47c41b2886"
         },
         "callChain": {
           "schema": "media-server.feature-reviewed-call-chain.v1",
@@ -197363,12 +197363,12 @@
               "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4.mjs",
               "symbol": "verifier:verify-ui-fulltest-evidence-policy-v4",
               "symbolKind": "reviewed-owner-or-readback",
-              "anchor": "coveragePolicy.schema === \"media-server.v390-ui-automation-coverage-policy.v2\" &&",
+              "anchor": "coveragePolicy.schema === \"media-server.v390-ui-automation-coverage-policy.v3\" &&",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
               "line": 54,
-              "contextSha256": "6d95c374c4376d7d29522c8c3b39d05ba1004d8f02f100a2596f4790d3658627"
+              "contextSha256": "22b6313a9c9a9523b31b68a663cb0814969e33973eccb8527b253f9c5bc426e2"
             }
           },
           "routeControlKind": "owner-boundary",
@@ -197395,16 +197395,16 @@
               "from": "state",
               "to": "readback",
               "relationKind": "exact-readback-assertion",
-              "digest": "3a36e8ad40e67bbc563301c6082158e48c25fdfd56584940767f071ae3a44fc0"
+              "digest": "ee4ebb32df82acf87501d1ddbdee68305e52c3df51b1e5812c3e14bacc6dcccf"
             },
             {
               "from": "readback",
               "to": "verifierAssertion",
               "relationKind": "exact-verifier-command",
-              "digest": "1d6e411a4ab778416d2aef2137eba2dbdaf20d18d6b22ef79203cd9fe85c0c2a"
+              "digest": "b8bd4ca1ce658273857000ea596f276c690c7667b89dd7a392ff9318db450dae"
             }
           ],
-          "digest": "e64a26cd5ab2d05f6e9383137e07cf19b43e8d874cd2e40856ef2649f55929dc"
+          "digest": "5b1432b37c7b7775bd1b4562c1a45e22d4660fd965c4a46dc3e45a4fb02c2719"
         }
       }
     },
@@ -199212,8 +199212,8 @@
         "decision": "approved",
         "reviewer": "Codex-V390-REVIEW3-37",
         "reviewedOn": "2026-07-12",
-        "reason": "V390-REVIEW3-37:OPS-179:V390 actual acceptance bundle 실행 게이트:owner=currentFinalCommand:routeControl=currentFinalCommand:action=currentFinalCommand:state=currentFinalCommand:readback=verifier:verify-v390-test-acceptance-bundle:chain=7297106e2c335653",
-        "semanticDigest": "d24ae64b16c51aa16c6a0d15e8d25816fe00f07f3461c914cee9322025023fe6"
+        "reason": "V390-REVIEW3-37:OPS-179:V390 actual acceptance bundle 실행 게이트:owner=currentFinalCommand:routeControl=currentFinalCommand:action=currentFinalCommand:state=currentFinalCommand:readback=verifier:verify-v390-test-acceptance-bundle:chain=ceabf5fe73bb621c",
+        "semanticDigest": "845c966a208ee115e8816efa6041b752b5e37cde765e34437f0fde8995ed49ca"
       },
       "sourceEvidence": {
         "file": "scripts/internal/verify_v390_stabilization_release_readiness.mjs",
@@ -199269,8 +199269,8 @@
         },
         "stateOracle": {
           "oracleKind": "read-or-rendered-state",
-          "expectedBehaviorSha256": "1e921b5d4252d3a4b9f2bc9a1d70b14e3af5503bf40818c33d1a199e6092013c",
-          "expectedBehavior": "current final command `verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final --run-120`은 clean worktree를 요구하고 build, 32개 current feature command(Development 15~18, Review2-21 durable write, Review2-35 truthfulness gate 포함), 실제 30분, UI automation/replay, 실제 120분, cleanup/report를 실행합니다. contract fixture는 actual duration/UI evidence가 아니며 Policy v4 전체 UI, published metadata, release action을 실행하지 않습니다",
+          "expectedBehaviorSha256": "650009bc22f12e1e808e3dbf8d0920c1c26f36d1d009d1d128b7ba5352f7751d",
+          "expectedBehavior": "Current canonical command는 output root와 loopback UI server URL, role-state map, server log/PID/RTSP port를 받아 build, current feature commands, 실제 30분, exact 424 v4 producer, server cleanup, Policy qualification, 조건부 120분, cleanup/final integrity/report를 실행합니다. Contract fixture는 actual duration/UI evidence가 아니며 published metadata/release action을 실행하지 않습니다",
           "locator": {
             "file": "scripts/internal/verify_v390_stabilization_release_readiness.mjs",
             "symbol": "currentFinalCommand",
@@ -199288,7 +199288,7 @@
           "handlerSymbol": "currentFinalCommand",
           "actionSymbol": "currentFinalCommand",
           "stateSymbol": "currentFinalCommand",
-          "semanticKey": "OPS-179:1e921b5d4252d3a4b9f2bc9a"
+          "semanticKey": "OPS-179:650009bc22f12e1e808e3dbf"
         },
         "verifierAssertion": {
           "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
@@ -199296,7 +199296,7 @@
           "assertionKind": "reviewed-owner-route-control-action-state-readback-chain",
           "assertionAnchor": "validateReview3CallChain",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "d24ae64b16c51aa16c6a0d15e8d25816fe00f07f3461c914cee9322025023fe6"
+          "assertedSemanticDigest": "845c966a208ee115e8816efa6041b752b5e37cde765e34437f0fde8995ed49ca"
         },
         "callChain": {
           "schema": "media-server.feature-reviewed-call-chain.v1",
@@ -199353,8 +199353,8 @@
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 50,
-              "contextSha256": "4b0c9b426d7ac29493a0fcc319bafefe15f3f9383430915bec5cb4542813abd2"
+              "line": 53,
+              "contextSha256": "4576ea6c8539bd1cbaa665870ff5e209c853eddf2adf42d3f627ee0c157f2962"
             }
           },
           "routeControlKind": "owner-boundary",
@@ -199381,16 +199381,16 @@
               "from": "state",
               "to": "readback",
               "relationKind": "exact-readback-assertion",
-              "digest": "5774279abc12bee1427756c436f618edf006b67b4d04f9cacfe86f0aebf9027f"
+              "digest": "486d10ac58d86b7ccdccbe393f61167f73a35b819d2b428d463286ec02c1f22e"
             },
             {
               "from": "readback",
               "to": "verifierAssertion",
               "relationKind": "exact-verifier-command",
-              "digest": "cf745e92566bd7254f832e37e675b7820babac5d45026b1ceb7fe0c5bb24674e"
+              "digest": "3e81cffdf64309ea68b785bd8936b92429b743dcf2137b70879f0bccc11e34b3"
             }
           ],
-          "digest": "7297106e2c3356533127ec99c70ac1a38f89ff9f60453a392c5b730e224b2a9a"
+          "digest": "ceabf5fe73bb621c5205aac994ffdddfbe7031064ab28841b5c9f68afe6b25d4"
         }
       }
     },

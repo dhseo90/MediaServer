@@ -1,5 +1,7 @@
 {
-  "schema": "media-server.v390-historical-invalid-ui-evidence.v1",
+  "schema": "media-server.v390-historical-invalid-ui-evidence.v2",
+  "sourceKind": "audit-only-historical",
+  "consumerPolicy": "deny-current-evidence",
   "version": "3.9.0",
   "currentEvidenceStatus": "not-run",
   "eligibleForCurrentCoverage": false,
@@ -41,5 +43,5 @@
     "historicalSummariesPreserved": true,
     "historicalSummariesRewritten": false
   },
-  "boundary": "historical-invalid roots are preserved for audit only and cannot be current PASS inputs"
+  "boundary": "audit-only historical roots are immutable review evidence and cannot be current coverage, Policy v4, acceptance, or final-integrity inputs"
 }

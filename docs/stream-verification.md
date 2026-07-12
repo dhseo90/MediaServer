@@ -96,6 +96,7 @@ v3.9.0 Test Model Prep의 서버 longrun runner는 30분/120분을 새 테스트
 | Policy v4 actual evidence producer | V390-REVIEW3-43 exact runner actual mode는 `media-server.ui-automation-evidence.v4` summary와 case/suite attested artifact를 같은 run root에 직접 생성합니다. `./server.sh verify-v390-ui-policy-v4-producer-contract`는 producer와 containment를 검증하지만 실제 424 UI 실행, visual cross-cutting, acceptance cleanup PASS를 대체하지 않습니다. |
 | actual responsive/theme/visual evidence | V390-REVIEW3-44는 actual screenshot PNG와 browser geometry/computed-style/focus/video-overlay measurement에서 v2 visual status와 320/390/760/1180×light/dark matrix를 계산합니다. `./server.sh verify-v390-ui-visual-evidence-contract`와 Policy v4 재계산 contract는 자기선언 PASS를 거부하지만 실제 424 UI 실행 evidence가 아닙니다. |
 | current HEAD/artifact containment | V390-REVIEW3-46 acceptance는 start/end provenance와 canonical command-set hash를 기록하고 final integrity는 current HEAD·branch·source-clean 및 output/run/child/Policy/UI artifact의 realpath containment를 독립 재검증합니다. `./server.sh verify-v390-final-evidence-integrity-contract`의 9/0은 변조 거부 계약이며 실제 30분/424 UI/120분 실행 evidence가 아닙니다. |
+| current exact readiness/historical isolation | V390-REVIEW3-47은 native exact positive 423+negative 1/unsupported 0 readiness와 pass 0/not-run 424 execution을 분리합니다. Historical root는 `audit-only-historical`이며 coverage/Policy current consumer가 realpath/source kind에서 거부합니다. Contract 6/0·12/0·18/0은 actual exact 424 UI 실행 evidence가 아닙니다. |
 | failure evidence | command, exit code, phase, port, route, log path, summary path, report path, cleanup state, case, context, separated stderr tail, reproduction command, stdout/stderr path, delegated predev first failed step, likely investigation files를 포함합니다. |
 | reproducible inputs | 같은 command와 fixture로 재현할 수 있어야 합니다. |
 | artifact policy | 임시 artifact는 cleanup하거나 보존 이유를 명시합니다. `/tmp` 경로를 최종 evidence로 쓰지 않습니다. |
@@ -183,28 +184,28 @@ local `.media_server.env` defaults cannot override the isolated R2 HTTP/RTSP por
 
 ### V390-ADD1-11 full-feature exact-ID UI automation coverage matrix
 
-Step 25/R10은 R2의 8개 actual automation case를 current UI 전체 자동화 PASS로 확대
+Step 25/R10은 R2의 8개 historical automation case를 current UI 전체 자동화 PASS로 확대
 해석하지 않습니다. `./server.sh verify-v390-ui-automation-coverage --output-dir <path>`는
-978개 feature inventory와 reviewed implementation evidence를 source로, feature ID prefix나
+986개 feature inventory와 reviewed implementation evidence를 source로, feature ID prefix나
 숫자 range가 아니라 exact `manualUiCaseId`가 있는 424개 테스트를 선택합니다. 각 행은
 `testId`, `featureId`, route, source-backed control/action anchor, stability verifier command/
 assertion anchor, automation `caseId`를 독립 연결합니다. 결과는
-`mapped-with-explicit-gaps`: native visible-DOM actual evidence가 있는 `UI-108`~`UI-115`
-historical 8개는 historical-invalid로 격리하고 current automated 0, 423개는 `unsupported-manual/not-run`,
-제품 UI 미제공 negative route인 `UI-018`은 `excluded-positive-ui/not-applicable`입니다.
+`exact-native-ready-current-not-run`: positive 423개와 제품 UI 미제공 negative route `UI-018`
+1개 모두 current exact native workflow가 있고 unsupported는 0입니다. Current 실행은 pass 0/not-run
+424이며 historical 8개와 과거 acceptance root는 `audit-only-historical`로 격리합니다.
 
 검증 명령:
 
 - `./server.sh verify-v390-ui-automation-coverage --output-dir <path>`
 - `./server.sh verify-v390-ui-automation-coverage-contract`
 
-Coverage verifier는 automated 행의 screenshot, trace/video, browser console, server log
+Coverage verifier는 actual 실행 행의 screenshot, trace, browser console, server log, visual measurement/diff
 파일을 모두 확인하고, cross-prefix exact test ID 누락/중복, route/control/action source
 drift, automation featureId→caseId drift, artifact 누락을 실패 처리합니다. prefix/range 판정 제거
 상태도 contract로 고정합니다. 고정 matrix는
 `docs/v390-ui-automation-coverage-matrix.md`에 보존합니다. Matrix validation PASS는
-`fullAutomationCoverage=false`, `manualUiFulltestEvidence=false`,
-`executionEvidenceStatus=partial-automation-evidence`이며 Policy v4-qualified UI 풀테스트 실행,
+`fullAutomationCoverage=true`, `manualUiFulltestEvidence=false`,
+`executionEvidenceStatus=current-not-run`이며 readiness는 Policy v4-qualified UI 풀테스트 실행,
 30분/120분, published metadata, release action PASS가 아닙니다.
 
 ### V390-ADD1-12 Policy v4 UI evidence qualification
@@ -266,14 +267,14 @@ Policy v4 UI 풀테스트 실행 evidence가 아닙니다.
 `V390-REVIEW2-27`의 `./server.sh verify-v390-current-ui-evidence-contract`는 current coverage와
 Policy 기본 입력이 `v390_ui_current_evidence_state.json`의 `not-run` 상태를 사용하고, tracked
 `*.video.txt` placeholder가 0이며 과거 summary root가 historical-invalid manifest에만 존재하는지
-검증합니다. `verify-v390-ui-automation-coverage`의 automated 0/unsupported 423/excluded 1 PASS는
-현재 actual UI 실행이 없다는 정합성 PASS이지 UI 기능 실행 PASS가 아닙니다.
+검증합니다. `verify-v390-ui-automation-coverage`의 native 423+negative 1/unsupported 0 readiness PASS는
+current pass 0/not-run 424 실행 상태와 분리되며 UI 기능 실행 PASS가 아닙니다.
 
 전체 UI PASS는 exact UI test ID 전수가 `direct-pass` 또는
 `automation-equivalent-pass`이고 fail/not-run/unsupported/unapproved exclusion이 0이며
 시각 품질, 반응형, role guard, client redaction, video/overlay 등 교차 의무가 닫힌
-경우에만 가능합니다. 현재 matrix의 0 automated, 423 unsupported, positive UI 제외 1은
-`no-current-execution-evidence`이며 Policy v4 verifier 자체가 PASS해도 UI 풀테스트는
+경우에만 가능합니다. 현재 matrix의 exact native readiness와 pass 0/not-run 424 실행 상태는
+`current-not-run`이며 Policy v4 verifier 자체가 PASS해도 UI 풀테스트는
 `FAIL/not-qualified`입니다.
 
 ### v3.9.0 R5 UI automation report replay guard

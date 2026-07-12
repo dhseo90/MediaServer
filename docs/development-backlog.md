@@ -181,7 +181,7 @@ UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release a
 | 안정화 테스트 | 진행 대상 | AGENTS/manual UI/release policy, policy fixture/evaluator/contract, dispatch/docs/inventory를 직접 변경 | `V390-ADD1-12`, `OPS-169`, `SAFE-202` | 최신 `/goal`의 12번 개발 승인 |
 | 30분 테스트 | 미진행 | test policy와 evidence 판정만 변경하고 media/session/runtime path를 변경하지 않음 | AGENTS 7.6.2, `V390-ADD1-12` 변경 범위 | duration 실행 승인 없음 |
 | 120분 테스트 | 미진행 | high-risk runtime/media trigger가 없고 명시 실행 지시도 없음 | AGENTS 7.6.2, `V390-ADD1-12` 변경 범위 | 조건·실행 승인 없음 |
-| UI 풀테스트 | 미진행 | Policy v4 계약은 검증하지만 424개 전체 제품 UI를 새로 실행하는 요청은 아님 | exact UI test ID 424개, current not-run automated 0/unsupported 423/excluded 1 | 전체 UI 실행 승인 없음 |
+| UI 풀테스트 | 미진행 | Policy v4 계약은 검증하지만 424개 전체 제품 UI를 새로 실행하는 요청은 아님 | exact UI test ID 424개, current readiness native 423+negative 1/unsupported 0, execution pass 0/not-run 424 | 전체 UI 실행 승인 없음 |
 
 실행 전 개별 검증 항목은 policy schema/네 영역 고정/evidence mode, case 동등성 필수
 필드, suite closure, current partial evidence 판정, forbidden fixture/static/screenshot-only
@@ -793,7 +793,7 @@ failure evidence가 나와야 합니다.
 | UI Automation | R7 `UI-112`와 v3.9 신규 UI case completeness | P0 | `test/fixtures/v390_ui_automation_cases.json`과 보존 summary가 `UI-112` staging restore validation handoff를 누락함. `UI-108`~`UI-115` 전 case를 manifest, actual run, replay guard, release evidence에 포함하고 누락 case가 있으면 PASS 불가 처리 |
 | UI Automation | R8 native free UI automation adapter proof | P0 | 현재 R2 실제 run은 `browserMode=playwright`지만 Playwright package 부재로 `selectedAdapter.engine=chrome-cdp-fallback`을 사용함. Playwright/Selenium/SikuliX 중 하나를 native adapter evidence로 실행하거나, native adapter 부재 시 명확한 preflight FAIL과 설치/설정 안내를 남기고 fallback PASS를 primary PASS로 쓰지 않게 함 |
 | Server Longrun | R9 true first-fail longrun loop | P0 | V390-ADD1-10 완료. `verify-predev --fail-fast`가 duration iteration의 각 case 뒤 실패를 확인해 같은 iteration의 later case와 future iteration을 `not-run`으로 남기며, `verify-v390-server-longrun`이 context/stderr/reproduction을 console/summary/report에 보존 |
-| UI Full Coverage | R10 v1.0~v3.9 route/control/action automation coverage matrix | P0 | exact `manualUiCaseId` 424개 mapping은 유지합니다. stale historical 8-case는 current input에서 격리했고 current matrix는 automated 0/unsupported 423/excluded 1과 `no-current-execution-evidence`를 기록합니다. Matrix PASS를 full automation/UI 풀테스트 PASS로 승격하지 않습니다 |
+| UI Full Coverage | R10 v1.0~v3.9 route/control/action automation coverage matrix | P0 | exact `manualUiCaseId` 424개 mapping은 유지합니다. stale historical 8-case는 current input에서 격리했고 current matrix는 native 423+negative 1/unsupported 0 readiness와 pass 0/not-run 424 execution을 분리합니다. Matrix PASS를 UI 풀테스트 PASS로 승격하지 않습니다 |
 | Release Evidence | R11 post-review final evidence re-run and cleanup | P0 | R6~R10 수정 후 `verify-v390-stabilization-release-readiness`, Step 1~20 companion gates, actual 30분, UI automation/full coverage, 조건부 120분 판정, cleanup/evidence 보존을 다시 실행하고 release action 전 최신 evidence로 교체/추가 |
 | Product Scope Lock | R12 deferred product decision owner sign-off | P1 | action execution, persistent credential store, field smoke, provider call, model-backed Re-ID는 현재 read-only/defer 상태임. v3.9에서 non-goal로 닫는지 실제 구현할지 owner decision을 문서/evidence에 명확히 남김. owner decision 없이 완료 주장 금지 |
 | Structure | R13 structure stabilization implementation readiness | P1 | Step 19는 실제 route/API/UI extraction이 아니라 handoff임. v4.0 전/후 어느 branch에서 `webrtc_http_server.cpp`, product UI script, manual UI archive, VLM contract index를 slice별로 분리할지 실행 순서와 verifier를 확정 |
@@ -1734,7 +1734,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 | 24 | V390-REVIEW2-24 | UI Automation | exact 424 native automation case 구현 | P0 | 완료 | `v390_ui_native_exact_cases.json`이 canonical ordered 424개를 423 native-executable+UI-018 negative-route로 고정하고 unsupported 0, raw API→product screen 정규화, Playwright-native action/oracle seed/artifact plan과 외부 role-state actual runner를 제공. actual 424 UI 실행과 Step 26 eligibility는 미실행 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 대량 cross-version UI 구현 |
 | 25 | V390-REVIEW2-25 | UI Automation | no-op action false-PASS 차단 | P0 | 완료 | 공용 completion evaluator가 action별 before/after DOM digest, expected endpoint-correlated network+DOM, persisted readback, EventRecord, server-log를 판정하고 pre-existing visible text/no-op/unrelated response/action 미실행을 거부. Exact 424 pending 0, legacy UI-108~115 actual 8/8과 replay guard 재검증 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+1=6점, 거짓 PASS 위험 상향 적용 |
 | 26 | V390-REVIEW2-26 | Acceptance | Policy v4 full-suite eligibility 통합 | P0 | 완료 | 공용 evaluator가 actual acceptance PASS, canonical ordered 424, fail/not-run/unsupported/unapproved exclusions/manual intervention 0, Policy v4 source summary hash와 `uiFulltestPass=true`를 독립 요구하고 8-case·plan-only·fixture·forged evaluation을 ineligible로 유지 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+1=6점, release false-PASS 상향 적용 |
-| 27 | V390-REVIEW2-27 | Evidence | stale placeholder artifact 제거·재바인딩 | P0 | 완료 | tracked placeholder 39개/1,443B를 제거하고 6개 stale root를 historical-invalid로 격리했으며 current 기본 입력을 not-run/automated 0/unsupported 423/excluded 1 state와 durable matrix로 재바인딩 | 5.6 Sol | 높음 (high) | 2+0+1+1=4점, evidence 정확도 상향 적용 |
+| 27 | V390-REVIEW2-27 | Evidence | stale placeholder artifact 제거·재바인딩 | P0 | 완료 | tracked placeholder 39개/1,443B를 제거하고 6개 stale root를 audit-only historical로 격리했습니다. REVIEW3-47에서 current 기본 입력을 native 423+negative 1/unsupported 0 readiness와 pass 0/not-run 424 execution으로 교정했습니다 | 5.6 Sol | 높음 (high) | 2+0+1+1=4점, evidence 정확도 상향 적용 |
 | 28 | V390-REVIEW2-28 | Product Correctness | VLM reload full-contract quarantine | P0 | 완료 | save/reload가 공용 canonical envelope validator를 사용하고 restart에서 digest·activation·privacy·forbidden field·runtime side effect·invariant·schema·provider/model·unsafe ID 9종 변조를 reason과 함께 quarantine | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 보안·데이터 무결성 상향 적용 |
 | 29 | V390-REVIEW2-29 | Product Correctness | VLM incident provenance server canonicalization | P0 | 완료 | rule save 전에 active/archive EventRecord와 observation sidecar/ruleSuggestion을 조회해 event/source/observation/candidate/evaluation provenance를 exact 대조하고 forged·duplicate·deleted record를 persist 전 no-write 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, provenance 정확도·보안 상향 적용 |
 | 30 | V390-REVIEW2-30 | Product Correctness | ONVIF byte-exact transaction rollback | P0 | 완료 | source/view paired save 전 존재·raw bytes·mode snapshot을 캡처하고 교체된 파일만 atomic restore/remove하여 unknown extension/format과 source-only/view-only 존재 상태를 보존하며 rollback failure를 partialSave로 정확히 보고 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점, 데이터 손상 위험 상향 적용 |
@@ -1973,12 +1973,12 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
   Summary/report/trace는 historical 원문을 다시 쓰지 않았습니다.
 - tracked `*.video.txt` fixture placeholder 39개, 1,443B를 삭제했습니다. Current source-of-truth는
   `test/fixtures/v390_ui_current_evidence_state.json`의 `status=not-run`, actual browser false,
-  UI fulltest false, automated 0/unsupported 423/excluded 1입니다.
+  UI fulltest false, native 423+negative 1/unsupported 0 readiness와 pass 0/not-run 424 execution입니다.
 - coverage policy/runner/durable matrix, Policy v4 default, acceptance dry-run, native adapter contract가
   current state를 사용합니다. Stale legacy summary override는 missing provenance/current commit/integrity
   검증에서 거부됩니다.
-- `verify-v390-current-ui-evidence-contract` 5/0과 coverage contract 12/0이 tracked placeholder 0,
-  historical root 전수, active stale binding 0, current 0/423/1을 검증합니다. 실제 UI 재실행은
+- `verify-v390-current-ui-evidence-contract` 6/0과 coverage contract 12/0이 tracked placeholder 0,
+  historical root 전수, active stale binding 0, current readiness/execution 분리를 검증합니다. 실제 UI 재실행은
   승인되지 않아 수행하지 않았고 not-run은 PASS가 아닙니다.
 
 #### V390-REVIEW2-28 VLM reload full-contract quarantine
@@ -2161,7 +2161,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 | 24 | V390-REVIEW2-24 | 완료 | 미완성 | 223개 navigation-only, 201개 generic tag action이며 기능별 입력·조작·readback을 구현하지 않음 |
 | 25 | V390-REVIEW2-25 | 완료 | 부분 구현 | before/after 동일은 거부하지만 임의 DOM 변화만으로 expected behavior와 무관하게 PASS 가능 |
 | 26 | V390-REVIEW2-26 | 완료 | end-to-end 미완성 | exact runner v1 output과 Policy v4 required schema가 달라 native run→qualification→eligible 경로가 끊김 |
-| 27 | V390-REVIEW2-27 | 완료 | 부분 구현 | placeholder 삭제와 historical-invalid 격리는 됐으나 coverage policy에 stale 0/423/1 설명이 남음 |
+| 27 | V390-REVIEW2-27 | 완료 | REVIEW3-47에서 보강 완료 | placeholder 삭제와 historical 격리를 유지하면서 coverage를 native 423+negative 1/unsupported 0 readiness와 pass 0/not-run 424 execution으로 교정하고 current consumer의 audit-only source 사용을 차단 |
 | 28 | V390-REVIEW2-28 | 완료 | 부분 구현 | save/reload 공용 validator는 있으나 non-structural first-field parser와 duplicate-key 우회 가능성 존재 |
 | 29 | V390-REVIEW2-29 | 완료 | 구현 확인/save-time 한정 | EventRecord/observation provenance 대조와 no-write 존재. restart 시 저장 rule provenance 재대조는 없음 |
 | 30 | V390-REVIEW2-30 | 완료 | 구현 확인 | bytes/existence/mode snapshot과 atomic restore/remove 존재. process crash journal은 비범위 |
@@ -2189,7 +2189,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 | 44 | V390-REVIEW3-44 | Visual Evidence | responsive/theme/visual 실제 판정 | P0 | 완료 | actual PNG dimension/hash와 browser DOM geometry/computed-style/focus/video-overlay 측정에서 case visual 및 320/390/760/1180×light/dark cross-cutting status를 계산하고 Policy qualifier가 attested input을 재계산합니다 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+1=7점. 시각 동등성과 false-PASS 상향 적용 |
 | 45 | V390-REVIEW3-45 | Acceptance | canonical one-command 실행 경로 | P0 | 완료 | canonical bundle이 30분→exact 424 v4 producer→throwaway server cleanup→Policy qualification→AGENTS 7.6.2 조건부 120분→cleanup→final integrity를 연결하며 legacy 8-case와 외부 summary 주입을 제거했습니다 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점. release correctness 상향 적용 |
 | 46 | V390-REVIEW3-46 | Evidence | current HEAD와 artifact containment | P0 | 완료 | acceptance가 실행 시작/종료 provenance와 canonical command-set hash를 기록하고 final integrity가 이를 현재 HEAD·branch, source-clean state, approved artifact root의 realpath containment, Policy v4 source/build binding과 독립 대조합니다 | 5.6 Sol | 높음 (high) | 2+1+2+1=6점. release correctness 상향 적용 |
-| 47 | V390-REVIEW3-47 | Evidence | stale policy/historical artifact 정리 | P1 | 미완료 | coverage policy의 0/423/1 설명과 actual exact manifest를 정합화하고 historical PASS를 current consumer가 읽지 못하게 source binding 강화 | 5.6 Sol | 높음 (high) | 1+1+1+1=4점이나 evidence 정확도 상향 적용 |
+| 47 | V390-REVIEW3-47 | Evidence | stale policy/historical artifact 정리 | P1 | 완료 | coverage policy v3가 exact native manifest의 positive 423+negative route 1/unsupported 0 readiness와 pass 0/not-run 424 execution을 분리하고, current state v2와 Policy/coverage consumer가 `audit-only-historical` source kind/root를 거부합니다 | 5.6 Sol | 높음 (high) | 1+1+1+1=4점이나 evidence 정확도 상향 적용 |
 | 48 | V390-REVIEW3-48 | Structure | actual module dependency graph | P1 | 미완료 | 9개 declared module owner를 실제 파일/target에 매핑하고 include/link graph, forbidden edge, SCC, slice entry/exit를 실경로로 검증 | 5.6 Sol | 높음 (high) | 1+2+2+1=6점. 구조 전면 안정화 진입 정확도 상향 적용 |
 | 49 | V390-REVIEW3-49 | Structure Decision | 구조 안정화 실행 범위 확정 | P1 | 미완료 decision | 48번 actual graph 결과를 근거로 42,726-line HTTP server와 10,217-line UI script의 실제 refactor를 v3.9 안정화 단계에서 할지 v4.0으로 넘길지 사용자 결정을 source-of-truth에 고정 | 5.6 Sol | 높음 (high) | 2+2+1+1=6점. 광범위 구조 변경과 release 경계 상향 적용 |
 
@@ -2454,6 +2454,22 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 - 강화 계약의 최초 실행은 HEAD drift/unapproved dirty, canonical command 대체/hash mismatch, child path
   escape 3건이 검출되지 않아 6/3 RED였습니다. 구현 후 final integrity contract 9/0과 acceptance contract
   9/0이 통과했습니다. 실제 30분, exact 424 browser UI 풀테스트, 120분은 실행하지 않았습니다.
+
+47번 구현 기록(2026-07-12):
+
+- Coverage policy/summary를 v3으로 올리고 `v390_ui_native_exact_cases.json`의 424개를 implementation 및
+  Policy v4 canonical manifest와 exact ID/feature/canonical route/role/viewport/theme로 대조합니다. Positive
+  native-executable 423개와 `UI-018` negative-route 1개가 모두 workflow를 가지며 unsupported는 0입니다.
+- Current state v2는 readiness 423+1/unsupported 0과 execution pass 0/fail 0/not-run 424/unsupported 0을
+  별도 필드로 기록하고 두 canonical manifest의 SHA-256을 결속합니다. Readiness PASS를 actual UI PASS로
+  승격하지 않으며 current UI fulltest는 계속 `not-run`/false입니다.
+- Historical manifest v2는 `sourceKind=audit-only-historical`, `consumerPolicy=deny-current-evidence`입니다.
+  Coverage runner는 realpath가 6개 historical root 아래면 schema보다 먼저 거부하고 Policy qualifier는
+  `audit-only-historical-denied`/`uiFulltestPass=false`와 denial reason을 기록합니다.
+- 강화 current contract의 최초 실행은 state/historical schema 두 건이 없어 3/2 RED였습니다. 최종 current
+  contract 6/0, coverage contract 12/0, Policy v4 contract 18/0이 통과했습니다. `SAFE-212`/`OPS-169`/
+  `OPS-179` source drift도 targeted review로 986개 semantic-reviewed 상태를 복구했습니다. 실제 exact 424
+  browser UI 풀테스트, 30분, 120분은 실행하지 않았습니다.
 
 #### V390-REVIEW3-48~49 structure entry decision
 
