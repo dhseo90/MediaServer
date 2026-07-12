@@ -23,13 +23,16 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 재검토에서 `V390-REVIEW2-19`~`V390-REVIEW2-35` 잔여가 확인되었습니다. 이후 구현됐다고
 기록된 항목을 2026-07-12 다시 source-level로 감사한 결과 semantic closure, exact 424 UI
 automation, Policy v4 actual evidence producer, acceptance 연결, durability, 구조 graph 검증에
-잔여 결함이 확인되어 `V390-REVIEW3-36`~`V390-REVIEW3-49`로 재오픈했습니다. 아래 과거
-`완료` 행과 재검토 결과가 충돌하면 **2026-07-12 REVIEW3 섹션이 최우선**입니다. 여기서
+잔여 결함이 확인되어 `V390-REVIEW3-36`~`V390-REVIEW3-49`로 재오픈했습니다. REVIEW3 구현 뒤
+2026-07-12 source를 다시 직접 감사한 결과, semantic evidence와 exact UI/Policy v4 경로,
+durability, one-command acceptance, 구조 실행 범위에 추가 결함이 확인되어
+`V390-REVIEW4-50`~`V390-REVIEW4-65`로 다시 재오픈했습니다. 아래 과거 `완료` 행과
+재검토 결과가 충돌하면 **2026-07-12 REVIEW4 섹션이 최우선**입니다. 여기서
 `완료`라고 표시한 값은 각 step의 문서, read-only decision route, UI status, verifier,
 release evidence boundary가 연결되었다는 뜻이며 제품 의미의 구현 완료와 같지 않습니다.
 실제 30분/120분 runner, 무료 UI 자동화 runner, 구조 안정화 리팩토링, UI 풀테스트 직접 실행,
 30분/120분 장시간 실행, published metadata, release action은 각 직접 evidence가 있을
-때만 완료로 봅니다. 아래 REVIEW3 잔여 구현 목표는 다른 개발 채팅이 이 대화의
+때만 완료로 봅니다. 아래 REVIEW4 잔여 구현 목표는 다른 개발 채팅이 이 대화의
 맥락 없이도 구현해야 할 실제 목표와 통과 조건을 이해하도록 남긴 source-of-truth입니다.
 Candidate/structure 영역은 여전히 discovery 결과 승인 전 기능 개발 금지 경계를 따릅니다.
 
@@ -2516,6 +2519,62 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
   evidence이며 이번 문서 반영에서 실행하지 않았습니다.
 - 각 항목은 구현, 개별 테스트 등록, 승인된 테스트 실행, roadmap/evidence, `git diff --check`, 사용자
   커밋 승인을 독립적으로 닫습니다.
+
+### REVIEW4 직접 감사 후 잔여 개발 순서
+
+2026-07-12 `bf327888b0b87b4dc2fe6479d9df14358ab22271`을 기준으로 문서의 완료 표기를
+신뢰하지 않고 source, consumer, runner, evidence producer, qualifier를 다시 대조했습니다.
+그 결과 REVIEW3의 파일과 verifier는 존재하지만 일부 완료 조건이 제품 의미로 닫히지 않았습니다.
+REVIEW4는 아래 순서를 고정합니다. 앞 단계가 FAIL이면 뒤 단계는 시작하지 않으며, 50~64 개발이
+닫히기 전 65번 current final test를 실행하거나 `v3.9.0 테스트 제외 개발 완료`를 주장하지 않습니다.
+
+| 순서 | ID | 구간 | 제목 | 우선순위 | 상태 | 개발 내용 | 추천 모델 | 추론 수준 | 선정 근거 |
+| ---: | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 50 | V390-REVIEW4-50 | Foundation | roadmap truth reset과 current 기준 정렬 | P0 | 대기 | REVIEW3 완료 표기를 historical source-implementation claim으로 낮추고, 직접 감사 판정인 구현 확인 18, 부분 13, 미완성 4를 current 상태로 고정합니다. `fullAutomationCoverage`처럼 readiness를 실행 완료로 오해시키는 필드와 source 604/606, HTTP server 41,399/42,726/42,897 같은 문서 수치 drift를 교정합니다. | 5.6 Terra | 중간 (medium) | 영향도 1, 불확실성 1, 검증 난이도 1, 변경 범위 1, 총 4점. 문서와 상태 schema 정렬이며 상향 규칙 없음 |
+| 51 | V390-REVIEW4-51 | Scope Gate | 구조 안정화 버전 범위 재확정 | P0 | 사용자 결정 대기 | 최초 v3.9 목표의 구조 전면 안정화와 REVIEW3-49의 `defer-actual-refactor-to-v4.0.0` 충돌을 해소합니다. v3.9에서 64번을 실행할지, v3.9는 graph guard까지만 닫고 실제 refactor를 제외할지 사용자 결정, base commit, 허용 contract, branch 경계를 machine-readable decision으로 고정합니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. 전면 구조 변경과 release 경계 상향 적용 |
+| 52 | V390-REVIEW4-52 | Discovery | 문서와 source 의미 전수 감사 | P0 | 대기 | checksum, byte count, status marker만으로 full review를 판정하지 않습니다. tracked 문서와 incomplete marker 각각에 현재 구현과의 의미 일치, 실제 owner, 처리 결정, 근거 위치를 기록하고 scripts/internal 일괄 분류를 제거합니다. 미분류, stale current claim, 상충 수치가 0이어야 합니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 1, 총 7점. 기능 누락 정확도 상향 적용 |
+| 53 | V390-REVIEW4-53 | Feature Closure | 986행 semantic call-chain 독립 재구축 | P0 | 대기 | migration이 locator, edge, reason, approval을 동시에 생성하지 못하게 분리합니다. 986개 각각의 owner, dispatch, action, state mutation, readback, verifier 관계를 실제 symbol/call/data-flow에서 독립 확인하고 `UI-001` 같은 무관 anchor, generic shared owner, 동일 DOM 자체 비교를 negative fixture로 거부합니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. 전 기능 정확도와 거짓 closure 위험 상향 적용 |
+| 54 | V390-REVIEW4-54 | Persistence | Analysis Registry 실패 원자성 복구 | P0 | 대기 | 신규 target mode를 계약값 `0640`으로 맞추고 rename 뒤 directory fsync 실패의 API, file, memory, restart 의미를 하나로 확정합니다. HTTP 500인데 candidate가 file/memory에 publish되는 모호성을 제거하고, retry/idempotency와 crash recovery matrix가 success 또는 failure 계약 중 하나만 관측하게 합니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 2, 총 7점. 운영 데이터 손상 위험 상향 적용 |
+| 55 | V390-REVIEW4-55 | Persistence | ONVIF source/view crash transaction 완성 | P0 | 대기 | 현재 순차 replace와 보상 rollback을 crash-atomic으로 과장하지 않습니다. journal 또는 recoverable transaction marker로 두 파일 사이 process crash를 복구하거나, 제품 계약과 route/result 명칭을 보상 rollback 범위로 명확히 제한합니다. bytes, existence, mode, restart, retry를 crash point별로 검증합니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 2, 총 7점. source/view 데이터 정합성 상향 적용 |
+| 56 | V390-REVIEW4-56 | UI Case Design | exact 424 기능별 workflow 재작성 | P0 | 대기 | 424개를 actionable, form-submit, persisted mutation, read-only state, hidden/disabled, negative route로 재분류합니다. `body` 또는 route-root 존재로 구체 expected behavior를 대체하지 않고 각 case에 실제 입력, visible/enabled control, endpoint 또는 local action, expected product state, 독립 readback, cleanup을 둡니다. submit false form 16개와 exists/visible 중심 360개를 전수 재검토합니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. 대량 UI 동등성과 false-PASS 상향 적용 |
+| 57 | V390-REVIEW4-57 | UI Runner | canonical requested/observed schema 일치 | P0 | 대기 | actual runner의 requested에 canonical `route`, `accountRole`, `viewport`, `theme`, `controlAction`을 모두 기록하고 observed와 독립 비교합니다. `role` 별칭과 screen route/canonical API route 혼용을 제거하며 manifest, runner, producer, qualifier가 같은 typed schema를 사용하게 합니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 2, 총 7점. Policy v4 release eligibility 상향 적용 |
+| 58 | V390-REVIEW4-58 | UI Oracle | 실제 action 결속 completion oracle | P0 | 대기 | 최초 navigation GET을 후속 action completion으로 재사용하지 않습니다. primary control action에서 발생한 request ID/method/path/status 또는 해당 action의 local state transition을 결속하고, exact control selector와 독립 persisted/EventRecord/server-log/DOM readback으로 expected behavior를 판정합니다. runner가 만든 expected와 observed의 자기 비교를 금지합니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 1, 총 7점. 거짓 PASS 정확도 상향 적용 |
+| 59 | V390-REVIEW4-59 | Visual Evidence | viewport/theme/video-overlay 실제 matrix | P0 | 대기 | operator와 viewer 각각 한 화면으로 전체 UI를 대표하지 않습니다. 320/390/760/1180과 light/dark에서 대표 route 집합을 실행하고 `/client/live`의 ready video, VA overlay containment, crop, control 영역을 필수 probe로 포함합니다. 화면별 geometry, contrast, focus, overflow, screenshot을 실제 canonical case와 결속합니다. | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 6점. 시각 동등성과 영상 UI 검증 상향 적용 |
+| 60 | V390-REVIEW4-60 | UI Policy | Policy v4 producer와 qualifier 독립성 | P0 | 대기 | producer가 runner PASS를 받아 `trusted-interaction` 또는 completion PASS를 새로 선언하지 못하게 합니다. qualifier는 native trace의 실제 primary action, exact selector, request/readback, visual measurement를 독립 재계산하고 source producer와 검증 oracle이 같은 자기선언을 공유하지 않게 합니다. 56~59의 결함 fixture가 모두 FAIL해야 합니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. release correctness와 순환 신뢰 위험 상향 적용 |
+| 61 | V390-REVIEW4-61 | Long-run/Evidence | duration, 120분 판정, cleanup 실측 | P0 | 대기 | longrun summary가 실제 monotonic 시작/종료/경과시간과 iteration ledger를 기록하게 하고 관측 최대 iteration 역산만으로 duration을 주장하지 않습니다. 120분 필요성은 `--run-120` 부재가 아니라 AGENTS 7.6.2 변경 범위 판정 결과로 계산합니다. cleanup은 PID, port, artifact path, before/after bytes를 직접 측정합니다. | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 6점. 장시간 및 release evidence 정확도 상향 적용 |
+| 62 | V390-REVIEW4-62 | Acceptance | self-contained one-command 실행 환경 | P0 | 대기 | canonical command가 throwaway HTTP/RTSP server 시작, account/role seed, storage-state 생성, server log/PID/port ownership, exact 424, Policy v4, cleanup까지 직접 소유합니다. 외부에서 준비한 PID를 종료하는 현재 경계를 제거하고 Playwright/browser dependency를 저장소 lock 또는 명시 bootstrap으로 재현 가능하게 고정합니다. 첫 실패 뒤 later case는 not-run입니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. 복합 실행 경계와 release correctness 상향 적용 |
+| 63 | V390-REVIEW4-63 | Product Scope | deferred 기능 실제 owner 확정 | P1 | 대기 | action write, persistent credential store, production restore, external provider call, model-backed Re-ID를 역할 이름만 있는 decision record로 완료 처리하지 않습니다. 실제 승인 주체, v3.9 구현/제외 결정, 근거, 후속 version 의존성을 기록하고 미승인 항목은 `not-executed`로 유지합니다. 외부 field smoke는 계속 별도 조건부입니다. | 5.6 Terra | 중간 (medium) | 영향도 1, 불확실성 1, 검증 난이도 1, 변경 범위 1, 총 4점. 제품 범위 결정 기록이며 상향 규칙 없음 |
+| 64 | V390-REVIEW4-64 | Structure | 승인된 구조 안정화 slice 실행 | P0 | 51번 결정 대기 | 51번에서 v3.9 실행이 승인된 경우에만 composition root, route/API handler, registry/domain, UI script/CSS, VLM/parser, verifier/docs 순으로 동작 보존 refactor를 수행합니다. 각 slice는 allowed file set, dependency direction, API/schema/media-path 불변, baseline gate, rollback point를 독립적으로 닫고 target 위반/SCC/mixed-owner debt를 감소시켜야 합니다. | 5.6 Sol | 최대 (max) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. 42,897-line server와 10,217-line UI를 포함한 전면 구조 변경으로 xhigh보다 추가 탐색과 회귀 검증이 필요한 최난도 작업 |
+| 65 | V390-REVIEW4-65 | Final Test | current HEAD 독립 acceptance와 evidence | P0 | 개발 완료 후 실행 승인 대기 | 50~64가 닫힌 clean HEAD에서 정적/빌드 gate, 30분, exact 424 Policy v4 UI, AGENTS 7.6.2 판정에 따른 120분, cleanup, final integrity를 사용자가 그대로 실행 가능한 canonical command로 수행합니다. current commit, 명령, 첫 실패 위치, 재현 명령, 미실행/조건부 항목을 보존하며 historical PASS를 재사용하지 않습니다. | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 6점. release correctness 검증 상향 적용 |
+
+#### REVIEW4 단계 의존성과 중단 조건
+
+1. 50번이 current source-of-truth를 교정해야 51~53의 입력 집합이 확정됩니다.
+2. 51번은 구조 구현의 버전 범위만 결정합니다. 64번 실제 refactor는 기능, persistence, UI/test
+   implementation인 52~63이 닫힌 뒤 시작합니다.
+3. 52번 전수 감사 결과로 기능 수나 scope가 바뀌면 53번 semantic manifest와 56번 UI case set을
+   먼저 갱신합니다. 숫자를 기존 986/424에 강제로 맞추지 않습니다.
+4. 54~55 persistence는 독립 개발할 수 있지만 두 항목 모두 성공/실패/restart contract가 닫혀야
+   mutation을 포함하는 UI case를 final로 고정합니다.
+5. UI 경로는 56 case design -> 57 schema -> 58 oracle -> 59 visual -> 60 Policy 순서를 바꾸지 않습니다.
+6. 61번 duration/cleanup contract가 닫혀야 62번 acceptance가 이를 canonical child로 소비합니다.
+7. 63번에서 구현하기로 승인된 deferred 기능이 있으면 해당 구현과 case를 64번 또는 65번 앞으로
+   삽입하고, 제외된 기능은 제외 근거만 남깁니다.
+8. 64번을 v3.9에서 실행하면 구조 변경 뒤 모든 기능 verifier와 UI case binding을 다시 생성하고
+   직접 검토합니다. 64번을 제외하기로 결정하면 `not-executed`를 완료로 바꾸지 않습니다.
+9. 65번은 테스트 실행 단계입니다. 사용자 명시 승인 전 실행하지 않으며, FAIL 시 release action으로
+   넘어가지 않습니다.
+
+#### REVIEW4 공통 완료 조건
+
+- 각 개발 항목은 actual source/consumer 경로, negative contract, 관련 개별 테스트 ID, 변경 파일,
+  회귀 범위와 roadmap 기록이 모두 있어야 완료입니다.
+- manifest/fixture/verifier가 서로 같은 값을 생성하고 비교하는 순환 검증은 독립 evidence가 아닙니다.
+- `covered`, `ready`, `gate-ready`, `decision-record`, `not-run`, `conditional-not-run`은 실행 PASS와
+  구분합니다.
+- 현재 HEAD의 30분, 120분, exact 424, Policy v4 evidence가 없으면 current release PASS가 아닙니다.
+- REVIEW4 등록과 문서 수정 자체는 기능 구현, 테스트 실행, 구조 안정화 또는 release 완료 evidence가
+  아닙니다.
 
 ## 이전 source roadmap 기록: v3.8.0 Operator-Gated Action Pilot & Outcome Loop
 
