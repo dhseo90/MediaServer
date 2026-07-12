@@ -2,9 +2,9 @@
   "schema": "media-server.v390-ui-native-exact-cases.v2",
   "sourceBindings": {
     "canonicalSchema": "media-server.ui-fulltest-canonical-case-manifest.v1",
-    "canonicalSha256": "9f4ba0747154810cde5cc6bfbfc13cd1318e3dcb58009d1762e87f62b7a21e08",
+    "canonicalSha256": "e2be83d306bada3839541754735be2e37f71a0f0b9034ada7134db816f62c6a8",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
-    "implementationSha256": "99da73d6eae76032ca88ca401deb7332d688cdf6d2ba808c0c0ced9b194da370",
+    "implementationSha256": "bbfbd64e59e01a902b86b48548dadb904435a39cc64b484cc4fd3f3c30744b51",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {

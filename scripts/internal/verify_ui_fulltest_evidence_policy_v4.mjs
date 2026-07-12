@@ -51,14 +51,15 @@ const currentSource = {
 const evaluation = evaluateEvidence(policy, summary, { rootDir, verifyArtifacts: true, currentSource });
 const currentCounts = coveragePolicy.expectedReadiness || {};
 const currentCoverageValid =
-  coveragePolicy.schema === "media-server.v390-ui-automation-coverage-policy.v3" &&
+  coveragePolicy.schema === "media-server.v390-ui-automation-coverage-policy.v4" &&
   currentCounts.exactUiTestIds === 424 &&
   currentCounts.nativeExecutablePositive === 423 &&
   currentCounts.negativeRouteExecutable === 1 &&
   currentCounts.unsupported === 0 &&
   coveragePolicy.defaultExecutionState?.pass === 0 &&
   coveragePolicy.defaultExecutionState?.notRun === 424 &&
-  coveragePolicy.boundaries?.fullAutomationCoverage === true &&
+  coveragePolicy.boundaries?.exactNativeWorkflowReadinessComplete === true &&
+  coveragePolicy.boundaries?.actualAutomationExecutionComplete === false &&
   coveragePolicy.boundaries?.manualUiFulltestEvidence === false &&
   coveragePolicy.boundaries?.historicalConsumerPolicy === "deny-current-evidence";
 

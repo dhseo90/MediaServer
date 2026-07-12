@@ -2177,11 +2177,22 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 집계: 구현 확인 11, 부분 구현 16, 미완성 4, 결정/gate/조건부 4입니다. `구현 확인`도 이번
 정적 감사에서 source 경로가 확인됐다는 뜻이며, 실행하지 않은 테스트 PASS를 뜻하지 않습니다.
 
+위 표는 REVIEW3 구현 전 historical 감사 snapshot입니다. REVIEW3 행의 `완료`도 당시 source
+implementation claim일 뿐 current 제품 의미 완료가 아닙니다. REVIEW4-50이 다시 대조한 current
+판정의 machine-readable source는 `test/fixtures/v390_review4_truth_reset.json`이며 다음과 같습니다.
+
+- source 구현 확인 18: 1, 2, 3, 4, 7, 8, 13, 15, 19, 20, 27, 28, 29, 30, 31, 32, 33, 35
+- source 부분 구현 13: 5, 6, 9, 10, 11, 12, 21, 22, 23, 24, 25, 26, 34
+- source 미완성 4: 14, 16, 17, 18
+
+집계: source 구현 확인 18, source 부분 구현 13, source 미완성 4입니다. source 구현 확인은 runtime, UI, 30분, 120분 PASS가 아닙니다. Discovery current source는 606개이며,
+`webrtc_http_server.cpp` 42,897줄, `product_ui_page_scripts.cpp` 10,217줄입니다.
+
 ### REVIEW3 잔여 구현 순서
 
 | 번호 | ID | 구간 | 제목 | 우선순위 | 상태 | 개발 내용 | 추천 모델 | 추론 수준 | 선정 근거 |
 | ---: | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 36 | V390-REVIEW3-36 | Discovery | 누락 기능과 전체 문서 ledger | P0 | 완료 | `AGENTS.md` 별도 전문 감사와 tracked Markdown 173개 파일별 full-read SHA-256/classification/status marker/duplicate/action ledger, 604개 source/tooling file marker 분류를 구현했습니다. RulesJson 두 항목은 non-VA 분석 자동부착 `excluded-by-design`, RTSP/WebRTC 장시간 검증 `transferred-to-test-condition`으로 inventory에 등록하고 `notImplementedYet` 응답을 제거했습니다. | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 2, 검증 난이도 1, 변경 범위 1, 총 6점. 기능 누락 정확도 상향 적용 |
+| 36 | V390-REVIEW3-36 | Discovery | 누락 기능과 전체 문서 ledger | P0 | historical source claim / REVIEW4 재검증 | `AGENTS.md` 별도 전문 감사와 tracked Markdown 173개 파일별 full-read SHA-256/classification/status marker/duplicate/action ledger, 606개 source/tooling file marker 분류를 구현했습니다. RulesJson 두 항목은 non-VA 분석 자동부착 `excluded-by-design`, RTSP/WebRTC 장시간 검증 `transferred-to-test-condition`으로 inventory에 등록하고 `notImplementedYet` 응답을 제거했습니다. | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 2, 검증 난이도 1, 변경 범위 1, 총 6점. 기능 누락 정확도 상향 적용 |
 | 37 | V390-REVIEW3-37 | Feature Closure | 986행 semantic closure 전면 재감사 | P0 | 완료 | 자동 token 최고점과 bulk approval API를 제거하고 986개 기능 각각을 content-addressed owner→route/control→action→state→readback→verifier 5-edge chain, 986개 고유 review reason/digest로 재작성했습니다. `SAFE-140`은 v3.5 command workspace owner로, `RULE-017`은 hidden/generated ID save/readback owner와 `verify-ops-client-ui`로 교정했습니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. 전 기능 정확도 직접 영향 |
 | 38 | V390-REVIEW3-38 | Persistence | Analysis Registry crash durability | P0 | 완료 | 기존 mode를 temp에 복원하고 file fsync/close→parent directory open→rename→directory fsync 뒤에만 성공합니다. 12 success, 12 mutation×9 fault=108, 12×3 crash=36 actual HTTP/restart matrix와 startup stale-temp recovery를 구현했습니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점. 데이터 손상 위험 상향 적용 |
 | 39 | V390-REVIEW3-39 | VLM Integrity | 구조적 JSON과 provenance 재검증 | P0 | 완료 | 공용 strict JSON parser로 모든 object scope의 decoded duplicate key와 malformed/trailing JSON을 거부하고 profile/rule의 top-level/nested type을 exact 조회합니다. Profile reload 13종과 rule provenance reload의 forged/duplicate/nested/deleted server-record를 quarantine합니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. provenance·보안·데이터 무결성 상향 적용 |
@@ -2192,7 +2203,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 | 44 | V390-REVIEW3-44 | Visual Evidence | responsive/theme/visual 실제 판정 | P0 | 완료 | actual PNG dimension/hash와 browser DOM geometry/computed-style/focus/video-overlay 측정에서 case visual 및 320/390/760/1180×light/dark cross-cutting status를 계산하고 Policy qualifier가 attested input을 재계산합니다 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+1=7점. 시각 동등성과 false-PASS 상향 적용 |
 | 45 | V390-REVIEW3-45 | Acceptance | canonical one-command 실행 경로 | P0 | 완료 | canonical bundle이 30분→exact 424 v4 producer→throwaway server cleanup→Policy qualification→AGENTS 7.6.2 조건부 120분→cleanup→final integrity를 연결하며 legacy 8-case와 외부 summary 주입을 제거했습니다 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점. release correctness 상향 적용 |
 | 46 | V390-REVIEW3-46 | Evidence | current HEAD와 artifact containment | P0 | 완료 | acceptance가 실행 시작/종료 provenance와 canonical command-set hash를 기록하고 final integrity가 이를 현재 HEAD·branch, source-clean state, approved artifact root의 realpath containment, Policy v4 source/build binding과 독립 대조합니다 | 5.6 Sol | 높음 (high) | 2+1+2+1=6점. release correctness 상향 적용 |
-| 47 | V390-REVIEW3-47 | Evidence | stale policy/historical artifact 정리 | P1 | 완료 | coverage policy v3가 exact native manifest의 positive 423+negative route 1/unsupported 0 readiness와 pass 0/not-run 424 execution을 분리하고, current state v2와 Policy/coverage consumer가 `audit-only-historical` source kind/root를 거부합니다 | 5.6 Sol | 높음 (high) | 1+1+1+1=4점이나 evidence 정확도 상향 적용 |
+| 47 | V390-REVIEW3-47 | Evidence | stale policy/historical artifact 정리 | P1 | historical source claim / REVIEW4 재검증 | coverage policy v4가 exact native manifest의 positive 423+negative route 1/unsupported 0 readiness와 pass 0/not-run 424 execution을 분리하고, current state v2와 Policy/coverage consumer가 `audit-only-historical` source kind/root를 거부합니다 | 5.6 Sol | 높음 (high) | 1+1+1+1=4점이나 evidence 정확도 상향 적용 |
 | 48 | V390-REVIEW3-48 | Structure | actual module dependency graph | P1 | 완료 | actual C++ 148개/CMake cpp declared 74·default active 73를 9 owner와 single `media_server` target에 연결하고 32 include direction witness hash, external link, target 위반 25 direction, legacy core 역의존 3 edge, 8-owner SCC, mixed ownership과 6 slice entry/exit를 검증합니다 | 5.6 Sol | 높음 (high) | 1+2+2+1=6점. 구조 전면 안정화 진입 정확도 상향 적용 |
 | 49 | V390-REVIEW3-49 | Structure Decision | 구조 안정화 실행 범위 확정 | P1 | 완료 decision / 구현 미실행 | 48번 actual graph의 25 target 위반, 8-owner SCC, single target, 42,897-line HTTP server와 10,217-line UI script를 근거로 v3.9는 graph/guard/decision-only, 실제 refactor는 explicit 승인 뒤 v4.0.0 ordered slice로 이관합니다 | 5.6 Sol | 높음 (high) | 2+2+1+1=6점. 광범위 구조 변경과 release 경계 상향 적용 |
 
@@ -2478,7 +2489,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 
 - structure verifier는 미래 module fixture와 실제 파일 graph를 같은 node identity로 연결합니다.
 - 구조 안정화는 현재 readiness 문서만 있고 실제 source extraction은 없습니다. 현재
-  `src/ingress/webrtc_http_server.cpp` 42,726줄과 `product_ui_page_scripts.cpp` 10,217줄 상태를 기준으로
+  `src/ingress/webrtc_http_server.cpp` 42,897줄과 `product_ui_page_scripts.cpp` 10,217줄 상태를 기준으로
   48번 actual dependency graph를 먼저 확정한 뒤 v3.9 안정화에서 수행할지 v4.0에서 수행할지 결정합니다.
   결정 전 `구조 안정화 완료`를 보고하지 않습니다.
 
@@ -2530,7 +2541,7 @@ REVIEW4는 아래 순서를 고정합니다. 앞 단계가 FAIL이면 뒤 단계
 
 | 순서 | ID | 구간 | 제목 | 우선순위 | 상태 | 개발 내용 | 추천 모델 | 추론 수준 | 선정 근거 |
 | ---: | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 50 | V390-REVIEW4-50 | Foundation | roadmap truth reset과 current 기준 정렬 | P0 | 대기 | REVIEW3 완료 표기를 historical source-implementation claim으로 낮추고, 직접 감사 판정인 구현 확인 18, 부분 13, 미완성 4를 current 상태로 고정합니다. `fullAutomationCoverage`처럼 readiness를 실행 완료로 오해시키는 필드와 source 604/606, HTTP server 41,399/42,726/42,897 같은 문서 수치 drift를 교정합니다. | 5.6 Terra | 중간 (medium) | 영향도 1, 불확실성 1, 검증 난이도 1, 변경 범위 1, 총 4점. 문서와 상태 schema 정렬이며 상향 규칙 없음 |
+| 50 | V390-REVIEW4-50 | Foundation | roadmap truth reset과 current 기준 정렬 | P0 | 완료 | REVIEW3 완료 표기를 historical source claim으로 낮추고, 통합 순번 1~35를 source 구현 확인 18, 부분 13, 미완성 4로 고정했습니다. readiness는 `exactNativeWorkflowReadinessComplete`, 실행 완료는 `actualAutomationExecutionComplete`로 분리하고 source 606, HTTP server 42,897, UI script 10,217 current 실측에 맞췄습니다. | 5.6 Terra | 중간 (medium) | 영향도 1, 불확실성 1, 검증 난이도 1, 변경 범위 1, 총 4점. 문서와 상태 schema 정렬이며 상향 규칙 없음 |
 | 51 | V390-REVIEW4-51 | Scope Gate | 구조 안정화 버전 범위 재확정 | P0 | 사용자 결정 대기 | 최초 v3.9 목표의 구조 전면 안정화와 REVIEW3-49의 `defer-actual-refactor-to-v4.0.0` 충돌을 해소합니다. v3.9에서 64번을 실행할지, v3.9는 graph guard까지만 닫고 실제 refactor를 제외할지 사용자 결정, base commit, 허용 contract, branch 경계를 machine-readable decision으로 고정합니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. 전면 구조 변경과 release 경계 상향 적용 |
 | 52 | V390-REVIEW4-52 | Discovery | 문서와 source 의미 전수 감사 | P0 | 대기 | checksum, byte count, status marker만으로 full review를 판정하지 않습니다. tracked 문서와 incomplete marker 각각에 현재 구현과의 의미 일치, 실제 owner, 처리 결정, 근거 위치를 기록하고 scripts/internal 일괄 분류를 제거합니다. 미분류, stale current claim, 상충 수치가 0이어야 합니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 1, 총 7점. 기능 누락 정확도 상향 적용 |
 | 53 | V390-REVIEW4-53 | Feature Closure | 986행 semantic call-chain 독립 재구축 | P0 | 대기 | migration이 locator, edge, reason, approval을 동시에 생성하지 못하게 분리합니다. 986개 각각의 owner, dispatch, action, state mutation, readback, verifier 관계를 실제 symbol/call/data-flow에서 독립 확인하고 `UI-001` 같은 무관 anchor, generic shared owner, 동일 DOM 자체 비교를 negative fixture로 거부합니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. 전 기능 정확도와 거짓 closure 위험 상향 적용 |

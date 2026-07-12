@@ -70,12 +70,15 @@ check("positive matrix covers the exact 424 manual UI test IDs from all feature 
   const expectedTestIds = implementation.items
     .filter(item => item.manualUiCaseId !== null)
     .map(item => item.manualUiCaseId);
-  assert(summary.schema === "media-server.v390-ui-automation-coverage.v3", "coverage schema mismatch");
+  assert(summary.schema === "media-server.v390-ui-automation-coverage.v4", "coverage schema mismatch");
   assert(summary.matrixValidationResult === "PASS", "matrix validation must PASS");
   assert(summary.coverageStatus === "exact-native-ready-current-not-run", "coverage status mismatch");
   assert(summary.executionEvidenceStatus === "current-not-run", "execution evidence boundary mismatch");
   assert(summary.currentEvidenceStatus === "not-run", "current evidence status mismatch");
-  assert(summary.fullAutomationCoverage === true, "matrix exact native readiness coverage mismatch");
+  assert(summary.exactNativeWorkflowReadinessComplete === true,
+    "matrix exact native readiness coverage mismatch");
+  assert(summary.actualAutomationExecutionComplete === false,
+    "matrix must not claim current actual automation execution");
   assert(summary.manualUiFulltestEvidence === false, "matrix must not claim manual UI fulltest evidence");
   assert(summary.counts.inventoryFeatures === 986, "inventory feature count must be 986");
   assert(summary.counts.exactUiTestIds === 424, "exact UI test ID count must be 424");
@@ -256,7 +259,8 @@ check("durable matrix and release docs record exact-ID partial coverage boundari
     "unsupported `0`",
     "executed-pass `0`",
     "not-run `424`",
-    "fullAutomationCoverage: `true`",
+    "exactNativeWorkflowReadinessComplete: `true`",
+    "actualAutomationExecutionComplete: `false`",
     "manualUiFulltestEvidence: `false`",
   ]) {
     assertIncludes(matrix, snippet, "durable matrix boundary");
@@ -277,7 +281,7 @@ check("durable matrix and release docs record exact-ID partial coverage boundari
 const result = summarizeChecks();
 console.log("");
 console.log("== v3.9.0 full-feature UI automation coverage matrix contract summary ==");
-console.log("- schema: media-server.v390-ui-automation-coverage.v3");
+console.log("- schema: media-server.v390-ui-automation-coverage.v4");
 console.log("- inventoryFeatures: 986");
 console.log("- exactUiTestIds: 424");
 console.log("- nativeExecutablePositive: 423");

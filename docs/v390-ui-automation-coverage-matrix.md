@@ -3,14 +3,15 @@
 이 문서는 986개 feature inventory의 reviewed implementation manifest에서 exact manual UI test ID를 선택하고 actual native visible-DOM evidence를 교차 검증해 생성합니다.
 Feature ID prefix와 numeric range는 coverage 판정에 사용하지 않습니다. Matrix validation PASS는 full automation 또는 UI 풀테스트 직접 조작 PASS가 아닙니다.
 
-schema: `media-server.v390-ui-automation-coverage.v3`
+schema: `media-server.v390-ui-automation-coverage.v4`
 matrixValidationResult: `PASS`
 coverageStatus: `exact-native-ready-current-not-run`
 selectionModel: `exact-manual-ui-test-id`
 prefixRangeClassification: `removed`
 executionEvidenceStatus: `current-not-run`
 currentEvidenceStatus: `not-run`
-fullAutomationCoverage: `true`
+exactNativeWorkflowReadinessComplete: `true`
+actualAutomationExecutionComplete: `false`
 manualUiFulltestEvidence: `false`
 
 - inventory features `986`

@@ -169,14 +169,15 @@ const outputDir = path.resolve(rootDir, options.outputDir);
 const summaryPath = path.join(outputDir, "summary.json");
 const reportPath = path.join(outputDir, "report.md");
 const summary = {
-  schema: "media-server.v390-ui-automation-coverage.v3",
+  schema: "media-server.v390-ui-automation-coverage.v4",
   matrixValidationResult: "PASS",
   coverageStatus: currentEvidenceAvailable ? "exact-native-current-executed" : "exact-native-ready-current-not-run",
   selectionModel: "exact-manual-ui-test-id",
   prefixRangeClassification: "removed",
   executionEvidenceStatus: policy.boundaries.executionEvidenceStatus,
   currentEvidenceStatus: currentEvidenceAvailable ? "current-actual-execution" : automationSummary.status,
-  fullAutomationCoverage: policy.boundaries.fullAutomationCoverage,
+  exactNativeWorkflowReadinessComplete: policy.boundaries.exactNativeWorkflowReadinessComplete,
+  actualAutomationExecutionComplete: currentEvidenceAvailable && counts.pass === rows.length,
   manualUiFulltestEvidence: policy.boundaries.manualUiFulltestEvidence,
   sourceOfTruth: {
     inventory: repoRelative(inventoryPath),
@@ -216,7 +217,8 @@ console.log(`- negativeRouteExecutable: ${counts.negativeRouteExecutable}`);
 console.log(`- unsupported: ${counts.unsupported}`);
 console.log(`- pass: ${counts.pass}`);
 console.log(`- notRun: ${counts.notRun}`);
-console.log(`- fullAutomationCoverage: ${summary.fullAutomationCoverage}`);
+console.log(`- exactNativeWorkflowReadinessComplete: ${summary.exactNativeWorkflowReadinessComplete}`);
+console.log(`- actualAutomationExecutionComplete: ${summary.actualAutomationExecutionComplete}`);
 console.log(`- manualUiFulltestEvidence: ${summary.manualUiFulltestEvidence}`);
 console.log(`- summaryPath: ${summaryPath}`);
 console.log(`- reportPath: ${reportPath}`);
@@ -251,7 +253,7 @@ function parseArgs(args) {
 }
 
 function validatePolicyShape(value) {
-  assert(value.schema === "media-server.v390-ui-automation-coverage-policy.v3",
+  assert(value.schema === "media-server.v390-ui-automation-coverage-policy.v4",
     "unexpected coverage policy schema");
   assert(value.expectedReadiness && typeof value.expectedReadiness === "object", "policy expectedReadiness missing");
   for (const key of [
@@ -261,7 +263,12 @@ function validatePolicyShape(value) {
   }
   assert(Array.isArray(value.classifications?.negativeRoute?.caseIds), "policy negative route case IDs missing");
   assert(Array.isArray(value.requiredActualArtifacts), "policy required actual artifacts missing");
-  assert(value.boundaries?.fullAutomationCoverage === true, "policy exact native readiness coverage mismatch");
+  assert(value.boundaries?.exactNativeWorkflowReadinessComplete === true,
+    "policy exact native readiness coverage mismatch");
+  assert(value.boundaries?.actualAutomationExecutionComplete === false,
+    "policy default actual execution boundary mismatch");
+  assert(!Object.hasOwn(value.boundaries || {}, "fullAutomationCoverage"),
+    "ambiguous fullAutomationCoverage field remains");
   assert(value.boundaries?.manualUiFulltestEvidence === false,
     "policy must not claim manual UI fulltest evidence");
   assert(value.boundaries?.readinessIsNotExecutionPass === true,
@@ -467,7 +474,8 @@ function renderReport(value) {
     `prefixRangeClassification: \`${value.prefixRangeClassification}\``,
     `executionEvidenceStatus: \`${value.executionEvidenceStatus}\``,
     `currentEvidenceStatus: \`${value.currentEvidenceStatus}\``,
-    `fullAutomationCoverage: \`${value.fullAutomationCoverage}\``,
+    `exactNativeWorkflowReadinessComplete: \`${value.exactNativeWorkflowReadinessComplete}\``,
+    `actualAutomationExecutionComplete: \`${value.actualAutomationExecutionComplete}\``,
     `manualUiFulltestEvidence: \`${value.manualUiFulltestEvidence}\``,
     "",
     `- inventory features \`${value.counts.inventoryFeatures}\``,

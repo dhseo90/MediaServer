@@ -1,5 +1,5 @@
 {
-  "schema": "media-server.v390-ui-automation-coverage-policy.v3",
+  "schema": "media-server.v390-ui-automation-coverage-policy.v4",
   "inventorySource": "docs/project-feature-test-inventory.md",
   "implementationEvidenceSource": "test/fixtures/project_feature_implementation_evidence.json",
   "automationCaseManifestSource": "test/fixtures/v390_ui_native_exact_cases.json",
@@ -39,7 +39,8 @@
     "visualDiff"
   ],
   "boundaries": {
-    "fullAutomationCoverage": true,
+    "exactNativeWorkflowReadinessComplete": true,
+    "actualAutomationExecutionComplete": false,
     "manualUiFulltestEvidence": false,
     "executionEvidenceStatus": "current-not-run",
     "readinessIsNotExecutionPass": true,

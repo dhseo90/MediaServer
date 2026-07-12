@@ -206,7 +206,7 @@ Coverage verifier는 actual 실행 행의 screenshot, trace, browser console, se
 drift, automation featureId→caseId drift, artifact 누락을 실패 처리합니다. prefix/range 판정 제거
 상태도 contract로 고정합니다. 고정 matrix는
 `docs/v390-ui-automation-coverage-matrix.md`에 보존합니다. Matrix validation PASS는
-`fullAutomationCoverage=true`, `manualUiFulltestEvidence=false`,
+`exactNativeWorkflowReadinessComplete=true`, `actualAutomationExecutionComplete=false`, `manualUiFulltestEvidence=false`,
 `executionEvidenceStatus=current-not-run`이며 readiness는 Policy v4-qualified UI 풀테스트 실행,
 30분/120분, published metadata, release action PASS가 아닙니다.
 
