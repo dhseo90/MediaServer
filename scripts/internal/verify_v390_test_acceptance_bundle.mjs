@@ -12,10 +12,12 @@ import { fileURLToPath } from "node:url";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import {
   collectSourceProvenance,
+  collectSourceProvenanceWithAllowedArtifacts,
   isInside,
   listFiles,
   scanArtifactTree,
   sha256File,
+  sha256Text,
 } from "./evidence_integrity_lib.mjs";
 import { evaluateV390FullSuiteEligibility } from "./v390_full_suite_eligibility_lib.mjs";
 
@@ -529,11 +531,14 @@ function buildActualSummary() {
   });
   const knownUiClosureBlockers = [...fullSuiteEligibility.reasons];
   const firstFailure = buildFirstFailure();
+  const sourceProvenanceEnd = collectSourceProvenanceWithAllowedArtifacts(rootDir, outputDir);
+  const canonicalCommandSetSha256 = sha256Text(JSON.stringify(finalAcceptanceCommandSet));
   return {
     schema: "media-server.v390-test-acceptance-bundle.v1",
     runId,
     command: `./server.sh verify-v390-test-acceptance-bundle ${rawArgs.join(" ")}`,
     sourceProvenance,
+    sourceProvenanceEnd,
     outputPreparation,
     executionMode,
     dryRun: false,
@@ -547,6 +552,7 @@ function buildActualSummary() {
     summaryPath,
     reportPath,
     finalAcceptanceCommandSet,
+    canonicalCommandSetSha256,
     stageOrder: stageIds,
     stages,
     executedCommands: buildExecutedCommandLedger(),
@@ -584,6 +590,7 @@ function writeDryRun() {
     runId,
     command: `./server.sh verify-v390-test-acceptance-bundle ${rawArgs.join(" ")}`,
     sourceProvenance,
+    sourceProvenanceEnd: collectSourceProvenanceWithAllowedArtifacts(rootDir, outputDir),
     outputPreparation,
     executionMode,
     dryRun: true,
@@ -595,6 +602,7 @@ function writeDryRun() {
     summaryPath,
     reportPath,
     finalAcceptanceCommandSet,
+    canonicalCommandSetSha256: sha256Text(JSON.stringify(finalAcceptanceCommandSet)),
     localReadiness: { status: "not-run-by-dry-run", commands: featureCommands.map(commandText) },
     longrun30,
     longrun120: { status: "conditional-not-run", decision: "not-evaluated-by-dry-run", passSubstitution: false },

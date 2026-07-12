@@ -2188,7 +2188,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 | 43 | V390-REVIEW3-43 | UI Policy | Policy v4 actual evidence producer | P0 | 완료 | exact runner actual mode가 `media-server.ui-automation-evidence.v4` summary와 case trace/console/server-log/visual/redaction, suite cross-cutting/redaction attestation을 실행 root에서 직접 생성합니다. 44번 visual 측정과 45번 acceptance-owned cleanup 전에는 `uiFulltestPass=false`입니다 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. release correctness와 evidence 보안 상향 적용 |
 | 44 | V390-REVIEW3-44 | Visual Evidence | responsive/theme/visual 실제 판정 | P0 | 완료 | actual PNG dimension/hash와 browser DOM geometry/computed-style/focus/video-overlay 측정에서 case visual 및 320/390/760/1180×light/dark cross-cutting status를 계산하고 Policy qualifier가 attested input을 재계산합니다 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+1=7점. 시각 동등성과 false-PASS 상향 적용 |
 | 45 | V390-REVIEW3-45 | Acceptance | canonical one-command 실행 경로 | P0 | 완료 | canonical bundle이 30분→exact 424 v4 producer→throwaway server cleanup→Policy qualification→AGENTS 7.6.2 조건부 120분→cleanup→final integrity를 연결하며 legacy 8-case와 외부 summary 주입을 제거했습니다 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점. release correctness 상향 적용 |
-| 46 | V390-REVIEW3-46 | Evidence | current HEAD와 artifact containment | P0 | 미완료 | final integrity가 current commit, clean state, child summary root containment, canonical command, stale historical source 차단을 직접 검증 | 5.6 Sol | 높음 (high) | 2+1+2+1=6점. release correctness 상향 적용 |
+| 46 | V390-REVIEW3-46 | Evidence | current HEAD와 artifact containment | P0 | 완료 | acceptance가 실행 시작/종료 provenance와 canonical command-set hash를 기록하고 final integrity가 이를 현재 HEAD·branch, source-clean state, approved artifact root의 realpath containment, Policy v4 source/build binding과 독립 대조합니다 | 5.6 Sol | 높음 (high) | 2+1+2+1=6점. release correctness 상향 적용 |
 | 47 | V390-REVIEW3-47 | Evidence | stale policy/historical artifact 정리 | P1 | 미완료 | coverage policy의 0/423/1 설명과 actual exact manifest를 정합화하고 historical PASS를 current consumer가 읽지 못하게 source binding 강화 | 5.6 Sol | 높음 (high) | 1+1+1+1=4점이나 evidence 정확도 상향 적용 |
 | 48 | V390-REVIEW3-48 | Structure | actual module dependency graph | P1 | 미완료 | 9개 declared module owner를 실제 파일/target에 매핑하고 include/link graph, forbidden edge, SCC, slice entry/exit를 실경로로 검증 | 5.6 Sol | 높음 (high) | 1+2+2+1=6점. 구조 전면 안정화 진입 정확도 상향 적용 |
 | 49 | V390-REVIEW3-49 | Structure Decision | 구조 안정화 실행 범위 확정 | P1 | 미완료 decision | 48번 actual graph 결과를 근거로 42,726-line HTTP server와 10,217-line UI script의 실제 refactor를 v3.9 안정화 단계에서 할지 v4.0으로 넘길지 사용자 결정을 source-of-truth에 고정 | 5.6 Sol | 높음 (high) | 2+2+1+1=6점. 광범위 구조 변경과 release 경계 상향 적용 |
@@ -2439,6 +2439,21 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
   artifact는 audit-only path로만 접근합니다.
 - 46번은 current HEAD/run root 검증을 구현하고, 47번이 stale policy/historical binding을 정리한 뒤
   두 항목을 함께 재검증합니다. 이 단계 전 historical PASS를 current final evidence로 사용하지 않습니다.
+
+46번 구현 기록(2026-07-12):
+
+- `collectSourceProvenanceWithAllowedArtifacts`가 실행 종료/current 상태의 HEAD·branch, 전체 status hash,
+  approved artifact root 내부 path와 source tree의 unapproved dirty path를 분리합니다. Actual acceptance는
+  시작 clean뿐 아니라 종료/current 시점에도 artifact root 밖 변경이 0이어야 합니다.
+- Acceptance summary는 9개 canonical command의 순서·명령·status와 SHA-256을 기록합니다. Final integrity는
+  exact 30분, exact 424 native, throwaway server cleanup, Policy v4, 조건부 120분, final integrity command를
+  자체 expected set과 대조해 legacy command 치환이나 summary 안 hash 동시 위조를 허용하지 않습니다.
+- Acceptance summary/run root, 30분·UI·120분 child summary, Policy v4 source summary와 UI artifact root는
+  존재하는 실제 파일/디렉터리의 realpath로 approved output root 안에 있어야 합니다. UI evidence의
+  `gitCommit`도 current HEAD와 같아야 하며 path traversal/symlink escape를 허용하지 않습니다.
+- 강화 계약의 최초 실행은 HEAD drift/unapproved dirty, canonical command 대체/hash mismatch, child path
+  escape 3건이 검출되지 않아 6/3 RED였습니다. 구현 후 final integrity contract 9/0과 acceptance contract
+  9/0이 통과했습니다. 실제 30분, exact 424 browser UI 풀테스트, 120분은 실행하지 않았습니다.
 
 #### V390-REVIEW3-48~49 structure entry decision
 

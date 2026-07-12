@@ -18,6 +18,28 @@ export function collectSourceProvenance(rootDir) {
   };
 }
 
+export function collectSourceProvenanceWithAllowedArtifacts(rootDir, allowedArtifactRoot) {
+  const commitSha = git(rootDir, ["rev-parse", "HEAD"]);
+  const branch = git(rootDir, ["branch", "--show-current"]);
+  const status = gitRaw(rootDir, ["status", "--porcelain=v1", "-z", "--untracked-files=all"]);
+  const dirtyPaths = parsePorcelainPaths(status).map(candidate => path.resolve(rootDir, candidate));
+  const allowedRoot = path.resolve(allowedArtifactRoot);
+  const allowedArtifactPaths = dirtyPaths.filter(candidate => isWithin(allowedRoot, candidate));
+  const unapprovedDirtyPaths = dirtyPaths.filter(candidate => !isWithin(allowedRoot, candidate));
+  return {
+    commitSha,
+    branch,
+    worktreeClean: dirtyPaths.length === 0,
+    sourceWorktreeClean: unapprovedDirtyPaths.length === 0,
+    dirtyPaths: dirtyPaths.map(candidate => path.relative(rootDir, candidate) || "."),
+    allowedArtifactPaths: allowedArtifactPaths.map(candidate => path.relative(rootDir, candidate) || "."),
+    unapprovedDirtyPaths: unapprovedDirtyPaths.map(candidate => path.relative(rootDir, candidate) || "."),
+    allowedArtifactRoot: allowedRoot,
+    worktreeStatusSha256: sha256Text(status),
+    capturedAt: new Date().toISOString(),
+  };
+}
+
 export function scanArtifactTree(root) {
   const files = listFiles(root);
   const screenshots = files.filter(filePath => filePath.toLowerCase().endsWith(".png"));
@@ -120,6 +142,11 @@ export function isInside(parent, candidate) {
   return relative !== "" && !relative.startsWith("..") && !path.isAbsolute(relative);
 }
 
+export function isWithin(parent, candidate) {
+  const relative = path.relative(path.resolve(parent), path.resolve(candidate));
+  return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
+}
+
 function isPlaceholderVideoFile(filePath) {
   if (/\.video\.txt$/i.test(filePath)) return true;
   if (!/\.(txt|log|json|md)$/i.test(filePath)) return false;
@@ -134,4 +161,34 @@ function git(rootDir, args) {
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
   }).trim();
+}
+
+function gitRaw(rootDir, args) {
+  return execFileSync("git", args, {
+    cwd: rootDir,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+}
+
+function parsePorcelainPaths(status) {
+  const entries = status.split("\0").filter(Boolean);
+  const paths = [];
+  for (let index = 0; index < entries.length; index += 1) {
+    const entry = entries[index];
+    assertPorcelainEntry(entry);
+    const state = entry.slice(0, 2);
+    paths.push(entry.slice(3));
+    if (/[RC]/.test(state) && entries[index + 1]) {
+      paths.push(entries[index + 1]);
+      index += 1;
+    }
+  }
+  return [...new Set(paths.filter(Boolean))];
+}
+
+function assertPorcelainEntry(entry) {
+  if (entry.length < 4 || entry[2] !== " ") {
+    throw new Error(`unexpected git porcelain entry: ${JSON.stringify(entry)}`);
+  }
 }

@@ -80,6 +80,46 @@ check("failed cleanup and missing source commit are rejected", () => {
   assert(runIntegrity(workspace, true).status !== 0, "failed cleanup/missing commit must fail");
 });
 
+check("current HEAD drift and an unapproved end-state path are rejected", () => {
+  const workspace = makeFixture("head-dirty-drift");
+  const summaryPath = path.join(workspace, "summary.json");
+  const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
+  summary.sourceProvenance.commitSha = "0".repeat(40);
+  summary.sourceProvenanceEnd = {
+    ...summary.sourceProvenance,
+    commitSha: "1".repeat(40),
+    sourceWorktreeClean: false,
+    unapprovedDirtyPaths: ["src/historical-substitution.cpp"],
+    allowedArtifactPaths: [],
+    allowedArtifactRoot: workspace,
+  };
+  fs.writeFileSync(summaryPath, `${JSON.stringify(summary, null, 2)}\n`, "utf8");
+  assert(runIntegrity(workspace, true).status !== 0, "HEAD drift/unapproved dirty path must fail");
+});
+
+check("canonical command substitution and command-set hash mismatch are rejected", () => {
+  const workspace = makeFixture("command-substitution");
+  const summaryPath = path.join(workspace, "summary.json");
+  const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
+  summary.finalAcceptanceCommandSet[4].command = ["./server.sh", "verify-ui-fulltest", "legacy-8"].join("-");
+  summary.canonicalCommandSetSha256 = "0".repeat(64);
+  fs.writeFileSync(summaryPath, `${JSON.stringify(summary, null, 2)}\n`, "utf8");
+  assert(runIntegrity(workspace, true).status !== 0, "canonical command substitution must fail");
+});
+
+check("child summary path outside the acceptance artifact root is rejected", () => {
+  const workspace = makeFixture("child-escape");
+  const external = path.join(os.tmpdir(), `media-server-v390-external-${process.pid}.json`);
+  fs.writeFileSync(external, "{}\n", "utf8");
+  const summaryPath = path.join(workspace, "summary.json");
+  const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
+  summary.uiAutomation.summaryPath = external;
+  fs.writeFileSync(summaryPath, `${JSON.stringify(summary, null, 2)}\n`, "utf8");
+  const result = runIntegrity(workspace, true);
+  fs.rmSync(external, { force: true });
+  assert(result.status !== 0, "child summary outside artifact root must fail");
+});
+
 check("preserved first failure files are required after a recovered retry", () => {
   const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "media-server-v390-final-integrity-recovered-"));
   workspaces.push(workspace);

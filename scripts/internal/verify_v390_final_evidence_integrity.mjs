@@ -6,7 +6,13 @@ import path from "node:path";
 import process from "node:process";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
-import { scanArtifactTree, sha256File } from "./evidence_integrity_lib.mjs";
+import {
+  collectSourceProvenanceWithAllowedArtifacts,
+  isWithin,
+  scanArtifactTree,
+  sha256File,
+  sha256Text,
+} from "./evidence_integrity_lib.mjs";
 import { evaluateV390FullSuiteEligibility } from "./v390_full_suite_eligibility_lib.mjs";
 
 const rawArgs = process.argv.slice(2);
@@ -33,6 +39,8 @@ const options = parseArgs(rawArgs);
 const summaryPath = path.resolve(options.summary);
 const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
 const outputDir = path.resolve(summary.outputDir || path.dirname(summaryPath));
+const outputReal = requireContainedDirectory(outputDir, outputDir, "acceptance artifact root");
+const currentProvenance = collectSourceProvenanceWithAllowedArtifacts(process.cwd(), outputReal);
 const checks = [];
 const canonicalUiCaseIds = JSON.parse(fs.readFileSync(path.resolve(
   "test/fixtures/ui_fulltest_case_manifest_policy_v4.json"), "utf8")).cases.map(item => item.testId);
@@ -68,8 +76,66 @@ check("source provenance and command ledger are complete", () => {
   assert(typeof summary.sourceProvenance?.worktreeClean === "boolean", "source worktree state missing");
   if (summary.executionMode === "actual") assert(summary.sourceProvenance.worktreeClean === true, "actual final evidence must start from a clean worktree");
   assert(/^[a-f0-9]{64}$/.test(String(summary.sourceProvenance?.worktreeStatusSha256 || "")), "source worktree status hash missing");
+  assert(summary.sourceProvenance.commitSha === summary.sourceProvenanceEnd?.commitSha, "source HEAD changed during acceptance execution");
+  assert(summary.sourceProvenance.commitSha === currentProvenance.commitSha, "acceptance source HEAD is not current HEAD");
+  assert(summary.sourceProvenance.branch === summary.sourceProvenanceEnd?.branch, "source branch changed during acceptance execution");
+  assert(summary.sourceProvenance.branch === currentProvenance.branch, "acceptance source branch is not current branch");
+  assert(fs.realpathSync(path.resolve(summary.sourceProvenanceEnd?.allowedArtifactRoot || "")) === outputReal,
+    "end provenance allowed artifact root mismatch");
+  assert(Array.isArray(summary.sourceProvenanceEnd?.unapprovedDirtyPaths), "end provenance unapproved path ledger missing");
+  if (summary.executionMode === "actual") {
+    assert(summary.sourceProvenanceEnd.sourceWorktreeClean === true, "actual final evidence ended with source-tree changes outside artifact root");
+    assert(summary.sourceProvenanceEnd.unapprovedDirtyPaths.length === 0, "actual final evidence has unapproved dirty paths");
+    assert(currentProvenance.sourceWorktreeClean === true, "current source tree differs outside the acceptance artifact root");
+    assert(currentProvenance.unapprovedDirtyPaths.length === 0, "current source tree has unapproved dirty paths");
+  }
   assert(Array.isArray(summary.executedCommands) && summary.executedCommands.length > 0, "executed command ledger missing");
   assert(summary.executedCommands.every(item => item.stage && item.id && item.status && item.command), "executed command ledger entry incomplete");
+});
+
+check("canonical command set is exact and hash-bound", () => {
+  const commandSet = summary.finalAcceptanceCommandSet;
+  assert(Array.isArray(commandSet), "canonical command set missing");
+  const expectedIds = [
+    "actual-bundle",
+    "build",
+    "feature-gates",
+    "server-longrun-30",
+    "ui-exact-424",
+    "ui-server-cleanup",
+    "ui-fulltest-qualification",
+    "server-longrun-120",
+    "final-integrity",
+  ];
+  assert(JSON.stringify(commandSet.map(item => item.id)) === JSON.stringify(expectedIds), "canonical command set IDs/order mismatch");
+  const requiredCommandFragments = {
+    "actual-bundle": "verify-v390-test-acceptance-bundle",
+    build: "./server.sh build",
+    "feature-gates": "current feature commands",
+    "server-longrun-30": "verify-v390-server-longrun --duration-minutes 30",
+    "ui-exact-424": "run-v390-ui-native-exact-cases",
+    "ui-server-cleanup": "throwaway media_server PID",
+    "ui-fulltest-qualification": "verify-ui-fulltest-evidence-policy-v4",
+    "server-longrun-120": "verify-v390-server-longrun --duration-minutes 120",
+    "final-integrity": "verify-v390-final-evidence-integrity",
+  };
+  for (const item of commandSet) {
+    assert(String(item.command || "").includes(requiredCommandFragments[item.id]), `canonical command mismatch: ${item.id}`);
+  }
+  assert(!JSON.stringify(commandSet).includes("legacy"), "legacy command substituted into canonical command set");
+  assert(sha256Text(JSON.stringify(commandSet)) === summary.canonicalCommandSetSha256, "canonical command set hash mismatch");
+});
+
+check("acceptance and child summary paths are contained by the current artifact root", () => {
+  requireContainedFile(outputReal, summaryPath, "acceptance summary");
+  requireContainedDirectory(outputReal, summary.runDir, "acceptance run root");
+  for (const [label, child] of [
+    ["30-minute", summary.longrun30],
+    ["UI automation", summary.uiAutomation],
+    ["120-minute", summary.longrun120],
+  ]) {
+    if (child?.summaryPath) requireContainedFile(outputReal, child.summaryPath, `${label} summary`);
+  }
 });
 
 check("Policy v4 evaluation is bound to its actual source summary", () => {
@@ -85,8 +151,19 @@ check("Policy v4 evaluation is bound to its actual source summary", () => {
   assert(relative && !relative.startsWith("..") && !path.isAbsolute(relative),
     "Policy v4 source summary escapes repository root");
   assert(fs.existsSync(sourcePath), "Policy v4 source summary file missing");
+  requireContainedFile(outputReal, sourcePath, "Policy v4 source summary");
   assert(sha256File(sourcePath) === summary.policyV4Evaluation.sourceSummarySha256,
     "Policy v4 source summary hash mismatch");
+  const uiSummaryPath = summary.uiAutomation?.summaryPath;
+  const uiSummaryReal = requireContainedFile(outputReal, uiSummaryPath, "Policy v4 UI source summary");
+  const uiSummary = JSON.parse(fs.readFileSync(uiSummaryReal, "utf8"));
+  assert(uiSummary.schema === "media-server.ui-automation-evidence.v4", "Policy v4 source is not exact UI evidence v4");
+  assert(uiSummary.sourceBinding?.currentSourceVerified === true, "UI evidence current-source binding missing");
+  assert(uiSummary.sourceBinding?.gitCommit === currentProvenance.commitSha, "UI evidence source commit is not current HEAD");
+  const artifactRoot = path.resolve(process.cwd(), uiSummary.sourceBinding?.artifactRoot || "");
+  const artifactReal = requireContainedDirectory(outputReal, artifactRoot, "UI evidence artifact root");
+  assert(isWithin(path.dirname(uiSummaryReal), artifactReal) || isWithin(artifactReal, path.dirname(uiSummaryReal)),
+    "UI source summary and artifact root are unrelated");
 });
 
 check("first failure record matches summary state", () => {
@@ -187,8 +264,30 @@ function parseArgs(args) {
 function readChild(filePath, label) {
   assert(filePath, `${label} summary path missing`);
   const resolved = path.isAbsolute(filePath) ? filePath : path.resolve(path.dirname(summaryPath), filePath);
-  assert(fs.existsSync(resolved), `${label} summary does not exist: ${resolved}`);
-  return JSON.parse(fs.readFileSync(resolved, "utf8"));
+  const contained = requireContainedFile(outputReal, resolved, `${label} summary`);
+  return JSON.parse(fs.readFileSync(contained, "utf8"));
+}
+
+function requireContainedFile(parent, candidate, label) {
+  assert(candidate, `${label} path missing`);
+  const resolved = path.resolve(candidate);
+  assert(fs.existsSync(resolved), `${label} does not exist: ${resolved}`);
+  const real = fs.realpathSync(resolved);
+  const parentReal = fs.realpathSync(path.resolve(parent));
+  assert(isWithin(parentReal, real), `${label} escapes artifact root: ${real}`);
+  assert(fs.statSync(real).isFile(), `${label} is not a file: ${real}`);
+  return real;
+}
+
+function requireContainedDirectory(parent, candidate, label) {
+  assert(candidate, `${label} path missing`);
+  const resolved = path.resolve(candidate);
+  assert(fs.existsSync(resolved), `${label} does not exist: ${resolved}`);
+  const real = fs.realpathSync(resolved);
+  const parentReal = fs.realpathSync(path.resolve(parent));
+  assert(isWithin(parentReal, real), `${label} escapes artifact root: ${real}`);
+  assert(fs.statSync(real).isDirectory(), `${label} is not a directory: ${real}`);
+  return real;
 }
 
 function check(name, fn) { checks.push({ name, fn }); }
