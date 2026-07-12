@@ -33,6 +33,7 @@ const checks = [];
 
 check("registry persists VLM profiles with strict validation", () => {
   const server = readText("src/ingress/webrtc_http_server.cpp");
+  const strictJson = readText("src/ingress/strict_json.cpp");
   const promotion = readText("src/ingress/vlm_evaluation_promotion.cpp");
   const implementation = `${server}\n${promotion}`;
   for (const snippet of [
@@ -67,7 +68,8 @@ check("registry persists VLM profiles with strict validation", () => {
     "invalid-output",
     "timeout",
     "cloudOptInAcknowledged",
-    "ContainsForbiddenVlmProfileField",
+    "ParseStrictJsonObjectDocument",
+    "StrictJsonContainsKey",
     "ValidateVlmPrivacyGuardContract",
     "media-server.vlm-privacy-transfer-guard.v1",
     "privacyGuard",
@@ -92,6 +94,9 @@ check("registry persists VLM profiles with strict validation", () => {
   ]) {
     assert(implementation.includes(snippet), `server missing VLM profile storage snippet: ${snippet}`);
   }
+  assert(strictJson.includes("duplicate JSON key"), "strict JSON parser must reject duplicate decoded keys");
+  assert(!server.includes("ContainsForbiddenVlmProfileField"),
+    "legacy string-search VLM forbidden-field helper must stay removed");
   for (const forbidden of [
     "\"apiKey\"",
     "\"providerCredential\"",

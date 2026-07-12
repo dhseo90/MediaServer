@@ -1,8 +1,9 @@
 {
-  "schema": "media-server.v390-vlm-promotion-trust-boundary-fixtures.v1",
-  "targetStep": "V390-ADD1-03",
+  "schema": "media-server.v390-vlm-promotion-trust-boundary-fixtures.v2",
+  "targetStep": "V390-REVIEW3-39",
   "catalogRevision": "v390-add1-03-2026-07-10",
-  "reloadCases": 9,
+  "structuralSaveCases": 7,
+  "reloadCases": 13,
   "candidates": {
     "passed": {
       "id": "eval-qwen8b-event-review-default",

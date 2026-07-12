@@ -2,10 +2,10 @@
   "schema": "media-server.feature-implementation-evidence.v2",
   "semanticClosureSchema": "media-server.feature-semantic-implementation-closure.v2",
   "expectedFeatureRows": 986,
-  "inventorySha256": "cc30fdb6c935fcaaf8e5aba63332059bf13481bd1193403c2937254b900c09f8",
+  "inventorySha256": "c0eb36d1ec26131ecfa4cfb2ccf58a95efcadfb67b8106358ff46352228c5978",
   "generatedFrom": "docs/project-feature-test-inventory.md",
-  "generationPolicy": "reviewed-map-only; unchanged reviewed rows are preserved; changed rows become review-required; token scoring and bulk approval are forbidden",
-  "semanticClosurePolicy": "owner/route-or-control/action/state/readback/verifier reviewed call-chain plus per-feature reason and content digest",
+  "generationPolicy": "reviewed-map-only; unrelated source changes preserve approved rows; changed rows become review-required; token scoring and bulk approval are forbidden",
+  "semanticClosurePolicy": "986 explicit owner -> route/control -> action -> state -> readback -> verifier chains with content-addressed locators and per-feature review reasons",
   "executionEvidenceStatus": "not-execution-evidence",
   "items": [
     {
@@ -3640,27 +3640,27 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW3-37",
+        "reviewer": "Codex-V390-REVIEW3-39",
         "reviewedOn": "2026-07-12",
-        "reason": "V390-REVIEW3-37:UI-018:`/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test` 제품 UI 미제공 / 404:owner=NormalizeReidPolicyToken:routeControl=NormalizeReidPolicyToken:action=areaLabel:state=NormalizeReidPolicyToken:readback=verifier:verify-v270-owner-release-readiness:chain=48ffbb2e8f0b9650",
-        "semanticDigest": "505712520ef1c8cbf8a1f8b65966c925c883a9936f67358c70fe58c4775ab68c"
+        "reason": "V390-REVIEW3-39:UI-018:`/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test` 제품 UI 미제공 / 404:owner=WebRtcHttpServer::Start:routeControl=WebRtcHttpServer::Start:action=WebRtcHttpServer::Start:state=WebRtcHttpServer::Start:readback=negativeRouteCase:chain=608886376d9d2a1f",
+        "semanticDigest": "7d3dede3fa0029a40d5e1c3615b2abec05f7498901b484215a3352f09c2e2b18"
       },
       "sourceEvidence": {
         "file": "src/ingress/webrtc_http_server.cpp",
-        "anchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
+        "anchor": "bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t port, std::string* error_message) {",
         "anchorKind": "reviewed-owner-source-line"
       },
       "uiEvidence": {
-        "file": "src/ingress/product_ui_js.cpp",
-        "anchor": "/lab",
-        "anchorKind": "semantic-action-handler",
+        "file": "src/ingress/webrtc_http_server.cpp",
+        "anchor": "return HttpResponse{404, \"Not Found\", \"text/plain; charset=utf-8\", {}, \"not found\"};",
+        "anchorKind": "reviewed-route-control-source-line",
         "screenRoute": "/lab"
       },
       "verifierEvidence": {
-        "file": "scripts/internal/verify_v270_owner_release_readiness.mjs",
-        "anchor": "UI-018",
-        "anchorKind": "feature-id",
-        "command": "verify-v270-owner-release-readiness"
+        "file": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs",
+        "anchor": "assert(item?.disposition === \"negative-route\", \"UI-018 negative disposition missing\");",
+        "anchorKind": "negative-route-readback",
+        "command": "verify-v390-ui-native-exact-cases-contract"
       },
       "manualUiCaseId": "UI-018",
       "longrunEvidence": {
@@ -3672,22 +3672,22 @@
         "schema": "media-server.feature-semantic-implementation-closure.v2",
         "handler": {
           "file": "src/ingress/webrtc_http_server.cpp",
-          "symbol": "NormalizeReidPolicyToken",
-          "symbolKind": "declaration-or-file-scope",
-          "anchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
+          "symbol": "WebRtcHttpServer::Start",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t port, std::string* error_message) {",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 860,
-          "contextSha256": "bd6c2879de393aa448649b915b9768c9950f738e118e52d87e3da5c583e7d696"
+          "line": 38096,
+          "contextSha256": "79085df2ac820ee56ddcd743492a00100b2926d424165c36e133feb6fa69ec20"
         },
         "route": {
           "applicability": "http-or-product-route",
           "value": "/lab",
-          "dispatchAnchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
+          "dispatchAnchor": "bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t port, std::string* error_message) {",
           "handlerFile": "src/ingress/webrtc_http_server.cpp",
-          "handlerSymbol": "NormalizeReidPolicyToken",
-          "contextSha256": "bd6c2879de393aa448649b915b9768c9950f738e118e52d87e3da5c583e7d696"
+          "handlerSymbol": "WebRtcHttpServer::Start",
+          "contextSha256": "79085df2ac820ee56ddcd743492a00100b2926d424165c36e133feb6fa69ec20"
         },
         "controlSelector": {
           "applicability": "not-applicable",
@@ -3696,15 +3696,15 @@
           "screenRoute": "/lab"
         },
         "actionHandler": {
-          "file": "src/ingress/product_ui_js.cpp",
-          "symbol": "areaLabel",
-          "symbolKind": "declaration-or-file-scope",
-          "anchor": "</label>",
+          "file": "src/ingress/webrtc_http_server.cpp",
+          "symbol": "WebRtcHttpServer::Start",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "return HttpResponse{404, \"Not Found\", \"text/plain; charset=utf-8\", {}, \"not found\"};",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 1464,
-          "contextSha256": "53366125f9aac69db5ddc442e147339018f2401ec5211a44f593c637f22dbe5d"
+          "line": 42673,
+          "contextSha256": "0f6a18d0c26ea11ab19c3ed26d5b3672e1dffad4157b363a7b0ec31b715986d2"
         },
         "stateOracle": {
           "oracleKind": "read-or-rendered-state",
@@ -3712,21 +3712,21 @@
           "expectedBehavior": "이전 제품 UI route와 임의 route가 제품 UI로 열리지 않음",
           "locator": {
             "file": "src/ingress/webrtc_http_server.cpp",
-            "symbol": "NormalizeReidPolicyToken",
-            "symbolKind": "declaration-or-file-scope",
-            "anchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
+            "symbol": "WebRtcHttpServer::Start",
+            "symbolKind": "reviewed-owner-or-readback",
+            "anchor": "return HttpResponse{404, \"Not Found\", \"text/plain; charset=utf-8\", {}, \"not found\"};",
             "anchorKind": "reviewed-source-line",
             "anchorStrength": "feature-specific-source-line",
             "occurrence": 0,
-            "line": 860,
-            "contextSha256": "bd6c2879de393aa448649b915b9768c9950f738e118e52d87e3da5c583e7d696"
+            "line": 42673,
+            "contextSha256": "0f6a18d0c26ea11ab19c3ed26d5b3672e1dffad4157b363a7b0ec31b715986d2"
           }
         },
         "relation": {
           "kind": "route-dispatch-handler-action-state",
-          "handlerSymbol": "NormalizeReidPolicyToken",
-          "actionSymbol": "areaLabel",
-          "stateSymbol": "NormalizeReidPolicyToken",
+          "handlerSymbol": "WebRtcHttpServer::Start",
+          "actionSymbol": "WebRtcHttpServer::Start",
+          "stateSymbol": "WebRtcHttpServer::Start",
           "semanticKey": "UI-018:f1144f7c0adcce66ac91dff5"
         },
         "verifierAssertion": {
@@ -3735,101 +3735,101 @@
           "assertionKind": "reviewed-owner-route-control-action-state-readback-chain",
           "assertionAnchor": "validateReview3CallChain",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "505712520ef1c8cbf8a1f8b65966c925c883a9936f67358c70fe58c4775ab68c"
+          "assertedSemanticDigest": "7d3dede3fa0029a40d5e1c3615b2abec05f7498901b484215a3352f09c2e2b18"
         },
         "callChain": {
           "schema": "media-server.feature-reviewed-call-chain.v1",
           "roles": {
             "owner": {
               "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "NormalizeReidPolicyToken",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
+              "symbol": "WebRtcHttpServer::Start",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t port, std::string* error_message) {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 860,
-              "contextSha256": "bd6c2879de393aa448649b915b9768c9950f738e118e52d87e3da5c583e7d696"
+              "line": 38096,
+              "contextSha256": "79085df2ac820ee56ddcd743492a00100b2926d424165c36e133feb6fa69ec20"
             },
             "routeControl": {
               "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "NormalizeReidPolicyToken",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
+              "symbol": "WebRtcHttpServer::Start",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "return HttpResponse{404, \"Not Found\", \"text/plain; charset=utf-8\", {}, \"not found\"};",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 860,
-              "contextSha256": "bd6c2879de393aa448649b915b9768c9950f738e118e52d87e3da5c583e7d696"
+              "line": 42673,
+              "contextSha256": "0f6a18d0c26ea11ab19c3ed26d5b3672e1dffad4157b363a7b0ec31b715986d2"
             },
             "action": {
-              "file": "src/ingress/product_ui_js.cpp",
-              "symbol": "areaLabel",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "</label>",
+              "file": "src/ingress/webrtc_http_server.cpp",
+              "symbol": "WebRtcHttpServer::Start",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "return HttpResponse{404, \"Not Found\", \"text/plain; charset=utf-8\", {}, \"not found\"};",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 1464,
-              "contextSha256": "53366125f9aac69db5ddc442e147339018f2401ec5211a44f593c637f22dbe5d"
+              "line": 42673,
+              "contextSha256": "0f6a18d0c26ea11ab19c3ed26d5b3672e1dffad4157b363a7b0ec31b715986d2"
             },
             "state": {
               "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "NormalizeReidPolicyToken",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
+              "symbol": "WebRtcHttpServer::Start",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "return HttpResponse{404, \"Not Found\", \"text/plain; charset=utf-8\", {}, \"not found\"};",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 860,
-              "contextSha256": "bd6c2879de393aa448649b915b9768c9950f738e118e52d87e3da5c583e7d696"
+              "line": 42673,
+              "contextSha256": "0f6a18d0c26ea11ab19c3ed26d5b3672e1dffad4157b363a7b0ec31b715986d2"
             },
             "readback": {
-              "file": "scripts/internal/verify_v270_owner_release_readiness.mjs",
-              "symbol": "verifier:verify-v270-owner-release-readiness",
+              "file": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs",
+              "symbol": "negativeRouteCase",
               "symbolKind": "reviewed-owner-or-readback",
-              "anchor": "\"`UI-001`~`UI-018`, `UI-022`~`UI-054`\",",
+              "anchor": "assert(item?.disposition === \"negative-route\", \"UI-018 negative disposition missing\");",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 57,
-              "contextSha256": "1a8b332841aacaa452a6feb8e16b503de0c42b29733d22e30bc28821977a4754"
+              "line": 56,
+              "contextSha256": "e81be8662b845373826cfac524c932a512ad40c6e320f38035e28a75681f8e26"
             }
           },
-          "routeControlKind": "route-dispatch",
+          "routeControlKind": "negative-route-dispatch",
           "edges": [
             {
               "from": "owner",
               "to": "routeControl",
-              "relationKind": "route-dispatch",
-              "digest": "26ed01d0680cee588faf91d09c8a5b29be2c9ccbc64a93a72ac1fdddbe7c5a19"
+              "relationKind": "negative-route-dispatch",
+              "digest": "366c7f145f2c0cd12df70922ee110f444a681a60d3fd6e6f3655b950c1fea1a3"
             },
             {
               "from": "routeControl",
               "to": "action",
               "relationKind": "reviewed-dispatch-or-control-flow",
-              "digest": "61f4108558e44c44d75517b431dfdfc5f41b40e5111f400baf3ff0e88092afef"
+              "digest": "1c92ce142d704389e88e953dd6a79a4f5b5ad8d83824bf0d91a655a03446af3d"
             },
             {
               "from": "action",
               "to": "state",
               "relationKind": "reviewed-mutation-readmodel-flow",
-              "digest": "47f3d08ca8baa5658d5b9342c34d57f5547279bcb6190a760b7c27722a9e8c90"
+              "digest": "e09c3ef98c13470dfb3e52def3c83d256e3dbcc8e95e4bdfb95db16d330287d6"
             },
             {
               "from": "state",
               "to": "readback",
               "relationKind": "exact-readback-assertion",
-              "digest": "cf33344f9b12f594ba213cfaa2bcda948e998aa5f8e4c03b4ed84d7e510d730e"
+              "digest": "cd1685eecb44b56ad7ac1f150283c5c86a23e7a1a37e0cdd8744f5e3786f40fa"
             },
             {
               "from": "readback",
               "to": "verifierAssertion",
               "relationKind": "exact-verifier-command",
-              "digest": "4a2c59c499c6b7275260a870949a20d856ed4269efab8bbe3b92e89193aa0a20"
+              "digest": "c05e5103a127f73ed2dff1b6f23cbb62871b17b0162dd4ea923b911f70a76c3d"
             }
           ],
-          "digest": "48ffbb2e8f0b9650cd25d2e373f616d81c10bdf1ca05a7a3f81a946c8463d788"
+          "digest": "608886376d9d2a1f105cc31a406ed4c7f2b39a706841ba36162ae7af0999fc03"
         }
       }
     },
@@ -32608,14 +32608,14 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW3-37",
+        "reviewer": "Codex-V390-REVIEW3-39",
         "reviewedOn": "2026-07-12",
-        "reason": "V390-REVIEW3-37:AUTH-041:API 권한 guard:owner=NormalizeReidPolicyToken:routeControl=NormalizeReidPolicyToken:action=NormalizeReidPolicyToken:state=NormalizeReidPolicyToken:readback=verifier:verify-auth-regression-matrix:chain=8740eadd8a841225",
-        "semanticDigest": "3377639fc45602c9313ababca0e7febb07a45cb70fa2393fbbca1e7aa7be2e30"
+        "reason": "V390-REVIEW3-39:AUTH-041:API 권한 guard:owner=WebRtcHttpServer::Start:routeControl=require_scope_principal:action=require_scope_principal:state=require_scope_principal:readback=roleAndScopeGuardRows:chain=32ddce5a212c0952",
+        "semanticDigest": "7a03e6d51b893e480e1df904183bdb11a493fbe5a2f7dfc9168cac2a466182a6"
       },
       "sourceEvidence": {
         "file": "src/ingress/webrtc_http_server.cpp",
-        "anchor": "for (const char* forbidden : {\"credential\", \"sourceUrl\", \"rawPrompt\", \"rawResponse\", \"rawFrameBytes\"}) {",
+        "anchor": "auto require_scope_principal =",
         "anchorKind": "reviewed-owner-source-line"
       },
       "uiEvidence": null,
@@ -32635,14 +32635,14 @@
         "schema": "media-server.feature-semantic-implementation-closure.v2",
         "handler": {
           "file": "src/ingress/webrtc_http_server.cpp",
-          "symbol": "NormalizeReidPolicyToken",
-          "symbolKind": "function-or-method",
-          "anchor": "for (const char* forbidden : {\"credential\", \"sourceUrl\", \"rawPrompt\", \"rawResponse\", \"rawFrameBytes\"}) {",
+          "symbol": "WebRtcHttpServer::Start",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "auto require_scope_principal =",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 870,
-          "contextSha256": "a48c6e213899ac6cce79ed9e892060eff69d56f42f70e215a6bd3d22693977a3"
+          "line": 38540,
+          "contextSha256": "977d42eea0aee34eaaa44ad133a5ba78048e0ae9e1bfc40430cfe568bddc8ffe"
         },
         "route": {
           "applicability": "not-applicable",
@@ -32656,14 +32656,14 @@
         },
         "actionHandler": {
           "file": "src/ingress/webrtc_http_server.cpp",
-          "symbol": "NormalizeReidPolicyToken",
-          "symbolKind": "function-or-method",
-          "anchor": "for (const char* forbidden : {\"credential\", \"sourceUrl\", \"rawPrompt\", \"rawResponse\", \"rawFrameBytes\"}) {",
+          "symbol": "require_scope_principal",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "if (!auth::RequireScope(principal_result.principal, scope)) {",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 870,
-          "contextSha256": "a48c6e213899ac6cce79ed9e892060eff69d56f42f70e215a6bd3d22693977a3"
+          "line": 38546,
+          "contextSha256": "2d3fe7ec89489f17a662bcaedee5fde75f7473024355f327b6454f65449ede41"
         },
         "stateOracle": {
           "oracleKind": "read-or-rendered-state",
@@ -32671,21 +32671,21 @@
           "expectedBehavior": "unauthorized/forbidden status와 payload redaction 확인",
           "locator": {
             "file": "src/ingress/webrtc_http_server.cpp",
-            "symbol": "NormalizeReidPolicyToken",
-            "symbolKind": "function-or-method",
-            "anchor": "for (const char* forbidden : {\"credential\", \"sourceUrl\", \"rawPrompt\", \"rawResponse\", \"rawFrameBytes\"}) {",
+            "symbol": "require_scope_principal",
+            "symbolKind": "reviewed-owner-or-readback",
+            "anchor": "\"{\\\"error\\\":\\\"\" + JsonEscape(error) + \"\\\"}\");",
             "anchorKind": "reviewed-source-line",
             "anchorStrength": "feature-specific-source-line",
             "occurrence": 0,
-            "line": 870,
-            "contextSha256": "a48c6e213899ac6cce79ed9e892060eff69d56f42f70e215a6bd3d22693977a3"
+            "line": 2997,
+            "contextSha256": "0517dbfc6ef50b5d0489e3205506e6066f6df74bd646846d912a1b759bd9216f"
           }
         },
         "relation": {
           "kind": "handler-action-state",
-          "handlerSymbol": "NormalizeReidPolicyToken",
-          "actionSymbol": "NormalizeReidPolicyToken",
-          "stateSymbol": "NormalizeReidPolicyToken",
+          "handlerSymbol": "WebRtcHttpServer::Start",
+          "actionSymbol": "require_scope_principal",
+          "stateSymbol": "require_scope_principal",
           "semanticKey": "AUTH-041:5b80e08296fd967c430e26f6"
         },
         "verifierAssertion": {
@@ -32694,101 +32694,101 @@
           "assertionKind": "reviewed-owner-route-control-action-state-readback-chain",
           "assertionAnchor": "validateReview3CallChain",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "3377639fc45602c9313ababca0e7febb07a45cb70fa2393fbbca1e7aa7be2e30"
+          "assertedSemanticDigest": "7a03e6d51b893e480e1df904183bdb11a493fbe5a2f7dfc9168cac2a466182a6"
         },
         "callChain": {
           "schema": "media-server.feature-reviewed-call-chain.v1",
           "roles": {
             "owner": {
               "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "NormalizeReidPolicyToken",
-              "symbolKind": "function-or-method",
-              "anchor": "for (const char* forbidden : {\"credential\", \"sourceUrl\", \"rawPrompt\", \"rawResponse\", \"rawFrameBytes\"}) {",
+              "symbol": "WebRtcHttpServer::Start",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "auto require_scope_principal =",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 870,
-              "contextSha256": "a48c6e213899ac6cce79ed9e892060eff69d56f42f70e215a6bd3d22693977a3"
+              "line": 38540,
+              "contextSha256": "977d42eea0aee34eaaa44ad133a5ba78048e0ae9e1bfc40430cfe568bddc8ffe"
             },
             "routeControl": {
               "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "NormalizeReidPolicyToken",
-              "symbolKind": "function-or-method",
-              "anchor": "for (const char* forbidden : {\"credential\", \"sourceUrl\", \"rawPrompt\", \"rawResponse\", \"rawFrameBytes\"}) {",
+              "symbol": "require_scope_principal",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "auto require_scope_principal =",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 870,
-              "contextSha256": "a48c6e213899ac6cce79ed9e892060eff69d56f42f70e215a6bd3d22693977a3"
+              "line": 38540,
+              "contextSha256": "977d42eea0aee34eaaa44ad133a5ba78048e0ae9e1bfc40430cfe568bddc8ffe"
             },
             "action": {
               "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "NormalizeReidPolicyToken",
-              "symbolKind": "function-or-method",
-              "anchor": "for (const char* forbidden : {\"credential\", \"sourceUrl\", \"rawPrompt\", \"rawResponse\", \"rawFrameBytes\"}) {",
+              "symbol": "require_scope_principal",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "if (!auth::RequireScope(principal_result.principal, scope)) {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 870,
-              "contextSha256": "a48c6e213899ac6cce79ed9e892060eff69d56f42f70e215a6bd3d22693977a3"
+              "line": 38546,
+              "contextSha256": "2d3fe7ec89489f17a662bcaedee5fde75f7473024355f327b6454f65449ede41"
             },
             "state": {
               "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "NormalizeReidPolicyToken",
-              "symbolKind": "function-or-method",
-              "anchor": "for (const char* forbidden : {\"credential\", \"sourceUrl\", \"rawPrompt\", \"rawResponse\", \"rawFrameBytes\"}) {",
+              "symbol": "require_scope_principal",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "\"{\\\"error\\\":\\\"\" + JsonEscape(error) + \"\\\"}\");",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 870,
-              "contextSha256": "a48c6e213899ac6cce79ed9e892060eff69d56f42f70e215a6bd3d22693977a3"
+              "line": 2997,
+              "contextSha256": "0517dbfc6ef50b5d0489e3205506e6066f6df74bd646846d912a1b759bd9216f"
             },
             "readback": {
               "file": "scripts/internal/verify_auth_regression_matrix.mjs",
-              "symbol": "verifier:verify-auth-regression-matrix",
+              "symbol": "roleAndScopeGuardRows",
               "symbolKind": "reviewed-owner-or-readback",
-              "anchor": "row(\"AUTH-MAT-017\", \"unauth\", \"generic media/session routes\", \"unauth generic WebRTC/WHEP/WS metadata denied\", [\"verify-auth-routes\"], false, [\"AUTH-041\", \"MEDIA-009\"]),",
+              "anchor": "check(\"role and scope guard rows are covered\", () => {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 213,
-              "contextSha256": "00d615b90a1b203a5351b5a3b29bf80597a5bdf8f0d3ab305903ee9f59e19926"
+              "line": 83,
+              "contextSha256": "bd9312655b90c114cc284cb522eb866f6f72eab0da2f37158f8b26ce5ce2bea1"
             }
           },
-          "routeControlKind": "owner-boundary",
+          "routeControlKind": "auth-scope-guard",
           "edges": [
             {
               "from": "owner",
               "to": "routeControl",
-              "relationKind": "owner-boundary",
-              "digest": "d0900f48927c1ffd590c75a4007ab03c28c2fc6461f4eba8192f2c1509a3c9a5"
+              "relationKind": "auth-scope-guard",
+              "digest": "0629d93832d6053e232f0dbdbc03445e7dbb0d15785a2b73946231dcc8f2fab8"
             },
             {
               "from": "routeControl",
               "to": "action",
               "relationKind": "reviewed-dispatch-or-control-flow",
-              "digest": "89d510cbfa915c22b4b30d6ed6523f9d533d243242e3aebb63a46b2598988165"
+              "digest": "f81f6c46e064f62cd3e0a08ac383dadd896590b2dc7e87ee2fd9661b193923fd"
             },
             {
               "from": "action",
               "to": "state",
               "relationKind": "reviewed-mutation-readmodel-flow",
-              "digest": "be901e9bccef1775b0bb490ea71f11fb48c39f017c84b337794e0059725ecce8"
+              "digest": "b2cdadefa8525e8c763c7ae2432baf6f115f3487d86c3d8f86313874b9a0ea62"
             },
             {
               "from": "state",
               "to": "readback",
               "relationKind": "exact-readback-assertion",
-              "digest": "05fb5d3a14181efc474b5efee4ec76feb04934d15aa0c8ddfc8d003d7dd147f0"
+              "digest": "ef49db0ca98c7b94c2d5387547b1fcc2770389903dade2b305491fa629c2a88b"
             },
             {
               "from": "readback",
               "to": "verifierAssertion",
               "relationKind": "exact-verifier-command",
-              "digest": "060c39a514f770735de9fbafe9d3ed9cfdb2d7ddf1e3004cf16739eecff9a6f0"
+              "digest": "67618f9d0cd689dc21d3ad70a57b21a9f1eaeafd2268d0b3af465eabe6100c6a"
             }
           ],
-          "digest": "8740eadd8a841225875413596ef5ce04993aca585688b29b41924c2ed150c99e"
+          "digest": "32ddce5a212c09520735e9552dbe60bc51feca1cc81ef25612c0db3fbb7e5a38"
         }
       }
     },
@@ -97784,14 +97784,14 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW3-37",
+        "reviewer": "Codex-V390-REVIEW3-39",
         "reviewedOn": "2026-07-12",
-        "reason": "V390-REVIEW3-37:MEDIA-005:WebRTC SDP offer 생성:owner=CreateDocument:routeControl=CreateDocument:action=CreateDocument:state=CreateDocument:readback=verifier:verify-webrtc-va-metadata:chain=b00e372cda5e8ba9",
-        "semanticDigest": "49206aae8ab306a6cc3d04470498e76edf0e62a48d5080a97dc0f301ad32bff0"
+        "reason": "V390-REVIEW3-39:MEDIA-005:WebRTC SDP offer 생성:owner=WebRtcEgressSession::CreateOffer:routeControl=WebRtcHttpServer::Start:action=WebRtcEgressSession::CreateOffer:state=WebRtcEgressSession::CreateOffer:readback=webrtcOfferReadback:chain=774ed7f24b69a814",
+        "semanticDigest": "ce958b60856f8861a34c9bca06bed754ff8141c012b0f5925d11f5bb55f26ecf"
       },
       "sourceEvidence": {
-        "file": "src/ingress/webrtc_http_server.cpp",
-        "anchor": "SetRegistryError(error_message, \"VLM profile must not include credentials, prompts, raw responses, source locators, or frame bytes\");",
+        "file": "src/ingress/webrtc_egress_session.cpp",
+        "anchor": "bool WebRtcEgressSession::CreateOffer(std::string* sdp_offer, std::string* error_message) {",
         "anchorKind": "reviewed-owner-source-line"
       },
       "uiEvidence": null,
@@ -97810,15 +97810,15 @@
       "semanticEvidence": {
         "schema": "media-server.feature-semantic-implementation-closure.v2",
         "handler": {
-          "file": "src/ingress/webrtc_http_server.cpp",
-          "symbol": "CreateDocument",
-          "symbolKind": "function-or-method",
-          "anchor": "SetRegistryError(error_message, \"VLM profile must not include credentials, prompts, raw responses, source locators, or frame bytes\");",
+          "file": "src/ingress/webrtc_egress_session.cpp",
+          "symbol": "WebRtcEgressSession::CreateOffer",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "bool WebRtcEgressSession::CreateOffer(std::string* sdp_offer, std::string* error_message) {",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 1782,
-          "contextSha256": "281108b048508fce75cf093b8a1d04830ae42a63736c8f03e983e8b37c286895"
+          "line": 1673,
+          "contextSha256": "6a921f169ad5ea905f8bd2964cc734efc97cabb06dd599dafb65137b436ef428"
         },
         "route": {
           "applicability": "not-applicable",
@@ -97831,37 +97831,37 @@
           "reason": "feature is outside the UI fulltest area"
         },
         "actionHandler": {
-          "file": "src/ingress/webrtc_http_server.cpp",
-          "symbol": "CreateDocument",
-          "symbolKind": "function-or-method",
-          "anchor": "SetRegistryError(error_message, \"VLM profile must not include credentials, prompts, raw responses, source locators, or frame bytes\");",
+          "file": "src/ingress/webrtc_egress_session.cpp",
+          "symbol": "WebRtcEgressSession::CreateOffer",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "g_signal_emit_by_name(webrtcbin_, \"create-offer\", nullptr, promise);",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 1782,
-          "contextSha256": "281108b048508fce75cf093b8a1d04830ae42a63736c8f03e983e8b37c286895"
+          "line": 1693,
+          "contextSha256": "31ebfacc36a5da641f106f3615f3ac42dd0ad67e5f254e5fd723552bbd7d7654"
         },
         "stateOracle": {
           "oracleKind": "create-readback-state",
           "expectedBehaviorSha256": "376c4f681772b30d0f226fed5d32618842934a7df27b81a4bde0d8cc921a7236",
           "expectedBehavior": "offer response schema와 codec/ICE 정보 확인",
           "locator": {
-            "file": "src/ingress/webrtc_http_server.cpp",
-            "symbol": "CreateDocument",
-            "symbolKind": "function-or-method",
-            "anchor": "if (ParseStringField(body, \"schema\").value_or(\"\") != \"media-server.vlm-profile.v1\") {",
+            "file": "src/ingress/webrtc_egress_session.cpp",
+            "symbol": "WebRtcEgressSession::CreateOffer",
+            "symbolKind": "reviewed-owner-or-readback",
+            "anchor": "generated_offer = *local_offer_;",
             "anchorKind": "reviewed-source-line",
             "anchorStrength": "feature-specific-source-line",
             "occurrence": 0,
-            "line": 1785,
-            "contextSha256": "312bc47c6b7840f5c0360bc77fca9aaaf85d091f307ecdc2564c1fcb1a0c6df2"
+            "line": 1707,
+            "contextSha256": "fc9ae468f0f74131da30ef128df8f737c8880b2cebfee4e706cd38ea745897a3"
           }
         },
         "relation": {
           "kind": "handler-action-state",
-          "handlerSymbol": "CreateDocument",
-          "actionSymbol": "CreateDocument",
-          "stateSymbol": "CreateDocument",
+          "handlerSymbol": "WebRtcEgressSession::CreateOffer",
+          "actionSymbol": "WebRtcEgressSession::CreateOffer",
+          "stateSymbol": "WebRtcEgressSession::CreateOffer",
           "semanticKey": "MEDIA-005:376c4f681772b30d0f226fed"
         },
         "verifierAssertion": {
@@ -97870,101 +97870,101 @@
           "assertionKind": "reviewed-owner-route-control-action-state-readback-chain",
           "assertionAnchor": "validateReview3CallChain",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "49206aae8ab306a6cc3d04470498e76edf0e62a48d5080a97dc0f301ad32bff0"
+          "assertedSemanticDigest": "ce958b60856f8861a34c9bca06bed754ff8141c012b0f5925d11f5bb55f26ecf"
         },
         "callChain": {
           "schema": "media-server.feature-reviewed-call-chain.v1",
           "roles": {
             "owner": {
-              "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "CreateDocument",
-              "symbolKind": "function-or-method",
-              "anchor": "SetRegistryError(error_message, \"VLM profile must not include credentials, prompts, raw responses, source locators, or frame bytes\");",
+              "file": "src/ingress/webrtc_egress_session.cpp",
+              "symbol": "WebRtcEgressSession::CreateOffer",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "bool WebRtcEgressSession::CreateOffer(std::string* sdp_offer, std::string* error_message) {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 1782,
-              "contextSha256": "281108b048508fce75cf093b8a1d04830ae42a63736c8f03e983e8b37c286895"
+              "line": 1673,
+              "contextSha256": "6a921f169ad5ea905f8bd2964cc734efc97cabb06dd599dafb65137b436ef428"
             },
             "routeControl": {
               "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "CreateDocument",
-              "symbolKind": "function-or-method",
-              "anchor": "SetRegistryError(error_message, \"VLM profile must not include credentials, prompts, raw responses, source locators, or frame bytes\");",
+              "symbol": "WebRtcHttpServer::Start",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "if (request.method == \"POST\" && request.path == \"/webrtc/session\") {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 1782,
-              "contextSha256": "281108b048508fce75cf093b8a1d04830ae42a63736c8f03e983e8b37c286895"
+              "line": 42349,
+              "contextSha256": "d2d4219800e50ad2035004990e7a7d6b9c52296c29437c1e375dee2713d345ac"
             },
             "action": {
-              "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "CreateDocument",
-              "symbolKind": "function-or-method",
-              "anchor": "SetRegistryError(error_message, \"VLM profile must not include credentials, prompts, raw responses, source locators, or frame bytes\");",
+              "file": "src/ingress/webrtc_egress_session.cpp",
+              "symbol": "WebRtcEgressSession::CreateOffer",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "g_signal_emit_by_name(webrtcbin_, \"create-offer\", nullptr, promise);",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 1782,
-              "contextSha256": "281108b048508fce75cf093b8a1d04830ae42a63736c8f03e983e8b37c286895"
+              "line": 1693,
+              "contextSha256": "31ebfacc36a5da641f106f3615f3ac42dd0ad67e5f254e5fd723552bbd7d7654"
             },
             "state": {
-              "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "CreateDocument",
-              "symbolKind": "function-or-method",
-              "anchor": "if (ParseStringField(body, \"schema\").value_or(\"\") != \"media-server.vlm-profile.v1\") {",
+              "file": "src/ingress/webrtc_egress_session.cpp",
+              "symbol": "WebRtcEgressSession::CreateOffer",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "generated_offer = *local_offer_;",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 1785,
-              "contextSha256": "312bc47c6b7840f5c0360bc77fca9aaaf85d091f307ecdc2564c1fcb1a0c6df2"
+              "line": 1707,
+              "contextSha256": "fc9ae468f0f74131da30ef128df8f737c8880b2cebfee4e706cd38ea745897a3"
             },
             "readback": {
               "file": "scripts/internal/verify_webrtc_va_metadata.mjs",
-              "symbol": "verifier:verify-webrtc-va-metadata",
+              "symbol": "webrtcOfferReadback",
               "symbolKind": "reviewed-owner-or-readback",
-              "anchor": "const response = await fetch(endpoint(path), { cache: 'no-store', ...init });",
+              "anchor": "assertOk(state.sessionId && session.offer, 'WebRTC session response missing sessionId/offer');",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 191,
-              "contextSha256": "2dc512ce9f852513ed2d84e24a8c4235e9db6784b57509c4679f8d8c59413679"
+              "line": 340,
+              "contextSha256": "42eba0217b052856fbe5929f199fd95e66f103cb88e852b4e7ea68834691fe48"
             }
           },
-          "routeControlKind": "owner-boundary",
+          "routeControlKind": "webrtc-session-offer-flow",
           "edges": [
             {
               "from": "owner",
               "to": "routeControl",
-              "relationKind": "owner-boundary",
-              "digest": "0b7d631163479437c982561c194b2169a5398662477ae2b6d30a6aa80a45c826"
+              "relationKind": "webrtc-session-offer-flow",
+              "digest": "8259c448574ce1e2880f032048a50faaee4dc9c98fc9cbb3b0ad6a7e8882a8cd"
             },
             {
               "from": "routeControl",
               "to": "action",
               "relationKind": "reviewed-dispatch-or-control-flow",
-              "digest": "282b30e1c8a1937b8546091fecb3e60ae53c0fa31b7fd064b84f868a39182ff2"
+              "digest": "dc98c2d49029e0a06eb01fcc2f7a1da980e133ae0b69e69064fc4319b4e6bfde"
             },
             {
               "from": "action",
               "to": "state",
               "relationKind": "reviewed-mutation-readmodel-flow",
-              "digest": "0217879c700ca0012d995107597219bd4d2a0b738d9802755bb90004259bdc2b"
+              "digest": "9a37906b996c62ec6a719b0197206c5296f5eb5e5e00007f09359b11dfa0d3fe"
             },
             {
               "from": "state",
               "to": "readback",
               "relationKind": "exact-readback-assertion",
-              "digest": "ddb40ece7c4e028fbe1614b317c968b25ce9ee4e7651218518a994b67c3e967b"
+              "digest": "f04dd9cca09a882220edb6aa92ded5f7e251aa2f25f5ddfd69cea5ff5d6dfbb4"
             },
             {
               "from": "readback",
               "to": "verifierAssertion",
               "relationKind": "exact-verifier-command",
-              "digest": "b701882cf9b18987b6da0a34a418f1ca008886c8cdcd13e75c8b7824408bdbcc"
+              "digest": "f1b2da863704fd5a773a0c26a1fa687234fd59bca007e7f515765bbfbc1431e9"
             }
           ],
-          "digest": "b00e372cda5e8ba963ddcc8cbfc4c2d59549752368aa76424da97ca36fec9b7c"
+          "digest": "774ed7f24b69a8147f5ea2bdb66d0b5b4401182c0c844811d9d7baf261446500"
         }
       }
     },
@@ -127080,14 +127080,14 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW3-37",
+        "reviewer": "Codex-V390-REVIEW3-39",
         "reviewedOn": "2026-07-12",
-        "reason": "V390-REVIEW3-37:LAB-126:V390 incident-to-rule provenance save/readback:owner=NormalizeReidPolicyToken:routeControl=NormalizeReidPolicyToken:action=NormalizeReidPolicyToken:state=NormalizeReidPolicyToken:readback=verifier:verify-v390-vlm-incident-rule-provenance:chain=3e8be6254c0c8472",
-        "semanticDigest": "86f932d3bc97df6e1a050c7e4f2db191cdd0d65d9c522bbe2516c6e5cf12c116"
+        "reason": "V390-REVIEW3-39:LAB-126:V390 incident-to-rule provenance save/readback:owner=ValidateVlmIncidentRuleProvenanceContract:routeControl=ValidateVlmIncidentRuleProvenanceContract:action=ValidateVlmIncidentRuleProvenanceServerRecords:state=EnsureLoadedLocked:readback=canonicalProvenanceRestartReadback:chain=bb3c4e3bdbaad9a0",
+        "semanticDigest": "4630484d048da9d30e99c6a399c614b0e1e119e1c13f49451e39e5ae69817fd0"
       },
       "sourceEvidence": {
         "file": "src/ingress/webrtc_http_server.cpp",
-        "anchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
+        "anchor": "bool ValidateVlmIncidentRuleProvenanceContract(const std::string& body,",
         "anchorKind": "reviewed-owner-source-line"
       },
       "uiEvidence": null,
@@ -127107,22 +127107,22 @@
         "schema": "media-server.feature-semantic-implementation-closure.v2",
         "handler": {
           "file": "src/ingress/webrtc_http_server.cpp",
-          "symbol": "NormalizeReidPolicyToken",
-          "symbolKind": "declaration-or-file-scope",
-          "anchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
+          "symbol": "ValidateVlmIncidentRuleProvenanceContract",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "bool ValidateVlmIncidentRuleProvenanceContract(const std::string& body,",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 860,
-          "contextSha256": "bd6c2879de393aa448649b915b9768c9950f738e118e52d87e3da5c583e7d696"
+          "line": 797,
+          "contextSha256": "c7e344d83528af3a9ef7a41edc93037b8589ac0ebc8c44f511bb6966e5027b1c"
         },
         "route": {
           "applicability": "http-or-product-route",
           "value": "/lab/analysis/rules/{id}",
-          "dispatchAnchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
+          "dispatchAnchor": "bool ValidateVlmIncidentRuleProvenanceContract(const std::string& body,",
           "handlerFile": "src/ingress/webrtc_http_server.cpp",
-          "handlerSymbol": "NormalizeReidPolicyToken",
-          "contextSha256": "bd6c2879de393aa448649b915b9768c9950f738e118e52d87e3da5c583e7d696"
+          "handlerSymbol": "ValidateVlmIncidentRuleProvenanceContract",
+          "contextSha256": "c7e344d83528af3a9ef7a41edc93037b8589ac0ebc8c44f511bb6966e5027b1c"
         },
         "controlSelector": {
           "applicability": "not-applicable",
@@ -127130,15 +127130,15 @@
           "reason": "feature is outside the UI fulltest area"
         },
         "actionHandler": {
-          "file": "src/ingress/webrtc_http_server.cpp",
-          "symbol": "NormalizeReidPolicyToken",
-          "symbolKind": "declaration-or-file-scope",
-          "anchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
+          "file": "src/analysis/vlm_observation_store.cpp",
+          "symbol": "ValidateVlmIncidentRuleProvenanceServerRecords",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "bool ValidateVlmIncidentRuleProvenanceServerRecords(",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 860,
-          "contextSha256": "bd6c2879de393aa448649b915b9768c9950f738e118e52d87e3da5c583e7d696"
+          "line": 1141,
+          "contextSha256": "2845cfbd1b922a5fdd95f4a2cb2f7da294cbf1ed9d7979ef2e2edb548ba006a8"
         },
         "stateOracle": {
           "oracleKind": "update-transition-readback",
@@ -127146,21 +127146,21 @@
           "expectedBehavior": "`/lab/analysis/rules/{id}` PUT/GET과 registry 저장 파일 readback에서 provenance schema, event/candidate/evaluation source, generated rule ID/save route를 보존하고 invalid/mismatched provenance를 no-write로 거부하는지 확인",
           "locator": {
             "file": "src/ingress/webrtc_http_server.cpp",
-            "symbol": "NormalizeReidPolicyToken",
-            "symbolKind": "declaration-or-file-scope",
-            "anchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
+            "symbol": "EnsureLoadedLocked",
+            "symbolKind": "reviewed-owner-or-readback",
+            "anchor": "std::cerr << \"[analysis-registry] rule provenance reload quarantine id=\"",
             "anchorKind": "reviewed-source-line",
             "anchorStrength": "feature-specific-source-line",
             "occurrence": 0,
-            "line": 860,
-            "contextSha256": "bd6c2879de393aa448649b915b9768c9950f738e118e52d87e3da5c583e7d696"
+            "line": 1631,
+            "contextSha256": "542e33ab5aa987fbc77c54e0a2d940ddab835380711f80a4d359d86d18b2f5bc"
           }
         },
         "relation": {
           "kind": "route-dispatch-handler-action-state",
-          "handlerSymbol": "NormalizeReidPolicyToken",
-          "actionSymbol": "NormalizeReidPolicyToken",
-          "stateSymbol": "NormalizeReidPolicyToken",
+          "handlerSymbol": "ValidateVlmIncidentRuleProvenanceContract",
+          "actionSymbol": "ValidateVlmIncidentRuleProvenanceServerRecords",
+          "stateSymbol": "EnsureLoadedLocked",
           "semanticKey": "LAB-126:8efc71696c5574ed2413910d"
         },
         "verifierAssertion": {
@@ -127169,101 +127169,101 @@
           "assertionKind": "reviewed-owner-route-control-action-state-readback-chain",
           "assertionAnchor": "validateReview3CallChain",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "86f932d3bc97df6e1a050c7e4f2db191cdd0d65d9c522bbe2516c6e5cf12c116"
+          "assertedSemanticDigest": "4630484d048da9d30e99c6a399c614b0e1e119e1c13f49451e39e5ae69817fd0"
         },
         "callChain": {
           "schema": "media-server.feature-reviewed-call-chain.v1",
           "roles": {
             "owner": {
               "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "NormalizeReidPolicyToken",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
+              "symbol": "ValidateVlmIncidentRuleProvenanceContract",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "bool ValidateVlmIncidentRuleProvenanceContract(const std::string& body,",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 860,
-              "contextSha256": "bd6c2879de393aa448649b915b9768c9950f738e118e52d87e3da5c583e7d696"
+              "line": 797,
+              "contextSha256": "c7e344d83528af3a9ef7a41edc93037b8589ac0ebc8c44f511bb6966e5027b1c"
             },
             "routeControl": {
               "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "NormalizeReidPolicyToken",
-              "symbolKind": "declaration-or-file-scope",
+              "symbol": "ValidateVlmIncidentRuleProvenanceContract",
+              "symbolKind": "reviewed-owner-or-readback",
               "anchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 860,
-              "contextSha256": "bd6c2879de393aa448649b915b9768c9950f738e118e52d87e3da5c583e7d696"
+              "line": 887,
+              "contextSha256": "691922f32984924b643e81f0ecdd492bbf7d5d6c5e7bf3a893e956b90f1569d0"
             },
             "action": {
-              "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "NormalizeReidPolicyToken",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
+              "file": "src/analysis/vlm_observation_store.cpp",
+              "symbol": "ValidateVlmIncidentRuleProvenanceServerRecords",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "bool ValidateVlmIncidentRuleProvenanceServerRecords(",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 860,
-              "contextSha256": "bd6c2879de393aa448649b915b9768c9950f738e118e52d87e3da5c583e7d696"
+              "line": 1141,
+              "contextSha256": "2845cfbd1b922a5fdd95f4a2cb2f7da294cbf1ed9d7979ef2e2edb548ba006a8"
             },
             "state": {
               "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "NormalizeReidPolicyToken",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
+              "symbol": "EnsureLoadedLocked",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "std::cerr << \"[analysis-registry] rule provenance reload quarantine id=\"",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 860,
-              "contextSha256": "bd6c2879de393aa448649b915b9768c9950f738e118e52d87e3da5c583e7d696"
+              "line": 1631,
+              "contextSha256": "542e33ab5aa987fbc77c54e0a2d940ddab835380711f80a4d359d86d18b2f5bc"
             },
             "readback": {
               "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
-              "symbol": "verifier:verify-v390-vlm-incident-rule-provenance",
+              "symbol": "canonicalProvenanceRestartReadback",
               "symbolKind": "reviewed-owner-or-readback",
-              "anchor": "for (const snippet of [\"VLM incident-to-rule provenance\", \"RULE-112\", \"LAB-126\", \"SAFE-213\", \"OPS-180\"]) {",
+              "anchor": "assert(JSON.stringify(restartReadback.json?.rule?.vlmProvenance) === JSON.stringify(valid.vlmProvenance),",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 78,
-              "contextSha256": "926554663fa131a81539c4ee3c50f036718f71eea38004ec2404fe5dbd487c18"
+              "line": 118,
+              "contextSha256": "65b141178c809ccaaf38ebd546651d0ec8e1ed33c8b95a2f56d1edfefd69df99"
             }
           },
-          "routeControlKind": "route-dispatch",
+          "routeControlKind": "strict-provenance-save-and-reload-boundary",
           "edges": [
             {
               "from": "owner",
               "to": "routeControl",
-              "relationKind": "route-dispatch",
-              "digest": "26ed01d0680cee588faf91d09c8a5b29be2c9ccbc64a93a72ac1fdddbe7c5a19"
+              "relationKind": "strict-provenance-save-and-reload-boundary",
+              "digest": "cf7e4f08b221dd6bc695c85dd410e8c6ce1c819df4906f654e6eed018c8babf0"
             },
             {
               "from": "routeControl",
               "to": "action",
               "relationKind": "reviewed-dispatch-or-control-flow",
-              "digest": "afe00cb24f948a8e82ff07c11328fb12ac56d27465da874034c526895d8cf043"
+              "digest": "a5d1a9575b8845461c58e125668722a09702e3c0679f01023a4fe586fa2e920d"
             },
             {
               "from": "action",
               "to": "state",
               "relationKind": "reviewed-mutation-readmodel-flow",
-              "digest": "bce547be58af15220f81e374eec2a06dd17db910300a0f878737561be25f3126"
+              "digest": "d3afd78bb834003e537e3ab0bd7733453c77dd3b0cd6a5c23886228ed1830403"
             },
             {
               "from": "state",
               "to": "readback",
               "relationKind": "exact-readback-assertion",
-              "digest": "5b680b17aabeee81f078b3a1a23dd376af97e13ad79e6db9fb17d1dc9eb51e62"
+              "digest": "49aef4058807c0edd548dd006f35a42ed313bd5b8d69d2032a5db43f1fb2e54f"
             },
             {
               "from": "readback",
               "to": "verifierAssertion",
               "relationKind": "exact-verifier-command",
-              "digest": "01d3e1915645498832218043ef52419d1a436d0c0108c85f809e013b1df2b814"
+              "digest": "2df3e539227cccf67bb354fb0140d32a07b7d7346109971a0d73f7077eab5387"
             }
           ],
-          "digest": "3e8be6254c0c84724934486747f6a996d3623dcf5d56a354993ae4029360f1c4"
+          "digest": "bb3c4e3bdbaad9a0824e3b958222b27ccf0802d265a0c72ac849f3211e5537ad"
         }
       }
     },
@@ -130451,27 +130451,27 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW3-37",
+        "reviewer": "Codex-V390-REVIEW3-39",
         "reviewedOn": "2026-07-12",
-        "reason": "V390-REVIEW3-37:SAFE-017:구 `/lab` 제품 UI route 404 처리:owner=NormalizeReidPolicyToken:routeControl=NormalizeReidPolicyToken:action=NormalizeReidPolicyToken:state=NormalizeReidPolicyToken:readback=verifier:verify-v390-vlm-promotion-trust-boundary:chain=b49e8f814a77c097",
-        "semanticDigest": "3481ae170f6cb4ac130f1bcad144851bf4c374dd8f9d3b3f09f74b6dec030754"
+        "reason": "V390-REVIEW3-39:SAFE-017:구 `/lab` 제품 UI route 404 처리:owner=WebRtcHttpServer::Start:routeControl=WebRtcHttpServer::Start:action=WebRtcHttpServer::Start:state=WebRtcHttpServer::Start:readback=crossRouteNegativeCase:chain=9da4d367fadd271a",
+        "semanticDigest": "e198914d9bea3a1adfc7a8ffe03ce88f2be966eed0a225b687d677030c910ba7"
       },
       "sourceEvidence": {
         "file": "src/ingress/webrtc_http_server.cpp",
-        "anchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
+        "anchor": "bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t port, std::string* error_message) {",
         "anchorKind": "reviewed-owner-source-line"
       },
       "uiEvidence": {
         "file": "src/ingress/webrtc_http_server.cpp",
-        "anchor": "/lab",
-        "anchorKind": "semantic-action-handler",
+        "anchor": "return HttpResponse{404, \"Not Found\", \"text/plain; charset=utf-8\", {}, \"not found\"};",
+        "anchorKind": "reviewed-route-control-source-line",
         "screenRoute": "/lab"
       },
       "verifierEvidence": {
-        "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
-        "anchor": "/lab",
-        "anchorKind": "route",
-        "command": "verify-v390-vlm-promotion-trust-boundary"
+        "file": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs",
+        "anchor": "assert(negativeAction?.route === \"/lab\", \"SAFE-017 /lab negative action missing\");",
+        "anchorKind": "negative-route-readback",
+        "command": "verify-v390-ui-native-exact-cases-contract"
       },
       "manualUiCaseId": "SAFE-017",
       "longrunEvidence": {
@@ -130483,22 +130483,22 @@
         "schema": "media-server.feature-semantic-implementation-closure.v2",
         "handler": {
           "file": "src/ingress/webrtc_http_server.cpp",
-          "symbol": "NormalizeReidPolicyToken",
-          "symbolKind": "declaration-or-file-scope",
-          "anchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
+          "symbol": "WebRtcHttpServer::Start",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t port, std::string* error_message) {",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 860,
-          "contextSha256": "bd6c2879de393aa448649b915b9768c9950f738e118e52d87e3da5c583e7d696"
+          "line": 38096,
+          "contextSha256": "79085df2ac820ee56ddcd743492a00100b2926d424165c36e133feb6fa69ec20"
         },
         "route": {
           "applicability": "http-or-product-route",
           "value": "/lab",
-          "dispatchAnchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
+          "dispatchAnchor": "bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t port, std::string* error_message) {",
           "handlerFile": "src/ingress/webrtc_http_server.cpp",
-          "handlerSymbol": "NormalizeReidPolicyToken",
-          "contextSha256": "bd6c2879de393aa448649b915b9768c9950f738e118e52d87e3da5c583e7d696"
+          "handlerSymbol": "WebRtcHttpServer::Start",
+          "contextSha256": "79085df2ac820ee56ddcd743492a00100b2926d424165c36e133feb6fa69ec20"
         },
         "controlSelector": {
           "applicability": "not-applicable",
@@ -130508,14 +130508,14 @@
         },
         "actionHandler": {
           "file": "src/ingress/webrtc_http_server.cpp",
-          "symbol": "NormalizeReidPolicyToken",
-          "symbolKind": "declaration-or-file-scope",
-          "anchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
+          "symbol": "WebRtcHttpServer::Start",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "return HttpResponse{404, \"Not Found\", \"text/plain; charset=utf-8\", {}, \"not found\"};",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 860,
-          "contextSha256": "bd6c2879de393aa448649b915b9768c9950f738e118e52d87e3da5c583e7d696"
+          "line": 42673,
+          "contextSha256": "0f6a18d0c26ea11ab19c3ed26d5b3672e1dffad4157b363a7b0ec31b715986d2"
         },
         "stateOracle": {
           "oracleKind": "read-or-rendered-state",
@@ -130523,21 +130523,21 @@
           "expectedBehavior": "`/lab` 구 UI route가 제품 UI로 열리지 않음",
           "locator": {
             "file": "src/ingress/webrtc_http_server.cpp",
-            "symbol": "NormalizeReidPolicyToken",
-            "symbolKind": "declaration-or-file-scope",
-            "anchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
+            "symbol": "WebRtcHttpServer::Start",
+            "symbolKind": "reviewed-owner-or-readback",
+            "anchor": "return HttpResponse{404, \"Not Found\", \"text/plain; charset=utf-8\", {}, \"not found\"};",
             "anchorKind": "reviewed-source-line",
             "anchorStrength": "feature-specific-source-line",
             "occurrence": 0,
-            "line": 860,
-            "contextSha256": "bd6c2879de393aa448649b915b9768c9950f738e118e52d87e3da5c583e7d696"
+            "line": 42673,
+            "contextSha256": "0f6a18d0c26ea11ab19c3ed26d5b3672e1dffad4157b363a7b0ec31b715986d2"
           }
         },
         "relation": {
           "kind": "route-dispatch-handler-action-state",
-          "handlerSymbol": "NormalizeReidPolicyToken",
-          "actionSymbol": "NormalizeReidPolicyToken",
-          "stateSymbol": "NormalizeReidPolicyToken",
+          "handlerSymbol": "WebRtcHttpServer::Start",
+          "actionSymbol": "WebRtcHttpServer::Start",
+          "stateSymbol": "WebRtcHttpServer::Start",
           "semanticKey": "SAFE-017:9eba822c8aea9d1acce91bf3"
         },
         "verifierAssertion": {
@@ -130546,101 +130546,101 @@
           "assertionKind": "reviewed-owner-route-control-action-state-readback-chain",
           "assertionAnchor": "validateReview3CallChain",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "3481ae170f6cb4ac130f1bcad144851bf4c374dd8f9d3b3f09f74b6dec030754"
+          "assertedSemanticDigest": "e198914d9bea3a1adfc7a8ffe03ce88f2be966eed0a225b687d677030c910ba7"
         },
         "callChain": {
           "schema": "media-server.feature-reviewed-call-chain.v1",
           "roles": {
             "owner": {
               "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "NormalizeReidPolicyToken",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
+              "symbol": "WebRtcHttpServer::Start",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t port, std::string* error_message) {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 860,
-              "contextSha256": "bd6c2879de393aa448649b915b9768c9950f738e118e52d87e3da5c583e7d696"
+              "line": 38096,
+              "contextSha256": "79085df2ac820ee56ddcd743492a00100b2926d424165c36e133feb6fa69ec20"
             },
             "routeControl": {
               "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "NormalizeReidPolicyToken",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
+              "symbol": "WebRtcHttpServer::Start",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "return HttpResponse{404, \"Not Found\", \"text/plain; charset=utf-8\", {}, \"not found\"};",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 860,
-              "contextSha256": "bd6c2879de393aa448649b915b9768c9950f738e118e52d87e3da5c583e7d696"
+              "line": 42673,
+              "contextSha256": "0f6a18d0c26ea11ab19c3ed26d5b3672e1dffad4157b363a7b0ec31b715986d2"
             },
             "action": {
               "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "NormalizeReidPolicyToken",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
+              "symbol": "WebRtcHttpServer::Start",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "return HttpResponse{404, \"Not Found\", \"text/plain; charset=utf-8\", {}, \"not found\"};",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 860,
-              "contextSha256": "bd6c2879de393aa448649b915b9768c9950f738e118e52d87e3da5c583e7d696"
+              "line": 42673,
+              "contextSha256": "0f6a18d0c26ea11ab19c3ed26d5b3672e1dffad4157b363a7b0ec31b715986d2"
             },
             "state": {
               "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "NormalizeReidPolicyToken",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
+              "symbol": "WebRtcHttpServer::Start",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "return HttpResponse{404, \"Not Found\", \"text/plain; charset=utf-8\", {}, \"not found\"};",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 860,
-              "contextSha256": "bd6c2879de393aa448649b915b9768c9950f738e118e52d87e3da5c583e7d696"
+              "line": 42673,
+              "contextSha256": "0f6a18d0c26ea11ab19c3ed26d5b3672e1dffad4157b363a7b0ec31b715986d2"
             },
             "readback": {
-              "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
-              "symbol": "verifier:verify-v390-vlm-promotion-trust-boundary",
+              "file": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs",
+              "symbol": "crossRouteNegativeCase",
               "symbolKind": "reviewed-owner-or-readback",
-              "anchor": "const evaluationControl = shell.match(/<label>Evaluation \\(server verified\\)[\\s\\S]*?<\\/label>/)?.[0] || \"\";",
+              "anchor": "assert(negativeAction?.route === \"/lab\", \"SAFE-017 /lab negative action missing\");",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 115,
-              "contextSha256": "bfae79688863a86a4825da2afc09fad49322f86fc4d4869194423296d4940d22"
+              "line": 68,
+              "contextSha256": "025fc6ce39147804a5a51b02a23ce0186d798dc613abd4062d1375f37cc8ff40"
             }
           },
-          "routeControlKind": "route-dispatch",
+          "routeControlKind": "negative-route-dispatch",
           "edges": [
             {
               "from": "owner",
               "to": "routeControl",
-              "relationKind": "route-dispatch",
-              "digest": "26ed01d0680cee588faf91d09c8a5b29be2c9ccbc64a93a72ac1fdddbe7c5a19"
+              "relationKind": "negative-route-dispatch",
+              "digest": "366c7f145f2c0cd12df70922ee110f444a681a60d3fd6e6f3655b950c1fea1a3"
             },
             {
               "from": "routeControl",
               "to": "action",
               "relationKind": "reviewed-dispatch-or-control-flow",
-              "digest": "afe00cb24f948a8e82ff07c11328fb12ac56d27465da874034c526895d8cf043"
+              "digest": "1c92ce142d704389e88e953dd6a79a4f5b5ad8d83824bf0d91a655a03446af3d"
             },
             {
               "from": "action",
               "to": "state",
               "relationKind": "reviewed-mutation-readmodel-flow",
-              "digest": "bce547be58af15220f81e374eec2a06dd17db910300a0f878737561be25f3126"
+              "digest": "e09c3ef98c13470dfb3e52def3c83d256e3dbcc8e95e4bdfb95db16d330287d6"
             },
             {
               "from": "state",
               "to": "readback",
               "relationKind": "exact-readback-assertion",
-              "digest": "83f2dd52e0ebb31d2133948f7ff76376d8a7554c93b5acf8a875e8ea3cc447d3"
+              "digest": "ec13829001e5230af66bdfc32bdb29cc81561f73b5c21ad8c05c032292c58b34"
             },
             {
               "from": "readback",
               "to": "verifierAssertion",
               "relationKind": "exact-verifier-command",
-              "digest": "dc584cf0f759fc5643558c998eba8ed0fcc540fdc4e3d90a8b468485a21cdb60"
+              "digest": "1cf3890dd1607609e6c9ac40ec0c54ac6df3244293e5f79ac3d4a8aaefc9dc15"
             }
           ],
-          "digest": "b49e8f814a77c0974e1230b76d466ce7e6050010c663924dc93f22c7bdb34060"
+          "digest": "9da4d367fadd271a7a16f169b6f1c2e5029f32452ac7ee387ff2b64281bbe93a"
         }
       }
     },
@@ -169589,14 +169589,14 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW3-37",
+        "reviewer": "Codex-V390-REVIEW3-39",
         "reviewedOn": "2026-07-12",
-        "reason": "V390-REVIEW3-37:SAFE-213:V390 incident-to-rule provenance contract guard:owner=file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50:routeControl=file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50:action=file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50:state=file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50:readback=verifier:verify-v390-vlm-incident-rule-provenance:chain=475f27592c60ec6a",
-        "semanticDigest": "94793d47e94805b40f0411db69b2bd59868384597326cd0d473813375df64c15"
+        "reason": "V390-REVIEW3-39:SAFE-213:V390 incident-to-rule provenance contract guard:owner=ValidateVlmIncidentRuleProvenanceContract:routeControl=ValidateVlmIncidentRuleProvenanceContract:action=ValidateVlmIncidentRuleProvenanceServerRecords:state=EnsureLoadedLocked:readback=provenanceReloadMatrixSummary:chain=b5a94dc27d26223f",
+        "semanticDigest": "c9833d3d99866a19e6ee096f93fa02ba22998c0fa0cc037faaf4c6dc5e8a2d3e"
       },
       "sourceEvidence": {
-        "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
-        "anchor": "\"media-server.vlm-incident-to-rule-provenance.v1\",",
+        "file": "src/ingress/webrtc_http_server.cpp",
+        "anchor": "bool ValidateVlmIncidentRuleProvenanceContract(const std::string& body,",
         "anchorKind": "reviewed-owner-source-line"
       },
       "uiEvidence": null,
@@ -169615,15 +169615,15 @@
       "semanticEvidence": {
         "schema": "media-server.feature-semantic-implementation-closure.v2",
         "handler": {
-          "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
-          "symbol": "file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50",
-          "symbolKind": "declaration-or-file-scope",
-          "anchor": "\"media-server.vlm-incident-to-rule-provenance.v1\",",
+          "file": "src/ingress/webrtc_http_server.cpp",
+          "symbol": "ValidateVlmIncidentRuleProvenanceContract",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "bool ValidateVlmIncidentRuleProvenanceContract(const std::string& body,",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 50,
-          "contextSha256": "bd8866b68c391c4d0399d321d6c85fea806b1d13b575963e4c4b5094b3024933"
+          "line": 797,
+          "contextSha256": "c7e344d83528af3a9ef7a41edc93037b8589ac0ebc8c44f511bb6966e5027b1c"
         },
         "route": {
           "applicability": "not-applicable",
@@ -169636,37 +169636,37 @@
           "reason": "feature is outside the UI fulltest area"
         },
         "actionHandler": {
-          "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
-          "symbol": "file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50",
-          "symbolKind": "declaration-or-file-scope",
-          "anchor": "\"media-server.vlm-incident-to-rule-provenance.v1\",",
+          "file": "src/analysis/vlm_observation_store.cpp",
+          "symbol": "ValidateVlmIncidentRuleProvenanceServerRecords",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "bool ValidateVlmIncidentRuleProvenanceServerRecords(",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 50,
-          "contextSha256": "bd8866b68c391c4d0399d321d6c85fea806b1d13b575963e4c4b5094b3024933"
+          "line": 1141,
+          "contextSha256": "2845cfbd1b922a5fdd95f4a2cb2f7da294cbf1ed9d7979ef2e2edb548ba006a8"
         },
         "stateOracle": {
           "oracleKind": "update-transition-readback",
           "expectedBehaviorSha256": "ace7b374b5ee953e661b1f52210856674269220b5cb16edbe989c5449a51ae3e",
           "expectedBehavior": "optional provenance가 없던 기존 rule payload는 유지하고, provenance가 있으면 required source fields, manual-review/no-auto-apply, generated rule ID/save route, raw credential/source URL/frame/prompt/response 비포함을 검증합니다. EventRecord/Event POST/WebRTC/SSE/WS/media schema/path는 변경하지 않습니다",
           "locator": {
-            "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
-            "symbol": "file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50",
-            "symbolKind": "declaration-or-file-scope",
-            "anchor": "\"media-server.vlm-incident-to-rule-provenance.v1\",",
+            "file": "src/ingress/webrtc_http_server.cpp",
+            "symbol": "EnsureLoadedLocked",
+            "symbolKind": "reviewed-owner-or-readback",
+            "anchor": "std::cerr << \"[analysis-registry] rule provenance reload quarantine id=\"",
             "anchorKind": "reviewed-source-line",
             "anchorStrength": "feature-specific-source-line",
             "occurrence": 0,
-            "line": 50,
-            "contextSha256": "bd8866b68c391c4d0399d321d6c85fea806b1d13b575963e4c4b5094b3024933"
+            "line": 1631,
+            "contextSha256": "542e33ab5aa987fbc77c54e0a2d940ddab835380711f80a4d359d86d18b2f5bc"
           }
         },
         "relation": {
           "kind": "invariant-owner-assertion-state",
-          "handlerSymbol": "file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50",
-          "actionSymbol": "file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50",
-          "stateSymbol": "file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50",
+          "handlerSymbol": "ValidateVlmIncidentRuleProvenanceContract",
+          "actionSymbol": "ValidateVlmIncidentRuleProvenanceServerRecords",
+          "stateSymbol": "EnsureLoadedLocked",
           "semanticKey": "SAFE-213:ace7b374b5ee953e661b1f52"
         },
         "verifierAssertion": {
@@ -169675,101 +169675,101 @@
           "assertionKind": "reviewed-owner-route-control-action-state-readback-chain",
           "assertionAnchor": "validateReview3CallChain",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "94793d47e94805b40f0411db69b2bd59868384597326cd0d473813375df64c15"
+          "assertedSemanticDigest": "c9833d3d99866a19e6ee096f93fa02ba22998c0fa0cc037faaf4c6dc5e8a2d3e"
         },
         "callChain": {
           "schema": "media-server.feature-reviewed-call-chain.v1",
           "roles": {
             "owner": {
-              "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
-              "symbol": "file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "\"media-server.vlm-incident-to-rule-provenance.v1\",",
+              "file": "src/ingress/webrtc_http_server.cpp",
+              "symbol": "ValidateVlmIncidentRuleProvenanceContract",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "bool ValidateVlmIncidentRuleProvenanceContract(const std::string& body,",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 50,
-              "contextSha256": "bd8866b68c391c4d0399d321d6c85fea806b1d13b575963e4c4b5094b3024933"
+              "line": 797,
+              "contextSha256": "c7e344d83528af3a9ef7a41edc93037b8589ac0ebc8c44f511bb6966e5027b1c"
             },
             "routeControl": {
-              "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
-              "symbol": "file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "\"media-server.vlm-incident-to-rule-provenance.v1\",",
+              "file": "src/ingress/webrtc_http_server.cpp",
+              "symbol": "ValidateVlmIncidentRuleProvenanceContract",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 50,
-              "contextSha256": "bd8866b68c391c4d0399d321d6c85fea806b1d13b575963e4c4b5094b3024933"
+              "line": 887,
+              "contextSha256": "691922f32984924b643e81f0ecdd492bbf7d5d6c5e7bf3a893e956b90f1569d0"
             },
             "action": {
-              "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
-              "symbol": "file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "\"media-server.vlm-incident-to-rule-provenance.v1\",",
+              "file": "src/analysis/vlm_observation_store.cpp",
+              "symbol": "ValidateVlmIncidentRuleProvenanceServerRecords",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "bool ValidateVlmIncidentRuleProvenanceServerRecords(",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 50,
-              "contextSha256": "bd8866b68c391c4d0399d321d6c85fea806b1d13b575963e4c4b5094b3024933"
+              "line": 1141,
+              "contextSha256": "2845cfbd1b922a5fdd95f4a2cb2f7da294cbf1ed9d7979ef2e2edb548ba006a8"
             },
             "state": {
-              "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
-              "symbol": "file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "\"media-server.vlm-incident-to-rule-provenance.v1\",",
+              "file": "src/ingress/webrtc_http_server.cpp",
+              "symbol": "EnsureLoadedLocked",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "std::cerr << \"[analysis-registry] rule provenance reload quarantine id=\"",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 50,
-              "contextSha256": "bd8866b68c391c4d0399d321d6c85fea806b1d13b575963e4c4b5094b3024933"
+              "line": 1631,
+              "contextSha256": "542e33ab5aa987fbc77c54e0a2d940ddab835380711f80a4d359d86d18b2f5bc"
             },
             "readback": {
               "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
-              "symbol": "verifier:verify-v390-vlm-incident-rule-provenance",
+              "symbol": "provenanceReloadMatrixSummary",
               "symbolKind": "reviewed-owner-or-readback",
-              "anchor": "for (const snippet of [\"VLM incident-to-rule provenance\", \"RULE-112\", \"LAB-126\", \"SAFE-213\", \"OPS-180\"]) {",
+              "anchor": "assert((await request(baseUrl, \"GET\", `/lab/analysis/rules/${id}`)).status === 404,",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 78,
-              "contextSha256": "926554663fa131a81539c4ee3c50f036718f71eea38004ec2404fe5dbd487c18"
+              "line": 149,
+              "contextSha256": "ecb950cdd7ea82b69fdcd3f01ac9c553bb2e210c59af34223fdf1fc714ee47ba"
             }
           },
-          "routeControlKind": "owner-boundary",
+          "routeControlKind": "strict-provenance-save-and-reload-boundary",
           "edges": [
             {
               "from": "owner",
               "to": "routeControl",
-              "relationKind": "owner-boundary",
-              "digest": "871e8a970e37108c90cdfd39f5c59b12e51bee0f3e35d0317992561e46a1dd39"
+              "relationKind": "strict-provenance-save-and-reload-boundary",
+              "digest": "cf7e4f08b221dd6bc695c85dd410e8c6ce1c819df4906f654e6eed018c8babf0"
             },
             {
               "from": "routeControl",
               "to": "action",
               "relationKind": "reviewed-dispatch-or-control-flow",
-              "digest": "6af3d03732479778005f38a6adbc503da825b3115d6123ebd1c5ffb07aa5ed4e"
+              "digest": "a5d1a9575b8845461c58e125668722a09702e3c0679f01023a4fe586fa2e920d"
             },
             {
               "from": "action",
               "to": "state",
               "relationKind": "reviewed-mutation-readmodel-flow",
-              "digest": "94fdf1c075424364cfe24c5b926559e6baea74aee58daaf45e99784c0159b7a5"
+              "digest": "d3afd78bb834003e537e3ab0bd7733453c77dd3b0cd6a5c23886228ed1830403"
             },
             {
               "from": "state",
               "to": "readback",
               "relationKind": "exact-readback-assertion",
-              "digest": "a91ef0266b6c49b52f4a0d895baeba8d0f19ba1fa0bc8a286d45317161d2bd69"
+              "digest": "c917bac9ab2520e3b0dde3ae3196aa8f30742acd92328d95626fa91a52fc26a4"
             },
             {
               "from": "readback",
               "to": "verifierAssertion",
               "relationKind": "exact-verifier-command",
-              "digest": "01d3e1915645498832218043ef52419d1a436d0c0108c85f809e013b1df2b814"
+              "digest": "8c163644a200957368d8af3801404c25bf02146a05bfd0599d9fe304b1a2ff97"
             }
           ],
-          "digest": "475f27592c60ec6a39d2c68182bd4eddafe69763f0c3b84382759e63f92d2788"
+          "digest": "b5a94dc27d26223f07e3aead1608fedd5164fb479046eaec7bf1386c76d10827"
         }
       }
     },
@@ -198018,14 +198018,14 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW3-37",
+        "reviewer": "Codex-V390-REVIEW3-39",
         "reviewedOn": "2026-07-12",
-        "reason": "V390-REVIEW3-37:OPS-173:V390 VLM promotion trust boundary gate:owner=check:promotion guard is read-only and preserves runtime/provider boundaries:routeControl=check:promotion guard is read-only and preserves runtime/provider boundaries:action=check:promotion guard is read-only and preserves runtime/provider boundaries:state=check:promotion guard is read-only and preserves runtime/provider boundaries:readback=verifier:verify-v390-vlm-promotion-trust-boundary:chain=a6f061ea2b4275e1",
-        "semanticDigest": "48b8c5d54ba88c8f7e172fc533aa566f4b82b6706f277e9306426e5c8f3262f3"
+        "reason": "V390-REVIEW3-39:OPS-173:V390 VLM promotion trust boundary gate:owner=PrepareVlmProfileDocumentLocked:routeControl=WebRtcHttpServer::Start:action=PrepareVlmProfileDocumentLocked:state=CanonicalizeStoredVlmProfileLocked:readback=verifyStructuralProfileRejection:chain=00922afef22329f4",
+        "semanticDigest": "570f6c209133dce8d039d7355b619577bd901e94cf9bd04f8596b9d5ee9d3276"
       },
       "sourceEvidence": {
-        "file": "scripts/internal/verify_v390_vlm_evaluation_promotion_guard.mjs",
-        "anchor": "check(\"promotion guard is read-only and preserves runtime/provider boundaries\", () => {",
+        "file": "src/ingress/webrtc_http_server.cpp",
+        "anchor": "std::optional<Document> PrepareVlmProfileDocumentLocked(const std::string& path_id,",
         "anchorKind": "reviewed-owner-source-line"
       },
       "uiEvidence": null,
@@ -198044,15 +198044,15 @@
       "semanticEvidence": {
         "schema": "media-server.feature-semantic-implementation-closure.v2",
         "handler": {
-          "file": "scripts/internal/verify_v390_vlm_evaluation_promotion_guard.mjs",
-          "symbol": "check:promotion guard is read-only and preserves runtime/provider boundaries",
-          "symbolKind": "javascript-function",
-          "anchor": "check(\"promotion guard is read-only and preserves runtime/provider boundaries\", () => {",
+          "file": "src/ingress/webrtc_http_server.cpp",
+          "symbol": "PrepareVlmProfileDocumentLocked",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "std::optional<Document> PrepareVlmProfileDocumentLocked(const std::string& path_id,",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 60,
-          "contextSha256": "bbd8fbf14dfe9c3d2b078dabcf0142c04067d0c6a95678287dc10f23ef65e08b"
+          "line": 1935,
+          "contextSha256": "beb503396fcc11d51b80a619a7c49992b1aaa5fdad8bca1bb19d65e909867a27"
         },
         "route": {
           "applicability": "not-applicable",
@@ -198065,38 +198065,38 @@
           "reason": "feature is outside the UI fulltest area"
         },
         "actionHandler": {
-          "file": "scripts/internal/verify_v390_vlm_evaluation_promotion_guard.mjs",
-          "symbol": "check:promotion guard is read-only and preserves runtime/provider boundaries",
-          "symbolKind": "javascript-function",
-          "anchor": "check(\"promotion guard is read-only and preserves runtime/provider boundaries\", () => {",
+          "file": "src/ingress/webrtc_http_server.cpp",
+          "symbol": "PrepareVlmProfileDocumentLocked",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "if (!ParseStrictJsonObjectDocument(body, &profile_document, &parse_error)) {",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 60,
-          "contextSha256": "bbd8fbf14dfe9c3d2b078dabcf0142c04067d0c6a95678287dc10f23ef65e08b"
+          "line": 1940,
+          "contextSha256": "3ec6c66851daeddd0a7f3e82f0ef1073291f55996778b0517057cefea60df1b7"
         },
         "stateOracle": {
           "oracleKind": "negative-invariant-state",
-          "expectedBehaviorSha256": "783620b9a3dc656c0863904d5f779f057fc38390591a150e23b9d57af4ea6dbd",
-          "expectedBehavior": "`verify-v390-vlm-promotion-trust-boundary`, `verify-v390-vlm-evaluation-promotion-guard`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 14개 HTTP positive/negative case와 9개 restart full-contract quarantine case, canonical provenance readback, no-write-on-reject, roadmap/release records/dispatch 연결을 확인하되 runtime/provider 호출, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음",
+          "expectedBehaviorSha256": "516c3b5552f36472e8a919ddd789b71a07bf9eb08032e3e592ba91c354387a24",
+          "expectedBehavior": "`verify-v390-vlm-promotion-trust-boundary`, `verify-v390-vlm-evaluation-promotion-guard`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 14개 HTTP promotion, 7개 structural save rejection, 13개 restart full-contract/structure quarantine, canonical provenance readback, no-write-on-reject를 확인하되 runtime/provider 호출, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음",
           "locator": {
-            "file": "scripts/internal/verify_v390_vlm_evaluation_promotion_guard.mjs",
-            "symbol": "check:promotion guard is read-only and preserves runtime/provider boundaries",
-            "symbolKind": "javascript-function",
-            "anchor": "check(\"promotion guard is read-only and preserves runtime/provider boundaries\", () => {",
+            "file": "src/ingress/webrtc_http_server.cpp",
+            "symbol": "CanonicalizeStoredVlmProfileLocked",
+            "symbolKind": "reviewed-owner-or-readback",
+            "anchor": "static std::optional<Document> CanonicalizeStoredVlmProfileLocked(const Document& document) {",
             "anchorKind": "reviewed-source-line",
             "anchorStrength": "feature-specific-source-line",
             "occurrence": 0,
-            "line": 60,
-            "contextSha256": "bbd8fbf14dfe9c3d2b078dabcf0142c04067d0c6a95678287dc10f23ef65e08b"
+            "line": 2364,
+            "contextSha256": "95954909ecba187b694582f318688f155280e07f6e12f6e1f53d9ca761f05f66"
           }
         },
         "relation": {
           "kind": "ops-gate-dispatch-assertion-state",
-          "handlerSymbol": "check:promotion guard is read-only and preserves runtime/provider boundaries",
-          "actionSymbol": "check:promotion guard is read-only and preserves runtime/provider boundaries",
-          "stateSymbol": "check:promotion guard is read-only and preserves runtime/provider boundaries",
-          "semanticKey": "OPS-173:783620b9a3dc656c0863904d"
+          "handlerSymbol": "PrepareVlmProfileDocumentLocked",
+          "actionSymbol": "PrepareVlmProfileDocumentLocked",
+          "stateSymbol": "CanonicalizeStoredVlmProfileLocked",
+          "semanticKey": "OPS-173:516c3b5552f36472e8a919dd"
         },
         "verifierAssertion": {
           "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
@@ -198104,101 +198104,101 @@
           "assertionKind": "reviewed-owner-route-control-action-state-readback-chain",
           "assertionAnchor": "validateReview3CallChain",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "48b8c5d54ba88c8f7e172fc533aa566f4b82b6706f277e9306426e5c8f3262f3"
+          "assertedSemanticDigest": "570f6c209133dce8d039d7355b619577bd901e94cf9bd04f8596b9d5ee9d3276"
         },
         "callChain": {
           "schema": "media-server.feature-reviewed-call-chain.v1",
           "roles": {
             "owner": {
-              "file": "scripts/internal/verify_v390_vlm_evaluation_promotion_guard.mjs",
-              "symbol": "check:promotion guard is read-only and preserves runtime/provider boundaries",
-              "symbolKind": "javascript-function",
-              "anchor": "check(\"promotion guard is read-only and preserves runtime/provider boundaries\", () => {",
+              "file": "src/ingress/webrtc_http_server.cpp",
+              "symbol": "PrepareVlmProfileDocumentLocked",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "std::optional<Document> PrepareVlmProfileDocumentLocked(const std::string& path_id,",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 60,
-              "contextSha256": "bbd8fbf14dfe9c3d2b078dabcf0142c04067d0c6a95678287dc10f23ef65e08b"
+              "line": 1935,
+              "contextSha256": "beb503396fcc11d51b80a619a7c49992b1aaa5fdad8bca1bb19d65e909867a27"
             },
             "routeControl": {
-              "file": "scripts/internal/verify_v390_vlm_evaluation_promotion_guard.mjs",
-              "symbol": "check:promotion guard is read-only and preserves runtime/provider boundaries",
-              "symbolKind": "javascript-function",
-              "anchor": "check(\"promotion guard is read-only and preserves runtime/provider boundaries\", () => {",
+              "file": "src/ingress/webrtc_http_server.cpp",
+              "symbol": "WebRtcHttpServer::Start",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "const auto ops_vlm_profile_prefix = std::string(\"/ops/api/vlm/profiles/\");",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 60,
-              "contextSha256": "bbd8fbf14dfe9c3d2b078dabcf0142c04067d0c6a95678287dc10f23ef65e08b"
+              "line": 39066,
+              "contextSha256": "18c69dcbe94fb9ae372254b033ad7fc3742940eb3303b4134e8b9224f8b5d989"
             },
             "action": {
-              "file": "scripts/internal/verify_v390_vlm_evaluation_promotion_guard.mjs",
-              "symbol": "check:promotion guard is read-only and preserves runtime/provider boundaries",
-              "symbolKind": "javascript-function",
-              "anchor": "check(\"promotion guard is read-only and preserves runtime/provider boundaries\", () => {",
+              "file": "src/ingress/webrtc_http_server.cpp",
+              "symbol": "PrepareVlmProfileDocumentLocked",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "if (!ParseStrictJsonObjectDocument(body, &profile_document, &parse_error)) {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 60,
-              "contextSha256": "bbd8fbf14dfe9c3d2b078dabcf0142c04067d0c6a95678287dc10f23ef65e08b"
+              "line": 1940,
+              "contextSha256": "3ec6c66851daeddd0a7f3e82f0ef1073291f55996778b0517057cefea60df1b7"
             },
             "state": {
-              "file": "scripts/internal/verify_v390_vlm_evaluation_promotion_guard.mjs",
-              "symbol": "check:promotion guard is read-only and preserves runtime/provider boundaries",
-              "symbolKind": "javascript-function",
-              "anchor": "check(\"promotion guard is read-only and preserves runtime/provider boundaries\", () => {",
+              "file": "src/ingress/webrtc_http_server.cpp",
+              "symbol": "CanonicalizeStoredVlmProfileLocked",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "static std::optional<Document> CanonicalizeStoredVlmProfileLocked(const Document& document) {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 60,
-              "contextSha256": "bbd8fbf14dfe9c3d2b078dabcf0142c04067d0c6a95678287dc10f23ef65e08b"
+              "line": 2364,
+              "contextSha256": "95954909ecba187b694582f318688f155280e07f6e12f6e1f53d9ca761f05f66"
             },
             "readback": {
               "file": "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
-              "symbol": "verifier:verify-v390-vlm-promotion-trust-boundary",
+              "symbol": "verifyStructuralProfileRejection",
               "symbolKind": "reviewed-owner-or-readback",
-              "anchor": "printUsageAndExit(`v3.9.0 VLM promotion trust boundary verification",
+              "anchor": "async function verifyStructuralProfileRejection(baseUrl) {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 19,
-              "contextSha256": "4cc3176082414845f99e676310990cb37e90dd571db55d1492deccb533895e88"
+              "line": 132,
+              "contextSha256": "29d334f875e08125e0277e9fe9a05411d1a5b49d53ed28b8465f8aeb932af52b"
             }
           },
-          "routeControlKind": "owner-boundary",
+          "routeControlKind": "strict-profile-save-and-reload-boundary",
           "edges": [
             {
               "from": "owner",
               "to": "routeControl",
-              "relationKind": "owner-boundary",
-              "digest": "06b4058e05a6dcb5a6917fbbcd0321e6e6832d1da7a10a4ca7e5d9387d1e391a"
+              "relationKind": "strict-profile-save-and-reload-boundary",
+              "digest": "7fdcfbbc0bd8cb00bf7cb020c012d123d3279dc352b110eea3676b2b7b59506d"
             },
             {
               "from": "routeControl",
               "to": "action",
               "relationKind": "reviewed-dispatch-or-control-flow",
-              "digest": "622d024c147a296e278c4f649b571be1ea71c9f076c1e5730368fa52ad80587e"
+              "digest": "410ef22f45b0df4c1ae285d28483398e655785ee9ec0efe11925e007a627e0d7"
             },
             {
               "from": "action",
               "to": "state",
               "relationKind": "reviewed-mutation-readmodel-flow",
-              "digest": "f4622d2968822d2dc14470601c66c801412b5978ffc0899a02f01ad554593397"
+              "digest": "df845e1e7337d529b108b014b134cfbad5dddb538d548b64e21fe409dd76c64d"
             },
             {
               "from": "state",
               "to": "readback",
               "relationKind": "exact-readback-assertion",
-              "digest": "752a60646a8f553a17bd8dbe16d4c7a7c7fb94c908f570d0b993ca37e9345221"
+              "digest": "96f952799cc09526c57a9d3fd5ef9a75fcb18f761f15c11285f244e8e84a1bd6"
             },
             {
               "from": "readback",
               "to": "verifierAssertion",
               "relationKind": "exact-verifier-command",
-              "digest": "80bb72760ea9d9bade77483fe372e4d2476c365bdf09fc6c3ee3f1292889c079"
+              "digest": "9cc874fdcb9e9660495cdd6120f119fbfc6e2138ae2522bd73db63a383a443b7"
             }
           ],
-          "digest": "a6f061ea2b4275e19918a5ba2803840b1975e88d071fda22e7f5bff1d2535da6"
+          "digest": "00922afef22329f43ffa4143a29287babbc942ad893775c82a75fae82f65566c"
         }
       }
     },
@@ -199407,14 +199407,14 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW3-37",
+        "reviewer": "Codex-V390-REVIEW3-39",
         "reviewedOn": "2026-07-12",
-        "reason": "V390-REVIEW3-37:OPS-180:V390 incident-to-rule provenance closure gate:owner=file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50:routeControl=file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50:action=file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50:state=file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50:readback=verifier:verify-v390-vlm-incident-rule-provenance:chain=be708363d3aa8fbf",
-        "semanticDigest": "54c0ff37137d8b0510cf79373f7184fe21cf7b9bc202c91289296732a7ba9c92"
+        "reason": "V390-REVIEW3-39:OPS-180:V390 incident-to-rule provenance closure gate:owner=ValidateVlmIncidentRuleProvenanceContract:routeControl=ValidateVlmIncidentRuleProvenanceContract:action=ValidateVlmIncidentRuleProvenanceServerRecords:state=EnsureLoadedLocked:readback=provenanceRestartReadback:chain=dfb09a8209cce0a8",
+        "semanticDigest": "b8df422650d63be7d90f61a9eaf386d48f919b40fce959a36560bbf400afe8b3"
       },
       "sourceEvidence": {
-        "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
-        "anchor": "\"media-server.vlm-incident-to-rule-provenance.v1\",",
+        "file": "src/ingress/webrtc_http_server.cpp",
+        "anchor": "bool ValidateVlmIncidentRuleProvenanceContract(const std::string& body,",
         "anchorKind": "reviewed-owner-source-line"
       },
       "uiEvidence": null,
@@ -199433,15 +199433,15 @@
       "semanticEvidence": {
         "schema": "media-server.feature-semantic-implementation-closure.v2",
         "handler": {
-          "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
-          "symbol": "file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50",
-          "symbolKind": "declaration-or-file-scope",
-          "anchor": "\"media-server.vlm-incident-to-rule-provenance.v1\",",
+          "file": "src/ingress/webrtc_http_server.cpp",
+          "symbol": "ValidateVlmIncidentRuleProvenanceContract",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "bool ValidateVlmIncidentRuleProvenanceContract(const std::string& body,",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 50,
-          "contextSha256": "bd8866b68c391c4d0399d321d6c85fea806b1d13b575963e4c4b5094b3024933"
+          "line": 797,
+          "contextSha256": "c7e344d83528af3a9ef7a41edc93037b8589ac0ebc8c44f511bb6966e5027b1c"
         },
         "route": {
           "applicability": "not-applicable",
@@ -199454,38 +199454,38 @@
           "reason": "feature is outside the UI fulltest area"
         },
         "actionHandler": {
-          "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
-          "symbol": "file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50",
-          "symbolKind": "declaration-or-file-scope",
-          "anchor": "\"media-server.vlm-incident-to-rule-provenance.v1\",",
+          "file": "src/analysis/vlm_observation_store.cpp",
+          "symbol": "ValidateVlmIncidentRuleProvenanceServerRecords",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "bool ValidateVlmIncidentRuleProvenanceServerRecords(",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 50,
-          "contextSha256": "bd8866b68c391c4d0399d321d6c85fea806b1d13b575963e4c4b5094b3024933"
+          "line": 1141,
+          "contextSha256": "2845cfbd1b922a5fdd95f4a2cb2f7da294cbf1ed9d7979ef2e2edb548ba006a8"
         },
         "stateOracle": {
           "oracleKind": "update-transition-readback",
-          "expectedBehaviorSha256": "465d7307ee3d85f3862222b8a92d1c1a5e833a16f292cc71ec520e77f1d889d8",
-          "expectedBehavior": "`verify-v390-vlm-incident-rule-provenance`가 candidate API→Ops draft→generated rule payload→save API/readback의 provenance chain과 backlog/inventory/release record wiring을 검증합니다. 실제 provider evaluation 실행이나 auto rule apply evidence가 아닙니다",
+          "expectedBehaviorSha256": "d4f2cc06301e29943b4929eb8c5ca095a7b58309fb89d1da71962d8f7d783ff7",
+          "expectedBehavior": "`verify-v390-vlm-incident-rule-provenance`가 candidate API→Ops draft→generated rule payload→save/readback/restart chain, duplicate/nested scope 거부, reload 시 current EventRecord/observation 재대조를 검증합니다. 실제 provider evaluation 실행이나 auto rule apply evidence가 아닙니다",
           "locator": {
-            "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
-            "symbol": "file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50",
-            "symbolKind": "declaration-or-file-scope",
-            "anchor": "\"media-server.vlm-incident-to-rule-provenance.v1\",",
+            "file": "src/ingress/webrtc_http_server.cpp",
+            "symbol": "EnsureLoadedLocked",
+            "symbolKind": "reviewed-owner-or-readback",
+            "anchor": "std::cerr << \"[analysis-registry] rule provenance reload quarantine id=\"",
             "anchorKind": "reviewed-source-line",
             "anchorStrength": "feature-specific-source-line",
             "occurrence": 0,
-            "line": 50,
-            "contextSha256": "bd8866b68c391c4d0399d321d6c85fea806b1d13b575963e4c4b5094b3024933"
+            "line": 1631,
+            "contextSha256": "542e33ab5aa987fbc77c54e0a2d940ddab835380711f80a4d359d86d18b2f5bc"
           }
         },
         "relation": {
           "kind": "ops-gate-dispatch-assertion-state",
-          "handlerSymbol": "file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50",
-          "actionSymbol": "file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50",
-          "stateSymbol": "file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50",
-          "semanticKey": "OPS-180:465d7307ee3d85f3862222b8"
+          "handlerSymbol": "ValidateVlmIncidentRuleProvenanceContract",
+          "actionSymbol": "ValidateVlmIncidentRuleProvenanceServerRecords",
+          "stateSymbol": "EnsureLoadedLocked",
+          "semanticKey": "OPS-180:d4f2cc06301e29943b4929eb"
         },
         "verifierAssertion": {
           "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
@@ -199493,101 +199493,101 @@
           "assertionKind": "reviewed-owner-route-control-action-state-readback-chain",
           "assertionAnchor": "validateReview3CallChain",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "54c0ff37137d8b0510cf79373f7184fe21cf7b9bc202c91289296732a7ba9c92"
+          "assertedSemanticDigest": "b8df422650d63be7d90f61a9eaf386d48f919b40fce959a36560bbf400afe8b3"
         },
         "callChain": {
           "schema": "media-server.feature-reviewed-call-chain.v1",
           "roles": {
             "owner": {
-              "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
-              "symbol": "file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "\"media-server.vlm-incident-to-rule-provenance.v1\",",
+              "file": "src/ingress/webrtc_http_server.cpp",
+              "symbol": "ValidateVlmIncidentRuleProvenanceContract",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "bool ValidateVlmIncidentRuleProvenanceContract(const std::string& body,",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 50,
-              "contextSha256": "bd8866b68c391c4d0399d321d6c85fea806b1d13b575963e4c4b5094b3024933"
+              "line": 797,
+              "contextSha256": "c7e344d83528af3a9ef7a41edc93037b8589ac0ebc8c44f511bb6966e5027b1c"
             },
             "routeControl": {
-              "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
-              "symbol": "file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "\"media-server.vlm-incident-to-rule-provenance.v1\",",
+              "file": "src/ingress/webrtc_http_server.cpp",
+              "symbol": "ValidateVlmIncidentRuleProvenanceContract",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "const std::string expected_route = \"/lab/analysis/rules/\" + rule_id;",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 50,
-              "contextSha256": "bd8866b68c391c4d0399d321d6c85fea806b1d13b575963e4c4b5094b3024933"
+              "line": 887,
+              "contextSha256": "691922f32984924b643e81f0ecdd492bbf7d5d6c5e7bf3a893e956b90f1569d0"
             },
             "action": {
-              "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
-              "symbol": "file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "\"media-server.vlm-incident-to-rule-provenance.v1\",",
+              "file": "src/analysis/vlm_observation_store.cpp",
+              "symbol": "ValidateVlmIncidentRuleProvenanceServerRecords",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "bool ValidateVlmIncidentRuleProvenanceServerRecords(",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 50,
-              "contextSha256": "bd8866b68c391c4d0399d321d6c85fea806b1d13b575963e4c4b5094b3024933"
+              "line": 1141,
+              "contextSha256": "2845cfbd1b922a5fdd95f4a2cb2f7da294cbf1ed9d7979ef2e2edb548ba006a8"
             },
             "state": {
-              "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
-              "symbol": "file-scope:verify_v390_vlm_incident_rule_provenance.mjs:L50",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "\"media-server.vlm-incident-to-rule-provenance.v1\",",
+              "file": "src/ingress/webrtc_http_server.cpp",
+              "symbol": "EnsureLoadedLocked",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "std::cerr << \"[analysis-registry] rule provenance reload quarantine id=\"",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 50,
-              "contextSha256": "bd8866b68c391c4d0399d321d6c85fea806b1d13b575963e4c4b5094b3024933"
+              "line": 1631,
+              "contextSha256": "542e33ab5aa987fbc77c54e0a2d940ddab835380711f80a4d359d86d18b2f5bc"
             },
             "readback": {
               "file": "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
-              "symbol": "verifier:verify-v390-vlm-incident-rule-provenance",
+              "symbol": "provenanceRestartReadback",
               "symbolKind": "reviewed-owner-or-readback",
-              "anchor": "printUsageAndExit(`v3.9.0 VLM incident-to-rule provenance verification",
+              "anchor": "assert(restartReadback.status === 200, `restart readback HTTP ${restartReadback.status}`);",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 25,
-              "contextSha256": "6824f004291f3644a33451560a178d2ed66a1957d583d1260138f2967ddc7057"
+              "line": 117,
+              "contextSha256": "67afb510fd45f914a67490c7334dd2f4ff9383427322e34f3c6622e3f35c3c38"
             }
           },
-          "routeControlKind": "owner-boundary",
+          "routeControlKind": "strict-provenance-save-and-reload-boundary",
           "edges": [
             {
               "from": "owner",
               "to": "routeControl",
-              "relationKind": "owner-boundary",
-              "digest": "871e8a970e37108c90cdfd39f5c59b12e51bee0f3e35d0317992561e46a1dd39"
+              "relationKind": "strict-provenance-save-and-reload-boundary",
+              "digest": "cf7e4f08b221dd6bc695c85dd410e8c6ce1c819df4906f654e6eed018c8babf0"
             },
             {
               "from": "routeControl",
               "to": "action",
               "relationKind": "reviewed-dispatch-or-control-flow",
-              "digest": "6af3d03732479778005f38a6adbc503da825b3115d6123ebd1c5ffb07aa5ed4e"
+              "digest": "a5d1a9575b8845461c58e125668722a09702e3c0679f01023a4fe586fa2e920d"
             },
             {
               "from": "action",
               "to": "state",
               "relationKind": "reviewed-mutation-readmodel-flow",
-              "digest": "94fdf1c075424364cfe24c5b926559e6baea74aee58daaf45e99784c0159b7a5"
+              "digest": "d3afd78bb834003e537e3ab0bd7733453c77dd3b0cd6a5c23886228ed1830403"
             },
             {
               "from": "state",
               "to": "readback",
               "relationKind": "exact-readback-assertion",
-              "digest": "339ead60f0581b0c76ecc719eca055dcf80370996a3a2b89329cfae9fa30fcc7"
+              "digest": "16a6cb665a5ae386107322e6d3de65d08450bc755bc644195789bf5ba6ef47eb"
             },
             {
               "from": "readback",
               "to": "verifierAssertion",
               "relationKind": "exact-verifier-command",
-              "digest": "ce9b8c5671a97f33682fc9e2453072f52a89f82cb4f249a93d452982be8b5975"
+              "digest": "50722699e64afdd76a50202505403bcb5725479635dc30b18312d685049c9f3e"
             }
           ],
-          "digest": "be708363d3aa8fbfe48ad90d207904855d2772c395787b6861a4e9a439cb79d9"
+          "digest": "dfb09a8209cce0a8508f2979a2f38a8be556fd46e41c47571d29555736aca39f"
         }
       }
     },
@@ -200383,6 +200383,8 @@
   "semanticClosureSummary": {
     "inventoryRows": 986,
     "semanticReviewedRows": 986,
-    "uniqueSemanticDigests": 986
+    "uniqueSemanticDigests": 986,
+    "uniqueReviewReasons": 986,
+    "reviewedCallChains": 986
   }
 }

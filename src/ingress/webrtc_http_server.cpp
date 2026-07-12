@@ -70,6 +70,7 @@
 #include "ingress/product_ui_js.h"
 #include "ingress/product_ui_page_scripts.h"
 #include "ingress/source_view_registry.h"
+#include "ingress/strict_json.h"
 #include "ingress/vlm_evaluation_promotion.h"
 #include "ingress/webrtc_egress_session.h"
 #include "ingress/webrtc_source_registry.h"
@@ -801,74 +802,100 @@ bool ValidateVlmIncidentRuleProvenanceContract(const std::string& body,
             *error_message = message;
         }
     };
-    const auto provenance = ExtractObjectField(body, "vlmProvenance");
-    if (!provenance.has_value()) {
-        if (CountJsonFieldOccurrences(body, "vlmProvenance") != 0) {
-            set_error("rule vlmProvenance must be a JSON object");
+    StrictJsonObjectDocument rule_document;
+    std::string parse_error;
+    if (!ParseStrictJsonObjectDocument(body, &rule_document, &parse_error)) {
+        set_error("rule JSON is invalid: " + parse_error);
+        return false;
+    }
+    if (!StrictJsonHasTopLevelField(rule_document, "vlmProvenance")) {
+        if (StrictJsonContainsKey(rule_document, "vlmProvenance")) {
+            set_error("rule vlmProvenance must be top-level");
             return false;
         }
         return true;
     }
-    if (ParseStringField(*provenance, "schema").value_or("") !=
+    const auto provenance = StrictJsonObjectField(rule_document, "vlmProvenance");
+    if (!provenance.has_value()) {
+        set_error("rule vlmProvenance must be a JSON object");
+        return false;
+    }
+    StrictJsonObjectDocument provenance_document;
+    if (!ParseStrictJsonObjectDocument(*provenance, &provenance_document, &parse_error)) {
+        set_error("rule vlmProvenance JSON is invalid: " + parse_error);
+        return false;
+    }
+    if (StrictJsonStringField(provenance_document, "schema").value_or("") !=
         "media-server.vlm-incident-to-rule-provenance.v1") {
         set_error("rule vlmProvenance schema is invalid");
         return false;
     }
-    const auto event_source = ExtractObjectField(*provenance, "eventSource");
-    const auto candidate_source = ExtractObjectField(*provenance, "candidateSource");
-    const auto evaluation_source = ExtractObjectField(*provenance, "evaluationSource");
-    const auto generated_rule = ExtractObjectField(*provenance, "generatedRule");
+    const auto event_source = StrictJsonObjectField(provenance_document, "eventSource");
+    const auto candidate_source = StrictJsonObjectField(provenance_document, "candidateSource");
+    const auto evaluation_source = StrictJsonObjectField(provenance_document, "evaluationSource");
+    const auto generated_rule = StrictJsonObjectField(provenance_document, "generatedRule");
     if (!event_source.has_value() || !candidate_source.has_value() ||
         !evaluation_source.has_value() || !generated_rule.has_value()) {
         set_error("rule vlmProvenance requires eventSource, candidateSource, evaluationSource, and generatedRule");
         return false;
     }
+    StrictJsonObjectDocument event_source_document;
+    StrictJsonObjectDocument candidate_source_document;
+    StrictJsonObjectDocument evaluation_source_document;
+    StrictJsonObjectDocument generated_rule_document;
+    if (!ParseStrictJsonObjectDocument(*event_source, &event_source_document, &parse_error) ||
+        !ParseStrictJsonObjectDocument(*candidate_source, &candidate_source_document, &parse_error) ||
+        !ParseStrictJsonObjectDocument(*evaluation_source, &evaluation_source_document, &parse_error) ||
+        !ParseStrictJsonObjectDocument(*generated_rule, &generated_rule_document, &parse_error)) {
+        set_error("rule vlmProvenance nested JSON is invalid: " + parse_error);
+        return false;
+    }
     for (const char* field : {"eventId", "observationId", "sourceId", "sourceSchema"}) {
-        if (Trim(ParseStringField(*event_source, field).value_or("")).empty()) {
+        if (Trim(StrictJsonStringField(event_source_document, field).value_or("")).empty()) {
             set_error(std::string("rule vlmProvenance eventSource.") + field + " is required");
             return false;
         }
     }
     for (const char* field : {"candidateId", "proposedRuleKind", "source", "sourceSchema", "targetRoute"}) {
-        if (Trim(ParseStringField(*candidate_source, field).value_or("")).empty()) {
+        if (Trim(StrictJsonStringField(candidate_source_document, field).value_or("")).empty()) {
             set_error(std::string("rule vlmProvenance candidateSource.") + field + " is required");
             return false;
         }
     }
-    if (!ParseBoolField(*candidate_source, "manualReviewRequired").value_or(false) ||
-        ParseBoolField(*candidate_source, "autoApply").value_or(true)) {
+    if (!StrictJsonBoolField(candidate_source_document, "manualReviewRequired").value_or(false) ||
+        StrictJsonBoolField(candidate_source_document, "autoApply").value_or(true)) {
         set_error("rule vlmProvenance candidate must remain manual-review and no-auto-apply");
         return false;
     }
     for (const char* field : {"status", "source", "provider", "model", "promptProfile", "privacyMode"}) {
-        if (Trim(ParseStringField(*evaluation_source, field).value_or("")).empty()) {
+        if (Trim(StrictJsonStringField(evaluation_source_document, field).value_or("")).empty()) {
             set_error(std::string("rule vlmProvenance evaluationSource.") + field + " is required");
             return false;
         }
     }
-    if (ParseBoolField(*evaluation_source, "evaluationExecuted").value_or(true)) {
+    if (StrictJsonBoolField(evaluation_source_document, "evaluationExecuted").value_or(true)) {
         set_error("rule vlmProvenance must not claim an unverified evaluation execution");
         return false;
     }
     if (!analysis::ValidateVlmIncidentRuleProvenanceServerRecords(*event_source, *candidate_source, *evaluation_source, error_message)) return false;
     const std::string generated_rule_id =
-        Trim(ParseStringField(*generated_rule, "id").value_or(""));
+        Trim(StrictJsonStringField(generated_rule_document, "id").value_or(""));
     if (generated_rule_id != rule_id) {
         set_error("generated rule id must match provenance");
         return false;
     }
     const std::string expected_route = "/lab/analysis/rules/" + rule_id;
-    if (Trim(ParseStringField(*generated_rule, "saveApiRoute").value_or("")) != expected_route) {
+    if (Trim(StrictJsonStringField(generated_rule_document, "saveApiRoute").value_or("")) != expected_route) {
         set_error("generated rule save API route must match rule id");
         return false;
     }
-    if (ParseStringField(*generated_rule, "saveMethod").value_or("") != "PUT" ||
-        !ParseBoolField(*generated_rule, "manualSaveRequired").value_or(false)) {
+    if (StrictJsonStringField(generated_rule_document, "saveMethod").value_or("") != "PUT" ||
+        !StrictJsonBoolField(generated_rule_document, "manualSaveRequired").value_or(false)) {
         set_error("generated rule provenance requires manual PUT save");
         return false;
     }
     for (const char* forbidden : {"credential", "sourceUrl", "rawPrompt", "rawResponse", "rawFrameBytes"}) {
-        if (CountJsonFieldOccurrences(*provenance, forbidden) != 0) {
+        if (StrictJsonContainsKey(provenance_document, forbidden)) {
             set_error(std::string("rule vlmProvenance must not include ") + forbidden);
             return false;
         }
@@ -1592,6 +1619,21 @@ private:
         LoadDocumentsLocked("rules", content, &rules_);
         LoadDocumentsLocked("vaRules", content, &va_rules_);
         LoadDocumentsLocked("vlmProfiles", content, &vlm_profiles_);
+        const std::size_t loaded_rules = rules_.size();
+        std::vector<Document> validated_rules;
+        validated_rules.reserve(rules_.size());
+        for (const auto& document : rules_) {
+            std::string validation_error;
+            if (ValidateVlmIncidentRuleProvenanceContract(
+                    document.body, document.id, &validation_error)) {
+                validated_rules.push_back(document);
+            } else {
+                std::cerr << "[analysis-registry] rule provenance reload quarantine id="
+                          << document.id << " reason=" << validation_error << "\n";
+            }
+        }
+        rules_ = std::move(validated_rules);
+        rules_quarantined_on_load_ = loaded_rules - rules_.size();
         const std::size_t loaded_vlm_profiles = vlm_profiles_.size();
         std::vector<Document> canonical_vlm_profiles;
         canonical_vlm_profiles.reserve(vlm_profiles_.size());
@@ -1893,19 +1935,30 @@ private:
     std::optional<Document> PrepareVlmProfileDocumentLocked(const std::string& path_id,
                                                             const std::string& body,
                                                             std::string* error_message) const {
-        if (!LooksLikeJsonObject(body)) {
-            SetRegistryError(error_message, "request body must be a JSON object");
+        StrictJsonObjectDocument profile_document;
+        std::string parse_error;
+        if (!ParseStrictJsonObjectDocument(body, &profile_document, &parse_error)) {
+            SetRegistryError(error_message, "VLM profile JSON is invalid: " + parse_error);
             return std::nullopt;
         }
-        if (ContainsForbiddenVlmProfileField(body)) {
+        bool contains_forbidden_field = false;
+        for (const std::string& field :
+             {"apiKey", "credential", "providerCredential", "prompt", "rawPrompt",
+              "rawResponse", "sourceUrl", "sourceLocator", "imageData", "frameBytes"}) {
+            if (StrictJsonContainsKey(profile_document, field)) {
+                contains_forbidden_field = true;
+                break;
+            }
+        }
+        if (contains_forbidden_field) {
             SetRegistryError(error_message, "VLM profile must not include credentials, prompts, raw responses, source locators, or frame bytes");
             return std::nullopt;
         }
-        if (ParseStringField(body, "schema").value_or("") != "media-server.vlm-profile.v1") {
+        if (StrictJsonStringField(profile_document, "schema").value_or("") != "media-server.vlm-profile.v1") {
             SetRegistryError(error_message, "VLM profile schema must be media-server.vlm-profile.v1");
             return std::nullopt;
         }
-        const std::string id = Trim(ParseStringField(body, "id").value_or(""));
+        const std::string id = Trim(StrictJsonStringField(profile_document, "id").value_or(""));
         if (id.empty() || !IsSafeVlmProfileId(id)) {
             SetRegistryError(error_message, "VLM profile id must use letters, numbers, dot, dash, or underscore");
             return std::nullopt;
@@ -1914,15 +1967,15 @@ private:
             SetRegistryError(error_message, "path id and body id must match");
             return std::nullopt;
         }
-        const std::string selected_option_id = Trim(ParseStringField(body, "selectedOptionId").value_or(""));
+        const std::string selected_option_id = Trim(StrictJsonStringField(profile_document, "selectedOptionId").value_or(""));
         if (selected_option_id.empty() || !IsSafeVlmProfileId(selected_option_id)) {
             SetRegistryError(error_message, "VLM profile selectedOptionId is required");
             return std::nullopt;
         }
-        const std::string provider = Trim(ParseStringField(body, "provider").value_or(""));
-        const std::string model = Trim(ParseStringField(body, "model").value_or(""));
-        const std::string runtime = Trim(ParseStringField(body, "runtime").value_or(""));
-        const std::string privacy_mode = Trim(ParseStringField(body, "privacyMode").value_or(""));
+        const std::string provider = Trim(StrictJsonStringField(profile_document, "provider").value_or(""));
+        const std::string model = Trim(StrictJsonStringField(profile_document, "model").value_or(""));
+        const std::string runtime = Trim(StrictJsonStringField(profile_document, "runtime").value_or(""));
+        const std::string privacy_mode = Trim(StrictJsonStringField(profile_document, "privacyMode").value_or(""));
         if (!IsOneOf(provider, {"user-supplied-local-runtime", "cloud-provider-api"})) {
             SetRegistryError(error_message, "VLM profile provider is not supported");
             return std::nullopt;
@@ -1943,7 +1996,7 @@ private:
             SetRegistryError(error_message, "VLM profile privacyMode is not supported");
             return std::nullopt;
         }
-        const bool cloud_opt_in_acknowledged = ParseBoolField(body, "cloudOptInAcknowledged").value_or(false);
+        const bool cloud_opt_in_acknowledged = StrictJsonBoolField(profile_document, "cloudOptInAcknowledged").value_or(false);
         if (provider == "cloud-provider-api") {
             if (model != "gemini-2.5-flash" || runtime != "provider-api" ||
                 privacy_mode != "cloud-allowed" || !cloud_opt_in_acknowledged) {
@@ -1957,25 +2010,30 @@ private:
         if (!ValidateVlmPrivacyGuardContract(body, provider == "cloud-provider-api", error_message)) {
             return std::nullopt;
         }
-        const auto prompt_profile = ExtractObjectField(body, "promptProfile");
+        const auto prompt_profile = StrictJsonObjectField(profile_document, "promptProfile");
+        StrictJsonObjectDocument prompt_profile_document;
+        if (prompt_profile.has_value() &&
+            !ParseStrictJsonObjectDocument(*prompt_profile, &prompt_profile_document, &parse_error)) {
+            SetRegistryError(error_message, "VLM profile promptProfile JSON is invalid: " + parse_error);
+            return std::nullopt;
+        }
         const std::string prompt_profile_id =
-            prompt_profile.has_value() ? Trim(ParseStringField(*prompt_profile, "id").value_or("")) : std::string();
+            prompt_profile.has_value() ? Trim(StrictJsonStringField(prompt_profile_document, "id").value_or("")) : std::string();
         const std::string prompt_profile_version =
-            prompt_profile.has_value() ? Trim(ParseStringField(*prompt_profile, "version").value_or("")) : std::string();
+            prompt_profile.has_value() ? Trim(StrictJsonStringField(prompt_profile_document, "version").value_or("")) : std::string();
         const std::string prompt_profile_language =
-            prompt_profile.has_value() ? Trim(ParseStringField(*prompt_profile, "language").value_or("")) : std::string();
+            prompt_profile.has_value() ? Trim(StrictJsonStringField(prompt_profile_document, "language").value_or("")) : std::string();
         if (!prompt_profile.has_value() || prompt_profile_id.empty()) {
             SetRegistryError(error_message, "VLM profile promptProfile.id is required");
             return std::nullopt;
         }
-        if (CountJsonFieldOccurrences(body, "evaluation") != 1) {
-            SetRegistryError(error_message, "VLM profile must include exactly one evaluation object");
-            return std::nullopt;
-        }
-        const auto evaluation = ExtractObjectField(body, "evaluation");
-        if (!evaluation.has_value() || CountJsonFieldOccurrences(*evaluation, "candidateId") != 1 ||
-            CountJsonFieldOccurrences(*evaluation, "expectedCatalogRevision") != 1 ||
-            CountJsonFieldOccurrences(*evaluation, "expectedProvenanceDigest") != 1) {
+        const auto evaluation = StrictJsonObjectField(profile_document, "evaluation");
+        StrictJsonObjectDocument evaluation_document;
+        if (!evaluation.has_value() ||
+            !ParseStrictJsonObjectDocument(*evaluation, &evaluation_document, &parse_error) ||
+            !StrictJsonHasTopLevelField(evaluation_document, "candidateId") ||
+            !StrictJsonHasTopLevelField(evaluation_document, "expectedCatalogRevision") ||
+            !StrictJsonHasTopLevelField(evaluation_document, "expectedProvenanceDigest")) {
             SetRegistryError(error_message,
                              "VLM profile evaluation requires candidateId, expectedCatalogRevision, and expectedProvenanceDigest");
             return std::nullopt;
@@ -1983,15 +2041,15 @@ private:
         bool client_declared_result_fields = false;
         for (const std::string& field :
              {"status", "source", "workflowSchema", "sourceReportSchema", "caseIds", "dimensions", "score", "provenance"}) {
-            if (CountJsonFieldOccurrences(*evaluation, field) != 0) {
+            if (StrictJsonHasTopLevelField(evaluation_document, field)) {
                 client_declared_result_fields = true;
                 break;
             }
         }
         const VlmEvaluationPromotionResult evaluation_promotion = ValidateVlmEvaluationPromotion({
-            Trim(ParseStringField(*evaluation, "candidateId").value_or("")),
-            Trim(ParseStringField(*evaluation, "expectedCatalogRevision").value_or("")),
-            Trim(ParseStringField(*evaluation, "expectedProvenanceDigest").value_or("")),
+            Trim(StrictJsonStringField(evaluation_document, "candidateId").value_or("")),
+            Trim(StrictJsonStringField(evaluation_document, "expectedCatalogRevision").value_or("")),
+            Trim(StrictJsonStringField(evaluation_document, "expectedProvenanceDigest").value_or("")),
             selected_option_id,
             model,
             prompt_profile_id,
@@ -2004,17 +2062,22 @@ private:
             return std::nullopt;
         }
         const std::string evaluation_status = evaluation_promotion.evaluation_status;
-        const auto activation = ExtractObjectField(body, "activation");
+        const auto activation = StrictJsonObjectField(profile_document, "activation");
         if (!activation.has_value()) {
             SetRegistryError(error_message, "VLM profile activation object is required");
             return std::nullopt;
         }
-        const std::string activation_status = Trim(ParseStringField(*activation, "status").value_or(""));
-        const bool activation_enabled = ParseBoolField(*activation, "enabled").value_or(false);
+        StrictJsonObjectDocument activation_document;
+        if (!ParseStrictJsonObjectDocument(*activation, &activation_document, &parse_error)) {
+            SetRegistryError(error_message, "VLM profile activation JSON is invalid: " + parse_error);
+            return std::nullopt;
+        }
+        const std::string activation_status = Trim(StrictJsonStringField(activation_document, "status").value_or(""));
+        const bool activation_enabled = StrictJsonBoolField(activation_document, "enabled").value_or(false);
         const std::string fallback_profile_id =
-            Trim(ParseStringField(*activation, "fallbackProfileId").value_or(""));
+            Trim(StrictJsonStringField(activation_document, "fallbackProfileId").value_or(""));
         const std::string disabled_reason =
-            Trim(ParseStringField(*activation, "disabledReason").value_or(""));
+            Trim(StrictJsonStringField(activation_document, "disabledReason").value_or(""));
         if (!IsOneOf(activation_status, {"pending-evaluation", "active", "disabled", "fallback"})) {
             SetRegistryError(error_message, "VLM profile activation.status is not supported");
             return std::nullopt;
@@ -2046,9 +2109,14 @@ private:
                                              error_message)) {
             return std::nullopt;
         }
-        const auto invariants = ExtractObjectField(body, "contractInvariants");
+        const auto invariants = StrictJsonObjectField(profile_document, "contractInvariants");
         if (!invariants.has_value()) {
             SetRegistryError(error_message, "VLM profile contractInvariants object is required");
+            return std::nullopt;
+        }
+        StrictJsonObjectDocument invariants_document;
+        if (!ParseStrictJsonObjectDocument(*invariants, &invariants_document, &parse_error)) {
+            SetRegistryError(error_message, "VLM profile contractInvariants JSON is invalid: " + parse_error);
             return std::nullopt;
         }
         for (const std::string& field :
@@ -2062,7 +2130,7 @@ private:
               "wsMetadataSchemaChanged",
               "rtspOrWebrtcMediaPathChanged",
               "viewerClientExposureAdded"}) {
-            if (ParseBoolField(*invariants, field).value_or(true)) {
+            if (StrictJsonBoolField(invariants_document, field).value_or(true)) {
                 SetRegistryError(error_message, "VLM profile invariant must be false: " + field);
                 return std::nullopt;
             }
@@ -2094,19 +2162,30 @@ private:
                                                 bool activation_enabled,
                                                 const std::string& activation_status,
                                                 std::string* error_message) {
-        const auto contract = ExtractObjectField(body, "runtimeContract");
+        StrictJsonObjectDocument profile_document;
+        std::string parse_error;
+        if (!ParseStrictJsonObjectDocument(body, &profile_document, &parse_error)) {
+            SetRegistryError(error_message, "VLM profile JSON is invalid: " + parse_error);
+            return false;
+        }
+        const auto contract = StrictJsonObjectField(profile_document, "runtimeContract");
         if (!contract.has_value()) {
             SetRegistryError(error_message, "VLM profile runtimeContract object is required");
             return false;
         }
-        if (ParseStringField(*contract, "schema").value_or("") !=
+        StrictJsonObjectDocument contract_document;
+        if (!ParseStrictJsonObjectDocument(*contract, &contract_document, &parse_error)) {
+            SetRegistryError(error_message, "VLM runtimeContract JSON is invalid: " + parse_error);
+            return false;
+        }
+        if (StrictJsonStringField(contract_document, "schema").value_or("") !=
             "media-server.vlm-runtime-opt-in-contract.v1") {
             SetRegistryError(error_message,
                              "VLM runtimeContract schema must be media-server.vlm-runtime-opt-in-contract.v1");
             return false;
         }
-        const std::string mode = Trim(ParseStringField(*contract, "mode").value_or(""));
-        const std::string status = Trim(ParseStringField(*contract, "status").value_or(""));
+        const std::string mode = Trim(StrictJsonStringField(contract_document, "mode").value_or(""));
+        const std::string status = Trim(StrictJsonStringField(contract_document, "status").value_or(""));
         if (!IsOneOf(mode, {"disabled", "local-runtime", "cloud-provider"})) {
             SetRegistryError(error_message, "VLM runtimeContract mode is not supported");
             return false;
@@ -2121,19 +2200,19 @@ private:
             SetRegistryError(error_message, "VLM runtimeContract status is not supported");
             return false;
         }
-        if (ParseBoolField(*contract, "defaultEnabled").value_or(true)) {
+        if (StrictJsonBoolField(contract_document, "defaultEnabled").value_or(true)) {
             SetRegistryError(error_message, "VLM runtimeContract defaultEnabled must be false");
             return false;
         }
-        if (!ParseBoolField(*contract, "operatorOptInRequired").value_or(false)) {
+        if (!StrictJsonBoolField(contract_document, "operatorOptInRequired").value_or(false)) {
             SetRegistryError(error_message, "VLM runtimeContract requires operator opt-in");
             return false;
         }
-        if (ParseBoolField(*contract, "runtimeCallAllowed").value_or(true)) {
+        if (StrictJsonBoolField(contract_document, "runtimeCallAllowed").value_or(true)) {
             SetRegistryError(error_message, "VLM runtimeContract runtimeCallAllowed must be false in V210-S01");
             return false;
         }
-        if (ParseBoolField(*contract, "providerCallAllowed").value_or(true)) {
+        if (StrictJsonBoolField(contract_document, "providerCallAllowed").value_or(true)) {
             SetRegistryError(error_message, "VLM runtimeContract providerCallAllowed must be false in V210-S01");
             return false;
         }
@@ -2172,9 +2251,14 @@ private:
             SetRegistryError(error_message, "disabled VLM runtimeContract mode requires disabled status");
             return false;
         }
-        const auto side_effects = ExtractObjectField(*contract, "sideEffects");
+        const auto side_effects = StrictJsonObjectField(contract_document, "sideEffects");
         if (!side_effects.has_value()) {
             SetRegistryError(error_message, "VLM runtimeContract sideEffects object is required");
+            return false;
+        }
+        StrictJsonObjectDocument side_effects_document;
+        if (!ParseStrictJsonObjectDocument(*side_effects, &side_effects_document, &parse_error)) {
+            SetRegistryError(error_message, "VLM runtimeContract sideEffects JSON is invalid: " + parse_error);
             return false;
         }
         for (const std::string& field :
@@ -2190,7 +2274,7 @@ private:
               "wsMetadataSchemaChanged",
               "rtspOrWebrtcMediaPathChanged",
               "viewerClientExposureAdded"}) {
-            if (ParseBoolField(*side_effects, field).value_or(true)) {
+            if (StrictJsonBoolField(side_effects_document, field).value_or(true)) {
                 SetRegistryError(error_message, "VLM runtimeContract side effect must be false: " + field);
                 return false;
             }
@@ -2201,7 +2285,13 @@ private:
     static bool ValidateVlmPrivacyGuardContract(const std::string& body,
                                                 bool cloud_profile,
                                                 std::string* error_message) {
-        const auto guard = ExtractObjectField(body, "privacyGuard");
+        StrictJsonObjectDocument profile_document;
+        std::string parse_error;
+        if (!ParseStrictJsonObjectDocument(body, &profile_document, &parse_error)) {
+            SetRegistryError(error_message, "VLM profile JSON is invalid: " + parse_error);
+            return false;
+        }
+        const auto guard = StrictJsonObjectField(profile_document, "privacyGuard");
         if (!guard.has_value()) {
             if (cloud_profile) {
                 SetRegistryError(error_message, "cloud VLM profile requires privacyGuard review");
@@ -2209,22 +2299,32 @@ private:
             }
             return true;
         }
-        if (ParseStringField(*guard, "schema").value_or("") != "media-server.vlm-privacy-transfer-guard.v1") {
+        StrictJsonObjectDocument guard_document;
+        if (!ParseStrictJsonObjectDocument(*guard, &guard_document, &parse_error)) {
+            SetRegistryError(error_message, "VLM privacyGuard JSON is invalid: " + parse_error);
+            return false;
+        }
+        if (StrictJsonStringField(guard_document, "schema").value_or("") != "media-server.vlm-privacy-transfer-guard.v1") {
             SetRegistryError(error_message, "VLM privacyGuard schema must be media-server.vlm-privacy-transfer-guard.v1");
             return false;
         }
-        const bool external_transfer = ParseBoolField(*guard, "externalTransfer").value_or(cloud_profile);
+        const bool external_transfer = StrictJsonBoolField(guard_document, "externalTransfer").value_or(cloud_profile);
         if (external_transfer != cloud_profile) {
             SetRegistryError(error_message, "VLM privacyGuard externalTransfer must match provider type");
             return false;
         }
-        if (cloud_profile && !ParseBoolField(*guard, "externalTransferWarningAcknowledged").value_or(false)) {
+        if (cloud_profile && !StrictJsonBoolField(guard_document, "externalTransferWarningAcknowledged").value_or(false)) {
             SetRegistryError(error_message, "cloud VLM profile requires external transfer warning acknowledgement");
             return false;
         }
-        const auto redaction = ExtractObjectField(*guard, "redaction");
+        const auto redaction = StrictJsonObjectField(guard_document, "redaction");
         if (!redaction.has_value()) {
             SetRegistryError(error_message, "VLM privacyGuard redaction object is required");
+            return false;
+        }
+        StrictJsonObjectDocument redaction_document;
+        if (!ParseStrictJsonObjectDocument(*redaction, &redaction_document, &parse_error)) {
+            SetRegistryError(error_message, "VLM privacyGuard redaction JSON is invalid: " + parse_error);
             return false;
         }
         for (const std::string& field :
@@ -2234,20 +2334,25 @@ private:
               "sourceUrlStored",
               "rawFrameBytesStored",
               "viewerClientExposureAdded"}) {
-            if (ParseBoolField(*redaction, field).value_or(true)) {
+            if (StrictJsonBoolField(redaction_document, field).value_or(true)) {
                 SetRegistryError(error_message, "VLM privacyGuard redaction field must be false: " + field);
                 return false;
             }
         }
-        const auto provider_logging = ExtractObjectField(*guard, "providerLoggingPolicy");
+        const auto provider_logging = StrictJsonObjectField(guard_document, "providerLoggingPolicy");
         if (cloud_profile) {
             if (!provider_logging.has_value()) {
                 SetRegistryError(error_message, "cloud VLM profile requires providerLoggingPolicy review");
                 return false;
             }
-            if (ParseStringField(*provider_logging, "reviewStatus").value_or("") != "accepted" ||
-                !ParseBoolField(*provider_logging, "loggingAndRetentionReviewed").value_or(false) ||
-                !ParseBoolField(*provider_logging, "termsReviewed").value_or(false)) {
+            StrictJsonObjectDocument provider_logging_document;
+            if (!ParseStrictJsonObjectDocument(*provider_logging, &provider_logging_document, &parse_error)) {
+                SetRegistryError(error_message, "VLM providerLoggingPolicy JSON is invalid: " + parse_error);
+                return false;
+            }
+            if (StrictJsonStringField(provider_logging_document, "reviewStatus").value_or("") != "accepted" ||
+                !StrictJsonBoolField(provider_logging_document, "loggingAndRetentionReviewed").value_or(false) ||
+                !StrictJsonBoolField(provider_logging_document, "termsReviewed").value_or(false)) {
                 SetRegistryError(error_message, "cloud VLM profile requires accepted provider logging and retention review");
                 return false;
             }
@@ -2255,58 +2360,57 @@ private:
         return true;
     }
 
-    static bool ContainsForbiddenVlmProfileField(const std::string& body) {
-        for (const std::string& field :
-             {"apiKey",
-              "credential",
-              "providerCredential",
-              "prompt",
-              "rawPrompt",
-              "rawResponse",
-              "sourceUrl",
-              "sourceLocator",
-              "imageData",
-              "frameBytes"}) {
-            if (body.find("\"" + field + "\"") != std::string::npos) {
-                return true;
-            }
-        }
-        return false;
-    }
     static bool ValidateCanonicalVlmProfileEnvelopeLocked(const std::string& expected_id, const std::string& body, std::string* error_message);
     static std::optional<Document> CanonicalizeStoredVlmProfileLocked(const Document& document) {
-        const auto evaluation = ExtractObjectField(document.body, "evaluation");
-        const auto prompt_profile = ExtractObjectField(document.body, "promptProfile");
+        StrictJsonObjectDocument profile_document;
+        std::string parse_error;
+        if (!ParseStrictJsonObjectDocument(document.body, &profile_document, &parse_error)) {
+            std::cerr << "[vlm-profile-quarantine] id=" << document.id
+                      << " validation=VLM profile JSON is invalid: " << parse_error << "\n";
+            return std::nullopt;
+        }
+        const auto evaluation = StrictJsonObjectField(profile_document, "evaluation");
+        const auto prompt_profile = StrictJsonObjectField(profile_document, "promptProfile");
+        StrictJsonObjectDocument evaluation_document;
+        StrictJsonObjectDocument prompt_profile_document;
         if (!evaluation.has_value() || !prompt_profile.has_value() ||
-            ParseStringField(*evaluation, "source").value_or("") !=
+            !ParseStrictJsonObjectDocument(*evaluation, &evaluation_document, &parse_error) ||
+            !ParseStrictJsonObjectDocument(*prompt_profile, &prompt_profile_document, &parse_error) ||
+            StrictJsonStringField(evaluation_document, "source").value_or("") !=
                 "server-verified-evaluation-catalog") {
             std::cerr << "[vlm-profile-quarantine] id=" << document.id
                       << " validation=missing server canonical evaluation\n";
             return std::nullopt;
         }
-        const bool no_candidate = JsonFieldIsNull(*evaluation, "candidateId");
+        const bool no_candidate = StrictJsonFieldIsNull(evaluation_document, "candidateId");
         const std::string candidate_id = no_candidate
                                              ? std::string()
-                                             : Trim(ParseStringField(*evaluation, "candidateId").value_or(""));
-        const auto provenance = ExtractObjectField(*evaluation, "provenance");
+                                             : Trim(StrictJsonStringField(evaluation_document, "candidateId").value_or(""));
+        const auto provenance = StrictJsonObjectField(evaluation_document, "provenance");
         if (!provenance.has_value()) {
             std::cerr << "[vlm-profile-quarantine] id=" << document.id
                       << " validation=missing server provenance\n";
+            return std::nullopt;
+        }
+        StrictJsonObjectDocument provenance_document;
+        if (!ParseStrictJsonObjectDocument(*provenance, &provenance_document, &parse_error)) {
+            std::cerr << "[vlm-profile-quarantine] id=" << document.id
+                      << " validation=invalid server provenance JSON\n";
             return std::nullopt;
         }
         const VlmEvaluationPromotionResult validation = ValidateVlmEvaluationPromotion({
             candidate_id,
             candidate_id.empty()
                 ? std::string()
-                : Trim(ParseStringField(*provenance, "catalogRevision").value_or("")),
+                : Trim(StrictJsonStringField(provenance_document, "catalogRevision").value_or("")),
             candidate_id.empty()
                 ? std::string()
-                : Trim(ParseStringField(*provenance, "candidateDigest").value_or("")),
-            Trim(ParseStringField(document.body, "selectedOptionId").value_or("")),
-            Trim(ParseStringField(document.body, "model").value_or("")),
-            Trim(ParseStringField(*prompt_profile, "id").value_or("")),
-            Trim(ParseStringField(*prompt_profile, "version").value_or("")),
-            Trim(ParseStringField(*prompt_profile, "language").value_or("")),
+                : Trim(StrictJsonStringField(provenance_document, "candidateDigest").value_or("")),
+            Trim(StrictJsonStringField(profile_document, "selectedOptionId").value_or("")),
+            Trim(StrictJsonStringField(profile_document, "model").value_or("")),
+            Trim(StrictJsonStringField(prompt_profile_document, "id").value_or("")),
+            Trim(StrictJsonStringField(prompt_profile_document, "version").value_or("")),
+            Trim(StrictJsonStringField(prompt_profile_document, "language").value_or("")),
             false,
         });
         if (!validation.accepted) {
@@ -2432,6 +2536,7 @@ private:
     std::vector<Document> rules_;
     std::vector<Document> va_rules_;
     std::vector<Document> vlm_profiles_;
+    std::size_t rules_quarantined_on_load_{0};
     std::size_t vlm_profiles_quarantined_on_load_{0};
 };
 
@@ -42630,105 +42735,48 @@ bool WebRtcHttpServer::IsRunning() const {
 
 namespace {
 
-std::size_t CountTopLevelJsonFieldOccurrences(const std::string& body,
-                                              const std::string& field) {
-    std::size_t count = 0;
-    int object_depth = 0;
-    bool in_string = false;
-    bool escaped = false;
-    for (std::size_t pos = 0; pos < body.size(); ++pos) {
-        const char ch = body[pos];
-        if (in_string) {
-            if (escaped) {
-                escaped = false;
-            } else if (ch == '\\') {
-                escaped = true;
-            } else if (ch == '"') {
-                in_string = false;
-            }
-            continue;
-        }
-        if (ch == '{') {
-            ++object_depth;
-            continue;
-        }
-        if (ch == '}') {
-            --object_depth;
-            continue;
-        }
-        if (ch != '"') {
-            continue;
-        }
-        const std::size_t key_start = pos + 1;
-        std::size_t key_end = key_start;
-        bool key_escaped = false;
-        for (; key_end < body.size(); ++key_end) {
-            if (key_escaped) {
-                key_escaped = false;
-                continue;
-            }
-            if (body[key_end] == '\\') {
-                key_escaped = true;
-                continue;
-            }
-            if (body[key_end] == '"') {
-                break;
-            }
-        }
-        if (key_end >= body.size()) {
-            break;
-        }
-        std::size_t colon = key_end + 1;
-        while (colon < body.size() &&
-               std::isspace(static_cast<unsigned char>(body[colon])) != 0) {
-            ++colon;
-        }
-        if (object_depth == 1 && colon < body.size() && body[colon] == ':' &&
-            body.substr(key_start, key_end - key_start) == field) {
-            ++count;
-        }
-        pos = key_end;
-    }
-    return count;
-}
-
 bool AnalysisDocumentRegistry::ValidateCanonicalVlmProfileEnvelopeLocked(
     const std::string& expected_id,
     const std::string& body,
     std::string* error_message) {
-    if (!LooksLikeJsonObject(body)) {
-        SetRegistryError(error_message, "VLM profile must be a JSON object");
+    StrictJsonObjectDocument profile_document;
+    std::string parse_error;
+    if (!ParseStrictJsonObjectDocument(body, &profile_document, &parse_error)) {
+        SetRegistryError(error_message, "VLM profile JSON is invalid: " + parse_error);
         return false;
     }
-    if (ContainsForbiddenVlmProfileField(body)) {
-        SetRegistryError(error_message,
-                         "VLM profile must not include credentials, prompts, raw responses, source locators, or frame bytes");
-        return false;
+    for (const std::string& field :
+         {"apiKey", "credential", "providerCredential", "prompt", "rawPrompt",
+          "rawResponse", "sourceUrl", "sourceLocator", "imageData", "frameBytes"}) {
+        if (StrictJsonContainsKey(profile_document, field)) {
+            SetRegistryError(error_message,
+                             "VLM profile must not include credentials, prompts, raw responses, source locators, or frame bytes");
+            return false;
+        }
     }
-    if (CountTopLevelJsonFieldOccurrences(body, "schema") != 1 ||
-        ParseStringField(body, "schema").value_or("") != "media-server.vlm-profile.v1") {
+    if (StrictJsonStringField(profile_document, "schema").value_or("") != "media-server.vlm-profile.v1") {
         SetRegistryError(error_message, "VLM profile schema must be media-server.vlm-profile.v1");
         return false;
     }
-    if (CountTopLevelJsonFieldOccurrences(body, "id") != 1) {
+    if (!StrictJsonHasTopLevelField(profile_document, "id")) {
         SetRegistryError(error_message, "VLM profile must include exactly one id");
         return false;
     }
-    const std::string id = Trim(ParseStringField(body, "id").value_or(""));
+    const std::string id = Trim(StrictJsonStringField(profile_document, "id").value_or(""));
     if (!IsSafeVlmProfileId(id) || id != expected_id) {
         SetRegistryError(error_message, "stored VLM profile id is invalid or mismatched");
         return false;
     }
     const std::string selected_option_id =
-        Trim(ParseStringField(body, "selectedOptionId").value_or(""));
+        Trim(StrictJsonStringField(profile_document, "selectedOptionId").value_or(""));
     if (!IsSafeVlmProfileId(selected_option_id)) {
         SetRegistryError(error_message, "VLM profile selectedOptionId is required");
         return false;
     }
-    const std::string provider = Trim(ParseStringField(body, "provider").value_or(""));
-    const std::string model = Trim(ParseStringField(body, "model").value_or(""));
-    const std::string runtime = Trim(ParseStringField(body, "runtime").value_or(""));
-    const std::string privacy_mode = Trim(ParseStringField(body, "privacyMode").value_or(""));
+    const std::string provider = Trim(StrictJsonStringField(profile_document, "provider").value_or(""));
+    const std::string model = Trim(StrictJsonStringField(profile_document, "model").value_or(""));
+    const std::string runtime = Trim(StrictJsonStringField(profile_document, "runtime").value_or(""));
+    const std::string privacy_mode = Trim(StrictJsonStringField(profile_document, "privacyMode").value_or(""));
     if (!IsOneOf(provider, {"user-supplied-local-runtime", "cloud-provider-api"}) ||
         !IsOneOf(model,
                  {"Qwen/Qwen3-VL-4B-Instruct",
@@ -42742,7 +42790,7 @@ bool AnalysisDocumentRegistry::ValidateCanonicalVlmProfileEnvelopeLocked(
     }
     const bool cloud_profile = provider == "cloud-provider-api";
     const bool cloud_opt_in_acknowledged =
-        ParseBoolField(body, "cloudOptInAcknowledged").value_or(false);
+        StrictJsonBoolField(profile_document, "cloudOptInAcknowledged").value_or(false);
     if (cloud_profile) {
         if (model != "gemini-2.5-flash" || runtime != "provider-api" ||
             privacy_mode != "cloud-allowed" || !cloud_opt_in_acknowledged) {
@@ -42757,48 +42805,45 @@ bool AnalysisDocumentRegistry::ValidateCanonicalVlmProfileEnvelopeLocked(
     if (!ValidateVlmPrivacyGuardContract(body, cloud_profile, error_message)) {
         return false;
     }
-    if (CountTopLevelJsonFieldOccurrences(body, "promptProfile") != 1) {
-        SetRegistryError(error_message, "VLM profile must include exactly one promptProfile");
-        return false;
-    }
-    const auto prompt_profile = ExtractObjectField(body, "promptProfile");
+    const auto prompt_profile = StrictJsonObjectField(profile_document, "promptProfile");
+    StrictJsonObjectDocument prompt_profile_document;
     if (!prompt_profile.has_value() ||
-        Trim(ParseStringField(*prompt_profile, "id").value_or("")).empty()) {
+        !ParseStrictJsonObjectDocument(*prompt_profile, &prompt_profile_document, &parse_error) ||
+        Trim(StrictJsonStringField(prompt_profile_document, "id").value_or("")).empty()) {
         SetRegistryError(error_message, "VLM profile promptProfile.id is required");
         return false;
     }
-    if (CountTopLevelJsonFieldOccurrences(body, "evaluation") != 1) {
-        SetRegistryError(error_message, "VLM profile must include exactly one evaluation object");
-        return false;
-    }
-    const auto evaluation = ExtractObjectField(body, "evaluation");
+    const auto evaluation = StrictJsonObjectField(profile_document, "evaluation");
+    StrictJsonObjectDocument evaluation_document;
     if (!evaluation.has_value() ||
-        ParseStringField(*evaluation, "source").value_or("") !=
+        !ParseStrictJsonObjectDocument(*evaluation, &evaluation_document, &parse_error) ||
+        StrictJsonStringField(evaluation_document, "source").value_or("") !=
             "server-verified-evaluation-catalog" ||
-        !ExtractObjectField(*evaluation, "provenance").has_value() ||
-        !IsOneOf(Trim(ParseStringField(*evaluation, "status").value_or("")),
+        !StrictJsonObjectField(evaluation_document, "provenance").has_value() ||
+        !IsOneOf(Trim(StrictJsonStringField(evaluation_document, "status").value_or("")),
                  {"passed", "review-required", "failed", "not-run"})) {
         SetRegistryError(error_message, "VLM profile evaluation must be server canonical");
         return false;
     }
-    if (CountTopLevelJsonFieldOccurrences(body, "activation") != 1) {
-        SetRegistryError(error_message, "VLM profile must include exactly one activation object");
-        return false;
-    }
-    const auto activation = ExtractObjectField(body, "activation");
+    const auto activation = StrictJsonObjectField(profile_document, "activation");
     if (!activation.has_value()) {
         SetRegistryError(error_message, "VLM profile activation object is required");
         return false;
     }
+    StrictJsonObjectDocument activation_document;
+    if (!ParseStrictJsonObjectDocument(*activation, &activation_document, &parse_error)) {
+        SetRegistryError(error_message, "VLM profile activation JSON is invalid: " + parse_error);
+        return false;
+    }
     const std::string evaluation_status =
-        Trim(ParseStringField(*evaluation, "status").value_or(""));
+        Trim(StrictJsonStringField(evaluation_document, "status").value_or(""));
     const std::string activation_status =
-        Trim(ParseStringField(*activation, "status").value_or(""));
-    const bool activation_enabled = ParseBoolField(*activation, "enabled").value_or(false);
+        Trim(StrictJsonStringField(activation_document, "status").value_or(""));
+    const bool activation_enabled = StrictJsonBoolField(activation_document, "enabled").value_or(false);
     const std::string fallback_profile_id =
-        Trim(ParseStringField(*activation, "fallbackProfileId").value_or(""));
+        Trim(StrictJsonStringField(activation_document, "fallbackProfileId").value_or(""));
     const std::string disabled_reason =
-        Trim(ParseStringField(*activation, "disabledReason").value_or(""));
+        Trim(StrictJsonStringField(activation_document, "disabledReason").value_or(""));
     if (!IsOneOf(activation_status, {"pending-evaluation", "active", "disabled", "fallback"}) ||
         (activation_enabled && (evaluation_status != "passed" || activation_status != "active")) ||
         (!activation_enabled && activation_status == "active") ||
@@ -42809,7 +42854,7 @@ bool AnalysisDocumentRegistry::ValidateCanonicalVlmProfileEnvelopeLocked(
         SetRegistryError(error_message, "VLM profile activation contract is invalid");
         return false;
     }
-    if (CountTopLevelJsonFieldOccurrences(body, "runtimeContract") != 1 ||
+    if (!StrictJsonObjectField(profile_document, "runtimeContract").has_value() ||
         !ValidateVlmRuntimeOptInContract(body,
                                          provider,
                                          runtime,
@@ -42818,13 +42863,14 @@ bool AnalysisDocumentRegistry::ValidateCanonicalVlmProfileEnvelopeLocked(
                                          error_message)) {
         return false;
     }
-    if (CountTopLevelJsonFieldOccurrences(body, "contractInvariants") != 1) {
-        SetRegistryError(error_message, "VLM profile must include exactly one contractInvariants object");
-        return false;
-    }
-    const auto invariants = ExtractObjectField(body, "contractInvariants");
+    const auto invariants = StrictJsonObjectField(profile_document, "contractInvariants");
     if (!invariants.has_value()) {
         SetRegistryError(error_message, "VLM profile contractInvariants object is required");
+        return false;
+    }
+    StrictJsonObjectDocument invariants_document;
+    if (!ParseStrictJsonObjectDocument(*invariants, &invariants_document, &parse_error)) {
+        SetRegistryError(error_message, "VLM profile contractInvariants JSON is invalid: " + parse_error);
         return false;
     }
     for (const std::string& field :
@@ -42838,7 +42884,7 @@ bool AnalysisDocumentRegistry::ValidateCanonicalVlmProfileEnvelopeLocked(
           "wsMetadataSchemaChanged",
           "rtspOrWebrtcMediaPathChanged",
           "viewerClientExposureAdded"}) {
-        if (ParseBoolField(*invariants, field).value_or(true)) {
+        if (StrictJsonBoolField(invariants_document, field).value_or(true)) {
             SetRegistryError(error_message, "VLM profile invariant must be false: " + field);
             return false;
         }

@@ -2,9 +2,9 @@
   "schema": "media-server.v390-ui-native-exact-cases.v1",
   "sourceBindings": {
     "canonicalSchema": "media-server.ui-fulltest-canonical-case-manifest.v1",
-    "canonicalSha256": "b9580c43752b4fe70eb917db46cccaf92044b921b09ca7e02f202de8693664cb",
+    "canonicalSha256": "c83ac05a90b93b282b40901989dce52994e7ecb21e835aefe5c632513d3c1259",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
-    "implementationSha256": "61eb999c7f88ea1d9c8c81a09338a4e7e8ff7716197e8cbed24a2e6b9910f6ca",
+    "implementationSha256": "654b9032cd955c95fcd7f79658ecdb399674b9ce58c6de0fbf3b459b2eb8f139",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -979,7 +979,7 @@
       "controlAction": {
         "selector": null,
         "selectorSource": "route-root-fallback",
-        "actionAnchor": "areaLabel",
+        "actionAnchor": "WebRtcHttpServer::Start",
         "targetSelector": "body"
       },
       "actions": [
@@ -21646,7 +21646,7 @@
       "controlAction": {
         "selector": null,
         "selectorSource": "route-root-fallback",
-        "actionAnchor": "NormalizeReidPolicyToken",
+        "actionAnchor": "WebRtcHttpServer::Start",
         "targetSelector": "body.ops-shell"
       },
       "actions": [

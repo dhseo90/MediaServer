@@ -209,6 +209,8 @@ export function runSemanticClosureContract({ rootDir, rows, manifest }) {
   ));
   const safe217 = itemById.get("SAFE-217");
   const ops184 = itemById.get("OPS-184");
+  const ops173 = itemById.get("OPS-173");
+  const ops180 = itemById.get("OPS-180");
   cases.push(resultCase(
     "safe-217-persist-before-publish-chain",
     safe217?.semanticEvidence?.callChain?.roles?.owner?.symbol === "PersistAndPublishLocked" &&
@@ -224,6 +226,22 @@ export function runSemanticClosureContract({ rootDir, rows, manifest }) {
       ops184?.semanticEvidence?.callChain?.roles?.state?.symbol === "EnsureLoadedLocked" &&
       ops184?.semanticEvidence?.callChain?.roles?.readback?.symbol === "runCrashCase",
     JSON.stringify(ops184?.semanticEvidence?.callChain?.roles || {}),
+  ));
+  cases.push(resultCase(
+    "ops-173-structural-profile-integrity-chain",
+    ops173?.semanticEvidence?.callChain?.roles?.owner?.symbol === "PrepareVlmProfileDocumentLocked" &&
+      ops173?.semanticEvidence?.callChain?.roles?.action?.symbol === "PrepareVlmProfileDocumentLocked" &&
+      ops173?.semanticEvidence?.callChain?.roles?.state?.symbol === "CanonicalizeStoredVlmProfileLocked" &&
+      ops173?.semanticEvidence?.callChain?.roles?.readback?.symbol === "verifyStructuralProfileRejection",
+    JSON.stringify(ops173?.semanticEvidence?.callChain?.roles || {}),
+  ));
+  cases.push(resultCase(
+    "ops-180-reload-provenance-integrity-chain",
+    ops180?.semanticEvidence?.callChain?.roles?.owner?.symbol === "ValidateVlmIncidentRuleProvenanceContract" &&
+      ops180?.semanticEvidence?.callChain?.roles?.action?.symbol === "ValidateVlmIncidentRuleProvenanceServerRecords" &&
+      ops180?.semanticEvidence?.callChain?.roles?.state?.symbol === "EnsureLoadedLocked" &&
+      ops180?.semanticEvidence?.callChain?.roles?.readback?.symbol === "provenanceRestartReadback",
+    JSON.stringify(ops180?.semanticEvidence?.callChain?.roles || {}),
   ));
   const manifestLib = fs.readFileSync(path.join(rootDir, "scripts/internal/feature_implementation_manifest_lib.mjs"), "utf8");
   const semanticLib = fs.readFileSync(path.join(rootDir, "scripts/internal/feature_semantic_evidence_lib.mjs"), "utf8");
@@ -277,6 +295,12 @@ export function runSemanticClosureContract({ rootDir, rows, manifest }) {
     ["ops-184-wrong-recovery-readback-negative", ops184, "OPS-184", copy => {
       copy.semanticEvidence.callChain.roles.readback.symbol = "runFailureStage";
     }, "crash recovery chain drift"],
+    ["ops-173-wrong-structural-readback-negative", ops173, "OPS-173", copy => {
+      copy.semanticEvidence.callChain.roles.readback.symbol = "verifyReloadQuarantine";
+    }, "structural profile integrity chain drift"],
+    ["ops-180-wrong-provenance-state-negative", ops180, "OPS-180", copy => {
+      copy.semanticEvidence.callChain.roles.state.symbol = "PersistAndPublishLocked";
+    }, "reload provenance integrity chain drift"],
   ]) {
     const copy = structuredClone(source);
     mutate(copy);
@@ -369,11 +393,12 @@ export function migrateReview3SemanticClosure({ rootDir, rows, manifest, selecte
       item.uiEvidence.anchor = roles.routeControl.anchor;
       item.uiEvidence.anchorKind = "reviewed-route-control-source-line";
     }
-    const reason = review3Reason(row, roles, chain.digest);
+    const reviewStep = override?.reviewStep || "V390-REVIEW3-37";
+    const reason = review3Reason(row, roles, chain.digest, reviewStep);
     item.status = SEMANTIC_REVIEW_STATUS;
     item.review = {
       decision: "approved",
-      reviewer: "Codex-V390-REVIEW3-37",
+      reviewer: `Codex-${reviewStep}`,
       reviewedOn: "2026-07-12",
       reason,
       semanticDigest: "",
@@ -463,6 +488,22 @@ export function validateReview3CallChain({ rootDir, row, item, errors = [] }) {
       errors.push("OPS-184 crash recovery chain drift");
     }
   }
+  if (row.id === "OPS-173") {
+    if (chain.roles.owner.symbol !== "PrepareVlmProfileDocumentLocked" ||
+        chain.roles.action.symbol !== "PrepareVlmProfileDocumentLocked" ||
+        chain.roles.state.symbol !== "CanonicalizeStoredVlmProfileLocked" ||
+        chain.roles.readback.symbol !== "verifyStructuralProfileRejection") {
+      errors.push("OPS-173 structural profile integrity chain drift");
+    }
+  }
+  if (row.id === "OPS-180") {
+    if (chain.roles.owner.symbol !== "ValidateVlmIncidentRuleProvenanceContract" ||
+        chain.roles.action.symbol !== "ValidateVlmIncidentRuleProvenanceServerRecords" ||
+        chain.roles.state.symbol !== "EnsureLoadedLocked" ||
+        chain.roles.readback.symbol !== "provenanceRestartReadback") {
+      errors.push("OPS-180 reload provenance integrity chain drift");
+    }
+  }
   return errors;
 }
 
@@ -507,9 +548,9 @@ function review3CallChainDigest(row, chain) {
   }));
 }
 
-function review3Reason(row, roles, digest) {
+function review3Reason(row, roles, digest, reviewStep = "V390-REVIEW3-37") {
   return [
-    "V390-REVIEW3-37",
+    reviewStep,
     row.id,
     normalize(row.feature),
     `owner=${roles.owner.symbol}`,
@@ -580,6 +621,90 @@ function review3ContextAtLine(lines, lineNumber) {
 }
 
 function review3Override(rootDir, row, item) {
+  if (row.id === "UI-018" || row.id === "SAFE-017") {
+    const readbackToken = row.id === "UI-018"
+      ? 'assert(item?.disposition === "negative-route", "UI-018 negative disposition missing");'
+      : 'assert(negativeAction?.route === "/lab", "SAFE-017 /lab negative action missing");';
+    return {
+      reviewStep: "V390-REVIEW3-39",
+      routeControlKind: "negative-route-dispatch",
+      verifierEvidence: {
+        file: "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs",
+        anchor: readbackToken,
+        anchorKind: "negative-route-readback",
+        command: "verify-v390-ui-native-exact-cases-contract",
+      },
+      roles: {
+        owner: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", "bool WebRtcHttpServer::Start(const std::string& listen_address", "WebRtcHttpServer::Start"),
+        routeControl: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", 'return HttpResponse{404, "Not Found", "text/plain; charset=utf-8", {}, "not found"};', "WebRtcHttpServer::Start"),
+        action: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", 'return HttpResponse{404, "Not Found", "text/plain; charset=utf-8", {}, "not found"};', "WebRtcHttpServer::Start"),
+        state: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", 'return HttpResponse{404, "Not Found", "text/plain; charset=utf-8", {}, "not found"};', "WebRtcHttpServer::Start"),
+        readback: locatorFromToken(rootDir, "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs", readbackToken, row.id === "UI-018" ? "negativeRouteCase" : "crossRouteNegativeCase"),
+      },
+    };
+  }
+  if (row.id === "AUTH-041") {
+    return {
+      reviewStep: "V390-REVIEW3-39",
+      routeControlKind: "auth-scope-guard",
+      roles: {
+        owner: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", "auto require_scope_principal =", "WebRtcHttpServer::Start"),
+        routeControl: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", "auto require_scope_principal =", "require_scope_principal"),
+        action: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", "if (!auth::RequireScope(principal_result.principal, scope)) {", "require_scope_principal"),
+        state: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", '"{\\"error\\":\\"" + JsonEscape(error) + "\\"}"', "require_scope_principal"),
+        readback: locatorFromToken(rootDir, "scripts/internal/verify_auth_regression_matrix.mjs", 'check("role and scope guard rows are covered", () => {', "roleAndScopeGuardRows"),
+      },
+    };
+  }
+  if (row.id === "MEDIA-005") {
+    return {
+      reviewStep: "V390-REVIEW3-39",
+      routeControlKind: "webrtc-session-offer-flow",
+      roles: {
+        owner: locatorFromToken(rootDir, "src/ingress/webrtc_egress_session.cpp", "bool WebRtcEgressSession::CreateOffer(std::string* sdp_offer", "WebRtcEgressSession::CreateOffer"),
+        routeControl: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", 'if (request.method == "POST" && request.path == "/webrtc/session") {', "WebRtcHttpServer::Start"),
+        action: locatorFromToken(rootDir, "src/ingress/webrtc_egress_session.cpp", 'g_signal_emit_by_name(webrtcbin_, "create-offer", nullptr, promise);', "WebRtcEgressSession::CreateOffer"),
+        state: locatorFromToken(rootDir, "src/ingress/webrtc_egress_session.cpp", "generated_offer = *local_offer_;", "WebRtcEgressSession::CreateOffer"),
+        readback: locatorFromToken(rootDir, "scripts/internal/verify_webrtc_va_metadata.mjs", "assertOk(state.sessionId && session.offer, 'WebRTC session response missing sessionId/offer');", "webrtcOfferReadback"),
+      },
+    };
+  }
+  if (row.id === "LAB-126" || row.id === "SAFE-213" || row.id === "OPS-180") {
+    const readbackToken = row.id === "LAB-126"
+      ? 'assert(JSON.stringify(restartReadback.json?.rule?.vlmProvenance) === JSON.stringify(valid.vlmProvenance),'
+      : row.id === "SAFE-213"
+        ? 'assert((await request(baseUrl, "GET", `/lab/analysis/rules/${id}`)).status === 404,'
+        : 'assert(restartReadback.status === 200, `restart readback HTTP ${restartReadback.status}`);';
+    const readbackSymbol = row.id === "LAB-126"
+      ? "canonicalProvenanceRestartReadback"
+      : row.id === "SAFE-213"
+        ? "provenanceReloadMatrixSummary"
+        : "provenanceRestartReadback";
+    return {
+      reviewStep: "V390-REVIEW3-39",
+      routeControlKind: "strict-provenance-save-and-reload-boundary",
+      roles: {
+        owner: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", "bool ValidateVlmIncidentRuleProvenanceContract(const std::string& body", "ValidateVlmIncidentRuleProvenanceContract"),
+        routeControl: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", 'const std::string expected_route = "/lab/analysis/rules/" + rule_id;', "ValidateVlmIncidentRuleProvenanceContract"),
+        action: locatorFromToken(rootDir, "src/analysis/vlm_observation_store.cpp", "bool ValidateVlmIncidentRuleProvenanceServerRecords(", "ValidateVlmIncidentRuleProvenanceServerRecords"),
+        state: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", 'std::cerr << "[analysis-registry] rule provenance reload quarantine id="', "EnsureLoadedLocked"),
+        readback: locatorFromToken(rootDir, "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs", readbackToken, readbackSymbol),
+      },
+    };
+  }
+  if (row.id === "OPS-173") {
+    return {
+      reviewStep: "V390-REVIEW3-39",
+      routeControlKind: "strict-profile-save-and-reload-boundary",
+      roles: {
+        owner: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", "std::optional<Document> PrepareVlmProfileDocumentLocked(", "PrepareVlmProfileDocumentLocked"),
+        routeControl: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", 'const auto ops_vlm_profile_prefix = std::string("/ops/api/vlm/profiles/");', "WebRtcHttpServer::Start"),
+        action: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", "if (!ParseStrictJsonObjectDocument(body, &profile_document, &parse_error)) {", "PrepareVlmProfileDocumentLocked"),
+        state: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", "static std::optional<Document> CanonicalizeStoredVlmProfileLocked(const Document& document) {", "CanonicalizeStoredVlmProfileLocked"),
+        readback: locatorFromToken(rootDir, "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs", "async function verifyStructuralProfileRejection(baseUrl) {", "verifyStructuralProfileRejection"),
+      },
+    };
+  }
   if (row.id === "SAFE-140") {
     return {
       routeControlKind: "route-dispatch",

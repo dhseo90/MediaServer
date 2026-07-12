@@ -4,7 +4,7 @@
   "implementationEvidence": {
     "path": "test/fixtures/project_feature_implementation_evidence.json",
     "schema": "media-server.feature-implementation-evidence.v2",
-    "sha256": "11620ddb9435197d09fb03f7c530829465da8871e58c7f46c8c5d0ff1acceedb"
+    "sha256": "fbed0c87911b3edc06a4cda5505b765a15c5bad7f9cf48b1fdfd9341375ac682"
   },
   "caseCount": 424,
   "cases": [
@@ -260,7 +260,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "areaLabel"
+        "actionAnchor": "WebRtcHttpServer::Start"
       }
     },
     {
@@ -5585,7 +5585,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "NormalizeReidPolicyToken"
+        "actionAnchor": "WebRtcHttpServer::Start"
       }
     },
     {

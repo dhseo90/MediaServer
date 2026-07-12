@@ -32,6 +32,7 @@ Checks:
   - /ops/rules draft application preserves provenance in the generated rule payload.
   - the rule save validator binds generated rule id and /lab/analysis/rules/{id} route.
   - persisted rule readback keeps provenance without changing event/media contracts.
+  - duplicate/nested-scope JSON is rejected and reload rechecks live server records.
 `);
 }
 
@@ -58,6 +59,9 @@ for (const snippet of [
   "ValidateVlmIncidentRuleProvenanceContract",
   "generated rule id must match provenance",
   "generated rule save API route must match rule id",
+  "ParseStrictJsonObjectDocument",
+  "rules_quarantined_on_load_",
+  "rule provenance reload quarantine",
 ]) assert(files.server.includes(snippet), `rule save validator missing ${snippet}`);
 for (const snippet of [
   "ValidateVlmIncidentRuleProvenanceServerRecords",
@@ -114,6 +118,38 @@ try {
   assert(JSON.stringify(restartReadback.json?.rule?.vlmProvenance) === JSON.stringify(valid.vlmProvenance),
     "restart readback changed canonical provenance");
 
+  await stopServer();
+  const reloadRegistry = JSON.parse(fs.readFileSync(registryPath, "utf8"));
+  const reloadValid = buildRule("702", candidate.provenance);
+  const reloadForged = buildRule("703", candidate.provenance);
+  reloadForged.vlmProvenance.eventSource.eventId = "evt-reload-forged";
+  reloadRegistry.rules.push(reloadValid, reloadForged);
+  const duplicateReload = JSON.stringify(buildRule("704", candidate.provenance)).replace(
+    `"candidateId":"${candidate.candidateId}"`,
+    `"candidateId":"${candidate.candidateId}","candidateId":"candidate-reload-forged"`);
+  const nestedReload = buildRule("705", candidate.provenance);
+  const nestedProvenance = nestedReload.vlmProvenance;
+  delete nestedReload.vlmProvenance;
+  nestedReload.shadow = { vlmProvenance: nestedProvenance };
+  let reloadRegistryText = `${JSON.stringify(reloadRegistry, null, 2)}\n`;
+  reloadRegistryText = reloadRegistryText.replace(
+    '"rules": [',
+    `"rules": [\n${duplicateReload},\n${JSON.stringify(nestedReload)},`);
+  fs.writeFileSync(registryPath, reloadRegistryText);
+
+  ports = { http: await freePort(), rtsp: await freePort() };
+  serverProcess = startServer(ports);
+  baseUrl = `http://127.0.0.1:${ports.http}`;
+  await waitForHealth(baseUrl);
+  for (const id of ["701", "702"]) {
+    assert((await request(baseUrl, "GET", `/lab/analysis/rules/${id}`)).status === 200,
+      `${id} valid reload provenance was quarantined`);
+  }
+  for (const id of ["703", "704", "705"]) {
+    assert((await request(baseUrl, "GET", `/lab/analysis/rules/${id}`)).status === 404,
+      `${id} invalid reload provenance remained visible`);
+  }
+
   const mutationCases = [
     ["event-id", provenance => { provenance.eventSource.eventId = "evt-forged"; }],
     ["observation-id", provenance => { provenance.eventSource.observationId = "vlmobs-forged"; }],
@@ -144,19 +180,30 @@ try {
   }
 
   const duplicateCases = [
-    ["event-id", "790", '"eventId"', candidate.eventId],
-    ["provider", "791", '"provider"', candidate.provider],
+    ["event-id", "790", '"eventId"', candidate.eventId, '"eventId"'],
+    ["provider", "791", '"provider"', candidate.provider, '"provider"'],
+    ["escaped-provider", "793", '"provider"', candidate.provider, '"pr\\u006fvider"'],
   ];
-  for (const [label, id, key, value] of duplicateCases) {
+  for (const [label, id, key, value, duplicateKey] of duplicateCases) {
     const raw = JSON.stringify(buildRule(id, candidate.provenance)).replace(
       `${key}:${JSON.stringify(value)}`,
-      `${key}:${JSON.stringify(value)},${key}:"forged-duplicate"`);
+      `${key}:${JSON.stringify(value)},${duplicateKey}:"forged-duplicate"`);
     const rejected = await request(baseUrl, "PUT", `/lab/analysis/rules/${id}`, raw);
-    assert(rejected.status === 400 && rejected.text.includes("rule VLM provenance does not match server records"),
+    assert(rejected.status === 400 && rejected.text.includes("duplicate JSON key"),
       `${label} duplicate provenance field was not rejected`);
     assert((await request(baseUrl, "GET", `/lab/analysis/rules/${id}`)).status === 404,
       `${label} duplicate provenance field write was persisted`);
   }
+
+  const nestedOnly = buildRule("792", candidate.provenance);
+  const nestedOnlyProvenance = nestedOnly.vlmProvenance;
+  delete nestedOnly.vlmProvenance;
+  nestedOnly.shadow = { vlmProvenance: nestedOnlyProvenance };
+  const rejectedNestedOnly = await request(baseUrl, "PUT", "/lab/analysis/rules/792", nestedOnly);
+  assert(rejectedNestedOnly.status === 400 && rejectedNestedOnly.text.includes("must be top-level"),
+    "nested-only vlmProvenance was treated as top-level authority");
+  assert((await request(baseUrl, "GET", "/lab/analysis/rules/792")).status === 404,
+    "nested-only vlmProvenance rule persisted");
 
   const observationBytes = fs.readFileSync(observationPath);
   fs.writeFileSync(observationPath, "");
@@ -196,6 +243,27 @@ try {
   const persisted = registry.rules?.find(item => item.id === "701");
   assert(persisted?.vlmProvenance?.generatedRule?.saveApiRoute === "/lab/analysis/rules/701", "registry file lost save API provenance");
 
+  await stopServer();
+  fs.writeFileSync(observationPath, "");
+  ports = { http: await freePort(), rtsp: await freePort() };
+  serverProcess = startServer(ports);
+  baseUrl = `http://127.0.0.1:${ports.http}`;
+  await waitForHealth(baseUrl);
+  assert((await request(baseUrl, "GET", "/lab/analysis/rules/701")).status === 404,
+    "reload retained provenance after observation record deletion");
+  await stopServer();
+  fs.writeFileSync(observationPath, observationBytes);
+  fs.writeFileSync(eventPath, "");
+  ports = { http: await freePort(), rtsp: await freePort() };
+  serverProcess = startServer(ports);
+  baseUrl = `http://127.0.0.1:${ports.http}`;
+  await waitForHealth(baseUrl);
+  assert((await request(baseUrl, "GET", "/lab/analysis/rules/701")).status === 404,
+    "reload retained provenance after EventRecord deletion");
+  await stopServer();
+  serverProcess = null;
+  fs.writeFileSync(eventPath, eventBytes);
+
   console.log("== v3.9.0 VLM incident-to-rule provenance ==");
   console.log("- schema: media-server.vlm-incident-to-rule-provenance.v1");
   console.log("- event/candidate/evaluation source mapped: true");
@@ -203,6 +271,9 @@ try {
   console.log("- HTTP positive save/readback/restart cases: 3");
   console.log(`- forged field no-write cases: ${mutationCases.length}`);
   console.log(`- duplicate field no-write cases: ${duplicateCases.length}`);
+  console.log("- nested-only provenance no-write cases: 1");
+  console.log("- reload valid/forged/duplicate/nested cases: 5");
+  console.log("- reload deleted observation/EventRecord quarantine cases: 2");
   console.log("- deleted observation/EventRecord no-write cases: 2");
   console.log("- generated rule binding no-write cases: 2");
   console.log("- failures: 0");

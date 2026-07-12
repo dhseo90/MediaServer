@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: V390-ADD1-03 VLM 승격 신뢰 경계를 실제 auth-off HTTP round-trip으로 검증한다.
+// 파일 용도: V390-REVIEW3-39 VLM 구조 JSON과 reload 신뢰 경계를 actual HTTP로 검증한다.
 
 import { spawn } from "node:child_process";
 import fs from "node:fs";
@@ -22,10 +22,12 @@ Usage:
   ./server.sh verify-v390-vlm-promotion-trust-boundary
 
 Checks:
+  - strict structural JSON rejects duplicate keys and nested top-level shadow fields.
   - evaluation result API and profile save share the server-owned catalog revision/digests.
   - profile save accepts candidate reference fields only and stores server-canonical result/provenance.
   - forged passed, unknown/stale candidate, option/model/prompt mismatch, failed/review promotion are rejected.
   - rejected updates leave the original registry document unchanged.
+  - restart revalidates the same structural/canonical envelope before exposing profiles.
   - runtime/provider/sidecar/event/metadata/media boundaries remain false.
 `);
 }
@@ -52,6 +54,7 @@ try {
     await runCase(baseUrl, item);
     console.log(`[pass] ${item.id}`);
   }
+  await verifyStructuralProfileRejection(baseUrl);
   await verifyReloadQuarantine(baseUrl, ports);
   console.log("[pass] tampered-reload-profile-quarantined");
   console.log("");
@@ -59,6 +62,7 @@ try {
   console.log(`- schema: ${fixture.schema}`);
   console.log(`- catalog revision: ${fixture.catalogRevision}`);
   console.log(`- HTTP cases: ${fixture.cases.length}`);
+  console.log(`- structural save rejection cases: ${fixture.structuralSaveCases}`);
   console.log(`- reload quarantine cases: ${fixture.reloadCases}`);
   console.log("- client declared passed accepted: false");
   console.log("- server canonical provenance stored: true");
@@ -69,11 +73,12 @@ try {
 }
 
 function validateFixture() {
-  assert(fixture.schema === "media-server.v390-vlm-promotion-trust-boundary-fixtures.v1", "fixture schema mismatch");
-  assert(fixture.targetStep === "V390-ADD1-03", "fixture targetStep mismatch");
+  assert(fixture.schema === "media-server.v390-vlm-promotion-trust-boundary-fixtures.v2", "fixture schema mismatch");
+  assert(fixture.targetStep === "V390-REVIEW3-39", "fixture targetStep mismatch");
   assert(fixture.catalogRevision === "v390-add1-03-2026-07-10", "catalog revision mismatch");
   assert(Array.isArray(fixture.cases) && fixture.cases.length >= 14, "expected at least 14 trust boundary cases");
-  assert(fixture.reloadCases === 9, "expected nine reload quarantine cases");
+  assert(fixture.structuralSaveCases === 7, "expected seven structural save cases");
+  assert(fixture.reloadCases === 13, "expected thirteen reload quarantine cases");
   for (const [key, value] of Object.entries(fixture.contractInvariants || {})) {
     assert(value === false, `contract invariant must remain false: ${key}`);
   }
@@ -87,6 +92,7 @@ function validateFixture() {
 function verifySourceContract() {
   const moduleSource = read("src/ingress/vlm_evaluation_promotion.cpp");
   const server = read("src/ingress/webrtc_http_server.cpp");
+  const strictJson = read("src/ingress/strict_json.cpp");
   const client = read("src/ingress/product_ui_page_scripts.cpp");
   const shell = read("src/ingress/webrtc_http_server.cpp");
   for (const snippet of [
@@ -108,7 +114,10 @@ function verifySourceContract() {
     "CanonicalizeStoredVlmProfileLocked",
     "ValidateCanonicalVlmProfileEnvelopeLocked",
     "quarantinedProfileCount",
+    "ParseStrictJsonObjectDocument",
+    "StrictJsonStringField",
   ]) assert(server.includes(snippet), `server validator missing ${snippet}`);
+  assert(strictJson.includes("duplicate JSON key"), "strict JSON parser does not reject duplicate keys");
   assert(!/evaluation:\s*\{\s*status:/s.test(client), "client profile payload must not declare evaluation.status");
   assert(client.includes("expectedCatalogRevision"), "client candidate request missing catalog revision");
   assert(client.includes("expectedProvenanceDigest"), "client candidate request missing provenance digest");
@@ -117,6 +126,40 @@ function verifySourceContract() {
   assert(!evaluationControl.includes("<select"), "evaluation status must not be a selectable field");
   for (const forbidden of ["<option value=\"passed\"", "evaluationStatus = opsVlmControlValue('opsVlmEvaluationStatus'"]) {
     assert(!`${evaluationControl}\n${client}`.includes(forbidden), `client authority remains: ${forbidden}`);
+  }
+}
+
+async function verifyStructuralProfileRejection(baseUrl) {
+  const profile = buildProfile({
+    id: "trust-structural-base", candidateName: "none", activation: "disabled",
+  });
+  const canonical = JSON.stringify(profile);
+  const cases = [
+    ["duplicate-top-level-schema", canonical.replace(
+      '"schema":"media-server.vlm-profile.v1"',
+      '"schema":"media-server.vlm-profile.v1","schema":"media-server.vlm-profile.v1"')],
+    ["duplicate-prompt-id", canonical.replace(
+      '"id":"event-review-default"',
+      '"id":"event-review-default","id":"shadow-prompt"')],
+    ["escaped-duplicate-schema", canonical.replace(
+      '"schema":"media-server.vlm-profile.v1"',
+      '"schema":"media-server.vlm-profile.v1","sch\\u0065ma":"media-server.vlm-profile.v1"')],
+    ["nested-shadow-schema", `{"shadow":{"schema":"media-server.vlm-profile.v1"},${JSON.stringify({
+      ...profile, id: "trust-structural-shadow", schema: "media-server.vlm-profile.v2",
+    }).slice(1)}`],
+    ["duplicate-activation-enabled", canonical.replace(
+      '"enabled":false,"status":"disabled"',
+      '"enabled":false,"enabled":true,"status":"disabled"')],
+    ["malformed-object", canonical.slice(0, -1)],
+    ["trailing-bytes", `${canonical} null`],
+  ];
+  for (const [label, raw] of cases) {
+    const id = label === "nested-shadow-schema" ? "trust-structural-shadow" : "trust-structural-base";
+    const response = await request(baseUrl, "PUT", `/ops/api/vlm/profiles/${id}`, raw);
+    assert(response.status === 400 && response.text.includes("VLM profile JSON"),
+      `${label}: structurally invalid profile was not rejected: ${response.status} ${response.text}`);
+    assert((await request(baseUrl, "GET", `/ops/api/vlm/profiles/${id}`)).status === 404,
+      `${label}: structurally invalid profile persisted`);
   }
 }
 
@@ -143,18 +186,43 @@ async function verifyReloadQuarantine(baseUrl, ports) {
   addTampered("provider-model", profile => { profile.provider = "cloud-provider-api"; });
   addTampered("unsafe/id", () => {});
   registry.vlmProfiles.push(...tamperedProfiles);
-  fs.writeFileSync(registryPath, `${JSON.stringify(registry, null, 2)}\n`);
+  const structuralProfiles = [];
+  const structuralProfile = (id, mutateRaw) => {
+    const profile = structuredClone(canonical);
+    profile.id = id;
+    structuralProfiles.push({ id, raw: mutateRaw(JSON.stringify(profile)) });
+  };
+  structuralProfile("trust-tampered-duplicate-schema", raw => raw.replace(
+    '"schema":"media-server.vlm-profile.v1"',
+    '"schema":"media-server.vlm-profile.v1","schema":"media-server.vlm-profile.v1"'));
+  structuralProfile("trust-tampered-duplicate-prompt", raw => raw.replace(
+    `"id":"${canonical.promptProfile.id}"`,
+    `"id":"${canonical.promptProfile.id}","id":"shadow-prompt"`));
+  structuralProfile("trust-tampered-escaped-duplicate-schema", raw => raw.replace(
+    '"schema":"media-server.vlm-profile.v1"',
+    '"schema":"media-server.vlm-profile.v1","sch\\u0065ma":"media-server.vlm-profile.v1"'));
+  structuralProfile("trust-tampered-shadow-schema", raw => {
+    const forged = JSON.parse(raw);
+    forged.schema = "media-server.vlm-profile.v2";
+    return `{"shadow":{"schema":"media-server.vlm-profile.v1"},${JSON.stringify(forged).slice(1)}`;
+  });
+  let registryText = `${JSON.stringify(registry, null, 2)}\n`;
+  registryText = registryText.replace(
+    '"vlmProfiles": [',
+    `"vlmProfiles": [\n${structuralProfiles.map(item => item.raw).join(",\n")},`);
+  fs.writeFileSync(registryPath, registryText);
 
   serverProcess = startServer(ports);
   await waitForHealth(baseUrl);
   const list = await request(baseUrl, "GET", "/ops/api/vlm/profiles");
   assert(list.status === 200, `reload quarantine list HTTP ${list.status}`);
-  assert(list.json.quarantinedProfileCount === tamperedProfiles.length,
+  const tamperedIds = [...tamperedProfiles.map(profile => profile.id), ...structuralProfiles.map(item => item.id)];
+  assert(list.json.quarantinedProfileCount === tamperedIds.length,
     `tampered reload profile quarantine count mismatch: ${list.json.quarantinedProfileCount}; profiles=${(list.json.profiles || []).map(profile => profile.id).join(",")}; logs=${serverLog.slice(-20).join(" | ")}`);
-  for (const tampered of tamperedProfiles) {
-    assert(!(list.json.profiles || []).some(profile => profile.id === tampered.id), `${tampered.id} remained visible`);
-    const absent = await request(baseUrl, "GET", `/ops/api/vlm/profiles/${encodeURIComponent(tampered.id)}`);
-    assert(absent.status === 404, `${tampered.id} remained addressable`);
+  for (const id of tamperedIds) {
+    assert(!(list.json.profiles || []).some(profile => profile.id === id), `${id} remained visible`);
+    const absent = await request(baseUrl, "GET", `/ops/api/vlm/profiles/${encodeURIComponent(id)}`);
+    assert(absent.status === 404, `${id} remained addressable`);
   }
 }
 
