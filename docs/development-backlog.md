@@ -2182,7 +2182,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 | 37 | V390-REVIEW3-37 | Feature Closure | 986행 semantic closure 전면 재감사 | P0 | 완료 | 자동 token 최고점과 bulk approval API를 제거하고 986개 기능 각각을 content-addressed owner→route/control→action→state→readback→verifier 5-edge chain, 986개 고유 review reason/digest로 재작성했습니다. `SAFE-140`은 v3.5 command workspace owner로, `RULE-017`은 hidden/generated ID save/readback owner와 `verify-ops-client-ui`로 교정했습니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. 전 기능 정확도 직접 영향 |
 | 38 | V390-REVIEW3-38 | Persistence | Analysis Registry crash durability | P0 | 완료 | 기존 mode를 temp에 복원하고 file fsync/close→parent directory open→rename→directory fsync 뒤에만 성공합니다. 12 success, 12 mutation×9 fault=108, 12×3 crash=36 actual HTTP/restart matrix와 startup stale-temp recovery를 구현했습니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점. 데이터 손상 위험 상향 적용 |
 | 39 | V390-REVIEW3-39 | VLM Integrity | 구조적 JSON과 provenance 재검증 | P0 | 완료 | 공용 strict JSON parser로 모든 object scope의 decoded duplicate key와 malformed/trailing JSON을 거부하고 profile/rule의 top-level/nested type을 exact 조회합니다. Profile reload 13종과 rule provenance reload의 forged/duplicate/nested/deleted server-record를 quarantine합니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. provenance·보안·데이터 무결성 상향 적용 |
-| 40 | V390-REVIEW3-40 | Long-run | delegated exact phase ledger | P0 | 미완료 | expected case ID/order/uniqueness/count를 parent가 검증하고 누락·중복·부분 summary를 PASS로 투영하지 않음 | 5.6 Sol | 높음 (high) | 2+1+2+1=6점. 테스트 결과 정확도 상향 적용 |
+| 40 | V390-REVIEW3-40 | Long-run | delegated exact phase ledger | P0 | 완료 | expected case ID/order/uniqueness/count를 parent가 검증하고 누락·중복·부분 summary를 PASS로 투영하지 않음 | 5.6 Sol | 높음 (high) | 2+1+2+1=6점. 테스트 결과 정확도 상향 적용 |
 | 41 | V390-REVIEW3-41 | UI Automation | exact 424 기능별 native workflow | P0 | 미완료 | 37번 semantic source를 기준으로 navigation-only/generic tag action을 case별 setup/input/action/expected result/cleanup으로 교체하고 hidden/non-action selector를 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. 대량 UI 동등성과 false-PASS 상향 적용 |
 | 42 | V390-REVIEW3-42 | UI Correctness | semantic completion oracle | P0 | 미완료 | DOM 임의 변화 대신 case별 endpoint+DOM, persisted readback, EventRecord, server log 중 실제 기대 결과를 요구하고 진짜 request correlation을 사용 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+1=7점. 거짓 PASS 정확도 상향 적용 |
 | 43 | V390-REVIEW3-43 | UI Policy | Policy v4 actual evidence producer | P0 | 미완료 | 41~42번 exact runner가 `media-server.ui-automation-evidence.v4` actual summary와 attested case/cross-cutting artifacts를 직접 생성하도록 구현 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. release correctness와 evidence 보안 상향 적용 |
@@ -2309,6 +2309,18 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 
 - longrun parent는 expected delegated case manifest와 summary를 ID/order/count/uniqueness로 대조합니다.
   한 개 soak row 또는 일부 runtime row만 존재하는 summary는 PASS가 아닙니다.
+- `verify_v390_server_longrun.mjs`는 `media-server.v390-delegated-phase-ledger.v1`을 parent summary와
+  Markdown report에 기록합니다. Fixed `build`/start/smoke/external gate, iteration 1부터 연속하는 soak
+  5-case(`va-events`→`event-post-schema`→`event-post-recovery`→`redaction`→`runtime-idle`), main/queue
+  runtime, ports cleanup, report의 전역 순서와 global unique ID를 검증합니다.
+- 각 parent phase는 expected/observed ID와 count, valid/error를 별도 보존합니다. Predev summary의
+  pass/fail/skip/notRun counter와 실제 step 결과를 다시 계산하고, 성공 ledger의 required case는
+  pass(비활성 build/external/redaction은 skip), 첫 실패 뒤 ordinary case는 not-run이어야 합니다.
+- Contract RED에서 event-post case가 빠진 partial summary가 parent PASS로 투영되는 기존 결함을 8/1로
+  재현했습니다. 최종 9/0은 2개 완전 soak iteration과 complete failed-soak ledger를 positive로,
+  partial/missing/duplicate/reordered/unknown/result/notRun/counter mismatch를 negative로 확인합니다.
+- 실제 30분/120분 longrun은 이 단계에서 실행하지 않았으며 fixture/contract PASS로 duration evidence를
+  대체하지 않습니다.
 - 완료 조건: 38~40 각각의 failure matrix와 negative contract가 독립적으로 닫힌 뒤 UI/acceptance 구현으로
   넘어갑니다. 세 항목은 병렬 개발 가능하지만 각 항목은 별도 완료 evidence를 가집니다.
 

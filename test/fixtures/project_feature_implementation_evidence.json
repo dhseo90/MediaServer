@@ -2,7 +2,7 @@
   "schema": "media-server.feature-implementation-evidence.v2",
   "semanticClosureSchema": "media-server.feature-semantic-implementation-closure.v2",
   "expectedFeatureRows": 986,
-  "inventorySha256": "c0eb36d1ec26131ecfa4cfb2ccf58a95efcadfb67b8106358ff46352228c5978",
+  "inventorySha256": "3825c65a113f9d7ed47fa6b2eba66201be52bd33ccc2b9135a3e0ef61fcc2bd7",
   "generatedFrom": "docs/project-feature-test-inventory.md",
   "generationPolicy": "reviewed-map-only; unrelated source changes preserve approved rows; changed rows become review-required; token scoring and bulk approval are forbidden",
   "semanticClosurePolicy": "986 explicit owner -> route/control -> action -> state -> readback -> verifier chains with content-addressed locators and per-feature review reasons",
@@ -167222,14 +167222,14 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW3-37",
+        "reviewer": "Codex-V390-REVIEW3-40",
         "reviewedOn": "2026-07-12",
-        "reason": "V390-REVIEW3-37:SAFE-201:V390 R1/V390-ADD1-10 longrun runner first-fail boundary:owner=check:stream verification records AI-minimized longrun runner criteria:routeControl=check:stream verification records AI-minimized longrun runner criteria:action=check:stream verification records AI-minimized longrun runner criteria:state=check:stream verification records AI-minimized longrun runner criteria:readback=verifier:verify-v390-server-longrun-runner-contract:chain=9ad4acb424fba0a2",
-        "semanticDigest": "60cec2015f99bb3bb9b60e6c811b46b5f0f47532931a96f615dc6db57d075892"
+        "reason": "V390-REVIEW3-40:SAFE-201:V390 R1/V390-ADD1-10 longrun runner first-fail boundary:owner=validateDelegatedPhaseLedger:routeControl=projectDelegatedPhaseLedger:action=projectDelegatedPhaseLedger:state=projectDelegatedPhaseLedger:readback=delegatedInvalidLedgerContract:chain=728ccee30e448719",
+        "semanticDigest": "1105f1df1ff4496f81c4fe6badb8e2b4f32ce0ee59f929d8dd587c31e91eb73b"
       },
       "sourceEvidence": {
-        "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
-        "anchor": "\"stop-on-first-fail\",",
+        "file": "scripts/internal/verify_v390_server_longrun.mjs",
+        "anchor": "function validateDelegatedPhaseLedger(predevSummary, durationMinutes) {",
         "anchorKind": "reviewed-owner-source-line"
       },
       "uiEvidence": null,
@@ -167248,15 +167248,15 @@
       "semanticEvidence": {
         "schema": "media-server.feature-semantic-implementation-closure.v2",
         "handler": {
-          "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
-          "symbol": "check:stream verification records AI-minimized longrun runner criteria",
-          "symbolKind": "declaration-or-file-scope",
-          "anchor": "\"stop-on-first-fail\",",
+          "file": "scripts/internal/verify_v390_server_longrun.mjs",
+          "symbol": "validateDelegatedPhaseLedger",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "function validateDelegatedPhaseLedger(predevSummary, durationMinutes) {",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 120,
-          "contextSha256": "22b484c961fa56cca40da9c95c1bc529dfaeda5a494a420a76b6be95d24f94fe"
+          "line": 475,
+          "contextSha256": "49303b10a93d51131e09a8568e87863f253a83330553b11fdb1be4346893a953"
         },
         "route": {
           "applicability": "not-applicable",
@@ -167269,38 +167269,38 @@
           "reason": "feature is outside the UI fulltest area"
         },
         "actionHandler": {
-          "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
-          "symbol": "check:stream verification records AI-minimized longrun runner criteria",
-          "symbolKind": "declaration-or-file-scope",
-          "anchor": "\"stop-on-first-fail\",",
+          "file": "scripts/internal/verify_v390_server_longrun.mjs",
+          "symbol": "projectDelegatedPhaseLedger",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "if (!priorFailure && phaseLedger && !phaseLedger.valid) status = \"FAIL\";",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 120,
-          "contextSha256": "22b484c961fa56cca40da9c95c1bc529dfaeda5a494a420a76b6be95d24f94fe"
+          "line": 400,
+          "contextSha256": "7346cc9890588c412da4ed02ec8fb2a983c64a6188a4637a25c6926953da8948"
         },
         "stateOracle": {
           "oracleKind": "read-or-rendered-state",
-          "expectedBehaviorSha256": "c4f1cee5f8246ea188bf7013a03ac4c062a544bb63a2c83af03a25a4444bee94",
-          "expectedBehavior": "`verify-v390-server-longrun-runner-contract`와 `verify-v390-server-longrun` fixture가 one command, fixed phase/case order, 첫 실패 즉시 중단, later phase/case `not-run`, context, 분리 stderr tail, 재현 명령, cleanup/artifact policy를 확인하되 실제 30분/120분 longrun 실행 evidence가 아닙니다",
+          "expectedBehaviorSha256": "5fb2aa3d867e76fdaca36d49e06fcc049789f22754f28b674a5e003999089418",
+          "expectedBehavior": "`verify-v390-server-longrun-runner-contract`와 `verify-v390-server-longrun` fixture가 one command, fixed phase/case order, delegated ID/order/uniqueness/count, 첫 실패 즉시 중단, later phase/case `not-run`, context, 분리 stderr tail, 재현 명령, cleanup/artifact policy를 확인하되 실제 30분/120분 longrun 실행 evidence가 아닙니다",
           "locator": {
-            "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
-            "symbol": "check:stream verification records AI-minimized longrun runner criteria",
-            "symbolKind": "declaration-or-file-scope",
-            "anchor": "\"stop-on-first-fail\",",
+            "file": "scripts/internal/verify_v390_server_longrun.mjs",
+            "symbol": "projectDelegatedPhaseLedger",
+            "symbolKind": "reviewed-owner-or-readback",
+            "anchor": "delegatedPhaseLedger = validation.evidence;",
             "anchorKind": "reviewed-source-line",
             "anchorStrength": "feature-specific-source-line",
             "occurrence": 0,
-            "line": 120,
-            "contextSha256": "22b484c961fa56cca40da9c95c1bc529dfaeda5a494a420a76b6be95d24f94fe"
+            "line": 385,
+            "contextSha256": "9e09685a48ca2637ee4436a191f055ded38f4c750d065e5f6529b70b010b9213"
           }
         },
         "relation": {
           "kind": "invariant-owner-assertion-state",
-          "handlerSymbol": "check:stream verification records AI-minimized longrun runner criteria",
-          "actionSymbol": "check:stream verification records AI-minimized longrun runner criteria",
-          "stateSymbol": "check:stream verification records AI-minimized longrun runner criteria",
-          "semanticKey": "SAFE-201:c4f1cee5f8246ea188bf7013"
+          "handlerSymbol": "validateDelegatedPhaseLedger",
+          "actionSymbol": "projectDelegatedPhaseLedger",
+          "stateSymbol": "projectDelegatedPhaseLedger",
+          "semanticKey": "SAFE-201:5fb2aa3d867e76fdaca36d49"
         },
         "verifierAssertion": {
           "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
@@ -167308,101 +167308,101 @@
           "assertionKind": "reviewed-owner-route-control-action-state-readback-chain",
           "assertionAnchor": "validateReview3CallChain",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "60cec2015f99bb3bb9b60e6c811b46b5f0f47532931a96f615dc6db57d075892"
+          "assertedSemanticDigest": "1105f1df1ff4496f81c4fe6badb8e2b4f32ce0ee59f929d8dd587c31e91eb73b"
         },
         "callChain": {
           "schema": "media-server.feature-reviewed-call-chain.v1",
           "roles": {
             "owner": {
-              "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
-              "symbol": "check:stream verification records AI-minimized longrun runner criteria",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "\"stop-on-first-fail\",",
+              "file": "scripts/internal/verify_v390_server_longrun.mjs",
+              "symbol": "validateDelegatedPhaseLedger",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "function validateDelegatedPhaseLedger(predevSummary, durationMinutes) {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 120,
-              "contextSha256": "22b484c961fa56cca40da9c95c1bc529dfaeda5a494a420a76b6be95d24f94fe"
+              "line": 475,
+              "contextSha256": "49303b10a93d51131e09a8568e87863f253a83330553b11fdb1be4346893a953"
             },
             "routeControl": {
-              "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
-              "symbol": "check:stream verification records AI-minimized longrun runner criteria",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "\"stop-on-first-fail\",",
+              "file": "scripts/internal/verify_v390_server_longrun.mjs",
+              "symbol": "projectDelegatedPhaseLedger",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "const phaseLedger = delegatedPhaseLedger.phases.find(item => item.parentPhase === projection.id);",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 120,
-              "contextSha256": "22b484c961fa56cca40da9c95c1bc529dfaeda5a494a420a76b6be95d24f94fe"
+              "line": 399,
+              "contextSha256": "1a7637f3fbd214d29cb50c2ca5e5753e02aecb11cfdfe8e0a0f4709269b56392"
             },
             "action": {
-              "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
-              "symbol": "check:stream verification records AI-minimized longrun runner criteria",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "\"stop-on-first-fail\",",
+              "file": "scripts/internal/verify_v390_server_longrun.mjs",
+              "symbol": "projectDelegatedPhaseLedger",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "if (!priorFailure && phaseLedger && !phaseLedger.valid) status = \"FAIL\";",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 120,
-              "contextSha256": "22b484c961fa56cca40da9c95c1bc529dfaeda5a494a420a76b6be95d24f94fe"
+              "line": 400,
+              "contextSha256": "7346cc9890588c412da4ed02ec8fb2a983c64a6188a4637a25c6926953da8948"
             },
             "state": {
-              "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
-              "symbol": "check:stream verification records AI-minimized longrun runner criteria",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "\"stop-on-first-fail\",",
+              "file": "scripts/internal/verify_v390_server_longrun.mjs",
+              "symbol": "projectDelegatedPhaseLedger",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "delegatedPhaseLedger = validation.evidence;",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 120,
-              "contextSha256": "22b484c961fa56cca40da9c95c1bc529dfaeda5a494a420a76b6be95d24f94fe"
+              "line": 385,
+              "contextSha256": "9e09685a48ca2637ee4436a191f055ded38f4c750d065e5f6529b70b010b9213"
             },
             "readback": {
               "file": "scripts/internal/verify_v390_server_longrun_runner_contract.mjs",
-              "symbol": "verifier:verify-v390-server-longrun-runner-contract",
+              "symbol": "delegatedInvalidLedgerContract",
               "symbolKind": "reviewed-owner-or-readback",
-              "anchor": "// 파일 용도: v3.9.0 server longrun runner의 stop-on-first-fail contract와 문서/dispatch 연결을 검증한다.",
+              "anchor": "check(\"delegated exact ledger rejects partial missing duplicate reordered unknown result and counter summaries\", () => {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 2,
-              "contextSha256": "01b8a6a29b59c5ff6533cd8d7301dc3fed4c02d04a8d16f803c108f3de4dae13"
+              "line": 266,
+              "contextSha256": "d6b3cce86f3db92f3fe5e5894341524e92d701a711d34fd3a5e9befc01498351"
             }
           },
-          "routeControlKind": "owner-boundary",
+          "routeControlKind": "invalid-delegated-ledger-hard-failure",
           "edges": [
             {
               "from": "owner",
               "to": "routeControl",
-              "relationKind": "owner-boundary",
-              "digest": "bd2091046c1cdb74591db98bb0d11d76c2086e8c51a8dd5a5b5dfac6b6cdafad"
+              "relationKind": "invalid-delegated-ledger-hard-failure",
+              "digest": "3a15190d285de46eda3baa540a0b8c57d19026e2d9e5f5fcd89f959dd526cdd8"
             },
             {
               "from": "routeControl",
               "to": "action",
               "relationKind": "reviewed-dispatch-or-control-flow",
-              "digest": "d9ca5ea7a12c58cdbaad5318c16e3807028cd90041dbc500dc103153513af05f"
+              "digest": "ed566cc5845f2ac9eb41a9b08a03a52bb320bf4dc500ce169ef03938af1afa11"
             },
             {
               "from": "action",
               "to": "state",
               "relationKind": "reviewed-mutation-readmodel-flow",
-              "digest": "53036588ab4628fa8b3ea1f9920c8212c30fa0aad30d92bd76ef8c3a8eb2ac9f"
+              "digest": "f44b7aa9a82349ea911c8f378eba77cc1696d11693ddfd1c1474598bb408d13a"
             },
             {
               "from": "state",
               "to": "readback",
               "relationKind": "exact-readback-assertion",
-              "digest": "6314cd2a050b9ac3460ac561402d587ed29f37a8a46acf55ecbc7fcee605d06f"
+              "digest": "20404941fc209b7475eed1442e90fdfff842d5ae07c74b1929c02ff99d6e2a4f"
             },
             {
               "from": "readback",
               "to": "verifierAssertion",
               "relationKind": "exact-verifier-command",
-              "digest": "cbf58aaf3684bf07a7c7f70a5add6caf946bff7776c2a486e4f5035fd38a16ee"
+              "digest": "f0b1cd8e01351fbf5499e4673f039404a4cac2f939f853b97f6f335b0a88b629"
             }
           ],
-          "digest": "9ad4acb424fba0a2e91e0a556f4135b2db6ae629c53290aa2b9d15473034da8e"
+          "digest": "728ccee30e4487195f817349efbc92cdd4677e4cdca5a02ab19bf93752da855a"
         }
       }
     },
@@ -197027,14 +197027,14 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW3-37",
+        "reviewer": "Codex-V390-REVIEW3-40",
         "reviewedOn": "2026-07-12",
-        "reason": "V390-REVIEW3-37:OPS-168:V390 R1/V390-ADD1-10 AI-minimized server longrun first-fail gate:owner=check:stream verification records AI-minimized longrun runner criteria:routeControl=check:stream verification records AI-minimized longrun runner criteria:action=check:stream verification records AI-minimized longrun runner criteria:state=check:stream verification records AI-minimized longrun runner criteria:readback=verifier:verify-v390-server-longrun:chain=9fd63178ee30ea0a",
-        "semanticDigest": "d4c6aea97f9994bb34c0b0f9c7cba5593883b7691973854f2b36d2530dc1e8cc"
+        "reason": "V390-REVIEW3-40:OPS-168:V390 R1/V390-ADD1-10 AI-minimized server longrun first-fail gate:owner=projectDelegatedPhaseLedger:routeControl=runDelegatedFixturePhase:action=validateDelegatedPhaseLedger:state=projectDelegatedPhaseLedger:readback=delegatedProjectionContract:chain=6cfcb991a1b095a5",
+        "semanticDigest": "89f052dd944f0235cdf5356b94d149eb2135afd21cd4a9a009d0b2a8fb4f5dc3"
       },
       "sourceEvidence": {
-        "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
-        "anchor": "\"v3.9.0 AI-minimized server longrun runner 기준\",",
+        "file": "scripts/internal/verify_v390_server_longrun.mjs",
+        "anchor": "function projectDelegatedPhaseLedger(predevSummary, commandEvidence) {",
         "anchorKind": "reviewed-owner-source-line"
       },
       "uiEvidence": null,
@@ -197053,15 +197053,15 @@
       "semanticEvidence": {
         "schema": "media-server.feature-semantic-implementation-closure.v2",
         "handler": {
-          "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
-          "symbol": "check:stream verification records AI-minimized longrun runner criteria",
-          "symbolKind": "declaration-or-file-scope",
-          "anchor": "\"v3.9.0 AI-minimized server longrun runner 기준\",",
+          "file": "scripts/internal/verify_v390_server_longrun.mjs",
+          "symbol": "projectDelegatedPhaseLedger",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "function projectDelegatedPhaseLedger(predevSummary, commandEvidence) {",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 117,
-          "contextSha256": "172c7f412b8151c20d32b1ed86a629d0bf4823ad56fa28b40e0fed9663f5d164"
+          "line": 383,
+          "contextSha256": "fa781c7703c95bcbd7846a7a5ed68e6d07b6fbd4298255e04ae6e6fed7702b87"
         },
         "route": {
           "applicability": "not-applicable",
@@ -197074,38 +197074,38 @@
           "reason": "feature is outside the UI fulltest area"
         },
         "actionHandler": {
-          "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
-          "symbol": "check:stream verification records AI-minimized longrun runner criteria",
-          "symbolKind": "declaration-or-file-scope",
-          "anchor": "\"v3.9.0 AI-minimized server longrun runner 기준\",",
+          "file": "scripts/internal/verify_v390_server_longrun.mjs",
+          "symbol": "validateDelegatedPhaseLedger",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "function validateDelegatedPhaseLedger(predevSummary, durationMinutes) {",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 117,
-          "contextSha256": "172c7f412b8151c20d32b1ed86a629d0bf4823ad56fa28b40e0fed9663f5d164"
+          "line": 475,
+          "contextSha256": "49303b10a93d51131e09a8568e87863f253a83330553b11fdb1be4346893a953"
         },
         "stateOracle": {
           "oracleKind": "read-or-rendered-state",
-          "expectedBehaviorSha256": "63dfaa473f3d9fc9719ef97dc0576c31556868235e57ee818e637eca5c3694f6",
-          "expectedBehavior": "`verify-v390-server-longrun`, `verify-v390-server-longrun-runner-contract`, `verify-v390-evidence-test-gate-prep`, `verify-runtime-media-longrun-trigger-matrix`, `verify-longrun-separation`, `verify-rc-release-gate`가 첫 실패 즉시 중단, later case `not-run`, context/stderr/reproduction failure report를 runner/fixture contract로 확인하되 실제 30분/120분 longrun 실행 evidence가 아닙니다",
+          "expectedBehaviorSha256": "1716ac3df563c26698427c7ac1598c05375f061d4dad4067c21e30f2199c57f0",
+          "expectedBehavior": "`verify-v390-server-longrun`, `verify-v390-server-longrun-runner-contract`, `verify-v390-evidence-test-gate-prep`, `verify-runtime-media-longrun-trigger-matrix`, `verify-longrun-separation`, `verify-rc-release-gate`가 delegated exact phase/case manifest, global ID/order/uniqueness/count, 첫 실패 즉시 중단, later case `not-run`, context/stderr/reproduction failure report를 runner/fixture contract로 확인하되 실제 30분/120분 longrun 실행 evidence가 아닙니다",
           "locator": {
-            "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
-            "symbol": "check:stream verification records AI-minimized longrun runner criteria",
-            "symbolKind": "declaration-or-file-scope",
-            "anchor": "\"stop-on-first-fail\",",
+            "file": "scripts/internal/verify_v390_server_longrun.mjs",
+            "symbol": "projectDelegatedPhaseLedger",
+            "symbolKind": "reviewed-owner-or-readback",
+            "anchor": "delegatedPhaseLedger = validation.evidence;",
             "anchorKind": "reviewed-source-line",
             "anchorStrength": "feature-specific-source-line",
             "occurrence": 0,
-            "line": 120,
-            "contextSha256": "22b484c961fa56cca40da9c95c1bc529dfaeda5a494a420a76b6be95d24f94fe"
+            "line": 385,
+            "contextSha256": "9e09685a48ca2637ee4436a191f055ded38f4c750d065e5f6529b70b010b9213"
           }
         },
         "relation": {
           "kind": "ops-gate-dispatch-assertion-state",
-          "handlerSymbol": "check:stream verification records AI-minimized longrun runner criteria",
-          "actionSymbol": "check:stream verification records AI-minimized longrun runner criteria",
-          "stateSymbol": "check:stream verification records AI-minimized longrun runner criteria",
-          "semanticKey": "OPS-168:63dfaa473f3d9fc9719ef97d"
+          "handlerSymbol": "projectDelegatedPhaseLedger",
+          "actionSymbol": "validateDelegatedPhaseLedger",
+          "stateSymbol": "projectDelegatedPhaseLedger",
+          "semanticKey": "OPS-168:1716ac3df563c26698427c7a"
         },
         "verifierAssertion": {
           "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
@@ -197113,101 +197113,101 @@
           "assertionKind": "reviewed-owner-route-control-action-state-readback-chain",
           "assertionAnchor": "validateReview3CallChain",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "d4c6aea97f9994bb34c0b0f9c7cba5593883b7691973854f2b36d2530dc1e8cc"
+          "assertedSemanticDigest": "89f052dd944f0235cdf5356b94d149eb2135afd21cd4a9a009d0b2a8fb4f5dc3"
         },
         "callChain": {
           "schema": "media-server.feature-reviewed-call-chain.v1",
           "roles": {
             "owner": {
-              "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
-              "symbol": "check:stream verification records AI-minimized longrun runner criteria",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "\"v3.9.0 AI-minimized server longrun runner 기준\",",
+              "file": "scripts/internal/verify_v390_server_longrun.mjs",
+              "symbol": "projectDelegatedPhaseLedger",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "function projectDelegatedPhaseLedger(predevSummary, commandEvidence) {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 117,
-              "contextSha256": "172c7f412b8151c20d32b1ed86a629d0bf4823ad56fa28b40e0fed9663f5d164"
+              "line": 383,
+              "contextSha256": "fa781c7703c95bcbd7846a7a5ed68e6d07b6fbd4298255e04ae6e6fed7702b87"
             },
             "routeControl": {
-              "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
-              "symbol": "check:stream verification records AI-minimized longrun runner criteria",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "\"v3.9.0 AI-minimized server longrun runner 기준\",",
+              "file": "scripts/internal/verify_v390_server_longrun.mjs",
+              "symbol": "runDelegatedFixturePhase",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "projectDelegatedPhaseLedger(readPredevSummary(options.fixturePredevSummary), {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 117,
-              "contextSha256": "172c7f412b8151c20d32b1ed86a629d0bf4823ad56fa28b40e0fed9663f5d164"
+              "line": 292,
+              "contextSha256": "a2f00c7eb5a51c90fd9716655ae92e5dee651d774accef4d92160660b9f1cf18"
             },
             "action": {
-              "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
-              "symbol": "check:stream verification records AI-minimized longrun runner criteria",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "\"v3.9.0 AI-minimized server longrun runner 기준\",",
+              "file": "scripts/internal/verify_v390_server_longrun.mjs",
+              "symbol": "validateDelegatedPhaseLedger",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "function validateDelegatedPhaseLedger(predevSummary, durationMinutes) {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 117,
-              "contextSha256": "172c7f412b8151c20d32b1ed86a629d0bf4823ad56fa28b40e0fed9663f5d164"
+              "line": 475,
+              "contextSha256": "49303b10a93d51131e09a8568e87863f253a83330553b11fdb1be4346893a953"
             },
             "state": {
-              "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
-              "symbol": "check:stream verification records AI-minimized longrun runner criteria",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "\"stop-on-first-fail\",",
+              "file": "scripts/internal/verify_v390_server_longrun.mjs",
+              "symbol": "projectDelegatedPhaseLedger",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "delegatedPhaseLedger = validation.evidence;",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 120,
-              "contextSha256": "22b484c961fa56cca40da9c95c1bc529dfaeda5a494a420a76b6be95d24f94fe"
+              "line": 385,
+              "contextSha256": "9e09685a48ca2637ee4436a191f055ded38f4c750d065e5f6529b70b010b9213"
             },
             "readback": {
-              "file": "scripts/internal/verify_v390_server_longrun.mjs",
-              "symbol": "verifier:verify-v390-server-longrun",
+              "file": "scripts/internal/verify_v390_server_longrun_runner_contract.mjs",
+              "symbol": "delegatedProjectionContract",
               "symbolKind": "reviewed-owner-or-readback",
-              "anchor": "// 파일 용도: v3.9.0 server longrun을 하나의 stop-on-first-fail runner와 summary/report evidence로 실행한다.",
+              "anchor": "check(\"delegated phase projection maps start, runtime, and successful ledgers without synthetic PASS\", () => {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 2,
-              "contextSha256": "19b7943d0f99896ec6c89ed56695a629d47bd01ad138967a61c6582b79998477"
+              "line": 200,
+              "contextSha256": "0f246ea2aad74b3031d594032402f2d8fc2db7f313296112659f73bc1439aa00"
             }
           },
-          "routeControlKind": "owner-boundary",
+          "routeControlKind": "delegated-summary-to-parent-phase-projection",
           "edges": [
             {
               "from": "owner",
               "to": "routeControl",
-              "relationKind": "owner-boundary",
-              "digest": "c54988703df721ed0bd158de55bca664e9f3ceb925c46a4829b45224c5a99aaa"
+              "relationKind": "delegated-summary-to-parent-phase-projection",
+              "digest": "9cbdd1cdafd2826fb0ca71b5da9ceda6e66f0857c516dda5cfdad8d81f65b2f0"
             },
             {
               "from": "routeControl",
               "to": "action",
               "relationKind": "reviewed-dispatch-or-control-flow",
-              "digest": "8ee6fe72b695c667b49c99750fe3fead45495995d8460cbad15ce794383e883a"
+              "digest": "3cd8f225d6567365a2ae84533e397153266dfa4c99599f0b423089d0ff92e7ab"
             },
             {
               "from": "action",
               "to": "state",
               "relationKind": "reviewed-mutation-readmodel-flow",
-              "digest": "5b2ada439b0f85c5dcc705de2bf9f96f6c0288f918fd39b7b6eef6a369f9f62f"
+              "digest": "f07ed3c8eea176bd1918d90364f0b313e58ef2f686cda170272d383fdbafbdf8"
             },
             {
               "from": "state",
               "to": "readback",
               "relationKind": "exact-readback-assertion",
-              "digest": "b645134439220a91f0ee827949d12ccb7ffdb628b06a4abc543d7b986f0e5cae"
+              "digest": "945f53a6c1999441bf52c61783918d5b27adc153913fbccb5dd56ec2ab05815b"
             },
             {
               "from": "readback",
               "to": "verifierAssertion",
               "relationKind": "exact-verifier-command",
-              "digest": "7c88ade123577888006aca58238ab1f138294c0146fb1c5e0f34e42d7a2bc7d1"
+              "digest": "5e977546d5eb3caff77db8148fdd5744ab29158fdc75d646313a284381ef4699"
             }
           ],
-          "digest": "9fd63178ee30ea0a697889287aae97e9d3c91f02d4ce6ebc30b40eed5d0553d9"
+          "digest": "6cfcb991a1b095a5f3bb865e6eec1a5a8f888735ad163d58f739b85fa8f1aa42"
         }
       }
     },

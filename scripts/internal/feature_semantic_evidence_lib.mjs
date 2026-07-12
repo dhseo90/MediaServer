@@ -211,6 +211,8 @@ export function runSemanticClosureContract({ rootDir, rows, manifest }) {
   const ops184 = itemById.get("OPS-184");
   const ops173 = itemById.get("OPS-173");
   const ops180 = itemById.get("OPS-180");
+  const ops168 = itemById.get("OPS-168");
+  const safe201 = itemById.get("SAFE-201");
   cases.push(resultCase(
     "safe-217-persist-before-publish-chain",
     safe217?.semanticEvidence?.callChain?.roles?.owner?.symbol === "PersistAndPublishLocked" &&
@@ -242,6 +244,22 @@ export function runSemanticClosureContract({ rootDir, rows, manifest }) {
       ops180?.semanticEvidence?.callChain?.roles?.state?.symbol === "EnsureLoadedLocked" &&
       ops180?.semanticEvidence?.callChain?.roles?.readback?.symbol === "provenanceRestartReadback",
     JSON.stringify(ops180?.semanticEvidence?.callChain?.roles || {}),
+  ));
+  cases.push(resultCase(
+    "ops-168-delegated-exact-ledger-chain",
+    ops168?.semanticEvidence?.callChain?.roles?.owner?.symbol === "projectDelegatedPhaseLedger" &&
+      ops168?.semanticEvidence?.callChain?.roles?.action?.symbol === "validateDelegatedPhaseLedger" &&
+      ops168?.semanticEvidence?.callChain?.roles?.state?.symbol === "projectDelegatedPhaseLedger" &&
+      ops168?.semanticEvidence?.callChain?.roles?.readback?.symbol === "delegatedProjectionContract",
+    JSON.stringify(ops168?.semanticEvidence?.callChain?.roles || {}),
+  ));
+  cases.push(resultCase(
+    "safe-201-delegated-ledger-rejection-chain",
+    safe201?.semanticEvidence?.callChain?.roles?.owner?.symbol === "validateDelegatedPhaseLedger" &&
+      safe201?.semanticEvidence?.callChain?.roles?.action?.symbol === "projectDelegatedPhaseLedger" &&
+      safe201?.semanticEvidence?.callChain?.roles?.state?.symbol === "projectDelegatedPhaseLedger" &&
+      safe201?.semanticEvidence?.callChain?.roles?.readback?.symbol === "delegatedInvalidLedgerContract",
+    JSON.stringify(safe201?.semanticEvidence?.callChain?.roles || {}),
   ));
   const manifestLib = fs.readFileSync(path.join(rootDir, "scripts/internal/feature_implementation_manifest_lib.mjs"), "utf8");
   const semanticLib = fs.readFileSync(path.join(rootDir, "scripts/internal/feature_semantic_evidence_lib.mjs"), "utf8");
@@ -301,6 +319,12 @@ export function runSemanticClosureContract({ rootDir, rows, manifest }) {
     ["ops-180-wrong-provenance-state-negative", ops180, "OPS-180", copy => {
       copy.semanticEvidence.callChain.roles.state.symbol = "PersistAndPublishLocked";
     }, "reload provenance integrity chain drift"],
+    ["ops-168-wrong-ledger-action-negative", ops168, "OPS-168", copy => {
+      copy.semanticEvidence.callChain.roles.action.symbol = "delegatedProjectionStatus";
+    }, "delegated exact ledger chain drift"],
+    ["safe-201-wrong-ledger-readback-negative", safe201, "SAFE-201", copy => {
+      copy.semanticEvidence.callChain.roles.readback.symbol = "delegatedProjectionContract";
+    }, "delegated ledger rejection chain drift"],
   ]) {
     const copy = structuredClone(source);
     mutate(copy);
@@ -504,6 +528,22 @@ export function validateReview3CallChain({ rootDir, row, item, errors = [] }) {
       errors.push("OPS-180 reload provenance integrity chain drift");
     }
   }
+  if (row.id === "OPS-168") {
+    if (chain.roles.owner.symbol !== "projectDelegatedPhaseLedger" ||
+        chain.roles.action.symbol !== "validateDelegatedPhaseLedger" ||
+        chain.roles.state.symbol !== "projectDelegatedPhaseLedger" ||
+        chain.roles.readback.symbol !== "delegatedProjectionContract") {
+      errors.push("OPS-168 delegated exact ledger chain drift");
+    }
+  }
+  if (row.id === "SAFE-201") {
+    if (chain.roles.owner.symbol !== "validateDelegatedPhaseLedger" ||
+        chain.roles.action.symbol !== "projectDelegatedPhaseLedger" ||
+        chain.roles.state.symbol !== "projectDelegatedPhaseLedger" ||
+        chain.roles.readback.symbol !== "delegatedInvalidLedgerContract") {
+      errors.push("SAFE-201 delegated ledger rejection chain drift");
+    }
+  }
   return errors;
 }
 
@@ -621,6 +661,32 @@ function review3ContextAtLine(lines, lineNumber) {
 }
 
 function review3Override(rootDir, row, item) {
+  if (row.id === "OPS-168") {
+    return {
+      reviewStep: "V390-REVIEW3-40",
+      routeControlKind: "delegated-summary-to-parent-phase-projection",
+      roles: {
+        owner: locatorFromToken(rootDir, "scripts/internal/verify_v390_server_longrun.mjs", "function projectDelegatedPhaseLedger(predevSummary, commandEvidence) {", "projectDelegatedPhaseLedger"),
+        routeControl: locatorFromToken(rootDir, "scripts/internal/verify_v390_server_longrun.mjs", "projectDelegatedPhaseLedger(readPredevSummary(options.fixturePredevSummary), {", "runDelegatedFixturePhase"),
+        action: locatorFromToken(rootDir, "scripts/internal/verify_v390_server_longrun.mjs", "function validateDelegatedPhaseLedger(predevSummary, durationMinutes) {", "validateDelegatedPhaseLedger"),
+        state: locatorFromToken(rootDir, "scripts/internal/verify_v390_server_longrun.mjs", "delegatedPhaseLedger = validation.evidence;", "projectDelegatedPhaseLedger"),
+        readback: locatorFromToken(rootDir, "scripts/internal/verify_v390_server_longrun_runner_contract.mjs", 'check("delegated phase projection maps start, runtime, and successful ledgers without synthetic PASS", () => {', "delegatedProjectionContract"),
+      },
+    };
+  }
+  if (row.id === "SAFE-201") {
+    return {
+      reviewStep: "V390-REVIEW3-40",
+      routeControlKind: "invalid-delegated-ledger-hard-failure",
+      roles: {
+        owner: locatorFromToken(rootDir, "scripts/internal/verify_v390_server_longrun.mjs", "function validateDelegatedPhaseLedger(predevSummary, durationMinutes) {", "validateDelegatedPhaseLedger"),
+        routeControl: locatorFromToken(rootDir, "scripts/internal/verify_v390_server_longrun.mjs", "const phaseLedger = delegatedPhaseLedger.phases.find(item => item.parentPhase === projection.id);", "projectDelegatedPhaseLedger"),
+        action: locatorFromToken(rootDir, "scripts/internal/verify_v390_server_longrun.mjs", "if (!priorFailure && phaseLedger && !phaseLedger.valid) status = \"FAIL\";", "projectDelegatedPhaseLedger"),
+        state: locatorFromToken(rootDir, "scripts/internal/verify_v390_server_longrun.mjs", "delegatedPhaseLedger = validation.evidence;", "projectDelegatedPhaseLedger"),
+        readback: locatorFromToken(rootDir, "scripts/internal/verify_v390_server_longrun_runner_contract.mjs", 'check("delegated exact ledger rejects partial missing duplicate reordered unknown result and counter summaries", () => {', "delegatedInvalidLedgerContract"),
+      },
+    };
+  }
   if (row.id === "UI-018" || row.id === "SAFE-017") {
     const readbackToken = row.id === "UI-018"
       ? 'assert(item?.disposition === "negative-route", "UI-018 negative disposition missing");'

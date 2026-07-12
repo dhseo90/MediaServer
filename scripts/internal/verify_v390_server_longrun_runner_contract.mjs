@@ -52,6 +52,7 @@ const files = {
   releaseEvidence: readText("docs/release-evidence-index.md"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   predevRunner: readText("scripts/internal/verify_predev_stability.sh"),
+  runner: readText("scripts/internal/verify_v390_server_longrun.mjs"),
 };
 
 check("server.sh and script inventory expose the R1 longrun runner commands", () => {
@@ -67,6 +68,15 @@ check("server.sh and script inventory expose the R1 longrun runner commands", ()
   assertIncludes(files.scriptInventory, runnerScript, "script inventory R1 runner");
   assertIncludes(files.scriptInventory, contractScript, "script inventory R1 contract");
   assertIncludes(readTextAbsolute(runnerPath), "real-duration-failed-no-pass-evidence", "runner real failure evidence status");
+  for (const snippet of [
+    "media-server.v390-delegated-phase-ledger.v1",
+    "validateDelegatedPhaseLedger",
+    '"event-post-schema", "event-post-recovery", "redaction", "runtime-idle"',
+    "duplicateCaseIds",
+    "delegatedPhaseLedgerValid",
+  ]) {
+    assertIncludes(files.runner, snippet, "runner delegated exact ledger contract");
+  }
   for (const snippet of [
     "print_first_failure_evidence",
     "run_ordered_case_sequence",
@@ -139,49 +149,18 @@ check("pass fixture writes complete summary and report without claiming real lon
 });
 
 check("predev summary fixture preserves delegated first failure step", () => {
-  const fixtureSummaryPath = path.join(
-    "/tmp",
-    `media_server_v390_longrun_predev_summary_${process.pid}.json`,
-  );
-  temporaryFiles.add(fixtureSummaryPath);
-  writeJson(fixtureSummaryPath, {
-    kind: "predev",
-    status: "fail",
-    pass: 2,
-    fail: 1,
-    skip: 0,
-    durationSec: 12,
-    steps: [
-      {
-        name: "server-start-queue-256",
-        result: "pass",
-        command: "run_server_foreground",
-        logFile: "/tmp/predev/server.log",
-        durationSec: 0,
-      },
-      {
-        name: "integrated-smoke",
-        result: "fail",
-        command: "./server.sh test --no-start --include-va-events",
-        logFile: "/tmp/predev/integrated_smoke.log",
-        stdoutFile: "/tmp/predev/integrated_smoke.stdout.log",
-        stderrFile: "/tmp/predev/integrated_smoke.stderr.log",
-        stderrTail: ["fixture delegated stderr"],
-        context: "predev case integrated-smoke failed after server start",
-        reproductionCommand: "./server.sh test --no-start --include-va-events",
-        durationSec: 11,
-      },
-      {
-        name: "soak-1-va-events",
-        result: "not-run",
-        command: "./server.sh verify-va-events --duration 30",
-        logFile: "",
-        context: "not run after first failure integrated-smoke",
-        reproductionCommand: "./server.sh verify-va-events --duration 30",
-        durationSec: 0,
-      },
-    ],
+  const fixtureSteps = canonicalDelegatedIntegratedFailureSteps();
+  Object.assign(fixtureSteps.find(step => step.name === "integrated-smoke"), {
+    command: "./server.sh test --no-start --include-va-events",
+    logFile: "/tmp/predev/integrated_smoke.log",
+    stdoutFile: "/tmp/predev/integrated_smoke.stdout.log",
+    stderrFile: "/tmp/predev/integrated_smoke.stderr.log",
+    stderrTail: ["fixture delegated stderr"],
+    context: "predev case integrated-smoke failed after server start",
+    reproductionCommand: "./server.sh test --no-start --include-va-events",
+    durationSec: 11,
   });
+  const fixtureSummaryPath = writeDelegatedSummaryFixture("predev-summary-fail", "fail", fixtureSteps);
   const run = runFixture("predev-summary-fail", [
     "--fixture-fail-phase",
     "soak-case-loop",
@@ -198,7 +177,7 @@ check("predev summary fixture preserves delegated first failure step", () => {
   assert(summary.delegatedFailure?.context === "predev case integrated-smoke failed after server start", "delegatedFailure must preserve context");
   assert(summary.delegatedFailure?.stderrTail?.includes("fixture delegated stderr"), "delegatedFailure must preserve stderr tail");
   assert(summary.delegatedFailure?.reproductionCommand === "./server.sh test --no-start --include-va-events", "delegatedFailure must preserve reproduction command");
-  assert(summary.delegatedFailure?.laterNotRunCases?.includes("soak-1-va-events"), "delegatedFailure must preserve later not-run cases");
+  assert(summary.delegatedFailure?.laterNotRunCases?.includes("soak-case-loop"), "delegatedFailure must preserve later not-run cases");
   assert(summary.delegatedFirstFailContractSatisfied === true, "delegated summary must satisfy first-fail sequence contract");
   assert(summary.failure?.case === "integrated-smoke", "top-level failure must name delegated case");
   assertIncludes(run.stdout, "[first-fail] context: predev case integrated-smoke failed after server start", "delegated failure console context");
@@ -219,12 +198,7 @@ check("predev summary fixture preserves delegated first failure step", () => {
 });
 
 check("delegated phase projection maps start, runtime, and successful ledgers without synthetic PASS", () => {
-  const startFailurePath = writeDelegatedSummaryFixture("start-fail", "fail", [
-    delegatedStep("server-start-queue-256", "fail"),
-    delegatedStep("integrated-smoke", "not-run"),
-    delegatedStep("soak-1-va-events", "not-run"),
-    delegatedStep("main-runtime-idle", "not-run"),
-  ]);
+  const startFailurePath = writeDelegatedSummaryFixture("start-fail", "fail", canonicalDelegatedStartFailureSteps());
   const startRun = runFixture("delegated-start-fail", [
     "--fixture-fail-phase", "soak-case-loop",
     "--fixture-predev-summary", startFailurePath,
@@ -236,13 +210,7 @@ check("delegated phase projection maps start, runtime, and successful ledgers wi
   assertPhaseStatus(startSummary, "soak-case-loop", "not-run");
   assertPhaseStatus(startSummary, "runtime-idle", "not-run");
 
-  const runtimeFailurePath = writeDelegatedSummaryFixture("runtime-fail", "fail", [
-    delegatedStep("server-start-queue-256", "pass"),
-    delegatedStep("integrated-smoke", "pass"),
-    delegatedStep("soak-1-va-events", "pass"),
-    delegatedStep("soak-1-runtime-idle", "pass"),
-    delegatedStep("main-runtime-idle", "fail"),
-  ]);
+  const runtimeFailurePath = writeDelegatedSummaryFixture("runtime-fail", "fail", canonicalDelegatedRuntimeFailureSteps());
   const runtimeRun = runFixture("delegated-runtime-fail", [
     "--fixture-fail-phase", "soak-case-loop",
     "--fixture-predev-summary", runtimeFailurePath,
@@ -254,26 +222,90 @@ check("delegated phase projection maps start, runtime, and successful ledgers wi
   assertPhaseStatus(runtimeSummary, "soak-case-loop", "PASS");
   assertPhaseStatus(runtimeSummary, "runtime-idle", "FAIL");
 
-  const passPath = writeDelegatedSummaryFixture("pass", "pass", [
-    delegatedStep("server-start-queue-256", "pass"),
-    delegatedStep("integrated-smoke", "pass"),
-    delegatedStep("external-turn-hard-gate", "skip"),
-    delegatedStep("soak-1-va-events", "pass"),
-    delegatedStep("soak-1-runtime-idle", "pass"),
-    delegatedStep("main-runtime-idle", "pass"),
-    delegatedStep("server-start-queue-2", "pass"),
-    delegatedStep("event-post-queue", "pass"),
-    delegatedStep("queue-runtime-idle", "pass"),
-  ]);
+  const passPath = writeDelegatedSummaryFixture("pass", "pass", canonicalDelegatedPassSteps());
   const passRun = runFixture("delegated-pass", ["--fixture-predev-summary", passPath]);
   const passSummary = readJson(passRun.summaryPath);
   assert(passSummary.result === "PASS", "delegated pass fixture must pass");
+  assert(passSummary.delegatedPhaseLedger?.valid === true, "delegated pass ledger must be valid");
+  assert(passSummary.delegatedPhaseLedger.expectedCount === passSummary.delegatedPhaseLedger.observedCount,
+    "delegated pass expected/observed count mismatch");
   for (const phaseId of ["start-server", "integrated-smoke", "soak-case-loop", "runtime-idle"]) {
     assertPhaseStatus(passSummary, phaseId, "PASS");
     const phase = passSummary.phases.find(item => item.id === phaseId);
     assert(phase?.summaryPath === passPath, `${phaseId} must retain delegated summary provenance`);
     assert(!String(phase?.command || "").startsWith("fixture pass"), `${phaseId} must not be a synthetic PASS`);
   }
+  assertIncludes(readTextAbsolute(passRun.reportPath), "delegatedPhaseLedgerValid: true", "delegated pass report ledger");
+
+  const multiPath = writeDelegatedSummaryFixture("two-iteration-pass", "pass", canonicalDelegatedPassSteps(2, true));
+  const multiRun = runFixture("delegated-two-iteration-pass", ["--fixture-predev-summary", multiPath]);
+  const multiSummary = readJson(multiRun.summaryPath);
+  assert(multiRun.status === "passed" && multiSummary.result === "PASS", "two exact soak iterations must pass");
+  assert(multiSummary.delegatedPhaseLedger?.valid === true, "two-iteration delegated ledger must be valid");
+  assert(multiSummary.delegatedPhaseLedger.phases.find(item => item.parentPhase === "soak-case-loop")?.observedCount === 10,
+    "two-iteration soak ledger must contain exact 10 cases");
+
+  const soakFailureSteps = canonicalDelegatedPassSteps();
+  const failedIndex = soakFailureSteps.findIndex(step => step.name === "soak-1-event-post-schema");
+  soakFailureSteps[failedIndex].result = "fail";
+  for (const step of soakFailureSteps.slice(failedIndex + 1)) {
+    if (!["ports-clean", "summary-report"].includes(step.name)) step.result = "not-run";
+  }
+  const runtimeIdleIndex = soakFailureSteps.findIndex(step => step.name === "soak-1-runtime-idle");
+  soakFailureSteps.splice(runtimeIdleIndex + 1, 0, delegatedStep("soak-future-iterations", "not-run"));
+  const soakFailurePath = writeDelegatedSummaryFixture("soak-failure", "fail", soakFailureSteps);
+  const soakFailureRun = runFixture("delegated-soak-failure", [
+    "--fixture-fail-phase", "soak-case-loop", "--fixture-predev-summary", soakFailurePath,
+  ]);
+  const soakFailureSummary = readJson(soakFailureRun.summaryPath);
+  assert(soakFailureSummary.failedPhase === "soak-case-loop", "soak case failure must project to soak-case-loop");
+  assert(soakFailureSummary.failedCase === "soak-1-event-post-schema", "soak failedCase must preserve exact ID");
+  assert(soakFailureSummary.delegatedPhaseLedger?.valid === true, "complete failed soak ledger must remain structurally valid");
+});
+
+check("delegated exact ledger rejects partial missing duplicate reordered unknown result and counter summaries", () => {
+  const canonical = canonicalDelegatedPassSteps();
+  const mutations = [
+    ["partial", steps => steps.filter(step => !step.name.includes("event-post-"))],
+    ["missing", steps => steps.filter(step => step.name !== "queue-runtime-idle")],
+    ["duplicate", steps => [...steps.slice(0, 2), structuredClone(steps[1]), ...steps.slice(2)]],
+    ["reordered", steps => {
+      const copy = structuredClone(steps);
+      const first = copy.findIndex(step => step.name === "soak-1-va-events");
+      [copy[first], copy[first + 1]] = [copy[first + 1], copy[first]];
+      return copy;
+    }],
+    ["unknown", steps => {
+      const copy = structuredClone(steps);
+      copy.splice(6, 0, delegatedStep("soak-1-client-declared-pass", "pass"));
+      return copy;
+    }],
+    ["not-run-with-pass-status", steps => {
+      const copy = structuredClone(steps);
+      copy.find(step => step.name === "soak-1-event-post-recovery").result = "not-run";
+      return copy;
+    }],
+  ];
+  for (const [label, mutate] of mutations) {
+    const fixturePath = writeDelegatedSummaryFixture(`invalid-${label}`, "pass", mutate(structuredClone(canonical)));
+    const run = runFixture(`delegated-invalid-${label}`, ["--fixture-predev-summary", fixturePath]);
+    assert(run.status === "failed-as-expected", `${label} delegated summary must fail parent projection`);
+    const summary = readJson(run.summaryPath);
+    assert(summary.result === "FAIL", `${label} delegated summary result must be FAIL`);
+    assert(summary.delegatedPhaseLedger?.valid === false, `${label} delegated ledger must be invalid`);
+    assert((summary.delegatedPhaseLedger?.errors || []).length > 0, `${label} delegated ledger errors missing`);
+    assertIncludes(readTextAbsolute(run.reportPath), "delegatedPhaseLedgerValid: false", `${label} delegated report ledger`);
+  }
+  const countPath = writeDelegatedSummaryFixture("invalid-count", "pass", canonicalDelegatedPassSteps());
+  const countFixture = readJson(countPath);
+  countFixture.pass += 1;
+  writeJson(countPath, countFixture);
+  const countRun = runFixture("delegated-invalid-count", ["--fixture-predev-summary", countPath]);
+  assert(countRun.status === "failed-as-expected", "delegated summary counter mismatch must fail parent projection");
+  const countSummary = readJson(countRun.summaryPath);
+  assert(countSummary.delegatedPhaseLedger?.valid === false, "delegated count mismatch ledger must be invalid");
+  assert(countSummary.delegatedPhaseLedger.errors.some(error => error.includes("count mismatch")),
+    "delegated count mismatch error missing");
 });
 
 check("predev executable fixtures separate first-fail and legacy cumulative case loops", () => {
@@ -379,7 +411,8 @@ function runFixture(label, extraArgs) {
     args.splice(1, 0, "--duration-minutes", "30");
   }
   const expectsFailure = extraArgs.includes("--fixture-fail-phase")
-    || extraArgs.includes("--duration-minutes") && extraArgs.includes("1");
+    || extraArgs.includes("--duration-minutes") && extraArgs.includes("1")
+    || label.startsWith("delegated-invalid-");
   let stdout = "";
   let stderr = "";
   let status = "passed";
@@ -418,6 +451,11 @@ function writeDelegatedSummaryFixture(label, status, steps) {
     skip: steps.filter(step => step.result === "skip").length,
     notRun: steps.filter(step => step.result === "not-run").length,
     durationSec: 1,
+    soakMinutes: 30,
+    quickMode: false,
+    includeExternalTurn: steps.find(step => step.name === "external-turn-hard-gate")?.result === "pass",
+    includeExternalClient: false,
+    includeRedaction: steps.some(step => /-redaction$/.test(step.name) && step.result === "pass"),
     steps,
   });
   return fixturePath;
@@ -436,6 +474,65 @@ function delegatedStep(name, result) {
     reproductionCommand: `fixture ${name}`,
     durationSec: result === "pass" ? 1 : 0,
   };
+}
+
+function canonicalDelegatedPassSteps(iterations = 1, includeRedaction = false, includeExternalTurn = false) {
+  const steps = [
+    delegatedStep("build", "skip"),
+    delegatedStep("server-start-queue-256", "pass"),
+    delegatedStep("integrated-smoke", "pass"),
+    delegatedStep("external-turn-hard-gate", includeExternalTurn ? "pass" : "skip"),
+  ];
+  for (let iteration = 1; iteration <= iterations; iteration += 1) {
+    steps.push(
+      delegatedStep(`soak-${iteration}-va-events`, "pass"),
+      delegatedStep(`soak-${iteration}-event-post-schema`, "pass"),
+      delegatedStep(`soak-${iteration}-event-post-recovery`, "pass"),
+      delegatedStep(`soak-${iteration}-redaction`, includeRedaction ? "pass" : "skip"),
+      delegatedStep(`soak-${iteration}-runtime-idle`, "pass"),
+    );
+  }
+  steps.push(
+    delegatedStep("main-runtime-idle", "pass"),
+    delegatedStep("server-start-queue-2", "pass"),
+    delegatedStep("event-post-queue", "pass"),
+    delegatedStep("queue-runtime-idle", "pass"),
+    delegatedStep("ports-clean", "pass"),
+    delegatedStep("summary-report", "pass"),
+  );
+  return steps;
+}
+
+function canonicalDelegatedStartFailureSteps() {
+  return [
+    delegatedStep("build", "skip"),
+    delegatedStep("server-start-queue-256", "fail"),
+    delegatedStep("integrated-smoke", "not-run"),
+    delegatedStep("external-turn-hard-gate", "not-run"),
+    delegatedStep("soak-case-loop", "not-run"),
+    delegatedStep("main-runtime-idle", "not-run"),
+    delegatedStep("server-start-queue-2", "not-run"),
+    delegatedStep("event-post-queue", "not-run"),
+    delegatedStep("queue-runtime-idle", "not-run"),
+    delegatedStep("ports-clean", "pass"),
+    delegatedStep("summary-report", "pass"),
+  ];
+}
+
+function canonicalDelegatedIntegratedFailureSteps() {
+  const steps = canonicalDelegatedStartFailureSteps();
+  steps.find(step => step.name === "server-start-queue-256").result = "pass";
+  steps.find(step => step.name === "integrated-smoke").result = "fail";
+  return steps;
+}
+
+function canonicalDelegatedRuntimeFailureSteps() {
+  const steps = canonicalDelegatedPassSteps();
+  steps.find(step => step.name === "main-runtime-idle").result = "fail";
+  for (const id of ["server-start-queue-2", "event-post-queue", "queue-runtime-idle"]) {
+    steps.find(step => step.name === id).result = "not-run";
+  }
+  return steps;
 }
 
 function runPredevFailureFixture(modeOption, label) {

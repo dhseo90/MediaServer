@@ -69,6 +69,7 @@ let failedPhase = "";
 let failedCase = "";
 let exitCode = 0;
 let delegatedFailure = null;
+let delegatedPhaseLedger = null;
 let failure = null;
 let predevSummaryPath = "";
 let cleanup = {
@@ -106,6 +107,7 @@ const summary = {
   reportPath,
   cleanup,
   delegatedFailure,
+  delegatedPhaseLedger,
   delegatedFirstFailContractSatisfied: delegatedFailure?.firstFailContractSatisfied ?? true,
   failure,
   realDurationEvidence: !fixtureMode && result === "PASS",
@@ -124,6 +126,7 @@ console.log(`- durationMinutes: ${summary.durationMinutes}`);
 console.log(`- stopOnFirstFail: ${summary.stopOnFirstFail}`);
 console.log(`- failedPhase: ${summary.failedPhase}`);
 console.log(`- failedCase: ${summary.failedCase}`);
+console.log(`- delegatedPhaseLedgerValid: ${summary.delegatedPhaseLedger?.valid ?? "not-applicable"}`);
 console.log(`- longrunEvidenceStatus: ${summary.longrunEvidenceStatus}`);
 console.log(`- summaryPath: ${summary.summaryPath}`);
 console.log(`- reportPath: ${summary.reportPath}`);
@@ -378,20 +381,13 @@ async function runRealPhase(phaseId) {
 }
 
 function projectDelegatedPhaseLedger(predevSummary, commandEvidence) {
-  const steps = Array.isArray(predevSummary?.steps) ? predevSummary.steps : [];
-  const exact = name => steps.filter(step => String(step?.name || "") === name);
-  const startSteps = exact("server-start-queue-256");
-  const integratedSteps = exact("integrated-smoke");
-  const soakSteps = steps.filter(step => /^soak-[0-9]+-/.test(String(step?.name || "")));
-  const runtimeStart = steps.findIndex(step => String(step?.name || "") === "main-runtime-idle");
-  const runtimeSteps = runtimeStart < 0
-    ? []
-    : steps.slice(runtimeStart).filter(step => !["ports-clean", "summary-report", "summary-report-refresh"].includes(String(step?.name || "")));
+  const validation = validateDelegatedPhaseLedger(predevSummary, options.durationMinutes);
+  delegatedPhaseLedger = validation.evidence;
   const projections = [
-    { id: "start-server", delegated: startSteps, required: "server-start-queue-256" },
-    { id: "integrated-smoke", delegated: integratedSteps, required: "integrated-smoke" },
-    { id: "soak-case-loop", delegated: soakSteps, required: "soak-<iteration>-<case>" },
-    { id: "runtime-idle", delegated: runtimeSteps, required: "main-runtime-idle" },
+    { id: "start-server", delegated: validation.phaseSteps.get("start-server") || [], required: "server-start-queue-256" },
+    { id: "integrated-smoke", delegated: validation.phaseSteps.get("integrated-smoke") || [], required: "integrated-smoke" },
+    { id: "soak-case-loop", delegated: validation.phaseSteps.get("soak-case-loop") || [], required: "soak-<iteration>-<case>" },
+    { id: "runtime-idle", delegated: validation.phaseSteps.get("runtime-idle") || [], required: "main-runtime-idle" },
   ];
   let priorFailure = false;
   let projectedFailure = false;
@@ -400,6 +396,8 @@ function projectDelegatedPhaseLedger(predevSummary, commandEvidence) {
   for (const projection of projections) {
     let status = priorFailure ? "not-run" : delegatedProjectionStatus(projection.delegated);
     if (!priorFailure && projection.delegated.length === 0) status = "FAIL";
+    const phaseLedger = delegatedPhaseLedger.phases.find(item => item.parentPhase === projection.id);
+    if (!priorFailure && phaseLedger && !phaseLedger.valid) status = "FAIL";
     const delegatedNames = projection.delegated.map(step => String(step.name || "")).filter(Boolean);
     const failedStep = projection.delegated.find(step => step?.result === "fail");
     const tail = status === "not-run"
@@ -408,6 +406,7 @@ function projectDelegatedPhaseLedger(predevSummary, commandEvidence) {
           `required=${projection.required}`,
           `delegated=${delegatedNames.join(",") || "missing"}`,
           `results=${projection.delegated.map(step => `${step.name}:${step.result}`).join(",") || "missing"}`,
+          ...((phaseLedger?.errors || []).map(error => `ledger-error=${error}`)),
         ];
     phases.push(makePhase({
       id: projection.id,
@@ -426,7 +425,7 @@ function projectDelegatedPhaseLedger(predevSummary, commandEvidence) {
       projectedFailure = true;
       priorFailure = true;
       failedPhase = projection.id;
-      failedCase = String(failedStep?.name || delegatedFailure?.name || `missing-${projection.required}`);
+      failedCase = String(failedStep?.name || delegatedFailure?.name || phaseLedger?.failedCase || `missing-${projection.required}`);
       exitCode = exitCode || 1;
       const context = delegatedFailure?.context || `delegated parent projection ${projection.id} failed: ${failedCase}`;
       const stderrTail = delegatedFailure?.stderrTail?.length > 0
@@ -471,6 +470,210 @@ function projectDelegatedPhaseLedger(predevSummary, commandEvidence) {
     });
     printFirstFailure(failure);
   }
+}
+
+function validateDelegatedPhaseLedger(predevSummary, durationMinutes) {
+  const schema = "media-server.v390-delegated-phase-ledger.v1";
+  const steps = Array.isArray(predevSummary?.steps) ? predevSummary.steps : [];
+  const observedCaseIds = steps.map(step => String(step?.name || ""));
+  const duplicateCaseIds = [...new Set(observedCaseIds.filter((id, index) => id && observedCaseIds.indexOf(id) !== index))];
+  const errorsByPhase = new Map([
+    ["start-server", []],
+    ["integrated-smoke", []],
+    ["soak-case-loop", []],
+    ["runtime-idle", []],
+  ]);
+  const addError = (phase, message) => {
+    const target = errorsByPhase.has(phase) ? phase : "start-server";
+    errorsByPhase.get(target).push(message);
+  };
+  if (!predevSummary || predevSummary.kind !== "predev") addError("start-server", "delegated summary kind must be predev");
+  if (!Array.isArray(predevSummary?.steps)) addError("start-server", "delegated summary steps must be an array");
+  if (predevSummary?.soakMinutes !== durationMinutes) {
+    addError("start-server", `delegated soakMinutes mismatch: expected ${durationMinutes}, observed ${String(predevSummary?.soakMinutes)}`);
+  }
+  if (observedCaseIds.some(id => !id)) addError("start-server", "delegated case ID must be non-empty");
+  for (const id of duplicateCaseIds) addError(parentPhaseForDelegatedCase(id), `duplicate delegated case ID: ${id}`);
+  for (const step of steps) {
+    if (!['pass', 'fail', 'skip', 'not-run'].includes(String(step?.result || ''))) {
+      addError(parentPhaseForDelegatedCase(String(step?.name || "")), `invalid delegated case result: ${String(step?.name || "")}=${String(step?.result)}`);
+    }
+  }
+
+  const exact = name => steps.filter(step => String(step?.name || "") === name);
+  const fixed = [
+    ["build", "start-server"],
+    ["server-start-queue-256", "start-server"],
+    ["integrated-smoke", "integrated-smoke"],
+    ["external-turn-hard-gate", "integrated-smoke"],
+    ["main-runtime-idle", "runtime-idle"],
+    ["server-start-queue-2", "runtime-idle"],
+    ["event-post-queue", "runtime-idle"],
+    ["queue-runtime-idle", "runtime-idle"],
+    ["ports-clean", "runtime-idle"],
+    ["summary-report", "runtime-idle"],
+  ];
+  for (const [id, phase] of fixed) {
+    const count = exact(id).length;
+    if (count !== 1) addError(phase, `delegated case count mismatch: ${id} expected 1 observed ${count}`);
+  }
+
+  const indexOf = id => observedCaseIds.indexOf(id);
+  const externalIndex = indexOf("external-turn-hard-gate");
+  const runtimeIndex = indexOf("main-runtime-idle");
+  const soakRegion = externalIndex >= 0 && runtimeIndex > externalIndex
+    ? steps.slice(externalIndex + 1, runtimeIndex)
+    : [];
+  const aggregateSoak = soakRegion.filter(step => String(step?.name || "") === "soak-case-loop");
+  const numericSoak = soakRegion.filter(step => /^soak-[0-9]+-/.test(String(step?.name || "")));
+  const soakFuture = soakRegion.filter(step => String(step?.name || "") === "soak-future-iterations");
+  const soakSuffixes = ["va-events", "event-post-schema", "event-post-recovery", "redaction", "runtime-idle"];
+  const expectedSoakIds = [];
+  if (aggregateSoak.length > 0) {
+    expectedSoakIds.push("soak-case-loop");
+    if (aggregateSoak.length !== 1 || soakRegion.length !== 1) {
+      addError("soak-case-loop", "aggregate soak-case-loop must be the only delegated soak entry");
+    }
+    if (aggregateSoak[0]?.result !== "not-run") {
+      addError("soak-case-loop", "aggregate soak-case-loop must be not-run after an earlier failure");
+    }
+  } else {
+    const iterations = numericSoak.map(step => Number(String(step.name).match(/^soak-([0-9]+)-/)?.[1] || 0));
+    const maxIteration = iterations.length > 0 ? Math.max(...iterations) : 1;
+    for (let iteration = 1; iteration <= maxIteration; iteration += 1) {
+      for (const suffix of soakSuffixes) expectedSoakIds.push(`soak-${iteration}-${suffix}`);
+    }
+    const observedNumericIds = numericSoak.map(step => String(step.name));
+    if (JSON.stringify(observedNumericIds) !== JSON.stringify(expectedSoakIds)) {
+      addError("soak-case-loop", `delegated soak order/count mismatch: expected ${expectedSoakIds.join(",")} observed ${observedNumericIds.join(",") || "missing"}`);
+    }
+    const iterationSet = [...new Set(iterations)].sort((a, b) => a - b);
+    if (iterationSet.some((value, index) => value !== index + 1)) {
+      addError("soak-case-loop", `delegated soak iterations must be contiguous from 1: ${iterationSet.join(",")}`);
+    }
+    if (soakFuture.length > 1 || soakFuture.some(step => step.result !== "not-run")) {
+      addError("soak-case-loop", "soak-future-iterations must occur at most once with not-run result");
+    }
+    const allowedSoakIds = new Set([...expectedSoakIds, "soak-future-iterations"]);
+    for (const step of soakRegion) {
+      if (!allowedSoakIds.has(String(step?.name || ""))) {
+        addError("soak-case-loop", `unknown delegated soak case ID: ${String(step?.name || "")}`);
+      }
+    }
+  }
+
+  const expectedCaseIds = [
+    "build",
+    "server-start-queue-256",
+    "integrated-smoke",
+    "external-turn-hard-gate",
+    ...expectedSoakIds,
+    ...(soakFuture.length === 1 ? ["soak-future-iterations"] : []),
+    "main-runtime-idle",
+    "server-start-queue-2",
+    "event-post-queue",
+    "queue-runtime-idle",
+    "ports-clean",
+    "summary-report",
+    ...(exact("summary-report-refresh").length === 1 ? ["summary-report-refresh"] : []),
+  ];
+  const allowedIds = new Set(expectedCaseIds);
+  for (const id of observedCaseIds) {
+    if (id && !allowedIds.has(id)) addError(parentPhaseForDelegatedCase(id), `unknown delegated case ID: ${id}`);
+  }
+  if (JSON.stringify(observedCaseIds) !== JSON.stringify(expectedCaseIds)) {
+    let firstMismatch = observedCaseIds.findIndex((id, index) => id !== expectedCaseIds[index]);
+    if (firstMismatch < 0) firstMismatch = Math.min(observedCaseIds.length, expectedCaseIds.length);
+    const mismatchId = observedCaseIds[firstMismatch] || expectedCaseIds[firstMismatch] || "missing";
+    addError(parentPhaseForDelegatedCase(mismatchId), `delegated global order/count mismatch at ${firstMismatch}: expected ${expectedCaseIds[firstMismatch] || "end"} observed ${observedCaseIds[firstMismatch] || "end"}`);
+  }
+
+  const resultCounts = {
+    pass: steps.filter(step => step?.result === "pass").length,
+    fail: steps.filter(step => step?.result === "fail").length,
+    skip: steps.filter(step => step?.result === "skip").length,
+    notRun: steps.filter(step => step?.result === "not-run").length,
+  };
+  for (const [field, observed] of Object.entries(resultCounts)) {
+    if (predevSummary?.[field] !== observed) {
+      addError("runtime-idle", `delegated summary ${field} count mismatch: expected ${observed} observed ${String(predevSummary?.[field])}`);
+    }
+  }
+  const expectedStatus = resultCounts.fail > 0 ? "fail" : "pass";
+  if (predevSummary?.status !== expectedStatus) {
+    addError("runtime-idle", `delegated summary status mismatch: expected ${expectedStatus} observed ${String(predevSummary?.status)}`);
+  }
+  const mandatoryTailIds = new Set(["ports-clean", "summary-report", "summary-report-refresh"]);
+  const executableSteps = steps.filter(step => !mandatoryTailIds.has(String(step?.name || "")));
+  const firstExecutableFailure = executableSteps.findIndex(step => step?.result === "fail");
+  for (let index = 0; index < executableSteps.length; index += 1) {
+    const step = executableSteps[index];
+    const id = String(step?.name || "");
+    let expectedBeforeFailure = "pass";
+    if (id === "build") expectedBeforeFailure = "skip";
+    if (id === "external-turn-hard-gate") expectedBeforeFailure = predevSummary?.includeExternalTurn ? "pass" : "skip";
+    if (/-redaction$/.test(id)) expectedBeforeFailure = predevSummary?.includeRedaction ? "pass" : "skip";
+    if (firstExecutableFailure < 0) {
+      if (step?.result !== expectedBeforeFailure) {
+        addError(parentPhaseForDelegatedCase(id), `delegated successful case result mismatch: ${id} expected ${expectedBeforeFailure} observed ${String(step?.result)}`);
+      }
+    } else if (index < firstExecutableFailure && step?.result !== expectedBeforeFailure) {
+      addError(parentPhaseForDelegatedCase(id), `delegated pre-failure case result mismatch: ${id} expected ${expectedBeforeFailure} observed ${String(step?.result)}`);
+    } else if (index > firstExecutableFailure && step?.result !== "not-run") {
+      addError(parentPhaseForDelegatedCase(id), `delegated post-failure case must be not-run: ${id} observed ${String(step?.result)}`);
+    }
+  }
+
+  const phaseObservedIds = {
+    "start-server": ["server-start-queue-256"].flatMap(id => exact(id)),
+    "integrated-smoke": ["integrated-smoke"].flatMap(id => exact(id)),
+    "soak-case-loop": aggregateSoak.length > 0 ? aggregateSoak : soakRegion,
+    "runtime-idle": ["main-runtime-idle", "server-start-queue-2", "event-post-queue", "queue-runtime-idle"].flatMap(id => exact(id)),
+  };
+  const phaseExpectedIds = {
+    "start-server": ["server-start-queue-256"],
+    "integrated-smoke": ["integrated-smoke"],
+    "soak-case-loop": [...expectedSoakIds, ...(soakFuture.length === 1 ? ["soak-future-iterations"] : [])],
+    "runtime-idle": ["main-runtime-idle", "server-start-queue-2", "event-post-queue", "queue-runtime-idle"],
+  };
+  const phasesEvidence = [...errorsByPhase].map(([parentPhase, errors]) => ({
+    parentPhase,
+    expectedCaseIds: phaseExpectedIds[parentPhase],
+    observedCaseIds: (phaseObservedIds[parentPhase] || []).map(step => String(step?.name || "")),
+    expectedCount: phaseExpectedIds[parentPhase].length,
+    observedCount: (phaseObservedIds[parentPhase] || []).length,
+    valid: errors.length === 0,
+    failedCase: errors.length > 0 ? (phaseObservedIds[parentPhase]?.[0]?.name || `delegated-ledger-${parentPhase}`) : "",
+    errors,
+  }));
+  const allErrors = phasesEvidence.flatMap(phase => phase.errors.map(error => `${phase.parentPhase}: ${error}`));
+  return {
+    evidence: {
+      schema,
+      valid: allErrors.length === 0,
+      expectedCaseIds,
+      observedCaseIds,
+      expectedCount: expectedCaseIds.length,
+      observedCount: observedCaseIds.length,
+      duplicateCaseIds,
+      counts: { expected: resultCounts, observed: {
+        pass: predevSummary?.pass,
+        fail: predevSummary?.fail,
+        skip: predevSummary?.skip,
+        notRun: predevSummary?.notRun,
+      } },
+      phases: phasesEvidence,
+      errors: allErrors,
+    },
+    phaseSteps: new Map(Object.entries(phaseObservedIds)),
+  };
+}
+
+function parentPhaseForDelegatedCase(id) {
+  if (id === "server-start-queue-256" || id === "build") return "start-server";
+  if (id === "integrated-smoke" || id === "external-turn-hard-gate") return "integrated-smoke";
+  if (id === "soak-case-loop" || id === "soak-future-iterations" || /^soak-/.test(id)) return "soak-case-loop";
+  return "runtime-idle";
 }
 
 function delegatedProjectionStatus(steps) {
@@ -737,6 +940,11 @@ function writeReport(filePath, payload) {
     `failedCase: ${payload.failedCase || "(none)"}`,
     `delegatedFailure: ${payload.delegatedFailure?.name || "(none)"}`,
     `delegatedFirstFailContractSatisfied: ${payload.delegatedFirstFailContractSatisfied}`,
+    `delegatedPhaseLedgerSchema: ${payload.delegatedPhaseLedger?.schema || "(not-applicable)"}`,
+    `delegatedPhaseLedgerValid: ${payload.delegatedPhaseLedger?.valid ?? "(not-applicable)"}`,
+    `delegatedPhaseLedgerCount: ${payload.delegatedPhaseLedger ? `${payload.delegatedPhaseLedger.observedCount}/${payload.delegatedPhaseLedger.expectedCount}` : "(not-applicable)"}`,
+    `delegatedPhaseLedgerDuplicates: ${reportValue(payload.delegatedPhaseLedger?.duplicateCaseIds?.join(","))}`,
+    `delegatedPhaseLedgerErrors: ${reportValue(payload.delegatedPhaseLedger?.errors?.join(" | "))}`,
     `failureContext: ${reportValue(payload.failure?.context)}`,
     `stderrTail: ${reportValue(payload.failure?.stderrTail?.join(" | "))}`,
     `reproductionCommand: ${reportValue(payload.failure?.reproductionCommand)}`,
@@ -746,6 +954,11 @@ function writeReport(filePath, payload) {
     "| phase | status | command | log |",
     "| --- | --- | --- | --- |",
     ...payload.phases.map(phase => `| ${phase.id} | ${phase.status} | ${escapeCell(phase.command)} | ${escapeCell(phase.logPath)} |`),
+    "",
+    "| delegated parent phase | valid | observed/expected | observed case IDs | errors |",
+    "| --- | --- | ---: | --- | --- |",
+    ...((payload.delegatedPhaseLedger?.phases || []).map(phase =>
+      `| ${phase.parentPhase} | ${phase.valid} | ${phase.observedCount}/${phase.expectedCount} | ${escapeCell(phase.observedCaseIds.join(","))} | ${escapeCell(phase.errors.join(" | "))} |`)),
   ];
   fs.writeFileSync(filePath, `${lines.join("\n")}\n`, "utf8");
 }
