@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: V390-REVIEW2-21 Analysis Registry 실패 전파와 persist-before-publish를 actual HTTP로 검증한다.
+// 파일 용도: V390-REVIEW3-38 Analysis Registry full fault/crash durability를 actual HTTP로 검증한다.
 
 import { spawn } from "node:child_process";
 import fs from "node:fs";
@@ -22,8 +22,9 @@ Usage:
 
 Checks:
   - profile/rule/VA rule/VLM profile create, update, and delete use persist-before-publish.
-  - parent/open/short-write/flush/rename failures return HTTP 500 with a typed safe stage.
-  - failed mutations preserve memory GET, registry bytes, restart state, and remove temp files.
+  - all 12 mutations cross all 9 parent/file/directory failure stages.
+  - mode 0640 is preserved and parent directory fsync completes before success.
+  - all mutations recover deterministically across three injected crash points.
 `);
 }
 assertKnownOptions(rawArgs, ["h", "help"]);
@@ -40,20 +41,32 @@ let baseUrl = "";
 try {
   validateFixture();
   verifySourceContract();
-  const baselineBytes = await createBaseline();
-  const stages = [...new Set(fixture.cases.map(item => item.faultStage))];
-  for (const stage of stages) {
-    await runFailureStage(stage, fixture.cases.filter(item => item.faultStage === stage), baselineBytes);
+  const baseline = await createBaseline();
+  await runSuccessMatrix(fixture.mutationCases, baseline);
+  for (const stage of fixture.failureStages) {
+    await runFailureStage(stage, fixture.mutationCases, baseline);
+  }
+  for (const crash of fixture.crashStages) {
+    for (const item of fixture.mutationCases) {
+      await runCrashCase(crash, item, baseline);
+    }
   }
   assert(findTemporaryFiles(workDir).length === 0,
     `temporary registry files remain: ${findTemporaryFiles(workDir).join(", ")}`);
   console.log("");
   console.log("== v3.9.0 Analysis Registry durable write ==");
   console.log(`- schema: ${fixture.schema}`);
-  console.log(`- mutation cases: ${fixture.cases.length}`);
+  console.log(`- mutation cases: ${fixture.mutationCases.length}`);
+  console.log(`- success matrix cases: ${fixture.mutationCases.length}`);
   console.log(`- failure stages: ${fixture.failureStages.join(",")}`);
+  console.log(`- fault matrix cases: ${fixture.mutationCases.length * fixture.failureStages.length}`);
+  console.log(`- crash matrix cases: ${fixture.mutationCases.length * fixture.crashStages.length}`);
+  console.log(`- preserved mode: ${fixture.preservedMode}`);
+  console.log("- parentDirectoryFsyncBeforeSuccess: true");
   console.log("- http5xxOnPersistenceFailure: true");
-  console.log("- memoryFileRestartNoChange: true");
+  console.log("- memoryFileRestartConsistency: true");
+  console.log("- preRenameFailureNoChange: true");
+  console.log("- postRenameFailureCandidatePublished: true");
   console.log("- temporaryFiles: 0");
   console.log("- failures: 0");
 } finally {
@@ -62,15 +75,23 @@ try {
 }
 
 function validateFixture() {
-  assert(fixture.schema === "media-server.v390-analysis-registry-durable-write-fixtures.v1", "fixture schema mismatch");
-  assert(fixture.targetStep === "V390-REVIEW2-21", "fixture targetStep mismatch");
-  assert(Array.isArray(fixture.cases) && fixture.cases.length === 12, "expected twelve mutation cases");
-  assert(JSON.stringify(fixture.failureStages) === JSON.stringify(["parent", "open", "write", "flush", "rename"]),
+  assert(fixture.schema === "media-server.v390-analysis-registry-durable-write-fixtures.v2", "fixture schema mismatch");
+  assert(fixture.targetStep === "V390-REVIEW3-38", "fixture targetStep mismatch");
+  assert(fixture.preservedMode === "0640", "preserved mode mismatch");
+  assert(Array.isArray(fixture.mutationCases) && fixture.mutationCases.length === 12, "expected twelve mutation cases");
+  assert(JSON.stringify(fixture.failureStages) === JSON.stringify([
+    "parent", "open", "mode", "write", "flush", "close", "directory-open", "rename", "directory-flush",
+  ]),
     "failure stage set mismatch");
-  assert(featureIds.length === 2, "V390-REVIEW2-21 feature mapping mismatch");
+  assert(JSON.stringify(fixture.postRenameFailureStages) === JSON.stringify(["directory-flush"]),
+    "post-rename failure stage mismatch");
+  assert(JSON.stringify(fixture.crashStages.map(item => item.stage)) === JSON.stringify([
+    "after-temp-fsync", "after-rename", "after-directory-fsync",
+  ]), "crash stage set mismatch");
+  assert(featureIds.length === 2, "V390-REVIEW3-38 feature mapping mismatch");
   for (const kind of ["profile", "rule", "vaRule", "vlmProfile"]) {
     for (const mutation of ["create", "update", "delete"]) {
-      assert(fixture.cases.some(item => item.kind === kind && item.mutation === mutation),
+      assert(fixture.mutationCases.some(item => item.kind === kind && item.mutation === mutation),
         `missing ${kind} ${mutation} case`);
     }
   }
@@ -85,7 +106,12 @@ function verifySourceContract() {
     "MEDIA_SERVER_ANALYSIS_REGISTRY_FAULT_STAGE",
     "analysis-registry-persistence-failed",
     "WriteAnalysisRegistryFileAtomically",
+    "RecoverAnalysisRegistryTemporaryFiles",
+    "fchmod",
+    "O_DIRECTORY",
+    "after-directory-fsync",
   ]) assert(server.includes(snippet), `durable write source contract missing ${snippet}`);
+  assert(/fsync\(directory_fd\)/.test(server), "parent directory fsync missing");
   assert(!/void\s+SaveLocked\s*\(/.test(server), "legacy void SaveLocked remains");
 }
 
@@ -93,64 +119,202 @@ async function createBaseline() {
   fs.mkdirSync(path.dirname(baselinePath), { recursive: true });
   const ports = await freePortPair();
   baseUrl = `http://127.0.0.1:${ports.http}`;
-  serverProcess = startServer(ports, baselinePath, "");
+  serverProcess = startServer(ports, baselinePath, "", "");
   await waitForHealth();
   await expectSuccess("PUT", "/lab/analysis/profiles/601", profilePayload("601", "baseline"), 200);
   await expectSuccess("PUT", "/lab/analysis/rules/701", rulePayload("701", "baseline"), 200);
   await expectSuccess("PUT", "/lab/analysis/va-rules/801", vaRulePayload("801", "baseline"), 200);
   await expectSuccess("PUT", "/ops/api/vlm/profiles/vlm-durable-base", vlmProfilePayload("vlm-durable-base", "baseline"), 200);
+  const snapshot = await registrySnapshot();
   await stopServer();
   serverProcess = null;
   assert(fs.existsSync(baselinePath), "baseline registry file missing");
-  return fs.readFileSync(baselinePath);
+  fs.chmodSync(baselinePath, Number.parseInt(fixture.preservedMode, 8));
+  return { bytes: fs.readFileSync(baselinePath), snapshot };
 }
 
-async function runFailureStage(stage, cases, baselineBytes) {
+async function runFailureStage(stage, cases, baseline) {
   const stageDir = path.join(workDir, `stage-${stage}`);
   fs.mkdirSync(stageDir, { recursive: true });
-  let registryPath = path.join(stageDir, "analysis.json");
-  if (stage === "parent") {
-    const blocker = path.join(stageDir, "not-a-directory");
-    fs.writeFileSync(blocker, "parent-blocker\n");
-    registryPath = path.join(blocker, "analysis.json");
-  } else {
-    fs.writeFileSync(registryPath, baselineBytes);
-  }
+  const registryPath = path.join(stageDir, "analysis.json");
+  writeBaseline(registryPath, baseline.bytes);
   const ports = await freePortPair();
   baseUrl = `http://127.0.0.1:${ports.http}`;
-  serverProcess = startServer(ports, registryPath, stage === "parent" ? "" : stage);
+  serverProcess = startServer(ports, registryPath, stage, "");
   await waitForHealth();
-  const before = await registrySnapshot();
-  const bytesBefore = fs.existsSync(registryPath) ? fs.readFileSync(registryPath) : null;
   for (const item of cases) {
-    const response = await request(item.method, item.route, payloadFor(item));
-    assert(response.status === 500, `${item.id}: expected HTTP 500, got ${response.status}: ${response.text}`);
-    assert(response.json.code === "analysis-registry-persistence-failed", `${item.id}: persistence code missing`);
-    assert(response.json.stage === stage, `${item.id}: expected stage ${stage}, got ${response.json.stage}`);
-    assert(!response.text.includes(registryPath), `${item.id}: response exposed storage path`);
-    assert(JSON.stringify(await registrySnapshot()) === JSON.stringify(before), `${item.id}: memory GET changed`);
+    const caseId = `${item.id}-${stage}`;
+    const before = await registrySnapshot();
+    const bytesBefore = fs.readFileSync(registryPath);
+    const response = await request(item.method, item.route, payloadFor(item, stage));
+    assert(response.status === 500, `${caseId}: expected HTTP 500, got ${response.status}: ${response.text}`);
+    assert(response.json.code === "analysis-registry-persistence-failed", `${caseId}: persistence code missing`);
+    assert(response.json.stage === stage, `${caseId}: expected stage ${stage}, got ${response.json.stage}`);
+    assert(!response.text.includes(registryPath), `${caseId}: response exposed storage path`);
+    const after = await registrySnapshot();
     const bytesAfter = fs.existsSync(registryPath) ? fs.readFileSync(registryPath) : null;
-    assert(equalBytes(bytesAfter, bytesBefore), `${item.id}: registry bytes changed`);
-    assert(findTemporaryFiles(stageDir).length === 0, `${item.id}: temporary file remained`);
-    console.log(`[pass] ${item.id}`);
+    if (fixture.postRenameFailureStages.includes(stage)) {
+      assertMutationApplied(before, after, item, `${caseId}: memory candidate not published`);
+      assert(!equalBytes(bytesAfter, bytesBefore), `${caseId}: post-rename bytes did not change`);
+    } else {
+      assert(JSON.stringify(after) === JSON.stringify(before), `${caseId}: memory GET changed`);
+      assert(equalBytes(bytesAfter, bytesBefore), `${caseId}: registry bytes changed`);
+    }
+    assert(fileMode(registryPath) === fixture.preservedMode, `${caseId}: file mode drift`);
+    assert(findTemporaryFiles(stageDir).length === 0, `${caseId}: temporary file remained`);
+    console.log(`[pass] ${caseId}`);
   }
+  const beforeRestart = await registrySnapshot();
   await stopServer();
   serverProcess = null;
-  serverProcess = startServer(ports, registryPath, "");
+  const restartPorts = await freePortPair();
+  baseUrl = `http://127.0.0.1:${restartPorts.http}`;
+  serverProcess = startServer(restartPorts, registryPath, "", "");
   await waitForHealth();
-  assert(JSON.stringify(await registrySnapshot()) === JSON.stringify(before), `${stage}: restart state changed`);
+  assert(JSON.stringify(await registrySnapshot()) === JSON.stringify(beforeRestart), `${stage}: restart state changed`);
+  assert(fileMode(registryPath) === fixture.preservedMode, `${stage}: restart mode drift`);
   await stopServer();
   serverProcess = null;
-  console.log(`[pass] ${stage}-restart-no-change`);
+  console.log(`[pass] ${stage}-restart-consistent`);
 }
 
-function payloadFor(item) {
+async function runSuccessMatrix(cases, baseline) {
+  const successDir = path.join(workDir, "success-matrix");
+  const registryPath = path.join(successDir, "analysis.json");
+  writeBaseline(registryPath, baseline.bytes);
+  const ports = await freePortPair();
+  baseUrl = `http://127.0.0.1:${ports.http}`;
+  serverProcess = startServer(ports, registryPath, "", "");
+  await waitForHealth();
+  for (const item of cases) {
+    const before = await registrySnapshot();
+    const bytesBefore = fs.readFileSync(registryPath);
+    const response = await request(item.method, item.route, payloadFor(item, "success"));
+    assert(response.status >= 200 && response.status < 300,
+      `${item.id}-success: expected HTTP 2xx, got ${response.status}: ${response.text}`);
+    const after = await registrySnapshot();
+    assertMutationApplied(before, after, item, `${item.id}-success: mutation not applied`);
+    assert(!equalBytes(fs.readFileSync(registryPath), bytesBefore), `${item.id}-success: bytes did not change`);
+    assert(fileMode(registryPath) === fixture.preservedMode, `${item.id}-success: file mode drift`);
+    assert(findTemporaryFiles(successDir).length === 0, `${item.id}-success: temporary file remained`);
+    console.log(`[pass] ${item.id}-success`);
+  }
+  const beforeRestart = await registrySnapshot();
+  await stopServer();
+  serverProcess = null;
+  const restartPorts = await freePortPair();
+  baseUrl = `http://127.0.0.1:${restartPorts.http}`;
+  serverProcess = startServer(restartPorts, registryPath, "", "");
+  await waitForHealth();
+  assert(JSON.stringify(await registrySnapshot()) === JSON.stringify(beforeRestart),
+    "success matrix restart state changed");
+  assert(fileMode(registryPath) === fixture.preservedMode, "success matrix restart mode drift");
+  await stopServer();
+  serverProcess = null;
+  console.log("[pass] success-matrix-restart-consistent");
+}
+
+async function runCrashCase(crash, item, baseline) {
+  const caseId = `${item.id}-${crash.stage}`;
+  const caseDir = path.join(workDir, `crash-${caseId}`);
+  const registryPath = path.join(caseDir, "analysis.json");
+  writeBaseline(registryPath, baseline.bytes);
+  const ports = await freePortPair();
+  baseUrl = `http://127.0.0.1:${ports.http}`;
+  serverProcess = startServer(ports, registryPath, "", crash.stage);
+  await waitForHealth();
+  const before = await registrySnapshot();
+  await expectMutationCrash(item, crash.stage);
+  const staleBeforeRestart = findTemporaryFiles(caseDir);
+  assert((staleBeforeRestart.length > 0) === crash.staleTempBeforeRestart,
+    `${caseId}: stale temp pre-restart contract drift`);
+  const crashedBytes = fs.readFileSync(registryPath);
+  if (crash.expectedRestartState === "previous") {
+    assert(equalBytes(crashedBytes, baseline.bytes), `${caseId}: pre-rename crash changed target`);
+  } else {
+    assert(!equalBytes(crashedBytes, baseline.bytes), `${caseId}: post-rename crash did not replace target`);
+    JSON.parse(crashedBytes.toString("utf8"));
+  }
+  assert(fileMode(registryPath) === fixture.preservedMode, `${caseId}: crash mode drift`);
+
+  const restartPorts = await freePortPair();
+  baseUrl = `http://127.0.0.1:${restartPorts.http}`;
+  serverProcess = startServer(restartPorts, registryPath, "", "");
+  await waitForHealth();
+  const afterRestart = await registrySnapshot();
+  if (crash.expectedRestartState === "previous") {
+    assert(JSON.stringify(afterRestart) === JSON.stringify(before), `${caseId}: previous state not recovered`);
+  } else {
+    assertMutationApplied(before, afterRestart, item, `${caseId}: candidate state not recovered`);
+  }
+  assert(findTemporaryFiles(caseDir).length === 0, `${caseId}: stale temp not recovered`);
+  assert(fileMode(registryPath) === fixture.preservedMode, `${caseId}: restart mode drift`);
+  await stopServer();
+  serverProcess = null;
+  console.log(`[pass] ${caseId}`);
+}
+
+function payloadFor(item, suffixTag) {
   if (item.mutation === "delete") return undefined;
-  const suffix = `${item.mutation}-${item.faultStage}`;
+  const suffix = `${item.mutation}-${suffixTag}`;
   if (item.kind === "profile") return profilePayload(item.mutation === "create" ? "602" : "601", suffix);
   if (item.kind === "rule") return rulePayload(item.mutation === "create" ? "702" : "701", suffix);
   if (item.kind === "vaRule") return vaRulePayload(item.mutation === "create" ? "802" : "801", suffix);
   return vlmProfilePayload(item.mutation === "create" ? "vlm-durable-new" : "vlm-durable-base", suffix);
+}
+
+async function expectMutationCrash(item, crashStage) {
+  try {
+    await request(item.method, item.route, payloadFor(item, crashStage));
+  } catch {
+    // The injected _exit closes the socket before an HTTP response is available.
+  }
+  const child = serverProcess;
+  const exited = await waitForProcessExit(child, 10000);
+  assert(exited, `${item.id}-${crashStage}: server did not crash`);
+  assert(child.exitCode === 86, `${item.id}-${crashStage}: unexpected crash exit ${child.exitCode}`);
+  serverProcess = null;
+}
+
+function assertMutationApplied(before, after, item, message) {
+  const collectionName = {
+    profile: "profiles", rule: "rules", vaRule: "vaRules", vlmProfile: "vlmProfiles",
+  }[item.kind];
+  const id = mutationId(item);
+  const beforeItems = before[collectionName];
+  const afterItems = after[collectionName];
+  const beforeItem = beforeItems.find(entry => String(entry.id) === id);
+  const afterItem = afterItems.find(entry => String(entry.id) === id);
+  if (item.mutation === "create") {
+    assert(!beforeItem && afterItem && afterItems.length === beforeItems.length + 1, message);
+  } else if (item.mutation === "update") {
+    assert(beforeItem && afterItem && afterItems.length === beforeItems.length &&
+      JSON.stringify(beforeItem) !== JSON.stringify(afterItem), message);
+  } else {
+    assert(beforeItem && !afterItem && afterItems.length === beforeItems.length - 1, message);
+  }
+  for (const [name, items] of Object.entries(after)) {
+    if (name === collectionName) continue;
+    assert(JSON.stringify(items) === JSON.stringify(before[name]), `${message}: unrelated ${name} changed`);
+  }
+}
+
+function mutationId(item) {
+  if (item.kind === "profile") return item.mutation === "create" ? "602" : "601";
+  if (item.kind === "rule") return item.mutation === "create" ? "702" : "701";
+  if (item.kind === "vaRule") return item.mutation === "create" ? "802" : "801";
+  return item.mutation === "create" ? "vlm-durable-new" : "vlm-durable-base";
+}
+
+function writeBaseline(registryPath, bytes) {
+  fs.mkdirSync(path.dirname(registryPath), { recursive: true });
+  fs.writeFileSync(registryPath, bytes);
+  fs.chmodSync(registryPath, Number.parseInt(fixture.preservedMode, 8));
+  assert(fileMode(registryPath) === fixture.preservedMode, "baseline mode setup failed");
+}
+
+function fileMode(filePath) {
+  return (fs.statSync(filePath).mode & 0o7777).toString(8).padStart(4, "0");
 }
 
 function profilePayload(id, suffix) {
@@ -167,7 +331,7 @@ function rulePayload(id, suffix) {
 
 function vaRulePayload(id, suffix) {
   return {
-    id, name: `durable-va-${suffix}`, enabled: true, priority: suffix === "baseline" ? 801 : 802,
+    id, name: `durable-va-${suffix}`, enabled: true, priority: Number(id),
     source: { kind: "file", file: "sample.mp4" },
     analysis: { profileId: "601", classes: ["person"], trackingPolicy: { tracker: "lite", reid: "off" } },
     templateStart: { ruleId: "701" },
@@ -221,7 +385,7 @@ async function expectSuccess(method, route, body, status) {
   assert(response.status === status, `${method} ${route}: expected ${status}, got ${response.status}: ${response.text}`);
 }
 
-function startServer(ports, registryPath, faultStage) {
+function startServer(ports, registryPath, faultStage, crashStage) {
   const child = spawn("./server.sh", ["foreground"], {
     cwd: rootDir,
     env: {
@@ -232,6 +396,7 @@ function startServer(ports, registryPath, faultStage) {
       MEDIA_SERVER_HTTP_LISTEN_ADDRESS: "127.0.0.1", MEDIA_SERVER_LISTEN_PORT: String(ports.rtsp),
       MEDIA_SERVER_HTTP_LISTEN_PORT: String(ports.http), MEDIA_SERVER_ANALYSIS_REGISTRY: registryPath,
       MEDIA_SERVER_ANALYSIS_REGISTRY_FAULT_STAGE: faultStage,
+      MEDIA_SERVER_ANALYSIS_REGISTRY_CRASH_STAGE: crashStage,
       MEDIA_SERVER_SOURCE_REGISTRY: path.join(workDir, "sources.json"),
       MEDIA_SERVER_PUBLISHED_VIEWS: path.join(workDir, "views.json"),
       MEDIA_SERVER_AUTH_USERS_FILE: path.join(workDir, "users.json"),
@@ -279,6 +444,14 @@ async function stopServer() {
   child.kill("SIGTERM");
   const terminated = await Promise.race([exited.then(() => true), delay(3000).then(() => false)]);
   if (!terminated && child.exitCode === null) { child.kill("SIGKILL"); await Promise.race([exited, delay(3000)]); }
+}
+
+function waitForProcessExit(child, timeoutMs) {
+  if (!child || child.exitCode !== null) return Promise.resolve(true);
+  return Promise.race([
+    new Promise(resolve => child.once("exit", () => resolve(true))),
+    delay(timeoutMs).then(() => false),
+  ]);
 }
 
 async function freePortPair() {

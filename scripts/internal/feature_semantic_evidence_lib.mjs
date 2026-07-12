@@ -207,6 +207,24 @@ export function runSemanticClosureContract({ rootDir, rows, manifest }) {
       rule017?.verifierEvidence?.command === "verify-ops-client-ui",
     JSON.stringify(rule017?.semanticEvidence?.callChain?.roles || {}),
   ));
+  const safe217 = itemById.get("SAFE-217");
+  const ops184 = itemById.get("OPS-184");
+  cases.push(resultCase(
+    "safe-217-persist-before-publish-chain",
+    safe217?.semanticEvidence?.callChain?.roles?.owner?.symbol === "PersistAndPublishLocked" &&
+      safe217?.semanticEvidence?.callChain?.roles?.action?.symbol === "PersistAndPublishLocked" &&
+      safe217?.semanticEvidence?.callChain?.roles?.state?.symbol === "PersistAndPublishLocked" &&
+      safe217?.semanticEvidence?.callChain?.roles?.readback?.symbol === "runFailureStage",
+    JSON.stringify(safe217?.semanticEvidence?.callChain?.roles || {}),
+  ));
+  cases.push(resultCase(
+    "ops-184-crash-recovery-chain",
+    ops184?.semanticEvidence?.callChain?.roles?.owner?.symbol === "AnalysisRegistryMutationErrorResponse" &&
+      ops184?.semanticEvidence?.callChain?.roles?.action?.symbol === "PersistAndPublishLocked" &&
+      ops184?.semanticEvidence?.callChain?.roles?.state?.symbol === "EnsureLoadedLocked" &&
+      ops184?.semanticEvidence?.callChain?.roles?.readback?.symbol === "runCrashCase",
+    JSON.stringify(ops184?.semanticEvidence?.callChain?.roles || {}),
+  ));
   const manifestLib = fs.readFileSync(path.join(rootDir, "scripts/internal/feature_implementation_manifest_lib.mjs"), "utf8");
   const semanticLib = fs.readFileSync(path.join(rootDir, "scripts/internal/feature_semantic_evidence_lib.mjs"), "utf8");
   cases.push(resultCase(
@@ -253,6 +271,12 @@ export function runSemanticClosureContract({ rootDir, rows, manifest }) {
     ["rule-017-generic-json-owner-negative", rule017, "RULE-017", copy => {
       copy.semanticEvidence.callChain.roles.owner.symbol = "ExtractObjectField";
     }, "unrelated generated-id owner"],
+    ["safe-217-wrong-publish-state-negative", safe217, "SAFE-217", copy => {
+      copy.semanticEvidence.callChain.roles.state.symbol = "WriteAnalysisRegistryFileAtomically";
+    }, "durable no-publish chain drift"],
+    ["ops-184-wrong-recovery-readback-negative", ops184, "OPS-184", copy => {
+      copy.semanticEvidence.callChain.roles.readback.symbol = "runFailureStage";
+    }, "crash recovery chain drift"],
   ]) {
     const copy = structuredClone(source);
     mutate(copy);
@@ -262,8 +286,9 @@ export function runSemanticClosureContract({ rootDir, rows, manifest }) {
   return cases;
 }
 
-export function migrateReview3SemanticClosure({ rootDir, rows, manifest }) {
+export function migrateReview3SemanticClosure({ rootDir, rows, manifest, selectedIds = null }) {
   const rowById = new Map(rows.map(row => [row.id, row]));
+  const selected = selectedIds === null ? null : new Set(selectedIds);
   const migrated = structuredClone(manifest);
   migrated.semanticClosureSchema = SEMANTIC_CLOSURE_SCHEMA;
   migrated.generationPolicy =
@@ -271,6 +296,7 @@ export function migrateReview3SemanticClosure({ rootDir, rows, manifest }) {
   migrated.semanticClosurePolicy =
     "986 explicit owner -> route/control -> action -> state -> readback -> verifier chains with content-addressed locators and per-feature review reasons";
   migrated.items = migrated.items.map(item => {
+    if (selected !== null && !selected.has(item.id)) return item;
     const row = rowById.get(item.id);
     if (!row) throw new Error(`review3 migration row missing: ${item.id}`);
     const override = review3Override(rootDir, row, item);
@@ -306,6 +332,10 @@ export function migrateReview3SemanticClosure({ rootDir, rows, manifest }) {
     evidence.handler = roles.owner;
     evidence.actionHandler = roles.action;
     evidence.stateOracle.locator = roles.state;
+    const expectedBehavior = normalize(row.pass);
+    const expectedBehaviorSha256 = sha256(normalize(`${row.feature}\n${row.pass}`));
+    evidence.stateOracle.expectedBehavior = expectedBehavior;
+    evidence.stateOracle.expectedBehaviorSha256 = expectedBehaviorSha256;
     if (evidence.route?.applicability === "http-or-product-route") {
       evidence.route.dispatchAnchor = roles.owner.anchor;
       evidence.route.handlerFile = roles.owner.file;
@@ -319,6 +349,7 @@ export function migrateReview3SemanticClosure({ rootDir, rows, manifest }) {
     evidence.relation.handlerSymbol = roles.owner.symbol;
     evidence.relation.actionSymbol = roles.action.symbol;
     evidence.relation.stateSymbol = roles.state.symbol;
+    evidence.relation.semanticKey = `${row.id}:${expectedBehaviorSha256.slice(0, 24)}`;
     evidence.verifierAssertion = {
       file: "scripts/internal/feature_semantic_evidence_lib.mjs",
       symbol: "validateReview3CallChain",
@@ -414,6 +445,22 @@ export function validateReview3CallChain({ rootDir, row, item, errors = [] }) {
         item.verifierEvidence?.command !== "verify-ops-client-ui" ||
         chain.roles.owner.symbol === "ExtractObjectField") {
       errors.push("RULE-017 unrelated generated-id owner");
+    }
+  }
+  if (row.id === "SAFE-217") {
+    if (chain.roles.owner.symbol !== "PersistAndPublishLocked" ||
+        chain.roles.action.symbol !== "PersistAndPublishLocked" ||
+        chain.roles.state.symbol !== "PersistAndPublishLocked" ||
+        chain.roles.readback.symbol !== "runFailureStage") {
+      errors.push("SAFE-217 durable no-publish chain drift");
+    }
+  }
+  if (row.id === "OPS-184") {
+    if (chain.roles.owner.symbol !== "AnalysisRegistryMutationErrorResponse" ||
+        chain.roles.action.symbol !== "PersistAndPublishLocked" ||
+        chain.roles.state.symbol !== "EnsureLoadedLocked" ||
+        chain.roles.readback.symbol !== "runCrashCase") {
+      errors.push("OPS-184 crash recovery chain drift");
     }
   }
   return errors;
@@ -561,6 +608,30 @@ function review3Override(rootDir, row, item) {
         action: locatorFromToken(rootDir, "src/ingress/product_ui_page_scripts.cpp", "async function opsRulesSaveNativeRecord(mode)", "opsRulesSaveNativeRecord"),
         state: locatorFromToken(rootDir, "src/ingress/product_ui_page_scripts.cpp", "setOpsGeneratedId('opsEventRuleIdInput', 'opsEventRuleIdDisplay', forcedId);", "setOpsGeneratedId"),
         readback: locatorFromToken(rootDir, "scripts/internal/verify_ops_client_ui_smoke.mjs", "const eventHidden = document.getElementById('opsEventRuleIdInput');", "opsRulesGeneratedIdExpression"),
+      },
+    };
+  }
+  if (row.id === "SAFE-217") {
+    return {
+      routeControlKind: "persist-before-publish-boundary",
+      roles: {
+        owner: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", "AnalysisRegistryMutationResult PersistAndPublishLocked(", "PersistAndPublishLocked"),
+        routeControl: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", "return AnalysisRegistryMutationErrorResponse(result,", "WebRtcHttpServer::Start"),
+        action: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", "const AnalysisRegistryWriteResult write_result = WriteAnalysisRegistryFileAtomically(", "PersistAndPublishLocked"),
+        state: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", "if (write_result.target_replaced) {", "PersistAndPublishLocked"),
+        readback: locatorFromToken(rootDir, "scripts/internal/verify_v390_analysis_registry_durable_write.mjs", "async function runFailureStage(stage, cases, baseline)", "runFailureStage"),
+      },
+    };
+  }
+  if (row.id === "OPS-184") {
+    return {
+      routeControlKind: "http-error-and-restart-durability-gate",
+      roles: {
+        owner: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", "HttpResponse AnalysisRegistryMutationErrorResponse(", "AnalysisRegistryMutationErrorResponse"),
+        routeControl: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", "return AnalysisRegistryMutationErrorResponse(result,", "WebRtcHttpServer::Start"),
+        action: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", "const AnalysisRegistryWriteResult write_result = WriteAnalysisRegistryFileAtomically(", "PersistAndPublishLocked"),
+        state: locatorFromToken(rootDir, "src/ingress/webrtc_http_server.cpp", "RecoverAnalysisRegistryTemporaryFiles(storage_path_);", "EnsureLoadedLocked"),
+        readback: locatorFromToken(rootDir, "scripts/internal/verify_v390_analysis_registry_durable_write.mjs", "async function runCrashCase(crash, item, baseline)", "runCrashCase"),
       },
     };
   }

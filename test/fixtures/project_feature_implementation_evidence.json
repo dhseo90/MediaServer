@@ -2,7 +2,7 @@
   "schema": "media-server.feature-implementation-evidence.v2",
   "semanticClosureSchema": "media-server.feature-semantic-implementation-closure.v2",
   "expectedFeatureRows": 986,
-  "inventorySha256": "53e61afbe29d59c21e4761b8880008399d33ce7a471243d98bcb66ff1432daa4",
+  "inventorySha256": "cc30fdb6c935fcaaf8e5aba63332059bf13481bd1193403c2937254b900c09f8",
   "generatedFrom": "docs/project-feature-test-inventory.md",
   "generationPolicy": "reviewed-map-only; unchanged reviewed rows are preserved; changed rows become review-required; token scoring and bulk approval are forbidden",
   "semanticClosurePolicy": "owner/route-or-control/action/state/readback/verifier reviewed call-chain plus per-feature reason and content digest",
@@ -170379,12 +170379,12 @@
         "decision": "approved",
         "reviewer": "Codex-V390-REVIEW3-37",
         "reviewedOn": "2026-07-12",
-        "reason": "V390-REVIEW3-37:SAFE-217:V390 Analysis Registry failed-write no-publish boundary:owner=SetRegistryError:routeControl=SetRegistryError:action=SetRegistryError:state=SetRegistryError:readback=verifier:verify-v390-analysis-registry-durable-write:chain=5817e31b9119d572",
-        "semanticDigest": "2662091317a5b9b1a420f8fe351a46fc8e7420ddf999b1466b2293b0f8503891"
+        "reason": "V390-REVIEW3-37:SAFE-217:V390 Analysis Registry failed-write no-publish boundary:owner=PersistAndPublishLocked:routeControl=WebRtcHttpServer::Start:action=PersistAndPublishLocked:state=PersistAndPublishLocked:readback=runFailureStage:chain=511530e141d560d9",
+        "semanticDigest": "d6b9f11e6a4fabb51c7053ef857217d6c978ceb1d59aecc1b0ac7f292f6d5338"
       },
       "sourceEvidence": {
         "file": "src/ingress/webrtc_http_server.cpp",
-        "anchor": "const AnalysisRegistryWriteResult write_result = WriteAnalysisRegistryFileAtomically(",
+        "anchor": "AnalysisRegistryMutationResult PersistAndPublishLocked(",
         "anchorKind": "reviewed-owner-source-line"
       },
       "uiEvidence": null,
@@ -170404,14 +170404,14 @@
         "schema": "media-server.feature-semantic-implementation-closure.v2",
         "handler": {
           "file": "src/ingress/webrtc_http_server.cpp",
-          "symbol": "SetRegistryError",
-          "symbolKind": "declaration-or-file-scope",
-          "anchor": "const AnalysisRegistryWriteResult write_result = WriteAnalysisRegistryFileAtomically(",
+          "symbol": "PersistAndPublishLocked",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "AnalysisRegistryMutationResult PersistAndPublishLocked(",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 2283,
-          "contextSha256": "ae6e6a2a2e4ef83d7ace67addca868793424345d59e84cd272d1b65f4b9f8535"
+          "line": 2396,
+          "contextSha256": "4ef4c23f77b0f6749419866993a0ab1a037842b658c973745921bf9cb3397538"
         },
         "route": {
           "applicability": "not-applicable",
@@ -170425,13 +170425,13 @@
         },
         "actionHandler": {
           "file": "src/ingress/webrtc_http_server.cpp",
-          "symbol": "SetRegistryError",
-          "symbolKind": "declaration-or-file-scope",
+          "symbol": "PersistAndPublishLocked",
+          "symbolKind": "reviewed-owner-or-readback",
           "anchor": "const AnalysisRegistryWriteResult write_result = WriteAnalysisRegistryFileAtomically(",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 2283,
+          "line": 2402,
           "contextSha256": "ae6e6a2a2e4ef83d7ace67addca868793424345d59e84cd272d1b65f4b9f8535"
         },
         "stateOracle": {
@@ -170440,21 +170440,21 @@
           "expectedBehavior": "직접 C++ 제품 owner `WriteAnalysisRegistryFileAtomically`과 `PersistAndPublishLocked`가 profile/rule/VA rule/VLM profile create·update·delete의 candidate를 durable 저장 성공 전 publish하지 않습니다. `verify-v390-analysis-registry-durable-write`는 parent/open/short-write/flush/rename 실패의 HTTP 500, memory GET·registry file bytes·restart GET 불변, `.tmp.*` 0을 확인하며 fault stage는 safe token만 응답하고 storage path/body를 노출하지 않습니다",
           "locator": {
             "file": "src/ingress/webrtc_http_server.cpp",
-            "symbol": "SetRegistryError",
-            "symbolKind": "declaration-or-file-scope",
-            "anchor": "const AnalysisRegistryWriteResult write_result = WriteAnalysisRegistryFileAtomically(",
+            "symbol": "PersistAndPublishLocked",
+            "symbolKind": "reviewed-owner-or-readback",
+            "anchor": "if (write_result.target_replaced) {",
             "anchorKind": "reviewed-source-line",
             "anchorStrength": "feature-specific-source-line",
             "occurrence": 0,
-            "line": 2283,
-            "contextSha256": "ae6e6a2a2e4ef83d7ace67addca868793424345d59e84cd272d1b65f4b9f8535"
+            "line": 2409,
+            "contextSha256": "5ac3c33ac01fe09aa8c23c39a897c30898dfae547d5e5bcb81b6019a183153e6"
           }
         },
         "relation": {
           "kind": "invariant-owner-assertion-state",
-          "handlerSymbol": "SetRegistryError",
-          "actionSymbol": "SetRegistryError",
-          "stateSymbol": "SetRegistryError",
+          "handlerSymbol": "PersistAndPublishLocked",
+          "actionSymbol": "PersistAndPublishLocked",
+          "stateSymbol": "PersistAndPublishLocked",
           "semanticKey": "SAFE-217:873fbadbafb0ae5ccb844c17"
         },
         "verifierAssertion": {
@@ -170463,101 +170463,101 @@
           "assertionKind": "reviewed-owner-route-control-action-state-readback-chain",
           "assertionAnchor": "validateReview3CallChain",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "2662091317a5b9b1a420f8fe351a46fc8e7420ddf999b1466b2293b0f8503891"
+          "assertedSemanticDigest": "d6b9f11e6a4fabb51c7053ef857217d6c978ceb1d59aecc1b0ac7f292f6d5338"
         },
         "callChain": {
           "schema": "media-server.feature-reviewed-call-chain.v1",
           "roles": {
             "owner": {
               "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "SetRegistryError",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "const AnalysisRegistryWriteResult write_result = WriteAnalysisRegistryFileAtomically(",
+              "symbol": "PersistAndPublishLocked",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "AnalysisRegistryMutationResult PersistAndPublishLocked(",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 2283,
-              "contextSha256": "ae6e6a2a2e4ef83d7ace67addca868793424345d59e84cd272d1b65f4b9f8535"
+              "line": 2396,
+              "contextSha256": "4ef4c23f77b0f6749419866993a0ab1a037842b658c973745921bf9cb3397538"
             },
             "routeControl": {
               "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "SetRegistryError",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "const AnalysisRegistryWriteResult write_result = WriteAnalysisRegistryFileAtomically(",
+              "symbol": "WebRtcHttpServer::Start",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "return AnalysisRegistryMutationErrorResponse(result,",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 2283,
-              "contextSha256": "ae6e6a2a2e4ef83d7ace67addca868793424345d59e84cd272d1b65f4b9f8535"
+              "line": 38953,
+              "contextSha256": "d5ac56e0cce644be8ee5469268375651fa8bf449bcaeabc08200abc6084615a4"
             },
             "action": {
               "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "SetRegistryError",
-              "symbolKind": "declaration-or-file-scope",
+              "symbol": "PersistAndPublishLocked",
+              "symbolKind": "reviewed-owner-or-readback",
               "anchor": "const AnalysisRegistryWriteResult write_result = WriteAnalysisRegistryFileAtomically(",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 2283,
+              "line": 2402,
               "contextSha256": "ae6e6a2a2e4ef83d7ace67addca868793424345d59e84cd272d1b65f4b9f8535"
             },
             "state": {
               "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "SetRegistryError",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "const AnalysisRegistryWriteResult write_result = WriteAnalysisRegistryFileAtomically(",
+              "symbol": "PersistAndPublishLocked",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "if (write_result.target_replaced) {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 2283,
-              "contextSha256": "ae6e6a2a2e4ef83d7ace67addca868793424345d59e84cd272d1b65f4b9f8535"
+              "line": 2409,
+              "contextSha256": "5ac3c33ac01fe09aa8c23c39a897c30898dfae547d5e5bcb81b6019a183153e6"
             },
             "readback": {
               "file": "scripts/internal/verify_v390_analysis_registry_durable_write.mjs",
-              "symbol": "verifier:verify-v390-analysis-registry-durable-write",
+              "symbol": "runFailureStage",
               "symbolKind": "reviewed-owner-or-readback",
-              "anchor": "\"WriteAnalysisRegistryFileAtomically\",",
+              "anchor": "async function runFailureStage(stage, cases, baseline) {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 87,
-              "contextSha256": "f705b510703a20ef8342c7636a015e4912ff81f8f5e12412d2bf4b8ab1339d7e"
+              "line": 134,
+              "contextSha256": "9ad9a4d96c96e9b8af6f395ec3b38f7242f7c92455f172e8fbd3f41b34061186"
             }
           },
-          "routeControlKind": "owner-boundary",
+          "routeControlKind": "persist-before-publish-boundary",
           "edges": [
             {
               "from": "owner",
               "to": "routeControl",
-              "relationKind": "owner-boundary",
-              "digest": "61985c68818dffd271f6411df86bdb2e30750051ab4777d7945d1ab03de53d95"
+              "relationKind": "persist-before-publish-boundary",
+              "digest": "3e32ff83e9eeefa216a265dc0dae0efb7603c7182e349141aeb2f0b7fd322493"
             },
             {
               "from": "routeControl",
               "to": "action",
               "relationKind": "reviewed-dispatch-or-control-flow",
-              "digest": "5230ffc119c4174b9a44913224b81b49a4dbfe589a14b1527b7f7060f3df03d2"
+              "digest": "f60dcdcc321cc669b87b0ff0e4686cb7f935a6415c60d3a861acd3046743ba3c"
             },
             {
               "from": "action",
               "to": "state",
               "relationKind": "reviewed-mutation-readmodel-flow",
-              "digest": "cf6cf930ad6053d53820e9cc0deda22fb323044a2f04fc61ad9df8c171fbf721"
+              "digest": "00b62eebbf02c730c5eef56d1e1f6d26d0da66ed835d0ce62dcd2dded5322810"
             },
             {
               "from": "state",
               "to": "readback",
               "relationKind": "exact-readback-assertion",
-              "digest": "d0239b95e472a166ef599a1deacb89f98074a10246c96c731c4ee8e4d6f64236"
+              "digest": "e8fe2c744b625716bf82e2c9981247c219935cc45d794888d81a6af498a8c87e"
             },
             {
               "from": "readback",
               "to": "verifierAssertion",
               "relationKind": "exact-verifier-command",
-              "digest": "47881d41c4ef48664cd34d359e6633e638e3218b18fa0f8ce9effd726f2f9b2c"
+              "digest": "cddaad88e26b1a10d10fca8f00bf0f5d7a6e0265ccda983e1907613060b4b50f"
             }
           ],
-          "digest": "5817e31b9119d572b5c52c3eefbc7cd3878e2813fb2548afb35a5b9bda896e73"
+          "digest": "511530e141d560d9f210288ddb99f9c85fa6bc4eddf543adc8d673967f32f419"
         }
       }
     },
@@ -200197,12 +200197,12 @@
         "decision": "approved",
         "reviewer": "Codex-V390-REVIEW3-37",
         "reviewedOn": "2026-07-12",
-        "reason": "V390-REVIEW3-37:OPS-184:V390 Analysis Registry durable write gate:owner=WebRtcHttpServer::Start:routeControl=WebRtcHttpServer::Start:action=WebRtcHttpServer::Start:state=WebRtcHttpServer::Start:readback=verifier:verify-v390-analysis-registry-durable-write:chain=bd02e14bfd3a19c9",
-        "semanticDigest": "d3b009be602f843d25caa72d399561ddf572454bbfb5b173e36a90db31b19d4f"
+        "reason": "V390-REVIEW3-37:OPS-184:V390 Analysis Registry durable write gate:owner=AnalysisRegistryMutationErrorResponse:routeControl=WebRtcHttpServer::Start:action=PersistAndPublishLocked:state=EnsureLoadedLocked:readback=runCrashCase:chain=60861f9a4ad79f68",
+        "semanticDigest": "8395253a103c77f4260144e9a309294f0c7dd5e431e8904edb36fc556fc42c0a"
       },
       "sourceEvidence": {
         "file": "src/ingress/webrtc_http_server.cpp",
-        "anchor": "return AnalysisRegistryMutationErrorResponse(result,",
+        "anchor": "HttpResponse AnalysisRegistryMutationErrorResponse(",
         "anchorKind": "reviewed-owner-source-line"
       },
       "uiEvidence": null,
@@ -200222,14 +200222,14 @@
         "schema": "media-server.feature-semantic-implementation-closure.v2",
         "handler": {
           "file": "src/ingress/webrtc_http_server.cpp",
-          "symbol": "WebRtcHttpServer::Start",
-          "symbolKind": "declaration-or-file-scope",
-          "anchor": "return AnalysisRegistryMutationErrorResponse(result,",
+          "symbol": "AnalysisRegistryMutationErrorResponse",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "HttpResponse AnalysisRegistryMutationErrorResponse(",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 38828,
-          "contextSha256": "d5ac56e0cce644be8ee5469268375651fa8bf449bcaeabc08200abc6084615a4"
+          "line": 2864,
+          "contextSha256": "28a7d0d06237b2a2641a406df1abc1a2babf836033c12385b332dacf83f36850"
         },
         "route": {
           "applicability": "not-applicable",
@@ -200243,37 +200243,37 @@
         },
         "actionHandler": {
           "file": "src/ingress/webrtc_http_server.cpp",
-          "symbol": "WebRtcHttpServer::Start",
-          "symbolKind": "declaration-or-file-scope",
-          "anchor": "return AnalysisRegistryMutationErrorResponse(result,",
+          "symbol": "PersistAndPublishLocked",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "const AnalysisRegistryWriteResult write_result = WriteAnalysisRegistryFileAtomically(",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 38828,
-          "contextSha256": "d5ac56e0cce644be8ee5469268375651fa8bf449bcaeabc08200abc6084615a4"
+          "line": 2402,
+          "contextSha256": "ae6e6a2a2e4ef83d7ace67addca868793424345d59e84cd272d1b65f4b9f8535"
         },
         "stateOracle": {
           "oracleKind": "negative-invariant-state",
-          "expectedBehaviorSha256": "901fe50daf7caa230a8390e4e494ed519c8e70613f7c54b0a4d44f28cb0bf250",
-          "expectedBehavior": "직접 C++ 제품 owner `AnalysisRegistryMutationErrorResponse`와 `verify-v390-analysis-registry-durable-write`, `verify-analysis-state`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 persist-before-publish, atomic temp-write/fsync/rename, typed persistence error, HTTP 500, 12개 mutation과 5개 failure stage의 durable no-write/restart/temp-cleanup 계약을 확인하되 UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음",
+          "expectedBehaviorSha256": "b5b21c67addb801c76c638024449588c94fcedf98a37d7c21ac2f11f08bdc5e8",
+          "expectedBehavior": "직접 C++ 제품 owner `AnalysisRegistryMutationErrorResponse`와 `verify-v390-analysis-registry-durable-write`, `verify-analysis-state`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 mode-preserving temp write/file fsync/rename/parent fsync, typed persistence error, HTTP 500, 12×9 fault 및 12×3 crash/restart/stale-temp recovery 계약을 확인하되 UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음",
           "locator": {
             "file": "src/ingress/webrtc_http_server.cpp",
-            "symbol": "WebRtcHttpServer::Start",
-            "symbolKind": "declaration-or-file-scope",
-            "anchor": "return AnalysisRegistryMutationErrorResponse(result,",
+            "symbol": "EnsureLoadedLocked",
+            "symbolKind": "reviewed-owner-or-readback",
+            "anchor": "RecoverAnalysisRegistryTemporaryFiles(storage_path_);",
             "anchorKind": "reviewed-source-line",
             "anchorStrength": "feature-specific-source-line",
             "occurrence": 0,
-            "line": 38828,
-            "contextSha256": "d5ac56e0cce644be8ee5469268375651fa8bf449bcaeabc08200abc6084615a4"
+            "line": 1582,
+            "contextSha256": "1084efcd59041706b8948abd9a6845076e07205673b152499688083bad59dfa4"
           }
         },
         "relation": {
           "kind": "ops-gate-dispatch-assertion-state",
-          "handlerSymbol": "WebRtcHttpServer::Start",
-          "actionSymbol": "WebRtcHttpServer::Start",
-          "stateSymbol": "WebRtcHttpServer::Start",
-          "semanticKey": "OPS-184:901fe50daf7caa230a8390e4"
+          "handlerSymbol": "AnalysisRegistryMutationErrorResponse",
+          "actionSymbol": "PersistAndPublishLocked",
+          "stateSymbol": "EnsureLoadedLocked",
+          "semanticKey": "OPS-184:b5b21c67addb801c76c63802"
         },
         "verifierAssertion": {
           "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
@@ -200281,101 +200281,101 @@
           "assertionKind": "reviewed-owner-route-control-action-state-readback-chain",
           "assertionAnchor": "validateReview3CallChain",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "d3b009be602f843d25caa72d399561ddf572454bbfb5b173e36a90db31b19d4f"
+          "assertedSemanticDigest": "8395253a103c77f4260144e9a309294f0c7dd5e431e8904edb36fc556fc42c0a"
         },
         "callChain": {
           "schema": "media-server.feature-reviewed-call-chain.v1",
           "roles": {
             "owner": {
               "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "WebRtcHttpServer::Start",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "return AnalysisRegistryMutationErrorResponse(result,",
+              "symbol": "AnalysisRegistryMutationErrorResponse",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "HttpResponse AnalysisRegistryMutationErrorResponse(",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 38828,
-              "contextSha256": "d5ac56e0cce644be8ee5469268375651fa8bf449bcaeabc08200abc6084615a4"
+              "line": 2864,
+              "contextSha256": "28a7d0d06237b2a2641a406df1abc1a2babf836033c12385b332dacf83f36850"
             },
             "routeControl": {
               "file": "src/ingress/webrtc_http_server.cpp",
               "symbol": "WebRtcHttpServer::Start",
-              "symbolKind": "declaration-or-file-scope",
+              "symbolKind": "reviewed-owner-or-readback",
               "anchor": "return AnalysisRegistryMutationErrorResponse(result,",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 38828,
+              "line": 38953,
               "contextSha256": "d5ac56e0cce644be8ee5469268375651fa8bf449bcaeabc08200abc6084615a4"
             },
             "action": {
               "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "WebRtcHttpServer::Start",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "return AnalysisRegistryMutationErrorResponse(result,",
+              "symbol": "PersistAndPublishLocked",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "const AnalysisRegistryWriteResult write_result = WriteAnalysisRegistryFileAtomically(",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 38828,
-              "contextSha256": "d5ac56e0cce644be8ee5469268375651fa8bf449bcaeabc08200abc6084615a4"
+              "line": 2402,
+              "contextSha256": "ae6e6a2a2e4ef83d7ace67addca868793424345d59e84cd272d1b65f4b9f8535"
             },
             "state": {
               "file": "src/ingress/webrtc_http_server.cpp",
-              "symbol": "WebRtcHttpServer::Start",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "return AnalysisRegistryMutationErrorResponse(result,",
+              "symbol": "EnsureLoadedLocked",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "RecoverAnalysisRegistryTemporaryFiles(storage_path_);",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 38828,
-              "contextSha256": "d5ac56e0cce644be8ee5469268375651fa8bf449bcaeabc08200abc6084615a4"
+              "line": 1582,
+              "contextSha256": "1084efcd59041706b8948abd9a6845076e07205673b152499688083bad59dfa4"
             },
             "readback": {
               "file": "scripts/internal/verify_v390_analysis_registry_durable_write.mjs",
-              "symbol": "verifier:verify-v390-analysis-registry-durable-write",
+              "symbol": "runCrashCase",
               "symbolKind": "reviewed-owner-or-readback",
-              "anchor": "// 파일 용도: V390-REVIEW2-21 Analysis Registry 실패 전파와 persist-before-publish를 actual HTTP로 검증한다.",
+              "anchor": "async function runCrashCase(crash, item, baseline) {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 2,
-              "contextSha256": "db8f3661a7b0de459748a14cb59f2d703a798c7966ef37a1c325975c4925ae8b"
+              "line": 179,
+              "contextSha256": "b0c2b4098c306571c2a26724ac2d31c2472850868e7bda2dc91758322135814d"
             }
           },
-          "routeControlKind": "owner-boundary",
+          "routeControlKind": "http-error-and-restart-durability-gate",
           "edges": [
             {
               "from": "owner",
               "to": "routeControl",
-              "relationKind": "owner-boundary",
-              "digest": "9e23276555c83a1978cf73c36212a03acc9e016442b94d513964a14fc6ddf635"
+              "relationKind": "http-error-and-restart-durability-gate",
+              "digest": "d620ca3de89e49dc0c3f4465c675fba36082c22b34d0d45d74f2870a72c10e96"
             },
             {
               "from": "routeControl",
               "to": "action",
               "relationKind": "reviewed-dispatch-or-control-flow",
-              "digest": "94086496e6d7b195c084b241025800c8705b28e6666165d2fcc77ab398fe03de"
+              "digest": "f60dcdcc321cc669b87b0ff0e4686cb7f935a6415c60d3a861acd3046743ba3c"
             },
             {
               "from": "action",
               "to": "state",
               "relationKind": "reviewed-mutation-readmodel-flow",
-              "digest": "036065eb39465eba10ec12fd325cc17a4541ed798fc82bb23c127c591016cd13"
+              "digest": "779d6ce9e128a52df6ece6d4bc71b1127ec5abc862447a235d73679b14dab251"
             },
             {
               "from": "state",
               "to": "readback",
               "relationKind": "exact-readback-assertion",
-              "digest": "ad56f197e7f6c3b836d4b9ecc44c9925f67b7ed1f876ff6a18d07e97402ce696"
+              "digest": "2ee130bd99fe9647c0e5cea56248500d14843481035b9bb77fda9942c153305e"
             },
             {
               "from": "readback",
               "to": "verifierAssertion",
               "relationKind": "exact-verifier-command",
-              "digest": "e5d5e7378c1230335c1d2dca8bc9c16f2e61c4eabab42d4a4eadf90030f49c11"
+              "digest": "86c84c42e5d5918cfa76969b2ae4ea92ac7aafecc54b68c139e5a3109a9f7a08"
             }
           ],
-          "digest": "bd02e14bfd3a19c93ea369296263805d1b9957a69e85fed4d74af48fcdcf22ea"
+          "digest": "60861f9a4ad79f68fc34594e1d4e2e0e60e9d666fcc831a0744fa698f58a3b49"
         }
       }
     }

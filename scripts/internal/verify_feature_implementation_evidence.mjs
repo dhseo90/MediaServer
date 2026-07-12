@@ -34,6 +34,7 @@ Usage:
 Options:
   --refresh-manifest  Explicitly rebuild the reviewed 986-row manifest.
   --migrate-review3           One-time v2 call-chain migration with 986 feature-specific reasons.
+  --review-ids IDS            With --migrate-review3, review only exact comma-separated pending IDs.
   --json-report PATH  Write the validation report.
   -h, --help          Show help.
 
@@ -44,11 +45,18 @@ must be reviewed before commit. This verifier does not execute product tests.`);
 assertKnownOptions(rawArgs, [
   "refresh-manifest",
   "migrate-review3",
+  "review-ids",
   "json-report",
   "h",
   "help",
 ]);
 const args = parseArgs(rawArgs);
+if (args.refreshManifest && args.migrateReview3) {
+  throw new Error("--refresh-manifest and --migrate-review3 are mutually exclusive");
+}
+if (args.reviewIds.length > 0 && !args.migrateReview3) {
+  throw new Error("--review-ids requires --migrate-review3");
+}
 const inventoryText = fs.readFileSync(
   path.join(rootDir, "docs/project-feature-test-inventory.md"),
   "utf8",
@@ -60,13 +68,21 @@ if (args.refreshManifest) {
   writeImplementationManifest(rootDir, generated);
   console.log(`[pass] refreshed ${IMPLEMENTATION_MANIFEST_PATH} (reviewed rows preserved; drift remains review-required)`);
 } else if (args.migrateReview3) {
+  if (args.reviewIds.length > 0) {
+    const knownIds = new Set(rows.map(row => row.id));
+    for (const id of args.reviewIds) {
+      if (!knownIds.has(id)) throw new Error(`unknown review ID: ${id}`);
+    }
+  }
   const candidate = migrateReview3SemanticClosure({
     rootDir,
     rows,
     manifest: loadImplementationManifest(rootDir),
+    selectedIds: args.reviewIds.length > 0 ? args.reviewIds : null,
   });
   writeImplementationManifest(rootDir, candidate);
-  console.log(`[pass] migrated ${IMPLEMENTATION_MANIFEST_PATH} to REVIEW3 call-chain closure`);
+  console.log(`[pass] migrated ${IMPLEMENTATION_MANIFEST_PATH} to REVIEW3 call-chain closure` +
+    (args.reviewIds.length > 0 ? ` for ${args.reviewIds.join(",")}` : ""));
 }
 
 const manifest = loadImplementationManifest(rootDir);
@@ -219,14 +235,23 @@ function parseArgs(argsList) {
   const parsed = {
     refreshManifest: false,
     migrateReview3: false,
+    reviewIds: [],
     jsonReport: "",
   };
   for (let index = 0; index < argsList.length; index += 1) {
     const token = argsList[index];
     if (token === "--refresh-manifest") parsed.refreshManifest = true;
     else if (token === "--migrate-review3") parsed.migrateReview3 = true;
+    else if (token.startsWith("--review-ids=")) parsed.reviewIds = parseReviewIds(token.slice("--review-ids=".length));
+    else if (token === "--review-ids") parsed.reviewIds = parseReviewIds(argsList[++index]);
     else if (token.startsWith("--json-report=")) parsed.jsonReport = token.slice("--json-report=".length);
     else if (token === "--json-report") parsed.jsonReport = argsList[++index];
   }
   return parsed;
+}
+
+function parseReviewIds(value) {
+  const ids = String(value || "").split(",").map(item => item.trim()).filter(Boolean);
+  if (ids.length === 0 || new Set(ids).size !== ids.length) throw new Error("--review-ids requires unique comma-separated IDs");
+  return ids;
 }

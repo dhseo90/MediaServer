@@ -948,6 +948,7 @@ struct AnalysisRegistryWriteResult {
     bool ok{false};
     std::string stage;
     std::string detail;
+    bool target_replaced{false};
 };
 
 enum class AnalysisRegistryMutationFailure {
@@ -988,24 +989,84 @@ std::string AnalysisRegistryFaultStage() {
     return value == nullptr ? std::string() : Trim(value);
 }
 
-// V390-REVIEW2-21의 SAFE-217/OPS-184는 atomic 저장 성공 전 메모리 publish를 금지한다.
+std::string AnalysisRegistryCrashStage() {
+    const char* value = std::getenv("MEDIA_SERVER_ANALYSIS_REGISTRY_CRASH_STAGE");
+    return value == nullptr ? std::string() : Trim(value);
+}
+
+void RecoverAnalysisRegistryTemporaryFiles(const std::filesystem::path& storage_path) {
+    if (storage_path.empty()) {
+        return;
+    }
+    const std::filesystem::path parent = storage_path.parent_path().empty()
+                                             ? std::filesystem::path(".")
+                                             : storage_path.parent_path();
+    const std::string prefix = storage_path.filename().string() + ".tmp.";
+    std::error_code iterator_error;
+    std::filesystem::directory_iterator iterator(parent, iterator_error);
+    if (iterator_error) {
+        return;
+    }
+    for (const auto& entry : iterator) {
+        const std::string name = entry.path().filename().string();
+        if (name.rfind(prefix, 0) != 0) {
+            continue;
+        }
+        std::error_code status_error;
+        const auto status = entry.symlink_status(status_error);
+        if (status_error || (!std::filesystem::is_regular_file(status) &&
+                             !std::filesystem::is_symlink(status))) {
+            continue;
+        }
+        std::error_code remove_error;
+        (void)std::filesystem::remove(entry.path(), remove_error);
+        if (remove_error) {
+            std::cerr << "[analysis-registry] stale temp cleanup failed: "
+                      << remove_error.message() << "\n";
+        }
+    }
+}
+
+// V390-REVIEW3-38의 SAFE-217/OPS-184는 mode/file/parent durability 완료 전 성공 publish를 금지한다.
 AnalysisRegistryWriteResult WriteAnalysisRegistryFileAtomically(
     const std::filesystem::path& storage_path,
     const std::string& body) {
-    auto failure = [](std::string stage, std::string detail) {
-        return AnalysisRegistryWriteResult{false, std::move(stage), std::move(detail)};
+    auto failure = [](std::string stage, std::string detail, bool target_replaced = false) {
+        return AnalysisRegistryWriteResult{
+            false, std::move(stage), std::move(detail), target_replaced};
     };
     if (storage_path.empty()) {
         return failure("path", "analysis registry path is empty");
     }
     const std::string fault_stage = AnalysisRegistryFaultStage();
+    const std::string crash_stage = AnalysisRegistryCrashStage();
+    auto crash_if_requested = [&](const char* stage) {
+        if (crash_stage == stage) {
+            ::_exit(86);
+        }
+    };
     const std::filesystem::path parent = storage_path.parent_path().empty()
                                              ? std::filesystem::path(".")
                                              : storage_path.parent_path();
+    if (fault_stage == "parent") {
+        return failure("parent", "injected analysis registry parent failure");
+    }
     std::error_code directory_error;
     std::filesystem::create_directories(parent, directory_error);
     if (directory_error) {
         return failure("parent", "failed to prepare analysis registry parent: " + directory_error.message());
+    }
+
+    mode_t target_mode = 0644;
+    struct stat target_stat {};
+    if (::lstat(storage_path.c_str(), &target_stat) == 0) {
+        if (!S_ISREG(target_stat.st_mode)) {
+            return failure("mode", "analysis registry target is not a regular file");
+        }
+        target_mode = target_stat.st_mode & 07777;
+    } else if (errno != ENOENT) {
+        return failure("mode", std::string("failed to inspect analysis registry mode: ") +
+                                   std::strerror(errno));
     }
 
     const std::string base = storage_path.string() + ".tmp." +
@@ -1043,6 +1104,19 @@ AnalysisRegistryWriteResult WriteAnalysisRegistryFileAtomically(
         }
         (void)::unlink(temp_path.c_str());
     };
+    if (fault_stage == "mode") {
+        cleanup_temp();
+        return failure("mode", "injected analysis registry mode failure");
+    }
+    while (::fchmod(fd, target_mode) != 0) {
+        if (errno == EINTR) {
+            continue;
+        }
+        const std::string detail = std::string("failed to preserve analysis registry mode: ") +
+                                   std::strerror(errno);
+        cleanup_temp();
+        return failure("mode", detail);
+    }
     if (fault_stage == "write") {
         if (!body.empty()) {
             (void)::write(fd, body.data(), std::min<std::size_t>(body.size(), 7));
@@ -1083,6 +1157,10 @@ AnalysisRegistryWriteResult WriteAnalysisRegistryFileAtomically(
         cleanup_temp();
         return failure("flush", detail);
     }
+    if (fault_stage == "close") {
+        cleanup_temp();
+        return failure("close", "injected analysis registry close failure");
+    }
     if (::close(fd) != 0) {
         fd = -1;
         (void)::unlink(temp_path.c_str());
@@ -1090,17 +1168,57 @@ AnalysisRegistryWriteResult WriteAnalysisRegistryFileAtomically(
                                     std::strerror(errno));
     }
     fd = -1;
+    crash_if_requested("after-temp-fsync");
+
+    if (fault_stage == "directory-open") {
+        (void)::unlink(temp_path.c_str());
+        return failure("directory-open", "injected analysis registry directory open failure");
+    }
+    int directory_flags = O_RDONLY;
+#if defined(O_CLOEXEC)
+    directory_flags |= O_CLOEXEC;
+#endif
+#if defined(O_DIRECTORY)
+    directory_flags |= O_DIRECTORY;
+#endif
+    const int directory_fd = ::open(parent.c_str(), directory_flags);
+    if (directory_fd < 0) {
+        const std::string detail = std::string("failed to open analysis registry parent directory: ") +
+                                   std::strerror(errno);
+        (void)::unlink(temp_path.c_str());
+        return failure("directory-open", detail);
+    }
     if (fault_stage == "rename") {
+        (void)::close(directory_fd);
         (void)::unlink(temp_path.c_str());
         return failure("rename", "injected analysis registry rename failure");
     }
     if (::rename(temp_path.c_str(), storage_path.c_str()) != 0) {
         const std::string detail = std::string("failed to replace analysis registry file: ") +
                                    std::strerror(errno);
+        (void)::close(directory_fd);
         (void)::unlink(temp_path.c_str());
         return failure("rename", detail);
     }
-    return {true, "none", std::string()};
+    crash_if_requested("after-rename");
+    if (fault_stage == "directory-flush") {
+        (void)::close(directory_fd);
+        return failure("directory-flush",
+                       "injected analysis registry directory flush failure",
+                       true);
+    }
+    while (::fsync(directory_fd) != 0) {
+        if (errno == EINTR) {
+            continue;
+        }
+        const std::string detail = std::string("failed to flush analysis registry parent directory: ") +
+                                   std::strerror(errno);
+        (void)::close(directory_fd);
+        return failure("directory-flush", detail, true);
+    }
+    crash_if_requested("after-directory-fsync");
+    (void)::close(directory_fd);
+    return {true, "none", std::string(), true};
 }
 
 class AnalysisDocumentRegistry {
@@ -1460,8 +1578,9 @@ private:
         if (loaded_) {
             return;
         }
-        loaded_ = true;
         storage_path_ = app::GetAppConfig().analysis_registry_path;
+        RecoverAnalysisRegistryTemporaryFiles(storage_path_);
+        loaded_ = true;
         std::ifstream in(storage_path_);
         if (!in) {
             return;
@@ -2287,6 +2406,12 @@ private:
                               candidate_va_rules,
                               candidate_vlm_profiles));
         if (!write_result.ok) {
+            if (write_result.target_replaced) {
+                profiles_ = std::move(candidate_profiles);
+                rules_ = std::move(candidate_rules);
+                va_rules_ = std::move(candidate_va_rules);
+                vlm_profiles_ = std::move(candidate_vlm_profiles);
+            }
             std::cerr << "[analysis-registry] persistence failure stage=" << write_result.stage
                       << " detail=" << write_result.detail << "\n";
             return AnalysisRegistryFailure(AnalysisRegistryMutationFailure::Persistence,

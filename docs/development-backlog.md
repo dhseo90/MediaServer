@@ -2180,7 +2180,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 | ---: | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 36 | V390-REVIEW3-36 | Discovery | 누락 기능과 전체 문서 ledger | P0 | 완료 | `AGENTS.md` 별도 전문 감사와 tracked Markdown 173개 파일별 full-read SHA-256/classification/status marker/duplicate/action ledger, 604개 source/tooling file marker 분류를 구현했습니다. RulesJson 두 항목은 non-VA 분석 자동부착 `excluded-by-design`, RTSP/WebRTC 장시간 검증 `transferred-to-test-condition`으로 inventory에 등록하고 `notImplementedYet` 응답을 제거했습니다. | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 2, 검증 난이도 1, 변경 범위 1, 총 6점. 기능 누락 정확도 상향 적용 |
 | 37 | V390-REVIEW3-37 | Feature Closure | 986행 semantic closure 전면 재감사 | P0 | 완료 | 자동 token 최고점과 bulk approval API를 제거하고 986개 기능 각각을 content-addressed owner→route/control→action→state→readback→verifier 5-edge chain, 986개 고유 review reason/digest로 재작성했습니다. `SAFE-140`은 v3.5 command workspace owner로, `RULE-017`은 hidden/generated ID save/readback owner와 `verify-ops-client-ui`로 교정했습니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. 전 기능 정확도 직접 영향 |
-| 38 | V390-REVIEW3-38 | Persistence | Analysis Registry crash durability | P0 | 미완료 | rename 후 parent directory fsync와 mode 보존을 추가하고 mutation×fault stage matrix 및 crash/restart recovery를 검증 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점. 데이터 손상 위험 상향 적용 |
+| 38 | V390-REVIEW3-38 | Persistence | Analysis Registry crash durability | P0 | 완료 | 기존 mode를 temp에 복원하고 file fsync/close→parent directory open→rename→directory fsync 뒤에만 성공합니다. 12 success, 12 mutation×9 fault=108, 12×3 crash=36 actual HTTP/restart matrix와 startup stale-temp recovery를 구현했습니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점. 데이터 손상 위험 상향 적용 |
 | 39 | V390-REVIEW3-39 | VLM Integrity | 구조적 JSON과 provenance 재검증 | P0 | 미완료 | first-field 문자열 검색을 구조 parser로 교체하고 duplicate key/top-level scope를 강제하며 reload rule provenance도 server record와 재대조 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. provenance·보안·데이터 무결성 상향 적용 |
 | 40 | V390-REVIEW3-40 | Long-run | delegated exact phase ledger | P0 | 미완료 | expected case ID/order/uniqueness/count를 parent가 검증하고 누락·중복·부분 summary를 PASS로 투영하지 않음 | 5.6 Sol | 높음 (high) | 2+1+2+1=6점. 테스트 결과 정확도 상향 적용 |
 | 41 | V390-REVIEW3-41 | UI Automation | exact 424 기능별 native workflow | P0 | 미완료 | 37번 semantic source를 기준으로 navigation-only/generic tag action을 case별 setup/input/action/expected result/cleanup으로 교체하고 hidden/non-action selector를 거부 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. 대량 UI 동등성과 false-PASS 상향 적용 |
@@ -2251,10 +2251,34 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
   검토 action symbol만 사용하며 Policy v4 contract 17/0, native contract 8/0으로 재검증했습니다.
   이 결과는 semantic source closure이며 제품 실행/UI 풀테스트/30분/120분 PASS가 아닙니다.
 
-#### V390-REVIEW3-38~40 persistence, provenance, longrun foundation
+#### V390-REVIEW3-38 Analysis Registry crash durability
 
 - Analysis Registry atomic replace는 file fsync 뒤 rename뿐 아니라 parent directory fsync까지 완료한 뒤
   success를 publish합니다. 기존 mode를 보존하고 crash point별 recovery contract를 둡니다.
+
+구현 기록(2026-07-12):
+
+- `WriteAnalysisRegistryFileAtomically`은 기존 target의 regular-file mode를 `lstat`으로 읽고 새 temp에
+  `fchmod`합니다. Temp 전체 write/file fsync/close 뒤 parent를 `O_DIRECTORY`로 열고, rename 뒤
+  `fsync(directory_fd)`까지 성공해야 HTTP 성공과 in-memory candidate publish가 가능합니다.
+- rename 이전 `parent/open/mode/write/flush/close/directory-open/rename` 실패는 target bytes,
+  memory GET, restart state와 mode를 보존합니다. Rename 뒤 `directory-flush` 실패는 durable 여부가
+  불확정이므로 HTTP 500을 반환하되 이미 교체된 candidate를 memory와 맞춰 process 내 불일치를 막습니다.
+- `EnsureLoadedLocked`는 target filename의 `.tmp.<pid>.<attempt>` stale regular file/symlink만 시작 시
+  제거합니다. `after-temp-fsync` crash는 이전 target을 복구하고 stale temp를 제거하며,
+  `after-rename`/`after-directory-fsync` crash는 완전한 candidate를 reload합니다.
+- `test/fixtures/v390_analysis_registry_durable_write/cases.json` v2와 actual HTTP verifier가 profile/rule/
+  VA rule/VLM profile create·update·delete 12개를 9개 fault stage 전체와 3개 crash point 전체에 교차해
+  정상 성공 12개와 fault/crash 각각 108/36개를 검사하고 mode `0640`, valid JSON,
+  unrelated collection 불변, temp 0을 확인합니다.
+- Inventory 갱신 뒤 semantic refresh가 `SAFE-217`/`OPS-184` 두 행만 `review-required`로 만든 것을
+  확인하고, targeted `--migrate-review3 --review-ids SAFE-217,OPS-184`로 실제
+  `PersistAndPublishLocked`/HTTP error route/writer/recovery/readback chain과 새 기대 동작만 명시
+  재검토했습니다. 나머지 984개 reviewed chain은 변경하지 않았습니다.
+  실제 UI 풀테스트와 30분/120분은 이번 단계에서 실행하지 않습니다.
+
+#### V390-REVIEW3-39~40 provenance and longrun foundation
+
 - VLM profile/rule parser는 구조화된 JSON parser로 exact top-level/object scope와 duplicate key를 거부합니다.
   저장 시뿐 아니라 reload 시 canonical provenance가 현재 EventRecord/observation과 일치하는지 검증합니다.
 - longrun parent는 expected delegated case manifest와 summary를 ID/order/count/uniqueness로 대조합니다.

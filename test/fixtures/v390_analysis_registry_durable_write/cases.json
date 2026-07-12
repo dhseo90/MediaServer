@@ -1,19 +1,48 @@
 {
-  "schema": "media-server.v390-analysis-registry-durable-write-fixtures.v1",
-  "targetStep": "V390-REVIEW2-21",
-  "failureStages": ["parent", "open", "write", "flush", "rename"],
-  "cases": [
-    { "id": "profile-create-parent", "kind": "profile", "mutation": "create", "faultStage": "parent", "method": "POST", "route": "/lab/analysis/profiles" },
-    { "id": "profile-update-open", "kind": "profile", "mutation": "update", "faultStage": "open", "method": "PUT", "route": "/lab/analysis/profiles/601" },
-    { "id": "profile-delete-write", "kind": "profile", "mutation": "delete", "faultStage": "write", "method": "DELETE", "route": "/lab/analysis/profiles/601" },
-    { "id": "rule-create-flush", "kind": "rule", "mutation": "create", "faultStage": "flush", "method": "POST", "route": "/lab/analysis/rules" },
-    { "id": "rule-update-rename", "kind": "rule", "mutation": "update", "faultStage": "rename", "method": "PUT", "route": "/lab/analysis/rules/701" },
-    { "id": "rule-delete-open", "kind": "rule", "mutation": "delete", "faultStage": "open", "method": "DELETE", "route": "/lab/analysis/rules/701" },
-    { "id": "va-rule-create-write", "kind": "vaRule", "mutation": "create", "faultStage": "write", "method": "POST", "route": "/lab/analysis/va-rules" },
-    { "id": "va-rule-update-flush", "kind": "vaRule", "mutation": "update", "faultStage": "flush", "method": "PUT", "route": "/lab/analysis/va-rules/801" },
-    { "id": "va-rule-delete-rename", "kind": "vaRule", "mutation": "delete", "faultStage": "rename", "method": "DELETE", "route": "/lab/analysis/va-rules/801" },
-    { "id": "vlm-profile-create-open", "kind": "vlmProfile", "mutation": "create", "faultStage": "open", "method": "POST", "route": "/ops/api/vlm/profiles" },
-    { "id": "vlm-profile-update-write", "kind": "vlmProfile", "mutation": "update", "faultStage": "write", "method": "PUT", "route": "/ops/api/vlm/profiles/vlm-durable-base" },
-    { "id": "vlm-profile-delete-flush", "kind": "vlmProfile", "mutation": "delete", "faultStage": "flush", "method": "DELETE", "route": "/ops/api/vlm/profiles/vlm-durable-base" }
+  "schema": "media-server.v390-analysis-registry-durable-write-fixtures.v2",
+  "targetStep": "V390-REVIEW3-38",
+  "preservedMode": "0640",
+  "failureStages": [
+    "parent",
+    "open",
+    "mode",
+    "write",
+    "flush",
+    "close",
+    "directory-open",
+    "rename",
+    "directory-flush"
+  ],
+  "postRenameFailureStages": ["directory-flush"],
+  "crashStages": [
+    {
+      "stage": "after-temp-fsync",
+      "expectedRestartState": "previous",
+      "staleTempBeforeRestart": true
+    },
+    {
+      "stage": "after-rename",
+      "expectedRestartState": "candidate",
+      "staleTempBeforeRestart": false
+    },
+    {
+      "stage": "after-directory-fsync",
+      "expectedRestartState": "candidate",
+      "staleTempBeforeRestart": false
+    }
+  ],
+  "mutationCases": [
+    { "id": "profile-create", "kind": "profile", "mutation": "create", "method": "POST", "route": "/lab/analysis/profiles" },
+    { "id": "profile-update", "kind": "profile", "mutation": "update", "method": "PUT", "route": "/lab/analysis/profiles/601" },
+    { "id": "rule-create", "kind": "rule", "mutation": "create", "method": "POST", "route": "/lab/analysis/rules" },
+    { "id": "rule-update", "kind": "rule", "mutation": "update", "method": "PUT", "route": "/lab/analysis/rules/701" },
+    { "id": "va-rule-create", "kind": "vaRule", "mutation": "create", "method": "POST", "route": "/lab/analysis/va-rules" },
+    { "id": "va-rule-update", "kind": "vaRule", "mutation": "update", "method": "PUT", "route": "/lab/analysis/va-rules/801" },
+    { "id": "va-rule-delete", "kind": "vaRule", "mutation": "delete", "method": "DELETE", "route": "/lab/analysis/va-rules/801" },
+    { "id": "vlm-profile-create", "kind": "vlmProfile", "mutation": "create", "method": "POST", "route": "/ops/api/vlm/profiles" },
+    { "id": "vlm-profile-update", "kind": "vlmProfile", "mutation": "update", "method": "PUT", "route": "/ops/api/vlm/profiles/vlm-durable-base" },
+    { "id": "vlm-profile-delete", "kind": "vlmProfile", "mutation": "delete", "method": "DELETE", "route": "/ops/api/vlm/profiles/vlm-durable-base" },
+    { "id": "profile-delete", "kind": "profile", "mutation": "delete", "method": "DELETE", "route": "/lab/analysis/profiles/601" },
+    { "id": "rule-delete", "kind": "rule", "mutation": "delete", "method": "DELETE", "route": "/lab/analysis/rules/701" }
   ]
 }
