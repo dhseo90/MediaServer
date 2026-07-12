@@ -499,6 +499,8 @@ Usage:
                  v3.9.0 (17) Development 17 구조 안정화 착수 조건을 검증합니다.
   verify-v390-review4-truth-reset
                  V390-REVIEW4-50 current source 판정, metric, readiness/execution 경계를 검증합니다.
+  verify-v390-review4-structure-scope-decision
+                 V390-REVIEW4-51 v3.9 actual refactor 승인, 순서, base/branch, 불변 계약을 검증합니다.
   verify-v390-external-field-smoke-no-device-closure
                  v3.9.0 (17) Development 18 외부 환경 부재 not-run closure를 검증합니다.
   verify-v390-truthfulness-status-vocabulary
@@ -873,6 +875,8 @@ Usage:
                  v3.9.0 (17) Development 17 구조 안정화 착수 조건을 검증합니다.
   verify-v390-review4-truth-reset
                  V390-REVIEW4-50 current source 판정, metric, readiness/execution 경계를 검증합니다.
+  verify-v390-review4-structure-scope-decision
+                 V390-REVIEW4-51 v3.9 actual refactor 승인, 순서, base/branch, 불변 계약을 검증합니다.
   verify-v390-external-field-smoke-no-device-closure
                  v3.9.0 (17) Development 18 외부 환경 부재 not-run closure를 검증합니다.
   verify-v390-truthfulness-status-vocabulary
@@ -2241,6 +2245,10 @@ case "${cmd}" in
   verify-v390-review4-truth-reset)
     require_internal verify_v390_review4_truth_reset.mjs
     exec "${INTERNAL_DIR}/verify_v390_review4_truth_reset.mjs" "$@"
+    ;;
+  verify-v390-review4-structure-scope-decision)
+    require_internal verify_v390_review4_structure_scope_decision.mjs
+    exec "${INTERNAL_DIR}/verify_v390_review4_structure_scope_decision.mjs" "$@"
     ;;
   verify-v390-external-field-smoke-no-device-closure)
     require_internal verify_v390_external_field_smoke_no_device_closure.mjs

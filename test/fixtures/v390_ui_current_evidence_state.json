@@ -7,11 +7,11 @@
   "uiFulltestPass": false,
   "canonicalCaseManifest": {
     "path": "test/fixtures/ui_fulltest_case_manifest_policy_v4.json",
-    "sha256": "73650b52a90f79d4e4d71c91e020ed13c81d5e92ae95aca83f429acf4b6eccc1"
+    "sha256": "5fd684c8184fa2a46e79be731905837767a7fce49315298bc242dd3d46030a89"
   },
   "nativeExactManifest": {
     "path": "test/fixtures/v390_ui_native_exact_cases.json",
-    "sha256": "abd83846ef3ffe913ec6b7c24f37289b39352baced0693393c62d9e2354c95c6"
+    "sha256": "af07511a68d9321a14309be87c0e652fc844c9cc2fde69619808477e0f206218"
   },
   "readiness": {
     "exactUiTestIds": 424,

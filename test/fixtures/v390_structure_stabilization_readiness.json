@@ -1,21 +1,21 @@
 {
   "schema": "media-server.v390-structure-stabilization-readiness.v2",
   "sourceRelease": "v3.9.0",
-  "executionRelease": "v4.0.0",
-  "executionBranch": "v4.0.0",
-  "requiredApproval": "explicit-structure-refactor-start",
+  "executionRelease": "v3.9.0",
+  "executionBranch": "v3.9.0",
+  "requiredApproval": "approved-by-latest-user-instruction",
   "currentStepRefactorExecuted": false,
   "branchCreationPerformed": false,
   "recordKind": "refactor-readiness-gate",
-  "status": "gate-ready",
+  "status": "approved-scheduled-after-review4-50-63",
   "implementationStatus": "not-executed",
-  "evidenceStatus": "gate-contract-not-refactor-evidence",
+  "evidenceStatus": "approved-decision-contract-not-refactor-evidence",
   "graphStatus": "actual-monolith-cyclic-target-violations-baselined-refactor-not-executed",
   "refactorEntryReady": false,
   "baseRequirements": [
-    "v3.9.0 release correctness commits are included in the selected base commit",
-    "latest main and the signed v3.9.0 release tag commit relationship is verified",
-    "worktree is clean and no feature development is active in the same slice",
+    "V390-REVIEW4-50 through V390-REVIEW4-63 are completed, verified, documented, and committed",
+    "base commit 027678bab9ef75f809c1aeac2061d785c5f6f8b2 and all later REVIEW4 commits are on v3.9.0",
+    "worktree is clean and no feature development remains before REVIEW4-64",
     "baseline build, exact inventory, targeted contract verifiers, and git diff --check pass"
   ],
   "moduleBoundaries": [
@@ -95,9 +95,9 @@
   },
   "executionScopeDecision": {
     "path": "test/fixtures/v390_structure_execution_scope_decision.json",
-    "schema": "media-server.v390-structure-execution-scope-decision.v1",
-    "decision": "defer-actual-refactor-to-v4.0.0",
-    "v390Mode": "graph-guard-decision-only",
+    "schema": "media-server.v390-structure-execution-scope-decision.v2",
+    "decision": "execute-actual-refactor-in-v3.9.0-after-review4-50-63",
+    "v390Mode": "approved-actual-refactor-after-review4-50-63",
     "implementationStatus": "not-executed"
   },
   "preservedContracts": [
@@ -152,7 +152,7 @@
       "order": 1,
       "id": "baseline-and-ownership-map",
       "dependsOnSlice": null,
-      "entryGates": ["explicit start approval", "clean v4.0.0 branch", "baseline verifier set passes"],
+      "entryGates": ["REVIEW4-50..63 complete", "clean v3.9.0 branch", "baseline verifier set passes"],
       "exitGates": ["route and module ownership catalog exists", "no handler or response behavior moved", "baseline verifier set and git diff --check pass"]
     },
     {

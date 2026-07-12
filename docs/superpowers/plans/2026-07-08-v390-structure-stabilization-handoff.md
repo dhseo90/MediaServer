@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** v3.9.0에서 닫은 기능 동작을 바꾸지 않고 v4.0.0 구조 안정화로 넘길 route/API/UI/docs/VLM 경계를 작업 가능한 단위로 고정한다.
+**Goal:** v3.9.0에서 닫은 기능 동작을 바꾸지 않고 REVIEW4-64 구조 안정화를 현재 v3.9.0 branch에서 실행할 route/API/UI/docs/VLM 경계를 작업 가능한 단위로 고정한다.
 
 **Architecture:** 이 계획은 behavior-preserving stabilization handoff다. 새 product route, write path, UI control, schema, media path를 만들지 않고, 기존 대형 translation unit과 문서 source-of-truth를 작은 소유권 단위로 나누기 위한 순서와 검증만 정의한다.
 
@@ -12,7 +12,7 @@
 
 ## Handoff Boundary
 
-이 문서는 `V390-STRUCT-001`~`V390-STRUCT-005`의 이관 계획이며 구조 안정화 구현 완료 evidence가 아닙니다. 후속 v4.0.0 또는 별도 승인된 구조 안정화 브랜치에서 각 task를 TDD로 실행합니다.
+이 문서는 `V390-STRUCT-001`~`V390-STRUCT-005`의 실행 계획이며 구조 안정화 구현 완료 evidence가 아닙니다. 최신 사용자 승인에 따라 REVIEW4-50~63을 모두 닫은 뒤 현재 `v3.9.0` branch에서 REVIEW4-64의 각 task를 TDD로 실행합니다.
 
 대상 구조 항목:
 
@@ -28,7 +28,7 @@ Evidence boundary: UI 풀테스트 직접 조작, 30분/120분 longrun, publishe
 
 ## Development 17 Structure Stabilization Readiness
 
-Execution branch: `v4.0.0`
+Execution branch: `v3.9.0`
 
 Source release: `v3.9.0`
 
@@ -36,12 +36,13 @@ Current v3.9 refactor execution: `not-run`
 
 Branch creation: `not-performed`
 
-Required start authority: `explicit-structure-refactor-start`
+Required start authority: `approved-by-latest-user-instruction`
 
-`v4.0.0` branch는 이번 단계에서 만들지 않습니다. v3.9.0 release correctness commit이 모두
-포함된 latest main과 signed v3.9.0 tag 대상 commit 관계를 확인하고, 사용자가 구조 리팩터링
-착수와 branch 생성을 명시 승인한 뒤에만 생성합니다. clean worktree, 동시 feature 개발 없음,
-baseline build·exact inventory·contract verifier·`git diff --check` PASS가 공통 entry 조건입니다.
+새 branch는 만들지 않습니다. 사용자는 REVIEW4-50~63 완료 뒤 현재 `v3.9.0` branch에서 64번
+actual refactor를 실행하고 v4.0.0 이관을 취소하도록 명시 승인했습니다. Base decision commit은
+`027678bab9ef75f809c1aeac2061d785c5f6f8b2`이며, 50~63의 모든 후속 commit, clean worktree,
+baseline build·exact inventory·9개 preserved contract verifier·`git diff --check` PASS가 공통
+entry 조건입니다. 64 완료 뒤에만 승인된 REVIEW4-65 final independent acceptance를 실행합니다.
 
 Machine-readable target/readiness source: `test/fixtures/v390_structure_stabilization_readiness.json`
 
@@ -73,28 +74,29 @@ workspace를 함께 포함합니다. 이 mixed ownership은 숨기지 않고 act
 direction, witness count/hash drift, CMake source/link/target drift, SCC drift, unclassified file이 생기면
 readiness verifier가 실패합니다. Current 25개 위반과 8-owner SCC는 refactor 완료 evidence가 아닙니다.
 
-### Structure execution scope decision (V390-REVIEW3-49)
+### Structure execution scope decision (V390-REVIEW4-51)
 
-Decision: `defer-actual-refactor-to-v4.0.0`
+Decision: `execute-actual-refactor-in-v3.9.0-after-review4-50-63`
 
-v3.9 mode: `graph-guard-decision-only`
+v3.9 mode: `approved-actual-refactor-after-review4-50-63`
 
-Decision status: `decision-recorded-deferred`
+Decision status: `approved-scheduled`
 
 Implementation status: `not-executed`
 
 Machine-readable decision: `test/fixtures/v390_structure_execution_scope_decision.json`
 
 Actual graph는 target 위반 direction 25개, 8-owner SCC, internal target separation false이며 가장 큰 mixed
-owner 파일은 42,897줄입니다. Release line 안에서 허용하는 threshold(위반 0, SCC 1 owner, mixed file
-15,000줄, separated target 필요)를 모두 넘습니다. 따라서 v3.9에서는 graph evidence, drift guard, slice
-contract, decision 기록까지만 허용합니다.
+owner 파일은 42,897줄입니다. 기존 release-line threshold(위반 0, SCC 1 owner, mixed file 15,000줄,
+separated target 필요)를 모두 넘는 고위험 상태를 숨기지 않습니다. 사용자는 이 위험을 6개 독립 slice,
+stop-on-first-fail, rollback commit, preserved contract hard gate로 통제하는 조건으로 v3.9 실행을
+명시 승인했습니다.
 
-Production source extraction, CMake internal target split, legacy dependency 제거, route/API/UI handler 이동은
-v3.9 범위에서 금지합니다. 실제 실행은 v3.9 correctness가 포함된 base, latest main/signed tag 관계,
-clean worktree, baseline gate를 확인하고 사용자가 `explicit-structure-refactor-start-and-branch-creation`을
-승인한 뒤 v4.0.0에서 아래 6개 slice 순서로만 진행합니다. 이 결정 완료는 branch 생성이나 refactor
-완료 evidence가 아닙니다.
+REVIEW4-50~63 완료 뒤 behavior-preserving production source extraction, CMake internal target separation,
+legacy dependency 제거, route/API/UI handler relocation을 아래 6개 slice 안에서 허용합니다. Public API,
+EventRecord/Event POST, WebRTC DataChannel, SSE/WS, RTSP/WebRTC media path, Auth/Role/Scope,
+SourceRegistry/PublishedView, Rule/Profile, product route/control/DOM/user workflow 변화는 금지합니다.
+이 결정 완료는 refactor 실행이나 REVIEW4-65 acceptance PASS evidence가 아닙니다.
 
 ## Module Boundary and Dependency Direction
 
@@ -150,7 +152,7 @@ product UI → persistence file/registry internal 의존 금지, production → 
 
 공통 entry gate:
 
-- 사용자 `explicit-structure-refactor-start` 승인과 `v4.0.0` branch 생성 승인
+- 최신 사용자 `approved-by-latest-user-instruction`, REVIEW4-50~63 완료, clean `v3.9.0` branch
 - v3.9.0 correctness를 포함한 base commit, clean worktree, 한 slice의 allowed file set
 - baseline build, exact inventory, 해당 contract verifier, 테스트 필요성 판정표 PASS
 

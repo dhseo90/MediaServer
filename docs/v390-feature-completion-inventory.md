@@ -154,13 +154,13 @@ Structure implementation status: `not-run-by-this-step`
 
 Development 17 record kind: `refactor-readiness-gate`
 
-Development 17 status: `gate-ready`
+Development 17 status: `approved-scheduled-after-review4-50-63`
 
 Development 17 implementation status: `not-executed`
 
-Development 17 evidence status: `gate-contract-not-refactor-evidence`
+Development 17 evidence status: `approved-decision-contract-not-refactor-evidence`
 
-Execution branch: `v4.0.0`
+Execution branch: `v3.9.0`
 
 Branch creation status: `not-performed`
 
@@ -174,7 +174,7 @@ Boundary:
 - Do not treat this handoff as manual UI template archive split completion.
 - Do not treat this handoff as VLM contract index implementation completion.
 - This handoff is not UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, PR/main/tag/GitHub Release evidence.
-- Development 17 readiness is not actual route/API/UI extraction or a created `v4.0.0` branch.
+- Development 17 approval is not actual route/API/UI extraction or REVIEW4-64/65 execution PASS.
 
 ## Review Gate (Initial Historical Rules)
 

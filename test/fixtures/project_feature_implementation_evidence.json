@@ -2,7 +2,7 @@
   "schema": "media-server.feature-implementation-evidence.v2",
   "semanticClosureSchema": "media-server.feature-semantic-implementation-closure.v2",
   "expectedFeatureRows": 986,
-  "inventorySha256": "d14d87ba5dcba948bf38fff05771306a6c133a29e9933bc32d3bb305c794cb0e",
+  "inventorySha256": "f30494fbcde3c20bca0d4bfa0ec6ad63e9762f1f302e294e0023d4fc3443fca4",
   "generatedFrom": "docs/project-feature-test-inventory.md",
   "generationPolicy": "reviewed-map-only; unrelated source changes preserve approved rows; changed rows become review-required; token scoring and bulk approval are forbidden",
   "semanticClosurePolicy": "986 explicit owner -> route/control -> action -> state -> readback -> verifier chains with content-addressed locators and per-feature review reasons",
@@ -169983,21 +169983,21 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW3-37",
+        "reviewer": "Codex-V390-REVIEW4-51",
         "reviewedOn": "2026-07-12",
-        "reason": "V390-REVIEW3-37:SAFE-215:V390 structure stabilization contract-preservation boundary:owner=check:machine-readable readiness contract is complete:routeControl=check:machine-readable readiness contract is complete:action=check:machine-readable readiness contract is complete:state=check:machine-readable readiness contract is complete:readback=verifier:verify-v390-structure-stabilization-readiness:chain=2364fd7037ee6413",
-        "semanticDigest": "53d1fc417fa4d472deeb463f39edc4098ad81228eaf8a373b34cd85070ed5385"
+        "reason": "V390-REVIEW4-51:SAFE-215:V390 structure stabilization contract-preservation boundary:owner=structureReadinessContract:routeControl=expectedContracts:action=preservedContractHardGate:state=approvedScheduledState:readback=review4PreservedContractReadback:chain=a6f33b804590a211",
+        "semanticDigest": "357eb3b40e50d18051206145d9a499e34ba91d47fb9b5cb16dcc9a1f013eba73"
       },
       "sourceEvidence": {
         "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-        "anchor": "assert(fixture.status === \"gate-ready\", \"readiness status must be gate-ready\");",
+        "anchor": "check(\"machine-readable readiness contract is complete\", () => {",
         "anchorKind": "reviewed-owner-source-line"
       },
       "uiEvidence": null,
       "verifierEvidence": {
         "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-        "anchor": "gate-ready",
-        "anchorKind": "identifier",
+        "anchor": "approved-scheduled-after-review4-50-63",
+        "anchorKind": "review4-structure-readiness-status",
         "command": "verify-v390-structure-stabilization-readiness"
       },
       "manualUiCaseId": null,
@@ -170010,14 +170010,14 @@
         "schema": "media-server.feature-semantic-implementation-closure.v2",
         "handler": {
           "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-          "symbol": "check:machine-readable readiness contract is complete",
-          "symbolKind": "function-or-method",
-          "anchor": "assert(fixture.status === \"gate-ready\", \"readiness status must be gate-ready\");",
+          "symbol": "structureReadinessContract",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "check(\"machine-readable readiness contract is complete\", () => {",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 70,
-          "contextSha256": "1b5cad48f83b2eb88b1dd134955a15ce9e2466c1dd3439829a9cc22057adc8f7"
+          "line": 62,
+          "contextSha256": "cbbfc6f5d2a890ef4aee0d76b7b812b942b2f3bfce4ccc819d0b967e543d4baa"
         },
         "route": {
           "applicability": "not-applicable",
@@ -170031,37 +170031,37 @@
         },
         "actionHandler": {
           "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-          "symbol": "check:machine-readable readiness contract is complete",
-          "symbolKind": "function-or-method",
-          "anchor": "assert(fixture.status === \"gate-ready\", \"readiness status must be gate-ready\");",
+          "symbol": "preservedContractHardGate",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "assert(contract.changeAllowed === false, `${contract.id}: behavior change must remain forbidden`);",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 70,
-          "contextSha256": "1b5cad48f83b2eb88b1dd134955a15ce9e2466c1dd3439829a9cc22057adc8f7"
+          "line": 83,
+          "contextSha256": "edfc504c2638c3664fcead876c05f6a5fbf8dda17837e5bbba744acfa40aff8c"
         },
         "stateOracle": {
           "oracleKind": "negative-invariant-state",
-          "expectedBehaviorSha256": "9c24e2c03e89bf8f6e7e0683490f564581396c880f2cf21d659e80d2ee9bc1ab",
-          "expectedBehavior": "`verify-v390-structure-stabilization-readiness`가 actual 148-file/declared 74·default active 73 cpp/9-owner/single-target graph, 25 target-violation direction, 8-owner SCC와 6 slice binding을 고정하고 truthfulness gate가 implementation `not-executed`를 유지합니다. 새 edge/SCC/target drift를 거부하며 9개 contract는 `changeAllowed=false`입니다",
+          "expectedBehaviorSha256": "344af858ec75269ae5ecb9cbc3368c3aefb4f742b284267f3d9ac2e02d36cfc3",
+          "expectedBehavior": "`verify-v390-structure-stabilization-readiness`가 actual 148-file/declared 74·default active 73 cpp/9-owner/single-target graph, 25 target-violation direction, 8-owner SCC와 6 slice binding을 고정하고 REVIEW4-51 approval과 implementation `not-executed`를 분리합니다. 새 edge/SCC/target drift를 거부하며 9개 contract는 `changeAllowed=false`입니다",
           "locator": {
             "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-            "symbol": "check:machine-readable readiness contract is complete",
-            "symbolKind": "function-or-method",
-            "anchor": "assert(fixture.status === \"gate-ready\", \"readiness status must be gate-ready\");",
+            "symbol": "approvedScheduledState",
+            "symbolKind": "reviewed-owner-or-readback",
+            "anchor": "assert(fixture.status === \"approved-scheduled-after-review4-50-63\", \"readiness approval status mismatch\");",
             "anchorKind": "reviewed-source-line",
             "anchorStrength": "feature-specific-source-line",
             "occurrence": 0,
-            "line": 70,
-            "contextSha256": "1b5cad48f83b2eb88b1dd134955a15ce9e2466c1dd3439829a9cc22057adc8f7"
+            "line": 71,
+            "contextSha256": "8c3cc8fe75cdaf7e5d27df2e4b96f71e46089b6d0e62b5e1fcbfcc7f845dbc34"
           }
         },
         "relation": {
           "kind": "invariant-owner-assertion-state",
-          "handlerSymbol": "check:machine-readable readiness contract is complete",
-          "actionSymbol": "check:machine-readable readiness contract is complete",
-          "stateSymbol": "check:machine-readable readiness contract is complete",
-          "semanticKey": "SAFE-215:9c24e2c03e89bf8f6e7e0683"
+          "handlerSymbol": "structureReadinessContract",
+          "actionSymbol": "preservedContractHardGate",
+          "stateSymbol": "approvedScheduledState",
+          "semanticKey": "SAFE-215:344af858ec75269ae5ecb9cb"
         },
         "verifierAssertion": {
           "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
@@ -170069,101 +170069,101 @@
           "assertionKind": "reviewed-owner-route-control-action-state-readback-chain",
           "assertionAnchor": "validateReview3CallChain",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "53d1fc417fa4d472deeb463f39edc4098ad81228eaf8a373b34cd85070ed5385"
+          "assertedSemanticDigest": "357eb3b40e50d18051206145d9a499e34ba91d47fb9b5cb16dcc9a1f013eba73"
         },
         "callChain": {
           "schema": "media-server.feature-reviewed-call-chain.v1",
           "roles": {
             "owner": {
               "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-              "symbol": "check:machine-readable readiness contract is complete",
-              "symbolKind": "function-or-method",
-              "anchor": "assert(fixture.status === \"gate-ready\", \"readiness status must be gate-ready\");",
+              "symbol": "structureReadinessContract",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "check(\"machine-readable readiness contract is complete\", () => {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 70,
-              "contextSha256": "1b5cad48f83b2eb88b1dd134955a15ce9e2466c1dd3439829a9cc22057adc8f7"
+              "line": 62,
+              "contextSha256": "cbbfc6f5d2a890ef4aee0d76b7b812b942b2f3bfce4ccc819d0b967e543d4baa"
             },
             "routeControl": {
               "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-              "symbol": "check:machine-readable readiness contract is complete",
-              "symbolKind": "function-or-method",
-              "anchor": "assert(fixture.status === \"gate-ready\", \"readiness status must be gate-ready\");",
+              "symbol": "expectedContracts",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "const expectedContracts = [",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 70,
-              "contextSha256": "1b5cad48f83b2eb88b1dd134955a15ce9e2466c1dd3439829a9cc22057adc8f7"
+              "line": 39,
+              "contextSha256": "c1bc1db15b66957bb8b7daa7811980c2dbe96a8877ffe8aaddf653951f358a01"
             },
             "action": {
               "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-              "symbol": "check:machine-readable readiness contract is complete",
-              "symbolKind": "function-or-method",
-              "anchor": "assert(fixture.status === \"gate-ready\", \"readiness status must be gate-ready\");",
+              "symbol": "preservedContractHardGate",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "assert(contract.changeAllowed === false, `${contract.id}: behavior change must remain forbidden`);",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 70,
-              "contextSha256": "1b5cad48f83b2eb88b1dd134955a15ce9e2466c1dd3439829a9cc22057adc8f7"
+              "line": 83,
+              "contextSha256": "edfc504c2638c3664fcead876c05f6a5fbf8dda17837e5bbba744acfa40aff8c"
             },
             "state": {
               "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-              "symbol": "check:machine-readable readiness contract is complete",
-              "symbolKind": "function-or-method",
-              "anchor": "assert(fixture.status === \"gate-ready\", \"readiness status must be gate-ready\");",
+              "symbol": "approvedScheduledState",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "assert(fixture.status === \"approved-scheduled-after-review4-50-63\", \"readiness approval status mismatch\");",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 70,
-              "contextSha256": "1b5cad48f83b2eb88b1dd134955a15ce9e2466c1dd3439829a9cc22057adc8f7"
+              "line": 71,
+              "contextSha256": "8c3cc8fe75cdaf7e5d27df2e4b96f71e46089b6d0e62b5e1fcbfcc7f845dbc34"
             },
             "readback": {
-              "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-              "symbol": "verifier:verify-v390-structure-stabilization-readiness",
+              "file": "scripts/internal/verify_v390_review4_structure_scope_decision.mjs",
+              "symbol": "review4PreservedContractReadback",
               "symbolKind": "reviewed-owner-or-readback",
-              "anchor": "assert(fixture.status === \"gate-ready\", \"readiness status must be gate-ready\");",
+              "anchor": "check(\"50..63, six slices, preserved contracts, and final acceptance order are fixed\", () => {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 70,
-              "contextSha256": "1b5cad48f83b2eb88b1dd134955a15ce9e2466c1dd3439829a9cc22057adc8f7"
+              "line": 82,
+              "contextSha256": "459840e3d468da9f2c989503b2b338de865e57fc355d5a2bb1edfb591aaf9d82"
             }
           },
-          "routeControlKind": "owner-boundary",
+          "routeControlKind": "approved-refactor-contract-preservation-boundary",
           "edges": [
             {
               "from": "owner",
               "to": "routeControl",
-              "relationKind": "owner-boundary",
-              "digest": "1eb87bd34a3c7328a4af493eae026cace5305b64273c0ca6511dbe0078b7bd3c"
+              "relationKind": "approved-refactor-contract-preservation-boundary",
+              "digest": "f3c4aeaba321214126d236da68846e9d663d4ebd13e04dccd3516ded09a697cf"
             },
             {
               "from": "routeControl",
               "to": "action",
               "relationKind": "reviewed-dispatch-or-control-flow",
-              "digest": "b94cecb145573fb07c0bb58594f6ad08c2ccbf98350d93a024ff116084895b33"
+              "digest": "be6e5255fe3e22fa297de03114672f5e6292199c99dcc6a8cb0e1efa88681d91"
             },
             {
               "from": "action",
               "to": "state",
               "relationKind": "reviewed-mutation-readmodel-flow",
-              "digest": "0fee0fa18a581014e66629a1012d9b6dabbbd4f0b2f592fe597c7d2463351115"
+              "digest": "4ee1ccb20df8890fda0e2f279f5eaeeb6bd05625ef0b61c239eb481846c732e0"
             },
             {
               "from": "state",
               "to": "readback",
               "relationKind": "exact-readback-assertion",
-              "digest": "c11f3edac016fb4ddcf9c72afffa1cabe8d9877fd0dc1c3200c23d1141f8ca8d"
+              "digest": "5ef47cfe0b5a6e8f0b1de8be1205e8ce4fe078a54d42d1c1348f109aa54fa435"
             },
             {
               "from": "readback",
               "to": "verifierAssertion",
               "relationKind": "exact-verifier-command",
-              "digest": "b255b18a12e703f1497141acddb7dfcb4966feaaefb62bd90785b411318425ea"
+              "digest": "7fd4e8451fc48617a13535cf26b58342f010d3e19575273a11fbfd9be2d3b10f"
             }
           ],
-          "digest": "2364fd7037ee64132327bc9702086608918ee1e94a935899c2b51d1905cd9f4f"
+          "digest": "a6f33b804590a2116da68723de9edd546d3468eb468cddeca924da4d5b830dbc"
         }
       }
     },
@@ -199801,22 +199801,22 @@
       "status": "semantic-reviewed",
       "review": {
         "decision": "approved",
-        "reviewer": "Codex-V390-REVIEW3-37",
+        "reviewer": "Codex-V390-REVIEW4-51",
         "reviewedOn": "2026-07-12",
-        "reason": "V390-REVIEW3-37:OPS-182:V390 structure stabilization readiness gate:owner=check:roadmap and evidence expose Development 17 readiness without refactor overclaim:routeControl=check:roadmap and evidence expose Development 17 readiness without refactor overclaim:action=check:roadmap and evidence expose Development 17 readiness without refactor overclaim:state=check:roadmap and evidence expose Development 17 readiness without refactor overclaim:readback=verifier:verify-v390-structure-stabilization-readiness:chain=56b6475f37d7f448",
-        "semanticDigest": "f9df745c45291669a3085ee3f6274e4d29ae6a1de1fbc4f5e4d63fc4994c2c8b"
+        "reason": "V390-REVIEW4-51:OPS-182:V390 structure stabilization readiness gate:owner=review4StructureScopeDecision:routeControl=review4ExecutionBase:action=review4RiskAcceptance:state=review4ReadinessState:readback=review4DecisionNegativeContract:chain=a40f26d3fce2ea94",
+        "semanticDigest": "41feb2b8d45e7b3a8881d198b5b9455944c42e6a7a0b4e82d7504d21af8b195a"
       },
       "sourceEvidence": {
-        "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-        "anchor": "[\"stream\", stream, [\"Development 17\", command, \"gate-ready\", \"not-executed\"]],",
+        "file": "scripts/internal/verify_v390_review4_structure_scope_decision.mjs",
+        "anchor": "check(\"latest user decision selects v3.9 execution and disables v4 transfer\", () => {",
         "anchorKind": "reviewed-owner-source-line"
       },
       "uiEvidence": null,
       "verifierEvidence": {
-        "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-        "anchor": "gate-ready",
-        "anchorKind": "identifier",
-        "command": "verify-v390-structure-stabilization-readiness"
+        "file": "scripts/internal/verify_v390_review4_structure_scope_decision.mjs",
+        "anchor": "latest user decision selects v3.9 execution and disables v4 transfer",
+        "anchorKind": "review4-scope-decision-contract",
+        "command": "verify-v390-review4-structure-scope-decision"
       },
       "manualUiCaseId": null,
       "longrunEvidence": {
@@ -199827,15 +199827,15 @@
       "semanticEvidence": {
         "schema": "media-server.feature-semantic-implementation-closure.v2",
         "handler": {
-          "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-          "symbol": "check:roadmap and evidence expose Development 17 readiness without refactor overclaim",
-          "symbolKind": "declaration-or-file-scope",
-          "anchor": "[\"stream\", stream, [\"Development 17\", command, \"gate-ready\", \"not-executed\"]],",
+          "file": "scripts/internal/verify_v390_review4_structure_scope_decision.mjs",
+          "symbol": "review4StructureScopeDecision",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "check(\"latest user decision selects v3.9 execution and disables v4 transfer\", () => {",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 212,
-          "contextSha256": "3d76e0abe9c0f04719b9b3a4a174c9c12a5f2fb73c94aa1909826604a3212b7f"
+          "line": 46,
+          "contextSha256": "6f5b51222b89255443f8571c5e3edfa0aedd38c825fc04464cafc4a915dc55f9"
         },
         "route": {
           "applicability": "not-applicable",
@@ -199848,38 +199848,38 @@
           "reason": "feature is outside the UI fulltest area"
         },
         "actionHandler": {
-          "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-          "symbol": "check:roadmap and evidence expose Development 17 readiness without refactor overclaim",
-          "symbolKind": "declaration-or-file-scope",
-          "anchor": "[\"stream\", stream, [\"Development 17\", command, \"gate-ready\", \"not-executed\"]],",
+          "file": "scripts/internal/verify_v390_review4_structure_scope_decision.mjs",
+          "symbol": "review4RiskAcceptance",
+          "symbolKind": "reviewed-owner-or-readback",
+          "anchor": "check(\"actual high-risk graph is bound without pretending threshold compliance\", () => {",
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 212,
-          "contextSha256": "3d76e0abe9c0f04719b9b3a4a174c9c12a5f2fb73c94aa1909826604a3212b7f"
+          "line": 68,
+          "contextSha256": "e3adee66fd740ad99fc5b16bf2fc26fbef0ee0edefc0e48ec1ee5b8534198c58"
         },
         "stateOracle": {
           "oracleKind": "create-readback-state",
-          "expectedBehaviorSha256": "c7179aafe87c6c5eb1d22b095ca433cfed81947c468d693e77c3b15facafc0a3",
-          "expectedBehavior": "`verify-v390-structure-stabilization-readiness`와 actual graph fixture가 148개 file owner, CMake target/link, include witness hash, forbidden direction, SCC, slice entry/exit를 대조합니다. Readiness는 `gate-ready`, implementation은 `not-executed`이며 v4.0 branch/source extraction/UI/longrun/release PASS가 아닙니다",
+          "expectedBehaviorSha256": "887f82143c80d7e7b62cec4e4e9da51e231c50e4b1dd390d6cdc5c1879572078",
+          "expectedBehavior": "`verify-v390-structure-stabilization-readiness`와 REVIEW4-51 decision fixture가 actual graph, current v3.9.0 base/branch, 50~63 prerequisite, forbidden direction, SCC, 9 preserved contract와 6 slice를 대조합니다. Status는 `approved-scheduled-after-review4-50-63`, implementation은 `not-executed`이며 REVIEW4-64/65 PASS가 아닙니다",
           "locator": {
-            "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-            "symbol": "check:roadmap and evidence expose Development 17 readiness without refactor overclaim",
-            "symbolKind": "declaration-or-file-scope",
-            "anchor": "[\"stream\", stream, [\"Development 17\", command, \"gate-ready\", \"not-executed\"]],",
+            "file": "scripts/internal/verify_v390_review4_structure_scope_decision.mjs",
+            "symbol": "review4ReadinessState",
+            "symbolKind": "reviewed-owner-or-readback",
+            "anchor": "check(\"readiness and decision sources expose the same approved but not-executed state\", () => {",
             "anchorKind": "reviewed-source-line",
             "anchorStrength": "feature-specific-source-line",
             "occurrence": 0,
-            "line": 212,
-            "contextSha256": "3d76e0abe9c0f04719b9b3a4a174c9c12a5f2fb73c94aa1909826604a3212b7f"
+            "line": 95,
+            "contextSha256": "ac198247699c5f0847baf86312385613f198720395c75c9217c839ec35ab0a68"
           }
         },
         "relation": {
           "kind": "ops-gate-dispatch-assertion-state",
-          "handlerSymbol": "check:roadmap and evidence expose Development 17 readiness without refactor overclaim",
-          "actionSymbol": "check:roadmap and evidence expose Development 17 readiness without refactor overclaim",
-          "stateSymbol": "check:roadmap and evidence expose Development 17 readiness without refactor overclaim",
-          "semanticKey": "OPS-182:c7179aafe87c6c5eb1d22b09"
+          "handlerSymbol": "review4StructureScopeDecision",
+          "actionSymbol": "review4RiskAcceptance",
+          "stateSymbol": "review4ReadinessState",
+          "semanticKey": "OPS-182:887f82143c80d7e7b62cec4e"
         },
         "verifierAssertion": {
           "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
@@ -199887,101 +199887,101 @@
           "assertionKind": "reviewed-owner-route-control-action-state-readback-chain",
           "assertionAnchor": "validateReview3CallChain",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "f9df745c45291669a3085ee3f6274e4d29ae6a1de1fbc4f5e4d63fc4994c2c8b"
+          "assertedSemanticDigest": "41feb2b8d45e7b3a8881d198b5b9455944c42e6a7a0b4e82d7504d21af8b195a"
         },
         "callChain": {
           "schema": "media-server.feature-reviewed-call-chain.v1",
           "roles": {
             "owner": {
-              "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-              "symbol": "check:roadmap and evidence expose Development 17 readiness without refactor overclaim",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "[\"stream\", stream, [\"Development 17\", command, \"gate-ready\", \"not-executed\"]],",
+              "file": "scripts/internal/verify_v390_review4_structure_scope_decision.mjs",
+              "symbol": "review4StructureScopeDecision",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "check(\"latest user decision selects v3.9 execution and disables v4 transfer\", () => {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 212,
-              "contextSha256": "3d76e0abe9c0f04719b9b3a4a174c9c12a5f2fb73c94aa1909826604a3212b7f"
+              "line": 46,
+              "contextSha256": "6f5b51222b89255443f8571c5e3edfa0aedd38c825fc04464cafc4a915dc55f9"
             },
             "routeControl": {
-              "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-              "symbol": "check:roadmap and evidence expose Development 17 readiness without refactor overclaim",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "[\"stream\", stream, [\"Development 17\", command, \"gate-ready\", \"not-executed\"]],",
+              "file": "scripts/internal/verify_v390_review4_structure_scope_decision.mjs",
+              "symbol": "review4ExecutionBase",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "check(\"base commit and current v3.9 branch boundary are exact\", () => {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 212,
-              "contextSha256": "3d76e0abe9c0f04719b9b3a4a174c9c12a5f2fb73c94aa1909826604a3212b7f"
+              "line": 59,
+              "contextSha256": "3bd4bf4de49ed2fc5ea152718a5893e52e9f5e845dfaf074b01b567e9f7ed136"
             },
             "action": {
-              "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-              "symbol": "check:roadmap and evidence expose Development 17 readiness without refactor overclaim",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "[\"stream\", stream, [\"Development 17\", command, \"gate-ready\", \"not-executed\"]],",
+              "file": "scripts/internal/verify_v390_review4_structure_scope_decision.mjs",
+              "symbol": "review4RiskAcceptance",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "check(\"actual high-risk graph is bound without pretending threshold compliance\", () => {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 212,
-              "contextSha256": "3d76e0abe9c0f04719b9b3a4a174c9c12a5f2fb73c94aa1909826604a3212b7f"
+              "line": 68,
+              "contextSha256": "e3adee66fd740ad99fc5b16bf2fc26fbef0ee0edefc0e48ec1ee5b8534198c58"
             },
             "state": {
-              "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-              "symbol": "check:roadmap and evidence expose Development 17 readiness without refactor overclaim",
-              "symbolKind": "declaration-or-file-scope",
-              "anchor": "[\"stream\", stream, [\"Development 17\", command, \"gate-ready\", \"not-executed\"]],",
+              "file": "scripts/internal/verify_v390_review4_structure_scope_decision.mjs",
+              "symbol": "review4ReadinessState",
+              "symbolKind": "reviewed-owner-or-readback",
+              "anchor": "check(\"readiness and decision sources expose the same approved but not-executed state\", () => {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 212,
-              "contextSha256": "3d76e0abe9c0f04719b9b3a4a174c9c12a5f2fb73c94aa1909826604a3212b7f"
+              "line": 95,
+              "contextSha256": "ac198247699c5f0847baf86312385613f198720395c75c9217c839ec35ab0a68"
             },
             "readback": {
-              "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
-              "symbol": "verifier:verify-v390-structure-stabilization-readiness",
+              "file": "scripts/internal/verify_v390_review4_structure_scope_decision.mjs",
+              "symbol": "review4DecisionNegativeContract",
               "symbolKind": "reviewed-owner-or-readback",
-              "anchor": "assert(fixture.status === \"gate-ready\", \"readiness status must be gate-ready\");",
+              "anchor": "check(\"negative decision mutations are rejected\", () => {",
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 70,
-              "contextSha256": "1b5cad48f83b2eb88b1dd134955a15ce9e2466c1dd3439829a9cc22057adc8f7"
+              "line": 111,
+              "contextSha256": "36948d8bdd9e88af85f8eb75cb544b3e9d873e4df5f9f0878125c5a06976ee1b"
             }
           },
-          "routeControlKind": "owner-boundary",
+          "routeControlKind": "current-v390-refactor-approval-and-readiness-gate",
           "edges": [
             {
               "from": "owner",
               "to": "routeControl",
-              "relationKind": "owner-boundary",
-              "digest": "210b8b0a26dafae1fe1a93f98657348dd7e6bd099a84396a7db043d46b9c97fc"
+              "relationKind": "current-v390-refactor-approval-and-readiness-gate",
+              "digest": "72645d46ba91c9dbc7549f5b5b6a4473727bff2d627d78d1a573ad09eb145d3a"
             },
             {
               "from": "routeControl",
               "to": "action",
               "relationKind": "reviewed-dispatch-or-control-flow",
-              "digest": "066b88c7c10041a73a41ea4979cfc6417c1810734241ec793c8072dc3da67945"
+              "digest": "938bdd2e77768e161e51754ce2855059220b93211bf794b4ef28dcf8b85a24c5"
             },
             {
               "from": "action",
               "to": "state",
               "relationKind": "reviewed-mutation-readmodel-flow",
-              "digest": "49c8a855841282d06a019866a55c3f088ac7a54ba4c129ee918f14a34ce2d212"
+              "digest": "fe0504842fdbaf87354d5755cf4f57a2fcb06814b3a931d61ade8a3eb6d8ac60"
             },
             {
               "from": "state",
               "to": "readback",
               "relationKind": "exact-readback-assertion",
-              "digest": "b597423f7b187ea679cebd73e80c6761cb9402bad0ee5825da4ec9251ea50383"
+              "digest": "48c5bd1e9159bd73612bcb10482f48a8b2d5f72a992080dabdc595fbd934852b"
             },
             {
               "from": "readback",
               "to": "verifierAssertion",
               "relationKind": "exact-verifier-command",
-              "digest": "b255b18a12e703f1497141acddb7dfcb4966feaaefb62bd90785b411318425ea"
+              "digest": "b3ebf30c77fe2fa0798960723a86e8ec287f926941d8d0ac9857d325190fef75"
             }
           ],
-          "digest": "56b6475f37d7f44858242bdf5f374510c6c7dfef02ea50685e8b330e47300c2a"
+          "digest": "a40f26d3fce2ea944846e198e6a58c64bcbcf7ded79eef9a5cc22d1506b70097"
         }
       }
     },

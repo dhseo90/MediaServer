@@ -20,12 +20,12 @@ Usage:
   ./server.sh verify-v390-structure-stabilization-readiness
 
 Checks:
-  - v4.0.0 execution branch/base/approval entry conditions
+  - v3.9.0 current branch/base/user approval and REVIEW4-50..63 entry conditions
   - module mayDependOn and allowed directions are exact and complete
   - actual src/include include graph and CMake source graph reject new forbidden edges/cycles
   - preserved route/schema/media/auth/registry/UI contracts
   - fixed slice order, entry/exit gates, stop conditions
-  - current v3.9.0 step does not execute the refactor
+  - REVIEW4-51 authorizes but does not execute the REVIEW4-64 refactor
 `);
 }
 
@@ -63,15 +63,15 @@ check("machine-readable readiness contract is complete", () => {
   const server = read("server.sh");
   assert(fixture.schema === "media-server.v390-structure-stabilization-readiness.v2", "unexpected readiness schema");
   assert(fixture.sourceRelease === "v3.9.0", "source release must be v3.9.0");
-  assert(fixture.executionRelease === "v4.0.0", "execution release must be v4.0.0");
-  assert(fixture.executionBranch === "v4.0.0", "execution branch must be v4.0.0");
-  assert(fixture.currentStepRefactorExecuted === false, "current v3.9 step must not execute refactor");
-  assert(fixture.branchCreationPerformed === false, "readiness step must not create a branch");
+  assert(fixture.executionRelease === "v3.9.0", "execution release must be v3.9.0");
+  assert(fixture.executionBranch === "v3.9.0", "execution branch must be v3.9.0");
+  assert(fixture.currentStepRefactorExecuted === false, "REVIEW4-51 must not claim refactor execution");
+  assert(fixture.branchCreationPerformed === false, "current-branch decision must not create a branch");
   assert(fixture.recordKind === "refactor-readiness-gate", "record kind must be refactor-readiness-gate");
-  assert(fixture.status === "gate-ready", "readiness status must be gate-ready");
+  assert(fixture.status === "approved-scheduled-after-review4-50-63", "readiness approval status mismatch");
   assert(fixture.implementationStatus === "not-executed", "refactor implementation must remain not-executed");
-  assert(fixture.evidenceStatus === "gate-contract-not-refactor-evidence", "readiness evidence status mismatch");
-  assert(fixture.requiredApproval === "explicit-structure-refactor-start", "explicit start approval is required");
+  assert(fixture.evidenceStatus === "approved-decision-contract-not-refactor-evidence", "readiness evidence status mismatch");
+  assert(fixture.requiredApproval === "approved-by-latest-user-instruction", "latest user approval is required");
   assert(Array.isArray(fixture.baseRequirements) && fixture.baseRequirements.length >= 4, "base requirements are incomplete");
   assert(Array.isArray(fixture.moduleBoundaries) && fixture.moduleBoundaries.length >= 9, "module boundaries are incomplete");
   assert(Array.isArray(fixture.allowedDependencyDirections) && fixture.allowedDependencyDirections.length >= 10, "allowed dependency directions are incomplete");
@@ -175,21 +175,26 @@ check("graph validator rejects a new forbidden include edge and a new cycle", ()
   "synthetic CMake link edge negative must be detected");
 });
 
-check("actual graph-backed structure execution scope decision is frozen", () => {
+check("actual graph-backed REVIEW4-51 v3.9 execution decision is frozen", () => {
   assert(fs.existsSync(path.join(rootDir, scopeDecisionPath)), "structure execution scope decision fixture missing");
   const decision = JSON.parse(read(scopeDecisionPath));
-  assert(decision.schema === "media-server.v390-structure-execution-scope-decision.v1",
+  assert(decision.schema === "media-server.v390-structure-execution-scope-decision.v2",
     "structure execution scope decision schema mismatch");
   assert(fixture.executionScopeDecision?.path === scopeDecisionPath &&
     fixture.executionScopeDecision?.schema === decision.schema,
   "readiness/decision source binding mismatch");
-  assert(decision.decision === "defer-actual-refactor-to-v4.0.0" &&
+  assert(decision.decision === "execute-actual-refactor-in-v3.9.0-after-review4-50-63" &&
     fixture.executionScopeDecision.decision === decision.decision,
   "structure execution release decision mismatch");
-  assert(decision.status === "decision-recorded-deferred" && decision.implementationStatus === "not-executed",
+  assert(decision.status === "approved-scheduled" && decision.implementationStatus === "not-executed",
     "structure decision status overclaims implementation");
-  assert(decision.branchCreationPerformed === false && fixture.branchCreationPerformed === false,
-    "structure decision must not create the v4 branch");
+  assert(decision.approval?.approved === true && decision.approval?.source === "latest-user-instruction",
+    "latest explicit user approval missing");
+  assert(decision.approval?.v400TransferAllowed === false, "v4.0 transfer must be disabled");
+  assert(decision.executionBase?.commit === "027678bab9ef75f809c1aeac2061d785c5f6f8b2" &&
+    decision.executionBase?.branch === "v3.9.0" && decision.executionBase?.newBranchRequired === false &&
+    decision.executionBase?.branchCreationPerformed === false && fixture.branchCreationPerformed === false,
+  "current v3.9 base/branch boundary mismatch");
   assert(decision.actualGraph?.path === fixture.actualGraphEvidence.path &&
     decision.actualGraph?.schema === actualGraphFixture.schema,
   "decision actual graph path/schema mismatch");
@@ -209,40 +214,36 @@ check("actual graph-backed structure execution scope decision is frozen", () => 
     decision.actualGraph.webrtcHttpServerLines === mixedByFile.get("src/ingress/webrtc_http_server.cpp") &&
     decision.actualGraph.productUiPageScriptsLines === mixedByFile.get("src/ingress/product_ui_page_scripts.cpp"),
   "decision actual graph metrics mismatch");
-  assert(decision.decisionFactors?.length === 4 && decision.decisionFactors.every(item => item.result === "defer"),
-    "all high-risk structure factors must select defer");
-  assert(violations > decision.decisionThresholds.maxTargetViolationDirectionsForReleaseLineRefactor,
-    "target violation threshold does not justify deferral");
-  assert(largestScc > decision.decisionThresholds.maxSccOwnersForReleaseLineRefactor,
-    "SCC threshold does not justify deferral");
-  assert(decision.actualGraph.webrtcHttpServerLines >
-    decision.decisionThresholds.maxMixedOwnerFileLinesForReleaseLineRefactor,
-  "mixed-owner file threshold does not justify deferral");
-  assert(actualGraphFixture.cmake.internalTargetSeparation === false &&
-    decision.decisionThresholds.requireSeparatedInternalTargets === true,
-  "single-target structure risk is not recorded");
-  assert(decision.v390Scope?.mode === "graph-guard-decision-only" &&
-    fixture.executionScopeDecision.v390Mode === decision.v390Scope.mode,
+  assert(decision.riskRecord?.acceptedDespiteReleaseLineThresholds === true &&
+    decision.riskRecord?.actualFactors?.length === 4 &&
+    decision.riskRecord.actualFactors.every(item => item.result === "approved-with-hard-gates"),
+  "high-risk explicit acceptance record mismatch");
+  assert(violations > decision.riskRecord.baselineThresholds.maxTargetViolationDirections &&
+    largestScc > decision.riskRecord.baselineThresholds.maxSccOwners &&
+    decision.actualGraph.webrtcHttpServerLines > decision.riskRecord.baselineThresholds.maxMixedOwnerFileLines &&
+    actualGraphFixture.cmake.internalTargetSeparation === false,
+  "accepted high-risk graph factors are not bound to actual evidence");
+  assert(decision.v390Execution?.mode === "approved-actual-refactor-after-review4-50-63" &&
+    fixture.executionScopeDecision.v390Mode === decision.v390Execution.mode,
   "v3.9 structure scope mode mismatch");
-  for (const forbidden of [
-    "production source extraction or ownership move",
-    "CMake internal target split",
-    "legacy dependency edge removal",
-    "route/API/UI handler relocation",
-    "v4.0.0 branch creation without explicit approval",
-  ]) assert(decision.v390Scope.forbidden.includes(forbidden), `v3.9 forbidden scope missing: ${forbidden}`);
-  assert(decision.v400Execution?.release === "v4.0.0" &&
-    decision.v400Execution?.requiredApproval === "explicit-structure-refactor-start-and-branch-creation",
-  "v4.0 execution authority mismatch");
-  assert(JSON.stringify(decision.v400Execution.orderedSlices) === JSON.stringify(expectedSlices),
-    "v4.0 execution slice order mismatch");
-  for (const [label, text] of [
-    ["backlog", read("docs/development-backlog.md")],
-    ["records", read("docs/release-test-records.md")],
-    ["evidence", read("docs/release-evidence-index.md")],
-    ["stream", read("docs/stream-verification.md")],
+  assert(decision.v390Execution?.release === "v3.9.0" && decision.v390Execution?.branch === "v3.9.0",
+    "v3.9 execution release/branch mismatch");
+  assert(JSON.stringify(decision.v390Execution.orderedSlices) === JSON.stringify(expectedSlices),
+    "v3.9 execution slice order mismatch");
+  assert(decision.v390Execution.entryConditions.some(item => item.includes("REVIEW4-50 through V390-REVIEW4-63")),
+    "50..63 prerequisite missing");
+  assert(JSON.stringify(decision.preservedContractIds) === JSON.stringify(expectedContracts),
+    "decision preserved contract order/set mismatch");
+  assert(decision.finalAcceptance?.id === "V390-REVIEW4-65" &&
+    decision.finalAcceptance?.approved === true && decision.finalAcceptance?.runAfterRefactor === true,
+  "post-refactor final acceptance approval mismatch");
+  for (const [label, text, snippets] of [
+    ["backlog", read("docs/development-backlog.md"), ["V390-REVIEW4-51", "current `v3.9.0` branch", "64 뒤 65 acceptance"]],
+    ["records", read("docs/release-test-records.md"), ["V390-REVIEW4-51", "base `027678ba`", "64 후 65 acceptance"]],
+    ["evidence", read("docs/release-evidence-index.md"), ["V390-REVIEW4-51", "approved-actual-refactor-after-review4-50-63", "V390-REVIEW4-65"]],
+    ["stream", read("docs/stream-verification.md"), ["V390-REVIEW4-51", "approved-actual-refactor-after-review4-50-63", "V390-REVIEW4-65"]],
   ]) {
-    for (const snippet of ["V390-REVIEW3-49", "graph-guard-decision-only", "v4.0.0"]) {
+    for (const snippet of snippets) {
       assert(text.includes(snippet), `${label} missing structure decision snippet: ${snippet}`);
     }
   }
@@ -252,7 +253,7 @@ check("handoff plan fixes branch, module, dependency, contract, and slice readin
   const plan = read(planPath);
   for (const snippet of [
     "## Development 17 Structure Stabilization Readiness",
-    "Execution branch: `v4.0.0`",
+    "Execution branch: `v3.9.0`",
     "Current v3.9 refactor execution: `not-run`",
     "Branch creation: `not-performed`",
     "## Module Boundary and Dependency Direction",
@@ -260,10 +261,10 @@ check("handoff plan fixes branch, module, dependency, contract, and slice readin
     "test/fixtures/v390_actual_module_dependency_graph.json",
     "target architecture 위반 direction",
     "8-owner 1개",
-    "## Structure execution scope decision (V390-REVIEW3-49)",
-    "defer-actual-refactor-to-v4.0.0",
-    "graph-guard-decision-only",
-    "explicit-structure-refactor-start-and-branch-creation",
+    "## Structure execution scope decision (V390-REVIEW4-51)",
+    "execute-actual-refactor-in-v3.9.0-after-review4-50-63",
+    "approved-actual-refactor-after-review4-50-63",
+    "approved-by-latest-user-instruction",
     "analysis/core/media -> ingress/product UI 의존 금지",
     "## Contract Preservation Matrix",
     ...expectedContracts.map(id => `\`${id}\``),
@@ -287,7 +288,7 @@ check("roadmap and evidence expose Development 17 readiness without refactor ove
     ["inventory", inventory, ["SAFE-215", "OPS-182", command]],
     ["records", records, ["V390 Structure Stabilization Readiness", "Development 17 structure readiness final", "Development 17 실제 refactor/UI/longrun"]],
     ["evidence", evidence, ["Development 17 structure stabilization readiness", "SAFE-215", "OPS-182"]],
-    ["stream", stream, ["Development 17", command, "gate-ready", "not-executed"]],
+    ["stream", stream, ["Development 17", command, "approved-scheduled-after-review4-50-63", "not-executed"]],
   ]) {
     for (const snippet of snippets) assert(text.includes(snippet), `${label} missing snippet: ${snippet}`);
   }
@@ -302,9 +303,9 @@ check("server dispatch exposes the readiness verifier", () => {
 const failed = checks.filter(item => !item.ok);
 for (const item of checks) console.log(`[${item.ok ? "pass" : "fail"}] ${item.name}${item.error ? `: ${item.error}` : ""}`);
 console.log("\n== v3.9.0 structure stabilization readiness ==");
-console.log("- executionBranch: v4.0.0");
+console.log("- executionBranch: v3.9.0");
 console.log("- currentStepRefactorExecuted: false");
-console.log("- status: gate-ready");
+console.log("- status: approved-scheduled-after-review4-50-63");
 console.log("- implementationStatus: not-executed");
 console.log("- preservedContracts: 9");
 console.log("- orderedSlices: 6");

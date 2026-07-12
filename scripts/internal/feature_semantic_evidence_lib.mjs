@@ -802,6 +802,44 @@ function review3Override(rootDir, row, item) {
       },
     };
   }
+  if (row.id === "SAFE-215") {
+    return {
+      reviewStep: "V390-REVIEW4-51",
+      routeControlKind: "approved-refactor-contract-preservation-boundary",
+      verifierEvidence: {
+        file: "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
+        anchor: "approved-scheduled-after-review4-50-63",
+        anchorKind: "review4-structure-readiness-status",
+        command: "verify-v390-structure-stabilization-readiness",
+      },
+      roles: {
+        owner: locatorFromToken(rootDir, "scripts/internal/verify_v390_structure_stabilization_readiness.mjs", 'check("machine-readable readiness contract is complete", () => {', "structureReadinessContract"),
+        routeControl: locatorFromToken(rootDir, "scripts/internal/verify_v390_structure_stabilization_readiness.mjs", 'const expectedContracts = [', "expectedContracts"),
+        action: locatorFromToken(rootDir, "scripts/internal/verify_v390_structure_stabilization_readiness.mjs", 'assert(contract.changeAllowed === false', "preservedContractHardGate"),
+        state: locatorFromToken(rootDir, "scripts/internal/verify_v390_structure_stabilization_readiness.mjs", 'assert(fixture.status === "approved-scheduled-after-review4-50-63"', "approvedScheduledState"),
+        readback: locatorFromToken(rootDir, "scripts/internal/verify_v390_review4_structure_scope_decision.mjs", 'check("50..63, six slices, preserved contracts, and final acceptance order are fixed", () => {', "review4PreservedContractReadback"),
+      },
+    };
+  }
+  if (row.id === "OPS-182") {
+    return {
+      reviewStep: "V390-REVIEW4-51",
+      routeControlKind: "current-v390-refactor-approval-and-readiness-gate",
+      verifierEvidence: {
+        file: "scripts/internal/verify_v390_review4_structure_scope_decision.mjs",
+        anchor: "latest user decision selects v3.9 execution and disables v4 transfer",
+        anchorKind: "review4-scope-decision-contract",
+        command: "verify-v390-review4-structure-scope-decision",
+      },
+      roles: {
+        owner: locatorFromToken(rootDir, "scripts/internal/verify_v390_review4_structure_scope_decision.mjs", 'check("latest user decision selects v3.9 execution and disables v4 transfer", () => {', "review4StructureScopeDecision"),
+        routeControl: locatorFromToken(rootDir, "scripts/internal/verify_v390_review4_structure_scope_decision.mjs", 'check("base commit and current v3.9 branch boundary are exact", () => {', "review4ExecutionBase"),
+        action: locatorFromToken(rootDir, "scripts/internal/verify_v390_review4_structure_scope_decision.mjs", 'check("actual high-risk graph is bound without pretending threshold compliance", () => {', "review4RiskAcceptance"),
+        state: locatorFromToken(rootDir, "scripts/internal/verify_v390_review4_structure_scope_decision.mjs", 'check("readiness and decision sources expose the same approved but not-executed state", () => {', "review4ReadinessState"),
+        readback: locatorFromToken(rootDir, "scripts/internal/verify_v390_review4_structure_scope_decision.mjs", 'check("negative decision mutations are rejected", () => {', "review4DecisionNegativeContract"),
+      },
+    };
+  }
   if (row.id === "SAFE-217") {
     return {
       routeControlKind: "persist-before-publish-boundary",

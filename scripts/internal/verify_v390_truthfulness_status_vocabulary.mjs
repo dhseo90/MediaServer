@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: owner 결정, field 조건부 미실행, structure gate 준비 상태가 구현/PASS/완료로 오인되지 않도록 검증한다.
+// 파일 용도: owner 결정, field 조건부 미실행, structure 승인 대기 상태가 구현/PASS/완료로 오인되지 않도록 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -21,7 +21,7 @@ Usage:
 Checks:
   - owner role output is a decision-record with implementation not-executed
   - external field targets are conditional-not-run and never field/release PASS
-  - structure output is gate-ready while refactor implementation remains not-executed
+  - structure output is approved-scheduled while refactor implementation remains not-executed
   - roadmap/evidence wording and negative status fixtures reject completion overclaims
 `);
 }
@@ -43,7 +43,7 @@ check("external field state is conditional-not-run and not PASS", () => {
   assert(errors.length === 0, errors.join("; "));
 });
 
-check("structure readiness is gate-ready while refactor remains not-executed", () => {
+check("structure decision is approved-scheduled while refactor remains not-executed", () => {
   const errors = validateStructure(structure);
   assert(errors.length === 0, errors.join("; "));
 });
@@ -79,6 +79,8 @@ check("roadmap, inventory, records, and evidence use the same truthful status vo
     "decision-only-not-implementation-evidence",
     "condition-record-not-field-pass",
     "gate-contract-not-refactor-evidence",
+    "approved-scheduled-after-review4-50-63",
+    "approved-decision-contract-not-refactor-evidence",
     "verify-v390-truthfulness-status-vocabulary",
   ]) {
     assert(sources.includes(snippet), `truthfulness evidence missing: ${snippet}`);
@@ -103,7 +105,7 @@ for (const item of checks) console.log(`[${item.ok ? "pass" : "fail"}] ${item.na
 console.log("\n== v3.9.0 truthfulness status vocabulary ==");
 console.log("- ownerStatus: decision-record / implementation not-executed");
 console.log("- fieldStatus: conditional-not-run / fieldPassClaimed false");
-console.log("- structureStatus: gate-ready / implementation not-executed");
+console.log("- structureStatus: approved-scheduled-after-review4-50-63 / implementation not-executed");
 console.log(`- pass: ${checks.length - failed.length}`);
 console.log(`- fail: ${failed.length}`);
 process.exit(failed.length === 0 ? 0 : 1);
@@ -134,9 +136,13 @@ function validateField(value) {
 function validateStructure(value) {
   const errors = [];
   if (value.recordKind !== "refactor-readiness-gate") errors.push("structure recordKind mismatch");
-  if (value.status !== "gate-ready") errors.push("structure status must be gate-ready");
+  if (value.status !== "approved-scheduled-after-review4-50-63") {
+    errors.push("structure status must be approved-scheduled-after-review4-50-63");
+  }
   if (value.implementationStatus !== "not-executed") errors.push("structure implementationStatus must be not-executed");
-  if (value.evidenceStatus !== "gate-contract-not-refactor-evidence") errors.push("structure evidenceStatus mismatch");
+  if (value.evidenceStatus !== "approved-decision-contract-not-refactor-evidence") {
+    errors.push("structure evidenceStatus mismatch");
+  }
   if (value.currentStepRefactorExecuted !== false || value.branchCreationPerformed !== false || value.refactorEntryReady !== false) {
     errors.push("structure execution/branch/entry overclaim");
   }
