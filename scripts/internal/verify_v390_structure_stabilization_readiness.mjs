@@ -2,6 +2,7 @@
 // 파일 용도: v3.9.0 (17) Development 17 구조 안정화 실행 branch, 경계, 의존성, contract, slice gate를 검증한다.
 
 import fs from "node:fs";
+import crypto from "node:crypto";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -55,10 +56,11 @@ const expectedSlices = [
 ];
 const checks = [];
 const fixture = JSON.parse(read(fixturePath));
+const actualGraphFixture = JSON.parse(read(fixture.actualGraphEvidence.path));
 
 check("machine-readable readiness contract is complete", () => {
   const server = read("server.sh");
-  assert(fixture.schema === "media-server.v390-structure-stabilization-readiness.v1", "unexpected readiness schema");
+  assert(fixture.schema === "media-server.v390-structure-stabilization-readiness.v2", "unexpected readiness schema");
   assert(fixture.sourceRelease === "v3.9.0", "source release must be v3.9.0");
   assert(fixture.executionRelease === "v4.0.0", "execution release must be v4.0.0");
   assert(fixture.executionBranch === "v4.0.0", "execution branch must be v4.0.0");
@@ -92,9 +94,18 @@ check("machine-readable readiness contract is complete", () => {
     assert(Array.isArray(slice.exitGates) && slice.exitGates.length >= 3, `${slice.id}: exit gates incomplete`);
   }
   assert(Array.isArray(fixture.stopConditions) && fixture.stopConditions.length >= 6, "stop conditions are incomplete");
-  assert(fixture.graphStatus === "legacy-forbidden-edges-baselined-refactor-not-executed",
+  assert(fixture.graphStatus === "actual-monolith-cyclic-target-violations-baselined-refactor-not-executed",
     "current graph status must preserve the legacy baseline boundary");
   assert(fixture.refactorEntryReady === false, "legacy graph must not claim refactor entry ready");
+  assert(fixture.actualGraphEvidence?.schema === "media-server.v390-actual-module-dependency-graph.v1",
+    "actual graph evidence schema binding mismatch");
+  assert(actualGraphFixture.schema === fixture.actualGraphEvidence.schema, "actual graph fixture schema mismatch");
+  assert(actualGraphFixture.moduleClassifiers?.length === 9,
+    "actual graph must classify all nine declared module owners");
+  assert(actualGraphFixture.expectedProductionFiles === 148,
+    "actual graph production file count is not pinned");
+  assert(actualGraphFixture.cmake?.targets?.length === 1,
+    "actual graph build target inventory is not pinned");
 });
 
 check("module mayDependOn declarations exactly match allowed dependency directions", () => {
@@ -116,28 +127,35 @@ check("module mayDependOn declarations exactly match allowed dependency directio
     "mayDependOn and allowedDependencyDirections must be exact bidirectional representations");
 });
 
-check("actual include and CMake graphs match the explicit legacy baseline with no new forbidden edge or cycle", () => {
-  const graph = collectActualGraph(fixture.actualGraphPolicy);
-  const errors = validateActualGraph(graph, fixture.actualGraphPolicy);
+check("actual nine-owner include and CMake graphs match the pinned debt baseline", () => {
+  const graph = collectActualGraph(actualGraphFixture);
+  const errors = validateActualGraph(graph, actualGraphFixture, fixture);
   assert(errors.length === 0, errors.join("; "));
-  assert(graph.productionFiles.length > 100, "actual production graph is unexpectedly small");
+  assert(graph.productionFiles.length === 148, "actual production graph file count mismatch");
   assert(graph.cmakeSources.length === graph.cppFiles.length,
     "CMake source graph must cover every production .cpp exactly once");
 });
 
 check("graph validator rejects a new forbidden include edge and a new cycle", () => {
-  const graph = collectActualGraph(fixture.actualGraphPolicy);
+  const graph = collectActualGraph(actualGraphFixture);
   const forbiddenGraph = {
     ...graph,
     includeEdges: [...graph.includeEdges, {
       source: "src/analysis/negative_fixture.cpp",
       include: "ingress/negative_fixture.h",
+      resolved: "include/ingress/negative_fixture.h",
       from: "analysis-services",
-      to: "ingress-or-product-ui",
+      to: "transport-and-auth-adapter",
     }],
+    observedModuleEdges: [...graph.observedModuleEdges, {
+      direction: "analysis-services -> transport-and-auth-adapter",
+      witnessCount: 1,
+      witnessSha256: sha256Text("src/analysis/negative_fixture.cpp -> include/ingress/negative_fixture.h"),
+      allowedByTarget: false,
+    }].sort((lhs, rhs) => lhs.direction.localeCompare(rhs.direction)),
   };
-  assert(validateActualGraph(forbiddenGraph, fixture.actualGraphPolicy)
-    .some(error => error.includes("new forbidden include edge")),
+  assert(validateActualGraph(forbiddenGraph, actualGraphFixture, fixture)
+    .some(error => error.includes("new target-violation direction")),
   "new analysis-to-ingress edge negative must fail");
 
   const cycle = findCycleComponents(
@@ -146,6 +164,14 @@ check("graph validator rejects a new forbidden include edge and a new cycle", ()
   );
   assert(cycle.length === 1 && cycle[0].join(",") === "negative-a,negative-b",
     "synthetic dependency cycle negative must be detected");
+
+  const linkGraph = {
+    ...graph,
+    externalLinkEdges: [...graph.externalLinkEdges, "media_server -> forged-internal-target"],
+  };
+  assert(validateActualGraph(linkGraph, actualGraphFixture, fixture)
+    .some(error => error.includes("external link edge drift")),
+  "synthetic CMake link edge negative must be detected");
 });
 
 check("handoff plan fixes branch, module, dependency, contract, and slice readiness", () => {
@@ -156,6 +182,10 @@ check("handoff plan fixes branch, module, dependency, contract, and slice readin
     "Current v3.9 refactor execution: `not-run`",
     "Branch creation: `not-performed`",
     "## Module Boundary and Dependency Direction",
+    "## Current actual graph baseline (V390-REVIEW3-48)",
+    "test/fixtures/v390_actual_module_dependency_graph.json",
+    "target architecture 위반 direction",
+    "8-owner 1개",
     "analysis/core/media -> ingress/product UI 의존 금지",
     "## Contract Preservation Matrix",
     ...expectedContracts.map(id => `\`${id}\``),
@@ -200,8 +230,11 @@ console.log("- status: gate-ready");
 console.log("- implementationStatus: not-executed");
 console.log("- preservedContracts: 9");
 console.log("- orderedSlices: 6");
-console.log(`- actualProductionFiles: ${collectActualGraph(fixture.actualGraphPolicy).productionFiles.length}`);
-console.log("- graphStatus: legacy-forbidden-edges-baselined-refactor-not-executed");
+console.log(`- actualProductionFiles: ${collectActualGraph(actualGraphFixture).productionFiles.length}`);
+console.log(`- actualModuleOwners: ${actualGraphFixture.moduleClassifiers.length}`);
+console.log(`- actualTargetCount: ${actualGraphFixture.cmake.targets.length}`);
+console.log(`- targetViolationDirections: ${actualGraphFixture.observedModuleEdges.filter(item => !item.allowedByTarget).length}`);
+console.log("- graphStatus: actual-monolith-cyclic-target-violations-baselined-refactor-not-executed");
 console.log(`- pass: ${checks.length - failed.length}`);
 console.log(`- fail: ${failed.length}`);
 process.exit(failed.length === 0 ? 0 : 1);
@@ -210,14 +243,19 @@ function read(relativePath) {
   return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
 }
 
-function collectActualGraph(policy) {
-  assert(policy && Array.isArray(policy.productionRoots), "actualGraphPolicy.productionRoots is required");
-  const productionFiles = policy.productionRoots
+function collectActualGraph(graphFixture) {
+  assert(graphFixture && Array.isArray(graphFixture.productionRoots), "actual graph productionRoots is required");
+  const productionFiles = graphFixture.productionRoots
     .flatMap(root => walkFiles(path.join(rootDir, root)))
     .map(file => path.relative(rootDir, file).replaceAll(path.sep, "/"))
-    .filter(file => policy.sourceExtensions.some(extension => file.endsWith(extension)))
+    .filter(file => graphFixture.sourceExtensions.some(extension => file.endsWith(extension)))
     .sort();
   const productionSet = new Set(productionFiles);
+  const ownership = productionFiles.map(file => ({
+    file,
+    owner: classifyModule(file, graphFixture.moduleClassifiers),
+  }));
+  const ownerByFile = new Map(ownership.map(item => [item.file, item.owner]));
   const includeEdges = [];
   for (const source of productionFiles) {
     const sourceText = read(source);
@@ -238,36 +276,111 @@ function collectActualGraph(policy) {
         source,
         include,
         resolved,
-        from: classifyModule(source, policy.moduleClassifiers),
-        to: classifyModule(resolved, policy.moduleClassifiers),
+        from: ownerByFile.get(source),
+        to: ownerByFile.get(resolved),
       });
     }
   }
-  const cmake = read(policy.cmakeFile);
-  assert(cmake.includes(`add_executable(${policy.cmakeTarget}`),
-    `CMake target missing: ${policy.cmakeTarget}`);
+  const cmake = read(graphFixture.cmake.file);
   const cmakeSources = [...cmake.matchAll(/\b(src\/[A-Za-z0-9_./-]+\.cpp)\b/g)]
     .map(match => match[1]);
+  const executableBlock = cmake.match(/add_executable\s*\(\s*media_server([\s\S]*?)\n\)/)?.[1] || "";
+  const defaultActiveCmakeSources = [...executableBlock.matchAll(/\b(src\/[A-Za-z0-9_./-]+\.cpp)\b/g)]
+    .map(match => match[1]);
   const cppFiles = productionFiles.filter(file => file.endsWith(".cpp"));
-  const moduleEdges = includeEdges
-    .filter(edge => edge.from !== edge.to && policy.cycleModules.includes(edge.from) && policy.cycleModules.includes(edge.to))
-    .map(edge => ({ from: edge.from, to: edge.to }));
-  return { productionFiles, includeEdges, moduleEdges, cmakeSources, cppFiles };
+  const targetIds = [...cmake.matchAll(/\badd_(?:executable|library)\s*\(\s*([A-Za-z0-9_.:+-]+)/g)]
+    .map(match => match[1]);
+  const externalLinkEdges = [];
+  for (const match of cmake.matchAll(/target_link_libraries\s*\(\s*([A-Za-z0-9_.:+-]+)\s+PRIVATE\s+([^\)]+)\)/g)) {
+    for (const dependency of match[2].trim().split(/\s+/)) {
+      externalLinkEdges.push(`${match[1]} -> ${dependency}`);
+    }
+  }
+  const groupedEdges = new Map();
+  for (const edge of includeEdges.filter(item => item.from !== item.to)) {
+    const direction = `${edge.from} -> ${edge.to}`;
+    if (!groupedEdges.has(direction)) groupedEdges.set(direction, []);
+    groupedEdges.get(direction).push(`${edge.source} -> ${edge.resolved}`);
+  }
+  const allowed = new Set(fixture.allowedDependencyDirections);
+  const observedModuleEdges = [...groupedEdges.entries()].sort(([lhs], [rhs]) => lhs.localeCompare(rhs))
+    .map(([direction, witnesses]) => {
+      const sorted = [...witnesses].sort();
+      return {
+        direction,
+        witnessCount: sorted.length,
+        witnessSha256: sha256Text(sorted.join("\n")),
+        allowedByTarget: allowed.has(direction),
+      };
+    });
+  const moduleIds = graphFixture.moduleClassifiers.map(item => item.id);
+  const moduleEdges = observedModuleEdges.map(item => {
+    const [from, to] = item.direction.split(" -> ");
+    return { from, to };
+  });
+  return {
+    productionFiles,
+    ownership,
+    ownershipSha256: sha256Text(ownership.map(item => `${item.file}\t${item.owner}`).join("\n")),
+    includeEdges,
+    observedModuleEdges,
+    moduleEdges,
+    cmakeSources,
+    defaultActiveCmakeSources,
+    cppFiles,
+    targetIds,
+    externalLinkEdges,
+    stronglyConnectedComponents: findCycleComponents(moduleIds, moduleEdges),
+  };
 }
 
-function validateActualGraph(graph, policy) {
+function validateActualGraph(graph, graphFixture, readinessFixture) {
   const errors = [];
-  const legacyForbidden = new Set(policy.legacyForbiddenIncludeEdges);
-  const forbiddenDirections = new Set(policy.forbiddenModuleEdges);
-  const observedForbidden = graph.includeEdges
-    .filter(edge => forbiddenDirections.has(`${edge.from} -> ${edge.to}`))
-    .map(edge => `${edge.source} -> ${edge.include}`)
-    .sort();
-  for (const edge of observedForbidden) {
-    if (!legacyForbidden.has(edge)) errors.push(`new forbidden include edge: ${edge}`);
+  const declaredModuleIds = readinessFixture.moduleBoundaries.map(item => item.id).sort();
+  const actualModuleIds = graphFixture.moduleClassifiers.map(item => item.id).sort();
+  if (JSON.stringify(declaredModuleIds) !== JSON.stringify(actualModuleIds)) {
+    errors.push(`declared/actual module owner mismatch: declared=${declaredModuleIds} actual=${actualModuleIds}`);
   }
+  if (graph.productionFiles.length !== graphFixture.expectedProductionFiles) {
+    errors.push(`production file count drift: expected=${graphFixture.expectedProductionFiles} actual=${graph.productionFiles.length}`);
+  }
+  if (graph.cppFiles.length !== graphFixture.expectedCppFiles) {
+    errors.push(`production cpp count drift: expected=${graphFixture.expectedCppFiles} actual=${graph.cppFiles.length}`);
+  }
+  if (graph.ownershipSha256 !== graphFixture.expectedFileOwnershipSha256) {
+    errors.push(`file ownership digest drift: expected=${graphFixture.expectedFileOwnershipSha256} actual=${graph.ownershipSha256}`);
+  }
+  for (const classifier of graphFixture.moduleClassifiers) {
+    const owned = graph.ownership.filter(item => item.owner === classifier.id);
+    const cppCount = owned.filter(item => item.file.endsWith(".cpp")).length;
+    if (owned.length !== classifier.expectedFileCount) {
+      errors.push(`${classifier.id} file count drift: expected=${classifier.expectedFileCount} actual=${owned.length}`);
+    }
+    if (cppCount !== classifier.expectedCppCount) {
+      errors.push(`${classifier.id} cpp count drift: expected=${classifier.expectedCppCount} actual=${cppCount}`);
+    }
+    for (const exact of classifier.exactFiles || []) {
+      if (!graph.productionFiles.includes(exact)) errors.push(`${classifier.id} exact owner file missing: ${exact}`);
+      else if (classifyModule(exact, graphFixture.moduleClassifiers) !== classifier.id) {
+        errors.push(`${classifier.id} exact owner precedence mismatch: ${exact}`);
+      }
+    }
+  }
+  const expectedEdges = JSON.stringify(graphFixture.observedModuleEdges);
+  const actualEdges = JSON.stringify(graph.observedModuleEdges);
+  if (actualEdges !== expectedEdges) {
+    const expectedDirections = new Set(graphFixture.observedModuleEdges.map(item => item.direction));
+    for (const item of graph.observedModuleEdges) {
+      if (!item.allowedByTarget && !expectedDirections.has(item.direction)) {
+        errors.push(`new target-violation direction: ${item.direction}`);
+      }
+    }
+    errors.push("module edge witness baseline drift");
+  }
+  const legacyForbidden = new Set(graphFixture.legacyForbiddenIncludeEdges);
+  const observedWitnesses = new Set(graph.includeEdges.map(edge => `${edge.source} -> ${edge.resolved}`));
   for (const edge of legacyForbidden) {
-    if (!observedForbidden.includes(edge)) errors.push(`stale legacy forbidden edge baseline: ${edge}`);
+    if (!observedWitnesses.has(edge)) errors.push(`stale legacy forbidden edge baseline: ${edge}`);
   }
   const duplicateCmake = graph.cmakeSources.filter((source, index, all) => all.indexOf(source) !== index);
   if (duplicateCmake.length > 0) errors.push(`duplicate CMake sources: ${[...new Set(duplicateCmake)].join(",")}`);
@@ -279,18 +392,84 @@ function validateActualGraph(graph, policy) {
   if (graph.cmakeSources.some(source => source.startsWith("test/") || source.startsWith("docs/"))) {
     errors.push("production CMake target includes test fixture or documentation");
   }
-  const actualCycles = findCycleComponents(policy.cycleModules, graph.moduleEdges);
-  const expectedCycles = policy.legacyCycleComponents.map(component => [...component].sort()).sort(compareArrays);
-  if (JSON.stringify(actualCycles) !== JSON.stringify(expectedCycles)) {
-    errors.push(`module cycle baseline drift: expected=${JSON.stringify(expectedCycles)} actual=${JSON.stringify(actualCycles)}`);
+  const expectedTargets = graphFixture.cmake.targets.map(item => item.id);
+  if (JSON.stringify(graph.targetIds) !== JSON.stringify(expectedTargets)) {
+    errors.push(`CMake target set drift: expected=${expectedTargets} actual=${graph.targetIds}`);
+  }
+  const target = graphFixture.cmake.targets[0];
+  if (graph.cmakeSources.length !== target.declaredSourceCount) {
+    errors.push(`CMake declared source count drift: expected=${target.declaredSourceCount} actual=${graph.cmakeSources.length}`);
+  }
+  if (graph.defaultActiveCmakeSources.length !== target.defaultActiveSourceCount) {
+    errors.push(`CMake default active source count drift: expected=${target.defaultActiveSourceCount} actual=${graph.defaultActiveCmakeSources.length}`);
+  }
+  const cmakeText = read(graphFixture.cmake.file);
+  for (const conditional of target.conditionalSources || []) {
+    if (!cmakeText.includes(`option(${conditional.option}`) ||
+        !cmakeText.includes(`${conditional.option} \"Enable`) ||
+        !cmakeText.includes(`${conditional.default})`)) {
+      errors.push(`CMake conditional option/default drift: ${conditional.option}`);
+    }
+    if (!graph.cmakeSources.includes(conditional.path) || graph.defaultActiveCmakeSources.includes(conditional.path)) {
+      errors.push(`CMake conditional source boundary drift: ${conditional.path}`);
+    }
+  }
+  const targetOwners = [...new Set(graph.cmakeSources.map(source => classifyModule(source, graphFixture.moduleClassifiers)))].sort();
+  const expectedTargetOwners = [...graphFixture.cmake.targets[0].moduleOwners].sort();
+  if (JSON.stringify(targetOwners) !== JSON.stringify(expectedTargetOwners)) {
+    errors.push(`CMake target module owner drift: expected=${expectedTargetOwners} actual=${targetOwners}`);
+  }
+  if (graphFixture.cmake.internalTargetSeparation !== false || graphFixture.cmake.targets.some(item => item.internalModuleTarget !== false)) {
+    errors.push("actual single-target graph falsely claims internal module target separation");
+  }
+  if (JSON.stringify([...graph.externalLinkEdges].sort()) !== JSON.stringify([...graphFixture.cmake.externalLinkEdges].sort())) {
+    errors.push(`external link edge drift: actual=${JSON.stringify(graph.externalLinkEdges)}`);
+  }
+  const expectedCycles = graphFixture.stronglyConnectedComponents.map(component => [...component].sort()).sort(compareArrays);
+  if (JSON.stringify(graph.stronglyConnectedComponents) !== JSON.stringify(expectedCycles)) {
+    errors.push(`module SCC baseline drift: expected=${JSON.stringify(expectedCycles)} actual=${JSON.stringify(graph.stronglyConnectedComponents)}`);
+  }
+  const sliceIds = readinessFixture.slices.map(item => item.id);
+  if (JSON.stringify(graphFixture.sliceBindings.map(item => item.id)) !== JSON.stringify(sliceIds)) {
+    errors.push("actual graph slice entry/exit binding order mismatch");
+  }
+  const moduleIds = new Set(actualModuleIds);
+  for (const slice of graphFixture.sliceBindings) {
+    if (!slice.exitRule) errors.push(`${slice.id} graph exit rule missing`);
+    if (slice.nonProductionSlice !== true && (!Array.isArray(slice.entryOwners) || slice.entryOwners.length === 0)) {
+      errors.push(`${slice.id} graph entry owner set missing`);
+    }
+    for (const owner of slice.entryOwners || []) {
+      if (!moduleIds.has(owner)) errors.push(`${slice.id} unknown graph entry owner: ${owner}`);
+    }
+  }
+  for (const debt of graphFixture.mixedOwnershipDebt || []) {
+    const filePath = path.join(rootDir, debt.file);
+    if (!fs.existsSync(filePath)) errors.push(`mixed ownership debt file missing: ${debt.file}`);
+    else {
+      const lineCount = fs.readFileSync(filePath, "utf8").split(/\r?\n/).length - 1;
+      if (lineCount !== debt.lineCount) errors.push(`${debt.file} line count drift: expected=${debt.lineCount} actual=${lineCount}`);
+      if (classifyModule(debt.file, graphFixture.moduleClassifiers) !== debt.primaryOwner) {
+        errors.push(`${debt.file} primary owner drift`);
+      }
+      if (!Array.isArray(debt.embeddedResponsibilities) || debt.embeddedResponsibilities.length === 0) {
+        errors.push(`${debt.file} mixed responsibility ledger missing`);
+      }
+    }
   }
   return errors;
 }
 
 function classifyModule(file, classifiers) {
-  const match = classifiers.find(classifier => classifier.prefixes.some(prefix => file.startsWith(prefix)));
+  const match = classifiers.find(classifier =>
+    (classifier.exactFiles || []).includes(file) ||
+    (classifier.prefixes || []).some(prefix => file.startsWith(prefix)));
   assert(match, `unclassified production file: ${file}`);
   return match.id;
+}
+
+function sha256Text(value) {
+  return crypto.createHash("sha256").update(String(value)).digest("hex");
 }
 
 function walkFiles(directory) {

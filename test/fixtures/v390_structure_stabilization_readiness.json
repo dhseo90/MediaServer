@@ -1,5 +1,5 @@
 {
-  "schema": "media-server.v390-structure-stabilization-readiness.v1",
+  "schema": "media-server.v390-structure-stabilization-readiness.v2",
   "sourceRelease": "v3.9.0",
   "executionRelease": "v4.0.0",
   "executionBranch": "v4.0.0",
@@ -10,7 +10,7 @@
   "status": "gate-ready",
   "implementationStatus": "not-executed",
   "evidenceStatus": "gate-contract-not-refactor-evidence",
-  "graphStatus": "legacy-forbidden-edges-baselined-refactor-not-executed",
+  "graphStatus": "actual-monolith-cyclic-target-violations-baselined-refactor-not-executed",
   "refactorEntryReady": false,
   "baseRequirements": [
     "v3.9.0 release correctness commits are included in the selected base commit",
@@ -86,30 +86,12 @@
     "product-ui-workspaces -> persistence-files-or-registry-internals",
     "production-modules -> test-fixtures-or-documentation"
   ],
-  "actualGraphPolicy": {
-    "productionRoots": ["src", "include"],
-    "sourceExtensions": [".cpp", ".h"],
-    "moduleClassifiers": [
-      {"id": "analysis-services", "prefixes": ["src/analysis/", "include/analysis/"]},
-      {"id": "core-media-interfaces", "prefixes": ["src/core/", "include/core/"]},
-      {"id": "ingress-or-product-ui", "prefixes": ["src/ingress/", "include/ingress/"]},
-      {"id": "shared-app-contracts", "prefixes": ["src/", "include/"]}
-    ],
-    "cycleModules": ["analysis-services", "core-media-interfaces", "ingress-or-product-ui"],
-    "forbiddenModuleEdges": [
-      "analysis-services -> ingress-or-product-ui",
-      "core-media-interfaces -> ingress-or-product-ui"
-    ],
-    "legacyForbiddenIncludeEdges": [
-      "include/core/session_manager.h -> ingress/request_parser.h",
-      "src/core/session_manager.cpp -> ingress/analysis_query.h",
-      "src/core/source_factory.cpp -> ingress/webrtc_source_registry.h"
-    ],
-    "legacyCycleComponents": [
-      ["analysis-services", "core-media-interfaces", "ingress-or-product-ui"]
-    ],
-    "cmakeFile": "CMakeLists.txt",
-    "cmakeTarget": "media_server"
+  "actualGraphEvidence": {
+    "path": "test/fixtures/v390_actual_module_dependency_graph.json",
+    "schema": "media-server.v390-actual-module-dependency-graph.v1",
+    "status": "actual-source-and-build-graph-recorded",
+    "targetArchitectureConformant": false,
+    "refactorExecuted": false
   },
   "preservedContracts": [
     {

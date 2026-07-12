@@ -43,7 +43,35 @@ Required start authority: `explicit-structure-refactor-start`
 착수와 branch 생성을 명시 승인한 뒤에만 생성합니다. clean worktree, 동시 feature 개발 없음,
 baseline build·exact inventory·contract verifier·`git diff --check` PASS가 공통 entry 조건입니다.
 
-Machine-readable source: `test/fixtures/v390_structure_stabilization_readiness.json`
+Machine-readable target/readiness source: `test/fixtures/v390_structure_stabilization_readiness.json`
+
+Machine-readable actual graph source: `test/fixtures/v390_actual_module_dependency_graph.json`
+
+### Current actual graph baseline (V390-REVIEW3-48)
+
+현재 graph는 목표 architecture를 이미 만족한다는 선언이 아닙니다. `src`/`include`의 C++ 148개
+파일을 ordered exact-owner rule로 9개 owner에 모두 연결하고, CMake의 production cpp는 선언 74개,
+기본 YouTube OFF active 73개가 하나의 `media_server` executable target에 들어가는 상태를 기록합니다. Internal module library/target
+separation은 `false`입니다.
+
+| Actual graph 항목 | 직접 확인 값 | 경계 |
+| --- | ---: | --- |
+| production C++ file | 148 | test/docs 제외, `.cpp`/`.h` actual path |
+| CMake production cpp | declared 74/default active 73 | optional YouTube source 경계를 포함해 중복/누락 0 |
+| declared/actual owner | 9/9 | 각 owner에 actual file 1개 이상 |
+| CMake target | 1 | `media_server`; 9 owner가 한 executable에 혼재 |
+| observed cross-module include direction | 32 | direction별 witness count/hash 고정 |
+| target architecture 위반 direction | 25 | current debt baseline이며 허용 완료가 아님 |
+| legacy core 역의존 exact edge | 3 | session/source factory에서 transport/application/domain으로 향함 |
+| SCC | 8-owner 1개 | Ops route owner만 SCC 밖; refactor 미실행 |
+
+`webrtc_http_server.cpp` 42,897줄은 transport primary owner에 있으나 Ops/application/domain/UI/DTO
+책임을 함께 포함하고, `product_ui_page_scripts.cpp` 10,217줄은 product UI primary owner 안에서 여러
+workspace를 함께 포함합니다. 이 mixed ownership은 숨기지 않고 actual graph debt로 기록합니다.
+
+각 6개 slice는 `sliceBindings`의 actual entry owner와 exit graph rule에 연결됩니다. 새 target-violation
+direction, witness count/hash drift, CMake source/link/target drift, SCC drift, unclassified file이 생기면
+readiness verifier가 실패합니다. Current 25개 위반과 8-owner SCC는 refactor 완료 evidence가 아닙니다.
 
 ## Module Boundary and Dependency Direction
 
@@ -56,6 +84,8 @@ Machine-readable source: `test/fixtures/v390_structure_stabilization_readiness.j
 | domain/registry owners | SourceRegistry, PublishedView, Rule/Profile persistence invariant | core utility로만 향함 |
 | analysis services | VLM observation, VA, tracking, Re-ID | domain/registry와 core media interface로만 향함 |
 | core media interfaces | RTSP/WebRTC/GStreamer lifecycle | core utility로만 향함 |
+| stable contract DTOs | route/payload/media contract value | 다른 production owner에 의존하지 않음 |
+| core utilities | process/stream key/shared primitive | 다른 production owner에 의존하지 않음 |
 
 허용 방향은 UI/transport → application service → domain·analysis → core입니다.
 analysis/core/media -> ingress/product UI 의존 금지, domain/registry → HTTP·DOM type 의존 금지,

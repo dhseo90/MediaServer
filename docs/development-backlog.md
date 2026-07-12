@@ -2190,7 +2190,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 | 45 | V390-REVIEW3-45 | Acceptance | canonical one-command 실행 경로 | P0 | 완료 | canonical bundle이 30분→exact 424 v4 producer→throwaway server cleanup→Policy qualification→AGENTS 7.6.2 조건부 120분→cleanup→final integrity를 연결하며 legacy 8-case와 외부 summary 주입을 제거했습니다 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점. release correctness 상향 적용 |
 | 46 | V390-REVIEW3-46 | Evidence | current HEAD와 artifact containment | P0 | 완료 | acceptance가 실행 시작/종료 provenance와 canonical command-set hash를 기록하고 final integrity가 이를 현재 HEAD·branch, source-clean state, approved artifact root의 realpath containment, Policy v4 source/build binding과 독립 대조합니다 | 5.6 Sol | 높음 (high) | 2+1+2+1=6점. release correctness 상향 적용 |
 | 47 | V390-REVIEW3-47 | Evidence | stale policy/historical artifact 정리 | P1 | 완료 | coverage policy v3가 exact native manifest의 positive 423+negative route 1/unsupported 0 readiness와 pass 0/not-run 424 execution을 분리하고, current state v2와 Policy/coverage consumer가 `audit-only-historical` source kind/root를 거부합니다 | 5.6 Sol | 높음 (high) | 1+1+1+1=4점이나 evidence 정확도 상향 적용 |
-| 48 | V390-REVIEW3-48 | Structure | actual module dependency graph | P1 | 미완료 | 9개 declared module owner를 실제 파일/target에 매핑하고 include/link graph, forbidden edge, SCC, slice entry/exit를 실경로로 검증 | 5.6 Sol | 높음 (high) | 1+2+2+1=6점. 구조 전면 안정화 진입 정확도 상향 적용 |
+| 48 | V390-REVIEW3-48 | Structure | actual module dependency graph | P1 | 완료 | actual C++ 148개/CMake cpp declared 74·default active 73를 9 owner와 single `media_server` target에 연결하고 32 include direction witness hash, external link, target 위반 25 direction, legacy core 역의존 3 edge, 8-owner SCC, mixed ownership과 6 slice entry/exit를 검증합니다 | 5.6 Sol | 높음 (high) | 1+2+2+1=6점. 구조 전면 안정화 진입 정확도 상향 적용 |
 | 49 | V390-REVIEW3-49 | Structure Decision | 구조 안정화 실행 범위 확정 | P1 | 미완료 decision | 48번 actual graph 결과를 근거로 42,726-line HTTP server와 10,217-line UI script의 실제 refactor를 v3.9 안정화 단계에서 할지 v4.0으로 넘길지 사용자 결정을 source-of-truth에 고정 | 5.6 Sol | 높음 (high) | 2+2+1+1=6점. 광범위 구조 변경과 release 경계 상향 적용 |
 
 ### REVIEW3 상세 구현 계약
@@ -2478,6 +2478,20 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
   `src/ingress/webrtc_http_server.cpp` 42,726줄과 `product_ui_page_scripts.cpp` 10,217줄 상태를 기준으로
   48번 actual dependency graph를 먼저 확정한 뒤 v3.9 안정화에서 수행할지 v4.0에서 수행할지 결정합니다.
   결정 전 `구조 안정화 완료`를 보고하지 않습니다.
+
+48번 구현 기록(2026-07-12):
+
+- `v390_actual_module_dependency_graph.json`은 `src`/`include`의 `.cpp`/`.h` 148개를 9개 declared
+  owner에 ordered exact/container rule로 분류합니다. Owner별 file/cpp count와 전체 ownership SHA-256을
+  고정하고 unclassified file, exact owner precedence, count/hash drift를 거부합니다.
+- CMake production cpp는 declared 74/default YouTube OFF active 73이고 단일 `media_server` executable에 들어가며 internal module target
+  separation은 false입니다. 8개 optional external link edge와 9 owner target membership을 검사합니다.
+- Actual cross-module include direction은 32개이며 각 direction의 witness count/hash를 고정했습니다.
+  목표 mayDependOn 밖 direction 25개, legacy core→transport/application/domain exact edge 3개와 8-owner
+  SCC 1개를 current debt로 기록합니다. 새 target-violation/link edge와 SCC drift negative를 거부합니다.
+- `webrtc_http_server.cpp` 42,897줄, `product_ui_page_scripts.cpp` 10,217줄, composition root의 mixed
+  responsibility를 primary owner와 별도 debt로 기록하고 6개 refactor slice의 actual entry owner/exit rule을
+  결속했습니다. 최초 schema 강화는 6/1 RED, 최종 readiness는 7/0입니다. 실제 refactor는 미실행입니다.
 
 ### REVIEW3 완료 경계
 

@@ -2,7 +2,7 @@
   "schema": "media-server.feature-implementation-evidence.v2",
   "semanticClosureSchema": "media-server.feature-semantic-implementation-closure.v2",
   "expectedFeatureRows": 986,
-  "inventorySha256": "5d751b51b461ba8d9bcdade5a394269ec05ab52b4e3ee6c4456ec5d9c3e78ecf",
+  "inventorySha256": "079a8e910ca435fb60344b4c9d942d5b61ecda76e28fd444f83104449c2e22b7",
   "generatedFrom": "docs/project-feature-test-inventory.md",
   "generationPolicy": "reviewed-map-only; unrelated source changes preserve approved rows; changed rows become review-required; token scoring and bulk approval are forbidden",
   "semanticClosurePolicy": "986 explicit owner -> route/control -> action -> state -> readback -> verifier chains with content-addressed locators and per-feature review reasons",
@@ -169985,8 +169985,8 @@
         "decision": "approved",
         "reviewer": "Codex-V390-REVIEW3-37",
         "reviewedOn": "2026-07-12",
-        "reason": "V390-REVIEW3-37:SAFE-215:V390 structure stabilization contract-preservation boundary:owner=check:machine-readable readiness contract is complete:routeControl=check:machine-readable readiness contract is complete:action=check:machine-readable readiness contract is complete:state=check:machine-readable readiness contract is complete:readback=verifier:verify-v390-structure-stabilization-readiness:chain=a1512531dc321c33",
-        "semanticDigest": "93199cef2513239e857585474383e2bca96f1f5ce67052581a52b4712cd95d3c"
+        "reason": "V390-REVIEW3-37:SAFE-215:V390 structure stabilization contract-preservation boundary:owner=check:machine-readable readiness contract is complete:routeControl=check:machine-readable readiness contract is complete:action=check:machine-readable readiness contract is complete:state=check:machine-readable readiness contract is complete:readback=verifier:verify-v390-structure-stabilization-readiness:chain=2364fd7037ee6413",
+        "semanticDigest": "53d1fc417fa4d472deeb463f39edc4098ad81228eaf8a373b34cd85070ed5385"
       },
       "sourceEvidence": {
         "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
@@ -170016,7 +170016,7 @@
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 68,
+          "line": 70,
           "contextSha256": "1b5cad48f83b2eb88b1dd134955a15ce9e2466c1dd3439829a9cc22057adc8f7"
         },
         "route": {
@@ -170037,13 +170037,13 @@
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 68,
+          "line": 70,
           "contextSha256": "1b5cad48f83b2eb88b1dd134955a15ce9e2466c1dd3439829a9cc22057adc8f7"
         },
         "stateOracle": {
           "oracleKind": "negative-invariant-state",
-          "expectedBehaviorSha256": "d67fbf83bdee3b764652b507a05d0fee65590694f9cd818f9c2edfd87a6a0ea9",
-          "expectedBehavior": "`verify-v390-structure-stabilization-readiness`와 `verify-v390-truthfulness-status-vocabulary`가 structure를 `gate-ready`, implementation `not-executed`로 분리하고 analysis/core/media→ingress/UI 역의존, circular dependency, 새 registry write owner를 금지하며 9개 contract를 `changeAllowed=false`로 고정합니다",
+          "expectedBehaviorSha256": "9c24e2c03e89bf8f6e7e0683490f564581396c880f2cf21d659e80d2ee9bc1ab",
+          "expectedBehavior": "`verify-v390-structure-stabilization-readiness`가 actual 148-file/declared 74·default active 73 cpp/9-owner/single-target graph, 25 target-violation direction, 8-owner SCC와 6 slice binding을 고정하고 truthfulness gate가 implementation `not-executed`를 유지합니다. 새 edge/SCC/target drift를 거부하며 9개 contract는 `changeAllowed=false`입니다",
           "locator": {
             "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
             "symbol": "check:machine-readable readiness contract is complete",
@@ -170052,7 +170052,7 @@
             "anchorKind": "reviewed-source-line",
             "anchorStrength": "feature-specific-source-line",
             "occurrence": 0,
-            "line": 68,
+            "line": 70,
             "contextSha256": "1b5cad48f83b2eb88b1dd134955a15ce9e2466c1dd3439829a9cc22057adc8f7"
           }
         },
@@ -170061,7 +170061,7 @@
           "handlerSymbol": "check:machine-readable readiness contract is complete",
           "actionSymbol": "check:machine-readable readiness contract is complete",
           "stateSymbol": "check:machine-readable readiness contract is complete",
-          "semanticKey": "SAFE-215:d67fbf83bdee3b764652b507"
+          "semanticKey": "SAFE-215:9c24e2c03e89bf8f6e7e0683"
         },
         "verifierAssertion": {
           "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
@@ -170069,7 +170069,7 @@
           "assertionKind": "reviewed-owner-route-control-action-state-readback-chain",
           "assertionAnchor": "validateReview3CallChain",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "93199cef2513239e857585474383e2bca96f1f5ce67052581a52b4712cd95d3c"
+          "assertedSemanticDigest": "53d1fc417fa4d472deeb463f39edc4098ad81228eaf8a373b34cd85070ed5385"
         },
         "callChain": {
           "schema": "media-server.feature-reviewed-call-chain.v1",
@@ -170082,7 +170082,7 @@
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 68,
+              "line": 70,
               "contextSha256": "1b5cad48f83b2eb88b1dd134955a15ce9e2466c1dd3439829a9cc22057adc8f7"
             },
             "routeControl": {
@@ -170093,7 +170093,7 @@
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 68,
+              "line": 70,
               "contextSha256": "1b5cad48f83b2eb88b1dd134955a15ce9e2466c1dd3439829a9cc22057adc8f7"
             },
             "action": {
@@ -170104,7 +170104,7 @@
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 68,
+              "line": 70,
               "contextSha256": "1b5cad48f83b2eb88b1dd134955a15ce9e2466c1dd3439829a9cc22057adc8f7"
             },
             "state": {
@@ -170115,7 +170115,7 @@
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 68,
+              "line": 70,
               "contextSha256": "1b5cad48f83b2eb88b1dd134955a15ce9e2466c1dd3439829a9cc22057adc8f7"
             },
             "readback": {
@@ -170126,7 +170126,7 @@
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 68,
+              "line": 70,
               "contextSha256": "1b5cad48f83b2eb88b1dd134955a15ce9e2466c1dd3439829a9cc22057adc8f7"
             }
           },
@@ -170163,7 +170163,7 @@
               "digest": "b255b18a12e703f1497141acddb7dfcb4966feaaefb62bd90785b411318425ea"
             }
           ],
-          "digest": "a1512531dc321c3345fce09e3075377049b06c300c2a537b105e181806333b08"
+          "digest": "2364fd7037ee64132327bc9702086608918ee1e94a935899c2b51d1905cd9f4f"
         }
       }
     },
@@ -199803,8 +199803,8 @@
         "decision": "approved",
         "reviewer": "Codex-V390-REVIEW3-37",
         "reviewedOn": "2026-07-12",
-        "reason": "V390-REVIEW3-37:OPS-182:V390 structure stabilization readiness gate:owner=check:roadmap and evidence expose Development 17 readiness without refactor overclaim:routeControl=check:roadmap and evidence expose Development 17 readiness without refactor overclaim:action=check:roadmap and evidence expose Development 17 readiness without refactor overclaim:state=check:roadmap and evidence expose Development 17 readiness without refactor overclaim:readback=verifier:verify-v390-structure-stabilization-readiness:chain=970602c8a1509a07",
-        "semanticDigest": "1856281671290add58ec0f8f5e16d4081036dc4eed671b03a1410b2bf0e57fa6"
+        "reason": "V390-REVIEW3-37:OPS-182:V390 structure stabilization readiness gate:owner=check:roadmap and evidence expose Development 17 readiness without refactor overclaim:routeControl=check:roadmap and evidence expose Development 17 readiness without refactor overclaim:action=check:roadmap and evidence expose Development 17 readiness without refactor overclaim:state=check:roadmap and evidence expose Development 17 readiness without refactor overclaim:readback=verifier:verify-v390-structure-stabilization-readiness:chain=56b6475f37d7f448",
+        "semanticDigest": "f9df745c45291669a3085ee3f6274e4d29ae6a1de1fbc4f5e4d63fc4994c2c8b"
       },
       "sourceEvidence": {
         "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
@@ -199834,7 +199834,7 @@
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 182,
+          "line": 212,
           "contextSha256": "3d76e0abe9c0f04719b9b3a4a174c9c12a5f2fb73c94aa1909826604a3212b7f"
         },
         "route": {
@@ -199855,13 +199855,13 @@
           "anchorKind": "reviewed-source-line",
           "anchorStrength": "feature-specific-source-line",
           "occurrence": 0,
-          "line": 182,
+          "line": 212,
           "contextSha256": "3d76e0abe9c0f04719b9b3a4a174c9c12a5f2fb73c94aa1909826604a3212b7f"
         },
         "stateOracle": {
           "oracleKind": "create-readback-state",
-          "expectedBehaviorSha256": "9a3f6dd0b96e30f65842b55d3dd78e5e7a593d04100607d485aef30a9d160832",
-          "expectedBehavior": "`verify-v390-structure-stabilization-readiness`와 `verify-v390-truthfulness-status-vocabulary`가 readiness `gate-ready`와 implementation `not-executed`를 대조합니다. `v4.0.0` branch 생성, 실제 source extraction, UI/longrun, release action PASS가 아닙니다",
+          "expectedBehaviorSha256": "c7179aafe87c6c5eb1d22b095ca433cfed81947c468d693e77c3b15facafc0a3",
+          "expectedBehavior": "`verify-v390-structure-stabilization-readiness`와 actual graph fixture가 148개 file owner, CMake target/link, include witness hash, forbidden direction, SCC, slice entry/exit를 대조합니다. Readiness는 `gate-ready`, implementation은 `not-executed`이며 v4.0 branch/source extraction/UI/longrun/release PASS가 아닙니다",
           "locator": {
             "file": "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
             "symbol": "check:roadmap and evidence expose Development 17 readiness without refactor overclaim",
@@ -199870,7 +199870,7 @@
             "anchorKind": "reviewed-source-line",
             "anchorStrength": "feature-specific-source-line",
             "occurrence": 0,
-            "line": 182,
+            "line": 212,
             "contextSha256": "3d76e0abe9c0f04719b9b3a4a174c9c12a5f2fb73c94aa1909826604a3212b7f"
           }
         },
@@ -199879,7 +199879,7 @@
           "handlerSymbol": "check:roadmap and evidence expose Development 17 readiness without refactor overclaim",
           "actionSymbol": "check:roadmap and evidence expose Development 17 readiness without refactor overclaim",
           "stateSymbol": "check:roadmap and evidence expose Development 17 readiness without refactor overclaim",
-          "semanticKey": "OPS-182:9a3f6dd0b96e30f65842b55d"
+          "semanticKey": "OPS-182:c7179aafe87c6c5eb1d22b09"
         },
         "verifierAssertion": {
           "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
@@ -199887,7 +199887,7 @@
           "assertionKind": "reviewed-owner-route-control-action-state-readback-chain",
           "assertionAnchor": "validateReview3CallChain",
           "command": "verify-feature-implementation-evidence",
-          "assertedSemanticDigest": "1856281671290add58ec0f8f5e16d4081036dc4eed671b03a1410b2bf0e57fa6"
+          "assertedSemanticDigest": "f9df745c45291669a3085ee3f6274e4d29ae6a1de1fbc4f5e4d63fc4994c2c8b"
         },
         "callChain": {
           "schema": "media-server.feature-reviewed-call-chain.v1",
@@ -199900,7 +199900,7 @@
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 182,
+              "line": 212,
               "contextSha256": "3d76e0abe9c0f04719b9b3a4a174c9c12a5f2fb73c94aa1909826604a3212b7f"
             },
             "routeControl": {
@@ -199911,7 +199911,7 @@
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 182,
+              "line": 212,
               "contextSha256": "3d76e0abe9c0f04719b9b3a4a174c9c12a5f2fb73c94aa1909826604a3212b7f"
             },
             "action": {
@@ -199922,7 +199922,7 @@
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 182,
+              "line": 212,
               "contextSha256": "3d76e0abe9c0f04719b9b3a4a174c9c12a5f2fb73c94aa1909826604a3212b7f"
             },
             "state": {
@@ -199933,7 +199933,7 @@
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 182,
+              "line": 212,
               "contextSha256": "3d76e0abe9c0f04719b9b3a4a174c9c12a5f2fb73c94aa1909826604a3212b7f"
             },
             "readback": {
@@ -199944,7 +199944,7 @@
               "anchorKind": "reviewed-source-line",
               "anchorStrength": "feature-specific-source-line",
               "occurrence": 0,
-              "line": 68,
+              "line": 70,
               "contextSha256": "1b5cad48f83b2eb88b1dd134955a15ce9e2466c1dd3439829a9cc22057adc8f7"
             }
           },
@@ -199981,7 +199981,7 @@
               "digest": "b255b18a12e703f1497141acddb7dfcb4966feaaefb62bd90785b411318425ea"
             }
           ],
-          "digest": "970602c8a1509a07ead94da9ac5813dca035e803f8317fc7ea4b780cec890e23"
+          "digest": "56b6475f37d7f44858242bdf5f374510c6c7dfef02ea50685e8b330e47300c2a"
         }
       }
     },
