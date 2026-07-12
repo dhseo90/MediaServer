@@ -166,26 +166,31 @@ export function buildNativeExactManifest({ canonical, implementation }) {
       negativeRoute,
       crossRouteNegative,
     });
-    const actions = workflowParts.controlSequence;
+    const actions = workflowParts.controlSequence.map(action => ({
+      ...action,
+      ...(action.kind === "wait-visible" ? {} : {
+        semanticCompletion: buildActionSemanticCompletion({
+          caseId: canonicalCase.testId,
+          screenRoute,
+          action,
+          negativeRoute,
+        }),
+      }),
+    }));
     const hasInteraction = actions.some(action => [
       "toggle-details",
       "fill-control",
       "toggle-checkbox",
       "select-control",
     ].includes(action.kind));
-    const interactionHasNetworkOracle = expectedNetworkUrlIncludes.length > 0;
     const hasCrossRouteNegative = actions.some(action => action.kind === "navigate-negative");
-    const completionSources = negativeRoute || hasCrossRouteNegative
+    const completionSources = negativeRoute
       ? ["negative-route-status"]
-      : (hasInteraction
-          ? [
-              "dom-transition",
-              ...(interactionHasNetworkOracle ? ["network-dom"] : []),
-              "persisted-readback",
-              "event-record",
-              "server-log",
-            ]
-          : ["navigation-network-dom"]);
+      : (hasCrossRouteNegative
+          ? ["endpoint-dom", "negative-route-status"]
+          : (hasInteraction
+              ? ["endpoint-dom", "persisted-readback", "event-record", "server-log"]
+              : ["endpoint-dom"]));
     return {
       caseId: canonicalCase.testId,
       featureId: canonicalCase.featureId,
@@ -217,6 +222,7 @@ export function buildNativeExactManifest({ canonical, implementation }) {
           endpointHints: expectedNetworkUrlIncludes,
           stateLocator: compactLocator(implementationItem.semanticEvidence?.stateOracle?.locator),
           readbackLocator: compactLocator(implementationItem.semanticEvidence?.callChain?.roles?.readback),
+          completion: primarySemanticCompletion(actions),
         }],
         cleanup: workflowParts.cleanup,
       },
@@ -224,8 +230,8 @@ export function buildNativeExactManifest({ canonical, implementation }) {
         kind: negativeRoute
           ? "negative-route-status"
           : (hasCrossRouteNegative
-              ? "cross-route-negative-status"
-              : (hasInteraction ? "correlated-action-completion" : "navigation-network-dom")),
+              ? "semantic-cross-route-negative-status"
+              : "semantic-endpoint-readback"),
         sourceKind,
         expectedBehavior,
         expectedBehaviorSha256,
@@ -290,6 +296,9 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
     assert(item.dispatch === "playwright-native", `${item.caseId} native dispatch missing`);
     assert(Array.isArray(item.actions) && item.actions.length > 0, `${item.caseId} native actions missing`);
     assert(item.actions.every(action => action.dispatch === "playwright-native"), `${item.caseId} native action dispatch drift`);
+    assert(item.actions.filter(action => action.kind !== "wait-visible").every(action =>
+      action.semanticCompletion?.schema === "media-server.v390-ui-semantic-completion.v1"),
+    `${item.caseId} semantic action completion missing`);
     assert(JSON.stringify(item.actions) === JSON.stringify(expectedItem.actions), `${item.caseId} action plan drift`);
     assert(item.workflow?.schema === caseNativeWorkflowSchema, `${item.caseId} workflow schema drift`);
     assert(item.workflow.workflowId === `${item.caseId}:native-workflow`, `${item.caseId} workflow ID drift`);
@@ -311,6 +320,10 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
     assert(item.oracle.completionRequired === true, `${item.caseId} completionRequired must be true`);
     assert(item.oracle.allowedCompletionSources.every(source => allowedCompletionSources.includes(source)),
       `${item.caseId} unknown completion source`);
+    assert(!item.oracle.allowedCompletionSources.includes("dom-transition"),
+      `${item.caseId} arbitrary DOM completion source is forbidden`);
+    assert(item.workflow.expectedResults[0]?.completion?.schema === "media-server.v390-ui-semantic-completion.v1",
+      `${item.caseId} expected semantic completion missing`);
     assert(JSON.stringify(item.artifacts) === JSON.stringify(expectedItem.artifacts), `${item.caseId} artifact plan drift`);
   }
 
@@ -525,6 +538,62 @@ function appendExactControlAction({ caseId, selector, targetSelector, inputs, co
     return;
   }
   throw new Error(`${caseId} canonical selector has no exact native workflow classification: ${selector}`);
+}
+
+function buildActionSemanticCompletion({ caseId, screenRoute, action, negativeRoute = false }) {
+  const negative = action.kind === "navigate-negative" || (action.kind === "navigate" && negativeRoute);
+  const navigation = action.kind === "navigate";
+  const correlationId = navigation
+    ? `${caseId}:navigation`
+    : (negative ? `${caseId}:negative-navigation` : `${action.actionId}:completion`);
+  const endpointCorrelationId = negative ? correlationId : `${caseId}:navigation`;
+  return {
+    schema: "media-server.v390-ui-semantic-completion.v1",
+    required: true,
+    requiredSource: negative ? "negative-route-status" : "endpoint-dom",
+    correlationId,
+    request: {
+      correlationHeader: "x-media-server-correlation-id",
+      correlationId: endpointCorrelationId,
+      correlationSource: "request-header",
+      method: "GET",
+      urlPath: negative ? action.route : screenRoute,
+      allowedStatuses: negative ? [...(action.allowedStatuses || [404])] : [200],
+    },
+    readbackIdentity: navigation ? `${caseId}:navigation` : `${caseId}:semantic-result`,
+    readbackExpectation: semanticReadbackExpectation(action),
+    attestedAlternatives: negative ? [] : ["persisted-readback", "event-record", "server-log"],
+  };
+}
+
+function semanticReadbackExpectation(action) {
+  if (action.kind === "navigate") return { exists: true, visible: true };
+  if (action.kind === "navigate-negative") return { navigationStatus: action.allowedStatuses[0] };
+  if (["assert-route-read-model", "assert-visible-read-model"].includes(action.kind)) {
+    return { exists: true, visible: true };
+  }
+  if (action.kind === "assert-hidden-control") return { exists: true, visible: false };
+  if (action.kind === "assert-disabled-control") return { exists: true, disabled: true };
+  if (action.kind === "assert-enabled-control") return { exists: true, visible: true, disabled: false };
+  if (action.kind === "assert-link-target") return { tag: "a", hrefKind: "same-origin-path" };
+  if (action.kind === "assert-seeded-select") {
+    return { tag: "select", minimumNonEmptyOptions: action.minimumNonEmptyOptions };
+  }
+  if (action.kind === "assert-form-contract") {
+    return { method: action.method, action: action.action, fields: [...action.fields] };
+  }
+  if (action.kind === "toggle-details") return { changedProperty: "open", changed: true };
+  if (action.kind === "fill-control") return { property: "value", value: action.value };
+  if (action.kind === "toggle-checkbox") return { changedProperty: "checked", changed: true };
+  if (action.kind === "select-control") return { property: "selectedValues", value: [action.value] };
+  throw new Error(`semantic completion expectation missing for ${action.kind}`);
+}
+
+function primarySemanticCompletion(actions) {
+  const primary = actions.find(action =>
+    !["navigate", "wait-visible", "navigate-negative"].includes(action.kind),
+  ) || actions.find(action => action.kind === "navigate-negative") || actions[0];
+  return structuredClone(primary.semanticCompletion);
 }
 
 function compactLocator(value) {

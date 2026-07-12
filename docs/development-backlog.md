@@ -2184,7 +2184,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 | 39 | V390-REVIEW3-39 | VLM Integrity | 구조적 JSON과 provenance 재검증 | P0 | 완료 | 공용 strict JSON parser로 모든 object scope의 decoded duplicate key와 malformed/trailing JSON을 거부하고 profile/rule의 top-level/nested type을 exact 조회합니다. Profile reload 13종과 rule provenance reload의 forged/duplicate/nested/deleted server-record를 quarantine합니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. provenance·보안·데이터 무결성 상향 적용 |
 | 40 | V390-REVIEW3-40 | Long-run | delegated exact phase ledger | P0 | 완료 | expected case ID/order/uniqueness/count를 parent가 검증하고 누락·중복·부분 summary를 PASS로 투영하지 않음 | 5.6 Sol | 높음 (high) | 2+1+2+1=6점. 테스트 결과 정확도 상향 적용 |
 | 41 | V390-REVIEW3-41 | UI Automation | exact 424 기능별 native workflow | P0 | 완료 | 424개 각각에 unique workflow와 role/semantic seed, input, explicit control sequence, reviewed state/readback 결과, reversible cleanup을 고정하고 runtime tag 추측을 제거했습니다. Hidden 10개와 disabled/non-action/read-model을 actionable control과 분리합니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. 대량 UI 동등성과 false-PASS 상향 적용 |
-| 42 | V390-REVIEW3-42 | UI Correctness | semantic completion oracle | P0 | 미완료 | DOM 임의 변화 대신 case별 endpoint+DOM, persisted readback, EventRecord, server log 중 실제 기대 결과를 요구하고 진짜 request correlation을 사용 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+1=7점. 거짓 PASS 정확도 상향 적용 |
+| 42 | V390-REVIEW3-42 | UI Correctness | semantic completion oracle | P0 | 완료 | Exact 424의 848 action plan이 request-header에서 실제 관측된 request ID/method/path/status와 case별 exact semantic readback identity를 함께 요구합니다. DOM digest-only와 사후 correlation 부착을 차단하고 persisted/EventRecord/server-log 대안은 attested schema만 허용합니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+1=7점. 거짓 PASS 정확도 상향 적용 |
 | 43 | V390-REVIEW3-43 | UI Policy | Policy v4 actual evidence producer | P0 | 미완료 | 41~42번 exact runner가 `media-server.ui-automation-evidence.v4` actual summary와 attested case/cross-cutting artifacts를 직접 생성하도록 구현 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. release correctness와 evidence 보안 상향 적용 |
 | 44 | V390-REVIEW3-44 | Visual Evidence | responsive/theme/visual 실제 판정 | P0 | 미완료 | 320/390/760/1180, light/dark, overlay/clipping/contrast/focus를 실제 browser artifact와 pixel/geometry 결과로 산출하고 자기선언 PASS를 금지 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+1=7점. 시각 동등성과 false-PASS 상향 적용 |
 | 45 | V390-REVIEW3-45 | Acceptance | canonical one-command 실행 경로 | P0 | 미완료 | 40~44번 결과를 424 runner→v4 qualification→acceptance/final integrity 한 command로 연결하고 120분은 AGENTS 조건/명시 option과 일치시킴 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점. release correctness 상향 적용 |
@@ -2357,6 +2357,26 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 - 완료 조건: repo-native one command가 exact 424와 cross-cutting을 실행하고 Policy v4 eligible summary를
   생성해 acceptance가 외부 수작업 summary 없이 소비할 수 있어야 합니다. 첫 실패 뒤 later case는
   not-run이며 재현 command와 cleanup을 남깁니다.
+
+42번 구현 기록(2026-07-12):
+
+- Exact manifest의 424 navigate와 primary/negative action을 합한 848개 action plan에
+  `media-server.v390-ui-semantic-completion.v1` request/readback contract를 고정했습니다.
+- Native adapter는 `x-media-server-correlation-id`를 request header로 전송하고 response에서 생성한
+  request ID, header correlation source, method, URL, status를 기록합니다. Runner는 수집 뒤 correlation
+  ID를 덧붙이지 않으며 exact path/status와 readback identity/value가 함께 맞아야 `endpoint-dom`입니다.
+- Exact 424 runner뿐 아니라 targeted `UI-108`~`UI-115` actual 경로도 action 직전에 같은 header를
+  설정하고 exact API path+visible assertion readback을 결합합니다. Fixture-only synthetic summary는
+  actual evidence가 아니며 실제 8-case UI 자동화 실행은 별도 승인 전 미실행입니다.
+- Persisted readback, EventRecord, server log 대안은 각각 schema, correlation source/ID, identity,
+  request/record/log 위치와 digest를 검증합니다. Exact manifest는 `dom-transition`과 legacy
+  `network-dom`을 allowed source로 사용하지 않습니다.
+- 최초 RED는 arbitrary DOM 변화만으로 semantic action이 PASS하는 결함을 `9/1`로 재현했습니다.
+  최종 contract 13/0은 header correlation/readback positive와 synthetic correlation, request ID,
+  method/path, readback ID/value, weak attestation negative 및 848개 action plan을 검증했습니다.
+- Native adapter actual 단기 실행은 correlation request `GET /` 200과 7/7 action을 확인했습니다.
+  Plan-only는 424 not-run과 `uiFulltestPass=false`를 유지합니다. 실제 exact 424 UI 풀테스트·30분·120분은
+  별도 실행 승인 전 미실행입니다.
 
 #### V390-REVIEW3-46~47 final evidence integrity
 

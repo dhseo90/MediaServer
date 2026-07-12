@@ -155,6 +155,237 @@ check("exact and legacy runners capture before/after network and completion resu
   }
 });
 
+check("REVIEW3-42 rejects DOM-only completion and requires observed request correlation plus exact readback identity", () => {
+  const domOnly = evaluateCompletionOracle({
+    action: {
+      ...action("click"),
+      semanticCompletionRequired: true,
+      expectedReadbackIdentity: "CASE-1:expected-result",
+    },
+    before: snapshot("idle", "before"),
+    after: snapshot("ready", "after"),
+  });
+  assert(domOnly.pass === false, "semantic action passed from arbitrary DOM digest change");
+
+  for (const item of manifest.cases) {
+    const result = item.workflow?.expectedResults?.[0];
+    assert(result?.completion?.schema === "media-server.v390-ui-semantic-completion.v1",
+      `${item.caseId} semantic completion plan missing`);
+    const expectedIdentity = item.disposition === "negative-route"
+      ? `${item.caseId}:navigation`
+      : `${item.caseId}:semantic-result`;
+    assert(result.completion.readbackIdentity === expectedIdentity,
+      `${item.caseId} readback identity mismatch`);
+    assert(!item.oracle.allowedCompletionSources.includes("dom-transition"),
+      `${item.caseId} arbitrary DOM completion source remains allowed`);
+    assert(!item.oracle.allowedCompletionSources.includes("network-dom"),
+      `${item.caseId} legacy network-dom completion source remains allowed`);
+    for (const actionItem of item.workflow.controlSequence.filter(actionItem => actionItem.kind !== "wait-visible")) {
+      assert(actionItem.semanticCompletion?.schema === "media-server.v390-ui-semantic-completion.v1",
+        `${item.caseId} ${actionItem.kind} semantic action plan missing`);
+      assert(actionItem.semanticCompletion.request.correlationSource === "request-header",
+        `${item.caseId} ${actionItem.kind} request correlation source drift`);
+    }
+  }
+  assert(adapterSource.includes("x-media-server-correlation-id"), "adapter does not emit request correlation header");
+  assert(adapterSource.includes("correlationSource: correlationId ? 'request-header' : 'none'"),
+    "adapter does not attest header correlation source");
+  assert(exactRunnerSource.includes("semanticReadback"), "exact runner does not collect semantic readback evidence");
+  for (const snippet of ["semanticCompletionRequired", "semanticReadback", "setCorrelationId(correlationId)"]) {
+    assert(legacyRunnerSource.includes(snippet), `targeted runner semantic completion missing ${snippet}`);
+  }
+  assert(!exactRunnerSource.includes("map(entry => ({ ...entry, correlationId }))"),
+    "exact runner still forges correlation IDs after network collection");
+  assert(!legacyRunnerSource.includes("networkStartIndex).map(entry =>"),
+    "targeted runner still forges correlation IDs after network collection");
+});
+
+check("REVIEW3-42 accepts only header-correlated endpoint plus exact semantic readback", () => {
+  const semanticAction = {
+    ...action("click"),
+    semanticCompletionRequired: true,
+    expectedReadbackIdentity: "CASE-1:semantic-result",
+    expectedEndpoint: {
+      correlationId: "CASE-1:navigation",
+      method: "GET",
+      urlPath: "/ops",
+      allowedStatuses: [200],
+    },
+    allowedCompletionSources: ["endpoint-dom"],
+  };
+  const semanticReadback = {
+    schema: "media-server.v390-ui-semantic-readback.v1",
+    identity: "CASE-1:semantic-result",
+    correlationId: "CASE-1:primary",
+    expected: { property: "value", value: "reviewed" },
+    observed: { property: "value", value: "reviewed" },
+  };
+  const endpoint = {
+    requestId: "native-request-1",
+    correlationId: "CASE-1:navigation",
+    correlationSource: "request-header",
+    method: "GET",
+    status: 200,
+    url: "http://127.0.0.1/ops",
+  };
+  const pass = evaluateCompletionOracle({
+    action: semanticAction,
+    before: snapshot("idle", "before"),
+    after: snapshot("ready", "after"),
+    networkResponses: [endpoint],
+    semanticReadback,
+  });
+  assert(pass.pass && pass.source === "endpoint-dom", `semantic endpoint failed: ${pass.reason}`);
+
+  for (const [label, mutateEvidence] of [
+    ["synthetic-correlation", value => { value.networkResponses[0].correlationSource = "post-hoc"; }],
+    ["wrong-request-id", value => { value.networkResponses[0].requestId = ""; }],
+    ["wrong-method", value => { value.networkResponses[0].method = "POST"; }],
+    ["wrong-path", value => { value.networkResponses[0].url = "http://127.0.0.1/health"; }],
+    ["wrong-readback-id", value => { value.semanticReadback.identity = "OTHER"; }],
+    ["wrong-readback-value", value => { value.semanticReadback.observed.value = "forged"; }],
+  ]) {
+    const evidence = { networkResponses: [structuredClone(endpoint)], semanticReadback: structuredClone(semanticReadback) };
+    mutateEvidence(evidence);
+    const rejected = evaluateCompletionOracle({
+      action: semanticAction,
+      before: snapshot("idle", "before"),
+      after: snapshot("ready", "after"),
+      ...evidence,
+    });
+    assert(rejected.pass === false, `${label} semantic evidence passed`);
+  }
+});
+
+check("REVIEW3-42 attested persisted EventRecord and server-log alternatives reject weak evidence", () => {
+  const semanticAction = {
+    ...action("click"),
+    semanticCompletionRequired: true,
+    expectedReadbackIdentity: "CASE-1:semantic-result",
+    expectedEndpoint: { correlationId: "missing", method: "GET", urlPath: "/missing", allowedStatuses: [200] },
+    allowedCompletionSources: ["persisted-readback", "event-record", "server-log"],
+  };
+  const semanticReadback = {
+    schema: "media-server.v390-ui-semantic-readback.v1",
+    identity: "CASE-1:semantic-result",
+    correlationId: "CASE-1:primary",
+    expected: { state: "saved" },
+    observed: { state: "saved" },
+  };
+  const persistedReadback = {
+    schema: "media-server.v390-ui-persisted-readback.v1",
+    correlationSource: "readback-request",
+    correlationId: "CASE-1:primary",
+    identity: "CASE-1:semantic-result",
+    readbackRequestId: "readback-1",
+    beforeDigest: "a",
+    afterDigest: "b",
+  };
+  const eventRecord = {
+    schema: "media-server.v390-ui-event-record-completion.v1",
+    correlationSource: "event-record-field",
+    correlationId: "CASE-1:primary",
+    identity: "CASE-1:semantic-result",
+    observed: true,
+    eventId: "event-1",
+    recordSha256: "e".repeat(64),
+  };
+  const serverLog = {
+    schema: "media-server.v390-ui-server-log-completion.v1",
+    correlationSource: "server-log-field",
+    correlationId: "CASE-1:primary",
+    identity: "CASE-1:semantic-result",
+    matched: true,
+    byteStart: 10,
+    byteEnd: 40,
+    lineSha256: "f".repeat(64),
+  };
+  for (const [field, evidence, source] of [
+    ["persistedReadback", persistedReadback, "persisted-readback"],
+    ["eventRecord", eventRecord, "event-record"],
+    ["serverLog", serverLog, "server-log"],
+  ]) {
+    const accepted = evaluateCompletionOracle({
+      action: semanticAction,
+      before: snapshot("ready", "same"),
+      after: snapshot("ready", "same"),
+      semanticReadback,
+      [field]: evidence,
+    });
+    assert(accepted.pass && accepted.source === source, `${source} attestation not accepted: ${accepted.reason}`);
+    const weak = structuredClone(evidence);
+    delete weak.schema;
+    const rejected = evaluateCompletionOracle({
+      action: semanticAction,
+      before: snapshot("ready", "same"),
+      after: snapshot("ready", "same"),
+      semanticReadback,
+      [field]: weak,
+    });
+    assert(rejected.pass === false, `${source} weak evidence passed`);
+  }
+});
+
+check("REVIEW3-42 all 424 action plans close only with their exact endpoint and readback identity", () => {
+  let evaluatedActions = 0;
+  for (const item of manifest.cases) {
+    for (const actionItem of item.workflow.controlSequence.filter(candidate => candidate.kind !== "wait-visible")) {
+      const completion = actionItem.semanticCompletion;
+      const negative = completion.requiredSource === "negative-route-status";
+      const evidenceAction = {
+        ...actionItem,
+        kind: negative ? "navigate-negative" : actionItem.kind,
+        executed: true,
+        executedKind: actionItem.kind === "fill-control"
+          ? "fill"
+          : (actionItem.kind === "select-control" ? "select" : "click"),
+        correlationId: completion.correlationId,
+        dispatch: "playwright-native",
+        semanticCompletionRequired: true,
+        expectedReadbackIdentity: completion.readbackIdentity,
+        expectedEndpoint: {
+          correlationId: completion.request.correlationId,
+          method: completion.request.method,
+          urlPath: completion.request.urlPath,
+          allowedStatuses: completion.request.allowedStatuses,
+        },
+        allowedCompletionSources: item.oracle.allowedCompletionSources,
+      };
+      const semanticReadback = {
+        schema: "media-server.v390-ui-semantic-readback.v1",
+        identity: completion.readbackIdentity,
+        correlationId: completion.correlationId,
+        expected: structuredClone(completion.readbackExpectation),
+        observed: structuredClone(completion.readbackExpectation),
+      };
+      const status = completion.request.allowedStatuses[0];
+      const networkResponses = [{
+        requestId: `${item.caseId}:${evaluatedActions}`,
+        correlationId: completion.request.correlationId,
+        correlationSource: "request-header",
+        method: completion.request.method,
+        status,
+        url: `http://127.0.0.1${completion.request.urlPath}`,
+      }];
+      const evaluated = evaluateCompletionOracle({
+        action: evidenceAction,
+        before: snapshot("idle", "before"),
+        after: snapshot("ready", "after"),
+        navigation: ["navigate", "navigate-negative"].includes(evidenceAction.kind)
+          ? { status, url: networkResponses[0].url }
+          : null,
+        allowedStatuses: completion.request.allowedStatuses,
+        networkResponses,
+        semanticReadback,
+      });
+      assert(evaluated.pass && evaluated.source === completion.requiredSource,
+        `${item.caseId} ${actionItem.kind} semantic plan failed: ${evaluated.reason}`);
+      evaluatedActions += 1;
+    }
+  }
+  assert(evaluatedActions === 848, `semantic action plan count drift: ${evaluatedActions}`);
+});
+
 const result = runChecks();
 console.log("");
 console.log("== v3.9.0 UI completion oracle contract summary ==");

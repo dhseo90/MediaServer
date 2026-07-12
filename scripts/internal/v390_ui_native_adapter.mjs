@@ -8,7 +8,17 @@ import process from "node:process";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-export const nativeCapabilities = ["navigate", "wait", "click", "fill", "type", "select", "screenshot", "evaluate"];
+export const nativeCapabilities = [
+  "navigate",
+  "wait",
+  "click",
+  "fill",
+  "type",
+  "select",
+  "screenshot",
+  "evaluate",
+  "request-correlation",
+];
 
 export function discoverPlaywrightCandidates(explicitModulePath = "") {
   const nodePathCandidates = String(process.env.NODE_PATH || "")
@@ -117,9 +127,11 @@ async function openNativePlaywrightPage(playwright, {
   executablePath = "",
   storageStatePath = "",
   colorScheme = "light",
+  navigationCorrelationId = "",
 }) {
   const consoleEntries = [];
   const networkEntries = [];
+  let requestSequence = 0;
   const browser = await playwright.chromium.launch({
     headless: true,
     ...(executablePath ? { executablePath } : {}),
@@ -128,6 +140,9 @@ async function openNativePlaywrightPage(playwright, {
     viewport: { width, height },
     colorScheme,
     ...(storageStatePath ? { storageState: storageStatePath } : {}),
+    ...(navigationCorrelationId ? {
+      extraHTTPHeaders: { "x-media-server-correlation-id": navigationCorrelationId },
+    } : {}),
   });
   const page = await context.newPage();
   page.setDefaultTimeout(timeoutMs);
@@ -138,8 +153,13 @@ async function openNativePlaywrightPage(playwright, {
     consoleEntries.push({ level: "error", text: error instanceof Error ? error.message : String(error) });
   });
   page.on("response", response => {
+    const request = response.request();
+    const correlationId = String(request.headers()["x-media-server-correlation-id"] || "");
     networkEntries.push({
-      method: response.request().method(),
+      requestId: `native-request-${++requestSequence}`,
+      correlationId,
+      correlationSource: correlationId ? 'request-header' : 'none',
+      method: request.method(),
       status: response.status(),
       url: response.url(),
     });
@@ -160,6 +180,11 @@ async function openNativePlaywrightPage(playwright, {
         timeout: timeoutMs,
       });
       return { status: response?.status() || 0, url: page.url() };
+    },
+    setCorrelationId: async (correlationId) => {
+      await context.setExtraHTTPHeaders(correlationId
+        ? { "x-media-server-correlation-id": String(correlationId) }
+        : {});
     },
     click: async (selector) => {
       await page.locator(selector).click();

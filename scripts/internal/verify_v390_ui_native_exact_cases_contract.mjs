@@ -67,7 +67,7 @@ check("SAFE-017 keeps its cross-route negative behavior without changing UI-018 
   const negativeAction = item.actions.find(action => action.kind === "navigate-negative");
   assert(negativeAction?.route === "/lab", "SAFE-017 /lab negative action missing");
   assert(negativeAction.allowedStatuses.includes(404), "SAFE-017 404 oracle missing");
-  assert(item.oracle.kind === "cross-route-negative-status", "SAFE-017 cross-route oracle missing");
+  assert(item.oracle.kind === "semantic-cross-route-negative-status", "SAFE-017 cross-route oracle missing");
 });
 
 check("all cases declare native action, oracle seed, and artifact plan", () => {

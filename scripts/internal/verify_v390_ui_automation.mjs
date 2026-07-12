@@ -558,10 +558,12 @@ async function runBrowserCase(item, { httpBase, runtimeAdapter, debugPort, timeo
     width: item.viewport?.width || 390,
     height: item.viewport?.height || 844,
     outputDir: screenshotsDir,
+    navigationCorrelationId: `${item.caseId}:navigation`,
   });
   try {
     await delay(500);
-    if (typeof browser.waitForSelector !== "function" || typeof browser.click !== "function") {
+    if (typeof browser.waitForSelector !== "function" || typeof browser.click !== "function" ||
+        typeof browser.setCorrelationId !== "function") {
       throw new Error(`adapter ${selectedAdapter.engine} does not expose trusted user-action methods`);
     }
     const nativeEvidence = await performNativeInteractions(browser, item, timeoutMs);
@@ -614,22 +616,42 @@ async function runBrowserCase(item, { httpBase, runtimeAdapter, debugPort, timeo
     );
     const assertionEvidence = evaluateVisibleAssertions(item.visibleAssertions, result?.afterState || []);
     const networkResponses = typeof browser.networkEntries === "function"
-      ? browser.networkEntries().slice(nativeEvidence.networkStartIndex).map(entry => ({
-          ...entry,
-          correlationId: nativeEvidence.correlationId,
-        }))
+      ? browser.networkEntries().slice(nativeEvidence.networkStartIndex)
       : [];
+    const readbackIdentity = `${item.caseId}:semantic-result`;
+    const semanticReadback = {
+      schema: "media-server.v390-ui-semantic-readback.v1",
+      identity: readbackIdentity,
+      correlationId: nativeEvidence.correlationId,
+      expected: {
+        selectors: item.visibleAssertions.map(assertion => assertion.selector),
+        pass: true,
+      },
+      observed: {
+        selectors: assertionEvidence.assertions.map(assertion => assertion.selector),
+        pass: assertionEvidence.pass,
+      },
+    };
     const completionOracle = evaluateCompletionOracle({
       action: {
         kind: item.interaction.kind,
         executed: result?.interaction?.executed === true,
         correlationId: nativeEvidence.correlationId,
         dispatch: nativeEvidence.dispatch,
-        expectedNetworkUrlIncludes: item.completionOracle.networkUrlIncludes,
+        semanticCompletionRequired: true,
+        expectedReadbackIdentity: readbackIdentity,
+        expectedEndpoint: {
+          correlationId: nativeEvidence.correlationId,
+          method: "GET",
+          urlPath: item.completionOracle.networkUrlIncludes[0],
+          allowedStatuses: [200],
+        },
+        allowedCompletionSources: ["endpoint-dom"],
       },
       before: result?.beforeState || [],
       after: result?.afterState || [],
       networkResponses,
+      semanticReadback,
     });
     assert(typeof completionOracle.beforeDigest === "string", `${item.caseId} completion beforeDigest missing`);
     assert(typeof completionOracle.afterDigest === "string", `${item.caseId} completion afterDigest missing`);
@@ -702,6 +724,7 @@ async function performNativeInteractions(browser, item, timeoutMs) {
   const beforeState = await readNativeState(browser, item.stateSelectors || []);
   const correlationId = `${item.caseId}:primary`;
   const networkStartIndex = typeof browser.networkEntries === "function" ? browser.networkEntries().length : 0;
+  await browser.setCorrelationId(correlationId);
   await browser.waitForSelector(item.interaction.selector, { state: "visible", timeout: timeoutMs });
   if (item.interaction.kind === "click") await browser.click(item.interaction.selector);
   else if (item.interaction.kind === "select") await browser.select(item.interaction.selector, item.interaction.value);

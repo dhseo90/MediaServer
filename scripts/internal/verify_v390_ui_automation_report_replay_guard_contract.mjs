@@ -93,6 +93,9 @@ check("PASS summary requires a correlated completion oracle", () => {
   expectReportFailure("wrong-network-correlation", summary => {
     summary.cases[0].completionOracle.networkResponses[0].url = "/health";
   });
+  expectReportFailure("weak-endpoint-dom-correlation", summary => {
+    summary.cases[0].completionOracle.source = "endpoint-dom";
+  });
 });
 
 check("screenshot, trace, and log artifact files must exist", () => {

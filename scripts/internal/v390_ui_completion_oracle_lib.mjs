@@ -3,6 +3,7 @@
 import crypto from "node:crypto";
 
 export const allowedCompletionSources = [
+  "endpoint-dom",
   "navigation-network-dom",
   "negative-route-status",
   "dom-transition",
@@ -29,6 +30,7 @@ export function evaluateCompletionOracle({
   persistedReadback = null,
   eventRecord = null,
   serverLog = null,
+  semanticReadback = null,
 }) {
   const beforeDigest = domSnapshotDigest(before);
   const afterDigest = domSnapshotDigest(after);
@@ -40,6 +42,8 @@ export function evaluateCompletionOracle({
     beforeDigest,
     afterDigest,
     networkResponses: Array.isArray(networkResponses) ? networkResponses : [],
+    semanticReadback,
+    expectedEndpoint: action?.expectedEndpoint || null,
   };
   if (!action?.executed) return { ...base, reason: "action-not-executed" };
   if (action.dispatch !== "playwright-native") return { ...base, reason: "untrusted-action-dispatch" };
@@ -49,13 +53,43 @@ export function evaluateCompletionOracle({
       return { ...base, reason: "navigation-status-mismatch" };
     }
     if (action.kind === "navigate-negative") {
+      if (action.semanticCompletionRequired && !matchesCorrelatedEndpoint(base.networkResponses, action)) {
+        return { ...base, reason: "request-correlation-missing" };
+      }
       return { ...base, pass: true, source: "negative-route-status", reason: "" };
     }
     if (!hasVisibleDom(after)) return { ...base, reason: "navigation-dom-missing" };
+    if (action.semanticCompletionRequired) {
+      if (!matchesSemanticReadback(semanticReadback, action)) {
+        return { ...base, reason: "semantic-readback-mismatch" };
+      }
+      if (!matchesCorrelatedEndpoint(base.networkResponses, action)) {
+        return { ...base, reason: "request-correlation-missing" };
+      }
+      return allowedResult(base, action, "endpoint-dom");
+    }
     return { ...base, pass: true, source: "navigation-network-dom", reason: "" };
   }
 
   const actualKind = action.executedKind || action.kind;
+  if (action.semanticCompletionRequired) {
+    if (!matchesSemanticReadback(semanticReadback, action)) {
+      return { ...base, reason: "semantic-readback-mismatch" };
+    }
+    if (matchesCorrelatedEndpoint(base.networkResponses, action)) {
+      return allowedResult(base, action, "endpoint-dom");
+    }
+    if (matchesPersistedReadback(persistedReadback, action)) {
+      return allowedResult(base, action, "persisted-readback");
+    }
+    if (matchesEventRecord(eventRecord, action)) {
+      return allowedResult(base, action, "event-record");
+    }
+    if (matchesServerLog(serverLog, action)) {
+      return allowedResult(base, action, "server-log");
+    }
+    return { ...base, reason: "no-correlated-semantic-completion" };
+  }
   if (!trustedUserActions.has(actualKind)) return { ...base, reason: "unsupported-completion-action" };
   if (beforeDigest && afterDigest && beforeDigest !== afterDigest) {
     return { ...base, pass: true, source: "dom-transition", reason: "" };
@@ -87,6 +121,85 @@ export function evaluateCompletionOracle({
     return { ...base, pass: true, source: "server-log", reason: "" };
   }
   return { ...base, reason: "no-correlated-completion" };
+}
+
+function allowedResult(base, action, source) {
+  const allowed = Array.isArray(action.allowedCompletionSources) ? action.allowedCompletionSources : [];
+  if (allowed.length > 0 && !allowed.includes(source)) {
+    return { ...base, reason: "completion-source-not-allowed" };
+  }
+  return { ...base, pass: true, source, reason: "" };
+}
+
+function matchesSemanticReadback(value, action) {
+  return Boolean(
+    value?.schema === "media-server.v390-ui-semantic-readback.v1" &&
+    action.expectedReadbackIdentity &&
+    value.identity === action.expectedReadbackIdentity &&
+    value.correlationId === action.correlationId &&
+    value.expected !== undefined &&
+    stableStringify(value.expected) === stableStringify(value.observed),
+  );
+}
+
+function matchesCorrelatedEndpoint(entries, action) {
+  const expected = action.expectedEndpoint;
+  if (!expected || !Array.isArray(entries)) return false;
+  return entries.some(item =>
+    item?.correlationSource === "request-header" &&
+    item?.correlationId === expected.correlationId &&
+    typeof item?.requestId === "string" && item.requestId &&
+    String(item.method || "").toUpperCase() === String(expected.method || "GET").toUpperCase() &&
+    Number(item.status) >= 200 && Number(item.status) < 600 &&
+    (expected.allowedStatuses || [200]).includes(Number(item.status)) &&
+    endpointUrlMatches(item.url, expected),
+  );
+}
+
+function endpointUrlMatches(rawUrl, expected) {
+  if (expected.urlPath) {
+    try {
+      return new URL(String(rawUrl), "http://localhost").pathname === expected.urlPath;
+    } catch {
+      return false;
+    }
+  }
+  return String(rawUrl || "").includes(String(expected.urlIncludes || ""));
+}
+
+function matchesPersistedReadback(value, action) {
+  return Boolean(
+    value?.schema === "media-server.v390-ui-persisted-readback.v1" &&
+    value.correlationSource === "readback-request" &&
+    value.correlationId === action.correlationId &&
+    value.identity === action.expectedReadbackIdentity &&
+    typeof value.readbackRequestId === "string" && value.readbackRequestId &&
+    value.beforeDigest && value.afterDigest && value.beforeDigest !== value.afterDigest,
+  );
+}
+
+function matchesEventRecord(value, action) {
+  return Boolean(
+    value?.schema === "media-server.v390-ui-event-record-completion.v1" &&
+    value.correlationSource === "event-record-field" &&
+    value.correlationId === action.correlationId &&
+    value.identity === action.expectedReadbackIdentity &&
+    value.observed === true &&
+    typeof value.eventId === "string" && value.eventId &&
+    /^[a-f0-9]{64}$/.test(String(value.recordSha256 || "")),
+  );
+}
+
+function matchesServerLog(value, action) {
+  return Boolean(
+    value?.schema === "media-server.v390-ui-server-log-completion.v1" &&
+    value.correlationSource === "server-log-field" &&
+    value.correlationId === action.correlationId &&
+    value.identity === action.expectedReadbackIdentity &&
+    value.matched === true &&
+    Number.isInteger(value.byteStart) && Number.isInteger(value.byteEnd) && value.byteEnd > value.byteStart &&
+    /^[a-f0-9]{64}$/.test(String(value.lineSha256 || "")),
+  );
 }
 
 function hasVisibleDom(value) {

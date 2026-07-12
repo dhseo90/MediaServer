@@ -114,6 +114,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     height: item.viewport.height,
     storageStatePath,
     colorScheme: item.theme,
+    navigationCorrelationId: `${item.caseId}:navigation`,
   });
   const trace = {
     schema: "media-server.v390-ui-native-interaction-trace.v1",
@@ -143,11 +144,15 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     assert(item.oracle.allowedStatuses.includes(browser.navigation.status),
       `${item.caseId} navigation status ${browser.navigation.status} not in ${item.oracle.allowedStatuses.join(",")}`);
     const initialSnapshot = await browser.snapshot("body");
+    const initialAction = item.actions[0];
+    const initialCompletionAction = semanticCompletionAction(initialAction, item);
     const initialCompletion = evaluateCompletionOracle({
-      action: completionAction(item.disposition === "negative-route" ? "navigate-negative" : "navigate", item, "navigation"),
+      action: initialCompletionAction,
       after: initialSnapshot,
       navigation: browser.navigation,
       allowedStatuses: item.oracle.allowedStatuses,
+      networkResponses: browser.networkEntries(),
+      semanticReadback: semanticReadbackEvidence(initialAction, initialCompletionAction, null, initialSnapshot),
     });
     assertCompletionEvidence(initialCompletion, item.caseId);
     assert(initialCompletion.pass, `${item.caseId} navigation completion failed: ${initialCompletion.reason}`);
@@ -162,18 +167,22 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
         } else if (action.kind === "navigate-negative") {
           const before = await browser.snapshot(item.controlAction.targetSelector);
           const networkStart = browser.networkEntries().length;
+          await browser.setCorrelationId(action.semanticCompletion.request.correlationId);
           const observed = await browser.navigate(action.route);
+          await browser.setCorrelationId(`${item.caseId}:navigation`);
           assert(action.allowedStatuses.includes(observed.status),
             `${item.caseId} negative navigation status ${observed.status} not in ${action.allowedStatuses.join(",")}`);
           const after = await browser.snapshot("body");
-          const networkResponses = correlateNetwork(browser.networkEntries().slice(networkStart), item, "negative-navigation");
+          const networkResponses = browser.networkEntries().slice(networkStart);
+          const completionEvidenceAction = semanticCompletionAction(action, item);
           const completionOracle = evaluateCompletionOracle({
-            action: completionAction("navigate-negative", item, "negative-navigation"),
+            action: completionEvidenceAction,
             before,
             after,
             navigation: observed,
             allowedStatuses: action.allowedStatuses,
             networkResponses,
+            semanticReadback: semanticReadbackEvidence(action, completionEvidenceAction, before, after),
           });
           assertCompletionEvidence(completionOracle, item.caseId);
           assert(completionOracle.pass, `${item.caseId} negative navigation completion failed: ${completionOracle.reason}`);
@@ -249,41 +258,40 @@ async function executeCaseNativeAction(browser, item, action, runtimeState) {
     assert(observed.method === action.method, `${item.caseId} form method mismatch`);
     assert(observed.action === action.action, `${item.caseId} form action mismatch`);
     assert(JSON.stringify(observed.fields) === JSON.stringify(action.fields), `${item.caseId} form fields mismatch`);
-    return assertionResult(action, observed);
+    const snapshot = await browser.snapshot(action.selector);
+    return semanticAssertionResult(browser, item, action, observed, snapshot);
   }
 
   const before = await browser.snapshot(action.selector);
   assert(before.exists, `${item.caseId} control missing: ${action.selector}`);
   if (action.kind === "assert-route-read-model" || action.kind === "assert-visible-read-model") {
     assert(before.visible, `${item.caseId} read model is not visible: ${action.selector}`);
-    return assertionResult(action, before);
+    return semanticAssertionResult(browser, item, action, before, before);
   }
   if (action.kind === "assert-hidden-control") {
     assert(action.expectedExists === true && !before.visible, `${item.caseId} hidden control state mismatch`);
-    return assertionResult(action, before);
+    return semanticAssertionResult(browser, item, action, before, before);
   }
   if (action.kind === "assert-disabled-control") {
     assert(before.disabled === true, `${item.caseId} control is not disabled: ${action.selector}`);
-    return assertionResult(action, before);
+    return semanticAssertionResult(browser, item, action, before, before);
   }
   if (action.kind === "assert-enabled-control") {
     assert(before.visible && before.disabled === false, `${item.caseId} control is not enabled: ${action.selector}`);
-    return assertionResult(action, before);
+    return semanticAssertionResult(browser, item, action, before, before);
   }
   if (action.kind === "assert-link-target") {
     assert(before.tag === "a" && before.href.startsWith("/"), `${item.caseId} same-origin link target missing`);
-    return assertionResult(action, before);
+    return semanticAssertionResult(browser, item, action, before, before);
   }
   if (action.kind === "assert-seeded-select") {
     const nonEmpty = before.optionValues.filter(Boolean);
     assert(before.tag === "select" && nonEmpty.length >= action.minimumNonEmptyOptions,
       `${item.caseId} server-seeded select option missing`);
-    return assertionResult(action, { ...before, nonEmptyOptionCount: nonEmpty.length });
+    return semanticAssertionResult(browser, item, action, { ...before, nonEmptyOptionCount: nonEmpty.length }, before);
   }
 
   runtimeState.set(action.selector, { kind: action.kind, snapshot: before });
-  const networkStart = browser.networkEntries().length;
-  const correlationId = `${item.caseId}:${action.actionId}`;
   let executedKind = "";
   if (action.kind === "toggle-details") {
     assert(before.tag === "details", `${item.caseId} details contract mismatch`);
@@ -310,19 +318,44 @@ async function executeCaseNativeAction(browser, item, action, runtimeState) {
   if (action.kind === "toggle-checkbox") {
     assert(after.checked !== before.checked, `${item.caseId} checkbox did not toggle`);
   }
-  const networkResponses = browser.networkEntries().slice(networkStart).map(entry => ({ ...entry, correlationId }));
-  const actionEvidence = { ...action, executed: true, executedKind, correlationId, before, after, status: "PASS" };
-  const completionOracle = evaluateCompletionOracle({ action: actionEvidence, before, after, networkResponses });
+  const actionEvidence = {
+    ...semanticCompletionAction(action, item),
+    executedKind,
+    before,
+    after,
+    status: "PASS",
+  };
+  const networkResponses = browser.networkEntries();
+  const semanticReadback = semanticReadbackEvidence(action, actionEvidence, before, after);
+  const completionOracle = evaluateCompletionOracle({
+    action: actionEvidence,
+    before,
+    after,
+    networkResponses,
+    semanticReadback,
+  });
   assertCompletionEvidence(completionOracle, item.caseId);
   assert(completionOracle.pass, `${item.caseId} ${action.kind} completion failed: ${completionOracle.reason}`);
-  return { actionEvidence, completionOracle };
+  return { actionEvidence: { ...actionEvidence, semanticReadback }, completionOracle };
 }
 
-function assertionResult(action, observed) {
-  return {
-    actionEvidence: { ...action, executed: true, observed, status: "PASS" },
-    completionOracle: null,
+function semanticAssertionResult(browser, item, action, observed, snapshot) {
+  const actionEvidence = {
+    ...semanticCompletionAction(action, item),
+    observed,
+    status: "PASS",
   };
+  const semanticReadback = semanticReadbackEvidence(action, actionEvidence, snapshot, snapshot, observed);
+  const completionOracle = evaluateCompletionOracle({
+    action: actionEvidence,
+    before: snapshot,
+    after: snapshot,
+    networkResponses: browser.networkEntries(),
+    semanticReadback,
+  });
+  assertCompletionEvidence(completionOracle, item.caseId);
+  assert(completionOracle.pass, `${item.caseId} ${action.kind} semantic completion failed: ${completionOracle.reason}`);
+  return { actionEvidence: { ...actionEvidence, semanticReadback }, completionOracle };
 }
 
 async function executeWorkflowCleanup(browser, item, runtimeState, trace) {
@@ -357,18 +390,68 @@ async function executeWorkflowCleanup(browser, item, runtimeState, trace) {
   }
 }
 
-function completionAction(kind, item, suffix) {
+function semanticCompletionAction(action, item) {
+  const completion = action.semanticCompletion;
+  assert(completion?.schema === "media-server.v390-ui-semantic-completion.v1",
+    `${item.caseId} action semantic completion missing: ${action.kind}`);
   return {
-    kind,
+    ...action,
+    kind: completion.requiredSource === "negative-route-status" ? "navigate-negative" : action.kind,
     executed: true,
-    correlationId: `${item.caseId}:${suffix}`,
+    correlationId: completion.correlationId,
     dispatch: "playwright-native",
+    semanticCompletionRequired: true,
+    expectedReadbackIdentity: completion.readbackIdentity,
+    expectedEndpoint: {
+      correlationId: completion.request.correlationId,
+      method: completion.request.method,
+      urlPath: completion.request.urlPath,
+      allowedStatuses: [...completion.request.allowedStatuses],
+    },
+    allowedCompletionSources: [...item.oracle.allowedCompletionSources],
   };
 }
 
-function correlateNetwork(entries, item, suffix) {
-  const correlationId = `${item.caseId}:${suffix}`;
-  return entries.map(entry => ({ ...entry, correlationId }));
+function semanticReadbackEvidence(action, actionEvidence, before, after, explicitObserved = null) {
+  const expected = structuredClone(action.semanticCompletion.readbackExpectation);
+  return {
+    schema: "media-server.v390-ui-semantic-readback.v1",
+    identity: action.semanticCompletion.readbackIdentity,
+    correlationId: actionEvidence.correlationId,
+    expected,
+    observed: observeSemanticExpectation(expected, before, after, explicitObserved),
+  };
+}
+
+function observeSemanticExpectation(expected, before, after, explicitObserved) {
+  if (expected.changedProperty) {
+    return {
+      changedProperty: expected.changedProperty,
+      changed: before?.[expected.changedProperty] !== after?.[expected.changedProperty],
+    };
+  }
+  if (expected.property) {
+    return { property: expected.property, value: structuredClone(after?.[expected.property]) };
+  }
+  if (expected.hrefKind) {
+    return {
+      tag: after?.tag || explicitObserved?.tag || "",
+      hrefKind: String(after?.href || explicitObserved?.href || "").startsWith("/") ? "same-origin-path" : "other",
+    };
+  }
+  if (expected.minimumNonEmptyOptions !== undefined) {
+    const count = Number(explicitObserved?.nonEmptyOptionCount || after?.optionValues?.filter(Boolean).length || 0);
+    return {
+      tag: after?.tag || explicitObserved?.tag || "",
+      minimumNonEmptyOptions: count >= expected.minimumNonEmptyOptions
+        ? expected.minimumNonEmptyOptions
+        : count,
+    };
+  }
+  const source = explicitObserved || after || {};
+  const observed = {};
+  for (const key of Object.keys(expected)) observed[key] = structuredClone(source[key]);
+  return observed;
 }
 
 function assertCompletionEvidence(value, caseId) {

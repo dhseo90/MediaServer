@@ -245,6 +245,33 @@ function assertCompletionOracle(item) {
         patterns.some(pattern => String(response.url || "").includes(pattern))),
       `${item.caseId} uncorrelated network completion response`);
     }
+    if (completion.source === "endpoint-dom") {
+      const readback = completion.semanticReadback;
+      const endpoint = completion.expectedEndpoint;
+      assert(readback?.schema === "media-server.v390-ui-semantic-readback.v1",
+        `${item.caseId} endpoint-dom semantic readback missing`);
+      assert(readback.identity && readback.correlationId === completion.correlationId,
+        `${item.caseId} endpoint-dom readback identity/correlation mismatch`);
+      assert(stableStringify(readback.expected) === stableStringify(readback.observed),
+        `${item.caseId} endpoint-dom semantic readback mismatch`);
+      assert(endpoint?.correlationId && endpoint.method && endpoint.urlPath &&
+        Array.isArray(endpoint.allowedStatuses) && endpoint.allowedStatuses.length > 0,
+      `${item.caseId} endpoint-dom endpoint contract missing`);
+      assert(completion.networkResponses.some(response => {
+        let pathname = "";
+        try {
+          pathname = new URL(String(response.url || ""), "http://localhost").pathname;
+        } catch {
+          return false;
+        }
+        return response.correlationSource === "request-header" &&
+          response.correlationId === endpoint.correlationId &&
+          typeof response.requestId === "string" && response.requestId &&
+          String(response.method || "").toUpperCase() === String(endpoint.method).toUpperCase() &&
+          endpoint.allowedStatuses.includes(Number(response.status)) &&
+          pathname === endpoint.urlPath;
+      }), `${item.caseId} endpoint-dom request correlation mismatch`);
+    }
   }
 }
 
@@ -281,6 +308,15 @@ function isConsoleWarningOrError(entry) {
   if (typeof entry === "string") return /\b(error|warning|warn)\b/i.test(entry);
   const level = String(entry.level || entry.severity || entry.type || "").toLowerCase();
   return level === "error" || level === "warning" || level === "warn";
+}
+
+function stableStringify(value) {
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map(key =>
+      `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
 }
 
 function check(name, fn) {

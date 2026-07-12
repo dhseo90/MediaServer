@@ -50,6 +50,7 @@ let adapterAttempts = [];
 let result = "FAIL";
 let failureReason = "";
 let finalState = "";
+let navigationCorrelation = {};
 
 try {
   const adapter = await createNativePlaywrightAdapter({
@@ -65,7 +66,21 @@ try {
   server = await startReproductionServer();
   const address = server.address();
   const httpBase = `http://127.0.0.1:${address.port}`;
-  page = await adapter.openPage({ httpBase, pagePath: "/", timeoutMs: 15000, width: 720, height: 640 });
+  const navigationCorrelationId = "NATIVE-ADAPTER:navigation";
+  page = await adapter.openPage({
+    httpBase,
+    pagePath: "/",
+    timeoutMs: 15000,
+    width: 720,
+    height: 640,
+    navigationCorrelationId,
+  });
+  const navigationEntry = page.networkEntries().find(entry =>
+    entry.correlationId === navigationCorrelationId && new URL(entry.url).pathname === "/");
+  assert(navigationEntry?.correlationSource === "request-header", "navigation request header correlation missing");
+  assert(navigationEntry?.requestId && navigationEntry.method === "GET" && navigationEntry.status === 200,
+    "navigation request identity/method/status mismatch");
+  navigationCorrelation = navigationEntry;
 
   await step("wait", "#native-name", () => page.waitForSelector("#native-name"));
   await step("fill", "#native-name", () => page.fill("#native-name", "native-adapter"));
@@ -94,6 +109,7 @@ const summary = {
   capabilities: nativeCapabilities,
   actions,
   finalState,
+  navigationCorrelation,
   failureReason,
   screenshotPath,
   tracePath,
@@ -107,7 +123,12 @@ const summary = {
     explicitModuleCommand: "./server.sh verify-v390-ui-native-adapter --output-dir <path> --playwright-module-path <package-dir>",
   },
 };
-fs.writeFileSync(tracePath, `${JSON.stringify({ schema: "media-server.v390-ui-native-adapter-trace.v1", actions, finalState }, null, 2)}\n`);
+fs.writeFileSync(tracePath, `${JSON.stringify({
+  schema: "media-server.v390-ui-native-adapter-trace.v1",
+  actions,
+  finalState,
+  navigationCorrelation,
+}, null, 2)}\n`);
 fs.writeFileSync(summaryPath, `${JSON.stringify(summary, null, 2)}\n`);
 fs.writeFileSync(reportPath, renderReport(summary));
 
@@ -190,6 +211,7 @@ function renderReport(payload) {
     `moduleVersion: ${payload.selectedAdapter.moduleVersion || "unavailable"}`,
     `fallbackUsed: ${payload.cleanup.fallbackUsed}`,
     `finalState: ${payload.finalState}`,
+    `navigationCorrelation: ${payload.navigationCorrelation.correlationId || "unavailable"}`,
     "",
     "| action | target | status | durationMs |",
     "| --- | --- | --- | --- |",
