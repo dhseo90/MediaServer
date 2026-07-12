@@ -168,6 +168,8 @@ Usage:
                  V390-REVIEW2-25 no-op action/pre-existing visible state false-PASS 계약을 검증합니다.
   verify-v390-ui-policy-v4-producer-contract
                  V390-REVIEW3-43 exact runner Policy v4 actual summary/attestation producer 계약을 검증합니다.
+  verify-v390-ui-visual-evidence-contract
+                 V390-REVIEW3-44 screenshot pixel/geometry responsive/theme/visual 판정 계약을 검증합니다.
   verify-v390-full-suite-eligibility-contract
                  V390-REVIEW2-26 acceptance/final Policy v4 exact 424 eligibility 계약을 검증합니다.
   verify-v390-current-ui-evidence-contract
@@ -438,6 +440,8 @@ Usage:
                  V390-REVIEW2-25 no-op action/pre-existing visible state false-PASS 계약을 검증합니다.
   verify-v390-ui-policy-v4-producer-contract
                  V390-REVIEW3-43 exact runner Policy v4 actual summary/attestation producer 계약을 검증합니다.
+  verify-v390-ui-visual-evidence-contract
+                 V390-REVIEW3-44 screenshot pixel/geometry responsive/theme/visual 판정 계약을 검증합니다.
   verify-v390-full-suite-eligibility-contract
                  V390-REVIEW2-26 acceptance/final Policy v4 exact 424 eligibility 계약을 검증합니다.
   verify-v390-current-ui-evidence-contract
@@ -2113,6 +2117,10 @@ case "${cmd}" in
   verify-v390-ui-policy-v4-producer-contract)
     require_internal verify_v390_ui_policy_v4_producer_contract.mjs
     exec "${INTERNAL_DIR}/verify_v390_ui_policy_v4_producer_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-visual-evidence-contract)
+    require_internal verify_v390_ui_visual_evidence_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_visual_evidence_contract.mjs" "$@"
     ;;
   verify-v390-full-suite-eligibility-contract)
     require_internal verify_v390_full_suite_eligibility_contract.mjs

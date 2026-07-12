@@ -19,6 +19,7 @@ export const nativeCapabilities = [
   "select",
   "screenshot",
   "evaluate",
+  "visual-geometry",
   "request-correlation",
 ];
 
@@ -224,6 +225,75 @@ async function openNativePlaywrightPage(playwright, {
         url: location.href,
       };
     })()`),
+    measureVisualState: async (selector = "body") => {
+      const geometry = await page.evaluate(`(() => {
+        const selector = ${JSON.stringify(selector)};
+        const target = document.querySelector(selector) || document.body;
+        const rectValue = element => {
+          const rect = element?.getBoundingClientRect?.();
+          if (!rect) return null;
+          return { x: rect.x, y: rect.y, left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height };
+        };
+        const isVisible = element => {
+          const rect = element?.getBoundingClientRect?.();
+          const style = element ? getComputedStyle(element) : null;
+          return Boolean(rect && rect.width > 0 && rect.height > 0 && style && style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity || 1) > 0);
+        };
+        const elements = Array.from(document.querySelectorAll('body *')).filter(isVisible).slice(0, 400);
+        const effectiveBackground = element => {
+          let current = element;
+          while (current) {
+            const value = getComputedStyle(current).backgroundColor;
+            const match = value.match(/^rgba?\([^)]*(?:[,/]\s*([0-9.]+))?\)$/i);
+            const alpha = value.startsWith('rgb(') ? 1 : Number(match?.[1] || 0);
+            if (alpha >= 0.99) return value;
+            current = current.parentElement;
+          }
+          return matchMedia('(prefers-color-scheme: dark)').matches ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)';
+        };
+        const textSamples = elements.filter(element => String(element.innerText || '').trim().length > 0).slice(0, 120).map(element => {
+          const style = getComputedStyle(element);
+          return { foreground: style.color, background: effectiveBackground(element), fontSizePx: Number.parseFloat(style.fontSize || '0'), fontWeight: style.fontWeight, rect: rectValue(element) };
+        });
+        const videos = Array.from(document.querySelectorAll('video')).filter(isVisible).map(element => ({ rect: rectValue(element), readyState: Number(element.readyState || 0), videoWidth: Number(element.videoWidth || 0), videoHeight: Number(element.videoHeight || 0) }));
+        const overlays = Array.from(new Set([
+          ...document.querySelectorAll('canvas'),
+          ...document.querySelectorAll('[data-testid*="overlay" i]'),
+          ...document.querySelectorAll('[class*="overlay" i]')
+        ])).filter(isVisible).map(element => ({ rect: rectValue(element), tag: String(element.tagName || '').toLowerCase() }));
+        return {
+          schema: 'media-server.ui-browser-visual-measurement.v1',
+          route: location.pathname,
+          viewport: { width: innerWidth, height: innerHeight, devicePixelRatio },
+          theme: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
+          document: { scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight, clientWidth: document.documentElement.clientWidth, clientHeight: document.documentElement.clientHeight },
+          target: { selector, visible: isVisible(target), rect: rectValue(target) },
+          textSamples,
+          videos,
+          overlays,
+        };
+      })()`);
+      const focusSamples = [];
+      for (let index = 0; index < 8; index += 1) {
+        await page.keyboard.press("Tab");
+        focusSamples.push(await page.evaluate(`(() => {
+          const element = document.activeElement;
+          const style = element ? getComputedStyle(element) : null;
+          const rect = element?.getBoundingClientRect?.();
+          return {
+            index: ${index},
+            tag: String(element?.tagName || '').toLowerCase(),
+            id: String(element?.id || ''),
+            testId: String(element?.getAttribute?.('data-testid') || ''),
+            visible: Boolean(rect && rect.width > 0 && rect.height > 0),
+            outlineStyle: String(style?.outlineStyle || ''),
+            outlineWidth: String(style?.outlineWidth || ''),
+            boxShadow: String(style?.boxShadow || ''),
+          };
+        })()`));
+      }
+      return { ...geometry, focusSamples };
+    },
     evaluate: (expression) => page.evaluate(expression),
     screenshot: outputFile => page.screenshot({ path: outputFile, fullPage: false }),
     consoleEntries: () => consoleEntries,

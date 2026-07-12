@@ -24,9 +24,11 @@ const summaryPath = path.join(outputDir, "summary.json");
 const tracesDir = path.join(outputDir, "traces");
 const screenshotsDir = path.join(outputDir, "screenshots");
 const logsDir = path.join(outputDir, "logs");
+const visualMatrixDir = path.join(outputDir, "visual-matrix");
 fs.mkdirSync(tracesDir, { recursive: true });
 fs.mkdirSync(screenshotsDir, { recursive: true });
 fs.mkdirSync(logsDir, { recursive: true });
+fs.mkdirSync(visualMatrixDir, { recursive: true });
 
 if (options.planOnly) {
   const summary = {
@@ -88,6 +90,9 @@ for (const item of manifest.cases) {
 
 const fail = results.filter(item => item.status === "FAIL").length;
 const notRun = results.filter(item => item.status === "not-run").length;
+const visualMatrixProbes = fail === 0 && notRun === 0
+  ? await executeVisualMatrix(adapter, roleStateMap)
+  : [];
 const produced = producePolicyV4Evidence({
   rootDir,
   outputDir,
@@ -100,6 +105,7 @@ const produced = producePolicyV4Evidence({
   buildPath,
   runnerPath: fileURLToPath(import.meta.url),
   serverLogPath,
+  visualMatrixProbes,
   contractFixture: false,
 });
 const summary = produced.summary;
@@ -204,6 +210,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     }
     assert(trace.completionEvents.some(event => event.pass && item.oracle.allowedCompletionSources.includes(event.source)),
       `${item.caseId} has no allowed completion oracle`);
+    const visualMeasurement = await browser.measureVisualState(item.controlAction.targetSelector || "body");
     await browser.screenshot(screenshotPath);
     await executeWorkflowCleanup(browser, item, runtimeState, trace);
     writeJson(consolePath, {
@@ -232,6 +239,8 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
         visible: initialSnapshot.visible === true,
         selector: "body",
       },
+      visualMeasurement,
+      requireVideoOverlay: item.screenRoute === "/client/live",
       navigation: browser.navigation,
       oracleSeed: item.oracle,
       completionOracle: trace.completionEvents,
@@ -243,6 +252,49 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
   } finally {
     await browser.close();
   }
+}
+
+async function executeVisualMatrix(adapter, roleStateMap) {
+  const operatorCase = manifest.cases.find(item => item.accountRole === "operator" && item.screenRoute.startsWith("/ops"));
+  const viewerCase = manifest.cases.find(item => item.accountRole === "viewer" && item.screenRoute.startsWith("/client"));
+  assert(operatorCase && viewerCase, "visual matrix representative operator/viewer cases are missing");
+  const probes = [];
+  for (const width of [320, 390, 760, 1180]) {
+    for (const theme of ["light", "dark"]) {
+      const item = theme === "light" ? operatorCase : viewerCase;
+      const id = `visual-${width}-${theme}`;
+      const storageStatePath = resolveRoleState(item.accountRole, roleStateMap);
+      const browser = await adapter.openPage({
+        httpBase: options.httpBase,
+        pagePath: item.screenRoute,
+        timeoutMs: options.timeoutMs,
+        width,
+        height: 844,
+        storageStatePath,
+        colorScheme: theme,
+        navigationCorrelationId: `${id}:navigation`,
+      });
+      const screenshotPath = path.join(visualMatrixDir, `${id}.png`);
+      try {
+        assert(item.oracle.allowedStatuses.includes(browser.navigation.status), `${id} navigation status mismatch`);
+        const measurement = await browser.measureVisualState("body");
+        await browser.screenshot(screenshotPath);
+        probes.push({
+          id,
+          role: item.accountRole,
+          correlationId: `${id}:navigation`,
+          screenshotPath,
+          measurement,
+          expectedViewport: { width, height: 844 },
+          expectedTheme: theme,
+          requireVideoOverlay: item.screenRoute === "/client/live",
+        });
+      } finally {
+        await browser.close();
+      }
+    }
+  }
+  return probes;
 }
 
 function executeWorkflowSetup(item, storageStatePath, trace) {

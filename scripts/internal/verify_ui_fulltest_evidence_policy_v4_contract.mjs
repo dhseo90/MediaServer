@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { evaluateEvidence, sha256File, sha256Text, validatePolicy } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
+import { evaluateVisualArtifact, evaluateVisualMatrix } from "./v390_ui_visual_evidence.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -211,6 +212,34 @@ try {
     assert(result.reasons.some(reason => reason.endsWith(":case-redaction-evidence-payload-invalid")), "forged redaction scan output passed");
   });
 
+  check("self-declared visual and responsive matrix PASS are rejected after metric recalculation", () => {
+    let candidate = makeCandidate(tempRoot, policy, 1, "scoped-change");
+    let item = candidate.cases[0];
+    let artifactRoot = path.join(tempRoot, candidate.sourceBinding.artifactRoot);
+    let measurementPath = path.join(artifactRoot, item.artifacts.visualMeasurement.path);
+    const measurement = JSON.parse(fs.readFileSync(measurementPath, "utf8"));
+    measurement.textSamples[0].foreground = "rgb(120, 120, 120)";
+    measurement.textSamples[0].background = "rgb(130, 130, 130)";
+    writeJson(measurementPath, measurement);
+    item.artifacts.visualMeasurement = artifactMeta(measurementPath, "application/json", artifactRoot, item.testId, item.completionOracle.correlationId);
+    item.visualEvidence.measurementRef = evidenceRef(item.artifacts.visualMeasurement, policy);
+    let result = evaluate(candidate, tempRoot);
+    assert(result.reasons.some(reason => reason.endsWith(":visual-evidence-recalculation-status-mismatch")),
+      "self-declared case visual PASS survived low-contrast recomputation");
+
+    candidate = makeCandidate(tempRoot, policy, 1, "scoped-change");
+    artifactRoot = path.join(tempRoot, candidate.sourceBinding.artifactRoot);
+    const obligation = candidate.crossCuttingObligations[0];
+    const crossPath = path.join(artifactRoot, obligation.evidenceRef.path);
+    const crossPayload = JSON.parse(fs.readFileSync(crossPath, "utf8"));
+    crossPayload.measuredEvidenceRefs = [];
+    writeJson(crossPath, crossPayload);
+    obligation.evidenceRef = evidenceRef(artifactMeta(crossPath, "application/json", artifactRoot, "__suite__", obligation.correlationId), policy);
+    result = evaluate(candidate, tempRoot);
+    assert(result.reasons.includes("cross-cutting-visual-quality-measurement-ref-count-invalid"),
+      "self-declared cross-cutting PASS survived missing measurement refs");
+  });
+
   check("legacy and actual-mode contract fixture are ineligible", () => {
     const legacy = evaluateEvidence(policy, { schema: "media-server.v390-ui-automation.v1" }, { rootDir: tempRoot });
     assert(legacy.evidenceEligibility === "ineligible", "legacy v1 must be ineligible");
@@ -329,6 +358,7 @@ function makeCandidate(tempRoot, policyValue, count, scopeKind) {
   assert(canonicalCases.length === count, `requested ${count} canonical cases, got ${canonicalCases.length}`);
   const cases = canonicalCases.map(canonicalCase => makeAttestedCase(artifactRoot, policyValue, canonicalCase));
   const caseSetSha256 = sha256Text(JSON.stringify(cases.map(item => item.testId)));
+  const matrixBundle = makeContractVisualMatrix(artifactRoot, policyValue);
   const crossCuttingObligations = policyValue.suiteClosure.requiredCrossCuttingObligations.map(id => {
     const correlationId = `contract-cross-${id}`;
     const filePath = path.join(artifactRoot, "cross-cutting", `${id}.json`);
@@ -336,8 +366,11 @@ function makeCandidate(tempRoot, policyValue, count, scopeKind) {
       schema: policyValue.attestation.crossCuttingSchema,
       obligationId: id,
       status: "PASS",
+      reviewRequired: false,
       correlationId,
       caseSetSha256,
+      measuredEvidenceRefs: matrixBundle.refs,
+      matrix: matrixBundle.summary,
     });
     return {
       id,
@@ -417,6 +450,47 @@ function makeCandidate(tempRoot, policyValue, count, scopeKind) {
   };
 }
 
+function makeContractVisualMatrix(artifactRoot, policyValue) {
+  const probes = [];
+  const refs = [];
+  for (const width of [320, 390, 760, 1180]) {
+    for (const theme of ["light", "dark"]) {
+      const id = `contract-visual-${width}-${theme}`;
+      const correlationId = `${id}:correlation`;
+      const root = path.join(artifactRoot, "visual-matrix", id);
+      const screenshotPath = path.join(root, "screen.png");
+      const measurementPath = path.join(root, "measurement.json");
+      const payloadPath = path.join(root, "visual.json");
+      fs.mkdirSync(root, { recursive: true });
+      fs.writeFileSync(screenshotPath, createPng(width, 844));
+      const measurement = contractVisualMeasurement({ route: "/ops", viewport: { width, height: 844 }, theme });
+      if (theme === "dark") {
+        measurement.route = "/client/live";
+        measurement.videos = [{ rect: { left: 10, top: 10, right: width - 10, bottom: 400 }, readyState: 4, videoWidth: 1920, videoHeight: 1080 }];
+        measurement.overlays = [{ rect: { left: 10, top: 10, right: width - 10, bottom: 400 }, tag: "canvas" }];
+      }
+      writeJson(measurementPath, measurement);
+      const payload = evaluateVisualArtifact({
+        screenshotPath,
+        measurement,
+        caseId: id,
+        correlationId,
+        expectedViewport: measurement.viewport,
+        expectedTheme: theme,
+        requireVideoOverlay: theme === "dark",
+      });
+      payload.role = theme === "light" ? "operator" : "viewer";
+      writeJson(payloadPath, payload);
+      const screenshot = artifactMeta(screenshotPath, "image/png", artifactRoot, "__suite__", correlationId);
+      const measurementMeta = artifactMeta(measurementPath, "application/json", artifactRoot, "__suite__", correlationId);
+      const payloadMeta = artifactMeta(payloadPath, "application/json", artifactRoot, "__suite__", correlationId);
+      refs.push(evidenceRef(screenshot, policyValue), evidenceRef(measurementMeta, policyValue), evidenceRef(payloadMeta, policyValue));
+      probes.push({ id, role: payload.role, payload });
+    }
+  }
+  return { refs, summary: evaluateVisualMatrix(probes) };
+}
+
 function makeAttestedCase(artifactRoot, policyValue, canonicalCase) {
   const correlationId = `contract-${canonicalCase.testId}`;
   const caseRoot = path.join(artifactRoot, "cases", canonicalCase.testId);
@@ -425,9 +499,10 @@ function makeAttestedCase(artifactRoot, policyValue, canonicalCase) {
   const tracePath = path.join(caseRoot, "trace.json");
   const consolePath = path.join(caseRoot, "console.json");
   const logPath = path.join(caseRoot, "server.log");
+  const measurementPath = path.join(caseRoot, "visual-measurement.json");
   const visualPath = path.join(caseRoot, "visual-diff.json");
   const redactionPath = path.join(caseRoot, "redaction.json");
-  fs.writeFileSync(pngPath, createPng());
+  fs.writeFileSync(pngPath, createPng(canonicalCase.viewport.width, canonicalCase.viewport.height));
   writeJson(tracePath, {
     schema: policyValue.attestation.interactionTraceSchema,
     caseId: canonicalCase.testId,
@@ -451,16 +526,20 @@ function makeAttestedCase(artifactRoot, policyValue, canonicalCase) {
   const trace = artifactMeta(tracePath, "application/json", artifactRoot, canonicalCase.testId, correlationId);
   const browserConsole = artifactMeta(consolePath, "application/json", artifactRoot, canonicalCase.testId, correlationId);
   const serverLog = artifactMeta(logPath, "text/plain", artifactRoot, canonicalCase.testId, correlationId);
-  writeJson(visualPath, {
-    schema: policyValue.caseEquivalence.visualBaselineSchema,
-    status: "PASS",
-    reviewRequired: false,
+  const measurement = contractVisualMeasurement(canonicalCase);
+  writeJson(measurementPath, measurement);
+  const visualMeasurement = artifactMeta(measurementPath, "application/json", artifactRoot, canonicalCase.testId, correlationId);
+  const visualPayload = evaluateVisualArtifact({
+    screenshotPath: pngPath,
+    measurement,
     caseId: canonicalCase.testId,
     correlationId,
-    screenshotSha256: screenshot.sha256,
+    expectedViewport: canonicalCase.viewport,
+    expectedTheme: canonicalCase.theme,
   });
+  writeJson(visualPath, visualPayload);
   const visualDiff = artifactMeta(visualPath, "application/json", artifactRoot, canonicalCase.testId, correlationId);
-  const scannedArtifacts = [screenshot, trace, browserConsole, serverLog, visualDiff]
+  const scannedArtifacts = [screenshot, trace, browserConsole, serverLog, visualMeasurement, visualDiff]
     .map(item => ({ path: item.path, sha256: item.sha256 }));
   writeJson(redactionPath, {
     schema: policyValue.attestation.redactionScanSchema,
@@ -505,6 +584,7 @@ function makeAttestedCase(artifactRoot, policyValue, canonicalCase) {
       reviewRequired: false,
       correlationId,
       evidenceRef: evidenceRef(visualDiff, policyValue),
+      measurementRef: evidenceRef(visualMeasurement, policyValue),
     },
     security: {
       redactionStatus: "PASS",
@@ -513,7 +593,29 @@ function makeAttestedCase(artifactRoot, policyValue, canonicalCase) {
       evidenceRef: evidenceRef(redactionScan, policyValue),
     },
     manualIntervention: false,
-    artifacts: { screenshot, trace, browserConsole, serverLog, visualDiff, redactionScan },
+    artifacts: { screenshot, trace, browserConsole, serverLog, visualMeasurement, visualDiff, redactionScan },
+  };
+}
+
+function contractVisualMeasurement(canonicalCase) {
+  const { width, height } = canonicalCase.viewport;
+  const dark = canonicalCase.theme === "dark";
+  return {
+    schema: "media-server.ui-browser-visual-measurement.v1",
+    route: canonicalCase.route,
+    viewport: { width, height, devicePixelRatio: 1 },
+    theme: canonicalCase.theme,
+    document: { scrollWidth: width, scrollHeight: height, clientWidth: width, clientHeight: height },
+    target: { selector: "body", visible: true, rect: { left: 0, top: 0, right: width, bottom: height, width, height } },
+    textSamples: [{
+      foreground: dark ? "rgb(255, 255, 255)" : "rgb(0, 0, 0)",
+      background: dark ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)",
+      fontSizePx: 14,
+      fontWeight: "400",
+    }],
+    focusSamples: [{ tag: "button", id: canonicalCase.testId, testId: "", visible: true, outlineStyle: "solid", outlineWidth: "2px", boxShadow: "none" }],
+    videos: [],
+    overlays: [],
   };
 }
 
@@ -538,14 +640,14 @@ function writeJson(filePath, payload) {
   fs.writeFileSync(filePath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
 }
 
-function createPng() {
+function createPng(width, height) {
   const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
   const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(1, 0);
-  ihdr.writeUInt32BE(1, 4);
+  ihdr.writeUInt32BE(width, 0);
+  ihdr.writeUInt32BE(height, 4);
   ihdr[8] = 8;
   ihdr[9] = 6;
-  const raw = Buffer.from([0, 0, 0, 0, 0]);
+  const raw = Buffer.alloc(height * (width * 4 + 1));
   return Buffer.concat([signature, pngChunk("IHDR", ihdr), pngChunk("IDAT", zlib.deflateSync(raw)), pngChunk("IEND", Buffer.alloc(0))]);
 }
 

@@ -56,13 +56,14 @@
       "trace",
       "browserConsole",
       "serverLog",
+      "visualMeasurement",
       "visualDiff",
       "redactionScan"
     ],
     "optionalArtifacts": [
       "video"
     ],
-    "visualBaselineSchema": "media-server.ui-visual-baseline-diff.v1",
+    "visualBaselineSchema": "media-server.ui-visual-baseline-diff.v2",
     "maxEvidenceAgeHours": 24
   },
   "attestation": {

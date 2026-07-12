@@ -5,11 +5,13 @@ import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 
+import { evaluateVisualArtifact, evaluateVisualMatrix, visualEvidenceSchema } from "./v390_ui_visual_evidence.mjs";
+
 const evidenceSchema = "media-server.ui-automation-evidence.v4";
 const evidenceRefSchema = "media-server.ui-evidence-ref.v1";
 const traceSchema = "media-server.ui-interaction-trace.v1";
 const consoleSchema = "media-server.ui-browser-console.v1";
-const visualSchema = "media-server.ui-visual-baseline-diff.v1";
+const visualSchema = visualEvidenceSchema;
 const redactionSchema = "media-server.ui-evidence-redaction-scan.v1";
 const crossCuttingSchema = "media-server.ui-cross-cutting-evidence.v1";
 const requiredCrossCutting = [
@@ -34,6 +36,7 @@ export function producePolicyV4Evidence({
   buildPath,
   runnerPath,
   serverLogPath,
+  visualMatrixProbes = [],
   contractFixture = false,
 }) {
   const resolvedRoot = path.resolve(rootDir);
@@ -60,23 +63,25 @@ export function producePolicyV4Evidence({
   }));
   const caseIds = cases.map(item => item.testId);
   const caseSetSha256 = sha256Text(JSON.stringify(caseIds));
+  const matrix = produceVisualMatrix({ outputDir: resolvedOutput, policyRoot, probes: visualMatrixProbes });
   const crossCuttingObligations = requiredCrossCutting.map(id => {
     const correlationId = `v390-cross-${id}`;
     const filePath = path.join(policyRoot, "cross-cutting", `${id}.json`);
     writeJson(filePath, {
       schema: crossCuttingSchema,
       obligationId: id,
-      status: "FAIL",
-      reviewRequired: true,
-      reason: "V390-REVIEW3-44 actual pixel/geometry evidence is not attached",
+      status: crossCuttingStatus(id, matrix),
+      reviewRequired: crossCuttingStatus(id, matrix) !== "PASS",
+      reason: crossCuttingStatus(id, matrix) === "PASS" ? "" : "actual responsive/theme/pixel/geometry matrix is incomplete or failed",
       correlationId,
       caseSetSha256,
-      measuredEvidenceRefs: [],
+      measuredEvidenceRefs: matrix.evidenceRefs,
+      matrix: matrix.summary,
     });
     return {
       id,
-      status: "FAIL",
-      reviewRequired: true,
+      status: crossCuttingStatus(id, matrix),
+      reviewRequired: crossCuttingStatus(id, matrix) !== "PASS",
       correlationId,
       evidenceRef: evidenceRef(artifactMeta(filePath, "application/json", resolvedOutput, "__suite__", correlationId)),
     };
@@ -195,6 +200,7 @@ function produceCase({ outputDir, policyRoot, policy, result, manifestCase, cano
   const consolePath = path.join(caseRoot, "browser-console.json");
   const serverSlicePath = path.join(caseRoot, "server.log");
   const visualPath = path.join(caseRoot, "visual.json");
+  const visualMeasurementPath = path.join(caseRoot, "visual-measurement.json");
   const redactionPath = path.join(caseRoot, "redaction.json");
   const oracleType = policyOracleType(correlationEvent.source);
   const correlatedNetwork = (correlationEvent.networkResponses || []).filter(item =>
@@ -237,19 +243,35 @@ function produceCase({ outputDir, policyRoot, policy, result, manifestCase, cano
   const trace = artifactMeta(tracePath, "application/json", outputDir, result.caseId, correlationId);
   const browserConsole = artifactMeta(consolePath, "application/json", outputDir, result.caseId, correlationId);
   const serverLog = artifactMeta(serverSlicePath, "text/plain", outputDir, result.caseId, correlationId);
-  writeJson(visualPath, {
-    schema: visualSchema,
-    status: "FAIL",
-    reviewRequired: true,
-    reason: "V390-REVIEW3-44 actual pixel/geometry evidence is not attached",
+  const measurement = result.visualMeasurement || {
+    schema: "media-server.ui-browser-visual-measurement.v1",
+    route: result.observed?.route || "",
+    viewport: { ...(result.observed?.viewport || {}), devicePixelRatio: 1 },
+    theme: result.observed?.theme || "",
+    document: {},
+    target: { selector: result.visibleAssertion?.selector || "body", visible: false, rect: null },
+    textSamples: [],
+    focusSamples: [],
+    videos: [],
+    overlays: [],
+  };
+  writeJson(visualMeasurementPath, measurement);
+  const visualMeasurement = artifactMeta(visualMeasurementPath, "application/json", outputDir, result.caseId, correlationId);
+  const visualPayload = evaluateVisualArtifact({
+    screenshotPath,
+    measurement,
     caseId: result.caseId,
     correlationId,
-    screenshotSha256: screenshot.sha256,
+    expectedViewport: result.requested?.viewport,
+    expectedTheme: result.requested?.theme,
+    requireVideoOverlay: Boolean(result.requireVideoOverlay),
   });
+  visualPayload.screenshot.path = screenshot.path;
+  writeJson(visualPath, visualPayload);
   const visualDiff = artifactMeta(visualPath, "application/json", outputDir, result.caseId, correlationId);
-  const scannedArtifacts = [screenshot, trace, browserConsole, serverLog, visualDiff]
+  const scannedArtifacts = [screenshot, trace, browserConsole, serverLog, visualMeasurement, visualDiff]
     .map(item => ({ path: item.path, sha256: item.sha256 }));
-  const findings = scanForbidden(policy, [screenshotPath, tracePath, consolePath, serverSlicePath, visualPath]);
+  const findings = scanForbidden(policy, [screenshotPath, tracePath, consolePath, serverSlicePath, visualMeasurementPath, visualPath]);
   writeJson(redactionPath, {
     schema: redactionSchema,
     scope: "case",
@@ -286,10 +308,11 @@ function produceCase({ outputDir, policyRoot, policy, result, manifestCase, cano
     }],
     visualEvidence: {
       schema: visualSchema,
-      status: "FAIL",
-      reviewRequired: true,
+      status: visualPayload.status,
+      reviewRequired: visualPayload.reviewRequired,
       correlationId,
       evidenceRef: evidenceRef(visualDiff),
+      measurementRef: evidenceRef(visualMeasurement),
     },
     security: {
       redactionStatus: findings.length === 0 ? "PASS" : "FAIL",
@@ -300,8 +323,56 @@ function produceCase({ outputDir, policyRoot, policy, result, manifestCase, cano
       evidenceRef: evidenceRef(redactionScan),
     },
     manualIntervention: false,
-    artifacts: { screenshot, trace, browserConsole, serverLog, visualDiff, redactionScan },
+    artifacts: { screenshot, trace, browserConsole, serverLog, visualMeasurement, visualDiff, redactionScan },
   };
+}
+
+function produceVisualMatrix({ outputDir, policyRoot, probes }) {
+  if (!Array.isArray(probes) || probes.length === 0) {
+    return {
+      summary: evaluateVisualMatrix([]),
+      evidenceRefs: [],
+    };
+  }
+  const evaluated = probes.map(probe => {
+    const screenshotPath = requireContainedFile(outputDir, probe.screenshotPath, `${probe.id} matrix screenshot`);
+    const correlationId = probe.correlationId || `v390-visual-${probe.id}`;
+    const probeRoot = path.join(policyRoot, "visual-matrix", probe.id);
+    const measurementPath = path.join(probeRoot, "measurement.json");
+    const payloadPath = path.join(probeRoot, "visual.json");
+    const screenshot = artifactMeta(screenshotPath, "image/png", outputDir, "__suite__", correlationId);
+    writeJson(measurementPath, probe.measurement);
+    const payload = evaluateVisualArtifact({
+      screenshotPath,
+      measurement: probe.measurement,
+      caseId: probe.id,
+      correlationId,
+      expectedViewport: probe.expectedViewport,
+      expectedTheme: probe.expectedTheme,
+      requireVideoOverlay: Boolean(probe.requireVideoOverlay),
+    });
+    payload.role = probe.role;
+    writeJson(payloadPath, payload);
+    return {
+      id: probe.id,
+      role: probe.role,
+      payload,
+      screenshotRef: evidenceRef(screenshot),
+      evidenceRef: evidenceRef(artifactMeta(payloadPath, "application/json", outputDir, "__suite__", correlationId)),
+      measurementRef: evidenceRef(artifactMeta(measurementPath, "application/json", outputDir, "__suite__", correlationId)),
+    };
+  });
+  return {
+    summary: evaluateVisualMatrix(evaluated),
+    evidenceRefs: evaluated.flatMap(item => [item.screenshotRef, item.measurementRef, item.evidenceRef]),
+  };
+}
+
+function crossCuttingStatus(id, matrix) {
+  if (matrix.summary.status !== "PASS") return "FAIL";
+  if (id === "video-overlay-crop" && matrix.summary.hasVideoOverlay !== true) return "FAIL";
+  if (id === "role-scope-guards" && (!matrix.summary.roles.includes("operator") || !matrix.summary.roles.includes("viewer"))) return "FAIL";
+  return "PASS";
 }
 
 function policyOracleType(source) {

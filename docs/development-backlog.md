@@ -2186,7 +2186,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 | 41 | V390-REVIEW3-41 | UI Automation | exact 424 기능별 native workflow | P0 | 완료 | 424개 각각에 unique workflow와 role/semantic seed, input, explicit control sequence, reviewed state/readback 결과, reversible cleanup을 고정하고 runtime tag 추측을 제거했습니다. Hidden 10개와 disabled/non-action/read-model을 actionable control과 분리합니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. 대량 UI 동등성과 false-PASS 상향 적용 |
 | 42 | V390-REVIEW3-42 | UI Correctness | semantic completion oracle | P0 | 완료 | Exact 424의 848 action plan이 request-header에서 실제 관측된 request ID/method/path/status와 case별 exact semantic readback identity를 함께 요구합니다. DOM digest-only와 사후 correlation 부착을 차단하고 persisted/EventRecord/server-log 대안은 attested schema만 허용합니다. | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+1=7점. 거짓 PASS 정확도 상향 적용 |
 | 43 | V390-REVIEW3-43 | UI Policy | Policy v4 actual evidence producer | P0 | 완료 | exact runner actual mode가 `media-server.ui-automation-evidence.v4` summary와 case trace/console/server-log/visual/redaction, suite cross-cutting/redaction attestation을 실행 root에서 직접 생성합니다. 44번 visual 측정과 45번 acceptance-owned cleanup 전에는 `uiFulltestPass=false`입니다 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+2=8점. release correctness와 evidence 보안 상향 적용 |
-| 44 | V390-REVIEW3-44 | Visual Evidence | responsive/theme/visual 실제 판정 | P0 | 미완료 | 320/390/760/1180, light/dark, overlay/clipping/contrast/focus를 실제 browser artifact와 pixel/geometry 결과로 산출하고 자기선언 PASS를 금지 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+1=7점. 시각 동등성과 false-PASS 상향 적용 |
+| 44 | V390-REVIEW3-44 | Visual Evidence | responsive/theme/visual 실제 판정 | P0 | 완료 | actual PNG dimension/hash와 browser DOM geometry/computed-style/focus/video-overlay 측정에서 case visual 및 320/390/760/1180×light/dark cross-cutting status를 계산하고 Policy qualifier가 attested input을 재계산합니다 | 5.6 Sol | 매우 높음 (xhigh) | 2+2+2+1=7점. 시각 동등성과 false-PASS 상향 적용 |
 | 45 | V390-REVIEW3-45 | Acceptance | canonical one-command 실행 경로 | P0 | 미완료 | 40~44번 결과를 424 runner→v4 qualification→acceptance/final integrity 한 command로 연결하고 120분은 AGENTS 조건/명시 option과 일치시킴 | 5.6 Sol | 매우 높음 (xhigh) | 2+1+2+2=7점. release correctness 상향 적용 |
 | 46 | V390-REVIEW3-46 | Evidence | current HEAD와 artifact containment | P0 | 미완료 | final integrity가 current commit, clean state, child summary root containment, canonical command, stale historical source 차단을 직접 검증 | 5.6 Sol | 높음 (high) | 2+1+2+1=6점. release correctness 상향 적용 |
 | 47 | V390-REVIEW3-47 | Evidence | stale policy/historical artifact 정리 | P1 | 미완료 | coverage policy의 0/423/1 설명과 actual exact manifest를 정합화하고 historical PASS를 current consumer가 읽지 못하게 source binding 강화 | 5.6 Sol | 높음 (high) | 1+1+1+1=4점이나 evidence 정확도 상향 적용 |
@@ -2395,6 +2395,24 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
   `알 수 없는 명령` RED였습니다. 구현 뒤 contract 5/0이 v4 schema/source binding, case/suite attestation,
   visual/cleanup 비승격, contract fixture 비승격, artifact path escape 거부를 확인했습니다.
 - 실제 exact 424 browser UI 풀테스트, 30분, 120분은 실행하지 않았으며 contract PASS로 대체하지 않습니다.
+
+44번 구현 기록(2026-07-12):
+
+- Native adapter가 actual browser의 viewport/device pixel ratio/theme, document overflow, target rect,
+  effective foreground/background, visible video/overlay bounds와 8-step keyboard focus order/indicator를
+  `media-server.ui-browser-visual-measurement.v1`로 수집합니다.
+- `v390_ui_visual_evidence.mjs`는 PNG IHDR dimension/hash와 measurement hash를 결속하고 horizontal
+  overflow·target clipping, WCAG contrast threshold, focus indicator/order, ready video와 overlay containment를
+  계산해 `media-server.ui-visual-baseline-diff.v2` PASS/FAIL을 만듭니다. 입력 status 문자열은 받지 않습니다.
+- Exact runner는 case마다 measurement를 생성하고, 별도 320/390/760/1180×light/dark actual browser matrix를
+  실행하도록 연결했습니다. Producer는 matrix screenshot/measurement/visual 24개 attested ref에서 7개
+  cross-cutting payload를 산출합니다.
+- Policy v4 verifier는 visual payload의 PASS를 신뢰하지 않고 case 및 cross-cutting attested screenshot,
+  measurement, visual payload를 다시 읽어 status/geometry/contrast/focus/video-overlay/matrix를 재계산합니다.
+- 테스트 정의 등록 뒤 최초 visual contract는 command 부재로 `알 수 없는 명령` RED였습니다. 최종 visual
+  contract 5/0은 8개 viewport/theme variant와 clipping·저대비·focus·overlay·dimension negative를 확인했고,
+  Policy v4 contract 18/0은 low-contrast visual과 measurement-ref 없는 cross-cutting 자기선언 PASS를 거부했습니다.
+- 실제 exact 424 browser UI 풀테스트, 30분, 120분은 실행하지 않았으며 fixture/contract PASS로 대체하지 않습니다.
 
 #### V390-REVIEW3-46~47 final evidence integrity
 
