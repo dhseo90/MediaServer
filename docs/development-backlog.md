@@ -2191,7 +2191,7 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 | 46 | V390-REVIEW3-46 | Evidence | current HEAD와 artifact containment | P0 | 완료 | acceptance가 실행 시작/종료 provenance와 canonical command-set hash를 기록하고 final integrity가 이를 현재 HEAD·branch, source-clean state, approved artifact root의 realpath containment, Policy v4 source/build binding과 독립 대조합니다 | 5.6 Sol | 높음 (high) | 2+1+2+1=6점. release correctness 상향 적용 |
 | 47 | V390-REVIEW3-47 | Evidence | stale policy/historical artifact 정리 | P1 | 완료 | coverage policy v3가 exact native manifest의 positive 423+negative route 1/unsupported 0 readiness와 pass 0/not-run 424 execution을 분리하고, current state v2와 Policy/coverage consumer가 `audit-only-historical` source kind/root를 거부합니다 | 5.6 Sol | 높음 (high) | 1+1+1+1=4점이나 evidence 정확도 상향 적용 |
 | 48 | V390-REVIEW3-48 | Structure | actual module dependency graph | P1 | 완료 | actual C++ 148개/CMake cpp declared 74·default active 73를 9 owner와 single `media_server` target에 연결하고 32 include direction witness hash, external link, target 위반 25 direction, legacy core 역의존 3 edge, 8-owner SCC, mixed ownership과 6 slice entry/exit를 검증합니다 | 5.6 Sol | 높음 (high) | 1+2+2+1=6점. 구조 전면 안정화 진입 정확도 상향 적용 |
-| 49 | V390-REVIEW3-49 | Structure Decision | 구조 안정화 실행 범위 확정 | P1 | 미완료 decision | 48번 actual graph 결과를 근거로 42,726-line HTTP server와 10,217-line UI script의 실제 refactor를 v3.9 안정화 단계에서 할지 v4.0으로 넘길지 사용자 결정을 source-of-truth에 고정 | 5.6 Sol | 높음 (high) | 2+2+1+1=6점. 광범위 구조 변경과 release 경계 상향 적용 |
+| 49 | V390-REVIEW3-49 | Structure Decision | 구조 안정화 실행 범위 확정 | P1 | 완료 decision / 구현 미실행 | 48번 actual graph의 25 target 위반, 8-owner SCC, single target, 42,897-line HTTP server와 10,217-line UI script를 근거로 v3.9는 graph/guard/decision-only, 실제 refactor는 explicit 승인 뒤 v4.0.0 ordered slice로 이관합니다 | 5.6 Sol | 높음 (high) | 2+2+1+1=6점. 광범위 구조 변경과 release 경계 상향 적용 |
 
 ### REVIEW3 상세 구현 계약
 
@@ -2492,6 +2492,20 @@ manifest refresh 회귀 보정·전체 companion gate·cleanup 완료 직후 sna
 - `webrtc_http_server.cpp` 42,897줄, `product_ui_page_scripts.cpp` 10,217줄, composition root의 mixed
   responsibility를 primary owner와 별도 debt로 기록하고 6개 refactor slice의 actual entry owner/exit rule을
   결속했습니다. 최초 schema 강화는 6/1 RED, 최종 readiness는 7/0입니다. 실제 refactor는 미실행입니다.
+
+49번 결정 기록(2026-07-12):
+
+- `v390_structure_execution_scope_decision.json`은 issue 48 actual graph 파일의 schema/SHA-256과
+  148 file, declared 74/default active 73 cpp, 9 owner, target 1, target 위반 25, largest SCC 8,
+  42,897/10,217 line mixed-owner 값을 직접 결속합니다.
+- Release line refactor threshold는 target 위반 0, SCC owner 1, mixed file 15,000줄 이하, separated
+  internal target 필요입니다. 네 factor가 모두 `defer`이므로 decision은
+  `defer-actual-refactor-to-v4.0.0`, v3.9 mode는 `graph-guard-decision-only`입니다.
+- v3.9에서는 production source extraction/ownership move, CMake target split, legacy edge removal,
+  route/API/UI handler relocation, 승인 없는 v4 branch 생성을 금지합니다. v4.0.0 실행은 explicit start와
+  branch 승인, release correctness base, clean worktree, baseline gates 뒤 기존 6개 slice 순서로만 허용합니다.
+- Decision fixture 부재 상태의 최초 readiness는 7/1 RED였고, 구현 후 8/0입니다. Decision 완료는
+  branch/refactor/UI/30분/120분 실행 완료가 아니며 실제 structure implementation은 미실행입니다.
 
 ### REVIEW3 완료 경계
 

@@ -2,10 +2,10 @@
   "schema": "media-server.feature-implementation-evidence.v2",
   "semanticClosureSchema": "media-server.feature-semantic-implementation-closure.v2",
   "expectedFeatureRows": 986,
-  "inventorySha256": "079a8e910ca435fb60344b4c9d942d5b61ecda76e28fd444f83104449c2e22b7",
+  "inventorySha256": "2e442b838b48222cbd8a13c2cf23e03a6af9e255135cb45d533bdf20b83b0892",
   "generatedFrom": "docs/project-feature-test-inventory.md",
-  "generationPolicy": "reviewed-map-only; unrelated source changes preserve approved rows; changed rows become review-required; token scoring and bulk approval are forbidden",
-  "semanticClosurePolicy": "986 explicit owner -> route/control -> action -> state -> readback -> verifier chains with content-addressed locators and per-feature review reasons",
+  "generationPolicy": "reviewed-map-only; unchanged reviewed rows are preserved; changed rows become review-required; token scoring and bulk approval are forbidden",
+  "semanticClosurePolicy": "owner/route-or-control/action/state/readback/verifier reviewed call-chain plus per-feature reason and content digest",
   "executionEvidenceStatus": "not-execution-evidence",
   "items": [
     {
@@ -200383,8 +200383,6 @@
   "semanticClosureSummary": {
     "inventoryRows": 986,
     "semanticReviewedRows": 986,
-    "uniqueSemanticDigests": 986,
-    "uniqueReviewReasons": 986,
-    "reviewedCallChains": 986
+    "uniqueSemanticDigests": 986
   }
 }

@@ -73,6 +73,29 @@ workspace를 함께 포함합니다. 이 mixed ownership은 숨기지 않고 act
 direction, witness count/hash drift, CMake source/link/target drift, SCC drift, unclassified file이 생기면
 readiness verifier가 실패합니다. Current 25개 위반과 8-owner SCC는 refactor 완료 evidence가 아닙니다.
 
+### Structure execution scope decision (V390-REVIEW3-49)
+
+Decision: `defer-actual-refactor-to-v4.0.0`
+
+v3.9 mode: `graph-guard-decision-only`
+
+Decision status: `decision-recorded-deferred`
+
+Implementation status: `not-executed`
+
+Machine-readable decision: `test/fixtures/v390_structure_execution_scope_decision.json`
+
+Actual graph는 target 위반 direction 25개, 8-owner SCC, internal target separation false이며 가장 큰 mixed
+owner 파일은 42,897줄입니다. Release line 안에서 허용하는 threshold(위반 0, SCC 1 owner, mixed file
+15,000줄, separated target 필요)를 모두 넘습니다. 따라서 v3.9에서는 graph evidence, drift guard, slice
+contract, decision 기록까지만 허용합니다.
+
+Production source extraction, CMake internal target split, legacy dependency 제거, route/API/UI handler 이동은
+v3.9 범위에서 금지합니다. 실제 실행은 v3.9 correctness가 포함된 base, latest main/signed tag 관계,
+clean worktree, baseline gate를 확인하고 사용자가 `explicit-structure-refactor-start-and-branch-creation`을
+승인한 뒤 v4.0.0에서 아래 6개 slice 순서로만 진행합니다. 이 결정 완료는 branch 생성이나 refactor
+완료 evidence가 아닙니다.
+
 ## Module Boundary and Dependency Direction
 
 | Module owner | 책임 | 허용 의존성 방향 |

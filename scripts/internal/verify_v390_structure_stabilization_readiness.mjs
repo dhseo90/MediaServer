@@ -34,6 +34,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 const command = "verify-v390-structure-stabilization-readiness";
 const targetScript = "verify_v390_structure_stabilization_readiness.mjs";
 const fixturePath = "test/fixtures/v390_structure_stabilization_readiness.json";
+const scopeDecisionPath = "test/fixtures/v390_structure_execution_scope_decision.json";
 const planPath = "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md";
 const expectedContracts = [
   "event-post-payload",
@@ -174,6 +175,79 @@ check("graph validator rejects a new forbidden include edge and a new cycle", ()
   "synthetic CMake link edge negative must be detected");
 });
 
+check("actual graph-backed structure execution scope decision is frozen", () => {
+  assert(fs.existsSync(path.join(rootDir, scopeDecisionPath)), "structure execution scope decision fixture missing");
+  const decision = JSON.parse(read(scopeDecisionPath));
+  assert(decision.schema === "media-server.v390-structure-execution-scope-decision.v1",
+    "structure execution scope decision schema mismatch");
+  assert(fixture.executionScopeDecision?.path === scopeDecisionPath &&
+    fixture.executionScopeDecision?.schema === decision.schema,
+  "readiness/decision source binding mismatch");
+  assert(decision.decision === "defer-actual-refactor-to-v4.0.0" &&
+    fixture.executionScopeDecision.decision === decision.decision,
+  "structure execution release decision mismatch");
+  assert(decision.status === "decision-recorded-deferred" && decision.implementationStatus === "not-executed",
+    "structure decision status overclaims implementation");
+  assert(decision.branchCreationPerformed === false && fixture.branchCreationPerformed === false,
+    "structure decision must not create the v4 branch");
+  assert(decision.actualGraph?.path === fixture.actualGraphEvidence.path &&
+    decision.actualGraph?.schema === actualGraphFixture.schema,
+  "decision actual graph path/schema mismatch");
+  assert(decision.actualGraph.sha256 === sha256File(path.join(rootDir, decision.actualGraph.path)),
+    "decision actual graph hash drift");
+  const actual = collectActualGraph(actualGraphFixture);
+  const violations = actual.observedModuleEdges.filter(item => !item.allowedByTarget).length;
+  const largestScc = Math.max(0, ...actual.stronglyConnectedComponents.map(item => item.length));
+  const mixedByFile = new Map(actualGraphFixture.mixedOwnershipDebt.map(item => [item.file, item.lineCount]));
+  assert(decision.actualGraph.productionFiles === actual.productionFiles.length &&
+    decision.actualGraph.declaredCppSources === actual.cmakeSources.length &&
+    decision.actualGraph.defaultActiveCppSources === actual.defaultActiveCmakeSources.length &&
+    decision.actualGraph.moduleOwners === actualGraphFixture.moduleClassifiers.length &&
+    decision.actualGraph.cmakeTargets === actualGraphFixture.cmake.targets.length &&
+    decision.actualGraph.targetViolationDirections === violations &&
+    decision.actualGraph.largestSccOwners === largestScc &&
+    decision.actualGraph.webrtcHttpServerLines === mixedByFile.get("src/ingress/webrtc_http_server.cpp") &&
+    decision.actualGraph.productUiPageScriptsLines === mixedByFile.get("src/ingress/product_ui_page_scripts.cpp"),
+  "decision actual graph metrics mismatch");
+  assert(decision.decisionFactors?.length === 4 && decision.decisionFactors.every(item => item.result === "defer"),
+    "all high-risk structure factors must select defer");
+  assert(violations > decision.decisionThresholds.maxTargetViolationDirectionsForReleaseLineRefactor,
+    "target violation threshold does not justify deferral");
+  assert(largestScc > decision.decisionThresholds.maxSccOwnersForReleaseLineRefactor,
+    "SCC threshold does not justify deferral");
+  assert(decision.actualGraph.webrtcHttpServerLines >
+    decision.decisionThresholds.maxMixedOwnerFileLinesForReleaseLineRefactor,
+  "mixed-owner file threshold does not justify deferral");
+  assert(actualGraphFixture.cmake.internalTargetSeparation === false &&
+    decision.decisionThresholds.requireSeparatedInternalTargets === true,
+  "single-target structure risk is not recorded");
+  assert(decision.v390Scope?.mode === "graph-guard-decision-only" &&
+    fixture.executionScopeDecision.v390Mode === decision.v390Scope.mode,
+  "v3.9 structure scope mode mismatch");
+  for (const forbidden of [
+    "production source extraction or ownership move",
+    "CMake internal target split",
+    "legacy dependency edge removal",
+    "route/API/UI handler relocation",
+    "v4.0.0 branch creation without explicit approval",
+  ]) assert(decision.v390Scope.forbidden.includes(forbidden), `v3.9 forbidden scope missing: ${forbidden}`);
+  assert(decision.v400Execution?.release === "v4.0.0" &&
+    decision.v400Execution?.requiredApproval === "explicit-structure-refactor-start-and-branch-creation",
+  "v4.0 execution authority mismatch");
+  assert(JSON.stringify(decision.v400Execution.orderedSlices) === JSON.stringify(expectedSlices),
+    "v4.0 execution slice order mismatch");
+  for (const [label, text] of [
+    ["backlog", read("docs/development-backlog.md")],
+    ["records", read("docs/release-test-records.md")],
+    ["evidence", read("docs/release-evidence-index.md")],
+    ["stream", read("docs/stream-verification.md")],
+  ]) {
+    for (const snippet of ["V390-REVIEW3-49", "graph-guard-decision-only", "v4.0.0"]) {
+      assert(text.includes(snippet), `${label} missing structure decision snippet: ${snippet}`);
+    }
+  }
+});
+
 check("handoff plan fixes branch, module, dependency, contract, and slice readiness", () => {
   const plan = read(planPath);
   for (const snippet of [
@@ -186,6 +260,10 @@ check("handoff plan fixes branch, module, dependency, contract, and slice readin
     "test/fixtures/v390_actual_module_dependency_graph.json",
     "target architecture 위반 direction",
     "8-owner 1개",
+    "## Structure execution scope decision (V390-REVIEW3-49)",
+    "defer-actual-refactor-to-v4.0.0",
+    "graph-guard-decision-only",
+    "explicit-structure-refactor-start-and-branch-creation",
     "analysis/core/media -> ingress/product UI 의존 금지",
     "## Contract Preservation Matrix",
     ...expectedContracts.map(id => `\`${id}\``),
@@ -470,6 +548,10 @@ function classifyModule(file, classifiers) {
 
 function sha256Text(value) {
   return crypto.createHash("sha256").update(String(value)).digest("hex");
+}
+
+function sha256File(filePath) {
+  return crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
 }
 
 function walkFiles(directory) {

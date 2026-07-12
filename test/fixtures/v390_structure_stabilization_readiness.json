@@ -93,6 +93,13 @@
     "targetArchitectureConformant": false,
     "refactorExecuted": false
   },
+  "executionScopeDecision": {
+    "path": "test/fixtures/v390_structure_execution_scope_decision.json",
+    "schema": "media-server.v390-structure-execution-scope-decision.v1",
+    "decision": "defer-actual-refactor-to-v4.0.0",
+    "v390Mode": "graph-guard-decision-only",
+    "implementationStatus": "not-executed"
+  },
   "preservedContracts": [
     {
       "id": "event-post-payload",

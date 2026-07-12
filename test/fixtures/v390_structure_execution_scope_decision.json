@@ -1,0 +1,71 @@
+{
+  "schema": "media-server.v390-structure-execution-scope-decision.v1",
+  "decisionId": "V390-REVIEW3-49",
+  "recordedOn": "2026-07-12",
+  "sourceRelease": "v3.9.0",
+  "decision": "defer-actual-refactor-to-v4.0.0",
+  "status": "decision-recorded-deferred",
+  "implementationStatus": "not-executed",
+  "branchCreationPerformed": false,
+  "actualGraph": {
+    "path": "test/fixtures/v390_actual_module_dependency_graph.json",
+    "schema": "media-server.v390-actual-module-dependency-graph.v1",
+    "sha256": "c284b805e4fe2dd253b4556dcac3255093e34fb9b22e1e78ed3c83aaad264bbc",
+    "productionFiles": 148,
+    "declaredCppSources": 74,
+    "defaultActiveCppSources": 73,
+    "moduleOwners": 9,
+    "cmakeTargets": 1,
+    "targetViolationDirections": 25,
+    "largestSccOwners": 8,
+    "webrtcHttpServerLines": 42897,
+    "productUiPageScriptsLines": 10217
+  },
+  "decisionThresholds": {
+    "maxTargetViolationDirectionsForReleaseLineRefactor": 0,
+    "maxSccOwnersForReleaseLineRefactor": 1,
+    "maxMixedOwnerFileLinesForReleaseLineRefactor": 15000,
+    "requireSeparatedInternalTargets": true
+  },
+  "decisionFactors": [
+    {"id":"target-violation-debt","actual":25,"threshold":0,"result":"defer"},
+    {"id":"strongly-connected-owner-debt","actual":8,"threshold":1,"result":"defer"},
+    {"id":"largest-mixed-owner-file","actual":42897,"threshold":15000,"result":"defer"},
+    {"id":"internal-target-separation","actual":false,"required":true,"result":"defer"}
+  ],
+  "v390Scope": {
+    "mode": "graph-guard-decision-only",
+    "allowed": [
+      "actual file/target/include/link/SCC evidence",
+      "new-edge and graph-drift guards",
+      "refactor slice entry/exit contract",
+      "execution scope decision and documentation"
+    ],
+    "forbidden": [
+      "production source extraction or ownership move",
+      "CMake internal target split",
+      "legacy dependency edge removal",
+      "route/API/UI handler relocation",
+      "v4.0.0 branch creation without explicit approval"
+    ]
+  },
+  "v400Execution": {
+    "release": "v4.0.0",
+    "requiredApproval": "explicit-structure-refactor-start-and-branch-creation",
+    "orderedSlices": [
+      "baseline-and-ownership-map",
+      "pure-json-builder-extraction",
+      "route-handler-group-extraction",
+      "product-ui-workspace-split",
+      "source-read-model-boundary",
+      "docs-template-and-vlm-index"
+    ],
+    "entryConditions": [
+      "v3.9.0 release correctness is included in the selected base commit",
+      "latest main and signed v3.9.0 tag relationship is verified",
+      "clean worktree and no concurrent feature slice",
+      "baseline build, actual graph, preserved contracts, and git diff check pass"
+    ]
+  },
+  "boundary": "decision completion is not branch creation, source extraction, dependency removal, UI/longrun execution, or refactor completion"
+}
