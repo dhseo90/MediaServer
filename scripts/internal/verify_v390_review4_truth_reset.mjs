@@ -71,7 +71,7 @@ check("coverage policy separates readiness from actual execution", () => {
   assert(coverage.schema === "media-server.v390-ui-automation-coverage-policy.v4",
     "coverage policy schema mismatch");
   assert(coverage.boundaries?.exactNativeWorkflowReadinessComplete === false,
-    "exact workflow readiness must remain false until REVIEW4-56~60");
+    "exact workflow readiness must remain false until REVIEW4-57~60");
   assert(coverage.boundaries?.actualAutomationExecutionComplete === false,
     "actual automation execution boundary mismatch");
   assert(coverage.boundaries?.manualUiFulltestEvidence === false,

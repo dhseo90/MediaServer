@@ -220,7 +220,7 @@ function validatePolicyDocuments() {
     ["docs/manual-ui-checklist.md", files.checklist, ["Policy v4 qualifier", "actual-browser evidence", "completion oracle"]],
     ["docs/manual-ui-result-template.md", files.template, ["qualified-native-automation", "Policy v4 자동화/혼합 evidence 요약", "artifact hash/type/path containment", "uiFulltestPass"]],
     ["docs/release-policy.md", files.releasePolicy, ["## Policy v4 UI evidence release gate", "uiFulltestPass=true"]],
-    ["docs/stream-verification.md", files.stream, ["### V390-ADD1-12 Policy v4 UI evidence qualification", "review4-workflow-rebuild-pending"]],
+    ["docs/stream-verification.md", files.stream, ["### V390-ADD1-12 Policy v4 UI evidence qualification", "review4-57-60-pending"]],
     ["docs/project-feature-test-inventory.md", files.inventory, ["V390-ADD1-12 Policy v4 UI evidence transition", "Policy v4 evidence qualification gate"]],
     ["docs/development-backlog.md", files.backlog, ["V390-ADD1-12", "Policy v4 테스트 정책 전환"]],
     ["docs/release-test-records.md", files.releaseRecords, ["Policy v4 UI Fulltest Evidence Qualification"]],

@@ -13,6 +13,38 @@ import { validateNativeExactManifest } from "./v390_ui_native_exact_cases_lib.mj
 import { producePolicyV4Evidence } from "./v390_ui_policy_v4_evidence_producer.mjs";
 import { deduplicateScreenshotArtifacts } from "./evidence_integrity_lib.mjs";
 
+const runnerWorkflowSchema = "media-server.v390-ui-case-native-workflow.v2";
+const supportedSetupKinds = Object.freeze([
+  "bind-action-role-session",
+  "bind-role-session",
+  "seed-reviewed-state",
+]);
+const supportedActionKinds = Object.freeze([
+  "activate-control",
+  "assert-disabled-control",
+  "assert-hidden-control",
+  "assert-product-boundary",
+  "assert-product-state",
+  "assert-visible-read-model",
+  "execute-persisted-action",
+  "fill-control",
+  "navigate",
+  "navigate-action-route",
+  "navigate-negative",
+  "select-control",
+  "submit-form",
+  "toggle-checkbox",
+  "toggle-details",
+  "verify-independent-readback",
+  "wait-visible",
+]);
+const supportedCleanupKinds = Object.freeze([
+  "delete-created-fixture",
+  "no-op-cleanup",
+  "restore-fixture-state",
+  "restore-local-control",
+]);
+
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const options = parseArgs(process.argv.slice(2));
@@ -20,6 +52,7 @@ const manifest = readJson(options.manifest);
 const canonical = readJson("test/fixtures/ui_fulltest_case_manifest_policy_v4.json");
 const implementation = readJson("test/fixtures/project_feature_implementation_evidence.json");
 const validation = validateNativeExactManifest({ manifest, canonical, implementation });
+const runnerWorkflowCompatibility = validateRunnerWorkflowCompatibility(manifest.cases);
 const outputDir = resolveRootOrAbsolute(options.outputDir);
 const summaryPath = path.join(outputDir, "summary.json");
 const tracesDir = path.join(outputDir, "traces");
@@ -41,6 +74,7 @@ if (options.planOnly) {
     unsupported: 0,
     actualBrowserExecution: false,
     uiFulltestPass: false,
+    runnerWorkflowCompatibility,
     cases: manifest.cases.map(item => ({
       caseId: item.caseId,
       disposition: item.disposition,
@@ -150,7 +184,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
   const tracePath = path.join(tracesDir, `${item.caseId}.trace.json`);
   const consolePath = path.join(logsDir, `${item.caseId}.browser-console.json`);
   try {
-    executeWorkflowSetup(item, storageStatePath, trace);
+    executeWorkflowSetup(item, storageStatePath, roleStateMap, trace);
     assert(item.oracle.allowedStatuses.includes(browser.navigation.status),
       `${item.caseId} navigation status ${browser.navigation.status} not in ${item.oracle.allowedStatuses.join(",")}`);
     const initialSnapshot = await browser.snapshot("body");
@@ -179,6 +213,10 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
         if (action.kind === "wait-visible") {
           await browser.waitForSelector(action.selector);
           trace.actions.push({ ...action, status: "PASS" });
+        } else if (action.kind === "navigate-action-route") {
+          const result = await executeCaseNativeNavigation(browser, item, action);
+          trace.actions.push(result.actionEvidence);
+          trace.completionEvents.push(result.completionOracle);
         } else if (action.kind === "navigate-negative") {
           const before = await browser.snapshot(item.controlAction.targetSelector);
           const networkStart = browser.networkEntries().length;
@@ -299,15 +337,28 @@ async function executeVisualMatrix(adapter, roleStateMap) {
   return probes;
 }
 
-function executeWorkflowSetup(item, storageStatePath, trace) {
+function executeWorkflowSetup(item, storageStatePath, roleStateMap, trace) {
   for (const setup of item.workflow.setup) {
     if (setup.kind === "bind-role-session") {
       assert(setup.accountRole === item.accountRole, `${item.caseId} role setup drift`);
       assert(setup.required === (item.accountRole !== "anonymous"), `${item.caseId} role requirement drift`);
       if (setup.required) assert(storageStatePath, `${item.caseId} required role storage state missing`);
+    } else if (setup.kind === "bind-action-role-session") {
+      const actionRoleStatePath = resolveRoleState(setup.accountRole, roleStateMap);
+      if (setup.accountRole !== item.accountRole) {
+        assert(actionRoleStatePath || setup.accountRole === "anonymous",
+          `${item.caseId} action role storage state missing: ${setup.accountRole}`);
+        throw new Error(`${item.caseId} cross-role action session adapter is unavailable for ${setup.accountRole}`);
+      }
+      assert(setup.route === item.workflow.primaryControl.route,
+        `${item.caseId} action role route drift`);
     } else if (setup.kind === "seed-reviewed-state") {
       assert(/^[a-f0-9]{64}$/.test(setup.semanticCallChainSha256), `${item.caseId} semantic seed digest invalid`);
-      assert(setup.persistedMutation === false, `${item.caseId} undeclared persisted seed mutation`);
+      if (setup.persistedMutation) {
+        assert(setup.beforeSnapshotRef && setup.fixtureId,
+          `${item.caseId} persisted seed snapshot/fixture missing`);
+        throw new Error(`${item.caseId} persisted workflow seed adapter is unavailable`);
+      }
     } else {
       throw new Error(`${item.caseId} unsupported setup kind: ${setup.kind}`);
     }
@@ -316,22 +367,8 @@ function executeWorkflowSetup(item, storageStatePath, trace) {
 }
 
 async function executeCaseNativeAction(browser, item, action, runtimeState) {
-  if (action.kind === "assert-form-contract") {
-    const observed = await browser.evaluate(`(() => {
-      const form = document.querySelector(${JSON.stringify(action.selector)});
-      if (!form) return null;
-      return {
-        method: String(form.getAttribute('method') || '').toLowerCase(),
-        action: String(form.getAttribute('action') || ''),
-        fields: ${JSON.stringify(action.fields)}.filter(name => Boolean(form.querySelector('[name="' + CSS.escape(name) + '"]'))),
-      };
-    })()`);
-    assert(observed, `${item.caseId} form missing: ${action.selector}`);
-    assert(observed.method === action.method, `${item.caseId} form method mismatch`);
-    assert(observed.action === action.action, `${item.caseId} form action mismatch`);
-    assert(JSON.stringify(observed.fields) === JSON.stringify(action.fields), `${item.caseId} form fields mismatch`);
-    const snapshot = await browser.snapshot(action.selector);
-    return semanticAssertionResult(browser, item, action, observed, snapshot);
+  if (["assert-product-state", "assert-product-boundary", "verify-independent-readback"].includes(action.kind)) {
+    throw new Error(`${item.caseId} ${action.kind} requires runtime independent readback evidence; source locator metadata is not execution evidence`);
   }
 
   const before = await browser.snapshot(action.selector);
@@ -382,6 +419,24 @@ async function executeCaseNativeAction(browser, item, action, runtimeState) {
       `${item.caseId} exact select option missing: ${action.value}`);
     await browser.select(action.selector, action.value);
     executedKind = "select";
+  } else if (action.kind === "activate-control") {
+    assert(before.visible && before.disabled === false, `${item.caseId} activate control is not actionable`);
+    await browser.click(action.selector);
+    executedKind = "click";
+  } else if (action.kind === "submit-form") {
+    const input = workflowInput(item, action.inputId, "form-values");
+    for (const field of action.fields) {
+      const value = resolveRuntimeInputValue(input.actualValue?.[field], item.caseId, field);
+      await browser.fill(`[name=${JSON.stringify(field)}]`, value);
+    }
+    await browser.click(action.submitSelector);
+    executedKind = "submit";
+  } else if (action.kind === "execute-persisted-action") {
+    workflowInput(item, action.inputId, "reversible-fixture-record");
+    assert(Boolean(action.endpoint) !== Boolean(action.localAction),
+      `${item.caseId} persisted action endpoint/local action must be exclusive`);
+    await browser.click(action.selector);
+    executedKind = "persisted-control";
   } else {
     throw new Error(`${item.caseId} unsupported case-native action: ${action.kind}`);
   }
@@ -432,34 +487,70 @@ function semanticAssertionResult(browser, item, action, observed, snapshot) {
 
 async function executeWorkflowCleanup(browser, item, runtimeState, trace) {
   for (const cleanup of item.workflow.cleanup) {
-    if (cleanup.kind === "assert-no-persisted-mutation") {
-      assert(/^[a-f0-9]{64}$/.test(cleanup.semanticCallChainSha256), `${item.caseId} cleanup semantic digest invalid`);
-    } else if (cleanup.kind === "restore-control-value") {
+    if (cleanup.kind === "restore-local-control") {
       const state = runtimeState.get(cleanup.selector);
-      assert(state, `${item.caseId} cleanup value snapshot missing`);
+      assert(state, `${item.caseId} local cleanup snapshot missing`);
       if (state.kind === "select-control") {
         await browser.select(cleanup.selector, state.snapshot.selectedValues[0] || "");
-      } else {
+      } else if (state.kind === "fill-control") {
         await browser.fill(cleanup.selector, state.snapshot.value);
+      } else if (state.kind === "toggle-checkbox") {
+        const current = await browser.snapshot(cleanup.selector);
+        if (current.checked !== state.snapshot.checked) await browser.click(cleanup.selector);
+      } else if (state.kind === "toggle-details") {
+        const current = await browser.snapshot(cleanup.selector);
+        if (current.open !== state.snapshot.open) await browser.click(`${cleanup.selector} > summary`);
+      } else {
+        throw new Error(`${item.caseId} local cleanup inverse adapter is unavailable for ${state.kind}`);
       }
-    } else if (cleanup.kind === "restore-control-checked") {
-      const state = runtimeState.get(cleanup.selector);
-      assert(state, `${item.caseId} cleanup checked snapshot missing`);
-      const current = await browser.snapshot(cleanup.selector);
-      if (current.checked !== state.snapshot.checked) await browser.click(cleanup.selector);
-    } else if (cleanup.kind === "restore-details-open") {
-      const state = runtimeState.get(cleanup.selector);
-      assert(state, `${item.caseId} cleanup details snapshot missing`);
-      const current = await browser.snapshot(cleanup.selector);
-      if (current.open !== state.snapshot.open) await browser.click(`${cleanup.selector} > summary`);
-    } else if (cleanup.kind === "restore-route") {
-      const observed = await browser.navigate(cleanup.route);
-      assert(observed.status >= 200 && observed.status < 400, `${item.caseId} route cleanup failed`);
+    } else if (cleanup.kind === "no-op-cleanup") {
+      assert(cleanup.persistedMutation === false, `${item.caseId} no-op cleanup mutation flag drift`);
+      assert(!item.workflow.controlSequence.some(action =>
+        ["submit-form", "execute-persisted-action"].includes(action.kind)),
+      `${item.caseId} no-op cleanup cannot cover a persisted action`);
+    } else if (["restore-fixture-state", "delete-created-fixture"].includes(cleanup.kind)) {
+      assert(cleanup.beforeSnapshotRef && cleanup.inverseAction && cleanup.afterReadback?.identity,
+        `${item.caseId} mutation cleanup contract incomplete`);
+      throw new Error(`${item.caseId} mutation cleanup adapter is unavailable for ${cleanup.kind}`);
     } else {
       throw new Error(`${item.caseId} unsupported cleanup kind: ${cleanup.kind}`);
     }
     trace.cleanup.push({ ...cleanup, status: "PASS" });
   }
+}
+
+async function executeCaseNativeNavigation(browser, item, action) {
+  const before = await browser.snapshot("body");
+  const networkStart = browser.networkEntries().length;
+  await browser.setCorrelationId(action.semanticCompletion.request.correlationId);
+  const observed = await browser.navigate(action.route);
+  await browser.setCorrelationId(`${item.caseId}:navigation`);
+  const allowedStatuses = action.semanticCompletion.request.allowedStatuses;
+  assert(allowedStatuses.includes(observed.status),
+    `${item.caseId} action-route navigation status ${observed.status} not in ${allowedStatuses.join(",")}`);
+  const after = await browser.snapshot("body");
+  const actionEvidence = {
+    ...semanticCompletionAction(action, item),
+    executedKind: "navigate",
+    before,
+    after,
+    observed,
+    status: "PASS",
+  };
+  const semanticReadback = semanticReadbackEvidence(action, actionEvidence, before, after);
+  const completionOracle = evaluateCompletionOracle({
+    action: actionEvidence,
+    before,
+    after,
+    navigation: observed,
+    allowedStatuses,
+    networkResponses: browser.networkEntries().slice(networkStart),
+    semanticReadback,
+  });
+  assertCompletionEvidence(completionOracle, item.caseId);
+  assert(completionOracle.pass,
+    `${item.caseId} navigate-action-route completion failed: ${completionOracle.reason}`);
+  return { actionEvidence: { ...actionEvidence, semanticReadback }, completionOracle };
 }
 
 function semanticCompletionAction(action, item) {
@@ -530,6 +621,123 @@ function assertCompletionEvidence(value, caseId) {
   assert(typeof value?.beforeDigest === "string", `${caseId} completion beforeDigest missing`);
   assert(typeof value?.afterDigest === "string", `${caseId} completion afterDigest missing`);
   assert(Array.isArray(value?.networkResponses), `${caseId} completion networkResponses missing`);
+}
+
+function validateRunnerWorkflowCompatibility(cases) {
+  const setupKinds = new Set();
+  const actionKinds = new Set();
+  const cleanupKinds = new Set();
+  for (const item of cases) {
+    const workflow = item.workflow;
+    assert(workflow?.schema === runnerWorkflowSchema,
+      `${item.caseId} runner workflow schema unsupported: ${workflow?.schema || "missing"}`);
+    assert(Array.isArray(workflow.setup) && Array.isArray(workflow.inputs) &&
+      Array.isArray(workflow.controlSequence) && Array.isArray(workflow.cleanup),
+    `${item.caseId} runner workflow sections missing`);
+    assert(workflow.controlSequence[0]?.kind === "navigate",
+      `${item.caseId} runner requires navigate as the first action`);
+    assert(JSON.stringify(item.actions) === JSON.stringify(workflow.controlSequence),
+      `${item.caseId} runner action/workflow drift`);
+
+    for (const setup of workflow.setup) {
+      assert(supportedSetupKinds.includes(setup.kind),
+        `${item.caseId} runner unsupported setup kind: ${setup.kind}`);
+      setupKinds.add(setup.kind);
+      if (setup.kind === "bind-role-session") {
+        assert(setup.accountRole === item.accountRole && typeof setup.required === "boolean",
+          `${item.caseId} bind-role-session shape invalid`);
+      } else if (setup.kind === "bind-action-role-session") {
+        assert(setup.accountRole && setup.route && setup.required === true,
+          `${item.caseId} bind-action-role-session shape invalid`);
+      } else {
+        assert(setup.fixtureId && /^[a-f0-9]{64}$/.test(setup.semanticCallChainSha256 || "") &&
+          typeof setup.persistedMutation === "boolean",
+        `${item.caseId} seed-reviewed-state shape invalid`);
+        if (setup.persistedMutation) {
+          assert(setup.beforeSnapshotRef,
+            `${item.caseId} persisted seed beforeSnapshotRef missing`);
+        }
+      }
+    }
+
+    for (let index = 0; index < workflow.controlSequence.length; index += 1) {
+      const action = workflow.controlSequence[index];
+      assert(supportedActionKinds.includes(action.kind),
+        `${item.caseId} runner unsupported action kind: ${action.kind}`);
+      assert(action.dispatch === "playwright-native",
+        `${item.caseId} runner action dispatch invalid: ${action.kind}`);
+      actionKinds.add(action.kind);
+      if (action.kind === "navigate") {
+        assert(index === 0 && action.route, `${item.caseId} navigate action position/route invalid`);
+      } else if (["navigate-action-route", "navigate-negative"].includes(action.kind)) {
+        assert(action.route, `${item.caseId} ${action.kind} route missing`);
+      } else if ([
+        "activate-control", "assert-disabled-control", "assert-hidden-control",
+        "assert-visible-read-model", "execute-persisted-action", "fill-control",
+        "select-control", "toggle-checkbox", "toggle-details", "wait-visible",
+      ].includes(action.kind)) {
+        assert(action.selector, `${item.caseId} ${action.kind} selector missing`);
+      }
+      if (action.kind === "submit-form") {
+        assert(action.selector && action.submitSelector && action.inputId && Array.isArray(action.fields),
+          `${item.caseId} submit-form shape invalid`);
+      }
+      if (action.kind === "execute-persisted-action") {
+        assert(action.inputId && Boolean(action.endpoint) !== Boolean(action.localAction),
+          `${item.caseId} execute-persisted-action shape invalid`);
+      }
+      if (["assert-product-state", "assert-product-boundary", "verify-independent-readback"].includes(action.kind)) {
+        assert(workflow.independentReadback?.identity && workflow.independentReadback?.locator?.file,
+          `${item.caseId} ${action.kind} independent readback metadata missing`);
+      }
+    }
+
+    for (const cleanup of workflow.cleanup) {
+      assert(supportedCleanupKinds.includes(cleanup.kind),
+        `${item.caseId} runner unsupported cleanup kind: ${cleanup.kind}`);
+      cleanupKinds.add(cleanup.kind);
+      if (cleanup.kind === "restore-local-control") {
+        assert(cleanup.selector, `${item.caseId} restore-local-control selector missing`);
+      } else if (cleanup.kind === "no-op-cleanup") {
+        assert(cleanup.persistedMutation === false,
+          `${item.caseId} no-op-cleanup mutation flag invalid`);
+      } else {
+        const inverseCount = cleanup.inverseAction?.endpoint ? 1 : 0;
+        const inverseLocalCount = cleanup.inverseAction?.localAction ? 1 : 0;
+        assert(cleanup.beforeSnapshotRef && inverseCount + inverseLocalCount === 1 &&
+          cleanup.afterReadback?.identity && cleanup.readback?.identity,
+        `${item.caseId} mutation cleanup shape invalid`);
+      }
+    }
+  }
+  return {
+    schema: runnerWorkflowSchema,
+    validatedCases: cases.length,
+    encounteredSetupKinds: [...setupKinds].sort(),
+    encounteredActionKinds: [...actionKinds].sort(),
+    encounteredCleanupKinds: [...cleanupKinds].sort(),
+    supportedSetupKinds: [...supportedSetupKinds],
+    supportedActionKinds: [...supportedActionKinds],
+    supportedCleanupKinds: [...supportedCleanupKinds],
+    actualRuntimeBoundary: "missing seed/session/readback/cleanup adapters fail explicitly; plan-only is not execution evidence",
+  };
+}
+
+function workflowInput(item, inputId, expectedKind) {
+  const input = item.workflow.inputs.find(candidate => candidate.inputId === inputId);
+  assert(input, `${item.caseId} workflow input missing: ${inputId}`);
+  assert(input.kind === expectedKind,
+    `${item.caseId} workflow input kind mismatch: ${input.kind}/${expectedKind}`);
+  return input;
+}
+
+function resolveRuntimeInputValue(value, caseId, field) {
+  if (value && typeof value === "object" && value.secretRef) {
+    throw new Error(`${caseId} runtime secret adapter is unavailable for ${field}; secretRef is not a literal value`);
+  }
+  assert(["string", "number", "boolean"].includes(typeof value),
+    `${caseId} runtime form value missing for ${field}`);
+  return String(value);
 }
 
 function resolveRoleState(role, roleStateMap) {
