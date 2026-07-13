@@ -12,6 +12,11 @@ import { evaluateCompletionOracle } from "./v390_ui_completion_oracle_lib.mjs";
 import { validateNativeExactManifest } from "./v390_ui_native_exact_cases_lib.mjs";
 import { producePolicyV4Evidence } from "./v390_ui_policy_v4_evidence_producer.mjs";
 import { deduplicateScreenshotArtifacts } from "./evidence_integrity_lib.mjs";
+import {
+  assertRequestedObservedEnvelope,
+  canonicalRequestedProjection,
+  runtimeObservedProjection,
+} from "./v390_ui_requested_observed_schema.mjs";
 
 const runnerWorkflowSchema = "media-server.v390-ui-case-native-workflow.v2";
 const supportedSetupKinds = Object.freeze([
@@ -50,6 +55,7 @@ const rootDir = path.resolve(scriptDir, "../..");
 const options = parseArgs(process.argv.slice(2));
 const manifest = readJson(options.manifest);
 const canonical = readJson("test/fixtures/ui_fulltest_case_manifest_policy_v4.json");
+const canonicalById = new Map(canonical.cases.map(item => [item.testId, item]));
 const implementation = readJson("test/fixtures/project_feature_implementation_evidence.json");
 const validation = validateNativeExactManifest({ manifest, canonical, implementation });
 const runnerWorkflowCompatibility = validateRunnerWorkflowCompatibility(manifest.cases);
@@ -160,17 +166,13 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     colorScheme: item.theme,
     navigationCorrelationId: `${item.caseId}:navigation`,
   });
+  const requested = canonicalRequestedProjection(item);
   const trace = {
     schema: "media-server.v390-ui-native-interaction-trace.v1",
     caseId: item.caseId,
     featureId: item.featureId,
     dispatch: "playwright-native",
-    requested: {
-      route: item.screenRoute,
-      role: item.accountRole,
-      viewport: item.viewport,
-      theme: item.theme,
-    },
+    requested,
     navigation: browser.navigation,
     setup: [],
     inputs: structuredClone(item.workflow.inputs),
@@ -188,11 +190,9 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     assert(item.oracle.allowedStatuses.includes(browser.navigation.status),
       `${item.caseId} navigation status ${browser.navigation.status} not in ${item.oracle.allowedStatuses.join(",")}`);
     const initialSnapshot = await browser.snapshot("body");
-    const observedBrowser = await browser.evaluate(`(() => ({
-      route: location.pathname,
-      viewport: { width: innerWidth, height: innerHeight },
-      theme: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-    }))()`);
+    if (item.workflow.primaryControl.applicability === "not-applicable") {
+      await observePrimaryControlContext(browser, item, requested, runtimeState);
+    }
     const initialAction = item.actions[0];
     const initialCompletionAction = semanticCompletionAction(initialAction, item);
     const initialCompletion = evaluateCompletionOracle({
@@ -212,6 +212,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       for (const action of item.actions.slice(1)) {
         if (action.kind === "wait-visible") {
           await browser.waitForSelector(action.selector);
+          await observePrimaryControlContext(browser, item, requested, runtimeState, action.selector);
           trace.actions.push({ ...action, status: "PASS" });
         } else if (action.kind === "navigate-action-route") {
           const result = await executeCaseNativeNavigation(browser, item, action);
@@ -242,6 +243,13 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
           trace.actions.push({ ...action, observed, status: "PASS" });
           trace.completionEvents.push(completionOracle);
         } else {
+          await observePrimaryControlContext(
+            browser,
+            item,
+            requested,
+            runtimeState,
+            action.submitSelector || action.selector || null,
+          );
           const result = await executeCaseNativeAction(browser, item, action, runtimeState);
           trace.actions.push(result.actionEvidence);
           if (result.completionOracle) trace.completionEvents.push(result.completionOracle);
@@ -250,6 +258,9 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     }
     assert(trace.completionEvents.some(event => event.pass && item.oracle.allowedCompletionSources.includes(event.source)),
       `${item.caseId} has no allowed completion oracle`);
+    assert(runtimeState.has("__requestedObservedEnvelope"),
+      `${item.caseId} runtime requested/observed control context was not captured`);
+    const requestedObserved = runtimeState.get("__requestedObservedEnvelope");
     const visualMeasurement = await browser.measureVisualState(item.controlAction.targetSelector || "body");
     await browser.screenshot(screenshotPath);
     await executeWorkflowCleanup(browser, item, runtimeState, trace);
@@ -267,13 +278,8 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       dispatch: "playwright-native",
       manualIntervention: false,
       requested: trace.requested,
-      observed: {
-        route: observedBrowser.route,
-        accountRole: item.accountRole,
-        viewport: observedBrowser.viewport,
-        theme: observedBrowser.theme,
-        controlAction: item.controlAction,
-      },
+      observed: requestedObserved.observed,
+      requestedObservedSchema: requestedObserved.schema,
       visibleAssertion: {
         pass: initialSnapshot.exists === true && initialSnapshot.visible === true,
         visible: initialSnapshot.visible === true,
@@ -292,6 +298,27 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
   } finally {
     await browser.close();
   }
+}
+
+async function observePrimaryControlContext(browser, item, requested, runtimeState, candidateSelector = null) {
+  if (runtimeState.has("__requestedObservedEnvelope")) return;
+  const primaryControl = item.workflow.primaryControl;
+  const primarySelector = primaryControl.selector ?? null;
+  if (primaryControl.applicability === "required" && candidateSelector !== primarySelector) return;
+  await browser.setCorrelationId(`${item.caseId}:schema-observation`);
+  const rawObserved = await browser.observeRequestedObservedState({
+    selector: primarySelector,
+    applicability: primaryControl.applicability,
+  });
+  await browser.setCorrelationId(`${item.caseId}:navigation`);
+  const observed = runtimeObservedProjection(rawObserved);
+  const envelope = assertRequestedObservedEnvelope({
+    requested,
+    observed,
+    canonicalCase: canonicalById.get(item.caseId),
+    nativeCase: item,
+  });
+  runtimeState.set("__requestedObservedEnvelope", envelope);
 }
 
 async function executeVisualMatrix(adapter, roleStateMap) {

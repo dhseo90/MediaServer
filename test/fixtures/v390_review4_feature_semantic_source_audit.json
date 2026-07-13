@@ -232285,35 +232285,35 @@
           "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
           "symbol": "evaluateEvidence",
           "anchor": "export function evaluateEvidence(policy, summary, options = {}) {",
-          "line": 74,
+          "line": 77,
           "contextSha256": "56349bafa3648e5313a2f1d0a65273134250d53a11ca48a12ee14096b475bf8b"
         },
         "dispatch": {
           "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
           "symbol": "evaluateEvidence",
           "anchor": "if (summary?.schema !== \"media-server.ui-automation-evidence.v4\") {",
-          "line": 82,
+          "line": 85,
           "contextSha256": "86805b96191ecb8fa57caeb362c1f394ebb7a5cb5c381a10f1d2abf97374d56b"
         },
         "action": {
           "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
           "symbol": "evaluateEvidence",
           "anchor": "const canonicalBinding = loadCanonicalCaseBinding(policy, summary, rootDir, reasons);",
-          "line": 99,
+          "line": 102,
           "contextSha256": "a7b19211cb443733a07bfb34292b25ec831919ab637ba2808c92a79ed0a5d5f7"
         },
         "state": {
           "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
           "symbol": "evaluateEvidence",
           "anchor": "const uiFulltestPass = policyErrors.length === 0 && suiteCandidate && allCasesEligible && reasons.length === 0;",
-          "line": 160,
+          "line": 164,
           "contextSha256": "077152c50a8951c46ec0ffc110d782e6dca0ff0317e19f881f8e29ddc7083952"
         },
         "readback": {
           "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
           "symbol": "check:contract-only exact 424 closure satisfies suite algorithm",
           "anchor": "assert(result.uiFulltestPass === true, \"exact 424 closure should satisfy contract algorithm\");",
-          "line": 69,
+          "line": 76,
           "contextSha256": "9c796962b794bc0007cd2b646ee6a1115663dfff8f66320f6966ae9145276593"
         },
         "verifier": {
@@ -232330,39 +232330,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "evaluateEvidence owns the schema gate that rejects non-v4 summaries before eligibility evaluation.",
-          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:74",
-          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:82"
+          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:77",
+          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:85"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "The same evaluator loads the exact canonical case binding only after the schema gate.",
-          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:82",
-          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:99"
+          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:85",
+          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:102"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "Canonical binding, case eligibility, and accumulated reasons feed the final suite decision in evaluateEvidence.",
-          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:99",
-          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:160"
+          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:102",
+          "target": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:164"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "The contract executes the evaluator with the exact 424 canonical cases and asserts uiFulltestPass only when every condition closes.",
-          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:160",
-          "target": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs:69"
+          "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:164",
+          "target": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs:76"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-ui-fulltest-evidence-policy-v4-contract",
-          "source": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs:69",
+          "source": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs:76",
           "target": "server.sh:2199"
         }
       ],
@@ -232412,53 +232412,53 @@
           "sha256": "f264fc72bb125ca03576d7091059fac0288a873b42a63c564f19ec8348609158"
         }
       },
-      "sourceFlowDigest": "731c06b457ed39ff0e4e31435e9b7c9bfb1d56e6e2af36d5180c2b2ac33ef74f",
+      "sourceFlowDigest": "defa903e0f743147c25e0b7af0154a8718529dad990acac59b402c2951e6b106",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "55df9627b476d4143999e0db5bdea7bebbc34c6016f91ca2d47162a86267e9a8",
-            "enclosingBodySha256": "5b8368b24196c957ef387248ee1930c642a73428ffed2bb424216301b59e6dcb",
-            "enclosingBodyStartLine": 74,
-            "enclosingBodyEndLine": 162,
+            "trackedBlobSha256": "cefc7dc3218c5a6e9759ad25f503ec7bea4076f3383ab60d5fa90d09c384bed8",
+            "enclosingBodySha256": "0c13af4c6490c1d9d93f04f6808c5558fd6c178b9b33b004df9b17c870f2028e",
+            "enclosingBodyStartLine": 77,
+            "enclosingBodyEndLine": 166,
             "enclosingBodyScope": "declared-symbol"
           },
           "dispatch": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "55df9627b476d4143999e0db5bdea7bebbc34c6016f91ca2d47162a86267e9a8",
-            "enclosingBodySha256": "5b8368b24196c957ef387248ee1930c642a73428ffed2bb424216301b59e6dcb",
-            "enclosingBodyStartLine": 74,
-            "enclosingBodyEndLine": 162,
+            "trackedBlobSha256": "cefc7dc3218c5a6e9759ad25f503ec7bea4076f3383ab60d5fa90d09c384bed8",
+            "enclosingBodySha256": "0c13af4c6490c1d9d93f04f6808c5558fd6c178b9b33b004df9b17c870f2028e",
+            "enclosingBodyStartLine": 77,
+            "enclosingBodyEndLine": 166,
             "enclosingBodyScope": "declared-symbol"
           },
           "action": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "55df9627b476d4143999e0db5bdea7bebbc34c6016f91ca2d47162a86267e9a8",
-            "enclosingBodySha256": "5b8368b24196c957ef387248ee1930c642a73428ffed2bb424216301b59e6dcb",
-            "enclosingBodyStartLine": 74,
-            "enclosingBodyEndLine": 162,
+            "trackedBlobSha256": "cefc7dc3218c5a6e9759ad25f503ec7bea4076f3383ab60d5fa90d09c384bed8",
+            "enclosingBodySha256": "0c13af4c6490c1d9d93f04f6808c5558fd6c178b9b33b004df9b17c870f2028e",
+            "enclosingBodyStartLine": 77,
+            "enclosingBodyEndLine": 166,
             "enclosingBodyScope": "declared-symbol"
           },
           "state": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "55df9627b476d4143999e0db5bdea7bebbc34c6016f91ca2d47162a86267e9a8",
-            "enclosingBodySha256": "5b8368b24196c957ef387248ee1930c642a73428ffed2bb424216301b59e6dcb",
-            "enclosingBodyStartLine": 74,
-            "enclosingBodyEndLine": 162,
+            "trackedBlobSha256": "cefc7dc3218c5a6e9759ad25f503ec7bea4076f3383ab60d5fa90d09c384bed8",
+            "enclosingBodySha256": "0c13af4c6490c1d9d93f04f6808c5558fd6c178b9b33b004df9b17c870f2028e",
+            "enclosingBodyStartLine": 77,
+            "enclosingBodyEndLine": 166,
             "enclosingBodyScope": "declared-symbol"
           },
           "readback": {
             "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
             "symbol": "check:contract-only exact 424 closure satisfies suite algorithm",
-            "trackedBlobSha256": "71035e2971d8c6b7ca95cd63d1693b92cd696ae57030e7456609b25a764e356e",
+            "trackedBlobSha256": "140af33c910fa2c721a49d06d4ac9e978ba3f78f8a0024e57de1cbeaf7c9d183",
             "enclosingBodySha256": "313e0696c14ecb8ebe80c80b905237daeb0fd7463012e642cd510beec2bbd430",
-            "enclosingBodyStartLine": 64,
-            "enclosingBodyEndLine": 70,
+            "enclosingBodyStartLine": 71,
+            "enclosingBodyEndLine": 77,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -232471,7 +232471,7 @@
             "enclosingBodyScope": "file-fallback"
           }
         },
-        "verifierFileSha256": "71035e2971d8c6b7ca95cd63d1693b92cd696ae57030e7456609b25a764e356e",
+        "verifierFileSha256": "140af33c910fa2c721a49d06d4ac9e978ba3f78f8a0024e57de1cbeaf7c9d183",
         "dispatch": {
           "command": "verify-ui-fulltest-evidence-policy-v4-contract",
           "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
@@ -236066,5 +236066,5 @@
       }
     }
   ],
-  "candidateDigest": "10d420a851af75a13bdc51bbd82c35718cb7f58625a5815bca69036cf709c121"
+  "candidateDigest": "8e4478c250071c3844ab1d0b861e4e1ce82b0d235ac33ce5d4797e4866763ceb"
 }

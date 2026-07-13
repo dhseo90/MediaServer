@@ -6,6 +6,7 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 
 import { evaluateVisualArtifact, evaluateVisualMatrix, visualEvidenceSchema } from "./v390_ui_visual_evidence.mjs";
+import { assertRequestedObservedEnvelope } from "./v390_ui_requested_observed_schema.mjs";
 
 const evidenceSchema = "media-server.ui-automation-evidence.v4";
 const evidenceRefSchema = "media-server.ui-evidence-ref.v1";
@@ -137,6 +138,8 @@ export function producePolicyV4Evidence({
       policySha256: sha256File(path.join(resolvedRoot, "test/fixtures/ui_fulltest_evidence_policy_v4.json")),
       caseManifestPath: "test/fixtures/ui_fulltest_case_manifest_policy_v4.json",
       caseManifestSha256: sha256File(path.join(resolvedRoot, "test/fixtures/ui_fulltest_case_manifest_policy_v4.json")),
+      nativeExactManifestPath: "test/fixtures/v390_ui_native_exact_cases.json",
+      nativeExactManifestSha256: sha256File(path.join(resolvedRoot, "test/fixtures/v390_ui_native_exact_cases.json")),
       runnerPath: relativeInside(resolvedRoot, resolvedRunner),
       runnerSha256: sha256File(resolvedRunner),
       artifactRoot: relativeInside(resolvedRoot, resolvedOutput),
@@ -187,6 +190,12 @@ function produceCase({ outputDir, policyRoot, policy, result, manifestCase, cano
       manualIntervention: false,
     };
   }
+  const requestedObserved = assertRequestedObservedEnvelope({
+    requested: result.requested,
+    observed: result.observed,
+    canonicalCase,
+    nativeCase: manifestCase,
+  });
   const correlationEvent = (result.completionOracle || []).find(item => item?.pass === true && item?.correlationId) || {};
   const correlationId = correlationEvent.correlationId || `${result.caseId}:navigation`;
   const caseRoot = path.join(policyRoot, "cases", result.caseId);
@@ -245,7 +254,7 @@ function produceCase({ outputDir, policyRoot, policy, result, manifestCase, cano
   const serverLog = artifactMeta(serverSlicePath, "text/plain", outputDir, result.caseId, correlationId);
   const measurement = result.visualMeasurement || {
     schema: "media-server.ui-browser-visual-measurement.v1",
-    route: result.observed?.route || "",
+    route: result.observed?.screenRoute || "",
     viewport: { ...(result.observed?.viewport || {}), devicePixelRatio: 1 },
     theme: result.observed?.theme || "",
     document: {},
@@ -282,15 +291,16 @@ function produceCase({ outputDir, policyRoot, policy, result, manifestCase, cano
     findings,
   });
   const redactionScan = artifactMeta(redactionPath, "application/json", outputDir, result.caseId, correlationId);
-  const observed = result.observed || result.requested;
+  const observed = requestedObserved.observed;
   const statusCode = correlatedNetwork.find(item => item.correlationId === correlationId)?.status || result.navigation?.status || 0;
   return {
     testId: result.caseId,
     featureId: result.featureId || canonicalCase.featureId,
     evidenceStatus: "automation-equivalent-pass",
     status: "PASS",
-    requested: result.requested,
+    requested: requestedObserved.requested,
     observed,
+    requestedObservedSchema: requestedObserved.schema,
     interaction: { executed: true, trusted: true },
     completionOracle: {
       type: oracleType,
@@ -439,7 +449,12 @@ function isInside(root, candidate) {
 }
 
 function git(root, args) {
-  return execFileSync("git", args, { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
+  return execFileSync("git", args, {
+    cwd: root,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    maxBuffer: 64 * 1024 * 1024,
+  }).trim();
 }
 
 function sha256File(filePath) {

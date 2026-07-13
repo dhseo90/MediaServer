@@ -6,6 +6,7 @@ import path from "node:path";
 import zlib from "node:zlib";
 
 import { evaluateVisualArtifact, evaluateVisualMatrix, visualEvidenceSchema, browserMeasurementSchema } from "./v390_ui_visual_evidence.mjs";
+import { validateRequestedObservedEnvelope } from "./v390_ui_requested_observed_schema.mjs";
 
 const sha256Pattern = /^[a-f0-9]{64}$/;
 
@@ -40,12 +41,14 @@ export function validatePolicy(policy) {
   for (const obligation of ["visual-quality", "responsive-320-390-760-1180", "light-dark-theme", "role-scope-guards", "client-viewer-redaction", "video-overlay-crop", "accessibility-focus-contrast"]) {
     expectIncludes(policy?.suiteClosure?.requiredCrossCuttingObligations, obligation, `cross-cutting obligation ${obligation}`, errors);
   }
-  for (const field of ["version", "gitCommit", "worktreePatchSha256", "buildPath", "buildSha256", "policyPath", "policySha256", "caseManifestPath", "caseManifestSha256", "runnerPath", "runnerSha256", "artifactRoot"]) {
+  for (const field of ["version", "gitCommit", "worktreePatchSha256", "buildPath", "buildSha256", "policyPath", "policySha256", "caseManifestPath", "caseManifestSha256", "nativeExactManifestPath", "nativeExactManifestSha256", "runnerPath", "runnerSha256", "artifactRoot"]) {
     expectIncludes(policy?.sourceBinding?.requiredFields, field, `source binding field ${field}`, errors);
   }
   expect(policy?.sourceBinding?.canonicalCaseManifestPath === "test/fixtures/ui_fulltest_case_manifest_policy_v4.json", "canonical case manifest path mismatch", errors);
   expect(policy?.sourceBinding?.canonicalCaseManifestSchema === "media-server.ui-fulltest-canonical-case-manifest.v1", "canonical case manifest schema mismatch", errors);
   expect(policy?.sourceBinding?.canonicalImplementationEvidenceSchema === "media-server.feature-implementation-evidence.v2", "canonical implementation evidence schema mismatch", errors);
+  expect(policy?.sourceBinding?.nativeExactManifestPath === "test/fixtures/v390_ui_native_exact_cases.json", "native exact manifest path mismatch", errors);
+  expect(policy?.sourceBinding?.nativeExactManifestSchema === "media-server.v390-ui-native-exact-cases.v2", "native exact manifest schema mismatch", errors);
   expect(policy?.sourceBinding?.sha256Pattern === "^[a-f0-9]{64}$", "source binding sha256 pattern mismatch", errors);
   expect(policy?.sourceBinding?.requireCurrentSourceVerification === true, "current source verification must be required", errors);
   expect(policy?.attestation?.evidenceRefSchema === "media-server.ui-evidence-ref.v1", "evidence ref schema mismatch", errors);
@@ -108,6 +111,7 @@ export function evaluateEvidence(policy, summary, options = {}) {
     const caseReasons = validateCase(policy, item, summary, rootDir, {
       verifyArtifacts,
       canonicalCase: canonicalBinding.byTestId.get(item?.testId),
+      nativeCase: canonicalBinding.nativeByTestId.get(item?.testId),
     });
     if (caseIds.has(item?.testId)) caseReasons.push("duplicate-test-id");
     caseIds.add(item?.testId);
@@ -240,11 +244,11 @@ function validateSourceBinding(policy, summary, rootDir, reasons, { verifyCurren
   for (const field of policy.sourceBinding.requiredFields) {
     if (!binding[field]) reasons.push(`source-binding-${field}-missing`);
   }
-  for (const field of ["worktreePatchSha256", "buildSha256", "policySha256", "caseManifestSha256", "runnerSha256"]) {
+  for (const field of ["worktreePatchSha256", "buildSha256", "policySha256", "caseManifestSha256", "nativeExactManifestSha256", "runnerSha256"]) {
     if (binding[field] && !sha256Pattern.test(binding[field])) reasons.push(`source-binding-${field}-invalid-sha256`);
   }
   if (binding.currentSourceVerified !== true) reasons.push("current-source-not-verified");
-  for (const [pathField, hashField] of [["policyPath", "policySha256"], ["caseManifestPath", "caseManifestSha256"], ["runnerPath", "runnerSha256"], ["buildPath", "buildSha256"]]) {
+  for (const [pathField, hashField] of [["policyPath", "policySha256"], ["caseManifestPath", "caseManifestSha256"], ["nativeExactManifestPath", "nativeExactManifestSha256"], ["runnerPath", "runnerSha256"], ["buildPath", "buildSha256"]]) {
     const resolved = resolveContained(rootDir, binding[pathField]);
     if (!resolved || !fs.existsSync(resolved)) reasons.push(`source-binding-${pathField}-missing-file`);
     else if (sha256File(resolved) !== binding[hashField]) reasons.push(`source-binding-${hashField}-drift`);
@@ -258,7 +262,7 @@ function validateSourceBinding(policy, summary, rootDir, reasons, { verifyCurren
 }
 
 function loadCanonicalCaseBinding(policy, summary, rootDir, reasons) {
-  const empty = { orderedTestIds: [], byTestId: new Map() };
+  const empty = { orderedTestIds: [], byTestId: new Map(), nativeByTestId: new Map() };
   const binding = summary.sourceBinding || {};
   const canonicalPath = policy.sourceBinding?.canonicalCaseManifestPath;
   if (binding.caseManifestPath !== canonicalPath) {
@@ -335,9 +339,31 @@ function loadCanonicalCaseBinding(policy, summary, rootDir, reasons) {
       reasons.push("canonical-case-control-action-invalid");
     }
   }
+  const nativePath = resolveContained(rootDir, policy.sourceBinding?.nativeExactManifestPath);
+  let nativeManifest = null;
+  if (binding.nativeExactManifestPath !== policy.sourceBinding?.nativeExactManifestPath) {
+    reasons.push("source-binding-nativeExactManifestPath-not-canonical");
+  } else if (!nativePath || !fs.existsSync(nativePath)) {
+    reasons.push("native-exact-manifest-missing-file");
+  } else {
+    try {
+      nativeManifest = JSON.parse(fs.readFileSync(nativePath, "utf8"));
+    } catch {
+      reasons.push("native-exact-manifest-invalid-json");
+    }
+  }
+  if (nativeManifest?.schema !== policy.sourceBinding?.nativeExactManifestSchema) {
+    reasons.push("native-exact-manifest-schema-mismatch");
+  }
+  const nativeCases = Array.isArray(nativeManifest?.cases) ? nativeManifest.cases : [];
+  if (nativeCases.length !== manifestCases.length ||
+      JSON.stringify(nativeCases.map(item => item.caseId)) !== JSON.stringify(testIds)) {
+    reasons.push("native-exact-manifest-case-order-mismatch");
+  }
   return {
     orderedTestIds: testIds,
     byTestId: new Map(manifestCases.map(item => [item.testId, item])),
+    nativeByTestId: new Map(nativeCases.map(item => [item.caseId, item])),
   };
 }
 
@@ -399,7 +425,14 @@ function implementationCanonicalCase(item) {
 function validateAdapter(policy, summary, reasons) {
   const adapter = summary.selectedAdapter || {};
   if (!policy.caseEquivalence.allowedAdapterEngines.includes(adapter.engine)) reasons.push("adapter-engine-not-qualified");
+  const expectedTool = {
+    "playwright-native": "playwright",
+    "selenium-native": "selenium",
+    "chrome-cdp-native": "chrome",
+  }[adapter.engine];
+  if (!expectedTool || adapter.tool !== expectedTool) reasons.push("adapter-tool-engine-mismatch");
   if (adapter.fallbackUsed !== false) reasons.push("adapter-fallback-used");
+  if (!Array.isArray(adapter.capabilities)) reasons.push("adapter-capabilities-invalid");
   for (const capability of policy.caseEquivalence.requiredAdapterCapabilities) {
     if (!adapter.capabilities?.includes(capability)) reasons.push(`adapter-capability-${capability}-missing`);
   }
@@ -439,21 +472,25 @@ function validateCleanup(summary, reasons) {
   }
 }
 
-function validateCase(policy, item, summary, rootDir, { verifyArtifacts, canonicalCase }) {
+function validateCase(policy, item, summary, rootDir, { verifyArtifacts, canonicalCase, nativeCase }) {
   const reasons = [];
   if (!item?.testId) reasons.push("test-id-missing");
   if (!canonicalCase) {
     reasons.push("unknown-canonical-case-id");
   } else {
     if (item?.featureId !== canonicalCase.featureId) reasons.push("canonical-feature-id-mismatch");
-    for (const field of ["route", "accountRole", "viewport", "theme", "controlAction"]) {
-      if (JSON.stringify(item?.requested?.[field]) !== JSON.stringify(canonicalCase[field])) reasons.push(`canonical-${field}-mismatch`);
-    }
   }
+  if (!nativeCase) reasons.push("unknown-native-case-id");
+  for (const reason of validateRequestedObservedEnvelope({
+    requested: item?.requested,
+    observed: item?.observed,
+    canonicalCase,
+    nativeCase,
+  })) reasons.push(reason);
   if (!["direct-pass", "automation-equivalent-pass"].includes(item?.evidenceStatus)) reasons.push("evidence-status-not-qualified");
   if (item?.status !== "PASS") reasons.push("case-status-not-pass");
-  for (const field of ["route", "accountRole", "theme", "viewport", "controlAction"]) {
-    if (JSON.stringify(item?.requested?.[field]) !== JSON.stringify(item?.observed?.[field])) reasons.push(`${field}-requested-observed-mismatch`);
+  if (item?.requestedObservedSchema !== "media-server.v390-ui-requested-observed-envelope.v1") {
+    reasons.push("requested-observed-envelope-schema-mismatch");
   }
   if (item?.interaction?.executed !== true || item?.interaction?.trusted !== true) reasons.push("trusted-interaction-not-executed");
   const oracle = item?.completionOracle || {};

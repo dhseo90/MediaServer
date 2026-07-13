@@ -64,6 +64,7 @@ published metadata, release action evidence가 아닙니다.
 | v3.9.0 (12) / V390-ADD1-05 + V390-REVIEW4-55 | `./server.sh verify-v390-onvif-source-view-atomicity`, `./server.sh verify-v390-onvif-live-import-persist-decision` | ONVIF import draft는 `notSaved:true`, `oneShotPersist=false`를 유지합니다. 명시적 form save/toggle은 `/ops/api/onvif/channels/{channelId}` paired route를 사용하며 양쪽 선검증, private rollback snapshot, durable prepared/committed marker, first/second-write rollback, prepared/source/view/committed crash restart recovery, bytes/existence/mode, retry, concurrent pair no-mix, transaction artifact cleanup을 actual HTTP/file 19개 case로 확인합니다. multi-process writer coordination, ONVIF 실기기, UI 풀테스트 직접 조작, 30분/120분 longrun, field success evidence가 아닙니다 |
 | v3.9.0 (21) / V390-REVIEW3-38 | `./server.sh verify-v390-analysis-registry-durable-write` | Analysis Registry의 12개 create·update·delete를 mode-preserving temp write/file fsync/close→rename→parent directory fsync로 저장합니다. 12개 정상 성공, 9-stage fault 108개와 3-point crash/restart 36개가 typed HTTP 500, pre-rename no-change, post-rename candidate consistency, stale-temp recovery, mode/cleanup을 확인하며 UI 풀테스트, 30분/120분 longrun, release action evidence가 아닙니다 |
 | V390-REVIEW4-54 | `./server.sh verify-v390-analysis-registry-durable-write`, `./server.sh verify-analysis-state` | REVIEW3-38의 post-rename failure 의미를 supersede합니다. Prepared/committed transaction marker와 rollback snapshot으로 HTTP 500은 memory·file·restart 모두 이전 상태, success는 parent-directory fsync와 committed marker 뒤 candidate 상태입니다. 신규 mode `0640`, 기존 mode 보존, success 12/failure 108/retry 108/crash 48/artifact 0과 analysis state 181/0을 확인하며 Auth 전용/UI/30분/120분/release action evidence가 아닙니다 |
+| V390-REVIEW4-57 | `./server.sh verify-v390-ui-native-exact-cases-contract`, `./server.sh verify-v390-ui-policy-v4-producer-contract`, `./server.sh verify-ui-fulltest-evidence-policy-v4-contract` | Requested canonical `route/accountRole/viewport/theme/controlAction`과 runtime observed `screenRoute/accountRole/viewport/theme/controlAction/provenance`를 서로 다른 exact projection으로 검증합니다. Runner는 browser URL, `/auth/whoami`, 실제 viewport, media-query theme, DOM control state를 수집하고 legacy alias/requested 복사/누락·추가 field/adapter tool-engine drift를 거부합니다. Contract와 plan-only는 actual exact 424 UI, 58 completion, 59 visual, 60 Policy 독립성, 30분/120분 evidence가 아닙니다 |
 | v3.9.0 (13) | `./server.sh verify-v390-vlm-rule-suggestion-draft-bridge` | VLM rule suggestion draft bridge. `/ops/api/vlm/rule-suggestion-draft-bridge`와 `/ops/rules`가 review-to-draft bridge, incident review provenance, manual-save-only boundary를 표시하고 기존 `/ops/api/vlm/rule-suggestion-drafts` workflow를 유지하는지 확인합니다. rule/profile registry write, auto-apply, provider/runtime call, client/viewer exposure, EventRecord/Event POST/WebRTC/SSE/WS/schema/media 변경, UI 풀테스트 직접 조작, 30분/120분 longrun evidence가 아닙니다 |
 | v3.9.0 (14) | `./server.sh verify-v390-vlm-evaluation-promotion-guard` | VLM evaluation promotion guard. `/ops/api/vlm/evaluation-promotion-guard`와 `/ops/vlm`가 `server-verified-evaluation-promotion`, `operator-select-candidate-then-server-verify-save`, candidate-reference-only boundary를 표시하는지 확인합니다. 실제 forged request HTTP matrix는 V390-ADD1-03 verifier가 담당하며 UI 풀테스트·장시간 evidence가 아닙니다 |
 | V390-REVIEW3-39 profile JSON | `./server.sh verify-v390-vlm-promotion-trust-boundary` | 14개 PUT/GET promotion, exact/escaped duplicate·nested-shadow·malformed·trailing structural save 7개, restart full-contract/structure quarantine 13개를 실행합니다. Strict parser는 exact top-level/object scope와 decoded key type을 사용합니다. runtime/provider/sidecar 호출, client/viewer payload, Event POST/WebRTC/SSE/WS/media/API schema 변경, UI 풀테스트 직접 조작, 30분/120분 evidence가 아닙니다 |
@@ -215,7 +216,7 @@ drift, automation featureId→caseId drift, artifact 누락을 실패 처리합�
 상태도 contract로 고정합니다. 고정 matrix는
 `docs/v390-ui-automation-coverage-matrix.md`에 보존합니다. Matrix `REVIEW_REQUIRED`는
 `exactNativeWorkflowReadinessComplete=false`, `actualAutomationExecutionComplete=false`, `manualUiFulltestEvidence=false`,
-`executionEvidenceStatus=current-not-run`이며 REVIEW4-57~60 전 matrix는 Policy v4-qualified UI 풀테스트 실행,
+`executionEvidenceStatus=current-not-run`이며 REVIEW4-58~60 전 matrix는 Policy v4-qualified UI 풀테스트 실행,
 30분/120분, published metadata, release action PASS가 아닙니다.
 
 ### V390-ADD1-12 Policy v4 UI evidence qualification
@@ -233,6 +234,11 @@ network/persisted/EventRecord·log completion oracle, exact visible assertion, �
 hash/type/path containment, redaction, visual evidence, replay, cleanup을 모두 만족한 경우에만
 `automation-equivalent-pass`가 될 수 있습니다. wrapper/static/API/screenshot-only/fixture와
 legacy v1 replay는 보조 evidence입니다.
+
+V390-REVIEW4-57부터 requested는 canonical API ownership `route`와 requested control을 보존하고,
+observed는 browser `screenRoute`, `/auth/whoami` role, 실제 viewport, media-query theme, DOM control
+state와 field별 provenance만 허용합니다. 두 projection의 field set은 의도적으로 다르며 legacy
+`role`, observed `route`, requested control 복사, adapter tool/engine drift는 contract FAIL입니다.
 
 `V390-REVIEW2-23`부터 completion/visual/cross-cutting/redaction `evidenceRef`는 문자열이나
 summary의 PASS boolean이 아니라 `media-server.ui-evidence-ref.v1` metadata로 기록합니다.

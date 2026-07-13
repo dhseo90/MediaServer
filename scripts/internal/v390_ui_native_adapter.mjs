@@ -295,6 +295,52 @@ async function openNativePlaywrightPage(playwright, {
       return { ...geometry, focusSamples };
     },
     evaluate: (expression) => page.evaluate(expression),
+    observeRequestedObservedState: async ({ selector = null, applicability = "required" } = {}) => {
+      return page.evaluate(`(async () => {
+        const selector = ${JSON.stringify(selector)};
+        const applicability = ${JSON.stringify(applicability)};
+        const response = await fetch('/auth/whoami', { credentials: 'same-origin', cache: 'no-store' });
+        let accountRole = '';
+        if (response.status === 401) {
+          accountRole = 'anonymous';
+        } else {
+          if (!response.ok) throw new Error('whoami observation failed with status ' + response.status);
+          const principal = await response.json();
+          if (principal?.authenticated !== true || typeof principal?.role !== 'string') {
+            throw new Error('whoami observation returned an invalid authenticated principal');
+          }
+          accountRole = principal.role;
+        }
+        const element = selector ? document.querySelector(selector) : null;
+        const rect = element?.getBoundingClientRect?.() || null;
+        const style = element ? getComputedStyle(element) : null;
+        const exists = Boolean(element);
+        const visible = Boolean(rect && rect.width > 0 && rect.height > 0 && style &&
+          style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity || 1) > 0);
+        const disabled = Boolean(element && 'disabled' in element && element.disabled);
+        return {
+          schema: 'media-server.v390-ui-runtime-observed.v1',
+          screenRoute: location.pathname,
+          accountRole,
+          viewport: { width: innerWidth, height: innerHeight },
+          theme: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
+          controlAction: {
+            selector,
+            applicability,
+            exists,
+            visible,
+            enabled: visible && !disabled,
+          },
+          provenance: {
+            screenRoute: 'browser-location',
+            accountRole: 'session-whoami',
+            viewport: 'browser-inner-size',
+            theme: 'browser-media-query',
+            controlAction: 'dom-selector-state',
+          },
+        };
+      })()`);
+    },
     screenshot: outputFile => page.screenshot({ path: outputFile, fullPage: false }),
     consoleEntries: () => consoleEntries,
     networkEntries: () => networkEntries.map(item => ({ ...item })),

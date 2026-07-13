@@ -7,15 +7,16 @@
   "uiFulltestPass": false,
   "canonicalCaseManifest": {
     "path": "test/fixtures/ui_fulltest_case_manifest_policy_v4.json",
-    "sha256": "7c4294d1adefc36faf9af19d16369bb559bf114b1810210e103ff10a5ad3016d"
+    "sha256": "ddaededbf37beab6cbda9800edcf644a50d475cc32d028e099b7c9a3eb082936"
   },
   "nativeExactManifest": {
     "path": "test/fixtures/v390_ui_native_exact_cases.json",
-    "sha256": "dfaa34d33ea5ff55b2443651c9fdd79df3c8be19ded45cc99e8ad2a40434c72a"
+    "sha256": "0575b8222139d0b91ec5e9296335da915b66a9d3febf11244cf120981ee0904f"
   },
   "readiness": {
     "complete": false,
-    "status": "review4-57-60-pending",
+    "status": "review4-58-60-pending",
+    "canonicalRequestedObservedSchemaComplete": true,
     "exactUiTestIds": 424,
     "nativeExecutablePositive": 423,
     "negativeRouteExecutable": 1,
@@ -29,5 +30,5 @@
   },
   "historicalInvalidManifest": "docs/release-artifacts/v3.9.0/historical-invalid-ui-evidence.json",
   "requiredNextEvidence": "new current-HEAD placeholder-free Policy v4 exact 424 browser execution with source provenance and integrity attestation",
-  "boundary": "REVIEW4-56 exact product workflows are statically closed; REVIEW4-57~60 requested/observed, completion, visual, and Policy independence remain pending; not-run is not PASS; audit-only historical summaries are denied as current evidence"
+  "boundary": "REVIEW4-56 exact product workflows and REVIEW4-57 canonical requested/runtime-observed schemas are statically closed; REVIEW4-58~60 completion, visual, and Policy independence remain pending; not-run is not PASS; audit-only historical summaries are denied as current evidence"
 }

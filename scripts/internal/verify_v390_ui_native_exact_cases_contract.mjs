@@ -13,6 +13,12 @@ import {
   normalizeProductScreenRoute,
   validateNativeExactManifest,
 } from "./v390_ui_native_exact_cases_lib.mjs";
+import {
+  canonicalRequestedProjection,
+  expectedRuntimeObservation,
+  runtimeObservedProjection,
+  validateRequestedObservedEnvelope,
+} from "./v390_ui_requested_observed_schema.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -21,6 +27,8 @@ const implementation = readJson("test/fixtures/project_feature_implementation_ev
 const manifest = readJson("test/fixtures/v390_ui_native_exact_cases.json");
 const runnerSource = fs.readFileSync(path.join(rootDir, "scripts/internal/run_v390_ui_native_exact_cases.mjs"), "utf8");
 const nativeLibrarySource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_native_exact_cases_lib.mjs"), "utf8");
+const producerSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_policy_v4_evidence_producer.mjs"), "utf8");
+const policyLibrarySource = fs.readFileSync(path.join(rootDir, "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs"), "utf8");
 const trackedFiles = new Set(execFileSync("git", ["ls-files"], { cwd: rootDir, encoding: "utf8" })
   .split("\n").filter(Boolean));
 const sourceCache = new Map();
@@ -455,6 +463,84 @@ check("runner owns native execution, role state, first-fail, and artifact fields
   assert(runnerSource.indexOf("validateRunnerWorkflowCompatibility(manifest.cases)") <
     runnerSource.indexOf("if (options.planOnly)"),
   "plan-only must validate runner workflow compatibility before reporting PASS");
+});
+
+check("canonical requested route and runtime screen route are explicit projections", () => {
+  const canonicalById = new Map(canonical.cases.map(item => [item.testId, item]));
+  const projected = manifest.cases.filter(item => item.canonicalRoute !== item.screenRoute);
+  assert(projected.length === 39, `canonical/runtime route projection count mismatch: ${projected.length}`);
+  for (const item of manifest.cases) {
+    assert(item.canonicalRoute === canonicalById.get(item.caseId)?.route,
+      `${item.caseId} canonical requested route drift`);
+    assert(item.disposition === "negative-route" || !item.screenRoute.includes("/api/"),
+      `${item.caseId} runtime screen route retains API ownership route`);
+  }
+});
+
+check("runner producer and qualifier share the typed requested observed schema", () => {
+  for (const source of [nativeLibrarySource, runnerSource, producerSource, policyLibrarySource]) {
+    assert(source.includes("v390_ui_requested_observed_schema.mjs"),
+      "requested/observed schema module is not shared by runner, producer, and qualifier");
+  }
+  assert(runnerSource.includes("canonicalRequestedProjection(item)"),
+    "runner requested canonical projection missing");
+  assert(!runnerSource.includes("requested: {\n      route: item.screenRoute"),
+    "legacy requested screen-route/role object remains");
+  assert(runnerSource.includes("observeRequestedObservedState"),
+    "runner does not independently observe screen route/role/viewport/theme/control action");
+  const adapterSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_native_adapter.mjs"), "utf8");
+  assert(adapterSource.includes("response.status === 401") &&
+    adapterSource.includes("whoami observation failed with status") &&
+    adapterSource.includes("whoami observation returned an invalid authenticated principal"),
+  "adapter folds whoami transport/status/schema failures into anonymous role");
+  assert(!adapterSource.includes("principal = null"),
+    "adapter retains whoami failure-to-anonymous fallback");
+  assert(!producerSource.includes("result.observed || result.requested"),
+    "producer still falls back from missing observed to requested");
+  const source = manifest.cases.find(item => item.caseId === "SRC-031");
+  const requested = canonicalRequestedProjection(source);
+  const observed = expectedRuntimeObservation(source);
+  assert(requested.route === "/ops/api/onvif/import-draft" && observed.screenRoute === "/ops/sources",
+    "SRC-031 canonical API request/runtime screen projection mismatch");
+  assert(validateRequestedObservedEnvelope({
+    requested,
+    observed,
+    canonicalCase: canonical.cases.find(item => item.testId === source.caseId),
+    nativeCase: source,
+  }).length === 0, "valid requested/observed envelope rejected");
+
+  const negativeCases = [
+    ["requested-role-alias", value => { value.requested.role = value.requested.accountRole; }, "requested-fields-mismatch"],
+    ["requested-control-missing", value => { delete value.requested.controlAction; }, "requested-fields-mismatch"],
+    ["observed-route-alias", value => { value.observed.route = value.observed.screenRoute; }, "observed-fields-mismatch"],
+    ["observed-missing", value => { value.observed = undefined; }, "observed-object-missing"],
+    ["observed-api-route", value => { value.observed.screenRoute = value.requested.route; }, "observed-screenRoute-api-route-forbidden"],
+    ["viewport-string", value => { value.observed.viewport.width = "390"; }, "observed-viewport-invalid"],
+    ["theme-invalid", value => { value.observed.theme = "system"; }, "observed-theme-invalid"],
+    ["control-manifest-copy", value => { value.observed.controlAction = structuredClone(value.requested.controlAction); }, "observed-controlAction-fields-mismatch"],
+  ];
+  for (const [label, mutateEnvelope, expectedError] of negativeCases) {
+    const candidate = { requested: structuredClone(requested), observed: structuredClone(observed) };
+    mutateEnvelope(candidate);
+    const errors = validateRequestedObservedEnvelope({
+      ...candidate,
+      canonicalCase: canonical.cases.find(item => item.testId === source.caseId),
+      nativeCase: source,
+    });
+    assert(errors.includes(expectedError), `${label} did not fail with ${expectedError}: ${errors.join(",")}`);
+  }
+  for (const [label, mutateObserved, expectedError] of [
+    ["raw-extra-alias", value => { value.route = value.screenRoute; }, "observed-fields-mismatch"],
+    ["raw-missing-control-state", value => { delete value.controlAction.exists; }, "observed-controlAction-fields-mismatch"],
+    ["raw-missing-provenance", value => { delete value.provenance.accountRole; }, "observed-provenance-fields-mismatch"],
+    ["raw-forged-provenance", value => { value.provenance.theme = "runner-default"; }, "observed-provenance-theme-mismatch"],
+  ]) {
+    const raw = structuredClone(observed);
+    mutateObserved(raw);
+    let message = "";
+    try { runtimeObservedProjection(raw); } catch (error) { message = String(error?.message || error); }
+    assert(message.includes(expectedError), `${label} raw observation drift was normalized away: ${message}`);
+  }
 });
 
 check("missing, reordered, unsupported, API-screen, and field drift are rejected", () => {

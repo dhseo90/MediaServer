@@ -9,6 +9,10 @@ import { fileURLToPath } from "node:url";
 
 import { evaluateEvidence } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
 import { producePolicyV4Evidence } from "./v390_ui_policy_v4_evidence_producer.mjs";
+import {
+  canonicalRequestedProjection,
+  expectedRuntimeObservation,
+} from "./v390_ui_requested_observed_schema.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const tempParent = path.join(rootDir, ".tmp-v390-policy-producer-contract");
@@ -44,20 +48,8 @@ const produced = producePolicyV4Evidence({
     caseId: item.caseId,
     featureId: item.featureId,
     status: "PASS",
-    requested: {
-      route: canonical.cases[0].route,
-      accountRole: canonical.cases[0].accountRole,
-      viewport: canonical.cases[0].viewport,
-      theme: canonical.cases[0].theme,
-      controlAction: canonical.cases[0].controlAction,
-    },
-    observed: {
-      route: canonical.cases[0].route,
-      accountRole: canonical.cases[0].accountRole,
-      viewport: canonical.cases[0].viewport,
-      theme: canonical.cases[0].theme,
-      controlAction: canonical.cases[0].controlAction,
-    },
+    requested: canonicalRequestedProjection(item),
+    observed: expectedRuntimeObservation(item),
     navigation: { status: 200 },
     completionOracle: [{
       pass: true,
@@ -79,6 +71,7 @@ const produced = producePolicyV4Evidence({
     browserConsolePath: consolePath,
   }],
   selectedAdapter: {
+    tool: "playwright",
     engine: "playwright-native",
     fallbackUsed: false,
     capabilities: ["wait", "query", "assert", "click", "type", "select", "evaluate", "screenshot"],
@@ -97,7 +90,49 @@ check("producer writes v4 actual schema and direct source binding", () => {
   assert(summary.fixture === false && summary.contractFixture === true, "contract fixture boundary missing");
   assert(summary.executionKind === "actual-native-visible-dom", "actual execution kind missing");
   assert(summary.sourceBinding.runnerPath === "scripts/internal/run_v390_ui_native_exact_cases.mjs", "runner source binding missing");
+  assert(summary.sourceBinding.nativeExactManifestPath === "test/fixtures/v390_ui_native_exact_cases.json",
+    "native manifest source binding missing");
   assert(summary.coverage.targetCount === 1 && summary.cases.length === 1, "contract scoped count mismatch");
+  assert(summary.cases[0].requestedObservedSchema === "media-server.v390-ui-requested-observed-envelope.v1",
+    "typed requested/observed envelope missing");
+});
+
+check("producer rejects missing observed and legacy aliases", () => {
+  for (const mutation of [
+    result => { delete result.observed; },
+    result => { result.requested.role = result.requested.accountRole; },
+    result => { result.observed.route = result.observed.screenRoute; },
+  ]) {
+    const source = produced.summary.cases[0];
+    const result = {
+      caseId: item.caseId,
+      featureId: item.featureId,
+      status: "PASS",
+      requested: structuredClone(source.requested),
+      observed: structuredClone(source.observed),
+    };
+    mutation(result);
+    let failed = false;
+    try {
+      producePolicyV4Evidence({
+        rootDir,
+        outputDir,
+        manifest,
+        canonical,
+        results: [result],
+        selectedAdapter: produced.summary.selectedAdapter,
+        startedAt: new Date(now - 1000).toISOString(),
+        finishedAt: new Date(now).toISOString(),
+        buildPath: path.join(rootDir, "VERSION"),
+        runnerPath: path.join(rootDir, "scripts/internal/run_v390_ui_native_exact_cases.mjs"),
+        serverLogPath,
+        contractFixture: true,
+      });
+    } catch (error) {
+      failed = /requested|observed/.test(String(error.message));
+    }
+    assert(failed, "producer accepted a missing/aliased requested-observed projection");
+  }
 });
 
 check("producer creates attested case and suite artifacts inside the run root", () => {

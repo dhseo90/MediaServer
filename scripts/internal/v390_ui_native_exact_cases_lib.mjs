@@ -6,6 +6,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { allowedCompletionSources } from "./v390_ui_completion_oracle_lib.mjs";
+import {
+  canonicalRequestedProjection,
+  expectedRuntimeObservation,
+  validateRequestedObservedEnvelope,
+} from "./v390_ui_requested_observed_schema.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -442,7 +447,7 @@ export function buildNativeExactManifest({ canonical, implementation }) {
           : (hasInteraction
               ? ["endpoint-dom", "persisted-readback", "event-record", "server-log"]
               : ["endpoint-dom"]));
-    return {
+    const caseValue = {
       caseId: canonicalCase.testId,
       featureId: canonicalCase.featureId,
       disposition: negativeRoute ? "negative-route" : "native-executable",
@@ -454,6 +459,7 @@ export function buildNativeExactManifest({ canonical, implementation }) {
       theme: canonicalCase.theme,
       controlAction: {
         selector: targetSelector,
+        requestedSelector: canonicalCase.controlAction?.selector ?? null,
         canonicalSelector,
         selectorSource: primaryControl.source,
         actionAnchor: canonicalCase.controlAction?.actionAnchor || "",
@@ -504,6 +510,11 @@ export function buildNativeExactManifest({ canonical, implementation }) {
         browserConsole: true,
         serverLog: true,
       },
+    };
+    return {
+      ...caseValue,
+      requestedProjection: canonicalRequestedProjection(caseValue),
+      observedProjection: expectedRuntimeObservation(caseValue),
     };
   });
 
@@ -672,6 +683,18 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
     assert(item.workflow.expectedResults[0]?.completion?.schema === "media-server.v390-ui-semantic-completion.v1",
       `${item.caseId} expected semantic completion missing`);
     assert(JSON.stringify(item.artifacts) === JSON.stringify(expectedItem.artifacts), `${item.caseId} artifact plan drift`);
+    assert(JSON.stringify(item.requestedProjection) === JSON.stringify(expectedItem.requestedProjection),
+      `${item.caseId} canonical requested projection drift`);
+    assert(JSON.stringify(item.observedProjection) === JSON.stringify(expectedItem.observedProjection),
+      `${item.caseId} runtime observed projection drift`);
+    const projectionErrors = validateRequestedObservedEnvelope({
+      requested: item.requestedProjection,
+      observed: item.observedProjection,
+      canonicalCase: canonical.cases[index],
+      nativeCase: item,
+    });
+    assert(projectionErrors.length === 0,
+      `${item.caseId} requested/observed projection invalid: ${projectionErrors.join("; ")}`);
   }
 
   const negative = manifest.cases.find(item => item.caseId === "UI-018");

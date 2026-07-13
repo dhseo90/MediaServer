@@ -12,6 +12,10 @@ import { fileURLToPath } from "node:url";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { evaluateEvidence, sha256File, sha256Text, validatePolicy } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
 import { evaluateVisualArtifact, evaluateVisualMatrix } from "./v390_ui_visual_evidence.mjs";
+import {
+  canonicalRequestedProjection,
+  expectedRuntimeObservation,
+} from "./v390_ui_requested_observed_schema.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -34,6 +38,9 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 const policy = JSON.parse(fs.readFileSync(path.join(rootDir, "test/fixtures/ui_fulltest_evidence_policy_v4.json"), "utf8"));
 const canonicalManifestSourcePath = path.join(rootDir, policy.sourceBinding.canonicalCaseManifestPath);
 const canonicalManifestSource = JSON.parse(fs.readFileSync(canonicalManifestSourcePath, "utf8"));
+const nativeManifestSourcePath = path.join(rootDir, policy.sourceBinding.nativeExactManifestPath);
+const nativeManifestSource = JSON.parse(fs.readFileSync(nativeManifestSourcePath, "utf8"));
+const nativeById = new Map(nativeManifestSource.cases.map(item => [item.caseId, item]));
 const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "media_server_ui_policy_v4_contract_"));
 const checks = [];
 
@@ -83,17 +90,33 @@ try {
   check("canonical feature route role viewport theme and control action drift are rejected", () => {
     const mutations = [
       ["featureId", candidate => { candidate.cases[0].featureId = "SAFE-999"; }, "canonical-feature-id-mismatch"],
-      ["route", candidate => { candidate.cases[0].requested.route = candidate.cases[0].observed.route = "/wrong"; }, "canonical-route-mismatch"],
-      ["accountRole", candidate => { candidate.cases[0].requested.accountRole = candidate.cases[0].observed.accountRole = "viewer"; }, "canonical-accountRole-mismatch"],
-      ["viewport", candidate => { candidate.cases[0].requested.viewport = candidate.cases[0].observed.viewport = { width: 1180, height: 800 }; }, "canonical-viewport-mismatch"],
-      ["theme", candidate => { candidate.cases[0].requested.theme = candidate.cases[0].observed.theme = "dark"; }, "canonical-theme-mismatch"],
-      ["controlAction", candidate => { candidate.cases[0].requested.controlAction = candidate.cases[0].observed.controlAction = { selector: "#wrong", actionAnchor: "wrong" }; }, "canonical-controlAction-mismatch"],
+      ["route", candidate => { candidate.cases[0].requested.route = "/wrong"; }, "requested-canonical-route-mismatch"],
+      ["accountRole", candidate => { candidate.cases[0].requested.accountRole = "viewer"; }, "requested-canonical-accountRole-mismatch"],
+      ["viewport", candidate => { candidate.cases[0].requested.viewport = { width: 1180, height: 800 }; }, "requested-canonical-viewport-mismatch"],
+      ["theme", candidate => { candidate.cases[0].requested.theme = "dark"; }, "requested-canonical-theme-mismatch"],
+      ["controlAction", candidate => { candidate.cases[0].requested.controlAction = { selector: "#wrong", actionAnchor: "wrong" }; }, "requested-canonical-controlAction-mismatch"],
     ];
     for (const [label, mutate, expectedReason] of mutations) {
       const candidate = makeCandidate(tempRoot, policy, 1, "scoped-change");
       mutate(candidate);
       const result = evaluate(candidate, tempRoot);
       assert(result.reasons.some(reason => reason.endsWith(`:${expectedReason}`)), `${label} canonical drift passed`);
+    }
+  });
+
+  check("requested observed aliases missing fields and copied control claims are rejected", () => {
+    const mutations = [
+      [candidate => { candidate.cases[0].requested.role = candidate.cases[0].requested.accountRole; }, "requested-fields-mismatch"],
+      [candidate => { delete candidate.cases[0].requested.controlAction; }, "requested-fields-mismatch"],
+      [candidate => { candidate.cases[0].observed.route = candidate.cases[0].observed.screenRoute; }, "observed-fields-mismatch"],
+      [candidate => { delete candidate.cases[0].observed; }, "observed-object-missing"],
+      [candidate => { candidate.cases[0].observed.controlAction = clone(candidate.cases[0].requested.controlAction); }, "observed-controlAction-fields-mismatch"],
+    ];
+    for (const [mutate, expected] of mutations) {
+      const candidate = makeCandidate(tempRoot, policy, 1, "scoped-change");
+      mutate(candidate);
+      const result = evaluate(candidate, tempRoot);
+      assert(result.reasons.some(reason => reason.endsWith(`:${expected}`)), `${expected} missing`);
     }
   });
 
@@ -250,9 +273,11 @@ try {
   check("fallback and manual intervention are rejected", () => {
     const candidate = clone(base);
     candidate.selectedAdapter.fallbackUsed = true;
+    candidate.selectedAdapter.tool = "selenium";
     candidate.manualIntervention = true;
     const result = evaluate(candidate, tempRoot);
     assert(result.reasons.includes("adapter-fallback-used"), "fallback was not rejected");
+    assert(result.reasons.includes("adapter-tool-engine-mismatch"), "adapter tool/engine drift was not rejected");
     assert(result.reasons.includes("manual-intervention-present"), "manual intervention was not rejected");
   });
 
@@ -277,7 +302,7 @@ try {
     candidate.cases[0].observed.theme = "dark";
     candidate.cases[0].observed.viewport = { width: 1180, height: 800 };
     const result = evaluate(candidate, tempRoot);
-    for (const suffix of ["accountRole-requested-observed-mismatch", "theme-requested-observed-mismatch", "viewport-requested-observed-mismatch"]) {
+    for (const suffix of ["observed-runtime-accountRole-mismatch", "observed-runtime-theme-mismatch", "observed-runtime-viewport-mismatch"]) {
       assert(result.reasons.some(reason => reason.endsWith(`:${suffix}`)), `${suffix} missing`);
     }
   });
@@ -343,6 +368,7 @@ function makeCandidate(tempRoot, policyValue, count, scopeKind) {
   fs.mkdirSync(artifactRoot, { recursive: true });
   const policyPath = path.join(policyDir, "policy.json");
   const manifestPath = path.join(tempRoot, policyValue.sourceBinding.canonicalCaseManifestPath);
+  const nativeManifestPath = path.join(tempRoot, policyValue.sourceBinding.nativeExactManifestPath);
   const implementationPath = path.join(tempRoot, canonicalManifestSource.implementationEvidence.path);
   const runnerPath = path.join(scriptDirPath, "runner.mjs");
   const buildPath = path.join(tempRoot, "build/media_server");
@@ -350,13 +376,19 @@ function makeCandidate(tempRoot, policyValue, count, scopeKind) {
   fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
   fs.mkdirSync(path.dirname(implementationPath), { recursive: true });
   fs.copyFileSync(canonicalManifestSourcePath, manifestPath);
+  fs.copyFileSync(nativeManifestSourcePath, nativeManifestPath);
   fs.copyFileSync(path.join(rootDir, canonicalManifestSource.implementationEvidence.path), implementationPath);
   fs.writeFileSync(runnerPath, "// contract runner fingerprint\n", "utf8");
   fs.mkdirSync(path.dirname(buildPath), { recursive: true });
   fs.writeFileSync(buildPath, "contract build\n", "utf8");
   const canonicalCases = canonicalManifestSource.cases.slice(0, count);
   assert(canonicalCases.length === count, `requested ${count} canonical cases, got ${canonicalCases.length}`);
-  const cases = canonicalCases.map(canonicalCase => makeAttestedCase(artifactRoot, policyValue, canonicalCase));
+  const cases = canonicalCases.map(canonicalCase => makeAttestedCase(
+    artifactRoot,
+    policyValue,
+    canonicalCase,
+    nativeById.get(canonicalCase.testId),
+  ));
   const caseSetSha256 = sha256Text(JSON.stringify(cases.map(item => item.testId)));
   const matrixBundle = makeContractVisualMatrix(artifactRoot, policyValue);
   const crossCuttingObligations = policyValue.suiteClosure.requiredCrossCuttingObligations.map(id => {
@@ -409,6 +441,7 @@ function makeCandidate(tempRoot, policyValue, count, scopeKind) {
     failedInteractionCount: 0,
     replayStatus: "PASS",
     selectedAdapter: {
+      tool: "playwright",
       engine: "playwright-native",
       fallbackUsed: false,
       capabilities: [...policyValue.caseEquivalence.requiredAdapterCapabilities]
@@ -423,6 +456,8 @@ function makeCandidate(tempRoot, policyValue, count, scopeKind) {
       policySha256: sha256File(policyPath),
       caseManifestPath: policyValue.sourceBinding.canonicalCaseManifestPath,
       caseManifestSha256: sha256File(manifestPath),
+      nativeExactManifestPath: policyValue.sourceBinding.nativeExactManifestPath,
+      nativeExactManifestSha256: sha256File(nativeManifestPath),
       runnerPath: "scripts/internal/runner.mjs",
       runnerSha256: sha256File(runnerPath),
       artifactRoot: "artifacts",
@@ -491,7 +526,8 @@ function makeContractVisualMatrix(artifactRoot, policyValue) {
   return { refs, summary: evaluateVisualMatrix(probes) };
 }
 
-function makeAttestedCase(artifactRoot, policyValue, canonicalCase) {
+function makeAttestedCase(artifactRoot, policyValue, canonicalCase, nativeCase) {
+  assert(nativeCase, `${canonicalCase.testId} native case missing`);
   const correlationId = `contract-${canonicalCase.testId}`;
   const caseRoot = path.join(artifactRoot, "cases", canonicalCase.testId);
   fs.mkdirSync(caseRoot, { recursive: true });
@@ -556,20 +592,15 @@ function makeAttestedCase(artifactRoot, policyValue, canonicalCase) {
     featureId: canonicalCase.featureId,
     evidenceStatus: "automation-equivalent-pass",
     status: "PASS",
-    requested: {
-      route: canonicalCase.route,
+    requested: canonicalRequestedProjection({
+      canonicalRoute: canonicalCase.route,
       accountRole: canonicalCase.accountRole,
+      viewport: canonicalCase.viewport,
       theme: canonicalCase.theme,
-      viewport: clone(canonicalCase.viewport),
-      controlAction: clone(canonicalCase.controlAction),
-    },
-    observed: {
-      route: canonicalCase.route,
-      accountRole: canonicalCase.accountRole,
-      theme: canonicalCase.theme,
-      viewport: clone(canonicalCase.viewport),
-      controlAction: clone(canonicalCase.controlAction),
-    },
+      controlAction: canonicalCase.controlAction,
+    }),
+    observed: expectedRuntimeObservation(nativeCase),
+    requestedObservedSchema: "media-server.v390-ui-requested-observed-envelope.v1",
     interaction: { executed: true, trusted: true },
     completionOracle: {
       type: "network-response-and-dom",
