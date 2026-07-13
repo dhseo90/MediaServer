@@ -41,6 +41,9 @@ check("current state is explicit not-run and not PASS", () => {
     "REVIEW4-58 primary action completion oracle closure missing");
   assert(state.readiness?.visualMatrixComplete === true,
     "REVIEW4-59 visual matrix closure missing");
+  assert(state.readiness?.policyQualifierIndependenceComplete === true && state.readiness?.complete === true &&
+    state.readiness?.status === "exact-native-ready-current-not-run",
+  "REVIEW4-60 Policy independence/source readiness closure missing");
   assert(state.automatedCaseCount === 0, "current not-run state invented automated cases");
   const bindingErrors = currentManifestBindingErrors(state);
   assert(bindingErrors.length === 0, bindingErrors.join("; "));
@@ -124,9 +127,10 @@ check("durable matrix separates exact native readiness from current execution", 
   for (const snippet of [
     "currentEvidenceStatus: `not-run`", "native-executable-positive `423`",
     "negative-route-executable `1`", "unsupported `0`", "executed-pass `0`", "not-run `424`",
-    "review4-60-pending",
+    "exact-native-ready-current-not-run",
     "primaryActionCompletionOracleComplete: `true`",
     "visualMatrixComplete: `true`",
+    "policyQualifierIndependenceComplete: `true`",
   ]) assert(matrix.includes(snippet), `durable matrix missing: ${snippet}`);
   assert(!matrix.includes("ui-automation-visible-dom-final/summary.json"), "durable matrix retains stale source");
 });

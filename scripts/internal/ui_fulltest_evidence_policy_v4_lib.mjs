@@ -13,7 +13,7 @@ import {
   validateVisualMatrixPlan,
   visualEvidenceSchema,
 } from "./v390_ui_visual_evidence.mjs";
-import { validateRequestedObservedEnvelope } from "./v390_ui_requested_observed_schema.mjs";
+import { qualifyRawCase } from "./v390_ui_policy_v4_independent_qualifier.mjs";
 
 const sha256Pattern = /^[a-f0-9]{64}$/;
 
@@ -59,7 +59,7 @@ export function validatePolicy(policy) {
   expect(policy?.sourceBinding?.sha256Pattern === "^[a-f0-9]{64}$", "source binding sha256 pattern mismatch", errors);
   expect(policy?.sourceBinding?.requireCurrentSourceVerification === true, "current source verification must be required", errors);
   expect(policy?.attestation?.evidenceRefSchema === "media-server.ui-evidence-ref.v1", "evidence ref schema mismatch", errors);
-  expect(policy?.attestation?.interactionTraceSchema === "media-server.ui-interaction-trace.v1", "interaction trace schema mismatch", errors);
+  expect(policy?.attestation?.interactionTraceSchema === "media-server.v390-ui-native-interaction-trace.v2", "interaction trace schema mismatch", errors);
   expect(policy?.attestation?.browserConsoleSchema === "media-server.ui-browser-console.v1", "browser console schema mismatch", errors);
   expect(policy?.attestation?.crossCuttingSchema === "media-server.ui-cross-cutting-evidence.v1", "cross-cutting schema mismatch", errors);
   expect(policy?.attestation?.redactionScanSchema === "media-server.ui-evidence-redaction-scan.v1", "redaction scan schema mismatch", errors);
@@ -96,10 +96,7 @@ export function evaluateEvidence(policy, summary, options = {}) {
   if (!contractMode && summary.contractFixture === true) reasons.push("contract-fixture-is-not-execution-evidence");
   if (summary.fixture !== false) reasons.push("fixture-must-be-false");
   if (!policy.caseEquivalence.allowedExecutionKinds.includes(summary.executionKind)) reasons.push("execution-kind-not-qualified");
-  if (summary.result !== "PASS") reasons.push("summary-result-not-pass");
   if (summary.manualIntervention !== false) reasons.push("manual-intervention-present");
-  if (summary.failedInteractionCount !== 0) reasons.push("failed-interaction-present");
-  if (summary.replayStatus !== "PASS") reasons.push("replay-not-pass");
 
   validateFreshness(policy, summary, reasons, options.now || new Date());
   validateSourceBinding(policy, summary, rootDir, reasons, {
@@ -132,16 +129,18 @@ export function evaluateEvidence(policy, summary, options = {}) {
   if (coverage.targetCount !== cases.length) reasons.push("coverage-case-count-mismatch");
   if (new Set(obligationIds).size !== obligationIds.length) reasons.push("coverage-obligation-id-duplicate");
   if (JSON.stringify(obligationIds) !== JSON.stringify(cases.map(item => item.testId))) reasons.push("coverage-obligation-case-order-mismatch");
-  for (const field of policy.suiteClosure.requiredZeroCounts) {
+  for (const field of ["notRun", "unsupported", "unapprovedExclusions", "manualIntervention"]) {
     if (Number(coverage[field] || 0) !== 0) reasons.push(`coverage-${field}-must-be-zero`);
   }
+  if (cases.length - eligibleCaseIds.length !== 0) reasons.push("derived-case-fail-must-be-zero");
 
   const crossCutting = new Map((summary.crossCuttingObligations || []).map(item => [item.id, item]));
   const caseSetSha256 = sha256Text(JSON.stringify(cases.map(item => item.testId)));
+  const crossMeasurementCache = options.crossQualificationCache || new Map();
   for (const obligation of policy.suiteClosure.requiredCrossCuttingObligations) {
     const item = crossCutting.get(obligation);
-    if (!item || item.status !== "PASS" || !item.evidenceRef) {
-      reasons.push(`cross-cutting-${obligation}-not-pass`);
+    if (!item || !item.evidenceRef) {
+      reasons.push(`cross-cutting-${obligation}-raw-evidence-missing`);
       continue;
     }
     const prefix = `cross-cutting-${obligation}-evidence-ref`;
@@ -154,11 +153,17 @@ export function evaluateEvidence(policy, summary, options = {}) {
     if (attested) {
       const payload = readJsonFile(attested.path);
       if (payload?.schema !== policy.attestation.crossCuttingSchema || payload?.obligationId !== obligation ||
-          payload?.status !== "PASS" || payload?.caseSetSha256 !== caseSetSha256 ||
+          payload?.qualificationStatus !== "unqualified-raw-capture" || payload?.caseSetSha256 !== caseSetSha256 ||
           payload?.correlationId !== item.correlationId) {
         reasons.push(`cross-cutting-${obligation}-payload-invalid`);
       }
-      validateCrossCuttingMeasurements(policy, summary, rootDir, obligation, payload, reasons);
+      const matrixKey = sha256Text(JSON.stringify(payload?.measuredEvidenceRefs || []));
+      let matrix = crossMeasurementCache.get(matrixKey);
+      if (matrix === undefined) {
+        matrix = validateCrossCuttingMeasurements(policy, summary, rootDir, obligation, payload, reasons);
+        crossMeasurementCache.set(matrixKey, matrix || null);
+      }
+      validateCrossCuttingObligation(obligation, matrix, reasons);
     }
   }
 
@@ -185,12 +190,12 @@ function validateCrossCuttingMeasurements(policy, summary, rootDir, obligation, 
     requiredVariants = expandVisualMatrixPlan(plan);
   } catch {
     reasons.push(`cross-cutting-${obligation}-visual-plan-invalid`);
-    return;
+    return null;
   }
   const refs = Array.isArray(payload?.measuredEvidenceRefs) ? payload.measuredEvidenceRefs : [];
-  if (refs.length !== requiredVariants.length * 3) {
+  if (refs.length !== requiredVariants.length * 2 || payload?.rawVariantCount !== requiredVariants.length) {
     reasons.push(`cross-cutting-${obligation}-measurement-ref-count-invalid`);
-    return;
+    return null;
   }
   const grouped = new Map();
   for (const ref of refs) {
@@ -207,43 +212,41 @@ function validateCrossCuttingMeasurements(policy, summary, rootDir, obligation, 
     else {
       const value = readJsonFile(attested.path);
       if (value?.schema === browserMeasurementSchema) group.measurement = value;
-      else if (value?.schema === visualEvidenceSchema) group.payload = value;
       else reasons.push(`cross-cutting-${obligation}-measurement-schema-invalid`);
     }
   }
   const probes = [];
   for (const [correlationId, group] of grouped.entries()) {
-    if (!group.screenshotPath || !group.measurement || !group.payload) {
+    if (!group.screenshotPath || !group.measurement) {
       reasons.push(`cross-cutting-${obligation}-measurement-group-incomplete`);
       continue;
     }
     try {
+      const binding = group.measurement.caseBinding || {};
       const expectedCase = requiredVariants.find(item =>
-        item.canonicalCaseId === group.payload?.binding?.canonicalCaseId &&
-        item.featureId === group.payload?.binding?.featureId &&
-        item.screenId === group.payload?.binding?.screenId &&
-        item.screenRoute === group.payload?.binding?.screenRoute &&
-        item.accountRole === group.payload?.binding?.accountRole &&
-        item.targetSelector === group.payload?.binding?.targetSelector &&
-        item.width === group.payload?.observed?.viewport?.width &&
-        item.height === group.payload?.observed?.viewport?.height &&
-        item.theme === group.payload?.observed?.appliedTheme);
+        item.canonicalCaseId === binding.canonicalCaseId &&
+        item.featureId === binding.featureId &&
+        item.screenId === binding.screenId &&
+        item.screenRoute === binding.screenRoute &&
+        item.accountRole === binding.accountRole &&
+        item.targetSelector === binding.targetSelector &&
+        item.width === group.measurement?.viewport?.width &&
+        item.height === group.measurement?.viewport?.height &&
+        item.theme === group.measurement?.appliedTheme);
       if (!expectedCase) throw new Error("visual probe is not bound to the independent matrix plan");
       const recalculated = evaluateVisualArtifact({
         screenshotPath: group.screenshotPath,
         measurement: group.measurement,
-        caseId: group.payload.caseId,
+        caseId: `qualified-${expectedCase.canonicalCaseId}-${expectedCase.width}-${expectedCase.theme}`,
         correlationId,
         expectedCase,
         liveVideoSpec: expectedCase.liveVideoRequired ? plan.liveVideoProbe : null,
       });
-      for (const field of ["status", "reviewRequired", "binding", "screenshotSha256", "measurement", "observed", "metrics", "failures"]) {
-        if (JSON.stringify(group.payload[field]) !== JSON.stringify(recalculated[field])) {
-          reasons.push(`cross-cutting-${obligation}-measurement-${field}-mismatch`);
-        }
+      if (recalculated.status !== "PASS" || recalculated.reviewRequired !== false) {
+        reasons.push(`cross-cutting-${obligation}-independent-visual-failed`);
       }
       probes.push({
-        id: group.payload.caseId,
+        id: recalculated.caseId,
         canonicalCaseId: expectedCase.canonicalCaseId,
         featureId: expectedCase.featureId,
         screenId: expectedCase.screenId,
@@ -259,17 +262,20 @@ function validateCrossCuttingMeasurements(policy, summary, rootDir, obligation, 
     }
   }
   const recalculatedMatrix = evaluateVisualMatrix(probes, { plan, canonical, native });
-  for (const field of [
-    "status", "reviewRequired", "matrixPlanSha256", "requiredVariants", "observedVariants", "missingVariants",
-    "duplicateVariants", "unexpectedVariants", "metadataDrift", "failedProbes", "roles", "routeCount",
-    "liveVideoVariantCount", "hasVideoOverlay", "inputEvidenceSha256",
-  ]) {
-    if (JSON.stringify(payload?.matrix?.[field]) !== JSON.stringify(recalculatedMatrix[field])) {
-      reasons.push(`cross-cutting-${obligation}-matrix-${field}-mismatch`);
-    }
+  if (recalculatedMatrix.status !== "PASS" || recalculatedMatrix.reviewRequired !== false) {
+    reasons.push(`cross-cutting-${obligation}-independent-matrix-not-pass`);
   }
-  if (!sha256Pattern.test(payload?.matrix?.inputEvidenceSha256 || "")) {
-    reasons.push(`cross-cutting-${obligation}-matrix-inputEvidenceSha256-invalid`);
+  return recalculatedMatrix;
+}
+
+function validateCrossCuttingObligation(obligation, matrix, reasons) {
+  if (!matrix) return;
+  if (obligation === "video-overlay-crop" && matrix.hasVideoOverlay !== true) {
+    reasons.push(`cross-cutting-${obligation}-independent-live-evidence-missing`);
+  }
+  if (obligation === "role-scope-guards" &&
+      (!matrix.roles.includes("operator") || !matrix.roles.includes("viewer"))) {
+    reasons.push(`cross-cutting-${obligation}-independent-role-evidence-missing`);
   }
 }
 
@@ -293,7 +299,7 @@ function validateSourceBinding(policy, summary, rootDir, reasons, { verifyCurren
   for (const field of ["worktreePatchSha256", "buildSha256", "policySha256", "caseManifestSha256", "nativeExactManifestSha256", "runnerSha256"]) {
     if (binding[field] && !sha256Pattern.test(binding[field])) reasons.push(`source-binding-${field}-invalid-sha256`);
   }
-  if (binding.currentSourceVerified !== true) reasons.push("current-source-not-verified");
+  if (binding.currentSourceVerified === true) reasons.push("producer-current-source-self-claim-forbidden");
   for (const [pathField, hashField] of [["policyPath", "policySha256"], ["caseManifestPath", "caseManifestSha256"], ["nativeExactManifestPath", "nativeExactManifestSha256"], ["runnerPath", "runnerSha256"], ["buildPath", "buildSha256"]]) {
     const resolved = resolveContained(rootDir, binding[pathField]);
     if (!resolved || !fs.existsSync(resolved)) reasons.push(`source-binding-${pathField}-missing-file`);
@@ -527,113 +533,113 @@ function validateCase(policy, item, summary, rootDir, { verifyArtifacts, canonic
     if (item?.featureId !== canonicalCase.featureId) reasons.push("canonical-feature-id-mismatch");
   }
   if (!nativeCase) reasons.push("unknown-native-case-id");
-  for (const reason of validateRequestedObservedEnvelope({
-    requested: item?.requested,
-    observed: item?.observed,
-    canonicalCase,
-    nativeCase,
-  })) reasons.push(reason);
-  if (!["direct-pass", "automation-equivalent-pass"].includes(item?.evidenceStatus)) reasons.push("evidence-status-not-qualified");
-  if (item?.status !== "PASS") reasons.push("case-status-not-pass");
+  if (item?.rawOutcome !== "completed") reasons.push("raw-case-outcome-not-completed");
   if (item?.requestedObservedSchema !== "media-server.v390-ui-requested-observed-envelope.v1") {
     reasons.push("requested-observed-envelope-schema-mismatch");
   }
-  if (item?.interaction?.executed !== true || item?.interaction?.trusted !== true) reasons.push("trusted-interaction-not-executed");
-  const oracle = item?.completionOracle || {};
-  if (!policy.caseEquivalence.allowedCompletionOracles.includes(oracle.type)) reasons.push("completion-oracle-not-qualified");
-  if (!oracle.evidenceRef) reasons.push("completion-oracle-evidence-missing");
-  if (!oracle.correlationId) reasons.push("completion-oracle-correlation-missing");
   const expectedCompletion = nativeCase?.workflow?.expectedResults?.[0]?.completion;
-  if (expectedCompletion?.phase !== "primary-action") {
-    reasons.push("native-primary-completion-contract-missing");
-  } else {
-    if (oracle.actionId !== expectedCompletion.actionId) reasons.push("completion-primary-action-id-mismatch");
-    if (oracle.correlationId !== expectedCompletion.correlationId) reasons.push("completion-primary-correlation-mismatch");
-    if (oracle.controlSelector !== expectedCompletion.controlSelector) reasons.push("completion-primary-control-selector-mismatch");
+  const correlationId = expectedCompletion?.correlationId || "";
+  if (expectedCompletion?.phase !== "primary-action") reasons.push("native-primary-completion-contract-missing");
+  const raw = item?.rawEvidence || {};
+  if (raw.schema !== "media-server.ui-policy-v4-raw-case-ref.v1") reasons.push("raw-case-ref-schema-mismatch");
+  if (raw.actionId !== expectedCompletion?.actionId || raw.actionKind !== expectedCompletion?.actionKind ||
+      raw.controlSelector !== expectedCompletion?.controlSelector || raw.correlationId !== correlationId) {
+    reasons.push("raw-case-ref-primary-binding-mismatch");
   }
-  if (oracle.type === "dom-transition" && oracle.beforeDigest === oracle.afterDigest) reasons.push("dom-transition-did-not-change");
-  if (oracle.type === "network-response-and-dom" && (!oracle.correlationId || !(oracle.statusCode >= 200 && oracle.statusCode < 600))) reasons.push("network-completion-correlation-missing");
-  const completionArtifactName = oracle.type === "server-log-correlation" ? "serverLog" : "trace";
-  const completionContentType = oracle.type === "server-log-correlation" ? "text/plain" : "application/json";
-  const completionRef = validateEvidenceRef(policy, summary, rootDir, oracle.evidenceRef, {
+  const traceRef = validateEvidenceRef(policy, summary, rootDir, raw.traceRef, {
     expectedCaseId: item?.testId,
-    expectedCorrelationId: oracle.correlationId,
-    expectedContentType: completionContentType,
-    prefix: "completion-evidence-ref",
+    expectedCorrelationId: correlationId,
+    expectedContentType: "application/json",
+    prefix: "raw-trace-evidence-ref",
   }, reasons);
-  if (completionRef && !sameArtifactReference(oracle.evidenceRef, item?.artifacts?.[completionArtifactName])) reasons.push("completion-evidence-ref-artifact-mismatch");
-  if (completionRef) validateCompletionEvidence(policy, item, canonicalCase, oracle, completionRef.path, reasons);
-  const assertions = Array.isArray(item?.visibleAssertions) ? item.visibleAssertions : [];
-  if (assertions.length === 0) reasons.push("visible-assertions-missing");
-  for (const assertion of assertions) {
-    if (assertion.pass !== true || assertion.visible !== true || assertion.sourceBoundary !== policy.caseEquivalence.requiredAssertionBoundary) reasons.push("visible-assertion-not-qualified");
+  if (traceRef && !sameArtifactReference(raw.traceRef, item?.artifacts?.trace)) reasons.push("raw-trace-ref-artifact-mismatch");
+  if (traceRef && canonicalCase && nativeCase) {
+    const qualification = qualifyRawCase({
+      trace: readJsonFile(traceRef.path),
+      requested: item.requested,
+      observed: item.observed,
+      canonicalCase,
+      nativeCase,
+    });
+    reasons.push(...qualification.reasons);
   }
-  if (item?.visualEvidence?.schema !== policy.caseEquivalence.visualBaselineSchema || item?.visualEvidence?.status !== "PASS" || item?.visualEvidence?.reviewRequired !== false || !item?.visualEvidence?.evidenceRef || !item?.visualEvidence?.measurementRef || !item?.visualEvidence?.correlationId) reasons.push("visual-evidence-not-qualified");
-  const visualRef = validateEvidenceRef(policy, summary, rootDir, item?.visualEvidence?.evidenceRef, {
+
+  const visual = item?.visualEvidence || {};
+  if (visual.schema !== "media-server.ui-raw-visual-capture.v1" ||
+      visual.qualificationStatus !== "unqualified-raw-capture" || visual.correlationId !== correlationId) {
+    reasons.push("raw-visual-evidence-schema-mismatch");
+  }
+  const visualRef = validateEvidenceRef(policy, summary, rootDir, visual.evidenceRef, {
     expectedCaseId: item?.testId,
-    expectedCorrelationId: item?.visualEvidence?.correlationId,
+    expectedCorrelationId: correlationId,
     expectedContentType: "application/json",
-    prefix: "visual-evidence-ref",
+    prefix: "raw-visual-binding-ref",
   }, reasons);
-  if (visualRef && !sameArtifactReference(item?.visualEvidence?.evidenceRef, item?.artifacts?.visualDiff)) reasons.push("visual-evidence-ref-artifact-mismatch");
-  const measurementRef = validateEvidenceRef(policy, summary, rootDir, item?.visualEvidence?.measurementRef, {
+  if (visualRef && !sameArtifactReference(visual.evidenceRef, item?.artifacts?.visualDiff)) reasons.push("raw-visual-binding-ref-artifact-mismatch");
+  const measurementRef = validateEvidenceRef(policy, summary, rootDir, visual.measurementRef, {
     expectedCaseId: item?.testId,
-    expectedCorrelationId: item?.visualEvidence?.correlationId,
+    expectedCorrelationId: correlationId,
     expectedContentType: "application/json",
-    prefix: "visual-measurement-evidence-ref",
+    prefix: "raw-visual-measurement-ref",
   }, reasons);
-  if (measurementRef && !sameArtifactReference(item?.visualEvidence?.measurementRef, item?.artifacts?.visualMeasurement)) reasons.push("visual-measurement-ref-artifact-mismatch");
-  if (visualRef) {
-    const payload = readJsonFile(visualRef.path);
-    if (payload?.schema !== policy.caseEquivalence.visualBaselineSchema || payload?.status !== "PASS" ||
-        payload?.reviewRequired !== false || payload?.caseId !== item?.testId ||
-        payload?.correlationId !== item?.visualEvidence?.correlationId ||
-        payload?.screenshotSha256 !== item?.artifacts?.screenshot?.sha256) {
-      reasons.push("visual-evidence-payload-invalid");
+  if (measurementRef && !sameArtifactReference(visual.measurementRef, item?.artifacts?.visualMeasurement)) reasons.push("raw-visual-measurement-ref-artifact-mismatch");
+  const screenshotRef = validateEvidenceRef(policy, summary, rootDir, visual.screenshotRef, {
+    expectedCaseId: item?.testId,
+    expectedCorrelationId: correlationId,
+    expectedContentType: "image/png",
+    prefix: "raw-visual-screenshot-ref",
+  }, reasons);
+  if (screenshotRef && !sameArtifactReference(visual.screenshotRef, item?.artifacts?.screenshot)) reasons.push("raw-visual-screenshot-ref-artifact-mismatch");
+  if (visualRef && measurementRef && screenshotRef) {
+    const binding = readJsonFile(visualRef.path);
+    if (binding?.schema !== "media-server.ui-raw-visual-capture.v1" || binding?.caseId !== item.testId ||
+        binding?.correlationId !== correlationId || binding?.screenshotSha256 !== screenshotRef.ref.sha256 ||
+        binding?.measurementSha256 !== measurementRef.ref.sha256 ||
+        binding?.qualificationStatus !== "unqualified-raw-capture") {
+      reasons.push("raw-visual-binding-payload-invalid");
     }
-    if (measurementRef) {
-      const measurement = readJsonFile(measurementRef.path);
-      const artifactRoot = resolveContained(rootDir, summary.sourceBinding?.artifactRoot);
-      const screenshotPath = artifactRoot && resolveContained(artifactRoot, item?.artifacts?.screenshot?.path);
-      if (!measurement || measurement.schema !== browserMeasurementSchema || !screenshotPath || !fs.existsSync(screenshotPath)) {
-        reasons.push("visual-measurement-payload-invalid");
-      } else {
-        try {
-          const recalculated = evaluateVisualArtifact({
-            screenshotPath,
-            measurement,
-            caseId: item.testId,
-            correlationId: item.visualEvidence.correlationId,
-            expectedViewport: item.requested?.viewport,
-            expectedTheme: item.requested?.theme,
-            requireVideoOverlay: payload?.metrics?.videoOverlay?.required === true,
-          });
-          for (const field of ["status", "reviewRequired", "screenshotSha256", "measurement", "observed", "metrics", "failures"]) {
-            if (JSON.stringify(payload?.[field]) !== JSON.stringify(recalculated[field])) {
-              reasons.push(`visual-evidence-recalculation-${field}-mismatch`);
-            }
-          }
-        } catch {
-          reasons.push("visual-evidence-recalculation-failed");
-        }
+    const measurement = readJsonFile(measurementRef.path);
+    const expectedCase = {
+      canonicalCaseId: item.testId,
+      featureId: item.featureId,
+      screenId: item.testId,
+      screenRoute: nativeCase?.screenRoute,
+      accountRole: nativeCase?.accountRole,
+      targetSelector: nativeCase?.controlAction?.targetSelector || "body",
+      width: nativeCase?.viewport?.width,
+      height: nativeCase?.viewport?.height,
+      theme: nativeCase?.theme,
+      liveVideoRequired: false,
+    };
+    try {
+      const recalculated = evaluateVisualArtifact({
+        screenshotPath: screenshotRef.path,
+        measurement,
+        caseId: item.testId,
+        correlationId,
+        expectedCase,
+        liveVideoSpec: null,
+      });
+      if (recalculated.status !== "PASS" || recalculated.reviewRequired !== false) {
+        reasons.push("independent-case-visual-not-pass");
       }
+    } catch {
+      reasons.push("independent-case-visual-recalculation-failed");
     }
   }
-  if (item?.security?.redactionStatus !== "PASS" || item?.security?.forbiddenMaterialFindings !== 0) reasons.push("case-redaction-not-pass");
   const redactionRef = validateEvidenceRef(policy, summary, rootDir, item?.security?.evidenceRef, {
     expectedCaseId: item?.testId,
-    expectedCorrelationId: item?.security?.correlationId,
+    expectedCorrelationId: correlationId,
     expectedContentType: "application/json",
     prefix: "case-redaction-evidence-ref",
   }, reasons);
   if (redactionRef && !sameArtifactReference(item?.security?.evidenceRef, item?.artifacts?.redactionScan)) reasons.push("case-redaction-evidence-ref-artifact-mismatch");
   if (redactionRef) validateCaseRedaction(policy, item, summary, rootDir, redactionRef.path, reasons);
-  if (item?.manualIntervention !== false) reasons.push("case-manual-intervention-present");
-  if (verifyArtifacts) validateArtifacts(policy, item, summary, rootDir, reasons);
+  if (verifyArtifacts) validateArtifacts(policy, item, summary, rootDir, correlationId, reasons);
   return [...new Set(reasons)];
 }
 
-function validateArtifacts(policy, item, summary, rootDir, reasons) {
+function validateArtifacts(policy, item, summary, rootDir, correlationId, reasons) {
   const artifactRoot = resolveContained(rootDir, summary.sourceBinding?.artifactRoot);
   if (!artifactRoot || !fs.existsSync(artifactRoot)) {
     reasons.push("artifact-root-invalid");
@@ -654,7 +660,7 @@ function validateArtifacts(policy, item, summary, rootDir, reasons) {
     if (!stat.isFile() || stat.size !== artifact.bytes || sha256File(resolved) !== artifact.sha256) reasons.push(`artifact-${name}-integrity-failed`);
     if (stat.size > policy.attestation.maxArtifactBytes) reasons.push(`artifact-${name}-too-large`);
     if (!sha256Pattern.test(artifact.sha256 || "")) reasons.push(`artifact-${name}-sha256-invalid`);
-    if (artifact.caseId !== item.testId || artifact.correlationId !== item.completionOracle?.correlationId) reasons.push(`artifact-${name}-case-correlation-mismatch`);
+    if (artifact.caseId !== item.testId || artifact.correlationId !== correlationId) reasons.push(`artifact-${name}-case-correlation-mismatch`);
     if (name === "screenshot" && !decodePng(resolved, artifact.contentType, policy.attestation.maxArtifactBytes)) reasons.push("artifact-screenshot-not-decodable-png");
     if (name === "trace" && !isJson(resolved, artifact.contentType)) reasons.push("artifact-trace-not-json");
     if (name === "visualMeasurement") {
@@ -665,7 +671,7 @@ function validateArtifacts(policy, item, summary, rootDir, reasons) {
       const payload = isJson(resolved, artifact.contentType) ? readJsonFile(resolved) : null;
       if (!payload) reasons.push("artifact-browser-console-not-json");
       else if (payload.schema !== policy.attestation.browserConsoleSchema || payload.caseId !== item.testId ||
-          payload.correlationId !== item.completionOracle?.correlationId || !Array.isArray(payload.messages)) {
+          payload.correlationId !== correlationId || !Array.isArray(payload.messages)) {
         reasons.push("artifact-browser-console-schema-invalid");
       }
     }
@@ -673,9 +679,7 @@ function validateArtifacts(policy, item, summary, rootDir, reasons) {
       if (artifact.contentType !== "text/plain") reasons.push("artifact-server-log-not-text");
       else {
         const text = fs.readFileSync(resolved, "utf8");
-        if (!text.includes(`caseId=${item.testId}`) || !text.includes(`correlationId=${item.completionOracle?.correlationId}`)) {
-          reasons.push("artifact-server-log-case-correlation-missing");
-        }
+        if (text && !text.includes(correlationId) && !text.includes(item.testId)) reasons.push("artifact-server-log-case-correlation-mismatch");
       }
     }
   }
@@ -725,40 +729,6 @@ function sameArtifactReference(ref, artifact) {
   return Boolean(ref && artifact && ref.path === artifact.path && ref.sha256 === artifact.sha256 &&
     ref.bytes === artifact.bytes && ref.contentType === artifact.contentType &&
     ref.caseId === artifact.caseId && ref.correlationId === artifact.correlationId);
-}
-
-function validateCompletionEvidence(policy, item, canonicalCase, oracle, evidencePath, reasons) {
-  if (oracle.type === "server-log-correlation") {
-    const text = fs.readFileSync(evidencePath, "utf8");
-    if (!text.includes(`caseId=${item?.testId}`) || !text.includes(`correlationId=${oracle.correlationId}`)) {
-      reasons.push("completion-server-log-correlation-missing");
-    }
-    return;
-  }
-  const payload = readJsonFile(evidencePath);
-  if (payload?.schema !== policy.attestation.interactionTraceSchema || payload?.caseId !== item?.testId ||
-      payload?.correlationId !== oracle.correlationId || payload?.route !== canonicalCase?.route ||
-      JSON.stringify(payload?.controlAction) !== JSON.stringify(canonicalCase?.controlAction) ||
-      !Array.isArray(payload?.events)) {
-    reasons.push("completion-trace-schema-invalid");
-    return;
-  }
-  const trusted = payload.events.some(event =>
-    event?.type === "trusted-interaction" && event?.trusted === true &&
-    event?.phase === "primary-action" && event?.actionId === oracle.actionId &&
-    event?.controlSelector === oracle.controlSelector && event?.correlationId === oracle.correlationId);
-  const completion = payload.events.some(event =>
-    event?.type === "completion" && event?.status === "PASS" && event?.oracleType === oracle.type &&
-    event?.phase === "primary-action" && event?.actionId === oracle.actionId &&
-    event?.controlSelector === oracle.controlSelector && event?.correlationId === oracle.correlationId);
-  if (!trusted || !completion) reasons.push("completion-trace-events-incomplete");
-  if (oracle.type === "network-response-and-dom") {
-    const network = payload.events.some(event => event?.type === "network-response" &&
-      typeof event?.requestId === "string" && event.requestId &&
-      typeof event?.method === "string" && event.method && typeof event?.url === "string" && event.url &&
-      event?.statusCode === oracle.statusCode && event?.correlationId === oracle.correlationId);
-    if (!network) reasons.push("completion-trace-network-correlation-missing");
-  }
 }
 
 function validateCaseRedaction(policy, item, summary, rootDir, scanPath, reasons) {

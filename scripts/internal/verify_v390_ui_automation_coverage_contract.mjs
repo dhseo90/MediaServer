@@ -71,18 +71,20 @@ check("positive matrix covers the exact 424 manual UI test IDs from all feature 
     .filter(item => item.manualUiCaseId !== null)
     .map(item => item.manualUiCaseId);
   assert(summary.schema === "media-server.v390-ui-automation-coverage.v4", "coverage schema mismatch");
-  assert(summary.matrixValidationResult === "REVIEW_REQUIRED", "matrix must remain review-required");
-  assert(summary.coverageStatus === "review4-60-pending", "coverage status mismatch");
+  assert(summary.matrixValidationResult === "PASS", "source-ready matrix must validate");
+  assert(summary.coverageStatus === "exact-native-ready-current-not-run", "coverage status mismatch");
   assert(summary.executionEvidenceStatus === "current-not-run", "execution evidence boundary mismatch");
   assert(summary.currentEvidenceStatus === "not-run", "current evidence status mismatch");
-  assert(summary.exactNativeWorkflowReadinessComplete === false,
-    "matrix must not claim exact native readiness before REVIEW4-60");
+  assert(summary.exactNativeWorkflowReadinessComplete === true,
+    "matrix must record exact native source readiness after REVIEW4-60");
   assert(summary.canonicalRequestedObservedSchemaComplete === true,
     "matrix must record REVIEW4-57 requested/observed schema closure");
   assert(summary.primaryActionCompletionOracleComplete === true,
     "matrix must record REVIEW4-58 action completion oracle closure");
   assert(summary.visualMatrixComplete === true,
     "matrix must record REVIEW4-59 visual matrix closure");
+  assert(summary.policyQualifierIndependenceComplete === true,
+    "matrix must record REVIEW4-60 Policy independence closure");
   assert(summary.actualAutomationExecutionComplete === false,
     "matrix must not claim current actual automation execution");
   assert(summary.manualUiFulltestEvidence === false, "matrix must not claim manual UI fulltest evidence");
@@ -265,10 +267,11 @@ check("durable matrix and release docs record exact-ID partial coverage boundari
     "unsupported `0`",
     "executed-pass `0`",
     "not-run `424`",
-    "exactNativeWorkflowReadinessComplete: `false`",
+    "exactNativeWorkflowReadinessComplete: `true`",
     "canonicalRequestedObservedSchemaComplete: `true`",
     "primaryActionCompletionOracleComplete: `true`",
     "visualMatrixComplete: `true`",
+    "policyQualifierIndependenceComplete: `true`",
     "actualAutomationExecutionComplete: `false`",
     "manualUiFulltestEvidence: `false`",
   ]) {
@@ -282,7 +285,7 @@ check("durable matrix and release docs record exact-ID partial coverage boundari
     "docs/release-evidence-index.md",
   ].map(readText).join("\n");
   for (const snippet of ["V390-ADD1-11", command, contractCommand,
-    "exact UI test ID 424", "prefix/range 판정 제거", "review4-60-pending"]) {
+    "exact UI test ID 424", "prefix/range 판정 제거", "exact-native-ready-current-not-run"]) {
     assertIncludes(docs, snippet, "V390-ADD1-11 docs/evidence");
   }
 });

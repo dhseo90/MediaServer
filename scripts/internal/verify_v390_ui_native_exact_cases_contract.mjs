@@ -489,11 +489,14 @@ check("canonical requested route and runtime screen route are explicit projectio
   }
 });
 
-check("runner producer and qualifier share the typed requested observed schema", () => {
-  for (const source of [nativeLibrarySource, runnerSource, producerSource, policyLibrarySource]) {
+check("runner and producer share typed capture schema while qualifier is independently implemented", () => {
+  for (const source of [nativeLibrarySource, runnerSource, producerSource]) {
     assert(source.includes("v390_ui_requested_observed_schema.mjs"),
-      "requested/observed schema module is not shared by runner, producer, and qualifier");
+      "requested/observed capture schema is not shared by runner and producer");
   }
+  assert(policyLibrarySource.includes("v390_ui_policy_v4_independent_qualifier.mjs") &&
+    !policyLibrarySource.includes("v390_ui_requested_observed_schema.mjs"),
+  "Policy qualifier reuses the producer requested/observed validator");
   assert(runnerSource.includes("canonicalRequestedProjection(item)"),
     "runner requested canonical projection missing");
   assert(!runnerSource.includes("requested: {\n      route: item.screenRoute"),

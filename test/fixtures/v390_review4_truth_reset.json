@@ -20,7 +20,8 @@
     "productUiScriptLines": 10217
   },
   "coverageBoundary": {
-    "exactNativeWorkflowReadinessComplete": false,
+    "exactNativeWorkflowReadinessComplete": true,
+    "policyQualifierIndependenceComplete": true,
     "actualAutomationExecutionComplete": false,
     "manualUiFulltestEvidence": false
   }

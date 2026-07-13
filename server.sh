@@ -170,6 +170,8 @@ Usage:
                  V390-REVIEW2-25 no-op action/pre-existing visible state false-PASS 계약을 검증합니다.
   verify-v390-ui-policy-v4-producer-contract
                  V390-REVIEW3-43 exact runner Policy v4 actual summary/attestation producer 계약을 검증합니다.
+  verify-v390-ui-policy-v4-independence-contract
+                 V390-REVIEW4-60 raw native evidence와 Policy qualifier 독립성 계약을 검증합니다.
   verify-v390-ui-visual-evidence-contract
                  V390-REVIEW3-44 screenshot pixel/geometry responsive/theme/visual 판정 계약을 검증합니다.
   verify-v390-full-suite-eligibility-contract
@@ -2175,6 +2177,10 @@ case "${cmd}" in
   verify-v390-ui-policy-v4-producer-contract)
     require_internal verify_v390_ui_policy_v4_producer_contract.mjs
     exec "${INTERNAL_DIR}/verify_v390_ui_policy_v4_producer_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-policy-v4-independence-contract)
+    require_internal verify_v390_ui_policy_v4_independence_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_policy_v4_independence_contract.mjs" "$@"
     ;;
   verify-v390-ui-visual-evidence-contract)
     require_internal verify_v390_ui_visual_evidence_contract.mjs

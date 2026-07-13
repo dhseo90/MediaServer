@@ -68,7 +68,7 @@
   },
   "attestation": {
     "evidenceRefSchema": "media-server.ui-evidence-ref.v1",
-    "interactionTraceSchema": "media-server.ui-interaction-trace.v1",
+    "interactionTraceSchema": "media-server.v390-ui-native-interaction-trace.v2",
     "browserConsoleSchema": "media-server.ui-browser-console.v1",
     "crossCuttingSchema": "media-server.ui-cross-cutting-evidence.v1",
     "redactionScanSchema": "media-server.ui-evidence-redaction-scan.v1",

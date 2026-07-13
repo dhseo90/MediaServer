@@ -68,7 +68,11 @@ const currentWorkflowReady = currentCoverageContractValid &&
 const historicalSource = isHistoricalSource(summaryPath, coveragePolicy);
 const currentActualSource = summary.schema === "media-server.ui-automation-evidence.v4" &&
   summary.contractFixture !== true && summary.fixture === false &&
-  summary.sourceBinding?.currentSourceVerified === true && summary.sourceBinding?.gitCommit === currentSource.gitCommit;
+  summary.sourceBinding?.currentSourceVerified !== true &&
+  summary.sourceBinding?.sourceFingerprintOnly === true &&
+  summary.sourceBinding?.version === currentSource.version &&
+  summary.sourceBinding?.gitCommit === currentSource.gitCommit &&
+  summary.sourceBinding?.worktreePatchSha256 === currentSource.worktreePatchSha256;
 const currentNotRunSource = summary.schema === "media-server.v390-ui-current-evidence-state.v2" &&
   summary.sourceKind === "current-not-run-state" && summary.status === "not-run";
 if (currentNotRunSource) {
@@ -128,8 +132,7 @@ const result = {
     actualBrowserExecution: summary.schema === "media-server.ui-automation-evidence.v4" &&
       summary.contractFixture !== true && summary.fixture === false,
     requestedExactCases: Number(summary.coverage?.targetCount ?? summary.cases?.length ?? summary.automatedCaseCount ?? 0),
-    pass: Array.isArray(summary.cases) ? summary.cases.filter(item =>
-      ["direct-pass", "automation-equivalent-pass", "PASS"].includes(item.status)).length : 0,
+    pass: Number(evaluation.qualifiedCaseCount || 0),
     fail: Number(summary.coverage?.fail ?? 0),
     notRun: Number(summary.coverage?.notRun ?? summary.notRun ?? 0),
     unsupported: Number(summary.coverage?.unsupported ?? summary.unsupported ?? 0),
@@ -220,8 +223,8 @@ function validatePolicyDocuments() {
     ["docs/manual-ui-checklist.md", files.checklist, ["Policy v4 qualifier", "actual-browser evidence", "completion oracle"]],
     ["docs/manual-ui-result-template.md", files.template, ["qualified-native-automation", "Policy v4 자동화/혼합 evidence 요약", "artifact hash/type/path containment", "uiFulltestPass"]],
     ["docs/release-policy.md", files.releasePolicy, ["## Policy v4 UI evidence release gate", "uiFulltestPass=true"]],
-    ["docs/stream-verification.md", files.stream, ["### V390-ADD1-12 Policy v4 UI evidence qualification", "review4-57-60-pending"]],
-    ["docs/project-feature-test-inventory.md", files.inventory, ["V390-ADD1-12 Policy v4 UI evidence transition", "Policy v4 evidence qualification gate"]],
+    ["docs/stream-verification.md", files.stream, ["### V390-ADD1-12 Policy v4 UI evidence qualification", "exact-native-ready-current-not-run"]],
+    ["docs/project-feature-test-inventory.md", files.inventory, ["V390-ADD1-12 Policy v4 UI evidence transition", "Producer는 raw"]],
     ["docs/development-backlog.md", files.backlog, ["V390-ADD1-12", "Policy v4 테스트 정책 전환"]],
     ["docs/release-test-records.md", files.releaseRecords, ["Policy v4 UI Fulltest Evidence Qualification"]],
     ["docs/release-evidence-index.md", files.releaseEvidence, ["V390-ADD1-12 Policy v4 UI evidence transition"]],

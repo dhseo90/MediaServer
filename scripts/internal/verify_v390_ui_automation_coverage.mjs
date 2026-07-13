@@ -9,6 +9,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { evaluateEvidence } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -118,8 +119,27 @@ for (const manifestCase of manifestCases) {
 const automationSummary = readJson(automationSummaryPath);
 assertNotHistoricalSource(automationSummaryPath, historicalManifestPath);
 const currentEvidenceAvailable = automationSummary.schema === "media-server.ui-automation-evidence.v4";
+let independentQualification = null;
 if (currentEvidenceAvailable) {
   validateAutomationSummary(automationSummary, automationSummaryPath);
+  const qualificationPolicy = readJson(path.join(rootDir, "test/fixtures/ui_fulltest_evidence_policy_v4.json"));
+  independentQualification = evaluateEvidence(qualificationPolicy, automationSummary, {
+    rootDir,
+    verifyArtifacts: true,
+    currentSource: {
+      version: fs.readFileSync(path.join(rootDir, "VERSION"), "utf8").trim(),
+      gitCommit: currentHead(),
+      worktreePatchSha256: crypto.createHash("sha256")
+        .update(execFileSync("git", ["diff", "--binary", "HEAD"], {
+          cwd: rootDir,
+          encoding: "utf8",
+          maxBuffer: 32 * 1024 * 1024,
+        }))
+        .digest("hex"),
+    },
+  });
+  assert(independentQualification.uiFulltestPass === true,
+    `raw automation capture is not independently Policy v4-qualified: ${independentQualification.reasons.join(", ")}`);
   assertUnique(automationSummary.cases.map(item => item.testId), "actual automation case IDs");
   assertExact(automationSummary.cases.map(item => item.testId), manifestCases.map(item => item.caseId),
     "manifest/actual automation case IDs");
@@ -173,7 +193,7 @@ const summary = {
   matrixValidationResult: policy.boundaries.exactNativeWorkflowReadinessComplete ? "PASS" : "REVIEW_REQUIRED",
   coverageStatus: policy.boundaries.exactNativeWorkflowReadinessComplete
     ? (currentEvidenceAvailable ? "exact-native-current-executed" : "exact-native-ready-current-not-run")
-    : (policy.boundaries.visualMatrixComplete ? "review4-60-pending" : "review4-59-60-pending"),
+    : (policy.boundaries.visualMatrixComplete ? "policy-independence-incomplete" : "visual-and-policy-independence-incomplete"),
   selectionModel: "exact-manual-ui-test-id",
   prefixRangeClassification: "removed",
   executionEvidenceStatus: policy.boundaries.executionEvidenceStatus,
@@ -182,6 +202,7 @@ const summary = {
   canonicalRequestedObservedSchemaComplete: policy.boundaries.canonicalRequestedObservedSchemaComplete,
   primaryActionCompletionOracleComplete: policy.boundaries.primaryActionCompletionOracleComplete,
   visualMatrixComplete: policy.boundaries.visualMatrixComplete,
+  policyQualifierIndependenceComplete: policy.boundaries.policyQualifierIndependenceComplete,
   actualAutomationExecutionComplete: currentEvidenceAvailable && counts.pass === rows.length,
   manualUiFulltestEvidence: policy.boundaries.manualUiFulltestEvidence,
   sourceOfTruth: {
@@ -268,8 +289,8 @@ function validatePolicyShape(value) {
   }
   assert(Array.isArray(value.classifications?.negativeRoute?.caseIds), "policy negative route case IDs missing");
   assert(Array.isArray(value.requiredActualArtifacts), "policy required actual artifacts missing");
-  assert(value.boundaries?.exactNativeWorkflowReadinessComplete === false,
-    "policy must keep exact native readiness false until REVIEW4-60 closes");
+  assert(value.boundaries?.exactNativeWorkflowReadinessComplete === true,
+    "policy must record exact native source readiness after REVIEW4-60");
   assert(value.boundaries?.exactProductWorkflowDesignComplete === true,
     "policy must record REVIEW4-56 exact product workflow design closure");
   assert(value.boundaries?.canonicalRequestedObservedSchemaComplete === true,
@@ -278,6 +299,8 @@ function validatePolicyShape(value) {
     "policy must record REVIEW4-58 primary action completion oracle closure");
   assert(value.boundaries?.visualMatrixComplete === true,
     "policy must record REVIEW4-59 visual matrix closure");
+  assert(value.boundaries?.policyQualifierIndependenceComplete === true,
+    "policy must record REVIEW4-60 producer/qualifier independence closure");
   assert(value.boundaries?.actualAutomationExecutionComplete === false,
     "policy default actual execution boundary mismatch");
   assert(!Object.hasOwn(value.boundaries || {}, "fullAutomationCoverage"),
@@ -363,15 +386,18 @@ function productUiRouteSource() {
 
 function validateAutomationSummary(value, summaryPathValue) {
   assert(value.schema === "media-server.ui-automation-evidence.v4", "unexpected actual automation summary schema");
-  assert(value.result === "PASS", `actual automation summary must PASS, got ${value.result}`);
+  assert(value.result === "CAPTURED", `actual automation producer must report raw CAPTURED, got ${value.result}`);
+  assert(value.uiFulltestPass === false, "raw automation producer cannot declare UI fulltest PASS");
   assert(value.contractFixture !== true && value.fixture === false, "fixture cannot be current actual evidence");
   assert(value.executionKind === "actual-native-visible-dom", "actual automation execution kind mismatch");
-  assert(value.selectedAdapter === "playwright-native", "actual automation must use native Playwright evidence");
+  assert(value.selectedAdapter?.engine === "playwright-native" && value.selectedAdapter?.fallbackUsed === false,
+    "actual automation must use native Playwright evidence");
   assert(value.manualIntervention === false, "actual automation manualIntervention must be false");
   assert(value.coverage?.fail === 0 && value.coverage?.notRun === 0 && value.coverage?.unsupported === 0,
     "actual automation must have fail/notRun/unsupported=0");
   assert(Array.isArray(value.cases), "actual automation cases missing");
-  assert(value.sourceBinding?.currentSourceVerified === true, "actual automation current-source binding missing");
+  assert(value.sourceBinding?.currentSourceVerified !== true && value.sourceBinding?.sourceFingerprintOnly === true,
+    "raw producer must expose fingerprints without a current-source self-claim");
   assert(value.sourceBinding?.gitCommit === currentHead(), "actual automation source commit is stale");
   if (value.artifactIntegrity !== undefined) {
     assert(value.artifactIntegrity?.placeholderVideoFiles === 0, "actual automation placeholder video remains");
@@ -392,10 +418,11 @@ function validateCurrentEvidenceState(value) {
   "current UI readiness counts mismatch");
   assert(value.execution?.pass === 0 && value.execution?.fail === 0 && value.execution?.notRun === 424 &&
     value.execution?.unsupported === 0, "current UI execution counts mismatch");
-  assert(value.readiness?.status === "review4-60-pending" &&
+  assert(value.readiness?.status === "exact-native-ready-current-not-run" && value.readiness?.complete === true &&
     value.readiness?.canonicalRequestedObservedSchemaComplete === true &&
     value.readiness?.primaryActionCompletionOracleComplete === true &&
-    value.readiness?.visualMatrixComplete === true,
+    value.readiness?.visualMatrixComplete === true &&
+    value.readiness?.policyQualifierIndependenceComplete === true,
   "current UI readiness stage closure mismatch");
   for (const binding of [value.canonicalCaseManifest, value.nativeExactManifest, value.visualMatrixPlan]) {
     const resolved = path.resolve(rootDir, binding?.path || "");
@@ -435,7 +462,7 @@ function buildMatrixRow({ inventory, implementation, manifestCase, actualByCaseI
     unsupportedReasonCode: "",
     unsupportedReason: policy.boundaries.exactNativeWorkflowReadinessComplete
       ? "native exact workflow ready; current execution not run"
-      : "REVIEW4-56 exact product workflow, REVIEW4-57 requested/observed schema, REVIEW4-58 primary action completion oracle, and REVIEW4-59 visual matrix contract closed; REVIEW4-60 Policy independence pending; current execution not run",
+      : "native exact workflow source readiness incomplete; current execution not run",
     targetSelector: manifestCase?.controlAction?.targetSelector || "",
     evidence: emptyEvidence(),
   };
@@ -452,12 +479,14 @@ function buildMatrixRow({ inventory, implementation, manifestCase, actualByCaseI
     `${manifestCase.caseId} canonical requested route mismatch`);
   assert(actualCase.observed?.screenRoute === manifestCase.observedProjection?.screenRoute,
     `${manifestCase.caseId} runtime observed screen route mismatch`);
-  assert(actualCase.status === "PASS", `${manifestCase.caseId} actual status must PASS, got ${actualCase.status}`);
-  assert(actualCase.manualIntervention === false, `${manifestCase.caseId} manualIntervention must be false`);
+  assert(actualCase.rawOutcome === "completed", `${manifestCase.caseId} raw outcome must be completed`);
+  assert(independentQualification?.qualifiedCaseIds?.includes(manifestCase.caseId),
+    `${manifestCase.caseId} is not independently Policy v4-qualified`);
 
   const evidence = {};
   for (const artifactKey of currentPolicy.requiredActualArtifacts) {
-    const artifact = actualCase.artifacts?.[artifactKey];
+    const producerArtifactKey = artifactKey === "console" ? "browserConsole" : artifactKey;
+    const artifact = actualCase.artifacts?.[producerArtifactKey];
     const artifactPath = artifact?.path || "";
     assert(typeof artifactPath === "string" && artifactPath.length > 0,
       `${manifestCase.caseId} ${artifactKey} missing`);
@@ -473,11 +502,11 @@ function buildMatrixRow({ inventory, implementation, manifestCase, actualByCaseI
     ...base,
     automationCaseId: manifestCase.caseId,
     automationDisposition: manifestCase.disposition,
-    automationStatus: actualCase.status,
-    actualResult: actualCase.evidenceStatus,
+    automationStatus: "PASS",
+    actualResult: "policy-v4-independently-qualified",
     unsupportedReasonCode: "",
     unsupportedReason: "",
-    targetSelector: actualCase.visibleAssertions?.[0]?.selector || manifestCase.controlAction?.targetSelector || "",
+    targetSelector: manifestCase.controlAction?.targetSelector || "",
     evidence,
   };
 }
@@ -487,7 +516,7 @@ function renderReport(value) {
     "# v3.9.0 Full-Feature UI Automation Coverage Matrix",
     "",
     "이 문서는 986개 feature inventory의 reviewed implementation manifest에서 exact manual UI test ID를 선택하고 historical capability classification과 current not-run state를 분리해 생성합니다.",
-    "Feature ID prefix와 numeric range는 coverage 판정에 사용하지 않습니다. REVIEW4-56 product workflow design, REVIEW4-57 requested/observed schema, REVIEW4-58 primary action completion oracle, REVIEW4-59 visual matrix contract는 완료됐지만 REVIEW4-60 Policy 독립성 전 REVIEW_REQUIRED matrix는 current full readiness, full automation 또는 UI 풀테스트 직접 조작 PASS가 아닙니다.",
+    "Feature ID prefix와 numeric range는 coverage 판정에 사용하지 않습니다. REVIEW4-56~60 source readiness는 완료됐지만 current actual browser execution은 not-run이며 full automation 또는 UI 풀테스트 PASS가 아닙니다.",
     "",
     `schema: \`${value.schema}\``,
     `matrixValidationResult: \`${value.matrixValidationResult}\``,
@@ -500,6 +529,7 @@ function renderReport(value) {
     `canonicalRequestedObservedSchemaComplete: \`${value.canonicalRequestedObservedSchemaComplete}\``,
     `primaryActionCompletionOracleComplete: \`${value.primaryActionCompletionOracleComplete}\``,
     `visualMatrixComplete: \`${value.visualMatrixComplete}\``,
+    `policyQualifierIndependenceComplete: \`${value.policyQualifierIndependenceComplete}\``,
     `actualAutomationExecutionComplete: \`${value.actualAutomationExecutionComplete}\``,
     `manualUiFulltestEvidence: \`${value.manualUiFulltestEvidence}\``,
     "",

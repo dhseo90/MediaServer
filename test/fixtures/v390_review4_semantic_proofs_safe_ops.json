@@ -12085,9 +12085,9 @@
         "action": {
           "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
           "symbol": "evaluateEvidence",
-          "anchor": "const canonicalBinding = loadCanonicalCaseBinding(policy, summary, rootDir, reasons);",
-          "line": 99,
-          "contextSha256": "a7b19211cb443733a07bfb34292b25ec831919ab637ba2808c92a79ed0a5d5f7"
+          "anchor": "const caseReasons = validateCase(policy, item, summary, rootDir, {",
+          "line": 115,
+          "contextSha256": "3965cf508a1beaaccd87390f22d66df4342c49e7b6b70d45f3f5e39e1d248b1b"
         },
         "state": {
           "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
@@ -12122,7 +12122,7 @@
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
-          "witness": "The same evaluator loads the exact canonical case binding only after the schema gate."
+          "witness": "The evaluator dispatches each exact case through validateCase; validateCase directly calls the independent qualifyRawCase implementation on the attested raw trace."
         },
         {
           "from": "action",
@@ -31255,54 +31255,55 @@
       "id": "SAFE-202",
       "status": "source-resolved-reviewed-proof",
       "featureContractSha256": "382671863a2b42fa6dc6ea0ded23e5eefc2de9f7c7f4ef9a664e6221c6d3d753",
-      "evidenceMode": "canonical-functional-source-readback",
-      "evidenceToken": "falsePassAccepted",
+      "evidenceMode": "policy-v4-independent-negative-oracle-readback",
+      "evidenceToken": "uiFulltestPass",
       "verifier": {
-        "command": "verify-v390-evidence-test-gate-prep",
-        "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs"
+        "command": "verify-ui-fulltest-evidence-policy-v4-contract",
+        "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
+        "dispatchFile": "server.sh"
       },
       "roles": {
         "owner": {
-          "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
-          "symbol": "owner:SAFE-202",
-          "anchor": "check(\"manual UI docs record free automation adapter criteria and failure fields\", () => {",
-          "line": 131,
-          "contextSha256": "90da77998dfcc08bb41531add1e829f7b0fb861736b28053013d643b132cdb9d"
+          "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
+          "symbol": "evaluateEvidence",
+          "anchor": "export function evaluateEvidence(policy, summary, options = {}) {",
+          "line": 84,
+          "contextSha256": "56349bafa3648e5313a2f1d0a65273134250d53a11ca48a12ee14096b475bf8b"
         },
         "dispatch": {
-          "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
-          "symbol": "dispatch:SAFE-202",
-          "anchor": "const uiCriteria = files.manualUi + \"\\n\" + files.projectInventory;",
-          "line": 132,
-          "contextSha256": "1a9e45551dbfea9289048d90cf92c141f1b1197bd28dcd9c5b646c8d35e4b2b8"
+          "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
+          "symbol": "evaluateEvidence",
+          "anchor": "if (summary?.schema !== \"media-server.ui-automation-evidence.v4\") {",
+          "line": 92,
+          "contextSha256": "86805b96191ecb8fa57caeb362c1f394ebb7a5cb5c381a10f1d2abf97374d56b"
         },
         "action": {
-          "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
-          "symbol": "action:SAFE-202",
-          "anchor": "const uiFulltestPassSeparated = automationEquivalentPass && uiCriteria.includes(\"uiFulltestPass\");",
-          "line": 134,
-          "contextSha256": "416cb099c431597d30a9dea719801ab28ae065b31e8e1fa0ac8e9d50fcaf63da"
+          "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
+          "symbol": "evaluateEvidence",
+          "anchor": "const caseReasons = validateCase(policy, item, summary, rootDir, {",
+          "line": 115,
+          "contextSha256": "3965cf508a1beaaccd87390f22d66df4342c49e7b6b70d45f3f5e39e1d248b1b"
         },
         "state": {
-          "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
-          "symbol": "state:falsePassAccepted",
-          "anchor": "const falsePassAccepted = !uiFulltestPassSeparated;",
-          "line": 135,
-          "contextSha256": "29331e2d5f54a0dd97435db66f113b6ea22f23a791be86b22ea721778d24aa7f"
+          "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
+          "symbol": "evaluateEvidence",
+          "anchor": "const uiFulltestPass = policyErrors.length === 0 && suiteCandidate && allCasesEligible && reasons.length === 0;",
+          "line": 176,
+          "contextSha256": "077152c50a8951c46ec0ffc110d782e6dca0ff0317e19f881f8e29ddc7083952"
         },
         "readback": {
-          "file": "scripts/internal/verify_v390_evidence_test_gate_prep.mjs",
-          "symbol": "readback:SAFE-202",
-          "anchor": "assert(falsePassAccepted === false && uiFulltestPassSeparated,",
-          "line": 136,
-          "contextSha256": "8fec2d5026bc1d846a21e7b27c449c0e76270bf1f47b6718316af33409088aa0"
+          "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
+          "symbol": "check:requested observed aliases missing fields and copied control claims are rejected",
+          "anchor": "assert(result.uiFulltestPass === false, \"requested/observed defect became UI fulltest PASS\");",
+          "line": 117,
+          "contextSha256": "24afc4f54a800961e6659b18e7d04f7e51ab4dc9a8ef74e512053b9542075154"
         },
         "verifier": {
           "file": "server.sh",
-          "symbol": "server:verify-v390-evidence-test-gate-prep",
-          "anchor": "verify-v390-evidence-test-gate-prep)",
-          "line": 2255,
-          "contextSha256": "56e92c311588854f44f0274a70d7187b48a98022092b01b5448314c9d5ab7616"
+          "symbol": "server-dispatch:verify-ui-fulltest-evidence-policy-v4-contract",
+          "anchor": "verify-ui-fulltest-evidence-policy-v4-contract)",
+          "line": 2205,
+          "contextSha256": "961e0cf7e76a38eae8d6a94667e2c50fbd888acd89028d844747a9b64152a7c2"
         }
       },
       "edges": [
@@ -31310,34 +31311,34 @@
           "from": "owner",
           "to": "dispatch",
           "kind": "function-containment",
-          "witness": "verify-v390-evidence-test-gate-prep"
+          "witness": "evaluateEvidence owns the schema gate before case eligibility evaluation."
         },
         {
           "from": "dispatch",
           "to": "action",
-          "kind": "assignment-def-use",
-          "witness": "verify-v390-evidence-test-gate-prep"
+          "kind": "function-containment",
+          "witness": "The evaluator dispatches every exact case to validateCase; validateCase calls the separate qualifyRawCase implementation with the attested trace."
         },
         {
           "from": "action",
           "to": "state",
-          "kind": "assignment-def-use",
-          "witness": "verify-v390-evidence-test-gate-prep"
+          "kind": "function-containment",
+          "witness": "Case qualification reasons and every other suite reason feed the final uiFulltestPass decision in evaluateEvidence."
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
-          "witness": "verify-v390-evidence-test-gate-prep falsePassAccepted"
+          "witness": "The Policy contract mutates requested/observed raw evidence and asserts uiFulltestPass remains false after independent qualification."
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
-          "witness": "verify-v390-evidence-test-gate-prep"
+          "witness": "verify-ui-fulltest-evidence-policy-v4-contract"
         }
       ],
-      "rationale": "SAFE-202 is bound to canonical command verify-v390-evidence-test-gate-prep; the dedicated REVIEW4 range verifier is audit-only and is forbidden as completion evidence.",
+      "rationale": "SAFE-202 is bound to the production evaluator's independent qualifyRawCase call and the 20-case Policy v4 negative contract process result; document-string checks are not used as completion evidence.",
       "failureReason": ""
     },
     {

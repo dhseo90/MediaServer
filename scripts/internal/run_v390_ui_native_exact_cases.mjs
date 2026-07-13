@@ -171,16 +171,18 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
   });
   const requested = canonicalRequestedProjection(item);
   const trace = {
-    schema: "media-server.v390-ui-native-interaction-trace.v1",
+    schema: "media-server.v390-ui-native-interaction-trace.v2",
     caseId: item.caseId,
     featureId: item.featureId,
     dispatch: "playwright-native",
     requested,
+    observed: null,
     navigation: browser.navigation,
     setup: [],
     inputs: structuredClone(item.workflow.inputs),
     actions: [],
     completionEvents: [],
+    rawPrimaryObservations: [],
     expectedResults: structuredClone(item.workflow.expectedResults),
     cleanup: [],
   };
@@ -221,6 +223,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
           const result = await executeCaseNativeNavigation(browser, item, action);
           trace.actions.push(result.actionEvidence);
           trace.completionEvents.push(result.completionOracle);
+          trace.rawPrimaryObservations.push(result.rawPrimaryObservation);
         } else if (action.kind === "navigate-negative") {
           const before = await browser.snapshot(item.controlAction.targetSelector);
           const networkStart = browser.networkEntries().length;
@@ -245,6 +248,14 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
           assert(completionOracle.pass, `${item.caseId} negative navigation completion failed: ${completionOracle.reason}`);
           trace.actions.push({ ...action, observed, status: "PASS" });
           trace.completionEvents.push(completionOracle);
+          trace.rawPrimaryObservations.push(makeRawPrimaryObservation({
+            actionEvidence: completionEvidenceAction,
+            before,
+            after,
+            navigation: observed,
+            networkEntries: networkResponses,
+            semanticReadback: completionOracle.semanticReadback,
+          }));
         } else {
           await observePrimaryControlContext(
             browser,
@@ -256,6 +267,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
           const result = await executeCaseNativeAction(browser, item, action, runtimeState);
           trace.actions.push(result.actionEvidence);
           if (result.completionOracle) trace.completionEvents.push(result.completionOracle);
+          if (result.rawPrimaryObservation) trace.rawPrimaryObservations.push(result.rawPrimaryObservation);
         }
       }
     }
@@ -281,6 +293,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     assert(runtimeState.has("__requestedObservedEnvelope"),
       `${item.caseId} runtime requested/observed control context was not captured`);
     const requestedObserved = runtimeState.get("__requestedObservedEnvelope");
+    trace.observed = structuredClone(requestedObserved.observed);
     const visualTargetSelector = item.controlAction.targetSelector || "body";
     const visualExpectedCase = {
       canonicalCaseId: item.caseId,
@@ -706,6 +719,13 @@ async function executeIndependentReadback(browser, item, action, runtimeState) {
       status: "PASS",
     },
     completionOracle,
+    rawPrimaryObservation: makeRawPrimaryObservation({
+      actionEvidence: pending.actionEvidence,
+      before: pending.before,
+      after: pending.after,
+      networkEntries: pending.networkResponses,
+      semanticReadback,
+    }),
   };
 }
 
@@ -762,19 +782,57 @@ async function executeCaseNativeNavigation(browser, item, action) {
     status: "PASS",
   };
   const semanticReadback = semanticReadbackEvidence(action, actionEvidence, before, after);
+  const networkEntries = browser.networkEntries().slice(networkStart);
   const completionOracle = evaluateCompletionOracle({
     action: actionEvidence,
     before,
     after,
     navigation: observed,
     allowedStatuses,
-    networkResponses: browser.networkEntries().slice(networkStart),
+    networkResponses: networkEntries,
     semanticReadback,
   });
   assertCompletionEvidence(completionOracle, item.caseId);
   assert(completionOracle.pass,
     `${item.caseId} navigate-action-route completion failed: ${completionOracle.reason}`);
-  return { actionEvidence: { ...actionEvidence, semanticReadback }, completionOracle };
+  return {
+    actionEvidence: { ...actionEvidence, semanticReadback },
+    completionOracle,
+    rawPrimaryObservation: makeRawPrimaryObservation({
+      actionEvidence,
+      before,
+      after,
+      navigation: observed,
+      networkEntries,
+      semanticReadback,
+    }),
+  };
+}
+
+function makeRawPrimaryObservation({
+  actionEvidence,
+  before = null,
+  after = null,
+  navigation = null,
+  networkEntries = [],
+  semanticReadback = null,
+}) {
+  return {
+    schema: "media-server.v390-ui-raw-primary-observation.v1",
+    action: {
+      actionId: actionEvidence.actionId,
+      actionKind: actionEvidence.actionKind || actionEvidence.kind,
+      executedKind: actionEvidence.executedKind || actionEvidence.kind,
+      controlSelector: actionEvidence.controlSelector ?? null,
+      correlationId: actionEvidence.correlationId,
+      dispatch: actionEvidence.dispatch,
+    },
+    before: before ? structuredClone(before) : null,
+    after: after ? structuredClone(after) : null,
+    navigation: navigation ? structuredClone(navigation) : null,
+    networkEntries: structuredClone(networkEntries),
+    semanticReadback: semanticReadback ? structuredClone(semanticReadback) : null,
+  };
 }
 
 function semanticCompletionAction(action, item) {

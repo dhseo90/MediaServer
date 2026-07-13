@@ -70,25 +70,36 @@ check("REVIEW4-50 source snapshot is separated from current line metrics", () =>
 check("coverage policy separates readiness from actual execution", () => {
   assert(coverage.schema === "media-server.v390-ui-automation-coverage-policy.v4",
     "coverage policy schema mismatch");
-  assert(coverage.boundaries?.exactNativeWorkflowReadinessComplete === false,
-    "exact workflow readiness must remain false until REVIEW4-60");
+  assert(coverage.boundaries?.exactNativeWorkflowReadinessComplete === true,
+    "exact workflow readiness must be source-ready after REVIEW4-60");
   assert(coverage.boundaries?.canonicalRequestedObservedSchemaComplete === true,
     "REVIEW4-57 requested/observed schema closure missing");
   assert(coverage.boundaries?.primaryActionCompletionOracleComplete === true,
     "REVIEW4-58 primary action completion oracle closure missing");
   assert(coverage.boundaries?.visualMatrixComplete === true,
     "REVIEW4-59 visual matrix closure missing");
+  assert(coverage.boundaries?.policyQualifierIndependenceComplete === true,
+    "REVIEW4-60 Policy independence closure missing");
   assert(coverage.boundaries?.actualAutomationExecutionComplete === false,
     "actual automation execution boundary mismatch");
   assert(coverage.boundaries?.manualUiFulltestEvidence === false,
     "manual UI fulltest boundary mismatch");
+  assert(fixture.coverageBoundary?.exactNativeWorkflowReadinessComplete === true,
+    "truth-reset readiness boundary must follow REVIEW4-60 closure");
+  assert(fixture.coverageBoundary?.policyQualifierIndependenceComplete === true,
+    "truth-reset Policy independence boundary must follow REVIEW4-60 closure");
+  assert(fixture.coverageBoundary?.actualAutomationExecutionComplete === false,
+    "truth-reset actual execution boundary must remain false");
+  assert(fixture.coverageBoundary?.manualUiFulltestEvidence === false,
+    "truth-reset manual UI evidence boundary must remain false");
   assert(!Object.hasOwn(coverage.boundaries || {}, "fullAutomationCoverage"),
     "ambiguous fullAutomationCoverage field remains");
   for (const snippet of [
-    "exactNativeWorkflowReadinessComplete: `false`",
+    "exactNativeWorkflowReadinessComplete: `true`",
     "canonicalRequestedObservedSchemaComplete: `true`",
     "primaryActionCompletionOracleComplete: `true`",
     "visualMatrixComplete: `true`",
+    "policyQualifierIndependenceComplete: `true`",
     "actualAutomationExecutionComplete: `false`",
     "manualUiFulltestEvidence: `false`",
   ]) assert(coverageDoc.includes(snippet), `coverage document missing ${snippet}`);
