@@ -12239,9 +12239,9 @@
     {
       "id": "OPS-171",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "3264e91a9f6fa7028d46c058a1ebae8b3715b20703a17d5b1cc49c31555d1b33",
-      "evidenceMode": "paired-source-view-rollback-readback",
-      "evidenceToken": "partialSave",
+      "featureContractSha256": "8e677d5e9b1a6bb48007d9ec495a4bcab6c69bbe94d5294713d3fff29e15824d",
+      "evidenceMode": "paired-source-view-crash-commit-readback",
+      "evidenceToken": "committed",
       "verifier": {
         "command": "verify-v390-onvif-source-view-atomicity",
         "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs",
@@ -12252,42 +12252,42 @@
           "file": "src/ingress/webrtc_http_server.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t port, std::string* error_message) {",
-          "line": 38160,
+          "line": 38428,
           "contextSha256": "79085df2ac820ee56ddcd743492a00100b2926d424165c36e133feb6fa69ec20"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path.rfind(\"/ops/api/onvif/channels/\", 0) == 0) {",
-          "line": 40960,
+          "line": 41228,
           "contextSha256": "d5b061cbbfdba0a039323a471050c357487d8512da570f486d5aa21134384492"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "SourceViewRegistry::Instance().UpsertOnvifSourceView(",
-          "line": 40998,
+          "line": 41266,
           "contextSha256": "74eb4481c6c24e9161c59c77c89fe0d89970dcaef285c2702e038b6022038a2c"
         },
         "state": {
           "file": "src/ingress/source_view_registry.cpp",
           "symbol": "SourceViewRegistry::UpsertOnvifSourceView",
-          "anchor": "<< \"\\\"partialSave\\\":false,\"",
-          "line": 2203,
-          "contextSha256": "dff8b189e00fbbd2b5bc1120acfce99d8780ba8ef51ced1957bb59f087548ccc"
+          "anchor": "<< \"\\\"transactionStatus\\\":\\\"committed\\\",\"",
+          "line": 2281,
+          "contextSha256": "2717a7ff460d961515d504ab52036ca336a5820314eab35282b8d51d518d9474"
         },
         "readback": {
           "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs",
-          "symbol": "assertSecondWriteRollback",
-          "anchor": "assert(registryWritePerformedAfterRollback === false && partialSave === false,",
-          "line": 292,
-          "contextSha256": "ac1d13ab544763224455bb1878dfdefc737f0bdbc9dd9d232d5d28e2bfd52b8d"
+          "symbol": "assertCrashRecovery",
+          "anchor": "assertFileSnapshot(sourcePath, crashSourceSnapshot, `${stage} committed source bytes`);",
+          "line": 344,
+          "contextSha256": "6796b171c330e4db44d457cd8b40dca2758e31f87a79b7535830cfedfe4d8988"
         },
         "verifier": {
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v390-onvif-source-view-atomicity",
           "anchor": "verify-v390-onvif-source-view-atomicity)",
-          "line": 2367,
+          "line": 2243,
           "contextSha256": "b08f495dbdf81526fc43cf462939f91f75021d0b45ce4affe928820eba6e16ec"
         }
       },
@@ -12308,13 +12308,13 @@
           "from": "action",
           "to": "state",
           "kind": "direct-callsite",
-          "witness": "The route directly calls UpsertOnvifSourceView, whose rollback result reports no partial save."
+          "witness": "The route directly calls UpsertOnvifSourceView, whose successful journal commit emits committed state."
         },
         {
           "from": "state",
           "to": "readback",
-          "kind": "structural-producer-assertion",
-          "witness": "The atomicity verifier independently snapshots both files and GET readbacks before asserting partialSave is false after a second-write fault."
+          "kind": "runtime-readback",
+          "witness": "The atomicity verifier restarts after the committed crash stage and compares the committed source bytes with the crash snapshot."
         },
         {
           "from": "readback",
@@ -12323,7 +12323,7 @@
           "witness": "verify-v390-onvif-source-view-atomicity"
         }
       ],
-      "rationale": "OPS-171 binds the paired transaction route to byte-exact rollback and independent source/view readback, including the explicit rollback-failed boundary.",
+      "rationale": "OPS-171 binds the paired transaction route to committed journal state and the independent crash/restart byte oracle; the canonical verifier also covers prepared rollback, retry, mode, existence, API pair, and artifact cleanup.",
       "failureReason": ""
     },
     {
@@ -23470,42 +23470,42 @@
           "file": "src/ingress/source_view_registry.cpp",
           "symbol": "SourceViewRegistry::SourceRegistrySnapshotIdentityJson",
           "anchor": "RegistryResult SourceViewRegistry::SourceRegistrySnapshotIdentityJson() {",
-          "line": 1763,
+          "line": 1820,
           "contextSha256": "6b62c5bc8f0b396c0efee921a0410e202cb48c0031a26abbc5b71cff659665a7"
         },
         "dispatch": {
           "file": "src/ingress/source_view_registry.cpp",
           "symbol": "SourceViewRegistry::SourceRegistrySnapshotIdentityJson",
           "anchor": "const auto sourceIdentity = BuildSourceIdentitySnapshot(sources_, views_);",
-          "line": 1769,
+          "line": 1826,
           "contextSha256": "d0b643779771c0b881254ead264d30afe6d9ec437dabb6f996a5568a0bc78407"
         },
         "action": {
           "file": "src/ingress/source_view_registry.cpp",
           "symbol": "SourceViewRegistry::SourceRegistrySnapshotIdentityJson",
-          "anchor": "std::ostringstream out;",
-          "line": 1772,
-          "contextSha256": "07caaba5410a3d1403ca93b74289805135f8997bc184c3d6c082d5ea43c90faf"
+          "anchor": "const auto summary = BuildSourceIdentitySummary(sources_, views_, sourceIdentity);",
+          "line": 1827,
+          "contextSha256": "be54fe84f260aa414d6052d09b8128a6806b7b3c3a7f429a2fe04146414c1dff"
         },
         "state": {
           "file": "src/ingress/source_view_registry.cpp",
           "symbol": "SourceViewRegistry::SourceRegistrySnapshotIdentityJson",
           "anchor": "<< \"\\\"status\\\":\\\"source-registry-snapshot-identity\\\",\"",
-          "line": 1776,
+          "line": 1833,
           "contextSha256": "f8f1d0e51d3076abbf5fafde2d2a9ecc4a4f36f21308b411b491c4535fd8c17c"
         },
         "readback": {
           "file": "scripts/internal/verify_v330_source_registry_snapshot_identity.mjs",
           "symbol": "canonical-safe-114-readback",
           "anchor": "assert(safe114BoundaryObserved && sourceRegistryWritePerformed === false && schemaMutationPerformed === false && viewerClientExposureAdded === false,",
-          "line": 217,
+          "line": 218,
           "contextSha256": "29acc02af495341eaf950026612c147bba5dd8c57008febc02bbc3d3ea1d1b8f"
         },
         "verifier": {
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v330-source-registry-snapshot-identity",
           "anchor": "verify-v330-source-registry-snapshot-identity)",
-          "line": 1965,
+          "line": 1963,
           "contextSha256": "efdbc22014ca17038f5b6cee83c508a2177e48ea756832843112290f17ba2677"
         }
       },
@@ -31432,9 +31432,9 @@
     {
       "id": "SAFE-204",
       "status": "source-resolved-reviewed-proof",
-      "featureContractSha256": "e01cbceae9f2150a7ef86d77bacbeb89f298e725178303a5b54c6b4da9bf4b1f",
-      "evidenceMode": "canonical-functional-source-readback",
-      "evidenceToken": "registryWritePerformedAfterRollback",
+      "featureContractSha256": "7267650f5b6021e056b9c77e3fad0d7a3f12093eacb008cddf235c669db2d087",
+      "evidenceMode": "canonical-crash-recovery-functional-readback",
+      "evidenceToken": "crashSourceSnapshot",
       "verifier": {
         "command": "verify-v390-onvif-source-view-atomicity",
         "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs"
@@ -31442,44 +31442,44 @@
       "roles": {
         "owner": {
           "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs",
-          "symbol": "owner:SAFE-204",
-          "anchor": "async function assertSecondWriteRollback(apiBeforeFailure, sourceSnapshot, viewSnapshot) {",
-          "line": 278,
-          "contextSha256": "3b4f45c79cec42fcc5481aa278522bfafe9b120b91ae205e80e2675ec13d1041"
+          "symbol": "assertCrashRecovery",
+          "anchor": "async function assertCrashRecovery(ports, stage, committed, sourceSnapshot, viewSnapshot) {",
+          "line": 327,
+          "contextSha256": "b791dd38b757cbcd9b494a8a3eb2d6f6a59b6c8e6769fd15a7dcc07e77f45c97"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs",
-          "symbol": "dispatch:SAFE-204",
-          "anchor": "const failed = await request(\"PUT\", route(), failedPayload, 500);",
-          "line": 280,
-          "contextSha256": "0e812ec1ba2d2afc183bf0d05eecbf1b169a4d101ef19fd1cd9aa4312fbc2f9e"
+          "symbol": "assertCrashRecovery",
+          "anchor": "const suffix = `crash-${stage}`;",
+          "line": 335,
+          "contextSha256": "d683fda89a762bcdd37018827ffb567614688ca4d2ef3d198e8c0026689c02c5"
         },
         "action": {
           "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs",
-          "symbol": "action:SAFE-204",
-          "anchor": "const partialSave = failed.json.partialSave;",
-          "line": 289,
-          "contextSha256": "2f22cac0253f41a8bbe95c37f7500672ce8e5a33eb35282ebdc516e9189ebd98"
+          "symbol": "assertCrashRecovery",
+          "anchor": "await requestExpectCrash(route(), pairPayload(suffix), stage);",
+          "line": 336,
+          "contextSha256": "afb1cc6806f9f6ff455723d0602cbd7ea6af35efd45816de2afea75b31c4c61f"
         },
         "state": {
           "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs",
-          "symbol": "state:registryWritePerformedAfterRollback",
-          "anchor": "const registryWritePerformedAfterRollback = partialSave ||",
-          "line": 290,
-          "contextSha256": "cb6b75ddef3b115951c56dc8ec11588c45ca9b2e771c92d7365e7607c3b74c1f"
+          "symbol": "assertCrashRecovery",
+          "anchor": "const crashSourceSnapshot = fileSnapshot(sourcePath);",
+          "line": 338,
+          "contextSha256": "b5005ccb7b43efc28b914a4d6471b62c4127e6ec887ce0e99d28057c634cd56c"
         },
         "readback": {
           "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs",
-          "symbol": "readback:SAFE-204",
-          "anchor": "assert(registryWritePerformedAfterRollback === false && partialSave === false,",
-          "line": 292,
-          "contextSha256": "ac1d13ab544763224455bb1878dfdefc737f0bdbc9dd9d232d5d28e2bfd52b8d"
+          "symbol": "assertCrashRecovery",
+          "anchor": "assertFileSnapshot(sourcePath, crashSourceSnapshot, `${stage} committed source bytes`);",
+          "line": 344,
+          "contextSha256": "6796b171c330e4db44d457cd8b40dca2758e31f87a79b7535830cfedfe4d8988"
         },
         "verifier": {
           "file": "server.sh",
           "symbol": "server:verify-v390-onvif-source-view-atomicity",
           "anchor": "verify-v390-onvif-source-view-atomicity)",
-          "line": 2367,
+          "line": 2243,
           "contextSha256": "b08f495dbdf81526fc43cf462939f91f75021d0b45ce4affe928820eba6e16ec"
         }
       },
@@ -31488,25 +31488,25 @@
           "from": "owner",
           "to": "dispatch",
           "kind": "function-containment",
-          "witness": "verify-v390-onvif-source-view-atomicity"
+          "witness": "assertCrashRecovery owns the per-stage restart and exact recovery flow"
         },
         {
           "from": "dispatch",
           "to": "action",
-          "kind": "assignment-def-use",
-          "witness": "verify-v390-onvif-source-view-atomicity"
+          "kind": "function-containment",
+          "witness": "the crash-stage suffix is followed by an actual request that must terminate the server"
         },
         {
           "from": "action",
           "to": "state",
-          "kind": "assignment-def-use",
-          "witness": "verify-v390-onvif-source-view-atomicity"
+          "kind": "function-containment",
+          "witness": "after the injected crash, the verifier captures the actual source file bytes and mode"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "verify-v390-onvif-source-view-atomicity registryWritePerformedAfterRollback"
+          "witness": "the restarted committed branch compares source bytes against crashSourceSnapshot"
         },
         {
           "from": "readback",
@@ -31515,7 +31515,7 @@
           "witness": "verify-v390-onvif-source-view-atomicity"
         }
       ],
-      "rationale": "SAFE-204 is bound to canonical command verify-v390-onvif-source-view-atomicity; the dedicated REVIEW4 range verifier is audit-only and is forbidden as completion evidence.",
+      "rationale": "SAFE-204 is bound to the canonical verifier's real crash request, disk snapshot, restart, byte/mode/API/retry and artifact-cleanup flow; the dedicated REVIEW4 range verifier remains audit-only.",
       "failureReason": ""
     },
     {

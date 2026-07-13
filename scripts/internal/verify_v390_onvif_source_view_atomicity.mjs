@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-// 파일 용도: V390-ADD1-05 ONVIF source/PublishedView paired save와 보상 rollback을 실제 HTTP/파일/재시작으로 검증한다.
+// 파일 용도: V390-REVIEW4-55 ONVIF source/PublishedView recoverable crash transaction을 실제 HTTP/파일/재시작으로 검증한다.
 
 import { spawn } from "node:child_process";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import net from "node:net";
 import os from "node:os";
@@ -23,7 +24,8 @@ Usage:
 Checks:
   - source and PublishedView are fully prevalidated before either registry write.
   - a second-file failure restores the exact pre-transaction source document.
-  - failed transactions leave API memory, disk files, and restart state consistent.
+  - prepared/source/view/committed process crashes recover deterministically on restart.
+  - bytes, existence, mode, API readback, retry, and transaction artifact cleanup are exact.
   - concurrent paired saves cannot leave source/view fields from different requests mixed.
   - import draft remains notSaved and the paired route remains an explicit source:write action.
 `);
@@ -138,10 +140,30 @@ try {
   assertFileSnapshot(viewPath, viewSnapshot, "rollback failure untouched view bytes");
   assert(!fs.readFileSync(sourcePath).equals(sourceSnapshot.bytes),
     "rollback failure fixture unexpectedly restored source bytes");
-  restoreSnapshot(sourcePath, sourceSnapshot);
-  console.log("[pass] rollback-failure-reported");
-
+  const rollbackMarkerPath = `${sourcePath}.onvif-pair.txn`;
+  const rollbackSourcePath = `${sourcePath}.onvif-pair.source.rollback`;
+  assert(fs.existsSync(rollbackMarkerPath), "rollback failure did not retain prepared marker");
+  assert(fs.readFileSync(rollbackMarkerPath, "utf8").includes("state=prepared"),
+    "rollback failure marker is not prepared");
+  assert(fs.existsSync(rollbackSourcePath), "rollback failure did not retain source snapshot");
+  assert(fs.readFileSync(rollbackSourcePath).equals(sourceSnapshot.bytes),
+    "rollback failure source artifact does not match pre-transaction bytes");
   await restartServer(ports);
+  await pairSnapshot();
+  assertFileSnapshot(sourcePath, sourceSnapshot, "rollback failure restart source recovery");
+  assertFileSnapshot(viewPath, viewSnapshot, "rollback failure restart view recovery");
+  console.log("[pass] rollback-failure-restart-recovery");
+
+  for (const [stage, committed] of [
+    ["after-prepared", false],
+    ["after-source-replace", false],
+    ["after-view-replace", false],
+    ["after-committed", true],
+  ]) {
+    await assertCrashRecovery(ports, stage, committed, sourceSnapshot, viewSnapshot);
+  }
+  console.log("[pass] crash-recovery-mode-preservation");
+  console.log("[pass] crash-recovery-retry");
 
   const retried = await request("PUT", route(), pairPayload("retry-committed"), 200);
   assertCommitted(retried.json, "retry-after-fault");
@@ -171,9 +193,9 @@ try {
     "restart source/view pair drifted from committed disk state");
   console.log("[pass] restart-pair-consistency");
 
-  assert(findTemporaryFiles(workDir).length === 0,
-    `temporary registry files remain: ${findTemporaryFiles(workDir).join(", ")}`);
-  console.log("[pass] temporary-registry-files-cleaned");
+  assert(findTransactionArtifacts(workDir).length === 0,
+    `transaction artifacts remain: ${findTransactionArtifacts(workDir).join(", ")}`);
+  console.log("[pass] transaction-artifacts-cleaned");
 
   console.log("");
   console.log("== v3.9.0 ONVIF source/view atomicity ==");
@@ -182,6 +204,8 @@ try {
   console.log("- storageMode: paired-write-with-compensating-rollback");
   console.log("- successfulRollbackPartialSave: false");
   console.log("- injectedRollbackFailureReported: true");
+  console.log("- crashRecoveryStages: 4");
+  console.log("- crashRecoveryModePreserved: true");
   console.log("- restartConsistency: true");
   console.log("- failures: 0");
 } finally {
@@ -190,10 +214,10 @@ try {
 }
 
 function validateFixture() {
-  assert(fixture.schema === "media-server.v390-onvif-source-view-atomicity-fixtures.v1", "fixture schema mismatch");
-  assert(fixture.targetStep === "V390-ADD1-05", "fixture target step mismatch");
+  assert(fixture.schema === "media-server.v390-onvif-source-view-atomicity-fixtures.v2", "fixture schema mismatch");
+  assert(fixture.targetStep === "V390-REVIEW4-55", "fixture target step mismatch");
   assert(fixture.routeTemplate === "/ops/api/onvif/channels/{channelId}", "route template mismatch");
-  assert(Array.isArray(fixture.cases) && fixture.cases.length === 13, "expected thirteen atomicity cases");
+  assert(Array.isArray(fixture.cases) && fixture.cases.length === 19, "expected nineteen atomicity cases");
 }
 
 function verifySourceContract() {
@@ -204,8 +228,10 @@ function verifySourceContract() {
   for (const snippet of [
     "UpsertOnvifSourceView", "target_replaced", "paired-write-with-compensating-rollback",
     "sourceRollbackAttempted", "publishedViewRollbackAttempted", "partialSave",
-    "RegistryFileSnapshot", "CaptureRegistryFileSnapshot", "RestoreRegistryFileSnapshot",
-    "pre-transaction-file-snapshot", "MEDIA_SERVER_TEST_REGISTRY_WRITE_FAILURES",
+    "RegistryFileSnapshot", "OnvifSourceViewTransaction", "PrepareOnvifSourceViewTransaction",
+    "RecoverOnvifSourceViewTransaction", "media-server.onvif-source-view-transaction.v1",
+    "after-source-replace", "after-view-replace", "after-committed",
+    "MEDIA_SERVER_TEST_ONVIF_SOURCE_VIEW_CRASH_AT", "MEDIA_SERVER_TEST_REGISTRY_WRITE_FAILURES",
   ]) assert(`${registryHeader}\n${registrySource}`.includes(snippet), `registry contract missing ${snippet}`);
   for (const snippet of [
     "/ops/api/onvif/channels/", "require_source_write_principal", "exactly one source and publishedView",
@@ -298,6 +324,49 @@ async function assertSecondWriteRollback(apiBeforeFailure, sourceSnapshot, viewS
   assertFileSnapshot(viewPath, viewSnapshot, "unchanged view update rollback");
 }
 
+async function assertCrashRecovery(ports, stage, committed, sourceSnapshot, viewSnapshot) {
+  await stopServer();
+  serverProcess = null;
+  restoreSnapshot(sourcePath, sourceSnapshot);
+  restoreSnapshot(viewPath, viewSnapshot);
+  serverProcess = startServer(ports, "", stage);
+  await waitForHealth();
+  const before = await pairSnapshot();
+  const suffix = `crash-${stage}`;
+  await requestExpectCrash(route(), pairPayload(suffix), stage);
+
+  const crashSourceSnapshot = fileSnapshot(sourcePath);
+  const crashViewSnapshot = fileSnapshot(viewPath);
+  serverProcess = startServer(ports);
+  await waitForHealth();
+  if (committed) {
+    await assertPair(suffix);
+    assertFileSnapshot(sourcePath, crashSourceSnapshot, `${stage} committed source bytes`);
+    assertFileSnapshot(viewPath, crashViewSnapshot, `${stage} committed view bytes`);
+  } else {
+    assert(JSON.stringify(await pairSnapshot()) === JSON.stringify(before),
+      `${stage}: prepared transaction did not restore prior API pair`);
+    assertFileSnapshot(sourcePath, sourceSnapshot, `${stage} source recovery`);
+    assertFileSnapshot(viewPath, viewSnapshot, `${stage} view recovery`);
+  }
+  assert((fs.statSync(sourcePath).mode & 0o777) === sourceSnapshot.mode,
+    `${stage}: source mode drift`);
+  assert((fs.statSync(viewPath).mode & 0o777) === viewSnapshot.mode,
+    `${stage}: view mode drift`);
+  assert(findTransactionArtifacts(workDir).length === 0,
+    `${stage}: recovery left artifacts: ${findTransactionArtifacts(workDir).join(", ")}`);
+  console.log(`[pass] crash-${stage}-recovery`);
+
+  const retrySuffix = `retry-${stage}`;
+  const retry = await request("PUT", route(), pairPayload(retrySuffix), 200);
+  assertCommitted(retry.json, `retry-${stage}`);
+  await assertPair(retrySuffix);
+  assert((fs.statSync(sourcePath).mode & 0o777) === sourceSnapshot.mode,
+    `${stage}: retry source mode drift`);
+  assert((fs.statSync(viewPath).mode & 0o777) === viewSnapshot.mode,
+    `${stage}: retry view mode drift`);
+}
+
 async function assertPair(suffix) {
   const snapshot = await pairSnapshot();
   const uiSource = read("src/ingress/product_ui_ops_sources_script.cpp");
@@ -338,8 +407,14 @@ function fileSnapshot(filePath) {
 function assertFileSnapshot(filePath, snapshot, label) {
   assert(fs.existsSync(filePath) === snapshot.exists, `${label}: existence drift`);
   if (!snapshot.exists) return;
-  assert(fs.readFileSync(filePath).equals(snapshot.bytes), `${label}: byte drift`);
+  const actualBytes = fs.readFileSync(filePath);
+  assert(actualBytes.equals(snapshot.bytes),
+    `${label}: byte drift expected=${snapshot.bytes.length}/${sha256(snapshot.bytes)} actual=${actualBytes.length}/${sha256(actualBytes)}`);
   assert((fs.statSync(filePath).mode & 0o777) === snapshot.mode, `${label}: mode drift`);
+}
+
+function sha256(bytes) {
+  return createHash("sha256").update(bytes).digest("hex");
 }
 
 function restoreSnapshot(filePath, snapshot) {
@@ -359,7 +434,7 @@ async function restartServer(ports, failureInjection = "") {
   await waitForHealth();
 }
 
-function startServer(ports, failureInjection = "") {
+function startServer(ports, failureInjection = "", crashAt = "") {
   const child = spawn("./server.sh", ["foreground"], {
     cwd: rootDir,
     env: {
@@ -376,8 +451,9 @@ function startServer(ports, failureInjection = "") {
       MEDIA_SERVER_PUBLISHED_VIEWS: viewPath,
       MEDIA_SERVER_ANALYSIS_REGISTRY: path.join(workDir, "analysis.json"),
       MEDIA_SERVER_AUTH_USERS_FILE: path.join(workDir, "users.json"),
-      MEDIA_SERVER_ENABLE_TEST_FAILURE_INJECTION: failureInjection ? "1" : "0",
+      MEDIA_SERVER_ENABLE_TEST_FAILURE_INJECTION: failureInjection || crashAt ? "1" : "0",
       MEDIA_SERVER_TEST_REGISTRY_WRITE_FAILURES: failureInjection,
+      MEDIA_SERVER_TEST_ONVIF_SOURCE_VIEW_CRASH_AT: crashAt,
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -421,6 +497,26 @@ async function request(method, requestPath, body, expectedStatus) {
   return { status: response.status, text, json };
 }
 
+async function requestExpectCrash(requestPath, body, stage) {
+  const child = serverProcess;
+  assert(child && child.exitCode === null, `${stage}: server is not running before crash request`);
+  const exited = new Promise(resolve => child.once("exit", (code, signal) => resolve({ code, signal })));
+  try {
+    await fetch(`${baseUrl}${requestPath}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  } catch {}
+  const result = await Promise.race([
+    exited,
+    delay(10000).then(() => ({ code: null, signal: "timeout" })),
+  ]);
+  assert(result.code === 86 && result.signal === null,
+    `${stage}: expected process exit 86, got code=${result.code} signal=${result.signal}`);
+  serverProcess = null;
+}
+
 async function stopServer() {
   if (!serverProcess || serverProcess.exitCode !== null) return;
   const child = serverProcess;
@@ -453,13 +549,14 @@ function freePort() {
   });
 }
 
-function findTemporaryFiles(root) {
+function findTransactionArtifacts(root) {
   const found = [];
   const visit = current => {
     if (!fs.existsSync(current)) return;
     const stat = fs.statSync(current);
     if (!stat.isDirectory()) {
-      if (path.basename(current).includes(".tmp.")) found.push(current);
+      const name = path.basename(current);
+      if (name.includes(".tmp.") || name.includes(".onvif-pair.")) found.push(current);
       return;
     }
     for (const entry of fs.readdirSync(current)) visit(path.join(current, entry));

@@ -151,14 +151,14 @@ check("roadmap, stream verification, inventory, and release records map v3.9 Ste
     assertIncludes(files.backlog, snippet, "backlog v3.9 Step 12");
   }
   for (const snippet of [
-    `| v3.9.0 (12) / V390-ADD1-05 | \`./server.sh ${atomicityCommand}\`, \`./server.sh ${command}\` | ONVIF import draft는 \`notSaved:true\``,
-    "first/second replace failure",
-    "actual HTTP/file 13개 case",
+    `| v3.9.0 (12) / V390-ADD1-05 + V390-REVIEW4-55 | \`./server.sh ${atomicityCommand}\`, \`./server.sh ${command}\` | ONVIF import draft는 \`notSaved:true\``,
+    "prepared/source/view/committed crash restart recovery",
+    "actual HTTP/file 19개 case",
   ]) {
     assertIncludes(files.streamVerification, snippet, "stream verification v3.9 Step 12");
   }
   for (const snippet of [
-    `v3.9.0 (12) / V390-ADD1-05 ONVIF source/view paired save | \`UI-109\`, \`SRC-066\`, \`SAFE-204\`, \`OPS-171\` | \`${atomicityCommand}\`, \`${command}\`, \`verify-ops-client-ui\``,
+    `v3.9.0 (12) / V390-ADD1-05 + V390-REVIEW4-55 ONVIF source/view paired save | \`UI-109\`, \`SRC-066\`, \`SAFE-204\`, \`OPS-171\` | \`${atomicityCommand}\`, \`${command}\`, \`verify-ops-client-ui\``,
     "UI-109 | V390 ONVIF paired save status UI",
     "SRC-066 | V390 ONVIF paired source/view save",
     "SAFE-204 | V390 ONVIF partial-save rollback boundary",
@@ -172,6 +172,7 @@ check("roadmap, stream verification, inventory, and release records map v3.9 Ste
     "v390 Step 12 RED ONVIF live import persist decision gate",
     "v390 Step 12 ONVIF live import persist decision final",
     "V390-ADD1-05 ONVIF source/view atomicity final",
+    "V390-REVIEW4-55 ONVIF crash transaction final",
     "v390 Step 12 UI 풀테스트",
     "v390 Step 12 30분/120분 longrun",
   ]) {

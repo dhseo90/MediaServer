@@ -485,7 +485,7 @@ Usage:
   verify-v390-onvif-live-import-persist-decision
                  v3.9.0 Step 12 ONVIF live import persist decision을 검증합니다.
   verify-v390-onvif-source-view-atomicity
-                 V390-ADD1-05 ONVIF source/view paired save와 rollback을 검증합니다.
+                 V390-REVIEW4-55 ONVIF source/view crash recovery transaction을 검증합니다.
   verify-v390-analysis-registry-durable-write
                  V390-REVIEW2-21 Analysis Registry durable write와 HTTP 5xx/no-write를 검증합니다.
   verify-v390-review4-lab-core-api
@@ -872,7 +872,7 @@ Usage:
   verify-v390-onvif-live-import-persist-decision
                  v3.9.0 Step 12 ONVIF live import persist decision을 검증합니다.
   verify-v390-onvif-source-view-atomicity
-                 V390-ADD1-05 ONVIF source/view paired save와 rollback을 검증합니다.
+                 V390-REVIEW4-55 ONVIF source/view crash recovery transaction을 검증합니다.
   verify-v390-analysis-registry-durable-write
                  V390-REVIEW2-21 Analysis Registry durable write와 HTTP 5xx/no-write를 검증합니다.
   verify-v390-review4-lab-core-api

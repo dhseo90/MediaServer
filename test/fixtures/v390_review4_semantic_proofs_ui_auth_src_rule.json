@@ -20347,10 +20347,10 @@
     },
     {
       "id": "SRC-066",
-      "featureContractSha256": "6310812916bdae9d4a09319d008b517d1d686ec5227610c4d3af533bcb26221e",
+      "featureContractSha256": "29c089c06a2feac8c0583490130618458320db9d5ceb104c15ec27237069f176",
       "status": "source-resolved-reviewed-proof",
-      "evidenceMode": "product-action-api-authoritative-mutation-readback",
-      "evidenceToken": "transactionStatus",
+      "evidenceMode": "recoverable-journal-product-action-api-readback",
+      "evidenceToken": "view",
       "verifier": {
         "command": "verify-v390-onvif-source-view-atomicity",
         "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs"
@@ -20360,42 +20360,42 @@
           "file": "src/ingress/webrtc_http_server.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path.rfind(\"/ops/api/onvif/channels/\", 0) == 0) {",
-          "line": 40896,
+          "line": 41228,
           "contextSha256": "d5b061cbbfdba0a039323a471050c357487d8512da570f486d5aa21134384492"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "SourceViewRegistry::Instance().UpsertOnvifSourceView(",
-          "line": 40934,
+          "line": 41266,
           "contextSha256": "74eb4481c6c24e9161c59c77c89fe0d89970dcaef285c2702e038b6022038a2c"
         },
         "action": {
           "file": "src/ingress/source_view_registry.cpp",
           "symbol": "SourceViewRegistry::UpsertOnvifSourceView",
-          "anchor": "RegistryResult SourceViewRegistry::UpsertOnvifSourceView(",
-          "line": 2030,
-          "contextSha256": "c6c0a34421569534879e8822a683b71708035d88dd21477513236069ff3ebe7e"
+          "anchor": "if (!CommitOnvifSourceViewTransaction(transaction, &save_error)) {",
+          "line": 2256,
+          "contextSha256": "e5c47059a056271944cd72de3c47fb9ad9c19343de43734b10c8a7b495d9ea95"
         },
         "state": {
           "file": "src/ingress/source_view_registry.cpp",
           "symbol": "SourceViewRegistry::UpsertOnvifSourceView",
-          "anchor": "<< \"\\\"transactionStatus\\\":\\\"\"",
-          "line": 2119,
-          "contextSha256": "2113c92e7b5c439b8ad22f43fb142bbc6d5cb3580ae760d966f56a68dacb44aa"
+          "anchor": "views_ = std::move(next_views);",
+          "line": 2274,
+          "contextSha256": "20e9fe7f82f53a96426eebef0a6ea005fb7b2685d5dde0a666b9c6b7345d151a"
         },
         "readback": {
           "file": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs",
-          "symbol": "runtime-oracle",
-          "anchor": "assert(failed.json.transactionStatus === \"rolled-back\", \"second-write failure must report rolled-back\");",
-          "line": 94,
-          "contextSha256": "d4e865efdda2f214c2933576c48c3696d3cbed5c37329dbfff645e62c4a32f6d"
+          "symbol": "assertPair",
+          "anchor": "assert(snapshot.view.displayName === snapshot.source.displayName, `source/view display mismatch for ${suffix}`);",
+          "line": 378,
+          "contextSha256": "1b7f732ec758891161fbf97c7beedd524f3d2fa779f41f6c45c2625ae4545508"
         },
         "verifier": {
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v390-onvif-source-view-atomicity",
           "anchor": "verify-v390-onvif-source-view-atomicity)",
-          "line": 2245,
+          "line": 2243,
           "contextSha256": "b08f495dbdf81526fc43cf462939f91f75021d0b45ce4affe928820eba6e16ec"
         }
       },
@@ -20416,26 +20416,22 @@
           "from": "action",
           "to": "state",
           "kind": "function-containment",
-          "witness": "UpsertOnvifSourceView validates both records, persists paired snapshots, then publishes both vectors",
-          "target": "src/ingress/source_view_registry.cpp:2119"
+          "witness": "UpsertOnvifSourceView commits the recoverable journal before publishing both in-memory vectors"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "transactionStatus product rollback outcome is independently observed by the injected second-write failure oracle",
-          "source": "src/ingress/source_view_registry.cpp:2119",
-          "target": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs:94"
+          "witness": "the published view vector is independently re-read through the source/view GET pair after crash recovery"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
-          "witness": "verify-v390-onvif-source-view-atomicity",
-          "source": "scripts/internal/verify_v390_onvif_source_view_atomicity.mjs:94"
+          "witness": "verify-v390-onvif-source-view-atomicity"
         }
       ],
-      "rationale": "SRC-066 binds paired source/view persistence to the actual injected second-file failure transactionStatus rollback response and byte/API snapshot oracle."
+      "rationale": "SRC-066 binds the paired route to durable journal commit, success-only in-memory pair publication, and the independent GET pair oracle reused after every prepared/source/view/committed crash and retry."
     },
     {
       "id": "SRC-067",

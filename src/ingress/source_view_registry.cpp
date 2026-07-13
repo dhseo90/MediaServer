@@ -1495,7 +1495,8 @@ bool WriteRegistryFileAtomically(const std::filesystem::path& file_path,
                                  const std::string& body,
                                  const std::string& label,
                                  std::string* error_message,
-                                 bool* target_replaced) {
+                                 bool* target_replaced,
+                                 std::optional<unsigned int> forced_mode = std::nullopt) {
     if (target_replaced != nullptr) {
         *target_replaced = false;
     }
@@ -1511,12 +1512,20 @@ bool WriteRegistryFileAtomically(const std::filesystem::path& file_path,
         }
     }
 
+    mode_t target_mode = static_cast<mode_t>(forced_mode.value_or(0644U));
+    struct stat target_status {};
+    if (!forced_mode.has_value() && ::stat(file_path.c_str(), &target_status) == 0) {
+        target_mode = target_status.st_mode & 0777;
+    } else if (!forced_mode.has_value() && errno != ENOENT) {
+        return SetError(error_message, ErrnoMessage("failed to inspect existing " + label + " mode"));
+    }
+
     const std::string base = file_path.string() + ".tmp." + std::to_string(::getpid()) + ".";
     std::filesystem::path temp_path;
     int fd = -1;
     for (int attempt = 0; attempt < 64; ++attempt) {
         temp_path = base + std::to_string(attempt);
-        fd = ::open(temp_path.c_str(), O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0644);
+        fd = ::open(temp_path.c_str(), O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, target_mode);
         if (fd >= 0) {
             break;
         }
@@ -1528,7 +1537,9 @@ bool WriteRegistryFileAtomically(const std::filesystem::path& file_path,
         return SetError(error_message, "failed to open unique temporary " + label + " file");
     }
 
-    bool ok = WriteAll(fd, body, error_message) &&
+    bool ok = (::fchmod(fd, target_mode) == 0 ||
+               SetError(error_message, ErrnoMessage("failed to preserve " + label + " mode"))) &&
+              WriteAll(fd, body, error_message) &&
               FsyncFd(fd, "temporary " + label + " file", error_message) &&
               CloseFdChecked(fd, "temporary " + label + " file", error_message);
     fd = -1;
@@ -1553,7 +1564,8 @@ bool WriteRegistryFileAtomically(const std::filesystem::path& file_path,
                                  const std::string& body,
                                  const std::string& label,
                                  std::string* error_message,
-                                 bool* target_replaced) {
+                                 bool* target_replaced,
+                                 std::optional<unsigned int> forced_mode = std::nullopt) {
     if (target_replaced != nullptr) {
         *target_replaced = false;
     }
@@ -1588,11 +1600,56 @@ bool WriteRegistryFileAtomically(const std::filesystem::path& file_path,
     if (target_replaced != nullptr) {
         *target_replaced = true;
     }
+    if (forced_mode.has_value()) {
+        std::filesystem::permissions(
+            file_path,
+            static_cast<std::filesystem::perms>(*forced_mode),
+            std::filesystem::perm_options::replace,
+            ec);
+        if (ec) {
+            return SetError(error_message, "failed to preserve " + label + " mode: " + ec.message());
+        }
+    }
     return true;
 }
 
 #endif
-struct RegistryFileSnapshot { bool exists{false}; std::string bytes; std::filesystem::perms mode{std::filesystem::perms::unknown}; }; bool CaptureRegistryFileSnapshot(const std::filesystem::path& file_path, const std::string& label, RegistryFileSnapshot* snapshot, std::string* error_message); bool RestoreRegistryFileSnapshot(const std::filesystem::path& file_path, const RegistryFileSnapshot& snapshot, const std::string& label, std::string* error_message);
+struct RegistryFileSnapshot {
+    bool exists{false};
+    std::string bytes;
+    std::filesystem::perms mode{std::filesystem::perms::unknown};
+};
+
+struct OnvifSourceViewTransaction {
+    std::filesystem::path marker_path;
+    std::filesystem::path source_rollback_path;
+    std::filesystem::path view_rollback_path;
+    RegistryFileSnapshot source_snapshot;
+    RegistryFileSnapshot view_snapshot;
+};
+
+bool CaptureRegistryFileSnapshot(const std::filesystem::path& file_path,
+                                 const std::string& label,
+                                 RegistryFileSnapshot* snapshot,
+                                 std::string* error_message);
+bool RestoreRegistryFileSnapshot(const std::filesystem::path& file_path,
+                                 const RegistryFileSnapshot& snapshot,
+                                 const std::string& label,
+                                 std::string* error_message);
+bool RecoverOnvifSourceViewTransaction(const std::filesystem::path& source_path,
+                                       const std::filesystem::path& view_path,
+                                       std::string* error_message);
+bool PrepareOnvifSourceViewTransaction(const std::filesystem::path& source_path,
+                                       const std::filesystem::path& view_path,
+                                       OnvifSourceViewTransaction* transaction,
+                                       std::string* error_message);
+bool RollbackOnvifSourceViewTransaction(const std::filesystem::path& source_path,
+                                        const std::filesystem::path& view_path,
+                                        const OnvifSourceViewTransaction& transaction,
+                                        std::string* error_message);
+bool CommitOnvifSourceViewTransaction(const OnvifSourceViewTransaction& transaction,
+                                      std::string* error_message);
+void MaybeCrashOnvifSourceViewTransaction(const std::string& stage);
 bool ReadTextFile(const std::filesystem::path& path,
                   const std::string& label,
                   std::string* body,
@@ -2140,51 +2197,77 @@ RegistryResult SourceViewRegistry::UpsertOnvifSourceView(
         return JsonResult(500, "Internal Server Error", out.str());
     };
 
-    RegistryFileSnapshot source_snapshot, view_snapshot; std::string snapshot_error; if (!CaptureRegistryFileSnapshot(source_storage_path_, "source registry", &source_snapshot, &snapshot_error) || !CaptureRegistryFileSnapshot(views_storage_path_, "published view registry", &view_snapshot, &snapshot_error)) return transaction_failure("pre-transaction-file-snapshot", snapshot_error, false, false, false, false, false, false);
+    OnvifSourceViewTransaction transaction;
+    std::string transaction_error;
+    if (!PrepareOnvifSourceViewTransaction(source_storage_path_,
+                                           views_storage_path_,
+                                           &transaction,
+                                           &transaction_error)) {
+        return transaction_failure("transaction-prepare",
+                                   transaction_error,
+                                   false,
+                                   false,
+                                   false,
+                                   false,
+                                   false,
+                                   false);
+    }
+    MaybeCrashOnvifSourceViewTransaction("after-prepared");
+
     bool source_replaced = false;
     std::string save_error;
     if (!SaveSourcesLocked(next_sources, &save_error, &source_replaced)) {
-        bool source_rollback_succeeded = false;
-        if (source_replaced) {
-            std::string rollback_error;
-            source_rollback_succeeded = RestoreRegistryFileSnapshot(source_storage_path_, source_snapshot, "source registry rollback snapshot", &rollback_error);
-            if (!source_rollback_succeeded && !rollback_error.empty()) {
-                save_error += "; source rollback failed: " + rollback_error;
-            }
+        std::string rollback_error;
+        const bool rollback_succeeded = RollbackOnvifSourceViewTransaction(
+            source_storage_path_, views_storage_path_, transaction, &rollback_error);
+        if (!rollback_succeeded && !rollback_error.empty()) {
+            save_error += "; recoverable transaction rollback failed: " + rollback_error;
         }
         return transaction_failure("source-save",
                                    save_error,
                                    false,
                                    false,
                                    source_replaced,
-                                   source_rollback_succeeded,
+                                   source_replaced && rollback_succeeded,
                                    false,
                                    false);
     }
+    MaybeCrashOnvifSourceViewTransaction("after-source-replace");
 
     bool view_replaced = false;
     if (!SaveViewsLocked(next_views, &save_error, &view_replaced)) {
-        std::string source_rollback_error;
-        const bool source_rollback_succeeded = RestoreRegistryFileSnapshot(source_storage_path_, source_snapshot, "source registry rollback snapshot", &source_rollback_error);
-        bool view_rollback_succeeded = false;
-        std::string view_rollback_error;
-        if (view_replaced) {
-            view_rollback_succeeded = RestoreRegistryFileSnapshot(views_storage_path_, view_snapshot, "published view registry rollback snapshot", &view_rollback_error);
-        }
-        if (!source_rollback_succeeded && !source_rollback_error.empty()) {
-            save_error += "; source rollback failed: " + source_rollback_error;
-        }
-        if (view_replaced && !view_rollback_succeeded && !view_rollback_error.empty()) {
-            save_error += "; PublishedView rollback failed: " + view_rollback_error;
+        std::string rollback_error;
+        const bool rollback_succeeded = RollbackOnvifSourceViewTransaction(
+            source_storage_path_, views_storage_path_, transaction, &rollback_error);
+        if (!rollback_succeeded && !rollback_error.empty()) {
+            save_error += "; recoverable transaction rollback failed: " + rollback_error;
         }
         return transaction_failure("published-view-save",
                                    save_error,
                                    true,
                                    false,
                                    true,
-                                   source_rollback_succeeded,
+                                   rollback_succeeded,
                                    view_replaced,
-                                   view_rollback_succeeded);
+                                   view_replaced && rollback_succeeded);
+    }
+    MaybeCrashOnvifSourceViewTransaction("after-view-replace");
+
+    if (!CommitOnvifSourceViewTransaction(transaction, &save_error)) {
+        std::string rollback_error;
+        const bool rollback_succeeded = RollbackOnvifSourceViewTransaction(
+            source_storage_path_, views_storage_path_, transaction, &rollback_error);
+        if (!rollback_succeeded && !rollback_error.empty()) {
+            save_error += "; recoverable transaction rollback failed: " + rollback_error;
+        }
+        return transaction_failure("transaction-commit",
+                                   save_error,
+                                   true,
+                                   true,
+                                   true,
+                                   rollback_succeeded,
+                                   true,
+                                   rollback_succeeded);
     }
 
     sources_ = std::move(next_sources);
@@ -2324,6 +2407,11 @@ bool SourceViewRegistry::EnsureLoadedLocked(std::string* error_message) {
     }
     source_storage_path_ = app::GetAppConfig().source_registry_path;
     views_storage_path_ = app::GetAppConfig().published_views_path;
+    if (!RecoverOnvifSourceViewTransaction(source_storage_path_,
+                                           views_storage_path_,
+                                           error_message)) {
+        return false;
+    }
     std::vector<SourceRecord> loaded_sources;
     std::vector<PublishedViewRecord> loaded_views;
     bool source_file_exists = false;
@@ -2509,6 +2597,343 @@ bool RestoreRegistryFileSnapshot(const std::filesystem::path& file_path,
     }
     return true;
 #endif
+}
+
+std::filesystem::path OnvifSourceViewMarkerPath(const std::filesystem::path& source_path) {
+    return source_path.string() + ".onvif-pair.txn";
+}
+
+std::filesystem::path OnvifSourceRollbackPath(const std::filesystem::path& source_path) {
+    return source_path.string() + ".onvif-pair.source.rollback";
+}
+
+std::filesystem::path OnvifViewRollbackPath(const std::filesystem::path& source_path) {
+    return source_path.string() + ".onvif-pair.view.rollback";
+}
+
+unsigned int SnapshotMode(const RegistryFileSnapshot& snapshot) {
+    return static_cast<unsigned int>(snapshot.mode) & 0777U;
+}
+
+std::string OnvifSourceViewMarkerBody(const std::string& state,
+                                      const RegistryFileSnapshot& source_snapshot,
+                                      const RegistryFileSnapshot& view_snapshot) {
+    std::ostringstream out;
+    out << "media-server.onvif-source-view-transaction.v1\n"
+        << "state=" << state << "\n"
+        << "source=" << (source_snapshot.exists ? "present" : "absent") << "\n"
+        << "sourceMode=" << (source_snapshot.exists ? SnapshotMode(source_snapshot) : 0U) << "\n"
+        << "view=" << (view_snapshot.exists ? "present" : "absent") << "\n"
+        << "viewMode=" << (view_snapshot.exists ? SnapshotMode(view_snapshot) : 0U) << "\n";
+    return out.str();
+}
+
+bool RemoveFileDurably(const std::filesystem::path& file_path,
+                       const std::string& label,
+                       std::string* error_message) {
+    std::error_code ec;
+    const bool removed = std::filesystem::remove(file_path, ec);
+    if (ec) {
+        return SetError(error_message, "failed to remove " + label + ": " + ec.message());
+    }
+#if !defined(_WIN32)
+    if (removed && !FsyncParentDirectory(file_path, error_message)) {
+        return false;
+    }
+#endif
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
+bool RemoveMatchingTransactionTemps(const std::filesystem::path& file_path,
+                                    std::string* error_message) {
+    const auto parent = file_path.parent_path().empty() ? std::filesystem::path(".")
+                                                        : file_path.parent_path();
+    const std::string prefix = file_path.filename().string() + ".tmp.";
+    std::error_code ec;
+    std::filesystem::directory_iterator it(parent, ec);
+    if (ec) {
+        if (ec == std::errc::no_such_file_or_directory) {
+            return true;
+        }
+        return SetError(error_message,
+                        "failed to inspect ONVIF transaction temporary files: " + ec.message());
+    }
+    for (const auto& entry : it) {
+        const std::string name = entry.path().filename().string();
+        if (name.rfind(prefix, 0) != 0) {
+            continue;
+        }
+        if (!RemoveFileDurably(entry.path(), "ONVIF transaction temporary file", error_message)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool CleanupOnvifSourceViewTransaction(const OnvifSourceViewTransaction& transaction,
+                                       std::string* error_message) {
+    for (const auto& artifact : {transaction.marker_path,
+                                 transaction.source_rollback_path,
+                                 transaction.view_rollback_path}) {
+        if (!RemoveFileDurably(artifact, "ONVIF source/view transaction artifact", error_message)) {
+            return false;
+        }
+    }
+    for (const auto& artifact : {transaction.marker_path,
+                                 transaction.source_rollback_path,
+                                 transaction.view_rollback_path}) {
+        if (!RemoveMatchingTransactionTemps(artifact, error_message)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::optional<std::string> TransactionMarkerField(const std::string& body,
+                                                  const std::string& field) {
+    const std::string prefix = field + "=";
+    std::istringstream input(body);
+    std::string line;
+    while (std::getline(input, line)) {
+        if (line.rfind(prefix, 0) == 0) {
+            return line.substr(prefix.size());
+        }
+    }
+    return std::nullopt;
+}
+
+bool ParseSnapshotMode(const std::string& value,
+                       std::filesystem::perms* mode,
+                       std::string* error_message) {
+    if (mode == nullptr || value.empty()) {
+        return SetError(error_message, "ONVIF transaction snapshot mode is missing");
+    }
+    char* end = nullptr;
+    errno = 0;
+    const unsigned long parsed = std::strtoul(value.c_str(), &end, 10);
+    if (errno != 0 || end == value.c_str() || *end != '\0' || parsed > 0777UL) {
+        return SetError(error_message, "ONVIF transaction snapshot mode is invalid");
+    }
+    *mode = static_cast<std::filesystem::perms>(parsed);
+    return true;
+}
+
+bool LoadRollbackSnapshot(const std::filesystem::path& artifact_path,
+                          const std::string& presence,
+                          const std::string& mode_value,
+                          const std::string& label,
+                          RegistryFileSnapshot* snapshot,
+                          std::string* error_message) {
+    if (snapshot == nullptr) {
+        return SetError(error_message, label + " rollback snapshot output is required");
+    }
+    *snapshot = RegistryFileSnapshot{};
+    if (presence == "absent") {
+        if (std::filesystem::exists(artifact_path)) {
+            return SetError(error_message, label + " absent snapshot unexpectedly has an artifact");
+        }
+        return true;
+    }
+    if (presence != "present") {
+        return SetError(error_message, label + " snapshot presence is invalid");
+    }
+    snapshot->exists = true;
+    if (!ParseSnapshotMode(mode_value, &snapshot->mode, error_message)) {
+        return false;
+    }
+    return ReadTextFile(artifact_path, label + " rollback snapshot", &snapshot->bytes, error_message);
+}
+
+bool RecoverOnvifSourceViewTransaction(const std::filesystem::path& source_path,
+                                       const std::filesystem::path& view_path,
+                                       std::string* error_message) {
+    OnvifSourceViewTransaction transaction;
+    transaction.marker_path = OnvifSourceViewMarkerPath(source_path);
+    transaction.source_rollback_path = OnvifSourceRollbackPath(source_path);
+    transaction.view_rollback_path = OnvifViewRollbackPath(source_path);
+
+    std::error_code exists_error;
+    const bool marker_exists = std::filesystem::exists(transaction.marker_path, exists_error);
+    if (exists_error) {
+        return SetError(error_message,
+                        "failed to inspect ONVIF source/view transaction marker: " +
+                            exists_error.message());
+    }
+    if (!marker_exists) {
+        return CleanupOnvifSourceViewTransaction(transaction, error_message) &&
+               RemoveMatchingTransactionTemps(source_path, error_message) &&
+               RemoveMatchingTransactionTemps(view_path, error_message);
+    }
+
+    std::string marker;
+    if (!ReadTextFile(transaction.marker_path,
+                      "ONVIF source/view transaction marker",
+                      &marker,
+                      error_message)) {
+        return false;
+    }
+    if (marker.rfind("media-server.onvif-source-view-transaction.v1\n", 0) != 0) {
+        return SetError(error_message, "invalid ONVIF source/view transaction marker schema");
+    }
+    const auto state = TransactionMarkerField(marker, "state");
+    const auto source_presence = TransactionMarkerField(marker, "source");
+    const auto source_mode = TransactionMarkerField(marker, "sourceMode");
+    const auto view_presence = TransactionMarkerField(marker, "view");
+    const auto view_mode = TransactionMarkerField(marker, "viewMode");
+    if (!state.has_value() || !source_presence.has_value() || !source_mode.has_value() ||
+        !view_presence.has_value() || !view_mode.has_value() ||
+        (*state != "prepared" && *state != "committed")) {
+        return SetError(error_message, "invalid ONVIF source/view transaction marker fields");
+    }
+
+    if (*state == "prepared") {
+        if (!LoadRollbackSnapshot(transaction.source_rollback_path,
+                                  *source_presence,
+                                  *source_mode,
+                                  "source registry",
+                                  &transaction.source_snapshot,
+                                  error_message) ||
+            !LoadRollbackSnapshot(transaction.view_rollback_path,
+                                  *view_presence,
+                                  *view_mode,
+                                  "published view registry",
+                                  &transaction.view_snapshot,
+                                  error_message)) {
+            return false;
+        }
+        std::string source_error;
+        std::string view_error;
+        const bool source_restored = RestoreRegistryFileSnapshot(
+            source_path, transaction.source_snapshot, "source registry crash recovery", &source_error);
+        const bool view_restored = RestoreRegistryFileSnapshot(
+            view_path, transaction.view_snapshot, "published view registry crash recovery", &view_error);
+        if (!source_restored || !view_restored) {
+            return SetError(error_message,
+                            "failed to recover prepared ONVIF source/view transaction: " +
+                                source_error + (source_error.empty() || view_error.empty() ? "" : "; ") +
+                                view_error);
+        }
+    }
+
+    return CleanupOnvifSourceViewTransaction(transaction, error_message) &&
+           RemoveMatchingTransactionTemps(source_path, error_message) &&
+           RemoveMatchingTransactionTemps(view_path, error_message);
+}
+
+bool PrepareOnvifSourceViewTransaction(const std::filesystem::path& source_path,
+                                       const std::filesystem::path& view_path,
+                                       OnvifSourceViewTransaction* transaction,
+                                       std::string* error_message) {
+    if (transaction == nullptr) {
+        return SetError(error_message, "ONVIF source/view transaction output is required");
+    }
+    *transaction = OnvifSourceViewTransaction{};
+    transaction->marker_path = OnvifSourceViewMarkerPath(source_path);
+    transaction->source_rollback_path = OnvifSourceRollbackPath(source_path);
+    transaction->view_rollback_path = OnvifViewRollbackPath(source_path);
+    if (!RecoverOnvifSourceViewTransaction(source_path, view_path, error_message) ||
+        !CaptureRegistryFileSnapshot(source_path,
+                                     "source registry",
+                                     &transaction->source_snapshot,
+                                     error_message) ||
+        !CaptureRegistryFileSnapshot(view_path,
+                                     "published view registry",
+                                     &transaction->view_snapshot,
+                                     error_message)) {
+        return false;
+    }
+
+    bool ignored_replaced = false;
+    if (transaction->source_snapshot.exists &&
+        !WriteRegistryFileAtomically(transaction->source_rollback_path,
+                                     transaction->source_snapshot.bytes,
+                                     "ONVIF source rollback snapshot",
+                                     error_message,
+                                     &ignored_replaced,
+                                     0600U)) {
+        (void)CleanupOnvifSourceViewTransaction(*transaction, nullptr);
+        return false;
+    }
+    if (transaction->view_snapshot.exists &&
+        !WriteRegistryFileAtomically(transaction->view_rollback_path,
+                                     transaction->view_snapshot.bytes,
+                                     "ONVIF view rollback snapshot",
+                                     error_message,
+                                     &ignored_replaced,
+                                     0600U)) {
+        (void)CleanupOnvifSourceViewTransaction(*transaction, nullptr);
+        return false;
+    }
+    if (!WriteRegistryFileAtomically(
+            transaction->marker_path,
+            OnvifSourceViewMarkerBody("prepared",
+                                      transaction->source_snapshot,
+                                      transaction->view_snapshot),
+            "ONVIF source/view transaction marker",
+            error_message,
+            &ignored_replaced,
+            0600U)) {
+        (void)CleanupOnvifSourceViewTransaction(*transaction, nullptr);
+        return false;
+    }
+    return true;
+}
+
+bool RollbackOnvifSourceViewTransaction(const std::filesystem::path& source_path,
+                                        const std::filesystem::path& view_path,
+                                        const OnvifSourceViewTransaction& transaction,
+                                        std::string* error_message) {
+    std::string source_error;
+    std::string view_error;
+    const bool source_restored = RestoreRegistryFileSnapshot(
+        source_path, transaction.source_snapshot, "source registry rollback snapshot", &source_error);
+    const bool view_restored = RestoreRegistryFileSnapshot(
+        view_path, transaction.view_snapshot, "published view registry rollback snapshot", &view_error);
+    if (!source_restored || !view_restored) {
+        return SetError(error_message,
+                        source_error + (source_error.empty() || view_error.empty() ? "" : "; ") +
+                            view_error);
+    }
+    return CleanupOnvifSourceViewTransaction(transaction, error_message);
+}
+
+bool CommitOnvifSourceViewTransaction(const OnvifSourceViewTransaction& transaction,
+                                      std::string* error_message) {
+    bool ignored_replaced = false;
+    if (!WriteRegistryFileAtomically(
+            transaction.marker_path,
+            OnvifSourceViewMarkerBody("committed",
+                                      transaction.source_snapshot,
+                                      transaction.view_snapshot),
+            "ONVIF source/view transaction marker",
+            error_message,
+            &ignored_replaced,
+            0600U)) {
+        return false;
+    }
+    MaybeCrashOnvifSourceViewTransaction("after-committed");
+    std::string cleanup_error;
+    if (!CleanupOnvifSourceViewTransaction(transaction, &cleanup_error)) {
+        std::cerr << "[source-view-registry] committed ONVIF transaction cleanup deferred: "
+                  << cleanup_error << "\n";
+    }
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
+void MaybeCrashOnvifSourceViewTransaction(const std::string& stage) {
+    const char* enabled = std::getenv("MEDIA_SERVER_ENABLE_TEST_FAILURE_INJECTION");
+    const char* configured = std::getenv("MEDIA_SERVER_TEST_ONVIF_SOURCE_VIEW_CRASH_AT");
+    if (enabled == nullptr || std::string(enabled) != "1" || configured == nullptr ||
+        stage != configured) {
+        return;
+    }
+    std::_Exit(86);
 }
 
 

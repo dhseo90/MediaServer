@@ -1,6 +1,6 @@
 {
-  "schema": "media-server.v390-onvif-source-view-atomicity-fixtures.v1",
-  "targetStep": "V390-ADD1-05",
+  "schema": "media-server.v390-onvif-source-view-atomicity-fixtures.v2",
+  "targetStep": "V390-REVIEW4-55",
   "routeTemplate": "/ops/api/onvif/channels/{channelId}",
   "channelId": "9901",
   "cases": [
@@ -12,10 +12,16 @@
     "source-only-existence-rollback",
     "view-only-existence-rollback",
     "first-replace-failure-zero-write",
-    "rollback-failure-reported",
+    "rollback-failure-restart-recovery",
+    "crash-after-prepared-recovery",
+    "crash-after-source-replace-recovery",
+    "crash-after-view-replace-recovery",
+    "crash-after-committed-recovery",
+    "crash-recovery-mode-preservation",
+    "crash-recovery-retry",
     "retry-after-fault",
     "concurrent-pair-no-mix",
     "restart-pair-consistency",
-    "temporary-registry-files-cleaned"
+    "transaction-artifacts-cleaned"
   ]
 }
