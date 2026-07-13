@@ -2112,6 +2112,42 @@ evidence로 사용하지 않습니다.
 | v240 release UI fulltest | UI 풀테스트 실행. 30분/120분/field/publish는 별도 | pass |
 | v240 release 120분 | 120분 longrun 실행. UI 직접 조작과 field/publish는 별도 | pass |
 
+## V390-REVIEW4-54 Analysis Registry failure atomicity
+
+V390-REVIEW3-38의 post-rename failure candidate 의미를 current persistence 계약으로 사용하지
+않습니다. REVIEW4-54는 success 응답 전 parent-directory fsync와 committed marker를 요구하고,
+그 전의 모든 persistence failure는 API, memory, file, restart에서 이전 상태로 관측되게 합니다.
+Public route, request/response schema, EventRecord, WebRTC/SSE/WS metadata, RTSP/WebRTC media path,
+Auth/Role/Scope 계약은 변경하지 않았습니다.
+
+| 구현 위치 | 추가·변경한 로직 | 직접 readback |
+| --- | --- | --- |
+| `src/ingress/webrtc_http_server.cpp` `WriteAnalysisRegistryFileAtomically` | 신규 target `0640`, 기존 mode 보존, same-directory rollback hard link, durable prepared/committed transaction marker, parent-directory fsync commit point, persistence failure rollback | HTTP status와 in-process GET, raw file bytes/mode, server restart GET을 각각 독립 비교 |
+| `src/ingress/webrtc_http_server.cpp` `RecoverAnalysisRegistryTemporaryFiles` | missing parent는 transaction 없음으로 처리하고, prepared marker는 이전 target 복구, committed marker는 candidate 유지, invalid/recovery failure는 fail-closed exit 88 | 4개 crash point별 pre-recovery file, marker/rollback 존재, restart state, artifact 0 확인 |
+| `test/fixtures/v390_analysis_registry_durable_write/cases.json` v3 | 12 mutation, 9 failure/retry stage, 4 crash stage, failure/retry/restart 기대 상태와 mode/commit point 고정 | verifier가 fixture 기대값과 actual HTTP/file/restart를 비교 |
+| `scripts/internal/verify_v390_analysis_registry_durable_write.mjs` | missing target, existing `0600`/`0644`, success, failure, fault-cleared single retry, crash recovery matrix | success 12, failure 108, retry 108, crash 48, temp/transaction artifact 0 |
+
+| 구분 | 명령/조건 | 결과 | 판정 |
+| --- | --- | --- | --- |
+| RED | 구현 전 `node scripts/internal/verify_v390_analysis_registry_durable_write.mjs` | `new registry target mode is not 0640`으로 exit 1 | 기대 실패; 신규 mode와 failure atomicity 미구현 확인 |
+| build | `./server.sh build` | `media_server` target build 완료 | pass |
+| 최초 actual 실행 | `./server.sh verify-v390-analysis-registry-durable-write` | sandbox loopback bind가 `listen EPERM 127.0.0.1`로 exit 1 | runtime/environment 제약; 제품 실패 아님 |
+| code review correction | transaction recovery marker parser 검토 | state/previous 부분 문자열 조합이 아닌 prepared/committed×present/absent 네 canonical 본문만 허용하도록 보강 | invalid marker fail-closed; 54번 데이터 손상 위험 수정 |
+| actual final | canonical marker 보강 뒤 승인된 loopback에서 `./server.sh verify-v390-analysis-registry-durable-write` 전체 재실행 | mutation/success `12/12`, failure/retry/crash `108/108/48`, preserved/new mode `0640/0640`, artifact 0, failures 0 | pass |
+| analysis regression | `./server.sh verify-analysis-state` | summary `pass=181 fail=0` | pass |
+| evidence/docs consumers | `verify-release-evidence-index`, `verify-script-inventory`, `verify-docs-links` | 각각 `8/0`, `11/0`, docs failure 0 | pass |
+| feature inventory consumers | `verify-project-inventory`, `verify-feature-inventory-coverage` | 기존 `SAFE-072`, `SAFE-128` semantic anchor 및 inventory SHA drift로 fail | V390-REVIEW4-53 동결 blocker; 54번 proof/manifest 수정으로 우회하지 않음 |
+| Auth 전용 | `./server.sh verify-auth-routes` | operator 제공 secret 5종이 없어 미실행 | 조건부 미실행; Auth 코드·계약 변경 없음 |
+| 장시간/UI | 30분, 120분, exact UI 풀테스트 | 미실행 | 승인 없음; 완료 evidence로 사용하지 않음 |
+| cleanup | `/private/tmp/media_server_analysis_state_smoke-75493`, `/private/tmp/media_server_analysis_state_dep_scan.txt`, `media-server-v390-analysis-durable-*` | 4.6MB/0B 삭제 후 대상 없음, durable verifier 자체 workdir 없음, 관련 listening port 없음 | pass |
+| diff | `git diff --check` | 출력 없음 | pass |
+
+Failure 의미는 `HTTP 500 = previous`로 고정했습니다. Fault가 제거된 뒤 동일 operator mutation을
+최대 1회 재시도하며, API idempotency key가 없으므로 응답 없이 process가 종료된 crash는 먼저
+GET/readback으로 previous/candidate를 판정합니다. `after-temp-fsync`와 `after-rename`,
+`during-rollback` prepared transaction은 이전 상태로 복구하고, committed marker가 durable한
+`after-directory-fsync`만 candidate를 유지합니다.
+
 ## 토큰/시간 사용량 기록
 
 테스트 결과와 토큰 사용량은 서로 다른 값입니다. 토큰 값이 없으면 `미집계`와 사유를

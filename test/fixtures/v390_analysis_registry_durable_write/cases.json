@@ -1,7 +1,9 @@
 {
-  "schema": "media-server.v390-analysis-registry-durable-write-fixtures.v2",
-  "targetStep": "V390-REVIEW3-38",
+  "schema": "media-server.v390-analysis-registry-failure-atomicity-fixtures.v3",
+  "targetStep": "V390-REVIEW4-54",
   "preservedMode": "0640",
+  "newTargetMode": "0640",
+  "commitPoint": "parent-directory-fsync-and-commit-marker",
   "failureStages": [
     "parent",
     "open",
@@ -13,22 +15,51 @@
     "rename",
     "directory-flush"
   ],
+  "retryableFailureStages": [
+    "parent",
+    "open",
+    "mode",
+    "write",
+    "flush",
+    "close",
+    "directory-open",
+    "rename",
+    "directory-flush"
+  ],
   "postRenameFailureStages": ["directory-flush"],
+  "retryContract": {
+    "faultedAttemptState": "previous",
+    "faultClearedRetryState": "candidate-success",
+    "maxMutationRetriesPerCase": 1
+  },
   "crashStages": [
     {
       "stage": "after-temp-fsync",
+      "expectedPreRecoveryFileState": "previous",
       "expectedRestartState": "previous",
-      "staleTempBeforeRestart": true
+      "staleTempBeforeRestart": true,
+      "transactionRecoveryRequired": false
     },
     {
       "stage": "after-rename",
-      "expectedRestartState": "candidate",
-      "staleTempBeforeRestart": false
+      "expectedPreRecoveryFileState": "candidate",
+      "expectedRestartState": "previous",
+      "staleTempBeforeRestart": false,
+      "transactionRecoveryRequired": true
     },
     {
       "stage": "after-directory-fsync",
+      "expectedPreRecoveryFileState": "candidate",
       "expectedRestartState": "candidate",
-      "staleTempBeforeRestart": false
+      "staleTempBeforeRestart": false,
+      "transactionRecoveryRequired": true
+    },
+    {
+      "stage": "during-rollback",
+      "expectedPreRecoveryFileState": "candidate",
+      "expectedRestartState": "previous",
+      "staleTempBeforeRestart": false,
+      "transactionRecoveryRequired": true
     }
   ],
   "mutationCases": [

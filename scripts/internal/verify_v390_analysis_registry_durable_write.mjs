@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: V390-REVIEW3-38 Analysis Registry full fault/crash durability를 actual HTTP로 검증한다.
+// 파일 용도: V390-REVIEW4-54 Analysis Registry failure atomicity와 crash recovery를 actual HTTP로 검증한다.
 
 import { spawn } from "node:child_process";
 import fs from "node:fs";
@@ -23,8 +23,9 @@ Usage:
 Checks:
   - profile/rule/VA rule/VLM profile create, update, and delete use persist-before-publish.
   - all 12 mutations cross all 9 parent/file/directory failure stages.
-  - mode 0640 is preserved and parent directory fsync completes before success.
-  - all mutations recover deterministically across three injected crash points.
+  - new targets use mode 0640, existing target modes are preserved, and parent directory fsync completes before success.
+  - all failures keep the previous state and allow one fault-cleared retry.
+  - all mutations recover deterministically across four injected crash points.
 `);
 }
 assertKnownOptions(rawArgs, ["h", "help"]);
@@ -41,7 +42,10 @@ let baseUrl = "";
 try {
   validateFixture();
   verifySourceContract();
+  await runMissingTargetMode();
+  await runMissingTargetFailureAndRetry();
   const baseline = await createBaseline();
+  await runModePreservationMatrix(baseline);
   await runSuccessMatrix(fixture.mutationCases, baseline);
   for (const stage of fixture.failureStages) {
     await runFailureStage(stage, fixture.mutationCases, baseline);
@@ -53,42 +57,32 @@ try {
   }
   assert(findTemporaryFiles(workDir).length === 0,
     `temporary registry files remain: ${findTemporaryFiles(workDir).join(", ")}`);
+  assert(findTransactionArtifacts(workDir).length === 0,
+    `transaction artifacts remain: ${findTransactionArtifacts(workDir).join(", ")}`);
   console.log("");
   console.log("== v3.9.0 Analysis Registry durable write ==");
-  console.log(`- schema: ${fixture.schema}`);
-  console.log(`- mutation cases: ${fixture.mutationCases.length}`);
-  console.log(`- success matrix cases: ${fixture.mutationCases.length}`);
-  console.log(`- failure stages: ${fixture.failureStages.join(",")}`);
-  console.log(`- fault matrix cases: ${fixture.mutationCases.length * fixture.failureStages.length}`);
-  console.log(`- crash matrix cases: ${fixture.mutationCases.length * fixture.crashStages.length}`);
-  console.log(`- preserved mode: ${fixture.preservedMode}`);
-  console.log("- parentDirectoryFsyncBeforeSuccess: true");
-  console.log("- http5xxOnPersistenceFailure: true");
-  console.log("- memoryFileRestartConsistency: true");
-  console.log("- preRenameFailureNoChange: true");
-  console.log("- postRenameFailureCandidatePublished: true");
-  console.log("- temporaryFiles: 0");
-  console.log("- failures: 0");
+  console.log(`- schema: ${fixture.schema}; mutations/success: ${fixture.mutationCases.length}/${fixture.mutationCases.length}`);
+  console.log(`- failure/retry/crash: ${fixture.mutationCases.length * fixture.failureStages.length}/${fixture.mutationCases.length * fixture.retryableFailureStages.length}/${fixture.mutationCases.length * fixture.crashStages.length}`);
+  console.log(`- mode preserved/new: ${fixture.preservedMode}/${fixture.newTargetMode}; commitPoint: ${fixture.commitPoint}; HTTP 500=previous; restart rollback=true; retry once=true; artifacts=0; failures=0`);
 } finally {
   await stopServer();
   fs.rmSync(workDir, { recursive: true, force: true });
 }
 
 function validateFixture() {
-  assert(fixture.schema === "media-server.v390-analysis-registry-durable-write-fixtures.v2", "fixture schema mismatch");
-  assert(fixture.targetStep === "V390-REVIEW3-38", "fixture targetStep mismatch");
+  assert(fixture.schema === "media-server.v390-analysis-registry-failure-atomicity-fixtures.v3", "fixture schema mismatch");
+  assert(fixture.targetStep === "V390-REVIEW4-54", "fixture targetStep mismatch");
   assert(fixture.preservedMode === "0640", "preserved mode mismatch");
+  validateReview454FixtureContract();
   assert(Array.isArray(fixture.mutationCases) && fixture.mutationCases.length === 12, "expected twelve mutation cases");
   assert(JSON.stringify(fixture.failureStages) === JSON.stringify([
     "parent", "open", "mode", "write", "flush", "close", "directory-open", "rename", "directory-flush",
   ]),
     "failure stage set mismatch");
-  assert(JSON.stringify(fixture.postRenameFailureStages) === JSON.stringify(["directory-flush"]),
-    "post-rename failure stage mismatch");
   assert(JSON.stringify(fixture.crashStages.map(item => item.stage)) === JSON.stringify([
-    "after-temp-fsync", "after-rename", "after-directory-fsync",
+    "after-temp-fsync", "after-rename", "after-directory-fsync", "during-rollback",
   ]), "crash stage set mismatch");
-  assert(featureIds.length === 2, "V390-REVIEW3-38 feature mapping mismatch");
+  assert(featureIds.length === 2, "V390-REVIEW4-54 feature mapping mismatch");
   for (const kind of ["profile", "rule", "vaRule", "vlmProfile"]) {
     for (const mutation of ["create", "update", "delete"]) {
       assert(fixture.mutationCases.some(item => item.kind === kind && item.mutation === mutation),
@@ -107,11 +101,17 @@ function verifySourceContract() {
     "analysis-registry-persistence-failed",
     "WriteAnalysisRegistryFileAtomically",
     "RecoverAnalysisRegistryTemporaryFiles",
+    "WriteAnalysisRegistryTransactionMarker",
+    "RestoreAnalysisRegistryPreviousState",
+    "media-server.analysis-registry-transaction.v1",
     "fchmod",
     "O_DIRECTORY",
     "after-directory-fsync",
   ]) assert(server.includes(snippet), `durable write source contract missing ${snippet}`);
   assert(/fsync\(directory_fd\)/.test(server), "parent directory fsync missing");
+  assert(server.includes("mode_t target_mode = 0640;"), "new registry target mode is not 0640");
+  assert(!/if \(write_result\.target_replaced\) \{[\s\S]{0,500}?profiles_\s*=/.test(server),
+    "persistence failure still publishes a post-rename candidate");
   assert(!/void\s+SaveLocked\s*\(/.test(server), "legacy void SaveLocked remains");
 }
 
@@ -147,21 +147,20 @@ async function runFailureStage(stage, cases, baseline) {
     const before = await registrySnapshot();
     const bytesBefore = fs.readFileSync(registryPath);
     const response = await request(item.method, item.route, payloadFor(item, stage));
+    const persistenceFailureCode = response.json.code || "";
     assert(response.status === 500, `${caseId}: expected HTTP 500, got ${response.status}: ${response.text}`);
-    assert(response.json.code === "analysis-registry-persistence-failed", `${caseId}: persistence code missing`);
+    assert(persistenceFailureCode === "analysis-registry-persistence-failed", `${caseId}: persistence code missing`);
     assert(response.json.stage === stage, `${caseId}: expected stage ${stage}, got ${response.json.stage}`);
     assert(!response.text.includes(registryPath), `${caseId}: response exposed storage path`);
     const after = await registrySnapshot();
     const bytesAfter = fs.existsSync(registryPath) ? fs.readFileSync(registryPath) : null;
-    if (fixture.postRenameFailureStages.includes(stage)) {
-      assertMutationApplied(before, after, item, `${caseId}: memory candidate not published`);
-      assert(!equalBytes(bytesAfter, bytesBefore), `${caseId}: post-rename bytes did not change`);
-    } else {
-      assert(JSON.stringify(after) === JSON.stringify(before), `${caseId}: memory GET changed`);
-      assert(equalBytes(bytesAfter, bytesBefore), `${caseId}: registry bytes changed`);
-    }
+    const registryWritePerformedAfterFailure = persistenceFailureCode !== "analysis-registry-persistence-failed" || JSON.stringify(after) !== JSON.stringify(before);
+    assert(registryWritePerformedAfterFailure === false &&
+      persistenceFailureCode === "analysis-registry-persistence-failed", `${caseId}: memory GET changed`);
+    assert(equalBytes(bytesAfter, bytesBefore), `${caseId}: registry bytes changed`);
     assert(fileMode(registryPath) === fixture.preservedMode, `${caseId}: file mode drift`);
     assert(findTemporaryFiles(stageDir).length === 0, `${caseId}: temporary file remained`);
+    assert(findTransactionArtifacts(stageDir).length === 0, `${caseId}: transaction artifact remained`);
     console.log(`[pass] ${caseId}`);
   }
   const beforeRestart = await registrySnapshot();
@@ -173,6 +172,7 @@ async function runFailureStage(stage, cases, baseline) {
   await waitForHealth();
   assert(JSON.stringify(await registrySnapshot()) === JSON.stringify(beforeRestart), `${stage}: restart state changed`);
   assert(fileMode(registryPath) === fixture.preservedMode, `${stage}: restart mode drift`);
+  await runFaultClearedRetry(stage, cases, registryPath, stageDir);
   await stopServer();
   serverProcess = null;
   console.log(`[pass] ${stage}-restart-consistent`);
@@ -221,15 +221,19 @@ async function runCrashCase(crash, item, baseline) {
   writeBaseline(registryPath, baseline.bytes);
   const ports = await freePortPair();
   baseUrl = `http://127.0.0.1:${ports.http}`;
-  serverProcess = startServer(ports, registryPath, "", crash.stage);
+  serverProcess = startServer(ports, registryPath,
+    crash.stage === "during-rollback" ? "directory-flush" : "", crash.stage);
   await waitForHealth();
   const before = await registrySnapshot();
   await expectMutationCrash(item, crash.stage);
   const staleBeforeRestart = findTemporaryFiles(caseDir);
   assert((staleBeforeRestart.length > 0) === crash.staleTempBeforeRestart,
     `${caseId}: stale temp pre-restart contract drift`);
+  const transactionBeforeRestart = findTransactionArtifacts(caseDir);
+  assert((transactionBeforeRestart.length > 0) === crash.transactionRecoveryRequired,
+    `${caseId}: transaction recovery artifact contract drift`);
   const crashedBytes = fs.readFileSync(registryPath);
-  if (crash.expectedRestartState === "previous") {
+  if (crash.expectedPreRecoveryFileState === "previous") {
     assert(equalBytes(crashedBytes, baseline.bytes), `${caseId}: pre-rename crash changed target`);
   } else {
     assert(!equalBytes(crashedBytes, baseline.bytes), `${caseId}: post-rename crash did not replace target`);
@@ -248,6 +252,7 @@ async function runCrashCase(crash, item, baseline) {
     assertMutationApplied(before, afterRestart, item, `${caseId}: candidate state not recovered`);
   }
   assert(findTemporaryFiles(caseDir).length === 0, `${caseId}: stale temp not recovered`);
+  assert(findTransactionArtifacts(caseDir).length === 0, `${caseId}: transaction artifacts not recovered`);
   assert(fileMode(registryPath) === fixture.preservedMode, `${caseId}: restart mode drift`);
   await stopServer();
   serverProcess = null;
@@ -483,6 +488,21 @@ function findTemporaryFiles(root) {
   visit(root); return found;
 }
 
+function findTransactionArtifacts(root) {
+  const found = [];
+  const visit = current => {
+    if (!fs.existsSync(current)) return;
+    const stat = fs.statSync(current);
+    if (!stat.isDirectory()) {
+      if (/\.(?:txn|rollback)$/.test(path.basename(current))) found.push(current);
+      return;
+    }
+    for (const entry of fs.readdirSync(current)) visit(path.join(current, entry));
+  };
+  visit(root);
+  return found;
+}
+
 function equalBytes(left, right) {
   if (left === null || right === null) return left === right;
   return Buffer.compare(left, right) === 0;
@@ -491,3 +511,147 @@ function equalBytes(left, right) {
 function read(relativePath) { return fs.readFileSync(path.join(rootDir, relativePath), "utf8"); }
 function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 function assert(condition, message) { if (!condition) throw new Error(message); }
+
+async function runMissingTargetMode() {
+  const caseDir = path.join(workDir, "missing-target-mode");
+  const registryPath = path.join(caseDir, "analysis.json");
+  assert(!fs.existsSync(registryPath), "missing-target mode case unexpectedly has a registry file");
+  const ports = await freePortPair();
+  baseUrl = `http://127.0.0.1:${ports.http}`;
+  serverProcess = startServer(ports, registryPath, "", "");
+  await waitForHealth();
+  const response = await request("PUT", "/lab/analysis/profiles/601", profilePayload("601", "missing-target"));
+  assert(response.status === 200, `missing-target mutation failed ${response.status}: ${response.text}`);
+  const snapshot = await registrySnapshot();
+  assert(snapshot.profiles.some(item => String(item.id) === "601"), "missing-target mutation was not published");
+  assert(fileMode(registryPath) === fixture.newTargetMode, "missing-target registry mode is not 0640");
+  assert(findTemporaryFiles(caseDir).length === 0, "missing-target mutation left a temporary file");
+  await stopServer();
+  serverProcess = null;
+  const restartPorts = await freePortPair();
+  baseUrl = `http://127.0.0.1:${restartPorts.http}`;
+  serverProcess = startServer(restartPorts, registryPath, "", "");
+  await waitForHealth();
+  assert(JSON.stringify(await registrySnapshot()) === JSON.stringify(snapshot), "missing-target restart state changed");
+  assert(fileMode(registryPath) === fixture.newTargetMode, "missing-target restart mode drift");
+  await stopServer();
+  serverProcess = null;
+  console.log("[pass] missing-target-mode-0640-restart-consistent");
+}
+
+function validateReview454FixtureContract() {
+  assert(fixture.newTargetMode === "0640", "new target mode mismatch");
+  assert(fixture.commitPoint === "parent-directory-fsync-and-commit-marker", "registry commit point mismatch");
+  assert(JSON.stringify(fixture.retryableFailureStages) === JSON.stringify(fixture.failureStages),
+    "retryable failure stage mismatch");
+  assert(JSON.stringify(fixture.postRenameFailureStages) === JSON.stringify(["directory-flush"]),
+    "post-rename failure stage mismatch");
+  assert(fixture.retryContract?.faultedAttemptState === "previous" &&
+    fixture.retryContract?.faultClearedRetryState === "candidate-success" &&
+    fixture.retryContract?.maxMutationRetriesPerCase === 1, "retry contract mismatch");
+  for (const crash of fixture.crashStages) {
+    assert(["previous", "candidate"].includes(crash.expectedPreRecoveryFileState),
+      `${crash.stage}: pre-recovery state missing`);
+    assert(["previous", "candidate"].includes(crash.expectedRestartState),
+      `${crash.stage}: restart state missing`);
+    assert(typeof crash.transactionRecoveryRequired === "boolean",
+      `${crash.stage}: transaction recovery flag missing`);
+  }
+}
+
+async function runFaultClearedRetry(stage, cases, registryPath, stageDir) {
+  for (const item of cases) {
+    const caseId = `${item.id}-${stage}-retry`;
+    const before = await registrySnapshot();
+    const bytesBefore = fs.readFileSync(registryPath);
+    const response = await request(item.method, item.route, payloadFor(item, `retry-${stage}`));
+    assert(response.status >= 200 && response.status < 300,
+      `${caseId}: fault-cleared retry failed ${response.status}: ${response.text}`);
+    const after = await registrySnapshot();
+    assertMutationApplied(before, after, item, `${caseId}: mutation was not applied exactly once`);
+    assert(!equalBytes(fs.readFileSync(registryPath), bytesBefore), `${caseId}: bytes did not change`);
+    assert(fileMode(registryPath) === fixture.preservedMode, `${caseId}: mode drift`);
+    assert(findTemporaryFiles(stageDir).length === 0, `${caseId}: temporary file remained`);
+    assert(findTransactionArtifacts(stageDir).length === 0, `${caseId}: transaction artifact remained`);
+    console.log(`[pass] ${caseId}`);
+  }
+  const afterRetry = await registrySnapshot();
+  await stopServer();
+  serverProcess = null;
+  const restartPorts = await freePortPair();
+  baseUrl = `http://127.0.0.1:${restartPorts.http}`;
+  serverProcess = startServer(restartPorts, registryPath, "", "");
+  await waitForHealth();
+  assert(JSON.stringify(await registrySnapshot()) === JSON.stringify(afterRetry), `${stage}: retry restart state changed`);
+  assert(fileMode(registryPath) === fixture.preservedMode, `${stage}: retry restart mode drift`);
+}
+
+async function runMissingTargetFailureAndRetry() {
+  const caseDir = path.join(workDir, "missing-target-directory-flush");
+  const registryPath = path.join(caseDir, "analysis.json");
+  const ports = await freePortPair();
+  baseUrl = `http://127.0.0.1:${ports.http}`;
+  serverProcess = startServer(ports, registryPath, "directory-flush", "");
+  await waitForHealth();
+  const before = await registrySnapshot();
+  const failed = await request("PUT", "/lab/analysis/profiles/601", profilePayload("601", "missing-failure"));
+  assert(failed.status === 500 && failed.json.code === "analysis-registry-persistence-failed" &&
+    failed.json.stage === "directory-flush", "missing-target directory-flush did not return typed HTTP 500");
+  assert(JSON.stringify(await registrySnapshot()) === JSON.stringify(before), "missing-target failure changed memory");
+  assert(!fs.existsSync(registryPath), "missing-target failure left a target file");
+  assert(findTemporaryFiles(caseDir).length === 0, "missing-target failure left a temporary file");
+  assert(findTransactionArtifacts(caseDir).length === 0, "missing-target failure left a transaction artifact");
+  await stopServer();
+  serverProcess = null;
+  const retryPorts = await freePortPair();
+  baseUrl = `http://127.0.0.1:${retryPorts.http}`;
+  serverProcess = startServer(retryPorts, registryPath, "", "");
+  await waitForHealth();
+  assert(JSON.stringify(await registrySnapshot()) === JSON.stringify(before), "missing-target restart changed previous state");
+  const retried = await request("PUT", "/lab/analysis/profiles/601", profilePayload("601", "missing-retry"));
+  assert(retried.status === 200, `missing-target retry failed ${retried.status}: ${retried.text}`);
+  const afterRetry = await registrySnapshot();
+  assert(before.profiles.length === 0 && afterRetry.profiles.length === 1 &&
+    String(afterRetry.profiles[0].id) === "601", "missing-target retry was not applied exactly once");
+  assert(fileMode(registryPath) === fixture.newTargetMode, "missing-target retry mode is not 0640");
+  await stopServer();
+  serverProcess = null;
+  const restartPorts = await freePortPair();
+  baseUrl = `http://127.0.0.1:${restartPorts.http}`;
+  serverProcess = startServer(restartPorts, registryPath, "", "");
+  await waitForHealth();
+  assert(JSON.stringify(await registrySnapshot()) === JSON.stringify(afterRetry), "missing-target retry restart changed state");
+  assert(findTransactionArtifacts(caseDir).length === 0, "missing-target retry restart left transaction artifacts");
+  await stopServer();
+  serverProcess = null;
+  console.log("[pass] missing-target-directory-flush-rollback-retry");
+}
+
+async function runModePreservationMatrix(baseline) {
+  for (const mode of ["0600", "0644"]) {
+    const caseDir = path.join(workDir, `mode-${mode}`);
+    const registryPath = path.join(caseDir, "analysis.json");
+    writeBaseline(registryPath, baseline.bytes);
+    fs.chmodSync(registryPath, Number.parseInt(mode, 8));
+    const ports = await freePortPair();
+    baseUrl = `http://127.0.0.1:${ports.http}`;
+    serverProcess = startServer(ports, registryPath, "", "");
+    await waitForHealth();
+    const response = await request("PUT", "/lab/analysis/profiles/601", profilePayload("601", `mode-${mode}`));
+    assert(response.status === 200, `mode ${mode}: update failed ${response.status}: ${response.text}`);
+    const snapshot = await registrySnapshot();
+    assert(fileMode(registryPath) === mode, `mode ${mode}: existing target mode changed`);
+    await stopServer();
+    serverProcess = null;
+    const restartPorts = await freePortPair();
+    baseUrl = `http://127.0.0.1:${restartPorts.http}`;
+    serverProcess = startServer(restartPorts, registryPath, "", "");
+    await waitForHealth();
+    assert(JSON.stringify(await registrySnapshot()) === JSON.stringify(snapshot), `mode ${mode}: restart state changed`);
+    assert(fileMode(registryPath) === mode, `mode ${mode}: restart mode changed`);
+    assert(findTransactionArtifacts(caseDir).length === 0, `mode ${mode}: transaction artifacts remain`);
+    await stopServer();
+    serverProcess = null;
+    console.log(`[pass] existing-target-mode-${mode}-preserved`);
+  }
+}

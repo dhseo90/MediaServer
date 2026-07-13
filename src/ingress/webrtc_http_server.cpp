@@ -1021,6 +1021,162 @@ std::string AnalysisRegistryCrashStage() {
     return value == nullptr ? std::string() : Trim(value);
 }
 
+std::filesystem::path AnalysisRegistryTransactionPath(const std::filesystem::path& storage_path) {
+    return storage_path.string() + ".txn";
+}
+
+std::filesystem::path AnalysisRegistryRollbackPath(const std::filesystem::path& storage_path) {
+    return storage_path.string() + ".rollback";
+}
+
+std::filesystem::path AnalysisRegistryRestorePath(const std::filesystem::path& storage_path) {
+    return storage_path.string() + ".tmp.restore";
+}
+
+bool SyncAnalysisRegistryDirectory(int directory_fd, std::string* detail) {
+    while (::fsync(directory_fd) != 0) {
+        if (errno == EINTR) {
+            continue;
+        }
+        if (detail != nullptr) {
+            *detail = std::string("failed to flush analysis registry parent directory: ") +
+                      std::strerror(errno);
+        }
+        return false;
+    }
+    return true;
+}
+
+bool WriteAnalysisRegistryTransactionMarker(const std::filesystem::path& storage_path,
+                                            const std::string& state,
+                                            bool previous_exists,
+                                            int directory_fd,
+                                            std::string* detail) {
+    const std::filesystem::path marker_path = AnalysisRegistryTransactionPath(storage_path);
+    const std::filesystem::path temp_path = storage_path.string() + ".tmp.txn." +
+                                            std::to_string(static_cast<long long>(::getpid()));
+    (void)::unlink(temp_path.c_str());
+    int flags = O_WRONLY | O_CREAT | O_EXCL;
+#if defined(O_CLOEXEC)
+    flags |= O_CLOEXEC;
+#endif
+#if defined(O_NOFOLLOW)
+    flags |= O_NOFOLLOW;
+#endif
+    int fd = ::open(temp_path.c_str(), flags, 0600);
+    if (fd < 0) {
+        if (detail != nullptr) {
+            *detail = std::string("failed to open analysis registry transaction marker: ") +
+                      std::strerror(errno);
+        }
+        return false;
+    }
+    const std::string body = "media-server.analysis-registry-transaction.v1\nstate=" + state +
+                             "\nprevious=" + (previous_exists ? "present" : "absent") + "\n";
+    const char* cursor = body.data();
+    std::size_t remaining = body.size();
+    while (remaining > 0) {
+        const ssize_t written = ::write(fd, cursor, remaining);
+        if (written < 0 && errno == EINTR) {
+            continue;
+        }
+        if (written <= 0) {
+            if (detail != nullptr) {
+                *detail = std::string("failed to write analysis registry transaction marker: ") +
+                          (written < 0 ? std::strerror(errno) : "short write");
+            }
+            (void)::close(fd);
+            (void)::unlink(temp_path.c_str());
+            return false;
+        }
+        cursor += written;
+        remaining -= static_cast<std::size_t>(written);
+    }
+    while (::fsync(fd) != 0) {
+        if (errno == EINTR) {
+            continue;
+        }
+        if (detail != nullptr) {
+            *detail = std::string("failed to flush analysis registry transaction marker: ") +
+                      std::strerror(errno);
+        }
+        (void)::close(fd);
+        (void)::unlink(temp_path.c_str());
+        return false;
+    }
+    if (::close(fd) != 0) {
+        if (detail != nullptr) {
+            *detail = std::string("failed to close analysis registry transaction marker: ") +
+                      std::strerror(errno);
+        }
+        (void)::unlink(temp_path.c_str());
+        return false;
+    }
+    if (::rename(temp_path.c_str(), marker_path.c_str()) != 0) {
+        if (detail != nullptr) {
+            *detail = std::string("failed to publish analysis registry transaction marker: ") +
+                      std::strerror(errno);
+        }
+        (void)::unlink(temp_path.c_str());
+        return false;
+    }
+    return SyncAnalysisRegistryDirectory(directory_fd, detail);
+}
+
+bool RestoreAnalysisRegistryPreviousState(const std::filesystem::path& storage_path,
+                                          bool previous_exists,
+                                          int directory_fd,
+                                          std::string* detail) {
+    const std::filesystem::path rollback_path = AnalysisRegistryRollbackPath(storage_path);
+    const std::filesystem::path restore_path = AnalysisRegistryRestorePath(storage_path);
+    (void)::unlink(restore_path.c_str());
+    if (previous_exists) {
+        if (::link(rollback_path.c_str(), restore_path.c_str()) != 0) {
+            if (detail != nullptr) {
+                *detail = std::string("failed to link analysis registry rollback snapshot: ") +
+                          std::strerror(errno);
+            }
+            return false;
+        }
+        if (::rename(restore_path.c_str(), storage_path.c_str()) != 0) {
+            if (detail != nullptr) {
+                *detail = std::string("failed to restore analysis registry rollback snapshot: ") +
+                          std::strerror(errno);
+            }
+            (void)::unlink(restore_path.c_str());
+            return false;
+        }
+    } else if (::unlink(storage_path.c_str()) != 0 && errno != ENOENT) {
+        if (detail != nullptr) {
+            *detail = std::string("failed to restore absent analysis registry target: ") +
+                      std::strerror(errno);
+        }
+        return false;
+    }
+    return SyncAnalysisRegistryDirectory(directory_fd, detail);
+}
+
+bool CleanupAnalysisRegistryTransaction(const std::filesystem::path& storage_path,
+                                        int directory_fd,
+                                        std::string* detail) {
+    bool ok = true;
+    for (const auto& artifact : {AnalysisRegistryTransactionPath(storage_path),
+                                 AnalysisRegistryRollbackPath(storage_path),
+                                 AnalysisRegistryRestorePath(storage_path)}) {
+        if (::unlink(artifact.c_str()) != 0 && errno != ENOENT) {
+            ok = false;
+            if (detail != nullptr && detail->empty()) {
+                *detail = std::string("failed to remove analysis registry transaction artifact: ") +
+                          std::strerror(errno);
+            }
+        }
+    }
+    if (!SyncAnalysisRegistryDirectory(directory_fd, detail)) {
+        ok = false;
+    }
+    return ok;
+}
+
 void RecoverAnalysisRegistryTemporaryFiles(const std::filesystem::path& storage_path) {
     if (storage_path.empty()) {
         return;
@@ -1028,6 +1184,76 @@ void RecoverAnalysisRegistryTemporaryFiles(const std::filesystem::path& storage_
     const std::filesystem::path parent = storage_path.parent_path().empty()
                                              ? std::filesystem::path(".")
                                              : storage_path.parent_path();
+    std::error_code parent_exists_error;
+    const bool parent_exists = std::filesystem::exists(parent, parent_exists_error);
+    if (parent_exists_error) {
+        std::cerr << "[analysis-registry] transaction recovery directory check failed: "
+                  << parent_exists_error.message() << "\n";
+        ::_exit(88);
+    }
+    if (!parent_exists) {
+        // A transaction artifact cannot exist without its parent directory. The first
+        // registry mutation will create the directory before preparing a transaction.
+        return;
+    }
+    int directory_flags = O_RDONLY;
+#if defined(O_CLOEXEC)
+    directory_flags |= O_CLOEXEC;
+#endif
+#if defined(O_DIRECTORY)
+    directory_flags |= O_DIRECTORY;
+#endif
+    const int directory_fd = ::open(parent.c_str(), directory_flags);
+    if (directory_fd < 0) {
+        std::cerr << "[analysis-registry] transaction recovery directory open failed: "
+                  << std::strerror(errno) << "\n";
+        ::_exit(88);
+    }
+    const std::filesystem::path marker_path = AnalysisRegistryTransactionPath(storage_path);
+    const std::filesystem::path rollback_path = AnalysisRegistryRollbackPath(storage_path);
+    if (std::filesystem::exists(marker_path)) {
+        std::ifstream input(marker_path);
+        const std::string marker((std::istreambuf_iterator<char>(input)),
+                                 std::istreambuf_iterator<char>());
+        const std::string marker_prefix = "media-server.analysis-registry-transaction.v1\n";
+        const bool prepared_present =
+            marker == marker_prefix + "state=prepared\nprevious=present\n";
+        const bool prepared_absent =
+            marker == marker_prefix + "state=prepared\nprevious=absent\n";
+        const bool committed_present =
+            marker == marker_prefix + "state=committed\nprevious=present\n";
+        const bool committed_absent =
+            marker == marker_prefix + "state=committed\nprevious=absent\n";
+        const bool prepared = prepared_present || prepared_absent;
+        const bool committed = committed_present || committed_absent;
+        const bool previous_exists = prepared_present || committed_present;
+        if (!prepared && !committed) {
+            std::cerr << "[analysis-registry] invalid transaction marker; recovery stopped\n";
+            ::_exit(88);
+        }
+        std::string recovery_detail;
+        if (prepared && !RestoreAnalysisRegistryPreviousState(storage_path,
+                                                               previous_exists,
+                                                               directory_fd,
+                                                               &recovery_detail)) {
+            std::cerr << "[analysis-registry] prepared transaction recovery failed: "
+                      << recovery_detail << "\n";
+            ::_exit(88);
+        }
+        if (!CleanupAnalysisRegistryTransaction(storage_path, directory_fd, &recovery_detail)) {
+            std::cerr << "[analysis-registry] transaction cleanup failed: "
+                      << recovery_detail << "\n";
+            ::_exit(88);
+        }
+    } else if (std::filesystem::exists(rollback_path)) {
+        std::string cleanup_detail;
+        if (!CleanupAnalysisRegistryTransaction(storage_path, directory_fd, &cleanup_detail)) {
+            std::cerr << "[analysis-registry] orphan rollback cleanup failed: "
+                      << cleanup_detail << "\n";
+            ::_exit(88);
+        }
+    }
+    (void)::close(directory_fd);
     const std::string prefix = storage_path.filename().string() + ".tmp.";
     std::error_code iterator_error;
     std::filesystem::directory_iterator iterator(parent, iterator_error);
@@ -1054,7 +1280,7 @@ void RecoverAnalysisRegistryTemporaryFiles(const std::filesystem::path& storage_
     }
 }
 
-// V390-REVIEW3-38의 SAFE-217/OPS-184는 mode/file/parent durability 완료 전 성공 publish를 금지한다.
+// V390-REVIEW4-54는 SAFE-217/OPS-184의 mode/file/parent durability와 failure atomicity를 고정한다.
 AnalysisRegistryWriteResult WriteAnalysisRegistryFileAtomically(
     const std::filesystem::path& storage_path,
     const std::string& body) {
@@ -1084,12 +1310,14 @@ AnalysisRegistryWriteResult WriteAnalysisRegistryFileAtomically(
         return failure("parent", "failed to prepare analysis registry parent: " + directory_error.message());
     }
 
-    mode_t target_mode = 0644;
+    mode_t target_mode = 0640;
+    bool target_existed = false;
     struct stat target_stat {};
     if (::lstat(storage_path.c_str(), &target_stat) == 0) {
         if (!S_ISREG(target_stat.st_mode)) {
             return failure("mode", "analysis registry target is not a regular file");
         }
+        target_existed = true;
         target_mode = target_stat.st_mode & 07777;
     } else if (errno != ENOENT) {
         return failure("mode", std::string("failed to inspect analysis registry mode: ") +
@@ -1112,7 +1340,7 @@ AnalysisRegistryWriteResult WriteAnalysisRegistryFileAtomically(
 #endif
     for (int attempt = 0; attempt < 64; ++attempt) {
         temp_path = base + std::to_string(attempt);
-        fd = ::open(temp_path.c_str(), open_flags, 0644);
+        fd = ::open(temp_path.c_str(), open_flags, 0600);
         if (fd >= 0) {
             break;
         }
@@ -1220,30 +1448,76 @@ AnalysisRegistryWriteResult WriteAnalysisRegistryFileAtomically(
         (void)::unlink(temp_path.c_str());
         return failure("rename", "injected analysis registry rename failure");
     }
+    const std::filesystem::path rollback_path = AnalysisRegistryRollbackPath(storage_path);
+    if (std::filesystem::exists(AnalysisRegistryTransactionPath(storage_path)) ||
+        std::filesystem::exists(rollback_path)) {
+        (void)::close(directory_fd);
+        (void)::unlink(temp_path.c_str());
+        return failure("transaction", "analysis registry transaction artifacts require recovery");
+    }
+    if (target_existed && ::link(storage_path.c_str(), rollback_path.c_str()) != 0) {
+        const std::string detail = std::string("failed to snapshot analysis registry rollback state: ") +
+                                   std::strerror(errno);
+        (void)::close(directory_fd);
+        (void)::unlink(temp_path.c_str());
+        return failure("transaction", detail);
+    }
+    std::string transaction_detail;
+    if (!WriteAnalysisRegistryTransactionMarker(storage_path,
+                                                "prepared",
+                                                target_existed,
+                                                directory_fd,
+                                                &transaction_detail)) {
+        (void)CleanupAnalysisRegistryTransaction(storage_path, directory_fd, nullptr);
+        (void)::close(directory_fd);
+        (void)::unlink(temp_path.c_str());
+        return failure("transaction", transaction_detail);
+    }
     if (::rename(temp_path.c_str(), storage_path.c_str()) != 0) {
         const std::string detail = std::string("failed to replace analysis registry file: ") +
                                    std::strerror(errno);
+        (void)CleanupAnalysisRegistryTransaction(storage_path, directory_fd, nullptr);
         (void)::close(directory_fd);
         (void)::unlink(temp_path.c_str());
         return failure("rename", detail);
     }
     crash_if_requested("after-rename");
-    if (fault_stage == "directory-flush") {
-        (void)::close(directory_fd);
-        return failure("directory-flush",
-                       "injected analysis registry directory flush failure",
-                       true);
-    }
-    while (::fsync(directory_fd) != 0) {
-        if (errno == EINTR) {
-            continue;
+    auto rollback_failure = [&](std::string detail) -> AnalysisRegistryWriteResult {
+        crash_if_requested("during-rollback");
+        std::string rollback_detail;
+        if (!RestoreAnalysisRegistryPreviousState(storage_path,
+                                                  target_existed,
+                                                  directory_fd,
+                                                  &rollback_detail) ||
+            !CleanupAnalysisRegistryTransaction(storage_path, directory_fd, &rollback_detail)) {
+            std::cerr << "[analysis-registry] rollback requires startup recovery: "
+                      << rollback_detail << "\n";
+            ::_exit(87);
         }
-        const std::string detail = std::string("failed to flush analysis registry parent directory: ") +
-                                   std::strerror(errno);
         (void)::close(directory_fd);
-        return failure("directory-flush", detail, true);
+        return failure("directory-flush", std::move(detail));
+    };
+    if (fault_stage == "directory-flush") {
+        return rollback_failure("injected analysis registry directory flush failure");
+    }
+    std::string directory_sync_detail;
+    if (!SyncAnalysisRegistryDirectory(directory_fd, &directory_sync_detail)) {
+        return rollback_failure(std::move(directory_sync_detail));
+    }
+    if (!WriteAnalysisRegistryTransactionMarker(storage_path,
+                                                "committed",
+                                                target_existed,
+                                                directory_fd,
+                                                &transaction_detail)) {
+        return rollback_failure("failed to commit analysis registry transaction marker: " +
+                                transaction_detail);
     }
     crash_if_requested("after-directory-fsync");
+    std::string cleanup_detail;
+    if (!CleanupAnalysisRegistryTransaction(storage_path, directory_fd, &cleanup_detail)) {
+        std::cerr << "[analysis-registry] committed transaction cleanup deferred: "
+                  << cleanup_detail << "\n";
+    }
     (void)::close(directory_fd);
     return {true, "none", std::string(), true};
 }
@@ -2510,12 +2784,6 @@ private:
                               candidate_va_rules,
                               candidate_vlm_profiles));
         if (!write_result.ok) {
-            if (write_result.target_replaced) {
-                profiles_ = std::move(candidate_profiles);
-                rules_ = std::move(candidate_rules);
-                va_rules_ = std::move(candidate_va_rules);
-                vlm_profiles_ = std::move(candidate_vlm_profiles);
-            }
             std::cerr << "[analysis-registry] persistence failure stage=" << write_result.stage
                       << " detail=" << write_result.detail << "\n";
             return AnalysisRegistryFailure(AnalysisRegistryMutationFailure::Persistence,
