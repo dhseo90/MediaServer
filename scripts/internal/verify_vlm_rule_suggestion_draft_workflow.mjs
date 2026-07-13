@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { extractCppFunctionBlock, exactBooleanFlagValue } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -63,6 +64,11 @@ check("fixture defines V210-S08 draft-only workflow", () => {
 
 check("Ops API route wraps existing candidate builder without requiring rule-write", () => {
   const server = readText("src/ingress/webrtc_http_server.cpp");
+  const draftWorkflowBlock = extractCppFunctionBlock(server, "std::string OpsVlmRuleSuggestionDraftWorkflowJson(");
+  assert(server.includes('\\"ruleRegistryWritePerformed\\":false'), "ruleRegistryWritePerformed must remain absent/false before manual save");
+  assert(draftWorkflowBlock.includes("media-server.vlm-rule-suggestion-draft-workflow.v1") && exactBooleanFlagValue(draftWorkflowBlock, "ruleRegistryWritePerformed") === false, "draft workflow schema must not write the rule registry");
+  assert(draftWorkflowBlock.includes("sourceCandidateReport") && exactBooleanFlagValue(draftWorkflowBlock, "autoRuleApplied") === false,
+    "LAB-061 sourceCandidateReport draft workflow must not auto-apply a rule");
   for (const snippet of [
     "OpsVlmRuleSuggestionDraftWorkflowJson",
     "media-server.vlm-rule-suggestion-draft-workflow.v1",
@@ -78,6 +84,8 @@ check("Ops API route wraps existing candidate builder without requiring rule-wri
   ]) {
     assert(server.includes(snippet), `server missing snippet: ${snippet}`);
   }
+  assert(server.includes('<< "\\\"sourceCandidateReport\\\":" << candidate_body'),
+    "draft workflow must project the computed candidate body as sourceCandidateReport");
   const routeBlock = extractBlockAround(server, 'request.path == "/ops/api/vlm/rule-suggestion-drafts"', 1600);
   assert(routeBlock.includes("require_ops_principal"), "draft route must require ops principal");
   assert(!routeBlock.includes("require_rule_write_principal"), "draft read route must not require rule-write");
@@ -107,6 +115,10 @@ check("/ops/rules UI renders draft workflow and applies to form only", () => {
     assert(js.includes(snippet), `rules JS missing snippet: ${snippet}`);
   }
   const applyFunction = extractNamedFunction(js, "applyOpsVlmRuleSuggestionDraft");
+  assert(applyFunction.includes("opsRulesEventTypes.includes(type)"), "draft apply must validate opsRulesEventTypes");
+  assert(!["providerApiCall(", "rawProviderResponse", "providerMaterialExposed: true"].some(marker => applyFunction.includes(marker)), "UI-036 provider-boundary explicit absence oracle");
+  const ruleRegistryWritePerformed = ["/lab/analysis/rules", "/lab/analysis/va-rules", "opsRulesSaveNativeRecord", "triggerOpsRulesSave"].some(marker => applyFunction.includes(marker));
+  assert(ruleRegistryWritePerformed === false, "UI-036 draft form apply must not write the rule registry");
   for (const forbidden of [
     "/lab/analysis/rules",
     "/lab/analysis/va-rules",

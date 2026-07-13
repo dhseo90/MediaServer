@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { exactBooleanFlagValue, extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -40,6 +41,7 @@ const files = {
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
@@ -69,6 +71,8 @@ check("Ops server builds the v3.6 Rule/VA what-if replay pack model", () => {
   ]) {
     assertIncludes(files.server, snippet, "v360 Rule/VA what-if replay server model");
   }
+  const producerBlock = extractCppFunctionBlock(files.server, "std::string OpsV360RuleVaWhatIfReplayPackJson(");
+  assertIncludes(producerBlock, "media-server.ops.v360-rule-va-what-if-replay-pack.v1", "v360 Rule/VA what-if replay schema");
 });
 
 check("what-if replay derives from EventRecord/VA fixture context and simulation diff inputs", () => {
@@ -91,7 +95,7 @@ check("what-if replay derives from EventRecord/VA fixture context and simulation
 });
 
 check("what-if replay preserves read-only no-apply boundaries", () => {
-  const block = extractBlock(files.server, "std::string OpsV360RuleVaWhatIfReplayPackJson", "std::string OpsAuditSearchIndexJson");
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV360RuleVaWhatIfReplayPackJson(");
   for (const snippet of [
     "opsOnly",
     "readOnly",
@@ -125,6 +129,11 @@ check("what-if replay preserves read-only no-apply boundaries", () => {
     const nearby = block.slice(index, index + 128);
     assert(nearby.includes("false"), `boundary flag must be false: ${flag}`);
   }
+  assert(exactBooleanFlagValue(block, "eventRecordWritePerformed") === false, "eventRecordWritePerformed must remain false");
+  const ruleRegistryWritePerformed = block.includes('\\"ruleRegistryWritePerformed\\":true');
+  const scenarioApplied = block.includes('\\"scenarioApplied\\":true');
+  const eventPostPayloadChanged = block.includes('\\"eventPostPayloadChanged\\":true');
+  assert(ruleRegistryWritePerformed === false && scenarioApplied === false && eventPostPayloadChanged === false, "RULE-109 OpsV360RuleVaWhatIfReplayPackJson calculation-only registryWrite/scenario apply/mutation Changed absence");
 });
 
 check("Ops API exposes the Rule/VA what-if route as guarded no-store JSON", () => {
@@ -150,6 +159,9 @@ check("/ops simulation workspace declares and renders Rule/VA what-if replay pac
     assertIncludes(serverBlock, snippet, "v360 Rule/VA what-if dashboard shell");
   }
   const scriptBlock = extractBlock(files.uiScript, "const renderV360OpsSimulationWorkspace", "const renderDashboardRootCause");
+  assertIncludes(scriptBlock, "data-v360-rule-va-what-if-replay", "v360 Rule/VA what-if product UI state");
+  assertIncludes(files.uiScript, "/ops/dashboard", "UI-091 canonical route obligation");
+  assertIncludes(files.server, "media-server.ops.v360-rule-va-what-if-replay-pack.v1", "UI-091 canonical schema obligation");
   for (const snippet of [
     "ruleVaWhatIfReplayPack",
     "ruleVaWhatIfReplayRoute",
@@ -218,11 +230,34 @@ check("docs, inventory, and dispatch map v3.6 Step 10", () => {
   }
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v360_rule_va_what_if_replay_pack.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const id of ["UI-091", "RULE-109", "EVT-078", "LAB-097", "SAFE-157", "OPS-124"]) assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   for (const id of ["UI-091", "RULE-109", "EVT-078", "LAB-097", "SAFE-157", "OPS-124"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v360_rule_va_what_if_replay_pack.mjs", "script inventory");
+});
+
+check("SAFE-157 canonical bounded no-execution boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV360RuleVaWhatIfReplayPackJson(");
+  const routeObserved = files.server.includes("/ops/api/live-operations/simulation/rule-va-what-if-replay-pack");
+  const safe157BoundaryObserved = block.includes("BuildV360RuleVaWhatIfReplayCandidates");
+  const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const automaticApplyPerformed = /\b(?:AutomaticApply|SafeApply|ApplyRule|ApplySource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const clientNoticeSent = /\bSendClientNotice[A-Za-z0-9_:]*\s*\(/.test(block);
+  const fieldSmokeExecuted = /\b(?:ExecuteFieldSmoke|ProbeEndpoint|ContactDevice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\"(?:rawLocator|rawJson|rawProviderResponse|rawEndpoint|rawMaterial)\\":true/.test(block);
+  const sourceUrlExposed = block.includes("\\\"sourceUrlIncluded\\\":true") || block.includes("\\\"sourceUrlExposed\\\":true");
+  const credentialMaterialExposed = block.includes("\\\"credentialMaterialIncluded\\\":true") || block.includes("\\\"credentialMaterialExposed\\\":true");
+  const debugMaterialExposed = block.includes("\\\"debugMaterialIncluded\\\":true") || block.includes("\\\"debugMaterialExposed\\\":true");
+  const viewerClientExposureAdded = block.includes("\\\"viewerClientExposureAdded\\\":true");
+  const mediaPathChanged = block.includes("\\\"rtspOrWebrtcMediaPathChanged\\\":true");
+  assert(routeObserved && safe157BoundaryObserved && block.includes("media-server.ops.v360-rule-va-what-if-replay-pack.v1") && writePerformed === false && mutationPerformed === false && executionPerformed === false && automaticApplyPerformed === false && clientNoticeSent === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+    "SAFE-157 BuildV360RuleVaWhatIfReplayCandidates must remain bounded no-execution no-write redacted and client/provider isolated");
 });
 
 const results = runChecks();

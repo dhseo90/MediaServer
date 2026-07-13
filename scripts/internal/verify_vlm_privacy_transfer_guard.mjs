@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: V200-S11 VLM Privacy/전송 guard UI/API/fixture/문서 경계를 정적 검증한다.
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -71,6 +73,11 @@ check("privacy transfer fixture covers required S11 cases", () => {
       }
     }
   }
+  const local = fixture.cases.find(item => item.id === "local-profile-redaction-pass");
+  const cloud = fixture.cases.find(item => item.id === "cloud-profile-complete-guard-pass");
+  const review = fixture.cases.find(item => item.id === "ops-review-redaction-boundary");
+  assert(local?.privacyGuard?.redaction?.sourceUrlStored === false && review?.viewerClientExposureAdded === false, "sourceUrlStored/viewer client Ops review redaction must remain absent/false");
+  assert(cloud?.privacyGuard?.externalTransferWarningAcknowledged === true && cloud?.privacyGuard?.providerLoggingPolicy?.reviewStatus === "accepted" && cloud?.privacyGuard?.providerLoggingPolicy?.loggingAndRetentionReviewed === true, "cloud external transfer warning and provider logging/retention accepted review are required");
 });
 
 check("server enforces cloud privacyGuard before VLM profile storage", () => {
@@ -95,6 +102,16 @@ check("server enforces cloud privacyGuard before VLM profile storage", () => {
   }
 });
 
+check("SAFE-024 canonical privacy guard source keeps raw and credential material absent", () => {
+  const block = extractCppFunctionBlock(server, "static bool ValidateVlmPrivacyGuardContract(");
+  const privacyGuardObserved = block.includes("sourceUrlStored") && block.includes("credentialMaterialStored");
+  const rawMaterialExposed = /\\\"(?:rawPrompt|rawProviderResponse|rawFrameBytes|rawJson|rawLocator)\\\":true/.test(block);
+  const sourceUrlExposed = /\\\"sourceUrlStored\\\":true/.test(block);
+  const credentialMaterialExposed = /\\\"(?:credentialMaterialStored|providerCredential|apiKey)\\\":true/.test(block);
+  assert(privacyGuardObserved && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false,
+    "SAFE-024 privacy guard must keep raw prompt/response/frame and credential material absent");
+});
+
 check("Ops VLM dry-run and profile UI expose privacy guard controls without provider calls", () => {
   for (const snippet of [
     "OpsVlmPrivacyTransferGuardJson",
@@ -117,6 +134,9 @@ check("Ops VLM dry-run and profile UI expose privacy guard controls without prov
     "currentProviderPolicyStored: false",
   ]) {
     assertIncludes(pageScript, snippet, "Ops VLM privacy script");
+    assertIncludes(extractNamedFunctionBlock(pageScript, "renderOpsVlmPrivacyTransferGuard"), "opsVlmExternalTransferWarningAck", "UI-024 block-scoped canonical product state");
+    assertIncludes(server, "/ops/vlm", "UI-024 canonical route obligation");
+    assertIncludes(pageScript, "VLM", "UI-024 canonical field obligation");
   }
 });
 

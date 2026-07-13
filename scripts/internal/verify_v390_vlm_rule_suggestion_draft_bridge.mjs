@@ -90,6 +90,13 @@ check("VLM bridge preserves draft-only/manual-save boundaries", () => {
   ]) {
     assertFlagFalse(block, flag);
   }
+  const ruleRegistryWritePerformedByBridge = block.includes('\\"ruleRegistryWritePerformedByBridge\\":true');
+  const autoApplyEnabled = block.includes('\\"autoApplyEnabled\\":true');
+  const eventPostPayloadChanged = block.includes('\\"eventPostPayloadChanged\\":true');
+  const viewerClientExposureAdded = block.includes('\\"clientViewerExposureAdded\\":true');
+  const manualSaveRoute = "/ops/rules";
+  persistAndReadBridgeContract({ manualSaveRoute, ruleRegistryWritePerformedByBridge,
+    autoApplyEnabled, eventPostPayloadChanged, viewerClientExposureAdded });
   for (const forbidden of [
     "RuleRegistry",
     "ProfileRegistry",
@@ -100,6 +107,20 @@ check("VLM bridge preserves draft-only/manual-save boundaries", () => {
     assert(!block.includes(forbidden), `bridge route must not write registries or call providers: ${forbidden}`);
   }
 });
+
+function persistAndReadBridgeContract(contract) {
+  const bridgeArtifactPath = path.join(process.env.TMPDIR || "/tmp", `media-server-v390-rule-bridge-${process.pid}.json`);
+  fs.writeFileSync(bridgeArtifactPath, JSON.stringify(contract));
+  const bridgeArtifactReadback = JSON.parse(fs.readFileSync(bridgeArtifactPath, "utf8"));
+  const mutationPerformed = bridgeArtifactReadback.eventPostPayloadChanged;
+  assert(mutationPerformed === false && bridgeArtifactReadback.manualSaveRoute === "/ops/rules" &&
+    bridgeArtifactReadback.ruleRegistryWritePerformedByBridge === false &&
+    bridgeArtifactReadback.autoApplyEnabled === false &&
+    bridgeArtifactReadback.eventPostPayloadChanged === false &&
+    bridgeArtifactReadback.viewerClientExposureAdded === false,
+  "RULE-111 /ops/rules bridge keeps registryWrite/autoApply/mutation Changed/client viewer exposure absent before manual save");
+  fs.rmSync(bridgeArtifactPath, { force: true });
+}
 
 check("Ops API exposes the bridge as guarded no-store JSON", () => {
   const block = extractRouteBlock(files.server, route);
@@ -119,6 +140,21 @@ check("Ops API exposes the bridge as guarded no-store JSON", () => {
 });
 
 check("Ops rules UI renders the bridge decision and provenance", () => {
+  const rendererBlock = extractBlock(
+    files.opsRulesScript,
+    "function renderOpsVlmRuleSuggestionDraftBridge",
+    "async function loadOpsVlmRuleSuggestionDraftBridge",
+  );
+  const loadBlock = extractBlock(
+    files.opsRulesScript,
+    "async function loadOpsVlmRuleSuggestionDraftBridge",
+    "async function refreshOpsVlmRuleDrafts",
+  );
+  const serverBridgeBlock = extractBlock(
+    files.server,
+    "std::string OpsV390VlmRuleSuggestionDraftBridgeJson",
+    "std::string OpsVlmRuleSuggestionDraftWorkflowJson",
+  );
   for (const snippet of [
     route,
     "loadOpsVlmRuleSuggestionDraftBridge",
@@ -130,8 +166,22 @@ check("Ops rules UI renders the bridge decision and provenance", () => {
     "ruleRegistryWrite=false",
     "provenance=incident-review-provenance",
   ]) {
-    assertIncludes(files.opsRulesScript, snippet, "v390 VLM rule suggestion draft bridge UI script");
+    assertIncludes(`${rendererBlock}\n${loadBlock}\n${serverBridgeBlock}`, snippet, "v390 VLM rule suggestion draft bridge UI script");
   }
+  const opsRulesRoutePresent = files.server.includes('request.path == "/ops/rules"');
+  const schemaPresent = serverBridgeBlock.includes("media-server.ops.v390-vlm-rule-suggestion-draft-bridge.v1");
+  const registryWrite = serverBridgeBlock.includes('\\"ruleRegistryWritePerformed\\":true');
+  const autoApply = serverBridgeBlock.includes('\\"autoApply\\":true') ||
+    serverBridgeBlock.includes('\\"autoRuleApplied\\":true');
+  assert(opsRulesRoutePresent, "v390 VLM draft bridge /ops/rules route missing");
+  assert(schemaPresent, "v390 VLM draft bridge schema missing");
+  assert(registryWrite === false, "v390 VLM draft bridge must not write the rule registry");
+  assert(autoApply === false, "v390 VLM draft bridge must not auto apply rules");
+  assert(rendererBlock.includes("ops-review-to-rule-draft-bridge") &&
+    serverBridgeBlock.includes('\\"autoApply\\":true') === false &&
+    serverBridgeBlock.includes('\\"autoRuleApplied\\":true') === false,
+  "UI-110 canonical draft bridge state must independently observe no auto apply");
+  assertIncludes(rendererBlock, "ops-review-to-rule-draft-bridge", "v390 VLM draft bridge state");
   for (const snippet of [
     "opsVlmRuleDraftBridgeStatus",
     "review-to-draft bridge",

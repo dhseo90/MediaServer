@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -43,6 +44,7 @@ const files = {
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
   server: readText("server.sh"),
@@ -75,6 +77,8 @@ check("fixture covers V300-S09 retention/pin/cleanup matrix", () => {
 });
 
 check("analysis module exposes cleanup policy, lifecycle actions, audit, and invariants", () => {
+  const cleanupPlanBlock = extractCppFunctionBlock(files.source, "EventRetentionCleanupResult BuildEventRetentionCleanupPlan(");
+  assert(cleanupPlanBlock.includes("actions.push_back"), "LAB-088 retention cleanup actions.push_back block readback mismatch");
   for (const snippet of [
     "struct EventRetentionCleanupPolicy",
     "struct EventRetentionCleanupItem",
@@ -174,11 +178,22 @@ check("feature inventory and release records map V300-S09 to LAB-088, SAFE-091, 
 check("server entrypoint and inventory verifiers include V300-S09 command", () => {
   assert(files.server.includes(command), "server.sh missing V300-S09 command");
   assert(files.server.includes("verify_v300_retention_pin_cleanup.mjs"), "server.sh missing V300-S09 script dispatch");
-  assert(files.featureCoverageVerifier.includes(command), "feature coverage verifier missing V300-S09 command");
+  for (const id of ["LAB-088", "SAFE-091", "OPS-059"]) {
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+  }
+  assert(files.featureCoverageVerifier.includes("validateImplementationManifest") && files.featureCoverageVerifier.includes("verifierEvidenceRows"), "feature coverage must validate manifest-backed verifier evidence");
   assert(files.projectInventoryVerifier.includes("LAB-088") &&
     files.projectInventoryVerifier.includes("SAFE-091") &&
     files.projectInventoryVerifier.includes("OPS-059"), "project inventory verifier missing V300-S09 IDs");
   assert(files.scriptInventory.includes("verify_v300_retention_pin_cleanup.mjs"), "script inventory missing V300-S09 verifier");
+});
+
+check("SAFE-091 canonical retention cleanup boundary", () => {
+  const pinnedCleanupIncluded = files.source.includes("retain-pinned");
+  const schemaMutationPerformed = files.source.includes("event_post_payload_changed = true") || files.source.includes("rtsp_webrtc_media_path_changed = true");
+  const safe091BoundaryObserved = pinnedCleanupIncluded && files.source.includes("BuildEventRetentionCleanupPlan");
+  assert(safe091BoundaryObserved && schemaMutationPerformed === false,
+    "verify-v300-retention-pin-cleanup retain-pinned lifecycle must preserve WebRTC/SSE/RTSP boundary");
 });
 
 const results = runChecks();

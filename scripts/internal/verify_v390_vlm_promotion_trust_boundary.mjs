@@ -10,6 +10,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -91,10 +92,14 @@ function validateFixture() {
 
 function verifySourceContract() {
   const moduleSource = read("src/ingress/vlm_evaluation_promotion.cpp");
+  const promotionBlock = extractCppFunctionBlock(moduleSource, "VlmEvaluationPromotionResult ValidateVlmEvaluationPromotion(");
+  assert(promotionBlock.includes("result.accepted = true;"), "LAB-123 server-owned promotion result.accepted block readback mismatch");
   const server = read("src/ingress/webrtc_http_server.cpp");
   const strictJson = read("src/ingress/strict_json.cpp");
   const client = read("src/ingress/product_ui_page_scripts.cpp");
   const shell = read("src/ingress/webrtc_http_server.cpp");
+  const opsShellRouteBlock = extractCppFunctionBlock(server, "bool IsOpsOverviewShellRoute(");
+  const opsVlmRoutePresent = opsShellRouteBlock.includes('path == "/ops/vlm"');
   for (const snippet of [
     "ValidateVlmEvaluationPromotion",
     "server-candidate-option-model-prompt-revision-digest-binding",
@@ -118,6 +123,7 @@ function verifySourceContract() {
     "StrictJsonStringField",
   ]) assert(server.includes(snippet), `server validator missing ${snippet}`);
   assert(strictJson.includes("duplicate JSON key"), "strict JSON parser does not reject duplicate keys");
+  assert(opsVlmRoutePresent, "server verified promotion UI route /ops/vlm is missing");
   assert(!/evaluation:\s*\{\s*status:/s.test(client), "client profile payload must not declare evaluation.status");
   assert(client.includes("expectedCatalogRevision"), "client candidate request missing catalog revision");
   assert(client.includes("expectedProvenanceDigest"), "client candidate request missing provenance digest");
@@ -248,12 +254,19 @@ async function runCase(baseUrl, item) {
     const original = buildProfile({ id: profileId, candidateName: "none", activation: "disabled" });
     const created = await request(baseUrl, "PUT", `/ops/api/vlm/profiles/${profileId}`, original);
     assert(created.status === 200, `${item.id}: setup write HTTP ${created.status}`);
+    const beforeRejectedWrite = JSON.stringify(created.json.vlmProfile);
     const forged = buildProfile({ id: profileId, candidateName: "none", activation: "active", mutation: "declare-passed" });
     const rejected = await request(baseUrl, "PUT", `/ops/api/vlm/profiles/${profileId}`, forged);
     assertRejected(item, rejected);
+    const clientDeclaredPassedRejected = rejected.status === item.expectedHttp;
+    assert(rejected.status >= 400 && clientDeclaredPassedRejected,
+      `${item.id}: client-declared passed result was not rejected`);
     const readback = await request(baseUrl, "GET", `/ops/api/vlm/profiles/${profileId}`);
     assert(readback.status === 200, `${item.id}: original profile missing after rejected update`);
-    assert(readback.json.vlmProfile?.evaluation?.status === item.expectedStoredStatus, `${item.id}: rejected update changed evaluation`);
+    const profileWritePerformedAfterReject = JSON.stringify(readback.json.vlmProfile) !== beforeRejectedWrite;
+    assert(profileWritePerformedAfterReject === false &&
+      readback.json.vlmProfile?.evaluation?.status === item.expectedStoredStatus,
+    `${item.id}: rejected update changed persisted profile`);
     assert(readback.json.vlmProfile?.activation?.status === "disabled", `${item.id}: rejected update changed activation`);
     return;
   }
@@ -268,7 +281,8 @@ async function runCase(baseUrl, item) {
   if (item.expectedHttp !== 200) {
     assertRejected(item, response);
     const absent = await request(baseUrl, "GET", `/ops/api/vlm/profiles/${profileId}`);
-    assert(absent.status === 404, `${item.id}: rejected profile was persisted`);
+    const profileWritePerformedAfterReject = absent.status !== 404;
+    assert(profileWritePerformedAfterReject === false, `${item.id}: rejected profile was persisted`);
     return;
   }
   const stored = response.json.vlmProfile;
@@ -281,7 +295,10 @@ async function runCase(baseUrl, item) {
   assert(stored.evaluation.expectedProvenanceDigest === undefined, `${item.id}: request digest leaked into canonical result`);
   const readback = await request(baseUrl, "GET", `/ops/api/vlm/profiles/${profileId}`);
   assert(readback.status === 200, `${item.id}: stored profile readback failed`);
-  assert(readback.json.vlmProfile?.evaluation?.status === item.expectedStoredStatus, `${item.id}: readback status mismatch`);
+  const providerCallAllowed = readback.json.vlmProfile?.runtimeContract?.providerCallAllowed;
+  assert(readback.json.vlmProfile?.evaluation?.source === "server-verified-evaluation-catalog" && providerCallAllowed === false &&
+    readback.json.vlmProfile?.evaluation?.status === item.expectedStoredStatus,
+  `${item.id}: persisted canonical evaluation or provider boundary mismatch`);
 }
 
 function assertRejected(item, response) {

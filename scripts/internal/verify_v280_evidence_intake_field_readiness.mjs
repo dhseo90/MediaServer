@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v2.8.0 S04 Evidence Intake and Field Readiness와 redaction/field-smoke 경계를 검증한다.
+import { exactBooleanFlagValue, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import process from "node:process";
@@ -15,6 +17,7 @@ const manualChecklist = readText("docs/manual-ui-checklist.md");
 const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
 
 check("roadmap records V280-S04 as active/completed evidence intake field readiness work", () => {
@@ -34,6 +37,18 @@ check("roadmap records V280-S04 as active/completed evidence intake field readin
 });
 
 check("Ops events API exposes redacted evidence intake and field precondition status", () => {
+  const start = server.indexOf("std::string OpsEvidenceIntakeFieldReadinessViewJson(");
+  const end = server.indexOf("std::string OpsRuntimeEvidenceWindowViewJson(", start);
+  assert(start >= 0 && end > start, "EVT-057 evidence intake projection block missing");
+  const evt057ProjectionBlock = server.slice(start, end);
+  const routeOwnerSource = readText("src/ingress/ops_event_route_owner.cpp");
+  const routeBlock = routeOwnerSource.slice(routeOwnerSource.indexOf("constexpr const char* kOpsEventsPagePath"), routeOwnerSource.indexOf("bool HasPrefix("));
+  assert(evt057ProjectionBlock.includes("media-server.ops.evidence-intake-field-readiness.v1") && routeBlock.includes("/ops/api/events/reviews") && exactBooleanFlagValue(evt057ProjectionBlock, "credentialMaterialExposed") === false, "LAB-081 evidence intake must remain redacted on canonical review route");
+  assert(!evt057ProjectionBlock.includes("\\\"credentialMaterialExposed\\\":true") && evt057ProjectionBlock.includes("\\\"credentialMaterialExposed\\\":false"), "EVT-057 credentialMaterialExposed redacted canonical projection");
+  assert(!evt057ProjectionBlock.includes("\\\"rawEvidenceMaterialExposed\\\":true") && evt057ProjectionBlock.includes("\\\"rawEvidenceMaterialExposed\\\":false"), "EVT-057 raw evidence material must remain redacted");
+  assert(!evt057ProjectionBlock.includes("\\\"debugMaterialExposed\\\":true") && evt057ProjectionBlock.includes("\\\"debugMaterialExposed\\\":false"), "EVT-057 debug material must remain redacted");
+  assert(!evt057ProjectionBlock.includes("\\\"providerMaterialExposed\\\":true") && evt057ProjectionBlock.includes("\\\"providerMaterialExposed\\\":false"), "EVT-057 provider material must remain redacted");
+  assertIncludes(evt057ProjectionBlock, "webrtcDataChannelSchemaChanged", "EVT-057 WebRTC SSE boundary");
   for (const snippet of [
     "OpsEvidenceIntakeFieldReadinessViewJson",
     "OpsEvidenceIntakeFieldReadinessItemJson",
@@ -83,6 +98,12 @@ check("/ops/events UI renders evidence intake field readiness and redaction mark
     "endpointCredentialFieldPassClaimed",
   ]) {
     assertIncludes(script, snippet, "Ops evidence intake field readiness script");
+    assertIncludes(extractNamedFunctionBlock(script, "renderEvidenceIntakeFieldReadiness"), "evidenceIntakeFieldReadiness", "UI-057 block-scoped canonical product state");
+    assert(!["rawJson","rawLocator","rawEvidenceIncluded: true","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(script, "renderEvidenceIntakeFieldReadiness").includes(marker)), "UI-057 raw-material-redaction explicit absence oracle");
+    assert(!["passwordHash","tokenHash","Authorization:","credentialValue"].some(marker => extractNamedFunctionBlock(script, "renderEvidenceIntakeFieldReadiness").includes(marker)), "UI-057 credential-redaction explicit absence oracle");
+    assert(!["debugCounters","Developer URL","debugMaterialExposed: true"].some(marker => extractNamedFunctionBlock(script, "renderEvidenceIntakeFieldReadiness").includes(marker)), "UI-057 debug-redaction explicit absence oracle");
+    assertIncludes(server, "\\\"credentialMaterialExposed\\\":false", "UI-057 canonical credential redaction oracle");
+    assertIncludes(script, "/ops/events", "UI-057 canonical route obligation");
   }
   for (const snippet of [
     ".evidence-intake-field-readiness",
@@ -121,7 +142,11 @@ check("smoke, inventory, manual UI, coverage, and command catalog track S04", ()
     assertIncludes(inventory, snippet, "feature inventory S04 row");
   }
   assertIncludes(manualChecklist, "| V280-S04 Evidence Intake and Field Readiness | `UI-057`, `SRC-032`, `EVT-057`, `LAB-081`, `SAFE-067` |", "manual UI checklist S04 row");
-  assertIncludes(coverageVerifier, "verify-v280-evidence-intake-field-readiness", "feature inventory coverage S04 command");
+  for (const id of ["UI-057", "SRC-032", "EVT-057", "LAB-081", "SAFE-067"]) {
+    assert(implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-v280-evidence-intake-field-readiness", `${id} manifest verifier command drift`);
+  }
+  assertIncludes(coverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(coverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   assertIncludes(streamVerification, "verify-v280-evidence-intake-field-readiness", "stream verification S04 command");
   assertIncludes(serverSh, "verify-v280-evidence-intake-field-readiness", "server.sh S04 command");
   assertIncludes(serverSh, "verify_v280_evidence_intake_field_readiness.mjs", "server.sh S04 script target");

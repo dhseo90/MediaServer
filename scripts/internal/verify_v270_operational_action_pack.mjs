@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v2.7.0 S03 Operational Action Pack과 기존 수동 workflow 연결 경계를 검증한다.
+import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import process from "node:process";
@@ -15,6 +17,7 @@ const manualChecklist = readText("docs/manual-ui-checklist.md");
 const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
 const roadmapEvidence = [backlog, inventory, manualChecklist, streamVerification].join("\n");
 
@@ -38,6 +41,15 @@ check("roadmap records V270-S03 as active/completed Operational Action Pack work
 });
 
 check("Ops events API exposes action pack view model without new action side effects", () => {
+  const start = server.indexOf("std::string OpsOperationalActionPackViewJson(");
+  const end = server.indexOf("std::string OpsIncidentActionReadinessQueueViewJson(", start);
+  assert(start >= 0 && end > start, "EVT-052 operational action pack projection block missing");
+  const evt052ProjectionBlock = server.slice(start, end);
+  assertIncludes(evt052ProjectionBlock, "media-server.ops.operational-action-pack.v1", "EVT-052 block-scoped canonical projection");
+  assert(evt052ProjectionBlock.includes("media-server.ops.operational-action-pack.v1"), "LAB-076 operational action pack schema block readback mismatch");
+  const routeOwnerSource = readText("src/ingress/ops_event_route_owner.cpp");
+  const routeBlock = routeOwnerSource.slice(routeOwnerSource.indexOf("constexpr const char* kOpsEventsPagePath"), routeOwnerSource.indexOf("bool HasPrefix("));
+  assertIncludes(routeBlock, "/ops/api/events/reviews", "EVT-052 canonical review route");
   for (const snippet of [
     "OpsOperationalActionPackViewJson",
     "OpsOperationalActionPackItemJson",
@@ -80,6 +92,10 @@ check("/ops/events UI renders action pack panel and safe action links", () => {
     "ruleRegistryWritePerformed",
   ]) {
     assertIncludes(script, snippet, "Ops operational action pack script");
+    assertIncludes(extractNamedFunctionBlock(script, "renderOperationalActionPack"), "operationalActionPack", "UI-052 block-scoped canonical product state");
+    assert(!["requestJson(","fetch(","method: 'POST'","method: 'PUT'","method: 'DELETE'"].some(marker => extractNamedFunctionBlock(script, "renderOperationalActionPack").includes(marker)), "UI-052 no-write explicit absence oracle");
+    assert(!["send(","sendClientNotice","deliveryQueueWritePerformed: true"].some(marker => extractNamedFunctionBlock(script, "renderOperationalActionPack").includes(marker)), "UI-052 no-send explicit absence oracle");
+    assertIncludes(script, "/ops/events", "UI-052 canonical route obligation");
   }
   for (const snippet of [
     ".operational-action-pack",
@@ -113,7 +129,11 @@ check("smoke, inventory, manual UI, coverage, and command catalog track S03", ()
     assertIncludes(inventory, snippet, "feature inventory S03 row");
   }
   assertIncludes(manualChecklist, "| V270-S03 Operational Action Pack | `UI-052`, `EVT-052`, `LAB-076`, `SAFE-060` |", "manual UI checklist S03 row");
-  assertIncludes(coverageVerifier, "verify-v270-operational-action-pack", "feature inventory coverage S03 command");
+  for (const id of ["UI-052", "EVT-052", "LAB-076", "SAFE-060"]) {
+    assert(implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-v270-operational-action-pack", `${id} manifest verifier command drift`);
+  }
+  assertIncludes(coverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(coverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   assertIncludes(streamVerification, "verify-v270-operational-action-pack", "stream verification S03 command");
   assertIncludes(serverSh, "verify-v270-operational-action-pack", "server.sh S03 command");
   assertIncludes(serverSh, "verify_v270_operational_action_pack.mjs", "server.sh S03 script target");

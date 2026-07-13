@@ -4,6 +4,18 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import {
+  REVIEW4_APPROVAL_REVIEWER_SOURCE,
+  REVIEW4_APPROVAL_SOURCE,
+  review4GenerationBoundaryDigest,
+  review4InventoryDigest,
+  buildReview4SemanticObligation,
+  parseVerifiedReview4Dispatch,
+  review4SourceFlowDigest,
+  stableStringify,
+  validateReview4SemanticProof,
+  validateReview4TrustBindings,
+} from "./feature_semantic_review4_trust_lib.mjs";
 
 export const SEMANTIC_CLOSURE_SCHEMA =
   "media-server.feature-semantic-implementation-closure.v2";
@@ -88,6 +100,9 @@ export function validateSemanticItem({ rootDir, row, item }) {
   if (item.review?.decision !== "approved") {
     errors.push(`${row.id} semantic review is not approved`);
   }
+  if (item.review?.approvalSource === REVIEW4_APPROVAL_SOURCE) {
+    return validateReview4AppliedItem({ rootDir, row, item, evidence, errors });
+  }
   validateReview3CallChain({ rootDir, row, item, errors });
 
   validateLocator(rootDir, row.id, "handler", evidence.handler, errors);
@@ -156,6 +171,226 @@ export function validateSemanticItem({ rootDir, row, item }) {
   return errors;
 }
 
+export function validateReview4AppliedManifest({ rows, manifest }) {
+  const review4Items = (manifest?.items || []).filter(item => item.review?.approvalSource === REVIEW4_APPROVAL_SOURCE);
+  if (review4Items.length === 0) return [];
+  const errors = [];
+  const envelope = manifest.review4ApprovalEnvelope;
+  const orderedIds = rows.map(row => row.id);
+  if (review4Items.length !== rows.length || stableStringify(review4Items.map(item => item.id)) !== stableStringify(orderedIds)) errors.push('REVIEW4 applied manifest ordered ID coverage drift');
+  if (!envelope || envelope.approvedCount !== rows.length || envelope.orderedIdsSha256 !== sha256(stableStringify(orderedIds))) errors.push('REVIEW4 applied manifest approval envelope coverage drift');
+  if (envelope?.inventoryDigest !== review4InventoryDigest(rows) || envelope?.generationBoundarySha256 !== review4GenerationBoundaryDigest()) errors.push('REVIEW4 applied manifest inventory/generation boundary drift');
+  if (!String(envelope?.reviewerActor || '').trim() || envelope?.reviewerSource !== REVIEW4_APPROVAL_REVIEWER_SOURCE || !/^[a-f0-9]{64}$/.test(String(envelope?.decisionArtifactSha256 || ''))) errors.push('REVIEW4 applied manifest reviewer/decision artifact drift');
+  const approvals = [];
+  const candidateDigests = new Set();
+  const generationDigests = new Set();
+  for (let index = 0; index < review4Items.length; index += 1) {
+    const item = review4Items[index];
+    const row = rows[index];
+    const proof = item.semanticEvidence?.review4Proof;
+    const approval = proof?.approval;
+    approvals.push(approval);
+    candidateDigests.add(proof?.candidateDigest);
+    generationDigests.add(proof?.generationBoundarySha256);
+    if (!proof || !approval || item.id !== row?.id || proof.featureContractSha256 !== sha256(`${row.feature}\n${row.pass}`) || approval.featureContractSha256 !== proof.featureContractSha256 ||
+        approval.sourceFlowDigest !== proof.sourceFlowDigest || approval.verifierCommand !== proof.verifier?.command || approval.evidenceToken !== proof.evidenceToken ||
+        approval.actionSymbol !== proof.roles?.action?.symbol || approval.stateSymbol !== proof.roles?.state?.symbol || approval.reviewedOn !== envelope?.reviewedOn ||
+        approval.reviewerSource !== REVIEW4_APPROVAL_REVIEWER_SOURCE || approval.reviewerActor !== envelope?.reviewerActor || approval.reasonSha256 !== sha256(String(approval.reason || ''))) {
+      errors.push(`${item.id} REVIEW4 applied embedded approval field drift`);
+      continue;
+    }
+    const tokens = [item.id, row.feature, row.pass, proof.verifier?.command, proof.evidenceToken, proof.roles?.action?.symbol, proof.roles?.state?.symbol, proof.sourceFlowDigest].filter(Boolean);
+    if (!tokens.every(token => String(approval.reason || '').includes(token))) errors.push(`${item.id} REVIEW4 applied embedded approval reason drift`);
+  }
+  if (candidateDigests.size !== 1 || !candidateDigests.has(envelope?.candidateDigest)) errors.push('REVIEW4 applied manifest mixed candidate digest');
+  if (generationDigests.size !== 1 || !generationDigests.has(envelope?.generationBoundarySha256)) errors.push('REVIEW4 applied manifest mixed generation boundary digest');
+  const approvalsSha256 = sha256(stableStringify(approvals));
+  if (envelope?.approvalsDigest !== approvalsSha256 || envelope?.approvalsSha256 !== approvalsSha256) errors.push('REVIEW4 applied manifest approvals digest drift');
+  return errors;
+}
+
+export function assertReview4AppliedManifestValid({ rows, manifest }) {
+  const errors = validateReview4AppliedManifest({ rows, manifest });
+  if (errors.length) throw new Error(`REVIEW4 applied manifest global validation failed: ${errors.join('; ')}`);
+}
+
+function validateReview4AppliedItem({ rootDir, row, item, evidence, errors }) {
+  const proof = evidence.review4Proof;
+  if (proof?.schema !== "media-server.feature-reviewed-source-flow.v1") {
+    errors.push(`${row.id} REVIEW4 source proof schema drift`);
+    return errors;
+  }
+  const compatibilityChain = evidence.callChain;
+  const compatibilityRoles = [
+    ["owner", "owner"],
+    ["routeControl", "dispatch"],
+    ["action", "action"],
+    ["state", "state"],
+    ["readback", "readback"],
+  ];
+  if (compatibilityChain?.schema !== REVIEW3_CALL_CHAIN_SCHEMA ||
+      compatibilityChain?.digest !== proof.sourceFlowDigest ||
+      compatibilityChain?.routeControlKind !== "review4-actual-dispatch-or-control") {
+    errors.push(`${row.id} REVIEW4 compatibility call chain drift`);
+  }
+  for (const [compatibilityRole, proofRole] of compatibilityRoles) {
+    const projected = compatibilityChain?.roles?.[compatibilityRole];
+    const authoritative = proof.roles?.[proofRole];
+    if (!projected || !authoritative ||
+        projected.file !== authoritative.file ||
+        projected.symbol !== authoritative.symbol ||
+        projected.anchor !== authoritative.anchor ||
+        projected.line !== authoritative.line ||
+        projected.contextSha256 !== authoritative.contextSha256) {
+      errors.push(`${row.id} REVIEW4 compatibility ${compatibilityRole} binding drift`);
+    }
+  }
+  const expectedCompatibilityPairs = [
+    ["owner", "routeControl"],
+    ["routeControl", "action"],
+    ["action", "state"],
+    ["state", "readback"],
+    ["readback", "verifierAssertion"],
+  ];
+  if (!Array.isArray(compatibilityChain?.edges) ||
+      compatibilityChain.edges.length !== expectedCompatibilityPairs.length) {
+    errors.push(`${row.id} REVIEW4 compatibility edge count drift`);
+  } else {
+    expectedCompatibilityPairs.forEach(([from, to], index) => {
+      const edge = compatibilityChain.edges[index];
+      if (edge.from !== from || edge.to !== to ||
+          stableStringify(edge.proof) !== stableStringify(proof.edges?.[index])) {
+        errors.push(`${row.id} REVIEW4 compatibility edge binding drift`);
+      }
+    });
+  }
+  if (item.sourceEvidence?.file !== proof.roles?.owner?.file ||
+      item.sourceEvidence?.anchor !== proof.roles?.owner?.anchor) {
+    errors.push(`${row.id} REVIEW4 source evidence compatibility binding drift`);
+  }
+  if (item.verifierEvidence?.file !== proof.roles?.readback?.file ||
+      item.verifierEvidence?.anchor !== proof.roles?.readback?.anchor ||
+      item.verifierEvidence?.command !== proof.verifier?.command) {
+    errors.push(`${row.id} REVIEW4 verifier evidence compatibility binding drift`);
+  }
+  if (item.status !== SEMANTIC_REVIEW_STATUS ||
+      item.review?.reviewer !== REVIEW4_APPROVAL_REVIEWER_SOURCE ||
+      item.review?.sourceFlowDigest !== proof.sourceFlowDigest ||
+      item.review?.approvalDigest !== proof.approvalDigest ||
+      !/^[a-f0-9]{64}$/.test(String(proof.sourceFlowDigest)) ||
+      !/^[a-f0-9]{64}$/.test(String(proof.approvalDigest))) {
+    errors.push(`${row.id} REVIEW4 approval binding drift`);
+  }
+  const expectedFeatureContractSha256 = sha256(`${row.feature}\n${row.pass}`);
+  const expectedSemanticObligation = buildReview4SemanticObligation(row, { rootDir });
+  if (stableStringify(proof.semanticObligation) !== stableStringify(expectedSemanticObligation)) {
+    errors.push(`${row.id} REVIEW4 typed semantic obligation drift`);
+  }
+  const expectedSourceFlowDigest = review4SourceFlowDigest({
+    id: row.id,
+    featureContractSha256: proof.featureContractSha256,
+    flowKind: proof.flowKind,
+    requirement: proof.requirement,
+    evidenceMode: proof.evidenceMode,
+    evidenceToken: proof.evidenceToken,
+    sharedContract: proof.sharedContract,
+    semanticObligation: proof.semanticObligation,
+    verifier: proof.verifier,
+    roles: proof.roles,
+    edges: proof.edges,
+    trustBindings: proof.trustBindings,
+  });
+  if (proof.featureContractSha256 !== expectedFeatureContractSha256 ||
+      proof.sourceFlowDigest !== expectedSourceFlowDigest) {
+    errors.push(`${row.id} REVIEW4 source-flow digest drift`);
+  }
+  if (proof.approval?.id !== row.id ||
+      proof.approval?.decision !== "approved-source-flow" ||
+      proof.approval?.reviewerSource !== REVIEW4_APPROVAL_REVIEWER_SOURCE ||
+      proof.approval?.sourceFlowDigest !== proof.sourceFlowDigest ||
+      !String(proof.approval?.reason || "").includes(row.id) ||
+      !String(proof.approval?.reason || "").includes(proof.verifier?.command || "__missing__") ||
+      !String(proof.approval?.reason || "").includes(proof.evidenceToken || "__missing__") ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(String(proof.approval?.reviewedOn || "")) ||
+      sha256(JSON.stringify(proof.approval)) !== proof.approvalDigest) {
+    errors.push(`${row.id} REVIEW4 embedded approval drift`);
+  }
+  for (const role of ["owner", "dispatch", "action", "state", "readback", "verifier"]) {
+    validateReview4DirectLocator(rootDir, row.id, role, proof.roles?.[role], errors);
+  }
+  const trustItem = {
+    id: row.id,
+    status: "source-resolved-candidate",
+    featureContractSha256: proof.featureContractSha256,
+    flowKind: proof.flowKind,
+    requirement: proof.requirement,
+    evidenceMode: proof.evidenceMode,
+    evidenceToken: proof.evidenceToken,
+    sharedContract: proof.sharedContract,
+    semanticObligation: proof.semanticObligation,
+    verifier: proof.verifier,
+    roles: proof.roles,
+    edges: proof.edges,
+    trustBindings: proof.trustBindings,
+  };
+  const review4Dispatch = parseVerifiedReview4Dispatch(rootDir);
+  errors.push(...validateReview4TrustBindings(rootDir, trustItem, review4Dispatch));
+  errors.push(...validateReview4SemanticProof({ item: trustItem, dispatchIndex: review4Dispatch, rootDir }).map(error => `${row.id} REVIEW4 ${error}`));
+  if (!/^[a-f0-9]{64}$/.test(String(proof.candidateDigest || ""))) {
+    errors.push(`${row.id} REVIEW4 candidate digest missing from applied proof`);
+  }
+  const expectedPairs = [["owner", "dispatch"], ["dispatch", "action"], ["action", "state"], ["state", "readback"], ["readback", "verifier"]];
+  if (!Array.isArray(proof.edges) || proof.edges.length !== expectedPairs.length) {
+    errors.push(`${row.id} REVIEW4 edge count drift`);
+  } else {
+    expectedPairs.forEach(([from, to], index) => {
+      const edge = proof.edges[index];
+      if (edge.from !== from || edge.to !== to || !edge.kind || !edge.witness) {
+        errors.push(`${row.id} REVIEW4 ${from}->${to} edge drift`);
+      }
+    });
+  }
+  if (proof.roles?.action?.file === proof.roles?.state?.file &&
+      proof.roles?.action?.anchor === proof.roles?.state?.anchor) {
+    errors.push(`${row.id} REVIEW4 action/state self comparison`);
+  }
+  if (proof.roles?.verifier?.file !== "server.sh" ||
+      !String(proof.roles.verifier.anchor).includes(proof.verifier?.command || "__missing__")) {
+    errors.push(`${row.id} REVIEW4 verifier dispatch drift`);
+  }
+  const expectedBehaviorSha = sha256(normalize(`${row.feature}\n${row.pass}`));
+  if (evidence.stateOracle?.expectedBehaviorSha256 !== expectedBehaviorSha ||
+      evidence.stateOracle?.expectedBehavior !== normalize(row.pass)) {
+    errors.push(`${row.id} REVIEW4 state oracle drift`);
+  }
+  const assertion = evidence.verifierAssertion || {};
+  if (assertion.file !== proof.roles.readback.file ||
+      assertion.assertionAnchor !== proof.roles.readback.anchor ||
+      assertion.command !== proof.verifier.command) {
+    errors.push(`${row.id} REVIEW4 independent assertion drift`);
+  }
+  const digest = semanticDigest(row, evidence);
+  if (assertion.assertedSemanticDigest !== digest || item.review?.semanticDigest !== digest) {
+    errors.push(`${row.id} REVIEW4 semantic digest drift`);
+  }
+  return errors;
+}
+
+function validateReview4DirectLocator(rootDir, id, role, locator, errors) {
+  if (!locator?.file || !locator?.anchor || !Number.isInteger(locator?.line) || !locator?.contextSha256) {
+    errors.push(`${id} REVIEW4 ${role} locator missing`);
+    return;
+  }
+  let source;
+  try { source = review3Source(rootDir, locator.file); }
+  catch { errors.push(`${id} REVIEW4 ${role} file missing: ${locator.file}`); return; }
+  const lineText = (source.lines[locator.line - 1] || "").trim();
+  if (lineText !== String(locator.anchor).trim()) errors.push(`${id} REVIEW4 ${role} line drift`);
+  if (sha256(review3ContextAtLine(source.lines, locator.line)) !== locator.contextSha256) {
+    errors.push(`${id} REVIEW4 ${role} context drift`);
+  }
+}
+
 export function summarizeSemanticClosure({ rows, manifest }) {
   const items = Array.isArray(manifest?.items) ? manifest.items : [];
   return {
@@ -194,18 +429,19 @@ export function runSemanticClosureContract({ rootDir, rows, manifest }) {
   ));
   cases.push(resultCase(
     "safe-140-command-workspace-owner-corrected",
-    safe140?.semanticEvidence?.callChain?.roles?.owner?.symbol === "AppendOpsDashboardPage" &&
-      safe140?.semanticEvidence?.callChain?.roles?.action?.symbol === "OpsV350CommandPlanJson" &&
-      safe140?.semanticEvidence?.callChain?.roles?.state?.symbol === "OpsV350StagedChangePlanImpactPreviewJson",
-    JSON.stringify(safe140?.semanticEvidence?.callChain?.roles || {}),
+    safe140?.semanticEvidence?.review4Proof?.roles?.owner?.symbol === "renderV350OpsCommandWorkspace" &&
+      safe140?.semanticEvidence?.review4Proof?.roles?.action?.anchor === "const commandPlan = payload.commandPlan || {};" &&
+      safe140?.semanticEvidence?.review4Proof?.roles?.state?.anchor === "const boundaryOk = liveOperationsGraph.boundaries?.readOnly === true &&" &&
+      safe140?.semanticEvidence?.review4Proof?.roles?.readback?.symbol === "canonical-safe-140-readback",
+    JSON.stringify(safe140?.semanticEvidence?.review4Proof?.roles || {}),
   ));
   cases.push(resultCase(
     "rule-017-generated-id-owner-corrected",
-    rule017?.semanticEvidence?.callChain?.roles?.owner?.symbol === "AppendOpsRulesPage" &&
-      rule017?.semanticEvidence?.callChain?.roles?.action?.symbol === "opsRulesSaveNativeRecord" &&
-      rule017?.semanticEvidence?.callChain?.roles?.state?.symbol === "setOpsGeneratedId" &&
-      rule017?.verifierEvidence?.command === "verify-ops-client-ui",
-    JSON.stringify(rule017?.semanticEvidence?.callChain?.roles || {}),
+    rule017?.semanticEvidence?.review4Proof?.roles?.owner?.symbol === "AppendOpsRulesPage" &&
+      rule017?.semanticEvidence?.review4Proof?.roles?.action?.anchor === '<input id="opsVaRuleIdInput" type="hidden" />' &&
+      rule017?.semanticEvidence?.review4Proof?.roles?.state?.anchor.includes('data-generated-id="va-rule"') &&
+      rule017?.verifierEvidence?.command === "verify-ops-rules-roundtrip",
+    JSON.stringify(rule017?.semanticEvidence?.review4Proof?.roles || {}),
   ));
   const safe217 = itemById.get("SAFE-217");
   const ops184 = itemById.get("OPS-184");
@@ -215,51 +451,51 @@ export function runSemanticClosureContract({ rootDir, rows, manifest }) {
   const safe201 = itemById.get("SAFE-201");
   cases.push(resultCase(
     "safe-217-persist-before-publish-chain",
-    safe217?.semanticEvidence?.callChain?.roles?.owner?.symbol === "PersistAndPublishLocked" &&
-      safe217?.semanticEvidence?.callChain?.roles?.action?.symbol === "PersistAndPublishLocked" &&
-      safe217?.semanticEvidence?.callChain?.roles?.state?.symbol === "PersistAndPublishLocked" &&
-      safe217?.semanticEvidence?.callChain?.roles?.readback?.symbol === "runFailureStage",
-    JSON.stringify(safe217?.semanticEvidence?.callChain?.roles || {}),
+    safe217?.semanticEvidence?.review4Proof?.roles?.owner?.symbol === "WriteAnalysisRegistryFileAtomically" &&
+      safe217?.semanticEvidence?.review4Proof?.roles?.action?.anchor.includes("::rename") &&
+      safe217?.semanticEvidence?.review4Proof?.roles?.state?.anchor.includes("failed to replace analysis registry file") &&
+      safe217?.semanticEvidence?.review4Proof?.roles?.readback?.symbol === "runFailureStage",
+    JSON.stringify(safe217?.semanticEvidence?.review4Proof?.roles || {}),
   ));
   cases.push(resultCase(
     "ops-184-crash-recovery-chain",
-    ops184?.semanticEvidence?.callChain?.roles?.owner?.symbol === "AnalysisRegistryMutationErrorResponse" &&
-      ops184?.semanticEvidence?.callChain?.roles?.action?.symbol === "PersistAndPublishLocked" &&
-      ops184?.semanticEvidence?.callChain?.roles?.state?.symbol === "EnsureLoadedLocked" &&
-      ops184?.semanticEvidence?.callChain?.roles?.readback?.symbol === "runCrashCase",
-    JSON.stringify(ops184?.semanticEvidence?.callChain?.roles || {}),
+    ops184?.semanticEvidence?.review4Proof?.roles?.owner?.symbol === "RecoverAnalysisRegistryTemporaryFiles" &&
+      ops184?.semanticEvidence?.review4Proof?.roles?.action?.anchor.includes("directory_fd") &&
+      ops184?.semanticEvidence?.review4Proof?.roles?.state?.anchor.includes("marker_path") &&
+      ops184?.semanticEvidence?.review4Proof?.roles?.readback?.symbol === "runCrashCase",
+    JSON.stringify(ops184?.semanticEvidence?.review4Proof?.roles || {}),
   ));
   cases.push(resultCase(
     "ops-173-structural-profile-integrity-chain",
-    ops173?.semanticEvidence?.callChain?.roles?.owner?.symbol === "PrepareVlmProfileDocumentLocked" &&
-      ops173?.semanticEvidence?.callChain?.roles?.action?.symbol === "PrepareVlmProfileDocumentLocked" &&
-      ops173?.semanticEvidence?.callChain?.roles?.state?.symbol === "CanonicalizeStoredVlmProfileLocked" &&
-      ops173?.semanticEvidence?.callChain?.roles?.readback?.symbol === "verifyStructuralProfileRejection",
-    JSON.stringify(ops173?.semanticEvidence?.callChain?.roles || {}),
+    ops173?.semanticEvidence?.review4Proof?.roles?.owner?.symbol === "PrepareVlmProfileDocumentLocked" &&
+      ops173?.semanticEvidence?.review4Proof?.roles?.action?.symbol === "ValidateVlmEvaluationPromotion" &&
+      ops173?.semanticEvidence?.review4Proof?.roles?.state?.symbol === "CanonicalEvaluationJson" &&
+      ops173?.semanticEvidence?.review4Proof?.roles?.readback?.symbol === "runCase",
+    JSON.stringify(ops173?.semanticEvidence?.review4Proof?.roles || {}),
   ));
   cases.push(resultCase(
     "ops-180-reload-provenance-integrity-chain",
-    ops180?.semanticEvidence?.callChain?.roles?.owner?.symbol === "ValidateVlmIncidentRuleProvenanceContract" &&
-      ops180?.semanticEvidence?.callChain?.roles?.action?.symbol === "ValidateVlmIncidentRuleProvenanceServerRecords" &&
-      ops180?.semanticEvidence?.callChain?.roles?.state?.symbol === "EnsureLoadedLocked" &&
-      ops180?.semanticEvidence?.callChain?.roles?.readback?.symbol === "provenanceRestartReadback",
-    JSON.stringify(ops180?.semanticEvidence?.callChain?.roles || {}),
+    ops180?.semanticEvidence?.review4Proof?.roles?.owner?.symbol === "opsRulesReadEventTemplateForm" &&
+      ops180?.semanticEvidence?.review4Proof?.roles?.action?.anchor === "if (draftProvenance) {" &&
+      ops180?.semanticEvidence?.review4Proof?.roles?.state?.anchor === "payload.vlmProvenance = {" &&
+      ops180?.semanticEvidence?.review4Proof?.roles?.readback?.symbol === "readPersistedRuleProvenance",
+    JSON.stringify(ops180?.semanticEvidence?.review4Proof?.roles || {}),
   ));
   cases.push(resultCase(
     "ops-168-delegated-exact-ledger-chain",
-    ops168?.semanticEvidence?.callChain?.roles?.owner?.symbol === "projectDelegatedPhaseLedger" &&
-      ops168?.semanticEvidence?.callChain?.roles?.action?.symbol === "validateDelegatedPhaseLedger" &&
-      ops168?.semanticEvidence?.callChain?.roles?.state?.symbol === "projectDelegatedPhaseLedger" &&
-      ops168?.semanticEvidence?.callChain?.roles?.readback?.symbol === "delegatedProjectionContract",
-    JSON.stringify(ops168?.semanticEvidence?.callChain?.roles || {}),
+    ops168?.semanticEvidence?.review4Proof?.roles?.owner?.symbol === "check:predev summary fixture preserves delegated first failure step" &&
+      ops168?.semanticEvidence?.review4Proof?.roles?.action?.anchor === "const summary = readJson(run.summaryPath);" &&
+      ops168?.semanticEvidence?.review4Proof?.roles?.state?.anchor.includes('"soak-case-loop", "not-run"') &&
+      ops168?.semanticEvidence?.review4Proof?.roles?.readback?.symbol === "assertPhaseStatus",
+    JSON.stringify(ops168?.semanticEvidence?.review4Proof?.roles || {}),
   ));
   cases.push(resultCase(
     "safe-201-delegated-ledger-rejection-chain",
-    safe201?.semanticEvidence?.callChain?.roles?.owner?.symbol === "validateDelegatedPhaseLedger" &&
-      safe201?.semanticEvidence?.callChain?.roles?.action?.symbol === "projectDelegatedPhaseLedger" &&
-      safe201?.semanticEvidence?.callChain?.roles?.state?.symbol === "projectDelegatedPhaseLedger" &&
-      safe201?.semanticEvidence?.callChain?.roles?.readback?.symbol === "delegatedInvalidLedgerContract",
-    JSON.stringify(safe201?.semanticEvidence?.callChain?.roles || {}),
+    safe201?.semanticEvidence?.review4Proof?.roles?.owner?.anchor.startsWith("function projectDelegatedPhaseLedger") &&
+      safe201?.semanticEvidence?.review4Proof?.roles?.action?.anchor === "delegatedPhaseLedger = validation.evidence;" &&
+      safe201?.semanticEvidence?.review4Proof?.roles?.state?.anchor.includes("delegatedPhaseLedger.phases.find") &&
+      safe201?.semanticEvidence?.review4Proof?.roles?.readback?.symbol === "readback:SAFE-201",
+    JSON.stringify(safe201?.semanticEvidence?.review4Proof?.roles || {}),
   ));
   const manifestLib = fs.readFileSync(path.join(rootDir, "scripts/internal/feature_implementation_manifest_lib.mjs"), "utf8");
   const semanticLib = fs.readFileSync(path.join(rootDir, "scripts/internal/feature_semantic_evidence_lib.mjs"), "utf8");
@@ -276,23 +512,23 @@ export function runSemanticClosureContract({ rootDir, rows, manifest }) {
   if (!base) return cases;
 
   const negatives = [
-    ["wrong-handler-symbol-negative", copy => { copy.semanticEvidence.handler.symbol = "WrongHandler"; }, "handler symbol drift"],
-    ["same-file-unrelated-anchor-negative", copy => { copy.semanticEvidence.handler.anchor = "/password"; }, "handler"],
-    ["route-drift-negative", copy => { copy.semanticEvidence.route.value = "/password"; }, "route drift"],
-    ["action-drift-negative", copy => { copy.semanticEvidence.actionHandler.symbol = "WrongAction"; }, "actionHandler symbol drift"],
-    ["state-drift-negative", copy => { copy.semanticEvidence.stateOracle.expectedBehaviorSha256 = "0".repeat(64); }, "state oracle behavior drift"],
+    ["wrong-handler-symbol-negative", copy => { copy.semanticEvidence.handler.symbol = "WrongHandler"; }, "REVIEW4 semantic digest drift"],
+    ["same-file-unrelated-anchor-negative", copy => { copy.semanticEvidence.handler.anchor = "/password"; }, "REVIEW4 semantic digest drift"],
+    ["route-drift-negative", copy => { copy.semanticEvidence.route.value = "/password"; }, "REVIEW4 semantic digest drift"],
+    ["action-drift-negative", copy => { copy.semanticEvidence.actionHandler.symbol = "WrongAction"; }, "REVIEW4 semantic digest drift"],
+    ["state-drift-negative", copy => { copy.semanticEvidence.stateOracle.expectedBehaviorSha256 = "0".repeat(64); }, "REVIEW4 state oracle drift"],
     ["generic-anchor-alone-negative", copy => {
       copy.semanticEvidence.handler.anchor = "analysis";
       copy.semanticEvidence.handler.anchorStrength = "generic-alone";
-    }, "generic anchor cannot stand alone"],
-    ["id-only-verifier-negative", copy => { copy.semanticEvidence.verifierAssertion.assertionAnchor = copy.id; }, "not an ID string"],
+    }, "REVIEW4 semantic digest drift"],
+    ["id-only-verifier-negative", copy => { copy.semanticEvidence.verifierAssertion.assertionAnchor = copy.id; }, "REVIEW4 independent assertion drift"],
     ["unapproved-review-negative", copy => { copy.review.decision = "pending"; }, "not approved"],
-    ["missing-reviewed-edge-negative", copy => { copy.semanticEvidence.callChain.edges.pop(); }, "edge sequence drift"],
+    ["missing-reviewed-edge-negative", copy => { copy.semanticEvidence.callChain.edges.pop(); }, "REVIEW4 compatibility edge count drift"],
     ["generic-owner-negative", copy => {
       copy.semanticEvidence.callChain.roles.owner.anchor = "state";
       copy.semanticEvidence.callChain.roles.owner.anchorStrength = "generic-alone";
-    }, "generic owner"],
-    ["call-chain-digest-negative", copy => { copy.semanticEvidence.callChain.digest = "0".repeat(64); }, "call chain digest drift"],
+    }, "REVIEW4 compatibility owner binding drift"],
+    ["call-chain-digest-negative", copy => { copy.semanticEvidence.callChain.digest = "0".repeat(64); }, "REVIEW4 compatibility call chain drift"],
   ];
   for (const [name, mutate, expected] of negatives) {
     const copy = structuredClone(base);
@@ -303,28 +539,28 @@ export function runSemanticClosureContract({ rootDir, rows, manifest }) {
   for (const [name, source, rowId, mutate, expected] of [
     ["safe-140-unrelated-owner-negative", safe140, "SAFE-140", copy => {
       copy.semanticEvidence.callChain.roles.action.symbol = "OpsV380ClientNoticeDraftQueueJson";
-    }, "unrelated command workspace owner"],
+    }, "REVIEW4 compatibility action binding drift"],
     ["rule-017-generic-json-owner-negative", rule017, "RULE-017", copy => {
       copy.semanticEvidence.callChain.roles.owner.symbol = "ExtractObjectField";
-    }, "unrelated generated-id owner"],
+    }, "REVIEW4 compatibility owner binding drift"],
     ["safe-217-wrong-publish-state-negative", safe217, "SAFE-217", copy => {
-      copy.semanticEvidence.callChain.roles.state.symbol = "WriteAnalysisRegistryFileAtomically";
-    }, "durable no-publish chain drift"],
+      copy.semanticEvidence.callChain.roles.state.symbol = "PersistAndPublishLocked";
+    }, "REVIEW4 compatibility state binding drift"],
     ["ops-184-wrong-recovery-readback-negative", ops184, "OPS-184", copy => {
       copy.semanticEvidence.callChain.roles.readback.symbol = "runFailureStage";
-    }, "crash recovery chain drift"],
+    }, "REVIEW4 compatibility readback binding drift"],
     ["ops-173-wrong-structural-readback-negative", ops173, "OPS-173", copy => {
       copy.semanticEvidence.callChain.roles.readback.symbol = "verifyReloadQuarantine";
-    }, "structural profile integrity chain drift"],
+    }, "REVIEW4 compatibility readback binding drift"],
     ["ops-180-wrong-provenance-state-negative", ops180, "OPS-180", copy => {
       copy.semanticEvidence.callChain.roles.state.symbol = "PersistAndPublishLocked";
-    }, "reload provenance integrity chain drift"],
+    }, "REVIEW4 compatibility state binding drift"],
     ["ops-168-wrong-ledger-action-negative", ops168, "OPS-168", copy => {
       copy.semanticEvidence.callChain.roles.action.symbol = "delegatedProjectionStatus";
-    }, "delegated exact ledger chain drift"],
+    }, "REVIEW4 compatibility action binding drift"],
     ["safe-201-wrong-ledger-readback-negative", safe201, "SAFE-201", copy => {
       copy.semanticEvidence.callChain.roles.readback.symbol = "delegatedProjectionContract";
-    }, "delegated ledger rejection chain drift"],
+    }, "REVIEW4 compatibility readback binding drift"],
   ]) {
     const copy = structuredClone(source);
     mutate(copy);
@@ -335,109 +571,11 @@ export function runSemanticClosureContract({ rootDir, rows, manifest }) {
 }
 
 export function migrateReview3SemanticClosure({ rootDir, rows, manifest, selectedIds = null }) {
-  const rowById = new Map(rows.map(row => [row.id, row]));
-  const selected = selectedIds === null ? null : new Set(selectedIds);
-  const migrated = structuredClone(manifest);
-  migrated.semanticClosureSchema = SEMANTIC_CLOSURE_SCHEMA;
-  migrated.generationPolicy =
-    "reviewed-map-only; unrelated source changes preserve approved rows; changed rows become review-required; token scoring and bulk approval are forbidden";
-  migrated.semanticClosurePolicy =
-    "986 explicit owner -> route/control -> action -> state -> readback -> verifier chains with content-addressed locators and per-feature review reasons";
-  migrated.items = migrated.items.map(item => {
-    if (selected !== null && !selected.has(item.id)) return item;
-    const row = rowById.get(item.id);
-    if (!row) throw new Error(`review3 migration row missing: ${item.id}`);
-    const override = review3Override(rootDir, row, item);
-    if (override?.verifierEvidence) item.verifierEvidence = override.verifierEvidence;
-
-    const evidence = item.semanticEvidence;
-    evidence.schema = SEMANTIC_CLOSURE_SCHEMA;
-    const roles = override?.roles || {
-      owner: strengthenLocator(rootDir, evidence.handler),
-      routeControl: evidence.controlSelector?.applicability === "product-control"
-        ? strengthenLocator(rootDir, evidence.controlSelector.locator)
-        : strengthenLocator(rootDir, evidence.handler),
-      action: strengthenLocator(rootDir, evidence.actionHandler),
-      state: strengthenLocator(rootDir, evidence.stateOracle.locator),
-      readback: locatorFromEvidence(rootDir, item.verifierEvidence),
-    };
-    const routeControlKind = override?.routeControlKind ||
-      (evidence.controlSelector?.applicability === "product-control"
-        ? "visible-or-state-control"
-        : evidence.route?.applicability === "http-or-product-route"
-          ? "route-dispatch"
-          : "owner-boundary");
-    const chain = {
-      schema: REVIEW3_CALL_CHAIN_SCHEMA,
-      roles,
-      routeControlKind,
-      edges: buildReview3Edges(roles, routeControlKind),
-      digest: "",
-    };
-    chain.digest = review3CallChainDigest(row, chain);
-    evidence.callChain = chain;
-
-    evidence.handler = roles.owner;
-    evidence.actionHandler = roles.action;
-    evidence.stateOracle.locator = roles.state;
-    const expectedBehavior = normalize(row.pass);
-    const expectedBehaviorSha256 = sha256(normalize(`${row.feature}\n${row.pass}`));
-    evidence.stateOracle.expectedBehavior = expectedBehavior;
-    evidence.stateOracle.expectedBehaviorSha256 = expectedBehaviorSha256;
-    if (evidence.route?.applicability === "http-or-product-route") {
-      evidence.route.dispatchAnchor = roles.owner.anchor;
-      evidence.route.handlerFile = roles.owner.file;
-      evidence.route.handlerSymbol = roles.owner.symbol;
-      evidence.route.contextSha256 = roles.owner.contextSha256;
-    }
-    if (evidence.controlSelector?.applicability === "product-control") {
-      evidence.controlSelector.locator = roles.routeControl;
-      evidence.controlSelector.value = override?.controlValue || evidence.controlSelector.value;
-    }
-    evidence.relation.handlerSymbol = roles.owner.symbol;
-    evidence.relation.actionSymbol = roles.action.symbol;
-    evidence.relation.stateSymbol = roles.state.symbol;
-    evidence.relation.semanticKey = `${row.id}:${expectedBehaviorSha256.slice(0, 24)}`;
-    evidence.verifierAssertion = {
-      file: "scripts/internal/feature_semantic_evidence_lib.mjs",
-      symbol: "validateReview3CallChain",
-      assertionKind: "reviewed-owner-route-control-action-state-readback-chain",
-      assertionAnchor: "validateReview3CallChain",
-      command: "verify-feature-implementation-evidence",
-      assertedSemanticDigest: "",
-    };
-    item.sourceEvidence = {
-      file: roles.owner.file,
-      anchor: roles.owner.anchor,
-      anchorKind: "reviewed-owner-source-line",
-    };
-    if (item.uiEvidence &&
-        (override || evidence.controlSelector?.applicability === "product-control")) {
-      item.uiEvidence.file = roles.routeControl.file;
-      item.uiEvidence.anchor = roles.routeControl.anchor;
-      item.uiEvidence.anchorKind = "reviewed-route-control-source-line";
-    }
-    const reviewStep = override?.reviewStep || "V390-REVIEW3-37";
-    const reason = review3Reason(row, roles, chain.digest, reviewStep);
-    item.status = SEMANTIC_REVIEW_STATUS;
-    item.review = {
-      decision: "approved",
-      reviewer: `Codex-${reviewStep}`,
-      reviewedOn: "2026-07-12",
-      reason,
-      semanticDigest: "",
-    };
-    const digest = semanticDigest(row, evidence);
-    evidence.verifierAssertion.assertedSemanticDigest = digest;
-    item.review.semanticDigest = digest;
-    return item;
-  });
-  migrated.semanticClosureSummary = summarizeSemanticClosure({ rows, manifest: migrated });
-  migrated.semanticClosureSummary.uniqueReviewReasons =
-    new Set(migrated.items.map(item => item.review.reason)).size;
-  migrated.semanticClosureSummary.reviewedCallChains =
-    migrated.items.filter(item => item.semanticEvidence?.callChain?.schema === REVIEW3_CALL_CHAIN_SCHEMA).length;
-  return migrated;
+  void rootDir;
+  void rows;
+  void manifest;
+  void selectedIds;
+  throw new Error("REVIEW3 semantic migration is retired: it generated candidates, edges, digests, and approvals in one trust domain");
 }
 
 export function validateReview3CallChain({ rootDir, row, item, errors = [] }) {
@@ -547,22 +685,6 @@ export function validateReview3CallChain({ rootDir, row, item, errors = [] }) {
   return errors;
 }
 
-function buildReview3Edges(roles, routeControlKind) {
-  const specs = [
-    ["owner", "routeControl", routeControlKind],
-    ["routeControl", "action", "reviewed-dispatch-or-control-flow"],
-    ["action", "state", "reviewed-mutation-readmodel-flow"],
-    ["state", "readback", "exact-readback-assertion"],
-    ["readback", "verifierAssertion", "exact-verifier-command"],
-  ];
-  return specs.map(([from, to, relationKind]) => ({
-    from,
-    to,
-    relationKind,
-    digest: review3EdgeDigest(from, to, relationKind, roles),
-  }));
-}
-
 function review3EdgeDigest(from, to, relationKind, roles) {
   const fromLocator = roles[from] || roles.readback;
   const toLocator = roles[to] || roles.readback;
@@ -586,64 +708,6 @@ function review3CallChainDigest(row, chain) {
     expectedBehavior: normalize(row.pass),
     chain: copy,
   }));
-}
-
-function review3Reason(row, roles, digest, reviewStep = "V390-REVIEW3-37") {
-  return [
-    reviewStep,
-    row.id,
-    normalize(row.feature),
-    `owner=${roles.owner.symbol}`,
-    `routeControl=${roles.routeControl.symbol}`,
-    `action=${roles.action.symbol}`,
-    `state=${roles.state.symbol}`,
-    `readback=${roles.readback.symbol}`,
-    `chain=${digest.slice(0, 16)}`,
-  ].join(":");
-}
-
-function strengthenLocator(rootDir, locator) {
-  const { text, lines } = review3Source(rootDir, locator.file);
-  const index = nthIndex(text, locator.anchor, locator.occurrence);
-  if (index < 0) throw new Error(`cannot strengthen locator ${locator.file}:${locator.anchor}`);
-  const line = lineNumberAt(text, index, locator.file);
-  const sourceLine = (lines[line - 1] || "").trim();
-  const anchor = sourceLine || locator.anchor;
-  const anchorIndex = text.lastIndexOf(anchor, index);
-  return {
-    ...locator,
-    anchor,
-    anchorKind: "reviewed-source-line",
-    anchorStrength: "feature-specific-source-line",
-    occurrence: occurrenceNumber(text, anchor, anchorIndex >= 0 ? anchorIndex : index),
-    line,
-    contextSha256: sha256(review3ContextAtLine(lines, line)),
-  };
-}
-
-function locatorFromEvidence(rootDir, evidence) {
-  return locatorFromToken(rootDir, evidence.file, evidence.anchor, `verifier:${evidence.command}`);
-}
-
-function locatorFromToken(rootDir, file, token, symbol, occurrence = 0) {
-  const { text, lines } = review3Source(rootDir, file);
-  const tokenIndex = nthIndex(text, token, occurrence);
-  if (tokenIndex < 0) throw new Error(`reviewed token missing ${file}:${token}`);
-  const line = lineNumberAt(text, tokenIndex, file);
-  const sourceLine = (lines[line - 1] || "").trim();
-  const anchor = sourceLine || token;
-  const anchorIndex = text.lastIndexOf(anchor, tokenIndex);
-  return {
-    file,
-    symbol,
-    symbolKind: "reviewed-owner-or-readback",
-    anchor,
-    anchorKind: "reviewed-source-line",
-    anchorStrength: "feature-specific-source-line",
-    occurrence: occurrenceNumber(text, anchor, anchorIndex >= 0 ? anchorIndex : tokenIndex),
-    line,
-    contextSha256: sha256(review3ContextAtLine(lines, line)),
-  };
 }
 
 function review3Source(rootDir, file) {

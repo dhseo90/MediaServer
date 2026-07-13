@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v3.7.0 Step 10 Approval Ticket Workflow 구현, 문서, inventory 연결을 검증한다.
 
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -150,8 +151,31 @@ check("docs, inventory, and dispatch map v3.7 Step 10", () => {
   }
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v370_approval_ticket_workflow.mjs", "server.sh dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const id of ["LAB-105", "SAFE-171", "OPS-138"]) assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   assertIncludes(files.scriptInventory, "verify_v370_approval_ticket_workflow.mjs", "script inventory");
+});
+
+check("SAFE-171 canonical bounded no-execution boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV370ApprovalTicketWorkflowJson(");
+  const routeObserved = files.server.includes("/ops/api/site-operations/approval-ticket-workflow");
+  const safe171BoundaryObserved = block.includes("BuildV370ApprovalTicketWorkflowItems");
+  const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const automaticApplyPerformed = /\b(?:AutomaticApply|SafeApply|ApplyRule|ApplySource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const clientNoticeSent = /\bSendClientNotice[A-Za-z0-9_:]*\s*\(/.test(block);
+  const fieldSmokeExecuted = /\b(?:ExecuteFieldSmoke|ProbeEndpoint|ContactDevice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\"(?:rawLocator|rawJson|rawProviderResponse|rawEndpoint|rawMaterial)\\":true/.test(block);
+  const sourceUrlExposed = block.includes("\\\"sourceUrlIncluded\\\":true") || block.includes("\\\"sourceUrlExposed\\\":true");
+  const credentialMaterialExposed = block.includes("\\\"credentialMaterialIncluded\\\":true") || block.includes("\\\"credentialMaterialExposed\\\":true");
+  const debugMaterialExposed = block.includes("\\\"debugMaterialIncluded\\\":true") || block.includes("\\\"debugMaterialExposed\\\":true");
+  const viewerClientExposureAdded = block.includes("\\\"viewerClientExposureAdded\\\":true");
+  const mediaPathChanged = block.includes("\\\"rtspOrWebrtcMediaPathChanged\\\":true");
+  assert(routeObserved && safe171BoundaryObserved && block.includes("media-server.ops.v370-approval-ticket-workflow.v1") && writePerformed === false && mutationPerformed === false && executionPerformed === false && automaticApplyPerformed === false && clientNoticeSent === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+    "SAFE-171 BuildV370ApprovalTicketWorkflowItems must remain bounded no-execution no-write redacted and client/provider isolated");
 });
 
 finish("== v3.7.0 approval ticket workflow summary ==", { schema, step: "v3.7.0 (10)", route });
@@ -177,6 +201,7 @@ function loadFiles() {
     streamVerification: readText("docs/stream-verification.md"),
     featureInventory: readText("docs/project-feature-test-inventory.md"),
     featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
+    implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
     projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
     scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
     releaseRecords: readText("docs/release-test-records.md"),

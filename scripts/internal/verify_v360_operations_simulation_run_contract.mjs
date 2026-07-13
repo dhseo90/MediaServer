@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 // 파일 용도: v3.6.0 Step 3 Operations Simulation Run Contract 구현, 문서, inventory 연결을 검증한다.
 
 import fs from "node:fs";
@@ -146,7 +147,9 @@ check("docs and inventory map v3.6 Step 3", () => {
 check("server entrypoint and inventory verifiers include v3.6 Step 3", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v360_operations_simulation_run_contract.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const id of ["LAB-095", "SAFE-150", "OPS-117"]) assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   for (const id of ["LAB-095", "SAFE-150", "OPS-117"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
@@ -177,6 +180,7 @@ function loadFiles() {
     streamVerification: readText("docs/stream-verification.md"),
     featureInventory: readText("docs/project-feature-test-inventory.md"),
     featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
+    implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
     projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
     scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
     releaseRecords: readText("docs/release-test-records.md"),
@@ -206,6 +210,18 @@ function assertFlagFalse(text, flag) {
 }
 
 function finish(title, summary) {
+  check("SAFE-150 canonical simulation run no-execution boundary", () => {
+    const block = extractCppFunctionBlock(files.server, "std::string OpsV360OperationsSimulationRunContractJson(");
+    const routeObserved = files.server.includes("/ops/api/live-operations/simulation/run-contract");
+    const safe150BoundaryObserved = block.includes("BuildV360SimulationRunContract") && block.includes("BuildV360SimulationResultEnvelope");
+    const simulationRunPersisted = /\\\"simulationRunPersisted\\\":true/.test(block);
+    const simulationRunExecuted = /\\\"simulationRunExecuted\\\":true/.test(block);
+    const resultEnvelopePersisted = /\\\"resultEnvelopePersisted\\\":true/.test(block);
+    const automaticApplyPerformed = /\\\"automaticApplyPerformed\\\":true/.test(block);
+    assert(routeObserved && safe150BoundaryObserved && block.includes("media-server.ops.v360-simulation-run-contract.v1") && simulationRunPersisted === false && simulationRunExecuted === false && resultEnvelopePersisted === false && automaticApplyPerformed === false,
+      "SAFE-150 BuildV360SimulationRunContract simulationRunPersisted simulationRunExecuted resultEnvelopePersisted automaticApplyPerformed must remain false");
+  });
+
   const results = runChecks();
   console.log("");
   console.log(title);

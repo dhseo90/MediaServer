@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v3.6.0 Step 11 Simulation Export Bundle 구현, 문서, inventory 연결을 검증한다.
 
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -40,6 +41,7 @@ const files = {
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
@@ -186,6 +188,9 @@ check("/ops simulation workspace declares and renders Simulation Export Bundle",
     assertIncludes(serverBlock, snippet, "v360 simulation export dashboard shell");
   }
   const scriptBlock = extractBlock(files.uiScript, "const renderV360OpsSimulationWorkspace", "const renderDashboardRootCause");
+  assertIncludes(scriptBlock, "data-v360-simulation-export-bundle", "v360 simulation export product UI state");
+  assertIncludes(files.uiScript, "/ops/dashboard", "UI-092 canonical route obligation");
+  assertIncludes(files.server, "media-server.ops.v360-simulation-export-bundle.v1", "UI-092 canonical schema obligation");
   for (const snippet of [
     "simulationExportBundle",
     "simulationExportBundleRoute",
@@ -261,11 +266,34 @@ check("docs, inventory, and dispatch map v3.6 Step 11", () => {
   }
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v360_simulation_export_bundle.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const id of ["UI-092", "LAB-098", "SAFE-158", "OPS-125"]) assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   for (const id of ["UI-092", "LAB-098", "SAFE-158", "OPS-125"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v360_simulation_export_bundle.mjs", "script inventory");
+});
+
+check("SAFE-158 canonical bounded no-execution boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV360SimulationExportBundleJson(");
+  const routeObserved = files.server.includes("/ops/api/live-operations/simulation/export-bundle");
+  const safe158BoundaryObserved = block.includes("BuildV360SimulationExportBundleItems");
+  const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const automaticApplyPerformed = /\b(?:AutomaticApply|SafeApply|ApplyRule|ApplySource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const clientNoticeSent = /\bSendClientNotice[A-Za-z0-9_:]*\s*\(/.test(block);
+  const fieldSmokeExecuted = /\b(?:ExecuteFieldSmoke|ProbeEndpoint|ContactDevice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\"(?:rawLocator|rawJson|rawProviderResponse|rawEndpoint|rawMaterial)\\":true/.test(block);
+  const sourceUrlExposed = block.includes("\\\"sourceUrlIncluded\\\":true") || block.includes("\\\"sourceUrlExposed\\\":true");
+  const credentialMaterialExposed = block.includes("\\\"credentialMaterialIncluded\\\":true") || block.includes("\\\"credentialMaterialExposed\\\":true");
+  const debugMaterialExposed = block.includes("\\\"debugMaterialIncluded\\\":true") || block.includes("\\\"debugMaterialExposed\\\":true");
+  const viewerClientExposureAdded = block.includes("\\\"viewerClientExposureAdded\\\":true");
+  const mediaPathChanged = block.includes("\\\"rtspOrWebrtcMediaPathChanged\\\":true");
+  assert(routeObserved && safe158BoundaryObserved && block.includes("media-server.ops.v360-simulation-export-bundle.v1") && writePerformed === false && mutationPerformed === false && executionPerformed === false && automaticApplyPerformed === false && clientNoticeSent === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+    "SAFE-158 BuildV360SimulationExportBundleItems must remain bounded no-execution no-write redacted and client/provider isolated");
 });
 
 const results = runChecks();

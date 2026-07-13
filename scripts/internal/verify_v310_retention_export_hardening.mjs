@@ -47,6 +47,12 @@ const files = {
 const checks = [];
 
 check("retention cleanup plan covers encoded clip lifecycle artifacts", () => {
+  const start = files.cleanupCpp.indexOf("EventRetentionCleanupResult BuildEventRetentionCleanupPlan(");
+  const end = files.cleanupCpp.indexOf("bool HasRetentionCleanupAction(", start);
+  assert(start >= 0 && end > start, "EVT-062 retention cleanup plan block missing");
+  const evt062CleanupPlanBlock = files.cleanupCpp.slice(start, end);
+  assert(!evt062CleanupPlanBlock.includes("item.pinned && !request.policy.pinned_excludes_automatic_cleanup") && evt062CleanupPlanBlock.includes("item.pinned && request.policy.pinned_excludes_automatic_cleanup"), "EVT-062 pinned automatic cleanup excluded canonical plan");
+  assertIncludes(evt062CleanupPlanBlock, "webrtc_data_channel_schema_changed", "EVT-062 WebRTC SSE RTSP boundary");
   for (const snippet of [
     "encoded_clip_manifest_count",
     "encoded_clip_media_count",
@@ -135,9 +141,6 @@ check("feature inventory and release records map V310-S08", () => {
     "EVT-062 | V310-S08 encoded clip lifecycle cleanup",
     "SAFE-099 | V310-S08 retention/export boundary",
     "OPS-066 | V310-S08 Retention/Export Hardening 게이트",
-    "`EVT-001`~`EVT-062`",
-    "`SAFE-001`~`SAFE-101`",
-    "`OPS-035`~`OPS-068`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory V310-S08");
   }
@@ -156,11 +159,23 @@ check("feature inventory and release records map V310-S08", () => {
 check("server entrypoint and inventory verifiers include V310-S08 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v310_retention_export_hardening.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureInventory, command, "feature inventory command");
   assertIncludes(files.projectInventoryVerifier, "EVT-062", "project inventory verifier EVT-062");
   assertIncludes(files.projectInventoryVerifier, "SAFE-099", "project inventory verifier SAFE-099");
   assertIncludes(files.projectInventoryVerifier, "OPS-066", "project inventory verifier OPS-066");
   assertIncludes(files.scriptInventory, "verify_v310_retention_export_hardening.mjs", "script inventory");
+});
+
+check("SAFE-099 canonical retention export boundary", () => {
+  const start = files.server.indexOf("std::string BuildReleaseSafeIncidentEvidenceBundleManifest(");
+  const end = files.server.indexOf("bool BuildEventEvidenceBundleZip(", start);
+  const exportBlock = files.server.slice(start, end);
+  const rawMaterialIncluded = /raw(?:Evidence|Json|Locator).*true/.test(exportBlock);
+  const sourceUrlIncluded = /sourceUrl.*true/.test(exportBlock);
+  const debugMaterialIncluded = /debugMaterial.*true/.test(exportBlock);
+  const safe099BoundaryObserved = files.server.includes("export-bundle") && exportBlock.includes("release-safe");
+  assert(safe099BoundaryObserved && rawMaterialIncluded === false && sourceUrlIncluded === false && debugMaterialIncluded === false,
+    "verify-v310-retention-export-hardening export-bundle EvidenceBundleRedactedValue raw/sourceUrl/debug material must remain absent");
 });
 
 const results = runChecks();

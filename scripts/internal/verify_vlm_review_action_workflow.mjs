@@ -43,6 +43,7 @@ check("fixture defines primary, fallback, excluded actions and invariants", () =
   assert(fixture.workflow?.primaryAction === "accept", "primary action mismatch");
   assert(fixture.workflow?.fallbackAction === "review-needed", "fallback action mismatch");
   assert(fixture.workflow?.defaultAction === "not-reviewed", "default action mismatch");
+  assert(fixture.workflow?.defaultAction === "not-reviewed" && Object.values(fixture.contractInvariants || {}).every(value => value === false), "VLM review action not-reviewed must preserve explicit negative contract invariants");
   const actionValues = new Set((fixture.actions || []).map(item => item.action));
   for (const action of ["accept", "dismiss", "review-needed"]) {
     assert(actionValues.has(action), `fixture missing action: ${action}`);

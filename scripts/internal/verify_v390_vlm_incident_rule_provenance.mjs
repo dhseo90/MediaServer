@@ -98,13 +98,15 @@ try {
   assert(candidate?.provenance?.candidateSource?.candidateId === candidate?.candidateId, "candidate identity provenance mismatch");
   assert(candidate?.provenance?.evaluationSource?.evaluationExecuted === false, "candidate must not claim evaluation execution");
 
+  const beforeManualSave = await request(baseUrl, "GET", "/lab/analysis/rules/701");
+  const ruleRegistryWritePerformedBeforeManualSave = beforeManualSave.status !== 404;
+  const autoRuleAppliedBeforeManualSave = JSON.stringify(candidateResponse.json).includes('"autoRuleApplied":true');
+
   const valid = buildRule("701", candidate.provenance);
   const saved = await request(baseUrl, "PUT", "/lab/analysis/rules/701", valid);
   assert(saved.status === 200, `valid provenance save HTTP ${saved.status}: ${saved.text}`);
   assert(saved.json?.rule?.vlmProvenance?.generatedRule?.id === "701", "save response lost generated rule provenance");
-  const readback = await request(baseUrl, "GET", "/lab/analysis/rules/701");
-  assert(readback.status === 200, `valid provenance readback HTTP ${readback.status}`);
-  assert(readback.json?.rule?.vlmProvenance?.eventSource?.eventId === candidate.eventId, "readback lost event provenance");
+  const readback = await readPersistedRuleProvenance(baseUrl, candidate, ruleRegistryWritePerformedBeforeManualSave, autoRuleAppliedBeforeManualSave);
   assert(readback.json?.rule?.vlmProvenance?.candidateSource?.candidateId === candidate.candidateId, "readback lost candidate provenance");
   assert(readback.json?.rule?.vlmProvenance?.evaluationSource?.provider === candidate.provider, "readback lost evaluation source");
 
@@ -280,6 +282,22 @@ try {
 } finally {
   await stopServer();
   fs.rmSync(workDir, { recursive: true, force: true });
+}
+
+async function readPersistedRuleProvenance(baseUrl, candidate, ruleRegistryWritePerformedBeforeManualSave, autoRuleAppliedBeforeManualSave) {
+  const readback = await request(baseUrl, "GET", "/lab/analysis/rules/701");
+  assert(readback.status === 200, `valid provenance readback HTTP ${readback.status}`);
+  const vlmProvenance = readback.json?.rule?.vlmProvenance;
+  const provenanceText = JSON.stringify(vlmProvenance);
+  const rawMaterialIncluded = /raw(?:Evidence|Json|Locator|Prompt|Response|Frame)/i.test(provenanceText);
+  const sourceUrlIncluded = /sourceUrl/i.test(provenanceText);
+  const credentialIncluded = /credential/i.test(provenanceText);
+  const provenanceRedactionRejected = !vlmProvenance || rawMaterialIncluded || sourceUrlIncluded || credentialIncluded;
+  assert(provenanceRedactionRejected === false && vlmProvenance?.eventSource?.eventId === candidate.eventId &&
+    ruleRegistryWritePerformedBeforeManualSave === false && autoRuleAppliedBeforeManualSave === false &&
+    rawMaterialIncluded === false && sourceUrlIncluded === false && credentialIncluded === false,
+  "LAB-126 /lab/analysis/rules/{id} independent GET readback preserves vlmProvenance without WebRTC/SSE raw/source URL/credential or autoApply exposure");
+  return readback;
 }
 
 function prepareObservationFixture() {

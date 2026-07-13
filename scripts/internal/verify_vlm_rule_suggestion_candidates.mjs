@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { extractCppFunctionBlock, exactBooleanFlagValue } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -117,7 +118,10 @@ check("fixture candidate matrix keeps line/intrusion/zone suggestions manual-onl
 check("C++ sidecar rule suggestion builder and analysis-state smoke are wired", () => {
   const header = readText("include/analysis/vlm_observation_store.h");
   const source = readText("src/analysis/vlm_observation_store.cpp");
+  const candidateBuilderBlock = extractCppFunctionBlock(source, "bool BuildVlmRuleSuggestionCandidatesJson(");
   const smoke = readText("scripts/internal/analysis_state_smoke.cpp");
+  assert(candidateBuilderBlock.includes("media-server.vlm-rule-suggestion-candidates.v1") && exactBooleanFlagValue(candidateBuilderBlock, "ruleRegistryWritePerformed") === false, "candidate builder schema must not write rule registry");
+  assert(exactBooleanFlagValue(candidateBuilderBlock, "autoRuleApplied") === false, "auto rule apply must remain false");
   for (const snippet of [
     "VlmRuleSuggestionOptions",
     "BuildVlmRuleSuggestionCandidatesJson",
@@ -154,6 +158,7 @@ check("docs, inventory, stream verification, server command, and script inventor
   const server = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+  const manifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
   for (const snippet of [
     "V200-S13",
     "Rule 추천 보조 후보",
@@ -168,8 +173,12 @@ check("docs, inventory, stream verification, server command, and script inventor
   assert(server.includes("verify_vlm_rule_suggestion_candidates.mjs"), "server dispatch missing S13 verifier script");
   assert(scriptInventory.includes("verify_vlm_rule_suggestion_candidates.mjs"),
     "script inventory missing S13 verifier");
-  assert(coverage.includes("verify-vlm-rule-suggestion-candidates"),
-    "feature coverage missing S13 verifier");
+  for (const id of ["RULE-048", "RULE-066", "RULE-067", "RULE-068", "RULE-069", "LAB-044"]) {
+    assert(manifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-vlm-rule-suggestion-candidates",
+      `${id} manifest verifier command drift`);
+  }
+  assert(coverage.includes("validateImplementationManifest") && coverage.includes("verifierEvidenceRows"),
+    "feature coverage must validate manifest-backed verifier evidence");
 });
 
 check("S13 remains candidate-only and does not introduce provider/client/schema/media/rule-write artifacts", () => {

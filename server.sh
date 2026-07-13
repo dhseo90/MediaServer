@@ -110,6 +110,8 @@ Usage:
                  현장형 VA 시나리오 preset UI와 threshold round-trip을 검증합니다.
   verify-ops-source-lifecycle
                  WebRTC session active/cleanup 기준으로 공통 source lifecycle idle 복귀를 검증합니다.
+  verify-ops-source-registry-api
+                 격리 서버에서 SourceRegistry/PublishedView CRUD·soft-disable·client projection을 직접 검증합니다.
   verify-ops-source-health-bulk
                  /ops/api/source-health/bulk partial retry 계약을 검증합니다.
   verify-ops-channel-bulk
@@ -414,6 +416,14 @@ Usage:
                  V390-REVIEW3-36 Markdown/source 전수 ledger와 RulesJson scope 결정을 검증합니다.
   verify-v390-review4-semantic-discovery-ledger
                  V390-REVIEW4-52 문서/source marker 의미, actual owner, evidence ledger를 검증합니다.
+  verify-v390-review4-feature-semantic-source-audit
+                 V390-REVIEW4-53 986행 production source/call/data-flow 독립 ledger를 검증합니다.
+  verify-v390-review4-feature-semantic-source-approvals
+                 V390-REVIEW4-53 저장 audit를 별도 trust-domain에서 재검증하고 approval ledger 경계를 검증합니다.
+  verify-v390-review4-feature-semantic-source-approval-selftest
+                 V390-REVIEW4-53 독립 approval validator의 non-gate negative self-test를 실행합니다.
+  verify-v390-review4-ops-168-184-safe-001-008-semantic
+                 V390-REVIEW4-53 OPS-168~184/SAFE-001~008 product/harness authored closure를 검증합니다.
   verify-v390-feature-completion-inventory
                  v3.9.0 기능 완성 인벤토리 구조와 discovery review gate를 검증합니다.
   verify-v390-user-review-gate
@@ -478,6 +488,8 @@ Usage:
                  V390-ADD1-05 ONVIF source/view paired save와 rollback을 검증합니다.
   verify-v390-analysis-registry-durable-write
                  V390-REVIEW2-21 Analysis Registry durable write와 HTTP 5xx/no-write를 검증합니다.
+  verify-v390-review4-lab-core-api
+                 REVIEW4-53 LAB core API의 실제 mutation/readback/cleanup을 짧게 검증합니다.
   verify-v390-vlm-rule-suggestion-draft-bridge
                  v3.9.0 Step 13 VLM rule suggestion draft bridge를 검증합니다.
   verify-v390-vlm-incident-rule-provenance
@@ -837,6 +849,14 @@ Usage:
                  V390-REVIEW3-36 Markdown/source 전수 ledger와 RulesJson scope 결정을 검증합니다.
   verify-v390-review4-semantic-discovery-ledger
                  V390-REVIEW4-52 문서/source marker 의미, actual owner, evidence ledger를 검증합니다.
+  verify-v390-review4-feature-semantic-source-audit
+                 V390-REVIEW4-53 986행 production source/call/data-flow 독립 ledger를 검증합니다.
+  verify-v390-review4-feature-semantic-source-approvals
+                 V390-REVIEW4-53 저장 audit를 별도 trust-domain에서 재검증하고 approval ledger 경계를 검증합니다.
+  verify-v390-review4-feature-semantic-source-approval-selftest
+                 V390-REVIEW4-53 독립 approval validator의 non-gate negative self-test를 실행합니다.
+  verify-v390-review4-ops-168-184-safe-001-008-semantic
+                 V390-REVIEW4-53 OPS-168~184/SAFE-001~008 product/harness authored closure를 검증합니다.
   verify-v390-feature-completion-inventory
                  v3.9.0 기능 완성 인벤토리 구조와 discovery review gate를 검증합니다.
   verify-v390-user-review-gate
@@ -855,6 +875,8 @@ Usage:
                  V390-ADD1-05 ONVIF source/view paired save와 rollback을 검증합니다.
   verify-v390-analysis-registry-durable-write
                  V390-REVIEW2-21 Analysis Registry durable write와 HTTP 5xx/no-write를 검증합니다.
+  verify-v390-review4-lab-core-api
+                 REVIEW4-53 LAB core API의 실제 mutation/readback/cleanup을 짧게 검증합니다.
   verify-v390-vlm-rule-suggestion-draft-bridge
                  v3.9.0 Step 13 VLM rule suggestion draft bridge를 검증합니다.
   verify-v390-vlm-incident-rule-provenance
@@ -1369,6 +1391,10 @@ case "${cmd}" in
   verify-ops-source-lifecycle)
     require_internal verify_ops_source_lifecycle.mjs
     exec "${INTERNAL_DIR}/verify_ops_source_lifecycle.mjs" "$@"
+    ;;
+  verify-ops-source-registry-api)
+    require_internal verify_ops_source_registry_api.mjs
+    exec "${INTERNAL_DIR}/verify_ops_source_registry_api.mjs" "$@"
     ;;
   verify-ops-source-health-bulk)
     require_internal verify_ops_source_health_bulk.mjs
@@ -2078,6 +2104,22 @@ case "${cmd}" in
     require_internal verify_v390_review4_semantic_discovery_ledger.mjs
     exec "${INTERNAL_DIR}/verify_v390_review4_semantic_discovery_ledger.mjs" "$@"
     ;;
+  verify-v390-review4-feature-semantic-source-audit)
+    require_internal verify_v390_review4_feature_semantic_source_audit.mjs
+    exec "${INTERNAL_DIR}/verify_v390_review4_feature_semantic_source_audit.mjs" "$@"
+    ;;
+  verify-v390-review4-feature-semantic-source-approvals)
+    require_internal verify_v390_review4_feature_semantic_source_approvals.mjs
+    exec "${INTERNAL_DIR}/verify_v390_review4_feature_semantic_source_approvals.mjs" "$@"
+    ;;
+  verify-v390-review4-feature-semantic-source-approval-selftest)
+    require_internal verify_v390_review4_feature_semantic_source_approval_selftest.mjs
+    exec "${INTERNAL_DIR}/verify_v390_review4_feature_semantic_source_approval_selftest.mjs" "$@"
+    ;;
+  verify-v390-review4-ops-168-184-safe-001-008-semantic)
+    require_internal verify_v390_review4_ops_168_184_safe_001_008_semantic.mjs
+    exec "${INTERNAL_DIR}/verify_v390_review4_ops_168_184_safe_001_008_semantic.mjs" "$@"
+    ;;
   verify-v390-feature-completion-inventory)
     require_internal verify_v390_feature_completion_inventory.mjs
     exec "${INTERNAL_DIR}/verify_v390_feature_completion_inventory.mjs" "$@"
@@ -2205,6 +2247,10 @@ case "${cmd}" in
   verify-v390-analysis-registry-durable-write)
     require_internal verify_v390_analysis_registry_durable_write.mjs
     exec "${INTERNAL_DIR}/verify_v390_analysis_registry_durable_write.mjs" "$@"
+    ;;
+  verify-v390-review4-lab-core-api)
+    require_internal verify_v390_review4_lab_core_api.mjs
+    exec "${INTERNAL_DIR}/verify_v390_review4_lab_core_api.mjs" "$@"
     ;;
   verify-v390-vlm-rule-suggestion-draft-bridge)
     require_internal verify_v390_vlm_rule_suggestion_draft_bridge.mjs
@@ -2851,8 +2897,8 @@ case "${cmd}" in
     exec "${INTERNAL_DIR}/verify_image_analysis.sh" "$@"
     ;;
   verify-analysis-state)
-    require_internal verify_analysis_state_smoke.sh
-    exec "${INTERNAL_DIR}/verify_analysis_state_smoke.sh" "$@"
+    require_internal verify_analysis_state_review4_wrapper.mjs
+    exec "${INTERNAL_DIR}/verify_analysis_state_review4_wrapper.mjs" "$@"
     ;;
   verify-sse-metadata)
     require_internal va_metadata_stream_smoke.py

@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { exactBooleanFlagValue, extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -81,6 +82,8 @@ check("Ops server builds the v3.8 Default-off Action Explanation model", () => {
   ]) {
     assertIncludes(files.server, snippet, "v380 default-off action explanation server model");
   }
+  const producerBlock = extractCppFunctionBlock(files.server, "std::string OpsV380DefaultOffActionExplanationJson(");
+  assertIncludes(producerBlock, "media-server.ops.v380-default-off-action-explanation.v1", "v380 default-off action explanation schema");
 });
 
 check("Default-off Action Explanation derives approval, readiness, outcome, receipt, and field refs without calling providers", () => {
@@ -111,11 +114,7 @@ check("Default-off Action Explanation derives approval, readiness, outcome, rece
 });
 
 check("Default-off Action Explanation preserves default-off/no-call/no-write/no-raw-material boundaries", () => {
-  const block = extractBlock(
-    files.server,
-    "std::string OpsV380DefaultOffActionExplanationJson",
-    "struct OpsV370ClientNoticeBySiteViewGroupItem",
-  );
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV380DefaultOffActionExplanationJson(");
   for (const snippet of [
     "opsOnly",
     "readOnly",
@@ -187,6 +186,8 @@ check("Default-off Action Explanation preserves default-off/no-call/no-write/no-
     const nearby = block.slice(index, index + 180);
     assert(nearby.includes("false"), `boundary flag must be false: ${flag}`);
   }
+  assert(exactBooleanFlagValue(block, "eventRecordWritePerformed") === false, "eventRecordWritePerformed must remain false");
+  assert(exactBooleanFlagValue(block, "vlmProviderCallPerformed") === false, "vlmProviderCallPerformed must remain false");
   for (const forbidden of [
     "CallVlmProvider",
     "CallCloudProvider",
@@ -256,6 +257,22 @@ check("/ops action control workspace declares and renders Default-off Action Exp
   ]) {
     assertIncludes(scriptBlock, snippet, "v380 default-off action explanation renderer");
   }
+  const dashboardRoutePresent = files.server.includes('path == "/ops/dashboard"');
+  const schemaPresent = serverBlock.includes("media-server.ops.v380-default-off-action-explanation.v1");
+  const rawMaterialExposed = /\b(?:rawEvidence|rawJson|rawLocator)\b/.test(scriptBlock);
+  const credentialExposed = /\b(?:credentialValue|credentialMaterial)\b/i.test(scriptBlock);
+  const debugExposed = /\b(?:debugPayload|debugMaterial)\b/i.test(scriptBlock);
+  const defaultEnabled = /\bdefaultEnabled\s*===\s*true\b/.test(scriptBlock);
+  const VLMDefaultOffBoundaryPresent = scriptBlock.includes("vlmProviderCallPerformed") &&
+    scriptBlock.includes("vlmRuntimeCallPerformed");
+  assert(dashboardRoutePresent, "v380 default-off dashboard route missing");
+  assert(schemaPresent, "v380 default-off schema missing");
+  assert(rawMaterialExposed === false, "v380 default-off renderer must redact raw material");
+  assert(credentialExposed === false, "v380 default-off renderer must redact credentials");
+  assert(debugExposed === false, "v380 default-off renderer must redact debug material");
+  assert(defaultEnabled === false, "v380 default-off renderer must never enable actions");
+  assert(VLMDefaultOffBoundaryPresent, "v380 default-off renderer must expose the VLM no-call boundary status");
+  assertIncludes(scriptBlock, "dashDefaultOffActionExplanationBoundary", "v380 default-off explanation boundary state");
   const refreshBlock = extractBlock(files.uiScript, "async function refreshDashboard()", "async function refreshEvents()");
   assertIncludes(refreshBlock, "refreshV380DefaultOffActionExplanation", "dashboard refresh");
   assertIncludes(refreshBlock, route, "dashboard refresh");
@@ -343,6 +360,29 @@ check("server entrypoint and inventory verifiers include v3.8 Step 15 command", 
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v380_default_off_action_explanation.mjs", "script inventory");
+});
+
+check("SAFE-194 canonical bounded product boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV380DefaultOffActionExplanationJson(");
+  const routeObserved = files.server.includes("/ops/api/actions/default-off-explanation");
+  const outcomeObserved = files.uiScript.includes("renderV380DefaultOffActionExplanation");
+  const safe194BoundaryObserved = block.includes("BuildV380DefaultOffActionExplanationItems") && block.includes("vlmProviderCallPerformed");
+  const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer|RecheckSource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const sendPerformed = /\bSendClientNotice[A-Za-z0-9_:]*\s*\(/.test(block);
+  const automaticApplyPerformed = /\b(?:AutomaticApply|SafeApply|ApplyRule|ApplySource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const fieldSmokeExecuted = /\b(?:ExecuteFieldSmoke|ProbeEndpoint|ContactDevice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\"(?:rawLocator|rawJson|rawProviderResponse|rawEndpoint|rawMaterial|rawDiagnosticJson)\\":true/.test(block);
+  const sourceUrlExposed = /\\"(?:sourceUrlIncluded|sourceUrlExposed)\\":true/.test(block);
+  const credentialMaterialExposed = /\\"(?:credentialMaterialIncluded|credentialMaterialExposed)\\":true/.test(block);
+  const debugMaterialExposed = /\\"(?:debugMaterialIncluded|debugMaterialExposed)\\":true/.test(block);
+  const viewerClientExposureAdded = /\\"(?:viewerClientExposureAdded|viewerClientPayloadChanged)\\":true/.test(block);
+  const mediaPathChanged = /\\"rtspOrWebrtcMediaPathChanged\\":true/.test(block);
+  assert(routeObserved && outcomeObserved && writePerformed === false && mutationPerformed === false && executionPerformed === false && sendPerformed === false && providerCallPerformed === false, "OPS-161 canonical bounded absence oracle");
+  assert(safe194BoundaryObserved && block.includes("media-server.ops.v380-default-off-action-explanation.v1") && writePerformed === false && mutationPerformed === false && executionPerformed === false && sendPerformed === false && automaticApplyPerformed === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+    "SAFE-194 vlmProviderCallPerformed must remain no-execution no-write redacted and client/provider isolated");
 });
 
 const results = runChecks();

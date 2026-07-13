@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { exactBooleanFlagValue, extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -61,10 +62,9 @@ check("Ops server exposes the v3.9 action execution deferral decision", () => {
 });
 
 check("deferral decision preserves no-action/no-write/no-external-side-effect boundaries", () => {
-  const block = extractBlock(
+  const deferralBlock = extractCppFunctionBlock(
     files.server,
-    "std::string OpsV390ActionExecutionDeferralDecisionJson",
-    "std::string OpsV380DefaultOffActionExplanationJson",
+    "std::string OpsV390ActionExecutionDeferralDecisionJson()",
   );
   for (const snippet of [
     "opsOnly",
@@ -96,7 +96,7 @@ check("deferral decision preserves no-action/no-write/no-external-side-effect bo
     "wsMetadataSchemaChanged",
     "rtspOrWebrtcMediaPathChanged",
   ]) {
-    assertIncludes(block, snippet, "v390 action execution deferral boundary flags");
+    assertIncludes(deferralBlock, snippet, "v390 action execution deferral boundary flags");
   }
   for (const flag of [
     "approvalGatedExecutionEnabled",
@@ -125,8 +125,18 @@ check("deferral decision preserves no-action/no-write/no-external-side-effect bo
     "wsMetadataSchemaChanged",
     "rtspOrWebrtcMediaPathChanged",
   ]) {
-    assertFlagFalse(block, flag);
+    assertFlagFalse(deferralBlock, flag);
   }
+  const actionExecutionPerformed = exactBooleanFlagValue(deferralBlock, "actionExecutionPerformed");
+  const actionExecutionDeferred = actionExecutionPerformed === false;
+  const ruleRegistryWritePerformed = exactBooleanFlagValue(deferralBlock, "ruleRegistryWritePerformed");
+  const externalDeliveryPerformed = exactBooleanFlagValue(deferralBlock, "externalDeliveryPerformed");
+  const eventPostPayloadChanged = exactBooleanFlagValue(deferralBlock, "eventPostPayloadChanged");
+  assert(actionExecutionDeferred && actionExecutionPerformed === false &&
+    ruleRegistryWritePerformed === false && externalDeliveryPerformed === false &&
+    eventPostPayloadChanged === false, "actionExecutionPerformed must remain false");
+  assert(exactBooleanFlagValue(deferralBlock, "eventRecordWritePerformed") === false, "eventRecordWritePerformed must remain false");
+  assert(exactBooleanFlagValue(deferralBlock, "externalDeliveryPerformed") === false, "externalDeliveryPerformed must remain false");
   for (const forbidden of [
     "ExecuteAction",
     "ExecuteSourceRecheck",
@@ -146,7 +156,7 @@ check("deferral decision preserves no-action/no-write/no-external-side-effect bo
     "password",
     "Authorization",
   ]) {
-    assert(!block.includes(forbidden), `deferral decision must not call or expose restricted material: ${forbidden}`);
+    assert(!deferralBlock.includes(forbidden), `deferral decision must not call or expose restricted material: ${forbidden}`);
   }
 });
 
@@ -195,6 +205,13 @@ check("/ops action control workspace renders action execution deferral decision"
   ]) {
     assertIncludes(scriptBlock, snippet, "v390 action execution deferral renderer");
   }
+  const dashboardRoutePresent = files.server.includes('path == "/ops/dashboard"');
+  const schemaPresent = serverBlock.includes("media-server.ops.v390-action-execution-deferral-decision.v1");
+  const writePerformed = /\bmethod\s*:\s*["'](?:POST|PUT|PATCH|DELETE)["']/i.test(scriptBlock);
+  assert(dashboardRoutePresent, "v390 action deferral dashboard route missing");
+  assert(schemaPresent, "v390 action deferral schema missing");
+  assert(writePerformed === false, "v390 action deferral renderer must not perform writes");
+  assertIncludes(scriptBlock, "dashActionExecutionDeferralBoundary", "v390 action execution deferral boundary state");
   const refreshBlock = extractBlock(files.uiScript, "async function refreshDashboard()", "async function refreshEvents()");
   assertIncludes(refreshBlock, "refreshV390ActionExecutionDeferralDecision", "dashboard refresh");
   assertIncludes(refreshBlock, route, "dashboard refresh");

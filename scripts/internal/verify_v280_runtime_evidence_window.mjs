@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v2.8.0 S05 Runtime Evidence Window와 bounded/no-longrun/no-archive 경계를 검증한다.
+import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import process from "node:process";
@@ -15,6 +17,7 @@ const manualChecklist = readText("docs/manual-ui-checklist.md");
 const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
 
 check("roadmap records V280-S05 as active/completed runtime evidence window work", () => {
@@ -33,6 +36,17 @@ check("roadmap records V280-S05 as active/completed runtime evidence window work
 });
 
 check("Ops events API exposes bounded runtime evidence packets without archive/longrun claims", () => {
+  const start = server.indexOf("std::string OpsRuntimeEvidenceWindowViewJson(");
+  const end = server.indexOf("std::string OpsRuleWhatIfPreviewViewJson(", start);
+  assert(start >= 0 && end > start, "EVT-058 runtime evidence projection block missing");
+  const evt058ProjectionBlock = server.slice(start, end);
+  const routeOwnerSource = readText("src/ingress/ops_event_route_owner.cpp");
+  const routeBlock = routeOwnerSource.slice(routeOwnerSource.indexOf("constexpr const char* kOpsEventsPagePath"), routeOwnerSource.indexOf("bool HasPrefix("));
+  assert(evt058ProjectionBlock.includes("media-server.ops.runtime-evidence-window.v1") && routeBlock.includes("/ops/api/events/reviews"), "LAB-082 runtime evidence window schema and review route readback mismatch");
+  assertIncludes(evt058ProjectionBlock, "boundedLocalBuffer", "EVT-058 block-scoped canonical projection");
+  assert(!evt058ProjectionBlock.includes("\\\"ruleRegistryWritePerformed\\\":true") && evt058ProjectionBlock.includes("\\\"ruleRegistryWritePerformed\\\":false"), "EVT-058 runtime evidence window must not write registry state");
+  assertIncludes(evt058ProjectionBlock, "webrtcDataChannelSchemaChanged", "EVT-058 WebRTC SSE boundary");
+  assert(!evt058ProjectionBlock.includes("\\\"persistentArchiveCreated\\\":true") && evt058ProjectionBlock.includes("\\\"persistentArchiveCreated\\\":false"), "EVT-058 no-write runtime archive boundary");
   for (const snippet of [
     "OpsRuntimeEvidenceWindowViewJson",
     "OpsRuntimeEvidenceWindowItemJson",
@@ -79,6 +93,12 @@ check("/ops/events UI renders bounded runtime evidence window and no-longrun mar
     "oneHundredTwentyMinutePassClaimed",
   ]) {
     assertIncludes(script, snippet, "Ops runtime evidence window script");
+    assertIncludes(extractNamedFunctionBlock(script, "renderRuntimeEvidenceWindow"), "runtimeEvidenceWindow", "UI-058 block-scoped canonical product state");
+    const longTermWritePerformed = ["requestJson(", "fetch(", "method: 'POST'", "method: 'PUT'", "method: 'DELETE'"].some(marker => extractNamedFunctionBlock(script, "renderRuntimeEvidenceWindow").includes(marker));
+    assert(longTermWritePerformed === false, "UI-058 bounded runtime window must not create a long-term store");
+    assert(!["requestJson(","fetch(","method: 'POST'","method: 'PUT'","method: 'DELETE'"].some(marker => extractNamedFunctionBlock(script, "renderRuntimeEvidenceWindow").includes(marker)), "UI-058 no-write explicit absence oracle");
+    assert(!["/client/api/","viewerClientExposureAdded: true","clientExposureAdded: true"].some(marker => extractNamedFunctionBlock(script, "renderRuntimeEvidenceWindow").includes(marker)), "UI-058 client-viewer-boundary explicit absence oracle");
+    assertIncludes(script, "/ops/events", "UI-058 canonical route obligation");
   }
   for (const snippet of [
     ".runtime-evidence-window",
@@ -115,7 +135,9 @@ check("smoke, inventory, manual UI, coverage, and command catalog track S05", ()
     assertIncludes(inventory, snippet, "feature inventory S05 row");
   }
   assertIncludes(manualChecklist, "| V280-S05 Runtime Evidence Window | `UI-058`, `EVT-058`, `LAB-082`, `SAFE-068` |", "manual UI checklist S05 row");
-  assertIncludes(coverageVerifier, "verify-v280-runtime-evidence-window", "feature inventory coverage S05 command");
+  assert(implementationManifest.items.find(item => item.id === "LAB-082")?.verifierEvidence?.command === "verify-v280-runtime-evidence-window", "LAB-082 manifest verifier command drift");
+  assertIncludes(coverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(coverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   assertIncludes(streamVerification, "verify-v280-runtime-evidence-window", "stream verification S05 command");
   assertIncludes(serverSh, "verify-v280-runtime-evidence-window", "server.sh S05 command");
   assertIncludes(serverSh, "verify_v280_runtime_evidence_window.mjs", "server.sh S05 script target");

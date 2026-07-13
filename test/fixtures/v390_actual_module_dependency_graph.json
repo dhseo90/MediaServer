@@ -238,7 +238,7 @@
   "mixedOwnershipDebt": [
     {
       "file": "src/ingress/webrtc_http_server.cpp",
-      "lineCount": 42897,
+      "lineCount": 42994,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": ["ops-route-groups", "application-service-interfaces", "domain-and-registry-owners", "product-ui-workspaces", "stable-contract-dtos"]
     },

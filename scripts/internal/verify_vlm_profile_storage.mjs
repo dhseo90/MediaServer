@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -33,6 +34,7 @@ const checks = [];
 
 check("registry persists VLM profiles with strict validation", () => {
   const server = readText("src/ingress/webrtc_http_server.cpp");
+  const profilePreparationBlock = extractCppFunctionBlock(server, "std::optional<Document> PrepareVlmProfileDocumentLocked(");
   const strictJson = readText("src/ingress/strict_json.cpp");
   const promotion = readText("src/ingress/vlm_evaluation_promotion.cpp");
   const implementation = `${server}\n${promotion}`;
@@ -107,6 +109,14 @@ check("registry persists VLM profiles with strict validation", () => {
   ]) {
     assert(server.includes(forbidden), `server missing forbidden VLM profile field guard: ${forbidden}`);
   }
+  const registryWritePerformed = /\b(?:Write|Persist|DispatchEventRecords|ProviderCall|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(profilePreparationBlock);
+  const mutationPerformed = registryWritePerformed || /\b(?:Apply|UpdateSource|CreateVaRule)[A-Za-z0-9_:]*\s*\(/.test(profilePreparationBlock);
+  const rawMaterialExposed = /\\\"(?:rawPrompt|rawResponse|rawJson|rawLocator)\\\":true/.test(profilePreparationBlock);
+  const sourceUrlExposed = /\\\"sourceUrl\\\":true/.test(profilePreparationBlock);
+  const credentialMaterialExposed = /\\\"(?:credential|providerCredential|apiKey)\\\":true/.test(profilePreparationBlock);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(profilePreparationBlock);
+  assert(mutationPerformed === false && providerCallPerformed === false, "SAFE-023 profile storage must not call a cloud provider or mutate non-profile state");
+  assert(profilePreparationBlock.includes("credential") && profilePreparationBlock.includes("SetRegistryError") && registryWritePerformed === false && mutationPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && providerCallPerformed === false, "LAB-051 VLM profile credential/raw/source reject must not write registry state");
 });
 
 check("ops API exposes guarded VLM profile CRUD routes", () => {

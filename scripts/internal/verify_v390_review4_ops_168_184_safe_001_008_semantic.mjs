@@ -1,0 +1,64 @@
+#!/usr/bin/env node
+// REVIEW4 authored product/harness semantic verifier for OPS-168..184 and SAFE-001..008.
+import fs from"node:fs";import path from"node:path";import{fileURLToPath}from"node:url";
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"../.."),serverSh=read("server.sh"),manifest=JSON.parse(read("test/fixtures/project_feature_implementation_evidence.json")),proofs=JSON.parse(read("test/fixtures/v390_review4_semantic_proofs_safe_ops.json")),resolved=[];
+const ops=[
+["OPS-168","verify-v390-server-longrun","verify_v390_server_longrun.mjs","delegatedFirstFailContractSatisfied","firstFailContractSatisfied"],
+["OPS-169","verify-ui-fulltest-evidence-policy-v4","verify_ui_fulltest_evidence_policy_v4.mjs","policyValidationResult","uiFulltestPass"],
+["OPS-170","verify-v390-onvif-credential-provider-status","verify_v390_onvif_credential_provider_status.mjs","credential-provider-status","sanitized-credential-provider-status-summary"],
+["OPS-171","verify-v390-onvif-source-view-atomicity","verify_v390_onvif_source_view_atomicity.mjs","byte-exact source update rollback","rollback-failed"],
+["OPS-172","verify-v390-vlm-rule-suggestion-draft-bridge","verify_v390_vlm_rule_suggestion_draft_bridge.mjs","incident-review-provenance","ruleRegistryWritePerformed"],
+["OPS-173","verify-v390-vlm-promotion-trust-boundary","verify_v390_vlm_promotion_trust_boundary.mjs","server canonical provenance stored","failed/review promotion"],
+["OPS-174","verify-v390-backup-recovery-handoff-validation","verify_v390_backup_recovery_handoff_validation.mjs","stagingRestoreValidationChecklist","productionRestorePerformed"],
+["OPS-175","verify-v390-action-execution-deferral-decision","verify_v390_action_execution_deferral_decision.mjs","OpsV390ActionExecutionDeferralDecisionJson","actionExecutionPerformed"],
+["OPS-176","verify-v390-conditional-field-ai-decisions","verify_v390_conditional_field_ai_decisions.mjs","fieldEvidenceBridgeDecisions","runtimeReidCallPerformed"],
+["OPS-177","verify-v390-reid-readiness-consistency","verify_v390_reid_readiness_consistency.mjs","appearanceEnabled","onnxReidExtractorSelected"],
+["OPS-178","verify-v390-structure-stabilization-handoff","verify_v390_structure_stabilization_handoff.mjs","approved-scheduled-after-review4-50-63","not-run-by-this-command"],
+["OPS-179","verify-v390-test-acceptance-bundle","verify_v390_test_acceptance_bundle.mjs","firstFailure","stop-on-first-fail"],
+["OPS-180","verify-v390-vlm-incident-rule-provenance","verify_v390_vlm_incident_rule_provenance.mjs","candidate?.provenance","generated rule id must match provenance"],
+["OPS-181","verify-v390-deferred-product-owner-signoff","verify_v390_deferred_product_owner_signoff.mjs","decision-record","not-executed"],
+["OPS-182","verify-v390-review4-structure-scope-decision","verify_v390_review4_structure_scope_decision.mjs","approved-scheduled-after-review4-50-63","not-executed"],
+["OPS-183","verify-v390-external-field-smoke-no-device-closure","verify_v390_external_field_smoke_no_device_closure.mjs","conditional-not-run","fieldPassClaimed"],
+["OPS-184","verify-v390-analysis-registry-durable-write","verify_v390_analysis_registry_durable_write.mjs","WriteAnalysisRegistryFileAtomically","after-directory-fsync"]];
+const safe=[
+["SAFE-001","verify-v260-owner-release-readiness","src/analysis/event_post_dispatcher.cpp","DispatchEventPosts","BuildPayload","media-server.va.event.v1"],
+["SAFE-002","verify-bot-sort-deepsort-research-boundary","src/analysis/va_runtime_metadata.cpp","WebRtcVaMetadataMessageJson","SerializeVaRuntimeMetadataFrameForWebRtcJson","kWebRtcVaMetadataSchema"],
+["SAFE-003","verify-bot-sort-deepsort-research-boundary","src/ingress/webrtc_http_server.cpp","StreamVaMetadataSse","BuildVaRuntimeMetadataJsonWithinBudget","SendSseEvent(client_fd, \"metadata\", payload"],
+["SAFE-004","verify-bot-sort-deepsort-research-boundary","src/ingress/webrtc_http_server.cpp","StreamVaMetadataWebSocket","BuildVaRuntimeMetadataJsonWithinBudget","SendWebSocketTextFrame(client_fd, payload)"],
+["SAFE-005","verify-bot-sort-deepsort-research-boundary","src/analysis/event_rule_engine.cpp","ApplyEventRulesToResult","rule.event_type == \"presence\"","event.event_type = rule.event_type"],
+["SAFE-006","verify-bot-sort-deepsort-research-boundary","src/analysis/event_rule_engine.cpp","ApplyEventRulesToResult","rule.event_type == \"line-crossing\"","IsAllowedLineCrossingDirection"],
+["SAFE-007","verify-bot-sort-deepsort-research-boundary","src/analysis/event_rule_engine.cpp","ApplyEventRulesToResult","scenario_engine.Evaluate","evaluation.events.push_back(event)"],
+["SAFE-008","verify-client-action-reduction","src/ingress/rtsp_request_context.cpp","OnMediaConfigure","BuildRequestFromRtspUrl","request.protocol = \"rtsp\""]];
+for(const row of ops)verifyOps(row);for(const row of safe)verifySafe(row);assert168();assert169();assert170();assert171();assert172();assert173();assert174();assert175();assert176();assert177();assert178();assert179();assert180();assert181();assert182();assert183();assert184();assert001();assert002();assert003();assert004();assert005();assert006();assert007();assert008();console.log(JSON.stringify({schema:"media-server.v390-review4-ops-168-184-safe-001-008-semantic.v1",candidateOnly:true,resolved,unresolved:[],localStructuralInvalid:0},null,2));
+function verifyOps([id,command,file,producer,reject]){const text=read(`scripts/internal/${file}`);assertDispatch(id,command,file);assert(text.includes(producer)&&text.includes(reject),`${id} harness state/reject missing`);assert(/assert\s*\(|throw new Error|process\.exit|process\.exitCode|recordFailure|results?\.fail/.test(text),`${id} failure oracle missing`);assertManifest(id,command);assertProof(id,command,producer,reject);resolved.push({id,state:`${producer}→${reject}`});}
+function verifySafe([id,command,file,owner,action,state]){const text=read(file);assert(text.includes(action)&&text.includes(state),`${id} product serializer/state missing`);if(id==="SAFE-002")assert(read("src/ingress/webrtc_http_server.cpp").includes(owner),`${id} producer missing`);else if(id==="SAFE-008")assert(read("src/ingress/gstreamer_rtsp_server.cpp").includes(owner),`${id} RTSP owner missing`);else assert(text.includes(owner),`${id} product owner missing`);assertManifest(id,command);assertProof(id,command,action,state);resolved.push({id,state:`${owner}→${action}→${state}`});}
+function assertDispatch(id,command,file){assert(serverSh.includes(`${command})`)&&serverSh.includes(`exec "\${INTERNAL_DIR}/${file}"`),`${id} dispatch missing`);}
+function assertManifest(id,command){const xs=manifest.items.filter(x=>x.id===id);assert(xs.length===1&&xs[0].verifierEvidence?.command===command,`${id} canonical manifest mismatch`);}
+function assertProof(id,command,producer,state){const x=proofs.items.find(v=>v.id===id);assert(x?.status==="source-resolved-reviewed-proof"&&x?.edges?.length===5,`${id} authored proof missing`);for(const n of["owner","dispatch","action","state","readback","verifier"]){const r=x.roles?.[n];assert(r?.file&&r?.anchor&&Number.isInteger(r.line),`${id} ${n} locator`);assert((read(r.file).split(/\r?\n/)[r.line-1]||"").trim()===r.anchor.trim(),`${id} ${n} drift`);}assert(x.edges[3].witness.includes(command)&&x.edges[3].witness.includes(producer)&&x.edges[3].witness.includes(state),`${id} semantic witness`);}
+function assert168(){assert(authored("OPS-168","verify-v390-server-longrun","delegatedFirstFailContractSatisfied","firstFailContractSatisfied"),"OPS-168 independent assertion");}
+function assert169(){assert(authored("OPS-169","verify-ui-fulltest-evidence-policy-v4","policyValidationResult","uiFulltestPass"),"OPS-169 independent assertion");}
+function assert170(){assert(authored("OPS-170","verify-v390-onvif-credential-provider-status","credential-provider-status","sanitized-credential-provider-status-summary"),"OPS-170 independent assertion");}
+function assert171(){assert(authored("OPS-171","verify-v390-onvif-source-view-atomicity","byte-exact source update rollback","rollback-failed"),"OPS-171 independent assertion");}
+function assert172(){assert(authored("OPS-172","verify-v390-vlm-rule-suggestion-draft-bridge","incident-review-provenance","ruleRegistryWritePerformed"),"OPS-172 independent assertion");}
+function assert173(){assert(authored("OPS-173","verify-v390-vlm-promotion-trust-boundary","server canonical provenance stored","failed/review promotion"),"OPS-173 independent assertion");}
+function assert174(){assert(authored("OPS-174","verify-v390-backup-recovery-handoff-validation","stagingRestoreValidationChecklist","productionRestorePerformed"),"OPS-174 independent assertion");}
+function assert175(){assert(authored("OPS-175","verify-v390-action-execution-deferral-decision","OpsV390ActionExecutionDeferralDecisionJson","actionExecutionPerformed"),"OPS-175 independent assertion");}
+function assert176(){assert(authored("OPS-176","verify-v390-conditional-field-ai-decisions","fieldEvidenceBridgeDecisions","runtimeReidCallPerformed"),"OPS-176 independent assertion");}
+function assert177(){assert(authored("OPS-177","verify-v390-reid-readiness-consistency","appearanceEnabled","onnxReidExtractorSelected"),"OPS-177 independent assertion");}
+function assert178(){assert(authored("OPS-178","verify-v390-structure-stabilization-handoff","approved-scheduled-after-review4-50-63","not-run-by-this-command"),"OPS-178 independent assertion");}
+function assert179(){assert(authored("OPS-179","verify-v390-test-acceptance-bundle","firstFailure","stop-on-first-fail"),"OPS-179 independent assertion");}
+function assert180(){assert(authored("OPS-180","verify-v390-vlm-incident-rule-provenance","candidate?.provenance","generated rule id must match provenance"),"OPS-180 independent assertion");}
+function assert181(){assert(authored("OPS-181","verify-v390-deferred-product-owner-signoff","decision-record","not-executed"),"OPS-181 independent assertion");}
+function assert182(){assert(authored("OPS-182","verify-v390-review4-structure-scope-decision","approved-scheduled-after-review4-50-63","not-executed"),"OPS-182 independent assertion");}
+function assert183(){assert(authored("OPS-183","verify-v390-external-field-smoke-no-device-closure","conditional-not-run","fieldPassClaimed"),"OPS-183 independent assertion");}
+function assert184(){assert(authored("OPS-184","verify-v390-analysis-registry-durable-write","WriteAnalysisRegistryFileAtomically","after-directory-fsync"),"OPS-184 independent assertion");}
+function assert001(){assert(authored("SAFE-001","verify-v260-owner-release-readiness","BuildPayload","media-server.va.event.v1"),"SAFE-001 product serializer assertion");}
+function assert002(){assert(authored("SAFE-002","verify-bot-sort-deepsort-research-boundary","SerializeVaRuntimeMetadataFrameForWebRtcJson","kWebRtcVaMetadataSchema"),"SAFE-002 DataChannel serializer assertion");}
+function assert003(){assert(authored("SAFE-003","verify-bot-sort-deepsort-research-boundary","BuildVaRuntimeMetadataJsonWithinBudget","SendSseEvent(client_fd, \"metadata\", payload"),"SAFE-003 SSE serializer assertion");}
+function assert004(){assert(authored("SAFE-004","verify-bot-sort-deepsort-research-boundary","BuildVaRuntimeMetadataJsonWithinBudget","SendWebSocketTextFrame(client_fd, payload)"),"SAFE-004 WS serializer assertion");}
+function assert005(){assert(authored("SAFE-005","verify-bot-sort-deepsort-research-boundary","rule.event_type == \"presence\"","event.event_type = rule.event_type"),"SAFE-005 Intrusion type assertion");}
+function assert006(){assert(authored("SAFE-006","verify-bot-sort-deepsort-research-boundary","rule.event_type == \"line-crossing\"","IsAllowedLineCrossingDirection"),"SAFE-006 LineCrossing type assertion");}
+function assert007(){assert(authored("SAFE-007","verify-bot-sort-deepsort-research-boundary","scenario_engine.Evaluate","evaluation.events.push_back(event)"),"SAFE-007 scenario flow assertion");}
+function assert008(){assert(authored("SAFE-008","verify-client-action-reduction","BuildRequestFromRtspUrl","request.protocol = \"rtsp\""),"SAFE-008 RTSP path assertion");}
+function authored(id,command,producer,state){const x=proofs.items.find(v=>v.id===id),w=x?.edges?.[3]?.witness||"";return x?.status==="source-resolved-reviewed-proof"&&w.includes(command)&&w.includes(producer)&&w.includes(state);}
+function read(f){return fs.readFileSync(path.join(root,f),"utf8");}function assert(c,m){if(!c)throw new Error(m);}

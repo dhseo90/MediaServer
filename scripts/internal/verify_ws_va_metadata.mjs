@@ -2,6 +2,8 @@
 // 파일 용도: VA metadata WebSocket side-channel의 handshake, control ack, metadata payload를 검증한다.
 // 동작 요약: 실행 중인 서버에 WebSocket으로 접속해 schema, 제어 ack, 임시 tap cleanup을 확인한다.
 
+import crypto from "node:crypto";
+
 import { assertKnownOptions } from "./script_arg_utils.mjs";
 
 const args = process.argv.slice(2);
@@ -82,10 +84,21 @@ async function deleteAllTaps() {
 
 function assertRuntimeMetadata(payload, label) {
   if (payload.schema !== "media-server.va.runtime-metadata.v1") {
-    fail(`${label}: unexpected schema: ${payload.schema}`);
+    throw new Error(`${label}: WebSocket metadata unexpected schema: ${payload.schema}`);
   }
   if (!Array.isArray(payload.tracks) || !Array.isArray(payload.events) || !Array.isArray(payload.scenarios)) {
     fail(`${label}: runtime metadata arrays are missing`);
+  }
+  const projection = {
+    schema: typeof payload.schema,
+    tracks: Array.isArray(payload.tracks) ? "array" : typeof payload.tracks,
+    events: Array.isArray(payload.events) ? "array" : typeof payload.events,
+    scenarios: Array.isArray(payload.scenarios) ? "array" : typeof payload.scenarios,
+    metrics: payload.metrics && typeof payload.metrics === "object" && !Array.isArray(payload.metrics) ? "object" : typeof payload.metrics,
+  };
+  const projectionSha256 = crypto.createHash("sha256").update(JSON.stringify(projection)).digest("hex");
+  if (projectionSha256 !== "1557306a1200965a2f15e3003e033d7a49cccc1daa9d6d2d2298ca07900cbece") {
+    fail(`${label}: WS metadata field/type frozen baseline SHA-256 mismatch: ${projectionSha256}`);
   }
 }
 

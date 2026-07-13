@@ -5,6 +5,7 @@ import fs from "node:fs";
 import process from "node:process";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { extractCppFunctionBlock, exactBooleanFlagValue } from "./source_block_assertion_utils.mjs";
 
 const rawArgs = process.argv.slice(2);
 
@@ -35,6 +36,7 @@ const profileVerifier = readText("scripts/internal/verify_vlm_profile_storage.mj
 const recommendationVerifier = readText("scripts/internal/verify_vlm_recommendation_engine.mjs");
 const eventPost = readText("src/analysis/event_post_dispatcher.cpp");
 const serverSh = readText("server.sh");
+const evaluationWorkflowBlock = extractCppFunctionBlock(promotion, "std::string VlmEvaluationResultWorkflowJson(");
 
 check("fixture defines primary, fallback, excluded candidates and non-side-effect invariants", () => {
   assert(fixture.schema === "media-server.vlm-evaluation-result-workflow-fixtures.v1", "fixture schema mismatch");
@@ -55,6 +57,7 @@ check("fixture defines primary, fallback, excluded candidates and non-side-effec
 });
 
 check("Ops evaluation result API and page markup are wired", () => {
+  assert(evaluationWorkflowBlock.includes("sourceReportSchema") && exactBooleanFlagValue(evaluationWorkflowBlock, "runtimeCallAllowed") === false, "LAB-059 canonical VLM evaluation sourceReportSchema must preserve runtimeCallAllowed false");
   for (const snippet of [
     "OpsVlmEvaluationResultWorkflowJson",
     "/ops/api/vlm/evaluation-results",

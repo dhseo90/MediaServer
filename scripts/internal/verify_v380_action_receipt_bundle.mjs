@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { exactBooleanFlagValue, extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -49,6 +50,7 @@ const files = {
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
@@ -82,6 +84,8 @@ check("Ops server builds the v3.8 Action Receipt Bundle model", () => {
   ]) {
     assertIncludes(files.server, snippet, "v380 action receipt bundle server model");
   }
+  const producerBlock = extractCppFunctionBlock(files.server, "std::string OpsV380ActionReceiptBundleJson(");
+  assertIncludes(producerBlock, "media-server.ops.v380-action-receipt-bundle.v1", "v380 action receipt bundle schema");
 });
 
 check("Action Receipt Bundle derives from request, approval, readiness, candidate, and outcome refs", () => {
@@ -117,11 +121,10 @@ check("Action Receipt Bundle derives from request, approval, readiness, candidat
 });
 
 check("Action Receipt Bundle preserves redaction, release-safe, and no-mutation boundaries", () => {
-  const block = extractBlock(
-    files.server,
-    "std::string OpsV380ActionReceiptBundleJson",
-    "struct OpsV370SiteSourceGroupContractItem",
-  );
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV380ActionReceiptBundleJson(");
+  assert(exactBooleanFlagValue(block, "rawLocatorIncluded") === false, "CLIENT-042 viewer raw material must remain redacted");
+  assert(exactBooleanFlagValue(block, "credentialMaterialIncluded") === false, "CLIENT-042 credential material must remain redacted");
+  assert(exactBooleanFlagValue(block, "viewerClientPayloadChanged") === false, "CLIENT-042 exact viewerClientPayloadChanged receipt redaction readback must remain false for /ops and /client");
   for (const snippet of [
     "opsOnly",
     "readOnly",
@@ -187,6 +190,7 @@ check("Action Receipt Bundle preserves redaction, release-safe, and no-mutation 
     const nearby = block.slice(index, index + 180);
     assert(nearby.includes("false"), `boundary flag must be false: ${flag}`);
   }
+  assert(exactBooleanFlagValue(block, "eventRecordWritePerformed") === false, "eventRecordWritePerformed must remain false");
   for (const forbidden of [
     "PersistReceiptBundle",
     "WriteReceiptBundleFile",
@@ -253,6 +257,19 @@ check("/ops action control workspace declares and renders Action Receipt Bundle 
   ]) {
     assertIncludes(scriptBlock, snippet, "v380 action receipt bundle renderer");
   }
+  const dashboardRoutePresent = files.server.includes('path == "/ops/dashboard"');
+  const schemaPresent = serverBlock.includes("media-server.ops.v380-action-receipt-bundle.v1");
+  const writePerformed = /\bmethod\s*:\s*["'](?:POST|PUT|PATCH|DELETE)["']/i.test(scriptBlock);
+  const rawMaterialExposed = /\b(?:rawEvidence|rawJson|rawLocator)\b/.test(scriptBlock);
+  const sourceUrlExposed = /\bsourceUrl\b/.test(scriptBlock);
+  const credentialExposed = /\b(?:credentialValue|credentialReferenceValue|rawCredential|secretMaterial)\b/i.test(scriptBlock);
+  assert(dashboardRoutePresent, "v380 action receipt dashboard route missing");
+  assert(schemaPresent, "v380 action receipt schema missing");
+  assert(writePerformed === false, "v380 action receipt renderer must not write state");
+  assert(rawMaterialExposed === false, "v380 action receipt renderer must redact raw material");
+  assert(sourceUrlExposed === false, "v380 action receipt renderer must redact source URLs");
+  assert(credentialExposed === false, "v380 action receipt renderer must redact credentials");
+  assertIncludes(scriptBlock, "dashActionReceiptBundleBoundary", "v380 action receipt boundary state");
   const refreshBlock = extractBlock(files.uiScript, "async function refreshDashboard()", "async function refreshEvents()");
   assertIncludes(refreshBlock, "refreshV380ActionReceiptBundle", "dashboard refresh");
   assertIncludes(refreshBlock, route, "dashboard refresh");
@@ -332,11 +349,38 @@ check("roadmap, stream verification, inventory, and release records map v3.8 Ste
 check("server entrypoint and inventory verifiers include v3.8 Step 13 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v380_action_receipt_bundle.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const id of featureIds) {
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+  }
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   for (const id of featureIds) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v380_action_receipt_bundle.mjs", "script inventory");
+});
+
+check("SAFE-192 canonical bounded product boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV380ActionReceiptBundleJson(");
+  const routeObserved = files.server.includes("/ops/api/actions/receipt-bundle");
+  const outcomeObserved = files.uiScript.includes("renderV380ActionReceiptBundle");
+  const safe192BoundaryObserved = block.includes("BuildV380ActionReceiptBundleItems") && block.includes("bundlePersisted");
+  const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer|RecheckSource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const sendPerformed = /\bSendClientNotice[A-Za-z0-9_:]*\s*\(/.test(block);
+  const automaticApplyPerformed = /\b(?:AutomaticApply|SafeApply|ApplyRule|ApplySource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const fieldSmokeExecuted = /\b(?:ExecuteFieldSmoke|ProbeEndpoint|ContactDevice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\"(?:rawLocator|rawJson|rawProviderResponse|rawEndpoint|rawMaterial|rawDiagnosticJson)\\":true/.test(block);
+  const sourceUrlExposed = /\\"(?:sourceUrlIncluded|sourceUrlExposed)\\":true/.test(block);
+  const credentialMaterialExposed = /\\"(?:credentialMaterialIncluded|credentialMaterialExposed)\\":true/.test(block);
+  const debugMaterialExposed = /\\"(?:debugMaterialIncluded|debugMaterialExposed)\\":true/.test(block);
+  const viewerClientExposureAdded = /\\"(?:viewerClientExposureAdded|viewerClientPayloadChanged)\\":true/.test(block);
+  const mediaPathChanged = /\\"rtspOrWebrtcMediaPathChanged\\":true/.test(block);
+  assert(routeObserved && outcomeObserved && writePerformed === false && mutationPerformed === false && executionPerformed === false && sendPerformed === false && providerCallPerformed === false, "OPS-159 canonical bounded absence oracle");
+  assert(safe192BoundaryObserved && block.includes("media-server.ops.v380-action-receipt-bundle.v1") && writePerformed === false && mutationPerformed === false && executionPerformed === false && sendPerformed === false && automaticApplyPerformed === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+    "SAFE-192 bundlePersisted must remain no-execution no-write redacted and client/provider isolated");
 });
 
 const results = runChecks();

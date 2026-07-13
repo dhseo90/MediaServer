@@ -3,6 +3,7 @@
 
 import fs from "node:fs";
 import process from "node:process";
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const failures = [];
 
@@ -38,6 +39,9 @@ check("roadmap records V260-S05 scenario extension boundary", () => {
 });
 
 check("ReEntryScenario separates source and destination zones for configured-zones", () => {
+  const scenarioEvaluateBlock = extractCppFunctionBlock(scenario, "ScenarioUpdate ReEntryScenario::Evaluate(");
+  assert(scenarioEvaluateBlock.includes("update.confirmed = true;  // configured-zone re-entry confirmation"),
+    "LAB-073 cross-zone update.confirmed product block readback mismatch");
   for (const snippet of [
     "std::string re_entry_mode{\"same-zone\"}",
     "std::vector<std::string> re_entry_zone_ids",
@@ -106,6 +110,9 @@ check("/ops/rules UI labels configured-zones as A-to-B review candidate", () => 
     "A→B 지정 영역",
   ]) {
     assertIncludes(pageScripts, snippet, "ops rules S05 UI copy");
+    assertIncludes(pageScripts, "reEntryZoneIds", "UI-049 canonical product state");
+    assertIncludes(pageScripts, "/ops/rules", "UI-049 canonical route obligation");
+    assertIncludes(pageScripts, "configured-zones", "UI-049 canonical field obligation");
   }
 });
 

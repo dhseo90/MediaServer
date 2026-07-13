@@ -53,6 +53,10 @@ check("owner decision fixture is complete and role-owned", () => {
   assert(fixture.implementationStatus === "not-executed", "owner implementation status must remain not-executed");
   assert(fixture.evidenceStatus === "decision-only-not-implementation-evidence", "owner evidence status mismatch");
   assert(Array.isArray(fixture.decisions) && fixture.decisions.length === expected.size, "exactly five decisions are required");
+  const implementationExecuted = fixture.decisions.some((decision) => decision.implementationExecuted === true);
+  const implementationRemainsDeferred = implementationExecuted === false;
+  assert(implementationRemainsDeferred && implementationExecuted === false,
+    "deferred decisions must not claim implementation execution");
 
   const actualIds = new Set();
   for (const decision of fixture.decisions) {

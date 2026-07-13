@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { exactBooleanFlagValue, extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -46,6 +47,7 @@ const files = {
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
@@ -112,11 +114,14 @@ check("Limited Safe Execution Pilot derives from runbook, approval, field attach
 });
 
 check("Limited Safe Execution Pilot preserves approval-gated preview and no-mutation boundaries", () => {
-  const block = extractBlock(
-    files.server,
-    "std::string OpsV370LimitedSafeExecutionPilotJson",
-    "struct OpsV360RuleVaWhatIfReplayCandidate",
-  );
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV370LimitedSafeExecutionPilotJson(");
+  const clientNoticeSendPerformed = exactBooleanFlagValue(block, "clientNoticeSent");
+  assert(clientNoticeSendPerformed === false, "CLIENT-038 client notice send must remain false");
+  assert(exactBooleanFlagValue(block, "noticeQueueWritePerformed") === false, "CLIENT-038 notice queue write must remain false");
+  assert(exactBooleanFlagValue(block, "clientNoticeSent") === false, "CLIENT-038 client notice send must remain false");
+  assert(exactBooleanFlagValue(block, "eventPostPayloadChanged") === false, "CLIENT-038 client/API payload mutation must remain false");
+  assert(exactBooleanFlagValue(block, "viewerClientPayloadChanged") === false, "CLIENT-038 viewer client payload mutation must remain false");
+  assert(block.includes("noticeQueueWritePerformed") && block.includes("approvalGateRequired"), "CLIENT-038 exact noticeQueueWritePerformed pilot readback missing");
   for (const snippet of [
     "opsOnly",
     "readOnly",
@@ -226,6 +231,10 @@ check("/ops dashboard declares and renders Limited Safe Execution Pilot workspac
     "const renderV370LimitedSafeExecutionPilot",
     "const renderV370FieldEvidenceAttachment",
   );
+  assertIncludes(scriptBlock, "dashSiteLimitedSafeExecutionPilotBoundary", "v370 limited execution product UI state");
+  assert(!["send(", "sendClientNotice", "deliveryQueueWritePerformed: true"].some(marker => scriptBlock.includes(marker)), "UI-099 no-send explicit absence oracle");
+  assertIncludes(files.uiScript, "/ops/dashboard", "UI-099 canonical route obligation");
+  assertIncludes(files.server, "media-server.ops.v370-limited-safe-execution-pilot.v1", "UI-099 canonical schema obligation");
   for (const snippet of [
     "refreshV370LimitedSafeExecutionPilot",
     route,
@@ -318,11 +327,35 @@ check("roadmap, stream verification, inventory, and release records map v3.7 Ste
 check("server entrypoint and inventory verifiers include v3.7 Step 15 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v370_limited_safe_execution_pilot.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const id of ["UI-099", "SRC-061", "CLIENT-038", "LAB-108", "SAFE-176", "OPS-143"]) assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   for (const id of featureIds) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v370_limited_safe_execution_pilot.mjs", "script inventory");
+});
+
+check("SAFE-176 canonical bounded product boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV370LimitedSafeExecutionPilotJson(");
+  const routeObserved = files.server.includes("/ops/api/site-operations/limited-safe-execution-pilot");
+  const safe176BoundaryObserved = block.includes("BuildV370LimitedSafeExecutionPilotActions") && block.includes("pilotExecutionPerformed");
+  const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer|RecheckSource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const sendPerformed = /\bSendClientNotice[A-Za-z0-9_:]*\s*\(/.test(block);
+  const automaticApplyPerformed = /\b(?:AutomaticApply|SafeApply|ApplyRule|ApplySource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const fieldSmokeExecuted = /\b(?:ExecuteFieldSmoke|ProbeEndpoint|ContactDevice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\"(?:rawLocator|rawJson|rawProviderResponse|rawEndpoint|rawMaterial|rawDiagnosticJson)\\":true/.test(block);
+  const sourceUrlExposed = /\\"(?:sourceUrlIncluded|sourceUrlExposed)\\":true/.test(block);
+  const credentialMaterialExposed = /\\"(?:credentialMaterialIncluded|credentialMaterialExposed)\\":true/.test(block);
+  const debugMaterialExposed = /\\"(?:debugMaterialIncluded|debugMaterialExposed)\\":true/.test(block);
+  const viewerClientExposureAdded = /\\"(?:viewerClientExposureAdded|viewerClientPayloadChanged)\\":true/.test(block);
+  const mediaPathChanged = /\\"rtspOrWebrtcMediaPathChanged\\":true/.test(block);
+  assert(routeObserved && writePerformed === false && mutationPerformed === false && executionPerformed === false && sendPerformed === false && providerCallPerformed === false, "OPS-143 canonical bounded absence oracle");
+  assert(safe176BoundaryObserved && block.includes("media-server.ops.v370-limited-safe-execution-pilot.v1") && writePerformed === false && mutationPerformed === false && executionPerformed === false && sendPerformed === false && automaticApplyPerformed === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+    "SAFE-176 pilotExecutionPerformed must remain no-execution no-write redacted and client/provider isolated");
 });
 
 const results = runChecks();

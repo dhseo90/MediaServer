@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { exactBooleanFlagValue, extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -49,6 +50,8 @@ check("Ops server builds the v3.7 site simulation input pack model", () => {
     "simulationResultEnvelope",
     "v360InputPackSummary",
   ]) assertIncludes(files.server, snippet, "v370 site simulation input pack server model");
+  const producerBlock = extractCppFunctionBlock(files.server, "std::string OpsV370SiteSimulationInputPackJson(");
+  assertIncludes(producerBlock, "media-server.ops.v370-site-simulation-input-pack.v1", "v370 site simulation input pack schema");
 });
 
 check("site simulation input pack derives from v3.6 input/result envelope and v3.7 site graph", () => {
@@ -70,7 +73,7 @@ check("site simulation input pack derives from v3.6 input/result envelope and v3
 });
 
 check("site simulation input pack preserves read-only simulation boundaries", () => {
-  const block = extractBlock(files.server, "std::string OpsV370SiteSimulationInputPackJson", "struct OpsV360CommandPlanDryRunResult");
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV370SiteSimulationInputPackJson(");
   for (const snippet of [
     "opsOnly",
     "readOnly",
@@ -117,6 +120,7 @@ check("site simulation input pack preserves read-only simulation boundaries", ()
     "wsMetadataSchemaChanged",
     "rtspOrWebrtcMediaPathChanged",
   ]) assertFlagFalse(block, flag);
+  assert(exactBooleanFlagValue(block, "eventRecordWritePerformed") === false, "eventRecordWritePerformed must remain false");
 });
 
 check("Ops API exposes the site simulation input pack route as guarded no-store JSON", () => {
@@ -137,8 +141,31 @@ check("docs, inventory, and dispatch map v3.7 Step 6", () => {
   }
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v370_site_simulation_input_pack.mjs", "server.sh dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const id of ["SRC-058", "EVT-081", "LAB-101", "SAFE-167", "OPS-134"]) assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   assertIncludes(files.scriptInventory, "verify_v370_site_simulation_input_pack.mjs", "script inventory");
+});
+
+check("SAFE-167 canonical bounded no-execution boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV370SiteSimulationInputPackJson(");
+  const routeObserved = files.server.includes("/ops/api/site-operations/simulation-input-pack");
+  const safe167BoundaryObserved = block.includes("BuildV370SiteSimulationInputPackItems");
+  const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const automaticApplyPerformed = /\b(?:AutomaticApply|SafeApply|ApplyRule|ApplySource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const clientNoticeSent = /\bSendClientNotice[A-Za-z0-9_:]*\s*\(/.test(block);
+  const fieldSmokeExecuted = /\b(?:ExecuteFieldSmoke|ProbeEndpoint|ContactDevice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\"(?:rawLocator|rawJson|rawProviderResponse|rawEndpoint|rawMaterial)\\":true/.test(block);
+  const sourceUrlExposed = block.includes("\\\"sourceUrlIncluded\\\":true") || block.includes("\\\"sourceUrlExposed\\\":true");
+  const credentialMaterialExposed = block.includes("\\\"credentialMaterialIncluded\\\":true") || block.includes("\\\"credentialMaterialExposed\\\":true");
+  const debugMaterialExposed = block.includes("\\\"debugMaterialIncluded\\\":true") || block.includes("\\\"debugMaterialExposed\\\":true");
+  const viewerClientExposureAdded = block.includes("\\\"viewerClientExposureAdded\\\":true");
+  const mediaPathChanged = block.includes("\\\"rtspOrWebrtcMediaPathChanged\\\":true");
+  assert(routeObserved && safe167BoundaryObserved && block.includes("media-server.ops.v370-site-simulation-input-pack.v1") && writePerformed === false && mutationPerformed === false && executionPerformed === false && automaticApplyPerformed === false && clientNoticeSent === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+    "SAFE-167 BuildV370SiteSimulationInputPackItems must remain bounded no-execution no-write redacted and client/provider isolated");
 });
 
 finish("== v3.7.0 site simulation input pack summary ==", { schema, step: "v3.7.0 (6)", route });
@@ -164,6 +191,7 @@ function loadFiles() {
     streamVerification: readText("docs/stream-verification.md"),
     featureInventory: readText("docs/project-feature-test-inventory.md"),
     featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
+    implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
     projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
     scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
     releaseRecords: readText("docs/release-test-records.md"),

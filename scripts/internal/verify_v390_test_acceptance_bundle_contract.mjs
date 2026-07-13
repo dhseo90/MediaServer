@@ -155,6 +155,8 @@ check("actual-mode fixture executes the fixed stage order and conditional 120 de
   assert(summary.cleanup?.status === "PASS", "fixture cleanup must pass");
   assert(summary.cleanup?.verificationSource === "child-summary-and-filesystem", "cleanup must record its verification source");
   assert(Array.isArray(summary.cleanup?.checks) && summary.cleanup.checks.length > 0, "cleanup must contain measured checks");
+  assert(files.bundle.includes("throwaway-rtsp-port-clean"),
+    "RTSP cleanup measurement must remain wired in the actual bundle");
   assert(summary.outputPreparation?.replacedExisting === true, "existing canonical output must be replaced");
   assert(summary.outputPreparation?.removedScreenshotFiles === 1, "stale screenshot removal count mismatch");
   assert(summary.outputPreparation?.removedPlaceholderVideoFiles === 1, "stale placeholder video removal count mismatch");

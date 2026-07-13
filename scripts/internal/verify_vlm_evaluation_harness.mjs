@@ -61,12 +61,13 @@ check("evaluation harness report scores latency, explanation, hallucination, JSO
     assert(item.promptProfilesCompared.length >= 2, `${item.id}: prompt A/B comparison missing`);
     for (const candidate of item.candidates) {
       for (const dimension of ["latency", "jsonStability", "explanationQuality", "hallucination", "languageQuality"]) {
-        assert(candidate.dimensions[dimension], `${candidate.id}: missing dimension ${dimension}`);
+      assert(candidate.dimensions[dimension], `${candidate.id}: VLM missing dimension ${dimension}`);
       }
       assert(typeof candidate.score.total === "number", `${candidate.id}: total score missing`);
       assert(candidate.expectedStatus === candidate.status, `${candidate.id}: expected status mismatch`);
     }
   }
+  assert(output.cases.every(item => item.candidates.every(candidate => Object.keys(candidate.dimensions || {}).length === 5)), "LAB-052 VLM dimensions matrix readback mismatch");
   const invalid = output.cases.flatMap(item => item.candidates).find(item => item.id === "bad-json-hallucination-en");
   assert(invalid?.status === "failed", "invalid structured output fixture must fail candidate scoring");
   assert(invalid.failedDimensions.includes("jsonStability"), "invalid fixture must fail JSON stability");

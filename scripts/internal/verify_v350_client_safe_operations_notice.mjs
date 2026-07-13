@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v3.5.0 Step 9 Client-safe Operations Notice 구현, UI, 문서, inventory 연결을 검증한다.
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -47,8 +49,11 @@ const files = {
 };
 
 const checks = [];
+const operationsNoticeProjectionBlock = extractCppFunctionBlock(files.server, "std::string ClientOperationsNoticeJson(");
+const operationsNoticeRendererBlock = extractNamedFunctionBlock(files.clientScript, "renderClientOperationsNotice");
 
 check("client API emits the v3.5 viewer-safe operations notice schema", () => {
+  assert(operationsNoticeProjectionBlock.includes("AppendClientOperationsNoticeJson") && operationsNoticeProjectionBlock.includes("ClientOperationsNoticeJson"), "CLIENT-032 exact ClientOperationsNoticeJson projection missing for /client/api/views/{id}/events");
   for (const snippet of [
     "struct ClientOperationsNotice",
     "ClientOperationsNoticeFor",
@@ -105,6 +110,9 @@ check("client API emits the v3.5 viewer-safe operations notice schema", () => {
 });
 
 check("client renderer shows only operations status and timeline hint", () => {
+  const credentialMaterialExposed = ["passwordHash", "tokenHash", "credentialMaterial", "credentialRef"].some(marker => operationsNoticeRendererBlock.includes(marker));
+  assert(credentialMaterialExposed === false, "CLIENT-032 credential material must remain redacted");
+  assert(operationsNoticeProjectionBlock.includes("ClientOperationsNoticeJson") && operationsNoticeRendererBlock.includes("clientOperationsNotice") && operationsNoticeRendererBlock.includes("operationsStatus") && operationsNoticeRendererBlock.includes("timelineHint"), "CLIENT-032 exact ClientOperationsNoticeJson renderer readback missing for /client/api/views/{id}/events");
   for (const snippet of [
     "renderClientOperationsNotice",
     "clientOperationsNotice",
@@ -115,7 +123,13 @@ check("client renderer shows only operations status and timeline hint", () => {
     "operationsStatus",
     "timelineHint",
   ]) {
-    assertIncludes(files.clientScript, snippet, "client operations notice renderer");
+    assertIncludes(operationsNoticeRendererBlock, snippet, "client operations notice renderer");
+    assertIncludes(extractNamedFunctionBlock(files.clientScript, "renderClientOperationsNotice"), "client-operations-notice", "UI-084 block-scoped canonical product state");
+    assert(!["rawJson","rawLocator","rawEvidenceIncluded: true","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.clientScript, "renderClientOperationsNotice").includes(marker)), "UI-084 raw-material-redaction explicit absence oracle");
+    assert(!["sourceUrl","sourceURL","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.clientScript, "renderClientOperationsNotice").includes(marker)), "UI-084 source-url-redaction explicit absence oracle");
+    assert(!["debugCounters","Developer URL","debugMaterialExposed: true"].some(marker => extractNamedFunctionBlock(files.clientScript, "renderClientOperationsNotice").includes(marker)), "UI-084 debug-redaction explicit absence oracle");
+    assertIncludes(files.server, "/client/live", "UI-084 canonical route obligation");
+    assertIncludes(files.clientScript, "media-server.client.v350-operations-notice.v1", "UI-084 canonical schema obligation");
   }
   for (const forbidden of [
     "sourceUrl",
@@ -135,7 +149,7 @@ check("client renderer shows only operations status and timeline hint", () => {
     "actionRoute",
     "actionControls",
   ]) {
-    assert(!files.clientScript.includes(`clientOperationsNotice.${forbidden}`), `client operations notice renderer must not read ${forbidden}`);
+    assert(!operationsNoticeRendererBlock.includes(`clientOperationsNotice.${forbidden}`), `client operations notice renderer must not read ${forbidden}`);
   }
 });
 
@@ -209,11 +223,26 @@ check("feature inventory and release records map v3.5 Step 9", () => {
 check("server entrypoint and inventory verifiers include v3.5 Step 9 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v350_client_safe_operations_notice.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const snippet of [
+    "validateImplementationManifest",
+    "semantic.verifierAssertion.command",
+    'kind: "stability"',
+  ]) {
+    assertIncludes(files.featureCoverageVerifier, snippet, "feature coverage verifier canonical command mapping");
+  }
   for (const id of ["UI-084", "CLIENT-032", "SAFE-143", "OPS-110"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v350_client_safe_operations_notice.mjs", "script inventory");
+});
+
+check("SAFE-143 canonical client operations notice boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "void AppendClientOperationsNoticeJson(");
+  const safe143BoundaryObserved = block.includes("media-server.client.v350-operations-notice.v1") && block.includes("notice.operations_status");
+  const rawMaterialExposed = /\\\"(?:sourceUrl|rawLocator|rawJson|debugMaterial|credentialMaterial|operatorMaterial|commandPlanDetail|incidentDetail|actionControls)Included\\\":true/.test(block);
+  const mutationPerformed = /\b(?:Write|Persist|Execute|UpdateSource|CreateVaRule|DispatchEventRecords)[A-Za-z0-9_:]*\s*\(/.test(block);
+  assert(safe143BoundaryObserved && rawMaterialExposed === false && mutationPerformed === false,
+    "SAFE-143 notice.operations_status viewer-safe PublishedView notice must hide incident command action raw credential operator material");
 });
 
 const results = runChecks();

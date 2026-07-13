@@ -238,6 +238,16 @@ check("script inventory explicitly tracks v3.9 entry baseline script", () => {
   assertIncludes(files.scriptInventory, targetScript, "script inventory");
 });
 
+check("SAFE-196 canonical source baseline no-overclaim boundary", () => {
+  const currentSourceAligned = version === currentVersion && files.cmake.includes(`VERSION ${currentVersion}`);
+  const publishedBaselineSeparated = latestPublishedTag === "v3.8.0" && files.releaseRecords.includes("v390 Step 1 entry baseline final");
+  const executionPassClaimed = !(files.releaseRecords.includes("feature discovery/dev") && files.releaseRecords.includes("not-run-by-this-command"));
+  const safe196BoundaryObserved = currentSourceAligned && publishedBaselineSeparated && files.projectInventory.includes("SAFE-196");
+  const ops163BaselineObserved = safe196BoundaryObserved;
+  assert(ops163BaselineObserved && safe196BoundaryObserved && executionPassClaimed === false,
+    "SAFE-196 current 3.9 source baseline must not claim feature discovery development UI longrun or release execution PASS");
+});
+
 const results = runChecks();
 console.log("");
 console.log("== v3.9.0 entry baseline summary ==");

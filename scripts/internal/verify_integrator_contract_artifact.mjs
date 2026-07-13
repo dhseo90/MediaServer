@@ -256,6 +256,44 @@ check("documentation references integrator artifact", () => {
   assert(inventory.includes("verify_integrator_contract_artifact.mjs"), "script inventory missing verifier script");
 });
 
+check("current source registry evolution preserves the external transport boundary", () => {
+  const evidence = readJson(path.join(rootDir, "test/fixtures/v290_final_contract_freeze_evidence.json"));
+  const header = readText("include/ingress/source_view_registry.h");
+  const source = readText("src/ingress/source_view_registry.cpp");
+  const current = evidence.current?.sourceRegistry;
+  assert(current?.evolution ===
+    "post-v2.9 additive source kinds, ops summaries, and durable ONVIF transaction support",
+    "current source registry evolution evidence mismatch");
+  for (const snippet of [
+    "SourceRegistrySnapshotIdentityJson",
+    "SourceOnboardingQualitySummaryJson",
+    "UpsertOnvifSourceView",
+  ]) {
+    assert(header.includes(snippet), `current source registry header missing additive API: ${snippet}`);
+  }
+  const clientStart = source.indexOf("std::string ClientPublishedViewJson");
+  const clientEnd = source.indexOf(
+    "SourceViewRegistry::SourceIdentityPublishedView ToSourceIdentityPublishedView",
+    clientStart
+  );
+  assert(clientStart >= 0 && clientEnd > clientStart, "ClientPublishedViewJson block not found");
+  const clientProjection = source.slice(clientStart, clientEnd);
+  for (const forbidden of current.forbiddenClientProjectionMembers || []) {
+    assert(!clientProjection.includes(forbidden), `client projection exposes historical locator member: ${forbidden}`);
+  }
+  for (const invariant of [
+    "eventPostPayloadChanged",
+    "webrtcDataChannelSchemaChanged",
+    "sseMetadataSchemaChanged",
+    "wsMetadataSchemaChanged",
+    "rtspOrWebrtcMediaPathChanged",
+  ]) {
+    assert(current[invariant] === false, `current source registry evidence must keep ${invariant}=false`);
+    assert(source.includes(`\\\"${invariant}\\\":false`),
+      `current source registry implementation missing ${invariant}=false boundary`);
+  }
+});
+
 check("v2.0.0 entry freeze baseline matches artifact and contract docs", () => {
   const manifest = readJson(manifestPath);
   const baseline = readJson(freezeBaselinePath);
@@ -355,6 +393,7 @@ function freezeBaselineFailures(baseline, manifest) {
 
   const entryByPath = new Map();
   const entriesByGroup = new Map();
+  const historicalEvidenceTargets = new Set();
   for (const entry of baseline.entries) {
     if (!entry.path || entryByPath.has(entry.path)) {
       failures.push(`freeze baseline duplicate or missing path: ${entry.path || "(missing)"}`);
@@ -375,9 +414,48 @@ function freezeBaselineFailures(baseline, manifest) {
       failures.push(`${entry.path}: missing freeze target`);
       continue;
     }
+    if (entry.verificationMode === "historical-release-evidence") {
+      if (!/^v\d+\.\d+\.\d+$/.test(entry.frozenRelease || "")) {
+        failures.push(`${entry.path}: invalid historical frozenRelease`);
+      }
+      if (!/^[a-f0-9]{40}$/.test(entry.sourceCommit || "")) {
+        failures.push(`${entry.path}: invalid historical sourceCommit`);
+      }
+      if (!entry.evidencePath) {
+        failures.push(`${entry.path}: historical evidencePath missing`);
+        continue;
+      }
+      historicalEvidenceTargets.add(entry.evidencePath);
+      const evidenceAbsolutePath = path.join(rootDir, entry.evidencePath);
+      if (!fs.existsSync(evidenceAbsolutePath)) {
+        failures.push(`${entry.path}: historical evidence missing: ${entry.evidencePath}`);
+        continue;
+      }
+      const evidence = readJson(evidenceAbsolutePath);
+      const historicalArtifact = evidence.historical?.sourcePath === entry.path
+        ? evidence.historical
+        : evidence.historical?.sourceArtifacts?.find((item) => item.path === entry.path);
+      if (!historicalArtifact) failures.push(`${entry.path}: historical artifact evidence missing`);
+      if (evidence.historical?.release !== entry.frozenRelease) {
+        failures.push(`${entry.path}: historical evidence release mismatch`);
+      }
+      if (evidence.historical?.sourceCommit !== entry.sourceCommit) {
+        failures.push(`${entry.path}: historical evidence sourceCommit mismatch`);
+      }
+      if (historicalArtifact?.sha256 !== entry.sha256) {
+        failures.push(`${entry.path}: historical evidence sha256 mismatch`);
+      }
+      continue;
+    }
     const actualHash = sha256File(absolutePath);
     if (actualHash !== entry.sha256) {
       failures.push(`${entry.path}: sha256 mismatch ${actualHash} != ${entry.sha256}`);
+    }
+  }
+
+  for (const target of historicalEvidenceTargets) {
+    if (!entryByPath.has(target)) {
+      failures.push(`freeze baseline missing historical evidence target: ${target}`);
     }
   }
 

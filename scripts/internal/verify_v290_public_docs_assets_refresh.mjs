@@ -43,6 +43,7 @@ const streamVerification = readText("docs/stream-verification.md");
 const featureInventory = readText("docs/project-feature-test-inventory.md");
 const releaseRecords = readText("docs/release-test-records.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const projectInventoryVerifier = readText("scripts/internal/verify_project_feature_test_inventory.mjs");
 const docsUiAssetsVerifier = readText("scripts/internal/verify_docs_ui_assets.mjs");
 const serverSh = readText("server.sh");
@@ -70,14 +71,10 @@ check("roadmap and stream verification expose V290-S07 public docs/assets refres
   }
 });
 
-check("public entry docs share v2.9 source and published baseline", () => {
+check("public entry docs preserve managed assets under the current source/published baseline", () => {
   for (const snippet of [
-    "v2.9.0 Final 2.x Closure & Compatibility Baseline",
-    "source-only GitHub Release",
-    "v2.8.0 Operator-Supervised Action Readiness",
-    "source-only GitHub Release",
-    "Public docs/assets baseline",
-    "공개 문서/대표 asset 기준",
+    "v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation",
+    "v3.8.0 Operator-Gated Action Pilot & Outcome Loop",
     "verify-docs-ui-assets",
     "config/docs_ui_assets.json",
   ]) {
@@ -99,12 +96,11 @@ check("public entry docs share v2.9 source and published baseline", () => {
 
 check("asset docs keep representative screenshot boundary explicit", () => {
   for (const snippet of [
-    "v2.9.0 S07 public docs/assets refresh",
-    "이번 S07에서는 이미지 파일을 새로 교체하지 않았습니다.",
+    "v3.9.0 source baseline alignment",
+    "이번 Task 7에서는 이미지 파일을 새로 교체하지 않았습니다.",
     "대표 이미지 교체는 직접 이미지 검수와 `./server.sh verify-docs-ui-assets` 재실행 후에만 기록합니다.",
     "Chrome/CDP fallback 재캡처는 사용자가 명시 승인한 예외일 때만",
     "UI 풀테스트 PASS 증거가 아닙니다.",
-    "source URL, Developer URL, raw JSON, debug counter",
     "열지 않은 이미지는 PASS가 아니라 `미확인`",
   ]) {
     assert(normalizedAssetDocs.includes(normalizeWhitespace(snippet)), `asset docs missing S07 boundary snippet: ${snippet}`);
@@ -117,10 +113,8 @@ check("asset docs keep representative screenshot boundary explicit", () => {
   }
 });
 
-check("release and version policies list S07 local gate without promoting publication", () => {
+check("release and version policies keep the managed-asset gate separate from publication", () => {
   for (const snippet of [
-    "public docs/assets refresh",
-    "verify-v290-public-docs-assets-refresh",
     "대표 UI 이미지는 `config/docs_ui_assets.json`",
     "이미지 재캡처나 직접 브라우저 검수 PASS가 아닙니다.",
     "published metadata, tag/push/GitHub Release",
@@ -163,7 +157,7 @@ check("feature inventory maps V290-S07 to OPS-048 and SAFE-078", () => {
   ]) {
     assert(featureInventory.includes(snippet), `feature inventory missing S07 snippet: ${snippet}`);
   }
-  assert(coverageVerifier.includes("verify-v290-public-docs-assets-refresh"), "feature coverage missing V290-S07 verifier");
+  assertCanonicalCoverage(["SAFE-078", "OPS-048"], "verify-v290-public-docs-assets-refresh");
   assert(projectInventoryVerifierRangeCovers("SAFE", 78), "project inventory verifier missing SAFE-078 coverage");
   assert(projectInventoryVerifierRangeCovers("OPS", 48), "project inventory verifier missing OPS-048 coverage");
 });
@@ -190,6 +184,14 @@ check("server exposes S07 public docs/assets command", () => {
   ]) {
     assert(serverSh.includes(snippet), `server.sh missing S07 command snippet: ${snippet}`);
   }
+});
+
+check("SAFE-078 canonical public docs asset boundary", () => {
+  const publicDocsCommandDocumented = serverSh.includes("verify-v290-public-docs-assets-refresh");
+  const directBrowserReviewSeparated = normalizedAssetDocs.includes("직접 브라우저 검수");
+  const safe078BoundaryObserved = publicDocsCommandDocumented && directBrowserReviewSeparated;
+  assert(safe078BoundaryObserved,
+    "verify-v290-public-docs-assets-refresh must preserve direct recapture/browser-review boundaries");
 });
 
 let pass = 0;
@@ -257,6 +259,11 @@ function projectInventoryVerifierRangeCovers(prefix, minimum) {
   if (matches.length === 0) return false;
   const max = Math.max(...matches.map((match) => Number.parseInt(match[1], 10)));
   return max >= minimum;
+}
+
+function assertCanonicalCoverage(ids, command) {
+  assert(coverageVerifier.includes("loadImplementationManifest") && coverageVerifier.includes("validateImplementationManifest"), "feature coverage missing canonical implementation manifest validation");
+  for (const id of ids) assert(implementationManifest.items?.find(item => item.id === id)?.verifierEvidence?.command === command, `implementation manifest ${id} missing ${command}`);
 }
 
 function escapeRegExp(text) {

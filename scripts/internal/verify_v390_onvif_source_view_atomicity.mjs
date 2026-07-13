@@ -89,24 +89,7 @@ try {
   serverProcess = startServer(ports, "published view registry:before-replace");
   await waitForHealth();
   const apiBeforeFailure = await pairSnapshot();
-  const failedPayload = pairPayload("should-roll-back-byte-exact");
-  const failed = await request("PUT", route(), failedPayload, 500);
-  assert(failed.json.transactionStatus === "rolled-back", "second-write failure must report rolled-back");
-  assert(failed.json.failedStage === "published-view-save", "wrong failed stage");
-  assert(failed.json.sourceWriteSucceeded === true, "source write should precede injected view failure");
-  assert(failed.json.publishedViewWriteSucceeded === false, "view write must fail");
-  assert(failed.json.sourceRollbackAttempted === true && failed.json.sourceRollbackSucceeded === true,
-    "source byte snapshot rollback did not succeed");
-  assert(failed.json.publishedViewRollbackAttempted === false,
-    "view rollback should not run before target replacement");
-  assert(failed.json.partialSave === false, "failed transaction reported a partial save");
-  assert(!failed.text.includes(sourcePath) && !failed.text.includes(viewPath),
-    "failure response exposed registry storage paths");
-  assert(!failed.text.includes(failedPayload.source.rtspUrl), "failure response exposed source locator");
-  assertFileSnapshot(sourcePath, sourceSnapshot, "byte-exact source update rollback");
-  assertFileSnapshot(viewPath, viewSnapshot, "unchanged view update rollback");
-  assert(JSON.stringify(await pairSnapshot()) === JSON.stringify(apiBeforeFailure),
-    "in-memory source/view pair changed after rollback");
+  await assertSecondWriteRollback(apiBeforeFailure, sourceSnapshot, viewSnapshot);
   console.log("[pass] byte-exact-update-second-write-failure");
 
   await restartServer(ports, "published view registry:before-replace");
@@ -292,8 +275,36 @@ function assertCommitted(payload, label) {
   assert(payload.partialSave === false, `${label}: partial save reported`);
 }
 
+async function assertSecondWriteRollback(apiBeforeFailure, sourceSnapshot, viewSnapshot) {
+  const failedPayload = pairPayload("should-roll-back-byte-exact");
+  const failed = await request("PUT", route(), failedPayload, 500);
+  assert(failed.json.transactionStatus === "rolled-back", "second-write failure must report rolled-back");
+  assert(failed.json.failedStage === "published-view-save", "wrong failed stage");
+  assert(failed.json.sourceWriteSucceeded === true, "source write should precede injected view failure");
+  assert(failed.json.publishedViewWriteSucceeded === false, "view write must fail");
+  assert(failed.json.sourceRollbackAttempted === true && failed.json.sourceRollbackSucceeded === true,
+    "source byte snapshot rollback did not succeed");
+  assert(failed.json.publishedViewRollbackAttempted === false,
+    "view rollback should not run before target replacement");
+  const partialSave = failed.json.partialSave;
+  const registryWritePerformedAfterRollback = partialSave ||
+    JSON.stringify(await pairSnapshot()) !== JSON.stringify(apiBeforeFailure);
+  assert(registryWritePerformedAfterRollback === false && partialSave === false,
+    "failed transaction reported a partial save or changed independent GET readback");
+  assert(!failed.text.includes(sourcePath) && !failed.text.includes(viewPath),
+    "failure response exposed registry storage paths");
+  assert(!failed.text.includes(failedPayload.source.rtspUrl), "failure response exposed source locator");
+  assertFileSnapshot(sourcePath, sourceSnapshot, "byte-exact source update rollback");
+  assertFileSnapshot(viewPath, viewSnapshot, "unchanged view update rollback");
+}
+
 async function assertPair(suffix) {
   const snapshot = await pairSnapshot();
+  const uiSource = read("src/ingress/product_ui_ops_sources_script.cpp");
+  const legacySequentialWrite = /await\s+requestJson\(`\/ops\/api\/sources\/[\s\S]{0,500}await\s+requestJson\(`\/ops\/api\/views\//.test(uiSource);
+  assert(legacySequentialWrite === false, "ONVIF form save must not use legacy sequential source/view writes");
+  assert(snapshot.source.sourceId === channelId && snapshot.view.viewId === channelId,
+    "paired channelId runtime readback mismatch");
   assert(snapshot.source.displayName === `ONVIF ${suffix}`, `source display mismatch for ${suffix}`);
   assert(snapshot.view.displayName === snapshot.source.displayName, `source/view display mismatch for ${suffix}`);
   assert(snapshot.view.sourceId === snapshot.source.sourceId, `source/view id mismatch for ${suffix}`);

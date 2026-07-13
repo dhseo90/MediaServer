@@ -9,6 +9,11 @@ BUILD_DIR="${MEDIA_SERVER_VERIFY_V250_INCIDENT_MEMORY_INDEX_BUILD_DIR:-/tmp/medi
 WORK_DIR="${MEDIA_SERVER_VERIFY_V250_INCIDENT_MEMORY_INDEX_WORK_DIR:-${BUILD_DIR}/work}"
 CXX_BIN="${CXX:-c++}"
 
+fail() {
+  echo "[fail] $1" >&2
+  exit 1
+}
+
 mkdir -p "${BUILD_DIR}" "${WORK_DIR}"
 
 SQLITE_CFLAGS=""
@@ -28,4 +33,11 @@ echo "[verify] build v2.5.0 incident memory index smoke: ${BUILD_DIR}"
   -o "${BUILD_DIR}/incident_memory_index_smoke" \
   ${SQLITE_LIBS}
 
-"${BUILD_DIR}/incident_memory_index_smoke" "${WORK_DIR}"
+smoke_output="$("${BUILD_DIR}/incident_memory_index_smoke" "${WORK_DIR}")"
+assert_fallback() {
+  if ( [[ "${smoke_output}" != *"fallback"* ]] ); then
+    fail "incident memory index runtime readback missing fallback parity"
+  fi
+}
+assert_fallback
+printf '%s\n' "${smoke_output}"

@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v3.7.0 Step 11 Site Operations Workspace UI 구현, 문서, inventory 연결을 검증한다.
+import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -68,6 +70,14 @@ check("/ops dashboard declares the v3.7 site operations workspace UI shell", () 
     "dashSiteOperationsBoundary",
   ]) {
     assertIncludes(block, snippet, "v370 site operations workspace shell");
+    assertIncludes(extractNamedFunctionBlock(files.uiScript, "renderV370SiteOperationsWorkspace"), "dashSiteOperationsBoundary", "UI-095 block-scoped canonical product state");
+    assert(!["requestJson(","fetch(","method: 'POST'","method: 'PUT'","method: 'DELETE'"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV370SiteOperationsWorkspace").includes(marker)), "UI-095 no-write explicit absence oracle");
+    assert(!["rawJson","rawLocator","rawEvidenceIncluded: true","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV370SiteOperationsWorkspace").includes(marker)), "UI-095 raw-material-redaction explicit absence oracle");
+    assert(!["sourceUrl","sourceURL","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV370SiteOperationsWorkspace").includes(marker)), "UI-095 source-url-redaction explicit absence oracle");
+    assert(!["passwordHash","tokenHash","Authorization:","credentialValue"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV370SiteOperationsWorkspace").includes(marker)), "UI-095 credential-redaction explicit absence oracle");
+    assert(!["debugCounters","Developer URL","debugMaterialExposed: true"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV370SiteOperationsWorkspace").includes(marker)), "UI-095 debug-redaction explicit absence oracle");
+    assertIncludes(files.uiScript, "/ops/dashboard", "UI-095 canonical route obligation");
+    assertIncludes(files.server, "media-server.ops.v370-site-operations-workspace-ui.v1", "UI-095 canonical schema obligation");
   }
 });
 
@@ -210,11 +220,39 @@ check("feature inventory and release records map v3.7 Step 11", () => {
 check("server entrypoint and inventory verifiers include v3.7 Step 11 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v370_site_operations_workspace_ui.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const snippet of [
+    "validateImplementationManifest",
+    "semantic.verifierAssertion.command",
+    'kind: "stability"',
+  ]) {
+    assertIncludes(files.featureCoverageVerifier, snippet, "feature coverage verifier canonical command mapping");
+  }
   for (const id of ["UI-095", "SAFE-172", "OPS-139"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v370_site_operations_workspace_ui.mjs", "script inventory");
+});
+
+check("SAFE-172 canonical bounded no-execution boundary", () => {
+  const block = extractNamedFunctionBlock(files.uiScript, "renderV370SiteOperationsWorkspace");
+  const routeObserved = files.uiScript.includes("/ops");
+  const safe172BoundaryObserved = block.includes("sourceRegistryProjectionItems");
+  const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const automaticApplyPerformed = /\b(?:AutomaticApply|SafeApply|ApplyRule|ApplySource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const clientNoticeSent = /\bSendClientNotice[A-Za-z0-9_:]*\s*\(/.test(block);
+  const sendPerformed = clientNoticeSent;
+  const fieldSmokeExecuted = /\b(?:ExecuteFieldSmoke|ProbeEndpoint|ContactDevice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\"(?:rawLocator|rawJson|rawProviderResponse|rawEndpoint|rawMaterial)\\":true/.test(block);
+  const sourceUrlExposed = block.includes("\\\"sourceUrlIncluded\\\":true") || block.includes("\\\"sourceUrlExposed\\\":true");
+  const credentialMaterialExposed = block.includes("\\\"credentialMaterialIncluded\\\":true") || block.includes("\\\"credentialMaterialExposed\\\":true");
+  const debugMaterialExposed = block.includes("\\\"debugMaterialIncluded\\\":true") || block.includes("\\\"debugMaterialExposed\\\":true");
+  const viewerClientExposureAdded = block.includes("\\\"viewerClientExposureAdded\\\":true");
+  const mediaPathChanged = block.includes("\\\"rtspOrWebrtcMediaPathChanged\\\":true");
+  assert(routeObserved && safe172BoundaryObserved && writePerformed === false && mutationPerformed === false && executionPerformed === false && automaticApplyPerformed === false && clientNoticeSent === false && sendPerformed === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+    "SAFE-172 sourceRegistryProjectionItems must remain bounded no-execution no-write redacted and client/provider isolated");
 });
 
 const results = runChecks();

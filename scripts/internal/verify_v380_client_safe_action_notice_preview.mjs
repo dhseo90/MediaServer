@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -33,6 +34,8 @@ const schema = "media-server.client.v380-action-notice-preview.v1";
 const featureIds = ["UI-103", "CLIENT-040", "SAFE-190", "OPS-157"];
 const files = loadFiles();
 const checks = [];
+const actionNoticeProjectionBlock = extractCppFunctionBlock(files.server, "std::string ClientActionNoticePreviewJson(");
+const actionNoticeRendererBlock = extractNamedFunctionBlock(files.clientScripts, "renderClientActionNoticePreview");
 
 check("client API builds the v3.8 client-safe action notice preview payload", () => {
   for (const snippet of [
@@ -55,6 +58,7 @@ check("client API builds the v3.8 client-safe action notice preview payload", ()
 });
 
 check("client API appends action notice preview to events and dashboard without restricted material", () => {
+  assert(actionNoticeProjectionBlock.includes("AppendClientActionNoticePreviewJson") && actionNoticeProjectionBlock.includes("ClientActionNoticePreviewJson"), "CLIENT-040 exact ClientActionNoticePreviewJson projection missing for /client/api/views/{id}/events");
   for (const snippet of [
     "ClientActionNoticePreviewJson(",
     "client_action_notice_preview_json",
@@ -91,6 +95,11 @@ check("client API appends action notice preview to events and dashboard without 
 });
 
 check("client renderer shows action notice preview on dashboard, events, and live dock", () => {
+  const rendererBlock = extractBlock(
+    files.clientScripts,
+    "function renderClientActionNoticePreview",
+    "function renderClientImpactForecast",
+  );
   for (const snippet of [
     "renderClientActionNoticePreview",
     "clientActionNoticePreview",
@@ -104,10 +113,19 @@ check("client renderer shows action notice preview on dashboard, events, and liv
     "degraded",
     "recovering",
     "available",
-    "events.clientActionNoticePreview",
   ]) {
-    assertIncludes(files.clientScripts, snippet, "v380 client action notice renderer");
+    assertIncludes(rendererBlock, snippet, "v380 client action notice renderer");
   }
+  const clientRoutePresent = ["/client/dashboard", "/client/events", "/client/live"]
+    .every((routePath) => files.server.includes(routePath));
+  const rawDiagnosticExposed = /\b(?:rawDiagnostic|rawEvidence|rawJson|rawLocator)\b/.test(rendererBlock);
+  const credentialExposed = /\b(?:credential|credentialRef|credentialMaterial)\b/i.test(rendererBlock);
+  assert(clientRoutePresent, "v380 client action notice routes missing");
+  assert(rawDiagnosticExposed === false, "v380 client action notice must redact raw diagnostics");
+  assert(credentialExposed === false, "v380 client action notice must redact credentials");
+  assert(actionNoticeProjectionBlock.includes("ClientActionNoticePreviewJson") && actionNoticeRendererBlock.includes("clientActionNoticePreview") && actionNoticeRendererBlock.includes("viewerSafeTitle") && actionNoticeRendererBlock.includes("viewerSafeBody"), "CLIENT-040 exact ClientActionNoticePreviewJson renderer readback missing for /client/api/views/{id}/events");
+  assertIncludes(rendererBlock, "media-server.client.v380-action-notice-preview.v1", "v380 client action notice schema state");
+  assertIncludes(files.clientScripts, "renderClientActionNoticePreview(events.clientActionNoticePreview || {})", "v380 client action notice dashboard/events/live integration");
 });
 
 check("client renderer does not expose internal blocker or Ops-only action details", () => {
@@ -165,8 +183,33 @@ check("docs, inventory, and dispatch map v3.8 Step 11 without overclaiming UI fu
   assertIncludes(files.releaseRecords, `\`./server.sh ${command}\``, "release records v3.8 Step 11");
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v380_client_safe_action_notice_preview.mjs", "server.sh dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const id of featureIds) {
+    const evidence = files.implementationEvidence.items.find((item) => item.id === id);
+    assert(evidence?.verifierEvidence?.command === command, `implementation evidence ${id} verifier mapping drift`);
+  }
   assertIncludes(files.scriptInventory, "verify_v380_client_safe_action_notice_preview.mjs", "script inventory");
+});
+
+check("SAFE-190 canonical bounded product boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "void AppendClientActionNoticePreviewJson(");
+  const outcomeObserved = files.clientScripts.includes("renderClientActionNoticePreview");
+  const safe190BoundaryObserved = block.includes("AppendClientActionNoticePreviewJson") && block.includes("approvalDecisionDetailIncluded");
+  const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer|RecheckSource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const sendPerformed = /\bSendClientNotice[A-Za-z0-9_:]*\s*\(/.test(block);
+  const automaticApplyPerformed = /\b(?:AutomaticApply|SafeApply|ApplyRule|ApplySource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const fieldSmokeExecuted = /\b(?:ExecuteFieldSmoke|ProbeEndpoint|ContactDevice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\"(?:rawLocator|rawJson|rawProviderResponse|rawEndpoint|rawMaterial|rawDiagnosticJson)\\":true/.test(block);
+  const sourceUrlExposed = /\\"(?:sourceUrlIncluded|sourceUrlExposed)\\":true/.test(block);
+  const credentialMaterialExposed = /\\"(?:credentialMaterialIncluded|credentialMaterialExposed)\\":true/.test(block);
+  const debugMaterialExposed = /\\"(?:debugMaterialIncluded|debugMaterialExposed)\\":true/.test(block);
+  const viewerClientExposureAdded = /\\"(?:viewerClientExposureAdded|viewerClientPayloadChanged)\\":true/.test(block);
+  const mediaPathChanged = /\\"rtspOrWebrtcMediaPathChanged\\":true/.test(block);
+  assert(outcomeObserved && writePerformed === false && mutationPerformed === false && executionPerformed === false && sendPerformed === false && providerCallPerformed === false, "OPS-157 canonical bounded absence oracle");
+  assert(safe190BoundaryObserved && writePerformed === false && mutationPerformed === false && executionPerformed === false && sendPerformed === false && automaticApplyPerformed === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+    "SAFE-190 approvalDecisionDetailIncluded must remain no-execution no-write redacted and client/provider isolated");
 });
 
 finish("== v3.8.0 Client-safe Action Notice Preview summary ==", {
@@ -183,7 +226,7 @@ function loadFiles() {
     backlog: readText("docs/development-backlog.md"),
     streamVerification: readText("docs/stream-verification.md"),
     featureInventory: readText("docs/project-feature-test-inventory.md"),
-    featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
+    implementationEvidence: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
     projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
     scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
     releaseRecords: readText("docs/release-test-records.md"),

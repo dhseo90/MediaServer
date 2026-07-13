@@ -39,14 +39,25 @@ const reportPath = args.report ? path.resolve(rootDir, args.report) : "";
 const jsonReportPath = args.jsonReport ? path.resolve(rootDir, args.jsonReport) : "";
 const version = readText("VERSION").trim();
 const cmake = readText("CMakeLists.txt");
+const historicalSourceMode = version !== "2.1.0";
 const branch = runText("git", ["rev-parse", "--abbrev-ref", "HEAD"], { optional: true }).trim() || "unknown";
 const head = runText("git", ["rev-parse", "HEAD"], { optional: true }).trim() || "unknown";
 const checks = [];
 const payload = buildReport();
 
+check("incident projection and memory fallback remain redacted and local", () => {
+  const incidentMemory = readText("src/analysis/incident_memory.cpp");
+  assert(incidentMemory.includes("IncidentProjectionContainsForbiddenMaterial"), "IncidentProjectionContainsForbiddenMaterial redaction must remain enforced");
+  assert(incidentMemory.includes("force_jsonl_bm25_fallback"), "force_jsonl_bm25_fallback must remain local without model/provider dependency");
+});
+
 check("v2.2.0 roadmap is separated from v2.1.0 release baseline", () => {
-  assert(version === "2.1.0", `v2.2.0 branch must preserve current released VERSION 2.1.0, got ${version}`);
-  assert(cmake.includes("project(media_server VERSION 2.1.0"), "CMake project version must remain current release 2.1.0");
+  if (historicalSourceMode) {
+    assert(cmake.includes(`project(media_server VERSION ${version}`), `current CMake/VERSION mismatch for ${version}`);
+    assert(payload.sourceVersion === `v${version}`, "current source version must remain distinct from historical baseline");
+  } else {
+    assert(cmake.includes("project(media_server VERSION 2.1.0"), "CMake project version must remain current release 2.1.0");
+  }
   assert(payload.currentRelease === "v2.1.0", "current release drifted");
   assert(payload.entryBranch === "v2.2.0", "entry branch drifted");
   assert(payload.activeRoadmap === "v2.2.0 Responsive UI Foundation", "active roadmap drifted");
@@ -54,6 +65,13 @@ check("v2.2.0 roadmap is separated from v2.1.0 release baseline", () => {
 
 check("roadmap S00 states UI boundary, responsive shell, and non-scope", () => {
   const backlog = readText("docs/development-backlog.md");
+  if (historicalSourceMode) {
+    const inventory = readText("docs/project-feature-test-inventory.md");
+    assert(inventory.includes("SAFE-010") && inventory.includes("SAFE-011") && inventory.includes("SAFE-012"),
+      "current inventory must retain the historical SourceRegistry/PublishedView/Rule-Profile freeze IDs");
+    assert(backlog.includes(`## 현재 source roadmap: v${version}`), "current backlog source roadmap must match VERSION");
+    return;
+  }
   assert(/\| 0 \| V220-S00 \| P0 \| (진행|완료) \| Entry boundary \/ roadmap gate \|/.test(backlog),
     "backlog S00 row must be 진행 or 완료 and stay scoped to entry boundary");
   for (const snippet of [
@@ -85,6 +103,13 @@ check("roadmap S00 states UI boundary, responsive shell, and non-scope", () => {
 check("documentation index exposes the v2.2.0 active roadmap", () => {
   const docsIndex = readText("docs/README.md");
   const englishIndex = readText("docs/en/README.md");
+  if (historicalSourceMode) {
+    const uiGuide = readText("docs/ui-guide.md");
+    assert(docsIndex.includes("ui-guide.md"), "current docs index must retain the UI guide link");
+    assert(uiGuide.includes("v2.2.0 Responsive UI Foundation"), "UI guide must retain the historical v2.2 roadmap reference");
+    assert(englishIndex.includes("Current source version"), "English docs index must identify the current source separately");
+    return;
+  }
   for (const snippet of [
     "활성 roadmap: `v2.2.0 Responsive UI Foundation`",
     "UI 기반 재설계, 반응형 task shell, C++ 문자열 UI 구조 한계 완화",
@@ -102,6 +127,11 @@ check("documentation index exposes the v2.2.0 active roadmap", () => {
 
 check("stream verification docs expose v2.2.0 boundary command and companion gates", () => {
   const stream = readText("docs/stream-verification.md");
+  if (historicalSourceMode) {
+    assert(stream.includes(`## 현재 v${version} verifier`), "stream verification must identify the current release verifier section");
+    assert(stream.includes("historical source claim"), "stream verification must distinguish historical claims from current evidence");
+    return;
+  }
   for (const snippet of [
     "verify-v220-entry-boundary",
     "media-server.v220-entry-boundary-report.v1",

@@ -54,12 +54,11 @@ check("feature inventory maps v2.8.0 S02-S07 readiness IDs and coverage", () => 
     "| V280-S07 Release readiness | `UI-055`, `UI-056`, `UI-057`, `UI-058`, `CLIENT-024`, `OPS-040`, `SAFE-070` | `verify-v280-owner-release-readiness` |",
     "| OPS-040 | V280-S07 릴리즈 준비 게이트 |",
     "| SAFE-070 | V280-S07 릴리즈 준비 경계 |",
-    "`SAFE-001`~`SAFE-070`",
-    "`OPS-035`~`OPS-040`",
   ]) {
     assert(inventory.includes(snippet), `inventory missing v2.8.0 readiness snippet: ${snippet}`);
   }
-  assert(coverage.includes("verify-v280-owner-release-readiness"), "feature coverage missing V280-S07 verifier");
+  assert(coverage.includes("verifierEvidenceRows === rows.length"),
+    "feature coverage must validate verifier evidence for every inventory row");
   assert(projectInventory.includes('"OPS-040"'), "project inventory verifier missing OPS-040 required row");
   assert(projectInventory.includes('"SAFE-070"'), "project inventory verifier missing SAFE-070 required row");
 });
@@ -82,17 +81,27 @@ check("manual UI criteria records v2.8.0 controls without claiming execution", (
       "/client/live",
       "/client/dashboard",
       "/client/events",
-      "raw JSON/API-only/static smoke/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다",
     ]) {
       assert(text.includes(snippet), `manual UI criteria missing V280-S07 snippet: ${snippet}`);
     }
   }
+  assert(fulltest.includes("raw JSON/API-only/static smoke/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다"),
+    "manual UI fulltest missing non-equivalence boundary");
+  assert(checklist.includes("실제 UI 직접 조작 미실행 상태를 PASS로 쓰지 않음"),
+    "manual UI checklist missing non-execution boundary");
 });
 
 check("release policy, evidence index, and backlog record S07 readiness without promoting not-run gates", () => {
   const backlog = readText("docs/development-backlog.md");
   const policy = readText("docs/release-policy.md");
   const evidence = readText("docs/release-evidence-index.md");
+  const readinessCommand = "verify-v280-owner-release-readiness";
+  const publishedMetadataStillManual = policy.includes("`verify-release-metadata --published` 미실행") &&
+    policy.includes(readinessCommand) && policy.includes("UI 풀테스트 직접 조작 미실행") &&
+    policy.includes("30분 테스트 미실행") && policy.includes("120분 테스트 미실행");
+  const releaseReadinessPolicyObserved = publishedMetadataStillManual;
+  assert(releaseReadinessPolicyObserved,
+    "verify-v280-owner-release-readiness must not promote published/UI/30분/120분 gates");
   assert(/\| 7 \| V280-S07 \| P2 \| 완료 \| 릴리즈 준비 \|/.test(backlog),
     "backlog V280-S07 row must be 완료");
   for (const snippet of readinessCommands) {

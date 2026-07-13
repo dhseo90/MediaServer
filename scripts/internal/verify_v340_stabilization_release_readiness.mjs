@@ -63,6 +63,7 @@ const files = {
   releasePolicy: readText("docs/release-policy.md"),
   coverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   serverSh: readText("server.sh"),
 };
@@ -99,7 +100,11 @@ check("feature inventory maps v3.4 Step 11 to SAFE-134 and OPS-101", () => {
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.4 Step 11");
   }
-  assertIncludes(files.coverageVerifier, commandName, "feature coverage verifier");
+  assertIncludes(files.coverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  for (const id of ["SAFE-134", "OPS-101"]) {
+    assert(files.implementationManifest.items.find((item) => item.id === id)?.verifierEvidence?.command === commandName,
+      `${id} implementation manifest verifier command drift`);
+  }
   assertIncludes(files.projectInventoryVerifier, '"SAFE-134"', "project inventory verifier SAFE-134");
   assertIncludes(files.projectInventoryVerifier, '"OPS-101"', "project inventory verifier OPS-101");
   assert(projectInventoryVerifierRangeCovers("SAFE", 134), "project inventory verifier SAFE range below 134");
@@ -188,6 +193,15 @@ check("Step 11 gate keeps release actions and long UI/soak evidence separate", (
       assertIncludes(text, snippet, `${name} Step 11 boundary`);
     }
   }
+});
+
+check("SAFE-134 canonical V340 readiness boundary", () => {
+  const readinessCommandDocumented = files.serverSh.includes("verify-v340-stabilization-release-readiness)");
+  const localEvidenceRecorded = normalizedRecords.includes("SAFE-134") && normalizedRecords.includes("Step 11");
+  const notRunBoundaryMissing = !normalizedRecords.includes("not-run") || !files.releasePolicy.includes("UI 풀테스트") || !files.releasePolicy.includes("120분");
+  const safe134BoundaryObserved = readinessCommandDocumented && localEvidenceRecorded && notRunBoundaryMissing === false;
+  assert(safe134BoundaryObserved && notRunBoundaryMissing === false,
+    "SAFE-134 V340 readiness must preserve UI fulltest 30m 120m published metadata field smoke and release action not-run boundaries");
 });
 
 const results = runChecks();

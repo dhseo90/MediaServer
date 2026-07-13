@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { exactBooleanFlagValue, extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -110,11 +111,14 @@ check("client notice by site/view group derives from v3.7 site projection, healt
 });
 
 check("client notice by site/view group preserves preview-only and viewer-safe boundaries", () => {
-  const block = extractBlock(
-    files.server,
-    "std::string OpsV370ClientNoticeBySiteViewGroupJson",
-    "struct OpsV360RuleVaWhatIfReplayCandidate",
-  );
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV370ClientNoticeBySiteViewGroupJson(");
+  const clientNoticeSendPerformed = exactBooleanFlagValue(block, "clientNoticeSent");
+  assert(clientNoticeSendPerformed === false, "CLIENT-037 client notice send must remain false");
+  assert(exactBooleanFlagValue(block, "clientNoticeSent") === false, "CLIENT-037 client notice send must remain false");
+  assert(exactBooleanFlagValue(block, "viewerClientPayloadChanged") === false, "CLIENT-037 viewer client payload mutation must remain false");
+  assert(exactBooleanFlagValue(block, "rawLocatorIncluded") === false && exactBooleanFlagValue(block, "rawJsonIncluded") === false, "CLIENT-037 raw/source locator material must remain redacted");
+  assert(exactBooleanFlagValue(block, "debugMaterialIncluded") === false, "CLIENT-037 debug material must remain redacted");
+  assert(block.includes("clientNoticeSent") && block.includes("viewerSafeClientNoticeBySiteViewGroup"), "CLIENT-037 exact site/view group clientNoticeSent preview readback missing");
   for (const snippet of [
     "opsOnly",
     "readOnly",
@@ -213,6 +217,11 @@ check("/ops dashboard declares and renders site/view group client notice workspa
     "const renderV370ClientNoticeBySiteViewGroup",
     "const renderV370SiteOperationsWorkspace",
   );
+  assertIncludes(scriptBlock, "dashSiteClientNoticeBoundary", "v370 client notice product UI state");
+  const noticeSendPerformed = ["send(", "sendClientNotice", "deliveryQueueWritePerformed: true"].some(marker => scriptBlock.includes(marker));
+  assert(noticeSendPerformed === false, "UI-096 site/view notice preview must not send a client notice");
+  assertIncludes(files.uiScript, "/ops/dashboard", "UI-096 canonical route obligation");
+  assertIncludes(files.server, "media-server.ops.v370-client-notice-by-site-view-group.v1", "UI-096 canonical schema obligation");
   for (const snippet of [
     "refreshV370ClientNoticeBySiteViewGroup",
     route,
@@ -255,7 +264,6 @@ check("client/viewer scripts do not receive v3.7 site/view group notice preview 
     "noticePreviewId",
     "deliveryQueueState",
     "affectedClientRefs",
-    "viewerSafeBody",
   ]) {
     assert(!files.clientScripts.includes(forbidden), `client scripts must not expose v3.7 notice preview material: ${forbidden}`);
   }
@@ -303,11 +311,39 @@ check("roadmap, stream verification, inventory, and release records map v3.7 Ste
 check("server entrypoint and inventory verifiers include v3.7 Step 12 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v370_client_notice_by_site_view_group.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const snippet of [
+    "validateImplementationManifest",
+    "semantic.verifierAssertion.command",
+    'kind: "stability"',
+  ]) {
+    assertIncludes(files.featureCoverageVerifier, snippet, "feature coverage verifier canonical command mapping");
+  }
   for (const id of featureIds) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v370_client_notice_by_site_view_group.mjs", "script inventory");
+});
+
+check("SAFE-173 canonical bounded no-execution boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV370ClientNoticeBySiteViewGroupJson(");
+  const routeObserved = files.server.includes("/ops/api/site-operations/client-notice-by-site-view-group");
+  const safe173BoundaryObserved = block.includes("BuildV370ClientNoticeBySiteViewGroupItems");
+  const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const automaticApplyPerformed = /\b(?:AutomaticApply|SafeApply|ApplyRule|ApplySource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const clientNoticeSent = /\bSendClientNotice[A-Za-z0-9_:]*\s*\(/.test(block);
+  const sendPerformed = clientNoticeSent;
+  const fieldSmokeExecuted = /\b(?:ExecuteFieldSmoke|ProbeEndpoint|ContactDevice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\"(?:rawLocator|rawJson|rawProviderResponse|rawEndpoint|rawMaterial)\\":true/.test(block);
+  const sourceUrlExposed = block.includes("\\\"sourceUrlIncluded\\\":true") || block.includes("\\\"sourceUrlExposed\\\":true");
+  const credentialMaterialExposed = block.includes("\\\"credentialMaterialIncluded\\\":true") || block.includes("\\\"credentialMaterialExposed\\\":true");
+  const debugMaterialExposed = block.includes("\\\"debugMaterialIncluded\\\":true") || block.includes("\\\"debugMaterialExposed\\\":true");
+  const viewerClientExposureAdded = block.includes("\\\"viewerClientExposureAdded\\\":true");
+  const mediaPathChanged = block.includes("\\\"rtspOrWebrtcMediaPathChanged\\\":true");
+  assert(routeObserved && safe173BoundaryObserved && writePerformed === false && mutationPerformed === false && executionPerformed === false && automaticApplyPerformed === false && clientNoticeSent === false && sendPerformed === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+    "SAFE-173 BuildV370ClientNoticeBySiteViewGroupItems must remain bounded no-execution no-write redacted and client/provider isolated");
 });
 
 const results = runChecks();

@@ -137,6 +137,7 @@ check("Ops sources UI renders the manual persist handoff decision", () => {
   ]) {
     assertIncludes(files.opsSourcesScript, snippet, "v390 ONVIF live import persist decision UI script");
   }
+  assertIncludes(files.opsSourcesScript, "/ops/api/onvif/channels/", "v390 ONVIF paired channel route state");
 });
 
 check("roadmap, stream verification, inventory, and release records map v3.9 Step 12", () => {
@@ -151,8 +152,8 @@ check("roadmap, stream verification, inventory, and release records map v3.9 Ste
   }
   for (const snippet of [
     `| v3.9.0 (12) / V390-ADD1-05 | \`./server.sh ${atomicityCommand}\`, \`./server.sh ${command}\` | ONVIF import draft는 \`notSaved:true\``,
-    "second-file failure source rollback",
-    "actual HTTP 8개 case",
+    "first/second replace failure",
+    "actual HTTP/file 13개 case",
   ]) {
     assertIncludes(files.streamVerification, snippet, "stream verification v3.9 Step 12");
   }

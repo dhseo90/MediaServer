@@ -56,41 +56,33 @@ const files = {
   server: readText("server.sh"),
 };
 
-check("source version is v3.0.0 and CMake matches", () => {
-  assert(version === "3.0.0", `VERSION must be 3.0.0, got ${version}`);
-  assert(files.cmake.includes("project(media_server VERSION 3.0.0 LANGUAGES CXX)"), "CMake project version must be 3.0.0");
+check("current source version remains aligned while v3.0 is historical", () => {
+  assert(version === "3.9.0", `current VERSION must be 3.9.0, got ${version}`);
+  assert(files.cmake.includes("project(media_server VERSION 3.9.0 LANGUAGES CXX)"), "current CMake project version must be 3.9.0");
 });
 
-check("public entry docs pin source v3.0.0 and published v3.0.0", () => {
-  for (const [label, text, sourceSnippet, roadmapSnippet] of [
-    ["README.md", files.readme, "현재 소스 버전: `3.0.0`", "현재 source roadmap: `v3.0.0 Event Evidence Search MVP`"],
-    ["README.en.md", files.readmeEn, "Current source version: `3.0.0`", "Current source roadmap: `v3.0.0 Event Evidence Search MVP`"],
-    ["docs/README.md", files.docsIndex, "현재 소스 버전: `3.0.0`", "현재 source roadmap: `v3.0.0 Event Evidence Search MVP`"],
-  ]) {
-    assert(text.includes(sourceSnippet), `${label} missing source snippet: ${sourceSnippet}`);
-    assert(text.includes(roadmapSnippet), `${label} missing roadmap snippet: ${roadmapSnippet}`);
-    assert(text.includes(latestPublishedTag) && text.includes("source-only"), `${label} must preserve ${latestPublishedTag} source-only published boundary`);
+check("public entry docs pin the current source and published baseline", () => {
+  for (const [label, text] of [["README.md", files.readme], ["README.en.md", files.readmeEn], ["docs/README.md", files.docsIndex]]) {
+    assert(text.includes("3.9.0"), `${label} missing current source 3.9.0`);
+    assert(text.includes("v3.8.0"), `${label} missing published v3.8.0 baseline`);
   }
 });
 
-check("policy docs pin v3.0 active source and v3.0 published release", () => {
+check("policy docs preserve current source truth and historical v3.0 references", () => {
   for (const [label, text] of [
     ["docs/versioning-policy.md", files.versioning],
     ["docs/release-policy.md", files.releasePolicy],
     ["docs/public-repo-final-review.md", files.publicReview],
     ["docs/ui-guide.md", files.uiGuide],
   ]) {
-    assert(text.includes("3.0.0"), `${label} missing 3.0.0 source wording`);
-    assert(text.includes(latestPublishedTag), `${label} missing latest published ${latestPublishedTag}`);
-    assert(text.includes(currentRoadmap), `${label} missing current roadmap ${currentRoadmap}`);
+    assert(text.includes("3.9.0"), `${label} missing current source wording`);
+    assert(text.includes("v3.8.0"), `${label} missing current published baseline`);
   }
-  assert(files.versioning.includes("## 3.0.0 active source roadmap 범위"), "versioning policy missing v3.0 active roadmap section");
-  assert(files.releasePolicy.includes("## v3.0.0 Source Roadmap Scope"), "release policy missing v3.0 source roadmap section");
+  assert(files.backlog.includes("## v3.0.0 S00 개발 기록"), "historical v3.0 S00 record missing");
 });
 
-check("roadmap records V300-S00 as completed baseline alignment only", () => {
+check("historical roadmap records V300-S00 as baseline alignment only", () => {
   for (const snippet of [
-    "## 현재 source roadmap: v3.0.0 Event Evidence Search MVP",
     "| 0 | V300-S00 | P0 | 완료 | v3.0 baseline |",
     "## v3.0.0 S00 개발 기록",
     "직접 답: v3.0.0의 1차 선택값은 `Event Evidence Search MVP`입니다.",
@@ -105,13 +97,12 @@ check("roadmap records V300-S00 as completed baseline alignment only", () => {
   }
 });
 
-check("release metadata and docs UI asset verifiers know published v3.0 baseline", () => {
-  assert(files.releaseMetadataVerifier.includes('const latestPublishedTag = "v3.0.0";'), "release metadata verifier must pin latest published v3.0.0 after publish");
-  assert(files.releaseMetadataVerifier.includes('const currentRoadmap = "v3.0.0 Event Evidence Search MVP";'), "release metadata verifier missing v3.0 current roadmap");
-  assert(files.docsUiAssetsVerifier.includes('const latestPublishedTag = "v3.0.0";'), "docs UI assets verifier must preserve latest published v3.0.0");
+check("release metadata and docs UI asset verifiers know the current baseline", () => {
+  assert(files.releaseMetadataVerifier.includes('const latestPublishedTag = "v3.8.0";'), "release metadata verifier must pin latest published v3.8.0");
+  assert(files.releaseMetadataVerifier.includes('const currentRoadmap = "v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation";'), "release metadata verifier missing current roadmap");
   const manifest = JSON.parse(files.docsUiAssetsManifest);
-  assert(manifest.baseline?.sourceVersion === "3.0.0", "docs UI asset manifest source version must be 3.0.0");
-  assert(manifest.baseline?.publishedRelease === latestPublishedTag, "docs UI asset manifest published release must stay v3.0.0");
+  assert(manifest.baseline?.sourceVersion === "3.9.0", "docs UI asset manifest source version must be 3.9.0");
+  assert(manifest.baseline?.publishedRelease === "v3.8.0", "docs UI asset manifest published release must stay v3.8.0");
 });
 
 check("stream verification, feature inventory, and release records expose V300-S00 gate", () => {
@@ -122,7 +113,6 @@ check("stream verification, feature inventory, and release records expose V300-S
     assert(files.streamVerification.includes(snippet), `stream verification missing snippet: ${snippet}`);
   }
   for (const snippet of [
-    "현재 release 목표 `v3.0.0`",
     "V300-S00 Baseline/source-of-truth | `OPS-051`, `SAFE-081` | `verify-v300-entry-baseline`",
     "OPS-051 | V300-S00 v3.0 baseline 게이트",
     "SAFE-081 | V300-S00 v3.0 baseline boundary",
@@ -141,10 +131,20 @@ check("stream verification, feature inventory, and release records expose V300-S
 });
 
 check("inventory coverage and server entrypoint include V300-S00", () => {
-  assert(files.featureCoverageVerifier.includes("verify-v300-entry-baseline"), "feature coverage verifier missing V300 command");
+  assert(files.featureCoverageVerifier.includes("loadImplementationManifest") && files.featureCoverageVerifier.includes("validateImplementationManifest"), "feature coverage verifier missing canonical manifest validation");
+  const manifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
+  for (const id of ["SAFE-081", "OPS-051"]) assert(manifest.items?.find(item => item.id === id)?.verifierEvidence?.command === "verify-v300-entry-baseline", `${id} V300 mapping missing`);
   assert(files.projectInventoryVerifier.includes("SAFE-081") && files.projectInventoryVerifier.includes("OPS-051"), "project inventory verifier missing V300 ranges");
   assert(files.server.includes("verify-v300-entry-baseline"), "server.sh missing V300 command");
   assert(files.server.includes("verify_v300_entry_baseline.mjs"), "server.sh missing V300 script dispatch");
+});
+
+check("SAFE-081 canonical V300 source-of-truth boundary", () => {
+  const baselineCommandDocumented = files.server.includes("verify-v300-entry-baseline");
+  const v300SourceTruthAligned = version === "3.9.0" && files.backlog.includes("## v3.0.0 S00 개발 기록") && files.releaseRecords.includes("V300 source-of-truth split");
+  const safe081BoundaryObserved = baselineCommandDocumented && v300SourceTruthAligned;
+  assert(safe081BoundaryObserved,
+    "verify-v300-entry-baseline must preserve historical v3.0 evidence without reverting current source truth");
 });
 
 const results = runChecks();

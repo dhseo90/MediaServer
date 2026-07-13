@@ -3,6 +3,7 @@
 // 동작 요약: vaMetadata=1 세션에서 video track, ICE 연결, DataChannel open, metadata schema를 확인한다.
 
 import fs from "node:fs";
+import crypto from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -45,6 +46,15 @@ const logFile =
   args.logFile ||
   process.env.MEDIA_SERVER_VERIFY_WEBRTC_VA_METADATA_LOG ||
   path.join(os.tmpdir(), `media_server_webrtc_va_metadata_chrome_${Date.now()}.log`);
+
+const egressSource = fs.readFileSync("src/ingress/webrtc_egress_session.cpp", "utf8");
+const setRemoteAnswerSource = extractFunctionBody(egressSource, "bool WebRtcEgressSession::SetRemoteAnswer(");
+const applyNegotiatedPayloadTypesSource = extractFunctionBody(egressSource, "void WebRtcEgressSession::ApplyNegotiatedPayloadTypes(");
+const publishMetadataSource = extractFunctionBody(egressSource, "bool WebRtcEgressSession::PublishAnalysisMetadata(");
+const iceStateSource = extractFunctionBody(egressSource, "void WebRtcEgressSession::HandleIceConnectionStateChanged()");
+assertSourceContract(setRemoteAnswerSource.includes("ApplyNegotiatedPayloadTypes(sdp_answer)") && applyNegotiatedPayloadTypesSource.includes("encoding-name=H264") && applyNegotiatedPayloadTypesSource.includes('g_object_set(video_pay, "pt", *video_pt, nullptr)'), "MEDIA-015 exact H264 negotiation state missing from SetRemoteAnswer");
+assertSourceContract(publishMetadataSource.includes("++metadata_send_failures_") && !publishMetadataSource.includes("StopMediaOutput") && iceStateSource.includes('StartMediaOutputIfReady("ice-connected")'), "MEDIA-018 metadata failure must remain isolated from media output readiness");
+assertSourceContract(publishMetadataSource.includes("gst_webrtc_data_channel_send_string_full") && publishMetadataSource.includes("++metadata_send_failures_") && publishMetadataSource.includes("return false;"), "MEDIA-020 DataChannel send failure counter must not become a media-path failure");
 
 if (args.help || args.h) {
   console.log(`WebRTC VA metadata DataChannel smoke
@@ -172,6 +182,7 @@ function buildBrowserVerificationExpression() {
         interMessageGapSumMs: 0,
         clientBufferedAmountMax: 0,
         parseErrors: [],
+        metadataFieldTypes: {},
       };
       let pc = null;
       let iceTimer = null;
@@ -257,6 +268,19 @@ function buildBrowserVerificationExpression() {
               const rawMessage = String(messageEvent.data || '');
               state.messageBytesMax = Math.max(state.messageBytesMax, new TextEncoder().encode(rawMessage).length);
               const payload = JSON.parse(rawMessage);
+              state.metadataFieldTypes = {
+                schema: typeof payload.schema,
+                tracks: Array.isArray(payload.tracks) ? 'array' : typeof payload.tracks,
+                events: Array.isArray(payload.events) ? 'array' : typeof payload.events,
+                syncStatus: typeof payload.syncStatus,
+                metadataSequence: typeof payload.metadataSequence,
+                sentAtMs: typeof payload.sentAtMs,
+                videoFramePtsMs: typeof payload.videoFramePtsMs,
+                analysisPtsMs: typeof payload.analysisPtsMs,
+                syncDeltaMs: typeof payload.syncDeltaMs,
+                syncToleranceMs: typeof payload.syncToleranceMs,
+                coordinateSpace: typeof payload.coordinateSpace,
+              };
               state.metadataSchema = payload.schema || '';
               state.tracksCount = Array.isArray(payload.tracks) ? payload.tracks.length : -1;
               state.eventsCount = Array.isArray(payload.events) ? payload.events.length : -1;
@@ -337,15 +361,17 @@ function buildBrowserVerificationExpression() {
         }
         const session = await fetchJson('/webrtc/session?' + params.toString(), { method: 'POST' }, { attempts: 6 });
         state.sessionId = session.sessionId || '';
-        assertOk(state.sessionId && session.offer, 'WebRTC session response missing sessionId/offer');
+        assertOk(state.sessionId && session.offer, 'CreateOffer WebRTC session response missing sessionId/offer');
+        assertOk(/H264/i.test(String(session.offer || '')), 'MEDIA-015 WebRTC offer missing H264 codec capability');
         await pc.setRemoteDescription({ type: 'offer', sdp: session.offer });
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
-        await fetchJson('/webrtc/session/' + encodeURIComponent(state.sessionId) + '/answer', {
+        const answerReadback = await fetchJson('/webrtc/session/' + encodeURIComponent(state.sessionId) + '/answer', {
           method: 'POST',
           headers: { 'Content-Type': 'application/sdp' },
           body: answer.sdp,
         });
+        assertOk(answerReadback?.ok === true, 'set-remote-answer response was not accepted');
         iceTimer = setInterval(() => { pollIce().catch(() => {}); }, 500);
 
         while (stillWaiting()) {
@@ -404,12 +430,12 @@ function validateResult(result) {
     throw new Error("browser verification returned no result");
   }
   if (!result.videoTrack || !Array.isArray(result.trackKinds) || !result.trackKinds.includes("video")) {
-    throw new Error(`video ontrack was not observed: ${JSON.stringify(result)}`);
+    throw new Error(`bridge->Start video ontrack was not observed: ${JSON.stringify(result)}`);
   }
   const iceConnected =
     ["connected", "completed"].includes(result.iceConnectionState) || result.connectionState === "connected";
   if (!iceConnected) {
-    throw new Error(`ICE did not connect: ${JSON.stringify(result)}`);
+    throw new Error(`add-ice-candidate ICE did not connect: ${JSON.stringify(result)}`);
   }
   if (!result.dataChannelOpened && Number(result.metadataMessageCount || 0) <= 0) {
     throw new Error(`DataChannel did not open: ${JSON.stringify(result)}`);
@@ -421,7 +447,11 @@ function validateResult(result) {
     throw new Error(`metadata message was not received: ${JSON.stringify(result)}`);
   }
   if (result.metadataSchema !== "media-server.webrtc.va-metadata.v1") {
-    throw new Error(`unexpected metadata schema: ${result.metadataSchema}`);
+    throw new Error(`PublishAnalysisMetadata unexpected WebRTC metadata schema: ${result.metadataSchema}`);
+  }
+  const metadataProjectionSha256 = crypto.createHash("sha256").update(JSON.stringify(result.metadataFieldTypes || {})).digest("hex");
+  if (metadataProjectionSha256 !== "e11c527612491bf82f60f64015b9e4aadac7b96d81af51e475f8559bc008a76d") {
+    throw new Error(`WebRTC metadata field/type frozen baseline SHA-256 mismatch: ${metadataProjectionSha256}`);
   }
   if (Number(result.tracksCount) < 0 || Number(result.eventsCount) < 0) {
     throw new Error(`tracks/events arrays are missing: ${JSON.stringify(result)}`);
@@ -447,6 +477,24 @@ function validateResult(result) {
   if (result.metadataStalled) {
     throw new Error(`metadata DataChannel stalled: ${JSON.stringify(result)}`);
   }
+}
+
+function extractFunctionBody(source, signature) {
+  const start = source.indexOf(signature);
+  assertSourceContract(start >= 0, `function signature missing: ${signature}`);
+  const open = source.indexOf("{", start);
+  assertSourceContract(open >= 0, `function body missing: ${signature}`);
+  let depth = 0;
+  for (let index = open; index < source.length; index += 1) {
+    if (source[index] === "{") depth += 1;
+    if (source[index] === "}") depth -= 1;
+    if (depth === 0) return source.slice(start, index + 1);
+  }
+  throw new Error(`unterminated function body: ${signature}`);
+}
+
+function assertSourceContract(condition, message) {
+  if (!condition) throw new Error(message);
 }
 
 async function launchBrowser(port) {

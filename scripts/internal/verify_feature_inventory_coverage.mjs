@@ -49,6 +49,40 @@ const implementationValidation = validateImplementationManifest({
   rows,
   manifest: implementationManifest,
 });
+const canonicalSourceSemanticClosureVerifiers = [
+  "verify-v310-stabilization-release-readiness",
+  "verify-v320-entry-baseline",
+  "verify-v320-resolution-state-contract",
+  "verify-v320-unified-ops-events-workspace",
+  "verify-v320-evidence-quality-layer",
+  "verify-v320-source-reliability-context",
+  "verify-v320-ai-review-quality-context",
+  "verify-v320-operator-resolution-flow",
+  "verify-v320-action-readiness-checklist",
+  "verify-v320-client-safe-resolution-digest",
+  "verify-v320-resolution-search-metrics",
+  "verify-v320-stabilization-release-readiness",
+  "verify-v330-entry-baseline",
+  "verify-v330-source-registry-snapshot-identity",
+  "verify-v330-source-onboarding-quality-summary",
+  "verify-v330-reliability-timeline-health-history",
+  "verify-v330-incident-source-correlation-layer",
+  "verify-v330-operator-recheck-recovery-queue",
+  "verify-v330-client-safe-source-status-digest",
+  "verify-v330-operator-runbook-reliability-handoff",
+  "verify-v330-source-reliability-search-metrics",
+  "verify-v330-ops-backup-recovery-source-handoff",
+  "verify-v330-stabilization-release-readiness",
+  "verify-v340-entry-baseline",
+  "verify-v340-continuity-drill-contract",
+  "verify-v340-recovery-candidate-package",
+  "verify-v340-source-health-replay-drift-diff",
+  "verify-v350-live-operations-graph-contract",
+  "verify-v350-operations-command-plan-contract",
+  "verify-v350-staged-change-plan-impact-preview",
+  "verify-v360-simulation-input-contract",
+  "verify-v360-command-plan-dry-run-simulator",
+];
 const checks = [];
 
 check("inventory row count is stable", () => {
@@ -80,6 +114,7 @@ check("coverage docs and server command are wired", () => {
 for (const snippet of [
     "verify-feature-inventory-coverage",
     "verify-feature-implementation-evidence",
+    "verify-ui-blocking-dialog-policy",
     "media-server.feature-inventory-coverage.v1",
     "media-server.feature-implementation-evidence.v2",
     "missing coverage target",
@@ -92,6 +127,10 @@ for (const snippet of [
   assert(server.includes("verify-feature-inventory-coverage"), "server.sh missing coverage command");
   assert(server.includes("verify_feature_inventory_coverage.mjs"), "server.sh missing coverage script dispatch");
   assert(server.includes("verify-feature-implementation-evidence"), "server.sh missing implementation evidence command");
+  assert(server.includes("verify-ui-blocking-dialog-policy"), "server.sh missing blocking dialog policy command");
+  for (const command of canonicalSourceSemanticClosureVerifiers) {
+    assert(server.includes(command), `server.sh missing canonical source semantic verifier: ${command}`);
+  }
 });
 
 check("exact implementation evidence manifest is valid", () => {
@@ -118,6 +157,14 @@ check("negative missing-ID fixture fails", () => {
   assert(!result.ok, "missing-ID fixture must fail");
   assert(result.errors.some(error => error.includes("manifest missing feature ID UI-019")),
     "missing-ID fixture must identify UI-019");
+});
+
+check("SAFE-200 canonical coverage wording truthfulness boundary", () => {
+  const coverageReport = buildCoverageReport(rows, implementationManifest);
+  const safe200BoundaryObserved = coverageReport.items.every((item) => ["covered", "missing"].includes(item.coverageStatus));
+  const executionPassClaimed = coverageReport.items.some((item) => item.executionEvidenceStatus !== "not-execution-evidence");
+  assert(safe200BoundaryObserved && executionPassClaimed === false,
+    "SAFE-200 coverageStatus covered missing must retain executionEvidenceStatus not-execution-evidence");
 });
 
 const report = buildCoverageReport(rows, implementationManifest);

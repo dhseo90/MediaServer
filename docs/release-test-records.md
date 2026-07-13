@@ -201,6 +201,10 @@
 | V390 REVIEW4 Current Truth Reset | V390-REVIEW4-50 source 판정과 snapshot/schema drift 교정 | `./server.sh verify-v390-review4-truth-reset`이 통합 순번 1~35의 source 구현 확인 18/부분 13/미완성 4, REVIEW4-50 discovery source snapshot 606, HTTP server 42,897줄, UI script 10,217줄과 readiness/execution 분리 필드를 대조합니다. REVIEW4-52 이후 workflow readiness는 56~60 전 false입니다. 정적 truth contract이며 실제 UI/30분/120분/release PASS가 아닙니다 | v3.9.0 |
 | V390 REVIEW4 Structure Scope Decision | V390-REVIEW4-51 v3.9 actual refactor 승인 경계 | `./server.sh verify-v390-review4-structure-scope-decision`과 readiness verifier가 최신 사용자 승인, base `027678ba`, current `v3.9.0` branch, 50~63 선행, 9 preserved contract, 6 slice 순서, 64 후 65 acceptance를 대조합니다. Decision contract이며 actual refactor/acceptance PASS가 아닙니다 | v3.9.0 |
 | V390 REVIEW4 Semantic Discovery Ledger | V390-REVIEW4-52 tracked Markdown/source marker 의미 전수 감사 | `./server.sh verify-v390-review4-semantic-discovery-ledger`가 AGENTS 별도, tracked Markdown 176개와 incomplete source marker 각각의 exact role/owner/alignment/decision/evidence anchor를 current source와 대조하고 scripts/internal 일괄 분류, generic self-evidence, stale current claim, conflicting metric, unclassified entry를 negative fixture로 거부합니다. 정적 의미 감사이며 runtime/UI/long-run PASS가 아닙니다 | v3.9.0 |
+| V390 REVIEW4 Independent Feature Semantic Source Audit | V390-REVIEW4-53 986행 실제 call/data-flow 독립 재구축 | `./server.sh verify-v390-review4-feature-semantic-source-audit`가 review reason/digest/declared edge를 신뢰하지 않고 986개 각각의 actual source symbol span, dispatch/call, state mutation/read-model, verifier readback contract token을 재계산합니다. File-scope/generic/shared owner, unrelated anchor, invented edge, same-DOM self comparison, generator-owned approval negative를 거부하며 실제 product/UI/long-run 실행 PASS는 아닙니다 | v3.9.0 |
+| V390 REVIEW4 Independent Approval Self-test | V390-REVIEW4-53 reviewer decision/approval negative contract | `./server.sh verify-v390-review4-feature-semantic-source-approval-selftest`가 generator spoof, mixed candidate/date, generation-boundary tamper, unbound justification, rejected decision, approval actor mismatch와 mixed applied manifest를 거부하는지 확인합니다. Non-gate negative self-test이며 986행 approval이나 product/UI/long-run PASS를 대체하지 않습니다 | v3.9.0 |
+| V390 REVIEW4 External Source Approval Ledger | V390-REVIEW4-53 986행 독립 reviewer decision 정규화·readback | `./server.sh verify-v390-review4-feature-semantic-source-approvals --write-ledger --decisions <reviewer-decisions.json>`와 no-write 재검증이 user-approved reviewer artifact, current candidate/inventory/generation-boundary digest, exact ordered 986 IDs, 행별 source-flow justification을 검증하고 canonical approval ledger를 기록·readback하는지 확인합니다. Candidate generator 자체 승인이 아니며 실제 product/UI/long-run PASS가 아닙니다 | v3.9.0 |
+| V390 REVIEW4 Approved Manifest Apply | V390-REVIEW4-53 승인된 986 source flow의 canonical manifest 투영 | `./server.sh verify-v390-review4-feature-semantic-source-audit --apply-approved-manifest`가 current audit와 external approval ledger를 재검증한 뒤에만 986행 REVIEW4 proof를 canonical implementation manifest에 투영하는지 확인합니다. 적용 후 feature evidence, semantic closure, project inventory/coverage와 canonical UI binding을 별도 재검증하며 실제 UI/30분/120분/release PASS로 승격하지 않습니다 | v3.9.0 |
 | V390 External Field Smoke No-Device Closure | v3.9.0 (17) Development 18 field not-run closure | 테스트 실행 전에 등록합니다. `./server.sh verify-v390-external-field-smoke-no-device-closure`가 TURN/WHEP, ONVIF 실기기, external VLM/provider의 device·credential·endpoint·approval 부재, external contact 0, raw endpoint/secret 부재, field/release PASS false를 확인합니다. 실제 external field smoke PASS가 아닙니다 | v3.9.0 |
 | V390 UI Case Completeness | V390-ADD1-07 UI-108~UI-115 exact 8-case evidence | UI automation manifest/runner/report/contract가 `UI-112`를 포함한 정확한 8개 ID와 manifest route, 실제 control/action 전후 state, failure reason, screenshot/trace/console/server-log artifact, first-fail later not-run을 검증하는지 확인합니다. video는 adapter 지원 시 실제 파일만 허용하고 `.video.txt` placeholder는 금지합니다. native adapter 승격과 whole-page marker 제거는 각각 Step 8/9에서 별도 검증합니다 | v3.9.0 |
 | V390 Native UI Adapter | V390-ADD1-08 free native Playwright adapter | native Playwright module provenance와 browser executable을 검증하고 standalone 페이지에서 wait/click/fill/select/screenshot을 실제 수행하며, UI 8-case summary가 `engine=playwright-native`, fallback false, native capability evidence를 기록하는지 확인합니다. module 부재는 fallback PASS가 아니라 preflight FAIL이어야 합니다 | v3.9.0 |
@@ -2112,6 +2116,53 @@ evidence로 사용하지 않습니다.
 | v240 release UI fulltest | UI 풀테스트 실행. 30분/120분/field/publish는 별도 | pass |
 | v240 release 120분 | 120분 longrun 실행. UI 직접 조작과 field/publish는 별도 | pass |
 
+## V390-REVIEW4-53 OPS-168~184 semantic proof 예외 checkpoint
+
+- 변경 전 SAFE/OPS fixture SHA-256: `3b943b82c71d6245d4d318c8301e8e55cd679fff83c134da77958c1f491ae85e`
+- OPS-178 해결 전 중간 SHA-256: `6d612364e9c30b86c0c1aa25f250da95a066c2031da6694918c8b1014e41cc2d`
+- 변경 후 재동결 SHA-256: `2e5c7d8fdca95846e673a035209ed1e1348904f279f462e0e1a57ca08da7d630`
+- 변경 exact ID: `OPS-168`~`OPS-184` 17개. 다른 proof 행은 변경하지 않았습니다.
+- 변경 전 실패 baseline: fresh 10-family 986행 `PASS 801 / FAIL 185 / 미실행 0`, SAFE/OPS 중 `OPS-168`~`OPS-184` 17개는 모두 `proof-only-short-verifier-ineligible-awaiting-canonical-functional-rebinding`이었습니다.
+- OPS-178 RED/GREEN: 기존 handoff verifier는 문서 `includes`와 self-written PID temp JSON readback으로 6/0이었지만 OPS-178 targeted audit는 unresolved였습니다. self-written artifact를 제거하고 typed scope decision, readiness, actual graph schema/hash와 고정 argv canonical readiness command의 numeric exit를 결속한 뒤 handoff verifier 7/0, OPS-178 targeted 1/1을 통과했습니다.
+- 최종 targeted audit: `node scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs --family OPS --id-range 168:184` → `resolved 17 / unresolved 0`.
+- 모든 승인 변경 뒤 10-family를 각각 fresh 1회 실행한 최종 집계는 `PASS 817 / FAIL 169 / 미실행 0`입니다. family별로 UI `114/115`, AUTH `42/42`, SRC `68/68`, RULE `112/112`, EVT `85/87`, CLIENT `42/42`, MEDIA `26/27`, LAB `122/126`, SAFE `99/217`, OPS `107/150`입니다. OPS 17개가 회복됐지만 handoff source 교정으로 승인 밖 기존 `SAFE-211` proof locator가 drift하여 SAFE가 baseline보다 1개 감소했습니다. `SAFE-211`과 나머지 실패 proof는 추가 승인 없이 변경하지 않았습니다.
+- frozen auditor SHA-256 불변: trust `17f899ea7ba3e779e1345b2b352d6ee03e194cd8da03b0bdb500f1d10f7b256d`, audit `215d6932748d30c20917d81851848afa7cf2c00aae3712d410ecac772be19558`, apply `92c823ee8dbfc7af72b19fac7951e293d119ca061989d677e8640b4f33f2c323`, approvals `3282c15a63a5206196916926d7d416e74774b17c4345cff294541b5a392eac84`, approval selftest `304b99039a9c583cf7c32772990fe06d38a0008d10cd5b19201525108811bc2e`, evidence lib `8828c1d1241afa55e7c5ec32e471c5ec3d0a0f41a4f9a5597f789a806528b030`, UI proof `e16907117abd97f4ac22ae9785ce236928fcc70d228db18251dc23ffc6c6a9db`, EVT proof `baf0e66b48c222c0b0ea2832de3bbb26a76bf8b74cd962fd144bb64dfd962d84`.
+
+| ID | owner / dispatch·route | action / state | independent readback·assertion | 직접 재현 | 결과 |
+| --- | --- | --- | --- | --- | --- |
+| OPS-168 | longrun runner contract / delegated fixture dispatch | executed summary parse / `soak-case-loop` phase state | `assertPhaseStatus` rejects non-`not-run` status | `./server.sh verify-v390-server-longrun-runner-contract` | resolved; 실제 30/120분 미실행 |
+| OPS-169 | `evaluateEvidence` / v4 schema·canonical case gate | exact binding evaluation / `uiFulltestPass` boolean | exact 424 contract asserts evaluator result | `./server.sh verify-ui-fulltest-evidence-policy-v4-contract` | resolved; 실제 424-case PASS 주장 없음 |
+| OPS-170 | `WebRtcHttpServer::Start` / `/ops/api/onvif/credential-provider-status` | sanitized builder / `credentialLookupPerformed=false` | canonical redaction oracle; 별도 runtime source-registry GET 확인 | `./server.sh verify-v390-onvif-credential-provider-status` | resolved |
+| OPS-171 | `WebRtcHttpServer::Start` / `/ops/api/onvif/channels/{id}` | `UpsertOnvifSourceView` / `partialSave=false` | second-write fault 뒤 byte snapshot과 source/view GET rollback assertion | `./server.sh verify-v390-onvif-source-view-atomicity` | resolved |
+| OPS-172 | `WebRtcHttpServer::Start` / `/ops/api/vlm/rule-suggestion-drafts` | draft workflow builder / `ruleRegistryWritePerformed=false` | actual builder의 no-registry-write oracle; self-written bridge artifact 미사용 | `./server.sh verify-vlm-rule-suggestion-draft-workflow` | resolved |
+| OPS-173 | `PrepareVlmProfileDocumentLocked` / `ValidateVlmEvaluationPromotion` | `CanonicalEvaluationJson` / server catalog provenance | rejected PUT 전후 independent GET no-write + persisted provider prohibition + canonical source | `./server.sh verify-v390-vlm-promotion-trust-boundary` | 14 HTTP·7 structural·13 reload, failure 0 |
+| OPS-174 | `WebRtcHttpServer::Start` / staging-restore handoff GET | handoff builder / `productionRestorePerformed=false` | actual HTTP payload와 isolated registry/view disk pre/post oracle | `./server.sh verify-ops-source-registry-api` | resolved; production restore 미수행 |
+| OPS-175 | `WebRtcHttpServer::Start` / action execution deferral GET | deferral builder / `actionExecutionPerformed=false` | canonical oracle jointly rejects registry write, delivery, event payload drift; runtime UI smoke 별도 확인 | `./server.sh verify-v390-action-execution-deferral-decision` | resolved |
+| OPS-176 | `WebRtcHttpServer::Start` / field-evidence bridge GET | bridge builder / `endpointProbePerformed=false` | actual HTTP와 isolated registry/view disk oracle rejects probes/PASS/write | `./server.sh verify-ops-source-registry-api` | resolved |
+| OPS-177 | `WebRtcHttpServer::Start` / Re-ID assist decision GET | config-backed builder / `modelBackedPreflightReady` | isolated config matrix의 actual HTTP readiness assertion | `./server.sh verify-v390-reid-readiness-consistency` | resolved; inference 실행 주장 없음 |
+| OPS-178 | `verifyTypedHandoffState` / typed scope decision dispatch | fixed argv canonical readiness 실행 / `readinessStatus` | typed decision·readiness·actual graph schema/hash와 live src/include/CMake readiness exit 0을 결속 | `./server.sh verify-v390-structure-stabilization-handoff` | resolved 7/0; self-written artifact 제거, refactor 실행 주장 없음 |
+| OPS-179 | `runActualBundle` / ordered real-stage dispatch | `runRealStage` / conditional `server-longrun-120` | contract summary가 trigger 없는 120분 stage `not-run`, RTSP cleanup wiring을 확인 | `./server.sh verify-v390-test-acceptance-bundle-contract` | 9/0; actual acceptance 미실행 |
+| OPS-180 | `opsRulesReadEventTemplateForm` / incident provenance selection | `payload.vlmProvenance` mutation | save 및 restart 뒤 independent rule GET provenance assertion | `./server.sh verify-v390-vlm-incident-rule-provenance` | resolved |
+| OPS-181 | role-owned product-owner decision record | parsed decisions / `implementationExecuted=false` | derived deferred state를 explicit assertion | `./server.sh verify-v390-deferred-product-owner-signoff` | resolved; 구현 실행 주장 없음 |
+| OPS-182 | `collectActualGraph` / production root walk | tracked `productionFiles` / measured graph | 148-file graph와 `refactorImplementationExecuted=false`를 같은 oracle에 결속 | `./server.sh verify-v390-structure-stabilization-readiness` | 8/0; refactor 미실행 |
+| OPS-183 | no-device closure record owner | parsed `externalNetworkAttempted` / prevented state | no network, credential, provider, field/release PASS assertion | `./server.sh verify-v390-external-field-smoke-no-device-closure` | resolved; field smoke 미실행 |
+| OPS-184 | `PersistAndPublishLocked` / atomic writer dispatch | `WriteAnalysisRegistryFileAtomically` / authoritative `rename` | injected post-rename crash 뒤 filesystem bytes·JSON·restart readback | `./server.sh verify-v390-analysis-registry-durable-write` | resolved; 54번 완료 주장 없음 |
+
+실패 분류는 다음과 같습니다. 최초 185개 중 승인된 17개는 `실제 구현 결함 0 / 기존 구현은 있으나 semantic proof 연결 오류 13 / verifier assertion 결함 4 / runtime·environment 제약 0`으로 분류했습니다. Verifier 결함 4개는 OPS-173의 no-write/provider 결속, OPS-178의 typed decision/actual graph 결속, OPS-179의 RTSP cleanup wiring, OPS-182의 graph/not-executed 결속이며 모두 보강 후 targeted 17/17입니다. OPS-173의 최초 loopback `EPERM`은 제품 실패가 아닌 sandbox 제약이었고 승인된 loopback 실행에서 failure 0으로 해소됐습니다. 승인 밖 168개는 원래 분류와 proof를 동결했고, source 교정으로 추가 drift한 `SAFE-211`을 포함해 최종 169개를 아래 exact blocker로 보존합니다.
+
+최종 남은 exact ID는 다음과 같습니다.
+
+- UI(1): `UI-004`
+- EVT(2): `EVT-033`, `EVT-034`
+- MEDIA(1): `MEDIA-001`
+- LAB(4): `LAB-035`, `LAB-045`, `LAB-048`, `LAB-051`
+- SAFE(118): `SAFE-033`, `SAFE-051`, `SAFE-057`, `SAFE-063`, `SAFE-064`, `SAFE-070`, `SAFE-071`, `SAFE-072`, `SAFE-075`, `SAFE-077`, `SAFE-078`, `SAFE-079`, `SAFE-080`, `SAFE-081`, `SAFE-082`, `SAFE-085`, `SAFE-086`, `SAFE-087`, `SAFE-088`, `SAFE-089`, `SAFE-090`, `SAFE-091`, `SAFE-092`, `SAFE-093`, `SAFE-094`, `SAFE-095`, `SAFE-098`, `SAFE-099`, `SAFE-100`, `SAFE-101`, `SAFE-102`, `SAFE-104`, `SAFE-112`, `SAFE-113`, `SAFE-119`, `SAFE-123`, `SAFE-124`, `SAFE-126`, `SAFE-128`, `SAFE-130`, `SAFE-131`, `SAFE-132`, `SAFE-133`, `SAFE-134`, `SAFE-135`, `SAFE-136`, `SAFE-137`, `SAFE-138`, `SAFE-139`, `SAFE-141`, `SAFE-142`, `SAFE-143`, `SAFE-144`, `SAFE-145`, `SAFE-146`, `SAFE-147`, `SAFE-148`, `SAFE-149`, `SAFE-150`, `SAFE-151`, `SAFE-152`, `SAFE-153`, `SAFE-154`, `SAFE-155`, `SAFE-156`, `SAFE-157`, `SAFE-158`, `SAFE-159`, `SAFE-160`, `SAFE-161`, `SAFE-162`, `SAFE-163`, `SAFE-164`, `SAFE-165`, `SAFE-166`, `SAFE-167`, `SAFE-168`, `SAFE-169`, `SAFE-170`, `SAFE-171`, `SAFE-172`, `SAFE-173`, `SAFE-174`, `SAFE-175`, `SAFE-176`, `SAFE-177`, `SAFE-178`, `SAFE-179`, `SAFE-180`, `SAFE-181`, `SAFE-182`, `SAFE-183`, `SAFE-184`, `SAFE-185`, `SAFE-186`, `SAFE-187`, `SAFE-188`, `SAFE-189`, `SAFE-190`, `SAFE-191`, `SAFE-192`, `SAFE-193`, `SAFE-194`, `SAFE-195`, `SAFE-196`, `SAFE-197`, `SAFE-198`, `SAFE-199`, `SAFE-200`, `SAFE-201`, `SAFE-203`, `SAFE-207`, `SAFE-209`, `SAFE-210`, `SAFE-211`, `SAFE-214`, `SAFE-215`, `SAFE-216`
+- OPS(43): `OPS-043`, `OPS-044`, `OPS-047`, `OPS-048`, `OPS-049`, `OPS-050`, `OPS-051`, `OPS-052`, `OPS-053`, `OPS-054`, `OPS-055`, `OPS-056`, `OPS-057`, `OPS-058`, `OPS-059`, `OPS-060`, `OPS-061`, `OPS-063`, `OPS-067`, `OPS-068`, `OPS-069`, `OPS-070`, `OPS-072`, `OPS-073`, `OPS-075`, `OPS-077`, `OPS-079`, `OPS-080`, `OPS-081`, `OPS-082`, `OPS-083`, `OPS-084`, `OPS-085`, `OPS-086`, `OPS-087`, `OPS-088`, `OPS-089`, `OPS-090`, `OPS-091`, `OPS-092`, `OPS-146`, `OPS-147`, `OPS-162`
+
+오류 원인은 `runtime-readback-observation-missing`, reverse `assignment-order-invalid`, def-use token 결속 누락, stale anchor/line/context, unsupported proof kind/dispatch, readback token/oracle 누락입니다. 실행하지 않은 행은 0개입니다.
+
+286개 변경 파일 기준선은 그대로 보존했습니다. OPS-168~184 예외에서 신규 파일은 만들지 않았지만 기존 verifier 2개와 roadmap 문서 1개가 기준선 밖에서 추가됐고 OPS-178 해결로 기존 handoff verifier를 실제 변경했습니다. current exact file count는 288개이며 분류는 `auditor-core 8 / verifier-based 238 / row-semantic-proof 4 / manifest-docs 7 / product-source 2 / later-step-boundary 6 / temporary-proof-scaffold 23`입니다. 53번은 targeted 예외는 닫혔지만 986행 전체는 `817/169/0` blocker라 커밋 불가입니다. 최신 사용자 지시에 따라 이 checkpoint 뒤 54번만 진행하며 55번은 시작하지 않습니다.
+
 ## V390-REVIEW4-54 Analysis Registry failure atomicity
 
 V390-REVIEW3-38의 post-rename failure candidate 의미를 current persistence 계약으로 사용하지
@@ -2147,6 +2198,77 @@ Failure 의미는 `HTTP 500 = previous`로 고정했습니다. Fault가 제거�
 GET/readback으로 previous/candidate를 판정합니다. `after-temp-fsync`와 `after-rename`,
 `during-rollback` prepared transaction은 이전 상태로 복구하고, committed marker가 durable한
 `after-directory-fsync`만 candidate를 유지합니다.
+
+53번 동결 경계도 재확인했습니다. Auditor 6개와 evidence library, UI/EVT/SAFE-OPS proof fixture의
+SHA-256은 checkpoint 값과 동일하며 SAFE/OPS proof는
+`2e5c7d8fdca95846e673a035209ed1e1348904f279f462e0e1a57ca08da7d630`입니다. 54번에서는 auditor,
+판정 규칙, semantic proof fixture, implementation evidence manifest를 수정하지 않았습니다.
+
+Exact 변경 파일은 `git status --short --untracked-files=all` 기준 292개입니다. 53번 checkpoint의
+288개를 보존한 채 54번이 기존 durable-write fixture 1개와 계획/stream/evidence 색인 3개를 변경
+범위에 추가했습니다. 현재 분류는 `auditor-core 8 / verifier-based 239 / row-semantic-proof 4 /
+manifest-docs 10 / product-source 2 / later-step-boundary 6 / temporary-proof-scaffold 23`입니다.
+신규 파일은 만들지 않았고 55번은 시작하지 않습니다.
+
+## V390-REVIEW4-53 승인 재개와 986행 최종 closure
+
+2026-07-13 사용자가 `53번 승인. 55번으로 넘어가지 말고 보고할것`이라고 명시해, 기존
+`817 PASS / 169 FAIL / 미실행 0` checkpoint에서 53번만 재개했습니다. 55번 구현은 시작하지
+않았습니다. Reviewer actor는 `workspace-user-explicit-reviewer`, reviewed date는 `2026-07-13`,
+decision artifact SHA-256은
+`41310c9385663dba8cc41fefd6422f5c16f6e04705e863312661cba17c11330e`입니다. Raw decision
+artifact는 canonical ledger 생성 뒤 삭제했고 저장소에는 approval ledger만 보존했습니다.
+
+checkpoint의 잔여 169개 실패를 source-first로 다시 분류한 결과 그 잔여 집합의 제품 구현 결함은
+0개였고, actual owner/dispatch/action/state/readback은 이미 존재했습니다. 별도로 53번 전체 변경에는
+checkpoint 이전에 확인한 실제 구현 gap LAB-028~031이 포함됩니다. `webrtc_http_server.cpp`에 global
+metadata/bbox diagnostics/state/metrics JSON builder와 GET route를 추가했고, canonical LAB core
+throwaway HTTP verifier로 확인했습니다. 승인 재개 범위에서는 252개 proof 결속과 SAFE-040 auditor
+negative assertion 1건을 교정했습니다. UI/AUTH/SRC/RULE, EVT/CLIENT/MEDIA/LAB, SAFE/OPS 세
+fixture를 실제 source line/context와 독립 readback에 재결속했고, candidate generator와 reviewer
+approval producer를 분리했습니다. Candidate digest는
+`ec0b9f20b89379ff51821216731fb73569ab77ec41d91d149ff546ef8e67ae22`, 최종 approval은 exact
+ordered 986건입니다.
+
+| 구간 | 최초 결과 | 원인 | 수정 | 최종 결과 |
+| --- | --- | --- | --- | --- |
+| frozen source auditor | `817/169/0` checkpoint | stale locator/context, reverse assignment, def-use/readback 결속 누락, unsupported proof dispatch | 승인된 proof fixture 3개와 SAFE-040 adversarial assertion 교정 | `986 resolved / 0 unresolved`, family `115/42/68/112/87/42/27/126/217/150`, 49/0 |
+| canonical implementation evidence | validation error 225 | apply가 current inventory hash를 갱신하지 않고 wrapper file에 delegated readback anchor를 기록, legacy owner policy가 REVIEW4 script owner를 거부 | current inventory SHA, exact readback file, REVIEW4 source/verifier/compatibility binding 정합 | 두 번째 1건 SAFE-003 Python smoke prefix까지 교정 후 986/986, validation 0, global 0, negative 15/15 |
+| semantic closure contract | 5/26 | REVIEW3 고정 symbol/negative 문자열이 REVIEW4 authoritative proof를 재검사 | REVIEW4 proof positive와 compatibility projection negative로 정렬 | 31/0 |
+| exact UI 424 contract | 9/1 | canonical binding refresh 뒤 action-count ledger drift | route read-model 221, visible read-model 128, disabled control 2로 actual manifest와 정합 | 10/0; actual browser execution은 이 contract에서 미실행 |
+| LAB core actual HTTP | sandbox 실행 `listen EPERM 127.0.0.1` | loopback 권한 제약 | 승인된 loopback throwaway server로 동일 명령 재실행 | 38개 LAB core API contract PASS, cleanup 완료 |
+| stage 재시도 | `git add ... && verifier`의 stage가 sandbox index lock 권한으로 실패, verifier 건너뜀 | shell chain으로 승인 prefix가 적용되지 않음 | stage와 verifier를 별도 명령으로 실행 | stage 성공, 이후 verifier PASS |
+
+| 검증 | 최종 결과 | 경계 |
+| --- | --- | --- |
+| `verify-v390-review4-feature-semantic-source-approval-selftest` | negative 11, failure 0 | non-gate self-test |
+| `verify-v390-review4-feature-semantic-source-approvals` | audit 986, approval 986, failure 0 | committed ledger no-write readback |
+| `verify-v390-review4-feature-semantic-source-audit` | resolved 986, unresolved 0, pass 49, fail 0 | source-level closure; 제품/UI/장시간 실행 대체 아님 |
+| `verify-feature-implementation-evidence` | semantic reviewed/digest/reason/call-chain 각 986, validation/global 0, negative 15/15 | execution evidence 아님 |
+| `verify-feature-semantic-closure-contract` | 31/0 | REVIEW4 proof/compatibility negative contract |
+| `verify-v390-ui-native-exact-cases-contract` | 10/0, 424 exact, unsupported 0 | actual browser execution 미실행 |
+| `verify-ui-fulltest-evidence-policy-v4-contract` | 18/0 | contract fixture; actual UI fulltest PASS 아님 |
+| `verify-project-inventory`, `verify-feature-inventory-coverage` | inventory 986, covered 986, missing 0 | inventory mapping; 실행 evidence 아님 |
+| `./server.sh build` | `media_server` 100% build | pass |
+| `verify-v390-review4-lab-core-api` | actual throwaway HTTP contract PASS | LAB-001~044 중 canonical 38건, external/long-run/UI 제외 |
+| `verify-v330-entry-baseline`, `verify-v340-entry-baseline` | 각각 8/0, 10/0 | historical/current source 정합 |
+| targeted codec RTSP | pass 9, fail 0, skip 12 | WebRTC/WHIP auth 환경 실패를 full codec PASS로 승격하지 않음 |
+| `verify-release-evidence-index`, `verify-script-inventory`, `verify-docs-links` | 각각 8/0, 11/0, docs failure 0 | evidence/catalog/link 정합 |
+
+Canonical hash는 UI/AUTH/SRC/RULE proof
+`8c328ea4a50294d9e0286e55913c7a863f47c0495a2656c06bcdb83444fb28e9`, EVT/CLIENT/MEDIA/LAB
+proof `616f9ea0f3b49f3927bf84a76018c2341ce5daee8fe7a1086b82ccd57b21c19c`, SAFE/OPS proof
+`2e228fcbd5fea14652e313a16718252bca22992f26be06131c553ce1b992cedf`, audit ledger
+`560c2fbfb5d3ab80714e359bd1fcfead5499acaf867c006d98b1674faba97838`, approval ledger
+`759d055edfb7fcaa31ee0b38e4a3cf1b9f6ad7d1c8c59b30064ba001f73221f`, applied implementation
+manifest `33820df387c0a21bea5768be1a8954e5fd31c65bfa26090019082e0749239915`입니다.
+
+Cleanup에서는 `test/fixtures/review4_work/` JSON 7개와 대체된 OPS/SAFE 임시 semantic verifier
+15개 및 그 `server.sh` 임시 dispatch를 제거했습니다. `verify_v390_review4_lab_core_api.mjs`는 server dispatch와 LAB 38개 proof가
+직접 참조하는 canonical runtime verifier라 보존했습니다. 정리 후 변경 범위는 staged 269경로
+(`M` 253, `A` 16)이며 untracked 임시 scaffold는 없습니다. 30분, 120분, actual exact 424 UI
+fulltest, external field smoke, release action은 이번 53번 승인 범위에서 실행하지 않았고 완료
+evidence로 사용하지 않습니다.
 
 ## 토큰/시간 사용량 기록
 

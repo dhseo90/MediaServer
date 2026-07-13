@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v3.4.0 Step 8 client-safe maintenance digest 구현과 문서 연결을 검증한다.
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -48,8 +50,12 @@ const files = {
 };
 
 const checks = [];
+const maintenanceDigestApiBlock = extractCppFunctionBlock(files.server, "void AppendClientSafeMaintenanceDigestJson(");
+const maintenanceDigestProjectionBlock = extractCppFunctionBlock(files.server, "std::string ClientMaintenanceDigestJson(");
+const maintenanceDigestRendererBlock = extractNamedFunctionBlock(files.clientScript, "renderClientSafeMaintenanceDigest");
 
 check("client API emits the v3.4 viewer-safe maintenance digest schema", () => {
+  assert(maintenanceDigestApiBlock.includes("media-server.client.v340-maintenance-digest.v1") && maintenanceDigestProjectionBlock.includes("AppendClientSafeMaintenanceDigestJson"), "CLIENT-029 exact AppendClientSafeMaintenanceDigestJson projection missing for /client/api/views/{id}/events");
   for (const snippet of [
     "struct ClientMaintenanceDigest",
     "ClientMaintenanceDigestFor",
@@ -109,6 +115,7 @@ check("client API emits the v3.4 viewer-safe maintenance digest schema", () => {
 });
 
 check("client renderer shows maintenance digest without raw/source/debug/operator material", () => {
+  assert(maintenanceDigestProjectionBlock.includes("AppendClientSafeMaintenanceDigestJson") && maintenanceDigestRendererBlock.includes("maintenanceDigest") && maintenanceDigestRendererBlock.includes("maintenanceState") && maintenanceDigestRendererBlock.includes("timelineHint"), "CLIENT-029 exact AppendClientSafeMaintenanceDigestJson renderer readback missing for /client/api/views/{id}/events");
   for (const snippet of [
     "renderClientSafeMaintenanceDigest",
     "maintenanceDigest",
@@ -122,7 +129,14 @@ check("client renderer shows maintenance digest without raw/source/debug/operato
     "severity",
     "timelineHint",
   ]) {
-    assertIncludes(files.clientScript, snippet, "client maintenance digest renderer");
+    assertIncludes(maintenanceDigestRendererBlock, snippet, "client maintenance digest renderer");
+    assertIncludes(extractNamedFunctionBlock(files.clientScript, "renderClientSafeMaintenanceDigest"), "client-safe-maintenance-digest", "UI-077 block-scoped canonical product state");
+    assert(!["rawJson","rawLocator","rawEvidenceIncluded: true","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.clientScript, "renderClientSafeMaintenanceDigest").includes(marker)), "UI-077 raw-material-redaction explicit absence oracle");
+    assert(!["sourceUrl","sourceURL","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.clientScript, "renderClientSafeMaintenanceDigest").includes(marker)), "UI-077 source-url-redaction explicit absence oracle");
+    assert(!["passwordHash","tokenHash","Authorization:","credentialValue"].some(marker => extractNamedFunctionBlock(files.clientScript, "renderClientSafeMaintenanceDigest").includes(marker)), "UI-077 credential-redaction explicit absence oracle");
+    assert(!["debugCounters","Developer URL","debugMaterialExposed: true"].some(marker => extractNamedFunctionBlock(files.clientScript, "renderClientSafeMaintenanceDigest").includes(marker)), "UI-077 debug-redaction explicit absence oracle");
+    assertIncludes(files.server, "/client/live", "UI-077 canonical route obligation");
+    assertIncludes(files.clientScript, "media-server.client.v340-maintenance-digest.v1", "UI-077 canonical schema obligation");
   }
   for (const forbidden of [
     "sourceUrl",
@@ -139,7 +153,7 @@ check("client renderer shows maintenance digest without raw/source/debug/operato
     "recoveryAction",
     "actionControls",
   ]) {
-    assert(!files.clientScript.includes(`maintenanceDigest.${forbidden}`), `client maintenance digest renderer must not read ${forbidden}`);
+    assert(!maintenanceDigestRendererBlock.includes(`maintenanceDigest.${forbidden}`), `client maintenance digest renderer must not read ${forbidden}`);
   }
 });
 
@@ -193,10 +207,10 @@ check("feature inventory, manual UI, and release records map v3.4 Step 8", () =>
     "CLIENT-029 | V340 Step 8 client-safe maintenance digest API/UI",
     "SAFE-131 | V340 Step 8 client-safe maintenance digest boundary",
     "OPS-098 | V340 Step 8 Client-safe Maintenance Digest 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-079`",
-    "`CLIENT-001`~`CLIENT-029`",
-    "`SAFE-001`~`SAFE-134`",
-    "`OPS-035`~`OPS-101`",
+    "`UI-001`~`UI-115`",
+    "`CLIENT-001`~`CLIENT-042`",
+    "`SAFE-001`~`SAFE-216`",
+    "`OPS-035`~`OPS-184`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.4 Step 8");
   }
@@ -222,15 +236,30 @@ check("feature inventory, manual UI, and release records map v3.4 Step 8", () =>
 check("server entrypoint and inventory verifiers include v3.4 Step 8 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v340_client_safe_maintenance_digest.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const snippet of [
+    "validateImplementationManifest",
+    "semantic.verifierAssertion.command",
+    'kind: "stability"',
+  ]) {
+    assertIncludes(files.featureCoverageVerifier, snippet, "feature coverage verifier canonical command mapping");
+  }
   for (const id of ["UI-077", "CLIENT-029", "SAFE-131", "OPS-098"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-018`, `UI-022`~`UI-079`", "project inventory UI range");
-  assertIncludes(files.projectInventoryVerifier, "`CLIENT-001`~`CLIENT-029`", "project inventory CLIENT range");
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-134`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-101`", "project inventory OPS range");
+  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-115`", "project inventory UI range");
+  assertIncludes(files.projectInventoryVerifier, "`CLIENT-001`~`CLIENT-042`", "project inventory CLIENT range");
+  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-216`", "project inventory SAFE range");
+  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-184`", "project inventory OPS range");
   assertIncludes(files.scriptInventory, "verify_v340_client_safe_maintenance_digest.mjs", "script inventory");
+});
+
+check("SAFE-131 canonical client maintenance digest boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "void AppendClientSafeMaintenanceDigestJson(");
+  const safe131BoundaryObserved = block.includes("media-server.client.v340-maintenance-digest.v1") && block.includes("digest.maintenance_state");
+  const rawMaterialExposed = /\\\"(?:sourceUrl|rawLocator|rawJson|debugMaterial|credentialMaterial|operatorNote|opsAudit|dryRun|recoveryAction)Included\\\":true/.test(block);
+  const mutationPerformed = /\b(?:Write|Persist|DispatchEventRecords|UpdateSource|CreateVaRule)[A-Za-z0-9_:]*\s*\(/.test(block);
+  assert(safe131BoundaryObserved && rawMaterialExposed === false && mutationPerformed === false,
+    "SAFE-131 media-server.client.v340-maintenance-digest.v1 digest.maintenance_state must remain viewer-safe and mutation-free");
 });
 
 const results = runChecks();

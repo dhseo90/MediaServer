@@ -44,6 +44,13 @@ check("closure fixture records exact no-device not-run state", () => {
   assert(fixture.recordKind === "conditional-execution-record", "record kind mismatch");
   assert(fixture.executionStatus === "conditional-not-run", "execution status must be conditional-not-run");
   assert(fixture.evidenceStatus === "condition-record-not-field-pass", "evidence status mismatch");
+  const externalNetworkAttempted = fixture.externalNetworkAttempted;
+  const externalNetworkPrevented = externalNetworkAttempted === false;
+  const credentialAccessAttempted = fixture.credentialAccessAttempted;
+  const providerCallAttempted = fixture.providerCallAttempted;
+  assert(externalNetworkPrevented && externalNetworkAttempted === false &&
+    credentialAccessAttempted === false && providerCallAttempted === false,
+    "externalNetworkAttempted must remain false");
   for (const flag of [
     "externalNetworkAttempted",
     "endpointProbeAttempted",

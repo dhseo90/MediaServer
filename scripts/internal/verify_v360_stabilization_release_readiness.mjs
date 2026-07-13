@@ -66,6 +66,7 @@ const files = {
   releasePolicy: readText("docs/release-policy.md"),
   coverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   serverSh: readText("server.sh"),
 };
@@ -98,7 +99,11 @@ check("feature inventory maps v3.6 Step 14 to SAFE-161 and OPS-128", () => {
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.6 Step 14");
   }
-  assertIncludes(files.coverageVerifier, commandName, "feature coverage verifier");
+  assertIncludes(files.coverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  for (const id of ["SAFE-161", "OPS-128"]) {
+    assert(files.implementationManifest.items.find((item) => item.id === id)?.verifierEvidence?.command === commandName,
+      `${id} implementation manifest verifier command drift`);
+  }
   assertIncludes(files.projectInventoryVerifier, '"SAFE-161"', "project inventory verifier SAFE-161");
   assertIncludes(files.projectInventoryVerifier, '"OPS-128"', "project inventory verifier OPS-128");
 });
@@ -185,6 +190,32 @@ check("Step 14 gate keeps release actions and long UI/soak evidence separate", (
       assertIncludes(text, snippet, `${name} Step 14 boundary`);
     }
   }
+});
+
+check("SAFE-161 canonical readiness non-substitution boundary", () => {
+  const releaseActionExecuted = !files.releaseRecords.includes("v360 Step 14 PR/main/tag/GitHub Release") || !files.releaseRecords.includes("미실행");
+  const uiFulltestExecuted = !files.releaseRecords.includes("v360 Step 14 UI 풀테스트") || !files.releaseRecords.includes("미실행");
+  const longrunExecuted = !files.releaseRecords.includes("v360 Step 14 30분/120분 longrun") || !files.releaseRecords.includes("미실행");
+  const fieldSmokeExecuted = !files.releaseRecords.includes("v360 Step 14 field smoke") || !files.releaseRecords.includes("미실행");
+  const safe161BoundaryObserved = companionCommands.includes(command) && files.releaseRecords.includes("v360 Step 14 stabilization/release readiness final");
+  assert(safe161BoundaryObserved && releaseActionExecuted === false && uiFulltestExecuted === false && longrunExecuted === false && fieldSmokeExecuted === false,
+    "SAFE-161 local readiness must preserve release action UI fulltest longrun and field smoke as independently not-run");
+});
+
+check("OPS-128 canonical local readiness gate", () => {
+  const localCommandsWired = companionCommands.every((item) =>
+    files.releasePolicy.includes(item) && files.releaseEvidenceIndex.includes(item) && files.releaseRecords.includes(item));
+  const notRunBoundariesPresent = [
+    "v360 Step 14 UI 풀테스트",
+    "v360 Step 14 30분/120분 longrun",
+    "v360 Step 14 PR/main/tag/GitHub Release",
+    "v360 Step 14 field smoke",
+  ].every((item) => files.releaseRecords.includes(item));
+  const ops128GateObserved = localCommandsWired && notRunBoundariesPresent &&
+    files.serverSh.includes("verify-v360-stabilization-release-readiness)");
+  const ops128ReadinessObserved = ops128GateObserved;
+  assert(ops128ReadinessObserved && ops128GateObserved,
+    "OPS-128 local command wiring and explicit UI/long-run/release-action/field-smoke boundaries missing");
 });
 
 const results = runChecks();

@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v3.3.0 Step 10 Ops Backup and Recovery Source Handoff 구현, UI, 문서, inventory 연결을 검증한다.
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -52,6 +54,7 @@ const files = {
 const checks = [];
 
 check("Ops server builds the v3.3 backup/recovery source handoff read model", () => {
+  assert(route === "/ops/api/source-registry/backup-recovery-handoff", "OPS-089 canonical route drift");
   for (const snippet of [
     "struct OpsV330BackupRecoverySourceHandoffInput",
     "struct OpsV330BackupRecoverySourceHandoffSummary",
@@ -179,6 +182,14 @@ check("/ops/sources renders Step 10 backup/recovery source handoff inputs and va
     "data-source-recovery-validation-plan",
   ]) {
     assertIncludes(files.opsSourcesScript + files.server, snippet, "ops sources backup recovery source handoff UI");
+    assertIncludes(extractNamedFunctionBlock(files.opsSourcesScript, "renderBackupRecoverySourceHandoff"), "sourceHandoffInputs", "UI-074 block-scoped canonical product state");
+    assert(!["rawJson","rawLocator","rawEvidenceIncluded: true","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderBackupRecoverySourceHandoff").includes(marker)), "UI-074 raw-material-redaction explicit absence oracle");
+    assert(!["sourceUrl","sourceURL","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderBackupRecoverySourceHandoff").includes(marker)), "UI-074 source-url-redaction explicit absence oracle");
+    assert(!["passwordHash","tokenHash","Authorization:","credentialValue"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderBackupRecoverySourceHandoff").includes(marker)), "UI-074 credential-redaction explicit absence oracle");
+    assert(!["debugCounters","Developer URL","debugMaterialExposed: true"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderBackupRecoverySourceHandoff").includes(marker)), "UI-074 debug-redaction explicit absence oracle");
+    assert(!["/client/api/","viewerClientExposureAdded: true","clientExposureAdded: true"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderBackupRecoverySourceHandoff").includes(marker)), "UI-074 client-viewer-boundary explicit absence oracle");
+    assertIncludes(files.opsSourcesScript, "/ops/sources", "UI-074 canonical route obligation");
+    assertIncludes(files.server, "media-server.ops.v330-backup-recovery-source-handoff.v1", "UI-074 canonical schema obligation");
   }
   for (const snippet of [
     ".source-backup-handoff-grid",
@@ -286,6 +297,24 @@ check("server entrypoint and inventory verifiers include v3.3 Step 10 command", 
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v330_ops_backup_recovery_source_handoff.mjs", "script inventory");
+});
+
+check("SAFE-122 canonical backup recovery source handoff boundary", () => {
+  const handoffBlock = extractCppFunctionBlock(files.server, "std::string OpsV330BackupRecoverySourceHandoffJson(");
+  const backupRecoveryHandoffRouteObserved = route === "/ops/api/source-registry/backup-recovery-handoff";
+  const safe122BoundaryObserved = backupRecoveryHandoffRouteObserved && handoffBlock.includes("SourceViewRegistry::Instance().Snapshot") && handoffBlock.includes("media-server.ops.v330-backup-recovery-source-handoff.v1") && handoffBlock.includes("BuildV330BackupRecoveryValidationPlan");
+  const persistencePerformed = /\b(?:Write|Persist|AppendFile|SavePlan)[A-Za-z0-9_:]*\s*\(/.test(handoffBlock);
+  const sourceRegistryWritePerformed = /\b(?:CreateSource|UpdateSource|DeleteSource)[A-Za-z0-9_:]*\s*\(/.test(handoffBlock);
+  const rawMaterialExposed = handoffBlock.includes("\\\"rawJsonExposed\\\":true");
+  const rawLocatorExposed = handoffBlock.includes("\\\"rawLocatorExposed\\\":true");
+  const sourceUrlExposed = handoffBlock.includes("\\\"sourceUrlExposed\\\":true");
+  const debugMaterialExposed = handoffBlock.includes("\\\"debugMaterialExposed\\\":true");
+  const credentialMaterialExposed = handoffBlock.includes("\\\"credentialMaterialExposed\\\":true");
+  const automaticRecoveryPerformed = /\b(?:Restore|Recover|Execute)[A-Za-z0-9_:]*\s*\(/.test(handoffBlock);
+  const schemaMutationPerformed = /DispatchEventRecords|CreateVaRule|UpdateVaRule/.test(handoffBlock);
+  const viewerClientExposureAdded = /AppendClient|ClientEventSummary|PublishedViewJson/.test(handoffBlock);
+  assert(safe122BoundaryObserved && persistencePerformed === false && sourceRegistryWritePerformed === false && rawMaterialExposed === false && rawLocatorExposed === false && sourceUrlExposed === false && debugMaterialExposed === false && credentialMaterialExposed === false && automaticRecoveryPerformed === false && schemaMutationPerformed === false && viewerClientExposureAdded === false,
+    "SAFE-122 backup-recovery-source-handoff must remain a non-persistent validation plan without registry/raw credential/recovery/schema/client mutation");
 });
 
 const results = runChecks();

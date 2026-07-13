@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { exactBooleanFlagValue, extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -49,6 +50,7 @@ const files = {
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
@@ -82,6 +84,8 @@ check("Ops server builds the v3.7 Rule/VA what-if by site model", () => {
   ]) {
     assertIncludes(files.server, snippet, "v370 rule/VA what-if by site server model");
   }
+  const producerBlock = extractCppFunctionBlock(files.server, "std::string OpsV370RuleVaWhatIfBySiteJson(");
+  assertIncludes(producerBlock, "media-server.ops.v370-rule-va-what-if-by-site.v1", "v370 rule/VA what-if by site schema");
 });
 
 check("Rule/VA what-if by site derives from site projection, impact, EventRecord, and VA fixture refs", () => {
@@ -113,11 +117,7 @@ check("Rule/VA what-if by site derives from site projection, impact, EventRecord
 });
 
 check("Rule/VA what-if by site preserves no-apply and no-mutation boundaries", () => {
-  const block = extractBlock(
-    files.server,
-    "std::string OpsV370RuleVaWhatIfBySiteJson",
-    "struct OpsV370ClientNoticeBySiteViewGroupItem",
-  );
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV370RuleVaWhatIfBySiteJson(");
   for (const snippet of [
     "opsOnly",
     "readOnly",
@@ -181,6 +181,11 @@ check("Rule/VA what-if by site preserves no-apply and no-mutation boundaries", (
     const nearby = block.slice(index, index + 144);
     assert(nearby.includes("false"), `boundary flag must be false: ${flag}`);
   }
+  assert(exactBooleanFlagValue(block, "eventRecordWritePerformed") === false, "eventRecordWritePerformed must remain false");
+  const ruleRegistryWritePerformed = block.includes('\\"ruleRegistryWritePerformed\\":true');
+  const scenarioApplied = block.includes('\\"scenarioApplied\\":true');
+  const eventPostPayloadChanged = block.includes('\\"eventPostPayloadChanged\\":true');
+  assert(ruleRegistryWritePerformed === false && scenarioApplied === false && eventPostPayloadChanged === false, "RULE-110 OpsV370RuleVaWhatIfBySiteJson site calculation-only registryWrite/scenario apply/mutation Changed absence");
   for (const forbidden of [
     "ApplyRule",
     "PersistRule",
@@ -228,6 +233,9 @@ check("/ops dashboard declares and renders Rule/VA what-if by site workspace", (
     "const renderV370RuleVaWhatIfBySite",
     "const renderV370ClientNoticeBySiteViewGroup",
   );
+  assertIncludes(scriptBlock, "dashSiteRuleVaWhatIfBoundary", "v370 Rule/VA what-if product UI state");
+  assertIncludes(files.uiScript, "/ops/dashboard", "UI-097 canonical route obligation");
+  assertIncludes(files.server, "media-server.ops.v370-rule-va-what-if-by-site.v1", "UI-097 canonical schema obligation");
   for (const snippet of [
     "refreshV370RuleVaWhatIfBySite",
     route,
@@ -322,11 +330,34 @@ check("roadmap, stream verification, inventory, and release records map v3.7 Ste
 check("server entrypoint and inventory verifiers include v3.7 Step 13 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v370_rule_va_what_if_by_site.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const id of ["UI-097", "RULE-110", "EVT-082", "LAB-106", "SAFE-174", "OPS-141"]) assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   for (const id of featureIds) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v370_rule_va_what_if_by_site.mjs", "script inventory");
+});
+
+check("SAFE-174 canonical bounded no-execution boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV370RuleVaWhatIfBySiteJson(");
+  const routeObserved = files.server.includes("/ops/api/site-operations/rule-va-what-if-by-site");
+  const safe174BoundaryObserved = block.includes("BuildV370RuleVaWhatIfBySiteItems");
+  const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const automaticApplyPerformed = /\b(?:AutomaticApply|SafeApply|ApplyRule|ApplySource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const clientNoticeSent = /\bSendClientNotice[A-Za-z0-9_:]*\s*\(/.test(block);
+  const fieldSmokeExecuted = /\b(?:ExecuteFieldSmoke|ProbeEndpoint|ContactDevice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\"(?:rawLocator|rawJson|rawProviderResponse|rawEndpoint|rawMaterial)\\":true/.test(block);
+  const sourceUrlExposed = block.includes("\\\"sourceUrlIncluded\\\":true") || block.includes("\\\"sourceUrlExposed\\\":true");
+  const credentialMaterialExposed = block.includes("\\\"credentialMaterialIncluded\\\":true") || block.includes("\\\"credentialMaterialExposed\\\":true");
+  const debugMaterialExposed = block.includes("\\\"debugMaterialIncluded\\\":true") || block.includes("\\\"debugMaterialExposed\\\":true");
+  const viewerClientExposureAdded = block.includes("\\\"viewerClientExposureAdded\\\":true");
+  const mediaPathChanged = block.includes("\\\"rtspOrWebrtcMediaPathChanged\\\":true");
+  assert(routeObserved && safe174BoundaryObserved && block.includes("media-server.ops.v370-rule-va-what-if-by-site.v1") && writePerformed === false && mutationPerformed === false && executionPerformed === false && automaticApplyPerformed === false && clientNoticeSent === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+    "SAFE-174 BuildV370RuleVaWhatIfBySiteItems must remain bounded no-execution no-write redacted and client/provider isolated");
 });
 
 const results = runChecks();

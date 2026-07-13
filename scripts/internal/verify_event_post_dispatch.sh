@@ -126,6 +126,7 @@ start_receiver() {
   # /event는 성공, /fail은 HTTP 500, /slow는 지연 성공으로 응답해 dispatcher 경로를 분리한다.
   : > "${RECEIVED_FILE}"
   python3 -u - "${RECEIVED_FILE}" "${RECEIVER_PORT}" <<'PY' &
+import hashlib
 import json
 import sys
 import time
@@ -253,7 +254,7 @@ validate_schema_mode() {
   after_json="$(event_post_status)"
   printf '%s' "${after_json}" > "${STATUS_AFTER_FILE}"
 
-  python3 - "${before_enqueued}" "${before_failed}" "${before_suppressed}" "${STATUS_AFTER_FILE}" "${RECEIVED_FILE}" "${SCHEMA_SUCCESS_RULE_ID}" <<'PY'
+  python3 - "${before_enqueued}" "${before_failed}" "${before_suppressed}" "${STATUS_AFTER_FILE}" "${RECEIVED_FILE}" "${SCHEMA_SUCCESS_RULE_ID}" "${EVENTS_FILE}" <<'PY'
 import json
 import pathlib
 import sys
@@ -264,8 +265,47 @@ before_suppressed = int(sys.argv[3])
 status = json.loads(pathlib.Path(sys.argv[4]).read_text())
 received_path = pathlib.Path(sys.argv[5])
 success_rule_id = sys.argv[6]
+events_payload = json.loads(pathlib.Path(sys.argv[7]).read_text())
 
 errors = []
+FROZEN_EVENT_POST_SCHEMA_SHA256 = "561c05e99d05a3817b7e7260e83d4018e48cad26cd752ab05145edcff58d5d61"
+
+def schema_shape(value, path=""):
+    if isinstance(value, dict):
+        return {key: schema_shape(value[key], f"{path}.{key}" if path else key) for key in sorted(value)}
+    if isinstance(value, list):
+        return [schema_shape(value[0], f"{path}[]")] if value else []
+    if isinstance(value, bool):
+        return "boolean"
+    if isinstance(value, int):
+        return "integer" if path != "object.confidence" else "number"
+    if isinstance(value, float):
+        return "number"
+    if isinstance(value, str):
+        return "string"
+    if value is None:
+        return "null"
+    return type(value).__name__
+
+def assert_schema_contract(payload):
+    shape_json = json.dumps(schema_shape(payload), sort_keys=True, separators=(",", ":"))
+    actual_schema_sha256 = hashlib.sha256(shape_json.encode("utf-8")).hexdigest()
+    if actual_schema_sha256 != FROZEN_EVENT_POST_SCHEMA_SHA256:
+        raise RuntimeError(
+            f"received Event POST field/type freeze SHA-256 mismatch: "
+            f"{actual_schema_sha256} != {FROZEN_EVENT_POST_SCHEMA_SHA256}; shape={shape_json}"
+        )
+    return actual_schema_sha256
+
+def assert_non_blocking_event_post_queue_status(status, posts, failed_before, events_payload):
+    if status.get("failedCount", 0) <= failed_before:
+        raise RuntimeError("non-blocking event POST queue did not observe the injected delivery failure")
+    if not posts:
+        raise RuntimeError("non-blocking event POST queue did not deliver the independent success payload after failure")
+    analysis_events = events_payload.get("events", []) if isinstance(events_payload, dict) else events_payload
+    if not isinstance(analysis_events, list) or not analysis_events:
+        raise RuntimeError("media frame/playback analysis progress was not independently observed during delivery failure")
+
 if status.get("enqueuedCount", 0) <= before_enqueued:
     errors.append("enqueuedCount가 증가하지 않았습니다")
 if status.get("failedCount", 0) <= before_failed:
@@ -296,6 +336,9 @@ else:
         payload = posts[0]
     if payload.get("schema") != "media-server.va.event.v1":
         errors.append(f"schema mismatch: {payload.get('schema')}")
+    frozen_schema_sha256 = assert_schema_contract(payload)
+
+assert_non_blocking_event_post_queue_status(status, posts, before_failed, events_payload)
     if not str(payload.get("eventId", "")).startswith("evt_"):
         errors.append(f"eventId mismatch: {payload.get('eventId')}")
     if not isinstance(payload.get("timestampMs"), int):
@@ -334,6 +377,7 @@ if errors:
 
 print("status=", status)
 print("payload_sample=", payload)
+print("frozen_schema_sha256=", frozen_schema_sha256)
 PY
   log_pass "POST payload schema 검증"
   log_pass "POST 실패 카운터 검증"

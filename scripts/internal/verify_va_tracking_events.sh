@@ -540,27 +540,41 @@ print("snapshot_track_count=", latest.get("trackCount", 0), "listed=", listed)
 print("analyzed=", snapshot.get("analyzedPackets", 0), "avgMs=", snapshot.get("averageAnalysisMs", 0))
 
 errors = []
-if counts.get("presence", 0) < min_presence:
-    errors.append(f"presence 이벤트 부족: {counts.get('presence', 0)} < {min_presence}")
+def assertRuntimeEventCount(condition, message):
+    if not condition:
+        errors.append(message)
+
+assertRuntimeEventCount(counts.get("presence", 0) >= min_presence, f"presence 이벤트 부족: {counts.get('presence', 0)} < {min_presence}")
 if rule_count("presence-500ms") < min_presence:
     errors.append(f"minDuration presence 이벤트 부족: {rule_count('presence-500ms')} < {min_presence}")
 if rule_count("multi-category-presence") < min_presence:
     errors.append(f"다중 카테고리 presence 이벤트 부족: {rule_count('multi-category-presence')} < {min_presence}")
-if counts.get("enter", 0) < min_enter:
-    errors.append(f"enter 이벤트 부족: {counts.get('enter', 0)} < {min_enter}")
-if counts.get("exit", 0) < min_exit:
-    errors.append(f"exit 이벤트 부족: {counts.get('exit', 0)} < {min_exit}")
-if counts.get("line-crossing", 0) < min_line:
-    errors.append(f"line-crossing 이벤트 부족: {counts.get('line-crossing', 0)} < {min_line}")
+assertRuntimeEventCount(counts.get("enter", 0) >= min_enter, f"enter 이벤트 부족: {counts.get('enter', 0)} < {min_enter}")
+assertRuntimeEventCount(counts.get("exit", 0) >= min_exit, f"exit 이벤트 부족: {counts.get('exit', 0)} < {min_exit}")
+assertRuntimeEventCount(counts.get("line-crossing", 0) >= min_line, f"line-crossing 이벤트 부족: {counts.get('line-crossing', 0)} < {min_line}")
 for rule_suffix in ("enter-center", "exit-center", "line-left", "line-right"):
     if rule_count(rule_suffix) <= 0:
         errors.append(f"{rule_suffix} rule 이벤트가 없습니다")
 directed_line_total = 0
+
+def assert_line_crossing_direction_counts(any_count, forward_count, reverse_count, side):
+    if any_count <= 0 or forward_count <= 0 or reverse_count <= 0:
+        raise RuntimeError(
+            f"line-crossing direction runtime readback missing: side={side}, "
+            f"any={any_count}, forward={forward_count}, reverse={reverse_count}"
+        )
+    if forward_count + reverse_count != any_count:
+        raise RuntimeError(
+            f"line-crossing direction split mismatch: side={side}, "
+            f"any={any_count}, forward={forward_count}, reverse={reverse_count}"
+        )
+
 for side in ("left", "right"):
     any_count = rule_count(f"line-{side}")
     forward_count = rule_count(f"line-{side}-forward")
     reverse_count = rule_count(f"line-{side}-reverse")
     directed_line_total += forward_count + reverse_count
+    assert_line_crossing_direction_counts(any_count, forward_count, reverse_count, side)
     if any_count <= 0:
         errors.append(f"line-{side} any 이벤트가 없습니다")
     if forward_count <= 0:

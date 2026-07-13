@@ -129,7 +129,7 @@ class WhipPublisher:
                 headers={"Content-Type": "application/sdp"},
             )
             if status < 200 or status >= 300:
-                raise RuntimeError(f"unexpected status {status}")
+                raise RuntimeError(f"SourceJson WHIP publish unexpected status {status}")
             response = json.loads(payload.decode("utf-8"))
             self.session_id = response["sessionId"]
             answer_sdp = response["answer"]

@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v2.7.0 S04 Rule What-if Preview와 draft-only/manual-save 경계를 검증한다.
+import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import process from "node:process";
@@ -15,6 +17,7 @@ const manualChecklist = readText("docs/manual-ui-checklist.md");
 const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
 const roadmapEvidence = [backlog, inventory, manualChecklist].join("\n");
 
@@ -40,6 +43,15 @@ check("roadmap records V270-S04 as active/completed Rule What-if Preview work", 
 });
 
 check("Ops events API exposes rule what-if preview without rule/media/schema side effects", () => {
+  const start = server.indexOf("std::string OpsRuleWhatIfPreviewViewJson(");
+  const end = server.indexOf("std::string OpsApprovalGatedRuleDraftReadinessViewJson(", start);
+  assert(start >= 0 && end > start, "EVT-053 rule what-if projection block missing");
+  const evt053ProjectionBlock = server.slice(start, end);
+  assertIncludes(evt053ProjectionBlock, "manualSaveRequired", "EVT-053 block-scoped canonical projection");
+  assert(evt053ProjectionBlock.includes("media-server.ops.rule-what-if-preview.v1") && evt053ProjectionBlock.includes("/ops/rules"), "LAB-077 rule what-if schema and /ops/rules draft route readback mismatch");
+  const routeOwnerSource = readText("src/ingress/ops_event_route_owner.cpp");
+  const routeBlock = routeOwnerSource.slice(routeOwnerSource.indexOf("constexpr const char* kOpsEventsPagePath"), routeOwnerSource.indexOf("bool HasPrefix("));
+  assertIncludes(routeBlock, "/ops/api/events/reviews", "EVT-053 canonical review route");
   for (const snippet of [
     "OpsRuleWhatIfPreviewViewJson",
     "OpsRuleWhatIfPreviewItemJson",
@@ -82,6 +94,10 @@ check("/ops/events UI renders selected incident rule what-if preview", () => {
     "ruleRegistryWritePerformed",
   ]) {
     assertIncludes(script, snippet, "Ops rule what-if preview script");
+    assertIncludes(extractNamedFunctionBlock(script, "renderRuleWhatIfPreview"), "ruleWhatIfPreview", "UI-053 block-scoped canonical product state");
+    assert(!["requestJson(","fetch(","method: 'POST'","method: 'PUT'","method: 'DELETE'"].some(marker => extractNamedFunctionBlock(script, "renderRuleWhatIfPreview").includes(marker)), "UI-053 no-write explicit absence oracle");
+    assert(!["autoRuleApplied: true","autoApply: true","applyRule("].some(marker => extractNamedFunctionBlock(script, "renderRuleWhatIfPreview").includes(marker)), "UI-053 no-auto-apply explicit absence oracle");
+    assertIncludes(script, "/ops/events", "UI-053 canonical route obligation");
   }
   for (const snippet of [
     ".rule-what-if-preview",
@@ -129,7 +145,9 @@ check("smoke, inventory, manual UI, coverage, and command catalog track S04", ()
     assertIncludes(inventory, snippet, "feature inventory S04 row");
   }
   assertIncludes(manualChecklist, "| V270-S04 Rule What-if Preview | `UI-053`, `EVT-053`, `LAB-077`, `SAFE-061` |", "manual UI checklist S04 row");
-  assertIncludes(coverageVerifier, "verify-v270-rule-what-if-preview", "feature inventory coverage S04 command");
+  assert(implementationManifest.items.find(item => item.id === "LAB-077")?.verifierEvidence?.command === "verify-v270-rule-what-if-preview", "LAB-077 manifest verifier command drift");
+  assertIncludes(coverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(coverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   assertIncludes(streamVerification, "verify-v270-rule-what-if-preview", "stream verification S04 command");
   assertIncludes(serverSh, "verify-v270-rule-what-if-preview", "server.sh S04 command");
   assertIncludes(serverSh, "verify_v270_rule_what_if_preview.mjs", "server.sh S04 script target");

@@ -105,6 +105,26 @@ append_query() {
   fi
 }
 
+assert_rtsp_overlay_url() {
+  local url="$1"
+  if (( ${#url} > 7 )) && [[ "${url}" == rtsp://* && "${url}" == *"va=1"* ]]; then
+    log_pass "RTSP server-side overlay URL은 va=1 query를 사용"
+  else
+    log_fail "RTSP overlay URL 형식 오류: ${url}"
+  fi
+}
+
+assert_rtsp_playback_decode() {
+  local url="$1"
+  local label="$2"
+  local log_file="$3"
+  if ffmpeg -hide_banner -loglevel error -rtsp_transport tcp -i "${url}" -t "${DURATION_S}" -an -f null - >"${log_file}" 2>&1; then
+    log_pass "${label} 짧은 decode/playback 성공"
+  else
+    log_fail "${label} decode/playback 실패: ${log_file}"
+  fi
+}
+
 write_summary() {
   python3 - "${SUMMARY_FILE}" "${PASS_COUNT}" "${FAIL_COUNT}" "${SKIP_COUNT}" "${HTTP_BASE}" "${RTSP_BASE}" "${FILE_TOKEN}" "${RAW_URL}" "${OVERLAY_URL}" "${SIDECHANNEL_URL}" <<'PY'
 import json
@@ -174,11 +194,7 @@ else
   log_fail "RTSP raw URL에 overlay/metadata query가 포함됨: ${RAW_URL}"
 fi
 
-if [[ "${OVERLAY_URL}" == rtsp://* && "${OVERLAY_URL}" == *"va=1"* ]]; then
-  log_pass "RTSP server-side overlay URL은 va=1 query를 사용"
-else
-  log_fail "RTSP overlay URL 형식 오류: ${OVERLAY_URL}"
-fi
+assert_rtsp_overlay_url "${OVERLAY_URL}"
 
 if [[ "${SIDECHANNEL_URL}" == http://*/metadata/stream* || "${SIDECHANNEL_URL}" == https://*/metadata/stream* ]]; then
   log_pass "metadata side-channel은 HTTP SSE URL로 RTSP와 분리됨"
@@ -192,15 +208,7 @@ else
   if ! command -v ffmpeg >/dev/null 2>&1; then
     log_fail "missing required command for RTSP playback check: ffmpeg"
   else
-    if ffmpeg -hide_banner -loglevel error -rtsp_transport tcp -i "${RAW_URL}" -t "${DURATION_S}" -an -f null - >/tmp/media_server_rtsp_raw_policy_ffmpeg.log 2>&1; then
-      log_pass "RTSP raw URL 짧은 decode 성공"
-    else
-      log_fail "RTSP raw URL decode 실패: /tmp/media_server_rtsp_raw_policy_ffmpeg.log"
-    fi
-    if ffmpeg -hide_banner -loglevel error -rtsp_transport tcp -i "${OVERLAY_URL}" -t "${DURATION_S}" -an -f null - >/tmp/media_server_rtsp_overlay_policy_ffmpeg.log 2>&1; then
-      log_pass "RTSP va=1 server-side overlay URL 짧은 decode 성공"
-    else
-      log_fail "RTSP overlay URL decode 실패: /tmp/media_server_rtsp_overlay_policy_ffmpeg.log"
-    fi
+    assert_rtsp_playback_decode "${RAW_URL}" "RTSP raw URL" "/tmp/media_server_rtsp_raw_policy_ffmpeg.log"
+    assert_rtsp_playback_decode "${OVERLAY_URL}" "RTSP va=1 server-side overlay URL" "/tmp/media_server_rtsp_overlay_policy_ffmpeg.log"
   fi
 fi

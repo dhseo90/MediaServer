@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { exactBooleanFlagValue, extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -46,6 +47,12 @@ const files = {
 const checks = [];
 
 check("Ops server builds the v3.5 live operations graph read model", () => {
+  const start = files.server.indexOf("std::string OpsV350LiveOperationsGraphJson(");
+  const end = files.server.indexOf("struct OpsV370SiteImpactGraphNode", start);
+  assert(start >= 0 && end > start, "EVT-074 live operations graph block missing");
+  const evt074OperationsGraphBlock = files.server.slice(start, end);
+  assertIncludes(evt074OperationsGraphBlock, "media-server.ops.v350-live-operations-graph.v1", "EVT-074 block-scoped canonical graph projection");
+  assert(!evt074OperationsGraphBlock.includes("\\\"eventRecordWritePerformed\\\":true") && evt074OperationsGraphBlock.includes("\\\"eventRecordWritePerformed\\\":false"), "EVT-074 graph projection must not write EventRecord state");
   for (const snippet of [
     "struct OpsV350LiveOperationsGraphNode",
     "struct OpsV350LiveOperationsGraphEdge",
@@ -91,7 +98,12 @@ check("live operations graph joins required source-of-truth inputs", () => {
 });
 
 check("live operations graph preserves Ops-only read-only redaction and media/schema boundaries", () => {
-  const block = extractBlock(files.server, "std::string OpsV350LiveOperationsGraphJson", "struct OpsV350CommandPlanCandidate");
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV350LiveOperationsGraphJson(");
+  const routeObserved = files.server.includes("/ops/api/live-operations/graph");
+  const debugMaterialExposed = exactBooleanFlagValue(block, "rawDiagnosticJsonIncluded");
+  assert(exactBooleanFlagValue(block, "rawLocatorExposedToClient") === false, "CLIENT-030 raw locator/source URL must remain redacted");
+  assert(debugMaterialExposed === false, "CLIENT-030 debug material must remain redacted");
+  assert(block.includes("clientImpact") && block.includes("viewer-safe-summary"), "CLIENT-030 exact clientImpact projection readback missing");
   for (const snippet of [
     "opsOnly",
     "readOnly",
@@ -221,11 +233,23 @@ check("feature inventory and release records map v3.5 Step 2", () => {
 check("server entrypoint and inventory verifiers include v3.5 Step 2 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v350_live_operations_graph_contract.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureInventory, command, "feature inventory command");
   for (const id of ["SRC-044", "EVT-074", "CLIENT-030", "SAFE-136", "OPS-103"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v350_live_operations_graph_contract.mjs", "script inventory");
+});
+
+check("SAFE-136 canonical live operations graph redaction boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV350LiveOperationsGraphJson(");
+  const routeObserved = files.server.includes("/ops/api/live-operations/graph");
+  const safe136BoundaryObserved = block.includes("BuildV350LiveOperationsGraphNodes") && block.includes("media-server.ops.v350-live-operations-graph.v1");
+  const rawMaterialExposed = /\\\"(?:sourceLocator|credentialMaterial|rawDiagnosticJson|mediaPath|clientViewerMaterial)Included\\\":true/.test(block);
+  const credentialMaterialExposed = block.includes("\\\"credentialMaterialIncluded\\\":true");
+  const viewerClientExposureAdded = block.includes("\\\"clientViewerMaterialIncluded\\\":true");
+  const writePerformed = /\b(?:Write|Persist|UpdateSource|DispatchEventRecords)[A-Za-z0-9_:]*\s*\(/.test(block);
+  assert(routeObserved && safe136BoundaryObserved && rawMaterialExposed === false && credentialMaterialExposed === false && viewerClientExposureAdded === false && writePerformed === false,
+    "SAFE-136 BuildV350LiveOperationsGraphNodes must remain Ops-only redacted read-only without source locator credential diagnostic media client material");
 });
 
 const results = runChecks();

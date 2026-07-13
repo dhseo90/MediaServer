@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 // 파일 용도: v3.5.0 Step 3 Operations Command Plan Contract 구현, 문서, inventory 연결을 검증한다.
 
 import fs from "node:fs";
@@ -72,7 +73,7 @@ check("command plan derives candidates from live graph and existing source/revie
   const block = extractBlock(files.server, "struct OpsV350CommandPlanCandidate", "struct OpsV350IncidentCommandHandoff");
   for (const snippet of [
     "BuildV350LiveOperationsGraphContext",
-    "OpsV350LiveOperationsGraphNode",
+    "OpsV350LiveOperationsGraphContext",
     "sourceRecheck",
     "recovery",
     "maintenance",
@@ -145,6 +146,10 @@ check("command plan preserves draft-only no-execution boundaries", () => {
     const nearby = block.slice(index, index + 128);
     assert(nearby.includes("false"), `boundary flag must be false: ${flag}`);
   }
+  const ruleRegistryWritePerformed = block.includes('\\"ruleRegistryWritePerformed\\":true');
+  const ruleFollowUpApplied = block.includes('\\"ruleFollowUpApplied\\":true');
+  const eventPostPayloadChanged = block.includes('\\"eventPostPayloadChanged\\":true');
+  assert(ruleRegistryWritePerformed === false && ruleFollowUpApplied === false && eventPostPayloadChanged === false, "RULE-105 OpsV350CommandPlanJson rule follow-up stays draft-only without registryWrite/apply/mutation Changed");
 });
 
 check("Ops API exposes the command plan route as guarded no-store JSON", () => {
@@ -215,6 +220,16 @@ check("server entrypoint and inventory verifiers include v3.5 Step 3 command", (
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v350_operations_command_plan_contract.mjs", "script inventory");
+});
+
+check("SAFE-137 canonical command plan no-execution boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV350CommandPlanJson(");
+  const routeObserved = files.server.includes("/ops/api/live-operations/command-plan");
+  const safe137BoundaryObserved = block.includes("BuildV350CommandPlanCandidates") && block.includes("media-server.ops.v350-command-plan.v1");
+  const commandPlanExecuted = /\b(?:Execute|Apply|Write|Persist|UpdateSource|CreateVaRule)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = commandPlanExecuted;
+  assert(routeObserved && safe137BoundaryObserved && commandPlanExecuted === false && mutationPerformed === false,
+    "SAFE-137 BuildV350CommandPlanCandidates draft-only command plan must not execute or mutate source view rule client event audit media state");
 });
 
 const results = runChecks();

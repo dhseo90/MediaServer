@@ -8,6 +8,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -31,49 +32,23 @@ assertKnownOptions(rawArgs, ["help"]);
 
 const checks = [];
 
-check("roadmap defines V200-S04 scope gate and completion evidence", () => {
-  const backlog = readText("docs/development-backlog.md");
+check("current inventory defines the SAFE-022 install scope boundary", () => {
+  const inventory = readText("docs/project-feature-test-inventory.md");
   for (const snippet of [
-    "### V200-S04 VLM 설치/연결 UI 범위 gate",
-    "S04에서 허용",
-    "S04에서 금지",
-    "profile 저장은 `V200-S05`",
-    "VLM runtime 호출은 `V200-S06` 이후",
-    "VLMObservation sidecar 저장은 `V200-S08`",
-    "Event POST, WebRTC DataChannel, SSE/WS metadata schema",
-    "RTSP/WebRTC media path",
-    "viewer/client 화면 노출",
-    "`./server.sh verify-vlm-install-connection-scope-gate`",
-    "### V200-S04 VLM 설치/연결 Ops UI 완료 기준",
-    "완료 evidence",
-    "브라우저 직접 확인에서 `/ops/vlm`",
-    "cloud opt-in 전",
-    "`gemini-2.5-flash` 비활성",
-    "opt-in 후 cloud 후보 선택 상태",
-    "실행/저장 false",
-    "브라우저 직접 확인에서 `/client/live`",
-    "invalid query",
-    "400 JSON",
-    "v2.0.0 전체 UI 풀테스트와 close-out evidence는 S18 범위",
+    "| SAFE-022 | VLM 설치/연결 UI scope gate |",
+    "verify-vlm-install-connection-scope-gate",
+    "Ops-only S04 UI 준비 허용",
+    "profile 저장/VLM runtime 호출/sidecar 저장/cloud provider API 호출/schema/media path 변경 금지",
+    "viewer/client 비노출",
   ]) {
-    assert(backlog.includes(snippet), `development backlog missing S04 gate snippet: ${snippet}`);
+    assert(inventory.includes(snippet), `current inventory missing SAFE-022 scope snippet: ${snippet}`);
   }
-  assert(/\| 4 \| V200-S04 \| 완료 \| VLM 설치\/연결 UI \|/.test(backlog),
-    "V200-S04 roadmap row must be complete only after Ops UI evidence is documented");
 });
 
-check("stream verification documents the S04 scope gate command and limits", () => {
+check("stream verification dispatches the current scope gate", () => {
   const stream = readText("docs/stream-verification.md");
   for (const snippet of [
-    "VLM 설치/연결 UI 범위 gate는 `V200-S04` 착수 전후에",
     "./server.sh verify-vlm-install-connection-scope-gate",
-    "Ops-only 설치/연결 UI 준비",
-    "profile 저장",
-    "VLM runtime 호출",
-    "sidecar 저장",
-    "cloud provider API 호출",
-    "Event POST/WebRTC/SSE/WS",
-    "metadata schema 변경",
   ]) {
     assert(stream.includes(snippet), `stream verification missing S04 gate snippet: ${snippet}`);
   }
@@ -86,17 +61,12 @@ check("feature inventory and coverage gate include the S04 scope gate", () => {
   for (const snippet of [
     "| SAFE-022 | VLM 설치/연결 UI scope gate | 비대상 | 필요 | 안정화 |",
     "verify-vlm-install-connection-scope-gate",
-    "| `SAFE-001`~`SAFE-033` |",
-    "| 전체 기능 항목 | 382 |",
-    "| UI 직접 필요 | 224 |",
-    "| UI 비대상 | 130 |",
-    "| 테스트 필요 | 382 |",
-    "| 안정화 대상 | 372 |",
+    "| 전체 기능 항목 | 986 |",
   ]) {
     assert(inventory.includes(snippet), `feature inventory missing S04 scope gate snippet: ${snippet}`);
   }
-  assert(coverage.includes("verify-vlm-install-connection-scope-gate"), "coverage verifier missing S04 scope command");
-  assert(projectInventoryVerifier.includes("rows.length === 382"), "project inventory verifier must expect 382 feature rows");
+  assert(coverage.includes("validateImplementationManifest"), "coverage verifier must validate the current implementation manifest");
+  assert(projectInventoryVerifier.includes("rows.length === declaredTotal"), "project inventory verifier must bind row count to the declared total");
 });
 
 check("server command and script inventory are wired", () => {
@@ -112,6 +82,8 @@ check("server command and script inventory are wired", () => {
 });
 
 check("previous VLM gates permit S04 Ops UI wording and S05 profile storage while runtime artifacts stay blocked", () => {
+  const productServer = readText("src/ingress/webrtc_http_server.cpp");
+  assert(productServer.includes('id="opsVlmRawDetails"'), "opsVlmRawDetails must remain Ops-only and absent from client routes");
   const gateFiles = [
     "scripts/internal/verify_vlm_boundary.mjs",
     "scripts/internal/verify_vlm_selection_decision.mjs",
@@ -166,6 +138,18 @@ check("tracked source/config/fixture files do not introduce forbidden runtime/cl
     }
   }
   assert(hits.length === 0, `forbidden S04 artifact token(s) found:\n${hits.join("\n")}`);
+});
+
+check("SAFE-022 canonical Ops-only install scope has no writes, mutation, or provider execution", () => {
+  const productServer = readText("src/ingress/webrtc_http_server.cpp");
+  const block = extractCppFunctionBlock(productServer, "std::string OpsVlmInstallConnectionDryRunJson(");
+  const installScopeObserved = block.includes("dry-run-only-no-install-connection-profile-runtime-sidecar") &&
+    block.includes("OpsVlmNoSideEffectsJson()");
+  const registryWritePerformed = /\b(?:Write|Persist|Upsert|UpdateSource|CreateVaRule)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = registryWritePerformed || /\b(?:Apply|Execute|DispatchEventRecords)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  assert(installScopeObserved && registryWritePerformed === false && mutationPerformed === false && providerCallPerformed === false,
+    "SAFE-022 install scope must remain UI-only without registry write, schema/media mutation, or provider call");
 });
 
 let pass = 0;

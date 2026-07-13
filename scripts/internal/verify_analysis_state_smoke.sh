@@ -61,4 +61,19 @@ fi
 echo "[pass] appearance hook dependency scan omits TensorRT references"
 echo "[pass] appearance hook dependency scan omits OpenVINO references"
 
-"${BUILD_DIR}/analysis_state_smoke"
+analysis_state_output="$("${BUILD_DIR}/analysis_state_smoke")"
+printf '%s\n' "${analysis_state_output}"
+case "${analysis_state_output}" in
+  *"[pass] SAFE-083 continuousRecording/archiveApi encoded clip preserves schema and client boundaries"*)
+    echo "[pass] SAFE-083 compiled encoded clip readback" ;;
+  *)
+    echo "[fail] SAFE-083 compiled encoded clip readback missing"
+    exit 1 ;;
+esac
+case "${analysis_state_output}" in
+  *"[pass] SAFE-084 eventFrame evidence manifest preserves required fields and raw-material boundary"*)
+    echo "[pass] SAFE-084 compiled evidence manifest readback" ;;
+  *)
+    echo "[fail] SAFE-084 compiled evidence manifest readback missing"
+    exit 1 ;;
+esac

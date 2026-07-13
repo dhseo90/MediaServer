@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v3.4.0 Step 10 field bridge condition gate 연결을 검증한다.
+import { exactBooleanFlagValue, extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -44,6 +46,7 @@ const files = {
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
   manualUi: readText("docs/manual-ui-checklist.md"),
@@ -51,6 +54,11 @@ const files = {
 };
 
 const checks = [];
+
+check("MEDIA-022 exact product field gate preserves external WHEP/TURN no-execution", () => {
+  const productBlock = extractCppFunctionBlock(files.server, "std::string OpsV340FieldBridgeConditionGatesJson(");
+  assert(productBlock.includes("externalWhepTurnContacted") && productBlock.includes("AppendV340FieldBridgeConditionGateSummaryJson") && exactBooleanFlagValue(productBlock, "credentialMaterialIncluded") === false && productBlock.includes("rtspOrWebrtcMediaPathChanged"), "MEDIA-022 exact external WHEP/TURN FieldBridgeConditionGateSummary credentialMaterialIncluded=false missing");
+});
 
 check("Ops API records field bridge gates as conditional not-run field smoke", () => {
   for (const snippet of [
@@ -116,6 +124,15 @@ check("Ops API records field bridge gates as conditional not-run field smoke", (
 });
 
 check("Ops sources UI renders field bridge gates without exposing raw material", () => {
+  assertIncludes(extractNamedFunctionBlock(files.opsSourcesScript, "renderFieldBridgeConditionGates"), "sourceOnlyPassAccepted", "UI-079 block-scoped canonical product state");
+  assert(!["rawJson","rawLocator","rawEvidenceIncluded: true","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderFieldBridgeConditionGates").includes(marker)), "UI-079 raw-material-redaction explicit absence oracle");
+  assert(!["sourceUrl","sourceURL","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderFieldBridgeConditionGates").includes(marker)), "UI-079 source-url-redaction explicit absence oracle");
+  assert(!["passwordHash","tokenHash","Authorization:","credentialValue"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderFieldBridgeConditionGates").includes(marker)), "UI-079 credential-redaction explicit absence oracle");
+  assert(!["debugCounters","Developer URL","debugMaterialExposed: true"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderFieldBridgeConditionGates").includes(marker)), "UI-079 debug-redaction explicit absence oracle");
+  assert(!["providerApiCall(","rawProviderResponse","providerMaterialExposed: true"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderFieldBridgeConditionGates").includes(marker)), "UI-079 provider-boundary explicit absence oracle");
+  assertIncludes(files.opsSourcesScript, "/ops/sources", "UI-079 canonical route obligation");
+  assertIncludes(files.server, "media-server.ops.v340-field-bridge-condition-gates.v1", "UI-079 canonical schema obligation");
+  assertIncludes(files.opsSourcesScript, "ONVIF", "UI-079 canonical field obligation");
   for (const snippet of [
     "sourceFieldBridgeGateStatus",
     "sourceFieldBridgeGateList",
@@ -214,12 +231,6 @@ check("feature inventory, manual UI, and release records map v3.4 Step 10", () =
     "LAB-091 | V340 Step 10 real cloud/VLM provider condition gate",
     "SAFE-133 | V340 Step 10 source-only PASS and credential boundary",
     "OPS-100 | V340 Step 10 Field Bridge Condition Gates 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-079`",
-    "`SRC-001`~`SRC-043`",
-    "`MEDIA-001`~`MEDIA-022`",
-    "`LAB-001`~`LAB-091`",
-    "`SAFE-001`~`SAFE-134`",
-    "`OPS-035`~`OPS-101`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.4 Step 10");
   }
@@ -246,20 +257,28 @@ check("feature inventory, manual UI, and release records map v3.4 Step 10", () =
 check("server entrypoint and inventory verifiers include v3.4 Step 10 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v340_field_bridge_condition_gates.mjs", "server.sh script dispatch");
-  for (const prefix of ["UI", "SRC", "MEDIA", "LAB", "SAFE", "OPS"]) {
-    assertIncludes(files.featureCoverageVerifier, `${prefix}:`, `feature coverage verifier ${prefix} section`);
-    assertIncludes(files.featureCoverageVerifier, command, `feature coverage verifier ${command}`);
+  for (const id of ["SRC-043", "MEDIA-022", "LAB-091", "SAFE-133", "OPS-100"]) {
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
   }
-  for (const id of ["UI-079", "SRC-043", "MEDIA-022", "LAB-091", "SAFE-133", "OPS-100"]) {
-    assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
-  }
-  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-018`, `UI-022`~`UI-079`", "project inventory UI range");
-  assertIncludes(files.projectInventoryVerifier, "`SRC-001`~`SRC-043`", "project inventory SRC range");
-  assertIncludes(files.projectInventoryVerifier, "`MEDIA-001`~`MEDIA-022`", "project inventory MEDIA range");
-  assertIncludes(files.projectInventoryVerifier, "`LAB-001`~`LAB-091`", "project inventory LAB range");
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-134`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-101`", "project inventory OPS range");
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   assertIncludes(files.scriptInventory, "verify_v340_field_bridge_condition_gates.mjs", "script inventory");
+});
+
+check("SAFE-133 canonical field bridge source-only boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV340FieldBridgeConditionGatesJson(");
+  const routeObserved = files.server.includes("/ops/api/source-registry/field-bridge-condition-gates");
+  const safe133BoundaryObserved = block.includes("BuildV340FieldBridgeConditionGates") && block.includes("sourceOnlyPassAccepted");
+  const sourceOnlyPassAccepted = exactBooleanFlagValue(block, "sourceOnlyPassAccepted");
+  const localVerifierPassSubstitutesFieldSmoke = exactBooleanFlagValue(block, "localVerifierPassSubstitutesFieldSmoke");
+  const fieldSmokeExecuted = exactBooleanFlagValue(block, "fieldSmokeExecuted");
+  const credentialMaterialExposed = /\\\"(?:endpointUrl|credentialMaterial|rawLocator|rawJson|debugMaterial|providerMaterial|rawTurnCredential|rawVlmPrompt|rawProviderResponse)Included\\\":true/.test(block);
+  const rawMaterialExposed = /\\\"(?:rawLocator|rawJson|rawTurnCredential|rawVlmPrompt|rawProviderResponse)Included\\\":true/.test(block);
+  const sourceUrlExposed = block.includes("\\\"endpointUrlIncluded\\\":true");
+  const debugMaterialExposed = block.includes("\\\"debugMaterialIncluded\\\":true");
+  const providerCallPerformed = /\b(?:Provider|HttpPost|Infer)[A-Za-z0-9_:]*\s*\(/.test(block);
+  assert(routeObserved && safe133BoundaryObserved && sourceOnlyPassAccepted === false && localVerifierPassSubstitutesFieldSmoke === false && fieldSmokeExecuted === false && credentialMaterialExposed === false && rawMaterialExposed === false && sourceUrlExposed === false && debugMaterialExposed === false && providerCallPerformed === false,
+    "SAFE-133 BuildV340FieldBridgeConditionGates sourceOnlyPassAccepted localVerifierPassSubstitutesFieldSmoke fieldSmokeExecuted must remain false with credential redaction");
 });
 
 const results = runChecks();

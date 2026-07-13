@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { exactBooleanFlagValue, extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -53,6 +54,8 @@ check("Ops server builds the v3.6 simulation input pack model", () => {
   ]) {
     assertIncludes(files.server, snippet, "v360 simulation input server model");
   }
+  const producerBlock = extractCppFunctionBlock(files.server, "std::string OpsV360SimulationInputPackJson(");
+  assertIncludes(producerBlock, "media-server.ops.v360-simulation-input-pack.v1", "v360 simulation input schema");
 });
 
 check("simulation input pack derives from existing graph, command plan, and staged plan context", () => {
@@ -74,7 +77,7 @@ check("simulation input pack derives from existing graph, command plan, and stag
 });
 
 check("simulation input pack preserves read-only boundaries", () => {
-  const block = extractBlock(files.server, "std::string OpsV360SimulationInputPackJson", "struct OpsV360SimulationRunContract");
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV360SimulationInputPackJson(");
   for (const snippet of [
     "opsOnly",
     "readOnly",
@@ -122,6 +125,7 @@ check("simulation input pack preserves read-only boundaries", () => {
   ]) {
     assertFlagFalse(block, flag);
   }
+  assert(exactBooleanFlagValue(block, "eventRecordWritePerformed") === false, "eventRecordWritePerformed must remain false");
 });
 
 check("Ops API exposes the input pack route as guarded no-store JSON", () => {
@@ -178,7 +182,13 @@ check("docs and inventory map v3.6 Step 2", () => {
 check("server entrypoint and inventory verifiers include v3.6 Step 2", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v360_simulation_input_contract.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureCoverageVerifier, "loadImplementationManifest", "feature coverage manifest loading");
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  const manifestById = new Map(files.implementationManifest.items.map(item => [item.id, item]));
+  for (const id of ["SRC-049", "EVT-077", "SAFE-149", "OPS-116"]) {
+    assert(manifestById.get(id)?.verifierEvidence?.command === command,
+      `${id} implementation manifest verifier must be ${command}`);
+  }
   for (const id of ["SRC-049", "EVT-077", "SAFE-149", "OPS-116"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
@@ -202,6 +212,7 @@ function loadFiles() {
     projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
     scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
     releaseRecords: readText("docs/release-test-records.md"),
+    implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
     serverSh: readText("server.sh"),
   };
 }
@@ -229,6 +240,19 @@ function assertFlagFalse(text, flag) {
 }
 
 function finish(title, summary) {
+  check("SAFE-149 canonical simulation input no-write boundary", () => {
+    const block = extractCppFunctionBlock(files.server, "std::string OpsV360SimulationInputPackJson(");
+    const routeObserved = files.server.includes("/ops/api/live-operations/simulation/input-pack");
+    const safe149BoundaryObserved = block.includes("BuildV360SimulationInputPackItems") && block.includes("media-server.ops.v360-simulation-input-pack.v1");
+    const mutationPerformed = /\b(?:Write|Persist|Execute|Apply|UpdateSource|CreateVaRule|DispatchEventRecords)[A-Za-z0-9_:]*\s*\(/.test(block);
+    const registryWritePerformed = mutationPerformed;
+    const rawMaterialExposed = /\\\"(?:credentialMaterial|rawLocator|sourceUrl|debugMaterial)Included\\\":true/.test(block);
+    const sourceUrlExposed = block.includes("\\\"sourceUrlIncluded\\\":true");
+    const credentialMaterialExposed = block.includes("\\\"credentialMaterialIncluded\\\":true");
+    assert(routeObserved && safe149BoundaryObserved && mutationPerformed === false && registryWritePerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false,
+      "SAFE-149 BuildV360SimulationInputPackItems read-only input pack must not mutate source view rule event audit client media or expose credential raw locator");
+  });
+
   const results = runChecks();
   console.log("");
   console.log(title);

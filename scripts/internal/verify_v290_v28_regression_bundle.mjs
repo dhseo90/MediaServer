@@ -62,6 +62,7 @@ const streamVerification = readText("docs/stream-verification.md");
 const featureInventory = readText("docs/project-feature-test-inventory.md");
 const releaseRecords = readText("docs/release-test-records.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
 
 check("roadmap and stream verification expose V290-S02 as a rerun bundle", () => {
@@ -94,7 +95,13 @@ check("feature inventory maps V290-S02 to OPS-043 and SAFE-073", () => {
   ]) {
     assert(featureInventory.includes(snippet), `feature inventory missing S02 snippet: ${snippet}`);
   }
-  assert(coverageVerifier.includes("verify-v290-v28-regression-bundle"), "feature coverage missing V290-S02 verifier");
+  assert(coverageVerifier.includes("loadImplementationManifest") && coverageVerifier.includes("validateImplementationManifest"),
+    "feature coverage missing canonical implementation manifest validation");
+  for (const id of ["SAFE-073", "OPS-043"]) {
+    const mapping = implementationManifest.items?.find((item) => item.id === id);
+    assert(mapping?.verifierEvidence?.command === "verify-v290-v28-regression-bundle",
+      `implementation manifest ${id} missing V290-S02 verifier mapping`);
+  }
 });
 
 check("release records include S02 test item, RED failure, and not-run boundaries", () => {
@@ -129,6 +136,7 @@ check("bundle subcommands are documented and registered", () => {
 
 const docResults = runChecks();
 const commandResults = docResults.fail === 0 ? runSubcommands() : [];
+assertCanonicalV28RegressionBundle(commandResults, docResults);
 const commandFail = commandResults.filter((item) => item.status !== 0).length;
 
 console.log("");
@@ -179,6 +187,16 @@ function runSubcommands() {
     results.push({ ...item, status });
   }
   return results;
+}
+
+function assertCanonicalV28RegressionBundle(results, docs) {
+  const expectedCommands = subcommands.map((item) => item.command);
+  const executedCommands = results.map((item) => item.command);
+  const v28RegressionBundleObserved = docs.fail === 0 &&
+    JSON.stringify(executedCommands) === JSON.stringify(expectedCommands) &&
+    results.every((item) => item.status === 0);
+  assert(v28RegressionBundleObserved,
+    "verify-v290-v28-regression-bundle must use current child exit status, not reused completion evidence");
 }
 
 function check(name, fn) {

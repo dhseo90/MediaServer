@@ -10698,6 +10698,70 @@ std::string AnalysisTapListJson(const std::vector<analysis::AnalysisManager::Tap
     return out.str();
 }
 
+std::string AnalysisGlobalMetadataJson(
+    const std::vector<analysis::AnalysisManager::TapSnapshot>& snapshots) {
+    std::ostringstream out;
+    out << "{\"schema\":\"media-server.lab.analysis-metadata.v1\","
+        << "\"activeTaps\":" << snapshots.size() << ",\"taps\":[";
+    for (std::size_t i = 0; i < snapshots.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << AnalysisMetadataJson(snapshots[i].tap_id, snapshots[i].latest_result);
+    }
+    out << "]}";
+    return out.str();
+}
+
+std::string AnalysisGlobalBboxDiagnosticsJson(
+    const std::vector<analysis::AnalysisManager::TapSnapshot>& snapshots) {
+    std::ostringstream out;
+    out << "{\"schema\":\"media-server.lab.bbox-diagnostics-collection.v1\","
+        << "\"activeTaps\":" << snapshots.size() << ",\"diagnostics\":[";
+    for (std::size_t i = 0; i < snapshots.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        const std::int64_t pts_ms = snapshots[i].latest_result.has_value()
+                                        ? snapshots[i].latest_result->pts / 1000000LL
+                                        : 0;
+        out << AnalysisBboxDiagnosticsJson(
+            snapshots[i].tap_id, pts_ms, 0, snapshots[i].latest_result);
+    }
+    out << "]}";
+    return out.str();
+}
+
+std::string AnalysisGlobalStateDumpJson(
+    const std::vector<analysis::AnalysisManager::TapSnapshot>& snapshots) {
+    std::ostringstream out;
+    out << "{\"schema\":\"media-server.lab.analysis-state-dump.v1\","
+        << "\"activeTaps\":" << snapshots.size() << ",\"states\":[";
+    for (std::size_t i = 0; i < snapshots.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << AnalysisStateDumpJson(snapshots[i].tap_id, snapshots[i], std::nullopt);
+    }
+    out << "]}";
+    return out.str();
+}
+
+std::string AnalysisGlobalMetricsDumpJson(
+    const std::vector<analysis::AnalysisManager::TapSnapshot>& snapshots) {
+    std::ostringstream out;
+    out << "{\"schema\":\"media-server.lab.analysis-metrics-dump.v1\","
+        << "\"activeTaps\":" << snapshots.size() << ",\"metrics\":[";
+    for (std::size_t i = 0; i < snapshots.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << AnalysisMetricsDumpJson(snapshots[i].tap_id, snapshots[i], std::nullopt);
+    }
+    out << "]}";
+    return out.str();
+}
+
 struct StaticImageAnalysis {
     analysis::RawVideoFrame frame;
     analysis::AnalysisResult result;
@@ -42389,6 +42453,39 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     "OK",
                                     AnalysisTapCreatedJson(result, impl_->session_manager.ActiveAnalysisTapCount()));
                             }
+                        }
+
+                        if (request.method == "GET" && request.path == "/lab/analysis/metadata") {
+                            return JsonResponse(
+                                200,
+                                "OK",
+                                AnalysisGlobalMetadataJson(impl_->session_manager.AnalysisTapSnapshots()));
+                        }
+
+                        if (request.method == "GET" && request.path == "/lab/analysis/bbox-diagnostics") {
+                            return JsonResponse(
+                                200,
+                                "OK",
+                                AnalysisGlobalBboxDiagnosticsJson(
+                                    impl_->session_manager.AnalysisTapSnapshots()));
+                        }
+
+                        if (request.method == "GET" &&
+                            (request.path == "/lab/analysis/state" ||
+                             request.path == "/lab/analysis/state-dump")) {
+                            return JsonResponse(
+                                200,
+                                "OK",
+                                AnalysisGlobalStateDumpJson(impl_->session_manager.AnalysisTapSnapshots()));
+                        }
+
+                        if (request.method == "GET" &&
+                            (request.path == "/lab/analysis/metrics" ||
+                             request.path == "/lab/analysis/metrics-dump")) {
+                            return JsonResponse(
+                                200,
+                                "OK",
+                                AnalysisGlobalMetricsDumpJson(impl_->session_manager.AnalysisTapSnapshots()));
                         }
 
                         const auto analysis_tap_prefix = std::string("/lab/analysis/taps/");

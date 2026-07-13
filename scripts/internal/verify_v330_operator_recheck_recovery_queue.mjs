@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v3.3.0 Step 6 Operator Recheck and Recovery Queue 구현, UI, 문서, inventory 연결을 검증한다.
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -47,10 +49,17 @@ const files = {
   releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
+const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 
 const checks = [];
 
 check("Ops review API builds the v3.3 operator recheck recovery queue read model", () => {
+  const start = files.server.indexOf("std::string OpsV330OperatorRecheckRecoveryQueueJson(");
+  const end = files.server.indexOf("std::string OpsV330OperatorRecheckRecoveryQueueSummaryJson(", start);
+  assert(start >= 0 && end > start, "EVT-072 recheck recovery projection block missing");
+  const evt072RecoveryQueueBlock = files.server.slice(start, end);
+  assertIncludes(evt072RecoveryQueueBlock, "media-server.ops.v330-operator-recheck-recovery-queue.v1", "EVT-072 block-scoped canonical recovery queue projection");
+  assert(!evt072RecoveryQueueBlock.includes("\\\"viewerClientExposureAdded\\\":true") && evt072RecoveryQueueBlock.includes("\\\"viewerClientExposureAdded\\\":false"), "EVT-072 recovery queue must remain hidden from client/viewer");
   for (const snippet of [
     "struct OpsV330OperatorRecheckRecoveryQueueInfo",
     "OpsV330OperatorRecheckRecoveryQueueInfoFor",
@@ -124,6 +133,7 @@ check("operator recheck recovery queue preserves schema, media, source write, an
 });
 
 check("/ops/events renders the v3.3 operator recheck recovery queue", () => {
+  const recoveryQueueBlock = extractNamedFunctionBlock(files.pageScript, "renderV330OperatorRecheckRecoveryQueue");
   for (const snippet of [
     "renderV330OperatorRecheckRecoveryQueue",
     "operatorRecheckRecoveryQueueSummary",
@@ -141,8 +151,20 @@ check("/ops/events renders the v3.3 operator recheck recovery queue", () => {
     "sourceRecheckRoute",
     "operatorNoteLinked",
   ]) {
-    assertIncludes(files.pageScript, snippet, "v330 operator recheck recovery queue UI script");
+    assertIncludes(recoveryQueueBlock, snippet, "v330 operator recheck recovery queue UI renderer block");
   }
+  assertIncludes(recoveryQueueBlock, "operatorRecheckRecoveryQueue.rawJsonExposed === false", "UI-071 block-scoped raw JSON redaction contract");
+  assertIncludes(recoveryQueueBlock, "operatorRecheckRecoveryQueue.rawLocatorExposed === false", "UI-071 block-scoped raw locator redaction contract");
+  assertIncludes(recoveryQueueBlock, "operatorRecheckRecoveryQueue.sourceUrlExposed === false", "UI-071 block-scoped source URL redaction contract");
+  assertIncludes(recoveryQueueBlock, "operatorRecheckRecoveryQueue.debugMaterialExposed === false", "UI-071 block-scoped debug material redaction contract");
+  assertIncludes(recoveryQueueBlock, "operatorRecheckRecoveryQueue.viewerClientExposureAdded === false", "UI-071 block-scoped client viewer boundary contract");
+  assert(!["rawJsonPayload", "rawPayload", "rawLocator:", "rawEvidenceIncluded: true", "rtsp://", "rtsps://"].some(marker => recoveryQueueBlock.includes(marker)), "UI-071 raw-material-redaction explicit absence oracle");
+  assert(!["sourceUrl:", "sourceURL:", "sourceUrlValue", "rtsp://", "rtsps://"].some(marker => recoveryQueueBlock.includes(marker)), "UI-071 source-url-redaction explicit absence oracle");
+  assert(!["providerApiCall(", "providerResponse", "rawProviderResponse", "providerMaterialExposed: true", "rawProviderMaterialExposed: true"].some(marker => recoveryQueueBlock.includes(marker)), "UI-071 provider-material explicit absence oracle");
+  assert(!["debugCounters", "Developer URL", "debugMaterialExposed: true"].some(marker => recoveryQueueBlock.includes(marker)), "UI-071 debug-redaction explicit absence oracle");
+  assert(!["/client/api/", "viewerClientExposureAdded: true", "clientExposureAdded: true"].some(marker => recoveryQueueBlock.includes(marker)), "UI-071 client-viewer-boundary explicit absence oracle");
+  const unifiedWorkspaceBlock = extractNamedFunctionBlock(files.pageScript, "renderV320UnifiedOpsEventsWorkspace");
+  assertIncludes(unifiedWorkspaceBlock, "/ops/events", "UI-071 exact route owner obligation");
   for (const snippet of [
     ".v330-operator-recheck-recovery-queue-grid",
     ".v330-operator-recheck-recovery-queue-card",
@@ -250,16 +272,31 @@ check("feature inventory and release records map v3.3 Step 6", () => {
 check("server entrypoint and inventory verifiers include v3.3 Step 6 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v330_operator_recheck_recovery_queue.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureInventory, command, "feature inventory command");
   for (const id of ["UI-071", "SRC-037", "EVT-072", "SAFE-118", "OPS-085"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-018`, `UI-022`~`UI-074`", "project inventory UI range");
-  assertIncludes(files.projectInventoryVerifier, "`SRC-001`~`SRC-040`", "project inventory SRC range");
-  assertIncludes(files.projectInventoryVerifier, "`EVT-001`~`EVT-072`", "project inventory EVT range");
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-123`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-090`", "project inventory OPS range");
+  for (const id of ["SRC-037", "EVT-072", "SAFE-118", "OPS-085"]) {
+    const item = implementationManifest.items.find(candidate => candidate.id === id);
+    assert(item?.verifierEvidence?.command === command, `${id} manifest canonical verifier command drift`);
+  }
   assertIncludes(files.scriptInventory, "verify_v330_operator_recheck_recovery_queue.mjs", "script inventory");
+});
+
+check("SAFE-118 canonical operator recheck recovery boundary", () => {
+  const queueBlock = extractCppFunctionBlock(files.server, "std::string OpsV330OperatorRecheckRecoveryQueueJson(");
+  const safe118BoundaryObserved = queueBlock.includes("media-server.ops.v330-operator-recheck-recovery-queue.v1") && queueBlock.includes("info.queue_status") && queueBlock.includes("info.retry_candidate") && queueBlock.includes("info.recheck_status");
+  const persistentQueueWritePerformed = /\b(?:Enqueue|Write|Persist|AppendFile)[A-Za-z0-9_:]*\s*\(/.test(queueBlock);
+  const sourceOrEventWritePerformed = /\b(?:CreateSource|UpdateSource|DeleteSource|DispatchEventRecords)[A-Za-z0-9_:]*\s*\(/.test(queueBlock);
+  const rawMaterialExposed = queueBlock.includes("\\\"rawJsonExposed\\\":true") || queueBlock.includes("\\\"rawEvidenceExposed\\\":true");
+  const rawLocatorExposed = queueBlock.includes("\\\"rawLocatorExposed\\\":true");
+  const sourceUrlExposed = queueBlock.includes("\\\"sourceUrlExposed\\\":true");
+  const debugMaterialExposed = queueBlock.includes("\\\"debugMaterialExposed\\\":true");
+  const credentialMaterialExposed = queueBlock.includes("\\\"credentialMaterialExposed\\\":true");
+  const viewerClientExposureAdded = /AppendClient|ClientEventSummary|PublishedView/.test(queueBlock);
+  const automaticRecoveryPerformed = /\b(?:Recover|Restore|Execute)[A-Za-z0-9_:]*\s*\(/.test(queueBlock);
+  assert(safe118BoundaryObserved && persistentQueueWritePerformed === false && sourceOrEventWritePerformed === false && rawMaterialExposed === false && rawLocatorExposed === false && sourceUrlExposed === false && debugMaterialExposed === false && credentialMaterialExposed === false && viewerClientExposureAdded === false && automaticRecoveryPerformed === false,
+    "SAFE-118 info.retry_candidate operatorRecheckRecoveryQueue must remain a deterministic hint without queue/source/event writes, raw credential, client, or automatic recovery");
 });
 
 const results = runChecks();

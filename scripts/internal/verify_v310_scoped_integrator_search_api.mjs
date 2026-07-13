@@ -78,6 +78,14 @@ check("scoped search response is redacted and client-safe", () => {
     extractFunctionBody(files.server, "std::string IntegratorScopedEventSearchItemJson"),
     extractFunctionBody(files.server, "std::string IntegratorScopedEventSearchJson"),
   ].join("\n");
+  const rawEvidenceBoundaryMissing = !scopedFunction.includes("\\\"rawEvidenceIncluded\\\":false");
+  const sourceUrlBoundaryMissing = !scopedFunction.includes("\\\"sourceUrlIncluded\\\":false");
+  const debugMaterialBoundaryMissing = !scopedFunction.includes("\\\"debugMaterialIncluded\\\":false");
+  const rawMaterialExposed = /raw(?:Evidence|Json|Locator)(?:Value|Items|Payload)/.test(scopedFunction);
+  assert(rawEvidenceBoundaryMissing === false && rawMaterialExposed === false, "CLIENT-026 raw material must remain redacted");
+  assert(sourceUrlBoundaryMissing === false, "CLIENT-026 source URL must remain redacted");
+  assert(debugMaterialBoundaryMissing === false, "CLIENT-026 debug material must remain redacted");
+  assert(scopedFunction.includes("media-server.integrator.scoped-event-search.v1") && scopedFunction.includes("viewId") && scopedFunction.includes("eventId"), "CLIENT-026 exact scoped integrator search readback missing for /client/api/views/{id}/events/search and event:read:{viewId}");
   for (const snippet of [
     "\\\"schema\\\":\\\"media-server.integrator.scoped-event-search.v1\\\"",
     "\\\"integratorOnly\\\":true",
@@ -151,9 +159,6 @@ check("feature inventory and release records map V310-S05", () => {
     "CLIENT-026 | V310-S05 Scoped Integrator Search API",
     "SAFE-097 | V310-S05 scoped integrator search redaction boundary",
     "OPS-064 | V310-S05 Scoped Integrator Search API 게이트",
-    "`CLIENT-001`~`CLIENT-026`",
-    "`SAFE-001`~`SAFE-101`",
-    "`OPS-035`~`OPS-068`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory V310-S05");
   }
@@ -171,7 +176,7 @@ check("feature inventory and release records map V310-S05", () => {
 check("server entrypoint and inventory verifiers include V310-S05 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v310_scoped_integrator_search_api.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   assertIncludes(files.projectInventoryVerifier, "CLIENT-026", "project inventory verifier CLIENT-026");
   assertIncludes(files.projectInventoryVerifier, "SAFE-097", "project inventory verifier SAFE-097");
   assertIncludes(files.projectInventoryVerifier, "OPS-064", "project inventory verifier OPS-064");
@@ -187,6 +192,20 @@ check("auth routes smoke covers scoped search role and view gates", () => {
   ]) {
     assertIncludes(files.authWorkflow, snippet, "auth route smoke scoped search");
   }
+});
+
+check("SAFE-097 canonical scoped integrator redaction boundary", () => {
+  const scopedSearchBlock = [
+    extractFunctionBody(files.server, "std::string IntegratorScopedEventSearchItemJson"),
+    extractFunctionBody(files.server, "std::string IntegratorScopedEventSearchJson"),
+  ].join("\n");
+  const rawBoundaryMissing = !scopedSearchBlock.includes("\\\"rawEvidenceIncluded\\\":false");
+  const sourceUrlBoundaryMissing = !scopedSearchBlock.includes("\\\"sourceUrlIncluded\\\":false");
+  const debugBoundaryMissing = !scopedSearchBlock.includes("\\\"debugMaterialIncluded\\\":false");
+  const rawMaterialExposed = /raw(?:Evidence|Json|Locator)(?:Value|Items|Payload)/.test(scopedSearchBlock);
+  const safe097BoundaryObserved = scopedSearchBlock.includes("media-server.integrator.scoped-event-search.v1");
+  assert(safe097BoundaryObserved && rawBoundaryMissing === false && sourceUrlBoundaryMissing === false && debugBoundaryMissing === false && rawMaterialExposed === false,
+    "verify-v310-scoped-integrator-search-api raw/sourceUrl/debug WebRTC/SSE/RTSP material must remain redacted");
 });
 
 const results = runChecks();

@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v3.5.0 Step 7 Drill Run Ledger and Plan Comparison 구현, 문서, inventory 연결을 검증한다.
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -76,7 +78,7 @@ check("Ops server builds the v3.5 drill run ledger and plan comparison model", (
 });
 
 check("drill ledger derives entries from graph, command plan, and staged plan without execution", () => {
-  const block = extractBlock(files.server, "struct OpsV350DrillRunLedgerEntry", "std::string OpsV350DrillRunLedgerPlanComparisonJson");
+  const block = extractBlock(files.server, "struct OpsV350DrillRunLedgerEntry", "std::string OpsAuditSearchIndexJson");
   for (const snippet of [
     "BuildV350LiveOperationsGraphContext",
     "BuildV350CommandPlanCandidates",
@@ -178,6 +180,10 @@ check("/ops command workspace declares a drill ledger UI surface", () => {
     "previous run diff",
   ]) {
     assertIncludes(block, snippet, "v350 drill run ledger dashboard shell");
+    assertIncludes(extractNamedFunctionBlock(files.uiScript, "renderV350OpsCommandWorkspace"), "data-v350-drill-run-ledger", "UI-082 block-scoped canonical product state");
+    assert(!["requestJson(","fetch(","method: 'POST'","method: 'PUT'","method: 'DELETE'"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV350OpsCommandWorkspace").includes(marker)), "UI-082 no-write explicit absence oracle");
+    assertIncludes(files.uiScript, "/ops/dashboard", "UI-082 canonical route obligation");
+    assertIncludes(files.server, "media-server.ops.v350-drill-run-ledger.v1", "UI-082 canonical schema obligation");
   }
 });
 
@@ -277,11 +283,31 @@ check("feature inventory and release records map v3.5 Step 7", () => {
 check("server entrypoint and inventory verifiers include v3.5 Step 7 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v350_drill_run_ledger_plan_comparison.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const snippet of [
+    "validateImplementationManifest",
+    "semantic.verifierAssertion.command",
+    'kind: "stability"',
+  ]) {
+    assertIncludes(files.featureCoverageVerifier, snippet, "feature coverage verifier canonical command mapping");
+  }
   for (const id of ["UI-082", "SAFE-141", "OPS-108"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v350_drill_run_ledger_plan_comparison.mjs", "script inventory");
+});
+
+check("SAFE-141 canonical drill ledger no-write boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV350DrillRunLedgerPlanComparisonJson(");
+  const routeObserved = files.server.includes("/ops/api/live-operations/drill-run-ledger");
+  const safe141BoundaryObserved = block.includes("BuildV350DrillRunLedgerEntries") && block.includes("media-server.ops.v350-drill-run-ledger.v1");
+  const drillRunWritePerformed = /\b(?:AppendFile|Write|Persist|Execute|UpdateSource|CreateVaRule)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\\"(?:rawLocator|credentialMaterial|debugMaterial)Exposed\\\":true/.test(block);
+  const mutationPerformed = drillRunWritePerformed;
+  const sourceUrlExposed = block.includes("\\\"sourceUrlExposed\\\":true");
+  const credentialMaterialExposed = block.includes("\\\"credentialMaterialExposed\\\":true");
+  const debugMaterialExposed = block.includes("\\\"debugMaterialExposed\\\":true");
+  assert(routeObserved && safe141BoundaryObserved && drillRunWritePerformed === false && mutationPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false,
+    "SAFE-141 BuildV350DrillRunLedgerEntries drillRunWritePerformed operatorNoteWritePerformed commandPlanExecuted must remain false and redacted");
 });
 
 const results = runChecks();

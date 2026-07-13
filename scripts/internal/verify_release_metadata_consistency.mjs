@@ -165,6 +165,17 @@ check("README.en.md keeps release source-of-truth links lightweight", () => {
   return { file: "README.en.md", currentTag, latestPublishedTag };
 });
 
+check("historical v2.9 source-of-truth remains distinct from latest published v2.8", () => {
+  const releaseTestRecords = readText("docs/release-test-records.md");
+  const v290SourceOfTruthRow = releaseTestRecords.split(/\r?\n/)
+    .find((line) => line.includes("| V290 source-of-truth split |")) || "";
+  const historicalBoundaryObserved = v290SourceOfTruthRow.includes("source `2.9.0`") &&
+    v290SourceOfTruthRow.includes("latest published `v2.8.0`") &&
+    v290SourceOfTruthRow.includes("published metadata, tag/push/GitHub Release, UI 풀테스트, 30분/120분 PASS로 승격하지 않음");
+  assert(historicalBoundaryObserved,
+    "historical V290 source 2.9.0 and latest published v2.8.0 boundary drifted");
+});
+
 if (!publishedMode) {
   check("default mode records published metadata verification as external gate", () => {
     report.publishedEvidence.reason = "Default mode checks local release metadata only; rerun with --published to verify GitHub Latest Release, remote tag, and release branch.";

@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v3.3.0 Step 5 Incident-to-Source Correlation Layer 구현, UI, 문서, inventory 연결을 검증한다.
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -47,10 +49,20 @@ const files = {
   releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
 };
+const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 
 const checks = [];
 
 check("Ops review API builds the v3.3 incident-to-source correlation read model", () => {
+  const start = files.server.indexOf("std::string OpsV330IncidentSourceCorrelationJson(");
+  const end = files.server.indexOf("std::string OpsV330IncidentSourceCorrelationSummaryJson(", start);
+  assert(start >= 0 && end > start, "EVT-071 source correlation projection block missing");
+  const evt071CorrelationBlock = files.server.slice(start, end);
+  assertIncludes(evt071CorrelationBlock, "media-server.ops.v330-incident-source-correlation.v1", "EVT-071 block-scoped canonical correlation projection");
+  assert(!evt071CorrelationBlock.includes("\\\"viewerClientExposureAdded\\\":true") && evt071CorrelationBlock.includes("\\\"viewerClientExposureAdded\\\":false"), "EVT-071 source correlation must remain hidden from client/viewer");
+  const routeOwnerSource = readText("src/ingress/ops_event_route_owner.cpp");
+  const routeBlock = routeOwnerSource.slice(routeOwnerSource.indexOf("constexpr const char* kOpsEventsPagePath"), routeOwnerSource.indexOf("bool HasPrefix("));
+  assertIncludes(routeBlock, "/ops/api/events/reviews", "EVT-071 canonical review route");
   for (const snippet of [
     "struct OpsV330IncidentSourceCorrelationInfo",
     "OpsV330IncidentSourceCorrelationInfoFor",
@@ -119,6 +131,7 @@ check("incident-to-source correlation preserves schema, media, source write, and
 });
 
 check("/ops/events renders the v3.3 incident-to-source correlation layer", () => {
+  const correlationBlock = extractNamedFunctionBlock(files.pageScript, "renderV330IncidentSourceCorrelationLayer");
   for (const snippet of [
     "renderV330IncidentSourceCorrelationLayer",
     "incidentSourceCorrelationSummary",
@@ -136,8 +149,19 @@ check("/ops/events renders the v3.3 incident-to-source correlation layer", () =>
     "sourceReliabilityContextReused",
     "sourceHealthAuditLinked",
   ]) {
-    assertIncludes(files.pageScript, snippet, "v330 incident source correlation UI script");
+    assertIncludes(correlationBlock, snippet, "v330 incident source correlation UI renderer block");
   }
+  assertIncludes(correlationBlock, "incidentSourceCorrelation.rawJsonExposed === false", "UI-070 block-scoped raw JSON redaction contract");
+  assertIncludes(correlationBlock, "incidentSourceCorrelation.sourceUrlExposed === false", "UI-070 block-scoped source URL redaction contract");
+  assertIncludes(correlationBlock, "incidentSourceCorrelation.debugMaterialExposed === false", "UI-070 block-scoped debug material redaction contract");
+  assertIncludes(correlationBlock, "incidentSourceCorrelation.viewerClientExposureAdded === false", "UI-070 block-scoped client viewer boundary contract");
+  assert(!["rawJsonPayload", "rawPayload", "rawLocator", "rawEvidenceIncluded: true", "rtsp://", "rtsps://"].some(marker => correlationBlock.includes(marker)), "UI-070 raw-material-redaction explicit absence oracle");
+  assert(!["sourceUrl:", "sourceURL:", "sourceUrlValue", "rtsp://", "rtsps://"].some(marker => correlationBlock.includes(marker)), "UI-070 source-url-redaction explicit absence oracle");
+  assert(!["providerApiCall(", "providerResponse", "rawProviderResponse", "providerMaterialExposed: true", "rawProviderMaterialExposed: true"].some(marker => correlationBlock.includes(marker)), "UI-070 provider-material explicit absence oracle");
+  assert(!["debugCounters", "Developer URL", "debugMaterialExposed: true"].some(marker => correlationBlock.includes(marker)), "UI-070 debug-redaction explicit absence oracle");
+  assert(!["/client/api/", "viewerClientExposureAdded: true", "clientExposureAdded: true"].some(marker => correlationBlock.includes(marker)), "UI-070 client-viewer-boundary explicit absence oracle");
+  const unifiedWorkspaceBlock = extractNamedFunctionBlock(files.pageScript, "renderV320UnifiedOpsEventsWorkspace");
+  assertIncludes(unifiedWorkspaceBlock, "/ops/events", "UI-070 exact route owner obligation");
   for (const snippet of [
     ".v330-incident-source-correlation-grid",
     ".v330-incident-source-correlation-card",
@@ -235,16 +259,31 @@ check("feature inventory and release records map v3.3 Step 5", () => {
 check("server entrypoint and inventory verifiers include v3.3 Step 5 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v330_incident_source_correlation_layer.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureInventory, command, "feature inventory command");
   for (const id of ["UI-070", "SRC-036", "EVT-071", "SAFE-117", "OPS-084"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-018`, `UI-022`~`UI-074`", "project inventory UI range");
-  assertIncludes(files.projectInventoryVerifier, "`SRC-001`~`SRC-040`", "project inventory SRC range");
-  assertIncludes(files.projectInventoryVerifier, "`EVT-001`~`EVT-072`", "project inventory EVT range");
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-123`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-090`", "project inventory OPS range");
+  for (const id of ["SRC-036", "EVT-071", "SAFE-117", "OPS-084"]) {
+    const item = implementationManifest.items.find(candidate => candidate.id === id);
+    assert(item?.verifierEvidence?.command === command, `${id} manifest canonical verifier command drift`);
+  }
   assertIncludes(files.scriptInventory, "verify_v330_incident_source_correlation_layer.mjs", "script inventory");
+});
+
+check("SAFE-117 canonical incident source correlation boundary", () => {
+  const correlationBlock = extractCppFunctionBlock(files.server, "std::string OpsV330IncidentSourceCorrelationJson(");
+  const safe117BoundaryObserved = correlationBlock.includes("media-server.ops.v330-incident-source-correlation.v1") &&
+    correlationBlock.includes("info.source_id") && correlationBlock.includes("info.source_cause_category") && correlationBlock.includes("info.source_recheck_required");
+  const sourceOrEventWritePerformed = /\b(?:CreateSource|UpdateSource|DeleteSource|DispatchEventRecords|Write|Persist)[A-Za-z0-9_:]*\s*\(/.test(correlationBlock);
+  const rawMaterialExposed = correlationBlock.includes("\\\"rawJsonExposed\\\":true") || correlationBlock.includes("\\\"rawEvidenceExposed\\\":true");
+  const rawLocatorExposed = correlationBlock.includes("\\\"rawLocatorExposed\\\":true");
+  const sourceUrlExposed = correlationBlock.includes("\\\"sourceUrlExposed\\\":true");
+  const debugMaterialExposed = correlationBlock.includes("\\\"debugMaterialExposed\\\":true");
+  const credentialMaterialExposed = correlationBlock.includes("\\\"credentialMaterialExposed\\\":true");
+  const viewerClientExposureAdded = /AppendClient|ClientEventSummary|PublishedView/.test(correlationBlock);
+  const automaticRecoveryPerformed = /\b(?:Recover|Restore|Enqueue)[A-Za-z0-9_:]*\s*\(/.test(correlationBlock);
+  assert(safe117BoundaryObserved && sourceOrEventWritePerformed === false && rawMaterialExposed === false && rawLocatorExposed === false && sourceUrlExposed === false && debugMaterialExposed === false && credentialMaterialExposed === false && viewerClientExposureAdded === false && automaticRecoveryPerformed === false,
+    "SAFE-117 info.source_cause_category incidentSourceCorrelation must remain deterministic without source/event write, raw credential, client, or recovery mutation");
 });
 
 const results = runChecks();

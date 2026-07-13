@@ -19,7 +19,7 @@ Usage:
   ./server.sh verify-v330-entry-baseline
 
 Checks:
-  - VERSION/CMake and public docs identify source 3.3.0 and latest published release v3.3.0
+  - VERSION/CMake and public docs identify the current source while preserving v3.3.0 historical evidence
   - v3.3.0 roadmap selection is Live Source Reliability Workspace with explicit fallback/exclusions
   - v3.3.0 Step 1 is recorded as completed local source baseline alignment, not feature/UI/longrun/published evidence
   - server entrypoint, stream verification, feature inventory, release records, and release policy expose this gate
@@ -30,10 +30,10 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const checks = [];
 const version = readText("VERSION").trim();
-const currentTag = "v3.3.0";
-const latestPublishedTag = "v3.3.0";
-const currentRoadmap = "v3.3.0 Live Source Reliability Workspace";
-const latestPublishedBaseline = "v3.3.0 Live Source Reliability Workspace";
+const currentTag = `v${version}`;
+const baselineVersion = "3.3.0";
+const baselineTag = "v3.3.0";
+const baselineRoadmap = "v3.3.0 Live Source Reliability Workspace";
 const previousPublishedTag = "v3.2.0";
 const previousPublishedBaseline = "v3.2.0 Operations Resolution Workspace";
 
@@ -57,20 +57,25 @@ const files = {
   docsUiAssetsManifest: readText("config/docs_ui_assets.json"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   server: readText("server.sh"),
 };
+const currentRoadmap = requiredMatch(files.versioning, /- 현재 source roadmap: `([^`]+)`/, "current source roadmap");
+const latestPublishedTag = requiredMatch(files.releaseMetadataVerifier, /const latestPublishedTag = "(v[0-9]+\.[0-9]+\.[0-9]+)";/, "latest published tag");
+const latestPublishedBaseline = requiredMatch(files.releaseMetadataVerifier, /const latestPublishedBaseline = "([^"]+)";/, "latest published baseline");
 
-check("source version is v3.3.0 and CMake matches", () => {
-  assert(version === "3.3.0", `VERSION must be 3.3.0, got ${version}`);
-  assert(files.cmake.includes("project(media_server VERSION 3.3.0 LANGUAGES CXX)"), "CMake project version must be 3.3.0");
+check("current source and CMake align while v3.3 remains historical", () => {
+  assert(semverAtLeast(version, baselineVersion), `current VERSION ${version} predates historical baseline ${baselineVersion}`);
+  assert(files.cmake.includes(`project(media_server VERSION ${version} LANGUAGES CXX)`), `CMake project version must match current VERSION ${version}`);
+  assert(currentRoadmap.startsWith(`v${version} `), `current roadmap must match source ${version}: ${currentRoadmap}`);
 });
 
-check("public entry docs pin source v3.3.0 and published v3.3.0", () => {
+check("public entry docs pin current source and current published boundary", () => {
   for (const [label, text, sourceSnippet, roadmapSnippet] of [
-    ["README.md", files.readme, "현재 소스 버전: `3.3.0`", `현재 source roadmap: \`${currentRoadmap}\``],
-    ["README.en.md", files.readmeEn, "Current source version: `3.3.0`", `Current source roadmap: \`${currentRoadmap}\``],
-    ["docs/README.md", files.docsIndex, "현재 소스 버전: `3.3.0`", `현재 source roadmap: \`${currentRoadmap}\``],
-    ["docs/en/README.md", files.docsEnIndex, "Current source version: `3.3.0`", `Current source roadmap: \`${currentRoadmap}\``],
+    ["README.md", files.readme, `현재 소스 버전: \`${version}\``, `현재 source roadmap: \`${currentRoadmap}\``],
+    ["README.en.md", files.readmeEn, `Current source version: \`${version}\``, `Current source roadmap: \`${currentRoadmap}\``],
+    ["docs/README.md", files.docsIndex, `현재 소스 버전: \`${version}\``, `현재 source roadmap: \`${currentRoadmap}\``],
+    ["docs/en/README.md", files.docsEnIndex, `Current source version: \`${version}\``, `Current source roadmap: \`${currentRoadmap}\``],
   ]) {
     assert(text.includes(sourceSnippet), `${label} missing source snippet: ${sourceSnippet}`);
     assert(text.includes(roadmapSnippet), `${label} missing roadmap snippet: ${roadmapSnippet}`);
@@ -78,26 +83,23 @@ check("public entry docs pin source v3.3.0 and published v3.3.0", () => {
   }
 });
 
-check("policy docs pin v3.3 active source and published release", () => {
+check("policy docs preserve v3.3 historical baseline and current source split", () => {
   for (const [label, text] of [
     ["docs/versioning-policy.md", files.versioning],
     ["docs/release-policy.md", files.releasePolicy],
     ["docs/public-repo-final-review.md", files.publicReview],
     ["docs/ui-guide.md", files.uiGuide],
   ]) {
-    assert(text.includes("3.3.0"), `${label} missing 3.3.0 source wording`);
+    assert(text.includes(version), `${label} missing current source ${version}`);
     assert(text.includes(latestPublishedTag), `${label} missing latest published ${latestPublishedTag}`);
-    assert(text.includes(currentRoadmap), `${label} missing current roadmap ${currentRoadmap}`);
+    if (label !== "docs/ui-guide.md") assert(text.includes(currentRoadmap), `${label} missing current roadmap ${currentRoadmap}`);
   }
-  assert(files.versioning.includes("## 3.3.0 active source roadmap 범위"), "versioning policy missing v3.3 active roadmap section");
-  assert(files.releasePolicy.includes("## v3.3.0 Source Roadmap Scope"), "release policy missing v3.3 source roadmap section");
-  assert(files.releasePolicy.includes("`./server.sh verify-v330-entry-baseline`"), "release policy missing v3.3 entry baseline companion gate");
-  assert(files.assetsPolicy.includes("## v3.3.0 Step 1 source baseline alignment"), "docs asset policy missing v3.3 Step 1 boundary");
+  assert(files.versioning.includes("v3.3.0") && files.versioning.includes("Live Source Reliability Workspace"), "versioning policy missing historical v3.3 baseline");
+  assert(files.releasePolicy.includes("v3.3.0") && files.releasePolicy.includes("Live Source Reliability Workspace"), "release policy missing historical v3.3 baseline");
 });
 
 check("roadmap records v3.3 Step 1 as completed baseline alignment only", () => {
   for (const snippet of [
-    "## 현재 source roadmap: v3.3.0 Live Source Reliability Workspace",
     "직접 답: v3.3.0의 1차 선택값은 `Live Source Reliability Workspace`입니다.",
     "fallback 또는 축소 대안은 `Source Reliability Core`입니다.",
     "제외 대상과 제외 사유",
@@ -115,26 +117,25 @@ check("roadmap records v3.3 Step 1 as completed baseline alignment only", () => 
   }
 });
 
-check("release metadata and docs UI asset verifiers know source v3.3 and published baseline", () => {
-  assert(files.releaseMetadataVerifier.includes('const latestPublishedTag = "v3.3.0";'), "release metadata verifier must keep latest published v3.3.0");
-  assert(files.releaseMetadataVerifier.includes(`const currentRoadmap = "${currentRoadmap}";`), "release metadata verifier missing v3.3 current roadmap");
-  assert(files.releaseMetadataVerifier.includes(`const latestPublishedBaseline = "${latestPublishedBaseline}";`), "release metadata verifier missing v3.3 published baseline");
-  assert(files.docsUiAssetsVerifier.includes('const latestPublishedTag = "v3.3.0";'), "docs UI assets verifier must preserve latest published v3.3.0");
+check("current metadata stays aligned while records preserve v3.3 publication", () => {
+  assert(files.releaseMetadataVerifier.includes(`const latestPublishedTag = "${latestPublishedTag}";`), "release metadata verifier latest published tag drift");
+  assert(files.releaseMetadataVerifier.includes(`const currentRoadmap = "${currentRoadmap}";`), "release metadata verifier current roadmap drift");
+  assert(files.releaseMetadataVerifier.includes(`const latestPublishedBaseline = "${latestPublishedBaseline}";`), "release metadata verifier published baseline drift");
+  assert(files.docsUiAssetsVerifier.includes(`const latestPublishedTag = "${latestPublishedTag}";`), "docs UI assets verifier latest published tag drift");
   const manifest = JSON.parse(files.docsUiAssetsManifest);
-  assert(manifest.baseline?.sourceVersion === "3.3.0", "docs UI asset manifest source version must be 3.3.0");
-  assert(manifest.baseline?.publishedRelease === latestPublishedTag, "docs UI asset manifest published release must stay v3.3.0");
-  assert(manifest.baseline?.publicReleaseStatus === "v3.3.0-published-source-only", "docs UI asset manifest public release status must stay v3.3.0 source-only");
+  assert(manifest.baseline?.sourceVersion === version, `docs UI asset manifest source version must be ${version}`);
+  assert(manifest.baseline?.publishedRelease === latestPublishedTag, `docs UI asset manifest published release must stay ${latestPublishedTag}`);
+  assert(files.releaseRecords.includes("v330 release PR/main/ruleset/tag/GitHub Release"), "release records missing v3.3 publication evidence");
 });
 
 check("stream verification, feature inventory, and release records expose v3.3 Step 1 gate", () => {
   for (const snippet of [
     "| v3.3.0 (1) | `./server.sh verify-v330-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` |",
-    `source \`3.3.0\`, latest published \`${latestPublishedTag}\`, current roadmap \`${currentRoadmap}\` 정렬`,
+    `source \`3.3.0\`, latest published \`${baselineTag}\`, current roadmap \`${baselineRoadmap}\` 정렬`,
   ]) {
     assert(files.streamVerification.includes(snippet), `stream verification missing snippet: ${snippet}`);
   }
   for (const snippet of [
-    "현재 release 목표 `v3.3.0`",
     "v3.3.0 (1) v3.3.0 roadmap/source baseline 정렬 | `OPS-080`, `SAFE-113` | `verify-v330-entry-baseline`",
     "OPS-080 | V330 Step 1 v3.3 baseline 게이트",
     "SAFE-113 | V330 Step 1 v3.3 baseline boundary",
@@ -154,12 +155,21 @@ check("stream verification, feature inventory, and release records expose v3.3 S
 });
 
 check("inventory coverage and server entrypoint include v3.3 Step 1", () => {
-  assert(files.featureCoverageVerifier.includes("verify-v330-entry-baseline"), "feature coverage verifier missing V330 command");
-  assert(files.projectInventoryVerifier.includes("SAFE-113") && files.projectInventoryVerifier.includes("OPS-080"), "project inventory verifier missing V330 IDs");
-  assert(files.projectInventoryVerifier.includes("`SAFE-001`~`SAFE-123`"), "project inventory verifier missing V330 SAFE range");
-  assert(files.projectInventoryVerifier.includes("`OPS-035`~`OPS-090`"), "project inventory verifier missing V330 OPS range");
+  assert(files.featureCoverageVerifier.includes("validateImplementationManifest"), "feature coverage verifier missing canonical manifest validation");
+  for (const id of ["SAFE-113", "OPS-080"]) {
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-v330-entry-baseline", `${id} implementation manifest mapping missing`);
+  }
   assert(files.server.includes("verify-v330-entry-baseline"), "server.sh missing V330 command");
   assert(files.server.includes("verify_v330_entry_baseline.mjs"), "server.sh missing V330 script dispatch");
+});
+
+check("SAFE-113 canonical V330 source-of-truth boundary", () => {
+  const baselineCommandDocumented = files.server.includes("verify-v330-entry-baseline)");
+  const currentSourceAligned = semverAtLeast(version, baselineVersion) && files.cmake.includes(`VERSION ${version}`) && currentRoadmap.startsWith(`v${version} `);
+  const historicalBaselinePreserved = files.streamVerification.includes(baselineRoadmap) && files.releaseRecords.includes("v330 Step 1 entry baseline final") && files.featureInventory.includes("SAFE-113");
+  const safe113BoundaryObserved = baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved;
+  assert(safe113BoundaryObserved,
+    "SAFE-113 V330 baseline must align version/roadmap/inventory without claiming source reliability features, UI, long-run, published metadata, or release completion");
 });
 
 const results = runChecks();
@@ -204,6 +214,22 @@ function check(name, fn) {
 
 function readText(relativePath) {
   return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
+}
+
+function requiredMatch(text, pattern, label) {
+  const match = String(text).match(pattern);
+  if (!match) throw new Error(`missing ${label}`);
+  return match[1];
+}
+
+function semverAtLeast(current, baseline) {
+  const currentParts = String(current).split(".").map(Number);
+  const baselineParts = String(baseline).split(".").map(Number);
+  for (let index = 0; index < 3; index += 1) {
+    if (currentParts[index] > baselineParts[index]) return true;
+    if (currentParts[index] < baselineParts[index]) return false;
+  }
+  return true;
 }
 
 function assert(condition, message) {

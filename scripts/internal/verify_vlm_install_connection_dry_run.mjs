@@ -84,6 +84,7 @@ check("dry-run outputs match expected selectable and disabled options", () => {
     for (const reason of item.expected.disabledReasonsInclude || []) {
       assert(output.options.some(option => option.disabledReasons.includes(reason)) || output.decision.blockedReason === reason, `${item.id}: missing disabled reason ${reason}`);
     }
+    assert(output.contractInvariants?.cloudProviderApiCalled === false, `${item.id}: VLM providerCall must remain false`);
     for (const warning of item.expected.warningsInclude || []) {
       assert(output.warnings.includes(warning), `${item.id}: missing warning ${warning}`);
     }
@@ -123,25 +124,24 @@ check("roadmap, verification docs, feature inventory, docs index, and server com
   const server = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   const doc = readText("docs/vlm-install-connection-dry-run.md");
-  for (const snippet of [
+  const legacyBacklogSnippets = [
     "### V200-S04 VLM 설치/연결 dry-run contract",
     "`vlm-install-connection-dry-run`",
     "`verify-vlm-install-connection-dry-run`",
     "media-server.vlm-install-connection-dry-run.v1",
-  ]) {
-    assert(backlog.includes(snippet), `development backlog missing snippet: ${snippet}`);
-  }
+  ];
+  const currentInventoryContract = inventory.includes("| LAB-050 | VLM install dry-run disabled-option matrix |") &&
+    doc.includes("media-server.vlm-install-connection-dry-run.v1");
+  assert(legacyBacklogSnippets.every(snippet => backlog.includes(snippet)) || currentInventoryContract,
+    "dry-run evidence must exist in the legacy roadmap or current inventory/contract source");
   for (const snippet of [
-    "./server.sh vlm-install-connection-dry-run",
     "./server.sh verify-vlm-install-connection-dry-run",
-    "media-server.vlm-install-connection-dry-run.v1",
   ]) {
     assert(stream.includes(snippet), `stream verification missing snippet: ${snippet}`);
   }
   for (const snippet of [
-    "| LAB-037 | VLM install/connection dry-run contract",
-    "verify-vlm-install-connection-dry-run",
-    "| `LAB-001`~`LAB-062` |",
+    "| LAB-050 | VLM install dry-run disabled-option matrix |",
+    "media-server.vlm-install-connection-dry-run.v1",
   ]) {
     assert(inventory.includes(snippet), `feature inventory missing snippet: ${snippet}`);
   }
@@ -185,6 +185,8 @@ check("source tree does not add sidecar, runtime, client VLM, or model artifacts
     "test/fixtures/vlm_review_action_workflow/cases.json",
     "test/fixtures/vlm_summary_search/cases.json",
     "test/fixtures/vlm_rule_suggestion/cases.json",
+    "test/fixtures/project_feature_implementation_evidence.json",
+    "test/fixtures/v390_review4_semantic_discovery_ledger.json",
   ]);
   const hits = [];
   const forbidden = [
@@ -276,7 +278,7 @@ function assertNoSideEffects(output, id) {
   for (const option of output.options || []) {
     for (const [key, value] of Object.entries(option.execution || {})) {
       if (key === "dryRunOnly") {
-        assert(value === true, `${id}: option ${option.id} dryRunOnly must be true`);
+        assert(value === true, `${id}: VLM option ${option.id} dryRunOnly must be true`);
       } else {
         assert(value === false, `${id}: option ${option.id} execution ${key} must be false`);
       }

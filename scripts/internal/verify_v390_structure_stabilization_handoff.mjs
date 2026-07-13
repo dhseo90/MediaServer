@@ -2,8 +2,10 @@
 // 파일 용도: v3.9.0 Step 19 구조 안정화 이관 계획과 오버클레임 방지 경계를 검증한다.
 
 import fs from "node:fs";
+import crypto from "node:crypto";
 import path from "node:path";
 import process from "node:process";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -31,6 +33,9 @@ const command = "verify-v390-structure-stabilization-handoff";
 const targetScript = "verify_v390_structure_stabilization_handoff.mjs";
 const schema = "media-server.v390-structure-stabilization-handoff.v1";
 const planPath = "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md";
+const scopeDecisionPath = "test/fixtures/v390_structure_execution_scope_decision.json";
+const readinessPath = "test/fixtures/v390_structure_stabilization_readiness.json";
+const readinessCommand = "verify-v390-structure-stabilization-readiness";
 
 const files = {
   plan: readText(planPath),
@@ -48,6 +53,8 @@ const files = {
 
 const checks = [];
 const normalizedRecords = normalizeWhitespace(files.releaseRecords);
+
+check("typed handoff decision is bound to actual filesystem readiness", verifyTypedHandoffState);
 
 check("handoff plan covers each structure target and keeps behavior unchanged", () => {
   for (const snippet of [
@@ -74,6 +81,44 @@ check("handoff plan covers each structure target and keeps behavior unchanged", 
     assertIncludes(files.plan, snippet, "structure handoff plan");
   }
 });
+
+function verifyTypedHandoffState() {
+  const decision = readJson(scopeDecisionPath);
+  const readiness = readJson(readinessPath);
+  assert(decision.actualGraph?.path, "typed handoff decision actual graph path is missing");
+  const actualGraphPath = decision.actualGraph.path;
+  const actualGraph = readJson(actualGraphPath);
+  const actualGraphSha256 = sha256File(actualGraphPath);
+  const readinessRun = spawnSync(path.join(rootDir, "server.sh"), [readinessCommand], {
+    cwd: rootDir,
+    encoding: "utf8",
+    env: process.env,
+  });
+  if (readinessRun.error) throw readinessRun.error;
+  assert(readinessRun.signal === null, `actual filesystem readiness terminated by signal ${readinessRun.signal}`);
+  const readinessStatus = readinessRun.status;
+  assert(readinessStatus === 0 &&
+    decision.schema === "media-server.v390-structure-execution-scope-decision.v2" &&
+    decision.decisionId === "V390-REVIEW4-51" &&
+    decision.status === "approved-scheduled" &&
+    decision.implementationStatus === "not-executed" &&
+    decision.approval?.approved === true &&
+    decision.approval?.v400TransferAllowed === false &&
+    readiness.schema === "media-server.v390-structure-stabilization-readiness.v2" &&
+    readiness.status === "approved-scheduled-after-review4-50-63" &&
+    readiness.implementationStatus === "not-executed" &&
+    readiness.refactorEntryReady === false &&
+    readiness.executionScopeDecision?.path === scopeDecisionPath &&
+    readiness.actualGraphEvidence?.path === actualGraphPath &&
+    decision.actualGraph.schema === actualGraph.schema &&
+    decision.actualGraph.sha256 === actualGraphSha256 &&
+    decision.actualGraph.productionFiles === actualGraph.expectedProductionFiles &&
+    decision.actualGraph.moduleOwners === actualGraph.moduleClassifiers?.length &&
+    decision.actualGraph.cmakeTargets === actualGraph.cmake?.targets?.length &&
+    decision.preservedContractIds?.length === 9 &&
+    decision.v390Execution?.orderedSlices?.length === 6,
+  `typed handoff / actual filesystem readiness mismatch (exit=${readinessStatus}, stderr=${readinessRun.stderr || "none"})`);
+}
 
 check("v390 inventory records handoff-ready status without claiming refactor completion", () => {
   for (const snippet of [
@@ -157,6 +202,8 @@ console.log("== v3.9.0 structure stabilization handoff summary ==");
 console.log(`- schema: ${schema}`);
 console.log(`- command: ${command}`);
 console.log(`- plan: ${planPath}`);
+console.log(`- typedDecision: ${scopeDecisionPath}`);
+console.log(`- actualFilesystemReadiness: ${readinessCommand}`);
 console.log("- structureImplementation: not-run-by-this-command");
 console.log("- uiFulltest: not-run-by-this-command");
 console.log("- longrun30m120m: not-run-by-this-command");
@@ -188,6 +235,14 @@ function check(name, fn) {
 
 function readText(relativePath) {
   return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
+}
+
+function readJson(relativePath) {
+  return JSON.parse(readText(relativePath));
+}
+
+function sha256File(relativePath) {
+  return crypto.createHash("sha256").update(fs.readFileSync(path.join(rootDir, relativePath))).digest("hex");
 }
 
 function assertIncludes(text, snippet, context) {

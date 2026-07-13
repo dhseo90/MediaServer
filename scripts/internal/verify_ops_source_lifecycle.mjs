@@ -72,13 +72,14 @@ async function runLifecycleSmoke() {
   }
   console.log("[pass] source-lifecycle initial idle");
 
-  let sessionId = "";
+  const sessionIds = [];
   try {
     const created = await requestJson("/webrtc/session?file=sample_h264.mp4", { method: "POST" });
-    sessionId = String(created.sessionId || "");
+    const sessionId = String(created.sessionId || "");
     if (!sessionId || !created.offer) {
-      throw new Error(`WebRTC session response missing sessionId/offer: ${JSON.stringify(created).slice(0, 200)}`);
+      throw new Error(`SessionJson WebRTC session response missing sessionId/offer: ${JSON.stringify(created).slice(0, 200)}`);
     }
+    sessionIds.push(sessionId);
     console.log(`[pass] source-lifecycle session-created ${sessionId}`);
 
     const active = await waitForLifecycle(
@@ -91,19 +92,54 @@ async function runLifecycleSmoke() {
       throw new Error(`active lifecycle unexpectedly idle: ${JSON.stringify(active.sourceLifecycle)}`);
     }
     console.log("[pass] source-lifecycle active accounting");
+
+    const reused = await requestJson("/webrtc/session?file=sample_h264.mp4", { method: "POST" });
+    const reusedSessionId = String(reused.sessionId || "");
+    if (!reusedSessionId || !reused.offer || reusedSessionId === sessionId) {
+      throw new Error(`shared stream second session response mismatch: ${JSON.stringify(reused).slice(0, 200)}`);
+    }
+    sessionIds.push(reusedSessionId);
+    const shared = await waitForLifecycle(
+      item => item.sourceLifecycle.activeSessions >= 2 &&
+        item.sourceLifecycle.httpEgressSessions >= 2 &&
+        item.sourceLifecycle.resourceActiveStreams === 1 &&
+        item.sourceLifecycle.registryActiveStreams === 1,
+      "shared stream reuse",
+    );
+    if (shared.sourceLifecycle.resourceActiveSessions < 2 ||
+        shared.sourceLifecycle.resourceActiveStreams !== shared.sourceLifecycle.registryActiveStreams) {
+      throw new Error(`shared stream accounting mismatch: ${JSON.stringify(shared.sourceLifecycle)}`);
+    }
+    if (shared.sourceLifecycle.resourceActiveStreams !== 1) {
+      throw new Error(`MEDIA-011 StreamRegistry created = false reuse expected resourceActiveStreams=1: ${JSON.stringify(shared.sourceLifecycle)}`);
+    }
+    if (shared.sourceLifecycle.activeSessions < 2) {
+      throw new Error(`MEDIA-012 source_running_ worker lifecycle expected two activeSessions: ${JSON.stringify(shared.sourceLifecycle)}`);
+    }
+    if (shared.sourceLifecycle.registryActiveStreams !== 1) {
+      throw new Error(`MEDIA-013 streams_ registry expected registryActiveStreams=1: ${JSON.stringify(shared.sourceLifecycle)}`);
+    }
+    console.log("[pass] source-lifecycle two sessions reuse one registered source worker");
     if (settleMs > 0) {
       await delay(settleMs);
     }
   } finally {
-    if (sessionId) {
+    for (const sessionId of sessionIds.reverse()) {
       await requestJson(`/webrtc/session/${encodeURIComponent(sessionId)}`, { method: "DELETE" }).catch(() => {});
     }
   }
 
-  const idle = await waitForLifecycle(item => item.sourceLifecycle.idle === true, "idle cleanup");
-  assertZeroLifecycle(idle.sourceLifecycle);
+  await assertIndependentCleanupReadback();
   console.log("[pass] source-lifecycle cleanup idle");
   console.log("[summary] ops-source-lifecycle complete");
+}
+
+async function assertIndependentCleanupReadback() {
+  const readback = await waitForLifecycle(item => item.sourceLifecycle.idle === true, "CloseSession idle cleanup");
+  assertZeroLifecycle(readback.sourceLifecycle);
+  if (readback.sourceLifecycle.idle !== true || readback.sourceLifecycle.activeSessions !== 0 || readback.sourceLifecycle.registryActiveStreams !== 0) {
+    throw new Error(`CloseSession independent runtime readback retained session or registry state: ${JSON.stringify(readback.sourceLifecycle)}`);
+  }
 }
 
 async function runtimeStatus() {

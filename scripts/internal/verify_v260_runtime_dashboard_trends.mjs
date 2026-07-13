@@ -3,6 +3,7 @@
 
 import fs from "node:fs";
 import process from "node:process";
+import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const failures = [];
 
@@ -47,6 +48,8 @@ check("/ops/dashboard renders runtime trend card without persistent storage clai
 });
 
 check("dashboard script keeps trend samples page-local and renders baseline deltas", () => {
+  const trendBlock = extractNamedFunctionBlock(pageScripts, "renderDashboardRuntimeTrend");
+  assertIncludes(trendBlock, "dashboardRuntimeTrendSamples", "RTSP/WebRTC dashboard runtime trend samples");
   for (const snippet of [
     "MAX_RUNTIME_TREND_SAMPLES",
     "dashboardRuntimeTrendSamples",
@@ -58,6 +61,8 @@ check("dashboard script keeps trend samples page-local and renders baseline delt
     "renderDashboardRuntimeTrend(runtime, sourceHealth, eventsStatus)",
   ]) {
     assertIncludes(pageScripts, snippet, "dashboard runtime trend script");
+    assertIncludes(pageScripts, "renderDashboardRuntimeTrend", "UI-048 canonical product state");
+    assertIncludes(pageScripts, "/ops/dashboard", "UI-048 canonical route obligation");
   }
   for (const forbidden of [
     "localStorage.setItem('mediaServerRuntime",

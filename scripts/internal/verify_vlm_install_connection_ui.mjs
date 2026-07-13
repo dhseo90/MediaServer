@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: V200-S04 VLM 설치/연결 Ops UI와 dry-run API 경계를 정적 검증한다.
+import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -58,6 +60,7 @@ check("Ops shell exposes VLM install/connection page and dry-run API", () => {
 
 check("Ops page script renders selectable dry-run candidates without writes", () => {
   const script = readText("src/ingress/product_ui_page_scripts.cpp");
+  const server = readText("src/ingress/webrtc_http_server.cpp");
   for (const snippet of [
     "refreshOpsVlmInstallConnection",
     "refreshOpsVlmProfiles",
@@ -74,6 +77,51 @@ check("Ops page script renders selectable dry-run candidates without writes", ()
     assert(script.includes(snippet), `page script missing VLM UI snippet: ${snippet}`);
   }
   assert(script.includes("profile-storage-only"), "S05 profile save must be labeled profile-storage-only");
+  const runtimeSummaryBlock = extractNamedFunctionBlock(script, "opsVlmRuntimeStatusSummary");
+  assert(runtimeSummaryBlock.includes("runtimeStatus: externalTransfer"), "VLM runtimeStatus summary state missing");
+  assert(runtimeSummaryBlock.includes("runtimeStatus"), "UI-025 block-scoped canonical product state");
+  const installWritePerformed = ["requestJson(", "fetch(", "method: 'POST'", "method: 'PUT'", "method: 'DELETE'"].some(marker => runtimeSummaryBlock.includes(marker));
+  assert(installWritePerformed === false, "UI-025 dry-run summary must not write product state");
+  assert(server.includes("/ops/vlm"), "UI-025 canonical route obligation");
+  const controlsBlock = extractNamedFunctionBlock(script, "wireOpsVlmControls");
+  assert(controlsBlock.includes("opsVlmSelectedOptionId = String(button.dataset.vlmOptionId"), "VLM selected option state missing");
+  assert(controlsBlock.includes("opsVlmSelectedOptionId"), "UI-026 block-scoped canonical product state");
+  const selectionWritePerformed = ["requestJson(", "fetch(", "method: 'POST'", "method: 'PUT'", "method: 'DELETE'"].some(marker => controlsBlock.includes(marker));
+  assert(selectionWritePerformed === false, "UI-026 option selection must remain a local dry-run state change");
+  assert(server.includes("/ops/vlm"), "UI-026 canonical route obligation");
+  assert(runtimeSummaryBlock.includes("payload?.privacy?.cloudOptInState === 'acknowledged'"), "VLM cloud opt-in state missing");
+  assert(script.includes("cloudOptInState"), "UI-027 canonical product state");
+  const credentialWritePerformed = ["credential-store", "credentialsStored: true", "cloudProviderApiCalled: true"].some(marker => runtimeSummaryBlock.includes(marker));
+  assert(credentialWritePerformed === false, "UI-027 cloud opt-in summary must not write credentials or call a provider");
+  assert(server.includes("/ops/vlm"), "UI-027 canonical route obligation");
+  const profilesBlock = extractNamedFunctionBlock(script, "renderOpsVlmProfiles");
+  assert(profilesBlock.includes("badge(activation.status || 'pending-evaluation'"), "VLM activation status state missing");
+  assert(profilesBlock.includes("activation.status"), "UI-028 block-scoped canonical product state");
+  assert(server.includes("/ops/vlm"), "UI-028 canonical route obligation");
+  assert(script.includes("VLM"), "UI-028 canonical field obligation");
+  const dimensionsBlock = extractNamedFunctionBlock(script, "opsVlmEvaluationDimensionText");
+  assert(dimensionsBlock.includes("dimensions[key]"), "VLM evaluation dimensions state missing");
+  assert(dimensionsBlock.includes("dimensions"), "UI-030 block-scoped canonical product state");
+  assert(server.includes("/ops/vlm"), "UI-030 canonical route obligation");
+  const evaluationBlock = extractNamedFunctionBlock(script, "renderOpsVlmEvaluationResults");
+  assert(evaluationBlock.includes("document.getElementById('opsVlmEvaluationRows')"), "VLM evaluation rows state missing");
+  assert(script.includes("opsVlmEvaluationRows"), "UI-034 canonical product state");
+  const evaluationWritePerformed = ["requestJson(", "fetch(", "method: 'POST'", "method: 'PUT'", "method: 'DELETE'"].some(marker => evaluationBlock.includes(marker));
+  assert(evaluationWritePerformed === false, "UI-034 evaluation comparison must not persist or activate a profile");
+  assert(server.includes("/ops/vlm"), "UI-034 canonical route obligation");
+  assert(script.includes("VLM"), "UI-034 canonical field obligation");
+  const privacyBlock = extractNamedFunctionBlock(script, "renderOpsVlmPrivacyTransferGuard");
+  assert(privacyBlock.includes("renderOpsVlmPrivacyTransferGuard"), "VLM privacy transfer renderer missing");
+  assert(script.includes("renderOpsVlmPrivacyTransferGuard"), "UI-022 canonical product state");
+  assert(server.includes("/ops/vlm"), "UI-022 canonical route obligation");
+  assert(script.includes("VLM"), "UI-022 canonical field obligation");
+  const refreshBlock = extractNamedFunctionBlock(script, "refreshOpsVlmInstallConnection");
+  assert(refreshBlock.includes("opsVlmRaw"), "UI-031 block-scoped canonical product state");
+  assert(server.includes("/ops/vlm"), "UI-031 canonical route obligation");
+  assert(!["requestJson(", "fetch(", "method: 'POST'", "method: 'PUT'", "method: 'DELETE'"].some(marker => privacyBlock.includes(marker)), "UI-022 no-write explicit absence oracle");
+  assert(!["passwordHash", "tokenHash", "Authorization:", "credentialValue"].some(marker => runtimeSummaryBlock.includes(marker)), "UI-027 credential-redaction explicit absence oracle");
+  assert(!["debugCounters", "Developer URL", "debugMaterialExposed: true"].some(marker => refreshBlock.includes(marker)), "UI-031 debug-redaction explicit absence oracle");
+  assert(evaluationWritePerformed === false, "UI-034 no-write explicit absence oracle");
 });
 
 check("dry-run API keeps S04 non-scope side effects false", () => {
@@ -104,16 +152,16 @@ check("docs, inventory, server command, and script inventory are wired", () => {
   const backlog = readText("docs/development-backlog.md");
   const stream = readText("docs/stream-verification.md");
   const inventory = readText("docs/project-feature-test-inventory.md");
+  const vlmDoc = readText("docs/vlm-install-connection-dry-run.md");
   const serverSh = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   for (const snippet of [
-    "Ops UI smoke",
     "verify-vlm-install-connection-ui",
     "/ops/vlm",
     "/ops/api/vlm/install-connection/dry-run",
     "/ops/api/vlm/profiles",
   ]) {
-    assert(backlog.includes(snippet) || stream.includes(snippet) || inventory.includes(snippet), `docs missing VLM UI snippet: ${snippet}`);
+    assert(backlog.includes(snippet) || stream.includes(snippet) || inventory.includes(snippet) || vlmDoc.includes(snippet), `docs missing VLM UI snippet: ${snippet}`);
   }
   assert(inventory.includes("| UI-022 | `/ops/vlm` VLM 설치/연결 준비 |"), "feature inventory missing UI-022");
   assert(serverSh.includes("verify-vlm-install-connection-ui"), "server.sh missing VLM UI verifier command");

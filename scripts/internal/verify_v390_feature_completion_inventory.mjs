@@ -192,6 +192,15 @@ check("script inventory tracks this verifier as a strict user-facing JS script",
   assertIncludes(files.scriptInventory, targetScript, "script inventory");
 });
 
+check("SAFE-197 canonical feature inventory review boundary", () => {
+  const discoveryGroupsObserved = expectedSourceGroups.every((group) => files.inventory.includes(group));
+  const dispositionVocabularyObserved = expectedDispositions.every((value) => files.inventory.includes(value));
+  const actualFeatureDiscoveryCompletion = !files.inventory.includes("not-run") && !files.inventory.includes("미실행");
+  const safe197BoundaryObserved = discoveryGroupsObserved && dispositionVocabularyObserved && files.projectInventory.includes("SAFE-197");
+  assert(safe197BoundaryObserved && actualFeatureDiscoveryCompletion === false,
+    "SAFE-197 inventory scaffold must not claim actual feature discovery or implementation completion");
+});
+
 const results = runChecks();
 console.log("");
 console.log("== v3.9.0 feature completion inventory summary ==");

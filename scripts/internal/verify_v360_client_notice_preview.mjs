@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { exactBooleanFlagValue, extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -92,7 +93,14 @@ check("client notice preview derives from dry-run, impact diff, and readiness wi
 });
 
 check("client notice preview preserves viewer-safe preview-only boundaries", () => {
-  const block = extractBlock(files.server, "std::string OpsV360ClientNoticePreviewJson", "std::string OpsAuditSearchIndexJson");
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV360ClientNoticePreviewJson(");
+  const clientNoticeSendPerformed = exactBooleanFlagValue(block, "clientNoticeSent");
+  assert(clientNoticeSendPerformed === false, "CLIENT-034 client notice send must remain false");
+  assert(exactBooleanFlagValue(block, "clientNoticeSent") === false, "CLIENT-034 client notice send must remain false");
+  assert(exactBooleanFlagValue(block, "viewerClientPayloadChanged") === false, "CLIENT-034 viewer client payload mutation must remain false");
+  assert(exactBooleanFlagValue(block, "rawLocatorIncluded") === false && exactBooleanFlagValue(block, "rawJsonIncluded") === false, "CLIENT-034 raw/source locator material must remain redacted");
+  assert(exactBooleanFlagValue(block, "debugMaterialIncluded") === false, "CLIENT-034 debug material must remain redacted");
+  assert(block.includes("clientNoticeSent") && block.includes("viewerSafeClientNoticePreview"), "CLIENT-034 exact clientNoticeSent preview readback missing");
   for (const snippet of [
     "opsOnly",
     "readOnly",
@@ -167,6 +175,11 @@ check("/ops simulation workspace declares and renders notice preview", () => {
     assertIncludes(serverBlock, snippet, "v360 client notice preview dashboard shell");
   }
   const scriptBlock = extractBlock(files.uiScript, "const renderV360OpsSimulationWorkspace", "const renderDashboardRootCause");
+  assertIncludes(scriptBlock, "data-v360-client-notice-preview", "v360 client notice preview product UI state");
+  const noticeSendPerformed = ["send(", "sendClientNotice", "deliveryQueueWritePerformed: true"].some(marker => scriptBlock.includes(marker));
+  assert(noticeSendPerformed === false, "UI-090 notice preview must not send a client notice");
+  assertIncludes(files.uiScript, "/ops/dashboard", "UI-090 canonical route obligation");
+  assertIncludes(files.server, "media-server.ops.v360-client-notice-preview.v1", "UI-090 canonical schema obligation");
   for (const snippet of [
     "clientNoticePreview",
     "clientNoticePreviewRoute",
@@ -199,7 +212,6 @@ check("client/viewer scripts do not receive v3.6 preview material", () => {
     route,
     "clientNoticePreviewItems",
     "noticePreviewId",
-    "viewerSafeBody",
     "deliveryState",
   ]) {
     assert(!files.clientScripts.includes(forbidden), `client scripts must not expose v3.6 preview material: ${forbidden}`);
@@ -248,11 +260,39 @@ check("roadmap, stream verification, inventory, and release records map v3.6 Ste
 check("server entrypoint and inventory verifiers include v3.6 Step 9 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v360_client_notice_preview.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const snippet of [
+    "validateImplementationManifest",
+    "semantic.verifierAssertion.command",
+    'kind: "stability"',
+  ]) {
+    assertIncludes(files.featureCoverageVerifier, snippet, "feature coverage verifier canonical command mapping");
+  }
   for (const id of ["UI-090", "CLIENT-034", "SAFE-156", "OPS-123"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v360_client_notice_preview.mjs", "script inventory");
+});
+
+check("SAFE-156 canonical bounded no-execution boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV360ClientNoticePreviewJson(");
+  const routeObserved = files.server.includes("/ops/api/live-operations/simulation/client-notice-preview");
+  const safe156BoundaryObserved = block.includes("BuildV360ClientNoticePreviewItems");
+  const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const automaticApplyPerformed = /\b(?:AutomaticApply|SafeApply|ApplyRule|ApplySource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const clientNoticeSent = /\bSendClientNotice[A-Za-z0-9_:]*\s*\(/.test(block);
+  const sendPerformed = clientNoticeSent;
+  const fieldSmokeExecuted = /\b(?:ExecuteFieldSmoke|ProbeEndpoint|ContactDevice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\"(?:rawLocator|rawJson|rawProviderResponse|rawEndpoint|rawMaterial)\\":true/.test(block);
+  const sourceUrlExposed = block.includes("\\\"sourceUrlIncluded\\\":true") || block.includes("\\\"sourceUrlExposed\\\":true");
+  const credentialMaterialExposed = block.includes("\\\"credentialMaterialIncluded\\\":true") || block.includes("\\\"credentialMaterialExposed\\\":true");
+  const debugMaterialExposed = block.includes("\\\"debugMaterialIncluded\\\":true") || block.includes("\\\"debugMaterialExposed\\\":true");
+  const viewerClientExposureAdded = block.includes("\\\"viewerClientExposureAdded\\\":true");
+  const mediaPathChanged = block.includes("\\\"rtspOrWebrtcMediaPathChanged\\\":true");
+  assert(routeObserved && safe156BoundaryObserved && writePerformed === false && mutationPerformed === false && executionPerformed === false && automaticApplyPerformed === false && clientNoticeSent === false && sendPerformed === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+    "SAFE-156 BuildV360ClientNoticePreviewItems must remain bounded no-execution no-write redacted and client/provider isolated");
 });
 
 const results = runChecks();

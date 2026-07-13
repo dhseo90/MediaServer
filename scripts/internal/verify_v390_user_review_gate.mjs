@@ -160,6 +160,16 @@ check("server.sh and script inventory include the Step 3 verifier", () => {
   assertIncludes(files.scriptInventory, targetScript, "script inventory");
 });
 
+check("SAFE-198 canonical user review closure boundary", () => {
+  const historicalSnapshotPreserved = files.backlog.includes("pending-user-approval") && files.backlog.includes("blocked-before-user-approval");
+  const currentApprovalClosed = files.backlog.includes("approved-through-recorded-user-goals") && files.backlog.includes("closed-with-evidence");
+  const executionPassClaimed = !(files.releaseRecords.includes("v390 Step 3 user review gate final") && files.releaseRecords.includes("UI 풀테스트, 30분/120분, published metadata, release action은 not-run-by-this-command"));
+  const safe198BoundaryObserved = historicalSnapshotPreserved && currentApprovalClosed && files.projectInventory.includes("SAFE-198");
+  const ops165ReviewObserved = safe198BoundaryObserved;
+  assert(ops165ReviewObserved && safe198BoundaryObserved && executionPassClaimed === false,
+    "SAFE-198 user review closure must not substitute UI longrun published metadata or release execution PASS");
+});
+
 const results = runChecks();
 console.log("");
 console.log("== v3.9.0 user review gate summary ==");

@@ -9,6 +9,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -43,6 +44,11 @@ const head = runText("git", ["rev-parse", "HEAD"], { optional: true }).trim() ||
 const payload = buildPayload();
 const checks = [];
 
+check("MEDIA-021 product connector boundary stays conditional and no-execution", () => {
+  const productBlock = extractCppFunctionBlock(readText("src/ingress/webrtc_http_server.cpp"), "std::string OpsV380FieldConnectorEvidencePackageJson(");
+  assert(productBlock.includes("externalWhepContacted") && productBlock.includes("field-smoke-not-run") && productBlock.includes("rtspOrWebrtcMediaPathChanged"), "MEDIA-021 exact external TURN/WHEP product boundary missing");
+});
+
 check("ONVIF field smoke gate remains procedure-only without real device success", () => {
   const output = runNodeScript("verify_onvif_field_smoke_gate.mjs");
   assert(output.includes("ONVIF field smoke gate summary"), "ONVIF gate output missing summary");
@@ -61,6 +67,7 @@ check("external TURN/WHEP field gate remains no-network and not-run by default",
   const jsonReport = path.join(workDir, "external-turn-whep.json");
   const output = runNodeScript("verify_external_turn_whep_field_gate.mjs", ["--json-report", jsonReport]);
   const report = JSON.parse(readFile(jsonReport));
+  assert(report.schema === "media-server.external-turn-whep-field-gate-report.v1" && report.externalNetworkAttempted === false && report.whepPlaybackStatus === "not-run", "MEDIA-021 externalWhepContacted report boundary mismatch");
   assert(output.includes("External TURN/WHEP field gate summary"), "external gate output missing summary");
   assert(report.externalNetworkAttempted === false, "external gate must not contact network by default");
   assert(report.fieldSmokeStatus === "not-run", "default external field status must be not-run");

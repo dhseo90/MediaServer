@@ -98,6 +98,24 @@ check("required sections exist", () => {
   }
 });
 
+check("historical V280 source-of-truth keeps the 2.x runway boundary explicit", () => {
+  const v280SourceTruth = "source `2.8.0`, latest published `v2.7.0`";
+  const v280Runway = "`2.8.0`/`2.9.0`/`3.0.0` 경계 문서화 기준";
+  const v280SourceTruthObserved = inventory.includes("V280-S00/S01") &&
+    inventory.includes(v280SourceTruth) && inventory.includes(v280Runway);
+  assert(v280SourceTruthObserved,
+    "V280-S00/S01 source 2.8.0, v2.7.0 published, 2.9.0/3.0.0 runway boundary missing");
+});
+
+check("historical V290 source-of-truth keeps source, published, and roadmap distinct", () => {
+  const v290SourceTruth = "source `2.9.0`, latest published `v2.8.0`";
+  const v290Roadmap = "v2.9.0 Final 2.x Closure & Compatibility Baseline";
+  const v290SourceTruthObserved = inventory.includes("V290-S00") &&
+    inventory.includes(v290SourceTruth) && inventory.includes(v290Roadmap);
+  assert(v290SourceTruthObserved,
+    "V290-S00 source 2.9.0, v2.8.0 published, current roadmap boundary missing");
+});
+
 check("summary counts match current feature IDs", () => {
   const rows = featureRows;
   const declaredTotal = summaryCount(inventory, "전체 기능 항목");
@@ -842,7 +860,7 @@ check("current feature expansion rows exist", () => {
     "`MEDIA-001`~`MEDIA-027`",
     "`LAB-001`~`LAB-126`",
     "`SAFE-001`~`SAFE-216`",
-    "`OPS-035`~`OPS-183`",
+    "`OPS-035`~`OPS-184`",
     "VLM route, control, action, runtime state, sidecar, privacy guard",
     "V300-S02 Frame Bundle Extraction",
     "V300-S03 Feature Schema and Privacy Policy",

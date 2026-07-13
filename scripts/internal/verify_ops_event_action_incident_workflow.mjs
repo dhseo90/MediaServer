@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: V240-S02 Event Action and Incident Workflow의 Ops-only state/audit/UI 경계를 검증한다.
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import process from "node:process";
@@ -7,6 +9,7 @@ import process from "node:process";
 const failures = [];
 
 const server = readText("src/ingress/webrtc_http_server.cpp");
+const reviewStateBlock = extractCppFunctionBlock(server, "std::string OpsEventReviewStateJson(");
 const pageScript = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
@@ -16,6 +19,7 @@ const serverSh = readText("server.sh");
 const featureInventory = readText("docs/project-feature-test-inventory.md");
 
 check("incident action state is stored in ops-only review storage", () => {
+  assertIncludes(reviewStateBlock, "incident-action-state", "/ops/api/events/reviews incident action state schema");
   for (const snippet of [
     ".media_server.event_reviews.jsonl",
     "incident_status",
@@ -46,6 +50,8 @@ check("incident workflow supports the V240-S02 status set", () => {
 });
 
 check("incident action audit is persisted separately from EventRecord payloads", () => {
+  const actionBlock = extractNamedFunctionBlock(pageScript, "bindEventReviewActions");
+  assertIncludes(server, '\\"eventPostPayloadChanged\\":false', "eventPostPayloadChanged must remain absent/false in incident action state");
   for (const snippet of [
     "incident-action-update",
     "incidentAuditAction",
@@ -56,6 +62,11 @@ check("incident action audit is persisted separately from EventRecord payloads",
   ]) {
     assertIncludes(server, snippet, "incident audit contract");
   }
+  assertIncludes(actionBlock, "incident-action-update", "UI-037 block-scoped canonical product state");
+  assert(!["method: 'POST'", "method: 'PATCH'", "method: 'DELETE'"].some(marker => actionBlock.includes(marker)), "UI-037 no-write explicit absence oracle");
+  assert(!["/client/api/", "viewerClientExposureAdded: true", "clientExposureAdded: true"].some(marker => actionBlock.includes(marker)), "UI-037 client-viewer-boundary explicit absence oracle");
+  assertIncludes(pageScript, "/ops/events", "UI-037 canonical route obligation");
+  assertIncludes(pageScript, "new", "UI-037 canonical field obligation");
 });
 
 check("event payload storage excludes incident/action review fields", () => {

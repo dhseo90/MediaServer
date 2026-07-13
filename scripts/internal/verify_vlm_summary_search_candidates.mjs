@@ -141,6 +141,7 @@ check("docs, inventory, stream verification, server command, and script inventor
   const server = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+  const manifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
   for (const snippet of [
     "V200-S12",
     "VLM summary 검색 후보",
@@ -155,8 +156,12 @@ check("docs, inventory, stream verification, server command, and script inventor
   assert(server.includes("verify_vlm_summary_search_candidates.mjs"), "server dispatch missing S12 verifier script");
   assert(scriptInventory.includes("verify_vlm_summary_search_candidates.mjs"),
     "script inventory missing S12 verifier");
-  assert(coverage.includes("verify-vlm-summary-search-candidates"),
-    "feature coverage missing S12 verifier");
+  for (const id of ["LAB-043", "LAB-054"]) {
+    assert(manifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-vlm-summary-search-candidates",
+      `${id} manifest verifier command drift`);
+  }
+  assert(coverage.includes("validateImplementationManifest") && coverage.includes("verifierEvidenceRows"),
+    "feature coverage must validate manifest-backed verifier evidence");
 });
 
 check("S12 remains candidate-only and does not introduce provider/client/schema/media artifacts", () => {

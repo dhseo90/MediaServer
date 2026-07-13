@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { exactBooleanFlagValue, extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -54,6 +55,12 @@ const files = {
 };
 
 const checks = [];
+
+check("MEDIA-026 exact product connector package preserves external WHEP/TURN no-execution", () => {
+  const productBlock = extractCppFunctionBlock(files.server, "std::string OpsV380FieldConnectorEvidencePackageJson(");
+  assert(productBlock.includes("externalWhepContacted") && productBlock.includes("fieldConnectorEvidenceItems") && productBlock.includes("rtspOrWebrtcMediaPathChanged"), "MEDIA-026 exact external WHEP/TURN connector boundary missing");
+  assert(exactBooleanFlagValue(productBlock, "rtspOrWebrtcMediaPathChanged") === false && exactBooleanFlagValue(productBlock, "credentialMaterialIncluded") === false, "MEDIA-026 rtspOrWebrtcMediaPathChanged/credentialMaterialIncluded exact false boundary missing");
+});
 
 check("Ops server builds the v3.8 Field Connector Evidence Package model", () => {
   for (const snippet of [
@@ -266,6 +273,19 @@ check("/ops action control workspace declares and renders Field Connector Eviden
   ]) {
     assertIncludes(scriptBlock, snippet, "v380 field connector evidence package renderer");
   }
+  const dashboardRoutePresent = files.server.includes('path == "/ops/dashboard"');
+  const schemaPresent = serverBlock.includes("media-server.ops.v380-field-connector-evidence-package.v1");
+  const rawMaterialExposed = /\b(?:rawEvidence|rawJson|rawLocator)\b/.test(scriptBlock);
+  const credentialExposed = /\b(?:credentialValue|credentialMaterial)\b/i.test(scriptBlock);
+  const debugExposed = /\b(?:debugPayload|debugMaterial)\b/i.test(scriptBlock);
+  const providerCallPerformed = /\b(?:callProvider|invokeProvider|executeProvider)\s*\(/.test(scriptBlock);
+  assert(dashboardRoutePresent, "v380 field connector dashboard route missing");
+  assert(schemaPresent, "v380 field connector schema missing");
+  assert(rawMaterialExposed === false, "v380 field connector renderer must redact raw material");
+  assert(credentialExposed === false, "v380 field connector renderer must redact credentials");
+  assert(debugExposed === false, "v380 field connector renderer must redact debug material");
+  assert(providerCallPerformed === false, "v380 field connector renderer must not call a provider");
+  assertIncludes(scriptBlock, "dashFieldConnectorBoundary", "v380 field connector boundary state");
   const refreshBlock = extractBlock(files.uiScript, "async function refreshDashboard()", "async function refreshEvents()");
   assertIncludes(refreshBlock, "refreshV380FieldConnectorEvidencePackage", "dashboard refresh");
   assertIncludes(refreshBlock, route, "dashboard refresh");
@@ -347,6 +367,29 @@ check("server entrypoint and inventory verifiers include v3.8 Step 14 command", 
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, 'check("server.sh dispatch targets exist and are executable"', "script inventory data-driven dispatch gate");
+});
+
+check("SAFE-193 canonical bounded product boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV380FieldConnectorEvidencePackageJson(");
+  const routeObserved = files.server.includes("/ops/api/actions/field-connector-evidence-package");
+  const outcomeObserved = files.uiScript.includes("renderV380FieldConnectorEvidencePackage");
+  const safe193BoundaryObserved = block.includes("BuildV380FieldConnectorEvidencePackageItems") && block.includes("fieldSmokeExecuted");
+  const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer|RecheckSource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const sendPerformed = /\bSendClientNotice[A-Za-z0-9_:]*\s*\(/.test(block);
+  const automaticApplyPerformed = /\b(?:AutomaticApply|SafeApply|ApplyRule|ApplySource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const fieldSmokeExecuted = /\b(?:ExecuteFieldSmoke|ProbeEndpoint|ContactDevice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\"(?:rawLocator|rawJson|rawProviderResponse|rawEndpoint|rawMaterial|rawDiagnosticJson)\\":true/.test(block);
+  const sourceUrlExposed = /\\"(?:sourceUrlIncluded|sourceUrlExposed)\\":true/.test(block);
+  const credentialMaterialExposed = /\\"(?:credentialMaterialIncluded|credentialMaterialExposed)\\":true/.test(block);
+  const debugMaterialExposed = /\\"(?:debugMaterialIncluded|debugMaterialExposed)\\":true/.test(block);
+  const viewerClientExposureAdded = /\\"(?:viewerClientExposureAdded|viewerClientPayloadChanged)\\":true/.test(block);
+  const mediaPathChanged = /\\"rtspOrWebrtcMediaPathChanged\\":true/.test(block);
+  assert(routeObserved && outcomeObserved && writePerformed === false && mutationPerformed === false && executionPerformed === false && sendPerformed === false && providerCallPerformed === false, "OPS-160 canonical bounded absence oracle");
+  assert(safe193BoundaryObserved && block.includes("media-server.ops.v380-field-connector-evidence-package.v1") && writePerformed === false && mutationPerformed === false && executionPerformed === false && sendPerformed === false && automaticApplyPerformed === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+    "SAFE-193 fieldSmokeExecuted must remain no-execution no-write redacted and client/provider isolated");
 });
 
 const results = runChecks();

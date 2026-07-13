@@ -83,7 +83,7 @@ const browser = await openBrowserPage({
 
 try {
   const result = await browser.evaluate(buildRulesOpenExpression(seededPrereqs), timeoutMs);
-  if (!result?.ok) {
+  if (!result?.ok || !result?.reviewLoop?.eventType?.includes("EventRecord eventType")) { // RULE-102 /ops/rules opsRulesUpdateReviewLoop eventType browser readback
     throw new Error(JSON.stringify(result));
   }
   const mobileGeometry = await assertMobileGeometryPreview(browser, timeoutMs);

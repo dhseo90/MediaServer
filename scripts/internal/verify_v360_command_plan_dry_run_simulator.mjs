@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v3.6.0 Step 4 Command Plan Dry-run Simulator 구현, 문서, inventory 연결을 검증한다.
 
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -96,6 +97,10 @@ check("dry-run simulator preserves no-write no-execution boundaries", () => {
     "ruleRegistryWritePerformed", "eventRecordWritePerformed", "opsAuditWritePerformed",
     "commandPlanExecuted", "automaticApplyPerformed", "rtspOrWebrtcMediaPathChanged",
   ]) assertFlagFalse(block, flag);
+  const ruleRegistryWritePerformed = block.includes('\\"ruleRegistryWritePerformed\\":true');
+  const ruleFollowUpApplied = block.includes('\\"ruleFollowUpApplied\\":true');
+  const clientNoticeSendPerformed = block.includes('\\"clientNoticeSent\\":true');
+  assert(ruleRegistryWritePerformed === false && ruleFollowUpApplied === false && clientNoticeSendPerformed === false, "RULE-107 OpsV360CommandPlanDryRunSimulatorJson dry-run registryWrite/apply/client notice send absence");
 });
 
 check("Ops API exposes the command dry-run route as guarded no-store JSON", () => {
@@ -118,6 +123,28 @@ check("docs, inventory, and dispatch map v3.6 Step 4", () => {
   assertIncludes(files.serverSh, "verify_v360_command_plan_dry_run_simulator.mjs", "server.sh dispatch");
   assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
   assertIncludes(files.scriptInventory, "verify_v360_command_plan_dry_run_simulator.mjs", "script inventory");
+});
+
+check("SAFE-151 canonical bounded no-execution boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV360CommandPlanDryRunSimulatorJson(");
+  const routeObserved = files.server.includes("/ops/api/live-operations/simulation/command-plan-dry-run");
+  const safe151BoundaryObserved = block.includes("BuildV360CommandPlanDryRunResults");
+  const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const automaticApplyPerformed = /\b(?:AutomaticApply|SafeApply|ApplyRule|ApplySource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const clientNoticeSent = /\bSendClientNotice[A-Za-z0-9_:]*\s*\(/.test(block);
+  const sendPerformed = clientNoticeSent;
+  const fieldSmokeExecuted = /\b(?:ExecuteFieldSmoke|ProbeEndpoint|ContactDevice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\"(?:rawLocator|rawJson|rawProviderResponse|rawEndpoint|rawMaterial)\\":true/.test(block);
+  const sourceUrlExposed = block.includes("\\\"sourceUrlIncluded\\\":true") || block.includes("\\\"sourceUrlExposed\\\":true");
+  const credentialMaterialExposed = block.includes("\\\"credentialMaterialIncluded\\\":true") || block.includes("\\\"credentialMaterialExposed\\\":true");
+  const debugMaterialExposed = block.includes("\\\"debugMaterialIncluded\\\":true") || block.includes("\\\"debugMaterialExposed\\\":true");
+  const viewerClientExposureAdded = block.includes("\\\"viewerClientExposureAdded\\\":true");
+  const mediaPathChanged = block.includes("\\\"rtspOrWebrtcMediaPathChanged\\\":true");
+  assert(routeObserved && safe151BoundaryObserved && writePerformed === false && mutationPerformed === false && executionPerformed === false && automaticApplyPerformed === false && clientNoticeSent === false && sendPerformed === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+    "SAFE-151 BuildV360CommandPlanDryRunResults must remain bounded no-execution no-write redacted and client/provider isolated");
 });
 
 finish("== v3.6.0 command plan dry-run simulator summary ==", { schema, step: "v3.6.0 (4)", route });

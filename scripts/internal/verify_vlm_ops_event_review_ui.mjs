@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: V200-S10 Ops 이벤트 리뷰 화면이 EventRecord evidence와 VLM 설명을 Ops 전용으로 표시하는지 검증한다.
+import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import process from "node:process";
@@ -62,6 +64,7 @@ check("ops review API attaches VLM review object without mutating EventRecord", 
 });
 
 check("ops events UI renders VLM review panel in review inbox", () => {
+  const reviewBlock = extractNamedFunctionBlock(pageScript, "eventReviewVlmHtml");
   for (const snippet of [
     'data-vlm-review-state="ops-only-event-record-evidence"',
     'data-vlm-review-action-workflow="ops-only-review-state"',
@@ -84,6 +87,10 @@ check("ops events UI renders VLM review panel in review inbox", () => {
   ]) {
     assertIncludes(pageScript, snippet, "Ops events script");
   }
+  assertIncludes(reviewBlock, "ops-vlm-event-review-card", "UI-032 block-scoped canonical product state");
+  assert(!["/client/api/", "viewerClientExposureAdded: true", "clientExposureAdded: true"].some(marker => reviewBlock.includes(marker)), "UI-032 client-viewer-boundary explicit absence oracle");
+  assertIncludes(pageScript, "/ops/events", "UI-032 canonical route obligation");
+  assertIncludes(pageScript, "VLM", "UI-032 canonical field obligation");
   assertIncludes(css, ".ops-vlm-event-review", "Ops events CSS");
 });
 

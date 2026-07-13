@@ -105,6 +105,12 @@ check("handoff validation preserves no-production-write and no-client-exposure b
   ]) {
     assertFlagFalse(block, flag);
   }
+  const productionRestorePerformed = block.includes('\\"productionRestorePerformed\\":true');
+  const sourceRegistryWritePerformed = block.includes('\\"sourceRegistryWritePerformed\\":true');
+  const eventPostPayloadChanged = block.includes('\\"eventPostPayloadChanged\\":true');
+  assert(productionRestorePerformed === false && sourceRegistryWritePerformed === false &&
+    eventPostPayloadChanged === false,
+    "productionRestorePerformed must remain false in the bounded handoff summary");
 });
 
 check("Ops API exposes the handoff validation route as guarded no-store JSON", () => {
@@ -124,8 +130,22 @@ check("Ops API exposes the handoff validation route as guarded no-store JSON", (
 });
 
 check("Ops sources UI renders staging restore checklist and result artifact status", () => {
+  const rendererBlock = extractBlock(
+    files.opsSourcesScript,
+    "function renderStagingRestoreValidationHandoff",
+    "function renderOpsContinuityDrillWorkspace",
+  );
+  const serverStatusBlock = extractBlock(
+    files.server,
+    "std::string OpsV390StagingRestoreValidationHandoffJson",
+    "struct OpsV330ReliabilityTimelineEvent",
+  );
+  const shellBlock = extractBlock(
+    files.server,
+    "std::string BuildOpsSourcesPageHtml",
+    "std::string BuildOpsUsersPageHtml",
+  );
   for (const snippet of [
-    route,
     "sourceStagingRestoreValidationStatus",
     "source-staging-restore-checklist-list",
     "source-staging-restore-result-artifact-list",
@@ -135,8 +155,15 @@ check("Ops sources UI renders staging restore checklist and result artifact stat
     "productionRestorePerformed=false",
     "automaticRecoveryPerformed=false",
   ]) {
-    assertIncludes(files.opsSourcesScript + files.server, snippet, "v390 staging restore validation UI");
+    assertIncludes(`${rendererBlock}\n${serverStatusBlock}\n${shellBlock}`, snippet, "v390 staging restore validation UI");
   }
+  const opsSourcesRoutePresent = serverStatusBlock.includes('"opsUiRoute": "/ops/sources"');
+  const schemaPresent = serverStatusBlock.includes("media-server.ops.v390-staging-restore-validation-handoff.v1");
+  const resultArtifactPersistedByRoute = serverStatusBlock.includes('"resultArtifactPersistedByRoute": true');
+  assert(opsSourcesRoutePresent, "v390 staging restore UI route missing");
+  assert(schemaPresent, "v390 staging restore schema missing");
+  assert(resultArtifactPersistedByRoute === false, "v390 staging restore decision route must not persist result artifacts");
+  assertIncludes(files.opsSourcesScript, route, "v390 staging restore UI load route");
   assertIncludes(files.opsClientUiSmoke, "sourceStagingRestoreValidationStatus", "ops client UI smoke");
 });
 

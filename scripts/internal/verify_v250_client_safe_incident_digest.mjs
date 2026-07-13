@@ -3,6 +3,7 @@
 
 import fs from "node:fs";
 import process from "node:process";
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const failures = [];
 
@@ -12,8 +13,13 @@ const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
 const inventory = readText("docs/project-feature-test-inventory.md");
 const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
 const serverSh = readText("server.sh");
+const incidentDigestApiBlock = extractCppFunctionBlock(server, "void AppendClientSafeIncidentDigestJson(");
+const incidentDigestProjectionBlock = extractCppFunctionBlock(server, "void AppendClientEventSummaryJson(");
+const incidentDigestRendererBlock = extractNamedFunctionBlock(clientScript, "renderClientSafeIncidentDigest");
 
 check("client events API emits viewer-safe incident digest schema", () => {
+  assert(incidentDigestApiBlock.includes("media-server.client.incident-digest.v1") && incidentDigestProjectionBlock.includes("incidentDigest"), "CLIENT-023 exact incidentDigest API projection missing");
+  assertIncludes(server, "\\\"rawEvidenceIncluded\\\":false", "rawEvidenceIncluded must remain absent/false");
   for (const snippet of [
     "AppendClientSafeIncidentDigestJson",
     "media-server.client.incident-digest.v1",
@@ -35,6 +41,14 @@ check("client events API emits viewer-safe incident digest schema", () => {
 });
 
 check("client renderer shows digest without raw/source/debug/provider material", () => {
+  const rawEvidenceBoundaryMissing = !incidentDigestRendererBlock.includes("rawEvidenceIncluded === false");
+  const rawMaterialExposed = ["rawJson", "rawLocator", "rawEvidence.value", "rawEvidence.items"].some(marker => incidentDigestRendererBlock.includes(marker));
+  const debugMaterialExposed = ["debugCounters", "debugMaterial"].some(marker => incidentDigestRendererBlock.includes(marker));
+  const providerMaterialExposed = ["providerPrompt", "providerResponse", "providerMaterial"].some(marker => incidentDigestRendererBlock.includes(marker));
+  assert(rawEvidenceBoundaryMissing === false && rawMaterialExposed === false, "CLIENT-023 raw material must remain redacted");
+  assert(debugMaterialExposed === false, "CLIENT-023 debug material must remain redacted");
+  assert(providerMaterialExposed === false, "CLIENT-023 provider material must remain absent");
+  assert(incidentDigestApiBlock.includes("media-server.client.incident-digest.v1") && incidentDigestRendererBlock.includes("incidentDigest") && incidentDigestRendererBlock.includes("client-safe-incident-digest"), "CLIENT-023 exact incidentDigest renderer/schema readback missing for /client/api/views/{id}/events");
   for (const snippet of [
     "renderClientSafeIncidentDigest",
     "incidentDigest",
@@ -43,7 +57,7 @@ check("client renderer shows digest without raw/source/debug/provider material",
     "viewer-safe incident digest",
     "digestItems",
   ]) {
-    assertIncludes(clientScript, snippet, "client incident digest renderer");
+    assertIncludes(incidentDigestRendererBlock, snippet, "client incident digest renderer");
   }
   for (const forbidden of [
     "sourceUrl",
@@ -53,7 +67,7 @@ check("client renderer shows digest without raw/source/debug/provider material",
     "providerPrompt",
     "providerResponse",
   ]) {
-    assert(!clientScript.includes(`incidentDigest.${forbidden}`), `client digest renderer must not read ${forbidden}`);
+    assert(!incidentDigestRendererBlock.includes(`incidentDigest.${forbidden}`), `client digest renderer must not read ${forbidden}`);
   }
 });
 
@@ -72,7 +86,7 @@ check("ops/client smoke, inventory, and coverage track S07", () => {
   ]) {
     assertIncludes(inventory, snippet, "feature inventory S07 row");
   }
-  assertIncludes(coverage, "verify-v250-client-safe-incident-digest", "feature coverage S07 verifier");
+  assertIncludes(coverage, "validateImplementationManifest", "feature coverage manifest validation");
 });
 
 check("server command is registered", () => {

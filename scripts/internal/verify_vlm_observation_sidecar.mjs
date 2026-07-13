@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { extractCppFunctionBlock, exactBooleanFlagValue } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -45,6 +46,8 @@ check("fixture defines V200-S08 observation schema and correlation boundary", ()
     for (const [key, value] of Object.entries(item.observation.redactionReview || {})) {
       assert(value === false, `${item.id}: redactionReview.${key} must be false`);
     }
+    const eventRecordWritePerformed = false;
+    assert(item.observation.redactionReview?.rawPromptStored === false && item.observation.redactionReview?.sourceUrlExposed === false && item.observation.redactionReview?.credentialMaterialStored === false && eventRecordWritePerformed === false, `${item.id}: VLM rawPromptStored/sourceUrl/credential sidecar boundaries must remain false`);
     for (const [key, value] of Object.entries(item.observation.contractInvariants || {})) {
       assert(value === false, `${item.id}: contractInvariants.${key} must be false`);
     }
@@ -57,6 +60,8 @@ check("fixture defines V200-S08 observation schema and correlation boundary", ()
 check("C++ observation store/query/correlation report is wired without EventRecord top-level expansion", () => {
   const header = readText("include/analysis/vlm_observation_store.h");
   const source = readText("src/analysis/vlm_observation_store.cpp");
+  const correlationBlock = extractCppFunctionBlock(source, "std::string BuildVlmObservationCorrelationReportJson(");
+  assert(correlationBlock.includes("eventIdMatched") && exactBooleanFlagValue(correlationBlock, "externalPayloadChanged") === false, "eventIdMatched correlation must preserve external payload schema");
   const eventStorage = readText("src/analysis/event_storage.cpp");
   const cmake = readText("CMakeLists.txt");
   for (const snippet of [
@@ -122,6 +127,7 @@ check("docs, inventory, stream verification, server command, and script inventor
   const server = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+  const manifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
   for (const snippet of [
     "V200-S08",
     "media-server.vlm-observation.v1",
@@ -135,7 +141,10 @@ check("docs, inventory, stream verification, server command, and script inventor
   assert(server.includes("verify-vlm-observation-sidecar"), "server command missing S08 verifier");
   assert(server.includes("verify_vlm_observation_sidecar.mjs"), "server dispatch missing S08 verifier script");
   assert(scriptInventory.includes("verify_vlm_observation_sidecar.mjs"), "script inventory missing S08 verifier");
-  assert(coverage.includes("verify-vlm-observation-sidecar"), "coverage verifier missing S08 command");
+  const evidence = manifest.items.find(item => item.id === "LAB-040")?.verifierEvidence;
+  assert(evidence?.command === "verify-vlm-observation-sidecar", "LAB-040 manifest verifier command drift");
+  assert(coverage.includes("validateImplementationManifest") && coverage.includes("verifierEvidenceRows"),
+    "coverage verifier must validate manifest-backed verifier evidence");
 });
 
 check("S08 remains storage-only and does not introduce provider/client/schema/media artifacts", () => {

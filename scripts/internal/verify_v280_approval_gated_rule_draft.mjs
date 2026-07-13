@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v2.8.0 S03 Approval-gated Rule Draft Readiness와 no-auto-save/no-auto-apply 경계를 검증한다.
+import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import process from "node:process";
@@ -15,6 +17,7 @@ const manualChecklist = readText("docs/manual-ui-checklist.md");
 const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
 
 check("roadmap records V280-S03 as active/completed approval-gated rule draft work", () => {
@@ -34,6 +37,20 @@ check("roadmap records V280-S03 as active/completed approval-gated rule draft wo
 });
 
 check("Ops events API exposes approval-gated staged draft readiness without write side effects", () => {
+  const start = server.indexOf("std::string OpsApprovalGatedRuleDraftReadinessViewJson(");
+  const end = server.indexOf("std::string OpsOperatorOutcomeMemoryViewJson(", start);
+  assert(start >= 0 && end > start, "EVT-056 approval-gated draft projection block missing");
+  const evt056ProjectionBlock = server.slice(start, end);
+  const routeOwnerSource = readText("src/ingress/ops_event_route_owner.cpp");
+  const routeBlock = routeOwnerSource.slice(routeOwnerSource.indexOf("constexpr const char* kOpsEventsPagePath"), routeOwnerSource.indexOf("bool HasPrefix("));
+  assert(evt056ProjectionBlock.includes("media-server.ops.approval-gated-rule-draft-readiness.v1") && routeBlock.includes("/ops/api/events/reviews"), "LAB-080 approval-gated draft schema and review route readback mismatch");
+  assertIncludes(evt056ProjectionBlock, "noAutoApply", "EVT-056 block-scoped canonical projection");
+  assertIncludes(evt056ProjectionBlock, "webrtcDataChannelSchemaChanged", "EVT-056 WebRTC SSE boundary");
+  assert(!evt056ProjectionBlock.includes("\\\"ruleRegistryWritePerformed\\\":true") && evt056ProjectionBlock.includes("\\\"ruleRegistryWritePerformed\\\":false"), "EVT-056 no-write registry boundary");
+  const ruleRegistryWritePerformed = evt056ProjectionBlock.includes("\\\"ruleRegistryWritePerformed\\\":true");
+  const autoRuleApplied = evt056ProjectionBlock.includes("\\\"noAutoApply\\\":false");
+  const eventPostPayloadChanged = evt056ProjectionBlock.includes("\\\"eventPostPayloadChanged\\\":true");
+  assert(ruleRegistryWritePerformed === false && autoRuleApplied === false && eventPostPayloadChanged === false, "RULE-104 approvalGatedRuleDraft staged-only registryWrite/autoApply/mutation Changed absence");
   for (const snippet of [
     "OpsApprovalGatedRuleDraftReadinessViewJson",
     "OpsApprovalGatedRuleDraftReadinessItemJson",
@@ -57,6 +74,13 @@ check("Ops events API exposes approval-gated staged draft readiness without writ
 });
 
 check("/ops/events and /ops/rules render approval-gated staged draft readiness", () => {
+  const approvalDraftBlock = extractNamedFunctionBlock(script, "renderOpsApprovalGatedRuleDraftContext");
+  assertIncludes(approvalDraftBlock, "approvalDraft", "UI-056 block-scoped canonical product state");
+  const ruleRegistryWritePerformed = ["requestJson(", "fetch(", "method: 'POST'", "method: 'PUT'", "method: 'DELETE'"].some(marker => approvalDraftBlock.includes(marker));
+  assert(ruleRegistryWritePerformed === false, "UI-056 approval draft renderer must not write the rule registry");
+  assert(!["requestJson(","fetch(","method: 'POST'","method: 'PUT'","method: 'DELETE'"].some(marker => approvalDraftBlock.includes(marker)), "UI-056 no-write explicit absence oracle");
+  assert(!["autoRuleApplied: true","autoApply: true","applyRule("].some(marker => extractNamedFunctionBlock(script, "renderOpsApprovalGatedRuleDraftContext").includes(marker)), "UI-056 no-auto-apply explicit absence oracle");
+  assertIncludes(script, "/ops/rules", "UI-056 canonical route obligation");
   for (const snippet of [
     'data-testid="ops-approval-gated-rule-draft-readiness-events"',
     'data-approval-gated-rule-draft="events-to-rules-manual-approval"',
@@ -127,7 +151,11 @@ check("smoke, inventory, manual UI, coverage, and command catalog track S03", ()
     assertIncludes(inventory, snippet, "feature inventory S03 row");
   }
   assertIncludes(manualChecklist, "| V280-S03 Approval-gated Rule Draft Readiness | `UI-056`, `RULE-104`, `EVT-056`, `LAB-080`, `SAFE-066` |", "manual UI checklist S03 row");
-  assertIncludes(coverageVerifier, "verify-v280-approval-gated-rule-draft", "feature inventory coverage S03 command");
+  for (const id of ["UI-056", "RULE-104", "EVT-056", "LAB-080"]) {
+    assert(implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-v280-approval-gated-rule-draft", `${id} manifest verifier command drift`);
+  }
+  assertIncludes(coverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(coverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   assertIncludes(streamVerification, "verify-v280-approval-gated-rule-draft", "stream verification S03 command");
   assertIncludes(serverSh, "verify-v280-approval-gated-rule-draft", "server.sh S03 command");
   assertIncludes(serverSh, "verify_v280_approval_gated_rule_draft.mjs", "server.sh S03 script target");

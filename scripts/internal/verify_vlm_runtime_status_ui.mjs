@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: V210-S05 Ops VLM runtime status UI와 viewer/client 비노출 경계를 정적 검증한다.
+import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -51,6 +53,11 @@ check("Ops VLM page renders runtime status panel", () => {
   ]) {
     assert(server.includes(snippet), `server missing runtime status UI snippet: ${snippet}`);
   }
+  const runtimeBlock = extractNamedFunctionBlock(pageScript, "renderOpsVlmRuntimeStatus");
+  assert(runtimeBlock.includes("opsVlmProviderStatus"), "UI-033 block-scoped canonical product state missing");
+  assert(!["/client/api/", "viewerClientExposureAdded: true", "clientExposureAdded: true"].some(marker => runtimeBlock.includes(marker)), "UI-033 client-viewer-boundary explicit absence oracle");
+  assert(server.includes("/ops/vlm"), "UI-033 canonical route obligation missing");
+  assert(pageScript.includes("VLM"), "UI-033 canonical field obligation missing");
 });
 
 check("Page script combines runtime status, dry-run, and profile state", () => {
@@ -150,7 +157,8 @@ check("docs, feature inventory, server command, and script inventory are wired",
   assert(serverSh.includes("verify-vlm-runtime-status-ui"), "server.sh missing S05 command");
   assert(serverSh.includes("verify_vlm_runtime_status_ui.mjs"), "server.sh missing S05 script dispatch");
   assert(scriptInventory.includes("verify_vlm_runtime_status_ui.mjs"), "script inventory missing S05 verifier");
-  assert(coverage.includes("verify-vlm-runtime-status-ui"), "feature coverage missing S05 verifier");
+  assert(coverage.includes("semantic.verifierAssertion.command"),
+    "feature coverage must validate the canonical verifier command from semantic evidence");
 });
 
 let pass = 0;

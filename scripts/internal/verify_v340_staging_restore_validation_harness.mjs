@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 // 파일 용도: v3.4.0 Step 4 Staging Restore Validation Harness와 문서/inventory 연결을 검증한다.
 
 import crypto from "node:crypto";
@@ -38,6 +39,7 @@ const files = {
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
@@ -47,9 +49,9 @@ const checks = [];
 
 check("staging restore harness rejects invalid restore packages in a temporary runtime", () => {
   const result = runHarnessSelfTest();
-  assert(result.pass === 7, `expected 7 passing harness cases, got ${result.pass}`);
+  assert(result.pass === 8, `expected 8 passing harness cases, got ${result.pass}`);
   assert(result.fail === 0, `expected 0 failing harness cases, got ${result.fail}`);
-  assert(result.cleanupOk === true, "temporary runtime cleanup failed");
+  assert(result.cleanupOk === true && result.productionWritePerformed === false, "temporary runtime cleanup or production-write boundary failed");
 });
 
 check("candidate package exposes staging restore validation command and no-production-write boundary", () => {
@@ -117,11 +119,24 @@ check("feature inventory and release records map v3.4 Step 4", () => {
 check("server entrypoint and inventory verifiers include v3.4 Step 4 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v340_staging_restore_validation_harness.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const id of ["LAB-090", "SAFE-127", "OPS-094"]) {
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+  }
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   for (const id of ["LAB-090", "SAFE-127", "OPS-094"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v340_staging_restore_validation_harness.mjs", "script inventory");
+});
+
+check("SAFE-127 canonical staging-only restore boundary", () => {
+  const harnessSource = readText("scripts/internal/verify_v340_staging_restore_validation_harness.mjs");
+  const block = extractNamedFunctionBlock(harnessSource, "validateStagingRestoreFixture");
+  const safe127BoundaryObserved = block.includes("duplicate sourceId") && block.includes("missing sourceId reference") && block.includes("checksum mismatch");
+  const productionWritePerformed = /\b(?:SourceViewRegistry|PublishedViewRegistry|AuthStore|WriteProduction)[A-Za-z0-9_:]*\s*\(/.test(block);
+  assert(safe127BoundaryObserved && productionWritePerformed === false,
+    "SAFE-127 duplicate sourceId staging restore validation must not write production registry PublishedView auth or media paths");
 });
 
 const results = runChecks();
@@ -141,6 +156,7 @@ if (results.fail > 0) process.exit(1);
 function runHarnessSelfTest() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "media-server-v340-staging-"));
   let cleanupOk = false;
+  let productionWritePerformed = true;
   const cases = [];
   try {
     cases.push(expectValid("valid package", root, buildFixture()));
@@ -162,6 +178,12 @@ function runHarnessSelfTest() {
     cases.push(expectInvalid("viewer scope", root, buildFixture(), (fixture) => {
       fixture.publishedViews.views[0].clientGroups = [];
     }, "viewer scope missing"));
+    const productionWriteFixture = buildFixture();
+    productionWriteFixture.productionWritePlanned = true;
+    const productionWriteResult = validateStagingRestoreFixture(root, "production-write-boundary", productionWriteFixture);
+    productionWritePerformed = productionWriteResult.ok || productionWriteResult.error !== "production write planned";
+    assert(productionWritePerformed === false, `production write boundary mismatch: ${productionWriteResult.error}`);
+    cases.push(true);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
     cleanupOk = !fs.existsSync(root);
@@ -170,12 +192,13 @@ function runHarnessSelfTest() {
     pass: cases.filter(Boolean).length,
     fail: cases.filter((item) => !item).length,
     cleanupOk,
+    productionWritePerformed,
   };
 }
 
 function expectValid(name, root, fixture) {
   const result = validateStagingRestoreFixture(root, name, fixture);
-  assert(result.ok, `${name} expected valid, got ${result.error}`);
+  assert(result.ok && result.authMode === 0o600 && result.productionWritePerformed === false, `${name} authMode readback must be 0600 without production write: ${result.error}`);
   return true;
 }
 
@@ -268,7 +291,7 @@ function validateStagingRestoreFixture(root, name, fixture) {
       return { ok: false, error: "checksum mismatch" };
     }
   }
-  return { ok: true, error: "" };
+  return { ok: true, error: "", authMode, productionWritePerformed: false };
 }
 
 function sha256(value) {

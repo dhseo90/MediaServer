@@ -16,8 +16,8 @@ import {
   writeImplementationManifest,
 } from "./feature_implementation_manifest_lib.mjs";
 import {
-  migrateReview3SemanticClosure,
   summarizeSemanticClosure,
+  validateReview4AppliedManifest,
 } from "./feature_semantic_evidence_lib.mjs";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
@@ -33,8 +33,8 @@ Usage:
 
 Options:
   --refresh-manifest  Explicitly rebuild the reviewed 986-row manifest.
-  --migrate-review3           One-time v2 call-chain migration with 986 feature-specific reasons.
-  --review-ids IDS            With --migrate-review3, review only exact comma-separated pending IDs.
+  --migrate-review3           Removed: REVIEW3 generator-owned approval is rejected.
+  --review-ids IDS            Removed with --migrate-review3.
   --json-report PATH  Write the validation report.
   -h, --help          Show help.
 
@@ -57,6 +57,9 @@ if (args.refreshManifest && args.migrateReview3) {
 if (args.reviewIds.length > 0 && !args.migrateReview3) {
   throw new Error("--review-ids requires --migrate-review3");
 }
+if (args.migrateReview3) {
+  throw new Error("--migrate-review3 was removed: candidate generation, reviewed proof specs, and independent approval must remain separate");
+}
 const inventoryText = fs.readFileSync(
   path.join(rootDir, "docs/project-feature-test-inventory.md"),
   "utf8",
@@ -67,26 +70,11 @@ if (args.refreshManifest) {
   const generated = generateImplementationManifest({ rootDir, inventoryText, rows });
   writeImplementationManifest(rootDir, generated);
   console.log(`[pass] refreshed ${IMPLEMENTATION_MANIFEST_PATH} (reviewed rows preserved; drift remains review-required)`);
-} else if (args.migrateReview3) {
-  if (args.reviewIds.length > 0) {
-    const knownIds = new Set(rows.map(row => row.id));
-    for (const id of args.reviewIds) {
-      if (!knownIds.has(id)) throw new Error(`unknown review ID: ${id}`);
-    }
-  }
-  const candidate = migrateReview3SemanticClosure({
-    rootDir,
-    rows,
-    manifest: loadImplementationManifest(rootDir),
-    selectedIds: args.reviewIds.length > 0 ? args.reviewIds : null,
-  });
-  writeImplementationManifest(rootDir, candidate);
-  console.log(`[pass] migrated ${IMPLEMENTATION_MANIFEST_PATH} to REVIEW3 call-chain closure` +
-    (args.reviewIds.length > 0 ? ` for ${args.reviewIds.join(",")}` : ""));
 }
 
 const manifest = loadImplementationManifest(rootDir);
 const result = validateImplementationManifest({ rootDir, inventoryText, rows, manifest });
+const review4GlobalErrors = validateReview4AppliedManifest({ rows, manifest });
 const negativeChecks = runNegativeFixtures({ rootDir, inventoryText, rows, manifest });
 
 if (args.jsonReport) {
@@ -96,11 +84,13 @@ if (args.jsonReport) {
     schema: "media-server.feature-implementation-evidence-validation.v1",
     executionEvidenceStatus: "not-execution-evidence",
     result,
+    review4GlobalErrors,
     negativeChecks,
   }, null, 2)}\n`);
 }
 
 for (const error of result.errors) console.log(`[fail] ${error}`);
+for (const error of review4GlobalErrors) console.log(`[fail] ${error}`);
 for (const check of negativeChecks) {
   console.log(`[${check.pass ? "pass" : "fail"}] negative fixture ${check.name}`);
 }
@@ -119,10 +109,11 @@ console.log(`- uniqueSemanticDigests: ${result.summary.uniqueSemanticDigests}`);
 console.log(`- reviewedCallChains: ${result.summary.reviewedCallChains}`);
 console.log(`- uniqueReviewReasons: ${result.summary.uniqueReviewReasons}`);
 console.log(`- validationErrors: ${result.summary.errors}`);
+console.log(`- review4GlobalErrors: ${review4GlobalErrors.length}`);
 console.log(`- negativeFixtures: ${negativeChecks.filter(check => check.pass).length}/${negativeChecks.length}`);
 console.log("- executionEvidenceStatus: not-execution-evidence");
 
-if (!result.ok || negativeChecks.some(check => !check.pass)) process.exit(1);
+if (!result.ok || review4GlobalErrors.length > 0 || negativeChecks.some(check => !check.pass)) process.exit(1);
 
 function runNegativeFixtures({ rootDir, inventoryText, rows, manifest }) {
   const cases = [
@@ -196,7 +187,7 @@ function runNegativeFixtures({ rootDir, inventoryText, rows, manifest }) {
     {
       name: "missing-reviewed-call-chain",
       mutate(copy) { delete copy.items[0].semanticEvidence.callChain; },
-      expect: "reviewed call chain schema drift",
+      expect: "REVIEW4 compatibility call chain drift",
     },
     {
       name: "bulk-review-reason",
@@ -207,17 +198,17 @@ function runNegativeFixtures({ rootDir, inventoryText, rows, manifest }) {
       name: "safe-140-unrelated-owner",
       mutate(copy) {
         const item = copy.items.find(entry => entry.id === "SAFE-140");
-        item.semanticEvidence.callChain.roles.action.symbol = "OpsV380ClientNoticeDraftQueueJson";
+        item.semanticEvidence.review4Proof.roles.action.symbol = "OpsV380ClientNoticeDraftQueueJson";
       },
-      expect: "SAFE-140 unrelated command workspace owner",
+      expect: "REVIEW4 source-flow digest drift",
     },
     {
       name: "rule-017-generic-json-owner",
       mutate(copy) {
         const item = copy.items.find(entry => entry.id === "RULE-017");
-        item.semanticEvidence.callChain.roles.owner.symbol = "ExtractObjectField";
+        item.semanticEvidence.review4Proof.roles.owner.symbol = "ExtractObjectField";
       },
-      expect: "RULE-017 unrelated generated-id owner",
+      expect: "REVIEW4 source-flow digest drift",
     },
   ];
   return cases.map(testCase => {

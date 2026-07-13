@@ -70,12 +70,14 @@ check("generator emits S09 report with explanation schema, hints, questions, and
     assert(explanation.eventId === item.eventId, `${item.id}: event id mismatch`);
     assert(explanation.objectAreaRelations.length >= 1, `${item.id}: object/area relations missing`);
     assert(explanation.falsePositiveHints.length >= 1, `${item.id}: false-positive hints missing`);
-    assert(explanation.operatorReviewQuestions.length >= 1, `${item.id}: operator questions missing`);
+    assert(!("rawProviderResponse" in explanation) && !("rawPrompt" in explanation), `${item.id}: raw provider material must remain absent`);
+    assert(explanation.operatorReviewQuestions.length >= 1, `/ops/events ${item.id}: operator questions missing`);
     assert(item.validation.passed === true, `${item.id}: validation did not pass`);
     assert(item.validation.evidenceComplete === true, `${item.id}: evidence refs incomplete`);
     assert(item.validation.redactionClean === true, `${item.id}: redaction review not clean`);
     assert(item.validation.invariantsClean === true, `${item.id}: contract invariants not clean`);
   }
+  assert(output.cases.every(item => item.explanation.operatorReviewQuestions.length >= 1), "LAB-041 VLM operatorReviewQuestions report readback missing");
 });
 
 check("generator output is byte-stable across repeated runs and supports filtered reports", () => {
@@ -105,6 +107,7 @@ check("docs, inventory, stream verification, server command, and script inventor
   const server = readText("server.sh");
   const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
   const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+  const manifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
   for (const snippet of [
     "V200-S09",
     "media-server.vlm-event-explanation-report.v1",
@@ -128,7 +131,12 @@ check("docs, inventory, stream verification, server command, and script inventor
   }
   assert(scriptInventory.includes("generate_vlm_event_explanation.mjs"), "script inventory missing S09 generator");
   assert(scriptInventory.includes("verify_vlm_event_explanation_hints.mjs"), "script inventory missing S09 verifier");
-  assert(coverage.includes("verify-vlm-event-explanation-hints"), "coverage verifier missing S09 command");
+  for (const id of ["EVT-040", "LAB-033", "LAB-041"]) {
+    assert(manifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-vlm-event-explanation-hints",
+      `${id} manifest verifier command drift`);
+  }
+  assert(coverage.includes("validateImplementationManifest") && coverage.includes("verifierEvidenceRows"),
+    "coverage verifier must validate manifest-backed verifier evidence");
 });
 
 check("S09 remains fixture-generation only and preserves external/schema/media boundaries", () => {

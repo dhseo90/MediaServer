@@ -118,6 +118,7 @@ check("default execution remains no-network and sanitized", () => {
   assert(report.turnRelayStatus === "not-run", "default TURN relay status must be not-run");
   assert(report.whepPlaybackStatus === "not-run", "default WHEP playback status must be not-run");
   assert(Object.values(report.redaction).every(value => value === false), "default redaction flags must all be false");
+  assert(report.redaction.sourceUrlStored === false && report.redaction.rawWhepUrlStored === false, "rawEndpointIncluded=false: source URL/WHEP endpoint must remain absent/redacted");
   assertReportRedacted(report);
 });
 

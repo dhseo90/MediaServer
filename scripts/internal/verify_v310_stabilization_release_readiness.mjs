@@ -187,6 +187,30 @@ check("S09 gate keeps release actions and long UI/soak evidence separate", () =>
   }
 });
 
+check("SAFE-101 canonical V310 readiness boundary", () => {
+  const readinessCommandDocumented = files.serverSh.includes("verify-v310-stabilization-release-readiness)");
+  const localEvidenceRecorded = normalizedRecords.includes("SAFE-101") && normalizedRecords.includes("V310-S09");
+  const notRunBoundaryMissing = !normalizedRecords.includes("not-run") || !files.releasePolicy.includes("UI 풀테스트") || !files.releasePolicy.includes("120분");
+  const safe101BoundaryObserved = readinessCommandDocumented && localEvidenceRecorded && notRunBoundaryMissing === false;
+  assert(safe101BoundaryObserved && notRunBoundaryMissing === false,
+    "SAFE-101 V310 readiness must preserve UI fulltest/30m/120m/published metadata/release action not-run boundaries");
+});
+
+check("OPS-068 canonical local readiness gate", () => {
+  const localCommandsWired = companionCommands.every((item) =>
+    files.releasePolicy.includes(item) && files.releaseEvidenceIndex.includes(item) && files.releaseRecords.includes(item));
+  const notRunBoundariesPresent = [
+    "UI 풀테스트 직접 조작",
+    "30분/120분",
+    "published metadata",
+    "PR/main/tag/GitHub Release",
+  ].every((item) => files.releaseRecords.includes(item));
+  const ops068GateObserved = localCommandsWired && notRunBoundariesPresent &&
+    files.serverSh.includes("verify-v310-stabilization-release-readiness)");
+  assert(ops068GateObserved,
+    "OPS-068 local command wiring and explicit UI/long-run/published/release-action not-run boundary missing");
+});
+
 const results = runChecks();
 console.log("");
 console.log("== v3.1.0 stabilization/release readiness summary ==");

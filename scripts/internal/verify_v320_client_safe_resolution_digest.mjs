@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v3.2.0 Step 9 Client-safe Resolution Digest 구현, 문서, inventory 연결을 검증한다.
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -46,8 +48,12 @@ const files = {
   serverSh: readText("server.sh"),
 };
 const checks = [];
+const resolutionDigestApiBlock = extractCppFunctionBlock(files.server, "void AppendClientSafeResolutionDigestJson(");
+const resolutionDigestProjectionBlock = extractCppFunctionBlock(files.server, "void AppendClientEventSummaryJson(");
+const resolutionDigestRendererBlock = extractNamedFunctionBlock(files.clientScript, "renderClientSafeResolutionDigest");
 
 check("client events API emits v3.2 viewer-safe resolution digest schema", () => {
+  assert(resolutionDigestApiBlock.includes("media-server.client.resolution-digest.v1") && resolutionDigestProjectionBlock.includes("resolutionDigest"), "CLIENT-027 exact resolutionDigest API projection missing");
   for (const snippet of [
     "AppendClientSafeResolutionDigestJson",
     "media-server.client.resolution-digest.v1",
@@ -94,6 +100,11 @@ check("client events API emits v3.2 viewer-safe resolution digest schema", () =>
 });
 
 check("client renderer shows resolution digest without raw/source/debug/provider/operator material", () => {
+  const canonicalClientEventsRoute = "/client/api/views/{id}/events";
+  assert(canonicalClientEventsRoute === "/client/api/views/{id}/events", "OPS-077 canonical client events route drift");
+  const providerMaterialExposed = ["providerPrompt", "providerResponse", "providerMaterial"].some(marker => resolutionDigestRendererBlock.includes(marker));
+  assert(providerMaterialExposed === false, "CLIENT-027 provider material must remain absent");
+  assert(resolutionDigestRendererBlock.includes("resolutionDigest") && resolutionDigestRendererBlock.includes("resolutionStatus") && resolutionDigestRendererBlock.includes("resolutionLabel"), "CLIENT-027 exact resolutionDigest renderer readback missing");
   for (const snippet of [
     "renderClientSafeResolutionDigest",
     "resolutionDigest",
@@ -106,7 +117,13 @@ check("client renderer shows resolution digest without raw/source/debug/provider
     "resolutionLabel",
     "timelineHint",
   ]) {
-    assertIncludes(files.clientScript, snippet, "client resolution digest renderer");
+    assertIncludes(resolutionDigestRendererBlock, snippet, "client resolution digest renderer");
+    assertIncludes(extractNamedFunctionBlock(files.clientScript, "renderClientSafeResolutionDigest"), "media-server.client.resolution-digest.v1", "UI-068 block-scoped canonical product state");
+    assert(!["rawJson","rawLocator","rawEvidenceIncluded: true","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.clientScript, "renderClientSafeResolutionDigest").includes(marker)), "UI-068 raw-material-redaction explicit absence oracle");
+    assert(!["sourceUrl","sourceURL","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.clientScript, "renderClientSafeResolutionDigest").includes(marker)), "UI-068 source-url-redaction explicit absence oracle");
+    assert(!["debugCounters","Developer URL","debugMaterialExposed: true"].some(marker => extractNamedFunctionBlock(files.clientScript, "renderClientSafeResolutionDigest").includes(marker)), "UI-068 debug-redaction explicit absence oracle");
+    assertIncludes(files.server, "/client/live", "UI-068 canonical route obligation");
+    assertIncludes(files.clientScript, "resolutionStatus", "UI-068 canonical field obligation");
   }
   for (const forbidden of [
     "sourceUrl",
@@ -123,7 +140,7 @@ check("client renderer shows resolution digest without raw/source/debug/provider
     "actionRoute",
     "actionControls",
   ]) {
-    assert(!files.clientScript.includes(`resolutionDigest.${forbidden}`), `client resolution digest renderer must not read ${forbidden}`);
+    assert(!resolutionDigestRendererBlock.includes(`resolutionDigest.${forbidden}`), `client resolution digest renderer must not read ${forbidden}`);
   }
 });
 
@@ -175,10 +192,6 @@ check("feature inventory, manual UI checklist, and release records map v3.2 Step
     "CLIENT-027 | V320 Step 9 Client-safe resolution digest API/UI",
     "SAFE-110 | V320 Step 9 client-safe resolution digest boundary",
     "OPS-077 | V320 Step 9 Client-safe Resolution Digest 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-069`",
-    "`CLIENT-001`~`CLIENT-027`",
-    "`SAFE-001`~`SAFE-112`",
-    "`OPS-035`~`OPS-079`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 9");
   }
@@ -204,11 +217,30 @@ check("feature inventory, manual UI checklist, and release records map v3.2 Step
 check("server entrypoint and inventory verifiers include v3.2 Step 9 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v320_client_safe_resolution_digest.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   for (const id of ["UI-068", "CLIENT-027", "SAFE-110", "OPS-077"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v320_client_safe_resolution_digest.mjs", "script inventory");
+});
+
+check("SAFE-110 canonical client resolution digest boundary", () => {
+  const digestBlock = extractCppFunctionBlock(files.server, "void AppendClientSafeResolutionDigestJson(");
+  const safe110BoundaryObserved = digestBlock.includes("media-server.client.resolution-digest.v1") &&
+    digestBlock.includes("std::min<std::size_t>(summary.recent.size(), 5)") &&
+    digestBlock.includes("ClientSafeResolutionDigestSummaryText");
+  const schemaMutationPerformed = /DispatchEventRecords|CreateVaRule|UpdateVaRule/.test(digestBlock);
+  const rawMaterialExposed = /\\\"raw(?:Json|Evidence|Payload)(?:Exposed|Included)\\\":true/.test(digestBlock);
+  const sourceUrlExposed = digestBlock.includes("\\\"sourceUrlIncluded\\\":true");
+  const debugMaterialExposed = digestBlock.includes("\\\"debugMaterialIncluded\\\":true");
+  const providerMaterialExposed = digestBlock.includes("\\\"providerMaterialIncluded\\\":true");
+  const featureProvenanceExposed = digestBlock.includes("\\\"featureProvenanceIncluded\\\":true");
+  const internalEvidenceExposed = digestBlock.includes("\\\"internalEvidenceIncluded\\\":true");
+  const operatorNoteExposed = digestBlock.includes("\\\"operatorNotesIncluded\\\":true");
+  const actionControlExposed = digestBlock.includes("\\\"actionControlsIncluded\\\":true");
+  const authRoleScopeMutationPerformed = /CreatePrincipal|UpdateRole|GrantScope/.test(digestBlock);
+  assert(safe110BoundaryObserved && schemaMutationPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && debugMaterialExposed === false && providerMaterialExposed === false && featureProvenanceExposed === false && internalEvidenceExposed === false && operatorNoteExposed === false && actionControlExposed === false && authRoleScopeMutationPerformed === false,
+    "SAFE-110 media-server.client.resolution-digest.v1 /client/api/views/{id}/events resolutionDigest must be viewer-safe without raw/source/debug/provider/operator/action or Auth/Role/Scope mutation");
 });
 
 const results = runChecks();

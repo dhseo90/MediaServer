@@ -4,6 +4,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -54,10 +55,16 @@ check("REVIEW4-50 source snapshot is separated from current line metrics", () =>
     "REVIEW4-50 discovery snapshot drift");
   assert(discovery.summary?.sourceFiles >= fixture.review4_50SnapshotMetrics.discoverySourceFiles,
     "current discovery source set predates REVIEW4-50 snapshot");
-  assert(lineCount("src/ingress/webrtc_http_server.cpp") === fixture.review4_50SnapshotMetrics.httpServerLines,
-    "HTTP server line count drift");
-  assert(lineCount("src/ingress/product_ui_page_scripts.cpp") === fixture.review4_50SnapshotMetrics.productUiScriptLines,
-    "product UI script line count drift");
+  assert(gitFileLineCount(fixture.auditBaseCommit, "src/ingress/webrtc_http_server.cpp") ===
+      fixture.review4_50SnapshotMetrics.httpServerLines,
+    "REVIEW4-50 HTTP server snapshot drift");
+  assert(gitFileLineCount(fixture.auditBaseCommit, "src/ingress/product_ui_page_scripts.cpp") ===
+      fixture.review4_50SnapshotMetrics.productUiScriptLines,
+    "REVIEW4-50 product UI script snapshot drift");
+  assert(lineCount("src/ingress/webrtc_http_server.cpp") >= fixture.review4_50SnapshotMetrics.httpServerLines,
+    "current HTTP server predates REVIEW4-50 snapshot");
+  assert(lineCount("src/ingress/product_ui_page_scripts.cpp") >= fixture.review4_50SnapshotMetrics.productUiScriptLines,
+    "current product UI script predates REVIEW4-50 snapshot");
 });
 
 check("coverage policy separates readiness from actual execution", () => {
@@ -108,3 +115,11 @@ function assert(condition, message) { if (!condition) throw new Error(message); 
 function readText(file) { return fs.readFileSync(path.join(rootDir, file), "utf8"); }
 function readJson(file) { return JSON.parse(readText(file)); }
 function lineCount(file) { return readText(file).split(/\n/).length - 1; }
+function gitFileLineCount(commit, file) {
+  const text = execFileSync("git", ["show", `${commit}:${file}`], {
+    cwd: rootDir,
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+  });
+  return text.split(/\n/).length - 1;
+}

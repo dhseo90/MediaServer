@@ -278,6 +278,16 @@ for (const check of pageChecks) {
     const shellMust = check.shellMust || opsShellMust;
     assertContains(check.name, html, [...productShellMust, ...shellMust, ...(check.must || [])]);
     assertOmits(check.name, html, check.mustNot || []);
+    if (check.path === "/client/events" && !html.includes("incidentDigest")) {
+      throw new Error("client events HTTP readback missing incidentDigest");
+    }
+    const clientPrimaryNavHtml = html.match(/<nav[^>]*client-image-nav-tabs[^>]*>[\s\S]*?<\/nav>/)?.[0] || "";
+    if (check.path === "/client/live" && (!clientPrimaryNavHtml.includes('aria-label="클라이언트 메뉴"') || clientPrimaryNavHtml.includes('href="/lab/'))) {
+      throw new Error("client live HTTP readback violated aria-label=\"클라이언트 메뉴\" Lab navigation boundary");
+    }
+    if (check.path === "/client/live" && (!html.includes('data-testid="client-live-workspace"') || clientPrimaryNavHtml.includes('href="/ops/'))) {
+      throw new Error("client live HTTP readback violated client-live-workspace Ops navigation boundary");
+    }
     if (check.path === "/ops" || check.path.startsWith("/ops/")) {
       assertOpsPrimaryNavContract(check.name, html);
     }
@@ -290,6 +300,20 @@ for (const check of pageChecks) {
     console.log(`[fail] ${check.name}: ${message}`);
   }
 }
+
+async function assertActionExecutionDeferralDecisionReadback() {
+  const actionExecutionDeferralDecision = await assertOpsApiContract(
+    "action-execution-deferral-decision",
+    "/ops/api/actions/execution-deferral-decision",
+  );
+  if (actionExecutionDeferralDecision?.ok !== true ||
+      actionExecutionDeferralDecision?.schema !== "media-server.ops.v390-action-execution-deferral-decision.v1" ||
+      actionExecutionDeferralDecision?.boundaries?.actionExecutionPerformed !== false) {
+    throw new Error(`action execution deferral HTTP readback mismatch: ${JSON.stringify(actionExecutionDeferralDecision).slice(0, 240)}`);
+  }
+}
+
+await assertActionExecutionDeferralDecisionReadback();
 
 try {
   await assertOpsApiContract("ops-api-runtime-status", "/ops/api/runtime/status");
@@ -1054,6 +1078,13 @@ async function runClientLiveTileKeyboardSmoke() {
       checkIndex += 1;
       try {
         const result = await browser.evaluate(clientLiveTileKeyboardExpression(clientLiveA11ySnapshot), 10000);
+        if (result?.['viewer-safe-no-locator-debug'] !== true) throw new Error(`${label}: CLIENT-014 raw/debug redaction readback failed`);
+        if (result?.['source-url-hidden'] !== true) throw new Error(`${label}: CLIENT-015 source URL/debugCounters redaction readback failed`);
+        if (result?.['viewer-safe-events'] !== true) throw new Error(`${label}: CLIENT-016 BBox diagnostics redaction readback failed`);
+        if (result?.['client-live-action-reduction'] !== true) throw new Error(`${label}: CLIENT-017 editor boundary readback failed`);
+        if (result?.playsinline !== true) throw new Error(`${label}: CLIENT-019 video viewport readback failed`);
+        if (result?.['data-mode-action="va-overlay"'] !== true) throw new Error(`${label}: CLIENT-021 VA overlay state readback failed`);
+        if (result?.['a11y-status'] !== true) throw new Error(`${label}: CLIENT-022 caption/status readback failed`);
         if (!result?.ok) {
           const details = Array.isArray(result?.issues) ? result.issues.join("; ") : JSON.stringify(result);
           throw new Error(`${label}: ${details}`);
@@ -1294,7 +1325,33 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
       if (tiles.length < 2) issue('expected at least two live tiles, got ' + tiles.length);
       const first = tiles[0];
       const second = tiles[1];
+      const renderedBodyText = String(document.body?.textContent || '');
+      const observations = {
+        'viewer-safe-no-locator-debug': Boolean(document.querySelector('[data-client-redaction-review="viewer-safe-no-locator-debug"]')) && !renderedBodyText.includes('raw JSON') && !renderedBodyText.includes('debugCounters'),
+        'source-url-hidden': Boolean(document.querySelector('[data-viewer-redaction="source-url-hidden"]')) && !renderedBodyText.includes('sourceUrl') && !renderedBodyText.includes('debugCounters'),
+        'viewer-safe-events': Boolean(document.querySelector('[data-redaction="viewer-safe-events"]')) && !renderedBodyText.includes('BBox diagnostics') && !renderedBodyText.includes('bboxDiagnostics'),
+        'client-live-action-reduction': Boolean(document.querySelector('[data-testid="client-live-action-reduction"]')) && !document.querySelector('#opsVaRuleForm, #opsEventRuleForm, #opsProfileForm'),
+        playsinline: false,
+        'data-mode-action="va-overlay"': false,
+        'a11y-status': false,
+      };
       if (first) {
+        if (!document.querySelector('[data-client-redaction-review="viewer-safe-no-locator-debug"]') ||
+            document.body.textContent.includes('raw JSON') || document.body.textContent.includes('debugCounters')) {
+          issue('CLIENT-014 viewer-safe-no-locator-debug rendered boundary failed');
+        }
+        if (!document.querySelector('[data-viewer-redaction="source-url-hidden"]') ||
+            document.body.textContent.includes('sourceUrl') || document.body.textContent.includes('debugCounters')) {
+          issue('CLIENT-015 source-url-hidden/debugCounters rendered boundary failed');
+        }
+        if (!document.querySelector('[data-redaction="viewer-safe-events"]') ||
+            document.body.textContent.includes('BBox diagnostics') || document.body.textContent.includes('bboxDiagnostics')) {
+          issue('CLIENT-016 viewer-safe-events/BBox diagnostics rendered boundary failed');
+        }
+        if (!document.querySelector('[data-testid="client-live-action-reduction"]') ||
+            document.querySelector('#opsVaRuleForm, #opsEventRuleForm, #opsProfileForm')) {
+          issue('CLIENT-017 client-live-action-reduction editor boundary failed');
+        }
         if (first.getAttribute('tabindex') !== '0') issue('first tile is not tabbable');
         if (first.getAttribute('role') !== 'group') issue('first tile role is not group');
         const expectedTileName = language === 'english' ? 'Tile 1' : '타일 1';
@@ -1323,7 +1380,8 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
         if (rawModeButton && vaModeButton) {
           vaModeButton.click();
           await wait(180);
-          if (vaModeButton.getAttribute('aria-pressed') !== 'true') issue('VA overlay mode did not become active after click');
+          if (!first.querySelector('[data-mode-action="va-overlay"][aria-pressed="true"]')) issue('VA overlay mode did not become active after click');
+          observations['data-mode-action="va-overlay"'] = Boolean(first.querySelector('[data-mode-action="va-overlay"][aria-pressed="true"]'));
           rawModeButton.click();
           await wait(180);
           if (rawModeButton.getAttribute('aria-pressed') !== 'true') issue('raw mode did not become active after click');
@@ -1339,8 +1397,9 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
           if (describedNode.getAttribute('aria-atomic') !== 'true') issue('first tile status aria-atomic missing');
           if (!describedNode.classList.contains('sr-only')) issue('first tile status is not visually hidden');
           for (const expected of requiredStatusParts) {
-            if (!statusText.includes(expected)) issue('first tile a11y status missing text: ' + expected);
+            if (describedNode.dataset.role !== 'a11y-status' || !statusText.includes(expected)) issue('first tile a11y status missing text: ' + expected);
           }
+          observations['a11y-status'] = describedNode.dataset.role === 'a11y-status' && requiredStatusParts.every(expected => statusText.includes(expected));
           if (viewSelect && expectedOfflineStatus && statusText !== expectedOfflineStatus) {
             issue('first tile a11y status mismatch: ' + statusText);
           }
@@ -1357,6 +1416,12 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
           if (!labels.some(label => label.includes(expected))) issue('missing control aria-label: ' + expected);
         }
         const tileRect = first.getBoundingClientRect();
+        const videoViewport = first.querySelector('video[playsinline][muted][autoplay]');
+        const videoRect = videoViewport?.getBoundingClientRect();
+        if (!videoViewport || !videoViewport.hasAttribute('playsinline') || !videoRect || videoRect.width <= 0 || videoRect.height <= 0) {
+          issue('first tile playsinline video viewport is not rendered');
+        }
+        observations.playsinline = Boolean(videoViewport?.hasAttribute('playsinline') && videoRect && videoRect.width > 0 && videoRect.height > 0);
         const tileRatio = tileRect.width / Math.max(1, tileRect.height);
         if (tileRatio < 1.72 || tileRatio > 1.84) {
           issue('first tile video frame is not 16:9: ' + tileRect.width.toFixed(1) + 'x' + tileRect.height.toFixed(1));
@@ -1398,6 +1463,7 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
         selectedTile: selected?.dataset?.tile || '',
         activeTile: document.activeElement?.dataset?.tile || '',
         overflowX,
+        ...observations,
       };
     })()
   `;

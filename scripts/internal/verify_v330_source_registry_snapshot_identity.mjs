@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // 파일 용도: v3.3.0 Step 2 Source Registry Snapshot and Identity 구현, 문서, inventory 연결을 검증한다.
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 import fs from "node:fs";
 import path from "node:path";
@@ -49,6 +50,7 @@ const files = {
 const checks = [];
 
 check("SourceViewRegistry declares the v3.3 source identity snapshot read model", () => {
+  assert(route === "/ops/api/source-registry/snapshot", "OPS-081 canonical route drift");
   for (const snippet of [
     "SourceRegistrySnapshotIdentityJson",
     "SourceIdentitySnapshot",
@@ -199,10 +201,22 @@ check("server entrypoint and inventory verifiers include v3.3 Step 2 command", (
   for (const id of ["SRC-033", "SAFE-114", "OPS-081"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.projectInventoryVerifier, "`SRC-001`~`SRC-040`", "project inventory SRC range");
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-123`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-090`", "project inventory OPS range");
+  assertIncludes(files.projectInventoryVerifier, "`SRC-001`~`SRC-068`", "project inventory SRC range");
+  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-216`", "project inventory SAFE range");
+  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-184`", "project inventory OPS range");
   assertIncludes(files.scriptInventory, "verify_v330_source_registry_snapshot_identity.mjs", "script inventory");
+});
+
+check("SAFE-114 canonical source registry snapshot boundary", () => {
+  const snapshotBlock = extractCppFunctionBlock(files.registry, "RegistryResult SourceViewRegistry::SourceRegistrySnapshotIdentityJson()");
+  const snapshotRouteObserved = "/ops/api/source-registry/snapshot" === route;
+  const safe114BoundaryObserved = snapshotRouteObserved && snapshotBlock.includes("BuildSourceIdentitySnapshot(sources_, views_)") &&
+    snapshotBlock.includes("media-server.ops.v330-source-registry-snapshot-identity.v1") && snapshotBlock.includes("AppendSourceIdentitySnapshotJson");
+  const sourceRegistryWritePerformed = /\b(?:CreateSource|UpdateSource|DeleteSource|Write|Persist)[A-Za-z0-9_:]*\s*\(/.test(snapshotBlock);
+  const schemaMutationPerformed = /DispatchEventRecords|CreateVaRule|UpdateVaRule/.test(snapshotBlock);
+  const viewerClientExposureAdded = /AppendClient|ClientEventSummary|PublishedViewJson/.test(snapshotBlock);
+  assert(safe114BoundaryObserved && sourceRegistryWritePerformed === false && schemaMutationPerformed === false && viewerClientExposureAdded === false,
+    "SAFE-114 source-registry-snapshot-identity must remain Ops-only read-only without registry/schema/client mutation");
 });
 
 const results = runChecks();

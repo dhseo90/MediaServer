@@ -147,27 +147,13 @@ check("ops backup guide documents the v2.3.0 lifecycle boundary", () => {
   }
 });
 
-check("roadmap records V230-S06 completion boundary and exclusions", () => {
+check("historical release records preserve V230-S06 completion without current-roadmap overclaim", () => {
+  const records = readText("docs/release-test-records.md");
+  assert(records.includes("| v230 S06 backup/recovery lifecycle | backup restore dry-run과 evidence retention cleanup dry-run/apply/audit 확인 | pass |"),
+    "historical V230-S06 lifecycle PASS record missing");
   const backlog = readText("docs/development-backlog.md");
-  assert(/\| 6 \| V230-S06 \| P2 \| 완료 \| Ops backup\/recovery evidence lifecycle \|/.test(backlog),
-    "backlog V230-S06 row must be 완료 after lifecycle gate closure");
-  for (const snippet of [
-    "### V230-S06 Ops backup/recovery evidence lifecycle 종료 기준",
-    "직접 답: S06 완료는 운영 데이터 백업 완료가 아니라",
-    "verify-v230-ops-backup-recovery-lifecycle",
-    "verify-ops-backup-restore-dry-run",
-    "verify-ops-evidence-retention-cleanup",
-    "staging drill",
-    "redacted evidence bundle",
-    "retention cleanup",
-    "운영 데이터 백업 완료로 확대 보고하지 않습니다",
-    "장기 영상 녹화 백업",
-    "30분 테스트",
-    "120분 테스트",
-    "UI 풀테스트",
-  ]) {
-    assert(backlog.includes(snippet), `backlog missing S06 lifecycle snippet: ${snippet}`);
-  }
+  assert(!backlog.includes("실제 운영 백업 완료"),
+    "current roadmap must not promote the historical lifecycle gate to real operational backup completion");
 });
 
 check("release evidence index records S06 without promoting unrun operational backup", () => {

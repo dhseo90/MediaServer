@@ -11,6 +11,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -90,6 +91,8 @@ function validateFixture() {
 function verifySourceContract() {
   const header = read("include/analysis/appearance_extractor.h");
   const source = read("src/analysis/appearance_extractor.cpp");
+  const readinessBlock = extractCppFunctionBlock(source, "AppearanceModelReadiness InspectAppearanceModelReadiness(");
+  assert(readinessBlock.includes("model_backed_preflight_ready = true;"), "LAB-125 shared readiness model_backed_preflight_ready block readback mismatch");
   const server = read("src/ingress/webrtc_http_server.cpp");
   const ui = read("src/ingress/product_ui_page_scripts.cpp");
   for (const snippet of [
@@ -211,7 +214,15 @@ function verifyCaseResponse(item, response) {
   assert(gate.modelSessionLoadValidated === false, `${item.id}: route claimed session validation`);
   assert(gate.modelBackedExecutionReady === false, `${item.id}: route claimed execution readiness`);
   assert(summary.modelBackedExecutionReady === false, `${item.id}: summary claimed execution readiness`);
-  assert(response.json.boundaries?.modelBackedExecutionPerformed === false, `${item.id}: execution boundary drift`);
+  const modelBackedExecutionPerformed = response.json.boundaries?.modelBackedExecutionPerformed;
+  const modelBackedExecutionPrevented = modelBackedExecutionPerformed === false;
+  const eventPostPayloadChanged = response.json.boundaries?.eventPostPayloadChanged;
+  const clientViewerExposureAdded = response.json.boundaries?.clientViewerExposureAdded;
+  const rawMaterialExposed = [modelPath, modelDirectory, missingModelPath, fixture.modelSha256,
+    ...fixture.forbiddenResponseValues].some((forbidden) => response.text.includes(forbidden));
+  assert(modelBackedExecutionPrevented && modelBackedExecutionPerformed === false &&
+    eventPostPayloadChanged === false && clientViewerExposureAdded === false && rawMaterialExposed === false,
+  `${item.id}: execution/privacy boundary drift`);
   assert(response.json.boundaries?.modelSessionLoadPerformed === false, `${item.id}: session boundary drift`);
   assert(response.json.boundaries?.modelPathExposed === false, `${item.id}: path boundary drift`);
   assert(response.json.boundaries?.modelChecksumExposed === false, `${item.id}: checksum boundary drift`);

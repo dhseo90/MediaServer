@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v2.5.0 S05 explainable incident brief와 VLM default-off 경계를 검증한다.
+import { extractCppFunctionBlock, exactBooleanFlagValue, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import process from "node:process";
@@ -7,11 +9,14 @@ import process from "node:process";
 const failures = [];
 
 const server = readText("src/ingress/webrtc_http_server.cpp");
+const incidentBriefBlock = extractCppFunctionBlock(server, "bool OpsEventReviewInboxJson(");
+const incidentBriefViewBlock = extractCppFunctionBlock(server, "std::string OpsExplainableIncidentBriefViewJson(");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
 const inventory = readText("docs/project-feature-test-inventory.md");
 const coverage = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+const manifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
 
 check("ops events page exposes explainable incident brief shell", () => {
@@ -28,6 +33,12 @@ check("ops events page exposes explainable incident brief shell", () => {
 });
 
 check("ops review API returns deterministic brief view model", () => {
+  assert(incidentBriefViewBlock.includes("media-server.ops.explainable-incident-brief.v1") && exactBooleanFlagValue(incidentBriefViewBlock, "viewerClientExposureAdded") === false, "/ops/api/events/reviews incident brief view model must remain hidden from client/viewer");
+  assert(exactBooleanFlagValue(incidentBriefViewBlock, "defaultVlmEnrichmentEnabled") === false,
+    "LAB-066 incident brief defaultVlmEnrichmentEnabled must remain false");
+  assertIncludes(server, "\\\"viewerClientExposureAdded\\\":false", "viewerClientExposureAdded must remain absent/false");
+  assertIncludes(incidentBriefBlock, "OpsExplainableIncidentBriefViewJson", "incident brief view model producer");
+  assert(!incidentBriefBlock.includes("debug"), "incident brief producer must not expose debug material");
   for (const snippet of [
     "OpsExplainableIncidentBriefViewJson",
     "media-server.ops.explainable-incident-brief.v1",
@@ -62,6 +73,10 @@ check("incident brief script renders slots and default-off state", () => {
   ]) {
     assertIncludes(script, snippet, "incident brief script");
   }
+  assertIncludes(extractNamedFunctionBlock(script, "renderExplainableIncidentBrief"), "incident-brief-slot-grid", "UI-041 block-scoped canonical product state");
+  assertIncludes(script, "incident-brief-slot-grid", "UI-041 canonical product state");
+  assertIncludes(script, "/ops/events", "UI-041 canonical route obligation");
+  assertIncludes(script, "VLM", "UI-041 canonical field obligation");
 });
 
 check("incident brief has responsive slot styling", () => {
@@ -92,7 +107,12 @@ check("ops smoke, inventory, and coverage track S05 markers", () => {
   ]) {
     assertIncludes(inventory, snippet, "feature inventory S05 row");
   }
-  assertIncludes(coverage, "verify-v250-explainable-incident-brief", "feature coverage S05 verifier");
+  for (const id of ["UI-041", "EVT-043", "LAB-066", "SAFE-047"]) {
+    assert(manifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-v250-explainable-incident-brief",
+      `${id} manifest verifier command drift`);
+  }
+  assertIncludes(coverage, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(coverage, "verifierEvidenceRows", "feature coverage verifier evidence summary");
 });
 
 check("server command is registered", () => {

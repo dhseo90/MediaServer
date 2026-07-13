@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { exactBooleanFlagValue, extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -51,6 +52,16 @@ const featureIds = [
 ];
 const files = loadFiles();
 const checks = [];
+
+check("MEDIA-027 exact product approval-only bridge preserves external WHEP/TURN no-execution", () => {
+  const productBlock = extractCppFunctionBlock(files.server, "std::string OpsV390FieldEvidenceBridgeDecisionJson()");
+  const writePerformed = /\b(?:Write|Persist|UpdateSource|CreateVaRule)[A-Za-z0-9_:]*\s*\(/.test(productBlock);
+  const rawMaterialExposed = /\\\"(?:rawVlmPrompt|rawProviderResponse|rawProviderMaterial)Included\\\":true/.test(productBlock);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(productBlock);
+  assert(productBlock.includes("approval-only-minimal-field-evidence-bridge") && writePerformed === false && rawMaterialExposed === false && providerCallPerformed === false, "LAB-124 approval-only-minimal-field-evidence-bridge must remain no-write/redacted/provider-free");
+  assert(productBlock.includes("externalWhepTurnContacted") && productBlock.includes("approval-only-minimal-field-evidence-bridge") && productBlock.includes("fieldPassClaimed"), "MEDIA-027 exact external WHEP/TURN bridge boundary missing");
+  assert(exactBooleanFlagValue(productBlock, "rtspOrWebrtcMediaPathChanged") === false && exactBooleanFlagValue(productBlock, "rawCredentialMaterialIncluded") === false, "MEDIA-027 rtspOrWebrtcMediaPathChanged/rawCredentialMaterialIncluded exact false boundary missing");
+});
 
 check("Ops server exposes the v3.9 conditional field and Re-ID decisions", () => {
   for (const snippet of [
@@ -147,6 +158,16 @@ check("field evidence bridge preserves approval-only no-execution boundaries", (
   ]) {
     assertFlagFalse(block, flag);
   }
+  const fieldSmokeExecuted = exactBooleanFlagValue(block, "fieldSmokeExecuted");
+  const eventPostPayloadChanged = exactBooleanFlagValue(block, "eventPostPayloadChanged");
+  const rawProviderMaterialIncluded = exactBooleanFlagValue(block, "rawProviderMaterialIncluded");
+  const rawCredentialMaterialIncluded = exactBooleanFlagValue(block, "rawCredentialMaterialIncluded");
+  const providerCallPerformed = exactBooleanFlagValue(block, "cloudProviderCalled") ||
+    exactBooleanFlagValue(block, "vlmProviderCalled");
+  assert(fieldSmokeExecuted === false && eventPostPayloadChanged === false &&
+    rawProviderMaterialIncluded === false && rawCredentialMaterialIncluded === false &&
+    providerCallPerformed === false,
+    "fieldSmokeExecuted must remain false in the bounded field evidence bridge summary");
   for (const forbidden of [
     "RunFieldSmoke",
     "ProbeEndpoint",
@@ -303,6 +324,16 @@ check("/ops dashboard renders conditional field and Re-ID decisions", () => {
   ]) {
     assertIncludes(scriptBlock, snippet, "v390 conditional field / Re-ID renderer");
   }
+  const dashboardRoutePresent = files.server.includes('path == "/ops/dashboard"');
+  const fieldSchemaPresent = serverBlock.includes("media-server.ops.v390-field-evidence-bridge-decision.v1");
+  const credentialExposed = /\b(?:credentialValue|credentialReferenceValue|rawCredential|secretMaterial)\b/i.test(scriptBlock);
+  const rawMaterialExposed = /\b(?:rawModelMaterial|rawEmbedding|rawDiagnostic|rawLocator)\b/i.test(scriptBlock);
+  assert(dashboardRoutePresent, "v390 conditional field dashboard route missing");
+  assert(fieldSchemaPresent, "v390 field evidence bridge schema missing");
+  assert(credentialExposed === false, "v390 field evidence bridge renderer must redact credentials");
+  assert(rawMaterialExposed === false, "v390 Re-ID assist renderer must redact raw model material");
+  assertIncludes(scriptBlock, "dashFieldEvidenceBridgeBoundary", "v390 field evidence bridge boundary state");
+  assertIncludes(scriptBlock, "dashReidAssistDecisionBoundary", "v390 Re-ID assist boundary state");
   const refreshBlock = extractBlock(files.uiScript, "async function refreshDashboard()", "async function refreshEvents()");
   assertIncludes(refreshBlock, "refreshV390FieldEvidenceBridgeDecision", "dashboard refresh");
   assertIncludes(refreshBlock, "refreshV390ReidAssistDecision", "dashboard refresh");
@@ -359,7 +390,7 @@ check("roadmap, stream verification, inventory, and release records map v3.9 Ste
   }
   for (const snippet of [
     `v3.9.0 (17) field evidence bridge | \`UI-114\`, \`SRC-068\`, \`MEDIA-027\`, \`LAB-124\`, \`SAFE-209\`, \`OPS-176\` | \`${command}\`, \`verify-v380-field-connector-evidence-package\`, \`verify-v350-field-evidence-intake\``,
-    `v3.9.0 (18) / V390-ADD1-04 Re-ID readiness consistency | \`UI-115\`, \`LAB-125\`, \`SAFE-210\`, \`OPS-177\` | \`${readinessCommand}\`, \`${command}\`, \`verify-reid-advanced-tracking\`, \`verify-analysis-state\``,
+    `v3.9.0 (18) / V390-ADD1-04 / V390-REVIEW2-32 Re-ID readiness consistency | \`UI-115\`, \`LAB-125\`, \`SAFE-210\`, \`OPS-177\` | \`${readinessCommand}\`, \`${command}\`, \`verify-reid-advanced-tracking\`, \`verify-analysis-state\``,
     "UI-114 | V390 Step 17 field evidence bridge decision UI",
     "SRC-068 | V390 Step 17 field evidence source approval boundary",
     "MEDIA-027 | V390 Step 17 external WHEP/TURN field evidence bridge",
@@ -412,6 +443,12 @@ check("server entrypoint and inventory verifiers include v3.9 Steps 17~18 comman
   assertIncludes(files.featureInventory, command, "feature inventory conditional verifier mapping");
   assertIncludes(files.featureInventory, readinessCommand, "feature inventory readiness verifier mapping");
   for (const id of featureIds) {
+    const expected = ["LAB-125", "SAFE-210", "OPS-177"].includes(id) ? readinessCommand : command;
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === expected, `${id} manifest verifier command drift`);
+  }
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
+  for (const id of featureIds) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, targetScript, "script inventory");
@@ -446,6 +483,7 @@ function loadFiles() {
     featureInventory: readText("docs/project-feature-test-inventory.md"),
     v390Inventory: readText("docs/v390-feature-completion-inventory.md"),
     featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
+    implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
     projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
     scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
     opsClientUiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),

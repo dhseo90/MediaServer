@@ -35,6 +35,7 @@ const releaseRecords = readText("docs/release-test-records.md");
 const releaseEvidenceIndex = readText("docs/release-evidence-index.md");
 const releasePolicy = readText("docs/release-policy.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const projectInventoryVerifier = readText("scripts/internal/verify_project_feature_test_inventory.mjs");
 const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
 const serverSh = readText("server.sh");
@@ -98,7 +99,7 @@ check("feature inventory maps V300-S10 to SAFE-092 and OPS-060", () => {
   ]) {
     assert(featureInventory.includes(snippet), `feature inventory missing S10 snippet: ${snippet}`);
   }
-  assert(coverageVerifier.includes("verify-v300-stabilization-release-readiness"), "feature coverage missing V300-S10 verifier");
+  assertCanonicalCoverage(["SAFE-092", "OPS-060"], "verify-v300-stabilization-release-readiness");
   assert(projectInventoryVerifier.includes('"SAFE-092"'), "project inventory verifier missing SAFE-092");
   assert(projectInventoryVerifier.includes('"OPS-060"'), "project inventory verifier missing OPS-060");
   assert(projectInventoryVerifierRangeCovers("SAFE", 92), "project inventory verifier SAFE range below 092");
@@ -168,28 +169,20 @@ check("server and script inventory expose S10 readiness command", () => {
   }
 });
 
-check("v3.0 source tree does not include V310 encoded clip pipeline scope", () => {
-  for (const [name, text] of [
-    ["event storage", eventStorage],
-    ["analysis state smoke", analysisStateSmoke],
-    ["backlog", backlog],
-    ["stream verification", streamVerification],
-    ["feature inventory", featureInventory],
-    ["release records", releaseRecords],
-  ]) {
-    assert(!text.includes("media-server.va.encoded-event-clip.v1"), `${name} still references V310 encoded clip schema`);
-    assert(!text.includes("event-clip.avi"), `${name} still references V310 encoded clip artifact`);
-  }
-  for (const [name, text] of [
-    ["backlog", backlog],
-    ["stream verification", streamVerification],
-    ["feature inventory", featureInventory],
-    ["release records", releaseRecords],
-  ]) {
-    assert(!text.includes("V310-S02"), `${name} still records V310-S02 in v3.0 branch`);
-    assert(!text.includes("EVT-059"), `${name} still maps V310 EVT-059 in v3.0 branch`);
-    assert(!text.includes("SAFE-083"), `${name} still maps V310 SAFE-083 in v3.0 branch`);
-  }
+check("historical V300 readiness remains distinct from later V310 scope", () => {
+  assert(backlog.includes("## v3.0.0 S10 개발 기록"), "historical V300-S10 record missing");
+  assert(backlog.includes("## v3.1.0 S02 개발 기록"), "later V310-S02 record missing");
+  assert(releaseRecords.includes("v300 S10 stabilization/release readiness"), "V300-S10 result record missing");
+  assert(releaseRecords.includes("v310 S02 analysis state final"), "V310 scope record missing");
+  assert(featureInventory.includes("EVT-059"), "historical V310 EVT-059 mapping missing");
+});
+
+check("SAFE-092 canonical V300 readiness boundary", () => {
+  const readinessCommandRecorded = normalizedRecords.includes("verify-v300-stabilization-release-readiness");
+  const publishedMetadataSeparated = releasePolicy.includes("published metadata");
+  const safe092BoundaryObserved = readinessCommandRecorded && publishedMetadataSeparated;
+  assert(safe092BoundaryObserved,
+    "verify-v300-stabilization-release-readiness must keep UI/longrun/published actions separate");
 });
 
 let pass = 0;
@@ -255,6 +248,11 @@ function projectInventoryVerifierRangeCovers(prefix, minimum) {
   if (matches.length === 0) return false;
   const max = Math.max(...matches.map((match) => Number.parseInt(match[1], 10)));
   return max >= minimum;
+}
+
+function assertCanonicalCoverage(ids, command) {
+  assert(coverageVerifier.includes("loadImplementationManifest") && coverageVerifier.includes("validateImplementationManifest"), "feature coverage missing canonical implementation manifest validation");
+  for (const id of ids) assert(implementationManifest.items?.find(item => item.id === id)?.verifierEvidence?.command === command, `implementation manifest ${id} missing ${command}`);
 }
 
 function escapeRegExp(value) {

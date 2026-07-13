@@ -136,6 +136,7 @@ if (options.dryRun) {
   writeDryRun();
 } else {
   await runActualBundle();
+  assertFirstFailureClosure(stages, failedStage);
 }
 
 async function runActualBundle() {
@@ -161,6 +162,17 @@ async function runActualBundle() {
   normalizeTextArtifacts(outputDir);
   printSummary(summary);
   if (summary.result !== "PASS") process.exit(1);
+}
+
+function assertFirstFailureClosure(stageLedger, firstFailedStage) {
+  if (!firstFailedStage) return;
+  const failedIndex = stageIds.indexOf(firstFailedStage);
+  const laterOrdinaryStageIds = stageIds.slice(failedIndex + 1)
+    .filter((id) => !["ui-server-cleanup", "cleanup", "report"].includes(id));
+  const laterStagesNotRun = laterOrdinaryStageIds.every((id) =>
+    stageLedger.some((stage) => stage.id === id && stage.status === "not-run" &&
+      stage.reason === `not run after ${firstFailedStage} failure`));
+  assert(laterStagesNotRun, `stages after ${firstFailedStage} failure must remain not-run`);
 }
 
 async function runRealStage(stageId) {

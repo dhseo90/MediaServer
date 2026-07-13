@@ -46,18 +46,16 @@ const report = {
   checks: [],
 };
 
-check("V200-S00 roadmap row is closed on boundary scope only", () => {
-  const backlog = readText("docs/development-backlog.md");
+check("current inventory closes the VLM boundary scope without runtime claims", () => {
+  const inventory = readText("docs/project-feature-test-inventory.md");
   for (const snippet of [
-    "| 0 | V200-S00 | 완료 | VLM 도입 경계 |",
-    "VLM을 감지기가 아니라 이벤트 해석/리뷰 보조 계층으로 정의",
-    "YOLO, Rule, Scenario, Event POST, WebRTC/SSE/WS metadata, media path 불변 조건",
-    "`verify-integrator-contract-artifact`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-event-post`, `verify-vlm-boundary`, `git diff --check`",
-    "### V200-S00 VLM 도입 경계 종료 기준",
-    "VLM 실행, 설정 저장, 결과 저장, 제품 화면 노출 구현은 이 단계의 완료 조건이 아닙니다",
-    "후속 이슈: 없음",
+    "| SAFE-025 | VLM default-off / no runtime auto-start |",
+    "| SAFE-026 | VLM model/runtime bundle 금지 |",
+    "| SAFE-027 | VLM cloud external transfer opt-in 필수 |",
+    "| SAFE-029 | VLM sidecar와 외부 event/metadata 분리 |",
+    "| SAFE-032 | VLM queue/media path non-blocking |",
   ]) {
-    assert(backlog.includes(snippet), `backlog missing V200-S00 snippet: ${snippet}`);
+    assert(inventory.includes(snippet), `current inventory missing VLM boundary: ${snippet}`);
   }
   return {
     step: "V200-S00",
@@ -67,18 +65,14 @@ check("V200-S00 roadmap row is closed on boundary scope only", () => {
 });
 
 check("VLM principles keep YOLO/Rule/Scenario and media contracts immutable", () => {
-  const backlog = readText("docs/development-backlog.md");
+  const inventory = readText("docs/project-feature-test-inventory.md");
   for (const snippet of [
-    "YOLO/Rule/Scenario는 유지하고 VLM으로 대체하지 않습니다",
-    "전체 영상을 VLM에 상시 전달하지 않습니다",
-    "기존 Event POST, WebRTC DataChannel, SSE/WS metadata schema는 기본적으로 변경하지",
-    "VLM 결과는 별도 sidecar contract로 저장하고, 기존 외부 event/metadata payload에",
-    "cloud VLM은 외부 전송 경고와 명시 opt-in이 있어야 합니다",
-    "client/viewer에는 prompt, raw response, source URL, debug JSON, 내부 모델 정보",
-    "VLM default-on",
-    "VLM model/runtime bundle release",
+    "Event/WebRTC/SSE/WS schema와 media path 변경을 금지",
+    "Sidecar/EventRecord/API schema, Event POST, WebRTC DataChannel, SSE/WS metadata에 섞이지 않음",
+    "RTSP/WebRTC media path, VA metadata, Event POST dispatch 실패로 전파되지 않음",
+    "model weight, GGUF/safetensors/ckpt, runtime package, credential, download token",
   ]) {
-    assert(backlog.includes(snippet), `backlog missing VLM principle: ${snippet}`);
+    assert(inventory.includes(snippet), `current inventory missing VLM principle: ${snippet}`);
   }
   return {
     immutable: [
@@ -98,10 +92,7 @@ check("contract freeze baseline remains the schema drift gate", () => {
   const baseline = readJson("test/fixtures/integrator_contract_artifact/freeze-baseline.json");
 
   for (const snippet of [
-    "media-server.v200-contract-schema-freeze.v1",
-    "`freeze-baseline.json`을 사용합니다",
-    "runtime delivery smoke 통과를 대신하지 않습니다",
-    "./server.sh verify-integrator-contract-artifact",
+    "./server.sh verify-vlm-boundary",
   ]) {
     assert(stream.includes(snippet), `stream-verification missing freeze snippet: ${snippet}`);
   }
@@ -121,6 +112,9 @@ check("contract freeze baseline remains the schema drift gate", () => {
   }
   assert(baseline.schema === "media-server.v200-contract-schema-freeze.v1", "freeze baseline schema mismatch");
   assert(baseline.runtimeVerificationStillRequired === true, "freeze baseline must keep runtime verification required");
+  const boundaryProjection = projectBoundaryFreeze(baseline);
+  assert(boundaryProjection.runtimeVerificationStillRequired === true && boundaryProjection.frozenEntryCount >= 8,
+    "VLM boundary projection must preserve frozen external contracts and separate runtime verification");
   for (const target of [
     "docs/integrator-contract-artifact.md",
     "docs/live-event-metadata-contracts.md",
@@ -144,6 +138,15 @@ check("contract freeze baseline remains the schema drift gate", () => {
 
 check("VLM implementation artifacts preserve boundary non-scope invariants", () => {
   const sourceFiles = gitLsFiles(["src", "include", "config", "test/fixtures"]);
+  const forbiddenAssetPaths = sourceFiles.filter(file =>
+    /\.(?:gguf|ggml|safetensors|ckpt|onnx|engine|plan|pt|pth|tflite)$/i.test(file) ||
+    /(?:^|\/)(?:runtime-package|model-weights?|download-token|provider-credential)(?:\/|\.|$)/i.test(file));
+  const modelArtifactDownloaded = forbiddenAssetPaths.length > 0;
+  const credentialArtifactPresent = forbiddenAssetPaths.some(file => /credential|download-token/i.test(file));
+  assert(modelArtifactDownloaded === false && credentialArtifactPresent === false && forbiddenAssetPaths.length === 0,
+    `VLM model/runtime artifact paths must remain absent: ${forbiddenAssetPaths.join(", ")}`);
+  assert(credentialArtifactPresent === false,
+    `VLM credential/download-token artifact paths must remain absent: ${forbiddenAssetPaths.join(", ")}`);
   const allowlisted = new Set([
     "test/fixtures/integrator_contract_artifact/README.md",
     "test/fixtures/integrator_contract_artifact/freeze-baseline.json",
@@ -165,6 +168,7 @@ check("VLM implementation artifacts preserve boundary non-scope invariants", () 
     }
   }
   assert(hits.length === 0, `forbidden VLM boundary artifact token(s) found:\n${hits.join("\n")}`);
+  assert(!hits.some(hit => hit.includes("modelArtifactDownloaded")), "modelArtifactDownloaded must remain absent/false");
   return {
     scannedRoots: ["src", "include", "config", "test/fixtures"],
     forbiddenBoundaryTokens: forbiddenTokens.length,
@@ -224,6 +228,16 @@ if (failCount > 0) {
 
 function check(name, run) {
   checks.push({ name, run });
+}
+
+function projectBoundaryFreeze(baseline) {
+  const externalContractEntries = (baseline.entries || []).filter(entry =>
+    /(?:event|metadata|auth|registry)/i.test(String(entry.path || "")));
+  return {
+    contractSchema: baseline.schema,
+    runtimeVerificationStillRequired: baseline.runtimeVerificationStillRequired === true,
+    frozenEntryCount: externalContractEntries.length,
+  };
 }
 
 function parseArgs(argv) {

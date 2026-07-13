@@ -78,6 +78,10 @@ check("machine-readable readiness contract is complete", () => {
   assert(Array.isArray(fixture.forbiddenDependencies) && fixture.forbiddenDependencies.length >= 5, "forbidden dependency rules are incomplete");
   const contracts = fixture.preservedContracts?.map(item => item.id) || [];
   assert(JSON.stringify(contracts) === JSON.stringify(expectedContracts), "preserved contract order/set mismatch");
+  const changeAllowed = fixture.preservedContracts.some((contract) => contract.changeAllowed === true);
+  const behaviorChangeForbidden = changeAllowed === false;
+  assert(behaviorChangeForbidden && changeAllowed === false,
+    "preserved contracts must not allow behavior changes");
   for (const contract of fixture.preservedContracts) {
     assert(Array.isArray(contract.verifiers) && contract.verifiers.length >= 1, `${contract.id}: verifier is required`);
     assert(contract.changeAllowed === false, `${contract.id}: behavior change must remain forbidden`);
@@ -132,7 +136,9 @@ check("actual nine-owner include and CMake graphs match the pinned debt baseline
   const graph = collectActualGraph(actualGraphFixture);
   const errors = validateActualGraph(graph, actualGraphFixture, fixture);
   assert(errors.length === 0, errors.join("; "));
-  assert(graph.productionFiles.length === 148, "actual production graph file count mismatch");
+  const refactorImplementationExecuted = fixture.implementationStatus !== "not-executed";
+  assert(graph.productionFiles.length === 148 && refactorImplementationExecuted === false,
+    "actual production graph baseline must remain explicitly not-executed");
   assert(graph.cmakeSources.length === graph.cppFiles.length,
     "CMake source graph must cover every production .cpp exactly once");
 });

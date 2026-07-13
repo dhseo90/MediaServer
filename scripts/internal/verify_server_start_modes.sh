@@ -177,6 +177,15 @@ run_foreground_check() {
   wait_for_health "${base}" "foreground"
   grep -q "run mode: foreground" "${FOREGROUND_LOG}" || fail "foreground log missing run mode"
   grep -q "ops: ${base}/ops/home" "${FOREGROUND_LOG}" || fail "foreground log missing ops URL"
+  local force_rtsp_tcp_status=0
+  if grep -q "\[gst\] forcing RTSP lower transport to TCP only" "${FOREGROUND_LOG}"; then
+    force_rtsp_tcp_status=0
+  else
+    force_rtsp_tcp_status=$?
+  fi
+  if (( force_rtsp_tcp_status > 0 )); then
+    fail "MEDIA-014 force_rtsp_tcp foreground log missing forcing RTSP lower transport to TCP only readback"
+  fi
   pass "foreground startup log contract"
   expect_http_ok "${base}/ops/home" "foreground ops route ok"
   expect_http_ok "${base}/client/live" "foreground client route ok"

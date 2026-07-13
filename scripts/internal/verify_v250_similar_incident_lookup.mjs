@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v2.5.0 S06 similar incident lookup과 deterministic scoring/redaction 경계를 검증한다.
+import { extractCppFunctionBlock, exactBooleanFlagValue, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import process from "node:process";
@@ -7,6 +9,7 @@ import process from "node:process";
 const failures = [];
 
 const server = readText("src/ingress/webrtc_http_server.cpp");
+const similarIncidentViewBlock = extractCppFunctionBlock(server, "std::string OpsSimilarIncidentLookupViewJson(");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
@@ -28,6 +31,11 @@ check("ops events page exposes similar incident lookup shell", () => {
 });
 
 check("ops review API returns deterministic similar incident view model", () => {
+  assertIncludes(similarIncidentViewBlock, "media-server.ops.similar-incident-lookup.v1", "/ops/api/events/reviews similar incident view model");
+  assert(exactBooleanFlagValue(similarIncidentViewBlock, "deterministicScoring") === true,
+    "LAB-067 similar incident deterministicScoring must remain true");
+  assert(exactBooleanFlagValue(similarIncidentViewBlock, "viewerClientExposureAdded") === false, "similar incidents must remain hidden from client/viewer");
+  assertIncludes(server, "\\\"modelProviderDependency\\\":false", "modelProviderDependency must remain absent/false");
   for (const snippet of [
     "OpsSimilarIncidentLookupViewJson",
     "media-server.ops.similar-incident-lookup.v1",
@@ -54,6 +62,7 @@ check("ops review API returns deterministic similar incident view model", () => 
 });
 
 check("similar incident script renders groups and score explanations", () => {
+  const lookupBlock = extractNamedFunctionBlock(script, "renderSimilarIncidentLookup");
   for (const snippet of [
     "renderSimilarIncidentLookup",
     "similarIncidents",
@@ -65,6 +74,11 @@ check("similar incident script renders groups and score explanations", () => {
   ]) {
     assertIncludes(script, snippet, "similar incident script");
   }
+  assertIncludes(lookupBlock, "similar-incident-score", "UI-042 block-scoped canonical product state");
+  assert(!["rawJson", "rawLocator", "rawEvidenceIncluded: true", "rtsp://", "rtsps://"].some(marker => lookupBlock.includes(marker)), "UI-042 raw-material-redaction explicit absence oracle");
+  assert(!["sourceUrl", "sourceURL", "rtsp://", "rtsps://"].some(marker => lookupBlock.includes(marker)), "UI-042 source-url-redaction explicit absence oracle");
+  assert(!["debugCounters", "Developer URL", "debugMaterialExposed: true"].some(marker => lookupBlock.includes(marker)), "UI-042 debug-redaction explicit absence oracle");
+  assertIncludes(script, "/ops/events", "UI-042 canonical route obligation");
 });
 
 check("similar incident lookup has responsive styling", () => {

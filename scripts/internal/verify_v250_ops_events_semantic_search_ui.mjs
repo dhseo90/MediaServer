@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v2.5.0 S03 /ops/events semantic search UI와 Ops-only search view model을 검증한다.
+import { extractCppFunctionBlock, exactBooleanFlagValue, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import process from "node:process";
@@ -7,6 +9,7 @@ import process from "node:process";
 const failures = [];
 
 const server = readText("src/ingress/webrtc_http_server.cpp");
+const searchViewBlock = extractCppFunctionBlock(server, "std::string OpsIncidentMemorySearchViewJson(");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
@@ -32,6 +35,9 @@ check("ops events page exposes semantic incident search controls", () => {
 });
 
 check("ops events review API returns local-only semantic search view model", () => {
+  assertIncludes(searchViewBlock, "media-server.ops.incident-memory-search-view.v1", "/ops/api/events/reviews semantic search view model");
+  assert(exactBooleanFlagValue(searchViewBlock, "viewerClientExposureAdded") === false, "search view must remain hidden from client/viewer");
+  assertIncludes(server, "\\\"viewerClientExposureAdded\\\":false", "viewerClientExposureAdded must remain absent/false");
   for (const snippet of [
     "OpsIncidentMemorySearchViewJson",
     "media-server.ops.incident-memory-search-view.v1",
@@ -51,6 +57,7 @@ check("ops events review API returns local-only semantic search view model", () 
 });
 
 check("ops events script wires query filters and highlight rendering", () => {
+  const searchBlock = extractNamedFunctionBlock(script, "renderIncidentMemorySearch");
   for (const snippet of [
     "incidentMemoryQueryParams",
     "renderIncidentMemorySearch",
@@ -73,6 +80,11 @@ check("ops events script wires query filters and highlight rendering", () => {
   ]) {
     assertIncludes(script, snippet, "semantic search script");
   }
+  assertIncludes(searchBlock, "root.innerHTML", "UI-044 block-scoped canonical product state");
+  const rawMaterialExposed = ["rawJson", "rawLocator", "rawEvidenceIncluded: true", "rtsp://", "rtsps://"].some(marker => searchBlock.includes(marker));
+  assert(searchBlock.includes("root.innerHTML") && rawMaterialExposed === false, "UI-044 raw-material-redaction explicit absence oracle");
+  const viewerClientExposure = ["/client/api/", "viewerClientExposureAdded: true", "clientExposureAdded: true"].some(marker => searchBlock.includes(marker));
+  assert(searchBlock.includes("root.innerHTML") && viewerClientExposure === false, "UI-039 client-viewer-boundary explicit absence oracle");
 });
 
 check("semantic search UI has responsive highlight styling", () => {

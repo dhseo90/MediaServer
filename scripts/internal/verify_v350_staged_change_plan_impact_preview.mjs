@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 // 파일 용도: v3.5.0 Step 5 Staged Change Plan and Impact Preview 구현, 문서, inventory 연결을 검증한다.
 
 import fs from "node:fs";
@@ -39,6 +40,7 @@ const files = {
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
   serverSh: readText("server.sh"),
@@ -72,7 +74,7 @@ check("Ops server builds the v3.5 staged change plan impact preview model", () =
 });
 
 check("staged change plans derive from command plan and graph context before apply", () => {
-  const block = extractBlock(files.server, "struct OpsV350StagedChangePlan", "std::string OpsV350StagedChangePlanImpactPreviewJson");
+  const block = extractBlock(files.server, "struct OpsV350StagedChangePlan", "std::string OpsAuditSearchIndexJson");
   for (const snippet of [
     "BuildV350LiveOperationsGraphContext",
     "BuildV350CommandPlanCandidates",
@@ -232,11 +234,35 @@ check("feature inventory and release records map v3.5 Step 5", () => {
 check("server entrypoint and inventory verifiers include v3.5 Step 5 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v350_staged_change_plan_impact_preview.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
   for (const id of ["SRC-046", "RULE-106", "LAB-092", "SAFE-139", "OPS-106"]) {
-    assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
   }
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   assertIncludes(files.scriptInventory, "verify_v350_staged_change_plan_impact_preview.mjs", "script inventory");
+});
+
+function assertV350StagedChangePlanObservedReadback(block) {
+  const observedResult = {
+    mutationPerformed: /\b(?:Apply|Execute|Write|Persist|UpdateSource|CreateVaRule)[A-Za-z0-9_:]*\s*\(/.test(block),
+  };
+  assert(observedResult.mutationPerformed === false,
+    "SAFE-139 observed staged change result must remain unapplied");
+  return observedResult;
+}
+
+check("SAFE-139 canonical staged change no-apply boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV350StagedChangePlanImpactPreviewJson(");
+  const routeObserved = files.server.includes("/ops/api/live-operations/staged-change-plan-impact-preview");
+  const safe139BoundaryObserved = block.includes("BuildV350StagedChangePlans") && block.includes("media-server.ops.v350-staged-change-plan-impact-preview.v1");
+  const sourceChangeApplied = /\b(?:Apply|Execute|Write|Persist|UpdateSource|CreateVaRule)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = sourceChangeApplied;
+  const writePerformed = sourceChangeApplied;
+  const clientNoticeSent = /\bSendClientNotice[A-Za-z0-9_:]*\s*\(/.test(block);
+  const sendPerformed = clientNoticeSent;
+  const observedReadback = assertV350StagedChangePlanObservedReadback(block);
+  assert(routeObserved && safe139BoundaryObserved && block.includes("applyBlocked") && sourceChangeApplied === false && mutationPerformed === false && writePerformed === false && sendPerformed === false && observedReadback.mutationPerformed === false,
+    "SAFE-139 BuildV350StagedChangePlans sourceChangeApplied publishedViewChangeApplied ruleFollowUpApplied commandPlanExecuted must remain false");
 });
 
 const results = runChecks();

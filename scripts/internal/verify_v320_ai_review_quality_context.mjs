@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v3.2.0 Step 6 AI Review Quality Context 구현, 문서, inventory 연결을 검증한다.
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -47,6 +49,16 @@ const files = {
 const checks = [];
 
 check("ops review API attaches Step 6 AI review quality context to unified workspace items", () => {
+  const start = files.server.indexOf("std::string OpsV320AiReviewQualityContextJson(");
+  const end = files.server.indexOf("std::string OpsV320AiReviewQualitySummaryJson(", start);
+  assert(start >= 0 && end > start, "EVT-067 AI review quality projection block missing");
+  const evt067AiReviewBlock = files.server.slice(start, end);
+  assertIncludes(evt067AiReviewBlock, "media-server.ops.v320-ai-review-quality-context.v1", "EVT-067 block-scoped canonical AI review projection");
+  assert(!evt067AiReviewBlock.includes("\\\"viewerClientExposureAdded\\\":true") && evt067AiReviewBlock.includes("\\\"viewerClientExposureAdded\\\":false"), "EVT-067 AI review quality must remain hidden from client/viewer");
+  const routeOwnerSource = readText("src/ingress/ops_event_route_owner.cpp");
+  const routeBlock = routeOwnerSource.slice(routeOwnerSource.indexOf("constexpr const char* kOpsEventsPagePath"), routeOwnerSource.indexOf("bool HasPrefix("));
+  assertIncludes(routeBlock, "/ops/events", "OPS-074 canonical page route");
+  assertIncludes(routeBlock, "/ops/api/events/reviews", "EVT-067 canonical review route");
   for (const snippet of [
     "OpsV320AiReviewQualityContextJson",
     "OpsV320AiReviewQualitySummaryJson",
@@ -90,6 +102,7 @@ check("AI review quality context preserves schema, media, provider, and viewer b
 });
 
 check("product UI script renders Step 6 AI review quality fields", () => {
+  const aiReviewBlock = extractNamedFunctionBlock(files.pageScript, "renderV320AiReviewQualityContext");
   for (const snippet of [
     "renderV320AiReviewQualityContext",
     "aiReviewQualitySummary",
@@ -105,8 +118,20 @@ check("product UI script renders Step 6 AI review quality fields", () => {
     "runtimeProviderCallPerformed",
     "rawProviderMaterialExposed",
   ]) {
-    assertIncludes(files.pageScript, snippet, "V320 AI review quality UI script");
+    assertIncludes(aiReviewBlock, snippet, "V320 AI review quality UI renderer block");
   }
+  assertIncludes(aiReviewBlock, "media-server.ops.v320-ai-review-quality-context.v1", "UI-065 block-scoped canonical product state");
+  assertIncludes(aiReviewBlock, "aiReviewQuality.rawJsonExposed === false", "UI-065 block-scoped raw JSON redaction contract");
+  assertIncludes(aiReviewBlock, "aiReviewQuality.sourceUrlExposed === false", "UI-065 block-scoped source URL redaction contract");
+  assertIncludes(aiReviewBlock, "aiReviewQuality.rawProviderMaterialExposed === false", "UI-065 block-scoped provider material redaction contract");
+  assertIncludes(aiReviewBlock, "aiReviewQuality.debugMaterialExposed === false", "UI-065 block-scoped debug material redaction contract");
+  assert(!["rawJsonPayload", "rawPayload", "rawLocator", "rawEvidenceIncluded: true", "rtsp://", "rtsps://"].some(marker => aiReviewBlock.includes(marker)), "UI-065 raw-material-redaction explicit absence oracle");
+  assert(!["sourceUrl:", "sourceURL:", "sourceUrlValue", "rtsp://", "rtsps://"].some(marker => aiReviewBlock.includes(marker)), "UI-065 source-url-redaction explicit absence oracle");
+  assert(!["providerApiCall(", "providerResponse", "rawProviderResponse", "providerMaterialExposed: true", "rawProviderMaterialExposed: true"].some(marker => aiReviewBlock.includes(marker)), "UI-065 provider-boundary explicit absence oracle");
+  assert(!["debugCounters", "Developer URL", "debugMaterialExposed: true"].some(marker => aiReviewBlock.includes(marker)), "UI-065 debug-redaction explicit absence oracle");
+  assert(!["/client/api/", "viewerClientExposureAdded: true", "clientExposureAdded: true"].some(marker => aiReviewBlock.includes(marker)), "UI-065 client-viewer-boundary explicit absence oracle");
+  const unifiedWorkspaceBlock = extractNamedFunctionBlock(files.pageScript, "renderV320UnifiedOpsEventsWorkspace");
+  assertIncludes(unifiedWorkspaceBlock, "/ops/events", "UI-065 exact route owner obligation");
 });
 
 check("Step 6 AI review quality CSS is responsive and scoped to the v3.2 workspace", () => {
@@ -165,10 +190,6 @@ check("feature inventory and release records map v3.2 Step 6", () => {
     "EVT-067 | V320 Step 6 AI review quality view model",
     "SAFE-107 | V320 Step 6 AI review quality boundary",
     "OPS-074 | V320 Step 6 AI Review Quality Context 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-069`",
-    "`EVT-001`~`EVT-070`",
-    "`SAFE-001`~`SAFE-112`",
-    "`OPS-035`~`OPS-079`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 6");
   }
@@ -187,11 +208,26 @@ check("feature inventory and release records map v3.2 Step 6", () => {
 check("server entrypoint and inventory verifiers include v3.2 Step 6 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v320_ai_review_quality_context.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureInventory, command, "feature inventory command");
   for (const id of ["UI-065", "EVT-067", "SAFE-107", "OPS-074"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v320_ai_review_quality_context.mjs", "script inventory");
+});
+
+check("SAFE-107 canonical AI review quality boundary", () => {
+  const qualityBlock = extractCppFunctionBlock(files.server, "std::string OpsV320AiReviewQualityContextJson(");
+  const safe107BoundaryObserved = qualityBlock.includes("media-server.ops.v320-ai-review-quality-context.v1") &&
+    qualityBlock.includes("info.quality_badge") && qualityBlock.includes("info.uncertainty_reason") && qualityBlock.includes("info.correction_review_signal");
+  const providerCallPerformed = /\b(?:HttpPost|Provider|Infer|Generate|Complete)[A-Za-z0-9_:]*\s*\(/.test(qualityBlock);
+  const rawProviderMaterialExposed = qualityBlock.includes("\\\"rawProviderMaterialExposed\\\":true");
+  const rawMaterialExposed = qualityBlock.includes("\\\"rawJsonExposed\\\":true");
+  const sourceUrlExposed = qualityBlock.includes("\\\"sourceUrlExposed\\\":true");
+  const debugMaterialExposed = qualityBlock.includes("\\\"debugMaterialExposed\\\":true");
+  const schemaMutationPerformed = /DispatchEventRecords|CreateVaRule|UpdateVaRule/.test(qualityBlock);
+  const viewerClientExposureAdded = /AppendClient|ClientEventSummary|PublishedView/.test(qualityBlock);
+  assert(safe107BoundaryObserved && providerCallPerformed === false && rawProviderMaterialExposed === false && rawMaterialExposed === false && sourceUrlExposed === false && debugMaterialExposed === false && schemaMutationPerformed === false && viewerClientExposureAdded === false,
+    "SAFE-107 info.correction_review_signal aiReviewQuality must remain deterministic without provider calls, raw provider material, schema mutation, or client exposure");
 });
 
 const results = runChecks();

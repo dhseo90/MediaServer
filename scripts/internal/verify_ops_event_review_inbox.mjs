@@ -4,6 +4,7 @@
 import fs from "node:fs";
 import process from "node:process";
 
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 import { findChrome, openBrowserPage } from "./ui_visual_smoke_lib.mjs";
 
 const args = parseArgs(process.argv.slice(2));
@@ -13,6 +14,7 @@ const server = [
   "src/ingress/webrtc_http_server.cpp",
   "src/ingress/ops_event_route_owner.cpp",
 ].map(readText).join("\n");
+const reviewInboxBlock = extractCppFunctionBlock(server, "bool OpsEventReviewInboxJson(");
 const pageScript = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
@@ -22,6 +24,7 @@ const serverSh = readText("server.sh");
 const featureInventory = readText("docs/project-feature-test-inventory.md");
 
 check("server stores review state outside event payloads", () => {
+  assertIncludes(reviewInboxBlock, "OpsEventReviewInboxItemJson", "review detail item projection");
   assertIncludes(server, ".media_server.event_reviews.jsonl", "review state storage");
   assertIncludes(server, "separateFromEventRecords", "review storage contract");
   assertIncludes(server, "separateFromEventPostPayload", "review storage contract");
@@ -224,14 +227,53 @@ async function runRoundtripSmoke() {
     assert(json.storage?.separateFromEventPostPayload === true, "missing separate Event POST flag");
     assert(json.storage?.eventPostPayloadChanged === false, "Event POST changed flag must be false");
     const review = json.records?.[0]?.review;
-    assert(review?.eventId === eventId, "listed review eventId mismatch");
+    assert(review?.eventId === eventId, "listed /ops/events review eventId mismatch");
     assert(review?.reviewStatus === "confirmed", "listed review status mismatch");
-    assert(review?.vlmAction?.action === "review-needed", "listed VLM action mismatch");
+    assert(review?.classification === "false-positive", "listed review classification mismatch");
+    assert(review?.note === "[redacted-review-note]", "listed review note mismatch");
+    assert(review?.vlmAction?.action === "review-needed", "listed /ops/events VLM action mismatch");
+    assert(review?.vlmAction?.target === "operatorReviewQuestions", "listed VLM action target mismatch");
+    assert(review?.vlmAction?.note === "[redacted-review-note]", "listed VLM action note mismatch");
     assert(!text.includes("rtsp://internal.example"), "inbox response leaked rtsp URL");
     const status = await requestJson(`/ops/api/events/status?eventId=${encodeURIComponent(eventId)}&limit=1`);
-    assert(!status.text.includes("reviewStatus"), "EventRecord status response contains reviewStatus");
+    assert(observed?.vlmAction?.schema === "media-server.ops.vlm-review-action-state.v1" && status.text.includes("vlmAction") === false, "listed VLM action schema or EventRecord no-action boundary mismatch");
+    assert(!status.text.includes("reviewStatus"), "EventRecord no-write boundary: status response contains reviewStatus");
     assert(!status.text.includes("event-review-update"), "EventRecord status response contains review audit action");
   });
+  for (const action of ["accept", "dismiss"]) {
+    await checkAsync(`VLM ${action} action persists and is independently listed`, async () => {
+      const target = action === "accept" ? "summary" : "falsePositiveHints";
+      const reviewStatus = action === "accept" ? "confirmed" : "dismissed";
+      const classification = action === "accept" ? "true-positive" : "false-positive";
+      const update = await requestJson(`/ops/api/events/reviews/${encodeURIComponent(eventId)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reviewStatus,
+          classification,
+          note: `${action} operator note`,
+          vlmAction: {
+            schema: "media-server.ops.vlm-review-action-state.v1",
+            action,
+            target,
+            note: `${action} VLM note`,
+          },
+        }),
+      });
+      assert(update.json.review?.vlmAction?.action === action, `${action} primary action mismatch`);
+      assert(update.json.review?.vlmAction?.target === target, `${action} primary target mismatch`);
+      const listed = await requestJson(`/ops/api/events/reviews?eventId=${encodeURIComponent(eventId)}`);
+      const observed = listed.json.records?.[0]?.review;
+      assert(observed?.vlmAction?.action === action, `${action} independent list action mismatch`);
+      assert(observed?.vlmAction?.target === target, `${action} independent list target mismatch`);
+      assert(observed?.reviewStatus === reviewStatus, `${action} independent list review status mismatch`);
+      assert(observed?.classification === classification, `${action} independent list classification mismatch`);
+      assert(observed?.note === `${action} operator note`, `${action} independent list note mismatch`);
+      const clientViews = await requestJson("/client/api/views");
+      assert(!clientViews.text.includes("vlmAction"), `${action} client-viewer-boundary leaked vlmAction`);
+      assert(!clientViews.text.includes("event-review-update"), `${action} no-write boundary leaked review audit state to client`);
+    });
+  }
   await checkAsync("event review audit is persisted and redacted", async () => {
     const { text } = await requestJson("/ops/api/audit?limit=20&area=events&action=event-review-update");
     assert(text.includes("event-review-update"), "audit response missing event-review-update action");
@@ -268,6 +310,8 @@ async function runBrowserSmoke() {
           await new Promise(resolve => setTimeout(resolve, 600));
           const inbox = document.querySelector('[data-testid="ops-event-review-inbox"]');
           const rows = document.querySelector('#eventReviewRows');
+          const nav = document.querySelector('nav[aria-label="운영 메뉴"]');
+          const scripts = Array.from(document.scripts).map(node => node.textContent || '').join('\n');
           const text = document.body.innerText || '';
           return {
             ok: Boolean(inbox) &&
@@ -276,6 +320,10 @@ async function runBrowserSmoke() {
               Boolean(document.querySelector('#eventReviewClassFilter')) &&
               Boolean(rows) &&
               text.includes('Event POST payload 변경 없음'),
+            primaryNavHidden: !nav?.querySelector('a[href="/ops/events"]'),
+            evidenceRefsBound: scripts.includes('snapshotPathPresent') &&
+              scripts.includes('clipPathPresent') &&
+              scripts.includes('eventRecordEvidence(item)'),
             forbidden: ['rtsp://', 'rtsps://', 'Developer URL', 'passwordHash', 'tokenHash']
               .filter(item => text.includes(item)),
             overflowX: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
@@ -286,6 +334,8 @@ async function runBrowserSmoke() {
     );
     check("browser review inbox renders with redaction boundary", () => {
       assert(Boolean(result?.ok), `browser inbox contract failed: ${JSON.stringify(result)}`);
+      assert(result?.primaryNavHidden === true, "/ops/events unexpectedly exposed in primary nav");
+      assert(result?.evidenceRefsBound === true, "event review evidence refs renderer is not bound");
       assert((result?.forbidden || []).length === 0, `forbidden text visible: ${(result?.forbidden || []).join(", ")}`);
       assert(Number(result?.overflowX || 0) <= 2, `horizontal overflow: ${result?.overflowX}`);
     });

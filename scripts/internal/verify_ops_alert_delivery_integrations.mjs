@@ -319,7 +319,7 @@ async function runRoundtripSmoke() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ deliveryId: runId, eventId: `${runId}-event` }),
     });
-    assert(Array.isArray(fixture.attempts) && fixture.attempts.length === 1, "fixture attempt missing");
+    assert(Array.isArray(fixture.attempts) && fixture.attempts.length === 1, "/ops/events fixture attempt missing");
     assert(fixture.eventPostPayloadChanged === false, "fixture changed Event POST payload contract");
     assert(JSON.stringify(fixture).includes("secret-token") === false, "fixture response leaked endpoint token");
     const dryRun = await requestJson("/ops/api/alerts/deliveries/dry-run", {
@@ -329,13 +329,13 @@ async function runRoundtripSmoke() {
     });
     assert(dryRun.status === "ops-alert-delivery-dry-run", "dry-run status mismatch");
     assert(dryRun.dryRun === true, "dry-run flag missing");
-    assert(dryRun.externalDeliveryPerformed === false, "dry-run performed external delivery");
+    assert(dryRun.externalDeliveryPerformed === false && Array.isArray(dryRun.payloadPreviews) && Array.isArray(dryRun.attempts), "alert dry-run payload preview and attempt log must remain local; webhook/email/slack external delivery must remain absent");
     assert(dryRun.eventPostPayloadChanged === false, "dry-run changed Event POST payload contract");
     assert(Array.isArray(dryRun.payloadPreviews) && dryRun.payloadPreviews.length === 1, "dry-run payload preview missing");
     assert(Array.isArray(dryRun.attempts) && dryRun.attempts.some(item => item.deliveryId === runId && item.dryRun === true), "dry-run attempt missing");
     assert(JSON.stringify(dryRun).includes("secret-token") === false, "dry-run response leaked endpoint token");
     const listed = await requestJson("/ops/api/alerts/deliveries");
-    assert(Array.isArray(listed.integrations), "list integrations missing");
+    assert(Array.isArray(listed.integrations), "/ops/events list integrations missing");
     assert(listed.integrations.some(item => item.id === runId && item.endpointRedacted === true), "listed delivery missing/redaction missing");
     assert(Array.isArray(listed.attempts) && listed.attempts.some(item => item.deliveryId === runId), "listed attempt missing");
     assert(listed.attempts.some(item => item.deliveryId === runId && item.dryRun === true), "listed dry-run attempt missing");

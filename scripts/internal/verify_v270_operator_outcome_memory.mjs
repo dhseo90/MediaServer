@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v2.7.0 S05 Operator outcome memory와 review/audit 기반 history hint 경계를 검증한다.
+import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import process from "node:process";
@@ -15,6 +17,7 @@ const manualChecklist = readText("docs/manual-ui-checklist.md");
 const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
 const roadmapEvidence = [backlog, inventory, manualChecklist, streamVerification].join("\n");
 
@@ -37,6 +40,15 @@ check("roadmap records V270-S05 as active/completed Operator outcome memory work
 });
 
 check("Ops events API exposes operator outcome memory without EventRecord/schema/media side effects", () => {
+  const start = server.indexOf("std::string OpsOperatorOutcomeMemoryViewJson(");
+  const end = server.indexOf("std::string OpsIncidentReviewProjectionJson(", start);
+  assert(start >= 0 && end > start, "EVT-054 operator outcome memory projection block missing");
+  const evt054ProjectionBlock = server.slice(start, end);
+  assertIncludes(evt054ProjectionBlock, "media-server.ops.operator-outcome-memory.v1", "EVT-054 block-scoped canonical projection");
+  assert(evt054ProjectionBlock.includes("media-server.ops.operator-outcome-memory.v1"), "LAB-078 operator outcome memory schema block readback mismatch");
+  const routeOwnerSource = readText("src/ingress/ops_event_route_owner.cpp");
+  const routeBlock = routeOwnerSource.slice(routeOwnerSource.indexOf("constexpr const char* kOpsEventsPagePath"), routeOwnerSource.indexOf("bool HasPrefix("));
+  assertIncludes(routeBlock, "/ops/api/events/reviews", "EVT-054 canonical review route");
   for (const snippet of [
     "OpsOperatorOutcomeMemoryViewJson",
     "OpsOperatorOutcomeMemoryItemJson",
@@ -82,6 +94,9 @@ check("/ops/events UI renders operator outcome memory history hints", () => {
     "reviewNeededCount",
   ]) {
     assertIncludes(script, snippet, "Ops operator outcome memory script");
+    assertIncludes(extractNamedFunctionBlock(script, "renderOperatorOutcomeMemory"), "operatorOutcomeMemory", "UI-054 block-scoped canonical product state");
+    assert(!["requestJson(","fetch(","method: 'POST'","method: 'PUT'","method: 'DELETE'"].some(marker => extractNamedFunctionBlock(script, "renderOperatorOutcomeMemory").includes(marker)), "UI-054 no-write explicit absence oracle");
+    assertIncludes(script, "/ops/events", "UI-054 canonical route obligation");
   }
   for (const snippet of [
     ".operator-outcome-memory",
@@ -115,7 +130,11 @@ check("smoke, inventory, manual UI, coverage, and command catalog track S05", ()
     assertIncludes(inventory, snippet, "feature inventory S05 row");
   }
   assertIncludes(manualChecklist, "| V270-S05 Operator outcome memory | `UI-054`, `EVT-054`, `LAB-078`, `SAFE-062` |", "manual UI checklist S05 row");
-  assertIncludes(coverageVerifier, "verify-v270-operator-outcome-memory", "feature inventory coverage S05 command");
+  for (const id of ["UI-054", "EVT-054", "LAB-078"]) {
+    assert(implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-v270-operator-outcome-memory", `${id} manifest verifier command drift`);
+  }
+  assertIncludes(coverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(coverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   assertIncludes(streamVerification, "verify-v270-operator-outcome-memory", "stream verification S05 command");
   assertIncludes(serverSh, "verify-v270-operator-outcome-memory", "server.sh S05 command");
   assertIncludes(serverSh, "verify_v270_operator_outcome_memory.mjs", "server.sh S05 script target");

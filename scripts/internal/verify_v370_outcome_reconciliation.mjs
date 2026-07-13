@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { exactBooleanFlagValue, extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -46,6 +47,7 @@ const files = {
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
@@ -92,6 +94,8 @@ check("Ops server builds the v3.7 Outcome Reconciliation model", () => {
   ]) {
     assertIncludes(files.server, snippet, "v370 outcome reconciliation server model");
   }
+  const producerBlock = extractCppFunctionBlock(files.server, "std::string OpsV370OutcomeReconciliationJson(");
+  assertIncludes(producerBlock, "media-server.ops.v370-outcome-reconciliation.v1", "v370 outcome reconciliation schema");
 });
 
 check("Outcome Reconciliation derives from pilot, simulation, source/event/client impact refs", () => {
@@ -124,11 +128,13 @@ check("Outcome Reconciliation derives from pilot, simulation, source/event/clien
 });
 
 check("Outcome Reconciliation preserves pending/not-run and no-mutation boundaries", () => {
-  const block = extractBlock(
-    files.server,
-    "std::string OpsV370OutcomeReconciliationJson",
-    "struct OpsV360RuleVaWhatIfReplayCandidate",
-  );
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV370OutcomeReconciliationJson(");
+  const clientNoticeSendPerformed = exactBooleanFlagValue(block, "clientNoticeSent");
+  assert(clientNoticeSendPerformed === false, "CLIENT-039 client notice send must remain false");
+  assert(exactBooleanFlagValue(block, "noticeQueueWritePerformed") === false, "CLIENT-039 notice queue write must remain false");
+  assert(exactBooleanFlagValue(block, "clientNoticeSent") === false, "CLIENT-039 client notice send must remain false");
+  assert(exactBooleanFlagValue(block, "eventPostPayloadChanged") === false, "CLIENT-039 client/API payload mutation must remain false");
+  assert(exactBooleanFlagValue(block, "viewerClientPayloadChanged") === false, "CLIENT-039 exact viewerClientPayloadChanged reconciliation readback must remain false");
   for (const snippet of [
     "opsOnly",
     "readOnly",
@@ -183,6 +189,7 @@ check("Outcome Reconciliation preserves pending/not-run and no-mutation boundari
     const nearby = block.slice(index, index + 144);
     assert(nearby.includes("false"), `boundary flag must be false: ${flag}`);
   }
+  assert(exactBooleanFlagValue(block, "eventRecordWritePerformed") === false, "eventRecordWritePerformed must remain false");
   for (const forbidden of [
     "ExecuteSourceRecheck",
     "SendClientNotice",
@@ -231,6 +238,10 @@ check("/ops dashboard declares and renders Outcome Reconciliation workspace", ()
     "const renderV370OutcomeReconciliation",
     "const renderV370LimitedSafeExecutionPilot",
   );
+  assertIncludes(scriptBlock, "dashSiteOutcomeReconciliationBoundary", "v370 outcome reconciliation product UI state");
+  assert(!["send(", "sendClientNotice", "deliveryQueueWritePerformed: true"].some(marker => scriptBlock.includes(marker)), "UI-100 no-send explicit absence oracle");
+  assertIncludes(files.uiScript, "/ops/dashboard", "UI-100 canonical route obligation");
+  assertIncludes(files.server, "media-server.ops.v370-outcome-reconciliation.v1", "UI-100 canonical schema obligation");
   for (const snippet of [
     "refreshV370OutcomeReconciliation",
     route,
@@ -328,11 +339,35 @@ check("roadmap, stream verification, inventory, and release records map v3.7 Ste
 check("server entrypoint and inventory verifiers include v3.7 Step 16 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v370_outcome_reconciliation.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const id of ["UI-100", "SRC-062", "EVT-083", "CLIENT-039", "LAB-109", "SAFE-177", "OPS-144"]) assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
+  assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   for (const id of featureIds) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v370_outcome_reconciliation.mjs", "script inventory");
+});
+
+check("SAFE-177 canonical bounded product boundary", () => {
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV370OutcomeReconciliationJson(");
+  const routeObserved = files.server.includes("/ops/api/site-operations/outcome-reconciliation");
+  const safe177BoundaryObserved = block.includes("BuildV370OutcomeReconciliationItems") && block.includes("pilotExecutionPerformed");
+  const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer|RecheckSource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const sendPerformed = /\bSendClientNotice[A-Za-z0-9_:]*\s*\(/.test(block);
+  const automaticApplyPerformed = /\b(?:AutomaticApply|SafeApply|ApplyRule|ApplySource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const fieldSmokeExecuted = /\b(?:ExecuteFieldSmoke|ProbeEndpoint|ContactDevice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\"(?:rawLocator|rawJson|rawProviderResponse|rawEndpoint|rawMaterial|rawDiagnosticJson)\\":true/.test(block);
+  const sourceUrlExposed = /\\"(?:sourceUrlIncluded|sourceUrlExposed)\\":true/.test(block);
+  const credentialMaterialExposed = /\\"(?:credentialMaterialIncluded|credentialMaterialExposed)\\":true/.test(block);
+  const debugMaterialExposed = /\\"(?:debugMaterialIncluded|debugMaterialExposed)\\":true/.test(block);
+  const viewerClientExposureAdded = /\\"(?:viewerClientExposureAdded|viewerClientPayloadChanged)\\":true/.test(block);
+  const mediaPathChanged = /\\"rtspOrWebrtcMediaPathChanged\\":true/.test(block);
+  assert(routeObserved && writePerformed === false && mutationPerformed === false && executionPerformed === false && sendPerformed === false && providerCallPerformed === false, "OPS-144 canonical bounded absence oracle");
+  assert(safe177BoundaryObserved && block.includes("media-server.ops.v370-outcome-reconciliation.v1") && writePerformed === false && mutationPerformed === false && executionPerformed === false && sendPerformed === false && automaticApplyPerformed === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+    "SAFE-177 pilotExecutionPerformed must remain no-execution no-write redacted and client/provider isolated");
 });
 
 const results = runChecks();

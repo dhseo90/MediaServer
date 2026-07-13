@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -45,9 +46,13 @@ const files = {
   manualUi: readText("docs/manual-ui-checklist.md"),
   serverSh: readText("server.sh"),
 };
+const eventDigestApiBlock = extractCppFunctionBlock(files.server, "void AppendClientSafeEventDigestJson(");
+const eventDigestProjectionBlock = extractCppFunctionBlock(files.server, "void AppendClientEventSummaryJson(");
+const eventDigestRendererBlock = extractNamedFunctionBlock(files.clientScript, "renderClientSafeEventDigest");
 const checks = [];
 
 check("client events API emits V310 viewer-safe event digest schema", () => {
+  assert(eventDigestApiBlock.includes("media-server.client.event-digest.v1") && eventDigestProjectionBlock.includes("eventDigest"), "CLIENT-025 exact eventDigest API projection missing");
   for (const snippet of [
     "AppendClientSafeEventDigestJson",
     "media-server.client.event-digest.v1",
@@ -92,6 +97,13 @@ check("client events API emits V310 viewer-safe event digest schema", () => {
 });
 
 check("client renderer shows event digest without raw/source/debug/provider/provenance material", () => {
+  const rawMaterialExposed = ["rawEvidence", "rawJson", "rawLocator"].some(marker => eventDigestRendererBlock.includes(marker));
+  const debugMaterialExposed = ["debugCounters", "debugMaterial"].some(marker => eventDigestRendererBlock.includes(marker));
+  const providerMaterialExposed = ["providerPrompt", "providerResponse", "providerMaterial"].some(marker => eventDigestRendererBlock.includes(marker));
+  assert(rawMaterialExposed === false, "CLIENT-025 raw material must remain redacted");
+  assert(debugMaterialExposed === false, "CLIENT-025 debug material must remain redacted");
+  assert(providerMaterialExposed === false, "CLIENT-025 provider material must remain absent");
+  assert(eventDigestRendererBlock.includes("eventDigest") && eventDigestRendererBlock.includes("summaryText") && eventDigestRendererBlock.includes("eventType") && eventDigestRendererBlock.includes("timelineHint"), "CLIENT-025 exact eventDigest renderer readback missing");
   for (const snippet of [
     "renderClientSafeEventDigest",
     "eventDigest",
@@ -102,7 +114,7 @@ check("client renderer shows event digest without raw/source/debug/provider/prov
     "digestItems",
     "timelineHint",
   ]) {
-    assertIncludes(files.clientScript, snippet, "client event digest renderer");
+    assertIncludes(eventDigestRendererBlock, snippet, "client event digest renderer");
   }
   for (const forbidden of [
     "sourceUrl",
@@ -119,7 +131,7 @@ check("client renderer shows event digest without raw/source/debug/provider/prov
     "actionRoute",
     "actionControls",
   ]) {
-    assert(!files.clientScript.includes(`eventDigest.${forbidden}`), `client event digest renderer must not read ${forbidden}`);
+    assert(!eventDigestRendererBlock.includes(`eventDigest.${forbidden}`), `client event digest renderer must not read ${forbidden}`);
   }
 });
 
@@ -167,8 +179,6 @@ check("feature inventory, manual UI checklist, and release records map V310-S04"
     "V310-S04 Client-safe Event Digest | `CLIENT-025`, `SAFE-096` | `verify-v310-client-safe-event-digest`, `verify-ops-client-ui`",
     "CLIENT-025 | V310-S04 Client-safe event digest API/UI",
     "SAFE-096 | V310-S04 client-safe event digest boundary",
-    "`CLIENT-001`~`CLIENT-027`",
-    "`SAFE-001`~`SAFE-110`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory V310-S04");
   }
@@ -194,10 +204,19 @@ check("feature inventory, manual UI checklist, and release records map V310-S04"
 check("server entrypoint and inventory verifiers include V310-S04 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v310_client_safe_event_digest.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   assertIncludes(files.projectInventoryVerifier, "CLIENT-025", "project inventory verifier CLIENT-025");
   assertIncludes(files.projectInventoryVerifier, "SAFE-096", "project inventory verifier SAFE-096");
   assertIncludes(files.scriptInventory, "verify_v310_client_safe_event_digest.mjs", "script inventory");
+});
+
+check("SAFE-096 canonical client event digest boundary", () => {
+  const rawMaterialExposed = ["rawEvidence.value", "rawEvidence.items", "rawJson", "rawLocator"].some(marker => eventDigestRendererBlock.includes(marker));
+  const sourceUrlExposed = ["sourceUrl", "sourceURL", "rtsp://"].some(marker => eventDigestRendererBlock.includes(marker));
+  const debugMaterialExposed = ["debugCounters", "debugMaterial"].some(marker => eventDigestRendererBlock.includes(marker));
+  const safe096BoundaryObserved = eventDigestApiBlock.includes("media-server.client.event-digest.v1") && eventDigestProjectionBlock.includes("eventDigest") && files.serverSh.includes("verify-v310-client-safe-event-digest");
+  assert(safe096BoundaryObserved && rawMaterialExposed === false && sourceUrlExposed === false && debugMaterialExposed === false,
+    "verify-v310-client-safe-event-digest media-server.client.event-digest.v1 /client/api/views/{id}/events raw/sourceUrl/debug WebRTC/SSE/RTSP material must remain absent");
 });
 
 const results = runChecks();

@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v3.3.0 Step 9 Source Reliability Search and Metrics 구현, UI, 문서, inventory 연결을 검증한다.
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -51,6 +53,7 @@ const files = {
 const checks = [];
 
 check("Ops server builds the v3.3 source reliability search and metrics read model", () => {
+  assert(route === "/ops/api/source-registry/reliability-search-metrics", "OPS-088 canonical route drift");
   for (const snippet of [
     "struct OpsV330SourceReliabilitySearchMetricItem",
     "struct OpsV330SourceReliabilitySavedView",
@@ -179,6 +182,16 @@ check("/ops/sources renders Step 9 search filters, saved views, metrics, and bou
     "data-source-reliability-metric",
   ]) {
     assertIncludes(files.opsSourcesScript + files.server, snippet, "ops sources source reliability search metrics UI");
+    assertIncludes(extractNamedFunctionBlock(files.opsSourcesScript, "renderSourceReliabilitySearchMetrics"), "savedViewWritePerformed", "UI-073 block-scoped canonical product state");
+    const savedViewWritePerformed = ["requestJson(", "fetch(", "method: 'POST'", "method: 'PUT'", "method: 'DELETE'"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderSourceReliabilitySearchMetrics").includes(marker));
+    assert(savedViewWritePerformed === false, "UI-073 saved reliability view must remain read-only");
+    assert(!["requestJson(","fetch(","method: 'POST'","method: 'PUT'","method: 'DELETE'"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderSourceReliabilitySearchMetrics").includes(marker)), "UI-073 no-write explicit absence oracle");
+    assert(!["rawJson","rawLocator","rawEvidenceIncluded: true","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderSourceReliabilitySearchMetrics").includes(marker)), "UI-073 raw-material-redaction explicit absence oracle");
+    assert(!["sourceUrl","sourceURL","rtsp://","rtsps://"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderSourceReliabilitySearchMetrics").includes(marker)), "UI-073 source-url-redaction explicit absence oracle");
+    assert(!["debugCounters","Developer URL","debugMaterialExposed: true"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderSourceReliabilitySearchMetrics").includes(marker)), "UI-073 debug-redaction explicit absence oracle");
+    assert(!["/client/api/","viewerClientExposureAdded: true","clientExposureAdded: true"].some(marker => extractNamedFunctionBlock(files.opsSourcesScript, "renderSourceReliabilitySearchMetrics").includes(marker)), "UI-073 client-viewer-boundary explicit absence oracle");
+    assertIncludes(files.opsSourcesScript, "/ops/sources", "UI-073 canonical route obligation");
+    assertIncludes(files.server, "media-server.ops.v330-source-reliability-search-metrics.v1", "UI-073 canonical schema obligation");
   }
   for (const snippet of [
     ".source-reliability-search-grid",
@@ -242,10 +255,10 @@ check("feature inventory and release records map v3.3 Step 9", () => {
     "SRC-039 | V330 Step 9 source reliability search metrics view model",
     "SAFE-121 | V330 Step 9 source reliability search metrics boundary",
     "OPS-088 | V330 Step 9 Source Reliability Search and Metrics 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-074`",
-    "`SRC-001`~`SRC-040`",
-    "`SAFE-001`~`SAFE-123`",
-    "`OPS-035`~`OPS-090`",
+    "`UI-001`~`UI-115`",
+    "`SRC-001`~`SRC-068`",
+    "`SAFE-001`~`SAFE-216`",
+    "`OPS-035`~`OPS-184`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.3 Step 9");
   }
@@ -264,15 +277,33 @@ check("feature inventory and release records map v3.3 Step 9", () => {
 check("server entrypoint and inventory verifiers include v3.3 Step 9 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v330_source_reliability_search_metrics.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage verifier canonical manifest validation");
+  assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier command coverage summary");
   for (const id of ["UI-073", "SRC-039", "SAFE-121", "OPS-088"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-018`, `UI-022`~`UI-074`", "project inventory UI range");
-  assertIncludes(files.projectInventoryVerifier, "`SRC-001`~`SRC-040`", "project inventory SRC range");
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-123`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-090`", "project inventory OPS range");
+  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-115`", "project inventory UI range");
+  assertIncludes(files.projectInventoryVerifier, "`SRC-001`~`SRC-068`", "project inventory SRC range");
+  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-216`", "project inventory SAFE range");
+  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-184`", "project inventory OPS range");
   assertIncludes(files.scriptInventory, "verify_v330_source_reliability_search_metrics.mjs", "script inventory");
+});
+
+check("SAFE-121 canonical source reliability search metrics boundary", () => {
+  const metricsBlock = extractCppFunctionBlock(files.server, "std::string OpsV330SourceReliabilitySearchMetricsJson(");
+  const reliabilitySearchMetricsRouteObserved = route === "/ops/api/source-registry/reliability-search-metrics";
+  const safe121BoundaryObserved = reliabilitySearchMetricsRouteObserved && metricsBlock.includes("BuildV330SourceReliabilitySearchMetrics") && metricsBlock.includes("media-server.ops.v330-source-reliability-search-metrics.v1") && metricsBlock.includes("BuildV330SourceReliabilitySavedViews");
+  const savedViewOrSourceWritePerformed = /\b(?:SaveView|CreateSource|UpdateSource|DeleteSource|Write|Persist)[A-Za-z0-9_:]*\s*\(/.test(metricsBlock);
+  const rawMaterialExposed = metricsBlock.includes("\\\"rawJsonExposed\\\":true");
+  const rawLocatorExposed = metricsBlock.includes("\\\"rawLocatorExposed\\\":true");
+  const sourceUrlExposed = metricsBlock.includes("\\\"sourceUrlExposed\\\":true");
+  const debugMaterialExposed = metricsBlock.includes("\\\"debugMaterialExposed\\\":true");
+  const credentialMaterialExposed = metricsBlock.includes("\\\"credentialMaterialExposed\\\":true");
+  const schemaMutationPerformed = /DispatchEventRecords|CreateVaRule|UpdateVaRule/.test(metricsBlock);
+  const viewerClientExposureAdded = /AppendClient|ClientEventSummary|PublishedView/.test(metricsBlock);
+  const automaticRecoveryPerformed = /\b(?:Recover|Restore|Execute)[A-Za-z0-9_:]*\s*\(/.test(metricsBlock);
+  assert(safe121BoundaryObserved && savedViewOrSourceWritePerformed === false && rawMaterialExposed === false && rawLocatorExposed === false && sourceUrlExposed === false && debugMaterialExposed === false && credentialMaterialExposed === false && schemaMutationPerformed === false && viewerClientExposureAdded === false && automaticRecoveryPerformed === false,
+    "SAFE-121 source-reliability-search-metrics must remain read-only without saved/source writes, raw credential, schema/client mutation, or recovery");
 });
 
 const results = runChecks();

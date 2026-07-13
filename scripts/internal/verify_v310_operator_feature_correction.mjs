@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v3.1.0 S06 Operator Feature Correction 구현, UI/API, 문서, inventory 연결을 검증한다.
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -65,6 +67,14 @@ check("ops events page exposes V310 operator feature correction UI shell", () =>
 });
 
 check("ops review state persists correction, aliases, and reanalysis request separately", () => {
+  const start = files.server.indexOf("std::string OpsEventReviewStateJson(");
+  const end = files.server.indexOf("OpsEventReviewState DefaultOpsEventReviewState(", start);
+  assert(start >= 0 && end > start, "EVT-061 operator correction state block missing");
+  const evt061ReviewStateBlock = files.server.slice(start, end);
+  assertIncludes(evt061ReviewStateBlock, "correctedFeatureLabel", "EVT-061 block-scoped canonical correction state");
+  const routeOwnerSource = readText("src/ingress/ops_event_route_owner.cpp");
+  const routeBlock = routeOwnerSource.slice(routeOwnerSource.indexOf("constexpr const char* kOpsEventsPagePath"), routeOwnerSource.indexOf("bool HasPrefix("));
+  assertIncludes(routeBlock, "/ops/api/events/reviews", "EVT-061 canonical review route");
   for (const snippet of [
     "corrected_feature_label",
     "feature_aliases",
@@ -141,6 +151,11 @@ check("product UI renders correction controls and saves them through review stat
     "reanalysisReason:",
   ]) {
     assertIncludes(files.pageScript, snippet, "operator correction product UI script");
+    assertIncludes(extractNamedFunctionBlock(files.pageScript, "renderV310OperatorFeatureCorrection"), "media-server.ops.operator-feature-correction.v1", "UI-061 block-scoped canonical product state");
+    assert(!["requestJson(","fetch(","method: 'POST'","method: 'PUT'","method: 'DELETE'"].some(marker => extractNamedFunctionBlock(files.pageScript, "renderV310OperatorFeatureCorrection").includes(marker)), "UI-061 no-write explicit absence oracle");
+    assert(!["/client/api/","viewerClientExposureAdded: true","clientExposureAdded: true"].some(marker => extractNamedFunctionBlock(files.pageScript, "renderV310OperatorFeatureCorrection").includes(marker)), "UI-061 client-viewer-boundary explicit absence oracle");
+    assertIncludes(files.pageScript, "/ops/events", "UI-061 canonical route obligation");
+    assertIncludes(files.pageScript, "correctedFeatureLabel", "UI-061 canonical field obligation");
   }
 });
 
@@ -201,10 +216,6 @@ check("feature inventory, manual UI checklist, and release records map V310-S06"
     "EVT-061 | V310-S06 operator feature correction state",
     "SAFE-098 | V310-S06 operator correction boundary",
     "OPS-065 | V310-S06 Operator Feature Correction 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-061`",
-    "`EVT-001`~`EVT-062`",
-    "`SAFE-001`~`SAFE-101`",
-    "`OPS-035`~`OPS-068`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory V310-S06");
   }
@@ -231,12 +242,21 @@ check("feature inventory, manual UI checklist, and release records map V310-S06"
 check("server entrypoint and inventory verifiers include V310-S06 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v310_operator_feature_correction.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureInventory, command, "feature inventory command");
   assertIncludes(files.projectInventoryVerifier, "UI-061", "project inventory verifier UI-061");
   assertIncludes(files.projectInventoryVerifier, "EVT-061", "project inventory verifier EVT-061");
   assertIncludes(files.projectInventoryVerifier, "SAFE-098", "project inventory verifier SAFE-098");
   assertIncludes(files.projectInventoryVerifier, "OPS-065", "project inventory verifier OPS-065");
   assertIncludes(files.scriptInventory, "verify_v310_operator_feature_correction.mjs", "script inventory");
+});
+
+check("SAFE-098 canonical operator correction boundary", () => {
+  const correctionBlock = extractCppFunctionBlock(files.server, "std::string OpsV310OperatorFeatureCorrectionViewJson(");
+  const safe098BoundaryObserved = correctionBlock.includes("media-server.ops.operator-feature-correction.v1") &&
+    correctionBlock.includes("\\\"viewerClientExposureAdded\\\":false") &&
+    files.serverSh.includes("verify-v310-operator-feature-correction");
+  assert(safe098BoundaryObserved,
+    "verify-v310-operator-feature-correction must bind the Ops-only correction schema and viewer false-state");
 });
 
 const results = runChecks();

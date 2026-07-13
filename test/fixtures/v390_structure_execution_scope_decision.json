@@ -25,7 +25,7 @@
   "actualGraph": {
     "path": "test/fixtures/v390_actual_module_dependency_graph.json",
     "schema": "media-server.v390-actual-module-dependency-graph.v1",
-    "sha256": "c284b805e4fe2dd253b4556dcac3255093e34fb9b22e1e78ed3c83aaad264bbc",
+    "sha256": "acfe2cfa0a3e8ea167bbc07dbe490fbb4e3056e9fb87acec6451ac743123cf68",
     "productionFiles": 148,
     "declaredCppSources": 74,
     "defaultActiveCppSources": 73,
@@ -33,7 +33,7 @@
     "cmakeTargets": 1,
     "targetViolationDirections": 25,
     "largestSccOwners": 8,
-    "webrtcHttpServerLines": 42897,
+    "webrtcHttpServerLines": 42994,
     "productUiPageScriptsLines": 10217
   },
   "riskRecord": {
@@ -48,7 +48,7 @@
     "actualFactors": [
       {"id":"target-violation-debt","actual":25,"threshold":0,"result":"approved-with-hard-gates"},
       {"id":"strongly-connected-owner-debt","actual":8,"threshold":1,"result":"approved-with-hard-gates"},
-      {"id":"largest-mixed-owner-file","actual":42897,"threshold":15000,"result":"approved-with-hard-gates"},
+      {"id":"largest-mixed-owner-file","actual":42994,"threshold":15000,"result":"approved-with-hard-gates"},
       {"id":"internal-target-separation","actual":false,"required":true,"result":"approved-with-hard-gates"}
     ]
   },

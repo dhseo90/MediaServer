@@ -107,7 +107,16 @@
     {
       "group": "live-event-metadata",
       "path": "docs/live-event-metadata-contracts.md",
-      "sha256": "c71ac2c4f59a0192c66cd73bab86dd5c3249f9ce2cdc5789a67a2f157458ccd6"
+      "sha256": "c71ac2c4f59a0192c66cd73bab86dd5c3249f9ce2cdc5789a67a2f157458ccd6",
+      "verificationMode": "historical-release-evidence",
+      "frozenRelease": "v2.9.0",
+      "sourceCommit": "a9d321c285251a32f017146eead5b197915a6fc8",
+      "evidencePath": "test/fixtures/v290_final_contract_freeze_evidence.json"
+    },
+    {
+      "group": "live-event-metadata",
+      "path": "test/fixtures/v290_final_contract_freeze_evidence.json",
+      "sha256": "fe384daa0870942c9df1be6bf624b77ce0d86eacba971f038bb47200264dbfa8"
     },
     {
       "group": "live-event-metadata",
@@ -132,12 +141,20 @@
     {
       "group": "source-published-view",
       "path": "include/ingress/source_view_registry.h",
-      "sha256": "df025688df521b7b82125bb8fbfe472cde144280fc98121d7e8b482ba9451937"
+      "sha256": "df025688df521b7b82125bb8fbfe472cde144280fc98121d7e8b482ba9451937",
+      "verificationMode": "historical-release-evidence",
+      "frozenRelease": "v2.9.0",
+      "sourceCommit": "a9d321c285251a32f017146eead5b197915a6fc8",
+      "evidencePath": "test/fixtures/v290_final_contract_freeze_evidence.json"
     },
     {
       "group": "source-published-view",
       "path": "src/ingress/source_view_registry.cpp",
-      "sha256": "082b039451014d33db7891eaec13e87917c8cf15343ed9a27083e2c17659c9ec"
+      "sha256": "082b039451014d33db7891eaec13e87917c8cf15343ed9a27083e2c17659c9ec",
+      "verificationMode": "historical-release-evidence",
+      "frozenRelease": "v2.9.0",
+      "sourceCommit": "a9d321c285251a32f017146eead5b197915a6fc8",
+      "evidencePath": "test/fixtures/v290_final_contract_freeze_evidence.json"
     },
     {
       "group": "rule-profile-payload",

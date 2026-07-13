@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v3.1.0 S03 Replay Timeline UI 구현, 문서, inventory, verifier 연결을 검증한다.
+import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -40,6 +42,7 @@ const files = {
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
@@ -114,6 +117,10 @@ check("product UI script renders V310 replay timeline cards", () => {
     "debugMaterialExposed",
   ]) {
     assertIncludes(files.pageScript, snippet, "V310 replay timeline UI script");
+    assertIncludes(extractNamedFunctionBlock(files.pageScript, "renderV310ReplayTimelineUi"), "media-server.ops.v310-replay-timeline-ui.v1", "UI-060 block-scoped canonical product state");
+    assert(extractNamedFunctionBlock(files.pageScript, "renderV310ReplayTimelineUi").includes("replayTimeline.sourceUrlExposed === false &&") && extractNamedFunctionBlock(files.pageScript, "renderV310ReplayTimelineUi").includes("replayTimeline.rawJsonExposed === false &&") && extractNamedFunctionBlock(files.pageScript, "renderV310ReplayTimelineUi").includes("replayTimeline.debugMaterialExposed === false"), "UI-060 redaction false-state oracle");
+    assert(!["/client/api/","viewerClientExposureAdded: true","clientExposureAdded: true"].some(marker => extractNamedFunctionBlock(files.pageScript, "renderV310ReplayTimelineUi").includes(marker)), "UI-060 client-viewer-boundary explicit absence oracle");
+    assertIncludes(files.pageScript, "/ops/events", "UI-060 canonical route obligation");
   }
 });
 
@@ -186,11 +193,21 @@ check("feature inventory and release records map V310-S03 to UI-060, OPS-063, an
 check("server entrypoint and inventory verifiers include V310-S03 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v310_replay_timeline_ui.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage verifier");
+  for (const id of ["UI-060", "OPS-063", "SAFE-095"]) assert(files.implementationManifest.items?.find(item => item.id === id)?.verifierEvidence?.command === command, `implementation manifest ${id} missing ${command}`);
   assertIncludes(files.projectInventoryVerifier, "UI-060", "project inventory verifier UI-060");
   assertIncludes(files.projectInventoryVerifier, "OPS-063", "project inventory verifier OPS-063");
   assertIncludes(files.projectInventoryVerifier, "SAFE-095", "project inventory verifier SAFE-095");
   assertIncludes(files.scriptInventory, "verify_v310_replay_timeline_ui.mjs", "script inventory");
+});
+
+check("SAFE-095 canonical replay timeline boundary", () => {
+  const replayBlock = extractNamedFunctionBlock(files.pageScript, "renderV310ReplayTimelineUi");
+  const redactionFalseStateObserved = replayBlock.includes("replayTimeline.sourceUrlExposed === false &&") && replayBlock.includes("replayTimeline.rawJsonExposed === false &&") && replayBlock.includes("replayTimeline.debugMaterialExposed === false");
+  const viewerClientExposureAdded = replayBlock.includes("/client/api/");
+  const safe095BoundaryObserved = replayBlock.includes("replayTimeline") && files.server.includes("/ops/events");
+  assert(safe095BoundaryObserved && redactionFalseStateObserved && viewerClientExposureAdded === false,
+    "verify-v310-replay-timeline-ui replayTimeline must bind redaction false-state and remain Ops-only");
 });
 
 const results = runChecks();

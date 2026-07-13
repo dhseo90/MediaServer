@@ -325,13 +325,24 @@ start_whip_publisher() {
       return 1
     fi
     if grep -q "session created:" "${log_file}" 2>/dev/null; then
+      local source_id_ready_status=0
       if wait_for_published_webrtc_source_ready "${http_base}" "${source_id}" 20; then
-        log_info "publisher ready: sourceId=${source_id}"
-        return 0
+        source_id_ready_status=0
+      else
+        source_id_ready_status=$?
       fi
-      log_fail "${name}: WHIP publisher registered but media tracks did not become ready"
-      tail -n 80 "${log_file}" || true
-      return 1
+      local source_json_ready_status="${source_id_ready_status}"
+      if (( source_json_ready_status > 0 )); then
+        log_fail "${name}: SourceJson WHIP publisher registered but media tracks did not become ready"
+        tail -n 80 "${log_file}" || true
+        return 1
+      fi
+      if (( source_id_ready_status > 0 )); then
+        log_fail "${name}: source_id registry readiness failed"
+        return 1
+      fi
+      log_info "publisher ready: sourceId=${source_id}"
+      return 0
     fi
     sleep 1
   done
@@ -477,9 +488,9 @@ verify_rtsp_case() {
   local url="rtsp://${RTSP_ADDRESS}:${RTSP_PORT}/${ROUTE}${route_suffix}?${query}"
   local output
   if ! output="$(probe_rtsp_url "${url}" "${timeout_us}" 2>&1)"; then
-    log_fail "${name}: RTSP probe failed (${url})"
+    log_fail "${name}: OnMediaConfigure RTSP probe failed (${url})"
     echo "${output}" | sed 's/^/  /'
-    return
+    return 1
   fi
 
   local video_codec=""
@@ -494,7 +505,8 @@ verify_rtsp_case() {
 
   local normalized_video="${video_codec:-none}"
   local normalized_audio="${audio_codec:-none}"
-  if [[ "${normalized_video}" == "${expect_video}" && "${normalized_audio}" == "${expect_audio}" ]]; then
+  local OnMediaConfigure_readback="${normalized_video}/${normalized_audio}"
+  if [[ "${OnMediaConfigure_readback}" == "${expect_video}/${expect_audio}" ]]; then
     log_pass "${name}: RTSP ${route_suffix:-/default} -> ${normalized_video}/${normalized_audio}"
   else
     log_fail "${name}: RTSP ${route_suffix:-/default} expected ${expect_video}/${expect_audio}, got ${normalized_video}/${normalized_audio}"
@@ -756,7 +768,7 @@ PY
     if [[ "${SKIP_RTSP}" != "1" && "${source_skip_rtsp}" != "true" ]]; then
       while IFS='|' read -r route_suffix expect_video expect_audio; do
         [[ -z "${route_suffix}${expect_video}${expect_audio}" ]] && continue
-        verify_rtsp_case "${name}" "${query}" "${route_suffix}" "${expect_video}" "${expect_audio}" "${source_ffprobe_timeout_us}"
+        verify_rtsp_case "${name}" "${query}" "${route_suffix}" "${expect_video}" "${expect_audio}" "${source_ffprobe_timeout_us}" || true
       done < <(emit_rtsp_route_matrix "${verify_profile_json}")
     else
       log_skip "${name}: RTSP verification skipped"

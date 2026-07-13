@@ -15,12 +15,14 @@ Usage:
 
 Options:
   --http-base <url>  실행 중인 서버 HTTP base입니다. 기본 http://127.0.0.1:8081.
+  --token <value>    token auth 서버의 관리자 bearer token입니다.
   -h, --help         도움말 출력
 `);
 }
-assertKnownOptions(rawArgs, ["http-base", "h", "help"]);
+assertKnownOptions(rawArgs, ["http-base", "token", "h", "help"]);
 const args = parseArgs(rawArgs);
 const httpBase = String(args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
+const bearerToken = String(args.token || "").trim();
 
 const initial = await loadGraph();
 assertCleanGraph("initial", initial);
@@ -75,7 +77,7 @@ try {
   created.push({ type: "rule", id: eventRuleId });
   console.log(`[pass] relationship-fixture event-template ${eventRuleId}`);
 
-  await expectHttpError(
+  const missingProfileError = await expectHttpError(
     `/lab/analysis/va-rules/${encodeURIComponent(invalidVaRuleId)}`,
     {
       method: "PUT",
@@ -87,7 +89,7 @@ try {
   );
   console.log("[pass] missing-profile rejected");
 
-  await expectHttpError(
+  const missingTemplateError = await expectHttpError(
     `/lab/analysis/va-rules/${encodeURIComponent(invalidVaRuleId)}`,
     {
       method: "PUT",
@@ -97,9 +99,12 @@ try {
     400,
     "vaRule templateStart.ruleId does not exist",
   );
+  const missingReferenceRejectList = await requestJson("/lab/analysis/va-rules");
+  const missingReferenceRegistryWritePerformed = (missingReferenceRejectList.vaRules || []).some(item => String(item.id) === String(invalidVaRuleId));
+  assertRuntimeRelationship(missingProfileError?.error?.includes("vaRule analysis.profileId does not exist") && missingTemplateError?.error?.includes("vaRule templateStart.ruleId does not exist") && missingReferenceRegistryWritePerformed === false, "RULE-093 /ops/rules missing profile/template reject registryWrite no-write absence readback");
   console.log("[pass] missing-template rejected");
 
-  await expectHttpError(
+  const inactiveProfileError = await expectHttpError(
     `/lab/analysis/va-rules/${encodeURIComponent(invalidVaRuleId)}`,
     {
       method: "PUT",
@@ -111,7 +116,7 @@ try {
   );
   console.log("[pass] inactive-profile rejected");
 
-  await expectHttpError(
+  const inactiveTemplateError = await expectHttpError(
     `/lab/analysis/va-rules/${encodeURIComponent(invalidVaRuleId)}`,
     {
       method: "PUT",
@@ -121,6 +126,9 @@ try {
     400,
     "vaRule templateStart.ruleId is inactive",
   );
+  const inactiveReferenceRejectList = await requestJson("/lab/analysis/va-rules");
+  const inactiveReferenceRegistryWritePerformed = (inactiveReferenceRejectList.vaRules || []).some(item => String(item.id) === String(invalidVaRuleId));
+  assertRuntimeRelationship(inactiveProfileError?.error?.includes("vaRule analysis.profileId is inactive") && inactiveTemplateError?.error?.includes("vaRule templateStart.ruleId is inactive") && inactiveReferenceRegistryWritePerformed === false, "RULE-094 /ops/rules inactive profile/template reject registryWrite no-write absence readback");
   console.log("[pass] inactive-template rejected");
 
   await requestJson(`/lab/analysis/rules/${encodeURIComponent(classMismatchTemplateId)}`, {
@@ -131,7 +139,7 @@ try {
   created.push({ type: "rule", id: classMismatchTemplateId });
   console.log(`[pass] relationship-fixture class-mismatch-template ${classMismatchTemplateId}`);
 
-  await expectHttpError(
+  const classRuleMismatchError = await expectHttpError(
     `/lab/analysis/va-rules/${encodeURIComponent(invalidVaRuleId)}`,
     {
       method: "PUT",
@@ -157,7 +165,7 @@ try {
   created.push({ type: "profile", id: classMismatchProfileId });
   console.log(`[pass] relationship-fixture class-mismatch-profile ${classMismatchProfileId}`);
 
-  await expectHttpError(
+  const classProfileMismatchError = await expectHttpError(
     `/lab/analysis/va-rules/${encodeURIComponent(invalidVaRuleId)}`,
     {
       method: "PUT",
@@ -173,6 +181,9 @@ try {
     400,
     "vaRule profile classes must include template analysis.classes",
   );
+  const classMismatchRejectList = await requestJson("/lab/analysis/va-rules");
+  const classMismatchRegistryWritePerformed = (classMismatchRejectList.vaRules || []).some(item => String(item.id) === String(invalidVaRuleId));
+  assertRuntimeRelationship(classRuleMismatchError?.error?.includes("vaRule analysis.classes must include template analysis.classes") && classProfileMismatchError?.error?.includes("vaRule profile classes must include template analysis.classes") && classMismatchRegistryWritePerformed === false, "RULE-101 /ops/rules analysis.classes/profile classes mismatch reject registryWrite no-write absence readback");
   console.log("[pass] class-mismatch profile classes rejected");
 
   await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(mismatchedVaRuleId)}`, {
@@ -198,7 +209,7 @@ try {
     `PublishedView ${mismatchedViewId} vaRule ${mismatchedVaRuleId} source mismatch`,
   );
 
-  await expectHttpError(
+  const sourceMismatchError = await expectHttpError(
     `/client/api/views/${encodeURIComponent(mismatchedViewId)}/webrtc/session`,
     {
       method: "POST",
@@ -208,6 +219,7 @@ try {
     400,
     "vaRule source must match PublishedView source",
   );
+  assertRuntimeRelationship(sourceMismatchError?.error?.includes("vaRule source must match PublishedView source"), "RULE-095 /ops/rules ClientVaRuleSourceMatchesView source mismatch rejection readback");
   console.log("[pass] source-mismatch client va-rule session rejected");
 
   await deleteCreatedItem({ type: "viewRestore", id: mismatchedViewId, payload: viewRestorePayload(mismatchedView) });
@@ -231,7 +243,7 @@ try {
     inactiveViewGraph,
     `PublishedView ${inactiveFixtureViewId} is inactive for vaRule ${inactiveViewVaRuleId}`,
   );
-  await expectHttpError(
+  const inactiveViewError = await expectHttpError(
     `/client/api/views/${encodeURIComponent(inactiveFixtureViewId)}/webrtc/session`,
     {
       method: "POST",
@@ -241,6 +253,7 @@ try {
     404,
     "PublishedView not found",
   );
+  assertRuntimeRelationship(inactiveViewError?.error?.includes("PublishedView not found"), "RULE-096 inactive PublishedView rejection readback");
   console.log("[pass] inactive-view client va-rule session rejected");
   await deleteCreatedItem({ type: "viewRestore", id: inactiveFixtureViewId, payload: viewRestorePayload(inactiveFixture.view) });
   await deleteCreatedItem({ type: "vaRule", id: inactiveViewVaRuleId });
@@ -269,7 +282,7 @@ try {
     inactiveChannelGraph,
     `PublishedView ${inactiveFixtureViewId} source ${inactiveFixture.source.sourceId} is inactive for vaRule ${inactiveChannelVaRuleId}`,
   );
-  await expectHttpError(
+  const inactiveChannelError = await expectHttpError(
     `/client/api/views/${encodeURIComponent(inactiveFixtureViewId)}/webrtc/session`,
     {
       method: "POST",
@@ -279,6 +292,7 @@ try {
     404,
     "PublishedView source is not available",
   );
+  assertRuntimeRelationship(inactiveChannelError?.error?.includes("PublishedView source is not available"), "RULE-096 /ops/rules inactive-channel rejection readback");
   console.log("[pass] inactive-channel client va-rule session rejected");
   await deleteCreatedItem({ type: "sourceRestore", id: inactiveFixture.source.sourceId, payload: sourceRestorePayload(inactiveFixture.source) });
   await deleteCreatedItem({ type: "viewRestore", id: inactiveFixtureViewId, payload: viewRestorePayload(inactiveFixture.view) });
@@ -292,7 +306,7 @@ try {
   created.push({ type: "vaRule", id: notAllowedVaRuleId });
   const notAllowedGraph = await loadGraph();
   expectVaRuleNotAllowed(notAllowedGraph, notAllowedVaRuleId, inactiveFixtureViewId);
-  await expectHttpError(
+  const notAllowedError = await expectHttpError(
     `/client/api/views/${encodeURIComponent(inactiveFixtureViewId)}/webrtc/session`,
     {
       method: "POST",
@@ -302,6 +316,7 @@ try {
     400,
     "allowed vaRule is required for va-rule mode",
   );
+  assertRuntimeRelationship(notAllowedError?.error?.includes("allowed vaRule is required for va-rule mode"), "RULE-098 /ops/rules allowedRuleIds rejection readback");
   console.log("[pass] va-rule-not-allowed client session rejected");
   await deleteCreatedItem({ type: "vaRule", id: notAllowedVaRuleId });
 
@@ -336,19 +351,31 @@ try {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(viewRestorePayload(inactiveFixture.view)),
   });
-  await expectHttpStatus(
+  const candidate = await expectHttpStatus(
+    `/client/api/views/${encodeURIComponent(inactiveFixtureViewId)}/webrtc/session/${encodeURIComponent(existingSessionId)}/ice`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ candidate: "candidate:1 1 UDP 1 127.0.0.1 9 typ host", sdpMLineIndex: 0 }),
+    },
+    200,
+  );
+  if (!candidate.includes('"ok":true')) {
+    throw new Error(`client ICE candidate response mismatch: ${candidate.slice(0, 160)}`);
+  }
+  const iceReadback = await expectHttpStatus(
     `/client/api/views/${encodeURIComponent(inactiveFixtureViewId)}/webrtc/session/${encodeURIComponent(existingSessionId)}/ice`,
     { method: "GET" },
     200,
   );
   console.log("[pass] existing-connection-allowed-rule existing session ICE remains reachable after allowedRuleIds removal");
-  await expectHttpStatus(
+  const deleteReadback = await expectHttpStatus(
     `/client/api/views/${encodeURIComponent(inactiveFixtureViewId)}/webrtc/session/${encodeURIComponent(existingSessionId)}`,
     { method: "DELETE" },
     200,
   );
   console.log("[pass] existing-connection-allowed-rule existing session delete allowed after allowedRuleIds removal");
-  await expectHttpError(
+  const newSessionError = await expectHttpError(
     `/client/api/views/${encodeURIComponent(inactiveFixtureViewId)}/webrtc/session`,
     {
       method: "POST",
@@ -358,6 +385,7 @@ try {
     400,
     "allowed vaRule is required for va-rule mode",
   );
+  assertRuntimeRelationship(candidate.includes('"ok":true') && typeof iceReadback === "string" && typeof deleteReadback === "string" && newSessionError?.error?.includes("allowed vaRule is required for va-rule mode"), "RULE-099 /client/api/views/ AddRemoteIceCandidate existing session ICE/delete remains valid and new va-rule session reject readback");
   console.log("[pass] existing-connection-allowed-rule new session rejected after allowedRuleIds removal");
   await deleteCreatedItem({ type: "viewRestore", id: inactiveFixtureViewId, payload: viewRestorePayload(inactiveFixture.view) });
   await deleteCreatedItem({ type: "vaRule", id: existingConnectionVaRuleId });
@@ -370,7 +398,7 @@ try {
   created.push({ type: "vaRule", id: validVaRuleId });
   console.log(`[pass] relationship-fixture va-rule ${validVaRuleId}`);
 
-  await expectHttpError(
+  const priorityConflictError = await expectHttpError(
     `/lab/analysis/va-rules/${encodeURIComponent(priorityConflictVaRuleId)}`,
     {
       method: "PUT",
@@ -386,7 +414,18 @@ try {
     400,
     "vaRule priority conflicts with existing rule on same source",
   );
+  const priorityConflictRejectList = await requestJson("/lab/analysis/va-rules");
+  const priorityConflictRegistryWritePerformed = (priorityConflictRejectList.vaRules || []).some(item => String(item.id) === String(priorityConflictVaRuleId));
+  assertRuntimeRelationship(priorityConflictError?.error?.includes("vaRule priority conflicts with existing rule on same source") && priorityConflictRegistryWritePerformed === false, "RULE-100 /ops/rules priority-conflict same-source reject registryWrite no-write absence readback");
   console.log("[pass] priority-conflict server rejected same source priority");
+
+  const stagedChangeRulesBefore = await requestJson("/lab/analysis/rules");
+  const stagedChangePreview = await requestJson("/ops/api/live-operations/staged-change-plan-impact-preview");
+  const stagedChangeRulesAfter = await requestJson("/lab/analysis/rules");
+  const stagedChangeRuleRegistryWritePerformed = JSON.stringify(stagedChangeRulesBefore.rules || []) !== JSON.stringify(stagedChangeRulesAfter.rules || []);
+  const stagedChangePreviewJson = JSON.stringify(stagedChangePreview);
+  const stagedChangeClientNoticeSendPerformed = stagedChangePreviewJson.includes('"clientNoticeSent":true');
+  assertRuntimeRelationship(stagedChangePreviewJson.includes("media-server.ops.v350-staged-change-plan-impact-preview.v1") && stagedChangePreviewJson.includes('"stagingOnly":true') && stagedChangePreviewJson.includes('"applyBlocked":true') && stagedChangePreviewJson.includes('"ruleRegistryWritePerformed":false') && stagedChangeRuleRegistryWritePerformed === false && stagedChangeClientNoticeSendPerformed === false, "RULE-106 verify-v350-staged-change-plan-impact-preview /ops/rules runtime readback keeps ruleRegistryWritePerformed false, client notice send absent, and apply blocked");
 
   const withFixture = await loadGraph();
   assertCleanGraph("with-fixture", withFixture);
@@ -798,8 +837,14 @@ function canonicalUrl(value) {
   }
 }
 
+function assertRuntimeRelationship(condition, label) {
+  if (!condition) {
+    throw new Error(`${label} mismatch`);
+  }
+}
+
 async function expectHttpError(path, options, status, errorNeedle) {
-  const response = await fetch(`${httpBase}${path}`, options);
+  const response = await fetch(`${httpBase}${path}`, authorizedOptions(options));
   const text = await response.text();
   let payload = {};
   try {
@@ -816,7 +861,7 @@ async function expectHttpError(path, options, status, errorNeedle) {
 }
 
 async function expectHttpStatus(path, options, status) {
-  const response = await fetch(`${httpBase}${path}`, options);
+  const response = await fetch(`${httpBase}${path}`, authorizedOptions(options));
   const text = await response.text();
   if (response.status !== status) {
     throw new Error(`${path} expected HTTP ${status}, got ${response.status}: ${text.slice(0, 160)}`);
@@ -825,7 +870,7 @@ async function expectHttpStatus(path, options, status) {
 }
 
 async function requestJson(path, options = {}) {
-  const response = await fetch(`${httpBase}${path}`, options);
+  const response = await fetch(`${httpBase}${path}`, authorizedOptions(options));
   const text = await response.text();
   let payload = null;
   try {
@@ -837,6 +882,17 @@ async function requestJson(path, options = {}) {
     throw new Error(`${path} failed HTTP ${response.status}: ${payload?.error || text}`);
   }
   return payload;
+}
+
+function authorizedOptions(options = {}) {
+  if (!bearerToken) return options;
+  return {
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+      Authorization: `Bearer ${bearerToken}`,
+    },
+  };
 }
 
 function parseArgs(argv) {

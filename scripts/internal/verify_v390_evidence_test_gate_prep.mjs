@@ -129,6 +129,12 @@ check("stream verification records AI-minimized longrun runner criteria", () => 
 });
 
 check("manual UI docs record free automation adapter criteria and failure fields", () => {
+  const uiCriteria = files.manualUi + "\n" + files.projectInventory;
+  const automationEquivalentPass = uiCriteria.includes("automation-equivalent-pass");
+  const uiFulltestPassSeparated = automationEquivalentPass && uiCriteria.includes("uiFulltestPass");
+  const falsePassAccepted = !uiFulltestPassSeparated;
+  assert(falsePassAccepted === false && uiFulltestPassSeparated,
+    "automation-equivalent-pass criteria and uiFulltestPass must remain explicitly separated");
   for (const snippet of [
     "Playwright",
     "Selenium",
@@ -148,7 +154,7 @@ check("manual UI docs record free automation adapter criteria and failure fields
     "v3.9.0 AI-minimized UI automation adapter / Policy v4 기준",
     "`OPS-169`, `SAFE-202`",
   ]) {
-    assertIncludes(files.manualUi + "\n" + files.projectInventory, snippet, "UI automation adapter criteria");
+    assertIncludes(uiCriteria, snippet, "UI automation adapter criteria");
   }
 });
 
@@ -194,6 +200,23 @@ check("server dispatch and script inventory expose the gate", () => {
     assertIncludes(files.serverSh, snippet, "server.sh");
   }
   assertIncludes(files.scriptInventory, targetScript, "script inventory");
+});
+
+check("SAFE-199 canonical UI wrapper result truthfulness boundary", () => {
+  const wrapperResultSchemaObserved = ["wrapperResult", "resultScope", "uiFulltestEvidenceStatus", "manualResultStatus", "longrunStatus", "evidenceBoundary"].every((field) => files.uiWrapper.includes(field));
+  const wrapperPassSubstituted = !files.uiWrapper.includes("wrapperResult is not UI fulltest, 30-minute, 120-minute, or manual-result execution evidence");
+  const safe199BoundaryObserved = wrapperResultSchemaObserved && files.projectInventory.includes("SAFE-199");
+  const ops166WrapperObserved = safe199BoundaryObserved;
+  assert(ops166WrapperObserved && safe199BoundaryObserved && wrapperPassSubstituted === false,
+    "SAFE-199 wrapperResult must not substitute UI fulltest manual result longrun or published metadata PASS");
+});
+
+check("SAFE-200 canonical coverage execution-evidence boundary", () => {
+  const coverageStatusObserved = files.coverage.includes("coverageStatus") && files.coverage.includes("covered") && files.coverage.includes("missing");
+  const safe200BoundaryObserved = coverageStatusObserved && files.coverage.includes("not-execution-evidence") && files.projectInventory.includes("SAFE-200");
+  const ops167CoverageObserved = safe200BoundaryObserved;
+  assert(ops167CoverageObserved && safe200BoundaryObserved,
+    "SAFE-200 covered/missing inventory coverage must remain not-execution-evidence");
 });
 
 const results = runChecks();

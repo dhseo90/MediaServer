@@ -39,6 +39,7 @@ const template = readText("docs/manual-ui-result-template.md");
 const manualVerifier = readText("scripts/internal/verify_manual_ui_evidence.mjs");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
 const projectInventoryVerifier = readText("scripts/internal/verify_project_feature_test_inventory.mjs");
+const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const serverSh = readText("server.sh");
 const normalizedManualDocs = normalizeWhitespace([fulltest, checklist, template].join("\n"));
 
@@ -61,11 +62,11 @@ check("roadmap and stream verification expose V290-S05 UI criteria freeze", () =
   }
 });
 
-check("manual UI docs pin v2.9 current target and latest v2.8 published baseline", () => {
-  assert(fulltest.includes("최신 공개 release 기준은 `v2.8.0 Operator-Supervised Action Readiness`"), "manual fulltest missing latest published baseline");
-  assert(normalizedManualDocs.includes("현재 release 목표와 UI 문서 기준은 `v2.9.0 Final 2.x Closure & Compatibility Baseline`"), "manual fulltest missing v2.9 UI docs baseline");
-  assert(checklist.includes("현재 release 목표는 `v2.9.0`"), "manual checklist missing current v2.9 target");
-  assert(template.includes("## v2.9.0 Release Evidence Index"), "manual result template missing v2.9 release evidence index");
+check("manual UI docs preserve the v2.9 historical freeze under the current v3.9 target", () => {
+  assert(fulltest.includes("최신 공개 release 기준은 `v3.8.0 Operator-Gated Action Pilot & Outcome Loop`"), "manual fulltest missing current published baseline");
+  assert(normalizedManualDocs.includes("`v3.9.0 Feature Completion, Structure Stabilization, and Test Model Preparation`"), "manual UI docs missing current v3.9 baseline");
+  assert(checklist.includes("현재 release 목표는 `v3.9.0`"), "manual checklist missing current v3.9 target");
+  assert(template.includes("## v3.9.0 Release Evidence Index"), "manual result template missing current release evidence index");
   assert(template.includes("## v2.9.0 UI Fulltest Criteria Freeze"), "manual result template missing S05 criteria freeze section");
 });
 
@@ -110,7 +111,13 @@ check("feature inventory maps V290-S05 to OPS-046 and SAFE-076", () => {
   ]) {
     assert(featureInventory.includes(snippet), `feature inventory missing S05 snippet: ${snippet}`);
   }
-  assert(coverageVerifier.includes("verify-v290-ui-fulltest-criteria-freeze"), "feature coverage missing V290-S05 verifier");
+  assert(coverageVerifier.includes("loadImplementationManifest") && coverageVerifier.includes("validateImplementationManifest"),
+    "feature coverage missing canonical implementation manifest validation");
+  for (const id of ["SAFE-076", "OPS-046"]) {
+    const mapping = implementationManifest.items?.find((item) => item.id === id);
+    assert(mapping?.verifierEvidence?.command === "verify-v290-ui-fulltest-criteria-freeze",
+      `implementation manifest ${id} missing V290-S05 verifier mapping`);
+  }
   assert(projectInventoryVerifierRangeCovers("SAFE", 76), "project inventory verifier missing SAFE-076 coverage");
   assert(projectInventoryVerifierRangeCovers("OPS", 46), "project inventory verifier missing OPS-046 coverage");
 });
@@ -144,6 +151,14 @@ check("server and existing manual UI verifier expose S05 gates", () => {
   ]) {
     assert(manualVerifier.includes(snippet), `manual UI verifier missing current-target snippet: ${snippet}`);
   }
+});
+
+check("SAFE-076 canonical UI evidence boundary", () => {
+  const uiCriteriaSource = normalizedManualDocs;
+  const rawMaterialPromoted = !uiCriteriaSource.includes("raw JSON/API-only/static smoke/screenshot-only/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.");
+  const safe076BoundaryObserved = serverSh.includes("verify-v290-ui-fulltest-criteria-freeze") && rawMaterialPromoted === false;
+  assert(safe076BoundaryObserved && rawMaterialPromoted === false,
+    "verify-v290-ui-fulltest-criteria-freeze raw material must not be promoted to direct browser PASS");
 });
 
 let pass = 0;

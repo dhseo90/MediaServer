@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v3.2.0 Step 3 Unified Ops Events Workspace 구현, 문서, inventory 연결을 검증한다.
+import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -66,6 +68,16 @@ check("ops events page exposes Step 3 unified workspace shell", () => {
 });
 
 check("ops review API returns Step 3 Ops-only unified resolution workspace view model", () => {
+  const start = files.server.indexOf("std::string OpsV320UnifiedResolutionWorkspaceItemJson(");
+  const end = files.server.indexOf("std::string OpsV310ReplayTimelineItemJson(", start);
+  assert(start >= 0 && end > start, "EVT-064 unified workspace projection block missing");
+  const evt064WorkspaceBlock = files.server.slice(start, end);
+  assertIncludes(evt064WorkspaceBlock, "media-server.ops.v320-unified-events-workspace.v1", "EVT-064 block-scoped canonical workspace projection");
+  assert(!evt064WorkspaceBlock.includes("\\\"viewerClientExposureAdded\\\":true") && evt064WorkspaceBlock.includes("\\\"viewerClientExposureAdded\\\":false"), "EVT-064 workspace must remain hidden from client/viewer");
+  const routeOwnerSource = readText("src/ingress/ops_event_route_owner.cpp");
+  const routeBlock = routeOwnerSource.slice(routeOwnerSource.indexOf("constexpr const char* kOpsEventsPagePath"), routeOwnerSource.indexOf("bool HasPrefix("));
+  assertIncludes(routeBlock, "/ops/events", "OPS-071 canonical page route");
+  assertIncludes(routeBlock, "/ops/api/events/reviews", "EVT-064 canonical review route");
   for (const snippet of [
     "OpsV320UnifiedOpsEventsWorkspaceJson",
     "OpsV320UnifiedResolutionWorkspaceItemJson",
@@ -95,6 +107,7 @@ check("ops review API returns Step 3 Ops-only unified resolution workspace view 
 });
 
 check("product UI script renders Step 3 queue detail timeline", () => {
+  const workspaceBlock = extractNamedFunctionBlock(files.pageScript, "renderV320UnifiedOpsEventsWorkspace");
   for (const snippet of [
     "renderV320UnifiedOpsEventsWorkspace",
     "opsV320UnifiedWorkspaceSummary",
@@ -115,6 +128,15 @@ check("product UI script renders Step 3 queue detail timeline", () => {
   ]) {
     assertIncludes(files.pageScript, snippet, "V320 unified workspace UI script");
   }
+  assertIncludes(workspaceBlock, "media-server.ops.v320-unified-events-workspace.v1", "UI-062 block-scoped canonical product state");
+  assertIncludes(workspaceBlock, "unifiedResolutionWorkspace.rawJsonExposed === false", "UI-062 block-scoped raw JSON redaction contract");
+  assertIncludes(workspaceBlock, "unifiedResolutionWorkspace.sourceUrlExposed === false", "UI-062 block-scoped source URL redaction contract");
+  assert(!["rawJsonPayload", "rawPayload", "rawLocator", "rawEvidenceIncluded: true", "rtsp://", "rtsps://"].some(marker => workspaceBlock.includes(marker)), "UI-062 raw-material-redaction explicit absence oracle");
+  assert(!["sourceUrl:", "sourceURL:", "sourceUrlValue", "rtsp://", "rtsps://"].some(marker => workspaceBlock.includes(marker)), "UI-062 source-url-redaction explicit absence oracle");
+  assert(!["providerApiCall(", "providerResponse", "rawProviderResponse", "providerMaterialExposed: true", "rawProviderMaterialExposed: true"].some(marker => workspaceBlock.includes(marker)), "UI-062 provider-material explicit absence oracle");
+  assert(!["debugCounters", "Developer URL", "debugMaterialExposed: true"].some(marker => workspaceBlock.includes(marker)), "UI-062 debug-redaction explicit absence oracle");
+  assert(!["/client/api/", "viewerClientExposureAdded: true", "clientExposureAdded: true"].some(marker => workspaceBlock.includes(marker)), "UI-062 client-viewer-boundary explicit absence oracle");
+  assertIncludes(files.pageScript, "/ops/events", "UI-062 canonical route obligation");
 });
 
 check("Step 3 unified workspace CSS is responsive", () => {
@@ -173,10 +195,6 @@ check("feature inventory and release records map v3.2 Step 3", () => {
     "EVT-064 | V320 Step 3 unified resolution workspace view model",
     "SAFE-104 | V320 Step 3 unified workspace boundary",
     "OPS-071 | V320 Step 3 Unified Ops Events Workspace 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-069`",
-    "`EVT-001`~`EVT-070`",
-    "`SAFE-001`~`SAFE-112`",
-    "`OPS-035`~`OPS-079`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 3");
   }
@@ -195,11 +213,27 @@ check("feature inventory and release records map v3.2 Step 3", () => {
 check("server entrypoint and inventory verifiers include v3.2 Step 3 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v320_unified_ops_events_workspace.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureInventory, command, "feature inventory command");
   for (const id of ["UI-062", "EVT-064", "SAFE-104", "OPS-071"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v320_unified_ops_events_workspace.mjs", "script inventory");
+});
+
+check("SAFE-104 canonical unified workspace boundary", () => {
+  const workspaceBlock = extractCppFunctionBlock(files.server, "std::string OpsV320UnifiedOpsEventsWorkspaceJson(");
+  const routeOwnerSource = readText("src/ingress/ops_event_route_owner.cpp");
+  const routeBlock = routeOwnerSource.slice(routeOwnerSource.indexOf("constexpr const char* kOpsEventsPagePath"), routeOwnerSource.indexOf("bool HasPrefix("));
+  const safe104BoundaryObserved = routeBlock.includes('kOpsEventsPagePath = "/ops/events"') &&
+    workspaceBlock.includes("media-server.ops.v320-unified-events-workspace.v1") &&
+    workspaceBlock.includes("OpsV320UnifiedResolutionWorkspaceItemJson");
+  const schemaMutationPerformed = /DispatchEventRecords|CreateVaRule|UpdateVaRule/.test(workspaceBlock);
+  const rawMaterialExposed = /\\\"raw(?:Json|Evidence|Payload)(?:Exposed|Included)\\\":true/.test(workspaceBlock);
+  const sourceUrlExposed = workspaceBlock.includes("\\\"sourceUrlExposed\\\":true");
+  const debugMaterialExposed = workspaceBlock.includes("\\\"debugMaterialExposed\\\":true");
+  const viewerClientExposureAdded = /AppendClient|ClientEventSummary|PublishedView/.test(workspaceBlock);
+  assert(safe104BoundaryObserved && schemaMutationPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false,
+    "SAFE-104 media-server.ops.v320-unified-events-workspace.v1 /ops/events unifiedResolutionWorkspace must remain read-only and exclude raw/source/debug/client material");
 });
 
 const results = runChecks();

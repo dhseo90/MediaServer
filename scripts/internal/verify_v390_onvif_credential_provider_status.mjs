@@ -104,6 +104,10 @@ check("ONVIF credential provider status preserves secret, reference, schema, and
   ]) {
     assertFlagFalse(block, flag);
   }
+  const credentialLookupPerformed = block.includes('\\"credentialLookupPerformed\\":true');
+  const viewerClientExposureAdded = block.includes('\\"clientViewerExposureAdded\\":true');
+  assert(credentialLookupPerformed === false && viewerClientExposureAdded === false,
+    "credentialLookupPerformed must remain false in the bounded provider status summary");
   for (const forbidden of [
     "Lookup(",
     "UpsertHttpBasic",
@@ -130,6 +134,21 @@ check("Ops API exposes the status summary as guarded no-store JSON", () => {
 });
 
 check("Ops sources UI renders the sanitized provider summary without secret/reference values", () => {
+  const providerBlock = extractBlock(
+    files.opsSourcesScript,
+    "function renderOnvifCredentialProviderStatus",
+    "async function loadOnvifCredentialProviderStatus",
+  );
+  const loadBlock = extractBlock(
+    files.opsSourcesScript,
+    "async function loadOnvifCredentialProviderStatus",
+    "function renderOnvifLiveImportPersistDecision",
+  );
+  const serverStatusBlock = extractBlock(
+    files.server,
+    "std::string OpsV390OnvifCredentialProviderStatusSummaryJson",
+    "struct OpsV380ActionCapabilityContractItem",
+  );
   for (const snippet of [
     route,
     "loadOnvifCredentialProviderStatus",
@@ -140,8 +159,17 @@ check("Ops sources UI renders the sanitized provider summary without secret/refe
     "credentialMaterialExposed",
     "persistent store deferred",
   ]) {
-    assertIncludes(files.opsSourcesScript, snippet, "v390 ONVIF provider status UI script");
+    assertIncludes(`${providerBlock}\n${loadBlock}\n${serverStatusBlock}`, snippet, "v390 ONVIF provider status UI script");
   }
+  const opsSourcesRoutePresent = files.server.includes('request.path == "/ops/sources"');
+  const schemaPresent = serverStatusBlock.includes("media-server.ops.v390-onvif-credential-provider-status.v1");
+  const referenceValueExposed = serverStatusBlock.includes('\\"referenceValueExposed\\":true');
+  const credentialExposed = serverStatusBlock.includes('\\"credentialMaterialExposed\\":true');
+  assert(opsSourcesRoutePresent, "v390 ONVIF provider UI route missing");
+  assert(schemaPresent, "v390 ONVIF provider schema missing");
+  assert(referenceValueExposed === false, "v390 ONVIF provider status must not expose reference values");
+  assert(credentialExposed === false, "v390 ONVIF provider status must not expose credentials");
+  assertIncludes(providerBlock, "referenceValueExposed", "v390 ONVIF reference redaction state");
 });
 
 check("roadmap, stream verification, inventory, and release records map v3.9 Step 11", () => {
@@ -211,7 +239,7 @@ check("v3.9 feature completion inventory closes V390-CAND-001 with Step 11 evide
 });
 
 check("v3.9 feature completion inventory separates original review candidates from current active candidates", () => {
-  const section = extractBlock(files.v390Inventory, "## User Review Output", "## Required Closeout Output");
+  const section = extractBlock(files.v390Inventory, "## Initial User Review Output (Historical Snapshot)", "## Required Closeout Output");
   assertIncludes(section, "Original candidate development review list:", "v390 user review output");
   assertIncludes(section, "Current active candidate development list: `없음`", "v390 user review output");
   assertIncludes(section, "Closed candidate development list:", "v390 user review output");

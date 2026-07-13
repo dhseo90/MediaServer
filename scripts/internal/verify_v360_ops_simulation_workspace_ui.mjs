@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: v3.6.0 Step 7 Ops Simulation Workspace UI 구현, 문서, inventory 연결을 검증한다.
+import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
+
 
 import fs from "node:fs";
 import path from "node:path";
@@ -68,6 +70,11 @@ check("/ops dashboard declares the v3.6 simulation workspace UI shell", () => {
     "dashSimulationWorkspaceBoundary",
   ]) {
     assertIncludes(block, snippet, "v360 simulation workspace dashboard shell");
+    assertIncludes(extractNamedFunctionBlock(files.uiScript, "renderV360OpsSimulationWorkspace"), "dashSimulationWorkspaceBoundary", "UI-088 block-scoped canonical product state");
+    assert(!["requestJson(","fetch(","method: 'POST'","method: 'PUT'","method: 'DELETE'"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV360OpsSimulationWorkspace").includes(marker)), "UI-088 no-write explicit absence oracle");
+    assert(!["send(","sendClientNotice","deliveryQueueWritePerformed: true"].some(marker => extractNamedFunctionBlock(files.uiScript, "renderV360OpsSimulationWorkspace").includes(marker)), "UI-088 no-send explicit absence oracle");
+    assertIncludes(files.uiScript, "/ops/dashboard", "UI-088 canonical route obligation");
+    assertIncludes(files.server, "media-server.ops.v360-simulation-workspace-ui.v1", "UI-088 canonical schema obligation");
   }
 });
 
@@ -209,11 +216,39 @@ check("feature inventory and release records map v3.6 Step 7", () => {
 check("server entrypoint and inventory verifiers include v3.6 Step 7 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v360_ops_simulation_workspace_ui.mjs", "server.sh script dispatch");
-  assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  for (const snippet of [
+    "validateImplementationManifest",
+    "semantic.verifierAssertion.command",
+    'kind: "stability"',
+  ]) {
+    assertIncludes(files.featureCoverageVerifier, snippet, "feature coverage verifier canonical command mapping");
+  }
   for (const id of ["UI-088", "SAFE-154", "OPS-121"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v360_ops_simulation_workspace_ui.mjs", "script inventory");
+});
+
+check("SAFE-154 canonical bounded no-execution boundary", () => {
+  const block = extractNamedFunctionBlock(files.uiScript, "renderV360OpsSimulationWorkspace");
+  const routeObserved = files.uiScript.includes("/ops");
+  const safe154BoundaryObserved = block.includes("readinessBlockers");
+  const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const automaticApplyPerformed = /\b(?:AutomaticApply|SafeApply|ApplyRule|ApplySource)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const clientNoticeSent = /\bSendClientNotice[A-Za-z0-9_:]*\s*\(/.test(block);
+  const sendPerformed = clientNoticeSent;
+  const fieldSmokeExecuted = /\b(?:ExecuteFieldSmoke|ProbeEndpoint|ContactDevice)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const providerCallPerformed = /\b(?:ProviderCall|ProviderClient|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
+  const rawMaterialExposed = /\\"(?:rawLocator|rawJson|rawProviderResponse|rawEndpoint|rawMaterial)\\":true/.test(block);
+  const sourceUrlExposed = block.includes("\\\"sourceUrlIncluded\\\":true") || block.includes("\\\"sourceUrlExposed\\\":true");
+  const credentialMaterialExposed = block.includes("\\\"credentialMaterialIncluded\\\":true") || block.includes("\\\"credentialMaterialExposed\\\":true");
+  const debugMaterialExposed = block.includes("\\\"debugMaterialIncluded\\\":true") || block.includes("\\\"debugMaterialExposed\\\":true");
+  const viewerClientExposureAdded = block.includes("\\\"viewerClientExposureAdded\\\":true");
+  const mediaPathChanged = block.includes("\\\"rtspOrWebrtcMediaPathChanged\\\":true");
+  assert(routeObserved && safe154BoundaryObserved && writePerformed === false && mutationPerformed === false && executionPerformed === false && automaticApplyPerformed === false && clientNoticeSent === false && sendPerformed === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+    "SAFE-154 readinessBlockers must remain bounded no-execution no-write redacted and client/provider isolated");
 });
 
 const results = runChecks();

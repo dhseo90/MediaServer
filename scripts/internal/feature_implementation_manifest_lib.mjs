@@ -157,6 +157,7 @@ export function validateImplementationManifest({ rootDir, inventoryText, rows, m
     const row = rowById.get(item.id);
     if (!row) continue;
     const prefix = featurePrefix(row.id);
+    const isReview4 = item.review?.approvalSource === "review4-independent-source-audit";
     const rowAreas = splitAreas(row.area);
     const requiresUiEvidence = row.uiNeed !== "비대상" || rowAreas.includes("UI");
     const requiresManualUiCase = rowAreas.includes("UI");
@@ -183,7 +184,9 @@ export function validateImplementationManifest({ rootDir, inventoryText, rows, m
       errors,
       repository,
       tracked,
-      allowedPrefix: /^(SAFE|OPS)$/.test(prefix)
+      allowedPrefix: isReview4
+        ? /^(src|include|config|scripts\/internal|test)\//
+        : /^(SAFE|OPS)$/.test(prefix)
         ? /^(src|include|config|scripts\/internal|test)\//
         : /^(src|include|config)\//,
     });
@@ -213,7 +216,7 @@ export function validateImplementationManifest({ rootDir, inventoryText, rows, m
       errors,
       repository,
       tracked,
-      allowedPrefix: /^scripts\/internal\/verify/,
+      allowedPrefix: isReview4 ? /^scripts\/internal\// : /^scripts\/internal\/verify/,
     });
     if (!item.verifierEvidence?.command) {
       errors.push(`${row.id} verifierEvidence.command is required`);

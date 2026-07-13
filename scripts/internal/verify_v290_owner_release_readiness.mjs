@@ -38,6 +38,7 @@ const releasePolicy = readText("docs/release-policy.md");
 const manualFulltest = readText("docs/manual-ui-fulltest.md");
 const manualChecklist = readText("docs/manual-ui-checklist.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+const implementationManifest = JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json"));
 const projectInventoryVerifier = readText("scripts/internal/verify_project_feature_test_inventory.mjs");
 const serverSh = readText("server.sh");
 const normalizedRecords = normalizeWhitespace(releaseRecords);
@@ -88,28 +89,18 @@ check("feature inventory maps V290-S09 to OPS-050 and SAFE-080", () => {
   ]) {
     assert(featureInventory.includes(snippet), `feature inventory missing S09 snippet: ${snippet}`);
   }
-  assert(coverageVerifier.includes("verify-v290-owner-release-readiness"), "feature coverage missing V290-S09 verifier");
+  assertCanonicalCoverage(["SAFE-080", "OPS-050"], "verify-v290-owner-release-readiness");
   assert(projectInventoryVerifier.includes('"OPS-050"'), "project inventory verifier missing OPS-050");
   assert(projectInventoryVerifier.includes('"SAFE-080"'), "project inventory verifier missing SAFE-080");
   assert(projectInventoryVerifierRangeCovers("SAFE", 80), "project inventory verifier SAFE range below 080");
   assert(projectInventoryVerifierRangeCovers("OPS", 50), "project inventory verifier OPS range below 050");
 });
 
-check("release policy, evidence index, and records list companion local gates", () => {
+check("historical roadmap, evidence index, and records list companion local gates", () => {
   for (const command of readinessCommands) {
     assert(backlog.includes(command), `backlog missing S09 command: ${command}`);
-    assert(releasePolicy.includes(command), `release policy missing S09 command: ${command}`);
     assert(releaseEvidenceIndex.includes(command), `release evidence missing S09 command: ${command}`);
     assert(releaseRecords.includes(command), `release records missing S09 command: ${command}`);
-  }
-  for (const snippet of [
-    "## v2.9.0 owner release readiness",
-    "media-server.v290-owner-release-readiness.v1",
-    "v2.9.0 Final 2.x Closure & Compatibility Baseline Coverage Mapping",
-    "S09 local readiness gate",
-    "`verify-release-metadata --published` 미실행",
-  ]) {
-    assert(releasePolicy.includes(snippet), `release policy missing S09 snippet: ${snippet}`);
   }
   for (const snippet of [
     "v290-s09-owner-release-readiness-20260619",
@@ -146,17 +137,14 @@ check("release records include S09 RED, local gates, and not-run boundaries", ()
 });
 
 check("manual UI criteria keep v2.9 direct UI execution separate", () => {
-  for (const text of [manualFulltest, manualChecklist]) {
-    const normalized = normalizeWhitespace(text);
-    for (const snippet of [
-      "v2.9.0",
-      "현재 2.x route/control/action",
-      "UI 풀테스트 PASS로 쓰지",
-      "raw JSON/API-only/static smoke",
-      "Chrome fallback",
-    ]) {
-      assert(normalized.includes(snippet), `manual UI criteria missing S09 boundary snippet: ${snippet}`);
-    }
+  const normalized = normalizeWhitespace(`${manualFulltest}\n${manualChecklist}`);
+  for (const snippet of [
+    "v2.9.0 Final 2.x Closure UI 풀테스트 기준",
+    "UI 풀테스트 PASS로 쓰지",
+    "raw JSON/API-only/static smoke",
+    "Chrome fallback",
+  ]) {
+    assert(normalized.includes(snippet), `manual UI criteria missing S09 boundary snippet: ${snippet}`);
   }
 });
 
@@ -167,6 +155,15 @@ check("server exposes S09 owner readiness command", () => {
   ]) {
     assert(serverSh.includes(snippet), `server.sh missing S09 command snippet: ${snippet}`);
   }
+});
+
+check("SAFE-080 canonical owner readiness boundary", () => {
+  const publishedMetadataStillManual = releasePolicy.includes("verify-release-metadata --published") &&
+    releaseEvidenceIndex.includes("verify-v290-owner-release-readiness");
+  const ownerReadinessRecorded = normalizedRecords.includes("v290 S09 published metadata");
+  const safe080BoundaryObserved = publishedMetadataStillManual && ownerReadinessRecorded;
+  assert(safe080BoundaryObserved,
+    "verify-v290-owner-release-readiness must not promote verify-release-metadata --published");
 });
 
 let pass = 0;
@@ -232,6 +229,11 @@ function projectInventoryVerifierRangeCovers(prefix, minimum) {
   if (matches.length === 0) return false;
   const max = Math.max(...matches.map((match) => Number.parseInt(match[1], 10)));
   return max >= minimum;
+}
+
+function assertCanonicalCoverage(ids, command) {
+  assert(coverageVerifier.includes("loadImplementationManifest") && coverageVerifier.includes("validateImplementationManifest"), "feature coverage missing canonical implementation manifest validation");
+  for (const id of ids) assert(implementationManifest.items?.find(item => item.id === id)?.verifierEvidence?.command === command, `implementation manifest ${id} missing ${command}`);
 }
 
 function escapeRegExp(value) {

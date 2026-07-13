@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -43,6 +44,7 @@ const files = {
   featureInventory: readText("docs/project-feature-test-inventory.md"),
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
+  implementationManifest: JSON.parse(readText("test/fixtures/project_feature_implementation_evidence.json")),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
   server: readText("server.sh"),
@@ -85,6 +87,10 @@ check("fixture covers V300-S05 feature-only retention matrix", () => {
 });
 
 check("analysis module exposes feature revision store and raw-material guard", () => {
+  const storeRevisionBlock = extractCppFunctionBlock(files.source, "VlmFeatureRetentionOutcome VlmFeatureRetentionStore::StoreRevision(");
+  const opsEventsUiAdded = storeRevisionBlock.includes("/ops/events");
+  const rawMaterialStored = !storeRevisionBlock.includes("HasRawRetentionMaterial");
+  assert(storeRevisionBlock.includes("feature_set_stored") && opsEventsUiAdded === false && rawMaterialStored === false, "LAB-085 feature retention must reject raw material without adding /ops/events UI");
   for (const snippet of [
     "struct VlmFeatureRetentionRequest",
     "struct VlmFeatureRetentionOutcome",
@@ -189,11 +195,24 @@ check("feature inventory and release records map V300-S05 to LAB-085, SAFE-087, 
 check("server entrypoint and inventory verifiers include V300-S05 command", () => {
   assert(files.server.includes(command), "server.sh missing V300-S05 command");
   assert(files.server.includes("verify_v300_feature_only_retention.mjs"), "server.sh missing V300-S05 script dispatch");
-  assert(files.featureCoverageVerifier.includes(command), "feature coverage verifier missing V300-S05 command");
+  for (const id of ["LAB-085", "SAFE-087", "OPS-055"]) {
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+  }
+  assert(files.featureCoverageVerifier.includes("validateImplementationManifest") && files.featureCoverageVerifier.includes("verifierEvidenceRows"), "feature coverage must validate manifest-backed verifier evidence");
   assert(files.projectInventoryVerifier.includes("LAB-085") &&
     files.projectInventoryVerifier.includes("SAFE-087") &&
     files.projectInventoryVerifier.includes("OPS-055"), "project inventory verifier missing V300-S05 IDs");
   assert(files.scriptInventory.includes("verify_v300_feature_only_retention.mjs"), "script inventory missing V300-S05 verifier");
+});
+
+check("SAFE-087 canonical feature-only retention boundary", () => {
+  const rawMaterialStored = files.source.includes("raw_prompt_stored = true") || files.source.includes("raw_provider_response_stored = true");
+  const sourceUrlStored = files.source.includes("source_url_stored = true");
+  const credentialStored = files.source.includes("credential_stored = true");
+  const schemaMutationPerformed = files.source.includes("event_post_payload_changed = true") || files.source.includes("webrtc_data_channel_schema_changed = true");
+  const safe087BoundaryObserved = files.source.includes("reject-raw-provider-material") && schemaMutationPerformed === false;
+  assert(safe087BoundaryObserved && rawMaterialStored === false && sourceUrlStored === false && credentialStored === false && schemaMutationPerformed === false,
+    "verify-v300-feature-only-retention raw_prompt_stored/sourceUrl/credential material and WebRTC/SSE/RTSP mutation must remain absent");
 });
 
 const results = runChecks();

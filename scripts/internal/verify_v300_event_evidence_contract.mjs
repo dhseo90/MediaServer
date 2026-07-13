@@ -41,9 +41,24 @@ const files = {
   featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"),
   projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"),
   releaseRecords: readText("docs/release-test-records.md"),
+  eventStorageSource: readText("src/analysis/event_storage.cpp"),
   server: readText("server.sh"),
 };
 const manifest = JSON.parse(readText(fixturePath));
+
+check("frame bundle writer source owns the extraction sidecar contract", () => {
+  const start = files.eventStorageSource.indexOf("bool WriteFrameBundleManifest(");
+  const end = files.eventStorageSource.indexOf("bool WriteEvidenceManifest(", start);
+  assert(start >= 0 && end > start, "EVT-060 frame bundle writer block missing");
+  const evt060FrameBundleBlock = files.eventStorageSource.slice(start, end);
+  assert(evt060FrameBundleBlock.includes("FrameBundlePhase(index, event_frame_index)"), "EVT-060 block-scoped canonical frame bundle flow");
+  const evidenceStart = files.eventStorageSource.indexOf("bool WriteEvidenceManifest(", end);
+  const evidenceEnd = files.eventStorageSource.indexOf("class EventFrameBuffer", evidenceStart);
+  assert(evidenceStart >= 0 && evidenceEnd > evidenceStart, "EVT-060 evidence manifest block missing");
+  const evt060EvidenceManifestBlock = files.eventStorageSource.slice(evidenceStart, evidenceEnd);
+  assert(evt060EvidenceManifestBlock.includes("eventFrame"), "EVT-060 eventFrame representativeImage bboxCrop frameBundle outcome");
+  assert(evt060FrameBundleBlock.includes("FrameBundlePhase(index, event_frame_index)"), "EVT-060 WebRTC SSE RTSP boundary");
+});
 
 check("contract document defines V300-S01 evidence boundary", () => {
   for (const snippet of [
@@ -189,8 +204,17 @@ check("feature inventory and release records map V300-S01 to OPS-052 and SAFE-08
 check("server entrypoint and inventory verifiers include V300-S01 command", () => {
   assert(files.server.includes("verify-v300-event-evidence-contract"), "server.sh missing V300-S01 command");
   assert(files.server.includes("verify_v300_event_evidence_contract.mjs"), "server.sh missing V300-S01 script dispatch");
-  assert(files.featureCoverageVerifier.includes("verify-v300-event-evidence-contract"), "feature coverage verifier missing V300-S01 command");
+  assert(files.featureInventory.includes("verify-v300-event-evidence-contract"), "feature inventory missing V300-S01 command");
   assert(files.projectInventoryVerifier.includes("OPS-052") && files.projectInventoryVerifier.includes("SAFE-082"), "project inventory verifier missing V300-S01 IDs");
+});
+
+check("SAFE-082 canonical evidence contract boundary", () => {
+  const evidenceContractCommandDocumented = files.server.includes("verify-v300-event-evidence-contract");
+  const rawMaterialStored = manifest.privacy?.rawPromptStored !== false || manifest.privacy?.rawProviderResponseStored !== false;
+  const safe082BoundaryObserved = evidenceContractCommandDocumented &&
+    files.featureInventory.includes("/ops/events") && rawMaterialStored === false;
+  assert(safe082BoundaryObserved && rawMaterialStored === false,
+    "verify-v300-event-evidence-contract /ops/events raw material must remain absent");
 });
 
 const results = runChecks();
