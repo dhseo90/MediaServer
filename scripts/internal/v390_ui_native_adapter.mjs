@@ -21,6 +21,8 @@ export const nativeCapabilities = [
   "evaluate",
   "visual-geometry",
   "request-correlation",
+  "request-start-ledger",
+  "network-quiet",
 ];
 
 export function discoverPlaywrightCandidates(explicitModulePath = "") {
@@ -135,6 +137,8 @@ async function openNativePlaywrightPage(playwright, {
   const consoleEntries = [];
   const networkEntries = [];
   let requestSequence = 0;
+  const requestIds = new WeakMap();
+  const pendingRequests = new Map();
   const browser = await playwright.chromium.launch({
     headless: true,
     ...(executablePath ? { executablePath } : {}),
@@ -155,11 +159,33 @@ async function openNativePlaywrightPage(playwright, {
   page.on("pageerror", error => {
     consoleEntries.push({ level: "error", text: error instanceof Error ? error.message : String(error) });
   });
+  const requestIdentity = request => {
+    const existing = requestIds.get(request);
+    if (existing) return existing;
+    const requestId = `native-request-${++requestSequence}`;
+    requestIds.set(request, requestId);
+    return requestId;
+  };
+  page.on("request", request => {
+    const correlationId = String(request.headers()["x-media-server-correlation-id"] || "");
+    const requestId = requestIdentity(request);
+    pendingRequests.set(request, { requestId, correlationId });
+    networkEntries.push({
+      phase: "request-start",
+      requestId,
+      correlationId,
+      correlationSource: correlationId ? 'request-header' : 'none',
+      method: request.method(),
+      status: 0,
+      url: request.url(),
+    });
+  });
   page.on("response", response => {
     const request = response.request();
     const correlationId = String(request.headers()["x-media-server-correlation-id"] || "");
     networkEntries.push({
-      requestId: `native-request-${++requestSequence}`,
+      phase: "response",
+      requestId: requestIdentity(request),
       correlationId,
       correlationSource: correlationId ? 'request-header' : 'none',
       method: request.method(),
@@ -167,6 +193,8 @@ async function openNativePlaywrightPage(playwright, {
       url: response.url(),
     });
   });
+  page.on("requestfinished", request => pendingRequests.delete(request));
+  page.on("requestfailed", request => pendingRequests.delete(request));
   const navigationResponse = await page.goto(new URL(pagePath, `${httpBase}/`).toString(), {
     waitUntil: "load",
     timeout: timeoutMs,
@@ -188,6 +216,48 @@ async function openNativePlaywrightPage(playwright, {
       await context.setExtraHTTPHeaders(correlationId
         ? { "x-media-server-correlation-id": String(correlationId) }
         : {});
+    },
+    request: async ({ method = "GET", urlPath }) => page.evaluate(async ({ requestMethod, requestPath }) => {
+      const response = await fetch(requestPath, {
+        method: requestMethod,
+        credentials: "same-origin",
+        cache: "no-store",
+        redirect: "follow",
+      });
+      return {
+        status: response.status,
+        url: response.url,
+      };
+    }, {
+      requestMethod: String(method).toUpperCase(),
+      requestPath: String(urlPath),
+    }),
+    waitForNetworkQuiet: async ({ correlationId, minimumObservationMs = 750, quietMs = 250 } = {}) => {
+      const startedAt = Date.now();
+      const deadline = startedAt + timeoutMs;
+      const correlatedEntryCount = () => networkEntries.reduce((count, entry) =>
+        count + ((!correlationId || entry.correlationId === correlationId) ? 1 : 0), 0);
+      let lastEntryCount = correlatedEntryCount();
+      let quietStartedAt = Date.now();
+      while (Date.now() < deadline) {
+        const currentEntryCount = correlatedEntryCount();
+        if (currentEntryCount !== lastEntryCount) {
+          lastEntryCount = currentEntryCount;
+          quietStartedAt = Date.now();
+        }
+        const actionPending = [...pendingRequests.values()].some(item =>
+          !correlationId || item.correlationId === correlationId);
+        if (Date.now() - startedAt >= minimumObservationMs &&
+            !actionPending && Date.now() - quietStartedAt >= quietMs) {
+          return {
+            correlationId: correlationId || "",
+            observedMs: Date.now() - startedAt,
+            entryCount: currentEntryCount,
+          };
+        }
+        await new Promise(resolve => setTimeout(resolve, 25));
+      }
+      throw new Error(`network quiet timeout for correlation ${correlationId || "(any)"}`);
     },
     click: async (selector) => {
       await page.locator(selector).click();
@@ -214,9 +284,12 @@ async function openNativePlaywrightPage(playwright, {
         exists: Boolean(element),
         visible: Boolean(rect && rect.width > 0 && rect.height > 0 && style && style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity || 1) > 0),
         tag: String(element?.tagName || '').toLowerCase(),
+        hidden: Boolean(element?.hidden),
         disabled: Boolean(element && 'disabled' in element && element.disabled),
         open: Boolean(element && 'open' in element && element.open),
         href: String(element?.getAttribute?.('href') || ''),
+        title: String(element?.getAttribute?.('title') || ''),
+        ariaLabel: String(element?.getAttribute?.('aria-label') || ''),
         text: String(element?.innerText || '').replace(/\\s+/g, ' ').trim().slice(0, 4000),
         value: element && 'value' in element ? String(element.value || '') : '',
         checked: Boolean(element && 'checked' in element && element.checked),

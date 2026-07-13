@@ -232412,14 +232412,14 @@
           "sha256": "f264fc72bb125ca03576d7091059fac0288a873b42a63c564f19ec8348609158"
         }
       },
-      "sourceFlowDigest": "defa903e0f743147c25e0b7af0154a8718529dad990acac59b402c2951e6b106",
+      "sourceFlowDigest": "68872b4b665536119b466aae50bb043468e0febf4fb70cf634f63ca3a0861b49",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "cefc7dc3218c5a6e9759ad25f503ec7bea4076f3383ab60d5fa90d09c384bed8",
+            "trackedBlobSha256": "6c56c1cf1deecb0104675f16b0d21102647d0eb33ac28649e96d3b755bdae869",
             "enclosingBodySha256": "0c13af4c6490c1d9d93f04f6808c5558fd6c178b9b33b004df9b17c870f2028e",
             "enclosingBodyStartLine": 77,
             "enclosingBodyEndLine": 166,
@@ -232428,7 +232428,7 @@
           "dispatch": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "cefc7dc3218c5a6e9759ad25f503ec7bea4076f3383ab60d5fa90d09c384bed8",
+            "trackedBlobSha256": "6c56c1cf1deecb0104675f16b0d21102647d0eb33ac28649e96d3b755bdae869",
             "enclosingBodySha256": "0c13af4c6490c1d9d93f04f6808c5558fd6c178b9b33b004df9b17c870f2028e",
             "enclosingBodyStartLine": 77,
             "enclosingBodyEndLine": 166,
@@ -232437,7 +232437,7 @@
           "action": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "cefc7dc3218c5a6e9759ad25f503ec7bea4076f3383ab60d5fa90d09c384bed8",
+            "trackedBlobSha256": "6c56c1cf1deecb0104675f16b0d21102647d0eb33ac28649e96d3b755bdae869",
             "enclosingBodySha256": "0c13af4c6490c1d9d93f04f6808c5558fd6c178b9b33b004df9b17c870f2028e",
             "enclosingBodyStartLine": 77,
             "enclosingBodyEndLine": 166,
@@ -232446,7 +232446,7 @@
           "state": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "cefc7dc3218c5a6e9759ad25f503ec7bea4076f3383ab60d5fa90d09c384bed8",
+            "trackedBlobSha256": "6c56c1cf1deecb0104675f16b0d21102647d0eb33ac28649e96d3b755bdae869",
             "enclosingBodySha256": "0c13af4c6490c1d9d93f04f6808c5558fd6c178b9b33b004df9b17c870f2028e",
             "enclosingBodyStartLine": 77,
             "enclosingBodyEndLine": 166,
@@ -232455,7 +232455,7 @@
           "readback": {
             "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
             "symbol": "check:contract-only exact 424 closure satisfies suite algorithm",
-            "trackedBlobSha256": "140af33c910fa2c721a49d06d4ac9e978ba3f78f8a0024e57de1cbeaf7c9d183",
+            "trackedBlobSha256": "a35492500f985af7969757b35ca44428f7ac7e93bf895a5af06c9404b34dde36",
             "enclosingBodySha256": "313e0696c14ecb8ebe80c80b905237daeb0fd7463012e642cd510beec2bbd430",
             "enclosingBodyStartLine": 71,
             "enclosingBodyEndLine": 77,
@@ -232471,7 +232471,7 @@
             "enclosingBodyScope": "file-fallback"
           }
         },
-        "verifierFileSha256": "140af33c910fa2c721a49d06d4ac9e978ba3f78f8a0024e57de1cbeaf7c9d183",
+        "verifierFileSha256": "a35492500f985af7969757b35ca44428f7ac7e93bf895a5af06c9404b34dde36",
         "dispatch": {
           "command": "verify-ui-fulltest-evidence-policy-v4-contract",
           "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
@@ -236066,5 +236066,5 @@
       }
     }
   ],
-  "candidateDigest": "8e4478c250071c3844ab1d0b861e4e1ce82b0d235ac33ce5d4797e4866763ceb"
+  "candidateDigest": "7767cdca3f05f04847de718e47c2bb2c8c53c731c854eee988092344b4b9b6eb"
 }

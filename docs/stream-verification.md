@@ -99,8 +99,8 @@ v3.9.0 Test Model Prep의 서버 longrun runner는 30분/120분을 새 테스트
 | fixed phase order | build/preflight/seed/start/integrated smoke/soak iteration/cleanup/report 같은 phase 순서가 고정됩니다. |
 | stop-on-first-fail | 첫 실패에서 suite와 delegated duration case loop를 즉시 중단하고 이후 phase/case는 `not-run`으로 남깁니다. |
 | delegated exact ledger | V390-REVIEW3-40 parent는 start/smoke/runtime fixed ID와 각 soak iteration의 `va-events`→`event-post-schema`→`event-post-recovery`→`redaction`→`runtime-idle`를 exact ID/order/uniqueness/count로 검증하며 partial·duplicate·reordered·unknown summary를 PASS로 투영하지 않습니다. |
-| exact case-native UI workflow | V390-REVIEW3-41의 workflow는 historical source claim으로 남습니다. REVIEW4-56은 exact 424를 read-only 287/form 15/persisted 32/actionable 43/hidden 45/negative 2로 재작성하고 actual input, tracked control proof, endpoint/local action, 독립 state/readback/runtime-required step, inverse/no-op cleanup을 닫았습니다. Runner plan compatibility는 모든 kind를 검증하며 runtime adapter 부재를 명시 실패시킵니다. Contract/plan-only를 actual UI PASS로 승격하지 않으며 전체 readiness는 57~60 대기입니다. |
-| semantic completion oracle | V390-REVIEW3-42의 request/readback contract는 historical source claim입니다. REVIEW4-58이 실제 primary action과 독립 readback을 다시 결속하기 전 current oracle 완료가 아니며 arbitrary DOM/self-comparison은 FAIL입니다. |
+| exact case-native UI workflow | V390-REVIEW3-41의 workflow는 historical source claim으로 남습니다. REVIEW4-56 최초 분류 뒤 REVIEW4-58 handler 대조로 RULE-016/073/075를 persisted transaction으로 교정해 current exact 424는 read-only 287/form 15/persisted 35/actionable 40/hidden 45/negative 2입니다. Actual input, tracked control proof, endpoint/local action, 독립 state/readback/runtime-required step, inverse/no-op cleanup을 요구합니다. Runner plan compatibility는 모든 kind를 검증하며 runtime adapter 부재를 명시 실패시킵니다. Contract/plan-only를 actual UI PASS로 승격하지 않으며 전체 readiness는 59~60 대기입니다. |
+| semantic completion oracle | V390-REVIEW3-42는 historical source claim으로 유지합니다. REVIEW4-58의 `media-server.v390-ui-action-completion.v2`가 exact primary action ID/correlation/exact selector에 unique concrete product request 또는 handler별 local transition/postcondition과 별도 fresh runtime readback을 결속합니다. V2 raw observation을 evaluator가 재계산해 initial navigation, wrong fixture/selector/request, duplicate request, manifest expected/observed self-comparison을 거부합니다. Contract/plan-only PASS는 actual exact 424 browser 실행이나 REVIEW4-59 visual/60 Policy independence PASS가 아닙니다. |
 | Policy v4 actual evidence producer | V390-REVIEW3-43 producer는 historical source claim입니다. REVIEW4-60이 native trace에서 action/request/readback/visual을 독립 재계산하고 producer 자기선언·순환 신뢰를 제거하기 전 current producer/qualifier 완료가 아닙니다. |
 | actual responsive/theme/visual evidence | V390-REVIEW3-44의 visual contract는 historical source claim입니다. REVIEW4-59의 대표 route, 320/390/760/1180×light/dark, `/client/live` ready video/overlay/crop/control matrix를 실제 실행하기 전 current visual readiness가 아닙니다. |
 | current HEAD/artifact containment | V390-REVIEW3-46 acceptance는 start/end provenance와 canonical command-set hash를 기록하고 final integrity는 current HEAD·branch·source-clean 및 output/run/child/Policy/UI artifact의 realpath containment를 독립 재검증합니다. `./server.sh verify-v390-final-evidence-integrity-contract`의 9/0은 변조 거부 계약이며 실제 30분/424 UI/120분 실행 evidence가 아닙니다. |
@@ -216,7 +216,7 @@ drift, automation featureId→caseId drift, artifact 누락을 실패 처리합�
 상태도 contract로 고정합니다. 고정 matrix는
 `docs/v390-ui-automation-coverage-matrix.md`에 보존합니다. Matrix `REVIEW_REQUIRED`는
 `exactNativeWorkflowReadinessComplete=false`, `actualAutomationExecutionComplete=false`, `manualUiFulltestEvidence=false`,
-`executionEvidenceStatus=current-not-run`이며 REVIEW4-58~60 전 matrix는 Policy v4-qualified UI 풀테스트 실행,
+`executionEvidenceStatus=current-not-run`, `coverageStatus=review4-59-60-pending`이며 REVIEW4-59~60 전 matrix는 Policy v4-qualified UI 풀테스트 실행,
 30분/120분, published metadata, release action PASS가 아닙니다.
 
 ### V390-ADD1-12 Policy v4 UI evidence qualification

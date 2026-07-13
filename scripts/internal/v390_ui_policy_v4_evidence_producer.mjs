@@ -196,8 +196,27 @@ function produceCase({ outputDir, policyRoot, policy, result, manifestCase, cano
     canonicalCase,
     nativeCase: manifestCase,
   });
-  const correlationEvent = (result.completionOracle || []).find(item => item?.pass === true && item?.correlationId) || {};
-  const correlationId = correlationEvent.correlationId || `${result.caseId}:navigation`;
+  const expectedCompletion = manifestCase.workflow?.expectedResults?.[0]?.completion;
+  assert(expectedCompletion?.phase === "primary-action", `${result.caseId} primary completion contract missing`);
+  const correlationEvents = (result.completionOracle || []).filter(item =>
+    item?.pass === true &&
+    item?.completionPhase === "primary-action" &&
+    item?.actionId === expectedCompletion.actionId &&
+    item?.correlationId === expectedCompletion.correlationId &&
+    item?.controlSelector === expectedCompletion.controlSelector);
+  assert(correlationEvents.length === 1,
+    `${result.caseId} requires exactly one action-bound primary completion; observed=${correlationEvents.length}`);
+  const correlationEvent = correlationEvents[0];
+  const correlationId = correlationEvent.correlationId;
+  if (expectedCompletion.request) {
+    assert(correlationEvent.completionRequest?.requestId,
+      `${result.caseId} exact completion request evidence missing`);
+    assert(correlationEvent.completionRequest.correlationId === expectedCompletion.correlationId &&
+      String(correlationEvent.completionRequest.method || "").toUpperCase() === expectedCompletion.request.method &&
+      new URL(String(correlationEvent.completionRequest.url), "http://localhost").pathname === expectedCompletion.request.urlPath &&
+      expectedCompletion.request.allowedStatuses.includes(Number(correlationEvent.completionRequest.status)),
+    `${result.caseId} exact completion request evidence drift`);
+  }
   const caseRoot = path.join(policyRoot, "cases", result.caseId);
   fs.mkdirSync(caseRoot, { recursive: true });
   const screenshotPath = requireContainedFile(outputDir, result.screenshotPath, `${result.caseId} screenshot`);
@@ -212,8 +231,9 @@ function produceCase({ outputDir, policyRoot, policy, result, manifestCase, cano
   const visualMeasurementPath = path.join(caseRoot, "visual-measurement.json");
   const redactionPath = path.join(caseRoot, "redaction.json");
   const oracleType = policyOracleType(correlationEvent.source);
-  const correlatedNetwork = (correlationEvent.networkResponses || []).filter(item =>
-    item?.correlationId === correlationId || correlationId.endsWith(":navigation"));
+  const correlatedNetwork = correlationEvent.completionRequest
+    ? [correlationEvent.completionRequest]
+    : (correlationEvent.networkResponses || []).filter(item => item?.correlationId === correlationId);
   writeJson(tracePath, {
     schema: traceSchema,
     caseId: result.caseId,
@@ -221,7 +241,16 @@ function produceCase({ outputDir, policyRoot, policy, result, manifestCase, cano
     route: canonicalCase.route,
     controlAction: canonicalCase.controlAction,
     events: [
-      { type: "trusted-interaction", trusted: true, dispatch: "playwright-native" },
+      {
+        type: "trusted-interaction",
+        trusted: true,
+        dispatch: "playwright-native",
+        phase: "primary-action",
+        actionId: correlationEvent.actionId,
+        actionKind: correlationEvent.actionKind,
+        controlSelector: correlationEvent.controlSelector,
+        correlationId,
+      },
       ...correlatedNetwork.map(item => ({
         type: "network-response",
         requestId: item.requestId || "",
@@ -230,7 +259,16 @@ function produceCase({ outputDir, policyRoot, policy, result, manifestCase, cano
         url: item.url || "",
         statusCode: Number(item.status || 0),
       })),
-      { type: "completion", status: "PASS", oracleType },
+      {
+        type: "completion",
+        status: "PASS",
+        oracleType,
+        phase: "primary-action",
+        actionId: correlationEvent.actionId,
+        actionKind: correlationEvent.actionKind,
+        controlSelector: correlationEvent.controlSelector,
+        correlationId,
+      },
     ],
     nativeTrace: traceSource,
   });
@@ -292,7 +330,8 @@ function produceCase({ outputDir, policyRoot, policy, result, manifestCase, cano
   });
   const redactionScan = artifactMeta(redactionPath, "application/json", outputDir, result.caseId, correlationId);
   const observed = requestedObserved.observed;
-  const statusCode = correlatedNetwork.find(item => item.correlationId === correlationId)?.status || result.navigation?.status || 0;
+  const statusCode = correlationEvent.completionRequest?.status ||
+    correlatedNetwork.find(item => item.correlationId === correlationId)?.status || result.navigation?.status || 0;
   return {
     testId: result.caseId,
     featureId: result.featureId || canonicalCase.featureId,
@@ -306,7 +345,17 @@ function produceCase({ outputDir, policyRoot, policy, result, manifestCase, cano
       type: oracleType,
       evidenceRef: evidenceRef(trace),
       correlationId,
+      actionId: correlationEvent.actionId,
+      actionKind: correlationEvent.actionKind,
+      controlSelector: correlationEvent.controlSelector,
       statusCode: Number(statusCode),
+      request: correlationEvent.completionRequest ? {
+        requestId: correlationEvent.completionRequest.requestId,
+        correlationId: correlationEvent.completionRequest.correlationId,
+        method: correlationEvent.completionRequest.method,
+        url: correlationEvent.completionRequest.url,
+        status: Number(correlationEvent.completionRequest.status),
+      } : null,
       beforeDigest: correlationEvent.beforeDigest || "",
       afterDigest: correlationEvent.afterDigest || "",
     },
@@ -387,6 +436,7 @@ function crossCuttingStatus(id, matrix) {
 
 function policyOracleType(source) {
   if (["endpoint-dom", "navigation-network-dom", "network-dom", "negative-route-status"].includes(source)) return "network-response-and-dom";
+  if (source === "local-transition-readback") return "dom-transition";
   if (source === "persisted-readback") return "persisted-state-readback";
   if (source === "event-record") return "eventrecord-correlation";
   if (source === "server-log") return "server-log-correlation";

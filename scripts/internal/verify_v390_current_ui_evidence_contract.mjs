@@ -36,6 +36,9 @@ check("current state is explicit not-run and not PASS", () => {
     state.readiness?.unsupported === 0, "current exact readiness mismatch");
   assert(state.readiness?.canonicalRequestedObservedSchemaComplete === true,
     "REVIEW4-57 requested/observed schema closure missing");
+  assert(state.readiness?.primaryActionCompletionOracleComplete === true,
+    "REVIEW4-58 primary action completion oracle closure missing");
+  assert(state.automatedCaseCount === 0, "current not-run state invented automated cases");
   assert(state.execution?.pass === 0 && state.execution?.notRun === 424 && state.execution?.unsupported === 0,
     "current execution state mismatch");
 });
@@ -104,7 +107,8 @@ check("durable matrix separates exact native readiness from current execution", 
   for (const snippet of [
     "currentEvidenceStatus: `not-run`", "native-executable-positive `423`",
     "negative-route-executable `1`", "unsupported `0`", "executed-pass `0`", "not-run `424`",
-    "review4-58-60-pending",
+    "review4-59-60-pending",
+    "primaryActionCompletionOracleComplete: `true`",
   ]) assert(matrix.includes(snippet), `durable matrix missing: ${snippet}`);
   assert(!matrix.includes("ui-automation-visible-dom-final/summary.json"), "durable matrix retains stale source");
 });

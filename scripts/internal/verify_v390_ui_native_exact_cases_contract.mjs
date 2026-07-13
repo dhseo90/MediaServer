@@ -241,8 +241,8 @@ check("REVIEW4-56 requires exact typed product workflows for all 424 cases", () 
   const expectedWorkflowClassCounts = {
     "read-only-state": 287,
     "form-submit": 15,
-    "persisted-mutation": 32,
-    actionable: 43,
+    "persisted-mutation": 35,
+    actionable: 40,
     "negative-route": 2,
     "hidden-disabled": 45,
   };
@@ -339,9 +339,13 @@ check("REVIEW4-56 requires exact typed product workflows for all 424 cases", () 
     ["RULE-007", ["read-only-state", null, "/ops/rules"]],
     ["RULE-011", ["persisted-mutation", "#opsRulesComposerSave", "/lab/analysis/va-rules/{fixtureId}"]],
     ["RULE-012", ["persisted-mutation", "#opsRulesComposerSave", "/lab/analysis/va-rules/{fixtureId}"]],
+    ["RULE-016", ["persisted-mutation", "#opsRulesComposerSave", "/lab/analysis/va-rules/{fixtureId}"]],
     ["RULE-025", ["read-only-state", null, "/ops/rules"]],
     ["RULE-030", ["persisted-mutation", "#opsRulesComposerSave", "/lab/analysis/va-rules/{fixtureId}"]],
-    ["RULE-101", ["actionable", "#opsRulesComposerSave", "/lab/analysis/va-rules/{fixtureId}"]],
+    ["RULE-073", ["persisted-mutation", "#opsRulesComposerSave", "/lab/analysis/rules/{fixtureId}"]],
+    ["RULE-075", ["persisted-mutation", "#opsRulesComposerSave", "/lab/analysis/rules/{fixtureId}"]],
+    ["RULE-101", ["actionable", "#opsRulesComposerSave", null]],
+    ["RULE-102", ["actionable", "#opsEventRuleTypeSelect", null]],
   ]);
   for (const [caseId, [workflowClass, selector, endpointPath]] of correctedRuleWorkflows) {
     const item = manifest.cases.find(candidate => candidate.caseId === caseId);
@@ -350,6 +354,13 @@ check("REVIEW4-56 requires exact typed product workflows for all 424 cases", () 
     assert((item.workflow.productAction.endpoint?.path || null) === endpointPath,
       `${caseId} exact product endpoint mismatch`);
   }
+  const rule101 = manifest.cases.find(item => item.caseId === "RULE-101");
+  assert(rule101.workflow.productAction.localAction?.verificationEndpoint?.path ===
+    "/lab/analysis/va-rules/{fixtureId}" &&
+    JSON.stringify(rule101.workflow.productAction.localAction.verificationEndpoint.allowedStatuses) === "[400]" &&
+    rule101.workflow.expectedResults[0].completion.localTransition.forbiddenRequests.some(request =>
+      request.methods.includes("PUT") && request.pathPrefix === "/lab/analysis/va-rules/"),
+  "RULE-101 UI no-write/API-400 split contract missing");
 });
 
 check("REVIEW4-56 rejects fallback no-submit generic and self-comparison workflows", () => {
@@ -455,7 +466,8 @@ check("runner owns native execution, role state, first-fail, and artifact fields
     "runner unsupported cleanup kind",
     "cross-role action session adapter is unavailable",
     "persisted workflow seed adapter is unavailable",
-    "requires runtime independent readback evidence; source locator metadata is not execution evidence",
+    "independent readback failed for",
+    "primary action remained pending after independent readback",
     "mutation cleanup adapter is unavailable",
   ]) {
     assert(runnerSource.includes(snippet), `runner explicit non-synthetic failure missing: ${snippet}`);

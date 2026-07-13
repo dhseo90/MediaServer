@@ -72,13 +72,15 @@ check("positive matrix covers the exact 424 manual UI test IDs from all feature 
     .map(item => item.manualUiCaseId);
   assert(summary.schema === "media-server.v390-ui-automation-coverage.v4", "coverage schema mismatch");
   assert(summary.matrixValidationResult === "REVIEW_REQUIRED", "matrix must remain review-required");
-  assert(summary.coverageStatus === "review4-58-60-pending", "coverage status mismatch");
+  assert(summary.coverageStatus === "review4-59-60-pending", "coverage status mismatch");
   assert(summary.executionEvidenceStatus === "current-not-run", "execution evidence boundary mismatch");
   assert(summary.currentEvidenceStatus === "not-run", "current evidence status mismatch");
   assert(summary.exactNativeWorkflowReadinessComplete === false,
-    "matrix must not claim exact native readiness before REVIEW4-58~60");
+    "matrix must not claim exact native readiness before REVIEW4-59~60");
   assert(summary.canonicalRequestedObservedSchemaComplete === true,
     "matrix must record REVIEW4-57 requested/observed schema closure");
+  assert(summary.primaryActionCompletionOracleComplete === true,
+    "matrix must record REVIEW4-58 action completion oracle closure");
   assert(summary.actualAutomationExecutionComplete === false,
     "matrix must not claim current actual automation execution");
   assert(summary.manualUiFulltestEvidence === false, "matrix must not claim manual UI fulltest evidence");
@@ -263,6 +265,7 @@ check("durable matrix and release docs record exact-ID partial coverage boundari
     "not-run `424`",
     "exactNativeWorkflowReadinessComplete: `false`",
     "canonicalRequestedObservedSchemaComplete: `true`",
+    "primaryActionCompletionOracleComplete: `true`",
     "actualAutomationExecutionComplete: `false`",
     "manualUiFulltestEvidence: `false`",
   ]) {
@@ -276,7 +279,7 @@ check("durable matrix and release docs record exact-ID partial coverage boundari
     "docs/release-evidence-index.md",
   ].map(readText).join("\n");
   for (const snippet of ["V390-ADD1-11", command, contractCommand,
-    "exact UI test ID 424", "prefix/range 판정 제거", "review4-58-60-pending"]) {
+    "exact UI test ID 424", "prefix/range 판정 제거", "review4-59-60-pending"]) {
     assertIncludes(docs, snippet, "V390-ADD1-11 docs/evidence");
   }
 });

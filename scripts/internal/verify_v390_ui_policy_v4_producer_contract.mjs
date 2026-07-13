@@ -30,6 +30,27 @@ const manifestSource = readJson(path.join(rootDir, "test/fixtures/v390_ui_native
 const canonical = { ...canonicalSource, cases: canonicalSource.cases.slice(0, 1) };
 const manifest = { ...manifestSource, cases: manifestSource.cases.slice(0, 1) };
 const item = manifest.cases[0];
+const primaryCompletion = item.workflow.expectedResults[0].completion;
+const primaryCompletionEvent = {
+  pass: true,
+  source: primaryCompletion.requiredSource,
+  completionPhase: "primary-action",
+  actionId: primaryCompletion.actionId,
+  actionKind: primaryCompletion.actionKind,
+  controlSelector: primaryCompletion.controlSelector,
+  correlationId: primaryCompletion.correlationId,
+  beforeDigest: "a".repeat(64),
+  afterDigest: "b".repeat(64),
+  networkResponses: primaryCompletion.request ? [{
+    requestId: "contract-primary-request-1",
+    correlationId: primaryCompletion.request.correlationId,
+    correlationSource: "request-header",
+    method: primaryCompletion.request.method,
+    status: primaryCompletion.request.allowedStatuses[0],
+    url: `http://127.0.0.1${primaryCompletion.request.urlPath}`,
+  }] : [],
+};
+primaryCompletionEvent.completionRequest = primaryCompletionEvent.networkResponses[0] || null;
 const screenshotPath = path.join(outputDir, "screenshots", `${item.caseId}.png`);
 const tracePath = path.join(outputDir, "traces", `${item.caseId}.json`);
 const consolePath = path.join(outputDir, "logs", `${item.caseId}.json`);
@@ -53,18 +74,23 @@ const produced = producePolicyV4Evidence({
     navigation: { status: 200 },
     completionOracle: [{
       pass: true,
-      source: "endpoint-dom",
+      source: "navigation-network-dom",
+      completionPhase: "initial-navigation",
+      actionId: `${item.caseId}:navigate`,
+      actionKind: "navigate",
+      controlSelector: null,
       correlationId: `${item.caseId}:navigation`,
-      beforeDigest: "a".repeat(64),
+      beforeDigest: "",
       afterDigest: "b".repeat(64),
       networkResponses: [{
-        requestId: "contract-request-1",
+        requestId: "contract-navigation-request-1",
         correlationId: `${item.caseId}:navigation`,
+        correlationSource: "request-header",
         method: "GET",
         status: 200,
         url: `http://127.0.0.1${item.screenRoute}`,
       }],
-    }],
+    }, primaryCompletionEvent],
     visibleAssertion: { pass: true, visible: true, selector: "body" },
     screenshotPath,
     tracePath,
@@ -95,6 +121,16 @@ check("producer writes v4 actual schema and direct source binding", () => {
   assert(summary.coverage.targetCount === 1 && summary.cases.length === 1, "contract scoped count mismatch");
   assert(summary.cases[0].requestedObservedSchema === "media-server.v390-ui-requested-observed-envelope.v1",
     "typed requested/observed envelope missing");
+  assert(summary.cases[0].completionOracle.actionId === item.oracle.primaryActionId,
+    "producer selected initial navigation instead of the primary action");
+  assert(summary.cases[0].completionOracle.correlationId === item.oracle.primaryActionCorrelationId,
+    "producer primary action correlation mismatch");
+  assert(summary.cases[0].completionOracle.controlSelector === item.workflow.primaryControl.selector,
+    "producer primary action selector mismatch");
+  assert(summary.cases[0].completionOracle.request?.requestId === "contract-primary-request-1" &&
+    summary.cases[0].completionOracle.request.method === primaryCompletion.request.method &&
+    summary.cases[0].completionOracle.request.status === primaryCompletion.request.allowedStatuses[0],
+  "producer did not preserve the exact matched completion request");
 });
 
 check("producer rejects missing observed and legacy aliases", () => {
@@ -132,6 +168,99 @@ check("producer rejects missing observed and legacy aliases", () => {
       failed = /requested|observed/.test(String(error.message));
     }
     assert(failed, "producer accepted a missing/aliased requested-observed projection");
+  }
+});
+
+check("REVIEW4-58 producer rejects navigation-only wrong-action and wrong-selector completion", () => {
+  const navigationOnly = {
+    pass: true,
+    source: "navigation-network-dom",
+    completionPhase: "initial-navigation",
+    actionId: `${item.caseId}:navigate`,
+    actionKind: "navigate",
+    controlSelector: null,
+    correlationId: `${item.caseId}:navigation`,
+    networkResponses: [],
+  };
+  for (const [label, events] of [
+    ["navigation-only", [navigationOnly]],
+    ["wrong-action", [{ ...structuredClone(primaryCompletionEvent), actionId: "OTHER:action" }]],
+    ["wrong-selector", [{ ...structuredClone(primaryCompletionEvent), controlSelector: "#other" }]],
+  ]) {
+    let failed = false;
+    try {
+      producePolicyV4Evidence({
+        rootDir,
+        outputDir,
+        manifest,
+        canonical,
+        results: [{
+          caseId: item.caseId,
+          featureId: item.featureId,
+          status: "PASS",
+          requested: canonicalRequestedProjection(item),
+          observed: expectedRuntimeObservation(item),
+          completionOracle: events,
+          visibleAssertion: { pass: true, visible: true, selector: "body" },
+          screenshotPath,
+          tracePath,
+          browserConsolePath: consolePath,
+        }],
+        selectedAdapter: produced.summary.selectedAdapter,
+        startedAt: new Date(now - 1000).toISOString(),
+        finishedAt: new Date(now).toISOString(),
+        buildPath: path.join(rootDir, "VERSION"),
+        runnerPath: path.join(rootDir, "scripts/internal/run_v390_ui_native_exact_cases.mjs"),
+        serverLogPath,
+        contractFixture: true,
+      });
+    } catch (error) {
+      failed = String(error.message).includes("action-bound primary completion");
+    }
+    assert(failed, `${label} completion was accepted by producer`);
+  }
+});
+
+check("REVIEW4-58 producer rejects a missing or drifted exact completion request", () => {
+  for (const [label, mutate] of [
+    ["missing", event => { event.completionRequest = null; }],
+    ["wrong-method", event => { event.completionRequest.method = "DELETE"; }],
+    ["wrong-path", event => { event.completionRequest.url = "http://127.0.0.1/other"; }],
+    ["wrong-status", event => { event.completionRequest.status = 599; }],
+  ]) {
+    const event = structuredClone(primaryCompletionEvent);
+    mutate(event);
+    let failed = false;
+    try {
+      producePolicyV4Evidence({
+        rootDir,
+        outputDir,
+        manifest,
+        canonical,
+        results: [{
+          caseId: item.caseId,
+          featureId: item.featureId,
+          status: "PASS",
+          requested: canonicalRequestedProjection(item),
+          observed: expectedRuntimeObservation(item),
+          completionOracle: [event],
+          visibleAssertion: { pass: true, visible: true, selector: "body" },
+          screenshotPath,
+          tracePath,
+          browserConsolePath: consolePath,
+        }],
+        selectedAdapter: produced.summary.selectedAdapter,
+        startedAt: new Date(now - 1000).toISOString(),
+        finishedAt: new Date(now).toISOString(),
+        buildPath: path.join(rootDir, "VERSION"),
+        runnerPath: path.join(rootDir, "scripts/internal/run_v390_ui_native_exact_cases.mjs"),
+        serverLogPath,
+        contractFixture: true,
+      });
+    } catch (error) {
+      failed = String(error.message).includes("exact completion request evidence");
+    }
+    assert(failed, `${label} exact completion request was accepted`);
   }
 });
 
@@ -190,7 +319,7 @@ check("producer rejects artifact path escape", () => {
         status: "PASS",
         requested: produced.summary.cases[0].requested,
         observed: produced.summary.cases[0].observed,
-        completionOracle: [{ pass: true, source: "endpoint-dom", correlationId: `${item.caseId}:navigation`, networkResponses: [] }],
+        completionOracle: [structuredClone(primaryCompletionEvent)],
         visibleAssertion: { pass: true, visible: true, selector: "body" },
         screenshotPath: path.join(os.tmpdir(), "escape.png"),
         tracePath,

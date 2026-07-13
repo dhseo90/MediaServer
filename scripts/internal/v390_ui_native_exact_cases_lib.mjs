@@ -58,10 +58,12 @@ const formContracts = new Map([
 ]);
 
 const localOnlyMutationCases = new Set([
-  "UI-036", "RULE-016", "RULE-102", "CLIENT-002", "CLIENT-005", "SAFE-038",
+  "UI-036", "RULE-101", "RULE-102", "CLIENT-002", "CLIENT-005", "SAFE-038",
 ]);
-const forcedPersistedMutationCases = new Set(["RULE-011", "RULE-012", "RULE-030"]);
-const endpointActionCases = new Set(["RULE-101"]);
+const forcedPersistedMutationCases = new Set([
+  "RULE-011", "RULE-012", "RULE-016", "RULE-030", "RULE-073", "RULE-075",
+]);
+const endpointActionCases = new Set();
 const readOnlyBoundaryCases = new Set(["RULE-007", "RULE-025"]);
 const explicitHiddenControlCases = new Set(["RULE-017"]);
 const formMutationCases = new Set(["UI-004", "UI-005", "AUTH-036"]);
@@ -183,8 +185,10 @@ const mutationPrimaryControls = new Map([
   ["RULE-023", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
   ["RULE-024", { selector: '[data-ops-rule-action="delete-profile"]', route: "/ops/rules" }],
   ["RULE-030", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-073", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-075", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
   ["RULE-101", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
-  ["RULE-102", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-102", { selector: "#opsEventRuleTypeSelect", route: "/ops/rules" }],
   ["EVT-021", { selector: "[data-event-review-save]", route: "/ops/events" }],
   ["CLIENT-002", { selector: '[data-action="toggle-playback"]', route: "/client/live" }],
   ["CLIENT-005", { selector: "#liveAllStop", route: "/client/live" }],
@@ -237,6 +241,10 @@ const overrideControlSourceCatalog = new Map([
   ["#opsRulesComposerSave", {
     file: "src/ingress/webrtc_http_server.cpp",
     anchor: '<button id="opsRulesComposerSave" class="button-primary" type="button">저장</button>',
+  }],
+  ["#opsEventRuleTypeSelect", {
+    file: "src/ingress/webrtc_http_server.cpp",
+    anchor: '<select id="opsEventRuleTypeSelect" aria-label="종류"></select>',
   }],
   ['[data-ops-rule-action="delete-va"]', {
     file: "src/ingress/product_ui_page_scripts.cpp",
@@ -377,6 +385,83 @@ const readModelControls = new Set([
   '[data-testid="client-safe-event-digest"]',
 ]);
 
+const localCompletionContracts = new Map([
+  ["UI-036", {
+    postconditions: [
+      { selector: "#opsRulesDetailPanel", property: "hidden", operator: "equals", value: false },
+      { selector: "#opsEventRulePresetSelect", property: "value", operator: "equals", value: "custom" },
+      { selector: "#opsRulesStatus", property: "text", operator: "includes", value: "저장" },
+    ],
+    forbiddenRequests: [
+      { methods: ["POST", "PUT", "DELETE"], pathPrefix: "/lab/analysis/rules" },
+      { methods: ["POST", "PUT", "DELETE"], pathPrefix: "/lab/analysis/va-rules" },
+    ],
+  }],
+  ["SRC-024", {
+    postconditions: [
+      { selector: "#channel-detail-panel", property: "hidden", operator: "equals", value: false },
+      { selector: "#channel-editor-mode", property: "text", operator: "includes", value: "새 채널" },
+      { selector: "#channel-editor-title", property: "text", operator: "includes", value: "채널 추가" },
+    ],
+    forbiddenRequests: [
+      { methods: ["POST", "DELETE"], pathPrefix: "/webrtc/session" },
+    ],
+  }],
+  ["RULE-101", {
+    postconditions: [
+      { selector: "#opsRulesStatus", property: "text", operator: "includes", value: "저장 전 검증 실패" },
+      { selector: "#opsRulesComposerSave", property: "hidden", operator: "equals", value: false },
+    ],
+    forbiddenRequests: [
+      { methods: ["PUT"], pathPrefix: "/lab/analysis/va-rules/" },
+    ],
+  }],
+  ["RULE-102", {
+    postconditions: [
+      { selector: "#opsRulesReviewLoop", property: "hidden", operator: "equals", value: false },
+      { selector: "#opsRulesReviewEventTypeTitle", property: "text", operator: "includes", value: "re-entry" },
+      { selector: "#opsRulesReviewEventRecordLink", property: "href", operator: "startsWith", value: "/ops/events#eventType=" },
+    ],
+    forbiddenRequests: [
+      { methods: ["POST", "PUT", "DELETE"], pathPrefix: "/lab/analysis/rules" },
+      { methods: ["POST", "PUT", "DELETE"], pathPrefix: "/lab/analysis/va-rules" },
+    ],
+  }],
+  ["CLIENT-002", {
+    seedRequirements: [{ kind: "live-tile-state", state: "idle", minimumCount: 1 }],
+    requiredRequests: [
+      { sequence: 1, method: "POST", urlPath: "/client/api/views/client-002-review4-fixture/webrtc/session", allowedStatuses: [200] },
+      { sequence: 2, method: "POST", urlPath: "/client/api/views/client-002-review4-fixture/webrtc/session/client-002-review4-session/answer", allowedStatuses: [200] },
+    ],
+    postconditions: [
+      { selector: '[data-action="toggle-playback"]', property: "ariaLabel", operator: "includes", value: "정지" },
+      { selector: '[data-role="tile-playback-icon"]', property: "text", operator: "equals", value: "■" },
+    ],
+  }],
+  ["CLIENT-005", {
+    seedRequirements: [{ kind: "live-session", state: "active", minimumCount: 1, sessionId: "client-005-review4-session" }],
+    requiredRequests: [
+      { sequence: 1, method: "DELETE", urlPath: "/client/api/views/client-005-review4-fixture/webrtc/session/client-005-review4-session", allowedStatuses: [200] },
+    ],
+    postconditions: [
+      { selector: '[data-action="toggle-playback"]', property: "ariaLabel", operator: "includes", value: "재생" },
+      { selector: '[data-role="tile-playback-icon"]', property: "text", operator: "equals", value: "▶" },
+    ],
+  }],
+  ["SAFE-038", {
+    postconditions: [
+      { selector: "#opsRulesDetailPanel", property: "hidden", operator: "equals", value: false },
+      { selector: "#opsEventRulePresetSelect", property: "value", operator: "equals", value: "custom" },
+      { selector: "#opsRulesStatus", property: "text", operator: "includes", value: "저장" },
+    ],
+    forbiddenRequests: [
+      { methods: ["POST", "PUT", "DELETE"], pathPrefix: "/lab/analysis/rules" },
+      { methods: ["POST", "PUT", "DELETE"], pathPrefix: "/lab/analysis/va-rules" },
+      { methods: ["POST", "PUT", "DELETE"], pathPrefix: "/ops/api/events" },
+    ],
+  }],
+]);
+
 export function buildNativeExactManifest({ canonical, implementation }) {
   assert(canonical?.schema === canonicalManifestSchema, "unexpected canonical manifest schema");
   assert(implementation?.schema === implementationManifestSchema, "unexpected implementation manifest schema");
@@ -419,6 +504,7 @@ export function buildNativeExactManifest({ canonical, implementation }) {
       negativeRoute,
       crossRouteNegative,
     });
+    const primaryActionPlan = primaryWorkflowAction(workflowParts.controlSequence, negativeRoute);
     const actions = workflowParts.controlSequence.map(action => ({
       ...action,
       ...(action.kind === "wait-visible" ? {} : {
@@ -427,26 +513,21 @@ export function buildNativeExactManifest({ canonical, implementation }) {
           screenRoute,
           action,
           negativeRoute,
+          primaryActionId: primaryActionPlan.actionId,
+          primaryControl,
+          productAction: workflowParts.productAction,
+          expectedProductState: workflowParts.expectedProductState,
+          independentReadback: workflowParts.independentReadback,
+          workflowInputs: workflowParts.inputs,
         }),
       }),
     }));
-    const hasInteraction = actions.some(action => [
-      "toggle-details",
-      "fill-control",
-      "toggle-checkbox",
-      "select-control",
-      "activate-control",
-      "submit-form",
-      "execute-persisted-action",
-    ].includes(action.kind));
+    const primaryCompletion = primarySemanticCompletion(actions);
     const hasCrossRouteNegative = actions.some(action => action.kind === "navigate-negative");
-    const completionSources = negativeRoute
-      ? ["negative-route-status"]
-      : (hasCrossRouteNegative
-          ? ["endpoint-dom", "negative-route-status"]
-          : (hasInteraction
-              ? ["endpoint-dom", "persisted-readback", "event-record", "server-log"]
-              : ["endpoint-dom"]));
+    const completionSources = [...new Set([
+      primaryCompletion.requiredSource,
+      ...primaryCompletion.attestedAlternatives,
+    ])];
     const caseValue = {
       caseId: canonicalCase.testId,
       featureId: canonicalCase.featureId,
@@ -487,7 +568,7 @@ export function buildNativeExactManifest({ canonical, implementation }) {
           endpointHints: expectedNetworkUrlIncludes,
           stateLocator: compactLocator(workflowParts.expectedProductState.locator),
           readbackLocator: compactLocator(workflowParts.independentReadback.locator),
-          completion: primarySemanticCompletion(actions),
+          completion: structuredClone(primaryCompletion),
         }],
         cleanup: workflowParts.cleanup,
       },
@@ -503,6 +584,10 @@ export function buildNativeExactManifest({ canonical, implementation }) {
         allowedStatuses: negativeRoute ? [404] : [200],
         completionRequired: true,
         allowedCompletionSources: completionSources,
+        primaryActionId: primaryCompletion.actionId,
+        primaryActionCorrelationId: primaryCompletion.correlationId,
+        primaryControlSelector: primaryCompletion.controlSelector,
+        independentReadbackIdentity: primaryCompletion.readback.identity,
       },
       artifacts: {
         screenshot: true,
@@ -567,7 +652,7 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
     assert(Array.isArray(item.actions) && item.actions.length > 0, `${item.caseId} native actions missing`);
     assert(item.actions.every(action => action.dispatch === "playwright-native"), `${item.caseId} native action dispatch drift`);
     assert(item.actions.filter(action => action.kind !== "wait-visible").every(action =>
-      action.semanticCompletion?.schema === "media-server.v390-ui-semantic-completion.v1"),
+      action.semanticCompletion?.schema === "media-server.v390-ui-action-completion.v2"),
     `${item.caseId} semantic action completion missing`);
     assert(item.workflow?.schema === caseNativeWorkflowSchema, `${item.caseId} workflow schema drift`);
     assert(item.workflow.workflowId === `${item.caseId}:native-workflow`, `${item.caseId} workflow ID drift`);
@@ -680,8 +765,41 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
       `${item.caseId} unknown completion source`);
     assert(!item.oracle.allowedCompletionSources.includes("dom-transition"),
       `${item.caseId} arbitrary DOM completion source is forbidden`);
-    assert(item.workflow.expectedResults[0]?.completion?.schema === "media-server.v390-ui-semantic-completion.v1",
+    assert(item.workflow.expectedResults[0]?.completion?.schema === "media-server.v390-ui-action-completion.v2",
       `${item.caseId} expected semantic completion missing`);
+    const primaryCompletion = item.workflow.expectedResults[0].completion;
+    assert(primaryCompletion.phase === "primary-action", `${item.caseId} primary completion phase missing`);
+    assert(primaryCompletion.actionId === item.oracle.primaryActionId &&
+      primaryCompletion.correlationId === item.oracle.primaryActionCorrelationId,
+    `${item.caseId} primary completion identity drift`);
+    assert(primaryCompletion.controlSelector === item.workflow.primaryControl.selector &&
+      primaryCompletion.controlSelector === item.oracle.primaryControlSelector,
+    `${item.caseId} primary completion selector drift`);
+    assert(primaryCompletion.expectedBehaviorSha256 === item.workflow.expectedProductState.expectedBehaviorSha256,
+      `${item.caseId} primary expected behavior drift`);
+    assert(primaryCompletion.readback.identity === item.workflow.independentReadback.identity &&
+      primaryCompletion.readback.identity === item.oracle.independentReadbackIdentity &&
+      primaryCompletion.readback.staticLocatorIsNotRuntimePass === true,
+    `${item.caseId} independent readback binding drift`);
+    assert(Boolean(primaryCompletion.request) !== Boolean(primaryCompletion.localTransition),
+      `${item.caseId} primary request/local transition must be exclusive`);
+    if (item.workflow.productAction.endpoint) {
+      const endpoint = item.workflow.productAction.endpoint;
+      assert(primaryCompletion.request.correlationId === primaryCompletion.correlationId &&
+        primaryCompletion.request.correlationId !== `${item.caseId}:navigation` &&
+        primaryCompletion.request.method === endpoint.method &&
+        primaryCompletion.request.urlPathTemplate === endpoint.path &&
+        !primaryCompletion.request.urlPath.includes("{") &&
+        JSON.stringify(primaryCompletion.request.allowedStatuses) === JSON.stringify(endpoint.allowedStatuses),
+      `${item.caseId} action request completion drift`);
+    } else {
+      const localAction = item.workflow.productAction.localAction;
+      assert(primaryCompletion.localTransition.selector === item.workflow.primaryControl.selector &&
+        primaryCompletion.localTransition.type === localAction.type &&
+        primaryCompletion.localTransition.target === localAction.target &&
+        primaryCompletion.localTransition.effect === localAction.effect,
+      `${item.caseId} local transition completion drift`);
+    }
     assert(JSON.stringify(item.artifacts) === JSON.stringify(expectedItem.artifacts), `${item.caseId} artifact plan drift`);
     assert(JSON.stringify(item.requestedProjection) === JSON.stringify(expectedItem.requestedProjection),
       `${item.caseId} canonical requested projection drift`);
@@ -705,9 +823,9 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
     manifest.cases.filter(item => item.workflow.workflowClass === workflowClass).length,
   ]));
   const expectedWorkflowClassCounts = {
-    actionable: 43,
+    actionable: 40,
     "form-submit": 15,
-    "persisted-mutation": 32,
+    "persisted-mutation": 35,
     "read-only-state": 287,
     "hidden-disabled": 45,
     "negative-route": 2,
@@ -942,7 +1060,7 @@ function buildCaseNativeWorkflow({
       route: primaryControl.route || screenRoute,
       semanticCallChainSha256: semanticDigest,
       persistedMutation: mutatesFixture,
-      fixtureId: `${caseId.toLowerCase()}-review4-fixture`,
+      fixtureId: workflowFixtureId(caseId),
       beforeSnapshotRef: mutatesFixture ? `${caseId}:before-product-state` : null,
     },
   ];
@@ -1094,7 +1212,7 @@ function buildMutationCleanup({
   productAction,
   independentReadback,
 }) {
-  const fixtureId = `${caseId.toLowerCase()}-review4-fixture`;
+  const fixtureId = workflowFixtureId(caseId);
   const created = semanticClassification.operation === "create" || [
     "UI-002", "AUTH-005", "AUTH-006", "AUTH-014", "AUTH-015", "AUTH-033", "AUTH-036",
   ].includes(caseId);
@@ -1232,13 +1350,18 @@ function buildProductAction({
   if (workflowClass === "actionable") {
     if (caseId === "RULE-101") {
       return {
-        kind: "rejected-product-action",
-        endpoint: {
-          method: "PUT",
-          path: "/lab/analysis/va-rules/{fixtureId}",
-          allowedStatuses: [400],
+        kind: "rejected-ui-action",
+        endpoint: null,
+        localAction: {
+          type: "activate",
+          target: primaryControl.selector,
+          effect: "block the UI save before dispatch and preserve the reviewed rule registry",
+          verificationEndpoint: {
+            method: "PUT",
+            path: "/lab/analysis/va-rules/{fixtureId}",
+            allowedStatuses: [400],
+          },
         },
-        localAction: null,
       };
     }
     return {
@@ -1322,9 +1445,15 @@ function mutationProductAction(caseId, implementationItem, primaryControl) {
   if (["RULE-011", "RULE-012", "RULE-030"].includes(caseId)) {
     return endpoint("PUT", "/lab/analysis/va-rules/{fixtureId}");
   }
+  if (caseId === "RULE-016") {
+    return endpoint("PUT", "/lab/analysis/va-rules/{fixtureId}", [200]);
+  }
   if (caseId === "RULE-006") return endpoint("DELETE", "/lab/analysis/va-rules/{fixtureId}");
   if (["RULE-018", "RULE-019"].includes(caseId)) {
     return endpoint("PUT", "/lab/analysis/rules/{fixtureId}");
+  }
+  if (["RULE-073", "RULE-075"].includes(caseId)) {
+    return endpoint("PUT", "/lab/analysis/rules/{fixtureId}", [200]);
   }
   if (caseId === "RULE-020") return endpoint("DELETE", "/lab/analysis/rules/{fixtureId}");
   if (["RULE-022", "RULE-023"].includes(caseId)) {
@@ -1333,7 +1462,6 @@ function mutationProductAction(caseId, implementationItem, primaryControl) {
   if (caseId === "RULE-024") return endpoint("DELETE", "/lab/analysis/profiles/{fixtureId}");
   if (caseId === "EVT-021") return endpoint("PUT", "/ops/api/events/reviews/{fixtureId}");
   if (caseId === "CLIENT-009") return endpoint("PUT", "/client/api/preferences/live-layout");
-  if (caseId === "RULE-016") return local("calculate-next-id", "assign next unused numeric rule ID before save");
   if (caseId === "RULE-102") return local("update-review-loop", "render event type/conflict/reference/preset/EventRecord review state");
   if (caseId === "CLIENT-002") return local("click", "start selected live tile and create its client session");
   if (caseId === "CLIENT-005") return local("click", "stop all live tiles and close their client sessions");
@@ -1364,7 +1492,7 @@ function buildWorkflowInputs({ canonicalCase, implementationItem, workflowClass,
       fields: [...contract.fields],
       submit: true,
       seedReference: {
-        fixtureId: `${caseId.toLowerCase()}-review4-fixture`,
+        fixtureId: workflowFixtureId(caseId),
         accountRole: canonicalCase.accountRole,
         route: productAction.endpoint.path,
       },
@@ -1379,13 +1507,13 @@ function buildWorkflowInputs({ canonicalCase, implementationItem, workflowClass,
       inputId: `${caseId}:mutation-fixture`,
       kind: "reversible-fixture-record",
       actualValue: {
-        id: `${caseId.toLowerCase()}-review4-fixture`,
+        id: workflowFixtureId(caseId),
         displayName: `REVIEW4 ${caseId} fixture`,
         operation: implementationItem.semanticEvidence?.review4Proof?.requirement?.operation || "write",
         ...exactValues,
       },
       seedReference: {
-        fixtureId: `${caseId.toLowerCase()}-review4-fixture`,
+        fixtureId: workflowFixtureId(caseId),
         accountRole: canonicalCase.accountRole,
         route: canonicalCase.route,
       },
@@ -1394,6 +1522,24 @@ function buildWorkflowInputs({ canonicalCase, implementationItem, workflowClass,
     return inputs;
   }
   if (workflowClass === "actionable") {
+    if (caseId === "RULE-101") {
+      inputs.push({
+        inputId: `${caseId}:local-control-input`,
+        kind: "rejected-endpoint-fixture",
+        actualValue: {
+          method: productAction.localAction.verificationEndpoint.method,
+          path: productAction.localAction.verificationEndpoint.path,
+          body: { analysisClasses: ["person"], profileClasses: ["vehicle"], templateClasses: ["person"] },
+        },
+        seedReference: {
+          fixtureId: workflowFixtureId(caseId),
+          accountRole: canonicalCase.accountRole,
+          route: canonicalCase.route,
+        },
+        sensitive: false,
+      });
+      return inputs;
+    }
     if (productAction.endpoint) {
       inputs.push({
         inputId: `${caseId}:local-control-input`,
@@ -1406,7 +1552,7 @@ function buildWorkflowInputs({ canonicalCase, implementationItem, workflowClass,
             : {},
         },
         seedReference: {
-          fixtureId: `${caseId.toLowerCase()}-review4-fixture`,
+          fixtureId: workflowFixtureId(caseId),
           accountRole: canonicalCase.accountRole,
           route: canonicalCase.route,
         },
@@ -1455,7 +1601,7 @@ function persistedMutationInputValues(caseId) {
 }
 
 function formValues(caseId, fields) {
-  const fixtureId = `${caseId.toLowerCase()}-review4-fixture`;
+  const fixtureId = workflowFixtureId(caseId);
   const values = {
     username: fixtureId,
     password: { secretRef: `${caseId}:fixture-password`, redacted: true },
@@ -1471,6 +1617,10 @@ function formValues(caseId, fields) {
     ttlSeconds: 3600,
   };
   return Object.fromEntries(fields.map(field => [field, values[field] ?? `${fixtureId}-${field}`]));
+}
+
+function workflowFixtureId(caseId) {
+  return caseId === "RULE-016" ? "39016" : `${caseId.toLowerCase()}-review4-fixture`;
 }
 
 function localActionType(selector) {
@@ -1549,30 +1699,129 @@ function sha256Text(value) {
   return crypto.createHash("sha256").update(String(value)).digest("hex");
 }
 
-function buildActionSemanticCompletion({ caseId, screenRoute, action, negativeRoute = false }) {
+function buildActionSemanticCompletion({
+  caseId,
+  screenRoute,
+  action,
+  negativeRoute = false,
+  primaryActionId,
+  primaryControl,
+  productAction,
+  expectedProductState,
+  independentReadback,
+  workflowInputs,
+}) {
+  const primary = action.actionId === primaryActionId;
   const negative = action.kind === "navigate-negative" || (action.kind === "navigate" && negativeRoute);
-  const navigation = action.kind === "navigate";
-  const correlationId = navigation
+  const initialNavigation = action.kind === "navigate" && !primary;
+  const setupNavigation = action.kind === "navigate-action-route";
+  const independent = action.kind === "verify-independent-readback";
+  const phase = primary
+    ? "primary-action"
+    : (initialNavigation ? "initial-navigation" : (setupNavigation ? "setup-navigation" : "independent-readback"));
+  const correlationId = initialNavigation
     ? `${caseId}:navigation`
-    : (negative ? `${caseId}:negative-navigation` : `${action.actionId}:completion`);
-  const endpointCorrelationId = negative ? correlationId : `${caseId}:navigation`;
-  return {
-    schema: "media-server.v390-ui-semantic-completion.v1",
-    required: true,
-    requiredSource: negative ? "negative-route-status" : "endpoint-dom",
-    correlationId,
-    request: {
-      correlationHeader: "x-media-server-correlation-id",
-      correlationId: endpointCorrelationId,
-      correlationSource: "request-header",
+    : `${action.actionId}:completion`;
+  let request = null;
+  let localTransition = null;
+  const localCompletionContract = primary ? localCompletionContracts.get(caseId) || null : null;
+  if (primary) {
+    if (productAction.endpoint) {
+      request = actionRequestContract(correlationId, productAction.endpoint, workflowInputs, caseId);
+    } else {
+      localTransition = {
+        selector: primaryControl.selector,
+        type: productAction.localAction.type,
+        target: productAction.localAction.target,
+        effect: productAction.localAction.effect,
+        property: localCompletionContract ? null : localTransitionProperty(action),
+        ...(localCompletionContract ? structuredClone(localCompletionContract) : {}),
+      };
+    }
+  } else if (initialNavigation) {
+    request = actionRequestContract(correlationId, {
       method: "GET",
-      urlPath: negative ? action.route : screenRoute,
-      allowedStatuses: negative ? [...(action.allowedStatuses || [404])] : [200],
+      path: screenRoute,
+      allowedStatuses: [200],
+    });
+  } else if (setupNavigation) {
+    request = actionRequestContract(correlationId, {
+      method: "GET",
+      path: action.route,
+      allowedStatuses: [200],
+    });
+  }
+  const requiredSource = negative
+    ? "negative-route-status"
+    : (localTransition ? "local-transition-readback" : "endpoint-dom");
+  return {
+    schema: "media-server.v390-ui-action-completion.v2",
+    required: true,
+    phase,
+    actionId: action.actionId,
+    actionKind: action.kind,
+    controlSelector: primary ? primaryControl.selector : (action.selector || null),
+    linkedPrimaryActionId: independent ? primaryActionId : null,
+    requiredSource,
+    correlationId,
+    request,
+    localTransition,
+    expectedBehaviorSha256: primary || independent ? expectedProductState.expectedBehaviorSha256 : "",
+    readback: {
+      identity: primary || independent ? independentReadback.identity : `${caseId}:navigation`,
+      expectedStateIdentity: primary || independent ? expectedProductState.identity : "",
+      expectedBehaviorSha256: primary || independent ? expectedProductState.expectedBehaviorSha256 : "",
+      allowedObservationSources: ["browser-dom", "readback-request", "event-record", "server-log"],
+      staticLocatorIsNotRuntimePass: primary || independent,
     },
-    readbackIdentity: navigation ? `${caseId}:navigation` : `${caseId}:semantic-result`,
-    readbackExpectation: semanticReadbackExpectation(action),
+    readbackIdentity: primary || independent ? independentReadback.identity : `${caseId}:navigation`,
+    readbackExpectation: localCompletionContract
+      ? { postconditions: structuredClone(localCompletionContract.postconditions || []) }
+      : semanticReadbackExpectation(action),
     attestedAlternatives: negative ? [] : ["persisted-readback", "event-record", "server-log"],
   };
+}
+
+function actionRequestContract(correlationId, endpoint, workflowInputs = [], caseId = "") {
+  const urlPathTemplate = endpoint.path;
+  const pathParameters = {};
+  const parameterNames = [...String(urlPathTemplate).matchAll(/\{([^/{}]+)\}/g)].map(match => match[1]);
+  const fixtureId = workflowInputs
+    .map(input => input?.seedReference?.fixtureId || input?.actualValue?.id || "")
+    .find(Boolean) || (caseId ? workflowFixtureId(caseId) : "");
+  for (const name of parameterNames) {
+    assert(["fixtureId", "id"].includes(name), `${caseId} unsupported endpoint path parameter: ${name}`);
+    assert(fixtureId, `${caseId} endpoint path parameter ${name} has no exact workflow fixture`);
+    pathParameters[name] = fixtureId;
+  }
+  const urlPath = String(urlPathTemplate).replace(/\{([^/{}]+)\}/g, (_match, name) =>
+    encodeURIComponent(pathParameters[name]));
+  return {
+    correlationHeader: "x-media-server-correlation-id",
+    correlationId,
+    correlationSource: "request-header",
+    method: endpoint.method,
+    urlPathTemplate,
+    urlPath,
+    pathParameters,
+    allowedStatuses: [...endpoint.allowedStatuses],
+  };
+}
+
+function localTransitionProperty(action) {
+  if (action.kind === "toggle-details") return "open";
+  if (action.kind === "fill-control") return "value";
+  if (action.kind === "toggle-checkbox") return "checked";
+  if (action.kind === "select-control") return "selectedValues";
+  if (action.kind === "activate-control") return "url";
+  return "state";
+}
+
+function primaryWorkflowAction(actions, negativeRoute) {
+  if (negativeRoute) return actions[0];
+  return actions.find(action =>
+    !["navigate", "navigate-action-route", "wait-visible", "verify-independent-readback"].includes(action.kind),
+  ) || actions[0];
 }
 
 function semanticReadbackExpectation(action) {

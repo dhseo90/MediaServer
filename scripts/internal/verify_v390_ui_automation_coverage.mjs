@@ -173,13 +173,14 @@ const summary = {
   matrixValidationResult: policy.boundaries.exactNativeWorkflowReadinessComplete ? "PASS" : "REVIEW_REQUIRED",
   coverageStatus: policy.boundaries.exactNativeWorkflowReadinessComplete
     ? (currentEvidenceAvailable ? "exact-native-current-executed" : "exact-native-ready-current-not-run")
-    : "review4-58-60-pending",
+    : "review4-59-60-pending",
   selectionModel: "exact-manual-ui-test-id",
   prefixRangeClassification: "removed",
   executionEvidenceStatus: policy.boundaries.executionEvidenceStatus,
   currentEvidenceStatus: currentEvidenceAvailable ? "current-actual-execution" : automationSummary.status,
   exactNativeWorkflowReadinessComplete: policy.boundaries.exactNativeWorkflowReadinessComplete,
   canonicalRequestedObservedSchemaComplete: policy.boundaries.canonicalRequestedObservedSchemaComplete,
+  primaryActionCompletionOracleComplete: policy.boundaries.primaryActionCompletionOracleComplete,
   actualAutomationExecutionComplete: currentEvidenceAvailable && counts.pass === rows.length,
   manualUiFulltestEvidence: policy.boundaries.manualUiFulltestEvidence,
   sourceOfTruth: {
@@ -267,11 +268,13 @@ function validatePolicyShape(value) {
   assert(Array.isArray(value.classifications?.negativeRoute?.caseIds), "policy negative route case IDs missing");
   assert(Array.isArray(value.requiredActualArtifacts), "policy required actual artifacts missing");
   assert(value.boundaries?.exactNativeWorkflowReadinessComplete === false,
-    "policy must keep exact native readiness false until REVIEW4-58~60 close");
+    "policy must keep exact native readiness false until REVIEW4-59~60 close");
   assert(value.boundaries?.exactProductWorkflowDesignComplete === true,
     "policy must record REVIEW4-56 exact product workflow design closure");
   assert(value.boundaries?.canonicalRequestedObservedSchemaComplete === true,
     "policy must record REVIEW4-57 requested/observed schema closure");
+  assert(value.boundaries?.primaryActionCompletionOracleComplete === true,
+    "policy must record REVIEW4-58 primary action completion oracle closure");
   assert(value.boundaries?.actualAutomationExecutionComplete === false,
     "policy default actual execution boundary mismatch");
   assert(!Object.hasOwn(value.boundaries || {}, "fullAutomationCoverage"),
@@ -386,6 +389,10 @@ function validateCurrentEvidenceState(value) {
   "current UI readiness counts mismatch");
   assert(value.execution?.pass === 0 && value.execution?.fail === 0 && value.execution?.notRun === 424 &&
     value.execution?.unsupported === 0, "current UI execution counts mismatch");
+  assert(value.readiness?.status === "review4-59-60-pending" &&
+    value.readiness?.canonicalRequestedObservedSchemaComplete === true &&
+    value.readiness?.primaryActionCompletionOracleComplete === true,
+  "current UI readiness stage closure mismatch");
   for (const binding of [value.canonicalCaseManifest, value.nativeExactManifest]) {
     const resolved = path.resolve(rootDir, binding?.path || "");
     assert(fs.existsSync(resolved), `current UI bound manifest missing: ${binding?.path || ""}`);
@@ -424,7 +431,7 @@ function buildMatrixRow({ inventory, implementation, manifestCase, actualByCaseI
     unsupportedReasonCode: "",
     unsupportedReason: policy.boundaries.exactNativeWorkflowReadinessComplete
       ? "native exact workflow ready; current execution not run"
-      : "REVIEW4-56 exact product workflow and REVIEW4-57 requested/observed schema closed; REVIEW4-58~60 oracle/visual/Policy readiness pending; current execution not run",
+      : "REVIEW4-56 exact product workflow, REVIEW4-57 requested/observed schema, and REVIEW4-58 primary action completion oracle closed; REVIEW4-59~60 visual/Policy readiness pending; current execution not run",
     targetSelector: manifestCase?.controlAction?.targetSelector || "",
     evidence: emptyEvidence(),
   };
@@ -476,7 +483,7 @@ function renderReport(value) {
     "# v3.9.0 Full-Feature UI Automation Coverage Matrix",
     "",
     "이 문서는 986개 feature inventory의 reviewed implementation manifest에서 exact manual UI test ID를 선택하고 historical capability classification과 current not-run state를 분리해 생성합니다.",
-    "Feature ID prefix와 numeric range는 coverage 판정에 사용하지 않습니다. REVIEW4-56 product workflow design과 REVIEW4-57 requested/observed schema는 완료됐지만 REVIEW4-58~60 전 REVIEW_REQUIRED matrix는 current full readiness, full automation 또는 UI 풀테스트 직접 조작 PASS가 아닙니다.",
+    "Feature ID prefix와 numeric range는 coverage 판정에 사용하지 않습니다. REVIEW4-56 product workflow design, REVIEW4-57 requested/observed schema, REVIEW4-58 primary action completion oracle는 완료됐지만 REVIEW4-59~60 전 REVIEW_REQUIRED matrix는 current full readiness, full automation 또는 UI 풀테스트 직접 조작 PASS가 아닙니다.",
     "",
     `schema: \`${value.schema}\``,
     `matrixValidationResult: \`${value.matrixValidationResult}\``,
@@ -487,6 +494,7 @@ function renderReport(value) {
     `currentEvidenceStatus: \`${value.currentEvidenceStatus}\``,
     `exactNativeWorkflowReadinessComplete: \`${value.exactNativeWorkflowReadinessComplete}\``,
     `canonicalRequestedObservedSchemaComplete: \`${value.canonicalRequestedObservedSchemaComplete}\``,
+    `primaryActionCompletionOracleComplete: \`${value.primaryActionCompletionOracleComplete}\``,
     `actualAutomationExecutionComplete: \`${value.actualAutomationExecutionComplete}\``,
     `manualUiFulltestEvidence: \`${value.manualUiFulltestEvidence}\``,
     "",

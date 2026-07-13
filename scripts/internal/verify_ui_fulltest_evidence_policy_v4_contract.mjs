@@ -296,6 +296,23 @@ try {
     assert(result.reasons.some(reason => reason.endsWith(":dom-transition-did-not-change")), "unchanged DOM marker passed");
   });
 
+  check("REVIEW4-58 primary action ID correlation and exact selector are required", () => {
+    for (const [label, mutate, expectedReason] of [
+      ["action-id", candidate => { candidate.cases[0].completionOracle.actionId = "OTHER:action"; },
+        "completion-primary-action-id-mismatch"],
+      ["correlation", candidate => { candidate.cases[0].completionOracle.correlationId = `${candidate.cases[0].testId}:navigation`; },
+        "completion-primary-correlation-mismatch"],
+      ["selector", candidate => { candidate.cases[0].completionOracle.controlSelector = "#other"; },
+        "completion-primary-control-selector-mismatch"],
+    ]) {
+      const candidate = makeCandidate(tempRoot, policy, 1, "scoped-change");
+      mutate(candidate);
+      const result = evaluate(candidate, tempRoot);
+      assert(result.reasons.some(reason => reason.endsWith(`:${expectedReason}`)),
+        `${label} primary completion drift passed`);
+    }
+  });
+
   check("role theme and viewport claims must match observed browser state", () => {
     const candidate = clone(base);
     candidate.cases[0].observed.accountRole = "viewer";
@@ -528,7 +545,12 @@ function makeContractVisualMatrix(artifactRoot, policyValue) {
 
 function makeAttestedCase(artifactRoot, policyValue, canonicalCase, nativeCase) {
   assert(nativeCase, `${canonicalCase.testId} native case missing`);
-  const correlationId = `contract-${canonicalCase.testId}`;
+  const expectedCompletion = nativeCase.workflow.expectedResults[0].completion;
+  const correlationId = expectedCompletion.correlationId;
+  const oracleType = expectedCompletion.requiredSource === "local-transition-readback"
+    ? "dom-transition"
+    : "network-response-and-dom";
+  const statusCode = expectedCompletion.request?.allowedStatuses?.[0] || 0;
   const caseRoot = path.join(artifactRoot, "cases", canonicalCase.testId);
   fs.mkdirSync(caseRoot, { recursive: true });
   const pngPath = path.join(caseRoot, "screen.png");
@@ -546,9 +568,33 @@ function makeAttestedCase(artifactRoot, policyValue, canonicalCase, nativeCase) 
     route: canonicalCase.route,
     controlAction: canonicalCase.controlAction,
     events: [
-      { type: "trusted-interaction", trusted: true },
-      { type: "network-response", statusCode: 200, correlationId },
-      { type: "completion", status: "PASS", oracleType: "network-response-and-dom" },
+      {
+        type: "trusted-interaction",
+        trusted: true,
+        phase: "primary-action",
+        actionId: expectedCompletion.actionId,
+        actionKind: expectedCompletion.actionKind,
+        controlSelector: expectedCompletion.controlSelector,
+        correlationId,
+      },
+      ...(expectedCompletion.request ? [{
+        type: "network-response",
+        requestId: `${canonicalCase.testId}:contract-request`,
+        correlationId,
+        method: expectedCompletion.request.method,
+        url: `http://127.0.0.1${expectedCompletion.request.urlPath}`,
+        statusCode,
+      }] : []),
+      {
+        type: "completion",
+        status: "PASS",
+        oracleType,
+        phase: "primary-action",
+        actionId: expectedCompletion.actionId,
+        actionKind: expectedCompletion.actionKind,
+        controlSelector: expectedCompletion.controlSelector,
+        correlationId,
+      },
     ],
   });
   writeJson(consolePath, {
@@ -603,10 +649,15 @@ function makeAttestedCase(artifactRoot, policyValue, canonicalCase, nativeCase) 
     requestedObservedSchema: "media-server.v390-ui-requested-observed-envelope.v1",
     interaction: { executed: true, trusted: true },
     completionOracle: {
-      type: "network-response-and-dom",
+      type: oracleType,
       evidenceRef: evidenceRef(trace, policyValue),
       correlationId,
-      statusCode: 200,
+      actionId: expectedCompletion.actionId,
+      actionKind: expectedCompletion.actionKind,
+      controlSelector: expectedCompletion.controlSelector,
+      statusCode,
+      beforeDigest: "a".repeat(64),
+      afterDigest: "b".repeat(64),
     },
     visibleAssertions: [{ pass: true, visible: true, sourceBoundary: "exact-selector-visible-innerText-only" }],
     visualEvidence: {

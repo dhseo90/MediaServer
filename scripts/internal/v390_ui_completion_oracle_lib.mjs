@@ -6,6 +6,7 @@ export const allowedCompletionSources = [
   "endpoint-dom",
   "navigation-network-dom",
   "negative-route-status",
+  "local-transition-readback",
   "dom-transition",
   "network-dom",
   "persisted-readback",
@@ -42,42 +43,97 @@ export function evaluateCompletionOracle({
     beforeDigest,
     afterDigest,
     networkResponses: Array.isArray(networkResponses) ? networkResponses : [],
+    completionRequest: null,
     semanticReadback,
     expectedEndpoint: action?.expectedEndpoint || null,
+    completionPhase: action?.completionPhase || "legacy",
+    actionId: action?.actionId || "",
+    actionKind: action?.actionKind || action?.kind || "",
+    controlSelector: action?.controlSelector ?? null,
   };
   if (!action?.executed) return { ...base, reason: "action-not-executed" };
   if (action.dispatch !== "playwright-native") return { ...base, reason: "untrusted-action-dispatch" };
+  const actionBound = action.completionPhase === "primary-action";
+  if (actionBound) {
+    if (!action.actionId || !action.correlationId) return { ...base, reason: "primary-action-identity-missing" };
+    if (!(action.controlSelector === null || (typeof action.controlSelector === "string" && action.controlSelector))) {
+      return { ...base, reason: "primary-action-control-selector-invalid" };
+    }
+    if (action.expectedEndpoint && action.expectedEndpoint.correlationId !== action.correlationId) {
+      return { ...base, reason: "action-request-correlation-mismatch" };
+    }
+  }
 
   if (action.kind === "navigate" || action.kind === "navigate-negative") {
     if (!navigation || !allowedStatuses.includes(Number(navigation.status))) {
       return { ...base, reason: "navigation-status-mismatch" };
     }
     if (action.kind === "navigate-negative") {
-      if (action.semanticCompletionRequired && !matchesCorrelatedEndpoint(base.networkResponses, action)) {
-        return { ...base, reason: "request-correlation-missing" };
+      const requestMatch = action.semanticCompletionRequired
+        ? findCorrelatedEndpoint(base.networkResponses, action)
+        : { match: null, reason: "" };
+      if (action.semanticCompletionRequired && !requestMatch.match) {
+        return { ...base, reason: requestMatch.reason };
       }
-      return { ...base, pass: true, source: "negative-route-status", reason: "" };
+      return {
+        ...base,
+        pass: true,
+        source: "negative-route-status",
+        reason: "",
+        completionRequest: requestMatch.match,
+        networkResponses: requestMatch.match ? [requestMatch.match] : base.networkResponses,
+      };
     }
     if (!hasVisibleDom(after)) return { ...base, reason: "navigation-dom-missing" };
     if (action.semanticCompletionRequired) {
-      if (!matchesSemanticReadback(semanticReadback, action)) {
-        return { ...base, reason: "semantic-readback-mismatch" };
+      const readbackReason = validateSemanticReadback(semanticReadback, action, actionBound);
+      if (readbackReason) {
+        return { ...base, reason: readbackReason };
       }
-      if (!matchesCorrelatedEndpoint(base.networkResponses, action)) {
-        return { ...base, reason: "request-correlation-missing" };
+      const requestMatch = findCorrelatedEndpoint(base.networkResponses, action);
+      if (!requestMatch.match) {
+        return { ...base, reason: requestMatch.reason };
       }
-      return allowedResult(base, action, "endpoint-dom");
+      return allowedResult(base, action, "endpoint-dom", { completionRequest: requestMatch.match });
     }
     return { ...base, pass: true, source: "navigation-network-dom", reason: "" };
   }
 
   const actualKind = action.executedKind || action.kind;
   if (action.semanticCompletionRequired) {
-    if (!matchesSemanticReadback(semanticReadback, action)) {
-      return { ...base, reason: "semantic-readback-mismatch" };
+    const readbackReason = validateSemanticReadback(semanticReadback, action, actionBound);
+    if (actionBound && action.expectedLocalTransition) {
+      const transitionReason = validateLocalTransition(before, after, action);
+      if (transitionReason) return { ...base, reason: transitionReason };
+      const localNetwork = validateLocalNetworkContract(base.networkResponses, action.expectedLocalTransition, action);
+      if (localNetwork.reason) return { ...base, reason: localNetwork.reason };
+      const localBase = localNetwork.matches.length > 0
+        ? { ...base, networkResponses: localNetwork.matches }
+        : base;
+      if (!readbackReason) return allowedResult(localBase, action, "local-transition-readback");
+      const alternative = actionBoundAlternative(localBase, action, persistedReadback, eventRecord, serverLog);
+      return alternative || { ...base, reason: readbackReason };
     }
-    if (matchesCorrelatedEndpoint(base.networkResponses, action)) {
-      return allowedResult(base, action, "endpoint-dom");
+    if (actionBound && action.expectedEndpoint) {
+      const requestMatch = findCorrelatedEndpoint(base.networkResponses, action);
+      if (!requestMatch.match) {
+        return { ...base, reason: requestMatch.reason };
+      }
+      const requestBase = {
+        ...base,
+        completionRequest: requestMatch.match,
+        networkResponses: [requestMatch.match],
+      };
+      if (!readbackReason) return allowedResult(requestBase, action, "endpoint-dom");
+      const alternative = actionBoundAlternative(requestBase, action, persistedReadback, eventRecord, serverLog);
+      return alternative || { ...base, reason: readbackReason };
+    }
+    if (readbackReason) {
+      return { ...base, reason: readbackReason };
+    }
+    const requestMatch = findCorrelatedEndpoint(base.networkResponses, action);
+    if (requestMatch.match) {
+      return allowedResult(base, action, "endpoint-dom", { completionRequest: requestMatch.match });
     }
     if (matchesPersistedReadback(persistedReadback, action)) {
       return allowedResult(base, action, "persisted-readback");
@@ -123,29 +179,176 @@ export function evaluateCompletionOracle({
   return { ...base, reason: "no-correlated-completion" };
 }
 
-function allowedResult(base, action, source) {
+function actionBoundAlternative(base, action, persistedReadback, eventRecord, serverLog) {
+  if (matchesPersistedReadback(persistedReadback, action)) {
+    return allowedResult(base, action, "persisted-readback");
+  }
+  if (matchesEventRecord(eventRecord, action)) return allowedResult(base, action, "event-record");
+  if (matchesServerLog(serverLog, action)) return allowedResult(base, action, "server-log");
+  return null;
+}
+
+function allowedResult(base, action, source, additions = {}) {
   const allowed = Array.isArray(action.allowedCompletionSources) ? action.allowedCompletionSources : [];
   if (allowed.length > 0 && !allowed.includes(source)) {
     return { ...base, reason: "completion-source-not-allowed" };
   }
-  return { ...base, pass: true, source, reason: "" };
+  const completionRequest = additions.completionRequest || base.completionRequest || null;
+  return {
+    ...base,
+    ...additions,
+    pass: true,
+    source,
+    reason: "",
+    completionRequest,
+    networkResponses: completionRequest ? [completionRequest] : base.networkResponses,
+  };
 }
 
-function matchesSemanticReadback(value, action) {
-  return Boolean(
-    value?.schema === "media-server.v390-ui-semantic-readback.v1" &&
-    action.expectedReadbackIdentity &&
-    value.identity === action.expectedReadbackIdentity &&
-    value.correlationId === action.correlationId &&
-    value.expected !== undefined &&
-    stableStringify(value.expected) === stableStringify(value.observed),
-  );
+function validateSemanticReadback(value, action, actionBound) {
+  if (!actionBound) {
+    if (value?.schema !== "media-server.v390-ui-semantic-readback.v1" ||
+        !action.expectedReadbackIdentity || value.identity !== action.expectedReadbackIdentity ||
+        value.correlationId !== action.correlationId || value.expected === undefined ||
+        stableStringify(value.expected) !== stableStringify(value.observed)) {
+      return "semantic-readback-mismatch";
+    }
+    return "";
+  }
+  if (value?.schema !== "media-server.v390-ui-semantic-readback.v2" ||
+      !action.expectedReadbackIdentity || value.identity !== action.expectedReadbackIdentity ||
+      value.correlationId !== action.correlationId ||
+      value.expectedBehaviorSha256 !== action.expectedBehaviorSha256 ||
+      !/^[a-f0-9]{64}$/.test(String(value.expectedBehaviorSha256 || "")) ||
+      value.expected !== undefined || value.observed !== undefined ||
+      value.observation === undefined ||
+      value.observationSha256 !== domSnapshotDigest(value.observation)) {
+    return "semantic-readback-mismatch";
+  }
+  if (!["browser-dom", "readback-request", "event-record", "server-log"].includes(value.observationSource)) {
+    return "untrusted-readback-observation-source";
+  }
+  if (value.actionId !== action.actionId) return "readback-action-id-mismatch";
+  if (value.observationSource === "browser-dom") {
+    if (value.selector !== action.controlSelector) return "readback-control-selector-mismatch";
+    const snapshots = [value.observation?.before, value.observation?.after].filter(Boolean);
+    if (action.controlSelector !== null && snapshots.some(snapshot => snapshot.selector !== action.controlSelector)) {
+      return "readback-control-selector-mismatch";
+    }
+  }
+  if (evaluateSemanticExpectation(action.expectedReadbackExpectation, value.observation) !== true) {
+    return "semantic-readback-observation-mismatch";
+  }
+  return "";
 }
 
-function matchesCorrelatedEndpoint(entries, action) {
+function evaluateSemanticExpectation(expected, observation) {
+  if (!expected || typeof expected !== "object" || !observation || typeof observation !== "object") return false;
+  const before = observation.before || null;
+  const after = observation.after || observation.actual || null;
+  if (expected.changedProperty) {
+    return expected.changed === true && before && after &&
+      stableStringify(before[expected.changedProperty]) !== stableStringify(after[expected.changedProperty]);
+  }
+  if (expected.property) {
+    return after && stableStringify(after[expected.property]) === stableStringify(expected.value);
+  }
+  if (expected.hrefKind) {
+    return after?.tag === expected.tag && expected.hrefKind === "same-origin-path" &&
+      String(after?.href || "").startsWith("/");
+  }
+  if (expected.minimumNonEmptyOptions !== undefined) {
+    return after?.tag === expected.tag &&
+      Number(after?.nonEmptyOptionCount ?? after?.optionValues?.filter(Boolean)?.length ?? 0) >=
+        Number(expected.minimumNonEmptyOptions);
+  }
+  if (Array.isArray(expected.postconditions) && expected.postconditions.length > 0) {
+    const beforeSnapshots = observation.beforeSnapshots || {};
+    const snapshots = observation.snapshots || {};
+    const afterMatches = expected.postconditions.every(condition =>
+      matchesPostcondition(snapshots[condition.selector], condition));
+    const transitioned = expected.postconditions.some(condition =>
+      !matchesPostcondition(beforeSnapshots[condition.selector], condition) &&
+      matchesPostcondition(snapshots[condition.selector], condition));
+    return afterMatches && transitioned;
+  }
+  if (expected.navigationStatus !== undefined) {
+    return Number(observation.navigation?.status) === Number(expected.navigationStatus);
+  }
+  const actual = after || observation.actual || observation;
+  return Object.entries(expected).every(([key, value]) =>
+    stableStringify(actual?.[key]) === stableStringify(value));
+}
+
+function validateLocalTransition(before, after, action) {
+  const expected = action.expectedLocalTransition;
+  if (!expected || expected.selector !== action.controlSelector ||
+      (!expected.property && !(Array.isArray(expected.postconditions) && expected.postconditions.length > 0))) {
+    return "local-transition-contract-invalid";
+  }
+  if (before?.selector !== action.controlSelector || after?.selector !== action.controlSelector) {
+    return "local-transition-selector-mismatch";
+  }
+  if (expected.property && stableStringify(before?.[expected.property]) === stableStringify(after?.[expected.property])) {
+    return "local-transition-not-observed";
+  }
+  return "";
+}
+
+function validateLocalNetworkContract(entries, expected, action) {
+  const values = Array.isArray(entries) ? entries : [];
+  for (const forbidden of expected.forbiddenRequests || []) {
+    const found = values.some(entry => {
+      if (entry?.phase !== "request-start") return false;
+      const pathname = requestPathname(entry?.url);
+      return (forbidden.methods || []).includes(String(entry?.method || "").toUpperCase()) &&
+        pathname.startsWith(forbidden.pathPrefix);
+    });
+    if (found) return { matches: [], reason: "forbidden-action-request-observed" };
+  }
+  const matches = [];
+  let previousIndex = -1;
+  for (const request of expected.requiredRequests || []) {
+    const candidates = values
+      .map((entry, index) => ({ entry, index }))
+      .filter(({ entry, index }) => index > previousIndex &&
+        entry?.correlationSource === "request-header" &&
+        entry?.correlationId === action.correlationId &&
+        typeof entry?.requestId === "string" && entry.requestId &&
+        String(entry.method || "").toUpperCase() === request.method &&
+        requestPathname(entry.url) === request.urlPath &&
+        request.allowedStatuses.includes(Number(entry.status)));
+    if (candidates.length !== 1) {
+      return { matches: [], reason: candidates.length === 0 ? "required-action-request-missing" : "ambiguous-exact-request" };
+    }
+    previousIndex = candidates[0].index;
+    matches.push(structuredClone(candidates[0].entry));
+  }
+  return { matches, reason: "" };
+}
+
+function matchesPostcondition(snapshot, condition) {
+  if (!snapshot || snapshot.selector !== condition.selector) return false;
+  const actual = snapshot[condition.property];
+  if (condition.operator === "equals") return stableStringify(actual) === stableStringify(condition.value);
+  if (condition.operator === "includes") return String(actual || "").includes(String(condition.value));
+  if (condition.operator === "startsWith") return String(actual || "").startsWith(String(condition.value));
+  if (condition.operator === "in") return Array.isArray(condition.values) && condition.values.includes(actual);
+  return false;
+}
+
+function requestPathname(rawUrl) {
+  try {
+    return new URL(String(rawUrl || ""), "http://localhost").pathname;
+  } catch {
+    return "";
+  }
+}
+
+function findCorrelatedEndpoint(entries, action) {
   const expected = action.expectedEndpoint;
-  if (!expected || !Array.isArray(entries)) return false;
-  return entries.some(item =>
+  if (!expected || !Array.isArray(entries)) return { match: null, reason: "request-correlation-missing" };
+  const matches = entries.filter(item =>
     item?.correlationSource === "request-header" &&
     item?.correlationId === expected.correlationId &&
     typeof item?.requestId === "string" && item.requestId &&
@@ -154,12 +357,16 @@ function matchesCorrelatedEndpoint(entries, action) {
     (expected.allowedStatuses || [200]).includes(Number(item.status)) &&
     endpointUrlMatches(item.url, expected),
   );
+  if (matches.length === 0) return { match: null, reason: "request-correlation-missing" };
+  if (matches.length !== 1) return { match: null, reason: "ambiguous-exact-request" };
+  return { match: structuredClone(matches[0]), reason: "" };
 }
 
 function endpointUrlMatches(rawUrl, expected) {
   if (expected.urlPath) {
     try {
-      return new URL(String(rawUrl), "http://localhost").pathname === expected.urlPath;
+      const pathname = new URL(String(rawUrl), "http://localhost").pathname;
+      return !String(expected.urlPath).includes("{") && pathname === expected.urlPath;
     } catch {
       return false;
     }
@@ -173,6 +380,8 @@ function matchesPersistedReadback(value, action) {
     value.correlationSource === "readback-request" &&
     value.correlationId === action.correlationId &&
     value.identity === action.expectedReadbackIdentity &&
+    value.actionId === action.actionId &&
+    value.expectedBehaviorSha256 === action.expectedBehaviorSha256 &&
     typeof value.readbackRequestId === "string" && value.readbackRequestId &&
     value.beforeDigest && value.afterDigest && value.beforeDigest !== value.afterDigest,
   );
@@ -184,6 +393,8 @@ function matchesEventRecord(value, action) {
     value.correlationSource === "event-record-field" &&
     value.correlationId === action.correlationId &&
     value.identity === action.expectedReadbackIdentity &&
+    value.actionId === action.actionId &&
+    value.expectedBehaviorSha256 === action.expectedBehaviorSha256 &&
     value.observed === true &&
     typeof value.eventId === "string" && value.eventId &&
     /^[a-f0-9]{64}$/.test(String(value.recordSha256 || "")),
@@ -196,6 +407,8 @@ function matchesServerLog(value, action) {
     value.correlationSource === "server-log-field" &&
     value.correlationId === action.correlationId &&
     value.identity === action.expectedReadbackIdentity &&
+    value.actionId === action.actionId &&
+    value.expectedBehaviorSha256 === action.expectedBehaviorSha256 &&
     value.matched === true &&
     Number.isInteger(value.byteStart) && Number.isInteger(value.byteEnd) && value.byteEnd > value.byteStart &&
     /^[a-f0-9]{64}$/.test(String(value.lineSha256 || "")),

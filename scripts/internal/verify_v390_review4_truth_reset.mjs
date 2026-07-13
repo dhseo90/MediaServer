@@ -71,9 +71,11 @@ check("coverage policy separates readiness from actual execution", () => {
   assert(coverage.schema === "media-server.v390-ui-automation-coverage-policy.v4",
     "coverage policy schema mismatch");
   assert(coverage.boundaries?.exactNativeWorkflowReadinessComplete === false,
-    "exact workflow readiness must remain false until REVIEW4-58~60");
+    "exact workflow readiness must remain false until REVIEW4-59~60");
   assert(coverage.boundaries?.canonicalRequestedObservedSchemaComplete === true,
     "REVIEW4-57 requested/observed schema closure missing");
+  assert(coverage.boundaries?.primaryActionCompletionOracleComplete === true,
+    "REVIEW4-58 primary action completion oracle closure missing");
   assert(coverage.boundaries?.actualAutomationExecutionComplete === false,
     "actual automation execution boundary mismatch");
   assert(coverage.boundaries?.manualUiFulltestEvidence === false,
@@ -83,6 +85,7 @@ check("coverage policy separates readiness from actual execution", () => {
   for (const snippet of [
     "exactNativeWorkflowReadinessComplete: `false`",
     "canonicalRequestedObservedSchemaComplete: `true`",
+    "primaryActionCompletionOracleComplete: `true`",
     "actualAutomationExecutionComplete: `false`",
     "manualUiFulltestEvidence: `false`",
   ]) assert(coverageDoc.includes(snippet), `coverage document missing ${snippet}`);

@@ -58,7 +58,7 @@ check("explicit missing module fails without fallback", () => {
 });
 
 check("adapter exposes native wait click fill type select screenshot", () => {
-  for (const capability of ["wait", "click", "fill", "type", "select", "screenshot", "evaluate", "request-correlation"]) {
+  for (const capability of ["wait", "click", "fill", "type", "select", "screenshot", "evaluate", "request-correlation", "request-start-ledger", "network-quiet"]) {
     assert(nativeCapabilities.includes(capability), `missing capability ${capability}`);
   }
   for (const snippet of ["waitForSelector", "page.locator(selector).click", "page.locator(selector).fill", "pressSequentially", "selectOption", "page.screenshot"]) {
@@ -66,6 +66,9 @@ check("adapter exposes native wait click fill type select screenshot", () => {
   }
   for (const snippet of ["x-media-server-correlation-id", "requestId", "correlationSource", "setCorrelationId"]) {
     assert(adapterSource.includes(snippet), `adapter correlation source missing ${snippet}`);
+  }
+  for (const snippet of ["page.on(\"request\"", "pendingRequests", "correlatedEntryCount", "entry.correlationId === correlationId"]) {
+    assert(adapterSource.includes(snippet), `adapter action-window source missing ${snippet}`);
   }
 });
 

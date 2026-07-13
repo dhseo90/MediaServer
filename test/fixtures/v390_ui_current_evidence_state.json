@@ -5,18 +5,20 @@
   "status": "not-run",
   "actualBrowserExecution": false,
   "uiFulltestPass": false,
+  "automatedCaseCount": 0,
   "canonicalCaseManifest": {
     "path": "test/fixtures/ui_fulltest_case_manifest_policy_v4.json",
-    "sha256": "ddaededbf37beab6cbda9800edcf644a50d475cc32d028e099b7c9a3eb082936"
+    "sha256": "5716174846f7819e073efba991c2b0448c4688f099533e2e56e106c3044fce2e"
   },
   "nativeExactManifest": {
     "path": "test/fixtures/v390_ui_native_exact_cases.json",
-    "sha256": "0575b8222139d0b91ec5e9296335da915b66a9d3febf11244cf120981ee0904f"
+    "sha256": "ee8cce2349fbabbddcd8acc1a3a41d2b58e705d8669a7b430fbab2ea414da936"
   },
   "readiness": {
     "complete": false,
-    "status": "review4-58-60-pending",
+    "status": "review4-59-60-pending",
     "canonicalRequestedObservedSchemaComplete": true,
+    "primaryActionCompletionOracleComplete": true,
     "exactUiTestIds": 424,
     "nativeExecutablePositive": 423,
     "negativeRouteExecutable": 1,
@@ -30,5 +32,5 @@
   },
   "historicalInvalidManifest": "docs/release-artifacts/v3.9.0/historical-invalid-ui-evidence.json",
   "requiredNextEvidence": "new current-HEAD placeholder-free Policy v4 exact 424 browser execution with source provenance and integrity attestation",
-  "boundary": "REVIEW4-56 exact product workflows and REVIEW4-57 canonical requested/runtime-observed schemas are statically closed; REVIEW4-58~60 completion, visual, and Policy independence remain pending; not-run is not PASS; audit-only historical summaries are denied as current evidence"
+  "boundary": "REVIEW4-56 exact product workflows, REVIEW4-57 canonical requested/runtime-observed schemas, and REVIEW4-58 primary action-bound completion oracle are statically closed; REVIEW4-59 visual matrix and REVIEW4-60 Policy independence remain pending; not-run is not PASS; audit-only historical summaries are denied as current evidence"
 }

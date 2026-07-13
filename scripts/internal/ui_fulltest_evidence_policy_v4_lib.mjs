@@ -497,6 +497,14 @@ function validateCase(policy, item, summary, rootDir, { verifyArtifacts, canonic
   if (!policy.caseEquivalence.allowedCompletionOracles.includes(oracle.type)) reasons.push("completion-oracle-not-qualified");
   if (!oracle.evidenceRef) reasons.push("completion-oracle-evidence-missing");
   if (!oracle.correlationId) reasons.push("completion-oracle-correlation-missing");
+  const expectedCompletion = nativeCase?.workflow?.expectedResults?.[0]?.completion;
+  if (expectedCompletion?.phase !== "primary-action") {
+    reasons.push("native-primary-completion-contract-missing");
+  } else {
+    if (oracle.actionId !== expectedCompletion.actionId) reasons.push("completion-primary-action-id-mismatch");
+    if (oracle.correlationId !== expectedCompletion.correlationId) reasons.push("completion-primary-correlation-mismatch");
+    if (oracle.controlSelector !== expectedCompletion.controlSelector) reasons.push("completion-primary-control-selector-mismatch");
+  }
   if (oracle.type === "dom-transition" && oracle.beforeDigest === oracle.afterDigest) reasons.push("dom-transition-did-not-change");
   if (oracle.type === "network-response-and-dom" && (!oracle.correlationId || !(oracle.statusCode >= 200 && oracle.statusCode < 600))) reasons.push("network-completion-correlation-missing");
   const completionArtifactName = oracle.type === "server-log-correlation" ? "serverLog" : "trace";
@@ -689,11 +697,19 @@ function validateCompletionEvidence(policy, item, canonicalCase, oracle, evidenc
     reasons.push("completion-trace-schema-invalid");
     return;
   }
-  const trusted = payload.events.some(event => event?.type === "trusted-interaction" && event?.trusted === true);
-  const completion = payload.events.some(event => event?.type === "completion" && event?.status === "PASS" && event?.oracleType === oracle.type);
+  const trusted = payload.events.some(event =>
+    event?.type === "trusted-interaction" && event?.trusted === true &&
+    event?.phase === "primary-action" && event?.actionId === oracle.actionId &&
+    event?.controlSelector === oracle.controlSelector && event?.correlationId === oracle.correlationId);
+  const completion = payload.events.some(event =>
+    event?.type === "completion" && event?.status === "PASS" && event?.oracleType === oracle.type &&
+    event?.phase === "primary-action" && event?.actionId === oracle.actionId &&
+    event?.controlSelector === oracle.controlSelector && event?.correlationId === oracle.correlationId);
   if (!trusted || !completion) reasons.push("completion-trace-events-incomplete");
   if (oracle.type === "network-response-and-dom") {
     const network = payload.events.some(event => event?.type === "network-response" &&
+      typeof event?.requestId === "string" && event.requestId &&
+      typeof event?.method === "string" && event.method && typeof event?.url === "string" && event.url &&
       event?.statusCode === oracle.statusCode && event?.correlationId === oracle.correlationId);
     if (!network) reasons.push("completion-trace-network-correlation-missing");
   }

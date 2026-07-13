@@ -4,11 +4,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
-import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 
 import { createNativePlaywrightAdapter } from "./v390_ui_native_adapter.mjs";
-import { evaluateCompletionOracle } from "./v390_ui_completion_oracle_lib.mjs";
+import { domSnapshotDigest, evaluateCompletionOracle } from "./v390_ui_completion_oracle_lib.mjs";
 import { validateNativeExactManifest } from "./v390_ui_native_exact_cases_lib.mjs";
 import { producePolicyV4Evidence } from "./v390_ui_policy_v4_evidence_producer.mjs";
 import { deduplicateScreenshotArtifacts } from "./evidence_integrity_lib.mjs";
@@ -164,7 +163,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     height: item.viewport.height,
     storageStatePath,
     colorScheme: item.theme,
-    navigationCorrelationId: `${item.caseId}:navigation`,
+    navigationCorrelationId: item.actions[0].semanticCompletion.correlationId,
   });
   const requested = canonicalRequestedProjection(item);
   const trace = {
@@ -256,8 +255,25 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
         }
       }
     }
-    assert(trace.completionEvents.some(event => event.pass && item.oracle.allowedCompletionSources.includes(event.source)),
-      `${item.caseId} has no allowed completion oracle`);
+    const primaryCompletionEvents = trace.completionEvents.filter(event =>
+      event.pass === true &&
+      event.completionPhase === "primary-action" &&
+      event.actionId === item.oracle.primaryActionId &&
+      event.correlationId === item.oracle.primaryActionCorrelationId &&
+      event.controlSelector === item.oracle.primaryControlSelector &&
+      item.oracle.allowedCompletionSources.includes(event.source));
+    assert(primaryCompletionEvents.length === 1,
+      `${item.caseId} requires exactly one action-bound primary completion; observed=${primaryCompletionEvents.length}`);
+    if (item.disposition !== "negative-route" && item.workflow.workflowClass !== "negative-route") {
+      const completedReadback = runtimeState.get("__completedPrimaryReadback");
+      assert(completedReadback?.actionId === item.oracle.primaryActionId &&
+        completedReadback.correlationId === item.oracle.primaryActionCorrelationId &&
+        completedReadback.expectedBehaviorSha256 === item.oracle.expectedBehaviorSha256 &&
+        completedReadback.readbackIdentity === item.oracle.independentReadbackIdentity,
+      `${item.caseId} linked independent runtime readback completion missing`);
+      assert(!runtimeState.has("__pendingPrimaryCompletion"),
+        `${item.caseId} primary action remained pending after independent readback`);
+    }
     assert(runtimeState.has("__requestedObservedEnvelope"),
       `${item.caseId} runtime requested/observed control context was not captured`);
     const requestedObserved = runtimeState.get("__requestedObservedEnvelope");
@@ -394,80 +410,102 @@ function executeWorkflowSetup(item, storageStatePath, roleStateMap, trace) {
 }
 
 async function executeCaseNativeAction(browser, item, action, runtimeState) {
-  if (["assert-product-state", "assert-product-boundary", "verify-independent-readback"].includes(action.kind)) {
-    throw new Error(`${item.caseId} ${action.kind} requires runtime independent readback evidence; source locator metadata is not execution evidence`);
+  if (action.kind === "verify-independent-readback") {
+    return executeIndependentReadback(browser, item, action, runtimeState);
   }
 
-  const before = await browser.snapshot(action.selector);
+  const snapshotSelector = action.submitSelector || action.selector || item.workflow.primaryControl.selector || "body";
+  const before = await browser.snapshot(snapshotSelector);
   assert(before.exists, `${item.caseId} control missing: ${action.selector}`);
-  if (action.kind === "assert-route-read-model" || action.kind === "assert-visible-read-model") {
+  if (["assert-product-state", "assert-product-boundary", "assert-route-read-model", "assert-visible-read-model"].includes(action.kind)) {
     assert(before.visible, `${item.caseId} read model is not visible: ${action.selector}`);
-    return semanticAssertionResult(browser, item, action, before, before);
+    return semanticAssertionResult(browser, item, action, before, snapshotSelector, runtimeState);
   }
   if (action.kind === "assert-hidden-control") {
     assert(action.expectedExists === true && !before.visible, `${item.caseId} hidden control state mismatch`);
-    return semanticAssertionResult(browser, item, action, before, before);
+    return semanticAssertionResult(browser, item, action, before, snapshotSelector, runtimeState);
   }
   if (action.kind === "assert-disabled-control") {
     assert(before.disabled === true, `${item.caseId} control is not disabled: ${action.selector}`);
-    return semanticAssertionResult(browser, item, action, before, before);
+    return semanticAssertionResult(browser, item, action, before, snapshotSelector, runtimeState);
   }
   if (action.kind === "assert-enabled-control") {
     assert(before.visible && before.disabled === false, `${item.caseId} control is not enabled: ${action.selector}`);
-    return semanticAssertionResult(browser, item, action, before, before);
+    return semanticAssertionResult(browser, item, action, before, snapshotSelector, runtimeState);
   }
   if (action.kind === "assert-link-target") {
     assert(before.tag === "a" && before.href.startsWith("/"), `${item.caseId} same-origin link target missing`);
-    return semanticAssertionResult(browser, item, action, before, before);
+    return semanticAssertionResult(browser, item, action, before, snapshotSelector, runtimeState);
   }
   if (action.kind === "assert-seeded-select") {
     const nonEmpty = before.optionValues.filter(Boolean);
     assert(before.tag === "select" && nonEmpty.length >= action.minimumNonEmptyOptions,
       `${item.caseId} server-seeded select option missing`);
-    return semanticAssertionResult(browser, item, action, { ...before, nonEmptyOptionCount: nonEmpty.length }, before);
+    return semanticAssertionResult(
+      browser,
+      item,
+      action,
+      { ...before, nonEmptyOptionCount: nonEmpty.length },
+      snapshotSelector,
+      runtimeState,
+    );
   }
 
   runtimeState.set(action.selector, { kind: action.kind, snapshot: before });
-  let executedKind = "";
-  if (action.kind === "toggle-details") {
-    assert(before.tag === "details", `${item.caseId} details contract mismatch`);
-    await browser.click(`${action.selector} > summary`);
-    executedKind = "click";
-  } else if (action.kind === "fill-control") {
-    assert(["input", "textarea"].includes(before.tag), `${item.caseId} fill control contract mismatch`);
-    await browser.fill(action.selector, action.value);
-    executedKind = "fill";
-  } else if (action.kind === "toggle-checkbox") {
-    assert(before.tag === "input", `${item.caseId} checkbox control contract mismatch`);
-    await browser.click(action.selector);
-    executedKind = "click";
-  } else if (action.kind === "select-control") {
-    assert(before.tag === "select" && before.optionValues.includes(action.value),
-      `${item.caseId} exact select option missing: ${action.value}`);
-    await browser.select(action.selector, action.value);
-    executedKind = "select";
-  } else if (action.kind === "activate-control") {
-    assert(before.visible && before.disabled === false, `${item.caseId} activate control is not actionable`);
-    await browser.click(action.selector);
-    executedKind = "click";
-  } else if (action.kind === "submit-form") {
-    const input = workflowInput(item, action.inputId, "form-values");
-    for (const field of action.fields) {
-      const value = resolveRuntimeInputValue(input.actualValue?.[field], item.caseId, field);
-      await browser.fill(`[name=${JSON.stringify(field)}]`, value);
-    }
-    await browser.click(action.submitSelector);
-    executedKind = "submit";
-  } else if (action.kind === "execute-persisted-action") {
-    workflowInput(item, action.inputId, "reversible-fixture-record");
-    assert(Boolean(action.endpoint) !== Boolean(action.localAction),
-      `${item.caseId} persisted action endpoint/local action must be exclusive`);
-    await browser.click(action.selector);
-    executedKind = "persisted-control";
-  } else {
-    throw new Error(`${item.caseId} unsupported case-native action: ${action.kind}`);
+  const beforePostconditionSnapshots = {};
+  for (const condition of action.semanticCompletion.localTransition?.postconditions || []) {
+    beforePostconditionSnapshots[condition.selector] = await browser.snapshot(condition.selector);
   }
-  await delay(350);
+  const networkStart = browser.networkEntries().length;
+  await browser.setCorrelationId(action.semanticCompletion.correlationId);
+  let executedKind = "";
+  try {
+    if (action.kind === "toggle-details") {
+      assert(before.tag === "details", `${item.caseId} details contract mismatch`);
+      await browser.click(`${action.selector} > summary`);
+      executedKind = "click";
+    } else if (action.kind === "fill-control") {
+      assert(["input", "textarea"].includes(before.tag), `${item.caseId} fill control contract mismatch`);
+      await browser.fill(action.selector, action.value);
+      executedKind = "fill";
+    } else if (action.kind === "toggle-checkbox") {
+      assert(before.tag === "input", `${item.caseId} checkbox control contract mismatch`);
+      await browser.click(action.selector);
+      executedKind = "click";
+    } else if (action.kind === "select-control") {
+      assert(before.tag === "select" && before.optionValues.includes(action.value),
+        `${item.caseId} exact select option missing: ${action.value}`);
+      await browser.select(action.selector, action.value);
+      executedKind = "select";
+    } else if (action.kind === "activate-control") {
+      assert(before.visible && before.disabled === false, `${item.caseId} activate control is not actionable`);
+      await browser.click(action.selector);
+      executedKind = "click";
+    } else if (action.kind === "submit-form") {
+      const input = workflowInput(item, action.inputId, "form-values");
+      for (const field of action.fields) {
+        const value = resolveRuntimeInputValue(input.actualValue?.[field], item.caseId, field);
+        await browser.fill(`[name=${JSON.stringify(field)}]`, value);
+      }
+      await browser.click(action.submitSelector);
+      executedKind = "submit";
+    } else if (action.kind === "execute-persisted-action") {
+      workflowInput(item, action.inputId, "reversible-fixture-record");
+      assert(Boolean(action.endpoint) !== Boolean(action.localAction),
+        `${item.caseId} persisted action endpoint/local action must be exclusive`);
+      await browser.click(action.selector);
+      executedKind = "persisted-control";
+    } else {
+      throw new Error(`${item.caseId} unsupported case-native action: ${action.kind}`);
+    }
+    await browser.waitForNetworkQuiet({
+      correlationId: action.semanticCompletion.correlationId,
+      minimumObservationMs: 750,
+      quietMs: 250,
+    });
+  } finally {
+    await browser.setCorrelationId(`${item.caseId}:navigation`);
+  }
   const after = await browser.snapshot(action.selector);
   if (action.kind === "toggle-checkbox") {
     assert(after.checked !== before.checked, `${item.caseId} checkbox did not toggle`);
@@ -479,37 +517,113 @@ async function executeCaseNativeAction(browser, item, action, runtimeState) {
     after,
     status: "PASS",
   };
-  const networkResponses = browser.networkEntries();
-  const semanticReadback = semanticReadbackEvidence(action, actionEvidence, before, after);
-  const completionOracle = evaluateCompletionOracle({
-    action: actionEvidence,
+  const networkResponses = browser.networkEntries().slice(networkStart);
+  assert(!runtimeState.has("__pendingPrimaryCompletion"),
+    `${item.caseId} multiple pending primary actions are forbidden`);
+  runtimeState.set("__pendingPrimaryCompletion", {
+    action,
+    actionEvidence,
     before,
     after,
     networkResponses,
-    semanticReadback,
+    beforePostconditionSnapshots,
   });
-  assertCompletionEvidence(completionOracle, item.caseId);
-  assert(completionOracle.pass, `${item.caseId} ${action.kind} completion failed: ${completionOracle.reason}`);
-  return { actionEvidence: { ...actionEvidence, semanticReadback }, completionOracle };
+  return { actionEvidence: { ...actionEvidence, completionStatus: "awaiting-independent-readback" }, completionOracle: null };
 }
 
-function semanticAssertionResult(browser, item, action, observed, snapshot) {
+async function semanticAssertionResult(browser, item, action, observed, snapshotSelector, runtimeState) {
+  const networkStart = browser.networkEntries().length;
+  const completion = action.semanticCompletion;
+  if (completion.request) {
+    await browser.setCorrelationId(completion.correlationId);
+    try {
+      const response = await browser.request({
+        method: completion.request.method,
+        urlPath: completion.request.urlPath,
+      });
+      assert(completion.request.allowedStatuses.includes(response.status),
+        `${item.caseId} action request status mismatch: ${response.status}`);
+    } finally {
+      await browser.setCorrelationId(`${item.caseId}:navigation`);
+    }
+  }
+  const snapshot = await browser.snapshot(snapshotSelector);
   const actionEvidence = {
     ...semanticCompletionAction(action, item),
     observed,
     status: "PASS",
   };
-  const semanticReadback = semanticReadbackEvidence(action, actionEvidence, snapshot, snapshot, observed);
-  const completionOracle = evaluateCompletionOracle({
-    action: actionEvidence,
+  assert(!runtimeState.has("__pendingPrimaryCompletion"),
+    `${item.caseId} multiple pending primary actions are forbidden`);
+  runtimeState.set("__pendingPrimaryCompletion", {
+    action,
+    actionEvidence,
     before: snapshot,
     after: snapshot,
-    networkResponses: browser.networkEntries(),
+    networkResponses: browser.networkEntries().slice(networkStart),
+    explicitObserved: observed,
+  });
+  return { actionEvidence: { ...actionEvidence, completionStatus: "awaiting-independent-readback" }, completionOracle: null };
+}
+
+async function executeIndependentReadback(browser, item, action, runtimeState) {
+  const pending = runtimeState.get("__pendingPrimaryCompletion");
+  assert(pending, `${item.caseId} independent readback has no pending primary action`);
+  assert(action.semanticCompletion.linkedPrimaryActionId === pending.actionEvidence.actionId,
+    `${item.caseId} independent readback primary action link mismatch`);
+  assert(action.expectedBehaviorSha256 === pending.actionEvidence.expectedBehaviorSha256 &&
+    action.readbackIdentity === pending.actionEvidence.expectedReadbackIdentity,
+  `${item.caseId} independent readback expected behavior/identity mismatch`);
+
+  const postconditionSnapshots = {};
+  for (const condition of pending.action.semanticCompletion.localTransition?.postconditions || []) {
+    postconditionSnapshots[condition.selector] = await browser.snapshot(condition.selector);
+  }
+  const selector = pending.actionEvidence.controlSelector || "body";
+  const freshAfter = await browser.snapshot(selector);
+  const explicitObserved = Object.keys(postconditionSnapshots).length > 0
+    ? {
+        beforeSnapshots: pending.beforePostconditionSnapshots || {},
+        snapshots: postconditionSnapshots,
+      }
+    : (pending.explicitObserved || null);
+  const semanticReadback = semanticReadbackEvidence(
+    pending.action,
+    pending.actionEvidence,
+    pending.before,
+    freshAfter,
+    explicitObserved,
+  );
+  const completionOracle = evaluateCompletionOracle({
+    action: pending.actionEvidence,
+    before: pending.before,
+    after: pending.after,
+    networkResponses: pending.networkResponses,
     semanticReadback,
   });
   assertCompletionEvidence(completionOracle, item.caseId);
-  assert(completionOracle.pass, `${item.caseId} ${action.kind} semantic completion failed: ${completionOracle.reason}`);
-  return { actionEvidence: { ...actionEvidence, semanticReadback }, completionOracle };
+  assert(completionOracle.pass,
+    `${item.caseId} independent readback failed for ${pending.action.kind}: ${completionOracle.reason}`);
+  runtimeState.delete("__pendingPrimaryCompletion");
+  runtimeState.set("__completedPrimaryReadback", {
+    actionId: completionOracle.actionId,
+    correlationId: completionOracle.correlationId,
+    expectedBehaviorSha256: pending.actionEvidence.expectedBehaviorSha256,
+    readbackIdentity: pending.actionEvidence.expectedReadbackIdentity,
+    semanticReadback,
+  });
+  return {
+    actionEvidence: {
+      ...action,
+      completionPhase: "independent-readback",
+      linkedPrimaryActionId: pending.actionEvidence.actionId,
+      expectedBehaviorSha256: action.expectedBehaviorSha256,
+      readbackIdentity: action.readbackIdentity,
+      semanticReadback,
+      status: "PASS",
+    },
+    completionOracle,
+  };
 }
 
 async function executeWorkflowCleanup(browser, item, runtimeState, trace) {
@@ -582,7 +696,7 @@ async function executeCaseNativeNavigation(browser, item, action) {
 
 function semanticCompletionAction(action, item) {
   const completion = action.semanticCompletion;
-  assert(completion?.schema === "media-server.v390-ui-semantic-completion.v1",
+  assert(completion?.schema === "media-server.v390-ui-action-completion.v2",
     `${item.caseId} action semantic completion missing: ${action.kind}`);
   return {
     ...action,
@@ -590,24 +704,61 @@ function semanticCompletionAction(action, item) {
     executed: true,
     correlationId: completion.correlationId,
     dispatch: "playwright-native",
+    completionPhase: completion.phase,
+    actionId: completion.actionId,
+    controlSelector: completion.controlSelector,
     semanticCompletionRequired: true,
-    expectedReadbackIdentity: completion.readbackIdentity,
-    expectedEndpoint: {
+    expectedReadbackIdentity: completion.readback.identity,
+    expectedBehaviorSha256: completion.expectedBehaviorSha256,
+    expectedReadbackExpectation: structuredClone(completion.readbackExpectation),
+    expectedEndpoint: completion.request ? {
       correlationId: completion.request.correlationId,
       method: completion.request.method,
       urlPath: completion.request.urlPath,
+      urlPathTemplate: completion.request.urlPathTemplate,
       allowedStatuses: [...completion.request.allowedStatuses],
-    },
-    allowedCompletionSources: [...item.oracle.allowedCompletionSources],
+    } : null,
+    expectedLocalTransition: completion.localTransition ? structuredClone(completion.localTransition) : null,
+    allowedCompletionSources: [...new Set([
+      completion.requiredSource,
+      ...completion.attestedAlternatives,
+    ])],
   };
 }
 
 function semanticReadbackEvidence(action, actionEvidence, before, after, explicitObserved = null) {
   const expected = structuredClone(action.semanticCompletion.readbackExpectation);
+  if (action.semanticCompletion.phase === "primary-action") {
+    const observation = {
+      before: before ? structuredClone(before) : null,
+      after: after ? structuredClone(after) : null,
+      ...(explicitObserved?.snapshots ? {
+        beforeSnapshots: structuredClone(explicitObserved.beforeSnapshots || {}),
+        snapshots: structuredClone(explicitObserved.snapshots),
+      } : {}),
+      ...(explicitObserved === null || explicitObserved?.snapshots
+        ? {}
+        : { actual: structuredClone(explicitObserved) }),
+    };
+    return {
+      schema: "media-server.v390-ui-semantic-readback.v2",
+      identity: action.semanticCompletion.readbackIdentity,
+      correlationId: actionEvidence.correlationId,
+      actionId: actionEvidence.actionId,
+      expectedBehaviorSha256: action.semanticCompletion.expectedBehaviorSha256,
+      observationSource: "browser-dom",
+      selector: actionEvidence.controlSelector,
+      observation,
+      observationSha256: domSnapshotDigest(observation),
+    };
+  }
   return {
     schema: "media-server.v390-ui-semantic-readback.v1",
     identity: action.semanticCompletion.readbackIdentity,
     correlationId: actionEvidence.correlationId,
+    actionId: actionEvidence.actionId,
+    observationSource: "browser-dom",
+    selector: actionEvidence.controlSelector,
     expected,
     observed: observeSemanticExpectation(expected, before, after, explicitObserved),
   };
