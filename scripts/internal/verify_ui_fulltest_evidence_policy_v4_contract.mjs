@@ -11,7 +11,7 @@ import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { evaluateEvidence, sha256File, sha256Text, validatePolicy } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
-import { evaluateVisualArtifact, evaluateVisualMatrix } from "./v390_ui_visual_evidence.mjs";
+import { evaluateVisualArtifact, evaluateVisualMatrix, expandVisualMatrixPlan } from "./v390_ui_visual_evidence.mjs";
 import {
   canonicalRequestedProjection,
   expectedRuntimeObservation,
@@ -41,6 +41,8 @@ const canonicalManifestSource = JSON.parse(fs.readFileSync(canonicalManifestSour
 const nativeManifestSourcePath = path.join(rootDir, policy.sourceBinding.nativeExactManifestPath);
 const nativeManifestSource = JSON.parse(fs.readFileSync(nativeManifestSourcePath, "utf8"));
 const nativeById = new Map(nativeManifestSource.cases.map(item => [item.caseId, item]));
+const visualMatrixPlanSourcePath = path.join(rootDir, "test/fixtures/v390_ui_visual_matrix_plan.json");
+const visualMatrixPlan = JSON.parse(fs.readFileSync(visualMatrixPlanSourcePath, "utf8"));
 const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "media_server_ui_policy_v4_contract_"));
 const checks = [];
 
@@ -386,6 +388,7 @@ function makeCandidate(tempRoot, policyValue, count, scopeKind) {
   const policyPath = path.join(policyDir, "policy.json");
   const manifestPath = path.join(tempRoot, policyValue.sourceBinding.canonicalCaseManifestPath);
   const nativeManifestPath = path.join(tempRoot, policyValue.sourceBinding.nativeExactManifestPath);
+  const visualMatrixPlanPath = path.join(tempRoot, "test/fixtures/v390_ui_visual_matrix_plan.json");
   const implementationPath = path.join(tempRoot, canonicalManifestSource.implementationEvidence.path);
   const runnerPath = path.join(scriptDirPath, "runner.mjs");
   const buildPath = path.join(tempRoot, "build/media_server");
@@ -394,6 +397,7 @@ function makeCandidate(tempRoot, policyValue, count, scopeKind) {
   fs.mkdirSync(path.dirname(implementationPath), { recursive: true });
   fs.copyFileSync(canonicalManifestSourcePath, manifestPath);
   fs.copyFileSync(nativeManifestSourcePath, nativeManifestPath);
+  fs.copyFileSync(visualMatrixPlanSourcePath, visualMatrixPlanPath);
   fs.copyFileSync(path.join(rootDir, canonicalManifestSource.implementationEvidence.path), implementationPath);
   fs.writeFileSync(runnerPath, "// contract runner fingerprint\n", "utf8");
   fs.mkdirSync(path.dirname(buildPath), { recursive: true });
@@ -505,42 +509,62 @@ function makeCandidate(tempRoot, policyValue, count, scopeKind) {
 function makeContractVisualMatrix(artifactRoot, policyValue) {
   const probes = [];
   const refs = [];
-  for (const width of [320, 390, 760, 1180]) {
-    for (const theme of ["light", "dark"]) {
-      const id = `contract-visual-${width}-${theme}`;
+  for (const variant of expandVisualMatrixPlan(visualMatrixPlan)) {
+      const id = `contract-visual-${variant.canonicalCaseId}-${variant.width}-${variant.theme}`;
       const correlationId = `${id}:correlation`;
       const root = path.join(artifactRoot, "visual-matrix", id);
       const screenshotPath = path.join(root, "screen.png");
       const measurementPath = path.join(root, "measurement.json");
       const payloadPath = path.join(root, "visual.json");
       fs.mkdirSync(root, { recursive: true });
-      fs.writeFileSync(screenshotPath, createPng(width, 844));
-      const measurement = contractVisualMeasurement({ route: "/ops", viewport: { width, height: 844 }, theme });
-      if (theme === "dark") {
-        measurement.route = "/client/live";
-        measurement.videos = [{ rect: { left: 10, top: 10, right: width - 10, bottom: 400 }, readyState: 4, videoWidth: 1920, videoHeight: 1080 }];
-        measurement.overlays = [{ rect: { left: 10, top: 10, right: width - 10, bottom: 400 }, tag: "canvas" }];
-      }
+      fs.writeFileSync(screenshotPath, createPng(variant.width, variant.height, id));
+      const measurement = contractVisualMeasurement({
+        testId: variant.canonicalCaseId,
+        featureId: variant.featureId,
+        screenId: variant.screenId,
+        route: variant.screenRoute,
+        accountRole: variant.accountRole,
+        viewport: { width: variant.width, height: variant.height },
+        theme: variant.theme,
+        targetSelector: variant.targetSelector,
+      });
+      if (variant.liveVideoRequired) measurement.liveVideo = contractLiveVideo(variant, visualMatrixPlan.liveVideoProbe);
       writeJson(measurementPath, measurement);
       const payload = evaluateVisualArtifact({
         screenshotPath,
         measurement,
         caseId: id,
         correlationId,
-        expectedViewport: measurement.viewport,
-        expectedTheme: theme,
-        requireVideoOverlay: theme === "dark",
+        expectedCase: variant,
+        liveVideoSpec: variant.liveVideoRequired ? visualMatrixPlan.liveVideoProbe : null,
       });
-      payload.role = theme === "light" ? "operator" : "viewer";
+      payload.role = variant.accountRole;
       writeJson(payloadPath, payload);
       const screenshot = artifactMeta(screenshotPath, "image/png", artifactRoot, "__suite__", correlationId);
       const measurementMeta = artifactMeta(measurementPath, "application/json", artifactRoot, "__suite__", correlationId);
       const payloadMeta = artifactMeta(payloadPath, "application/json", artifactRoot, "__suite__", correlationId);
       refs.push(evidenceRef(screenshot, policyValue), evidenceRef(measurementMeta, policyValue), evidenceRef(payloadMeta, policyValue));
-      probes.push({ id, role: payload.role, payload });
-    }
+      probes.push({
+        id,
+        canonicalCaseId: variant.canonicalCaseId,
+        featureId: variant.featureId,
+        screenId: variant.screenId,
+        screenRoute: variant.screenRoute,
+        role: variant.accountRole,
+        width: variant.width,
+        height: variant.height,
+        theme: variant.theme,
+        payload,
+      });
   }
-  return { refs, summary: evaluateVisualMatrix(probes) };
+  return {
+    refs,
+    summary: evaluateVisualMatrix(probes, {
+      plan: visualMatrixPlan,
+      canonical: canonicalManifestSource,
+      native: nativeManifestSource,
+    }),
+  };
 }
 
 function makeAttestedCase(artifactRoot, policyValue, canonicalCase, nativeCase) {
@@ -560,7 +584,7 @@ function makeAttestedCase(artifactRoot, policyValue, canonicalCase, nativeCase) 
   const measurementPath = path.join(caseRoot, "visual-measurement.json");
   const visualPath = path.join(caseRoot, "visual-diff.json");
   const redactionPath = path.join(caseRoot, "redaction.json");
-  fs.writeFileSync(pngPath, createPng(canonicalCase.viewport.width, canonicalCase.viewport.height));
+  fs.writeFileSync(pngPath, createPng(canonicalCase.viewport.width, canonicalCase.viewport.height, canonicalCase.testId));
   writeJson(tracePath, {
     schema: policyValue.attestation.interactionTraceSchema,
     caseId: canonicalCase.testId,
@@ -616,8 +640,7 @@ function makeAttestedCase(artifactRoot, policyValue, canonicalCase, nativeCase) 
     measurement,
     caseId: canonicalCase.testId,
     correlationId,
-    expectedViewport: canonicalCase.viewport,
-    expectedTheme: canonicalCase.theme,
+    expectedCase: visualExpectedCase(canonicalCase),
   });
   writeJson(visualPath, visualPayload);
   const visualDiff = artifactMeta(visualPath, "application/json", artifactRoot, canonicalCase.testId, correlationId);
@@ -682,13 +705,26 @@ function makeAttestedCase(artifactRoot, policyValue, canonicalCase, nativeCase) 
 function contractVisualMeasurement(canonicalCase) {
   const { width, height } = canonicalCase.viewport;
   const dark = canonicalCase.theme === "dark";
+  const targetSelector = canonicalCase.targetSelector || "body";
+  const screenId = canonicalCase.screenId || canonicalCase.testId;
   return {
-    schema: "media-server.ui-browser-visual-measurement.v1",
+    schema: "media-server.ui-browser-visual-measurement.v2",
+    caseBinding: {
+      canonicalCaseId: canonicalCase.testId,
+      featureId: canonicalCase.featureId,
+      screenId,
+      screenRoute: canonicalCase.route,
+      accountRole: canonicalCase.accountRole,
+      targetSelector,
+    },
     route: canonicalCase.route,
+    accountRole: canonicalCase.accountRole,
+    requestedTheme: canonicalCase.theme,
+    appliedTheme: canonicalCase.theme,
+    mediaTheme: canonicalCase.theme,
     viewport: { width, height, devicePixelRatio: 1 },
-    theme: canonicalCase.theme,
     document: { scrollWidth: width, scrollHeight: height, clientWidth: width, clientHeight: height },
-    target: { selector: "body", visible: true, rect: { left: 0, top: 0, right: width, bottom: height, width, height } },
+    target: { selector: targetSelector, visible: true, rect: { left: 0, top: 0, right: width, bottom: Math.min(height, 120), width, height: Math.min(height, 120) } },
     textSamples: [{
       foreground: dark ? "rgb(255, 255, 255)" : "rgb(0, 0, 0)",
       background: dark ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)",
@@ -696,8 +732,81 @@ function contractVisualMeasurement(canonicalCase) {
       fontWeight: "400",
     }],
     focusSamples: [{ tag: "button", id: canonicalCase.testId, testId: "", visible: true, outlineStyle: "solid", outlineWidth: "2px", boxShadow: "none" }],
-    videos: [],
-    overlays: [],
+    liveVideo: null,
+  };
+}
+
+function visualExpectedCase(canonicalCase) {
+  return {
+    canonicalCaseId: canonicalCase.testId,
+    featureId: canonicalCase.featureId,
+    screenId: canonicalCase.screenId || canonicalCase.testId,
+    screenRoute: canonicalCase.route,
+    accountRole: canonicalCase.accountRole,
+    targetSelector: canonicalCase.targetSelector || "body",
+    width: canonicalCase.viewport.width,
+    height: canonicalCase.viewport.height,
+    theme: canonicalCase.theme,
+    liveVideoRequired: false,
+  };
+}
+
+function contractLiveVideo(variant, spec) {
+  const tileRect = { left: 4, top: 125, right: variant.width - 4, bottom: 760, width: variant.width - 8, height: 635 };
+  const stageRect = { left: 4, top: 190, right: variant.width - 4, bottom: 690, width: variant.width - 8, height: 500 };
+  const intrinsicRatio = 16 / 9;
+  const stageRatio = stageRect.width / stageRect.height;
+  const contentWidth = stageRatio > intrinsicRatio ? stageRect.height * intrinsicRatio : stageRect.width;
+  const contentHeight = stageRatio > intrinsicRatio ? stageRect.height : stageRect.width / intrinsicRatio;
+  const contentLeft = stageRect.left + (stageRect.width - contentWidth) / 2;
+  const contentTop = stageRect.top + (stageRect.height - contentHeight) / 2;
+  const contentRect = { left: contentLeft, top: contentTop, right: contentLeft + contentWidth, bottom: contentTop + contentHeight, width: contentWidth, height: contentHeight };
+  const identity = "tile-0:contract-view";
+  return {
+    tile: { selector: spec.tileSelector, identity, viewId: "contract-view", visible: true, rect: tileRect },
+    stage: { selector: spec.stageSelector, tileIdentity: identity, visible: true, rect: stageRect },
+    video: { selector: spec.videoSelector, tileIdentity: identity, visible: true, rect: stageRect },
+    placeholder: { selector: spec.placeholderSelector, tileIdentity: identity, hidden: true },
+    modeControls: { selector: spec.modeControlsSelector, tileIdentity: identity, visible: true },
+    mode: { selector: spec.modeSelector, tileIdentity: identity, active: true, value: "va-overlay" },
+    session: {
+      tileIdentity: identity,
+      tileViewId: "contract-view",
+      requestViewId: "contract-view",
+      answerViewId: "contract-view",
+      correlationId: `contract-live-${variant.width}-${variant.theme}`,
+      requestMethod: "POST",
+      requestPath: "/client/api/views/contract-view/webrtc/session",
+      requestBody: { overlayMode: "va-overlay" },
+      responseStatus: 200,
+      sessionId: "contract-session",
+      responseSessionId: "contract-session",
+      answerSessionId: "contract-session",
+      offerReceived: true,
+      answerMethod: "POST",
+      answerPath: "/client/api/views/contract-view/webrtc/session/contract-session/answer",
+      answerStatus: 200,
+    },
+    playback: {
+      tileIdentity: identity,
+      srcObject: true,
+      liveVideoTracks: 1,
+      readyState: 4,
+      videoWidth: 1920,
+      videoHeight: 1080,
+      currentTimeBefore: 1,
+      currentTimeAfter: 1.2,
+      presentedFramesBefore: 10,
+      presentedFramesAfter: 12,
+    },
+    rendering: { tileIdentity: identity, objectFit: "contain", stageRect, contentRect },
+    controls: spec.controlSelectors.map((selector, index) => ({
+      selector,
+      tileIdentity: identity,
+      visible: true,
+      rect: { left: 8 + index, top: 135, right: variant.width - 8, bottom: 180, width: variant.width - 16 - index, height: 45 },
+    })),
+    genericDomOverlays: [],
   };
 }
 
@@ -722,14 +831,29 @@ function writeJson(filePath, payload) {
   fs.writeFileSync(filePath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
 }
 
-function createPng(width, height) {
+function createPng(width, height, seed = "contract") {
   const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
   const ihdr = Buffer.alloc(13);
   ihdr.writeUInt32BE(width, 0);
   ihdr.writeUInt32BE(height, 4);
   ihdr[8] = 8;
   ihdr[9] = 6;
-  const raw = Buffer.alloc(height * (width * 4 + 1));
+  const rowBytes = width * 4 + 1;
+  const raw = Buffer.alloc(height * rowBytes);
+  const seedValue = [...String(seed)].reduce((sum, value) => (sum + value.charCodeAt(0)) % 251, 0);
+  const rows = [0, 1].map(rowVariant => {
+    const row = Buffer.alloc(rowBytes);
+    for (let x = 0; x < width; x += 1) {
+      const offset = 1 + x * 4;
+      const band = ((x >> 4) + seedValue + rowVariant) % 7;
+      row[offset] = 20 + band * 30;
+      row[offset + 1] = 25 + ((band + seedValue) % 7) * 28;
+      row[offset + 2] = 30 + ((band + rowVariant * 2) % 7) * 26;
+      row[offset + 3] = 255;
+    }
+    return row;
+  });
+  for (let y = 0; y < height; y += 1) rows[(y >> 4) % rows.length].copy(raw, y * rowBytes);
   return Buffer.concat([signature, pngChunk("IHDR", ihdr), pngChunk("IDAT", zlib.deflateSync(raw)), pngChunk("IEND", Buffer.alloc(0))]);
 }
 

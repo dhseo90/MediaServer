@@ -7,7 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
-import { nativeCapabilities, resolvePlaywrightModule } from "./v390_ui_native_adapter.mjs";
+import { buildLiveSessionEvidence, nativeCapabilities, resolvePlaywrightModule } from "./v390_ui_native_adapter.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -70,6 +70,21 @@ check("adapter exposes native wait click fill type select screenshot", () => {
   for (const snippet of ["page.on(\"request\"", "pendingRequests", "correlatedEntryCount", "entry.correlationId === correlationId"]) {
     assert(adapterSource.includes(snippet), `adapter action-window source missing ${snippet}`);
   }
+});
+
+check("live session evidence preserves request view and response session identity", () => {
+  const correlationId = "visual-live:session";
+  const entries = [
+    { phase: "request-start", requestId: "request-1", correlationId, method: "POST", url: "http://127.0.0.1/client/api/views/view-b/webrtc/session", requestBody: { overlayMode: "va-overlay" } },
+    { phase: "response", requestId: "request-1", correlationId, method: "POST", status: 200, url: "http://127.0.0.1/client/api/views/view-b/webrtc/session", safeResponseBody: { sessionId: "session-b", offerReceived: true } },
+    { phase: "request-start", requestId: "request-2", correlationId, method: "POST", url: "http://127.0.0.1/client/api/views/view-b/webrtc/session/session-b/answer" },
+    { phase: "response", requestId: "request-2", correlationId, method: "POST", status: 200, url: "http://127.0.0.1/client/api/views/view-b/webrtc/session/session-b/answer" },
+  ];
+  const evidence = buildLiveSessionEvidence(entries, correlationId, "tile-0:view-a", "view-a");
+  assert(evidence.tileViewId === "view-a", "tile view identity missing");
+  assert(evidence.requestViewId === "view-b" && evidence.answerViewId === "view-b", "request view was overwritten by tile view");
+  assert(evidence.responseSessionId === "session-b" && evidence.answerSessionId === "session-b", "response/answer session identity missing");
+  assert(evidence.offerReceived === true, "safe offer response evidence missing");
 });
 
 check("UI runner selects native Playwright and rejects CDP promotion", () => {

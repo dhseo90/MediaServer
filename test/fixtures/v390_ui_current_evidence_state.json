@@ -8,17 +8,22 @@
   "automatedCaseCount": 0,
   "canonicalCaseManifest": {
     "path": "test/fixtures/ui_fulltest_case_manifest_policy_v4.json",
-    "sha256": "5716174846f7819e073efba991c2b0448c4688f099533e2e56e106c3044fce2e"
+    "sha256": "9d2ff42dcece6ad8463535249f3548d84ee74563e4361d0e89e3554fab2e51a7"
   },
   "nativeExactManifest": {
     "path": "test/fixtures/v390_ui_native_exact_cases.json",
-    "sha256": "ee8cce2349fbabbddcd8acc1a3a41d2b58e705d8669a7b430fbab2ea414da936"
+    "sha256": "4c5ac98e756c7d3d4c89b9dbc0d4dcd7a949bf148c8ea52c1cfbeee7f46533ab"
+  },
+  "visualMatrixPlan": {
+    "path": "test/fixtures/v390_ui_visual_matrix_plan.json",
+    "sha256": "9b94bd3f46922685d144b011a4e71db618ea4f6a703503eaa8e0261869ece4b7"
   },
   "readiness": {
     "complete": false,
-    "status": "review4-59-60-pending",
+    "status": "review4-60-pending",
     "canonicalRequestedObservedSchemaComplete": true,
     "primaryActionCompletionOracleComplete": true,
+    "visualMatrixComplete": true,
     "exactUiTestIds": 424,
     "nativeExecutablePositive": 423,
     "negativeRouteExecutable": 1,
@@ -32,5 +37,5 @@
   },
   "historicalInvalidManifest": "docs/release-artifacts/v3.9.0/historical-invalid-ui-evidence.json",
   "requiredNextEvidence": "new current-HEAD placeholder-free Policy v4 exact 424 browser execution with source provenance and integrity attestation",
-  "boundary": "REVIEW4-56 exact product workflows, REVIEW4-57 canonical requested/runtime-observed schemas, and REVIEW4-58 primary action-bound completion oracle are statically closed; REVIEW4-59 visual matrix and REVIEW4-60 Policy independence remain pending; not-run is not PASS; audit-only historical summaries are denied as current evidence"
+  "boundary": "REVIEW4-56 exact product workflows, REVIEW4-57 canonical requested/runtime-observed schemas, REVIEW4-58 primary action-bound completion oracle, and REVIEW4-59 representative visual matrix contracts are statically closed; REVIEW4-60 Policy independence and actual exact 424 browser execution remain pending; not-run is not PASS; audit-only historical summaries are denied as current evidence"
 }

@@ -5,7 +5,14 @@ import fs from "node:fs";
 import path from "node:path";
 import zlib from "node:zlib";
 
-import { evaluateVisualArtifact, evaluateVisualMatrix, visualEvidenceSchema, browserMeasurementSchema } from "./v390_ui_visual_evidence.mjs";
+import {
+  browserMeasurementSchema,
+  evaluateVisualArtifact,
+  evaluateVisualMatrix,
+  expandVisualMatrixPlan,
+  validateVisualMatrixPlan,
+  visualEvidenceSchema,
+} from "./v390_ui_visual_evidence.mjs";
 import { validateRequestedObservedEnvelope } from "./v390_ui_requested_observed_schema.mjs";
 
 const sha256Pattern = /^[a-f0-9]{64}$/;
@@ -166,8 +173,22 @@ export function evaluateEvidence(policy, summary, options = {}) {
 }
 
 function validateCrossCuttingMeasurements(policy, summary, rootDir, obligation, payload, reasons) {
+  const planPath = resolveContained(rootDir, "test/fixtures/v390_ui_visual_matrix_plan.json");
+  const canonicalPath = resolveContained(rootDir, policy.sourceBinding?.canonicalCaseManifestPath);
+  const nativePath = resolveContained(rootDir, policy.sourceBinding?.nativeExactManifestPath);
+  const plan = planPath && readJsonFile(planPath);
+  const canonical = canonicalPath && readJsonFile(canonicalPath);
+  const native = nativePath && readJsonFile(nativePath);
+  let requiredVariants = [];
+  try {
+    validateVisualMatrixPlan({ plan, canonical, native });
+    requiredVariants = expandVisualMatrixPlan(plan);
+  } catch {
+    reasons.push(`cross-cutting-${obligation}-visual-plan-invalid`);
+    return;
+  }
   const refs = Array.isArray(payload?.measuredEvidenceRefs) ? payload.measuredEvidenceRefs : [];
-  if (refs.length !== 24) {
+  if (refs.length !== requiredVariants.length * 3) {
     reasons.push(`cross-cutting-${obligation}-measurement-ref-count-invalid`);
     return;
   }
@@ -197,27 +218,52 @@ function validateCrossCuttingMeasurements(policy, summary, rootDir, obligation, 
       continue;
     }
     try {
+      const expectedCase = requiredVariants.find(item =>
+        item.canonicalCaseId === group.payload?.binding?.canonicalCaseId &&
+        item.featureId === group.payload?.binding?.featureId &&
+        item.screenId === group.payload?.binding?.screenId &&
+        item.screenRoute === group.payload?.binding?.screenRoute &&
+        item.accountRole === group.payload?.binding?.accountRole &&
+        item.targetSelector === group.payload?.binding?.targetSelector &&
+        item.width === group.payload?.observed?.viewport?.width &&
+        item.height === group.payload?.observed?.viewport?.height &&
+        item.theme === group.payload?.observed?.appliedTheme);
+      if (!expectedCase) throw new Error("visual probe is not bound to the independent matrix plan");
       const recalculated = evaluateVisualArtifact({
         screenshotPath: group.screenshotPath,
         measurement: group.measurement,
         caseId: group.payload.caseId,
         correlationId,
-        expectedViewport: group.measurement.viewport,
-        expectedTheme: group.measurement.theme,
-        requireVideoOverlay: group.payload.metrics?.videoOverlay?.required === true,
+        expectedCase,
+        liveVideoSpec: expectedCase.liveVideoRequired ? plan.liveVideoProbe : null,
       });
-      for (const field of ["status", "reviewRequired", "screenshotSha256", "observed", "metrics", "failures"]) {
+      for (const field of ["status", "reviewRequired", "binding", "screenshotSha256", "measurement", "observed", "metrics", "failures"]) {
         if (JSON.stringify(group.payload[field]) !== JSON.stringify(recalculated[field])) {
           reasons.push(`cross-cutting-${obligation}-measurement-${field}-mismatch`);
         }
       }
-      probes.push({ id: group.payload.caseId, role: group.payload.role || "", payload: recalculated });
+      probes.push({
+        id: group.payload.caseId,
+        canonicalCaseId: expectedCase.canonicalCaseId,
+        featureId: expectedCase.featureId,
+        screenId: expectedCase.screenId,
+        screenRoute: expectedCase.screenRoute,
+        role: expectedCase.accountRole,
+        width: expectedCase.width,
+        height: expectedCase.height,
+        theme: expectedCase.theme,
+        payload: recalculated,
+      });
     } catch {
       reasons.push(`cross-cutting-${obligation}-measurement-recalculation-failed`);
     }
   }
-  const recalculatedMatrix = evaluateVisualMatrix(probes);
-  for (const field of ["status", "reviewRequired", "requiredVariants", "observedVariants", "missingVariants", "duplicateVariants", "failedProbes", "roles", "hasVideoOverlay"]) {
+  const recalculatedMatrix = evaluateVisualMatrix(probes, { plan, canonical, native });
+  for (const field of [
+    "status", "reviewRequired", "matrixPlanSha256", "requiredVariants", "observedVariants", "missingVariants",
+    "duplicateVariants", "unexpectedVariants", "metadataDrift", "failedProbes", "roles", "routeCount",
+    "liveVideoVariantCount", "hasVideoOverlay", "inputEvidenceSha256",
+  ]) {
     if (JSON.stringify(payload?.matrix?.[field]) !== JSON.stringify(recalculatedMatrix[field])) {
       reasons.push(`cross-cutting-${obligation}-matrix-${field}-mismatch`);
     }

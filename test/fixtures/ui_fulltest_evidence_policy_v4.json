@@ -63,7 +63,7 @@
     "optionalArtifacts": [
       "video"
     ],
-    "visualBaselineSchema": "media-server.ui-visual-baseline-diff.v2",
+    "visualBaselineSchema": "media-server.ui-visual-baseline-diff.v3",
     "maxEvidenceAgeHours": 24
   },
   "attestation": {

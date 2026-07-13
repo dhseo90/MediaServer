@@ -42,6 +42,7 @@
     "exactProductWorkflowDesignComplete": true,
     "canonicalRequestedObservedSchemaComplete": true,
     "primaryActionCompletionOracleComplete": true,
+    "visualMatrixComplete": true,
     "exactNativeWorkflowReadinessComplete": false,
     "actualAutomationExecutionComplete": false,
     "manualUiFulltestEvidence": false,

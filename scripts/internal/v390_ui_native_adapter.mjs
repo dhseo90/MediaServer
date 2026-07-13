@@ -20,6 +20,8 @@ export const nativeCapabilities = [
   "screenshot",
   "evaluate",
   "visual-geometry",
+  "product-theme-observation",
+  "live-video-session-evidence",
   "request-correlation",
   "request-start-ledger",
   "network-quiet",
@@ -139,6 +141,7 @@ async function openNativePlaywrightPage(playwright, {
   let requestSequence = 0;
   const requestIds = new WeakMap();
   const pendingRequests = new Map();
+  const pendingSafeResponseReads = new Set();
   const browser = await playwright.chromium.launch({
     headless: true,
     ...(executablePath ? { executablePath } : {}),
@@ -151,6 +154,10 @@ async function openNativePlaywrightPage(playwright, {
       extraHTTPHeaders: { "x-media-server-correlation-id": navigationCorrelationId },
     } : {}),
   });
+  await context.addInitScript(theme => {
+    localStorage.setItem("mediaServerTheme", theme);
+    document.documentElement.dataset.theme = theme;
+  }, colorScheme);
   const page = await context.newPage();
   page.setDefaultTimeout(timeoutMs);
   page.on("console", message => {
@@ -178,12 +185,13 @@ async function openNativePlaywrightPage(playwright, {
       method: request.method(),
       status: 0,
       url: request.url(),
+      requestBody: safeRequestBodyProjection(request),
     });
   });
   page.on("response", response => {
     const request = response.request();
     const correlationId = String(request.headers()["x-media-server-correlation-id"] || "");
-    networkEntries.push({
+    const entry = {
       phase: "response",
       requestId: requestIdentity(request),
       correlationId,
@@ -191,7 +199,22 @@ async function openNativePlaywrightPage(playwright, {
       method: request.method(),
       status: response.status(),
       url: response.url(),
-    });
+    };
+    networkEntries.push(entry);
+    if (request.method() === "POST" && /^\/client\/api\/views\/[^/]+\/webrtc\/session$/.test(urlPath(response.url()))) {
+      const read = response.json()
+        .then(payload => {
+          entry.safeResponseBody = {
+            sessionId: typeof payload?.sessionId === "string" ? payload.sessionId : "",
+            offerReceived: typeof payload?.offer === "string" && payload.offer.length > 0,
+          };
+        })
+        .catch(() => {
+          entry.safeResponseBody = { sessionId: "", offerReceived: false };
+        })
+        .finally(() => pendingSafeResponseReads.delete(read));
+      pendingSafeResponseReads.add(read);
+    }
   });
   page.on("requestfinished", request => pendingRequests.delete(request));
   page.on("requestfailed", request => pendingRequests.delete(request));
@@ -290,6 +313,7 @@ async function openNativePlaywrightPage(playwright, {
         href: String(element?.getAttribute?.('href') || ''),
         title: String(element?.getAttribute?.('title') || ''),
         ariaLabel: String(element?.getAttribute?.('aria-label') || ''),
+        ariaPressed: String(element?.getAttribute?.('aria-pressed') || ''),
         text: String(element?.innerText || '').replace(/\\s+/g, ' ').trim().slice(0, 4000),
         value: element && 'value' in element ? String(element.value || '') : '',
         checked: Boolean(element && 'checked' in element && element.checked),
@@ -298,10 +322,16 @@ async function openNativePlaywrightPage(playwright, {
         url: location.href,
       };
     })()`),
-    measureVisualState: async (selector = "body") => {
-      const geometry = await page.evaluate(`(() => {
-        const selector = ${JSON.stringify(selector)};
-        const target = document.querySelector(selector) || document.body;
+    measureVisualState: async (selector = "body", {
+      caseBinding = null,
+      requestedTheme = colorScheme,
+      liveVideoSpec = null,
+      liveCorrelationId = "",
+    } = {}) => {
+      const geometry = await page.evaluate(async ({ targetSelector, binding, requestedThemeValue, liveSpec }) => {
+        if (document.fonts?.ready) await document.fonts.ready;
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const target = document.querySelector(targetSelector);
         const rectValue = element => {
           const rect = element?.getBoundingClientRect?.();
           if (!rect) return null;
@@ -310,42 +340,134 @@ async function openNativePlaywrightPage(playwright, {
         const isVisible = element => {
           const rect = element?.getBoundingClientRect?.();
           const style = element ? getComputedStyle(element) : null;
-          return Boolean(rect && rect.width > 0 && rect.height > 0 && style && style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity || 1) > 0);
+          return Boolean(rect && rect.width > 0 && rect.height > 0 && style && style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity || 1) > 0);
         };
-        const elements = Array.from(document.querySelectorAll('body *')).filter(isVisible).slice(0, 400);
         const effectiveBackground = element => {
           let current = element;
           while (current) {
             const value = getComputedStyle(current).backgroundColor;
-            const match = value.match(/^rgba?\([^)]*(?:[,/]\s*([0-9.]+))?\)$/i);
-            const alpha = value.startsWith('rgb(') ? 1 : Number(match?.[1] || 0);
+            const match = value.match(/^rgba?\(\s*[0-9.]+[, ]+[0-9.]+[, ]+[0-9.]+(?:\s*[,/]\s*([0-9.]+))?\s*\)$/i);
+            const alpha = value.startsWith("rgb(") ? 1 : Number(match?.[1] || 0);
             if (alpha >= 0.99) return value;
             current = current.parentElement;
           }
-          return matchMedia('(prefers-color-scheme: dark)').matches ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)';
+          return document.documentElement.dataset.theme === "dark" ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)";
         };
-        const textSamples = elements.filter(element => String(element.innerText || '').trim().length > 0).slice(0, 120).map(element => {
+        const elements = Array.from(document.querySelectorAll("body *")).filter(isVisible).slice(0, 400);
+        const textSamples = elements.filter(element => String(element.innerText || "").trim().length > 0).slice(0, 120).map(element => {
           const style = getComputedStyle(element);
-          return { foreground: style.color, background: effectiveBackground(element), fontSizePx: Number.parseFloat(style.fontSize || '0'), fontWeight: style.fontWeight, rect: rectValue(element) };
+          return { foreground: style.color, background: effectiveBackground(element), fontSizePx: Number.parseFloat(style.fontSize || "0"), fontWeight: style.fontWeight, rect: rectValue(element) };
         });
-        const videos = Array.from(document.querySelectorAll('video')).filter(isVisible).map(element => ({ rect: rectValue(element), readyState: Number(element.readyState || 0), videoWidth: Number(element.videoWidth || 0), videoHeight: Number(element.videoHeight || 0) }));
-        const overlays = Array.from(new Set([
-          ...document.querySelectorAll('canvas'),
-          ...document.querySelectorAll('[data-testid*="overlay" i]'),
-          ...document.querySelectorAll('[class*="overlay" i]')
-        ])).filter(isVisible).map(element => ({ rect: rectValue(element), tag: String(element.tagName || '').toLowerCase() }));
-        return {
-          schema: 'media-server.ui-browser-visual-measurement.v1',
-          route: location.pathname,
-          viewport: { width: innerWidth, height: innerHeight, devicePixelRatio },
-          theme: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
-          document: { scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight, clientWidth: document.documentElement.clientWidth, clientHeight: document.documentElement.clientHeight },
-          target: { selector, visible: isVisible(target), rect: rectValue(target) },
-          textSamples,
-          videos,
-          overlays,
+        const roleResponse = await fetch("/auth/whoami", { credentials: "same-origin", cache: "no-store" });
+        let accountRole = "";
+        if (roleResponse.status === 401) accountRole = "anonymous";
+        else if (roleResponse.ok) {
+          const principal = await roleResponse.json();
+          if (principal?.authenticated === true && typeof principal?.role === "string") accountRole = principal.role;
+        }
+        const sampleLive = () => {
+          if (!liveSpec) return null;
+          const tile = document.querySelector(liveSpec.tileSelector);
+          const stage = document.querySelector(liveSpec.stageSelector);
+          const video = document.querySelector(liveSpec.videoSelector);
+          const placeholder = document.querySelector(liveSpec.placeholderSelector);
+          const modeControls = document.querySelector(liveSpec.modeControlsSelector);
+          const mode = document.querySelector(liveSpec.modeSelector);
+          if (!tile) return null;
+          const tileIdentity = `tile-${String(tile.getAttribute("data-tile") || "")}:${String(tile.getAttribute("data-view-id") || "")}`;
+          const stageRect = rectValue(stage);
+          const videoRect = rectValue(video);
+          let contentRect = null;
+          if (videoRect && Number(video?.videoWidth || 0) > 0 && Number(video?.videoHeight || 0) > 0) {
+            const intrinsicRatio = Number(video.videoWidth) / Number(video.videoHeight);
+            const elementRatio = videoRect.width / videoRect.height;
+            const contentWidth = elementRatio > intrinsicRatio ? videoRect.height * intrinsicRatio : videoRect.width;
+            const contentHeight = elementRatio > intrinsicRatio ? videoRect.height : videoRect.width / intrinsicRatio;
+            const left = videoRect.left + (videoRect.width - contentWidth) / 2;
+            const top = videoRect.top + (videoRect.height - contentHeight) / 2;
+            contentRect = { left, top, right: left + contentWidth, bottom: top + contentHeight, width: contentWidth, height: contentHeight };
+          }
+          const playbackQuality = video?.getVideoPlaybackQuality?.();
+          return {
+            tileIdentity,
+            tile: { selector: liveSpec.tileSelector, identity: tileIdentity, viewId: String(tile.getAttribute("data-view-id") || ""), visible: isVisible(tile), rect: rectValue(tile) },
+            stage: { selector: liveSpec.stageSelector, tileIdentity, visible: isVisible(stage), rect: stageRect },
+            video: { selector: liveSpec.videoSelector, tileIdentity, visible: isVisible(video), rect: videoRect },
+            placeholder: { selector: liveSpec.placeholderSelector, tileIdentity, hidden: Boolean(placeholder?.hidden || !isVisible(placeholder)) },
+            modeControls: { selector: liveSpec.modeControlsSelector, tileIdentity, visible: isVisible(modeControls) },
+            mode: { selector: liveSpec.modeSelector, tileIdentity, active: Boolean(mode && mode.getAttribute("aria-pressed") === "true"), value: String(mode?.getAttribute("data-mode-action") || "") },
+            playback: {
+              tileIdentity,
+              srcObject: Boolean(video?.srcObject),
+              liveVideoTracks: Number(video?.srcObject?.getVideoTracks?.().filter(track => track.readyState === "live").length || 0),
+              readyState: Number(video?.readyState || 0),
+              videoWidth: Number(video?.videoWidth || 0),
+              videoHeight: Number(video?.videoHeight || 0),
+              currentTime: Number(video?.currentTime || 0),
+              presentedFrames: Number(playbackQuality?.totalVideoFrames || 0),
+            },
+            rendering: { tileIdentity, objectFit: String(video ? getComputedStyle(video).objectFit : ""), stageRect, contentRect },
+            controls: (liveSpec.controlSelectors || []).map(controlSelector => {
+              const control = document.querySelector(controlSelector);
+              return { selector: controlSelector, tileIdentity, visible: isVisible(control), rect: rectValue(control) };
+            }),
+            genericDomOverlays: Array.from(document.querySelectorAll("canvas,[data-testid*='overlay' i],[class*='overlay' i]")).filter(isVisible).map(element => ({
+              selector: element.id ? `#${element.id}` : String(element.getAttribute("data-testid") || element.className || element.tagName),
+              visible: true,
+              rect: rectValue(element),
+            })),
+            video,
+          };
         };
-      })()`);
+        const liveBefore = sampleLive();
+        if (liveBefore?.video) {
+          await Promise.race([
+            new Promise(resolve => {
+              if (typeof liveBefore.video.requestVideoFrameCallback === "function") liveBefore.video.requestVideoFrameCallback(() => resolve());
+              else setTimeout(resolve, 350);
+            }),
+            new Promise(resolve => setTimeout(resolve, 600)),
+          ]);
+        }
+        const liveAfter = sampleLive();
+        const liveVideo = liveAfter ? {
+          tile: liveAfter.tile,
+          stage: liveAfter.stage,
+          video: liveAfter.video,
+          placeholder: liveAfter.placeholder,
+          modeControls: liveAfter.modeControls,
+          mode: liveAfter.mode,
+          playback: {
+            ...liveAfter.playback,
+            currentTimeBefore: Number(liveBefore?.playback?.currentTime || 0),
+            currentTimeAfter: Number(liveAfter.playback.currentTime || 0),
+            presentedFramesBefore: Number(liveBefore?.playback?.presentedFrames || 0),
+            presentedFramesAfter: Number(liveAfter.playback.presentedFrames || 0),
+          },
+          rendering: liveAfter.rendering,
+          controls: liveAfter.controls,
+          genericDomOverlays: liveAfter.genericDomOverlays,
+        } : null;
+        return {
+          schema: "media-server.ui-browser-visual-measurement.v2",
+          caseBinding: binding,
+          route: location.pathname,
+          accountRole,
+          requestedTheme: requestedThemeValue,
+          appliedTheme: document.documentElement.dataset.theme === "dark" ? "dark" : "light",
+          mediaTheme: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
+          viewport: { width: innerWidth, height: innerHeight, devicePixelRatio },
+          document: { scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight, clientWidth: document.documentElement.clientWidth, clientHeight: document.documentElement.clientHeight },
+          target: { selector: targetSelector, visible: isVisible(target), rect: rectValue(target) },
+          textSamples,
+          liveVideo,
+        };
+      }, {
+        targetSelector: String(selector),
+        binding: caseBinding,
+        requestedThemeValue: String(requestedTheme),
+        liveSpec: liveVideoSpec,
+      });
       const focusSamples = [];
       for (let index = 0; index < 8; index += 1) {
         await page.keyboard.press("Tab");
@@ -365,7 +487,25 @@ async function openNativePlaywrightPage(playwright, {
           };
         })()`));
       }
+      if (geometry.liveVideo) {
+        await Promise.all([...pendingSafeResponseReads]);
+        geometry.liveVideo.session = buildLiveSessionEvidence(
+          networkEntries,
+          liveCorrelationId,
+          geometry.liveVideo.tile?.identity || "",
+          geometry.liveVideo.tile?.viewId || "",
+        );
+      }
       return { ...geometry, focusSamples };
+    },
+    waitForLiveVideoReady: async ({ videoSelector, modeSelector, timeout = timeoutMs }) => {
+      await page.waitForFunction(({ videoSelectorValue, modeSelectorValue }) => {
+        const video = document.querySelector(videoSelectorValue);
+        const mode = document.querySelector(modeSelectorValue);
+        const liveTracks = video?.srcObject?.getVideoTracks?.().filter(track => track.readyState === "live").length || 0;
+        return Boolean(mode && mode.getAttribute("aria-pressed") === "true" && video?.readyState >= 2 &&
+          video.videoWidth > 0 && video.videoHeight > 0 && liveTracks > 0);
+      }, { videoSelectorValue: videoSelector, modeSelectorValue: modeSelector }, { timeout });
     },
     evaluate: (expression) => page.evaluate(expression),
     observeRequestedObservedState: async ({ selector = null, applicability = "required" } = {}) => {
@@ -426,4 +566,68 @@ async function openNativePlaywrightPage(playwright, {
 
 function unique(values) {
   return [...new Set(values)];
+}
+
+function safeRequestBodyProjection(request) {
+  try {
+    if (request.method() !== "POST") return null;
+    const pathname = new URL(request.url()).pathname;
+    if (!/^\/client\/api\/views\/[^/]+\/webrtc\/session$/.test(pathname)) return null;
+    const parsed = JSON.parse(request.postData() || "{}");
+    return {
+      overlayMode: typeof parsed.overlayMode === "string" ? parsed.overlayMode : "",
+    };
+  } catch {
+    return { overlayMode: "" };
+  }
+}
+
+export function buildLiveSessionEvidence(entries, correlationId, tileIdentity, tileViewId) {
+  const correlated = entries.filter(item => !correlationId || item.correlationId === correlationId);
+  const sessionStart = [...correlated].reverse().find(item => {
+    if (item.phase !== "request-start" || item.method !== "POST") return false;
+    return /^\/client\/api\/views\/[^/]+\/webrtc\/session$/.test(urlPath(item.url));
+  });
+  const sessionResponse = sessionStart
+    ? correlated.find(item => item.phase === "response" && item.requestId === sessionStart.requestId)
+    : null;
+  const sessionMatch = sessionStart ? urlPath(sessionStart.url).match(/^\/client\/api\/views\/([^/]+)\/webrtc\/session$/) : null;
+  const answerStart = [...correlated].reverse().find(item => {
+    if (item.phase !== "request-start" || item.method !== "POST") return false;
+    const match = urlPath(item.url).match(/^\/client\/api\/views\/([^/]+)\/webrtc\/session\/([^/]+)\/answer$/);
+    return Boolean(match && (!sessionMatch || match[1] === sessionMatch[1]));
+  });
+  const answerResponse = answerStart
+    ? correlated.find(item => item.phase === "response" && item.requestId === answerStart.requestId)
+    : null;
+  const answerMatch = answerStart ? urlPath(answerStart.url).match(/^\/client\/api\/views\/([^/]+)\/webrtc\/session\/([^/]+)\/answer$/) : null;
+  const responseSessionId = String(sessionResponse?.safeResponseBody?.sessionId || "");
+  return {
+    tileIdentity,
+    tileViewId,
+    requestViewId: decodePathSegment(sessionMatch?.[1]),
+    answerViewId: decodePathSegment(answerMatch?.[1]),
+    correlationId: sessionStart?.correlationId || correlationId || "",
+    requestMethod: sessionStart?.method || "",
+    requestPath: sessionStart ? urlPath(sessionStart.url) : "",
+    requestBody: sessionStart?.requestBody || {},
+    responseStatus: Number(sessionResponse?.status || 0),
+    sessionId: responseSessionId,
+    responseSessionId,
+    answerSessionId: decodePathSegment(answerMatch?.[2]),
+    offerReceived: Boolean(sessionResponse?.safeResponseBody?.offerReceived && answerStart),
+    answerMethod: answerStart?.method || "",
+    answerPath: answerStart ? urlPath(answerStart.url) : "",
+    answerStatus: Number(answerResponse?.status || 0),
+  };
+}
+
+function decodePathSegment(value) {
+  try { return decodeURIComponent(String(value || "")); }
+  catch { return ""; }
+}
+
+function urlPath(value) {
+  try { return new URL(String(value)).pathname; }
+  catch { return ""; }
 }

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: current UI evidence가 stale placeholder/historical summary를 PASS 입력으로 재사용하지 않는지 검증한다.
 
+import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -38,9 +39,25 @@ check("current state is explicit not-run and not PASS", () => {
     "REVIEW4-57 requested/observed schema closure missing");
   assert(state.readiness?.primaryActionCompletionOracleComplete === true,
     "REVIEW4-58 primary action completion oracle closure missing");
+  assert(state.readiness?.visualMatrixComplete === true,
+    "REVIEW4-59 visual matrix closure missing");
   assert(state.automatedCaseCount === 0, "current not-run state invented automated cases");
+  const bindingErrors = currentManifestBindingErrors(state);
+  assert(bindingErrors.length === 0, bindingErrors.join("; "));
   assert(state.execution?.pass === 0 && state.execution?.notRun === 424 && state.execution?.unsupported === 0,
     "current execution state mismatch");
+});
+
+check("current state rejects stale canonical and native manifest hashes", () => {
+  const state = readJson("test/fixtures/v390_ui_current_evidence_state.json");
+  const staleCanonical = structuredClone(state);
+  staleCanonical.canonicalCaseManifest.sha256 = "0".repeat(64);
+  assert(currentManifestBindingErrors(staleCanonical).includes("current canonical case manifest hash mismatch"),
+    "stale canonical hash passed");
+  const staleNative = structuredClone(state);
+  staleNative.nativeExactManifest.sha256 = "0".repeat(64);
+  assert(currentManifestBindingErrors(staleNative).includes("current native exact manifest hash mismatch"),
+    "stale native hash passed");
 });
 
 check("all stale roots are historical-invalid and never current eligible", () => {
@@ -107,8 +124,9 @@ check("durable matrix separates exact native readiness from current execution", 
   for (const snippet of [
     "currentEvidenceStatus: `not-run`", "native-executable-positive `423`",
     "negative-route-executable `1`", "unsupported `0`", "executed-pass `0`", "not-run `424`",
-    "review4-59-60-pending",
+    "review4-60-pending",
     "primaryActionCompletionOracleComplete: `true`",
+    "visualMatrixComplete: `true`",
   ]) assert(matrix.includes(snippet), `durable matrix missing: ${snippet}`);
   assert(!matrix.includes("ui-automation-visible-dom-final/summary.json"), "durable matrix retains stale source");
 });
@@ -127,5 +145,25 @@ if (fail > 0) process.exit(1);
 
 function read(relative) { return fs.readFileSync(path.join(rootDir, relative), "utf8"); }
 function readJson(relative) { return JSON.parse(read(relative)); }
+function sha256File(filePath) { return crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex"); }
+function currentManifestBindingErrors(state) {
+  const bindings = [
+    ["canonicalCaseManifest", "test/fixtures/ui_fulltest_case_manifest_policy_v4.json", "canonical case manifest"],
+    ["nativeExactManifest", "test/fixtures/v390_ui_native_exact_cases.json", "native exact manifest"],
+    ["visualMatrixPlan", "test/fixtures/v390_ui_visual_matrix_plan.json", "visual matrix plan"],
+  ];
+  const errors = [];
+  for (const [field, expectedPath, label] of bindings) {
+    const binding = state?.[field];
+    if (binding?.path !== expectedPath) {
+      errors.push(`current ${label} path mismatch`);
+      continue;
+    }
+    const absolutePath = path.join(rootDir, binding.path);
+    if (!fs.existsSync(absolutePath)) errors.push(`current ${label} missing`);
+    else if (sha256File(absolutePath) !== binding.sha256) errors.push(`current ${label} hash mismatch`);
+  }
+  return errors;
+}
 function check(name, fn) { checks.push({ name, fn }); }
 function assert(condition, message) { if (!condition) throw new Error(message); }

@@ -5,7 +5,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 
-import { evaluateVisualArtifact, evaluateVisualMatrix, visualEvidenceSchema } from "./v390_ui_visual_evidence.mjs";
+import {
+  browserMeasurementSchema,
+  evaluateVisualArtifact,
+  evaluateVisualMatrix,
+  visualEvidenceSchema,
+} from "./v390_ui_visual_evidence.mjs";
 import { assertRequestedObservedEnvelope } from "./v390_ui_requested_observed_schema.mjs";
 
 const evidenceSchema = "media-server.ui-automation-evidence.v4";
@@ -49,6 +54,9 @@ export function producePolicyV4Evidence({
   const canonicalById = new Map(canonical.cases.map(item => [item.testId, item]));
   const manifestById = new Map(manifest.cases.map(item => [item.caseId, item]));
   const policy = readJson(path.join(resolvedRoot, "test/fixtures/ui_fulltest_evidence_policy_v4.json"));
+  const visualMatrixPlan = readJson(path.join(resolvedRoot, "test/fixtures/v390_ui_visual_matrix_plan.json"));
+  const visualCanonical = readJson(path.join(resolvedRoot, "test/fixtures/ui_fulltest_case_manifest_policy_v4.json"));
+  const visualNative = readJson(path.join(resolvedRoot, "test/fixtures/v390_ui_native_exact_cases.json"));
   const policyRoot = path.join(resolvedOutput, "policy-v4");
   fs.mkdirSync(policyRoot, { recursive: true });
 
@@ -64,7 +72,14 @@ export function producePolicyV4Evidence({
   }));
   const caseIds = cases.map(item => item.testId);
   const caseSetSha256 = sha256Text(JSON.stringify(caseIds));
-  const matrix = produceVisualMatrix({ outputDir: resolvedOutput, policyRoot, probes: visualMatrixProbes });
+  const matrix = produceVisualMatrix({
+    outputDir: resolvedOutput,
+    policyRoot,
+    probes: visualMatrixProbes,
+    plan: visualMatrixPlan,
+    canonical: visualCanonical,
+    native: visualNative,
+  });
   const crossCuttingObligations = requiredCrossCutting.map(id => {
     const correlationId = `v390-cross-${id}`;
     const filePath = path.join(policyRoot, "cross-cutting", `${id}.json`);
@@ -290,17 +305,40 @@ function produceCase({ outputDir, policyRoot, policy, result, manifestCase, cano
   const trace = artifactMeta(tracePath, "application/json", outputDir, result.caseId, correlationId);
   const browserConsole = artifactMeta(consolePath, "application/json", outputDir, result.caseId, correlationId);
   const serverLog = artifactMeta(serverSlicePath, "text/plain", outputDir, result.caseId, correlationId);
+  const visualTargetSelector = result.visualExpectedCase?.targetSelector || result.visibleAssertion?.selector || "body";
+  const visualExpectedCase = result.visualExpectedCase || {
+    canonicalCaseId: result.caseId,
+    featureId: result.featureId || canonicalCase.featureId,
+    screenId: result.caseId,
+    screenRoute: result.observed?.screenRoute || manifestCase.screenRoute,
+    accountRole: result.observed?.accountRole || manifestCase.accountRole,
+    targetSelector: visualTargetSelector,
+    width: result.requested?.viewport?.width,
+    height: result.requested?.viewport?.height,
+    theme: result.requested?.theme,
+    liveVideoRequired: false,
+  };
   const measurement = result.visualMeasurement || {
-    schema: "media-server.ui-browser-visual-measurement.v1",
+    schema: browserMeasurementSchema,
+    caseBinding: {
+      canonicalCaseId: visualExpectedCase.canonicalCaseId,
+      featureId: visualExpectedCase.featureId,
+      screenId: visualExpectedCase.screenId,
+      screenRoute: visualExpectedCase.screenRoute,
+      accountRole: visualExpectedCase.accountRole,
+      targetSelector: visualExpectedCase.targetSelector,
+    },
     route: result.observed?.screenRoute || "",
+    accountRole: result.observed?.accountRole || "",
+    requestedTheme: result.requested?.theme || "",
+    appliedTheme: result.observed?.theme || "",
+    mediaTheme: result.observed?.theme || "",
     viewport: { ...(result.observed?.viewport || {}), devicePixelRatio: 1 },
-    theme: result.observed?.theme || "",
     document: {},
-    target: { selector: result.visibleAssertion?.selector || "body", visible: false, rect: null },
+    target: { selector: visualTargetSelector, visible: false, rect: null },
     textSamples: [],
     focusSamples: [],
-    videos: [],
-    overlays: [],
+    liveVideo: null,
   };
   writeJson(visualMeasurementPath, measurement);
   const visualMeasurement = artifactMeta(visualMeasurementPath, "application/json", outputDir, result.caseId, correlationId);
@@ -309,9 +347,8 @@ function produceCase({ outputDir, policyRoot, policy, result, manifestCase, cano
     measurement,
     caseId: result.caseId,
     correlationId,
-    expectedViewport: result.requested?.viewport,
-    expectedTheme: result.requested?.theme,
-    requireVideoOverlay: Boolean(result.requireVideoOverlay),
+    expectedCase: visualExpectedCase,
+    liveVideoSpec: null,
   });
   visualPayload.screenshot.path = screenshot.path;
   writeJson(visualPath, visualPayload);
@@ -386,10 +423,10 @@ function produceCase({ outputDir, policyRoot, policy, result, manifestCase, cano
   };
 }
 
-function produceVisualMatrix({ outputDir, policyRoot, probes }) {
+function produceVisualMatrix({ outputDir, policyRoot, probes, plan, canonical, native }) {
   if (!Array.isArray(probes) || probes.length === 0) {
     return {
-      summary: evaluateVisualMatrix([]),
+      summary: evaluateVisualMatrix([], { plan, canonical, native }),
       evidenceRefs: [],
     };
   }
@@ -406,15 +443,21 @@ function produceVisualMatrix({ outputDir, policyRoot, probes }) {
       measurement: probe.measurement,
       caseId: probe.id,
       correlationId,
-      expectedViewport: probe.expectedViewport,
-      expectedTheme: probe.expectedTheme,
-      requireVideoOverlay: Boolean(probe.requireVideoOverlay),
+      expectedCase: probe.expectedCase,
+      liveVideoSpec: probe.liveVideoSpec,
     });
     payload.role = probe.role;
     writeJson(payloadPath, payload);
     return {
       id: probe.id,
+      canonicalCaseId: probe.canonicalCaseId,
+      featureId: probe.featureId,
+      screenId: probe.screenId,
+      screenRoute: probe.screenRoute,
       role: probe.role,
+      width: probe.width,
+      height: probe.height,
+      theme: probe.theme,
       payload,
       screenshotRef: evidenceRef(screenshot),
       evidenceRef: evidenceRef(artifactMeta(payloadPath, "application/json", outputDir, "__suite__", correlationId)),
@@ -422,7 +465,7 @@ function produceVisualMatrix({ outputDir, policyRoot, probes }) {
     };
   });
   return {
-    summary: evaluateVisualMatrix(evaluated),
+    summary: evaluateVisualMatrix(evaluated, { plan, canonical, native }),
     evidenceRefs: evaluated.flatMap(item => [item.screenshotRef, item.measurementRef, item.evidenceRef]),
   };
 }

@@ -10,6 +10,7 @@ import { createNativePlaywrightAdapter } from "./v390_ui_native_adapter.mjs";
 import { domSnapshotDigest, evaluateCompletionOracle } from "./v390_ui_completion_oracle_lib.mjs";
 import { validateNativeExactManifest } from "./v390_ui_native_exact_cases_lib.mjs";
 import { producePolicyV4Evidence } from "./v390_ui_policy_v4_evidence_producer.mjs";
+import { expandVisualMatrixPlan, validateVisualMatrixPlan } from "./v390_ui_visual_evidence.mjs";
 import { deduplicateScreenshotArtifacts } from "./evidence_integrity_lib.mjs";
 import {
   assertRequestedObservedEnvelope,
@@ -54,9 +55,11 @@ const rootDir = path.resolve(scriptDir, "../..");
 const options = parseArgs(process.argv.slice(2));
 const manifest = readJson(options.manifest);
 const canonical = readJson("test/fixtures/ui_fulltest_case_manifest_policy_v4.json");
+const visualMatrixPlan = readJson("test/fixtures/v390_ui_visual_matrix_plan.json");
 const canonicalById = new Map(canonical.cases.map(item => [item.testId, item]));
 const implementation = readJson("test/fixtures/project_feature_implementation_evidence.json");
 const validation = validateNativeExactManifest({ manifest, canonical, implementation });
+const visualPlanValidation = validateVisualMatrixPlan({ plan: visualMatrixPlan, canonical, native: manifest });
 const runnerWorkflowCompatibility = validateRunnerWorkflowCompatibility(manifest.cases);
 const outputDir = resolveRootOrAbsolute(options.outputDir);
 const summaryPath = path.join(outputDir, "summary.json");
@@ -80,6 +83,7 @@ if (options.planOnly) {
     actualBrowserExecution: false,
     uiFulltestPass: false,
     runnerWorkflowCompatibility,
+    visualPlanValidation,
     cases: manifest.cases.map(item => ({
       caseId: item.caseId,
       disposition: item.disposition,
@@ -277,7 +281,30 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     assert(runtimeState.has("__requestedObservedEnvelope"),
       `${item.caseId} runtime requested/observed control context was not captured`);
     const requestedObserved = runtimeState.get("__requestedObservedEnvelope");
-    const visualMeasurement = await browser.measureVisualState(item.controlAction.targetSelector || "body");
+    const visualTargetSelector = item.controlAction.targetSelector || "body";
+    const visualExpectedCase = {
+      canonicalCaseId: item.caseId,
+      featureId: item.featureId,
+      screenId: item.caseId,
+      screenRoute: item.screenRoute,
+      accountRole: item.accountRole,
+      targetSelector: visualTargetSelector,
+      width: item.viewport.width,
+      height: item.viewport.height,
+      theme: item.theme,
+      liveVideoRequired: false,
+    };
+    const visualMeasurement = await browser.measureVisualState(visualTargetSelector, {
+      caseBinding: {
+        canonicalCaseId: item.caseId,
+        featureId: item.featureId,
+        screenId: item.caseId,
+        screenRoute: item.screenRoute,
+        accountRole: item.accountRole,
+        targetSelector: visualTargetSelector,
+      },
+      requestedTheme: item.theme,
+    });
     await browser.screenshot(screenshotPath);
     await executeWorkflowCleanup(browser, item, runtimeState, trace);
     writeJson(consolePath, {
@@ -302,7 +329,8 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
         selector: "body",
       },
       visualMeasurement,
-      requireVideoOverlay: item.screenRoute === "/client/live",
+      visualExpectedCase,
+      requireVideoOverlay: false,
       navigation: browser.navigation,
       oracleSeed: item.oracle,
       completionOracle: trace.completionEvents,
@@ -338,46 +366,101 @@ async function observePrimaryControlContext(browser, item, requested, runtimeSta
 }
 
 async function executeVisualMatrix(adapter, roleStateMap) {
-  const operatorCase = manifest.cases.find(item => item.accountRole === "operator" && item.screenRoute.startsWith("/ops"));
-  const viewerCase = manifest.cases.find(item => item.accountRole === "viewer" && item.screenRoute.startsWith("/client"));
-  assert(operatorCase && viewerCase, "visual matrix representative operator/viewer cases are missing");
   const probes = [];
-  for (const width of [320, 390, 760, 1180]) {
-    for (const theme of ["light", "dark"]) {
-      const item = theme === "light" ? operatorCase : viewerCase;
-      const id = `visual-${width}-${theme}`;
-      const storageStatePath = resolveRoleState(item.accountRole, roleStateMap);
+  const nativeById = new Map(manifest.cases.map(item => [item.caseId, item]));
+  for (const variant of expandVisualMatrixPlan(visualMatrixPlan)) {
+      const item = nativeById.get(variant.canonicalCaseId);
+      assert(item, `${variant.canonicalCaseId} visual representative native case missing`);
+      const id = `visual-${variant.canonicalCaseId}-${variant.width}-${variant.theme}`;
+      const storageStatePath = resolveRoleState(variant.accountRole, roleStateMap);
       const browser = await adapter.openPage({
         httpBase: options.httpBase,
-        pagePath: item.screenRoute,
+        pagePath: variant.screenRoute,
         timeoutMs: options.timeoutMs,
-        width,
-        height: 844,
+        width: variant.width,
+        height: variant.height,
         storageStatePath,
-        colorScheme: theme,
+        colorScheme: variant.theme,
         navigationCorrelationId: `${id}:navigation`,
       });
       const screenshotPath = path.join(visualMatrixDir, `${id}.png`);
       try {
         assert(item.oracle.allowedStatuses.includes(browser.navigation.status), `${id} navigation status mismatch`);
-        const measurement = await browser.measureVisualState("body");
+        await browser.waitForSelector(variant.targetSelector);
+        const liveCorrelationId = variant.liveVideoRequired ? `${id}:live-session` : "";
+        if (variant.liveVideoRequired) {
+          await prepareLiveVisualProbe(browser, visualMatrixPlan.liveVideoProbe, liveCorrelationId, id);
+        }
+        const caseBinding = {
+          canonicalCaseId: variant.canonicalCaseId,
+          featureId: variant.featureId,
+          screenId: variant.screenId,
+          screenRoute: variant.screenRoute,
+          accountRole: variant.accountRole,
+          targetSelector: variant.targetSelector,
+        };
+        const measurement = await browser.measureVisualState(variant.targetSelector, {
+          caseBinding,
+          requestedTheme: variant.theme,
+          liveVideoSpec: variant.liveVideoRequired ? visualMatrixPlan.liveVideoProbe : null,
+          liveCorrelationId,
+        });
         await browser.screenshot(screenshotPath);
         probes.push({
           id,
-          role: item.accountRole,
+          canonicalCaseId: variant.canonicalCaseId,
+          featureId: variant.featureId,
+          screenId: variant.screenId,
+          screenRoute: variant.screenRoute,
+          role: variant.accountRole,
+          width: variant.width,
+          height: variant.height,
+          theme: variant.theme,
           correlationId: `${id}:navigation`,
           screenshotPath,
           measurement,
-          expectedViewport: { width, height: 844 },
-          expectedTheme: theme,
-          requireVideoOverlay: item.screenRoute === "/client/live",
+          expectedCase: variant,
+          liveVideoSpec: variant.liveVideoRequired ? visualMatrixPlan.liveVideoProbe : null,
         });
+        if (variant.liveVideoRequired) await cleanupLiveVisualProbe(browser, visualMatrixPlan.liveVideoProbe, `${id}:cleanup`);
       } finally {
         await browser.close();
       }
-    }
   }
   return probes;
+}
+
+async function prepareLiveVisualProbe(browser, spec, correlationId, id) {
+  await browser.waitForSelector(spec.tileSelector);
+  await browser.setCorrelationId(correlationId);
+  const rawSelector = spec.modeActionSelector.replace('data-mode-action="va-overlay"', 'data-mode-action="raw"');
+  const raw = await browser.snapshot(rawSelector);
+  assert(raw.exists && raw.visible, `${id} raw mode precondition missing`);
+  await browser.click(rawSelector);
+  await browser.waitForNetworkQuiet({ correlationId, minimumObservationMs: 500, quietMs: 200 });
+  await browser.click(spec.modeActionSelector);
+  await browser.waitForNetworkQuiet({ correlationId, minimumObservationMs: 750, quietMs: 250 });
+  const hasVaSession = browser.networkEntries().some(entry => entry.phase === "request-start" &&
+    entry.correlationId === correlationId && entry.method === "POST" && entry.requestBody?.overlayMode === "va-overlay");
+  if (!hasVaSession) {
+    const playbackSelector = spec.controlSelectors.find(selector => selector.includes('data-action="toggle-playback"'));
+    assert(playbackSelector, `${id} playback action selector missing`);
+    await browser.click(playbackSelector);
+    await browser.waitForNetworkQuiet({ correlationId, minimumObservationMs: 750, quietMs: 250 });
+  }
+  await browser.waitForSelector(spec.modeSelector);
+  await browser.waitForLiveVideoReady({ videoSelector: spec.videoSelector, modeSelector: spec.modeSelector });
+}
+
+async function cleanupLiveVisualProbe(browser, spec, correlationId) {
+  const stopSelector = spec.controlSelectors.find(selector => selector.includes('data-action="stop"'));
+  if (!stopSelector) return;
+  await browser.setCorrelationId(correlationId);
+  const stop = await browser.snapshot(stopSelector);
+  if (stop.exists && stop.visible && !stop.disabled) {
+    await browser.click(stopSelector);
+    await browser.waitForNetworkQuiet({ correlationId, minimumObservationMs: 300, quietMs: 150 });
+  }
 }
 
 function executeWorkflowSetup(item, storageStatePath, roleStateMap, trace) {
