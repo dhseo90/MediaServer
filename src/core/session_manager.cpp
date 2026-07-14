@@ -12,7 +12,7 @@
 #include "app_config.h"
 #include "core/runtime_debug_counters.h"
 #include "core/stream_key.h"
-#include "ingress/analysis_query.h"
+#include "analysis/analysis_query.h"
 
 #include <iostream>
 

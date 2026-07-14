@@ -44,16 +44,14 @@
     {
       "id": "application-service-interfaces",
       "exactFiles": [
-        "include/ingress/analysis_query.h",
-        "src/ingress/analysis_query.cpp",
         "include/ingress/onvif_live_import.h",
         "src/ingress/onvif_live_import.cpp",
         "include/ingress/vlm_incident_rule_provenance.h",
         "src/ingress/vlm_incident_rule_provenance.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 6,
-      "expectedCppCount": 3
+      "expectedFileCount": 4,
+      "expectedCppCount": 2
     },
     {
       "id": "domain-and-registry-owners",
@@ -115,8 +113,8 @@
         "include/ingress/analysis_overlay_probe.h",
         "src/ingress/analysis_overlay_probe.cpp"
       ],
-      "expectedFileCount": 65,
-      "expectedCppCount": 34
+      "expectedFileCount": 67,
+      "expectedCppCount": 35
     },
     {
       "id": "core-utilities",
@@ -165,7 +163,7 @@
       "expectedCppCount": 12
     }
   ],
-  "expectedFileOwnershipSha256": "2f82606268392991ad93a9e29ce0f2bad08ffcaf794a10deabd249ac561ecb89",
+  "expectedFileOwnershipSha256": "10b84e789ecbadf5d9b97a600af051cd457fe7f3dee892cd1df6d2e7d0dd0382",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -187,9 +185,9 @@
           "stable-contract-dtos",
           "core-utilities",
           "core-media-interfaces",
-          "application-service-interfaces",
           "transport-and-auth-adapter",
           "ops-route-groups",
+          "application-service-interfaces",
           "product-ui-workspaces",
           "domain-and-registry-owners"
         ]
@@ -228,44 +226,44 @@
     },
     {
       "direction": "analysis-services -> core-utilities",
-      "witnessCount": 17,
-      "witnessSha256": "c0c6c395d45e7034b64771876199797f3b62ba28001f72da42d4ba1e446db028",
+      "witnessCount": 19,
+      "witnessSha256": "7e7bb2a52f11fcca95c677767e37b001912effe9a9004cdac487d6091dc62729",
       "allowedByTarget": false
     },
     {
+      "direction": "analysis-services -> domain-and-registry-owners",
+      "witnessCount": 1,
+      "witnessSha256": "473aa019f9f811019a86958d302553ea721be4e56dc2978f71c728e35bf4b0ea",
+      "allowedByTarget": true
+    },
+    {
       "direction": "analysis-services -> stable-contract-dtos",
-      "witnessCount": 14,
-      "witnessSha256": "bd16612136d66d6954f97ad6263e00db71335dbe3c1f689484e1dbcd2f88188f",
+      "witnessCount": 15,
+      "witnessSha256": "3840900471aba7ef411d86e4dd1ba14372755a1a751cb1fd8eff4657ca0d6fa0",
       "allowedByTarget": false
     },
     {
       "direction": "application-service-interfaces -> analysis-services",
-      "witnessCount": 2,
-      "witnessSha256": "7099702aea99fb3bf285e4cd4f6f30ff390691953aeee7cb6a04049e9eb6883c",
+      "witnessCount": 1,
+      "witnessSha256": "cddfc1b896952f6f91d0b6427c60d87801968f3b03112c6ac799fbbf44f9e65a",
       "allowedByTarget": true
     },
     {
       "direction": "application-service-interfaces -> core-utilities",
-      "witnessCount": 3,
-      "witnessSha256": "8aacc42ebfdf9ec8844df22b13ef79afeedee85333ab4324571cb0899a00f604",
+      "witnessCount": 1,
+      "witnessSha256": "050ab85979b2e41a30e9e38da1d8b600e4bad7a8bd6a71f43e28594760080636",
       "allowedByTarget": false
     },
     {
       "direction": "application-service-interfaces -> domain-and-registry-owners",
-      "witnessCount": 2,
-      "witnessSha256": "304ecb76d57eab4e00b5281867fe6f987d38d3b042d2815d7f36a4bde95dfbbc",
+      "witnessCount": 1,
+      "witnessSha256": "9df287c3ec2c7f0b4e4571b7fe9863f402bb33a3104ccf056fbac6edeb3baf29",
       "allowedByTarget": true
     },
     {
       "direction": "application-service-interfaces -> ops-route-groups",
       "witnessCount": 1,
       "witnessSha256": "02bcedfc67733a976838f2559fb0c2485bffa1db504e26fe9c781153afdc55ec",
-      "allowedByTarget": false
-    },
-    {
-      "direction": "application-service-interfaces -> stable-contract-dtos",
-      "witnessCount": 1,
-      "witnessSha256": "1d16572caac746163b40e07a3e3baa926f6668ac2d7ed2e67313fa8c792e8d8e",
       "allowedByTarget": false
     },
     {
@@ -294,14 +292,8 @@
     },
     {
       "direction": "core-media-interfaces -> analysis-services",
-      "witnessCount": 8,
-      "witnessSha256": "171464ad8f0d71d27edfefb1a4a556d9366f3a5a1742f719edb62169424f418f",
-      "allowedByTarget": false
-    },
-    {
-      "direction": "core-media-interfaces -> application-service-interfaces",
-      "witnessCount": 2,
-      "witnessSha256": "f9b52a39382c57779d62ab99187a3708ab011bbb82017a2875fd09471aaed161",
+      "witnessCount": 10,
+      "witnessSha256": "9253bf953431c60e8cce853be64750d5e0720e1e783cd367939ad894b632835e",
       "allowedByTarget": false
     },
     {
@@ -348,14 +340,14 @@
     },
     {
       "direction": "transport-and-auth-adapter -> analysis-services",
-      "witnessCount": 14,
-      "witnessSha256": "eb7d2f5c388ba82b6dabaa2ba81df6061c796fc896b2fbc3c60c969725bbd5b0",
+      "witnessCount": 15,
+      "witnessSha256": "c6719a9833cfcce0aebe0b60479e1fe53fe9009019693155798bc26e1b42b141",
       "allowedByTarget": false
     },
     {
       "direction": "transport-and-auth-adapter -> application-service-interfaces",
-      "witnessCount": 3,
-      "witnessSha256": "4ffed96e972ecc8ff8f5de822577699bb6782e5efbbd1663a1f45664c0e662b2",
+      "witnessCount": 2,
+      "witnessSha256": "c37f036fd256d1668dd204b1a59f34f2c4a45f0cfb9612c0076dc9a3bf592200",
       "allowedByTarget": true
     },
     {
@@ -397,13 +389,12 @@
   ],
   "legacyForbiddenIncludeEdges": [
     "include/core/session_manager.h -> include/ingress/request_parser.h",
-    "src/core/session_manager.cpp -> include/ingress/analysis_query.h",
+    "src/core/session_manager.cpp -> include/analysis/analysis_query.h",
     "src/core/source_factory.cpp -> include/ingress/webrtc_source_registry.h"
   ],
   "stronglyConnectedComponents": [
     [
       "analysis-services",
-      "application-service-interfaces",
       "core-media-interfaces"
     ]
   ],
@@ -474,6 +465,13 @@
       "afterLineCount": 10156,
       "resolvedResponsibility": "action-execution-deferral-renderer-and-refresh",
       "replacementOwner": "src/ingress/product_ui_action_execution_deferral.cpp"
+    },
+    {
+      "file": "src/ingress/analysis_query.cpp",
+      "beforeLineCount": 1045,
+      "afterLineCount": 0,
+      "resolvedResponsibility": "analysis-query-profile-overlay-interpretation-owner",
+      "replacementOwner": "src/analysis/analysis_query.cpp"
     }
   ],
   "sliceBindings": [
@@ -534,5 +532,5 @@
       "exitRule": "production-graph-unchanged-and-cumulative-debt-verified"
     }
   ],
-  "boundary": "current REVIEW4-64 continuation graph after the source request parser core-owner move; policy-v1 recalculation counts 19 target-direction violations including temporary debt, the largest SCC is 6 owners, internal-target and mixed-owner debt remain unresolved, and this is not a refactor-complete claim"
+  "boundary": "current REVIEW4-64 continuation graph after the rollback-equivalent analysis query owner move; Policy v1 counts 15 target-direction violations and a remaining two-owner analysis/core SCC, while internal target separation is true and mixed-owner/final evidence debt remain unresolved; this is not a refactor-complete claim"
 }

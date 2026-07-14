@@ -12,7 +12,7 @@
 #include "analysis/event_rule_engine.h"
 #include "analysis/event_storage.h"
 #include "core/runtime_debug_counters.h"
-#include "ingress/analysis_query.h"
+#include "analysis/analysis_query.h"
 #include "ingress/analysis_rule_registry.h"
 #include "ingress/gst_pipeline_builder.h"
 #include "core/source_request_parser.h"

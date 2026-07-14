@@ -60,7 +60,7 @@ add_library(media_server_runtime STATIC
     src/core/source_request_parser.cpp
     src/ingress/gst_pipeline_builder.cpp
     src/ingress/analysis_overlay_probe.cpp
-    src/ingress/analysis_query.cpp
+    src/analysis/analysis_query.cpp
     src/ingress/http_auth.cpp
     src/ingress/onvif_credential_provider.cpp
     src/ingress/onvif_live_import.cpp

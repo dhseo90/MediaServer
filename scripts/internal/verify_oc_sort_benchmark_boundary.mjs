@@ -55,7 +55,7 @@ const ocSortTokens = [
 ];
 
 check("OC-SORT is not a runtime tracker policy value", () => {
-  const analysisQuery = readText("src/ingress/analysis_query.cpp");
+  const analysisQuery = readText("src/analysis/analysis_query.cpp");
   const server = readText("src/ingress/webrtc_http_server.cpp");
   const ui = readText("src/ingress/product_ui_page_scripts.cpp");
 

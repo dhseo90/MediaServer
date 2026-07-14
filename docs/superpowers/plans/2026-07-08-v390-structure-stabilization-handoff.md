@@ -93,6 +93,14 @@ contract owner로 이동했고 VA metadata header는 event rule service를 더 �
 AppConfig와 decoder 표준 include를 실제 소비자에 명시해 build 100%, analysis 181/0, Event POST/WebRTC/SSE/WS
 9/0·8/0·5/0·9/0을 통과했습니다. Stable DTO의 analysis/core 역방향 두 개가 사라져 위반은 17, SCC는 3입니다.
 
+여섯 번째 current continuation Slice `analysis-query-owner-boundary`는 rollback `d23db847` 기준으로
+완료했습니다. `analysis_query` header/source를 public `ingress` namespace와 5개 API, query alias/default/clamp,
+profile/rule/overlay timing 의미 그대로 analysis owner로 물리 이동합니다. SessionManager, GStreamer RTSP,
+WebRTC HTTP exact 세 consumer와 tracker/discovery verifier도 새 current source에 결속했습니다. Focused 5/0,
+build 100%, analysis 181/0, route 8/0, overlay/metadata 6/0·8/0, tracker 12/0·10/0, discovery 7/0,
+structure 15/0입니다. 위반은 15, SCC는 2이며 이는 남은 core↔analysis inversion과 40,832줄 server 분해,
+parked evidence finalization을 대체하지 않습니다.
+
 ## Development 17 Structure Stabilization Readiness
 
 Execution branch: `v3.9.0`

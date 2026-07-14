@@ -1,7 +1,7 @@
 // 파일 요약: RTSP/WebRTC/HTTP query에서 영상분석 profile과 overlay 옵션을 공통으로 만든다.
 // 동작 요약: 등록된 profile/rule을 요청 context에 맞춰 선택하고, query override를 적용한다.
 // 동작 요약: YOLO parser 옵션, tracking category, adaptive tuner 옵션을 AnalysisProfile로 정규화한다.
-#include "ingress/analysis_query.h"
+#include "analysis/analysis_query.h"
 
 #include <algorithm>
 #include <cctype>

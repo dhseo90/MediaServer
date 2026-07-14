@@ -57,7 +57,7 @@
 #include "analysis/vlm_observation_store.h"
 #include "core/runtime_debug_counters.h"
 #include "core/stream_key.h"
-#include "ingress/analysis_query.h"
+#include "analysis/analysis_query.h"
 #include "ingress/analysis_rule_registry.h"
 #include "ingress/http_auth.h"
 #include "ingress/onvif_live_import.h"

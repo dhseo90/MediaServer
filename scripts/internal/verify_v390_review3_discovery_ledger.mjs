@@ -348,8 +348,8 @@ function scopeDecisions() {
       ownerToReadback: "AnalysisDocumentRegistry::RuleDocuments -> FindMatchingRuleProfile -> ResolveAnalysisProfile -> AnalysisManager tap selectedByRuleId readback",
       sourceEvidence: [
         "src/ingress/webrtc_http_server.cpp::AnalysisDocumentRegistry::RuleDocuments",
-        "src/ingress/analysis_query.cpp::FindMatchingRuleProfile",
-        "src/ingress/analysis_query.cpp::ResolveAnalysisProfile",
+        "src/analysis/analysis_query.cpp::FindMatchingRuleProfile",
+        "src/analysis/analysis_query.cpp::ResolveAnalysisProfile",
         "src/core/session_manager.cpp::AttachAnalysisTap",
       ],
       completionEvidence: "RulesJson no longer advertises the excluded behavior as notImplementedYet",
@@ -362,7 +362,7 @@ function scopeDecisions() {
       reason: "this is duration evidence for existing route/profile matching, not a product feature; AGENTS 7.6.2 keeps it in the conditional 120-minute area when a media-path change or risk signal exists and the user approves execution",
       ownerToReadback: "FindMatchingRuleProfile -> RTSP/WebRTC analysis context -> selectedByRuleId runtime readback -> conditional 120-minute verifier evidence",
       sourceEvidence: [
-        "src/ingress/analysis_query.cpp::FindMatchingRuleProfile",
+        "src/analysis/analysis_query.cpp::FindMatchingRuleProfile",
         "scripts/internal/verify_route_profile_matching.sh",
         "AGENTS.md::7.6.2",
       ],

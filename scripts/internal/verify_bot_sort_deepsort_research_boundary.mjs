@@ -66,7 +66,7 @@ const deepSortTokens = [
 const researchRuntimeTokens = [...botSortTokens, ...deepSortTokens];
 
 check("runtime tracker policy rejects BoT-SORT tokens", () => {
-  const analysisQuery = readText("src/ingress/analysis_query.cpp");
+  const analysisQuery = readText("src/analysis/analysis_query.cpp");
   const server = readText("src/ingress/webrtc_http_server.cpp");
   const ui = readText("src/ingress/product_ui_page_scripts.cpp");
 
@@ -81,7 +81,7 @@ check("runtime tracker policy rejects BoT-SORT tokens", () => {
 });
 
 check("runtime tracker policy rejects DeepSORT tokens", () => {
-  const analysisQuery = readText("src/ingress/analysis_query.cpp");
+  const analysisQuery = readText("src/analysis/analysis_query.cpp");
   const server = readText("src/ingress/webrtc_http_server.cpp");
   const ui = readText("src/ingress/product_ui_page_scripts.cpp");
 
@@ -96,7 +96,7 @@ check("runtime tracker policy rejects DeepSORT tokens", () => {
 });
 
 check("runtime tracker policy keeps current allowed values", () => {
-  const analysisQuery = readText("src/ingress/analysis_query.cpp");
+  const analysisQuery = readText("src/analysis/analysis_query.cpp");
   const server = readText("src/ingress/webrtc_http_server.cpp");
 
   for (const snippet of [
