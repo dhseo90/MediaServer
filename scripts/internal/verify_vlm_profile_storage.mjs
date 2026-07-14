@@ -37,8 +37,9 @@ check("registry persists VLM profiles with strict validation", () => {
   const server = readWebRtcHttpServerBundle(readText);
   const profilePreparationBlock = extractCppFunctionBlock(server, "std::optional<Document> PrepareVlmProfileDocumentLocked(");
   const strictJson = readText("src/domain/strict_json.cpp");
+  const profileJsonDocument = readText("src/ingress/vlm_profile_json_document.cpp");
   const promotion = readText("src/ingress/vlm_evaluation_promotion.cpp");
-  const implementation = `${server}\n${promotion}`;
+  const implementation = `${server}\n${profileJsonDocument}\n${promotion}`;
   for (const snippet of [
     "VlmProfilesJson",
     "VlmProfileJson",
@@ -71,8 +72,8 @@ check("registry persists VLM profiles with strict validation", () => {
     "invalid-output",
     "timeout",
     "cloudOptInAcknowledged",
-    "ParseStrictJsonObjectDocument",
-    "StrictJsonContainsKey",
+    "VlmProfileJsonDocument::Parse",
+    ".ContainsKey(",
     "ValidateVlmPrivacyGuardContract",
     "media-server.vlm-privacy-transfer-guard.v1",
     "privacyGuard",
@@ -98,6 +99,9 @@ check("registry persists VLM profiles with strict validation", () => {
     assert(implementation.includes(snippet), `server missing VLM profile storage snippet: ${snippet}`);
   }
   assert(strictJson.includes("duplicate JSON key"), "strict JSON parser must reject duplicate decoded keys");
+  assert(profileJsonDocument.includes("ParseStrictJsonObjectDocument") &&
+    profileJsonDocument.includes("StrictJsonContainsKey"),
+  "VLM profile document boundary must delegate strict parse and recursive forbidden-key lookup");
   assert(!server.includes("ContainsForbiddenVlmProfileField"),
     "legacy string-search VLM forbidden-field helper must stay removed");
   for (const forbidden of [

@@ -166,7 +166,7 @@ check("Ops VLM UI renders the promotion guard and keeps manual save wording", ()
     "promotion guard",
     "operator-select-candidate-then-server-verify-save",
   ]) {
-    assertIncludes(files.server, snippet, "v390 VLM evaluation promotion guard UI shell");
+    assertIncludes(files.serverPages, snippet, "v390 VLM evaluation promotion guard UI shell");
   }
   assertIncludes(files.opsClientUiSmoke, "opsVlmEvaluationPromotionGuardStatus", "ops client UI smoke");
 });
@@ -228,6 +228,7 @@ finish("== v3.9.0 VLM evaluation promotion guard ==", {
 function loadFiles() {
   return {
     server: readWebRtcHttpServerBundle(readText),
+    serverPages: readText("src/ingress/product_ui_server_pages.cpp"),
     promotionModule: readText("src/ingress/vlm_evaluation_promotion.cpp"),
     pageScript: readText("src/ingress/product_ui_page_scripts.cpp"),
     opsClientUiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),

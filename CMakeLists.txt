@@ -83,6 +83,7 @@ add_library(media_server_runtime STATIC
     src/ingress/product_ui_server_pages.cpp
     src/ingress/rtsp_egress_session.cpp
     src/ingress/source_view_registry.cpp
+    src/ingress/vlm_profile_json_document.cpp
     src/ingress/vlm_evaluation_promotion.cpp
     src/ingress/vlm_incident_rule_provenance.cpp
     src/ingress/webrtc_egress_session.cpp

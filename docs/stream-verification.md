@@ -905,3 +905,10 @@ PASS, 장시간 테스트 PASS로 재사용하지 않습니다.
 | --- | --- | --- |
 | V220-S06 Rules workspace redesign | `./server.sh verify-v220-rules-workspace-redesign` | `/ops/rules` renderer source owner 이동 뒤 readiness/assist/catalog/detail DOM과 기존 hook을 정적으로 확인합니다. 브라우저 직접 조작, 저장 roundtrip 실행, 현재 release PASS가 아닙니다 |
 | V220-F04 Ops VLM UI containment | `./server.sh verify-v220-ops-vlm-containment` | `/ops/vlm`의 Ops 보조 작업/default-off/privacy/profile/raw-debug containment를 정적으로 확인합니다. runtime/provider 호출, 브라우저 직접 조작, 장시간 또는 현재 release PASS가 아닙니다 |
+
+## V390-REVIEW4-64 Slice 15 VLM profile JSON boundary
+
+`./server.sh verify-v390-strict-json-service-boundary`는 transport가 opaque VLM profile document API만
+소비하고 concrete domain strict parser를 application-service 구현이 소유하는지 검증합니다. 이 명령은
+strict parser 의미와 graph witness 감소를 확인하지만 SAFE-025 generated evidence, 실제 VLM provider 호출,
+브라우저 UI, 장시간 또는 REVIEW4-65 acceptance를 대체하지 않습니다.

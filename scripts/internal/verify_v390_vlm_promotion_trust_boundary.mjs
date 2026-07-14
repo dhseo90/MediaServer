@@ -97,6 +97,7 @@ function verifySourceContract() {
   assert(promotionBlock.includes("result.accepted = true;"), "LAB-123 server-owned promotion result.accepted block readback mismatch");
   const server = readWebRtcHttpServerBundle(read);
   const strictJson = read("src/domain/strict_json.cpp");
+  const profileJsonDocument = read("src/ingress/vlm_profile_json_document.cpp");
   const client = read("src/ingress/product_ui_page_scripts.cpp");
   const shell = read("src/ingress/product_ui_server_pages.cpp");
   const opsShellRouteBlock = extractCppFunctionBlock(server, "bool IsOpsOverviewShellRoute(");
@@ -120,10 +121,13 @@ function verifySourceContract() {
     "CanonicalizeStoredVlmProfileLocked",
     "ValidateCanonicalVlmProfileEnvelopeLocked",
     "quarantinedProfileCount",
-    "ParseStrictJsonObjectDocument",
-    "StrictJsonStringField",
+    "VlmProfileJsonDocument::Parse",
+    ".StringField(",
   ]) assert(server.includes(snippet), `server validator missing ${snippet}`);
   assert(strictJson.includes("duplicate JSON key"), "strict JSON parser does not reject duplicate keys");
+  assert(profileJsonDocument.includes("ParseStrictJsonObjectDocument") &&
+    profileJsonDocument.includes("StrictJsonStringField"),
+  "VLM profile JSON boundary does not preserve the strict parser delegation");
   assert(opsVlmRoutePresent, "server verified promotion UI route /ops/vlm is missing");
   assert(!/evaluation:\s*\{\s*status:/s.test(client), "client profile payload must not declare evaluation.status");
   assert(client.includes("expectedCatalogRevision"), "client candidate request missing catalog revision");

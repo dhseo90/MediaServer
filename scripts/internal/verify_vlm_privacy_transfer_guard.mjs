@@ -34,6 +34,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const checks = [];
 const server = readWebRtcHttpServerBundle(readText);
+const serverPages = readText("src/ingress/product_ui_server_pages.cpp");
 const pageScript = readText("src/ingress/product_ui_page_scripts.cpp");
 const eventPost = readText("src/analysis/event_post_dispatcher.cpp");
 const eventStorage = readText("src/analysis/event_storage.cpp");
@@ -117,12 +118,16 @@ check("Ops VLM dry-run and profile UI expose privacy guard controls without prov
   for (const snippet of [
     "OpsVlmPrivacyTransferGuardJson",
     "privacyTransferGuard",
+  ]) {
+    assertIncludes(server, snippet, "Ops VLM privacy API");
+  }
+  for (const snippet of [
     "data-testid=\"ops-vlm-privacy-transfer-guard-panel\"",
     "id=\"opsVlmExternalTransferWarningAck\"",
     "id=\"opsVlmProviderLoggingReviewed\"",
     "provider logging/retention",
   ]) {
-    assertIncludes(server, snippet, "Ops VLM privacy markup/API");
+    assertIncludes(serverPages, snippet, "Ops VLM privacy markup");
   }
   for (const snippet of [
     "renderOpsVlmPrivacyTransferGuard",

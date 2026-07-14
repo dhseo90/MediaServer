@@ -55,10 +55,10 @@
   "currentGraph": {
     "path": "test/fixtures/v390_structure_stabilization_current_graph.json",
     "schema": "media-server.v390-structure-stabilization-current-graph.v1",
-    "sha256": "87384ad15de94147046596309c5d8813bc998deb1138f9520ec2fbe6afac181b",
+    "sha256": "b86b8928a22b0a13d560d4e9dc151cc064827a74a54b9ddd05637880413d7683",
     "metrics": {
-      "productionFiles": 173,
-      "cppSources": 85,
+      "productionFiles": 175,
+      "cppSources": 86,
       "moduleOwners": 10,
       "cmakeTargets": 2,
       "targetViolationDirections": 3,
@@ -69,7 +69,7 @@
   },
   "currentContinuation": {
     "status": "in-progress",
-    "latestCompletedSlice": 14,
+    "latestCompletedSlice": 15,
     "sliceSequenceStatus": "partial",
     "architectureStatus": "final-targets-unmet",
     "finalEvidenceStatus": "parked-generated-artifacts-in-review",
@@ -1772,6 +1772,129 @@
           {"command":"./server.sh verify-docs-links","status":"pass"},
           {"command":"git diff --check","status":"pass"},
           {"command":"listener/temp cleanup","status":"pass"}
+        ]
+      },
+      {
+        "order": 15,
+        "id": "vlm-profile-json-document-boundary",
+        "status": "completed",
+        "nonProductionSlice": false,
+        "rollbackCommit": "476b98be8c084792a74c7cd87059dcd51d9f5c4b",
+        "selectedBoundary": "hide the concrete domain strict JSON parser behind an opaque application-service VLM profile document API while preserving exact strict parsing semantics",
+        "allowedFiles": [
+          "CMakeLists.txt",
+          "server.sh",
+          "include/ingress/vlm_profile_json_document.h",
+          "src/ingress/vlm_profile_json_document.cpp",
+          "src/ingress/webrtc_http_server_detail.h",
+          "src/ingress/webrtc_http_server_runtime.cpp",
+          "scripts/internal/verify_v390_strict_json_service_boundary.mjs",
+          "scripts/internal/verify_v390_public_contract_interface_owner.mjs",
+          "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
+          "scripts/internal/verify_v390_transport_runtime_config_boundary.mjs",
+          "scripts/internal/verify_v390_webrtc_http_server_source_bundle.mjs",
+          "scripts/internal/verify_v390_webrtc_http_server_physical_split.mjs",
+          "scripts/internal/verify_v390_vlm_evaluation_promotion_guard.mjs",
+          "scripts/internal/verify_vlm_profile_storage.mjs",
+          "scripts/internal/verify_vlm_privacy_transfer_guard.mjs",
+          "scripts/internal/verify_v390_structure_stabilization_execution.mjs",
+          "test/fixtures/v390_structure_stabilization_current_graph.json",
+          "test/fixtures/v390_structure_stabilization_execution.json",
+          "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md",
+          "docs/development-backlog.md",
+          "docs/project-feature-test-inventory.md",
+          "docs/stream-verification.md",
+          "docs/release-test-records.md",
+          "docs/release-evidence-index.md"
+        ],
+        "changedFiles": [
+          "CMakeLists.txt",
+          "server.sh",
+          "include/ingress/vlm_profile_json_document.h",
+          "src/ingress/vlm_profile_json_document.cpp",
+          "src/ingress/webrtc_http_server_detail.h",
+          "src/ingress/webrtc_http_server_runtime.cpp",
+          "scripts/internal/verify_v390_strict_json_service_boundary.mjs",
+          "scripts/internal/verify_v390_public_contract_interface_owner.mjs",
+          "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
+          "scripts/internal/verify_v390_transport_runtime_config_boundary.mjs",
+          "scripts/internal/verify_v390_webrtc_http_server_source_bundle.mjs",
+          "scripts/internal/verify_v390_webrtc_http_server_physical_split.mjs",
+          "scripts/internal/verify_v390_vlm_evaluation_promotion_guard.mjs",
+          "scripts/internal/verify_vlm_profile_storage.mjs",
+          "scripts/internal/verify_vlm_privacy_transfer_guard.mjs",
+          "scripts/internal/verify_v390_structure_stabilization_execution.mjs",
+          "test/fixtures/v390_structure_stabilization_current_graph.json",
+          "test/fixtures/v390_structure_stabilization_execution.json",
+          "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md",
+          "docs/development-backlog.md",
+          "docs/project-feature-test-inventory.md",
+          "docs/stream-verification.md",
+          "docs/release-test-records.md",
+          "docs/release-evidence-index.md"
+        ],
+        "before": {
+          "productionGraphSha256": "87384ad15de94147046596309c5d8813bc998deb1138f9520ec2fbe6afac181b",
+          "productionFiles": 173,
+          "cppSources": 85,
+          "targetViolationDirectionsUnderPolicyV1": 3,
+          "transportDomainWitnessCount": 3,
+          "largestSccOwners": 0,
+          "largestMixedOwnerFileLines": 10160,
+          "cmakeTargets": 2,
+          "internalTargetSeparation": true
+        },
+        "after": {
+          "productionGraphSha256": "b86b8928a22b0a13d560d4e9dc151cc064827a74a54b9ddd05637880413d7683",
+          "productionFiles": 175,
+          "cppSources": 86,
+          "targetViolationDirectionsUnderPolicyV1": 3,
+          "transportDomainWitnessCount": 2,
+          "largestSccOwners": 0,
+          "largestMixedOwnerFileLines": 10160,
+          "cmakeTargets": 2,
+          "internalTargetSeparation": true
+        },
+        "contractAssertions": [
+          "the public VLM profile document header exposes no domain strict JSON type or transitive domain include",
+          "the concrete strict parser remains reachable only through the application-service implementation",
+          "duplicate keys, nested duplicates, trailing bytes, type mismatches, null fields, and recursive key detection preserve strict behavior",
+          "the ten transport owner files contain no direct strict JSON include, type, or function dependency",
+          "the Policy v1 graph reduces only the transport-to-domain witness count from three to two; edge and violation counts do not overclaim progress",
+          "VLM profile persistence, canonicalization, privacy, runtime opt-in, route/status/body, Auth, Event/metadata, and media contracts remain unchanged",
+          "parked generated evidence remains unstaged and non-final"
+        ],
+        "observedFollowups": [
+          "the first mechanical type replacement changed the parser function token before the call-site rewrite; calls were corrected to the static opaque document parser and the full build passed",
+          "the structure verifier rejected the unclassified new files before the application-service owner and exact graph were regenerated",
+          "the slice intentionally leaves analysis-rule and source-view registry witnesses for the next honest facade instead of claiming the whole transport-domain direction removed",
+          "independent review found source-anchor-only semantic coverage and six stale predecessor/companion oracles; a compiled strict semantics harness and exact successor owner/digest/graph/UI bindings closed every P1"
+        ],
+        "tests": [
+          {"command":"./server.sh verify-v390-strict-json-service-boundary","status":"pass","result":"5/0"},
+          {"command":"./server.sh build","status":"pass","firstAttempt":"static parse call token required correction after mechanical replacement","recovery":"VlmProfileJsonDocument::Parse; 100%"},
+          {"command":"./server.sh verify-vlm-profile-storage","status":"pass","firstAttempt":"stale direct StrictJson parser token","recovery":"opaque document owner binding; 6/0"},
+          {"command":"./server.sh verify-vlm-privacy-transfer-guard","status":"pass","firstAttempt":"split product UI markup read from logical transport bundle","recovery":"focused server page owner binding; 6/0"},
+          {"command":"./server.sh verify-v390-public-contract-interface-owner","status":"pass","firstAttempt":"2/4 stale application owner, strict consumer, and graph frontier","recovery":"successor owner and graph binding; 6/0"},
+          {"command":"./server.sh verify-v390-vlm-promotion-trust-boundary","status":"pass","firstAttempt":"stale direct strict parser source oracle, then sandbox loopback EPERM","recovery":"opaque owner binding and permissioned actual save/reload matrix; failures 0"},
+          {"command":"./server.sh verify-v390-transport-runtime-config-boundary","status":"pass","firstAttempt":"4/1 stale 173/85 graph frontier","recovery":"successor 175/86 graph; 5/0"},
+          {"command":"./server.sh verify-v390-webrtc-http-server-source-bundle","status":"pass","firstAttempt":"3/3 stale logical bundle digest/bytes and graph frontier","recovery":"exact successor bundle and graph mutations; 6/0"},
+          {"command":"./server.sh verify-v390-webrtc-http-server-physical-split","status":"pass","firstAttempt":"3/3 stale definition digest and graph frontier","recovery":"exact successor definition inventory and graph mutation; 6/0"},
+          {"command":"./server.sh verify-v390-vlm-evaluation-promotion-guard","status":"pass","firstAttempt":"6/1 stale split UI shell owner","recovery":"focused server page owner; 7/0"},
+          {"command":"./server.sh verify-v390-review4-structure-stabilization-execution","status":"self-check"},
+          {"command":"./server.sh verify-script-inventory","status":"pass","result":"11/0"},
+          {"command":"./server.sh verify-docs-links","status":"pass","result":"168 Markdown, 883 links, 22 images, 99 anchors, failures 0"},
+          {"command":"git diff --check","status":"pass"},
+          {"command":"listener/temp cleanup","status":"pass","result":"0-byte analysis dep scan removed; listeners 8081/8555 absent"}
+        ],
+        "deferredTests": [
+          {
+            "command": "./server.sh verify-vlm-runtime-opt-in-contract",
+            "status": "fail-deferred-to-final-generated-evidence",
+            "productContractChecks": "4/4 pass",
+            "failedCheck": "SAFE-025 implementation manifest verifier command binding",
+            "completionEvidence": false
+          }
         ]
       }
     ]

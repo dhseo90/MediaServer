@@ -5025,44 +5025,44 @@ bool AnalysisDocumentRegistry::ValidateCanonicalVlmProfileEnvelopeLocked(
     const std::string& expected_id,
     const std::string& body,
     std::string* error_message) {
-    StrictJsonObjectDocument profile_document;
+    VlmProfileJsonDocument profile_document;
     std::string parse_error;
-    if (!ParseStrictJsonObjectDocument(body, &profile_document, &parse_error)) {
+    if (!VlmProfileJsonDocument::Parse(body, &profile_document, &parse_error)) {
         SetRegistryError(error_message, "VLM profile JSON is invalid: " + parse_error);
         return false;
     }
     for (const std::string& field :
          {"apiKey", "credential", "providerCredential", "prompt", "rawPrompt",
           "rawResponse", "sourceUrl", "sourceLocator", "imageData", "frameBytes"}) {
-        if (StrictJsonContainsKey(profile_document, field)) {
+        if (profile_document.ContainsKey(field)) {
             SetRegistryError(error_message,
                              "VLM profile must not include credentials, prompts, raw responses, source locators, or frame bytes");
             return false;
         }
     }
-    if (StrictJsonStringField(profile_document, "schema").value_or("") != "media-server.vlm-profile.v1") {
+    if (profile_document.StringField("schema").value_or("") != "media-server.vlm-profile.v1") {
         SetRegistryError(error_message, "VLM profile schema must be media-server.vlm-profile.v1");
         return false;
     }
-    if (!StrictJsonHasTopLevelField(profile_document, "id")) {
+    if (!profile_document.HasTopLevelField("id")) {
         SetRegistryError(error_message, "VLM profile must include exactly one id");
         return false;
     }
-    const std::string id = Trim(StrictJsonStringField(profile_document, "id").value_or(""));
+    const std::string id = Trim(profile_document.StringField("id").value_or(""));
     if (!IsSafeVlmProfileId(id) || id != expected_id) {
         SetRegistryError(error_message, "stored VLM profile id is invalid or mismatched");
         return false;
     }
     const std::string selected_option_id =
-        Trim(StrictJsonStringField(profile_document, "selectedOptionId").value_or(""));
+        Trim(profile_document.StringField("selectedOptionId").value_or(""));
     if (!IsSafeVlmProfileId(selected_option_id)) {
         SetRegistryError(error_message, "VLM profile selectedOptionId is required");
         return false;
     }
-    const std::string provider = Trim(StrictJsonStringField(profile_document, "provider").value_or(""));
-    const std::string model = Trim(StrictJsonStringField(profile_document, "model").value_or(""));
-    const std::string runtime = Trim(StrictJsonStringField(profile_document, "runtime").value_or(""));
-    const std::string privacy_mode = Trim(StrictJsonStringField(profile_document, "privacyMode").value_or(""));
+    const std::string provider = Trim(profile_document.StringField("provider").value_or(""));
+    const std::string model = Trim(profile_document.StringField("model").value_or(""));
+    const std::string runtime = Trim(profile_document.StringField("runtime").value_or(""));
+    const std::string privacy_mode = Trim(profile_document.StringField("privacyMode").value_or(""));
     if (!IsOneOf(provider, {"user-supplied-local-runtime", "cloud-provider-api"}) ||
         !IsOneOf(model,
                  {"Qwen/Qwen3-VL-4B-Instruct",
@@ -5076,7 +5076,7 @@ bool AnalysisDocumentRegistry::ValidateCanonicalVlmProfileEnvelopeLocked(
     }
     const bool cloud_profile = provider == "cloud-provider-api";
     const bool cloud_opt_in_acknowledged =
-        StrictJsonBoolField(profile_document, "cloudOptInAcknowledged").value_or(false);
+        profile_document.BoolField("cloudOptInAcknowledged").value_or(false);
     if (cloud_profile) {
         if (model != "gemini-2.5-flash" || runtime != "provider-api" ||
             privacy_mode != "cloud-allowed" || !cloud_opt_in_acknowledged) {
@@ -5091,45 +5091,45 @@ bool AnalysisDocumentRegistry::ValidateCanonicalVlmProfileEnvelopeLocked(
     if (!ValidateVlmPrivacyGuardContract(body, cloud_profile, error_message)) {
         return false;
     }
-    const auto prompt_profile = StrictJsonObjectField(profile_document, "promptProfile");
-    StrictJsonObjectDocument prompt_profile_document;
+    const auto prompt_profile = profile_document.ObjectField("promptProfile");
+    VlmProfileJsonDocument prompt_profile_document;
     if (!prompt_profile.has_value() ||
-        !ParseStrictJsonObjectDocument(*prompt_profile, &prompt_profile_document, &parse_error) ||
-        Trim(StrictJsonStringField(prompt_profile_document, "id").value_or("")).empty()) {
+        !VlmProfileJsonDocument::Parse(*prompt_profile, &prompt_profile_document, &parse_error) ||
+        Trim(prompt_profile_document.StringField("id").value_or("")).empty()) {
         SetRegistryError(error_message, "VLM profile promptProfile.id is required");
         return false;
     }
-    const auto evaluation = StrictJsonObjectField(profile_document, "evaluation");
-    StrictJsonObjectDocument evaluation_document;
+    const auto evaluation = profile_document.ObjectField("evaluation");
+    VlmProfileJsonDocument evaluation_document;
     if (!evaluation.has_value() ||
-        !ParseStrictJsonObjectDocument(*evaluation, &evaluation_document, &parse_error) ||
-        StrictJsonStringField(evaluation_document, "source").value_or("") !=
+        !VlmProfileJsonDocument::Parse(*evaluation, &evaluation_document, &parse_error) ||
+        evaluation_document.StringField("source").value_or("") !=
             "server-verified-evaluation-catalog" ||
-        !StrictJsonObjectField(evaluation_document, "provenance").has_value() ||
-        !IsOneOf(Trim(StrictJsonStringField(evaluation_document, "status").value_or("")),
+        !evaluation_document.ObjectField("provenance").has_value() ||
+        !IsOneOf(Trim(evaluation_document.StringField("status").value_or("")),
                  {"passed", "review-required", "failed", "not-run"})) {
         SetRegistryError(error_message, "VLM profile evaluation must be server canonical");
         return false;
     }
-    const auto activation = StrictJsonObjectField(profile_document, "activation");
+    const auto activation = profile_document.ObjectField("activation");
     if (!activation.has_value()) {
         SetRegistryError(error_message, "VLM profile activation object is required");
         return false;
     }
-    StrictJsonObjectDocument activation_document;
-    if (!ParseStrictJsonObjectDocument(*activation, &activation_document, &parse_error)) {
+    VlmProfileJsonDocument activation_document;
+    if (!VlmProfileJsonDocument::Parse(*activation, &activation_document, &parse_error)) {
         SetRegistryError(error_message, "VLM profile activation JSON is invalid: " + parse_error);
         return false;
     }
     const std::string evaluation_status =
-        Trim(StrictJsonStringField(evaluation_document, "status").value_or(""));
+        Trim(evaluation_document.StringField("status").value_or(""));
     const std::string activation_status =
-        Trim(StrictJsonStringField(activation_document, "status").value_or(""));
-    const bool activation_enabled = StrictJsonBoolField(activation_document, "enabled").value_or(false);
+        Trim(activation_document.StringField("status").value_or(""));
+    const bool activation_enabled = activation_document.BoolField("enabled").value_or(false);
     const std::string fallback_profile_id =
-        Trim(StrictJsonStringField(activation_document, "fallbackProfileId").value_or(""));
+        Trim(activation_document.StringField("fallbackProfileId").value_or(""));
     const std::string disabled_reason =
-        Trim(StrictJsonStringField(activation_document, "disabledReason").value_or(""));
+        Trim(activation_document.StringField("disabledReason").value_or(""));
     if (!IsOneOf(activation_status, {"pending-evaluation", "active", "disabled", "fallback"}) ||
         (activation_enabled && (evaluation_status != "passed" || activation_status != "active")) ||
         (!activation_enabled && activation_status == "active") ||
@@ -5140,7 +5140,7 @@ bool AnalysisDocumentRegistry::ValidateCanonicalVlmProfileEnvelopeLocked(
         SetRegistryError(error_message, "VLM profile activation contract is invalid");
         return false;
     }
-    if (!StrictJsonObjectField(profile_document, "runtimeContract").has_value() ||
+    if (!profile_document.ObjectField("runtimeContract").has_value() ||
         !ValidateVlmRuntimeOptInContract(body,
                                          provider,
                                          runtime,
@@ -5149,13 +5149,13 @@ bool AnalysisDocumentRegistry::ValidateCanonicalVlmProfileEnvelopeLocked(
                                          error_message)) {
         return false;
     }
-    const auto invariants = StrictJsonObjectField(profile_document, "contractInvariants");
+    const auto invariants = profile_document.ObjectField("contractInvariants");
     if (!invariants.has_value()) {
         SetRegistryError(error_message, "VLM profile contractInvariants object is required");
         return false;
     }
-    StrictJsonObjectDocument invariants_document;
-    if (!ParseStrictJsonObjectDocument(*invariants, &invariants_document, &parse_error)) {
+    VlmProfileJsonDocument invariants_document;
+    if (!VlmProfileJsonDocument::Parse(*invariants, &invariants_document, &parse_error)) {
         SetRegistryError(error_message, "VLM profile contractInvariants JSON is invalid: " + parse_error);
         return false;
     }
@@ -5170,7 +5170,7 @@ bool AnalysisDocumentRegistry::ValidateCanonicalVlmProfileEnvelopeLocked(
           "wsMetadataSchemaChanged",
           "rtspOrWebrtcMediaPathChanged",
           "viewerClientExposureAdded"}) {
-        if (StrictJsonBoolField(invariants_document, field).value_or(true)) {
+        if (invariants_document.BoolField(field).value_or(true)) {
             SetRegistryError(error_message, "VLM profile invariant must be false: " + field);
             return false;
         }

@@ -438,3 +438,17 @@ Independent review rejected a mutable process-global replacement because a secon
 the first instance while its requests were active. The constructor now acquires the transport snapshot exactly once
 for the process lifetime and every later construction fails closed before Start. The focused gate also binds the exact
 Auto/Off/Token/Session plus unknown-fallback mapping and rejects lease/mapping bypass mutations.
+
+### Current continuation Slice 15: `vlm-profile-json-document-boundary`
+
+- [x] Hide `StrictJsonObjectDocument` and every concrete strict parser call behind an opaque application-service
+  VLM profile document API.
+- [x] Preserve recursive forbidden-key lookup, top-level field distinction, null/absent handling, strict duplicate,
+  nested duplicate, trailing-byte, and type rejection semantics.
+- [x] Reject umbrella includes, aliases, owner relabeling, source hiding, policy exceptions, and graph overclaims.
+- [ ] Rebind the parked SAFE-025 runtime verifier evidence during final generated-evidence closure.
+
+Focused 5/0, build 100%, profile storage 6/0, privacy guard 6/0, and structure 15/0 pass. Runtime opt-in
+product checks pass 4/4, while its implementation-evidence command binding remains explicitly deferred to the
+parked final evidence slice. Current graph is production 175/C++ 86, edge 17, violations 3, SCC 0; only the
+transport-to-domain witness count changes from three to two, so this slice does not claim direction closure.
