@@ -65,6 +65,7 @@
 #include "ingress/ops_event_route_owner.h"
 #include "ingress/request_parser.h"
 #include "ingress/product_ui_assets.h"
+#include "ingress/product_ui_action_execution_deferral.h"
 #include "ingress/product_ui_auth_pages.h"
 #include "ingress/product_ui_components.h"
 #include "ingress/product_ui_css.h"
@@ -4072,23 +4073,7 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           defaultEnabled=false · vlmProviderCallPerformed=false · vlmRuntimeCallPerformed=false · raw prompt/response=false · action execution=false
         </div>
       </section>
-      <section class="section-card ops-workspace-wide ops-action-execution-deferral-decision" data-testid="ops-action-execution-deferral-decision" data-v390-action-execution-deferral-decision="media-server.ops.v390-action-execution-deferral-decision.v1">
-        <div class="toolbar">
-          <div>
-            <h3>Action Execution Deferral</h3>
-            <p>source recheck, client notice send, rule apply 실행을 별도 승인 전까지 모두 deferred 상태로 고정합니다.</p>
-          </div>
-        </div>
-        <div id="dashActionExecutionDeferralBadges" class="badge-row"><span class="chip">로딩 중</span></div>
-        <p id="dashActionExecutionDeferralText">action execution deferral decision을 불러오는 중입니다.</p>
-        <div id="dashActionExecutionDeferralList" class="ops-action-control-list">
-          <div class="empty">deferred action decision 항목을 기다립니다.</div>
-        </div>
-        <div id="dashActionExecutionDeferralBoundary" class="ops-action-control-boundary">
-          approvalGatedExecutionEnabled=false · sourceRecheckExecuted=false · clientNoticeSent=false · ruleApplyPerformed=false
-        </div>
-      </section>
-      <section class="section-card ops-workspace-wide ops-field-evidence-bridge-decision" data-testid="ops-field-evidence-bridge-decision" data-v390-field-evidence-bridge-decision="media-server.ops.v390-field-evidence-bridge-decision.v1">
+)" << OpsActionExecutionDeferralWorkspaceHtml() << R"(      <section class="section-card ops-workspace-wide ops-field-evidence-bridge-decision" data-testid="ops-field-evidence-bridge-decision" data-v390-field-evidence-bridge-decision="media-server.ops.v390-field-evidence-bridge-decision.v1">
         <div class="toolbar">
           <div>
             <h3>Field Evidence Bridge</h3>

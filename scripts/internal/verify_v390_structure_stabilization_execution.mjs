@@ -223,6 +223,53 @@ check("registry/domain Slice consumes injected read authorization without transp
   ]) assert(registry.includes(unchangedWriteAnchor), `registry write/persistence owner drift: ${unchangedWriteAnchor}`);
 });
 
+check("UI Slice owns the exact action deferral workspace outside mixed server/page units", () => {
+  const slice = ledger.orderedSlices[3];
+  if (slice.status === "not-started") return;
+  const header = readText("include/ingress/product_ui_action_execution_deferral.h");
+  const owner = readText("src/ingress/product_ui_action_execution_deferral.cpp");
+  const pageScripts = readText("src/ingress/product_ui_page_scripts.cpp");
+  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const css = readText("src/ingress/product_ui_css.cpp");
+  const cmake = readText("CMakeLists.txt");
+  assert(header.includes("std::string OpsActionExecutionDeferralWorkspaceHtml();") &&
+    header.includes("void AppendOpsActionExecutionDeferralWorkspaceScript(std::ostringstream& out);"),
+  "action deferral workspace owner API missing");
+  const html = rawLiteralPayload(owner, "R\"DEFERRALHTML(", ")DEFERRALHTML\"");
+  const script = rawLiteralPayload(owner, "R\"DEFERRALSCRIPT(", ")DEFERRALSCRIPT\"");
+  assert(sha256Text(html) === slice.baselineDigests.workspaceHtmlSha256,
+    "action deferral workspace HTML byte drift");
+  assert(sha256Text(script) === slice.baselineDigests.workspaceScriptSha256,
+    "action deferral workspace script byte drift");
+  assert(sha256Text(css) === slice.baselineDigests.sharedCssFileSha256,
+    "shared action-control CSS ownership/content drift");
+  for (const snippet of [
+    'data-testid="ops-action-execution-deferral-decision"',
+    "dashActionExecutionDeferralBadges",
+    "dashActionExecutionDeferralText",
+    "dashActionExecutionDeferralList",
+    "dashActionExecutionDeferralBoundary",
+    "refreshV390ActionExecutionDeferralDecision",
+    "/ops/api/actions/execution-deferral-decision",
+    "requestJson(actionExecutionDeferralRoute)",
+  ]) assert(owner.includes(snippet), `action deferral workspace owner missing: ${snippet}`);
+  assert(pageScripts.includes('#include "ingress/product_ui_action_execution_deferral.h"') &&
+    pageScripts.includes("AppendOpsActionExecutionDeferralWorkspaceScript(out);") &&
+    !pageScripts.includes("const renderV390ActionExecutionDeferralDecision ="),
+  "mixed page script unit still owns action deferral renderer");
+  assert(server.includes('#include "ingress/product_ui_action_execution_deferral.h"') &&
+    server.includes("OpsActionExecutionDeferralWorkspaceHtml()") &&
+    !server.includes('data-testid="ops-action-execution-deferral-decision"'),
+  "mixed transport unit still owns action deferral HTML shell");
+  assert(cmake.split("src/ingress/product_ui_action_execution_deferral.cpp").length === 2,
+    "action deferral UI owner must appear in CMake exactly once");
+  assert(!/\bmethod\s*:\s*["'](?:POST|PUT|PATCH|DELETE)["']/i.test(script),
+    "action deferral UI renderer introduced a write request");
+  assert(graph.observedModuleEdges.some(item =>
+    item.direction === "transport-and-auth-adapter -> product-ui-workspaces" && item.allowedByTarget === true),
+  "transport-to-pure-UI composition edge is not target-allowed");
+});
+
 check("dirty worktree paths stay inside the active slice declaration", () => {
   const active = ledger.orderedSlices.find(item => item.status === "in-progress") ||
     ledger.orderedSlices[Math.max(0, ledger.latestCompletedSlice - 1)];
@@ -451,6 +498,14 @@ function check(name, fn) {
 function assert(condition, message) { if (!condition) throw new Error(message); }
 function readText(file) { return fs.readFileSync(path.join(rootDir, file), "utf8"); }
 function readJson(file) { return JSON.parse(readText(file)); }
+function rawLiteralPayload(textValue, startMarker, endMarker) {
+  const start = textValue.indexOf(startMarker);
+  assert(start >= 0, `missing raw literal start: ${startMarker}`);
+  const payloadStart = start + startMarker.length;
+  const end = textValue.indexOf(endMarker, payloadStart);
+  assert(end >= 0, `missing raw literal end: ${endMarker}`);
+  return textValue.slice(payloadStart, end);
+}
 function sha256File(file) { return crypto.createHash("sha256").update(fs.readFileSync(path.join(rootDir, file))).digest("hex"); }
 function sha256Text(value) { return crypto.createHash("sha256").update(value).digest("hex"); }
 function lineCount(file) { return readText(file).split(/\r?\n/).length - 1; }

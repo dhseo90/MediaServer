@@ -11,8 +11,8 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 152,
-  "expectedCppFiles": 76,
+  "expectedProductionFiles": 154,
+  "expectedCppFiles": 77,
   "moduleClassifiers": [
     {
       "id": "composition-root",
@@ -73,8 +73,8 @@
         "include/ingress/product_ui_",
         "src/ingress/product_ui_"
       ],
-      "expectedFileCount": 16,
-      "expectedCppCount": 10
+      "expectedFileCount": 18,
+      "expectedCppCount": 11
     },
     {
       "id": "ops-route-groups",
@@ -163,15 +163,15 @@
       "expectedCppCount": 12
     }
   ],
-  "expectedFileOwnershipSha256": "888e11963ed5e57243c54072ed5147c2afa7c7b82dadd866fb037275240266cf",
+  "expectedFileOwnershipSha256": "0c3a8f8eb7318f1c975b4f5204b7e9ed44c0cf308e8e9076f40c98ce9ebc0019",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
       {
         "id": "media_server",
         "type": "executable",
-        "declaredSourceCount": 76,
-        "defaultActiveSourceCount": 75,
+        "declaredSourceCount": 77,
+        "defaultActiveSourceCount": 76,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",
@@ -389,9 +389,9 @@
     },
     {
       "direction": "transport-and-auth-adapter -> product-ui-workspaces",
-      "witnessCount": 6,
-      "witnessSha256": "bd3e79ff7af4ff9b063e7004d7a904c5792cd8253913cacff926f289f61cae0f",
-      "allowedByTarget": false
+      "witnessCount": 7,
+      "witnessSha256": "938d92c1d25f87473b293bc8ae3dce6a8046771ae3e80a29a54a185fabe7b2ec",
+      "allowedByTarget": true
     },
     {
       "direction": "transport-and-auth-adapter -> stable-contract-dtos",
@@ -420,7 +420,7 @@
   "mixedOwnershipDebt": [
     {
       "file": "src/ingress/webrtc_http_server.cpp",
-      "lineCount": 43195,
+      "lineCount": 43180,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -432,7 +432,7 @@
     },
     {
       "file": "src/ingress/product_ui_page_scripts.cpp",
-      "lineCount": 10217,
+      "lineCount": 10156,
       "primaryOwner": "product-ui-workspaces",
       "embeddedResponsibilities": [
         "ops-workspaces",
@@ -456,6 +456,20 @@
       "afterLineCount": 43186,
       "resolvedResponsibility": "action-execution-deferral-route-and-json",
       "replacementOwner": "src/ingress/ops_action_execution_deferral.cpp"
+    },
+    {
+      "file": "src/ingress/webrtc_http_server.cpp",
+      "beforeLineCount": 43195,
+      "afterLineCount": 43180,
+      "resolvedResponsibility": "action-execution-deferral-workspace-html",
+      "replacementOwner": "src/ingress/product_ui_action_execution_deferral.cpp"
+    },
+    {
+      "file": "src/ingress/product_ui_page_scripts.cpp",
+      "beforeLineCount": 10217,
+      "afterLineCount": 10156,
+      "resolvedResponsibility": "action-execution-deferral-renderer-and-refresh",
+      "replacementOwner": "src/ingress/product_ui_action_execution_deferral.cpp"
     }
   ],
   "sliceBindings": [
@@ -516,5 +530,5 @@
       "exitRule": "production-graph-unchanged-and-cumulative-debt-verified"
     }
   ],
-  "boundary": "current REVIEW4-64 execution graph after Slice 1; it is not a refactor-complete or target-architecture-conformant claim"
+  "boundary": "current REVIEW4-64 execution graph after Slice 4; transport composes pure UI fragments in one target-allowed direction, while the reverse auth dependency remains unresolved; this is not a refactor-complete claim"
 }

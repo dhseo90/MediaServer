@@ -1,6 +1,8 @@
 // 파일 용도: 운영자와 클라이언트 페이지별 상호작용 스크립트를 C++ 문자열로 조립한다.
 #include "ingress/product_ui_page_scripts.h"
 
+#include "ingress/product_ui_action_execution_deferral.h"
+
 #include <sstream>
 #include <string>
 
@@ -1687,72 +1689,9 @@ void AppendOpsShellScript(std::ostringstream& out,
         const defaultOffActionExplanation = await requestJson(defaultOffActionExplanationRoute);
         renderV380DefaultOffActionExplanation({ defaultOffActionExplanation, defaultOffActionExplanationRoute });
       };
-      let v390ActionExecutionDeferralDecisionState = {};
-      const v390ActionExecutionDeferralDecisionList = value => Array.isArray(value) ? value : [];
-      const v390ActionExecutionDeferralEntry = (kind, title, detail, meta, tone = '') =>
-        `<p class="ops-action-control-entry ${escapeHtml(tone)}" data-v390-action-execution-deferral-entry="${escapeHtml(kind)}">
-          <strong>${escapeHtml(display(title))}</strong>
-          <span>${escapeHtml(display(detail))}</span>
-          <small>${escapeHtml(display(meta))}</small>
-        </p>`;
-      const renderV390ActionExecutionDeferralDecision = (payload = {}) => {
-        const decision = payload.actionExecutionDeferralDecision || {};
-        const summary = decision.actionExecutionDeferralDecisionSummary || {};
-        const deferredActionKinds =
-          v390ActionExecutionDeferralDecisionList(decision.deferredActionKinds);
-        const boundaryOk =
-          decision.boundaries?.approvalGatedExecutionEnabled === false &&
-          decision.boundaries?.actionExecutionPerformed === false &&
-          decision.boundaries?.sourceRecheckExecuted === false &&
-          decision.boundaries?.clientNoticeSent === false &&
-          decision.boundaries?.ruleApplyPerformed === false &&
-          decision.boundaries?.ruleRegistryWritePerformed === false &&
-          decision.boundaries?.externalDeliveryPerformed === false &&
-          decision.boundaries?.eventRecordWritePerformed === false &&
-          decision.boundaries?.rtspOrWebrtcMediaPathChanged === false;
-        v390ActionExecutionDeferralDecisionState = {
-          actionExecutionDeferralDecision: decision,
-          actionExecutionDeferralRoute: payload.actionExecutionDeferralRoute || '/ops/api/actions/execution-deferral-decision'
-        };
-        renderBadges('dashActionExecutionDeferralBadges', [
-          { text: `deferred ${summary.deferredActionCount ?? deferredActionKinds.length}` },
-          { text: `enabled ${summary.mutatingActionEnabledCount ?? 0}` },
-          { text: summary.deferAllWrites === true ? 'defer-all-action-writes' : 'decision 확인 필요', tone: summary.deferAllWrites === true ? 'info' : 'warn' },
-          { text: boundaryOk ? 'no action execution' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
-        ]);
-        setText('dashActionExecutionDeferralText',
-          payload.error
-            ? `Action Execution Deferral 로드 실패: ${payload.error}`
-            : `decision ${display(summary.decisionStatus || decision.selectedMode || 'defer-all-action-writes')} · approvalGatedExecutionEnabled=${summary.approvalGatedExecutionEnabled === false ? 'false' : '확인 필요'}`);
-        const list = document.getElementById('dashActionExecutionDeferralList');
-        if (list) {
-          const rows = deferredActionKinds.length > 0 ? deferredActionKinds : [
-            { actionKind: 'source-recheck-execution', decision: 'deferred', currentRoute: '/ops/api/actions/source-recheck-pilot', writeBoundary: 'sourceRecheckExecuted=false' },
-            { actionKind: 'client-notice-send', decision: 'deferred', currentRoute: '/ops/api/actions/client-notice-draft-queue', writeBoundary: 'clientNoticeSent=false' },
-            { actionKind: 'rule-apply', decision: 'deferred', currentRoute: '/ops/api/actions/rule-draft-package', writeBoundary: 'ruleApplyPerformed=false' }
-          ];
-          list.innerHTML = rows.slice(0, 8).map(item =>
-            v390ActionExecutionDeferralEntry(
-              item.actionKind || 'action-deferral',
-              item.actionKind || 'deferred action',
-              item.decision || 'deferred',
-              `${display(item.currentRoute || '-')} · ${display(item.writeBoundary || item.requiredFutureGate || '-')}`,
-              'warn'))
-            .join('');
-        }
-        setText('dashActionExecutionDeferralBoundary',
-          `decision=${display(v390ActionExecutionDeferralDecisionState.actionExecutionDeferralRoute)} · sourceRecheck=${display(decision.sourceRecheckActionPilotRoute)} · notice=${display(decision.clientNoticeDraftQueueRoute)} · rule=${display(decision.ruleDraftActionPackageRoute)} · approvalGatedExecutionEnabled=${decision.boundaries?.approvalGatedExecutionEnabled === false ? 'false' : '확인 필요'} · actionExecutionPerformed=${decision.boundaries?.actionExecutionPerformed === false ? 'false' : '확인 필요'} · sourceRecheckExecuted=${decision.boundaries?.sourceRecheckExecuted === false ? 'false' : '확인 필요'} · clientNoticeSent=${decision.boundaries?.clientNoticeSent === false ? 'false' : '확인 필요'} · ruleApplyPerformed=${decision.boundaries?.ruleApplyPerformed === false ? 'false' : '확인 필요'} · externalDeliveryPerformed=${decision.boundaries?.externalDeliveryPerformed === false ? 'false' : '확인 필요'} · rtspOrWebrtcMediaPathChanged=${decision.boundaries?.rtspOrWebrtcMediaPathChanged === false ? 'false' : '확인 필요'}`);
-      };
-      const refreshV390ActionExecutionDeferralDecision = async ({
-        actionExecutionDeferralRoute = '/ops/api/actions/execution-deferral-decision'
-      } = {}) => {
-        const actionExecutionDeferralDecision = await requestJson(actionExecutionDeferralRoute);
-        renderV390ActionExecutionDeferralDecision({
-          actionExecutionDeferralDecision,
-          actionExecutionDeferralRoute
-        });
-      };
-      let v390FieldEvidenceBridgeDecisionState = {};
+)OPSSCRIPT";
+    AppendOpsActionExecutionDeferralWorkspaceScript(out);
+    out << R"OPSSCRIPT(      let v390FieldEvidenceBridgeDecisionState = {};
       const v390FieldEvidenceBridgeDecisionList = value => Array.isArray(value) ? value : [];
       const v390FieldEvidenceBridgeEntry = (kind, title, detail, meta, tone = '') =>
         `<p class="ops-field-connector-entry ${escapeHtml(tone)}" data-v390-field-evidence-bridge-entry="${escapeHtml(kind)}">

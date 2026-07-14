@@ -42,7 +42,7 @@ const files = loadFiles();
 const checks = [];
 
 check("Ops server exposes the v3.9 action execution deferral decision", () => {
-  const source = `${files.server}\n${files.handlerHeader}\n${files.handlerSource}`;
+  const source = `${files.server}\n${files.handlerHeader}\n${files.handlerSource}\n${files.uiWorkspaceHeader}\n${files.uiWorkspaceSource}`;
   for (const snippet of [
     "OpsV390ActionExecutionDeferralDecisionJson",
     schema,
@@ -197,6 +197,7 @@ check("Ops API exposes the action execution deferral route as guarded no-store J
 
 check("/ops action control workspace renders action execution deferral decision", () => {
   const serverBlock = extractBlock(files.server, "void AppendOpsDashboardPage", "section class=\"section-card ops-workspace-wide ops-site-client-notice-workspace");
+  assertIncludes(serverBlock, "OpsActionExecutionDeferralWorkspaceHtml()", "v390 action execution deferral dashboard adapter");
   for (const snippet of [
     "ops-action-execution-deferral-decision",
     "data-testid=\"ops-action-execution-deferral-decision\"",
@@ -208,12 +209,12 @@ check("/ops action control workspace renders action execution deferral decision"
     "dashActionExecutionDeferralList",
     "dashActionExecutionDeferralBoundary",
   ]) {
-    assertIncludes(serverBlock, snippet, "v390 action execution deferral dashboard shell");
+    assertIncludes(files.uiWorkspaceSource, snippet, "v390 action execution deferral dashboard shell");
   }
   const scriptBlock = extractBlock(
-    files.uiScript,
+    files.uiWorkspaceSource,
     "const renderV390ActionExecutionDeferralDecision",
-    "let v370OutcomeReconciliationState",
+    ")DEFERRALSCRIPT\"",
   );
   for (const snippet of [
     "refreshV390ActionExecutionDeferralDecision",
@@ -230,12 +231,17 @@ check("/ops action control workspace renders action execution deferral decision"
     assertIncludes(scriptBlock, snippet, "v390 action execution deferral renderer");
   }
   const dashboardRoutePresent = files.server.includes('path == "/ops/dashboard"');
-  const schemaPresent = serverBlock.includes("media-server.ops.v390-action-execution-deferral-decision.v1");
+  const schemaPresent = files.uiWorkspaceSource.includes("media-server.ops.v390-action-execution-deferral-decision.v1");
   const writePerformed = /\bmethod\s*:\s*["'](?:POST|PUT|PATCH|DELETE)["']/i.test(scriptBlock);
   assert(dashboardRoutePresent, "v390 action deferral dashboard route missing");
   assert(schemaPresent, "v390 action deferral schema missing");
   assert(writePerformed === false, "v390 action deferral renderer must not perform writes");
   assertIncludes(scriptBlock, "dashActionExecutionDeferralBoundary", "v390 action execution deferral boundary state");
+  assertIncludes(files.uiScript, "AppendOpsActionExecutionDeferralWorkspaceScript(out);", "v390 action execution deferral script adapter");
+  assert(!files.uiScript.includes("const renderV390ActionExecutionDeferralDecision ="),
+    "legacy mixed page script still owns the v390 action deferral renderer");
+  assert(!files.server.includes('data-testid="ops-action-execution-deferral-decision"'),
+    "legacy mixed server still owns the v390 action deferral HTML shell");
   const refreshBlock = extractBlock(files.uiScript, "async function refreshDashboard()", "async function refreshEvents()");
   assertIncludes(refreshBlock, "refreshV390ActionExecutionDeferralDecision", "dashboard refresh");
   assertIncludes(refreshBlock, route, "dashboard refresh");
@@ -338,6 +344,8 @@ function loadFiles() {
     server: readText("src/ingress/webrtc_http_server.cpp"),
     handlerHeader: readTextIfExists("include/ingress/ops_action_execution_deferral.h"),
     handlerSource: readTextIfExists("src/ingress/ops_action_execution_deferral.cpp"),
+    uiWorkspaceHeader: readTextIfExists("include/ingress/product_ui_action_execution_deferral.h"),
+    uiWorkspaceSource: readTextIfExists("src/ingress/product_ui_action_execution_deferral.cpp"),
     uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
     clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
     backlog: readText("docs/development-backlog.md"),

@@ -5,7 +5,7 @@
   "release": "v3.9.0",
   "branch": "v3.9.0",
   "status": "in-progress",
-  "latestCompletedSlice": 3,
+  "latestCompletedSlice": 4,
   "productionRefactorStarted": true,
   "refactorComplete": false,
   "completionClaimed": false,
@@ -35,15 +35,15 @@
   "currentGraph": {
     "path": "test/fixtures/v390_structure_stabilization_current_graph.json",
     "schema": "media-server.v390-structure-stabilization-current-graph.v1",
-    "sha256": "f7bbad41f2275d579738353409798cd9d9c39a613d5c855c9f31291dba9e05e1",
+    "sha256": "44b3778b5503c7b0d33cd3a4e260c64b42394f971734971fe9a67291c7d80b73",
     "metrics": {
-      "productionFiles": 152,
-      "cppSources": 76,
+      "productionFiles": 154,
+      "cppSources": 77,
       "moduleOwners": 10,
       "cmakeTargets": 1,
-      "targetViolationDirections": 20,
+      "targetViolationDirections": 19,
       "largestSccOwners": 8,
-      "largestMixedOwnerFileLines": 43195,
+      "largestMixedOwnerFileLines": 43180,
       "internalTargetSeparation": false
     }
   },
@@ -283,9 +283,82 @@
     {
       "order": 4,
       "id": "ui-script-css",
-      "status": "not-started",
+      "status": "completed",
       "dependsOn": "registry-domain",
-      "selectedBoundary": "action execution deferral workspace renderer and CSS family"
+      "selectedBoundary": "action execution deferral workspace renderer and existing shared CSS family",
+      "rollbackCommit": "881e5f26ecf7de1952736b00587593bf507bcd1a",
+      "allowedFiles": [
+        "CMakeLists.txt",
+        "include/ingress/product_ui_action_execution_deferral.h",
+        "src/ingress/product_ui_action_execution_deferral.cpp",
+        "src/ingress/product_ui_page_scripts.cpp",
+        "src/ingress/webrtc_http_server.cpp",
+        "scripts/internal/verify_v390_action_execution_deferral_decision.mjs",
+        "scripts/internal/verify_v390_structure_stabilization_execution.mjs",
+        "test/fixtures/ui_fulltest_case_manifest_policy_v4.json",
+        "test/fixtures/v390_ui_native_exact_cases.json",
+        "test/fixtures/v390_structure_stabilization_current_graph.json",
+        "test/fixtures/v390_structure_stabilization_execution.json",
+        "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md",
+        "docs/development-backlog.md",
+        "docs/project-feature-test-inventory.md",
+        "docs/release-test-records.md",
+        "docs/release-evidence-index.md",
+        "docs/stream-verification.md",
+        "docs/v390-feature-completion-inventory.md"
+      ],
+      "changedFiles": [
+        "CMakeLists.txt",
+        "include/ingress/product_ui_action_execution_deferral.h",
+        "src/ingress/product_ui_action_execution_deferral.cpp",
+        "src/ingress/product_ui_page_scripts.cpp",
+        "src/ingress/webrtc_http_server.cpp",
+        "test/fixtures/ui_fulltest_case_manifest_policy_v4.json",
+        "test/fixtures/v390_ui_native_exact_cases.json"
+      ],
+      "movedSymbols": [
+        "Action Execution Deferral dashboard section -> OpsActionExecutionDeferralWorkspaceHtml",
+        "v390ActionExecutionDeferralDecision renderer/refresh -> AppendOpsActionExecutionDeferralWorkspaceScript"
+      ],
+      "before": {
+        "targetViolationDirections": 20,
+        "largestSccOwners": 8,
+        "webrtcHttpServerLines": 43195,
+        "productUiPageScriptsLines": 10217
+      },
+      "after": {
+        "targetViolationDirections": 19,
+        "largestSccOwners": 8,
+        "webrtcHttpServerLines": 43180,
+        "productUiPageScriptsLines": 10156,
+        "transportToProductUiAllowedByTarget": true,
+        "reverseProductUiToTransportAllowedByTarget": false
+      },
+      "baselineDigests": {
+        "workspaceHtmlSha256": "29111161153945956e10c34482ddcd2e5b5f004311d8450531484b1554e145b9",
+        "workspaceScriptSha256": "9c64a3c1fd006f6f8bdfbee9c88d59195aa7340a40fd5f9cb17e3792e26e82cb",
+        "sharedCssFileSha256": "64f2bd4536ca7c374cfa534dcb1062b66fc4d47d655b11d208d616c8798c4689"
+      },
+      "contractAssertions": [
+        "dashboard HTML bytes, schema, labels, DOM IDs, and data-testid remain exact",
+        "renderer state, request route, read-only refresh, fallback rows, and boundary text remain exact",
+        "shared ops-action-control CSS remains byte-identical in product_ui_css.cpp",
+        "transport remains the composition adapter for pure product UI fragments and owns no renderer state",
+        "canonical and native exact manifests are mechanically rebound only as consumers of the current implementation evidence file; the 8752 source-location validation errors remain unresolved until Slice 6",
+        "actual browser UI fulltest and visual matrix remain reserved for REVIEW4-65"
+      ],
+      "tests": [
+        {"command":"./server.sh build","status":"pass"},
+        {"command":"./server.sh verify-v390-action-execution-deferral-decision","status":"pass"},
+        {"command":"./server.sh verify-v380-ops-action-control-workspace-ui","status":"pass"},
+        {"command":"./server.sh verify-ops-client-ui --browser-mode static --http-base http://127.0.0.1:8081","status":"pass","firstAttempts":["server-not-running/connect-EPERM","auth-on-401"],"recovery":"loopback-only auth-off throwaway server; 28/0; process and ports cleaned"},
+        {"command":"./server.sh verify-v390-ui-native-exact-cases","status":"pass","firstAttempt":"implementation source binding drift","recovery":"mechanical canonical/native consumer binding only; 424 exact cases, actual browser not run"},
+        {"command":"./server.sh verify-ui-fulltest-evidence-policy-v4-contract","status":"pass","firstAttempt":"17/3 canonical implementation evidence hash drift","recovery":"20/0 after the same consumer-only binding; contract fixture is not execution evidence"},
+        {"command":"./server.sh verify-v390-review4-structure-stabilization-execution","status":"pass"},
+        {"command":"./server.sh verify-script-inventory","status":"pass"},
+        {"command":"git diff --check","status":"pass"},
+        {"command":"lsof -nP -iTCP:8081/-iTCP:8555 LISTEN cleanup","status":"pass"}
+      ]
     },
     {
       "order": 5,
