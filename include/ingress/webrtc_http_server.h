@@ -10,11 +10,16 @@
 
 #include "core/session_manager.h"
 
+namespace analysis {
+class AnalysisSessionService;
+}
+
 namespace ingress {
 
 class WebRtcHttpServer {
 public:
-    explicit WebRtcHttpServer(core::SessionManager& session_manager);
+    WebRtcHttpServer(core::SessionManager& session_manager,
+                     analysis::AnalysisSessionService& analysis_sessions);
     ~WebRtcHttpServer();
 
     bool Start(const std::string& listen_address, std::uint16_t port, std::string* error_message);
@@ -25,6 +30,7 @@ private:
     struct Impl;
 
     core::SessionManager& session_manager_;
+    analysis::AnalysisSessionService& analysis_sessions_;
     std::atomic<bool> running_{false};
     std::unique_ptr<Impl> impl_;
 };

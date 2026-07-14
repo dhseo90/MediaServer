@@ -9,6 +9,7 @@
 
 #include "analysis/analysis_types.h"
 #include "analysis/overlay_renderer.h"
+#include "core/media_analysis_port.h"
 #include "stdafx.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER
@@ -27,6 +28,8 @@ struct AnalysisOverlayConfig {
     int wait_timeout_ms{app_config::kDefaultAnalysisOverlayWaitMs};
     std::function<std::optional<analysis::AnalysisResult>(std::int64_t frame_pts)> result_provider;
 };
+
+core::MediaPipelineAttachment MakeAnalysisOverlayAttachment(AnalysisOverlayConfig config);
 
 #if MEDIA_SERVER_USE_GSTREAMER
 bool AttachAnalysisOverlayProbe(GstElement* root,

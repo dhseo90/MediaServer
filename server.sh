@@ -527,6 +527,8 @@ Usage:
                  V390-REVIEW4-64 stable DTO의 service/core 역참조 제거와 AnalysisEvent 계약 불변을 검증합니다.
   verify-v390-analysis-query-owner-boundary
                  V390-REVIEW4-64 analysis query/profile 해석기의 analysis owner 이동과 중간 SCC 경계를 검증합니다.
+  verify-v390-core-media-analysis-port-inversion
+                 V390-REVIEW4-64 core-media→analysis witness를 port/callback 주입으로 제거합니다.
   verify-v390-source-request-parser-owner
                  V390-REVIEW4-64 shared source request parser의 core owner 이동과 요청 의미 불변을 검증합니다.
   verify-v390-review4-truth-reset
@@ -927,6 +929,8 @@ Usage:
                  V390-REVIEW4-64 stable DTO의 service/core 역참조 제거와 AnalysisEvent 계약 불변을 검증합니다.
   verify-v390-analysis-query-owner-boundary
                  V390-REVIEW4-64 analysis query/profile 해석기의 analysis owner 이동과 중간 SCC 경계를 검증합니다.
+  verify-v390-core-media-analysis-port-inversion
+                 V390-REVIEW4-64 core-media→analysis witness를 port/callback 주입으로 제거합니다.
   verify-v390-source-request-parser-owner
                  V390-REVIEW4-64 shared source request parser의 core owner 이동과 요청 의미 불변을 검증합니다.
   verify-v390-review4-truth-reset
@@ -2357,6 +2361,10 @@ case "${cmd}" in
   verify-v390-analysis-query-owner-boundary)
     require_internal verify_v390_analysis_query_owner_boundary.mjs
     exec "${INTERNAL_DIR}/verify_v390_analysis_query_owner_boundary.mjs" "$@"
+    ;;
+  verify-v390-core-media-analysis-port-inversion)
+    require_internal verify_v390_core_media_analysis_port_inversion.mjs
+    exec "${INTERNAL_DIR}/verify_v390_core_media_analysis_port_inversion.mjs" "$@"
     ;;
   verify-v390-source-request-parser-owner)
     require_internal verify_v390_source_request_parser_owner.mjs

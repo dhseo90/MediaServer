@@ -184,4 +184,20 @@ bool AttachAnalysisOverlayProbe(GstElement* root, AnalysisOverlayConfig config, 
 }
 #endif
 
+core::MediaPipelineAttachment MakeAnalysisOverlayAttachment(AnalysisOverlayConfig config) {
+    return [config = std::move(config)](void* pipeline, std::string* error_message) mutable {
+#if MEDIA_SERVER_USE_GSTREAMER
+        auto attempt_config = config;
+        return AttachAnalysisOverlayProbe(
+            static_cast<GstElement*>(pipeline), std::move(attempt_config), error_message);
+#else
+        (void)pipeline;
+        if (error_message != nullptr) {
+            error_message->clear();
+        }
+        return true;
+#endif
+    };
+}
+
 }  // namespace ingress

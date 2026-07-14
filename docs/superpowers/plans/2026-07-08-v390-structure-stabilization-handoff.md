@@ -101,13 +101,23 @@ build 100%, analysis 181/0, route 8/0, overlay/metadata 6/0·8/0, tracker 12/0·
 structure 15/0입니다. 위반은 15, SCC는 2이며 이는 남은 core↔analysis inversion과 40,832줄 server 분해,
 parked evidence finalization을 대체하지 않습니다.
 
+일곱 번째 current continuation Slice `core-media-analysis-port-inversion`을 완료했습니다.
+`AnalysisSessionService`가 tap/runtime과 RTSP analysis binding을 소유하고 SessionManager에는 generic auxiliary
+stream acquire/start/release/provider만 남겼습니다. RTSP/WebRTC egress는 generic pipeline attachment,
+GStreamer RTSP는 analysis-neutral `MediaAnalysisPort`만 소비합니다. 후속 검토의 동시성 4건은 attach/detach
+transaction, 통합 registry per-reference lease, shutdown drain, provider close-and-wait, final-lease-only file cleanup으로 수정했습니다. Focused 11/0과
+실제 격리 source mutation 24건 rejection, build/runtime/media/metadata/CMake 회귀를 통과했고 actual graph는
+production 162/C++ 80, 위반 14, SCC 0, server 40,840줄입니다. 나머지 direction/server/evidence debt는 open입니다.
+
 ## Development 17 Structure Stabilization Readiness
 
 Execution branch: `v3.9.0`
 
 Source release: `v3.9.0`
 
-Current v3.9 refactor execution: `not-run`
+Historical readiness snapshot execution: `not-run`
+
+Current v3.9 refactor continuation: `in-progress` (Slice 7까지 실행, final target 미충족)
 
 Branch creation: `not-performed`
 

@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include <vector>
 
+#include "analysis/analysis_session_service.h"
 #include "analysis/event_storage.h"
 #include "app_config.h"
 #include "core/resource_guard.h"
@@ -205,9 +206,12 @@ int RunMediaServerApplication(int argc, char** argv) {
     core::StreamRegistry registry;
     core::ResourceGuard resource_guard(config.max_sessions, config.max_streams);
     core::SessionManager session_manager(registry, resource_guard);
-    // RTSP와 WebRTC HTTP 서버는 같은 SessionManager를 공유해 source dedup/fan-out 구조를 함께 사용한다.
-    ingress::GStreamerRtspServer gst_rtsp_server(session_manager);
-    ingress::WebRtcHttpServer webrtc_http_server(session_manager);
+    analysis::AnalysisSessionService analysis_sessions(session_manager);
+    session_manager.SetAuxiliaryStreamRuntimeProvider(
+        [&analysis_sessions] { return analysis_sessions.AuxiliaryStreamRuntimeSnapshot(); });
+    // 두 transport와 runtime accounting은 같은 analysis service를 공유해 tap 수명과 source fan-out을 일치시킨다.
+    ingress::GStreamerRtspServer gst_rtsp_server(session_manager, analysis_sessions);
+    ingress::WebRtcHttpServer webrtc_http_server(session_manager, analysis_sessions);
 
     std::string server_error;
     const bool rtsp_server_started = gst_rtsp_server.Start(rtsp_port, &server_error);
@@ -245,6 +249,7 @@ int RunMediaServerApplication(int argc, char** argv) {
 
     webrtc_http_server.Stop();
     gst_rtsp_server.Stop();
+    session_manager.SetAuxiliaryStreamRuntimeProvider({});
     analysis::StopEventStorage();
     return 0;
 }

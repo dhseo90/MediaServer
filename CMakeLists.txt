@@ -15,6 +15,7 @@ find_package(PkgConfig QUIET)
 
 add_library(media_server_runtime STATIC
     src/analysis/analysis_manager.cpp
+    src/analysis/analysis_session_service.cpp
     src/analysis/appearance_extractor.cpp
     src/analysis/category_tokens.cpp
     src/analysis/detector_factory.cpp

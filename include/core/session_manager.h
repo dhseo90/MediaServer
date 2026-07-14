@@ -3,7 +3,8 @@
 // 동작 요약: 서버 런타임에서 가장 바깥 orchestration 계약이다.
 #pragma once
 
-#include "analysis/analysis_manager.h"
+#include <condition_variable>
+
 #include "core/resource_guard.h"
 #include "core/source_request_parser.h"
 #include "core/source_factory.h"
@@ -21,25 +22,6 @@ public:
         StreamKey stream_key;
         std::shared_ptr<SharedStream> stream;
         bool stream_created{false};
-    };
-
-    struct AnalysisTapResult {
-        bool ok{false};
-        std::string message;
-        std::string tap_id;
-        StreamKey stream_key;
-        bool stream_created{false};
-        bool reused{false};
-        std::string reuse_key;
-        std::size_t ref_count{0};
-    };
-
-    struct AnalysisTapDetachResult {
-        bool ok{false};
-        bool removed{false};
-        std::string tap_id;
-        std::string reuse_key;
-        std::size_t ref_count{0};
     };
 
     struct RuntimeStateSnapshot {
@@ -67,6 +49,28 @@ public:
         std::size_t analysis_tap_count{0};
     };
 
+    struct AuxiliaryStreamHandle {
+        bool ok{false};
+        std::string message;
+        StreamKey stream_key;
+        std::shared_ptr<SharedStream> stream;
+        media::SourceSpec source_spec;
+        bool stream_created{false};
+    };
+
+    struct AuxiliaryStreamEntry {
+        StreamKey stream_key;
+        std::shared_ptr<SharedStream> stream;
+        std::size_t consumer_count{0};
+    };
+
+    struct AuxiliaryStreamRuntimeSnapshot {
+        std::size_t active_consumers{0};
+        std::vector<AuxiliaryStreamEntry> streams;
+    };
+
+    using AuxiliaryStreamRuntimeProvider = std::function<AuxiliaryStreamRuntimeSnapshot()>;
+
     SessionManager(StreamRegistry& registry, ResourceGuard& resource_guard);
     ~SessionManager() = default;
 
@@ -78,22 +82,11 @@ public:
     std::vector<SourceReconnectStats> SourceReconnectStatsSnapshot() const;
     std::vector<SourceDescriptorSnapshot> SourceDescriptorSnapshots() const;
     std::vector<SourceEgressStats> SourceEgressStatsSnapshot() const;
-    AnalysisTapResult AttachAnalysisTap(const media::IngressRequest& request, analysis::AnalysisProfile profile);
-    AnalysisTapDetachResult DetachAnalysisTapRef(const std::string& tap_id);
-    bool DetachAnalysisTap(const std::string& tap_id);
-    std::optional<analysis::AnalysisManager::TapSnapshot> AnalysisTapSnapshot(const std::string& tap_id) const;
-    std::vector<analysis::AnalysisManager::TapSnapshot> AnalysisTapSnapshots() const;
-    std::optional<analysis::AnalysisResult> AnalysisResultNearPts(const std::string& tap_id,
-                                                                  std::int64_t pts,
-                                                                  std::int64_t tolerance_ns) const;
-    std::optional<analysis::AnalysisResult> WaitAnalysisResultNearPts(const std::string& tap_id,
-                                                                      std::int64_t pts,
-                                                                      std::int64_t tolerance_ns,
-                                                                      std::chrono::milliseconds timeout) const;
-    std::optional<analysis::RawVideoFrame> AnalysisLatestFrame(const std::string& tap_id) const;
-    std::optional<analysis::AnalysisManager::LatestFrameResult> AnalysisLatestFrameAndResult(
-        const std::string& tap_id) const;
-    std::size_t ActiveAnalysisTapCount() const;
+    AuxiliaryStreamHandle AcquireAuxiliaryStream(const media::IngressRequest& request);
+    bool StartAuxiliaryStream(const AuxiliaryStreamHandle& handle, std::string* error_message);
+    void DiscardAuxiliaryStream(const AuxiliaryStreamHandle& handle);
+    void ReleaseAuxiliaryStreamWhenIdle(const AuxiliaryStreamHandle& handle);
+    void SetAuxiliaryStreamRuntimeProvider(AuxiliaryStreamRuntimeProvider provider);
 
 private:
     struct SessionEntry {
@@ -101,24 +94,21 @@ private:
         std::shared_ptr<SharedStream> stream;
     };
 
-    struct AnalysisTapEntry {
-        StreamKey stream_key;
-        std::shared_ptr<SharedStream> stream;
-        media::SourceSpec::Kind source_kind{media::SourceSpec::Kind::File};
-        std::string reuse_key;
-        std::size_t ref_count{0};
-    };
-
     void ScheduleIdleCleanup(StreamKey stream_key) const;
     void RecordSourceReconnect(const StreamKey& stream_key);
+    AuxiliaryStreamRuntimeSnapshot AuxiliaryRuntimeSnapshot() const;
 
     StreamRegistry& registry_;
     ResourceGuard& resource_guard_;
-    analysis::AnalysisManager analysis_manager_;
     mutable std::mutex mu_;
+    std::mutex stream_acquire_mu_;
     std::unordered_map<std::string, SessionEntry> sessions_;
-    std::unordered_map<std::string, AnalysisTapEntry> analysis_taps_;
     std::unordered_map<StreamKey, SourceReconnectStats> source_reconnect_stats_;
+    mutable std::mutex auxiliary_stream_runtime_provider_mu_;
+    mutable std::condition_variable auxiliary_stream_runtime_provider_cv_;
+    mutable std::size_t auxiliary_stream_runtime_provider_calls_{0};
+    mutable bool auxiliary_stream_runtime_provider_closing_{false};
+    AuxiliaryStreamRuntimeProvider auxiliary_stream_runtime_provider_;
 };
 
 }  // namespace core

@@ -29,7 +29,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 const cmake = read("CMakeLists.txt");
 const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
 const structureVerifier = read("scripts/internal/verify_v390_structure_stabilization_execution.mjs");
-const productionCpp = execFileSync("git", ["ls-files", "src"], { cwd: rootDir, encoding: "utf8" })
+const productionCpp = execFileSync("rg", ["--files", "src"], { cwd: rootDir, encoding: "utf8" })
   .trim().split("\n").filter(file => file.endsWith(".cpp")).sort();
 const checks = [];
 
@@ -87,7 +87,7 @@ check("current graph and writer bind both actual CMake targets", () => {
   assert(runtime.type === "library" && runtime.internalModuleTarget === true &&
     executable.type === "executable" && executable.internalModuleTarget === false,
   "current graph target kind/internal flags drift");
-  assert(runtime.declaredSourceCount === 77 && runtime.defaultActiveSourceCount === 76 &&
+  assert(runtime.declaredSourceCount === 78 && runtime.defaultActiveSourceCount === 77 &&
     executable.declaredSourceCount === 2 && executable.defaultActiveSourceCount === 2,
   "current graph target source counts drift");
   for (const anchor of [

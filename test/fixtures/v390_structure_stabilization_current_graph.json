@@ -11,8 +11,8 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 159,
-  "expectedCppFiles": 79,
+  "expectedProductionFiles": 162,
+  "expectedCppFiles": 80,
   "moduleClassifiers": [
     {
       "id": "composition-root",
@@ -113,8 +113,8 @@
         "include/ingress/analysis_overlay_probe.h",
         "src/ingress/analysis_overlay_probe.cpp"
       ],
-      "expectedFileCount": 67,
-      "expectedCppCount": 35
+      "expectedFileCount": 69,
+      "expectedCppCount": 36
     },
     {
       "id": "core-utilities",
@@ -159,19 +159,19 @@
         "include/ingress/webrtc_source_session.h",
         "src/ingress/webrtc_source_session.cpp"
       ],
-      "expectedFileCount": 26,
+      "expectedFileCount": 27,
       "expectedCppCount": 12
     }
   ],
-  "expectedFileOwnershipSha256": "10b84e789ecbadf5d9b97a600af051cd457fe7f3dee892cd1df6d2e7d0dd0382",
+  "expectedFileOwnershipSha256": "837c084cdb38030791323467171dd3100056864c8168aa3c2e9d90944485ecf1",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
       {
         "id": "media_server_runtime",
         "type": "library",
-        "declaredSourceCount": 77,
-        "defaultActiveSourceCount": 76,
+        "declaredSourceCount": 78,
+        "defaultActiveSourceCount": 77,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",
@@ -220,20 +220,20 @@
   "observedModuleEdges": [
     {
       "direction": "analysis-services -> core-media-interfaces",
-      "witnessCount": 1,
-      "witnessSha256": "97b2751020e7b0f5fb6c02d51458fff7e41c3f5271e73e9787146d59b62b8867",
+      "witnessCount": 4,
+      "witnessSha256": "5d9e9a75a6e08417c3363af99768912b9640a0ae981f6e71f830b1a5163f88cd",
       "allowedByTarget": true
     },
     {
       "direction": "analysis-services -> core-utilities",
-      "witnessCount": 19,
-      "witnessSha256": "7e7bb2a52f11fcca95c677767e37b001912effe9a9004cdac487d6091dc62729",
+      "witnessCount": 21,
+      "witnessSha256": "5b29b37147994243d494e87429aeff5aad31059c942075190a309430c59a17df",
       "allowedByTarget": false
     },
     {
       "direction": "analysis-services -> domain-and-registry-owners",
-      "witnessCount": 1,
-      "witnessSha256": "473aa019f9f811019a86958d302553ea721be4e56dc2978f71c728e35bf4b0ea",
+      "witnessCount": 2,
+      "witnessSha256": "59a2717878afc62ba907bde4f4cb437fac9a2a9fd402ddaae924830e53c8a19e",
       "allowedByTarget": true
     },
     {
@@ -268,8 +268,8 @@
     },
     {
       "direction": "composition-root -> analysis-services",
-      "witnessCount": 1,
-      "witnessSha256": "161ec98bc15e9c2a97135f16d5d5f872044fe29a8324d159373cbab1c8ad0f6b",
+      "witnessCount": 2,
+      "witnessSha256": "9134889f0975bc88f4e7706d087fa9a074abc8cc3f506f5b7681568626f0c440",
       "allowedByTarget": true
     },
     {
@@ -291,12 +291,6 @@
       "allowedByTarget": true
     },
     {
-      "direction": "core-media-interfaces -> analysis-services",
-      "witnessCount": 10,
-      "witnessSha256": "9253bf953431c60e8cce853be64750d5e0720e1e783cd367939ad894b632835e",
-      "allowedByTarget": false
-    },
-    {
       "direction": "core-media-interfaces -> core-utilities",
       "witnessCount": 24,
       "witnessSha256": "1ccfb5cabb447aa8863ede85d7daa253317079f30025aaf882382c6ca1796131",
@@ -310,8 +304,8 @@
     },
     {
       "direction": "core-media-interfaces -> stable-contract-dtos",
-      "witnessCount": 10,
-      "witnessSha256": "1e0488b09dba6b65b2bedf243c5f97f3fe57cdeafa4f671e66a01ab019d02d8c",
+      "witnessCount": 11,
+      "witnessSha256": "7f921883658d9124746b9e77f20f9d5d1e5aa1fa701e769db27deb3b13115cec",
       "allowedByTarget": false
     },
     {
@@ -340,8 +334,8 @@
     },
     {
       "direction": "transport-and-auth-adapter -> analysis-services",
-      "witnessCount": 15,
-      "witnessSha256": "c6719a9833cfcce0aebe0b60479e1fe53fe9009019693155798bc26e1b42b141",
+      "witnessCount": 17,
+      "witnessSha256": "5a4b641e19ba3714ac8adb5df922d70be17e884c6d91086f16d39afa097e8bcd",
       "allowedByTarget": false
     },
     {
@@ -392,16 +386,11 @@
     "src/core/session_manager.cpp -> include/analysis/analysis_query.h",
     "src/core/source_factory.cpp -> include/ingress/webrtc_source_registry.h"
   ],
-  "stronglyConnectedComponents": [
-    [
-      "analysis-services",
-      "core-media-interfaces"
-    ]
-  ],
+  "stronglyConnectedComponents": [],
   "mixedOwnershipDebt": [
     {
       "file": "src/ingress/webrtc_http_server.cpp",
-      "lineCount": 40832,
+      "lineCount": 40840,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -472,6 +461,20 @@
       "afterLineCount": 0,
       "resolvedResponsibility": "analysis-query-profile-overlay-interpretation-owner",
       "replacementOwner": "src/analysis/analysis_query.cpp"
+    },
+    {
+      "file": "src/core/session_manager.cpp",
+      "beforeLineCount": 594,
+      "afterLineCount": 392,
+      "resolvedResponsibility": "analysis-tap-runtime-lifecycle-and-query-service-owner",
+      "replacementOwner": "src/analysis/analysis_session_service.cpp"
+    },
+    {
+      "file": "src/ingress/gstreamer_rtsp_server.cpp",
+      "beforeLineCount": 562,
+      "afterLineCount": 520,
+      "resolvedResponsibility": "rtsp-analysis-event-overlay-binding-through-neutral-port",
+      "replacementOwner": "include/core/media_analysis_port.h + src/analysis/analysis_session_service.cpp"
     }
   ],
   "sliceBindings": [
@@ -532,5 +535,5 @@
       "exitRule": "production-graph-unchanged-and-cumulative-debt-verified"
     }
   ],
-  "boundary": "current REVIEW4-64 continuation graph after the rollback-equivalent analysis query owner move; Policy v1 counts 15 target-direction violations and a remaining two-owner analysis/core SCC, while internal target separation is true and mixed-owner/final evidence debt remain unresolved; this is not a refactor-complete claim"
+  "boundary": "current REVIEW4-64 continuation graph after the core-media analysis port inversion; Policy v1 counts 14 target-direction violations and zero multi-owner SCCs, while internal target separation is true and mixed-owner/final evidence debt remain unresolved; this is not a refactor-complete claim"
 }

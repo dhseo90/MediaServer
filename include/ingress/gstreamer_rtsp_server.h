@@ -5,6 +5,7 @@
 
 #include <cstdint>
 
+#include "core/media_analysis_port.h"
 #include "core/session_manager.h"
 #include "stdafx.h"
 
@@ -12,7 +13,7 @@ namespace ingress {
 
 class GStreamerRtspServer {
 public:
-    explicit GStreamerRtspServer(core::SessionManager& session_manager);
+    GStreamerRtspServer(core::SessionManager& session_manager, core::MediaAnalysisPort& analysis_port);
     ~GStreamerRtspServer();
 
     bool Start(uint16_t port, std::string* error_message);
@@ -21,6 +22,7 @@ public:
 
 private:
     core::SessionManager& session_manager_;
+    core::MediaAnalysisPort& analysis_port_;
     std::atomic<bool> running_{false};
 
 #if MEDIA_SERVER_USE_GSTREAMER
@@ -30,4 +32,3 @@ private:
 };
 
 }  // namespace ingress
-

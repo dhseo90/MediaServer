@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "core/egress_session.h"
-#include "ingress/analysis_overlay_probe.h"
+#include "core/media_analysis_port.h"
 #include "media_types.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER
@@ -69,7 +69,7 @@ public:
     void Stop() override;
 
     void HandleSample(const media::Packet& packet);
-    void SetAnalysisOverlay(AnalysisOverlayConfig config);
+    void SetPipelineAttachment(core::MediaPipelineAttachment attachment);
     void SetMetadataChannelConfig(WebRtcMetadataChannelConfig config);
     bool MetadataChannelReady() const;
     WebRtcMetadataChannelStats MetadataChannelStatsSnapshot() const;
@@ -152,7 +152,7 @@ private:
     bool negotiation_ready_{false};
     bool ice_connected_{false};
     bool media_output_ready_{false};
-    AnalysisOverlayConfig analysis_overlay_;
+    core::MediaPipelineAttachment pipeline_attachment_;
     WebRtcMetadataChannelConfig metadata_channel_config_;
     mutable std::mutex metadata_mu_;
     std::int64_t last_metadata_sent_at_ms_{0};

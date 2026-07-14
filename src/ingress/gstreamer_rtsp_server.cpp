@@ -8,11 +8,7 @@
 #include <sstream>
 
 #include "app_config.h"
-#include "analysis/event_post_dispatcher.h"
-#include "analysis/event_rule_engine.h"
-#include "analysis/event_storage.h"
 #include "core/runtime_debug_counters.h"
-#include "analysis/analysis_query.h"
 #include "ingress/analysis_rule_registry.h"
 #include "ingress/gst_pipeline_builder.h"
 #include "core/source_request_parser.h"
@@ -42,9 +38,11 @@ bool ShouldForceTcpTransport() {
 }
 
 struct RuntimeContext {
-    explicit RuntimeContext(core::SessionManager& manager) : session_manager(manager) {}
+    RuntimeContext(core::SessionManager& manager, core::MediaAnalysisPort& port)
+        : session_manager(manager), analysis_port(port) {}
 
     core::SessionManager& session_manager;
+    core::MediaAnalysisPort& analysis_port;
     std::atomic<std::uint64_t> next_session_id{1};
 };
 
@@ -165,7 +163,7 @@ void OnMediaUnprepared(GstRTSPMedia* media, gpointer user_data) {
     MaybeRecordPipelineNullTransition(watch);
     if (tap_id != nullptr) {
         std::cerr << "[gst] media unprepared; detach analysis tap " << tap_id << "\n";
-        runtime->session_manager.DetachAnalysisTap(tap_id);
+        runtime->analysis_port.DetachRtsp(tap_id);
     }
     if (sid != nullptr) {
         std::cerr << "[gst] media unprepared; close session " << sid << "\n";
@@ -214,67 +212,24 @@ void OnMediaConfigure(GstRTSPMediaFactory* /*factory*/, GstRTSPMedia* media, gpo
         return;
     }
 
-    std::string analysis_tap_id;
-    if (IsAnalysisOverlayRequested(request.query)) {
-        media::IngressRequest analysis_request = request;
-        analysis_request.client_id = request.client_id + "-analysis";
-        auto attach_result = runtime->session_manager.AttachAnalysisTap(
-            analysis_request, BuildAnalysisProfileFromQuery(request.query));
-        if (!attach_result.ok) {
-            std::cerr << "[gst] failed to attach analysis overlay tap: " << attach_result.message << "\n";
-            gst_object_unref(media_element);
-            return;
-        }
-        analysis_tap_id = attach_result.tap_id;
+    auto analysis_binding = runtime->analysis_port.PrepareRtsp(request);
+    if (!analysis_binding.ok) {
+        std::cerr << "[gst] failed to attach analysis overlay tap: " << analysis_binding.message << "\n";
+        gst_object_unref(media_element);
+        return;
     }
 
     auto bridge = std::make_shared<RtspEgressSession>(media_element, video_codec, audio_codec);
-    if (!analysis_tap_id.empty()) {
-        const auto timing_options = BuildAnalysisOverlayTimingOptionsFromQuery(request.query);
+    const std::string analysis_tap_id = analysis_binding.tap_id;
+    if (analysis_binding.make_pipeline_attachment) {
         std::weak_ptr<RtspEgressSession> weak_bridge = bridge;
-        AnalysisOverlayConfig overlay_config;
-        overlay_config.enabled = true;
-        overlay_config.render_options = BuildOverlayRenderOptionsFromQuery(request.query);
-        overlay_config.sync_tolerance_ns = static_cast<std::int64_t>(timing_options.sync_tolerance_ms) * 1000000LL;
-        overlay_config.wait_timeout_ms = timing_options.wait_timeout_ms;
-        auto event_runtime = analysis::CreateEventRuleRuntime();
-        overlay_config.result_provider =
-            [manager = &runtime->session_manager,
-             analysis_tap_id,
-             weak_bridge,
-             event_runtime,
-             debug_overlay = overlay_config.render_options.draw_debug_overlay,
-             tolerance_ns = overlay_config.sync_tolerance_ns,
-             wait_timeout_ms = overlay_config.wait_timeout_ms](std::int64_t frame_pts)
-                -> std::optional<analysis::AnalysisResult> {
+        core::SourcePtsResolver source_pts_resolver =
+            [weak_bridge](std::int64_t frame_pts) {
                 const auto bridge_lock = weak_bridge.lock();
-                const std::int64_t source_pts =
-                    bridge_lock != nullptr ? bridge_lock->ResolveOverlaySourcePts(frame_pts) : frame_pts;
-                auto result = manager->WaitAnalysisResultNearPts(
-                    analysis_tap_id, source_pts, tolerance_ns, std::chrono::milliseconds(wait_timeout_ms));
-                if (result.has_value()) {
-                    result->debug_state_requested = result->debug_state_requested || debug_overlay;
-                    result->debug_state_log_enabled = result->debug_state_log_enabled || debug_overlay;
-                    const auto evaluation =
-                        analysis::ApplyEventRulesToResult(*result, AnalysisRuleDocumentsSnapshot(), event_runtime);
-                    analysis::DispatchEventRecords(evaluation.annotated_result, evaluation.events);
-                    analysis::DispatchEventPosts(evaluation.annotated_result, evaluation.events);
-                    return evaluation.annotated_result;
-                }
-                const auto snapshot = manager->AnalysisTapSnapshot(analysis_tap_id);
-                if (!snapshot.has_value() || !snapshot->latest_result.has_value()) {
-                    return std::optional<analysis::AnalysisResult>{};
-                }
-                auto latest_result = *snapshot->latest_result;
-                latest_result.debug_state_requested = latest_result.debug_state_requested || debug_overlay;
-                latest_result.debug_state_log_enabled = latest_result.debug_state_log_enabled || debug_overlay;
-                const auto evaluation = analysis::ApplyEventRulesToResult(
-                    latest_result, AnalysisRuleDocumentsSnapshot(), event_runtime);
-                analysis::DispatchEventRecords(evaluation.annotated_result, evaluation.events);
-                analysis::DispatchEventPosts(evaluation.annotated_result, evaluation.events);
-                return evaluation.annotated_result;
+                return bridge_lock != nullptr ? bridge_lock->ResolveOverlaySourcePts(frame_pts) : frame_pts;
             };
-        bridge->SetAnalysisOverlay(std::move(overlay_config));
+        bridge->SetPipelineAttachment(
+            analysis_binding.make_pipeline_attachment(std::move(source_pts_resolver)));
     }
 
     auto create_result = runtime->session_manager.CreateSession(
@@ -285,7 +240,7 @@ void OnMediaConfigure(GstRTSPMediaFactory* /*factory*/, GstRTSPMedia* media, gpo
     if (!create_result.ok) {
         std::cerr << "[gst] session admission failed: " << create_result.message << "\n";
         if (!analysis_tap_id.empty()) {
-            runtime->session_manager.DetachAnalysisTap(analysis_tap_id);
+            runtime->analysis_port.DetachRtsp(analysis_tap_id);
         }
         gst_object_unref(media_element);
         return;
@@ -296,7 +251,7 @@ void OnMediaConfigure(GstRTSPMediaFactory* /*factory*/, GstRTSPMedia* media, gpo
     if (!bridge->Start(request.client_id, create_result.stream, &bridge_error)) {
         std::cerr << "[gst] failed to start RTSP egress bridge: " << bridge_error << "\n";
         if (!analysis_tap_id.empty()) {
-            runtime->session_manager.DetachAnalysisTap(analysis_tap_id);
+            runtime->analysis_port.DetachRtsp(analysis_tap_id);
         }
         runtime->session_manager.CloseSession(request.client_id);
         gst_object_unref(media_element);
@@ -361,13 +316,16 @@ struct GStreamerRtspServer::Impl {
     RuntimeContext runtime_context;
     std::thread loop_thread;
 
-    explicit Impl(core::SessionManager& manager) : runtime_context(manager) {}
+    Impl(core::SessionManager& manager, core::MediaAnalysisPort& port)
+        : runtime_context(manager, port) {}
 };
 #endif
 
-GStreamerRtspServer::GStreamerRtspServer(core::SessionManager& session_manager) : session_manager_(session_manager) {
+GStreamerRtspServer::GStreamerRtspServer(core::SessionManager& session_manager,
+                                         core::MediaAnalysisPort& analysis_port)
+    : session_manager_(session_manager), analysis_port_(analysis_port) {
 #if MEDIA_SERVER_USE_GSTREAMER
-    impl_ = std::make_unique<Impl>(session_manager);
+    impl_ = std::make_unique<Impl>(session_manager, analysis_port);
 #endif
 }
 

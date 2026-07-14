@@ -10,16 +10,58 @@ StreamRegistry::AcquireResult StreamRegistry::Acquire(const StreamKey& key, cons
     const auto it = streams_.find(key);
     if (it != streams_.end()) {
         // 이미 같은 원본을 읽는 stream이 있으면 source worker를 새로 만들지 않고 공유한다.
+        ++outstanding_leases_[key];
         return {.stream = it->second, .created = false};
     }
 
     auto stream = std::make_shared<SharedStream>(source_spec);
     streams_[key] = stream;
+    outstanding_leases_[key] = 1;
     return {.stream = std::move(stream), .created = true};
+}
+
+bool StreamRegistry::ReleaseLease(const StreamKey& key) {
+    std::lock_guard lock(mu_);
+    const auto lease_it = outstanding_leases_.find(key);
+    if (lease_it == outstanding_leases_.end()) {
+        return false;
+    }
+    if (lease_it->second > 1) {
+        --lease_it->second;
+        return false;
+    } else {
+        outstanding_leases_.erase(lease_it);
+    }
+    return true;
+}
+
+bool StreamRegistry::ReleaseLeaseAndTryRemoveIfIdle(const StreamKey& key) {
+    std::lock_guard lock(mu_);
+    const auto lease_it = outstanding_leases_.find(key);
+    if (lease_it == outstanding_leases_.end()) {
+        return false;
+    }
+    if (lease_it->second > 1) {
+        --lease_it->second;
+        return false;
+    }
+    outstanding_leases_.erase(lease_it);
+
+    const auto stream_it = streams_.find(key);
+    if (stream_it == streams_.end() || stream_it->second->TotalSubscriberCount() > 0) {
+        return false;
+    }
+    stream_it->second->StopSource();
+    streams_.erase(stream_it);
+    return true;
 }
 
 bool StreamRegistry::TryRemoveIfIdle(const StreamKey& key) {
     std::lock_guard lock(mu_);
+    const auto lease_it = outstanding_leases_.find(key);
+    if (lease_it != outstanding_leases_.end() && lease_it->second > 0) {
+        return false;
+    }
     const auto it = streams_.find(key);
     if (it == streams_.end()) {
         return false;

@@ -21,7 +21,6 @@
 
 #include "app_config.h"
 #include "core/shared_stream.h"
-#include "ingress/analysis_overlay_probe.h"
 #include "ingress/webrtc_gst_utils.h"
 
 namespace ingress {
@@ -1112,8 +1111,7 @@ bool WebRtcEgressSession::Start(const std::string& session_id,
         Stop();
         return false;
     }
-    if (analysis_overlay_.enabled &&
-        !AttachAnalysisOverlayProbe(pipeline_, std::move(analysis_overlay_), error_message)) {
+    if (pipeline_attachment_ && !pipeline_attachment_(pipeline_, error_message)) {
         Stop();
         return false;
     }
@@ -1283,8 +1281,8 @@ void WebRtcEgressSession::HandleSample(const media::Packet& packet) {
 #endif
 }
 
-void WebRtcEgressSession::SetAnalysisOverlay(AnalysisOverlayConfig config) {
-    analysis_overlay_ = std::move(config);
+void WebRtcEgressSession::SetPipelineAttachment(core::MediaPipelineAttachment attachment) {
+    pipeline_attachment_ = std::move(attachment);
 }
 
 std::int64_t WebRtcEgressSession::ResolveOverlaySourcePts(std::int64_t normalized_pts) const {

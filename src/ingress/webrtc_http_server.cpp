@@ -41,6 +41,7 @@
 
 #include "app_config.h"
 #include "analysis/appearance_extractor.h"
+#include "analysis/analysis_session_service.h"
 #include "analysis/category_tokens.h"
 #include "analysis/detector.h"
 #include "analysis/event_feature_search_index.h"
@@ -58,6 +59,7 @@
 #include "core/runtime_debug_counters.h"
 #include "core/stream_key.h"
 #include "analysis/analysis_query.h"
+#include "ingress/analysis_overlay_probe.h"
 #include "ingress/analysis_rule_registry.h"
 #include "ingress/http_auth.h"
 #include "ingress/onvif_live_import.h"
@@ -3053,7 +3055,8 @@ struct WebRtcHttpServer::Impl {
         int attempts{0};
     };
 
-    explicit Impl(core::SessionManager& manager) : session_manager(manager) {}
+    Impl(core::SessionManager& manager, analysis::AnalysisSessionService& analysis_service)
+        : session_manager(manager), analysis_sessions(analysis_service) {}
 
     bool AllowPublicAccessRequestAttempt(const std::string& peer_key,
                                          int* retry_after_seconds) {
@@ -3092,6 +3095,7 @@ struct WebRtcHttpServer::Impl {
     }
 
     core::SessionManager& session_manager;
+    analysis::AnalysisSessionService& analysis_sessions;
     std::string listen_address;
     std::uint16_t port{0};
     int listen_fd{-1};
@@ -3110,8 +3114,11 @@ struct WebRtcHttpServer::Impl {
     std::atomic<int> active_ws_metadata_clients{0};
 };
 
-WebRtcHttpServer::WebRtcHttpServer(core::SessionManager& session_manager)
-    : session_manager_(session_manager), impl_(std::make_unique<Impl>(session_manager)) {}
+WebRtcHttpServer::WebRtcHttpServer(core::SessionManager& session_manager,
+                                   analysis::AnalysisSessionService& analysis_sessions)
+    : session_manager_(session_manager),
+      analysis_sessions_(analysis_sessions),
+      impl_(std::make_unique<Impl>(session_manager, analysis_sessions)) {}
 
 WebRtcHttpServer::~WebRtcHttpServer() {
     Stop();
@@ -7897,7 +7904,7 @@ bool SendSseEvent(int fd, const std::string& event_name, const std::string& data
 
 bool StreamVaMetadataSse(int client_fd,
                          const std::atomic<bool>& running,
-                         core::SessionManager& session_manager,
+                         analysis::AnalysisSessionService& analysis_sessions,
                          const std::string& tap_id,
                          const std::unordered_map<std::string, std::string>& query,
                          const HttpRequest& request) {
@@ -7931,7 +7938,7 @@ bool StreamVaMetadataSse(int client_fd,
             break;
         }
 
-        const auto snapshot = session_manager.AnalysisTapSnapshot(tap_id);
+        const auto snapshot = analysis_sessions.AnalysisTapSnapshot(tap_id);
         if (!snapshot.has_value()) {
             (void)SendSseEvent(client_fd,
                                "error",
@@ -7997,7 +8004,7 @@ bool StreamVaMetadataSse(int client_fd,
 
 bool StreamVaMetadataWebSocket(int client_fd,
                                const std::atomic<bool>& running,
-                               core::SessionManager& session_manager,
+                               analysis::AnalysisSessionService& analysis_sessions,
                                const std::string& tap_id,
                                const std::unordered_map<std::string, std::string>& query,
                                const std::string& websocket_key,
@@ -8116,7 +8123,7 @@ bool StreamVaMetadataWebSocket(int client_fd,
             continue;
         }
 
-        const auto snapshot = session_manager.AnalysisTapSnapshot(tap_id);
+        const auto snapshot = analysis_sessions.AnalysisTapSnapshot(tap_id);
         if (!snapshot.has_value()) {
             (void)SendWebSocketTextFrame(
                 client_fd,
@@ -8309,7 +8316,7 @@ std::string AnalysisMetricsDumpJson(const std::string& tap_id,
     return out.str();
 }
 
-std::string AnalysisTapCreatedJson(const core::SessionManager::AnalysisTapResult& result,
+std::string AnalysisTapCreatedJson(const analysis::AnalysisSessionService::AnalysisTapResult& result,
                                    std::size_t active_taps) {
     std::ostringstream out;
     out << "{"
@@ -8785,11 +8792,12 @@ void ReleaseEventRuleRuntimeForKey(const std::string& key) {
     EventRuleRuntimeMap().erase(key);
 }
 
-bool DetachAnalysisTapAndReleaseRuntimes(core::SessionManager& session_manager, const std::string& tap_id) {
+bool DetachAnalysisTapAndReleaseRuntimes(analysis::AnalysisSessionService& analysis_sessions,
+                                         const std::string& tap_id) {
     if (tap_id.empty()) {
         return false;
     }
-    const auto detach_result = session_manager.DetachAnalysisTapRef(tap_id);
+    const auto detach_result = analysis_sessions.DetachAnalysisTapRef(tap_id);
     // 이벤트 룰 runtime은 enter/exit/line-crossing 이전 상태를 들고 있으므로 tap 수명과 함께 정리한다.
     if (detach_result.removed) {
         ReleaseEventRuleRuntimeForKey("webrtc-overlay:" + tap_id);
@@ -35514,7 +35522,7 @@ std::string LabFilesJson() {
     return out.str();
 }
 
-bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
+bool AttachWebRtcAnalysisOverlay(analysis::AnalysisSessionService& analysis_sessions,
                                  const media::IngressRequest& ingress_request,
                                  const std::unordered_map<std::string, std::string>& query,
                                  const std::shared_ptr<WebRtcEgressSession>& bridge,
@@ -35533,7 +35541,7 @@ bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
     media::IngressRequest analysis_request = ingress_request;
     analysis_request.protocol = "webrtc";
     analysis_request.client_id = ingress_request.client_id + "-analysis";
-    auto attach_result = session_manager.AttachAnalysisTap(analysis_request, BuildAnalysisProfileFromQuery(query));
+    auto attach_result = analysis_sessions.AttachAnalysisTap(analysis_request, BuildAnalysisProfileFromQuery(query));
     if (!attach_result.ok) {
         if (error_message != nullptr) {
             *error_message = attach_result.message.empty() ? "failed to attach analysis overlay tap"
@@ -35560,7 +35568,7 @@ bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
     bridge->SetMetadataChannelConfig(metadata_channel_config);
     auto event_runtime = EventRuleRuntimeForKey("webrtc-overlay:" + attach_result.tap_id);
     overlay_config.result_provider =
-        [&session_manager,
+        [&analysis_sessions,
          tap_id = attach_result.tap_id,
          weak_bridge,
          event_runtime,
@@ -35575,7 +35583,7 @@ bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
             const std::int64_t source_pts =
                 bridge_lock != nullptr ? bridge_lock->ResolveOverlaySourcePts(frame_pts) : frame_pts;
             // WebRTC overlay frame PTS를 원본 packet PTS로 되돌려 가장 가까운 분석 결과를 우선 사용한다.
-            auto result = session_manager.WaitAnalysisResultNearPts(
+            auto result = analysis_sessions.WaitAnalysisResultNearPts(
                 tap_id, source_pts, tolerance_ns, std::chrono::milliseconds(wait_timeout_ms));
             if (result.has_value()) {
                 result->debug_state_requested =
@@ -35601,7 +35609,7 @@ bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
                 return evaluation.annotated_result;
             }
             // 동기화 허용 시간 안에 결과가 아직 없으면 최신 snapshot으로 fallback해 overlay 공백을 줄인다.
-            const auto snapshot = session_manager.AnalysisTapSnapshot(tap_id);
+            const auto snapshot = analysis_sessions.AnalysisTapSnapshot(tap_id);
             if (!snapshot.has_value() || !snapshot->latest_result.has_value()) {
                 if (metadata_channel_enabled && bridge_lock != nullptr && bridge_lock->MetadataChannelReady()) {
                     bridge_lock->PublishAnalysisMetadata(
@@ -35636,7 +35644,7 @@ bool AttachWebRtcAnalysisOverlay(core::SessionManager& session_manager,
             }
             return evaluation.annotated_result;
         };
-    bridge->SetAnalysisOverlay(std::move(overlay_config));
+    bridge->SetPipelineAttachment(MakeAnalysisOverlayAttachment(std::move(overlay_config)));
     if (analysis_tap_id != nullptr) {
         *analysis_tap_id = attach_result.tap_id;
     }
@@ -36200,13 +36208,13 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             impl_->active_sse_metadata_clients.fetch_add(1);
                             (void)StreamVaMetadataSse(client_fd,
                                                        running_,
-                                                       impl_->session_manager,
+                                                       impl_->analysis_sessions,
                                                        tap_id,
                                                        query,
                                                        request);
                             impl_->active_sse_metadata_clients.fetch_sub(1);
                             if (detach_on_close) {
-                                (void)DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, tap_id);
+                                (void)DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_sessions, tap_id);
                             }
                             return HttpResponse{};
                         };
@@ -36218,7 +36226,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (previous_clients >= max_clients) {
                                 impl_->active_ws_metadata_clients.fetch_sub(1);
                                 if (detach_on_close) {
-                                    (void)DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, tap_id);
+                                    (void)DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_sessions, tap_id);
                                 }
                                 return JsonResponse(429,
                                                     "Too Many Requests",
@@ -36226,10 +36234,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             response_sent = true;
                             (void)StreamVaMetadataWebSocket(
-                                client_fd, running_, impl_->session_manager, tap_id, query, websocket_key, request);
+                                client_fd, running_, impl_->analysis_sessions, tap_id, query, websocket_key, request);
                             impl_->active_ws_metadata_clients.fetch_sub(1);
                             if (detach_on_close) {
-                                (void)DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, tap_id);
+                                (void)DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_sessions, tap_id);
                             }
                             return HttpResponse{};
                         };
@@ -36262,7 +36270,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             impl_->session_manager.CloseSession(entry.ingress_client_id);
                             if (!entry.analysis_tap_id.empty()) {
                                 DetachAnalysisTapAndReleaseRuntimes(
-                                    impl_->session_manager, entry.analysis_tap_id);
+                                    impl_->analysis_sessions, entry.analysis_tap_id);
                             }
                             entry.bridge->Stop();
                             return true;
@@ -36296,7 +36304,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             std::string analysis_tap_id;
                             std::string error_message;
                             if (!AttachWebRtcAnalysisOverlay(
-                                    impl_->session_manager,
+                                    impl_->analysis_sessions,
                                     ingress_request,
                                     ingress_request.query,
                                     bridge,
@@ -36311,7 +36319,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 [bridge](const media::Packet& packet) { bridge->HandleSample(packet); });
                             if (!create_result.ok) {
                                 if (!analysis_tap_id.empty()) {
-                                    DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, analysis_tap_id);
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_sessions, analysis_tap_id);
                                 }
                                 return JsonResponse(400,
                                                     "Bad Request",
@@ -36320,7 +36328,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                             if (!bridge->Start(session_id, create_result.stream, &error_message)) {
                                 if (!analysis_tap_id.empty()) {
-                                    DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, analysis_tap_id);
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_sessions, analysis_tap_id);
                                 }
                                 impl_->session_manager.CloseSession(ingress_client_id);
                                 return JsonResponse(500,
@@ -36332,7 +36340,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (!bridge->CreateOffer(&offer, &error_message)) {
                                 bridge->Stop();
                                 if (!analysis_tap_id.empty()) {
-                                    DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, analysis_tap_id);
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_sessions, analysis_tap_id);
                                 }
                                 impl_->session_manager.CloseSession(ingress_client_id);
                                 return JsonResponse(500,
@@ -36498,7 +36506,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                                     impl_->active_sse_metadata_clients.load(),
 	                                                     impl_->active_ws_metadata_clients.load(),
 	                                                     WebRtcSourceRegistry::Instance().Snapshots(),
-	                                                     impl_->session_manager.AnalysisTapSnapshots());
+	                                                     impl_->analysis_sessions.AnalysisTapSnapshots());
 	                        };
 
 	                        if (request.method == "GET" && request.path == "/health") {
@@ -37018,7 +37026,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            HttpResponse ok = JsonResponse(
 	                                200,
 	                                "OK",
-	                                OpsSourceHealthJson(impl_->session_manager.AnalysisTapSnapshots(),
+	                                OpsSourceHealthJson(impl_->analysis_sessions.AnalysisTapSnapshots(),
 	                                                    WebRtcSourceRegistry::Instance().Snapshots(),
 	                                                    impl_->session_manager.SourceDescriptorSnapshots(),
 	                                                    impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -37037,7 +37045,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                200,
 	                                "OK",
 	                                OpsSourceHealthBulkJson(request.body,
-	                                                        impl_->session_manager.AnalysisTapSnapshots(),
+	                                                        impl_->analysis_sessions.AnalysisTapSnapshots(),
 	                                                        WebRtcSourceRegistry::Instance().Snapshots(),
 	                                                        impl_->session_manager.SourceDescriptorSnapshots(),
 	                                                        impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -37194,7 +37202,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -37260,7 +37268,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -37308,7 +37316,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -37328,7 +37336,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -37348,7 +37356,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -37368,7 +37376,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -37388,7 +37396,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -37408,7 +37416,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -37428,7 +37436,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -37448,7 +37456,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -37468,7 +37476,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -37488,7 +37496,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -37508,7 +37516,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -37528,7 +37536,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -37548,7 +37556,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -37707,7 +37715,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            std::string body;
 	                            std::string error_message;
 	                            const auto source_health_snapshot =
-	                                BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+	                                BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
 	                                                             WebRtcSourceRegistry::Instance().Snapshots(),
 	                                                             impl_->session_manager.SourceDescriptorSnapshots(),
 	                                                             impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -37740,7 +37748,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                std::string body;
 	                                std::string error_message;
 	                                const auto source_health_snapshot =
-	                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+	                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
 	                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
 	                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
 	                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38176,7 +38184,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38196,7 +38204,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38216,7 +38224,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38236,7 +38244,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38256,7 +38264,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38276,7 +38284,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38296,7 +38304,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38316,7 +38324,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38336,7 +38344,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38356,7 +38364,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38376,7 +38384,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38396,7 +38404,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38416,7 +38424,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38436,7 +38444,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38456,7 +38464,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38476,7 +38484,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38496,7 +38504,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38516,7 +38524,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38536,7 +38544,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38556,7 +38564,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38576,7 +38584,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38610,7 +38618,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38630,7 +38638,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38650,7 +38658,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38670,7 +38678,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -38702,7 +38710,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
-                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                    BuildOpsSourceHealthSnapshot(impl_->analysis_sessions.AnalysisTapSnapshots(),
                                                                  WebRtcSourceRegistry::Instance().Snapshots(),
                                                                  impl_->session_manager.SourceDescriptorSnapshots(),
                                                                  impl_->session_manager.SourceReconnectStatsSnapshot(),
@@ -39237,7 +39245,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                         ClientViewDashboardJson(
                                             access,
                                             principal_result.principal,
-                                        impl_->session_manager.AnalysisTapSnapshots()));
+                                        impl_->analysis_sessions.AnalysisTapSnapshots()));
                                 }
                                 if (IsClientViewSummaryRoute(subresource) &&
                                     IsClientViewEventsSearchRoute(subresource)) {
@@ -39296,7 +39304,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                         ClientViewEventsJson(
                                             access,
                                             principal_result.principal,
-                                            impl_->session_manager.AnalysisTapSnapshots(),
+                                            impl_->analysis_sessions.AnalysisTapSnapshots(),
                                             limit));
                                 }
                                 if (IsClientViewSummaryRoute(subresource) &&
@@ -39321,7 +39329,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                         200,
                                         "OK",
                                         ClientViewMetadataJson(
-                                            access, impl_->session_manager.AnalysisTapSnapshots()));
+                                            access, impl_->analysis_sessions.AnalysisTapSnapshots()));
                                 }
                                 if (!subresource.empty()) {
                                     return JsonResponse(404,
@@ -39935,7 +39943,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (const auto tap_it = query.find("tapId");
                                 tap_it != query.end() && !tap_it->second.empty()) {
                                 const std::string tap_id = tap_it->second;
-                                const auto snapshot = impl_->session_manager.AnalysisTapSnapshot(tap_id);
+                                const auto snapshot = impl_->analysis_sessions.AnalysisTapSnapshot(tap_id);
                                 if (!snapshot.has_value()) {
                                     return JsonResponse(404,
                                                         "Not Found",
@@ -39959,7 +39967,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                     "{\"error\":\"" + JsonEscape(va_rule_error) + "\"}");
                             }
                             ingress_request.query["va"] = "1";
-                            auto result = impl_->session_manager.AttachAnalysisTap(
+                            auto result = impl_->analysis_sessions.AttachAnalysisTap(
                                 ingress_request, BuildAnalysisProfileFromQuery(ingress_request.query));
                             if (!result.ok) {
                                 return JsonResponse(400,
@@ -39986,7 +39994,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                     "{\"error\":\"" + JsonEscape(va_rule_error) + "\"}");
                             }
                             ingress_request.query["va"] = "1";
-                            auto result = impl_->session_manager.AttachAnalysisTap(
+                            auto result = impl_->analysis_sessions.AttachAnalysisTap(
                                 ingress_request, BuildAnalysisProfileFromQuery(ingress_request.query));
                             if (!result.ok) {
                                 return JsonResponse(400,
@@ -39999,7 +40007,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         if (request.path == "/lab/analysis/taps") {
                             if (request.method == "GET") {
                                 return JsonResponse(200, "OK",
-                                                    AnalysisTapListJson(impl_->session_manager.AnalysisTapSnapshots()));
+                                                    AnalysisTapListJson(impl_->analysis_sessions.AnalysisTapSnapshots()));
                             }
 
                             if (request.method == "POST") {
@@ -40012,7 +40020,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     return JsonResponse(400, "Bad Request",
                                                         "{\"error\":\"" + JsonEscape(va_rule_error) + "\"}");
                                 }
-                                auto result = impl_->session_manager.AttachAnalysisTap(
+                                auto result = impl_->analysis_sessions.AttachAnalysisTap(
                                     ingress_request, BuildAnalysisProfileFromQuery(ingress_request.query));
                                 if (!result.ok) {
                                     return JsonResponse(400, "Bad Request",
@@ -40021,7 +40029,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 return JsonResponse(
                                     200,
                                     "OK",
-                                    AnalysisTapCreatedJson(result, impl_->session_manager.ActiveAnalysisTapCount()));
+                                    AnalysisTapCreatedJson(result, impl_->analysis_sessions.ActiveAnalysisTapCount()));
                             }
                         }
 
@@ -40029,7 +40037,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return JsonResponse(
                                 200,
                                 "OK",
-                                AnalysisGlobalMetadataJson(impl_->session_manager.AnalysisTapSnapshots()));
+                                AnalysisGlobalMetadataJson(impl_->analysis_sessions.AnalysisTapSnapshots()));
                         }
 
                         if (request.method == "GET" && request.path == "/lab/analysis/bbox-diagnostics") {
@@ -40037,7 +40045,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 200,
                                 "OK",
                                 AnalysisGlobalBboxDiagnosticsJson(
-                                    impl_->session_manager.AnalysisTapSnapshots()));
+                                    impl_->analysis_sessions.AnalysisTapSnapshots()));
                         }
 
                         if (request.method == "GET" &&
@@ -40046,7 +40054,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return JsonResponse(
                                 200,
                                 "OK",
-                                AnalysisGlobalStateDumpJson(impl_->session_manager.AnalysisTapSnapshots()));
+                                AnalysisGlobalStateDumpJson(impl_->analysis_sessions.AnalysisTapSnapshots()));
                         }
 
                         if (request.method == "GET" &&
@@ -40055,7 +40063,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return JsonResponse(
                                 200,
                                 "OK",
-                                AnalysisGlobalMetricsDumpJson(impl_->session_manager.AnalysisTapSnapshots()));
+                                AnalysisGlobalMetricsDumpJson(impl_->analysis_sessions.AnalysisTapSnapshots()));
                         }
 
                         const auto analysis_tap_prefix = std::string("/lab/analysis/taps/");
@@ -40070,7 +40078,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
 
                             if (request.method == "GET" && suffix.empty()) {
-                                const auto snapshot = impl_->session_manager.AnalysisTapSnapshot(tap_id);
+                                const auto snapshot = impl_->analysis_sessions.AnalysisTapSnapshot(tap_id);
                                 if (!snapshot.has_value()) {
                                     return JsonResponse(404, "Not Found",
                                                         "{\"error\":\"analysis tap not found\"}");
@@ -40080,7 +40088,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
 
                             if (request.method == "GET" && suffix == "/metadata/stream") {
-                                const auto snapshot = impl_->session_manager.AnalysisTapSnapshot(tap_id);
+                                const auto snapshot = impl_->analysis_sessions.AnalysisTapSnapshot(tap_id);
                                 if (!snapshot.has_value()) {
                                     return JsonResponse(404, "Not Found",
                                                         "{\"error\":\"analysis tap not found\"}");
@@ -40089,7 +40097,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
 
                             if (request.method == "GET" && suffix == "/metadata") {
-                                const auto result = impl_->session_manager.AnalysisTapSnapshot(tap_id);
+                                const auto result = impl_->analysis_sessions.AnalysisTapSnapshot(tap_id);
                                 if (!result.has_value()) {
                                     return JsonResponse(404, "Not Found",
                                                         "{\"error\":\"analysis tap not found\"}");
@@ -40099,7 +40107,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
 
                             if (request.method == "GET" && suffix == "/bbox-diagnostics") {
-                                const auto snapshot = impl_->session_manager.AnalysisTapSnapshot(tap_id);
+                                const auto snapshot = impl_->analysis_sessions.AnalysisTapSnapshot(tap_id);
                                 if (!snapshot.has_value()) {
                                     return JsonResponse(404, "Not Found",
                                                         "{\"error\":\"analysis tap not found\"}");
@@ -40116,7 +40124,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     ParseClampedIntQuery(query, "toleranceMs", 600, 0, 5000);
                                 const std::int64_t requested_pts_ns = requested_pts_ms * 1000000LL;
                                 const std::int64_t tolerance_ns = static_cast<std::int64_t>(tolerance_ms) * 1000000LL;
-                                const auto result = impl_->session_manager.WaitAnalysisResultNearPts(
+                                const auto result = impl_->analysis_sessions.WaitAnalysisResultNearPts(
                                     tap_id, requested_pts_ns, tolerance_ns, std::chrono::milliseconds(0));
                                 return JsonResponse(200,
                                                     "OK",
@@ -40127,7 +40135,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
 
                             if (request.method == "GET" && (suffix == "/state" || suffix == "/state-dump")) {
-                                const auto snapshot = impl_->session_manager.AnalysisTapSnapshot(tap_id);
+                                const auto snapshot = impl_->analysis_sessions.AnalysisTapSnapshot(tap_id);
                                 if (!snapshot.has_value()) {
                                     return JsonResponse(404, "Not Found",
                                                         "{\"error\":\"analysis tap not found\"}");
@@ -40148,7 +40156,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
 
                             if (request.method == "GET" && (suffix == "/metrics" || suffix == "/metrics-dump")) {
-                                const auto snapshot = impl_->session_manager.AnalysisTapSnapshot(tap_id);
+                                const auto snapshot = impl_->analysis_sessions.AnalysisTapSnapshot(tap_id);
                                 if (!snapshot.has_value()) {
                                     return JsonResponse(404, "Not Found",
                                                         "{\"error\":\"analysis tap not found\"}");
@@ -40168,7 +40176,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
 
                             if (request.method == "GET" && suffix == "/events") {
-                                const auto snapshot = impl_->session_manager.AnalysisTapSnapshot(tap_id);
+                                const auto snapshot = impl_->analysis_sessions.AnalysisTapSnapshot(tap_id);
                                 if (!snapshot.has_value()) {
                                     return JsonResponse(404, "Not Found",
                                                         "{\"error\":\"analysis tap not found\"}");
@@ -40193,7 +40201,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
 
                             if (request.method == "GET" && (suffix == "/snapshot" || suffix == "/snapshot.jpg")) {
-                                const auto frame = impl_->session_manager.AnalysisLatestFrame(tap_id);
+                                const auto frame = impl_->analysis_sessions.AnalysisLatestFrame(tap_id);
                                 if (!frame.has_value()) {
                                     return HttpResponse{404,
                                                         "Not Found",
@@ -40219,7 +40227,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
 
                             if (request.method == "GET" && (suffix == "/overlay" || suffix == "/overlay.jpg")) {
-                                const auto latest = impl_->session_manager.AnalysisLatestFrameAndResult(tap_id);
+                                const auto latest = impl_->analysis_sessions.AnalysisLatestFrameAndResult(tap_id);
                                 if (!latest.has_value()) {
                                     return HttpResponse{404,
                                                         "Not Found",
@@ -40271,13 +40279,13 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
 
                             if (request.method == "DELETE" && suffix.empty()) {
-                                if (!DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, tap_id)) {
+                                if (!DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_sessions, tap_id)) {
                                     return JsonResponse(404, "Not Found",
                                                         "{\"error\":\"analysis tap not found\"}");
                                 }
                                 return JsonResponse(200, "OK",
                                                     "{\"ok\":true,\"activeTaps\":" +
-                                                        std::to_string(impl_->session_manager.ActiveAnalysisTapCount()) + "}");
+                                                        std::to_string(impl_->analysis_sessions.ActiveAnalysisTapCount()) + "}");
                             }
                         }
 
@@ -40316,7 +40324,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             std::string analysis_tap_id;
                             std::string error_message;
                             if (!AttachWebRtcAnalysisOverlay(
-                                    impl_->session_manager,
+                                    impl_->analysis_sessions,
                                     ingress_request,
                                     ingress_request.query,
                                     bridge,
@@ -40329,14 +40337,14 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 [bridge](const media::Packet& packet) { bridge->HandleSample(packet); });
                             if (!create_result.ok) {
                                 if (!analysis_tap_id.empty()) {
-                                    DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, analysis_tap_id);
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_sessions, analysis_tap_id);
                                 }
                                 return HttpResponse{400, "Bad Request", "text/plain; charset=utf-8", {}, create_result.message};
                             }
 
                             if (!bridge->Start(session_id, create_result.stream, &error_message)) {
                                 if (!analysis_tap_id.empty()) {
-                                    DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, analysis_tap_id);
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_sessions, analysis_tap_id);
                                 }
                                 impl_->session_manager.CloseSession(ingress_client_id);
                                 return HttpResponse{500, "Internal Server Error", "text/plain; charset=utf-8", {}, error_message};
@@ -40344,7 +40352,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (!bridge->SetRemoteOffer(request.body, &error_message)) {
                                 bridge->Stop();
                                 if (!analysis_tap_id.empty()) {
-                                    DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, analysis_tap_id);
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_sessions, analysis_tap_id);
                                 }
                                 impl_->session_manager.CloseSession(ingress_client_id);
                                 return HttpResponse{400, "Bad Request", "text/plain; charset=utf-8", {}, error_message};
@@ -40354,7 +40362,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (!bridge->CreateAnswer(&answer, &error_message)) {
                                 bridge->Stop();
                                 if (!analysis_tap_id.empty()) {
-                                    DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, analysis_tap_id);
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_sessions, analysis_tap_id);
                                 }
                                 impl_->session_manager.CloseSession(ingress_client_id);
                                 return HttpResponse{500, "Internal Server Error", "text/plain; charset=utf-8", {}, error_message};
@@ -40655,7 +40663,7 @@ void WebRtcHttpServer::Stop() {
     for (auto& entry : sessions) {
         entry.bridge->Stop();
         if (!entry.analysis_tap_id.empty()) {
-            DetachAnalysisTapAndReleaseRuntimes(impl_->session_manager, entry.analysis_tap_id);
+            DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_sessions, entry.analysis_tap_id);
         }
         impl_->session_manager.CloseSession(entry.ingress_client_id);
     }
