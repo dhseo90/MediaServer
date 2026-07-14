@@ -8031,6 +8031,10 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             <label>층<input name="floor" placeholder="예: B1" /></label>
             <label>구역<input name="zone" placeholder="예: 출입구" /></label>
           </div>
+          <div class="row" data-testid="published-view-rule-scope-management">
+            <label>허용 룰 ID<input name="allowedRuleIds" placeholder="쉼표 또는 공백으로 구분" /></label>
+            <label>클라이언트 그룹<input name="clientGroups" placeholder="쉼표 또는 공백으로 구분" /></label>
+          </div>
           </div>
           <div class="ops-channels-input-grid" data-channel-task="inputs">
           <label data-source-kind="file" data-channel-input-group="file">파일

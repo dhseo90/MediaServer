@@ -196,7 +196,7 @@ function validateRoute(value, prefix, errors) {
 }
 
 function validateRole(value, prefix, errors) {
-  if (!["anonymous", "operator", "viewer"].includes(value)) errors.push(`${prefix}-invalid`);
+  if (!["anonymous", "admin", "operator", "viewer"].includes(value)) errors.push(`${prefix}-invalid`);
 }
 
 function validateViewport(value, prefix, errors) {

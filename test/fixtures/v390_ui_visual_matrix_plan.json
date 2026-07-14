@@ -44,7 +44,7 @@
       "canonicalCaseId": "UI-013",
       "featureId": "UI-013",
       "screenRoute": "/ops/users",
-      "accountRole": "operator",
+      "accountRole": "admin",
       "targetSelector": "[data-testid=\"ops-users-page\"] > .ops-workspace-hero"
     },
     {

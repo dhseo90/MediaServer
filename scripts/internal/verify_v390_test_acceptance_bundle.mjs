@@ -2,7 +2,6 @@
 // 파일 용도: v3.9.0 test acceptance를 dry-run 또는 실제 stop-on-first-fail bundle로 실행한다.
 
 import fs from "node:fs";
-import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -26,6 +25,11 @@ import {
   validateIterationLedger,
   validateMonotonicDurationEvidence,
 } from "./v390_longrun_evidence_measurement_lib.mjs";
+import {
+  listListenerPids,
+  startSelfContainedUiEnvironment,
+  stopSelfContainedUiEnvironment,
+} from "./v390_acceptance_ui_environment.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -35,6 +39,7 @@ const stageIds = [
   "build",
   "feature-gates",
   "server-longrun-30",
+  "ui-environment-bootstrap",
   "ui-exact-424",
   "ui-server-cleanup",
   "ui-fulltest-qualification",
@@ -57,15 +62,9 @@ Usage:
 Options:
   --dry-run                    Validate command set and evidence boundaries without running child suites.
   --output-dir <path>          Summary/report and run artifact root. Required for actual mode; /tmp default for dry-run.
-  --ui-http-base <url>         Loopback throwaway server base URL for exact 424 execution.
-  --ui-role-state-map <path>   Operator/viewer Playwright storage-state map for the throwaway server.
-  --ui-server-log <path>       Throwaway server log used by exact evidence attestation.
-  --ui-server-pid <pid>        Throwaway media_server PID owned by this acceptance run and stopped after UI.
-  --ui-rtsp-port <port>        Throwaway RTSP port verified clean after UI.
-  --ui-temporary-root <path>   Throwaway server registry/clip/snapshot root measured and removed after UI.
   --ui-playwright-module-path <path>  Optional native Playwright package directory.
   --ui-chrome-path <path>      Optional native Chrome/Chromium executable.
-  --ui-build-path <path>       Built media_server fingerprint. Default build/media_server.
+  --ui-build-path <path>       Built media_server fingerprint/server binary. Default build-gst-onnx/media_server.
   --run-120                    Execute the conditional 120-minute phase after 30-minute and UI success.
   --user-directed-120          Record an explicit AGENTS 7.6.2 user-directive trigger; combine with --run-120 to execute.
   --fixture-pass               Fast actual-mode orchestration fixture; not duration/UI evidence.
@@ -75,7 +74,8 @@ Options:
   -h, --help                   Show help.
 
 Actual order:
-  preflight -> build -> feature gates -> real 30-minute -> exact 424 Policy v4 producer
+  preflight -> build -> feature gates -> real 30-minute -> self-contained UI environment
+  -> exact 424 Policy v4 producer
   -> throwaway UI server cleanup -> Policy v4 qualification -> conditional 120-minute decision/run
   -> cleanup -> final integrity -> report.
 
@@ -91,12 +91,6 @@ Boundaries:
 assertKnownOptions(rawArgs, [
   "dry-run",
   "output-dir",
-  "ui-http-base",
-  "ui-role-state-map",
-  "ui-server-log",
-  "ui-server-pid",
-  "ui-rtsp-port",
-  "ui-temporary-root",
   "ui-playwright-module-path",
   "ui-chrome-path",
   "ui-build-path",
@@ -129,6 +123,9 @@ let uiAutomationSummary = null;
 let policyEvaluation = null;
 let longrun120Summary = null;
 let longrun120Decision = null;
+let uiEnvironmentHandle = null;
+let uiEnvironmentSummary = null;
+let uiEnvironmentCleanup = null;
 
 const sourceProvenance = collectSourceProvenance(rootDir);
 const priorFirstFailure = options.dryRun ? null : readPriorFirstFailure();
@@ -167,8 +164,16 @@ async function runActualBundle() {
     }
 
     printProgress(stageId, "test");
-    if (fixtureMode) await runFixtureStage(stageId);
-    else await runRealStage(stageId);
+    try {
+      if (fixtureMode) await runFixtureStage(stageId);
+      else await runRealStage(stageId);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (error?.uiEnvironment) uiEnvironmentSummary = error.uiEnvironment;
+      if (error?.cleanup) uiEnvironmentCleanup = error.cleanup;
+      if (stageId === "cleanup") cleanupFailed = true;
+      recordFailure(stageId, `execute ${stageId}`, message, ["ui-server-cleanup", "cleanup"].includes(stageId));
+    }
   }
   const summary = buildActualSummary();
   writeJson(summaryPath, summary);
@@ -197,6 +202,7 @@ async function runRealStage(stageId) {
       "scripts/internal/run_v390_ui_native_exact_cases.mjs",
       "scripts/internal/verify_ui_fulltest_evidence_policy_v4.mjs",
       "scripts/internal/verify_v390_final_evidence_integrity.mjs",
+      "scripts/internal/v390_acceptance_ui_environment.mjs",
       "test/fixtures/v390_ui_native_exact_cases.json",
     ].filter(relativePath => !fs.existsSync(path.join(rootDir, relativePath)));
     if (missing.length > 0) {
@@ -207,34 +213,15 @@ async function runRealStage(stageId) {
       recordFailure(stageId, "preflight", "current final actual acceptance requires a clean worktree; commit approved changes before running");
       return;
     }
-    if (!fixtureMode) {
-      const missingUiInputs = [
-        ["--ui-http-base", options.uiHttpBase],
-        ["--ui-role-state-map", options.uiRoleStateMap],
-        ["--ui-server-log", options.uiServerLog],
-        ["--ui-server-pid", options.uiServerPid],
-        ["--ui-rtsp-port", options.uiRtspPort],
-        ["--ui-temporary-root", options.uiTemporaryRoot],
-      ].filter(([, value]) => !value).map(([name]) => name);
-      if (missingUiInputs.length > 0) {
-        recordFailure(stageId, "preflight", `canonical exact UI inputs missing: ${missingUiInputs.join(", ")}`);
-        return;
-      }
-      const base = new URL(options.uiHttpBase);
-      if (!["127.0.0.1", "localhost", "::1"].includes(base.hostname)) {
-        recordFailure(stageId, "preflight", "canonical exact UI server must be loopback throwaway state");
-        return;
-      }
-      if (!isAllowedUiTemporaryRoot(path.resolve(options.uiTemporaryRoot))) {
-        recordFailure(stageId, "preflight", "--ui-temporary-root must be a contained temporary path named media_server_v390_ui-*");
-        return;
-      }
-    }
     stages.push(passStage(stageId, "validate actual bundle inputs", {
       outputDir,
       runDir,
       featureCommandCount: featureCommands.length,
       uiExecution: "exact-424-policy-v4",
+      uiEnvironmentOwnership: "self-contained-pid-port-artifact-ownership",
+      dependencyStatus: "dependency-bootstrap-attestation",
+      secretHandling: "generated-secret-memory-only",
+      roleStateSource: "role-storage-state-generated-by-acceptance",
       run120: options.run120,
       longrun120Decision: "AGENTS 7.6.2 conditional 120-minute decision",
     }));
@@ -267,20 +254,56 @@ async function runRealStage(stageId) {
     return;
   }
 
+  if (stageId === "ui-environment-bootstrap") {
+    const startedAt = Date.now();
+    uiEnvironmentHandle = await startSelfContainedUiEnvironment({
+      rootDir,
+      runId,
+      fixtureMode: false,
+      playwrightModulePath: options.uiPlaywrightModulePath,
+      chromePath: options.uiChromePath,
+      buildPath: options.uiBuildPath,
+    });
+    uiEnvironmentSummary = uiEnvironmentHandle.attestation;
+    const endedAt = Date.now();
+    stages.push(makeStage({
+      id: stageId,
+      status: "PASS",
+      command: "bootstrap acceptance-owned throwaway server/auth roles/Playwright storage-state",
+      exitCode: 0,
+      startedAt: new Date(startedAt).toISOString(),
+      endedAt: new Date(endedAt).toISOString(),
+      durationMs: endedAt - startedAt,
+      logPath: writeStageLog(stageId, [JSON.stringify(uiEnvironmentSummary)]),
+      summaryPath: uiEnvironmentHandle.runtimeDescriptorPath,
+      tail: [],
+      checks: [
+        { id: "dependency-bootstrap-attestation", status: uiEnvironmentSummary.dependency?.browserLaunchVerified === true ? "PASS" : "FAIL" },
+        { id: "role-storage-state-generated-by-acceptance", status: uiEnvironmentSummary.roles?.every(item => item.storageStateMode === "0600") ? "PASS" : "FAIL" },
+        { id: "self-contained-pid-port-artifact-ownership", status: uiEnvironmentSummary.actualRuntimeEvidence === true ? "PASS" : "FAIL" },
+      ],
+      details: uiEnvironmentSummary,
+    }));
+    return;
+  }
+
   if (stageId === "ui-exact-424") {
+    assert(uiEnvironmentHandle?.runtime, "self-contained UI environment was not acquired");
     const childDir = path.join(runDir, "ui-exact-424");
     const childSummaryPath = path.join(childDir, "summary.json");
     const args = [
       "run-v390-ui-native-exact-cases",
       "--output-dir", childDir,
-      "--http-base", options.uiHttpBase,
-      "--role-state-map", options.uiRoleStateMap,
-      "--server-log", options.uiServerLog,
+      "--http-base", uiEnvironmentHandle.runtime.httpBase,
+      "--role-state-map", uiEnvironmentHandle.runtime.roleStateMapPath,
+      "--server-log", uiEnvironmentHandle.runtime.serverLogPath,
+      "--runtime-descriptor", uiEnvironmentHandle.runtimeDescriptorPath,
       "--build-path", options.uiBuildPath,
     ];
     if (options.uiPlaywrightModulePath) args.push("--playwright-module-path", options.uiPlaywrightModulePath);
     if (options.uiChromePath) args.push("--chrome-path", options.uiChromePath);
-    await runSingleCommandStage(stageId, command("./server.sh", args), childSummaryPath);
+    await runSingleCommandStage(stageId, command("./server.sh", args, uiEnvironmentHandle.exactCaseEnv), childSummaryPath);
+    uiEnvironmentHandle.releaseSecrets();
     if (fs.existsSync(childSummaryPath)) uiAutomationSummary = readJson(childSummaryPath);
     if (!failedStage) {
       const errors = validateExactUiSummary(uiAutomationSummary, childDir);
@@ -290,7 +313,9 @@ async function runRealStage(stageId) {
   }
 
   if (stageId === "ui-server-cleanup") {
-    const cleanup = await stopUiThrowawayServer();
+    const cleanup = uiEnvironmentCleanup || await stopSelfContainedUiEnvironment(uiEnvironmentHandle);
+    uiEnvironmentCleanup = cleanup;
+    const cleanupErrors = validateUiEnvironmentCleanupEvidence(cleanup);
     if (uiAutomationSummary) {
       uiAutomationSummary.cleanup = cleanup;
       uiAutomationSummary.summaryPath = path.join(runDir, "ui-exact-424", "summary.json");
@@ -300,7 +325,9 @@ async function runRealStage(stageId) {
       };
       writeJson(path.join(runDir, "ui-exact-424", "summary.json"), uiAutomationSummary);
     }
-    if (cleanup.status !== "PASS") recordFailure(stageId, "stop exact UI throwaway server", "UI throwaway server/port cleanup failed", true);
+    if (cleanup.status !== "PASS" || cleanupErrors.length > 0) {
+      recordFailure(stageId, "stop exact UI throwaway server", `UI throwaway server/port cleanup failed: ${cleanupErrors.join("; ")}`, true);
+    }
     else stages.push(passStage(stageId, "stop exact UI throwaway server and verify ports", cleanup));
     return;
   }
@@ -405,6 +432,27 @@ async function runRealStage(stageId) {
 async function runFixtureStage(stageId) {
   if (options.fixtureFailStage === stageId) {
     recordFailure(stageId, `fixture fail ${stageId}`, `fixture failure at ${stageId}`);
+    return;
+  }
+  if (stageId === "ui-environment-bootstrap") {
+    uiEnvironmentHandle = await startSelfContainedUiEnvironment({
+      rootDir,
+      runId,
+      fixtureMode: true,
+      buildPath: options.uiBuildPath,
+    });
+    uiEnvironmentSummary = uiEnvironmentHandle.attestation;
+    stages.push(passStage(stageId, "fixture self-contained UI environment wiring", uiEnvironmentSummary));
+    return;
+  }
+  if (stageId === "ui-server-cleanup") {
+    uiEnvironmentCleanup = uiEnvironmentCleanup || await stopSelfContainedUiEnvironment(uiEnvironmentHandle);
+    const errors = validateUiEnvironmentCleanupEvidence(uiEnvironmentCleanup);
+    if (uiEnvironmentCleanup.status !== "PASS" || errors.length > 0) {
+      recordFailure(stageId, "fixture UI environment cleanup", errors.join("; ") || "fixture UI cleanup failed", true);
+    } else {
+      stages.push(passStage(stageId, "fixture UI environment cleanup", uiEnvironmentCleanup));
+    }
     return;
   }
   if (stageId === "cleanup" && options.fixtureCleanupFail) {
@@ -591,6 +639,26 @@ function buildActualSummary() {
     priorFirstFailure,
     localReadiness: stageStatus("feature-gates"),
     longrun30: childEvidence("server-longrun-30", longrun30Summary),
+    uiTemporaryRoot: uiEnvironmentSummary?.temporaryRoot || "",
+    uiEnvironment: uiEnvironmentSummary ? {
+      ...uiEnvironmentSummary,
+      cleanup: uiEnvironmentCleanup,
+    } : {
+      schema: "media-server.v390-acceptance-ui-environment.v1",
+      result: "not-run",
+      fixtureMode,
+      dependency: { status: "dependency-bootstrap-attestation", browserLaunchVerified: false },
+      secretHandling: "generated-secret-memory-only",
+      ownership: {
+        serverStartedByAcceptance: true,
+        portsAllocatedByAcceptance: true,
+        rolesSeededByAcceptance: true,
+        storageStatesGeneratedByAcceptance: true,
+        boundary: "self-contained-pid-port-artifact-ownership",
+      },
+      cleanup: uiEnvironmentCleanup,
+      evidenceBoundary: "environment bootstrap was not run",
+    },
     uiAutomation: childEvidence("ui-exact-424", uiAutomationSummary),
     longrun120: {
       decision: longrun120Decision,
@@ -640,6 +708,22 @@ function writeDryRun() {
     longrun30,
     longrun120: { status: "conditional-not-run", decision: "not-evaluated-by-dry-run", passSubstitution: false },
     uiAutomation,
+    uiTemporaryRoot: "",
+    uiEnvironment: {
+      schema: "media-server.v390-acceptance-ui-environment.v1",
+      result: "not-run-by-dry-run",
+      fixtureMode: false,
+      dependency: { status: "dependency-bootstrap-attestation", browserLaunchVerified: false },
+      secretHandling: "generated-secret-memory-only",
+      ownership: {
+        serverStartedByAcceptance: true,
+        portsAllocatedByAcceptance: true,
+        rolesSeededByAcceptance: true,
+        storageStatesGeneratedByAcceptance: true,
+        boundary: "self-contained-pid-port-artifact-ownership",
+      },
+      evidenceBoundary: "dry-run records ownership responsibility but starts no server/browser",
+    },
     policyV4Evaluation: null,
     uiFulltestQualification: evaluateV390FullSuiteEligibility({
       executionPassed: false,
@@ -706,6 +790,7 @@ function buildLongrun120Scope() {
     "scripts/internal/verify_predev_stability.sh",
     "scripts/internal/verify_v390_server_longrun.mjs",
     "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+    "scripts/internal/v390_acceptance_ui_environment.mjs",
     "scripts/internal/verify_v390_final_evidence_integrity.mjs",
   ].includes(file));
   if (cleanupFiles.length > 0) {
@@ -749,138 +834,44 @@ function validateExactUiSummary(payload, childDir) {
   return errors;
 }
 
-async function stopUiThrowawayServer() {
-  const pid = Number(options.uiServerPid || 0);
-  const httpPort = Number(new URL(options.uiHttpBase).port || 80);
-  const rtspPort = Number(options.uiRtspPort || 0);
-  const temporaryRoot = path.resolve(options.uiTemporaryRoot || ".");
-  const contained = isAllowedUiTemporaryRoot(temporaryRoot);
-  const existedBefore = contained && fs.existsSync(temporaryRoot);
-  const before = existedBefore ? scanArtifactTree(temporaryRoot) : { totalBytes: 0 };
-  const aliveBefore = Number.isInteger(pid) && pid > 1 && processIsAlive(pid);
-  let commandIdentity = "";
-  if (aliveBefore) {
-    try {
-      commandIdentity = execFileSync("ps", ["-p", String(pid), "-o", "command="], { encoding: "utf8" }).trim();
-    } catch {
-      commandIdentity = "";
+function validateUiEnvironmentCleanupEvidence(cleanup) {
+  const errors = [];
+  if (!cleanup || cleanup.status !== "PASS") errors.push("self-contained UI cleanup status is not PASS");
+  if (cleanup?.temporaryArtifactsRemoved !== true) errors.push("self-contained UI temporary artifacts remain");
+  if (cleanup?.serversStopped !== true || cleanup?.portsClean !== true) errors.push("self-contained UI process/ports are not clean");
+  if (cleanup?.runtimeEvidence === true) {
+    errors.push(...validateCleanupMeasurement(cleanup.measurement));
+    for (const item of cleanup.measurement?.ports || []) {
+      const listeners = listListenerPids(Number(item.port));
+      if (listeners.length > 0) errors.push(`throwaway-port-${item.port} gained a listener after cleanup: ${listeners.join(",")}`);
     }
-  }
-  const commandOwned = /(?:^|\/)media_server(?:\s|$)/.test(commandIdentity);
-  const portBefore = [httpPort, rtspPort].map(port => ({ port, listenerPidsBefore: listListenerPids(port) }));
-  const portsOwned = portBefore.every(item => item.listenerPidsBefore.length > 0 &&
-    item.listenerPidsBefore.every(ownerPid => ownerPid === pid));
-  let aliveAfter = aliveBefore;
-  if (aliveBefore && commandOwned && portsOwned && contained && existedBefore) {
-    process.kill(pid, "SIGTERM");
-    const deadline = Date.now() + 10000;
-    while (Date.now() < deadline && processIsAlive(pid)) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+    if (cleanup.verificationSource !== "pid-port-artifact-before-after-observation") {
+      errors.push("self-contained UI cleanup runtime verification source mismatch");
     }
-    aliveAfter = processIsAlive(pid);
-    if (!aliveAfter) fs.rmSync(temporaryRoot, { recursive: true, force: true });
+  } else if (![
+    "fixture-or-partial-filesystem-measurement-not-runtime-evidence",
+    "no-environment-acquired-no-cleanup-required",
+  ].includes(cleanup?.verificationSource)) {
+    errors.push("self-contained UI fixture/partial cleanup boundary mismatch");
   }
-  const ports = [];
-  for (const item of portBefore) {
-    ports.push({
-      ...item,
-      listenerPidsAfter: listListenerPids(item.port),
-      bindableAfter: await canListenPort(item.port),
-    });
-  }
-  const existsAfter = fs.existsSync(temporaryRoot);
-  const after = existsAfter ? scanArtifactTree(temporaryRoot) : { totalBytes: 0 };
-  const measurement = {
-    schema: "media-server.v390-cleanup-measurement.v1",
-    processes: [{
-      pid,
-      commandIdentity,
-      aliveBefore,
-      aliveAfter,
-      ownedPorts: portBefore.filter(item => item.listenerPidsBefore.includes(pid)).map(item => item.port),
-    }],
-    ports,
-    artifacts: [{
-      path: temporaryRoot,
-      contained,
-      existedBefore,
-      bytesBefore: Number(before.totalBytes || 0),
-      existsAfter,
-      bytesAfter: Number(after.totalBytes || 0),
-      removedBytes: Number(before.totalBytes || 0) - Number(after.totalBytes || 0),
-    }],
-  };
-  const measurementErrors = validateCleanupMeasurement(measurement);
-  const checks = [
-    { check: "throwaway-process-identity", status: commandOwned ? "PASS" : "FAIL", pid, commandIdentity },
-    { check: "throwaway-process-alive-before", status: aliveBefore ? "PASS" : "FAIL", pid, observed: aliveBefore },
-    { check: "throwaway-port-ownership-before", status: portsOwned ? "PASS" : "FAIL", pid, ports: portBefore },
-    { check: "throwaway-temporary-root-contained", status: contained && existedBefore ? "PASS" : "FAIL", path: temporaryRoot, contained, existedBefore, bytesBefore: Number(before.totalBytes || 0) },
-    { check: "throwaway-server-stopped", status: aliveBefore && !aliveAfter ? "PASS" : "FAIL", pid, observed: !aliveAfter },
-    ...ports.map(item => ({ check: `throwaway-port-${item.port}-clean`, status: item.listenerPidsAfter.length === 0 && item.bindableAfter ? "PASS" : "FAIL", ...item })),
-    { check: "throwaway-temporary-root-removed", status: existedBefore && !existsAfter && Number(after.totalBytes || 0) === 0 ? "PASS" : "FAIL", path: temporaryRoot, bytesBefore: Number(before.totalBytes || 0), bytesAfter: Number(after.totalBytes || 0) },
-    ...measurementErrors.map(error => ({ check: `measurement-${error}`, status: "FAIL", observed: error })),
-  ];
-  const serversStopped = aliveBefore && !aliveAfter;
-  const portsClean = ports.every(item => item.listenerPidsAfter.length === 0 && item.bindableAfter);
-  const temporaryArtifactsRemoved = existedBefore && !existsAfter && Number(after.totalBytes || 0) === 0;
-  const status = serversStopped && portsClean && temporaryArtifactsRemoved && checks.every(item => item.status === "PASS") ? "PASS" : "FAIL";
-  return {
-    status,
-    verificationSource: "pid-port-artifact-before-after-observation",
-    serversStopped,
-    coreServerStopped: serversStopped,
-    portsClean,
-    temporaryArtifactsRemoved,
-    removedTemporaryArtifacts: temporaryArtifactsRemoved ? [temporaryRoot] : [],
-    measurement,
-    measurementErrors,
-    checks,
-  };
-}
-
-function processIsAlive(pid) {
-  try { process.kill(pid, 0); return true; }
-  catch { return false; }
-}
-
-function listListenerPids(port) {
-  if (!Number.isInteger(port) || port <= 0 || port > 65535) return [];
-  try {
-    return [...new Set(execFileSync("lsof", ["-nP", `-iTCP:${port}`, "-sTCP:LISTEN", "-t"], { encoding: "utf8" })
-      .split(/\r?\n/).map(value => Number(value.trim())).filter(Number.isInteger))];
-  } catch {
-    return [];
-  }
-}
-
-function isAllowedUiTemporaryRoot(candidate) {
-  const allowedRoots = [...new Set([os.tmpdir(), "/tmp", "/private/tmp"].map(value => path.resolve(value)))];
-  return path.basename(candidate).startsWith("media_server_v390_ui-") && allowedRoots.some(root => isInside(root, candidate));
-}
-
-function canListenPort(port) {
-  return new Promise(resolve => {
-    if (!Number.isInteger(port) || port <= 0 || port > 65535) return resolve(false);
-    const server = net.createServer();
-    server.once("error", () => resolve(false));
-    server.listen(port, "127.0.0.1", () => server.close(() => resolve(true)));
-  });
+  return [...new Set(errors)];
 }
 
 function validateChildCleanup() {
   const errors = [];
   if (!fixtureMode && stageWasAttempted("server-longrun-30") && !longrun30Summary) errors.push("30-minute child cleanup summary missing");
+  if (!fixtureMode && stageWasAttempted("ui-environment-bootstrap") && !uiEnvironmentSummary) errors.push("self-contained UI environment summary missing");
+  if (!fixtureMode && stageWasAttempted("ui-environment-bootstrap") && !uiEnvironmentCleanup) errors.push("self-contained UI environment cleanup missing");
   if (!fixtureMode && stageWasAttempted("ui-exact-424") && !uiAutomationSummary) errors.push("UI child cleanup summary missing");
   if (!fixtureMode && stageWasAttempted("server-longrun-120") && !longrun120Summary) errors.push("120-minute child cleanup summary missing");
   if (!fixtureMode && longrun30Summary && (longrun30Summary.cleanup?.serverStopped !== true || longrun30Summary.cleanup?.portsClean !== true || longrun30Summary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("30-minute child cleanup failed");
   if (!fixtureMode && uiAutomationSummary && (uiAutomationSummary.cleanup?.serversStopped !== true || uiAutomationSummary.cleanup?.portsClean !== true || uiAutomationSummary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("UI child cleanup failed");
   if (!fixtureMode && longrun120Summary && (longrun120Summary.cleanup?.serverStopped !== true || longrun120Summary.cleanup?.portsClean !== true || longrun120Summary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("120-minute child cleanup failed");
   if (!fixtureMode && longrun30Summary?.cleanup?.verificationSource !== "pid-port-artifact-before-after-observation") errors.push("30-minute child cleanup source is not measured");
-  if (!fixtureMode && uiAutomationSummary?.cleanup?.verificationSource !== "pid-port-artifact-before-after-observation") errors.push("UI child cleanup source is not measured");
+  if (!fixtureMode && uiEnvironmentCleanup?.verificationSource !== "pid-port-artifact-before-after-observation") errors.push("UI environment cleanup source is not measured");
   if (!fixtureMode && longrun120Summary && longrun120Summary.cleanup?.verificationSource !== "pid-port-artifact-before-after-observation") errors.push("120-minute child cleanup source is not measured");
   if (!fixtureMode && longrun30Summary) errors.push(...validateCleanupMeasurement(longrun30Summary.cleanup?.measurement).map(error => `30-minute ${error}`));
-  if (!fixtureMode && uiAutomationSummary) errors.push(...validateCleanupMeasurement(uiAutomationSummary.cleanup?.measurement).map(error => `UI ${error}`));
+  if (!fixtureMode && uiEnvironmentCleanup?.runtimeEvidence === true) errors.push(...validateCleanupMeasurement(uiEnvironmentCleanup.measurement).map(error => `UI ${error}`));
   if (!fixtureMode && longrun120Summary) errors.push(...validateCleanupMeasurement(longrun120Summary.cleanup?.measurement).map(error => `120-minute ${error}`));
   return errors;
 }
@@ -1143,11 +1134,12 @@ function buildFeatureCommands() {
 
 function buildFinalAcceptanceCommandSet() {
   return [
-    { id: "actual-bundle", command: "./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final --ui-http-base <loopback-url> --ui-role-state-map <roles.json> --ui-server-log <server.log> --ui-server-pid <pid> --ui-rtsp-port <port> --ui-temporary-root <media_server_v390_ui-*> [--user-directed-120] [--run-120]", status: "actual-execution" },
+    { id: "actual-bundle", command: "./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final [--user-directed-120] [--run-120]", status: "actual-execution" },
     { id: "build", command: "./server.sh build", status: "executed-by-actual-bundle" },
     { id: "feature-gates", command: `${featureCommands.length} current feature commands`, status: "executed-by-actual-bundle" },
     { id: "server-longrun-30", command: "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir <run>/server-longrun-30", status: "executed-by-actual-bundle" },
-    { id: "ui-exact-424", command: "./server.sh run-v390-ui-native-exact-cases --output-dir <run>/ui-exact-424 --http-base <loopback-url> --role-state-map <roles.json> --server-log <server.log> --build-path <build>", status: "executed-by-actual-bundle" },
+    { id: "ui-environment-bootstrap", command: "create acceptance-owned temp root/server/auth roles/storage-state/runtime descriptor with dependency-bootstrap-attestation", status: "executed-by-actual-bundle" },
+    { id: "ui-exact-424", command: "./server.sh run-v390-ui-native-exact-cases --output-dir <run>/ui-exact-424 --http-base <owned-loopback-url> --role-state-map <owned-roles.json> --server-log <owned-server.log> --runtime-descriptor <owned-runtime.json> --build-path <build>", status: "executed-by-actual-bundle" },
     { id: "ui-server-cleanup", command: "verify explicit PID/port ownership, stop throwaway media_server, remove contained artifact root, and measure before/after bytes", status: "executed-by-actual-bundle" },
     { id: "ui-fulltest-qualification", command: "./server.sh verify-ui-fulltest-evidence-policy-v4 --summary <run>/ui-exact-424/summary.json --output-dir <run>/ui-fulltest-qualification --require-eligible", status: "executed-by-actual-bundle" },
     { id: "server-longrun-120", command: "./server.sh verify-v390-server-longrun --duration-minutes 120 --output-dir <run>/server-longrun-120", status: "AGENTS-7.6.2-runtime-decision" },
@@ -1159,15 +1151,9 @@ function parseArgs(args) {
   const parsed = {
     dryRun: false,
     outputDir: "",
-    uiHttpBase: "",
-    uiRoleStateMap: "",
-    uiServerLog: "",
-    uiServerPid: "",
-    uiRtspPort: "",
-    uiTemporaryRoot: "",
     uiPlaywrightModulePath: "",
     uiChromePath: "",
-    uiBuildPath: "build/media_server",
+    uiBuildPath: "build-gst-onnx/media_server",
     run120: false,
     userDirected120: false,
     fixturePass: false,
@@ -1179,12 +1165,6 @@ function parseArgs(args) {
     const arg = args[index];
     if (arg === "--dry-run") parsed.dryRun = true;
     else if (arg === "--output-dir") { parsed.outputDir = args[index + 1] || ""; index += 1; }
-    else if (arg === "--ui-http-base") { parsed.uiHttpBase = args[index + 1] || ""; index += 1; }
-    else if (arg === "--ui-role-state-map") { parsed.uiRoleStateMap = args[index + 1] || ""; index += 1; }
-    else if (arg === "--ui-server-log") { parsed.uiServerLog = args[index + 1] || ""; index += 1; }
-    else if (arg === "--ui-server-pid") { parsed.uiServerPid = args[index + 1] || ""; index += 1; }
-    else if (arg === "--ui-rtsp-port") { parsed.uiRtspPort = args[index + 1] || ""; index += 1; }
-    else if (arg === "--ui-temporary-root") { parsed.uiTemporaryRoot = args[index + 1] || ""; index += 1; }
     else if (arg === "--ui-playwright-module-path") { parsed.uiPlaywrightModulePath = args[index + 1] || ""; index += 1; }
     else if (arg === "--ui-chrome-path") { parsed.uiChromePath = args[index + 1] || ""; index += 1; }
     else if (arg === "--ui-build-path") { parsed.uiBuildPath = args[index + 1] || ""; index += 1; }

@@ -25,6 +25,7 @@ export const nativeCapabilities = [
   "request-correlation",
   "request-start-ledger",
   "network-quiet",
+  "role-session-switch",
 ];
 
 export function discoverPlaywrightCandidates(explicitModulePath = "") {
@@ -214,6 +215,20 @@ async function openNativePlaywrightPage(playwright, {
         })
         .finally(() => pendingSafeResponseReads.delete(read));
       pendingSafeResponseReads.add(read);
+    } else if (request.method() === "POST" && [
+      "/ops/api/users",
+      "/ops/api/invites",
+      "/client/api/access-requests",
+    ].includes(urlPath(response.url()))) {
+      const read = response.json()
+        .then(payload => {
+          entry.safeResponseBody = safeFormResponseProjection(urlPath(response.url()), payload);
+        })
+        .catch(() => {
+          entry.safeResponseBody = safeFormResponseProjection(urlPath(response.url()), null);
+        })
+        .finally(() => pendingSafeResponseReads.delete(read));
+      pendingSafeResponseReads.add(read);
     }
   });
   page.on("requestfinished", request => pendingRequests.delete(request));
@@ -239,6 +254,21 @@ async function openNativePlaywrightPage(playwright, {
       await context.setExtraHTTPHeaders(correlationId
         ? { "x-media-server-correlation-id": String(correlationId) }
         : {});
+    },
+    replaceStorageState: async (storageStatePath = "") => {
+      await context.clearCookies();
+      if (!storageStatePath) return;
+      const state = JSON.parse(fs.readFileSync(storageStatePath, "utf8"));
+      if (Array.isArray(state.cookies) && state.cookies.length > 0) {
+        await context.addCookies(state.cookies);
+      }
+      for (const origin of Array.isArray(state.origins) ? state.origins : []) {
+        if (!origin?.origin || !Array.isArray(origin.localStorage)) continue;
+        await page.goto(origin.origin, { waitUntil: "load", timeout: timeoutMs });
+        await page.evaluate(entries => {
+          for (const entry of entries) localStorage.setItem(entry.name, entry.value);
+        }, origin.localStorage);
+      }
     },
     request: async ({ method = "GET", urlPath }) => page.evaluate(async ({ requestMethod, requestPath }) => {
       const response = await fetch(requestPath, {
@@ -271,7 +301,8 @@ async function openNativePlaywrightPage(playwright, {
         const actionPending = [...pendingRequests.values()].some(item =>
           !correlationId || item.correlationId === correlationId);
         if (Date.now() - startedAt >= minimumObservationMs &&
-            !actionPending && Date.now() - quietStartedAt >= quietMs) {
+            !actionPending && pendingSafeResponseReads.size === 0 &&
+            Date.now() - quietStartedAt >= quietMs) {
           return {
             correlationId: correlationId || "",
             observedMs: Date.now() - startedAt,
@@ -570,16 +601,80 @@ function unique(values) {
 
 function safeRequestBodyProjection(request) {
   try {
-    if (request.method() !== "POST") return null;
+    if (!["POST", "PUT", "DELETE"].includes(request.method())) return null;
     const pathname = new URL(request.url()).pathname;
-    if (!/^\/client\/api\/views\/[^/]+\/webrtc\/session$/.test(pathname)) return null;
-    const parsed = JSON.parse(request.postData() || "{}");
-    return {
-      overlayMode: typeof parsed.overlayMode === "string" ? parsed.overlayMode : "",
-    };
+    if (/^\/client\/api\/views\/[^/]+\/webrtc\/session$/.test(pathname)) {
+      const parsed = JSON.parse(request.postData() || "{}");
+      return {
+        overlayMode: typeof parsed.overlayMode === "string" ? parsed.overlayMode : "",
+      };
+    }
+    const allowed = [
+      /^\/ops\/api\/(?:sources|views|onvif\/channels|vlm\/profiles|users|invites|access-requests|events\/reviews)(?:\/|$)/,
+      /^\/lab\/analysis\/(?:va-rules|rules|profiles)(?:\/|$)/,
+      /^\/client\/api\/(?:access-requests|preferences\/live-layout)$/,
+      /^\/(?:setup|login|logout|password\/change|invite\/setup)$/,
+    ];
+    if (!allowed.some(pattern => pattern.test(pathname))) return null;
+    const contentType = String(request.headers()["content-type"] || "");
+    let parsed = {};
+    if (contentType.includes("application/json")) {
+      parsed = JSON.parse(request.postData() || "{}");
+    } else {
+      parsed = Object.fromEntries(new URLSearchParams(request.postData() || ""));
+    }
+    return safePersistedRequestBodyProjection(parsed);
   } catch {
-    return { overlayMode: "" };
+    return { projectionError: true };
   }
+}
+
+function safePersistedRequestBodyProjection(value) {
+  const record = value && typeof value === "object" ? value : {};
+  const identity = source => ({
+    id: String(source?.id || ""),
+    sourceId: String(source?.sourceId || ""),
+    viewId: String(source?.viewId || ""),
+    channelId: String(source?.channelId || ""),
+    ruleId: String(source?.ruleId || ""),
+    profileId: String(source?.profileId || ""),
+    eventId: String(source?.eventId || ""),
+    username: String(source?.username || ""),
+  });
+  const result = {
+    identity: identity(record),
+    fieldNames: Object.keys(record).filter(name => !/password|token|confirm|credential|secret/i.test(name)).sort(),
+  };
+  if (record.source && typeof record.source === "object") result.sourceIdentity = identity(record.source);
+  if (record.publishedView && typeof record.publishedView === "object") {
+    result.publishedViewIdentity = identity(record.publishedView);
+  }
+  if (record.workspaceLayout && typeof record.workspaceLayout === "object") {
+    result.workspaceLayout = {
+      gridSize: Number(record.workspaceLayout.gridSize || 0),
+      density: String(record.workspaceLayout.density || ""),
+      dockSide: String(record.workspaceLayout.dockSide || ""),
+    };
+  }
+  if (typeof record.role === "string") result.role = record.role;
+  if (typeof record.reviewStatus === "string") result.reviewStatus = record.reviewStatus;
+  return result;
+}
+
+function safeFormResponseProjection(pathname, payload) {
+  const value = payload && typeof payload === "object" ? payload : {};
+  const record = value.accessRequest || value.invite || value.user || {};
+  const token = typeof value.invite?.token === "string" ? value.invite.token : "";
+  const setupUrl = typeof value.invite?.setupUrl === "string" ? value.invite.setupUrl : "";
+  return {
+    pathname,
+    status: String(value.status || record.status || ""),
+    username: String(record.username || ""),
+    requestId: String(record.requestId || ""),
+    inviteId: String(record.inviteId || ""),
+    tokenPresent: token.length > 0,
+    setupUrlTokenBound: Boolean(token && setupUrl.includes(encodeURIComponent(token))),
+  };
 }
 
 export function buildLiveSessionEvidence(entries, correlationId, tileIdentity, tileViewId) {

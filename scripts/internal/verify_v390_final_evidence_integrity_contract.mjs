@@ -101,7 +101,8 @@ check("canonical command substitution and command-set hash mismatch are rejected
   const workspace = makeFixture("command-substitution");
   const summaryPath = path.join(workspace, "summary.json");
   const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
-  summary.finalAcceptanceCommandSet[4].command = ["./server.sh", "verify-ui-fulltest", "legacy-8"].join("-");
+  summary.finalAcceptanceCommandSet.find(item => item.id === "ui-exact-424").command =
+    ["./server.sh", "verify-ui-fulltest", "legacy-8"].join("-");
   summary.canonicalCommandSetSha256 = "0".repeat(64);
   fs.writeFileSync(summaryPath, `${JSON.stringify(summary, null, 2)}\n`, "utf8");
   assert(runIntegrity(workspace, true).status !== 0, "canonical command substitution must fail");

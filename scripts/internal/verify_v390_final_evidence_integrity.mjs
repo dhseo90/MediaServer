@@ -107,6 +107,7 @@ check("canonical command set is exact and hash-bound", () => {
     "build",
     "feature-gates",
     "server-longrun-30",
+    "ui-environment-bootstrap",
     "ui-exact-424",
     "ui-server-cleanup",
     "ui-fulltest-qualification",
@@ -119,6 +120,7 @@ check("canonical command set is exact and hash-bound", () => {
     build: "./server.sh build",
     "feature-gates": "current feature commands",
     "server-longrun-30": "verify-v390-server-longrun --duration-minutes 30",
+    "ui-environment-bootstrap": "acceptance-owned temp root/server/auth roles/storage-state/runtime descriptor",
     "ui-exact-424": "run-v390-ui-native-exact-cases",
     "ui-server-cleanup": "PID/port ownership",
     "ui-fulltest-qualification": "verify-ui-fulltest-evidence-policy-v4",
@@ -221,6 +223,15 @@ check("top-level cleanup is measured", () => {
   assert(summary.cleanup?.duplicateScreenshotFilesAbsent === true, "duplicate screenshot cleanup failed");
   assert(Array.isArray(summary.cleanup?.checks) && summary.cleanup.checks.length >= 4, "top-level cleanup checks missing");
   assert(summary.cleanup.checks.every(item => item.status === "PASS"), "top-level cleanup contains failed check");
+  if (summary.executionMode === "actual") {
+    assert(summary.uiTemporaryRoot && summary.uiTemporaryRoot === summary.uiEnvironment?.temporaryRoot,
+      "acceptance UI temporary root binding mismatch");
+    const uiArtifacts = summary.uiEnvironment?.cleanup?.measurement?.artifacts || [];
+    const temporaryRootMeasurement = uiArtifacts.find(item => item.path === summary.uiTemporaryRoot);
+    assert(temporaryRootMeasurement?.contained === true && temporaryRootMeasurement?.existedBefore === true &&
+      temporaryRootMeasurement?.existsAfter === false && temporaryRootMeasurement?.bytesAfter === 0,
+    "acceptance UI temporary root cleanup measurement mismatch");
+  }
 });
 
 check("actual child evidence uses measured cleanup", () => {

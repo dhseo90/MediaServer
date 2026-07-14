@@ -16,7 +16,7 @@ const requiredRepresentativeScreens = Object.freeze([
   ["ops-dashboard", "UI-010", "/ops/dashboard", "operator"],
   ["ops-sources", "UI-011", "/ops/sources", "operator"],
   ["ops-rules", "UI-012", "/ops/rules", "operator"],
-  ["ops-users", "UI-013", "/ops/users", "operator"],
+  ["ops-users", "UI-013", "/ops/users", "admin"],
   ["ops-events", "UI-014", "/ops/events", "operator"],
   ["ops-vlm", "UI-022", "/ops/vlm", "operator"],
   ["client-live", "UI-015", "/client/live", "viewer"],

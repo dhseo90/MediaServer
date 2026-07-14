@@ -58,7 +58,7 @@ check("explicit missing module fails without fallback", () => {
 });
 
 check("adapter exposes native wait click fill type select screenshot", () => {
-  for (const capability of ["wait", "click", "fill", "type", "select", "screenshot", "evaluate", "request-correlation", "request-start-ledger", "network-quiet"]) {
+  for (const capability of ["wait", "click", "fill", "type", "select", "screenshot", "evaluate", "request-correlation", "request-start-ledger", "network-quiet", "role-session-switch"]) {
     assert(nativeCapabilities.includes(capability), `missing capability ${capability}`);
   }
   for (const snippet of ["waitForSelector", "page.locator(selector).click", "page.locator(selector).fill", "pressSequentially", "selectOption", "page.screenshot"]) {

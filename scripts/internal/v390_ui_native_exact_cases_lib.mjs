@@ -67,12 +67,13 @@ const endpointActionCases = new Set();
 const readOnlyBoundaryCases = new Set(["RULE-007", "RULE-025"]);
 const explicitHiddenControlCases = new Set(["RULE-017"]);
 const formMutationCases = new Set(["UI-004", "UI-005", "AUTH-036"]);
+const supportedAccountRoles = new Set(["anonymous", "admin", "operator", "viewer"]);
 const actionRoleOverrides = new Map([
-  ["AUTH-014", "operator"],
-  ["AUTH-015", "operator"],
-  ["AUTH-033", "operator"],
-  ["AUTH-037", "operator"],
-  ["AUTH-038", "operator"],
+  ["AUTH-014", "admin"],
+  ["AUTH-015", "admin"],
+  ["AUTH-033", "admin"],
+  ["AUTH-037", "admin"],
+  ["AUTH-038", "admin"],
   ["AUTH-039", "anonymous"],
 ]);
 const formSubmitOverrides = new Map([
@@ -466,6 +467,10 @@ export function buildNativeExactManifest({ canonical, implementation }) {
   assert(canonical?.schema === canonicalManifestSchema, "unexpected canonical manifest schema");
   assert(implementation?.schema === implementationManifestSchema, "unexpected implementation manifest schema");
   assert(Array.isArray(canonical.cases) && canonical.cases.length === 424, "canonical exact case count must be 424");
+  for (const item of canonical.cases) {
+    assert(supportedAccountRoles.has(item.accountRole),
+      `${item.testId} unsupported canonical account role: ${item.accountRole || "missing"}`);
+  }
   const implementationByManualId = new Map(
     implementation.items
       .filter(item => typeof item.manualUiCaseId === "string" && item.manualUiCaseId)
@@ -640,6 +645,7 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
     const item = manifest.cases[index];
     const expectedItem = expected.cases[index];
     assert(item.featureId === expectedItem.featureId, `${item.caseId} featureId drift`);
+    assert(supportedAccountRoles.has(item.accountRole), `${item.caseId} unsupported account role`);
     assert(item.accountRole === expectedItem.accountRole, `${item.caseId} accountRole drift`);
     assert(JSON.stringify(item.viewport) === JSON.stringify(expectedItem.viewport), `${item.caseId} viewport drift`);
     assert(item.theme === expectedItem.theme, `${item.caseId} theme drift`);
@@ -669,8 +675,8 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
     const primaryControl = item.workflow.primaryControl;
     assert(["required", "not-applicable"].includes(primaryControl?.applicability),
       `${item.caseId} primary control applicability missing`);
-    assert(typeof primaryControl.accountRole === "string" && primaryControl.accountRole.length > 0,
-      `${item.caseId} primary control account role missing`);
+    assert(supportedAccountRoles.has(primaryControl.accountRole),
+      `${item.caseId} primary control account role missing or unsupported`);
     const requiresActionRoleBinding = primaryControl.route !== item.screenRoute ||
       primaryControl.accountRole !== item.accountRole;
     const actionRoleBinding = item.workflow.setup.find(setup => setup.kind === "bind-action-role-session");
@@ -728,7 +734,8 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
         const inverseLocalCount = cleanup.inverseAction?.localAction ? 1 : 0;
         return ["restore-fixture-state", "delete-created-fixture"].includes(cleanup.kind) &&
           cleanup.beforeSnapshotRef && inverseCount + inverseLocalCount === 1 &&
-          cleanup.afterReadback?.identity && ["absent", "equal-before"].includes(cleanup.afterReadback?.expectation) &&
+          cleanup.afterReadback?.identity &&
+          ["absent", "equal-before", "inactive-or-equal-before"].includes(cleanup.afterReadback?.expectation) &&
           cleanup.readback?.identity;
       }), `${item.caseId} mutation cleanup inverse/readback missing`);
     } else {
@@ -1110,6 +1117,7 @@ function buildCaseNativeWorkflow({
       action: productAction.endpoint.path,
       fields: [...form.fields],
       inputId: `${caseId}:form-values`,
+      uiLifecycle: formSubmitUiLifecycle(caseId, form),
     }));
   } else if (workflowClass === "persisted-mutation") {
     controlSequence.push(nativeAction("wait-visible", {
@@ -1121,6 +1129,7 @@ function buildCaseNativeWorkflow({
       endpoint: productAction.endpoint || null,
       localAction: productAction.localAction || null,
       inputId: `${caseId}:mutation-fixture`,
+      uiLifecycle: persistedUiLifecycle(caseId, productAction, inputs),
     }));
   } else if (workflowClass === "actionable") {
     controlSequence.push(nativeAction("wait-visible", {
@@ -1208,55 +1217,50 @@ function buildCaseNativeWorkflow({
 function buildMutationCleanup({
   caseId,
   workflowClass,
-  semanticClassification,
   productAction,
   independentReadback,
 }) {
   const fixtureId = workflowFixtureId(caseId);
-  const created = semanticClassification.operation === "create" || [
-    "UI-002", "AUTH-005", "AUTH-006", "AUTH-014", "AUTH-015", "AUTH-033", "AUTH-036",
-  ].includes(caseId);
-  let inverseAction;
-  if (workflowClass === "form-submit") {
-    inverseAction = {
-      endpoint: null,
-      localAction: {
-        type: "restore-auth-fixture-snapshot",
-        target: fixtureId,
-        effect: "restore account/session/invite/request store and role session captured before submit",
-      },
-    };
-  } else if (productAction.endpoint?.path.includes("/approve") ||
-      productAction.endpoint?.path.includes("/reject") ||
-      !productAction.endpoint?.path.includes("{fixtureId}")) {
-    inverseAction = {
-      endpoint: null,
-      localAction: {
-        type: "restore-fixture-snapshot",
-        target: fixtureId,
-        effect: "restore exact persisted fixture bytes and registry state captured before mutation",
-      },
-    };
-  } else {
-    inverseAction = {
-      endpoint: {
-        method: created ? "DELETE" : "PUT",
-        path: productAction.endpoint.path,
-        allowedStatuses: created ? [200, 204, 404] : [200, 201],
-      },
-      localAction: null,
-    };
-  }
+  const endpointPath = String(productAction.endpoint?.path || "");
+  const sourceViewState = [
+    "/ops/api/sources/",
+    "/ops/api/views/",
+    "/ops/api/onvif/channels/",
+  ].some(prefix => endpointPath.startsWith(prefix));
+  const fileBackedState = workflowClass === "form-submit" ||
+    endpointPath === "/client/api/preferences/live-layout" ||
+    endpointPath.startsWith("/ops/api/users") ||
+    endpointPath.startsWith("/ops/api/invites") ||
+    endpointPath.startsWith("/ops/api/access-requests") ||
+    endpointPath.startsWith("/client/api/access-requests") ||
+    endpointPath.startsWith("/ops/api/events/reviews");
+  const restoreType = sourceViewState
+    ? "restore-source-view-snapshot"
+    : (fileBackedState
+        ? (workflowClass === "form-submit" ? "restore-auth-fixture-snapshot" : "restore-file-backed-fixture-snapshot")
+        : "restore-product-fixture-snapshot");
+  const inverseAction = {
+    endpoint: null,
+    localAction: {
+      type: restoreType,
+      target: fixtureId,
+      effect: sourceViewState
+        ? "restore an existing source/view pair or disable a suite-created pair before isolated server teardown"
+        : (fileBackedState
+            ? "restore every owned file-backed product state byte-for-byte"
+            : "restore or remove the product-memory fixture, then restore every owned state file byte-for-byte"),
+    },
+  };
   return {
-    kind: created ? "delete-created-fixture" : "restore-fixture-state",
+    kind: "restore-fixture-state",
     cleanupId: `${caseId}:restore-fixture`,
     fixtureId,
-    strategy: created ? "delete-and-confirm-absent" : "restore-before-snapshot",
+    strategy: "restore-before-snapshot",
     beforeSnapshotRef: `${caseId}:before-product-state`,
     inverseAction,
     afterReadback: {
       identity: `${independentReadback.identity}:cleanup`,
-      expectation: created ? "absent" : "equal-before",
+      expectation: sourceViewState ? "inactive-or-equal-before" : "equal-before",
       locator: structuredClone(independentReadback.locator),
     },
     readback: structuredClone(independentReadback),
@@ -1442,9 +1446,10 @@ function mutationProductAction(caseId, implementationItem, primaryControl) {
   if (["RULE-004", "RULE-005", "RULE-008"].includes(caseId)) {
     return endpoint("PUT", "/lab/analysis/va-rules/{fixtureId}");
   }
-  if (["RULE-011", "RULE-012", "RULE-030"].includes(caseId)) {
+  if (["RULE-011", "RULE-012"].includes(caseId)) {
     return endpoint("PUT", "/lab/analysis/va-rules/{fixtureId}");
   }
+  if (caseId === "RULE-030") return endpoint("PUT", "/lab/analysis/profiles/{fixtureId}");
   if (caseId === "RULE-016") {
     return endpoint("PUT", "/lab/analysis/va-rules/{fixtureId}", [200]);
   }
@@ -1586,7 +1591,7 @@ function buildWorkflowInputs({ canonicalCase, implementationItem, workflowClass,
 
 function persistedMutationInputValues(caseId) {
   if (caseId === "RULE-011") {
-    return { profileId: "review4-profile", expectedProfileMapping: true };
+    return { profileId: "9101", expectedProfileMapping: true };
   }
   if (caseId === "RULE-012") {
     return {
@@ -1620,7 +1625,98 @@ function formValues(caseId, fields) {
 }
 
 function workflowFixtureId(caseId) {
-  return caseId === "RULE-016" ? "39016" : `${caseId.toLowerCase()}-review4-fixture`;
+  if (/^RULE-\d+$/.test(caseId)) {
+    return String(3_920_000 + Number(caseId.replace(/\D/g, "")));
+  }
+  const channelCase = /^(?:SRC-(?:001|002|003|004|005|009|017|018|066)|UI-109)$/.exec(caseId);
+  if (channelCase) {
+    const digits = Number(caseId.replace(/\D/g, ""));
+    return String(3_900_000 + (caseId.startsWith("UI-") ? 100_000 : 0) + digits);
+  }
+  return `${caseId.toLowerCase()}-review4-fixture`;
+}
+
+function persistedUiLifecycle(caseId, productAction, inputs) {
+  const fixtureId = inputs.find(input => input.kind === "reversible-fixture-record")?.actualValue?.id ||
+    workflowFixtureId(caseId);
+  let adapter = "";
+  if (caseId === "UI-023") adapter = "vlm-profile-save";
+  else if (caseId === "UI-029") adapter = "vlm-profile-delete";
+  else if (["UI-109", "SRC-001", "SRC-002", "SRC-003", "SRC-004", "SRC-005", "SRC-009", "SRC-017", "SRC-018", "SRC-066"].includes(caseId)) adapter = "channel-source-view-pair";
+  else if (caseId === "AUTH-018") adapter = "auth-user-create";
+  else if (caseId === "AUTH-019") adapter = "auth-user-update";
+  else if (caseId === "AUTH-037") adapter = "auth-access-approve";
+  else if (caseId === "AUTH-038") adapter = "auth-access-reject";
+  else if (caseId === "AUTH-039") adapter = "auth-access-request-create";
+  else if (["RULE-004", "RULE-005", "RULE-008", "RULE-011", "RULE-012", "RULE-016"].includes(caseId)) adapter = "rule-va-save";
+  else if (caseId === "RULE-006") adapter = "rule-va-delete";
+  else if (["RULE-018", "RULE-019", "RULE-073", "RULE-075"].includes(caseId)) adapter = "rule-event-save";
+  else if (caseId === "RULE-020") adapter = "rule-event-delete";
+  else if (["RULE-022", "RULE-023", "RULE-030"].includes(caseId)) adapter = "rule-profile-save";
+  else if (caseId === "RULE-024") adapter = "rule-profile-delete";
+  else if (caseId === "EVT-021") adapter = "event-review-save";
+  else if (caseId === "CLIENT-009") adapter = "client-layout-save";
+  assert(adapter, `${caseId} persisted UI lifecycle adapter is not classified`);
+  let requestBinding = null;
+  if (adapter === "channel-source-view-pair") {
+    const atomicOnvif = ["UI-109", "SRC-066"].includes(caseId);
+    requestBinding = {
+      mode: atomicOnvif ? "atomic-pair" : "ordered-source-view-pair",
+      expectedRequests: atomicOnvif
+        ? [{ method: "PUT", pathTemplate: "/ops/api/onvif/channels/{fixtureId}" }]
+        : [
+            { method: "PUT", pathTemplate: "/ops/api/sources/{fixtureId}" },
+            { method: "PUT", pathTemplate: "/ops/api/views/{fixtureId}" },
+          ],
+    };
+  }
+  return {
+    schema: "media-server.v390-ui-persisted-lifecycle.v1",
+    adapter,
+    fixtureBinding: {
+      fixtureId,
+      requestMethod: productAction.endpoint?.method || "",
+      requestPathTemplate: productAction.endpoint?.path || "",
+    },
+    requestBinding,
+    requiredPhases: ["select-or-open", "populate-valid-product-input", "activate-primary-control", "correlated-request", "authoritative-readback"],
+  };
+}
+
+function formSubmitUiLifecycle(caseId, form) {
+  const entrySelector = caseId === "AUTH-014" ? "#add-user-btn" : null;
+  let adapter = "auth-standard-submit";
+  if (caseId === "AUTH-014") adapter = "auth-user-create";
+  else if (["AUTH-015", "AUTH-033"].includes(caseId)) adapter = "auth-invite-create";
+  else if (caseId === "AUTH-036") adapter = "auth-access-request-create";
+  else if (caseId === "UI-005") adapter = "auth-logout";
+  const fieldControls = form.fields.map(name => {
+    if (name === "role") return { name, control: "select" };
+    if (caseId === "AUTH-014" && name === "viewId") {
+      return {
+        name,
+        control: "hidden-binding",
+        bindingSelector: "[data-assignment-view]",
+        valueSource: "runtime-default-view",
+      };
+    }
+    return { name, control: "fill" };
+  });
+  return {
+    schema: "media-server.v390-ui-form-lifecycle.v1",
+    adapter,
+    formSelector: form.selector,
+    submitSelector: form.submitSelector,
+    entrySelector,
+    fieldControls,
+    requiredPhases: [
+      "enter-form-mode",
+      "populate-typed-controls",
+      "activate-submit-control",
+      "capture-correlated-response-identity",
+      "authoritative-readback",
+    ],
+  };
 }
 
 function localActionType(selector) {

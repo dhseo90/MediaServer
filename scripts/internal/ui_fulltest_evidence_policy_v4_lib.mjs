@@ -382,7 +382,7 @@ function loadCanonicalCaseBinding(policy, summary, rootDir, reasons) {
   for (const item of manifestCases) {
     if (!item?.testId || !item?.featureId) reasons.push("canonical-case-identity-missing");
     if (typeof item?.route !== "string" || !item.route.startsWith("/")) reasons.push("canonical-case-route-invalid");
-    if (!["anonymous", "operator", "viewer"].includes(item?.accountRole)) reasons.push("canonical-case-account-role-invalid");
+    if (!["anonymous", "admin", "operator", "viewer"].includes(item?.accountRole)) reasons.push("canonical-case-account-role-invalid");
     if (!Number.isInteger(item?.viewport?.width) || item.viewport.width <= 0 ||
         !Number.isInteger(item?.viewport?.height) || item.viewport.height <= 0) reasons.push("canonical-case-viewport-invalid");
     if (!["light", "dark"].includes(item?.theme)) reasons.push("canonical-case-theme-invalid");

@@ -19,6 +19,10 @@ import {
   runtimeObservedProjection,
   validateRequestedObservedEnvelope,
 } from "./v390_ui_requested_observed_schema.mjs";
+import {
+  createV390UiCaseRuntime,
+  seedExactAccessRequestFixture,
+} from "./v390_ui_case_runtime.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -27,6 +31,8 @@ const implementation = readJson("test/fixtures/project_feature_implementation_ev
 const manifest = readJson("test/fixtures/v390_ui_native_exact_cases.json");
 const runnerSource = fs.readFileSync(path.join(rootDir, "scripts/internal/run_v390_ui_native_exact_cases.mjs"), "utf8");
 const nativeLibrarySource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_native_exact_cases_lib.mjs"), "utf8");
+const runtimeSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_case_runtime.mjs"), "utf8");
+const environmentSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_acceptance_ui_environment.mjs"), "utf8");
 const producerSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_policy_v4_evidence_producer.mjs"), "utf8");
 const policyLibrarySource = fs.readFileSync(path.join(rootDir, "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs"), "utf8");
 const trackedFiles = new Set(execFileSync("git", ["ls-files"], { cwd: rootDir, encoding: "utf8" })
@@ -47,6 +53,54 @@ check("builder is deterministic and preserves exact case order", () => {
   assert(JSON.stringify(rebuilt) === JSON.stringify(manifest), "generated manifest drift");
   assert(JSON.stringify(manifest.cases.map(item => item.caseId)) ===
     JSON.stringify(canonical.cases.map(item => item.testId)), "canonical ordered IDs drift");
+});
+
+check("admin-only ops users cases and runtime role schema stay authoritative", () => {
+  const canonicalAdminCases = canonical.cases.filter(item => normalizeProductScreenRoute(item.route) === "/ops/users");
+  const nativeAdminCases = manifest.cases.filter(item => item.screenRoute === "/ops/users");
+  assert(canonicalAdminCases.length === 20, `canonical /ops/users case count mismatch: ${canonicalAdminCases.length}`);
+  assert(nativeAdminCases.length === 20, `native /ops/users case count mismatch: ${nativeAdminCases.length}`);
+  assert(canonicalAdminCases.every(item => item.accountRole === "admin"),
+    "canonical /ops/users cases must use the product admin role");
+  assert(nativeAdminCases.every(item => item.accountRole === "admin"),
+    "native /ops/users cases must use the product admin role");
+
+  const requested = canonicalRequestedProjection({
+    canonicalRoute: "/ops/users",
+    accountRole: "admin",
+    viewport: { width: 390, height: 844 },
+    theme: "light",
+    controlAction: { selector: "#user-save-selected", actionAnchor: "CreateAuthUser" },
+  });
+  const observed = expectedRuntimeObservation({
+    accountRole: "admin",
+    viewport: { width: 390, height: 844 },
+    theme: "light",
+    screenRoute: "/ops/users",
+    workflow: {
+      primaryControl: {
+        accountRole: "admin",
+        route: "/ops/users",
+        selector: "#user-save-selected",
+        applicability: "required",
+        expectedVisible: true,
+        expectedEnabled: true,
+      },
+    },
+  });
+  assert(validateRequestedObservedEnvelope({ requested, observed }).length === 0,
+    "requested/observed runtime schema rejected the product admin role");
+
+  const invalidCanonical = structuredClone(canonical);
+  invalidCanonical.cases[0].accountRole = "integrator";
+  let invalidRoleMessage = "";
+  try {
+    buildNativeExactManifest({ canonical: invalidCanonical, implementation });
+  } catch (error) {
+    invalidRoleMessage = String(error?.message || error);
+  }
+  assert(invalidRoleMessage.includes("unsupported canonical account role"),
+    `unsupported canonical account role was accepted: ${invalidRoleMessage}`);
 });
 
 check("API ownership routes normalize to product screens", () => {
@@ -161,6 +215,20 @@ check("REVIEW4-56 requires exact typed product workflows for all 424 cases", () 
       if (workflow.workflowClass === "form-submit") {
         assert(!hasMixedSuccessAndErrorStatuses(workflow.productAction.endpoint.allowedStatuses),
           `${item.caseId} form broad mixed success/error status set forbidden`);
+        const submitAction = workflow.controlSequence.find(action => action.kind === "submit-form");
+        assert(submitAction?.uiLifecycle?.schema === "media-server.v390-ui-form-lifecycle.v1" &&
+          submitAction.uiLifecycle.adapter && Array.isArray(submitAction.uiLifecycle.fieldControls),
+        `${item.caseId} typed form UI lifecycle missing`);
+        assert(submitAction.uiLifecycle.fieldControls.map(field => field.name).join(",") ===
+          submitAction.fields.join(","), `${item.caseId} typed form field order drift`);
+      }
+      if (workflow.workflowClass === "persisted-mutation") {
+        const persistedAction = workflow.controlSequence.find(action => action.kind === "execute-persisted-action");
+        assert(persistedAction?.uiLifecycle?.adapter && persistedAction.uiLifecycle.fixtureBinding?.fixtureId,
+          `${item.caseId} persisted UI lifecycle adapter/binding missing`);
+        assert(persistedAction.uiLifecycle.fixtureBinding.fixtureId ===
+          workflow.inputs.find(input => input.kind === "reversible-fixture-record")?.actualValue?.id,
+        `${item.caseId} persisted UI lifecycle fixture binding drift`);
       }
     } else {
       assert(workflow.productAction.localAction.type && workflow.productAction.localAction.target &&
@@ -183,7 +251,8 @@ check("REVIEW4-56 requires exact typed product workflows for all 424 cases", () 
         const inverseLocalCount = cleanup.inverseAction?.localAction ? 1 : 0;
         return ["restore-fixture-state", "delete-created-fixture"].includes(cleanup.kind) &&
           cleanup.beforeSnapshotRef && inverseCount + inverseLocalCount === 1 &&
-          cleanup.afterReadback?.identity && ["absent", "equal-before"].includes(cleanup.afterReadback?.expectation) &&
+          cleanup.afterReadback?.identity &&
+          ["absent", "equal-before", "inactive-or-equal-before"].includes(cleanup.afterReadback?.expectation) &&
           cleanup.readback?.identity && cleanup.readback?.locator?.file;
       }),
       `${item.caseId} mutation cleanup restore/delete readback missing`);
@@ -290,11 +359,11 @@ check("REVIEW4-56 requires exact typed product workflows for all 424 cases", () 
       `${caseId} rendered selector must be a visible read-model workflow`);
   }
   const crossRoleCases = new Map([
-    ["AUTH-014", "operator"],
-    ["AUTH-015", "operator"],
-    ["AUTH-033", "operator"],
-    ["AUTH-037", "operator"],
-    ["AUTH-038", "operator"],
+    ["AUTH-014", "admin"],
+    ["AUTH-015", "admin"],
+    ["AUTH-033", "admin"],
+    ["AUTH-037", "admin"],
+    ["AUTH-038", "admin"],
     ["AUTH-039", "anonymous"],
   ]);
   for (const [caseId, accountRole] of crossRoleCases) {
@@ -316,11 +385,11 @@ check("REVIEW4-56 requires exact typed product workflows for all 424 cases", () 
     }],
     ["AUTH-014", {
       selector: "#user-save-selected",
-      route: "/ops/users", accountRole: "operator", method: "POST", path: "/ops/api/users",
+      route: "/ops/users", accountRole: "admin", method: "POST", path: "/ops/api/users",
     }],
     ["AUTH-015", {
       selector: '#invite-create-form button[type="submit"]',
-      route: "/ops/users", accountRole: "operator", method: "POST", path: "/ops/api/invites",
+      route: "/ops/users", accountRole: "admin", method: "POST", path: "/ops/api/invites",
     }],
   ]);
   for (const [caseId, expected] of exactAuthWorkflowCases) {
@@ -341,7 +410,7 @@ check("REVIEW4-56 requires exact typed product workflows for all 424 cases", () 
     ["RULE-012", ["persisted-mutation", "#opsRulesComposerSave", "/lab/analysis/va-rules/{fixtureId}"]],
     ["RULE-016", ["persisted-mutation", "#opsRulesComposerSave", "/lab/analysis/va-rules/{fixtureId}"]],
     ["RULE-025", ["read-only-state", null, "/ops/rules"]],
-    ["RULE-030", ["persisted-mutation", "#opsRulesComposerSave", "/lab/analysis/va-rules/{fixtureId}"]],
+    ["RULE-030", ["persisted-mutation", "#opsRulesComposerSave", "/lab/analysis/profiles/{fixtureId}"]],
     ["RULE-073", ["persisted-mutation", "#opsRulesComposerSave", "/lab/analysis/rules/{fixtureId}"]],
     ["RULE-075", ["persisted-mutation", "#opsRulesComposerSave", "/lab/analysis/rules/{fixtureId}"]],
     ["RULE-101", ["actionable", "#opsRulesComposerSave", null]],
@@ -464,17 +533,247 @@ check("runner owns native execution, role state, first-fail, and artifact fields
     "runner unsupported setup kind",
     "runner unsupported action kind",
     "runner unsupported cleanup kind",
-    "cross-role action session adapter is unavailable",
-    "persisted workflow seed adapter is unavailable",
     "independent readback failed for",
     "primary action remained pending after independent readback",
-    "mutation cleanup adapter is unavailable",
   ]) {
     assert(runnerSource.includes(snippet), `runner explicit non-synthetic failure missing: ${snippet}`);
   }
+  for (const removedFailure of [
+    "cross-role action session adapter is unavailable",
+    "persisted workflow seed adapter is unavailable",
+    "runtime secret adapter is unavailable",
+    "mutation cleanup adapter is unavailable",
+  ]) {
+    assert(!runnerSource.includes(removedFailure), `runner still has an unavailable adapter boundary: ${removedFailure}`);
+  }
+  const runtimeModulePath = path.join(rootDir, "scripts/internal/v390_ui_case_runtime.mjs");
+  assert(fs.existsSync(runtimeModulePath), "exact case runtime owner module missing");
+  for (const snippet of [
+    "createV390UiCaseRuntime",
+    "prepareCase",
+    "freshRoleStorageState",
+    "resolveSecretRef",
+    "switchActionRoleSession",
+    "restoreCase",
+    "verifyCleanupReadback",
+  ]) {
+    assert(runtimeSource.includes(snippet), `exact case runtime owner missing ${snippet}`);
+    assert(runnerSource.includes(snippet), `exact runner is not wired to ${snippet}`);
+  }
+  const persistedSeedCount = manifest.cases.filter(item => item.workflow.setup.some(setup =>
+    setup.kind === "seed-reviewed-state" && setup.persistedMutation === true)).length;
+  const mutationCleanupCount = manifest.cases.filter(item => item.workflow.cleanup.some(cleanup =>
+    ["restore-fixture-state", "delete-created-fixture"].includes(cleanup.kind))).length;
+  const crossRoleCount = manifest.cases.filter(item => item.workflow.setup.some(setup =>
+    setup.kind === "bind-action-role-session" && setup.accountRole !== item.accountRole)).length;
+  const secretRefCount = manifest.cases.filter(item => JSON.stringify(item.workflow.inputs).includes("secretRef")).length;
+  assert(persistedSeedCount === 50, `persisted seed closure drift: ${persistedSeedCount}/50`);
+  assert(mutationCleanupCount === 50, `mutation cleanup closure drift: ${mutationCleanupCount}/50`);
+  assert(crossRoleCount === 6, `cross-role closure drift: ${crossRoleCount}/6`);
+  assert(secretRefCount === 11, `secretRef case closure drift: ${secretRefCount}/11`);
   assert(runnerSource.indexOf("validateRunnerWorkflowCompatibility(manifest.cases)") <
     runnerSource.indexOf("if (options.planOnly)"),
   "plan-only must validate runner workflow compatibility before reporting PASS");
+});
+
+check("self-contained runtime closes invite, auth readback, preference, and visual-session gaps", () => {
+  for (const snippet of [
+    "normalizeInviteSeedResponse",
+    "seedExactAccessRequestFixture",
+    "resolveAuthoritativeReadback",
+    "cleanupExpectedRecord",
+    "freshAuthoritativeReadback",
+    "verifyMutationReadback",
+  ]) {
+    assert(runtimeSource.includes(snippet), `case runtime missing P0 closure: ${snippet}`);
+  }
+  const accessStoreRoot = fs.mkdtempSync("/private/tmp/media_server_v390_ui-access-seed-");
+  try {
+    const usersFile = path.join(accessStoreRoot, "users.json");
+    fs.writeFileSync(usersFile, '{"users":[],"invites":[],"accessRequests":[]}\n', { mode: 0o600 });
+    const seeded = seedExactAccessRequestFixture(usersFile, {
+      requestId: "reviewed-request-id",
+      username: "reviewed-request-user",
+      viewId: "9001",
+    });
+    const stored = JSON.parse(fs.readFileSync(usersFile, "utf8")).accessRequests;
+    assert(seeded.requestId === "reviewed-request-id" && stored.length === 1 &&
+      stored[0].requestId === "reviewed-request-id" && stored[0].status === "pending",
+    "access-request seed did not preserve the reviewed fixture identity/status");
+  } finally {
+    fs.rmSync(accessStoreRoot, { recursive: true, force: true });
+  }
+  assert(!runtimeSource.includes("fetch(`${httpBase}/client/api/access-requests`"),
+    "access-request seed must not accept a random product-generated ID");
+  assert(runtimeSource.includes('inviteId || value?.requestId'),
+    "authoritative record identity must include inviteId/requestId");
+  assert(runtimeSource.includes('mode: "whole-response"'),
+    "client preference cleanup must compare the authoritative whole response");
+  for (const collection of [
+    '"/ops/api/sources"',
+    '"/ops/api/views"',
+    '"/ops/api/users"',
+    '"/ops/api/access-requests"',
+  ]) {
+    assert(runtimeSource.includes(collection), `authoritative collection readback missing: ${collection}`);
+  }
+  assert(runtimeSource.includes('mode: "source-view-pair"'),
+    "ONVIF/source channel cleanup must use paired source/view readback");
+  assert(runtimeSource.includes("buildOnvifPairPayload"),
+    "ONVIF runtime seed/restore must use the product source+publishedView schema");
+  assert(!runtimeSource.includes("if (!allowedStatuses.includes(response.status) && !tolerate)"),
+    "runtime readback must not tolerate undeclared 401/405/500 responses");
+
+  assert(environmentSource.includes('.media_server.client_live_layout_preferences.jsonl'),
+    "self-contained environment does not own the product preference storage path");
+  assert(!environmentSource.includes('path.join(state.temporaryRoot, "ui-preferences.json")'),
+    "self-contained environment still snapshots a non-product preference file");
+
+  const visualFunction = runnerSource.slice(
+    runnerSource.indexOf("async function executeVisualMatrix"),
+    runnerSource.indexOf("async function executeWorkflowSetup"),
+  );
+  assert(visualFunction.includes("caseRuntime.freshRoleStorageState"),
+    "visual matrix must acquire a fresh role session for every probe");
+  assert(!visualFunction.includes("resolveRoleState("),
+    "visual matrix must not reuse bootstrap storage state after exact mutations");
+
+  const adapterSource = fs.readFileSync(path.join(rootDir, "scripts/internal/v390_ui_native_adapter.mjs"), "utf8");
+  for (const snippet of ["safePersistedRequestBodyProjection", "safeFormResponseProjection"]) {
+    assert(adapterSource.includes(snippet), `native adapter safe identity capture missing: ${snippet}`);
+  }
+  assert(!adapterSource.includes("safeResponseBody = payload"),
+    "native adapter must not persist raw form responses containing invite/auth material");
+
+  for (const snippet of [
+    "preparePersistedUiLifecycle",
+    "assertPersistedRequestBinding",
+    "prepareFormSubmitUiLifecycle",
+    "applyTypedFormInputs",
+    "captureFormResponseIdentity",
+    "runtimeMutationReadback",
+    "primaryFailure",
+    "cleanupFailure",
+    "browserCloseFailure",
+  ]) {
+    assert(runnerSource.includes(snippet), `exact runner P0/P1 lifecycle closure missing: ${snippet}`);
+  }
+  const persistedCases = manifest.cases.filter(item => item.workflow.workflowClass === "persisted-mutation");
+  assert(persistedCases.length === 35, `persisted lifecycle count drift: ${persistedCases.length}/35`);
+  assert(new Set(persistedCases.map(item => item.workflow.controlSequence
+    .find(action => action.kind === "execute-persisted-action")?.uiLifecycle?.adapter)).size >= 8,
+  "persisted workflows must use domain-specific UI lifecycle adapters");
+  const channelCases = persistedCases.filter(item => item.workflow.controlSequence
+    .find(action => action.kind === "execute-persisted-action")?.uiLifecycle?.adapter === "channel-source-view-pair");
+  assert(channelCases.length === 10 && channelCases.every(item => {
+    const binding = item.workflow.controlSequence
+      .find(action => action.kind === "execute-persisted-action")?.uiLifecycle?.requestBinding;
+    return ["atomic-pair", "ordered-source-view-pair"].includes(binding?.mode) &&
+      Array.isArray(binding.expectedRequests) &&
+      binding.expectedRequests.length === (binding.mode === "atomic-pair" ? 1 : 2);
+  }), "channel workflows must bind the atomic ONVIF or ordered source/view request transaction");
+  const formCases = manifest.cases.filter(item => item.workflow.workflowClass === "form-submit");
+  assert(formCases.length === 15, `form lifecycle count drift: ${formCases.length}/15`);
+  assert(formCases.every(item => item.workflow.controlSequence.find(action => action.kind === "submit-form")
+    ?.uiLifecycle?.fieldControls.every(field => ["fill", "select", "check", "hidden-binding"].includes(field.control))),
+  "form workflows must classify every field by typed UI control");
+  for (const snippet of ["liveGridSize", "liveDensity", "liveDockSide", "ordered-source-view-pair"]) {
+    assert(runnerSource.includes(snippet), `persisted UI lifecycle mutation/binding closure missing: ${snippet}`);
+  }
+
+  for (const caseId of ["SRC-001", "SRC-002", "SRC-003", "SRC-004", "SRC-005", "SRC-017"]) {
+    const cleanup = manifest.cases.find(item => item.caseId === caseId)?.workflow.cleanup[0];
+    assert(cleanup?.inverseAction?.localAction?.type === "restore-source-view-snapshot" &&
+      cleanup.afterReadback?.expectation === "inactive-or-equal-before",
+    `${caseId} soft-delete endpoint must not masquerade as absent cleanup`);
+  }
+  const mutationCases = manifest.cases.filter(item =>
+    ["persisted-mutation", "form-submit"].includes(item.workflow.workflowClass));
+  assert(mutationCases.every(item => {
+    const cleanup = item.workflow.cleanup.find(candidate =>
+      ["restore-fixture-state", "delete-created-fixture"].includes(candidate.kind));
+    return cleanup?.inverseAction?.localAction?.type?.startsWith("restore-") &&
+      ["equal-before", "inactive-or-equal-before"].includes(cleanup.afterReadback?.expectation);
+  }), "every persisted/form mutation must restore owned state or prove source/view inactive isolation");
+  for (const snippet of ["restoreProductMutationState", "restoreSourceViewState"]) {
+    assert(runtimeSource.includes(snippet), `runtime product-memory cleanup closure missing: ${snippet}`);
+  }
+
+  for (const snippet of [
+    "roleStateMapPath",
+    "storageStatePaths",
+    "serverLogPath",
+    "registrySeedPayloadPaths",
+    "artifactPaths",
+    "loopback",
+  ]) {
+    assert(runtimeSource.includes(snippet), `runtime descriptor containment closure missing: ${snippet}`);
+  }
+});
+
+check("case runtime keeps generated secrets ephemeral and rejects state path escape", () => {
+  const temporaryRoot = fs.mkdtempSync("/private/tmp/media_server_v390_ui-case-runtime-");
+  try {
+    const stateFile = path.join(temporaryRoot, "users.json");
+    const roleMapPath = path.join(temporaryRoot, "roles.json");
+    const descriptorPath = path.join(temporaryRoot, "descriptor.json");
+    const serverLogPath = path.join(temporaryRoot, "server.log");
+    const eventStoragePath = path.join(temporaryRoot, "events.jsonl");
+    fs.writeFileSync(stateFile, '{"users":[]}\n', { mode: 0o600 });
+    fs.writeFileSync(roleMapPath, `${JSON.stringify({ schema: "media-server.v390-ui-role-state-map.v1", roles: {} })}\n`, { mode: 0o600 });
+    fs.writeFileSync(serverLogPath, "", { mode: 0o600 });
+    fs.writeFileSync(eventStoragePath, "", { mode: 0o600 });
+    const descriptorFixture = stateFiles => ({
+      schema: "media-server.v390-ui-runtime-descriptor.v1",
+      temporaryRoot,
+      httpBase: "http://127.0.0.1:1",
+      httpPort: 1,
+      roleStateMapPath: roleMapPath,
+      serverLogPath,
+      eventStoragePath,
+      registrySeedPayloadPaths: {},
+      artifactPaths: {},
+      stateFiles,
+      auth: { usersFile: stateFile, usernames: { operator: "operator" }, storageStatePaths: {} },
+    });
+    fs.writeFileSync(descriptorPath, `${JSON.stringify({
+      ...descriptorFixture([stateFile]),
+    })}\n`, { mode: 0o600 });
+    const runtime = createV390UiCaseRuntime({
+      rootDir,
+      httpBase: "http://127.0.0.1:1",
+      runtimeDescriptorPath: descriptorPath,
+      roleStateMapPath: roleMapPath,
+      roleSecretsJson: JSON.stringify({ roles: { operator: "contract-current-secret" }, refs: {} }),
+    });
+    const item = { caseId: "CONTRACT", accountRole: "operator" };
+    const generated = runtime.resolveSecretRef("CONTRACT:fixture-password", { item, field: "password" });
+    assert(generated === runtime.resolveSecretRef("CONTRACT:fixture-password", { item, field: "confirm" }),
+      "same runtime secretRef must resolve consistently inside one case runtime");
+    assert(generated !== "contract-current-secret" && generated.length >= 24,
+      "new fixture password must be generated independently of the current role password");
+    assert(runtime.resolveSecretRef("CONTRACT:fixture-current-password", { item, field: "currentPassword" }) === "contract-current-secret",
+      "current-password secretRef must bind the actual role credential");
+    assert(!fs.readFileSync(descriptorPath, "utf8").includes(generated),
+      "generated runtime secret leaked into the safe descriptor");
+
+    const escapedPath = path.join("/private/tmp", `v390-case-runtime-escape-${process.pid}.json`);
+    fs.writeFileSync(escapedPath, "{}\n", { mode: 0o600 });
+    fs.writeFileSync(descriptorPath, `${JSON.stringify({
+      ...descriptorFixture([escapedPath]),
+      auth: { usersFile: stateFile, usernames: {}, storageStatePaths: {} },
+    })}\n`, { mode: 0o600 });
+    let rejected = false;
+    try {
+      createV390UiCaseRuntime({ rootDir, httpBase: "http://127.0.0.1:1", runtimeDescriptorPath: descriptorPath, roleStateMapPath: roleMapPath });
+    } catch (error) {
+      rejected = String(error.message).includes("escapes temporary root");
+    }
+    fs.rmSync(escapedPath, { force: true });
+    assert(rejected, "runtime descriptor accepted a state file outside its temporary root");
+  } finally {
+    fs.rmSync(temporaryRoot, { recursive: true, force: true });
+  }
 });
 
 check("canonical requested route and runtime screen route are explicit projections", () => {

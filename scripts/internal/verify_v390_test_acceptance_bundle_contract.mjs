@@ -21,6 +21,8 @@ Usage:
 
 Checks:
   - acceptance bundle dry-run command exists
+  - canonical actual command owns throwaway server, auth roles, storage-state, browser dependencies, and cleanup
+  - external HTTP/PID/log/role-state/port/temp-root injection options are rejected
   - actual-mode fixture executes the fixed stage order
   - current final actual mode treats 120 minutes as AGENTS 7.6.2 conditional and rejects a dirty worktree before build
   - first failure makes later stages not-run while cleanup/report still execute
@@ -36,6 +38,7 @@ const command = "verify-v390-test-acceptance-bundle";
 const contractCommand = "verify-v390-test-acceptance-bundle-contract";
 const script = "verify_v390_test_acceptance_bundle.mjs";
 const contractScript = "verify_v390_test_acceptance_bundle_contract.mjs";
+const environmentScript = "v390_acceptance_ui_environment.mjs";
 const checks = [];
 const temporaryOutputDirs = new Set();
 process.on("exit", () => {
@@ -44,6 +47,7 @@ process.on("exit", () => {
 
 const files = {
   bundle: readText("scripts/internal/verify_v390_test_acceptance_bundle.mjs"),
+  uiEnvironment: readText("scripts/internal/v390_acceptance_ui_environment.mjs"),
   serverSh: readText("server.sh"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   streamVerification: readText("docs/stream-verification.md"),
@@ -70,6 +74,43 @@ check("canonical source removes legacy 8-case and external summary injection", (
     "verify-ui-fulltest-evidence-policy-v4",
     "verify-v390-final-evidence-integrity",
   ]) assertIncludes(files.bundle, snippet, "canonical exact/Policy/final source");
+});
+
+check("canonical actual command owns the complete throwaway UI environment", () => {
+  assert(fs.existsSync(path.join(rootDir, "scripts/internal", environmentScript)),
+    `missing self-contained UI environment helper: ${environmentScript}`);
+  for (const removedOption of [
+    "--ui-http-base",
+    "--ui-role-state-map",
+    "--ui-server-log",
+    "--ui-server-pid",
+    "--ui-rtsp-port",
+    "--ui-temporary-root",
+  ]) {
+    assert(!files.bundle.includes(removedOption), `canonical bundle still accepts external runtime input: ${removedOption}`);
+  }
+  for (const snippet of [
+    '"ui-environment-bootstrap"',
+    "startSelfContainedUiEnvironment",
+    "dependency-bootstrap-attestation",
+    "generated-secret-memory-only",
+    "role-storage-state-generated-by-acceptance",
+    "self-contained-pid-port-artifact-ownership",
+  ]) assertIncludes(files.bundle, snippet, "self-contained acceptance source");
+  for (const snippet of [
+    "JSON.stringify({ roles: secrets, refs: { fixturePassword } })",
+    "usersFile: state.usersPath",
+    "defaultViewId: state.viewId",
+  ]) assertIncludes(files.uiEnvironment, snippet, "self-contained runtime consumer contract");
+
+  const rejected = runBundle([
+    "--output-dir", fixtureDir("external-input-rejected"),
+    "--fixture-pass",
+    "--ui-http-base", "http://127.0.0.1:1",
+  ]);
+  assert(rejected.status !== 0, "removed external UI runtime option must be rejected");
+  assert(`${rejected.stdout}\n${rejected.stderr}`.includes("unknown option: --ui-http-base"),
+    "removed external UI runtime option rejection reason missing");
 });
 
 check("server.sh and script inventory expose R3 acceptance bundle commands", () => {
@@ -140,9 +181,29 @@ check("actual-mode fixture executes the fixed stage order and conditional 120 de
   assert(summary.result === "PASS", "fixture pass result mismatch");
   assert(summary.stopOnFirstFail === true, "fixture stopOnFirstFail missing");
   assert(JSON.stringify(summary.stageOrder) === JSON.stringify([
-    "preflight", "build", "feature-gates", "server-longrun-30", "ui-exact-424", "ui-server-cleanup",
+    "preflight", "build", "feature-gates", "server-longrun-30", "ui-environment-bootstrap", "ui-exact-424", "ui-server-cleanup",
     "ui-fulltest-qualification", "longrun-120-decision", "server-longrun-120", "cleanup", "final-integrity", "report",
   ]), "fixture stage order mismatch");
+  assert(summary.uiEnvironment?.schema === "media-server.v390-acceptance-ui-environment.v1",
+    "self-contained UI environment schema missing");
+  assert(summary.uiEnvironment?.ownership?.serverStartedByAcceptance === true,
+    "acceptance must own the UI server process");
+  assert(summary.uiEnvironment?.ownership?.portsAllocatedByAcceptance === true,
+    "acceptance must own HTTP/RTSP port allocation");
+  assert(summary.uiEnvironment?.ownership?.rolesSeededByAcceptance === true,
+    "acceptance must seed auth roles");
+  assert(summary.uiEnvironment?.ownership?.storageStatesGeneratedByAcceptance === true,
+    "acceptance must generate role storage-state files");
+  assert(summary.uiEnvironment?.runtimeDescriptor?.auth?.usersFile,
+    "runtime descriptor auth usersFile missing");
+  assert(summary.uiEnvironment?.runtimeDescriptor?.auth?.defaultViewId === "9001",
+    "runtime descriptor auth defaultViewId mismatch");
+  assert(summary.uiEnvironment?.dependency?.status === "dependency-bootstrap-attestation",
+    "browser dependency bootstrap attestation missing");
+  assert(summary.uiEnvironment?.secretHandling === "generated-secret-memory-only",
+    "generated secrets must remain memory-only");
+  assert(!JSON.stringify(summary).includes("fixture-password-value"),
+    "acceptance summary serialized a fixture password");
   assert(summary.stages.find(item => item.id === "ui-fulltest-qualification")?.status === "PASS",
     "fixture orchestration qualification phase must execute as a contract phase");
   assert(summary.automatedAcceptanceStatus === "executed-with-known-ui-closure-blockers",
@@ -180,7 +241,7 @@ check("actual-mode fixture stops on first failure and still runs cleanup/report"
   assert(summary.firstFailure?.stage === "feature-gates", "firstFailure stage mismatch");
   assert(summary.firstFailure?.command === "fixture fail feature-gates", "firstFailure command mismatch");
   assert(summary.firstFailure?.context?.includes("fixture failure at feature-gates"), "firstFailure context missing");
-  for (const id of ["server-longrun-30", "ui-exact-424", "ui-fulltest-qualification", "longrun-120-decision", "server-longrun-120", "final-integrity"]) {
+  for (const id of ["server-longrun-30", "ui-environment-bootstrap", "ui-exact-424", "ui-fulltest-qualification", "longrun-120-decision", "server-longrun-120", "final-integrity"]) {
     assert(summary.stages.find(item => item.id === id)?.status === "not-run", `${id} must be not-run after failure`);
   }
   assert(summary.stages.find(item => item.id === "cleanup")?.status === "PASS", "cleanup must run after failure");

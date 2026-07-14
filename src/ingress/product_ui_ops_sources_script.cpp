@@ -1057,6 +1057,8 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       channelForm.elements.group.value = source.group || source.ownerGroup || '';
       channelForm.elements.floor.value = source.floor || '';
       channelForm.elements.zone.value = source.zone || '';
+      channelForm.elements.allowedRuleIds.value = Array.isArray(view.allowedRuleIds) ? view.allowedRuleIds.join(', ') : '';
+      channelForm.elements.clientGroups.value = Array.isArray(view.clientGroups) ? view.clientGroups.join(', ') : '';
       currentChannelEnabled = isClone ? false : (source.enabled !== false && view.enabled !== false);
       if (isClone && channelForm.elements.displayName.value) {
         channelForm.elements.displayName.value = `${channelForm.elements.displayName.value} 복제`;
@@ -1267,12 +1269,12 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         displayName: data.displayName,
         sourceId: channelId,
         defaultRuleId: '',
-        allowedRuleIds: [],
+        allowedRuleIds: String(data.allowedRuleIds || '').split(/[\s,]+/).map(item => item.trim()).filter(Boolean),
         allowedOverlayModes: ['raw', 'va-overlay', 'va-rule'],
         showDashboard: true,
         showEvents: true,
         showMetadataSummary: true,
-        clientGroups: [],
+        clientGroups: String(data.clientGroups || '').split(/[\s,]+/).map(item => item.trim()).filter(Boolean),
         maxTiles: 1,
         enabled: currentChannelEnabled
       };

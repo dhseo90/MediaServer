@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { createNativePlaywrightAdapter } from "./v390_ui_native_adapter.mjs";
+import { createV390UiCaseRuntime } from "./v390_ui_case_runtime.mjs";
 import { domSnapshotDigest, evaluateCompletionOracle } from "./v390_ui_completion_oracle_lib.mjs";
 import { validateNativeExactManifest } from "./v390_ui_native_exact_cases_lib.mjs";
 import { producePolicyV4Evidence } from "./v390_ui_policy_v4_evidence_producer.mjs";
@@ -44,7 +45,6 @@ const supportedActionKinds = Object.freeze([
   "wait-visible",
 ]);
 const supportedCleanupKinds = Object.freeze([
-  "delete-created-fixture",
   "no-op-cleanup",
   "restore-fixture-state",
   "restore-local-control",
@@ -108,6 +108,14 @@ const adapter = await createNativePlaywrightAdapter({
   modulePath: options.playwrightModulePath,
   chromePath: options.chromePath,
 });
+const caseRuntime = createV390UiCaseRuntime({
+  rootDir,
+  httpBase: options.httpBase,
+  runtimeDescriptorPath: options.runtimeDescriptor,
+  roleStateMapPath: options.roleStateMap,
+});
+assert(typeof caseRuntime.verifyCleanupReadback === "function",
+  "exact case runtime verifyCleanupReadback owner missing");
 
 const results = [];
 let stopped = false;
@@ -135,7 +143,7 @@ for (const item of manifest.cases) {
 const fail = results.filter(item => item.status === "FAIL").length;
 const notRun = results.filter(item => item.status === "not-run").length;
 const visualMatrixProbes = fail === 0 && notRun === 0
-  ? await executeVisualMatrix(adapter, roleStateMap)
+  ? await executeVisualMatrix(adapter)
   : [];
 deduplicateScreenshotArtifacts([...results, ...visualMatrixProbes]);
 const produced = producePolicyV4Evidence({
@@ -158,17 +166,33 @@ printSummary(summary, summaryPath);
 if (summary.result !== "PASS") process.exit(1);
 
 async function executeCase(item, adapter, roleStateMap, serverLogPath) {
-  const storageStatePath = resolveRoleState(item.accountRole, roleStateMap);
-  const browser = await adapter.openPage({
-    httpBase: options.httpBase,
-    pagePath: item.screenRoute,
-    timeoutMs: options.timeoutMs,
-    width: item.viewport.width,
-    height: item.viewport.height,
-    storageStatePath,
-    colorScheme: item.theme,
-    navigationCorrelationId: item.actions[0].semanticCompletion.correlationId,
-  });
+  const caseContext = await caseRuntime.prepareCase(item);
+  const storageStatePath = caseContext.primaryRoleStatePath || resolveRoleState(item.accountRole, roleStateMap);
+  let browser = null;
+  try {
+    browser = await adapter.openPage({
+      httpBase: options.httpBase,
+      pagePath: item.screenRoute,
+      timeoutMs: options.timeoutMs,
+      width: item.viewport.width,
+      height: item.viewport.height,
+      storageStatePath,
+      colorScheme: item.theme,
+      navigationCorrelationId: item.actions[0].semanticCompletion.correlationId,
+    });
+  } catch (error) {
+    let cleanupFailure = null;
+    try {
+      await caseRuntime.restoreCase(item, caseContext);
+    } catch (cleanupError) {
+      cleanupFailure = cleanupError;
+    }
+    throw caseExecutionFailure(item.caseId, {
+      primaryFailure: error,
+      cleanupFailure,
+      browserCloseFailure: null,
+    });
+  }
   const requested = canonicalRequestedProjection(item);
   const trace = {
     schema: "media-server.v390-ui-native-interaction-trace.v2",
@@ -190,8 +214,12 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
   const screenshotPath = path.join(screenshotsDir, `${item.caseId}.png`);
   const tracePath = path.join(tracesDir, `${item.caseId}.trace.json`);
   const consolePath = path.join(logsDir, `${item.caseId}.browser-console.json`);
+  let caseResult = null;
+  let primaryFailure = null;
+  let cleanupFailure = null;
+  let browserCloseFailure = null;
   try {
-    executeWorkflowSetup(item, storageStatePath, roleStateMap, trace);
+    await executeWorkflowSetup(item, storageStatePath, roleStateMap, caseRuntime, caseContext, trace);
     assert(item.oracle.allowedStatuses.includes(browser.navigation.status),
       `${item.caseId} navigation status ${browser.navigation.status} not in ${item.oracle.allowedStatuses.join(",")}`);
     const initialSnapshot = await browser.snapshot("body");
@@ -216,10 +244,34 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     } else {
       for (const action of item.actions.slice(1)) {
         if (action.kind === "wait-visible") {
-          await browser.waitForSelector(action.selector);
+          let waitSelector = action.selector;
+          if (item.workflow.workflowClass === "persisted-mutation") {
+            const persistedAction = item.actions.find(candidate => candidate.kind === "execute-persisted-action");
+            assert(persistedAction, `${item.caseId} persisted action missing after wait-visible`);
+            const lifecycle = await preparePersistedUiLifecycle(
+              browser,
+              item,
+              persistedAction,
+              caseRuntime,
+              caseContext,
+            );
+            runtimeState.set("__persistedUiLifecycle", lifecycle);
+            trace.setup.push({ kind: "prepare-persisted-ui-lifecycle", ...lifecycle, status: "PASS" });
+            waitSelector = lifecycle.selector;
+          } else if (item.workflow.workflowClass === "form-submit") {
+            const submitAction = item.actions.find(candidate => candidate.kind === "submit-form");
+            assert(submitAction, `${item.caseId} form submit action missing after wait-visible`);
+            const lifecycle = await prepareFormSubmitUiLifecycle(browser, item, submitAction);
+            runtimeState.set("__formSubmitUiLifecycle", lifecycle);
+            trace.setup.push({ kind: "prepare-form-submit-ui-lifecycle", ...lifecycle, status: "PASS" });
+            waitSelector = lifecycle.submitSelector;
+          }
+          await browser.waitForSelector(waitSelector);
           await observePrimaryControlContext(browser, item, requested, runtimeState, action.selector);
           trace.actions.push({ ...action, status: "PASS" });
         } else if (action.kind === "navigate-action-route") {
+          const roleSwitch = await caseRuntime.switchActionRoleSession(browser, item, action, caseContext);
+          trace.setup.push({ kind: "switch-action-role-session", ...roleSwitch, status: "PASS" });
           const result = await executeCaseNativeNavigation(browser, item, action);
           trace.actions.push(result.actionEvidence);
           trace.completionEvents.push(result.completionOracle);
@@ -264,7 +316,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
             runtimeState,
             action.submitSelector || action.selector || null,
           );
-          const result = await executeCaseNativeAction(browser, item, action, runtimeState);
+          const result = await executeCaseNativeAction(browser, item, action, runtimeState, caseRuntime, caseContext);
           trace.actions.push(result.actionEvidence);
           if (result.completionOracle) trace.completionEvents.push(result.completionOracle);
           if (result.rawPrimaryObservation) trace.rawPrimaryObservations.push(result.rawPrimaryObservation);
@@ -319,14 +371,14 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       requestedTheme: item.theme,
     });
     await browser.screenshot(screenshotPath);
-    await executeWorkflowCleanup(browser, item, runtimeState, trace);
+    await executeWorkflowCleanup(browser, item, runtimeState, caseRuntime, caseContext, trace);
     writeJson(consolePath, {
       schema: "media-server.v390-ui-native-browser-console.v1",
       caseId: item.caseId,
       entries: browser.consoleEntries(),
     });
     writeJson(tracePath, trace);
-    return {
+    caseResult = {
       caseId: item.caseId,
       featureId: item.featureId,
       status: "PASS",
@@ -352,9 +404,43 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       browserConsolePath: consolePath,
       serverLogReference: serverLogPath,
     };
+  } catch (error) {
+    primaryFailure = error;
   } finally {
-    await browser.close();
+    if (!runtimeState.has("__caseRuntimeRestored")) {
+      try {
+        const cleanupResults = await caseRuntime.restoreCase(item, caseContext, browser);
+        trace.cleanup.push(...cleanupResults.map(result => ({ ...result, status: "PASS", fallbackAfterFailure: true })));
+        runtimeState.set("__caseRuntimeRestored", true);
+      } catch (error) {
+        cleanupFailure = error;
+      }
+    }
+    try {
+      await browser.close();
+    } catch (error) {
+      browserCloseFailure = error;
+    }
   }
+  if (primaryFailure || cleanupFailure || browserCloseFailure) {
+    throw caseExecutionFailure(item.caseId, { primaryFailure, cleanupFailure, browserCloseFailure });
+  }
+  assert(caseResult, `${item.caseId} completed without a result`);
+  return caseResult;
+}
+
+function caseExecutionFailure(caseId, { primaryFailure, cleanupFailure, browserCloseFailure }) {
+  const messageFor = value => value instanceof Error ? value.message : (value ? String(value) : "");
+  const parts = [
+    primaryFailure ? `primary=${messageFor(primaryFailure)}` : "",
+    cleanupFailure ? `cleanup=${messageFor(cleanupFailure)}` : "",
+    browserCloseFailure ? `browser-close=${messageFor(browserCloseFailure)}` : "",
+  ].filter(Boolean);
+  const error = new Error(`${caseId} native execution failed: ${parts.join("; ")}`);
+  error.primaryFailure = primaryFailure ? { message: messageFor(primaryFailure) } : null;
+  error.cleanupFailure = cleanupFailure ? { message: messageFor(cleanupFailure) } : null;
+  error.browserCloseFailure = browserCloseFailure ? { message: messageFor(browserCloseFailure) } : null;
+  return error;
 }
 
 async function observePrimaryControlContext(browser, item, requested, runtimeState, candidateSelector = null) {
@@ -378,14 +464,14 @@ async function observePrimaryControlContext(browser, item, requested, runtimeSta
   runtimeState.set("__requestedObservedEnvelope", envelope);
 }
 
-async function executeVisualMatrix(adapter, roleStateMap) {
+async function executeVisualMatrix(adapter) {
   const probes = [];
   const nativeById = new Map(manifest.cases.map(item => [item.caseId, item]));
   for (const variant of expandVisualMatrixPlan(visualMatrixPlan)) {
       const item = nativeById.get(variant.canonicalCaseId);
       assert(item, `${variant.canonicalCaseId} visual representative native case missing`);
       const id = `visual-${variant.canonicalCaseId}-${variant.width}-${variant.theme}`;
-      const storageStatePath = resolveRoleState(variant.accountRole, roleStateMap);
+      const storageStatePath = await caseRuntime.freshRoleStorageState(variant.accountRole, id);
       const browser = await adapter.openPage({
         httpBase: options.httpBase,
         pagePath: variant.screenRoute,
@@ -476,19 +562,20 @@ async function cleanupLiveVisualProbe(browser, spec, correlationId) {
   }
 }
 
-function executeWorkflowSetup(item, storageStatePath, roleStateMap, trace) {
+async function executeWorkflowSetup(item, storageStatePath, roleStateMap, caseRuntimeOwner, caseContext, trace) {
   for (const setup of item.workflow.setup) {
     if (setup.kind === "bind-role-session") {
       assert(setup.accountRole === item.accountRole, `${item.caseId} role setup drift`);
       assert(setup.required === (item.accountRole !== "anonymous"), `${item.caseId} role requirement drift`);
       if (setup.required) assert(storageStatePath, `${item.caseId} required role storage state missing`);
     } else if (setup.kind === "bind-action-role-session") {
-      const actionRoleStatePath = resolveRoleState(setup.accountRole, roleStateMap);
-      if (setup.accountRole !== item.accountRole) {
-        assert(actionRoleStatePath || setup.accountRole === "anonymous",
-          `${item.caseId} action role storage state missing: ${setup.accountRole}`);
-        throw new Error(`${item.caseId} cross-role action session adapter is unavailable for ${setup.accountRole}`);
-      }
+      const actionRoleStatePath = caseContext.actionRoleStatePaths[setup.accountRole] ||
+        (setup.accountRole === item.accountRole ? storageStatePath : await caseRuntimeOwner.freshRoleStorageState(
+          setup.accountRole,
+          `${item.caseId}-action-setup`,
+        ));
+      if (setup.accountRole !== "anonymous") assert(actionRoleStatePath,
+        `${item.caseId} action role storage state missing: ${setup.accountRole}`);
       assert(setup.route === item.workflow.primaryControl.route,
         `${item.caseId} action role route drift`);
     } else if (setup.kind === "seed-reviewed-state") {
@@ -496,7 +583,8 @@ function executeWorkflowSetup(item, storageStatePath, roleStateMap, trace) {
       if (setup.persistedMutation) {
         assert(setup.beforeSnapshotRef && setup.fixtureId,
           `${item.caseId} persisted seed snapshot/fixture missing`);
-        throw new Error(`${item.caseId} persisted workflow seed adapter is unavailable`);
+        assert(caseContext.prepared && caseContext.fixtureId === setup.fixtureId,
+          `${item.caseId} persisted workflow seed owner mismatch`);
       }
     } else {
       throw new Error(`${item.caseId} unsupported setup kind: ${setup.kind}`);
@@ -505,12 +593,506 @@ function executeWorkflowSetup(item, storageStatePath, roleStateMap, trace) {
   }
 }
 
-async function executeCaseNativeAction(browser, item, action, runtimeState) {
-  if (action.kind === "verify-independent-readback") {
-    return executeIndependentReadback(browser, item, action, runtimeState);
+async function preparePersistedUiLifecycle(browser, item, action, caseRuntimeOwner, caseContext) {
+  const input = workflowInput(item, action.inputId, "reversible-fixture-record");
+  const lifecycle = action.uiLifecycle;
+  assert(lifecycle?.schema === "media-server.v390-ui-persisted-lifecycle.v1",
+    `${item.caseId} persisted UI lifecycle schema missing`);
+  const fixtureId = String(input.actualValue?.id || "");
+  assert(fixtureId && lifecycle.fixtureBinding?.fixtureId === fixtureId,
+    `${item.caseId} persisted UI lifecycle fixture ID drift`);
+  assert(lifecycle.fixtureBinding.requestMethod === action.endpoint?.method &&
+    lifecycle.fixtureBinding.requestPathTemplate === action.endpoint?.path,
+  `${item.caseId} persisted UI lifecycle endpoint binding drift`);
+  const operation = String(input.actualValue?.operation || "write");
+  const base = {
+    schema: lifecycle.schema,
+    adapter: lifecycle.adapter,
+    fixtureId,
+    operation,
+    selector: action.selector,
+    activationCount: 1,
+    requestBinding: lifecycle.requestBinding ? structuredClone(lifecycle.requestBinding) : null,
+    phases: [...lifecycle.requiredPhases],
+  };
+
+  if (lifecycle.adapter === "channel-source-view-pair") {
+    const kind = ({
+      "SRC-002": "rtsp",
+      "SRC-003": "http",
+      "SRC-004": "whep",
+      "SRC-005": "webrtc",
+      "UI-109": "onvif",
+      "SRC-066": "onvif",
+    })[item.caseId] || "file";
+    if (operation !== "create") {
+      await browser.waitForSelector(`[data-view-channel=${JSON.stringify(fixtureId)}]`);
+    }
+    await browser.evaluate(`(async () => {
+      const value = ${JSON.stringify({ caseId: item.caseId, fixtureId, operation, kind, displayName: input.actualValue?.displayName || `REVIEW4 ${item.caseId}` })};
+      if (typeof resetChannelForm !== 'function' || typeof openChannel !== 'function') {
+        throw new Error('product channel lifecycle functions are unavailable');
+      }
+      if (value.operation === 'create') await resetChannelForm('new');
+      else openChannel(value.fixtureId, 'edit');
+      const form = document.getElementById('channel-form');
+      if (!form) throw new Error('product channel form is unavailable');
+      const set = (name, next) => {
+        const field = form.elements[name];
+        if (!field) throw new Error('channel field missing: ' + name);
+        field.value = String(next);
+        field.dispatchEvent(new Event('input', { bubbles: true }));
+        field.dispatchEvent(new Event('change', { bubbles: true }));
+      };
+      set('channelId', value.fixtureId);
+      set('displayName', value.displayName);
+      set('kind', value.kind);
+      if (value.caseId === 'SRC-009') set('zone', 'review4-zone-updated');
+      if (value.caseId === 'SRC-018') {
+        set('allowedRuleIds', '9301');
+        set('clientGroups', 'review4-client');
+      }
+      if (value.kind === 'file') set('file', 'sample_h264.mp4');
+      if (value.kind === 'rtsp') set('rtspUrl', 'rtsp://127.0.0.1:8554/' + value.fixtureId);
+      if (value.kind === 'http') set('httpUrl', 'https://example.invalid/' + value.fixtureId + '/index.m3u8');
+      if (value.kind === 'whep') set('whepUrl', 'https://example.invalid/whep/' + value.fixtureId);
+      if (value.kind === 'webrtc') set('webrtcSourceId', 'published-' + value.fixtureId);
+      if (value.kind === 'onvif') set('onvifStreamUrl', 'rtsp://127.0.0.1:8554/' + value.fixtureId);
+      if (typeof currentChannelEnabled !== 'undefined') currentChannelEnabled = true;
+      if (typeof updateKindFields === 'function') updateKindFields();
+      return { fixtureId: form.elements.channelId.value, kind: form.elements.kind.value };
+    })()`);
+    return base;
   }
 
-  const snapshotSelector = action.submitSelector || action.selector || item.workflow.primaryControl.selector || "body";
+  if (["rule-va-delete", "rule-event-delete", "rule-profile-delete"].includes(lifecycle.adapter)) {
+    const actionName = ({
+      "rule-va-delete": "delete-va",
+      "rule-event-delete": "delete-event-template",
+      "rule-profile-delete": "delete-profile",
+    })[lifecycle.adapter];
+    return {
+      ...base,
+      selector: `[data-ops-rule-action=${JSON.stringify(actionName)}][data-ops-rule-id=${JSON.stringify(fixtureId)}]`,
+      activationCount: 2,
+    };
+  }
+
+  if (["rule-va-save", "rule-event-save", "rule-profile-save"].includes(lifecycle.adapter)) {
+    const mode = ({
+      "rule-va-save": "va-rule",
+      "rule-event-save": "event-rule",
+      "rule-profile-save": "profile",
+    })[lifecycle.adapter];
+    await browser.evaluate(`(async () => {
+      const value = ${JSON.stringify({ fixtureId, operation, mode, caseId: item.caseId, minConfidence: input.actualValue?.minConfidence })};
+      if (typeof openOpsRulesEditor !== 'function') throw new Error('product rules lifecycle function is unavailable');
+      await openOpsRulesEditor(value.mode, value.operation === 'create' ? 'new' : 'edit', value.fixtureId);
+      const idByMode = { 'va-rule': 'opsVaRuleIdInput', 'event-rule': 'opsEventRuleIdInput', profile: 'opsProfileIdInput' };
+      const idInput = document.getElementById(idByMode[value.mode]);
+      if (!idInput) throw new Error('product rules ID input is unavailable');
+      idInput.value = value.fixtureId;
+      if (value.mode === 'va-rule') {
+        const name = document.getElementById('opsVaRuleNameInput');
+        if (name) name.value = 'REVIEW4 ' + value.caseId;
+        for (const id of ['opsVaRuleChannelSelect', 'opsVaRuleProfileSelect', 'opsVaRuleTemplateSeedSelect']) {
+          const field = document.getElementById(id);
+          if (field && !field.value) field.value = Array.from(field.options || []).find(option => option.value)?.value || '';
+          field?.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        const geometry = document.getElementById('opsVaRuleGeometryPointsInput');
+        if (geometry && (!geometry.value || value.caseId === 'RULE-012')) {
+          geometry.value = value.caseId === 'RULE-012'
+            ? '0.10,0.10\\n0.70,0.10\\n0.70,0.70\\n0.10,0.70'
+            : '0.20,0.20\\n0.80,0.20\\n0.80,0.80\\n0.20,0.80';
+          geometry.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        if (value.caseId === 'RULE-008') {
+          const enabled = document.getElementById('opsVaRuleEnabledInput');
+          if (enabled) enabled.value = enabled.value === 'false' ? 'true' : 'false';
+        }
+        if (value.caseId === 'RULE-011') {
+          const profile = document.getElementById('opsVaRuleProfileSelect');
+          if (!profile || !Array.from(profile.options || []).some(option => option.value === '9101')) {
+            throw new Error('reviewed profile 9101 is unavailable');
+          }
+          profile.value = '9101';
+        }
+      } else if (value.mode === 'event-rule') {
+        const mode = document.getElementById('opsEventRuleModeSelect');
+        const type = document.getElementById('opsEventRuleTypeSelect');
+        if (value.caseId === 'RULE-073') {
+          if (mode) mode.value = 'event';
+          if (typeof opsEventRuleRefreshTypeOptions === 'function') opsEventRuleRefreshTypeOptions('line-crossing');
+          else if (type) type.value = 'line-crossing';
+          if (typeof opsEventRuleUpdateModeUi === 'function') opsEventRuleUpdateModeUi();
+          const direction = document.getElementById('opsEventRuleLineDirectionSelect');
+          if (direction) direction.value = 'forward';
+        } else if (type && !type.value) {
+          type.value = 'presence';
+        }
+        const confidence = document.getElementById('opsEventRuleConfidenceInput');
+        if (confidence) confidence.value = '0.61';
+        if (value.caseId === 'RULE-075') {
+          if (mode) mode.value = 'scenario';
+          if (typeof opsEventRuleRefreshTypeOptions === 'function') opsEventRuleRefreshTypeOptions('intrusion-dwell');
+          if (typeof opsEventRuleUpdateModeUi === 'function') opsEventRuleUpdateModeUi();
+          const cooldown = document.getElementById('opsEventRuleCooldownInput');
+          if (cooldown) cooldown.value = '9000';
+        }
+        const classInput = document.querySelector('#opsEventRuleClassChecks input[type="checkbox"]');
+        if (classInput && !classInput.checked) classInput.click();
+      } else {
+        const confidence = document.getElementById('opsProfileConfidenceInput');
+        if (confidence) confidence.value = String(value.minConfidence ?? 0.66);
+        const classInput = document.querySelector('#opsProfileClassChecks input[type="checkbox"]');
+        if (classInput && !classInput.checked) classInput.click();
+      }
+      return { fixtureId: idInput.value, mode: value.mode };
+    })()`);
+    return base;
+  }
+
+  if (lifecycle.adapter === "auth-user-create") {
+    await browser.click("#add-user-btn");
+    const password = caseRuntimeOwner.resolveSecretRef(`${item.caseId}:fixture-password`, {
+      item,
+      field: "password",
+      caseContext,
+    });
+    await browser.fill('#user-form [name="username"]', fixtureId);
+    await browser.fill('#user-form [name="displayName"]', input.actualValue?.displayName || `REVIEW4 ${item.caseId}`);
+    await browser.fill('#user-form [name="password"]', password);
+    await browser.fill('#user-form [name="confirmPassword"]', password);
+    await browser.select('#user-form [name="role"]', "viewer");
+    const viewId = String(caseRuntimeOwner.descriptor?.auth?.defaultViewId || "");
+    assert(viewId, `${item.caseId} runtime default view is unavailable for user create`);
+    const viewSelector = `[data-assignment-view][value=${JSON.stringify(viewId)}]`;
+    await browser.waitForSelector(viewSelector);
+    const view = await browser.snapshot(viewSelector);
+    if (!view.checked) await browser.click(viewSelector);
+    return base;
+  }
+
+  if (lifecycle.adapter === "auth-user-update") {
+    const userSelector = `[data-user-view=${JSON.stringify(fixtureId)}]`;
+    await browser.waitForSelector(userSelector);
+    await browser.click(userSelector);
+    await browser.click("#user-edit-selected");
+    await browser.fill('#user-form [name="displayName"]', `${input.actualValue?.displayName || fixtureId} updated`);
+    return base;
+  }
+
+  if (["auth-access-approve", "auth-access-reject"].includes(lifecycle.adapter)) {
+    const approve = lifecycle.adapter === "auth-access-approve";
+    const actionSelector = approve
+      ? `[data-request-approve=${JSON.stringify(fixtureId)}]`
+      : `[data-request-reject=${JSON.stringify(fixtureId)}]`;
+    await browser.waitForSelector(actionSelector);
+    if (approve) {
+      await browser.fill(`[data-request-approve-view=${JSON.stringify(fixtureId)}]`,
+        caseRuntimeOwner.descriptor?.auth?.defaultViewId || "9001");
+    }
+    return {
+      ...base,
+      selector: actionSelector,
+      activationCount: approve ? 1 : 2,
+    };
+  }
+
+  if (lifecycle.adapter === "auth-access-request-create") {
+    for (const [field, value] of Object.entries({
+      username: fixtureId,
+      displayName: input.actualValue?.displayName || `REVIEW4 ${item.caseId}`,
+      contact: `${fixtureId}@example.invalid`,
+      viewId: caseRuntimeOwner.descriptor?.auth?.defaultViewId || "9001",
+      reason: `${item.caseId} exact workflow verification`,
+    })) {
+      await browser.fill(`#request-form [name=${JSON.stringify(field)}]`, value);
+    }
+    return base;
+  }
+
+  if (lifecycle.adapter === "vlm-profile-save") {
+    await browser.evaluate(`(async () => {
+      if (typeof refreshOpsVlmInstallConnection !== 'function') throw new Error('product VLM lifecycle function is unavailable');
+      await refreshOpsVlmInstallConnection();
+      const candidate = Array.from(document.querySelectorAll('[data-vlm-option-id]')).find(button => !button.disabled);
+      if (!candidate) throw new Error('no product-valid VLM option is selectable');
+      candidate.click();
+      await new Promise(resolve => setTimeout(resolve, 50));
+      const id = document.getElementById('opsVlmProfileId');
+      if (!id) throw new Error('VLM profile ID input is unavailable');
+      id.value = ${JSON.stringify(fixtureId)};
+      id.dataset.userEdited = '1';
+      return { fixtureId: id.value };
+    })()`);
+    return base;
+  }
+
+  if (lifecycle.adapter === "vlm-profile-delete") {
+    return {
+      ...base,
+      selector: `[data-delete-vlm-profile=${JSON.stringify(fixtureId)}]`,
+      activationCount: 2,
+    };
+  }
+
+  if (lifecycle.adapter === "event-review-save") {
+    const rowSelector = `[data-event-review-row][data-event-id=${JSON.stringify(fixtureId)}]`;
+    await browser.select(`${rowSelector} [data-event-review-field="reviewStatus"]`, "reviewing");
+    await browser.fill(`${rowSelector} [data-event-review-field="note"]`, `REVIEW4 ${item.caseId} runtime review`);
+    return { ...base, selector: `${rowSelector} [data-event-review-save]` };
+  }
+
+  if (lifecycle.adapter === "client-layout-save") {
+    const state = await browser.evaluate(`(() => ({
+      loaded: Boolean(typeof livePreferenceState !== 'undefined' && livePreferenceState.loaded),
+      control: Boolean(document.getElementById('liveSaveLayoutPreference'))
+    }))()`);
+    assert(state?.loaded === true && state?.control === true,
+      `${item.caseId} client layout preference UI was not initialized`);
+    const saveBefore = await browser.snapshot("#liveSaveLayoutPreference");
+    if (!saveBefore.visible) await browser.click("details.workspace-actions > summary");
+    const grid = await browser.snapshot("#liveGridSize");
+    const density = await browser.snapshot("#liveDensity");
+    const dock = await browser.snapshot("#liveDockSide");
+    const nextGrid = grid.optionValues.find(value => value && !grid.selectedValues.includes(value));
+    const nextDensity = density.selectedValues[0] === "compact" ? "comfortable" : "compact";
+    const nextDock = dock.selectedValues[0] === "right" ? "left" : "right";
+    assert(nextGrid && density.optionValues.includes(nextDensity) && dock.optionValues.includes(nextDock),
+      `${item.caseId} client layout alternate grid/density/dock values are unavailable`);
+    await browser.select("#liveGridSize", nextGrid);
+    await browser.select("#liveDensity", nextDensity);
+    await browser.select("#liveDockSide", nextDock);
+    return {
+      ...base,
+      configuredLayout: { gridSize: Number(nextGrid), density: nextDensity, dockSide: nextDock },
+    };
+  }
+
+  throw new Error(`${item.caseId} unsupported persisted UI lifecycle adapter: ${lifecycle.adapter}`);
+}
+
+function assertPersistedRequestBinding(networkResponses, action, lifecycle, caseId) {
+  const request = action.semanticCompletion?.request;
+  assert(request && lifecycle?.fixtureId, `${caseId} persisted request binding contract missing`);
+  if (lifecycle.requestBinding?.mode === "ordered-source-view-pair") {
+    const observed = lifecycle.requestBinding.expectedRequests.map(expected => {
+      const urlPath = expected.pathTemplate.replaceAll("{fixtureId}", encodeURIComponent(lifecycle.fixtureId));
+      const matches = networkResponses.map((entry, index) => ({ entry, index })).filter(({ entry }) => {
+        let pathname = "";
+        try { pathname = new URL(entry.url, "http://127.0.0.1").pathname; } catch { pathname = ""; }
+        return entry.phase === "response" && entry.correlationId === request.correlationId &&
+          entry.method === expected.method && pathname === urlPath && entry.status >= 200 && entry.status < 300;
+      });
+      assert(matches.length === 1,
+        `${caseId} source/view transaction did not uniquely bind ${expected.method} ${urlPath}: ${matches.length}`);
+      const requestStart = networkResponses.find(entry =>
+        entry.phase === "request-start" && entry.requestId === matches[0].entry.requestId);
+      const bodyIdentity = requestStart?.requestBody?.identity || {};
+      const expectedIdentity = urlPath.includes("/sources/")
+        ? bodyIdentity.sourceId
+        : bodyIdentity.viewId;
+      assert(expectedIdentity === lifecycle.fixtureId,
+        `${caseId} source/view request body identity drift for ${urlPath}`);
+      return {
+        method: expected.method,
+        urlPath,
+        status: matches[0].entry.status,
+        requestId: matches[0].entry.requestId,
+        responseIndex: matches[0].index,
+        requestBodyIdentity: structuredClone(bodyIdentity),
+      };
+    });
+    assert(observed[0].responseIndex < observed[1].responseIndex,
+      `${caseId} source/view transaction response order drift`);
+    return {
+      fixtureId: lifecycle.fixtureId,
+      mode: lifecycle.requestBinding.mode,
+      requests: observed,
+      correlationId: request.correlationId,
+    };
+  }
+  const matches = networkResponses.filter(entry => {
+    let pathname = "";
+    try { pathname = new URL(entry.url, "http://127.0.0.1").pathname; } catch { pathname = ""; }
+    return entry.phase === "response" &&
+      entry.correlationId === request.correlationId &&
+      entry.method === request.method &&
+      pathname === request.urlPath &&
+      request.allowedStatuses.includes(entry.status);
+  });
+  assert(matches.length === 1,
+    `${caseId} persisted request was not uniquely bound to ${request.method} ${request.urlPath}: ${matches.length}`);
+  if (lifecycle.requestBinding?.mode === "atomic-pair") {
+    const requestStart = networkResponses.find(entry =>
+      entry.phase === "request-start" && entry.requestId === matches[0].requestId);
+    assert(requestStart?.requestBody?.sourceIdentity?.sourceId === lifecycle.fixtureId &&
+      requestStart?.requestBody?.publishedViewIdentity?.viewId === lifecycle.fixtureId,
+    `${caseId} atomic source/view request body identities are not bound to the fixture`);
+  }
+  return {
+    fixtureId: lifecycle.fixtureId,
+    mode: lifecycle.requestBinding?.mode || "single-request",
+    method: request.method,
+    urlPath: request.urlPath,
+    status: matches[0].status,
+    requestId: matches[0].requestId,
+    correlationId: request.correlationId,
+  };
+}
+
+async function prepareFormSubmitUiLifecycle(browser, item, action) {
+  const lifecycle = action.uiLifecycle;
+  assert(lifecycle?.schema === "media-server.v390-ui-form-lifecycle.v1" && lifecycle.adapter,
+    `${item.caseId} typed form UI lifecycle schema/adapter missing`);
+  assert(lifecycle.formSelector === action.selector && lifecycle.submitSelector === action.submitSelector,
+    `${item.caseId} typed form UI lifecycle selector binding drift`);
+  assert(Array.isArray(lifecycle.fieldControls) && lifecycle.fieldControls.length === action.fields.length &&
+    lifecycle.fieldControls.every((field, index) => field.name === action.fields[index]),
+  `${item.caseId} typed form UI lifecycle field order drift`);
+  if (lifecycle.entrySelector) {
+    const entry = await browser.snapshot(lifecycle.entrySelector);
+    assert(entry.exists && entry.visible && !entry.disabled,
+      `${item.caseId} form entry control is unavailable: ${lifecycle.entrySelector}`);
+    await browser.click(lifecycle.entrySelector);
+  }
+  await browser.waitForSelector(lifecycle.formSelector);
+  const submit = await browser.snapshot(lifecycle.submitSelector);
+  assert(submit.exists && submit.visible && !submit.disabled,
+    `${item.caseId} form submit control is unavailable: ${lifecycle.submitSelector}`);
+  return {
+    schema: lifecycle.schema,
+    adapter: lifecycle.adapter,
+    formSelector: lifecycle.formSelector,
+    submitSelector: lifecycle.submitSelector,
+    entrySelector: lifecycle.entrySelector || null,
+    fieldControls: structuredClone(lifecycle.fieldControls),
+    phases: [...lifecycle.requiredPhases],
+  };
+}
+
+async function applyTypedFormInputs(
+  browser,
+  item,
+  action,
+  input,
+  caseRuntimeOwner,
+  caseContext,
+  lifecycle,
+) {
+  const applied = [];
+  for (const field of lifecycle.fieldControls) {
+    let value = resolveRuntimeInputValue(
+      input.actualValue?.[field.name],
+      item,
+      field.name,
+      caseRuntimeOwner,
+      caseContext,
+    );
+    const selector = `${lifecycle.formSelector} [name=${JSON.stringify(field.name)}]`;
+    if (field.control === "fill") {
+      await browser.fill(selector, value);
+    } else if (field.control === "select") {
+      await browser.select(selector, value);
+    } else if (field.control === "check") {
+      const before = await browser.snapshot(selector);
+      const expectedChecked = value === "true";
+      if (before.checked !== expectedChecked) await browser.click(selector);
+    } else if (field.control === "hidden-binding") {
+      assert(field.bindingSelector, `${item.caseId} hidden field binding selector missing: ${field.name}`);
+      if (field.valueSource === "runtime-default-view") {
+        value = String(caseRuntimeOwner.descriptor?.auth?.defaultViewId || "");
+      }
+      assert(value, `${item.caseId} hidden field runtime binding value missing: ${field.name}`);
+      const bindingSelector = `${field.bindingSelector}[value=${JSON.stringify(value)}]`;
+      await browser.waitForSelector(bindingSelector);
+      const before = await browser.snapshot(bindingSelector);
+      assert(before.exists && before.visible,
+        `${item.caseId} hidden field product binding is unavailable: ${bindingSelector}`);
+      if (!before.checked) await browser.click(bindingSelector);
+      const hidden = await browser.snapshot(selector);
+      assert(hidden.value.split(",").includes(value),
+        `${item.caseId} hidden field did not bind product selection: ${field.name}`);
+    } else {
+      throw new Error(`${item.caseId} unsupported typed form control: ${field.control}`);
+    }
+    applied.push({
+      name: field.name,
+      control: field.control,
+      valueSource: field.valueSource || (input.actualValue?.[field.name]?.secretRef ? "runtime-secret-ref" : "manifest-input"),
+      status: "PASS",
+    });
+  }
+  return applied;
+}
+
+function captureFormResponseIdentity(networkResponses, action, lifecycle, caseId, submittedInput) {
+  const request = action.semanticCompletion?.request;
+  assert(request && lifecycle?.adapter, `${caseId} form response identity contract missing`);
+  const matches = networkResponses.filter(entry => {
+    let pathname = "";
+    try { pathname = new URL(entry.url, "http://127.0.0.1").pathname; } catch { pathname = ""; }
+    return entry.phase === "response" &&
+      entry.correlationId === request.correlationId &&
+      entry.method === request.method &&
+      pathname === request.urlPath &&
+      request.allowedStatuses.includes(entry.status);
+  });
+  assert(matches.length === 1,
+    `${caseId} form response was not uniquely bound to ${request.method} ${request.urlPath}: ${matches.length}`);
+  const productIdentity = matches[0].safeResponseBody || null;
+  const expectedUsername = String(submittedInput?.username || "");
+  if (lifecycle.adapter === "auth-user-create") {
+    assert(productIdentity?.username === expectedUsername,
+      `${caseId} user-create response identity drift`);
+  } else if (lifecycle.adapter === "auth-invite-create") {
+    assert(productIdentity?.username === expectedUsername && productIdentity?.inviteId &&
+      productIdentity.tokenPresent === true && productIdentity.setupUrlTokenBound === true,
+    `${caseId} invite response identity/token binding drift`);
+  } else if (lifecycle.adapter === "auth-access-request-create") {
+    assert(productIdentity?.username === expectedUsername && productIdentity?.requestId,
+      `${caseId} access-request response identity drift`);
+  }
+  return {
+    schema: "media-server.v390-ui-form-response-identity.v1",
+    adapter: lifecycle.adapter,
+    method: request.method,
+    urlPath: request.urlPath,
+    status: matches[0].status,
+    requestId: matches[0].requestId,
+    correlationId: request.correlationId,
+    productIdentity: productIdentity ? structuredClone(productIdentity) : null,
+  };
+}
+
+async function executeCaseNativeAction(browser, item, action, runtimeState, caseRuntimeOwner, caseContext) {
+  if (action.kind === "verify-independent-readback") {
+    return executeIndependentReadback(
+      browser,
+      item,
+      action,
+      runtimeState,
+      caseRuntimeOwner,
+      caseContext,
+    );
+  }
+
+  const persistedLifecycle = action.kind === "execute-persisted-action"
+    ? runtimeState.get("__persistedUiLifecycle")
+    : null;
+  const formLifecycle = action.kind === "submit-form"
+    ? runtimeState.get("__formSubmitUiLifecycle")
+    : null;
+  if (action.kind === "execute-persisted-action") {
+    assert(persistedLifecycle?.selector, `${item.caseId} persisted UI lifecycle was not prepared`);
+  }
+  if (action.kind === "submit-form") {
+    assert(formLifecycle?.submitSelector, `${item.caseId} form UI lifecycle was not prepared`);
+  }
+  const snapshotSelector = formLifecycle?.submitSelector || action.submitSelector || persistedLifecycle?.selector || action.selector ||
+    item.workflow.primaryControl.selector || "body";
   const before = await browser.snapshot(snapshotSelector);
   assert(before.exists, `${item.caseId} control missing: ${action.selector}`);
   if (["assert-product-state", "assert-product-boundary", "assert-route-read-model", "assert-visible-read-model"].includes(action.kind)) {
@@ -555,6 +1137,8 @@ async function executeCaseNativeAction(browser, item, action, runtimeState) {
   const networkStart = browser.networkEntries().length;
   await browser.setCorrelationId(action.semanticCompletion.correlationId);
   let executedKind = "";
+  let typedFormInputs = null;
+  let submittedFormInput = null;
   try {
     if (action.kind === "toggle-details") {
       assert(before.tag === "details", `${item.caseId} details contract mismatch`);
@@ -579,17 +1163,25 @@ async function executeCaseNativeAction(browser, item, action, runtimeState) {
       executedKind = "click";
     } else if (action.kind === "submit-form") {
       const input = workflowInput(item, action.inputId, "form-values");
-      for (const field of action.fields) {
-        const value = resolveRuntimeInputValue(input.actualValue?.[field], item.caseId, field);
-        await browser.fill(`[name=${JSON.stringify(field)}]`, value);
-      }
-      await browser.click(action.submitSelector);
+      submittedFormInput = input.actualValue || {};
+      typedFormInputs = await applyTypedFormInputs(
+        browser,
+        item,
+        action,
+        input,
+        caseRuntimeOwner,
+        caseContext,
+        formLifecycle,
+      );
+      await browser.click(formLifecycle.submitSelector);
       executedKind = "submit";
     } else if (action.kind === "execute-persisted-action") {
       workflowInput(item, action.inputId, "reversible-fixture-record");
       assert(Boolean(action.endpoint) !== Boolean(action.localAction),
         `${item.caseId} persisted action endpoint/local action must be exclusive`);
-      await browser.click(action.selector);
+      for (let activation = 0; activation < persistedLifecycle.activationCount; activation += 1) {
+        await browser.click(persistedLifecycle.selector);
+      }
       executedKind = "persisted-control";
     } else {
       throw new Error(`${item.caseId} unsupported case-native action: ${action.kind}`);
@@ -602,29 +1194,56 @@ async function executeCaseNativeAction(browser, item, action, runtimeState) {
   } finally {
     await browser.setCorrelationId(`${item.caseId}:navigation`);
   }
-  const after = await browser.snapshot(action.selector);
+  const after = await browser.snapshot(snapshotSelector);
   if (action.kind === "toggle-checkbox") {
     assert(after.checked !== before.checked, `${item.caseId} checkbox did not toggle`);
   }
   const actionEvidence = {
     ...semanticCompletionAction(action, item),
     executedKind,
+    ...(persistedLifecycle ? { persistedUiLifecycle: structuredClone(persistedLifecycle) } : {}),
+    ...(formLifecycle ? {
+      formUiLifecycle: structuredClone(formLifecycle),
+      typedFormInputs,
+    } : {}),
     before,
     after,
     status: "PASS",
   };
   const networkResponses = browser.networkEntries().slice(networkStart);
+  const persistedRequestBinding = action.kind === "execute-persisted-action"
+    ? assertPersistedRequestBinding(networkResponses, action, persistedLifecycle, item.caseId)
+    : null;
+  const formResponseIdentity = action.kind === "submit-form"
+    ? captureFormResponseIdentity(
+        networkResponses,
+        action,
+        formLifecycle,
+        item.caseId,
+        submittedFormInput,
+      )
+    : null;
+  const boundActionEvidence = {
+    ...actionEvidence,
+    ...(persistedRequestBinding ? { persistedRequestBinding } : {}),
+    ...(formResponseIdentity ? { formResponseIdentity } : {}),
+  };
   assert(!runtimeState.has("__pendingPrimaryCompletion"),
     `${item.caseId} multiple pending primary actions are forbidden`);
   runtimeState.set("__pendingPrimaryCompletion", {
     action,
-    actionEvidence,
+    actionEvidence: boundActionEvidence,
     before,
     after,
     networkResponses,
+    persistedRequestBinding,
+    formResponseIdentity,
     beforePostconditionSnapshots,
   });
-  return { actionEvidence: { ...actionEvidence, completionStatus: "awaiting-independent-readback" }, completionOracle: null };
+  return {
+    actionEvidence: { ...boundActionEvidence, completionStatus: "awaiting-independent-readback" },
+    completionOracle: null,
+  };
 }
 
 async function semanticAssertionResult(browser, item, action, observed, snapshotSelector, runtimeState) {
@@ -662,7 +1281,14 @@ async function semanticAssertionResult(browser, item, action, observed, snapshot
   return { actionEvidence: { ...actionEvidence, completionStatus: "awaiting-independent-readback" }, completionOracle: null };
 }
 
-async function executeIndependentReadback(browser, item, action, runtimeState) {
+async function executeIndependentReadback(
+  browser,
+  item,
+  action,
+  runtimeState,
+  caseRuntimeOwner,
+  caseContext,
+) {
   const pending = runtimeState.get("__pendingPrimaryCompletion");
   assert(pending, `${item.caseId} independent readback has no pending primary action`);
   assert(action.semanticCompletion.linkedPrimaryActionId === pending.actionEvidence.actionId,
@@ -677,10 +1303,14 @@ async function executeIndependentReadback(browser, item, action, runtimeState) {
   }
   const selector = pending.actionEvidence.controlSelector || "body";
   const freshAfter = await browser.snapshot(selector);
-  const explicitObserved = Object.keys(postconditionSnapshots).length > 0
+  const runtimeMutationReadback = item.workflow.workflowClass === "persisted-mutation"
+    ? await caseRuntimeOwner.verifyMutationReadback(item, caseContext)
+    : null;
+  const explicitObserved = Object.keys(postconditionSnapshots).length > 0 || runtimeMutationReadback
     ? {
         beforeSnapshots: pending.beforePostconditionSnapshots || {},
         snapshots: postconditionSnapshots,
+        ...(runtimeMutationReadback ? { runtimeMutationReadback } : {}),
       }
     : (pending.explicitObserved || null);
   const semanticReadback = semanticReadbackEvidence(
@@ -696,6 +1326,7 @@ async function executeIndependentReadback(browser, item, action, runtimeState) {
     after: pending.after,
     networkResponses: pending.networkResponses,
     semanticReadback,
+    runtimeMutationReadback,
   });
   assertCompletionEvidence(completionOracle, item.caseId);
   assert(completionOracle.pass,
@@ -716,6 +1347,7 @@ async function executeIndependentReadback(browser, item, action, runtimeState) {
       expectedBehaviorSha256: action.expectedBehaviorSha256,
       readbackIdentity: action.readbackIdentity,
       semanticReadback,
+      runtimeMutationReadback,
       status: "PASS",
     },
     completionOracle,
@@ -729,7 +1361,8 @@ async function executeIndependentReadback(browser, item, action, runtimeState) {
   };
 }
 
-async function executeWorkflowCleanup(browser, item, runtimeState, trace) {
+async function executeWorkflowCleanup(browser, item, runtimeState, caseRuntimeOwner, caseContext, trace) {
+  let mutationCleanupOwned = false;
   for (const cleanup of item.workflow.cleanup) {
     if (cleanup.kind === "restore-local-control") {
       const state = runtimeState.get(cleanup.selector);
@@ -755,11 +1388,21 @@ async function executeWorkflowCleanup(browser, item, runtimeState, trace) {
     } else if (["restore-fixture-state", "delete-created-fixture"].includes(cleanup.kind)) {
       assert(cleanup.beforeSnapshotRef && cleanup.inverseAction && cleanup.afterReadback?.identity,
         `${item.caseId} mutation cleanup contract incomplete`);
-      throw new Error(`${item.caseId} mutation cleanup adapter is unavailable for ${cleanup.kind}`);
+      assert(!mutationCleanupOwned, `${item.caseId} duplicate mutation cleanup owner invocation`);
+      const cleanupResults = await caseRuntimeOwner.restoreCase(item, caseContext, browser);
+      trace.cleanup.push(...cleanupResults.map(result => ({ ...result, status: "PASS" })));
+      runtimeState.set("__caseRuntimeRestored", true);
+      mutationCleanupOwned = true;
+      continue;
     } else {
       throw new Error(`${item.caseId} unsupported cleanup kind: ${cleanup.kind}`);
     }
     trace.cleanup.push({ ...cleanup, status: "PASS" });
+  }
+  if (!mutationCleanupOwned) {
+    const cleanupResults = await caseRuntimeOwner.restoreCase(item, caseContext, browser);
+    trace.cleanup.push(...cleanupResults.map(result => ({ ...result, status: "PASS" })));
+    runtimeState.set("__caseRuntimeRestored", true);
   }
 }
 
@@ -876,6 +1519,9 @@ function semanticReadbackEvidence(action, actionEvidence, before, after, explici
       ...(explicitObserved?.snapshots ? {
         beforeSnapshots: structuredClone(explicitObserved.beforeSnapshots || {}),
         snapshots: structuredClone(explicitObserved.snapshots),
+      } : {}),
+      ...(explicitObserved?.runtimeMutationReadback ? {
+        runtimeMutationReadback: structuredClone(explicitObserved.runtimeMutationReadback),
       } : {}),
       ...(explicitObserved === null || explicitObserved?.snapshots
         ? {}
@@ -1000,10 +1646,29 @@ function validateRunnerWorkflowCompatibility(cases) {
       if (action.kind === "submit-form") {
         assert(action.selector && action.submitSelector && action.inputId && Array.isArray(action.fields),
           `${item.caseId} submit-form shape invalid`);
+        assert(action.uiLifecycle?.schema === "media-server.v390-ui-form-lifecycle.v1" &&
+          action.uiLifecycle.adapter && action.uiLifecycle.formSelector === action.selector &&
+          action.uiLifecycle.submitSelector === action.submitSelector &&
+          Array.isArray(action.uiLifecycle.fieldControls) &&
+          action.uiLifecycle.fieldControls.length === action.fields.length &&
+          action.uiLifecycle.fieldControls.every((field, fieldIndex) =>
+            field.name === action.fields[fieldIndex] &&
+            ["fill", "select", "check", "hidden-binding"].includes(field.control)) &&
+          Array.isArray(action.uiLifecycle.requiredPhases) && action.uiLifecycle.requiredPhases.length === 5,
+        `${item.caseId} submit-form typed lifecycle shape invalid`);
       }
       if (action.kind === "execute-persisted-action") {
         assert(action.inputId && Boolean(action.endpoint) !== Boolean(action.localAction),
           `${item.caseId} execute-persisted-action shape invalid`);
+        assert(action.uiLifecycle?.schema === "media-server.v390-ui-persisted-lifecycle.v1" &&
+          action.uiLifecycle.adapter && action.uiLifecycle.fixtureBinding?.fixtureId &&
+          Array.isArray(action.uiLifecycle.requiredPhases) && action.uiLifecycle.requiredPhases.length === 5,
+        `${item.caseId} execute-persisted-action lifecycle shape invalid`);
+        if (action.uiLifecycle.adapter === "channel-source-view-pair") {
+          assert(["atomic-pair", "ordered-source-view-pair"].includes(action.uiLifecycle.requestBinding?.mode) &&
+            Array.isArray(action.uiLifecycle.requestBinding.expectedRequests),
+          `${item.caseId} channel request transaction binding missing`);
+        }
       }
       if (["assert-product-state", "assert-product-boundary", "verify-independent-readback"].includes(action.kind)) {
         assert(workflow.independentReadback?.identity && workflow.independentReadback?.locator?.file,
@@ -1038,7 +1703,7 @@ function validateRunnerWorkflowCompatibility(cases) {
     supportedSetupKinds: [...supportedSetupKinds],
     supportedActionKinds: [...supportedActionKinds],
     supportedCleanupKinds: [...supportedCleanupKinds],
-    actualRuntimeBoundary: "missing seed/session/readback/cleanup adapters fail explicitly; plan-only is not execution evidence",
+    actualRuntimeBoundary: "self-contained seed/session/secret/readback/cleanup owners are required for mutation cases; plan-only is not execution evidence",
   };
 }
 
@@ -1050,12 +1715,12 @@ function workflowInput(item, inputId, expectedKind) {
   return input;
 }
 
-function resolveRuntimeInputValue(value, caseId, field) {
+function resolveRuntimeInputValue(value, item, field, caseRuntimeOwner, caseContext) {
   if (value && typeof value === "object" && value.secretRef) {
-    throw new Error(`${caseId} runtime secret adapter is unavailable for ${field}; secretRef is not a literal value`);
+    return caseRuntimeOwner.resolveSecretRef(value.secretRef, { item, field, caseContext });
   }
   assert(["string", "number", "boolean"].includes(typeof value),
-    `${caseId} runtime form value missing for ${field}`);
+    `${item.caseId} runtime form value missing for ${field}`);
   return String(value);
 }
 
@@ -1086,6 +1751,7 @@ function parseArgs(args) {
     httpBase: "",
     roleStateMap: "",
     serverLog: "",
+    runtimeDescriptor: "",
     playwrightModulePath: "",
     chromePath: "",
     buildPath: "build/media_server",
@@ -1099,6 +1765,7 @@ function parseArgs(args) {
     else if (arg === "--http-base") value.httpBase = args[++index] || "";
     else if (arg === "--role-state-map") value.roleStateMap = args[++index] || "";
     else if (arg === "--server-log") value.serverLog = args[++index] || "";
+    else if (arg === "--runtime-descriptor") value.runtimeDescriptor = args[++index] || "";
     else if (arg === "--playwright-module-path") value.playwrightModulePath = args[++index] || "";
     else if (arg === "--chrome-path") value.chromePath = args[++index] || "";
     else if (arg === "--build-path") value.buildPath = args[++index] || "";

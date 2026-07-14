@@ -4,7 +4,7 @@
   "implementationEvidence": {
     "path": "test/fixtures/project_feature_implementation_evidence.json",
     "schema": "media-server.feature-implementation-evidence.v2",
-    "sha256": "00920408b360a0ae41ee3a5ee2600fc7808a76f49ae26023642f9adde386903e"
+    "sha256": "cd2643d4cf0abcb13bbecbd9e81fd0d7a69e7ed524c71854ac39b83c66fe7e87"
   },
   "caseCount": 424,
   "cases": [
@@ -177,7 +177,7 @@
       "testId": "UI-013",
       "featureId": "UI-013",
       "route": "/ops/users",
-      "accountRole": "operator",
+      "accountRole": "admin",
       "viewport": {
         "width": 390,
         "height": 844
@@ -1782,7 +1782,7 @@
       "testId": "AUTH-012",
       "featureId": "AUTH-012",
       "route": "/ops/users",
-      "accountRole": "operator",
+      "accountRole": "admin",
       "viewport": {
         "width": 390,
         "height": 844
@@ -1797,7 +1797,7 @@
       "testId": "AUTH-013",
       "featureId": "AUTH-013",
       "route": "/ops/users",
-      "accountRole": "operator",
+      "accountRole": "admin",
       "viewport": {
         "width": 390,
         "height": 844
@@ -1842,7 +1842,7 @@
       "testId": "AUTH-016",
       "featureId": "AUTH-016",
       "route": "/ops/users",
-      "accountRole": "operator",
+      "accountRole": "admin",
       "viewport": {
         "width": 390,
         "height": 844
@@ -1857,7 +1857,7 @@
       "testId": "AUTH-018",
       "featureId": "AUTH-018",
       "route": "/ops/users",
-      "accountRole": "operator",
+      "accountRole": "admin",
       "viewport": {
         "width": 390,
         "height": 844
@@ -1872,7 +1872,7 @@
       "testId": "AUTH-019",
       "featureId": "AUTH-019",
       "route": "/ops/users",
-      "accountRole": "operator",
+      "accountRole": "admin",
       "viewport": {
         "width": 390,
         "height": 844
@@ -1887,7 +1887,7 @@
       "testId": "AUTH-020",
       "featureId": "AUTH-020",
       "route": "/ops/users",
-      "accountRole": "operator",
+      "accountRole": "admin",
       "viewport": {
         "width": 390,
         "height": 844
@@ -1902,7 +1902,7 @@
       "testId": "AUTH-021",
       "featureId": "AUTH-021",
       "route": "/ops/users",
-      "accountRole": "operator",
+      "accountRole": "admin",
       "viewport": {
         "width": 390,
         "height": 844
@@ -1917,7 +1917,7 @@
       "testId": "AUTH-022",
       "featureId": "AUTH-022",
       "route": "/ops/users",
-      "accountRole": "operator",
+      "accountRole": "admin",
       "viewport": {
         "width": 390,
         "height": 844
@@ -1932,7 +1932,7 @@
       "testId": "AUTH-023",
       "featureId": "AUTH-023",
       "route": "/ops/users",
-      "accountRole": "operator",
+      "accountRole": "admin",
       "viewport": {
         "width": 390,
         "height": 844
@@ -1947,7 +1947,7 @@
       "testId": "AUTH-024",
       "featureId": "AUTH-024",
       "route": "/ops/users",
-      "accountRole": "operator",
+      "accountRole": "admin",
       "viewport": {
         "width": 390,
         "height": 844
@@ -1962,7 +1962,7 @@
       "testId": "AUTH-025",
       "featureId": "AUTH-025",
       "route": "/ops/users",
-      "accountRole": "operator",
+      "accountRole": "admin",
       "viewport": {
         "width": 390,
         "height": 844
@@ -1977,7 +1977,7 @@
       "testId": "AUTH-026",
       "featureId": "AUTH-026",
       "route": "/ops/users",
-      "accountRole": "operator",
+      "accountRole": "admin",
       "viewport": {
         "width": 390,
         "height": 844
@@ -1992,7 +1992,7 @@
       "testId": "AUTH-027",
       "featureId": "AUTH-027",
       "route": "/ops/users",
-      "accountRole": "operator",
+      "accountRole": "admin",
       "viewport": {
         "width": 390,
         "height": 844
@@ -2007,7 +2007,7 @@
       "testId": "AUTH-028",
       "featureId": "AUTH-028",
       "route": "/ops/users",
-      "accountRole": "operator",
+      "accountRole": "admin",
       "viewport": {
         "width": 390,
         "height": 844
@@ -2022,7 +2022,7 @@
       "testId": "AUTH-029",
       "featureId": "AUTH-029",
       "route": "/ops/users",
-      "accountRole": "operator",
+      "accountRole": "admin",
       "viewport": {
         "width": 390,
         "height": 844
@@ -2037,7 +2037,7 @@
       "testId": "AUTH-030",
       "featureId": "AUTH-030",
       "route": "/ops/users",
-      "accountRole": "operator",
+      "accountRole": "admin",
       "viewport": {
         "width": 390,
         "height": 844
@@ -2142,7 +2142,7 @@
       "testId": "AUTH-039",
       "featureId": "AUTH-039",
       "route": "/ops/users",
-      "accountRole": "operator",
+      "accountRole": "admin",
       "viewport": {
         "width": 390,
         "height": 844
@@ -2157,7 +2157,7 @@
       "testId": "AUTH-040",
       "featureId": "AUTH-040",
       "route": "/ops/users",
-      "accountRole": "operator",
+      "accountRole": "admin",
       "viewport": {
         "width": 390,
         "height": 844
@@ -5727,7 +5727,7 @@
       "testId": "SAFE-041",
       "featureId": "SAFE-041",
       "route": "/ops/api/audit",
-      "accountRole": "operator",
+      "accountRole": "admin",
       "viewport": {
         "width": 390,
         "height": 844
