@@ -59,6 +59,7 @@ add_executable(media_server
     src/core/strict_json.cpp
     src/core/resource_guard.cpp
     src/core/session_manager.cpp
+    src/core/source_request_parser.cpp
     src/ingress/gst_pipeline_builder.cpp
     src/ingress/analysis_overlay_probe.cpp
     src/ingress/analysis_query.cpp
@@ -68,7 +69,6 @@ add_executable(media_server
     src/ingress/ops_action_execution_deferral.cpp
     src/ingress/ops_event_route_owner.cpp
     src/ingress/rtsp_request_context.cpp
-    src/ingress/request_parser.cpp
     src/ingress/product_ui_assets.cpp
     src/ingress/product_ui_action_execution_deferral.cpp
     src/ingress/product_ui_auth_pages.cpp

@@ -2557,7 +2557,7 @@ REVIEW4는 아래 순서를 고정합니다. 앞 단계가 FAIL이면 뒤 단계
 | 61 | V390-REVIEW4-61 | Long-run/Evidence | duration, 120분 판정, cleanup 실측 | P0 | 완료 / actual 장시간 미실행 | Predev는 Bash `SECONDS` monotonic 시작/종료/경과와 exact ordered soak iteration/case ledger, 서버 PID command/port lifecycle ledger를 기록합니다. Longrun v2는 별도 `process.hrtime.bigint` 경과와 delegated duration·step ledger를 함께 검증해 requested minutes 또는 최대 iteration 역산을 거부합니다. 120분 정책 필요성은 AGENTS 7.6.2 base..HEAD change scope와 upstream drift에서 계산하며 `--run-120`은 독립 trigger가 아닙니다. Longrun/UI cleanup은 PID identity·listener owner 전후·bindability·contained artifact 존재와 before/after bytes를 raw schema로 기록하고 acceptance/final integrity가 재검증합니다. Contract/fixture만 실행했으며 실제 30분/120분/UI는 미실행입니다. | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 6점. 장시간 및 release evidence 정확도 상향 적용 |
 | 62 | V390-REVIEW4-62 | Acceptance | self-contained one-command 실행 환경 | P0 | 완료 / actual 장시간·UI 미실행 | Canonical command는 output root만 받아 acceptance-owned throwaway HTTP/RTSP server, bounded port retry, admin/operator/viewer/integrator account와 0600 storage-state, Playwright/browser provenance, server log/PID/listener/artifact ownership과 cleanup을 직접 준비합니다. Exact runner는 contained runtime descriptor를 받아 case별 fresh role session, typed form 15건과 persisted mutation 35건의 실제 entry/field/identity/request lifecycle, cross-role action session, runtime-only secret resolver, collection/item authoritative readback과 aggregate cleanup을 수행합니다. Source/view는 ordered pair, ONVIF는 atomic pair로 결속하고 신규 pair는 isolated server teardown 전 양쪽 disabled 상태까지 확인합니다. `/ops/users` product case 20건과 관련 cross-role action은 admin으로 교정했으며 canonical role 분포는 admin 20/anonymous 16/operator 346/viewer 42입니다. SRC-018의 allowedRuleIds/clientGroups 편집 control도 제품 UI에 추가했습니다. 외부 HTTP/PID/log/role-state/port/temp-root option은 거부하며 첫 실패 뒤 later stage/case는 `not-run`입니다. Acceptance contract 10/0, exact runtime 15/0, adapter 8/0, final integrity 9/0, longrun measurement 12/0을 통과했지만 실제 30분·exact 424 browser·80 visual·120분은 실행하지 않았습니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. 복합 실행 경계와 release correctness 상향 적용 |
 | 63 | V390-REVIEW4-63 | Product Scope | deferred 기능 실제 owner 확정 | P1 | 완료 | `.github/CODEOWNERS`의 effective rule에 따라 실제 책임자 `@dhseo90`를 `repository-code-owner`/`repository-scoped-product-scope-attestation`으로 결속하고 기능 역할과 조직 권한 추론을 분리했습니다. Exact 5개는 action write, persistent credential store, production restore, external provider call, model-backed Re-ID이며 외부 field smoke는 별도 조건부입니다. Production restore의 runbook/staging 구현과 product automation 미구현, external provider의 product runtime 금지와 conditional harness 구현, Re-ID의 `implemented-opt-in-experimental` source와 supported release 제외를 구분합니다. 모든 후속은 `post-v3.9-unassigned`, scheduled=false이며 구조화 dependency 승인 전 target version을 예약하지 않습니다. Current release execution/UI/30분/120분/field/release PASS는 주장하지 않습니다. | 5.6 Terra | 중간 (medium) | 영향도 1, 불확실성 1, 검증 난이도 1, 변경 범위 1, 총 4점. 제품 범위 결정 기록이며 상향 규칙 없음 |
-| 64 | V390-REVIEW4-64 | Structure | 승인된 구조 안정화 slice 실행 | P0 | 진행 중 / Slice 5 완료 | Slice 1~4에 이어 Slice 5에서 generic strict JSON을 core utility로, VLM provenance validator 5,811 bytes를 application-service owner로 이동했습니다. Actual provenance save/readback/restart/no-write, promotion trust HTTP 14/structural 7/reload 13, promotion/bridge/draft/profile, build/structure/script/diff/cleanup을 통과했습니다. Current graph는 production 156/C++ 78/owner 10, target 위반 25→18, SCC 8, server 43,072줄/UI page script 10,156줄입니다. Runtime opt-in 제품 4/4 뒤 SAFE-025 binding 1건과 feature evidence 8,752 drift는 Slice 6 entry blocker이고 Slice 6은 미진행입니다. | 5.6 Sol | 최대 (max) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. 43,072-line server와 10,156-line UI를 포함한 전면 구조 변경으로 xhigh보다 추가 탐색과 회귀 검증이 필요한 최난도 작업 |
+| 64 | V390-REVIEW4-64 | Structure | 승인된 구조 안정화 slice 실행 | P0 | 진행 중 / current continuation Slice 3 완료 | Historical ordered Slice 1~5와 current continuation 1~3을 완료했습니다. 최신 Slice는 shared source request parser를 ingress transport에서 core utility owner로 byte-equivalent 이동하고 focused 5/0, build 100%, codec 67/0/3, route 8/0, analysis 181/0, Event POST 9/0, WebRTC 8/0, SSE 5/0, WS 9/0을 통과했습니다. Current graph는 production 159/C++ 79/owner 10, target 위반 19, SCC 6, server 40,832줄, CMake target 1/internal separation false입니다. Generated evidence 두 파일은 final evidence Slice까지 parked이며 REVIEW4-64/65 완료 evidence가 아닙니다. | 5.6 Sol | 최대 (max) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. 40,832-line server와 single target을 포함한 전면 구조 변경으로 xhigh보다 추가 탐색과 회귀 검증이 필요한 최난도 작업 |
 | 65 | V390-REVIEW4-65 | Final Test | current HEAD 독립 acceptance와 evidence | P0 | 64 완료 후 실행 승인됨 | 50~64가 닫힌 clean HEAD에서 정적/빌드 gate, 30분, exact 424 Policy v4 UI, AGENTS 7.6.2 판정에 따른 120분, cleanup, final integrity를 승인된 canonical command로 수행합니다. current commit, 명령, 첫 실패 위치, 재현 명령, 미실행/조건부 항목을 보존하며 historical PASS를 재사용하지 않습니다. | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 6점. release correctness 검증 상향 적용 |
 
 #### REVIEW4 단계 의존성과 중단 조건
@@ -5881,6 +5881,23 @@ Auth 비밀번호는 실행 환경에만 주입했고 저장소나 증적에 기
 각 Auth 실행 전후 동일했습니다. Current graph는 production 159/C++ 79, target 위반 20, SCC 8,
 transport 40,833줄, CMake target 1/internal separation false입니다. 따라서 Slice 2는 완료지만
 REVIEW4-64 전체와 REVIEW4-65 acceptance는 아직 완료가 아닙니다.
+
+## V390-REVIEW4-64 current continuation Slice 3 완료
+
+`source-request-parser-owner-boundary`를 완료했습니다. 기존 `include/ingress/request_parser.h`와
+`src/ingress/request_parser.cpp`를 제거하고 동일 API/구현을 `include/core/source_request_parser.h`와
+`src/core/source_request_parser.cpp`의 `core` namespace로 이동했습니다. SessionManager의 create/attach 두 지점과
+RTSP media configure 한 지점만 새 owner를 호출하고 WebRTC HTTP server의 미사용 parser include는 제거했습니다.
+File root traversal, route, file/url exclusivity, WHEP http(s), source kind, YouTube default-off, exact error와
+Event POST/WebRTC/SSE/WS/RTSP media 계약은 바꾸지 않았습니다.
+
+Focused verifier는 구현 전 0/5 RED였고 최종 5/0, build 100%, codec fresh full rerun 67/0/3,
+route profile 8/0, analysis state 181/0, v2.9 freeze 10/0, Event POST 9/0, WebRTC metadata 8/0,
+SSE 5/0, WS 9/0을 통과했습니다. Event POST 재검증에서 드러난 verifier 들여쓰기·import·고정 해시 결함은
+canonical sample/JSON Schema/actual payload 모양에 맞게 보정했으며 제품 serializer나 payload는 변경하지 않았습니다.
+Current graph는 target 위반 20→19, SCC 8→6, transport 40,833→40,832줄이고 production 159/C++ 79,
+CMake target 1/internal separation false는 유지됩니다. 따라서 Slice 3는 완료지만 남은 architecture debt와 parked
+generated evidence 때문에 REVIEW4-64 전체와 REVIEW4-65 acceptance는 아직 완료가 아닙니다.
 
 ## 후속 이슈 추천 규칙
 

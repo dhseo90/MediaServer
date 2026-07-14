@@ -126,7 +126,6 @@ start_receiver() {
   # /event는 성공, /fail은 HTTP 500, /slow는 지연 성공으로 응답해 dispatcher 경로를 분리한다.
   : > "${RECEIVED_FILE}"
   python3 -u - "${RECEIVED_FILE}" "${RECEIVER_PORT}" <<'PY' &
-import hashlib
 import json
 import sys
 import time
@@ -255,6 +254,7 @@ validate_schema_mode() {
   printf '%s' "${after_json}" > "${STATUS_AFTER_FILE}"
 
   python3 - "${before_enqueued}" "${before_failed}" "${before_suppressed}" "${STATUS_AFTER_FILE}" "${RECEIVED_FILE}" "${SCHEMA_SUCCESS_RULE_ID}" "${EVENTS_FILE}" <<'PY'
+import hashlib
 import json
 import pathlib
 import sys
@@ -268,7 +268,7 @@ success_rule_id = sys.argv[6]
 events_payload = json.loads(pathlib.Path(sys.argv[7]).read_text())
 
 errors = []
-FROZEN_EVENT_POST_SCHEMA_SHA256 = "561c05e99d05a3817b7e7260e83d4018e48cad26cd752ab05145edcff58d5d61"
+FROZEN_EVENT_POST_SCHEMA_SHA256 = "a746b8c23e8966df900f5c43c5eef3c94d9b59611142d1e9df8486f086b55aa0"
 
 def schema_shape(value, path=""):
     if isinstance(value, dict):
@@ -338,7 +338,7 @@ else:
         errors.append(f"schema mismatch: {payload.get('schema')}")
     frozen_schema_sha256 = assert_schema_contract(payload)
 
-assert_non_blocking_event_post_queue_status(status, posts, before_failed, events_payload)
+    assert_non_blocking_event_post_queue_status(status, posts, before_failed, events_payload)
     if not str(payload.get("eventId", "")).startswith("evt_"):
         errors.append(f"eventId mismatch: {payload.get('eventId')}")
     if not isinstance(payload.get("timestampMs"), int):

@@ -130,7 +130,7 @@ SessionManager::CreateResult SessionManager::CreateSession(const media::IngressR
     }
 
     std::string parse_error;
-    const auto source_spec = ingress::ParseSourceSpec(request, &parse_error);
+    const auto source_spec = ParseSourceSpec(request, &parse_error);
     if (!source_spec.has_value()) {
         resource_guard_.ReleaseSession();
         return {.ok = false,
@@ -339,7 +339,7 @@ std::vector<SessionManager::SourceEgressStats> SessionManager::SourceEgressStats
 SessionManager::AnalysisTapResult SessionManager::AttachAnalysisTap(const media::IngressRequest& request,
                                                                     analysis::AnalysisProfile profile) {
     std::string parse_error;
-    const auto source_spec = ingress::ParseSourceSpec(request, &parse_error);
+    const auto source_spec = ParseSourceSpec(request, &parse_error);
     if (!source_spec.has_value()) {
         return {.ok = false,
                 .message = parse_error.empty() ? "invalid source spec" : parse_error};

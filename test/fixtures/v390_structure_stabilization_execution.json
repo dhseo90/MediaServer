@@ -55,21 +55,21 @@
   "currentGraph": {
     "path": "test/fixtures/v390_structure_stabilization_current_graph.json",
     "schema": "media-server.v390-structure-stabilization-current-graph.v1",
-    "sha256": "084ae9b9a7017fbecc223b706e89d01dc2a72a299e4aebaee017daf2ffc24fb5",
+    "sha256": "2f781dd262298a496e3afda5bce87622b55bc9e9ed5bb4a42b4e2da703f87d8c",
     "metrics": {
       "productionFiles": 159,
       "cppSources": 79,
       "moduleOwners": 10,
       "cmakeTargets": 1,
-      "targetViolationDirections": 20,
-      "largestSccOwners": 8,
-      "largestMixedOwnerFileLines": 40833,
+      "targetViolationDirections": 19,
+      "largestSccOwners": 6,
+      "largestMixedOwnerFileLines": 40832,
       "internalTargetSeparation": false
     }
   },
   "currentContinuation": {
     "status": "in-progress",
-    "latestCompletedSlice": 2,
+    "latestCompletedSlice": 3,
     "sliceSequenceStatus": "partial",
     "architectureStatus": "final-targets-unmet",
     "finalEvidenceStatus": "parked-generated-artifacts-in-review",
@@ -299,6 +299,140 @@
           {"command":"./server.sh verify-docs-links","status":"pass","result":"168 markdown files, 870 local links, 22 images, 99 anchors, 0 failures"},
           {"command":"git diff --check","status":"pass","result":"exit 0"},
           {"command":"listener/temp cleanup","status":"pass","result":"listeners 8081/8555/8091/8565 absent; matching auth, renderer, and static UI temp artifacts absent"}
+        ]
+      },
+      {
+        "order": 3,
+        "id": "source-request-parser-owner-boundary",
+        "status": "completed",
+        "nonProductionSlice": false,
+        "rollbackCommit": "6b13a176d3552cbfc9f7e0933ca9fe7859e944c6",
+        "selectedBoundary": "move the shared source request parser from ingress transport ownership to a core utility owner without changing route, file-root, source-kind, error, media, or session semantics",
+        "allowedFiles": [
+          "CMakeLists.txt",
+          "server.sh",
+          "include/ingress/request_parser.h",
+          "src/ingress/request_parser.cpp",
+          "include/core/source_request_parser.h",
+          "src/core/source_request_parser.cpp",
+          "include/core/session_manager.h",
+          "src/core/session_manager.cpp",
+          "src/ingress/gstreamer_rtsp_server.cpp",
+          "src/ingress/webrtc_http_server.cpp",
+          "scripts/internal/verify_v390_source_request_parser_owner.mjs",
+          "scripts/internal/verify_event_post_dispatch.sh",
+          "scripts/internal/verify_script_inventory.mjs",
+          "scripts/internal/verify_v390_structure_stabilization_execution.mjs",
+          "test/fixtures/v390_structure_stabilization_current_graph.json",
+          "test/fixtures/v390_structure_stabilization_execution.json",
+          "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md",
+          "docs/development-backlog.md",
+          "docs/project-feature-test-inventory.md",
+          "docs/stream-verification.md",
+          "docs/release-test-records.md",
+          "docs/release-evidence-index.md"
+        ],
+        "changedFiles": [
+          "CMakeLists.txt",
+          "server.sh",
+          "include/ingress/request_parser.h",
+          "src/ingress/request_parser.cpp",
+          "include/core/source_request_parser.h",
+          "src/core/source_request_parser.cpp",
+          "include/core/session_manager.h",
+          "src/core/session_manager.cpp",
+          "src/ingress/gstreamer_rtsp_server.cpp",
+          "src/ingress/webrtc_http_server.cpp",
+          "scripts/internal/verify_v390_source_request_parser_owner.mjs",
+          "scripts/internal/verify_event_post_dispatch.sh",
+          "scripts/internal/verify_script_inventory.mjs",
+          "scripts/internal/verify_v390_structure_stabilization_execution.mjs",
+          "test/fixtures/v390_structure_stabilization_current_graph.json",
+          "test/fixtures/v390_structure_stabilization_execution.json",
+          "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md",
+          "docs/development-backlog.md",
+          "docs/project-feature-test-inventory.md",
+          "docs/stream-verification.md",
+          "docs/release-test-records.md",
+          "docs/release-evidence-index.md"
+        ],
+        "before": {
+          "productionGraphSha256": "084ae9b9a7017fbecc223b706e89d01dc2a72a299e4aebaee017daf2ffc24fb5",
+          "productionFiles": 159,
+          "cppSources": 79,
+          "targetViolationDirectionsUnderPolicyV1": 20,
+          "largestSccOwners": 8,
+          "webrtcHttpServerLines": 40833,
+          "cmakeTargets": 1,
+          "internalTargetSeparation": false
+        },
+        "after": {
+          "productionGraphSha256": "2f781dd262298a496e3afda5bce87622b55bc9e9ed5bb4a42b4e2da703f87d8c",
+          "productionFiles": 159,
+          "cppSources": 79,
+          "targetViolationDirectionsUnderPolicyV1": 19,
+          "largestSccOwners": 6,
+          "webrtcHttpServerLines": 40832,
+          "cmakeTargets": 1,
+          "internalTargetSeparation": false
+        },
+        "parkedArtifactInvariants": [
+          {
+            "path": "test/fixtures/project_feature_implementation_evidence.json",
+            "beforeSha256": "ad1242305cec7ac20af3b67aeedaa55da49c531e2f750b81579e8bdc533d8ce1",
+            "afterSha256": "ad1242305cec7ac20af3b67aeedaa55da49c531e2f750b81579e8bdc533d8ce1",
+            "beforeNumstat": "18311/8898",
+            "afterNumstat": "18311/8898",
+            "stagedBySlice": false
+          },
+          {
+            "path": "test/fixtures/v390_review4_feature_semantic_source_audit.json",
+            "beforeSha256": "e5680ebe9dbc7028b09e5047ca3048710dd57b6d529951650f98cc2baa848afa",
+            "afterSha256": "e5680ebe9dbc7028b09e5047ca3048710dd57b6d529951650f98cc2baa848afa",
+            "beforeNumstat": "47072/76799",
+            "afterNumstat": "47072/76799",
+            "stagedBySlice": false
+          }
+        ],
+        "contractAssertions": [
+          "the old ingress request parser files and compatibility wrapper are absent after completion",
+          "the core source request parser preserves the exact SourceSpec, IngressRequest, file-root, route, source-kind, and error semantics",
+          "SessionManager create and attach plus RTSP media configure are the only parser consumers",
+          "the unused WebRTC HTTP server parser include is removed without changing HTTP, Auth, route, or media behavior",
+          "WHEP http(s) validation and YouTube build/runtime default-off behavior remain unchanged",
+          "core-media-to-transport request-parser dependency is absent without relaxing policy v1",
+          "historical graph bindings and the two parked generated evidence artifacts remain unchanged",
+          "UI, Event POST, WebRTC DataChannel, SSE/WS metadata, SourceRegistry, PublishedView, Rule/Profile, and RTSP/WebRTC media contracts are unchanged"
+        ],
+        "observedFollowups": [
+          "tests were registered before production changes; the focused owner command first failed 0/5 on the retained ingress owner, missing core files, old CMake/consumers, absent harness implementation, and mutation boundary",
+          "after the owner move the focused gate first reported 3/2 because the normalized rollback source hash was entered incorrectly and the namespace mutation negative still reused normalization; the exact rollback hash and direct namespace mutation assertion were corrected, then the gate passed 5/0 with a compiled route/file/source-kind/error matrix",
+          "the first codec run on a cold owned loopback server passed 66 with 1 HLS default ffprobe timeout and 3 disabled external skips; an isolated cold HLS rerun passed 4/0 and a fresh full rerun passed 67/0 with the same three external YouTube/Wowza skips",
+          "route-profile first reported the missing server precondition, then passed 8/0 on an owned loopback server; analysis state passed 181/0 and the v2.9 final contract freeze passed 10/0",
+          "event-post schema first stopped because the existing server had the dispatcher disabled; the enabled rerun exposed three verifier defects introduced by prior semantic closure: a dedented queue assertion, hashlib imported in the wrong Python heredoc, and a frozen hash inconsistent with the canonical sample/JSON Schema/actual payload shape",
+          "the event-post verifier defects were corrected without product serializer or payload changes; the enabled clean rerun passed 9/0, WebRTC DataChannel passed 8/0, SSE passed 5/0, and WebSocket metadata passed 9/0",
+          "current graph regeneration kept production 159/C++ 79 and policy v1 unchanged while target violations fell 20 to 19, the largest SCC fell 8 to 6, and the transport server fell 40,833 to 40,832 lines; CMake remains one target with internal separation false",
+          "owned listeners on 8555, 8081, and 19091 were absent after shutdown; nine current-run event/WebRTC/SSE temporary files totaling about 20 KB were identified and deleted while historical artifacts were left untouched",
+          "the two parked generated evidence artifacts retained their pre-Slice SHA-256 and numstat and were not staged or used as completion evidence",
+          "the first script inventory finalization run failed 10/1 because the new focused verifier did not yet use the common unknown-option parser; help and unknown-option handling were added, the focused gate reran 5/0, structure reran 15/0, and script inventory reran 11/0",
+          "the post-stage structure rerun failed 14/1 because porcelain rename parsing retained only the destination and falsely reported the declared deleted ingress header missing; the oracle now records both rename endpoints before allowlist/changed-file comparison"
+        ],
+        "tests": [
+          {"command":"./server.sh verify-v390-source-request-parser-owner","status":"pass","firstAttempt":"0/5 expected RED","reviewRepairFirstAttempt":"3/2; rollback source hash and namespace mutation oracle","result":"5/0 with normalized rollback bytes, compiled parser matrix, exact consumers, and mutation negatives"},
+          {"command":"./server.sh build","status":"pass","result":"100%"},
+          {"command":"./server.sh verify-codecs","status":"pass","firstAttempt":"66/1/3; cold default HLS ffprobe timeout","diagnostic":"isolated cold HLS 4/0","result":"fresh full rerun 67/0/3; external YouTube/Wowza disabled skips are not product PASS"},
+          {"command":"./server.sh verify-route-profiles","status":"pass","firstAttempt":"owned server absent","result":"8/0 on owned loopback server"},
+          {"command":"./server.sh verify-analysis-state","status":"pass","result":"181/0"},
+          {"command":"./server.sh verify-v290-final-contract-freeze","status":"pass","result":"10/0"},
+          {"command":"./server.sh verify-event-post --mode schema","status":"pass","firstAttempt":"dispatcher disabled precondition","reviewRepair":"dedented assertion, wrong-heredoc hashlib import, and stale frozen hash corrected against canonical sample/schema/actual shape","result":"9/0"},
+          {"command":"./server.sh verify-webrtc-va-metadata","status":"pass","firstAttempt":"default 8080 fetch failure","result":"8/0 with owned 8081 base"},
+          {"command":"./server.sh verify-sse-metadata","status":"pass","result":"5/0"},
+          {"command":"./server.sh verify-ws-metadata","status":"pass","result":"9/0"},
+          {"command":"./server.sh verify-v390-review4-structure-stabilization-execution","status":"pass","postStageFirstAttempt":"14/1 staged rename source endpoint omitted by oracle","result":"15/0 completion graph/ledger/document binding including both rename endpoints"},
+          {"command":"./server.sh verify-script-inventory","status":"pass","firstAttempt":"10/1 missing common option parser in new focused verifier","result":"11/0 after focused option contract and 5/0 rerun"},
+          {"command":"./server.sh verify-docs-links","status":"pass","result":"168 markdown files, 871 local links, 22 images, 99 anchors, 0 failures"},
+          {"command":"git diff --check","status":"pass","result":"exit 0"},
+          {"command":"listener/temp cleanup","status":"pass","result":"8555/8081/19091 listeners absent; nine current-run event/WebRTC/SSE temp files deleted"}
         ]
       }
     ]

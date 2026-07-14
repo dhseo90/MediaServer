@@ -518,6 +518,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_v390_onvif_credential_provider_status.mjs",
     "verify_v390_onvif_live_import_persist_decision.mjs",
     "verify_v390_product_ui_principal_view_boundary.mjs",
+    "verify_v390_source_request_parser_owner.mjs",
     "verify_v390_vlm_rule_suggestion_draft_bridge.mjs",
     "verify_v390_vlm_incident_rule_provenance.mjs",
     "verify_v390_vlm_evaluation_promotion_guard.mjs",

@@ -1,7 +1,7 @@
 // 파일 요약: HTTP/RTSP query에서 file/url/source 요청을 SourceSpec으로 해석한다.
 // 동작 요약: 경로 이탈, 절대경로, 누락된 source 같은 잘못된 요청을 초기에 거부한다.
 // 동작 요약: route별 codec 선택과 source kind를 SessionManager 입력 형태로 정규화한다.
-#include "ingress/request_parser.h"
+#include "core/source_request_parser.h"
 
 #include <algorithm>
 #include <cctype>
@@ -9,7 +9,7 @@
 
 #include "app_config.h"
 
-namespace ingress {
+namespace core {
 
 namespace {
 
@@ -169,4 +169,4 @@ std::optional<media::SourceSpec> ParseSourceSpec(const media::IngressRequest& re
     return media::SourceSpec{.kind = kind, .uri = url_it->second};
 }
 
-}  // namespace ingress
+}  // namespace core

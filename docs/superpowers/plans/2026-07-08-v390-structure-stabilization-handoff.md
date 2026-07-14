@@ -35,7 +35,7 @@ Development 17의 readiness와 REVIEW4-51 decision/graph는 승인 당시 histor
 `test/fixtures/v390_structure_stabilization_current_graph.json`, verifier는
 `./server.sh verify-v390-review4-structure-stabilization-execution`입니다.
 
-Current REVIEW4-64 status: `current-continuation-2-completed-slice-6-deferred`
+Current REVIEW4-64 status: `current-continuation-3-completed-slice-6-deferred`
 
 | 순서 | Current Slice | 상태 | 직접 경계 |
 | ---: | --- | --- | --- |
@@ -47,13 +47,15 @@ Current REVIEW4-64 status: `current-continuation-2-completed-slice-6-deferred`
 | 6 | `verifier-docs` | 미착수·deferred | production continuation source/graph가 안정된 뒤 execution evidence, manual UI archive, VLM index를 final review; generated evidence는 그 전까지 parked 상태 |
 
 Current policy v1 graph는 production 159파일/C++ 79개/owner 10개, target 위반 direction
-20개(승인 baseline 25개), 최대 SCC 8, internal target 1개입니다. `main.cpp` mixed composition debt는
+19개(승인 baseline 25개), 최대 SCC 6, internal target 1개입니다. `main.cpp` mixed composition debt는
 245→8줄, selected action route owner는 server 43,266→43,186줄로 닫았고 registry→transport auth edge와 product UI→transport/Auth edge를 제거했습니다. Transport는 현재 40,833줄이며 최대 SCC와 mixed-owner debt는 남아 있으므로 REVIEW4-64 완료가
 아닙니다. Historical v2 order와 current order의 전환 범위는 slice identifier/order뿐이며 current branch,
 50~63 prerequisite, 9 preserved contract, 64 뒤 65 acceptance 경계는 유지합니다. Policy v1은
 application-service→core와 transport→Ops/UI를 temporary debt로 기록하며 위반 계산에서 제외하지 않습니다.
-Ops server page renderer와 principal adapter 경계 이동 뒤 transport monolith는 40,833줄이며 policy-v1 target direction은 20개로
-비증가지만 internal target separation은 false입니다.
+Ops server page renderer와 principal adapter 경계 이동에 이어 shared source request parser를
+`ingress/request_parser`에서 `core/source_request_parser`로 byte-equivalent 이동했습니다. SessionManager create/attach와
+RTSP configure만 core owner를 사용하며 HTTP server의 unused include를 제거했습니다. Transport monolith는 40,832줄,
+policy-v1 target direction은 19개, 최대 SCC는 6으로 감소했지만 internal target separation은 false입니다.
 
 `verify-feature-implementation-evidence`는 Slice 1~3 source 이동 뒤 current line/context/blob trust binding
 8,752건을 거부했고 negative fixture는 15/15를 통과했습니다. 이 FAIL은 PASS로 사용하지 않으며 ordered
@@ -73,10 +75,11 @@ adapter로 Auth principal 의존을 제거하고 완료했습니다. `product_ui
 `http_auth.h`, `auth::Principal`, `RequireRole`, `IsAdmin`이 남지 않으며, transport adapter가 기존
 `IsAdmin`/`RequireRole(operator)` 결과를 사전 계산합니다. Auth bootstrap/users/routes 19/0·72/0·146/0,
 15개 HTML byte baseline, static UI 28/0을 확인했고 실제 사용자 registry는 모든 Auth run 전후 동일했습니다.
-전체 current continuation은
-남은 architecture debt 때문에 `in-progress`이며 generated Review4 evidence는
-독립 승인·apply·negative 검증 전까지 parked/non-final입니다. Current graph의 위반 20, SCC 8, 최대 mixed
-owner 40,833줄, actual CMake internal target separation false가 모두 남아 있으므로 `refactorComplete=false`,
+세 번째 Slice `source-request-parser-owner-boundary`는 parser 구현의 정규화 SHA와 compiled route/file/source-kind/error
+matrix를 결속하고 codec 67/0/3, route profile 8/0, analysis 181/0, Event POST 9/0, WebRTC 8/0,
+SSE 5/0, WS 9/0을 통과했습니다. 전체 current continuation은 남은 architecture debt 때문에 `in-progress`이며 generated Review4 evidence는
+독립 승인·apply·negative 검증 전까지 parked/non-final입니다. Current graph의 위반 19, SCC 6, 최대 mixed
+owner 40,832줄, actual CMake internal target separation false가 모두 남아 있으므로 `refactorComplete=false`,
 `completionClaimed=false`이고 REVIEW4-65 acceptance를 시작할 완료 evidence가 아닙니다.
 
 ## Development 17 Structure Stabilization Readiness

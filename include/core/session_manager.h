@@ -5,9 +5,9 @@
 
 #include "analysis/analysis_manager.h"
 #include "core/resource_guard.h"
+#include "core/source_request_parser.h"
 #include "core/source_factory.h"
 #include "core/stream_registry.h"
-#include "ingress/request_parser.h"
 #include "media_types.h"
 #include "stdafx.h"
 

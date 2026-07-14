@@ -15,7 +15,7 @@
 #include "ingress/analysis_query.h"
 #include "ingress/analysis_rule_registry.h"
 #include "ingress/gst_pipeline_builder.h"
-#include "ingress/request_parser.h"
+#include "core/source_request_parser.h"
 #include "ingress/rtsp_egress_session.h"
 #include "ingress/rtsp_request_context.h"
 #include "stdafx.h"
@@ -201,7 +201,7 @@ void OnMediaConfigure(GstRTSPMediaFactory* /*factory*/, GstRTSPMedia* media, gpo
     const media::CodecId audio_codec = AudioCodecFromPath(request.path, config.stream_route);
 
     std::string parse_error;
-    const auto source_spec = ParseSourceSpec(request, &parse_error);
+    const auto source_spec = core::ParseSourceSpec(request, &parse_error);
     if (!source_spec.has_value()) {
         std::cerr << "[gst] invalid request query: "
                   << (parse_error.empty() ? "expected ?url=... or ?file=..." : parse_error) << "\n";
