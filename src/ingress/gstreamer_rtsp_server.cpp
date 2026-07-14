@@ -9,7 +9,6 @@
 
 #include "app_config.h"
 #include "core/runtime_debug_counters.h"
-#include "ingress/analysis_rule_registry.h"
 #include "ingress/gst_pipeline_builder.h"
 #include "core/source_request_parser.h"
 #include "ingress/rtsp_egress_session.h"
@@ -191,7 +190,7 @@ void OnMediaConfigure(GstRTSPMediaFactory* /*factory*/, GstRTSPMedia* media, gpo
     media::IngressRequest request = *request_opt;
     request.client_id = "gst-session-" + std::to_string(runtime->next_session_id.fetch_add(1));
     std::string va_rule_error;
-    if (!ApplyVideoAnalysisRuleToRequest(&request, &va_rule_error)) {
+    if (!runtime->analysis_port.PrepareRtspRequest(&request, &va_rule_error)) {
         std::cerr << "[gst] invalid vaRule request: " << va_rule_error << "\n";
         return;
     }

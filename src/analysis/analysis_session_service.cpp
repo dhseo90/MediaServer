@@ -377,6 +377,11 @@ AnalysisSessionService::AuxiliaryStreamRuntimeSnapshot() const {
     return snapshot;
 }
 
+bool AnalysisSessionService::PrepareRtspRequest(media::IngressRequest* request,
+                                                std::string* error_message) {
+    return ingress::ApplyVideoAnalysisRuleToRequest(request, error_message);
+}
+
 core::RtspAnalysisBinding AnalysisSessionService::PrepareRtsp(const media::IngressRequest& request) {
     if (!ingress::IsAnalysisOverlayRequested(request.query)) {
         return {.requested = false, .ok = true};

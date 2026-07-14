@@ -81,8 +81,7 @@ const applicationFiles = [
 ];
 const domainFiles = [
   "include/ingress/analysis_rule_registry.h", "include/ingress/source_view_registry.h",
-  "src/ingress/source_view_registry.cpp", "include/ingress/webrtc_source_registry.h",
-  "src/ingress/webrtc_source_registry.cpp", "include/domain/strict_json.h", "src/domain/strict_json.cpp",
+  "src/ingress/source_view_registry.cpp", "include/domain/strict_json.h", "src/domain/strict_json.cpp",
 ];
 const opsImplementationFiles = [
   "src/ingress/ops_action_execution_deferral.cpp", "src/ingress/onvif_credential_provider.cpp",
@@ -94,7 +93,7 @@ const expectedDirections = [
   "application-service-interfaces -> domain-and-registry-owners", "composition-root -> analysis-services",
   "composition-root -> core-media-interfaces", "composition-root -> core-utilities",
   "composition-root -> transport-and-auth-adapter", "core-media-interfaces -> core-utilities",
-  "core-media-interfaces -> domain-and-registry-owners", "domain-and-registry-owners -> core-utilities",
+  "domain-and-registry-owners -> core-utilities",
   "ops-route-groups -> application-service-interfaces", "product-ui-workspaces -> stable-contract-dtos",
   "transport-and-auth-adapter -> analysis-services", "transport-and-auth-adapter -> application-service-interfaces",
   "transport-and-auth-adapter -> core-media-interfaces", "transport-and-auth-adapter -> core-utilities",
@@ -121,8 +120,8 @@ check("interface and implementation owners are exact", () => {
     owner("application-service-interfaces").expectedCppCount === 2,
   "application public interface owner drift");
   assert(JSON.stringify(exact("domain-and-registry-owners")) === JSON.stringify([...domainFiles].sort()) &&
-    owner("domain-and-registry-owners").expectedFileCount === 7 &&
-    owner("domain-and-registry-owners").expectedCppCount === 3,
+    owner("domain-and-registry-owners").expectedFileCount === 5 &&
+    owner("domain-and-registry-owners").expectedCppCount === 2,
   "strict JSON domain owner drift");
   assert(JSON.stringify(exact("ops-route-groups")) === JSON.stringify([...opsImplementationFiles].sort()) &&
     owner("ops-route-groups").expectedFileCount === 4 && owner("ops-route-groups").expectedCppCount === 4,
@@ -179,7 +178,7 @@ check("current graph removes only the planned owner violations", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const violations = graph.observedModuleEdges.filter(item => item.allowedByTarget === false);
   assert(graph.expectedProductionFiles === 163 && graph.expectedCppFiles === 80 &&
-    graph.observedModuleEdges.length === 20 && violations.length === 6 &&
+    graph.observedModuleEdges.length === 19 && violations.length === 5 &&
     graph.stronglyConnectedComponents.length === 0 &&
     JSON.stringify(graph.observedModuleEdges.map(item => item.direction)) === JSON.stringify(expectedDirections),
   "public owner graph metrics or exact direction set drift");

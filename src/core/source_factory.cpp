@@ -27,7 +27,7 @@
 #if MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE
 #include "core/youtube_resolver.h"
 #endif
-#include "ingress/webrtc_source_registry.h"
+#include "core/webrtc_source_registry.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER
 #include <gst/app/gstappsink.h>

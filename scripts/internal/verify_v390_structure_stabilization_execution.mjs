@@ -495,11 +495,11 @@ check("non-production Slice preserves production graph and parked evidence stays
   }
 });
 
-check("current continuation binds the exact Slice 1-9 frontier without a final claim", () => {
+check("current continuation binds the exact Slice 1-10 frontier without a final claim", () => {
   const slices = ledger.currentContinuation?.orderedSlices || [];
-  assert(slices.length === 9 && slices[0].order === 1 && slices[1].order === 2 && slices[2].order === 3 &&
+  assert(slices.length === 10 && slices[0].order === 1 && slices[1].order === 2 && slices[2].order === 3 &&
     slices[3].order === 4 && slices[4].order === 5 && slices[5].order === 6 && slices[6].order === 7 &&
-    slices[7].order === 8 && slices[8].order === 9 &&
+    slices[7].order === 8 && slices[8].order === 9 && slices[9].order === 10 &&
     slices[0].id === "completion-oracle-and-ops-ui-renderer" && slices[0].status === "completed" &&
     slices[1].id === "product-ui-principal-view-boundary" && slices[1].status === "completed" &&
     slices[2].id === "source-request-parser-owner-boundary" && slices[2].status === "completed" &&
@@ -509,8 +509,9 @@ check("current continuation binds the exact Slice 1-9 frontier without a final c
     slices[6].id === "core-media-analysis-port-inversion" &&
     slices[6].status === "completed" &&
     slices[7].id === "stable-contract-owner-realignment" && slices[7].status === "completed" &&
-    slices[8].id === "public-contract-interface-owner-realignment" &&
-    ["in-progress", "completed"].includes(slices[8].status),
+    slices[8].id === "public-contract-interface-owner-realignment" && slices[8].status === "completed" &&
+    slices[9].id === "core-media-registry-rule-port" &&
+    ["in-progress", "completed"].includes(slices[9].status),
   "current continuation slice identity/frontier mismatch");
   const slice1 = slices[0];
   const slice2 = slices[1];
@@ -521,6 +522,7 @@ check("current continuation binds the exact Slice 1-9 frontier without a final c
   const slice7 = slices[6];
   const slice8 = slices[7];
   const slice9 = slices[8];
+  const slice10 = slices[9];
   assert(slice1.rollbackCommit === ledger.orderedSlices[5].rollbackCommit &&
     slice1.nonProductionSlice === false && slice1.contractAssertions.length >= 5 && slice1.tests.length >= 5 &&
     slice1.tests.every(test => test.status === "pass"),
@@ -1033,14 +1035,16 @@ check("current continuation binds the exact Slice 1-9 frontier without a final c
     const testsFinal = slice9.tests.every(test => test.status === "pass") ||
       selfCheck.status === "self-check" && slice9.tests.every(test =>
         test === selfCheck || test.status === "pass");
-    assert(ledger.currentContinuation.latestCompletedSlice === 9 && slice9.after !== null && testsFinal,
+    assert(ledger.currentContinuation.latestCompletedSlice >= 9 && slice9.after !== null && testsFinal,
     "completed Slice 9 frontier/test state mismatch");
-    assert(slice9.after.productionGraphSha256 === ledger.currentGraph.sha256 &&
+    assert((slice10.status === "completed"
+      ? JSON.stringify(slice9.after) === JSON.stringify(slice10.before)
+      : slice9.after.productionGraphSha256 === ledger.currentGraph.sha256) &&
       slice9.after.productionFiles === 163 && slice9.after.cppSources === 80 &&
       slice9.after.targetViolationDirectionsUnderPolicyV1 === 6 &&
       slice9.after.largestSccOwners === 0 && slice9.after.webrtcHttpServerLines === 40840 &&
       slice9.after.cmakeTargets === 2 && slice9.after.internalTargetSeparation === true &&
-      graph.observedModuleEdges.length === 20 &&
+      (slice10.status === "completed" || graph.observedModuleEdges.length === 20) &&
       !graph.observedModuleEdges.some(item => [
         "application-service-interfaces -> core-utilities",
         "application-service-interfaces -> ops-route-groups",
@@ -1048,6 +1052,62 @@ check("current continuation binds the exact Slice 1-9 frontier without a final c
         "transport-and-auth-adapter -> product-ui-workspaces",
       ].includes(item.direction)),
     "completed Slice 9 public contract/interface graph delta drift");
+  }
+  const slice10Commands = [
+    "./server.sh verify-v390-core-media-registry-rule-port",
+    "./server.sh build",
+    "./server.sh verify-v390-core-media-analysis-port-inversion",
+    "./server.sh verify-v390-public-contract-interface-owner",
+    "./server.sh verify-analysis-state",
+    "./server.sh verify-codecs",
+    "./server.sh verify-route-profiles",
+    "./server.sh verify-rtsp-va-overlay-policy",
+    "./server.sh verify-webrtc-va-metadata",
+    "./server.sh verify-v290-final-contract-freeze",
+    "./server.sh verify-v390-review4-structure-stabilization-execution",
+    "./server.sh verify-script-inventory",
+    "./server.sh verify-docs-links",
+    "git diff --check",
+    "listener/temp cleanup",
+  ];
+  assert(slice10.rollbackCommit === "26f4ca09ba0cb004cfb85ea1ae28ee3fe0718582" &&
+    slice10.nonProductionSlice === false && slice10.contractAssertions.length >= 7 &&
+    slice10.tests.length === slice10Commands.length &&
+    slice10Commands.every(command => slice10.tests.filter(test => test.command === command).length === 1),
+  "current continuation Slice 10 rollback/contract/test inventory drift");
+  assert(JSON.stringify(slice10.before) === JSON.stringify(slice9.after),
+    "current continuation Slice 10 before-state is not bound to Slice 9 frontier");
+  if (slice10.status === "in-progress") {
+    assert(ledger.currentContinuation.status === "in-progress" &&
+      ledger.currentContinuation.latestCompletedSlice === 9 &&
+      ledger.currentContinuation.sliceSequenceStatus === "partial" && slice10.after === null,
+    "in-progress Slice 10 frontier/after-state overclaim");
+    assert(["registered", "expected-red"].includes(sliceTest(slice10, slice10Commands[0]).status) &&
+      slice10.tests.slice(1).every(test => test.status === "registered"),
+    "in-progress Slice 10 test registration/RED state drift");
+    assert(ledger.currentGraph.sha256 === slice10.before.productionGraphSha256 &&
+      ledger.currentGraph.metrics.productionFiles === slice10.before.productionFiles &&
+      ledger.currentGraph.metrics.cppSources === slice10.before.cppSources &&
+      ledger.currentGraph.metrics.targetViolationDirections ===
+        slice10.before.targetViolationDirectionsUnderPolicyV1,
+    "in-progress Slice 10 rewrote graph evidence before production verification completed");
+  } else {
+    const selfCheck = sliceTest(slice10,
+      "./server.sh verify-v390-review4-structure-stabilization-execution");
+    const testsFinal = slice10.tests.every(test => test.status === "pass") ||
+      selfCheck.status === "self-check" && slice10.tests.every(test =>
+        test === selfCheck || test.status === "pass");
+    assert(ledger.currentContinuation.latestCompletedSlice === 10 && slice10.after !== null && testsFinal,
+    "completed Slice 10 frontier/test state mismatch");
+    assert(slice10.after.productionGraphSha256 === ledger.currentGraph.sha256 &&
+      slice10.after.productionFiles === 163 && slice10.after.cppSources === 80 &&
+      slice10.after.targetViolationDirectionsUnderPolicyV1 === 5 &&
+      slice10.after.largestSccOwners === 0 && slice10.after.webrtcHttpServerLines === 40840 &&
+      slice10.after.cmakeTargets === 2 && slice10.after.internalTargetSeparation === true &&
+      graph.observedModuleEdges.length === 19 &&
+      !graph.observedModuleEdges.some(item =>
+        item.direction === "core-media-interfaces -> domain-and-registry-owners"),
+    "completed Slice 10 core-media registry/rule graph delta drift");
   }
   assert(ledger.currentContinuation.finalCompletionClaimAllowed === false &&
     ledger.refactorComplete === false && ledger.completionClaimed === false,

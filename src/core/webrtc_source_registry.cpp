@@ -1,7 +1,7 @@
 // 파일 요약: WHIP publish source session을 source id로 보관하는 registry 구현이다.
 // 동작 요약: publisher 세션 등록, 조회, 제거, 만료 정리를 mutex로 보호한다.
 // 동작 요약: source=webrtc 요청이 publish된 SharedStream을 재사용할 수 있게 연결 지점을 제공한다.
-#include "ingress/webrtc_source_registry.h"
+#include "core/webrtc_source_registry.h"
 
 #include <iostream>
 #include <vector>

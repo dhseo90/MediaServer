@@ -26,6 +26,8 @@ class MediaAnalysisPort {
 public:
     virtual ~MediaAnalysisPort() = default;
 
+    virtual bool PrepareRtspRequest(media::IngressRequest* request,
+                                    std::string* error_message) = 0;
     virtual RtspAnalysisBinding PrepareRtsp(const media::IngressRequest& request) = 0;
     virtual void DetachRtsp(const std::string& tap_id) = 0;
 };

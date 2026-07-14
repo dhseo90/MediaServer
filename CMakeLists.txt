@@ -86,7 +86,7 @@ add_library(media_server_runtime STATIC
     src/ingress/vlm_incident_rule_provenance.cpp
     src/ingress/webrtc_egress_session.cpp
     src/ingress/webrtc_gst_utils.cpp
-    src/ingress/webrtc_source_registry.cpp
+    src/core/webrtc_source_registry.cpp
     src/ingress/webrtc_source_session.cpp
     src/ingress/webrtc_http_server.cpp
     src/ingress/rtsp_adapter.cpp

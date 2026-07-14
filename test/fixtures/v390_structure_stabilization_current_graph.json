@@ -64,14 +64,12 @@
         "include/ingress/analysis_rule_registry.h",
         "include/ingress/source_view_registry.h",
         "src/ingress/source_view_registry.cpp",
-        "include/ingress/webrtc_source_registry.h",
-        "src/ingress/webrtc_source_registry.cpp",
         "include/domain/strict_json.h",
         "src/domain/strict_json.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 7,
-      "expectedCppCount": 3
+      "expectedFileCount": 5,
+      "expectedCppCount": 2
     },
     {
       "id": "product-ui-workspaces",
@@ -164,11 +162,11 @@
         "include/ingress/webrtc_source_session.h",
         "src/ingress/webrtc_source_session.cpp"
       ],
-      "expectedFileCount": 30,
-      "expectedCppCount": 13
+      "expectedFileCount": 32,
+      "expectedCppCount": 14
     }
   ],
-  "expectedFileOwnershipSha256": "77485b7be2b50bdbd93cfeca52e22080cfd9969ce367eb5646f81c0490bf6875",
+  "expectedFileOwnershipSha256": "77d6423426982746838e34a6beaef4b29a666c2c14929dcf668d64c6090ddf61",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -278,20 +276,14 @@
     },
     {
       "direction": "core-media-interfaces -> core-utilities",
-      "witnessCount": 34,
-      "witnessSha256": "b49dfe746a856995baabbb8ad113b7c6bc5150f1a67bbbfa98d4aca90af1da87",
+      "witnessCount": 36,
+      "witnessSha256": "9901ec446bc494fe44d2eb82341b1cd37ee4dc78a19202e18083e5843a380141",
       "allowedByTarget": true
     },
     {
-      "direction": "core-media-interfaces -> domain-and-registry-owners",
-      "witnessCount": 3,
-      "witnessSha256": "c1aac2066180772ca5beb35d102590f5214fab88b73cd61d38d773cac171672b",
-      "allowedByTarget": false
-    },
-    {
       "direction": "domain-and-registry-owners -> core-utilities",
-      "witnessCount": 4,
-      "witnessSha256": "e4482a2c7b857ca186cff55cea5a5ec6a24ade0a3657bea0be707c393b1a3af0",
+      "witnessCount": 2,
+      "witnessSha256": "23a7876fc27567d7a54fb7d3ac0d4bf372c6c08accc7f0465c091aa0e7ac3915",
       "allowedByTarget": true
     },
     {
@@ -320,8 +312,8 @@
     },
     {
       "direction": "transport-and-auth-adapter -> core-media-interfaces",
-      "witnessCount": 3,
-      "witnessSha256": "a6acb3a023656cd9ad57484644850d1f58a5bfc8390ce46452e105db20abd499",
+      "witnessCount": 4,
+      "witnessSha256": "21a8bc21cca0c0e2b767e1bb2bb479f92bdd6b265a8a1afa6c3a66ad3f2a55e3",
       "allowedByTarget": false
     },
     {
@@ -332,8 +324,8 @@
     },
     {
       "direction": "transport-and-auth-adapter -> domain-and-registry-owners",
-      "witnessCount": 4,
-      "witnessSha256": "50ec6b19d7aea754f4dbe090043aea7f03a00cf0d4e0d8fb663b45cc37dec274",
+      "witnessCount": 3,
+      "witnessSha256": "5673e355f8180ab9dc297ea25b5364cb28f6fce9ad70a66841679ca737a33962",
       "allowedByTarget": false
     },
     {

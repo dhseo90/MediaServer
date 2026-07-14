@@ -125,6 +125,15 @@ CMake만 새 domain 경계를 사용합니다. Focused gate는 선등록 2/4 RED
 10→6은 하나의 physical domain path와 public interface classifier 정렬의 합이며 광범위한 source dependency
 감소 주장이 아닙니다. 40,840줄 server와 parked final evidence 때문에 전체 REVIEW4-64는 계속 `in-progress`입니다.
 
+열 번째 current continuation Slice `core-media-registry-rule-port`를 완료했습니다. WebRTC published-source
+registry header/source를 `include/core`/`src/core`로 물리 이동하고, GStreamer RTSP의 rule lookup을
+`MediaAnalysisPort::PrepareRtspRequest`로 역전했습니다. Header bytes, source include-normalized bytes,
+vaRule error와 URL-build→rule→codec/source-parse→analysis-prepare 순서를 보존합니다. Focused 5/0과
+early-return/reorder/hidden-edge mutations, build 100%, core/public predecessor 11/0·6/0, analysis 181/0,
+auth-off codec 67/0/3, route 8/0, overlay/WebRTC 6/0·8/0, freeze 10/0을 통과했습니다. Actual graph는
+production 163/C++80, edge19, 위반5, SCC0입니다. 40,840줄 server와 parked final evidence 때문에 전체
+REVIEW4-64는 계속 `in-progress`입니다.
+
 ## Development 17 Structure Stabilization Readiness
 
 Execution branch: `v3.9.0`
@@ -133,7 +142,7 @@ Source release: `v3.9.0`
 
 Historical readiness snapshot execution: `not-run`
 
-Current v3.9 refactor continuation: `in-progress` (Slice 9까지 실행, final target 미충족)
+Current v3.9 refactor continuation: `in-progress` (Slice 10까지 실행, final target 미충족)
 
 Branch creation: `not-performed`
 

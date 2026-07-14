@@ -59,6 +59,8 @@ public:
     std::size_t ActiveAnalysisTapCount() const;
     core::SessionManager::AuxiliaryStreamRuntimeSnapshot AuxiliaryStreamRuntimeSnapshot() const;
 
+    bool PrepareRtspRequest(media::IngressRequest* request,
+                            std::string* error_message) override;
     core::RtspAnalysisBinding PrepareRtsp(const media::IngressRequest& request) override;
     void DetachRtsp(const std::string& tap_id) override;
 

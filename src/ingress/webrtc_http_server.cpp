@@ -78,7 +78,7 @@
 #include "ingress/vlm_evaluation_promotion.h"
 #include "ingress/vlm_incident_rule_provenance.h"
 #include "ingress/webrtc_egress_session.h"
-#include "ingress/webrtc_source_registry.h"
+#include "core/webrtc_source_registry.h"
 #include "ingress/webrtc_source_session.h"
 
 namespace ingress {

@@ -2557,7 +2557,7 @@ REVIEW4는 아래 순서를 고정합니다. 앞 단계가 FAIL이면 뒤 단계
 | 61 | V390-REVIEW4-61 | Long-run/Evidence | duration, 120분 판정, cleanup 실측 | P0 | 완료 / actual 장시간 미실행 | Predev는 Bash `SECONDS` monotonic 시작/종료/경과와 exact ordered soak iteration/case ledger, 서버 PID command/port lifecycle ledger를 기록합니다. Longrun v2는 별도 `process.hrtime.bigint` 경과와 delegated duration·step ledger를 함께 검증해 requested minutes 또는 최대 iteration 역산을 거부합니다. 120분 정책 필요성은 AGENTS 7.6.2 base..HEAD change scope와 upstream drift에서 계산하며 `--run-120`은 독립 trigger가 아닙니다. Longrun/UI cleanup은 PID identity·listener owner 전후·bindability·contained artifact 존재와 before/after bytes를 raw schema로 기록하고 acceptance/final integrity가 재검증합니다. Contract/fixture만 실행했으며 실제 30분/120분/UI는 미실행입니다. | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 6점. 장시간 및 release evidence 정확도 상향 적용 |
 | 62 | V390-REVIEW4-62 | Acceptance | self-contained one-command 실행 환경 | P0 | 완료 / actual 장시간·UI 미실행 | Canonical command는 output root만 받아 acceptance-owned throwaway HTTP/RTSP server, bounded port retry, admin/operator/viewer/integrator account와 0600 storage-state, Playwright/browser provenance, server log/PID/listener/artifact ownership과 cleanup을 직접 준비합니다. Exact runner는 contained runtime descriptor를 받아 case별 fresh role session, typed form 15건과 persisted mutation 35건의 실제 entry/field/identity/request lifecycle, cross-role action session, runtime-only secret resolver, collection/item authoritative readback과 aggregate cleanup을 수행합니다. Source/view는 ordered pair, ONVIF는 atomic pair로 결속하고 신규 pair는 isolated server teardown 전 양쪽 disabled 상태까지 확인합니다. `/ops/users` product case 20건과 관련 cross-role action은 admin으로 교정했으며 canonical role 분포는 admin 20/anonymous 16/operator 346/viewer 42입니다. SRC-018의 allowedRuleIds/clientGroups 편집 control도 제품 UI에 추가했습니다. 외부 HTTP/PID/log/role-state/port/temp-root option은 거부하며 첫 실패 뒤 later stage/case는 `not-run`입니다. Acceptance contract 10/0, exact runtime 15/0, adapter 8/0, final integrity 9/0, longrun measurement 12/0을 통과했지만 실제 30분·exact 424 browser·80 visual·120분은 실행하지 않았습니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. 복합 실행 경계와 release correctness 상향 적용 |
 | 63 | V390-REVIEW4-63 | Product Scope | deferred 기능 실제 owner 확정 | P1 | 완료 | `.github/CODEOWNERS`의 effective rule에 따라 실제 책임자 `@dhseo90`를 `repository-code-owner`/`repository-scoped-product-scope-attestation`으로 결속하고 기능 역할과 조직 권한 추론을 분리했습니다. Exact 5개는 action write, persistent credential store, production restore, external provider call, model-backed Re-ID이며 외부 field smoke는 별도 조건부입니다. Production restore의 runbook/staging 구현과 product automation 미구현, external provider의 product runtime 금지와 conditional harness 구현, Re-ID의 `implemented-opt-in-experimental` source와 supported release 제외를 구분합니다. 모든 후속은 `post-v3.9-unassigned`, scheduled=false이며 구조화 dependency 승인 전 target version을 예약하지 않습니다. Current release execution/UI/30분/120분/field/release PASS는 주장하지 않습니다. | 5.6 Terra | 중간 (medium) | 영향도 1, 불확실성 1, 검증 난이도 1, 변경 범위 1, 총 4점. 제품 범위 결정 기록이며 상향 규칙 없음 |
-| 64 | V390-REVIEW4-64 | Structure | 승인된 구조 안정화 slice 실행 | P0 | 진행 중 / current continuation Slice 9 완료 | Historical ordered Slice 1~5와 current continuation 1~9를 완료했습니다. Slice 9는 public presentation/application contract surface를 implementation owner와 분리해 분류하고 strict JSON을 실제 domain 경로로 물리 이동했습니다. Strict JSON header는 byte-identical, parser는 include-path 정규화 기준 rollback-equivalent입니다. Focused 6/0·격리 mutation 7건, build 100%, stable/analysis predecessor 6/0·5/0·5/0, VLM actual HTTP/reload/no-write, ONVIF/action/UI/frozen contract 회귀를 통과했습니다. Actual graph는 production 163/C++ 80, edge 20, Policy v1 위반 6, SCC 0, target 2/internal separation true, server 40,840줄입니다. 10→6은 하나의 physical domain path와 classifier 정렬의 합이며 broad source dependency 감소 주장이 아닙니다. 나머지 위반 direction, 15,000줄 초과 server, parked evidence는 open이며 REVIEW4-64/65 완료가 아닙니다. | 5.6 Sol | 최대 (max) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. 40,840-line server와 남은 dependency 위반을 포함한 전면 구조 변경으로 xhigh보다 추가 탐색과 회귀 검증이 필요한 최난도 작업 |
+| 64 | V390-REVIEW4-64 | Structure | 승인된 구조 안정화 slice 실행 | P0 | 진행 중 / current continuation Slice 10 완료 | Historical ordered Slice 1~5와 current continuation 1~10을 완료했습니다. Slice 10은 WebRTC published-source registry를 ingress에서 core-media로 물리 이동하고, GStreamer RTSP의 rule lookup을 기존 injected `MediaAnalysisPort`로 역전했습니다. Registry header bytes와 source의 include-normalized bytes, vaRule error/order를 보존했습니다. Focused 5/0과 조기 return·순서 이동·숨은 역의존을 포함한 격리 mutation, build 100%, core/public predecessor 11/0·6/0, analysis 181/0, codec 67/0/3, route 8/0, overlay/WebRTC 6/0·8/0, freeze 10/0을 통과했습니다. Actual graph는 production 163/C++ 80, edge 19, Policy v1 위반 5, SCC 0, target 2/internal separation true, server 40,840줄입니다. 나머지 위반 direction, 15,000줄 초과 server, parked evidence는 open이며 REVIEW4-64/65 완료가 아닙니다. | 5.6 Sol | 최대 (max) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. 40,840-line server와 남은 dependency 위반을 포함한 전면 구조 변경으로 xhigh보다 추가 탐색과 회귀 검증이 필요한 최난도 작업 |
 | 65 | V390-REVIEW4-65 | Final Test | current HEAD 독립 acceptance와 evidence | P0 | 64 완료 후 실행 승인됨 | 50~64가 닫힌 clean HEAD에서 정적/빌드 gate, 30분, exact 424 Policy v4 UI, AGENTS 7.6.2 판정에 따른 120분, cleanup, final integrity를 승인된 canonical command로 수행합니다. current commit, 명령, 첫 실패 위치, 재현 명령, 미실행/조건부 항목을 보존하며 historical PASS를 재사용하지 않습니다. | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 6점. release correctness 검증 상향 적용 |
 
 #### REVIEW4 단계 의존성과 중단 조건
@@ -5886,6 +5886,25 @@ Auth 비밀번호는 실행 환경에만 주입했고 저장소나 증적에 기
 각 Auth 실행 전후 동일했습니다. Current graph는 production 159/C++ 79, target 위반 20, SCC 8,
 transport 40,833줄, CMake target 1/internal separation false입니다. 따라서 Slice 2는 완료지만
 REVIEW4-64 전체와 REVIEW4-65 acceptance는 아직 완료가 아닙니다.
+
+## V390-REVIEW4-64 current continuation Slice 10 완료
+
+`core-media-registry-rule-port`를 완료했습니다. `webrtc_source_registry` header/source를 실제
+`include/core`/`src/core` 경로로 이동했고 namespace와 public API, header raw bytes, source의 self-include를
+제외한 bytes를 보존했습니다. GStreamer RTSP는 `analysis_rule_registry`를 직접 include/call하지 않고
+`MediaAnalysisPort::PrepareRtspRequest`를 사용하며, URL build 뒤 codec/source parse와 기존 `PrepareRtsp`보다
+앞선 호출 순서 및 exact error log를 유지합니다.
+
+Focused gate는 구현 전 0/5 RED에서 최종 5/0으로 전환했고 contract/consumer/CMake/adapter/graph뿐 아니라
+조기 `return true`, call reorder, 숨은 core-media→domain include mutation도 거부했습니다. Build 100%,
+core-media/public predecessor 11/0·6/0, analysis 181/0, auth-off loopback codec 67/0/3, route 8/0,
+RTSP overlay 6/0, WebRTC metadata 8/0, final freeze 10/0입니다. Codec 최초 listener 부재와 auth-on 401,
+route/overlay/metadata 최초 listener 부재는 동일 auth-off loopback server/명시 base로 재실행해 통과했습니다.
+
+Current graph SHA `b786ec25...45128e4e`, ownership SHA `77d64234...09ddf61`, production 163/C++ 80,
+edge 19, Policy v1 위반 6→5, SCC 0, target 2/internal separation true, server 40,840줄입니다.
+남은 5 direction, server split, parked evidence finalization 때문에 REVIEW4-64 전체와 REVIEW4-65 acceptance는
+아직 완료가 아닙니다.
 
 ## V390-REVIEW4-64 current continuation Slice 3 완료
 
