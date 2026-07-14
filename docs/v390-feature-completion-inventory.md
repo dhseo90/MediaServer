@@ -187,17 +187,22 @@ Current graph: `test/fixtures/v390_structure_stabilization_current_graph.json`
 
 Execution verifier: `./server.sh verify-v390-review4-structure-stabilization-execution`
 
-Current status: `in-progress-slice-2-completed`
+Current status: `in-progress-slice-3-completed`
 
 - Slice 1 `composition-root`: `src/main.cpp` delegates to
   `media_server::application::RunMediaServerApplication`; build, compiled auth CLI, current graph, historical
   SHA isolation, six negative mutations, script inventory, diff check PASS.
 - Slice 2 `route-api-handler`: action deferral exact GET/status/body/no-store owner를 독립 module로 이동하고
   outer auth/non-GET fallback, no-write flags를 actual HTTP와 source oracle로 확인했습니다.
-- Slice 3~6: `not-started`; registry/domain, UI script/CSS, VLM/parser, verifier/docs를 자동
+- Slice 3 `registry-domain`: SourceRegistry/PublishedView read-model에서 `http_auth`/`auth::Principal`
+  dependency를 제거하고 transport가 기존 operator/scope wildcard 판정을 수행하는 authorizer를 주입합니다.
+  Actual source registry, lifecycle, ONVIF crash/restart transaction, backup handoff no-write를 재검증했습니다.
+- Slice 4~6: `not-started`; UI script/CSS, VLM/parser, verifier/docs를 자동
   완료 처리하지 않습니다.
-- Graph delta: target violation direction 25→21, main mixed responsibility 245→8줄, selected server owner
-  43,266→43,186줄, largest SCC 8 유지.
+- Graph delta: target violation direction 25→20, main mixed responsibility 245→8줄, selected server owner
+  43,266→43,186줄, current server 43,195줄, largest SCC 8 유지.
+- Current feature implementation evidence는 8,752 line/context/blob drift로 FAIL이며 Slice 6에서 재결속해야
+  합니다. Negative fixture 15/15만 통과했고 이 결과는 implementation PASS가 아닙니다.
 - Actual exact 424 UI, 30분, 조건부 120분, field/published/release action은 미실행이며 Slice 1로
   대체하지 않습니다.
 

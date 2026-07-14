@@ -334,12 +334,6 @@
       "allowedByTarget": false
     },
     {
-      "direction": "domain-and-registry-owners -> transport-and-auth-adapter",
-      "witnessCount": 1,
-      "witnessSha256": "07008fe41c9afefab64f14e02c48d34d5083e60f6253e97840b892aea0189178",
-      "allowedByTarget": false
-    },
-    {
       "direction": "product-ui-workspaces -> transport-and-auth-adapter",
       "witnessCount": 1,
       "witnessSha256": "9815470125782cb78d6965f2097bea77b913242600cfcb8b3d24e4a143c65205",
@@ -426,7 +420,7 @@
   "mixedOwnershipDebt": [
     {
       "file": "src/ingress/webrtc_http_server.cpp",
-      "lineCount": 43186,
+      "lineCount": 43195,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",

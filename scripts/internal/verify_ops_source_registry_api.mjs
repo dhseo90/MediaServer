@@ -753,14 +753,25 @@ async function waitForServer() {
 }
 
 async function stopServer() {
-  if (!server || server.exitCode !== null) return;
-  server.kill("SIGTERM");
-  const startedAt = Date.now();
-  while (server.exitCode === null && Date.now() - startedAt < 3000) await delay(100);
-  if (server.exitCode === null) server.kill("SIGKILL");
-  const stopStartedAt = Date.now();
-  while (server.exitCode === null && Date.now() - stopStartedAt < 2000) await delay(50);
-  assert(server.exitCode !== null, "managed source registry server did not stop");
+  if (!server || server.exitCode !== null || server.signalCode !== null) return;
+  const child = server;
+  let observedExit = false;
+  const exited = new Promise(resolve => {
+    child.once("exit", () => {
+      observedExit = true;
+      resolve(true);
+    });
+  });
+  child.kill("SIGTERM");
+  let terminated = await Promise.race([exited, delay(5000).then(() => false)]);
+  if (!terminated && child.exitCode === null && child.signalCode === null) {
+    child.kill("SIGKILL");
+    terminated = await Promise.race([exited, delay(5000).then(() => false)]);
+  }
+  if (!(terminated || observedExit || child.exitCode !== null || child.signalCode !== null)) {
+    throw new Error("managed source registry server did not stop");
+  }
+  console.log("[pass] managed source registry server stop observed");
 }
 
 async function requestJson(urlPath, options = {}, expectedStatus = 200) {
@@ -782,7 +793,20 @@ async function requestJsonWithStatus(urlPath, options = {}, expectedStatus = 200
 }
 
 async function requestText(urlPath, options = {}, expectedStatus = 200) {
-  const response = await fetch(`${httpBase}${urlPath}`, options);
+  let response;
+  try {
+    response = await fetch(`${httpBase}${urlPath}`, options);
+  } catch (error) {
+    const recentLogs = serverLogs.slice(-20).join(" | ")
+      .replaceAll(adminToken, "<redacted-admin-token>")
+      .replaceAll(operatorToken, "<redacted-operator-token>");
+    throw new Error(
+      `${options.method || "GET"} ${urlPath} transport failed; ` +
+      `serverExit=${server?.exitCode ?? "null"} serverSignal=${server?.signalCode ?? "null"}; ` +
+      `logs=${recentLogs || "<empty>"}`,
+      { cause: error },
+    );
+  }
   const text = await response.text();
   if (response.status !== expectedStatus) {
     throw new Error(`${options.method || "GET"} ${urlPath} expected ${expectedStatus}, got ${response.status}: ${text.slice(0, 240)}`);

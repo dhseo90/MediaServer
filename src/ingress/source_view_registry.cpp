@@ -911,23 +911,12 @@ std::optional<std::string> FindDuplicateSourceId(
     return std::nullopt;
 }
 
-bool PrincipalCanAccessViewFeature(const auth::Principal& principal,
-                                   const std::string& view_id,
-                                   const std::string& scope_prefix) {
-    return auth::RequireRole(principal, {"operator"}) ||
-           auth::RequireScope(principal, scope_prefix + ":" + view_id);
-}
-
-bool PrincipalCanReadView(const auth::Principal& principal, const std::string& view_id) {
-    return PrincipalCanAccessViewFeature(principal, view_id, "view:read");
-}
-
 bool ViewIsClientVisible(const SourceViewRegistry::PublishedViewRecord& view,
                          const std::vector<SourceViewRegistry::SourceRecord>& sources,
-                         const auth::Principal& principal) {
+                         const SourceViewRegistry::ClientViewAccessAuthorizer& authorizer) {
     const auto source = FindSource(sources, view.source_id);
     return view.enabled && source.has_value() && source->enabled &&
-           PrincipalCanReadView(principal, view.view_id);
+           authorizer && authorizer(view.view_id, "view:read");
 }
 
 std::string ClientPublishedViewJson(const SourceViewRegistry::PublishedViewRecord& view,
@@ -1916,7 +1905,7 @@ RegistryResult SourceViewRegistry::SourceOnboardingQualitySummaryJson() {
     return JsonResult(200, "OK", out.str());
 }
 
-RegistryResult SourceViewRegistry::ClientViewsJson(const auth::Principal& principal) {
+RegistryResult SourceViewRegistry::ClientViewsJson(const ClientViewAccessAuthorizer& authorizer) {
     std::lock_guard lock(mu_);
     std::string load_error;
     if (!EnsureLoadedLocked(&load_error)) {
@@ -1926,7 +1915,7 @@ RegistryResult SourceViewRegistry::ClientViewsJson(const auth::Principal& princi
     out << "{\"status\":\"clientViews\",\"views\":[";
     bool first = true;
     for (const auto& view : views_) {
-        if (!ViewIsClientVisible(view, sources_, principal)) {
+        if (!ViewIsClientVisible(view, sources_, authorizer)) {
             continue;
         }
         const auto source = FindSource(sources_, view.source_id);
@@ -1944,9 +1933,9 @@ RegistryResult SourceViewRegistry::ClientViewsJson(const auth::Principal& princi
 }
 
 RegistryResult SourceViewRegistry::ClientViewJson(const std::string& view_id,
-                                                  const auth::Principal& principal) {
+                                                  const ClientViewAccessAuthorizer& authorizer) {
     ClientViewAccess access;
-    const auto result = ResolveClientViewAccess(view_id, principal, "view:read", &access);
+    const auto result = ResolveClientViewAccess(view_id, authorizer, "view:read", &access);
     if (result.status != 200) {
         return result;
     }
@@ -1955,7 +1944,7 @@ RegistryResult SourceViewRegistry::ClientViewJson(const std::string& view_id,
 }
 
 RegistryResult SourceViewRegistry::ResolveClientViewAccess(const std::string& view_id,
-                                                           const auth::Principal& principal,
+                                                           const ClientViewAccessAuthorizer& authorizer,
                                                            const std::string& required_scope_prefix,
                                                            ClientViewAccess* access) {
     if (access == nullptr) {
@@ -1972,7 +1961,7 @@ RegistryResult SourceViewRegistry::ResolveClientViewAccess(const std::string& vi
     if (view_it == views_.end() || !view_it->enabled) {
         return ErrorResult(404, "Not Found", "PublishedView not found");
     }
-    if (!PrincipalCanAccessViewFeature(principal, view_it->view_id, required_scope_prefix)) {
+    if (!authorizer || !authorizer(view_it->view_id, required_scope_prefix)) {
         return ErrorResult(403, "Forbidden", required_scope_prefix + " scope required");
     }
     const auto source = FindSource(sources_, view_it->source_id);

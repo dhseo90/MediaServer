@@ -141,7 +141,10 @@ check("docs, inventory, and dispatch map v3.7 Step 6", () => {
   }
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v370_site_simulation_input_pack.mjs", "server.sh dispatch");
-  for (const id of ["SRC-058", "EVT-081", "LAB-101", "SAFE-167", "OPS-134"]) assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+  for (const id of ["SRC-058", "EVT-081", "LAB-101", "SAFE-167", "OPS-134"]) {
+    const expectedCommand = id === "SRC-058" ? "verify-ops-source-registry-api" : command;
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === expectedCommand, `${id} manifest verifier command drift`);
+  }
   assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   assertIncludes(files.scriptInventory, "verify_v370_site_simulation_input_pack.mjs", "script inventory");

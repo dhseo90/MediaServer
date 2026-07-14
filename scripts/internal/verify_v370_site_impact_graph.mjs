@@ -141,8 +141,9 @@ check("docs, inventory, and dispatch map v3.7 Step 5", () => {
   assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   const manifestById = new Map(files.implementationManifest.items.map(item => [item.id, item]));
   for (const id of ["SRC-057", "EVT-080", "CLIENT-035", "SAFE-166", "OPS-133"]) {
-    assert(manifestById.get(id)?.verifierEvidence?.command === command,
-      `${id} implementation manifest verifier must be ${command}`);
+    const expectedCommand = id === "SRC-057" ? "verify-ops-source-registry-api" : command;
+    assert(manifestById.get(id)?.verifierEvidence?.command === expectedCommand,
+      `${id} implementation manifest verifier must be ${expectedCommand}`);
   }
   assertIncludes(files.scriptInventory, "verify_v370_site_impact_graph.mjs", "script inventory");
 });

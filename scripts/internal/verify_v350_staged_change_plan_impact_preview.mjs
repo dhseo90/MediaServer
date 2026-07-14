@@ -235,7 +235,9 @@ check("server entrypoint and inventory verifiers include v3.5 Step 5 command", (
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v350_staged_change_plan_impact_preview.mjs", "server.sh script dispatch");
   for (const id of ["SRC-046", "RULE-106", "LAB-092", "SAFE-139", "OPS-106"]) {
-    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+    const expectedCommand = id === "SRC-046" ? "verify-ops-source-registry-api" :
+      (id === "RULE-106" ? "verify-ops-rule-relationships" : command);
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === expectedCommand, `${id} manifest verifier command drift`);
   }
   assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");

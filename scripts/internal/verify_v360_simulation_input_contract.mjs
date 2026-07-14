@@ -186,8 +186,9 @@ check("server entrypoint and inventory verifiers include v3.6 Step 2", () => {
   assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   const manifestById = new Map(files.implementationManifest.items.map(item => [item.id, item]));
   for (const id of ["SRC-049", "EVT-077", "SAFE-149", "OPS-116"]) {
-    assert(manifestById.get(id)?.verifierEvidence?.command === command,
-      `${id} implementation manifest verifier must be ${command}`);
+    const expectedCommand = id === "SRC-049" ? "verify-ops-source-registry-api" : command;
+    assert(manifestById.get(id)?.verifierEvidence?.command === expectedCommand,
+      `${id} implementation manifest verifier must be ${expectedCommand}`);
   }
   for (const id of ["SRC-049", "EVT-077", "SAFE-149", "OPS-116"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);

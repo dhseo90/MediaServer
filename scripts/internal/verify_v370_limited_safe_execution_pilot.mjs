@@ -327,7 +327,10 @@ check("roadmap, stream verification, inventory, and release records map v3.7 Ste
 check("server entrypoint and inventory verifiers include v3.7 Step 15 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v370_limited_safe_execution_pilot.mjs", "server.sh script dispatch");
-  for (const id of ["UI-099", "SRC-061", "CLIENT-038", "LAB-108", "SAFE-176", "OPS-143"]) assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+  for (const id of ["UI-099", "SRC-061", "CLIENT-038", "LAB-108", "SAFE-176", "OPS-143"]) {
+    const expectedCommand = id === "SRC-061" ? "verify-ops-source-registry-api" : command;
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === expectedCommand, `${id} manifest verifier command drift`);
+  }
   assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   for (const id of featureIds) {

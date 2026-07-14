@@ -7636,8 +7636,17 @@ bool BuildClientLiveWebRtcQuery(const SourceViewRegistry::ClientViewAccess& acce
     return true;
 }
 
+SourceViewRegistry::ClientViewAccessAuthorizer MakeClientViewAccessAuthorizer(
+    const auth::Principal& principal) {
+    return [principal](const std::string& view_id, const std::string& required_scope_prefix) {
+        return auth::RequireRole(principal, {"operator"}) ||
+               auth::RequireScope(principal, required_scope_prefix + ":" + view_id);
+    };
+}
+
 std::string ClientShellPageHtml(const auth::Principal& principal, const std::string& active) {
-    const RegistryResult views_result = SourceViewRegistry::Instance().ClientViewsJson(principal);
+    const RegistryResult views_result = SourceViewRegistry::Instance().ClientViewsJson(
+        MakeClientViewAccessAuthorizer(principal));
     const std::string views_json =
         views_result.status == 200 ? views_result.body : "{\"status\":\"clientViews\",\"views\":[]}";
     const bool preview_mode =
@@ -41337,7 +41346,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 return RegistryHttpResponse(SourceViewRegistry::Instance().ClientViewsJson(
-                                    principal_result.principal));
+                                    MakeClientViewAccessAuthorizer(principal_result.principal)));
                             }
                         }
 
@@ -41362,7 +41371,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 const auto access_result =
                                     SourceViewRegistry::Instance().ResolveClientViewAccess(
                                         view_id,
-                                        principal_result.principal,
+                                        MakeClientViewAccessAuthorizer(principal_result.principal),
                                         "view:read",
                                         &access);
                                 if (access_result.status != 200) {
@@ -41576,7 +41585,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     const auto access_result =
                                         SourceViewRegistry::Instance().ResolveClientViewAccess(
                                             view_id,
-                                            principal_result.principal,
+                                            MakeClientViewAccessAuthorizer(principal_result.principal),
                                             "dashboard:read",
                                             &access);
                                     if (access_result.status != 200) {
@@ -41607,7 +41616,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     const auto access_result =
                                         SourceViewRegistry::Instance().ResolveClientViewAccess(
                                             view_id,
-                                            principal_result.principal,
+                                            MakeClientViewAccessAuthorizer(principal_result.principal),
                                             "event:read",
                                             &access);
                                     if (access_result.status != 200) {
@@ -41633,7 +41642,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     const auto access_result =
                                         SourceViewRegistry::Instance().ResolveClientViewAccess(
                                             view_id,
-                                            principal_result.principal,
+                                            MakeClientViewAccessAuthorizer(principal_result.principal),
                                             "event:read",
                                             &access);
                                     if (access_result.status != 200) {
@@ -41661,7 +41670,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     const auto access_result =
                                         SourceViewRegistry::Instance().ResolveClientViewAccess(
                                             view_id,
-                                            principal_result.principal,
+                                            MakeClientViewAccessAuthorizer(principal_result.principal),
                                             "metadata:read",
                                             &access);
                                     if (access_result.status != 200) {
@@ -41686,7 +41695,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 }
                                 return RegistryHttpResponse(
                                     SourceViewRegistry::Instance().ClientViewJson(view_id,
-                                                                                  principal_result.principal));
+                                        MakeClientViewAccessAuthorizer(principal_result.principal)));
                             }
                         }
 

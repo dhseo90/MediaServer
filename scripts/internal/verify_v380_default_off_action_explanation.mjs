@@ -426,7 +426,7 @@ function assertExactVerifierMapping(manifest, featureId, expectedCommand, expect
     `${featureId} exact verifier command mismatch: ${item?.verifierEvidence?.command}`);
   assert(item?.verifierEvidence?.file === expectedFile,
     `${featureId} exact verifier file mismatch: ${item?.verifierEvidence?.file}`);
-  assert(item?.verifierEvidence?.anchor === featureId,
+  assert(item?.verifierEvidence?.anchor === 'assert(defaultEnabled === false, "v380 default-off renderer must never enable actions");',
     `${featureId} exact verifier assertion anchor mismatch: ${item?.verifierEvidence?.anchor}`);
 }
 function extractBlock(text, startNeedle, endNeedle) {

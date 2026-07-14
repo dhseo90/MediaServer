@@ -265,7 +265,10 @@ check("docs, inventory, and dispatch map v3.6 Step 13", () => {
   }
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v360_vlm_assisted_simulation_explanation.mjs", "server.sh script dispatch");
-  for (const id of ["UI-094", "SRC-053", "EVT-079", "LAB-100", "SAFE-160", "OPS-127"]) assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+  for (const id of ["UI-094", "SRC-053", "EVT-079", "LAB-100", "SAFE-160", "OPS-127"]) {
+    const expectedCommand = id === "SRC-053" ? "verify-ops-source-registry-api" : command;
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === expectedCommand, `${id} manifest verifier command drift`);
+  }
   assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   for (const id of ["UI-094", "SRC-053", "EVT-079", "LAB-100", "SAFE-160", "OPS-127"]) {

@@ -192,6 +192,37 @@ check("route/API Slice owns exact action deferral response behind the outer auth
     "action route owner must appear in CMake exactly once");
 });
 
+check("registry/domain Slice consumes injected read authorization without transport dependency", () => {
+  const slice = ledger.orderedSlices[2];
+  if (slice.status === "not-started") return;
+  const header = readText("include/ingress/source_view_registry.h");
+  const registry = readText("src/ingress/source_view_registry.cpp");
+  const server = readText("src/ingress/webrtc_http_server.cpp");
+  assert(header.includes("using ClientViewAccessAuthorizer =") &&
+    header.includes("std::function<bool(const std::string& view_id,"),
+  "transport-neutral client view authorizer contract missing");
+  assert(!header.includes('"ingress/http_auth.h"') &&
+    !registry.includes("auth::Principal") && !registry.includes("auth::Require"),
+  "registry/domain owner retains transport auth dependency");
+  assert(server.includes("MakeClientViewAccessAuthorizer") &&
+    server.includes('auth::RequireRole(principal, {"operator"})') &&
+    server.includes('auth::RequireScope(principal, required_scope_prefix + ":" + view_id)'),
+  "transport adapter does not preserve exact role/scope authorization");
+  for (const snippet of [
+    "ClientViewsJson(const ClientViewAccessAuthorizer& authorizer)",
+    "ClientViewJson(const std::string& view_id,",
+    "ResolveClientViewAccess(const std::string& view_id,",
+    "authorizer(view.view_id, \"view:read\")",
+    "authorizer(view_it->view_id, required_scope_prefix)",
+  ]) assert(registry.includes(snippet), `registry read-model authorizer anchor missing: ${snippet}`);
+  for (const unchangedWriteAnchor of [
+    "RegistryResult SourceViewRegistry::CreateSource(const std::string& body)",
+    "RegistryResult SourceViewRegistry::UpsertOnvifSourceView(",
+    "bool SourceViewRegistry::SaveSourcesLocked(",
+    "bool SourceViewRegistry::SaveViewsLocked(",
+  ]) assert(registry.includes(unchangedWriteAnchor), `registry write/persistence owner drift: ${unchangedWriteAnchor}`);
+});
+
 check("dirty worktree paths stay inside the active slice declaration", () => {
   const active = ledger.orderedSlices.find(item => item.status === "in-progress") ||
     ledger.orderedSlices[Math.max(0, ledger.latestCompletedSlice - 1)];

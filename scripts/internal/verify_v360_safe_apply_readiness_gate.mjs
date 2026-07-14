@@ -112,7 +112,7 @@ check("docs, inventory, and dispatch map v3.6 Step 6", () => {
   assertIncludes(files.serverSh, "verify_v360_safe_apply_readiness_gate.mjs", "server.sh dispatch");
   assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   for (const id of ["SAFE-153", "OPS-120"]) {
-    assert(files.implementationManifest.items.find((item) => item.id === id)?.verifierEvidence?.command === command,
+    assert(files.implementationManifest.items.find((item) => item.id === id)?.verifierEvidence?.command === "verify-ops-source-registry-api",
       `${id} implementation manifest verifier command drift`);
   }
   assertIncludes(files.scriptInventory, "verify_v360_safe_apply_readiness_gate.mjs", "script inventory");
