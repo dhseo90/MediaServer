@@ -19,7 +19,7 @@ Usage:
   ./server.sh verify-v390-truthfulness-status-vocabulary
 
 Checks:
-  - owner role output is a decision-record with implementation not-executed
+  - owner output is an accountable-owner-decision-record with truthful mixed capability status
   - external field targets are conditional-not-run and never field/release PASS
   - structure output is approved-scheduled while refactor implementation remains not-executed
   - roadmap/evidence wording and negative status fixtures reject completion overclaims
@@ -53,6 +53,14 @@ check("status vocabulary negatives reject implementation, field PASS, and refact
   ownerNegative.implementationStatus = "complete";
   assert(validateOwner(ownerNegative).some(error => error.includes("implementationStatus")),
     "owner implementation-complete negative must fail");
+  const roleOnlyNegative = structuredClone(owner);
+  delete roleOnlyNegative.decisions[0].accountableSubjectRef;
+  assert(validateOwner(roleOnlyNegative).some(error => error.includes("accountable subject")),
+    "owner role-only negative must fail");
+  const reidNegative = structuredClone(owner);
+  reidNegative.decisions.find(item => item.id === "model-backed-reid-session").implementationStatus = "not-executed";
+  assert(validateOwner(reidNegative).some(error => error.includes("Re-ID")),
+    "Re-ID blanket not-executed negative must fail");
   const fieldNegative = structuredClone(field);
   fieldNegative.targets[1].status = "PASS";
   assert(validateField(fieldNegative).some(error => error.includes("onvif-real-device")),
@@ -73,10 +81,12 @@ check("roadmap, inventory, records, and evidence use the same truthful status vo
     read("docs/release-evidence-index.md"),
   ].join("\n");
   for (const snippet of [
-    "decision-record",
+    "accountable-owner-decision-record",
     "conditional-not-run",
     "gate-ready",
-    "decision-only-not-implementation-evidence",
+    "decision-only-not-implementation-or-execution-evidence",
+    "decision-record-complete-capabilities-mixed",
+    "post-v3.9-unassigned",
     "condition-record-not-field-pass",
     "gate-contract-not-refactor-evidence",
     "approved-scheduled-after-review4-50-63",
@@ -103,7 +113,7 @@ check("server dispatch exposes the truthfulness verifier", () => {
 const failed = checks.filter(item => !item.ok);
 for (const item of checks) console.log(`[${item.ok ? "pass" : "fail"}] ${item.name}${item.error ? `: ${item.error}` : ""}`);
 console.log("\n== v3.9.0 truthfulness status vocabulary ==");
-console.log("- ownerStatus: decision-record / implementation not-executed");
+console.log("- ownerStatus: accountable-owner-decision-record / mixed capability truth");
 console.log("- fieldStatus: conditional-not-run / fieldPassClaimed false");
 console.log("- structureStatus: approved-scheduled-after-review4-50-63 / implementation not-executed");
 console.log(`- pass: ${checks.length - failed.length}`);
@@ -112,11 +122,34 @@ process.exit(failed.length === 0 ? 0 : 1);
 
 function validateOwner(value) {
   const errors = [];
-  if (value.recordKind !== "decision-record") errors.push("owner recordKind must be decision-record");
-  if (value.implementationStatus !== "not-executed") errors.push("owner implementationStatus must be not-executed");
-  if (value.evidenceStatus !== "decision-only-not-implementation-evidence") errors.push("owner evidenceStatus mismatch");
-  if (!value.decisions?.every(item => item.implementationExecuted === false && item.fieldPassClaimed === false && item.releasePassClaimed === false)) {
+  if (value.recordKind !== "accountable-owner-decision-record") {
+    errors.push("owner recordKind must be accountable-owner-decision-record");
+  }
+  if (value.implementationStatus !== "decision-record-complete-capabilities-mixed") {
+    errors.push("owner implementationStatus must preserve mixed capability truth");
+  }
+  if (value.evidenceStatus !== "decision-only-not-implementation-or-execution-evidence") {
+    errors.push("owner evidenceStatus mismatch");
+  }
+  if (value.approvalAuthority?.accountableSubject?.handle !== "@dhseo90") {
+    errors.push("owner accountable subject mismatch");
+  }
+  if (!value.decisions?.every(item => item.accountableSubjectRef === "repo-owner-v1")) {
+    errors.push("owner decisions are missing accountable subject binding");
+  }
+  if (!value.decisions?.every(item => item.executionStatus === "not-executed" &&
+      item.fieldPassClaimed === false && item.releasePassClaimed === false &&
+      item.uiFulltestPassClaimed === false && item.longrunPassClaimed === false)) {
     errors.push("owner decisions contain implementation/field/release overclaim");
+  }
+  const reid = value.decisions?.find(item => item.id === "model-backed-reid-session");
+  if (reid?.implementationStatus !== "experimental-capability-implemented-release-evidence-not-executed" ||
+      reid?.capabilityStatus?.sourceCapabilityStatus !== "implemented-opt-in-experimental") {
+    errors.push("owner Re-ID status must not claim the implemented experimental capability is entirely not-executed");
+  }
+  if (!value.decisions?.every(item => item.followup?.assignment === "post-v3.9-unassigned" &&
+      item.followup?.scheduled === false && item.followup?.targetVersion === null)) {
+    errors.push("owner follow-up version must remain unassigned and unscheduled");
   }
   return errors;
 }

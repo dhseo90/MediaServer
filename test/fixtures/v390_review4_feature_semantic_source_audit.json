@@ -26575,6 +26575,7 @@
         "fieldTokens": [
           "none",
           "in-memory-fixture",
+          "credentialMaterialExposed=false",
           "referenceValueExposed",
           "credentialMaterialExposed",
           "ONVIF"
@@ -26612,6 +26613,7 @@
             "tokens": [
               "none",
               "in-memory-fixture",
+              "credentialMaterialExposed=false",
               "referenceValueExposed",
               "credentialMaterialExposed",
               "ONVIF"
@@ -26632,7 +26634,7 @@
           "sha256": "9e7b24b0f2779c72069ef9787fd44860381896351c73a2470d92fed71a734573"
         }
       },
-      "sourceFlowDigest": "ee9e8c80a21ccf89fed3f68f95a92168554fc08107cfb15b9c1720aca27eb9a0",
+      "sourceFlowDigest": "5260f4b4446d22bd12f9e76aaf1dfcb79f9457aeffce5047b28e6f48f89df0d1",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -28212,7 +28214,7 @@
           "sha256": "c80f1bc0f35479b3c511efbabee795337c39781fe4ccef3d07f414e9c2721570"
         }
       },
-      "sourceFlowDigest": "5d02f67c053b1bbc32a3610e9fce25040964be08685a006b3fc4afe1afcc1881",
+      "sourceFlowDigest": "f3b174e148e2090952140c5fd3672c1dd2b0ef9fdd89176fdb45ee77da3341be",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -28255,7 +28257,7 @@
           "readback": {
             "file": "scripts/internal/verify_v390_conditional_field_ai_decisions.mjs",
             "symbol": "static-contract:dashFieldEvidenceBridgeBoundary",
-            "trackedBlobSha256": "0ec689f10a7d2d5b55bdf8bc266750aa9dc9aab6fed362bc6ba157f33a91ac81",
+            "trackedBlobSha256": "68ebf8d86fa21f4988e31f5eab0a020dab95816a125a3706007df8959c479787",
             "enclosingBodySha256": "20ba2e404497c841d5c68d87d0bdd29d6e008786b91276822e26acda4b2bf9a4",
             "enclosingBodyStartLine": 276,
             "enclosingBodyEndLine": 342,
@@ -28271,7 +28273,7 @@
             "enclosingBodyScope": "file-fallback"
           }
         },
-        "verifierFileSha256": "0ec689f10a7d2d5b55bdf8bc266750aa9dc9aab6fed362bc6ba157f33a91ac81",
+        "verifierFileSha256": "68ebf8d86fa21f4988e31f5eab0a020dab95816a125a3706007df8959c479787",
         "dispatch": {
           "command": "verify-v390-conditional-field-ai-decisions",
           "file": "scripts/internal/verify_v390_conditional_field_ai_decisions.mjs",
@@ -28455,7 +28457,7 @@
           "sha256": "74ee6063de7961a726a876c7e93a9e9c5422a491f22a1cc1b3dc3c814c553492"
         }
       },
-      "sourceFlowDigest": "e8c57456e3ab285e6ae676529e050fb0eb0fd779e509117b72d92c2574548e1b",
+      "sourceFlowDigest": "be6eb64f47e02d09909dc5c994d68636cf879ef0a022be18afd1129f1a954226",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -28498,7 +28500,7 @@
           "readback": {
             "file": "scripts/internal/verify_v390_conditional_field_ai_decisions.mjs",
             "symbol": "static-contract:dashReidAssistDecisionBoundary",
-            "trackedBlobSha256": "0ec689f10a7d2d5b55bdf8bc266750aa9dc9aab6fed362bc6ba157f33a91ac81",
+            "trackedBlobSha256": "68ebf8d86fa21f4988e31f5eab0a020dab95816a125a3706007df8959c479787",
             "enclosingBodySha256": "20ba2e404497c841d5c68d87d0bdd29d6e008786b91276822e26acda4b2bf9a4",
             "enclosingBodyStartLine": 276,
             "enclosingBodyEndLine": 342,
@@ -28514,7 +28516,7 @@
             "enclosingBodyScope": "file-fallback"
           }
         },
-        "verifierFileSha256": "0ec689f10a7d2d5b55bdf8bc266750aa9dc9aab6fed362bc6ba157f33a91ac81",
+        "verifierFileSha256": "68ebf8d86fa21f4988e31f5eab0a020dab95816a125a3706007df8959c479787",
         "dispatch": {
           "command": "verify-v390-conditional-field-ai-decisions",
           "file": "scripts/internal/verify_v390_conditional_field_ai_decisions.mjs",
@@ -117142,7 +117144,7 @@
           "sha256": "4e61faa48a87ede49df5bd9568899cfc51a6edd89a9d6068e51448892087a9a6"
         }
       },
-      "sourceFlowDigest": "e858b306027d8bf2b45830ea8594db7334fa2066fe6e9cc11ca3133a10e431cc",
+      "sourceFlowDigest": "e0d3bfa53bfa64f904d1020f564eb05c2cdecedbbfe2266e13e9d0cd4c762a0d",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -117185,7 +117187,7 @@
           "readback": {
             "file": "scripts/internal/verify_v390_conditional_field_ai_decisions.mjs",
             "symbol": "MEDIA-027:canonical-readback",
-            "trackedBlobSha256": "0ec689f10a7d2d5b55bdf8bc266750aa9dc9aab6fed362bc6ba157f33a91ac81",
+            "trackedBlobSha256": "68ebf8d86fa21f4988e31f5eab0a020dab95816a125a3706007df8959c479787",
             "enclosingBodySha256": "fe2e5a98c9bd31c53d3347cdb5fea73253526e7aa9de1310807f47c510271737",
             "enclosingBodyStartLine": 56,
             "enclosingBodyEndLine": 187,
@@ -117201,7 +117203,7 @@
             "enclosingBodyScope": "file-fallback"
           }
         },
-        "verifierFileSha256": "0ec689f10a7d2d5b55bdf8bc266750aa9dc9aab6fed362bc6ba157f33a91ac81",
+        "verifierFileSha256": "68ebf8d86fa21f4988e31f5eab0a020dab95816a125a3706007df8959c479787",
         "dispatch": {
           "command": "verify-v390-conditional-field-ai-decisions",
           "file": "scripts/internal/verify_v390_conditional_field_ai_decisions.mjs",
@@ -146138,7 +146140,7 @@
           "sha256": "7ef7269f73470670dde8a74eeca70a06b6c6cbc770609227da12eb54481c75ff"
         }
       },
-      "sourceFlowDigest": "f27239a646fa70a491eaae76ecab193d0b2f68c7c946876b312e70631cc25445",
+      "sourceFlowDigest": "64b08d7479dddb6f7b58f2577d156f2882deb465a59e0f5024b2e0ed64dc8b07",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -146181,7 +146183,7 @@
           "readback": {
             "file": "scripts/internal/verify_v390_conditional_field_ai_decisions.mjs",
             "symbol": "LAB-124:exact-oracle",
-            "trackedBlobSha256": "0ec689f10a7d2d5b55bdf8bc266750aa9dc9aab6fed362bc6ba157f33a91ac81",
+            "trackedBlobSha256": "68ebf8d86fa21f4988e31f5eab0a020dab95816a125a3706007df8959c479787",
             "enclosingBodySha256": "fe2e5a98c9bd31c53d3347cdb5fea73253526e7aa9de1310807f47c510271737",
             "enclosingBodyStartLine": 56,
             "enclosingBodyEndLine": 187,
@@ -146197,7 +146199,7 @@
             "enclosingBodyScope": "file-fallback"
           }
         },
-        "verifierFileSha256": "0ec689f10a7d2d5b55bdf8bc266750aa9dc9aab6fed362bc6ba157f33a91ac81",
+        "verifierFileSha256": "68ebf8d86fa21f4988e31f5eab0a020dab95816a125a3706007df8959c479787",
         "dispatch": {
           "command": "verify-v390-conditional-field-ai-decisions",
           "file": "scripts/internal/verify_v390_conditional_field_ai_decisions.mjs",
@@ -198776,14 +198778,14 @@
           "sha256": "300df52d9a13fbd559c89f452c25b8784a2deba2dd3c4d83ad98aa0b64ca7982"
         }
       },
-      "sourceFlowDigest": "ce40cf3d3f938ccc2c164c53d5406065e47b56447964d98448afbae3dc532f19",
+      "sourceFlowDigest": "c85e524f24e5e0b2fe5a85e6ad8276135b4e711f7527f3a167fdf73738c1bd78",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v390_conditional_field_ai_decisions.mjs",
             "symbol": "owner:SAFE-209",
-            "trackedBlobSha256": "0ec689f10a7d2d5b55bdf8bc266750aa9dc9aab6fed362bc6ba157f33a91ac81",
+            "trackedBlobSha256": "68ebf8d86fa21f4988e31f5eab0a020dab95816a125a3706007df8959c479787",
             "enclosingBodySha256": "95cf528a9d921b7298d4fbaf5fc11f8d74c3b153e61094a2c7c57d2278f9cac6",
             "enclosingBodyStartLine": 93,
             "enclosingBodyEndLine": 187,
@@ -198792,7 +198794,7 @@
           "dispatch": {
             "file": "scripts/internal/verify_v390_conditional_field_ai_decisions.mjs",
             "symbol": "flow:SAFE-209",
-            "trackedBlobSha256": "0ec689f10a7d2d5b55bdf8bc266750aa9dc9aab6fed362bc6ba157f33a91ac81",
+            "trackedBlobSha256": "68ebf8d86fa21f4988e31f5eab0a020dab95816a125a3706007df8959c479787",
             "enclosingBodySha256": "95cf528a9d921b7298d4fbaf5fc11f8d74c3b153e61094a2c7c57d2278f9cac6",
             "enclosingBodyStartLine": 93,
             "enclosingBodyEndLine": 187,
@@ -198801,7 +198803,7 @@
           "action": {
             "file": "scripts/internal/verify_v390_conditional_field_ai_decisions.mjs",
             "symbol": "flow:SAFE-209",
-            "trackedBlobSha256": "0ec689f10a7d2d5b55bdf8bc266750aa9dc9aab6fed362bc6ba157f33a91ac81",
+            "trackedBlobSha256": "68ebf8d86fa21f4988e31f5eab0a020dab95816a125a3706007df8959c479787",
             "enclosingBodySha256": "95cf528a9d921b7298d4fbaf5fc11f8d74c3b153e61094a2c7c57d2278f9cac6",
             "enclosingBodyStartLine": 93,
             "enclosingBodyEndLine": 187,
@@ -198810,7 +198812,7 @@
           "state": {
             "file": "scripts/internal/verify_v390_conditional_field_ai_decisions.mjs",
             "symbol": "flow:SAFE-209",
-            "trackedBlobSha256": "0ec689f10a7d2d5b55bdf8bc266750aa9dc9aab6fed362bc6ba157f33a91ac81",
+            "trackedBlobSha256": "68ebf8d86fa21f4988e31f5eab0a020dab95816a125a3706007df8959c479787",
             "enclosingBodySha256": "95cf528a9d921b7298d4fbaf5fc11f8d74c3b153e61094a2c7c57d2278f9cac6",
             "enclosingBodyStartLine": 93,
             "enclosingBodyEndLine": 187,
@@ -198819,7 +198821,7 @@
           "readback": {
             "file": "scripts/internal/verify_v390_conditional_field_ai_decisions.mjs",
             "symbol": "flow:SAFE-209",
-            "trackedBlobSha256": "0ec689f10a7d2d5b55bdf8bc266750aa9dc9aab6fed362bc6ba157f33a91ac81",
+            "trackedBlobSha256": "68ebf8d86fa21f4988e31f5eab0a020dab95816a125a3706007df8959c479787",
             "enclosingBodySha256": "95cf528a9d921b7298d4fbaf5fc11f8d74c3b153e61094a2c7c57d2278f9cac6",
             "enclosingBodyStartLine": 93,
             "enclosingBodyEndLine": 187,
@@ -198835,7 +198837,7 @@
             "enclosingBodyScope": "file-fallback"
           }
         },
-        "verifierFileSha256": "0ec689f10a7d2d5b55bdf8bc266750aa9dc9aab6fed362bc6ba157f33a91ac81",
+        "verifierFileSha256": "68ebf8d86fa21f4988e31f5eab0a020dab95816a125a3706007df8959c479787",
         "dispatch": {
           "command": "verify-v390-conditional-field-ai-decisions",
           "file": "scripts/internal/verify_v390_conditional_field_ai_decisions.mjs",
@@ -199832,7 +199834,7 @@
     },
     {
       "id": "SAFE-214",
-      "featureContractSha256": "1e60943e25d9149b38f0d1ca39219f42cfb34acb13340564f1a34bf740b4ec47",
+      "featureContractSha256": "bc27606b117a94389ce6b4e04251c534d9a12d214f232a3b761624be7007cdf6",
       "flowKind": "read-model",
       "requirement": {
         "operation": "read",
@@ -199846,7 +199848,7 @@
         "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs"
       },
       "evidenceMode": "canonical-functional-source-readback",
-      "evidenceToken": "implementationExecuted",
+      "evidenceToken": "falsePassClaimed",
       "sharedContract": null,
       "proofSource": {
         "kind": "separate-reviewed-proof-spec",
@@ -199856,37 +199858,37 @@
         "owner": {
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
           "symbol": "owner:SAFE-214",
-          "anchor": "check(\"owner decision fixture is complete and role-owned\", () => {",
-          "line": 43,
-          "contextSha256": "33f320804368277924aa2ac4782c17df946d78628b3077940f0b838657f60627"
+          "anchor": "function validateDecisions(fixture) {",
+          "line": 260,
+          "contextSha256": "bab54a26c4ee295a6b6830d782adc073fcc4ea94763f8323ecec52729946706e"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
           "symbol": "dispatch:SAFE-214",
-          "anchor": "assert(Array.isArray(fixture.decisions) && fixture.decisions.length === expected.size, \"exactly five decisions are required\");",
-          "line": 55,
-          "contextSha256": "ad226dd7de5e1677af711ea538fca422e71661caf864b7ce53daeab8ec1874e7"
+          "anchor": "for (const decision of fixture.decisions) {",
+          "line": 264,
+          "contextSha256": "3f43d36f31b838e8ad808da86f6c4c27a975f17c2695a5663fe8f99c21875784"
         },
         "action": {
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
           "symbol": "action:SAFE-214",
-          "anchor": "const implementationExecuted = fixture.decisions.some((decision) => decision.implementationExecuted === true);",
-          "line": 56,
-          "contextSha256": "413b686bd93ad5a8a342db4f4dfa576e0c24f0621cf131f021d490a587cd8a54"
+          "anchor": "const falsePassClaimed = decision.fieldPassClaimed === true || decision.releasePassClaimed === true ||",
+          "line": 278,
+          "contextSha256": "26a5328f91d6c1de58f35fc6a798fd38a9d54f4dac2bde95e191b8d623fda26d"
         },
         "state": {
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
-          "symbol": "state:implementationExecuted",
-          "anchor": "const implementationRemainsDeferred = implementationExecuted === false;",
-          "line": 57,
-          "contextSha256": "f450afb35eda9e4de6edfc7bf3f6357cf0bc02e5d483b6318c38015434b7bccf"
+          "symbol": "state:executionTruthful",
+          "anchor": "const executionTruthful = decision.executionStatus === \"not-executed\" && falsePassClaimed === false;",
+          "line": 280,
+          "contextSha256": "70157e1d35d2c26b28c78b42d4ba5fce2f81dec504e7674a6ef1b9ef0da39cb4"
         },
         "readback": {
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
           "symbol": "readback:SAFE-214",
-          "anchor": "assert(implementationRemainsDeferred && implementationExecuted === false,",
-          "line": 58,
-          "contextSha256": "8bb4ca55f3c2626c422dc46fbb78f6178e86ac57d08e131f437fcdef4fa66f35"
+          "anchor": "assert(executionTruthful && falsePassClaimed === false,",
+          "line": 281,
+          "contextSha256": "d732139f533fda11eb54b8c046358d23080b83e9ffdb9a68a3bd30b05ff15600"
         },
         "verifier": {
           "file": "server.sh",
@@ -199901,47 +199903,47 @@
           "from": "owner",
           "to": "dispatch",
           "kind": "function-containment",
-          "witness": "verify-v390-deferred-product-owner-signoff",
-          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:43",
-          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:55"
+          "witness": "validateDecisions contains the exact per-decision false-PASS evaluation.",
+          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:260",
+          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:264"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
-          "witness": "verify-v390-deferred-product-owner-signoff",
-          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:55",
-          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:56"
+          "witness": "The per-decision loop dispatches execution and PASS claim fields to the falsePassClaimed action.",
+          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:264",
+          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:278"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
-          "witness": "verify-v390-deferred-product-owner-signoff",
-          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:56",
-          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:57"
+          "witness": "executionTruthful consumes falsePassClaimed and requires current executionStatus not-executed.",
+          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:278",
+          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:280"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
-          "witness": "verify-v390-deferred-product-owner-signoff implementationExecuted",
-          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:57",
-          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:58"
+          "witness": "The structural assertion requires executionTruthful and independently rechecks falsePassClaimed=false.",
+          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:280",
+          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:281"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v390-deferred-product-owner-signoff",
-          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:58",
+          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:281",
           "target": "server.sh:2277"
         }
       ],
       "semanticObligation": {
         "schema": "media-server.review4-typed-semantic-obligation.v1",
         "policyVersion": "review4-outcome-binding-v3",
-        "featureContractSha256": "1e60943e25d9149b38f0d1ca39219f42cfb34acb13340564f1a34bf740b4ec47",
+        "featureContractSha256": "bc27606b117a94389ce6b4e04251c534d9a12d214f232a3b761624be7007cdf6",
         "requirement": {
           "operation": "read",
           "expectation": "allow",
@@ -199953,20 +199955,11 @@
         "fieldTokens": [
           "verify-v390-deferred-product-owner-signoff",
           "verify-v390-truthfulness-status-vocabulary",
-          "decision-record",
-          "not-executed",
-          "implementationExecuted=false",
-          "fieldPassClaimed=false",
-          "releasePassClaimed=false",
-          "implementationExecuted",
-          "fieldPassClaimed",
-          "releasePassClaimed"
+          "@dhseo90",
+          "repository-code-owner",
+          "post-v3.9-unassigned"
         ],
-        "outcomeTokens": [
-          "implementationExecuted",
-          "fieldPassClaimed",
-          "releasePassClaimed"
-        ],
+        "outcomeTokens": [],
         "negativeBoundaries": [],
         "clauses": [
           {
@@ -199984,79 +199977,70 @@
             "tokens": [
               "verify-v390-deferred-product-owner-signoff",
               "verify-v390-truthfulness-status-vocabulary",
-              "decision-record",
-              "not-executed",
-              "implementationExecuted=false",
-              "fieldPassClaimed=false",
-              "releasePassClaimed=false",
-              "implementationExecuted",
-              "fieldPassClaimed",
-              "releasePassClaimed"
+              "@dhseo90",
+              "repository-code-owner",
+              "post-v3.9-unassigned"
             ],
             "minimumExactMatches": 1
           },
           {
             "kind": "outcome",
-            "tokens": [
-              "implementationExecuted",
-              "fieldPassClaimed",
-              "releasePassClaimed"
-            ],
-            "minimumExactMatches": 1
+            "tokens": [],
+            "minimumExactMatches": 0
           }
         ],
         "requiredOutcome": {
-          "normalized": "`verify-v390-deferred-product-owner-signoff`와 `verify-v390-truthfulness-status-vocabulary`가 5개 deferred 항목을 `decision-record`, implementation `not-executed`로 분리하고 역할 기반 owner, v3.9 결정, 근거, 재개 조건, 사용자 승인 출처와 `implementationExecuted=false`, `fieldPassClaimed=false`, `releasePassClaimed=false`를 검증합니다. 개인 담당자 추정, 실제 구현, field smoke, UI/longrun, release PASS evidence가 아닙니다",
-          "sha256": "2ced175b7b8d5e8bc6db320ad534435bfa6bab6cb1254defc23378bfae9931a8"
+          "normalized": "`verify-v390-deferred-product-owner-signoff`와 `verify-v390-truthfulness-status-vocabulary`가 CODEOWNERS effective 실제 owner `@dhseo90`, `repository-code-owner`, exact 5개 중 production restore 포함/field smoke 제외, current source SHA·route·schema·UI·false boundary, mixed capability truth와 `post-v3.9-unassigned` dependency를 검증합니다. Re-ID를 전체 미구현으로 낮추거나 역할명-only, 임의 owner, 임의 future version, field/UI/longrun/release PASS로 승격하지 않습니다",
+          "sha256": "dabbfdf751250c7a4beaf2ccce404750c057451868ef07743966a95fe2e3d7a3"
         }
       },
-      "sourceFlowDigest": "13c87dc2a6ba7b9163dd4ce8040603863ad45fd26646db25b052bed54b80e4df",
+      "sourceFlowDigest": "890a50b7102f0db110aed671e01246a2f98bad961d06e1d9964f21d9c87d653c",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
             "symbol": "owner:SAFE-214",
-            "trackedBlobSha256": "0e43822fe5099636c2573cd593a2277b0e393028d5b4c4a2d56627dccac16e40",
-            "enclosingBodySha256": "d1d7dac86f6b06507bb17c1c35873af21f222b3f8c453f4d9514e15eb420f512",
-            "enclosingBodyStartLine": 43,
-            "enclosingBodyEndLine": 77,
+            "trackedBlobSha256": "dbf45a157709cee1019aaa7064171c01e7f18bacf44bcd774742f580ad4f2bc9",
+            "enclosingBodySha256": "6646adee363c88f3be09cfb19bb57ab3863e1d4a3d61838aae787a9c2b10bba6",
+            "enclosingBodyStartLine": 260,
+            "enclosingBodyEndLine": 300,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
             "symbol": "dispatch:SAFE-214",
-            "trackedBlobSha256": "0e43822fe5099636c2573cd593a2277b0e393028d5b4c4a2d56627dccac16e40",
-            "enclosingBodySha256": "d1d7dac86f6b06507bb17c1c35873af21f222b3f8c453f4d9514e15eb420f512",
-            "enclosingBodyStartLine": 43,
-            "enclosingBodyEndLine": 77,
+            "trackedBlobSha256": "dbf45a157709cee1019aaa7064171c01e7f18bacf44bcd774742f580ad4f2bc9",
+            "enclosingBodySha256": "6646adee363c88f3be09cfb19bb57ab3863e1d4a3d61838aae787a9c2b10bba6",
+            "enclosingBodyStartLine": 260,
+            "enclosingBodyEndLine": 300,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
             "symbol": "action:SAFE-214",
-            "trackedBlobSha256": "0e43822fe5099636c2573cd593a2277b0e393028d5b4c4a2d56627dccac16e40",
-            "enclosingBodySha256": "d1d7dac86f6b06507bb17c1c35873af21f222b3f8c453f4d9514e15eb420f512",
-            "enclosingBodyStartLine": 43,
-            "enclosingBodyEndLine": 77,
+            "trackedBlobSha256": "dbf45a157709cee1019aaa7064171c01e7f18bacf44bcd774742f580ad4f2bc9",
+            "enclosingBodySha256": "6646adee363c88f3be09cfb19bb57ab3863e1d4a3d61838aae787a9c2b10bba6",
+            "enclosingBodyStartLine": 260,
+            "enclosingBodyEndLine": 300,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
-            "symbol": "state:implementationExecuted",
-            "trackedBlobSha256": "0e43822fe5099636c2573cd593a2277b0e393028d5b4c4a2d56627dccac16e40",
-            "enclosingBodySha256": "d1d7dac86f6b06507bb17c1c35873af21f222b3f8c453f4d9514e15eb420f512",
-            "enclosingBodyStartLine": 43,
-            "enclosingBodyEndLine": 77,
+            "symbol": "state:executionTruthful",
+            "trackedBlobSha256": "dbf45a157709cee1019aaa7064171c01e7f18bacf44bcd774742f580ad4f2bc9",
+            "enclosingBodySha256": "6646adee363c88f3be09cfb19bb57ab3863e1d4a3d61838aae787a9c2b10bba6",
+            "enclosingBodyStartLine": 260,
+            "enclosingBodyEndLine": 300,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
             "symbol": "readback:SAFE-214",
-            "trackedBlobSha256": "0e43822fe5099636c2573cd593a2277b0e393028d5b4c4a2d56627dccac16e40",
-            "enclosingBodySha256": "d1d7dac86f6b06507bb17c1c35873af21f222b3f8c453f4d9514e15eb420f512",
-            "enclosingBodyStartLine": 43,
-            "enclosingBodyEndLine": 77,
+            "trackedBlobSha256": "dbf45a157709cee1019aaa7064171c01e7f18bacf44bcd774742f580ad4f2bc9",
+            "enclosingBodySha256": "6646adee363c88f3be09cfb19bb57ab3863e1d4a3d61838aae787a9c2b10bba6",
+            "enclosingBodyStartLine": 260,
+            "enclosingBodyEndLine": 300,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -200069,7 +200053,7 @@
             "enclosingBodyScope": "file-fallback"
           }
         },
-        "verifierFileSha256": "0e43822fe5099636c2573cd593a2277b0e393028d5b4c4a2d56627dccac16e40",
+        "verifierFileSha256": "dbf45a157709cee1019aaa7064171c01e7f18bacf44bcd774742f580ad4f2bc9",
         "dispatch": {
           "command": "verify-v390-deferred-product-owner-signoff",
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
@@ -235136,7 +235120,7 @@
     },
     {
       "id": "OPS-181",
-      "featureContractSha256": "e113cc1938d18dcfcfe6259c81def62a7e73973318feff24d5b2a7be9b7fd12c",
+      "featureContractSha256": "b25bd705053c7327d0f94e435b9914f28ce26dc132d44fa2c0178d3b46735dc3",
       "flowKind": "read-model",
       "requirement": {
         "operation": "read",
@@ -235150,8 +235134,8 @@
         "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
         "dispatchFile": "server.sh"
       },
-      "evidenceMode": "owner-decision-record-deferred-state-assertion",
-      "evidenceToken": "implementationExecuted",
+      "evidenceMode": "accountable-owner-decision-record-source-readback",
+      "evidenceToken": "accountableSubjectRef",
       "sharedContract": null,
       "proofSource": {
         "kind": "separate-reviewed-proof-spec",
@@ -235160,38 +235144,38 @@
       "roles": {
         "owner": {
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
-          "symbol": "check:owner-decision-fixture",
-          "anchor": "check(\"owner decision fixture is complete and role-owned\", () => {",
-          "line": 43,
-          "contextSha256": "33f320804368277924aa2ac4782c17df946d78628b3077940f0b838657f60627"
+          "symbol": "validateDecisions",
+          "anchor": "function validateDecisions(fixture) {",
+          "line": 260,
+          "contextSha256": "bab54a26c4ee295a6b6830d782adc073fcc4ea94763f8323ecec52729946706e"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
-          "symbol": "check:owner-decision-fixture",
-          "anchor": "const fixture = JSON.parse(fs.readFileSync(fixturePath, \"utf8\"));",
-          "line": 45,
-          "contextSha256": "43191142e01ee1156ee4738bd31567505225143dce1c89413c814a6bf983fa86"
+          "symbol": "validateDecisions",
+          "anchor": "for (const decision of fixture.decisions) {",
+          "line": 264,
+          "contextSha256": "3f43d36f31b838e8ad808da86f6c4c27a975f17c2695a5663fe8f99c21875784"
         },
         "action": {
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
-          "symbol": "check:owner-decision-fixture",
-          "anchor": "const implementationExecuted = fixture.decisions.some((decision) => decision.implementationExecuted === true);",
-          "line": 56,
-          "contextSha256": "413b686bd93ad5a8a342db4f4dfa576e0c24f0621cf131f021d490a587cd8a54"
+          "symbol": "validateDecisions",
+          "anchor": "const accountableSubjectRef = decision.accountableSubjectRef;",
+          "line": 270,
+          "contextSha256": "47ba393e9496b7054aba44f9d89455066a62954990f1d3972462079c6f875f10"
         },
         "state": {
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
-          "symbol": "check:owner-decision-fixture",
-          "anchor": "const implementationRemainsDeferred = implementationExecuted === false;",
-          "line": 57,
-          "contextSha256": "f450afb35eda9e4de6edfc7bf3f6357cf0bc02e5d483b6318c38015434b7bccf"
+          "symbol": "validateDecisions",
+          "anchor": "const accountableOwnerBound = accountableSubjectRef === \"repo-owner-v1\";",
+          "line": 271,
+          "contextSha256": "6a9ba8e6f552aefa02ef748165f9d3bbb88c10ba83d3b898001bd03e92d3fddc"
         },
         "readback": {
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
-          "symbol": "check:owner-decision-fixture",
-          "anchor": "assert(implementationRemainsDeferred && implementationExecuted === false,",
-          "line": 58,
-          "contextSha256": "8bb4ca55f3c2626c422dc46fbb78f6178e86ac57d08e131f437fcdef4fa66f35"
+          "symbol": "validateDecisions",
+          "anchor": "assert(accountableOwnerBound && accountableSubjectRef === \"repo-owner-v1\",",
+          "line": 272,
+          "contextSha256": "e6bf53460c1ae5cd8c1ab32e29dea62779d92aba69c7a81ac2363ff612ab7cb3"
         },
         "verifier": {
           "file": "server.sh",
@@ -235206,47 +235190,47 @@
           "from": "owner",
           "to": "dispatch",
           "kind": "function-containment",
-          "witness": "The role-owned decision check parses the independently maintained decision record.",
-          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:43",
-          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:45"
+          "witness": "validateDecisions owns each machine-readable decision row before owner binding is evaluated.",
+          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:260",
+          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:264"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
-          "witness": "The parsed fixture supplies the decision set scanned for executed implementation.",
-          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:45",
-          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:56"
+          "witness": "The per-decision loop dispatches the exact accountableSubjectRef field to the owner-binding action.",
+          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:264",
+          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:270"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
-          "witness": "The implementationExecuted observation derives the explicit deferred state.",
-          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:56",
-          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:57"
+          "witness": "accountableOwnerBound derives only from the decision accountableSubjectRef exact value.",
+          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:270",
+          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:271"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
-          "witness": "The verifier asserts no decision reports implementation execution and retains the deferred outcome.",
-          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:57",
-          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:58"
+          "witness": "The verifier asserts both the derived bound state and original subject reference before accepting the decision.",
+          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:271",
+          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:272"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v390-deferred-product-owner-signoff",
-          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:58",
+          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:272",
           "target": "server.sh:2277"
         }
       ],
       "semanticObligation": {
         "schema": "media-server.review4-typed-semantic-obligation.v1",
         "policyVersion": "review4-outcome-binding-v3",
-        "featureContractSha256": "e113cc1938d18dcfcfe6259c81def62a7e73973318feff24d5b2a7be9b7fd12c",
+        "featureContractSha256": "b25bd705053c7327d0f94e435b9914f28ce26dc132d44fa2c0178d3b46735dc3",
         "requirement": {
           "operation": "read",
           "expectation": "allow",
@@ -235258,7 +235242,8 @@
         "fieldTokens": [
           "verify-v390-deferred-product-owner-signoff",
           "verify-v390-truthfulness-status-vocabulary",
-          "decision-record",
+          "accountable-owner-decision-record",
+          "@dhseo90",
           "not-executed"
         ],
         "outcomeTokens": [],
@@ -235279,7 +235264,8 @@
             "tokens": [
               "verify-v390-deferred-product-owner-signoff",
               "verify-v390-truthfulness-status-vocabulary",
-              "decision-record",
+              "accountable-owner-decision-record",
+              "@dhseo90",
               "not-executed"
             ],
             "minimumExactMatches": 1
@@ -235291,58 +235277,58 @@
           }
         ],
         "requiredOutcome": {
-          "normalized": "`verify-v390-deferred-product-owner-signoff`와 `verify-v390-truthfulness-status-vocabulary`가 machine-readable `decision-record`와 implementation `not-executed`를 대조합니다. owner sign-off는 해당 구현·field/release 실행 PASS가 아닙니다",
-          "sha256": "90195cb9ea6452e088cf4575be1a0b36066b0b35f126d4db9ba6a05c78563fe9"
+          "normalized": "`verify-v390-deferred-product-owner-signoff`와 `verify-v390-truthfulness-status-vocabulary`가 machine-readable `accountable-owner-decision-record`, 실제 owner `@dhseo90`, production restore와 model-backed Re-ID capability truth, source evidence, 구조화 후속 dependency를 대조합니다. Current execution은 `not-executed`이고 owner sign-off는 구현·field/UI/longrun/release 실행 PASS가 아닙니다",
+          "sha256": "b9707501a9a28e50b26ad5772160be4a93cc562e934736e689f8c5ab8c687afd"
         }
       },
-      "sourceFlowDigest": "cd61521adc2a3c376faa68d7cb09b9839d920dbcef0483be059422992b28566e",
+      "sourceFlowDigest": "14e335df70683397e1a779a41bc2ec68b81cd1b669caf5a17e73b0763afd5bb4",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
-            "symbol": "check:owner-decision-fixture",
-            "trackedBlobSha256": "0e43822fe5099636c2573cd593a2277b0e393028d5b4c4a2d56627dccac16e40",
-            "enclosingBodySha256": "d1d7dac86f6b06507bb17c1c35873af21f222b3f8c453f4d9514e15eb420f512",
-            "enclosingBodyStartLine": 43,
-            "enclosingBodyEndLine": 77,
-            "enclosingBodyScope": "semantic-enclosing-function"
+            "symbol": "validateDecisions",
+            "trackedBlobSha256": "dbf45a157709cee1019aaa7064171c01e7f18bacf44bcd774742f580ad4f2bc9",
+            "enclosingBodySha256": "6646adee363c88f3be09cfb19bb57ab3863e1d4a3d61838aae787a9c2b10bba6",
+            "enclosingBodyStartLine": 260,
+            "enclosingBodyEndLine": 300,
+            "enclosingBodyScope": "declared-symbol"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
-            "symbol": "check:owner-decision-fixture",
-            "trackedBlobSha256": "0e43822fe5099636c2573cd593a2277b0e393028d5b4c4a2d56627dccac16e40",
-            "enclosingBodySha256": "d1d7dac86f6b06507bb17c1c35873af21f222b3f8c453f4d9514e15eb420f512",
-            "enclosingBodyStartLine": 43,
-            "enclosingBodyEndLine": 77,
-            "enclosingBodyScope": "semantic-enclosing-function"
+            "symbol": "validateDecisions",
+            "trackedBlobSha256": "dbf45a157709cee1019aaa7064171c01e7f18bacf44bcd774742f580ad4f2bc9",
+            "enclosingBodySha256": "6646adee363c88f3be09cfb19bb57ab3863e1d4a3d61838aae787a9c2b10bba6",
+            "enclosingBodyStartLine": 260,
+            "enclosingBodyEndLine": 300,
+            "enclosingBodyScope": "declared-symbol"
           },
           "action": {
             "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
-            "symbol": "check:owner-decision-fixture",
-            "trackedBlobSha256": "0e43822fe5099636c2573cd593a2277b0e393028d5b4c4a2d56627dccac16e40",
-            "enclosingBodySha256": "d1d7dac86f6b06507bb17c1c35873af21f222b3f8c453f4d9514e15eb420f512",
-            "enclosingBodyStartLine": 43,
-            "enclosingBodyEndLine": 77,
-            "enclosingBodyScope": "semantic-enclosing-function"
+            "symbol": "validateDecisions",
+            "trackedBlobSha256": "dbf45a157709cee1019aaa7064171c01e7f18bacf44bcd774742f580ad4f2bc9",
+            "enclosingBodySha256": "6646adee363c88f3be09cfb19bb57ab3863e1d4a3d61838aae787a9c2b10bba6",
+            "enclosingBodyStartLine": 260,
+            "enclosingBodyEndLine": 300,
+            "enclosingBodyScope": "declared-symbol"
           },
           "state": {
             "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
-            "symbol": "check:owner-decision-fixture",
-            "trackedBlobSha256": "0e43822fe5099636c2573cd593a2277b0e393028d5b4c4a2d56627dccac16e40",
-            "enclosingBodySha256": "d1d7dac86f6b06507bb17c1c35873af21f222b3f8c453f4d9514e15eb420f512",
-            "enclosingBodyStartLine": 43,
-            "enclosingBodyEndLine": 77,
-            "enclosingBodyScope": "semantic-enclosing-function"
+            "symbol": "validateDecisions",
+            "trackedBlobSha256": "dbf45a157709cee1019aaa7064171c01e7f18bacf44bcd774742f580ad4f2bc9",
+            "enclosingBodySha256": "6646adee363c88f3be09cfb19bb57ab3863e1d4a3d61838aae787a9c2b10bba6",
+            "enclosingBodyStartLine": 260,
+            "enclosingBodyEndLine": 300,
+            "enclosingBodyScope": "declared-symbol"
           },
           "readback": {
             "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
-            "symbol": "check:owner-decision-fixture",
-            "trackedBlobSha256": "0e43822fe5099636c2573cd593a2277b0e393028d5b4c4a2d56627dccac16e40",
-            "enclosingBodySha256": "d1d7dac86f6b06507bb17c1c35873af21f222b3f8c453f4d9514e15eb420f512",
-            "enclosingBodyStartLine": 43,
-            "enclosingBodyEndLine": 77,
-            "enclosingBodyScope": "semantic-enclosing-function"
+            "symbol": "validateDecisions",
+            "trackedBlobSha256": "dbf45a157709cee1019aaa7064171c01e7f18bacf44bcd774742f580ad4f2bc9",
+            "enclosingBodySha256": "6646adee363c88f3be09cfb19bb57ab3863e1d4a3d61838aae787a9c2b10bba6",
+            "enclosingBodyStartLine": 260,
+            "enclosingBodyEndLine": 300,
+            "enclosingBodyScope": "declared-symbol"
           },
           "verifier": {
             "file": "server.sh",
@@ -235354,7 +235340,7 @@
             "enclosingBodyScope": "file-fallback"
           }
         },
-        "verifierFileSha256": "0e43822fe5099636c2573cd593a2277b0e393028d5b4c4a2d56627dccac16e40",
+        "verifierFileSha256": "dbf45a157709cee1019aaa7064171c01e7f18bacf44bcd774742f580ad4f2bc9",
         "dispatch": {
           "command": "verify-v390-deferred-product-owner-signoff",
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
@@ -236063,5 +236049,5 @@
       }
     }
   ],
-  "candidateDigest": "3730260001bca5e55c8dca51a0ed2c4356685c12c089d6041ed9c7dc295ba715"
+  "candidateDigest": "9ced91cc1bf7b3d0514db91c571b1f1521565314d822222f163279e039c9b344"
 }

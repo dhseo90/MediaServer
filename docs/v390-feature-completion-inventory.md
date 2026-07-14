@@ -194,33 +194,50 @@ Until this review gate passes, this file remains a discovery tracking scaffold o
 
 The review-ready output above does not mean the user has approved feature development.
 
-## Deferred Product Owner Sign-off (Development 16)
+## Deferred Product Owner Sign-off (Development 16 / REVIEW4-63)
 
-Approval authority: `user-approved-owner-role-assignment`
+Accountable subject: `@dhseo90` (`repository-code-owner`). `.github/CODEOWNERS`에서 이
+fixture에 적용되는 마지막 matching rule `* @dhseo90`을 직접 확인합니다.
 
-Approval source: `/goal v3.9.0 (17) Development 16`
+Authority scope: `repository-scoped-product-scope-attestation`. 기능별 `functionalOwnerRole`은
+책임 label이며 조직상 Product/Security/Privacy/ML 직책, 고용 관계, 개인 신원 또는 전문 자격을
+추론하지 않습니다.
 
-Approval date: `2026-07-11`
+Approval source: `/goal v3.9.0 (25) 잔여이슈 해결 4`
 
-Owner identity policy: owner role은 개인 이름을 추정하지 않고 제품 책임 역할로 고정합니다.
-실제 개인 배정이 필요한 조직 운영 작업은 이 저장소의 완료 주장 범위가 아닙니다.
+Approval source digest: `ca9df70ca01b749eefcd01e09edec6c125e8a503c82d1f0df780048f377a0d55`
 
-| Deferred item | Owner role | v3.9 decision | 직접 근거 | 재개 조건 요약 |
-| --- | --- | --- | --- | --- |
-| `action-execution` | `Product Owner` | `excluded-from-v3.9` | v3.8/v3.9 action workspace는 read-only/default-off이며 source recheck, client notice send, rule apply의 rollback·audit·authorization 제품 계약이 없음 | 실행형 roadmap, Security 승인, execution/rollback/UI/longrun evidence 계획 |
-| `persistent-credential-store` | `Security Owner` | `excluded-from-v3.9` | sanitized provider status와 in-memory fixture만 존재하고 persistent secret backend threat model·rotation·audit·recovery 정책이 미승인 | secret backend/threat model, rotation·audit·recovery, 비노출 negative/integration test 승인 |
-| `real-external-field-smoke` | `Release Owner` | `deferred-until-approved-field-run` | TURN/WHEP endpoint·credential, ONVIF 실기기, 외부 provider 환경이 제공되지 않아 실제 접속 미실행 | endpoint/실기기/credential, 실행 승인, sanitized artifact·cleanup·실패 중단 기준 |
-| `external-vlm-provider-call` | `Privacy and Security Owner` | `excluded-from-v3.9` | privacy transfer·retention·redaction·비용·provider 장애 정책과 credential이 미승인 | privacy/security 승인, provider 환경, redaction negative와 field 계획 |
-| `model-backed-reid-session` | `Product and ML Owner` | `excluded-from-v3.9` | provenance-gated preflight와 deterministic no-op만 보장하고 model bundle·license/privacy·정확도·실환경 기준이 미확정 | model/license/accuracy, privacy 경계, 실제 ONNX session/performance/field 계획 |
+Approval date: `2026-07-13`; attestation evidence status:
+`user-directive-recorded-not-cryptographically-verifiable`.
+
+| Deferred item | 실제 책임자 | Functional owner role | v3.9 decision | 현재 capability truth | 후속 version |
+| --- | --- | --- | --- | --- | --- |
+| `action-execution` | `@dhseo90` | `Product Owner` | `excluded-from-v3.9` | read model/UI는 구현, action write는 `not-implemented`, current execution evidence `not-run` | `post-v3.9-unassigned`, scheduled=false |
+| `persistent-credential-store` | `@dhseo90` | `Security Owner` | `excluded-from-v3.9` | sanitized status와 in-memory fixture는 구현, persistent store는 `not-implemented` | `post-v3.9-unassigned`, scheduled=false |
+| `production-restore` | `@dhseo90` | `Operations and Release Owner` | `excluded-from-v3.9` | runbook documented, staging validation implemented, product automation `not-implemented`, cutover `not-run` | `post-v3.9-unassigned`, scheduled=false |
+| `external-vlm-provider-call` | `@dhseo90` | `Privacy and Security Owner` | `excluded-from-v3.9` | 제품 runtime call은 forbidden/not-implemented, conditional field harness는 implemented, field run `not-run` | `post-v3.9-unassigned`, scheduled=false |
+| `model-backed-reid-session` | `@dhseo90` | `Product and ML Owner` | `excluded-from-v3.9-supported-release-scope` | `implemented-opt-in-experimental`, default off, model bundle 미포함, actual session evidence `not-run` | `post-v3.9-unassigned`, scheduled=false |
 
 Machine-readable source: `test/fixtures/v390_deferred_product_owner_signoff.json`
 
-Decision boundary: 모든 항목에서 `implementationExecuted=false`, `fieldPassClaimed=false`,
-`releasePassClaimed=false`입니다. 이 owner sign-off는 구현·field smoke·UI 풀테스트·30분/120분
-longrun·published metadata·release action PASS가 아닙니다.
+각 항목은 route/method/schema, source function·file SHA-256, UI route/selector, false boundary,
+companion verifier, 근거 문서와 세 개의 구조화 dependency(`ownerRole`, `approvalCondition`,
+`verificationCondition`)를 가집니다. 임의의 후속 버전은 예약하지 않았으며 dependency가 승인된
+뒤에만 target version을 새로 결정합니다.
 
-Record kind: `decision-record`; implementation status: `not-executed`; evidence status:
-`decision-only-not-implementation-evidence`.
+Record kind: `accountable-owner-decision-record`; implementation status:
+`decision-record-complete-capabilities-mixed`; evidence status:
+`decision-only-not-implementation-or-execution-evidence`.
+
+Decision boundary: 각 항목의 current release `executionStatus=not-executed`,
+`fieldPassClaimed=false`, `releasePassClaimed=false`, `uiFulltestPassClaimed=false`,
+`longrunPassClaimed=false`입니다. Re-ID source capability 구현을 전체 미구현으로 낮추지 않고,
+decision GET route의 no-execution과 실제 runtime capability를 분리합니다. 이 record는 구현·field
+smoke·UI 풀테스트·30분/120분 longrun·published metadata·release action PASS가 아닙니다.
+
+외부 field smoke는 위 exact 5개 집합에 포함하지 않습니다. Development 18
+`test/fixtures/v390_external_field_smoke_no_device_closure.json`의 `conditional-not-run` record와
+`./server.sh verify-v390-external-field-smoke-no-device-closure`가 별도로 관리합니다.
 
 ## Development 18 External Field Smoke No-Device Closure
 

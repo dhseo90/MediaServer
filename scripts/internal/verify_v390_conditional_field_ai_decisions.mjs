@@ -443,7 +443,11 @@ check("server entrypoint and inventory verifiers include v3.9 Steps 17~18 comman
   assertIncludes(files.featureInventory, command, "feature inventory conditional verifier mapping");
   assertIncludes(files.featureInventory, readinessCommand, "feature inventory readiness verifier mapping");
   for (const id of featureIds) {
-    const expected = ["LAB-125", "SAFE-210", "OPS-177"].includes(id) ? readinessCommand : command;
+    const expected = ["SRC-068", "OPS-176"].includes(id)
+      ? "verify-ops-source-registry-api"
+      : ["LAB-125", "SAFE-210", "OPS-177"].includes(id)
+        ? readinessCommand
+        : command;
     assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === expected, `${id} manifest verifier command drift`);
   }
   assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
