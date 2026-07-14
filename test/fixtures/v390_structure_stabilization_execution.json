@@ -69,7 +69,7 @@
   },
   "currentContinuation": {
     "status": "in-progress",
-    "latestCompletedSlice": 10,
+    "latestCompletedSlice": 11,
     "sliceSequenceStatus": "partial",
     "architectureStatus": "final-targets-unmet",
     "finalEvidenceStatus": "parked-generated-artifacts-in-review",
@@ -1233,6 +1233,111 @@
           {"command":"./server.sh verify-docs-links","status":"pass","result":"168 Markdown, 878 links, 22 images, 99 anchors, failures 0"},
           {"command":"git diff --check","status":"pass","result":"exit 0"},
           {"command":"listener/temp cleanup","status":"pass","result":"14 current-run paths/4748 KiB measured then deleted; listeners 8081/8555/8654-8656/8765-8766 absent; matching temp paths absent"}
+        ]
+      },
+      {
+        "order": 11,
+        "id": "webrtc-http-server-source-bundle",
+        "status": "completed",
+        "nonProductionSlice": true,
+        "rollbackCommit": "e5df05f3945e43e89ae13e3fdd21d0c83ab78ac8",
+        "selectedBoundary": "migrate every direct verifier read of the monolithic WebRTC HTTP server to one ordered, resolver-aware, split-safe source bundle before any physical source split",
+        "allowedFiles": [
+          "server.sh",
+          "scripts/internal/webrtc_http_server_source_bundle.mjs",
+          "scripts/internal/verify_v390_webrtc_http_server_source_bundle.mjs",
+          "scripts/internal/verify_v390_structure_stabilization_execution.mjs",
+          "scripts/internal/migrate_webrtc_http_server_source_bundle_consumers.mjs",
+          "test/fixtures/v390_structure_stabilization_execution.json",
+          "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md",
+          "docs/development-backlog.md",
+          "docs/project-feature-test-inventory.md",
+          "docs/stream-verification.md",
+          "docs/release-test-records.md",
+          "docs/release-evidence-index.md"
+        ],
+        "allowedFileSets": [
+          {
+            "kind": "rollback-direct-webrtc-http-server-readers",
+            "rollbackCommit": "e5df05f3945e43e89ae13e3fdd21d0c83ab78ac8",
+            "root": "scripts/internal",
+            "expectedFileCount": 170,
+            "expectedExpressionCount": 188,
+            "sortedPathSha256": "1e13a798e01c601114df0287bc552e3681531e3021e81c57307ee99ae458ee1c"
+          }
+        ],
+        "changedFiles": [
+          "server.sh",
+          "scripts/internal/webrtc_http_server_source_bundle.mjs",
+          "scripts/internal/verify_v390_webrtc_http_server_source_bundle.mjs",
+          "scripts/internal/verify_v390_structure_stabilization_execution.mjs",
+          "test/fixtures/v390_structure_stabilization_execution.json",
+          "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md",
+          "docs/development-backlog.md",
+          "docs/project-feature-test-inventory.md",
+          "docs/stream-verification.md",
+          "docs/release-test-records.md",
+          "docs/release-evidence-index.md"
+        ],
+        "changedFileSets": [
+          {
+            "kind": "rollback-direct-webrtc-http-server-readers",
+            "expectedFileCount": 170,
+            "expectedExpressionCount": 188,
+            "sortedPathSha256": "1e13a798e01c601114df0287bc552e3681531e3021e81c57307ee99ae458ee1c"
+          }
+        ],
+        "before": {
+          "productionGraphSha256": "b786ec25ae1077f36b995d92757a1e6f97f9c4d0c99e96193aa3b59645128e4e",
+          "productionFiles": 163,
+          "cppSources": 80,
+          "targetViolationDirectionsUnderPolicyV1": 5,
+          "largestSccOwners": 0,
+          "webrtcHttpServerLines": 40840,
+          "cmakeTargets": 2,
+          "internalTargetSeparation": true
+        },
+        "after": {
+          "productionGraphSha256": "b786ec25ae1077f36b995d92757a1e6f97f9c4d0c99e96193aa3b59645128e4e",
+          "productionFiles": 163,
+          "cppSources": 80,
+          "targetViolationDirectionsUnderPolicyV1": 5,
+          "largestSccOwners": 0,
+          "webrtcHttpServerLines": 40840,
+          "cmakeTargets": 2,
+          "internalTargetSeparation": true
+        },
+        "contractAssertions": [
+          "the current one-file bundle is byte-identical to the 1,974,239-byte and 40,840-line transport source",
+          "all 170 rollback-bound consumer files and 188 direct read expressions migrate exactly once while twelve path/anchor/history references remain explicit",
+          "ordered layout rejects duplicate paths and token resolution rejects missing or ambiguous ownership",
+          "fixture-aware verifier readers continue to read their isolated fixture root rather than silently falling back to the live source tree",
+          "this non-production slice leaves production files, C++ files, include directions, Policy v1 violations, SCC, CMake topology, and runtime behavior exactly unchanged",
+          "Auth/Role/Scope, route/status/body/cache, Event/metadata schemas, RTSP/WebRTC media, registry, rule/profile, and UI contracts remain unchanged",
+          "parked generated evidence remains unstaged and non-final"
+        ],
+        "observedFollowups": [
+          "the first helper implementation used stale resolver anchors and then returned path rather than the verifier-bound file field; both were fixed before the focused gate passed",
+          "the V300 UI verifier still looked for its extracted page shell in the monolithic server source; it now reads the actual product_ui_server_pages owner while retaining the server bundle for API symbols",
+          "independent final review found callback-shape, ambiguous-token, and continuation-frontier false-PASS gaps; exact reader-kind matching plus callback-removal/ambiguous-resolver/frontier-overclaim mutations now reject all three"
+        ],
+        "tests": [
+          {"command":"./server.sh verify-v390-webrtc-http-server-source-bundle","status":"pass","firstAttempt":"pre-implementation expected RED 2/4; helper/consumer/probe/mutation fixture failed while baseline and graph passed","result":"6/0 after resolver anchor/return-field fixes and independent review; exact reader kinds plus isolated legacy/import/callback/empty/layout/ambiguous-resolver/graph mutations rejected"},
+          {"command":"source bundle consumer syntax check","status":"pass","result":"170/0"},
+          {"command":"./server.sh build","status":"pass","result":"100%"},
+          {"command":"./server.sh verify-v390-public-contract-interface-owner","status":"pass","result":"6/0"},
+          {"command":"./server.sh verify-v390-core-media-analysis-port-inversion","status":"pass","result":"11/0"},
+          {"command":"./server.sh verify-v390-action-execution-deferral-decision","status":"pass","result":"8/0"},
+          {"command":"./server.sh verify-v220-ops-workspace-redesign","status":"pass","result":"9/0"},
+          {"command":"./server.sh verify-v300-ops-events-ui","status":"pass","firstAttempt":"8/1; stale UI shell lookup remained bound to the monolithic server after its production owner had already moved","result":"9/0 after binding the shell assertion to product_ui_server_pages.cpp"},
+          {"command":"./server.sh verify-v350-live-operations-graph-contract","status":"pass","result":"9/0"},
+          {"command":"./server.sh verify-v380-action-capability-contract","status":"pass","result":"5/0"},
+          {"command":"./server.sh verify-vlm-profile-storage","status":"pass","result":"6/0"},
+          {"command":"./server.sh verify-v390-review4-structure-stabilization-execution","status":"pass","result":"15/0 completed-ledger self-check"},
+          {"command":"./server.sh verify-script-inventory","status":"pass","result":"11/0"},
+          {"command":"./server.sh verify-docs-links","status":"pass","result":"168 Markdown, 879 links, 22 images, 99 anchors, failures 0"},
+          {"command":"git diff --check","status":"pass","result":"exit 0"},
+          {"command":"listener/temp cleanup","status":"pass","firstAttempt":"raw lsof no-listener probe returned its normal exit 1 and was replaced by an explicit absence oracle","result":"0 matching source-bundle temp paths; listeners 8081/8555/8654-8656 absent"}
         ]
       }
     ]

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V210-S05 Ops VLM runtime status UI와 viewer/client 비노출 경계를 정적 검증한다.
 import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -34,7 +35,7 @@ Checks:
 assertKnownOptions(rawArgs, ["h", "help"]);
 
 const checks = [];
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const server = readWebRtcHttpServerBundle(readText);
 const pageScript = readText("src/ingress/product_ui_page_scripts.cpp");
 
 check("Ops VLM page renders runtime status panel", () => {

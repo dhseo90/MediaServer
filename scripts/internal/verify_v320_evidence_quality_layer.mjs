@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.2.0 Step 4 Evidence Quality Layer 구현, 문서, inventory 연결을 검증한다.
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -33,7 +34,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v320-evidence-quality-layer";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   pageScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),

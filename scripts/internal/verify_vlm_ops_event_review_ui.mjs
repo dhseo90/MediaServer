@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V200-S10 Ops 이벤트 리뷰 화면이 EventRecord evidence와 VLM 설명을 Ops 전용으로 표시하는지 검증한다.
 import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -27,7 +28,7 @@ Checks:
 assertKnownOptions(rawArgs, ["h", "help"]);
 
 const checks = [];
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const server = readWebRtcHttpServerBundle(readText);
 const pageScript = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");

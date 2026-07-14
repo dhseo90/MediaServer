@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V210-S08 VLM rule suggestion draft workflow의 Ops-only/manual-save 경계를 검증한다.
 
 import fs from "node:fs";
@@ -63,7 +64,7 @@ check("fixture defines V210-S08 draft-only workflow", () => {
 });
 
 check("Ops API route wraps existing candidate builder without requiring rule-write", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   const draftWorkflowBlock = extractCppFunctionBlock(server, "std::string OpsVlmRuleSuggestionDraftWorkflowJson(");
   assert(server.includes('\\"ruleRegistryWritePerformed\\":false'), "ruleRegistryWritePerformed must remain absent/false before manual save");
   assert(draftWorkflowBlock.includes("media-server.vlm-rule-suggestion-draft-workflow.v1") && exactBooleanFlagValue(draftWorkflowBlock, "ruleRegistryWritePerformed") === false, "draft workflow schema must not write the rule registry");
@@ -92,7 +93,7 @@ check("Ops API route wraps existing candidate builder without requiring rule-wri
 });
 
 check("/ops/rules UI renders draft workflow and applies to form only", () => {
-  const html = readText("src/ingress/webrtc_http_server.cpp");
+  const html = readWebRtcHttpServerBundle(readText);
   const js = readText("src/ingress/product_ui_page_scripts.cpp");
   const css = readText("src/ingress/product_ui_css.cpp");
   for (const snippet of [

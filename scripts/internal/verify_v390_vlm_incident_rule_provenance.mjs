@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: VLM incident/candidate/evaluation provenance가 수동 생성 rule과 저장 API까지 보존되는지 검증한다.
 
 import fs from "node:fs";
@@ -40,7 +41,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const files = {
   store: read("src/analysis/vlm_observation_store.cpp"),
-  server: read("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(read),
   validatorHeader: read("include/ingress/vlm_incident_rule_provenance.h"),
   validatorSource: read("src/ingress/vlm_incident_rule_provenance.cpp"),
   strictJsonHeader: read("include/domain/strict_json.h"),

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V210-S07 VLM review action workflow의 Ops-only 저장/API/UI 경계를 검증한다.
 
 import fs from "node:fs";
@@ -26,7 +27,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const checks = [];
 const fixture = readJson("test/fixtures/vlm_review_action_workflow/cases.json");
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const server = readWebRtcHttpServerBundle(readText);
 const pageScript = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");

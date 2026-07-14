@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: Alert Delivery Integrations의 payload 분리, retry, audit masking 계약을 검증한다.
 
 import fs from "node:fs";
@@ -11,7 +12,7 @@ import { findChrome, openBrowserPage } from "./ui_visual_smoke_lib.mjs";
 const args = parseArgs(process.argv.slice(2));
 const failures = [];
 
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const server = readWebRtcHttpServerBundle(readText);
 const routeOwner = readText("src/ingress/ops_event_route_owner.cpp");
 const serverContract = server + routeOwner;
 const script = readText("src/ingress/product_ui_page_scripts.cpp");

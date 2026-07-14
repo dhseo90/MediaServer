@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V390-REVIEW3-36의 Markdown 전문 감사와 source incomplete marker 결정을 재현한다.
 
 import crypto from "node:crypto";
@@ -90,7 +91,7 @@ check("source marker dispositions preserve every exact semantic role", () => {
     "source marker exact disposition count mismatch");
 });
 check("RulesJson incomplete markers are closed by explicit decisions", () => {
-  const source = readText("src/ingress/webrtc_http_server.cpp");
+  const source = readWebRtcHttpServerBundle(readText);
   assert(!source.includes("notImplementedYet"), "RulesJson still exposes notImplementedYet");
   assertStableEqual(stored.scopeDecisions, current.scopeDecisions, "scope decision drift");
   assert(stored.scopeDecisions.length === 2, "exactly two RulesJson scope decisions are required");

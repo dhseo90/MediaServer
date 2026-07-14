@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V390-ADD1-04 Re-ID factory/Ops 공용 readiness와 실제 HTTP false-positive 행렬을 검증한다.
 
 import { spawn, execFileSync } from "node:child_process";
@@ -93,7 +94,7 @@ function verifySourceContract() {
   const source = read("src/analysis/appearance_extractor.cpp");
   const readinessBlock = extractCppFunctionBlock(source, "AppearanceModelReadiness InspectAppearanceModelReadiness(");
   assert(readinessBlock.includes("model_backed_preflight_ready = true;"), "LAB-125 shared readiness model_backed_preflight_ready block readback mismatch");
-  const server = read("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(read);
   const ui = read("src/ingress/product_ui_page_scripts.cpp");
   for (const snippet of [
     "struct AppearanceModelReadiness",

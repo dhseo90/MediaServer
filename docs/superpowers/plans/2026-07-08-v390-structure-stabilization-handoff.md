@@ -360,5 +360,18 @@ targeted regression tests before RED; no planned verifier name is treated as an 
 Each slice remains `not-executed` until its own implementation, targeted verification, cleanup, evidence
 record, and approved commit boundary are complete. Only after all six slices close may REVIEW4-64 be
 reported complete and REVIEW4-65 independent acceptance begin.
+
+### Current continuation Slice 11: `webrtc-http-server-source-bundle`
+
+- [x] Bind rollback `e5df05f3` direct consumers to 170 files, 188 expressions, and a sorted-path SHA.
+- [x] Replace each direct monolith read with one ordered, fixture-aware source bundle while preserving the
+  current 1,974,239 bytes, 40,840 lines, and production graph exactly.
+- [x] Reject legacy/missing imports, callback removal/live-tree fallback, empty/duplicate layouts,
+  missing/ambiguous token resolution, continuation frontier overclaim, and graph drift; pass 170 syntax
+  checks, build, focused and registered regression gates.
+
+This non-production continuation is the prerequisite for the physical server split. It does not satisfy
+the 15,000-line mixed-owner limit, remove the remaining five dependency directions, finalize parked
+evidence, or authorize a REVIEW4-64/65 completion claim.
 owner 40,810줄, actual CMake internal target separation false가 모두 남아 있으므로 `refactorComplete=false`,
 owner 40,814줄, actual CMake internal target separation false가 모두 남아 있으므로 `refactorComplete=false`,

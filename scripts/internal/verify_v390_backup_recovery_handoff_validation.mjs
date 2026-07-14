@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.9.0 Step 15 backup/recovery staging restore validation handoff 구현, 문서, inventory 연결을 검증한다.
 
 import fs from "node:fs";
@@ -233,7 +234,7 @@ finish("== v3.9.0 backup/recovery handoff validation ==", {
 
 function loadFiles() {
   return {
-    server: readText("src/ingress/webrtc_http_server.cpp"),
+    server: readWebRtcHttpServerBundle(readText),
     opsSourcesScript: readText("src/ingress/product_ui_ops_sources_script.cpp"),
     opsClientUiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
     backupRecovery: readText("docs/ops-backup-recovery.md"),

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: Saved Views/Layout Presets의 preference API/UI/권한 preset 분리 계약을 검증한다.
 
 import fs from "node:fs";
@@ -18,7 +19,7 @@ Usage:
 const failures = [];
 const args = parseArgs(rawArgs);
 
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const server = readWebRtcHttpServerBundle(readText);
 const script = readText("src/ingress/product_ui_client_scripts.cpp");
 const css = readText("src/ingress/product_ui_client_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");

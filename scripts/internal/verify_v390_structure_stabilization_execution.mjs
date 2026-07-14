@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: REVIEW4-64의 실제 6-slice 구조 안정화 실행 원장과 현재 source/graph 결속을 검증한다.
 
 import crypto from "node:crypto";
@@ -228,7 +229,7 @@ check("composition root extraction preserves lifecycle ownership", () => {
 check("route/API Slice owns exact action deferral response behind the outer auth guard", () => {
   const slice = ledger.orderedSlices[1];
   if (slice.status === "not-started") return;
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   const header = readText("include/ingress/ops_action_execution_deferral.h");
   const owner = readText("src/ingress/ops_action_execution_deferral.cpp");
   const cmake = readText("CMakeLists.txt");
@@ -265,7 +266,7 @@ check("registry/domain Slice consumes injected read authorization without transp
   if (slice.status === "not-started") return;
   const header = readText("include/ingress/source_view_registry.h");
   const registry = readText("src/ingress/source_view_registry.cpp");
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   assert(header.includes("using ClientViewAccessAuthorizer =") &&
     header.includes("std::function<bool(const std::string& view_id,"),
   "transport-neutral client view authorizer contract missing");
@@ -297,7 +298,7 @@ check("UI Slice owns the exact action deferral workspace outside mixed server/pa
   const header = readText("include/ingress/product_ui_action_execution_deferral.h");
   const owner = readText("src/ingress/product_ui_action_execution_deferral.cpp");
   const pageScripts = readText("src/ingress/product_ui_page_scripts.cpp");
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   const serverPagesPath = "src/ingress/product_ui_server_pages.cpp";
   const serverPages = fs.existsSync(path.join(rootDir, serverPagesPath)) ? readText(serverPagesPath) : "";
   const css = readText("src/ingress/product_ui_css.cpp");
@@ -365,7 +366,7 @@ check("VLM parser Slice owns provenance validation and generic strict JSON outsi
   const strictSource = readText(strictSourcePath);
   const validatorHeader = readText("include/ingress/vlm_incident_rule_provenance.h");
   const validatorSource = readText("src/ingress/vlm_incident_rule_provenance.cpp");
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   const cmake = readText("CMakeLists.txt");
   assert(!fs.existsSync(path.join(rootDir, "include/ingress/strict_json.h")) &&
     !fs.existsSync(path.join(rootDir, "src/ingress/strict_json.cpp")) &&
@@ -495,11 +496,13 @@ check("non-production Slice preserves production graph and parked evidence stays
   }
 });
 
-check("current continuation binds the exact Slice 1-10 frontier without a final claim", () => {
+check("current continuation binds the exact Slice 1-11 frontier without a final claim", () => {
   const slices = ledger.currentContinuation?.orderedSlices || [];
-  assert(slices.length === 10 && slices[0].order === 1 && slices[1].order === 2 && slices[2].order === 3 &&
+  assert(validateContinuationFrontier(ledger).length === 0,
+    `current continuation frontier invalid: ${validateContinuationFrontier(ledger).join(",")}`);
+  assert(slices.length === 11 && slices[0].order === 1 && slices[1].order === 2 && slices[2].order === 3 &&
     slices[3].order === 4 && slices[4].order === 5 && slices[5].order === 6 && slices[6].order === 7 &&
-    slices[7].order === 8 && slices[8].order === 9 && slices[9].order === 10 &&
+    slices[7].order === 8 && slices[8].order === 9 && slices[9].order === 10 && slices[10].order === 11 &&
     slices[0].id === "completion-oracle-and-ops-ui-renderer" && slices[0].status === "completed" &&
     slices[1].id === "product-ui-principal-view-boundary" && slices[1].status === "completed" &&
     slices[2].id === "source-request-parser-owner-boundary" && slices[2].status === "completed" &&
@@ -510,8 +513,9 @@ check("current continuation binds the exact Slice 1-10 frontier without a final 
     slices[6].status === "completed" &&
     slices[7].id === "stable-contract-owner-realignment" && slices[7].status === "completed" &&
     slices[8].id === "public-contract-interface-owner-realignment" && slices[8].status === "completed" &&
-    slices[9].id === "core-media-registry-rule-port" &&
-    ["in-progress", "completed"].includes(slices[9].status),
+    slices[9].id === "core-media-registry-rule-port" && slices[9].status === "completed" &&
+    slices[10].id === "webrtc-http-server-source-bundle" &&
+    ["in-progress", "completed"].includes(slices[10].status),
   "current continuation slice identity/frontier mismatch");
   const slice1 = slices[0];
   const slice2 = slices[1];
@@ -523,6 +527,7 @@ check("current continuation binds the exact Slice 1-10 frontier without a final 
   const slice8 = slices[7];
   const slice9 = slices[8];
   const slice10 = slices[9];
+  const slice11 = slices[10];
   assert(slice1.rollbackCommit === ledger.orderedSlices[5].rollbackCommit &&
     slice1.nonProductionSlice === false && slice1.contractAssertions.length >= 5 && slice1.tests.length >= 5 &&
     slice1.tests.every(test => test.status === "pass"),
@@ -1097,7 +1102,7 @@ check("current continuation binds the exact Slice 1-10 frontier without a final 
     const testsFinal = slice10.tests.every(test => test.status === "pass") ||
       selfCheck.status === "self-check" && slice10.tests.every(test =>
         test === selfCheck || test.status === "pass");
-    assert(ledger.currentContinuation.latestCompletedSlice === 10 && slice10.after !== null && testsFinal,
+    assert(ledger.currentContinuation.latestCompletedSlice >= 10 && slice10.after !== null && testsFinal,
     "completed Slice 10 frontier/test state mismatch");
     assert(slice10.after.productionGraphSha256 === ledger.currentGraph.sha256 &&
       slice10.after.productionFiles === 163 && slice10.after.cppSources === 80 &&
@@ -1108,6 +1113,58 @@ check("current continuation binds the exact Slice 1-10 frontier without a final 
       !graph.observedModuleEdges.some(item =>
         item.direction === "core-media-interfaces -> domain-and-registry-owners"),
     "completed Slice 10 core-media registry/rule graph delta drift");
+  }
+  const slice11Commands = [
+    "./server.sh verify-v390-webrtc-http-server-source-bundle",
+    "source bundle consumer syntax check",
+    "./server.sh build",
+    "./server.sh verify-v390-public-contract-interface-owner",
+    "./server.sh verify-v390-core-media-analysis-port-inversion",
+    "./server.sh verify-v390-action-execution-deferral-decision",
+    "./server.sh verify-v220-ops-workspace-redesign",
+    "./server.sh verify-v300-ops-events-ui",
+    "./server.sh verify-v350-live-operations-graph-contract",
+    "./server.sh verify-v380-action-capability-contract",
+    "./server.sh verify-vlm-profile-storage",
+    "./server.sh verify-v390-review4-structure-stabilization-execution",
+    "./server.sh verify-script-inventory",
+    "./server.sh verify-docs-links",
+    "git diff --check",
+    "listener/temp cleanup",
+  ];
+  assert(slice11.rollbackCommit === "e5df05f3945e43e89ae13e3fdd21d0c83ab78ac8" &&
+    slice11.nonProductionSlice === true && slice11.contractAssertions.length >= 7 &&
+    slice11.tests.length === slice11Commands.length &&
+    slice11Commands.every(command => slice11.tests.filter(test => test.command === command).length === 1),
+  "current continuation Slice 11 rollback/contract/test inventory drift");
+  assert(JSON.stringify(slice11.before) === JSON.stringify(slice10.after),
+    "current continuation Slice 11 before-state is not bound to Slice 10 frontier");
+  if (slice11.status === "in-progress") {
+    assert(ledger.currentContinuation.status === "in-progress" &&
+      ledger.currentContinuation.latestCompletedSlice === 10 &&
+      ledger.currentContinuation.sliceSequenceStatus === "partial" && slice11.after === null,
+    "in-progress Slice 11 frontier/after-state overclaim");
+    assert(["registered", "expected-red"].includes(sliceTest(slice11, slice11Commands[0]).status) &&
+      slice11.tests.slice(1).every(test => test.status === "registered"),
+    "in-progress Slice 11 test registration/RED state drift");
+    assert(ledger.currentGraph.sha256 === slice11.before.productionGraphSha256 &&
+      ledger.currentGraph.metrics.productionFiles === slice11.before.productionFiles &&
+      ledger.currentGraph.metrics.cppSources === slice11.before.cppSources &&
+      ledger.currentGraph.metrics.targetViolationDirections ===
+        slice11.before.targetViolationDirectionsUnderPolicyV1,
+    "in-progress Slice 11 rewrote graph evidence during a non-production migration");
+  } else {
+    const selfCheck = sliceTest(slice11,
+      "./server.sh verify-v390-review4-structure-stabilization-execution");
+    const testsFinal = slice11.tests.every(test => test.status === "pass") ||
+      selfCheck.status === "self-check" && slice11.tests.every(test =>
+        test === selfCheck || test.status === "pass");
+    assert(ledger.currentContinuation.latestCompletedSlice === 11 && slice11.after !== null && testsFinal,
+    "completed Slice 11 frontier/test state mismatch");
+    assert(JSON.stringify(slice11.after) === JSON.stringify(slice11.before) &&
+      slice11.after.productionGraphSha256 === ledger.currentGraph.sha256 &&
+      fs.existsSync(path.join(rootDir, "scripts/internal/webrtc_http_server_source_bundle.mjs")),
+    "completed Slice 11 changed production graph or lacks its source bundle helper");
   }
   assert(ledger.currentContinuation.finalCompletionClaimAllowed === false &&
     ledger.refactorComplete === false && ledger.completionClaimed === false,
@@ -1125,6 +1182,9 @@ check("dirty worktree paths stay inside the active slice declaration", () => {
     ...(ledger.parkedGeneratedEvidenceArtifacts?.status === "allowed-until-final-evidence"
       ? ledger.parkedGeneratedEvidenceArtifacts.paths : []),
   ]);
+  for (const declaration of continuationActive?.allowedFileSets || []) {
+    for (const file of rollbackDirectReaders(declaration)) allowed.add(file);
+  }
   const changed = execFileSync("git", ["status", "--porcelain=v1", "--untracked-files=all"], {
     cwd: rootDir,
     encoding: "utf8",
@@ -1146,6 +1206,15 @@ check("dirty worktree paths stay inside the active slice declaration", () => {
   for (const file of active.changedFiles) assert(observed.has(file), `declared production change missing: ${file}`);
   for (const file of continuationActive?.changedFiles || []) {
     assert(observed.has(file), `declared continuation change missing: ${file}`);
+  }
+  if (continuationActive?.status === "completed") {
+    for (const declaration of continuationActive.changedFileSets || []) {
+      for (const file of rollbackDirectReaders({
+        ...declaration,
+        rollbackCommit: declaration.rollbackCommit || continuationActive.rollbackCommit,
+        root: declaration.root || "scripts/internal",
+      })) assert(observed.has(file), `declared continuation file-set change missing: ${file}`);
+    }
   }
 });
 
@@ -1195,6 +1264,11 @@ check("negative mutations reject false progress", () => {
   assert(validateLedger(nonProductionMutation, { finalTargetsSatisfied: false })
     .some(error => error.includes("non-production-graph")),
   "non-production graph mutation was accepted");
+
+  const continuationOverclaim = structuredClone(ledger);
+  continuationOverclaim.currentContinuation.latestCompletedSlice = 12;
+  assert(validateContinuationFrontier(continuationOverclaim).includes("frontier"),
+    "continuation latest-completed overclaim was accepted");
 
   const graphCopy = structuredClone(graph);
   graphCopy.mixedOwnershipDebt = [];
@@ -1277,6 +1351,24 @@ function validateLedger(value, evaluation = { finalTargetsSatisfied: false }) {
     if (value.currentContinuation?.sliceSequenceStatus !== expectedSequenceStatus) errors.push("continuation");
     if (evaluation.finalTargetsSatisfied === false &&
         value.currentContinuation?.architectureStatus !== "final-targets-unmet") errors.push("continuation");
+  }
+  return errors;
+}
+
+function validateContinuationFrontier(value) {
+  const errors = [];
+  const continuation = value.currentContinuation || {};
+  const slices = continuation.orderedSlices || [];
+  const completed = slices.filter(item => item.status === "completed").length;
+  if (!Number.isInteger(continuation.latestCompletedSlice) ||
+      continuation.latestCompletedSlice < 0 || continuation.latestCompletedSlice > slices.length ||
+      completed !== continuation.latestCompletedSlice ||
+      slices.some((item, index) => item.status === "completed" !==
+        (index < continuation.latestCompletedSlice))) errors.push("frontier");
+  const inProgress = slices.filter(item => item.status === "in-progress");
+  if (inProgress.length > 1 ||
+      (inProgress.length === 1 && inProgress[0].order !== continuation.latestCompletedSlice + 1)) {
+    errors.push("frontier");
   }
   return errors;
 }
@@ -1584,6 +1676,37 @@ function rawLiteralPayload(textValue, startMarker, endMarker) {
 function sha256File(file) { return crypto.createHash("sha256").update(fs.readFileSync(path.join(rootDir, file))).digest("hex"); }
 function sha256Text(value) { return crypto.createHash("sha256").update(value).digest("hex"); }
 function lineCount(file) { return readText(file).split(/\r?\n/).length - 1; }
+
+function rollbackDirectReaders(declaration) {
+  assert(declaration?.kind === "rollback-direct-webrtc-http-server-readers",
+    `unsupported declared file set: ${declaration?.kind || "missing"}`);
+  const root = declaration.root || "scripts/internal";
+  const files = execFileSync("git", ["ls-tree", "-r", "--name-only", declaration.rollbackCommit, root], {
+    cwd: rootDir,
+    encoding: "utf8",
+  }).trim().split("\n").filter(file => file.endsWith(".mjs")).sort();
+  const patterns = [
+    /\breadText\(\s*["']src\/ingress\/webrtc_http_server\.cpp["']\s*\)/g,
+    /\bread\(\s*["']src\/ingress\/webrtc_http_server\.cpp["']\s*\)/g,
+    /\b(?:fs\.)?readFileSync\(\s*["']src\/ingress\/webrtc_http_server\.cpp["']\s*,\s*["']utf8["']\s*\)/g,
+  ];
+  const readers = files.map(file => {
+    const text = execFileSync("git", ["show", `${declaration.rollbackCommit}:${file}`], {
+      cwd: rootDir,
+      encoding: "utf8",
+    });
+    return {
+      file,
+      expressions: patterns.reduce((total, pattern) => total + [...text.matchAll(pattern)].length, 0),
+    };
+  }).filter(item => item.expressions > 0);
+  assert(readers.length === declaration.expectedFileCount &&
+    readers.reduce((sum, item) => sum + item.expressions, 0) === declaration.expectedExpressionCount &&
+    sha256Text(readers.map(item => item.file).join("\n")) === declaration.sortedPathSha256,
+  "rollback direct-reader declared file set drift");
+  return readers.map(item => item.file);
+}
+
 function exec(command, args, statusOnly = false) {
   if (statusOnly) return spawnSync(command, args, { cwd: rootDir, encoding: "utf8" });
   return execFileSync(command, args, { cwd: rootDir, encoding: "utf8" }).trim();

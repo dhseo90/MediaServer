@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.8.0 Step 13 Action Receipt Bundle 구현, 문서, inventory 연결을 검증한다.
 
 import fs from "node:fs";
@@ -42,7 +43,7 @@ const outcomeRoute = "/ops/api/actions/outcome-reconciliation";
 const featureIds = ["UI-105", "EVT-085", "CLIENT-042", "LAB-120", "SAFE-192", "OPS-159"];
 
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),

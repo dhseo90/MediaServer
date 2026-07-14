@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.8.0 Step 12 Outcome Observer and Reconciliation 구현, 문서, inventory 연결을 검증한다.
 
 import fs from "node:fs";
@@ -39,7 +40,7 @@ const rulePackageRoute = "/ops/api/actions/rule-draft-package";
 const featureIds = ["UI-104", "EVT-084", "CLIENT-041", "LAB-119", "SAFE-191", "OPS-158"];
 
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),

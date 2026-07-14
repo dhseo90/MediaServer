@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: REVIEW4-64 core-media→analysis 10개 witness를 port/callback 주입으로 역전했는지 검증한다.
 
 import fs from "node:fs";
@@ -276,7 +277,7 @@ check("composition and RTSP lifecycle bind one service and every detach boundary
   const rtspHeader = read("include/ingress/gstreamer_rtsp_server.h");
   const rtspServer = read("src/ingress/gstreamer_rtsp_server.cpp");
   const httpHeader = read("include/ingress/webrtc_http_server.h");
-  const httpServer = read("src/ingress/webrtc_http_server.cpp");
+  const httpServer = readWebRtcHttpServerBundle(read);
   for (const anchor of [
     "analysis::AnalysisSessionService analysis_sessions(session_manager);",
     "SetAuxiliaryStreamRuntimeProvider(",

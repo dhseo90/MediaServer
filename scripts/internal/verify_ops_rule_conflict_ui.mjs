@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: 운영자 룰 화면의 저장 전 validation panel과 충돌 차단 로직을 정적 검증한다.
 
 import fs from "node:fs";
@@ -11,7 +12,7 @@ const rootDir = path.resolve(scriptDir, "../..");
 const checks = [];
 
 check("ops rules page exposes validation panel", () => {
-  const html = readText("src/ingress/webrtc_http_server.cpp");
+  const html = readWebRtcHttpServerBundle(readText);
   const required = [
     'data-testid="ops-rules-validation-panel"',
     'id="opsRulesValidationSummary"',
@@ -70,7 +71,7 @@ check("ops rules browser smoke blocks invalid profile", () => {
 });
 
 check("server rejects va rule template class mismatch", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   const required = [
     "StringArrayFieldValues",
     "AnalysisClassesFromDocument",

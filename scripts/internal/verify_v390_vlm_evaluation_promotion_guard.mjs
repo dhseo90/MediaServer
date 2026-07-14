@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.9.0 Step 14 VLM evaluation promotion guard 구현, 문서, inventory 연결을 검증한다.
 
 import fs from "node:fs";
@@ -226,7 +227,7 @@ finish("== v3.9.0 VLM evaluation promotion guard ==", {
 
 function loadFiles() {
   return {
-    server: readText("src/ingress/webrtc_http_server.cpp"),
+    server: readWebRtcHttpServerBundle(readText),
     promotionModule: readText("src/ingress/vlm_evaluation_promotion.cpp"),
     pageScript: readText("src/ingress/product_ui_page_scripts.cpp"),
     opsClientUiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),

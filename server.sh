@@ -535,6 +535,8 @@ Usage:
                  V390-REVIEW4-64 public contract/interface와 구현 owner를 분리합니다.
   verify-v390-core-media-registry-rule-port
                  V390-REVIEW4-64 WebRTC source registry와 RTSP rule lookup의 core-media 경계를 검증합니다.
+  verify-v390-webrtc-http-server-source-bundle
+                 V390-REVIEW4-64 split-safe HTTP server verifier source bundle을 검증합니다.
   verify-v390-source-request-parser-owner
                  V390-REVIEW4-64 shared source request parser의 core owner 이동과 요청 의미 불변을 검증합니다.
   verify-v390-review4-truth-reset
@@ -943,6 +945,8 @@ Usage:
                  V390-REVIEW4-64 public contract/interface와 구현 owner를 분리합니다.
   verify-v390-core-media-registry-rule-port
                  V390-REVIEW4-64 WebRTC source registry와 RTSP rule lookup의 core-media 경계를 검증합니다.
+  verify-v390-webrtc-http-server-source-bundle
+                 V390-REVIEW4-64 split-safe HTTP server verifier source bundle을 검증합니다.
   verify-v390-source-request-parser-owner
                  V390-REVIEW4-64 shared source request parser의 core owner 이동과 요청 의미 불변을 검증합니다.
   verify-v390-review4-truth-reset
@@ -2389,6 +2393,10 @@ case "${cmd}" in
   verify-v390-core-media-registry-rule-port)
     require_internal verify_v390_core_media_registry_rule_port.mjs
     exec "${INTERNAL_DIR}/verify_v390_core_media_registry_rule_port.mjs" "$@"
+    ;;
+  verify-v390-webrtc-http-server-source-bundle)
+    require_internal verify_v390_webrtc_http_server_source_bundle.mjs
+    exec "${INTERNAL_DIR}/verify_v390_webrtc_http_server_source_bundle.mjs" "$@"
     ;;
   verify-v390-source-request-parser-owner)
     require_internal verify_v390_source_request_parser_owner.mjs

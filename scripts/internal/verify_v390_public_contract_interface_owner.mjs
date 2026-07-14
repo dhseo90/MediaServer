@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // REVIEW4-64 Slice 9: public contract/interface owner realignment verifier.
 
 import crypto from "node:crypto";
@@ -160,7 +161,7 @@ check("public headers remain dependency-neutral", () => {
 check("strict JSON has a physical domain owner boundary", () => {
   const cmake = read("CMakeLists.txt");
   const provenance = read("src/ingress/vlm_incident_rule_provenance.cpp");
-  const transport = read("src/ingress/webrtc_http_server.cpp");
+  const transport = readWebRtcHttpServerBundle(read);
   assert(!fs.existsSync(path.join(sourceRoot, "include/core/strict_json.h")) &&
     !fs.existsSync(path.join(sourceRoot, "src/core/strict_json.cpp")),
   "legacy core strict JSON paths remain");

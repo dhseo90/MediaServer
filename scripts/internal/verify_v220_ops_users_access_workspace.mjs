@@ -1,10 +1,11 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.2.0 F03 Ops Users / Access Workspace 재배치 산출물과 auth/access route 연결을 정적 검증한다.
 import fs from 'node:fs';
 
 const checks = [];
 const read = path => fs.readFileSync(path, 'utf8');
-const source = read('src/ingress/webrtc_http_server.cpp');
+const source = readWebRtcHttpServerBundle(read);
 const auth = read('src/ingress/http_auth.cpp');
 const css = read('src/ingress/product_ui_css.cpp');
 const pageScript = read('src/ingress/product_ui_page_scripts.cpp');

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.5.0 S04 incident timeline graph와 action/audit linkage boundary를 검증한다.
 import { extractCppFunctionBlock, exactBooleanFlagValue, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -8,7 +9,7 @@ import process from "node:process";
 
 const failures = [];
 
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const server = readWebRtcHttpServerBundle(readText);
 const timelineViewBlock = extractCppFunctionBlock(server, "std::string OpsIncidentTimelineGraphViewJson(");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");

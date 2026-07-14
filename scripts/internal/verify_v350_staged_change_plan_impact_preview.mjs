@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 // 파일 용도: v3.5.0 Step 5 Staged Change Plan and Impact Preview 구현, 문서, inventory 연결을 검증한다.
 
@@ -34,7 +35,7 @@ const schema = "media-server.ops.v350-staged-change-plan-impact-preview.v1";
 const route = "/ops/api/live-operations/staged-change-plan-impact-preview";
 const commandPlanRoute = "/ops/api/live-operations/command-plan";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),

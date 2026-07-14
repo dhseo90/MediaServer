@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.6.0 S04 Runtime dashboard baseline/sparkline 후보와 비범위 경계를 검증한다.
 
 import fs from "node:fs";
@@ -7,7 +8,7 @@ import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
 const failures = [];
 
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const server = readWebRtcHttpServerBundle(readText);
 const pageScripts = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");

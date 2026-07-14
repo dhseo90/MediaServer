@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V210-S06 VLM evaluation result workflow의 Ops UI/API/profile draft 경계를 검증한다.
 
 import fs from "node:fs";
@@ -27,7 +28,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const checks = [];
 const fixture = readJson("test/fixtures/vlm_evaluation_result_workflow/cases.json");
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const server = readWebRtcHttpServerBundle(readText);
 const promotion = readText("src/ingress/vlm_evaluation_promotion.cpp");
 const serverModel = `${server}\n${promotion}`;
 const pageScript = readText("src/ingress/product_ui_page_scripts.cpp");

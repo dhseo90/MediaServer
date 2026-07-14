@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.9.0 Step 13 VLM rule suggestion review-to-draft bridge 구현, 문서, inventory 연결을 검증한다.
 
 import fs from "node:fs";
@@ -247,7 +248,7 @@ finish("== v3.9.0 VLM rule suggestion draft bridge ==", {
 
 function loadFiles() {
   return {
-    server: readText("src/ingress/webrtc_http_server.cpp"),
+    server: readWebRtcHttpServerBundle(readText),
     opsRulesScript: readText("src/ingress/product_ui_page_scripts.cpp"),
     backlog: readText("docs/development-backlog.md"),
     streamVerification: readText("docs/stream-verification.md"),

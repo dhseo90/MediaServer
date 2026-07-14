@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V390-REVIEW4-54 Analysis Registry failure atomicity와 crash recovery를 actual HTTP로 검증한다.
 
 import { spawn } from "node:child_process";
@@ -92,7 +93,7 @@ function validateFixture() {
 }
 
 function verifySourceContract() {
-  const server = read("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(read);
   for (const snippet of [
     "AnalysisRegistryWriteResult",
     "AnalysisRegistryMutationFailure::Persistence",

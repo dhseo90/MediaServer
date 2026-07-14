@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: Re-ID/advanced tracking 실험 범위의 default-off, privacy, benchmark gate를 정적 검증한다.
 // 동작 요약: Re-ID hook이 외부 metadata/schema에 embedding/crop/model path를 노출하지 않고 close-object benchmark 경계가 유지되는지 점검한다.
 
@@ -181,7 +182,7 @@ check("external metadata serializers do not expose appearance identity material"
 
 check("appearance diagnostics expose aggregate status only", () => {
   const server = stripNonAppearanceOpsBridgeJson(
-    stripAuditSensitiveKey(readText("src/ingress/webrtc_http_server.cpp")),
+    stripAuditSensitiveKey(readWebRtcHttpServerBundle(readText)),
   );
   assert(hasJsonFieldLiteral(server, "appearanceProfiles"), "runtime status should keep aggregate appearance profile count");
   assert(hasJsonFieldLiteral(server, "appearanceExtractor"), "runtime status should keep aggregate extractor stats");

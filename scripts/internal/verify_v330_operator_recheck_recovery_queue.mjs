@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.3.0 Step 6 Operator Recheck and Recovery Queue 구현, UI, 문서, inventory 연결을 검증한다.
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -34,7 +35,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 const command = "verify-v330-operator-recheck-recovery-queue";
 const schema = "media-server.ops.v330-operator-recheck-recovery-queue.v1";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   pageScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),

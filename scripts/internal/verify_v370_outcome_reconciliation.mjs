@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.7.0 Step 16 Outcome Reconciliation 연결, 문서, 경계를 검증한다.
 
 import fs from "node:fs";
@@ -39,7 +40,7 @@ const clientNoticeRoute = "/ops/api/site-operations/client-notice-by-site-view-g
 const featureIds = ["UI-100", "SRC-062", "EVT-083", "CLIENT-039", "LAB-109", "SAFE-177", "OPS-144"];
 
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),

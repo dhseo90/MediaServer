@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: /ops/sources에서 대량 작업 UI가 제거되고 bulk API 경계만 남아 있는지 정적 검증한다.
 
 import fs from "node:fs";
@@ -11,7 +12,7 @@ const rootDir = path.resolve(scriptDir, "../..");
 const checks = [];
 
 check("ops sources page omits bulk management panel", () => {
-  const html = readText("src/ingress/webrtc_http_server.cpp");
+  const html = readWebRtcHttpServerBundle(readText);
   const forbidden = [
     'data-testid="channel-bulk-panel"',
     'id="channel-bulk-select-all"',
@@ -61,7 +62,7 @@ check("ops sources script omits bulk UI hooks", () => {
 });
 
 check("server exposes formal channel bulk API with partial failure policy", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   const required = [
     "/ops/api/channels/bulk",
     "OpsChannelBulkJson",

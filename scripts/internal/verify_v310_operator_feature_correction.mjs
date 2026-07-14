@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.1.0 S06 Operator Feature Correction 구현, UI/API, 문서, inventory 연결을 검증한다.
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -34,7 +35,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v310-operator-feature-correction";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   pageScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),

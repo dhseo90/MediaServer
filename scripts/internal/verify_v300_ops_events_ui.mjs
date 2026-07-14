@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.0.0 S08 Ops Events UI 구현, 문서, inventory, verifier 연결을 검증한다.
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -34,7 +35,8 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v300-ops-events-ui";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
+  serverPage: readText("src/ingress/product_ui_server_pages.cpp"),
   pageScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
@@ -64,7 +66,7 @@ check("ops events page exposes V300 event evidence search UI shell", () => {
     "feature reasons",
     "retention status",
   ]) {
-    assertIncludes(files.server, snippet, "V300 ops events UI shell");
+    assertIncludes(files.serverPage, snippet, "V300 ops events UI shell");
   }
 });
 

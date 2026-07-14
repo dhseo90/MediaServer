@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: /client/dashboard polish(다중 view 비교, 상태 문구, 로딩/오류/빈 상태)를 정적 검증한다.
 
 import fs from "node:fs";
@@ -179,7 +180,7 @@ check("client dashboard and live render client-safe event/status summary", () =>
 });
 
 check("client dashboard API exposes sanitized field preset inputs", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   const required = [
     "\\\"sourceTags\\\"",
     "\\\"ownerGroup\\\"",

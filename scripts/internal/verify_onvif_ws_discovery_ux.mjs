@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: ONVIF 비지원 protocol 안내 UX 문구와 문서 경계를 정적으로 검증한다.
 // 동작 요약: /ops/sources ONVIF 입력 영역과 문서가 자동 검색/PTZ/Events/Profile G 비지원을 명확히 표시하는지 확인한다.
 
@@ -28,7 +29,7 @@ Checks:
 
 assertKnownOptions(rawArgs, ["h", "help"]);
 
-const serverHtml = readText("src/ingress/webrtc_http_server.cpp");
+const serverHtml = readWebRtcHttpServerBundle(readText);
 const translations = readText("src/ingress/product_ui_js.cpp");
 const liveSupportDoc = readText("docs/onvif-live-source-support.md");
 const matrixDoc = readText("docs/onvif-protocol-support-matrix.md");

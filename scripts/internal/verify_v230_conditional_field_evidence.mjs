@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.3.0 조건부 ONVIF/external TURN/WHEP field evidence gate를 검증한다.
 
 import fs from "node:fs";
@@ -45,7 +46,7 @@ const payload = buildPayload();
 const checks = [];
 
 check("MEDIA-021 product connector boundary stays conditional and no-execution", () => {
-  const productBlock = extractCppFunctionBlock(readText("src/ingress/webrtc_http_server.cpp"), "std::string OpsV380FieldConnectorEvidencePackageJson(");
+  const productBlock = extractCppFunctionBlock(readWebRtcHttpServerBundle(readText), "std::string OpsV380FieldConnectorEvidencePackageJson(");
   assert(productBlock.includes("externalWhepContacted") && productBlock.includes("field-smoke-not-run") && productBlock.includes("rtspOrWebrtcMediaPathChanged"), "MEDIA-021 exact external TURN/WHEP product boundary missing");
 });
 

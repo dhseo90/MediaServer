@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V390-REVIEW4-55 ONVIF source/PublishedView recoverable crash transaction을 실제 HTTP/파일/재시작으로 검증한다.
 
 import { spawn } from "node:child_process";
@@ -223,7 +224,7 @@ function validateFixture() {
 function verifySourceContract() {
   const registryHeader = read("include/ingress/source_view_registry.h");
   const registrySource = read("src/ingress/source_view_registry.cpp");
-  const server = read("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(read);
   const ui = read("src/ingress/product_ui_ops_sources_script.cpp");
   for (const snippet of [
     "UpsertOnvifSourceView", "target_replaced", "paired-write-with-compensating-rollback",

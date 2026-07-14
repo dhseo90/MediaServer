@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.9.0 Step 16 action execution deferral decision 구현, 문서, inventory 연결을 검증한다.
 
 import fs from "node:fs";
@@ -341,7 +342,7 @@ if (results.fail > 0) process.exit(1);
 
 function loadFiles() {
   return {
-    server: readText("src/ingress/webrtc_http_server.cpp"),
+    server: readWebRtcHttpServerBundle(readText),
     uiServer: readText("src/ingress/product_ui_server_pages.cpp"),
     handlerHeader: readTextIfExists("include/ingress/ops_action_execution_deferral.h"),
     handlerSource: readTextIfExists("src/ingress/ops_action_execution_deferral.cpp"),

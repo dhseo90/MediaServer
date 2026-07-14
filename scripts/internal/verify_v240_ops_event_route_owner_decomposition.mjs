@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.4.0 S06 Ops 이벤트 route owner decomposition wiring을 검증한다.
 
 import fs from "node:fs";
@@ -79,7 +80,7 @@ check("CMake builds the route owner module", () => {
 });
 
 check("server delegates matching to the route owner module", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   assert(server.includes('#include "ingress/ops_event_route_owner.h"'),
     "webrtc_http_server.cpp must include ops_event_route_owner.h");
   for (const snippet of [
@@ -98,7 +99,7 @@ check("server delegates matching to the route owner module", () => {
 });
 
 check("server no longer owns hard-coded target route comparisons", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   for (const snippet of [
     'request.path == "/ops/events"',
     'request.path == "/ops/api/events/status"',

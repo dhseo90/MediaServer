@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V200-S05 VLM profile 저장 API/UI/문서/fixture 계약을 정적 검증한다.
 
 import fs from "node:fs";
@@ -33,7 +34,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 const checks = [];
 
 check("registry persists VLM profiles with strict validation", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   const profilePreparationBlock = extractCppFunctionBlock(server, "std::optional<Document> PrepareVlmProfileDocumentLocked(");
   const strictJson = readText("src/domain/strict_json.cpp");
   const promotion = readText("src/ingress/vlm_evaluation_promotion.cpp");
@@ -120,7 +121,7 @@ check("registry persists VLM profiles with strict validation", () => {
 });
 
 check("ops API exposes guarded VLM profile CRUD routes", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   for (const snippet of [
     "request.path == \"/ops/api/vlm/profiles\"",
     "std::string(\"/ops/api/vlm/profiles/\")",

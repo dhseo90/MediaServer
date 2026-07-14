@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: Ops audit trail의 서버 영속 저장 API와 UI 연동 hook을 정적 검증한다.
 
 import fs from "node:fs";
@@ -11,7 +12,7 @@ const rootDir = path.resolve(scriptDir, "../..");
 const checks = [];
 
 check("server exposes persistent ops audit API", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   const required = [
     "/ops/api/audit",
     "OpsAuditStoragePath",

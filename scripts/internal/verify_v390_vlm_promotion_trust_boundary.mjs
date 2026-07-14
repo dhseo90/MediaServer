@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V390-REVIEW3-39 VLM 구조 JSON과 reload 신뢰 경계를 actual HTTP로 검증한다.
 
 import { spawn } from "node:child_process";
@@ -94,7 +95,7 @@ function verifySourceContract() {
   const moduleSource = read("src/ingress/vlm_evaluation_promotion.cpp");
   const promotionBlock = extractCppFunctionBlock(moduleSource, "VlmEvaluationPromotionResult ValidateVlmEvaluationPromotion(");
   assert(promotionBlock.includes("result.accepted = true;"), "LAB-123 server-owned promotion result.accepted block readback mismatch");
-  const server = read("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(read);
   const strictJson = read("src/domain/strict_json.cpp");
   const client = read("src/ingress/product_ui_page_scripts.cpp");
   const shell = read("src/ingress/product_ui_server_pages.cpp");

@@ -1,11 +1,12 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.2.0 F05 Client Preview / Viewer Redaction 재검수 산출물과 client 비노출 경계를 정적 검증한다.
 import fs from 'node:fs';
 import { extractCppFunctionBlock } from './source_block_assertion_utils.mjs';
 
 const checks = [];
 const read = path => fs.readFileSync(path, 'utf8');
-const source = read('src/ingress/webrtc_http_server.cpp');
+const source = readWebRtcHttpServerBundle(read);
 const script = read('src/ingress/product_ui_client_scripts.cpp');
 const css = read('src/ingress/product_ui_client_css.cpp');
 const uiSmoke = read('scripts/internal/verify_ops_client_ui_smoke.mjs');

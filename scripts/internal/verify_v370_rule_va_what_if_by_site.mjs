@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.7.0 Step 13 Rule/VA What-if by Site 연결, 문서, 경계를 검증한다.
 
 import fs from "node:fs";
@@ -42,7 +43,7 @@ const ruleVaReplayRoute = "/ops/api/live-operations/simulation/rule-va-what-if-r
 const featureIds = ["UI-097", "RULE-110", "EVT-082", "LAB-106", "SAFE-174", "OPS-141"];
 
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),

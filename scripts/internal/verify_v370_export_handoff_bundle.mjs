@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.7.0 Step 17 Export / Handoff Bundle 연결, 문서, 경계를 검증한다.
 
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -40,7 +41,7 @@ const outcomeRoute = "/ops/api/site-operations/outcome-reconciliation";
 const featureIds = ["UI-101", "LAB-110", "SAFE-178", "OPS-145"];
 
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),

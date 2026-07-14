@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V200-S11 VLM Privacy/전송 guard UI/API/fixture/문서 경계를 정적 검증한다.
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -32,7 +33,7 @@ Checks:
 assertKnownOptions(rawArgs, ["h", "help"]);
 
 const checks = [];
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const server = readWebRtcHttpServerBundle(readText);
 const pageScript = readText("src/ingress/product_ui_page_scripts.cpp");
 const eventPost = readText("src/analysis/event_post_dispatcher.cpp");
 const eventStorage = readText("src/analysis/event_storage.cpp");

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.3.0 Step 9 Source Reliability Search and Metrics 구현, UI, 문서, inventory 연결을 검증한다.
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -35,7 +36,7 @@ const command = "verify-v330-source-reliability-search-metrics";
 const schema = "media-server.ops.v330-source-reliability-search-metrics.v1";
 const route = "/ops/api/source-registry/reliability-search-metrics";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   opsSourcesScript: readText("src/ingress/product_ui_ops_sources_script.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),

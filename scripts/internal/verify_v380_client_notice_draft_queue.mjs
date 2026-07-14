@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.8.0 Step 8 Client Notice Draft Queue 구현, 문서, inventory 연결을 검증한다.
 
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -225,7 +226,7 @@ finish("== v3.8.0 Client Notice Draft Queue summary ==", { schema, step: "v3.8.0
 
 function loadFiles() {
   return {
-    server: readText("src/ingress/webrtc_http_server.cpp"),
+    server: readWebRtcHttpServerBundle(readText),
     backlog: readText("docs/development-backlog.md"),
     streamVerification: readText("docs/stream-verification.md"),
     featureInventory: readText("docs/project-feature-test-inventory.md"),

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.6.0 Step 11 Simulation Export Bundle 구현, 문서, inventory 연결을 검증한다.
 
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -33,7 +34,7 @@ const command = "verify-v360-simulation-export-bundle";
 const schema = "media-server.ops.v360-simulation-export-bundle.v1";
 const route = "/ops/api/live-operations/simulation/export-bundle";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),

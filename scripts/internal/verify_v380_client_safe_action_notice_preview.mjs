@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.8.0 Step 11 Client-safe Action Notice Preview 구현, 문서, inventory 연결을 검증한다.
 
 import fs from "node:fs";
@@ -220,7 +221,7 @@ finish("== v3.8.0 Client-safe Action Notice Preview summary ==", {
 
 function loadFiles() {
   return {
-    server: readText("src/ingress/webrtc_http_server.cpp"),
+    server: readWebRtcHttpServerBundle(readText),
     clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
     css: readText("src/ingress/product_ui_css.cpp"),
     backlog: readText("docs/development-backlog.md"),

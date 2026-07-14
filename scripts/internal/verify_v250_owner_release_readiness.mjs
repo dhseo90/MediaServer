@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.5.0 S09 owner decomposition/release readiness gate의 코드/문서 연결을 검증한다.
 
 import fs from "node:fs";
@@ -44,7 +45,7 @@ check("event memory/search owner catalog is split from server routing", () => {
   const header = readText("include/ingress/ops_event_route_owner.h");
   const source = readText("src/ingress/ops_event_route_owner.cpp");
   const cmake = readText("CMakeLists.txt");
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   for (const snippet of [
     "enum class OpsIncidentMemoryRouteOwner",
     "struct OpsIncidentMemoryRouteReadiness",

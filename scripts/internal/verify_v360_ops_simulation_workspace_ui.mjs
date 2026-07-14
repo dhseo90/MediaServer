@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.6.0 Step 7 Ops Simulation Workspace UI 구현, 문서, inventory 연결을 검증한다.
 import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -38,7 +39,7 @@ const dryRunRoute = "/ops/api/live-operations/simulation/command-plan-dry-run";
 const impactDiffRoute = "/ops/api/live-operations/simulation/impact-diff";
 const readinessRoute = "/ops/api/live-operations/simulation/safe-apply-readiness";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),

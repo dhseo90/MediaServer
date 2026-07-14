@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.3.0 Step 10 Ops Backup and Recovery Source Handoff 구현, UI, 문서, inventory 연결을 검증한다.
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -35,7 +36,7 @@ const command = "verify-v330-ops-backup-recovery-source-handoff";
 const schema = "media-server.ops.v330-backup-recovery-source-handoff.v1";
 const route = "/ops/api/source-registry/backup-recovery-handoff";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   opsSourcesScript: readText("src/ingress/product_ui_ops_sources_script.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),

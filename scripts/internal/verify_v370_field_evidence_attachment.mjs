@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.7.0 Step 14 Field Evidence Attachment 연결, 문서, 경계를 검증한다.
 
 import fs from "node:fs";
@@ -39,7 +40,7 @@ const fieldAdapterRoute = "/ops/api/live-operations/simulation/field-evidence-ad
 const featureIds = ["UI-098", "SRC-060", "MEDIA-025", "LAB-107", "SAFE-175", "OPS-142"];
 
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),

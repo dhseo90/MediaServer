@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.4.0 Step 8 client-safe maintenance digest 구현과 문서 연결을 검증한다.
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -34,7 +35,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 const command = "verify-v340-client-safe-maintenance-digest";
 const schema = "media-server.client.v340-maintenance-digest.v1";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   clientScript: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),

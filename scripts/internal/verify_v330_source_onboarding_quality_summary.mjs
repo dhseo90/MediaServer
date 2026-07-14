@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.3.0 Step 3 Source Onboarding Quality Summary 구현, UI, 문서, inventory 연결을 검증한다.
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -36,7 +37,7 @@ const route = "/ops/api/source-registry/onboarding-quality";
 const files = {
   header: readText("include/ingress/source_view_registry.h"),
   registry: readText("src/ingress/source_view_registry.cpp"),
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   opsSourcesScript: readText("src/ingress/product_ui_ops_sources_script.cpp"),
   backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),

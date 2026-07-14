@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.4.0 Step 10 field bridge condition gate 연결을 검증한다.
 import { exactBooleanFlagValue, extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -36,7 +37,7 @@ const command = "verify-v340-field-bridge-condition-gates";
 const schema = "media-server.ops.v340-field-bridge-condition-gates.v1";
 const route = "/ops/api/source-registry/field-bridge-condition-gates";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   opsSourcesScript: readText("src/ingress/product_ui_ops_sources_script.cpp"),
   clientScript: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),

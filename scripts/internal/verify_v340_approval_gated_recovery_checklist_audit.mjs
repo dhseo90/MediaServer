@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.4.0 Step 7 approval-gated recovery checklist/audit 구현과 문서 연결을 검증한다.
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -34,7 +35,7 @@ const command = "verify-v340-approval-gated-recovery-checklist-audit";
 const schema = "media-server.ops.v340-approval-gated-recovery-checklist.v1";
 const route = "/ops/api/source-registry/approval-gated-recovery-checklist";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   opsSourcesScript: readText("src/ingress/product_ui_ops_sources_script.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),

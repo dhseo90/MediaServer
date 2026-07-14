@@ -1,10 +1,11 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.2.0 S08 Auth/setup redesign 산출물과 auth form/CSS/문서 연결을 정적 검증한다.
 import fs from 'node:fs';
 
 const checks = [];
 const read = (path) => fs.readFileSync(path, 'utf8');
-const source = read('src/ingress/webrtc_http_server.cpp');
+const source = readWebRtcHttpServerBundle(read);
 const css = read('src/ingress/product_ui_css.cpp');
 const backlog = read('docs/development-backlog.md');
 const inventory = read('docs/project-feature-test-inventory.md');

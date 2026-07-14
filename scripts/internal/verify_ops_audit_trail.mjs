@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: 운영자 화면의 audit trail UI, helper, mutation 기록 연결이 유지되는지 검증한다.
 
 import fs from "node:fs";
@@ -39,7 +40,7 @@ check("shared product UI script provides local audit trail helpers", () => {
 });
 
 check("ops pages expose audit panels", () => {
-  const html = readText("src/ingress/webrtc_http_server.cpp");
+  const html = readWebRtcHttpServerBundle(readText);
   const required = [
     'id="channel-audit-list"',
     'data-audit-area="channels"',
@@ -81,7 +82,7 @@ check("ops page scripts record audited mutations", () => {
 });
 
 check("source health state changes write channel audit records", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   const required = [
     "g_source_health_audit_state",
     "AppendOpsSourceHealthAuditChanges",

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.7.0 Step 11 Site Operations Workspace UI 구현, 문서, inventory 연결을 검증한다.
 import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -38,7 +39,7 @@ const impactRoute = "/ops/api/site-operations/impact-graph";
 const runbookRoute = "/ops/api/site-operations/runbook-instance-ledger";
 const approvalRoute = "/ops/api/site-operations/approval-ticket-workflow";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),

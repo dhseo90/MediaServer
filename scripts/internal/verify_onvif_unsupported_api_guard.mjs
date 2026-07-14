@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: ONVIF 비지원 protocol이 제품 API/UI route로 열리지 않았는지 정적으로 검증한다.
 // 동작 요약: import-draft만 허용하고 PTZ/Events/Profile G/Recording/Replay route가 없는지 확인한다.
 
@@ -40,7 +41,7 @@ const exerciseRoutes = Boolean(args.exerciseRoutes);
 const guardDoc = readText("docs/onvif-unsupported-api-guard.md");
 const matrixDoc = readText("docs/onvif-protocol-support-matrix.md");
 const liveSupportDoc = readText("docs/onvif-live-source-support.md");
-const serverCode = readText("src/ingress/webrtc_http_server.cpp");
+const serverCode = readWebRtcHttpServerBundle(readText);
 const negativeRouteFixture = JSON.parse(readText("test/fixtures/onvif_unsupported_api_negative_routes.json"));
 const checks = [];
 

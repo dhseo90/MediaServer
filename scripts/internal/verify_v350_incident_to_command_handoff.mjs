@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.5.0 Step 4 Incident-to-Command Handoff 구현, 문서, inventory 연결을 검증한다.
 import { extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -36,7 +37,7 @@ const reviewRoute = "/ops/api/events/reviews";
 const commandPlanRoute = "/ops/api/live-operations/command-plan";
 const graphRoute = "/ops/api/live-operations/graph";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),

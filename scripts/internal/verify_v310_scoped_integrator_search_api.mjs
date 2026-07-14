@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.1.0 S05 Scoped Integrator Search API 구현, 문서, inventory 연결을 검증한다.
 
 import fs from "node:fs";
@@ -31,7 +32,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v310-scoped-integrator-search-api";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   routeOwnerSource: readText("src/ingress/ops_event_route_owner.cpp"),
   routeOwnerHeader: readText("include/ingress/ops_event_route_owner.h"),
   backlog: readText("docs/development-backlog.md"),

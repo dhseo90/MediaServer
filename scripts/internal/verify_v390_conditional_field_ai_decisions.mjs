@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.9.0 Step 17~18 conditional field / Re-ID assist decision 구현, 문서, inventory 연결을 검증한다.
 
 import fs from "node:fs";
@@ -479,7 +480,7 @@ if (results.fail > 0) process.exit(1);
 
 function loadFiles() {
   return {
-    server: readText("src/ingress/webrtc_http_server.cpp"),
+    server: readWebRtcHttpServerBundle(readText),
     uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
     clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
     backlog: readText("docs/development-backlog.md"),

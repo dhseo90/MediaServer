@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.5.0 Step 12 VLM-assisted Ops Explanation 구현, UI, 문서, inventory 연결을 검증한다.
 import { exactBooleanFlagValue, extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -36,7 +37,7 @@ const route = "/ops/api/live-operations/vlm-assisted-explanation";
 const commandPlanRoute = "/ops/api/live-operations/command-plan";
 const graphRoute = "/ops/api/live-operations/graph";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),

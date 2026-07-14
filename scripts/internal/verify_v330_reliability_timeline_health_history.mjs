@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.3.0 Step 4 Reliability Timeline and Health History 구현, UI, 문서, inventory 연결을 검증한다.
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -33,7 +34,7 @@ const command = "verify-v330-reliability-timeline-health-history";
 const schema = "media-server.ops.v330-reliability-timeline-health-history.v1";
 const route = "/ops/api/source-registry/reliability-timeline";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   opsSourcesScript: readText("src/ingress/product_ui_ops_sources_script.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),

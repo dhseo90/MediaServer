@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V200-S04 VLM 설치/연결 UI 착수 범위 gate를 정적 검증한다.
 
 import fs from "node:fs";
@@ -82,7 +83,7 @@ check("server command and script inventory are wired", () => {
 });
 
 check("previous VLM gates permit S04 Ops UI wording and S05 profile storage while runtime artifacts stay blocked", () => {
-  const productServer = readText("src/ingress/webrtc_http_server.cpp");
+  const productServer = readWebRtcHttpServerBundle(readText);
   assert(productServer.includes('id="opsVlmRawDetails"'), "opsVlmRawDetails must remain Ops-only and absent from client routes");
   const gateFiles = [
     "scripts/internal/verify_vlm_boundary.mjs",
@@ -141,7 +142,7 @@ check("tracked source/config/fixture files do not introduce forbidden runtime/cl
 });
 
 check("SAFE-022 canonical Ops-only install scope has no writes, mutation, or provider execution", () => {
-  const productServer = readText("src/ingress/webrtc_http_server.cpp");
+  const productServer = readWebRtcHttpServerBundle(readText);
   const block = extractCppFunctionBlock(productServer, "std::string OpsVlmInstallConnectionDryRunJson(");
   const installScopeObserved = block.includes("dry-run-only-no-install-connection-profile-runtime-sidecar") &&
     block.includes("OpsVlmNoSideEffectsJson()");

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.6.0 S05 ScenarioEngine cross-zone re-entry 후보와 schema 불변 경계를 검증한다.
 
 import fs from "node:fs";
@@ -14,7 +15,7 @@ const stateSmoke = readText("scripts/internal/analysis_state_smoke.cpp");
 const replayShell = readText("scripts/internal/verify_va_replay_baselines.sh");
 const replayRules = readText("test/fixtures/va_replay/re_entry_cross_zone_rules.json");
 const replayExpected = readText("test/fixtures/va_replay/re_entry_cross_zone_expected.json");
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const server = readWebRtcHttpServerBundle(readText);
 const pageScripts = readText("src/ingress/product_ui_page_scripts.cpp");
 const inventory = readText("docs/project-feature-test-inventory.md");
 const backlog = readText("docs/development-backlog.md");

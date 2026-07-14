@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.8.0 Step 10 Ops Action Control Workspace UI 구현, 문서, inventory 연결을 검증한다.
 
 import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -251,7 +252,7 @@ finish("== v3.8.0 Ops Action Control Workspace UI summary ==", {
 
 function loadFiles() {
   return {
-    server: readText("src/ingress/webrtc_http_server.cpp"),
+    server: readWebRtcHttpServerBundle(readText),
     uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
     clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
     css: readText("src/ingress/product_ui_css.cpp"),

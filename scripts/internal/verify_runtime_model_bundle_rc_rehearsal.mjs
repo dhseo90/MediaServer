@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.1.0 S11 runtime/model bundle RC rehearsal의 차단 기준과 증적 연결을 검증한다.
 
 import fs from "node:fs";
@@ -65,7 +66,7 @@ const report = {
   cases: [],
   checks: [],
 };
-const productServer = readText("src/ingress/webrtc_http_server.cpp");
+const productServer = readWebRtcHttpServerBundle(readText);
 assert(productServer.includes("source-only PASS boundary"), "source-only PASS boundary must remain the default release asset policy");
 
 const checks = [];

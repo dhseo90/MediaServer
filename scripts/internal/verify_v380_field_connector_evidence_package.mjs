@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.8.0 Step 14 Field Connector Evidence Package 구현, 문서, inventory 연결을 검증한다.
 
 import fs from "node:fs";
@@ -40,7 +41,7 @@ const fieldAttachmentRoute = "/ops/api/site-operations/field-evidence-attachment
 const featureIds = ["UI-106", "SRC-063", "MEDIA-026", "LAB-121", "SAFE-193", "OPS-160"];
 
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),

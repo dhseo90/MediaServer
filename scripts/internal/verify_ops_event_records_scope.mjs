@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: EventRecord가 장기 녹화가 아닌 짧은 증거 기록 범위로 노출되고, /ops/events UI가 그 계약을 표시하는지 검증한다.
 
 import os from "node:os";
@@ -78,7 +79,7 @@ if (!Number.isFinite(Number(eventPostStatus?.failedCount))) {
 if (!Number.isFinite(Number(storageStatus?.skippedCorruptLines))) {
   throw new Error("event storage skippedCorruptLines readback missing");
 }
-const serverSource = fs.readFileSync("src/ingress/webrtc_http_server.cpp", "utf8");
+const serverSource = readWebRtcHttpServerBundle(file => fs.readFileSync(file, "utf8"));
 assertContains("evidence-resolved-path-source", serverSource, ["*resolved_path = resolved;"]);
 assertEvidencePolicy("lab-storage-status", storageStatus.evidencePolicy);
 if (storageStatus.enabled !== true) {

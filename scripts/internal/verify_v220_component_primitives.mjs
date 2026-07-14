@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.2.0 S04 component primitive helper 경계와 사용 연결을 검증한다.
 
 import fs from "node:fs";
@@ -97,7 +98,7 @@ check("component primitive implementation emits existing product classes", () =>
 });
 
 check("static product templates consume component primitive helpers", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   for (const snippet of [
     "#include \"ingress/product_ui_components.h\"",
     "ProductUiToolbarHtml(",

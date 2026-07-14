@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 
 import crypto from "node:crypto";
 import fs from "node:fs";
@@ -105,7 +106,7 @@ check("CMake and exactly three production consumers use the core owner", () => {
   const sessionHeader = read("include/core/session_manager.h");
   const sessionSource = read("src/core/session_manager.cpp");
   const rtspSource = read("src/ingress/gstreamer_rtsp_server.cpp");
-  const httpSource = read("src/ingress/webrtc_http_server.cpp");
+  const httpSource = readWebRtcHttpServerBundle(read);
   assert(count(cmake, /src\/core\/source_request_parser\.cpp/g) === 1 &&
     !cmake.includes("src/ingress/request_parser.cpp"), "CMake parser owner is not exact");
   assert(sessionHeader.includes('#include "core/source_request_parser.h"') &&

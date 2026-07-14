@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.5.0 Step 11 Field Evidence Intake 구현, UI, 문서, inventory 연결을 검증한다.
 import { exactBooleanFlagValue, extractCppFunctionBlock, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -35,7 +36,7 @@ const schema = "media-server.ops.v350-field-evidence-intake.v1";
 const route = "/ops/api/live-operations/field-evidence-intake";
 const fieldBridgeRoute = "/ops/api/source-registry/field-bridge-condition-gates";
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),

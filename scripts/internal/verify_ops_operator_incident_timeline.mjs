@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: Operator Incident Timeline이 event/source/rule/runtime 단서를 workflow로 묶는지 검증한다.
 
 import fs from "node:fs";
@@ -9,7 +10,7 @@ import { findChrome, openBrowserPage } from "./ui_visual_smoke_lib.mjs";
 const args = parseArgs(process.argv.slice(2));
 const failures = [];
 
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const server = readWebRtcHttpServerBundle(readText);
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");

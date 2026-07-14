@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.6.0 S03 ONVIF credential binding/store gate와 redaction guard 경계를 검증한다.
 import { extractCppFunctionBlock, exactBooleanFlagValue, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -8,7 +9,7 @@ import process from "node:process";
 
 const failures = [];
 
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const server = readWebRtcHttpServerBundle(readText);
 const liveImport = readText("src/ingress/onvif_live_import.cpp");
 const liveImportHeader = readText("include/ingress/onvif_live_import.h");
 const opsSourcesScript = readText("src/ingress/product_ui_ops_sources_script.cpp");

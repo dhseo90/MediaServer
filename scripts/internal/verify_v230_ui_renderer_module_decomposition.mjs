@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.3.0 S03 UI renderer/module decomposition 산출물과 계약 경계를 검증한다.
 
 import fs from "node:fs";
@@ -87,7 +88,7 @@ check("CMake builds the extracted modules", () => {
 });
 
 check("webrtc_http_server delegates extracted auth route renderers", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   assert(server.includes("#include \"ingress/product_ui_auth_pages.h\""),
     "webrtc_http_server.cpp must include the auth page renderer module");
   for (const symbol of [

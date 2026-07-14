@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v2.7.0 S01 Incident Triage Board view model/UI와 비범위 경계를 검증한다.
 import { extractCppFunctionBlock, exactBooleanFlagValue, extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -8,7 +9,7 @@ import process from "node:process";
 
 const failures = [];
 
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const server = readWebRtcHttpServerBundle(readText);
 const triageBoardViewBlock = extractCppFunctionBlock(server, "std::string OpsIncidentTriageBoardViewJson(");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");

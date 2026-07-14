@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: REVIEW4-64 Ops 제품 UI renderer 분리와 HTML/source byte 불변 계약을 검증한다.
 
 import crypto from "node:crypto";
@@ -28,7 +29,7 @@ Checks:
 }
 assertKnownOptions(rawArgs, ["h", "help"]);
 
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const server = readWebRtcHttpServerBundle(readText);
 const cmake = readText("CMakeLists.txt");
 const headerPath = "include/ingress/product_ui_server_pages.h";
 const sourcePath = "src/ingress/product_ui_server_pages.cpp";

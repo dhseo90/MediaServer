@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V200-S04 VLM 설치/연결 Ops UI와 dry-run API 경계를 정적 검증한다.
 import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 
@@ -36,7 +37,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 const checks = [];
 
 check("Ops shell exposes VLM install/connection page and dry-run API", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   for (const snippet of [
     "AppendOpsVlmInstallConnectionPage",
     "data-testid=\"ops-vlm-page\"",
@@ -60,7 +61,7 @@ check("Ops shell exposes VLM install/connection page and dry-run API", () => {
 
 check("Ops page script renders selectable dry-run candidates without writes", () => {
   const script = readText("src/ingress/product_ui_page_scripts.cpp");
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   for (const snippet of [
     "refreshOpsVlmInstallConnection",
     "refreshOpsVlmProfiles",
@@ -125,7 +126,7 @@ check("Ops page script renders selectable dry-run candidates without writes", ()
 });
 
 check("dry-run API keeps S04 non-scope side effects false", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   for (const snippet of [
     "install-connection-dry-run-contract-only",
     "profile-storage",

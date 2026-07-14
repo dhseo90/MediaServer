@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: V210-S02 local VLM runtime connection smoke를 loopback fixture로 검증한다.
 
 import fs from "node:fs";
@@ -119,7 +120,7 @@ check("loopback local runtime requests, timeout, missing-runtime, and invalid-ou
 check("local runtime smoke stays out of external event, metadata, and media paths", async () => {
   const eventPost = readText("src/analysis/event_post_dispatcher.cpp");
   const eventStorage = readText("src/analysis/event_storage.cpp");
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readWebRtcHttpServerBundle(readText);
   for (const [label, text] of [
     ["event_post_dispatcher.cpp", eventPost],
     ["event_storage.cpp", eventStorage],

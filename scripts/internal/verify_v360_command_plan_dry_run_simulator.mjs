@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.6.0 Step 4 Command Plan Dry-run Simulator 구현, 문서, inventory 연결을 검증한다.
 
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
@@ -157,7 +158,7 @@ function assertStepDocs(step, title, ...ids) {
   assertIncludes(files.releaseRecords, `V360 ${title}`, `release records v3.6 Step ${step}`);
   assertIncludes(files.releaseRecords, `\`./server.sh ${command}\``, `release records v3.6 Step ${step}`);
 }
-function loadFiles() { return { server: readText("src/ingress/webrtc_http_server.cpp"), backlog: readText("docs/development-backlog.md"), streamVerification: readText("docs/stream-verification.md"), featureInventory: readText("docs/project-feature-test-inventory.md"), featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"), projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"), scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"), releaseRecords: readText("docs/release-test-records.md"), serverSh: readText("server.sh") }; }
+function loadFiles() { return { server: readWebRtcHttpServerBundle(readText), backlog: readText("docs/development-backlog.md"), streamVerification: readText("docs/stream-verification.md"), featureInventory: readText("docs/project-feature-test-inventory.md"), featureCoverageVerifier: readText("scripts/internal/verify_feature_inventory_coverage.mjs"), projectInventoryVerifier: readText("scripts/internal/verify_project_feature_test_inventory.mjs"), scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"), releaseRecords: readText("docs/release-test-records.md"), serverSh: readText("server.sh") }; }
 function extractRouteBlock(text, routeNeedle) { const start = text.indexOf(`request.path == "${routeNeedle}"`); assert(start >= 0, `missing route: ${routeNeedle}`); const next = text.indexOf("\n                        if (request.path == ", start + 1); return text.slice(start, next >= 0 ? next : start + 2200); }
 function extractBlock(text, startNeedle, endNeedle) { const start = text.indexOf(startNeedle); assert(start >= 0, `missing block start: ${startNeedle}`); const end = text.indexOf(endNeedle, start + startNeedle.length); assert(end >= 0, `missing block end after ${startNeedle}: ${endNeedle}`); return text.slice(start, end); }
 function assertFlagFalse(text, flag) { const index = text.indexOf(flag); assert(index >= 0, `missing boundary flag: ${flag}`); assert(text.slice(index, index + 128).includes("false"), `boundary flag must be false: ${flag}`); }

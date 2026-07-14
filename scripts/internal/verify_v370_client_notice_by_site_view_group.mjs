@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: v3.7.0 Step 12 Client Notice by Site/View Group 구현, 문서, inventory 연결을 검증한다.
 
 import fs from "node:fs";
@@ -40,7 +41,7 @@ const approvalRoute = "/ops/api/site-operations/approval-ticket-workflow";
 const featureIds = ["UI-096", "CLIENT-037", "SAFE-173", "OPS-140"];
 
 const files = {
-  server: readText("src/ingress/webrtc_http_server.cpp"),
+  server: readWebRtcHttpServerBundle(readText),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
