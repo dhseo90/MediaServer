@@ -392,8 +392,6 @@
       ],
       "changedFiles": [
         "CMakeLists.txt",
-        "include/ingress/strict_json.h",
-        "src/ingress/strict_json.cpp",
         "include/core/strict_json.h",
         "src/core/strict_json.cpp",
         "include/ingress/vlm_incident_rule_provenance.h",
@@ -432,7 +430,8 @@
       "observedFollowups": [
         "promotion trust and profile storage verifiers referenced the pre-move src/ingress/strict_json.cpp path",
         "runtime opt-in product checks passed 4/4 but SAFE-025 implementation manifest verifier binding is deferred to Slice 6",
-        "sandbox provenance run could not bind loopback and must be rerun with loopback permission"
+        "sandbox provenance run could not bind loopback and was rerun with loopback permission",
+        "post-commit oracle rejected pre-rename deleted paths in changedFiles; allowedFiles retains both sides while changedFiles records resulting paths only"
       ],
       "tests": [
         {"command":"./server.sh build","status":"pass"},
