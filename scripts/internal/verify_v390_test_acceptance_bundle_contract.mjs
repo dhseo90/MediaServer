@@ -151,11 +151,12 @@ check("actual-mode fixture executes the fixed stage order and conditional 120 de
   assert(summary.uiFulltestQualification?.uiFulltestPass === false,
     "fixture orchestration must not claim Policy v4 UI fulltest PASS");
   assert(summary.stages.find(item => item.id === "server-longrun-120")?.status === "not-run", "120 stage must be not-run without trigger");
-  assert(summary.longrun120?.decision === "not-required", "120 decision mismatch");
+  assert(summary.longrun120?.decision?.policyDecision === "미진행", "120 policy decision mismatch");
+  assert(summary.longrun120?.decision?.executionDecision === "not-required", "120 execution decision mismatch");
   assert(summary.cleanup?.status === "PASS", "fixture cleanup must pass");
   assert(summary.cleanup?.verificationSource === "child-summary-and-filesystem", "cleanup must record its verification source");
   assert(Array.isArray(summary.cleanup?.checks) && summary.cleanup.checks.length > 0, "cleanup must contain measured checks");
-  assert(files.bundle.includes("throwaway-rtsp-port-clean"),
+  assert(files.bundle.includes("throwaway-port-") && files.bundle.includes("listListenerPids"),
     "RTSP cleanup measurement must remain wired in the actual bundle");
   assert(summary.outputPreparation?.replacedExisting === true, "existing canonical output must be replaced");
   assert(summary.outputPreparation?.removedScreenshotFiles === 1, "stale screenshot removal count mismatch");
@@ -214,12 +215,23 @@ check("rerun preserves the earliest first failure after canonical output replace
 
 check("actual-mode fixture runs explicit 120 and rejects cleanup failure", () => {
   const run120Dir = fixtureDir("run-120");
-  const run120 = runBundle(["--output-dir", run120Dir, "--fixture-pass", "--run-120"]);
+  const run120 = runBundle(["--output-dir", run120Dir, "--fixture-pass", "--fixture-120-trigger", "--run-120"]);
   assert(run120.status === 0, "run-120 fixture must pass");
   const run120Summary = readJson(path.join(run120Dir, "summary.json"));
-  assert(run120Summary.longrun120?.decision === "run", "run-120 decision mismatch");
+  assert(run120Summary.longrun120?.decision?.policyDecision === "조건부 진행", "run-120 policy decision mismatch");
+  assert(run120Summary.longrun120?.decision?.executionDecision === "run", "run-120 execution decision mismatch");
   assert(run120Summary.stages.find(item => item.id === "server-longrun-120")?.status === "PASS", "run-120 stage must pass");
   fs.rmSync(run120Dir, { recursive: true, force: true });
+
+  const flagOnlyDir = fixtureDir("run-120-flag-only");
+  const flagOnly = runBundle(["--output-dir", flagOnlyDir, "--fixture-pass", "--run-120"]);
+  assert(flagOnly.status !== 0, "run flag without an AGENTS 7.6.2 trigger must fail");
+  const flagOnlySummary = readJson(path.join(flagOnlyDir, "summary.json"));
+  assert(flagOnlySummary.longrun120?.decision?.executionDecision === "invalid-run-without-trigger",
+    "run flag invented a 120-minute trigger");
+  assert(flagOnlySummary.stages.find(item => item.id === "server-longrun-120")?.status === "not-run",
+    "invalid run flag must not execute the 120-minute stage");
+  fs.rmSync(flagOnlyDir, { recursive: true, force: true });
 
   const cleanupDir = fixtureDir("cleanup-fail");
   const cleanup = runBundle(["--output-dir", cleanupDir, "--fixture-pass", "--fixture-cleanup-fail"]);

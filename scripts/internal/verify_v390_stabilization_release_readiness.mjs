@@ -30,7 +30,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const commandName = "verify-v390-stabilization-release-readiness";
 const command = `./server.sh ${commandName}`;
-const currentFinalCommand = "./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final --run-120";
+const currentFinalCommand = "./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final --ui-http-base <loopback-url> --ui-role-state-map <roles.json> --ui-server-log <server.log> --ui-server-pid <pid> --ui-rtsp-port <port> --ui-temporary-root <media_server_v390_ui-*>";
 const targetScript = "verify_v390_stabilization_release_readiness.mjs";
 const schema = "media-server.v390-stabilization-release-readiness.v1";
 const companionCommands = [

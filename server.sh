@@ -436,6 +436,8 @@ Usage:
                  v3.9.0 R1 server longrun stop-on-first-fail runner를 실행합니다.
   verify-v390-server-longrun-runner-contract
                  v3.9.0 R1 server longrun runner contract와 fixture evidence를 검증합니다.
+  verify-v390-longrun-evidence-measurement-contract
+                 V390-REVIEW4-61 monotonic duration, 120분 판정, PID/port/artifact cleanup 실측을 검증합니다.
   verify-v390-ui-automation
                  v3.9.0 R2 UI automation runner summary/report를 생성합니다.
   verify-v390-ui-automation-report
@@ -869,6 +871,8 @@ Usage:
                  v3.9.0 R1 server longrun stop-on-first-fail runner를 실행합니다.
   verify-v390-server-longrun-runner-contract
                  v3.9.0 R1 server longrun runner contract와 fixture evidence를 검증합니다.
+  verify-v390-longrun-evidence-measurement-contract
+                 V390-REVIEW4-61 monotonic duration, 120분 판정, PID/port/artifact cleanup 실측을 검증합니다.
   verify-v390-onvif-credential-provider-status
                  v3.9.0 Step 11 ONVIF credential/provider status summary를 검증합니다.
   verify-v390-onvif-live-import-persist-decision
@@ -2141,6 +2145,10 @@ case "${cmd}" in
   verify-v390-server-longrun-runner-contract)
     require_internal verify_v390_server_longrun_runner_contract.mjs
     exec "${INTERNAL_DIR}/verify_v390_server_longrun_runner_contract.mjs" "$@"
+    ;;
+  verify-v390-longrun-evidence-measurement-contract)
+    require_internal verify_v390_longrun_evidence_measurement_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_longrun_evidence_measurement_contract.mjs" "$@"
     ;;
   verify-v390-ui-automation)
     require_internal verify_v390_ui_automation.mjs

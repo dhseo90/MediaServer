@@ -12003,7 +12003,7 @@
           "file": "scripts/internal/verify_v390_server_longrun_runner_contract.mjs",
           "symbol": "check:predev summary fixture preserves delegated first failure step",
           "anchor": "assertPhaseStatus(summary, \"soak-case-loop\", \"not-run\");",
-          "line": 188,
+          "line": 191,
           "contextSha256": "9db5779ab618a5c6e7b5c4155ded6fd1c02e9f32480cd5e888aa5889091577e2"
         },
         "readback": {
@@ -13001,7 +13001,7 @@
           "symbol": "check:actual-mode-fixture-order",
           "anchor": "assert(summary.stages.find(item => item.id === \"server-longrun-120\")?.status === \"not-run\", \"120 stage must be not-run without trigger\");",
           "line": 153,
-          "contextSha256": "7fec240b1e97e0540b0c18e84818446813b5fb67921a5bb0d4d1877a9713fb11"
+          "contextSha256": "99a58fdc0a75623fcb160ad21075ffe6aa7cd6e3177c9b93f59a00b81fe9c3ca"
         },
         "verifier": {
           "file": "server.sh",

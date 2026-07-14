@@ -20,6 +20,7 @@ AUTH_MODE="${MEDIA_SERVER_VERIFY_PREDEV_AUTH_MODE:-off}"
 RUN_ID="predev-$(date +%s)-$$"
 WORK_DIR="/tmp/media_server_${RUN_ID}"
 STEPS_FILE="${WORK_DIR}/steps.ndjson"
+SERVER_PROCESS_LEDGER_FILE="${WORK_DIR}/server-process-ledger.ndjson"
 SUMMARY_FILE="${MEDIA_SERVER_VERIFY_PREDEV_SUMMARY_FILE:-/tmp/media_server_${RUN_ID}_summary.json}"
 REPORT_FILE="${MEDIA_SERVER_VERIFY_PREDEV_REPORT_FILE:-/tmp/media_server_${RUN_ID}_report.md}"
 REPORT_HTML_FILE="${MEDIA_SERVER_VERIFY_PREDEV_REPORT_HTML_FILE:-/tmp/media_server_${RUN_ID}_report.html}"
@@ -556,20 +557,69 @@ PY
 
 # 서버 process를 종료하고 wait한다.
 stop_server() {
+  local observed_pid_file="${WORK_DIR}/server-stop-pids-${SECONDS}.txt"
+  : >"${observed_pid_file}"
+  for port in "${RTSP_PORT}" "${HTTP_PORT}"; do
+    lsof -nP -tiTCP:"${port}" -sTCP:LISTEN 2>/dev/null >>"${observed_pid_file}" || true
+  done
+  sort -u "${observed_pid_file}" -o "${observed_pid_file}"
+  while IFS= read -r pid; do
+    [[ "${pid}" =~ ^[0-9]+$ ]] || continue
+    local command_identity=""
+    local owned_ports=""
+    local alive_before=false
+    local alive_after=false
+    command_identity="$(ps -p "${pid}" -o command= 2>/dev/null || true)"
+    if kill -0 "${pid}" >/dev/null 2>&1; then alive_before=true; fi
+    for port in "${RTSP_PORT}" "${HTTP_PORT}"; do
+      if lsof -nP -a -p "${pid}" -iTCP:"${port}" -sTCP:LISTEN >/dev/null 2>&1; then
+        owned_ports="${owned_ports}${owned_ports:+,}${port}"
+      fi
+    done
+    if [[ "${command_identity}" == *media_server* || "${command_identity}" == *run_server_foreground* ]]; then
+      kill "${pid}" >/dev/null 2>&1 || true
+      local stop_deadline=$((SECONDS + 10))
+      while kill -0 "${pid}" >/dev/null 2>&1 && [[ "${SECONDS}" -lt "${stop_deadline}" ]]; do
+        sleep 0.1
+      done
+      wait "${pid}" >/dev/null 2>&1 || true
+    fi
+    if kill -0 "${pid}" >/dev/null 2>&1; then alive_after=true; fi
+    append_server_process_measurement "${pid}" "${command_identity}" "${alive_before}" "${alive_after}" "${owned_ports}"
+  done <"${observed_pid_file}"
+  rm -f "${observed_pid_file}"
   if [[ -n "${SERVER_PID}" ]] && kill -0 "${SERVER_PID}" >/dev/null 2>&1; then
-    log_info "server 종료 pid=${SERVER_PID}"
+    log_info "server wrapper 종료 pid=${SERVER_PID}"
     kill "${SERVER_PID}" >/dev/null 2>&1 || true
     wait "${SERVER_PID}" >/dev/null 2>&1 || true
   fi
   SERVER_PID=""
-  for port in "${RTSP_PORT}" "${HTTP_PORT}"; do
-    while IFS= read -r pid; do
-      [[ -n "${pid}" ]] || continue
-      kill "${pid}" >/dev/null 2>&1 || true
-      wait "${pid}" >/dev/null 2>&1 || true
-    done < <(lsof -nP -tiTCP:"${port}" -sTCP:LISTEN 2>/dev/null || true)
-  done
   sleep 1
+}
+
+# 종료 직전/직후 process와 소유 port를 raw ledger에 기록한다.
+append_server_process_measurement() {
+  local pid="$1"
+  local command_identity="$2"
+  local alive_before="$3"
+  local alive_after="$4"
+  local owned_ports="$5"
+  python3 - "${SERVER_PROCESS_LEDGER_FILE}" "${pid}" "${command_identity}" "${alive_before}" "${alive_after}" "${owned_ports}" <<'PY'
+import json
+import pathlib
+import sys
+
+ports = [int(value) for value in sys.argv[6].split(",") if value]
+record = {
+    "pid": int(sys.argv[2]),
+    "commandIdentity": sys.argv[3],
+    "aliveBefore": sys.argv[4] == "true",
+    "aliveAfter": sys.argv[5] == "true",
+    "ownedPorts": ports,
+}
+with pathlib.Path(sys.argv[1]).open("a", encoding="utf-8") as handle:
+    handle.write(json.dumps(record, ensure_ascii=False, separators=(",", ":")) + "\n")
+PY
 }
 
 # 검증 종료 후 이번 predev run이 사용한 port listener가 남지 않았는지 확인한다.
@@ -695,10 +745,13 @@ run_soak_loop() {
 
 # 전체 predev summary JSON을 생성한다.
 write_summary() {
-  local duration_sec="$1"
-  python3 - "${SUMMARY_FILE}" "${STEPS_FILE}" "${PASS_COUNT}" "${FAIL_COUNT}" "${SKIP_COUNT}" "${NOT_RUN_COUNT}" "${duration_sec}" "${REPORT_FILE}" "${REPORT_HTML_FILE}" "${SOAK_MINUTES}" "${QUICK_MODE}" "${INCLUDE_EXTERNAL_TURN}" "${WORK_DIR}" "${INCLUDE_EXTERNAL_CLIENT}" "${INCLUDE_REDACTION}" <<'PY'
+  local started_seconds="$1"
+  local ended_seconds="$2"
+  local duration_sec=$((ended_seconds - started_seconds))
+  python3 - "${SUMMARY_FILE}" "${STEPS_FILE}" "${PASS_COUNT}" "${FAIL_COUNT}" "${SKIP_COUNT}" "${NOT_RUN_COUNT}" "${duration_sec}" "${REPORT_FILE}" "${REPORT_HTML_FILE}" "${SOAK_MINUTES}" "${QUICK_MODE}" "${INCLUDE_EXTERNAL_TURN}" "${WORK_DIR}" "${INCLUDE_EXTERNAL_CLIENT}" "${INCLUDE_REDACTION}" "${started_seconds}" "${ended_seconds}" "${SERVER_PROCESS_LEDGER_FILE}" <<'PY'
 import json
 import pathlib
+import re
 import sys
 import time
 
@@ -708,6 +761,24 @@ if steps_path.exists():
     for line in steps_path.read_text(encoding="utf-8").splitlines():
         if line.strip():
             steps.append(json.loads(line))
+iteration_rows = {}
+for step in steps:
+    match = re.fullmatch(r"soak-([0-9]+)-(va-events|event-post-schema|event-post-recovery|redaction|runtime-idle)", str(step.get("name") or ""))
+    if not match:
+        continue
+    iteration = int(match.group(1))
+    iteration_rows.setdefault(iteration, []).append({"caseId": step["name"], "result": step.get("result")})
+
+processes = []
+process_path = pathlib.Path(sys.argv[18])
+if process_path.exists():
+    for line in process_path.read_text(encoding="utf-8").splitlines():
+        if line.strip():
+            processes.append(json.loads(line))
+
+started_seconds = int(sys.argv[16])
+ended_seconds = int(sys.argv[17])
+duration_sec = int(float(sys.argv[7]))
 summary = {
     "kind": "predev",
     "status": "fail" if int(sys.argv[4]) > 0 else "pass",
@@ -715,7 +786,7 @@ summary = {
     "fail": int(sys.argv[4]),
     "skip": int(sys.argv[5]),
     "notRun": int(sys.argv[6]),
-    "durationSec": int(float(sys.argv[7])),
+    "durationSec": duration_sec,
     "reportFile": sys.argv[8],
     "reportHtmlFile": sys.argv[9],
     "soakMinutes": int(sys.argv[10]),
@@ -725,6 +796,28 @@ summary = {
     "includeExternalClient": sys.argv[14] == "1",
     "includeRedaction": sys.argv[15] == "1",
     "finishedAtEpochMs": int(time.time() * 1000),
+    "monotonicDuration": {
+        "schema": "media-server.predev-monotonic-duration.v1",
+        "clockSource": "bash-SECONDS-monotonic",
+        "startedSeconds": started_seconds,
+        "endedSeconds": ended_seconds,
+        "elapsedSeconds": ended_seconds - started_seconds,
+        "requestedSoakSeconds": int(sys.argv[10]) * 60,
+        "durationSec": duration_sec,
+    },
+    "soakIterationLedger": {
+        "schema": "media-server.predev-soak-iteration-ledger.v1",
+        "source": "explicit-step-ledger-not-max-inference",
+        "observedIterations": len(iteration_rows),
+        "iterations": [
+            {"iteration": iteration, "cases": iteration_rows[iteration]}
+            for iteration in sorted(iteration_rows)
+        ],
+    },
+    "serverProcessLedger": {
+        "schema": "media-server.predev-server-process-ledger.v1",
+        "processes": processes,
+    },
     "steps": steps,
 }
 
@@ -736,11 +829,12 @@ PY
 run_failure_contract_fixture() {
   local started_at="${SECONDS}"
   : >"${STEPS_FILE}"
+  : >"${SERVER_PROCESS_LEDGER_FILE}"
   run_ordered_case_sequence "contract fixture first-fail" \
     "fixture-first" "printf 'fixture first pass\\n'" \
     "fixture-second" "printf 'fixture second stdout\\n'; printf 'fixture delegated stderr\\n' >&2; exit 23" \
     "fixture-third" "printf 'fixture third must not execute\\n'" || true
-  write_summary "$((SECONDS - started_at))"
+  write_summary "${started_at}" "${SECONDS}"
   {
     echo "# predev failure contract fixture"
     echo
@@ -812,6 +906,7 @@ main() {
     external_client_option=""
   fi
   : >"${STEPS_FILE}"
+  : >"${SERVER_PROCESS_LEDGER_FILE}"
 
   if [[ "${SKIP_BUILD}" -eq 0 ]]; then
     run_step "build" "cmake --build ${BUILD_DIR}" || true
@@ -859,12 +954,12 @@ main() {
   stop_server
   assert_ports_clean || true
 
-  write_summary "$((SECONDS - started_at))"
+  write_summary "${started_at}" "${SECONDS}"
   run_step "summary-report" \
     "./server.sh summarize-reports /tmp/media_server_*summary*.json --output ${REPORT_FILE} --html-output ${REPORT_HTML_FILE}" || true
-  write_summary "$((SECONDS - started_at))"
+  write_summary "${started_at}" "${SECONDS}"
   refresh_summary_report || true
-  write_summary "$((SECONDS - started_at))"
+  write_summary "${started_at}" "${SECONDS}"
 
   echo
   echo "== predev 안정화 검증 요약 =="

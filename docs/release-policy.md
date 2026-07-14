@@ -434,12 +434,13 @@ v3.9.0 Step 20 local readiness gate는 Policy v4-qualified UI fulltest 실행, 3
 published metadata, PR/main/tag/GitHub Release, field smoke 실행 evidence를 대체하지
 않습니다.
 
-현재 v3.9.0 final close-out 테스트 순서는 `stabilization -> 30개 feature gate -> 30분 ->
-8-case UI automation/replay -> 120분(--run-120) -> Policy v4 전체 UI -> cleanup/evidence`입니다.
-최신 사용자 지시에 따라 120분은 이번 final 실행에서 생략할 수 없는 항목이며, actual bundle에
-`--run-120`을 명시합니다. canonical command는
-`./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final --run-120`이며,
-actual preflight는 clean worktree가 아니거나 `--run-120`이 없으면 build 전에 실패해야 합니다.
+현재 v3.9.0 final close-out 테스트 순서는 `stabilization -> current feature gate -> 30분 ->
+exact 424 Policy v4 UI -> AGENTS 7.6.2 120분 판정/조건부 실행 -> cleanup/final integrity`입니다.
+120분 필요성은 `--run-120` 존재 여부가 아니라 current base..HEAD의 media/source-worker/shared-stream/
+runtime-fanout/cleanup-port 변경, 직접 매핑, release gate, upstream drift로 계산합니다. Trigger가 있으면
+실행 승인을 받은 경우에만 `--run-120`을 추가하고, trigger 없이 flag만 주면 거부합니다. 현재 canonical
+command는 `./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final --ui-http-base <loopback-url> --ui-role-state-map <roles.json> --ui-server-log <server.log> --ui-server-pid <pid> --ui-rtsp-port <port> --ui-temporary-root <media_server_v390_ui-*>`이며,
+actual preflight는 clean worktree와 exact UI/cleanup 소유권 입력을 요구합니다.
 실제 실행 전에는 PASS evidence로 기록하지 않습니다.
 
 ## v3.8.0 stabilization and release readiness

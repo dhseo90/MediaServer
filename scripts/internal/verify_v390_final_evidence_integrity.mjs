@@ -4,6 +4,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { execFileSync } from "node:child_process";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import {
@@ -14,6 +15,11 @@ import {
   sha256Text,
 } from "./evidence_integrity_lib.mjs";
 import { evaluateV390FullSuiteEligibility } from "./v390_full_suite_eligibility_lib.mjs";
+import {
+  validateCleanupMeasurement,
+  validateIterationLedger,
+  validateMonotonicDurationEvidence,
+} from "./v390_longrun_evidence_measurement_lib.mjs";
 
 const rawArgs = process.argv.slice(2);
 if (hasHelpFlag(rawArgs)) {
@@ -114,7 +120,7 @@ check("canonical command set is exact and hash-bound", () => {
     "feature-gates": "current feature commands",
     "server-longrun-30": "verify-v390-server-longrun --duration-minutes 30",
     "ui-exact-424": "run-v390-ui-native-exact-cases",
-    "ui-server-cleanup": "throwaway media_server PID",
+    "ui-server-cleanup": "PID/port ownership",
     "ui-fulltest-qualification": "verify-ui-fulltest-evidence-policy-v4",
     "server-longrun-120": "verify-v390-server-longrun --duration-minutes 120",
     "final-integrity": "verify-v390-final-evidence-integrity",
@@ -220,10 +226,15 @@ check("top-level cleanup is measured", () => {
 check("actual child evidence uses measured cleanup", () => {
   if (summary.executionMode !== "actual") return;
   const longrun = readChild(summary.longrun30?.summaryPath, "30-minute");
-  assert(longrun.cleanup?.verificationSource === "predev-summary-filesystem-and-port-observation", "30-minute cleanup source mismatch");
+  validateLongrunChild(longrun, 30, "30-minute");
+  assert(longrun.cleanup?.verificationSource === "pid-port-artifact-before-after-observation", "30-minute cleanup source mismatch");
+  assert(validateCleanupMeasurement(longrun.cleanup?.measurement).length === 0, "30-minute raw cleanup measurement invalid");
+  remeasureCleanupAfter(longrun.cleanup?.measurement, "30-minute");
   assert(longrun.cleanup?.checks?.every(item => item.status === "PASS"), "30-minute cleanup check failed");
   const ui = readChild(summary.uiAutomation?.summaryPath, "UI automation");
-  assert(ui.cleanup?.verificationSource === "filesystem-and-port-observation", "UI cleanup source mismatch");
+  assert(ui.cleanup?.verificationSource === "pid-port-artifact-before-after-observation", "UI cleanup source mismatch");
+  assert(validateCleanupMeasurement(ui.cleanup?.measurement).length === 0, "UI raw cleanup measurement invalid");
+  remeasureCleanupAfter(ui.cleanup?.measurement, "UI");
   assert(ui.cleanup?.checks?.every(item => item.status === "PASS"), "UI cleanup check failed");
   assert(ui.artifactIntegrity?.placeholderVideoFiles === 0, "UI placeholder video remains");
   if (ui.schema === "media-server.ui-automation-evidence.v4") {
@@ -234,6 +245,13 @@ check("actual child evidence uses measured cleanup", () => {
       "exact UI visual artifact boundary mismatch");
   } else {
     assert((ui.cases || []).every(item => item.videoPath === "" && item.videoEvidence?.status === "not-captured" && item.videoEvidence?.placeholderCreated === false), "UI video boundary mismatch");
+  }
+  if (summary.longrun120?.status === "PASS") {
+    const longrun120 = readChild(summary.longrun120?.summaryPath, "120-minute");
+    validateLongrunChild(longrun120, 120, "120-minute");
+    assert(longrun120.cleanup?.verificationSource === "pid-port-artifact-before-after-observation", "120-minute cleanup source mismatch");
+    assert(validateCleanupMeasurement(longrun120.cleanup?.measurement).length === 0, "120-minute raw cleanup measurement invalid");
+    remeasureCleanupAfter(longrun120.cleanup?.measurement, "120-minute");
   }
 });
 
@@ -266,6 +284,35 @@ function readChild(filePath, label) {
   const resolved = path.isAbsolute(filePath) ? filePath : path.resolve(path.dirname(summaryPath), filePath);
   const contained = requireContainedFile(outputReal, resolved, `${label} summary`);
   return JSON.parse(fs.readFileSync(contained, "utf8"));
+}
+
+function validateLongrunChild(child, durationMinutes, label) {
+  assert(child.schema === "media-server.v390-server-longrun.v2", `${label} longrun schema mismatch`);
+  assert(child.realDurationEvidence === true, `${label} real duration is not eligible`);
+  assert(Number(child.durationMinutes) === durationMinutes, `${label} duration mismatch`);
+  assert(validateMonotonicDurationEvidence(child.durationEvidence).length === 0, `${label} monotonic duration invalid`);
+  assert(validateIterationLedger(child.iterationEvidence?.ledger, child.delegatedSteps).length === 0, `${label} iteration ledger invalid`);
+}
+
+function remeasureCleanupAfter(measurement, label) {
+  for (const artifact of measurement?.artifacts || []) {
+    assert(artifact.existsAfter === false && Number(artifact.bytesAfter) === 0, `${label} artifact after-state claim invalid`);
+    assert(!fs.existsSync(path.resolve(artifact.path)), `${label} removed artifact exists now: ${artifact.path}`);
+  }
+  for (const port of measurement?.ports || []) {
+    assert(Array.isArray(port.listenerPidsAfter) && port.listenerPidsAfter.length === 0 && port.bindableAfter === true,
+      `${label} port after-state claim invalid: ${port.port}`);
+    assert(listListenerPids(port.port).length === 0, `${label} port has a current listener: ${port.port}`);
+  }
+}
+
+function listListenerPids(port) {
+  try {
+    return execFileSync("lsof", ["-nP", `-iTCP:${Number(port)}`, "-sTCP:LISTEN", "-t"], { encoding: "utf8" })
+      .split(/\r?\n/).map(value => Number(value.trim())).filter(Number.isInteger);
+  } catch {
+    return [];
+  }
 }
 
 function requireContainedFile(parent, candidate, label) {

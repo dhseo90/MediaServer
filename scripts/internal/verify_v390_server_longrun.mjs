@@ -5,11 +5,16 @@ import fs from "node:fs";
 import net from "node:net";
 import path from "node:path";
 import process from "node:process";
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { collectSourceProvenance, scanArtifactTree } from "./evidence_integrity_lib.mjs";
+import {
+  buildMonotonicDurationEvidence,
+  validateCleanupMeasurement,
+  validateIterationLedger,
+} from "./v390_longrun_evidence_measurement_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -64,6 +69,8 @@ const summaryPath = path.join(outputDir, "summary.json");
 const reportPath = path.join(outputDir, "report.md");
 const runId = `v390-server-longrun-${new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14)}-${process.pid}`;
 const fixtureMode = options.fixturePass || options.fixtureFailPhase !== "" || options.fixturePredevSummary !== "";
+const runStartedAt = new Date().toISOString();
+const runStartedMonotonicNs = process.hrtime.bigint();
 const phases = [];
 let failedPhase = "";
 let failedCase = "";
@@ -86,13 +93,60 @@ fs.mkdirSync(outputDir, { recursive: true });
 
 await runPhases();
 
+const runEndedMonotonicNs = process.hrtime.bigint();
+const runEndedAt = new Date().toISOString();
+const finalPredevSummary = readPredevSummary(predevSummaryPath);
+const durationEvidence = buildMonotonicDurationEvidence({
+  requestedMinutes: options.durationMinutes,
+  fixtureMode,
+  runnerStartedNs: runStartedMonotonicNs.toString(),
+  runnerEndedNs: runEndedMonotonicNs.toString(),
+  delegated: finalPredevSummary?.monotonicDuration || null,
+});
+const iterationErrors = validateIterationLedger(finalPredevSummary?.soakIterationLedger, finalPredevSummary?.steps);
+const iterationEvidence = {
+  schema: "media-server.v390-iteration-evidence.v1",
+  valid: iterationErrors.length === 0,
+  errors: iterationErrors,
+  ledger: finalPredevSummary?.soakIterationLedger || null,
+};
+if (!fixtureMode && exitCode === 0 && (!durationEvidence.eligibleRealDuration || !iterationEvidence.valid)) {
+  const errors = [...durationEvidence.validationErrors, ...iterationEvidence.errors];
+  exitCode = 1;
+  failedPhase = "soak-case-loop";
+  failedCase = "duration-iteration-evidence-qualification";
+  failure = makeFailure({
+    phase: failedPhase,
+    caseName: failedCase,
+    context: errors.join("; "),
+    stderrTail: errors,
+    reproductionCommand: `./server.sh verify-v390-server-longrun --duration-minutes ${options.durationMinutes} --output-dir ${outputDir}`,
+    command: "qualify monotonic duration and explicit iteration ledger",
+    failureExitCode: 1,
+    logPath: "",
+    phaseSummaryPath: predevSummaryPath,
+  });
+  const phase = phases.find(item => item.id === "soak-case-loop");
+  if (phase) {
+    phase.status = "FAIL";
+    phase.exitCode = 1;
+    phase.tail = [...(phase.tail || []), ...errors];
+  }
+}
 const result = exitCode === 0 ? "PASS" : "FAIL";
 const summary = {
-  schema: "media-server.v390-server-longrun.v1",
+  schema: "media-server.v390-server-longrun.v2",
   runId,
   command: `./server.sh verify-v390-server-longrun ${rawArgs.join(" ")}`,
   sourceProvenance: collectSourceProvenance(rootDir),
   durationMinutes: options.durationMinutes,
+  runStartedAt,
+  runEndedAt,
+  durationEvidence,
+  iterationEvidence,
+  delegatedSteps: Array.isArray(finalPredevSummary?.steps)
+    ? finalPredevSummary.steps.map(step => ({ name: step?.name, result: step?.result }))
+    : [],
   result,
   stopOnFirstFail: true,
   failedPhase,
@@ -110,7 +164,7 @@ const summary = {
   delegatedPhaseLedger,
   delegatedFirstFailContractSatisfied: delegatedFailure?.firstFailContractSatisfied ?? true,
   failure,
-  realDurationEvidence: !fixtureMode && result === "PASS",
+  realDurationEvidence: !fixtureMode && result === "PASS" && durationEvidence.eligibleRealDuration && iterationEvidence.valid,
   longrunEvidenceStatus: longrunEvidenceStatus(fixtureMode, result),
   phases,
 };
@@ -696,21 +750,63 @@ function readPredevSummary(summaryFilePath) {
 async function measureAndApplyCleanup() {
   const httpPort = Number(process.env.MEDIA_SERVER_VERIFY_PREDEV_HTTP_PORT || 8081);
   const rtspPort = Number(process.env.MEDIA_SERVER_VERIFY_PREDEV_RTSP_PORT || 8555);
-  const httpPortClean = await canListen(httpPort);
-  const rtspPortClean = await canListen(rtspPort);
   let predevSummary = null;
   if (predevSummaryPath && fs.existsSync(predevSummaryPath)) {
     predevSummary = JSON.parse(fs.readFileSync(predevSummaryPath, "utf8"));
   }
   const portsStep = predevSummary?.steps?.find(step => step?.name === "ports-clean");
   const workDir = String(predevSummary?.workDir || "");
-  const before = workDir && fs.existsSync(workDir) ? scanArtifactTree(workDir) : null;
-  if (predevSummary) preserveFailureAndSanitizeTemporaryPaths(predevSummary, workDir);
-  if (workDir) fs.rmSync(workDir, { recursive: true, force: true });
+  const workDirContained = isAllowedPredevWorkDir(workDir);
+  const existedBefore = workDirContained && fs.existsSync(workDir);
+  const before = existedBefore ? scanArtifactTree(workDir) : null;
+  if (predevSummary && workDirContained) preserveFailureAndSanitizeTemporaryPaths(predevSummary, workDir);
+  if (workDirContained && workDir) fs.rmSync(workDir, { recursive: true, force: true });
   const workDirRemoved = !workDir || !fs.existsSync(workDir);
+  const after = workDir && fs.existsSync(workDir) ? scanArtifactTree(workDir) : { totalBytes: 0, fileCount: 0 };
+  const processes = Array.isArray(predevSummary?.serverProcessLedger?.processes)
+    ? predevSummary.serverProcessLedger.processes.map(item => structuredClone(item))
+    : [];
+  const ports = [];
+  for (const port of [httpPort, rtspPort]) {
+    const listenerPidsBefore = [...new Set(processes.filter(item => (item.ownedPorts || []).map(Number).includes(port)).map(item => Number(item.pid)))];
+    const listenerPidsAfter = listListenerPids(port);
+    ports.push({
+      port,
+      listenerPidsBefore,
+      listenerPidsAfter,
+      bindableAfter: await canListen(port),
+    });
+  }
+  const measurement = {
+    schema: "media-server.v390-cleanup-measurement.v1",
+    processes,
+    ports,
+    artifacts: [{
+      path: workDir,
+      contained: workDirContained,
+      existedBefore,
+      bytesBefore: Number(before?.totalBytes || 0),
+      existsAfter: workDir ? fs.existsSync(workDir) : false,
+      bytesAfter: Number(after?.totalBytes || 0),
+      removedBytes: Number(before?.totalBytes || 0) - Number(after?.totalBytes || 0),
+    }],
+  };
+  const measurementErrors = validateCleanupMeasurement(measurement);
   const checks = [
-    { check: "http-port-clean", status: httpPortClean ? "PASS" : "FAIL", port: httpPort, observed: httpPortClean },
-    { check: "rtsp-port-clean", status: rtspPortClean ? "PASS" : "FAIL", port: rtspPort, observed: rtspPortClean },
+    ...processes.map(item => ({
+      check: `server-pid-${item.pid}-stopped`,
+      status: item.aliveBefore === true && item.aliveAfter === false ? "PASS" : "FAIL",
+      pid: item.pid,
+      commandIdentity: item.commandIdentity,
+      ownedPorts: item.ownedPorts,
+      aliveBefore: item.aliveBefore,
+      aliveAfter: item.aliveAfter,
+    })),
+    ...ports.map(item => ({
+      check: `port-${item.port}-clean`,
+      status: item.listenerPidsBefore.length > 0 && item.listenerPidsAfter.length === 0 && item.bindableAfter ? "PASS" : "FAIL",
+      ...item,
+    })),
     {
       check: "delegated-ports-clean-step",
       status: !predevSummary || portsStep?.result === "pass" ? "PASS" : "FAIL",
@@ -718,22 +814,28 @@ async function measureAndApplyCleanup() {
     },
     {
       check: "predev-temporary-workdir-removed",
-      status: workDirRemoved ? "PASS" : "FAIL",
+      status: workDirContained && existedBefore && workDirRemoved && Number(after.totalBytes || 0) === 0 ? "PASS" : "FAIL",
       path: workDir,
-      existedBefore: Boolean(before),
+      contained: workDirContained,
+      existedBefore,
       bytesBefore: Number(before?.totalBytes || 0),
       existsAfter: workDir ? fs.existsSync(workDir) : false,
+      bytesAfter: Number(after.totalBytes || 0),
+      removedBytes: Number(before?.totalBytes || 0) - Number(after.totalBytes || 0),
     },
+    ...measurementErrors.map(error => ({ check: `measurement-${error}`, status: "FAIL", observed: error })),
   ];
   const passed = checks.every(item => item.status === "PASS");
   return {
     status: passed ? "PASS" : "FAIL",
-    verificationSource: "predev-summary-filesystem-and-port-observation",
-    serverStopped: httpPortClean && rtspPortClean,
-    portsClean: httpPortClean && rtspPortClean && (!predevSummary || portsStep?.result === "pass"),
+    verificationSource: "pid-port-artifact-before-after-observation",
+    serverStopped: processes.length > 0 && processes.every(item => item.aliveBefore === true && item.aliveAfter === false),
+    portsClean: ports.every(item => item.listenerPidsAfter.length === 0 && item.bindableAfter) && portsStep?.result === "pass",
     temporaryArtifactsRemoved: workDirRemoved,
     removedTemporaryArtifacts: workDir ? [workDir] : [],
     preservedArtifacts: delegatedFailure ? [delegatedFailure.logFile, delegatedFailure.stdoutFile, delegatedFailure.stderrFile].filter(Boolean) : [],
+    measurement,
+    measurementErrors,
     checks,
   };
 }
@@ -771,6 +873,26 @@ function canListen(port) {
     server.once("listening", () => server.close(() => resolve(true)));
     server.listen(port, "127.0.0.1");
   });
+}
+
+function listListenerPids(port) {
+  try {
+    return execFileSync("lsof", ["-nP", `-tiTCP:${port}`, "-sTCP:LISTEN"], { encoding: "utf8" })
+      .split(/\r?\n/)
+      .filter(value => /^[0-9]+$/.test(value))
+      .map(Number)
+      .sort((a, b) => a - b);
+  } catch {
+    return [];
+  }
+}
+
+function isAllowedPredevWorkDir(value) {
+  if (!value) return false;
+  const resolved = path.resolve(value);
+  const allowedRoots = [path.resolve("/tmp"), path.resolve("/private/tmp")];
+  const inside = allowedRoots.some(root => resolved.startsWith(`${root}${path.sep}`));
+  return inside && path.basename(resolved).startsWith("media_server_predev-");
 }
 
 function runCommandPhase(phaseId, commandParts, phaseSummaryPath = "") {
@@ -935,6 +1057,13 @@ function writeReport(filePath, payload) {
     `schema: ${payload.schema}`,
     `result: ${payload.result}`,
     `durationMinutes: ${payload.durationMinutes}`,
+    `durationClockSource: ${payload.durationEvidence?.clockSource || ""}`,
+    `durationStartedMonotonicNs: ${payload.durationEvidence?.runnerStartedMonotonicNs || ""}`,
+    `durationEndedMonotonicNs: ${payload.durationEvidence?.runnerEndedMonotonicNs || ""}`,
+    `durationElapsedSeconds: ${payload.durationEvidence?.runnerElapsedSeconds ?? ""}`,
+    `durationEligible: ${payload.durationEvidence?.eligibleRealDuration === true}`,
+    `iterationLedgerValid: ${payload.iterationEvidence?.valid === true}`,
+    `iterationCount: ${payload.iterationEvidence?.ledger?.observedIterations ?? 0}`,
     `stopOnFirstFail: ${payload.stopOnFirstFail}`,
     `failedPhase: ${payload.failedPhase || "(none)"}`,
     `failedCase: ${payload.failedCase || "(none)"}`,
@@ -950,6 +1079,8 @@ function writeReport(filePath, payload) {
     `reproductionCommand: ${reportValue(payload.failure?.reproductionCommand)}`,
     `realDurationEvidence: ${payload.realDurationEvidence}`,
     `longrunEvidenceStatus: ${payload.longrunEvidenceStatus}`,
+    `cleanupVerificationSource: ${payload.cleanup?.verificationSource || ""}`,
+    `cleanupArtifactBytes: ${payload.cleanup?.measurement?.artifacts?.map(item => `${item.path}:${item.bytesBefore}->${item.bytesAfter}`).join(" | ") || ""}`,
     "",
     "| phase | status | command | log |",
     "| --- | --- | --- | --- |",

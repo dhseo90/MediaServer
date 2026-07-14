@@ -94,7 +94,7 @@ check("failure fixture records first failure and later phases as not-run", () =>
   assertIncludes(run.stdout, "[progress] (1/9) preflight test; remaining=8", "failure fixture progress");
   assertIncludes(run.stdout, "[progress] (5/9) integrated-smoke test; remaining=4", "failure fixture progress");
   const summary = readJson(run.summaryPath);
-  assert(summary.schema === "media-server.v390-server-longrun.v1", "unexpected summary schema");
+  assert(summary.schema === "media-server.v390-server-longrun.v2", "unexpected summary schema");
   assert(summary.result === "FAIL", "failure fixture summary result must be FAIL");
   assert(summary.stopOnFirstFail === true, "summary must set stopOnFirstFail=true");
   assert(summary.failedPhase === "integrated-smoke", "failedPhase must be integrated-smoke");
@@ -138,6 +138,9 @@ check("pass fixture writes complete summary and report without claiming real lon
   assert(summary.result === "PASS", "pass fixture summary result must be PASS");
   assert(summary.durationMinutes === 30, "fixture durationMinutes must preserve requested duration");
   assert(summary.realDurationEvidence === false, "fixture pass must not claim real duration evidence");
+  assert(summary.durationEvidence?.schema === "media-server.v390-monotonic-duration-evidence.v1", "fixture duration measurement schema missing");
+  assert(summary.durationEvidence?.eligibleRealDuration === false, "fixture duration measurement became eligible");
+  assert(summary.iterationEvidence?.valid === false, "fixture without delegated steps invented an iteration ledger");
   assert(summary.longrunEvidenceStatus === "fixture-only-not-real-duration", "fixture status must not overclaim");
   assert(summary.cleanup.verificationSource === "fixture-filesystem-and-port-observation", "fixture cleanup source mismatch");
   for (const phase of summary.phases) {
@@ -576,7 +579,7 @@ function finish() {
   const results = runChecks();
   console.log("");
   console.log("== v3.9.0 server longrun runner contract summary ==");
-  console.log("- schema: media-server.v390-server-longrun.v1");
+  console.log("- schema: media-server.v390-server-longrun.v2");
   console.log(`- command: ${command}`);
   console.log(`- contractCommand: ${contractCommand}`);
   console.log("- realDurationEvidence: not-run-by-this-command");

@@ -498,6 +498,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_v390_evidence_test_gate_prep.mjs",
     "verify_v390_server_longrun.mjs",
     "verify_v390_server_longrun_runner_contract.mjs",
+    "verify_v390_longrun_evidence_measurement_contract.mjs",
     "verify_v390_ui_automation.mjs",
     "verify_v390_ui_automation_report.mjs",
     "verify_v390_ui_automation_runner_contract.mjs",

@@ -20,6 +20,12 @@ import {
   sha256Text,
 } from "./evidence_integrity_lib.mjs";
 import { evaluateV390FullSuiteEligibility } from "./v390_full_suite_eligibility_lib.mjs";
+import {
+  evaluateLongrun120Decision,
+  validateCleanupMeasurement,
+  validateIterationLedger,
+  validateMonotonicDurationEvidence,
+} from "./v390_longrun_evidence_measurement_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -56,13 +62,16 @@ Options:
   --ui-server-log <path>       Throwaway server log used by exact evidence attestation.
   --ui-server-pid <pid>        Throwaway media_server PID owned by this acceptance run and stopped after UI.
   --ui-rtsp-port <port>        Throwaway RTSP port verified clean after UI.
+  --ui-temporary-root <path>   Throwaway server registry/clip/snapshot root measured and removed after UI.
   --ui-playwright-module-path <path>  Optional native Playwright package directory.
   --ui-chrome-path <path>      Optional native Chrome/Chromium executable.
   --ui-build-path <path>       Built media_server fingerprint. Default build/media_server.
   --run-120                    Execute the conditional 120-minute phase after 30-minute and UI success.
+  --user-directed-120          Record an explicit AGENTS 7.6.2 user-directive trigger; combine with --run-120 to execute.
   --fixture-pass               Fast actual-mode orchestration fixture; not duration/UI evidence.
   --fixture-fail-stage <id>    Fail one stage and record later ordinary stages as not-run.
   --fixture-cleanup-fail       Make cleanup fail in fixture mode.
+  --fixture-120-trigger        Contract-only cleanup/port change-scope trigger; not execution evidence.
   -h, --help                   Show help.
 
 Actual order:
@@ -73,7 +82,8 @@ Actual order:
 Boundaries:
   - First ordinary stage failure makes later ordinary stages not-run; cleanup/report always run.
   - UI automation is not Codex in-app manual UI fulltest evidence.
-  - Current final actual mode requires a clean worktree; 120 minutes follows the AGENTS 7.6.2 condition or --run-120.
+  - Current final actual mode requires a clean worktree; AGENTS 7.6.2 scope decides whether 120 minutes is required.
+  - --run-120 authorizes execution only after a 7.6.2 trigger; the flag cannot create the trigger.
   - Published metadata and release actions are never run here.
 `);
 }
@@ -86,13 +96,16 @@ assertKnownOptions(rawArgs, [
   "ui-server-log",
   "ui-server-pid",
   "ui-rtsp-port",
+  "ui-temporary-root",
   "ui-playwright-module-path",
   "ui-chrome-path",
   "ui-build-path",
   "run-120",
+  "user-directed-120",
   "fixture-pass",
   "fixture-fail-stage",
   "fixture-cleanup-fail",
+  "fixture-120-trigger",
   "h",
   "help",
 ]);
@@ -115,6 +128,7 @@ let longrun30Summary = null;
 let uiAutomationSummary = null;
 let policyEvaluation = null;
 let longrun120Summary = null;
+let longrun120Decision = null;
 
 const sourceProvenance = collectSourceProvenance(rootDir);
 const priorFirstFailure = options.dryRun ? null : readPriorFirstFailure();
@@ -143,11 +157,11 @@ async function runActualBundle() {
   for (const stageId of stageIds) {
     const ordinary = !["ui-server-cleanup", "cleanup", "report"].includes(stageId);
     const skipForPreviousFailure = ordinary && failedStage !== "";
-    const skipConditional120 = stageId === "server-longrun-120" && !options.run120;
+    const skipConditional120 = stageId === "server-longrun-120" && longrun120Decision?.executionDecision !== "run";
     if (skipForPreviousFailure || skipConditional120) {
-      stages.push(notRunStage(stageId, skipConditional120
-        ? "120-minute condition not selected; --run-120 not provided"
-        : `not run after ${failedStage} failure`));
+      stages.push(notRunStage(stageId, skipForPreviousFailure
+        ? `not run after ${failedStage} failure`
+        : `120-minute execution decision: ${longrun120Decision?.executionDecision || "not-evaluated"}`));
       printProgress(stageId, "not-run");
       continue;
     }
@@ -200,6 +214,7 @@ async function runRealStage(stageId) {
         ["--ui-server-log", options.uiServerLog],
         ["--ui-server-pid", options.uiServerPid],
         ["--ui-rtsp-port", options.uiRtspPort],
+        ["--ui-temporary-root", options.uiTemporaryRoot],
       ].filter(([, value]) => !value).map(([name]) => name);
       if (missingUiInputs.length > 0) {
         recordFailure(stageId, "preflight", `canonical exact UI inputs missing: ${missingUiInputs.join(", ")}`);
@@ -208,6 +223,10 @@ async function runRealStage(stageId) {
       const base = new URL(options.uiHttpBase);
       if (!["127.0.0.1", "localhost", "::1"].includes(base.hostname)) {
         recordFailure(stageId, "preflight", "canonical exact UI server must be loopback throwaway state");
+        return;
+      }
+      if (!isAllowedUiTemporaryRoot(path.resolve(options.uiTemporaryRoot))) {
+        recordFailure(stageId, "preflight", "--ui-temporary-root must be a contained temporary path named media_server_v390_ui-*");
         return;
       }
     }
@@ -301,13 +320,12 @@ async function runRealStage(stageId) {
   }
 
   if (stageId === "longrun-120-decision") {
-    stages.push(passStage(stageId, "evaluate AGENTS 7.6.2 120-minute condition", {
-      decision: options.run120 ? "run" : "not-required",
-      directEvidence: options.run120
-        ? "explicit --run-120 option"
-        : "test-tooling-only change; no media/session/runtime drift signal",
-      passSubstitution: false,
-    }));
+    longrun120Decision = evaluateLongrun120Decision({ scope: buildLongrun120Scope(), runRequested: options.run120 });
+    if (!longrun120Decision.valid || longrun120Decision.executionDecision === "hold-awaiting-approval") {
+      recordFailure(stageId, "evaluate AGENTS 7.6.2 change scope", JSON.stringify(longrun120Decision));
+    } else {
+      stages.push(passStage(stageId, "evaluate AGENTS 7.6.2 change scope", longrun120Decision));
+    }
     return;
   }
 
@@ -395,11 +413,12 @@ async function runFixtureStage(stageId) {
     return;
   }
   if (stageId === "longrun-120-decision") {
-    stages.push(passStage(stageId, "fixture 120-minute decision", {
-      decision: options.run120 ? "run" : "not-required",
-      directEvidence: options.run120 ? "fixture --run-120" : "fixture no 120 trigger",
-      passSubstitution: false,
-    }));
+    longrun120Decision = evaluateLongrun120Decision({ scope: buildLongrun120Scope(), runRequested: options.run120 });
+    if (!longrun120Decision.valid || longrun120Decision.executionDecision === "hold-awaiting-approval") {
+      recordFailure(stageId, "fixture AGENTS 7.6.2 change scope", JSON.stringify(longrun120Decision));
+    } else {
+      stages.push(passStage(stageId, "fixture AGENTS 7.6.2 change scope", longrun120Decision));
+    }
     return;
   }
   stages.push(passStage(stageId, `fixture pass ${stageId}`, { fixture: true }));
@@ -574,7 +593,9 @@ function buildActualSummary() {
     longrun30: childEvidence("server-longrun-30", longrun30Summary),
     uiAutomation: childEvidence("ui-exact-424", uiAutomationSummary),
     longrun120: {
-      decision: options.run120 ? "run" : "not-required",
+      decision: longrun120Decision,
+      policyDecision: longrun120Decision?.policyDecision || "미확인",
+      executionDecision: longrun120Decision?.executionDecision || "not-evaluated",
       status: stageStatus("server-longrun-120"),
       summaryPath: longrun120Summary?.summaryPath || "",
       passSubstitution: false,
@@ -648,16 +669,72 @@ function writeDryRun() {
 
 function validateLongrunSummary(payload, durationMinutes, childDir) {
   const errors = [];
-  if (payload?.schema !== "media-server.v390-server-longrun.v1") errors.push("longrun schema mismatch");
+  if (payload?.schema !== "media-server.v390-server-longrun.v2") errors.push("longrun schema mismatch");
   if (payload?.result !== "PASS") errors.push("longrun result is not PASS");
   if (Number(payload?.durationMinutes) !== durationMinutes) errors.push("longrun duration mismatch");
   if (payload?.realDurationEvidence !== true) errors.push("realDurationEvidence is not true");
+  errors.push(...validateMonotonicDurationEvidence(payload?.durationEvidence));
+  errors.push(...validateIterationLedger(payload?.iterationEvidence?.ledger, payload?.delegatedSteps));
+  if (payload?.iterationEvidence?.valid !== true) errors.push("longrun iteration evidence is not valid");
   if (payload?.stopOnFirstFail !== true) errors.push("longrun stopOnFirstFail is not true");
   if (payload?.cleanup?.serverStopped !== true || payload?.cleanup?.portsClean !== true || payload?.cleanup?.temporaryArtifactsRemoved !== true) errors.push("longrun cleanup incomplete");
-  if (payload?.cleanup?.verificationSource !== "predev-summary-filesystem-and-port-observation") errors.push("longrun cleanup is not measured");
+  if (payload?.cleanup?.verificationSource !== "pid-port-artifact-before-after-observation") errors.push("longrun cleanup is not measured");
+  errors.push(...validateCleanupMeasurement(payload?.cleanup?.measurement));
   if (!Array.isArray(payload?.cleanup?.checks) || payload.cleanup.checks.some(item => item.status !== "PASS")) errors.push("longrun measured cleanup checks incomplete");
   if (!fs.existsSync(path.join(childDir, "report.md"))) errors.push("longrun report missing");
-  return errors;
+  return [...new Set(errors)];
+}
+
+function buildLongrun120Scope() {
+  const changedAreas = [];
+  const changedFiles = [];
+  let baseCommit = "";
+  let sourceComplete = true;
+  if (fixtureMode) {
+    if (options.fixture120Trigger) changedFiles.push("scripts/internal/verify_v390_server_longrun.mjs");
+  } else {
+    try {
+      const scopeDecision = readJson(path.join(rootDir, "test/fixtures/v390_structure_execution_scope_decision.json"));
+      baseCommit = String(scopeDecision.executionBase?.commit || "");
+      const output = execFileSync("git", ["diff", "--name-only", `${baseCommit}..HEAD`], { cwd: rootDir, encoding: "utf8" });
+      changedFiles.push(...output.split(/\r?\n/).filter(Boolean));
+    } catch {
+      sourceComplete = false;
+    }
+  }
+  const cleanupFiles = changedFiles.filter(file => [
+    "scripts/internal/verify_predev_stability.sh",
+    "scripts/internal/verify_v390_server_longrun.mjs",
+    "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+    "scripts/internal/verify_v390_final_evidence_integrity.mjs",
+  ].includes(file));
+  if (cleanupFiles.length > 0) {
+    changedAreas.push({
+      category: "cleanup-port-lifecycle",
+      featureIds: ["OPS-168", "SAFE-201", "SAFE-212"],
+      files: cleanupFiles,
+      modules: ["predev-server-lifecycle", "longrun-cleanup", "acceptance-cleanup"],
+    });
+  }
+  const upstreamSignals = [];
+  if (longrun30Summary && (longrun30Summary.cleanup?.status !== "PASS" || longrun30Summary.durationEvidence?.eligibleRealDuration !== true)) {
+    upstreamSignals.push({ id: "longrun-30-duration-cleanup-drift", status: "trigger" });
+  }
+  return {
+    schema: "media-server.v390-longrun-120-scope.v1",
+    sourceComplete,
+    source: {
+      baseCommit,
+      headCommit: sourceProvenance.commitSha,
+      changedFiles,
+      policy: "AGENTS.md#7.6.2",
+    },
+    userDirective: options.userDirected120,
+    releaseGate: false,
+    mappedFeatureIds: [],
+    changedAreas,
+    upstreamSignals,
+  };
 }
 
 function validateExactUiSummary(payload, childDir) {
@@ -676,47 +753,110 @@ async function stopUiThrowawayServer() {
   const pid = Number(options.uiServerPid || 0);
   const httpPort = Number(new URL(options.uiHttpBase).port || 80);
   const rtspPort = Number(options.uiRtspPort || 0);
-  const checks = [];
-  let running = Number.isInteger(pid) && pid > 1;
-  if (running) {
-    try { process.kill(pid, 0); }
-    catch { running = false; }
-  }
-  if (running) {
-    const commandLine = execFileSync("ps", ["-p", String(pid), "-o", "command="], { encoding: "utf8" }).trim();
-    if (!/(?:^|\/)media_server(?:\s|$)/.test(commandLine)) {
-      return measuredUiCleanup(false, false, [{ check: "throwaway-process-identity", status: "FAIL", pid, commandLine }]);
+  const temporaryRoot = path.resolve(options.uiTemporaryRoot || ".");
+  const contained = isAllowedUiTemporaryRoot(temporaryRoot);
+  const existedBefore = contained && fs.existsSync(temporaryRoot);
+  const before = existedBefore ? scanArtifactTree(temporaryRoot) : { totalBytes: 0 };
+  const aliveBefore = Number.isInteger(pid) && pid > 1 && processIsAlive(pid);
+  let commandIdentity = "";
+  if (aliveBefore) {
+    try {
+      commandIdentity = execFileSync("ps", ["-p", String(pid), "-o", "command="], { encoding: "utf8" }).trim();
+    } catch {
+      commandIdentity = "";
     }
+  }
+  const commandOwned = /(?:^|\/)media_server(?:\s|$)/.test(commandIdentity);
+  const portBefore = [httpPort, rtspPort].map(port => ({ port, listenerPidsBefore: listListenerPids(port) }));
+  const portsOwned = portBefore.every(item => item.listenerPidsBefore.length > 0 &&
+    item.listenerPidsBefore.every(ownerPid => ownerPid === pid));
+  let aliveAfter = aliveBefore;
+  if (aliveBefore && commandOwned && portsOwned && contained && existedBefore) {
     process.kill(pid, "SIGTERM");
     const deadline = Date.now() + 10000;
-    while (Date.now() < deadline) {
-      try { process.kill(pid, 0); }
-      catch { running = false; break; }
+    while (Date.now() < deadline && processIsAlive(pid)) {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
+    aliveAfter = processIsAlive(pid);
+    if (!aliveAfter) fs.rmSync(temporaryRoot, { recursive: true, force: true });
   }
-  const httpClean = await canListenPort(httpPort);
-  const rtspClean = await canListenPort(rtspPort);
-  checks.push(
-    { check: "throwaway-server-stopped", status: running ? "FAIL" : "PASS", pid, observed: !running },
-    { check: "throwaway-http-port-clean", status: httpClean ? "PASS" : "FAIL", port: httpPort, observed: httpClean },
-    { check: "throwaway-rtsp-port-clean", status: rtspClean ? "PASS" : "FAIL", port: rtspPort, observed: rtspClean },
-  );
-  return measuredUiCleanup(!running, httpClean && rtspClean, checks);
-}
-
-function measuredUiCleanup(serversStopped, portsClean, checks) {
-  const temporaryArtifactsRemoved = true;
-  const status = serversStopped && portsClean && checks.every(item => item.status === "PASS") ? "PASS" : "FAIL";
+  const ports = [];
+  for (const item of portBefore) {
+    ports.push({
+      ...item,
+      listenerPidsAfter: listListenerPids(item.port),
+      bindableAfter: await canListenPort(item.port),
+    });
+  }
+  const existsAfter = fs.existsSync(temporaryRoot);
+  const after = existsAfter ? scanArtifactTree(temporaryRoot) : { totalBytes: 0 };
+  const measurement = {
+    schema: "media-server.v390-cleanup-measurement.v1",
+    processes: [{
+      pid,
+      commandIdentity,
+      aliveBefore,
+      aliveAfter,
+      ownedPorts: portBefore.filter(item => item.listenerPidsBefore.includes(pid)).map(item => item.port),
+    }],
+    ports,
+    artifacts: [{
+      path: temporaryRoot,
+      contained,
+      existedBefore,
+      bytesBefore: Number(before.totalBytes || 0),
+      existsAfter,
+      bytesAfter: Number(after.totalBytes || 0),
+      removedBytes: Number(before.totalBytes || 0) - Number(after.totalBytes || 0),
+    }],
+  };
+  const measurementErrors = validateCleanupMeasurement(measurement);
+  const checks = [
+    { check: "throwaway-process-identity", status: commandOwned ? "PASS" : "FAIL", pid, commandIdentity },
+    { check: "throwaway-process-alive-before", status: aliveBefore ? "PASS" : "FAIL", pid, observed: aliveBefore },
+    { check: "throwaway-port-ownership-before", status: portsOwned ? "PASS" : "FAIL", pid, ports: portBefore },
+    { check: "throwaway-temporary-root-contained", status: contained && existedBefore ? "PASS" : "FAIL", path: temporaryRoot, contained, existedBefore, bytesBefore: Number(before.totalBytes || 0) },
+    { check: "throwaway-server-stopped", status: aliveBefore && !aliveAfter ? "PASS" : "FAIL", pid, observed: !aliveAfter },
+    ...ports.map(item => ({ check: `throwaway-port-${item.port}-clean`, status: item.listenerPidsAfter.length === 0 && item.bindableAfter ? "PASS" : "FAIL", ...item })),
+    { check: "throwaway-temporary-root-removed", status: existedBefore && !existsAfter && Number(after.totalBytes || 0) === 0 ? "PASS" : "FAIL", path: temporaryRoot, bytesBefore: Number(before.totalBytes || 0), bytesAfter: Number(after.totalBytes || 0) },
+    ...measurementErrors.map(error => ({ check: `measurement-${error}`, status: "FAIL", observed: error })),
+  ];
+  const serversStopped = aliveBefore && !aliveAfter;
+  const portsClean = ports.every(item => item.listenerPidsAfter.length === 0 && item.bindableAfter);
+  const temporaryArtifactsRemoved = existedBefore && !existsAfter && Number(after.totalBytes || 0) === 0;
+  const status = serversStopped && portsClean && temporaryArtifactsRemoved && checks.every(item => item.status === "PASS") ? "PASS" : "FAIL";
   return {
     status,
-    verificationSource: "filesystem-and-port-observation",
+    verificationSource: "pid-port-artifact-before-after-observation",
     serversStopped,
     coreServerStopped: serversStopped,
     portsClean,
     temporaryArtifactsRemoved,
+    removedTemporaryArtifacts: temporaryArtifactsRemoved ? [temporaryRoot] : [],
+    measurement,
+    measurementErrors,
     checks,
   };
+}
+
+function processIsAlive(pid) {
+  try { process.kill(pid, 0); return true; }
+  catch { return false; }
+}
+
+function listListenerPids(port) {
+  if (!Number.isInteger(port) || port <= 0 || port > 65535) return [];
+  try {
+    return [...new Set(execFileSync("lsof", ["-nP", `-iTCP:${port}`, "-sTCP:LISTEN", "-t"], { encoding: "utf8" })
+      .split(/\r?\n/).map(value => Number(value.trim())).filter(Number.isInteger))];
+  } catch {
+    return [];
+  }
+}
+
+function isAllowedUiTemporaryRoot(candidate) {
+  const allowedRoots = [...new Set([os.tmpdir(), "/tmp", "/private/tmp"].map(value => path.resolve(value)))];
+  return path.basename(candidate).startsWith("media_server_v390_ui-") && allowedRoots.some(root => isInside(root, candidate));
 }
 
 function canListenPort(port) {
@@ -736,9 +876,12 @@ function validateChildCleanup() {
   if (!fixtureMode && longrun30Summary && (longrun30Summary.cleanup?.serverStopped !== true || longrun30Summary.cleanup?.portsClean !== true || longrun30Summary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("30-minute child cleanup failed");
   if (!fixtureMode && uiAutomationSummary && (uiAutomationSummary.cleanup?.serversStopped !== true || uiAutomationSummary.cleanup?.portsClean !== true || uiAutomationSummary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("UI child cleanup failed");
   if (!fixtureMode && longrun120Summary && (longrun120Summary.cleanup?.serverStopped !== true || longrun120Summary.cleanup?.portsClean !== true || longrun120Summary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("120-minute child cleanup failed");
-  if (!fixtureMode && longrun30Summary?.cleanup?.verificationSource !== "predev-summary-filesystem-and-port-observation") errors.push("30-minute child cleanup source is not measured");
-  if (!fixtureMode && uiAutomationSummary?.cleanup?.verificationSource !== "filesystem-and-port-observation") errors.push("UI child cleanup source is not measured");
-  if (!fixtureMode && longrun120Summary && longrun120Summary.cleanup?.verificationSource !== "predev-summary-filesystem-and-port-observation") errors.push("120-minute child cleanup source is not measured");
+  if (!fixtureMode && longrun30Summary?.cleanup?.verificationSource !== "pid-port-artifact-before-after-observation") errors.push("30-minute child cleanup source is not measured");
+  if (!fixtureMode && uiAutomationSummary?.cleanup?.verificationSource !== "pid-port-artifact-before-after-observation") errors.push("UI child cleanup source is not measured");
+  if (!fixtureMode && longrun120Summary && longrun120Summary.cleanup?.verificationSource !== "pid-port-artifact-before-after-observation") errors.push("120-minute child cleanup source is not measured");
+  if (!fixtureMode && longrun30Summary) errors.push(...validateCleanupMeasurement(longrun30Summary.cleanup?.measurement).map(error => `30-minute ${error}`));
+  if (!fixtureMode && uiAutomationSummary) errors.push(...validateCleanupMeasurement(uiAutomationSummary.cleanup?.measurement).map(error => `UI ${error}`));
+  if (!fixtureMode && longrun120Summary) errors.push(...validateCleanupMeasurement(longrun120Summary.cleanup?.measurement).map(error => `120-minute ${error}`));
   return errors;
 }
 
@@ -1000,14 +1143,14 @@ function buildFeatureCommands() {
 
 function buildFinalAcceptanceCommandSet() {
   return [
-    { id: "actual-bundle", command: "./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final --ui-http-base <loopback-url> --ui-role-state-map <roles.json> --ui-server-log <server.log> --ui-server-pid <pid> --ui-rtsp-port <port> [--run-120]", status: "actual-execution" },
+    { id: "actual-bundle", command: "./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final --ui-http-base <loopback-url> --ui-role-state-map <roles.json> --ui-server-log <server.log> --ui-server-pid <pid> --ui-rtsp-port <port> --ui-temporary-root <media_server_v390_ui-*> [--user-directed-120] [--run-120]", status: "actual-execution" },
     { id: "build", command: "./server.sh build", status: "executed-by-actual-bundle" },
     { id: "feature-gates", command: `${featureCommands.length} current feature commands`, status: "executed-by-actual-bundle" },
     { id: "server-longrun-30", command: "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir <run>/server-longrun-30", status: "executed-by-actual-bundle" },
     { id: "ui-exact-424", command: "./server.sh run-v390-ui-native-exact-cases --output-dir <run>/ui-exact-424 --http-base <loopback-url> --role-state-map <roles.json> --server-log <server.log> --build-path <build>", status: "executed-by-actual-bundle" },
-    { id: "ui-server-cleanup", command: "stop explicit throwaway media_server PID and verify HTTP/RTSP ports clean", status: "executed-by-actual-bundle" },
+    { id: "ui-server-cleanup", command: "verify explicit PID/port ownership, stop throwaway media_server, remove contained artifact root, and measure before/after bytes", status: "executed-by-actual-bundle" },
     { id: "ui-fulltest-qualification", command: "./server.sh verify-ui-fulltest-evidence-policy-v4 --summary <run>/ui-exact-424/summary.json --output-dir <run>/ui-fulltest-qualification --require-eligible", status: "executed-by-actual-bundle" },
-    { id: "server-longrun-120", command: "./server.sh verify-v390-server-longrun --duration-minutes 120 --output-dir <run>/server-longrun-120", status: options.run120 ? "executed-by-actual-bundle" : "conditional-not-run" },
+    { id: "server-longrun-120", command: "./server.sh verify-v390-server-longrun --duration-minutes 120 --output-dir <run>/server-longrun-120", status: "AGENTS-7.6.2-runtime-decision" },
     { id: "final-integrity", command: "./server.sh verify-v390-final-evidence-integrity --summary <acceptance-summary.json>", status: "executed-by-actual-bundle" },
   ];
 }
@@ -1021,13 +1164,16 @@ function parseArgs(args) {
     uiServerLog: "",
     uiServerPid: "",
     uiRtspPort: "",
+    uiTemporaryRoot: "",
     uiPlaywrightModulePath: "",
     uiChromePath: "",
     uiBuildPath: "build/media_server",
     run120: false,
+    userDirected120: false,
     fixturePass: false,
     fixtureFailStage: "",
     fixtureCleanupFail: false,
+    fixture120Trigger: false,
   };
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
@@ -1038,16 +1184,19 @@ function parseArgs(args) {
     else if (arg === "--ui-server-log") { parsed.uiServerLog = args[index + 1] || ""; index += 1; }
     else if (arg === "--ui-server-pid") { parsed.uiServerPid = args[index + 1] || ""; index += 1; }
     else if (arg === "--ui-rtsp-port") { parsed.uiRtspPort = args[index + 1] || ""; index += 1; }
+    else if (arg === "--ui-temporary-root") { parsed.uiTemporaryRoot = args[index + 1] || ""; index += 1; }
     else if (arg === "--ui-playwright-module-path") { parsed.uiPlaywrightModulePath = args[index + 1] || ""; index += 1; }
     else if (arg === "--ui-chrome-path") { parsed.uiChromePath = args[index + 1] || ""; index += 1; }
     else if (arg === "--ui-build-path") { parsed.uiBuildPath = args[index + 1] || ""; index += 1; }
     else if (arg === "--run-120") parsed.run120 = true;
+    else if (arg === "--user-directed-120") parsed.userDirected120 = true;
     else if (arg === "--fixture-pass") parsed.fixturePass = true;
     else if (arg === "--fixture-fail-stage") { parsed.fixtureFailStage = args[index + 1] || ""; index += 1; }
     else if (arg === "--fixture-cleanup-fail") parsed.fixtureCleanupFail = true;
+    else if (arg === "--fixture-120-trigger") parsed.fixture120Trigger = true;
   }
   assert(parsed.dryRun || parsed.outputDir !== "", "--output-dir is required for actual mode");
-  assert(!(parsed.dryRun && (parsed.fixturePass || parsed.fixtureFailStage || parsed.fixtureCleanupFail || parsed.run120)), "--dry-run cannot be combined with actual fixture/run options");
+  assert(!(parsed.dryRun && (parsed.fixturePass || parsed.fixtureFailStage || parsed.fixtureCleanupFail || parsed.fixture120Trigger || parsed.run120 || parsed.userDirected120)), "--dry-run cannot be combined with actual fixture/run options");
   assert(!(parsed.fixturePass && parsed.fixtureFailStage), "--fixture-pass and --fixture-fail-stage are mutually exclusive");
   if (parsed.fixtureFailStage) assert(stageIds.includes(parsed.fixtureFailStage) && !["ui-server-cleanup", "cleanup", "report"].includes(parsed.fixtureFailStage), "unknown or invalid --fixture-fail-stage");
   return parsed;

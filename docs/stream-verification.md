@@ -67,6 +67,7 @@ published metadata, release action evidence가 아닙니다.
 | V390-REVIEW4-57 | `./server.sh verify-v390-ui-native-exact-cases-contract`, `./server.sh verify-v390-ui-policy-v4-producer-contract`, `./server.sh verify-ui-fulltest-evidence-policy-v4-contract` | Requested canonical `route/accountRole/viewport/theme/controlAction`과 runtime observed `screenRoute/accountRole/viewport/theme/controlAction/provenance`를 서로 다른 exact projection으로 검증합니다. Runner는 browser URL, `/auth/whoami`, 실제 viewport, media-query theme, DOM control state를 수집하고 legacy alias/requested 복사/누락·추가 field/adapter tool-engine drift를 거부합니다. Contract와 plan-only는 actual exact 424 UI, 58 completion, 59 visual, 60 Policy 독립성, 30분/120분 evidence가 아닙니다 |
 | V390-REVIEW4-59 | `./server.sh verify-v390-ui-visual-evidence-contract`, `./server.sh verify-v390-ui-native-adapter-contract`, `./server.sh verify-v390-ui-policy-v4-producer-contract`, `./server.sh verify-ui-fulltest-evidence-policy-v4-contract` | Canonical/native-bound 대표 route 10개를 320/390/760/1180×light/dark로 확장한 exact 80-probe v2 plan을 검증합니다. 실제 `data-theme`, screenshot pixel 정보량, geometry/contrast/focus/overflow를 재계산하고 `/client/live`는 tile `data-view-id`와 session/answer URL `viewId`, session 응답과 answer URL `sessionId`가 모두 같은 VA session, live track/frame progress, contain content rect, placeholder/control containment을 요구합니다. 합성 contract와 424 plan-only는 actual browser capture나 exact 424 UI/30분/120분 PASS가 아닙니다 |
 | V390-REVIEW4-60 | `./server.sh verify-v390-ui-policy-v4-independence-contract`, `./server.sh verify-v390-ui-policy-v4-producer-contract`, `./server.sh verify-ui-fulltest-evidence-policy-v4-contract` | Producer는 raw trace/action/network/readback/visual capture만 보존하고 qualifier는 별도 모듈에서 exact action·selector·request/response·fresh semantic readback·requested/observed·visual을 재계산합니다. Producer의 result/replay/completion/visual/current-source self-claim은 PASS 입력이 아닙니다. Contract 10/0·8/0·20/0은 source readiness이며 actual exact 424 browser와 80-probe capture, 30분/120분 PASS가 아닙니다 |
+| V390-REVIEW4-61 | `./server.sh verify-v390-longrun-evidence-measurement-contract`, `./server.sh verify-v390-server-longrun-runner-contract`, `./server.sh verify-v390-test-acceptance-bundle-contract`, `./server.sh verify-v390-final-evidence-integrity-contract` | Longrun v2 summary는 runner `process.hrtime.bigint`와 delegated Bash `SECONDS` monotonic 시작/종료/경과시간, requested duration, exact ordered iteration ledger와 delegated step ledger를 함께 검증합니다. 120분 정책 필요성은 AGENTS 7.6.2 change-scope trigger에서 계산하고 `--run-120`은 trigger 생성이 아닌 실행 승인만 표현합니다. Cleanup은 허용된 command identity/PID, listener owner 전후, bindable port, contained artifact의 `bytesBefore`/`bytesAfter`를 raw measurement로 기록하고 acceptance/final integrity가 독립 재검증합니다. Contract/fixture는 실제 30분/120분 또는 UI 실행 evidence가 아닙니다 |
 | v3.9.0 (13) | `./server.sh verify-v390-vlm-rule-suggestion-draft-bridge` | VLM rule suggestion draft bridge. `/ops/api/vlm/rule-suggestion-draft-bridge`와 `/ops/rules`가 review-to-draft bridge, incident review provenance, manual-save-only boundary를 표시하고 기존 `/ops/api/vlm/rule-suggestion-drafts` workflow를 유지하는지 확인합니다. rule/profile registry write, auto-apply, provider/runtime call, client/viewer exposure, EventRecord/Event POST/WebRTC/SSE/WS/schema/media 변경, UI 풀테스트 직접 조작, 30분/120분 longrun evidence가 아닙니다 |
 | v3.9.0 (14) | `./server.sh verify-v390-vlm-evaluation-promotion-guard` | VLM evaluation promotion guard. `/ops/api/vlm/evaluation-promotion-guard`와 `/ops/vlm`가 `server-verified-evaluation-promotion`, `operator-select-candidate-then-server-verify-save`, candidate-reference-only boundary를 표시하는지 확인합니다. 실제 forged request HTTP matrix는 V390-ADD1-03 verifier가 담당하며 UI 풀테스트·장시간 evidence가 아닙니다 |
 | V390-REVIEW3-39 profile JSON | `./server.sh verify-v390-vlm-promotion-trust-boundary` | 14개 PUT/GET promotion, exact/escaped duplicate·nested-shadow·malformed·trailing structural save 7개, restart full-contract/structure quarantine 13개를 실행합니다. Strict parser는 exact top-level/object scope와 decoded key type을 사용합니다. runtime/provider/sidecar 호출, client/viewer payload, Event POST/WebRTC/SSE/WS/media/API schema 변경, UI 풀테스트 직접 조작, 30분/120분 evidence가 아닙니다 |
@@ -395,8 +396,8 @@ server longrun→exact 424 Policy v4 producer→throwaway server cleanup→Polic
 
 - `./server.sh verify-v390-test-acceptance-bundle --dry-run`
 - `./server.sh verify-v390-test-acceptance-bundle --dry-run --output-dir <path>`
-- `./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final --ui-http-base <loopback-url> --ui-role-state-map <roles.json> --ui-server-log <server.log> --ui-server-pid <pid> --ui-rtsp-port <port>`
-- 위 canonical command에 AGENTS 7.6.2 trigger가 있으면 `--run-120` 추가
+- `./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final --ui-http-base <loopback-url> --ui-role-state-map <roles.json> --ui-server-log <server.log> --ui-server-pid <pid> --ui-rtsp-port <port> --ui-temporary-root <media_server_v390_ui-*>`
+- 위 canonical command에 AGENTS 7.6.2 trigger와 실행 승인이 모두 있으면 `--run-120` 추가. Flag만으로 trigger를 만들 수 없습니다.
 - `./server.sh verify-v390-test-acceptance-bundle-contract`
 
 R3 summary schema is `media-server.v390-test-acceptance-bundle.v1`. Dry-run은 command/schema
@@ -409,8 +410,8 @@ Boundary: dry-run does not execute build, feature gates, 30-minute, exact 424 UI
 published metadata, or release-action suites. Actual mode의 `result=PASS`는 명령이 실행한
 자동 acceptance stage와 cleanup PASS입니다. `knownUiClosureBlockers`가 남으면
 `automatedAcceptanceStatus=executed-with-known-ui-closure-blockers`로 분리하며 UI 풀테스트
-직접 조작, published metadata, release action PASS가 아닙니다. 120분은 `--run-120`과
-AGENTS 7.6.2 직접 근거가 있을 때만 실행합니다.
+직접 조작, published metadata, release action PASS가 아닙니다. 120분은 AGENTS 7.6.2 직접 trigger와
+실행 승인이 함께 있을 때만 `--run-120`으로 선택합니다.
 
 6~9 통합 후 final run `v390-test-acceptance-20260710100233-58896`은 build, 26개
 current feature gate, 실제 30분 server longrun(`predev pass=118 fail=0 skip=2`, soak
@@ -466,7 +467,7 @@ UI 풀테스트, 30분/120분, published metadata, release action, field smoke�
 | Step | Command | Scope |
 | --- | --- | --- |
 | v3.9.0 (19) | `./server.sh verify-v390-structure-stabilization-handoff` | v3.9.0 structure stabilization handoff. `V390-STRUCT-001`~`V390-STRUCT-005`를 behavior-preserving extraction plan으로 이관하고 route/API/UI extraction implementation, UI 풀테스트, 30분/120분, published metadata evidence를 대체하지 않음 |
-| v3.9.0 (20) | `./server.sh verify-v390-stabilization-release-readiness` | v3.9.0 local stabilization and release readiness. Step 1~19, Development 15~18, Review2-21 verifier, current inventory 986개/acceptance 32-command, release metadata/docs/assets/inventory/evidence/script, close-out dry-run, `git diff --check` companion gate 연결을 확인합니다. current final은 clean worktree에서 stabilization→32개 feature gate→30분→8-case UI automation/replay→120분(`--run-120`)→Policy v4 전체 UI→cleanup/evidence 순서이며 실제 실행 evidence를 대체하지 않음 |
+| v3.9.0 (20) | `./server.sh verify-v390-stabilization-release-readiness` | v3.9.0 local stabilization and release readiness. Step 1~19, Development 15~18, Review2-21 verifier, current inventory 986개, release metadata/docs/assets/inventory/evidence/script, close-out dry-run, `git diff --check` companion gate 연결을 확인합니다. current final은 clean worktree에서 stabilization→current feature gate→30분→exact 424 Policy v4 UI→AGENTS 7.6.2 판정상 필요한 120분→PID/port/artifact cleanup/final integrity 순서이며 실제 실행 evidence를 대체하지 않음 |
 
 ## 현재 v3.8.0 verifier
 
