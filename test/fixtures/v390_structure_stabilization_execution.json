@@ -5,7 +5,7 @@
   "release": "v3.9.0",
   "branch": "v3.9.0",
   "status": "in-progress",
-  "latestCompletedSlice": 4,
+  "latestCompletedSlice": 5,
   "productionRefactorStarted": true,
   "refactorComplete": false,
   "completionClaimed": false,
@@ -35,15 +35,15 @@
   "currentGraph": {
     "path": "test/fixtures/v390_structure_stabilization_current_graph.json",
     "schema": "media-server.v390-structure-stabilization-current-graph.v1",
-    "sha256": "44b3778b5503c7b0d33cd3a4e260c64b42394f971734971fe9a67291c7d80b73",
+    "sha256": "9f8d13fe802bece33d4ffe5b1903e90d50059c45755d9a72af4e1a36d32e59ec",
     "metrics": {
-      "productionFiles": 154,
-      "cppSources": 77,
+      "productionFiles": 156,
+      "cppSources": 78,
       "moduleOwners": 10,
       "cmakeTargets": 1,
-      "targetViolationDirections": 19,
+      "targetViolationDirections": 18,
       "largestSccOwners": 8,
-      "largestMixedOwnerFileLines": 43180,
+      "largestMixedOwnerFileLines": 43072,
       "internalTargetSeparation": false
     }
   },
@@ -363,9 +363,93 @@
     {
       "order": 5,
       "id": "vlm-parser",
-      "status": "not-started",
+      "status": "completed",
       "dependsOn": "ui-script-css",
-      "selectedBoundary": "VLM provenance validator/parser using strict_json"
+      "selectedBoundary": "VLM incident-to-rule provenance validator plus transport-neutral strict JSON utility",
+      "rollbackCommit": "13940ec7ac226ef73f1696dbc31fdc79eb22fa10",
+      "allowedFiles": [
+        "CMakeLists.txt",
+        "include/ingress/strict_json.h",
+        "src/ingress/strict_json.cpp",
+        "include/core/strict_json.h",
+        "src/core/strict_json.cpp",
+        "include/ingress/vlm_incident_rule_provenance.h",
+        "src/ingress/vlm_incident_rule_provenance.cpp",
+        "src/ingress/webrtc_http_server.cpp",
+        "scripts/internal/verify_v390_vlm_incident_rule_provenance.mjs",
+        "scripts/internal/verify_v390_vlm_promotion_trust_boundary.mjs",
+        "scripts/internal/verify_vlm_profile_storage.mjs",
+        "scripts/internal/verify_v390_structure_stabilization_execution.mjs",
+        "test/fixtures/v390_structure_stabilization_current_graph.json",
+        "test/fixtures/v390_structure_stabilization_execution.json",
+        "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md",
+        "docs/development-backlog.md",
+        "docs/project-feature-test-inventory.md",
+        "docs/release-test-records.md",
+        "docs/release-evidence-index.md",
+        "docs/stream-verification.md",
+        "docs/v390-feature-completion-inventory.md"
+      ],
+      "changedFiles": [
+        "CMakeLists.txt",
+        "include/ingress/strict_json.h",
+        "src/ingress/strict_json.cpp",
+        "include/core/strict_json.h",
+        "src/core/strict_json.cpp",
+        "include/ingress/vlm_incident_rule_provenance.h",
+        "src/ingress/vlm_incident_rule_provenance.cpp",
+        "src/ingress/webrtc_http_server.cpp"
+      ],
+      "movedSymbols": [
+        "ingress strict_json transport owner -> core utility source boundary",
+        "ValidateVlmIncidentRuleProvenanceContract -> application-service owner"
+      ],
+      "before": {
+        "targetViolationDirections": 19,
+        "largestSccOwners": 8,
+        "webrtcHttpServerLines": 43180
+      },
+      "after": {
+        "targetViolationDirections": 18,
+        "largestSccOwners": 8,
+        "webrtcHttpServerLines": 43072,
+        "strictJsonOwner": "core-utilities",
+        "provenanceValidatorOwner": "application-service-interfaces"
+      },
+      "baselineDigests": {
+        "validatorSourceSha256": "e318ea5a437c0f2289c5cd0336e796e6ce718d58afb68a9a752d34a21be35826",
+        "validatorSourceBytes": 5811,
+        "strictJsonHeaderSha256": "08afb593177919101fda06cd16ba75e8e586f4c05137479f1196a8a10bba479a",
+        "strictJsonSourceSha256": "018f9d9c5b2acef8e57e408235feade09be7f43ba3283ac2d22869bcfe31eb14"
+      },
+      "contractAssertions": [
+        "duplicate and nested-only provenance remains rejected before write",
+        "event candidate evaluation and generated-rule field requirements and exact error text remain stable",
+        "server-record readback, generated rule id, PUT route, restart quarantine, and privacy-field rejection remain stable",
+        "strict JSON duplicate-key, decoding, nesting, number, and trailing-byte behavior remains unchanged",
+        "provider/runtime calls, rule/profile schemas, EventRecord and media paths remain unchanged"
+      ],
+      "observedFollowups": [
+        "promotion trust and profile storage verifiers referenced the pre-move src/ingress/strict_json.cpp path",
+        "runtime opt-in product checks passed 4/4 but SAFE-025 implementation manifest verifier binding is deferred to Slice 6",
+        "sandbox provenance run could not bind loopback and must be rerun with loopback permission"
+      ],
+      "tests": [
+        {"command":"./server.sh build","status":"pass"},
+        {"command":"./server.sh verify-v390-vlm-incident-rule-provenance","status":"pass","firstAttempt":"sandbox loopback listen EPERM","recovery":"permissioned 127.0.0.1 actual save/restart/no-write matrix; failures 0"},
+        {"command":"./server.sh verify-v390-vlm-promotion-trust-boundary","status":"pass","firstAttempt":"pre-move strict_json source path ENOENT","recovery":"core owner path; HTTP 14, structural rejection 7, reload quarantine 13, failures 0"},
+        {"command":"./server.sh verify-v390-vlm-evaluation-promotion-guard","status":"pass"},
+        {"command":"./server.sh verify-v390-vlm-rule-suggestion-draft-bridge","status":"pass"},
+        {"command":"./server.sh verify-vlm-rule-suggestion-draft-workflow","status":"pass"},
+        {"command":"./server.sh verify-vlm-profile-storage","status":"pass","firstAttempt":"pre-move strict_json source path ENOENT","recovery":"core owner path; 6/0"},
+        {"command":"./server.sh verify-v390-review4-structure-stabilization-execution","status":"pass"},
+        {"command":"./server.sh verify-script-inventory","status":"pass"},
+        {"command":"git diff --check","status":"pass"},
+        {"command":"actual verifier process/listener cleanup","status":"pass"}
+      ],
+      "deferredTests": [
+        {"command":"./server.sh verify-vlm-runtime-opt-in-contract","status":"fail-deferred-to-slice-6","productContractChecks":"4/4 pass","failedCheck":"SAFE-025 implementation manifest verifier command binding","completionEvidence":false}
+      ]
     },
     {
       "order": 6,
@@ -374,6 +458,12 @@
       "dependsOn": "vlm-parser",
       "selectedBoundary": "execution ledger, current/historical evidence split, manual UI archive, VLM index",
       "entryBlockers": [
+        {
+          "command": "./server.sh verify-vlm-runtime-opt-in-contract",
+          "status": "fail",
+          "failedChecks": 1,
+          "reason": "The runtime/default-off product contract passed 4 checks, but SAFE-025 implementation evidence still binds an obsolete verifier command and must be reviewed with the full current evidence in Slice 6"
+        },
         {
           "command": "./server.sh verify-feature-implementation-evidence",
           "status": "fail",

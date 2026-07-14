@@ -35,7 +35,7 @@ const checks = [];
 check("registry persists VLM profiles with strict validation", () => {
   const server = readText("src/ingress/webrtc_http_server.cpp");
   const profilePreparationBlock = extractCppFunctionBlock(server, "std::optional<Document> PrepareVlmProfileDocumentLocked(");
-  const strictJson = readText("src/ingress/strict_json.cpp");
+  const strictJson = readText("src/core/strict_json.cpp");
   const promotion = readText("src/ingress/vlm_evaluation_promotion.cpp");
   const implementation = `${server}\n${promotion}`;
   for (const snippet of [

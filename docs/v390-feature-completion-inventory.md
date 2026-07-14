@@ -187,7 +187,7 @@ Current graph: `test/fixtures/v390_structure_stabilization_current_graph.json`
 
 Execution verifier: `./server.sh verify-v390-review4-structure-stabilization-execution`
 
-Current status: `in-progress-slice-4-completed`
+Current status: `in-progress-slice-5-completed`
 
 - Slice 1 `composition-root`: `src/main.cpp` delegates to
   `media_server::application::RunMediaServerApplication`; build, compiled auth CLI, current graph, historical
@@ -200,12 +200,16 @@ Current status: `in-progress-slice-4-completed`
 - Slice 4 `ui-script-css`: action execution deferral HTML 1,192 bytes와 renderer 5,382 bytes를 focused
   `product_ui_action_execution_deferral` owner로 이동하고 shared CSS SHA, DOM/test-ID/route/read-only 의미를 보존했습니다.
   Build, feature/UI static 28/0, exact 424 contract, Policy v4 20/0, structure oracle를 통과했습니다.
-- Slice 5~6: `not-started`; VLM/parser, verifier/docs를 자동
+- Slice 5 `vlm-parser`: generic strict JSON을 core utility로 이동하고 provenance validator를 application
+  service로 분리했습니다. Actual save/restart/no-write, promotion trust, draft/profile 계약을 통과했습니다.
+- Slice 6: `not-started`; verifier/docs와 current evidence 재결속을 자동
   완료 처리하지 않습니다.
-- Graph delta: target violation direction 25→19, main mixed responsibility 245→8줄, current server
-  43,180줄, product UI page script 10,156줄, largest SCC 8 유지.
+- Graph delta: target violation direction 25→18, main mixed responsibility 245→8줄, current server
+  43,072줄, product UI page script 10,156줄, largest SCC 8 유지.
 - Current feature implementation evidence는 8,752 line/context/blob drift로 FAIL이며 Slice 6에서 재결속해야
   합니다. Negative fixture 15/15만 통과했고 이 결과는 implementation PASS가 아닙니다.
+- Runtime opt-in 제품 계약 4개는 통과했지만 SAFE-025 evidence verifier binding 1건은 같은 Slice 6
+  blocker이며 완료 evidence로 사용하지 않습니다.
 - Actual exact 424 UI, 30분, 조건부 120분, field/published/release action은 미실행이며 Slice 1로
   대체하지 않습니다.
 

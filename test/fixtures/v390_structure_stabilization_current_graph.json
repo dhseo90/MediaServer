@@ -11,8 +11,8 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 154,
-  "expectedCppFiles": 77,
+  "expectedProductionFiles": 156,
+  "expectedCppFiles": 78,
   "moduleClassifiers": [
     {
       "id": "composition-root",
@@ -47,11 +47,13 @@
         "include/ingress/analysis_query.h",
         "src/ingress/analysis_query.cpp",
         "include/ingress/onvif_live_import.h",
-        "src/ingress/onvif_live_import.cpp"
+        "src/ingress/onvif_live_import.cpp",
+        "include/ingress/vlm_incident_rule_provenance.h",
+        "src/ingress/vlm_incident_rule_provenance.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 4,
-      "expectedCppCount": 2
+      "expectedFileCount": 6,
+      "expectedCppCount": 3
     },
     {
       "id": "domain-and-registry-owners",
@@ -99,14 +101,12 @@
         "src/ingress/http_auth.cpp",
         "include/ingress/request_parser.h",
         "src/ingress/request_parser.cpp",
-        "include/ingress/strict_json.h",
-        "src/ingress/strict_json.cpp",
         "include/ingress/webrtc_http_server.h",
         "src/ingress/webrtc_http_server.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 8,
-      "expectedCppCount": 4
+      "expectedFileCount": 6,
+      "expectedCppCount": 3
     },
     {
       "id": "analysis-services",
@@ -131,12 +131,14 @@
         "include/core/resource_guard.h",
         "src/core/resource_guard.cpp",
         "include/core/runtime_debug_counters.h",
+        "include/core/strict_json.h",
+        "src/core/strict_json.cpp",
         "include/core/stream_key.h",
         "src/core/stream_key.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 10,
-      "expectedCppCount": 4
+      "expectedFileCount": 12,
+      "expectedCppCount": 5
     },
     {
       "id": "core-media-interfaces",
@@ -163,15 +165,15 @@
       "expectedCppCount": 12
     }
   ],
-  "expectedFileOwnershipSha256": "0c3a8f8eb7318f1c975b4f5204b7e9ed44c0cf308e8e9076f40c98ce9ebc0019",
+  "expectedFileOwnershipSha256": "d39240489aa09376e9065a09d5ece75db081025c760922263fa1aa3ff995463e",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
       {
         "id": "media_server",
         "type": "executable",
-        "declaredSourceCount": 77,
-        "defaultActiveSourceCount": 76,
+        "declaredSourceCount": 78,
+        "defaultActiveSourceCount": 77,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",
@@ -227,15 +229,15 @@
     },
     {
       "direction": "application-service-interfaces -> analysis-services",
-      "witnessCount": 1,
-      "witnessSha256": "6ede5c5f11096ed470b56881a350d289757ea93d4dadb1c4d0af68d606e7e7a1",
+      "witnessCount": 2,
+      "witnessSha256": "7099702aea99fb3bf285e4cd4f6f30ff390691953aeee7cb6a04049e9eb6883c",
       "allowedByTarget": true
     },
     {
       "direction": "application-service-interfaces -> core-utilities",
-      "witnessCount": 2,
-      "witnessSha256": "d8bde4f518ddb0a9c1107ae5b2a99f0313d21d50be68567d2beb55aa6120665f",
-      "allowedByTarget": false
+      "witnessCount": 3,
+      "witnessSha256": "8aacc42ebfdf9ec8844df22b13ef79afeedee85333ab4324571cb0899a00f604",
+      "allowedByTarget": true
     },
     {
       "direction": "application-service-interfaces -> domain-and-registry-owners",
@@ -359,8 +361,8 @@
     },
     {
       "direction": "transport-and-auth-adapter -> application-service-interfaces",
-      "witnessCount": 2,
-      "witnessSha256": "b23cff7b223a4f15c511bb383210bd74c01d9d16cda359f32c4df5ee2f892fa6",
+      "witnessCount": 3,
+      "witnessSha256": "4ffed96e972ecc8ff8f5de822577699bb6782e5efbbd1663a1f45664c0e662b2",
       "allowedByTarget": true
     },
     {
@@ -371,8 +373,8 @@
     },
     {
       "direction": "transport-and-auth-adapter -> core-utilities",
-      "witnessCount": 6,
-      "witnessSha256": "9285f771af658eb63dbe62542371a7353dac52044c3ec65f526c3436d49bb129",
+      "witnessCount": 7,
+      "witnessSha256": "7314113b09f9bc01beaa7bbe96aacbfca7725b829a371b31a916177b0176c8ad",
       "allowedByTarget": false
     },
     {
@@ -420,7 +422,7 @@
   "mixedOwnershipDebt": [
     {
       "file": "src/ingress/webrtc_http_server.cpp",
-      "lineCount": 43180,
+      "lineCount": 43072,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -463,6 +465,13 @@
       "afterLineCount": 43180,
       "resolvedResponsibility": "action-execution-deferral-workspace-html",
       "replacementOwner": "src/ingress/product_ui_action_execution_deferral.cpp"
+    },
+    {
+      "file": "src/ingress/webrtc_http_server.cpp",
+      "beforeLineCount": 43180,
+      "afterLineCount": 43072,
+      "resolvedResponsibility": "vlm-incident-rule-provenance-structural-validation",
+      "replacementOwner": "src/ingress/vlm_incident_rule_provenance.cpp"
     },
     {
       "file": "src/ingress/product_ui_page_scripts.cpp",
@@ -530,5 +539,5 @@
       "exitRule": "production-graph-unchanged-and-cumulative-debt-verified"
     }
   ],
-  "boundary": "current REVIEW4-64 execution graph after Slice 4; transport composes pure UI fragments in one target-allowed direction, while the reverse auth dependency remains unresolved; this is not a refactor-complete claim"
+  "boundary": "current REVIEW4-64 execution graph after Slice 5; strict JSON is a core utility and VLM provenance validation is an application service, while remaining graph debt is unresolved; this is not a refactor-complete claim"
 }

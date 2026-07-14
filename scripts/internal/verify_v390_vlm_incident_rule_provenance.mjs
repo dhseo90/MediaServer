@@ -41,6 +41,10 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 const files = {
   store: read("src/analysis/vlm_observation_store.cpp"),
   server: read("src/ingress/webrtc_http_server.cpp"),
+  validatorHeader: read("include/ingress/vlm_incident_rule_provenance.h"),
+  validatorSource: read("src/ingress/vlm_incident_rule_provenance.cpp"),
+  strictJsonHeader: read("include/core/strict_json.h"),
+  strictJsonSource: read("src/core/strict_json.cpp"),
   ui: read("src/ingress/product_ui_page_scripts.cpp"),
   backlog: read("docs/development-backlog.md"),
   inventory: read("docs/project-feature-test-inventory.md"),
@@ -60,9 +64,15 @@ for (const snippet of [
   "generated rule id must match provenance",
   "generated rule save API route must match rule id",
   "ParseStrictJsonObjectDocument",
+]) assert(`${files.validatorHeader}\n${files.validatorSource}`.includes(snippet), `rule save validator missing ${snippet}`);
+for (const snippet of [
+  '#include "ingress/vlm_incident_rule_provenance.h"',
+  "ValidateVlmIncidentRuleProvenanceContract(body, *id, error_message)",
   "rules_quarantined_on_load_",
   "rule provenance reload quarantine",
-]) assert(files.server.includes(snippet), `rule save validator missing ${snippet}`);
+]) assert(files.server.includes(snippet), `rule save/reload adapter missing ${snippet}`);
+assert(files.strictJsonHeader.includes("StrictJsonObjectDocument") &&
+  files.strictJsonSource.includes("duplicate JSON key at "), "core strict JSON owner missing");
 for (const snippet of [
   "ValidateVlmIncidentRuleProvenanceServerRecords",
   "QueryEventRecords",

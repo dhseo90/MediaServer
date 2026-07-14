@@ -1,4 +1,4 @@
-#include "ingress/strict_json.h"
+#include "core/strict_json.h"
 
 #include <cctype>
 #include <cstdint>

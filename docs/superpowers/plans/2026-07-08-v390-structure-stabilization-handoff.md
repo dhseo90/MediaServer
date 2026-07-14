@@ -35,7 +35,7 @@ Development 17의 readiness와 REVIEW4-51 decision/graph는 승인 당시 histor
 `test/fixtures/v390_structure_stabilization_current_graph.json`, verifier는
 `./server.sh verify-v390-review4-structure-stabilization-execution`입니다.
 
-Current REVIEW4-64 status: `in-progress-slice-4-completed`
+Current REVIEW4-64 status: `in-progress-slice-5-completed`
 
 | 순서 | Current Slice | 상태 | 직접 경계 |
 | ---: | --- | --- | --- |
@@ -43,15 +43,16 @@ Current REVIEW4-64 status: `in-progress-slice-4-completed`
 | 2 | `route-api-handler` | 완료 | `ops_action_execution_deferral`이 exact GET path/status/body/no-store를 소유하고 outer principal guard와 non-GET fallback은 transport에 보존 |
 | 3 | `registry-domain` | 완료 | registry는 transport-neutral `ClientViewAccessAuthorizer`만 소비하고 기존 role/scope 판정은 HTTP adapter에 보존; write/persistence/paired transaction 불변 |
 | 4 | `ui-script-css` | 완료 | action execution deferral HTML/renderer를 focused product UI owner로 이동하고 shared CSS byte·DOM/route/test-ID·read-only 의미 보존 |
-| 5 | `vlm-parser` | 미진행 | strict JSON을 재사용하는 VLM provenance validator/parser owner 이동 |
+| 5 | `vlm-parser` | 완료 | strict JSON을 core utility로 이동하고 VLM provenance validator를 application-service owner로 분리; actual save/restart/no-write와 profile/promotion 계약 보존 |
 | 6 | `verifier-docs` | 미진행 | execution verifier, historical/current evidence, manual UI archive, VLM index 정리 |
 
-Slice 4의 current graph는 production 154파일/C++ 77개/owner 10개, target 위반 direction
-19개(승인 baseline 25개), 최대 SCC 8, internal target 1개입니다. `main.cpp` mixed composition debt는
+Slice 5의 current graph는 production 156파일/C++ 78개/owner 10개, target 위반 direction
+18개(승인 baseline 25개), 최대 SCC 8, internal target 1개입니다. `main.cpp` mixed composition debt는
 245→8줄, selected action route owner는 server 43,266→43,186줄로 닫았고 registry→transport auth edge를 제거했습니다. Transport는 현재 43,195줄이며 최대 SCC와 mixed-owner debt는 남아 있으므로 REVIEW4-64 완료가
 아닙니다. Historical v2 order와 current order의 전환 범위는 slice identifier/order뿐이며 current branch,
 50~63 prerequisite, 9 preserved contract, 64 뒤 65 acceptance 경계는 유지합니다. Transport→pure UI fragment
-조합만 target-allowed이며 reverse UI→transport auth edge는 계속 unresolved입니다.
+조합만 target-allowed이며 reverse UI→transport auth edge는 계속 unresolved입니다. VLM validator 이동 뒤
+transport monolith는 43,072줄입니다.
 
 `verify-feature-implementation-evidence`는 Slice 1~3 source 이동 뒤 current line/context/blob trust binding
 8,752건을 거부했고 negative fixture는 15/15를 통과했습니다. 이 FAIL은 PASS로 사용하지 않으며 ordered
@@ -260,22 +261,23 @@ targeted regression tests before RED; no planned verifier name is treated as an 
 - [ ] Run `verify-ops-client-ui`, `verify-rule-ui`, the relevant v3.9 product verifier, exact-case contract,
   build, graph, and diff gates. Static PASS is not actual UI fulltest evidence.
 
-### REVIEW4-64 Slice 5: `source-read-model-boundary`
+### REVIEW4-64 Slice 5: `vlm-parser`
 
-- [ ] Map each selected SourceRegistry, PublishedView, and source-health read to its existing read/write
-  owner before extraction; do not add a route, file format, or write owner.
-- [ ] Preserve source/view identity, paired-write, restart, retry, mode, and error semantics.
-- [ ] Run `verify-v390-onvif-live-import-persist-decision`,
-  `verify-v390-onvif-source-view-atomicity`, the backup/recovery gate, feature inventory, build, graph,
-  cleanup, and diff checks.
+- [x] Move generic strict JSON parsing from the transport owner to core utility ownership without changing
+  duplicate-key, decoding, nesting, number, or trailing-byte behavior.
+- [x] Move `ValidateVlmIncidentRuleProvenanceContract` to an application-service owner while preserving
+  server-record readback, generated rule ID/PUT route, reload quarantine, privacy, and no-write semantics.
+- [x] Run provenance actual restart/no-write, promotion trust, draft, profile, build, graph, cleanup, and diff
+  gates. The SAFE-025 implementation-evidence binding failure remains a Slice 6 blocker, not a PASS.
 
-### REVIEW4-64 Slice 6: `docs-template-and-vlm-index`
+### REVIEW4-64 Slice 6: `verifier-docs`
 
-- [ ] Separate current manual UI result fields from historical archive material without deleting evidence.
-- [ ] Consolidate VLM contract links only where one current owner avoids duplication; preserve default-off,
-  profile storage, privacy, field-smoke, dry-run, and provider-not-PASS boundaries.
-- [ ] Run `verify-manual-ui-evidence`, `verify-docs-links`, feature inventory, the existing VLM boundary
-  verifiers, and `git diff --check`.
+- [ ] Rebuild current content-addressed implementation evidence and its canonical consumers without rewriting
+  historical approval/readiness/graph records.
+- [ ] Separate current manual UI result fields from historical archive material and consolidate the VLM
+  contract index while preserving default-off, privacy, field-smoke, dry-run, and provider-not-PASS boundaries.
+- [ ] Run feature evidence/inventory, runtime opt-in, manual UI evidence, docs links, VLM boundary, graph,
+  cleanup, and `git diff --check` gates.
 
 Each slice remains `not-executed` until its own implementation, targeted verification, cleanup, evidence
 record, and approved commit boundary are complete. Only after all six slices close may REVIEW4-64 be

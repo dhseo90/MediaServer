@@ -56,6 +56,7 @@ add_executable(media_server
     src/core/source_factory.cpp
     src/core/stream_registry.cpp
     src/core/stream_key.cpp
+    src/core/strict_json.cpp
     src/core/resource_guard.cpp
     src/core/session_manager.cpp
     src/ingress/gst_pipeline_builder.cpp
@@ -81,8 +82,8 @@ add_executable(media_server
     src/ingress/product_ui_page_scripts.cpp
     src/ingress/rtsp_egress_session.cpp
     src/ingress/source_view_registry.cpp
-    src/ingress/strict_json.cpp
     src/ingress/vlm_evaluation_promotion.cpp
+    src/ingress/vlm_incident_rule_provenance.cpp
     src/ingress/webrtc_egress_session.cpp
     src/ingress/webrtc_gst_utils.cpp
     src/ingress/webrtc_source_registry.cpp

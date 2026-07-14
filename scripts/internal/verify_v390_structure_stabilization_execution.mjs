@@ -270,6 +270,56 @@ check("UI Slice owns the exact action deferral workspace outside mixed server/pa
   "transport-to-pure-UI composition edge is not target-allowed");
 });
 
+check("VLM parser Slice owns provenance validation and generic strict JSON outside transport", () => {
+  const slice = ledger.orderedSlices[4];
+  if (slice.status === "not-started") return;
+  const strictHeader = readText("include/core/strict_json.h");
+  const strictSource = readText("src/core/strict_json.cpp");
+  const validatorHeader = readText("include/ingress/vlm_incident_rule_provenance.h");
+  const validatorSource = readText("src/ingress/vlm_incident_rule_provenance.cpp");
+  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const cmake = readText("CMakeLists.txt");
+  assert(!fs.existsSync(path.join(rootDir, "include/ingress/strict_json.h")) &&
+    !fs.existsSync(path.join(rootDir, "src/ingress/strict_json.cpp")),
+  "strict JSON remains transport-owned");
+  assert(sha256Text(strictHeader) === slice.baselineDigests.strictJsonHeaderSha256,
+    "strict JSON header behavior/API drift");
+  assert(sha256Text(strictSource.replace('#include "core/strict_json.h"', '#include "ingress/strict_json.h"')) ===
+    slice.baselineDigests.strictJsonSourceSha256,
+  "strict JSON parser implementation drift");
+  assert(validatorHeader.includes("bool ValidateVlmIncidentRuleProvenanceContract(") &&
+    validatorSource.includes('#include "core/strict_json.h"') &&
+    validatorSource.includes('#include "analysis/vlm_observation_store.h"'),
+  "VLM provenance application-service API/dependencies missing");
+  for (const snippet of [
+    "rule vlmProvenance must be top-level",
+    "rule vlmProvenance candidate must remain manual-review and no-auto-apply",
+    "rule vlmProvenance must not claim an unverified evaluation execution",
+    "generated rule id must match provenance",
+    "generated rule save API route must match rule id",
+    "generated rule provenance requires manual PUT save",
+    "ValidateVlmIncidentRuleProvenanceServerRecords",
+  ]) assert(validatorSource.includes(snippet), `VLM provenance contract drift: ${snippet}`);
+  assert(!validatorSource.includes("HttpResponse") && !validatorSource.includes("http_auth") &&
+    !validatorSource.includes("providerCall") && !validatorSource.includes("runtimeCall"),
+  "VLM provenance validator gained transport/provider/runtime ownership");
+  assert(server.includes('#include "ingress/vlm_incident_rule_provenance.h"') &&
+    !server.includes("bool ValidateVlmIncidentRuleProvenanceContract(") &&
+    server.includes("ValidateVlmIncidentRuleProvenanceContract(body, *id, error_message)"),
+  "mixed transport source still owns or lost VLM provenance validation");
+  assert(cmake.split("src/core/strict_json.cpp").length === 2 &&
+    cmake.split("src/ingress/vlm_incident_rule_provenance.cpp").length === 2 &&
+    !cmake.includes("src/ingress/strict_json.cpp"),
+  "CMake strict JSON/VLM provenance ownership drift");
+  const applicationOwner = graph.moduleClassifiers.find(item => item.id === "application-service-interfaces");
+  assert(applicationOwner?.exactFiles?.includes("include/ingress/vlm_incident_rule_provenance.h") &&
+    applicationOwner.exactFiles.includes("src/ingress/vlm_incident_rule_provenance.cpp"),
+  "VLM provenance validator graph owner missing");
+  assert(graph.observedModuleEdges.some(item =>
+    item.direction === "application-service-interfaces -> core-utilities" && item.allowedByTarget === true),
+  "application-to-core strict JSON utility edge is not target-allowed");
+});
+
 check("dirty worktree paths stay inside the active slice declaration", () => {
   const active = ledger.orderedSlices.find(item => item.status === "in-progress") ||
     ledger.orderedSlices[Math.max(0, ledger.latestCompletedSlice - 1)];
