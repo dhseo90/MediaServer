@@ -882,3 +882,8 @@ Release / Visual Baseline Readiness는 release 준비에서 screenshot artifact�
 
 과거 버전 verifier는 내부 호환성 확인에만 사용합니다. 공개 release PASS, UI 풀테스트
 PASS, 장시간 테스트 PASS로 재사용하지 않습니다.
+
+| historical scope | command | boundary |
+| --- | --- | --- |
+| V220-S06 Rules workspace redesign | `./server.sh verify-v220-rules-workspace-redesign` | `/ops/rules` renderer source owner 이동 뒤 readiness/assist/catalog/detail DOM과 기존 hook을 정적으로 확인합니다. 브라우저 직접 조작, 저장 roundtrip 실행, 현재 release PASS가 아닙니다 |
+| V220-F04 Ops VLM UI containment | `./server.sh verify-v220-ops-vlm-containment` | `/ops/vlm`의 Ops 보조 작업/default-off/privacy/profile/raw-debug containment를 정적으로 확인합니다. runtime/provider 호출, 브라우저 직접 조작, 장시간 또는 현재 release PASS가 아닙니다 |

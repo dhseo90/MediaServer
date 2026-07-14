@@ -11,8 +11,8 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 156,
-  "expectedCppFiles": 78,
+  "expectedProductionFiles": 158,
+  "expectedCppFiles": 79,
   "moduleClassifiers": [
     {
       "id": "composition-root",
@@ -75,8 +75,8 @@
         "include/ingress/product_ui_",
         "src/ingress/product_ui_"
       ],
-      "expectedFileCount": 18,
-      "expectedCppCount": 11
+      "expectedFileCount": 20,
+      "expectedCppCount": 12
     },
     {
       "id": "ops-route-groups",
@@ -165,15 +165,15 @@
       "expectedCppCount": 12
     }
   ],
-  "expectedFileOwnershipSha256": "d39240489aa09376e9065a09d5ece75db081025c760922263fa1aa3ff995463e",
+  "expectedFileOwnershipSha256": "1f3f78f1fdbaf3fe575520e6f832309abe23ffc2ca8f6f79aee172432d3b01bb",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
       {
         "id": "media_server",
         "type": "executable",
-        "declaredSourceCount": 78,
-        "defaultActiveSourceCount": 77,
+        "declaredSourceCount": 79,
+        "defaultActiveSourceCount": 78,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",
@@ -237,7 +237,7 @@
       "direction": "application-service-interfaces -> core-utilities",
       "witnessCount": 3,
       "witnessSha256": "8aacc42ebfdf9ec8844df22b13ef79afeedee85333ab4324571cb0899a00f604",
-      "allowedByTarget": true
+      "allowedByTarget": false
     },
     {
       "direction": "application-service-interfaces -> domain-and-registry-owners",
@@ -337,8 +337,8 @@
     },
     {
       "direction": "product-ui-workspaces -> transport-and-auth-adapter",
-      "witnessCount": 1,
-      "witnessSha256": "9815470125782cb78d6965f2097bea77b913242600cfcb8b3d24e4a143c65205",
+      "witnessCount": 2,
+      "witnessSha256": "9d8aaab4537271058207444de80acfbb812e4c211b3672eedb50eb71cc3c7db6",
       "allowedByTarget": false
     },
     {
@@ -387,13 +387,13 @@
       "direction": "transport-and-auth-adapter -> ops-route-groups",
       "witnessCount": 3,
       "witnessSha256": "8340fdcd1b13e034d2c4f86b230b4441b80a817c0be5eb6f7454f7a6dda07e2a",
-      "allowedByTarget": true
+      "allowedByTarget": false
     },
     {
       "direction": "transport-and-auth-adapter -> product-ui-workspaces",
-      "witnessCount": 7,
-      "witnessSha256": "938d92c1d25f87473b293bc8ae3dce6a8046771ae3e80a29a54a185fabe7b2ec",
-      "allowedByTarget": true
+      "witnessCount": 8,
+      "witnessSha256": "afea9199641d6a7b964b14c6f9bb301768694996232708f4df2fd7b243a930a9",
+      "allowedByTarget": false
     },
     {
       "direction": "transport-and-auth-adapter -> stable-contract-dtos",
@@ -422,7 +422,7 @@
   "mixedOwnershipDebt": [
     {
       "file": "src/ingress/webrtc_http_server.cpp",
-      "lineCount": 43072,
+      "lineCount": 40814,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -465,6 +465,13 @@
       "afterLineCount": 43180,
       "resolvedResponsibility": "action-execution-deferral-workspace-html",
       "replacementOwner": "src/ingress/product_ui_action_execution_deferral.cpp"
+    },
+    {
+      "file": "src/ingress/webrtc_http_server.cpp",
+      "beforeLineCount": 43072,
+      "afterLineCount": 40814,
+      "resolvedResponsibility": "ops-product-ui-server-page-renderers",
+      "replacementOwner": "src/ingress/product_ui_server_pages.cpp"
     },
     {
       "file": "src/ingress/webrtc_http_server.cpp",
@@ -539,5 +546,5 @@
       "exitRule": "production-graph-unchanged-and-cumulative-debt-verified"
     }
   ],
-  "boundary": "current REVIEW4-64 execution graph after Slice 5; strict JSON is a core utility and VLM provenance validation is an application service, while remaining graph debt is unresolved; this is not a refactor-complete claim"
+  "boundary": "current REVIEW4-64 continuation graph after the Ops product UI server renderer extraction; policy-v1 recalculation counts 21 target-direction violations including temporary debt, SCC/internal-target/mixed-owner debt remains unresolved, and this is not a refactor-complete claim"
 }

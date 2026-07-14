@@ -517,6 +517,8 @@ Usage:
                  v3.9.0 (17) Development 17 구조 안정화 착수 조건을 검증합니다.
   verify-v390-review4-structure-stabilization-execution
                  V390-REVIEW4-64 실제 6-slice 구조 안정화 실행 원장과 current graph를 검증합니다.
+  verify-v390-ops-product-ui-renderer-owner
+                 V390-REVIEW4-64 Ops shell/dashboard/rules/events/home/VLM renderer 분리와 HTML byte 불변을 검증합니다.
   verify-v390-review4-truth-reset
                  V390-REVIEW4-50 current source 판정, metric, readiness/execution 경계를 검증합니다.
   verify-v390-review4-structure-scope-decision
@@ -2317,6 +2319,10 @@ case "${cmd}" in
   verify-v390-review4-structure-stabilization-execution)
     require_internal verify_v390_structure_stabilization_execution.mjs
     exec "${INTERNAL_DIR}/verify_v390_structure_stabilization_execution.mjs" "$@"
+    ;;
+  verify-v390-ops-product-ui-renderer-owner)
+    require_internal verify_v390_ops_product_ui_renderer_owner.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ops_product_ui_renderer_owner.mjs" "$@"
     ;;
   verify-v390-review4-truth-reset)
     require_internal verify_v390_review4_truth_reset.mjs

@@ -4,7 +4,8 @@ import fs from 'node:fs';
 
 const checks = [];
 const read = path => fs.readFileSync(path, 'utf8');
-const source = read('src/ingress/webrtc_http_server.cpp');
+const source = read('src/ingress/webrtc_http_server.cpp') +
+  read('src/ingress/product_ui_server_pages.cpp');
 const css = read('src/ingress/product_ui_css.cpp');
 const pageScript = read('src/ingress/product_ui_page_scripts.cpp');
 const backlog = read('docs/development-backlog.md');

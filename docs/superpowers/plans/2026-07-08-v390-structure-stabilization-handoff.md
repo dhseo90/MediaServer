@@ -35,7 +35,7 @@ Development 17의 readiness와 REVIEW4-51 decision/graph는 승인 당시 histor
 `test/fixtures/v390_structure_stabilization_current_graph.json`, verifier는
 `./server.sh verify-v390-review4-structure-stabilization-execution`입니다.
 
-Current REVIEW4-64 status: `in-progress-slice-5-completed`
+Current REVIEW4-64 status: `current-continuation-1-completed-slice-6-deferred`
 
 | 순서 | Current Slice | 상태 | 직접 경계 |
 | ---: | --- | --- | --- |
@@ -44,19 +44,34 @@ Current REVIEW4-64 status: `in-progress-slice-5-completed`
 | 3 | `registry-domain` | 완료 | registry는 transport-neutral `ClientViewAccessAuthorizer`만 소비하고 기존 role/scope 판정은 HTTP adapter에 보존; write/persistence/paired transaction 불변 |
 | 4 | `ui-script-css` | 완료 | action execution deferral HTML/renderer를 focused product UI owner로 이동하고 shared CSS byte·DOM/route/test-ID·read-only 의미 보존 |
 | 5 | `vlm-parser` | 완료 | strict JSON을 core utility로 이동하고 VLM provenance validator를 application-service owner로 분리; actual save/restart/no-write와 profile/promotion 계약 보존 |
-| 6 | `verifier-docs` | 미진행 | execution verifier, historical/current evidence, manual UI archive, VLM index 정리 |
+| 6 | `verifier-docs` | 미착수·deferred | production continuation source/graph가 안정된 뒤 execution evidence, manual UI archive, VLM index를 final review; generated evidence는 그 전까지 parked 상태 |
 
-Slice 5의 current graph는 production 156파일/C++ 78개/owner 10개, target 위반 direction
-18개(승인 baseline 25개), 최대 SCC 8, internal target 1개입니다. `main.cpp` mixed composition debt는
-245→8줄, selected action route owner는 server 43,266→43,186줄로 닫았고 registry→transport auth edge를 제거했습니다. Transport는 현재 43,195줄이며 최대 SCC와 mixed-owner debt는 남아 있으므로 REVIEW4-64 완료가
+Current policy v1 graph는 production 158파일/C++ 79개/owner 10개, target 위반 direction
+21개(승인 baseline 25개), 최대 SCC 8, internal target 1개입니다. `main.cpp` mixed composition debt는
+245→8줄, selected action route owner는 server 43,266→43,186줄로 닫았고 registry→transport auth edge를 제거했습니다. Transport는 현재 40,814줄이며 최대 SCC와 mixed-owner debt는 남아 있으므로 REVIEW4-64 완료가
 아닙니다. Historical v2 order와 current order의 전환 범위는 slice identifier/order뿐이며 current branch,
-50~63 prerequisite, 9 preserved contract, 64 뒤 65 acceptance 경계는 유지합니다. Transport→pure UI fragment
-조합만 target-allowed이며 reverse UI→transport auth edge는 계속 unresolved입니다. VLM validator 이동 뒤
-transport monolith는 43,072줄입니다.
+50~63 prerequisite, 9 preserved contract, 64 뒤 65 acceptance 경계는 유지합니다. Policy v1은
+application-service→core와 transport→Ops/UI를 temporary debt로 기록하며 위반 계산에서 제외하지 않습니다.
+Ops server page renderer 이동 뒤 transport monolith는 40,814줄이며 policy-v1 target direction은 21개로
+비증가지만 internal target separation은 false입니다.
 
 `verify-feature-implementation-evidence`는 Slice 1~3 source 이동 뒤 current line/context/blob trust binding
 8,752건을 거부했고 negative fixture는 15/15를 통과했습니다. 이 FAIL은 PASS로 사용하지 않으며 ordered
 Slice 6 `verifier-docs`의 current evidence 재결속 entry blocker입니다.
+
+### REVIEW4-64 Current Continuation Boundary
+
+Historical REVIEW4-51의 6-slice decision/readiness/graph는 승인 당시 SHA로 불변 보존합니다. 그 6개 Slice를
+완료하는 것만으로 current architecture 최종 기준을 만족했다고 간주하지 않습니다. 별도 current policy는
+`test/fixtures/v390_structure_stabilization_current_architecture_policy.json`, current source/CMake graph는
+`test/fixtures/v390_structure_stabilization_current_graph.json`입니다.
+
+첫 continuation Slice `completion-oracle-and-ops-ui-renderer`는 completion oracle과 byte-stable Ops product UI
+server renderer owner 이동을 함께 결속하고 targeted gate를 통과해 `completed`입니다. 전체 current continuation은
+남은 architecture debt 때문에 `in-progress`이며 generated Review4 evidence는
+독립 승인·apply·negative 검증 전까지 parked/non-final입니다. Current graph의 위반 21, SCC 8, 최대 mixed
+owner 40,814줄, actual CMake internal target separation false가 모두 남아 있으므로 `refactorComplete=false`,
+`completionClaimed=false`이고 REVIEW4-65 acceptance를 시작할 완료 evidence가 아닙니다.
 
 ## Development 17 Structure Stabilization Readiness
 
@@ -282,3 +297,5 @@ targeted regression tests before RED; no planned verifier name is treated as an 
 Each slice remains `not-executed` until its own implementation, targeted verification, cleanup, evidence
 record, and approved commit boundary are complete. Only after all six slices close may REVIEW4-64 be
 reported complete and REVIEW4-65 independent acceptance begin.
+owner 40,810줄, actual CMake internal target separation false가 모두 남아 있으므로 `refactorComplete=false`,
+owner 40,814줄, actual CMake internal target separation false가 모두 남아 있으므로 `refactorComplete=false`,

@@ -80,6 +80,7 @@ add_executable(media_server
     src/ingress/product_ui_ops_sources_script.cpp
     src/ingress/product_ui_ops_users_script.cpp
     src/ingress/product_ui_page_scripts.cpp
+    src/ingress/product_ui_server_pages.cpp
     src/ingress/rtsp_egress_session.cpp
     src/ingress/source_view_registry.cpp
     src/ingress/vlm_evaluation_promotion.cpp

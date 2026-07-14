@@ -5810,6 +5810,20 @@ Incident Memory Productization을 닫은 직전 공개 릴리즈입니다. 이 �
 아래 행은 현재 v2.7.0 개발 범위가 아니라 `verify-manual-ui-evidence` 호환을 위한
 과거 UI evidence gate 참조입니다. 실행 evidence나 현재 release 완료 근거가 아닙니다.
 
+### V220-S06 Rules workspace redesign 종료 기준
+
+- `/ops/rules`의 readiness/assist/catalog/detail renderer와 기존 rule/profile/template control은
+  `./server.sh verify-v220-rules-workspace-redesign`로 정적 회귀 확인합니다.
+- 이 historical compatibility gate는 현재 source owner 이동 뒤에도 DOM hook과 저장 roundtrip
+  기준이 남아 있는지 확인할 뿐, v3.9.0 UI 풀테스트 직접 조작이나 release PASS가 아닙니다.
+
+### V220-F04 Ops VLM UI containment 정리
+
+- `/ops/vlm`의 Ops 보조 작업, default-off, privacy, profile 상태, raw debug containment는
+  `./server.sh verify-v220-ops-vlm-containment`로 current source owner를 정적 확인합니다.
+- 이 historical compatibility gate는 runtime/provider 호출, UI 직접 조작, 장시간 또는 release
+  PASS를 대체하지 않습니다.
+
 | ID | verifier | 경계 |
 | --- | --- | --- |
 | V180-P0-03 | Manual UI evidence checklist hardening / `verify-manual-ui-evidence` | `/setup`, `/login`, `/ops`, `/client`, `/ops/rules`, `/client/live` evidence index 문서가 PASS/FAIL, 제외 기록, raw JSON/API-only 비대체 경계를 유지하는지 확인 |

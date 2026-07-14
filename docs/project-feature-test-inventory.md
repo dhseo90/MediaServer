@@ -431,6 +431,8 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | V220-F04 Ops VLM UI containment | [manual-ui-checklist.md](./manual-ui-checklist.md), [manual-ui-result-template.md](./manual-ui-result-template.md) | `verify-v220-ui-evidence-closeout` | F04 UI 실행 PASS가 아님 |
 | V220-F05 Client Preview / Viewer Redaction | [manual-ui-checklist.md](./manual-ui-checklist.md), [manual-ui-result-template.md](./manual-ui-result-template.md) | `verify-v220-ui-evidence-closeout` | F05 UI 실행 PASS가 아님 |
 | V220-F06 UI Evidence Close-out | [manual-ui-checklist.md](./manual-ui-checklist.md), [manual-ui-result-template.md](./manual-ui-result-template.md) | `verify-v220-ui-evidence-closeout` | F06는 결과 기록 기준 정리이며 UI 풀테스트 PASS가 아님 |
+| V220-S06 Rules workspace redesign | `UI-012` | `verify-v220-rules-workspace-redesign` | `/ops/rules` readiness/assist/catalog/detail와 기존 저장 hook의 historical compatibility. 현재 UI 직접 조작 PASS가 아님 |
+| v2.2.0 F04 Ops VLM UI containment 정리 | `UI-014`, `SAFE-025` | `verify-v220-ops-vlm-containment` | `/ops/vlm`의 default-off/privacy/profile/보조 작업 containment 정적 회귀. runtime/provider/UI 실행 PASS가 아님 |
 
 ## Owner Source Map
 

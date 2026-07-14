@@ -32,20 +32,160 @@
     "schema": "media-server.v390-actual-module-dependency-graph.v1",
     "sha256": "acfe2cfa0a3e8ea167bbc07dbe490fbb4e3056e9fb87acec6451ac743123cf68"
   },
+  "historicalSixSliceDecision": {
+    "status": "historical-authorization-only",
+    "path": "test/fixtures/v390_structure_execution_scope_decision.json",
+    "sha256": "f16ef47f1cd06d6de52fb39e6c3d06b6b19383247a2bd11d9e28caa4916fafc6",
+    "orderedSliceIds": [
+      "baseline-and-ownership-map",
+      "pure-json-builder-extraction",
+      "route-handler-group-extraction",
+      "product-ui-workspace-split",
+      "source-read-model-boundary",
+      "docs-template-and-vlm-index"
+    ],
+    "executionOrCompletionEvidence": false
+  },
+  "currentArchitecturePolicy": {
+    "path": "test/fixtures/v390_structure_stabilization_current_architecture_policy.json",
+    "schema": "media-server.v390-structure-stabilization-current-architecture-policy.v1",
+    "policyVersion": "v1",
+    "sha256": "1271a9838e6640056a8047b48e7e7f9f12d8bffdbb3d8c859b80216f22cdefd0"
+  },
   "currentGraph": {
     "path": "test/fixtures/v390_structure_stabilization_current_graph.json",
     "schema": "media-server.v390-structure-stabilization-current-graph.v1",
-    "sha256": "9f8d13fe802bece33d4ffe5b1903e90d50059c45755d9a72af4e1a36d32e59ec",
+    "sha256": "32cca3ef3446ff2c14377b956a119990f34251c2a504af7c57c8b91e3482a109",
     "metrics": {
-      "productionFiles": 156,
-      "cppSources": 78,
+      "productionFiles": 158,
+      "cppSources": 79,
       "moduleOwners": 10,
       "cmakeTargets": 1,
-      "targetViolationDirections": 18,
+      "targetViolationDirections": 21,
       "largestSccOwners": 8,
-      "largestMixedOwnerFileLines": 43072,
+      "largestMixedOwnerFileLines": 40814,
       "internalTargetSeparation": false
     }
+  },
+  "currentContinuation": {
+    "status": "in-progress",
+    "latestCompletedSlice": 1,
+    "sliceSequenceStatus": "partial",
+    "architectureStatus": "final-targets-unmet",
+    "finalEvidenceStatus": "parked-generated-artifacts-in-review",
+    "finalCompletionClaimAllowed": false,
+    "reason": "The historical six-slice decision authorizes an ordered start; it does not waive current final architecture thresholds or final evidence review.",
+    "orderedSlices": [
+      {
+        "order": 1,
+        "id": "completion-oracle-and-ops-ui-renderer",
+        "status": "completed",
+        "nonProductionSlice": false,
+        "rollbackCommit": "7494a69c8763f1c71ca6044cb4aca319d89ba0a2",
+        "selectedBoundary": "current architecture completion oracle plus byte-stable Ops product UI server renderer ownership",
+        "allowedFiles": [
+          "CMakeLists.txt",
+          "server.sh",
+          "include/ingress/product_ui_server_pages.h",
+          "src/ingress/product_ui_server_pages.cpp",
+          "src/ingress/webrtc_http_server.cpp",
+          "scripts/internal/verify_v390_ops_product_ui_renderer_owner.mjs",
+          "scripts/internal/verify_v220_ops_vlm_containment.mjs",
+          "scripts/internal/verify_v220_ops_workspace_redesign.mjs",
+          "scripts/internal/verify_v220_rules_workspace_redesign.mjs",
+          "scripts/internal/verify_v390_structure_stabilization_execution.mjs",
+          "test/fixtures/v390_structure_stabilization_current_architecture_policy.json",
+          "test/fixtures/v390_structure_stabilization_current_graph.json",
+          "test/fixtures/v390_structure_stabilization_execution.json",
+          "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md",
+          "docs/development-backlog.md",
+          "docs/project-feature-test-inventory.md",
+          "docs/stream-verification.md",
+          "docs/release-test-records.md"
+        ],
+        "changedFiles": [
+          "CMakeLists.txt",
+          "server.sh",
+          "include/ingress/product_ui_server_pages.h",
+          "src/ingress/product_ui_server_pages.cpp",
+          "src/ingress/webrtc_http_server.cpp",
+          "scripts/internal/verify_v390_ops_product_ui_renderer_owner.mjs",
+          "scripts/internal/verify_v220_ops_vlm_containment.mjs",
+          "scripts/internal/verify_v220_ops_workspace_redesign.mjs",
+          "scripts/internal/verify_v220_rules_workspace_redesign.mjs",
+          "scripts/internal/verify_v390_structure_stabilization_execution.mjs",
+          "test/fixtures/v390_structure_stabilization_current_architecture_policy.json",
+          "test/fixtures/v390_structure_stabilization_current_graph.json",
+          "test/fixtures/v390_structure_stabilization_execution.json",
+          "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md",
+          "docs/development-backlog.md",
+          "docs/project-feature-test-inventory.md",
+          "docs/stream-verification.md",
+          "docs/release-test-records.md"
+        ],
+        "before": {
+          "productionGraphSha256": "9f8d13fe802bece33d4ffe5b1903e90d50059c45755d9a72af4e1a36d32e59ec",
+          "productionFiles": 156,
+          "cppSources": 78,
+          "targetViolationDirectionsUnderPolicyV1": 21,
+          "webrtcHttpServerLines": 43072,
+          "cmakeTargets": 1,
+          "internalTargetSeparation": false
+        },
+        "after": {
+          "productionGraphSha256": "32cca3ef3446ff2c14377b956a119990f34251c2a504af7c57c8b91e3482a109",
+          "productionFiles": 158,
+          "cppSources": 79,
+          "targetViolationDirectionsUnderPolicyV1": 21,
+          "webrtcHttpServerLines": 40814,
+          "cmakeTargets": 1,
+          "internalTargetSeparation": false
+        },
+        "contractAssertions": [
+          "historical REVIEW4-51 decision, readiness, and graph hashes remain immutable",
+          "Ops route principal guards, status, response, DOM, labels, and test IDs remain byte-stable",
+          "policy-v1 temporary debt exceptions continue to count as target violations",
+          "all production CMake cpp sources remain unique and current target separation is derived from actual declarations",
+          "this continuation slice cannot claim REVIEW4-64 final completion while final targets or final evidence remain open"
+        ],
+        "observedFollowups": [
+          "the focused renderer gate first failed 4 of 5 checks before the owner extraction and passed 5 of 5 after delegation and byte-baseline binding",
+          "the v2.2 Ops, Rules, and VLM verifiers initially read only webrtc_http_server.cpp and were rebound to the focused renderer owner",
+          "the Rules verifier then exposed three pre-existing documentation baseline gaps: backlog heading, stream command, and inventory verifier mapping; the current documentation boundary was corrected before the full v2.2 trio was rerun",
+          "an intermediate AppConfig parameter created product-ui-to-core debt; the public API was narrowed to stream route and port primitives so policy-v1 target violations returned from 22 to 21"
+        ],
+        "tests": [
+          {"command":"./server.sh build","status":"pass"},
+          {"command":"./server.sh verify-v390-ops-product-ui-renderer-owner","status":"pass","result":"5/5"},
+          {"command":"./server.sh verify-v220-ops-workspace-redesign","status":"pass","result":"9/9"},
+          {"command":"./server.sh verify-v220-rules-workspace-redesign","status":"pass","firstAttempt":"7/3 pre-existing documentation owner gaps","recovery":"current backlog/stream/inventory owner binding; 10/0"},
+          {"command":"./server.sh verify-v220-ops-vlm-containment","status":"pass","firstAttempt":"10/2 stale focused renderer owner","recovery":"focused renderer owner binding; 12/0"},
+          {"command":"./server.sh verify-ops-client-ui --browser-mode static --http-base http://127.0.0.1:8081","status":"pass","result":"28/0"},
+          {"command":"Chrome rule UI direct interaction","status":"pass","result":"ok=true"},
+          {"command":"./server.sh verify-v390-review4-structure-stabilization-execution","status":"pass"},
+          {"command":"./server.sh verify-script-inventory","status":"pass","result":"11/0"},
+          {"command":"./server.sh verify-docs-links","status":"pass","result":"failures 0"},
+          {"command":"git diff --check","status":"pass"},
+          {"command":"listener cleanup","status":"pass","firstAttempt":"invalid lsof syntax","recovery":"corrected bounded listener query; listener 0"}
+        ]
+      }
+    ]
+  },
+  "parkedGeneratedEvidenceArtifacts": {
+    "status": "allowed-until-final-evidence",
+    "completionEvidence": false,
+    "paths": [
+      "test/fixtures/project_feature_implementation_evidence.json",
+      "test/fixtures/v390_review4_feature_semantic_source_audit.json",
+      "test/fixtures/v390_review4_feature_semantic_source_approvals.json",
+      "test/fixtures/v390_review4_semantic_proofs_ui_auth_src_rule.json",
+      "test/fixtures/v390_review4_semantic_proofs_evt_client_media_lab.json",
+      "test/fixtures/v390_review4_semantic_proofs_safe_ops.json",
+      "test/fixtures/ui_fulltest_case_manifest_policy_v4.json",
+      "test/fixtures/v390_ui_native_exact_cases.json",
+      "test/fixtures/v390_ui_current_evidence_state.json"
+    ],
+    "finalizationRequired": "all generated rows are independently approved, applied, negative-tested, and recorded as final before any completion claim"
   },
   "approvalBaseline": {
     "productionFiles": 148,
@@ -66,6 +206,24 @@
       "REVIEW4-50..63 prerequisite",
       "nine preserved contracts",
       "REVIEW4-64 before REVIEW4-65"
+    ]
+  },
+  "oracleContinuationRepair": {
+    "status": "pass-current-continuation-final-evidence-still-open",
+    "scope": "current execution oracle and ledger only; no production behavior or final completion claim",
+    "requiredChecks": [
+      "partial and completed-six-slice states remain distinct from REVIEW4-64 final completion",
+      "non-production Slice 6 preserves the production graph exactly",
+      "allowed dependency directions are recalculated from a versioned current architecture policy",
+      "required mixed-ownership debt cannot be hidden by deleting ledger entries",
+      "CMake production sources are unique and internal target separation is derived from actual declarations",
+      "historical six-slice authorization and current continuation are separate records",
+      "generated evidence artifacts may remain parked while final evidence is incomplete"
+    ],
+    "tests": [
+      {"command":"./server.sh verify-v390-review4-structure-stabilization-execution","status":"pass","result":"15/0"},
+      {"command":"./server.sh verify-script-inventory","status":"pass","result":"11/0"},
+      {"command":"git diff --check","status":"pass"}
     ]
   },
   "finalTargets": {
@@ -454,8 +612,93 @@
       "order": 6,
       "id": "verifier-docs",
       "status": "not-started",
+      "deferredUntil": "current production continuation source and graph are stable enough for final generated evidence review",
       "dependsOn": "vlm-parser",
       "selectedBoundary": "execution ledger, current/historical evidence split, manual UI archive, VLM index",
+      "nonProductionSlice": true,
+      "rollbackCommit": "7494a69c8763f1c71ca6044cb4aca319d89ba0a2",
+      "allowedFiles": [
+        "scripts/internal/feature_implementation_manifest_lib.mjs",
+        "scripts/internal/feature_semantic_evidence_lib.mjs",
+        "scripts/internal/feature_semantic_review4_apply.mjs",
+        "scripts/internal/feature_semantic_review4_trust_lib.mjs",
+        "scripts/internal/verify_feature_implementation_evidence.mjs",
+        "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs",
+        "scripts/internal/verify_v390_review4_feature_semantic_source_approvals.mjs",
+        "scripts/internal/verify_v390_structure_stabilization_execution.mjs",
+        "test/fixtures/project_feature_implementation_evidence.json",
+        "test/fixtures/v390_review4_feature_semantic_source_audit.json",
+        "test/fixtures/v390_review4_feature_semantic_source_approvals.json",
+        "test/fixtures/v390_review4_semantic_proofs_ui_auth_src_rule.json",
+        "test/fixtures/v390_review4_semantic_proofs_evt_client_media_lab.json",
+        "test/fixtures/v390_review4_semantic_proofs_safe_ops.json",
+        "test/fixtures/ui_fulltest_case_manifest_policy_v4.json",
+        "test/fixtures/v390_ui_native_exact_cases.json",
+        "test/fixtures/v390_ui_current_evidence_state.json",
+        "test/fixtures/v390_structure_stabilization_current_architecture_policy.json",
+        "test/fixtures/v390_structure_stabilization_execution.json",
+        "docs/manual-ui-result-template.md",
+        "docs/manual-ui-historical-release-archive.md",
+        "docs/vlm-contract-index.md",
+        "docs/README.md",
+        "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md",
+        "docs/development-backlog.md",
+        "docs/project-feature-test-inventory.md",
+        "docs/release-test-records.md",
+        "docs/release-evidence-index.md",
+        "docs/stream-verification.md",
+        "docs/v390-feature-completion-inventory.md"
+      ],
+      "changedFiles": [],
+      "before": {
+        "targetViolationDirections": 21,
+        "largestSccOwners": 8,
+        "webrtcHttpServerLines": 40814,
+        "productionGraphSha256": "32cca3ef3446ff2c14377b956a119990f34251c2a504af7c57c8b91e3482a109",
+        "productionFiles": 158,
+        "cppSources": 79,
+        "moduleOwners": 10,
+        "cmakeTargets": 1,
+        "internalTargetSeparation": false,
+        "implementationEvidenceSha256": "b1f1e85cbee17b47b23e3ac22374236df757d5dd27029080ffe64f2b7e0c73df",
+        "manualUiTemplateLines": 569
+      },
+      "after": null,
+      "baselineDigests": {
+        "sourceAuditSha256": "bf9425fc7aa2d5d4f2a7276bb1f15ab5a4651a35d081fa10dce4feb86bae6a3c",
+        "sourceApprovalsSha256": "d63e3cb2cc429e62703ef5dee4b20ac3a465a435b072176932638bd3195dbe6c",
+        "manualUiTemplateSha256": "1abaa5d3a413b999751c48f718bd5d901eb8ef0f6d12b627d419dd181e4c1f40"
+      },
+      "contractAssertions": [
+        "historical REVIEW4-51 approval, readiness, and actual graph hashes remain immutable",
+        "current 986 source-flow evidence is regenerated, independently approved, applied, and negative-tested before PASS",
+        "manual UI current template no longer embeds historical release result sections and links a preserved archive",
+        "one current VLM contract index preserves default-off, privacy, profile, dry-run, field-smoke, and provider-not-PASS boundaries",
+        "actual browser UI, 30-minute, conditional 120-minute, external field, and release actions remain separate"
+      ],
+      "tests": [
+        {"command":"./server.sh verify-feature-implementation-evidence --refresh-manifest","status":"registered"},
+        {"command":"./server.sh verify-v390-review4-feature-semantic-source-audit --write-ledger","status":"registered"},
+        {"command":"./server.sh verify-v390-review4-feature-semantic-source-approvals --write-ledger --decisions <independent-review.json>","status":"registered"},
+        {"command":"./server.sh verify-v390-review4-feature-semantic-source-audit --apply-approved-manifest","status":"registered"},
+        {"command":"./server.sh verify-v390-review4-feature-semantic-source-audit","status":"registered"},
+        {"command":"./server.sh verify-v390-review4-feature-semantic-source-approvals","status":"registered"},
+        {"command":"./server.sh verify-feature-implementation-evidence","status":"registered"},
+        {"command":"./server.sh verify-feature-semantic-closure-contract","status":"registered"},
+        {"command":"./server.sh verify-project-inventory","status":"registered"},
+        {"command":"./server.sh verify-feature-inventory-coverage","status":"registered"},
+        {"command":"./server.sh verify-vlm-runtime-opt-in-contract","status":"registered"},
+        {"command":"./server.sh verify-v390-ui-native-exact-cases --update-canonical-binding","status":"registered"},
+        {"command":"./server.sh verify-ui-fulltest-evidence-policy-v4-contract","status":"registered"},
+        {"command":"./server.sh verify-v390-current-ui-evidence-contract","status":"registered"},
+        {"command":"./server.sh verify-manual-ui-evidence","status":"registered"},
+        {"command":"./server.sh verify-vlm-boundary","status":"registered"},
+        {"command":"./server.sh verify-docs-links","status":"registered"},
+        {"command":"./server.sh verify-release-evidence-index","status":"registered"},
+        {"command":"./server.sh verify-v390-review4-structure-stabilization-execution","status":"registered"},
+        {"command":"./server.sh verify-script-inventory","status":"registered"},
+        {"command":"git diff --check","status":"registered"}
+      ],
       "entryBlockers": [
         {
           "command": "./server.sh verify-vlm-runtime-opt-in-contract",
