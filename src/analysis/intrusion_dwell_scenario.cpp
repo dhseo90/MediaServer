@@ -25,7 +25,7 @@ bool IsWildcardToken(const std::string& value) {
 
 }  // namespace
 
-IntrusionDwellScenarioOptions BuildIntrusionDwellScenarioOptionsFromConfig(const app::AppConfig& config) {
+IntrusionDwellScenarioOptions BuildIntrusionDwellScenarioOptionsFromConfig(const core::AnalysisRuntimeConfig& config) {
     IntrusionDwellScenarioOptions options;
     options.enabled = config.analysis_intrusion_dwell_enabled;
     options.candidate_time_ms = config.analysis_intrusion_dwell_candidate_ms;

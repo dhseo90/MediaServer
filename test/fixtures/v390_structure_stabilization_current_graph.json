@@ -11,8 +11,8 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 168,
-  "expectedCppFiles": 84,
+  "expectedProductionFiles": 172,
+  "expectedCppFiles": 85,
   "moduleClassifiers": [
     {
       "id": "composition-root",
@@ -129,6 +129,8 @@
         "src/app_config.cpp",
         "include/stdafx.h",
         "include/media_types.h",
+        "include/core/analysis_runtime_config_data.h",
+        "include/core/analysis_runtime_defaults.h",
         "include/core/command_runner.h",
         "src/core/command_runner.cpp",
         "include/core/resource_guard.h",
@@ -140,7 +142,7 @@
         "src/core/stream_key.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 13,
+      "expectedFileCount": 15,
       "expectedCppCount": 5
     },
     {
@@ -167,11 +169,11 @@
         "include/ingress/webrtc_source_session.h",
         "src/ingress/webrtc_source_session.cpp"
       ],
-      "expectedFileCount": 32,
-      "expectedCppCount": 14
+      "expectedFileCount": 34,
+      "expectedCppCount": 15
     }
   ],
-  "expectedFileOwnershipSha256": "0b50f1e656ddfc623e08aad4c88c73417231949b6d0de9737e070793361372bf",
+  "expectedFileOwnershipSha256": "484988aa2b34f9e1a496532586cb0793c84803a87158d0a2ca27c8d2c2e199c8",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -215,6 +217,7 @@
           "src/analysis/zone_occupancy_scenario.cpp",
           "src/analysis/yolo_onnx_detector.cpp",
           "src/app_config.cpp",
+          "src/core/analysis_runtime_port.cpp",
           "src/core/command_runner.cpp",
           "src/core/shared_stream.cpp",
           "src/core/source_factory.cpp",
@@ -262,9 +265,9 @@
           "src/ingress/gstreamer_rtsp_server.cpp",
           "src/core/youtube_resolver.cpp"
         ],
-        "productionSourceSha256": "d64d35e5cea36856b7791a2929e8af936c24d27709605e444746f95afa7f0c4d",
-        "declaredSourceCount": 82,
-        "defaultActiveSourceCount": 81,
+        "productionSourceSha256": "8b69178568a129edb9da9f0c179451bbb26ebc8bb1c9867ab73e1a648c5859d4",
+        "declaredSourceCount": 83,
+        "defaultActiveSourceCount": 82,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",
@@ -317,15 +320,9 @@
   "observedModuleEdges": [
     {
       "direction": "analysis-services -> core-media-interfaces",
-      "witnessCount": 5,
-      "witnessSha256": "4c34c5b728a83f3ce819eb0d5ec906e0f43c33ae1f49b499e65c534dfac71294",
+      "witnessCount": 23,
+      "witnessSha256": "61563dfffef3ab126f4d84c793ca20b2f02d5bed5d19d5fb29de3b9d85dff317",
       "allowedByTarget": true
-    },
-    {
-      "direction": "analysis-services -> core-utilities",
-      "witnessCount": 21,
-      "witnessSha256": "5b29b37147994243d494e87429aeff5aad31059c942075190a309430c59a17df",
-      "allowedByTarget": false
     },
     {
       "direction": "analysis-services -> domain-and-registry-owners",
@@ -371,8 +368,8 @@
     },
     {
       "direction": "core-media-interfaces -> core-utilities",
-      "witnessCount": 36,
-      "witnessSha256": "9901ec446bc494fe44d2eb82341b1cd37ee4dc78a19202e18083e5843a380141",
+      "witnessCount": 42,
+      "witnessSha256": "8067295cc4267bd8403e01716efa68690d64733da23f119f70b4b76b714b52ff",
       "allowedByTarget": true
     },
     {
@@ -770,5 +767,5 @@
       "exitRule": "production-graph-unchanged-and-cumulative-debt-verified"
     }
   ],
-  "boundary": "current REVIEW4-64 continuation graph after public contract/interface owner realignment; strict JSON now uses a physical domain include/source path with byte-identical header and normalized parser implementation, while the other public owner changes are classifier-only; Policy v1 counts 6 target-direction violations and zero multi-owner SCCs, internal target separation is true, and mixed-owner/final evidence debt remain unresolved; this is not a broad source dependency reduction or refactor-complete claim"
+  "boundary": "current REVIEW4-64 continuation graph after the analysis runtime port boundary; dependency-free analysis defaults and the exact 148-field config contract are shared by AppConfig and analysis through the port, analysis-services -> core-utilities is removed, Policy v1 counts 4 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed"
 }

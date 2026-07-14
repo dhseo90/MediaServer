@@ -14,6 +14,8 @@ echo "[replay] build VA metadata replay tool: ${BUILD_DIR}"
 "${CXX_BIN}" -std=c++17 -I"${ROOT_DIR}/include" \
   "${SCRIPT_DIR}/va_metadata_replay.cpp" \
   "${ROOT_DIR}/src/app_config.cpp" \
+  "${ROOT_DIR}/src/core/analysis_runtime_port.cpp" \
+  "${ROOT_DIR}/src/core/command_runner.cpp" \
   "${ROOT_DIR}/src/analysis/appearance_extractor.cpp" \
   "${ROOT_DIR}/src/analysis/category_tokens.cpp" \
   "${ROOT_DIR}/src/analysis/event_manager.cpp" \

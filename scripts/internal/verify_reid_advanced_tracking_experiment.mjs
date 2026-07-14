@@ -48,38 +48,38 @@ const report = {
 };
 
 check("Re-ID appearance hook default is disabled", () => {
-  const stdafx = readText("include/stdafx.h");
-  assert(stdafx.includes('kDefaultAnalysisAppearanceEnabled = false'), "Re-ID appearance hook must stay default disabled");
+  const analysisDefaults = readText("include/core/analysis_runtime_defaults.h");
+  assert(analysisDefaults.includes('kDefaultAnalysisAppearanceEnabled = false'), "Re-ID appearance hook must stay default disabled");
   return { appearanceDefault: "disabled" };
 });
 
 check("Re-ID default appearance extractor is noop", () => {
-  const stdafx = readText("include/stdafx.h");
-  assert(stdafx.includes('kDefaultAnalysisAppearanceExtractor = "noop"'), "default appearance extractor must stay noop");
+  const analysisDefaults = readText("include/core/analysis_runtime_defaults.h");
+  assert(analysisDefaults.includes('kDefaultAnalysisAppearanceExtractor = "noop"'), "default appearance extractor must stay noop");
   return { extractorDefault: "noop" };
 });
 
 check("Re-ID default model path is empty", () => {
-  const stdafx = readText("include/stdafx.h");
-  assert(stdafx.includes('kDefaultAnalysisAppearanceModelPath = ""'), "default Re-ID model path must stay empty");
+  const analysisDefaults = readText("include/core/analysis_runtime_defaults.h");
+  assert(analysisDefaults.includes('kDefaultAnalysisAppearanceModelPath = ""'), "default Re-ID model path must stay empty");
   return { modelPathDefault: "empty" };
 });
 
 check("Re-ID default model checksum is empty", () => {
-  const stdafx = readText("include/stdafx.h");
-  assert(stdafx.includes('kDefaultAnalysisAppearanceModelSha256 = ""'), "default Re-ID model checksum must stay empty");
+  const analysisDefaults = readText("include/core/analysis_runtime_defaults.h");
+  assert(analysisDefaults.includes('kDefaultAnalysisAppearanceModelSha256 = ""'), "default Re-ID model checksum must stay empty");
   return { modelChecksumDefault: "empty" };
 });
 
 check("Re-ID default model provenance is empty", () => {
-  const stdafx = readText("include/stdafx.h");
-  assert(stdafx.includes('kDefaultAnalysisAppearanceModelProvenance = ""'), "default Re-ID model provenance must stay empty");
+  const analysisDefaults = readText("include/core/analysis_runtime_defaults.h");
+  assert(analysisDefaults.includes('kDefaultAnalysisAppearanceModelProvenance = ""'), "default Re-ID model provenance must stay empty");
   return { modelProvenanceDefault: "empty" };
 });
 
 check("close object guard default is off", () => {
-  const stdafx = readText("include/stdafx.h");
-  assert(stdafx.includes('kDefaultAnalysisTrackingCloseObjectGuardMode = "off"'), "close-object guard must stay default off");
+  const analysisDefaults = readText("include/core/analysis_runtime_defaults.h");
+  assert(analysisDefaults.includes('kDefaultAnalysisTrackingCloseObjectGuardMode = "off"'), "close-object guard must stay default off");
   return { closeObjectGuardDefault: "off" };
 });
 
@@ -197,8 +197,9 @@ check("appearance diagnostics expose aggregate status only", () => {
 });
 
 check("model checksum provenance opt-in gate is wired", () => {
-  const stdafx = readText("include/stdafx.h");
+  const analysisDefaults = readText("include/core/analysis_runtime_defaults.h");
   const appConfigHeader = readText("include/app_config.h");
+  const analysisConfigData = readText("include/core/analysis_runtime_config_data.h");
   const appConfig = readText("src/app_config.cpp");
   const configReference = readText("docs/config-reference.md");
   const smoke = readText("scripts/internal/analysis_state_smoke.cpp");
@@ -206,13 +207,14 @@ check("model checksum provenance opt-in gate is wired", () => {
     'kDefaultAnalysisAppearanceModelSha256 = ""',
     'kDefaultAnalysisAppearanceModelProvenance = ""',
   ]) {
-    assert(stdafx.includes(snippet), `default config missing Re-ID model gate snippet: ${snippet}`);
+    assert(analysisDefaults.includes(snippet), `analysis default contract missing Re-ID model gate snippet: ${snippet}`);
   }
   for (const snippet of [
     "analysis_appearance_model_sha256",
     "analysis_appearance_model_provenance",
   ]) {
-    assert(appConfigHeader.includes(snippet), `AppConfig missing Re-ID model gate field: ${snippet}`);
+    assert(appConfigHeader.includes("struct AppConfig : core::AnalysisRuntimeConfigData") &&
+      analysisConfigData.includes(snippet), `AppConfig analysis config base missing Re-ID model gate field: ${snippet}`);
     assert(appConfig.includes(snippet), `app_config reader missing Re-ID model gate field: ${snippet}`);
   }
   for (const snippet of [

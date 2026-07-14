@@ -11,17 +11,17 @@
 namespace analysis {
 
 struct IntrusionDwellScenarioOptions {
-    bool enabled{app_config::kDefaultAnalysisIntrusionDwellEnabled};
+    bool enabled{core::analysis_runtime_defaults::kDefaultAnalysisIntrusionDwellEnabled};
     std::string scenario_key;
-    int candidate_time_ms{app_config::kDefaultAnalysisIntrusionDwellCandidateMs};
-    int dwell_time_ms{app_config::kDefaultAnalysisIntrusionDwellDwellMs};
-    int cooldown_ms{app_config::kDefaultAnalysisIntrusionDwellCooldownMs};
+    int candidate_time_ms{core::analysis_runtime_defaults::kDefaultAnalysisIntrusionDwellCandidateMs};
+    int dwell_time_ms{core::analysis_runtime_defaults::kDefaultAnalysisIntrusionDwellDwellMs};
+    int cooldown_ms{core::analysis_runtime_defaults::kDefaultAnalysisIntrusionDwellCooldownMs};
     bool require_stable_track{false};
     std::vector<std::string> target_class_tokens{"person"};
     std::vector<std::string> restricted_zone_ids;
 };
 
-IntrusionDwellScenarioOptions BuildIntrusionDwellScenarioOptionsFromConfig(const app::AppConfig& config);
+IntrusionDwellScenarioOptions BuildIntrusionDwellScenarioOptionsFromConfig(const core::AnalysisRuntimeConfig& config);
 
 class IntrusionDwellScenario : public IScenario {
 public:

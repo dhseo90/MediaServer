@@ -12,8 +12,7 @@
 #include "analysis/event_post_dispatcher.h"
 #include "analysis/event_rule_engine.h"
 #include "analysis/event_storage.h"
-#include "app_config.h"
-#include "core/runtime_debug_counters.h"
+#include "core/analysis_runtime_port.h"
 #include "ingress/analysis_overlay_probe.h"
 #include "ingress/analysis_rule_registry.h"
 
@@ -21,7 +20,7 @@ namespace analysis {
 namespace {
 
 void TraceAnalysisSessionEvent(const std::string& message) {
-    if (app::GetAppConfig().session_trace) {
+    if (core::GetAnalysisRuntimeConfig().session_trace) {
         static std::mutex trace_mu;
         std::lock_guard lock(trace_mu);
         std::cerr << "[session] " << message << "\n";
@@ -46,7 +45,7 @@ AnalysisContext BuildAnalysisContext(const media::IngressRequest& request,
 }
 
 std::string BuildAnalysisReuseKey(const core::StreamKey& stream_key, const AnalysisProfile& profile) {
-    const auto& config = app::GetAppConfig();
+    const auto& config = core::GetAnalysisRuntimeConfig();
     std::vector<std::string> tracking_classes = profile.tracking_class_labels;
     std::sort(tracking_classes.begin(), tracking_classes.end());
 
@@ -138,8 +137,8 @@ void AnalysisSessionService::DrainAnalysisTaps() {
     }
     analysis_manager_.DetachAll();
     for (const auto& [tap_id, entry] : entries) {
-        core::runtime_debug::RecordAnalysisTapDetached(tap_id);
-        core::runtime_debug::RecordAnalysisTapRefCount(entry.reuse_key, 0);
+        core::RecordAnalysisTapDetached(tap_id);
+        core::RecordAnalysisTapRefCount(entry.reuse_key, 0);
         for (std::size_t ref = 0; ref < entry.ref_count; ++ref) {
             session_manager_.ReleaseAuxiliaryStreamWhenIdle(entry.stream_handle);
         }
@@ -165,7 +164,7 @@ AnalysisSessionService::AnalysisTapResult AnalysisSessionService::AttachAnalysis
     profile = ingress::ResolveAnalysisProfileForContext(std::move(profile), context);
     const std::string reuse_key = BuildAnalysisReuseKey(stream_handle.stream_key, profile);
     {
-        const auto& config = app::GetAppConfig();
+        const auto& config = core::GetAnalysisRuntimeConfig();
         std::lock_guard lock(mu_);
         bool has_existing_reuse_key = false;
         std::size_t source_tap_count = 0;
@@ -186,14 +185,14 @@ AnalysisSessionService::AnalysisTapResult AnalysisSessionService::AttachAnalysis
             config.analysis_max_active_taps_per_source > 0 &&
             source_tap_count >= config.analysis_max_active_taps_per_source) {
             session_manager_.DiscardAuxiliaryStream(stream_handle);
-            core::runtime_debug::RecordAnalysisTapRejected(reuse_key);
+            core::RecordAnalysisTapRejected(reuse_key);
             return {.ok = false, .message = "analysis tap limit exceeded for source"};
         }
         if (!has_existing_reuse_key &&
             config.analysis_max_active_profiles_per_source > 0 &&
             source_profile_keys.size() >= config.analysis_max_active_profiles_per_source) {
             session_manager_.DiscardAuxiliaryStream(stream_handle);
-            core::runtime_debug::RecordAnalysisTapRejected(reuse_key);
+            core::RecordAnalysisTapRejected(reuse_key);
             return {.ok = false, .message = "analysis profile limit exceeded for source"};
         }
     }
@@ -205,7 +204,7 @@ AnalysisSessionService::AnalysisTapResult AnalysisSessionService::AttachAnalysis
                                                         reuse_key);
     if (!attach_result.ok) {
         session_manager_.DiscardAuxiliaryStream(stream_handle);
-        core::runtime_debug::RecordAnalysisTapRejected(reuse_key);
+        core::RecordAnalysisTapRejected(reuse_key);
         return {.ok = false,
                 .message = attach_result.message.empty() ? "failed to attach analysis tap"
                                                          : attach_result.message};
@@ -214,7 +213,7 @@ AnalysisSessionService::AnalysisTapResult AnalysisSessionService::AttachAnalysis
     std::string source_error;
     if (!session_manager_.StartAuxiliaryStream(stream_handle, &source_error)) {
         analysis_manager_.Detach(attach_result.tap_id);
-        core::runtime_debug::RecordAnalysisTapRefCount(attach_result.reuse_key,
+        core::RecordAnalysisTapRefCount(attach_result.reuse_key,
                                                        attach_result.ref_count > 0
                                                            ? attach_result.ref_count - 1
                                                            : 0);
@@ -236,17 +235,17 @@ AnalysisSessionService::AnalysisTapResult AnalysisSessionService::AttachAnalysis
             ++entry.ref_count;
         }
     }
-    core::runtime_debug::RecordAnalysisTapAttached(attach_result.tap_id);
+    core::RecordAnalysisTapAttached(attach_result.tap_id);
     if (attach_result.reused) {
-        core::runtime_debug::RecordAnalysisTapReused(attach_result.tap_id,
+        core::RecordAnalysisTapReused(attach_result.tap_id,
                                                      attach_result.reuse_key,
                                                      attach_result.ref_count);
     } else {
-        core::runtime_debug::RecordAnalysisTapCreated(attach_result.tap_id,
+        core::RecordAnalysisTapCreated(attach_result.tap_id,
                                                       attach_result.reuse_key,
                                                       attach_result.ref_count);
     }
-    core::runtime_debug::RecordAnalysisTapRefCount(attach_result.reuse_key, attach_result.ref_count);
+    core::RecordAnalysisTapRefCount(attach_result.reuse_key, attach_result.ref_count);
 
     return {.ok = true,
             .message = "ok",
@@ -279,11 +278,11 @@ AnalysisSessionService::AnalysisTapDetachResult AnalysisSessionService::DetachAn
     }
 
     const auto detach_result = analysis_manager_.Detach(tap_id);
-    core::runtime_debug::RecordAnalysisTapDetached(tap_id);
+    core::RecordAnalysisTapDetached(tap_id);
     const std::size_t ref_count = detach_result.ok ? detach_result.ref_count : entry.ref_count;
     const std::string counter_reuse_key =
         !detach_result.reuse_key.empty() ? detach_result.reuse_key : entry.reuse_key;
-    core::runtime_debug::RecordAnalysisTapRefCount(counter_reuse_key, ref_count);
+    core::RecordAnalysisTapRefCount(counter_reuse_key, ref_count);
     if (!detach_result.ok) {
         if (had_entry) {
             std::lock_guard lock(mu_);

@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-#include "app_config.h"
+#include "core/analysis_runtime_port.h"
 #include "ingress/analysis_rule_registry.h"
 
 namespace ingress {
@@ -792,7 +792,7 @@ analysis::AnalysisProfile BuildAnalysisProfileFromQuery(const std::unordered_map
                               ParseBoolQuery(query, "va", false) ||
                               ParseBoolQuery(query, "analysis", false);
     if (va_requested) {
-        const auto& config = app::GetAppConfig();
+        const auto& config = core::GetAnalysisRuntimeConfig();
         profile.detector_type = config.default_analysis_detector;
         profile.model_path = config.default_analysis_model_path;
         profile.labels_path = config.default_analysis_labels_path;
@@ -899,7 +899,7 @@ analysis::AnalysisProfile BuildAnalysisProfileFromQuery(const std::unordered_map
                        "debugState",
                        ParseBoolQuery(query,
                                       "debugOverlay",
-                                      ParseBoolQuery(query, "vaDebug", app::GetAppConfig().default_analysis_debug_overlay_enabled)));
+                                      ParseBoolQuery(query, "vaDebug", core::GetAnalysisRuntimeConfig().default_analysis_debug_overlay_enabled)));
     profile.debug_detector_delay_ms =
         ParseClampedIntQuery(query, "detectorDelayMs", profile.debug_detector_delay_ms, 0, 5000);
     profile.adaptive_tuning_enabled =
@@ -974,7 +974,7 @@ analysis::AnalysisProfile ResolveAnalysisProfileForContext(analysis::AnalysisPro
 analysis::OverlayRenderOptions BuildOverlayRenderOptionsFromQuery(
     const std::unordered_map<std::string, std::string>& query) {
     analysis::OverlayRenderOptions options;
-    options.line_thickness = app::GetAppConfig().default_analysis_overlay_thickness;
+    options.line_thickness = core::GetAnalysisRuntimeConfig().default_analysis_overlay_thickness;
     options.line_thickness = ParseClampedIntQuery(query, "thickness", options.line_thickness, 1, 16);
     options.draw_labels = ParseBoolQuery(query, "drawLabels", options.draw_labels);
     options.draw_track_ids =
@@ -988,7 +988,7 @@ analysis::OverlayRenderOptions BuildOverlayRenderOptionsFromQuery(
                                       "debugState",
                                       ParseBoolQuery(query,
                                                      "vaDebug",
-                                                     app::GetAppConfig().default_analysis_debug_overlay_enabled)));
+                                                     core::GetAnalysisRuntimeConfig().default_analysis_debug_overlay_enabled)));
     if (options.draw_debug_overlay) {
         options.draw_track_ids = true;
     }
@@ -1027,7 +1027,7 @@ analysis::OverlayRenderOptions BuildOverlayRenderOptionsFromQuery(
 AnalysisOverlayTimingOptions BuildAnalysisOverlayTimingOptionsFromQuery(
     const std::unordered_map<std::string, std::string>& query) {
     AnalysisOverlayTimingOptions options;
-    const auto& config = app::GetAppConfig();
+    const auto& config = core::GetAnalysisRuntimeConfig();
     options.sync_tolerance_ms = config.default_analysis_overlay_sync_tolerance_ms;
     options.wait_timeout_ms = config.default_analysis_overlay_wait_ms;
     options.sync_tolerance_ms = ParseClampedIntQuery(query, "overlaySyncToleranceMs", options.sync_tolerance_ms, 0, 5000);

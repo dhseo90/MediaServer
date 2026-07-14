@@ -126,9 +126,9 @@ struct SceneContextBuilderOptions {
     std::size_t max_track_contexts_per_channel{2048};
     std::int64_t retained_context_ms{5000};
     std::int64_t cleanup_interval_ms{1000};
-    bool use_ground_plane_for_speed{app_config::kDefaultAnalysisGroundPlaneSpeedEnabled};
+    bool use_ground_plane_for_speed{core::analysis_runtime_defaults::kDefaultAnalysisGroundPlaneSpeedEnabled};
     bool use_ground_plane_for_movement_radius{
-        app_config::kDefaultAnalysisGroundPlaneMovementRadiusEnabled};
+        core::analysis_runtime_defaults::kDefaultAnalysisGroundPlaneMovementRadiusEnabled};
     std::vector<HomographyConfig> homographies;
 };
 
@@ -185,6 +185,6 @@ private:
 
 SceneGeometryConfig BuildSceneGeometryConfigFromRuleDocuments(const std::vector<std::string>& rule_documents,
                                                               const AnalysisContext& context);
-SceneContextBuilderOptions BuildSceneContextBuilderOptionsFromConfig(const app::AppConfig& config);
+SceneContextBuilderOptions BuildSceneContextBuilderOptionsFromConfig(const core::AnalysisRuntimeConfig& config);
 
 }  // namespace analysis

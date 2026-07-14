@@ -2,7 +2,7 @@
 // 동작 요약: observation은 별도 파일에 append하고 EventRecord는 eventId reference만 사용한다.
 #include "analysis/vlm_observation_store.h"
 #include "analysis/event_storage.h"
-#include "app_config.h"
+#include "core/analysis_runtime_port.h"
 
 #include <algorithm>
 #include <cctype>
@@ -676,7 +676,7 @@ bool FileVlmObservationStore::Store(const VlmObservationSidecar& observation,
 }
 
 std::string DefaultVlmObservationStorePath() {
-    const std::filesystem::path event_path(app::GetAppConfig().analysis_event_storage_path);
+    const std::filesystem::path event_path(core::GetAnalysisRuntimeConfig().analysis_event_storage_path);
     const std::filesystem::path parent = event_path.parent_path();
     const std::string stem = event_path.stem().empty() ? "events" : event_path.stem().string();
     const std::string ext = event_path.extension().empty() ? ".jsonl" : event_path.extension().string();

@@ -35,7 +35,7 @@ bool IsActiveScenarioPhase(ScenarioPhase phase) {
 
 }  // namespace
 
-ReEntryScenarioOptions BuildReEntryScenarioOptionsFromConfig(const app::AppConfig& config) {
+ReEntryScenarioOptions BuildReEntryScenarioOptionsFromConfig(const core::AnalysisRuntimeConfig& config) {
     ReEntryScenarioOptions options;
     options.enabled = config.analysis_re_entry_enabled;
     options.re_entry_window_ms = config.analysis_re_entry_window_ms;

@@ -49,6 +49,8 @@ echo "[verify] build analysis state smoke: ${BUILD_DIR}"
   "${ROOT_DIR}/src/analysis/wrong_direction_scenario.cpp" \
   "${ROOT_DIR}/src/analysis/zone_occupancy_scenario.cpp" \
   "${ROOT_DIR}/src/app_config.cpp" \
+  "${ROOT_DIR}/src/core/analysis_runtime_port.cpp" \
+  "${ROOT_DIR}/src/core/command_runner.cpp" \
   "${GST_LIBS[@]}" \
   -o "${BUILD_DIR}/analysis_state_smoke"
 

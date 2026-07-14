@@ -83,7 +83,7 @@ std::string JsonEscape(const std::string& value) {
 }  // namespace
 
 IntrusionAfterLineCrossingScenarioOptions
-BuildIntrusionAfterLineCrossingScenarioOptionsFromConfig(const app::AppConfig& config) {
+BuildIntrusionAfterLineCrossingScenarioOptionsFromConfig(const core::AnalysisRuntimeConfig& config) {
     IntrusionAfterLineCrossingScenarioOptions options;
     options.enabled = config.analysis_intrusion_after_line_crossing_enabled;
     options.max_delay_after_crossing_ms =

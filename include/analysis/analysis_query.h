@@ -7,13 +7,13 @@
 
 #include "analysis/analysis_types.h"
 #include "analysis/overlay_renderer.h"
-#include "stdafx.h"
+#include "core/analysis_runtime_port.h"
 
 namespace ingress {
 
 struct AnalysisOverlayTimingOptions {
-    int sync_tolerance_ms{app_config::kDefaultAnalysisOverlaySyncToleranceMs};
-    int wait_timeout_ms{app_config::kDefaultAnalysisOverlayWaitMs};
+    int sync_tolerance_ms{core::analysis_runtime_defaults::kDefaultAnalysisOverlaySyncToleranceMs};
+    int wait_timeout_ms{core::analysis_runtime_defaults::kDefaultAnalysisOverlayWaitMs};
 };
 
 analysis::AnalysisProfile BuildAnalysisProfileFromQuery(const std::unordered_map<std::string, std::string>& query);

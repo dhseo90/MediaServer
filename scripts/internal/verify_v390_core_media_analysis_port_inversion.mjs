@@ -549,8 +549,8 @@ if (!skipMutations) {
       {
         id: "graph-direction-swap",
         file: "test/fixtures/v390_structure_stabilization_current_graph.json",
-        mutate: text => text.replace('"direction": "analysis-services -> core-utilities"',
-          '"direction": "analysis-services -> product-ui-workspaces"'),
+        mutate: text => text.replace('"direction": "transport-and-auth-adapter -> analysis-services"',
+          '"direction": "transport-and-auth-adapter -> composition-root"'),
         expectedFailure: "core media analysis inversion graph metrics drift",
       },
       {

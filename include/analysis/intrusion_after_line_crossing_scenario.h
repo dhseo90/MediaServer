@@ -13,12 +13,12 @@
 namespace analysis {
 
 struct IntrusionAfterLineCrossingScenarioOptions {
-    bool enabled{app_config::kDefaultAnalysisIntrusionAfterLineCrossingEnabled};
+    bool enabled{core::analysis_runtime_defaults::kDefaultAnalysisIntrusionAfterLineCrossingEnabled};
     std::string scenario_key;
     int max_delay_after_crossing_ms{
-        app_config::kDefaultAnalysisIntrusionAfterLineCrossingMaxDelayMs};
-    int dwell_time_ms{app_config::kDefaultAnalysisIntrusionAfterLineCrossingDwellMs};
-    int cooldown_ms{app_config::kDefaultAnalysisIntrusionAfterLineCrossingCooldownMs};
+        core::analysis_runtime_defaults::kDefaultAnalysisIntrusionAfterLineCrossingMaxDelayMs};
+    int dwell_time_ms{core::analysis_runtime_defaults::kDefaultAnalysisIntrusionAfterLineCrossingDwellMs};
+    int cooldown_ms{core::analysis_runtime_defaults::kDefaultAnalysisIntrusionAfterLineCrossingCooldownMs};
     bool require_stable_track{false};
     std::vector<std::string> target_class_tokens{"person"};
     std::vector<std::string> target_line_ids;
@@ -26,7 +26,7 @@ struct IntrusionAfterLineCrossingScenarioOptions {
 };
 
 IntrusionAfterLineCrossingScenarioOptions BuildIntrusionAfterLineCrossingScenarioOptionsFromConfig(
-    const app::AppConfig& config);
+    const core::AnalysisRuntimeConfig& config);
 
 class IntrusionAfterLineCrossingScenario : public IScenario {
 public:

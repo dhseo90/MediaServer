@@ -90,7 +90,7 @@ const opsImplementationFiles = [
   "src/ingress/ops_event_route_owner.cpp", "src/ingress/vlm_evaluation_promotion.cpp",
 ];
 const expectedDirections = [
-  "analysis-services -> core-media-interfaces", "analysis-services -> core-utilities",
+  "analysis-services -> core-media-interfaces",
   "analysis-services -> domain-and-registry-owners", "application-service-interfaces -> analysis-services",
   "application-service-interfaces -> domain-and-registry-owners", "composition-root -> analysis-services",
   "composition-root -> core-media-interfaces", "composition-root -> core-utilities",
@@ -131,7 +131,7 @@ check("interface and implementation owners are exact", () => {
   assert(owner("product-ui-workspaces").expectedFileCount === 12 &&
     owner("product-ui-workspaces").expectedCppCount === 12,
   "product UI implementation owner drift");
-  assert(owner("core-utilities").expectedFileCount === 13 && owner("core-utilities").expectedCppCount === 5 &&
+  assert(owner("core-utilities").expectedFileCount === 15 && owner("core-utilities").expectedCppCount === 5 &&
     !owner("core-utilities").exactFiles.some(file => file.includes("strict_json")),
   "core utility retained strict JSON ownership");
 });
@@ -179,8 +179,8 @@ check("strict JSON has a physical domain owner boundary", () => {
 check("current graph removes only the planned owner violations", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const violations = graph.observedModuleEdges.filter(item => item.allowedByTarget === false);
-  assert(graph.expectedProductionFiles === 168 && graph.expectedCppFiles === 84 &&
-    graph.observedModuleEdges.length === 19 && violations.length === 5 &&
+  assert(graph.expectedProductionFiles === 172 && graph.expectedCppFiles === 85 &&
+    graph.observedModuleEdges.length === 18 && violations.length === 4 &&
     graph.stronglyConnectedComponents.length === 0 &&
     JSON.stringify(graph.observedModuleEdges.map(item => item.direction)) === JSON.stringify(expectedDirections),
   "public owner graph metrics or exact direction set drift");
@@ -241,7 +241,7 @@ if (!skipMutations) {
       text => text.replace('"src/ingress/ops_event_route_owner.cpp"', '"include/ingress/ops_event_route_owner.h"'),
       "Ops implementation owner drift");
     rejectMutation("direction-swap", "test/fixtures/v390_structure_stabilization_current_graph.json",
-      text => text.replace('"direction": "analysis-services -> core-utilities"',
+      text => text.replace('"direction": "analysis-services -> core-media-interfaces"',
         '"direction": "analysis-services -> product-ui-workspaces"'),
       "public owner graph metrics or exact direction set drift");
     rejectMutation("header-dependency", "include/ingress/product_ui_assets.h",

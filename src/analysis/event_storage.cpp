@@ -4,7 +4,7 @@
 #include "analysis/event_storage.h"
 
 #include "analysis/snapshot_encoder.h"
-#include "app_config.h"
+#include "core/analysis_runtime_port.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER
 #include <gst/app/gstappsink.h>
@@ -151,8 +151,8 @@ EventRecord BuildEventRecord(const AnalysisResult& result, const AnalysisEvent& 
     record.confidence = event.score;
     record.bbox_available = event.box.width > 0.0F && event.box.height > 0.0F;
     record.bbox = event.box;
-    record.pre_event_ms = app::GetAppConfig().analysis_event_pre_event_ms;
-    record.post_event_ms = app::GetAppConfig().analysis_event_post_event_ms;
+    record.pre_event_ms = core::GetAnalysisRuntimeConfig().analysis_event_pre_event_ms;
+    record.post_event_ms = core::GetAnalysisRuntimeConfig().analysis_event_post_event_ms;
     record.metadata_json = BuildMetadataJson(result, event);
     return record;
 }
@@ -476,7 +476,7 @@ struct ArchiveFileInfo {
 };
 
 std::filesystem::path EventStorageActivePath() {
-    return std::filesystem::path(app::GetAppConfig().analysis_event_storage_path);
+    return std::filesystem::path(core::GetAnalysisRuntimeConfig().analysis_event_storage_path);
 }
 
 bool EnsureParentDirectory(const std::filesystem::path& path, std::string* error_message) {
@@ -659,7 +659,7 @@ bool RotateActiveEventStorageIfNeeded(std::uint64_t next_record_bytes,
     if (rotated != nullptr) {
         *rotated = false;
     }
-    const auto& config = app::GetAppConfig();
+    const auto& config = core::GetAnalysisRuntimeConfig();
     if (config.analysis_event_storage_max_file_bytes == 0) {
         if (error_message != nullptr) {
             error_message->clear();
@@ -723,7 +723,7 @@ struct RetentionResult {
 
 RetentionResult ApplyEventStorageRetention() {
     RetentionResult result;
-    const auto& config = app::GetAppConfig();
+    const auto& config = core::GetAnalysisRuntimeConfig();
     if (config.analysis_event_storage_max_archives == 0 &&
         config.analysis_event_storage_max_total_bytes == 0) {
         return result;
@@ -2129,7 +2129,7 @@ bool WriteEvidenceManifest(
 class EventFrameBuffer {
 public:
     void Record(const std::string& stream_id, const std::string& channel_id, const RawVideoFrame& frame) {
-        const auto& config = app::GetAppConfig();
+        const auto& config = core::GetAnalysisRuntimeConfig();
         if (!config.analysis_event_snapshot_hook_enabled && !config.analysis_event_clip_hook_enabled) {
             return;
         }
@@ -2719,7 +2719,7 @@ public:
     }
 
     void Enqueue(EventRecord record) {
-        const auto& config = app::GetAppConfig();
+        const auto& config = core::GetAnalysisRuntimeConfig();
         if (!config.analysis_event_storage_enabled) {
             return;
         }
@@ -2735,7 +2735,7 @@ public:
     }
 
     EventStorageSnapshot Snapshot() const {
-        const auto& config = app::GetAppConfig();
+        const auto& config = core::GetAnalysisRuntimeConfig();
         EventStorageSnapshot snapshot;
         {
             std::lock_guard lock(mu_);
@@ -2821,7 +2821,7 @@ private:
                 last_error_ = TrimForLog(rotation_error.empty() ? "failed to rotate event storage"
                                                                 : rotation_error);
             }
-            FileEventStorage storage(app::GetAppConfig().analysis_event_storage_path);
+            FileEventStorage storage(core::GetAnalysisRuntimeConfig().analysis_event_storage_path);
             std::string error_message;
             if (storage.Store(record, &error_message)) {
                 if (rotated) {
@@ -2846,7 +2846,7 @@ private:
                 ++failed_count_;
                 last_error_ = TrimForLog(error_message.empty() ? "failed to store event record" : error_message);
             }
-            std::cerr << "[event-storage] failed path=" << app::GetAppConfig().analysis_event_storage_path
+            std::cerr << "[event-storage] failed path=" << core::GetAnalysisRuntimeConfig().analysis_event_storage_path
                       << " error=" << error_message << "\n";
         }
     }
@@ -2855,7 +2855,7 @@ private:
         if (record == nullptr) {
             return;
         }
-        const auto& config = app::GetAppConfig();
+        const auto& config = core::GetAnalysisRuntimeConfig();
         record->pre_event_ms = config.analysis_event_pre_event_ms;
         record->post_event_ms = config.analysis_event_post_event_ms;
 
@@ -3076,7 +3076,7 @@ bool FileEventStorage::Store(const EventRecord& record, std::string* error_messa
 }
 
 void DispatchEventRecords(const AnalysisResult& result, const std::vector<AnalysisEvent>& events) {
-    if (events.empty() || !app::GetAppConfig().analysis_event_storage_enabled) {
+    if (events.empty() || !core::GetAnalysisRuntimeConfig().analysis_event_storage_enabled) {
         return;
     }
     for (const auto& event : events) {

@@ -11,19 +11,19 @@
 namespace analysis {
 
 struct LoiteringScenarioOptions {
-    bool enabled{app_config::kDefaultAnalysisLoiteringEnabled};
+    bool enabled{core::analysis_runtime_defaults::kDefaultAnalysisLoiteringEnabled};
     std::string scenario_key;
-    int min_dwell_time_ms{app_config::kDefaultAnalysisLoiteringMinDwellTimeMs};
-    float max_movement_radius{app_config::kDefaultAnalysisLoiteringMaxMovementRadius};
-    std::size_t min_trajectory_points{app_config::kDefaultAnalysisLoiteringMinTrajectoryPoints};
-    int cooldown_ms{app_config::kDefaultAnalysisLoiteringCooldownMs};
-    bool use_ground_plane_movement_radius{app_config::kDefaultAnalysisLoiteringUseGroundPlane};
+    int min_dwell_time_ms{core::analysis_runtime_defaults::kDefaultAnalysisLoiteringMinDwellTimeMs};
+    float max_movement_radius{core::analysis_runtime_defaults::kDefaultAnalysisLoiteringMaxMovementRadius};
+    std::size_t min_trajectory_points{core::analysis_runtime_defaults::kDefaultAnalysisLoiteringMinTrajectoryPoints};
+    int cooldown_ms{core::analysis_runtime_defaults::kDefaultAnalysisLoiteringCooldownMs};
+    bool use_ground_plane_movement_radius{core::analysis_runtime_defaults::kDefaultAnalysisLoiteringUseGroundPlane};
     bool require_stable_track{false};
     std::vector<std::string> target_class_tokens{"person"};
     std::vector<std::string> target_zone_ids;
 };
 
-LoiteringScenarioOptions BuildLoiteringScenarioOptionsFromConfig(const app::AppConfig& config);
+LoiteringScenarioOptions BuildLoiteringScenarioOptionsFromConfig(const core::AnalysisRuntimeConfig& config);
 
 class LoiteringScenario : public IScenario {
 public:

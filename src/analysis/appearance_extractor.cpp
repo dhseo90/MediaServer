@@ -3,7 +3,7 @@
 // 동작 요약: Re-ID는 TrackStateManager policy가 허용한 시점에만 호출되고 media pipeline과 분리된다.
 #include "analysis/appearance_extractor.h"
 
-#include "app_config.h"
+#include "core/analysis_runtime_port.h"
 
 #include <algorithm>
 #include <array>
@@ -459,7 +459,7 @@ private:
 
 #endif
 
-AppearanceUpdatePolicy BuildAppearanceUpdatePolicyFromConfig(const app::AppConfig& config) {
+AppearanceUpdatePolicy BuildAppearanceUpdatePolicyFromConfig(const core::AnalysisRuntimeConfig& config) {
     AppearanceUpdatePolicy policy;
     policy.enabled = config.analysis_appearance_enabled;
     policy.on_track_created = config.analysis_appearance_on_track_created;
@@ -478,7 +478,7 @@ AppearanceUpdatePolicy BuildAppearanceUpdatePolicyFromConfig(const app::AppConfi
     return policy;
 }
 
-AppearanceExtractorOptions BuildAppearanceExtractorOptionsFromConfig(const app::AppConfig& config) {
+AppearanceExtractorOptions BuildAppearanceExtractorOptionsFromConfig(const core::AnalysisRuntimeConfig& config) {
     AppearanceExtractorOptions options;
     options.enabled = config.analysis_appearance_enabled;
     options.extractor_name = ToLower(config.analysis_appearance_extractor);
@@ -562,11 +562,11 @@ AppearanceModelReadiness InspectAppearanceModelReadiness(
     return readiness;
 }
 
-AppearanceModelReadiness InspectAppearanceModelReadiness(const app::AppConfig& config) {
+AppearanceModelReadiness InspectAppearanceModelReadiness(const core::AnalysisRuntimeConfig& config) {
     return InspectAppearanceModelReadiness(BuildAppearanceExtractorOptionsFromConfig(config));
 }
 
-std::shared_ptr<IAppearanceExtractor> CreateAppearanceExtractorFromConfig(const app::AppConfig& config) {
+std::shared_ptr<IAppearanceExtractor> CreateAppearanceExtractorFromConfig(const core::AnalysisRuntimeConfig& config) {
     const auto options = BuildAppearanceExtractorOptionsFromConfig(config);
     const auto readiness = InspectAppearanceModelReadiness(options);
     if (!readiness.model_backed_preflight_ready) {

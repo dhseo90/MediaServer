@@ -50,6 +50,7 @@ add_library(media_server_runtime STATIC
     src/analysis/zone_occupancy_scenario.cpp
     src/analysis/yolo_onnx_detector.cpp
     src/app_config.cpp
+    src/core/analysis_runtime_port.cpp
     src/core/command_runner.cpp
     src/core/shared_stream.cpp
     src/core/source_factory.cpp

@@ -12,16 +12,16 @@
 namespace analysis {
 
 struct WrongDirectionScenarioOptions {
-    bool enabled{app_config::kDefaultAnalysisWrongDirectionEnabled};
+    bool enabled{core::analysis_runtime_defaults::kDefaultAnalysisWrongDirectionEnabled};
     std::string scenario_key;
-    int cooldown_ms{app_config::kDefaultAnalysisWrongDirectionCooldownMs};
+    int cooldown_ms{core::analysis_runtime_defaults::kDefaultAnalysisWrongDirectionCooldownMs};
     bool require_stable_track{false};
     std::vector<std::string> target_class_tokens{"person"};
     std::vector<std::string> target_line_ids;
     std::vector<std::string> allowed_direction_rules;
 };
 
-WrongDirectionScenarioOptions BuildWrongDirectionScenarioOptionsFromConfig(const app::AppConfig& config);
+WrongDirectionScenarioOptions BuildWrongDirectionScenarioOptionsFromConfig(const core::AnalysisRuntimeConfig& config);
 
 class WrongDirectionScenario : public IScenario {
 public:

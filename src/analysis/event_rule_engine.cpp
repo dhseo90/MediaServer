@@ -15,7 +15,7 @@
 #include "analysis/wrong_direction_scenario.h"
 #include "analysis/zone_occupancy_scenario.h"
 
-#include "app_config.h"
+#include "core/analysis_runtime_port.h"
 
 #include <algorithm>
 #include <cctype>
@@ -733,7 +733,7 @@ std::string ScenarioKeyForRule(const EventRule& rule, const std::string& scenari
     return scenario_type + ":rule:" + rule.id;
 }
 
-std::vector<std::unique_ptr<IScenario>> BuildDefaultRuntimeScenarios(const app::AppConfig& config) {
+std::vector<std::unique_ptr<IScenario>> BuildDefaultRuntimeScenarios(const core::AnalysisRuntimeConfig& config) {
     std::vector<std::unique_ptr<IScenario>> scenarios;
     if (config.analysis_intrusion_dwell_enabled) {
         scenarios.push_back(
@@ -767,7 +767,7 @@ std::vector<std::unique_ptr<IScenario>> BuildDefaultRuntimeScenarios(const app::
 
 std::vector<std::unique_ptr<IScenario>> BuildRuleRuntimeScenarios(
     const std::vector<std::string>& active_rule_documents,
-    const app::AppConfig& config) {
+    const core::AnalysisRuntimeConfig& config) {
     std::vector<std::unique_ptr<IScenario>> scenarios;
     bool saw_scenario_document = false;
     for (const auto& document : active_rule_documents) {
@@ -1168,7 +1168,7 @@ EventLifecycleOptions RuleEventLifecycleOptions(const EventRule& rule) {
     // ScenarioEngine은 같은 EventManager에 cooldown/update interval을 지정해 중복을 억제한다.
     options.cooldown_ms = 0;
     options.update_interval_ms = 0;
-    options.cleanup_interval_ms = app::GetAppConfig().analysis_cleanup_interval_ms;
+    options.cleanup_interval_ms = core::GetAnalysisRuntimeConfig().analysis_cleanup_interval_ms;
     options.emit_start = true;
     options.emit_update = true;
     options.emit_confirmed = true;
@@ -1423,7 +1423,7 @@ AnalysisDebugState BuildDebugState(const AnalysisResult& result,
     debug.tracks.reserve(scene_context.tracks.size());
     debug.scenario_timeline.reserve(scenario_instances.size());
     const bool include_ground_point =
-        app::GetAppConfig().default_analysis_debug_ground_point_enabled;
+        core::GetAnalysisRuntimeConfig().default_analysis_debug_ground_point_enabled;
 
     for (const auto& instance : scenario_instances) {
         debug.scenario_timeline.push_back(
@@ -1695,12 +1695,12 @@ void LogMetricsReport(const AnalysisMetricsReport& report) {
 }  // namespace
 
 EventRuleRuntime::EventRuleRuntime()
-    : track_state_manager(BuildTrackStateManagerOptionsFromConfig(app::GetAppConfig()),
+    : track_state_manager(BuildTrackStateManagerOptionsFromConfig(core::GetAnalysisRuntimeConfig()),
                           std::make_shared<NoOpAppearanceExtractor>()),
-      rule_scene_context_builder(BuildSceneContextBuilderOptionsFromConfig(app::GetAppConfig())),
-      scenario_scene_context_builder(BuildSceneContextBuilderOptionsFromConfig(app::GetAppConfig())),
-      scenario_engine(BuildScenarioEngineOptionsFromConfig(app::GetAppConfig())) {
-    const auto& config = app::GetAppConfig();
+      rule_scene_context_builder(BuildSceneContextBuilderOptionsFromConfig(core::GetAnalysisRuntimeConfig())),
+      scenario_scene_context_builder(BuildSceneContextBuilderOptionsFromConfig(core::GetAnalysisRuntimeConfig())),
+      scenario_engine(BuildScenarioEngineOptionsFromConfig(core::GetAnalysisRuntimeConfig())) {
+    const auto& config = core::GetAnalysisRuntimeConfig();
     scenario_engine.ReplaceScenarios(BuildDefaultRuntimeScenarios(config));
     metrics_log_interval_ns = MsToNs(config.analysis_metrics_log_interval_ms);
 }
@@ -1749,7 +1749,7 @@ EventRuleEvaluation ApplyEventRulesToResult(const AnalysisResult& result,
     const std::string scenario_signature = BuildScenarioConfigSignature(active_rule_documents);
     if (safe_runtime->scenario_config_signature != scenario_signature) {
         safe_runtime->scenario_engine.ReplaceScenarios(
-            BuildRuleRuntimeScenarios(active_rule_documents, app::GetAppConfig()));
+            BuildRuleRuntimeScenarios(active_rule_documents, core::GetAnalysisRuntimeConfig()));
         safe_runtime->scenario_config_signature = scenario_signature;
     }
     const std::string channel_id = ResolveRuntimeChannelId(result.source_key);

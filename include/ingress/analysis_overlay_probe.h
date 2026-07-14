@@ -10,7 +10,7 @@
 #include "analysis/analysis_types.h"
 #include "analysis/overlay_renderer.h"
 #include "core/media_analysis_port.h"
-#include "stdafx.h"
+#include "core/analysis_runtime_port.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER
 struct _GstElement;
@@ -24,8 +24,8 @@ struct AnalysisOverlayConfig {
     bool render_video_overlay{true};
     analysis::OverlayRenderOptions render_options;
     std::int64_t sync_tolerance_ns{
-        static_cast<std::int64_t>(app_config::kDefaultAnalysisOverlaySyncToleranceMs) * 1000000};
-    int wait_timeout_ms{app_config::kDefaultAnalysisOverlayWaitMs};
+        static_cast<std::int64_t>(core::analysis_runtime_defaults::kDefaultAnalysisOverlaySyncToleranceMs) * 1000000};
+    int wait_timeout_ms{core::analysis_runtime_defaults::kDefaultAnalysisOverlayWaitMs};
     std::function<std::optional<analysis::AnalysisResult>(std::int64_t frame_pts)> result_provider;
 };
 

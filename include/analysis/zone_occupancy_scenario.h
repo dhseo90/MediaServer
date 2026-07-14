@@ -13,18 +13,18 @@
 namespace analysis {
 
 struct ZoneOccupancyScenarioOptions {
-    bool enabled{app_config::kDefaultAnalysisZoneOccupancyEnabled};
+    bool enabled{core::analysis_runtime_defaults::kDefaultAnalysisZoneOccupancyEnabled};
     std::string scenario_key;
-    std::size_t occupancy_threshold{app_config::kDefaultAnalysisZoneOccupancyThreshold};
-    int min_dwell_time_ms{app_config::kDefaultAnalysisZoneOccupancyMinDwellTimeMs};
-    int cooldown_ms{app_config::kDefaultAnalysisZoneOccupancyCooldownMs};
+    std::size_t occupancy_threshold{core::analysis_runtime_defaults::kDefaultAnalysisZoneOccupancyThreshold};
+    int min_dwell_time_ms{core::analysis_runtime_defaults::kDefaultAnalysisZoneOccupancyMinDwellTimeMs};
+    int cooldown_ms{core::analysis_runtime_defaults::kDefaultAnalysisZoneOccupancyCooldownMs};
     bool require_stable_track{false};
     std::vector<std::string> target_class_tokens{"person"};
     std::vector<std::string> target_zone_ids;
 };
 
 ZoneOccupancyScenarioOptions BuildZoneOccupancyScenarioOptionsFromConfig(
-    const app::AppConfig& config);
+    const core::AnalysisRuntimeConfig& config);
 
 class ZoneOccupancyScenario : public IScenario {
 public:

@@ -3,7 +3,7 @@
 // 동작 요약: 기존 tracker가 만든 track id를 그대로 사용하며 새 tracking 알고리즘은 도입하지 않는다.
 #include "analysis/track_state_manager.h"
 
-#include "app_config.h"
+#include "core/analysis_runtime_port.h"
 
 #include <algorithm>
 #include <chrono>
@@ -1413,7 +1413,7 @@ void TrackStateManager::RefreshMetrics() {
     metric_last_cleanup_time_ns_.store(metrics.last_cleanup_time_ns);
 }
 
-TrackStateManagerOptions BuildTrackStateManagerOptionsFromConfig(const app::AppConfig& config) {
+TrackStateManagerOptions BuildTrackStateManagerOptionsFromConfig(const core::AnalysisRuntimeConfig& config) {
     TrackStateManagerOptions options;
     options.max_observation_history = config.analysis_max_recent_observations_per_track;
     options.max_trajectory_points = config.analysis_max_trajectory_points_per_track;

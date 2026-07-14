@@ -72,7 +72,7 @@ std::string JsonEscape(const std::string& value) {
 
 }  // namespace
 
-WrongDirectionScenarioOptions BuildWrongDirectionScenarioOptionsFromConfig(const app::AppConfig& config) {
+WrongDirectionScenarioOptions BuildWrongDirectionScenarioOptionsFromConfig(const core::AnalysisRuntimeConfig& config) {
     WrongDirectionScenarioOptions options;
     options.enabled = config.analysis_wrong_direction_enabled;
     options.cooldown_ms = config.analysis_wrong_direction_cooldown_ms;

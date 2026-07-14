@@ -44,7 +44,7 @@ const char* ToString(ScenarioPhase phase) {
     return "unknown";
 }
 
-ScenarioEngineOptions BuildScenarioEngineOptionsFromConfig(const app::AppConfig& config) {
+ScenarioEngineOptions BuildScenarioEngineOptionsFromConfig(const core::AnalysisRuntimeConfig& config) {
     ScenarioEngineOptions options;
     options.enabled = config.analysis_scenario_enabled ||
                       config.analysis_intrusion_dwell_enabled ||

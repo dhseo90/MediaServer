@@ -13,10 +13,10 @@
 namespace analysis {
 
 struct ReEntryScenarioOptions {
-    bool enabled{app_config::kDefaultAnalysisReEntryEnabled};
+    bool enabled{core::analysis_runtime_defaults::kDefaultAnalysisReEntryEnabled};
     std::string scenario_key;
-    int re_entry_window_ms{app_config::kDefaultAnalysisReEntryWindowMs};
-    int cooldown_ms{app_config::kDefaultAnalysisReEntryCooldownMs};
+    int re_entry_window_ms{core::analysis_runtime_defaults::kDefaultAnalysisReEntryWindowMs};
+    int cooldown_ms{core::analysis_runtime_defaults::kDefaultAnalysisReEntryCooldownMs};
     bool require_stable_track{false};
     std::vector<std::string> target_class_tokens{"person"};
     std::vector<std::string> target_zone_ids;
@@ -24,7 +24,7 @@ struct ReEntryScenarioOptions {
     std::vector<std::string> re_entry_zone_ids;
 };
 
-ReEntryScenarioOptions BuildReEntryScenarioOptionsFromConfig(const app::AppConfig& config);
+ReEntryScenarioOptions BuildReEntryScenarioOptionsFromConfig(const core::AnalysisRuntimeConfig& config);
 
 class ReEntryScenario : public IScenario {
 public:

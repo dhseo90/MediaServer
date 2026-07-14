@@ -35,7 +35,7 @@ Development 17의 readiness와 REVIEW4-51 decision/graph는 승인 당시 histor
 `test/fixtures/v390_structure_stabilization_current_graph.json`, verifier는
 `./server.sh verify-v390-review4-structure-stabilization-execution`입니다.
 
-Current REVIEW4-64 status: `current-continuation-slice-12-completed-final-targets-unmet`
+Current REVIEW4-64 status: `current-continuation-slice-13-completed-final-targets-unmet`
 
 | 순서 | Current Slice | 상태 | 직접 경계 |
 | ---: | --- | --- | --- |
@@ -46,9 +46,9 @@ Current REVIEW4-64 status: `current-continuation-slice-12-completed-final-target
 | 5 | `vlm-parser` | 완료 | strict JSON을 core utility로 이동하고 VLM provenance validator를 application-service owner로 분리; actual save/restart/no-write와 profile/promotion 계약 보존 |
 | 6 | `verifier-docs` | 미착수·deferred | production continuation source/graph가 안정된 뒤 execution evidence, manual UI archive, VLM index를 final review; generated evidence는 그 전까지 parked 상태 |
 
-Current policy v1 graph는 production 168파일/C++ 84개/owner 10개, target 위반 direction
-5개(승인 baseline 25개), 최대 SCC 0, production CMake target 2개입니다. `main.cpp` mixed composition debt는
-245→8줄, selected action route owner는 server 43,266→43,186줄로 닫았고 registry→transport auth edge와 product UI→transport/Auth edge를 제거했습니다. Transport monolith는 5개 구현 TU와 private detail header로 분할됐고 tracked mixed owner 최대는 10,156줄입니다. 위반 5개와 parked evidence가 남아 있으므로 REVIEW4-64 완료가
+Current policy v1 graph는 production 172파일/C++ 85개/owner 10개, target 위반 direction
+4개(승인 baseline 25개), 최대 SCC 0, production CMake target 2개입니다. `main.cpp` mixed composition debt는
+245→8줄, selected action route owner는 server 43,266→43,186줄로 닫았고 registry→transport auth edge와 product UI→transport/Auth edge를 제거했습니다. Transport monolith는 5개 구현 TU와 private detail header로 분할됐고 tracked mixed owner 최대는 10,156줄입니다. Slice 13은 utility 소유 compile-time 값을 `analysis_runtime_port.h`의 공식 `analysis_runtime_defaults` re-export로만 analysis에 노출하고 exact 133-default/148-field manifest를 고정합니다. 위반 4개와 parked evidence가 남아 있으므로 REVIEW4-64 완료가
 아닙니다. Historical v2 order와 current order의 전환 범위는 slice identifier/order뿐이며 current branch,
 50~63 prerequisite, 9 preserved contract, 64 뒤 65 acceptance 경계는 유지합니다. Policy v1은
 application-service→core와 transport→Ops/UI를 temporary debt로 기록하며 위반 계산에서 제외하지 않습니다.
@@ -395,5 +395,22 @@ metadata. The reruns passed, 2.1 MiB of run-scoped Auth/HLS/log/image/summary ar
 The current graph is production 168/C++ 84, edge 19, Policy v1 violations 5, SCC 0, targets 2 with
 internal separation, and largest mixed owner 10,156 lines. The line threshold is closed, but the five
 dependency directions and parked final evidence keep REVIEW4-64 and REVIEW4-65 open.
-owner 40,810줄, actual CMake internal target separation false가 모두 남아 있으므로 `refactorComplete=false`,
-owner 40,814줄, actual CMake internal target separation false가 모두 남아 있으므로 `refactorComplete=false`,
+
+### Current continuation Slice 13: `analysis-runtime-port-boundary`
+
+- [x] Move the complete 148-field analysis configuration contract and every compile-time analysis default
+  to dependency-free core ownership; keep `AppConfig` compatibility through inheritance without shadow fields.
+- [x] Replace analysis-owned direct config, command, runtime diagnostic, and stream-key utility references
+  with the exact `analysis_runtime_port` contract and adapter delegations.
+- [x] Reject direct `app_config::` references, transitive `stdafx` exposure, field/default/type drift,
+  AppConfig shadowing, diagnostic target swaps, graph-description drift, and isolated source/graph mutations.
+- [x] Update standalone analysis/replay harness link inventories for the new port implementation and preserve
+  product build, analysis state, ReID readiness, replay, VA event, and frozen metadata/media contracts.
+
+The first implementation changed only include paths and therefore hid direct `app_config::kDefaultAnalysis*`
+symbol use behind a transitive header. Independent review correctly rejected that false PASS. The final boundary
+owns defaults in `analysis_runtime_defaults.h`, has zero `app_config::` references in analysis owners, binds all
+148 fields by a normalized manifest digest, checks every adapter delegation and removes duplicate includes.
+Current graph is production 172/C++ 85, edge 18, Policy v1 violations 4, SCC 0, targets 2 with internal
+separation, and largest mixed owner 10,156 lines. The four remaining transport directions and parked final
+evidence keep REVIEW4-64/65 open.
