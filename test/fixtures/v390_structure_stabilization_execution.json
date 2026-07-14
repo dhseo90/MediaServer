@@ -1095,7 +1095,8 @@
           "independent architecture review required stable-contract-dtos to be described as public product UI presentation contracts and interfaces rather than DTO-only ownership",
           "the ONVIF credential provider header remains a public application interface containing concrete in-memory fixture declarations; this slice does not claim concrete provider implementation separation",
           "VLM promotion, VLM profile, and action deferral predecessor gates read a stale monolithic UI owner; each oracle was rebound to product_ui_server_pages and rerun",
-          "the v2.4 S06 route-owner gate exposed a missing historical archive row and legacy row parser; the archived row and focused verifier were restored without changing route behavior"
+          "the v2.4 S06 route-owner gate exposed a missing historical archive row and legacy row parser; the archived row and focused verifier were restored without changing route behavior",
+          "the first post-commit structure run was 14/1 because aggregate rollback-to-HEAD rename detection hid the intermediate core strict JSON path; the oracle now includes committed path history and passes without weakening dirty-path containment"
         ],
         "tests": [
           {"command":"./server.sh verify-v390-public-contract-interface-owner","status":"pass","firstAttempts":["classifier-only pre-production expected RED 2/3","physical domain boundary expected RED 2/4"],"result":"6/0; seven isolated contract, classifier, direction, dependency, consumer, and CMake mutations rejected"},
@@ -1113,7 +1114,7 @@
           {"command":"./server.sh verify-v390-product-ui-principal-view-boundary","status":"pass","result":"4/0"},
           {"command":"./server.sh verify-v230-ui-renderer-module-decomposition","status":"pass","result":"8/0"},
           {"command":"./server.sh verify-v290-final-contract-freeze","status":"pass","result":"10/0"},
-          {"command":"./server.sh verify-v390-review4-structure-stabilization-execution","status":"pass","result":"15/0 after explicit self-check transition"},
+          {"command":"./server.sh verify-v390-review4-structure-stabilization-execution","status":"pass","firstAttempt":"post-commit 14/1 intermediate rename path hidden by aggregate diff","result":"15/0 after explicit self-check transition and committed path-history binding"},
           {"command":"./server.sh verify-script-inventory","status":"pass","result":"11/0"},
           {"command":"./server.sh verify-docs-links","status":"pass","result":"168 Markdown, 877 links, 22 images, 99 anchors, failures 0"},
           {"command":"git diff --check","status":"pass","result":"exit 0"},
