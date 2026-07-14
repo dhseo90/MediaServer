@@ -5,7 +5,7 @@
   "release": "v3.9.0",
   "branch": "v3.9.0",
   "status": "in-progress",
-  "latestCompletedSlice": 1,
+  "latestCompletedSlice": 2,
   "productionRefactorStarted": true,
   "refactorComplete": false,
   "completionClaimed": false,
@@ -35,15 +35,15 @@
   "currentGraph": {
     "path": "test/fixtures/v390_structure_stabilization_current_graph.json",
     "schema": "media-server.v390-structure-stabilization-current-graph.v1",
-    "sha256": "8620be4ae311938cac91495d914ec6eba75b23f836405c0c0464d70fd73eb679",
+    "sha256": "25018cc1593b28612866b8950aa0e4e53211e3ab56f4519f28e1e11665eb16f4",
     "metrics": {
-      "productionFiles": 150,
-      "cppSources": 75,
+      "productionFiles": 152,
+      "cppSources": 76,
       "moduleOwners": 10,
       "cmakeTargets": 1,
-      "targetViolationDirections": 22,
+      "targetViolationDirections": 21,
       "largestSccOwners": 8,
-      "largestMixedOwnerFileLines": 43266,
+      "largestMixedOwnerFileLines": 43186,
       "internalTargetSeparation": false
     }
   },
@@ -152,9 +152,62 @@
     {
       "order": 2,
       "id": "route-api-handler",
-      "status": "not-started",
+      "status": "completed",
       "dependsOn": "composition-root",
-      "selectedBoundary": "/ops/api/actions/execution-deferral-decision"
+      "rollbackCommit": "2565509fc76c10232aa4decd16359db647745063",
+      "selectedBoundary": "/ops/api/actions/execution-deferral-decision",
+      "allowedFiles": [
+        "CMakeLists.txt",
+        "include/ingress/ops_action_execution_deferral.h",
+        "src/ingress/ops_action_execution_deferral.cpp",
+        "src/ingress/webrtc_http_server.cpp",
+        "scripts/internal/verify_v390_action_execution_deferral_decision.mjs",
+        "scripts/internal/verify_v380_ops_action_route_boundary.mjs",
+        "scripts/internal/verify_v390_structure_stabilization_execution.mjs",
+        "test/fixtures/v390_structure_stabilization_current_graph.json",
+        "test/fixtures/v390_structure_stabilization_execution.json",
+        "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md",
+        "docs/development-backlog.md",
+        "docs/release-test-records.md",
+        "docs/release-evidence-index.md",
+        "docs/stream-verification.md",
+        "docs/v390-feature-completion-inventory.md"
+      ],
+      "changedFiles": [
+        "CMakeLists.txt",
+        "include/ingress/ops_action_execution_deferral.h",
+        "src/ingress/ops_action_execution_deferral.cpp",
+        "src/ingress/webrtc_http_server.cpp"
+      ],
+      "before": {
+        "targetViolationDirections": 22,
+        "largestSccOwners": 8,
+        "webrtcHttpServerLines": 43266
+      },
+      "after": {
+        "targetViolationDirections": 21,
+        "largestSccOwners": 8,
+        "webrtcHttpServerLines": 43186
+      },
+      "contractAssertions": [
+        "outer require_ops_principal guard remains before handler dispatch",
+        "only GET returns status 200 OK with the exact v1 JSON body",
+        "Cache-Control remains no-store",
+        "non-GET behavior continues through the existing fallback without a write"
+      ],
+      "movedSymbols": [
+        "OpsV390ActionExecutionDeferralDecisionJson -> src/ingress/ops_action_execution_deferral.cpp",
+        "GET method/path/status/body/cache ownership -> TryHandleActionExecutionDeferralDecision"
+      ],
+      "tests": [
+        {"command":"./server.sh build","status":"pass"},
+        {"command":"./server.sh verify-v390-action-execution-deferral-decision","status":"pass"},
+        {"command":"./server.sh verify-v380-ops-action-route-boundary","status":"pass"},
+        {"command":"auth-off owned server GET 200/no-store and POST 404","status":"pass"},
+        {"command":"./server.sh verify-v390-review4-structure-stabilization-execution","status":"pass"},
+        {"command":"./server.sh verify-script-inventory","status":"pass"},
+        {"command":"git diff --check","status":"pass"}
+      ]
     },
     {
       "order": 3,

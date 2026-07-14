@@ -175,7 +175,20 @@ check("docs, inventory, and dispatch map v3.8 Step 2", () => {
   assertIncludes(files.releaseRecords, `\`./server.sh ${command}\``, "release records v3.8 Step 2");
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v380_ops_action_route_boundary.mjs", "server.sh dispatch");
-  for (const id of ["LAB-111", "SAFE-015", "SAFE-020", "SAFE-028", "SAFE-030", "SAFE-044", "SAFE-181", "OPS-148"]) assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === command, `${id} manifest verifier command drift`);
+  const expectedCanonicalCommands = new Map([
+    ["LAB-111", command],
+    ["SAFE-015", "verify-auth-routes"],
+    ["SAFE-020", "verify-auth-routes"],
+    ["SAFE-028", "verify-auth-routes"],
+    ["SAFE-030", "verify-auth-routes"],
+    ["SAFE-044", "verify-auth-routes"],
+    ["SAFE-181", command],
+    ["OPS-148", command],
+  ]);
+  for (const [id, expectedCommand] of expectedCanonicalCommands) {
+    assert(files.implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === expectedCommand,
+      `${id} manifest verifier command drift`);
+  }
   assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   assertIncludes(files.featureCoverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   assertIncludes(files.scriptInventory, "verify_v380_ops_action_route_boundary.mjs", "script inventory");

@@ -42,6 +42,7 @@ const files = loadFiles();
 const checks = [];
 
 check("Ops server exposes the v3.9 action execution deferral decision", () => {
+  const source = `${files.server}\n${files.handlerHeader}\n${files.handlerSource}`;
   for (const snippet of [
     "OpsV390ActionExecutionDeferralDecisionJson",
     schema,
@@ -57,13 +58,35 @@ check("Ops server exposes the v3.9 action execution deferral decision", () => {
     noticeRoute,
     rulePackageRoute,
   ]) {
-    assertIncludes(files.server, snippet, "v390 action execution deferral decision server model");
+    assertIncludes(source, snippet, "v390 action execution deferral decision server model");
   }
+});
+
+check("REVIEW4-64 route owner is extracted behind a transport-neutral response", () => {
+  for (const snippet of [
+    "struct ActionExecutionDeferralDecisionResponse",
+    "std::optional<ActionExecutionDeferralDecisionResponse>",
+    "TryHandleActionExecutionDeferralDecision",
+    "const std::string& method",
+    "const std::string& path",
+  ]) assertIncludes(files.handlerHeader, snippet, "action deferral handler contract");
+  for (const snippet of [
+    "OpsV390ActionExecutionDeferralDecisionJson",
+    "method != \"GET\"",
+    "path != kActionExecutionDeferralDecisionRoute",
+    "response.status = 200",
+    "response.reason = \"OK\"",
+    "response.cache_control = \"no-store\"",
+  ]) assertIncludes(files.handlerSource, snippet, "action deferral handler implementation");
+  assert(!files.handlerHeader.includes("HttpResponse") && !files.handlerSource.includes("require_ops_principal"),
+    "route owner must not depend on transport response or auth principal implementation");
+  assert(!files.server.includes("std::string OpsV390ActionExecutionDeferralDecisionJson()"),
+    "legacy JSON owner remains in transport source");
 });
 
 check("deferral decision preserves no-action/no-write/no-external-side-effect boundaries", () => {
   const deferralBlock = extractCppFunctionBlock(
-    files.server,
+    files.handlerSource,
     "std::string OpsV390ActionExecutionDeferralDecisionJson()",
   );
   for (const snippet of [
@@ -163,11 +186,12 @@ check("deferral decision preserves no-action/no-write/no-external-side-effect bo
 check("Ops API exposes the action execution deferral route as guarded no-store JSON", () => {
   const block = extractRouteBlock(files.server, route);
   assertIncludes(block, route, "v390 action execution deferral route");
-  assertIncludes(block, "request.method == \"GET\"", "v390 action execution deferral route");
   assertIncludes(block, "require_ops_principal()", "v390 action execution deferral route");
-  assertIncludes(block, "OpsV390ActionExecutionDeferralDecisionJson()", "v390 action execution deferral route");
+  assertIncludes(block, "TryHandleActionExecutionDeferralDecision", "v390 action execution deferral route");
+  assertIncludes(block, "request.method", "v390 action execution deferral route");
+  assertIncludes(block, "request.path", "v390 action execution deferral route");
   assertIncludes(block, "Cache-Control", "v390 action execution deferral route");
-  assertIncludes(block, "no-store", "v390 action execution deferral route");
+  assertIncludes(files.handlerSource, "no-store", "v390 action execution deferral route");
   assert(!block.includes("require_source_write_principal"), "deferral route must not require source writes");
 });
 
@@ -312,6 +336,8 @@ if (results.fail > 0) process.exit(1);
 function loadFiles() {
   return {
     server: readText("src/ingress/webrtc_http_server.cpp"),
+    handlerHeader: readTextIfExists("include/ingress/ops_action_execution_deferral.h"),
+    handlerSource: readTextIfExists("src/ingress/ops_action_execution_deferral.cpp"),
     uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
     clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
     backlog: readText("docs/development-backlog.md"),
@@ -349,6 +375,11 @@ function check(name, fn) {
 
 function readText(relativePath) {
   return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
+}
+
+function readTextIfExists(relativePath) {
+  const fullPath = path.join(rootDir, relativePath);
+  return fs.existsSync(fullPath) ? fs.readFileSync(fullPath, "utf8") : "";
 }
 
 function assert(condition, message) {

@@ -64,6 +64,7 @@ add_executable(media_server
     src/ingress/http_auth.cpp
     src/ingress/onvif_credential_provider.cpp
     src/ingress/onvif_live_import.cpp
+    src/ingress/ops_action_execution_deferral.cpp
     src/ingress/ops_event_route_owner.cpp
     src/ingress/rtsp_request_context.cpp
     src/ingress/request_parser.cpp

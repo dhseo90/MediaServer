@@ -26,7 +26,7 @@ Checks:
   - mutations for order, path escape, behavior change, false completion, and debt regression fail closed
 `);
 }
-assertKnownOptions(rawArgs, ["h", "help"]);
+assertKnownOptions(rawArgs, ["h", "help", "write-current-graph"]);
 
 const ledgerPath = "test/fixtures/v390_structure_stabilization_execution.json";
 const ledger = readJson(ledgerPath);
@@ -43,6 +43,28 @@ const expectedContracts = [
 ];
 const checks = [];
 
+if (rawArgs.includes("--write-current-graph")) {
+  const current = collectCurrentGraph(graph);
+  graph.expectedProductionFiles = current.productionFiles.length;
+  graph.expectedCppFiles = current.cppFiles.length;
+  graph.expectedFileOwnershipSha256 = current.ownershipSha256;
+  for (const classifier of graph.moduleClassifiers) {
+    const owned = current.ownership.filter(item => item.owner === classifier.id);
+    classifier.expectedFileCount = owned.length;
+    classifier.expectedCppCount = owned.filter(item => item.file.endsWith(".cpp")).length;
+  }
+  const target = graph.cmake.targets[0];
+  target.declaredSourceCount = current.cmakeSources.length;
+  target.defaultActiveSourceCount = current.defaultActiveCmakeSources.length;
+  target.moduleOwners = [...new Set(current.cmakeSources.map(source => classifyModule(source, graph.moduleClassifiers)))];
+  graph.observedModuleEdges = current.observedModuleEdges;
+  graph.stronglyConnectedComponents = current.stronglyConnectedComponents;
+  for (const debt of graph.mixedOwnershipDebt) debt.lineCount = lineCount(debt.file);
+  fs.writeFileSync(path.join(rootDir, ledger.currentGraph.path), `${JSON.stringify(graph, null, 2)}\n`);
+  console.log(`wrote ${ledger.currentGraph.path}: files=${current.productionFiles.length} cpp=${current.cppFiles.length} edges=${current.observedModuleEdges.length}`);
+  process.exit(0);
+}
+
 check("historical approval is separate from actual execution", () => {
   assert(ledger.schema === "media-server.v390-structure-stabilization-execution.v3", "execution schema mismatch");
   assert(ledger.issueId === "V390-REVIEW4-64" && ledger.release === "v3.9.0" && ledger.branch === "v3.9.0",
@@ -54,8 +76,8 @@ check("historical approval is separate from actual execution", () => {
     "historical approval binding mismatch");
   assert(decision.status === "approved-scheduled" && decision.implementationStatus === "not-executed",
     "historical decision was rewritten as execution evidence");
-  assert(ledger.status === "in-progress" && ledger.latestCompletedSlice === 1,
-    "Slice 1 ledger must remain in-progress");
+  assert(ledger.status === "in-progress" && ledger.latestCompletedSlice >= 1 && ledger.latestCompletedSlice < expectedSlices.length,
+    "partial execution ledger must remain in-progress with a valid completion frontier");
   for (const record of [ledger.approvalDecision, ledger.historicalReadiness, ledger.historicalGraph]) {
     assert(record.sha256 === sha256File(record.path), `historical record drift: ${record.path}`);
   }
@@ -135,8 +157,44 @@ check("composition root extraction preserves lifecycle ownership", () => {
     "composition-root graph owner mismatch");
 });
 
+check("route/API Slice owns exact action deferral response behind the outer auth guard", () => {
+  const slice = ledger.orderedSlices[1];
+  if (slice.status === "not-started") return;
+  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const header = readText("include/ingress/ops_action_execution_deferral.h");
+  const owner = readText("src/ingress/ops_action_execution_deferral.cpp");
+  const cmake = readText("CMakeLists.txt");
+  assert(header.includes("struct ActionExecutionDeferralDecisionResponse") &&
+    header.includes("TryHandleActionExecutionDeferralDecision"),
+  "transport-neutral action route contract missing");
+  for (const snippet of [
+    "std::string OpsV390ActionExecutionDeferralDecisionJson()",
+    "path != kActionExecutionDeferralDecisionRoute || method != \"GET\"",
+    "response.status = 200",
+    "response.reason = \"OK\"",
+    "response.cache_control = \"no-store\"",
+  ]) assert(owner.includes(snippet), `action route owner missing: ${snippet}`);
+  assert(!owner.includes("require_ops_principal") && !owner.includes("HttpResponse"),
+    "route owner depends on outer auth/transport types");
+  assert(!server.includes("std::string OpsV390ActionExecutionDeferralDecisionJson()"),
+    "legacy action JSON owner remains in transport source");
+  const routeStart = server.indexOf('request.path == "/ops/api/actions/execution-deferral-decision"');
+  const routeEnd = server.indexOf("\n                        if (request.path == ", routeStart + 1);
+  const routeBlock = server.slice(routeStart, routeEnd);
+  const authIndex = routeBlock.indexOf("require_ops_principal()");
+  const handlerIndex = routeBlock.indexOf("TryHandleActionExecutionDeferralDecision");
+  assert(routeStart >= 0 && authIndex >= 0 && handlerIndex > authIndex,
+    "outer principal guard must precede action route dispatch");
+  assert(routeBlock.includes("request.method") && routeBlock.includes("request.path") &&
+    routeBlock.includes('ok.headers["Cache-Control"] = handled->cache_control'),
+  "route method/path/cache adapter drift");
+  assert(cmake.split("src/ingress/ops_action_execution_deferral.cpp").length === 2,
+    "action route owner must appear in CMake exactly once");
+});
+
 check("dirty worktree paths stay inside the active slice declaration", () => {
-  const active = ledger.orderedSlices[ledger.latestCompletedSlice - 1];
+  const active = ledger.orderedSlices.find(item => item.status === "in-progress") ||
+    ledger.orderedSlices[Math.max(0, ledger.latestCompletedSlice - 1)];
   const allowed = new Set(active.allowedFiles);
   const changed = execFileSync("git", ["status", "--porcelain=v1", "--untracked-files=all"], {
     cwd: rootDir,
@@ -169,7 +227,7 @@ check("historical readiness remains immutable while current order is explicit", 
 check("negative mutations reject false progress", () => {
   for (const [label, mutate, expected] of [
     ["reordered slice", value => { [value.orderedSlices[0], value.orderedSlices[1]] = [value.orderedSlices[1], value.orderedSlices[0]]; }, "order"],
-    ["completion gap", value => { value.orderedSlices[1].status = "completed"; }, "frontier"],
+    ["completion gap", value => { value.orderedSlices[value.latestCompletedSlice].status = "completed"; }, "frontier"],
     ["path escape", value => { value.orderedSlices[0].allowedFiles.push("../outside"); }, "path"],
     ["behavior change", value => { value.orderedSlices[0].contractAssertions = []; }, "contract"],
     ["false complete", value => { value.status = "completed"; }, "completion"],
@@ -193,6 +251,10 @@ function validateLedger(value) {
   const completed = slices.filter(item => item.status === "completed");
   if (completed.length !== value.latestCompletedSlice ||
       slices.some((item, index) => item.status === "completed" !== (index < value.latestCompletedSlice))) {
+    errors.push("frontier");
+  }
+  const inProgress = slices.filter(item => item.status === "in-progress");
+  if (inProgress.length > 1 || (inProgress.length === 1 && inProgress[0].order !== value.latestCompletedSlice + 1)) {
     errors.push("frontier");
   }
   for (const slice of slices) {
@@ -265,6 +327,7 @@ function collectCurrentGraph(value) {
     .map(match => match[1]);
   return {
     productionFiles,
+    ownership,
     cppFiles: productionFiles.filter(file => file.endsWith(".cpp")),
     ownershipSha256: sha256Text(ownership.map(item => `${item.file}\t${item.owner}`).join("\n")),
     observedModuleEdges,

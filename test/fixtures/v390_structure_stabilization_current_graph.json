@@ -11,8 +11,8 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 150,
-  "expectedCppFiles": 75,
+  "expectedProductionFiles": 152,
+  "expectedCppFiles": 76,
   "moduleClassifiers": [
     {
       "id": "composition-root",
@@ -79,6 +79,8 @@
     {
       "id": "ops-route-groups",
       "exactFiles": [
+        "include/ingress/ops_action_execution_deferral.h",
+        "src/ingress/ops_action_execution_deferral.cpp",
         "include/ingress/onvif_credential_provider.h",
         "src/ingress/onvif_credential_provider.cpp",
         "include/ingress/ops_event_route_owner.h",
@@ -87,8 +89,8 @@
         "src/ingress/vlm_evaluation_promotion.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 6,
-      "expectedCppCount": 3
+      "expectedFileCount": 8,
+      "expectedCppCount": 4
     },
     {
       "id": "transport-and-auth-adapter",
@@ -161,15 +163,15 @@
       "expectedCppCount": 12
     }
   ],
-  "expectedFileOwnershipSha256": "14462342fd2e4f5f68d40661632304c1b71ff32aed9107ea04b82e2d0a363855",
+  "expectedFileOwnershipSha256": "888e11963ed5e57243c54072ed5147c2afa7c7b82dadd866fb037275240266cf",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
       {
         "id": "media_server",
         "type": "executable",
-        "declaredSourceCount": 75,
-        "defaultActiveSourceCount": 74,
+        "declaredSourceCount": 76,
+        "defaultActiveSourceCount": 75,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",
@@ -387,9 +389,9 @@
     },
     {
       "direction": "transport-and-auth-adapter -> ops-route-groups",
-      "witnessCount": 2,
-      "witnessSha256": "3d87bdebb8f0050b75e444d83d42c1ed0c114d91fa6558d9522a648ef080d434",
-      "allowedByTarget": false
+      "witnessCount": 3,
+      "witnessSha256": "8340fdcd1b13e034d2c4f86b230b4441b80a817c0be5eb6f7454f7a6dda07e2a",
+      "allowedByTarget": true
     },
     {
       "direction": "transport-and-auth-adapter -> product-ui-workspaces",
@@ -424,7 +426,7 @@
   "mixedOwnershipDebt": [
     {
       "file": "src/ingress/webrtc_http_server.cpp",
-      "lineCount": 43266,
+      "lineCount": 43186,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -453,6 +455,13 @@
       "afterLineCount": 8,
       "resolvedResponsibility": "composition-root",
       "replacementOwner": "src/application/media_server_application.cpp"
+    },
+    {
+      "file": "src/ingress/webrtc_http_server.cpp",
+      "beforeLineCount": 43266,
+      "afterLineCount": 43186,
+      "resolvedResponsibility": "action-execution-deferral-route-and-json",
+      "replacementOwner": "src/ingress/ops_action_execution_deferral.cpp"
     }
   ],
   "sliceBindings": [
