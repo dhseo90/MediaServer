@@ -6,7 +6,7 @@
 
 **Architecture:** 이 계획은 behavior-preserving stabilization handoff다. 새 product route, write path, UI control, schema, media path를 만들지 않고, 기존 대형 translation unit과 문서 source-of-truth를 작은 소유권 단위로 나누기 위한 순서와 검증만 정의한다.
 
-**Execution status:** `in-progress`; historical Slice 1~5와 current continuation Slice 1~5를 완료했고 최종 architecture/evidence 기준은 아직 미달입니다.
+**Execution status:** `in-progress`; historical Slice 1~5와 current continuation Slice 1~9를 완료했고 최종 architecture/evidence 기준은 아직 미달입니다.
 
 **Tech Stack:** C++17, GStreamer/ONNX 기반 MediaServer, `server.sh` verifier dispatch, Node.js static verifier, Markdown release/test evidence.
 
@@ -115,6 +115,16 @@ production 162/C++ 80, 위반 14, SCC 0, server 40,840줄입니다. 나머지 di
 9/0·6/0·8/0·5/0·9/0을 통과했습니다. Actual graph는 production 163/C++ 80, 위반 10, SCC 0,
 server 40,840줄입니다. 남은 direction/server/evidence debt 때문에 전체 REVIEW4-64는 계속 `in-progress`입니다.
 
+아홉 번째 current continuation Slice `public-contract-interface-owner-realignment`을 완료했습니다. Product UI
+public presentation contract/interface 9개와 ONVIF/Ops/VLM public contract surface를 implementation owner와
+분리해 분류하고, generic strict JSON header/source는 `include/domain`/`src/domain`으로 물리 이동했습니다.
+Strict JSON header는 byte-identical, parser는 include 경로 정규화 기준 rollback-equivalent이며 두 consumer와
+CMake만 새 domain 경계를 사용합니다. Focused gate는 선등록 2/4 RED에서 6/0으로 전환했고 격리 mutation
+7건을 거부했습니다. Build 100%, VLM HTTP save/restart/no-write, ONVIF, action, UI renderer, frozen contract
+회귀를 통과했습니다. Actual graph는 production 163/C++ 80, edge 20, Policy v1 위반 6, SCC 0입니다.
+10→6은 하나의 physical domain path와 public interface classifier 정렬의 합이며 광범위한 source dependency
+감소 주장이 아닙니다. 40,840줄 server와 parked final evidence 때문에 전체 REVIEW4-64는 계속 `in-progress`입니다.
+
 ## Development 17 Structure Stabilization Readiness
 
 Execution branch: `v3.9.0`
@@ -123,7 +133,7 @@ Source release: `v3.9.0`
 
 Historical readiness snapshot execution: `not-run`
 
-Current v3.9 refactor continuation: `in-progress` (Slice 8까지 실행, final target 미충족)
+Current v3.9 refactor continuation: `in-progress` (Slice 9까지 실행, final target 미충족)
 
 Branch creation: `not-performed`
 

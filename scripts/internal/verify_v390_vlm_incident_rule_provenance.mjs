@@ -43,8 +43,8 @@ const files = {
   server: read("src/ingress/webrtc_http_server.cpp"),
   validatorHeader: read("include/ingress/vlm_incident_rule_provenance.h"),
   validatorSource: read("src/ingress/vlm_incident_rule_provenance.cpp"),
-  strictJsonHeader: read("include/core/strict_json.h"),
-  strictJsonSource: read("src/core/strict_json.cpp"),
+  strictJsonHeader: read("include/domain/strict_json.h"),
+  strictJsonSource: read("src/domain/strict_json.cpp"),
   ui: read("src/ingress/product_ui_page_scripts.cpp"),
   backlog: read("docs/development-backlog.md"),
   inventory: read("docs/project-feature-test-inventory.md"),
@@ -72,7 +72,7 @@ for (const snippet of [
   "rule provenance reload quarantine",
 ]) assert(files.server.includes(snippet), `rule save/reload adapter missing ${snippet}`);
 assert(files.strictJsonHeader.includes("StrictJsonObjectDocument") &&
-  files.strictJsonSource.includes("duplicate JSON key at "), "core strict JSON owner missing");
+  files.strictJsonSource.includes("duplicate JSON key at "), "domain strict JSON owner missing");
 for (const snippet of [
   "ValidateVlmIncidentRuleProvenanceServerRecords",
   "QueryEventRecords",

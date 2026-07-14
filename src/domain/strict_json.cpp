@@ -1,4 +1,4 @@
-#include "core/strict_json.h"
+#include "domain/strict_json.h"
 
 #include <cctype>
 #include <cstdint>

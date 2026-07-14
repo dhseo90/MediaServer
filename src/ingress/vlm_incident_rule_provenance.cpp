@@ -3,7 +3,7 @@
 #include "ingress/vlm_incident_rule_provenance.h"
 
 #include "analysis/vlm_observation_store.h"
-#include "core/strict_json.h"
+#include "domain/strict_json.h"
 
 #include <cctype>
 #include <string>

@@ -338,34 +338,48 @@ check("UI Slice owns the exact action deferral workspace outside mixed server/pa
     "action deferral UI owner must appear in CMake exactly once");
   assert(!/\bmethod\s*:\s*["'](?:POST|PUT|PATCH|DELETE)["']/i.test(script),
     "action deferral UI renderer introduced a write request");
+  const publicOwnerSlice = ledger.currentContinuation?.orderedSlices?.find(item =>
+    item.id === "public-contract-interface-owner-realignment");
   assert(policy.temporaryDebtExceptions.some(item =>
     item.direction === "transport-and-auth-adapter -> product-ui-workspaces" &&
       item.countsAsTargetViolation === true) &&
-    graph.observedModuleEdges.some(item =>
-      item.direction === "transport-and-auth-adapter -> product-ui-workspaces" &&
-        item.allowedByTarget === false),
+    (publicOwnerSlice?.status === "completed"
+      ? !graph.observedModuleEdges.some(item =>
+        item.direction === "transport-and-auth-adapter -> product-ui-workspaces")
+      : graph.observedModuleEdges.some(item =>
+        item.direction === "transport-and-auth-adapter -> product-ui-workspaces" &&
+          item.allowedByTarget === false)),
   "transport-to-product-UI composition debt was hidden from the target violation count");
 });
 
 check("VLM parser Slice owns provenance validation and generic strict JSON outside transport", () => {
   const slice = ledger.orderedSlices[4];
   if (slice.status === "not-started") return;
-  const strictHeader = readText("include/core/strict_json.h");
-  const strictSource = readText("src/core/strict_json.cpp");
+  const publicOwnerSlice = ledger.currentContinuation?.orderedSlices?.find(item =>
+    item.id === "public-contract-interface-owner-realignment");
+  const strictJsonPromoted = publicOwnerSlice?.status === "completed";
+  const strictHeaderPath = strictJsonPromoted ? "include/domain/strict_json.h" : "include/core/strict_json.h";
+  const strictSourcePath = strictJsonPromoted ? "src/domain/strict_json.cpp" : "src/core/strict_json.cpp";
+  const strictInclude = strictJsonPromoted ? "domain/strict_json.h" : "core/strict_json.h";
+  const strictHeader = readText(strictHeaderPath);
+  const strictSource = readText(strictSourcePath);
   const validatorHeader = readText("include/ingress/vlm_incident_rule_provenance.h");
   const validatorSource = readText("src/ingress/vlm_incident_rule_provenance.cpp");
   const server = readText("src/ingress/webrtc_http_server.cpp");
   const cmake = readText("CMakeLists.txt");
   assert(!fs.existsSync(path.join(rootDir, "include/ingress/strict_json.h")) &&
-    !fs.existsSync(path.join(rootDir, "src/ingress/strict_json.cpp")),
+    !fs.existsSync(path.join(rootDir, "src/ingress/strict_json.cpp")) &&
+    (!strictJsonPromoted ||
+      !fs.existsSync(path.join(rootDir, "include/core/strict_json.h")) &&
+      !fs.existsSync(path.join(rootDir, "src/core/strict_json.cpp"))),
   "strict JSON remains transport-owned");
   assert(sha256Text(strictHeader) === slice.baselineDigests.strictJsonHeaderSha256,
     "strict JSON header behavior/API drift");
-  assert(sha256Text(strictSource.replace('#include "core/strict_json.h"', '#include "ingress/strict_json.h"')) ===
+  assert(sha256Text(strictSource.replace(`#include "${strictInclude}"`, '#include "ingress/strict_json.h"')) ===
     slice.baselineDigests.strictJsonSourceSha256,
   "strict JSON parser implementation drift");
   assert(validatorHeader.includes("bool ValidateVlmIncidentRuleProvenanceContract(") &&
-    validatorSource.includes('#include "core/strict_json.h"') &&
+    validatorSource.includes(`#include "${strictInclude}"`) &&
     validatorSource.includes('#include "analysis/vlm_observation_store.h"'),
   "VLM provenance application-service API/dependencies missing");
   for (const snippet of [
@@ -384,9 +398,10 @@ check("VLM parser Slice owns provenance validation and generic strict JSON outsi
     !server.includes("bool ValidateVlmIncidentRuleProvenanceContract(") &&
     server.includes("ValidateVlmIncidentRuleProvenanceContract(body, *id, error_message)"),
   "mixed transport source still owns or lost VLM provenance validation");
-  assert(cmake.split("src/core/strict_json.cpp").length === 2 &&
+  assert(cmake.split(strictSourcePath).length === 2 &&
     cmake.split("src/ingress/vlm_incident_rule_provenance.cpp").length === 2 &&
-    !cmake.includes("src/ingress/strict_json.cpp"),
+    !cmake.includes("src/ingress/strict_json.cpp") &&
+    (!strictJsonPromoted || !cmake.includes("src/core/strict_json.cpp")),
   "CMake strict JSON/VLM provenance ownership drift");
   const applicationOwner = graph.moduleClassifiers.find(item => item.id === "application-service-interfaces");
   assert(applicationOwner?.exactFiles?.includes("include/ingress/vlm_incident_rule_provenance.h") &&
@@ -395,9 +410,12 @@ check("VLM parser Slice owns provenance validation and generic strict JSON outsi
   assert(policy.temporaryDebtExceptions.some(item =>
     item.direction === "application-service-interfaces -> core-utilities" &&
       item.countsAsTargetViolation === true) &&
-    graph.observedModuleEdges.some(item =>
-      item.direction === "application-service-interfaces -> core-utilities" &&
-        item.allowedByTarget === false),
+    (publicOwnerSlice?.status === "completed"
+      ? !graph.observedModuleEdges.some(item =>
+        item.direction === "application-service-interfaces -> core-utilities")
+      : graph.observedModuleEdges.some(item =>
+        item.direction === "application-service-interfaces -> core-utilities" &&
+          item.allowedByTarget === false)),
   "application-to-core strict JSON dependency debt was hidden from the target violation count");
 });
 
@@ -477,11 +495,11 @@ check("non-production Slice preserves production graph and parked evidence stays
   }
 });
 
-check("current continuation binds the exact Slice 1-8 frontier without a final claim", () => {
+check("current continuation binds the exact Slice 1-9 frontier without a final claim", () => {
   const slices = ledger.currentContinuation?.orderedSlices || [];
-  assert(slices.length === 8 && slices[0].order === 1 && slices[1].order === 2 && slices[2].order === 3 &&
+  assert(slices.length === 9 && slices[0].order === 1 && slices[1].order === 2 && slices[2].order === 3 &&
     slices[3].order === 4 && slices[4].order === 5 && slices[5].order === 6 && slices[6].order === 7 &&
-    slices[7].order === 8 &&
+    slices[7].order === 8 && slices[8].order === 9 &&
     slices[0].id === "completion-oracle-and-ops-ui-renderer" && slices[0].status === "completed" &&
     slices[1].id === "product-ui-principal-view-boundary" && slices[1].status === "completed" &&
     slices[2].id === "source-request-parser-owner-boundary" && slices[2].status === "completed" &&
@@ -490,8 +508,9 @@ check("current continuation binds the exact Slice 1-8 frontier without a final c
     slices[5].id === "analysis-query-owner-boundary" && slices[5].status === "completed" &&
     slices[6].id === "core-media-analysis-port-inversion" &&
     slices[6].status === "completed" &&
-    slices[7].id === "stable-contract-owner-realignment" &&
-    ["in-progress", "completed"].includes(slices[7].status),
+    slices[7].id === "stable-contract-owner-realignment" && slices[7].status === "completed" &&
+    slices[8].id === "public-contract-interface-owner-realignment" &&
+    ["in-progress", "completed"].includes(slices[8].status),
   "current continuation slice identity/frontier mismatch");
   const slice1 = slices[0];
   const slice2 = slices[1];
@@ -501,6 +520,7 @@ check("current continuation binds the exact Slice 1-8 frontier without a final c
   const slice6 = slices[5];
   const slice7 = slices[6];
   const slice8 = slices[7];
+  const slice9 = slices[8];
   assert(slice1.rollbackCommit === ledger.orderedSlices[5].rollbackCommit &&
     slice1.nonProductionSlice === false && slice1.contractAssertions.length >= 5 && slice1.tests.length >= 5 &&
     slice1.tests.every(test => test.status === "pass"),
@@ -945,15 +965,17 @@ check("current continuation binds the exact Slice 1-8 frontier without a final c
         slice8.before.targetViolationDirectionsUnderPolicyV1,
     "in-progress Slice 8 rewrote graph evidence before production verification completed");
   } else {
-    assert(ledger.currentContinuation.latestCompletedSlice === 8 && slice8.after !== null &&
+    assert(ledger.currentContinuation.latestCompletedSlice >= 8 && slice8.after !== null &&
       slice8.tests.every(test => test.status === "pass"),
     "completed Slice 8 frontier/test state mismatch");
-    assert(slice8.after.productionGraphSha256 === ledger.currentGraph.sha256 &&
+    assert((slice9.status === "completed"
+      ? JSON.stringify(slice8.after) === JSON.stringify(slice9.before)
+      : slice8.after.productionGraphSha256 === ledger.currentGraph.sha256) &&
       slice8.after.productionFiles === 163 && slice8.after.cppSources === 80 &&
       slice8.after.targetViolationDirectionsUnderPolicyV1 === 10 &&
       slice8.after.largestSccOwners === 0 && slice8.after.webrtcHttpServerLines === 40840 &&
       slice8.after.cmakeTargets === 2 && slice8.after.internalTargetSeparation === true &&
-      graph.observedModuleEdges.length === 22 &&
+      (slice9.status === "completed" || graph.observedModuleEdges.length === 22) &&
       !graph.observedModuleEdges.some(item => [
         "analysis-services -> stable-contract-dtos",
         "core-media-interfaces -> stable-contract-dtos",
@@ -961,6 +983,71 @@ check("current continuation binds the exact Slice 1-8 frontier without a final c
         "domain-and-registry-owners -> stable-contract-dtos",
       ].includes(item.direction)),
     "completed Slice 8 stable-contract owner graph delta drift");
+  }
+  const slice9Commands = [
+    "./server.sh verify-v390-public-contract-interface-owner",
+    "./server.sh build",
+    "./server.sh verify-v390-stable-contract-owner-realignment",
+    "./server.sh verify-v390-stable-contract-leaf-boundary",
+    "./server.sh verify-v390-analysis-query-owner-boundary",
+    "./server.sh verify-v390-vlm-promotion-trust-boundary",
+    "./server.sh verify-vlm-profile-storage",
+    "./server.sh verify-v390-vlm-incident-rule-provenance",
+    "./server.sh verify-onvif-auth-injection-design",
+    "./server.sh verify-v390-action-execution-deferral-decision",
+    "./server.sh verify-v240-ops-event-route-owner-decomposition",
+    "./server.sh verify-v390-ops-product-ui-renderer-owner",
+    "./server.sh verify-v390-product-ui-principal-view-boundary",
+    "./server.sh verify-v230-ui-renderer-module-decomposition",
+    "./server.sh verify-v290-final-contract-freeze",
+    "./server.sh verify-v390-review4-structure-stabilization-execution",
+    "./server.sh verify-script-inventory",
+    "./server.sh verify-docs-links",
+    "git diff --check",
+    "listener/temp cleanup",
+  ];
+  assert(slice9.rollbackCommit === "a771408e40c7e086e6d377b00839d31d77be2ef2" &&
+    slice9.nonProductionSlice === false && slice9.contractAssertions.length >= 7 &&
+    slice9.tests.length === slice9Commands.length &&
+    slice9Commands.every(command => slice9.tests.filter(test => test.command === command).length === 1),
+  "current continuation Slice 9 rollback/contract/test inventory drift");
+  assert(JSON.stringify(slice9.before) === JSON.stringify(slice8.after),
+    "current continuation Slice 9 before-state is not bound to Slice 8 frontier");
+  if (slice9.status === "in-progress") {
+    assert(ledger.currentContinuation.status === "in-progress" &&
+      ledger.currentContinuation.latestCompletedSlice === 8 &&
+      ledger.currentContinuation.sliceSequenceStatus === "partial" && slice9.after === null,
+    "in-progress Slice 9 frontier/after-state overclaim");
+    assert(sliceTest(slice9, slice9Commands[0]).status === "expected-red" &&
+      slice9.tests.slice(1).every(test => test.status === "registered"),
+    "in-progress Slice 9 test registration/RED state drift");
+    assert(ledger.currentGraph.sha256 === slice9.before.productionGraphSha256 &&
+      ledger.currentGraph.metrics.productionFiles === slice9.before.productionFiles &&
+      ledger.currentGraph.metrics.cppSources === slice9.before.cppSources &&
+      ledger.currentGraph.metrics.targetViolationDirections ===
+        slice9.before.targetViolationDirectionsUnderPolicyV1,
+    "in-progress Slice 9 rewrote graph evidence before owner verification completed");
+  } else {
+    const selfCheck = sliceTest(slice9,
+      "./server.sh verify-v390-review4-structure-stabilization-execution");
+    const testsFinal = slice9.tests.every(test => test.status === "pass") ||
+      selfCheck.status === "self-check" && slice9.tests.every(test =>
+        test === selfCheck || test.status === "pass");
+    assert(ledger.currentContinuation.latestCompletedSlice === 9 && slice9.after !== null && testsFinal,
+    "completed Slice 9 frontier/test state mismatch");
+    assert(slice9.after.productionGraphSha256 === ledger.currentGraph.sha256 &&
+      slice9.after.productionFiles === 163 && slice9.after.cppSources === 80 &&
+      slice9.after.targetViolationDirectionsUnderPolicyV1 === 6 &&
+      slice9.after.largestSccOwners === 0 && slice9.after.webrtcHttpServerLines === 40840 &&
+      slice9.after.cmakeTargets === 2 && slice9.after.internalTargetSeparation === true &&
+      graph.observedModuleEdges.length === 20 &&
+      !graph.observedModuleEdges.some(item => [
+        "application-service-interfaces -> core-utilities",
+        "application-service-interfaces -> ops-route-groups",
+        "transport-and-auth-adapter -> ops-route-groups",
+        "transport-and-auth-adapter -> product-ui-workspaces",
+      ].includes(item.direction)),
+    "completed Slice 9 public contract/interface graph delta drift");
   }
   assert(ledger.currentContinuation.finalCompletionClaimAllowed === false &&
     ledger.refactorComplete === false && ledger.completionClaimed === false,

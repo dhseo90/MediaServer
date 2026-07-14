@@ -196,7 +196,7 @@ check("Ops API exposes the action execution deferral route as guarded no-store J
 });
 
 check("/ops action control workspace renders action execution deferral decision", () => {
-  const serverBlock = extractBlock(files.server, "void AppendOpsDashboardPage", "section class=\"section-card ops-workspace-wide ops-site-client-notice-workspace");
+  const serverBlock = extractBlock(files.uiServer, "void AppendOpsDashboardPage", "section class=\"section-card ops-workspace-wide ops-site-client-notice-workspace");
   assertIncludes(serverBlock, "OpsActionExecutionDeferralWorkspaceHtml()", "v390 action execution deferral dashboard adapter");
   for (const snippet of [
     "ops-action-execution-deferral-decision",
@@ -342,6 +342,7 @@ if (results.fail > 0) process.exit(1);
 function loadFiles() {
   return {
     server: readText("src/ingress/webrtc_http_server.cpp"),
+    uiServer: readText("src/ingress/product_ui_server_pages.cpp"),
     handlerHeader: readTextIfExists("include/ingress/ops_action_execution_deferral.h"),
     handlerSource: readTextIfExists("src/ingress/ops_action_execution_deferral.cpp"),
     uiWorkspaceHeader: readTextIfExists("include/ingress/product_ui_action_execution_deferral.h"),

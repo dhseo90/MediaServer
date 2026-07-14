@@ -35,7 +35,7 @@ const checks = [];
 check("registry persists VLM profiles with strict validation", () => {
   const server = readText("src/ingress/webrtc_http_server.cpp");
   const profilePreparationBlock = extractCppFunctionBlock(server, "std::optional<Document> PrepareVlmProfileDocumentLocked(");
-  const strictJson = readText("src/core/strict_json.cpp");
+  const strictJson = readText("src/domain/strict_json.cpp");
   const promotion = readText("src/ingress/vlm_evaluation_promotion.cpp");
   const implementation = `${server}\n${promotion}`;
   for (const snippet of [
@@ -138,7 +138,7 @@ check("ops API exposes guarded VLM profile CRUD routes", () => {
 });
 
 check("ops UI renders profile storage controls and saved profile table", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = readText("src/ingress/product_ui_server_pages.cpp");
   const script = readText("src/ingress/product_ui_page_scripts.cpp");
   for (const snippet of [
     "data-testid=\"ops-vlm-profile-panel\"",

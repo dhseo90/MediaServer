@@ -95,9 +95,9 @@ function verifySourceContract() {
   const promotionBlock = extractCppFunctionBlock(moduleSource, "VlmEvaluationPromotionResult ValidateVlmEvaluationPromotion(");
   assert(promotionBlock.includes("result.accepted = true;"), "LAB-123 server-owned promotion result.accepted block readback mismatch");
   const server = read("src/ingress/webrtc_http_server.cpp");
-  const strictJson = read("src/core/strict_json.cpp");
+  const strictJson = read("src/domain/strict_json.cpp");
   const client = read("src/ingress/product_ui_page_scripts.cpp");
-  const shell = read("src/ingress/webrtc_http_server.cpp");
+  const shell = read("src/ingress/product_ui_server_pages.cpp");
   const opsShellRouteBlock = extractCppFunctionBlock(server, "bool IsOpsOverviewShellRoute(");
   const opsVlmRoutePresent = opsShellRouteBlock.includes('path == "/ops/vlm"');
   for (const snippet of [

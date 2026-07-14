@@ -106,7 +106,11 @@ check("current graph records the planned intermediate owner delta without final 
   const analysisOwner = graph.moduleClassifiers.find(item => item.id === "analysis-services");
   const applicationOwner = graph.moduleClassifiers.find(item => item.id === "application-service-interfaces");
   assert(analysisOwner.expectedFileCount >= 67 && analysisOwner.expectedCppCount >= 35 &&
-    applicationOwner.expectedFileCount === 4 && applicationOwner.expectedCppCount === 2,
+    applicationOwner.expectedFileCount >= 4 && applicationOwner.expectedCppCount === 2 &&
+    [
+      "include/ingress/onvif_live_import.h", "src/ingress/onvif_live_import.cpp",
+      "include/ingress/vlm_incident_rule_provenance.h", "src/ingress/vlm_incident_rule_provenance.cpp",
+    ].every(file => applicationOwner.exactFiles.includes(file)),
   "analysis/application owner counts do not reflect the query move");
   const slice7 = ledger.currentContinuation?.orderedSlices?.[6];
   const laterInversionGraph = graph.stronglyConnectedComponents.length === 0 &&

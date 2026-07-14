@@ -55,7 +55,7 @@ add_library(media_server_runtime STATIC
     src/core/source_factory.cpp
     src/core/stream_registry.cpp
     src/core/stream_key.cpp
-    src/core/strict_json.cpp
+    src/domain/strict_json.cpp
     src/core/resource_guard.cpp
     src/core/session_manager.cpp
     src/core/source_request_parser.cpp

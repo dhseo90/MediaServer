@@ -70,13 +70,24 @@ check("stable contract bytes stay unchanged", () => {
   }
 });
 
-check("stable owner contains only the presentation contract leaf", () => {
+check("stable owner retains the presentation leaf and approved public successors", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const stable = graph.moduleClassifiers.find(item => item.id === "stable-contract-dtos");
-  assert(JSON.stringify(stable?.exactFiles) === JSON.stringify([
+  const slice8Files = ["include/ingress/product_ui_principal_view.h"];
+  const slice9Files = [
     "include/ingress/product_ui_principal_view.h",
-  ]), "stable owner exact file set drift");
-  assert(stable.expectedFileCount === 1 && stable.expectedCppCount === 0,
+    "include/ingress/product_ui_action_execution_deferral.h",
+    "include/ingress/product_ui_assets.h",
+    "include/ingress/product_ui_auth_pages.h",
+    "include/ingress/product_ui_components.h",
+    "include/ingress/product_ui_css.h",
+    "include/ingress/product_ui_js.h",
+    "include/ingress/product_ui_page_scripts.h",
+    "include/ingress/product_ui_server_pages.h",
+  ];
+  assert([JSON.stringify(slice8Files), JSON.stringify(slice9Files)].includes(JSON.stringify(stable?.exactFiles)),
+    "stable owner exact file set drift");
+  assert([1, 9].includes(stable.expectedFileCount) && stable.expectedCppCount === 0,
     "stable owner expected counts drift");
   assert(!read("include/ingress/product_ui_principal_view.h").match(/^\s*#\s*include\s*"/m),
     "stable presentation leaf gained a production include");
@@ -97,7 +108,8 @@ check("analysis media and RTSP contracts have their target owners", () => {
   assert(analysis.expectedFileCount === 73 && analysis.expectedCppCount === 37,
     "analysis owner counts drift");
   assert(coreUtilities.exactFiles.includes("include/media_types.h") &&
-    coreUtilities.expectedFileCount === 15 && coreUtilities.expectedCppCount === 6,
+    [[15, 6], [13, 5]].some(([files, cpp]) =>
+      coreUtilities.expectedFileCount === files && coreUtilities.expectedCppCount === cpp),
   "media primitive is not core-utility owned");
   for (const file of ["include/ingress/rtsp_request_context.h", "src/ingress/rtsp_request_context.cpp"])
     assert(coreMedia.exactFiles.includes(file), `RTSP request contract owner drift: ${file}`);
@@ -142,10 +154,34 @@ check("current graph records only the planned four-direction reduction", () => {
     "transport-and-auth-adapter -> ops-route-groups",
     "transport-and-auth-adapter -> product-ui-workspaces",
   ];
+  const slice9Directions = [
+    "analysis-services -> core-media-interfaces",
+    "analysis-services -> core-utilities",
+    "analysis-services -> domain-and-registry-owners",
+    "application-service-interfaces -> analysis-services",
+    "application-service-interfaces -> domain-and-registry-owners",
+    "composition-root -> analysis-services",
+    "composition-root -> core-media-interfaces",
+    "composition-root -> core-utilities",
+    "composition-root -> transport-and-auth-adapter",
+    "core-media-interfaces -> core-utilities",
+    "core-media-interfaces -> domain-and-registry-owners",
+    "domain-and-registry-owners -> core-utilities",
+    "ops-route-groups -> application-service-interfaces",
+    "product-ui-workspaces -> stable-contract-dtos",
+    "transport-and-auth-adapter -> analysis-services",
+    "transport-and-auth-adapter -> application-service-interfaces",
+    "transport-and-auth-adapter -> core-media-interfaces",
+    "transport-and-auth-adapter -> core-utilities",
+    "transport-and-auth-adapter -> domain-and-registry-owners",
+    "transport-and-auth-adapter -> stable-contract-dtos",
+  ];
+  const directions = graph.observedModuleEdges.map(item => item.direction);
   assert(graph.expectedProductionFiles === 163 && graph.expectedCppFiles === 80 &&
-    graph.observedModuleEdges.length === 22 && violations.length === 10 &&
+    [[22, 10], [20, 6]].some(([edges, debt]) =>
+      graph.observedModuleEdges.length === edges && violations.length === debt) &&
     graph.stronglyConnectedComponents.length === 0 &&
-    JSON.stringify(graph.observedModuleEdges.map(item => item.direction)) === JSON.stringify(expectedDirections),
+    [JSON.stringify(expectedDirections), JSON.stringify(slice9Directions)].includes(JSON.stringify(directions)),
   "stable owner graph metrics drift");
   for (const direction of [
     "analysis-services -> stable-contract-dtos",
@@ -215,7 +251,7 @@ if (!skipMutations) {
     rejectMutation("stable-owner", "test/fixtures/v390_structure_stabilization_current_graph.json",
       text => text.replace('"include/ingress/product_ui_principal_view.h"',
         '"include/analysis/analysis_types.h",\n        "include/ingress/product_ui_principal_view.h"'),
-      "stable owner contains only the presentation contract leaf");
+      "stable owner retains the presentation leaf and approved public successors");
     rejectMutation("graph-count", "test/fixtures/v390_structure_stabilization_current_graph.json",
       text => text.replace('"expectedProductionFiles": 163', '"expectedProductionFiles": 162'),
       "current graph records only the planned four-direction reduction");

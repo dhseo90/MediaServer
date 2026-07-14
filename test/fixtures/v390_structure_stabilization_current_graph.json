@@ -28,10 +28,18 @@
     {
       "id": "stable-contract-dtos",
       "exactFiles": [
-        "include/ingress/product_ui_principal_view.h"
+        "include/ingress/product_ui_principal_view.h",
+        "include/ingress/product_ui_action_execution_deferral.h",
+        "include/ingress/product_ui_assets.h",
+        "include/ingress/product_ui_auth_pages.h",
+        "include/ingress/product_ui_components.h",
+        "include/ingress/product_ui_css.h",
+        "include/ingress/product_ui_js.h",
+        "include/ingress/product_ui_page_scripts.h",
+        "include/ingress/product_ui_server_pages.h"
       ],
       "prefixes": [],
-      "expectedFileCount": 1,
+      "expectedFileCount": 9,
       "expectedCppCount": 0
     },
     {
@@ -40,10 +48,14 @@
         "include/ingress/onvif_live_import.h",
         "src/ingress/onvif_live_import.cpp",
         "include/ingress/vlm_incident_rule_provenance.h",
-        "src/ingress/vlm_incident_rule_provenance.cpp"
+        "src/ingress/vlm_incident_rule_provenance.cpp",
+        "include/ingress/onvif_credential_provider.h",
+        "include/ingress/ops_action_execution_deferral.h",
+        "include/ingress/ops_event_route_owner.h",
+        "include/ingress/vlm_evaluation_promotion.h"
       ],
       "prefixes": [],
-      "expectedFileCount": 4,
+      "expectedFileCount": 8,
       "expectedCppCount": 2
     },
     {
@@ -53,11 +65,13 @@
         "include/ingress/source_view_registry.h",
         "src/ingress/source_view_registry.cpp",
         "include/ingress/webrtc_source_registry.h",
-        "src/ingress/webrtc_source_registry.cpp"
+        "src/ingress/webrtc_source_registry.cpp",
+        "include/domain/strict_json.h",
+        "src/domain/strict_json.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 5,
-      "expectedCppCount": 2
+      "expectedFileCount": 7,
+      "expectedCppCount": 3
     },
     {
       "id": "product-ui-workspaces",
@@ -66,23 +80,19 @@
         "include/ingress/product_ui_",
         "src/ingress/product_ui_"
       ],
-      "expectedFileCount": 20,
+      "expectedFileCount": 12,
       "expectedCppCount": 12
     },
     {
       "id": "ops-route-groups",
       "exactFiles": [
-        "include/ingress/ops_action_execution_deferral.h",
         "src/ingress/ops_action_execution_deferral.cpp",
-        "include/ingress/onvif_credential_provider.h",
         "src/ingress/onvif_credential_provider.cpp",
-        "include/ingress/ops_event_route_owner.h",
         "src/ingress/ops_event_route_owner.cpp",
-        "include/ingress/vlm_evaluation_promotion.h",
         "src/ingress/vlm_evaluation_promotion.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 8,
+      "expectedFileCount": 4,
       "expectedCppCount": 4
     },
     {
@@ -123,14 +133,12 @@
         "include/core/runtime_debug_counters.h",
         "include/core/source_request_parser.h",
         "src/core/source_request_parser.cpp",
-        "include/core/strict_json.h",
-        "src/core/strict_json.cpp",
         "include/core/stream_key.h",
         "src/core/stream_key.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 15,
-      "expectedCppCount": 6
+      "expectedFileCount": 13,
+      "expectedCppCount": 5
     },
     {
       "id": "core-media-interfaces",
@@ -160,7 +168,7 @@
       "expectedCppCount": 13
     }
   ],
-  "expectedFileOwnershipSha256": "cc8bae1207886879ad076fa9e005b55b9212ee5c116a0fa7903759bbfc61002a",
+  "expectedFileOwnershipSha256": "77485b7be2b50bdbd93cfeca52e22080cfd9969ce367eb5646f81c0490bf6875",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -181,11 +189,11 @@
           "analysis-services",
           "core-utilities",
           "core-media-interfaces",
+          "domain-and-registry-owners",
           "transport-and-auth-adapter",
           "ops-route-groups",
           "application-service-interfaces",
-          "product-ui-workspaces",
-          "domain-and-registry-owners"
+          "product-ui-workspaces"
         ]
       },
       {
@@ -239,22 +247,10 @@
       "allowedByTarget": true
     },
     {
-      "direction": "application-service-interfaces -> core-utilities",
-      "witnessCount": 1,
-      "witnessSha256": "050ab85979b2e41a30e9e38da1d8b600e4bad7a8bd6a71f43e28594760080636",
-      "allowedByTarget": false
-    },
-    {
       "direction": "application-service-interfaces -> domain-and-registry-owners",
-      "witnessCount": 1,
-      "witnessSha256": "9df287c3ec2c7f0b4e4571b7fe9863f402bb33a3104ccf056fbac6edeb3baf29",
+      "witnessCount": 2,
+      "witnessSha256": "068f8639a94e1a7513a792d79f8abf7c1974876f0538cebe3d252c8081b4211f",
       "allowedByTarget": true
-    },
-    {
-      "direction": "application-service-interfaces -> ops-route-groups",
-      "witnessCount": 1,
-      "witnessSha256": "02bcedfc67733a976838f2559fb0c2485bffa1db504e26fe9c781153afdc55ec",
-      "allowedByTarget": false
     },
     {
       "direction": "composition-root -> analysis-services",
@@ -299,9 +295,15 @@
       "allowedByTarget": true
     },
     {
+      "direction": "ops-route-groups -> application-service-interfaces",
+      "witnessCount": 4,
+      "witnessSha256": "ef82ade3e6e314452f6eff7fe386454c5a7e8be16912294b37e5a981dadfe473",
+      "allowedByTarget": true
+    },
+    {
       "direction": "product-ui-workspaces -> stable-contract-dtos",
-      "witnessCount": 2,
-      "witnessSha256": "0f356b60469a8a0760c49e3d3d57ab3df309817427c1cf985b8226e4a67a2b60",
+      "witnessCount": 24,
+      "witnessSha256": "59fa9a81455a32fc2b3749e1b23e453b54f293610065f7afc9104103de686267",
       "allowedByTarget": true
     },
     {
@@ -312,8 +314,8 @@
     },
     {
       "direction": "transport-and-auth-adapter -> application-service-interfaces",
-      "witnessCount": 2,
-      "witnessSha256": "c37f036fd256d1668dd204b1a59f34f2c4a45f0cfb9612c0076dc9a3bf592200",
+      "witnessCount": 5,
+      "witnessSha256": "ec750b02bb6af9e4e818debe44d283a023b7861431f61659651acb97944e12f8",
       "allowedByTarget": true
     },
     {
@@ -324,27 +326,21 @@
     },
     {
       "direction": "transport-and-auth-adapter -> core-utilities",
-      "witnessCount": 5,
-      "witnessSha256": "ca9639873a51492eace34110bcd1535fae2c8153a0f67c9543b5f0a34663491b",
+      "witnessCount": 4,
+      "witnessSha256": "68b951d6d71a134072f2aedd63ff56922c4814e944411235bd514db943bab64e",
       "allowedByTarget": false
     },
     {
       "direction": "transport-and-auth-adapter -> domain-and-registry-owners",
-      "witnessCount": 3,
-      "witnessSha256": "42e4633b9b564eb569b6b8193f7be3c2494ad2f8bd803b26f3ec32bf754e0f30",
+      "witnessCount": 4,
+      "witnessSha256": "50ec6b19d7aea754f4dbe090043aea7f03a00cf0d4e0d8fb663b45cc37dec274",
       "allowedByTarget": false
     },
     {
-      "direction": "transport-and-auth-adapter -> ops-route-groups",
-      "witnessCount": 3,
-      "witnessSha256": "8340fdcd1b13e034d2c4f86b230b4441b80a817c0be5eb6f7454f7a6dda07e2a",
-      "allowedByTarget": false
-    },
-    {
-      "direction": "transport-and-auth-adapter -> product-ui-workspaces",
+      "direction": "transport-and-auth-adapter -> stable-contract-dtos",
       "witnessCount": 8,
       "witnessSha256": "afea9199641d6a7b964b14c6f9bb301768694996232708f4df2fd7b243a930a9",
-      "allowedByTarget": false
+      "allowedByTarget": true
     }
   ],
   "legacyForbiddenIncludeEdges": [
@@ -469,6 +465,104 @@
       "afterLineCount": 34,
       "resolvedResponsibility": "analysis-to-media-primitive-dependency-through-core-media-facade",
       "replacementOwner": "include/core/media_packet_contract.h"
+    },
+    {
+      "file": "include/ingress/product_ui_action_execution_deferral.h",
+      "beforeLineCount": 13,
+      "afterLineCount": 13,
+      "resolvedResponsibility": "byte-stable-public-product-ui-interface-classification",
+      "replacementOwner": "stable-contract-dtos"
+    },
+    {
+      "file": "include/ingress/product_ui_assets.h",
+      "beforeLineCount": 14,
+      "afterLineCount": 14,
+      "resolvedResponsibility": "byte-stable-public-product-ui-interface-classification",
+      "replacementOwner": "stable-contract-dtos"
+    },
+    {
+      "file": "include/ingress/product_ui_auth_pages.h",
+      "beforeLineCount": 23,
+      "afterLineCount": 23,
+      "resolvedResponsibility": "byte-stable-public-product-ui-interface-classification",
+      "replacementOwner": "stable-contract-dtos"
+    },
+    {
+      "file": "include/ingress/product_ui_components.h",
+      "beforeLineCount": 57,
+      "afterLineCount": 57,
+      "resolvedResponsibility": "byte-stable-public-product-ui-interface-classification",
+      "replacementOwner": "stable-contract-dtos"
+    },
+    {
+      "file": "include/ingress/product_ui_css.h",
+      "beforeLineCount": 12,
+      "afterLineCount": 12,
+      "resolvedResponsibility": "byte-stable-public-product-ui-interface-classification",
+      "replacementOwner": "stable-contract-dtos"
+    },
+    {
+      "file": "include/ingress/product_ui_js.h",
+      "beforeLineCount": 13,
+      "afterLineCount": 13,
+      "resolvedResponsibility": "byte-stable-public-product-ui-interface-classification",
+      "replacementOwner": "stable-contract-dtos"
+    },
+    {
+      "file": "include/ingress/product_ui_page_scripts.h",
+      "beforeLineCount": 18,
+      "afterLineCount": 18,
+      "resolvedResponsibility": "byte-stable-public-product-ui-interface-classification",
+      "replacementOwner": "stable-contract-dtos"
+    },
+    {
+      "file": "include/ingress/product_ui_server_pages.h",
+      "beforeLineCount": 21,
+      "afterLineCount": 21,
+      "resolvedResponsibility": "byte-stable-public-product-ui-interface-classification",
+      "replacementOwner": "stable-contract-dtos"
+    },
+    {
+      "file": "include/ingress/onvif_credential_provider.h",
+      "beforeLineCount": 86,
+      "afterLineCount": 86,
+      "resolvedResponsibility": "byte-stable-public-application-interface-classification",
+      "replacementOwner": "application-service-interfaces"
+    },
+    {
+      "file": "include/ingress/ops_action_execution_deferral.h",
+      "beforeLineCount": 22,
+      "afterLineCount": 22,
+      "resolvedResponsibility": "byte-stable-public-application-interface-classification",
+      "replacementOwner": "application-service-interfaces"
+    },
+    {
+      "file": "include/ingress/ops_event_route_owner.h",
+      "beforeLineCount": 66,
+      "afterLineCount": 66,
+      "resolvedResponsibility": "byte-stable-public-application-interface-classification",
+      "replacementOwner": "application-service-interfaces"
+    },
+    {
+      "file": "include/ingress/vlm_evaluation_promotion.h",
+      "beforeLineCount": 32,
+      "afterLineCount": 32,
+      "resolvedResponsibility": "byte-stable-public-application-interface-classification",
+      "replacementOwner": "application-service-interfaces"
+    },
+    {
+      "file": "include/domain/strict_json.h",
+      "beforeLineCount": 50,
+      "afterLineCount": 50,
+      "resolvedResponsibility": "byte-stable-domain-parser-interface-classification",
+      "replacementOwner": "domain-and-registry-owners"
+    },
+    {
+      "file": "src/domain/strict_json.cpp",
+      "beforeLineCount": 363,
+      "afterLineCount": 363,
+      "resolvedResponsibility": "include-normalized-rollback-equivalent-domain-parser-physical-move",
+      "replacementOwner": "domain-and-registry-owners"
     }
   ],
   "sliceBindings": [
@@ -529,5 +623,5 @@
       "exitRule": "production-graph-unchanged-and-cumulative-debt-verified"
     }
   ],
-  "boundary": "current REVIEW4-64 continuation graph after stable contract owner realignment; Policy v1 counts 10 target-direction violations and zero multi-owner SCCs, while internal target separation is true and mixed-owner/final evidence debt remain unresolved; this is not a refactor-complete claim"
+  "boundary": "current REVIEW4-64 continuation graph after public contract/interface owner realignment; strict JSON now uses a physical domain include/source path with byte-identical header and normalized parser implementation, while the other public owner changes are classifier-only; Policy v1 counts 6 target-direction violations and zero multi-owner SCCs, internal target separation is true, and mixed-owner/final evidence debt remain unresolved; this is not a broad source dependency reduction or refactor-complete claim"
 }

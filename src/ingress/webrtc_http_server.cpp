@@ -74,7 +74,7 @@
 #include "ingress/product_ui_page_scripts.h"
 #include "ingress/product_ui_server_pages.h"
 #include "ingress/source_view_registry.h"
-#include "core/strict_json.h"
+#include "domain/strict_json.h"
 #include "ingress/vlm_evaluation_promotion.h"
 #include "ingress/vlm_incident_rule_provenance.h"
 #include "ingress/webrtc_egress_session.h"
