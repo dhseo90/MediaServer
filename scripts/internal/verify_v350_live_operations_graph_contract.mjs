@@ -35,6 +35,7 @@ const schema = "media-server.ops.v350-live-operations-graph.v1";
 const route = "/ops/api/live-operations/graph";
 const files = {
   server: readWebRtcHttpServerBundle(readText),
+  serverWorkflows: readText("src/ingress/webrtc_http_server_ops_workflows.cpp"),
   backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
@@ -80,7 +81,9 @@ check("Ops server builds the v3.5 live operations graph read model", () => {
 });
 
 check("live operations graph joins required source-of-truth inputs", () => {
-  const block = extractBlock(files.server, "struct OpsV350LiveOperationsGraphContext", "struct OpsV350CommandPlanCandidate");
+  const block = extractBlock(files.serverWorkflows,
+    "OpsV350LiveOperationsGraphContext BuildV350LiveOperationsGraphContext(",
+    "std::vector<OpsV350CommandPlanCandidate> BuildV350CommandPlanCandidates(");
   for (const snippet of [
     "SourceViewRegistry::Instance().Snapshot",
     "analysis::QueryEventRecords",

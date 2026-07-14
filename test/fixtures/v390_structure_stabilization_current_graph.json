@@ -11,8 +11,8 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 163,
-  "expectedCppFiles": 80,
+  "expectedProductionFiles": 168,
+  "expectedCppFiles": 84,
   "moduleClassifiers": [
     {
       "id": "composition-root",
@@ -99,11 +99,16 @@
         "include/ingress/http_auth.h",
         "src/ingress/http_auth.cpp",
         "include/ingress/webrtc_http_server.h",
-        "src/ingress/webrtc_http_server.cpp"
+        "src/ingress/webrtc_http_server.cpp",
+        "src/ingress/webrtc_http_server_ops_foundation.cpp",
+        "src/ingress/webrtc_http_server_ops_workflows.cpp",
+        "src/ingress/webrtc_http_server_ops_incidents.cpp",
+        "src/ingress/webrtc_http_server_runtime.cpp",
+        "src/ingress/webrtc_http_server_detail.h"
       ],
       "prefixes": [],
-      "expectedFileCount": 4,
-      "expectedCppCount": 2
+      "expectedFileCount": 9,
+      "expectedCppCount": 6
     },
     {
       "id": "analysis-services",
@@ -166,15 +171,100 @@
       "expectedCppCount": 14
     }
   ],
-  "expectedFileOwnershipSha256": "77d6423426982746838e34a6beaef4b29a666c2c14929dcf668d64c6090ddf61",
+  "expectedFileOwnershipSha256": "0b50f1e656ddfc623e08aad4c88c73417231949b6d0de9737e070793361372bf",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
       {
         "id": "media_server_runtime",
         "type": "library",
-        "declaredSourceCount": 78,
-        "defaultActiveSourceCount": 77,
+        "productionSources": [
+          "src/analysis/analysis_manager.cpp",
+          "src/analysis/analysis_session_service.cpp",
+          "src/analysis/appearance_extractor.cpp",
+          "src/analysis/category_tokens.cpp",
+          "src/analysis/detector_factory.cpp",
+          "src/analysis/dummy_detector.cpp",
+          "src/analysis/event_manager.cpp",
+          "src/analysis/event_feature_search_index.cpp",
+          "src/analysis/event_post_dispatcher.cpp",
+          "src/analysis/event_retention_cleanup.cpp",
+          "src/analysis/event_rule_engine.cpp",
+          "src/analysis/event_search_query.cpp",
+          "src/analysis/event_storage.cpp",
+          "src/analysis/incident_memory.cpp",
+          "src/analysis/image_frame_loader.cpp",
+          "src/analysis/intrusion_after_line_crossing_scenario.cpp",
+          "src/analysis/intrusion_dwell_scenario.cpp",
+          "src/analysis/loitering_scenario.cpp",
+          "src/analysis/metadata_subscription_filter.cpp",
+          "src/analysis/object_tracker.cpp",
+          "src/analysis/overlay_renderer.cpp",
+          "src/analysis/raw_video_decoder.cpp",
+          "src/analysis/re_entry_scenario.cpp",
+          "src/analysis/scene_context_builder.cpp",
+          "src/analysis/scenario_engine.cpp",
+          "src/analysis/snapshot_encoder.cpp",
+          "src/analysis/track_state_manager.cpp",
+          "src/analysis/tracked_object_metadata.cpp",
+          "src/analysis/va_runtime_metadata.cpp",
+          "src/analysis/vlm_feature_retention.cpp",
+          "src/analysis/vlm_feature_queue.cpp",
+          "src/analysis/vlm_observation_store.cpp",
+          "src/analysis/wrong_direction_scenario.cpp",
+          "src/analysis/zone_occupancy_scenario.cpp",
+          "src/analysis/yolo_onnx_detector.cpp",
+          "src/app_config.cpp",
+          "src/core/command_runner.cpp",
+          "src/core/shared_stream.cpp",
+          "src/core/source_factory.cpp",
+          "src/core/stream_registry.cpp",
+          "src/core/stream_key.cpp",
+          "src/domain/strict_json.cpp",
+          "src/core/resource_guard.cpp",
+          "src/core/session_manager.cpp",
+          "src/core/source_request_parser.cpp",
+          "src/ingress/gst_pipeline_builder.cpp",
+          "src/ingress/analysis_overlay_probe.cpp",
+          "src/analysis/analysis_query.cpp",
+          "src/ingress/http_auth.cpp",
+          "src/ingress/onvif_credential_provider.cpp",
+          "src/ingress/onvif_live_import.cpp",
+          "src/ingress/ops_action_execution_deferral.cpp",
+          "src/ingress/ops_event_route_owner.cpp",
+          "src/ingress/rtsp_request_context.cpp",
+          "src/ingress/product_ui_assets.cpp",
+          "src/ingress/product_ui_action_execution_deferral.cpp",
+          "src/ingress/product_ui_auth_pages.cpp",
+          "src/ingress/product_ui_components.cpp",
+          "src/ingress/product_ui_client_css.cpp",
+          "src/ingress/product_ui_client_scripts.cpp",
+          "src/ingress/product_ui_css.cpp",
+          "src/ingress/product_ui_js.cpp",
+          "src/ingress/product_ui_ops_sources_script.cpp",
+          "src/ingress/product_ui_ops_users_script.cpp",
+          "src/ingress/product_ui_page_scripts.cpp",
+          "src/ingress/product_ui_server_pages.cpp",
+          "src/ingress/rtsp_egress_session.cpp",
+          "src/ingress/source_view_registry.cpp",
+          "src/ingress/vlm_evaluation_promotion.cpp",
+          "src/ingress/vlm_incident_rule_provenance.cpp",
+          "src/ingress/webrtc_egress_session.cpp",
+          "src/ingress/webrtc_gst_utils.cpp",
+          "src/core/webrtc_source_registry.cpp",
+          "src/ingress/webrtc_source_session.cpp",
+          "src/ingress/webrtc_http_server.cpp",
+          "src/ingress/webrtc_http_server_ops_foundation.cpp",
+          "src/ingress/webrtc_http_server_ops_workflows.cpp",
+          "src/ingress/webrtc_http_server_ops_incidents.cpp",
+          "src/ingress/webrtc_http_server_runtime.cpp",
+          "src/ingress/rtsp_adapter.cpp",
+          "src/ingress/gstreamer_rtsp_server.cpp",
+          "src/core/youtube_resolver.cpp"
+        ],
+        "productionSourceSha256": "d64d35e5cea36856b7791a2929e8af936c24d27709605e444746f95afa7f0c4d",
+        "declaredSourceCount": 82,
+        "defaultActiveSourceCount": 81,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",
@@ -197,6 +287,11 @@
       {
         "id": "media_server",
         "type": "executable",
+        "productionSources": [
+          "src/application/media_server_application.cpp",
+          "src/main.cpp"
+        ],
+        "productionSourceSha256": "bb33a98e58f70d96ac4dd45921c9d8eb75b542324f56bc54db4c385d912ca1ba",
         "declaredSourceCount": 2,
         "defaultActiveSourceCount": 2,
         "conditionalSources": [],
@@ -301,37 +396,37 @@
     {
       "direction": "transport-and-auth-adapter -> analysis-services",
       "witnessCount": 18,
-      "witnessSha256": "298798f75c8126bd73cfa539cc288b2bd192933b20482640b4fdca12d05bda4d",
+      "witnessSha256": "b4db89d68764119c0636813ac16a5c4c47b95abe69161b6d2d4ed336edcffac1",
       "allowedByTarget": false
     },
     {
       "direction": "transport-and-auth-adapter -> application-service-interfaces",
       "witnessCount": 5,
-      "witnessSha256": "ec750b02bb6af9e4e818debe44d283a023b7861431f61659651acb97944e12f8",
+      "witnessSha256": "4883eec6c0fdbda8b61ede057091de2fe70a2bda62de2ff653b9e1dae085bc66",
       "allowedByTarget": true
     },
     {
       "direction": "transport-and-auth-adapter -> core-media-interfaces",
       "witnessCount": 4,
-      "witnessSha256": "21a8bc21cca0c0e2b767e1bb2bb479f92bdd6b265a8a1afa6c3a66ad3f2a55e3",
+      "witnessSha256": "adf4172d0e83de59df510ceeb38c88cd36aaf78b157e7022b6480d8e0793cab3",
       "allowedByTarget": false
     },
     {
       "direction": "transport-and-auth-adapter -> core-utilities",
       "witnessCount": 4,
-      "witnessSha256": "68b951d6d71a134072f2aedd63ff56922c4814e944411235bd514db943bab64e",
+      "witnessSha256": "0b37c834f061cbcdaf32c4b40b0515902c1870e720c7112f27d59377a1ace0be",
       "allowedByTarget": false
     },
     {
       "direction": "transport-and-auth-adapter -> domain-and-registry-owners",
       "witnessCount": 3,
-      "witnessSha256": "5673e355f8180ab9dc297ea25b5364cb28f6fce9ad70a66841679ca737a33962",
+      "witnessSha256": "6df2676b1f737db68766f0c9fccd4b3df7f5ea5af41706e6f8585d4e5fa51f57",
       "allowedByTarget": false
     },
     {
       "direction": "transport-and-auth-adapter -> stable-contract-dtos",
       "witnessCount": 8,
-      "witnessSha256": "afea9199641d6a7b964b14c6f9bb301768694996232708f4df2fd7b243a930a9",
+      "witnessSha256": "cb4aa85a94307f475ddc8e039d192ff6b74494ac0ab62776738b9a1bcc47588f",
       "allowedByTarget": true
     }
   ],
@@ -344,7 +439,67 @@
   "mixedOwnershipDebt": [
     {
       "file": "src/ingress/webrtc_http_server.cpp",
-      "lineCount": 40840,
+      "lineCount": 7577,
+      "primaryOwner": "transport-and-auth-adapter",
+      "embeddedResponsibilities": [
+        "ops-route-groups",
+        "application-service-interfaces",
+        "domain-and-registry-owners",
+        "product-ui-workspaces",
+        "stable-contract-dtos"
+      ]
+    },
+    {
+      "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
+      "lineCount": 7845,
+      "primaryOwner": "transport-and-auth-adapter",
+      "embeddedResponsibilities": [
+        "ops-route-groups",
+        "application-service-interfaces",
+        "domain-and-registry-owners",
+        "product-ui-workspaces",
+        "stable-contract-dtos"
+      ]
+    },
+    {
+      "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
+      "lineCount": 10135,
+      "primaryOwner": "transport-and-auth-adapter",
+      "embeddedResponsibilities": [
+        "ops-route-groups",
+        "application-service-interfaces",
+        "domain-and-registry-owners",
+        "product-ui-workspaces",
+        "stable-contract-dtos"
+      ]
+    },
+    {
+      "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
+      "lineCount": 7889,
+      "primaryOwner": "transport-and-auth-adapter",
+      "embeddedResponsibilities": [
+        "ops-route-groups",
+        "application-service-interfaces",
+        "domain-and-registry-owners",
+        "product-ui-workspaces",
+        "stable-contract-dtos"
+      ]
+    },
+    {
+      "file": "src/ingress/webrtc_http_server_runtime.cpp",
+      "lineCount": 5183,
+      "primaryOwner": "transport-and-auth-adapter",
+      "embeddedResponsibilities": [
+        "ops-route-groups",
+        "application-service-interfaces",
+        "domain-and-registry-owners",
+        "product-ui-workspaces",
+        "stable-contract-dtos"
+      ]
+    },
+    {
+      "file": "src/ingress/webrtc_http_server_detail.h",
+      "lineCount": 7967,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",

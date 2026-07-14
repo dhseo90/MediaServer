@@ -59,10 +59,9 @@ check("Ops server builds the v3.8 action capability contract model", () => {
 });
 
 check("action capability contract preserves no-execution, no-write, and no-schema-change boundaries", () => {
-  const block = extractBlock(
-    files.server,
-    "std::string OpsV380ActionCapabilityContractJson",
-    "struct OpsV370SiteSourceGroupContractItem",
+  const block = extractCppFunctionBlock(
+    files.serverFoundation,
+    "std::string OpsV380ActionCapabilityContractJson(",
   );
   for (const snippet of [
     "opsOnly",
@@ -205,6 +204,7 @@ finish("== v3.8.0 Action Capability Contract summary ==", { schema, step: "v3.8.
 function loadFiles() {
   return {
     server: readWebRtcHttpServerBundle(readText),
+    serverFoundation: readText("src/ingress/webrtc_http_server_ops_foundation.cpp"),
     backlog: readText("docs/development-backlog.md"),
     streamVerification: readText("docs/stream-verification.md"),
     featureInventory: readText("docs/project-feature-test-inventory.md"),

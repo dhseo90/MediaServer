@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
+import { copyWebRtcHttpServerSourceFixture } from "./webrtc_http_server_source_bundle.mjs";
 // 파일 용도: REVIEW4-64 core-media→analysis 10개 witness를 port/callback 주입으로 역전했는지 검증한다.
 
 import fs from "node:fs";
@@ -477,6 +478,7 @@ const oracleInputFiles = [
 ];
 
 function copyOracleInputs(targetRoot) {
+  copyWebRtcHttpServerSourceFixture(targetRoot);
   for (const relative of new Set(oracleInputFiles)) {
     const from = path.join(rootDir, relative);
     const to = path.join(targetRoot, relative);

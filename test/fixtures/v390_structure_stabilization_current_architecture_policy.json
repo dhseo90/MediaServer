@@ -84,6 +84,61 @@
         ]
       },
       {
+        "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
+        "primaryOwner": "transport-and-auth-adapter",
+        "requiredEmbeddedResponsibilities": [
+          "ops-route-groups",
+          "application-service-interfaces",
+          "domain-and-registry-owners",
+          "product-ui-workspaces",
+          "stable-contract-dtos"
+        ]
+      },
+      {
+        "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
+        "primaryOwner": "transport-and-auth-adapter",
+        "requiredEmbeddedResponsibilities": [
+          "ops-route-groups",
+          "application-service-interfaces",
+          "domain-and-registry-owners",
+          "product-ui-workspaces",
+          "stable-contract-dtos"
+        ]
+      },
+      {
+        "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
+        "primaryOwner": "transport-and-auth-adapter",
+        "requiredEmbeddedResponsibilities": [
+          "ops-route-groups",
+          "application-service-interfaces",
+          "domain-and-registry-owners",
+          "product-ui-workspaces",
+          "stable-contract-dtos"
+        ]
+      },
+      {
+        "file": "src/ingress/webrtc_http_server_runtime.cpp",
+        "primaryOwner": "transport-and-auth-adapter",
+        "requiredEmbeddedResponsibilities": [
+          "ops-route-groups",
+          "application-service-interfaces",
+          "domain-and-registry-owners",
+          "product-ui-workspaces",
+          "stable-contract-dtos"
+        ]
+      },
+      {
+        "file": "src/ingress/webrtc_http_server_detail.h",
+        "primaryOwner": "transport-and-auth-adapter",
+        "requiredEmbeddedResponsibilities": [
+          "ops-route-groups",
+          "application-service-interfaces",
+          "domain-and-registry-owners",
+          "product-ui-workspaces",
+          "stable-contract-dtos"
+        ]
+      },
+      {
         "file": "src/ingress/product_ui_page_scripts.cpp",
         "primaryOwner": "product-ui-workspaces",
         "requiredEmbeddedResponsibilities": [

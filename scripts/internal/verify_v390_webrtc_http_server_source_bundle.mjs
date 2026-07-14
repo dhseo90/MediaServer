@@ -28,11 +28,19 @@ const fixtureArg = rawArgs.find(arg => arg.startsWith("--fixture-root="));
 const sourceRoot = fixtureArg ? validateFixtureRoot(fixtureArg.slice("--fixture-root=".length)) : rootDir;
 const helperPath = "scripts/internal/webrtc_http_server_source_bundle.mjs";
 const serverPath = "src/ingress/webrtc_http_server.cpp";
+const sourcePaths = [
+  serverPath,
+  "src/ingress/webrtc_http_server_ops_foundation.cpp",
+  "src/ingress/webrtc_http_server_ops_workflows.cpp",
+  "src/ingress/webrtc_http_server_ops_incidents.cpp",
+  "src/ingress/webrtc_http_server_runtime.cpp",
+  "src/ingress/webrtc_http_server_detail.h",
+];
 const rollbackCommit = "e5df05f3945e43e89ae13e3fdd21d0c83ab78ac8";
 const expectedConsumerCount = 170;
 const expectedExpressionCount = 188;
 const expectedConsumerSha = "1e13a798e01c601114df0287bc552e3681531e3021e81c57307ee99ae458ee1c";
-const expectedServerSha = "ee313a797c38c572c915987b467135bef687e9a59f2e5f962d3430822db87532";
+const expectedBundleSha = "70a8c51c26751d4ac7df1e91e791329e6d3cecf1a9bec010bdb262837b51fae3";
 const checks = [];
 
 function validateFixtureRoot(value) {
@@ -120,7 +128,7 @@ check("all 170 readers use the bundle exactly and no unregistered reader is migr
     "unregistered source bundle consumer migration detected");
 });
 
-check("single-file bundle is byte-identical and resolver metrics are exact", () => {
+check("six-file physical metrics and logical-origin bundle are exact", () => {
   const helperUrl = pathToFileURL(path.join(sourceRoot, helperPath)).href;
   const probe = spawnSync(process.execPath, ["--input-type=module", "-e", `
     import crypto from "node:crypto";
@@ -132,6 +140,9 @@ check("single-file bundle is byte-identical and resolver metrics are exact", () 
       tokens: ["bool WebRtcHttpServer::Start(const std::string& listen_address",
         "failed to create HTTP socket"],
       purpose: "slice11-probe",
+    });
+    const resolvedFunction = resolveWebRtcHttpServerSource(root, {
+      tokens: ["std::int64_t PtsNsToMs"], purpose: "slice12-prototype-shadow-probe",
     });
     let missing = false;
     try { resolveWebRtcHttpServerSource(root, { tokens: ["__missing_slice11_token__"] }); }
@@ -146,21 +157,31 @@ check("single-file bundle is byte-identical and resolver metrics are exact", () 
     } catch { ambiguous = true; }
     console.log(JSON.stringify({
       sha: crypto.createHash("sha256").update(bundle).digest("hex"),
-      metrics: webrtcHttpServerSourceMetrics(root), resolved: resolved.file, missing, ambiguous,
+      logicalOrder: [bundle.indexOf("struct OpsV350LiveOperationsGraphNode"),
+        bundle.indexOf("BuildV350LiveOperationsGraphNodes("),
+        bundle.indexOf("struct OpsV380ActionCapabilityContractItem"),
+        bundle.indexOf("BuildV380ActionCapabilityContractItems(")],
+      metrics: webrtcHttpServerSourceMetrics(root), resolved: resolved.file,
+      resolvedFunction: resolvedFunction.file, missing, ambiguous,
     }));
   `], { cwd: sourceRoot, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
   assert(probe.status === 0, `source bundle probe failed: ${probe.stderr}`);
   const result = JSON.parse(probe.stdout.trim());
-  assert(result.sha === expectedServerSha && result.resolved === serverPath &&
+  assert(result.sha === expectedBundleSha &&
+    result.resolved === "src/ingress/webrtc_http_server_runtime.cpp" &&
+    result.resolvedFunction === "src/ingress/webrtc_http_server_ops_foundation.cpp" &&
+    result.logicalOrder.every(index => index >= 0) &&
+    result.logicalOrder[0] < result.logicalOrder[1] && result.logicalOrder[2] < result.logicalOrder[3] &&
     result.missing === true && result.ambiguous === true &&
-    result.metrics.fileCount === 1 && result.metrics.totalLines === 40840 &&
-    result.metrics.largestFileLines === 40840 && result.metrics.totalBytes === 1974239,
-  "source bundle bytes, resolver, or metrics drift");
+    result.metrics.fileCount === 6 && result.metrics.totalLines === 46596 &&
+    result.metrics.largestFileLines === 10135 && result.metrics.totalBytes === 2241663 &&
+    JSON.stringify(result.metrics.files.map(item => item.file)) === JSON.stringify(sourcePaths),
+  "logical source bundle order, bytes, resolver, or metrics drift");
 });
 
-check("non-production bundle slice preserves the exact production graph", () => {
+check("physical bundle successor binds the exact production graph", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
-  assert(graph.expectedProductionFiles === 163 && graph.expectedCppFiles === 80 &&
+  assert(graph.expectedProductionFiles === 168 && graph.expectedCppFiles === 84 &&
     graph.observedModuleEdges.length === 19 &&
     graph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 5 &&
     graph.stronglyConnectedComponents.length === 0,
@@ -168,7 +189,7 @@ check("non-production bundle slice preserves the exact production graph", () => 
 });
 
 function copyInputs(targetRoot) {
-  for (const file of [...baselineFiles, helperPath, serverPath,
+  for (const file of [...baselineFiles, helperPath, ...sourcePaths,
     "test/fixtures/v390_structure_stabilization_current_graph.json",
     "scripts/internal/script_arg_utils.mjs"]) {
     const target = path.join(targetRoot, file);
@@ -217,17 +238,35 @@ if (!skipMutations) {
         "readWebRtcHttpServerBundle()"),
       "all 170 readers use the bundle exactly");
     rejectMutation("empty-bundle", helperPath,
-      text => text.replace("return sources.join(\"\\n\");", 'return "";'),
-      "single-file bundle is byte-identical");
+      text => text.replace("  return `${prefix.trimEnd()}\\n\\n${chunks.map(item => item.source).join(\"\\n\\n\")}\\n`;", '  return "";'),
+      "six-file physical metrics and logical-origin bundle");
     rejectMutation("duplicate-layout", helperPath,
       text => text.replace(`path: "${serverPath}"`, `path: "${serverPath}" },\n  { id: "duplicate", path: "${serverPath}"`),
-      "single-file bundle is byte-identical");
+      "six-file physical metrics and logical-origin bundle");
+    rejectMutation("header-first", helperPath,
+      text => {
+        const line = `  { id: "private-detail", role: "declaration", path: "${sourcePaths.at(-1)}" },\n`;
+        return text.replace(line, "").replace(
+          "export const WEBRTC_HTTP_SERVER_SOURCE_LAYOUT = Object.freeze([\n",
+          `export const WEBRTC_HTTP_SERVER_SOURCE_LAYOUT = Object.freeze([\n${line}`);
+      },
+      "six-file physical metrics and logical-origin bundle");
+    rejectMutation("prototype-shadow", helperPath,
+      text => text.replace('{ id: "private-detail", role: "declaration"',
+        '{ id: "private-detail", role: "implementation"'),
+      "six-file physical metrics and logical-origin bundle");
     rejectMutation("ambiguous-resolver", helperPath,
       text => text.replace("if (matches.length !== 1)", "if (matches.length === 0)"),
-      "single-file bundle is byte-identical");
+      "six-file physical metrics and logical-origin bundle");
+    rejectMutation("logical-order", helperPath,
+      text => text.replace("left.line - right.line", "right.line - left.line"),
+      "six-file physical metrics and logical-origin bundle");
+    rejectMutation("logical-origin", sourcePaths[2],
+      text => text.replace("WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 17051", "WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 99999"),
+      "six-file physical metrics and logical-origin bundle");
     rejectMutation("graph", "test/fixtures/v390_structure_stabilization_current_graph.json",
-      text => text.replace('"expectedProductionFiles": 163', '"expectedProductionFiles": 164'),
-      "non-production bundle slice preserves the exact production graph");
+      text => text.replace('"expectedProductionFiles": 168', '"expectedProductionFiles": 169'),
+      "physical bundle successor binds the exact production graph");
   });
 }
 

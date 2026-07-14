@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
+import { copyWebRtcHttpServerSourceFixture } from "./webrtc_http_server_source_bundle.mjs";
 // REVIEW4-64 Slice 9: public contract/interface owner realignment verifier.
 
 import crypto from "node:crypto";
@@ -178,7 +179,7 @@ check("strict JSON has a physical domain owner boundary", () => {
 check("current graph removes only the planned owner violations", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const violations = graph.observedModuleEdges.filter(item => item.allowedByTarget === false);
-  assert(graph.expectedProductionFiles === 163 && graph.expectedCppFiles === 80 &&
+  assert(graph.expectedProductionFiles === 168 && graph.expectedCppFiles === 84 &&
     graph.observedModuleEdges.length === 19 && violations.length === 5 &&
     graph.stronglyConnectedComponents.length === 0 &&
     JSON.stringify(graph.observedModuleEdges.map(item => item.direction)) === JSON.stringify(expectedDirections),
@@ -196,6 +197,7 @@ const oracleInputs = [...new Set([...immutableContracts.keys(), ...applicationFi
   "src/ingress/webrtc_http_server.cpp", "include/ingress/product_ui_principal_view.h"]),
   "test/fixtures/v390_structure_stabilization_current_graph.json"];
 function copyInputs(targetRoot) {
+  copyWebRtcHttpServerSourceFixture(targetRoot);
   for (const file of oracleInputs) {
     const target = path.join(targetRoot, file);
     fs.mkdirSync(path.dirname(target), { recursive: true });

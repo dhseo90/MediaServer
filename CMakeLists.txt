@@ -89,6 +89,10 @@ add_library(media_server_runtime STATIC
     src/core/webrtc_source_registry.cpp
     src/ingress/webrtc_source_session.cpp
     src/ingress/webrtc_http_server.cpp
+    src/ingress/webrtc_http_server_ops_foundation.cpp
+    src/ingress/webrtc_http_server_ops_workflows.cpp
+    src/ingress/webrtc_http_server_ops_incidents.cpp
+    src/ingress/webrtc_http_server_runtime.cpp
     src/ingress/rtsp_adapter.cpp
     src/ingress/gstreamer_rtsp_server.cpp
 )

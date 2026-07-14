@@ -35,7 +35,7 @@ Development 17의 readiness와 REVIEW4-51 decision/graph는 승인 당시 histor
 `test/fixtures/v390_structure_stabilization_current_graph.json`, verifier는
 `./server.sh verify-v390-review4-structure-stabilization-execution`입니다.
 
-Current REVIEW4-64 status: `current-continuation-8-completed-slice-6-deferred`
+Current REVIEW4-64 status: `current-continuation-slice-12-completed-final-targets-unmet`
 
 | 순서 | Current Slice | 상태 | 직접 경계 |
 | ---: | --- | --- | --- |
@@ -46,9 +46,9 @@ Current REVIEW4-64 status: `current-continuation-8-completed-slice-6-deferred`
 | 5 | `vlm-parser` | 완료 | strict JSON을 core utility로 이동하고 VLM provenance validator를 application-service owner로 분리; actual save/restart/no-write와 profile/promotion 계약 보존 |
 | 6 | `verifier-docs` | 미착수·deferred | production continuation source/graph가 안정된 뒤 execution evidence, manual UI archive, VLM index를 final review; generated evidence는 그 전까지 parked 상태 |
 
-Current policy v1 graph는 production 163파일/C++ 80개/owner 10개, target 위반 direction
-10개(승인 baseline 25개), 최대 SCC 0, production CMake target 2개입니다. `main.cpp` mixed composition debt는
-245→8줄, selected action route owner는 server 43,266→43,186줄로 닫았고 registry→transport auth edge와 product UI→transport/Auth edge를 제거했습니다. Transport는 현재 40,840줄이며 mixed-owner debt는 남아 있으므로 REVIEW4-64 완료가
+Current policy v1 graph는 production 168파일/C++ 84개/owner 10개, target 위반 direction
+5개(승인 baseline 25개), 최대 SCC 0, production CMake target 2개입니다. `main.cpp` mixed composition debt는
+245→8줄, selected action route owner는 server 43,266→43,186줄로 닫았고 registry→transport auth edge와 product UI→transport/Auth edge를 제거했습니다. Transport monolith는 5개 구현 TU와 private detail header로 분할됐고 tracked mixed owner 최대는 10,156줄입니다. 위반 5개와 parked evidence가 남아 있으므로 REVIEW4-64 완료가
 아닙니다. Historical v2 order와 current order의 전환 범위는 slice identifier/order뿐이며 current branch,
 50~63 prerequisite, 9 preserved contract, 64 뒤 65 acceptance 경계는 유지합니다. Policy v1은
 application-service→core와 transport→Ops/UI를 temporary debt로 기록하며 위반 계산에서 제외하지 않습니다.
@@ -373,5 +373,27 @@ reported complete and REVIEW4-65 independent acceptance begin.
 This non-production continuation is the prerequisite for the physical server split. It does not satisfy
 the 15,000-line mixed-owner limit, remove the remaining five dependency directions, finalize parked
 evidence, or authorize a REVIEW4-64/65 completion claim.
+
+### Current continuation Slice 12: `webrtc-http-server-physical-split`
+
+- [x] Split the rollback `2e4a4d7e` monolith into five independently compiled implementation units and
+  one private detail header; preserve all 1,151 type/enum and 1,000 function definitions, default
+  arguments, constexpr values, shared-state singleton ownership, and public/runtime contracts.
+- [x] Reconstruct the original logical declaration/function order from physical origin markers so all
+  170 source-bundle consumers retain their previous extraction semantics; delete the one-shot generator.
+- [x] Bind all implementation files to `media_server_runtime`, exact target source digests, owner
+  classification, actual line counts, and isolated enum/default/constexpr/ODR/CMake/graph mutations.
+- [x] Pass build, focused 6/0, bundle 6/0, public/core/action/UI/VLM, analysis 181/0, authenticated codec
+  67/0 with three configured external skips, route 8/0, overlay 6/0, WebRTC metadata 8/0, and freeze 10/0.
+
+Runtime cleanup found that an earlier wildcard server still owned the first verification ports, so that
+evidence was not retained. The current split binary was restarted on isolated 18081/18555 ports for the
+full authenticated codec rerun and on clean 8081/8555 ports for route, VA/RTSP overlay, and WebRTC
+metadata. The reruns passed, 2.1 MiB of run-scoped Auth/HLS/log/image/summary artifacts was removed, and
+8081/8555/18081/18555/8654-8656 were confirmed listener-free.
+
+The current graph is production 168/C++ 84, edge 19, Policy v1 violations 5, SCC 0, targets 2 with
+internal separation, and largest mixed owner 10,156 lines. The line threshold is closed, but the five
+dependency directions and parked final evidence keep REVIEW4-64 and REVIEW4-65 open.
 owner 40,810줄, actual CMake internal target separation false가 모두 남아 있으므로 `refactorComplete=false`,
 owner 40,814줄, actual CMake internal target separation false가 모두 남아 있으므로 `refactorComplete=false`,

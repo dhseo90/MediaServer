@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # 파일 용도: GStreamer testsrc를 WHIP endpoint로 publish하는 로컬 WebRTC source 검증 도구다.
 import argparse
+import http.cookiejar
 import json
 import signal
 import sys
@@ -19,10 +20,15 @@ from gi.repository import GLib, Gst, GstSdp, GstWebRTC
 
 
 class WhipPublisher:
-    def __init__(self, http_base: str, source_id: str, duration_s: int) -> None:
+    def __init__(self, http_base: str, source_id: str, duration_s: int, cookie_file: str = "") -> None:
         self.http_base = http_base.rstrip("/")
         self.source_id = source_id
         self.duration_s = duration_s
+        self.opener = urllib.request.build_opener()
+        if cookie_file:
+            cookie_jar = http.cookiejar.MozillaCookieJar(cookie_file)
+            cookie_jar.load(ignore_discard=True, ignore_expires=True)
+            self.opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cookie_jar))
         self.loop = GLib.MainLoop()
         self.pipeline = None
         self.webrtc = None
@@ -51,7 +57,7 @@ class WhipPublisher:
         req = urllib.request.Request(url, data=body, method=method)
         for key, value in (headers or {}).items():
             req.add_header(key, value)
-        with urllib.request.urlopen(req, timeout=10) as response:
+        with self.opener.open(req, timeout=10) as response:
             payload = response.read()
             return response.status, dict(response.headers), payload
 
@@ -211,9 +217,10 @@ def main():
     parser.add_argument("--http-base", default="http://127.0.0.1:8081", help="media_server HTTP base URL")
     parser.add_argument("--source-id", default="publisher-demo", help="published WebRTC source id")
     parser.add_argument("--duration", type=int, default=20, help="publish duration in seconds (0 means until stopped)")
+    parser.add_argument("--cookie-file", default="", help="optional Netscape cookie jar for authenticated WHIP")
     args = parser.parse_args()
 
-    publisher = WhipPublisher(args.http_base, args.source_id, args.duration)
+    publisher = WhipPublisher(args.http_base, args.source_id, args.duration, args.cookie_file)
     signal.signal(signal.SIGTERM, lambda *_: publisher.request_stop("SIGTERM"))
     signal.signal(signal.SIGINT, lambda *_: publisher.request_stop("SIGINT"))
     try:
