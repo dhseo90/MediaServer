@@ -18,6 +18,7 @@
 #include <optional>
 #include <sstream>
 #include <thread>
+#include <utility>
 
 #include "app_config.h"
 #include "core/shared_stream.h"
@@ -34,6 +35,164 @@ constexpr std::int64_t kWebRtcVideoFrameDurationNs = 33333333;
 constexpr std::int64_t kWebRtcDefaultAudioFrameDurationNs = 20000000;
 constexpr std::size_t kMaxVideoTimestampMappings = 8192;
 constexpr std::int64_t kMaxTimestampMappingDistanceNs = 2000000000LL;
+
+struct SessionCallbackBinding {
+    std::weak_ptr<WebRtcEgressSession> session;
+    GstElement* webrtcbin{nullptr};
+};
+
+SessionCallbackBinding* NewSessionCallbackBinding(
+    const std::shared_ptr<WebRtcEgressSession>& session,
+    GstElement* webrtcbin = nullptr) {
+    auto* binding = new SessionCallbackBinding();
+    binding->session = session;
+    binding->webrtcbin = webrtcbin != nullptr ? GST_ELEMENT(gst_object_ref(webrtcbin)) : nullptr;
+    return binding;
+}
+
+void DestroySessionCallbackBinding(gpointer user_data) {
+    auto* binding = static_cast<SessionCallbackBinding*>(user_data);
+    if (binding == nullptr) {
+        return;
+    }
+    if (binding->webrtcbin != nullptr) {
+        gst_object_unref(binding->webrtcbin);
+    }
+    delete binding;
+}
+
+void DestroySessionSignalBinding(gpointer user_data, GClosure* /*closure*/) {
+    DestroySessionCallbackBinding(user_data);
+}
+
+class ScopedGStreamerCallback final {
+public:
+    explicit ScopedGStreamerCallback(gpointer user_data) {
+        const auto* binding = static_cast<SessionCallbackBinding*>(user_data);
+        if (binding == nullptr) {
+            return;
+        }
+        session_ = binding->session.lock();
+        if (session_ != nullptr && !session_->TryBeginGStreamerCallback()) {
+            session_.reset();
+        }
+    }
+
+    ~ScopedGStreamerCallback() {
+        if (session_ != nullptr) {
+            session_->EndGStreamerCallback();
+        }
+    }
+
+    WebRtcEgressSession* operator->() const { return session_.get(); }
+    explicit operator bool() const { return session_ != nullptr; }
+
+private:
+    std::shared_ptr<WebRtcEgressSession> session_;
+};
+
+struct BoundedPromiseState {
+    std::mutex mu;
+    std::condition_variable cv;
+    GstPromiseResult result{GST_PROMISE_RESULT_PENDING};
+};
+
+struct BoundedPromise {
+    GstPromise* promise{nullptr};
+    std::shared_ptr<BoundedPromiseState> state;
+};
+
+void OnBoundedPromiseChanged(GstPromise* promise, gpointer user_data) {
+    const auto* state_owner = static_cast<std::shared_ptr<BoundedPromiseState>*>(user_data);
+    if (promise == nullptr || state_owner == nullptr || *state_owner == nullptr) {
+        return;
+    }
+    const GstPromiseResult result = gst_promise_wait(promise);
+    {
+        std::lock_guard lock((*state_owner)->mu);
+        (*state_owner)->result = result;
+    }
+    (*state_owner)->cv.notify_all();
+}
+
+void DestroyBoundedPromiseState(gpointer user_data) {
+    delete static_cast<std::shared_ptr<BoundedPromiseState>*>(user_data);
+}
+
+BoundedPromise NewBoundedPromise() {
+    BoundedPromise bounded;
+    bounded.state = std::make_shared<BoundedPromiseState>();
+    bounded.promise = gst_promise_new_with_change_func(
+        OnBoundedPromiseChanged,
+        new std::shared_ptr<BoundedPromiseState>(bounded.state),
+        DestroyBoundedPromiseState);
+    return bounded;
+}
+
+GstPromiseResult WaitForBoundedPromise(
+    const BoundedPromise& bounded,
+    const std::chrono::milliseconds timeout) {
+    if (bounded.promise == nullptr || bounded.state == nullptr) {
+        return GST_PROMISE_RESULT_EXPIRED;
+    }
+    {
+        std::unique_lock lock(bounded.state->mu);
+        if (bounded.state->cv.wait_for(lock, timeout, [&bounded] {
+                return bounded.state->result != GST_PROMISE_RESULT_PENDING;
+            })) {
+            return bounded.state->result;
+        }
+    }
+    gst_promise_interrupt(bounded.promise);
+    std::unique_lock lock(bounded.state->mu);
+    (void)bounded.state->cv.wait_for(lock, std::chrono::milliseconds(100), [&bounded] {
+        return bounded.state->result != GST_PROMISE_RESULT_PENDING;
+    });
+    return bounded.state->result == GST_PROMISE_RESULT_PENDING
+               ? GST_PROMISE_RESULT_INTERRUPTED
+               : bounded.state->result;
+}
+
+struct QuarantinedWebRtcCleanup {
+    GstElement* pipeline{nullptr};
+    GstElement* video_appsrc{nullptr};
+    GstElement* audio_appsrc{nullptr};
+    GstElement* webrtcbin{nullptr};
+    std::string session_id;
+};
+
+struct WebRtcCleanupQuarantine {
+    std::mutex mu;
+    std::vector<std::shared_ptr<QuarantinedWebRtcCleanup>> entries;
+};
+
+WebRtcCleanupQuarantine& CleanupQuarantine() {
+    static auto* quarantine = new WebRtcCleanupQuarantine();
+    return *quarantine;
+}
+
+std::recursive_mutex& WebRtcStartQuarantineMutex() {
+    static auto* mutex = new std::recursive_mutex();
+    return *mutex;
+}
+
+bool HasQuarantinedWebRtcCleanup() {
+    auto& quarantine = CleanupQuarantine();
+    std::lock_guard lock(quarantine.mu);
+    return !quarantine.entries.empty();
+}
+
+void QuarantineFailedWebRtcCleanup(std::shared_ptr<QuarantinedWebRtcCleanup> cleanup) {
+    std::lock_guard<std::recursive_mutex> start_quarantine_lock(WebRtcStartQuarantineMutex());
+    auto& quarantine = CleanupQuarantine();
+    std::size_t count = 0;
+    {
+        std::lock_guard lock(quarantine.mu);
+        quarantine.entries.push_back(std::move(cleanup));
+        count = quarantine.entries.size();
+    }
+    std::cerr << "[webrtc-egress] cleanup quarantined; restart required count=" << count << "\n";
+}
 
 std::int64_t AbsDiff(std::int64_t lhs, std::int64_t rhs) {
     return lhs >= rhs ? lhs - rhs : rhs - lhs;
@@ -378,8 +537,8 @@ void ApplyRtpPayloadCaps(GstElement* payloader,
 }
 
 gboolean OnBusMessage(GstBus* /*bus*/, GstMessage* message, gpointer user_data) {
-    auto* session = static_cast<WebRtcEgressSession*>(user_data);
-    if (session == nullptr) {
+    ScopedGStreamerCallback session(user_data);
+    if (!session) {
         return G_SOURCE_CONTINUE;
     }
 
@@ -402,8 +561,8 @@ gboolean OnBusMessage(GstBus* /*bus*/, GstMessage* message, gpointer user_data) 
 }
 
 GstPadProbeReturn OnRtpProbe(GstPad* pad, GstPadProbeInfo* info, gpointer user_data) {
-    auto* session = static_cast<WebRtcEgressSession*>(user_data);
-    if (session == nullptr || info == nullptr || !(info->type & GST_PAD_PROBE_TYPE_BUFFER)) {
+    ScopedGStreamerCallback session(user_data);
+    if (!session || info == nullptr || !(info->type & GST_PAD_PROBE_TYPE_BUFFER)) {
         return GST_PAD_PROBE_OK;
     }
 
@@ -431,8 +590,8 @@ GstPadProbeReturn OnRtpProbe(GstPad* pad, GstPadProbeInfo* info, gpointer user_d
 }
 
 GstPadProbeReturn OnElementPadProbe(GstPad* pad, GstPadProbeInfo* info, gpointer user_data) {
-    auto* session = static_cast<WebRtcEgressSession*>(user_data);
-    if (session == nullptr || info == nullptr || !(info->type & GST_PAD_PROBE_TYPE_BUFFER)) {
+    ScopedGStreamerCallback session(user_data);
+    if (!session || info == nullptr || !(info->type & GST_PAD_PROBE_TYPE_BUFFER)) {
         return GST_PAD_PROBE_OK;
     }
 
@@ -707,8 +866,8 @@ const char* ToString(GstWebRTCICEConnectionState state) {
 }
 
 void OnNewTransceiver(GstElement* /*webrtcbin*/, GstWebRTCRTPTransceiver* transceiver, gpointer user_data) {
-    auto* session = static_cast<WebRtcEgressSession*>(user_data);
-    if (session == nullptr || transceiver == nullptr) {
+    ScopedGStreamerCallback session(user_data);
+    if (!session || transceiver == nullptr) {
         return;
     }
     session->TraceTransceiver("on-new-transceiver", transceiver);
@@ -718,48 +877,49 @@ void OnLocalIceCandidate(GstElement* /*webrtcbin*/,
                          guint sdp_mline_index,
                          gchar* candidate,
                          gpointer user_data) {
-    auto* session = static_cast<WebRtcEgressSession*>(user_data);
-    if (session == nullptr || candidate == nullptr) {
+    ScopedGStreamerCallback session(user_data);
+    if (!session || candidate == nullptr) {
         return;
     }
     session->HandleLocalIceCandidate(static_cast<std::uint32_t>(sdp_mline_index), candidate);
 }
 
 void OnIceConnectionStateNotify(GObject* /*object*/, GParamSpec* /*pspec*/, gpointer user_data) {
-    auto* session = static_cast<WebRtcEgressSession*>(user_data);
-    if (session == nullptr) {
+    ScopedGStreamerCallback session(user_data);
+    if (!session) {
         return;
     }
     session->HandleIceConnectionStateChanged();
 }
 
 void OnMetadataChannelOpen(GstWebRTCDataChannel* /*channel*/, gpointer user_data) {
-    auto* session = static_cast<WebRtcEgressSession*>(user_data);
-    if (session == nullptr) {
+    ScopedGStreamerCallback session(user_data);
+    if (!session) {
         return;
     }
     session->HandleMetadataChannelOpen();
 }
 
 void OnMetadataChannelClose(GstWebRTCDataChannel* /*channel*/, gpointer user_data) {
-    auto* session = static_cast<WebRtcEgressSession*>(user_data);
-    if (session == nullptr) {
+    ScopedGStreamerCallback session(user_data);
+    if (!session) {
         return;
     }
     session->HandleMetadataChannelClose();
 }
 
 void OnMetadataChannelError(GstWebRTCDataChannel* /*channel*/, GError* error, gpointer user_data) {
-    auto* session = static_cast<WebRtcEgressSession*>(user_data);
-    if (session == nullptr) {
+    ScopedGStreamerCallback session(user_data);
+    if (!session) {
         return;
     }
     session->HandleMetadataChannelError(error != nullptr ? error->message : "unknown data channel error");
 }
 
 void OnOfferCreated(GstPromise* promise, gpointer user_data) {
-    auto* session = static_cast<WebRtcEgressSession*>(user_data);
-    if (session == nullptr) {
+    auto* binding = static_cast<SessionCallbackBinding*>(user_data);
+    ScopedGStreamerCallback session(user_data);
+    if (!session || binding == nullptr || binding->webrtcbin == nullptr) {
         gst_promise_unref(promise);
         return;
     }
@@ -782,7 +942,7 @@ void OnOfferCreated(GstPromise* promise, gpointer user_data) {
     }
 
     GstPromise* local_desc_promise = gst_promise_new();
-    g_signal_emit_by_name(session->webrtcbin(), "set-local-description", sanitized_offer, local_desc_promise);
+    g_signal_emit_by_name(binding->webrtcbin, "set-local-description", sanitized_offer, local_desc_promise);
     gst_promise_interrupt(local_desc_promise);
     gst_promise_unref(local_desc_promise);
 
@@ -798,8 +958,9 @@ void OnOfferCreated(GstPromise* promise, gpointer user_data) {
 }
 
 void OnAnswerCreated(GstPromise* promise, gpointer user_data) {
-    auto* session = static_cast<WebRtcEgressSession*>(user_data);
-    if (session == nullptr) {
+    auto* binding = static_cast<SessionCallbackBinding*>(user_data);
+    ScopedGStreamerCallback session(user_data);
+    if (!session || binding == nullptr || binding->webrtcbin == nullptr) {
         gst_promise_unref(promise);
         return;
     }
@@ -822,7 +983,7 @@ void OnAnswerCreated(GstPromise* promise, gpointer user_data) {
     }
 
     GstPromise* local_desc_promise = gst_promise_new();
-    g_signal_emit_by_name(session->webrtcbin(), "set-local-description", sanitized_answer, local_desc_promise);
+    g_signal_emit_by_name(binding->webrtcbin, "set-local-description", sanitized_answer, local_desc_promise);
     gst_promise_interrupt(local_desc_promise);
     gst_promise_unref(local_desc_promise);
 
@@ -845,6 +1006,27 @@ WebRtcEgressSession::WebRtcEgressSession() = default;
 WebRtcEgressSession::~WebRtcEgressSession() {
     Stop();
 }
+
+#if MEDIA_SERVER_USE_GSTREAMER
+bool WebRtcEgressSession::TryBeginGStreamerCallback() {
+    std::lock_guard lock(callback_lifecycle_mu_);
+    if (stopping_gstreamer_callbacks_ || !started_.load(std::memory_order_acquire)) {
+        return false;
+    }
+    ++active_gstreamer_callbacks_;
+    return true;
+}
+
+void WebRtcEgressSession::EndGStreamerCallback() {
+    std::lock_guard lock(callback_lifecycle_mu_);
+    if (active_gstreamer_callbacks_ > 0) {
+        --active_gstreamer_callbacks_;
+    }
+    if (active_gstreamer_callbacks_ == 0) {
+        callback_lifecycle_cv_.notify_all();
+    }
+}
+#endif
 
 void WebRtcEgressSession::QueuePendingPacket(const media::Packet& packet) {
     std::lock_guard lock(pending_mu_);
@@ -1010,6 +1192,16 @@ bool WebRtcEgressSession::PublishAnalysisMetadata(const std::string& message) {
 bool WebRtcEgressSession::Start(const std::string& session_id,
                                 const std::shared_ptr<core::SharedStream>& stream,
                                 std::string* error_message) {
+#if MEDIA_SERVER_USE_GSTREAMER
+    std::unique_lock<std::recursive_mutex> start_quarantine_lock(WebRtcStartQuarantineMutex());
+    if (HasQuarantinedWebRtcCleanup()) {
+        if (error_message != nullptr) {
+            *error_message = "WebRTC cleanup quarantine active; restart required";
+        }
+        return false;
+    }
+#endif
+
     session_id_ = session_id;
     negotiation_ready_ = false;
     ice_connected_ = false;
@@ -1101,9 +1293,32 @@ bool WebRtcEgressSession::Start(const std::string& session_id,
         g_object_set(audio_appsrc_, "is-live", TRUE, "format", GST_FORMAT_TIME, "block", FALSE, nullptr);
     }
     webrtc_gst::ConfigureIceServers(webrtcbin_);
-    g_signal_connect(webrtcbin_, "on-ice-candidate", G_CALLBACK(OnLocalIceCandidate), this);
-    g_signal_connect(webrtcbin_, "on-new-transceiver", G_CALLBACK(OnNewTransceiver), this);
-    g_signal_connect(webrtcbin_, "notify::ice-connection-state", G_CALLBACK(OnIceConnectionStateNotify), this);
+    const auto self = weak_from_this().lock();
+    if (self == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "WebRTC egress session requires shared ownership";
+        }
+        Stop();
+        return false;
+    }
+    ice_candidate_handler_id_ = g_signal_connect_data(webrtcbin_,
+                                                      "on-ice-candidate",
+                                                      G_CALLBACK(OnLocalIceCandidate),
+                                                      NewSessionCallbackBinding(self),
+                                                      DestroySessionSignalBinding,
+                                                      GConnectFlags(0));
+    new_transceiver_handler_id_ = g_signal_connect_data(webrtcbin_,
+                                                        "on-new-transceiver",
+                                                        G_CALLBACK(OnNewTransceiver),
+                                                        NewSessionCallbackBinding(self),
+                                                        DestroySessionSignalBinding,
+                                                        GConnectFlags(0));
+    ice_state_handler_id_ = g_signal_connect_data(webrtcbin_,
+                                                  "notify::ice-connection-state",
+                                                  G_CALLBACK(OnIceConnectionStateNotify),
+                                                  NewSessionCallbackBinding(self),
+                                                  DestroySessionSignalBinding,
+                                                  GConnectFlags(0));
     ConfigureRtcpFeedbackRetention();
 
     // appsrc caps는 source descriptor 기반으로 고정하고, 이후 SDP 협상에서 payload type만 맞춘다.
@@ -1133,7 +1348,11 @@ bool WebRtcEgressSession::Start(const std::string& session_id,
 
     GstBus* bus = gst_element_get_bus(pipeline_);
     if (bus != nullptr) {
-        bus_watch_id_ = gst_bus_add_watch(bus, OnBusMessage, this);
+    bus_watch_id_ = gst_bus_add_watch_full(bus,
+                                          G_PRIORITY_DEFAULT,
+                                          OnBusMessage,
+                                          NewSessionCallbackBinding(self),
+                                          DestroySessionCallbackBinding);
         gst_object_unref(bus);
     }
 
@@ -1155,7 +1374,11 @@ bool WebRtcEgressSession::Start(const std::string& session_id,
 }
 
 void WebRtcEgressSession::Stop() {
-    started_ = false;
+#if MEDIA_SERVER_USE_GSTREAMER
+    std::unique_lock<std::recursive_mutex> start_quarantine_lock(WebRtcStartQuarantineMutex());
+#endif
+    std::lock_guard lifecycle_lock(signaling_lifecycle_mu_);
+    started_.store(false, std::memory_order_release);
     negotiation_ready_ = false;
     ice_connected_ = false;
     media_output_ready_ = false;
@@ -1174,38 +1397,101 @@ void WebRtcEgressSession::Stop() {
     }
 
 #if MEDIA_SERVER_USE_GSTREAMER
+    {
+        std::unique_lock lock(callback_lifecycle_mu_);
+        stopping_gstreamer_callbacks_ = true;
+        callback_lifecycle_cv_.wait(lock, [this] { return active_gstreamer_callbacks_ == 0; });
+    }
+    const auto disconnect_handler = [](gpointer instance, unsigned long* handler_id) {
+        if (instance != nullptr && handler_id != nullptr && *handler_id != 0) {
+            g_signal_handler_disconnect(instance, *handler_id);
+            *handler_id = 0;
+        }
+    };
     if (bus_watch_id_ != 0) {
         g_source_remove(bus_watch_id_);
         bus_watch_id_ = 0;
     }
-    if (pipeline_ != nullptr) {
-        gst_element_set_state(pipeline_, GST_STATE_NULL);
+    if (webrtcbin_ != nullptr) {
+        disconnect_handler(webrtcbin_, &ice_candidate_handler_id_);
+        disconnect_handler(webrtcbin_, &new_transceiver_handler_id_);
+        disconnect_handler(webrtcbin_, &ice_state_handler_id_);
     }
-    if (video_appsrc_ != nullptr) {
-        gst_object_unref(video_appsrc_);
-        video_appsrc_ = nullptr;
-    }
-    if (audio_appsrc_ != nullptr) {
-        gst_object_unref(audio_appsrc_);
-        audio_appsrc_ = nullptr;
-    }
+    GstWebRTCDataChannel* metadata_data_channel = nullptr;
     {
         std::lock_guard lock(metadata_mu_);
         metadata_channel_open_ = false;
-        if (metadata_data_channel_ != nullptr) {
-            gst_webrtc_data_channel_close(metadata_data_channel_);
-            g_object_unref(metadata_data_channel_);
-            metadata_data_channel_ = nullptr;
+        metadata_data_channel = metadata_data_channel_;
+        metadata_data_channel_ = nullptr;
+    }
+    if (metadata_data_channel != nullptr) {
+        disconnect_handler(metadata_data_channel, &metadata_open_handler_id_);
+        disconnect_handler(metadata_data_channel, &metadata_close_handler_id_);
+        disconnect_handler(metadata_data_channel, &metadata_error_handler_id_);
+        gst_webrtc_data_channel_close(metadata_data_channel);
+        g_object_unref(metadata_data_channel);
+    }
+    bool peer_close_complete = true;
+    if (webrtcbin_ != nullptr) {
+        const guint close_signal = g_signal_lookup("close", G_OBJECT_TYPE(webrtcbin_));
+        if (close_signal == 0) {
+            std::cerr << "[webrtc-egress] close signal unavailable; quarantining pipeline cleanup session="
+                      << session_id_ << "\n";
+            peer_close_complete = false;
+        } else {
+            BoundedPromise close_promise = NewBoundedPromise();
+            g_signal_emit_by_name(webrtcbin_, "close", close_promise.promise);
+            const GstPromiseResult close_result =
+                WaitForBoundedPromise(close_promise, std::chrono::seconds(5));
+            gst_promise_unref(close_promise.promise);
+            if (close_result != GST_PROMISE_RESULT_REPLIED) {
+                std::cerr << "[webrtc-egress] close did not complete; quarantining pipeline cleanup session="
+                          << session_id_ << " result=" << static_cast<int>(close_result) << "\n";
+                peer_close_complete = false;
+            }
         }
     }
-    if (webrtcbin_ != nullptr) {
-        gst_object_unref(webrtcbin_);
-        webrtcbin_ = nullptr;
+    if (peer_close_complete && pipeline_ != nullptr) {
+        gst_element_set_state(pipeline_, GST_STATE_NULL);
     }
-    if (pipeline_ != nullptr) {
-        gst_object_unref(pipeline_);
-        pipeline_ = nullptr;
+    GstElement* video_appsrc = nullptr;
+    GstElement* audio_appsrc = nullptr;
+    {
+        std::lock_guard lock(media_resource_mu_);
+        video_appsrc = video_appsrc_;
+        video_appsrc_ = nullptr;
+        audio_appsrc = audio_appsrc_;
+        audio_appsrc_ = nullptr;
     }
+    GstElement* webrtcbin = std::exchange(webrtcbin_, nullptr);
+    GstElement* pipeline = std::exchange(pipeline_, nullptr);
+    if (peer_close_complete) {
+        if (video_appsrc != nullptr) {
+            gst_object_unref(video_appsrc);
+        }
+        if (audio_appsrc != nullptr) {
+            gst_object_unref(audio_appsrc);
+        }
+        if (webrtcbin != nullptr) {
+            gst_object_unref(webrtcbin);
+        }
+        if (pipeline != nullptr) {
+            gst_object_unref(pipeline);
+        }
+    } else {
+        auto cleanup = std::make_shared<QuarantinedWebRtcCleanup>();
+        cleanup->pipeline = pipeline;
+        cleanup->video_appsrc = video_appsrc;
+        cleanup->audio_appsrc = audio_appsrc;
+        cleanup->webrtcbin = webrtcbin;
+        cleanup->session_id = session_id_;
+        QuarantineFailedWebRtcCleanup(std::move(cleanup));
+    }
+    {
+        std::lock_guard lock(callback_lifecycle_mu_);
+        stopping_gstreamer_callbacks_ = false;
+    }
+    callback_lifecycle_cv_.notify_all();
 #endif
 }
 
@@ -1232,10 +1518,21 @@ void WebRtcEgressSession::HandleSample(const media::Packet& packet) {
     switch (packet.kind) {
         case media::MediaKind::Video:
             if (video_track_id_.empty() || packet.track_id == video_track_id_) {
+                GstElement* video_appsrc = nullptr;
+                {
+                    std::lock_guard lock(media_resource_mu_);
+                    if (started_.load(std::memory_order_acquire) && video_appsrc_ != nullptr) {
+                        video_appsrc = GST_ELEMENT(gst_object_ref(video_appsrc_));
+                    }
+                }
+                if (video_appsrc == nullptr) {
+                    return;
+                }
                 const auto normalized = NormalizeTimestamps(packet);
-                const bool ok = PushToAppSrc(video_appsrc_,
+                const bool ok = PushToAppSrc(video_appsrc,
                                              normalized,
                                              static_cast<GstClockTime>(kWebRtcVideoFrameDurationNs));
+                gst_object_unref(video_appsrc);
                 const auto& config = app::GetAppConfig();
                 if (config.webrtc_trace && config.webrtc_trace_verbose && traced_video_samples_ < 8) {
                     ++traced_video_samples_;
@@ -1255,8 +1552,19 @@ void WebRtcEgressSession::HandleSample(const media::Packet& packet) {
             break;
         case media::MediaKind::Audio:
             if (!audio_track_id_.empty() && packet.track_id == audio_track_id_) {
+                GstElement* audio_appsrc = nullptr;
+                {
+                    std::lock_guard lock(media_resource_mu_);
+                    if (started_.load(std::memory_order_acquire) && audio_appsrc_ != nullptr) {
+                        audio_appsrc = GST_ELEMENT(gst_object_ref(audio_appsrc_));
+                    }
+                }
+                if (audio_appsrc == nullptr) {
+                    return;
+                }
                 const auto normalized = NormalizeTimestamps(packet);
-                const bool ok = PushToAppSrc(audio_appsrc_, normalized);
+                const bool ok = PushToAppSrc(audio_appsrc, normalized);
+                gst_object_unref(audio_appsrc);
                 const auto& config = app::GetAppConfig();
                 if (config.webrtc_trace && config.webrtc_trace_verbose && traced_audio_samples_ < 8) {
                     ++traced_audio_samples_;
@@ -1469,34 +1777,44 @@ bool WebRtcEgressSession::EnsureTransportPadsLinked(bool answerer_mode, std::str
         }
         const auto& config = app::GetAppConfig();
         if (config.webrtc_trace && config.webrtc_trace_verbose) {
+            const auto self = shared_from_this();
+            const auto add_buffer_probe = [&](GstPad* pad, GstPadProbeCallback callback) {
+                if (pad != nullptr) {
+                    gst_pad_add_probe(pad,
+                                      GST_PAD_PROBE_TYPE_BUFFER,
+                                      callback,
+                                      NewSessionCallbackBinding(self),
+                                      DestroySessionCallbackBinding);
+                }
+            };
             if (video_parse_src_pad != nullptr) {
-                gst_pad_add_probe(video_parse_src_pad, GST_PAD_PROBE_TYPE_BUFFER, OnElementPadProbe, this, nullptr);
+                add_buffer_probe(video_parse_src_pad, OnElementPadProbe);
             }
             if (video_appsrc_src_pad != nullptr) {
-                gst_pad_add_probe(video_appsrc_src_pad, GST_PAD_PROBE_TYPE_BUFFER, OnElementPadProbe, this, nullptr);
+                add_buffer_probe(video_appsrc_src_pad, OnElementPadProbe);
             }
             if (video_in_q_src_pad != nullptr) {
-                gst_pad_add_probe(video_in_q_src_pad, GST_PAD_PROBE_TYPE_BUFFER, OnElementPadProbe, this, nullptr);
+                add_buffer_probe(video_in_q_src_pad, OnElementPadProbe);
             }
             if (video_input_parse_src_pad != nullptr) {
-                gst_pad_add_probe(video_input_parse_src_pad, GST_PAD_PROBE_TYPE_BUFFER, OnElementPadProbe, this, nullptr);
+                add_buffer_probe(video_input_parse_src_pad, OnElementPadProbe);
             }
             if (video_decoder_src_pad != nullptr) {
-                gst_pad_add_probe(video_decoder_src_pad, GST_PAD_PROBE_TYPE_BUFFER, OnElementPadProbe, this, nullptr);
+                add_buffer_probe(video_decoder_src_pad, OnElementPadProbe);
             }
             if (video_encoder_sink_pad != nullptr) {
-                gst_pad_add_probe(video_encoder_sink_pad, GST_PAD_PROBE_TYPE_BUFFER, OnElementPadProbe, this, nullptr);
+                add_buffer_probe(video_encoder_sink_pad, OnElementPadProbe);
             }
             if (video_encoder_src_pad != nullptr) {
-                gst_pad_add_probe(video_encoder_src_pad, GST_PAD_PROBE_TYPE_BUFFER, OnElementPadProbe, this, nullptr);
+                add_buffer_probe(video_encoder_src_pad, OnElementPadProbe);
             }
-            gst_pad_add_probe(video_pay_sink_pad, GST_PAD_PROBE_TYPE_BUFFER, OnElementPadProbe, this, nullptr);
-            gst_pad_add_probe(video_pay_src_pad, GST_PAD_PROBE_TYPE_BUFFER, OnElementPadProbe, this, nullptr);
-            gst_pad_add_probe(video_src_pad, GST_PAD_PROBE_TYPE_BUFFER, OnRtpProbe, this, nullptr);
+            add_buffer_probe(video_pay_sink_pad, OnElementPadProbe);
+            add_buffer_probe(video_pay_src_pad, OnElementPadProbe);
+            add_buffer_probe(video_src_pad, OnRtpProbe);
             if (has_audio) {
-                gst_pad_add_probe(audio_pay_sink_pad, GST_PAD_PROBE_TYPE_BUFFER, OnElementPadProbe, this, nullptr);
-                gst_pad_add_probe(audio_pay_src_pad, GST_PAD_PROBE_TYPE_BUFFER, OnElementPadProbe, this, nullptr);
-                gst_pad_add_probe(audio_src_pad, GST_PAD_PROBE_TYPE_BUFFER, OnRtpProbe, this, nullptr);
+                add_buffer_probe(audio_pay_sink_pad, OnElementPadProbe);
+                add_buffer_probe(audio_pay_src_pad, OnElementPadProbe);
+                add_buffer_probe(audio_src_pad, OnRtpProbe);
             }
         }
     }
@@ -1643,15 +1961,34 @@ bool WebRtcEgressSession::EnsureMetadataDataChannel() {
         return false;
     }
 
-    g_signal_connect(channel, "on-open", G_CALLBACK(OnMetadataChannelOpen), this);
-    g_signal_connect(channel, "on-close", G_CALLBACK(OnMetadataChannelClose), this);
-    g_signal_connect(channel, "on-error", G_CALLBACK(OnMetadataChannelError), this);
+    const auto self = shared_from_this();
+    metadata_open_handler_id_ = g_signal_connect_data(channel,
+                                                      "on-open",
+                                                      G_CALLBACK(OnMetadataChannelOpen),
+                                                      NewSessionCallbackBinding(self),
+                                                      DestroySessionSignalBinding,
+                                                      GConnectFlags(0));
+    metadata_close_handler_id_ = g_signal_connect_data(channel,
+                                                       "on-close",
+                                                       G_CALLBACK(OnMetadataChannelClose),
+                                                       NewSessionCallbackBinding(self),
+                                                       DestroySessionSignalBinding,
+                                                       GConnectFlags(0));
+    metadata_error_handler_id_ = g_signal_connect_data(channel,
+                                                       "on-error",
+                                                       G_CALLBACK(OnMetadataChannelError),
+                                                       NewSessionCallbackBinding(self),
+                                                       DestroySessionSignalBinding,
+                                                       GConnectFlags(0));
     g_object_set(channel, "buffered-amount-low-threshold", static_cast<guint64>(config.max_buffered_bytes / 2), nullptr);
     {
         std::lock_guard lock(metadata_mu_);
         if (!metadata_channel_config_.enabled) {
             gst_webrtc_data_channel_close(channel);
             g_object_unref(channel);
+            metadata_open_handler_id_ = 0;
+            metadata_close_handler_id_ = 0;
+            metadata_error_handler_id_ = 0;
             return false;
         }
         metadata_data_channel_ = channel;
@@ -1669,6 +2006,7 @@ bool WebRtcEgressSession::EnsureMetadataDataChannel() {
 }
 
 bool WebRtcEgressSession::CreateOffer(std::string* sdp_offer, std::string* error_message) {
+    std::lock_guard lifecycle_lock(signaling_lifecycle_mu_);
 #if MEDIA_SERVER_USE_GSTREAMER
     if (!started_ || webrtcbin_ == nullptr) {
         if (error_message != nullptr) {
@@ -1687,7 +2025,10 @@ bool WebRtcEgressSession::CreateOffer(std::string* sdp_offer, std::string* error
     }
     TraceTransceivers("before-create-offer");
 
-    GstPromise* promise = gst_promise_new_with_change_func(OnOfferCreated, this, nullptr);
+    GstPromise* promise = gst_promise_new_with_change_func(
+        OnOfferCreated,
+        NewSessionCallbackBinding(shared_from_this(), webrtcbin_),
+        DestroySessionCallbackBinding);
     g_signal_emit_by_name(webrtcbin_, "create-offer", nullptr, promise);
 
     std::string generated_offer;
@@ -1721,6 +2062,7 @@ bool WebRtcEgressSession::CreateOffer(std::string* sdp_offer, std::string* error
 }
 
 bool WebRtcEgressSession::CreateAnswer(std::string* sdp_answer, std::string* error_message) {
+    std::lock_guard lifecycle_lock(signaling_lifecycle_mu_);
 #if MEDIA_SERVER_USE_GSTREAMER
     if (!started_ || webrtcbin_ == nullptr) {
         if (error_message != nullptr) {
@@ -1738,7 +2080,10 @@ bool WebRtcEgressSession::CreateAnswer(std::string* sdp_answer, std::string* err
     }
     TraceTransceivers("before-create-answer");
 
-    GstPromise* promise = gst_promise_new_with_change_func(OnAnswerCreated, this, nullptr);
+    GstPromise* promise = gst_promise_new_with_change_func(
+        OnAnswerCreated,
+        NewSessionCallbackBinding(shared_from_this(), webrtcbin_),
+        DestroySessionCallbackBinding);
     g_signal_emit_by_name(webrtcbin_, "create-answer", nullptr, promise);
 
     std::string generated_answer;
@@ -1775,6 +2120,7 @@ bool WebRtcEgressSession::CreateAnswer(std::string* sdp_answer, std::string* err
 }
 
 bool WebRtcEgressSession::SetRemoteOffer(const std::string& sdp_offer, std::string* error_message) {
+    std::lock_guard lifecycle_lock(signaling_lifecycle_mu_);
 #if MEDIA_SERVER_USE_GSTREAMER
     if (!started_ || webrtcbin_ == nullptr) {
         if (error_message != nullptr) {
@@ -1850,10 +2196,18 @@ bool WebRtcEgressSession::SetRemoteOffer(const std::string& sdp_offer, std::stri
 
     GstWebRTCSessionDescription* offer =
         gst_webrtc_session_description_new(GST_WEBRTC_SDP_TYPE_OFFER, sdp);
-    GstPromise* promise = gst_promise_new();
-    g_signal_emit_by_name(webrtcbin_, "set-remote-description", offer, promise);
-    gst_promise_wait(promise);
-    gst_promise_unref(promise);
+    BoundedPromise promise = NewBoundedPromise();
+    g_signal_emit_by_name(webrtcbin_, "set-remote-description", offer, promise.promise);
+    const GstPromiseResult promise_result =
+        WaitForBoundedPromise(promise, std::chrono::seconds(5));
+    gst_promise_unref(promise.promise);
+    if (promise_result != GST_PROMISE_RESULT_REPLIED) {
+        if (error_message != nullptr) {
+            *error_message = "timed out waiting for remote WebRTC offer";
+        }
+        gst_webrtc_session_description_free(offer);
+        return false;
+    }
     TraceSdpSummary("remote-offer", sdp_offer);
     TraceTransceivers("after-set-remote-offer");
     ConfigureRtcpFeedbackRetention();
@@ -1869,6 +2223,7 @@ bool WebRtcEgressSession::SetRemoteOffer(const std::string& sdp_offer, std::stri
 }
 
 bool WebRtcEgressSession::SetRemoteAnswer(const std::string& sdp_answer, std::string* error_message) {
+    std::lock_guard lifecycle_lock(signaling_lifecycle_mu_);
 #if MEDIA_SERVER_USE_GSTREAMER
     if (!started_ || webrtcbin_ == nullptr) {
         if (error_message != nullptr) {
@@ -1902,10 +2257,18 @@ bool WebRtcEgressSession::SetRemoteAnswer(const std::string& sdp_answer, std::st
 
     GstWebRTCSessionDescription* answer =
         gst_webrtc_session_description_new(GST_WEBRTC_SDP_TYPE_ANSWER, sdp);
-    GstPromise* promise = gst_promise_new();
-    g_signal_emit_by_name(webrtcbin_, "set-remote-description", answer, promise);
-    gst_promise_wait(promise);
-    gst_promise_unref(promise);
+    BoundedPromise promise = NewBoundedPromise();
+    g_signal_emit_by_name(webrtcbin_, "set-remote-description", answer, promise.promise);
+    const GstPromiseResult promise_result =
+        WaitForBoundedPromise(promise, std::chrono::seconds(5));
+    gst_promise_unref(promise.promise);
+    if (promise_result != GST_PROMISE_RESULT_REPLIED) {
+        if (error_message != nullptr) {
+            *error_message = "timed out waiting for remote WebRTC answer";
+        }
+        gst_webrtc_session_description_free(answer);
+        return false;
+    }
     ApplyNegotiatedPayloadTypes(sdp_answer);
     TraceSdpSummary("remote-answer", sdp_answer);
     TraceTransceivers("after-set-remote-answer");
@@ -1923,6 +2286,7 @@ bool WebRtcEgressSession::SetRemoteAnswer(const std::string& sdp_answer, std::st
 }
 
 void WebRtcEgressSession::AddRemoteIceCandidate(std::uint32_t sdp_mline_index, const std::string& candidate) {
+    std::lock_guard lifecycle_lock(signaling_lifecycle_mu_);
 #if MEDIA_SERVER_USE_GSTREAMER
     if (webrtcbin_ != nullptr) {
         g_signal_emit_by_name(webrtcbin_, "add-ice-candidate", sdp_mline_index, candidate.c_str());

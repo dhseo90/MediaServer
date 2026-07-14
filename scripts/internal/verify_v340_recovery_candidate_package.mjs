@@ -75,9 +75,9 @@ check("Ops server builds the v3.4 redacted recovery candidate package read model
 });
 
 check("recovery candidate package reads source, view, source health, EventRecord, and audit context", () => {
-  const block = extractBlock(files.server, "struct OpsV340RecoveryCandidateContext", "std::string OpsAuditSearchIndexJson");
+  const block = extractBlock(files.server, "struct OpsV340RecoveryCandidateContext", "struct OpsV340ApprovalGatedRecoveryChecklistItem");
   for (const snippet of [
-    "SourceViewRegistry::Instance().Snapshot",
+    "SourceViewApplicationService::Instance().Snapshot",
     "source_health_snapshot.items",
     "analysis::QueryEventRecords",
     "QueryOpsAuditEntries",
@@ -98,7 +98,7 @@ check("recovery candidate package reads source, view, source health, EventRecord
 });
 
 check("recovery candidate package preserves redaction, read-only, schema, media, and client boundaries", () => {
-  const block = extractBlock(files.server, "std::string OpsV340RecoveryCandidatePackageJson", "std::string OpsAuditSearchIndexJson");
+  const block = extractBlock(files.server, "std::string OpsV340RecoveryCandidatePackageJson", "struct OpsV340ApprovalGatedRecoveryChecklistItem");
   for (const snippet of [
     "opsOnly",
     "readOnly",

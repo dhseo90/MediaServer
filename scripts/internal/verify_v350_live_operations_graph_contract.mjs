@@ -85,7 +85,7 @@ check("live operations graph joins required source-of-truth inputs", () => {
     "OpsV350LiveOperationsGraphContext BuildV350LiveOperationsGraphContext(",
     "std::vector<OpsV350CommandPlanCandidate> BuildV350CommandPlanCandidates(");
   for (const snippet of [
-    "SourceViewRegistry::Instance().Snapshot",
+    "SourceViewApplicationService::Instance().Snapshot",
     "analysis::QueryEventRecords",
     "BuildV340RecoveryCandidateContext",
     "BuildV340RecoveryCandidatePackages",

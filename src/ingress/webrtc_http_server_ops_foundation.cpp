@@ -499,8 +499,8 @@ void AddOpsSourceHealthWarning(OpsSourceHealthItem* item, const std::string& war
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9424 function
-const SourceViewRegistry::PublishedViewRecord* OpsHealthViewForSource(
-    const std::vector<SourceViewRegistry::PublishedViewRecord>& views,
+const SourceViewApplicationService::PublishedViewRecord* OpsHealthViewForSource(
+    const std::vector<SourceViewApplicationService::PublishedViewRecord>& views,
     const std::string& source_id) {
     const auto exact = std::find_if(views.begin(), views.end(), [&](const auto& view) {
         return view.view_id == source_id && view.source_id == source_id;
@@ -516,7 +516,7 @@ const SourceViewRegistry::PublishedViewRecord* OpsHealthViewForSource(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9439 function
 const analysis::AnalysisManager::TapSnapshot* OpsHealthTapForSource(
-    const SourceViewRegistry::SourceRecord& source,
+    const SourceViewApplicationService::SourceRecord& source,
     const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps) {
     const auto candidates = ClientStreamKeyCandidates(source);
     const analysis::AnalysisManager::TapSnapshot* fallback = nullptr;
@@ -536,7 +536,7 @@ const analysis::AnalysisManager::TapSnapshot* OpsHealthTapForSource(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9458 function
 const PublishedWebRtcSource::Snapshot* OpsHealthPublishedSourceFor(
-    const SourceViewRegistry::SourceRecord& source,
+    const SourceViewApplicationService::SourceRecord& source,
     const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources) {
     if (source.kind != "webrtc" || source.webrtc_source_id.empty()) {
         return nullptr;
@@ -549,7 +549,7 @@ const PublishedWebRtcSource::Snapshot* OpsHealthPublishedSourceFor(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9470 function
 const core::SessionManager::SourceReconnectStats* OpsHealthReconnectStatsForSource(
-    const SourceViewRegistry::SourceRecord& source,
+    const SourceViewApplicationService::SourceRecord& source,
     const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats) {
     const auto candidates = ClientStreamKeyCandidates(source);
     const auto it = std::find_if(reconnect_stats.begin(), reconnect_stats.end(), [&](const auto& stats) {
@@ -560,7 +560,7 @@ const core::SessionManager::SourceReconnectStats* OpsHealthReconnectStatsForSour
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9480 function
 const core::SessionManager::SourceEgressStats* OpsHealthEgressStatsForSource(
-    const SourceViewRegistry::SourceRecord& source,
+    const SourceViewApplicationService::SourceRecord& source,
     const std::vector<core::SessionManager::SourceEgressStats>& egress_stats) {
     const auto candidates = ClientStreamKeyCandidates(source);
     const auto it = std::find_if(egress_stats.begin(), egress_stats.end(), [&](const auto& stats) {
@@ -571,7 +571,7 @@ const core::SessionManager::SourceEgressStats* OpsHealthEgressStatsForSource(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9490 function
 const media::StreamDescriptor* OpsHealthDescriptorForSource(
-    const SourceViewRegistry::SourceRecord& source,
+    const SourceViewApplicationService::SourceRecord& source,
     const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots) {
     const auto candidates = ClientStreamKeyCandidates(source);
     const auto it = std::find_if(descriptor_snapshots.begin(), descriptor_snapshots.end(), [&](const auto& snapshot) {
@@ -723,8 +723,8 @@ void ApplyOpsSourceHealthCodec(OpsSourceHealthItem* item, const media::StreamDes
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9634 function
 void ClassifyOpsSourceHealth(OpsSourceHealthItem* item,
-                             const SourceViewRegistry::SourceRecord& source,
-                             const SourceViewRegistry::PublishedViewRecord* view,
+                             const SourceViewApplicationService::SourceRecord& source,
+                             const SourceViewApplicationService::PublishedViewRecord* view,
                              const analysis::AnalysisManager::TapSnapshot* tap,
                              const PublishedWebRtcSource::Snapshot* published_source,
                              const media::StreamDescriptor* descriptor,
@@ -871,10 +871,10 @@ OpsSourceHealthSnapshot BuildOpsSourceHealthSnapshot(
     const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats,
     const std::vector<core::SessionManager::SourceEgressStats>& egress_stats) {
     OpsSourceHealthSnapshot snapshot;
-    std::vector<SourceViewRegistry::SourceRecord> sources;
-    std::vector<SourceViewRegistry::PublishedViewRecord> views;
+    std::vector<SourceViewApplicationService::SourceRecord> sources;
+    std::vector<SourceViewApplicationService::PublishedViewRecord> views;
     std::string load_error;
-    if (!SourceViewRegistry::Instance().Snapshot(&sources, &views, &load_error)) {
+    if (!SourceViewApplicationService::Instance().Snapshot(&sources, &views, &load_error)) {
         snapshot.ok = false;
         snapshot.error = load_error.empty() ? "source registry load failed" : load_error;
         return snapshot;
@@ -2738,13 +2738,13 @@ std::string OpsV370SiteSourceGroupContractJson() {
 
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 11761 function
-std::string V370SiteForSource(const SourceViewRegistry::SourceRecord& source) {
+std::string V370SiteForSource(const SourceViewApplicationService::SourceRecord& source) {
     const std::string site = Trim(source.site);
     return site.empty() ? "unassigned-site" : site;
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 11766 function
-std::string V370SourceGroupForSource(const SourceViewRegistry::SourceRecord& source) {
+std::string V370SourceGroupForSource(const SourceViewApplicationService::SourceRecord& source) {
     const std::string group = Trim(source.group);
     if (!group.empty()) {
         return group;
@@ -2754,13 +2754,13 @@ std::string V370SourceGroupForSource(const SourceViewRegistry::SourceRecord& sou
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 11775 function
-std::string V370ZoneForSource(const SourceViewRegistry::SourceRecord& source) {
+std::string V370ZoneForSource(const SourceViewApplicationService::SourceRecord& source) {
     const std::string zone = Trim(source.zone);
     return zone.empty() ? "unassigned-zone" : zone;
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 11780 function
-std::vector<std::string> V370ViewGroupsForView(const SourceViewRegistry::PublishedViewRecord& view) {
+std::vector<std::string> V370ViewGroupsForView(const SourceViewApplicationService::PublishedViewRecord& view) {
     if (!view.client_groups.empty()) {
         return view.client_groups;
     }
@@ -2779,8 +2779,8 @@ void AddV370UniqueString(std::vector<std::string>* values, const std::string& va
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 11795 function
 std::vector<OpsV370SiteAwareSourceRegistryProjectionItem>
 BuildV370SiteAwareSourceRegistryProjectionItems(
-    const std::vector<SourceViewRegistry::SourceRecord>& sources,
-    const std::vector<SourceViewRegistry::PublishedViewRecord>& views) {
+    const std::vector<SourceViewApplicationService::SourceRecord>& sources,
+    const std::vector<SourceViewApplicationService::PublishedViewRecord>& views) {
     std::vector<OpsV370SiteAwareSourceRegistryProjectionItem> items;
     for (const auto& source : sources) {
         const std::string site_id = V370SiteForSource(source);
@@ -2824,8 +2824,8 @@ BuildV370SiteAwareSourceRegistryProjectionItems(
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 11839 function
 OpsV370SiteAwareSourceRegistryProjectionSummary
 BuildV370SiteAwareSourceRegistryProjectionSummary(
-    const std::vector<SourceViewRegistry::SourceRecord>& sources,
-    const std::vector<SourceViewRegistry::PublishedViewRecord>& views,
+    const std::vector<SourceViewApplicationService::SourceRecord>& sources,
+    const std::vector<SourceViewApplicationService::PublishedViewRecord>& views,
     const std::vector<OpsV370SiteAwareSourceRegistryProjectionItem>& items) {
     OpsV370SiteAwareSourceRegistryProjectionSummary summary;
     summary.source_group_count = static_cast<int>(items.size());
@@ -2889,10 +2889,10 @@ void AppendV370SiteAwareSourceRegistryProjectionItemJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 11902 function
 std::string OpsV370SiteAwareSourceRegistryProjectionJson() {
-    std::vector<SourceViewRegistry::SourceRecord> sources;
-    std::vector<SourceViewRegistry::PublishedViewRecord> views;
+    std::vector<SourceViewApplicationService::SourceRecord> sources;
+    std::vector<SourceViewApplicationService::PublishedViewRecord> views;
     std::string load_error;
-    if (!SourceViewRegistry::Instance().Snapshot(&sources, &views, &load_error)) {
+    if (!SourceViewApplicationService::Instance().Snapshot(&sources, &views, &load_error)) {
         return "{\"ok\":false,\"schema\":\"media-server.ops.v370-site-aware-source-registry-projection.v1\",\"error\":\"" +
                JsonEscape(load_error.empty() ? "source registry load failed" : load_error) + "\"}";
     }
@@ -2950,7 +2950,7 @@ bool V370HealthHasWarning(const OpsSourceHealthItem& item, const std::string& wa
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 11985 function
-std::string V370SiteHealthSourceState(const SourceViewRegistry::SourceRecord& source,
+std::string V370SiteHealthSourceState(const SourceViewApplicationService::SourceRecord& source,
                                       const OpsSourceHealthItem* health) {
     if (!source.enabled) {
         return "offline";
@@ -2994,8 +2994,8 @@ std::string V370SiteHealthRollupState(const OpsV370SiteHealthRollupItem& item) {
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 12026 function
 std::vector<OpsV370SiteHealthRollupItem> BuildV370SiteHealthRollupItems(
-    const std::vector<SourceViewRegistry::SourceRecord>& sources,
-    const std::vector<SourceViewRegistry::PublishedViewRecord>& views,
+    const std::vector<SourceViewApplicationService::SourceRecord>& sources,
+    const std::vector<SourceViewApplicationService::PublishedViewRecord>& views,
     const OpsSourceHealthSnapshot& health_snapshot) {
     const auto projection = BuildV370SiteAwareSourceRegistryProjectionItems(sources, views);
     std::vector<OpsV370SiteHealthRollupItem> items;
@@ -3107,10 +3107,10 @@ std::string OpsV370SiteHealthRollupJson(const OpsSourceHealthSnapshot& health_sn
                JsonEscape(health_snapshot.error.empty() ? "source health snapshot unavailable" : health_snapshot.error) +
                "\"}";
     }
-    std::vector<SourceViewRegistry::SourceRecord> sources;
-    std::vector<SourceViewRegistry::PublishedViewRecord> views;
+    std::vector<SourceViewApplicationService::SourceRecord> sources;
+    std::vector<SourceViewApplicationService::PublishedViewRecord> views;
     std::string load_error;
-    if (!SourceViewRegistry::Instance().Snapshot(&sources, &views, &load_error)) {
+    if (!SourceViewApplicationService::Instance().Snapshot(&sources, &views, &load_error)) {
         return "{\"ok\":false,\"schema\":\"media-server.ops.v370-site-health-rollup.v1\",\"error\":\"" +
                JsonEscape(load_error.empty() ? "source registry load failed" : load_error) + "\"}";
     }
@@ -5841,12 +5841,12 @@ OpsV330ReliabilityTimelineSummary BuildV330ReliabilityTimelineHealthHistorySumma
 std::vector<OpsV330ReliabilityTimelineItem> BuildV330ReliabilityTimelineHealthHistory(
     const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
-    std::vector<SourceViewRegistry::SourceRecord> sources;
-    std::vector<SourceViewRegistry::PublishedViewRecord> views;
+    std::vector<SourceViewApplicationService::SourceRecord> sources;
+    std::vector<SourceViewApplicationService::PublishedViewRecord> views;
     std::string load_error;
-    (void)SourceViewRegistry::Instance().Snapshot(&sources, &views, &load_error);
+    (void)SourceViewApplicationService::Instance().Snapshot(&sources, &views, &load_error);
 
-    std::unordered_map<std::string, SourceViewRegistry::SourceRecord> source_by_id;
+    std::unordered_map<std::string, SourceViewApplicationService::SourceRecord> source_by_id;
     for (const auto& source : sources) {
         source_by_id[source.source_id] = source;
     }
@@ -6064,12 +6064,12 @@ int OpsV330SourceReliabilityAttentionScore(
 std::vector<OpsV330SourceReliabilitySearchMetricItem> BuildV330SourceReliabilitySearchMetrics(
     const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
-    std::vector<SourceViewRegistry::SourceRecord> sources;
-    std::vector<SourceViewRegistry::PublishedViewRecord> views;
+    std::vector<SourceViewApplicationService::SourceRecord> sources;
+    std::vector<SourceViewApplicationService::PublishedViewRecord> views;
     std::string load_error;
-    (void)SourceViewRegistry::Instance().Snapshot(&sources, &views, &load_error);
+    (void)SourceViewApplicationService::Instance().Snapshot(&sources, &views, &load_error);
 
-    std::unordered_map<std::string, SourceViewRegistry::SourceRecord> source_by_id;
+    std::unordered_map<std::string, SourceViewApplicationService::SourceRecord> source_by_id;
     for (const auto& source : sources) {
         source_by_id[source.source_id] = source;
     }
@@ -6686,10 +6686,10 @@ std::string OpsV330BackupRecoverySourceHandoffJson(
                JsonEscape(source_health_snapshot.error) + "\"}";
     }
 
-    std::vector<SourceViewRegistry::SourceRecord> sources;
-    std::vector<SourceViewRegistry::PublishedViewRecord> views;
+    std::vector<SourceViewApplicationService::SourceRecord> sources;
+    std::vector<SourceViewApplicationService::PublishedViewRecord> views;
     std::string load_error;
-    if (!SourceViewRegistry::Instance().Snapshot(&sources, &views, &load_error)) {
+    if (!SourceViewApplicationService::Instance().Snapshot(&sources, &views, &load_error)) {
         return "{\"ok\":false,\"schema\":\"media-server.ops.v330-backup-recovery-source-handoff.v1\",\"error\":\"" +
                JsonEscape(load_error.empty() ? "source registry load failed" : load_error) + "\"}";
     }
@@ -6873,7 +6873,7 @@ std::string OpsV340ContinuityDrillContractJson() {
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 15994 function
 OpsV340RecoveryCandidateContext BuildV340RecoveryCandidateContext(
-    const std::vector<SourceViewRegistry::PublishedViewRecord>& views,
+    const std::vector<SourceViewApplicationService::PublishedViewRecord>& views,
     const OpsSourceHealthSnapshot& source_health_snapshot,
     const WebRtcHttpRuntimeConfig& config) {
     OpsV340RecoveryCandidateContext context;
@@ -6938,7 +6938,7 @@ OpsV340RecoveryCandidateContext BuildV340RecoveryCandidateContext(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 16058 function
 std::vector<OpsV340RecoveryCandidatePackageItem> BuildV340RecoveryCandidatePackages(
-    const std::vector<SourceViewRegistry::SourceRecord>& sources,
+    const std::vector<SourceViewApplicationService::SourceRecord>& sources,
     const OpsV340RecoveryCandidateContext& context) {
     std::vector<OpsV340RecoveryCandidatePackageItem> items;
     items.reserve(sources.size());
@@ -6987,8 +6987,8 @@ std::vector<OpsV340RecoveryCandidatePackageItem> BuildV340RecoveryCandidatePacka
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 16106 function
 OpsV340RecoveryCandidatePackageSummary BuildV340RecoveryCandidatePackageSummary(
-    const std::vector<SourceViewRegistry::SourceRecord>& sources,
-    const std::vector<SourceViewRegistry::PublishedViewRecord>& views,
+    const std::vector<SourceViewApplicationService::SourceRecord>& sources,
+    const std::vector<SourceViewApplicationService::PublishedViewRecord>& views,
     const std::vector<OpsV340RecoveryCandidatePackageItem>& candidates,
     const OpsV340RecoveryCandidateContext& context) {
     OpsV340RecoveryCandidatePackageSummary summary;
@@ -7087,10 +7087,10 @@ std::string OpsV340RecoveryCandidatePackageJson(
                JsonEscape(source_health_snapshot.error) + "\"}";
     }
 
-    std::vector<SourceViewRegistry::SourceRecord> sources;
-    std::vector<SourceViewRegistry::PublishedViewRecord> views;
+    std::vector<SourceViewApplicationService::SourceRecord> sources;
+    std::vector<SourceViewApplicationService::PublishedViewRecord> views;
     std::string load_error;
-    if (!SourceViewRegistry::Instance().Snapshot(&sources, &views, &load_error)) {
+    if (!SourceViewApplicationService::Instance().Snapshot(&sources, &views, &load_error)) {
         return "{\"ok\":false,\"schema\":\"media-server.ops.v340-recovery-candidate-package.v1\",\"error\":\"" +
                JsonEscape(load_error.empty() ? "source registry load failed" : load_error) + "\"}";
     }
@@ -7303,10 +7303,10 @@ std::string OpsV340ApprovalGatedRecoveryChecklistJson(
                JsonEscape(source_health_snapshot.error) + "\"}";
     }
 
-    std::vector<SourceViewRegistry::SourceRecord> sources;
-    std::vector<SourceViewRegistry::PublishedViewRecord> views;
+    std::vector<SourceViewApplicationService::SourceRecord> sources;
+    std::vector<SourceViewApplicationService::PublishedViewRecord> views;
     std::string load_error;
-    if (!SourceViewRegistry::Instance().Snapshot(&sources, &views, &load_error)) {
+    if (!SourceViewApplicationService::Instance().Snapshot(&sources, &views, &load_error)) {
         return "{\"ok\":false,\"schema\":\"media-server.ops.v340-approval-gated-recovery-checklist.v1\",\"error\":\"" +
                JsonEscape(load_error.empty() ? "source registry load failed" : load_error) + "\"}";
     }
@@ -7530,10 +7530,10 @@ std::string OpsV340DrillEvidenceExportCleanupManifestJson(
                JsonEscape(source_health_snapshot.error) + "\"}";
     }
 
-    std::vector<SourceViewRegistry::SourceRecord> sources;
-    std::vector<SourceViewRegistry::PublishedViewRecord> views;
+    std::vector<SourceViewApplicationService::SourceRecord> sources;
+    std::vector<SourceViewApplicationService::PublishedViewRecord> views;
     std::string load_error;
-    if (!SourceViewRegistry::Instance().Snapshot(&sources, &views, &load_error)) {
+    if (!SourceViewApplicationService::Instance().Snapshot(&sources, &views, &load_error)) {
         return "{\"ok\":false,\"schema\":\"media-server.ops.v340-drill-evidence-export-cleanup-manifest.v1\",\"error\":\"" +
                JsonEscape(load_error.empty() ? "source registry load failed" : load_error) + "\"}";
     }

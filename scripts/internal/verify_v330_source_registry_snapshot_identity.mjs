@@ -140,7 +140,7 @@ check("Ops API exposes the source registry snapshot route as guarded read-only n
   assertIncludes(block, route, "source registry snapshot route");
   assertIncludes(block, "request.method == \"GET\"", "source registry snapshot route");
   assertIncludes(block, "require_ops_principal()", "source registry snapshot route");
-  assertIncludes(block, "SourceViewRegistry::Instance().SourceRegistrySnapshotIdentityJson()", "source registry snapshot route");
+  assertIncludes(block, "SourceViewApplicationService::Instance().SourceRegistrySnapshotIdentityJson()", "source registry snapshot route");
   assertIncludes(block, "Cache-Control", "source registry snapshot route");
   assertIncludes(block, "no-store", "source registry snapshot route");
   assert(!block.includes("require_source_write_principal"), "source identity snapshot must not require or perform source writes");

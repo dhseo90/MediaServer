@@ -198,6 +198,7 @@ async function runSourceRegistryContract() {
       assertWebRtcWrapperDeleteReadback(closed, clientSessionId);
     }
   }
+  await assertWebRtcSignalingDeleteRaceReadback();
 
   const sourceHealth = await opsJson("/ops/api/source-health");
   assertSourceHealthReadback(sourceHealth);
@@ -348,6 +349,41 @@ function assertWebRtcWrapperCreateReadback(session) {
 
 function assertWebRtcWrapperDeleteReadback(closed, sessionId) {
   assert(closed.ok === true && sessionId.length > 0, "SRC-024 WebRTC client wrapper session delete readback failed");
+}
+
+async function assertWebRtcSignalingDeleteRaceReadback() {
+  const raceStatuses = [];
+  let acceptedIceRequests = 0;
+  for (let iteration = 0; iteration < 4; iteration += 1) {
+    const session = await requestJson("/client/api/views/1/webrtc/session", {
+      method: "POST", headers: clientJsonHeaders(), body: '{"overlayMode":"raw"}',
+    }, 200);
+    const sessionId = String(session.sessionId || "");
+    assertWebRtcWrapperCreateReadback(session);
+    const sessionPath = `/client/api/views/1/webrtc/session/${encodeURIComponent(sessionId)}`;
+    const iceRequests = Array.from({ length: 8 }, (_, candidateIndex) =>
+      requestJsonAllowStatuses(sessionPath, {
+        method: "POST",
+        headers: clientJsonHeaders(),
+        body: JSON.stringify({
+          candidate: `candidate:${candidateIndex} 1 UDP 2122252543 127.0.0.1 ${9 + candidateIndex} typ host`,
+          sdpMLineIndex: 0,
+        }),
+      }, new Set([200, 404])),
+    );
+    await delay(0);
+    const closedRequest = requestJsonAllowStatuses(sessionPath, {
+      method: "DELETE", headers: clientHeaders(),
+    }, new Set([200]));
+    const [iceResults, closed] = await Promise.all([Promise.all(iceRequests), closedRequest]);
+    acceptedIceRequests += iceResults.filter(result => result.status === 200).length;
+    assert(closed.payload?.ok === true, `MEDIA-026 concurrent signaling/delete close iteration ${iteration}`);
+    raceStatuses.push(`${iceResults.map(result => result.status).join("+")}/${closed.status}`);
+  }
+  const views = await clientJson("/client/api/views");
+  assert(acceptedIceRequests > 0, "MEDIA-026 signaling operation entered before concurrent delete");
+  assert(Array.isArray(views.views), "MEDIA-026 server health readback after signaling/delete race");
+  console.log(`[pass] MEDIA-026 WebRTC signaling/delete race acceptedIce=${acceptedIceRequests} ${raceStatuses.join(",")}`);
 }
 
 function assertViewDashboardReadback(dashboard, detail) {
@@ -784,6 +820,35 @@ async function requestJsonWithStatus(urlPath, options = {}, expectedStatus = 200
   const text = await response.text();
   if (response.status !== expectedStatus) {
     throw new Error(`${options.method || "GET"} ${urlPath} expected ${expectedStatus}, got ${response.status}: ${text.slice(0, 240)}`);
+  }
+  try {
+    return { status: response.status, payload: JSON.parse(text) };
+  } catch {
+    throw new Error(`${urlPath} returned non-JSON: ${text.slice(0, 220)}`);
+  }
+}
+
+async function requestJsonAllowStatuses(urlPath, options, allowedStatuses) {
+  let response;
+  try {
+    response = await fetch(`${httpBase}${urlPath}`, options);
+  } catch (error) {
+    const recentLogs = serverLogs.slice(-20).join(" | ")
+      .replaceAll(adminToken, "<redacted-admin-token>")
+      .replaceAll(operatorToken, "<redacted-operator-token>");
+    throw new Error(
+      `${options.method || "GET"} ${urlPath} transport failed during lifecycle race; ` +
+      `serverExit=${server?.exitCode ?? "null"} serverSignal=${server?.signalCode ?? "null"}; ` +
+      `logs=${recentLogs || "<empty>"}`,
+      { cause: error },
+    );
+  }
+  const text = await response.text();
+  if (!allowedStatuses.has(response.status)) {
+    throw new Error(
+      `${options.method || "GET"} ${urlPath} expected one of ${[...allowedStatuses].join(",")}, ` +
+      `got ${response.status}: ${text.slice(0, 240)}`,
+    );
   }
   try {
     return { status: response.status, payload: JSON.parse(text) };

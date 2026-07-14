@@ -3071,7 +3071,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 HttpResponse ok = RegistryHttpResponse(
-                                    SourceViewRegistry::Instance().SourceOnboardingQualitySummaryJson());
+                                    SourceViewApplicationService::Instance().SourceOnboardingQualitySummaryJson());
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }
@@ -3083,7 +3083,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 HttpResponse ok = RegistryHttpResponse(
-                                    SourceViewRegistry::Instance().SourceRegistrySnapshotIdentityJson());
+                                    SourceViewApplicationService::Instance().SourceRegistrySnapshotIdentityJson());
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }
@@ -3094,7 +3094,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 return *auth_response;
                             }
                             if (request.method == "GET") {
-                                return RegistryHttpResponse(SourceViewRegistry::Instance().SourcesJson());
+                                return RegistryHttpResponse(SourceViewApplicationService::Instance().SourcesJson());
                             }
                             if (request.method == "POST") {
                                 if (const auto auth_response = require_source_write_principal();
@@ -3102,7 +3102,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     return *auth_response;
                                 }
                                 return RegistryHttpResponse(
-                                    SourceViewRegistry::Instance().CreateSource(request.body));
+                                    SourceViewApplicationService::Instance().CreateSource(request.body));
                             }
                         }
 
@@ -3180,7 +3180,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             const std::string source_id = UrlDecode(request.path.substr(
                                 std::string("/ops/api/onvif/channels/").size()));
                             return RegistryHttpResponse(
-                                SourceViewRegistry::Instance().UpsertOnvifSourceView(
+                                SourceViewApplicationService::Instance().UpsertOnvifSourceView(
                                     source_id, *source, *published_view));
                         }
 
@@ -3224,7 +3224,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     return *auth_response;
                                 }
                                 return RegistryHttpResponse(
-                                    SourceViewRegistry::Instance().UpsertSource(source_id, request.body));
+                                    SourceViewApplicationService::Instance().UpsertSource(source_id, request.body));
                             }
                             if (request.method == "DELETE") {
                                 if (const auto auth_response = require_source_write_principal();
@@ -3232,7 +3232,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     return *auth_response;
                                 }
                                 return RegistryHttpResponse(
-                                    SourceViewRegistry::Instance().DisableSource(source_id));
+                                    SourceViewApplicationService::Instance().DisableSource(source_id));
                             }
                         }
 
@@ -3241,7 +3241,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 return *auth_response;
                             }
                             if (request.method == "GET") {
-                                return RegistryHttpResponse(SourceViewRegistry::Instance().ViewsJson());
+                                return RegistryHttpResponse(SourceViewApplicationService::Instance().ViewsJson());
                             }
                             if (request.method == "POST") {
                                 if (const auto auth_response = require_source_write_principal();
@@ -3249,7 +3249,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     return *auth_response;
                                 }
                                 return RegistryHttpResponse(
-                                    SourceViewRegistry::Instance().CreateView(request.body));
+                                    SourceViewApplicationService::Instance().CreateView(request.body));
                             }
                         }
 
@@ -3265,7 +3265,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     return *auth_response;
                                 }
                                 return RegistryHttpResponse(
-                                    SourceViewRegistry::Instance().UpsertView(view_id, request.body));
+                                    SourceViewApplicationService::Instance().UpsertView(view_id, request.body));
                             }
                             if (request.method == "DELETE") {
                                 if (const auto auth_response = require_source_write_principal();
@@ -3273,7 +3273,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     return *auth_response;
                                 }
                                 return RegistryHttpResponse(
-                                    SourceViewRegistry::Instance().DisableView(view_id));
+                                    SourceViewApplicationService::Instance().DisableView(view_id));
                             }
                         }
 
@@ -3329,7 +3329,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 return *auth_response;
                             }
                             if (request.method == "GET") {
-                                return RegistryHttpResponse(SourceViewRegistry::Instance().ClientViewsJson(
+                                return RegistryHttpResponse(SourceViewApplicationService::Instance().ClientViewsJson(
                                     MakeClientViewAccessAuthorizer(principal_result.principal)));
                             }
                         }
@@ -3351,9 +3351,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                         "Bad Request",
                                                         "{\"error\":\"client live accepts viewId only; source override is not allowed\"}");
                                 }
-                                SourceViewRegistry::ClientViewAccess access;
+                                SourceViewApplicationService::ClientViewAccess access;
                                 const auto access_result =
-                                    SourceViewRegistry::Instance().ResolveClientViewAccess(
+                                    SourceViewApplicationService::Instance().ResolveClientViewAccess(
                                         view_id,
                                         MakeClientViewAccessAuthorizer(principal_result.principal),
                                         "view:read",
@@ -3565,9 +3565,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 if (IsClientViewSummaryRoute(subresource) &&
                                     IsClientViewDashboardSummaryRoute(subresource)) {
-                                    SourceViewRegistry::ClientViewAccess access;
+                                    SourceViewApplicationService::ClientViewAccess access;
                                     const auto access_result =
-                                        SourceViewRegistry::Instance().ResolveClientViewAccess(
+                                        SourceViewApplicationService::Instance().ResolveClientViewAccess(
                                             view_id,
                                             MakeClientViewAccessAuthorizer(principal_result.principal),
                                             "dashboard:read",
@@ -3596,9 +3596,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                             "Forbidden",
                                             "{\"error\":\"Integrator scoped search requires integrator role\"}");
                                     }
-                                    SourceViewRegistry::ClientViewAccess access;
+                                    SourceViewApplicationService::ClientViewAccess access;
                                     const auto access_result =
-                                        SourceViewRegistry::Instance().ResolveClientViewAccess(
+                                        SourceViewApplicationService::Instance().ResolveClientViewAccess(
                                             view_id,
                                             MakeClientViewAccessAuthorizer(principal_result.principal),
                                             "event:read",
@@ -3622,9 +3622,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 }
                                 if (IsClientViewSummaryRoute(subresource) &&
                                     IsClientViewEventsSummaryRoute(subresource)) {
-                                    SourceViewRegistry::ClientViewAccess access;
+                                    SourceViewApplicationService::ClientViewAccess access;
                                     const auto access_result =
-                                        SourceViewRegistry::Instance().ResolveClientViewAccess(
+                                        SourceViewApplicationService::Instance().ResolveClientViewAccess(
                                             view_id,
                                             MakeClientViewAccessAuthorizer(principal_result.principal),
                                             "event:read",
@@ -3650,9 +3650,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 }
                                 if (IsClientViewSummaryRoute(subresource) &&
                                     IsClientViewMetadataSummaryRoute(subresource)) {
-                                    SourceViewRegistry::ClientViewAccess access;
+                                    SourceViewApplicationService::ClientViewAccess access;
                                     const auto access_result =
-                                        SourceViewRegistry::Instance().ResolveClientViewAccess(
+                                        SourceViewApplicationService::Instance().ResolveClientViewAccess(
                                             view_id,
                                             MakeClientViewAccessAuthorizer(principal_result.principal),
                                             "metadata:read",
@@ -3678,7 +3678,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                         "{\"error\":\"client view resource not found\"}");
                                 }
                                 return RegistryHttpResponse(
-                                    SourceViewRegistry::Instance().ClientViewJson(view_id,
+                                    SourceViewApplicationService::Instance().ClientViewJson(view_id,
                                         MakeClientViewAccessAuthorizer(principal_result.principal)));
                             }
                         }

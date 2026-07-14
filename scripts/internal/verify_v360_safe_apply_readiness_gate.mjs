@@ -73,7 +73,7 @@ check("safe apply readiness derives from dry-run and impact diff results", () =>
 });
 
 check("safe apply readiness preserves no-auto-apply boundaries", () => {
-  const block = extractBlock(files.server, "std::string OpsV360SafeApplyReadinessGateJson", "std::string OpsAuditSearchIndexJson");
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV360SafeApplyReadinessGateJson(");
   for (const snippet of [
     "opsOnly", "readOnly", "safeApplyGateOnly",
     "automaticApplyPerformed", "safeApplyPerformed", "sourceRegistryWritePerformed",

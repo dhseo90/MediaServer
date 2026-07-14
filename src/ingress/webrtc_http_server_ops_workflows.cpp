@@ -20,7 +20,7 @@ OpsV350LiveOperationsGraphContext BuildV350LiveOperationsGraphContext(
     }
 
     std::string load_error;
-    if (!SourceViewRegistry::Instance().Snapshot(&context.sources, &context.views, &load_error)) {
+    if (!SourceViewApplicationService::Instance().Snapshot(&context.sources, &context.views, &load_error)) {
         context.ok = false;
         context.error = load_error.empty() ? "source registry load failed" : load_error;
         return context;
@@ -391,8 +391,8 @@ std::string OpsV350LiveOperationsGraphJson(
 
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 17464 function
-const SourceViewRegistry::SourceRecord* V370SourceById(
-    const std::vector<SourceViewRegistry::SourceRecord>& sources,
+const SourceViewApplicationService::SourceRecord* V370SourceById(
+    const std::vector<SourceViewApplicationService::SourceRecord>& sources,
     const std::string& source_id) {
     const auto it = std::find_if(sources.begin(), sources.end(), [&](const auto& source) {
         return source.source_id == source_id;

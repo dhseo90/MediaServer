@@ -83,6 +83,7 @@ add_library(media_server_runtime STATIC
     src/ingress/product_ui_server_pages.cpp
     src/ingress/rtsp_egress_session.cpp
     src/ingress/source_view_registry.cpp
+    src/ingress/source_view_application_service.cpp
     src/ingress/vlm_profile_json_document.cpp
     src/ingress/vlm_evaluation_promotion.cpp
     src/ingress/vlm_incident_rule_provenance.cpp
@@ -123,7 +124,7 @@ if(MEDIA_SERVER_USE_GSTREAMER)
         gstreamer-rtsp-server-1.0
         gstreamer-pbutils-1.0
         gstreamer-app-1.0
-        gstreamer-webrtc-1.0
+        gstreamer-webrtc-1.0>=1.28
         gstreamer-sdp-1.0)
     target_link_libraries(media_server_runtime PUBLIC PkgConfig::GSTREAMER)
     target_compile_definitions(media_server_runtime PUBLIC MEDIA_SERVER_USE_GSTREAMER=1 GST_USE_UNSTABLE_API=1)

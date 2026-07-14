@@ -3,8 +3,12 @@
 // 동작 요약: HTTP signaling handler가 GStreamer WebRTC 구현을 제어하는 계약이다.
 #pragma once
 
+#include <atomic>
+#include <condition_variable>
 #include <cstdint>
 #include <deque>
+#include <memory>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <vector>
@@ -58,7 +62,8 @@ struct WebRtcMetadataChannelStats {
     std::uint64_t max_message_bytes_observed{0};
 };
 
-class WebRtcEgressSession final : public core::EgressSession {
+class WebRtcEgressSession final : public core::EgressSession,
+                                  public std::enable_shared_from_this<WebRtcEgressSession> {
 public:
     WebRtcEgressSession();
     ~WebRtcEgressSession() override;
@@ -98,7 +103,8 @@ public:
     void TraceTransceivers(const char* label) const;
     void TraceTransceiver(const char* label, GstWebRTCRTPTransceiver* transceiver) const;
     void RecalculateLatency();
-    GstElement* webrtcbin() const { return webrtcbin_; }
+    bool TryBeginGStreamerCallback();
+    void EndGStreamerCallback();
 #endif
 
 private:
@@ -148,10 +154,16 @@ private:
     std::optional<std::string> local_offer_;
     std::vector<WebRtcIceCandidate> pending_local_ice_candidates_;
     std::string negotiation_error_;
-    bool started_{false};
-    bool negotiation_ready_{false};
-    bool ice_connected_{false};
-    bool media_output_ready_{false};
+    std::mutex signaling_lifecycle_mu_;
+    std::mutex callback_lifecycle_mu_;
+    std::condition_variable callback_lifecycle_cv_;
+    std::size_t active_gstreamer_callbacks_{0};
+    bool stopping_gstreamer_callbacks_{false};
+    std::mutex media_resource_mu_;
+    std::atomic_bool started_{false};
+    std::atomic_bool negotiation_ready_{false};
+    std::atomic_bool ice_connected_{false};
+    std::atomic_bool media_output_ready_{false};
     core::MediaPipelineAttachment pipeline_attachment_;
     WebRtcMetadataChannelConfig metadata_channel_config_;
     mutable std::mutex metadata_mu_;
@@ -175,6 +187,12 @@ private:
     GstElement* audio_appsrc_{nullptr};
     GstElement* webrtcbin_{nullptr};
     GstWebRTCDataChannel* metadata_data_channel_{nullptr};
+    unsigned long ice_candidate_handler_id_{0};
+    unsigned long new_transceiver_handler_id_{0};
+    unsigned long ice_state_handler_id_{0};
+    unsigned long metadata_open_handler_id_{0};
+    unsigned long metadata_close_handler_id_{0};
+    unsigned long metadata_error_handler_id_{0};
     unsigned int bus_watch_id_{0};
     bool transport_pads_linked_{false};
     std::size_t traced_video_samples_{0};

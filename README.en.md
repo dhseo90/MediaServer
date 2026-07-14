@@ -59,7 +59,7 @@ Related docs:
 | --- | --- |
 | OS | macOS or Linux |
 | Build | C++17, CMake 3.16+ |
-| Media runtime | GStreamer 1.0, gst-rtsp-server, WebRTC-related GStreamer plugins |
+| Media runtime | GStreamer 1.28+, gst-rtsp-server, WebRTC-related GStreamer plugins |
 | Optional AI | ONNX Runtime, YOLO ONNX model, label file |
 | Helper tools | Node.js, Python 3, FFmpeg/ffprobe, curl |
 | Defaults | RTSP route `dhseo`, file root `video/` |

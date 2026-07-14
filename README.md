@@ -58,7 +58,7 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 | --- | --- |
 | OS | macOS 또는 Linux |
 | 언어/빌드 | C++17, CMake 3.16+ |
-| 미디어 런타임 | GStreamer 1.0, gst-rtsp-server, WebRTC 관련 GStreamer plugin |
+| 미디어 런타임 | GStreamer 1.28+, gst-rtsp-server, WebRTC 관련 GStreamer plugin |
 | 선택 AI | ONNX Runtime, YOLO ONNX model, label file |
 | 보조 도구 | Node.js, Python 3, ffmpeg/ffprobe, curl |
 | 기본 route/file root | RTSP route `dhseo`, file root `video/` |

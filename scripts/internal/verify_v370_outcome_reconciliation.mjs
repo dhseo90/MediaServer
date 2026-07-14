@@ -41,6 +41,7 @@ const featureIds = ["UI-100", "SRC-062", "EVT-083", "CLIENT-039", "LAB-109", "SA
 
 const files = {
   server: readWebRtcHttpServerBundle(readText),
+  uiServerPages: readText("src/ingress/product_ui_server_pages.cpp"),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
@@ -219,7 +220,7 @@ check("Ops API exposes the Outcome Reconciliation route as guarded no-store JSON
 });
 
 check("/ops dashboard declares and renders Outcome Reconciliation workspace", () => {
-  const serverBlock = extractBlock(files.server, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
+  const serverBlock = extractCppFunctionBlock(files.uiServerPages, "void AppendOpsDashboardPage(");
   for (const snippet of [
     "ops-site-outcome-reconciliation-workspace",
     "data-testid=\"ops-site-outcome-reconciliation-workspace\"",

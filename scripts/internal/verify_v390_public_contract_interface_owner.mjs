@@ -74,7 +74,9 @@ const stableHeaders = [
   "include/ingress/product_ui_server_pages.h",
 ];
 const applicationFiles = [
+  "include/ingress/application_service_result.h",
   "include/ingress/onvif_live_import.h", "src/ingress/onvif_live_import.cpp",
+  "include/ingress/source_view_application_service.h", "src/ingress/source_view_application_service.cpp",
   "include/ingress/vlm_incident_rule_provenance.h", "src/ingress/vlm_incident_rule_provenance.cpp",
   "include/ingress/vlm_profile_json_document.h", "src/ingress/vlm_profile_json_document.cpp",
   "include/ingress/onvif_credential_provider.h",
@@ -119,8 +121,8 @@ check("interface and implementation owners are exact", () => {
     owner("stable-contract-dtos").expectedFileCount === 9 && owner("stable-contract-dtos").expectedCppCount === 0,
   "stable public contract owner drift");
   assert(JSON.stringify(exact("application-service-interfaces")) === JSON.stringify([...applicationFiles].sort()) &&
-    owner("application-service-interfaces").expectedFileCount === 10 &&
-    owner("application-service-interfaces").expectedCppCount === 3,
+    owner("application-service-interfaces").expectedFileCount === 13 &&
+    owner("application-service-interfaces").expectedCppCount === 4,
   "application public interface owner drift");
   assert(JSON.stringify(exact("domain-and-registry-owners")) === JSON.stringify([...domainFiles].sort()) &&
     owner("domain-and-registry-owners").expectedFileCount === 5 &&
@@ -145,8 +147,10 @@ check("public headers remain dependency-neutral", () => {
   }
   const applicationIncludes = new Map([
     ["include/ingress/onvif_live_import.h", [
-      "ingress/onvif_credential_provider.h", "ingress/source_view_registry.h",
+      "ingress/onvif_credential_provider.h", "ingress/application_service_result.h",
     ]],
+    ["include/ingress/application_service_result.h", []],
+    ["include/ingress/source_view_application_service.h", ["ingress/application_service_result.h"]],
     ["include/ingress/vlm_incident_rule_provenance.h", []],
     ["include/ingress/vlm_profile_json_document.h", []],
     ["include/ingress/onvif_credential_provider.h", []],
@@ -184,7 +188,7 @@ check("strict JSON has a physical domain owner boundary", () => {
 check("current graph removes only the planned owner violations", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const violations = graph.observedModuleEdges.filter(item => item.allowedByTarget === false);
-  assert(graph.expectedProductionFiles === 175 && graph.expectedCppFiles === 86 &&
+  assert(graph.expectedProductionFiles === 178 && graph.expectedCppFiles === 87 &&
     graph.observedModuleEdges.length === 17 && violations.length === 3 &&
     graph.stronglyConnectedComponents.length === 0 &&
     JSON.stringify(graph.observedModuleEdges.map(item => item.direction)) === JSON.stringify(expectedDirections),

@@ -70,7 +70,7 @@
 #include "ingress/product_ui_js.h"
 #include "ingress/product_ui_page_scripts.h"
 #include "ingress/product_ui_server_pages.h"
-#include "ingress/source_view_registry.h"
+#include "ingress/source_view_application_service.h"
 #include "ingress/vlm_profile_json_document.h"
 #include "ingress/vlm_evaluation_promotion.h"
 #include "ingress/vlm_incident_rule_provenance.h"
@@ -1812,7 +1812,7 @@ HttpResponse AnalysisRegistryMutationErrorResponse(
     const std::string& default_status_text);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3155 prototype
-HttpResponse RegistryHttpResponse(const RegistryResult& result);
+HttpResponse RegistryHttpResponse(const ApplicationServiceResult& result);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3159 prototype
 HttpResponse AuthUserHttpResponse(const auth::AuthUserResult& result);
@@ -1915,28 +1915,28 @@ bool ClientPrincipalCanAccessFeature(const auth::Principal& principal,
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3541 prototype
 std::optional<media::SourceSpec::Kind> SourceKindForClientView(
-    const SourceViewRegistry::SourceRecord& source);
+    const SourceViewApplicationService::SourceRecord& source);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3570 prototype
-std::string SourceLocatorForClientView(const SourceViewRegistry::SourceRecord& source);
+std::string SourceLocatorForClientView(const SourceViewApplicationService::SourceRecord& source);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3589 prototype
 void AddUniqueString(std::vector<std::string>* values, const std::string& value);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3598 prototype
-std::vector<std::string> ClientStreamKeyCandidates(const SourceViewRegistry::SourceRecord& source);
+std::vector<std::string> ClientStreamKeyCandidates(const SourceViewApplicationService::SourceRecord& source);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3620 prototype
 bool ClientTapMatchesSource(const analysis::AnalysisManager::TapSnapshot& tap,
                             const std::vector<std::string>& stream_key_candidates);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3626 prototype
-bool ClientTapMatchesViewRule(const SourceViewRegistry::PublishedViewRecord& view,
+bool ClientTapMatchesViewRule(const SourceViewApplicationService::PublishedViewRecord& view,
                               const analysis::AnalysisManager::TapSnapshot& tap);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3636 prototype
 const analysis::AnalysisManager::TapSnapshot* SelectClientDashboardTap(
-    const SourceViewRegistry::ClientViewAccess& access,
+    const SourceViewApplicationService::ClientViewAccess& access,
     const std::vector<analysis::AnalysisManager::TapSnapshot>& taps,
     const std::vector<std::string>& stream_key_candidates);
 
@@ -2006,7 +2006,7 @@ std::string ClientSourceStatusDigestTimelineHint(const std::string& source_statu
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3764 prototype
 ClientSourceStatusDigest ClientSourceStatusDigestFor(
-    const SourceViewRegistry::ClientViewAccess& access,
+    const SourceViewApplicationService::ClientViewAccess& access,
     const auth::Principal& principal,
     const std::vector<analysis::AnalysisManager::TapSnapshot>& taps);
 
@@ -2016,7 +2016,7 @@ void AppendClientSafeSourceStatusDigestJson(std::ostringstream& out,
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3857 prototype
 std::string ClientSourceStatusDigestJson(
-    const SourceViewRegistry::ClientViewAccess& access,
+    const SourceViewApplicationService::ClientViewAccess& access,
     const auth::Principal& principal,
     const std::vector<analysis::AnalysisManager::TapSnapshot>& taps);
 
@@ -2064,7 +2064,7 @@ struct ClientImpactForecast {
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3970 prototype
 ClientImpactForecast ClientImpactForecastFor(
-    const SourceViewRegistry::ClientViewAccess& access,
+    const SourceViewApplicationService::ClientViewAccess& access,
     const ClientSourceStatusDigest& source_status,
     const ClientMaintenanceDigest& maintenance_digest,
     const ClientEventSummary& event_summary);
@@ -2075,7 +2075,7 @@ void AppendClientImpactForecastJson(std::ostringstream& out,
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 4053 prototype
 std::string ClientImpactForecastJson(
-    const SourceViewRegistry::ClientViewAccess& access,
+    const SourceViewApplicationService::ClientViewAccess& access,
     const ClientSourceStatusDigest& source_status,
     const ClientMaintenanceDigest& maintenance_digest,
     const ClientEventSummary& event_summary);
@@ -2089,7 +2089,7 @@ struct ClientOperationsNotice {
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 4071 prototype
 std::string ClientOperationsNoticeStatusFor(
-    const SourceViewRegistry::ClientViewAccess& access,
+    const SourceViewApplicationService::ClientViewAccess& access,
     const ClientSourceStatusDigest& source_status,
     const ClientEventSummary& event_summary);
 
@@ -2098,7 +2098,7 @@ std::string ClientOperationsNoticeTimelineHintFor(const std::string& operations_
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 4103 prototype
 ClientOperationsNotice ClientOperationsNoticeFor(
-    const SourceViewRegistry::ClientViewAccess& access,
+    const SourceViewApplicationService::ClientViewAccess& access,
     const ClientSourceStatusDigest& source_status,
     const ClientMaintenanceDigest&,
     const ClientEventSummary& event_summary);
@@ -2109,7 +2109,7 @@ void AppendClientOperationsNoticeJson(std::ostringstream& out,
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 4150 prototype
 std::string ClientOperationsNoticeJson(
-    const SourceViewRegistry::ClientViewAccess& access,
+    const SourceViewApplicationService::ClientViewAccess& access,
     const ClientSourceStatusDigest& source_status,
     const ClientMaintenanceDigest& maintenance_digest,
     const ClientEventSummary& event_summary);
@@ -2125,7 +2125,7 @@ struct ClientActionNoticePreview {
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 4170 prototype
 std::string ClientActionNoticePreviewStatusFor(
-    const SourceViewRegistry::ClientViewAccess& access,
+    const SourceViewApplicationService::ClientViewAccess& access,
     const ClientSourceStatusDigest& source_status,
     const ClientEventSummary& event_summary);
 
@@ -2140,7 +2140,7 @@ std::string ClientActionNoticePreviewTimelineHintFor(const std::string& notice_s
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 4228 prototype
 ClientActionNoticePreview ClientActionNoticePreviewFor(
-    const SourceViewRegistry::ClientViewAccess& access,
+    const SourceViewApplicationService::ClientViewAccess& access,
     const ClientSourceStatusDigest& source_status,
     const ClientMaintenanceDigest&,
     const ClientEventSummary& event_summary);
@@ -2151,7 +2151,7 @@ void AppendClientActionNoticePreviewJson(std::ostringstream& out,
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 4285 prototype
 std::string ClientActionNoticePreviewJson(
-    const SourceViewRegistry::ClientViewAccess& access,
+    const SourceViewApplicationService::ClientViewAccess& access,
     const ClientSourceStatusDigest& source_status,
     const ClientMaintenanceDigest& maintenance_digest,
     const ClientEventSummary& event_summary);
@@ -2228,26 +2228,26 @@ void AppendClientEventSummaryJson(std::ostringstream& out,
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 4754 prototype
 void AppendClientViewIdentityJson(std::ostringstream& out,
-                                  const SourceViewRegistry::ClientViewAccess& access);
+                                  const SourceViewApplicationService::ClientViewAccess& access);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 4777 prototype
 std::vector<std::string> ClientEventStreamCandidates(
-    const SourceViewRegistry::SourceRecord& source,
+    const SourceViewApplicationService::SourceRecord& source,
     const analysis::AnalysisManager::TapSnapshot* tap);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 4790 prototype
 std::string ClientViewEventsJson(
-    const SourceViewRegistry::ClientViewAccess& access,
+    const SourceViewApplicationService::ClientViewAccess& access,
     const auth::Principal& principal,
     const std::vector<analysis::AnalysisManager::TapSnapshot>& taps,
     int limit);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 4823 prototype
-std::string ClientViewMetadataJson(const SourceViewRegistry::ClientViewAccess& access,
+std::string ClientViewMetadataJson(const SourceViewApplicationService::ClientViewAccess& access,
                                    const std::vector<analysis::AnalysisManager::TapSnapshot>& taps);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 4877 prototype
-std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& access,
+std::string ClientViewDashboardJson(const SourceViewApplicationService::ClientViewAccess& access,
                                     const auth::Principal& principal,
                                     const std::vector<analysis::AnalysisManager::TapSnapshot>& taps);
 
@@ -2256,17 +2256,17 @@ std::string NormalizeClientOverlayMode(std::string mode);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 5036 prototype
 std::vector<std::string> ClientAllowedOverlayModes(
-    const SourceViewRegistry::PublishedViewRecord& view);
+    const SourceViewApplicationService::PublishedViewRecord& view);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 5046 prototype
-bool ClientViewAllowsOverlayMode(const SourceViewRegistry::PublishedViewRecord& view,
+bool ClientViewAllowsOverlayMode(const SourceViewApplicationService::PublishedViewRecord& view,
                                  const std::string& mode);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 5052 prototype
-std::string ClientDefaultOverlayMode(const SourceViewRegistry::PublishedViewRecord& view);
+std::string ClientDefaultOverlayMode(const SourceViewApplicationService::PublishedViewRecord& view);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 5063 prototype
-bool AddClientSourceQuery(const SourceViewRegistry::SourceRecord& source,
+bool AddClientSourceQuery(const SourceViewApplicationService::SourceRecord& source,
                           std::unordered_map<std::string, std::string>* query,
                           std::string* error_message);
 
@@ -2285,7 +2285,7 @@ bool ClientSourceQueriesMatch(const std::unordered_map<std::string, std::string>
                               const std::unordered_map<std::string, std::string>& rule_query);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 5166 prototype
-bool ClientVaRuleSourceMatchesView(const SourceViewRegistry::ClientViewAccess& access,
+bool ClientVaRuleSourceMatchesView(const SourceViewApplicationService::ClientViewAccess& access,
                                    const std::string& rule_id,
                                    std::string* error_message);
 
@@ -2294,14 +2294,14 @@ bool ClientLiveRequestHasSourceOverride(const std::string& body,
                                         const std::unordered_map<std::string, std::string>& query);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 5211 prototype
-bool BuildClientLiveWebRtcQuery(const SourceViewRegistry::ClientViewAccess& access,
+bool BuildClientLiveWebRtcQuery(const SourceViewApplicationService::ClientViewAccess& access,
                                 const std::string& raw_overlay_mode,
                                 const std::string& requested_rule_id,
                                 std::unordered_map<std::string, std::string>* query,
                                 std::string* error_message);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 5271 prototype
-SourceViewRegistry::ClientViewAccessAuthorizer MakeClientViewAccessAuthorizer(
+SourceViewApplicationService::ClientViewAccessAuthorizer MakeClientViewAccessAuthorizer(
     const auth::Principal& principal);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 5279 prototype
@@ -2894,33 +2894,33 @@ void AppendOpsSourceHealthItemJson(std::ostringstream& out, const OpsSourceHealt
 void AddOpsSourceHealthWarning(OpsSourceHealthItem* item, const std::string& warning);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9424 prototype
-const SourceViewRegistry::PublishedViewRecord* OpsHealthViewForSource(
-    const std::vector<SourceViewRegistry::PublishedViewRecord>& views,
+const SourceViewApplicationService::PublishedViewRecord* OpsHealthViewForSource(
+    const std::vector<SourceViewApplicationService::PublishedViewRecord>& views,
     const std::string& source_id);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9439 prototype
 const analysis::AnalysisManager::TapSnapshot* OpsHealthTapForSource(
-    const SourceViewRegistry::SourceRecord& source,
+    const SourceViewApplicationService::SourceRecord& source,
     const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9458 prototype
 const PublishedWebRtcSource::Snapshot* OpsHealthPublishedSourceFor(
-    const SourceViewRegistry::SourceRecord& source,
+    const SourceViewApplicationService::SourceRecord& source,
     const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9470 prototype
 const core::SessionManager::SourceReconnectStats* OpsHealthReconnectStatsForSource(
-    const SourceViewRegistry::SourceRecord& source,
+    const SourceViewApplicationService::SourceRecord& source,
     const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9480 prototype
 const core::SessionManager::SourceEgressStats* OpsHealthEgressStatsForSource(
-    const SourceViewRegistry::SourceRecord& source,
+    const SourceViewApplicationService::SourceRecord& source,
     const std::vector<core::SessionManager::SourceEgressStats>& egress_stats);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9490 prototype
 const media::StreamDescriptor* OpsHealthDescriptorForSource(
-    const SourceViewRegistry::SourceRecord& source,
+    const SourceViewApplicationService::SourceRecord& source,
     const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9500 prototype
@@ -2946,8 +2946,8 @@ void ApplyOpsSourceHealthCodec(OpsSourceHealthItem* item, const media::StreamDes
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9634 prototype
 void ClassifyOpsSourceHealth(OpsSourceHealthItem* item,
-                             const SourceViewRegistry::SourceRecord& source,
-                             const SourceViewRegistry::PublishedViewRecord* view,
+                             const SourceViewApplicationService::SourceRecord& source,
+                             const SourceViewApplicationService::PublishedViewRecord* view,
                              const analysis::AnalysisManager::TapSnapshot* tap,
                              const PublishedWebRtcSource::Snapshot* published_source,
                              const media::StreamDescriptor* descriptor,
@@ -3301,16 +3301,16 @@ struct OpsV370SiteAwareSourceRegistryProjectionSummary {
 };
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 11761 prototype
-std::string V370SiteForSource(const SourceViewRegistry::SourceRecord& source);
+std::string V370SiteForSource(const SourceViewApplicationService::SourceRecord& source);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 11766 prototype
-std::string V370SourceGroupForSource(const SourceViewRegistry::SourceRecord& source);
+std::string V370SourceGroupForSource(const SourceViewApplicationService::SourceRecord& source);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 11775 prototype
-std::string V370ZoneForSource(const SourceViewRegistry::SourceRecord& source);
+std::string V370ZoneForSource(const SourceViewApplicationService::SourceRecord& source);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 11780 prototype
-std::vector<std::string> V370ViewGroupsForView(const SourceViewRegistry::PublishedViewRecord& view);
+std::vector<std::string> V370ViewGroupsForView(const SourceViewApplicationService::PublishedViewRecord& view);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 11787 prototype
 void AddV370UniqueString(std::vector<std::string>* values, const std::string& value);
@@ -3318,14 +3318,14 @@ void AddV370UniqueString(std::vector<std::string>* values, const std::string& va
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 11795 prototype
 std::vector<OpsV370SiteAwareSourceRegistryProjectionItem>
 BuildV370SiteAwareSourceRegistryProjectionItems(
-    const std::vector<SourceViewRegistry::SourceRecord>& sources,
-    const std::vector<SourceViewRegistry::PublishedViewRecord>& views);
+    const std::vector<SourceViewApplicationService::SourceRecord>& sources,
+    const std::vector<SourceViewApplicationService::PublishedViewRecord>& views);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 11839 prototype
 OpsV370SiteAwareSourceRegistryProjectionSummary
 BuildV370SiteAwareSourceRegistryProjectionSummary(
-    const std::vector<SourceViewRegistry::SourceRecord>& sources,
-    const std::vector<SourceViewRegistry::PublishedViewRecord>& views,
+    const std::vector<SourceViewApplicationService::SourceRecord>& sources,
+    const std::vector<SourceViewApplicationService::PublishedViewRecord>& views,
     const std::vector<OpsV370SiteAwareSourceRegistryProjectionItem>& items);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 11867 prototype
@@ -3377,7 +3377,7 @@ const OpsSourceHealthItem* V370HealthForSource(const OpsSourceHealthSnapshot& sn
 bool V370HealthHasWarning(const OpsSourceHealthItem& item, const std::string& warning);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 11985 prototype
-std::string V370SiteHealthSourceState(const SourceViewRegistry::SourceRecord& source,
+std::string V370SiteHealthSourceState(const SourceViewApplicationService::SourceRecord& source,
                                       const OpsSourceHealthItem* health);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 12010 prototype
@@ -3385,8 +3385,8 @@ std::string V370SiteHealthRollupState(const OpsV370SiteHealthRollupItem& item);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 12026 prototype
 std::vector<OpsV370SiteHealthRollupItem> BuildV370SiteHealthRollupItems(
-    const std::vector<SourceViewRegistry::SourceRecord>& sources,
-    const std::vector<SourceViewRegistry::PublishedViewRecord>& views,
+    const std::vector<SourceViewApplicationService::SourceRecord>& sources,
+    const std::vector<SourceViewApplicationService::PublishedViewRecord>& views,
     const OpsSourceHealthSnapshot& health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 12072 prototype
@@ -4210,19 +4210,19 @@ struct OpsV340RecoveryCandidatePackageSummary {
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 15994 prototype
 OpsV340RecoveryCandidateContext BuildV340RecoveryCandidateContext(
-    const std::vector<SourceViewRegistry::PublishedViewRecord>& views,
+    const std::vector<SourceViewApplicationService::PublishedViewRecord>& views,
     const OpsSourceHealthSnapshot& source_health_snapshot,
     const WebRtcHttpRuntimeConfig& config);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 16058 prototype
 std::vector<OpsV340RecoveryCandidatePackageItem> BuildV340RecoveryCandidatePackages(
-    const std::vector<SourceViewRegistry::SourceRecord>& sources,
+    const std::vector<SourceViewApplicationService::SourceRecord>& sources,
     const OpsV340RecoveryCandidateContext& context);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 16106 prototype
 OpsV340RecoveryCandidatePackageSummary BuildV340RecoveryCandidatePackageSummary(
-    const std::vector<SourceViewRegistry::SourceRecord>& sources,
-    const std::vector<SourceViewRegistry::PublishedViewRecord>& views,
+    const std::vector<SourceViewApplicationService::SourceRecord>& sources,
+    const std::vector<SourceViewApplicationService::PublishedViewRecord>& views,
     const std::vector<OpsV340RecoveryCandidatePackageItem>& candidates,
     const OpsV340RecoveryCandidateContext& context);
 
@@ -4459,8 +4459,8 @@ struct OpsV350LiveOperationsGraphSummary {
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 17034 type
 struct OpsV350LiveOperationsGraphContext {
-    std::vector<SourceViewRegistry::SourceRecord> sources;
-    std::vector<SourceViewRegistry::PublishedViewRecord> views;
+    std::vector<SourceViewApplicationService::SourceRecord> sources;
+    std::vector<SourceViewApplicationService::PublishedViewRecord> views;
     std::vector<OpsV340RecoveryCandidatePackageItem> recovery_candidates;
     std::vector<OpsV340SourceHealthReplayDriftItem> source_health_replay_drift_items;
     std::unordered_map<std::string, const OpsSourceHealthItem*> health_by_source;
@@ -4562,8 +4562,8 @@ struct OpsV370SiteImpactGraphSummary {
 };
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 17464 prototype
-const SourceViewRegistry::SourceRecord* V370SourceById(
-    const std::vector<SourceViewRegistry::SourceRecord>& sources,
+const SourceViewApplicationService::SourceRecord* V370SourceById(
+    const std::vector<SourceViewApplicationService::SourceRecord>& sources,
     const std::string& source_id);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 17473 prototype
@@ -7608,7 +7608,7 @@ struct IntegratorScopedEventSearchSource {
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33628 prototype
 IntegratorScopedEventSearchSource LoadIntegratorScopedEventSearchSource(
-    const SourceViewRegistry::ClientViewAccess& access,
+    const SourceViewApplicationService::ClientViewAccess& access,
     std::size_t read_limit);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33666 prototype
@@ -7617,14 +7617,14 @@ ClientEventItem IntegratorScopedEventItemFromEntry(const analysis::EventSearchIn
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33690 prototype
 std::string IntegratorScopedEventSearchItemJson(
-    const SourceViewRegistry::ClientViewAccess& access,
+    const SourceViewApplicationService::ClientViewAccess& access,
     const analysis::EventSearchIndexEntry& entry,
     const std::string& event_json,
     std::size_t index);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33714 prototype
 std::string IntegratorScopedEventSearchJson(
-    const SourceViewRegistry::ClientViewAccess& access,
+    const SourceViewApplicationService::ClientViewAccess& access,
     const auth::Principal& principal,
     const std::unordered_map<std::string, std::string>& query);
 

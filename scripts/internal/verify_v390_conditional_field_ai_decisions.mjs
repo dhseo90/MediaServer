@@ -275,7 +275,7 @@ check("Ops API exposes both decision routes as guarded no-store JSON", () => {
 });
 
 check("/ops dashboard renders conditional field and Re-ID decisions", () => {
-  const serverBlock = extractBlock(files.server, "void AppendOpsDashboardPage", "section class=\"section-card ops-workspace-wide ops-site-client-notice-workspace");
+  const serverBlock = extractCppFunctionBlock(files.uiServerPages, "void AppendOpsDashboardPage(");
   for (const snippet of [
     "ops-field-evidence-bridge-decision",
     "data-testid=\"ops-field-evidence-bridge-decision\"",
@@ -481,6 +481,7 @@ if (results.fail > 0) process.exit(1);
 function loadFiles() {
   return {
     server: readWebRtcHttpServerBundle(readText),
+    uiServerPages: readText("src/ingress/product_ui_server_pages.cpp"),
     uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
     clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
     backlog: readText("docs/development-backlog.md"),

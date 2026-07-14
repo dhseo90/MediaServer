@@ -165,7 +165,7 @@ check("Ops API exposes the source onboarding quality route as guarded read-only 
   assertIncludes(block, route, "source onboarding quality route");
   assertIncludes(block, "request.method == \"GET\"", "source onboarding quality route");
   assertIncludes(block, "require_ops_principal()", "source onboarding quality route");
-  assertIncludes(block, "SourceViewRegistry::Instance().SourceOnboardingQualitySummaryJson()", "source onboarding quality route");
+  assertIncludes(block, "SourceViewApplicationService::Instance().SourceOnboardingQualitySummaryJson()", "source onboarding quality route");
   assertIncludes(block, "Cache-Control", "source onboarding quality route");
   assertIncludes(block, "no-store", "source onboarding quality route");
   assert(!block.includes("require_source_write_principal"), "source onboarding quality route must not require or perform source writes");

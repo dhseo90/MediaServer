@@ -56,9 +56,9 @@ check("Ops server builds the site-aware source registry projection", () => {
 check("projection derives from SourceRegistry and PublishedView snapshots", () => {
   const block = extractBlock(files.server, "struct OpsV370SiteAwareSourceRegistryProjectionItem", "struct OpsV370SiteHealthRollupItem");
   for (const snippet of [
-    "SourceViewRegistry::Instance().Snapshot",
-    "SourceViewRegistry::SourceRecord",
-    "SourceViewRegistry::PublishedViewRecord",
+    "SourceViewApplicationService::Instance().Snapshot",
+    "SourceViewApplicationService::SourceRecord",
+    "SourceViewApplicationService::PublishedViewRecord",
     "V370SourceGroupForSource",
     "V370ViewGroupsForView",
     "sourcesWithoutSite",

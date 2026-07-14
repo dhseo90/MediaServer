@@ -11,8 +11,8 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 175,
-  "expectedCppFiles": 86,
+  "expectedProductionFiles": 178,
+  "expectedCppFiles": 87,
   "moduleClassifiers": [
     {
       "id": "composition-root",
@@ -45,8 +45,11 @@
     {
       "id": "application-service-interfaces",
       "exactFiles": [
+        "include/ingress/application_service_result.h",
         "include/ingress/onvif_live_import.h",
         "src/ingress/onvif_live_import.cpp",
+        "include/ingress/source_view_application_service.h",
+        "src/ingress/source_view_application_service.cpp",
         "include/ingress/vlm_incident_rule_provenance.h",
         "src/ingress/vlm_incident_rule_provenance.cpp",
         "include/ingress/vlm_profile_json_document.h",
@@ -57,8 +60,8 @@
         "include/ingress/vlm_evaluation_promotion.h"
       ],
       "prefixes": [],
-      "expectedFileCount": 10,
-      "expectedCppCount": 3
+      "expectedFileCount": 13,
+      "expectedCppCount": 4
     },
     {
       "id": "domain-and-registry-owners",
@@ -176,7 +179,7 @@
       "expectedCppCount": 15
     }
   ],
-  "expectedFileOwnershipSha256": "f9d11d8f4b1efe075db12ab4010a570c65e6f3482dc369f05c47627632bcd10d",
+  "expectedFileOwnershipSha256": "c6444d9f154e22dae35e0e1f15bbc0dc20d30d9e0eb490ae029b295098aba9d4",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -253,6 +256,7 @@
           "src/ingress/product_ui_server_pages.cpp",
           "src/ingress/rtsp_egress_session.cpp",
           "src/ingress/source_view_registry.cpp",
+          "src/ingress/source_view_application_service.cpp",
           "src/ingress/vlm_profile_json_document.cpp",
           "src/ingress/vlm_evaluation_promotion.cpp",
           "src/ingress/vlm_incident_rule_provenance.cpp",
@@ -269,9 +273,9 @@
           "src/ingress/gstreamer_rtsp_server.cpp",
           "src/core/youtube_resolver.cpp"
         ],
-        "productionSourceSha256": "b346e61db15414f4ee547bed6dda6ac59dd1b028a05c0b51287291b7f6f27d86",
-        "declaredSourceCount": 84,
-        "defaultActiveSourceCount": 83,
+        "productionSourceSha256": "b98af897e48b93f48e63332f230fc9fe5176bbfb1963b243a4bbe084fac28735",
+        "declaredSourceCount": 85,
+        "defaultActiveSourceCount": 84,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",
@@ -343,7 +347,7 @@
     {
       "direction": "application-service-interfaces -> domain-and-registry-owners",
       "witnessCount": 3,
-      "witnessSha256": "9d9360865d985eccc3bb3e5d3b7084b537d0e5427236b6f55ae27b5abc1683b5",
+      "witnessSha256": "b0a9579f6285176c47304031853d9b85dc52bc3883990cea5b0fcab46778c603",
       "allowedByTarget": true
     },
     {
@@ -402,8 +406,8 @@
     },
     {
       "direction": "transport-and-auth-adapter -> application-service-interfaces",
-      "witnessCount": 6,
-      "witnessSha256": "5dc0e560af5932f9108877123cd9474fc9a531a16faa6fd2ac0258ee2f094348",
+      "witnessCount": 7,
+      "witnessSha256": "ee694f386785845a6645e145126469c603adcaca7a22d423fcd3d1d6ad000e6d",
       "allowedByTarget": true
     },
     {
@@ -414,8 +418,8 @@
     },
     {
       "direction": "transport-and-auth-adapter -> domain-and-registry-owners",
-      "witnessCount": 2,
-      "witnessSha256": "48e34b84d9f45d4b73311acc460862a51ab1907303d8777647407d85e23ac187",
+      "witnessCount": 1,
+      "witnessSha256": "c44ca6659250470eaf27555f43aa10bded10407828d60d4d29495830c7bbf74e",
       "allowedByTarget": false
     },
     {
@@ -765,5 +769,5 @@
       "exitRule": "production-graph-unchanged-and-cumulative-debt-verified"
     }
   ],
-  "boundary": "current REVIEW4-64 continuation graph after the analysis runtime port boundary; dependency-free analysis defaults and the exact 148-field config contract are shared by AppConfig and analysis through the port, analysis-services -> core-utilities is removed, Policy v1 counts 4 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed"
+  "boundary": "current REVIEW4-64 continuation graph after the Source/View application boundary; transport and ONVIF consume dependency-free application DTOs while registry storage, locking, and transactions remain domain-owned, Policy v1 counts 3 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed"
 }

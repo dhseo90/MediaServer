@@ -452,3 +452,28 @@ Focused 5/0, build 100%, profile storage 6/0, privacy guard 6/0, and structure 1
 product checks pass 4/4, while its implementation-evidence command binding remains explicitly deferred to the
 parked final evidence slice. Current graph is production 175/C++ 86, edge 17, violations 3, SCC 0; only the
 transport-to-domain witness count changes from three to two, so this slice does not claim direction closure.
+
+### Current continuation Slice 16: `source-view-application-boundary`
+
+- [x] Add a dependency-free application result plus exact Source 16-field, PublishedView 12-field, and
+  client-access DTOs without exposing registry storage, locks, or transaction ownership.
+- [x] Preserve all fifteen registry operations, exact status/body mapping, null outputs, and success-only
+  caller-output replacement through a compiled fake-domain harness.
+- [x] Remove concrete Source/View registry types from transport and ONVIF public boundaries while preserving
+  the atomic pair lifecycle and existing product contracts.
+- [x] Require GStreamer 1.28+, serialize DataChannel cleanup, and require the peer `close` promise to reply
+  before pipeline NULL teardown so local-description ICE work cannot race the HTTP Stop path.
+- [x] Replace raw callback ownership with weak/shared bindings, drain active callbacks before close, serialize
+  external signaling with Stop, and prove accepted ICE versus DELETE concurrency through MEDIA-026.
+- [x] Bound peer-close and remote-description promises to five seconds, interrupt timeout paths, and reject
+  every non-`REPLIED` result so Stop cannot hold the signaling lifecycle mutex indefinitely.
+- [x] Transfer a non-`REPLIED` peer/pipeline to an explicit process-lifetime quarantine and fail every later
+  WebRTC Start with restart-required; one recursive lifecycle mutex precedes signaling locks and binds whole
+  Start/Stop calls to quarantine registration without detached workers, retry loops, unsafe unref, TOCTOU, or lock inversion.
+
+Focused verification passed 5/0 after the production-before-oracle 0/4 RED. Build, ONVIF atomicity 19/0,
+source lifecycle, public/transport/bundle/physical/structure gates, and the full SRC-001~068 actual command
+passed; the full source-registry command passed five consecutive isolated runs after the WebRTC fix. Eleven
+split companion verifiers were rebound to exact function/UI owners without product schema or handler changes.
+Current graph is production 178/C++ 87, edge 17, violations 3, SCC 0, and transport-to-domain witnesses 2→1.
+Transport-to-analysis/core-media/domain directions and parked generated evidence keep REVIEW4-64/65 open.

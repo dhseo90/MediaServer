@@ -42,6 +42,7 @@ const featureIds = ["UI-107", "SRC-064", "EVT-086", "LAB-122", "SAFE-194", "OPS-
 
 const files = {
   server: readWebRtcHttpServerBundle(readText),
+  uiServerPages: readText("src/ingress/product_ui_server_pages.cpp"),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
@@ -222,7 +223,7 @@ check("Ops API exposes the Default-off Action Explanation route as guarded no-st
 });
 
 check("/ops action control workspace declares and renders Default-off Action Explanation signals", () => {
-  const serverBlock = extractBlock(files.server, "void AppendOpsDashboardPage", "section class=\"section-card ops-workspace-wide ops-site-client-notice-workspace");
+  const serverBlock = extractCppFunctionBlock(files.uiServerPages, "void AppendOpsDashboardPage(");
   for (const snippet of [
     "ops-default-off-action-explanation",
     "data-testid=\"ops-default-off-action-explanation\"",

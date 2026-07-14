@@ -41,6 +41,7 @@ const featureIds = ["UI-099", "SRC-061", "CLIENT-038", "LAB-108", "SAFE-176", "O
 
 const files = {
   server: readWebRtcHttpServerBundle(readText),
+  uiServerPages: readText("src/ingress/product_ui_server_pages.cpp"),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
@@ -212,7 +213,7 @@ check("Ops API exposes the Limited Safe Execution Pilot route as guarded no-stor
 });
 
 check("/ops dashboard declares and renders Limited Safe Execution Pilot workspace", () => {
-  const serverBlock = extractBlock(files.server, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
+  const serverBlock = extractCppFunctionBlock(files.uiServerPages, "void AppendOpsDashboardPage(");
   for (const snippet of [
     "ops-site-limited-safe-execution-pilot-workspace",
     "data-testid=\"ops-site-limited-safe-execution-pilot-workspace\"",

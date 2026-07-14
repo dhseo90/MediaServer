@@ -42,6 +42,7 @@ const featureIds = ["UI-106", "SRC-063", "MEDIA-026", "LAB-121", "SAFE-193", "OP
 
 const files = {
   server: readWebRtcHttpServerBundle(readText),
+  uiServerPages: readText("src/ingress/product_ui_server_pages.cpp"),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
@@ -238,7 +239,7 @@ check("Ops API exposes the Field Connector Evidence Package route as guarded no-
 });
 
 check("/ops action control workspace declares and renders Field Connector Evidence Package signals", () => {
-  const serverBlock = extractBlock(files.server, "void AppendOpsDashboardPage", "section class=\"section-card ops-workspace-wide ops-site-client-notice-workspace");
+  const serverBlock = extractCppFunctionBlock(files.uiServerPages, "void AppendOpsDashboardPage(");
   for (const snippet of [
     "ops-field-connector-evidence-package",
     "data-testid=\"ops-field-connector-evidence-package\"",

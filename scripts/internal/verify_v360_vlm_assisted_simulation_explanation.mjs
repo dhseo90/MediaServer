@@ -35,6 +35,7 @@ const schema = "media-server.ops.v360-vlm-assisted-simulation-explanation.v1";
 const route = "/ops/api/live-operations/simulation/vlm-assisted-explanation";
 const files = {
   server: readWebRtcHttpServerBundle(readText),
+  uiServerPages: readText("src/ingress/product_ui_server_pages.cpp"),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
@@ -76,7 +77,11 @@ check("Ops server builds default-off VLM-assisted simulation explanation models"
 });
 
 check("VLM-assisted simulation explanation derives blockers, impact diff, and review hints without calling VLM", () => {
-  const block = extractBlock(files.server, "struct OpsV360VlmAssistedSimulationExplanationItem", "std::string OpsAuditSearchIndexJson");
+  const block = [
+    extractCppFunctionBlock(files.server, "BuildV360VlmAssistedSimulationExplanationItems("),
+    extractCppFunctionBlock(files.server, "AppendV360VlmAssistedSimulationExplanationItemJson("),
+    extractCppFunctionBlock(files.server, "std::string OpsV360VlmAssistedSimulationExplanationJson("),
+  ].join("\n");
   for (const snippet of [
     "BuildV350LiveOperationsGraphContext",
     "BuildV360CommandPlanDryRunResults",
@@ -170,7 +175,7 @@ check("Ops API exposes the VLM-assisted simulation explanation route as guarded 
 });
 
 check("/ops simulation workspace declares and renders VLM-assisted Simulation Explanation", () => {
-  const serverBlock = extractBlock(files.server, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
+  const serverBlock = extractCppFunctionBlock(files.uiServerPages, "void AppendOpsDashboardPage(");
   for (const snippet of [
     "dashSimulationWorkspaceVlmAssistedExplanationList",
     "ops-simulation-vlm-assisted-explanation-list",

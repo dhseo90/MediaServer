@@ -242,7 +242,7 @@ std::string NextBulkChannelId(std::set<int>* used_ids) {
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 28067 function
 std::set<int> CurrentNumericSourceIds() {
     std::set<int> ids;
-    const RegistryResult result = SourceViewRegistry::Instance().SourcesJson();
+    const ApplicationServiceResult result = SourceViewApplicationService::Instance().SourcesJson();
     for (const auto& item : ExtractJsonObjectArray(result.body, "sources")) {
         const std::string id = ParseStringField(item, "sourceId").value_or("");
         if (!id.empty() && std::all_of(id.begin(), id.end(), [](char ch) {
@@ -310,42 +310,42 @@ std::string OpsChannelBulkJson(const std::string& body) {
         }
         if (item_ok && !dry_run && operation == "rollback") {
             if (rollback_mode == "disable-created") {
-                const RegistryResult source_result =
-                    SourceViewRegistry::Instance().UpsertSource(
+                const ApplicationServiceResult source_result =
+                    SourceViewApplicationService::Instance().UpsertSource(
                         target_id, SourceBulkPayload(source_raw, target_id, display_name, false, true));
-                const RegistryResult view_result =
-                    SourceViewRegistry::Instance().UpsertView(
+                const ApplicationServiceResult view_result =
+                    SourceViewApplicationService::Instance().UpsertView(
                         target_id, ViewBulkPayload(view_raw, source_raw, target_id, target_id, display_name, false));
                 item_ok = source_result.status >= 200 && source_result.status < 300 &&
                           view_result.status >= 200 && view_result.status < 300;
                 message = item_ok ? "rollback-disabled-created" : "rollback disable-created failed";
             } else {
-                const RegistryResult source_result =
-                    SourceViewRegistry::Instance().UpsertSource(source_id, source_raw);
-                const RegistryResult view_result =
-                    SourceViewRegistry::Instance().UpsertView(result_view_id, view_raw);
+                const ApplicationServiceResult source_result =
+                    SourceViewApplicationService::Instance().UpsertSource(source_id, source_raw);
+                const ApplicationServiceResult view_result =
+                    SourceViewApplicationService::Instance().UpsertView(result_view_id, view_raw);
                 item_ok = source_result.status >= 200 && source_result.status < 300 &&
                           view_result.status >= 200 && view_result.status < 300;
                 message = item_ok ? "rollback-restored" : "rollback restore failed";
             }
             retryable = !item_ok;
         } else if (item_ok && !dry_run && operation == "disable") {
-            const RegistryResult source_result =
-                SourceViewRegistry::Instance().UpsertSource(
+            const ApplicationServiceResult source_result =
+                SourceViewApplicationService::Instance().UpsertSource(
                     source_id, SourceBulkPayload(source_raw, source_id, display_name, false, true));
-            const RegistryResult view_result =
-                SourceViewRegistry::Instance().UpsertView(
+            const ApplicationServiceResult view_result =
+                SourceViewApplicationService::Instance().UpsertView(
                     result_view_id, ViewBulkPayload(view_raw, source_raw, result_view_id, source_id, display_name, false));
             item_ok = source_result.status >= 200 && source_result.status < 300 &&
                       view_result.status >= 200 && view_result.status < 300;
             message = item_ok ? "disabled" : "disable failed";
             retryable = !item_ok;
         } else if (item_ok && !dry_run && operation == "clone") {
-            const RegistryResult source_result =
-                SourceViewRegistry::Instance().UpsertSource(
+            const ApplicationServiceResult source_result =
+                SourceViewApplicationService::Instance().UpsertSource(
                     target_id, SourceBulkPayload(source_raw, target_id, display_name, false, true));
-            const RegistryResult view_result =
-                SourceViewRegistry::Instance().UpsertView(
+            const ApplicationServiceResult view_result =
+                SourceViewApplicationService::Instance().UpsertView(
                     target_id, ViewBulkPayload(view_raw, source_raw, target_id, target_id, display_name, false));
             item_ok = source_result.status >= 200 && source_result.status < 300 &&
                       view_result.status >= 200 && view_result.status < 300;
@@ -5786,7 +5786,7 @@ std::string OpsV300EventEvidenceSearchUiJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33628 function
 IntegratorScopedEventSearchSource LoadIntegratorScopedEventSearchSource(
-    const SourceViewRegistry::ClientViewAccess& access,
+    const SourceViewApplicationService::ClientViewAccess& access,
     std::size_t read_limit) {
     IntegratorScopedEventSearchSource source;
     analysis::EventRecordQueryResult selected_result;
@@ -5850,7 +5850,7 @@ ClientEventItem IntegratorScopedEventItemFromEntry(const analysis::EventSearchIn
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33690 function
 std::string IntegratorScopedEventSearchItemJson(
-    const SourceViewRegistry::ClientViewAccess& access,
+    const SourceViewApplicationService::ClientViewAccess& access,
     const analysis::EventSearchIndexEntry& entry,
     const std::string& event_json,
     std::size_t index) {
@@ -5875,7 +5875,7 @@ std::string IntegratorScopedEventSearchItemJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33714 function
 std::string IntegratorScopedEventSearchJson(
-    const SourceViewRegistry::ClientViewAccess& access,
+    const SourceViewApplicationService::ClientViewAccess& access,
     const auth::Principal& principal,
     const std::unordered_map<std::string, std::string>& query) {
     const std::string search_query = OpsV300EventEvidenceSearchQueryValue(query, "q", "search");

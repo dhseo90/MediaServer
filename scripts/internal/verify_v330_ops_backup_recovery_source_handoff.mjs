@@ -84,7 +84,7 @@ check("backup/recovery source handoff preserves backup, write, schema, media, an
   const block = extractBlock(
     files.server,
     "std::string OpsV330BackupRecoverySourceHandoffJson",
-    "std::string OpsAuditSearchIndexJson"
+    "struct OpsV340RecoveryCandidateContext"
   );
   for (const snippet of [
     "opsOnly",
@@ -303,7 +303,7 @@ check("server entrypoint and inventory verifiers include v3.3 Step 10 command", 
 check("SAFE-122 canonical backup recovery source handoff boundary", () => {
   const handoffBlock = extractCppFunctionBlock(files.server, "std::string OpsV330BackupRecoverySourceHandoffJson(");
   const backupRecoveryHandoffRouteObserved = route === "/ops/api/source-registry/backup-recovery-handoff";
-  const safe122BoundaryObserved = backupRecoveryHandoffRouteObserved && handoffBlock.includes("SourceViewRegistry::Instance().Snapshot") && handoffBlock.includes("media-server.ops.v330-backup-recovery-source-handoff.v1") && handoffBlock.includes("BuildV330BackupRecoveryValidationPlan");
+  const safe122BoundaryObserved = backupRecoveryHandoffRouteObserved && handoffBlock.includes("SourceViewApplicationService::Instance().Snapshot") && handoffBlock.includes("media-server.ops.v330-backup-recovery-source-handoff.v1") && handoffBlock.includes("BuildV330BackupRecoveryValidationPlan");
   const persistencePerformed = /\b(?:Write|Persist|AppendFile|SavePlan)[A-Za-z0-9_:]*\s*\(/.test(handoffBlock);
   const sourceRegistryWritePerformed = /\b(?:CreateSource|UpdateSource|DeleteSource)[A-Za-z0-9_:]*\s*\(/.test(handoffBlock);
   const rawMaterialExposed = handoffBlock.includes("\\\"rawJsonExposed\\\":true");

@@ -75,7 +75,13 @@ check("Ops server builds the v3.5 staged change plan impact preview model", () =
 });
 
 check("staged change plans derive from command plan and graph context before apply", () => {
-  const block = extractBlock(files.server, "struct OpsV350StagedChangePlan", "std::string OpsAuditSearchIndexJson");
+  const block = [
+    extractCppFunctionBlock(files.server, "BuildV350StagedChangePlans("),
+    extractCppFunctionBlock(files.server, "AppendV350CommandPlanCandidateJson("),
+    extractCppFunctionBlock(files.server, "AppendV350StagedChangePlanJson("),
+    extractCppFunctionBlock(files.server, "AppendV350ImpactPreviewJson("),
+    extractCppFunctionBlock(files.server, "std::string OpsV350StagedChangePlanImpactPreviewJson("),
+  ].join("\n");
   for (const snippet of [
     "BuildV350LiveOperationsGraphContext",
     "BuildV350CommandPlanCandidates",
@@ -95,7 +101,7 @@ check("staged change plans derive from command plan and graph context before app
 });
 
 check("staged change plan preserves read-only staging-only boundaries", () => {
-  const block = extractBlock(files.server, "std::string OpsV350StagedChangePlanImpactPreviewJson", "std::string OpsAuditSearchIndexJson");
+  const block = extractCppFunctionBlock(files.server, "std::string OpsV350StagedChangePlanImpactPreviewJson(");
   for (const snippet of [
     "opsOnly",
     "readOnly",

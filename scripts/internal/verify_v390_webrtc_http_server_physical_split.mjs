@@ -29,7 +29,7 @@ const sourceRoot = fixtureArg ? validateFixtureRoot(fixtureArg.slice("--fixture-
 const rollbackCommit = "2e4a4d7e";
 const expectedSuccessorDefinitionCount = 1156;
 const expectedSuccessorDefinitionSha256 =
-  "70d9016fcf05e246f3110fe9e78b98a8e9bc9b93b2606b2ecc251bd99d59da75";
+  "e104f9c380350cfd2f5cea03df001b5343f0ab601d479ecef80bab388510af53";
 const helperPath = "scripts/internal/webrtc_http_server_source_bundle.mjs";
 const graphPath = "test/fixtures/v390_structure_stabilization_current_graph.json";
 const splitPaths = [
@@ -388,7 +388,7 @@ check("CMake and owner classifier include every translation unit exactly once", 
 check("actual graph keeps direction debt stable while closing the mixed-owner limit", () => {
   const graph = JSON.parse(read(graphPath));
   const trackedSplit = graph.mixedOwnershipDebt.filter(item => splitPaths.includes(item.file));
-  assert(graph.expectedProductionFiles === 175 && graph.expectedCppFiles === 86 &&
+  assert(graph.expectedProductionFiles === 178 && graph.expectedCppFiles === 87 &&
     graph.observedModuleEdges.length === 17 &&
     graph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 3 &&
     graph.stronglyConnectedComponents.length === 0 && graph.cmake.targets.length === 2 &&
@@ -478,7 +478,7 @@ if (!skipMutations && splitPaths.every(file => fs.existsSync(path.join(rootDir, 
       text => text.replace(`        "${splitPaths[2]}",\n`, ""),
       "CMake and owner classifier");
     rejectMutation("graph", graphPath,
-      text => text.replace('"expectedProductionFiles": 175', '"expectedProductionFiles": 176'),
+      text => text.replace('"expectedProductionFiles": 178', '"expectedProductionFiles": 179'),
       "actual graph keeps direction debt stable");
     rejectMutation("graph-line-count", graphPath,
       text => text.replace('"lineCount": 7626', '"lineCount": 7627'),

@@ -41,6 +41,7 @@ const featureIds = ["UI-098", "SRC-060", "MEDIA-025", "LAB-107", "SAFE-175", "OP
 
 const files = {
   server: readWebRtcHttpServerBundle(readText),
+  uiServerPages: readText("src/ingress/product_ui_server_pages.cpp"),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
@@ -244,7 +245,7 @@ check("Ops API exposes the Field Evidence Attachment route as guarded no-store J
 });
 
 check("/ops dashboard declares and renders Field Evidence Attachment workspace", () => {
-  const serverBlock = extractBlock(files.server, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
+  const serverBlock = extractCppFunctionBlock(files.uiServerPages, "void AppendOpsDashboardPage(");
   for (const snippet of [
     "ops-site-field-evidence-attachment-workspace",
     "data-testid=\"ops-site-field-evidence-attachment-workspace\"",

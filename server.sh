@@ -535,6 +535,8 @@ Usage:
                  V390-REVIEW4-64 transport의 AppConfig·진단·stream-key 직접 의존을 runtime config 주입으로 제거합니다.
   verify-v390-strict-json-service-boundary
                  V390-REVIEW4-64 transport의 strict JSON 사용을 의미 기반 application service로 역전합니다.
+  verify-v390-source-view-application-boundary
+                 V390-REVIEW4-64 transport의 Source/View registry 결속을 application service로 역전합니다.
   verify-v390-stable-contract-owner-realignment
                  V390-REVIEW4-64 stable contract leaf를 target owner로 재정렬합니다.
   verify-v390-public-contract-interface-owner
@@ -953,6 +955,8 @@ Usage:
                  V390-REVIEW4-64 transport의 AppConfig·진단·stream-key 직접 의존을 runtime config 주입으로 제거합니다.
   verify-v390-strict-json-service-boundary
                  V390-REVIEW4-64 transport의 strict JSON 사용을 의미 기반 application service로 역전합니다.
+  verify-v390-source-view-application-boundary
+                 V390-REVIEW4-64 transport의 Source/View registry 결속을 application service로 역전합니다.
   verify-v390-stable-contract-owner-realignment
                  V390-REVIEW4-64 stable contract leaf를 target owner로 재정렬합니다.
   verify-v390-public-contract-interface-owner
@@ -2409,6 +2413,10 @@ case "${cmd}" in
   verify-v390-strict-json-service-boundary)
     require_internal verify_v390_strict_json_service_boundary.mjs
     exec "${INTERNAL_DIR}/verify_v390_strict_json_service_boundary.mjs" "$@"
+    ;;
+  verify-v390-source-view-application-boundary)
+    require_internal verify_v390_source_view_application_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_source_view_application_boundary.mjs" "$@"
     ;;
   verify-v390-stable-contract-owner-realignment)
     require_internal verify_v390_stable_contract_owner_realignment.mjs

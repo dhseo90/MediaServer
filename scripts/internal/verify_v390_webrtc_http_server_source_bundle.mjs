@@ -40,7 +40,7 @@ const rollbackCommit = "e5df05f3945e43e89ae13e3fdd21d0c83ab78ac8";
 const expectedConsumerCount = 170;
 const expectedExpressionCount = 188;
 const expectedConsumerSha = "1e13a798e01c601114df0287bc552e3681531e3021e81c57307ee99ae458ee1c";
-const expectedBundleSha = "db085794f3da5a785c66eacb3626cb0ebc7b3d723dd72f065f840a3ed5dfb939";
+const expectedBundleSha = "4fbff24ca4dabd4201d961a1845fa0901b59ecafed981a6fb1af4de713026dd8";
 const checks = [];
 
 function validateFixtureRoot(value) {
@@ -174,14 +174,14 @@ check("six-file physical metrics and logical-origin bundle are exact", () => {
     result.logicalOrder[0] < result.logicalOrder[1] && result.logicalOrder[2] < result.logicalOrder[3] &&
     result.missing === true && result.ambiguous === true &&
     result.metrics.fileCount === 6 && result.metrics.totalLines === 46672 &&
-    result.metrics.largestFileLines === 10160 && result.metrics.totalBytes === 2245747 &&
+    result.metrics.largestFileLines === 10160 && result.metrics.totalBytes === 2247648 &&
     JSON.stringify(result.metrics.files.map(item => item.file)) === JSON.stringify(sourcePaths),
   `logical source bundle order, bytes, resolver, or metrics drift: ${JSON.stringify(result)}`);
 });
 
 check("physical bundle successor binds the exact production graph", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
-  assert(graph.expectedProductionFiles === 175 && graph.expectedCppFiles === 86 &&
+  assert(graph.expectedProductionFiles === 178 && graph.expectedCppFiles === 87 &&
     graph.observedModuleEdges.length === 17 &&
     graph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 3 &&
     graph.stronglyConnectedComponents.length === 0,
@@ -265,7 +265,7 @@ if (!skipMutations) {
       text => text.replace("WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 17051", "WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 99999"),
       "six-file physical metrics and logical-origin bundle");
     rejectMutation("graph", "test/fixtures/v390_structure_stabilization_current_graph.json",
-      text => text.replace('"expectedProductionFiles": 175', '"expectedProductionFiles": 176'),
+      text => text.replace('"expectedProductionFiles": 178', '"expectedProductionFiles": 179'),
       "physical bundle successor binds the exact production graph");
   });
 }

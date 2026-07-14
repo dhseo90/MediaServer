@@ -35,6 +35,7 @@ const schema = "media-server.ops.v360-field-evidence-simulation-adapter.v1";
 const route = "/ops/api/live-operations/simulation/field-evidence-adapter";
 const files = {
   server: readWebRtcHttpServerBundle(readText),
+  uiServerPages: readText("src/ingress/product_ui_server_pages.cpp"),
   uiScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   clientScripts: readText("src/ingress/product_ui_client_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
@@ -77,7 +78,11 @@ check("Ops server builds the v3.6 Field Evidence Simulation Adapter model", () =
 });
 
 check("field evidence adapter derives ONVIF, WHEP/TURN, and cloud/VLM conditions without execution", () => {
-  const block = extractBlock(files.server, "struct OpsV360FieldEvidenceSimulationAdapterItem", "std::string OpsAuditSearchIndexJson");
+  const block = [
+    extractCppFunctionBlock(files.server, "BuildV360FieldEvidenceSimulationAdapterItems("),
+    extractCppFunctionBlock(files.server, "AppendV360FieldEvidenceSimulationAdapterItemJson("),
+    extractCppFunctionBlock(files.server, "std::string OpsV360FieldEvidenceSimulationAdapterJson("),
+  ].join("\n");
   for (const snippet of [
     "BuildV340FieldBridgeConditionGates",
     "BuildV350FieldEvidenceIntakeRecords",
@@ -99,7 +104,10 @@ check("field evidence adapter derives ONVIF, WHEP/TURN, and cloud/VLM conditions
 });
 
 check("field evidence adapter boundary flags prevent field execution, raw material, and media/schema changes", () => {
-  const block = extractBlock(files.server, "std::string OpsV360FieldEvidenceSimulationAdapterJson", "std::string OpsAuditSearchIndexJson");
+  const block = extractCppFunctionBlock(
+    files.server,
+    "std::string OpsV360FieldEvidenceSimulationAdapterJson(",
+  );
   for (const snippet of [
     "opsOnly",
     "readOnly",
@@ -183,7 +191,7 @@ check("Ops API exposes the field evidence adapter route as guarded no-store JSON
 });
 
 check("/ops simulation workspace declares and renders Field Evidence Simulation Adapter", () => {
-  const serverBlock = extractBlock(files.server, "void AppendOpsDashboardPage", "void AppendOpsRulesPage");
+  const serverBlock = extractCppFunctionBlock(files.uiServerPages, "void AppendOpsDashboardPage(");
   for (const snippet of [
     "dashSimulationWorkspaceFieldEvidenceAdapterList",
     "ops-simulation-field-evidence-adapter-list",
