@@ -46,9 +46,9 @@ Current REVIEW4-64 status: `current-continuation-slice-13-completed-final-target
 | 5 | `vlm-parser` | 완료 | strict JSON을 core utility로 이동하고 VLM provenance validator를 application-service owner로 분리; actual save/restart/no-write와 profile/promotion 계약 보존 |
 | 6 | `verifier-docs` | 미착수·deferred | production continuation source/graph가 안정된 뒤 execution evidence, manual UI archive, VLM index를 final review; generated evidence는 그 전까지 parked 상태 |
 
-Current policy v1 graph는 production 172파일/C++ 85개/owner 10개, target 위반 direction
-4개(승인 baseline 25개), 최대 SCC 0, production CMake target 2개입니다. `main.cpp` mixed composition debt는
-245→8줄, selected action route owner는 server 43,266→43,186줄로 닫았고 registry→transport auth edge와 product UI→transport/Auth edge를 제거했습니다. Transport monolith는 5개 구현 TU와 private detail header로 분할됐고 tracked mixed owner 최대는 10,156줄입니다. Slice 13은 utility 소유 compile-time 값을 `analysis_runtime_port.h`의 공식 `analysis_runtime_defaults` re-export로만 analysis에 노출하고 exact 133-default/148-field manifest를 고정합니다. 위반 4개와 parked evidence가 남아 있으므로 REVIEW4-64 완료가
+Current policy v1 graph는 production 173파일/C++ 85개/owner 10개, target 위반 direction
+3개(승인 baseline 25개), 최대 SCC 0, production CMake target 2개입니다. `main.cpp` mixed composition debt는
+245→8줄, selected action route owner는 server 43,266→43,186줄로 닫았고 registry→transport auth edge와 product UI→transport/Auth edge를 제거했습니다. Transport monolith는 5개 구현 TU와 private detail header로 분할됐고 tracked mixed owner 최대는 10,160줄입니다. Slice 13은 utility 소유 compile-time 값을 `analysis_runtime_port.h`의 공식 `analysis_runtime_defaults` re-export로만 analysis에 노출하고 exact 133-default/148-field manifest를 고정했습니다. Slice 14는 exact 68-field WebRTC HTTP runtime snapshot을 composition에서 매핑·주입해 transport→core-utilities 방향을 제거했습니다. 위반 3개와 parked evidence가 남아 있으므로 REVIEW4-64 완료가
 아닙니다. Historical v2 order와 current order의 전환 범위는 slice identifier/order뿐이며 current branch,
 50~63 prerequisite, 9 preserved contract, 64 뒤 65 acceptance 경계는 유지합니다. Policy v1은
 application-service→core와 transport→Ops/UI를 temporary debt로 기록하며 위반 계산에서 제외하지 않습니다.
@@ -414,3 +414,27 @@ owns defaults in `analysis_runtime_defaults.h`, has zero `app_config::` referenc
 Current graph is production 172/C++ 85, edge 18, Policy v1 violations 4, SCC 0, targets 2 with internal
 separation, and largest mixed owner 10,156 lines. The four remaining transport directions and parked final
 evidence keep REVIEW4-64/65 open.
+
+### Current continuation Slice 14: `transport-runtime-config-boundary`
+
+- [x] Add a dependency-free 68-field `WebRtcHttpRuntimeConfig` owned by the transport boundary and map
+  every consumed `AppConfig` field exactly once in the composition root.
+- [x] Inject auth mode, metadata, registry/file paths, analysis readiness/tracking values, runtime debug JSON,
+  and stream-key construction without direct transport dependency on AppConfig or core utility headers.
+- [x] Preserve the fourteen-field appearance readiness normalization, Auth bootstrap/Role/Scope behavior,
+  source-bundle logical order, physical split ODR rules, and frozen payload/media contracts.
+- [x] Reject transitive include, type alias, owner relabel, missing/duplicate/misdirected mapping, callback swap,
+  graph relaxation, and temporary-debt exception false PASS mutations.
+
+The initial build exposed that the shared readiness overload could no longer accept the transport snapshot;
+the implementation now constructs the same normalized `AppearanceExtractorOptions` explicitly. The first
+Auth run was sandbox-blocked on loopback and the approved permissioned throwaway run passed 146/0 without
+persisting plaintext credentials. Focused 5/0, build, source bundle 6/0, physical split 6/0, ReID 12/0 and
+actual C++2/HTTP10, analysis state 181/0, freeze 10/0, and structure 15/0 pass. Current graph is production
+173/C++ 85, edge 17, Policy v1 violations 3, SCC 0, targets 2 with internal separation, and largest mixed
+owner 10,160 lines. Transport→analysis/core-media/domain and parked final evidence keep REVIEW4-64/65 open.
+
+Independent review rejected a mutable process-global replacement because a second server instance could overwrite
+the first instance while its requests were active. The constructor now acquires the transport snapshot exactly once
+for the process lifetime and every later construction fails closed before Start. The focused gate also binds the exact
+Auto/Off/Token/Session plus unknown-fallback mapping and rejects lease/mapping bypass mutations.

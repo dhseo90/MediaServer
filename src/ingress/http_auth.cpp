@@ -1500,7 +1500,7 @@ bool TokenMatches(const std::optional<std::string>& request_token, const std::st
     return request_token.has_value() && !configured_token.empty() && *request_token == configured_token;
 }
 
-std::optional<Principal> PrincipalFromUserToken(const app::AppConfig& config,
+std::optional<Principal> PrincipalFromUserToken(const WebRtcHttpRuntimeConfig& config,
                                                 const std::string& token,
                                                 std::string* error_message) {
     const auto users = LoadUsers(config.auth_users_file, error_message);
@@ -1545,15 +1545,15 @@ bool ScopeMatches(const std::string& granted, const std::string& requested) {
 
 }  // namespace
 
-const char* AuthModeName(app::AuthMode mode) {
+const char* AuthModeName(HttpAuthMode mode) {
     switch (mode) {
-        case app::AuthMode::Auto:
+        case HttpAuthMode::Auto:
             return "auto";
-        case app::AuthMode::Off:
+        case HttpAuthMode::Off:
             return "off";
-        case app::AuthMode::Token:
+        case HttpAuthMode::Token:
             return "token";
-        case app::AuthMode::Session:
+        case HttpAuthMode::Session:
             return "session";
     }
     return "off";
@@ -1595,7 +1595,7 @@ std::vector<std::string> DefaultScopesForRole(const std::string& role) {
 Principal MakePrincipalForRole(const std::string& role,
                                const std::vector<std::string>& scopes,
                                const std::string& display_name,
-                               app::AuthMode auth_mode,
+                               HttpAuthMode auth_mode,
                                const std::string& username,
                                bool password_change_required) {
     return Principal{
@@ -1609,18 +1609,18 @@ Principal MakePrincipalForRole(const std::string& role,
     };
 }
 
-AuthResult BuildPrincipalFromRequest(const app::AppConfig& config,
+AuthResult BuildPrincipalFromRequest(const WebRtcHttpRuntimeConfig& config,
                                      const HeaderMap& headers,
                                      const QueryMap& query) {
-    if (config.auth_mode == app::AuthMode::Off) {
+    if (config.auth_mode == HttpAuthMode::Off) {
         return Authenticated(MakePrincipalForRole(
             "admin", DefaultScopesForRole("admin"), "Development Admin", config.auth_mode));
     }
 
     const std::optional<std::string> token = ExtractRequestToken(headers, query);
     if (!token.has_value()) {
-        return Unauthorized(config.auth_mode == app::AuthMode::Session ||
-                                    config.auth_mode == app::AuthMode::Auto
+        return Unauthorized(config.auth_mode == HttpAuthMode::Session ||
+                                    config.auth_mode == HttpAuthMode::Auto
                                 ? "authentication session is required"
                                 : "authentication token is required");
     }
@@ -1646,7 +1646,7 @@ AuthResult BuildPrincipalFromRequest(const app::AppConfig& config,
     return Unauthorized("invalid authentication token");
 }
 
-AuthResult RefreshPrincipalFromUser(const app::AppConfig& config,
+AuthResult RefreshPrincipalFromUser(const WebRtcHttpRuntimeConfig& config,
                                     const Principal& principal) {
     if (!principal.is_authenticated || principal.username.empty()) {
         return Authenticated(principal);
@@ -1676,7 +1676,7 @@ AuthResult RefreshPrincipalFromUser(const app::AppConfig& config,
     return Unauthorized("user not found");
 }
 
-PasswordPolicyResult ValidatePasswordPolicy(const app::AppConfig& config,
+PasswordPolicyResult ValidatePasswordPolicy(const WebRtcHttpRuntimeConfig& config,
                                             const std::string& username,
                                             const std::string& password,
                                             const std::string& confirm,
@@ -1746,7 +1746,7 @@ PasswordPolicyResult ValidatePasswordPolicy(const app::AppConfig& config,
     return result;
 }
 
-AuthResult AuthenticateUserPassword(const app::AppConfig& config,
+AuthResult AuthenticateUserPassword(const WebRtcHttpRuntimeConfig& config,
                                     const std::string& username,
                                     const std::string& password,
                                     const std::string& remote_ip) {
@@ -1811,7 +1811,7 @@ AuthResult AuthenticateUserPassword(const app::AppConfig& config,
     return Unauthorized("invalid username or password");
 }
 
-bool ChangeUserPassword(const app::AppConfig& config,
+bool ChangeUserPassword(const WebRtcHttpRuntimeConfig& config,
                         const std::string& username,
                         const std::string& current_password,
                         const std::string& new_password,
@@ -1920,7 +1920,7 @@ std::vector<std::string> ScopeTemplateForRole(const std::string& role,
     return {};
 }
 
-AuthUserResult ListAuthUsers(const app::AppConfig& config) {
+AuthUserResult ListAuthUsers(const WebRtcHttpRuntimeConfig& config) {
     std::string load_error;
     const auto users = LoadUsers(config.auth_users_file, &load_error);
     if (!users.has_value()) {
@@ -1929,7 +1929,7 @@ AuthUserResult ListAuthUsers(const app::AppConfig& config) {
     return UserJsonResult(200, "OK", UsersJson(*users));
 }
 
-AuthUserResult CreateAuthUser(const app::AppConfig& config,
+AuthUserResult CreateAuthUser(const WebRtcHttpRuntimeConfig& config,
                               const UserMutation& mutation) {
     if (!PasswordHashingAvailable()) {
         return UserError(503, "Service Unavailable", "safe password hashing is unavailable; build with libsodium");
@@ -1992,7 +1992,7 @@ AuthUserResult CreateAuthUser(const app::AppConfig& config,
     return UserJsonResult(201, "Created", body.str(), candidate.username);
 }
 
-AuthUserResult UpdateAuthUser(const app::AppConfig& config,
+AuthUserResult UpdateAuthUser(const WebRtcHttpRuntimeConfig& config,
                               const std::string& username,
                               const UserMutation& mutation) {
     std::string load_error;
@@ -2050,7 +2050,7 @@ AuthUserResult UpdateAuthUser(const app::AppConfig& config,
     return UserJsonResult(200, "OK", body.str(), user.username);
 }
 
-AuthUserResult ResetAuthUserPassword(const app::AppConfig& config,
+AuthUserResult ResetAuthUserPassword(const WebRtcHttpRuntimeConfig& config,
                                      const std::string& username,
                                      const std::string& password) {
     if (!PasswordHashingAvailable()) {
@@ -2111,7 +2111,7 @@ AuthUserResult ResetAuthUserPassword(const app::AppConfig& config,
     return UserJsonResult(200, "OK", body.str(), user.username);
 }
 
-AuthUserResult SetAuthUserEnabled(const app::AppConfig& config,
+AuthUserResult SetAuthUserEnabled(const WebRtcHttpRuntimeConfig& config,
                                   const std::string& username,
                                   bool enabled) {
     std::string load_error;
@@ -2148,12 +2148,12 @@ AuthUserResult SetAuthUserEnabled(const app::AppConfig& config,
     return UserJsonResult(200, "OK", body.str(), user.username);
 }
 
-AuthUserResult CreateAuthUserFromJson(const app::AppConfig& config,
+AuthUserResult CreateAuthUserFromJson(const WebRtcHttpRuntimeConfig& config,
                                       const std::string& body) {
     return CreateAuthUser(config, UserMutationFromJson(body));
 }
 
-AuthUserResult UpdateAuthUserFromJson(const app::AppConfig& config,
+AuthUserResult UpdateAuthUserFromJson(const WebRtcHttpRuntimeConfig& config,
                                       const std::string& username,
                                       const std::string& body) {
     UserMutation mutation = UserMutationFromJson(body);
@@ -2164,14 +2164,14 @@ AuthUserResult UpdateAuthUserFromJson(const app::AppConfig& config,
     return UpdateAuthUser(config, username, mutation);
 }
 
-AuthUserResult ResetAuthUserPasswordFromJson(const app::AppConfig& config,
+AuthUserResult ResetAuthUserPasswordFromJson(const WebRtcHttpRuntimeConfig& config,
                                              const std::string& username,
                                              const std::string& body) {
     const std::string password = ParseStringField(body, "password").value_or("");
     return ResetAuthUserPassword(config, username, password);
 }
 
-AuthUserResult CreateInviteFromJson(const app::AppConfig& config,
+AuthUserResult CreateInviteFromJson(const WebRtcHttpRuntimeConfig& config,
                                     const std::string& body) {
     if (!PasswordHashingAvailable()) {
         return UserError(503, "Service Unavailable", "safe password hashing is unavailable; build with libsodium");
@@ -2252,7 +2252,7 @@ AuthUserResult CreateInviteFromJson(const app::AppConfig& config,
     return UserJsonResult(201, "Created", out.str());
 }
 
-AuthUserResult ListInvites(const app::AppConfig& config) {
+AuthUserResult ListInvites(const WebRtcHttpRuntimeConfig& config) {
     std::string load_error;
     AuthStore store = LoadAuthStoreOrEmpty(config.auth_users_file, &load_error);
     if (!load_error.empty()) {
@@ -2261,7 +2261,7 @@ AuthUserResult ListInvites(const app::AppConfig& config) {
     return UserJsonResult(200, "OK", InvitesJson(store.invites));
 }
 
-AuthUserResult CompleteInvitePasswordSetup(const app::AppConfig& config,
+AuthUserResult CompleteInvitePasswordSetup(const WebRtcHttpRuntimeConfig& config,
                                            const std::string& token,
                                            const std::string& password,
                                            const std::string& confirm) {
@@ -2372,7 +2372,7 @@ AuthUserResult CompleteInvitePasswordSetup(const app::AppConfig& config,
     return UserError(401, "Unauthorized", "invalid invite token");
 }
 
-AuthUserResult ListAccessRequests(const app::AppConfig& config) {
+AuthUserResult ListAccessRequests(const WebRtcHttpRuntimeConfig& config) {
     std::string load_error;
     AuthStore store = LoadAuthStoreOrEmpty(config.auth_users_file, &load_error);
     if (!load_error.empty()) {
@@ -2381,7 +2381,7 @@ AuthUserResult ListAccessRequests(const app::AppConfig& config) {
     return UserJsonResult(200, "OK", AccessRequestsJson(store.access_requests));
 }
 
-AuthUserResult CreateAccessRequestFromJson(const app::AppConfig& config,
+AuthUserResult CreateAccessRequestFromJson(const WebRtcHttpRuntimeConfig& config,
                                            const std::string& body) {
     AccessRequestRecord request;
     request.username = Trim(ParseStringField(body, "username").value_or(""));
@@ -2446,7 +2446,7 @@ AuthUserResult CreateAccessRequestFromJson(const app::AppConfig& config,
     return UserJsonResult(201, "Created", out.str());
 }
 
-AuthUserResult ApproveAccessRequestFromJson(const app::AppConfig& config,
+AuthUserResult ApproveAccessRequestFromJson(const WebRtcHttpRuntimeConfig& config,
                                             const std::string& request_id,
                                             const std::string& body) {
     if (!PasswordHashingAvailable()) {
@@ -2542,7 +2542,7 @@ AuthUserResult ApproveAccessRequestFromJson(const app::AppConfig& config,
     return UserJsonResult(200, "OK", out.str());
 }
 
-AuthUserResult RejectAccessRequest(const app::AppConfig& config,
+AuthUserResult RejectAccessRequest(const WebRtcHttpRuntimeConfig& config,
                                    const std::string& request_id) {
     std::string load_error;
     auto store = LoadAuthStore(config.auth_users_file, &load_error);
@@ -2616,7 +2616,7 @@ std::optional<std::string> GeneratePasswordHash(const std::string& password,
 #endif
 }
 
-BootstrapState InspectBootstrapState(const app::AppConfig& config) {
+BootstrapState InspectBootstrapState(const WebRtcHttpRuntimeConfig& config) {
     BootstrapState state;
     state.users_file_exists = std::filesystem::exists(config.auth_users_file);
     std::string load_error;
@@ -2657,7 +2657,7 @@ BootstrapState InspectBootstrapState(const app::AppConfig& config) {
     return state;
 }
 
-bool SaveBootstrapAdmin(const app::AppConfig& config,
+bool SaveBootstrapAdmin(const WebRtcHttpRuntimeConfig& config,
                         const std::string& password,
                         std::string* error_message) {
     auto password_hash = GeneratePasswordHash(password, error_message);

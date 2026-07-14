@@ -9,7 +9,7 @@ namespace webrtc_http_server_detail {
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 17051 function
 OpsV350LiveOperationsGraphContext BuildV350LiveOperationsGraphContext(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     OpsV350LiveOperationsGraphContext context;
     if (!source_health_snapshot.ok) {
@@ -315,7 +315,7 @@ void AppendV350LiveOperationsGraphSummaryJson(std::ostringstream& out,
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 17349 function
 std::string OpsV350LiveOperationsGraphJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -774,7 +774,7 @@ void AppendV370SiteImpactGraphEdgeJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 17835 function
 std::string OpsV370SiteImpactGraphJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -1005,7 +1005,7 @@ void AppendV350CommandPlanSummaryJson(std::ostringstream& out,
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 18084 function
 std::string OpsV350CommandPlanJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -1330,7 +1330,7 @@ void AppendV350StagedChangePlanSummaryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 18439 function
 std::string OpsV350StagedChangePlanImpactPreviewJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -1567,7 +1567,7 @@ void AppendV350DrillRunLedgerEntryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 18693 function
 std::string OpsV350DrillRunLedgerPlanComparisonJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -1913,7 +1913,7 @@ void AppendV350OperationsExportBundleSummaryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 19063 function
 std::string OpsV350OperationsExportBundleHandoffMapJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -2480,7 +2480,7 @@ void AppendV350VlmAssistedOpsExplanationSummaryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 19680 function
 std::string OpsV350VlmAssistedOpsExplanationJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -2663,7 +2663,7 @@ void AppendV360SimulationInputPackSummaryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 19877 function
 std::string OpsV360SimulationInputPackJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -2801,7 +2801,7 @@ void AppendV360SimulationResultEnvelopeJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 20024 function
 std::string OpsV360OperationsSimulationRunContractJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -3128,7 +3128,7 @@ void AppendV370SiteSimulationInputPackSummaryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 20377 function
 std::string OpsV370SiteSimulationInputPackJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -3347,7 +3347,7 @@ void AppendV360CommandPlanDryRunSummaryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 20612 function
 std::string OpsV360CommandPlanDryRunSimulatorJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -3520,7 +3520,7 @@ void AppendV360SourceRuleImpactDiffSummaryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 20803 function
 std::string OpsV360SourceRuleImpactDiffJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -3688,7 +3688,7 @@ void AppendV360SafeApplyReadinessSummaryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 20986 function
 std::string OpsV360SafeApplyReadinessGateJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -3963,7 +3963,7 @@ void AppendV370CrossSiteSafeApplyReadinessSummaryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 21283 function
 std::string OpsV370CrossSiteSafeApplyReadinessJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -4302,7 +4302,7 @@ void AppendV370RunbookTemplateContractItemJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 21640 function
 std::string OpsV370RunbookTemplateContractJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -4584,7 +4584,7 @@ void AppendV360SimulationRunLedgerEntryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 21940 function
 std::string OpsV360SimulationRunLedgerComparisonJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -4826,7 +4826,7 @@ void AppendV370RunbookInstanceLedgerEntryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 22199 function
 std::string OpsV370RunbookInstanceLedgerJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -5117,7 +5117,7 @@ void AppendV370ApprovalTicketWorkflowItemJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 22512 function
 std::string OpsV370ApprovalTicketWorkflowJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -5408,7 +5408,7 @@ void AppendV360ClientNoticePreviewItemJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 22814 function
 std::string OpsV360ClientNoticePreviewJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -5735,7 +5735,7 @@ void AppendV370RuleVaWhatIfBySiteItemJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 23166 function
 std::string OpsV370RuleVaWhatIfBySiteJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -6165,7 +6165,7 @@ void AppendV370FieldEvidenceAttachmentItemJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 23626 function
 std::string OpsV370FieldEvidenceAttachmentJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -6523,7 +6523,7 @@ void AppendV380FieldConnectorEvidencePackageItemJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 24013 function
 std::string OpsV380FieldConnectorEvidencePackageJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -7023,8 +7023,33 @@ std::string OpsV390FieldEvidenceBridgeDecisionJson() {
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 24542 function
-std::string OpsV390ReidAssistDecisionJson(const app::AppConfig& config) {
-    const auto readiness = analysis::InspectAppearanceModelReadiness(config);
+std::string OpsV390ReidAssistDecisionJson(const WebRtcHttpRuntimeConfig& config) {
+    const auto normalized_lower = [](std::string value) {
+        value = Trim(std::move(value));
+        std::transform(value.begin(), value.end(), value.begin(), [](unsigned char ch) {
+            return static_cast<char>(std::tolower(ch));
+        });
+        return value;
+    };
+    analysis::AppearanceExtractorOptions appearance_options;
+    appearance_options.enabled = config.analysis_appearance_enabled;
+    appearance_options.extractor_name = normalized_lower(config.analysis_appearance_extractor);
+    appearance_options.model_path = config.analysis_appearance_model_path;
+    appearance_options.model_sha256 = normalized_lower(config.analysis_appearance_model_sha256);
+    appearance_options.model_provenance = Trim(config.analysis_appearance_model_provenance);
+    appearance_options.input_width = std::max(1, config.analysis_appearance_input_width);
+    appearance_options.input_height = std::max(1, config.analysis_appearance_input_height);
+    appearance_options.max_embedding_dim =
+        std::max<std::size_t>(1, config.analysis_appearance_max_embedding_dim);
+    appearance_options.log_enabled = config.analysis_appearance_log_enabled;
+    appearance_options.async_enabled = config.analysis_appearance_async_enabled;
+    appearance_options.max_queue_size = std::max<std::size_t>(1, config.analysis_appearance_max_queue);
+    appearance_options.global_max_queue_size =
+        std::max<std::size_t>(1, config.analysis_appearance_global_max_queue);
+    appearance_options.per_stream_rate_limit_ms =
+        std::max(0, config.analysis_appearance_per_stream_rate_limit_ms);
+    appearance_options.max_job_age_ms = std::max(0, config.analysis_appearance_max_job_age_ms);
+    const auto readiness = analysis::InspectAppearanceModelReadiness(appearance_options);
 
     std::ostringstream out;
     out << "{"
@@ -7120,7 +7145,7 @@ std::string OpsV390ReidAssistDecisionJson(const app::AppConfig& config) {
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 24637 function
 std::string OpsV380DefaultOffActionExplanationJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -7521,7 +7546,7 @@ void AppendV370ClientNoticeBySiteViewGroupItemJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 25057 function
 std::string OpsV370ClientNoticeBySiteViewGroupJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -7917,7 +7942,7 @@ void AppendV370LimitedSafeExecutionPilotActionJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 25476 function
 std::string OpsV370LimitedSafeExecutionPilotJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -8380,7 +8405,7 @@ void AppendV370OutcomeReconciliationItemJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 25968 function
 std::string OpsV370OutcomeReconciliationJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -8886,7 +8911,7 @@ void AppendV370ExportHandoffMapEntryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 26516 function
 std::string OpsV370ExportHandoffBundleJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -9192,7 +9217,7 @@ void AppendV360RuleVaWhatIfReplayCandidateJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 26840 function
 std::string OpsV360RuleVaWhatIfReplayPackJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -9544,7 +9569,7 @@ void AppendV360SimulationHandoffMapEntryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 27216 function
 std::string OpsV360SimulationExportBundleJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -9799,7 +9824,7 @@ void AppendV360FieldEvidenceSimulationAdapterItemJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 27495 function
 std::string OpsV360FieldEvidenceSimulationAdapterJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {
@@ -10045,7 +10070,7 @@ void AppendV360VlmAssistedSimulationExplanationSummaryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 27759 function
 std::string OpsV360VlmAssistedSimulationExplanationJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot) {
     const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
     if (!context.ok) {

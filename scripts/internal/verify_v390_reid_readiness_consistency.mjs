@@ -110,8 +110,17 @@ function verifySourceContract() {
   ]) assert(header.includes(snippet), `readiness header missing ${snippet}`);
   assert(source.includes("const auto readiness = InspectAppearanceModelReadiness(options);"),
     "extractor factory does not consume shared readiness");
-  assert(server.includes("analysis::InspectAppearanceModelReadiness(config)"),
+  assert(server.includes("analysis::InspectAppearanceModelReadiness(appearance_options)"),
     "Ops route does not consume shared readiness");
+  for (const field of [
+    "analysis_appearance_enabled", "analysis_appearance_extractor",
+    "analysis_appearance_model_path", "analysis_appearance_model_sha256",
+    "analysis_appearance_model_provenance", "analysis_appearance_input_width",
+    "analysis_appearance_input_height", "analysis_appearance_max_embedding_dim",
+    "analysis_appearance_log_enabled", "analysis_appearance_async_enabled",
+    "analysis_appearance_max_queue", "analysis_appearance_global_max_queue",
+    "analysis_appearance_per_stream_rate_limit_ms", "analysis_appearance_max_job_age_ms",
+  ]) assert(server.includes(`config.${field}`), `Ops readiness runtime mapping missing ${field}`);
   for (const snippet of [
     "modelBackedPreflightReady",
     "modelSessionLoadValidated",

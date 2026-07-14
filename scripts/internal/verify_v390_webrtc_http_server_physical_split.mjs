@@ -27,6 +27,9 @@ const skipMutations = rawArgs.includes("--skip-mutations");
 const fixtureArg = rawArgs.find(arg => arg.startsWith("--fixture-root="));
 const sourceRoot = fixtureArg ? validateFixtureRoot(fixtureArg.slice("--fixture-root=".length)) : rootDir;
 const rollbackCommit = "2e4a4d7e";
+const expectedSuccessorDefinitionCount = 1156;
+const expectedSuccessorDefinitionSha256 =
+  "f3c3654088719c191371e94d6442510c3d273d3dae699cc7ede24162f88e4b7a";
 const helperPath = "scripts/internal/webrtc_http_server_source_bundle.mjs";
 const graphPath = "test/fixtures/v390_structure_stabilization_current_graph.json";
 const splitPaths = [
@@ -352,12 +355,15 @@ check("private detail declarations keep shared state and singleton ownership ODR
   }
 });
 
-check("rollback function and type definitions are byte-identical across the split", () => {
+check("rollback split and exact successor definition inventory remain bound", () => {
   const current = splitPaths.filter(file => fs.existsSync(path.join(sourceRoot, file)))
     .flatMap(file => definitionInventory(read(file))).sort();
-  assert(current.length === rollbackDefinitions.length &&
-    sha256(current.join("\n")) === sha256(rollbackDefinitions.join("\n")),
-  `definition inventory drift: rollback=${rollbackDefinitions.length} current=${current.length}`);
+  assert(rollbackDefinitions.length === 1151 &&
+    sha256(rollbackDefinitions.join("\n")) ===
+      "1127fa03438b96dd134fef7488eebe69e0cf5049fe41bf256674edb6d8e825cd" &&
+    current.length === expectedSuccessorDefinitionCount &&
+    sha256(current.join("\n")) === expectedSuccessorDefinitionSha256,
+  `definition inventory drift: rollback=${rollbackDefinitions.length}/${sha256(rollbackDefinitions.join("\n"))} current=${current.length}/${sha256(current.join("\n"))}`);
 });
 
 check("CMake and owner classifier include every translation unit exactly once", () => {
@@ -382,9 +388,9 @@ check("CMake and owner classifier include every translation unit exactly once", 
 check("actual graph keeps direction debt stable while closing the mixed-owner limit", () => {
   const graph = JSON.parse(read(graphPath));
   const trackedSplit = graph.mixedOwnershipDebt.filter(item => splitPaths.includes(item.file));
-  assert(graph.expectedProductionFiles === 168 && graph.expectedCppFiles === 84 &&
-    graph.observedModuleEdges.length === 19 &&
-    graph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 5 &&
+  assert(graph.expectedProductionFiles === 173 && graph.expectedCppFiles === 85 &&
+    graph.observedModuleEdges.length === 17 &&
+    graph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 3 &&
     graph.stronglyConnectedComponents.length === 0 && graph.cmake.targets.length === 2 &&
     graph.cmake.internalTargetSeparation === true && trackedSplit.length === splitPaths.length &&
     trackedSplit.every(item => item.lineCount === lineCount(read(item.file)) && item.lineCount <= 15000),
@@ -433,10 +439,10 @@ if (!skipMutations && splitPaths.every(file => fs.existsSync(path.join(rootDir, 
       "six-file layout is exact");
     rejectMutation("source", splitPaths[1],
       text => text.replace("std::int64_t PtsNsToMs", "std::int64_t PtsNsToMilliseconds"),
-      "rollback function and type definitions are byte-identical");
+      "rollback split and exact successor definition inventory remain bound");
     rejectMutation("enum", splitPaths.at(-1),
       text => text.replace("AnalysisRegistryMutationFailure {\n    None,", "AnalysisRegistryMutationFailure {\n    Unknown,"),
-      "rollback function and type definitions are byte-identical");
+      "rollback split and exact successor definition inventory remain bound");
     rejectMutation("default-argument", splitPaths.at(-1),
       text => text.replace("std::string persistence_stage = {}", "std::string persistence_stage"),
       "private detail declarations keep shared state");
@@ -472,10 +478,10 @@ if (!skipMutations && splitPaths.every(file => fs.existsSync(path.join(rootDir, 
       text => text.replace(`        "${splitPaths[2]}",\n`, ""),
       "CMake and owner classifier");
     rejectMutation("graph", graphPath,
-      text => text.replace('"expectedProductionFiles": 168', '"expectedProductionFiles": 169'),
+      text => text.replace('"expectedProductionFiles": 173', '"expectedProductionFiles": 174'),
       "actual graph keeps direction debt stable");
     rejectMutation("graph-line-count", graphPath,
-      text => text.replace('"lineCount": 7577', '"lineCount": 7578'),
+      text => text.replace('"lineCount": 7626', '"lineCount": 7627'),
       "actual graph keeps direction debt stable");
     rejectMutation("line-budget", splitPaths[2],
       text => `${text}${"\n".repeat(15001)}`,

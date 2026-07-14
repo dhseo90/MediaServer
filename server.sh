@@ -531,6 +531,8 @@ Usage:
                  V390-REVIEW4-64 core-media→analysis witness를 port/callback 주입으로 제거합니다.
   verify-v390-analysis-runtime-port-boundary
                  V390-REVIEW4-64 analysis→core-utilities 설정·진단·명령 실행을 core-media port로 역전합니다.
+  verify-v390-transport-runtime-config-boundary
+                 V390-REVIEW4-64 transport의 AppConfig·진단·stream-key 직접 의존을 runtime config 주입으로 제거합니다.
   verify-v390-stable-contract-owner-realignment
                  V390-REVIEW4-64 stable contract leaf를 target owner로 재정렬합니다.
   verify-v390-public-contract-interface-owner
@@ -945,6 +947,8 @@ Usage:
                  V390-REVIEW4-64 core-media→analysis witness를 port/callback 주입으로 제거합니다.
   verify-v390-analysis-runtime-port-boundary
                  V390-REVIEW4-64 analysis→core-utilities 설정·진단·명령 실행을 core-media port로 역전합니다.
+  verify-v390-transport-runtime-config-boundary
+                 V390-REVIEW4-64 transport의 AppConfig·진단·stream-key 직접 의존을 runtime config 주입으로 제거합니다.
   verify-v390-stable-contract-owner-realignment
                  V390-REVIEW4-64 stable contract leaf를 target owner로 재정렬합니다.
   verify-v390-public-contract-interface-owner
@@ -2393,6 +2397,10 @@ case "${cmd}" in
   verify-v390-analysis-runtime-port-boundary)
     require_internal verify_v390_analysis_runtime_port_boundary.mjs
     exec "${INTERNAL_DIR}/verify_v390_analysis_runtime_port_boundary.mjs" "$@"
+    ;;
+  verify-v390-transport-runtime-config-boundary)
+    require_internal verify_v390_transport_runtime_config_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_transport_runtime_config_boundary.mjs" "$@"
     ;;
   verify-v390-stable-contract-owner-realignment)
     require_internal verify_v390_stable_contract_owner_realignment.mjs

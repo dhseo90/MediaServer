@@ -31,6 +31,7 @@
 #include <optional>
 #include <set>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -38,7 +39,6 @@
 #include <utility>
 #include <vector>
 
-#include "app_config.h"
 #include "analysis/appearance_extractor.h"
 #include "analysis/analysis_session_service.h"
 #include "analysis/category_tokens.h"
@@ -55,8 +55,6 @@
 #include "analysis/snapshot_encoder.h"
 #include "analysis/va_runtime_metadata.h"
 #include "analysis/vlm_observation_store.h"
-#include "core/runtime_debug_counters.h"
-#include "core/stream_key.h"
 #include "analysis/analysis_query.h"
 #include "ingress/analysis_overlay_probe.h"
 #include "ingress/analysis_rule_registry.h"
@@ -84,6 +82,10 @@
 namespace ingress {
 
 namespace webrtc_http_server_detail {
+
+// WebRtcHttpServer 생성자가 Start 전에 단 한 번 획득하는 transport-private immutable process snapshot이다.
+bool AcquireWebRtcHttpRuntimeConfig(const WebRtcHttpRuntimeConfig& config);
+const WebRtcHttpRuntimeConfig& GetWebRtcHttpRuntimeConfig();
 
 extern std::atomic<std::uint64_t> g_web_rtc_metadata_sequence;
 extern std::atomic<std::uint64_t> g_ops_audit_sequence;
@@ -689,7 +691,7 @@ private:
         if (loaded_) {
             return;
         }
-        storage_path_ = app::GetAppConfig().analysis_registry_path;
+        storage_path_ = GetWebRtcHttpRuntimeConfig().analysis_registry_path;
         RecoverAnalysisRegistryTemporaryFiles(storage_path_);
         loaded_ = true;
         std::ifstream in(storage_path_);
@@ -1824,16 +1826,16 @@ std::string PrincipalJson(const auth::Principal& principal);
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3193 prototype
 std::string WhoamiJson(const auth::AuthResult& result,
                        const auth::BootstrapState& bootstrap_state,
-                       const app::AppConfig& config);
+                       const WebRtcHttpRuntimeConfig& config);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3233 prototype
 std::string HtmlEscape(const std::string& value);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3261 prototype
-std::string DefaultHomePath(const app::AppConfig& config);
+std::string DefaultHomePath(const WebRtcHttpRuntimeConfig& config);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3292 prototype
-std::string RoleLandingPath(const auth::Principal& principal, const app::AppConfig& config);
+std::string RoleLandingPath(const auth::Principal& principal, const WebRtcHttpRuntimeConfig& config);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3308 prototype
 ProductUiPrincipalView ProductUiPrincipalViewFromAuthPrincipal(const auth::Principal& principal);
@@ -1842,12 +1844,12 @@ ProductUiPrincipalView ProductUiPrincipalViewFromAuthPrincipal(const auth::Princ
 std::string JsonScriptContent(const std::string& json);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3332 prototype
-std::string AuthCookieHeader(const app::AppConfig& config,
+std::string AuthCookieHeader(const WebRtcHttpRuntimeConfig& config,
                              const std::string& session_id,
                              int max_age_seconds);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3344 prototype
-std::string ExpiredAuthCookieHeader(const app::AppConfig& config);
+std::string ExpiredAuthCookieHeader(const WebRtcHttpRuntimeConfig& config);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3354 prototype
 std::string PeerAddress(int client_fd);
@@ -2479,11 +2481,11 @@ std::string AnalysisBboxDiagnosticsJson(const std::string& tap_id,
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 7169 type
 struct VaMetadataStreamOptions {
-    int interval_ms{app::GetAppConfig().webrtc_va_metadata_interval_ms};
+    int interval_ms{GetWebRtcHttpRuntimeConfig().webrtc_va_metadata_interval_ms};
     int stale_after_ms{5000};
     int stream_max_duration_ms{0};
     int stream_max_messages{0};
-    std::size_t max_message_bytes{app::GetAppConfig().webrtc_va_metadata_max_message_bytes};
+    std::size_t max_message_bytes{GetWebRtcHttpRuntimeConfig().webrtc_va_metadata_max_message_bytes};
     std::size_t max_tracks{128};
     std::size_t max_events{64};
     bool include_source{true};
@@ -3408,7 +3410,7 @@ std::string OpsSourceHealthJson(const std::vector<analysis::AnalysisManager::Tap
                                 const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
                                 const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats,
                                 const std::vector<core::SessionManager::SourceEgressStats>& egress_stats,
-                                const app::AppConfig* audit_config,
+                                const WebRtcHttpRuntimeConfig* audit_config,
                                 const auth::Principal* audit_principal);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 12223 prototype
@@ -3422,11 +3424,11 @@ std::string OpsSourceHealthBulkJson(
     const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
     const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats,
     const std::vector<core::SessionManager::SourceEgressStats>& egress_stats,
-    const app::AppConfig* audit_config,
+    const WebRtcHttpRuntimeConfig* audit_config,
     const auth::Principal* audit_principal);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 12364 prototype
-std::filesystem::path OpsAuditStoragePath(const app::AppConfig& config);
+std::filesystem::path OpsAuditStoragePath(const WebRtcHttpRuntimeConfig& config);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 12374 prototype
 int OpsAuditRetentionDays();
@@ -3448,7 +3450,7 @@ OpsAuditRetentionSummary EnforceOpsAuditRetentionLocked(const std::filesystem::p
                                                         std::string* error_message);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 12466 prototype
-OpsAuditRetentionSummary EnforceOpsAuditRetention(const app::AppConfig& config,
+OpsAuditRetentionSummary EnforceOpsAuditRetention(const WebRtcHttpRuntimeConfig& config,
                                                   std::string* error_message);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 12473 prototype
@@ -3469,7 +3471,7 @@ std::string RedactAuditJsonFragment(std::string json);
 std::string OpsAuditRecordJson(const std::string& body, const auth::Principal& principal);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 12744 prototype
-bool AppendOpsAuditRecord(const app::AppConfig& config,
+bool AppendOpsAuditRecord(const WebRtcHttpRuntimeConfig& config,
                           const std::string& record_json,
                           std::string* error_message);
 
@@ -3502,7 +3504,7 @@ struct OpsEventReviewState {
 };
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 12804 prototype
-std::filesystem::path OpsEventReviewStoragePath(const app::AppConfig& config);
+std::filesystem::path OpsEventReviewStoragePath(const WebRtcHttpRuntimeConfig& config);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 12814 prototype
 bool OpsEventReviewEventIdAllowed(const std::string& value);
@@ -3604,12 +3606,12 @@ bool LoadOpsEventReviewStatesLocked(const std::filesystem::path& path,
                                     std::string* error_message);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 13438 prototype
-bool LoadOpsEventReviewStates(const app::AppConfig& config,
+bool LoadOpsEventReviewStates(const WebRtcHttpRuntimeConfig& config,
                               std::unordered_map<std::string, OpsEventReviewState>* states,
                               std::string* error_message);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 13446 prototype
-bool UpsertOpsEventReviewState(const app::AppConfig& config,
+bool UpsertOpsEventReviewState(const WebRtcHttpRuntimeConfig& config,
                                OpsEventReviewState next,
                                OpsEventReviewState* previous,
                                std::string* error_message);
@@ -3624,7 +3626,7 @@ bool OpsEventReviewMatchesFilters(const OpsEventReviewState& state,
                                   const std::string& incident_status);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 13559 prototype
-std::filesystem::path ClientLiveLayoutPreferenceStoragePath(const app::AppConfig& config);
+std::filesystem::path ClientLiveLayoutPreferenceStoragePath(const WebRtcHttpRuntimeConfig& config);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 13569 prototype
 std::string ClientLivePreferencePrincipalKey(const auth::Principal& principal);
@@ -3648,7 +3650,7 @@ bool LoadClientLiveLayoutPreferenceLocked(const std::filesystem::path& path,
                                           std::string* error_message);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 13730 prototype
-bool LoadClientLiveLayoutPreference(const app::AppConfig& config,
+bool LoadClientLiveLayoutPreference(const WebRtcHttpRuntimeConfig& config,
                                     const auth::Principal& principal,
                                     std::string* preference_json,
                                     std::int64_t* updated_at_ms,
@@ -3660,13 +3662,13 @@ std::string ClientLiveLayoutPreferenceRecordJson(const auth::Principal& principa
                                                  std::int64_t updated_at_ms);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 13760 prototype
-bool UpsertClientLiveLayoutPreference(const app::AppConfig& config,
+bool UpsertClientLiveLayoutPreference(const WebRtcHttpRuntimeConfig& config,
                                       const auth::Principal& principal,
                                       const std::string& body,
                                       std::string* error_message);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 13796 prototype
-std::string ClientLiveLayoutPreferencesJson(const app::AppConfig& config,
+std::string ClientLiveLayoutPreferencesJson(const WebRtcHttpRuntimeConfig& config,
                                             const auth::Principal& principal,
                                             bool saved);
 
@@ -3684,10 +3686,10 @@ struct OpsAlertDeliveryConfig {
 };
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 13841 prototype
-std::filesystem::path OpsAlertDeliveryStoragePath(const app::AppConfig& config);
+std::filesystem::path OpsAlertDeliveryStoragePath(const WebRtcHttpRuntimeConfig& config);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 13851 prototype
-std::filesystem::path OpsAlertDeliveryAttemptStoragePath(const app::AppConfig& config);
+std::filesystem::path OpsAlertDeliveryAttemptStoragePath(const WebRtcHttpRuntimeConfig& config);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 13861 prototype
 bool OpsAlertDeliveryIdAllowed(const std::string& value);
@@ -3716,12 +3718,12 @@ bool LoadOpsAlertDeliveryConfigsLocked(const std::filesystem::path& path,
                                        std::string* error_message);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 13991 prototype
-bool LoadOpsAlertDeliveryConfigs(const app::AppConfig& config,
+bool LoadOpsAlertDeliveryConfigs(const WebRtcHttpRuntimeConfig& config,
                                  std::unordered_map<std::string, OpsAlertDeliveryConfig>* configs,
                                  std::string* error_message);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 13999 prototype
-bool UpsertOpsAlertDeliveryConfig(const app::AppConfig& config,
+bool UpsertOpsAlertDeliveryConfig(const WebRtcHttpRuntimeConfig& config,
                                   const std::string& body,
                                   OpsAlertDeliveryConfig* saved,
                                   std::string* error_message);
@@ -3739,16 +3741,16 @@ std::string OpsAlertDeliveryAttemptJson(const OpsAlertDeliveryConfig& delivery,
                                         const std::string& payload_preview_json = "");
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 14094 prototype
-bool AppendOpsAlertDeliveryAttempt(const app::AppConfig& config,
+bool AppendOpsAlertDeliveryAttempt(const WebRtcHttpRuntimeConfig& config,
                                    const std::string& attempt_json,
                                    std::string* error_message);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 14118 prototype
-std::vector<std::string> LoadRecentOpsAlertDeliveryAttempts(const app::AppConfig& config,
+std::vector<std::string> LoadRecentOpsAlertDeliveryAttempts(const WebRtcHttpRuntimeConfig& config,
                                                            std::size_t limit);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 14141 prototype
-std::string OpsAlertDeliveryListJson(const app::AppConfig& config);
+std::string OpsAlertDeliveryListJson(const WebRtcHttpRuntimeConfig& config);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 14192 prototype
 std::string OpsAlertDeliveryPayloadPreviewJson(const OpsAlertDeliveryConfig& delivery,
@@ -3765,19 +3767,19 @@ bool OpsAlertDeliveryDraftFromBody(const std::string& body,
                                    std::string* error_message);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 14265 prototype
-std::string DispatchOpsAlertDeliveryDryRun(const app::AppConfig& config,
+std::string DispatchOpsAlertDeliveryDryRun(const WebRtcHttpRuntimeConfig& config,
                                            const auth::Principal& principal,
                                            const std::string& body,
                                            std::string* error_message);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 14373 prototype
-std::string DispatchOpsAlertDeliveryFixture(const app::AppConfig& config,
+std::string DispatchOpsAlertDeliveryFixture(const WebRtcHttpRuntimeConfig& config,
                                             const auth::Principal& principal,
                                             const std::string& body,
                                             std::string* error_message);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 14433 prototype
-void DispatchOpsAlertDeliveries(const app::AppConfig& config,
+void DispatchOpsAlertDeliveries(const WebRtcHttpRuntimeConfig& config,
                                 const analysis::AnalysisResult& result,
                                 const std::vector<analysis::AnalysisEvent>& events);
 
@@ -3793,7 +3795,7 @@ std::string SourceHealthAuditRecordBody(const OpsSourceHealthItem& item,
                                         const std::string& before_reason);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 14506 prototype
-void AppendOpsSourceHealthAuditChanges(const app::AppConfig& config,
+void AppendOpsSourceHealthAuditChanges(const WebRtcHttpRuntimeConfig& config,
                                        const auth::Principal& principal,
                                        const OpsSourceHealthSnapshot& snapshot);
 
@@ -3828,7 +3830,7 @@ std::optional<std::int64_t> ParseOpsAuditTimeQuery(
     const std::string& key);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 14617 prototype
-OpsAuditQueryResult QueryOpsAuditEntries(const app::AppConfig& config,
+OpsAuditQueryResult QueryOpsAuditEntries(const WebRtcHttpRuntimeConfig& config,
                                          const std::unordered_map<std::string, std::string>& query);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 14671 prototype
@@ -3882,7 +3884,7 @@ OpsV330ReliabilityTimelineEvent OpsV330CurrentHealthEvent(const OpsSourceHealthI
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 14801 prototype
 std::unordered_map<std::string, std::vector<OpsV330ReliabilityTimelineEvent>>
-OpsV330SourceHealthAuditHistory(const app::AppConfig& config);
+OpsV330SourceHealthAuditHistory(const WebRtcHttpRuntimeConfig& config);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 14838 prototype
 OpsV330ReliabilityTimelineSummary BuildV330ReliabilityTimelineHealthHistorySummary(
@@ -3890,7 +3892,7 @@ OpsV330ReliabilityTimelineSummary BuildV330ReliabilityTimelineHealthHistorySumma
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 14864 prototype
 std::vector<OpsV330ReliabilityTimelineItem> BuildV330ReliabilityTimelineHealthHistory(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 14924 prototype
@@ -3907,7 +3909,7 @@ void AppendV330ReliabilityTimelineSummaryJson(std::ostringstream& out,
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 14986 prototype
 std::string OpsV330ReliabilityTimelineHealthHistoryJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 15035 type
@@ -3969,7 +3971,7 @@ int OpsV330SourceReliabilityAttentionScore(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 15118 prototype
 std::vector<OpsV330SourceReliabilitySearchMetricItem> BuildV330SourceReliabilitySearchMetrics(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 15174 prototype
@@ -4013,7 +4015,7 @@ void AppendV330SourceReliabilityFilterListJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 15335 prototype
 std::string OpsV330SourceReliabilitySearchMetricsJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 15404 type
@@ -4210,7 +4212,7 @@ struct OpsV340RecoveryCandidatePackageSummary {
 OpsV340RecoveryCandidateContext BuildV340RecoveryCandidateContext(
     const std::vector<SourceViewRegistry::PublishedViewRecord>& views,
     const OpsSourceHealthSnapshot& source_health_snapshot,
-    const app::AppConfig& config);
+    const WebRtcHttpRuntimeConfig& config);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 16058 prototype
 std::vector<OpsV340RecoveryCandidatePackageItem> BuildV340RecoveryCandidatePackages(
@@ -4245,7 +4247,7 @@ void AppendV340RecoveryCandidatePackageSummaryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 16194 prototype
 std::string OpsV340RecoveryCandidatePackageJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 16281 type
@@ -4303,7 +4305,7 @@ void AppendV340ApprovalGatedRecoveryChecklistItemJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 16421 prototype
 std::string OpsV340ApprovalGatedRecoveryChecklistJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 16495 type
@@ -4366,7 +4368,7 @@ void AppendV340DrillEvidenceExportCleanupSummaryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 16662 prototype
 std::string OpsV340DrillEvidenceExportCleanupManifestJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 16777 type
@@ -4475,7 +4477,7 @@ struct OpsV350LiveOperationsGraphContext {
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 17051 prototype
 OpsV350LiveOperationsGraphContext BuildV350LiveOperationsGraphContext(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 17111 prototype
@@ -4511,7 +4513,7 @@ void AppendV350LiveOperationsGraphSummaryJson(std::ostringstream& out,
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 17349 prototype
 std::string OpsV350LiveOperationsGraphJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 17422 type
@@ -4618,7 +4620,7 @@ void AppendV370SiteImpactGraphEdgeJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 17835 prototype
 std::string OpsV370SiteImpactGraphJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 17908 type
@@ -4666,7 +4668,7 @@ void AppendV350CommandPlanSummaryJson(std::ostringstream& out,
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 18084 prototype
 std::string OpsV350CommandPlanJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 18146 type
@@ -4758,7 +4760,7 @@ void AppendV350StagedChangePlanSummaryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 18439 prototype
 std::string OpsV350StagedChangePlanImpactPreviewJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 18506 type
@@ -4815,7 +4817,7 @@ void AppendV350DrillRunLedgerEntryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 18693 prototype
 std::string OpsV350DrillRunLedgerPlanComparisonJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 18757 type
@@ -4908,7 +4910,7 @@ void AppendV350OperationsExportBundleSummaryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 19063 prototype
 std::string OpsV350OperationsExportBundleHandoffMapJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 19157 type
@@ -5055,7 +5057,7 @@ void AppendV350VlmAssistedOpsExplanationSummaryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 19680 prototype
 std::string OpsV350VlmAssistedOpsExplanationJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 19751 type
@@ -5103,7 +5105,7 @@ void AppendV360SimulationInputPackSummaryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 19877 prototype
 std::string OpsV360SimulationInputPackJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 19942 type
@@ -5143,7 +5145,7 @@ void AppendV360SimulationResultEnvelopeJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 20024 prototype
 std::string OpsV360OperationsSimulationRunContractJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 20079 type
@@ -5235,7 +5237,7 @@ void AppendV370SiteSimulationInputPackSummaryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 20377 prototype
 std::string OpsV370SiteSimulationInputPackJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 20476 type
@@ -5283,7 +5285,7 @@ void AppendV360CommandPlanDryRunSummaryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 20612 prototype
 std::string OpsV360CommandPlanDryRunSimulatorJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 20666 type
@@ -5335,7 +5337,7 @@ void AppendV360SourceRuleImpactDiffSummaryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 20803 prototype
 std::string OpsV360SourceRuleImpactDiffJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 20863 type
@@ -5383,7 +5385,7 @@ void AppendV360SafeApplyReadinessSummaryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 20986 prototype
 std::string OpsV360SafeApplyReadinessGateJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 21051 type
@@ -5465,7 +5467,7 @@ void AppendV370CrossSiteSafeApplyReadinessSummaryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 21283 prototype
 std::string OpsV370CrossSiteSafeApplyReadinessJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 21378 type
@@ -5543,7 +5545,7 @@ void AppendV370RunbookTemplateContractItemJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 21640 prototype
 std::string OpsV370RunbookTemplateContractJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 21740 type
@@ -5599,7 +5601,7 @@ void AppendV360SimulationRunLedgerEntryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 21940 prototype
 std::string OpsV360SimulationRunLedgerComparisonJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 22024 type
@@ -5662,7 +5664,7 @@ void AppendV370RunbookInstanceLedgerEntryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 22199 prototype
 std::string OpsV370RunbookInstanceLedgerJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 22318 type
@@ -5737,7 +5739,7 @@ void AppendV370ApprovalTicketWorkflowItemJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 22512 prototype
 std::string OpsV370ApprovalTicketWorkflowJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 22637 type
@@ -5794,7 +5796,7 @@ void AppendV360ClientNoticePreviewItemJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 22814 prototype
 std::string OpsV360ClientNoticePreviewJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 22885 type
@@ -5874,7 +5876,7 @@ void AppendV370RuleVaWhatIfBySiteItemJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 23166 prototype
 std::string OpsV370RuleVaWhatIfBySiteJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 23274 type
@@ -5966,7 +5968,7 @@ void AppendV370FieldEvidenceAttachmentItemJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 23626 prototype
 std::string OpsV370FieldEvidenceAttachmentJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 23770 type
@@ -6037,7 +6039,7 @@ void AppendV380FieldConnectorEvidencePackageItemJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 24013 prototype
 std::string OpsV380FieldConnectorEvidencePackageJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 24169 type
@@ -6106,11 +6108,11 @@ void AppendV380DefaultOffActionExplanationItemJson(
 std::string OpsV390FieldEvidenceBridgeDecisionJson();
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 24542 prototype
-std::string OpsV390ReidAssistDecisionJson(const app::AppConfig& config);
+std::string OpsV390ReidAssistDecisionJson(const WebRtcHttpRuntimeConfig& config);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 24637 prototype
 std::string OpsV380DefaultOffActionExplanationJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 24797 type
@@ -6204,7 +6206,7 @@ void AppendV370ClientNoticeBySiteViewGroupItemJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 25057 prototype
 std::string OpsV370ClientNoticeBySiteViewGroupJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 25193 type
@@ -6289,7 +6291,7 @@ void AppendV370LimitedSafeExecutionPilotActionJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 25476 prototype
 std::string OpsV370LimitedSafeExecutionPilotJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 25624 type
@@ -6380,7 +6382,7 @@ void AppendV370OutcomeReconciliationItemJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 25968 prototype
 std::string OpsV370OutcomeReconciliationJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 26118 type
@@ -6501,7 +6503,7 @@ void AppendV370ExportHandoffMapEntryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 26516 prototype
 std::string OpsV370ExportHandoffBundleJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 26695 type
@@ -6553,7 +6555,7 @@ void AppendV360RuleVaWhatIfReplayCandidateJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 26840 prototype
 std::string OpsV360RuleVaWhatIfReplayPackJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 26902 type
@@ -6639,7 +6641,7 @@ void AppendV360SimulationHandoffMapEntryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 27216 prototype
 std::string OpsV360SimulationExportBundleJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 27322 type
@@ -6705,7 +6707,7 @@ void AppendV360FieldEvidenceSimulationAdapterItemJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 27495 prototype
 std::string OpsV360FieldEvidenceSimulationAdapterJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 27585 type
@@ -6760,25 +6762,25 @@ void AppendV360VlmAssistedSimulationExplanationSummaryJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 27759 prototype
 std::string OpsV360VlmAssistedSimulationExplanationJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 27845 prototype
 std::string OpsAuditSearchIndexJson();
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 27854 prototype
-std::string OpsAuditEntriesJson(const app::AppConfig& config,
+std::string OpsAuditEntriesJson(const WebRtcHttpRuntimeConfig& config,
                                 const std::unordered_map<std::string, std::string>& query);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 27883 prototype
-std::string OpsAuditEntriesDiffJson(const app::AppConfig& config,
+std::string OpsAuditEntriesDiffJson(const WebRtcHttpRuntimeConfig& config,
                                     const std::unordered_map<std::string, std::string>& query);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 27916 prototype
 std::string CsvCell(std::string value);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 27929 prototype
-std::string OpsAuditEntriesCsv(const app::AppConfig& config,
+std::string OpsAuditEntriesCsv(const WebRtcHttpRuntimeConfig& config,
                                const std::unordered_map<std::string, std::string>& query);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 27950 prototype
@@ -7505,7 +7507,7 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
 std::string OpsV320UnifiedOpsEventsWorkspaceJson(
     const std::vector<std::string>& event_json_records,
     const std::unordered_map<std::string, OpsEventReviewState>& reviews,
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot,
     const std::unordered_map<std::string, std::string>& query);
 
@@ -7693,7 +7695,7 @@ std::string OpsIncidentTimelineGraphAlertAttempt(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 34104 prototype
 std::string OpsIncidentTimelineGraphViewJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const std::vector<std::string>& event_json_records,
     const std::unordered_map<std::string, OpsEventReviewState>& reviews);
 
@@ -7716,7 +7718,7 @@ std::string OpsExplainableIncidentBriefViewJson(
     const std::unordered_map<std::string, OpsEventReviewState>& reviews);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 34356 prototype
-bool OpsEventReviewInboxJson(const app::AppConfig& config,
+bool OpsEventReviewInboxJson(const WebRtcHttpRuntimeConfig& config,
                              const OpsSourceHealthSnapshot& source_health_snapshot,
                              const std::unordered_map<std::string, std::string>& query,
                              std::string* body,

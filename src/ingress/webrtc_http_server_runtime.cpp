@@ -430,9 +430,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         }
 
                         const auto query = ParseQueryString(request.query);
-                        const auto& config = app::GetAppConfig();
-                        const bool session_auth_mode = config.auth_mode == app::AuthMode::Session ||
-                                                       config.auth_mode == app::AuthMode::Auto;
+                        const auto& config = GetWebRtcHttpRuntimeConfig();
+                        const bool session_auth_mode = config.auth_mode == HttpAuthMode::Session ||
+                                                       config.auth_mode == HttpAuthMode::Auto;
                         const bool setup_flow_enabled = session_auth_mode;
                         const auth::BootstrapState bootstrap_state =
                             setup_flow_enabled ? auth::InspectBootstrapState(config)
@@ -806,7 +806,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return std::nullopt;
                         };
                         auto require_generic_media_principal = [&]() -> std::optional<HttpResponse> {
-                            if (config.auth_mode == app::AuthMode::Off) {
+                            if (config.auth_mode == HttpAuthMode::Off) {
                                 return std::nullopt;
                             }
                             if (!principal_result.ok) {
@@ -1123,7 +1123,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         }
 
                         if ((request.method == "GET" || request.method == "HEAD") && request.path == "/") {
-                            if (config.auth_mode == app::AuthMode::Off) {
+                            if (config.auth_mode == HttpAuthMode::Off) {
                                 HttpResponse redirect = RedirectResponse(DefaultHomePath(config));
                                 if (request.method == "HEAD") {
                                     redirect.body.clear();
@@ -4813,7 +4813,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             [&](const auth::Principal& owner,
                                 const std::string& expected_capability,
                                 const std::string& provided_capability) -> std::optional<HttpResponse> {
-                            if (config.auth_mode == app::AuthMode::Off) {
+                            if (config.auth_mode == HttpAuthMode::Off) {
                                 return std::nullopt;
                             }
                             if (!provided_capability.empty() &&

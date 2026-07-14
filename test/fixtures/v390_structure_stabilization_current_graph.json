@@ -11,7 +11,7 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 172,
+  "expectedProductionFiles": 173,
   "expectedCppFiles": 85,
   "moduleClassifiers": [
     {
@@ -97,6 +97,7 @@
       "id": "transport-and-auth-adapter",
       "exactFiles": [
         "include/ingress/http_auth.h",
+        "include/ingress/webrtc_http_runtime_config.h",
         "src/ingress/http_auth.cpp",
         "include/ingress/webrtc_http_server.h",
         "src/ingress/webrtc_http_server.cpp",
@@ -107,7 +108,7 @@
         "src/ingress/webrtc_http_server_detail.h"
       ],
       "prefixes": [],
-      "expectedFileCount": 9,
+      "expectedFileCount": 10,
       "expectedCppCount": 6
     },
     {
@@ -173,7 +174,7 @@
       "expectedCppCount": 15
     }
   ],
-  "expectedFileOwnershipSha256": "484988aa2b34f9e1a496532586cb0793c84803a87158d0a2ca27c8d2c2e199c8",
+  "expectedFileOwnershipSha256": "24055ee629863c1f79c54fcc13ba640008fe94aa2e68a04f71f013c3a2e80202",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -356,8 +357,8 @@
     },
     {
       "direction": "composition-root -> core-utilities",
-      "witnessCount": 2,
-      "witnessSha256": "10729e542b8a793db1bc76508471112e3cfc69d7d31eb4de7aba664ff4db871d",
+      "witnessCount": 4,
+      "witnessSha256": "d3b2354c773e46a8c1d152ccbf984f9ad32d4a6e6133b746cc850ed28e2bc89a",
       "allowedByTarget": true
     },
     {
@@ -409,12 +410,6 @@
       "allowedByTarget": false
     },
     {
-      "direction": "transport-and-auth-adapter -> core-utilities",
-      "witnessCount": 4,
-      "witnessSha256": "0b37c834f061cbcdaf32c4b40b0515902c1870e720c7112f27d59377a1ace0be",
-      "allowedByTarget": false
-    },
-    {
       "direction": "transport-and-auth-adapter -> domain-and-registry-owners",
       "witnessCount": 3,
       "witnessSha256": "6df2676b1f737db68766f0c9fccd4b3df7f5ea5af41706e6f8585d4e5fa51f57",
@@ -436,7 +431,7 @@
   "mixedOwnershipDebt": [
     {
       "file": "src/ingress/webrtc_http_server.cpp",
-      "lineCount": 7577,
+      "lineCount": 7626,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -460,7 +455,7 @@
     },
     {
       "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
-      "lineCount": 10135,
+      "lineCount": 10160,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -496,7 +491,7 @@
     },
     {
       "file": "src/ingress/webrtc_http_server_detail.h",
-      "lineCount": 7967,
+      "lineCount": 7969,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",

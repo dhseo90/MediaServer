@@ -17,7 +17,7 @@ std::string OpsAuditSearchIndexJson() {
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 27854 function
-std::string OpsAuditEntriesJson(const app::AppConfig& config,
+std::string OpsAuditEntriesJson(const WebRtcHttpRuntimeConfig& config,
                                 const std::unordered_map<std::string, std::string>& query) {
     const OpsAuditQueryResult result = QueryOpsAuditEntries(config, query);
     std::ostringstream out;
@@ -47,7 +47,7 @@ std::string OpsAuditEntriesJson(const app::AppConfig& config,
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 27883 function
-std::string OpsAuditEntriesDiffJson(const app::AppConfig& config,
+std::string OpsAuditEntriesDiffJson(const WebRtcHttpRuntimeConfig& config,
                                     const std::unordered_map<std::string, std::string>& query) {
     const OpsAuditQueryResult result = QueryOpsAuditEntries(config, query);
     std::ostringstream out;
@@ -95,7 +95,7 @@ std::string CsvCell(std::string value) {
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 27929 function
-std::string OpsAuditEntriesCsv(const app::AppConfig& config,
+std::string OpsAuditEntriesCsv(const WebRtcHttpRuntimeConfig& config,
                                const std::unordered_map<std::string, std::string>& query) {
     OpsAuditQueryResult result = QueryOpsAuditEntries(config, query);
     std::ostringstream out;
@@ -4965,7 +4965,7 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
 std::string OpsV320UnifiedOpsEventsWorkspaceJson(
     const std::vector<std::string>& event_json_records,
     const std::unordered_map<std::string, OpsEventReviewState>& reviews,
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot,
     const std::unordered_map<std::string, std::string>& query) {
     std::vector<std::string> items;
@@ -6268,7 +6268,7 @@ std::string OpsIncidentTimelineGraphAlertAttempt(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 34104 function
 std::string OpsIncidentTimelineGraphViewJson(
-    const app::AppConfig& config,
+    const WebRtcHttpRuntimeConfig& config,
     const std::vector<std::string>& event_json_records,
     const std::unordered_map<std::string, OpsEventReviewState>& reviews) {
     const std::vector<std::string> alert_attempts = LoadRecentOpsAlertDeliveryAttempts(config, 80);
@@ -6524,7 +6524,7 @@ std::string OpsExplainableIncidentBriefViewJson(
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 34356 function
-bool OpsEventReviewInboxJson(const app::AppConfig& config,
+bool OpsEventReviewInboxJson(const WebRtcHttpRuntimeConfig& config,
                              const OpsSourceHealthSnapshot& source_health_snapshot,
                              const std::unordered_map<std::string, std::string>& query,
                              std::string* body,
@@ -6863,10 +6863,10 @@ bool IsSafeEventEvidencePath(const std::filesystem::path& raw_path,
         return false;
     }
     const auto snapshot_dir =
-        std::filesystem::weakly_canonical(std::filesystem::path(app::GetAppConfig().analysis_event_snapshot_dir), ec);
+        std::filesystem::weakly_canonical(std::filesystem::path(GetWebRtcHttpRuntimeConfig().analysis_event_snapshot_dir), ec);
     ec.clear();
     const auto clip_dir =
-        std::filesystem::weakly_canonical(std::filesystem::path(app::GetAppConfig().analysis_event_clip_dir), ec);
+        std::filesystem::weakly_canonical(std::filesystem::path(GetWebRtcHttpRuntimeConfig().analysis_event_clip_dir), ec);
     ec.clear();
     if ((snapshot_dir.empty() || !PathStartsWith(resolved, snapshot_dir)) &&
         (clip_dir.empty() || !PathStartsWith(resolved, clip_dir))) {
@@ -7696,16 +7696,16 @@ void AppendJsonStringArray(std::ostringstream& out, const std::string& name, con
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 35496 function
 std::string LabFilesJson() {
-    const auto root = std::filesystem::path(app::GetAppConfig().file_root_path);
+    const auto root = std::filesystem::path(GetWebRtcHttpRuntimeConfig().file_root_path);
     const auto asset_root = std::filesystem::path("docs") / "assets";
     const auto files = CollectRelativeFiles(root, IsSupportedMediaFile);
     const auto image_files = CollectRelativeFiles(root, IsSupportedImageFile);
     const auto asset_images = CollectRelativeFiles(asset_root, IsSupportedImageFile);
 
-    std::string default_file = std::filesystem::path(app::GetAppConfig().default_file_path).filename().string();
+    std::string default_file = std::filesystem::path(GetWebRtcHttpRuntimeConfig().default_file_path).filename().string();
     std::error_code relative_ec;
     const auto default_relative =
-        std::filesystem::relative(std::filesystem::path(app::GetAppConfig().default_file_path), root, relative_ec);
+        std::filesystem::relative(std::filesystem::path(GetWebRtcHttpRuntimeConfig().default_file_path), root, relative_ec);
     if (!relative_ec && !default_relative.empty() && default_relative.native().find("..") == std::string::npos) {
         default_file = default_relative.generic_string();
     }

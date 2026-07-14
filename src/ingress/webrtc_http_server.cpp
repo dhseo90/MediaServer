@@ -7,6 +7,39 @@ using namespace webrtc_http_server_detail;
 
 namespace webrtc_http_server_detail {
 
+WebRtcHttpRuntimeConfig& WebRtcHttpRuntimeConfigStorage() {
+    static WebRtcHttpRuntimeConfig config;
+    return config;
+}
+
+std::mutex& WebRtcHttpRuntimeConfigMutex() {
+    static std::mutex mutex;
+    return mutex;
+}
+
+bool& WebRtcHttpRuntimeConfigInitialized() {
+    static bool initialized = false;
+    return initialized;
+}
+
+bool AcquireWebRtcHttpRuntimeConfig(const WebRtcHttpRuntimeConfig& config) {
+    std::lock_guard lock(WebRtcHttpRuntimeConfigMutex());
+    if (WebRtcHttpRuntimeConfigInitialized()) {
+        return false;
+    }
+    WebRtcHttpRuntimeConfigStorage() = config;
+    WebRtcHttpRuntimeConfigInitialized() = true;
+    return true;
+}
+
+const WebRtcHttpRuntimeConfig& GetWebRtcHttpRuntimeConfig() {
+    return WebRtcHttpRuntimeConfigStorage();
+}
+
+}  // namespace webrtc_http_server_detail
+
+namespace webrtc_http_server_detail {
+
 std::atomic<std::uint64_t> g_web_rtc_metadata_sequence{0};
 std::atomic<std::uint64_t> g_ops_audit_sequence{0};
 std::mutex g_ops_audit_mu;
@@ -1681,10 +1714,16 @@ std::string AnalysisCategoryCatalogJson();
 }  // namespace webrtc_http_server_detail
 
 WebRtcHttpServer::WebRtcHttpServer(core::SessionManager& session_manager,
-                                   analysis::AnalysisSessionService& analysis_sessions)
+                                   analysis::AnalysisSessionService& analysis_sessions,
+                                   const WebRtcHttpRuntimeConfig& runtime_config)
     : session_manager_(session_manager),
       analysis_sessions_(analysis_sessions),
-      impl_(std::make_unique<Impl>(session_manager, analysis_sessions)) {}
+      runtime_config_(runtime_config),
+      impl_(std::make_unique<Impl>(session_manager, analysis_sessions)) {
+    if (!webrtc_http_server_detail::AcquireWebRtcHttpRuntimeConfig(runtime_config_)) {
+        throw std::logic_error("WebRtcHttpServer supports exactly one process-lifetime instance");
+    }
+}
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3123 function
 WebRtcHttpServer::~WebRtcHttpServer() {
@@ -1765,7 +1804,7 @@ std::string PrincipalJson(const auth::Principal& principal) {
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3193 function
 std::string WhoamiJson(const auth::AuthResult& result,
                        const auth::BootstrapState& bootstrap_state,
-                       const app::AppConfig& config) {
+                       const WebRtcHttpRuntimeConfig& config) {
     std::ostringstream out;
     const bool authenticated = result.ok && result.principal.is_authenticated;
     out << "{"
@@ -1833,7 +1872,7 @@ std::string HtmlEscape(const std::string& value) {
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3261 function
-std::string DefaultHomePath(const app::AppConfig& config) {
+std::string DefaultHomePath(const WebRtcHttpRuntimeConfig& config) {
     auto by_name = [&](const std::string& name) -> std::string {
         if (name == "ops" && config.enable_ops) {
             return "/ops/home";
@@ -1865,7 +1904,7 @@ std::string DefaultHomePath(const app::AppConfig& config) {
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3292 function
-std::string RoleLandingPath(const auth::Principal& principal, const app::AppConfig& config) {
+std::string RoleLandingPath(const auth::Principal& principal, const WebRtcHttpRuntimeConfig& config) {
     if (principal.password_change_required) {
         return "/password/change";
     }
@@ -1908,7 +1947,7 @@ std::string JsonScriptContent(const std::string& json) {
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3332 function
-std::string AuthCookieHeader(const app::AppConfig& config,
+std::string AuthCookieHeader(const WebRtcHttpRuntimeConfig& config,
                              const std::string& session_id,
                              int max_age_seconds) {
     std::ostringstream out;
@@ -1921,7 +1960,7 @@ std::string AuthCookieHeader(const app::AppConfig& config,
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3344 function
-std::string ExpiredAuthCookieHeader(const app::AppConfig& config) {
+std::string ExpiredAuthCookieHeader(const WebRtcHttpRuntimeConfig& config) {
     std::ostringstream out;
     out << config.auth_cookie_name
         << "=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0";
@@ -2149,7 +2188,7 @@ std::optional<media::SourceSpec::Kind> SourceKindForClientView(
         return media::SourceSpec::Kind::Hls;
     }
     if (source.kind == "youtube") {
-        if (!app::kYouTubeSourceBuildEnabled) {
+        if (!GetWebRtcHttpRuntimeConfig().youtube_source_build_enabled) {
             return std::nullopt;
         }
         return media::SourceSpec::Kind::Youtube;
@@ -2197,16 +2236,23 @@ std::vector<std::string> ClientStreamKeyCandidates(const SourceViewRegistry::Sou
     const auto kind = SourceKindForClientView(source);
     const std::string locator = SourceLocatorForClientView(source);
     if (kind.has_value() && !locator.empty()) {
-        AddUniqueString(&candidates, core::BuildStreamKey(media::SourceSpec{*kind, locator}));
+        const auto& runtime_config = GetWebRtcHttpRuntimeConfig();
+        if (runtime_config.build_stream_key) {
+            AddUniqueString(&candidates,
+                            runtime_config.build_stream_key(static_cast<int>(*kind), locator));
+        }
         if (*kind == media::SourceSpec::Kind::File) {
             const std::filesystem::path raw_file(locator);
             const std::filesystem::path rooted =
-                raw_file.is_absolute() ? raw_file : std::filesystem::path(app::GetAppConfig().file_root_path) / raw_file;
+                raw_file.is_absolute() ? raw_file : std::filesystem::path(GetWebRtcHttpRuntimeConfig().file_root_path) / raw_file;
             std::error_code ec;
             const auto resolved = std::filesystem::weakly_canonical(rooted, ec);
             if (!ec && !resolved.empty()) {
-                AddUniqueString(&candidates,
-                                core::BuildStreamKey(media::SourceSpec{*kind, resolved.string()}));
+                if (runtime_config.build_stream_key) {
+                    AddUniqueString(&candidates,
+                                    runtime_config.build_stream_key(
+                                        static_cast<int>(*kind), resolved.string()));
+                }
             }
         }
     }
@@ -4333,7 +4379,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
 )OPS";
     out << R"OPS(    </section>
 )OPS";
-    AppendOpsSourcesPageScript(out, JsonEscape(app::GetAppConfig().stream_route), app::GetAppConfig().rtsp_listen_port);
+    AppendOpsSourcesPageScript(out, JsonEscape(GetWebRtcHttpRuntimeConfig().stream_route), GetWebRtcHttpRuntimeConfig().rtsp_listen_port);
     AppendOpsShellEnd(out);
     return out.str();
 }
@@ -5023,7 +5069,10 @@ std::string RuntimeStatusJson(const core::SessionManager::RuntimeStateSnapshot& 
     }
     out << "]"
         << "},"
-        << "\"debugCounters\":" << core::runtime_debug::SnapshotJson()
+        << "\"debugCounters\":"
+        << (GetWebRtcHttpRuntimeConfig().runtime_debug_snapshot_json
+                ? GetWebRtcHttpRuntimeConfig().runtime_debug_snapshot_json()
+                : "{}")
         << "}";
     return out.str();
 }
@@ -5078,7 +5127,7 @@ BrowserIceServer BuildTurnIceServerForBrowser(const std::string& turn_uri) {
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6470 function
 // 서버 WebRTC env 설정을 브라우저 RTCPeerConnection 생성 옵션 JSON으로 직렬화한다.
 std::string WebRtcBrowserConfigJson() {
-    const auto& config = app::GetAppConfig();
+    const auto& config = GetWebRtcHttpRuntimeConfig();
     std::vector<BrowserIceServer> servers;
     if (!config.webrtc_stun_server.empty()) {
         BrowserIceServer stun;
@@ -5201,7 +5250,7 @@ std::string CloseObjectAssociationDiagnosticJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6590 function
 std::string CloseObjectGuardModeJson() {
-    const auto& config = app::GetAppConfig();
+    const auto& config = GetWebRtcHttpRuntimeConfig();
     const analysis::CloseObjectGuardMode mode =
         analysis::ParseCloseObjectGuardMode(config.analysis_tracking_close_object_guard_mode);
     const std::string mode_text = analysis::CloseObjectGuardModeToString(mode);
@@ -5950,7 +5999,7 @@ std::string VaMetadataSubscriptionFilterJson(const analysis::VaMetadataSubscript
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 7332 function
 VaMetadataStreamOptions BuildVaMetadataStreamOptions(const std::unordered_map<std::string, std::string>& query) {
-    const auto& config = app::GetAppConfig();
+    const auto& config = GetWebRtcHttpRuntimeConfig();
     VaMetadataStreamOptions options;
     options.interval_ms =
         ParseClampedIntQuery(query,
@@ -7289,7 +7338,7 @@ bool ResolveImageRequestPath(const std::unordered_map<std::string, std::string>&
     }
 
     *root_name = "video";
-    return ResolvePathUnderRoot(app::GetAppConfig().file_root_path, token, output, normalized_token, error_message);
+    return ResolvePathUnderRoot(GetWebRtcHttpRuntimeConfig().file_root_path, token, output, normalized_token, error_message);
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8644 function
@@ -7373,7 +7422,7 @@ bool AnalyzeStaticImage(const std::unordered_map<std::string, std::string>& quer
         }
         tracker_options.class_labels = output->profile.tracking_class_labels;
         tracker_options.track_all_when_class_labels_empty = !output->profile.tracking_classes_specified;
-        const auto& config = app::GetAppConfig();
+        const auto& config = GetWebRtcHttpRuntimeConfig();
         tracker_options.iou_weight = config.analysis_tracking_iou_weight;
         tracker_options.distance_weight = config.analysis_tracking_distance_weight;
         tracker_options.direction_weight = config.analysis_tracking_direction_weight;
@@ -7538,7 +7587,7 @@ std::string AnalysisEventsJson(const std::string& tap_id,
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8876 function
 WebRtcMetadataChannelConfig BuildWebRtcMetadataChannelConfigFromQuery(
     const std::unordered_map<std::string, std::string>& query) {
-    const auto& app_config = app::GetAppConfig();
+    const auto& app_config = GetWebRtcHttpRuntimeConfig();
     WebRtcMetadataChannelConfig config;
     config.enabled = ParseBoolQuery(
         query,
