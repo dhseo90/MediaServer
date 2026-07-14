@@ -8,7 +8,6 @@
 #include <unordered_map>
 
 #include "media_types.h"
-#include "stdafx.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER
 struct _GstRTSPUrl;

@@ -3,6 +3,9 @@
 // 동작 요약: GStreamer 미사용 빌드에서는 생성 실패를 명확히 반환한다.
 #pragma once
 
+#include <functional>
+#include <memory>
+
 #include "analysis/analysis_types.h"
 #include "media_types.h"
 

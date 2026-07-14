@@ -523,6 +523,8 @@ Usage:
                  V390-REVIEW4-64 product UI renderer의 transport auth 역의존 제거와 HTML byte 불변을 검증합니다.
   verify-v390-cmake-internal-target-separation
                  V390-REVIEW4-64 composition executable과 runtime static library 분리를 검증합니다.
+  verify-v390-stable-contract-leaf-boundary
+                 V390-REVIEW4-64 stable DTO의 service/core 역참조 제거와 AnalysisEvent 계약 불변을 검증합니다.
   verify-v390-source-request-parser-owner
                  V390-REVIEW4-64 shared source request parser의 core owner 이동과 요청 의미 불변을 검증합니다.
   verify-v390-review4-truth-reset
@@ -919,6 +921,8 @@ Usage:
                  V390-REVIEW4-64 실제 6-slice 구조 안정화 실행 원장과 current graph를 검증합니다.
   verify-v390-cmake-internal-target-separation
                  V390-REVIEW4-64 composition executable과 runtime static library 분리를 검증합니다.
+  verify-v390-stable-contract-leaf-boundary
+                 V390-REVIEW4-64 stable DTO의 service/core 역참조 제거와 AnalysisEvent 계약 불변을 검증합니다.
   verify-v390-source-request-parser-owner
                  V390-REVIEW4-64 shared source request parser의 core owner 이동과 요청 의미 불변을 검증합니다.
   verify-v390-review4-truth-reset
@@ -2341,6 +2345,10 @@ case "${cmd}" in
   verify-v390-cmake-internal-target-separation)
     require_internal verify_v390_cmake_internal_target_separation.mjs
     exec "${INTERNAL_DIR}/verify_v390_cmake_internal_target_separation.mjs" "$@"
+    ;;
+  verify-v390-stable-contract-leaf-boundary)
+    require_internal verify_v390_stable_contract_leaf_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_stable_contract_leaf_boundary.mjs" "$@"
     ;;
   verify-v390-source-request-parser-owner)
     require_internal verify_v390_source_request_parser_owner.mjs

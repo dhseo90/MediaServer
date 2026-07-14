@@ -474,20 +474,22 @@ check("non-production Slice preserves production graph and parked evidence stays
   }
 });
 
-check("current continuation binds the exact Slice 1-4 frontier without a final claim", () => {
+check("current continuation binds the exact Slice 1-5 frontier without a final claim", () => {
   const slices = ledger.currentContinuation?.orderedSlices || [];
-  assert(slices.length === 4 && slices[0].order === 1 && slices[1].order === 2 && slices[2].order === 3 &&
-    slices[3].order === 4 &&
+  assert(slices.length === 5 && slices[0].order === 1 && slices[1].order === 2 && slices[2].order === 3 &&
+    slices[3].order === 4 && slices[4].order === 5 &&
     slices[0].id === "completion-oracle-and-ops-ui-renderer" && slices[0].status === "completed" &&
     slices[1].id === "product-ui-principal-view-boundary" && slices[1].status === "completed" &&
     slices[2].id === "source-request-parser-owner-boundary" && slices[2].status === "completed" &&
-    slices[3].id === "cmake-internal-target-separation" &&
-    ["in-progress", "completed"].includes(slices[3].status),
+    slices[3].id === "cmake-internal-target-separation" && slices[3].status === "completed" &&
+    slices[4].id === "stable-contract-leaf-boundary" &&
+    ["in-progress", "completed"].includes(slices[4].status),
   "current continuation slice identity/frontier mismatch");
   const slice1 = slices[0];
   const slice2 = slices[1];
   const slice3 = slices[2];
   const slice4 = slices[3];
+  const slice5 = slices[4];
   assert(slice1.rollbackCommit === ledger.orderedSlices[5].rollbackCommit &&
     slice1.nonProductionSlice === false && slice1.contractAssertions.length >= 5 && slice1.tests.length >= 5 &&
     slice1.tests.every(test => test.status === "pass"),
@@ -643,20 +645,28 @@ check("current continuation binds the exact Slice 1-4 frontier without a final c
     "in-progress Slice 4 rewrote graph/after evidence before production verification completed");
   } else {
     assert(ledger.currentContinuation.status === "in-progress" &&
-      ledger.currentContinuation.latestCompletedSlice === 4 &&
+      ledger.currentContinuation.latestCompletedSlice >= 4 &&
       ledger.currentContinuation.sliceSequenceStatus === "partial" && slice4.after !== null &&
       slice4.tests.every(test => test.status === "pass"),
     "completed Slice 4 frontier/test state mismatch");
-    assert(slice4.after.productionGraphSha256 === ledger.currentGraph.sha256 &&
-      slice4.after.productionFiles === ledger.currentGraph.metrics.productionFiles &&
-      slice4.after.cppSources === ledger.currentGraph.metrics.cppSources &&
-      slice4.after.targetViolationDirectionsUnderPolicyV1 === ledger.currentGraph.metrics.targetViolationDirections &&
-      slice4.after.largestSccOwners === ledger.currentGraph.metrics.largestSccOwners &&
-      slice4.after.webrtcHttpServerLines === ledger.currentGraph.metrics.largestMixedOwnerFileLines &&
-      slice4.after.cmakeTargets === 2 && ledger.currentGraph.metrics.cmakeTargets === 2 &&
-      slice4.after.internalTargetSeparation === true &&
-      ledger.currentGraph.metrics.internalTargetSeparation === true,
-    "completed Slice 4 target topology is not bound to the actual current graph");
+    assert(JSON.stringify(slice4.after) === JSON.stringify({
+      productionGraphSha256: "2309e3caf072c7c18b07452f988fbe6aadf7589a92095e30b793c6298fde8cba",
+      productionFiles: 159,
+      cppSources: 79,
+      targetViolationDirectionsUnderPolicyV1: 19,
+      largestSccOwners: 6,
+      webrtcHttpServerLines: 40832,
+      cmakeTargets: 2,
+      internalTargetSeparation: true,
+    }), "completed Slice 4 target topology snapshot drift");
+    if (slice5.status === "in-progress") {
+      assert(slice4.after.productionGraphSha256 === ledger.currentGraph.sha256 &&
+        slice4.after.targetViolationDirectionsUnderPolicyV1 === ledger.currentGraph.metrics.targetViolationDirections &&
+        slice4.after.largestSccOwners === ledger.currentGraph.metrics.largestSccOwners &&
+        ledger.currentGraph.metrics.cmakeTargets === 2 &&
+        ledger.currentGraph.metrics.internalTargetSeparation === true,
+      "in-progress Slice 5 is not based on the completed Slice 4 graph");
+    }
     assert(slice4.after.productionFiles === slice4.before.productionFiles &&
       slice4.after.cppSources === slice4.before.cppSources &&
       slice4.after.targetViolationDirectionsUnderPolicyV1 ===
@@ -665,6 +675,66 @@ check("current continuation binds the exact Slice 1-4 frontier without a final c
       slice4.after.webrtcHttpServerLines === slice4.before.webrtcHttpServerLines &&
       slice4.before.cmakeTargets === 1 && slice4.before.internalTargetSeparation === false,
     "completed Slice 4 changed source graph metrics or failed to add only target separation");
+  }
+
+  assert(slice5.rollbackCommit === "e6632942c1057cdd80df83280c8b9405e9eacc8e" &&
+    slice5.rollbackCommit !== slice4.rollbackCommit &&
+    exec("git", ["merge-base", "--is-ancestor", slice5.rollbackCommit, "HEAD"], true).status === 0 &&
+    slice5.nonProductionSlice === false && slice5.contractAssertions.length >= 8 && slice5.tests.length === 12,
+  "current continuation Slice 5 rollback/contract/test boundary mismatch");
+  assert(JSON.stringify(slice5.before) === JSON.stringify(slice4.after),
+    "current continuation Slice 5 before-state is not bound to Slice 4 frontier");
+  const slice5Commands = [
+    "./server.sh verify-v390-stable-contract-leaf-boundary",
+    "./server.sh build",
+    "./server.sh verify-analysis-state",
+    "./server.sh verify-event-post --mode schema",
+    "./server.sh verify-webrtc-va-metadata",
+    "./server.sh verify-sse-metadata",
+    "./server.sh verify-ws-metadata",
+    "./server.sh verify-v390-review4-structure-stabilization-execution",
+    "./server.sh verify-script-inventory",
+    "./server.sh verify-docs-links",
+    "git diff --check",
+    "listener/temp cleanup",
+  ];
+  assert(slice5Commands.every(command => slice5.tests.filter(test => test.command === command).length === 1),
+    "current continuation Slice 5 test inventory command drift");
+  if (slice5.status === "in-progress") {
+    assert(ledger.currentContinuation.status === "in-progress" &&
+      ledger.currentContinuation.latestCompletedSlice === 4 &&
+      ledger.currentContinuation.sliceSequenceStatus === "partial" && slice5.after === null,
+    "in-progress Slice 5 frontier/after-state overclaim");
+    assert(["registered", "expected-red"].includes(sliceTest(slice5, slice5Commands[0]).status) &&
+      slice5.tests.slice(1).every(test => test.status === "registered"),
+    "in-progress Slice 5 test registration/RED state drift");
+    assert(ledger.currentGraph.sha256 === slice5.before.productionGraphSha256 &&
+      ledger.currentGraph.metrics.productionFiles === slice5.before.productionFiles &&
+      ledger.currentGraph.metrics.cppSources === slice5.before.cppSources &&
+      ledger.currentGraph.metrics.targetViolationDirections ===
+        slice5.before.targetViolationDirectionsUnderPolicyV1 &&
+      ledger.currentGraph.metrics.largestSccOwners === slice5.before.largestSccOwners,
+    "in-progress Slice 5 rewrote graph/after evidence before production verification completed");
+  } else {
+    assert(ledger.currentContinuation.status === "in-progress" &&
+      ledger.currentContinuation.latestCompletedSlice === 5 &&
+      ledger.currentContinuation.sliceSequenceStatus === "partial" && slice5.after !== null &&
+      slice5.tests.every(test => test.status === "pass"),
+    "completed Slice 5 frontier/test state mismatch");
+    assert(slice5.after.productionGraphSha256 === ledger.currentGraph.sha256 &&
+      slice5.after.productionFiles === 159 && slice5.after.cppSources === 79 &&
+      slice5.after.targetViolationDirectionsUnderPolicyV1 === 17 &&
+      slice5.after.largestSccOwners === 3 && slice5.after.webrtcHttpServerLines === 40832 &&
+      slice5.after.cmakeTargets === 2 && slice5.after.internalTargetSeparation === true,
+    "completed Slice 5 graph metrics drift");
+    assert(!graph.observedModuleEdges.some(item =>
+      item.direction === "stable-contract-dtos -> analysis-services" ||
+      item.direction === "stable-contract-dtos -> core-utilities") &&
+      graph.observedModuleEdges.length === 29 &&
+      JSON.stringify(graph.stronglyConnectedComponents) === JSON.stringify([[
+        "analysis-services", "application-service-interfaces", "core-media-interfaces",
+      ]]),
+    "completed Slice 5 did not make stable contracts dependency leaves");
   }
   assert(ledger.currentContinuation.finalCompletionClaimAllowed === false &&
     ledger.refactorComplete === false && ledger.completionClaimed === false,

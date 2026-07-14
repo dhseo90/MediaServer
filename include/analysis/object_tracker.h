@@ -3,6 +3,7 @@
 // 동작 요약: 분석 이벤트와 overlay가 안정적인 trackId를 사용할 수 있게 한다.
 #pragma once
 
+#include "app_config.h"
 #include "analysis/analysis_types.h"
 
 namespace analysis {

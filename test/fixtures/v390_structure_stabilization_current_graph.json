@@ -35,12 +35,11 @@
         "include/ingress/rtsp_request_context.h",
         "include/ingress/product_ui_principal_view.h",
         "src/analysis/tracked_object_metadata.cpp",
-        "src/analysis/va_runtime_metadata.cpp",
         "src/ingress/rtsp_request_context.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 9,
-      "expectedCppCount": 3
+      "expectedFileCount": 8,
+      "expectedCppCount": 2
     },
     {
       "id": "application-service-interfaces",
@@ -116,8 +115,8 @@
         "include/ingress/analysis_overlay_probe.h",
         "src/ingress/analysis_overlay_probe.cpp"
       ],
-      "expectedFileCount": 64,
-      "expectedCppCount": 33
+      "expectedFileCount": 65,
+      "expectedCppCount": 34
     },
     {
       "id": "core-utilities",
@@ -166,7 +165,7 @@
       "expectedCppCount": 12
     }
   ],
-  "expectedFileOwnershipSha256": "380ae3b0a58ab8e7188c6243db8e22fcc73385112a929c6e4adca0cbcf902dd6",
+  "expectedFileOwnershipSha256": "2f82606268392991ad93a9e29ce0f2bad08ffcaf794a10deabd249ac561ecb89",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -229,14 +228,14 @@
     },
     {
       "direction": "analysis-services -> core-utilities",
-      "witnessCount": 14,
-      "witnessSha256": "9fee8e8ecd674ca0c73e761a3f1bb76601a719c58b737e07f684fcd7251d0f68",
+      "witnessCount": 17,
+      "witnessSha256": "c0c6c395d45e7034b64771876199797f3b62ba28001f72da42d4ba1e446db028",
       "allowedByTarget": false
     },
     {
       "direction": "analysis-services -> stable-contract-dtos",
-      "witnessCount": 13,
-      "witnessSha256": "b84b2106ae1b096b74033aa823dcd7baee538f040785704b21e98246e2203181",
+      "witnessCount": 14,
+      "witnessSha256": "bd16612136d66d6954f97ad6263e00db71335dbe3c1f689484e1dbcd2f88188f",
       "allowedByTarget": false
     },
     {
@@ -348,18 +347,6 @@
       "allowedByTarget": true
     },
     {
-      "direction": "stable-contract-dtos -> analysis-services",
-      "witnessCount": 1,
-      "witnessSha256": "05b8066b7907e4bf68da610b38957beda8af519def93705244218feaf6491e47",
-      "allowedByTarget": false
-    },
-    {
-      "direction": "stable-contract-dtos -> core-utilities",
-      "witnessCount": 4,
-      "witnessSha256": "bd17168be3f608abab946e67babe4e5e081bee384f96c94fe018ea51040edfe0",
-      "allowedByTarget": false
-    },
-    {
       "direction": "transport-and-auth-adapter -> analysis-services",
       "witnessCount": 14,
       "witnessSha256": "eb7d2f5c388ba82b6dabaa2ba81df6061c796fc896b2fbc3c60c969725bbd5b0",
@@ -417,10 +404,7 @@
     [
       "analysis-services",
       "application-service-interfaces",
-      "core-media-interfaces",
-      "core-utilities",
-      "domain-and-registry-owners",
-      "stable-contract-dtos"
+      "core-media-interfaces"
     ]
   ],
   "mixedOwnershipDebt": [

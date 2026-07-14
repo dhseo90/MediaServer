@@ -3,6 +3,7 @@
 // 동작 요약: 기본 비활성화 상태로 TrackStateManager가 필요 시점에만 호출할 수 있는 인터페이스다.
 #pragma once
 
+#include "app_config.h"
 #include <cstdint>
 #include <optional>
 
