@@ -179,6 +179,25 @@ Boundary:
 - This handoff is not UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, PR/main/tag/GitHub Release evidence.
 - Development 17 approval is not actual route/API/UI extraction or REVIEW4-64/65 execution PASS.
 
+## REVIEW4-64 Current Structure Execution
+
+Execution ledger: `test/fixtures/v390_structure_stabilization_execution.json`
+
+Current graph: `test/fixtures/v390_structure_stabilization_current_graph.json`
+
+Execution verifier: `./server.sh verify-v390-review4-structure-stabilization-execution`
+
+Current status: `in-progress-slice-1-completed`
+
+- Slice 1 `composition-root`: `src/main.cpp` delegates to
+  `media_server::application::RunMediaServerApplication`; build, compiled auth CLI, current graph, historical
+  SHA isolation, six negative mutations, script inventory, diff check PASS.
+- Slice 2~6: `not-started`; route/API, registry/domain, UI script/CSS, VLM/parser, verifier/docs를 자동
+  완료 처리하지 않습니다.
+- Graph delta: target violation direction 25→22, main mixed responsibility 245→8줄, largest SCC 8 유지.
+- Actual exact 424 UI, 30분, 조건부 120분, field/published/release action은 미실행이며 Slice 1로
+  대체하지 않습니다.
+
 ## Review Gate (Initial Historical Rules)
 
 Discovery is not complete until:

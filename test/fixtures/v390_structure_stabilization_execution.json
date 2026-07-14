@@ -1,0 +1,197 @@
+{
+  "schema": "media-server.v390-structure-stabilization-execution.v3",
+  "issueId": "V390-REVIEW4-64",
+  "recordKind": "refactor-execution-ledger",
+  "release": "v3.9.0",
+  "branch": "v3.9.0",
+  "status": "in-progress",
+  "latestCompletedSlice": 1,
+  "productionRefactorStarted": true,
+  "refactorComplete": false,
+  "completionClaimed": false,
+  "executionBase": {
+    "commit": "962318c921667b21ca2595e25a38bbcc7c0bdea5",
+    "branch": "v3.9.0",
+    "review4CompletedThrough": 63,
+    "newBranchCreated": false
+  },
+  "rollbackCommit": "962318c921667b21ca2595e25a38bbcc7c0bdea5",
+  "approvalDecision": {
+    "path": "test/fixtures/v390_structure_execution_scope_decision.json",
+    "schema": "media-server.v390-structure-execution-scope-decision.v2",
+    "recordKind": "historical-approval-decision",
+    "sha256": "f16ef47f1cd06d6de52fb39e6c3d06b6b19383247a2bd11d9e28caa4916fafc6"
+  },
+  "historicalReadiness": {
+    "path": "test/fixtures/v390_structure_stabilization_readiness.json",
+    "schema": "media-server.v390-structure-stabilization-readiness.v2",
+    "sha256": "26e1c0d884085589582fd92a07bfd9bb906318bf3113e48cf8a40e0816fbd36b"
+  },
+  "historicalGraph": {
+    "path": "test/fixtures/v390_actual_module_dependency_graph.json",
+    "schema": "media-server.v390-actual-module-dependency-graph.v1",
+    "sha256": "acfe2cfa0a3e8ea167bbc07dbe490fbb4e3056e9fb87acec6451ac743123cf68"
+  },
+  "currentGraph": {
+    "path": "test/fixtures/v390_structure_stabilization_current_graph.json",
+    "schema": "media-server.v390-structure-stabilization-current-graph.v1",
+    "sha256": "8620be4ae311938cac91495d914ec6eba75b23f836405c0c0464d70fd73eb679",
+    "metrics": {
+      "productionFiles": 150,
+      "cppSources": 75,
+      "moduleOwners": 10,
+      "cmakeTargets": 1,
+      "targetViolationDirections": 22,
+      "largestSccOwners": 8,
+      "largestMixedOwnerFileLines": 43266,
+      "internalTargetSeparation": false
+    }
+  },
+  "approvalBaseline": {
+    "productionFiles": 148,
+    "cppSources": 74,
+    "moduleOwners": 9,
+    "cmakeTargets": 1,
+    "targetViolationDirections": 25,
+    "largestSccOwners": 8,
+    "largestMixedOwnerFileLines": 42994,
+    "internalTargetSeparation": false
+  },
+  "planningOrderTransition": {
+    "scope": "slice-identifiers-and-order-only",
+    "historicalDecisionPreserved": true,
+    "currentSource": "V390-REVIEW4-64 roadmap and latest user goal",
+    "preservedBoundaries": [
+      "current v3.9.0 branch",
+      "REVIEW4-50..63 prerequisite",
+      "nine preserved contracts",
+      "REVIEW4-64 before REVIEW4-65"
+    ]
+  },
+  "finalTargets": {
+    "maxTargetViolationDirections": 0,
+    "maxSccOwners": 1,
+    "maxMixedOwnerFileLines": 15000,
+    "requireSeparatedInternalTargets": true,
+    "completionRequired": true
+  },
+  "preservedContracts": [
+    "event-post-payload",
+    "webrtc-datachannel-metadata",
+    "sse-ws-metadata",
+    "rtsp-webrtc-media-path",
+    "auth-role-scope",
+    "source-registry-published-view",
+    "rule-profile-payload",
+    "http-route-status-error",
+    "product-ui-dom-test-id"
+  ],
+  "orderedSlices": [
+    {
+      "order": 1,
+      "id": "composition-root",
+      "status": "completed",
+      "rollbackCommit": "962318c921667b21ca2595e25a38bbcc7c0bdea5",
+      "allowedFiles": [
+        "CMakeLists.txt",
+        "include/application/media_server_application.h",
+        "src/application/media_server_application.cpp",
+        "src/main.cpp",
+        "server.sh",
+        "scripts/internal/verify_v390_structure_stabilization_execution.mjs",
+        "scripts/internal/verify_v390_structure_stabilization_readiness.mjs",
+        "scripts/internal/verify_v390_review4_structure_scope_decision.mjs",
+        "scripts/internal/verify_v390_structure_stabilization_handoff.mjs",
+        "test/fixtures/v390_actual_module_dependency_graph.json",
+        "test/fixtures/v390_structure_execution_scope_decision.json",
+        "test/fixtures/v390_structure_stabilization_current_graph.json",
+        "test/fixtures/v390_structure_stabilization_execution.json",
+        "test/fixtures/v390_structure_stabilization_readiness.json",
+        "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md",
+        "docs/development-backlog.md",
+        "docs/project-feature-test-inventory.md",
+        "docs/release-test-records.md",
+        "docs/release-evidence-index.md",
+        "docs/stream-verification.md",
+        "docs/v390-feature-completion-inventory.md"
+      ],
+      "changedFiles": [
+        "CMakeLists.txt",
+        "include/application/media_server_application.h",
+        "src/application/media_server_application.cpp",
+        "src/main.cpp"
+      ],
+      "movedSymbols": [
+        "main runtime construction/start/stop -> media_server::application::RunMediaServerApplication",
+        "auth-user CLI helpers -> src/application/media_server_application.cpp"
+      ],
+      "before": {
+        "targetViolationDirections": 25,
+        "largestSccOwners": 8,
+        "mixedCompositionRootLines": 245
+      },
+      "after": {
+        "targetViolationDirections": 22,
+        "largestSccOwners": 8,
+        "mixedCompositionRootLines": 0
+      },
+      "contractAssertions": [
+        "shared SessionManager remains the sole RTSP/WebRTC session owner",
+        "startup order remains RTSP then HTTP with RTSP rollback on HTTP failure",
+        "cleanup order remains HTTP then RTSP then EventStorage",
+        "auth-user CLI argument and exit behavior remains delegated without schema change"
+      ],
+      "tests": [
+        {"command":"./server.sh build","status":"pass"},
+        {"command":"./build-gst-onnx/media_server auth-user --help","status":"pass"},
+        {"command":"./server.sh verify-v390-review4-structure-stabilization-execution","status":"pass"},
+        {"command":"./server.sh verify-script-inventory","status":"pass"},
+        {"command":"git diff --check","status":"pass"}
+      ]
+    },
+    {
+      "order": 2,
+      "id": "route-api-handler",
+      "status": "not-started",
+      "dependsOn": "composition-root",
+      "selectedBoundary": "/ops/api/actions/execution-deferral-decision"
+    },
+    {
+      "order": 3,
+      "id": "registry-domain",
+      "status": "not-started",
+      "dependsOn": "route-api-handler",
+      "selectedBoundary": "SourceRegistry and PublishedView read model"
+    },
+    {
+      "order": 4,
+      "id": "ui-script-css",
+      "status": "not-started",
+      "dependsOn": "registry-domain",
+      "selectedBoundary": "action execution deferral workspace renderer and CSS family"
+    },
+    {
+      "order": 5,
+      "id": "vlm-parser",
+      "status": "not-started",
+      "dependsOn": "ui-script-css",
+      "selectedBoundary": "VLM provenance validator/parser using strict_json"
+    },
+    {
+      "order": 6,
+      "id": "verifier-docs",
+      "status": "not-started",
+      "dependsOn": "vlm-parser",
+      "selectedBoundary": "execution ledger, current/historical evidence split, manual UI archive, VLM index"
+    }
+  ],
+  "notRun": [
+    "exact-424-policy-v4-ui",
+    "30-minute-longrun",
+    "conditional-120-minute-longrun",
+    "external-field-smoke",
+    "published-metadata",
+    "release-actions"
+  ],
+  "boundary": "Slice completion is not REVIEW4-64 completion; finalTargets and all six ordered slices must pass before REVIEW4-65 starts"
+}

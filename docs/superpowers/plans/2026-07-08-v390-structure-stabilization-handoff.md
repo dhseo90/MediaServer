@@ -28,6 +28,30 @@
 
 Evidence boundary: UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, PR/main/tag/GitHub Release evidence가 아닙니다.
 
+## REVIEW4-64 Current Execution Ledger
+
+Development 17의 readiness와 REVIEW4-51 decision/graph는 승인 당시 historical record로 보존합니다.
+현재 실행 source-of-truth는 `test/fixtures/v390_structure_stabilization_execution.json`, current graph는
+`test/fixtures/v390_structure_stabilization_current_graph.json`, verifier는
+`./server.sh verify-v390-review4-structure-stabilization-execution`입니다.
+
+Current REVIEW4-64 status: `in-progress-slice-1-completed`
+
+| 순서 | Current Slice | 상태 | 직접 경계 |
+| ---: | --- | --- | --- |
+| 1 | `composition-root` | 완료 | `src/main.cpp`를 8줄 delegate로 축소하고 `media_server::application::RunMediaServerApplication`이 shared SessionManager, RTSP→HTTP start, HTTP→RTSP→EventStorage cleanup, auth-user CLI를 소유 |
+| 2 | `route-api-handler` | 미진행 | `/ops/api/actions/execution-deferral-decision` exact route/JSON owner 이동 |
+| 3 | `registry-domain` | 미진행 | SourceRegistry/PublishedView read-model owner 분리, write/persistence 불변 |
+| 4 | `ui-script-css` | 미진행 | action execution deferral workspace renderer/CSS family 이동 |
+| 5 | `vlm-parser` | 미진행 | strict JSON을 재사용하는 VLM provenance validator/parser owner 이동 |
+| 6 | `verifier-docs` | 미진행 | execution verifier, historical/current evidence, manual UI archive, VLM index 정리 |
+
+Slice 1의 current graph는 production 150파일/C++ 75개/owner 10개, target 위반 direction
+22개(승인 baseline 25개), 최대 SCC 8, internal target 1개입니다. `main.cpp` mixed composition debt는
+245→8줄로 닫았지만 최대 SCC와 43,266줄 transport mixed-owner debt는 남아 있으므로 REVIEW4-64 완료가
+아닙니다. Historical v2 order와 current order의 전환 범위는 slice identifier/order뿐이며 current branch,
+50~63 prerequisite, 9 preserved contract, 64 뒤 65 acceptance 경계는 유지합니다.
+
 ## Development 17 Structure Stabilization Readiness
 
 Execution branch: `v3.9.0`

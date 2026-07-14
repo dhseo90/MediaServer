@@ -1,0 +1,517 @@
+{
+  "schema": "media-server.v390-structure-stabilization-current-graph.v1",
+  "sourceRelease": "v3.9.0",
+  "graphKind": "actual-source-include-and-cmake-target-graph",
+  "ownershipModel": "ordered-exact-over-directory-container",
+  "productionRoots": [
+    "src",
+    "include"
+  ],
+  "sourceExtensions": [
+    ".cpp",
+    ".h"
+  ],
+  "expectedProductionFiles": 150,
+  "expectedCppFiles": 75,
+  "moduleClassifiers": [
+    {
+      "id": "composition-root",
+      "exactFiles": [
+        "include/application/media_server_application.h",
+        "src/application/media_server_application.cpp",
+        "src/main.cpp"
+      ],
+      "prefixes": [],
+      "expectedFileCount": 3,
+      "expectedCppCount": 2
+    },
+    {
+      "id": "stable-contract-dtos",
+      "exactFiles": [
+        "include/analysis/analysis_types.h",
+        "include/analysis/tracked_object_metadata.h",
+        "include/analysis/va_runtime_metadata.h",
+        "include/media_types.h",
+        "include/ingress/rtsp_request_context.h",
+        "src/analysis/tracked_object_metadata.cpp",
+        "src/analysis/va_runtime_metadata.cpp",
+        "src/ingress/rtsp_request_context.cpp"
+      ],
+      "prefixes": [],
+      "expectedFileCount": 8,
+      "expectedCppCount": 3
+    },
+    {
+      "id": "application-service-interfaces",
+      "exactFiles": [
+        "include/ingress/analysis_query.h",
+        "src/ingress/analysis_query.cpp",
+        "include/ingress/onvif_live_import.h",
+        "src/ingress/onvif_live_import.cpp"
+      ],
+      "prefixes": [],
+      "expectedFileCount": 4,
+      "expectedCppCount": 2
+    },
+    {
+      "id": "domain-and-registry-owners",
+      "exactFiles": [
+        "include/ingress/analysis_rule_registry.h",
+        "include/ingress/source_view_registry.h",
+        "src/ingress/source_view_registry.cpp",
+        "include/ingress/webrtc_source_registry.h",
+        "src/ingress/webrtc_source_registry.cpp"
+      ],
+      "prefixes": [],
+      "expectedFileCount": 5,
+      "expectedCppCount": 2
+    },
+    {
+      "id": "product-ui-workspaces",
+      "exactFiles": [],
+      "prefixes": [
+        "include/ingress/product_ui_",
+        "src/ingress/product_ui_"
+      ],
+      "expectedFileCount": 16,
+      "expectedCppCount": 10
+    },
+    {
+      "id": "ops-route-groups",
+      "exactFiles": [
+        "include/ingress/onvif_credential_provider.h",
+        "src/ingress/onvif_credential_provider.cpp",
+        "include/ingress/ops_event_route_owner.h",
+        "src/ingress/ops_event_route_owner.cpp",
+        "include/ingress/vlm_evaluation_promotion.h",
+        "src/ingress/vlm_evaluation_promotion.cpp"
+      ],
+      "prefixes": [],
+      "expectedFileCount": 6,
+      "expectedCppCount": 3
+    },
+    {
+      "id": "transport-and-auth-adapter",
+      "exactFiles": [
+        "include/ingress/http_auth.h",
+        "src/ingress/http_auth.cpp",
+        "include/ingress/request_parser.h",
+        "src/ingress/request_parser.cpp",
+        "include/ingress/strict_json.h",
+        "src/ingress/strict_json.cpp",
+        "include/ingress/webrtc_http_server.h",
+        "src/ingress/webrtc_http_server.cpp"
+      ],
+      "prefixes": [],
+      "expectedFileCount": 8,
+      "expectedCppCount": 4
+    },
+    {
+      "id": "analysis-services",
+      "exactFiles": [],
+      "prefixes": [
+        "include/analysis/",
+        "src/analysis/",
+        "include/ingress/analysis_overlay_probe.h",
+        "src/ingress/analysis_overlay_probe.cpp"
+      ],
+      "expectedFileCount": 64,
+      "expectedCppCount": 33
+    },
+    {
+      "id": "core-utilities",
+      "exactFiles": [
+        "include/app_config.h",
+        "src/app_config.cpp",
+        "include/stdafx.h",
+        "include/core/command_runner.h",
+        "src/core/command_runner.cpp",
+        "include/core/resource_guard.h",
+        "src/core/resource_guard.cpp",
+        "include/core/runtime_debug_counters.h",
+        "include/core/stream_key.h",
+        "src/core/stream_key.cpp"
+      ],
+      "prefixes": [],
+      "expectedFileCount": 10,
+      "expectedCppCount": 4
+    },
+    {
+      "id": "core-media-interfaces",
+      "exactFiles": [],
+      "prefixes": [
+        "include/core/",
+        "src/core/",
+        "include/ingress/gst_pipeline_builder.h",
+        "src/ingress/gst_pipeline_builder.cpp",
+        "include/ingress/gstreamer_rtsp_server.h",
+        "src/ingress/gstreamer_rtsp_server.cpp",
+        "include/ingress/rtsp_adapter.h",
+        "src/ingress/rtsp_adapter.cpp",
+        "include/ingress/rtsp_egress_session.h",
+        "src/ingress/rtsp_egress_session.cpp",
+        "include/ingress/webrtc_egress_session.h",
+        "src/ingress/webrtc_egress_session.cpp",
+        "include/ingress/webrtc_gst_utils.h",
+        "src/ingress/webrtc_gst_utils.cpp",
+        "include/ingress/webrtc_source_session.h",
+        "src/ingress/webrtc_source_session.cpp"
+      ],
+      "expectedFileCount": 26,
+      "expectedCppCount": 12
+    }
+  ],
+  "expectedFileOwnershipSha256": "14462342fd2e4f5f68d40661632304c1b71ff32aed9107ea04b82e2d0a363855",
+  "cmake": {
+    "file": "CMakeLists.txt",
+    "targets": [
+      {
+        "id": "media_server",
+        "type": "executable",
+        "declaredSourceCount": 75,
+        "defaultActiveSourceCount": 74,
+        "conditionalSources": [
+          {
+            "path": "src/core/youtube_resolver.cpp",
+            "option": "MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE",
+            "default": "OFF"
+          }
+        ],
+        "internalModuleTarget": false,
+        "moduleOwners": [
+          "analysis-services",
+          "stable-contract-dtos",
+          "composition-root",
+          "core-utilities",
+          "core-media-interfaces",
+          "application-service-interfaces",
+          "transport-and-auth-adapter",
+          "ops-route-groups",
+          "product-ui-workspaces",
+          "domain-and-registry-owners"
+        ]
+      }
+    ],
+    "internalTargetSeparation": false,
+    "externalLinkEdges": [
+      "media_server -> PkgConfig::GSTREAMER",
+      "media_server -> PkgConfig::PANGOCAIRO",
+      "media_server -> PkgConfig::SQLITE3",
+      "media_server -> PkgConfig::LIBSODIUM",
+      "media_server -> PkgConfig::OPENSSL",
+      "media_server -> OpenSSL::SSL",
+      "media_server -> OpenSSL::Crypto",
+      "media_server -> ${ONNXRUNTIME_LIBRARY}"
+    ]
+  },
+  "observedModuleEdges": [
+    {
+      "direction": "analysis-services -> core-media-interfaces",
+      "witnessCount": 1,
+      "witnessSha256": "97b2751020e7b0f5fb6c02d51458fff7e41c3f5271e73e9787146d59b62b8867",
+      "allowedByTarget": true
+    },
+    {
+      "direction": "analysis-services -> core-utilities",
+      "witnessCount": 14,
+      "witnessSha256": "9fee8e8ecd674ca0c73e761a3f1bb76601a719c58b737e07f684fcd7251d0f68",
+      "allowedByTarget": false
+    },
+    {
+      "direction": "analysis-services -> stable-contract-dtos",
+      "witnessCount": 13,
+      "witnessSha256": "b84b2106ae1b096b74033aa823dcd7baee538f040785704b21e98246e2203181",
+      "allowedByTarget": false
+    },
+    {
+      "direction": "application-service-interfaces -> analysis-services",
+      "witnessCount": 1,
+      "witnessSha256": "6ede5c5f11096ed470b56881a350d289757ea93d4dadb1c4d0af68d606e7e7a1",
+      "allowedByTarget": true
+    },
+    {
+      "direction": "application-service-interfaces -> core-utilities",
+      "witnessCount": 2,
+      "witnessSha256": "d8bde4f518ddb0a9c1107ae5b2a99f0313d21d50be68567d2beb55aa6120665f",
+      "allowedByTarget": false
+    },
+    {
+      "direction": "application-service-interfaces -> domain-and-registry-owners",
+      "witnessCount": 2,
+      "witnessSha256": "304ecb76d57eab4e00b5281867fe6f987d38d3b042d2815d7f36a4bde95dfbbc",
+      "allowedByTarget": true
+    },
+    {
+      "direction": "application-service-interfaces -> ops-route-groups",
+      "witnessCount": 1,
+      "witnessSha256": "02bcedfc67733a976838f2559fb0c2485bffa1db504e26fe9c781153afdc55ec",
+      "allowedByTarget": false
+    },
+    {
+      "direction": "application-service-interfaces -> stable-contract-dtos",
+      "witnessCount": 1,
+      "witnessSha256": "1d16572caac746163b40e07a3e3baa926f6668ac2d7ed2e67313fa8c792e8d8e",
+      "allowedByTarget": false
+    },
+    {
+      "direction": "composition-root -> analysis-services",
+      "witnessCount": 1,
+      "witnessSha256": "161ec98bc15e9c2a97135f16d5d5f872044fe29a8324d159373cbab1c8ad0f6b",
+      "allowedByTarget": true
+    },
+    {
+      "direction": "composition-root -> core-media-interfaces",
+      "witnessCount": 3,
+      "witnessSha256": "76960a031c6ff5f7c6bdcef099fb80e0caa90e95b2671535679ebf160cbafd43",
+      "allowedByTarget": true
+    },
+    {
+      "direction": "composition-root -> core-utilities",
+      "witnessCount": 2,
+      "witnessSha256": "10729e542b8a793db1bc76508471112e3cfc69d7d31eb4de7aba664ff4db871d",
+      "allowedByTarget": true
+    },
+    {
+      "direction": "composition-root -> transport-and-auth-adapter",
+      "witnessCount": 2,
+      "witnessSha256": "d32d40c8293e57337d7e665c16ab04f2691902b85c936613bad3964a960b8919",
+      "allowedByTarget": true
+    },
+    {
+      "direction": "core-media-interfaces -> analysis-services",
+      "witnessCount": 8,
+      "witnessSha256": "171464ad8f0d71d27edfefb1a4a556d9366f3a5a1742f719edb62169424f418f",
+      "allowedByTarget": false
+    },
+    {
+      "direction": "core-media-interfaces -> application-service-interfaces",
+      "witnessCount": 2,
+      "witnessSha256": "f9b52a39382c57779d62ab99187a3708ab011bbb82017a2875fd09471aaed161",
+      "allowedByTarget": false
+    },
+    {
+      "direction": "core-media-interfaces -> core-utilities",
+      "witnessCount": 22,
+      "witnessSha256": "0679efcbc859ba12fa69ddda9704fc63a9c5706f630a87871e183cc22568b0a0",
+      "allowedByTarget": true
+    },
+    {
+      "direction": "core-media-interfaces -> domain-and-registry-owners",
+      "witnessCount": 3,
+      "witnessSha256": "c1aac2066180772ca5beb35d102590f5214fab88b73cd61d38d773cac171672b",
+      "allowedByTarget": false
+    },
+    {
+      "direction": "core-media-interfaces -> stable-contract-dtos",
+      "witnessCount": 10,
+      "witnessSha256": "1e0488b09dba6b65b2bedf243c5f97f3fe57cdeafa4f671e66a01ab019d02d8c",
+      "allowedByTarget": false
+    },
+    {
+      "direction": "core-media-interfaces -> transport-and-auth-adapter",
+      "witnessCount": 2,
+      "witnessSha256": "fc204f2ca79ed1dc9a705432b41d2f2c5967312e6ace9ceb23427750e3d0a1a3",
+      "allowedByTarget": false
+    },
+    {
+      "direction": "core-utilities -> stable-contract-dtos",
+      "witnessCount": 1,
+      "witnessSha256": "1eadc2b2f46fe4c7f1a59415b9a0440345f77d019c1e6c49741b973b49262326",
+      "allowedByTarget": false
+    },
+    {
+      "direction": "domain-and-registry-owners -> core-utilities",
+      "witnessCount": 2,
+      "witnessSha256": "39708fb20b155d511fa73a89923224f022d53d5862aad47c322a4027161ba7d3",
+      "allowedByTarget": true
+    },
+    {
+      "direction": "domain-and-registry-owners -> stable-contract-dtos",
+      "witnessCount": 2,
+      "witnessSha256": "243fd24393d68bfed8fd97562759f0af380b6eb2b5775e21c438025e7a67dafe",
+      "allowedByTarget": false
+    },
+    {
+      "direction": "domain-and-registry-owners -> transport-and-auth-adapter",
+      "witnessCount": 1,
+      "witnessSha256": "07008fe41c9afefab64f14e02c48d34d5083e60f6253e97840b892aea0189178",
+      "allowedByTarget": false
+    },
+    {
+      "direction": "product-ui-workspaces -> transport-and-auth-adapter",
+      "witnessCount": 1,
+      "witnessSha256": "9815470125782cb78d6965f2097bea77b913242600cfcb8b3d24e4a143c65205",
+      "allowedByTarget": false
+    },
+    {
+      "direction": "stable-contract-dtos -> analysis-services",
+      "witnessCount": 1,
+      "witnessSha256": "05b8066b7907e4bf68da610b38957beda8af519def93705244218feaf6491e47",
+      "allowedByTarget": false
+    },
+    {
+      "direction": "stable-contract-dtos -> core-utilities",
+      "witnessCount": 4,
+      "witnessSha256": "bd17168be3f608abab946e67babe4e5e081bee384f96c94fe018ea51040edfe0",
+      "allowedByTarget": false
+    },
+    {
+      "direction": "transport-and-auth-adapter -> analysis-services",
+      "witnessCount": 14,
+      "witnessSha256": "eb7d2f5c388ba82b6dabaa2ba81df6061c796fc896b2fbc3c60c969725bbd5b0",
+      "allowedByTarget": false
+    },
+    {
+      "direction": "transport-and-auth-adapter -> application-service-interfaces",
+      "witnessCount": 2,
+      "witnessSha256": "b23cff7b223a4f15c511bb383210bd74c01d9d16cda359f32c4df5ee2f892fa6",
+      "allowedByTarget": true
+    },
+    {
+      "direction": "transport-and-auth-adapter -> core-media-interfaces",
+      "witnessCount": 3,
+      "witnessSha256": "a6acb3a023656cd9ad57484644850d1f58a5bfc8390ce46452e105db20abd499",
+      "allowedByTarget": false
+    },
+    {
+      "direction": "transport-and-auth-adapter -> core-utilities",
+      "witnessCount": 6,
+      "witnessSha256": "9285f771af658eb63dbe62542371a7353dac52044c3ec65f526c3436d49bb129",
+      "allowedByTarget": false
+    },
+    {
+      "direction": "transport-and-auth-adapter -> domain-and-registry-owners",
+      "witnessCount": 3,
+      "witnessSha256": "42e4633b9b564eb569b6b8193f7be3c2494ad2f8bd803b26f3ec32bf754e0f30",
+      "allowedByTarget": false
+    },
+    {
+      "direction": "transport-and-auth-adapter -> ops-route-groups",
+      "witnessCount": 2,
+      "witnessSha256": "3d87bdebb8f0050b75e444d83d42c1ed0c114d91fa6558d9522a648ef080d434",
+      "allowedByTarget": false
+    },
+    {
+      "direction": "transport-and-auth-adapter -> product-ui-workspaces",
+      "witnessCount": 6,
+      "witnessSha256": "bd3e79ff7af4ff9b063e7004d7a904c5792cd8253913cacff926f289f61cae0f",
+      "allowedByTarget": false
+    },
+    {
+      "direction": "transport-and-auth-adapter -> stable-contract-dtos",
+      "witnessCount": 2,
+      "witnessSha256": "2318025fe4770c3a5326033df2b130c819379693755ad5cdeb799a55da512673",
+      "allowedByTarget": true
+    }
+  ],
+  "legacyForbiddenIncludeEdges": [
+    "include/core/session_manager.h -> include/ingress/request_parser.h",
+    "src/core/session_manager.cpp -> include/ingress/analysis_query.h",
+    "src/core/source_factory.cpp -> include/ingress/webrtc_source_registry.h"
+  ],
+  "stronglyConnectedComponents": [
+    [
+      "analysis-services",
+      "application-service-interfaces",
+      "core-media-interfaces",
+      "core-utilities",
+      "domain-and-registry-owners",
+      "product-ui-workspaces",
+      "stable-contract-dtos",
+      "transport-and-auth-adapter"
+    ]
+  ],
+  "mixedOwnershipDebt": [
+    {
+      "file": "src/ingress/webrtc_http_server.cpp",
+      "lineCount": 43266,
+      "primaryOwner": "transport-and-auth-adapter",
+      "embeddedResponsibilities": [
+        "ops-route-groups",
+        "application-service-interfaces",
+        "domain-and-registry-owners",
+        "product-ui-workspaces",
+        "stable-contract-dtos"
+      ]
+    },
+    {
+      "file": "src/ingress/product_ui_page_scripts.cpp",
+      "lineCount": 10217,
+      "primaryOwner": "product-ui-workspaces",
+      "embeddedResponsibilities": [
+        "ops-workspaces",
+        "client-workspaces",
+        "rules-workspaces",
+        "events-workspaces"
+      ]
+    }
+  ],
+  "resolvedDebt": [
+    {
+      "file": "src/main.cpp",
+      "beforeLineCount": 245,
+      "afterLineCount": 8,
+      "resolvedResponsibility": "composition-root",
+      "replacementOwner": "src/application/media_server_application.cpp"
+    }
+  ],
+  "sliceBindings": [
+    {
+      "id": "composition-root",
+      "entryOwners": [
+        "composition-root",
+        "core-utilities",
+        "core-media-interfaces",
+        "transport-and-auth-adapter",
+        "analysis-services"
+      ],
+      "exitRule": "entrypoint-owner-separated-and-lifecycle-stable"
+    },
+    {
+      "id": "route-api-handler",
+      "entryOwners": [
+        "transport-and-auth-adapter",
+        "ops-route-groups",
+        "application-service-interfaces",
+        "stable-contract-dtos"
+      ],
+      "exitRule": "selected-route-owner-and-contract-stable"
+    },
+    {
+      "id": "registry-domain",
+      "entryOwners": [
+        "application-service-interfaces",
+        "domain-and-registry-owners",
+        "core-media-interfaces",
+        "core-utilities"
+      ],
+      "exitRule": "registry-write-owner-and-restart-stable"
+    },
+    {
+      "id": "ui-script-css",
+      "entryOwners": [
+        "product-ui-workspaces",
+        "transport-and-auth-adapter",
+        "stable-contract-dtos"
+      ],
+      "exitRule": "dom-route-css-and-target-edge-stable"
+    },
+    {
+      "id": "vlm-parser",
+      "entryOwners": [
+        "analysis-services",
+        "application-service-interfaces",
+        "ops-route-groups",
+        "transport-and-auth-adapter"
+      ],
+      "exitRule": "strict-parser-provenance-and-provider-boundary-stable"
+    },
+    {
+      "id": "verifier-docs",
+      "entryOwners": [],
+      "nonProductionSlice": true,
+      "exitRule": "production-graph-unchanged-and-cumulative-debt-verified"
+    }
+  ],
+  "boundary": "current REVIEW4-64 execution graph after Slice 1; it is not a refactor-complete or target-architecture-conformant claim"
+}

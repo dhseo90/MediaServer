@@ -48,6 +48,7 @@ add_executable(media_server
     src/analysis/wrong_direction_scenario.cpp
     src/analysis/zone_occupancy_scenario.cpp
     src/analysis/yolo_onnx_detector.cpp
+    src/application/media_server_application.cpp
     src/app_config.cpp
     src/main.cpp
     src/core/command_runner.cpp
