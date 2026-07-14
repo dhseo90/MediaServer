@@ -35,7 +35,7 @@ Development 17의 readiness와 REVIEW4-51 decision/graph는 승인 당시 histor
 `test/fixtures/v390_structure_stabilization_current_graph.json`, verifier는
 `./server.sh verify-v390-review4-structure-stabilization-execution`입니다.
 
-Current REVIEW4-64 status: `current-continuation-5-completed-slice-6-deferred`
+Current REVIEW4-64 status: `current-continuation-8-completed-slice-6-deferred`
 
 | 순서 | Current Slice | 상태 | 직접 경계 |
 | ---: | --- | --- | --- |
@@ -46,9 +46,9 @@ Current REVIEW4-64 status: `current-continuation-5-completed-slice-6-deferred`
 | 5 | `vlm-parser` | 완료 | strict JSON을 core utility로 이동하고 VLM provenance validator를 application-service owner로 분리; actual save/restart/no-write와 profile/promotion 계약 보존 |
 | 6 | `verifier-docs` | 미착수·deferred | production continuation source/graph가 안정된 뒤 execution evidence, manual UI archive, VLM index를 final review; generated evidence는 그 전까지 parked 상태 |
 
-Current policy v1 graph는 production 159파일/C++ 79개/owner 10개, target 위반 direction
-17개(승인 baseline 25개), 최대 SCC 3, production CMake target 2개입니다. `main.cpp` mixed composition debt는
-245→8줄, selected action route owner는 server 43,266→43,186줄로 닫았고 registry→transport auth edge와 product UI→transport/Auth edge를 제거했습니다. Transport는 현재 40,833줄이며 최대 SCC와 mixed-owner debt는 남아 있으므로 REVIEW4-64 완료가
+Current policy v1 graph는 production 163파일/C++ 80개/owner 10개, target 위반 direction
+10개(승인 baseline 25개), 최대 SCC 0, production CMake target 2개입니다. `main.cpp` mixed composition debt는
+245→8줄, selected action route owner는 server 43,266→43,186줄로 닫았고 registry→transport auth edge와 product UI→transport/Auth edge를 제거했습니다. Transport는 현재 40,840줄이며 mixed-owner debt는 남아 있으므로 REVIEW4-64 완료가
 아닙니다. Historical v2 order와 current order의 전환 범위는 slice identifier/order뿐이며 current branch,
 50~63 prerequisite, 9 preserved contract, 64 뒤 65 acceptance 경계는 유지합니다. Policy v1은
 application-service→core와 transport→Ops/UI를 temporary debt로 기록하며 위반 계산에서 제외하지 않습니다.
@@ -109,6 +109,12 @@ transaction, 통합 registry per-reference lease, shutdown drain, provider close
 실제 격리 source mutation 24건 rejection, build/runtime/media/metadata/CMake 회귀를 통과했고 actual graph는
 production 162/C++ 80, 위반 14, SCC 0, server 40,840줄입니다. 나머지 direction/server/evidence debt는 open입니다.
 
+여덟 번째 current continuation Slice `stable-contract-owner-realignment`을 완료했습니다. Public contract bytes를
+보존하면서 analysis/media/RTSP contract를 실제 Policy v1 owner로 정렬하고 raw decoder에는 core-media facade를
+추가했습니다. Focused 6/0, predecessor 5/0·11/0, build 100%, analysis 181/0, Event/RTSP/WebRTC/SSE/WS
+9/0·6/0·8/0·5/0·9/0을 통과했습니다. Actual graph는 production 163/C++ 80, 위반 10, SCC 0,
+server 40,840줄입니다. 남은 direction/server/evidence debt 때문에 전체 REVIEW4-64는 계속 `in-progress`입니다.
+
 ## Development 17 Structure Stabilization Readiness
 
 Execution branch: `v3.9.0`
@@ -117,7 +123,7 @@ Source release: `v3.9.0`
 
 Historical readiness snapshot execution: `not-run`
 
-Current v3.9 refactor continuation: `in-progress` (Slice 7까지 실행, final target 미충족)
+Current v3.9 refactor continuation: `in-progress` (Slice 8까지 실행, final target 미충족)
 
 Branch creation: `not-performed`
 

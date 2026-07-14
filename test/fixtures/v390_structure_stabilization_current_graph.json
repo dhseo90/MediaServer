@@ -11,7 +11,7 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 162,
+  "expectedProductionFiles": 163,
   "expectedCppFiles": 80,
   "moduleClassifiers": [
     {
@@ -28,18 +28,11 @@
     {
       "id": "stable-contract-dtos",
       "exactFiles": [
-        "include/analysis/analysis_types.h",
-        "include/analysis/tracked_object_metadata.h",
-        "include/analysis/va_runtime_metadata.h",
-        "include/media_types.h",
-        "include/ingress/rtsp_request_context.h",
-        "include/ingress/product_ui_principal_view.h",
-        "src/analysis/tracked_object_metadata.cpp",
-        "src/ingress/rtsp_request_context.cpp"
+        "include/ingress/product_ui_principal_view.h"
       ],
       "prefixes": [],
-      "expectedFileCount": 8,
-      "expectedCppCount": 2
+      "expectedFileCount": 1,
+      "expectedCppCount": 0
     },
     {
       "id": "application-service-interfaces",
@@ -113,8 +106,8 @@
         "include/ingress/analysis_overlay_probe.h",
         "src/ingress/analysis_overlay_probe.cpp"
       ],
-      "expectedFileCount": 69,
-      "expectedCppCount": 36
+      "expectedFileCount": 73,
+      "expectedCppCount": 37
     },
     {
       "id": "core-utilities",
@@ -122,6 +115,7 @@
         "include/app_config.h",
         "src/app_config.cpp",
         "include/stdafx.h",
+        "include/media_types.h",
         "include/core/command_runner.h",
         "src/core/command_runner.cpp",
         "include/core/resource_guard.h",
@@ -135,12 +129,15 @@
         "src/core/stream_key.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 14,
+      "expectedFileCount": 15,
       "expectedCppCount": 6
     },
     {
       "id": "core-media-interfaces",
-      "exactFiles": [],
+      "exactFiles": [
+        "include/ingress/rtsp_request_context.h",
+        "src/ingress/rtsp_request_context.cpp"
+      ],
       "prefixes": [
         "include/core/",
         "src/core/",
@@ -159,11 +156,11 @@
         "include/ingress/webrtc_source_session.h",
         "src/ingress/webrtc_source_session.cpp"
       ],
-      "expectedFileCount": 27,
-      "expectedCppCount": 12
+      "expectedFileCount": 30,
+      "expectedCppCount": 13
     }
   ],
-  "expectedFileOwnershipSha256": "837c084cdb38030791323467171dd3100056864c8168aa3c2e9d90944485ecf1",
+  "expectedFileOwnershipSha256": "cc8bae1207886879ad076fa9e005b55b9212ee5c116a0fa7903759bbfc61002a",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -182,7 +179,6 @@
         "internalModuleTarget": true,
         "moduleOwners": [
           "analysis-services",
-          "stable-contract-dtos",
           "core-utilities",
           "core-media-interfaces",
           "transport-and-auth-adapter",
@@ -220,8 +216,8 @@
   "observedModuleEdges": [
     {
       "direction": "analysis-services -> core-media-interfaces",
-      "witnessCount": 4,
-      "witnessSha256": "5d9e9a75a6e08417c3363af99768912b9640a0ae981f6e71f830b1a5163f88cd",
+      "witnessCount": 5,
+      "witnessSha256": "4c34c5b728a83f3ce819eb0d5ec906e0f43c33ae1f49b499e65c534dfac71294",
       "allowedByTarget": true
     },
     {
@@ -235,12 +231,6 @@
       "witnessCount": 2,
       "witnessSha256": "59a2717878afc62ba907bde4f4cb437fac9a2a9fd402ddaae924830e53c8a19e",
       "allowedByTarget": true
-    },
-    {
-      "direction": "analysis-services -> stable-contract-dtos",
-      "witnessCount": 15,
-      "witnessSha256": "3840900471aba7ef411d86e4dd1ba14372755a1a751cb1fd8eff4657ca0d6fa0",
-      "allowedByTarget": false
     },
     {
       "direction": "application-service-interfaces -> analysis-services",
@@ -292,8 +282,8 @@
     },
     {
       "direction": "core-media-interfaces -> core-utilities",
-      "witnessCount": 24,
-      "witnessSha256": "1ccfb5cabb447aa8863ede85d7daa253317079f30025aaf882382c6ca1796131",
+      "witnessCount": 34,
+      "witnessSha256": "b49dfe746a856995baabbb8ad113b7c6bc5150f1a67bbbfa98d4aca90af1da87",
       "allowedByTarget": true
     },
     {
@@ -303,28 +293,10 @@
       "allowedByTarget": false
     },
     {
-      "direction": "core-media-interfaces -> stable-contract-dtos",
-      "witnessCount": 11,
-      "witnessSha256": "7f921883658d9124746b9e77f20f9d5d1e5aa1fa701e769db27deb3b13115cec",
-      "allowedByTarget": false
-    },
-    {
-      "direction": "core-utilities -> stable-contract-dtos",
-      "witnessCount": 2,
-      "witnessSha256": "f8fe8f9e000fe37c3c7b2c56a0e99e6630ce5cd64b49634b2ab46cc155ec6421",
-      "allowedByTarget": false
-    },
-    {
       "direction": "domain-and-registry-owners -> core-utilities",
-      "witnessCount": 2,
-      "witnessSha256": "39708fb20b155d511fa73a89923224f022d53d5862aad47c322a4027161ba7d3",
+      "witnessCount": 4,
+      "witnessSha256": "e4482a2c7b857ca186cff55cea5a5ec6a24ade0a3657bea0be707c393b1a3af0",
       "allowedByTarget": true
-    },
-    {
-      "direction": "domain-and-registry-owners -> stable-contract-dtos",
-      "witnessCount": 2,
-      "witnessSha256": "243fd24393d68bfed8fd97562759f0af380b6eb2b5775e21c438025e7a67dafe",
-      "allowedByTarget": false
     },
     {
       "direction": "product-ui-workspaces -> stable-contract-dtos",
@@ -334,8 +306,8 @@
     },
     {
       "direction": "transport-and-auth-adapter -> analysis-services",
-      "witnessCount": 17,
-      "witnessSha256": "5a4b641e19ba3714ac8adb5df922d70be17e884c6d91086f16d39afa097e8bcd",
+      "witnessCount": 18,
+      "witnessSha256": "298798f75c8126bd73cfa539cc288b2bd192933b20482640b4fdca12d05bda4d",
       "allowedByTarget": false
     },
     {
@@ -373,12 +345,6 @@
       "witnessCount": 8,
       "witnessSha256": "afea9199641d6a7b964b14c6f9bb301768694996232708f4df2fd7b243a930a9",
       "allowedByTarget": false
-    },
-    {
-      "direction": "transport-and-auth-adapter -> stable-contract-dtos",
-      "witnessCount": 1,
-      "witnessSha256": "14288c2d2f6994a7d241ebbf9ec7e40bd46bd28eb6da1feee7de3b74fddc304d",
-      "allowedByTarget": true
     }
   ],
   "legacyForbiddenIncludeEdges": [
@@ -475,6 +441,34 @@
       "afterLineCount": 520,
       "resolvedResponsibility": "rtsp-analysis-event-overlay-binding-through-neutral-port",
       "replacementOwner": "include/core/media_analysis_port.h + src/analysis/analysis_session_service.cpp"
+    },
+    {
+      "file": "include/analysis/analysis_types.h",
+      "beforeLineCount": 413,
+      "afterLineCount": 413,
+      "resolvedResponsibility": "analysis-contract-owner-realignment-with-byte-identity",
+      "replacementOwner": "analysis-services"
+    },
+    {
+      "file": "include/media_types.h",
+      "beforeLineCount": 128,
+      "afterLineCount": 128,
+      "resolvedResponsibility": "dependency-free-media-primitive-owner-realignment",
+      "replacementOwner": "core-utilities"
+    },
+    {
+      "file": "include/ingress/rtsp_request_context.h",
+      "beforeLineCount": 33,
+      "afterLineCount": 33,
+      "resolvedResponsibility": "rtsp-request-contract-owner-realignment-with-byte-identity",
+      "replacementOwner": "core-media-interfaces"
+    },
+    {
+      "file": "include/analysis/raw_video_decoder.h",
+      "beforeLineCount": 34,
+      "afterLineCount": 34,
+      "resolvedResponsibility": "analysis-to-media-primitive-dependency-through-core-media-facade",
+      "replacementOwner": "include/core/media_packet_contract.h"
     }
   ],
   "sliceBindings": [
@@ -535,5 +529,5 @@
       "exitRule": "production-graph-unchanged-and-cumulative-debt-verified"
     }
   ],
-  "boundary": "current REVIEW4-64 continuation graph after the core-media analysis port inversion; Policy v1 counts 14 target-direction violations and zero multi-owner SCCs, while internal target separation is true and mixed-owner/final evidence debt remain unresolved; this is not a refactor-complete claim"
+  "boundary": "current REVIEW4-64 continuation graph after stable contract owner realignment; Policy v1 counts 10 target-direction violations and zero multi-owner SCCs, while internal target separation is true and mixed-owner/final evidence debt remain unresolved; this is not a refactor-complete claim"
 }

@@ -55,13 +55,13 @@
   "currentGraph": {
     "path": "test/fixtures/v390_structure_stabilization_current_graph.json",
     "schema": "media-server.v390-structure-stabilization-current-graph.v1",
-    "sha256": "25c6cb15827c4ae2ecb32872929d0b712e13b3bdb8b3f598960f456ff2490601",
+    "sha256": "a12097f18049745f833a1fc73fb8b9d762b027c11ea9a4b1372395a6a1cfd884",
     "metrics": {
-      "productionFiles": 162,
+      "productionFiles": 163,
       "cppSources": 80,
       "moduleOwners": 10,
       "cmakeTargets": 2,
-      "targetViolationDirections": 14,
+      "targetViolationDirections": 10,
       "largestSccOwners": 0,
       "largestMixedOwnerFileLines": 40840,
       "internalTargetSeparation": true
@@ -69,7 +69,7 @@
   },
   "currentContinuation": {
     "status": "in-progress",
-    "latestCompletedSlice": 7,
+    "latestCompletedSlice": 8,
     "sliceSequenceStatus": "partial",
     "architectureStatus": "final-targets-unmet",
     "finalEvidenceStatus": "parked-generated-artifacts-in-review",
@@ -900,6 +900,103 @@
           {"command":"./server.sh verify-docs-links","status":"pass","result":"168 Markdown, 875 links, 22 images, 99 anchors, failures 0"},
           {"command":"git diff --check","status":"pass","result":"exit 0"},
           {"command":"listener/temp cleanup","status":"pass","result":"two batches: 34 paths/11079199 bytes and 41 paths/25558296 bytes measured then deleted; 75 paths/36637495 bytes cumulative; listeners 8555/8081/19091 absent"}
+        ]
+      },
+      {
+        "order": 8,
+        "id": "stable-contract-owner-realignment",
+        "status": "completed",
+        "nonProductionSlice": false,
+        "rollbackCommit": "5c45e3000f86711102c3a01eeecbcbb05d0678a6",
+        "selectedBoundary": "realign dependency-free media primitives, analysis contracts, and RTSP request context to their Policy v1 target owners without changing contract bytes",
+        "allowedFiles": [
+          "server.sh",
+          "include/core/media_packet_contract.h",
+          "include/analysis/raw_video_decoder.h",
+          "scripts/internal/verify_v390_stable_contract_owner_realignment.mjs",
+          "scripts/internal/verify_v390_stable_contract_leaf_boundary.mjs",
+          "scripts/internal/verify_v390_core_media_analysis_port_inversion.mjs",
+          "scripts/internal/verify_v390_structure_stabilization_execution.mjs",
+          "test/fixtures/v390_structure_stabilization_current_graph.json",
+          "test/fixtures/v390_structure_stabilization_execution.json",
+          "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md",
+          "docs/development-backlog.md",
+          "docs/project-feature-test-inventory.md",
+          "docs/stream-verification.md",
+          "docs/release-test-records.md",
+          "docs/release-evidence-index.md"
+        ],
+        "changedFiles": [
+          "server.sh",
+          "include/core/media_packet_contract.h",
+          "include/analysis/raw_video_decoder.h",
+          "scripts/internal/verify_v390_stable_contract_owner_realignment.mjs",
+          "scripts/internal/verify_v390_stable_contract_leaf_boundary.mjs",
+          "scripts/internal/verify_v390_core_media_analysis_port_inversion.mjs",
+          "scripts/internal/verify_v390_structure_stabilization_execution.mjs",
+          "test/fixtures/v390_structure_stabilization_current_graph.json",
+          "test/fixtures/v390_structure_stabilization_execution.json",
+          "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md",
+          "docs/development-backlog.md",
+          "docs/project-feature-test-inventory.md",
+          "docs/stream-verification.md",
+          "docs/release-test-records.md",
+          "docs/release-evidence-index.md"
+        ],
+        "before": {
+          "productionGraphSha256": "25c6cb15827c4ae2ecb32872929d0b712e13b3bdb8b3f598960f456ff2490601",
+          "productionFiles": 162,
+          "cppSources": 80,
+          "targetViolationDirectionsUnderPolicyV1": 14,
+          "largestSccOwners": 0,
+          "webrtcHttpServerLines": 40840,
+          "cmakeTargets": 2,
+          "internalTargetSeparation": true
+        },
+        "after": {
+          "productionGraphSha256": "a12097f18049745f833a1fc73fb8b9d762b027c11ea9a4b1372395a6a1cfd884",
+          "productionFiles": 163,
+          "cppSources": 80,
+          "targetViolationDirectionsUnderPolicyV1": 10,
+          "largestSccOwners": 0,
+          "webrtcHttpServerLines": 40840,
+          "cmakeTargets": 2,
+          "internalTargetSeparation": true
+        },
+        "contractAssertions": [
+          "analysis/media/RTSP/public contract bytes remain byte-identical to the Slice 8 rollback commit",
+          "stable-contract-dtos contains only the dependency-free ProductUiPrincipalView presentation leaf",
+          "analysis contracts are analysis-owned, media_types is a core utility primitive, and RTSP request context is core-media owned",
+          "RawVideoDecoder reaches media packet types through an analysis-neutral core-media facade",
+          "exactly four stable-contract violation directions disappear without a new direction or SCC",
+          "Event POST, WebRTC/SSE/WS metadata, RTSP/WebRTC media, Auth, route, registry, rule/profile, and UI contracts remain unchanged",
+          "parked generated evidence remains unstaged and non-final"
+        ],
+        "observedFollowups": [
+          "read-only architecture review reproduced all 14 violation directions and 95 witnesses with the canonical include resolver",
+          "the focused owner oracle was registered before production and returned expected RED 1/5",
+          "the first post-change graph had 22 observed directions rather than the planned 23 because the allowed transport-to-stable direction disappeared together with the four forbidden stable directions; no new direction appeared and violations still fell from 14 to 10",
+          "the predecessor stable-leaf and core-media inversion oracles exposed stale exact graph frontiers; both were narrowed to successor-safe invariants and rerun with their real mutation suites",
+          "independent review found that count-only graph checks could accept a direction swap; the Slice 8 oracle now binds the exact 22-direction successor set and the predecessor gates reject directions outside their historical successor allowlists, with direction-swap negatives",
+          "the media packet facade preserves the public media_types bytes while making RawVideoDecoder consume the primitive through the core-media owner"
+        ],
+        "tests": [
+          {"command":"./server.sh verify-v390-stable-contract-owner-realignment","status":"pass","firstAttempt":"pre-production expected RED 1/5; independent-review direction-swap expected RED 5/1","result":"6/0; six isolated mutations rejected"},
+          {"command":"./server.sh build","status":"pass","result":"100%"},
+          {"command":"./server.sh verify-v390-stable-contract-leaf-boundary","status":"pass","result":"5/0"},
+          {"command":"./server.sh verify-v390-core-media-analysis-port-inversion","status":"pass","firstAttempt":"independent-review direction-swap expected RED 10/1","result":"11/0 with twenty-five actual isolated mutations"},
+          {"command":"./server.sh verify-analysis-state","status":"pass","result":"181/0"},
+          {"command":"./server.sh verify-v290-final-contract-freeze","status":"pass","result":"10/0"},
+          {"command":"./server.sh verify-event-post --mode schema","status":"pass","result":"9/0; schema SHA a746b8c23e8966df900f5c43c5eef3c94d9b59611142d1e9df8486f086b55aa0"},
+          {"command":"./server.sh verify-rtsp-va-overlay-policy","status":"pass","result":"6/0"},
+          {"command":"./server.sh verify-webrtc-va-metadata","status":"pass","result":"8/0"},
+          {"command":"./server.sh verify-sse-metadata","status":"pass","result":"5/0"},
+          {"command":"./server.sh verify-ws-metadata","status":"pass","result":"9/0"},
+          {"command":"./server.sh verify-v390-review4-structure-stabilization-execution","status":"pass","result":"15/0"},
+          {"command":"./server.sh verify-script-inventory","status":"pass","result":"11/0"},
+          {"command":"./server.sh verify-docs-links","status":"pass","result":"168 Markdown, 876 links, 22 images, 99 anchors, failures 0"},
+          {"command":"git diff --check","status":"pass","result":"exit 0"},
+          {"command":"listener/temp cleanup","status":"pass","result":"12 top-level current-run paths/4866048 allocated bytes measured then deleted; listeners 8555/8081/19091 absent"}
         ]
       }
     ]

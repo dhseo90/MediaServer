@@ -477,10 +477,11 @@ check("non-production Slice preserves production graph and parked evidence stays
   }
 });
 
-check("current continuation binds the exact Slice 1-7 frontier without a final claim", () => {
+check("current continuation binds the exact Slice 1-8 frontier without a final claim", () => {
   const slices = ledger.currentContinuation?.orderedSlices || [];
-  assert(slices.length === 7 && slices[0].order === 1 && slices[1].order === 2 && slices[2].order === 3 &&
+  assert(slices.length === 8 && slices[0].order === 1 && slices[1].order === 2 && slices[2].order === 3 &&
     slices[3].order === 4 && slices[4].order === 5 && slices[5].order === 6 && slices[6].order === 7 &&
+    slices[7].order === 8 &&
     slices[0].id === "completion-oracle-and-ops-ui-renderer" && slices[0].status === "completed" &&
     slices[1].id === "product-ui-principal-view-boundary" && slices[1].status === "completed" &&
     slices[2].id === "source-request-parser-owner-boundary" && slices[2].status === "completed" &&
@@ -488,7 +489,9 @@ check("current continuation binds the exact Slice 1-7 frontier without a final c
     slices[4].id === "stable-contract-leaf-boundary" && slices[4].status === "completed" &&
     slices[5].id === "analysis-query-owner-boundary" && slices[5].status === "completed" &&
     slices[6].id === "core-media-analysis-port-inversion" &&
-    ["in-progress", "completed"].includes(slices[6].status),
+    slices[6].status === "completed" &&
+    slices[7].id === "stable-contract-owner-realignment" &&
+    ["in-progress", "completed"].includes(slices[7].status),
   "current continuation slice identity/frontier mismatch");
   const slice1 = slices[0];
   const slice2 = slices[1];
@@ -497,6 +500,7 @@ check("current continuation binds the exact Slice 1-7 frontier without a final c
   const slice5 = slices[4];
   const slice6 = slices[5];
   const slice7 = slices[6];
+  const slice8 = slices[7];
   assert(slice1.rollbackCommit === ledger.orderedSlices[5].rollbackCommit &&
     slice1.nonProductionSlice === false && slice1.contractAssertions.length >= 5 && slice1.tests.length >= 5 &&
     slice1.tests.every(test => test.status === "pass"),
@@ -594,8 +598,11 @@ check("current continuation binds the exact Slice 1-7 frontier without a final c
       !fs.existsSync(path.join(rootDir, "src/ingress/request_parser.cpp")) &&
       !graph.observedModuleEdges.some(item =>
         item.direction === "core-media-interfaces -> transport-and-auth-adapter") &&
-      graph.observedModuleEdges.some(item =>
-        item.direction === "core-utilities -> stable-contract-dtos" && item.allowedByTarget === false),
+      (ledger.currentContinuation.latestCompletedSlice >= 8
+        ? !graph.observedModuleEdges.some(item =>
+          item.direction === "core-utilities -> stable-contract-dtos")
+        : graph.observedModuleEdges.some(item =>
+          item.direction === "core-utilities -> stable-contract-dtos" && item.allowedByTarget === false)),
     "completed Slice 3 did not remove only the intended core-media request-parser dependency");
     if (ledger.currentContinuation.orderedSlices.at(-1)?.id === slice3.id) {
       assert(Array.isArray(slice3.parkedArtifactInvariants) && slice3.parkedArtifactInvariants.length === 2,
@@ -862,19 +869,22 @@ check("current continuation binds the exact Slice 1-7 frontier without a final c
     "in-progress Slice 7 rewrote graph/after evidence before production verification completed");
   } else {
     assert(ledger.currentContinuation.status === "in-progress" &&
-      ledger.currentContinuation.latestCompletedSlice === 7 &&
+      ledger.currentContinuation.latestCompletedSlice >= 7 &&
       ledger.currentContinuation.sliceSequenceStatus === "partial" && slice7.after !== null &&
       slice7.tests.every(test => test.status === "pass"),
     "completed Slice 7 frontier/test state mismatch");
-    assert(slice7.after.productionGraphSha256 === ledger.currentGraph.sha256 &&
+    assert((slice8.status === "completed"
+      ? JSON.stringify(slice7.after) === JSON.stringify(slice8.before)
+      : slice7.after.productionGraphSha256 === ledger.currentGraph.sha256) &&
       slice7.after.productionFiles === 162 && slice7.after.cppSources === 80 &&
       slice7.after.targetViolationDirectionsUnderPolicyV1 === 14 &&
       slice7.after.largestSccOwners === 0 &&
-      slice7.after.webrtcHttpServerLines === ledger.currentGraph.metrics.largestMixedOwnerFileLines &&
+      slice7.after.webrtcHttpServerLines === 40840 &&
       slice7.after.webrtcHttpServerLines <= slice7.before.webrtcHttpServerLines + 10 &&
       slice7.after.cmakeTargets === 2 && slice7.after.internalTargetSeparation === true,
     "completed Slice 7 graph metrics drift");
-    assert(graph.observedModuleEdges.length === 27 && graph.stronglyConnectedComponents.length === 0 &&
+    assert((slice8.status === "completed" || graph.observedModuleEdges.length === 27) &&
+      graph.stronglyConnectedComponents.length === 0 &&
       !graph.observedModuleEdges.some(item =>
         item.direction === "core-media-interfaces -> analysis-services" ||
         item.direction === "core-media-interfaces -> application-service-interfaces") &&
@@ -894,6 +904,63 @@ check("current continuation binds the exact Slice 1-7 frontier without a final c
         exec("git", ["diff", "--cached", "--name-only", "--", invariant.path]) === "",
       `completed Slice 7 parked artifact changed or was staged: ${invariant.path}`);
     }
+  }
+  const slice8Commands = [
+    "./server.sh verify-v390-stable-contract-owner-realignment",
+    "./server.sh build",
+    "./server.sh verify-v390-stable-contract-leaf-boundary",
+    "./server.sh verify-v390-core-media-analysis-port-inversion",
+    "./server.sh verify-analysis-state",
+    "./server.sh verify-v290-final-contract-freeze",
+    "./server.sh verify-event-post --mode schema",
+    "./server.sh verify-rtsp-va-overlay-policy",
+    "./server.sh verify-webrtc-va-metadata",
+    "./server.sh verify-sse-metadata",
+    "./server.sh verify-ws-metadata",
+    "./server.sh verify-v390-review4-structure-stabilization-execution",
+    "./server.sh verify-script-inventory",
+    "./server.sh verify-docs-links",
+    "git diff --check",
+    "listener/temp cleanup",
+  ];
+  assert(slice8.rollbackCommit === "5c45e3000f86711102c3a01eeecbcbb05d0678a6" &&
+    slice8.nonProductionSlice === false && slice8.contractAssertions.length >= 7 &&
+    slice8.tests.length === slice8Commands.length &&
+    slice8Commands.every(command => slice8.tests.filter(test => test.command === command).length === 1),
+  "current continuation Slice 8 rollback/contract/test inventory drift");
+  assert(JSON.stringify(slice8.before) === JSON.stringify(slice7.after),
+    "current continuation Slice 8 before-state is not bound to Slice 7 frontier");
+  if (slice8.status === "in-progress") {
+    assert(ledger.currentContinuation.status === "in-progress" &&
+      ledger.currentContinuation.latestCompletedSlice === 7 &&
+      ledger.currentContinuation.sliceSequenceStatus === "partial" && slice8.after === null,
+    "in-progress Slice 8 frontier/after-state overclaim");
+    assert(sliceTest(slice8, slice8Commands[0]).status === "expected-red" &&
+      slice8.tests.slice(1).every(test => test.status === "registered"),
+    "in-progress Slice 8 test registration/RED state drift");
+    assert(ledger.currentGraph.sha256 === slice8.before.productionGraphSha256 &&
+      ledger.currentGraph.metrics.productionFiles === slice8.before.productionFiles &&
+      ledger.currentGraph.metrics.cppSources === slice8.before.cppSources &&
+      ledger.currentGraph.metrics.targetViolationDirections ===
+        slice8.before.targetViolationDirectionsUnderPolicyV1,
+    "in-progress Slice 8 rewrote graph evidence before production verification completed");
+  } else {
+    assert(ledger.currentContinuation.latestCompletedSlice === 8 && slice8.after !== null &&
+      slice8.tests.every(test => test.status === "pass"),
+    "completed Slice 8 frontier/test state mismatch");
+    assert(slice8.after.productionGraphSha256 === ledger.currentGraph.sha256 &&
+      slice8.after.productionFiles === 163 && slice8.after.cppSources === 80 &&
+      slice8.after.targetViolationDirectionsUnderPolicyV1 === 10 &&
+      slice8.after.largestSccOwners === 0 && slice8.after.webrtcHttpServerLines === 40840 &&
+      slice8.after.cmakeTargets === 2 && slice8.after.internalTargetSeparation === true &&
+      graph.observedModuleEdges.length === 22 &&
+      !graph.observedModuleEdges.some(item => [
+        "analysis-services -> stable-contract-dtos",
+        "core-media-interfaces -> stable-contract-dtos",
+        "core-utilities -> stable-contract-dtos",
+        "domain-and-registry-owners -> stable-contract-dtos",
+      ].includes(item.direction)),
+    "completed Slice 8 stable-contract owner graph delta drift");
   }
   assert(ledger.currentContinuation.finalCompletionClaimAllowed === false &&
     ledger.refactorComplete === false && ledger.completionClaimed === false,

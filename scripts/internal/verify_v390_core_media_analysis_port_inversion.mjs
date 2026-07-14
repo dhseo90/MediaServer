@@ -426,18 +426,36 @@ check("composition uses exactly one analysis service identity", () => {
 check("graph target and source mutations fail closed", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const ledger = JSON.parse(read("test/fixtures/v390_structure_stabilization_execution.json"));
-  assert(graph.expectedProductionFiles === 162 && graph.expectedCppFiles === 80 &&
-    graph.observedModuleEdges.length === 27 &&
-    graph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 14 &&
+  const allowedSuccessorViolations = new Set([
+    "analysis-services -> core-utilities",
+    "analysis-services -> stable-contract-dtos",
+    "application-service-interfaces -> core-utilities",
+    "application-service-interfaces -> ops-route-groups",
+    "core-media-interfaces -> domain-and-registry-owners",
+    "core-media-interfaces -> stable-contract-dtos",
+    "core-utilities -> stable-contract-dtos",
+    "domain-and-registry-owners -> stable-contract-dtos",
+    "transport-and-auth-adapter -> analysis-services",
+    "transport-and-auth-adapter -> core-media-interfaces",
+    "transport-and-auth-adapter -> core-utilities",
+    "transport-and-auth-adapter -> domain-and-registry-owners",
+    "transport-and-auth-adapter -> ops-route-groups",
+    "transport-and-auth-adapter -> product-ui-workspaces",
+  ]);
+  const violations = graph.observedModuleEdges.filter(item => item.allowedByTarget === false);
+  assert(graph.expectedProductionFiles >= 162 && graph.expectedCppFiles >= 80 &&
+    violations.length <= 14 && violations.every(item => allowedSuccessorViolations.has(item.direction)) &&
     graph.stronglyConnectedComponents.length === 0,
   "core media analysis inversion graph metrics drift");
   assert(!graph.observedModuleEdges.some(item =>
     item.direction === "core-media-interfaces -> analysis-services" ||
     item.direction === "core-media-interfaces -> application-service-interfaces"),
   "core media outer-owner direction remains");
-  assert(ledger.currentContinuation.architectureStatus === "final-targets-unmet" &&
-    ledger.currentContinuation.finalCompletionClaimAllowed === false,
-  "SCC closure overclaims all architecture targets");
+  if (violations.length > 0) {
+    assert(ledger.currentContinuation.architectureStatus === "final-targets-unmet" &&
+      ledger.currentContinuation.finalCompletionClaimAllowed === false,
+    "SCC closure overclaims all architecture targets");
+  }
 });
 
 const oracleInputFiles = [
@@ -525,6 +543,13 @@ if (!skipMutations) {
     }
 
     const mutations = [
+      {
+        id: "graph-direction-swap",
+        file: "test/fixtures/v390_structure_stabilization_current_graph.json",
+        mutate: text => text.replace('"direction": "analysis-services -> core-utilities"',
+          '"direction": "analysis-services -> product-ui-workspaces"'),
+        expectedFailure: "core media analysis inversion graph metrics drift",
+      },
       {
         id: "analysis-include",
         file: "include/ingress/rtsp_egress_session.h",
