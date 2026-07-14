@@ -3,11 +3,9 @@
 
 #include <string>
 
-namespace ingress {
+#include "ingress/product_ui_principal_view.h"
 
-namespace auth {
-struct Principal;
-}  // namespace auth
+namespace ingress {
 
 std::string LoginPageHtml(const std::string& message, bool failed);
 std::string SetupPageHtml(const std::string& message, bool failed);
@@ -15,10 +13,10 @@ std::string InviteSetupPageHtml(const std::string& token,
                                 const std::string& message,
                                 bool failed);
 std::string ClientAccessRequestPageHtml();
-std::string PasswordChangePageHtml(const auth::Principal& principal,
+std::string PasswordChangePageHtml(const ProductUiPrincipalView& principal,
                                    const std::string& message,
                                    bool failed);
-std::string AuthLandingPageHtml(const auth::Principal& principal,
+std::string AuthLandingPageHtml(const ProductUiPrincipalView& principal,
                                 const std::string& title,
                                 const std::string& body);
 

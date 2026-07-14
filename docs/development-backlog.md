@@ -5867,6 +5867,21 @@ v2.7.0의 예정 항목 완료 evidence로 재사용하지 않습니다.
 | V240-S05 | 완료 | Rule and Scenario Review Loop | 과거 baseline, v2.7.0 완료 근거 아님 |
 | V240-S08 | 완료 | release readiness gate | `verify-v240-release-readiness-gate` local readiness이며 publish evidence가 아님 |
 
+## V390-REVIEW4-64 current continuation Slice 2 완료
+
+`product-ui-principal-view-boundary`를 완료했습니다. `include/ingress/product_ui_principal_view.h`가
+display identity, role/auth label, scopes, admin/operator UI capability만 가진 stable-contract DTO를 소유하고,
+`src/ingress/webrtc_http_server.cpp`의 transport adapter만 `auth::Principal`을 이 DTO로 변환합니다.
+`product_ui_auth_pages`와 `product_ui_server_pages`의 Auth transport type·helper 의존은 제거했으며
+password/landing/Ops/source/users/rules/dashboard/events/home/VLM HTML·DOM과 role/scope 의미는 유지했습니다.
+
+검증은 focused boundary 4/0, build 100%, Auth bootstrap/users/routes 19/0·72/0·146/0,
+Ops renderer 5/0, v2.3 renderer decomposition 8/0, loopback static UI 28/0을 통과했습니다.
+Auth 비밀번호는 실행 환경에만 주입했고 저장소나 증적에 기록하지 않았으며, 실제 사용자 registry는
+각 Auth 실행 전후 동일했습니다. Current graph는 production 159/C++ 79, target 위반 20, SCC 8,
+transport 40,833줄, CMake target 1/internal separation false입니다. 따라서 Slice 2는 완료지만
+REVIEW4-64 전체와 REVIEW4-65 acceptance는 아직 완료가 아닙니다.
+
 ## 후속 이슈 추천 규칙
 
 후속 이슈는 현재 source tree와 현재 v3.9 스텝 범위 안에서 실제로 처리 가능한 항목만

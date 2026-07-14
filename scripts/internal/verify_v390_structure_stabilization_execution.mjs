@@ -456,28 +456,123 @@ check("non-production Slice preserves production graph and parked evidence stays
   }
 });
 
-check("current continuation binds the completion oracle and Ops renderer without a final claim", () => {
+check("current continuation binds Slice 1 and fail-closes Slice 2 state without a final claim", () => {
   const slices = ledger.currentContinuation?.orderedSlices || [];
-  assert(slices.length === 1 && slices[0].order === 1 &&
+  assert(slices.length === 2 && slices[0].order === 1 && slices[1].order === 2 &&
     slices[0].id === "completion-oracle-and-ops-ui-renderer" && slices[0].status === "completed" &&
-    ledger.currentContinuation.latestCompletedSlice === 1,
+    slices[1].id === "product-ui-principal-view-boundary" &&
+    ["in-progress", "completed"].includes(slices[1].status),
   "current continuation slice identity/frontier mismatch");
-  const slice = slices[0];
-  assert(slice.rollbackCommit === ledger.orderedSlices[5].rollbackCommit &&
-    slice.nonProductionSlice === false && slice.contractAssertions.length >= 5 && slice.tests.length >= 5 &&
-    slice.tests.every(test => test.status === "pass"),
-  "current continuation rollback/contract/test boundary mismatch");
-  assert(slice.after?.productionGraphSha256 === ledger.currentGraph.sha256 &&
-    slice.after.productionFiles === ledger.currentGraph.metrics.productionFiles &&
-    slice.after.cppSources === ledger.currentGraph.metrics.cppSources &&
-    slice.after.targetViolationDirectionsUnderPolicyV1 === ledger.currentGraph.metrics.targetViolationDirections &&
-    slice.after.webrtcHttpServerLines === ledger.currentGraph.metrics.largestMixedOwnerFileLines &&
-    slice.after.internalTargetSeparation === ledger.currentGraph.metrics.internalTargetSeparation,
-  "current continuation after-state is not bound to the actual current graph");
-  assert(slice.after.targetViolationDirectionsUnderPolicyV1 ===
-      slice.before.targetViolationDirectionsUnderPolicyV1 &&
+  const slice1 = slices[0];
+  const slice2 = slices[1];
+  assert(slice1.rollbackCommit === ledger.orderedSlices[5].rollbackCommit &&
+    slice1.nonProductionSlice === false && slice1.contractAssertions.length >= 5 && slice1.tests.length >= 5 &&
+    slice1.tests.every(test => test.status === "pass"),
+  "current continuation Slice 1 rollback/contract/test boundary mismatch");
+  assert(JSON.stringify(slice1.after) === JSON.stringify({
+    productionGraphSha256: "32cca3ef3446ff2c14377b956a119990f34251c2a504af7c57c8b91e3482a109",
+    productionFiles: 158,
+    cppSources: 79,
+    targetViolationDirectionsUnderPolicyV1: 21,
+    webrtcHttpServerLines: 40814,
+    cmakeTargets: 1,
+    internalTargetSeparation: false,
+  }), "current continuation Slice 1 completed after-state drift");
+  assert(slice1.after.targetViolationDirectionsUnderPolicyV1 ===
+      slice1.before.targetViolationDirectionsUnderPolicyV1 &&
     !graph.observedModuleEdges.some(item => item.direction === "product-ui-workspaces -> core-utilities"),
   "Ops renderer introduced or hid a target-direction dependency regression");
+
+  assert(slice2.rollbackCommit === "e89755e380d59785dd987f0106f39b4509a9b49a" &&
+    slice2.rollbackCommit !== slice1.rollbackCommit &&
+    exec("git", ["merge-base", "--is-ancestor", slice2.rollbackCommit, "HEAD"], true).status === 0 &&
+    slice2.nonProductionSlice === false && slice2.contractAssertions.length >= 6 && slice2.tests.length >= 10,
+  "current continuation Slice 2 rollback/contract/test boundary mismatch");
+  assert(slice2.before?.productionGraphSha256 === slice1.after.productionGraphSha256 &&
+    slice2.before.productionFiles === slice1.after.productionFiles &&
+    slice2.before.cppSources === slice1.after.cppSources &&
+    slice2.before.targetViolationDirectionsUnderPolicyV1 ===
+      slice1.after.targetViolationDirectionsUnderPolicyV1 &&
+    slice2.before.webrtcHttpServerLines === slice1.after.webrtcHttpServerLines &&
+    slice2.before.cmakeTargets === slice1.after.cmakeTargets &&
+    slice2.before.internalTargetSeparation === slice1.after.internalTargetSeparation &&
+    slice2.before.largestSccOwners === 8,
+  "current continuation Slice 2 before-state is not bound to Slice 1 frontier");
+
+  const expectedInProgressTests = new Map([
+    ["./server.sh verify-v390-product-ui-principal-view-boundary", "pass"],
+    ["./server.sh build", "pass"],
+    ["./server.sh verify-auth-bootstrap", "blocker"],
+    ["./server.sh verify-auth-users", "skipped-after-blocker"],
+    ["./server.sh verify-auth-routes", "skipped-after-blocker"],
+    ["./server.sh verify-v390-ops-product-ui-renderer-owner", "pass"],
+    ["./server.sh verify-v230-ui-renderer-module-decomposition", "skipped-after-blocker"],
+    ["./server.sh verify-ops-client-ui --browser-mode static --http-base http://127.0.0.1:8081", "skipped-after-blocker"],
+    ["./server.sh verify-v390-review4-structure-stabilization-execution", "skipped-after-blocker"],
+    ["./server.sh verify-script-inventory", "skipped-after-blocker"],
+    ["./server.sh verify-docs-links", "skipped-after-blocker"],
+    ["git diff --check", "pass-diagnostic-after-blocker"],
+    ["listener/temp cleanup", "pass-diagnostic-after-blocker"],
+  ]);
+  if (slice2.status === "in-progress") {
+    assert(ledger.currentContinuation.status === "in-progress" &&
+      ledger.currentContinuation.latestCompletedSlice === 1 &&
+      ledger.currentContinuation.sliceSequenceStatus === "partial" && slice2.after === null,
+    "in-progress Slice 2 frontier/after-state overclaim");
+    assert(slice2.tests.length === expectedInProgressTests.size,
+      "in-progress Slice 2 test inventory count drift");
+    for (const [command, status] of expectedInProgressTests) {
+      const test = sliceTest(slice2, command);
+      assert(test.status === status, `in-progress Slice 2 test status drift: ${command}`);
+    }
+    const authBlocker = sliceTest(slice2, "./server.sh verify-auth-bootstrap");
+    assert(authBlocker.credentialPlaintextInOutput === false &&
+      authBlocker.unsandboxedAttempt === "approval granted conditionally; not executed" &&
+      authBlocker.currentAdminCredential === "required-existing-value-unavailable" &&
+      authBlocker.liveAdminAccountMutationPerformed === false,
+    "in-progress Slice 2 auth blocker truth boundary drift");
+    assert(sliceTest(slice2, "./server.sh verify-v390-ops-product-ui-renderer-owner")
+      .result.includes("executed before auth blocker"),
+    "in-progress Slice 2 renderer PASS lacks before-blocker ordering evidence");
+    assert(ledger.currentGraph.sha256 === slice2.before.productionGraphSha256 &&
+      ledger.currentGraph.metrics.productionFiles === slice2.before.productionFiles &&
+      ledger.currentGraph.metrics.cppSources === slice2.before.cppSources &&
+      ledger.currentGraph.metrics.targetViolationDirections ===
+        slice2.before.targetViolationDirectionsUnderPolicyV1 &&
+      ledger.currentGraph.metrics.largestSccOwners === slice2.before.largestSccOwners,
+    "in-progress Slice 2 rewrote graph/after evidence despite the unresolved blocker");
+  } else {
+    assert(ledger.currentContinuation.status === "in-progress" &&
+      ledger.currentContinuation.latestCompletedSlice === 2 &&
+      ledger.currentContinuation.sliceSequenceStatus === "partial" && slice2.after !== null,
+    "completed Slice 2 frontier/after-state mismatch");
+    assert(slice2.tests.length === expectedInProgressTests.size,
+      "completed Slice 2 test inventory count drift");
+    for (const command of expectedInProgressTests.keys()) {
+      assert(sliceTest(slice2, command).status === "pass",
+        `completed Slice 2 retains blocker, skipped, or diagnostic-only state: ${command}`);
+    }
+    assert(slice2.after.productionGraphSha256 === ledger.currentGraph.sha256 &&
+      slice2.after.productionFiles === ledger.currentGraph.metrics.productionFiles &&
+      slice2.after.cppSources === ledger.currentGraph.metrics.cppSources &&
+      slice2.after.targetViolationDirectionsUnderPolicyV1 ===
+        ledger.currentGraph.metrics.targetViolationDirections &&
+      slice2.after.largestSccOwners === ledger.currentGraph.metrics.largestSccOwners &&
+      slice2.after.webrtcHttpServerLines === ledger.currentGraph.metrics.largestMixedOwnerFileLines &&
+      slice2.after.cmakeTargets === ledger.currentGraph.metrics.cmakeTargets &&
+      slice2.after.internalTargetSeparation === ledger.currentGraph.metrics.internalTargetSeparation,
+    "completed Slice 2 after-state is not bound to the actual current graph");
+    assert(slice2.after.productionFiles === slice2.before.productionFiles + 1 &&
+      slice2.after.cppSources === slice2.before.cppSources &&
+      slice2.after.targetViolationDirectionsUnderPolicyV1 <
+        slice2.before.targetViolationDirectionsUnderPolicyV1 &&
+      !graph.observedModuleEdges.some(item =>
+        item.direction === "product-ui-workspaces -> transport-and-auth-adapter") &&
+      graph.observedModuleEdges.some(item =>
+        item.direction === "transport-and-auth-adapter -> product-ui-workspaces" &&
+          item.allowedByTarget === false),
+    "completed Slice 2 did not remove only the intended product-UI auth dependency");
+  }
   assert(ledger.currentContinuation.finalCompletionClaimAllowed === false &&
     ledger.refactorComplete === false && ledger.completionClaimed === false,
   "current continuation overclaims final completion");
@@ -924,6 +1019,12 @@ function finalTargetsSatisfied(targets, metrics) {
     metrics.largestSccOwners <= targets.maxSccOwners &&
     metrics.largestMixedOwnerFileLines <= targets.maxMixedOwnerFileLines &&
     (!targets.requireSeparatedInternalTargets || metrics.internalTargetSeparation === true);
+}
+
+function sliceTest(slice, command) {
+  const matches = slice.tests.filter(test => test.command === command);
+  assert(matches.length === 1, `Slice test must occur exactly once: ${command}`);
+  return matches[0];
 }
 
 function check(name, fn) {

@@ -11,7 +11,7 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 158,
+  "expectedProductionFiles": 159,
   "expectedCppFiles": 79,
   "moduleClassifiers": [
     {
@@ -33,12 +33,13 @@
         "include/analysis/va_runtime_metadata.h",
         "include/media_types.h",
         "include/ingress/rtsp_request_context.h",
+        "include/ingress/product_ui_principal_view.h",
         "src/analysis/tracked_object_metadata.cpp",
         "src/analysis/va_runtime_metadata.cpp",
         "src/ingress/rtsp_request_context.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 8,
+      "expectedFileCount": 9,
       "expectedCppCount": 3
     },
     {
@@ -165,7 +166,7 @@
       "expectedCppCount": 12
     }
   ],
-  "expectedFileOwnershipSha256": "1f3f78f1fdbaf3fe575520e6f832309abe23ffc2ca8f6f79aee172432d3b01bb",
+  "expectedFileOwnershipSha256": "32110decc7fe87698703af06d50aacae05c8dd6445ab11183bc541d66fc30ee0",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -336,10 +337,10 @@
       "allowedByTarget": false
     },
     {
-      "direction": "product-ui-workspaces -> transport-and-auth-adapter",
+      "direction": "product-ui-workspaces -> stable-contract-dtos",
       "witnessCount": 2,
-      "witnessSha256": "9d8aaab4537271058207444de80acfbb812e4c211b3672eedb50eb71cc3c7db6",
-      "allowedByTarget": false
+      "witnessSha256": "0f356b60469a8a0760c49e3d3d57ab3df309817427c1cf985b8226e4a67a2b60",
+      "allowedByTarget": true
     },
     {
       "direction": "stable-contract-dtos -> analysis-services",
@@ -422,7 +423,7 @@
   "mixedOwnershipDebt": [
     {
       "file": "src/ingress/webrtc_http_server.cpp",
-      "lineCount": 40814,
+      "lineCount": 40833,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",

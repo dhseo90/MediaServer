@@ -3299,6 +3299,17 @@ std::string RoleLandingPath(const auth::Principal& principal, const app::AppConf
     return "/login";
 }
 
+ProductUiPrincipalView ProductUiPrincipalViewFromAuthPrincipal(const auth::Principal& principal) {
+    ProductUiPrincipalView view;
+    view.display_name = principal.display_name;
+    view.role = principal.role;
+    view.auth_mode = principal.auth_mode;
+    view.scopes = principal.scopes;
+    view.is_admin = auth::IsAdmin(principal);
+    view.can_access_ops_sources = auth::RequireRole(principal, {"operator"});
+    return view;
+}
+
 std::string JsonScriptContent(const std::string& json) {
     std::string out;
     out.reserve(json.size());
@@ -5369,7 +5380,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
     std::ostringstream out;
     const bool can_write_sources = auth::RequireScope(principal, "source:write");
     AppendOpsShellStart(out,
-                        principal,
+                        ProductUiPrincipalViewFromAuthPrincipal(principal),
                         "sources",
                         "운영 채널을 관리합니다.");
     out << R"OPS(    <section class="panel ops-channels-workspace" data-ops-panel="sources" data-testid="ops-sources-page" data-channel-workspace="task-units">
@@ -5725,7 +5736,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
 std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
     std::ostringstream out;
     AppendOpsShellStart(out,
-                        principal,
+                        ProductUiPrincipalViewFromAuthPrincipal(principal),
                         "users",
                         "관리자가 사용자 계정과 접근 범위를 관리합니다.");
     out << R"USERS(    <section class="panel ops-users-access-workspace" data-ops-panel="users" data-testid="ops-users-page" data-access-workspace="task-units">
@@ -36694,7 +36705,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             if (request.method == "GET") {
                                 return HtmlPageResponse(
-                                    PasswordChangePageHtml(principal_result.principal, "", false));
+                                    PasswordChangePageHtml(
+                                        ProductUiPrincipalViewFromAuthPrincipal(principal_result.principal),
+                                        "",
+                                        false));
                             }
                             const auto form = ParseQueryString(request.body);
                             const std::string current_password =
@@ -36712,7 +36726,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                           true,
                                                           &change_error)) {
                                 return HtmlPageResponse(PasswordChangePageHtml(
-                                                            principal_result.principal, change_error, true),
+                                                            ProductUiPrincipalViewFromAuthPrincipal(
+                                                                principal_result.principal),
+                                                            change_error,
+                                                            true),
                                                         400,
                                                         "Bad Request");
                             }
@@ -36827,7 +36844,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             return HtmlPageResponse(OpsShellPageHtml(config.stream_route,
                                                                      config.rtsp_listen_port,
-                                                                     principal_result.principal,
+                                                                     ProductUiPrincipalViewFromAuthPrincipal(
+                                                                         principal_result.principal),
                                                                      "rules"));
                         }
 
@@ -39334,7 +39352,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             return HtmlPageResponse(OpsShellPageHtml(config.stream_route,
                                                                      config.rtsp_listen_port,
-                                                                     principal_result.principal,
+                                                                     ProductUiPrincipalViewFromAuthPrincipal(
+                                                                         principal_result.principal),
                                                                      OpsOverviewActiveForPath(request.path)));
                         }
 

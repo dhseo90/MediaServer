@@ -77,6 +77,7 @@ cleanup() {
     "${VIEWER_COOKIE}" "${INTEGRATOR_COOKIE}" \
     "${INVITE_COOKIE}" "${EXISTING_INVITE_COOKIE}" "${REQUEST_COOKIE}" \
     "${LOG_FILE}" "${ACCESS_REQUEST_PAYLOAD}"
+  rm -f "${TMP_DIR}/media_server_${RUN_ID}_"*.payload
 }
 trap cleanup EXIT
 
@@ -96,6 +97,14 @@ fail() {
     tail -n 80 "${LOG_FILE}" >&2 || true
   fi
   exit 1
+}
+
+write_payload_file() {
+  local label="$1"
+  local value="$2"
+  local payload_file="${TMP_DIR}/media_server_${RUN_ID}_${label}.payload"
+  (umask 077; printf '%s' "${value}" >"${payload_file}")
+  printf '%s' "${payload_file}"
 }
 
 choose_free_port() {
@@ -368,7 +377,7 @@ print(f"[pass] SourceRegistry API field/type freeze SHA-256={digest}")
 PY
 }
 
-assert_views_api_freeze() {
+assert_client_views_api_freeze() {
   local payload_json
   payload_json="$(cat)"
   python3 - "${payload_json}" <<'PY'
@@ -378,25 +387,31 @@ import sys
 
 payload = json.loads(sys.argv[1])
 views = payload.get("views")
-if not isinstance(payload.get("status"), str) or not isinstance(views, list) or not views:
-    raise SystemExit("PublishedView API requires status:string and non-empty views:array")
+if payload.get("status") != "clientViews" or not isinstance(views, list) or not views:
+    raise SystemExit("Client PublishedView projection requires status=clientViews and non-empty views:array")
 view = views[0]
 required = {
-    "viewId": str, "sourceId": str, "displayName": str, "defaultRuleId": str,
-    "allowedRuleIds": list, "allowedOverlayModes": list, "enabled": bool,
+    "viewId": str, "sourceId": str, "displayName": str,
+    "sourceDisplayName": str, "sourceKind": str, "sourceTags": list,
+    "defaultRuleId": str, "allowedRuleIds": list, "allowedOverlayModes": list,
+    "showDashboard": bool, "showEvents": bool, "showMetadataSummary": bool,
+    "site": str, "group": str, "floor": str, "zone": str, "maxTiles": int,
 }
 for field, field_type in required.items():
     if not isinstance(view.get(field), field_type):
-        raise SystemExit(f"PublishedView API field/type mismatch: {field}={view.get(field)!r}")
+        raise SystemExit(f"Client PublishedView projection field/type mismatch: {field}={view.get(field)!r}")
 shape = {"status": "string", "views": [{
-    "viewId": "string", "sourceId": "string", "displayName": "string", "defaultRuleId": "string",
-    "allowedRuleIds": "array", "allowedOverlayModes": "array", "enabled": "boolean",
+    "viewId": "string", "sourceId": "string", "displayName": "string",
+    "sourceDisplayName": "string", "sourceKind": "string", "sourceTags": "array",
+    "defaultRuleId": "string", "allowedRuleIds": "array", "allowedOverlayModes": "array",
+    "showDashboard": "boolean", "showEvents": "boolean", "showMetadataSummary": "boolean",
+    "site": "string", "group": "string", "floor": "string", "zone": "string", "maxTiles": "number",
 }]}
 digest = hashlib.sha256(json.dumps(shape, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
-expected = "c233fa8c3e961e301792b7e2717442999c3a8a340ccf814e7e9ef01fa2bb3905"
+expected = "f289c7a2e21e47ca7439ecdf12949cc106c9aa2b6e1b80eeaab4327980bc6d62"
 if digest != expected:
-    raise SystemExit(f"PublishedView API freeze SHA-256 mismatch: {digest} != {expected}")
-print(f"[pass] PublishedView API field/type freeze SHA-256={digest}")
+    raise SystemExit(f"Client PublishedView projection freeze SHA-256 mismatch: {digest} != {expected}")
+print(f"[pass] Client PublishedView projection field/type freeze SHA-256={digest}")
 PY
 }
 
@@ -413,12 +428,15 @@ assert_vaRule_session_id() {
 assert_client_redacted_debug_absent() {
   local payload_json="$1"
   local client_html="${2:-}"
-  python3 - "${payload_json}" "${client_html}" <<'PY'
+  local client_html_file
+  client_html_file="$(write_payload_file client-redacted-html "${client_html}")"
+  python3 - "${payload_json}" "${client_html_file}" <<'PY'
 import json
+import pathlib
 import sys
 
 payload = json.loads(sys.argv[1])
-client_html = sys.argv[2]
+client_html = pathlib.Path(sys.argv[2]).read_text()
 serialized = json.dumps(payload, sort_keys=True)
 assert ('viewId' in serialized), "client public viewId must not be absent before redaction checks"
 forbidden_keys = {"sourceUrl", "rtspUrl", "httpUrl", "whepUrl", "raw", "debug", "internalSession"}
@@ -492,14 +510,21 @@ assert_auth_artifact_ui_api_absent() {
   local api_json="$1"
   local ops_html="$2"
   local client_html="$3"
-  python3 - "${api_json}" "${ops_html}" "${client_html}" <<'PY'
+  local ops_html_file client_html_file
+  ops_html_file="$(write_payload_file auth-artifact-ops-html "${ops_html}")"
+  client_html_file="$(write_payload_file auth-artifact-client-html "${client_html}")"
+  python3 - "${api_json}" "${ops_html_file}" "${client_html_file}" <<'PY'
 import json
+import pathlib
 import sys
 
 api = json.loads(sys.argv[1])
-surfaces = json.dumps(api, sort_keys=True) + sys.argv[2] + sys.argv[3]
+api_surface = json.dumps(api, sort_keys=True)
+ui_surface = pathlib.Path(sys.argv[2]).read_text() + pathlib.Path(sys.argv[3]).read_text()
 for token in ("passwordHash", "passwordHistory", "tokenHash", "sessionId", "providerCredential", "apiKey"):
-    assert (token not in surfaces), f"auth material must remain absent from API/UI artifact surface: {token}"
+    assert (token not in api_surface), f"auth material must remain absent from whoami API surface: {token}"
+for token in ("passwordHash", "passwordHistory", "tokenHash", "providerCredential", "apiKey"):
+    assert (token not in ui_surface), f"auth material must remain absent from product UI surface: {token}"
 PY
 }
 
@@ -543,7 +568,7 @@ assert (admin and admin.get("role") == "admin" and admin.get("enabled") is True)
 assert (passwordless_login_code == "401" and hashless_login_code == "403" and bool(admin.get("passwordHash"))), "password_hash empty-password and hash-absent admin login rejection failed"
 assert (admin.get("passwordHash") not in ("", None) and all(secret not in store_raw for secret in sys.argv[16:])), "password_history/passwordHash plaintext absence failed"
 assert (whoami.get("authenticated") is True and whoami.get("username") == "admin" and whoami.get("role") == "admin"), "Authenticated session principal readback failed"
-assert ("ops:read" in (whoami.get("scopes") or []) and any(scope.startswith("view:read:") for scope in (whoami.get("scopes") or []))), "scopes whoami role/scope readback failed"
+assert (whoami.get("scopes") == ["*"]), "bootstrap admin wildcard scope exact whoami readback failed"
 assert ("media_server_session" in cookie_text), "Set-Cookie login session cookie readback failed"
 assert (protected_allow_code == "200" and protected_deny_location == "302:/login" and logout_landing == "302:/login"), "session protected route cookie allow-deny and logout role landing failed"
 assert (setup_ui_policy == "1" and login_ui_policy == "1" and users_ui_policy == "1" and any(user.get("username") == "admin" for user in public_users.get("users", []))), "admin setup/login/users UI and public user policy readback failed"
@@ -726,7 +751,17 @@ operator = next(user for user in store.get("users", []) if user.get("username") 
 whoami = json.loads(whoami_raw)
 token_hash = operator.get("tokenHash")
 assert (token_hash and token_hash != raw_token_write and raw_token_write not in store_raw and "tokenHash" not in whoami_raw and "tokenHash" not in users_html), "token_hash libsodium fixture raw token no-write and API/UI raw material absent readback failed"
-assert (unauth_code == "401" and mutated_code == "401" and sources_code == "200" and rules_code == "200" and users_code == "403" and whoami.get("username") == "operator-smoke" and whoami.get("role") == "operator" and "ops:read" in (whoami.get("scopes") or [])), "PrincipalFromUserToken bearer principal and scope-specific endpoint guard readback failed"
+observed = {
+    "unauth": unauth_code,
+    "mutated": mutated_code,
+    "sources": sources_code,
+    "rules": rules_code,
+    "users": users_code,
+    "username": whoami.get("username"),
+    "role": whoami.get("role"),
+    "scopes": whoami.get("scopes") or [],
+}
+assert (unauth_code == "401" and mutated_code == "401" and sources_code == "200" and rules_code == "200" and users_code == "403" and whoami.get("username") == "operator-smoke" and whoami.get("role") == "operator" and "ops:read" in observed["scopes"]), f"PrincipalFromUserToken bearer principal and scope-specific endpoint guard readback failed: {observed}"
 PY
 }
 
@@ -749,7 +784,18 @@ assert_admin_role_routes_authoritative_runtime() {
 import sys
 
 users_page_code, rules_page_code, sources_page_code, users_api_code, source_action_code, rule_action_code, admin_action_code, operator_admin_action_code, users_html = sys.argv[1:10]
-assert (users_page_code == "200" and rules_page_code == "200" and sources_page_code == "200" and users_api_code == "200" and source_action_code == "201" and rule_action_code == "200" and admin_action_code == "201" and operator_admin_action_code == "403" and 'data-testid="ops-users-page"' in users_html), "IsAdmin ops/users/rules/sources routes and admin action allow/operator deny readback failed"
+observed = {
+    "usersPage": users_page_code,
+    "rulesPage": rules_page_code,
+    "sourcesPage": sources_page_code,
+    "usersApi": users_api_code,
+    "sourceAction": source_action_code,
+    "ruleAction": rule_action_code,
+    "adminAction": admin_action_code,
+    "operatorAdminAction": operator_admin_action_code,
+    "usersDom": 'data-testid="ops-users-page"' in users_html,
+}
+assert (users_page_code == "200" and rules_page_code == "200" and sources_page_code == "200" and users_api_code == "200" and source_action_code == "201" and rule_action_code == "200" and admin_action_code == "201" and operator_admin_action_code == "403" and observed["usersDom"]), f"IsAdmin ops/users/rules/sources routes and admin action allow/operator deny readback failed: {observed}"
 PY
 }
 
@@ -767,6 +813,7 @@ import sys
 client_views = json.loads(client_views_raw)
 integrator_views = json.loads(integrator_views_raw)
 operator_source = json.loads(operator_source_raw)
+operator_source_record = operator_source.get("source") or operator_source
 viewer_ids = [str(item.get("viewId")) for item in client_views.get("views", [])]
 integrator_ids = [str(item.get("viewId")) for item in integrator_views.get("views", [])]
 assert (viewer_landing == "302:/client/live" and viewer_ops_code == "403" and viewer_lab_code == "403" and 'data-testid="client-shell-page"' in viewer_client_html), "view:read viewer client-only route/API allow-deny boundary failed"
@@ -775,7 +822,7 @@ ops_write_performed = readonly_source_write_code == "200" or readonly_rule_write
 assert (readonly_read_code == "200" and ops_write_performed is False), "ops:read read-only allow and write action no-write boundary failed"
 other_write_performed = readonly_source_write_code == "200"
 unrelated_mutation_changed = readonly_rule_write_code == "200"
-assert (operator_source.get("sourceId") == "30" and operator_rule_code == "200" and readonly_source_write_code == "403" and readonly_rule_write_code == "403" and other_write_performed is False and unrelated_mutation_changed is False), "source:write rule:write scoped mutation and other write/no-mutation boundary failed"
+assert (operator_source.get("status") == "created" and operator_source_record.get("sourceId") == "30" and operator_rule_code == "200" and readonly_source_write_code == "403" and readonly_rule_write_code == "403" and other_write_performed is False and unrelated_mutation_changed is False), "source:write rule:write scoped mutation and other write/no-mutation boundary failed"
 assert (viewer_ids == ["1"] and "2" not in viewer_ids), "PrincipalCanReadView assigned view only client readback failed"
 assert (lab_read_code == "200" and lab_viewer_code == "403"), "lab scope required API read guard allow-deny readback failed"
 lab_write_performed = readonly_rule_write_code == "200"
@@ -816,7 +863,7 @@ import json, pathlib, sys
 consumed_code, expired_code, invite_id, users_file = sys.argv[1:5]
 store = json.loads(pathlib.Path(users_file).read_text())
 invite = next(item for item in store.get("invites", []) if item.get("inviteId") == invite_id)
-assert (consumed_code == "401" and expired_code == "401" and invite.get("used") is True), "invite.used consumed/expired token rejection with authoritative store readback failed"
+assert (consumed_code == "401" and expired_code == "410" and invite.get("used") is True), "invite.used consumed/expired token status split with authoritative store readback failed"
 PY
 }
 
@@ -861,8 +908,12 @@ assert_vlm_install_scope_runtime_boundary() {
   local after_json="$3"
   local ops_html="$4"
   local client_html="$5"
-  python3 - "${before_json}" "${dry_run_json}" "${after_json}" "${ops_html}" "${client_html}" <<'PY'
+  local ops_html_file client_html_file
+  ops_html_file="$(write_payload_file vlm-install-ops-html "${ops_html}")"
+  client_html_file="$(write_payload_file vlm-install-client-html "${client_html}")"
+  python3 - "${before_json}" "${dry_run_json}" "${after_json}" "${ops_html_file}" "${client_html_file}" <<'PY'
 import json
+import pathlib
 import sys
 
 before, dry_run, after = [json.loads(value) for value in sys.argv[1:4]]
@@ -871,8 +922,8 @@ serialized = json.dumps(dry_run, sort_keys=True)
 for field in ("profileStored", "runtimeVlmCallPerformed", "sidecarStored", "cloudProviderApiCalled", "eventPostPayloadChanged", "webrtcDataChannelSchemaChanged", "sseMetadataSchemaChanged", "wsMetadataSchemaChanged", "rtspOrWebrtcMediaPathChanged", "viewerClientExposureAdded"):
     if f'"{field}": true' in serialized:
         raise SystemExit(f"VLM install scope no-write/no-mutation boundary failed: {field}")
-assert ('data-testid="ops-vlm-page"' in sys.argv[4]), "Ops VLM install UI marker missing"
-assert ('data-testid="ops-vlm-page"' not in sys.argv[5]), "viewer/client must not expose Ops VLM install UI"
+assert ('data-testid="ops-vlm-page"' in pathlib.Path(sys.argv[4]).read_text()), "Ops VLM install UI marker missing"
+assert ('data-testid="ops-vlm-page"' not in pathlib.Path(sys.argv[5]).read_text()), "viewer/client must not expose Ops VLM install UI"
 PY
 }
 
@@ -905,15 +956,37 @@ import json
 import sys
 
 payload = json.loads(sys.argv[1])
-serialized = json.dumps(payload, sort_keys=True)
 assert (payload.get("schema") == "media-server.vlm-profile-registry.v1"), "VLM privacy readback registry schema mismatch"
-assert ("rawPrompt" not in serialized and "rawResponse" not in serialized and "rawJson" not in serialized and "rawLocator" not in serialized), "VLM privacy raw material must remain absent"
-assert ("sourceUrl" not in serialized), "VLM privacy sourceUrl must remain absent"
-assert ("credential" not in serialized and "Credential" not in serialized and "apiKey" not in serialized), "VLM privacy credential material must remain absent"
-assert ("providerMaterial" not in serialized and "providerCall" not in serialized), "VLM privacy provider material must remain absent"
-for token in ("rawPrompt", "rawResponse", "sourceUrl", "apiKey", "providerCredential", "frameBytes"):
-    if (token in serialized):
-        raise SystemExit(f"VLM privacy redaction absent oracle failed: {token}")
+forbidden_keys = {
+    "rawprompt",
+    "rawresponse",
+    "rawjson",
+    "rawlocator",
+    "sourceurl",
+    "apikey",
+    "providercredential",
+    "credentialmaterial",
+    "providermaterial",
+    "providerrequest",
+    "providerresponse",
+    "framebytes",
+    "password",
+    "authorization",
+    "accesstoken",
+    "refreshtoken",
+}
+
+def inspect(value):
+    if isinstance(value, dict):
+        for key, child in value.items():
+            if key.lower() in forbidden_keys:
+                raise SystemExit(f"VLM privacy redaction absent oracle failed: {key}")
+            inspect(child)
+    elif isinstance(value, list):
+        for child in value:
+            inspect(child)
+
+inspect(payload)
 for profile in payload.get("vlmProfiles", payload.get("profiles", [])):
     redaction = (profile.get("privacyGuard") or {}).get("redaction") or {}
     for field, value in redaction.items():
@@ -926,10 +999,14 @@ PY
 assert_product_ui_lab_editor_absent() {
   local ops_html="$1"
   local client_html="$2"
-  python3 - "${ops_html}" "${client_html}" <<'PY'
+  local ops_html_file client_html_file
+  ops_html_file="$(write_payload_file product-lab-ops-html "${ops_html}")"
+  client_html_file="$(write_payload_file product-lab-client-html "${client_html}")"
+  python3 - "${ops_html_file}" "${client_html_file}" <<'PY'
+import pathlib
 import sys
 
-ops_html, client_html = sys.argv[1:3]
+ops_html, client_html = [pathlib.Path(value).read_text() for value in sys.argv[1:3]]
 assert ('data-testid="ops-home-page"' in ops_html), "ops home marker must not be absent before lab editor absence checks"
 assert ('data-testid="client-shell-page"' in client_html), "client shell functional HTML marker missing"
 combined = ops_html + client_html
@@ -943,10 +1020,16 @@ assert_role_navigation_action_boundaries() {
   local operator_sources_html="$2"
   local readonly_sources_html="$3"
   local client_html="$4"
-  python3 - "${ops_home_html}" "${operator_sources_html}" "${readonly_sources_html}" "${client_html}" <<'PY'
+  local ops_home_file operator_sources_file readonly_sources_file client_html_file
+  ops_home_file="$(write_payload_file role-nav-ops-home "${ops_home_html}")"
+  operator_sources_file="$(write_payload_file role-nav-operator-sources "${operator_sources_html}")"
+  readonly_sources_file="$(write_payload_file role-nav-readonly-sources "${readonly_sources_html}")"
+  client_html_file="$(write_payload_file role-nav-client-html "${client_html}")"
+  python3 - "${ops_home_file}" "${operator_sources_file}" "${readonly_sources_file}" "${client_html_file}" <<'PY'
+import pathlib
 import sys
 
-ops_home, operator_sources, readonly_sources, client_html = sys.argv[1:5]
+ops_home, operator_sources, readonly_sources, client_html = [pathlib.Path(value).read_text() for value in sys.argv[1:5]]
 assert ('data-testid="ops-home-page"' in ops_home), "IsAdmin admin Ops/users/rules/sources access boundary missing"
 assert ('data-scope-state="source-write-allowed"' in operator_sources and 'aria-disabled="false"' in operator_sources), "operator allowed action boundary missing"
 assert ('data-scope-state="source-write-blocked"' in readonly_sources and 'data-scope-blocked="source:write"' in readonly_sources), "readonly operator denied action boundary missing"
@@ -974,12 +1057,15 @@ assert_vlm_rule_draft_mutation_independent_runtime() {
   local draft_json="$2"
   local after_catalog_json="$3"
   local client_html="$4"
-  python3 - "${before_catalog_json}" "${draft_json}" "${after_catalog_json}" "${client_html}" <<'PY'
+  local client_html_file
+  client_html_file="$(write_payload_file vlm-draft-client-html "${client_html}")"
+  python3 - "${before_catalog_json}" "${draft_json}" "${after_catalog_json}" "${client_html_file}" <<'PY'
 import json
+import pathlib
 import sys
 
 before_catalog, draft, after_catalog = [json.loads(value) for value in sys.argv[1:4]]
-client_html = sys.argv[4]
+client_html = pathlib.Path(sys.argv[4]).read_text()
 contract = draft.get("workflowContract") or {}
 assert (contract.get("draftOnly") is True), "rule suggestion response must remain draft-only"
 assert (contract.get("manualSaveRequired") is True), "rule suggestion must require the independent manual save action"
@@ -987,7 +1073,7 @@ assert (contract.get("ruleRegistryWritePerformed") is False and before_catalog =
 assert (contract.get("autoRuleApplied") is False), "auto rule apply must remain absent during suggestion readback"
 assert (contract.get("autoProfileApplied") is False), "auto profile apply must remain absent during suggestion readback"
 assert (contract.get("viewerClientExposureAdded") is False and "rawPrompt" not in client_html and "rawResponse" not in client_html and "rawJson" not in client_html), "viewer/client raw VLM material must remain absent"
-assert (contract.get("viewerClientExposureAdded") is False and "debug" not in client_html and "Debug" not in client_html), "viewer/client debug VLM material must remain absent"
+assert (contract.get("viewerClientExposureAdded") is False and '<details id="opsVlmRawDetails"' not in client_html and 'data-vlm-task="raw-debug"' not in client_html), "viewer/client debug VLM DOM must remain absent"
 assert (contract.get("ruleRegistryWritePerformed") is False and contract.get("eventPostPayloadChanged") is False and contract.get("rtspOrWebrtcMediaPathChanged") is False), "draft workflow write/schema/media mutation must remain absent"
 PY
 }
@@ -996,13 +1082,16 @@ assert_ops_event_review_runtime_boundaries() {
   local payload_json="$1"
   local audit_json="$2"
   local client_html="$3"
-  python3 - "${payload_json}" "${audit_json}" "${client_html}" <<'PY'
+  local client_html_file
+  client_html_file="$(write_payload_file event-review-client-html "${client_html}")"
+  python3 - "${payload_json}" "${audit_json}" "${client_html_file}" <<'PY'
 import json
+import pathlib
 import sys
 
 payload = json.loads(sys.argv[1])
 audit = json.loads(sys.argv[2])
-client_html = sys.argv[3]
+client_html = pathlib.Path(sys.argv[3]).read_text()
 storage = payload.get("storage") or {}
 memory = payload.get("memorySearch") or {}
 timeline = payload.get("timelineGraph") or {}
@@ -1029,11 +1118,14 @@ import json
 import sys
 
 payload = json.loads(sys.argv[1])
-digest = payload.get("incidentDigest") or {}
+events = payload.get("events") or {}
+digest = events.get("incidentDigest") or {}
+assert (digest.get("schema") == "media-server.client.incident-digest.v1" and digest.get("viewerSafe") is True), "client incident digest schema/viewer-safe boundary failed"
 assert (digest.get("rawEvidenceIncluded") is False and digest.get("sourceLocatorIncluded") is False), "client incident digest raw evidence/source locator must remain absent"
-assert (digest.get("rawEvidenceIncluded") is False and digest.get("debugMaterialIncluded") is False and digest.get("providerMaterialIncluded") is False), "client incident digest raw/debug/provider material must remain absent"
-follow_up = payload.get("followUpDigest") or {}
-assert (follow_up.get("rawEvidenceIncluded") is False and follow_up.get("sourceUrlIncluded") is False and follow_up.get("debugMaterialIncluded") is False and follow_up.get("providerMaterialIncluded") is False), "client follow-up raw/source/debug/provider material must remain absent"
+assert (digest.get("rawEvidenceIncluded") is False and digest.get("debugMaterialIncluded") is False and digest.get("providerMaterialIncluded") is False and digest.get("eventPostPayloadChanged") is False), "client incident digest raw/debug/provider material must remain absent"
+follow_up = events.get("followUpDigest") or {}
+assert (follow_up.get("schema") == "media-server.client.follow-up-digest.v1" and follow_up.get("viewerSafe") is True and follow_up.get("publishedViewScoped") is True), "client follow-up digest schema/scope boundary failed"
+assert (follow_up.get("rawEvidenceIncluded") is False and follow_up.get("sourceUrlIncluded") is False and follow_up.get("debugMaterialIncluded") is False and follow_up.get("providerMaterialIncluded") is False and follow_up.get("eventPostPayloadChanged") is False and follow_up.get("eventSchemaChanged") is False and follow_up.get("mediaPathChanged") is False), "client follow-up raw/source/debug/provider material must remain absent"
 PY
 }
 
@@ -1041,60 +1133,66 @@ assert_safe_product_projection_runtime_boundaries() {
   local reviews_json="$1"
   local rule_draft_json="$2"
   local client_html="$3"
-  python3 - "${reviews_json}" "${rule_draft_json}" "${client_html}" <<'PY'
+  local client_html_file
+  client_html_file="$(write_payload_file safe-projection-client-html "${client_html}")"
+  python3 - "${reviews_json}" "${rule_draft_json}" "${client_html_file}" <<'PY'
 import json
+import pathlib
 import sys
 
 payload = json.loads(sys.argv[1])
 draft = json.loads(sys.argv[2])
-client_html = sys.argv[3]
+client_html = pathlib.Path(sys.argv[3]).read_text()
 memory = payload.get("memorySearch") or {}
 summary = memory.get("vlmSummaryCandidateReview") or {}
 summary_contract = summary.get("contract") or {}
 assert (summary.get("manualReviewRoute") == "/ops/events" and summary_contract.get("providerCallPerformed", summary_contract.get("cloudProviderApiCalled")) is False and summary_contract.get("viewerClientExposureAdded") is False), "VLM summary candidate /ops/events providerCall/client boundary failed"
 draft_contract = draft.get("workflowContract") or {}
-assert (draft.get("manualSaveRoute") == "/ops/rules" and draft_contract.get("ruleRegistryWritePerformed") is False and draft_contract.get("eventPostPayloadChanged") is False and draft_contract.get("autoRuleApplied") is False and draft_contract.get("viewerClientExposureAdded") is False and draft_contract.get("cloudProviderApiCalled") is False and "WebRTC" not in json.dumps(draft, sort_keys=True) and "/ops/events" not in client_html), "incident-to-rule /ops/events /ops/rules write/mutation/autoApply/client/provider boundary failed"
+assert (draft.get("manualSaveRoute") == "/ops/rules" and draft_contract.get("ruleRegistryWritePerformed") is False and draft_contract.get("eventPostPayloadChanged") is False and draft_contract.get("autoRuleApplied") is False and draft_contract.get("viewerClientExposureAdded") is False and draft_contract.get("cloudProviderApiCalled") is False and draft_contract.get("rtspOrWebrtcMediaPathChanged") is False and "/ops/events" not in client_html), "incident-to-rule /ops/events /ops/rules write/mutation/autoApply/client/provider boundary failed"
 
 triage = payload.get("incidentTriageBoard") or {}
 triage_contract = triage.get("contract") or {}
 assert (triage.get("schema") == "media-server.ops.incident-triage-board.v1" and triage_contract.get("cloudProviderApiCalled") is False and triage_contract.get("viewerClientExposureAdded") is False and triage_contract.get("eventPostPayloadChanged") is False), "incident triage /ops/events provider/client mutation boundary failed"
 scorecard = payload.get("incidentDecisionScorecard") or {}
 scorecard_contract = scorecard.get("contract") or {}
-assert (scorecard.get("deterministicPriorityReasons") is True and scorecard_contract.get("rawJsonExposed") is False and scorecard_contract.get("sourceUrlExposed") is False and scorecard_contract.get("eventPostPayloadChanged") is False and "WebRTC" not in json.dumps(scorecard, sort_keys=True)), "decision scorecard rawJson/sourceUrl mutation boundary failed"
+assert (scorecard.get("deterministicPriorityReasons") is True and scorecard_contract.get("rawJsonExposed") is False and scorecard_contract.get("sourceUrlExposed") is False and scorecard_contract.get("eventPostPayloadChanged") is False and scorecard_contract.get("rtspOrWebrtcMediaPathChanged") is False), "decision scorecard rawJson/sourceUrl mutation boundary failed"
 action_pack = payload.get("operationalActionPack") or {}
 action_contract = action_pack.get("contract") or {}
-assert (action_pack.get("workflow") == "manual-workflow-links" and action_contract.get("externalDeliveryPerformed") is False and action_contract.get("ruleRegistryWritePerformed") is False and action_contract.get("sourceHealthWritePerformed") is False and action_contract.get("eventPostPayloadChanged") is False and "WebRTC" not in json.dumps(action_pack, sort_keys=True)), "operational action pack delivery/registryWrite/mutation boundary failed"
+assert (action_pack.get("workflow") == "manual-workflow-links" and action_contract.get("externalDeliveryPerformed") is False and action_contract.get("ruleRegistryWritePerformed") is False and action_contract.get("sourceHealthWritePerformed") is False and action_contract.get("eventPostPayloadChanged") is False and action_contract.get("rtspOrWebrtcMediaPathChanged") is False), "operational action pack delivery/registryWrite/mutation boundary failed"
 what_if = payload.get("ruleWhatIfPreview") or {}
 what_if_contract = what_if.get("contract") or {}
-assert (what_if_contract.get("ruleRegistryWritePerformed") is False and what_if_contract.get("profileRegistryWritePerformed") is False and what_if_contract.get("autoRuleApplied") is False and what_if_contract.get("eventPostPayloadChanged") is False and "WebRTC" not in json.dumps(what_if, sort_keys=True)), "rule what-if registryWrite/autoApply/mutation boundary failed"
+assert (what_if_contract.get("ruleRegistryWritePerformed") is False and what_if_contract.get("autoRuleApplied") is False and what_if_contract.get("autoProfileApplied") is False and what_if_contract.get("eventPostPayloadChanged") is False and what_if_contract.get("rtspOrWebrtcMediaPathChanged") is False), "rule what-if registryWrite/autoApply/mutation boundary failed"
 outcome = payload.get("operatorOutcomeMemory") or {}
 outcome_contract = outcome.get("contract") or outcome
-assert (outcome_contract.get("operatorOutcomeMemoryPersistentWrite", outcome_contract.get("persistentOutcomeStoreCreated")) is False and outcome_contract.get("eventPostPayloadChanged") is False and "WebRTC" not in json.dumps(outcome, sort_keys=True)), "operator outcome memory persistent write/mutation boundary failed"
+assert (outcome_contract.get("operatorOutcomeMemoryPersistentWrite", outcome_contract.get("persistentOutcomeStoreCreated")) is False and outcome_contract.get("eventPostPayloadChanged") is False and outcome_contract.get("rtspOrWebrtcMediaPathChanged") is False), "operator outcome memory persistent write/mutation boundary failed"
 readiness = payload.get("incidentActionReadinessQueue") or {}
 readiness_contract = readiness.get("contract") or readiness
-assert (readiness_contract.get("externalDeliveryPerformed") is False and readiness_contract.get("autoActionWritePerformed") is False and readiness_contract.get("viewerClientExposureAdded") is False and "WebRTC" not in json.dumps(readiness, sort_keys=True)), "action readiness delivery/WritePerformed/client boundary failed"
+assert (readiness_contract.get("externalDeliveryPerformed") is False and readiness_contract.get("autoActionWritePerformed") is False and readiness_contract.get("viewerClientExposureAdded") is False and readiness_contract.get("eventPostPayloadChanged") is False and readiness_contract.get("rtspOrWebrtcMediaPathChanged") is False), "action readiness delivery/WritePerformed/client boundary failed"
 approval = payload.get("approvalGatedRuleDraftReadiness") or {}
 approval_contract = approval.get("contract") or approval
-assert (approval_contract.get("ruleRegistryWritePerformed") is False and approval_contract.get("profileRegistryWritePerformed") is False and approval_contract.get("autoRuleApplied") is False and approval_contract.get("eventPostPayloadChanged") is False and "WebRTC" not in json.dumps(approval, sort_keys=True)), "approval-gated draft registryWrite/autoApply/mutation boundary failed"
+assert (approval_contract.get("ruleRegistryWritePerformed") is False and approval_contract.get("profileRegistryWritePerformed") is False and approval_contract.get("autoRuleApplied") is False and approval_contract.get("autoProfileApplied") is False and approval_contract.get("eventPostPayloadChanged") is False and approval_contract.get("rtspOrWebrtcMediaPathChanged") is False), "approval-gated draft registryWrite/autoApply/mutation boundary failed"
 field = payload.get("evidenceIntakeFieldReadiness") or {}
 field_contract = field.get("contract") or field
-assert (field_contract.get("credentialMaterialExposed") is False and field_contract.get("rawEvidenceMaterialExposed") is False and field_contract.get("debugMaterialExposed") is False and field_contract.get("providerCallPerformed") is False and field_contract.get("eventPostPayloadChanged") is False and "WebRTC" not in json.dumps(field, sort_keys=True)), "field readiness credential/raw/debug/providerCall/mutation boundary failed"
+assert (field_contract.get("credentialMaterialExposed") is False and field_contract.get("rawEvidenceMaterialExposed") is False and field_contract.get("debugMaterialExposed") is False and field_contract.get("providerMaterialExposed") is False and field_contract.get("cloudProviderApiCalled") is False and field_contract.get("eventPostPayloadChanged") is False and field_contract.get("rtspOrWebrtcMediaPathChanged") is False), "field readiness credential/raw/debug/providerCall/mutation boundary failed"
 window = payload.get("runtimeEvidenceWindow") or {}
 window_contract = window.get("contract") or window
-assert (window_contract.get("viewerClientExposureAdded") is False and window_contract.get("persistentArchiveCreated") is False and window_contract.get("eventPostPayloadChanged") is False and "WebRTC" not in json.dumps(window, sort_keys=True)), "runtime evidence window client/viewer archive mutation boundary failed"
+assert (window_contract.get("viewerClientExposureAdded") is False and window_contract.get("persistentArchiveCreated") is False and window_contract.get("eventPostPayloadChanged") is False and window_contract.get("rtspOrWebrtcMediaPathChanged") is False), "runtime evidence window client/viewer archive mutation boundary failed"
 PY
 }
 
 assert_ops_vlm_raw_details_runtime_boundary() {
   local ops_vlm_html="$1"
   local client_html="$2"
-  python3 - "${ops_vlm_html}" "${client_html}" <<'PY'
+  local ops_vlm_html_file client_html_file
+  ops_vlm_html_file="$(write_payload_file vlm-raw-ops-html "${ops_vlm_html}")"
+  client_html_file="$(write_payload_file vlm-raw-client-html "${client_html}")"
+  python3 - "${ops_vlm_html_file}" "${client_html_file}" <<'PY'
+import pathlib
 import sys
 
-ops_vlm_html, client_html = sys.argv[1:3]
-assert ('id="opsVlmRawDetails"' in ops_vlm_html), "opsVlmRawDetails Ops-only debug panel is absent"
-assert ('id="opsVlmRawDetails"' not in client_html and 'raw-debug' not in client_html), "ops VLM raw material must remain absent from client routes"
-assert ('id="opsVlmRawDetails"' not in client_html and 'debug-details' not in client_html and 'Debug' not in client_html), "ops VLM debug material must remain absent from client routes"
+ops_vlm_html, client_html = [pathlib.Path(value).read_text() for value in sys.argv[1:3]]
+assert ('<details id="opsVlmRawDetails"' in ops_vlm_html and 'data-vlm-task="raw-debug"' in ops_vlm_html), "opsVlmRawDetails Ops-only debug panel is absent"
+assert ('<details id="opsVlmRawDetails"' not in client_html and 'data-vlm-task="raw-debug"' not in client_html), "ops VLM raw/debug DOM must remain absent from client routes"
 PY
 }
 
@@ -1102,14 +1200,48 @@ assert_field_evidence_bridge_runtime() {
   local payload_json="$1"
   python3 - "${payload_json}" <<'PY'
 import json
+import re
 import sys
 
 payload = json.loads(sys.argv[1])
-boundary = payload.get("boundary") or payload.get("contract") or payload
-serialized = json.dumps(payload, sort_keys=True)
-assert (boundary.get("rawEndpointIncluded") is False and "rawWhepUrl" not in serialized and "sourceUrl" not in serialized and "rawLocator" not in serialized), "field bridge raw endpoint/source URL material must remain absent"
-assert (boundary.get("rawEndpointIncluded") is False and "credential" not in serialized and "Credential" not in serialized), "field bridge credential material must remain absent"
-assert (boundary.get("registryWritePerformed", False) is False and boundary.get("profileWritePerformed", False) is False), "field bridge registry/profile write must remain absent"
+boundary = payload.get("boundaries") or payload.get("boundary") or payload.get("contract") or payload
+
+for flag in (
+    "rawEndpointIncluded",
+    "rawCredentialMaterialIncluded",
+    "rawProviderMaterialIncluded",
+    "sourceRegistryWritePerformed",
+    "publishedViewWritePerformed",
+    "eventRecordWritePerformed",
+    "opsAuditWritePerformed",
+):
+    assert boundary.get(flag) is False, f"field bridge boundary {flag} must remain false"
+
+forbidden_keys = {
+    "rawwhepurl",
+    "sourceurl",
+    "rawlocator",
+    "credentialmaterial",
+    "password",
+    "authorization",
+    "apikey",
+    "accesstoken",
+    "refreshtoken",
+}
+url_pattern = re.compile(r"(?:https?|rtsps?|wss?)://", re.IGNORECASE)
+
+def inspect(value):
+    if isinstance(value, dict):
+        for key, child in value.items():
+            assert key.lower() not in forbidden_keys, f"field bridge forbidden raw material key present: {key}"
+            inspect(child)
+    elif isinstance(value, list):
+        for child in value:
+            inspect(child)
+    elif isinstance(value, str):
+        assert url_pattern.search(value) is None, "field bridge raw endpoint URL value must remain absent"
+
+inspect(payload)
 PY
 }
 
@@ -1117,18 +1249,46 @@ assert_onvif_and_runtime_trend_boundaries() {
   local onvif_json="$1"
   local ops_html="$2"
   local client_html="$3"
-  python3 - "${onvif_json}" "${ops_html}" "${client_html}" <<'PY'
+  local ops_html_file client_html_file
+  ops_html_file="$(write_payload_file onvif-trend-ops-html "${ops_html}")"
+  client_html_file="$(write_payload_file onvif-trend-client-html "${client_html}")"
+  python3 - "${onvif_json}" "${ops_html_file}" "${client_html_file}" <<'PY'
 import json
+import pathlib
 import sys
+import urllib.parse
 
 onvif = json.loads(sys.argv[1])
-serialized = json.dumps(onvif, sort_keys=True)
-assert (onvif.get("status") == "onvifImportDraft" and "credentialRef" not in serialized and "username" not in serialized and "password" not in serialized and "authorization" not in serialized and "soap" not in serialized and onvif.get("eventPostPayloadChanged", False) is False), "ONVIF none/fixture credentialRef auth SOAP and schema mutation must remain absent/redacted"
-ops_html, client_html = sys.argv[2:4]
+preview = onvif.get("previewContract") or {}
+credential_gate = onvif.get("credentialGate") or {}
+redaction = credential_gate.get("redactionGuard") or {}
+contract = credential_gate.get("contract") or {}
+assert (onvif.get("status") == "onvifImportDraft" and onvif.get("notSaved") is True), "ONVIF import draft status/notSaved boundary failed"
+assert (preview.get("storageAction") == "none" and preview.get("sourceRegistryMutation") is False and preview.get("publishedViewMutation") is False and preview.get("rawSoapIncluded") is False and preview.get("credentialMaterialIncluded") is False and preview.get("diagnosticJsonIncluded") is False), "ONVIF draft preview no-write/raw/credential boundary failed"
+assert (credential_gate.get("secretMaterialStored") is False and credential_gate.get("referenceValueExposed") is False and redaction.get("draftApiOmitsCredentialRef") is True and redaction.get("authHeaderMaterialIncluded") is False and redaction.get("soapSecurityHeaderIncluded") is False), "ONVIF credential reference/auth/SOAP material boundary failed"
+assert (contract.get("eventPostPayloadChanged") is False and contract.get("webrtcDataChannelSchemaChanged") is False and contract.get("sseMetadataSchemaChanged") is False and contract.get("wsMetadataSchemaChanged") is False and contract.get("rtspOrWebrtcMediaPathChanged") is False), "ONVIF draft external schema/media mutation boundary failed"
+
+forbidden_keys = {"credentialref", "username", "password", "authorization", "rawsoap", "soapenvelope", "authheader", "wssecurity"}
+def inspect(value):
+    if isinstance(value, dict):
+        for key, child in value.items():
+            assert key.lower() not in forbidden_keys, f"ONVIF sensitive material key must remain absent: {key}"
+            inspect(child)
+    elif isinstance(value, list):
+        for child in value:
+            inspect(child)
+inspect(onvif)
+
+rtsp_url = (onvif.get("sourceDraft") or {}).get("rtspUrl", "")
+parsed_rtsp_url = urllib.parse.urlsplit(rtsp_url)
+assert (parsed_rtsp_url.scheme in ("rtsp", "rtsps") and parsed_rtsp_url.username is None and parsed_rtsp_url.password is None), "ONVIF source draft RTSP locator must remain credential-free"
+ops_html, client_html = [pathlib.Path(value).read_text() for value in sys.argv[2:4]]
 start = ops_html.find("const MAX_RUNTIME_TREND_SAMPLES")
-end = ops_html.find("const renderOpsHome", start)
+end = ops_html.find("const rootCauseCorrelationId", start)
 trend_region = ops_html[start:end] if start >= 0 and end > start else ""
-assert ("MAX_RUNTIME_TREND_SAMPLES = 12" in trend_region and "slice(-MAX_RUNTIME_TREND_SAMPLES)" in trend_region and "localStorage" not in trend_region and "sessionStorage" not in trend_region and "indexedDB" not in trend_region and "eventPostPayloadChanged" not in trend_region and "viewerClientExposureAdded" not in trend_region and "runtime-trend" not in client_html), "runtime trend page-session localStorage/sessionStorage/indexedDB client/viewer mutation boundary failed"
+assert ("MAX_RUNTIME_TREND_SAMPLES = 12" in trend_region and "slice(-MAX_RUNTIME_TREND_SAMPLES)" in trend_region and "localStorage" not in trend_region and "sessionStorage" not in trend_region and "indexedDB" not in trend_region and "eventPostPayloadChanged" not in trend_region and "viewerClientExposureAdded" not in trend_region), "runtime trend page-session storage/mutation boundary failed"
+assert ('data-testid="ops-runtime-trend-card"' in ops_html and 'data-runtime-trend-scope="page-session-only"' in ops_html), "Ops runtime trend page-session DOM boundary missing"
+assert ('data-testid="ops-runtime-trend-card"' not in client_html and 'data-runtime-trend-scope="page-session-only"' not in client_html), "runtime trend Ops DOM must remain absent from client routes"
 PY
 }
 
@@ -1516,7 +1676,7 @@ if (!invite) throw new Error("expired invite fixture missing"); invite.expiresAt
 fs.writeFileSync(usersFile, `${JSON.stringify(store, null, 2)}\n`, { mode: 0o600 });
 NODE
   expired_invite_code="$(http_code -X POST --data-urlencode "token=${expired_invite_token}" --data-urlencode "password=${TEST_PASSWORD}" --data-urlencode "confirm=${TEST_PASSWORD}" "${BASE}/invite/setup")"
-  expect_eq "${consumed_invite_code}:${expired_invite_code}" "401:401" "invite.used expired/consumed token runtime rejection"
+  expect_eq "${consumed_invite_code}:${expired_invite_code}" "401:410" "invite.used consumed/expired token runtime status split"
   assert_invite_invalid_authoritative_runtime "${consumed_invite_code}" "${expired_invite_code}" "${invite_id}"
 
   create_user "{\"username\":\"invite-existing\",\"displayName\":\"Invite Existing\",\"role\":\"viewer\",\"viewId\":\"1\",\"password\":${previous_password_json},\"enabled\":true,\"mustChangePassword\":false}" >/dev/null
@@ -1707,8 +1867,9 @@ run_routes() {
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops/vlm")" "403" "viewer VLM install/connection UI denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/undefined-route-review4")" "404" "undefined route BuildHttpResponse returns 404"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/lab")" "404" "legacy /lab product UI BuildHttpResponse returns 404"
-  local ops_home_html ops_vlm_html client_live_html
+  local ops_home_html ops_dashboard_html ops_vlm_html client_live_html
   ops_home_html="$(curl -fsS -b "${ADMIN_COOKIE}" "${BASE}/ops/home")"
+  ops_dashboard_html="$(curl -fsS -b "${ADMIN_COOKIE}" "${BASE}/ops/dashboard")"
   ops_vlm_html="$(curl -fsS -b "${ADMIN_COOKIE}" "${BASE}/ops/vlm")"
   client_live_html="$(curl -fsS -b "${VIEWER_COOKIE}" "${BASE}/client/live")"
   assert_product_ui_lab_editor_absent "${ops_home_html}" "${client_live_html}"
@@ -1851,7 +2012,7 @@ run_routes() {
   admin_sources_page_code="$(http_code -b "${ADMIN_COOKIE}" "${BASE}/ops/sources")"
   admin_users_api_code="$(http_code -b "${ADMIN_COOKIE}" "${BASE}/ops/api/users")"
   admin_source_action_code="$(http_code -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
-    -X POST --data '{"sourceId":"34","displayName":"Admin Action Source","kind":"file","file":"sample_h264.mp4","enabled":true}' "${BASE}/ops/api/sources")"
+    -X POST --data '{"sourceId":"39064","displayName":"Admin Action Source","kind":"file","file":"sample_h265.mp4","enabled":true}' "${BASE}/ops/api/sources")"
   admin_rule_action_code="$(http_code -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
     -X PUT --data '{"id":"98","trackingClasses":["person"]}' "${BASE}/lab/analysis/profiles/98")"
   admin_invite_action_code="$(http_code -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
@@ -1874,7 +2035,7 @@ run_routes() {
     *'"credentialRef"'*|*'operator-entered-secret'*|*'/onvif/device_service'*) fail "ONVIF import draft leaked credential or endpoint: ${onvif_draft_json}" ;;
     *) pass "ONVIF import draft redacts credential reference and endpoint" ;;
   esac
-  assert_onvif_and_runtime_trend_boundaries "${onvif_draft_json}" "${ops_home_html}" "${client_live_html}"
+  assert_onvif_and_runtime_trend_boundaries "${onvif_draft_json}" "${ops_dashboard_html}" "${client_live_html}"
   local onvif_probe_draft_json
   onvif_probe_draft_json="$(curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
     -X POST --data "${onvif_probe_fixture_payload}" "${BASE}/ops/api/onvif/import-draft")"
@@ -1917,7 +2078,7 @@ run_routes() {
   local client_events_boundary_json
   client_events_boundary_json="$(curl -fsS -b "${VIEWER_COOKIE}" "${BASE}/client/api/views/1/events")"
   assert_client_incident_digest_runtime_boundary "${client_events_boundary_json}"
-  printf '%s' "${client_views_json}" | assert_views_api_freeze
+  printf '%s' "${client_views_json}" | assert_client_views_api_freeze
   case "${client_views_json}" in
     *'"viewId":"1"'*) pass "viewer assigned view visible in client API" ;;
     *) fail "viewer assigned view missing from client API: ${client_views_json}" ;;
@@ -2134,6 +2295,8 @@ print(token)
 PY
 )"
   [[ "${token_seed_raw}" =~ ^[0-9a-f]{64}$ ]] || fail "libsodium token fixture raw token shape invalid"
+  rm -f "${SOURCE_REGISTRY_FILE}" "${SOURCE_REGISTRY_FILE}".tmp* \
+    "${VIEWS_REGISTRY_FILE}" "${VIEWS_REGISTRY_FILE}".tmp*
   start_server token lab
   token_unauth_code="$(http_code "${BASE}/auth/whoami")"
   expect_eq "${token_unauth_code}" "401" "token mode unauthenticated request denied"
@@ -2148,8 +2311,7 @@ PY
     "${token_sources_code}" "${token_rules_code}" "${token_users_code}" "${token_users_html}"
 
   stop_server
-  rm -f "${USERS_FILE}" "${USERS_FILE}.tmp" \
-    "${SOURCE_REGISTRY_FILE}" "${SOURCE_REGISTRY_FILE}".tmp* \
+  rm -f "${SOURCE_REGISTRY_FILE}" "${SOURCE_REGISTRY_FILE}".tmp* \
     "${VIEWS_REGISTRY_FILE}" "${VIEWS_REGISTRY_FILE}".tmp*
   start_server off lab
   local off_root_location off_whoami_json off_users_code

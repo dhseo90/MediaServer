@@ -19,7 +19,7 @@ Usage:
   ./server.sh verify-v230-ui-renderer-module-decomposition
 
 Checks:
-  - V230-S03 roadmap row points to the module decomposition gate
+  - archived V230-S03 release records point to the module decomposition gate
   - module inventory documents route renderer, CSS module, JS controller boundaries
   - new renderer/module source files exist and are compiled by CMake
   - old large UI files no longer own the extracted auth/client/source/user modules
@@ -31,16 +31,17 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const checks = [];
 
-check("backlog S03 points to the module decomposition gate", () => {
-  const backlog = readText("docs/development-backlog.md");
-  assert(/\| 3 \| V230-S03 \| P1 \| (진행|완료) \| UI renderer\/module decomposition \|/.test(backlog),
-    "backlog S03 row must be 진행 or 완료");
+check("archived S03 records point to the module decomposition gate", () => {
+  const records = readText("docs/release-test-records.md");
+  const evidence = readText("docs/release-evidence-index.md");
+  assert(records.includes("v230 S03 UI renderer decomposition"),
+    "release records missing archived v230 S03 result");
   for (const snippet of [
+    "v230-s03-ui-renderer-module-decomposition-20260605",
     "verify-v230-ui-renderer-module-decomposition",
-    "v230-ui-renderer-module-decomposition.md",
-    "route renderer, CSS module, JS controller",
+    "route renderer/CSS module/JS controller",
   ]) {
-    assert(backlog.includes(snippet), `backlog missing S03 snippet: ${snippet}`);
+    assert(evidence.includes(snippet), `release evidence missing archived S03 snippet: ${snippet}`);
   }
 });
 

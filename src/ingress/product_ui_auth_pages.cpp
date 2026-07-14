@@ -4,7 +4,6 @@
 #include <sstream>
 #include <string>
 
-#include "ingress/http_auth.h"
 #include "ingress/product_ui_assets.h"
 #include "ingress/product_ui_components.h"
 #include "ingress/product_ui_css.h"
@@ -191,7 +190,7 @@ std::string ClientAccessRequestPageHtml() {
     return out.str();
 }
 
-std::string PasswordChangePageHtml(const auth::Principal& principal,
+std::string PasswordChangePageHtml(const ProductUiPrincipalView& principal,
                                    const std::string& message,
                                    bool failed) {
     std::ostringstream out;
@@ -218,7 +217,7 @@ std::string PasswordChangePageHtml(const auth::Principal& principal,
     return out.str();
 }
 
-std::string AuthLandingPageHtml(const auth::Principal& principal,
+std::string AuthLandingPageHtml(const ProductUiPrincipalView& principal,
                                 const std::string& title,
                                 const std::string& body) {
     std::ostringstream out;
@@ -260,7 +259,7 @@ std::string AuthLandingPageHtml(const auth::Principal& principal,
     out << R"(</p>
     </section>
 )";
-    if (auth::RequireRole(principal, {"operator"})) {
+    if (principal.can_access_ops_sources) {
         out << R"(    <section class="section-card"><a class="button button-primary" href="/ops/sources">채널 관리</a></section>
 )";
     }

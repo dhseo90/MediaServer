@@ -73,6 +73,8 @@ check("Ops renderer source bytes match the pre-extraction baseline", () => {
   const rendererBlock = sliceBetween(source,
     "void AppendOpsShellStartImpl(",
     "// OPS_RENDERER_BYTE_BASELINE_END")
+    .replaceAll("ProductUiPrincipalView", "auth::Principal")
+    .replace("if (principal.is_admin) {", "if (auth::IsAdmin(principal)) {")
     .replaceAll("AppendOpsShellStartImpl", "AppendOpsShellStart")
     .replaceAll("AppendOpsShellEndImpl", "AppendOpsShellEnd")
     .replace(
@@ -91,7 +93,7 @@ check("Ops renderer source bytes match the pre-extraction baseline", () => {
     ["void AppendImageNavLink(", "c5ccbdf1076d9bb9abbff9dbd6376ca71771a3511fcd06097105bb4cb7ab963d"],
   ]);
   for (const [signature, expected] of helperHashes) {
-    assert(sha256(extractFunction(source, signature)) === expected,
+    assert(sha256(normalizePrincipalView(extractFunction(source, signature))) === expected,
       `focused renderer helper byte baseline drifted: ${signature}`);
     assert(sha256(extractFunction(server, signature)) === expected,
       `shared server helper byte baseline drifted: ${signature}`);
@@ -175,12 +177,20 @@ function sha256(value) {
 
 function normalizeConfigAdapter(value) {
   return value
+    .replace(/ProductUiPrincipalViewFromAuthPrincipal\(\s*principal_result\.principal\s*\)/g,
+      "principal_result.principal")
     .replace(
       /OpsShellPageHtml\(config\.stream_route,\n\s+config\.rtsp_listen_port,\n\s+principal_result\.principal,\n\s+"rules"\)/g,
       'OpsShellPageHtml(config, principal_result.principal, "rules")')
     .replace(
       /OpsShellPageHtml\(config\.stream_route,\n\s+config\.rtsp_listen_port,\n\s+principal_result\.principal,/g,
       "OpsShellPageHtml(config,\n                                                                     principal_result.principal,");
+}
+
+function normalizePrincipalView(value) {
+  return value
+    .replaceAll("ProductUiPrincipalView", "auth::Principal")
+    .replace("if (principal.is_admin) {", "if (auth::IsAdmin(principal)) {");
 }
 
 function extractFunction(text, signature) {

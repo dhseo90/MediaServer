@@ -4,7 +4,6 @@
 #include <sstream>
 #include <string>
 
-#include "ingress/http_auth.h"
 #include "ingress/product_ui_action_execution_deferral.h"
 #include "ingress/product_ui_assets.h"
 #include "ingress/product_ui_components.h"
@@ -58,7 +57,7 @@ std::string RefreshIconButtonHtml(const std::string& id,
 }
 
 void AppendProductAccountMenu(std::ostringstream& out,
-                             const auth::Principal& principal,
+                             const ProductUiPrincipalView& principal,
                              const std::string& secondary_action_href = std::string(),
                              const std::string& secondary_action_label = std::string()) {
     out << R"(        <div class="account-menu" data-sketch-account-menu="true" aria-label="현재 계정">
@@ -102,7 +101,7 @@ void AppendImageNavLink(std::ostringstream& out,
 }
 
 void AppendOpsShellStartImpl(std::ostringstream& out,
-                         const auth::Principal& principal,
+                         const ProductUiPrincipalView& principal,
                          const std::string& active,
                          const std::string& subtitle) {
     (void)active;
@@ -132,7 +131,7 @@ void AppendOpsShellStartImpl(std::ostringstream& out,
     AppendImageNavLink(out, "/ops/dashboard", "dashboard", "대시보드", active == "dashboard");
     AppendImageNavLink(out, "/ops/sources", "channels", "채널", active == "sources");
     AppendImageNavLink(out, "/ops/rules", "rules", "룰", active == "rules");
-    if (auth::IsAdmin(principal)) {
+    if (principal.is_admin) {
         AppendImageNavLink(out, "/ops/users", "users", "사용자", active == "users", "data-admin-only");
     }
     AppendImageNavLink(out, "/client/live", "client", "클라이언트", false, R"(aria-label="클라이언트")");
@@ -2343,7 +2342,7 @@ void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
 
 std::string OpsShellPageHtmlImpl(const std::string& stream_route,
                                  int rtsp_listen_port,
-                                 const auth::Principal& principal,
+                                 const ProductUiPrincipalView& principal,
                                  const std::string& active) {
     std::ostringstream out;
     AppendOpsShellStartImpl(out,
@@ -2370,7 +2369,7 @@ std::string OpsShellPageHtmlImpl(const std::string& stream_route,
 }  // namespace
 
 void AppendOpsShellStart(std::ostringstream& out,
-                         const auth::Principal& principal,
+                         const ProductUiPrincipalView& principal,
                          const std::string& active,
                          const std::string& subtitle) {
     AppendOpsShellStartImpl(out, principal, active, subtitle);
@@ -2382,7 +2381,7 @@ void AppendOpsShellEnd(std::ostringstream& out) {
 
 std::string OpsShellPageHtml(const std::string& stream_route,
                              int rtsp_listen_port,
-                             const auth::Principal& principal,
+                             const ProductUiPrincipalView& principal,
                              const std::string& active) {
     return OpsShellPageHtmlImpl(stream_route, rtsp_listen_port, principal, active);
 }
