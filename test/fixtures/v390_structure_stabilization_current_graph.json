@@ -171,10 +171,10 @@
     "file": "CMakeLists.txt",
     "targets": [
       {
-        "id": "media_server",
-        "type": "executable",
-        "declaredSourceCount": 79,
-        "defaultActiveSourceCount": 78,
+        "id": "media_server_runtime",
+        "type": "library",
+        "declaredSourceCount": 77,
+        "defaultActiveSourceCount": 76,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",
@@ -182,11 +182,10 @@
             "default": "OFF"
           }
         ],
-        "internalModuleTarget": false,
+        "internalModuleTarget": true,
         "moduleOwners": [
           "analysis-services",
           "stable-contract-dtos",
-          "composition-root",
           "core-utilities",
           "core-media-interfaces",
           "application-service-interfaces",
@@ -195,18 +194,30 @@
           "product-ui-workspaces",
           "domain-and-registry-owners"
         ]
+      },
+      {
+        "id": "media_server",
+        "type": "executable",
+        "declaredSourceCount": 2,
+        "defaultActiveSourceCount": 2,
+        "conditionalSources": [],
+        "internalModuleTarget": false,
+        "moduleOwners": [
+          "composition-root"
+        ]
       }
     ],
-    "internalTargetSeparation": false,
+    "internalTargetSeparation": true,
     "externalLinkEdges": [
-      "media_server -> PkgConfig::GSTREAMER",
-      "media_server -> PkgConfig::PANGOCAIRO",
-      "media_server -> PkgConfig::SQLITE3",
-      "media_server -> PkgConfig::LIBSODIUM",
-      "media_server -> PkgConfig::OPENSSL",
-      "media_server -> OpenSSL::SSL",
-      "media_server -> OpenSSL::Crypto",
-      "media_server -> ${ONNXRUNTIME_LIBRARY}"
+      "media_server -> media_server_runtime",
+      "media_server_runtime -> PkgConfig::GSTREAMER",
+      "media_server_runtime -> PkgConfig::PANGOCAIRO",
+      "media_server_runtime -> PkgConfig::SQLITE3",
+      "media_server_runtime -> PkgConfig::LIBSODIUM",
+      "media_server_runtime -> PkgConfig::OPENSSL",
+      "media_server_runtime -> OpenSSL::SSL",
+      "media_server_runtime -> OpenSSL::Crypto",
+      "media_server_runtime -> ${ONNXRUNTIME_LIBRARY}"
     ]
   },
   "observedModuleEdges": [

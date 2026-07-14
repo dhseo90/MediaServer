@@ -6,7 +6,7 @@
 
 **Architecture:** 이 계획은 behavior-preserving stabilization handoff다. 새 product route, write path, UI control, schema, media path를 만들지 않고, 기존 대형 translation unit과 문서 source-of-truth를 작은 소유권 단위로 나누기 위한 순서와 검증만 정의한다.
 
-**Execution status:** `approved-scheduled-after-review4-50-63`; actual REVIEW4-64 implementation은 `not-executed`입니다.
+**Execution status:** `in-progress`; historical Slice 1~5와 current continuation Slice 1~4를 완료했고 최종 architecture/evidence 기준은 아직 미달입니다.
 
 **Tech Stack:** C++17, GStreamer/ONNX 기반 MediaServer, `server.sh` verifier dispatch, Node.js static verifier, Markdown release/test evidence.
 
@@ -35,7 +35,7 @@ Development 17의 readiness와 REVIEW4-51 decision/graph는 승인 당시 histor
 `test/fixtures/v390_structure_stabilization_current_graph.json`, verifier는
 `./server.sh verify-v390-review4-structure-stabilization-execution`입니다.
 
-Current REVIEW4-64 status: `current-continuation-3-completed-slice-6-deferred`
+Current REVIEW4-64 status: `current-continuation-4-completed-slice-6-deferred`
 
 | 순서 | Current Slice | 상태 | 직접 경계 |
 | ---: | --- | --- | --- |
@@ -47,7 +47,7 @@ Current REVIEW4-64 status: `current-continuation-3-completed-slice-6-deferred`
 | 6 | `verifier-docs` | 미착수·deferred | production continuation source/graph가 안정된 뒤 execution evidence, manual UI archive, VLM index를 final review; generated evidence는 그 전까지 parked 상태 |
 
 Current policy v1 graph는 production 159파일/C++ 79개/owner 10개, target 위반 direction
-19개(승인 baseline 25개), 최대 SCC 6, internal target 1개입니다. `main.cpp` mixed composition debt는
+19개(승인 baseline 25개), 최대 SCC 6, production CMake target 2개입니다. `main.cpp` mixed composition debt는
 245→8줄, selected action route owner는 server 43,266→43,186줄로 닫았고 registry→transport auth edge와 product UI→transport/Auth edge를 제거했습니다. Transport는 현재 40,833줄이며 최대 SCC와 mixed-owner debt는 남아 있으므로 REVIEW4-64 완료가
 아닙니다. Historical v2 order와 current order의 전환 범위는 slice identifier/order뿐이며 current branch,
 50~63 prerequisite, 9 preserved contract, 64 뒤 65 acceptance 경계는 유지합니다. Policy v1은
@@ -55,7 +55,9 @@ application-service→core와 transport→Ops/UI를 temporary debt로 기록하�
 Ops server page renderer와 principal adapter 경계 이동에 이어 shared source request parser를
 `ingress/request_parser`에서 `core/source_request_parser`로 byte-equivalent 이동했습니다. SessionManager create/attach와
 RTSP configure만 core owner를 사용하며 HTTP server의 unused include를 제거했습니다. Transport monolith는 40,832줄,
-policy-v1 target direction은 19개, 최대 SCC는 6으로 감소했지만 internal target separation은 false입니다.
+policy-v1 target direction은 19개, 최대 SCC는 6으로 감소했습니다. 이어서 `media_server` composition executable은
+`main.cpp`와 application composition root 2개만, `media_server_runtime` STATIC library는 나머지 77개
+(기본 활성 76개)를 소유하도록 분리해 actual internal target separation을 true로 만들었습니다.
 
 `verify-feature-implementation-evidence`는 Slice 1~3 source 이동 뒤 current line/context/blob trust binding
 8,752건을 거부했고 negative fixture는 15/15를 통과했습니다. 이 FAIL은 PASS로 사용하지 않으며 ordered
@@ -79,7 +81,10 @@ adapter로 Auth principal 의존을 제거하고 완료했습니다. `product_ui
 matrix를 결속하고 codec 67/0/3, route profile 8/0, analysis 181/0, Event POST 9/0, WebRTC 8/0,
 SSE 5/0, WS 9/0을 통과했습니다. 전체 current continuation은 남은 architecture debt 때문에 `in-progress`이며 generated Review4 evidence는
 독립 승인·apply·negative 검증 전까지 parked/non-final입니다. Current graph의 위반 19, SCC 6, 최대 mixed
-owner 40,832줄, actual CMake internal target separation false가 모두 남아 있으므로 `refactorComplete=false`,
+owner 40,832줄은 남아 있습니다. 네 번째 Slice `cmake-internal-target-separation`은 source include graph를
+바꾸지 않고 executable 2개 source와 runtime library 77개 source를 분리했습니다. Focused 5/0, build 100%,
+start mode 10/0, codec 67/0/3, route 8/0, analysis 181/0으로 compile/link/runtime 동등성을 확인했습니다.
+Actual CMake internal target separation은 true지만 나머지 architecture 최종 기준은 미달이므로 `refactorComplete=false`,
 `completionClaimed=false`이고 REVIEW4-65 acceptance를 시작할 완료 evidence가 아닙니다.
 
 ## Development 17 Structure Stabilization Readiness

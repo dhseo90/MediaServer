@@ -55,21 +55,21 @@
   "currentGraph": {
     "path": "test/fixtures/v390_structure_stabilization_current_graph.json",
     "schema": "media-server.v390-structure-stabilization-current-graph.v1",
-    "sha256": "2f781dd262298a496e3afda5bce87622b55bc9e9ed5bb4a42b4e2da703f87d8c",
+    "sha256": "2309e3caf072c7c18b07452f988fbe6aadf7589a92095e30b793c6298fde8cba",
     "metrics": {
       "productionFiles": 159,
       "cppSources": 79,
       "moduleOwners": 10,
-      "cmakeTargets": 1,
+      "cmakeTargets": 2,
       "targetViolationDirections": 19,
       "largestSccOwners": 6,
       "largestMixedOwnerFileLines": 40832,
-      "internalTargetSeparation": false
+      "internalTargetSeparation": true
     }
   },
   "currentContinuation": {
     "status": "in-progress",
-    "latestCompletedSlice": 3,
+    "latestCompletedSlice": 4,
     "sliceSequenceStatus": "partial",
     "architectureStatus": "final-targets-unmet",
     "finalEvidenceStatus": "parked-generated-artifacts-in-review",
@@ -434,6 +434,96 @@
           {"command":"./server.sh verify-docs-links","status":"pass","result":"168 markdown files, 871 local links, 22 images, 99 anchors, 0 failures"},
           {"command":"git diff --check","status":"pass","result":"exit 0"},
           {"command":"listener/temp cleanup","status":"pass","result":"8555/8081/19091 listeners absent; nine current-run event/WebRTC/SSE temp files deleted"}
+        ]
+      },
+      {
+        "order": 4,
+        "id": "cmake-internal-target-separation",
+        "status": "completed",
+        "nonProductionSlice": false,
+        "rollbackCommit": "d5af1d686be051f5972e3078092e80922f88b09a",
+        "selectedBoundary": "split the composition executable from one runtime static library while preserving every production source, optional source, compile definition, external link, CLI, and runtime behavior",
+        "allowedFiles": [
+          "CMakeLists.txt",
+          "server.sh",
+          "scripts/internal/verify_v390_cmake_internal_target_separation.mjs",
+          "scripts/internal/verify_script_inventory.mjs",
+          "scripts/internal/verify_v390_structure_stabilization_execution.mjs",
+          "test/fixtures/v390_structure_stabilization_current_graph.json",
+          "test/fixtures/v390_structure_stabilization_execution.json",
+          "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md",
+          "docs/development-backlog.md",
+          "docs/project-feature-test-inventory.md",
+          "docs/stream-verification.md",
+          "docs/release-test-records.md",
+          "docs/release-evidence-index.md"
+        ],
+        "changedFiles": [
+          "CMakeLists.txt",
+          "server.sh",
+          "scripts/internal/verify_v390_cmake_internal_target_separation.mjs",
+          "scripts/internal/verify_script_inventory.mjs",
+          "scripts/internal/verify_v390_structure_stabilization_execution.mjs",
+          "test/fixtures/v390_structure_stabilization_current_graph.json",
+          "test/fixtures/v390_structure_stabilization_execution.json",
+          "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md",
+          "docs/development-backlog.md",
+          "docs/project-feature-test-inventory.md",
+          "docs/stream-verification.md",
+          "docs/release-test-records.md",
+          "docs/release-evidence-index.md"
+        ],
+        "before": {
+          "productionGraphSha256": "2f781dd262298a496e3afda5bce87622b55bc9e9ed5bb4a42b4e2da703f87d8c",
+          "productionFiles": 159,
+          "cppSources": 79,
+          "targetViolationDirectionsUnderPolicyV1": 19,
+          "largestSccOwners": 6,
+          "webrtcHttpServerLines": 40832,
+          "cmakeTargets": 1,
+          "internalTargetSeparation": false
+        },
+        "after": {
+          "productionGraphSha256": "2309e3caf072c7c18b07452f988fbe6aadf7589a92095e30b793c6298fde8cba",
+          "productionFiles": 159,
+          "cppSources": 79,
+          "targetViolationDirectionsUnderPolicyV1": 19,
+          "largestSccOwners": 6,
+          "webrtcHttpServerLines": 40832,
+          "cmakeTargets": 2,
+          "internalTargetSeparation": true
+        },
+        "contractAssertions": [
+          "media_server owns only main and the application composition root while media_server_runtime owns every remaining production source",
+          "every production C++ source is declared in exactly one target and the optional YouTube source remains default-off and runtime-owned",
+          "all GStreamer, Pango, SQLite, libsodium, OpenSSL, and ONNX compile/link settings remain attached to the compiling runtime target",
+          "media_server links media_server_runtime in one direction without introducing an owner include edge",
+          "auth-user CLI, foreground start/stop, RTSP/HTTP listeners, codec, route, and analysis behavior are unchanged",
+          "policy v1, source include edges, target violations, SCC, and mixed-owner line counts are unchanged",
+          "the two parked generated evidence artifacts remain unstaged and are not completion evidence"
+        ],
+        "observedFollowups": [
+          "tests and exact target topology expectations were registered before the production CMake target split",
+          "the focused pre-change gate passed only its mutation negative and failed 1/4 on the missing runtime library, mixed composition source set, runtime build settings, and two-target graph binding",
+          "after implementation the focused gate passed 5/0 and the build reached 100% with the runtime static library linked into the composition executable",
+          "server start mode first failed because the sandbox rejected the loopback RTSP bind and the approved unsandboxed retry passed 10/0",
+          "the first codec attempt used an Auth-enabled server and stopped on WebRTC 401; an Auth-off retry observed one cold HLS ffprobe timeout, then a completely fresh full run passed 67/0 with three disabled external-source skips",
+          "route profile passed 8/0 and analysis state passed 181/0 on the owned loopback server",
+          "the structure oracle still assumed one CMake target when summing declared/default-active sources; it now validates multi-target totals without changing product code",
+          "the current graph preserves source/include metrics and Policy v1 while CMake targets change from one to two and actual internal target separation changes from false to true"
+        ],
+        "tests": [
+          {"command":"./server.sh verify-v390-cmake-internal-target-separation","status":"pass","firstAttempt":"1/4 expected RED before production target split","result":"5/0 exact target/source/settings/graph/mutation topology"},
+          {"command":"./server.sh build","status":"pass","result":"100%"},
+          {"command":"./server.sh verify-server-start-modes","status":"pass","firstAttempt":"sandbox loopback RTSP bind EPERM","result":"approved unsandboxed retry 10/0"},
+          {"command":"./server.sh verify-codecs","status":"pass","firstAttempt":"Auth-enabled server WebRTC 401; run stopped","secondAttempt":"Auth-off cold HLS ffprobe timeout; run stopped","result":"fresh full Auth-off rerun 67/0/3; external disabled skips are not product PASS"},
+          {"command":"./server.sh verify-route-profiles","status":"pass","result":"8/0 on owned loopback server"},
+          {"command":"./server.sh verify-analysis-state","status":"pass","result":"181/0"},
+          {"command":"./server.sh verify-v390-review4-structure-stabilization-execution","status":"pass","result":"15/0 completion graph/ledger/document binding"},
+          {"command":"./server.sh verify-script-inventory","status":"pass","result":"11/0"},
+          {"command":"./server.sh verify-docs-links","status":"pass","result":"current documentation links/anchors 0 failures"},
+          {"command":"git diff --check","status":"pass","result":"exit 0"},
+          {"command":"listener/temp cleanup","status":"pass","result":"owned server and codec launchers stopped; current-run listeners and temporary logs absent"}
         ]
       }
     ]

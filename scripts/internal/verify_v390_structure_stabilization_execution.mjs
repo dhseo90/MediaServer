@@ -84,11 +84,24 @@ if (rawArgs.includes("--write-current-graph")) {
     classifier.expectedFileCount = owned.length;
     classifier.expectedCppCount = owned.filter(item => item.file.endsWith(".cpp")).length;
   }
-  const target = graph.cmake.targets.find(item => item.id === policy.cmakePolicy.productionExecutable);
-  target.declaredSourceCount = current.cmake.productionSources.length;
-  target.defaultActiveSourceCount = current.cmake.productionSources.length - target.conditionalSources.length;
-  target.moduleOwners = [...new Set(current.cmake.productionSources
-    .map(source => classifyModule(source, graph.moduleClassifiers)))];
+  const conditionalByPath = new Map(graph.cmake.targets
+    .flatMap(target => target.conditionalSources || [])
+    .map(conditional => [conditional.path, conditional]));
+  graph.cmake.targets = current.cmake.targets.map(target => {
+    const conditionalSources = target.productionSources
+      .filter(source => conditionalByPath.has(source))
+      .map(source => conditionalByPath.get(source));
+    return {
+      id: target.id,
+      type: target.type,
+      declaredSourceCount: target.productionSources.length,
+      defaultActiveSourceCount: target.productionSources.length - conditionalSources.length,
+      conditionalSources,
+      internalModuleTarget: target.type === "library",
+      moduleOwners: target.moduleOwners,
+    };
+  });
+  graph.cmake.internalTargetSeparation = current.cmake.internalTargetSeparation;
   graph.observedModuleEdges = current.observedModuleEdges;
   graph.stronglyConnectedComponents = current.stronglyConnectedComponents;
   for (const debt of graph.mixedOwnershipDebt) debt.lineCount = lineCount(debt.file);
@@ -156,9 +169,14 @@ check("current graph hash and metrics are exact", () => {
     "current SCC graph drift");
   assert(JSON.stringify(actual.cmake.targetIds) === JSON.stringify(graph.cmake.targets.map(item => item.id)),
     "current CMake target drift");
-  assert(actual.cmake.productionSources.length === graph.cmake.targets[0].declaredSourceCount &&
-    actual.cmake.productionSources.length - graph.cmake.targets[0].conditionalSources.length ===
-      graph.cmake.targets[0].defaultActiveSourceCount,
+  const declaredSourceCount = graph.cmake.targets
+    .reduce((sum, target) => sum + target.declaredSourceCount, 0);
+  const defaultActiveSourceCount = graph.cmake.targets
+    .reduce((sum, target) => sum + target.defaultActiveSourceCount, 0);
+  const conditionalSourceCount = graph.cmake.targets
+    .reduce((sum, target) => sum + target.conditionalSources.length, 0);
+  assert(actual.cmake.productionSources.length === declaredSourceCount &&
+    actual.cmake.productionSources.length - conditionalSourceCount === defaultActiveSourceCount,
   "current CMake source count drift");
   const graphPolicyErrors = validateGraphPolicy(graph, policy, actual);
   assert(graphPolicyErrors.length === 0, graphPolicyErrors.join("; "));
@@ -456,17 +474,20 @@ check("non-production Slice preserves production graph and parked evidence stays
   }
 });
 
-check("current continuation binds completed Slices 1-2 and fail-closes Slice 3 without a final claim", () => {
+check("current continuation binds the exact Slice 1-4 frontier without a final claim", () => {
   const slices = ledger.currentContinuation?.orderedSlices || [];
-  assert(slices.length === 3 && slices[0].order === 1 && slices[1].order === 2 && slices[2].order === 3 &&
+  assert(slices.length === 4 && slices[0].order === 1 && slices[1].order === 2 && slices[2].order === 3 &&
+    slices[3].order === 4 &&
     slices[0].id === "completion-oracle-and-ops-ui-renderer" && slices[0].status === "completed" &&
     slices[1].id === "product-ui-principal-view-boundary" && slices[1].status === "completed" &&
-    slices[2].id === "source-request-parser-owner-boundary" &&
-    ["in-progress", "completed"].includes(slices[2].status),
+    slices[2].id === "source-request-parser-owner-boundary" && slices[2].status === "completed" &&
+    slices[3].id === "cmake-internal-target-separation" &&
+    ["in-progress", "completed"].includes(slices[3].status),
   "current continuation slice identity/frontier mismatch");
   const slice1 = slices[0];
   const slice2 = slices[1];
   const slice3 = slices[2];
+  const slice4 = slices[3];
   assert(slice1.rollbackCommit === ledger.orderedSlices[5].rollbackCommit &&
     slice1.nonProductionSlice === false && slice1.contractAssertions.length >= 5 && slice1.tests.length >= 5 &&
     slice1.tests.every(test => test.status === "pass"),
@@ -541,37 +562,19 @@ check("current continuation binds completed Slices 1-2 and fail-closes Slice 3 w
   ];
   assert(slice3Commands.every(command => slice3.tests.filter(test => test.command === command).length === 1),
     "current continuation Slice 3 test inventory command drift");
-  if (slice3.status === "in-progress") {
-    assert(ledger.currentContinuation.status === "in-progress" &&
-      ledger.currentContinuation.latestCompletedSlice === 2 &&
-      ledger.currentContinuation.sliceSequenceStatus === "partial" && slice3.after === null,
-    "in-progress Slice 3 frontier/after-state overclaim");
-    const focusedStatus = sliceTest(slice3, slice3Commands[0]).status;
-    assert(["registered", "expected-red"].includes(focusedStatus) &&
-      slice3.tests.slice(1).every(test => test.status === "registered"),
-    "in-progress Slice 3 test registration/RED state drift");
-    assert(ledger.currentGraph.sha256 === slice3.before.productionGraphSha256 &&
-      ledger.currentGraph.metrics.productionFiles === slice3.before.productionFiles &&
-      ledger.currentGraph.metrics.cppSources === slice3.before.cppSources &&
-      ledger.currentGraph.metrics.targetViolationDirections ===
-        slice3.before.targetViolationDirectionsUnderPolicyV1 &&
-      ledger.currentGraph.metrics.largestSccOwners === slice3.before.largestSccOwners,
-    "in-progress Slice 3 rewrote graph/after evidence before production verification completed");
-  } else {
-    assert(ledger.currentContinuation.status === "in-progress" &&
-      ledger.currentContinuation.latestCompletedSlice === 3 &&
-      ledger.currentContinuation.sliceSequenceStatus === "partial" && slice3.after !== null &&
-      slice3.tests.every(test => test.status === "pass"),
+  assert(slice3.after !== null && slice3.tests.every(test => test.status === "pass"),
     "completed Slice 3 frontier/test state mismatch");
-    assert(slice3.after.productionGraphSha256 === ledger.currentGraph.sha256 &&
-      slice3.after.productionFiles === ledger.currentGraph.metrics.productionFiles &&
-      slice3.after.cppSources === ledger.currentGraph.metrics.cppSources &&
-      slice3.after.targetViolationDirectionsUnderPolicyV1 === ledger.currentGraph.metrics.targetViolationDirections &&
-      slice3.after.largestSccOwners === ledger.currentGraph.metrics.largestSccOwners &&
-      slice3.after.webrtcHttpServerLines === ledger.currentGraph.metrics.largestMixedOwnerFileLines &&
-      slice3.after.cmakeTargets === ledger.currentGraph.metrics.cmakeTargets &&
-      slice3.after.internalTargetSeparation === ledger.currentGraph.metrics.internalTargetSeparation,
-    "completed Slice 3 after-state is not bound to the actual current graph");
+  {
+    assert(JSON.stringify(slice3.after) === JSON.stringify({
+      productionGraphSha256: "2f781dd262298a496e3afda5bce87622b55bc9e9ed5bb4a42b4e2da703f87d8c",
+      productionFiles: 159,
+      cppSources: 79,
+      targetViolationDirectionsUnderPolicyV1: 19,
+      largestSccOwners: 6,
+      webrtcHttpServerLines: 40832,
+      cmakeTargets: 1,
+      internalTargetSeparation: false,
+    }), "completed Slice 3 after-state snapshot drift");
     assert(slice3.after.productionFiles === slice3.before.productionFiles &&
       slice3.after.cppSources === slice3.before.cppSources &&
       slice3.after.targetViolationDirectionsUnderPolicyV1 <
@@ -600,6 +603,68 @@ check("current continuation binds completed Slices 1-2 and fail-closes Slice 3 w
         `completed Slice 3 parked artifact changed or was staged: ${invariant.path}`);
       }
     }
+  }
+
+  assert(slice4.rollbackCommit === "d5af1d686be051f5972e3078092e80922f88b09a" &&
+    slice4.rollbackCommit !== slice3.rollbackCommit &&
+    exec("git", ["merge-base", "--is-ancestor", slice4.rollbackCommit, "HEAD"], true).status === 0 &&
+    slice4.nonProductionSlice === false && slice4.contractAssertions.length >= 7 && slice4.tests.length === 11,
+  "current continuation Slice 4 rollback/contract/test boundary mismatch");
+  assert(JSON.stringify(slice4.before) === JSON.stringify(slice3.after),
+    "current continuation Slice 4 before-state is not bound to Slice 3 frontier");
+  const slice4Commands = [
+    "./server.sh verify-v390-cmake-internal-target-separation",
+    "./server.sh build",
+    "./server.sh verify-server-start-modes",
+    "./server.sh verify-codecs",
+    "./server.sh verify-route-profiles",
+    "./server.sh verify-analysis-state",
+    "./server.sh verify-v390-review4-structure-stabilization-execution",
+    "./server.sh verify-script-inventory",
+    "./server.sh verify-docs-links",
+    "git diff --check",
+    "listener/temp cleanup",
+  ];
+  assert(slice4Commands.every(command => slice4.tests.filter(test => test.command === command).length === 1),
+    "current continuation Slice 4 test inventory command drift");
+  if (slice4.status === "in-progress") {
+    assert(ledger.currentContinuation.status === "in-progress" &&
+      ledger.currentContinuation.latestCompletedSlice === 3 &&
+      ledger.currentContinuation.sliceSequenceStatus === "partial" && slice4.after === null,
+    "in-progress Slice 4 frontier/after-state overclaim");
+    assert(["registered", "expected-red"].includes(sliceTest(slice4, slice4Commands[0]).status) &&
+      slice4.tests.slice(1).every(test => test.status === "registered"),
+    "in-progress Slice 4 test registration/RED state drift");
+    assert(ledger.currentGraph.sha256 === slice4.before.productionGraphSha256 &&
+      ledger.currentGraph.metrics.productionFiles === slice4.before.productionFiles &&
+      ledger.currentGraph.metrics.cppSources === slice4.before.cppSources &&
+      ledger.currentGraph.metrics.cmakeTargets === slice4.before.cmakeTargets &&
+      ledger.currentGraph.metrics.internalTargetSeparation === slice4.before.internalTargetSeparation,
+    "in-progress Slice 4 rewrote graph/after evidence before production verification completed");
+  } else {
+    assert(ledger.currentContinuation.status === "in-progress" &&
+      ledger.currentContinuation.latestCompletedSlice === 4 &&
+      ledger.currentContinuation.sliceSequenceStatus === "partial" && slice4.after !== null &&
+      slice4.tests.every(test => test.status === "pass"),
+    "completed Slice 4 frontier/test state mismatch");
+    assert(slice4.after.productionGraphSha256 === ledger.currentGraph.sha256 &&
+      slice4.after.productionFiles === ledger.currentGraph.metrics.productionFiles &&
+      slice4.after.cppSources === ledger.currentGraph.metrics.cppSources &&
+      slice4.after.targetViolationDirectionsUnderPolicyV1 === ledger.currentGraph.metrics.targetViolationDirections &&
+      slice4.after.largestSccOwners === ledger.currentGraph.metrics.largestSccOwners &&
+      slice4.after.webrtcHttpServerLines === ledger.currentGraph.metrics.largestMixedOwnerFileLines &&
+      slice4.after.cmakeTargets === 2 && ledger.currentGraph.metrics.cmakeTargets === 2 &&
+      slice4.after.internalTargetSeparation === true &&
+      ledger.currentGraph.metrics.internalTargetSeparation === true,
+    "completed Slice 4 target topology is not bound to the actual current graph");
+    assert(slice4.after.productionFiles === slice4.before.productionFiles &&
+      slice4.after.cppSources === slice4.before.cppSources &&
+      slice4.after.targetViolationDirectionsUnderPolicyV1 ===
+        slice4.before.targetViolationDirectionsUnderPolicyV1 &&
+      slice4.after.largestSccOwners === slice4.before.largestSccOwners &&
+      slice4.after.webrtcHttpServerLines === slice4.before.webrtcHttpServerLines &&
+      slice4.before.cmakeTargets === 1 && slice4.before.internalTargetSeparation === false,
+    "completed Slice 4 changed source graph metrics or failed to add only target separation");
   }
   assert(ledger.currentContinuation.finalCompletionClaimAllowed === false &&
     ledger.refactorComplete === false && ledger.completionClaimed === false,
