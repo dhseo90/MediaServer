@@ -627,10 +627,10 @@ check("dirty worktree paths stay inside the active slice declaration", () => {
     .flatMap(file => file.includes(" -> ") ? file.split(" -> ") : [file]);
   const outside = changed.filter(file => !allowed.has(file));
   assert(outside.length === 0, `active slice changed undeclared path(s): ${outside.join(",")}`);
-  const committed = execFileSync("git", ["diff", "--name-only", `${active.rollbackCommit}..HEAD`], {
+  const committed = execFileSync("git", ["diff", "--name-status", `${active.rollbackCommit}..HEAD`], {
     cwd: rootDir,
     encoding: "utf8",
-  }).trim().split("\n").filter(Boolean);
+  }).trim().split("\n").filter(Boolean).flatMap(line => line.split("\t").slice(1));
   const observed = new Set([...changed, ...committed]);
   for (const file of active.changedFiles) assert(observed.has(file), `declared production change missing: ${file}`);
   for (const file of continuationActive?.changedFiles || []) {

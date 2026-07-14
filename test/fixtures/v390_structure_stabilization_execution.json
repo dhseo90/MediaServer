@@ -415,7 +415,8 @@
           "owned listeners on 8555, 8081, and 19091 were absent after shutdown; nine current-run event/WebRTC/SSE temporary files totaling about 20 KB were identified and deleted while historical artifacts were left untouched",
           "the two parked generated evidence artifacts retained their pre-Slice SHA-256 and numstat and were not staged or used as completion evidence",
           "the first script inventory finalization run failed 10/1 because the new focused verifier did not yet use the common unknown-option parser; help and unknown-option handling were added, the focused gate reran 5/0, structure reran 15/0, and script inventory reran 11/0",
-          "the post-stage structure rerun failed 14/1 because porcelain rename parsing retained only the destination and falsely reported the declared deleted ingress header missing; the oracle now records both rename endpoints before allowlist/changed-file comparison"
+          "the post-stage structure rerun failed 14/1 because porcelain rename parsing retained only the destination and falsely reported the declared deleted ingress header missing; the oracle now records both rename endpoints before allowlist/changed-file comparison",
+          "the first post-commit structure rerun repeated 14/1 because rollback-to-HEAD name-only output also retained only rename destinations; committed change collection now uses name-status and records every rename source and destination"
         ],
         "tests": [
           {"command":"./server.sh verify-v390-source-request-parser-owner","status":"pass","firstAttempt":"0/5 expected RED","reviewRepairFirstAttempt":"3/2; rollback source hash and namespace mutation oracle","result":"5/0 with normalized rollback bytes, compiled parser matrix, exact consumers, and mutation negatives"},
@@ -428,7 +429,7 @@
           {"command":"./server.sh verify-webrtc-va-metadata","status":"pass","firstAttempt":"default 8080 fetch failure","result":"8/0 with owned 8081 base"},
           {"command":"./server.sh verify-sse-metadata","status":"pass","result":"5/0"},
           {"command":"./server.sh verify-ws-metadata","status":"pass","result":"9/0"},
-          {"command":"./server.sh verify-v390-review4-structure-stabilization-execution","status":"pass","postStageFirstAttempt":"14/1 staged rename source endpoint omitted by oracle","result":"15/0 completion graph/ledger/document binding including both rename endpoints"},
+          {"command":"./server.sh verify-v390-review4-structure-stabilization-execution","status":"pass","postStageFirstAttempt":"14/1 staged rename source endpoint omitted by oracle","postCommitFirstAttempt":"14/1 committed rename source endpoint omitted by name-only oracle","result":"15/0 completion graph/ledger/document binding including staged and committed rename endpoints"},
           {"command":"./server.sh verify-script-inventory","status":"pass","firstAttempt":"10/1 missing common option parser in new focused verifier","result":"11/0 after focused option contract and 5/0 rerun"},
           {"command":"./server.sh verify-docs-links","status":"pass","result":"168 markdown files, 871 local links, 22 images, 99 anchors, 0 failures"},
           {"command":"git diff --check","status":"pass","result":"exit 0"},
