@@ -2,6 +2,8 @@
 // 동작 요약: 구독 필터, build option, sync 정보를 dependency-neutral DTO로 전달해 runtime/WebRTC JSON을 만든다.
 #pragma once
 
+#include "ingress/event_rule_application_service.h"
+
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -60,9 +62,21 @@ std::string SerializeVaRuntimeMetadataForApplication(
     const std::string& tracking_issue_report_json,
     const VaMetadataApplicationBuildOptions& options);
 
+std::string SerializeVaRuntimeMetadataForApplication(
+    const AnalysisSessionApplicationResult& result,
+    const std::vector<EventRuleApplicationEvent>& events,
+    const std::string& tracking_issue_report_json,
+    const VaMetadataApplicationBuildOptions& options);
+
 std::string SerializeWebRtcVaMetadataForApplication(
     const analysis::AnalysisResult& result,
     const std::vector<analysis::AnalysisEvent>& events,
+    const VaMetadataApplicationSyncInfo& sync_info,
+    const VaMetadataApplicationFilter& filter);
+
+std::string SerializeWebRtcVaMetadataForApplication(
+    const AnalysisSessionApplicationResult& result,
+    const std::vector<EventRuleApplicationEvent>& events,
     const VaMetadataApplicationSyncInfo& sync_info,
     const VaMetadataApplicationFilter& filter);
 

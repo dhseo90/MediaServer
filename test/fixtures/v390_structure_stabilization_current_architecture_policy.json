@@ -41,6 +41,7 @@
     "analysis-services -> domain-and-registry-owners",
     "application-service-interfaces -> analysis-services",
     "application-service-interfaces -> domain-and-registry-owners",
+    "composition-root -> application-service-interfaces",
     "composition-root -> analysis-services",
     "composition-root -> core-media-interfaces",
     "composition-root -> core-utilities",

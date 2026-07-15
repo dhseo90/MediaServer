@@ -258,19 +258,21 @@ check("actual graph successor reduces one transport-analysis witness", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const owner = graph.moduleClassifiers.find(item => item.id === "application-service-interfaces");
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.boundary === "current REVIEW4-64 continuation graph after the Event Rule application boundary; canonical stored-rule snapshot, evaluation, keyed runtime lifecycle, ephemeral SSE/WS runtime, and result accessors are application-owned, Policy v1 counts 2 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed" &&
-    graph.expectedProductionFiles === 204 && graph.expectedCppFiles === 100 &&
-    owner?.expectedFileCount === 37 && owner.expectedCppCount === 16 &&
+  assert(graph.boundary.includes("Analysis Session read application boundary") && graph.boundary.includes("30B") &&
+    graph.expectedProductionFiles === 208 && graph.expectedCppFiles === 101 &&
+    owner?.expectedFileCount === 41 && owner.expectedCppCount === 17 &&
     edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 1 &&
     edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 === "65f056e8ec5e09a639a15d98920884535929f2470a6beac11ffa9869eba796a7" &&
     edge("transport-and-auth-adapter -> analysis-services")?.allowedByTarget === false &&
-    edge("application-service-interfaces -> analysis-services")?.witnessCount === 18 &&
-    edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "a9367154a0273868ee9435211a33b3427ae3a5c565064b52275c9d7091373d3d" &&
+    edge("application-service-interfaces -> analysis-services")?.witnessCount === 20 &&
+    edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "369be0731233c3c320103811ced13f27110508063e7cb6b82ab49d2431ade21a" &&
     edge("application-service-interfaces -> analysis-services")?.allowedByTarget === true &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 19 &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "8cb29f2bf4ad70bd4ad35ca7cd8558d702a058e7fc06ec7f89698d44643bab19" &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 20 &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "59d642796881167f557cde11ce4304ee67adacbccfda8bbd90a70bb62259d52e" &&
     edge("transport-and-auth-adapter -> application-service-interfaces")?.allowedByTarget === true &&
-    graph.observedModuleEdges.length === 16 &&
+    edge("composition-root -> application-service-interfaces")?.witnessCount === 1 &&
+    edge("composition-root -> application-service-interfaces")?.witnessSha256 === "a5971a04521df447b33a9be009aa7e2e8ffeec5d23dfc0ac26fb95404d8af9fb" &&
+    graph.observedModuleEdges.length === 17 &&
     graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 &&
     graph.stronglyConnectedComponents.length === 0,
   "Slice 20 graph successor missing");

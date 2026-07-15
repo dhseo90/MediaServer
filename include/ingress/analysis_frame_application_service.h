@@ -2,6 +2,8 @@
 // 동작 요약: analysis data contract는 forward declaration으로 유지하고 concrete service 호출과 옵션 mapping을 소유한다.
 #pragma once
 
+#include "ingress/analysis_session_read_application_service.h"
+
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -71,6 +73,13 @@ bool RenderDetectionOverlayForApplication(
     const analysis::AnalysisResult& result,
     const std::unordered_map<std::string, std::string>& query,
     analysis::RawVideoFrame* output,
+    std::string* error_message);
+
+bool RenderDetectionOverlayForApplication(
+    ImageCodecFrame frame,
+    const AnalysisSessionApplicationResult& result,
+    const std::unordered_map<std::string, std::string>& query,
+    ImageCodecFrame* output,
     std::string* error_message);
 
 bool AnalysisOverlayDebugRequestedForApplication(

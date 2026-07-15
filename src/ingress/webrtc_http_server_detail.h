@@ -1736,8 +1736,12 @@ struct WebRtcHttpServer::Impl {
         int attempts{0};
     };
 
-    Impl(core::SessionManager& manager, analysis::AnalysisSessionService& analysis_service)
-        : session_manager(manager), analysis_sessions(analysis_service) {}
+    Impl(core::SessionManager& manager,
+         analysis::AnalysisSessionService& analysis_service,
+         AnalysisSessionReadApplicationService& analysis_read_service)
+        : session_manager(manager),
+          analysis_sessions(analysis_service),
+          analysis_session_reads(analysis_read_service) {}
 
     bool AllowPublicAccessRequestAttempt(const std::string& peer_key,
                                          int* retry_after_seconds) {
@@ -1777,6 +1781,7 @@ struct WebRtcHttpServer::Impl {
 
     core::SessionManager& session_manager;
     analysis::AnalysisSessionService& analysis_sessions;
+    AnalysisSessionReadApplicationService& analysis_session_reads;
     std::string listen_address;
     std::uint16_t port{0};
     int listen_fd{-1};
@@ -1922,17 +1927,17 @@ void AddUniqueString(std::vector<std::string>* values, const std::string& value)
 std::vector<std::string> ClientStreamKeyCandidates(const SourceViewApplicationService::SourceRecord& source);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3620 prototype
-bool ClientTapMatchesSource(const analysis::AnalysisManager::TapSnapshot& tap,
+bool ClientTapMatchesSource(const AnalysisSessionApplicationSnapshot& tap,
                             const std::vector<std::string>& stream_key_candidates);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3626 prototype
 bool ClientTapMatchesViewRule(const SourceViewApplicationService::PublishedViewRecord& view,
-                              const analysis::AnalysisManager::TapSnapshot& tap);
+                              const AnalysisSessionApplicationSnapshot& tap);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3636 prototype
-const analysis::AnalysisManager::TapSnapshot* SelectClientDashboardTap(
+const AnalysisSessionApplicationSnapshot* SelectClientDashboardTap(
     const SourceViewApplicationService::ClientViewAccess& access,
-    const std::vector<analysis::AnalysisManager::TapSnapshot>& taps,
+    const std::vector<AnalysisSessionApplicationSnapshot>& taps,
     const std::vector<std::string>& stream_key_candidates);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3659 type
@@ -2003,7 +2008,7 @@ std::string ClientSourceStatusDigestTimelineHint(const std::string& source_statu
 ClientSourceStatusDigest ClientSourceStatusDigestFor(
     const SourceViewApplicationService::ClientViewAccess& access,
     const auth::Principal& principal,
-    const std::vector<analysis::AnalysisManager::TapSnapshot>& taps);
+    const std::vector<AnalysisSessionApplicationSnapshot>& taps);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3814 prototype
 void AppendClientSafeSourceStatusDigestJson(std::ostringstream& out,
@@ -2013,7 +2018,7 @@ void AppendClientSafeSourceStatusDigestJson(std::ostringstream& out,
 std::string ClientSourceStatusDigestJson(
     const SourceViewApplicationService::ClientViewAccess& access,
     const auth::Principal& principal,
-    const std::vector<analysis::AnalysisManager::TapSnapshot>& taps);
+    const std::vector<AnalysisSessionApplicationSnapshot>& taps);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3866 type
 struct ClientMaintenanceDigest {
@@ -2228,23 +2233,23 @@ void AppendClientViewIdentityJson(std::ostringstream& out,
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 4777 prototype
 std::vector<std::string> ClientEventStreamCandidates(
     const SourceViewApplicationService::SourceRecord& source,
-    const analysis::AnalysisManager::TapSnapshot* tap);
+    const AnalysisSessionApplicationSnapshot* tap);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 4790 prototype
 std::string ClientViewEventsJson(
     const SourceViewApplicationService::ClientViewAccess& access,
     const auth::Principal& principal,
-    const std::vector<analysis::AnalysisManager::TapSnapshot>& taps,
+    const std::vector<AnalysisSessionApplicationSnapshot>& taps,
     int limit);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 4823 prototype
 std::string ClientViewMetadataJson(const SourceViewApplicationService::ClientViewAccess& access,
-                                   const std::vector<analysis::AnalysisManager::TapSnapshot>& taps);
+                                   const std::vector<AnalysisSessionApplicationSnapshot>& taps);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 4877 prototype
 std::string ClientViewDashboardJson(const SourceViewApplicationService::ClientViewAccess& access,
                                     const auth::Principal& principal,
-                                    const std::vector<analysis::AnalysisManager::TapSnapshot>& taps);
+                                    const std::vector<AnalysisSessionApplicationSnapshot>& taps);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 5018 prototype
 std::string NormalizeClientOverlayMode(std::string mode);
@@ -2392,7 +2397,7 @@ std::string RuntimeStatusJson(const core::SessionManager::RuntimeStateSnapshot& 
                               int active_sse_metadata_clients,
                               int active_ws_metadata_clients,
                               const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
-                              const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps);
+                              const std::vector<AnalysisSessionApplicationSnapshot>& analysis_taps);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6419 type
 struct BrowserIceServer {
@@ -2462,17 +2467,25 @@ std::string TrackJson(const analysis::Track& track);
 std::string AnalysisResultJson(const analysis::AnalysisResult& result);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6944 prototype
-std::string AnalysisTapSnapshotJson(const analysis::AnalysisManager::TapSnapshot& snapshot);
+std::string AnalysisTapSnapshotJson(const AnalysisSessionApplicationSnapshot& snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 7100 prototype
 std::string AnalysisMetadataJson(const std::string& tap_id,
                                  const std::optional<analysis::AnalysisResult>& result);
+std::string AnalysisMetadataJson(
+    const std::string& tap_id,
+    const std::optional<AnalysisSessionApplicationResult>& result);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 7116 prototype
 std::string AnalysisBboxDiagnosticsJson(const std::string& tap_id,
                                         std::int64_t requested_pts_ms,
                                         std::int64_t tolerance_ms,
                                         const std::optional<analysis::AnalysisResult>& result);
+std::string AnalysisBboxDiagnosticsJson(
+    const std::string& tap_id,
+    std::int64_t requested_pts_ms,
+    std::int64_t tolerance_ms,
+    const std::optional<AnalysisSessionApplicationResult>& result);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 7169 type
 struct VaMetadataStreamOptions {
@@ -2556,6 +2569,11 @@ std::string BuildVaRuntimeMetadataJsonWithinBudget(const analysis::AnalysisResul
                                                    const std::vector<analysis::AnalysisEvent>& events,
                                                    const std::string& tracking_issue_report_json,
                                                    const VaMetadataStreamOptions& stream_options);
+std::string BuildVaRuntimeMetadataJsonWithinBudget(
+    const AnalysisSessionApplicationResult& result,
+    const std::vector<EventRuleApplicationEvent>& events,
+    const std::string& tracking_issue_report_json,
+    const VaMetadataStreamOptions& stream_options);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 7550 prototype
 std::string LowerAscii(std::string value);
@@ -2623,7 +2641,7 @@ bool SendSseEvent(int fd, const std::string& event_name, const std::string& data
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 7905 prototype
 bool StreamVaMetadataSse(int client_fd,
                          const std::atomic<bool>& running,
-                         analysis::AnalysisSessionService& analysis_sessions,
+                         AnalysisSessionReadApplicationService& analysis_session_reads,
                          const std::string& tap_id,
                          const std::unordered_map<std::string, std::string>& query,
                          const HttpRequest& request);
@@ -2631,7 +2649,7 @@ bool StreamVaMetadataSse(int client_fd,
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8005 prototype
 bool StreamVaMetadataWebSocket(int client_fd,
                                const std::atomic<bool>& running,
-                               analysis::AnalysisSessionService& analysis_sessions,
+                               AnalysisSessionReadApplicationService& analysis_session_reads,
                                const std::string& tap_id,
                                const std::unordered_map<std::string, std::string>& query,
                                const std::string& websocket_key,
@@ -2639,12 +2657,12 @@ bool StreamVaMetadataWebSocket(int client_fd,
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8167 prototype
 std::string AnalysisStateDumpJson(const std::string& tap_id,
-                                  const analysis::AnalysisManager::TapSnapshot& snapshot,
+                                  const AnalysisSessionApplicationSnapshot& snapshot,
                                   const std::optional<EventRuleApplicationEvaluation>& evaluation);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8208 prototype
 std::string AnalysisMetricsDumpJson(const std::string& tap_id,
-                                    const analysis::AnalysisManager::TapSnapshot& snapshot,
+                                    const AnalysisSessionApplicationSnapshot& snapshot,
                                     const std::optional<EventRuleApplicationEvaluation>& evaluation);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8319 prototype
@@ -2652,23 +2670,23 @@ std::string AnalysisTapCreatedJson(const analysis::AnalysisSessionService::Analy
                                    std::size_t active_taps);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8334 prototype
-std::string AnalysisTapListJson(const std::vector<analysis::AnalysisManager::TapSnapshot>& snapshots);
+std::string AnalysisTapListJson(const std::vector<AnalysisSessionApplicationSnapshot>& snapshots);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8347 prototype
 std::string AnalysisGlobalMetadataJson(
-    const std::vector<analysis::AnalysisManager::TapSnapshot>& snapshots);
+    const std::vector<AnalysisSessionApplicationSnapshot>& snapshots);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8362 prototype
 std::string AnalysisGlobalBboxDiagnosticsJson(
-    const std::vector<analysis::AnalysisManager::TapSnapshot>& snapshots);
+    const std::vector<AnalysisSessionApplicationSnapshot>& snapshots);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8381 prototype
 std::string AnalysisGlobalStateDumpJson(
-    const std::vector<analysis::AnalysisManager::TapSnapshot>& snapshots);
+    const std::vector<AnalysisSessionApplicationSnapshot>& snapshots);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8396 prototype
 std::string AnalysisGlobalMetricsDumpJson(
-    const std::vector<analysis::AnalysisManager::TapSnapshot>& snapshots);
+    const std::vector<AnalysisSessionApplicationSnapshot>& snapshots);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8411 type
 struct StaticImageAnalysis {
@@ -2757,6 +2775,10 @@ std::string AnalysisEventJson(const analysis::AnalysisEvent& event);
 std::string AnalysisEventsJson(const std::string& tap_id,
                                const std::optional<analysis::AnalysisResult>& result,
                                const EventRuleApplicationEvaluation* evaluation);
+std::string AnalysisEventsJson(
+    const std::string& tap_id,
+    const std::optional<AnalysisSessionApplicationResult>& result,
+    const EventRuleApplicationEvaluation* evaluation);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8876 prototype
 WebRtcMetadataChannelConfig BuildWebRtcMetadataChannelConfigFromQuery(
@@ -2879,9 +2901,9 @@ const SourceViewApplicationService::PublishedViewRecord* OpsHealthViewForSource(
     const std::string& source_id);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9439 prototype
-const analysis::AnalysisManager::TapSnapshot* OpsHealthTapForSource(
+const AnalysisSessionApplicationSnapshot* OpsHealthTapForSource(
     const SourceViewApplicationService::SourceRecord& source,
-    const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps);
+    const std::vector<AnalysisSessionApplicationSnapshot>& analysis_taps);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9458 prototype
 const PublishedWebRtcSource::Snapshot* OpsHealthPublishedSourceFor(
@@ -2928,7 +2950,7 @@ void ApplyOpsSourceHealthCodec(OpsSourceHealthItem* item, const media::StreamDes
 void ClassifyOpsSourceHealth(OpsSourceHealthItem* item,
                              const SourceViewApplicationService::SourceRecord& source,
                              const SourceViewApplicationService::PublishedViewRecord* view,
-                             const analysis::AnalysisManager::TapSnapshot* tap,
+                             const AnalysisSessionApplicationSnapshot* tap,
                              const PublishedWebRtcSource::Snapshot* published_source,
                              const media::StreamDescriptor* descriptor,
                              const core::SessionManager::SourceReconnectStats* reconnect_stats,
@@ -2943,7 +2965,7 @@ void ApplyOpsSourceHealthWarningThresholds(OpsSourceHealthSnapshot* snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9773 prototype
 OpsSourceHealthSnapshot BuildOpsSourceHealthSnapshot(
-    const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps,
+    const std::vector<AnalysisSessionApplicationSnapshot>& analysis_taps,
     const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
     const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
     const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats,
@@ -3385,7 +3407,7 @@ void AppendV370SiteHealthRollupItemJson(std::ostringstream& out,
 std::string OpsV370SiteHealthRollupJson(const OpsSourceHealthSnapshot& health_snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 12187 prototype
-std::string OpsSourceHealthJson(const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps,
+std::string OpsSourceHealthJson(const std::vector<AnalysisSessionApplicationSnapshot>& analysis_taps,
                                 const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
                                 const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
                                 const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats,
@@ -3399,7 +3421,7 @@ bool OpsSourceHealthBulkRetryable(const OpsSourceHealthItem& item);
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 12231 prototype
 std::string OpsSourceHealthBulkJson(
     const std::string& body,
-    const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps,
+    const std::vector<AnalysisSessionApplicationSnapshot>& analysis_taps,
     const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
     const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
     const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats,
@@ -6814,6 +6836,11 @@ std::string WebRtcVaMetadataMessageJson(const analysis::AnalysisResult& result,
                                         const std::vector<analysis::AnalysisEvent>& events,
                                         const VaMetadataApplicationSyncInfo& sync_info,
                                         const VaMetadataApplicationFilter& subscription_filter);
+std::string WebRtcVaMetadataMessageJson(
+    const AnalysisSessionApplicationResult& result,
+    const std::vector<EventRuleApplicationEvent>& events,
+    const VaMetadataApplicationSyncInfo& sync_info,
+    const VaMetadataApplicationFilter& subscription_filter);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 28269 prototype
 std::string WebRtcVaMetadataMissingMessageJson(const std::string& stream_id,
@@ -6823,10 +6850,16 @@ std::string WebRtcVaMetadataMissingMessageJson(const std::string& stream_id,
 EventPostDispatchRequest ProjectEventPostDispatchRequest(
     const analysis::AnalysisResult& result,
     const std::vector<analysis::AnalysisEvent>& events);
+EventPostDispatchRequest ProjectEventPostDispatchRequest(
+    const AnalysisSessionApplicationResult& result,
+    const std::vector<EventRuleApplicationEvent>& events);
 
 EventStorageApplicationDispatchRequest ProjectEventStorageDispatchRequest(
     const analysis::AnalysisResult& result,
     const std::vector<analysis::AnalysisEvent>& events);
+EventStorageApplicationDispatchRequest ProjectEventStorageDispatchRequest(
+    const AnalysisSessionApplicationResult& result,
+    const std::vector<EventRuleApplicationEvent>& events);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 28285 prototype
 std::string AnalysisEventPostStatusJson();
@@ -7898,6 +7931,7 @@ std::string LabFilesJson();
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 35525 prototype
 bool AttachWebRtcAnalysisOverlay(analysis::AnalysisSessionService& analysis_sessions,
+                                 AnalysisSessionReadApplicationService& analysis_session_reads,
                                  const media::IngressRequest& ingress_request,
                                  const std::unordered_map<std::string, std::string>& query,
                                  const std::shared_ptr<WebRtcEgressSession>& bridge,

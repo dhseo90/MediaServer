@@ -436,6 +436,15 @@ std::string WebRtcVaMetadataMessageJson(const analysis::AnalysisResult& result,
         result, events, sync_info, subscription_filter);
 }
 
+std::string WebRtcVaMetadataMessageJson(
+    const AnalysisSessionApplicationResult& result,
+    const std::vector<EventRuleApplicationEvent>& events,
+    const VaMetadataApplicationSyncInfo& sync_info,
+    const VaMetadataApplicationFilter& subscription_filter) {
+    return SerializeWebRtcVaMetadataForApplication(
+        result, events, sync_info, subscription_filter);
+}
+
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 28269 function
 std::string WebRtcVaMetadataMissingMessageJson(const std::string& stream_id,
                                                std::int64_t video_frame_pts_ns,
@@ -448,9 +457,10 @@ std::string WebRtcVaMetadataMissingMessageJson(const std::string& stream_id,
         stream_id, video_frame_pts_ns, sync);
 }
 
-EventPostDispatchRequest ProjectEventPostDispatchRequest(
-    const analysis::AnalysisResult& result,
-    const std::vector<analysis::AnalysisEvent>& events) {
+template <typename Result, typename Event>
+EventPostDispatchRequest ProjectEventPostDispatchRequestValue(
+    const Result& result,
+    const std::vector<Event>& events) {
     EventPostDispatchRequest request;
     request.source.source_key = result.source_key;
     request.source.profile_key = result.profile_key;
@@ -481,9 +491,22 @@ EventPostDispatchRequest ProjectEventPostDispatchRequest(
     return request;
 }
 
-EventStorageApplicationDispatchRequest ProjectEventStorageDispatchRequest(
+EventPostDispatchRequest ProjectEventPostDispatchRequest(
     const analysis::AnalysisResult& result,
     const std::vector<analysis::AnalysisEvent>& events) {
+    return ProjectEventPostDispatchRequestValue(result, events);
+}
+
+EventPostDispatchRequest ProjectEventPostDispatchRequest(
+    const AnalysisSessionApplicationResult& result,
+    const std::vector<EventRuleApplicationEvent>& events) {
+    return ProjectEventPostDispatchRequestValue(result, events);
+}
+
+template <typename Result, typename Event>
+EventStorageApplicationDispatchRequest ProjectEventStorageDispatchRequestValue(
+    const Result& result,
+    const std::vector<Event>& events) {
     EventStorageApplicationDispatchRequest request;
     request.source.source_key = result.source_key;
     request.source.profile_key = result.profile_key;
@@ -522,6 +545,18 @@ EventStorageApplicationDispatchRequest ProjectEventStorageDispatchRequest(
         request.events.push_back(std::move(output));
     }
     return request;
+}
+
+EventStorageApplicationDispatchRequest ProjectEventStorageDispatchRequest(
+    const analysis::AnalysisResult& result,
+    const std::vector<analysis::AnalysisEvent>& events) {
+    return ProjectEventStorageDispatchRequestValue(result, events);
+}
+
+EventStorageApplicationDispatchRequest ProjectEventStorageDispatchRequest(
+    const AnalysisSessionApplicationResult& result,
+    const std::vector<EventRuleApplicationEvent>& events) {
+    return ProjectEventStorageDispatchRequestValue(result, events);
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 28285 function
@@ -7677,6 +7712,7 @@ std::string LabFilesJson() {
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 35525 function
 bool AttachWebRtcAnalysisOverlay(analysis::AnalysisSessionService& analysis_sessions,
+                                 AnalysisSessionReadApplicationService& analysis_session_reads,
                                  const media::IngressRequest& ingress_request,
                                  const std::unordered_map<std::string, std::string>& query,
                                  const std::shared_ptr<WebRtcEgressSession>& bridge,
@@ -7720,7 +7756,7 @@ bool AttachWebRtcAnalysisOverlay(analysis::AnalysisSessionService& analysis_sess
     bridge->SetMetadataChannelConfig(metadata_channel_config);
     auto event_runtime = AcquireEventRuleApplicationRuntime("webrtc-overlay:" + attach_result.tap_id);
     auto result_provider =
-        [&analysis_sessions,
+        [&analysis_session_reads,
          tap_id = attach_result.tap_id,
          weak_bridge,
          event_runtime,
@@ -7738,36 +7774,38 @@ bool AttachWebRtcAnalysisOverlay(analysis::AnalysisSessionService& analysis_sess
             const std::int64_t source_pts =
                 bridge_lock != nullptr ? bridge_lock->ResolveOverlaySourcePts(frame_pts) : frame_pts;
             // WebRTC overlay frame PTS를 원본 packet PTS로 되돌려 가장 가까운 분석 결과를 우선 사용한다.
-            auto result = analysis_sessions.WaitAnalysisResultNearPts(
-                tap_id, source_pts, tolerance_ns, std::chrono::milliseconds(wait_timeout_ms));
+            auto result = analysis_session_reads.WaitResultNearPts(
+                tap_id, source_pts, tolerance_ns, wait_timeout_ms);
             if (result.has_value()) {
                 result->debug_state_requested =
                     result->debug_state_requested || debug_overlay || metadata_channel_enabled;
                 result->debug_state_log_enabled = result->debug_state_log_enabled || debug_overlay;
                 const auto evaluation = EvaluateEventRulesForApplication(*result, event_runtime);
+                const auto& annotated = evaluation.ApplicationAnnotatedResult();
+                const auto& events = evaluation.ApplicationEvents();
                 DispatchEventRecordsForApplication(ProjectEventStorageDispatchRequest(
-                    evaluation.AnnotatedResult(), evaluation.Events()));
+                    annotated, events));
                 DispatchEventPostsForApplication(ProjectEventPostDispatchRequest(
-                    evaluation.AnnotatedResult(), evaluation.Events()));
+                    annotated, events));
                 if (metadata_channel_enabled && bridge_lock != nullptr && bridge_lock->MetadataChannelReady()) {
                     const auto sync_info = BuildWebRtcVaMetadataSyncInfo(
                         source_pts,
-                        evaluation.AnnotatedResult().pts,
+                        annotated.pts,
                         tolerance_ns,
-                        WebRtcSyncStatusForMatch(source_pts, evaluation.AnnotatedResult().pts),
-                        evaluation.AnnotatedResult().frame_width,
-                        evaluation.AnnotatedResult().frame_height);
+                        WebRtcSyncStatusForMatch(source_pts, annotated.pts),
+                        annotated.frame_width,
+                        annotated.frame_height);
                     bridge_lock->PublishAnalysisMetadata(
-                        WebRtcVaMetadataMessageJson(evaluation.AnnotatedResult(),
-                                                    evaluation.Events(),
+                        WebRtcVaMetadataMessageJson(annotated,
+                                                    events,
                                                     sync_info,
                                                     metadata_subscription_filter));
                 }
-                *output = evaluation.AnnotatedResult();
+                *output = RestoreCanonicalResultForApplicationOutput(annotated);
                 return true;
             }
             // 동기화 허용 시간 안에 결과가 아직 없으면 최신 snapshot으로 fallback해 overlay 공백을 줄인다.
-            const auto snapshot = analysis_sessions.AnalysisTapSnapshot(tap_id);
+            const auto snapshot = analysis_session_reads.Snapshot(tap_id);
             if (!snapshot.has_value() || !snapshot->latest_result.has_value()) {
                 if (metadata_channel_enabled && bridge_lock != nullptr && bridge_lock->MetadataChannelReady()) {
                     bridge_lock->PublishAnalysisMetadata(
@@ -7780,21 +7818,23 @@ bool AttachWebRtcAnalysisOverlay(analysis::AnalysisSessionService& analysis_sess
                 latest_result.debug_state_requested || debug_overlay || metadata_channel_enabled;
             latest_result.debug_state_log_enabled = latest_result.debug_state_log_enabled || debug_overlay;
             const auto evaluation = EvaluateEventRulesForApplication(latest_result, event_runtime);
+            const auto& annotated = evaluation.ApplicationAnnotatedResult();
+            const auto& events = evaluation.ApplicationEvents();
             DispatchEventRecordsForApplication(ProjectEventStorageDispatchRequest(
-                evaluation.AnnotatedResult(), evaluation.Events()));
+                annotated, events));
             DispatchEventPostsForApplication(ProjectEventPostDispatchRequest(
-                evaluation.AnnotatedResult(), evaluation.Events()));
+                annotated, events));
             if (metadata_channel_enabled && bridge_lock != nullptr && bridge_lock->MetadataChannelReady()) {
                 if (metadata_fallback_payload_enabled) {
                     const auto sync_info = BuildWebRtcVaMetadataSyncInfo(source_pts,
-                                                                         evaluation.AnnotatedResult().pts,
+                                                                         annotated.pts,
                                                                          tolerance_ns,
                                                                          "fallback-latest",
-                                                                         evaluation.AnnotatedResult().frame_width,
-                                                                         evaluation.AnnotatedResult().frame_height);
+                                                                         annotated.frame_width,
+                                                                         annotated.frame_height);
                     bridge_lock->PublishAnalysisMetadata(
-                        WebRtcVaMetadataMessageJson(evaluation.AnnotatedResult(),
-                                                    evaluation.Events(),
+                        WebRtcVaMetadataMessageJson(annotated,
+                                                    events,
                                                     sync_info,
                                                     metadata_subscription_filter));
                 } else {
@@ -7802,7 +7842,7 @@ bool AttachWebRtcAnalysisOverlay(analysis::AnalysisSessionService& analysis_sess
                         WebRtcVaMetadataMissingMessageJson(tap_id, source_pts, tolerance_ns));
                 }
             }
-            *output = evaluation.AnnotatedResult();
+            *output = RestoreCanonicalResultForApplicationOutput(annotated);
             return true;
         };
     bridge->SetPipelineAttachment(MakeAnalysisOverlayAttachmentForApplication(

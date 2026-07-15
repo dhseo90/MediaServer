@@ -7,6 +7,8 @@
 #include "analysis/metadata_subscription_filter.h"
 #include "analysis/va_runtime_metadata.h"
 
+#include "analysis_session_application_mapping.h"
+
 namespace ingress {
 namespace {
 
@@ -40,6 +42,41 @@ analysis::VaRuntimeSyncInfo ProjectSyncInfo(
     sync.frame_height = input.frame_height;
     sync.coordinate_space = input.coordinate_space;
     return sync;
+}
+
+analysis::AnalysisEvent ProjectEvent(const EventRuleApplicationEvent& input) {
+    analysis::AnalysisEvent output;
+    output.event_id = input.event_id;
+    output.rule_id = input.rule_id;
+    output.event_type = input.event_type;
+    output.track_id = input.track_id;
+    output.class_id = input.class_id;
+    output.label = input.label;
+    output.score = input.score;
+    output.box = {input.box.x, input.box.y, input.box.width, input.box.height};
+    output.highlight_color = input.highlight_color;
+    output.highlight_duration_ms = input.highlight_duration_ms;
+    output.highlight_enabled = input.highlight_enabled;
+    output.post_enabled = input.post_enabled;
+    output.post_url = input.post_url;
+    output.status = input.status;
+    output.start_time_ms = input.start_time_ms;
+    output.update_time_ms = input.update_time_ms;
+    output.end_time_ms = input.end_time_ms;
+    output.zone_id = input.zone_id;
+    output.line_id = input.line_id;
+    output.scenario_name = input.scenario_name;
+    output.scenario_phase = input.scenario_phase;
+    output.metadata_json = input.metadata_json;
+    return output;
+}
+
+std::vector<analysis::AnalysisEvent> ProjectEvents(
+    const std::vector<EventRuleApplicationEvent>& input) {
+    std::vector<analysis::AnalysisEvent> output;
+    output.reserve(input.size());
+    for (const auto& event : input) output.push_back(ProjectEvent(event));
+    return output;
 }
 
 }  // namespace
@@ -89,6 +126,18 @@ std::string SerializeVaRuntimeMetadataForApplication(
     return {};
 }
 
+std::string SerializeVaRuntimeMetadataForApplication(
+    const AnalysisSessionApplicationResult& result,
+    const std::vector<EventRuleApplicationEvent>& events,
+    const std::string& tracking_issue_report_json,
+    const VaMetadataApplicationBuildOptions& input) {
+    return SerializeVaRuntimeMetadataForApplication(
+        analysis_session_application_mapping::ToCanonicalResult(result),
+        ProjectEvents(events),
+        tracking_issue_report_json,
+        input);
+}
+
 std::string SerializeWebRtcVaMetadataForApplication(
     const analysis::AnalysisResult& result,
     const std::vector<analysis::AnalysisEvent>& events,
@@ -108,6 +157,18 @@ std::string SerializeWebRtcVaMetadataForApplication(
     options.sync = ProjectSyncInfo(sync_info);
     return analysis::SerializeVaRuntimeMetadataFrameForWebRtcJson(
         analysis::BuildVaRuntimeMetadataFrame(filtered_result, filtered_events, options));
+}
+
+std::string SerializeWebRtcVaMetadataForApplication(
+    const AnalysisSessionApplicationResult& result,
+    const std::vector<EventRuleApplicationEvent>& events,
+    const VaMetadataApplicationSyncInfo& sync_info,
+    const VaMetadataApplicationFilter& input_filter) {
+    return SerializeWebRtcVaMetadataForApplication(
+        analysis_session_application_mapping::ToCanonicalResult(result),
+        ProjectEvents(events),
+        sync_info,
+        input_filter);
 }
 
 std::string SerializeMissingWebRtcVaMetadataForApplication(

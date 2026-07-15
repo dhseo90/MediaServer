@@ -130,7 +130,7 @@ function assertTransportContract(incidents, runtime, transport) {
     assert(!transport.includes(token), `transport canonical storage bypass remains: ${token}`);
   const expectedCalls = {DispatchEventRecordsForApplication:3, ObserveEventStorageForApplication:1, QueryEventRecordsForApplication:9, CompactEventRecordsForApplication:1, ListCompactedEventRecordFilesForApplication:1, ResolveCompactedEventRecordFileForApplication:1, DeleteCompactedEventRecordFileForApplication:1, CleanupCompactedEventRecordFilesForApplication:1};
   for (const [name, count] of Object.entries(expectedCalls)) assert(exactCount(transport, new RegExp(`${name}\\(`, "g")) === count, `${name} wrapper call count drift`);
-  const project = body(incidents, "function", "ProjectEventStorageDispatchRequest");
+  const project = body(incidents, "function", "ProjectEventStorageDispatchRequestValue");
   for (const field of dispatchSourceMappings) {
     const rhs = ["source_kind", "route", "client_id"].includes(field) ? `result.context.${field}` : `result.${field}`;
     exactFragment(project, `request.source.${field} = ${rhs};`, "transport source projection");
@@ -277,12 +277,13 @@ check("CMake dispatch and current graph bind exact Slice 28 successor", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const classifier = id => graph.moduleClassifiers.find(item => item.id === id);
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.expectedProductionFiles === 204 && graph.expectedCppFiles === 100 && classifier("application-service-interfaces")?.expectedFileCount === 37 && classifier("application-service-interfaces")?.expectedCppCount === 16 &&
+  assert(graph.expectedProductionFiles === 208 && graph.expectedCppFiles === 101 && classifier("application-service-interfaces")?.expectedFileCount === 41 && classifier("application-service-interfaces")?.expectedCppCount === 17 &&
     edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 1 && edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 === "65f056e8ec5e09a639a15d98920884535929f2470a6beac11ffa9869eba796a7" &&
-    edge("application-service-interfaces -> analysis-services")?.witnessCount === 18 && edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "a9367154a0273868ee9435211a33b3427ae3a5c565064b52275c9d7091373d3d" &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 19 && edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "8cb29f2bf4ad70bd4ad35ca7cd8558d702a058e7fc06ec7f89698d44643bab19" &&
+    edge("application-service-interfaces -> analysis-services")?.witnessCount === 20 && edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "369be0731233c3c320103811ced13f27110508063e7cb6b82ab49d2431ade21a" &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 20 && edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "59d642796881167f557cde11ce4304ee67adacbccfda8bbd90a70bb62259d52e" &&
     edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessCount === 4 && edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessSha256 === "adf4172d0e83de59df510ceeb38c88cd36aaf78b157e7022b6480d8e0793cab3" &&
-    graph.observedModuleEdges.length === 16 && graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 && graph.stronglyConnectedComponents.length === 0 && graph.boundary.includes("Event Rule application boundary"), "graph successor drift");
+    edge("composition-root -> application-service-interfaces")?.witnessCount === 1 && edge("composition-root -> application-service-interfaces")?.witnessSha256 === "a5971a04521df447b33a9be009aa7e2e8ffeec5d23dfc0ac26fb95404d8af9fb" &&
+    graph.observedModuleEdges.length === 17 && graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 && graph.stronglyConnectedComponents.length === 0 && graph.boundary.includes("Analysis Session read application boundary"), "graph successor drift");
 });
 
 check("current structure gate accepts exact non-final successor", () => {

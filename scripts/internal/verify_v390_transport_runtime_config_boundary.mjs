@@ -181,7 +181,7 @@ function inspectComposition(text) {
     "config.runtime_debug_snapshot_json = [] { return core::runtime_debug::SnapshotJson(); };",
     "return core::BuildStreamKey(",
     "const auto webrtc_http_runtime_config = BuildWebRtcHttpRuntimeConfig(config);",
-    "session_manager, analysis_sessions, webrtc_http_runtime_config",
+    "session_manager, analysis_sessions, *analysis_session_reads, webrtc_http_runtime_config",
   ]) if (!text.includes(anchor)) errors.push(`composition:anchor:${anchor}`);
   for (const [sourceMode, runtimeMode] of [
     ["Auto", "Auto"], ["Off", "Off"], ["Token", "Token"], ["Session", "Session"],
@@ -245,8 +245,8 @@ check("current owner, graph and Policy v1 remove exactly transport to core utili
   const policy = JSON.parse(read(policyPath));
   const violations = graph.observedModuleEdges.filter(item => item.allowedByTarget === false);
   const errors = [...inspectOwners(graph), ...inspectPolicy(policy)];
-  assert(graph.expectedProductionFiles === 204 && graph.expectedCppFiles === 100 &&
-    graph.observedModuleEdges.length === 16 && violations.length === 2 &&
+  assert(graph.expectedProductionFiles === 208 && graph.expectedCppFiles === 101 &&
+    graph.observedModuleEdges.length === 17 && violations.length === 2 &&
     graph.stronglyConnectedComponents.length === 0,
   `graph metrics drift: ${graph.expectedProductionFiles}/${graph.expectedCppFiles}/` +
     `${graph.observedModuleEdges.length}/${violations.length}/${graph.stronglyConnectedComponents.length}`);

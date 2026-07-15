@@ -283,7 +283,7 @@ check("composition and RTSP lifecycle bind one service and every detach boundary
     "analysis::AnalysisSessionService analysis_sessions(session_manager);",
     "SetAuxiliaryStreamRuntimeProvider(",
     "GStreamerRtspServer gst_rtsp_server(session_manager, analysis_sessions);",
-    "WebRtcHttpServer webrtc_http_server(\n        session_manager, analysis_sessions, webrtc_http_runtime_config);",
+    "WebRtcHttpServer webrtc_http_server(\n        session_manager, analysis_sessions, *analysis_session_reads, webrtc_http_runtime_config);",
     "SetAuxiliaryStreamRuntimeProvider({});",
   ]) assert(application.includes(anchor), `composition owner binding missing: ${anchor}`);
   assert(rtspHeader.includes("core::MediaAnalysisPort& analysis_port") &&
@@ -413,7 +413,7 @@ check("composition uses exactly one analysis service identity", () => {
   for (const anchor of [
     "analysis::AnalysisSessionService analysis_sessions(session_manager);",
     "ingress::GStreamerRtspServer gst_rtsp_server(session_manager, analysis_sessions);",
-    "ingress::WebRtcHttpServer webrtc_http_server(\n        session_manager, analysis_sessions, webrtc_http_runtime_config);",
+    "ingress::WebRtcHttpServer webrtc_http_server(\n        session_manager, analysis_sessions, *analysis_session_reads, webrtc_http_runtime_config);",
     "session_manager.SetAuxiliaryStreamRuntimeProvider({});",
   ]) assert(count(application, new RegExp(anchor.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) === 1,
     `composition identity count drift: ${anchor}`);
@@ -421,7 +421,7 @@ check("composition uses exactly one analysis service identity", () => {
     "analysis::AnalysisSessionService analysis_sessions(session_manager);",
     "session_manager.SetAuxiliaryStreamRuntimeProvider(",
     "GStreamerRtspServer gst_rtsp_server(session_manager, analysis_sessions);",
-    "WebRtcHttpServer webrtc_http_server(\n        session_manager, analysis_sessions, webrtc_http_runtime_config);",
+    "WebRtcHttpServer webrtc_http_server(\n        session_manager, analysis_sessions, *analysis_session_reads, webrtc_http_runtime_config);",
   ]);
 });
 

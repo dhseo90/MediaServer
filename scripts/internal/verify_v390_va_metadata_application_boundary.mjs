@@ -305,7 +305,8 @@ function assertTransportDelegation(transport, detail) {
   for (const api of [
     "SerializeVaRuntimeMetadataForApplication", "SerializeWebRtcVaMetadataForApplication",
     "SerializeMissingWebRtcVaMetadataForApplication", "VaRuntimeMetadataSchemaForApplication",
-  ]) assert((transport.match(new RegExp(`${api}\\(`, "g")) || []).length === 1,
+  ]) assert((transport.match(new RegExp(`${api}\\(`, "g")) || []).length ===
+      (["SerializeVaRuntimeMetadataForApplication", "SerializeWebRtcVaMetadataForApplication"].includes(api) ? 2 : 1),
     `transport delegation count drift: ${api}`);
   for (const type of [
     "VaMetadataApplicationFilter", "VaMetadataApplicationBuildOptions", "VaMetadataApplicationSyncInfo",
@@ -390,10 +391,10 @@ function assertTransportMappings(server, incidents) {
 }
 
 function assertTransportCallsites(server, incidents) {
-  assert(exactCount(server, "BuildVaRuntimeMetadataJsonWithinBudget(") === 3,
-    "runtime metadata definition/two-callsite count drift");
-  assert(exactCount(incidents, "WebRtcVaMetadataMessageJson(") === 3,
-    "present metadata definition/two-callsite count drift");
+  assert(exactCount(server, "BuildVaRuntimeMetadataJsonWithinBudget(") === 4,
+    "runtime metadata overload/two-callsite count drift");
+  assert(exactCount(incidents, "WebRtcVaMetadataMessageJson(") === 4,
+    "present metadata two-overload/two-callsite count drift");
   assert(exactCount(incidents, "WebRtcVaMetadataMissingMessageJson(") === 3,
     "missing metadata definition/two-callsite count drift");
   assert(exactCount(incidents, "BuildWebRtcVaMetadataSyncInfo(") === 4,
@@ -408,7 +409,7 @@ function assertTransportCallsites(server, incidents) {
     exactCount(overlay, "PublishAnalysisMetadata(") === 4,
   "overlay Record/Post/present/missing/sync/publish counts drift");
   const compact = compactCppPreservingLiterals(overlay);
-  const presentNested = `bridge_lock->PublishAnalysisMetadata( WebRtcVaMetadataMessageJson(evaluation.AnnotatedResult(), evaluation.Events(), sync_info, metadata_subscription_filter));`;
+  const presentNested = `bridge_lock->PublishAnalysisMetadata( WebRtcVaMetadataMessageJson(annotated, events, sync_info, metadata_subscription_filter));`;
   const missingNested = `bridge_lock->PublishAnalysisMetadata( WebRtcVaMetadataMissingMessageJson(tap_id, source_pts, tolerance_ns));`;
   assert(exactCount(compact, compactCppPreservingLiterals(presentNested)) === 2 &&
     exactCount(compact, compactCppPreservingLiterals(missingNested)) === 2,
@@ -431,9 +432,11 @@ check("dependency-neutral VA metadata DTO contract is exact", () => {
   const header = read(headerPath);
   const includes = [...header.matchAll(/^\s*#\s*include\s*([<"][^>"]+[>"])/gm)].map(match => match[1]);
   assert(JSON.stringify(includes) === JSON.stringify([
+    '"ingress/event_rule_application_service.h"',
     "<cstddef>", "<cstdint>", "<optional>", "<string>", "<vector>",
   ]), "application header include set drift");
-  assert(!/^\s*#\s*include\s*"/m.test(header) && !/\b(?:core|domain|media)::/.test(header),
+  assert(exactCount(header, '#include "ingress/event_rule_application_service.h"') === 1 &&
+    !/\b(?:core|domain|media)::/.test(header),
     "implementation dependency leaked into application contract");
   for (const name of ["AnalysisResult", "AnalysisEvent"]) {
     assert((header.match(new RegExp(`struct\\s+${name}\\s*;`, "g")) || []).length === 1,
@@ -479,7 +482,8 @@ check("dependency-neutral VA metadata DTO contract is exact", () => {
   for (const api of [
     "SerializeVaRuntimeMetadataForApplication", "SerializeWebRtcVaMetadataForApplication",
     "SerializeMissingWebRtcVaMetadataForApplication", "VaRuntimeMetadataSchemaForApplication",
-  ]) assert((header.match(new RegExp(`\\b${api}\\s*\\(`, "g")) || []).length === 1,
+  ]) assert((header.match(new RegExp(`\\b${api}\\s*\\(`, "g")) || []).length ===
+      (["SerializeVaRuntimeMetadataForApplication", "SerializeWebRtcVaMetadataForApplication"].includes(api) ? 2 : 1),
     `application API declaration drift: ${api}`);
 });
 
@@ -570,7 +574,7 @@ check("application and transport overwrite paired-swap order and bypass mutation
     assert(mappingRejected, `transport mapping mutation escaped: ${name}`);
   }
   const orderMutation = incidents.replace(
-    "DispatchEventRecordsForApplication(ProjectEventStorageDispatchRequest(\n                    evaluation.AnnotatedResult(), evaluation.Events()));\n                DispatchEventPostsForApplication",
+    "DispatchEventRecordsForApplication(ProjectEventStorageDispatchRequest(\n                    annotated, events));\n                DispatchEventPostsForApplication",
     "DispatchEventPostsForApplication");
   assert(orderMutation !== incidents, "callsite order mutation changed no bytes");
   let orderRejected = false;
@@ -593,25 +597,28 @@ check("Slice 25 evidence names bounded allocation and exception propagation risk
 function assertSuccessorGraph(graph) {
   const classifier = id => graph.moduleClassifiers.find(item => item.id === id);
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.expectedProductionFiles === 204 && graph.expectedCppFiles === 100 &&
-    classifier("application-service-interfaces")?.expectedFileCount === 37 &&
-    classifier("application-service-interfaces")?.expectedCppCount === 16 &&
+  assert(graph.expectedProductionFiles === 208 && graph.expectedCppFiles === 101 &&
+    classifier("application-service-interfaces")?.expectedFileCount === 41 &&
+    classifier("application-service-interfaces")?.expectedCppCount === 17 &&
     edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 1 &&
     edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 ===
       "65f056e8ec5e09a639a15d98920884535929f2470a6beac11ffa9869eba796a7" &&
-    edge("application-service-interfaces -> analysis-services")?.witnessCount === 18 &&
+    edge("application-service-interfaces -> analysis-services")?.witnessCount === 20 &&
     edge("application-service-interfaces -> analysis-services")?.witnessSha256 ===
-      "a9367154a0273868ee9435211a33b3427ae3a5c565064b52275c9d7091373d3d" &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 19 &&
+      "369be0731233c3c320103811ced13f27110508063e7cb6b82ab49d2431ade21a" &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 20 &&
     edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 ===
-      "8cb29f2bf4ad70bd4ad35ca7cd8558d702a058e7fc06ec7f89698d44643bab19" &&
+      "59d642796881167f557cde11ce4304ee67adacbccfda8bbd90a70bb62259d52e" &&
     edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessCount === 4 &&
     edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessSha256 ===
       "adf4172d0e83de59df510ceeb38c88cd36aaf78b157e7022b6480d8e0793cab3" &&
-    graph.observedModuleEdges.length === 16 &&
+    edge("composition-root -> application-service-interfaces")?.witnessCount === 1 &&
+    edge("composition-root -> application-service-interfaces")?.witnessSha256 ===
+      "a5971a04521df447b33a9be009aa7e2e8ffeec5d23dfc0ac26fb95404d8af9fb" &&
+    graph.observedModuleEdges.length === 17 &&
     graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 &&
     graph.stronglyConnectedComponents.length === 0 &&
-    graph.boundary.includes("Event Rule application boundary"), "Slice 25 graph successor drift");
+    graph.boundary.includes("Analysis Session read application boundary"), "Slice 25 graph successor drift");
 }
 
 check("CMake dispatch graph and structure gate bind the exact successor", () => {

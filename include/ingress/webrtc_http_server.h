@@ -9,6 +9,7 @@
 #include <string>
 
 #include "core/session_manager.h"
+#include "ingress/analysis_session_read_application_service.h"
 #include "ingress/webrtc_http_runtime_config.h"
 
 namespace analysis {
@@ -21,6 +22,7 @@ class WebRtcHttpServer {
 public:
     WebRtcHttpServer(core::SessionManager& session_manager,
                      analysis::AnalysisSessionService& analysis_sessions,
+                     AnalysisSessionReadApplicationService& analysis_session_reads,
                      const WebRtcHttpRuntimeConfig& runtime_config);
     ~WebRtcHttpServer();
 
@@ -33,6 +35,7 @@ private:
 
     core::SessionManager& session_manager_;
     analysis::AnalysisSessionService& analysis_sessions_;
+    AnalysisSessionReadApplicationService& analysis_session_reads_;
     WebRtcHttpRuntimeConfig runtime_config_;
     std::atomic<bool> running_{false};
     std::unique_ptr<Impl> impl_;

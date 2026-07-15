@@ -85,9 +85,13 @@ function assertRejected(label, fn) {
 
 function assertHeaderContract(header) {
   const includes = [...header.matchAll(/^\s*#\s*include\s*([<"][^>"]+[>"])/gm)].map(item => item[1]);
-  assert(JSON.stringify(includes) === JSON.stringify(["<cstddef>", "<memory>", "<string>", "<vector>"]),
+  assert(JSON.stringify(includes) === JSON.stringify([
+    '"ingress/analysis_session_read_application_service.h"',
+    "<cstddef>", "<memory>", "<string>", "<vector>",
+  ]),
     "application header standard include manifest drift");
-  assert(!/^\s*#\s*include\s*"/m.test(header), "application header includes a repository/project header");
+  assert(exactCount(header, /#include "ingress\/analysis_session_read_application_service\.h"/g) === 1,
+    "application header approved dependency drift");
   for (const declaration of [
     "struct AnalysisEvent;", "struct AnalysisMetricsReport;", "struct AnalysisResult;",
   ]) exactFragment(header, declaration, "analysis forward declaration");
@@ -110,7 +114,7 @@ function assertHeaderContract(header) {
   assert(exactCount(header, /^std::shared_ptr<EventRuleApplicationRuntime> CreateEphemeralEventRuleApplicationRuntime\(\);$/gm) === 1 &&
     exactCount(header, /^std::shared_ptr<EventRuleApplicationRuntime> AcquireEventRuleApplicationRuntime\(const std::string& key\);$/gm) === 1 &&
     exactCount(header, /^void ReleaseEventRuleApplicationRuntime\(const std::string& key\);$/gm) === 1 &&
-    exactCount(header, /^EventRuleApplicationEvaluation EvaluateEventRulesForApplication\($/gm) === 1,
+    exactCount(header, /^EventRuleApplicationEvaluation EvaluateEventRulesForApplication\($/gm) === 2,
   "public Event Rule application API declaration manifest drift");
   assert(exactCount(header,
     /^\s*friend std::shared_ptr<EventRuleApplicationRuntime> CreateEphemeralEventRuleApplicationRuntime\(\);$/gm) === 1 &&
@@ -223,12 +227,12 @@ function assertTransportContract(server, incidents, runtime, detail, transport) 
   assert(exactCount(incidents, /\n\s*event_runtime,\n/g) === 1,
     "WebRTC provider must capture the keyed runtime exactly once");
   assert(exactCount(server,
-    /EvaluateEventRulesForApplication\(result, event_runtime\);[\s\S]*?BuildVaRuntimeMetadataJsonWithinBudget\([\s\S]*?evaluation\.AnnotatedResult\(\),[\s\S]*?evaluation\.Events\(\),[\s\S]*?evaluation\.TrackingIssueReportJson\(\)/g) === 2,
+    /EvaluateEventRulesForApplication\(result, event_runtime\);[\s\S]*?BuildVaRuntimeMetadataJsonWithinBudget\([\s\S]*?evaluation\.ApplicationAnnotatedResult\(\),[\s\S]*?evaluation\.ApplicationEvents\(\),[\s\S]*?evaluation\.TrackingIssueReportJson\(\)/g) === 2,
   "SSE/WS evaluation -> annotated/events/tracking metadata order drift");
   assert(exactCount(incidents,
-    /EvaluateEventRulesForApplication\([\s\S]*?DispatchEventRecordsForApplication\([\s\S]*?evaluation\.AnnotatedResult\(\), evaluation\.Events\(\)\)\);[\s\S]*?DispatchEventPostsForApplication\([\s\S]*?evaluation\.AnnotatedResult\(\), evaluation\.Events\(\)\)\);[\s\S]*?PublishAnalysisMetadata\(/g) === 2,
+    /EvaluateEventRulesForApplication\([\s\S]*?const auto& annotated = evaluation\.ApplicationAnnotatedResult\(\);[\s\S]*?const auto& events = evaluation\.ApplicationEvents\(\);[\s\S]*?DispatchEventRecordsForApplication\(ProjectEventStorageDispatchRequest\(\s*annotated, events\)\);[\s\S]*?DispatchEventPostsForApplication\(ProjectEventPostDispatchRequest\(\s*annotated, events\)\);[\s\S]*?PublishAnalysisMetadata\(/g) === 2,
   "WebRTC matched/fallback Record -> POST -> metadata order drift");
-  assert(exactCount(incidents, /\*output = evaluation\.AnnotatedResult\(\);/g) === 2,
+  assert(exactCount(incidents, /\*output = RestoreCanonicalResultForApplicationOutput\(annotated\);/g) === 2,
     "WebRTC provider must return canonical annotated result on matched and fallback paths");
   assert(ordered(runtime, [
     "result.debug_state_requested = true",
@@ -246,18 +250,19 @@ function assertTransportContract(server, incidents, runtime, detail, transport) 
   ]), "events endpoint evaluation -> Record -> POST -> alert order drift");
   assert(ordered(runtime, [
     'AcquireEventRuleApplicationRuntime("tap-overlay:" + tap_id)',
-    "RenderDetectionOverlayForApplication(", "evaluation.AnnotatedResult()",
+    "RenderDetectionOverlayForApplication(", "evaluation.ApplicationAnnotatedResult()",
   ]), "overlay evaluation -> annotated render order drift");
 
-  const accessors = {AnnotatedResult: 23, Events: 13, ActiveRuleCount: 1,
-    MatchedDetectionCount: 1, MetricsReport: 1, TrackingIssueReportJson: 4};
+  const accessors = {AnnotatedResult: 4, Events: 5, ApplicationAnnotatedResult: 7,
+    ApplicationEvents: 5, ActiveRuleCount: 2, MatchedDetectionCount: 2,
+    ApplicationMetricsReport: 1, TrackingIssueReportJson: 4};
   const consumers = [server, incidents, runtime].join("\n");
   for (const [name, count] of Object.entries(accessors)) {
     assert(exactCount(consumers, new RegExp(`(?:\\.|->)${name}\\(\\)`, "g")) === count,
       `${name} transport accessor count drift`);
   }
   assert(ordered(server, [
-    "evaluation->MetricsReport()", "AnalysisMetricsReportJson(",
+    "evaluation->ApplicationMetricsReport()", "AnalysisMetricsReportJson(",
     "evaluation->TrackingIssueReportJson().empty()", "evaluation->TrackingIssueReportJson()",
   ]), "metrics optional/tracking JSON accessor order drift");
 }
@@ -276,7 +281,7 @@ function writeFakeHeaders(caseRoot) {
 #include <vector>
 namespace analysis {
 struct AnalysisResult { std::string source_key, profile_key; std::uint64_t frame_id{}; std::int64_t pts{}; int frame_width{}, frame_height{}; bool debug_state_requested{}, debug_state_log_enabled{}, metrics_report_requested{}; std::vector<int> markers; };
-struct AnalysisEvent { std::string event_id,rule_id,event_type; std::uint64_t track_id{}; int class_id{-1}; std::string label; float score{}; float x{},y{},width{},height{}; std::string highlight_color; int highlight_duration_ms{}; bool highlight_enabled{},post_enabled{}; std::string post_url,status; std::int64_t start_time_ms{},update_time_ms{},end_time_ms{}; std::string zone_id,line_id,scenario_name,scenario_phase,metadata_json; };
+struct AnalysisEvent { std::string event_id,rule_id,event_type; std::uint64_t track_id{}; int class_id{-1}; std::string label; float score{}; float x{},y{},width{},height{}; std::string highlight_color; int highlight_duration_ms{}; bool highlight_enabled{},post_enabled{}; std::string post_url,status; std::int64_t start_time_ms{},update_time_ms{},end_time_ms{}; std::string zone_id,line_id,scenario_name,scenario_phase,metadata_json; struct Box { float x{},y{},width{},height{}; } box; };
 struct AnalysisMetricsReport { std::uint64_t frame_count{},event_count{}; std::string state; std::vector<int> buckets; };
 struct EventRuleRuntime { int id{}; };
 struct EventRuleEvaluation { AnalysisResult annotated_result; std::vector<AnalysisEvent> events; std::size_t active_rule_count{},matched_detection_count{}; std::optional<AnalysisMetricsReport> metrics_report; std::string tracking_issue_report_json; };
@@ -340,6 +345,12 @@ int main(){using namespace ingress;
 function compileAndRunCase(temp, sourceText, name) {
   const caseRoot = path.join(temp, name);
   writeFakeHeaders(caseRoot);
+  fs.writeFileSync(path.join(caseRoot, "analysis_session_application_mapping.h"), `#pragma once
+namespace ingress::analysis_session_application_mapping {
+inline AnalysisSessionApplicationResult FromCanonicalResult(const analysis::AnalysisResult&) { return {}; }
+inline analysis::AnalysisResult ToCanonicalResult(const AnalysisSessionApplicationResult&) { return {}; }
+}
+`);
   const sourceFile = path.join(caseRoot, "service.cpp");
   const harnessFile = path.join(caseRoot, "harness.cpp");
   fs.writeFileSync(sourceFile, sourceText);
@@ -386,7 +397,10 @@ check("application header is standard-only, standalone, and has no repository de
       "-std=c++17", `-I${path.join(root, "include")}`, "-MM", harness,
     ], {encoding: "utf8"}).replace(/\\\n/g, " ");
     const repoHeaders = dependencies.match(/(?:\/[^\s]+)?include\/[^\s]+\.h/g) || [];
-    assert(repoHeaders.length === 1 && repoHeaders[0].endsWith("include/ingress/event_rule_application_service.h"),
+    assert(repoHeaders.length === 3 &&
+      repoHeaders.some(item => item.endsWith("include/ingress/event_rule_application_service.h")) &&
+      repoHeaders.some(item => item.endsWith("include/ingress/analysis_session_read_application_service.h")) &&
+      repoHeaders.some(item => item.endsWith("include/ingress/image_codec_application_service.h")),
       `standalone dependency closure leaked repository headers: ${repoHeaders.join(",")}`);
   } finally { fs.rmSync(temp, {recursive: true, force: true}); }
 });
@@ -462,7 +476,10 @@ check("transport has zero canonical bypass and exact runtime/action lifecycle", 
   mutateAndReject("RED runtime capture omission", server,
     replaceExact(incidents, "         event_runtime,\n", "", "RED runtime capture omission"));
   mutateAndReject("RED annotated output replaced by input", server,
-    replaceExact(incidents, "                *output = evaluation.AnnotatedResult();", "                *output = *result;", "RED annotated output replaced by input"));
+    replaceExact(incidents,
+      "                *output = RestoreCanonicalResultForApplicationOutput(annotated);",
+      "                *output = RestoreCanonicalResultForApplicationOutput(*result);",
+      "RED annotated output replaced by input"));
   mutateAndReject("RED dispatch order", server,
     incidents.replace("DispatchEventRecordsForApplication(ProjectEventStorageDispatchRequest(",
       "DispatchEventPostsForApplication(ProjectEventStorageDispatchRequest("));
@@ -478,20 +495,22 @@ check("CMake, server dispatch, and current graph bind exact Slice 29 successor",
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const classifier = id => graph.moduleClassifiers.find(item => item.id === id);
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.expectedProductionFiles === 204 && graph.expectedCppFiles === 100 &&
-    classifier("application-service-interfaces")?.expectedFileCount === 37 &&
-    classifier("application-service-interfaces")?.expectedCppCount === 16 &&
+  assert(graph.expectedProductionFiles === 208 && graph.expectedCppFiles === 101 &&
+    classifier("application-service-interfaces")?.expectedFileCount === 41 &&
+    classifier("application-service-interfaces")?.expectedCppCount === 17 &&
     edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 1 &&
     edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 === "65f056e8ec5e09a639a15d98920884535929f2470a6beac11ffa9869eba796a7" &&
-    edge("application-service-interfaces -> analysis-services")?.witnessCount === 18 &&
-    edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "a9367154a0273868ee9435211a33b3427ae3a5c565064b52275c9d7091373d3d" &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 19 &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "8cb29f2bf4ad70bd4ad35ca7cd8558d702a058e7fc06ec7f89698d44643bab19" &&
+    edge("application-service-interfaces -> analysis-services")?.witnessCount === 20 &&
+    edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "369be0731233c3c320103811ced13f27110508063e7cb6b82ab49d2431ade21a" &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 20 &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "59d642796881167f557cde11ce4304ee67adacbccfda8bbd90a70bb62259d52e" &&
     edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessCount === 4 &&
     edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessSha256 === "adf4172d0e83de59df510ceeb38c88cd36aaf78b157e7022b6480d8e0793cab3" &&
-    graph.observedModuleEdges.length === 16 &&
+    edge("composition-root -> application-service-interfaces")?.witnessCount === 1 &&
+    edge("composition-root -> application-service-interfaces")?.witnessSha256 === "a5971a04521df447b33a9be009aa7e2e8ffeec5d23dfc0ac26fb95404d8af9fb" &&
+    graph.observedModuleEdges.length === 17 &&
     graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 &&
-    graph.stronglyConnectedComponents.length === 0 && graph.boundary.includes("Event Rule application boundary"),
+    graph.stronglyConnectedComponents.length === 0 && graph.boundary.includes("Analysis Session read application boundary"),
   "exact Event Rule graph successor drift");
 });
 

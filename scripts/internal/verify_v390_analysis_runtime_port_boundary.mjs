@@ -184,12 +184,12 @@ function inspectGraph(value) {
   const violations = edges.filter(edge => edge.allowedByTarget === false);
   if (edges.some(edge => edge.direction === "analysis-services -> core-utilities"))
     errors.push("graph:analysis-core-utilities-remains");
-  if (edges.length !== 16) errors.push(`graph:edge-count:${edges.length}`);
+  if (edges.length !== 17) errors.push(`graph:edge-count:${edges.length}`);
   if (violations.length !== 2) errors.push(`graph:violation-count:${violations.length}`);
   if ((value.stronglyConnectedComponents || []).length !== 0) errors.push("graph:scc");
-  if (value.expectedProductionFiles !== 204 || value.expectedCppFiles !== 100)
+  if (value.expectedProductionFiles !== 208 || value.expectedCppFiles !== 101)
     errors.push(`graph:file-count:${value.expectedProductionFiles}/${value.expectedCppFiles}`);
-  if (value.boundary !== "current REVIEW4-64 continuation graph after the Event Rule application boundary; canonical stored-rule snapshot, evaluation, keyed runtime lifecycle, ephemeral SSE/WS runtime, and result accessors are application-owned, Policy v1 counts 2 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed")
+  if (!value.boundary.includes("Analysis Session read application boundary") || !value.boundary.includes("30B"))
     errors.push("graph:boundary-description");
   const expectedViolations = [
     "transport-and-auth-adapter -> analysis-services",

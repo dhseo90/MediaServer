@@ -67,6 +67,7 @@ add_library(media_server_runtime STATIC
     src/ingress/event_feature_search_application_service.cpp
     src/ingress/event_storage_application_service.cpp
     src/ingress/event_rule_application_service.cpp
+    src/ingress/analysis_session_read_application_adapter.cpp
     src/ingress/analysis_rule_registry.cpp
     src/ingress/analysis_overlay_probe.cpp
     src/ingress/appearance_readiness_application_service.cpp

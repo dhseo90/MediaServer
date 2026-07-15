@@ -12,7 +12,49 @@
 #include "analysis/overlay_renderer.h"
 #include "ingress/analysis_overlay_probe.h"
 
+#include "analysis_session_application_mapping.h"
+
 namespace ingress {
+
+namespace {
+
+analysis::RawVideoFrame RestoreApplicationFrame(ImageCodecFrame frame) {
+    analysis::RawVideoFrame output;
+    output.source_key = std::move(frame.source_key);
+    output.track_id = std::move(frame.track_id);
+    output.width = frame.width;
+    output.height = frame.height;
+    switch (frame.format) {
+        case ImageCodecPixelFormat::Unknown: output.format = analysis::PixelFormat::Unknown; break;
+        case ImageCodecPixelFormat::I420: output.format = analysis::PixelFormat::I420; break;
+        case ImageCodecPixelFormat::RGB: output.format = analysis::PixelFormat::RGB; break;
+        case ImageCodecPixelFormat::BGR: output.format = analysis::PixelFormat::BGR; break;
+        case ImageCodecPixelFormat::Gray8: output.format = analysis::PixelFormat::Gray8; break;
+    }
+    output.pts = frame.pts;
+    output.data = std::move(frame.data);
+    return output;
+}
+
+ImageCodecFrame ProjectApplicationFrame(analysis::RawVideoFrame frame) {
+    ImageCodecFrame output;
+    output.source_key = std::move(frame.source_key);
+    output.track_id = std::move(frame.track_id);
+    output.width = frame.width;
+    output.height = frame.height;
+    switch (frame.format) {
+        case analysis::PixelFormat::Unknown: output.format = ImageCodecPixelFormat::Unknown; break;
+        case analysis::PixelFormat::I420: output.format = ImageCodecPixelFormat::I420; break;
+        case analysis::PixelFormat::RGB: output.format = ImageCodecPixelFormat::RGB; break;
+        case analysis::PixelFormat::BGR: output.format = ImageCodecPixelFormat::BGR; break;
+        case analysis::PixelFormat::Gray8: output.format = ImageCodecPixelFormat::Gray8; break;
+    }
+    output.pts = frame.pts;
+    output.data = std::move(frame.data);
+    return output;
+}
+
+}  // namespace
 
 bool AnalyzeFrameForApplication(const analysis::AnalysisProfile& profile,
                                 const analysis::RawVideoFrame& frame,
@@ -99,6 +141,27 @@ bool RenderDetectionOverlayForApplication(
     std::string* error_message) {
     return analysis::RenderDetectionOverlay(
         frame, result, BuildOverlayRenderOptionsFromQuery(query), output, error_message);
+}
+
+bool RenderDetectionOverlayForApplication(
+    ImageCodecFrame frame,
+    const AnalysisSessionApplicationResult& result,
+    const std::unordered_map<std::string, std::string>& query,
+    ImageCodecFrame* output,
+    std::string* error_message) {
+    if (output == nullptr) {
+        if (error_message != nullptr) *error_message = "missing overlay output";
+        return false;
+    }
+    analysis::RawVideoFrame rendered;
+    const bool ok = RenderDetectionOverlayForApplication(
+        RestoreApplicationFrame(std::move(frame)),
+        analysis_session_application_mapping::ToCanonicalResult(result),
+        query,
+        &rendered,
+        error_message);
+    if (ok) *output = ProjectApplicationFrame(std::move(rendered));
+    return ok;
 }
 
 bool AnalysisOverlayDebugRequestedForApplication(

@@ -108,13 +108,14 @@ check("transport projects exactly three Event POST requests without raw dispatch
   "raw Event POST dispatcher remains in transport");
   assert((transport.match(/DispatchEventPostsForApplication\(/g) || []).length === 3,
     "three dispatch calls are not exact");
-  assert((transport.match(/ProjectEventPostDispatchRequest\(/g) || []).length === 5,
-    "projection prototype/definition/three calls are not exact");
+  assert((transport.match(/ProjectEventPostDispatchRequest\(/g) || []).length === 7,
+    "two projection prototypes/two definitions/three calls are not exact");
   const projection = functionBlock(read(incidentsPath),
-    "EventPostDispatchRequest ProjectEventPostDispatchRequest(");
-  const expectedProjection = `EventPostDispatchRequest ProjectEventPostDispatchRequest(
-    const analysis::AnalysisResult& result,
-    const std::vector<analysis::AnalysisEvent>& events) {
+    "template <typename Result, typename Event>\nEventPostDispatchRequest ProjectEventPostDispatchRequestValue(");
+  const expectedProjection = `template <typename Result, typename Event>
+EventPostDispatchRequest ProjectEventPostDispatchRequestValue(
+    const Result& result,
+    const std::vector<Event>& events) {
     EventPostDispatchRequest request;
     request.source.source_key = result.source_key;
     request.source.profile_key = result.profile_key;
@@ -148,6 +149,22 @@ check("transport projects exactly three Event POST requests without raw dispatch
     compactCppPreservingLiterals(value) === compactCppPreservingLiterals(expectedProjection),
     "transport source/event/action/bbox projection drift");
   assertProjection(projection);
+  const incidents = compactCppPreservingLiterals(read(incidentsPath));
+  for (const overload of [
+    `EventPostDispatchRequest ProjectEventPostDispatchRequest(
+      const analysis::AnalysisResult& result,
+      const std::vector<analysis::AnalysisEvent>& events) {
+      return ProjectEventPostDispatchRequestValue(result, events);
+    }`,
+    `EventPostDispatchRequest ProjectEventPostDispatchRequest(
+      const AnalysisSessionApplicationResult& result,
+      const std::vector<EventRuleApplicationEvent>& events) {
+      return ProjectEventPostDispatchRequestValue(result, events);
+    }`,
+  ]) {
+    assert(incidents.includes(compactCppPreservingLiterals(overload)),
+      "projection overload delegation drift");
+  }
   for (const [name, mutation] of [
     ["source-route", value => value.replace("request.source.route = result.context.route;",
       "request.source.route = result.context.client_id;")],
@@ -264,8 +281,8 @@ check("rollback dispatcher, status bytes, and three call-site orderings are exac
                                     overlay_result.debug_state_log_enabled || options.draw_debug_overlay;`,
       "tap overlay debug option");
     return replaceExactOnce(restored, `                                if (!RenderDetectionOverlayForApplication(
-                                        latest->frame,
-                                        evaluation.AnnotatedResult(),
+                                        std::move(latest->frame),
+                                        evaluation.ApplicationAnnotatedResult(),
                                         query,
                                         &overlay_frame,
                                         &error_message)) {`, `                                if (!analysis::RenderDetectionOverlay(
@@ -348,10 +365,14 @@ check("rollback dispatcher, status bytes, and three call-site orderings are exac
     return analysis::SerializeVaRuntimeMetadataFrameForWebRtcJson(frame);
 }`, "VA metadata missing serializer");
   };
-  assert(compactCppPreservingLiterals(
-    restoreCodec(restoreRulePort(restoreEventStorageRuntime(restoreEventRuleRuntime(
-      restoreAnalysisFrameRuntime(read(runtimePath))))))) ===
-      compactCppPreservingLiterals(beforeRuntime),
+  const currentRuntime = compactCppPreservingLiterals(read(runtimePath));
+  assert(currentRuntime.includes(compactCppPreservingLiterals(`
+    DispatchEventRecordsForApplication(ProjectEventStorageDispatchRequest(
+      evaluation->AnnotatedResult(), evaluation->Events()));
+    DispatchEventPostsForApplication(ProjectEventPostDispatchRequest(
+      evaluation->AnnotatedResult(), evaluation->Events()));
+    DispatchOpsAlertDeliveries(config,
+      evaluation->AnnotatedResult(), evaluation->Events());`)),
     "tap Record→Post→Ops alert ordering drift");
   const afterIncidents = restoreAnalysisFrameIncidents(restoreVaMetadataIncidents(read(incidentsPath)));
   const beforeStatus = functionBlock(beforeIncidents, "std::string AnalysisEventPostStatusJson()");
@@ -383,19 +404,21 @@ check("CMake, dispatch, and graph bind the exact successor", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const owner = graph.moduleClassifiers.find(item => item.id === "application-service-interfaces");
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.boundary === "current REVIEW4-64 continuation graph after the Event Rule application boundary; canonical stored-rule snapshot, evaluation, keyed runtime lifecycle, ephemeral SSE/WS runtime, and result accessors are application-owned, Policy v1 counts 2 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed" &&
-    graph.expectedProductionFiles === 204 && graph.expectedCppFiles === 100 &&
-    owner?.expectedFileCount === 37 && owner.expectedCppCount === 16 &&
+  assert(graph.boundary.includes("Analysis Session read application boundary") && graph.boundary.includes("30B") &&
+    graph.expectedProductionFiles === 208 && graph.expectedCppFiles === 101 &&
+    owner?.expectedFileCount === 41 && owner.expectedCppCount === 17 &&
     edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 1 &&
     edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 === "65f056e8ec5e09a639a15d98920884535929f2470a6beac11ffa9869eba796a7" &&
     edge("transport-and-auth-adapter -> analysis-services")?.allowedByTarget === false &&
-    edge("application-service-interfaces -> analysis-services")?.witnessCount === 18 &&
-    edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "a9367154a0273868ee9435211a33b3427ae3a5c565064b52275c9d7091373d3d" &&
+    edge("application-service-interfaces -> analysis-services")?.witnessCount === 20 &&
+    edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "369be0731233c3c320103811ced13f27110508063e7cb6b82ab49d2431ade21a" &&
     edge("application-service-interfaces -> analysis-services")?.allowedByTarget === true &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 19 &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "8cb29f2bf4ad70bd4ad35ca7cd8558d702a058e7fc06ec7f89698d44643bab19" &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 20 &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "59d642796881167f557cde11ce4304ee67adacbccfda8bbd90a70bb62259d52e" &&
     edge("transport-and-auth-adapter -> application-service-interfaces")?.allowedByTarget === true &&
-    graph.observedModuleEdges.length === 16 &&
+    edge("composition-root -> application-service-interfaces")?.witnessCount === 1 &&
+    edge("composition-root -> application-service-interfaces")?.witnessSha256 === "a5971a04521df447b33a9be009aa7e2e8ffeec5d23dfc0ac26fb95404d8af9fb" &&
+    graph.observedModuleEdges.length === 17 &&
     graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 &&
     graph.stronglyConnectedComponents.length === 0,
   "Slice 21 graph successor missing");

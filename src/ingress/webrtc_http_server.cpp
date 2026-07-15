@@ -1714,11 +1714,13 @@ std::optional<HttpRequest> ReadHttpRequest(int client_fd, HttpResponse* error_re
 
 WebRtcHttpServer::WebRtcHttpServer(core::SessionManager& session_manager,
                                    analysis::AnalysisSessionService& analysis_sessions,
+                                   AnalysisSessionReadApplicationService& analysis_session_reads,
                                    const WebRtcHttpRuntimeConfig& runtime_config)
     : session_manager_(session_manager),
       analysis_sessions_(analysis_sessions),
+      analysis_session_reads_(analysis_session_reads),
       runtime_config_(runtime_config),
-      impl_(std::make_unique<Impl>(session_manager, analysis_sessions)) {
+      impl_(std::make_unique<Impl>(session_manager, analysis_sessions, analysis_session_reads)) {
     const AnalysisRuleApplicationCallbacks analysis_rule_callbacks{
         &WebRtcHttpAnalysisProfileDocumentsSnapshotBackend,
         &WebRtcHttpAnalysisRuleDocumentsSnapshotBackend,
@@ -2269,7 +2271,7 @@ std::vector<std::string> ClientStreamKeyCandidates(const SourceViewApplicationSe
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3620 function
-bool ClientTapMatchesSource(const analysis::AnalysisManager::TapSnapshot& tap,
+bool ClientTapMatchesSource(const AnalysisSessionApplicationSnapshot& tap,
                             const std::vector<std::string>& stream_key_candidates) {
     return std::find(stream_key_candidates.begin(), stream_key_candidates.end(), tap.stream_key) !=
            stream_key_candidates.end();
@@ -2277,7 +2279,7 @@ bool ClientTapMatchesSource(const analysis::AnalysisManager::TapSnapshot& tap,
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3626 function
 bool ClientTapMatchesViewRule(const SourceViewApplicationService::PublishedViewRecord& view,
-                              const analysis::AnalysisManager::TapSnapshot& tap) {
+                              const AnalysisSessionApplicationSnapshot& tap) {
     if (tap.selected_by_rule_id.empty() || view.allowed_rule_ids.empty()) {
         return true;
     }
@@ -2287,11 +2289,11 @@ bool ClientTapMatchesViewRule(const SourceViewApplicationService::PublishedViewR
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3636 function
-const analysis::AnalysisManager::TapSnapshot* SelectClientDashboardTap(
+const AnalysisSessionApplicationSnapshot* SelectClientDashboardTap(
     const SourceViewApplicationService::ClientViewAccess& access,
-    const std::vector<analysis::AnalysisManager::TapSnapshot>& taps,
+    const std::vector<AnalysisSessionApplicationSnapshot>& taps,
     const std::vector<std::string>& stream_key_candidates) {
-    const analysis::AnalysisManager::TapSnapshot* fallback = nullptr;
+    const AnalysisSessionApplicationSnapshot* fallback = nullptr;
     for (const auto& tap : taps) {
         if (!ClientTapMatchesSource(tap, stream_key_candidates)) {
             continue;
@@ -2384,7 +2386,7 @@ std::string ClientSourceStatusDigestTimelineHint(const std::string& source_statu
 ClientSourceStatusDigest ClientSourceStatusDigestFor(
     const SourceViewApplicationService::ClientViewAccess& access,
     const auth::Principal& principal,
-    const std::vector<analysis::AnalysisManager::TapSnapshot>& taps) {
+    const std::vector<AnalysisSessionApplicationSnapshot>& taps) {
     const auto stream_key_candidates = ClientStreamKeyCandidates(access.source);
     const auto* tap = SelectClientDashboardTap(access, taps, stream_key_candidates);
     const bool has_tap = tap != nullptr;
@@ -2479,7 +2481,7 @@ void AppendClientSafeSourceStatusDigestJson(std::ostringstream& out,
 std::string ClientSourceStatusDigestJson(
     const SourceViewApplicationService::ClientViewAccess& access,
     const auth::Principal& principal,
-    const std::vector<analysis::AnalysisManager::TapSnapshot>& taps) {
+    const std::vector<AnalysisSessionApplicationSnapshot>& taps) {
     std::ostringstream out;
     AppendClientSafeSourceStatusDigestJson(out, ClientSourceStatusDigestFor(access, principal, taps));
     return out.str();
@@ -3409,7 +3411,7 @@ void AppendClientViewIdentityJson(std::ostringstream& out,
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 4777 function
 std::vector<std::string> ClientEventStreamCandidates(
     const SourceViewApplicationService::SourceRecord& source,
-    const analysis::AnalysisManager::TapSnapshot* tap) {
+    const AnalysisSessionApplicationSnapshot* tap) {
     std::vector<std::string> candidates;
     if (tap != nullptr) {
         AddUniqueString(&candidates, tap->stream_key);
@@ -3424,7 +3426,7 @@ std::vector<std::string> ClientEventStreamCandidates(
 std::string ClientViewEventsJson(
     const SourceViewApplicationService::ClientViewAccess& access,
     const auth::Principal& principal,
-    const std::vector<analysis::AnalysisManager::TapSnapshot>& taps,
+    const std::vector<AnalysisSessionApplicationSnapshot>& taps,
     int limit) {
     const auto summary = LoadClientEventSummary(ClientEventStreamCandidates(access.source, nullptr), limit);
     const auto source_status_digest = ClientSourceStatusDigestFor(access, principal, taps);
@@ -3456,7 +3458,7 @@ std::string ClientViewEventsJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 4823 function
 std::string ClientViewMetadataJson(const SourceViewApplicationService::ClientViewAccess& access,
-                                   const std::vector<analysis::AnalysisManager::TapSnapshot>& taps) {
+                                   const std::vector<AnalysisSessionApplicationSnapshot>& taps) {
     const auto stream_key_candidates = ClientStreamKeyCandidates(access.source);
     const auto* tap = SelectClientDashboardTap(access, taps, stream_key_candidates);
     const bool has_tap = tap != nullptr;
@@ -3512,7 +3514,7 @@ std::string ClientViewMetadataJson(const SourceViewApplicationService::ClientVie
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 4877 function
 std::string ClientViewDashboardJson(const SourceViewApplicationService::ClientViewAccess& access,
                                     const auth::Principal& principal,
-                                    const std::vector<analysis::AnalysisManager::TapSnapshot>& taps) {
+                                    const std::vector<AnalysisSessionApplicationSnapshot>& taps) {
     const auto stream_key_candidates = ClientStreamKeyCandidates(access.source);
     const auto* tap = SelectClientDashboardTap(access, taps, stream_key_candidates);
     const bool has_tap = tap != nullptr;
@@ -4928,7 +4930,7 @@ std::string RuntimeStatusJson(const core::SessionManager::RuntimeStateSnapshot& 
                               int active_sse_metadata_clients,
                               int active_ws_metadata_clients,
                               const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
-                              const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps) {
+                              const std::vector<AnalysisSessionApplicationSnapshot>& analysis_taps) {
     const auto profile_documents = ApplicationAnalysisProfileDocumentsSnapshot();
     const auto rule_documents = ApplicationAnalysisRuleDocumentsSnapshot();
     struct ReuseGroupSummary {
@@ -5183,7 +5185,8 @@ std::string WebRtcBrowserConfigJson() {
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6518 function
-std::string DetectionJson(const analysis::Detection& detection) {
+template <typename Detection>
+std::string DetectionJsonValue(const Detection& detection) {
     std::ostringstream out;
     out << "{"
         << "\"classId\":" << detection.class_id << ","
@@ -5209,6 +5212,14 @@ std::string DetectionJson(const analysis::Detection& detection) {
     return out.str();
 }
 
+std::string DetectionJson(const analysis::Detection& detection) {
+    return DetectionJsonValue(detection);
+}
+
+std::string DetectionJson(const AnalysisSessionApplicationDetection& detection) {
+    return DetectionJsonValue(detection);
+}
+
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6544 function
 std::string DetectorDetectionJson(const analysis::Detection& detection) {
     if (!detection.detector_box_available) {
@@ -5219,9 +5230,18 @@ std::string DetectorDetectionJson(const analysis::Detection& detection) {
     return DetectionJson(copy);
 }
 
+std::string DetectorDetectionJson(const AnalysisSessionApplicationDetection& detection) {
+    if (!detection.detector_box_available) {
+        return DetectionJson(detection);
+    }
+    AnalysisSessionApplicationDetection copy = detection;
+    copy.box = detection.detector_box;
+    return DetectionJson(copy);
+}
+
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6553 function
-std::string CloseObjectAssociationDiagnosticJson(
-    const analysis::CloseObjectAssociationDiagnostic& diagnostic) {
+template <typename Diagnostic>
+std::string CloseObjectAssociationDiagnosticJsonValue(const Diagnostic& diagnostic) {
     const bool close_object_guard_applied =
         diagnostic.mode == "enforce" && diagnostic.ranking_score != diagnostic.candidate_score;
     std::ostringstream out;
@@ -5257,6 +5277,16 @@ std::string CloseObjectAssociationDiagnosticJson(
     return out.str();
 }
 
+std::string CloseObjectAssociationDiagnosticJson(
+    const analysis::CloseObjectAssociationDiagnostic& diagnostic) {
+    return CloseObjectAssociationDiagnosticJsonValue(diagnostic);
+}
+
+std::string CloseObjectAssociationDiagnosticJson(
+    const AnalysisSessionApplicationCloseObjectDiagnostic& diagnostic) {
+    return CloseObjectAssociationDiagnosticJsonValue(diagnostic);
+}
+
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6590 function
 std::string CloseObjectGuardModeJson() {
     const auto& config = GetWebRtcHttpRuntimeConfig();
@@ -5272,7 +5302,8 @@ std::string CloseObjectGuardModeJson() {
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6610 function
-std::string AnalysisDebugLineStateJson(const analysis::AnalysisDebugLineState& line) {
+template <typename Line>
+std::string AnalysisDebugLineStateJsonValue(const Line& line) {
     std::ostringstream out;
     out << "{"
         << "\"lineId\":\"" << JsonEscape(line.line_id) << "\","
@@ -5289,8 +5320,17 @@ std::string AnalysisDebugLineStateJson(const analysis::AnalysisDebugLineState& l
     return out.str();
 }
 
+std::string AnalysisDebugLineStateJson(const analysis::AnalysisDebugLineState& line) {
+    return AnalysisDebugLineStateJsonValue(line);
+}
+
+std::string AnalysisDebugLineStateJson(const AnalysisSessionApplicationDebugLineState& line) {
+    return AnalysisDebugLineStateJsonValue(line);
+}
+
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6627 function
-std::string AnalysisDebugTrackStateJson(const analysis::AnalysisDebugTrackState& track) {
+template <typename Track>
+std::string AnalysisDebugTrackStateJsonValue(const Track& track) {
     std::ostringstream out;
     out << "{"
         << "\"streamId\":\"" << JsonEscape(track.stream_id) << "\","
@@ -5356,6 +5396,14 @@ std::string AnalysisDebugTrackStateJson(const analysis::AnalysisDebugTrackState&
     return out.str();
 }
 
+std::string AnalysisDebugTrackStateJson(const analysis::AnalysisDebugTrackState& track) {
+    return AnalysisDebugTrackStateJsonValue(track);
+}
+
+std::string AnalysisDebugTrackStateJson(const AnalysisSessionApplicationDebugTrackState& track) {
+    return AnalysisDebugTrackStateJsonValue(track);
+}
+
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6693 function
 void AppendNullableInt64Json(std::ostringstream& out, std::int64_t value) {
     if (value < 0) {
@@ -5366,8 +5414,8 @@ void AppendNullableInt64Json(std::ostringstream& out, std::int64_t value) {
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6701 function
-std::string AnalysisDebugScenarioTimelineJson(
-    const analysis::AnalysisDebugScenarioTimeline& item) {
+template <typename Timeline>
+std::string AnalysisDebugScenarioTimelineJsonValue(const Timeline& item) {
     std::ostringstream out;
     out << "{"
         << "\"instanceKey\":\"" << JsonEscape(item.instance_key) << "\","
@@ -5413,8 +5461,19 @@ std::string AnalysisDebugScenarioTimelineJson(
     return out.str();
 }
 
+std::string AnalysisDebugScenarioTimelineJson(
+    const analysis::AnalysisDebugScenarioTimeline& item) {
+    return AnalysisDebugScenarioTimelineJsonValue(item);
+}
+
+std::string AnalysisDebugScenarioTimelineJson(
+    const AnalysisSessionApplicationDebugScenarioTimeline& item) {
+    return AnalysisDebugScenarioTimelineJsonValue(item);
+}
+
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6748 function
-std::string AnalysisDebugStateJson(const std::optional<analysis::AnalysisDebugState>& debug_state) {
+template <typename DebugState>
+std::string AnalysisDebugStateJsonValue(const std::optional<DebugState>& debug_state) {
     if (!debug_state.has_value()) {
         return "null";
     }
@@ -5454,8 +5513,18 @@ std::string AnalysisDebugStateJson(const std::optional<analysis::AnalysisDebugSt
     return out.str();
 }
 
+std::string AnalysisDebugStateJson(const std::optional<analysis::AnalysisDebugState>& debug_state) {
+    return AnalysisDebugStateJsonValue(debug_state);
+}
+
+std::string AnalysisDebugStateJson(
+    const std::optional<AnalysisSessionApplicationDebugState>& debug_state) {
+    return AnalysisDebugStateJsonValue(debug_state);
+}
+
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6788 function
-std::string TrackHealthMetricsJson(const analysis::TrackHealthMetrics& metrics) {
+template <typename Metrics>
+std::string TrackHealthMetricsJsonValue(const Metrics& metrics) {
     std::ostringstream out;
     out << "{"
         << "\"unstableTrackCount\":" << metrics.unstable_track_count << ","
@@ -5470,8 +5539,17 @@ std::string TrackHealthMetricsJson(const analysis::TrackHealthMetrics& metrics) 
     return out.str();
 }
 
+std::string TrackHealthMetricsJson(const analysis::TrackHealthMetrics& metrics) {
+    return TrackHealthMetricsJsonValue(metrics);
+}
+
+std::string TrackHealthMetricsJson(const AnalysisSessionApplicationMetricsTrackHealth& metrics) {
+    return TrackHealthMetricsJsonValue(metrics);
+}
+
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6803 function
-std::string AnalysisChannelMetricsJson(const analysis::AnalysisChannelMetrics& channel) {
+template <typename Channel>
+std::string AnalysisChannelMetricsJsonValue(const Channel& channel) {
     std::ostringstream out;
     out << "{"
         << "\"streamId\":\"" << JsonEscape(channel.stream_id) << "\","
@@ -5497,8 +5575,17 @@ std::string AnalysisChannelMetricsJson(const analysis::AnalysisChannelMetrics& c
     return out.str();
 }
 
+std::string AnalysisChannelMetricsJson(const analysis::AnalysisChannelMetrics& channel) {
+    return AnalysisChannelMetricsJsonValue(channel);
+}
+
+std::string AnalysisChannelMetricsJson(const AnalysisSessionApplicationMetricsChannel& channel) {
+    return AnalysisChannelMetricsJsonValue(channel);
+}
+
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6829 function
-std::string AnalysisMetricsReportJson(const std::optional<analysis::AnalysisMetricsReport>& report) {
+template <typename Report>
+std::string AnalysisMetricsReportJsonValue(const std::optional<Report>& report) {
     if (!report.has_value()) {
         return "null";
     }
@@ -5540,8 +5627,18 @@ std::string AnalysisMetricsReportJson(const std::optional<analysis::AnalysisMetr
     return out.str();
 }
 
+std::string AnalysisMetricsReportJson(const std::optional<analysis::AnalysisMetricsReport>& report) {
+    return AnalysisMetricsReportJsonValue(report);
+}
+
+std::string AnalysisMetricsReportJson(
+    const std::optional<AnalysisSessionApplicationMetrics>& report) {
+    return AnalysisMetricsReportJsonValue(report);
+}
+
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6871 function
-std::string TrackJson(const analysis::Track& track) {
+template <typename Track>
+std::string TrackJsonValue(const Track& track) {
     std::ostringstream out;
     out << "{"
         << "\"trackId\":" << track.track_id << ","
@@ -5575,8 +5672,17 @@ std::string TrackJson(const analysis::Track& track) {
     return out.str();
 }
 
+std::string TrackJson(const analysis::Track& track) {
+    return TrackJsonValue(track);
+}
+
+std::string TrackJson(const AnalysisSessionApplicationTrack& track) {
+    return TrackJsonValue(track);
+}
+
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6905 function
-std::string AnalysisResultJson(const analysis::AnalysisResult& result) {
+template <typename Result>
+std::string AnalysisResultJsonValue(const Result& result) {
     std::ostringstream out;
     out << "{"
         << "\"sourceKey\":\"" << JsonEscape(result.source_key) << "\","
@@ -5615,8 +5721,17 @@ std::string AnalysisResultJson(const analysis::AnalysisResult& result) {
     return out.str();
 }
 
+
+std::string AnalysisResultJson(const analysis::AnalysisResult& result) {
+    return AnalysisResultJsonValue(result);
+}
+
+std::string AnalysisResultJson(const AnalysisSessionApplicationResult& result) {
+    return AnalysisResultJsonValue(result);
+}
+
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6944 function
-std::string AnalysisTapSnapshotJson(const analysis::AnalysisManager::TapSnapshot& snapshot) {
+std::string AnalysisTapSnapshotJson(const AnalysisSessionApplicationSnapshot& snapshot) {
     const auto& appearance_stats = snapshot.track_state_metrics.appearance_extractor_stats;
     std::ostringstream out;
     out << "{"
@@ -5773,8 +5888,9 @@ std::string AnalysisTapSnapshotJson(const analysis::AnalysisManager::TapSnapshot
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 7100 function
-std::string AnalysisMetadataJson(const std::string& tap_id,
-                                 const std::optional<analysis::AnalysisResult>& result) {
+template <typename Result>
+std::string AnalysisMetadataJsonValue(const std::string& tap_id,
+                                      const std::optional<Result>& result) {
     std::ostringstream out;
     out << "{"
         << "\"tapId\":\"" << JsonEscape(tap_id) << "\","
@@ -5789,11 +5905,23 @@ std::string AnalysisMetadataJson(const std::string& tap_id,
     return out.str();
 }
 
+std::string AnalysisMetadataJson(const std::string& tap_id,
+                                 const std::optional<analysis::AnalysisResult>& result) {
+    return AnalysisMetadataJsonValue(tap_id, result);
+}
+
+std::string AnalysisMetadataJson(
+    const std::string& tap_id,
+    const std::optional<AnalysisSessionApplicationResult>& result) {
+    return AnalysisMetadataJsonValue(tap_id, result);
+}
+
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 7116 function
-std::string AnalysisBboxDiagnosticsJson(const std::string& tap_id,
-                                        std::int64_t requested_pts_ms,
-                                        std::int64_t tolerance_ms,
-                                        const std::optional<analysis::AnalysisResult>& result) {
+template <typename Result>
+std::string AnalysisBboxDiagnosticsJsonValue(const std::string& tap_id,
+                                             std::int64_t requested_pts_ms,
+                                             std::int64_t tolerance_ms,
+                                             const std::optional<Result>& result) {
     std::ostringstream out;
     out << "{"
         << "\"schema\":\"media-server.lab.bbox-diagnostics.v1\","
@@ -5835,6 +5963,21 @@ std::string AnalysisBboxDiagnosticsJson(const std::string& tap_id,
     }
     out << "}";
     return out.str();
+}
+
+std::string AnalysisBboxDiagnosticsJson(const std::string& tap_id,
+                                        std::int64_t requested_pts_ms,
+                                        std::int64_t tolerance_ms,
+                                        const std::optional<analysis::AnalysisResult>& result) {
+    return AnalysisBboxDiagnosticsJsonValue(tap_id, requested_pts_ms, tolerance_ms, result);
+}
+
+std::string AnalysisBboxDiagnosticsJson(
+    const std::string& tap_id,
+    std::int64_t requested_pts_ms,
+    std::int64_t tolerance_ms,
+    const std::optional<AnalysisSessionApplicationResult>& result) {
+    return AnalysisBboxDiagnosticsJsonValue(tap_id, requested_pts_ms, tolerance_ms, result);
 }
 
 bool SendAll(int fd, const std::string& data);
@@ -6183,6 +6326,24 @@ std::string BuildVaRuntimeMetadataJsonWithinBudget(const analysis::AnalysisResul
                                                    const std::vector<analysis::AnalysisEvent>& events,
                                                    const std::string& tracking_issue_report_json,
                                                    const VaMetadataStreamOptions& stream_options) {
+    VaMetadataApplicationBuildOptions options;
+    options.filter = stream_options.subscription_filter;
+    options.include_source = stream_options.include_source;
+    options.include_scenarios = stream_options.include_scenarios;
+    options.include_metrics = stream_options.include_metrics;
+    options.include_tracking_issue_report = stream_options.include_tracking_issue_report;
+    options.max_tracks = stream_options.max_tracks;
+    options.max_events = stream_options.max_events;
+    options.max_message_bytes = stream_options.max_message_bytes;
+    return SerializeVaRuntimeMetadataForApplication(
+        result, events, tracking_issue_report_json, options);
+}
+
+std::string BuildVaRuntimeMetadataJsonWithinBudget(
+    const AnalysisSessionApplicationResult& result,
+    const std::vector<EventRuleApplicationEvent>& events,
+    const std::string& tracking_issue_report_json,
+    const VaMetadataStreamOptions& stream_options) {
     VaMetadataApplicationBuildOptions options;
     options.filter = stream_options.subscription_filter;
     options.include_source = stream_options.include_source;
@@ -6563,7 +6724,7 @@ bool SendSseEvent(int fd, const std::string& event_name, const std::string& data
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 7905 function
 bool StreamVaMetadataSse(int client_fd,
                          const std::atomic<bool>& running,
-                         analysis::AnalysisSessionService& analysis_sessions,
+                         AnalysisSessionReadApplicationService& analysis_session_reads,
                          const std::string& tap_id,
                          const std::unordered_map<std::string, std::string>& query,
                          const HttpRequest& request) {
@@ -6597,7 +6758,7 @@ bool StreamVaMetadataSse(int client_fd,
             break;
         }
 
-        const auto snapshot = analysis_sessions.AnalysisTapSnapshot(tap_id);
+        const auto snapshot = analysis_session_reads.Snapshot(tap_id);
         if (!snapshot.has_value()) {
             (void)SendSseEvent(client_fd,
                                "error",
@@ -6616,8 +6777,8 @@ bool StreamVaMetadataSse(int client_fd,
                 result.metrics_report_requested = true;
                 const auto evaluation = EvaluateEventRulesForApplication(result, event_runtime);
                 const std::string payload = BuildVaRuntimeMetadataJsonWithinBudget(
-                    evaluation.AnnotatedResult(),
-                    evaluation.Events(),
+                    evaluation.ApplicationAnnotatedResult(),
+                    evaluation.ApplicationEvents(),
                     evaluation.TrackingIssueReportJson(),
                     options);
                 if (!payload.empty()) {
@@ -6664,7 +6825,7 @@ bool StreamVaMetadataSse(int client_fd,
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8005 function
 bool StreamVaMetadataWebSocket(int client_fd,
                                const std::atomic<bool>& running,
-                               analysis::AnalysisSessionService& analysis_sessions,
+                               AnalysisSessionReadApplicationService& analysis_session_reads,
                                const std::string& tap_id,
                                const std::unordered_map<std::string, std::string>& query,
                                const std::string& websocket_key,
@@ -6783,7 +6944,7 @@ bool StreamVaMetadataWebSocket(int client_fd,
             continue;
         }
 
-        const auto snapshot = analysis_sessions.AnalysisTapSnapshot(tap_id);
+        const auto snapshot = analysis_session_reads.Snapshot(tap_id);
         if (!snapshot.has_value()) {
             (void)SendWebSocketTextFrame(
                 client_fd,
@@ -6800,8 +6961,8 @@ bool StreamVaMetadataWebSocket(int client_fd,
                 result.metrics_report_requested = true;
                 const auto evaluation = EvaluateEventRulesForApplication(result, event_runtime);
                 const std::string payload = BuildVaRuntimeMetadataJsonWithinBudget(
-                    evaluation.AnnotatedResult(),
-                    evaluation.Events(),
+                    evaluation.ApplicationAnnotatedResult(),
+                    evaluation.ApplicationEvents(),
                     evaluation.TrackingIssueReportJson(),
                     options);
                 if (!payload.empty()) {
@@ -6826,7 +6987,7 @@ bool StreamVaMetadataWebSocket(int client_fd,
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8167 function
 std::string AnalysisStateDumpJson(const std::string& tap_id,
-                                  const analysis::AnalysisManager::TapSnapshot& snapshot,
+                                  const AnalysisSessionApplicationSnapshot& snapshot,
                                   const std::optional<EventRuleApplicationEvaluation>& evaluation) {
     const auto& appearance_stats = snapshot.track_state_metrics.appearance_extractor_stats;
     std::ostringstream out;
@@ -6858,7 +7019,7 @@ std::string AnalysisStateDumpJson(const std::string& tap_id,
         << "}},"
         << "\"debugState\":";
     if (evaluation.has_value()) {
-        out << AnalysisDebugStateJson(evaluation->AnnotatedResult().debug_state);
+        out << AnalysisDebugStateJson(evaluation->ApplicationAnnotatedResult().debug_state);
     } else {
         out << "null";
     }
@@ -6868,7 +7029,7 @@ std::string AnalysisStateDumpJson(const std::string& tap_id,
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8208 function
 std::string AnalysisMetricsDumpJson(const std::string& tap_id,
-                                    const analysis::AnalysisManager::TapSnapshot& snapshot,
+                                    const AnalysisSessionApplicationSnapshot& snapshot,
                                     const std::optional<EventRuleApplicationEvaluation>& evaluation) {
     const auto& appearance_stats = snapshot.track_state_metrics.appearance_extractor_stats;
     std::ostringstream out;
@@ -6952,9 +7113,9 @@ std::string AnalysisMetricsDumpJson(const std::string& tap_id,
         << "},"
         << "\"metricsReport\":";
     if (evaluation.has_value()) {
-        const auto* metrics_report = evaluation->MetricsReport();
+        const auto* metrics_report = evaluation->ApplicationMetricsReport();
         out << AnalysisMetricsReportJson(
-            metrics_report != nullptr ? std::optional<analysis::AnalysisMetricsReport>(*metrics_report)
+            metrics_report != nullptr ? std::optional<AnalysisSessionApplicationMetrics>(*metrics_report)
                                       : std::nullopt);
     } else {
         out << "null";
@@ -6998,7 +7159,7 @@ std::string AnalysisTapCreatedJson(const analysis::AnalysisSessionService::Analy
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8334 function
-std::string AnalysisTapListJson(const std::vector<analysis::AnalysisManager::TapSnapshot>& snapshots) {
+std::string AnalysisTapListJson(const std::vector<AnalysisSessionApplicationSnapshot>& snapshots) {
     std::ostringstream out;
     out << "{\"activeTaps\":" << snapshots.size() << ",\"taps\":[";
     for (std::size_t i = 0; i < snapshots.size(); ++i) {
@@ -7013,7 +7174,7 @@ std::string AnalysisTapListJson(const std::vector<analysis::AnalysisManager::Tap
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8347 function
 std::string AnalysisGlobalMetadataJson(
-    const std::vector<analysis::AnalysisManager::TapSnapshot>& snapshots) {
+    const std::vector<AnalysisSessionApplicationSnapshot>& snapshots) {
     std::ostringstream out;
     out << "{\"schema\":\"media-server.lab.analysis-metadata.v1\","
         << "\"activeTaps\":" << snapshots.size() << ",\"taps\":[";
@@ -7029,7 +7190,7 @@ std::string AnalysisGlobalMetadataJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8362 function
 std::string AnalysisGlobalBboxDiagnosticsJson(
-    const std::vector<analysis::AnalysisManager::TapSnapshot>& snapshots) {
+    const std::vector<AnalysisSessionApplicationSnapshot>& snapshots) {
     std::ostringstream out;
     out << "{\"schema\":\"media-server.lab.bbox-diagnostics-collection.v1\","
         << "\"activeTaps\":" << snapshots.size() << ",\"diagnostics\":[";
@@ -7049,7 +7210,7 @@ std::string AnalysisGlobalBboxDiagnosticsJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8381 function
 std::string AnalysisGlobalStateDumpJson(
-    const std::vector<analysis::AnalysisManager::TapSnapshot>& snapshots) {
+    const std::vector<AnalysisSessionApplicationSnapshot>& snapshots) {
     std::ostringstream out;
     out << "{\"schema\":\"media-server.lab.analysis-state-dump.v1\","
         << "\"activeTaps\":" << snapshots.size() << ",\"states\":[";
@@ -7065,7 +7226,7 @@ std::string AnalysisGlobalStateDumpJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8396 function
 std::string AnalysisGlobalMetricsDumpJson(
-    const std::vector<analysis::AnalysisManager::TapSnapshot>& snapshots) {
+    const std::vector<AnalysisSessionApplicationSnapshot>& snapshots) {
     std::ostringstream out;
     out << "{\"schema\":\"media-server.lab.analysis-metrics-dump.v1\","
         << "\"activeTaps\":" << snapshots.size() << ",\"metrics\":[";
@@ -7453,7 +7614,8 @@ bool DetachAnalysisTapAndReleaseRuntimes(analysis::AnalysisSessionService& analy
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8818 function
-std::string AnalysisEventJson(const analysis::AnalysisEvent& event) {
+template <typename Event>
+std::string AnalysisEventJsonValue(const Event& event) {
     std::ostringstream out;
     out << "{"
         << "\"ruleId\":\"" << JsonEscape(event.rule_id) << "\","
@@ -7481,6 +7643,14 @@ std::string AnalysisEventJson(const analysis::AnalysisEvent& event) {
     return out.str();
 }
 
+std::string AnalysisEventJson(const analysis::AnalysisEvent& event) {
+    return AnalysisEventJsonValue(event);
+}
+
+std::string AnalysisEventJson(const EventRuleApplicationEvent& event) {
+    return AnalysisEventJsonValue(event);
+}
+
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8846 function
 std::string AnalysisEventsJson(const std::string& tap_id,
                                const std::optional<analysis::AnalysisResult>& result,
@@ -7503,6 +7673,36 @@ std::string AnalysisEventsJson(const std::string& tap_id,
     out << "],\"result\":";
     if (evaluation != nullptr) {
         out << AnalysisResultJson(evaluation->AnnotatedResult());
+    } else if (result.has_value()) {
+        out << AnalysisResultJson(*result);
+    } else {
+        out << "null";
+    }
+    out << "}";
+    return out.str();
+}
+
+std::string AnalysisEventsJson(
+    const std::string& tap_id,
+    const std::optional<AnalysisSessionApplicationResult>& result,
+    const EventRuleApplicationEvaluation* evaluation) {
+    std::ostringstream out;
+    out << "{"
+        << "\"tapId\":\"" << JsonEscape(tap_id) << "\","
+        << "\"hasResult\":" << (result.has_value() ? "true" : "false") << ","
+        << "\"activeRuleCount\":" << (evaluation != nullptr ? evaluation->ActiveRuleCount() : 0) << ","
+        << "\"matchedDetectionCount\":" << (evaluation != nullptr ? evaluation->MatchedDetectionCount() : 0)
+        << ",\"events\":[";
+    if (evaluation != nullptr) {
+        const auto& events = evaluation->ApplicationEvents();
+        for (std::size_t i = 0; i < events.size(); ++i) {
+            if (i != 0) out << ",";
+            out << AnalysisEventJson(events[i]);
+        }
+    }
+    out << "],\"result\":";
+    if (evaluation != nullptr) {
+        out << AnalysisResultJson(evaluation->ApplicationAnnotatedResult());
     } else if (result.has_value()) {
         out << AnalysisResultJson(*result);
     } else {

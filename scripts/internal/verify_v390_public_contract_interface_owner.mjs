@@ -80,6 +80,10 @@ const applicationFiles = [
   "include/ingress/event_feature_search_application_service.h", "src/ingress/event_feature_search_application_service.cpp",
   "include/ingress/event_storage_application_service.h", "src/ingress/event_storage_application_service.cpp",
   "include/ingress/event_rule_application_service.h", "src/ingress/event_rule_application_service.cpp",
+  "include/ingress/analysis_session_read_application_service.h",
+  "include/ingress/analysis_session_read_application_adapter.h",
+  "src/ingress/analysis_session_application_mapping.h",
+  "src/ingress/analysis_session_read_application_adapter.cpp",
   "include/ingress/analysis_rule_application_service.h", "src/ingress/analysis_rule_application_service.cpp",
   "include/ingress/appearance_readiness_application_service.h", "src/ingress/appearance_readiness_application_service.cpp",
   "include/ingress/category_catalog_application_service.h", "src/ingress/category_catalog_application_service.cpp",
@@ -109,7 +113,8 @@ const expectedDirections = [
   "analysis-services -> core-media-interfaces",
   "analysis-services -> domain-and-registry-owners", "application-service-interfaces -> analysis-services",
   "application-service-interfaces -> domain-and-registry-owners", "composition-root -> analysis-services",
-  "composition-root -> core-media-interfaces", "composition-root -> core-utilities",
+  "composition-root -> application-service-interfaces", "composition-root -> core-media-interfaces",
+  "composition-root -> core-utilities",
   "composition-root -> transport-and-auth-adapter", "core-media-interfaces -> core-utilities",
   "domain-and-registry-owners -> core-utilities",
   "ops-route-groups -> application-service-interfaces", "product-ui-workspaces -> stable-contract-dtos",
@@ -133,8 +138,8 @@ check("interface and implementation owners are exact", () => {
     owner("stable-contract-dtos").expectedFileCount === 9 && owner("stable-contract-dtos").expectedCppCount === 0,
   "stable public contract owner drift");
   assert(JSON.stringify(exact("application-service-interfaces")) === JSON.stringify([...applicationFiles].sort()) &&
-    owner("application-service-interfaces").expectedFileCount === 37 &&
-    owner("application-service-interfaces").expectedCppCount === 16,
+    owner("application-service-interfaces").expectedFileCount === 41 &&
+    owner("application-service-interfaces").expectedCppCount === 17,
   "application public interface owner drift");
   assert(JSON.stringify(exact("domain-and-registry-owners")) === JSON.stringify([...domainFiles].sort()) &&
     owner("domain-and-registry-owners").expectedFileCount === 6 &&
@@ -158,8 +163,10 @@ check("public headers remain dependency-neutral", () => {
       `public header gained a non-stable production include: ${file}`);
   }
   const applicationIncludes = new Map([
-    ["include/ingress/analysis_frame_application_service.h", []],
-    ["include/ingress/va_metadata_application_service.h", []],
+    ["include/ingress/analysis_frame_application_service.h", ["ingress/analysis_session_read_application_service.h"]],
+    ["include/ingress/va_metadata_application_service.h", ["ingress/event_rule_application_service.h"]],
+    ["include/ingress/event_rule_application_service.h", ["ingress/analysis_session_read_application_service.h"]],
+    ["include/ingress/analysis_session_read_application_service.h", ["ingress/image_codec_application_service.h"]],
     ["include/ingress/event_storage_application_service.h", []],
     ["include/ingress/onvif_live_import.h", [
       "ingress/onvif_credential_provider.h", "ingress/application_service_result.h",
@@ -203,8 +210,8 @@ check("strict JSON has a physical domain owner boundary", () => {
 check("current graph removes only the planned owner violations", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const violations = graph.observedModuleEdges.filter(item => item.allowedByTarget === false);
-  assert(graph.expectedProductionFiles === 204 && graph.expectedCppFiles === 100 &&
-    graph.observedModuleEdges.length === 16 && violations.length === 2 &&
+  assert(graph.expectedProductionFiles === 208 && graph.expectedCppFiles === 101 &&
+    graph.observedModuleEdges.length === 17 && violations.length === 2 &&
     graph.stronglyConnectedComponents.length === 0 &&
     JSON.stringify(graph.observedModuleEdges.map(item => item.direction)) === JSON.stringify(expectedDirections),
   "public owner graph metrics or exact direction set drift");

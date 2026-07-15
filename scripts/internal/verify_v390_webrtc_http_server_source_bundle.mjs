@@ -40,26 +40,26 @@ const rollbackCommit = "e5df05f3945e43e89ae13e3fdd21d0c83ab78ac8";
 const expectedConsumerCount = 170;
 const expectedExpressionCount = 188;
 const expectedConsumerSha = "1e13a798e01c601114df0287bc552e3681531e3021e81c57307ee99ae458ee1c";
-const expectedBundleSha = "46cde7a8142ee0f32c9c77ae6181c7bece151e55a2afd07fdd5996e9c3260ed8";
-const expectedLogicalOrder = [738231, 743304, 444286, 444667];
+const expectedBundleSha = "21ca97e7377af4498abe277a840a5d9f0e131c2cf957553f6d67c46f3a40ab7d";
+const expectedLogicalOrder = [745720, 750793, 451783, 452164];
 const expectedSourceMetrics = {
   fileCount: 6,
-  totalBytes: 2241357,
-  totalLines: 46549,
+  totalBytes: 2251288,
+  totalLines: 46825,
   largestFileLines: 10150,
   files: [
     {
       id: "transport-main",
       file: "src/ingress/webrtc_http_server.cpp",
-      sha256: "a94880e3761c0e93747e2dc1c02ba0d0e2e42f5d9825812eed1858e1603a3ec1",
-      bytes: 332557,
-      lines: 7554,
+      sha256: "7f5b01a7fd85790d51c9a96554666b155a9e4cc73f701d2cbb5111331b7195a8",
+      bytes: 339860,
+      lines: 7754,
     },
     {
       id: "ops-foundation",
       file: "src/ingress/webrtc_http_server_ops_foundation.cpp",
-      sha256: "3017e1a8db24cee7b0d370ac13dce586f8b28276ae9c0c8257c13d85c07643dc",
-      bytes: 345623,
+      sha256: "b8fbe0cfb0de6cf85a8be9503218b22842be6357a67c006b7bce84d7dc80c570",
+      bytes: 345595,
       lines: 7845,
     },
     {
@@ -72,23 +72,23 @@ const expectedSourceMetrics = {
     {
       id: "ops-incidents",
       file: "src/ingress/webrtc_http_server_ops_incidents.cpp",
-      sha256: "19e6fbbe38c53cf153d5a0c27e87101d7bb7b05c326b8e7bf4843f38d2408f83",
-      bytes: 373947,
-      lines: 7848,
+      sha256: "0b4a119931cc918b64daaad89377c35b9d0f39c2f25f3d3d7c958f4f092ab51c",
+      bytes: 375402,
+      lines: 7888,
     },
     {
       id: "transport-runtime",
       file: "src/ingress/webrtc_http_server_runtime.cpp",
-      sha256: "1aa0b197bb0ceb18e915b57753b16b94f9fae6f3c161b16b5d2eeb4f35fe7d2a",
-      bytes: 329473,
-      lines: 5200,
+      sha256: "d3b2c97f110be10dd64372b566b33c632c7638c97c2e7a83fd42ef8ab5ce0100",
+      bytes: 329036,
+      lines: 5202,
     },
     {
       id: "private-detail",
       file: "src/ingress/webrtc_http_server_detail.h",
-      sha256: "fa80e119405db3bbc0d79c51cfa61ba35a6abeb7dc861b4906a31bc7e780eb2a",
-      bytes: 349831,
-      lines: 7952,
+      sha256: "b453c3fc463d495ca4ec2a569ba9fca54b2e925030e0302c516671a74f64a6e4",
+      bytes: 351469,
+      lines: 7986,
     },
   ],
 };
@@ -244,8 +244,8 @@ check("six-file physical metrics and logical-origin bundle are exact", () => {
 
 check("physical bundle successor binds the exact production graph", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
-  assert(graph.expectedProductionFiles === 204 && graph.expectedCppFiles === 100 &&
-    graph.observedModuleEdges.length === 16 &&
+  assert(graph.expectedProductionFiles === 208 && graph.expectedCppFiles === 101 &&
+    graph.observedModuleEdges.length === 17 &&
     graph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 2 &&
     graph.stronglyConnectedComponents.length === 0,
   "source bundle slice changed production graph metrics");
@@ -329,7 +329,7 @@ if (!skipMutations) {
       text => text.replace("WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 17051", "WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 99999"),
       "six-file physical metrics and logical-origin bundle");
     rejectMutation("graph", "test/fixtures/v390_structure_stabilization_current_graph.json",
-      text => text.replace('"expectedProductionFiles": 204', '"expectedProductionFiles": 205'),
+      text => text.replace('"expectedProductionFiles": 208', '"expectedProductionFiles": 209'),
       "physical bundle successor binds the exact production graph");
   });
 }

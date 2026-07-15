@@ -515,11 +515,11 @@ const SourceViewApplicationService::PublishedViewRecord* OpsHealthViewForSource(
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9439 function
-const analysis::AnalysisManager::TapSnapshot* OpsHealthTapForSource(
+const AnalysisSessionApplicationSnapshot* OpsHealthTapForSource(
     const SourceViewApplicationService::SourceRecord& source,
-    const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps) {
+    const std::vector<AnalysisSessionApplicationSnapshot>& analysis_taps) {
     const auto candidates = ClientStreamKeyCandidates(source);
-    const analysis::AnalysisManager::TapSnapshot* fallback = nullptr;
+    const AnalysisSessionApplicationSnapshot* fallback = nullptr;
     for (const auto& tap : analysis_taps) {
         if (!ClientTapMatchesSource(tap, candidates)) {
             continue;
@@ -725,7 +725,7 @@ void ApplyOpsSourceHealthCodec(OpsSourceHealthItem* item, const media::StreamDes
 void ClassifyOpsSourceHealth(OpsSourceHealthItem* item,
                              const SourceViewApplicationService::SourceRecord& source,
                              const SourceViewApplicationService::PublishedViewRecord* view,
-                             const analysis::AnalysisManager::TapSnapshot* tap,
+                             const AnalysisSessionApplicationSnapshot* tap,
                              const PublishedWebRtcSource::Snapshot* published_source,
                              const media::StreamDescriptor* descriptor,
                              const core::SessionManager::SourceReconnectStats* reconnect_stats,
@@ -865,7 +865,7 @@ void ApplyOpsSourceHealthWarningThresholds(OpsSourceHealthSnapshot* snapshot) {
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9773 function
 OpsSourceHealthSnapshot BuildOpsSourceHealthSnapshot(
-    const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps,
+    const std::vector<AnalysisSessionApplicationSnapshot>& analysis_taps,
     const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
     const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
     const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats,
@@ -3159,7 +3159,7 @@ void AppendOpsSourceHealthAuditChanges(const WebRtcHttpRuntimeConfig& config,
                                        const OpsSourceHealthSnapshot& snapshot);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 12187 function
-std::string OpsSourceHealthJson(const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps,
+std::string OpsSourceHealthJson(const std::vector<AnalysisSessionApplicationSnapshot>& analysis_taps,
                                 const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
                                 const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
                                 const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats,
@@ -3207,7 +3207,7 @@ bool OpsSourceHealthBulkRetryable(const OpsSourceHealthItem& item) {
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 12231 function
 std::string OpsSourceHealthBulkJson(
     const std::string& body,
-    const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps,
+    const std::vector<AnalysisSessionApplicationSnapshot>& analysis_taps,
     const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
     const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
     const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats,
