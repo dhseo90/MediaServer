@@ -2950,18 +2950,18 @@ ClientEventSummary LoadClientEventSummary(std::vector<std::string> stream_key_ca
                                           int limit) {
     ClientEventSummary summary;
     limit = std::max(1, std::min(50, limit));
-    analysis::EventRecordQueryResult selected_result;
+    EventStorageApplicationQueryResult selected_result;
     bool selected = false;
     for (const auto& stream_key : stream_key_candidates) {
         if (stream_key.empty()) {
             continue;
         }
-        analysis::EventRecordQueryOptions options;
+        EventStorageApplicationQueryOptions options;
         options.stream_id = stream_key;
         options.limit = static_cast<std::size_t>(std::max(200, limit));
-        analysis::EventRecordQueryResult result;
+        EventStorageApplicationQueryResult result;
         std::string error_message;
-        if (!analysis::QueryEventRecords(options, &result, &error_message)) {
+        if (!QueryEventRecordsForApplication(options, &result, &error_message)) {
             summary.error = error_message.empty() ? "failed to query event records" : error_message;
             return summary;
         }

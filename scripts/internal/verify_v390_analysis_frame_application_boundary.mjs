@@ -240,7 +240,7 @@ function overlayTransportSemanticsAreExact(text) {
     'overlay_settings.render_video_overlay || ParseBoolQuery(query, "clientOverlayFallback", ParseBoolQuery(query, "vaMetadataDrawFallback", false))',
     'if (output == nullptr) { return false; }',
     'WaitAnalysisResultNearPts( tap_id, source_pts, tolerance_ns, std::chrono::milliseconds(wait_timeout_ms))',
-    'analysis::DispatchEventRecords(evaluation.annotated_result, evaluation.events)',
+    'DispatchEventRecordsForApplication(ProjectEventStorageDispatchRequest( evaluation.annotated_result, evaluation.events))',
     'DispatchEventPostsForApplication(ProjectEventPostDispatchRequest( evaluation.annotated_result, evaluation.events))',
     'bridge_lock->PublishAnalysisMetadata(',
     '*output = evaluation.annotated_result; return true;',
@@ -254,13 +254,13 @@ function overlayTransportSemanticsAreExact(text) {
   ].map(compact);
   if (!required.every(item => normalized.includes(item))) return false;
   if (exactCount(body, /\*output\s*=\s*evaluation\.annotated_result\s*;/g) !== 2) return false;
-  if (exactCount(body, /analysis::DispatchEventRecords\(/g) !== 2 ||
+  if (exactCount(body, /DispatchEventRecordsForApplication\(/g) !== 2 ||
       exactCount(body, /DispatchEventPostsForApplication\(/g) !== 2) return false;
   const ordered = [
-    "WaitAnalysisResultNearPts", "if (result.has_value())", "analysis::DispatchEventRecords",
+    "WaitAnalysisResultNearPts", "if (result.has_value())", "DispatchEventRecordsForApplication",
     "DispatchEventPostsForApplication", "bridge_lock->PublishAnalysisMetadata", "*output =",
     "AnalysisTapSnapshot", "if (!snapshot.has_value()", "WebRtcVaMetadataMissingMessageJson",
-    "return false;", "EvaluateStoredEventRules(latest_result", "analysis::DispatchEventRecords",
+    "return false;", "EvaluateStoredEventRules(latest_result", "DispatchEventRecordsForApplication",
     "DispatchEventPostsForApplication", "if (metadata_fallback_payload_enabled)", "*output =",
     "MakeAnalysisOverlayAttachmentForApplication",
   ];
@@ -422,7 +422,7 @@ check("transport delegates exact frame tracker and overlay call sites", () => {
     incidents.replace(
       "return false;\n            }\n            auto latest_result", "return true;\n            }\n            auto latest_result"),
     swapExact(incidents, "WaitAnalysisResultNearPts", "AnalysisTapSnapshot"),
-    swapExact(incidents, "analysis::DispatchEventRecords", "DispatchEventPostsForApplication"),
+    swapExact(incidents, "DispatchEventRecordsForApplication", "DispatchEventPostsForApplication"),
     incidents.replace("if (metadata_fallback_payload_enabled)", "if (true)"),
   ];
   for (const mutation of providerMutations) {
@@ -440,20 +440,20 @@ check("CMake dispatch and successor graph bind the exact Slice 24 boundary", () 
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const classifier = id => graph.moduleClassifiers.find(item => item.id === id);
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.expectedProductionFiles === 200 && graph.expectedCppFiles === 98 &&
-    classifier("application-service-interfaces")?.expectedFileCount === 33 &&
-    classifier("application-service-interfaces")?.expectedCppCount === 14 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 3 &&
+  assert(graph.expectedProductionFiles === 202 && graph.expectedCppFiles === 99 &&
+    classifier("application-service-interfaces")?.expectedFileCount === 35 &&
+    classifier("application-service-interfaces")?.expectedCppCount === 15 &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 2 &&
     edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 ===
-      "59e2d5d4c4913e4c8776587692fabb264f3d8c2dbbafb61ce76c015db4367093" &&
-    edge("application-service-interfaces -> analysis-services")?.witnessCount === 16 &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 17 &&
+      "fedb2cae90a73353883d64907bc089eee9b90d14597b88bdf4e68fe9530e65d1" &&
+    edge("application-service-interfaces -> analysis-services")?.witnessCount === 17 &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 18 &&
     edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessCount === 4 &&
     edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessSha256 ===
       "adf4172d0e83de59df510ceeb38c88cd36aaf78b157e7022b6480d8e0793cab3" &&
     graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 &&
     !graph.stronglyConnectedComponents.length &&
-    graph.boundary.includes("Event Feature Search application boundary"), "graph successor drift");
+    graph.boundary.includes("Event Storage application boundary"), "graph successor drift");
 });
 
 check("current structure gate accepts the exact non-final successor", () => {

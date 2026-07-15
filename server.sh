@@ -557,6 +557,8 @@ Usage:
                  V390-REVIEW4-64 transport의 VA metadata filter/serializer 결속을 application service로 역전합니다.
   verify-v390-event-feature-search-application-boundary
                  V390-REVIEW4-64 transport의 Event Feature/Search Index·DSL 결속을 application service로 역전합니다.
+  verify-v390-event-storage-application-boundary
+                 V390-REVIEW4-64 transport의 Event Storage 결속을 application service로 역전합니다.
   verify-v390-stable-contract-owner-realignment
                  V390-REVIEW4-64 stable contract leaf를 target owner로 재정렬합니다.
   verify-v390-public-contract-interface-owner
@@ -997,6 +999,8 @@ Usage:
                  V390-REVIEW4-64 transport의 VA metadata filter/serializer 결속을 application service로 역전합니다.
   verify-v390-event-feature-search-application-boundary
                  V390-REVIEW4-64 transport의 Event Feature/Search Index·DSL 결속을 application service로 역전합니다.
+  verify-v390-event-storage-application-boundary
+                 V390-REVIEW4-64 transport의 Event Storage 결속을 application service로 역전합니다.
   verify-v390-stable-contract-owner-realignment
                  V390-REVIEW4-64 stable contract leaf를 target owner로 재정렬합니다.
   verify-v390-public-contract-interface-owner
@@ -2497,6 +2501,10 @@ case "${cmd}" in
   verify-v390-event-feature-search-application-boundary)
     require_internal verify_v390_event_feature_search_application_boundary.mjs
     exec "${INTERNAL_DIR}/verify_v390_event_feature_search_application_boundary.mjs" "$@"
+    ;;
+  verify-v390-event-storage-application-boundary)
+    require_internal verify_v390_event_storage_application_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_event_storage_application_boundary.mjs" "$@"
     ;;
   verify-v390-stable-contract-owner-realignment)
     require_internal verify_v390_stable_contract_owner_realignment.mjs

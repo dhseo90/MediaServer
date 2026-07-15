@@ -45,8 +45,8 @@
 #include "ingress/category_catalog_application_service.h"
 #include "ingress/event_feature_search_application_service.h"
 #include "ingress/event_post_application_service.h"
+#include "ingress/event_storage_application_service.h"
 #include "analysis/event_rule_engine.h"
-#include "analysis/event_storage.h"
 #include "ingress/image_codec_application_service.h"
 #include "ingress/incident_memory_application_service.h"
 #include "ingress/va_metadata_application_service.h"
@@ -6840,6 +6840,10 @@ EventPostDispatchRequest ProjectEventPostDispatchRequest(
     const analysis::AnalysisResult& result,
     const std::vector<analysis::AnalysisEvent>& events);
 
+EventStorageApplicationDispatchRequest ProjectEventStorageDispatchRequest(
+    const analysis::AnalysisResult& result,
+    const std::vector<analysis::AnalysisEvent>& events);
+
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 28285 prototype
 std::string AnalysisEventPostStatusJson();
 
@@ -6859,11 +6863,11 @@ bool ApplyStringEventRecordFilter(const std::unordered_map<std::string, std::str
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 28440 prototype
 bool BuildEventRecordQueryOptions(const std::unordered_map<std::string, std::string>& query,
-                                  analysis::EventRecordQueryOptions* options,
+                                  EventStorageApplicationQueryOptions* options,
                                   std::string* error_message);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 28557 prototype
-std::string AnalysisEventRecordsJson(const analysis::EventRecordQueryResult& result);
+std::string AnalysisEventRecordsJson(const EventStorageApplicationQueryResult& result);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 28610 prototype
 std::string OpsVlmEventReviewJson(const std::string& event_json);
@@ -7721,19 +7725,19 @@ bool OpsEventReviewInboxJson(const WebRtcHttpRuntimeConfig& config,
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 34521 prototype
 std::string AnalysisEventRecordCompactionJson(
-    const analysis::EventRecordCompactionResult& result);
+    const EventStorageApplicationCompactionResult& result);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 34548 prototype
 std::string AnalysisEventRecordCompactedFilesJson(
-    const analysis::EventRecordCompactedFileListResult& result);
+    const EventStorageApplicationCompactedFileListResult& result);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 34578 prototype
 std::string AnalysisEventRecordCompactedFileDeletedJson(
-    const analysis::EventRecordCompactedFileInfo& file);
+    const EventStorageApplicationCompactedFileInfo& file);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 34592 prototype
 std::string AnalysisEventRecordCompactedFileCleanupJson(
-    const analysis::EventRecordCompactedFileCleanupResult& result);
+    const EventStorageApplicationCompactedFileCleanupResult& result);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 34611 prototype
 // Lab 리포트 뷰어가 노출할 수 있는 검증 산출물 확장자만 허용한다.

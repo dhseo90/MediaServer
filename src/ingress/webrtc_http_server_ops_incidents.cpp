@@ -481,6 +481,49 @@ EventPostDispatchRequest ProjectEventPostDispatchRequest(
     return request;
 }
 
+EventStorageApplicationDispatchRequest ProjectEventStorageDispatchRequest(
+    const analysis::AnalysisResult& result,
+    const std::vector<analysis::AnalysisEvent>& events) {
+    EventStorageApplicationDispatchRequest request;
+    request.source.source_key = result.source_key;
+    request.source.profile_key = result.profile_key;
+    request.source.source_kind = result.context.source_kind;
+    request.source.route = result.context.route;
+    request.source.client_id = result.context.client_id;
+    request.source.pts = result.pts;
+    request.events.reserve(events.size());
+    for (const auto& event : events) {
+        EventStorageApplicationDispatchEvent output;
+        output.event_id = event.event_id;
+        output.rule_id = event.rule_id;
+        output.event_type = event.event_type;
+        output.track_id = event.track_id;
+        output.class_id = event.class_id;
+        output.label = event.label;
+        output.score = event.score;
+        output.box.x = event.box.x;
+        output.box.y = event.box.y;
+        output.box.width = event.box.width;
+        output.box.height = event.box.height;
+        output.highlight_color = event.highlight_color;
+        output.highlight_duration_ms = event.highlight_duration_ms;
+        output.highlight_enabled = event.highlight_enabled;
+        output.post_enabled = event.post_enabled;
+        output.post_url = event.post_url;
+        output.status = event.status;
+        output.start_time_ms = event.start_time_ms;
+        output.update_time_ms = event.update_time_ms;
+        output.end_time_ms = event.end_time_ms;
+        output.zone_id = event.zone_id;
+        output.line_id = event.line_id;
+        output.scenario_name = event.scenario_name;
+        output.scenario_phase = event.scenario_phase;
+        output.metadata_json = event.metadata_json;
+        request.events.push_back(std::move(output));
+    }
+    return request;
+}
+
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 28285 function
 std::string AnalysisEventPostStatusJson() {
     const auto status = ObserveEventPostDispatchStatus();
@@ -501,7 +544,7 @@ std::string AnalysisEventPostStatusJson() {
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 28302 function
 std::string AnalysisEventStorageStatusJson() {
-    const auto snapshot = analysis::GetEventStorageSnapshot();
+    const auto snapshot = ObserveEventStorageForApplication();
     std::ostringstream out;
     out << "{"
         << "\"enabled\":" << (snapshot.enabled ? "true" : "false") << ","
@@ -643,7 +686,7 @@ bool ApplyStringEventRecordFilter(const std::unordered_map<std::string, std::str
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 28440 function
 bool BuildEventRecordQueryOptions(const std::unordered_map<std::string, std::string>& query,
-                                  analysis::EventRecordQueryOptions* options,
+                                  EventStorageApplicationQueryOptions* options,
                                   std::string* error_message) {
     if (options == nullptr) {
         if (error_message != nullptr) {
@@ -651,7 +694,7 @@ bool BuildEventRecordQueryOptions(const std::unordered_map<std::string, std::str
         }
         return false;
     }
-    *options = analysis::EventRecordQueryOptions{};
+    *options = EventStorageApplicationQueryOptions{};
     ApplyStringEventRecordFilter(query, "eventId", &options->event_id);
     ApplyStringEventRecordFilter(query, "eventType", &options->event_type);
     ApplyStringEventRecordFilter(query, "streamId", &options->stream_id);
@@ -760,7 +803,7 @@ bool BuildEventRecordQueryOptions(const std::unordered_map<std::string, std::str
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 28557 function
-std::string AnalysisEventRecordsJson(const analysis::EventRecordQueryResult& result) {
+std::string AnalysisEventRecordsJson(const EventStorageApplicationQueryResult& result) {
     const auto& snapshot = result.storage;
     std::ostringstream out;
     out << "{"
@@ -5702,18 +5745,18 @@ IntegratorScopedEventSearchSource LoadIntegratorScopedEventSearchSource(
     const SourceViewApplicationService::ClientViewAccess& access,
     std::size_t read_limit) {
     IntegratorScopedEventSearchSource source;
-    analysis::EventRecordQueryResult selected_result;
+    EventStorageApplicationQueryResult selected_result;
     bool selected = false;
     for (const auto& stream_key : ClientEventStreamCandidates(access.source, nullptr)) {
         if (stream_key.empty()) {
             continue;
         }
-        analysis::EventRecordQueryOptions options;
+        EventStorageApplicationQueryOptions options;
         options.stream_id = stream_key;
         options.limit = std::max<std::size_t>(read_limit, 200U);
-        analysis::EventRecordQueryResult result;
+        EventStorageApplicationQueryResult result;
         std::string error_message;
-        if (!analysis::QueryEventRecords(options, &result, &error_message)) {
+        if (!QueryEventRecordsForApplication(options, &result, &error_message)) {
             source.error = error_message.empty() ? "failed to query event records" : error_message;
             return source;
         }
@@ -6443,15 +6486,15 @@ bool OpsEventReviewInboxJson(const WebRtcHttpRuntimeConfig& config,
         }
         return false;
     }
-    analysis::EventRecordQueryOptions options;
+    EventStorageApplicationQueryOptions options;
     if (!BuildEventRecordQueryOptions(query, &options, error_message)) {
         return false;
     }
     if (query.find("limit") == query.end()) {
         options.limit = 25;
     }
-    analysis::EventRecordQueryResult event_result;
-    if (!analysis::QueryEventRecords(options, &event_result, error_message)) {
+    EventStorageApplicationQueryResult event_result;
+    if (!QueryEventRecordsForApplication(options, &event_result, error_message)) {
         return false;
     }
     std::unordered_map<std::string, OpsEventReviewState> reviews;
@@ -6599,7 +6642,7 @@ bool OpsEventReviewInboxJson(const WebRtcHttpRuntimeConfig& config,
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 34521 function
 std::string AnalysisEventRecordCompactionJson(
-    const analysis::EventRecordCompactionResult& result) {
+    const EventStorageApplicationCompactionResult& result) {
     std::ostringstream out;
     out << "{"
         << "\"schema\":\"media-server.va.event-record-compaction.v1\","
@@ -6627,7 +6670,7 @@ std::string AnalysisEventRecordCompactionJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 34548 function
 std::string AnalysisEventRecordCompactedFilesJson(
-    const analysis::EventRecordCompactedFileListResult& result) {
+    const EventStorageApplicationCompactedFileListResult& result) {
     std::ostringstream out;
     out << "{"
         << "\"schema\":\"media-server.va.event-record-compacted-list.v1\","
@@ -6658,7 +6701,7 @@ std::string AnalysisEventRecordCompactedFilesJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 34578 function
 std::string AnalysisEventRecordCompactedFileDeletedJson(
-    const analysis::EventRecordCompactedFileInfo& file) {
+    const EventStorageApplicationCompactedFileInfo& file) {
     std::ostringstream out;
     out << "{"
         << "\"schema\":\"media-server.va.event-record-compacted-delete.v1\","
@@ -6673,7 +6716,7 @@ std::string AnalysisEventRecordCompactedFileDeletedJson(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 34592 function
 std::string AnalysisEventRecordCompactedFileCleanupJson(
-    const analysis::EventRecordCompactedFileCleanupResult& result) {
+    const EventStorageApplicationCompactedFileCleanupResult& result) {
     std::ostringstream out;
     out << "{"
         << "\"schema\":\"media-server.va.event-record-compacted-cleanup.v1\","
@@ -7193,13 +7236,13 @@ std::string BuildReleaseSafeIncidentEvidenceBundleManifest(const std::string& ev
     std::vector<std::string> terms;
     std::vector<std::string> redacted_fields;
     if (!event_id.empty()) {
-        analysis::EventRecordQueryOptions options;
+        EventStorageApplicationQueryOptions options;
         options.event_id = event_id;
         options.limit = 1;
         options.include_archives = true;
-        analysis::EventRecordQueryResult result;
+        EventStorageApplicationQueryResult result;
         std::string query_error;
-        if (analysis::QueryEventRecords(options, &result, &query_error) && !result.records_json.empty()) {
+        if (QueryEventRecordsForApplication(options, &result, &query_error) && !result.records_json.empty()) {
             const auto document = ProjectEventRecordForIncidentMemory(result.records_json.front());
             summary = EvidenceBundleRedactedValue(document.summary, summary);
             terms = document.tokens;
@@ -7302,13 +7345,13 @@ bool BuildEventEvidenceBundleZip(const std::unordered_map<std::string, std::stri
     std::vector<ZipCentralDirectoryEntry> entries;
     if (!release_safe_requested) {
         if (!event_id.empty()) {
-            analysis::EventRecordQueryOptions options;
+            EventStorageApplicationQueryOptions options;
             options.event_id = event_id;
             options.limit = 1;
             options.include_archives = true;
-            analysis::EventRecordQueryResult result;
+            EventStorageApplicationQueryResult result;
             std::string query_error;
-            if (analysis::QueryEventRecords(options, &result, &query_error) && !result.records_json.empty()) {
+            if (QueryEventRecordsForApplication(options, &result, &query_error) && !result.records_json.empty()) {
                 if (!AppendZipEntry(&zip, &entries, "event-record.json", result.records_json.front(), error_message)) {
                     return false;
                 }
@@ -7702,7 +7745,8 @@ bool AttachWebRtcAnalysisOverlay(analysis::AnalysisSessionService& analysis_sess
                     result->debug_state_requested || debug_overlay || metadata_channel_enabled;
                 result->debug_state_log_enabled = result->debug_state_log_enabled || debug_overlay;
                 const auto evaluation = EvaluateStoredEventRules(*result, event_runtime);
-                analysis::DispatchEventRecords(evaluation.annotated_result, evaluation.events);
+                DispatchEventRecordsForApplication(ProjectEventStorageDispatchRequest(
+                    evaluation.annotated_result, evaluation.events));
                 DispatchEventPostsForApplication(ProjectEventPostDispatchRequest(
                     evaluation.annotated_result, evaluation.events));
                 if (metadata_channel_enabled && bridge_lock != nullptr && bridge_lock->MetadataChannelReady()) {
@@ -7736,7 +7780,8 @@ bool AttachWebRtcAnalysisOverlay(analysis::AnalysisSessionService& analysis_sess
                 latest_result.debug_state_requested || debug_overlay || metadata_channel_enabled;
             latest_result.debug_state_log_enabled = latest_result.debug_state_log_enabled || debug_overlay;
             const auto evaluation = EvaluateStoredEventRules(latest_result, event_runtime);
-            analysis::DispatchEventRecords(evaluation.annotated_result, evaluation.events);
+            DispatchEventRecordsForApplication(ProjectEventStorageDispatchRequest(
+                evaluation.annotated_result, evaluation.events));
             DispatchEventPostsForApplication(ProjectEventPostDispatchRequest(
                 evaluation.annotated_result, evaluation.events));
             if (metadata_channel_enabled && bridge_lock != nullptr && bridge_lock->MetadataChannelReady()) {

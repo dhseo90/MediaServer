@@ -1934,15 +1934,15 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
 	                                return *auth_response;
 	                            }
-	                            analysis::EventRecordQueryOptions options;
+	                            EventStorageApplicationQueryOptions options;
 	                            std::string error_message;
 	                            if (!BuildEventRecordQueryOptions(query, &options, &error_message)) {
 	                                return JsonResponse(400,
 	                                                    "Bad Request",
 	                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
 	                            }
-	                            analysis::EventRecordQueryResult result;
-	                            if (!analysis::QueryEventRecords(options, &result, &error_message)) {
+	                            EventStorageApplicationQueryResult result;
+	                            if (!QueryEventRecordsForApplication(options, &result, &error_message)) {
 	                                return JsonResponse(500,
 	                                                    "Internal Server Error",
 	                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
@@ -3888,15 +3888,15 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         }
 
                         if (request.method == "GET" && request.path == "/lab/analysis/events/records") {
-                            analysis::EventRecordQueryOptions options;
+                            EventStorageApplicationQueryOptions options;
                             std::string error_message;
                             if (!BuildEventRecordQueryOptions(query, &options, &error_message)) {
                                 return JsonResponse(400,
                                                     "Bad Request",
                                                     "{\"error\":\"" + JsonEscape(error_message) + "\"}");
                             }
-                            analysis::EventRecordQueryResult result;
-                            if (!analysis::QueryEventRecords(options, &result, &error_message)) {
+                            EventStorageApplicationQueryResult result;
+                            if (!QueryEventRecordsForApplication(options, &result, &error_message)) {
                                 return JsonResponse(500,
                                                     "Internal Server Error",
                                                     "{\"error\":\"" + JsonEscape(error_message) + "\"}");
@@ -3910,15 +3910,15 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 auth_response.has_value()) {
                                 return *auth_response;
                             }
-                            analysis::EventRecordQueryOptions options;
+                            EventStorageApplicationQueryOptions options;
                             std::string error_message;
                             if (!BuildEventRecordQueryOptions(query, &options, &error_message)) {
                                 return JsonResponse(400,
                                                     "Bad Request",
                                                     "{\"error\":\"" + JsonEscape(error_message) + "\"}");
                             }
-                            analysis::EventRecordCompactionResult result;
-                            if (!analysis::CompactEventRecords(options, &result, &error_message)) {
+                            EventStorageApplicationCompactionResult result;
+                            if (!CompactEventRecordsForApplication(options, &result, &error_message)) {
                                 return JsonResponse(500,
                                                     "Internal Server Error",
                                                     "{\"error\":\"" + JsonEscape(error_message) + "\"}");
@@ -3928,9 +3928,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                         if (request.method == "GET" &&
                             request.path == "/lab/analysis/events/records/compactions") {
-                            analysis::EventRecordCompactedFileListResult result;
+                            EventStorageApplicationCompactedFileListResult result;
                             std::string error_message;
-                            if (!analysis::ListCompactedEventRecordFiles(&result, &error_message)) {
+                            if (!ListCompactedEventRecordFilesForApplication(&result, &error_message)) {
                                 return JsonResponse(500,
                                                     "Internal Server Error",
                                                     "{\"error\":\"" + JsonEscape(error_message) + "\"}");
@@ -3955,9 +3955,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 }
                                 keep_newest = static_cast<std::size_t>(parsed);
                             }
-                            analysis::EventRecordCompactedFileCleanupResult result;
+                            EventStorageApplicationCompactedFileCleanupResult result;
                             std::string error_message;
-                            if (!analysis::CleanupCompactedEventRecordFiles(keep_newest,
+                            if (!CleanupCompactedEventRecordFilesForApplication(keep_newest,
                                                                            &result,
                                                                            &error_message)) {
                                 return JsonResponse(500,
@@ -3980,9 +3980,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                     "{\"error\":\"compacted file name is required\"}");
                             }
                             if (request.method == "GET") {
-                                analysis::EventRecordCompactedFileInfo file;
+                                EventStorageApplicationCompactedFileInfo file;
                                 std::string error_message;
-                                if (!analysis::ResolveCompactedEventRecordFile(file_name, &file, &error_message)) {
+                                if (!ResolveCompactedEventRecordFileForApplication(file_name, &file, &error_message)) {
                                     return JsonResponse(404,
                                                         "Not Found",
                                                         "{\"error\":\"" + JsonEscape(error_message) + "\"}");
@@ -4010,9 +4010,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     auth_response.has_value()) {
                                     return *auth_response;
                                 }
-                                analysis::EventRecordCompactedFileInfo file;
+                                EventStorageApplicationCompactedFileInfo file;
                                 std::string error_message;
-                                if (!analysis::DeleteCompactedEventRecordFile(file_name, &file, &error_message)) {
+                                if (!DeleteCompactedEventRecordFileForApplication(file_name, &file, &error_message)) {
                                     return JsonResponse(404,
                                                         "Not Found",
                                                         "{\"error\":\"" + JsonEscape(error_message) + "\"}");
@@ -4533,7 +4533,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     evaluation = EvaluateStoredEventRules(
                                         *snapshot->latest_result, EventRuleRuntimeForKey("tap-events:" + tap_id));
                                     if (ParseBoolQuery(query, "dispatch", false)) {
-                                        analysis::DispatchEventRecords(evaluation->annotated_result, evaluation->events);
+                                        DispatchEventRecordsForApplication(ProjectEventStorageDispatchRequest(
+                                            evaluation->annotated_result, evaluation->events));
                                         DispatchEventPostsForApplication(ProjectEventPostDispatchRequest(
                                             evaluation->annotated_result, evaluation->events));
                                         DispatchOpsAlertDeliveries(config,

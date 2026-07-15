@@ -6886,11 +6886,11 @@ OpsV340RecoveryCandidateContext BuildV340RecoveryCandidateContext(
         context.health_by_source[health.source_id] = &health;
     }
 
-    analysis::EventRecordQueryOptions event_options;
+    EventStorageApplicationQueryOptions event_options;
     event_options.limit = 200;
-    analysis::EventRecordQueryResult event_result;
+    EventStorageApplicationQueryResult event_result;
     std::string event_error;
-    if (analysis::QueryEventRecords(event_options, &event_result, &event_error)) {
+    if (QueryEventRecordsForApplication(event_options, &event_result, &event_error)) {
         context.event_record_matched_count = static_cast<int>(event_result.matched_records);
         for (const auto& event_json : event_result.records_json) {
             const std::string event_id = ParseStringField(event_json, "eventId").value_or("");

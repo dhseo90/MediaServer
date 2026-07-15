@@ -35,7 +35,7 @@ Development 17의 readiness와 REVIEW4-51 decision/graph는 승인 당시 histor
 `test/fixtures/v390_structure_stabilization_current_graph.json`, verifier는
 `./server.sh verify-v390-review4-structure-stabilization-execution`입니다.
 
-Current REVIEW4-64 status: `current-continuation-slice-25-completed-final-targets-unmet`
+Current REVIEW4-64 status: `current-continuation-slice-28-completed-final-targets-unmet`
 
 | 순서 | Current Slice | 상태 | 직접 경계 |
 | ---: | --- | --- | --- |
@@ -485,6 +485,10 @@ Canonical profile/query construction, context resolution, overlay request/option
 ### Current continuation Slice 27: `event-feature-search-application-boundary`
 
 Canonical Event Feature Search index rebuild, Search DSL conversion, query window resolution, valid-only search, and result projection now live behind `event_feature_search_application_service.h/.cpp`. Transport keeps event JSON parsing, timestamp fallback, seven-feature construction, Auth/view scope, retry filtering, and Ops/Integrator JSON assembly. Independent review found three P0 false-PASS gaps and the focused gate now executes exact query/read-limit/response, timestamp/feature/serializer, full DTO/two-record ordering, and ten named privacy/wiring mutations. Focused6, build100, feature index7, DSL7, scoped Integrator8, analysis181, source-bundle6, physical6, and structure15 pass. The first build exposed stale private-detail declarations and was corrected. The current 4.6MB analysis smoke output and dependency scan were removed; an unrelated pre-existing smoke directory was not touched and both listener ports are clear. Current graph is production200/C++98, edge16, violations2, SCC0; transport-to-analysis witnesses reduce 4→3 while core-media4 stays exact. Remaining directions and parked evidence keep REVIEW4-64/65 open.
+
+### Current continuation Slice 28: `event-storage-application-boundary`
+
+Canonical Event Storage query, snapshot, compaction, compacted-file list/resolve/delete/cleanup, and dispatch mapping now live behind dependency-neutral `event_storage_application_service.h/.cpp`. Transport keeps query parsing, Auth/Role/Scope, HTTP status and JSON assembly, and Record-to-Event-POST-to-metadata ordering; canonical Stop remains in the composition root. Independent review found a P1 default projection mismatch and the implementation now preserves canonical `source_kind` and `route` `*`, with a compiled default RED. The focused gate first reported 5/1 because resolve failure could leave stale output without failing; an exact failure-overwrite oracle closes that false PASS and the rerun is 6/0. Build100, v300 evidence9, v310 clip10, scoped Integrator8, and analysis181 pass. The actual Ops event-records verifier encountered sandbox loopback EPERM, Auth auto 302, a wrong Auth environment, stale Event POST route, a credential false-positive, stale compaction fields, and a Chrome fallback flag; each cause and the verifier script were corrected before the full HTTP/compaction/browser rerun passed. Source-bundle6, physical6, structure15, script11, docs0, diff, cleanup, and listener gates pass. Current graph is production202/C++99, edge16, violations2, SCC0; transport-to-analysis witnesses reduce 3→2 while core-media4 stays exact and mixed-owner maximum is 10,156 lines. The two violation directions and parked evidence remain open, so REVIEW4-64/65 are not complete.
 
 ### Current continuation Slice 19: `vlm-observation-application-boundary`
 

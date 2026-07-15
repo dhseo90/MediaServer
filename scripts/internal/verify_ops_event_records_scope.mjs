@@ -72,7 +72,7 @@ for (const control of opsEventsControls) {
 }
 
 const storageStatus = await requestJson("/lab/analysis/event-storage/status");
-const eventPostStatus = await requestJson("/lab/analysis/events/post/status");
+const eventPostStatus = await requestJson("/lab/analysis/event-post/status");
 if (!Number.isFinite(Number(eventPostStatus?.failedCount))) {
   throw new Error("event POST status failedCount readback missing");
 }
@@ -143,14 +143,13 @@ async function verifyEventRecordCompactionLifecycle(fixture) {
     { method: "POST" },
   );
   if (compacted?.schema !== "media-server.va.event-record-compaction.v1" ||
-      !compacted?.fileName || Number(compacted?.recordCount || 0) < 1) {
+      !compacted?.compactedPath || Number(compacted?.retainedRecords || 0) < 1) {
     throw new Error(`EVT compaction observed response mismatch: ${JSON.stringify(compacted).slice(0, 320)}`);
   }
-  const fileName = String(compacted.fileName);
-  const compacted_path = fileName;
+  const fileName = path.basename(String(compacted.compactedPath));
   const listed = await requestJson("/lab/analysis/events/records/compactions");
   if (listed?.schema !== "media-server.va.event-record-compacted-list.v1" ||
-      !Array.isArray(listed?.files) || !listed.files.some(item => item?.fileName === compacted_path)) {
+      !Array.isArray(listed?.files) || !listed.files.some(item => item?.fileName === fileName)) {
     throw new Error(`EVT compaction list observed file mismatch: ${JSON.stringify(listed).slice(0, 320)}`);
   }
   const fetched = await requestText(`/lab/analysis/events/records/compactions/${encodeURIComponent(fileName)}`);
@@ -625,7 +624,12 @@ async function verifyEvidenceBundleDownload(storageStatus) {
     if (releaseSafeBody.includes(Buffer.from('"sourceUrl"'))) {
       throw new Error("release-safe manifest readback must exclude sourceUrl material");
     }
-    if (releaseSafeBody.includes(Buffer.from('"credential"'))) {
+    if (!releaseSafeBody.includes(Buffer.from('"credentialIncluded":false'))) {
+      throw new Error("release-safe manifest readback must keep credentialIncluded=false");
+    }
+    if (releaseSafeBody.includes(Buffer.from('"credential":')) ||
+        releaseSafeBody.includes(Buffer.from('"credentialValue":')) ||
+        releaseSafeBody.includes(Buffer.from('"credentialMaterial":'))) {
       throw new Error("release-safe manifest readback must exclude credential material");
     }
     if (releaseSafeBody.includes(Buffer.from('"debugMaterial"'))) {
