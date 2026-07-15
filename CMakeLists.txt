@@ -61,6 +61,8 @@ add_library(media_server_runtime STATIC
     src/core/session_manager.cpp
     src/core/source_request_parser.cpp
     src/ingress/gst_pipeline_builder.cpp
+    src/ingress/analysis_rule_application_service.cpp
+    src/ingress/analysis_rule_registry.cpp
     src/ingress/analysis_overlay_probe.cpp
     src/ingress/appearance_readiness_application_service.cpp
     src/ingress/category_catalog_application_service.cpp

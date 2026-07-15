@@ -11,6 +11,17 @@
 
 namespace ingress {
 
+struct AnalysisRuleRegistryPort {
+    std::vector<std::string> (*profile_documents_snapshot)(){nullptr};
+    std::vector<std::string> (*rule_documents_snapshot)(){nullptr};
+    std::vector<std::string> (*video_analysis_rule_documents_snapshot)(){nullptr};
+    bool (*apply_video_analysis_rule_to_request)(media::IngressRequest*, std::string*){nullptr};
+};
+
+// Composition root가 transport-owned registry backend를 domain API에 한 번 결속한다.
+bool BindAnalysisRuleRegistryPort(const AnalysisRuleRegistryPort& port,
+                                  std::string* error_message);
+
 std::vector<std::string> AnalysisProfileDocumentsSnapshot();
 std::vector<std::string> AnalysisRuleDocumentsSnapshot();
 std::vector<std::string> VideoAnalysisRuleDocumentsSnapshot();

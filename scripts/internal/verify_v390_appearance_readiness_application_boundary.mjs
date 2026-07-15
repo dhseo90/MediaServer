@@ -242,7 +242,7 @@ check("CMake and current graph preserve Slice 17 at the Slice 18 successor", () 
   const assertGraphBoundary = value => {
     const applicationOwner = value.moduleClassifiers.find(item => item.id === "application-service-interfaces");
     assert(applicationOwner?.exactFiles.includes(headerPath) && applicationOwner.exactFiles.includes(sourcePath) &&
-      applicationOwner.expectedFileCount === 25 && applicationOwner.expectedCppCount === 10,
+      applicationOwner.expectedFileCount === 27 && applicationOwner.expectedCppCount === 11,
     "current graph application ownership binding missing");
     const edge = direction => value.observedModuleEdges.find(item => item.direction === direction);
     assert(edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 11 &&
@@ -250,12 +250,12 @@ check("CMake and current graph preserve Slice 17 at the Slice 18 successor", () 
     "Slice 18 successor must preserve the Slice 17 boundary and reduce the next witness to 16");
     assert(edge("application-service-interfaces -> analysis-services")?.witnessCount === 8 &&
       edge("application-service-interfaces -> analysis-services")?.allowedByTarget === true &&
-      edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 13 &&
+      edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 14 &&
       edge("transport-and-auth-adapter -> application-service-interfaces")?.allowedByTarget === true,
     "application successor edges drift");
-    assert(value.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 3 &&
+    assert(value.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 2 &&
       value.stronglyConnectedComponents.length === 0,
-    "Slice 17 must preserve violations=3 and SCC=0");
+    "Slice 17 successor must preserve current violations=2 and SCC=0");
   };
   assertGraphBoundary(graph);
   const mutated = structuredClone(graph);

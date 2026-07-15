@@ -2557,7 +2557,7 @@ REVIEW4는 아래 순서를 고정합니다. 앞 단계가 FAIL이면 뒤 단계
 | 61 | V390-REVIEW4-61 | Long-run/Evidence | duration, 120분 판정, cleanup 실측 | P0 | 완료 / actual 장시간 미실행 | Predev는 Bash `SECONDS` monotonic 시작/종료/경과와 exact ordered soak iteration/case ledger, 서버 PID command/port lifecycle ledger를 기록합니다. Longrun v2는 별도 `process.hrtime.bigint` 경과와 delegated duration·step ledger를 함께 검증해 requested minutes 또는 최대 iteration 역산을 거부합니다. 120분 정책 필요성은 AGENTS 7.6.2 base..HEAD change scope와 upstream drift에서 계산하며 `--run-120`은 독립 trigger가 아닙니다. Longrun/UI cleanup은 PID identity·listener owner 전후·bindability·contained artifact 존재와 before/after bytes를 raw schema로 기록하고 acceptance/final integrity가 재검증합니다. Contract/fixture만 실행했으며 실제 30분/120분/UI는 미실행입니다. | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 6점. 장시간 및 release evidence 정확도 상향 적용 |
 | 62 | V390-REVIEW4-62 | Acceptance | self-contained one-command 실행 환경 | P0 | 완료 / actual 장시간·UI 미실행 | Canonical command는 output root만 받아 acceptance-owned throwaway HTTP/RTSP server, bounded port retry, admin/operator/viewer/integrator account와 0600 storage-state, Playwright/browser provenance, server log/PID/listener/artifact ownership과 cleanup을 직접 준비합니다. Exact runner는 contained runtime descriptor를 받아 case별 fresh role session, typed form 15건과 persisted mutation 35건의 실제 entry/field/identity/request lifecycle, cross-role action session, runtime-only secret resolver, collection/item authoritative readback과 aggregate cleanup을 수행합니다. Source/view는 ordered pair, ONVIF는 atomic pair로 결속하고 신규 pair는 isolated server teardown 전 양쪽 disabled 상태까지 확인합니다. `/ops/users` product case 20건과 관련 cross-role action은 admin으로 교정했으며 canonical role 분포는 admin 20/anonymous 16/operator 346/viewer 42입니다. SRC-018의 allowedRuleIds/clientGroups 편집 control도 제품 UI에 추가했습니다. 외부 HTTP/PID/log/role-state/port/temp-root option은 거부하며 첫 실패 뒤 later stage/case는 `not-run`입니다. Acceptance contract 10/0, exact runtime 15/0, adapter 8/0, final integrity 9/0, longrun measurement 12/0을 통과했지만 실제 30분·exact 424 browser·80 visual·120분은 실행하지 않았습니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. 복합 실행 경계와 release correctness 상향 적용 |
 | 63 | V390-REVIEW4-63 | Product Scope | deferred 기능 실제 owner 확정 | P1 | 완료 | `.github/CODEOWNERS`의 effective rule에 따라 실제 책임자 `@dhseo90`를 `repository-code-owner`/`repository-scoped-product-scope-attestation`으로 결속하고 기능 역할과 조직 권한 추론을 분리했습니다. Exact 5개는 action write, persistent credential store, production restore, external provider call, model-backed Re-ID이며 외부 field smoke는 별도 조건부입니다. Production restore의 runbook/staging 구현과 product automation 미구현, external provider의 product runtime 금지와 conditional harness 구현, Re-ID의 `implemented-opt-in-experimental` source와 supported release 제외를 구분합니다. 모든 후속은 `post-v3.9-unassigned`, scheduled=false이며 구조화 dependency 승인 전 target version을 예약하지 않습니다. Current release execution/UI/30분/120분/field/release PASS는 주장하지 않습니다. | 5.6 Terra | 중간 (medium) | 영향도 1, 불확실성 1, 검증 난이도 1, 변경 범위 1, 총 4점. 제품 범위 결정 기록이며 상향 규칙 없음 |
-| 64 | V390-REVIEW4-64 | Structure | 승인된 구조 안정화 slice 실행 | P0 | 진행 중 / current continuation Slice 22 완료 | Historical ordered Slice 1~5와 current continuation 1~22를 완료했습니다. Slice 22는 image decode/JPEG encode를 dependency-free frame/encoded-image DTO 뒤로 이동해 transport→analysis witness를 13→11로 줄였습니다. Focused 5/1 graph RED→6/0, build, actual image20, lab core, redaction4/0, analysis181, final contract10, predecessor/bundle/physical gate를 통과했습니다. 첫 image smoke는 미기동 서버, 첫 redaction live는 기본 8554와 격리 서버 8555 불일치였고 명시적 loopback 재실행으로 통과했습니다. Actual graph는 production190/C++93, edge17, Policy v1 위반3, SCC0, target2/internal separation true, mixed max10,156입니다. 남은 transport→analysis/core-media/domain 방향과 parked evidence가 open이므로 REVIEW4-64/65 완료가 아닙니다. | 5.6 Sol | 최대 (max) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. Physical split 뒤에도 dependency 방향과 final evidence를 순차 폐쇄해야 하는 최난도 작업 |
+| 64 | V390-REVIEW4-64 | Structure | 승인된 구조 안정화 slice 실행 | P0 | 진행 중 / current continuation Slice 23 완료 | Historical ordered Slice 1~5와 current continuation 1~23을 완료했습니다. Slice 23은 canonical Analysis Registry 네 함수를 domain `.cpp` owner로 이동하고, application callback adapter와 transport backend를 one-time port로 결속해 transport→domain include와 숨은 analysis→transport link를 함께 제거했습니다. 초기 declaration-only shim은 독립 리뷰 P1에서 false closure로 거부한 뒤 폐기했습니다. Focused 5/0, build, durable-write actual, analysis181, public/source-view/final-contract/image/Event POST/bundle/physical/structure gate를 통과했습니다. Durable-write 첫 실행은 sandbox bind 권한으로 실패했고 승인된 loopback 재실행에서 통과했습니다. Actual graph는 production194/C++95, edge16, Policy v1 위반2, SCC0, target2/internal separation true, mixed max10,156입니다. 남은 transport→analysis/core-media 두 방향과 parked evidence가 open이므로 REVIEW4-64/65 완료가 아닙니다. | 5.6 Sol | 최대 (max) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. Physical split 뒤에도 dependency 방향과 final evidence를 순차 폐쇄해야 하는 최난도 작업 |
 | 65 | V390-REVIEW4-65 | Final Test | current HEAD 독립 acceptance와 evidence | P0 | 64 완료 후 실행 승인됨 | 50~64가 닫힌 clean HEAD에서 정적/빌드 gate, 30분, exact 424 Policy v4 UI, AGENTS 7.6.2 판정에 따른 120분, cleanup, final integrity를 승인된 canonical command로 수행합니다. current commit, 명령, 첫 실패 위치, 재현 명령, 미실행/조건부 항목을 보존하며 historical PASS를 재사용하지 않습니다. | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 6점. release correctness 검증 상향 적용 |
 
 #### REVIEW4 단계 의존성과 중단 조건
@@ -6134,6 +6134,28 @@ Close가 non-REPLIED이면 peer/pipeline ref를 process-lifetime quarantine으�
 가장 먼저 잡아 원자 결속하고 signaling mutex와의 lock order를 고정합니다.
 Background retry/detached thread/unsafe unref는 없으며 정상 close 경로는 즉시 정리됩니다.
 Parked generated evidence와 남은 transport→analysis/core-media/domain 방향 때문에 REVIEW4-64 전체와
+REVIEW4-65 acceptance는 아직 완료가 아닙니다.
+
+## V390-REVIEW4-64 current continuation Slice 23 Analysis Rule domain port 경계
+
+`src/ingress/analysis_rule_registry.cpp`가 analysis consumer의 canonical snapshot 3개와 request 적용 1개
+함수를 실제 정의합니다. `analysis_rule_application_service.h/.cpp`는 dependency-free callback bundle을
+one-time configure하고 domain port와 transport wrapper가 같은 backend를 사용하게 합니다.
+`webrtc_http_analysis_rule_declarations.h`는 transport backend 네 함수만 선언하며, WebRTC HTTP constructor가
+이 backend를 application service에 설정합니다. Transport는 concrete domain header와 canonical definition을
+소유하지 않고 analysis는 transport symbol에 정적으로 link하지 않습니다. Registry 저장·락·durable transaction,
+route, response, requested/observed schema, event와 media path는 변경하지 않았습니다.
+
+초기 declaration-only shim은 독립 리뷰에서 숨은 analysis→transport link를 제거하지 못한 P1 false closure로
+확인되어 실제 port/adapter/backend 구조로 교체했습니다. Focused verifier의 compiled harness는 incomplete 설정,
+동일 재설정, 다른 backend 거부, 선행 registry bind 충돌의 application no-change, callback 순서·양쪽
+public/application 호출·null/error·exception 전파를 결속합니다. Final independent review가 찾은 fail-soft 의미 변경과
+bind 뒤 실패 split-brain을 제거했고, 실제 transport profile/rule/VA backend body 교환 mutation도 거부하도록 보강해
+5/0을 통과했습니다. Build 100%, durable-write actual, analysis-state 181/0, public6, source-view5,
+final-contract10, image6, Event POST6, source-bundle6, physical6, structure15를 통과했습니다. Durable-write
+첫 실행은 sandbox loopback bind `EPERM`으로 실패했고, 승인된 loopback 실행에서 동일 명령이 통과했습니다.
+Current graph는 production194/C++95, edge16, 위반2/SCC0이고 transport→domain witness는 1→0입니다.
+남은 transport→analysis11/core-media4와 parked generated evidence 때문에 REVIEW4-64 전체 및
 REVIEW4-65 acceptance는 아직 완료가 아닙니다.
 
 ## 후속 이슈 추천 규칙

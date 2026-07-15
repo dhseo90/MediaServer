@@ -1719,6 +1719,16 @@ WebRtcHttpServer::WebRtcHttpServer(core::SessionManager& session_manager,
       analysis_sessions_(analysis_sessions),
       runtime_config_(runtime_config),
       impl_(std::make_unique<Impl>(session_manager, analysis_sessions)) {
+    const AnalysisRuleApplicationCallbacks analysis_rule_callbacks{
+        &WebRtcHttpAnalysisProfileDocumentsSnapshotBackend,
+        &WebRtcHttpAnalysisRuleDocumentsSnapshotBackend,
+        &WebRtcHttpVideoAnalysisRuleDocumentsSnapshotBackend,
+        &ApplyWebRtcHttpVideoAnalysisRuleToRequestBackend,
+    };
+    std::string analysis_rule_error;
+    if (!ConfigureAnalysisRuleApplicationService(analysis_rule_callbacks, &analysis_rule_error)) {
+        throw std::logic_error(analysis_rule_error);
+    }
     if (!webrtc_http_server_detail::AcquireWebRtcHttpRuntimeConfig(runtime_config_)) {
         throw std::logic_error("WebRtcHttpServer supports exactly one process-lifetime instance");
     }
@@ -4919,8 +4929,8 @@ std::string RuntimeStatusJson(const core::SessionManager::RuntimeStateSnapshot& 
                               int active_ws_metadata_clients,
                               const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
                               const std::vector<analysis::AnalysisManager::TapSnapshot>& analysis_taps) {
-    const auto profile_documents = AnalysisProfileDocumentsSnapshot();
-    const auto rule_documents = AnalysisRuleDocumentsSnapshot();
+    const auto profile_documents = ApplicationAnalysisProfileDocumentsSnapshot();
+    const auto rule_documents = ApplicationAnalysisRuleDocumentsSnapshot();
     struct ReuseGroupSummary {
         std::string reuse_key;
         std::string tap_id;
@@ -7538,7 +7548,7 @@ bool DetachAnalysisTapAndReleaseRuntimes(analysis::AnalysisSessionService& analy
 analysis::EventRuleEvaluation EvaluateStoredEventRules(
     const analysis::AnalysisResult& result,
     const std::shared_ptr<analysis::EventRuleRuntime>& runtime) {
-    return analysis::ApplyEventRulesToResult(result, AnalysisRuleDocumentsSnapshot(), runtime);
+    return analysis::ApplyEventRulesToResult(result, ApplicationAnalysisRuleDocumentsSnapshot(), runtime);
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8818 function

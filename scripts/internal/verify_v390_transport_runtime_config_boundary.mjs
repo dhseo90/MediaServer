@@ -47,6 +47,7 @@ const legacyTransportFiles = [
   "src/ingress/webrtc_http_server_detail.h",
 ];
 const transportFiles = [...legacyTransportFiles, runtimeHeaderPath];
+transportFiles.push("include/ingress/webrtc_http_analysis_rule_declarations.h");
 const runtimeFields = [
   "stream_route", "rtsp_listen_port", "file_root_path", "default_file_path", "source_registry_path",
   "auth_mode", "auth_admin_token", "auth_operator_token", "auth_viewer_token", "auth_integrator_token",
@@ -201,10 +202,10 @@ function inspectComposition(text) {
 function inspectOwners(graph) {
   const errors = [];
   const owner = graph.moduleClassifiers.find(item => item.id === "transport-and-auth-adapter");
-  if (!owner || owner.expectedFileCount !== 10 || owner.expectedCppCount !== 6 ||
+  if (!owner || owner.expectedFileCount !== 11 || owner.expectedCppCount !== 6 ||
       JSON.stringify([...owner.exactFiles].sort()) !== JSON.stringify([...transportFiles].sort()) ||
       owner.prefixes.length !== 0)
-    errors.push("graph:transport-owner-exact-10");
+    errors.push("graph:transport-owner-exact-11");
   for (const file of legacyTransportFiles) {
     const owners = graph.moduleClassifiers.filter(item =>
       item.exactFiles.includes(file) || item.prefixes.some(prefix => file.startsWith(prefix)));
@@ -244,8 +245,8 @@ check("current owner, graph and Policy v1 remove exactly transport to core utili
   const policy = JSON.parse(read(policyPath));
   const violations = graph.observedModuleEdges.filter(item => item.allowedByTarget === false);
   const errors = [...inspectOwners(graph), ...inspectPolicy(policy)];
-  assert(graph.expectedProductionFiles === 190 && graph.expectedCppFiles === 93 &&
-    graph.observedModuleEdges.length === 17 && violations.length === 3 &&
+  assert(graph.expectedProductionFiles === 194 && graph.expectedCppFiles === 95 &&
+    graph.observedModuleEdges.length === 16 && violations.length === 2 &&
     graph.stronglyConnectedComponents.length === 0,
   `graph metrics drift: ${graph.expectedProductionFiles}/${graph.expectedCppFiles}/` +
     `${graph.observedModuleEdges.length}/${violations.length}/${graph.stronglyConnectedComponents.length}`);

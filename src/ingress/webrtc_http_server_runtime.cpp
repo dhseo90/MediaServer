@@ -233,7 +233,7 @@ std::string ExpandVaRuleForEventEvaluation(const std::string& va_rule_document,
 }  // namespace webrtc_http_server_detail
 
 
-std::vector<std::string> AnalysisRuleDocumentsSnapshot() {
+std::vector<std::string> WebRtcHttpAnalysisRuleDocumentsSnapshotBackend() {
     auto documents = AnalysisRegistry().RuleDocuments();
     auto va_rule_documents = AnalysisRegistry().VaRuleDocuments();
     for (const auto& va_rule_document : va_rule_documents) {
@@ -243,17 +243,18 @@ std::vector<std::string> AnalysisRuleDocumentsSnapshot() {
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 35908 function
-std::vector<std::string> AnalysisProfileDocumentsSnapshot() {
+std::vector<std::string> WebRtcHttpAnalysisProfileDocumentsSnapshotBackend() {
     return AnalysisRegistry().ProfileDocuments();
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 35912 function
-std::vector<std::string> VideoAnalysisRuleDocumentsSnapshot() {
+std::vector<std::string> WebRtcHttpVideoAnalysisRuleDocumentsSnapshotBackend() {
     return AnalysisRegistry().VaRuleDocuments();
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 35916 function
-bool ApplyVideoAnalysisRuleToRequest(media::IngressRequest* request, std::string* error_message) {
+bool ApplyWebRtcHttpVideoAnalysisRuleToRequestBackend(media::IngressRequest* request,
+                                                      std::string* error_message) {
     if (request == nullptr) {
         if (error_message != nullptr) {
             *error_message = "request is missing";
@@ -636,7 +637,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             media::IngressRequest ingress_request =
                                 BuildHttpIngressRequest(route_path, session_query, ingress_client_id);
                             std::string va_rule_error;
-                            if (!ApplyVideoAnalysisRuleToRequest(&ingress_request, &va_rule_error)) {
+                            if (!ApplyApplicationVideoAnalysisRuleToRequest(&ingress_request, &va_rule_error)) {
                                 return JsonResponse(400,
                                                     "Bad Request",
                                                     "{\"error\":\"" + JsonEscape(va_rule_error) + "\"}");
@@ -4304,7 +4305,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             media::IngressRequest ingress_request =
                                 BuildHttpIngressRequest(route_path, query, tap_client_id);
                             std::string va_rule_error;
-                            if (!ApplyVideoAnalysisRuleToRequest(&ingress_request, &va_rule_error)) {
+                            if (!ApplyApplicationVideoAnalysisRuleToRequest(&ingress_request, &va_rule_error)) {
                                 return JsonResponse(400,
                                                     "Bad Request",
                                                     "{\"error\":\"" + JsonEscape(va_rule_error) + "\"}");
@@ -4331,7 +4332,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             media::IngressRequest ingress_request =
                                 BuildHttpIngressRequest(route_path, query, tap_client_id);
                             std::string va_rule_error;
-                            if (!ApplyVideoAnalysisRuleToRequest(&ingress_request, &va_rule_error)) {
+                            if (!ApplyApplicationVideoAnalysisRuleToRequest(&ingress_request, &va_rule_error)) {
                                 return JsonResponse(400,
                                                     "Bad Request",
                                                     "{\"error\":\"" + JsonEscape(va_rule_error) + "\"}");
@@ -4359,7 +4360,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 media::IngressRequest ingress_request =
                                     BuildHttpIngressRequest(route_path, query, tap_client_id);
                                 std::string va_rule_error;
-                                if (!ApplyVideoAnalysisRuleToRequest(&ingress_request, &va_rule_error)) {
+                                if (!ApplyApplicationVideoAnalysisRuleToRequest(&ingress_request, &va_rule_error)) {
                                     return JsonResponse(400, "Bad Request",
                                                         "{\"error\":\"" + JsonEscape(va_rule_error) + "\"}");
                                 }
@@ -4663,7 +4664,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             const std::string ingress_client_id = session_id + "-ingress";
                             media::IngressRequest ingress_request = BuildHttpIngressRequest(route_path, query, ingress_client_id);
                             std::string va_rule_error;
-                            if (!ApplyVideoAnalysisRuleToRequest(&ingress_request, &va_rule_error)) {
+                            if (!ApplyApplicationVideoAnalysisRuleToRequest(&ingress_request, &va_rule_error)) {
                                 return HttpResponse{400, "Bad Request", "text/plain; charset=utf-8", {}, va_rule_error};
                             }
                             auto bridge = std::make_shared<WebRtcEgressSession>();

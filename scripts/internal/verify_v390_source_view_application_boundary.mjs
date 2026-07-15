@@ -428,32 +428,29 @@ check("CMake and current graph bind the exact Slice 16 successor", () => {
     "facade source must appear exactly once in CMake");
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const app = graph.moduleClassifiers.find(item => item.id === "application-service-interfaces");
-  assert(graph.expectedProductionFiles === 178 && graph.expectedCppFiles === 87,
+  assert(graph.expectedProductionFiles === 194 && graph.expectedCppFiles === 95,
     "successor production graph count drift");
-  assert(app?.expectedFileCount === 13 && app?.expectedCppCount === 4 &&
+  assert(app?.expectedFileCount === 27 && app?.expectedCppCount === 11 &&
     [resultHeader, facadeHeader, facadeSource].every(file => app.exactFiles.includes(file)),
     "application owner successor drift");
-  assert(graph.expectedFileOwnershipSha256 === "c6444d9f154e22dae35e0e1f15bbc0dc20d30d9e0eb490ae029b295098aba9d4" &&
+  assert(graph.expectedFileOwnershipSha256 === "565c42f1285f24444df06235c66444e223ed86e4702e1c617e495e3b54e56af7" &&
     graph.cmake.targets.find(item => item.id === "media_server_runtime")?.productionSourceSha256 ===
-      "b98af897e48b93f48e63332f230fc9fe5176bbfb1963b243a4bbe084fac28735",
+      "3ba4c27c20eddf286f0c75c266b30a62727cad76e9eb6252f1399a4a70870bd7",
   "classifier or production target binding drift");
   const domainEdge = graph.observedModuleEdges.find(item =>
     item.direction === "transport-and-auth-adapter -> domain-and-registry-owners");
-  assert(domainEdge?.witnessCount === 1 &&
-    domainEdge.witnessSha256 === "c44ca6659250470eaf27555f43aa10bded10407828d60d4d29495830c7bbf74e" &&
-    domainEdge.allowedByTarget === false,
-    "transport-domain witness must reduce from two to one");
+  assert(domainEdge === undefined, "transport-domain direction must be closed");
   const appDomainEdge = graph.observedModuleEdges.find(item =>
     item.direction === "application-service-interfaces -> domain-and-registry-owners");
   const transportAppEdge = graph.observedModuleEdges.find(item =>
     item.direction === "transport-and-auth-adapter -> application-service-interfaces");
-  assert(appDomainEdge?.witnessCount === 3 &&
-    appDomainEdge.witnessSha256 === "b0a9579f6285176c47304031853d9b85dc52bc3883990cea5b0fcab46778c603" &&
-    transportAppEdge?.witnessCount === 7 &&
-    transportAppEdge.witnessSha256 === "ee694f386785845a6645e145126469c603adcaca7a22d423fcd3d1d6ad000e6d",
+  assert(appDomainEdge?.witnessCount === 4 &&
+    appDomainEdge.witnessSha256 === "31d96f595f69946917a1344d69d6698147dec011ec3750ca411c5486105cab25" &&
+    transportAppEdge?.witnessCount === 14 &&
+    transportAppEdge.witnessSha256 === "41f6261e5c41f044cf8653cb33d374adf858014ce5f1ffdab76a2a4c8a7d768c",
   "application-domain or transport-application witness drift");
-  assert(graph.observedModuleEdges.length === 17 &&
-    graph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 3 &&
+  assert(graph.observedModuleEdges.length === 16 &&
+    graph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 2 &&
     graph.stronglyConnectedComponents.length === 0,
     "edge/violation/SCC successor drift");
 });
