@@ -11,8 +11,8 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 194,
-  "expectedCppFiles": 95,
+  "expectedProductionFiles": 196,
+  "expectedCppFiles": 96,
   "moduleClassifiers": [
     {
       "id": "composition-root",
@@ -46,6 +46,8 @@
       "id": "application-service-interfaces",
       "exactFiles": [
         "include/ingress/application_service_result.h",
+        "include/ingress/analysis_frame_application_service.h",
+        "src/ingress/analysis_frame_application_service.cpp",
         "include/ingress/analysis_rule_application_service.h",
         "src/ingress/analysis_rule_application_service.cpp",
         "include/ingress/appearance_readiness_application_service.h",
@@ -74,8 +76,8 @@
         "include/ingress/vlm_evaluation_promotion.h"
       ],
       "prefixes": [],
-      "expectedFileCount": 27,
-      "expectedCppCount": 11
+      "expectedFileCount": 29,
+      "expectedCppCount": 12
     },
     {
       "id": "domain-and-registry-owners",
@@ -195,7 +197,7 @@
       "expectedCppCount": 15
     }
   ],
-  "expectedFileOwnershipSha256": "565c42f1285f24444df06235c66444e223ed86e4702e1c617e495e3b54e56af7",
+  "expectedFileOwnershipSha256": "e68c35670d552c529f49eff89014f8cf88112c7aae438fd7f2cd19da95edf147",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -251,6 +253,7 @@
           "src/core/source_request_parser.cpp",
           "src/ingress/gst_pipeline_builder.cpp",
           "src/ingress/analysis_rule_application_service.cpp",
+          "src/ingress/analysis_frame_application_service.cpp",
           "src/ingress/analysis_rule_registry.cpp",
           "src/ingress/analysis_overlay_probe.cpp",
           "src/ingress/appearance_readiness_application_service.cpp",
@@ -297,9 +300,9 @@
           "src/ingress/gstreamer_rtsp_server.cpp",
           "src/core/youtube_resolver.cpp"
         ],
-        "productionSourceSha256": "3ba4c27c20eddf286f0c75c266b30a62727cad76e9eb6252f1399a4a70870bd7",
-        "declaredSourceCount": 93,
-        "defaultActiveSourceCount": 92,
+        "productionSourceSha256": "a286178b530eee4e94081c7bcfac7d2482afcc341c7932191145cc2af9ccbc8a",
+        "declaredSourceCount": 94,
+        "defaultActiveSourceCount": 93,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",
@@ -364,8 +367,8 @@
     },
     {
       "direction": "application-service-interfaces -> analysis-services",
-      "witnessCount": 8,
-      "witnessSha256": "6ad1bfd8758a13102e249858140fd6269b5d771117bd1c6365617a09dc22808b",
+      "witnessCount": 13,
+      "witnessSha256": "f5aebc173d3568a7969168e6985aa7ac1823f687c68a296a45ba41787cc7cc23",
       "allowedByTarget": true
     },
     {
@@ -424,14 +427,14 @@
     },
     {
       "direction": "transport-and-auth-adapter -> analysis-services",
-      "witnessCount": 11,
-      "witnessSha256": "c9ed6ffdfab98888158999874e0d4c7dcd2c3aafa3eb87c6b02ac0e5f9e460cc",
+      "witnessCount": 8,
+      "witnessSha256": "dd1dff19c49edddc4d96aa3ffe4c5a683d1232eb55867f0fce4f983c689791c3",
       "allowedByTarget": false
     },
     {
       "direction": "transport-and-auth-adapter -> application-service-interfaces",
-      "witnessCount": 14,
-      "witnessSha256": "41f6261e5c41f044cf8653cb33d374adf858014ce5f1ffdab76a2a4c8a7d768c",
+      "witnessCount": 15,
+      "witnessSha256": "ba29adbb7ec710d5a518f1de38889edc0a31668b2cfbcbe8b40a5e26ad5c7c5a",
       "allowedByTarget": true
     },
     {
@@ -456,7 +459,7 @@
   "mixedOwnershipDebt": [
     {
       "file": "src/ingress/webrtc_http_server.cpp",
-      "lineCount": 7653,
+      "lineCount": 7616,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -492,7 +495,7 @@
     },
     {
       "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
-      "lineCount": 7850,
+      "lineCount": 7847,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -504,7 +507,7 @@
     },
     {
       "file": "src/ingress/webrtc_http_server_runtime.cpp",
-      "lineCount": 5189,
+      "lineCount": 5197,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -516,7 +519,7 @@
     },
     {
       "file": "src/ingress/webrtc_http_server_detail.h",
-      "lineCount": 7969,
+      "lineCount": 7967,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -787,5 +790,5 @@
       "exitRule": "production-graph-unchanged-and-cumulative-debt-verified"
     }
   ],
-  "boundary": "current REVIEW4-64 continuation graph after the analysis rule domain-port/application-adapter boundary; canonical symbols are domain-owned, transport backend callbacks are configured through the application boundary, Policy v1 counts 2 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed"
+  "boundary": "current REVIEW4-64 continuation graph after the analysis frame application boundary; concrete detector, one-shot tracker, close-object projection, and static/live overlay execution are application-owned, Policy v1 counts 2 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed"
 }

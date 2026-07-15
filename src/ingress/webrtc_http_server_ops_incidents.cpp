@@ -7713,14 +7713,11 @@ bool AttachWebRtcAnalysisOverlay(analysis::AnalysisSessionService& analysis_sess
     }
 
     AnalysisOverlayConfig overlay_config;
-    const auto timing_options = BuildAnalysisOverlayTimingOptionsFromQuery(query);
     std::weak_ptr<WebRtcEgressSession> weak_bridge = bridge;
-    overlay_config.enabled = true;
-    overlay_config.render_video_overlay =
-        ParseBoolQuery(query, "renderVideoOverlay", ParseBoolQuery(query, "videoOverlay", true));
-    overlay_config.render_options = BuildOverlayRenderOptionsFromQuery(query);
-    overlay_config.sync_tolerance_ns = static_cast<std::int64_t>(timing_options.sync_tolerance_ms) * 1000000LL;
-    overlay_config.wait_timeout_ms = timing_options.wait_timeout_ms;
+    ConfigureAnalysisOverlayForApplication(
+        query,
+        ParseBoolQuery(query, "renderVideoOverlay", ParseBoolQuery(query, "videoOverlay", true)),
+        &overlay_config);
     const auto metadata_channel_config = BuildWebRtcMetadataChannelConfigFromQuery(query);
     const bool metadata_channel_enabled = metadata_channel_config.enabled;
     const auto metadata_subscription_filter = BuildVaMetadataSubscriptionFilter(query);

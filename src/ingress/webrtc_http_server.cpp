@@ -5260,20 +5260,13 @@ std::string CloseObjectAssociationDiagnosticJson(
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6590 function
 std::string CloseObjectGuardModeJson() {
     const auto& config = GetWebRtcHttpRuntimeConfig();
-    const analysis::CloseObjectGuardMode mode =
-        analysis::ParseCloseObjectGuardMode(config.analysis_tracking_close_object_guard_mode);
-    const std::string mode_text = analysis::CloseObjectGuardModeToString(mode);
-    std::string label = "guard off";
-    if (mode == analysis::CloseObjectGuardMode::Diagnostic) {
-        label = "diagnostic-only · score 변경 없음";
-    } else if (mode == analysis::CloseObjectGuardMode::Enforce) {
-        label = "score 보정 적용 중";
-    }
+    const auto projection =
+        ProjectCloseObjectGuardForApplication(config.analysis_tracking_close_object_guard_mode);
     std::ostringstream out;
     out << "{"
-        << "\"mode\":\"" << JsonEscape(mode_text) << "\","
-        << "\"label\":\"" << JsonEscape(label) << "\","
-        << "\"scoreMutationEnabled\":" << (mode == analysis::CloseObjectGuardMode::Enforce ? "true" : "false")
+        << "\"mode\":\"" << JsonEscape(projection.mode) << "\","
+        << "\"label\":\"" << JsonEscape(projection.label) << "\","
+        << "\"scoreMutationEnabled\":" << (projection.score_mutation_enabled ? "true" : "false")
         << "}";
     return out.str();
 }
@@ -7411,23 +7404,8 @@ bool AnalyzeStaticImage(const std::unordered_map<std::string, std::string>& quer
     output->profile.adaptive_tuning_enabled = false;
     output->profile.adaptive_input_size_enabled = false;
 
-    auto detector = analysis::CreateDetector(output->profile);
-    if (detector == nullptr) {
-        if (error_message != nullptr) {
-            *error_message = "failed to create image detector";
-        }
-        return false;
-    }
-    if (!detector->Start(error_message)) {
-        return false;
-    }
-
-    const auto started_at = std::chrono::steady_clock::now();
-    const bool analyzed = detector->Analyze(output->frame, &output->result, error_message);
-    output->analysis_ms =
-        std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started_at).count();
-    detector->Stop();
-    if (!analyzed) {
+    if (!AnalyzeFrameForApplication(
+            output->profile, output->frame, &output->result, &output->analysis_ms, error_message)) {
         return false;
     }
 
@@ -7438,39 +7416,24 @@ bool AnalyzeStaticImage(const std::unordered_map<std::string, std::string>& quer
     output->result.frame_width = output->frame.width;
     output->result.frame_height = output->frame.height;
     if (output->profile.enable_tracking) {
-        // 이미지 API는 frame이 한 장뿐이라 일회성 tracker로 trackId 정책만 동일하게 적용한다.
-        analysis::ObjectTrackerOptions tracker_options;
-        if (output->profile.tracking_policy_effective_tracker == "kalman-lite") {
-            tracker_options.tracker_kind = analysis::ObjectTrackerKind::KalmanLite;
-        } else if (output->profile.tracking_policy_effective_tracker == "bytetrack") {
-            tracker_options.tracker_kind = analysis::ObjectTrackerKind::ByteTrack;
-        } else {
-            tracker_options.tracker_kind = analysis::ObjectTrackerKind::Lite;
-        }
-        tracker_options.class_labels = output->profile.tracking_class_labels;
-        tracker_options.track_all_when_class_labels_empty = !output->profile.tracking_classes_specified;
         const auto& config = GetWebRtcHttpRuntimeConfig();
-        tracker_options.iou_weight = config.analysis_tracking_iou_weight;
-        tracker_options.distance_weight = config.analysis_tracking_distance_weight;
-        tracker_options.direction_weight = config.analysis_tracking_direction_weight;
-        tracker_options.class_weight = config.analysis_tracking_class_weight;
-        tracker_options.min_association_score = config.analysis_tracking_min_association_score;
-        tracker_options.smoothing_alpha = config.analysis_tracking_smoothing_alpha;
-        tracker_options.close_object_guard_mode =
-            analysis::ParseCloseObjectGuardMode(config.analysis_tracking_close_object_guard_mode);
-        tracker_options.close_object_distance_ratio = config.analysis_tracking_close_object_distance_ratio;
-        tracker_options.close_object_overlap_threshold =
-            config.analysis_tracking_close_object_overlap_threshold;
-        tracker_options.close_object_low_margin_threshold =
-            config.analysis_tracking_close_object_low_margin_threshold;
-        tracker_options.close_object_center_jump_penalty = config.analysis_tracking_center_jump_penalty;
-        tracker_options.close_object_min_score_boost =
-            config.analysis_tracking_close_object_min_score_boost;
-        tracker_options.max_close_object_diagnostics =
-            config.analysis_tracking_close_object_max_diagnostics;
-        tracker_options.max_missed_frames = config.analysis_tracking_lost_buffer_frames;
-        analysis::ObjectTracker tracker(tracker_options);
-        tracker.Update(&output->result);
+        const AnalysisTrackingApplicationRuntimeConfig tracker_config{
+            config.analysis_tracking_iou_weight,
+            config.analysis_tracking_distance_weight,
+            config.analysis_tracking_direction_weight,
+            config.analysis_tracking_class_weight,
+            config.analysis_tracking_min_association_score,
+            config.analysis_tracking_smoothing_alpha,
+            config.analysis_tracking_close_object_guard_mode,
+            config.analysis_tracking_close_object_distance_ratio,
+            config.analysis_tracking_close_object_overlap_threshold,
+            config.analysis_tracking_close_object_low_margin_threshold,
+            config.analysis_tracking_center_jump_penalty,
+            config.analysis_tracking_close_object_min_score_boost,
+            config.analysis_tracking_close_object_max_diagnostics,
+            static_cast<std::uint32_t>(config.analysis_tracking_lost_buffer_frames),
+        };
+        TrackStaticImageForApplication(output->profile, tracker_config, &output->result);
     }
     if (error_message != nullptr) {
         error_message->clear();

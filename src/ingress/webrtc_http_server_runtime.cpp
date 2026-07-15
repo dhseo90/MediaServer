@@ -4239,9 +4239,12 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                             if (suffix == "/overlay" || suffix == "/overlay.jpg") {
                                 analysis::RawVideoFrame overlay_frame;
-                                analysis::OverlayRenderOptions options = BuildOverlayRenderOptionsFromQuery(query);
-                                if (!analysis::RenderDetectionOverlay(
-                                        image_analysis.frame, image_analysis.result, options, &overlay_frame, &error_message)) {
+                                if (!RenderDetectionOverlayForApplication(
+                                        image_analysis.frame,
+                                        image_analysis.result,
+                                        query,
+                                        &overlay_frame,
+                                        &error_message)) {
                                     return HttpResponse{500,
                                                         "Internal Server Error",
                                                         "text/plain; charset=utf-8",
@@ -4590,17 +4593,22 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 }
 
                                 analysis::RawVideoFrame overlay_frame;
-                                analysis::OverlayRenderOptions options = BuildOverlayRenderOptionsFromQuery(query);
+                                const bool debug_overlay =
+                                    AnalysisOverlayDebugRequestedForApplication(query);
                                 auto overlay_result = *latest->result;
                                 overlay_result.debug_state_requested =
-                                    overlay_result.debug_state_requested || options.draw_debug_overlay;
+                                    overlay_result.debug_state_requested || debug_overlay;
                                 overlay_result.debug_state_log_enabled =
-                                    overlay_result.debug_state_log_enabled || options.draw_debug_overlay;
+                                    overlay_result.debug_state_log_enabled || debug_overlay;
                                 const auto evaluation = EvaluateStoredEventRules(
                                     overlay_result, EventRuleRuntimeForKey("tap-overlay:" + tap_id));
                                 std::string error_message;
-                                if (!analysis::RenderDetectionOverlay(
-                                        latest->frame, evaluation.annotated_result, options, &overlay_frame, &error_message)) {
+                                if (!RenderDetectionOverlayForApplication(
+                                        latest->frame,
+                                        evaluation.annotated_result,
+                                        query,
+                                        &overlay_frame,
+                                        &error_message)) {
                                     return HttpResponse{500,
                                                         "Internal Server Error",
                                                         "text/plain; charset=utf-8",

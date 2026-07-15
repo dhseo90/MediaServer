@@ -428,14 +428,14 @@ check("CMake and current graph bind the exact Slice 16 successor", () => {
     "facade source must appear exactly once in CMake");
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const app = graph.moduleClassifiers.find(item => item.id === "application-service-interfaces");
-  assert(graph.expectedProductionFiles === 194 && graph.expectedCppFiles === 95,
+  assert(graph.expectedProductionFiles === 196 && graph.expectedCppFiles === 96,
     "successor production graph count drift");
-  assert(app?.expectedFileCount === 27 && app?.expectedCppCount === 11 &&
+  assert(app?.expectedFileCount === 29 && app?.expectedCppCount === 12 &&
     [resultHeader, facadeHeader, facadeSource].every(file => app.exactFiles.includes(file)),
     "application owner successor drift");
-  assert(graph.expectedFileOwnershipSha256 === "565c42f1285f24444df06235c66444e223ed86e4702e1c617e495e3b54e56af7" &&
+  assert(graph.expectedFileOwnershipSha256 === "e68c35670d552c529f49eff89014f8cf88112c7aae438fd7f2cd19da95edf147" &&
     graph.cmake.targets.find(item => item.id === "media_server_runtime")?.productionSourceSha256 ===
-      "3ba4c27c20eddf286f0c75c266b30a62727cad76e9eb6252f1399a4a70870bd7",
+      "a286178b530eee4e94081c7bcfac7d2482afcc341c7932191145cc2af9ccbc8a",
   "classifier or production target binding drift");
   const domainEdge = graph.observedModuleEdges.find(item =>
     item.direction === "transport-and-auth-adapter -> domain-and-registry-owners");
@@ -446,8 +446,8 @@ check("CMake and current graph bind the exact Slice 16 successor", () => {
     item.direction === "transport-and-auth-adapter -> application-service-interfaces");
   assert(appDomainEdge?.witnessCount === 4 &&
     appDomainEdge.witnessSha256 === "31d96f595f69946917a1344d69d6698147dec011ec3750ca411c5486105cab25" &&
-    transportAppEdge?.witnessCount === 14 &&
-    transportAppEdge.witnessSha256 === "41f6261e5c41f044cf8653cb33d374adf858014ce5f1ffdab76a2a4c8a7d768c",
+    transportAppEdge?.witnessCount === 15 &&
+    transportAppEdge.witnessSha256 === "ba29adbb7ec710d5a518f1de38889edc0a31668b2cfbcbe8b40a5e26ad5c7c5a",
   "application-domain or transport-application witness drift");
   assert(graph.observedModuleEdges.length === 16 &&
     graph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 2 &&

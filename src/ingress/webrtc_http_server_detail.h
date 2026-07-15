@@ -40,9 +40,9 @@
 #include <vector>
 
 #include "ingress/appearance_readiness_application_service.h"
+#include "ingress/analysis_frame_application_service.h"
 #include "analysis/analysis_session_service.h"
 #include "ingress/category_catalog_application_service.h"
-#include "analysis/detector.h"
 #include "analysis/event_feature_search_index.h"
 #include "ingress/event_post_application_service.h"
 #include "analysis/event_rule_engine.h"
@@ -50,8 +50,6 @@
 #include "ingress/image_codec_application_service.h"
 #include "ingress/incident_memory_application_service.h"
 #include "analysis/metadata_subscription_filter.h"
-#include "analysis/object_tracker.h"
-#include "analysis/overlay_renderer.h"
 #include "analysis/va_runtime_metadata.h"
 #include "ingress/vlm_observation_application_service.h"
 #include "analysis/analysis_query.h"

@@ -306,19 +306,19 @@ check("dispatch and actual graph close the domain direction without relabeling",
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const classifier = id => graph.moduleClassifiers.find(item => item.id === id);
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.expectedProductionFiles === 194 && graph.expectedCppFiles === 95 &&
-    classifier("application-service-interfaces")?.expectedFileCount === 27 &&
-    classifier("application-service-interfaces")?.expectedCppCount === 11 &&
+  assert(graph.expectedProductionFiles === 196 && graph.expectedCppFiles === 96 &&
+    classifier("application-service-interfaces")?.expectedFileCount === 29 &&
+    classifier("application-service-interfaces")?.expectedCppCount === 12 &&
     classifier("domain-and-registry-owners")?.expectedFileCount === 6 &&
     classifier("domain-and-registry-owners")?.expectedCppCount === 3 &&
     classifier("transport-and-auth-adapter")?.expectedFileCount === 11 &&
     graph.observedModuleEdges.length === 16 &&
     graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 &&
     !edge("transport-and-auth-adapter -> domain-and-registry-owners") &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 14 &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 15 &&
     edge("application-service-interfaces -> domain-and-registry-owners")?.witnessCount === 4 &&
     edge("analysis-services -> domain-and-registry-owners")?.witnessCount === 2 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 11 &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 8 &&
     edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessCount === 4 &&
     !graph.stronglyConnectedComponents.length, "graph successor");
   const structureOutput = execFileSync(path.join(root, "server.sh"),

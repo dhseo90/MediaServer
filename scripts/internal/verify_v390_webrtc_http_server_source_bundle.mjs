@@ -40,7 +40,7 @@ const rollbackCommit = "e5df05f3945e43e89ae13e3fdd21d0c83ab78ac8";
 const expectedConsumerCount = 170;
 const expectedExpressionCount = 188;
 const expectedConsumerSha = "1e13a798e01c601114df0287bc552e3681531e3021e81c57307ee99ae458ee1c";
-const expectedBundleSha = "4a51cf0935d898f4265b431249d28265c337b00eeb722237ede0ddc9b8d8a506";
+const expectedBundleSha = "d5bfab7e404a4db7e8671fa9a65b60f8a727c695e879645bcafd3d64c8ae9b98";
 const currentOwnerRebindings = new Map([
   ["scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs", {
     removedBundleReads: 1,
@@ -187,15 +187,15 @@ check("six-file physical metrics and logical-origin bundle are exact", () => {
     result.logicalOrder.every(index => index >= 0) &&
     result.logicalOrder[0] < result.logicalOrder[1] && result.logicalOrder[2] < result.logicalOrder[3] &&
     result.missing === true && result.ambiguous === true &&
-    result.metrics.fileCount === 6 && result.metrics.totalLines === 46656 &&
-    result.metrics.largestFileLines === 10150 && result.metrics.totalBytes === 2246853 &&
+    result.metrics.fileCount === 6 && result.metrics.totalLines === 46622 &&
+    result.metrics.largestFileLines === 10150 && result.metrics.totalBytes === 2244501 &&
     JSON.stringify(result.metrics.files.map(item => item.file)) === JSON.stringify(sourcePaths),
   `logical source bundle order, bytes, resolver, or metrics drift: ${JSON.stringify(result)}`);
 });
 
 check("physical bundle successor binds the exact production graph", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
-  assert(graph.expectedProductionFiles === 194 && graph.expectedCppFiles === 95 &&
+  assert(graph.expectedProductionFiles === 196 && graph.expectedCppFiles === 96 &&
     graph.observedModuleEdges.length === 16 &&
     graph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 2 &&
     graph.stronglyConnectedComponents.length === 0,
@@ -280,7 +280,7 @@ if (!skipMutations) {
       text => text.replace("WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 17051", "WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 99999"),
       "six-file physical metrics and logical-origin bundle");
     rejectMutation("graph", "test/fixtures/v390_structure_stabilization_current_graph.json",
-      text => text.replace('"expectedProductionFiles": 194', '"expectedProductionFiles": 195'),
+      text => text.replace('"expectedProductionFiles": 196', '"expectedProductionFiles": 197'),
       "physical bundle successor binds the exact production graph");
   });
 }
