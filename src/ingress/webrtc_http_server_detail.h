@@ -70,9 +70,7 @@
 #include "ingress/vlm_profile_json_document.h"
 #include "ingress/vlm_evaluation_promotion.h"
 #include "ingress/vlm_incident_rule_provenance.h"
-#include "ingress/webrtc_egress_session.h"
-#include "core/webrtc_source_registry.h"
-#include "ingress/webrtc_source_session.h"
+#include "ingress/webrtc_media_application_service.h"
 
 
 namespace ingress {
@@ -1706,8 +1704,8 @@ struct WebRtcHttpServer::Impl {
         std::string analysis_tap_id;
         std::string session_capability;
         auth::Principal owner_principal;
-        media::IngressRequest request;
-        std::shared_ptr<WebRtcEgressSession> bridge;
+        WebRtcMediaApplicationRequest request;
+        std::shared_ptr<WebRtcMediaApplicationEgressSession> bridge;
     };
 
     struct SourceSessionEntry {
@@ -1715,7 +1713,7 @@ struct WebRtcHttpServer::Impl {
         std::string source_id;
         std::string session_capability;
         auth::Principal owner_principal;
-        std::shared_ptr<WebRtcSourceSession> bridge;
+        std::shared_ptr<WebRtcMediaApplicationSourceSession> bridge;
     };
 
     struct ClientSessionEntry {
@@ -1737,10 +1735,10 @@ struct WebRtcHttpServer::Impl {
         int attempts{0};
     };
 
-    Impl(core::SessionManager& manager,
+    Impl(WebRtcMediaApplicationService& media_session_service,
          AnalysisSessionLifecycleApplicationService& analysis_lifecycle_service,
          AnalysisSessionReadApplicationService& analysis_read_service)
-        : session_manager(manager),
+        : media_sessions(media_session_service),
           analysis_session_lifecycle(analysis_lifecycle_service),
           analysis_session_reads(analysis_read_service) {}
 
@@ -1780,7 +1778,7 @@ struct WebRtcHttpServer::Impl {
         return true;
     }
 
-    core::SessionManager& session_manager;
+    WebRtcMediaApplicationService& media_sessions;
     AnalysisSessionLifecycleApplicationService& analysis_session_lifecycle;
     AnalysisSessionReadApplicationService& analysis_session_reads;
     std::string listen_address;
@@ -1915,7 +1913,7 @@ bool ClientPrincipalCanAccessFeature(const auth::Principal& principal,
                                      const std::string& scope_prefix);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3541 prototype
-std::optional<media::SourceSpec::Kind> SourceKindForClientView(
+std::optional<WebRtcMediaApplicationSourceKind> SourceKindForClientView(
     const SourceViewApplicationService::SourceRecord& source);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3570 prototype
@@ -2327,7 +2325,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal);
 std::string BuildOpsUsersPageHtml(const auth::Principal& principal);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 5971 prototype
-media::IngressRequest BuildHttpIngressRequest(const std::string& path,
+WebRtcMediaApplicationRequest BuildHttpIngressRequest(const std::string& path,
                                               const std::unordered_map<std::string, std::string>& query,
                                               const std::string& client_id);
 
@@ -2367,18 +2365,18 @@ std::string SessionJson(const std::string& session_id,
 std::string ClientSessionJson(const std::string& client_session_id, const std::string& offer);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6086 prototype
-std::string IceJson(const std::vector<WebRtcIceCandidate>& candidates);
+std::string IceJson(const std::vector<WebRtcMediaApplicationIceCandidate>& candidates);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6102 prototype
 std::optional<std::uint32_t> ParseUnsignedIndexText(const std::string& raw);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6123 prototype
-std::vector<WebRtcIceCandidate> ParseWhepSdpFragmentIceCandidates(const std::string& body);
+std::vector<WebRtcMediaApplicationIceCandidate> ParseWhepSdpFragmentIceCandidates(const std::string& body);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6167 prototype
 std::optional<HttpResponse> ApplyWhepSdpFragmentIce(
     const HttpRequest& request,
-    const std::shared_ptr<WebRtcEgressSession>& bridge);
+    const std::shared_ptr<WebRtcMediaApplicationEgressSession>& bridge);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6183 prototype
 std::string SourceJson(const std::string& session_id,
@@ -2387,17 +2385,17 @@ std::string SourceJson(const std::string& session_id,
                        const std::string& session_capability);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6197 prototype
-std::string WebRtcMetadataChannelsJson(const std::vector<WebRtcMetadataChannelStats>& stats);
+std::string WebRtcMetadataChannelsJson(const std::vector<WebRtcMediaApplicationMetadataChannelStats>& stats);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6256 prototype
 // 다채널 검증과 수동 진단에서 WebRTC session 수와 dedup stream 수를 비교할 수 있게 JSON으로 직렬화한다.
-std::string RuntimeStatusJson(const core::SessionManager::RuntimeStateSnapshot& snapshot,
+std::string RuntimeStatusJson(const WebRtcMediaApplicationRuntimeStateSnapshot& snapshot,
                               std::size_t http_egress_sessions,
                               std::size_t whip_publish_sessions,
-                              const std::vector<WebRtcMetadataChannelStats>& metadata_channel_stats,
+                              const std::vector<WebRtcMediaApplicationMetadataChannelStats>& metadata_channel_stats,
                               int active_sse_metadata_clients,
                               int active_ws_metadata_clients,
-                              const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
+                              const std::vector<WebRtcMediaApplicationPublishedSourceSnapshot>& publish_sources,
                               const std::vector<AnalysisSessionApplicationSnapshot>& analysis_taps);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6419 type
@@ -2668,7 +2666,9 @@ std::string AnalysisMetricsDumpJson(const std::string& tap_id,
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8319 prototype
 AnalysisSessionLifecycleApplicationRequest ProjectAnalysisSessionLifecycleRequest(
-    const media::IngressRequest& request);
+    const WebRtcMediaApplicationRequest& request);
+WebRtcMediaApplicationRequest ProjectWebRtcMediaApplicationRequest(
+    const WebRtcMediaApplicationRequest& request);
 std::string AnalysisTapCreatedJson(
     const AnalysisSessionLifecycleApplicationAttachResult& result,
                                    std::size_t active_taps);
@@ -2786,7 +2786,7 @@ std::string AnalysisEventsJson(
     const EventRuleApplicationEvaluation* evaluation);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8876 prototype
-WebRtcMetadataChannelConfig BuildWebRtcMetadataChannelConfigFromQuery(
+WebRtcMediaApplicationMetadataChannelConfig BuildWebRtcMediaApplicationMetadataChannelConfigFromQuery(
     const std::unordered_map<std::string, std::string>& query);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8912 prototype
@@ -2911,24 +2911,24 @@ const AnalysisSessionApplicationSnapshot* OpsHealthTapForSource(
     const std::vector<AnalysisSessionApplicationSnapshot>& analysis_taps);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9458 prototype
-const PublishedWebRtcSource::Snapshot* OpsHealthPublishedSourceFor(
+const WebRtcMediaApplicationPublishedSourceSnapshot* OpsHealthPublishedSourceFor(
     const SourceViewApplicationService::SourceRecord& source,
-    const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources);
+    const std::vector<WebRtcMediaApplicationPublishedSourceSnapshot>& publish_sources);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9470 prototype
-const core::SessionManager::SourceReconnectStats* OpsHealthReconnectStatsForSource(
+const WebRtcMediaApplicationSourceReconnectStats* OpsHealthReconnectStatsForSource(
     const SourceViewApplicationService::SourceRecord& source,
-    const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats);
+    const std::vector<WebRtcMediaApplicationSourceReconnectStats>& reconnect_stats);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9480 prototype
-const core::SessionManager::SourceEgressStats* OpsHealthEgressStatsForSource(
+const WebRtcMediaApplicationSourceEgressStats* OpsHealthEgressStatsForSource(
     const SourceViewApplicationService::SourceRecord& source,
-    const std::vector<core::SessionManager::SourceEgressStats>& egress_stats);
+    const std::vector<WebRtcMediaApplicationSourceEgressStats>& egress_stats);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9490 prototype
-const media::StreamDescriptor* OpsHealthDescriptorForSource(
+const WebRtcMediaApplicationSourceDescriptorSnapshot::Descriptor* OpsHealthDescriptorForSource(
     const SourceViewApplicationService::SourceRecord& source,
-    const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots);
+    const std::vector<WebRtcMediaApplicationSourceDescriptorSnapshot>& descriptor_snapshots);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9500 prototype
 std::optional<std::string> CapsFieldValue(const std::string& caps, const std::string& key);
@@ -2943,23 +2943,27 @@ std::optional<std::int64_t> CapsIntField(const std::string& caps, const std::str
 std::optional<std::int64_t> CapsFpsField(const std::string& caps);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9584 prototype
-const media::TrackInfo* OpsHealthVideoTrack(const media::StreamDescriptor& descriptor);
+const WebRtcMediaApplicationSourceDescriptorSnapshot::Track* OpsHealthVideoTrack(
+    const WebRtcMediaApplicationSourceDescriptorSnapshot::Descriptor& descriptor);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9591 prototype
-std::string OpsHealthCodecVideoName(const media::TrackInfo& track);
+std::string OpsHealthCodecVideoName(
+    const WebRtcMediaApplicationSourceDescriptorSnapshot::Track& track);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9604 prototype
-void ApplyOpsSourceHealthCodec(OpsSourceHealthItem* item, const media::StreamDescriptor* descriptor);
+void ApplyOpsSourceHealthCodec(
+    OpsSourceHealthItem* item,
+    const WebRtcMediaApplicationSourceDescriptorSnapshot::Descriptor* descriptor);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9634 prototype
 void ClassifyOpsSourceHealth(OpsSourceHealthItem* item,
                              const SourceViewApplicationService::SourceRecord& source,
                              const SourceViewApplicationService::PublishedViewRecord* view,
                              const AnalysisSessionApplicationSnapshot* tap,
-                             const PublishedWebRtcSource::Snapshot* published_source,
-                             const media::StreamDescriptor* descriptor,
-                             const core::SessionManager::SourceReconnectStats* reconnect_stats,
-                             const core::SessionManager::SourceEgressStats* egress_stats,
+                             const WebRtcMediaApplicationPublishedSourceSnapshot* published_source,
+                             const WebRtcMediaApplicationSourceDescriptorSnapshot::Descriptor* descriptor,
+                             const WebRtcMediaApplicationSourceReconnectStats* reconnect_stats,
+                             const WebRtcMediaApplicationSourceEgressStats* egress_stats,
                              const std::string& checked_at);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9736 prototype
@@ -2971,10 +2975,10 @@ void ApplyOpsSourceHealthWarningThresholds(OpsSourceHealthSnapshot* snapshot);
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9773 prototype
 OpsSourceHealthSnapshot BuildOpsSourceHealthSnapshot(
     const std::vector<AnalysisSessionApplicationSnapshot>& analysis_taps,
-    const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
-    const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
-    const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats,
-    const std::vector<core::SessionManager::SourceEgressStats>& egress_stats);
+    const std::vector<WebRtcMediaApplicationPublishedSourceSnapshot>& publish_sources,
+    const std::vector<WebRtcMediaApplicationSourceDescriptorSnapshot>& descriptor_snapshots,
+    const std::vector<WebRtcMediaApplicationSourceReconnectStats>& reconnect_stats,
+    const std::vector<WebRtcMediaApplicationSourceEgressStats>& egress_stats);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9829 prototype
 void AppendOpsSourceHealthSummaryJson(std::ostringstream& out, const OpsSourceHealthSnapshot& snapshot);
@@ -3413,10 +3417,10 @@ std::string OpsV370SiteHealthRollupJson(const OpsSourceHealthSnapshot& health_sn
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 12187 prototype
 std::string OpsSourceHealthJson(const std::vector<AnalysisSessionApplicationSnapshot>& analysis_taps,
-                                const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
-                                const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
-                                const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats,
-                                const std::vector<core::SessionManager::SourceEgressStats>& egress_stats,
+                                const std::vector<WebRtcMediaApplicationPublishedSourceSnapshot>& publish_sources,
+                                const std::vector<WebRtcMediaApplicationSourceDescriptorSnapshot>& descriptor_snapshots,
+                                const std::vector<WebRtcMediaApplicationSourceReconnectStats>& reconnect_stats,
+                                const std::vector<WebRtcMediaApplicationSourceEgressStats>& egress_stats,
                                 const WebRtcHttpRuntimeConfig* audit_config,
                                 const auth::Principal* audit_principal);
 
@@ -3427,10 +3431,10 @@ bool OpsSourceHealthBulkRetryable(const OpsSourceHealthItem& item);
 std::string OpsSourceHealthBulkJson(
     const std::string& body,
     const std::vector<AnalysisSessionApplicationSnapshot>& analysis_taps,
-    const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
-    const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
-    const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats,
-    const std::vector<core::SessionManager::SourceEgressStats>& egress_stats,
+    const std::vector<WebRtcMediaApplicationPublishedSourceSnapshot>& publish_sources,
+    const std::vector<WebRtcMediaApplicationSourceDescriptorSnapshot>& descriptor_snapshots,
+    const std::vector<WebRtcMediaApplicationSourceReconnectStats>& reconnect_stats,
+    const std::vector<WebRtcMediaApplicationSourceEgressStats>& egress_stats,
     const WebRtcHttpRuntimeConfig* audit_config,
     const auth::Principal* audit_principal);
 
@@ -7938,9 +7942,9 @@ std::string LabFilesJson();
 bool AttachWebRtcAnalysisOverlay(
                                  AnalysisSessionLifecycleApplicationService& analysis_session_lifecycle,
                                  AnalysisSessionReadApplicationService& analysis_session_reads,
-                                 const media::IngressRequest& ingress_request,
+                                 const WebRtcMediaApplicationRequest& ingress_request,
                                  const std::unordered_map<std::string, std::string>& query,
-                                 const std::shared_ptr<WebRtcEgressSession>& bridge,
+                                 const std::shared_ptr<WebRtcMediaApplicationEgressSession>& bridge,
                                  std::string* analysis_tap_id,
                                  std::string* error_message);
 

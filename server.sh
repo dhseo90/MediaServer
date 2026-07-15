@@ -565,6 +565,8 @@ Usage:
                  V390-REVIEW4-64 transport의 Analysis Session 조회 결속을 application service로 역전합니다.
   verify-v390-analysis-session-lifecycle-application-boundary
                  V390-REVIEW4-64 transport의 Analysis Session lifecycle 결속을 application service로 역전합니다.
+  verify-v390-webrtc-media-application-boundary
+                 V390-REVIEW4-64 transport의 WebRTC media/runtime 결속을 application service로 역전합니다.
   verify-v390-stable-contract-owner-realignment
                  V390-REVIEW4-64 stable contract leaf를 target owner로 재정렬합니다.
   verify-v390-public-contract-interface-owner
@@ -1013,6 +1015,8 @@ Usage:
                  V390-REVIEW4-64 transport의 Analysis Session 조회 결속을 application service로 역전합니다.
   verify-v390-analysis-session-lifecycle-application-boundary
                  V390-REVIEW4-64 transport의 Analysis Session lifecycle 결속을 application service로 역전합니다.
+  verify-v390-webrtc-media-application-boundary
+                 V390-REVIEW4-64 transport의 WebRTC media/runtime 결속을 application service로 역전합니다.
   verify-v390-stable-contract-owner-realignment
                  V390-REVIEW4-64 stable contract leaf를 target owner로 재정렬합니다.
   verify-v390-public-contract-interface-owner
@@ -2529,6 +2533,10 @@ case "${cmd}" in
   verify-v390-analysis-session-lifecycle-application-boundary)
     require_internal verify_v390_analysis_session_lifecycle_application_boundary.mjs
     exec "${INTERNAL_DIR}/verify_v390_analysis_session_lifecycle_application_boundary.mjs" "$@"
+    ;;
+  verify-v390-webrtc-media-application-boundary)
+    require_internal verify_v390_webrtc_media_application_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_webrtc_media_application_boundary.mjs" "$@"
     ;;
   verify-v390-stable-contract-owner-realignment)
     require_internal verify_v390_stable_contract_owner_realignment.mjs

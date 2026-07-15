@@ -336,7 +336,7 @@ start_whip_publisher() {
     --http-base "${http_base}" \
     --source-id "${source_id}" \
     --duration "${duration_s}" \
-    "${auth_args[@]}" \
+    "${auth_args[@]+"${auth_args[@]}"}" \
     > "${log_file}" 2>&1 &
   local launcher_pid=$!
   LAUNCHER_PIDS+=("${launcher_pid}")
@@ -440,7 +440,7 @@ cleanup_whip_session_from_log() {
     if [[ -n "${AUTH_COOKIE_FILE}" ]]; then
       auth_args=(-b "${AUTH_COOKIE_FILE}")
     fi
-    if curl -fsS "${auth_args[@]}" -X DELETE "http://${HTTP_ADDRESS}:${HTTP_PORT}/whip/publish/session/${encoded_session}" >/dev/null 2>&1; then
+    if curl -fsS "${auth_args[@]+"${auth_args[@]}"}" -X DELETE "http://${HTTP_ADDRESS}:${HTTP_PORT}/whip/publish/session/${encoded_session}" >/dev/null 2>&1; then
       log_info "WHIP publish session deleted: ${session_id}"
     fi
   done < <(sed -n 's/.*session created: \([^ ]*\).*/\1/p' "${log_file}" | sort -u)
@@ -619,7 +619,7 @@ verify_webrtc_case() {
   if [[ -n "${AUTH_COOKIE_FILE}" ]]; then
     auth_args=(-b "${AUTH_COOKIE_FILE}")
   fi
-  if ! response="$(curl -sS "${auth_args[@]}" --max-time "${timeout_s}" -X POST "${url}")"; then
+  if ! response="$(curl -sS "${auth_args[@]+"${auth_args[@]}"}" --max-time "${timeout_s}" -X POST "${url}")"; then
     log_fail "${name}: WebRTC session create failed (${url})"
     return
   fi
@@ -656,7 +656,7 @@ PY
     return
   fi
 
-  curl -sS "${auth_args[@]}" -X DELETE "http://${HTTP_ADDRESS}:${HTTP_PORT}/webrtc/session/${session_id}" >/dev/null 2>&1 || true
+  curl -sS "${auth_args[@]+"${auth_args[@]}"}" -X DELETE "http://${HTTP_ADDRESS}:${HTTP_PORT}/webrtc/session/${session_id}" >/dev/null 2>&1 || true
   log_pass "${name}: WebRTC signaling session created (${session_id})"
 }
 

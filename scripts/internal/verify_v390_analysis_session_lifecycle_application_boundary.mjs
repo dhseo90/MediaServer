@@ -253,7 +253,7 @@ function assertTransportContract(transport, server, detail, incidents, runtime) 
     "application lifecycle Attach call count drift (expected four)");
   assert(exactCount(transport, /analysis_session_lifecycle\.Detach\(/g) === 1,
     "canonical detach must be centralized in one application helper");
-  assert(exactCount(transport, /DetachAnalysisTapAndReleaseRuntimes\(/g) === 15,
+  assert(exactCount(transport, /DetachAnalysisTapAndReleaseRuntimes\(/g) === 13,
     "detach helper declaration/definition/call count drift");
   const requestProjection = functionBody(server, "ProjectAnalysisSessionLifecycleRequest");
   assertExactMapping(requestProjection, "output", "request", requestFields,
@@ -281,7 +281,7 @@ function assertTransportContract(transport, server, detail, incidents, runtime) 
   "private transport detail lifecycle include replacement drift");
   assert(ordered(incidents, ["AttachWebRtcAnalysisOverlay(", "analysis_session_lifecycle.Attach(",
     "analysis_session_reads.WaitResultNearPts(", "analysis_session_reads.Snapshot(",
-    "MakeAnalysisOverlayAttachmentForApplication("]),
+    "bridge->ConfigureAnalysisOverlay("]),
   "WebRTC overlay attach/read/provider order drift");
   assert(exactCount(runtime, /analysis_session_lifecycle\.Attach\(/g) === 3 &&
     exactCount(incidents, /analysis_session_lifecycle\.Attach\(/g) === 1,
@@ -382,16 +382,18 @@ check("composition shares one canonical service across lifecycle, read, provider
     "analysis::AnalysisSessionService analysis_sessions(session_manager)",
     "MakeAnalysisSessionLifecycleApplicationAdapter(analysis_sessions)",
     "MakeAnalysisSessionReadApplicationAdapter(analysis_sessions)",
+    "MakeWebRtcMediaApplicationAdapter(session_manager)",
     "session_manager.SetAuxiliaryStreamRuntimeProvider(",
     "[&analysis_sessions] { return analysis_sessions.AuxiliaryStreamRuntimeSnapshot(); }",
     "GStreamerRtspServer gst_rtsp_server(session_manager, analysis_sessions)",
-    "WebRtcHttpServer webrtc_http_server(", "session_manager", "*analysis_session_lifecycle",
+    "WebRtcHttpServer webrtc_http_server(", "*webrtc_media_sessions", "*analysis_session_lifecycle",
     "*analysis_session_reads", "webrtc_http_runtime_config",
   ]), "composition shared service construction/injection order drift");
   for (const fragment of [
     "analysis::AnalysisSessionService analysis_sessions(session_manager);",
     "MakeAnalysisSessionLifecycleApplicationAdapter(analysis_sessions)",
     "MakeAnalysisSessionReadApplicationAdapter(analysis_sessions)",
+    "MakeWebRtcMediaApplicationAdapter(session_manager)",
     "GStreamerRtspServer gst_rtsp_server(session_manager, analysis_sessions);",
     "session_manager.SetAuxiliaryStreamRuntimeProvider({});",
   ]) assert(exactCount(composition, new RegExp(escapeRegex(fragment), "g")) === 1,

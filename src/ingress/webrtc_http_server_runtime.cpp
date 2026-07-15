@@ -253,29 +253,30 @@ std::vector<std::string> WebRtcHttpVideoAnalysisRuleDocumentsSnapshotBackend() {
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 35916 function
-bool ApplyWebRtcHttpVideoAnalysisRuleToRequestBackend(media::IngressRequest* request,
-                                                      std::string* error_message) {
-    if (request == nullptr) {
+bool ApplyWebRtcHttpVideoAnalysisRuleToQueryBackend(
+    std::unordered_map<std::string, std::string>* query,
+    std::string* error_message) {
+    if (query == nullptr) {
         if (error_message != nullptr) {
             *error_message = "request is missing";
         }
         return false;
     }
-    if (request->query.find("_vaRuleResolved") != request->query.end()) {
+    if (query->find("_vaRuleResolved") != query->end()) {
         return true;
     }
     std::string va_rule_id;
-    if (const auto it = request->query.find("vaRule"); it != request->query.end()) {
+    if (const auto it = query->find("vaRule"); it != query->end()) {
         va_rule_id = it->second;
-    } else if (const auto it = request->query.find("vaRuleId"); it != request->query.end()) {
+    } else if (const auto it = query->find("vaRuleId"); it != query->end()) {
         va_rule_id = it->second;
     }
     if (va_rule_id.empty()) {
         return true;
     }
-    if (request->query.find("file") != request->query.end() ||
-        request->query.find("url") != request->query.end() ||
-        request->query.find("source") != request->query.end()) {
+    if (query->find("file") != query->end() ||
+        query->find("url") != query->end() ||
+        query->find("source") != query->end()) {
         if (error_message != nullptr) {
             *error_message = "vaRule cannot be combined with file/url/source override";
         }
@@ -304,7 +305,7 @@ bool ApplyWebRtcHttpVideoAnalysisRuleToRequestBackend(media::IngressRequest* req
             }
             return false;
         }
-        request->query["file"] = file;
+        (*query)["file"] = file;
     } else {
         const std::string url = ParseStringField(*source, "url").value_or("");
         if (url.empty()) {
@@ -313,18 +314,18 @@ bool ApplyWebRtcHttpVideoAnalysisRuleToRequestBackend(media::IngressRequest* req
             }
             return false;
         }
-        request->query["url"] = url;
-        request->query["source"] = source_kind.empty() ? "rtsp" : source_kind;
+        (*query)["url"] = url;
+        (*query)["source"] = source_kind.empty() ? "rtsp" : source_kind;
     }
     if (const auto analysis = ExtractObjectField(*document, "analysis"); analysis.has_value()) {
         const std::string profile_id = ParseStringField(*analysis, "profileId").value_or("");
         if (!profile_id.empty()) {
-            request->query["profileId"] = profile_id;
+            (*query)["profileId"] = profile_id;
         }
     }
-    request->query["vaRule"] = va_rule_id;
-    request->query["va"] = "1";
-    request->query["_vaRuleResolved"] = "1";
+    (*query)["vaRule"] = va_rule_id;
+    (*query)["va"] = "1";
+    (*query)["_vaRuleResolved"] = "1";
     return true;
 }
 
@@ -609,7 +610,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             // bridge 정리 전에 stream subscriber를 먼저 제거해 packet callback이
                             // 중지 중인 pipeline에 쓰지 못하게 한다.
-                            impl_->session_manager.CloseSession(entry.ingress_client_id);
+                            impl_->media_sessions.CloseSession(entry.ingress_client_id);
                             if (!entry.analysis_tap_id.empty()) {
                                 DetachAnalysisTapAndReleaseRuntimes(
                                     impl_->analysis_session_lifecycle, entry.analysis_tap_id);
@@ -634,15 +635,15 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             const std::string session_id = generated_secrets->session_id;
                             const std::string session_capability = generated_secrets->session_capability;
                             const std::string ingress_client_id = session_id + "-ingress";
-                            media::IngressRequest ingress_request =
+                            WebRtcMediaApplicationRequest ingress_request =
                                 BuildHttpIngressRequest(route_path, session_query, ingress_client_id);
                             std::string va_rule_error;
-                            if (!ApplyApplicationVideoAnalysisRuleToRequest(&ingress_request, &va_rule_error)) {
+                            if (!ApplyApplicationVideoAnalysisRuleToQuery(&ingress_request.query, &va_rule_error)) {
                                 return JsonResponse(400,
                                                     "Bad Request",
                                                     "{\"error\":\"" + JsonEscape(va_rule_error) + "\"}");
                             }
-                            auto bridge = std::make_shared<WebRtcEgressSession>();
+                            auto bridge = impl_->media_sessions.CreateEgressSession();
                             std::string analysis_tap_id;
                             std::string error_message;
                             if (!AttachWebRtcAnalysisOverlay(
@@ -657,26 +658,19 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                     "Bad Request",
                                                     "{\"error\":\"" + JsonEscape(error_message) + "\"}");
                             }
-                            auto create_result = impl_->session_manager.CreateSession(
-                                ingress_request,
-                                [bridge](const media::Packet& packet) { bridge->HandleSample(packet); });
-                            if (!create_result.ok) {
+                            const auto start_result = bridge->Start(
+                                session_id, ProjectWebRtcMediaApplicationRequest(ingress_request));
+                            if (!start_result.ok) {
                                 if (!analysis_tap_id.empty()) {
                                     DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_session_lifecycle, analysis_tap_id);
                                 }
-                                return JsonResponse(400,
-                                                    "Bad Request",
-                                                    "{\"error\":\"" + JsonEscape(create_result.message) + "\"}");
-                            }
-
-                            if (!bridge->Start(session_id, create_result.stream, &error_message)) {
-                                if (!analysis_tap_id.empty()) {
-                                    DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_session_lifecycle, analysis_tap_id);
+                                if (start_result.session_created) {
+                                    impl_->media_sessions.CloseSession(ingress_client_id);
                                 }
-                                impl_->session_manager.CloseSession(ingress_client_id);
-                                return JsonResponse(500,
-                                                    "Internal Server Error",
-                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                                return JsonResponse(
+                                    start_result.session_created ? 500 : 400,
+                                    start_result.session_created ? "Internal Server Error" : "Bad Request",
+                                    "{\"error\":\"" + JsonEscape(start_result.message) + "\"}");
                             }
 
                             std::string offer;
@@ -685,7 +679,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 if (!analysis_tap_id.empty()) {
                                     DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_session_lifecycle, analysis_tap_id);
                                 }
-                                impl_->session_manager.CloseSession(ingress_client_id);
+                                impl_->media_sessions.CloseSession(ingress_client_id);
                                 return JsonResponse(500,
                                                     "Internal Server Error",
                                                     "{\"error\":\"" + JsonEscape(error_message) + "\"}");
@@ -830,7 +824,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                        auto runtime_status_body = [&]() {
 	                            std::size_t http_egress_sessions = 0;
 	                            std::size_t whip_publish_sessions = 0;
-	                            std::vector<WebRtcMetadataChannelStats> metadata_channel_stats;
+	                            std::vector<WebRtcMediaApplicationMetadataChannelStats> metadata_channel_stats;
 	                            {
 	                                std::lock_guard lock(impl_->mu);
 	                                http_egress_sessions = impl_->sessions.size();
@@ -842,13 +836,13 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                    }
 	                                }
 	                            }
-	                            return RuntimeStatusJson(impl_->session_manager.GetRuntimeStateSnapshot(),
+	                            return RuntimeStatusJson(impl_->media_sessions.RuntimeStateSnapshot(),
 	                                                     http_egress_sessions,
 	                                                     whip_publish_sessions,
 	                                                     metadata_channel_stats,
 	                                                     impl_->active_sse_metadata_clients.load(),
 	                                                     impl_->active_ws_metadata_clients.load(),
-	                                                     WebRtcSourceRegistry::Instance().Snapshots(),
+	                                                     impl_->media_sessions.PublishedSourceSnapshots(),
 	                                                     impl_->analysis_session_reads.Snapshots());
 	                        };
 
@@ -1370,10 +1364,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                200,
 	                                "OK",
 	                                OpsSourceHealthJson(impl_->analysis_session_reads.Snapshots(),
-	                                                    WebRtcSourceRegistry::Instance().Snapshots(),
-	                                                    impl_->session_manager.SourceDescriptorSnapshots(),
-	                                                    impl_->session_manager.SourceReconnectStatsSnapshot(),
-	                                                    impl_->session_manager.SourceEgressStatsSnapshot(),
+	                                                    impl_->media_sessions.PublishedSourceSnapshots(),
+	                                                    impl_->media_sessions.SourceDescriptorSnapshots(),
+	                                                    impl_->media_sessions.SourceReconnectStatsSnapshot(),
+	                                                    impl_->media_sessions.SourceEgressStatsSnapshot(),
 	                                                    &config,
 	                                                    &principal_result.principal));
 	                            ok.headers["Cache-Control"] = "no-store";
@@ -1389,10 +1383,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                "OK",
 	                                OpsSourceHealthBulkJson(request.body,
 	                                                        impl_->analysis_session_reads.Snapshots(),
-	                                                        WebRtcSourceRegistry::Instance().Snapshots(),
-	                                                        impl_->session_manager.SourceDescriptorSnapshots(),
-	                                                        impl_->session_manager.SourceReconnectStatsSnapshot(),
-	                                                        impl_->session_manager.SourceEgressStatsSnapshot(),
+	                                                        impl_->media_sessions.PublishedSourceSnapshots(),
+	                                                        impl_->media_sessions.SourceDescriptorSnapshots(),
+	                                                        impl_->media_sessions.SourceReconnectStatsSnapshot(),
+	                                                        impl_->media_sessions.SourceEgressStatsSnapshot(),
 	                                                        &config,
 	                                                        &principal_result.principal));
 	                            ok.headers["Cache-Control"] = "no-store";
@@ -1546,10 +1540,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -1612,10 +1606,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -1660,10 +1654,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -1680,10 +1674,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -1700,10 +1694,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -1720,10 +1714,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -1740,10 +1734,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -1760,10 +1754,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -1780,10 +1774,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -1800,10 +1794,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -1820,10 +1814,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -1840,10 +1834,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -1860,10 +1854,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -1880,10 +1874,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -1900,10 +1894,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -2059,10 +2053,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            std::string error_message;
 	                            const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-	                                                             WebRtcSourceRegistry::Instance().Snapshots(),
-	                                                             impl_->session_manager.SourceDescriptorSnapshots(),
-	                                                             impl_->session_manager.SourceReconnectStatsSnapshot(),
-	                                                             impl_->session_manager.SourceEgressStatsSnapshot());
+	                                                             impl_->media_sessions.PublishedSourceSnapshots(),
+	                                                             impl_->media_sessions.SourceDescriptorSnapshots(),
+	                                                             impl_->media_sessions.SourceReconnectStatsSnapshot(),
+	                                                             impl_->media_sessions.SourceEgressStatsSnapshot());
 	                            if (!OpsEventReviewInboxJson(
                                         config, source_health_snapshot, query, &body, &error_message)) {
 	                                return JsonResponse(400,
@@ -2092,10 +2086,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                std::string error_message;
 	                                const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-	                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-	                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-	                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-	                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+	                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+	                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+	                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+	                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
 	                                if (!OpsEventReviewInboxJson(config,
                                                                  source_health_snapshot,
                                                                  review_query,
@@ -2528,10 +2522,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -2548,10 +2542,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -2568,10 +2562,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -2588,10 +2582,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -2608,10 +2602,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -2628,10 +2622,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -2648,10 +2642,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -2668,10 +2662,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -2688,10 +2682,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -2708,10 +2702,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -2728,10 +2722,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -2748,10 +2742,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -2768,10 +2762,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -2788,10 +2782,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -2808,10 +2802,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -2828,10 +2822,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -2848,10 +2842,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -2868,10 +2862,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -2888,10 +2882,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -2908,10 +2902,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -2928,10 +2922,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -2962,10 +2956,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -2982,10 +2976,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -3002,10 +2996,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -3022,10 +3016,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -3054,10 +3048,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET") {
                                 const auto source_health_snapshot =
 	                                BuildOpsSourceHealthSnapshot(impl_->analysis_session_reads.Snapshots(),
-                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
-                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
-                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
-                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                                                 impl_->media_sessions.PublishedSourceSnapshots(),
+                                                                 impl_->media_sessions.SourceDescriptorSnapshots(),
+                                                                 impl_->media_sessions.SourceReconnectStatsSnapshot(),
+                                                                 impl_->media_sessions.SourceEgressStatsSnapshot());
                                 HttpResponse ok = JsonResponse(
                                     200,
                                     "OK",
@@ -4306,10 +4300,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             const std::string tap_client_id =
                                 "analysis-ws-" + std::to_string(impl_->next_session_id.fetch_add(1));
-                            media::IngressRequest ingress_request =
+                            WebRtcMediaApplicationRequest ingress_request =
                                 BuildHttpIngressRequest(route_path, query, tap_client_id);
                             std::string va_rule_error;
-                            if (!ApplyApplicationVideoAnalysisRuleToRequest(&ingress_request, &va_rule_error)) {
+                            if (!ApplyApplicationVideoAnalysisRuleToQuery(&ingress_request.query, &va_rule_error)) {
                                 return JsonResponse(400,
                                                     "Bad Request",
                                                     "{\"error\":\"" + JsonEscape(va_rule_error) + "\"}");
@@ -4333,10 +4327,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             const std::string tap_client_id =
                                 "analysis-sse-" + std::to_string(impl_->next_session_id.fetch_add(1));
-                            media::IngressRequest ingress_request =
+                            WebRtcMediaApplicationRequest ingress_request =
                                 BuildHttpIngressRequest(route_path, query, tap_client_id);
                             std::string va_rule_error;
-                            if (!ApplyApplicationVideoAnalysisRuleToRequest(&ingress_request, &va_rule_error)) {
+                            if (!ApplyApplicationVideoAnalysisRuleToQuery(&ingress_request.query, &va_rule_error)) {
                                 return JsonResponse(400,
                                                     "Bad Request",
                                                     "{\"error\":\"" + JsonEscape(va_rule_error) + "\"}");
@@ -4361,10 +4355,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "POST") {
                                 const std::string tap_client_id =
                                     "analysis-http-" + std::to_string(impl_->next_session_id.fetch_add(1));
-                                media::IngressRequest ingress_request =
+                                WebRtcMediaApplicationRequest ingress_request =
                                     BuildHttpIngressRequest(route_path, query, tap_client_id);
                                 std::string va_rule_error;
-                                if (!ApplyApplicationVideoAnalysisRuleToRequest(&ingress_request, &va_rule_error)) {
+                                if (!ApplyApplicationVideoAnalysisRuleToQuery(&ingress_request.query, &va_rule_error)) {
                                     return JsonResponse(400, "Bad Request",
                                                         "{\"error\":\"" + JsonEscape(va_rule_error) + "\"}");
                                 }
@@ -4674,12 +4668,12 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             const std::string session_id = generated_secrets->session_id;
                             const std::string session_capability = generated_secrets->session_capability;
                             const std::string ingress_client_id = session_id + "-ingress";
-                            media::IngressRequest ingress_request = BuildHttpIngressRequest(route_path, query, ingress_client_id);
+                            WebRtcMediaApplicationRequest ingress_request = BuildHttpIngressRequest(route_path, query, ingress_client_id);
                             std::string va_rule_error;
-                            if (!ApplyApplicationVideoAnalysisRuleToRequest(&ingress_request, &va_rule_error)) {
+                            if (!ApplyApplicationVideoAnalysisRuleToQuery(&ingress_request.query, &va_rule_error)) {
                                 return HttpResponse{400, "Bad Request", "text/plain; charset=utf-8", {}, va_rule_error};
                             }
-                            auto bridge = std::make_shared<WebRtcEgressSession>();
+                            auto bridge = impl_->media_sessions.CreateEgressSession();
                             std::string analysis_tap_id;
                             std::string error_message;
                             if (!AttachWebRtcAnalysisOverlay(
@@ -4692,29 +4686,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     &error_message)) {
                                 return HttpResponse{400, "Bad Request", "text/plain; charset=utf-8", {}, error_message};
                             }
-                            auto create_result = impl_->session_manager.CreateSession(
-                                ingress_request,
-                                [bridge](const media::Packet& packet) { bridge->HandleSample(packet); });
-                            if (!create_result.ok) {
+                            const auto start_result = bridge->Start(
+                                session_id, ProjectWebRtcMediaApplicationRequest(ingress_request));
+                            if (!start_result.ok) {
                                 if (!analysis_tap_id.empty()) {
                                     DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_session_lifecycle, analysis_tap_id);
                                 }
-                                return HttpResponse{400, "Bad Request", "text/plain; charset=utf-8", {}, create_result.message};
-                            }
-
-                            if (!bridge->Start(session_id, create_result.stream, &error_message)) {
-                                if (!analysis_tap_id.empty()) {
-                                    DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_session_lifecycle, analysis_tap_id);
+                                if (start_result.session_created) {
+                                    impl_->media_sessions.CloseSession(ingress_client_id);
                                 }
-                                impl_->session_manager.CloseSession(ingress_client_id);
-                                return HttpResponse{500, "Internal Server Error", "text/plain; charset=utf-8", {}, error_message};
+                                return HttpResponse{
+                                    start_result.session_created ? 500 : 400,
+                                    start_result.session_created ? "Internal Server Error" : "Bad Request",
+                                    "text/plain; charset=utf-8", {}, start_result.message};
                             }
                             if (!bridge->SetRemoteOffer(request.body, &error_message)) {
                                 bridge->Stop();
                                 if (!analysis_tap_id.empty()) {
                                     DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_session_lifecycle, analysis_tap_id);
                                 }
-                                impl_->session_manager.CloseSession(ingress_client_id);
+                                impl_->media_sessions.CloseSession(ingress_client_id);
                                 return HttpResponse{400, "Bad Request", "text/plain; charset=utf-8", {}, error_message};
                             }
 
@@ -4724,7 +4715,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 if (!analysis_tap_id.empty()) {
                                     DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_session_lifecycle, analysis_tap_id);
                                 }
-                                impl_->session_manager.CloseSession(ingress_client_id);
+                                impl_->media_sessions.CloseSession(ingress_client_id);
                                 return HttpResponse{500, "Internal Server Error", "text/plain; charset=utf-8", {}, error_message};
                             }
 
@@ -4776,7 +4767,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             const std::string session_id = generated_secrets->session_id;
                             const std::string session_capability = generated_secrets->session_capability;
-                            auto bridge = std::make_shared<WebRtcSourceSession>();
+                            auto bridge = impl_->media_sessions.CreateSourceSession();
                             std::string error_message;
                             if (!bridge->Start(session_id, source_id_it->second, &error_message)) {
                                 return JsonResponse(400, "Bad Request",
@@ -4860,7 +4851,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             const std::string provided_capability =
                                 RequestSessionCapability(request, query);
 
-                            std::shared_ptr<WebRtcEgressSession> bridge;
+                            std::shared_ptr<WebRtcMediaApplicationEgressSession> bridge;
                             std::string session_capability;
                             auth::Principal owner_principal;
                             {
@@ -4929,7 +4920,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             const std::string provided_capability =
                                 RequestSessionCapability(request, query);
 
-                            std::shared_ptr<WebRtcSourceSession> bridge;
+                            std::shared_ptr<WebRtcMediaApplicationSourceSession> bridge;
                             std::string session_capability;
                             auth::Principal owner_principal;
                             {
@@ -5026,7 +5017,7 @@ void WebRtcHttpServer::Stop() {
         if (!entry.analysis_tap_id.empty()) {
             DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_session_lifecycle, entry.analysis_tap_id);
         }
-        impl_->session_manager.CloseSession(entry.ingress_client_id);
+        impl_->media_sessions.CloseSession(entry.ingress_client_id);
     }
     for (auto& entry : source_sessions) {
         entry.bridge->Stop();

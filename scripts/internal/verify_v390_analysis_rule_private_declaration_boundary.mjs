@@ -78,7 +78,7 @@ function backendBodiesAreExact(text) {
     rules.indexOf("RuleDocuments()") < rules.indexOf("VaRuleDocuments()") &&
     rules.includes("ExpandVaRuleForEventEvaluation(va_rule_document, documents)") &&
     (apply.match(/AnalysisRegistry\(\)\.VaRuleJson\(va_rule_id\)/g) || []).length === 1 &&
-    apply.indexOf("if (request == nullptr)") < apply.indexOf("request->query") &&
+    apply.indexOf("if (query == nullptr)") < apply.indexOf("query->find") &&
     apply.includes('*error_message = "request is missing";');
 }
 
@@ -86,13 +86,13 @@ const callbackFields = [
   "profile_documents_snapshot",
   "rule_documents_snapshot",
   "video_analysis_rule_documents_snapshot",
-  "apply_video_analysis_rule_to_request",
+  "apply_video_analysis_rule_to_query",
 ];
 const backendNames = [
   "WebRtcHttpAnalysisProfileDocumentsSnapshotBackend",
   "WebRtcHttpAnalysisRuleDocumentsSnapshotBackend",
   "WebRtcHttpVideoAnalysisRuleDocumentsSnapshotBackend",
-  "ApplyWebRtcHttpVideoAnalysisRuleToRequestBackend",
+  "ApplyWebRtcHttpVideoAnalysisRuleToQueryBackend",
 ];
 const canonicalNames = [
   "AnalysisProfileDocumentsSnapshot",
@@ -104,40 +104,39 @@ const canonicalNames = [
 check("application callback and transport backend headers are dependency-free and exact", () => {
   const application = read(appHeader);
   const backend = read(backendHeader);
-  const expectedApplication = `#pragma once
+const expectedApplication = `#pragma once
 #include <string>
+#include <unordered_map>
 #include <vector>
-namespace media { struct IngressRequest; }
 namespace ingress {
 struct AnalysisRuleApplicationCallbacks {
   std::vector<std::string> (*profile_documents_snapshot)(){nullptr};
   std::vector<std::string> (*rule_documents_snapshot)(){nullptr};
   std::vector<std::string> (*video_analysis_rule_documents_snapshot)(){nullptr};
-  bool (*apply_video_analysis_rule_to_request)(media::IngressRequest*, std::string*){nullptr};
+  bool (*apply_video_analysis_rule_to_query)( std::unordered_map<std::string, std::string>*, std::string*){nullptr};
 };
 bool ConfigureAnalysisRuleApplicationService( const AnalysisRuleApplicationCallbacks& callbacks,
   std::string* error_message);
 std::vector<std::string> ApplicationAnalysisProfileDocumentsSnapshot();
 std::vector<std::string> ApplicationAnalysisRuleDocumentsSnapshot();
 std::vector<std::string> ApplicationVideoAnalysisRuleDocumentsSnapshot();
-bool ApplyApplicationVideoAnalysisRuleToRequest(media::IngressRequest* request,
+bool ApplyApplicationVideoAnalysisRuleToQuery( std::unordered_map<std::string, std::string>* query,
   std::string* error_message);
 }`;
-  const expectedBackend = `#pragma once
+const expectedBackend = `#pragma once
 #include <string>
+#include <unordered_map>
 #include <vector>
-namespace media { struct IngressRequest; }
 namespace ingress {
 std::vector<std::string> WebRtcHttpAnalysisProfileDocumentsSnapshotBackend();
 std::vector<std::string> WebRtcHttpAnalysisRuleDocumentsSnapshotBackend();
 std::vector<std::string> WebRtcHttpVideoAnalysisRuleDocumentsSnapshotBackend();
-bool ApplyWebRtcHttpVideoAnalysisRuleToRequestBackend(media::IngressRequest* request,
+bool ApplyWebRtcHttpVideoAnalysisRuleToQueryBackend( std::unordered_map<std::string, std::string>* query,
   std::string* error_message);
 }`;
   for (const [owner, text] of [["application", application], ["backend", backend]]) {
-    assert(exactIncludeSet(text, ["<string>", "<vector>"]), `${owner} include set drift`);
-    assert((text.match(/namespace\s+media\s*{\s*struct\s+IngressRequest\s*;\s*}/g) || []).length === 1,
-      `${owner} forward declaration drift`);
+    assert(exactIncludeSet(text, ["<string>", "<unordered_map>", "<vector>"]), `${owner} include set drift`);
+    assert(!/namespace\s+media\b|\bIngressRequest\b/.test(text), `${owner} canonical request leaked`);
     assert(!/\b(?:analysis|core|domain)::|^\s*#\s*include\s*"/m.test(text), `${owner} dependency leaked`);
   }
   assert(compact(application) === compact(expectedApplication), "application declaration set drift");
@@ -199,10 +198,10 @@ std::vector<std::string> OtherProfiles() { return {"wrong"}; }
 std::vector<std::string> ForeignProfiles() { return {"foreign-profile"}; }
 std::vector<std::string> ForeignRules() { return {"foreign-rule"}; }
 std::vector<std::string> ForeignVaRules() { return {"foreign-va"}; }
-bool Apply(media::IngressRequest* request, std::string* error) {
+bool Apply(std::unordered_map<std::string, std::string>* query, std::string* error) {
   ++apply_calls;
   if (should_throw) throw std::runtime_error("apply");
-  if (error) *error = request == nullptr ? "null-request" : "backend-result";
+  if (error) *error = query == nullptr ? "null-request" : "backend-result";
   return false;
 }
 bool ForeignApply(media::IngressRequest*, std::string*) { return true; }
@@ -242,11 +241,11 @@ int main(int argc, char** argv) {
   if (ingress::ApplicationVideoAnalysisRuleDocumentsSnapshot() != std::vector<std::string>{"va-a"} ||
       ingress::VideoAnalysisRuleDocumentsSnapshot() != std::vector<std::string>{"va-a"}) return 7;
   media::IngressRequest request;
-  error.clear(); if (ingress::ApplyApplicationVideoAnalysisRuleToRequest(&request, &error) || error != "backend-result") return 8;
+  error.clear(); if (ingress::ApplyApplicationVideoAnalysisRuleToQuery(&request.query, &error) || error != "backend-result") return 8;
   error.clear(); if (ingress::ApplyVideoAnalysisRuleToRequest(&request, &error) || error != "backend-result") return 9;
-  error.clear(); if (ingress::ApplyApplicationVideoAnalysisRuleToRequest(nullptr, &error) || error != "null-request") return 10;
-  error.clear(); if (ingress::ApplyVideoAnalysisRuleToRequest(nullptr, &error) || error != "null-request") return 11;
-  if (profile_calls != 2 || rule_calls != 2 || va_calls != 2 || apply_calls != 4) return 12;
+  error.clear(); if (ingress::ApplyApplicationVideoAnalysisRuleToQuery(nullptr, &error) || error != "null-request") return 10;
+  error.clear(); if (ingress::ApplyVideoAnalysisRuleToRequest(nullptr, &error) || error != "request is missing") return 11;
+  if (profile_calls != 2 || rule_calls != 2 || va_calls != 2 || apply_calls != 3) return 12;
   should_throw = true;
   try { (void)ingress::ApplicationAnalysisProfileDocumentsSnapshot(); return 13; }
   catch (const std::runtime_error& expected) { if (std::string(expected.what()) != "profile") return 14; }
@@ -262,8 +261,12 @@ int main(int argc, char** argv) {
       "-std=c++17", `-I${path.join(root, "include")}`, harness,
       path.join(root, domainSource), path.join(root, appSource), "-o", binary,
     ]);
-    execFileSync(binary);
-    execFileSync(binary, ["prebound-conflict"]);
+    try {
+      execFileSync(binary);
+      execFileSync(binary, ["prebound-conflict"]);
+    } catch (error) {
+      throw new Error(`compiled adapter harness exited with status ${error.status}`);
+    }
   } finally {
     fs.rmSync(temp, { recursive: true, force: true });
   }
@@ -291,7 +294,7 @@ check("transport configures the exact backend once and consumes only application
   assert((server.match(/ApplicationAnalysisProfileDocumentsSnapshot\(/g) || []).length === 1 &&
     (server.match(/ApplicationAnalysisRuleDocumentsSnapshot\(/g) || []).length === 1 &&
     (app.match(/ApplicationAnalysisRuleDocumentsSnapshot\(/g) || []).length === 1 &&
-    (runtime.match(/ApplyApplicationVideoAnalysisRuleToRequest\(/g) || []).length === 5,
+    (runtime.match(/ApplyApplicationVideoAnalysisRuleToQuery\(/g) || []).length === 5,
   "transport wrapper call count drift");
   assert(detail.includes("ingress/analysis_rule_application_service.h") &&
     detail.includes("ingress/webrtc_http_analysis_rule_declarations.h"), "transport contract includes drift");
@@ -308,21 +311,24 @@ check("dispatch and actual graph close the domain direction without relabeling",
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const classifier = id => graph.moduleClassifiers.find(item => item.id === id);
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.expectedProductionFiles === 208 && graph.expectedCppFiles === 101 &&
-    classifier("application-service-interfaces")?.expectedFileCount === 41 &&
-    classifier("application-service-interfaces")?.expectedCppCount === 17 &&
+  assert(graph.expectedProductionFiles === 215 && graph.expectedCppFiles === 103 &&
+    classifier("application-service-interfaces")?.expectedFileCount === 48 &&
+    classifier("application-service-interfaces")?.expectedCppCount === 19 &&
     classifier("domain-and-registry-owners")?.expectedFileCount === 6 &&
     classifier("domain-and-registry-owners")?.expectedCppCount === 3 &&
     classifier("transport-and-auth-adapter")?.expectedFileCount === 11 &&
-    graph.observedModuleEdges.length === 17 &&
-    graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 &&
+    graph.observedModuleEdges.length === 16 &&
+    graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 0 &&
     !edge("transport-and-auth-adapter -> domain-and-registry-owners") &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 20 &&
-    edge("composition-root -> application-service-interfaces")?.witnessCount === 1 &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 25 &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 ===
+      "89cde5c1a3dd580514f150040686b1feb22470b684fc4ace242f75a6aff8b9c7" &&
+    edge("composition-root -> application-service-interfaces")?.witnessCount === 3 &&
     edge("application-service-interfaces -> domain-and-registry-owners")?.witnessCount === 4 &&
     edge("analysis-services -> domain-and-registry-owners")?.witnessCount === 2 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 1 &&
-    edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessCount === 4 &&
+    !edge("transport-and-auth-adapter -> analysis-services") &&
+    edge("application-service-interfaces -> core-media-interfaces")?.witnessCount === 4 &&
+    !edge("transport-and-auth-adapter -> core-media-interfaces") &&
     !graph.stronglyConnectedComponents.length, "graph successor");
   const structureOutput = execFileSync(path.join(root, "server.sh"),
     ["verify-v390-review4-structure-stabilization-execution"], { cwd: root, encoding: "utf8" });

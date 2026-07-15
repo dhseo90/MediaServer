@@ -222,7 +222,7 @@ const exactTransportDelegations = [
   "AnalysisOverlayDebugRequestedForApplication(query)",
   "RenderDetectionOverlayForApplication( std::move(latest->frame), evaluation.ApplicationAnnotatedResult(), query, &overlay_frame, &error_message)",
   "ResolveAnalysisOverlaySettingsForApplication( query, render_video_overlay)",
-  "MakeAnalysisOverlayAttachmentForApplication( query, render_video_overlay, std::move(result_provider))",
+  "bridge->ConfigureAnalysisOverlay(query, render_video_overlay, std::move(result_provider))",
 ].map(compact);
 
 function transportDelegationsAreExact(text) {
@@ -245,17 +245,17 @@ function overlayTransportSemanticsAreExact(text) {
     'DispatchEventRecordsForApplication(ProjectEventStorageDispatchRequest( annotated, events))',
     'DispatchEventPostsForApplication(ProjectEventPostDispatchRequest( annotated, events))',
     'bridge_lock->PublishAnalysisMetadata(',
-    '*output = RestoreCanonicalResultForApplicationOutput(annotated); return true;',
+    '*output = annotated; return true;',
     'const auto snapshot = analysis_session_reads.Snapshot(tap_id)',
     'if (!snapshot.has_value() || !snapshot->latest_result.has_value())',
     'WebRtcVaMetadataMissingMessageJson(tap_id, source_pts, tolerance_ns)',
     'return false;',
     'if (metadata_fallback_payload_enabled)',
     '"fallback-latest"',
-    'MakeAnalysisOverlayAttachmentForApplication( query, render_video_overlay, std::move(result_provider))',
+    'bridge->ConfigureAnalysisOverlay(query, render_video_overlay, std::move(result_provider))',
   ].map(compact);
   if (!required.every(item => normalized.includes(item))) return false;
-  if (exactCount(body, /\*output\s*=\s*RestoreCanonicalResultForApplicationOutput\(annotated\)\s*;/g) !== 2) return false;
+  if (exactCount(body, /\*output\s*=\s*annotated\s*;/g) !== 2) return false;
   if (exactCount(body, /DispatchEventRecordsForApplication\(/g) !== 2 ||
       exactCount(body, /DispatchEventPostsForApplication\(/g) !== 2) return false;
   const ordered = [
@@ -264,7 +264,7 @@ function overlayTransportSemanticsAreExact(text) {
     "analysis_session_reads.Snapshot", "if (!snapshot.has_value()", "WebRtcVaMetadataMissingMessageJson",
     "return false;", "EvaluateEventRulesForApplication(latest_result", "DispatchEventRecordsForApplication",
     "DispatchEventPostsForApplication", "if (metadata_fallback_payload_enabled)", "*output =",
-    "MakeAnalysisOverlayAttachmentForApplication",
+    "ConfigureAnalysisOverlay",
   ];
   let cursor = 0;
   for (const token of ordered) {
@@ -391,7 +391,7 @@ check("transport delegates exact frame tracker and overlay call sites", () => {
     exactCount(runtime, /AnalysisOverlayDebugRequestedForApplication\(/g) === 1,
   "runtime overlay delegation count drift");
   assert(exactCount(incidents, /ResolveAnalysisOverlaySettingsForApplication\(/g) === 1 &&
-    exactCount(incidents, /MakeAnalysisOverlayAttachmentForApplication\(/g) === 1 &&
+    exactCount(incidents, /ConfigureAnalysisOverlay\(/g) === 1 &&
     exactCount(incidents, /IsAnalysisOverlayRequestedForApplication\(/g) === 1 &&
     exactCount(incidents, /ProjectAnalysisSessionLifecycleRequest\(/g) === 1,
     "live overlay application delegation count drift");
@@ -422,7 +422,7 @@ check("transport delegates exact frame tracker and overlay call sites", () => {
   assert(overlayTransportSemanticsAreExact(incidents), "transport overlay provider semantic drift");
   const providerMutations = [
     incidents.replace("if (output == nullptr)", "if (false)"),
-    incidents.replace("*output = RestoreCanonicalResultForApplicationOutput(annotated);", "/* output omitted */"),
+    incidents.replace("*output = annotated;", "/* output omitted */"),
     incidents.replace(
       "return false;\n            }\n            auto latest_result", "return true;\n            }\n            auto latest_result"),
     swapExact(incidents, "WaitResultNearPts", "Snapshot"),
@@ -444,26 +444,25 @@ check("CMake dispatch and successor graph bind the exact Slice 24 boundary", () 
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const classifier = id => graph.moduleClassifiers.find(item => item.id === id);
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.expectedProductionFiles === 212 && graph.expectedCppFiles === 102 &&
-    classifier("application-service-interfaces")?.expectedFileCount === 45 &&
-    classifier("application-service-interfaces")?.expectedCppCount === 18 &&
+  assert(graph.expectedProductionFiles === 215 && graph.expectedCppFiles === 103 &&
+    classifier("application-service-interfaces")?.expectedFileCount === 48 &&
+    classifier("application-service-interfaces")?.expectedCppCount === 19 &&
     !edge("transport-and-auth-adapter -> analysis-services") &&
     edge("application-service-interfaces -> analysis-services")?.witnessCount === 23 &&
     edge("application-service-interfaces -> analysis-services")?.witnessSha256 ===
       "4b3cbd1800bf8771eef67752edae8b604e8aefc1574e44d7890847c76d681cee" &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 23 &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 25 &&
     edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 ===
-      "8cd647e97e04ebdc976ba2e64448fcc582a66ed114b75f91b7fb683fa5fba38d" &&
-    edge("composition-root -> application-service-interfaces")?.witnessCount === 2 &&
+      "89cde5c1a3dd580514f150040686b1feb22470b684fc4ace242f75a6aff8b9c7" &&
+    edge("composition-root -> application-service-interfaces")?.witnessCount === 3 &&
     edge("composition-root -> application-service-interfaces")?.witnessSha256 ===
-      "fc7b3895f0b81d59e40e4e8767f34518412a866cedd7c088b3dc9d58a7c90b48" &&
-    edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessCount === 4 &&
-    edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessSha256 ===
-      "adf4172d0e83de59df510ceeb38c88cd36aaf78b157e7022b6480d8e0793cab3" &&
-    graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 1 &&
+      "a8e2b7fe386fb488bf5cd84f2218ce8bb3f299fb1ddcab9075e3c491c8a68c2f" &&
+    !edge("transport-and-auth-adapter -> core-media-interfaces") &&
+    edge("application-service-interfaces -> core-media-interfaces")?.witnessCount === 4 &&
+    graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 0 &&
     !graph.stronglyConnectedComponents.length &&
     graph.observedModuleEdges.length === 16 &&
-    graph.boundary.includes("Analysis Session lifecycle application boundary"), "graph successor drift");
+    graph.boundary.includes("WebRTC media application boundary"), "graph successor drift");
 });
 
 check("current structure gate accepts the exact non-final successor", () => {

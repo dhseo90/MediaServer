@@ -1712,21 +1712,21 @@ std::optional<HttpRequest> ReadHttpRequest(int client_fd, HttpResponse* error_re
 
 }  // namespace webrtc_http_server_detail
 
-WebRtcHttpServer::WebRtcHttpServer(core::SessionManager& session_manager,
+WebRtcHttpServer::WebRtcHttpServer(WebRtcMediaApplicationService& media_sessions,
                                    AnalysisSessionLifecycleApplicationService& analysis_session_lifecycle,
                                    AnalysisSessionReadApplicationService& analysis_session_reads,
                                    const WebRtcHttpRuntimeConfig& runtime_config)
-    : session_manager_(session_manager),
+    : media_sessions_(media_sessions),
       analysis_session_lifecycle_(analysis_session_lifecycle),
       analysis_session_reads_(analysis_session_reads),
       runtime_config_(runtime_config),
       impl_(std::make_unique<Impl>(
-          session_manager, analysis_session_lifecycle, analysis_session_reads)) {
+          media_sessions, analysis_session_lifecycle, analysis_session_reads)) {
     const AnalysisRuleApplicationCallbacks analysis_rule_callbacks{
         &WebRtcHttpAnalysisProfileDocumentsSnapshotBackend,
         &WebRtcHttpAnalysisRuleDocumentsSnapshotBackend,
         &WebRtcHttpVideoAnalysisRuleDocumentsSnapshotBackend,
-        &ApplyWebRtcHttpVideoAnalysisRuleToRequestBackend,
+        &ApplyWebRtcHttpVideoAnalysisRuleToQueryBackend,
     };
     std::string analysis_rule_error;
     if (!ConfigureAnalysisRuleApplicationService(analysis_rule_callbacks, &analysis_rule_error)) {
@@ -2182,31 +2182,31 @@ bool ClientPrincipalCanAccessFeature(const auth::Principal& principal,
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3541 function
-std::optional<media::SourceSpec::Kind> SourceKindForClientView(
+std::optional<WebRtcMediaApplicationSourceKind> SourceKindForClientView(
     const SourceViewApplicationService::SourceRecord& source) {
     if (source.kind == "file") {
-        return media::SourceSpec::Kind::File;
+        return WebRtcMediaApplicationSourceKind::File;
     }
     if (source.kind == "rtsp") {
-        return media::SourceSpec::Kind::Rtsp;
+        return WebRtcMediaApplicationSourceKind::Rtsp;
     }
     if (source.kind == "webrtc") {
-        return media::SourceSpec::Kind::WebRtc;
+        return WebRtcMediaApplicationSourceKind::WebRtc;
     }
     if (source.kind == "whep") {
-        return media::SourceSpec::Kind::Whep;
+        return WebRtcMediaApplicationSourceKind::Whep;
     }
     if (source.kind == "hls") {
-        return media::SourceSpec::Kind::Hls;
+        return WebRtcMediaApplicationSourceKind::Hls;
     }
     if (source.kind == "youtube") {
         if (!GetWebRtcHttpRuntimeConfig().youtube_source_build_enabled) {
             return std::nullopt;
         }
-        return media::SourceSpec::Kind::Youtube;
+        return WebRtcMediaApplicationSourceKind::Youtube;
     }
     if (source.kind == "http") {
-        return media::SourceSpec::Kind::Http;
+        return WebRtcMediaApplicationSourceKind::Http;
     }
     return std::nullopt;
 }
@@ -2253,7 +2253,7 @@ std::vector<std::string> ClientStreamKeyCandidates(const SourceViewApplicationSe
             AddUniqueString(&candidates,
                             runtime_config.build_stream_key(static_cast<int>(*kind), locator));
         }
-        if (*kind == media::SourceSpec::Kind::File) {
+        if (*kind == WebRtcMediaApplicationSourceKind::File) {
             const std::filesystem::path raw_file(locator);
             const std::filesystem::path rooted =
                 raw_file.is_absolute() ? raw_file : std::filesystem::path(GetWebRtcHttpRuntimeConfig().file_root_path) / raw_file;
@@ -4627,10 +4627,10 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 5971 function
-media::IngressRequest BuildHttpIngressRequest(const std::string& path,
+WebRtcMediaApplicationRequest BuildHttpIngressRequest(const std::string& path,
                                               const std::unordered_map<std::string, std::string>& query,
                                               const std::string& client_id) {
-    media::IngressRequest request;
+    WebRtcMediaApplicationRequest request;
     request.protocol = "http";
     request.path = path;
     request.query = query;
@@ -4747,7 +4747,7 @@ std::string ClientSessionJson(const std::string& client_session_id, const std::s
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6086 function
-std::string IceJson(const std::vector<WebRtcIceCandidate>& candidates) {
+std::string IceJson(const std::vector<WebRtcMediaApplicationIceCandidate>& candidates) {
     std::ostringstream out;
     out << "{\"candidates\":[";
     for (std::size_t i = 0; i < candidates.size(); ++i) {
@@ -4786,8 +4786,8 @@ std::optional<std::uint32_t> ParseUnsignedIndexText(const std::string& raw) {
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6123 function
-std::vector<WebRtcIceCandidate> ParseWhepSdpFragmentIceCandidates(const std::string& body) {
-    std::vector<WebRtcIceCandidate> candidates;
+std::vector<WebRtcMediaApplicationIceCandidate> ParseWhepSdpFragmentIceCandidates(const std::string& body) {
+    std::vector<WebRtcMediaApplicationIceCandidate> candidates;
     std::uint32_t current_mline = 0;
     bool saw_media_section = false;
 
@@ -4821,7 +4821,7 @@ std::vector<WebRtcIceCandidate> ParseWhepSdpFragmentIceCandidates(const std::str
             candidate = line;
         }
         if (!candidate.empty()) {
-            candidates.push_back(WebRtcIceCandidate{
+            candidates.push_back(WebRtcMediaApplicationIceCandidate{
                 .sdp_mline_index = current_mline,
                 .candidate = candidate,
             });
@@ -4833,7 +4833,7 @@ std::vector<WebRtcIceCandidate> ParseWhepSdpFragmentIceCandidates(const std::str
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6167 function
 std::optional<HttpResponse> ApplyWhepSdpFragmentIce(
     const HttpRequest& request,
-    const std::shared_ptr<WebRtcEgressSession>& bridge) {
+    const std::shared_ptr<WebRtcMediaApplicationEgressSession>& bridge) {
     if (bridge == nullptr || request.body.find("candidate:") == std::string::npos) {
         return std::nullopt;
     }
@@ -4863,7 +4863,7 @@ std::string SourceJson(const std::string& session_id,
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6197 function
-std::string WebRtcMetadataChannelsJson(const std::vector<WebRtcMetadataChannelStats>& stats) {
+std::string WebRtcMetadataChannelsJson(const std::vector<WebRtcMediaApplicationMetadataChannelStats>& stats) {
     std::uint64_t sent_count = 0;
     std::uint64_t dropped_count = 0;
     std::uint64_t skipped_count = 0;
@@ -4924,13 +4924,13 @@ std::string WebRtcMetadataChannelsJson(const std::vector<WebRtcMetadataChannelSt
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 6256 function
 // 다채널 검증과 수동 진단에서 WebRTC session 수와 dedup stream 수를 비교할 수 있게 JSON으로 직렬화한다.
-std::string RuntimeStatusJson(const core::SessionManager::RuntimeStateSnapshot& snapshot,
+std::string RuntimeStatusJson(const WebRtcMediaApplicationRuntimeStateSnapshot& snapshot,
                               std::size_t http_egress_sessions,
                               std::size_t whip_publish_sessions,
-                              const std::vector<WebRtcMetadataChannelStats>& metadata_channel_stats,
+                              const std::vector<WebRtcMediaApplicationMetadataChannelStats>& metadata_channel_stats,
                               int active_sse_metadata_clients,
                               int active_ws_metadata_clients,
-                              const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
+                              const std::vector<WebRtcMediaApplicationPublishedSourceSnapshot>& publish_sources,
                               const std::vector<AnalysisSessionApplicationSnapshot>& analysis_taps) {
     const auto profile_documents = ApplicationAnalysisProfileDocumentsSnapshot();
     const auto rule_documents = ApplicationAnalysisRuleDocumentsSnapshot();
@@ -7145,8 +7145,18 @@ std::string AnalysisMetricsDumpJson(const std::string& tap_id,
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8319 function
 AnalysisSessionLifecycleApplicationRequest ProjectAnalysisSessionLifecycleRequest(
-    const media::IngressRequest& request) {
+    const WebRtcMediaApplicationRequest& request) {
     AnalysisSessionLifecycleApplicationRequest output;
+    output.protocol = request.protocol;
+    output.path = request.path;
+    output.query = request.query;
+    output.client_id = request.client_id;
+    return output;
+}
+
+WebRtcMediaApplicationRequest ProjectWebRtcMediaApplicationRequest(
+    const WebRtcMediaApplicationRequest& request) {
+    WebRtcMediaApplicationRequest output;
     output.protocol = request.protocol;
     output.path = request.path;
     output.query = request.query;
@@ -7726,10 +7736,10 @@ std::string AnalysisEventsJson(
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8876 function
-WebRtcMetadataChannelConfig BuildWebRtcMetadataChannelConfigFromQuery(
+WebRtcMediaApplicationMetadataChannelConfig BuildWebRtcMediaApplicationMetadataChannelConfigFromQuery(
     const std::unordered_map<std::string, std::string>& query) {
     const auto& app_config = GetWebRtcHttpRuntimeConfig();
-    WebRtcMetadataChannelConfig config;
+    WebRtcMediaApplicationMetadataChannelConfig config;
     config.enabled = ParseBoolQuery(
         query,
         "vaMetadata",

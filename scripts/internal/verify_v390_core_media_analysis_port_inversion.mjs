@@ -283,9 +283,10 @@ check("composition and RTSP lifecycle bind one service and every detach boundary
     "analysis::AnalysisSessionService analysis_sessions(session_manager);",
     "MakeAnalysisSessionLifecycleApplicationAdapter(analysis_sessions);",
     "MakeAnalysisSessionReadApplicationAdapter(analysis_sessions);",
+    "MakeWebRtcMediaApplicationAdapter(session_manager);",
     "SetAuxiliaryStreamRuntimeProvider(",
     "GStreamerRtspServer gst_rtsp_server(session_manager, analysis_sessions);",
-    "WebRtcHttpServer webrtc_http_server(\n        session_manager,\n        *analysis_session_lifecycle,\n        *analysis_session_reads,\n        webrtc_http_runtime_config);",
+    "WebRtcHttpServer webrtc_http_server(\n        *webrtc_media_sessions,\n        *analysis_session_lifecycle,\n        *analysis_session_reads,\n        webrtc_http_runtime_config);",
     "SetAuxiliaryStreamRuntimeProvider({});",
   ]) assert(application.includes(anchor), `composition owner binding missing: ${anchor}`);
   assert(rtspHeader.includes("core::MediaAnalysisPort& analysis_port") &&
@@ -418,7 +419,8 @@ check("composition uses exactly one analysis service identity", () => {
     "ingress::GStreamerRtspServer gst_rtsp_server(session_manager, analysis_sessions);",
     "ingress::MakeAnalysisSessionLifecycleApplicationAdapter(analysis_sessions);",
     "ingress::MakeAnalysisSessionReadApplicationAdapter(analysis_sessions);",
-    "ingress::WebRtcHttpServer webrtc_http_server(\n        session_manager,\n        *analysis_session_lifecycle,\n        *analysis_session_reads,\n        webrtc_http_runtime_config);",
+    "ingress::MakeWebRtcMediaApplicationAdapter(session_manager);",
+    "ingress::WebRtcHttpServer webrtc_http_server(\n        *webrtc_media_sessions,\n        *analysis_session_lifecycle,\n        *analysis_session_reads,\n        webrtc_http_runtime_config);",
     "session_manager.SetAuxiliaryStreamRuntimeProvider({});",
   ]) assert(count(application, new RegExp(anchor.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) === 1,
     `composition identity count drift: ${anchor}`);
@@ -426,9 +428,10 @@ check("composition uses exactly one analysis service identity", () => {
     "analysis::AnalysisSessionService analysis_sessions(session_manager);",
     "MakeAnalysisSessionLifecycleApplicationAdapter(analysis_sessions);",
     "MakeAnalysisSessionReadApplicationAdapter(analysis_sessions);",
+    "MakeWebRtcMediaApplicationAdapter(session_manager);",
     "session_manager.SetAuxiliaryStreamRuntimeProvider(",
     "GStreamerRtspServer gst_rtsp_server(session_manager, analysis_sessions);",
-    "WebRtcHttpServer webrtc_http_server(\n        session_manager,\n        *analysis_session_lifecycle,\n        *analysis_session_reads,\n        webrtc_http_runtime_config);",
+    "WebRtcHttpServer webrtc_http_server(\n        *webrtc_media_sessions,\n        *analysis_session_lifecycle,\n        *analysis_session_reads,\n        webrtc_http_runtime_config);",
   ]);
 });
 
@@ -453,13 +456,14 @@ check("graph target and source mutations fail closed", () => {
   ]);
   const violations = graph.observedModuleEdges.filter(item => item.allowedByTarget === false);
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.expectedProductionFiles === 212 && graph.expectedCppFiles === 102 &&
-    graph.observedModuleEdges.length === 16 && violations.length === 1 &&
+  assert(graph.expectedProductionFiles === 215 && graph.expectedCppFiles === 103 &&
+    graph.observedModuleEdges.length === 16 && violations.length === 0 &&
     violations.every(item => allowedSuccessorViolations.has(item.direction)) &&
     !edge("transport-and-auth-adapter -> analysis-services") &&
-    edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessCount === 4 &&
-    edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessSha256 ===
-      "adf4172d0e83de59df510ceeb38c88cd36aaf78b157e7022b6480d8e0793cab3" &&
+    !edge("transport-and-auth-adapter -> core-media-interfaces") &&
+    edge("application-service-interfaces -> core-media-interfaces")?.witnessCount === 4 &&
+    edge("application-service-interfaces -> core-media-interfaces")?.witnessSha256 ===
+      "9b012c5785ae13606c5cf056c7835123a767e53df641dbcd556b04a38258ae93" &&
     graph.stronglyConnectedComponents.length === 0,
   "core media analysis inversion graph metrics drift");
   assert(!graph.observedModuleEdges.some(item =>
@@ -562,7 +566,7 @@ if (!skipMutations) {
       {
         id: "graph-direction-swap",
         file: "test/fixtures/v390_structure_stabilization_current_graph.json",
-        mutate: text => text.replace('"direction": "transport-and-auth-adapter -> core-media-interfaces"',
+        mutate: text => text.replace('"direction": "application-service-interfaces -> core-media-interfaces"',
           '"direction": "transport-and-auth-adapter -> composition-root"'),
         expectedFailure: "core media analysis inversion graph metrics drift",
       },

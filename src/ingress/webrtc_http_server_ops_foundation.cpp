@@ -535,9 +535,9 @@ const AnalysisSessionApplicationSnapshot* OpsHealthTapForSource(
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9458 function
-const PublishedWebRtcSource::Snapshot* OpsHealthPublishedSourceFor(
+const WebRtcMediaApplicationPublishedSourceSnapshot* OpsHealthPublishedSourceFor(
     const SourceViewApplicationService::SourceRecord& source,
-    const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources) {
+    const std::vector<WebRtcMediaApplicationPublishedSourceSnapshot>& publish_sources) {
     if (source.kind != "webrtc" || source.webrtc_source_id.empty()) {
         return nullptr;
     }
@@ -548,9 +548,9 @@ const PublishedWebRtcSource::Snapshot* OpsHealthPublishedSourceFor(
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9470 function
-const core::SessionManager::SourceReconnectStats* OpsHealthReconnectStatsForSource(
+const WebRtcMediaApplicationSourceReconnectStats* OpsHealthReconnectStatsForSource(
     const SourceViewApplicationService::SourceRecord& source,
-    const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats) {
+    const std::vector<WebRtcMediaApplicationSourceReconnectStats>& reconnect_stats) {
     const auto candidates = ClientStreamKeyCandidates(source);
     const auto it = std::find_if(reconnect_stats.begin(), reconnect_stats.end(), [&](const auto& stats) {
         return std::find(candidates.begin(), candidates.end(), stats.stream_key) != candidates.end();
@@ -559,9 +559,9 @@ const core::SessionManager::SourceReconnectStats* OpsHealthReconnectStatsForSour
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9480 function
-const core::SessionManager::SourceEgressStats* OpsHealthEgressStatsForSource(
+const WebRtcMediaApplicationSourceEgressStats* OpsHealthEgressStatsForSource(
     const SourceViewApplicationService::SourceRecord& source,
-    const std::vector<core::SessionManager::SourceEgressStats>& egress_stats) {
+    const std::vector<WebRtcMediaApplicationSourceEgressStats>& egress_stats) {
     const auto candidates = ClientStreamKeyCandidates(source);
     const auto it = std::find_if(egress_stats.begin(), egress_stats.end(), [&](const auto& stats) {
         return std::find(candidates.begin(), candidates.end(), stats.stream_key) != candidates.end();
@@ -570,9 +570,9 @@ const core::SessionManager::SourceEgressStats* OpsHealthEgressStatsForSource(
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9490 function
-const media::StreamDescriptor* OpsHealthDescriptorForSource(
+const WebRtcMediaApplicationSourceDescriptorSnapshot::Descriptor* OpsHealthDescriptorForSource(
     const SourceViewApplicationService::SourceRecord& source,
-    const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots) {
+    const std::vector<WebRtcMediaApplicationSourceDescriptorSnapshot>& descriptor_snapshots) {
     const auto candidates = ClientStreamKeyCandidates(source);
     const auto it = std::find_if(descriptor_snapshots.begin(), descriptor_snapshots.end(), [&](const auto& snapshot) {
         return std::find(candidates.begin(), candidates.end(), snapshot.stream_key) != candidates.end();
@@ -669,16 +669,18 @@ std::optional<std::int64_t> CapsFpsField(const std::string& caps) {
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9584 function
-const media::TrackInfo* OpsHealthVideoTrack(const media::StreamDescriptor& descriptor) {
+const WebRtcMediaApplicationSourceDescriptorSnapshot::Track* OpsHealthVideoTrack(
+    const WebRtcMediaApplicationSourceDescriptorSnapshot::Descriptor& descriptor) {
     const auto it = std::find_if(descriptor.tracks.begin(), descriptor.tracks.end(), [](const auto& track) {
-        return track.kind == media::MediaKind::Video;
+        return track.kind == "video";
     });
     return it == descriptor.tracks.end() ? nullptr : &*it;
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9591 function
-std::string OpsHealthCodecVideoName(const media::TrackInfo& track) {
-    const std::string codec = media::ToString(track.codec);
+std::string OpsHealthCodecVideoName(
+    const WebRtcMediaApplicationSourceDescriptorSnapshot::Track& track) {
+    const std::string codec = track.codec;
     if (!codec.empty() && codec != "unknown") {
         return codec;
     }
@@ -691,7 +693,9 @@ std::string OpsHealthCodecVideoName(const media::TrackInfo& track) {
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9604 function
-void ApplyOpsSourceHealthCodec(OpsSourceHealthItem* item, const media::StreamDescriptor* descriptor) {
+void ApplyOpsSourceHealthCodec(
+    OpsSourceHealthItem* item,
+    const WebRtcMediaApplicationSourceDescriptorSnapshot::Descriptor* descriptor) {
     if (item == nullptr || descriptor == nullptr) {
         return;
     }
@@ -726,10 +730,10 @@ void ClassifyOpsSourceHealth(OpsSourceHealthItem* item,
                              const SourceViewApplicationService::SourceRecord& source,
                              const SourceViewApplicationService::PublishedViewRecord* view,
                              const AnalysisSessionApplicationSnapshot* tap,
-                             const PublishedWebRtcSource::Snapshot* published_source,
-                             const media::StreamDescriptor* descriptor,
-                             const core::SessionManager::SourceReconnectStats* reconnect_stats,
-                             const core::SessionManager::SourceEgressStats* egress_stats,
+                             const WebRtcMediaApplicationPublishedSourceSnapshot* published_source,
+                             const WebRtcMediaApplicationSourceDescriptorSnapshot::Descriptor* descriptor,
+                             const WebRtcMediaApplicationSourceReconnectStats* reconnect_stats,
+                             const WebRtcMediaApplicationSourceEgressStats* egress_stats,
                              const std::string& checked_at) {
     if (item == nullptr) {
         return;
@@ -866,10 +870,10 @@ void ApplyOpsSourceHealthWarningThresholds(OpsSourceHealthSnapshot* snapshot) {
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 9773 function
 OpsSourceHealthSnapshot BuildOpsSourceHealthSnapshot(
     const std::vector<AnalysisSessionApplicationSnapshot>& analysis_taps,
-    const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
-    const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
-    const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats,
-    const std::vector<core::SessionManager::SourceEgressStats>& egress_stats) {
+    const std::vector<WebRtcMediaApplicationPublishedSourceSnapshot>& publish_sources,
+    const std::vector<WebRtcMediaApplicationSourceDescriptorSnapshot>& descriptor_snapshots,
+    const std::vector<WebRtcMediaApplicationSourceReconnectStats>& reconnect_stats,
+    const std::vector<WebRtcMediaApplicationSourceEgressStats>& egress_stats) {
     OpsSourceHealthSnapshot snapshot;
     std::vector<SourceViewApplicationService::SourceRecord> sources;
     std::vector<SourceViewApplicationService::PublishedViewRecord> views;
@@ -888,7 +892,7 @@ OpsSourceHealthSnapshot BuildOpsSourceHealthSnapshot(
         const auto* view = OpsHealthViewForSource(views, source.source_id);
         const auto* tap = OpsHealthTapForSource(source, analysis_taps);
         const auto* published_source = OpsHealthPublishedSourceFor(source, publish_sources);
-        const media::StreamDescriptor* descriptor = OpsHealthDescriptorForSource(source, descriptor_snapshots);
+        const auto* descriptor = OpsHealthDescriptorForSource(source, descriptor_snapshots);
         if (descriptor == nullptr && published_source != nullptr && published_source->descriptor.has_value()) {
             descriptor = &*published_source->descriptor;
         }
@@ -3160,10 +3164,10 @@ void AppendOpsSourceHealthAuditChanges(const WebRtcHttpRuntimeConfig& config,
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 12187 function
 std::string OpsSourceHealthJson(const std::vector<AnalysisSessionApplicationSnapshot>& analysis_taps,
-                                const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
-                                const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
-                                const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats,
-                                const std::vector<core::SessionManager::SourceEgressStats>& egress_stats,
+                                const std::vector<WebRtcMediaApplicationPublishedSourceSnapshot>& publish_sources,
+                                const std::vector<WebRtcMediaApplicationSourceDescriptorSnapshot>& descriptor_snapshots,
+                                const std::vector<WebRtcMediaApplicationSourceReconnectStats>& reconnect_stats,
+                                const std::vector<WebRtcMediaApplicationSourceEgressStats>& egress_stats,
                                 const WebRtcHttpRuntimeConfig* audit_config,
                                 const auth::Principal* audit_principal) {
     const auto snapshot =
@@ -3208,10 +3212,10 @@ bool OpsSourceHealthBulkRetryable(const OpsSourceHealthItem& item) {
 std::string OpsSourceHealthBulkJson(
     const std::string& body,
     const std::vector<AnalysisSessionApplicationSnapshot>& analysis_taps,
-    const std::vector<PublishedWebRtcSource::Snapshot>& publish_sources,
-    const std::vector<core::SessionManager::SourceDescriptorSnapshot>& descriptor_snapshots,
-    const std::vector<core::SessionManager::SourceReconnectStats>& reconnect_stats,
-    const std::vector<core::SessionManager::SourceEgressStats>& egress_stats,
+    const std::vector<WebRtcMediaApplicationPublishedSourceSnapshot>& publish_sources,
+    const std::vector<WebRtcMediaApplicationSourceDescriptorSnapshot>& descriptor_snapshots,
+    const std::vector<WebRtcMediaApplicationSourceReconnectStats>& reconnect_stats,
+    const std::vector<WebRtcMediaApplicationSourceEgressStats>& egress_stats,
     const WebRtcHttpRuntimeConfig* audit_config,
     const auth::Principal* audit_principal) {
     const auto snapshot =

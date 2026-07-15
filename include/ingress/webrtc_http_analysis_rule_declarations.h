@@ -3,11 +3,8 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 #include <vector>
-
-namespace media {
-struct IngressRequest;
-}
 
 namespace ingress {
 
@@ -15,7 +12,8 @@ std::vector<std::string> WebRtcHttpAnalysisProfileDocumentsSnapshotBackend();
 std::vector<std::string> WebRtcHttpAnalysisRuleDocumentsSnapshotBackend();
 std::vector<std::string> WebRtcHttpVideoAnalysisRuleDocumentsSnapshotBackend();
 
-bool ApplyWebRtcHttpVideoAnalysisRuleToRequestBackend(media::IngressRequest* request,
-                                                      std::string* error_message);
+bool ApplyWebRtcHttpVideoAnalysisRuleToQueryBackend(
+    std::unordered_map<std::string, std::string>* query,
+    std::string* error_message);
 
 }  // namespace ingress

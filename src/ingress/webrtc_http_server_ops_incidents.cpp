@@ -7714,9 +7714,9 @@ std::string LabFilesJson() {
 bool AttachWebRtcAnalysisOverlay(
                                  AnalysisSessionLifecycleApplicationService& analysis_session_lifecycle,
                                  AnalysisSessionReadApplicationService& analysis_session_reads,
-                                 const media::IngressRequest& ingress_request,
+                                 const WebRtcMediaApplicationRequest& ingress_request,
                                  const std::unordered_map<std::string, std::string>& query,
-                                 const std::shared_ptr<WebRtcEgressSession>& bridge,
+                                 const std::shared_ptr<WebRtcMediaApplicationEgressSession>& bridge,
                                  std::string* analysis_tap_id,
                                  std::string* error_message) {
     if (!IsAnalysisOverlayRequestedForApplication(query)) {
@@ -7729,7 +7729,7 @@ bool AttachWebRtcAnalysisOverlay(
         return false;
     }
 
-    media::IngressRequest analysis_request = ingress_request;
+    WebRtcMediaApplicationRequest analysis_request = ingress_request;
     analysis_request.protocol = "webrtc";
     analysis_request.client_id = ingress_request.client_id + "-analysis";
     auto attach_result = analysis_session_lifecycle.Attach(
@@ -7742,13 +7742,13 @@ bool AttachWebRtcAnalysisOverlay(
         return false;
     }
 
-    std::weak_ptr<WebRtcEgressSession> weak_bridge = bridge;
+    std::weak_ptr<WebRtcMediaApplicationEgressSession> weak_bridge = bridge;
     const bool render_video_overlay =
         ParseBoolQuery(query, "renderVideoOverlay", ParseBoolQuery(query, "videoOverlay", true));
     const auto overlay_settings = ResolveAnalysisOverlaySettingsForApplication(
         query,
         render_video_overlay);
-    const auto metadata_channel_config = BuildWebRtcMetadataChannelConfigFromQuery(query);
+    const auto metadata_channel_config = BuildWebRtcMediaApplicationMetadataChannelConfigFromQuery(query);
     const bool metadata_channel_enabled = metadata_channel_config.enabled;
     const auto metadata_subscription_filter = BuildVaMetadataSubscriptionFilter(query);
     const bool metadata_fallback_payload_enabled =
@@ -7767,7 +7767,7 @@ bool AttachWebRtcAnalysisOverlay(
          debug_overlay = overlay_settings.draw_debug_overlay,
          tolerance_ns = overlay_settings.sync_tolerance_ns,
          wait_timeout_ms = overlay_settings.wait_timeout_ms](std::int64_t frame_pts,
-                                                              analysis::AnalysisResult* output) -> bool {
+                                                              AnalysisSessionApplicationResult* output) -> bool {
             if (output == nullptr) {
                 return false;
             }
@@ -7802,7 +7802,7 @@ bool AttachWebRtcAnalysisOverlay(
                                                     sync_info,
                                                     metadata_subscription_filter));
                 }
-                *output = RestoreCanonicalResultForApplicationOutput(annotated);
+                *output = annotated;
                 return true;
             }
             // 동기화 허용 시간 안에 결과가 아직 없으면 최신 snapshot으로 fallback해 overlay 공백을 줄인다.
@@ -7843,11 +7843,10 @@ bool AttachWebRtcAnalysisOverlay(
                         WebRtcVaMetadataMissingMessageJson(tap_id, source_pts, tolerance_ns));
                 }
             }
-            *output = RestoreCanonicalResultForApplicationOutput(annotated);
+            *output = annotated;
             return true;
         };
-    bridge->SetPipelineAttachment(MakeAnalysisOverlayAttachmentForApplication(
-        query, render_video_overlay, std::move(result_provider)));
+    bridge->ConfigureAnalysisOverlay(query, render_video_overlay, std::move(result_provider));
     if (analysis_tap_id != nullptr) {
         *analysis_tap_id = attach_result.tap_id;
     }

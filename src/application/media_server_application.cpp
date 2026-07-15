@@ -20,6 +20,7 @@
 #include "analysis/analysis_session_service.h"
 #include "ingress/analysis_session_lifecycle_application_adapter.h"
 #include "ingress/analysis_session_read_application_adapter.h"
+#include "ingress/webrtc_media_application_adapter.h"
 #include "analysis/event_storage.h"
 #include "app_config.h"
 #include "core/resource_guard.h"
@@ -311,13 +312,15 @@ int RunMediaServerApplication(int argc, char** argv) {
         ingress::MakeAnalysisSessionLifecycleApplicationAdapter(analysis_sessions);
     auto analysis_session_reads =
         ingress::MakeAnalysisSessionReadApplicationAdapter(analysis_sessions);
+    auto webrtc_media_sessions =
+        ingress::MakeWebRtcMediaApplicationAdapter(session_manager);
     session_manager.SetAuxiliaryStreamRuntimeProvider(
         [&analysis_sessions] { return analysis_sessions.AuxiliaryStreamRuntimeSnapshot(); });
     // 두 transport와 runtime accounting은 같은 analysis service를 공유해 tap 수명과 source fan-out을 일치시킨다.
     ingress::GStreamerRtspServer gst_rtsp_server(session_manager, analysis_sessions);
     const auto webrtc_http_runtime_config = BuildWebRtcHttpRuntimeConfig(config);
     ingress::WebRtcHttpServer webrtc_http_server(
-        session_manager,
+        *webrtc_media_sessions,
         *analysis_session_lifecycle,
         *analysis_session_reads,
         webrtc_http_runtime_config);

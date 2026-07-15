@@ -3,11 +3,8 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 #include <vector>
-
-namespace media {
-struct IngressRequest;
-}
 
 namespace ingress {
 
@@ -15,7 +12,8 @@ struct AnalysisRuleApplicationCallbacks {
     std::vector<std::string> (*profile_documents_snapshot)(){nullptr};
     std::vector<std::string> (*rule_documents_snapshot)(){nullptr};
     std::vector<std::string> (*video_analysis_rule_documents_snapshot)(){nullptr};
-    bool (*apply_video_analysis_rule_to_request)(media::IngressRequest*, std::string*){nullptr};
+    bool (*apply_video_analysis_rule_to_query)(
+        std::unordered_map<std::string, std::string>*, std::string*){nullptr};
 };
 
 bool ConfigureAnalysisRuleApplicationService(
@@ -25,7 +23,8 @@ bool ConfigureAnalysisRuleApplicationService(
 std::vector<std::string> ApplicationAnalysisProfileDocumentsSnapshot();
 std::vector<std::string> ApplicationAnalysisRuleDocumentsSnapshot();
 std::vector<std::string> ApplicationVideoAnalysisRuleDocumentsSnapshot();
-bool ApplyApplicationVideoAnalysisRuleToRequest(media::IngressRequest* request,
-                                                std::string* error_message);
+bool ApplyApplicationVideoAnalysisRuleToQuery(
+    std::unordered_map<std::string, std::string>* query,
+    std::string* error_message);
 
 }  // namespace ingress

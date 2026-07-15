@@ -232,7 +232,7 @@ function assertTransportContract(server, incidents, runtime, detail, transport) 
   assert(exactCount(incidents,
     /EvaluateEventRulesForApplication\([\s\S]*?const auto& annotated = evaluation\.ApplicationAnnotatedResult\(\);[\s\S]*?const auto& events = evaluation\.ApplicationEvents\(\);[\s\S]*?DispatchEventRecordsForApplication\(ProjectEventStorageDispatchRequest\(\s*annotated, events\)\);[\s\S]*?DispatchEventPostsForApplication\(ProjectEventPostDispatchRequest\(\s*annotated, events\)\);[\s\S]*?PublishAnalysisMetadata\(/g) === 2,
   "WebRTC matched/fallback Record -> POST -> metadata order drift");
-  assert(exactCount(incidents, /\*output = RestoreCanonicalResultForApplicationOutput\(annotated\);/g) === 2,
+  assert(exactCount(incidents, /\*output = annotated;/g) === 2,
     "WebRTC provider must return canonical annotated result on matched and fallback paths");
   assert(ordered(runtime, [
     "result.debug_state_requested = true",
@@ -477,8 +477,8 @@ check("transport has zero canonical bypass and exact runtime/action lifecycle", 
     replaceExact(incidents, "         event_runtime,\n", "", "RED runtime capture omission"));
   mutateAndReject("RED annotated output replaced by input", server,
     replaceExact(incidents,
-      "                *output = RestoreCanonicalResultForApplicationOutput(annotated);",
-      "                *output = RestoreCanonicalResultForApplicationOutput(*result);",
+      "                *output = annotated;",
+      "                *output = *result;",
       "RED annotated output replaced by input"));
   mutateAndReject("RED dispatch order", server,
     incidents.replace("DispatchEventRecordsForApplication(ProjectEventStorageDispatchRequest(",
@@ -495,21 +495,21 @@ check("CMake, server dispatch, and current graph bind exact Slice 29 successor",
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const classifier = id => graph.moduleClassifiers.find(item => item.id === id);
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.expectedProductionFiles === 212 && graph.expectedCppFiles === 102 &&
-    classifier("application-service-interfaces")?.expectedFileCount === 45 &&
-    classifier("application-service-interfaces")?.expectedCppCount === 18 &&
+  assert(graph.expectedProductionFiles === 215 && graph.expectedCppFiles === 103 &&
+    classifier("application-service-interfaces")?.expectedFileCount === 48 &&
+    classifier("application-service-interfaces")?.expectedCppCount === 19 &&
     !edge("transport-and-auth-adapter -> analysis-services") &&
     edge("application-service-interfaces -> analysis-services")?.witnessCount === 23 &&
     edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "4b3cbd1800bf8771eef67752edae8b604e8aefc1574e44d7890847c76d681cee" &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 23 &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "8cd647e97e04ebdc976ba2e64448fcc582a66ed114b75f91b7fb683fa5fba38d" &&
-    edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessCount === 4 &&
-    edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessSha256 === "adf4172d0e83de59df510ceeb38c88cd36aaf78b157e7022b6480d8e0793cab3" &&
-    edge("composition-root -> application-service-interfaces")?.witnessCount === 2 &&
-    edge("composition-root -> application-service-interfaces")?.witnessSha256 === "fc7b3895f0b81d59e40e4e8767f34518412a866cedd7c088b3dc9d58a7c90b48" &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 25 &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "89cde5c1a3dd580514f150040686b1feb22470b684fc4ace242f75a6aff8b9c7" &&
+    !edge("transport-and-auth-adapter -> core-media-interfaces") &&
+    edge("application-service-interfaces -> core-media-interfaces")?.witnessCount === 4 &&
+    edge("composition-root -> application-service-interfaces")?.witnessCount === 3 &&
+    edge("composition-root -> application-service-interfaces")?.witnessSha256 === "a8e2b7fe386fb488bf5cd84f2218ce8bb3f299fb1ddcab9075e3c491c8a68c2f" &&
     graph.observedModuleEdges.length === 16 &&
-    graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 1 &&
-    graph.stronglyConnectedComponents.length === 0 && graph.boundary.includes("Analysis Session lifecycle application boundary"),
+    graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 0 &&
+    graph.stronglyConnectedComponents.length === 0 && graph.boundary.includes("WebRTC media application boundary"),
   "exact Event Rule graph successor drift");
 });
 

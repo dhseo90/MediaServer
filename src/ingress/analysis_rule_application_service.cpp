@@ -24,7 +24,7 @@ bool CallbacksAreComplete(const AnalysisRuleApplicationCallbacks& callbacks) {
     return callbacks.profile_documents_snapshot != nullptr &&
            callbacks.rule_documents_snapshot != nullptr &&
            callbacks.video_analysis_rule_documents_snapshot != nullptr &&
-           callbacks.apply_video_analysis_rule_to_request != nullptr;
+           callbacks.apply_video_analysis_rule_to_query != nullptr;
 }
 
 bool CallbacksAreEqual(const AnalysisRuleApplicationCallbacks& lhs,
@@ -32,7 +32,7 @@ bool CallbacksAreEqual(const AnalysisRuleApplicationCallbacks& lhs,
     return lhs.profile_documents_snapshot == rhs.profile_documents_snapshot &&
            lhs.rule_documents_snapshot == rhs.rule_documents_snapshot &&
            lhs.video_analysis_rule_documents_snapshot == rhs.video_analysis_rule_documents_snapshot &&
-           lhs.apply_video_analysis_rule_to_request == rhs.apply_video_analysis_rule_to_request;
+           lhs.apply_video_analysis_rule_to_query == rhs.apply_video_analysis_rule_to_query;
 }
 
 AnalysisRuleApplicationCallbacks CallbackSnapshot() {
@@ -67,13 +67,19 @@ std::vector<std::string> VideoAnalysisRuleDocumentsAdapter() {
 bool ApplyVideoAnalysisRuleAdapter(media::IngressRequest* request,
                                    std::string* error_message) {
     const auto callbacks = CallbackSnapshot();
-    if (callbacks.apply_video_analysis_rule_to_request == nullptr) {
+    if (callbacks.apply_video_analysis_rule_to_query == nullptr) {
         if (error_message != nullptr) {
             *error_message = "analysis rule application service is not configured";
         }
         return false;
     }
-    return callbacks.apply_video_analysis_rule_to_request(request, error_message);
+    if (request == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "request is missing";
+        }
+        return false;
+    }
+    return callbacks.apply_video_analysis_rule_to_query(&request->query, error_message);
 }
 
 }  // namespace
@@ -126,9 +132,17 @@ std::vector<std::string> ApplicationVideoAnalysisRuleDocumentsSnapshot() {
     return VideoAnalysisRuleDocumentsAdapter();
 }
 
-bool ApplyApplicationVideoAnalysisRuleToRequest(media::IngressRequest* request,
-                                                std::string* error_message) {
-    return ApplyVideoAnalysisRuleAdapter(request, error_message);
+bool ApplyApplicationVideoAnalysisRuleToQuery(
+    std::unordered_map<std::string, std::string>* query,
+    std::string* error_message) {
+    const auto callbacks = CallbackSnapshot();
+    if (callbacks.apply_video_analysis_rule_to_query == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "analysis rule application service is not configured";
+        }
+        return false;
+    }
+    return callbacks.apply_video_analysis_rule_to_query(query, error_message);
 }
 
 }  // namespace ingress

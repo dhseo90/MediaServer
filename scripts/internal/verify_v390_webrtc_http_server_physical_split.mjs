@@ -27,9 +27,11 @@ const skipMutations = rawArgs.includes("--skip-mutations");
 const fixtureArg = rawArgs.find(arg => arg.startsWith("--fixture-root="));
 const sourceRoot = fixtureArg ? validateFixtureRoot(fixtureArg.slice("--fixture-root=".length)) : rootDir;
 const rollbackCommit = "2e4a4d7e";
-const expectedSuccessorDefinitionCount = 1189;
+const expectedSuccessorDefinitionCount = 1190;
 const expectedSuccessorDefinitionSha256 =
-  "a9da052b9ce114a52c7b90f9eac51acfd98961b68b99d56ad9ba69ad0116d354";
+  "eb9f038a775adebb06d9ddd84f6b6ef1b6f5dbcc2803dc020cc4cc9287250729";
+const expectedGraphSha256 =
+  "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a";
 const helperPath = "scripts/internal/webrtc_http_server_source_bundle.mjs";
 const graphPath = "test/fixtures/v390_structure_stabilization_current_graph.json";
 const splitPaths = [
@@ -386,11 +388,20 @@ check("CMake and owner classifier include every translation unit exactly once", 
 });
 
 check("actual graph keeps direction debt stable while closing the mixed-owner limit", () => {
-  const graph = JSON.parse(read(graphPath));
+  const graphText = read(graphPath);
+  const graph = JSON.parse(graphText);
   const trackedSplit = graph.mixedOwnershipDebt.filter(item => splitPaths.includes(item.file));
-  assert(graph.expectedProductionFiles === 212 && graph.expectedCppFiles === 102 &&
+  const appCore = graph.observedModuleEdges.find(item =>
+    item.direction === "application-service-interfaces -> core-media-interfaces");
+  const transportCore = graph.observedModuleEdges.filter(item =>
+    item.direction === "transport-and-auth-adapter -> core-media-interfaces" ||
+    item.direction === "transport-and-auth-adapter -> core-utilities");
+  assert(sha256(graphText) === expectedGraphSha256 &&
+    graph.expectedProductionFiles === 215 && graph.expectedCppFiles === 103 &&
     graph.observedModuleEdges.length === 16 &&
-    graph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 1 &&
+    graph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 0 &&
+    appCore?.witnessCount === 4 && appCore.allowedByTarget === true &&
+    transportCore.length === 0 &&
     graph.stronglyConnectedComponents.length === 0 && graph.cmake.targets.length === 2 &&
     graph.cmake.internalTargetSeparation === true && trackedSplit.length === splitPaths.length &&
     trackedSplit.every(item => item.lineCount === lineCount(read(item.file)) && item.lineCount <= 15000),
@@ -478,10 +489,10 @@ if (!skipMutations && splitPaths.every(file => fs.existsSync(path.join(rootDir, 
       text => text.replace(`        "${splitPaths[2]}",\n`, ""),
       "CMake and owner classifier");
     rejectMutation("graph", graphPath,
-      text => text.replace('"expectedProductionFiles": 212', '"expectedProductionFiles": 213'),
+      text => text.replace('"expectedProductionFiles": 215', '"expectedProductionFiles": 216'),
       "actual graph keeps direction debt stable");
     rejectMutation("graph-line-count", graphPath,
-      text => text.replace('"lineCount": 7767', '"lineCount": 7768'),
+      text => text.replace('"lineCount": 7777', '"lineCount": 7778'),
       "actual graph keeps direction debt stable");
     rejectMutation("line-budget", splitPaths[2],
       text => `${text}${"\n".repeat(15001)}`,

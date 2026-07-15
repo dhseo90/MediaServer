@@ -5,7 +5,7 @@
 
 | 항목 | 현재 상태 | 다음 경계 |
 | --- | --- | --- |
-| REVIEW4-64 | 진행 중. continuation Slice 30B 구현·검증 완료 | 남은 transport→core-media 방향 4건 폐쇄 |
+| REVIEW4-64 | continuation Slice 32 완료. 구조 final target 충족 | Slice 32 커밋 후 REVIEW4-65 독립 acceptance |
 | REVIEW4-65 | 미착수 | 64번 완료 후 current HEAD 독립 acceptance |
 
 ## Slice 30A Analysis Session read application 경계
@@ -44,3 +44,23 @@ transport→core-media4입니다. Graph SHA는
 `808cf2395f6d8f8871bc33ae1691d3ed615a5907b23a782bbcacfedd80a315d2`입니다. Slice 30B의 PASS는
 64번 전체 완료나 65번 acceptance PASS가 아닙니다. Core-media 방향 4건이 남아 64번은 진행 중이고
 65번은 미착수입니다.
+
+## Slice 32 WebRTC media application 경계
+
+표준 라이브러리 타입만 노출하는 deep DTO와 opaque egress/source session port, canonical adapter를 추가했습니다.
+Transport가 직접 결속하던 SessionManager, WebRTC egress/source session, source registry 네 core-media witness를
+application service 뒤로 이동해 transport→core-media는 4건에서 0건이 됐습니다. Application→core-media 4건은
+canonical adapter의 허용된 결속으로 남습니다.
+
+Focused verifier 8/8, predecessor 6종 40/40, structure 15/15, source bundle 6/6, physical split 6/6,
+build 100%, analysis-state 181/181을 확인했습니다. 최종 semantic review의 verifier false-PASS P1 1건은
+exact output/input mapping과 paired-swap·descriptor omission RED로 수정했습니다. Current graph는 production 215/C++ 103,
+위반 0, SCC 0이며 graph SHA는
+`215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a`입니다.
+
+Runtime은 승인된 sandbox 밖 auth-off throwaway 서버에서 ICE 8/8, codec 67/67(외부 3건 제외), SSE 5/5,
+side-channel 5/5, WS 9/9, WebRTC metadata 8/8, RTSP overlay policy 6/6, Ops lifecycle/source health와
+LAB core를 통과했습니다. 최초 sandbox 격리 FAIL, auth-on 401, auth-off codec empty-array nounset FAIL은 각각
+정확한 auth-off 명령과 Bash 3.2-safe optional argument 수정 뒤 재검증했습니다. 임시 파일 30개/32,763바이트를
+삭제했고 8081/8555 listener는 0입니다. Slice 32와 REVIEW4-64 구조 개발은 완료됐지만 parked evidence를 확정하는
+REVIEW4-65 독립 acceptance PASS는 아닙니다.
