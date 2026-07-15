@@ -478,6 +478,18 @@ split companion verifiers were rebound to exact function/UI owners without produ
 Current graph is production 178/C++ 87, edge 17, violations 3, SCC 0, and transport-to-domain witnesses 2→1.
 Transport-to-analysis/core-media/domain directions and parked generated evidence keep REVIEW4-64/65 open.
 
+### Current continuation Slice 19: `vlm-observation-application-boundary`
+
+- [x] Add dependency-free VLM observation query/result and summary/rule candidate request DTOs.
+- [x] Own the canonical default store path and all field mapping in the application implementation.
+- [x] Preserve raw observation JSON, candidate report bytes, pagination, corrupt-line, privacy, and manual-only contracts.
+- [x] Remove direct observation store include/type/function calls from all ten transport files.
+
+Focused verification moved from expected 0/5 RED to 5/0. Build, actual LAB core, provenance, analysis181, sidecar,
+Ops review, draft workflow, v260 review, predecessor, bundle, and physical gates passed. Current graph is
+production184/C++90, edge17, violations3, SCC0; transport-to-analysis witnesses are 16→15. Parked generated manifest
+checks and the remaining violation directions keep REVIEW4-64/65 open.
+
 ### Current continuation Slice 18: `category-catalog-application-boundary`
 
 - [x] Add a dependency-free seven-field category catalog DTO and exact canonical mapping.

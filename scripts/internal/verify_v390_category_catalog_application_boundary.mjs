@@ -100,19 +100,19 @@ check("CMake and exact graph successor bind Slice 18", () => {
   assert(cmake.split(sourcePath).length - 1 === 1, "CMake source exact-once binding missing");
   const owner = graph.moduleClassifiers.find(item => item.id === "application-service-interfaces");
   assert(owner?.exactFiles.includes(headerPath) && owner.exactFiles.includes(sourcePath) &&
-    owner.expectedFileCount === 17 && owner.expectedCppCount === 6, "application owner successor drift");
+    owner.expectedFileCount === 19 && owner.expectedCppCount === 7, "application owner successor drift");
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
   const exactEdges = {
-    "transport-and-auth-adapter -> analysis-services": [16, false, "eee661f192fd965a64e071bb30599a128b8a58d48bfee23498679aa47e3ce716"],
-    "application-service-interfaces -> analysis-services": [3, true, "ef9f1860304f8f6948a81bd456ceccc6797f0cec540c68ea256309b1b0c1479c"],
-    "transport-and-auth-adapter -> application-service-interfaces": [9, true, "54b086683804169e1e7716501aebdc44794cdd25d9e066671ee18b772711116a"],
+    "transport-and-auth-adapter -> analysis-services": [15, false, "d9f6a06fbe6f2a382c85fca9d0a3757663b8a77bddeb4ac3aeb5e83889d6fa4d"],
+    "application-service-interfaces -> analysis-services": [4, true, "8d52d09690a4f5553d183359bc5e6816e7af7039a54d1624b3cfbb5c609d6b9a"],
+    "transport-and-auth-adapter -> application-service-interfaces": [10, true, "41c936dbe5e7873083d71e0f385017b29b48c1dd1b689585c2b9b38b1ef7421f"],
   };
-  assert(graph.expectedProductionFiles === 182 && graph.expectedCppFiles === 89 &&
+  assert(graph.expectedProductionFiles === 184 && graph.expectedCppFiles === 90 &&
     graph.observedModuleEdges.length === 17 && graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 3 &&
     graph.stronglyConnectedComponents.length === 0 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 16 &&
-    edge("application-service-interfaces -> analysis-services")?.witnessCount === 3 &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 9,
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 15 &&
+    edge("application-service-interfaces -> analysis-services")?.witnessCount === 4 &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 10,
   "exact graph successor drift");
   for (const [direction, [count, allowed, witnessSha256]] of Object.entries(exactEdges)) {
     const item = edge(direction);

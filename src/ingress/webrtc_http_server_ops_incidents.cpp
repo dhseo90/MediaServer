@@ -815,12 +815,11 @@ std::string OpsVlmEventReviewJson(const std::string& event_json) {
     std::string observation_error;
     std::string observation_json;
     if (!event_id.empty()) {
-        analysis::VlmObservationQueryOptions options;
+        VlmObservationQueryRequest options;
         options.event_id = event_id;
         options.limit = 1;
-        analysis::VlmObservationQueryResult query_result;
-        observation_query_ok = analysis::QueryVlmObservations(
-            analysis::DefaultVlmObservationStorePath(), options, &query_result, &observation_error);
+        VlmObservationQueryView query_result;
+        observation_query_ok = QueryVlmObservationStore(options, &query_result, &observation_error);
         observation_store_exists = query_result.file_exists;
         if (observation_query_ok && !query_result.observations_json.empty()) {
             observation_json = query_result.observations_json.front();
@@ -959,7 +958,7 @@ std::string OpsV390VlmRuleSuggestionDraftBridgeJson() {
 std::string OpsVlmRuleSuggestionDraftWorkflowJson(
     const std::unordered_map<std::string, std::string>& query,
     std::string* error_message) {
-    analysis::VlmRuleSuggestionOptions options;
+    VlmRuleSuggestionRequest options;
     options.source_id = query.count("sourceId") != 0 ? Trim(query.at("sourceId")) : std::string();
     options.privacy_mode =
         query.count("privacyMode") != 0 ? Trim(query.at("privacyMode")) : std::string();
@@ -972,10 +971,7 @@ std::string OpsVlmRuleSuggestionDraftWorkflowJson(
 
     std::string candidate_body;
     std::string candidate_error;
-    if (!analysis::BuildVlmRuleSuggestionCandidatesJson(analysis::DefaultVlmObservationStorePath(),
-                                                        options,
-                                                        &candidate_body,
-                                                        &candidate_error)) {
+    if (!BuildVlmRuleSuggestionCandidates(options, &candidate_body, &candidate_error)) {
         if (error_message != nullptr) {
             *error_message = candidate_error;
         }
@@ -1047,15 +1043,15 @@ std::string OpsIncidentRuleSuggestionReviewJson(const std::string& event_json) {
     const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
     const std::string source_id = OpsIncidentRuleSuggestionSourceId(event_json);
 
-    analysis::VlmObservationQueryResult observation_result;
+    VlmObservationQueryView observation_result;
     std::string observation_error;
     bool observation_query_ok = false;
     if (!event_id.empty()) {
-        analysis::VlmObservationQueryOptions observation_options;
+        VlmObservationQueryRequest observation_options;
         observation_options.event_id = event_id;
         observation_options.limit = 1;
-        observation_query_ok = analysis::QueryVlmObservations(
-            analysis::DefaultVlmObservationStorePath(), observation_options, &observation_result, &observation_error);
+        observation_query_ok = QueryVlmObservationStore(
+            observation_options, &observation_result, &observation_error);
     }
     const std::string observation_json =
         observation_query_ok && !observation_result.observations_json.empty()
@@ -1074,13 +1070,13 @@ std::string OpsIncidentRuleSuggestionReviewJson(const std::string& event_json) {
             ? Trim(ParseStringField(rule_suggestion_json, "targetRoute").value_or("/ops/rules"))
             : "/ops/rules";
 
-    analysis::VlmRuleSuggestionOptions candidate_options;
+    VlmRuleSuggestionRequest candidate_options;
     candidate_options.source_id = source_id;
     candidate_options.limit = 6;
     std::string candidate_report;
     std::string candidate_error;
-    const bool candidate_report_ready = analysis::BuildVlmRuleSuggestionCandidatesJson(
-        analysis::DefaultVlmObservationStorePath(), candidate_options, &candidate_report, &candidate_error);
+    const bool candidate_report_ready = BuildVlmRuleSuggestionCandidates(
+        candidate_options, &candidate_report, &candidate_error);
 
     std::ostringstream out;
     out << "{"
@@ -2914,12 +2910,11 @@ std::string OpsVlmSummaryCandidateReviewJson(const std::string& search_query,
     std::string error_message;
     bool report_ready = false;
     if (!search_query.empty()) {
-        analysis::VlmSummarySearchOptions options;
+        VlmSummarySearchRequest options;
         options.query = search_query;
         options.source_id = source_id;
         options.limit = 6;
-        report_ready = analysis::BuildVlmSummarySearchCandidatesJson(
-            analysis::DefaultVlmObservationStorePath(), options, &candidate_report, &error_message);
+        report_ready = BuildVlmSummaryCandidates(options, &candidate_report, &error_message);
     }
 
     std::ostringstream out;

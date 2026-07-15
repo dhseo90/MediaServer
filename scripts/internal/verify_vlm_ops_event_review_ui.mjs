@@ -30,6 +30,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 const checks = [];
 const server = readWebRtcHttpServerBundle(readText);
 const pageScript = readText("src/ingress/product_ui_page_scripts.cpp");
+const serverPage = readText("src/ingress/product_ui_server_pages.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
 const eventStorage = readText("src/analysis/event_storage.cpp");
@@ -41,8 +42,7 @@ check("ops review API attaches VLM review object without mutating EventRecord", 
     "OpsVlmEventReviewJson",
     "media-server.ops.vlm-event-review.v1",
     "vlmReview",
-    "QueryVlmObservations",
-    "DefaultVlmObservationStorePath",
+    "QueryVlmObservationStore",
     "snapshotPathPresent",
     "clipPathPresent",
     "vlmEvidenceRefsPresent",
@@ -72,7 +72,7 @@ check("ops events UI renders VLM review panel in review inbox", () => {
     "EventRecord evidence, VLM 설명",
     "<th>Evidence / VLM</th>",
   ]) {
-    assertIncludes(server, snippet, "Ops events markup");
+    assertIncludes(serverPage, snippet, "Ops events markup");
   }
   for (const snippet of [
     "eventReviewVlmHtml",

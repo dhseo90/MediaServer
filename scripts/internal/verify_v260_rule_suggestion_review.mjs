@@ -45,8 +45,7 @@ check("Ops events review item exposes rule suggestion review wrapper only", () =
   for (const snippet of [
     "OpsIncidentRuleSuggestionReviewJson",
     "media-server.ops.incident-rule-suggestion-review.v1",
-    "QueryVlmObservations",
-    "DefaultVlmObservationStorePath",
+    "QueryVlmObservationStore",
     "ExtractJsonValueField(observation_json, \"ruleSuggestion\")",
     "\\\"incidentRuleSuggestionReview\\\":",
     "\\\"sourceCandidateSchema\\\":\\\"media-server.vlm-rule-suggestion-candidates.v1\\\"",

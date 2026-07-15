@@ -54,7 +54,7 @@
 #include "analysis/overlay_renderer.h"
 #include "analysis/snapshot_encoder.h"
 #include "analysis/va_runtime_metadata.h"
-#include "analysis/vlm_observation_store.h"
+#include "ingress/vlm_observation_application_service.h"
 #include "analysis/analysis_query.h"
 #include "ingress/analysis_overlay_probe.h"
 #include "ingress/analysis_rule_registry.h"

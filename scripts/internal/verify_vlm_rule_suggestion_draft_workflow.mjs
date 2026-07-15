@@ -75,8 +75,7 @@ check("Ops API route wraps existing candidate builder without requiring rule-wri
     "media-server.vlm-rule-suggestion-draft-workflow.v1",
     "\\\"targetStep\\\":\\\"V210-S08\\\"",
     "\\\"sourceCandidateStep\\\":\\\"V200-S13\\\"",
-    "BuildVlmRuleSuggestionCandidatesJson",
-    "DefaultVlmObservationStorePath",
+    "BuildVlmRuleSuggestionCandidates",
     "/ops/api/vlm/rule-suggestion-drafts",
     "\\\"manualSaveRequired\\\":true",
     "\\\"ruleRegistryWritePerformed\\\":false",
@@ -93,7 +92,7 @@ check("Ops API route wraps existing candidate builder without requiring rule-wri
 });
 
 check("/ops/rules UI renders draft workflow and applies to form only", () => {
-  const html = readWebRtcHttpServerBundle(readText);
+  const html = readText("src/ingress/product_ui_server_pages.cpp");
   const js = readText("src/ingress/product_ui_page_scripts.cpp");
   const css = readText("src/ingress/product_ui_css.cpp");
   for (const snippet of [
