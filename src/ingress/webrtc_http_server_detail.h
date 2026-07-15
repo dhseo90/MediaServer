@@ -44,7 +44,7 @@
 #include "ingress/category_catalog_application_service.h"
 #include "analysis/detector.h"
 #include "analysis/event_feature_search_index.h"
-#include "analysis/event_post_dispatcher.h"
+#include "ingress/event_post_application_service.h"
 #include "analysis/event_rule_engine.h"
 #include "analysis/event_storage.h"
 #include "analysis/image_frame_loader.h"
@@ -6837,6 +6837,10 @@ std::string WebRtcVaMetadataMessageJson(const analysis::AnalysisResult& result,
 std::string WebRtcVaMetadataMissingMessageJson(const std::string& stream_id,
                                                std::int64_t video_frame_pts_ns,
                                                std::int64_t sync_tolerance_ns);
+
+EventPostDispatchRequest ProjectEventPostDispatchRequest(
+    const analysis::AnalysisResult& result,
+    const std::vector<analysis::AnalysisEvent>& events);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 28285 prototype
 std::string AnalysisEventPostStatusJson();

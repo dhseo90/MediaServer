@@ -545,6 +545,8 @@ Usage:
                  V390-REVIEW4-64 transport의 VLM observation 조회 결속을 application service로 역전합니다.
   verify-v390-incident-memory-application-boundary
                  V390-REVIEW4-64 transport의 incident-memory 결속을 application service로 역전합니다.
+  verify-v390-event-post-application-boundary
+                 V390-REVIEW4-64 transport의 Event POST projection/status 결속을 application service로 역전합니다.
   verify-v390-stable-contract-owner-realignment
                  V390-REVIEW4-64 stable contract leaf를 target owner로 재정렬합니다.
   verify-v390-public-contract-interface-owner
@@ -973,6 +975,8 @@ Usage:
                  V390-REVIEW4-64 transport의 VLM observation 조회 결속을 application service로 역전합니다.
   verify-v390-incident-memory-application-boundary
                  V390-REVIEW4-64 transport의 incident-memory 결속을 application service로 역전합니다.
+  verify-v390-event-post-application-boundary
+                 V390-REVIEW4-64 transport의 Event POST projection/status 결속을 application service로 역전합니다.
   verify-v390-stable-contract-owner-realignment
                  V390-REVIEW4-64 stable contract leaf를 target owner로 재정렬합니다.
   verify-v390-public-contract-interface-owner
@@ -2449,6 +2453,10 @@ case "${cmd}" in
   verify-v390-incident-memory-application-boundary)
     require_internal verify_v390_incident_memory_application_boundary.mjs
     exec "${INTERNAL_DIR}/verify_v390_incident_memory_application_boundary.mjs" "$@"
+    ;;
+  verify-v390-event-post-application-boundary)
+    require_internal verify_v390_event_post_application_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_event_post_application_boundary.mjs" "$@"
     ;;
   verify-v390-stable-contract-owner-realignment)
     require_internal verify_v390_stable_contract_owner_realignment.mjs

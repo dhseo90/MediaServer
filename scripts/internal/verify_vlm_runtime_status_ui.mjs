@@ -36,6 +36,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const checks = [];
 const server = readWebRtcHttpServerBundle(readText);
+const serverModel = `${server}\n${readText("src/ingress/product_ui_server_pages.cpp")}`;
 const pageScript = readText("src/ingress/product_ui_page_scripts.cpp");
 
 check("Ops VLM page renders runtime status panel", () => {
@@ -52,12 +53,12 @@ check("Ops VLM page renders runtime status panel", () => {
     'id="opsVlmRuntimeStatusList"',
     "provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mode, default-off 상태",
   ]) {
-    assert(server.includes(snippet), `server missing runtime status UI snippet: ${snippet}`);
+    assert(serverModel.includes(snippet), `server missing runtime status UI snippet: ${snippet}`);
   }
   const runtimeBlock = extractNamedFunctionBlock(pageScript, "renderOpsVlmRuntimeStatus");
   assert(runtimeBlock.includes("opsVlmProviderStatus"), "UI-033 block-scoped canonical product state missing");
   assert(!["/client/api/", "viewerClientExposureAdded: true", "clientExposureAdded: true"].some(marker => runtimeBlock.includes(marker)), "UI-033 client-viewer-boundary explicit absence oracle");
-  assert(server.includes("/ops/vlm"), "UI-033 canonical route obligation missing");
+  assert(serverModel.includes("/ops/vlm"), "UI-033 canonical route obligation missing");
   assert(pageScript.includes("VLM"), "UI-033 canonical field obligation missing");
 });
 

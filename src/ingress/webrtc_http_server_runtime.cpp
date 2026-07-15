@@ -4528,7 +4528,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                         *snapshot->latest_result, EventRuleRuntimeForKey("tap-events:" + tap_id));
                                     if (ParseBoolQuery(query, "dispatch", false)) {
                                         analysis::DispatchEventRecords(evaluation->annotated_result, evaluation->events);
-                                        analysis::DispatchEventPosts(evaluation->annotated_result, evaluation->events);
+                                        DispatchEventPostsForApplication(ProjectEventPostDispatchRequest(
+                                            evaluation->annotated_result, evaluation->events));
                                         DispatchOpsAlertDeliveries(config,
                                                                   evaluation->annotated_result,
                                                                   evaluation->events);

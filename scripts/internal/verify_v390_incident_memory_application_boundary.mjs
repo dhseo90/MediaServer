@@ -255,17 +255,17 @@ check("actual graph successor reduces one transport-analysis witness", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const owner = graph.moduleClassifiers.find(item => item.id === "application-service-interfaces");
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.boundary === "current REVIEW4-64 continuation graph after the incident memory application boundary; transport serializes dependency-free incident-memory DTOs while the application implementation alone owns canonical projection, privacy rejection, local fallback indexing, search, and highlights, Policy v1 counts 3 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed" &&
-    graph.expectedProductionFiles === 186 && graph.expectedCppFiles === 91 &&
-    owner?.expectedFileCount === 21 && owner.expectedCppCount === 8 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 14 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 === "1e8a99bf6cad1f593b2a2430f731b8d088c91e9d5e85b190b59d7790211f6449" &&
+  assert(graph.boundary === "current REVIEW4-64 continuation graph after the Event POST application boundary; transport projects dependency-free payload/status DTOs while the application implementation alone maps the canonical dispatcher, Policy v1 counts 3 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed" &&
+    graph.expectedProductionFiles === 188 && graph.expectedCppFiles === 92 &&
+    owner?.expectedFileCount === 23 && owner.expectedCppCount === 9 &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 13 &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 === "2a57a73c7b95d0ff5afe52fff4af915ce8a99a0ab1ce96a1cf2ca24eff378233" &&
     edge("transport-and-auth-adapter -> analysis-services")?.allowedByTarget === false &&
-    edge("application-service-interfaces -> analysis-services")?.witnessCount === 5 &&
-    edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "c3945d3c0662be039ef60d72582e83ef31080c34fc88f9957d774e2bbf9c0a1f" &&
+    edge("application-service-interfaces -> analysis-services")?.witnessCount === 6 &&
+    edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "01462553c675fb8de7829bf128aa059679c3950f2f532209d495010e9c995251" &&
     edge("application-service-interfaces -> analysis-services")?.allowedByTarget === true &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 11 &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "d7cc3552637efe0a9f995a313c875773b85998e656063f5a2bacf244c81d77be" &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 12 &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "cb40c1b772183f109c5a5cf7522303b1c102d59ad2c6a46449ef684046e64d34" &&
     edge("transport-and-auth-adapter -> application-service-interfaces")?.allowedByTarget === true &&
     graph.observedModuleEdges.length === 17 &&
     graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 3 &&

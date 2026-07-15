@@ -30,7 +30,7 @@ const checks = [];
 const fixture = readJson("test/fixtures/vlm_evaluation_result_workflow/cases.json");
 const server = readWebRtcHttpServerBundle(readText);
 const promotion = readText("src/ingress/vlm_evaluation_promotion.cpp");
-const serverModel = `${server}\n${promotion}`;
+const serverModel = `${server}\n${promotion}\n${readText("src/ingress/product_ui_server_pages.cpp")}`;
 const pageScript = readText("src/ingress/product_ui_page_scripts.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
 const profileVerifier = readText("scripts/internal/verify_vlm_profile_storage.mjs");
@@ -77,7 +77,7 @@ check("Ops evaluation result API and page markup are wired", () => {
     'id="opsVlmEvaluationSelectionSummary"',
     "latency, JSON 안정성, 설명 품질, hallucination risk, 한국어/영어 품질",
   ]) {
-    assertIncludes(server, snippet, "Ops VLM page markup");
+    assertIncludes(serverModel, snippet, "Ops VLM page markup");
   }
 });
 

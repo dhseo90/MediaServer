@@ -490,6 +490,19 @@ Ops review, draft workflow, v260 review, predecessor, bundle, and physical gates
 production184/C++90, edge17, violations3, SCC0; transport-to-analysis witnesses are 16→15. Parked generated manifest
 checks and the remaining violation directions keep REVIEW4-64/65 open.
 
+### Current continuation Slice 21: `event-post-application-boundary`
+
+- [x] Add dependency-free canonical dispatcher source/event/action/bbox and status DTOs.
+- [x] Preserve the exact dispatcher source bytes, payload schema, queue/dedupe/cooldown behavior, and async worker.
+- [x] Preserve Record→Post→Ops alert/metadata order at all three transport call sites.
+- [x] Remove raw Event POST dispatcher include/snapshot/dispatch access from transport.
+
+Focused verification moved from expected 0/6 RED through 5/1 graph RED to 6/0. Build, analysis181, actual disabled/schema/queue/recovery,
+WebRTC metadata, RTSP overlay, final contract, core-port, VLM UI companions, predecessor, bundle, and physical gates passed. Recovery was
+rerun on a clean max-queue16 server after a preceding slow queue backlog caused the first attempt to miss sentCount. Current graph is
+production188/C++92, edge17, violations3, SCC0; transport-to-analysis witnesses are 14→13. Parked generated evidence and remaining
+violation directions keep REVIEW4-64/65 open.
+
 ### Current continuation Slice 20: `incident-memory-application-boundary`
 
 - [x] Add dependency-free projection, search request/result, hit, and release-safe DTOs.

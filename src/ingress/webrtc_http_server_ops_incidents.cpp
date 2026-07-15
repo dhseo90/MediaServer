@@ -463,20 +463,53 @@ std::string WebRtcVaMetadataMissingMessageJson(const std::string& stream_id,
     return analysis::SerializeVaRuntimeMetadataFrameForWebRtcJson(frame);
 }
 
+EventPostDispatchRequest ProjectEventPostDispatchRequest(
+    const analysis::AnalysisResult& result,
+    const std::vector<analysis::AnalysisEvent>& events) {
+    EventPostDispatchRequest request;
+    request.source.source_key = result.source_key;
+    request.source.profile_key = result.profile_key;
+    request.source.source_kind = result.context.source_kind;
+    request.source.route = result.context.route;
+    request.source.client_id = result.context.client_id;
+    request.source.pts = result.pts;
+    request.events.reserve(events.size());
+    for (const auto& event : events) {
+        EventPostDispatchEvent output;
+        output.rule_id = event.rule_id;
+        output.event_type = event.event_type;
+        output.track_id = event.track_id;
+        output.class_id = event.class_id;
+        output.label = event.label;
+        output.score = event.score;
+        output.box.x = event.box.x;
+        output.box.y = event.box.y;
+        output.box.width = event.box.width;
+        output.box.height = event.box.height;
+        output.highlight_color = event.highlight_color;
+        output.highlight_duration_ms = event.highlight_duration_ms;
+        output.highlight_enabled = event.highlight_enabled;
+        output.post_enabled = event.post_enabled;
+        output.post_url = event.post_url;
+        request.events.push_back(std::move(output));
+    }
+    return request;
+}
+
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 28285 function
 std::string AnalysisEventPostStatusJson() {
-    const auto snapshot = analysis::GetEventPostDispatcherSnapshot();
+    const auto status = ObserveEventPostDispatchStatus();
     std::ostringstream out;
     out << "{"
-        << "\"enabled\":" << (snapshot.enabled ? "true" : "false") << ","
-        << "\"queueSize\":" << snapshot.queue_size << ","
-        << "\"maxQueueSize\":" << snapshot.max_queue_size << ","
-        << "\"enqueuedCount\":" << snapshot.enqueued_count << ","
-        << "\"sentCount\":" << snapshot.sent_count << ","
-        << "\"failedCount\":" << snapshot.failed_count << ","
-        << "\"droppedCount\":" << snapshot.dropped_count << ","
-        << "\"suppressedCount\":" << snapshot.suppressed_count << ","
-        << "\"lastError\":\"" << JsonEscape(snapshot.last_error) << "\""
+        << "\"enabled\":" << (status.enabled ? "true" : "false") << ","
+        << "\"queueSize\":" << status.queue_size << ","
+        << "\"maxQueueSize\":" << status.max_queue_size << ","
+        << "\"enqueuedCount\":" << status.enqueued_count << ","
+        << "\"sentCount\":" << status.sent_count << ","
+        << "\"failedCount\":" << status.failed_count << ","
+        << "\"droppedCount\":" << status.dropped_count << ","
+        << "\"suppressedCount\":" << status.suppressed_count << ","
+        << "\"lastError\":\"" << JsonEscape(status.last_error) << "\""
         << "}";
     return out.str();
 }
@@ -7720,7 +7753,8 @@ bool AttachWebRtcAnalysisOverlay(analysis::AnalysisSessionService& analysis_sess
                 result->debug_state_log_enabled = result->debug_state_log_enabled || debug_overlay;
                 const auto evaluation = EvaluateStoredEventRules(*result, event_runtime);
                 analysis::DispatchEventRecords(evaluation.annotated_result, evaluation.events);
-                analysis::DispatchEventPosts(evaluation.annotated_result, evaluation.events);
+                DispatchEventPostsForApplication(ProjectEventPostDispatchRequest(
+                    evaluation.annotated_result, evaluation.events));
                 if (metadata_channel_enabled && bridge_lock != nullptr && bridge_lock->MetadataChannelReady()) {
                     const auto sync_info = BuildWebRtcVaMetadataSyncInfo(
                         source_pts,
@@ -7752,7 +7786,8 @@ bool AttachWebRtcAnalysisOverlay(analysis::AnalysisSessionService& analysis_sess
             latest_result.debug_state_log_enabled = latest_result.debug_state_log_enabled || debug_overlay;
             const auto evaluation = EvaluateStoredEventRules(latest_result, event_runtime);
             analysis::DispatchEventRecords(evaluation.annotated_result, evaluation.events);
-            analysis::DispatchEventPosts(evaluation.annotated_result, evaluation.events);
+            DispatchEventPostsForApplication(ProjectEventPostDispatchRequest(
+                evaluation.annotated_result, evaluation.events));
             if (metadata_channel_enabled && bridge_lock != nullptr && bridge_lock->MetadataChannelReady()) {
                 if (metadata_fallback_payload_enabled) {
                     const auto sync_info = BuildWebRtcVaMetadataSyncInfo(source_pts,
