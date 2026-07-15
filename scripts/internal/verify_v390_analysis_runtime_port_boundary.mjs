@@ -184,18 +184,16 @@ function inspectGraph(value) {
   const violations = edges.filter(edge => edge.allowedByTarget === false);
   if (edges.some(edge => edge.direction === "analysis-services -> core-utilities"))
     errors.push("graph:analysis-core-utilities-remains");
-  if (edges.length !== 18) errors.push(`graph:edge-count:${edges.length}`);
-  if (violations.length !== 4) errors.push(`graph:violation-count:${violations.length}`);
+  if (edges.length !== 16) errors.push(`graph:edge-count:${edges.length}`);
+  if (violations.length !== 2) errors.push(`graph:violation-count:${violations.length}`);
   if ((value.stronglyConnectedComponents || []).length !== 0) errors.push("graph:scc");
-  if (value.expectedProductionFiles !== 172 || value.expectedCppFiles !== 85)
+  if (value.expectedProductionFiles !== 198 || value.expectedCppFiles !== 97)
     errors.push(`graph:file-count:${value.expectedProductionFiles}/${value.expectedCppFiles}`);
-  if (value.boundary !== "current REVIEW4-64 continuation graph after the analysis runtime port boundary; dependency-free analysis defaults and the exact 148-field config contract are shared by AppConfig and analysis through the port, analysis-services -> core-utilities is removed, Policy v1 counts 4 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed")
+  if (value.boundary !== "current REVIEW4-64 continuation graph after the analysis query and overlay application boundary; profile/query resolution, overlay request/options/timing, and concrete attachment are application-owned, Policy v1 counts 2 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed")
     errors.push("graph:boundary-description");
   const expectedViolations = [
     "transport-and-auth-adapter -> analysis-services",
     "transport-and-auth-adapter -> core-media-interfaces",
-    "transport-and-auth-adapter -> core-utilities",
-    "transport-and-auth-adapter -> domain-and-registry-owners",
   ];
   if (JSON.stringify(violations.map(edge => edge.direction).sort()) !== JSON.stringify(expectedViolations))
     errors.push("graph:unexpected-violation-set");

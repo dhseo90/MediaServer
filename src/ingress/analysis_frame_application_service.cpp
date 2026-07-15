@@ -3,6 +3,8 @@
 #include "ingress/analysis_frame_application_service.h"
 
 #include <chrono>
+#include <optional>
+#include <utility>
 
 #include "analysis/analysis_query.h"
 #include "analysis/detector.h"
@@ -104,20 +106,58 @@ bool AnalysisOverlayDebugRequestedForApplication(
     return BuildOverlayRenderOptionsFromQuery(query).draw_debug_overlay;
 }
 
-void ConfigureAnalysisOverlayForApplication(
+analysis::AnalysisProfile BuildAnalysisProfileForApplication(
+    const std::unordered_map<std::string, std::string>& query) {
+    return BuildAnalysisProfileFromQuery(query);
+}
+
+analysis::AnalysisProfile ResolveAnalysisProfileForApplication(
+    analysis::AnalysisProfile profile,
+    const analysis::AnalysisContext& context) {
+    return ResolveAnalysisProfileForContext(std::move(profile), context);
+}
+
+bool IsAnalysisOverlayRequestedForApplication(
+    const std::unordered_map<std::string, std::string>& query) {
+    return IsAnalysisOverlayRequested(query);
+}
+
+AnalysisOverlayApplicationSettings ResolveAnalysisOverlaySettingsForApplication(
+    const std::unordered_map<std::string, std::string>& query,
+    bool render_video_overlay) {
+    const auto timing_options = BuildAnalysisOverlayTimingOptionsFromQuery(query);
+    AnalysisOverlayApplicationSettings output;
+    output.render_video_overlay = render_video_overlay;
+    output.draw_debug_overlay = BuildOverlayRenderOptionsFromQuery(query).draw_debug_overlay;
+    output.sync_tolerance_ns =
+        static_cast<std::int64_t>(timing_options.sync_tolerance_ms) * 1000000LL;
+    output.wait_timeout_ms = timing_options.wait_timeout_ms;
+    return output;
+}
+
+AnalysisPipelineAttachmentForApplication MakeAnalysisOverlayAttachmentForApplication(
     const std::unordered_map<std::string, std::string>& query,
     bool render_video_overlay,
-    AnalysisOverlayConfig* output) {
-    if (output == nullptr) {
-        return;
+    AnalysisResultProviderForApplication result_provider) {
+    const auto settings = ResolveAnalysisOverlaySettingsForApplication(query, render_video_overlay);
+    AnalysisOverlayConfig config;
+    config.enabled = true;
+    config.render_video_overlay = settings.render_video_overlay;
+    config.render_options = BuildOverlayRenderOptionsFromQuery(query);
+    config.sync_tolerance_ns = settings.sync_tolerance_ns;
+    config.wait_timeout_ms = settings.wait_timeout_ms;
+    if (result_provider) {
+        config.result_provider =
+            [result_provider = std::move(result_provider)](std::int64_t frame_pts)
+                -> std::optional<analysis::AnalysisResult> {
+                analysis::AnalysisResult result;
+                if (!result_provider(frame_pts, &result)) {
+                    return std::nullopt;
+                }
+                return result;
+            };
     }
-    const auto timing_options = BuildAnalysisOverlayTimingOptionsFromQuery(query);
-    output->enabled = true;
-    output->render_video_overlay = render_video_overlay;
-    output->render_options = BuildOverlayRenderOptionsFromQuery(query);
-    output->sync_tolerance_ns =
-        static_cast<std::int64_t>(timing_options.sync_tolerance_ms) * 1000000LL;
-    output->wait_timeout_ms = timing_options.wait_timeout_ms;
+    return MakeAnalysisOverlayAttachment(std::move(config));
 }
 
 }  // namespace ingress

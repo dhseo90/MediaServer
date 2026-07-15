@@ -217,7 +217,8 @@ check("rollback dispatcher, status bytes, and three call-site orderings are exac
     return text.replace(before, after);
   };
   const restoreAnalysisFrameRuntime = text => {
-    let restored = replaceExactOnce(text, `                                if (!RenderDetectionOverlayForApplication(
+    let restored = text.replaceAll("BuildAnalysisProfileForApplication", "BuildAnalysisProfileFromQuery");
+    restored = replaceExactOnce(restored, `                                if (!RenderDetectionOverlayForApplication(
                                         image_analysis.frame,
                                         image_analysis.result,
                                         query,
@@ -248,20 +249,20 @@ check("rollback dispatcher, status bytes, and three call-site orderings are exac
                                         latest->frame, evaluation.annotated_result, options, &overlay_frame, &error_message)) {`,
       "tap overlay execution");
   };
-  const restoreAnalysisFrameIncidents = text => replaceExactOnce(text, `    AnalysisOverlayConfig overlay_config;
-    std::weak_ptr<WebRtcEgressSession> weak_bridge = bridge;
-    ConfigureAnalysisOverlayForApplication(
-        query,
-        ParseBoolQuery(query, "renderVideoOverlay", ParseBoolQuery(query, "videoOverlay", true)),
-        &overlay_config);`, `    AnalysisOverlayConfig overlay_config;
-    const auto timing_options = BuildAnalysisOverlayTimingOptionsFromQuery(query);
-    std::weak_ptr<WebRtcEgressSession> weak_bridge = bridge;
-    overlay_config.enabled = true;
-    overlay_config.render_video_overlay =
-        ParseBoolQuery(query, "renderVideoOverlay", ParseBoolQuery(query, "videoOverlay", true));
-    overlay_config.render_options = BuildOverlayRenderOptionsFromQuery(query);
-    overlay_config.sync_tolerance_ns = static_cast<std::int64_t>(timing_options.sync_tolerance_ms) * 1000000LL;
-    overlay_config.wait_timeout_ms = timing_options.wait_timeout_ms;`, "live overlay configuration");
+  const restoreAnalysisFrameIncidents = text => {
+    const signature = "bool AttachWebRtcAnalysisOverlay(";
+    const current = functionBlock(text, signature);
+    const previous = functionBlock(beforeIncidents, signature);
+    const recordPositions = [...current.matchAll(/analysis::DispatchEventRecords\(/g)].map(item => item.index);
+    const postPositions = [...current.matchAll(/DispatchEventPostsForApplication\(/g)].map(item => item.index);
+    const publishPositions = [...current.matchAll(/bridge_lock->PublishAnalysisMetadata\(/g)].map(item => item.index);
+    assert(recordPositions.length === 2 && postPositions.length === 2 && publishPositions.length >= 3 &&
+      recordPositions[0] < postPositions[0] && postPositions[0] < publishPositions[0] &&
+      recordPositions[1] < postPositions[1] && postPositions[1] < publishPositions.at(-2) &&
+      current.includes("MakeAnalysisOverlayAttachmentForApplication"),
+    "current overlay Record→Post→metadata ordering drift");
+    return text.replace(current, previous);
+  };
   const restoreVaMetadataIncidents = text => {
     let restored = replaceExactOnce(text, `VaMetadataApplicationSyncInfo BuildWebRtcVaMetadataSyncInfo(std::int64_t video_frame_pts_ns,
                                                             std::int64_t analysis_pts_ns,
@@ -358,11 +359,11 @@ check("CMake, dispatch, and graph bind the exact successor", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const owner = graph.moduleClassifiers.find(item => item.id === "application-service-interfaces");
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.boundary === "current REVIEW4-64 continuation graph after the VA metadata application boundary; subscription filtering, runtime/WebRTC/missing serialization, sync projection, and byte-budget reduction are application-owned, Policy v1 counts 2 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed" &&
+  assert(graph.boundary === "current REVIEW4-64 continuation graph after the analysis query and overlay application boundary; profile/query resolution, overlay request/options/timing, and concrete attachment are application-owned, Policy v1 counts 2 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed" &&
     graph.expectedProductionFiles === 198 && graph.expectedCppFiles === 97 &&
     owner?.expectedFileCount === 31 && owner.expectedCppCount === 13 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 6 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 === "fc4f0e5b77d766c3dea4f4513528480494b951bb2feeda236a1ec73bd70dad0e" &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 4 &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 === "fe6019ef42f01914f342d19e884c0f3431eaa0e892a222793826d0ae776f5979" &&
     edge("transport-and-auth-adapter -> analysis-services")?.allowedByTarget === false &&
     edge("application-service-interfaces -> analysis-services")?.witnessCount === 15 &&
     edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "8af1743af636bb433cba36ed9481fcb205ede6fad59625a497dd18be65e4360f" &&

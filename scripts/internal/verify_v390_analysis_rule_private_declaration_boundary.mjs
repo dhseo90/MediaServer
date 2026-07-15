@@ -318,7 +318,7 @@ check("dispatch and actual graph close the domain direction without relabeling",
     edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 16 &&
     edge("application-service-interfaces -> domain-and-registry-owners")?.witnessCount === 4 &&
     edge("analysis-services -> domain-and-registry-owners")?.witnessCount === 2 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 6 &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 4 &&
     edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessCount === 4 &&
     !graph.stronglyConnectedComponents.length, "graph successor");
   const structureOutput = execFileSync(path.join(root, "server.sh"),

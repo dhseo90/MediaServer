@@ -40,20 +40,20 @@ const rollbackCommit = "e5df05f3945e43e89ae13e3fdd21d0c83ab78ac8";
 const expectedConsumerCount = 170;
 const expectedExpressionCount = 188;
 const expectedConsumerSha = "1e13a798e01c601114df0287bc552e3681531e3021e81c57307ee99ae458ee1c";
-const expectedBundleSha = "8aae2f75a63f81159b60fb472322503f6431fac87adce9b8d9e71f7c1b193248";
-const expectedLogicalOrder = [739297, 744362, 445360, 445741];
+const expectedBundleSha = "beb4b2377b17038f3206dc56cf005db76d84a3fc939bffe44c44f4a581c20bb0";
+const expectedLogicalOrder = [739234, 744299, 445297, 445678];
 const expectedSourceMetrics = {
   fileCount: 6,
-  totalBytes: 2242691,
-  totalLines: 46583,
+  totalBytes: 2242897,
+  totalLines: 46589,
   largestFileLines: 10150,
   files: [
     {
       id: "transport-main",
       file: "src/ingress/webrtc_http_server.cpp",
-      sha256: "6e545de8b2eef595940a70e528dd21c90646d130bdca264cae2a2051f23a3ae9",
-      bytes: 333851,
-      lines: 7593,
+      sha256: "e9f13e8ba22caaf3dda4173e1c4d20e0c4857461f0ef4e0f831b09cc832919f5",
+      bytes: 333869,
+      lines: 7594,
     },
     {
       id: "ops-foundation",
@@ -72,23 +72,23 @@ const expectedSourceMetrics = {
     {
       id: "ops-incidents",
       file: "src/ingress/webrtc_http_server_ops_incidents.cpp",
-      sha256: "9f1f8920910d530ce7b198c64af5ca2bc03e826e5b62ad064e05a5b41165b873",
-      bytes: 373759,
-      lines: 7832,
+      sha256: "6d91580493d3efae76ae98ade16d66710fe90cf190580edc32c897c50e6dca5c",
+      bytes: 374013,
+      lines: 7839,
     },
     {
       id: "transport-runtime",
       file: "src/ingress/webrtc_http_server_runtime.cpp",
-      sha256: "e47ddceff115cf93cdc9a0c0109039a711687e5cbe4290f083fd0dfcd43efcb2",
-      bytes: 329156,
+      sha256: "70490456edd4ae4af4bb3b5a3c7b317c9b36e884537ca9bf1f6cac4f8b0d8935",
+      bytes: 329171,
       lines: 5197,
     },
     {
       id: "private-detail",
       file: "src/ingress/webrtc_http_server_detail.h",
-      sha256: "e7a1151108f1d86165b403e177263f7a62c87f056779c6f8d94736867a2e5c7e",
-      bytes: 350392,
-      lines: 7966,
+      sha256: "e5ea7246546c54bc014c32b181068536b59d0542d0ef546660d6d5212e4f80b6",
+      bytes: 350311,
+      lines: 7964,
     },
   ],
 };

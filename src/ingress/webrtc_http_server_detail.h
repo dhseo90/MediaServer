@@ -51,8 +51,6 @@
 #include "ingress/incident_memory_application_service.h"
 #include "ingress/va_metadata_application_service.h"
 #include "ingress/vlm_observation_application_service.h"
-#include "analysis/analysis_query.h"
-#include "ingress/analysis_overlay_probe.h"
 #include "ingress/webrtc_http_analysis_rule_declarations.h"
 #include "ingress/analysis_rule_application_service.h"
 #include "ingress/http_auth.h"

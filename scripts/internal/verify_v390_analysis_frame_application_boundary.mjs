@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// REVIEW4-64 Slice 24: detector, one-shot tracker, and overlay execution application boundary.
+// REVIEW4-64 Slice 24/26: detector, tracker, query/profile, and overlay application boundary.
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -74,7 +74,9 @@ function swapExact(text, lhs, rhs) {
 const concreteSymbols = [
   "CreateDetector", "ObjectTrackerOptions", "ObjectTrackerKind", "ObjectTracker",
   "ParseCloseObjectGuardMode", "CloseObjectGuardModeToString", "CloseObjectGuardMode",
-  "RenderDetectionOverlay", "OverlayRenderOptions",
+  "RenderDetectionOverlay", "OverlayRenderOptions", "BuildAnalysisProfileFromQuery",
+  "ResolveAnalysisProfileForContext", "IsAnalysisOverlayRequested", "AnalysisOverlayConfig",
+  "MakeAnalysisOverlayAttachment",
 ];
 const runtimeFields = [
   "iou_weight", "distance_weight", "direction_weight", "class_weight",
@@ -169,15 +171,39 @@ function frameApplicationSemanticMismatches(text) {
         frame, result, BuildOverlayRenderOptionsFromQuery(query), output, error_message);`],
     ["AnalysisOverlayDebugRequestedForApplication", `
       return BuildOverlayRenderOptionsFromQuery(query).draw_debug_overlay;`],
-    ["ConfigureAnalysisOverlayForApplication", `
-      if (output == nullptr) { return; }
+    ["BuildAnalysisProfileForApplication", `
+      return BuildAnalysisProfileFromQuery(query);`],
+    ["ResolveAnalysisProfileForApplication", `
+      return ResolveAnalysisProfileForContext(std::move(profile), context);`],
+    ["IsAnalysisOverlayRequestedForApplication", `
+      return IsAnalysisOverlayRequested(query);`],
+    ["ResolveAnalysisOverlaySettingsForApplication", `
       const auto timing_options = BuildAnalysisOverlayTimingOptionsFromQuery(query);
-      output->enabled = true;
-      output->render_video_overlay = render_video_overlay;
-      output->render_options = BuildOverlayRenderOptionsFromQuery(query);
-      output->sync_tolerance_ns =
+      AnalysisOverlayApplicationSettings output;
+      output.render_video_overlay = render_video_overlay;
+      output.draw_debug_overlay = BuildOverlayRenderOptionsFromQuery(query).draw_debug_overlay;
+      output.sync_tolerance_ns =
         static_cast<std::int64_t>(timing_options.sync_tolerance_ms) * 1000000LL;
-      output->wait_timeout_ms = timing_options.wait_timeout_ms;`],
+      output.wait_timeout_ms = timing_options.wait_timeout_ms;
+      return output;`],
+    ["MakeAnalysisOverlayAttachmentForApplication", `
+      const auto settings = ResolveAnalysisOverlaySettingsForApplication(query, render_video_overlay);
+      AnalysisOverlayConfig config;
+      config.enabled = true;
+      config.render_video_overlay = settings.render_video_overlay;
+      config.render_options = BuildOverlayRenderOptionsFromQuery(query);
+      config.sync_tolerance_ns = settings.sync_tolerance_ns;
+      config.wait_timeout_ms = settings.wait_timeout_ms;
+      if (result_provider) {
+        config.result_provider =
+          [result_provider = std::move(result_provider)](std::int64_t frame_pts)
+            -> std::optional<analysis::AnalysisResult> {
+            analysis::AnalysisResult result;
+            if (!result_provider(frame_pts, &result)) { return std::nullopt; }
+            return result;
+          };
+      }
+      return MakeAnalysisOverlayAttachment(std::move(config));`],
   ]);
   return [...expected]
     .filter(([name, body]) => compact(functionBody(text, name)) !== compact(body))
@@ -195,25 +221,82 @@ const exactTransportDelegations = [
   "RenderDetectionOverlayForApplication( image_analysis.frame, image_analysis.result, query, &overlay_frame, &error_message)",
   "AnalysisOverlayDebugRequestedForApplication(query)",
   "RenderDetectionOverlayForApplication( latest->frame, evaluation.annotated_result, query, &overlay_frame, &error_message)",
-  "ConfigureAnalysisOverlayForApplication( query, ParseBoolQuery(query, \"renderVideoOverlay\", ParseBoolQuery(query, \"videoOverlay\", true)), &overlay_config)",
+  "ResolveAnalysisOverlaySettingsForApplication( query, render_video_overlay)",
+  "MakeAnalysisOverlayAttachmentForApplication( query, render_video_overlay, std::move(result_provider))",
 ].map(compact);
 
 function transportDelegationsAreExact(text) {
   return exactTransportDelegations.every(expected => text.includes(expected));
 }
 
+function overlayTransportSemanticsAreExact(text) {
+  const body = functionBody(text, "AttachWebRtcAnalysisOverlay");
+  const normalized = compact(body);
+  const required = [
+    'IsAnalysisOverlayRequestedForApplication(query)',
+    'AttachAnalysisTap(analysis_request, BuildAnalysisProfileForApplication(query))',
+    'ParseBoolQuery(query, "renderVideoOverlay", ParseBoolQuery(query, "videoOverlay", true))',
+    'ResolveAnalysisOverlaySettingsForApplication( query, render_video_overlay)',
+    'overlay_settings.render_video_overlay || ParseBoolQuery(query, "clientOverlayFallback", ParseBoolQuery(query, "vaMetadataDrawFallback", false))',
+    'if (output == nullptr) { return false; }',
+    'WaitAnalysisResultNearPts( tap_id, source_pts, tolerance_ns, std::chrono::milliseconds(wait_timeout_ms))',
+    'analysis::DispatchEventRecords(evaluation.annotated_result, evaluation.events)',
+    'DispatchEventPostsForApplication(ProjectEventPostDispatchRequest( evaluation.annotated_result, evaluation.events))',
+    'bridge_lock->PublishAnalysisMetadata(',
+    '*output = evaluation.annotated_result; return true;',
+    'const auto snapshot = analysis_sessions.AnalysisTapSnapshot(tap_id)',
+    'if (!snapshot.has_value() || !snapshot->latest_result.has_value())',
+    'WebRtcVaMetadataMissingMessageJson(tap_id, source_pts, tolerance_ns)',
+    'return false;',
+    'if (metadata_fallback_payload_enabled)',
+    '"fallback-latest"',
+    'MakeAnalysisOverlayAttachmentForApplication( query, render_video_overlay, std::move(result_provider))',
+  ].map(compact);
+  if (!required.every(item => normalized.includes(item))) return false;
+  if (exactCount(body, /\*output\s*=\s*evaluation\.annotated_result\s*;/g) !== 2) return false;
+  if (exactCount(body, /analysis::DispatchEventRecords\(/g) !== 2 ||
+      exactCount(body, /DispatchEventPostsForApplication\(/g) !== 2) return false;
+  const ordered = [
+    "WaitAnalysisResultNearPts", "if (result.has_value())", "analysis::DispatchEventRecords",
+    "DispatchEventPostsForApplication", "bridge_lock->PublishAnalysisMetadata", "*output =",
+    "AnalysisTapSnapshot", "if (!snapshot.has_value()", "WebRtcVaMetadataMissingMessageJson",
+    "return false;", "EvaluateStoredEventRules(latest_result", "analysis::DispatchEventRecords",
+    "DispatchEventPostsForApplication", "if (metadata_fallback_payload_enabled)", "*output =",
+    "MakeAnalysisOverlayAttachmentForApplication",
+  ];
+  let cursor = 0;
+  for (const token of ordered) {
+    const index = body.indexOf(token, cursor);
+    if (index < 0) return false;
+    cursor = index + token.length;
+  }
+  return true;
+}
+
 check("application contract is a standalone dependency-neutral forward contract", () => {
   const header = read(headerPath);
   const includes = [...header.matchAll(/^\s*#\s*include\s*([<"][^>"]+[>"])/gm)].map(match => match[1]);
   assert(JSON.stringify(includes) === JSON.stringify([
-    "<cstddef>", "<cstdint>", "<string>", "<unordered_map>",
+    "<cstddef>", "<cstdint>", "<functional>", "<string>", "<unordered_map>",
   ]), "application header include set drift");
   assert(!/^\s*#\s*include\s*"/m.test(header) &&
     !/\b(?:core|domain|media)::/.test(header), "implementation dependency leaked into contract");
-  for (const name of ["AnalysisProfile", "AnalysisResult", "RawVideoFrame"]) {
+  for (const name of ["AnalysisContext", "AnalysisProfile", "AnalysisResult", "RawVideoFrame"]) {
     assert(exactCount(header, new RegExp(`struct\\s+${name}\\s*;`, "g")) === 1,
       `analysis forward contract drift: ${name}`);
   }
+  assert(compact(header).includes(compact(`
+    struct AnalysisOverlayApplicationSettings {
+      bool render_video_overlay{true};
+      bool draw_debug_overlay{false};
+      std::int64_t sync_tolerance_ns{0};
+      int wait_timeout_ms{0};
+    };`)), "overlay settings contract drift");
+  assert(compact(header).includes(compact(
+    "using AnalysisResultProviderForApplication = std::function<bool(std::int64_t, analysis::AnalysisResult*)>;")) &&
+    compact(header).includes(compact(
+      "using AnalysisPipelineAttachmentForApplication = std::function<bool(void*, std::string*)>;")),
+  "application callback alias signature drift");
   for (const field of runtimeFields) {
     assert(exactCount(header, new RegExp(`\\b${field}\\b`, "g")) === 1,
       `runtime field contract drift: ${field}`);
@@ -253,6 +336,19 @@ check("application source alone owns concrete detector tracker and overlay execu
       "return BuildOverlayRenderOptionsFromQuery(query).draw_debug_overlay;", "return false;")],
     ["overlay timing", swapExact(source,
       "timing_options.sync_tolerance_ms", "timing_options.wait_timeout_ms")],
+    ["profile query", source.replace(
+      "return BuildAnalysisProfileFromQuery(query);", "return analysis::AnalysisProfile{};")],
+    ["profile context", source.replace(
+      "return ResolveAnalysisProfileForContext(std::move(profile), context);", "return profile;")],
+    ["overlay request", source.replace(
+      "return IsAnalysisOverlayRequested(query);", "return true;")],
+    ["overlay render", source.replace(
+      "config.render_options = BuildOverlayRenderOptionsFromQuery(query);",
+      "config.render_options = analysis::OverlayRenderOptions{};")],
+    ["provider result", source.replace(
+      "return result;\n            };", "return std::nullopt;\n            };")],
+    ["empty provider fail-closed", source.replace(
+      "if (result_provider) {", "if (true) {")],
   ];
   for (const [name, mutation] of mutations) {
     assert(mutation !== source && !frameApplicationSemanticsAreExact(mutation),
@@ -291,8 +387,22 @@ check("transport delegates exact frame tracker and overlay call sites", () => {
   assert(exactCount(runtime, /RenderDetectionOverlayForApplication\(/g) === 2 &&
     exactCount(runtime, /AnalysisOverlayDebugRequestedForApplication\(/g) === 1,
   "runtime overlay delegation count drift");
-  assert(exactCount(incidents, /ConfigureAnalysisOverlayForApplication\(/g) === 1,
-    "live overlay configuration delegation count drift");
+  assert(exactCount(incidents, /ResolveAnalysisOverlaySettingsForApplication\(/g) === 1 &&
+    exactCount(incidents, /MakeAnalysisOverlayAttachmentForApplication\(/g) === 1 &&
+    exactCount(incidents, /IsAnalysisOverlayRequestedForApplication\(/g) === 1 &&
+    exactCount(incidents, /BuildAnalysisProfileForApplication\(/g) === 1,
+    "live overlay application delegation count drift");
+  assert(exactCount(server, /BuildAnalysisProfileForApplication\(/g) === 1 &&
+    exactCount(server, /ResolveAnalysisProfileForApplication\(/g) === 1 &&
+    exactCount(runtime, /BuildAnalysisProfileForApplication\(/g) === 3,
+  "profile application delegation count drift");
+  const transport = transportPaths.map(read).join("\n");
+  for (const symbol of [
+    "BuildAnalysisProfileFromQuery", "ResolveAnalysisProfileForContext",
+    "IsAnalysisOverlayRequested", "AnalysisOverlayConfig", "MakeAnalysisOverlayAttachment",
+  ]) {
+    assert(!new RegExp(`\\b${symbol}\\b`).test(transport), `transport canonical bypass remains: ${symbol}`);
+  }
   assert(transportRuntimeProjectionIsExact(server), "transport tracker runtime projection drift");
   const swappedProjection = swapExact(server,
     "config.analysis_tracking_iou_weight", "config.analysis_tracking_distance_weight");
@@ -305,6 +415,20 @@ check("transport delegates exact frame tracker and overlay call sites", () => {
     compact("AnalysisOverlayDebugRequestedForApplication({})"));
   assert(queryMutation !== transportSemantics && !transportDelegationsAreExact(queryMutation),
   "transport overlay query mutation was not rejected");
+  assert(overlayTransportSemanticsAreExact(incidents), "transport overlay provider semantic drift");
+  const providerMutations = [
+    incidents.replace("if (output == nullptr)", "if (false)"),
+    incidents.replace("*output = evaluation.annotated_result;", "/* output omitted */"),
+    incidents.replace(
+      "return false;\n            }\n            auto latest_result", "return true;\n            }\n            auto latest_result"),
+    swapExact(incidents, "WaitAnalysisResultNearPts", "AnalysisTapSnapshot"),
+    swapExact(incidents, "analysis::DispatchEventRecords", "DispatchEventPostsForApplication"),
+    incidents.replace("if (metadata_fallback_payload_enabled)", "if (true)"),
+  ];
+  for (const mutation of providerMutations) {
+    assert(mutation !== incidents && !overlayTransportSemanticsAreExact(mutation),
+      "transport overlay provider mutation was not rejected");
+  }
 });
 
 check("CMake dispatch and successor graph bind the exact Slice 24 boundary", () => {
@@ -319,16 +443,17 @@ check("CMake dispatch and successor graph bind the exact Slice 24 boundary", () 
   assert(graph.expectedProductionFiles === 198 && graph.expectedCppFiles === 97 &&
     classifier("application-service-interfaces")?.expectedFileCount === 31 &&
     classifier("application-service-interfaces")?.expectedCppCount === 13 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 6 &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 4 &&
     edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 ===
-      "fc4f0e5b77d766c3dea4f4513528480494b951bb2feeda236a1ec73bd70dad0e" &&
+      "fe6019ef42f01914f342d19e884c0f3431eaa0e892a222793826d0ae776f5979" &&
     edge("application-service-interfaces -> analysis-services")?.witnessCount === 15 &&
     edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 16 &&
     edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessCount === 4 &&
     edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessSha256 ===
       "adf4172d0e83de59df510ceeb38c88cd36aaf78b157e7022b6480d8e0793cab3" &&
     graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 &&
-    !graph.stronglyConnectedComponents.length, "graph successor drift");
+    !graph.stronglyConnectedComponents.length &&
+    graph.boundary.includes("analysis query and overlay application boundary"), "graph successor drift");
 });
 
 check("current structure gate accepts the exact non-final successor", () => {

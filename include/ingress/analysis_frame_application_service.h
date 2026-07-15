@@ -4,10 +4,12 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <unordered_map>
 
 namespace analysis {
+struct AnalysisContext;
 struct AnalysisProfile;
 struct AnalysisResult;
 struct RawVideoFrame;
@@ -15,7 +17,17 @@ struct RawVideoFrame;
 
 namespace ingress {
 
-struct AnalysisOverlayConfig;
+struct AnalysisOverlayApplicationSettings {
+    bool render_video_overlay{true};
+    bool draw_debug_overlay{false};
+    std::int64_t sync_tolerance_ns{0};
+    int wait_timeout_ms{0};
+};
+
+using AnalysisResultProviderForApplication =
+    std::function<bool(std::int64_t, analysis::AnalysisResult*)>;
+using AnalysisPipelineAttachmentForApplication =
+    std::function<bool(void*, std::string*)>;
 
 struct AnalysisTrackingApplicationRuntimeConfig {
     float iou_weight{0.0F};
@@ -64,9 +76,23 @@ bool RenderDetectionOverlayForApplication(
 bool AnalysisOverlayDebugRequestedForApplication(
     const std::unordered_map<std::string, std::string>& query);
 
-void ConfigureAnalysisOverlayForApplication(
+analysis::AnalysisProfile BuildAnalysisProfileForApplication(
+    const std::unordered_map<std::string, std::string>& query);
+
+analysis::AnalysisProfile ResolveAnalysisProfileForApplication(
+    analysis::AnalysisProfile profile,
+    const analysis::AnalysisContext& context);
+
+bool IsAnalysisOverlayRequestedForApplication(
+    const std::unordered_map<std::string, std::string>& query);
+
+AnalysisOverlayApplicationSettings ResolveAnalysisOverlaySettingsForApplication(
+    const std::unordered_map<std::string, std::string>& query,
+    bool render_video_overlay);
+
+AnalysisPipelineAttachmentForApplication MakeAnalysisOverlayAttachmentForApplication(
     const std::unordered_map<std::string, std::string>& query,
     bool render_video_overlay,
-    AnalysisOverlayConfig* output);
+    AnalysisResultProviderForApplication result_provider);
 
 }  // namespace ingress

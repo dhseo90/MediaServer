@@ -7377,7 +7377,8 @@ bool AnalyzeStaticImage(const std::unordered_map<std::string, std::string>& quer
     context.source_kind = "image";
     context.route = "http";
     context.client_id = "analysis-image";
-    output->profile = ResolveAnalysisProfileForContext(BuildAnalysisProfileFromQuery(profile_query), context);
+    output->profile = ResolveAnalysisProfileForApplication(
+        BuildAnalysisProfileForApplication(profile_query), context);
     output->profile.adaptive_tuning_enabled = false;
     output->profile.adaptive_input_size_enabled = false;
 

@@ -103,14 +103,14 @@ check("CMake and exact graph successor bind Slice 18", () => {
     owner.expectedFileCount === 31 && owner.expectedCppCount === 13, "application owner successor drift");
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
   const exactEdges = {
-    "transport-and-auth-adapter -> analysis-services": [6, false, "fc4f0e5b77d766c3dea4f4513528480494b951bb2feeda236a1ec73bd70dad0e"],
+    "transport-and-auth-adapter -> analysis-services": [4, false, "fe6019ef42f01914f342d19e884c0f3431eaa0e892a222793826d0ae776f5979"],
     "application-service-interfaces -> analysis-services": [15, true, "8af1743af636bb433cba36ed9481fcb205ede6fad59625a497dd18be65e4360f"],
     "transport-and-auth-adapter -> application-service-interfaces": [16, true, "c043adfd438199bae030b0df835b0fe9e56e68f38d116ce9c5e9c275b5368e8c"],
   };
   assert(graph.expectedProductionFiles === 198 && graph.expectedCppFiles === 97 &&
     graph.observedModuleEdges.length === 16 && graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 &&
     graph.stronglyConnectedComponents.length === 0 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 6 &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 4 &&
     edge("application-service-interfaces -> analysis-services")?.witnessCount === 15 &&
     edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 16,
   "exact graph successor drift");

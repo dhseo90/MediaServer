@@ -478,6 +478,10 @@ split companion verifiers were rebound to exact function/UI owners without produ
 Current graph is production 178/C++ 87, edge 17, violations 3, SCC 0, and transport-to-domain witnesses 2→1.
 Transport-to-analysis/core-media/domain directions and parked generated evidence keep REVIEW4-64/65 open.
 
+### Current continuation Slice 26: `analysis-query-overlay-application-boundary`
+
+Canonical profile/query construction, context resolution, overlay request/options/timing, and concrete overlay attachment now live behind the existing analysis frame application service. Transport keeps PTS resolution, matched-to-snapshot-to-missing fallback, and EventRecord-to-POST-to-metadata order. Independent review found and fixed an empty-provider fail-open semantic change and added null-output defense plus exact provider/order mutations. Focused6, build100, query-owner5, core inversion11, runtime-port5, actual WebRTC metadata8, RTSP overlay6, analysis181, source-bundle6, and physical6 pass. The first WebRTC attempts used the wrong default port and Auth auto; the approved Auth-off 8081 rerun passed. Temporary summaries/logs/build output and listeners were removed. Current graph is production198/C++97, edge16, violations2, SCC0; transport-to-analysis witnesses reduce 6→4 while core-media4 stays exact. Remaining directions and parked evidence keep REVIEW4-64/65 open.
+
 ### Current continuation Slice 19: `vlm-observation-application-boundary`
 
 - [x] Add dependency-free VLM observation query/result and summary/rule candidate request DTOs.

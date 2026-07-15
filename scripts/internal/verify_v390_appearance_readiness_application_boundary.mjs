@@ -245,7 +245,7 @@ check("CMake and current graph preserve Slice 17 at the Slice 18 successor", () 
       applicationOwner.expectedFileCount === 31 && applicationOwner.expectedCppCount === 13,
     "current graph application ownership binding missing");
     const edge = direction => value.observedModuleEdges.find(item => item.direction === direction);
-    assert(edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 6 &&
+    assert(edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 4 &&
       edge("transport-and-auth-adapter -> analysis-services")?.allowedByTarget === false,
     "Slice 18 successor must preserve the Slice 17 boundary and reduce the next witness to 16");
     assert(edge("application-service-interfaces -> analysis-services")?.witnessCount === 15 &&

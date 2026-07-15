@@ -55,8 +55,17 @@ const check = (name, fn) => {
   }
 };
 
+function normalizeMovedHeader(text) {
+  return text
+    .replace('#include "core/analysis_runtime_port.h"', '#include "stdafx.h"')
+    .replaceAll("core::analysis_runtime_defaults::", "app_config::");
+}
+
 function normalizeMovedSource(text) {
-  return text.replace('#include "analysis/analysis_query.h"', '#include "ingress/analysis_query.h"');
+  return text
+    .replace('#include "analysis/analysis_query.h"', '#include "ingress/analysis_query.h"')
+    .replace('#include "core/analysis_runtime_port.h"', '#include "app_config.h"')
+    .replaceAll("core::GetAnalysisRuntimeConfig()", "app::GetAppConfig()");
 }
 
 check("analysis query has one analysis owner with rollback-equivalent bytes", () => {
@@ -64,7 +73,8 @@ check("analysis query has one analysis owner with rollback-equivalent bytes", ()
   assert(exists(newHeaderPath) && exists(newSourcePath), "analysis query owner files are missing");
   const header = read(newHeaderPath);
   const source = read(newSourcePath);
-  assert(sha256(header) === sha256(rollbackText(oldHeaderPath)), "moved query header differs from rollback bytes");
+  assert(sha256(normalizeMovedHeader(header)) === sha256(rollbackText(oldHeaderPath)),
+    "moved query header differs from rollback bytes after runtime-port normalization");
   assert(sha256(normalizeMovedSource(source)) === sha256(rollbackText(oldSourcePath)),
     "moved query source differs from rollback bytes after include-path normalization");
   assert(header.includes("namespace ingress {") && source.includes("namespace ingress {") &&
@@ -76,7 +86,7 @@ check("CMake and exact production consumers use the analysis owner", () => {
   const cmake = read("CMakeLists.txt");
   const consumers = [
     "src/analysis/analysis_session_service.cpp",
-    "src/ingress/webrtc_http_server.cpp",
+    "src/ingress/analysis_frame_application_service.cpp",
   ];
   assert(count(cmake, /src\/analysis\/analysis_query\.cpp/g) === 1 &&
     !cmake.includes("src/ingress/analysis_query.cpp"), "CMake query owner path drift");
@@ -84,6 +94,13 @@ check("CMake and exact production consumers use the analysis owner", () => {
     const text = read(file);
     assert(count(text, /#include "analysis\/analysis_query\.h"/g) === 1 &&
       !text.includes('"ingress/analysis_query.h"'), `query consumer path drift: ${file}`);
+  }
+  for (const file of [
+    "src/ingress/webrtc_http_server.cpp", "src/ingress/webrtc_http_server_detail.h",
+    "src/ingress/webrtc_http_server_ops_incidents.cpp", "src/ingress/webrtc_http_server_runtime.cpp",
+  ]) {
+    assert(!read(file).includes('"analysis/analysis_query.h"'),
+      `transport query owner bypass remains: ${file}`);
   }
 });
 
@@ -105,9 +122,11 @@ check("current graph records the planned intermediate owner delta without final 
   const ledger = JSON.parse(read("test/fixtures/v390_structure_stabilization_execution.json"));
   const analysisOwner = graph.moduleClassifiers.find(item => item.id === "analysis-services");
   const applicationOwner = graph.moduleClassifiers.find(item => item.id === "application-service-interfaces");
-  assert(analysisOwner.expectedFileCount >= 67 && analysisOwner.expectedCppCount >= 35 &&
-    applicationOwner.expectedFileCount >= 4 && applicationOwner.expectedCppCount === 2 &&
+  assert(analysisOwner.expectedFileCount >= 73 && analysisOwner.expectedCppCount >= 37 &&
+    applicationOwner.expectedFileCount >= 31 && applicationOwner.expectedCppCount >= 13 &&
     [
+      "include/ingress/analysis_frame_application_service.h",
+      "src/ingress/analysis_frame_application_service.cpp",
       "include/ingress/onvif_live_import.h", "src/ingress/onvif_live_import.cpp",
       "include/ingress/vlm_incident_rule_provenance.h", "src/ingress/vlm_incident_rule_provenance.cpp",
     ].every(file => applicationOwner.exactFiles.includes(file)),
@@ -148,7 +167,7 @@ check("owner, path, consumer, and graph mutations fail closed", () => {
   assert(count(cmakeMutation, /src\/(?:analysis|ingress)\/analysis_query\.cpp/g) !== 1,
     "CMake duplicate mutation was not detected");
   if (exists(newSourcePath)) {
-    const consumer = read("src/analysis/analysis_session_service.cpp");
+    const consumer = read("src/ingress/analysis_frame_application_service.cpp");
     assert(count(consumer.replace('#include "analysis/analysis_query.h"', ""),
       /#include "analysis\/analysis_query\.h"/g) !== 1, "consumer omission mutation was not detected");
   }

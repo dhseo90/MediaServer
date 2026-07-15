@@ -29,7 +29,7 @@ const sourceRoot = fixtureArg ? validateFixtureRoot(fixtureArg.slice("--fixture-
 const rollbackCommit = "2e4a4d7e";
 const expectedSuccessorDefinitionCount = 1156;
 const expectedSuccessorDefinitionSha256 =
-  "08f762d5d19477d958d0f5d9f0e5f05cb2102689711c41a79b7a0ab7e15bbe12";
+  "d89d5959062ff093fea90451aad0139bcc3426e836c5f1cf1c615eb78b9d28cd";
 const helperPath = "scripts/internal/webrtc_http_server_source_bundle.mjs";
 const graphPath = "test/fixtures/v390_structure_stabilization_current_graph.json";
 const splitPaths = [
@@ -481,7 +481,7 @@ if (!skipMutations && splitPaths.every(file => fs.existsSync(path.join(rootDir, 
       text => text.replace('"expectedProductionFiles": 198', '"expectedProductionFiles": 199'),
       "actual graph keeps direction debt stable");
     rejectMutation("graph-line-count", graphPath,
-      text => text.replace('"lineCount": 7593', '"lineCount": 7594'),
+      text => text.replace('"lineCount": 7594', '"lineCount": 7595'),
       "actual graph keeps direction debt stable");
     rejectMutation("line-budget", splitPaths[2],
       text => `${text}${"\n".repeat(15001)}`,

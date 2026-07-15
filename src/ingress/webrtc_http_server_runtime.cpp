@@ -4315,7 +4315,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             ingress_request.query["va"] = "1";
                             auto result = impl_->analysis_sessions.AttachAnalysisTap(
-                                ingress_request, BuildAnalysisProfileFromQuery(ingress_request.query));
+                                ingress_request, BuildAnalysisProfileForApplication(ingress_request.query));
                             if (!result.ok) {
                                 return JsonResponse(400,
                                                     "Bad Request",
@@ -4342,7 +4342,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             ingress_request.query["va"] = "1";
                             auto result = impl_->analysis_sessions.AttachAnalysisTap(
-                                ingress_request, BuildAnalysisProfileFromQuery(ingress_request.query));
+                                ingress_request, BuildAnalysisProfileForApplication(ingress_request.query));
                             if (!result.ok) {
                                 return JsonResponse(400,
                                                     "Bad Request",
@@ -4368,7 +4368,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                         "{\"error\":\"" + JsonEscape(va_rule_error) + "\"}");
                                 }
                                 auto result = impl_->analysis_sessions.AttachAnalysisTap(
-                                    ingress_request, BuildAnalysisProfileFromQuery(ingress_request.query));
+                                    ingress_request, BuildAnalysisProfileForApplication(ingress_request.query));
                                 if (!result.ok) {
                                     return JsonResponse(400, "Bad Request",
                                                         "{\"error\":\"" + JsonEscape(result.message) + "\"}");

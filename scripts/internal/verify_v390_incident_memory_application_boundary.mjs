@@ -255,11 +255,11 @@ check("actual graph successor reduces one transport-analysis witness", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const owner = graph.moduleClassifiers.find(item => item.id === "application-service-interfaces");
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.boundary === "current REVIEW4-64 continuation graph after the VA metadata application boundary; subscription filtering, runtime/WebRTC/missing serialization, sync projection, and byte-budget reduction are application-owned, Policy v1 counts 2 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed" &&
+  assert(graph.boundary === "current REVIEW4-64 continuation graph after the analysis query and overlay application boundary; profile/query resolution, overlay request/options/timing, and concrete attachment are application-owned, Policy v1 counts 2 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed" &&
     graph.expectedProductionFiles === 198 && graph.expectedCppFiles === 97 &&
     owner?.expectedFileCount === 31 && owner.expectedCppCount === 13 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 6 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 === "fc4f0e5b77d766c3dea4f4513528480494b951bb2feeda236a1ec73bd70dad0e" &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 4 &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 === "fe6019ef42f01914f342d19e884c0f3431eaa0e892a222793826d0ae776f5979" &&
     edge("transport-and-auth-adapter -> analysis-services")?.allowedByTarget === false &&
     edge("application-service-interfaces -> analysis-services")?.witnessCount === 15 &&
     edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "8af1743af636bb433cba36ed9481fcb205ede6fad59625a497dd18be65e4360f" &&

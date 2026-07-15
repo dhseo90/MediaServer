@@ -596,9 +596,9 @@ function assertSuccessorGraph(graph) {
   assert(graph.expectedProductionFiles === 198 && graph.expectedCppFiles === 97 &&
     classifier("application-service-interfaces")?.expectedFileCount === 31 &&
     classifier("application-service-interfaces")?.expectedCppCount === 13 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 6 &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 4 &&
     edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 ===
-      "fc4f0e5b77d766c3dea4f4513528480494b951bb2feeda236a1ec73bd70dad0e" &&
+      "fe6019ef42f01914f342d19e884c0f3431eaa0e892a222793826d0ae776f5979" &&
     edge("application-service-interfaces -> analysis-services")?.witnessCount === 15 &&
     edge("application-service-interfaces -> analysis-services")?.witnessSha256 ===
       "8af1743af636bb433cba36ed9481fcb205ede6fad59625a497dd18be65e4360f" &&
@@ -611,7 +611,7 @@ function assertSuccessorGraph(graph) {
     graph.observedModuleEdges.length === 16 &&
     graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 &&
     graph.stronglyConnectedComponents.length === 0 &&
-    graph.boundary.includes("VA metadata application boundary"), "Slice 25 graph successor drift");
+    graph.boundary.includes("analysis query and overlay application boundary"), "Slice 25 graph successor drift");
 }
 
 check("CMake dispatch graph and structure gate bind the exact successor", () => {
