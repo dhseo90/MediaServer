@@ -235,21 +235,27 @@ function assertTransportContract(transport, composition, serverHeader, detail, s
     assert(exactCount(transport, new RegExp(`analysis_session_reads\\.${method}\\(`, "g")) === count,
       `application read call count drift: ${method}`);
 
-  assert(exactCount(transport, /\.AttachAnalysisTap\(/g) === 4 &&
-    exactCount(transport, /\.DetachAnalysisTapRef\(/g) === 1 &&
+  assert(exactCount(transport, /\.AttachAnalysisTap\(/g) === 0 &&
+    exactCount(transport, /\.DetachAnalysisTapRef\(/g) === 0 &&
+    exactCount(transport, /analysis_session_lifecycle\.Attach\(/g) === 4 &&
+    exactCount(transport, /analysis_session_lifecycle\.Detach\(/g) === 1 &&
     exactCount(transport, /DetachAnalysisTapAndReleaseRuntimes\(/g) === 15,
-  "30B attach/detach lifecycle baseline drift");
-  assert(transport.includes("analysis::AnalysisSessionService& analysis_sessions") &&
-    transport.includes("analysis::AnalysisSessionService& analysis_sessions_"),
-  "30B canonical lifecycle owner was falsely closed in Slice30A");
+  "application lifecycle attach/detach delegation drift");
+  assert(!transport.includes("analysis::AnalysisSessionService") &&
+    transport.includes("AnalysisSessionLifecycleApplicationService& analysis_session_lifecycle"),
+  "canonical lifecycle owner leaked back into transport");
   assert(serverHeader.includes("AnalysisSessionReadApplicationService& analysis_session_reads") &&
     detail.includes("AnalysisSessionReadApplicationService& analysis_session_reads"),
   "HTTP constructor/Impl read port injection missing");
   assert(ordered(composition, [
     "analysis::AnalysisSessionService analysis_sessions(session_manager)",
+    "MakeAnalysisSessionLifecycleApplicationAdapter(analysis_sessions)",
     "MakeAnalysisSessionReadApplicationAdapter(analysis_sessions)",
     "ingress::WebRtcHttpServer webrtc_http_server(",
-    "session_manager, analysis_sessions, *analysis_session_reads, webrtc_http_runtime_config",
+    "session_manager,",
+    "*analysis_session_lifecycle,",
+    "*analysis_session_reads,",
+    "webrtc_http_runtime_config",
   ]), "composition canonical -> adapter -> HTTP injection/lifetime order drift");
   assert(exactCount(composition, /MakeAnalysisSessionReadApplicationAdapter\(analysis_sessions\)/g) === 1,
     "composition adapter factory count drift");
@@ -258,10 +264,10 @@ function assertTransportContract(transport, composition, serverHeader, detail, s
   assert(incidents.includes("AnalysisSessionReadApplicationService& analysis_session_reads") &&
     exactCount(incidents, /\[&analysis_session_reads,/g) === 1,
   "WebRTC overlay must inject and capture read service beside lifecycle service");
-  assert(ordered(incidents, ["analysis_sessions.AttachAnalysisTap(",
+  assert(ordered(incidents, ["analysis_session_lifecycle.Attach(",
     "analysis_session_reads.WaitResultNearPts(", "analysis_session_reads.Snapshot("]),
   "WebRTC overlay attach -> read near -> read snapshot lifecycle/order drift");
-  assert(ordered(runtime, ["AttachWebRtcAnalysisOverlay(", "impl_->analysis_sessions", "impl_->analysis_session_reads"]),
+  assert(ordered(runtime, ["AttachWebRtcAnalysisOverlay(", "impl_->analysis_session_lifecycle", "impl_->analysis_session_reads"]),
     "runtime WebRTC overlay lifecycle/read dual injection drift");
 }
 
@@ -442,7 +448,7 @@ check("compiled fake canonical provider rejects mapping, null, timeout, order, a
   } finally { fs.rmSync(temp, {recursive: true, force: true}); }
 });
 
-check("transport read calls use the injected port while 30B lifecycle remains explicitly open", () => {
+check("transport read and lifecycle calls use their injected application ports", () => {
   const transport = transportPaths.map(read).join("\n");
   assertTransportContract(transport, read(compositionPath), read(publicServerHeaderPath), read(detailPath),
     read(serverPath), read(incidentsPath), read(runtimePath));
@@ -458,27 +464,26 @@ check("CMake, server dispatch, and graph register the exact non-final Slice30A s
     const classifier = id => candidate.moduleClassifiers.find(item => item.id === id);
     const edge = direction => candidate.observedModuleEdges.find(item => item.direction === direction);
     const application = classifier("application-service-interfaces");
-    assert(candidate.expectedProductionFiles === 208 && candidate.expectedCppFiles === 101 &&
-      application?.expectedFileCount === 41 && application?.expectedCppCount === 17 &&
+    assert(candidate.expectedProductionFiles === 212 && candidate.expectedCppFiles === 102 &&
+      application?.expectedFileCount === 45 && application?.expectedCppCount === 18 &&
       exactCount(application.exactFiles.join("\n"),
         /src\/ingress\/analysis_session_application_mapping\.h/g) === 1 &&
-      edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 1 &&
-      edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 20 &&
+      !edge("transport-and-auth-adapter -> analysis-services") &&
+      edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 23 &&
       edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 ===
-        "59d642796881167f557cde11ce4304ee67adacbccfda8bbd90a70bb62259d52e" &&
-      edge("application-service-interfaces -> analysis-services")?.witnessCount === 20 &&
+        "8cd647e97e04ebdc976ba2e64448fcc582a66ed114b75f91b7fb683fa5fba38d" &&
+      edge("application-service-interfaces -> analysis-services")?.witnessCount === 23 &&
       edge("application-service-interfaces -> analysis-services")?.witnessSha256 ===
-        "369be0731233c3c320103811ced13f27110508063e7cb6b82ab49d2431ade21a" &&
+        "4b3cbd1800bf8771eef67752edae8b604e8aefc1574e44d7890847c76d681cee" &&
       edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessCount === 4 &&
-      edge("composition-root -> application-service-interfaces")?.witnessCount === 1 &&
+      edge("composition-root -> application-service-interfaces")?.witnessCount === 2 &&
       edge("composition-root -> application-service-interfaces")?.witnessSha256 ===
-        "a5971a04521df447b33a9be009aa7e2e8ffeec5d23dfc0ac26fb95404d8af9fb" &&
-      candidate.observedModuleEdges.length === 17 &&
-      candidate.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 &&
+        "fc7b3895f0b81d59e40e4e8767f34518412a866cedd7c088b3dc9d58a7c90b48" &&
+      candidate.observedModuleEdges.length === 16 &&
+      candidate.observedModuleEdges.filter(item => !item.allowedByTarget).length === 1 &&
       candidate.stronglyConnectedComponents.length === 0 &&
-      candidate.boundary.includes("Analysis Session read application boundary") &&
-      candidate.boundary.includes("30B"),
-    "graph successor is pending or drifted; register Slice30A current graph before completion");
+      candidate.boundary.includes("Analysis Session lifecycle application boundary"),
+    "graph successor is pending or drifted; register Slice30B current graph before completion");
   };
   assertGraphContract(graph);
   const missingMappingHeader = JSON.parse(JSON.stringify(graph));

@@ -234,7 +234,7 @@ function overlayTransportSemanticsAreExact(text) {
   const normalized = compact(body);
   const required = [
     'IsAnalysisOverlayRequestedForApplication(query)',
-    'AttachAnalysisTap(analysis_request, BuildAnalysisProfileForApplication(query))',
+    'analysis_session_lifecycle.Attach( ProjectAnalysisSessionLifecycleRequest(analysis_request))',
     'ParseBoolQuery(query, "renderVideoOverlay", ParseBoolQuery(query, "videoOverlay", true))',
     'ResolveAnalysisOverlaySettingsForApplication( query, render_video_overlay)',
     'overlay_settings.render_video_overlay || ParseBoolQuery(query, "clientOverlayFallback", ParseBoolQuery(query, "vaMetadataDrawFallback", false))',
@@ -393,11 +393,12 @@ check("transport delegates exact frame tracker and overlay call sites", () => {
   assert(exactCount(incidents, /ResolveAnalysisOverlaySettingsForApplication\(/g) === 1 &&
     exactCount(incidents, /MakeAnalysisOverlayAttachmentForApplication\(/g) === 1 &&
     exactCount(incidents, /IsAnalysisOverlayRequestedForApplication\(/g) === 1 &&
-    exactCount(incidents, /BuildAnalysisProfileForApplication\(/g) === 1,
+    exactCount(incidents, /ProjectAnalysisSessionLifecycleRequest\(/g) === 1,
     "live overlay application delegation count drift");
   assert(exactCount(server, /BuildAnalysisProfileForApplication\(/g) === 1 &&
     exactCount(server, /ResolveAnalysisProfileForApplication\(/g) === 1 &&
-    exactCount(runtime, /BuildAnalysisProfileForApplication\(/g) === 3,
+    exactCount(runtime, /BuildAnalysisProfileForApplication\(/g) === 0 &&
+    exactCount(runtime, /ProjectAnalysisSessionLifecycleRequest\(/g) === 3,
   "profile application delegation count drift");
   const transport = transportPaths.map(read).join("\n");
   for (const symbol of [
@@ -443,28 +444,26 @@ check("CMake dispatch and successor graph bind the exact Slice 24 boundary", () 
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const classifier = id => graph.moduleClassifiers.find(item => item.id === id);
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.expectedProductionFiles === 208 && graph.expectedCppFiles === 101 &&
-    classifier("application-service-interfaces")?.expectedFileCount === 41 &&
-    classifier("application-service-interfaces")?.expectedCppCount === 17 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 1 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 ===
-      "65f056e8ec5e09a639a15d98920884535929f2470a6beac11ffa9869eba796a7" &&
-    edge("application-service-interfaces -> analysis-services")?.witnessCount === 20 &&
+  assert(graph.expectedProductionFiles === 212 && graph.expectedCppFiles === 102 &&
+    classifier("application-service-interfaces")?.expectedFileCount === 45 &&
+    classifier("application-service-interfaces")?.expectedCppCount === 18 &&
+    !edge("transport-and-auth-adapter -> analysis-services") &&
+    edge("application-service-interfaces -> analysis-services")?.witnessCount === 23 &&
     edge("application-service-interfaces -> analysis-services")?.witnessSha256 ===
-      "369be0731233c3c320103811ced13f27110508063e7cb6b82ab49d2431ade21a" &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 20 &&
+      "4b3cbd1800bf8771eef67752edae8b604e8aefc1574e44d7890847c76d681cee" &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 23 &&
     edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 ===
-      "59d642796881167f557cde11ce4304ee67adacbccfda8bbd90a70bb62259d52e" &&
-    edge("composition-root -> application-service-interfaces")?.witnessCount === 1 &&
+      "8cd647e97e04ebdc976ba2e64448fcc582a66ed114b75f91b7fb683fa5fba38d" &&
+    edge("composition-root -> application-service-interfaces")?.witnessCount === 2 &&
     edge("composition-root -> application-service-interfaces")?.witnessSha256 ===
-      "a5971a04521df447b33a9be009aa7e2e8ffeec5d23dfc0ac26fb95404d8af9fb" &&
+      "fc7b3895f0b81d59e40e4e8767f34518412a866cedd7c088b3dc9d58a7c90b48" &&
     edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessCount === 4 &&
     edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessSha256 ===
       "adf4172d0e83de59df510ceeb38c88cd36aaf78b157e7022b6480d8e0793cab3" &&
-    graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 &&
+    graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 1 &&
     !graph.stronglyConnectedComponents.length &&
-    graph.observedModuleEdges.length === 17 &&
-    graph.boundary.includes("Analysis Session read application boundary"), "graph successor drift");
+    graph.observedModuleEdges.length === 16 &&
+    graph.boundary.includes("Analysis Session lifecycle application boundary"), "graph successor drift");
 });
 
 check("current structure gate accepts the exact non-final successor", () => {

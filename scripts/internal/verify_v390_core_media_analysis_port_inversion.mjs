@@ -281,19 +281,22 @@ check("composition and RTSP lifecycle bind one service and every detach boundary
   const httpServer = readWebRtcHttpServerBundle(read);
   for (const anchor of [
     "analysis::AnalysisSessionService analysis_sessions(session_manager);",
+    "MakeAnalysisSessionLifecycleApplicationAdapter(analysis_sessions);",
+    "MakeAnalysisSessionReadApplicationAdapter(analysis_sessions);",
     "SetAuxiliaryStreamRuntimeProvider(",
     "GStreamerRtspServer gst_rtsp_server(session_manager, analysis_sessions);",
-    "WebRtcHttpServer webrtc_http_server(\n        session_manager, analysis_sessions, *analysis_session_reads, webrtc_http_runtime_config);",
+    "WebRtcHttpServer webrtc_http_server(\n        session_manager,\n        *analysis_session_lifecycle,\n        *analysis_session_reads,\n        webrtc_http_runtime_config);",
     "SetAuxiliaryStreamRuntimeProvider({});",
   ]) assert(application.includes(anchor), `composition owner binding missing: ${anchor}`);
   assert(rtspHeader.includes("core::MediaAnalysisPort& analysis_port") &&
-    httpHeader.includes("analysis::AnalysisSessionService& analysis_sessions"),
+    httpHeader.includes("AnalysisSessionLifecycleApplicationService& analysis_session_lifecycle"),
   "server constructor injection drift");
   assert(rtspServer.includes("runtime->analysis_port.PrepareRtsp(") &&
     count(rtspServer, /analysis_port\.DetachRtsp\(/g) >= 3 &&
     rtspServer.includes("media unprepared; detach analysis tap"),
   "RTSP prepare/failure/unprepared detach boundary drift");
-  assert(httpServer.includes("analysis::AnalysisSessionService& analysis_sessions") &&
+  assert(httpServer.includes("AnalysisSessionLifecycleApplicationService& analysis_session_lifecycle") &&
+    !httpServer.includes("analysis::AnalysisSessionService") &&
     !httpServer.includes("session_manager.AnalysisTap") &&
     !httpServer.includes("session_manager.AttachAnalysisTap") &&
     !httpServer.includes("session_manager.WaitAnalysisResultNearPts"),
@@ -413,15 +416,19 @@ check("composition uses exactly one analysis service identity", () => {
   for (const anchor of [
     "analysis::AnalysisSessionService analysis_sessions(session_manager);",
     "ingress::GStreamerRtspServer gst_rtsp_server(session_manager, analysis_sessions);",
-    "ingress::WebRtcHttpServer webrtc_http_server(\n        session_manager, analysis_sessions, *analysis_session_reads, webrtc_http_runtime_config);",
+    "ingress::MakeAnalysisSessionLifecycleApplicationAdapter(analysis_sessions);",
+    "ingress::MakeAnalysisSessionReadApplicationAdapter(analysis_sessions);",
+    "ingress::WebRtcHttpServer webrtc_http_server(\n        session_manager,\n        *analysis_session_lifecycle,\n        *analysis_session_reads,\n        webrtc_http_runtime_config);",
     "session_manager.SetAuxiliaryStreamRuntimeProvider({});",
   ]) assert(count(application, new RegExp(anchor.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) === 1,
     `composition identity count drift: ${anchor}`);
   assertOrdered(application, "composition injection", [
     "analysis::AnalysisSessionService analysis_sessions(session_manager);",
+    "MakeAnalysisSessionLifecycleApplicationAdapter(analysis_sessions);",
+    "MakeAnalysisSessionReadApplicationAdapter(analysis_sessions);",
     "session_manager.SetAuxiliaryStreamRuntimeProvider(",
     "GStreamerRtspServer gst_rtsp_server(session_manager, analysis_sessions);",
-    "WebRtcHttpServer webrtc_http_server(\n        session_manager, analysis_sessions, *analysis_session_reads, webrtc_http_runtime_config);",
+    "WebRtcHttpServer webrtc_http_server(\n        session_manager,\n        *analysis_session_lifecycle,\n        *analysis_session_reads,\n        webrtc_http_runtime_config);",
   ]);
 });
 
@@ -445,8 +452,14 @@ check("graph target and source mutations fail closed", () => {
     "transport-and-auth-adapter -> product-ui-workspaces",
   ]);
   const violations = graph.observedModuleEdges.filter(item => item.allowedByTarget === false);
-  assert(graph.expectedProductionFiles >= 162 && graph.expectedCppFiles >= 80 &&
-    violations.length <= 14 && violations.every(item => allowedSuccessorViolations.has(item.direction)) &&
+  const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
+  assert(graph.expectedProductionFiles === 212 && graph.expectedCppFiles === 102 &&
+    graph.observedModuleEdges.length === 16 && violations.length === 1 &&
+    violations.every(item => allowedSuccessorViolations.has(item.direction)) &&
+    !edge("transport-and-auth-adapter -> analysis-services") &&
+    edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessCount === 4 &&
+    edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessSha256 ===
+      "adf4172d0e83de59df510ceeb38c88cd36aaf78b157e7022b6480d8e0793cab3" &&
     graph.stronglyConnectedComponents.length === 0,
   "core media analysis inversion graph metrics drift");
   assert(!graph.observedModuleEdges.some(item =>
@@ -549,7 +562,7 @@ if (!skipMutations) {
       {
         id: "graph-direction-swap",
         file: "test/fixtures/v390_structure_stabilization_current_graph.json",
-        mutate: text => text.replace('"direction": "transport-and-auth-adapter -> analysis-services"',
+        mutate: text => text.replace('"direction": "transport-and-auth-adapter -> core-media-interfaces"',
           '"direction": "transport-and-auth-adapter -> composition-root"'),
         expectedFailure: "core media analysis inversion graph metrics drift",
       },

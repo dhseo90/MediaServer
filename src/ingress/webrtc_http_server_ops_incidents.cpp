@@ -7711,7 +7711,8 @@ std::string LabFilesJson() {
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 35525 function
-bool AttachWebRtcAnalysisOverlay(analysis::AnalysisSessionService& analysis_sessions,
+bool AttachWebRtcAnalysisOverlay(
+                                 AnalysisSessionLifecycleApplicationService& analysis_session_lifecycle,
                                  AnalysisSessionReadApplicationService& analysis_session_reads,
                                  const media::IngressRequest& ingress_request,
                                  const std::unordered_map<std::string, std::string>& query,
@@ -7731,8 +7732,8 @@ bool AttachWebRtcAnalysisOverlay(analysis::AnalysisSessionService& analysis_sess
     media::IngressRequest analysis_request = ingress_request;
     analysis_request.protocol = "webrtc";
     analysis_request.client_id = ingress_request.client_id + "-analysis";
-    auto attach_result =
-        analysis_sessions.AttachAnalysisTap(analysis_request, BuildAnalysisProfileForApplication(query));
+    auto attach_result = analysis_session_lifecycle.Attach(
+        ProjectAnalysisSessionLifecycleRequest(analysis_request));
     if (!attach_result.ok) {
         if (error_message != nullptr) {
             *error_message = attach_result.message.empty() ? "failed to attach analysis overlay tap"

@@ -41,7 +41,8 @@
 
 #include "ingress/appearance_readiness_application_service.h"
 #include "ingress/analysis_frame_application_service.h"
-#include "analysis/analysis_session_service.h"
+#include "ingress/analysis_legacy_application_types.h"
+#include "ingress/analysis_session_lifecycle_application_service.h"
 #include "ingress/category_catalog_application_service.h"
 #include "ingress/event_feature_search_application_service.h"
 #include "ingress/event_post_application_service.h"
@@ -1737,10 +1738,10 @@ struct WebRtcHttpServer::Impl {
     };
 
     Impl(core::SessionManager& manager,
-         analysis::AnalysisSessionService& analysis_service,
+         AnalysisSessionLifecycleApplicationService& analysis_lifecycle_service,
          AnalysisSessionReadApplicationService& analysis_read_service)
         : session_manager(manager),
-          analysis_sessions(analysis_service),
+          analysis_session_lifecycle(analysis_lifecycle_service),
           analysis_session_reads(analysis_read_service) {}
 
     bool AllowPublicAccessRequestAttempt(const std::string& peer_key,
@@ -1780,7 +1781,7 @@ struct WebRtcHttpServer::Impl {
     }
 
     core::SessionManager& session_manager;
-    analysis::AnalysisSessionService& analysis_sessions;
+    AnalysisSessionLifecycleApplicationService& analysis_session_lifecycle;
     AnalysisSessionReadApplicationService& analysis_session_reads;
     std::string listen_address;
     std::uint16_t port{0};
@@ -2666,7 +2667,10 @@ std::string AnalysisMetricsDumpJson(const std::string& tap_id,
                                     const std::optional<EventRuleApplicationEvaluation>& evaluation);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8319 prototype
-std::string AnalysisTapCreatedJson(const analysis::AnalysisSessionService::AnalysisTapResult& result,
+AnalysisSessionLifecycleApplicationRequest ProjectAnalysisSessionLifecycleRequest(
+    const media::IngressRequest& request);
+std::string AnalysisTapCreatedJson(
+    const AnalysisSessionLifecycleApplicationAttachResult& result,
                                    std::size_t active_taps);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8334 prototype
@@ -2765,7 +2769,8 @@ std::string StaticImageAnalysisJson(const StaticImageAnalysis& analysis);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8768 prototype
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8795 prototype
-bool DetachAnalysisTapAndReleaseRuntimes(analysis::AnalysisSessionService& analysis_sessions,
+bool DetachAnalysisTapAndReleaseRuntimes(
+                                         AnalysisSessionLifecycleApplicationService& analysis_session_lifecycle,
                                          const std::string& tap_id);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8818 prototype
@@ -7930,7 +7935,8 @@ void AppendJsonStringArray(std::ostringstream& out, const std::string& name, con
 std::string LabFilesJson();
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 35525 prototype
-bool AttachWebRtcAnalysisOverlay(analysis::AnalysisSessionService& analysis_sessions,
+bool AttachWebRtcAnalysisOverlay(
+                                 AnalysisSessionLifecycleApplicationService& analysis_session_lifecycle,
                                  AnalysisSessionReadApplicationService& analysis_session_reads,
                                  const media::IngressRequest& ingress_request,
                                  const std::unordered_map<std::string, std::string>& query,

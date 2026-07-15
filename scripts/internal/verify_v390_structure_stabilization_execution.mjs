@@ -214,10 +214,14 @@ check("composition root extraction preserves lifecycle ownership", () => {
   for (const snippet of [
     "core::SessionManager session_manager(registry, resource_guard);",
     "analysis::AnalysisSessionService analysis_sessions(session_manager);",
+    "ingress::MakeAnalysisSessionLifecycleApplicationAdapter(analysis_sessions)",
+    "ingress::MakeAnalysisSessionReadApplicationAdapter(analysis_sessions)",
     "session_manager.SetAuxiliaryStreamRuntimeProvider(",
     "ingress::GStreamerRtspServer gst_rtsp_server(session_manager, analysis_sessions);",
     "const auto webrtc_http_runtime_config = BuildWebRtcHttpRuntimeConfig(config);",
-    "session_manager, analysis_sessions, *analysis_session_reads, webrtc_http_runtime_config);",
+    "*analysis_session_lifecycle,",
+    "*analysis_session_reads,",
+    "webrtc_http_runtime_config);",
     "gst_rtsp_server.Start(rtsp_port, &server_error)",
     "webrtc_http_server.Start(http_address, http_port, &http_error)",
     "webrtc_http_server.Stop();",
@@ -505,11 +509,11 @@ check("non-production Slice preserves production graph and parked evidence stays
   }
 });
 
-check("current continuation binds the exact Slice 1-30A frontier without a final claim", () => {
+check("current continuation binds the exact Slice 1-31 frontier without a final claim", () => {
   const slices = ledger.currentContinuation?.orderedSlices || [];
   assert(validateContinuationFrontier(ledger).length === 0,
     `current continuation frontier invalid: ${validateContinuationFrontier(ledger).join(",")}`);
-  assert(slices.length === 30 && slices[0].order === 1 && slices[1].order === 2 && slices[2].order === 3 &&
+  assert(slices.length === 31 && slices[0].order === 1 && slices[1].order === 2 && slices[2].order === 3 &&
     slices[3].order === 4 && slices[4].order === 5 && slices[5].order === 6 && slices[6].order === 7 &&
     slices[7].order === 8 && slices[8].order === 9 && slices[9].order === 10 && slices[10].order === 11 &&
     slices[11].order === 12 && slices[12].order === 13 && slices[13].order === 14 && slices[14].order === 15 &&
@@ -517,6 +521,7 @@ check("current continuation binds the exact Slice 1-30A frontier without a final
     slices[19].order === 20 && slices[20].order === 21 && slices[21].order === 22 && slices[22].order === 23 &&
     slices[23].order === 24 && slices[24].order === 25 && slices[25].order === 26 && slices[26].order === 27 &&
     slices[27].order === 28 && slices[28].order === 29 && slices[29].order === 30 &&
+    slices[30].order === 31 &&
     slices[0].id === "completion-oracle-and-ops-ui-renderer" && slices[0].status === "completed" &&
     slices[1].id === "product-ui-principal-view-boundary" && slices[1].status === "completed" &&
     slices[2].id === "source-request-parser-owner-boundary" && slices[2].status === "completed" &&
@@ -548,8 +553,9 @@ check("current continuation binds the exact Slice 1-30A frontier without a final
     slices[26].id === "event-feature-search-application-boundary" && slices[26].status === "completed" &&
     slices[27].id === "event-storage-application-boundary" && slices[27].status === "completed" &&
     slices[28].id === "event-rule-application-boundary" && slices[28].status === "completed" &&
-    slices[29].id === "analysis-session-read-application-boundary" &&
-    ["in-progress", "completed"].includes(slices[29].status),
+    slices[29].id === "analysis-session-read-application-boundary" && slices[29].status === "completed" &&
+    slices[30].id === "analysis-session-lifecycle-application-boundary" &&
+    ["in-progress", "completed"].includes(slices[30].status),
   "current continuation slice identity/frontier mismatch");
   const slice1 = slices[0];
   const slice2 = slices[1];
@@ -1402,6 +1408,7 @@ check("current continuation binds the exact Slice 1-30A frontier without a final
   const slice28 = slices[27];
   const slice29 = slices[28];
   const slice30 = slices[29];
+  const slice31 = slices[30];
   assert(slice15.after?.productionGraphSha256 === slice16?.before?.productionGraphSha256 &&
     slice15.after.productionFiles === 175 && slice15.after.cppSources === 86 &&
     slice15.after.targetViolationDirectionsUnderPolicyV1 === 3 &&
@@ -1994,6 +2001,62 @@ check("current continuation binds the exact Slice 1-30A frontier without a final
   "current continuation Slice 30A rollback/contract/test inventory drift");
   assert(validateSlice30Binding(ledger, graph, policy).length === 0,
     `Slice 30A named binding mismatch: ${validateSlice30Binding(ledger, graph, policy).join(",")}`);
+  const slice31Commands = [
+    "./server.sh verify-v390-analysis-session-lifecycle-application-boundary",
+    "./server.sh build", "./server.sh verify-analysis-state",
+    "./server.sh verify-sse-metadata and verify-va-metadata-sidechannel",
+    "./server.sh verify-ws-metadata", "./server.sh verify-webrtc-va-metadata",
+    "./server.sh verify-rtsp-va-overlay-policy", "affected predecessor boundary verifier matrix",
+    "./server.sh verify-v390-webrtc-http-server-source-bundle",
+    "./server.sh verify-v390-webrtc-http-server-physical-split",
+    "./server.sh verify-v390-review4-structure-stabilization-execution",
+    "./server.sh verify-script-inventory", "./server.sh verify-docs-links", "git diff --check",
+    "cleanup Slice 30B lifecycle temporary artifacts",
+    "lsof -nP -iTCP:8081 -iTCP:8555 -sTCP:LISTEN",
+  ];
+  const slice31Contracts = [
+    "the lifecycle service contract is standard-only and maps protocol, path, query, and client_id without defaults or loss",
+    "the canonical adapter explicitly maps all eight attach result fields and all five detach result fields without positional aggregate ambiguity",
+    "exactly four HTTP attach sites use the injected lifecycle port and transport has zero canonical AnalysisSessionService include, type, AttachAnalysisTap, or DetachAnalysisTapRef access",
+    "detach releases exactly five Event Rule runtime keys only when removed is true and preserves the canonical ok result",
+    "composition constructs canonical service then lifecycle and read adapters before HTTP and shares the same canonical identity with RTSP and runtime provider",
+    "the compatibility value-type facade exposes analysis DTO values only and never exposes canonical lifecycle service access",
+    "RTSP remains behind the existing core MediaAnalysisPort and overlay provider preserves near-result to latest fallback then Record to Post to metadata order",
+    "tap create JSON status, message, tapId, streamKey, streamCreated, reused, reuseKey, refCount, and activeTaps bytes remain unchanged",
+    "the graph removes transport-to-analysis while keeping core-media four explicit with one remaining violation direction and zero SCC",
+    "no API/schema/status/error/event payload/WebRTC/SSE/WS/RTSP media behavior changes and REVIEW4-64 remains open for the core-media slice",
+  ];
+  const slice31RequiredAllowed = [
+    "CMakeLists.txt", "server.sh", "include/ingress/analysis_legacy_application_types.h",
+    "include/ingress/analysis_session_lifecycle_application_service.h",
+    "include/ingress/analysis_session_lifecycle_application_adapter.h",
+    "src/ingress/analysis_session_lifecycle_application_adapter.cpp",
+    "include/ingress/webrtc_http_server.h", "src/application/media_server_application.cpp",
+    "src/ingress/webrtc_http_server.cpp", "src/ingress/webrtc_http_server_detail.h",
+    "src/ingress/webrtc_http_server_ops_incidents.cpp", "src/ingress/webrtc_http_server_runtime.cpp",
+    "scripts/internal/verify_v390_analysis_session_lifecycle_application_boundary.mjs",
+    "scripts/internal/verify_v390_structure_stabilization_execution.mjs",
+    "test/fixtures/v390_structure_stabilization_current_graph.json",
+    "test/fixtures/v390_structure_stabilization_execution.json",
+  ];
+  assert(slice31 && slice31.rollbackCommit === "758b09b4" && slice31.nonProductionSlice === false &&
+    JSON.stringify(slice31.contractAssertions) === JSON.stringify(slice31Contracts) &&
+    slice31.tests.length === slice31Commands.length &&
+    slice31Commands.every(command => slice31.tests.filter(test => test.command === command).length === 1) &&
+    slice31RequiredAllowed.every(file => slice31.allowedFiles.includes(file) && slice31.changedFiles.includes(file)),
+  "current continuation Slice 31 rollback/contract/test/file inventory drift");
+  assert(JSON.stringify(slice30.after) === JSON.stringify(slice31.before) &&
+    slice31.before.productionGraphSha256 === "7b589b4df78580e71edbf7e49a5d5953e454a475c50c98a5e1a33db23ebd1f8c" &&
+    slice31.after.productionGraphSha256 === "dc68a9bacd49888a89f5689eff85fff8a48a3244596a2aafbd765a3e812017e9" &&
+    slice31.after.productionFiles === 212 && slice31.after.cppSources === 102 &&
+    slice31.after.targetViolationDirectionsUnderPolicyV1 === 1 &&
+    slice31.after.transportAnalysisWitnessCount === 0 &&
+    slice31.after.transportCoreMediaWitnessCount === 4 && slice31.after.largestSccOwners === 0 &&
+    slice31.after.largestMixedOwnerFileLines === 10156 && slice31.after.cmakeTargets === 2 &&
+    slice31.after.internalTargetSeparation === true,
+  "Slice 31 Analysis Session lifecycle graph delta drift");
+  assert(validateSlice31Binding(ledger, graph, policy).length === 0,
+    `Slice 31 named binding mismatch: ${validateSlice31Binding(ledger, graph, policy).join(",")}`);
   assert(ledger.currentContinuation.finalCompletionClaimAllowed === false &&
     ledger.refactorComplete === false && ledger.completionClaimed === false,
   "current continuation overclaims final completion");
@@ -2132,7 +2195,7 @@ check("negative mutations reject false progress", () => {
       value.currentContinuation.orderedSlices[29].tests[0].status = "registered";
     }, "slice30:false-pass"],
     ["Slice 30A graph hash RED", value => {
-      value.currentGraph.sha256 = "0".repeat(64);
+      value.currentContinuation.orderedSlices[29].after.productionGraphSha256 = "0".repeat(64);
     }, "slice30:graph"],
   ]) {
     const copy = structuredClone(ledger);
@@ -2144,14 +2207,46 @@ check("negative mutations reject false progress", () => {
     direction !== "composition-root -> application-service-interfaces");
   assert(validateSlice30Binding(ledger, graph, slice30PolicyRed).includes("slice30:policy"),
     "Slice 30A policy edge RED was accepted");
-  const slice30MappingOwnerRed = structuredClone(graph);
-  slice30MappingOwnerRed.moduleClassifiers.find(item =>
+  for (const [label, mutate, expected] of [
+    ["Slice 31 identity RED", value => {
+      value.currentContinuation.orderedSlices[30].id = "analysis-session-lifecycle-alias";
+    }, "slice31:identity"],
+    ["Slice 31 rollback RED", value => {
+      value.currentContinuation.orderedSlices[30].rollbackCommit = "deadbeef";
+    }, "slice31:rollback-before"],
+    ["Slice 31 registered-test false PASS", value => {
+      value.currentContinuation.orderedSlices[30].status = "completed";
+      value.currentContinuation.latestCompletedSlice = 31;
+      value.currentContinuation.orderedSlices[30].tests[2].status = "registered";
+    }, "slice31:false-pass"],
+    ["Slice 31 graph hash RED", value => {
+      value.currentGraph.sha256 = "0".repeat(64);
+    }, "slice31:graph"],
+    ["Slice 31 dirty allowlist RED", value => {
+      value.currentContinuation.orderedSlices[30].allowedFiles =
+        value.currentContinuation.orderedSlices[30].allowedFiles.filter(file =>
+          file !== "scripts/internal/verify_v390_structure_stabilization_execution.mjs");
+    }, "slice31:files"],
+  ]) {
+    const copy = structuredClone(ledger);
+    mutate(copy);
+    assert(validateSlice31Binding(copy, graph, policy).includes(expected), `${label} was accepted`);
+  }
+  const slice31TransportAnalysisRed = structuredClone(graph);
+  slice31TransportAnalysisRed.observedModuleEdges.push({
+    direction: "transport-and-auth-adapter -> analysis-services", witnessCount: 1,
+    witnessSha256: "0".repeat(64), allowedByTarget: false,
+  });
+  assert(validateSlice31Binding(ledger, slice31TransportAnalysisRed, policy).includes("slice31:graph"),
+    "Slice 31 transport-to-analysis RED was accepted");
+  const slice31OwnerRed = structuredClone(graph);
+  slice31OwnerRed.moduleClassifiers.find(item =>
     item.id === "application-service-interfaces").exactFiles =
-      slice30MappingOwnerRed.moduleClassifiers.find(item =>
+      slice31OwnerRed.moduleClassifiers.find(item =>
         item.id === "application-service-interfaces").exactFiles.filter(file =>
-          file !== "src/ingress/analysis_session_application_mapping.h");
-  assert(validateSlice30Binding(ledger, slice30MappingOwnerRed, policy).includes("slice30:graph"),
-    "Slice 30A mapping-owner RED was accepted");
+          file !== "include/ingress/analysis_legacy_application_types.h");
+  assert(validateSlice31Binding(ledger, slice31OwnerRed, policy).includes("slice31:graph"),
+    "Slice 31 lifecycle owner RED was accepted");
 
   const graphCopy = structuredClone(graph);
   graphCopy.mixedOwnershipDebt = [];
@@ -2271,7 +2366,7 @@ function validateSlice29Binding(value, graphValue) {
   const slice28 = slices[27];
   const slice29 = slices[28];
   const slice30 = slices[29];
-  if (slices.length !== 30 || slice28?.order !== 28 || slice28?.status !== "completed" ||
+  if (slices.length < 30 || slice28?.order !== 28 || slice28?.status !== "completed" ||
       slice29?.order !== 29 || slice29?.id !== "event-rule-application-boundary") {
     errors.push("slice29:identity");
     return errors;
@@ -2307,7 +2402,8 @@ function validateSlice30Binding(value, graphValue, policyValue) {
   const slices = continuation.orderedSlices || [];
   const slice29 = slices[28];
   const slice30 = slices[29];
-  if (slices.length !== 30 || slice29?.order !== 29 || slice29?.status !== "completed" ||
+  const slice31 = slices[30];
+  if (slices.length < 30 || slice29?.order !== 29 || slice29?.status !== "completed" ||
       slice30?.order !== 30 || slice30?.id !== "analysis-session-read-application-boundary") {
     errors.push("slice30:identity");
     return errors;
@@ -2318,12 +2414,7 @@ function validateSlice30Binding(value, graphValue, policyValue) {
   }
   const selfCheck = (slice30.tests || []).find(test =>
     test.command === "./server.sh verify-v390-review4-structure-stabilization-execution");
-  if (slice30.status === "in-progress") {
-    if (continuation.latestCompletedSlice !== 29 || selfCheck?.status !== "self-check" ||
-        slice30.tests.some(test => !["registered", "pass", "self-check"].includes(test.status))) {
-      errors.push("slice30:frontier");
-    }
-  } else if (slice30.status === "completed") {
+  if (slice30.status === "completed") {
     if (continuation.latestCompletedSlice < 30 ||
         slice30.tests.some(test => test === selfCheck ? test.status !== "self-check" : test.status !== "pass")) {
       errors.push("slice30:false-pass");
@@ -2331,6 +2422,69 @@ function validateSlice30Binding(value, graphValue, policyValue) {
   } else {
     errors.push("slice30:status");
   }
+  if (value.currentArchitecturePolicy?.sha256 !== "808cf2395f6d8f8871bc33ae1691d3ed615a5907b23a782bbcacfedd80a315d2" ||
+      !policyValue.allowedDependencyDirections?.includes("composition-root -> application-service-interfaces")) {
+    errors.push("slice30:policy");
+  }
+  if (slice30.after?.productionGraphSha256 !==
+        "7b589b4df78580e71edbf7e49a5d5953e454a475c50c98a5e1a33db23ebd1f8c" ||
+      slice30.after.productionFiles !== 208 || slice30.after.cppSources !== 101 ||
+      slice30.after.targetViolationDirectionsUnderPolicyV1 !== 2 ||
+      slice30.after.transportAnalysisWitnessCount !== 1 ||
+      slice30.after.transportCoreMediaWitnessCount !== 4 || slice30.after.largestSccOwners !== 0 ||
+      slice30.after.largestMixedOwnerFileLines !== 10156 || slice30.after.cmakeTargets !== 2 ||
+      slice30.after.internalTargetSeparation !== true ||
+      (slice31 && JSON.stringify(slice30.after) !== JSON.stringify(slice31.before))) {
+    errors.push("slice30:graph");
+  }
+  return errors;
+}
+
+function validateSlice31Binding(value, graphValue, policyValue) {
+  const errors = [];
+  const continuation = value.currentContinuation || {};
+  const slices = continuation.orderedSlices || [];
+  const slice30 = slices[29];
+  const slice31 = slices[30];
+  if (slices.length !== 31 || slice30?.order !== 30 || slice30?.status !== "completed" ||
+      slice31?.order !== 31 || slice31?.id !== "analysis-session-lifecycle-application-boundary") {
+    errors.push("slice31:identity");
+    return errors;
+  }
+  if (slice31.rollbackCommit !== "758b09b4" ||
+      JSON.stringify(slice30.after) !== JSON.stringify(slice31.before)) {
+    errors.push("slice31:rollback-before");
+  }
+  const requiredFiles = [
+    "include/ingress/analysis_legacy_application_types.h",
+    "include/ingress/analysis_session_lifecycle_application_service.h",
+    "include/ingress/analysis_session_lifecycle_application_adapter.h",
+    "src/ingress/analysis_session_lifecycle_application_adapter.cpp",
+    "scripts/internal/verify_v390_analysis_session_lifecycle_application_boundary.mjs",
+    "scripts/internal/verify_v390_structure_stabilization_execution.mjs",
+    "test/fixtures/v390_structure_stabilization_current_graph.json",
+    "test/fixtures/v390_structure_stabilization_execution.json",
+  ];
+  if (requiredFiles.some(file =>
+      !slice31.allowedFiles?.includes(file) || !slice31.changedFiles?.includes(file))) {
+    errors.push("slice31:files");
+  }
+  const selfCheck = (slice31.tests || []).find(test =>
+    test.command === "./server.sh verify-v390-review4-structure-stabilization-execution");
+  if (slice31.status === "in-progress") {
+    if (continuation.latestCompletedSlice !== 30 || selfCheck?.status !== "self-check" ||
+        slice31.tests.some(test => !["registered", "pass", "self-check"].includes(test.status))) {
+      errors.push("slice31:frontier");
+    }
+  } else if (slice31.status === "completed") {
+    if (continuation.latestCompletedSlice < 31 ||
+        slice31.tests.some(test => test === selfCheck ? test.status !== "self-check" : test.status !== "pass")) {
+      errors.push("slice31:false-pass");
+    }
+  } else {
+    errors.push("slice31:status");
+  }
+
   const applicationOwner = graphValue.moduleClassifiers?.find(item =>
     item.id === "application-service-interfaces");
   const runtimeTarget = graphValue.cmake?.targets?.find(item => item.id === "media_server_runtime");
@@ -2341,40 +2495,46 @@ function validateSlice30Binding(value, graphValue, policyValue) {
   const transportAnalysis = edge("transport-and-auth-adapter -> analysis-services");
   const transportCore = edge("transport-and-auth-adapter -> core-media-interfaces");
   const debtLines = new Map((graphValue.mixedOwnershipDebt || []).map(item => [item.file, item.lineCount]));
-  if (value.currentArchitecturePolicy?.sha256 !== "808cf2395f6d8f8871bc33ae1691d3ed615a5907b23a782bbcacfedd80a315d2" ||
+  if (value.currentArchitecturePolicy?.sha256 !==
+        "808cf2395f6d8f8871bc33ae1691d3ed615a5907b23a782bbcacfedd80a315d2" ||
       !policyValue.allowedDependencyDirections?.includes("composition-root -> application-service-interfaces")) {
-    errors.push("slice30:policy");
+    errors.push("slice31:policy");
   }
-  if (value.currentGraph?.sha256 !== "7b589b4df78580e71edbf7e49a5d5953e454a475c50c98a5e1a33db23ebd1f8c" ||
-      slice30.after?.productionGraphSha256 !== value.currentGraph.sha256 ||
-      graphValue.expectedProductionFiles !== 208 || graphValue.expectedCppFiles !== 101 ||
-      graphValue.expectedFileOwnershipSha256 !== "7d370137112dacc4773815ba67a17bafc42809d93818ec1bbb7c78a396d12e21" ||
-      applicationOwner?.expectedFileCount !== 41 || applicationOwner.expectedCppCount !== 17 ||
-      !applicationOwner.exactFiles?.includes("src/ingress/analysis_session_application_mapping.h") ||
-      runtimeTarget?.productionSourceSha256 !== "a15383d88b279e93a7aeb3211e93be7b941337f8b16d2e2334685e78c46c0e65" ||
-      runtimeTarget.declaredSourceCount !== 99 || runtimeTarget.defaultActiveSourceCount !== 98 ||
-      graphValue.observedModuleEdges?.length !== 17 ||
-      applicationAnalysis?.witnessCount !== 20 ||
-      applicationAnalysis.witnessSha256 !== "369be0731233c3c320103811ced13f27110508063e7cb6b82ab49d2431ade21a" ||
-      compositionApplication?.witnessCount !== 1 ||
-      compositionApplication.witnessSha256 !== "a5971a04521df447b33a9be009aa7e2e8ffeec5d23dfc0ac26fb95404d8af9fb" ||
-      transportApplication?.witnessCount !== 20 ||
-      transportApplication.witnessSha256 !== "59d642796881167f557cde11ce4304ee67adacbccfda8bbd90a70bb62259d52e" ||
-      transportAnalysis?.witnessCount !== 1 ||
-      transportAnalysis.witnessSha256 !== "65f056e8ec5e09a639a15d98920884535929f2470a6beac11ffa9869eba796a7" ||
-      transportCore?.witnessCount !== 4 ||
-      transportCore.witnessSha256 !== "adf4172d0e83de59df510ceeb38c88cd36aaf78b157e7022b6480d8e0793cab3" ||
-      graphValue.observedModuleEdges.filter(item => !item.allowedByTarget).length !== 2 ||
+  if (value.currentGraph?.sha256 !==
+        "dc68a9bacd49888a89f5689eff85fff8a48a3244596a2aafbd765a3e812017e9" ||
+      slice31.after?.productionGraphSha256 !== value.currentGraph.sha256 ||
+      graphValue.expectedProductionFiles !== 212 || graphValue.expectedCppFiles !== 102 ||
+      graphValue.expectedFileOwnershipSha256 !==
+        "1cd142a923ec121e289d997b3c57d9743a43c0f7f147c3047865fe8e152d0010" ||
+      applicationOwner?.expectedFileCount !== 45 || applicationOwner.expectedCppCount !== 18 ||
+      !requiredFiles.slice(0, 4).every(file => applicationOwner.exactFiles?.includes(file)) ||
+      runtimeTarget?.productionSourceSha256 !==
+        "e91a80360065cfc0cae57c5094818e730d252b37bfe53522e1bcd1ef2458237a" ||
+      runtimeTarget.declaredSourceCount !== 100 || runtimeTarget.defaultActiveSourceCount !== 99 ||
+      graphValue.observedModuleEdges?.length !== 16 ||
+      applicationAnalysis?.witnessCount !== 23 ||
+      applicationAnalysis.witnessSha256 !==
+        "4b3cbd1800bf8771eef67752edae8b604e8aefc1574e44d7890847c76d681cee" ||
+      compositionApplication?.witnessCount !== 2 ||
+      compositionApplication.witnessSha256 !==
+        "fc7b3895f0b81d59e40e4e8767f34518412a866cedd7c088b3dc9d58a7c90b48" ||
+      transportApplication?.witnessCount !== 23 ||
+      transportApplication.witnessSha256 !==
+        "8cd647e97e04ebdc976ba2e64448fcc582a66ed114b75f91b7fb683fa5fba38d" ||
+      transportAnalysis !== undefined || transportCore?.witnessCount !== 4 ||
+      transportCore.witnessSha256 !==
+        "adf4172d0e83de59df510ceeb38c88cd36aaf78b157e7022b6480d8e0793cab3" ||
+      graphValue.observedModuleEdges.filter(item => !item.allowedByTarget).length !== 1 ||
       graphValue.stronglyConnectedComponents?.length !== 0 ||
-      debtLines.get("src/ingress/webrtc_http_server.cpp") !== 7754 ||
+      debtLines.get("src/ingress/webrtc_http_server.cpp") !== 7767 ||
       debtLines.get("src/ingress/webrtc_http_server_ops_foundation.cpp") !== 7845 ||
       debtLines.get("src/ingress/webrtc_http_server_ops_workflows.cpp") !== 10150 ||
-      debtLines.get("src/ingress/webrtc_http_server_ops_incidents.cpp") !== 7888 ||
+      debtLines.get("src/ingress/webrtc_http_server_ops_incidents.cpp") !== 7889 ||
       debtLines.get("src/ingress/webrtc_http_server_runtime.cpp") !== 5202 ||
-      debtLines.get("src/ingress/webrtc_http_server_detail.h") !== 7986 ||
+      debtLines.get("src/ingress/webrtc_http_server_detail.h") !== 7992 ||
       debtLines.get("src/ingress/product_ui_page_scripts.cpp") !== 10156 ||
-      !graphValue.boundary?.includes("Analysis Session read application boundary")) {
-    errors.push("slice30:graph");
+      !graphValue.boundary?.includes("Analysis Session lifecycle application boundary")) {
+    errors.push("slice31:graph");
   }
   return errors;
 }

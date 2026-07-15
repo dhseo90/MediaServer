@@ -11,8 +11,8 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 208,
-  "expectedCppFiles": 101,
+  "expectedProductionFiles": 212,
+  "expectedCppFiles": 102,
   "moduleClassifiers": [
     {
       "id": "composition-root",
@@ -60,6 +60,10 @@
         "include/ingress/analysis_session_read_application_adapter.h",
         "src/ingress/analysis_session_application_mapping.h",
         "src/ingress/analysis_session_read_application_adapter.cpp",
+        "include/ingress/analysis_session_lifecycle_application_service.h",
+        "include/ingress/analysis_session_lifecycle_application_adapter.h",
+        "src/ingress/analysis_session_lifecycle_application_adapter.cpp",
+        "include/ingress/analysis_legacy_application_types.h",
         "include/ingress/analysis_rule_application_service.h",
         "src/ingress/analysis_rule_application_service.cpp",
         "include/ingress/appearance_readiness_application_service.h",
@@ -88,8 +92,8 @@
         "include/ingress/vlm_evaluation_promotion.h"
       ],
       "prefixes": [],
-      "expectedFileCount": 41,
-      "expectedCppCount": 17
+      "expectedFileCount": 45,
+      "expectedCppCount": 18
     },
     {
       "id": "domain-and-registry-owners",
@@ -209,7 +213,7 @@
       "expectedCppCount": 15
     }
   ],
-  "expectedFileOwnershipSha256": "7d370137112dacc4773815ba67a17bafc42809d93818ec1bbb7c78a396d12e21",
+  "expectedFileOwnershipSha256": "1cd142a923ec121e289d997b3c57d9743a43c0f7f147c3047865fe8e152d0010",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -270,6 +274,7 @@
           "src/ingress/event_feature_search_application_service.cpp",
           "src/ingress/event_storage_application_service.cpp",
           "src/ingress/event_rule_application_service.cpp",
+          "src/ingress/analysis_session_lifecycle_application_adapter.cpp",
           "src/ingress/analysis_session_read_application_adapter.cpp",
           "src/ingress/analysis_rule_registry.cpp",
           "src/ingress/analysis_overlay_probe.cpp",
@@ -317,9 +322,9 @@
           "src/ingress/gstreamer_rtsp_server.cpp",
           "src/core/youtube_resolver.cpp"
         ],
-        "productionSourceSha256": "a15383d88b279e93a7aeb3211e93be7b941337f8b16d2e2334685e78c46c0e65",
-        "declaredSourceCount": 99,
-        "defaultActiveSourceCount": 98,
+        "productionSourceSha256": "e91a80360065cfc0cae57c5094818e730d252b37bfe53522e1bcd1ef2458237a",
+        "declaredSourceCount": 100,
+        "defaultActiveSourceCount": 99,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",
@@ -384,8 +389,8 @@
     },
     {
       "direction": "application-service-interfaces -> analysis-services",
-      "witnessCount": 20,
-      "witnessSha256": "369be0731233c3c320103811ced13f27110508063e7cb6b82ab49d2431ade21a",
+      "witnessCount": 23,
+      "witnessSha256": "4b3cbd1800bf8771eef67752edae8b604e8aefc1574e44d7890847c76d681cee",
       "allowedByTarget": true
     },
     {
@@ -402,8 +407,8 @@
     },
     {
       "direction": "composition-root -> application-service-interfaces",
-      "witnessCount": 1,
-      "witnessSha256": "a5971a04521df447b33a9be009aa7e2e8ffeec5d23dfc0ac26fb95404d8af9fb",
+      "witnessCount": 2,
+      "witnessSha256": "fc7b3895f0b81d59e40e4e8767f34518412a866cedd7c088b3dc9d58a7c90b48",
       "allowedByTarget": true
     },
     {
@@ -449,15 +454,9 @@
       "allowedByTarget": true
     },
     {
-      "direction": "transport-and-auth-adapter -> analysis-services",
-      "witnessCount": 1,
-      "witnessSha256": "65f056e8ec5e09a639a15d98920884535929f2470a6beac11ffa9869eba796a7",
-      "allowedByTarget": false
-    },
-    {
       "direction": "transport-and-auth-adapter -> application-service-interfaces",
-      "witnessCount": 20,
-      "witnessSha256": "59d642796881167f557cde11ce4304ee67adacbccfda8bbd90a70bb62259d52e",
+      "witnessCount": 23,
+      "witnessSha256": "8cd647e97e04ebdc976ba2e64448fcc582a66ed114b75f91b7fb683fa5fba38d",
       "allowedByTarget": true
     },
     {
@@ -482,7 +481,7 @@
   "mixedOwnershipDebt": [
     {
       "file": "src/ingress/webrtc_http_server.cpp",
-      "lineCount": 7754,
+      "lineCount": 7767,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -518,7 +517,7 @@
     },
     {
       "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
-      "lineCount": 7888,
+      "lineCount": 7889,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -542,7 +541,7 @@
     },
     {
       "file": "src/ingress/webrtc_http_server_detail.h",
-      "lineCount": 7986,
+      "lineCount": 7992,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -813,5 +812,5 @@
       "exitRule": "production-graph-unchanged-and-cumulative-debt-verified"
     }
   ],
-  "boundary": "current REVIEW4-64 continuation graph after the Analysis Session read application boundary; full standard DTO projection, canonical adapter, read port injection, snapshot/result/frame read delegation, and downstream Event Rule/VA/overlay DTO adapters are application-owned while Attach/Detach/create/provider lifecycle remains explicitly open for Slice 30B; Policy v1 counts 2 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/core-media/final-evidence debt keeps completion closed"
+  "boundary": "current REVIEW4-64 continuation graph after the Analysis Session lifecycle application boundary; standard lifecycle request/attach/detach DTOs and canonical adapter own four HTTP attach sites, detach delegation, result projection, and shared canonical identity while the read port and existing RTSP core MediaAnalysisPort remain unchanged; Policy v1 counts 1 target-direction violation and zero multi-owner SCCs, internal target separation is true, and remaining transport/core-media/final-evidence debt keeps REVIEW4-64 completion closed"
 }

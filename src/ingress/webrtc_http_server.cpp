@@ -1713,14 +1713,15 @@ std::optional<HttpRequest> ReadHttpRequest(int client_fd, HttpResponse* error_re
 }  // namespace webrtc_http_server_detail
 
 WebRtcHttpServer::WebRtcHttpServer(core::SessionManager& session_manager,
-                                   analysis::AnalysisSessionService& analysis_sessions,
+                                   AnalysisSessionLifecycleApplicationService& analysis_session_lifecycle,
                                    AnalysisSessionReadApplicationService& analysis_session_reads,
                                    const WebRtcHttpRuntimeConfig& runtime_config)
     : session_manager_(session_manager),
-      analysis_sessions_(analysis_sessions),
+      analysis_session_lifecycle_(analysis_session_lifecycle),
       analysis_session_reads_(analysis_session_reads),
       runtime_config_(runtime_config),
-      impl_(std::make_unique<Impl>(session_manager, analysis_sessions, analysis_session_reads)) {
+      impl_(std::make_unique<Impl>(
+          session_manager, analysis_session_lifecycle, analysis_session_reads)) {
     const AnalysisRuleApplicationCallbacks analysis_rule_callbacks{
         &WebRtcHttpAnalysisProfileDocumentsSnapshotBackend,
         &WebRtcHttpAnalysisRuleDocumentsSnapshotBackend,
@@ -7143,7 +7144,18 @@ std::string AnalysisMetricsDumpJson(const std::string& tap_id,
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8319 function
-std::string AnalysisTapCreatedJson(const analysis::AnalysisSessionService::AnalysisTapResult& result,
+AnalysisSessionLifecycleApplicationRequest ProjectAnalysisSessionLifecycleRequest(
+    const media::IngressRequest& request) {
+    AnalysisSessionLifecycleApplicationRequest output;
+    output.protocol = request.protocol;
+    output.path = request.path;
+    output.query = request.query;
+    output.client_id = request.client_id;
+    return output;
+}
+
+std::string AnalysisTapCreatedJson(
+    const AnalysisSessionLifecycleApplicationAttachResult& result,
                                    std::size_t active_taps) {
     std::ostringstream out;
     out << "{"
@@ -7596,12 +7608,13 @@ std::string StaticImageAnalysisJson(const StaticImageAnalysis& analysis) {
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8795 function
-bool DetachAnalysisTapAndReleaseRuntimes(analysis::AnalysisSessionService& analysis_sessions,
+bool DetachAnalysisTapAndReleaseRuntimes(
+                                         AnalysisSessionLifecycleApplicationService& analysis_session_lifecycle,
                                          const std::string& tap_id) {
     if (tap_id.empty()) {
         return false;
     }
-    const auto detach_result = analysis_sessions.DetachAnalysisTapRef(tap_id);
+    const auto detach_result = analysis_session_lifecycle.Detach(tap_id);
     // 이벤트 룰 runtime은 enter/exit/line-crossing 이전 상태를 들고 있으므로 tap 수명과 함께 정리한다.
     if (detach_result.removed) {
         ReleaseEventRuleApplicationRuntime("webrtc-overlay:" + tap_id);

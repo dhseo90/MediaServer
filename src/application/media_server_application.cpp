@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "analysis/analysis_session_service.h"
+#include "ingress/analysis_session_lifecycle_application_adapter.h"
 #include "ingress/analysis_session_read_application_adapter.h"
 #include "analysis/event_storage.h"
 #include "app_config.h"
@@ -306,6 +307,8 @@ int RunMediaServerApplication(int argc, char** argv) {
     core::ResourceGuard resource_guard(config.max_sessions, config.max_streams);
     core::SessionManager session_manager(registry, resource_guard);
     analysis::AnalysisSessionService analysis_sessions(session_manager);
+    auto analysis_session_lifecycle =
+        ingress::MakeAnalysisSessionLifecycleApplicationAdapter(analysis_sessions);
     auto analysis_session_reads =
         ingress::MakeAnalysisSessionReadApplicationAdapter(analysis_sessions);
     session_manager.SetAuxiliaryStreamRuntimeProvider(
@@ -314,7 +317,10 @@ int RunMediaServerApplication(int argc, char** argv) {
     ingress::GStreamerRtspServer gst_rtsp_server(session_manager, analysis_sessions);
     const auto webrtc_http_runtime_config = BuildWebRtcHttpRuntimeConfig(config);
     ingress::WebRtcHttpServer webrtc_http_server(
-        session_manager, analysis_sessions, *analysis_session_reads, webrtc_http_runtime_config);
+        session_manager,
+        *analysis_session_lifecycle,
+        *analysis_session_reads,
+        webrtc_http_runtime_config);
 
     std::string server_error;
     const bool rtsp_server_started = gst_rtsp_server.Start(rtsp_port, &server_error);

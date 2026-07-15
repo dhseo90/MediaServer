@@ -556,7 +556,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                        request);
                             impl_->active_sse_metadata_clients.fetch_sub(1);
                             if (detach_on_close) {
-                                (void)DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_sessions, tap_id);
+                                (void)DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_session_lifecycle, tap_id);
                             }
                             return HttpResponse{};
                         };
@@ -568,7 +568,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (previous_clients >= max_clients) {
                                 impl_->active_ws_metadata_clients.fetch_sub(1);
                                 if (detach_on_close) {
-                                    (void)DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_sessions, tap_id);
+                                    (void)DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_session_lifecycle, tap_id);
                                 }
                                 return JsonResponse(429,
                                                     "Too Many Requests",
@@ -579,7 +579,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 client_fd, running_, impl_->analysis_session_reads, tap_id, query, websocket_key, request);
                             impl_->active_ws_metadata_clients.fetch_sub(1);
                             if (detach_on_close) {
-                                (void)DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_sessions, tap_id);
+                                (void)DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_session_lifecycle, tap_id);
                             }
                             return HttpResponse{};
                         };
@@ -612,7 +612,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             impl_->session_manager.CloseSession(entry.ingress_client_id);
                             if (!entry.analysis_tap_id.empty()) {
                                 DetachAnalysisTapAndReleaseRuntimes(
-                                    impl_->analysis_sessions, entry.analysis_tap_id);
+                                    impl_->analysis_session_lifecycle, entry.analysis_tap_id);
                             }
                             entry.bridge->Stop();
                             return true;
@@ -646,7 +646,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             std::string analysis_tap_id;
                             std::string error_message;
                             if (!AttachWebRtcAnalysisOverlay(
-                                    impl_->analysis_sessions,
+                                    impl_->analysis_session_lifecycle,
                                     impl_->analysis_session_reads,
                                     ingress_request,
                                     ingress_request.query,
@@ -662,7 +662,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 [bridge](const media::Packet& packet) { bridge->HandleSample(packet); });
                             if (!create_result.ok) {
                                 if (!analysis_tap_id.empty()) {
-                                    DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_sessions, analysis_tap_id);
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_session_lifecycle, analysis_tap_id);
                                 }
                                 return JsonResponse(400,
                                                     "Bad Request",
@@ -671,7 +671,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                             if (!bridge->Start(session_id, create_result.stream, &error_message)) {
                                 if (!analysis_tap_id.empty()) {
-                                    DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_sessions, analysis_tap_id);
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_session_lifecycle, analysis_tap_id);
                                 }
                                 impl_->session_manager.CloseSession(ingress_client_id);
                                 return JsonResponse(500,
@@ -683,7 +683,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (!bridge->CreateOffer(&offer, &error_message)) {
                                 bridge->Stop();
                                 if (!analysis_tap_id.empty()) {
-                                    DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_sessions, analysis_tap_id);
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_session_lifecycle, analysis_tap_id);
                                 }
                                 impl_->session_manager.CloseSession(ingress_client_id);
                                 return JsonResponse(500,
@@ -4315,8 +4315,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                     "{\"error\":\"" + JsonEscape(va_rule_error) + "\"}");
                             }
                             ingress_request.query["va"] = "1";
-                            auto result = impl_->analysis_sessions.AttachAnalysisTap(
-                                ingress_request, BuildAnalysisProfileForApplication(ingress_request.query));
+                            auto result = impl_->analysis_session_lifecycle.Attach(
+                                ProjectAnalysisSessionLifecycleRequest(ingress_request));
                             if (!result.ok) {
                                 return JsonResponse(400,
                                                     "Bad Request",
@@ -4342,8 +4342,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                     "{\"error\":\"" + JsonEscape(va_rule_error) + "\"}");
                             }
                             ingress_request.query["va"] = "1";
-                            auto result = impl_->analysis_sessions.AttachAnalysisTap(
-                                ingress_request, BuildAnalysisProfileForApplication(ingress_request.query));
+                            auto result = impl_->analysis_session_lifecycle.Attach(
+                                ProjectAnalysisSessionLifecycleRequest(ingress_request));
                             if (!result.ok) {
                                 return JsonResponse(400,
                                                     "Bad Request",
@@ -4368,8 +4368,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     return JsonResponse(400, "Bad Request",
                                                         "{\"error\":\"" + JsonEscape(va_rule_error) + "\"}");
                                 }
-                                auto result = impl_->analysis_sessions.AttachAnalysisTap(
-                                    ingress_request, BuildAnalysisProfileForApplication(ingress_request.query));
+                                auto result = impl_->analysis_session_lifecycle.Attach(
+                                    ProjectAnalysisSessionLifecycleRequest(ingress_request));
                                 if (!result.ok) {
                                     return JsonResponse(400, "Bad Request",
                                                         "{\"error\":\"" + JsonEscape(result.message) + "\"}");
@@ -4638,7 +4638,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
 
                             if (request.method == "DELETE" && suffix.empty()) {
-                                if (!DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_sessions, tap_id)) {
+                                if (!DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_session_lifecycle, tap_id)) {
                                     return JsonResponse(404, "Not Found",
                                                         "{\"error\":\"analysis tap not found\"}");
                                 }
@@ -4683,7 +4683,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             std::string analysis_tap_id;
                             std::string error_message;
                             if (!AttachWebRtcAnalysisOverlay(
-                                    impl_->analysis_sessions,
+                                    impl_->analysis_session_lifecycle,
                                     impl_->analysis_session_reads,
                                     ingress_request,
                                     ingress_request.query,
@@ -4697,14 +4697,14 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 [bridge](const media::Packet& packet) { bridge->HandleSample(packet); });
                             if (!create_result.ok) {
                                 if (!analysis_tap_id.empty()) {
-                                    DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_sessions, analysis_tap_id);
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_session_lifecycle, analysis_tap_id);
                                 }
                                 return HttpResponse{400, "Bad Request", "text/plain; charset=utf-8", {}, create_result.message};
                             }
 
                             if (!bridge->Start(session_id, create_result.stream, &error_message)) {
                                 if (!analysis_tap_id.empty()) {
-                                    DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_sessions, analysis_tap_id);
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_session_lifecycle, analysis_tap_id);
                                 }
                                 impl_->session_manager.CloseSession(ingress_client_id);
                                 return HttpResponse{500, "Internal Server Error", "text/plain; charset=utf-8", {}, error_message};
@@ -4712,7 +4712,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (!bridge->SetRemoteOffer(request.body, &error_message)) {
                                 bridge->Stop();
                                 if (!analysis_tap_id.empty()) {
-                                    DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_sessions, analysis_tap_id);
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_session_lifecycle, analysis_tap_id);
                                 }
                                 impl_->session_manager.CloseSession(ingress_client_id);
                                 return HttpResponse{400, "Bad Request", "text/plain; charset=utf-8", {}, error_message};
@@ -4722,7 +4722,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (!bridge->CreateAnswer(&answer, &error_message)) {
                                 bridge->Stop();
                                 if (!analysis_tap_id.empty()) {
-                                    DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_sessions, analysis_tap_id);
+                                    DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_session_lifecycle, analysis_tap_id);
                                 }
                                 impl_->session_manager.CloseSession(ingress_client_id);
                                 return HttpResponse{500, "Internal Server Error", "text/plain; charset=utf-8", {}, error_message};
@@ -5024,7 +5024,7 @@ void WebRtcHttpServer::Stop() {
     for (auto& entry : sessions) {
         entry.bridge->Stop();
         if (!entry.analysis_tap_id.empty()) {
-            DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_sessions, entry.analysis_tap_id);
+            DetachAnalysisTapAndReleaseRuntimes(impl_->analysis_session_lifecycle, entry.analysis_tap_id);
         }
         impl_->session_manager.CloseSession(entry.ingress_client_id);
     }
