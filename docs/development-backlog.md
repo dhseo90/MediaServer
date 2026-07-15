@@ -6210,6 +6210,21 @@ analysis 임시 build를 모두 삭제하고 8081/8555 listener가 없음을 확
 production198/C++97, edge16, 위반2/SCC0이며 transport→analysis witness는 6→4, core-media4는 동일 digest입니다.
 남은 두 방향과 parked evidence 때문에 REVIEW4-64/65 전체 완료는 아닙니다.
 
+## V390-REVIEW4-64 current continuation Slice 27 Event Feature Search application 경계
+
+`event_feature_search_application_service.h/.cpp`가 canonical index rebuild, Search DSL 변환, query
+limit/offset 해석, valid-only search와 결과 DTO 투영을 application owner에서 수행합니다. Transport는 event JSON
+fallback, seven-feature/evidence/review record 조립, Auth/view scope, retry filter와 최종 Ops/Integrator JSON을 계속
+소유하며 direct `event_feature_search_index.h` 및 `EventSearchDsl` 결속은 0입니다.
+
+첫 build는 private detail의 이전 raw 타입 선언 때문에 실패했고 DTO 선언을 함께 옮긴 뒤 100%를 통과했습니다.
+독립 리뷰가 찾은 query wiring, conditional privacy overwrite, 부분 mapping P0 false-PASS 세 건은 exact function contract,
+전체 두-record DTO/feature/evidence matrix와 transport 7종·compiled privacy 3종 RED mutation으로 보강했습니다.
+Focused6/0, feature index7/0, DSL7/0, scoped Integrator8/0, analysis-state181/0, source-bundle6/0,
+physical-split6/0, structure15/0입니다. Current graph는 production200/C++98, edge16, 위반2/SCC0이며
+transport→analysis witness는 4→3, transport→core-media witness는 4로 유지됩니다. 남은 두 방향과 parked
+evidence 때문에 REVIEW4-64/65 전체 완료는 아닙니다.
+
 ## 후속 이슈 추천 규칙
 
 ### Historical v1.8 tracker research verifier boundary

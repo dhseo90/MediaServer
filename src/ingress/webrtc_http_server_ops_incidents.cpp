@@ -5336,10 +5336,10 @@ std::string OpsV310OperatorFeatureCorrectionViewJson(
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33243 function
-analysis::EventSearchIndexEventRecord OpsV300IndexEventRecordFromJson(
+EventFeatureSearchApplicationRecord OpsV300IndexEventRecordFromJson(
     const std::string& event_json,
     const std::size_t index) {
-    analysis::EventSearchIndexEventRecord event;
+    EventFeatureSearchApplicationRecord event;
     event.event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
     if (!OpsEventReviewEventIdAllowed(event.event_id)) {
         event.event_id = "event-" + std::to_string(index + 1);
@@ -5364,104 +5364,84 @@ analysis::EventSearchIndexEventRecord OpsV300IndexEventRecordFromJson(
             break;
         }
     }
-    event.event_post_payload_changed = false;
-    event.webrtc_data_channel_schema_changed = false;
-    event.sse_ws_metadata_schema_changed = false;
-    event.rtsp_webrtc_media_path_changed = false;
-    event.viewer_client_exposure_added = false;
     return event;
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33279 function
-void OpsV300AddIndexFeature(analysis::EventSearchIndexFeatureSet* feature_set,
+void OpsV300AddIndexFeature(EventFeatureSearchApplicationRecord* record,
                             const std::string& namespace_name,
                             const std::string& name,
                             const std::string& value,
                             const std::string& evidence_ref) {
-    if (feature_set == nullptr || Trim(value).empty()) {
+    if (record == nullptr || Trim(value).empty()) {
         return;
     }
-    analysis::EventSearchIndexFeature feature;
+    EventFeatureSearchApplicationFeature feature;
     feature.namespace_name = namespace_name;
     feature.name = name;
     feature.value = value;
     feature.evidence_ref = evidence_ref;
-    feature.searchable = true;
-    feature.identity_feature = false;
-    feature.raw_prompt_fragment_stored = false;
-    feature.raw_provider_response_fragment_stored = false;
-    feature_set->features.push_back(std::move(feature));
+    record->features.push_back(std::move(feature));
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33299 function
-analysis::EventSearchIndexFeatureSet OpsV300IndexFeatureSetFromJson(
+void OpsV300ApplyIndexFeatureSetFromJson(
     const std::string& event_json,
     const OpsEventReviewState& review,
-    const analysis::EventSearchIndexEventRecord& event_record) {
-    analysis::EventSearchIndexFeatureSet feature_set;
-    feature_set.event_id = event_record.event_id;
-    feature_set.feature_set_id = "ops-v300-ui-" + event_record.event_id;
-    feature_set.feature_revision = 1;
+    EventFeatureSearchApplicationRecord* record) {
+    if (record == nullptr) {
+        return;
+    }
+    record->feature_set_id = "ops-v300-ui-" + record->event_id;
+    record->feature_revision = 1;
     const std::string evidence_ref =
         OpsV300EvidenceRefPath(event_json, "evidenceManifest").empty()
             ? OpsV300EvidenceRefPath(event_json, "snapshotPath")
             : OpsV300EvidenceRefPath(event_json, "evidenceManifest");
-    OpsV300AddIndexFeature(&feature_set, "event", "eventType", event_record.event_type, evidence_ref);
-    OpsV300AddIndexFeature(&feature_set, "event", "status", event_record.status, evidence_ref);
-    OpsV300AddIndexFeature(&feature_set, "scene", "source", event_record.source_id, evidence_ref);
-    OpsV300AddIndexFeature(&feature_set, "scene", "scenario", event_record.scenario, evidence_ref);
-    OpsV300AddIndexFeature(&feature_set, "action", "rule", OpsIncidentMemoryEventRuleId(event_json), evidence_ref);
-    OpsV300AddIndexFeature(&feature_set, "operator", "reviewState", review.review_status, evidence_ref);
-    OpsV300AddIndexFeature(&feature_set, "operator", "incidentStatus", review.incident_status, evidence_ref);
-    feature_set.raw_prompt_stored = false;
-    feature_set.raw_provider_response_stored = false;
-    feature_set.provider_request_body_stored = false;
-    feature_set.credential_stored = false;
-    feature_set.source_url_stored = false;
-    feature_set.raw_frame_bytes_stored = false;
-    feature_set.identity_features_allowed = false;
-    return feature_set;
+    OpsV300AddIndexFeature(record, "event", "eventType", record->event_type, evidence_ref);
+    OpsV300AddIndexFeature(record, "event", "status", record->status, evidence_ref);
+    OpsV300AddIndexFeature(record, "scene", "source", record->source_id, evidence_ref);
+    OpsV300AddIndexFeature(record, "scene", "scenario", record->scenario, evidence_ref);
+    OpsV300AddIndexFeature(record, "action", "rule", OpsIncidentMemoryEventRuleId(event_json), evidence_ref);
+    OpsV300AddIndexFeature(record, "operator", "reviewState", review.review_status, evidence_ref);
+    OpsV300AddIndexFeature(record, "operator", "incidentStatus", review.incident_status, evidence_ref);
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33328 function
-analysis::EventSearchIndexEvidenceManifest OpsV300IndexEvidenceManifestFromJson(
+void OpsV300ApplyIndexEvidenceManifestFromJson(
     const std::string& event_json,
-    const std::string& event_id) {
-    analysis::EventSearchIndexEvidenceManifest evidence;
-    evidence.event_id = event_id;
+    EventFeatureSearchApplicationRecord* record) {
+    if (record == nullptr) {
+        return;
+    }
     const std::string snapshot_path = OpsV300EvidenceRefPath(event_json, "snapshotPath");
     const std::string evidence_manifest = OpsV300EvidenceRefPath(event_json, "evidenceManifest");
     const std::string frame_bundle_manifest = OpsV300EvidenceRefPath(event_json, "frameBundleManifest");
     const std::string bbox_crop = OpsV300EvidenceRefPath(event_json, "bboxCrop");
-    evidence.manifest_path = evidence_manifest.empty() ? "ops-v300-ui-derived:" + event_id
-                                                       : evidence_manifest;
-    evidence.event_frame_present = !snapshot_path.empty() || !evidence_manifest.empty();
-    evidence.representative_image_present = !snapshot_path.empty();
-    evidence.bbox_crop_count = bbox_crop.empty() ? 0 : 1;
-    evidence.frame_bundle_present = !frame_bundle_manifest.empty();
-    evidence.raw_prompt_stored = false;
-    evidence.raw_provider_response_stored = false;
-    evidence.identity_features_allowed = false;
-    evidence.archive_api = false;
-    return evidence;
+    record->manifest_path = evidence_manifest.empty() ? "ops-v300-ui-derived:" + record->event_id
+                                                      : evidence_manifest;
+    record->event_frame_present = !snapshot_path.empty() || !evidence_manifest.empty();
+    record->representative_image_present = !snapshot_path.empty();
+    record->bbox_crop_count = bbox_crop.empty() ? 0 : 1;
+    record->frame_bundle_present = !frame_bundle_manifest.empty();
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33350 function
-analysis::EventSearchIndexReviewState OpsV300IndexReviewStateFromReview(
+void OpsV300ApplyIndexReviewStateFromReview(
     const std::string& event_json,
     const OpsEventReviewState& review,
-    const std::string& event_id) {
-    analysis::EventSearchIndexReviewState state;
-    state.event_id = event_id;
-    state.review_state = review.review_status.empty() ? "new" : review.review_status;
-    state.classification = review.classification.empty() ? "unclassified" : review.classification;
-    state.incident_status = review.incident_status.empty() ? "new" : review.incident_status;
-    state.pinned = ParseBoolField(event_json, "pinned").value_or(false);
-    return state;
+    EventFeatureSearchApplicationRecord* record) {
+    if (record == nullptr) {
+        return;
+    }
+    record->review_state = review.review_status.empty() ? "new" : review.review_status;
+    record->classification = review.classification.empty() ? "unclassified" : review.classification;
+    record->incident_status = review.incident_status.empty() ? "new" : review.incident_status;
+    record->pinned = ParseBoolField(event_json, "pinned").value_or(false);
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33363 function
-std::string OpsV300EntryFeatureValue(const analysis::EventSearchIndexEntry& entry,
+std::string OpsV300EntryFeatureValue(const EventFeatureSearchApplicationEntry& entry,
                                      const std::string& field) {
     for (const auto& value : entry.document.features) {
         if (value.field == field) {
@@ -5472,13 +5452,13 @@ std::string OpsV300EntryFeatureValue(const analysis::EventSearchIndexEntry& entr
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33373 function
-bool OpsV300EntryHasFeature(const analysis::EventSearchIndexEntry& entry,
+bool OpsV300EntryHasFeature(const EventFeatureSearchApplicationEntry& entry,
                             const std::string& field) {
     return !OpsV300EntryFeatureValue(entry, field).empty();
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33378 function
-std::string OpsV300EvidenceTimelineJson(const analysis::EventSearchIndexEntry& entry,
+std::string OpsV300EvidenceTimelineJson(const EventFeatureSearchApplicationEntry& entry,
                                         const std::string& event_json) {
     const std::string snapshot_path = OpsV300EvidenceRefPath(event_json, "snapshotPath");
     const std::string bbox_crop = OpsV300EvidenceRefPath(event_json, "bboxCrop");
@@ -5526,7 +5506,7 @@ std::string OpsV300EvidenceTimelineJson(const analysis::EventSearchIndexEntry& e
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33425 function
-std::string OpsV300FeatureReasonsJson(const analysis::EventSearchIndexEntry& entry) {
+std::string OpsV300FeatureReasonsJson(const EventFeatureSearchApplicationEntry& entry) {
     std::ostringstream out;
     out << "[";
     std::size_t written = 0;
@@ -5553,12 +5533,12 @@ std::string OpsV300FeatureReasonsJson(const analysis::EventSearchIndexEntry& ent
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33451 function
-bool OpsV300EntryRetryable(const analysis::EventSearchIndexEntry& entry) {
+bool OpsV300EntryRetryable(const EventFeatureSearchApplicationEntry& entry) {
     return entry.has_event_record && entry.has_evidence_manifest;
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33455 function
-std::string OpsV300RetryActionsJson(const analysis::EventSearchIndexEntry& entry) {
+std::string OpsV300RetryActionsJson(const EventFeatureSearchApplicationEntry& entry) {
     const bool retryable = OpsV300EntryRetryable(entry);
     std::ostringstream out;
     out << "{"
@@ -5573,7 +5553,7 @@ std::string OpsV300RetryActionsJson(const analysis::EventSearchIndexEntry& entry
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33469 function
-std::string OpsV300PinStatusJson(const analysis::EventSearchIndexEntry& entry) {
+std::string OpsV300PinStatusJson(const EventFeatureSearchApplicationEntry& entry) {
     std::ostringstream out;
     out << "{"
         << "\"pinned\":" << (entry.document.pinned ? "true" : "false") << ","
@@ -5586,7 +5566,7 @@ std::string OpsV300PinStatusJson(const analysis::EventSearchIndexEntry& entry) {
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33481 function
-std::string OpsV300RetentionStatusJson(const analysis::EventSearchIndexEntry& entry) {
+std::string OpsV300RetentionStatusJson(const EventFeatureSearchApplicationEntry& entry) {
     std::ostringstream out;
     out << "{"
         << "\"defaultRetentionDays\":7,"
@@ -5600,7 +5580,7 @@ std::string OpsV300RetentionStatusJson(const analysis::EventSearchIndexEntry& en
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33494 function
-std::string OpsV300EventEvidenceSearchItemJson(const analysis::EventSearchIndexEntry& entry,
+std::string OpsV300EventEvidenceSearchItemJson(const EventFeatureSearchApplicationEntry& entry,
                                                const std::string& event_json) {
     std::ostringstream out;
     out << "{"
@@ -5639,45 +5619,34 @@ std::string OpsV300EventEvidenceSearchUiJson(
     const std::string retry_filter =
         LowerAscii(OpsV300EventEvidenceSearchQueryValue(query, "v300RetryFilter"));
 
-    analysis::EventFeatureSearchIndexRebuildInput input;
+    std::vector<EventFeatureSearchApplicationRecord> records;
     std::unordered_map<std::string, std::string> event_by_id;
-    input.events.reserve(event_json_records.size());
-    input.feature_sets.reserve(event_json_records.size());
-    input.evidence_manifests.reserve(event_json_records.size());
-    input.review_states.reserve(event_json_records.size());
+    records.reserve(event_json_records.size());
     for (std::size_t index = 0; index < event_json_records.size(); ++index) {
         const std::string& event_json = event_json_records[index];
-        analysis::EventSearchIndexEventRecord event_record =
+        EventFeatureSearchApplicationRecord event_record =
             OpsV300IndexEventRecordFromJson(event_json, index);
         const auto review_it = reviews.find(event_record.event_id);
         const OpsEventReviewState review =
             review_it == reviews.end() ? DefaultOpsEventReviewState(event_record.event_id)
                                        : review_it->second;
         event_by_id[event_record.event_id] = event_json;
-        input.evidence_manifests.push_back(
-            OpsV300IndexEvidenceManifestFromJson(event_json, event_record.event_id));
-        input.feature_sets.push_back(
-            OpsV300IndexFeatureSetFromJson(event_json, review, event_record));
-        input.review_states.push_back(
-            OpsV300IndexReviewStateFromReview(event_json, review, event_record.event_id));
-        input.events.push_back(std::move(event_record));
+        OpsV300ApplyIndexEvidenceManifestFromJson(event_json, &event_record);
+        OpsV300ApplyIndexFeatureSetFromJson(event_json, review, &event_record);
+        OpsV300ApplyIndexReviewStateFromReview(event_json, review, &event_record);
+        records.push_back(std::move(event_record));
     }
 
-    analysis::EventFeatureSearchIndex index;
-    const analysis::EventSearchIndexReport report = index.Rebuild(input);
-    analysis::EventSearchQueryOptions options;
-    options.default_limit = 12;
-    options.max_limit = 24;
-    analysis::EventSearchDsl dsl = analysis::ConvertEventSearchQueryToDsl(search_query, options);
-    dsl.limit = 12;
-    dsl.search_index_required = true;
-    dsl.ops_events_ui_required = true;
-    if (pinned_only) {
-        dsl.filters.push_back({"pinned", "eq", "true"});
-    }
-
-    std::vector<analysis::EventSearchIndexEntry> hits = dsl.valid ? index.Search(dsl)
-                                                                  : std::vector<analysis::EventSearchIndexEntry>{};
+    EventFeatureSearchApplicationQuery search;
+    search.query = search_query;
+    search.default_limit = 12;
+    search.max_limit = 24;
+    search.forced_limit = 12;
+    search.pinned_only = pinned_only;
+    search.search_index_required = true;
+    search.ops_events_ui_required = true;
+    auto search_result = SearchEventFeaturesForApplication(records, search);
+    auto hits = std::move(search_result.hits);
     std::vector<std::string> items;
     items.reserve(hits.size());
     for (const auto& hit : hits) {
@@ -5701,10 +5670,10 @@ std::string OpsV300EventEvidenceSearchUiJson(
         << "\"pinnedOnly\":" << (pinned_only ? "true" : "false") << ","
         << "\"retryFilter\":\"" << JsonEscape(retry_filter) << "\","
         << "\"featureSearchIndexBacked\":true,"
-        << "\"searchDslValid\":" << (dsl.valid ? "true" : "false") << ","
-        << "\"rejectionReason\":\"" << JsonEscape(dsl.rejection_reason) << "\","
-        << "\"generation\":" << report.generation << ","
-        << "\"indexedEntries\":" << report.indexed_entries << ","
+        << "\"searchDslValid\":" << (search_result.search_dsl_valid ? "true" : "false") << ","
+        << "\"rejectionReason\":\"" << JsonEscape(search_result.rejection_reason) << "\","
+        << "\"generation\":" << search_result.generation << ","
+        << "\"indexedEntries\":" << search_result.indexed_entries << ","
         << "\"hitCount\":" << items.size() << ","
         << "\"modelProviderDependency\":false,"
         << "\"vectorSearchPerformed\":false,"
@@ -5768,7 +5737,7 @@ IntegratorScopedEventSearchSource LoadIntegratorScopedEventSearchSource(
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33666 function
-ClientEventItem IntegratorScopedEventItemFromEntry(const analysis::EventSearchIndexEntry& entry,
+ClientEventItem IntegratorScopedEventItemFromEntry(const EventFeatureSearchApplicationEntry& entry,
                                                    const std::string& event_json) {
     ClientEventItem item = ParseClientEventItem(event_json);
     if (item.event_id.empty()) {
@@ -5795,7 +5764,7 @@ ClientEventItem IntegratorScopedEventItemFromEntry(const analysis::EventSearchIn
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33690 function
 std::string IntegratorScopedEventSearchItemJson(
     const SourceViewApplicationService::ClientViewAccess& access,
-    const analysis::EventSearchIndexEntry& entry,
+    const EventFeatureSearchApplicationEntry& entry,
     const std::string& event_json,
     std::size_t index) {
     const ClientEventItem item = IntegratorScopedEventItemFromEntry(entry, event_json);
@@ -5823,44 +5792,39 @@ std::string IntegratorScopedEventSearchJson(
     const auth::Principal& principal,
     const std::unordered_map<std::string, std::string>& query) {
     const std::string search_query = OpsV300EventEvidenceSearchQueryValue(query, "q", "search");
-    analysis::EventSearchQueryOptions options;
-    options.default_limit = 10;
-    options.max_limit = 25;
-    options.max_offset = 500;
-    analysis::EventSearchDsl dsl = analysis::ConvertEventSearchQueryToDsl(search_query, options);
-    dsl.limit = static_cast<std::size_t>(
-        ParseClampedIntQuery(query, "limit", static_cast<int>(dsl.limit), 1, 25));
-    dsl.offset = static_cast<std::size_t>(
-        ParseClampedIntQuery(query, "offset", static_cast<int>(dsl.offset), 0, 500));
-    dsl.search_index_required = true;
+    EventFeatureSearchApplicationQuery search;
+    search.query = search_query;
+    search.default_limit = 10;
+    search.max_limit = 25;
+    search.max_offset = 500;
+    if (const auto it = query.find("limit"); it != query.end()) {
+        search.requested_limit = it->second;
+    }
+    if (const auto it = query.find("offset"); it != query.end()) {
+        search.requested_offset = it->second;
+    }
+    search.search_index_required = true;
 
+    const auto search_resolution = ResolveEventFeatureSearchQueryForApplication(search);
     IntegratorScopedEventSearchSource source =
-        LoadIntegratorScopedEventSearchSource(access, dsl.limit + dsl.offset);
-    analysis::EventFeatureSearchIndexRebuildInput input;
+        LoadIntegratorScopedEventSearchSource(access, search_resolution.limit + search_resolution.offset);
+    std::vector<EventFeatureSearchApplicationRecord> records;
     std::unordered_map<std::string, std::string> event_by_id;
-    input.events.reserve(source.records_json.size());
-    input.feature_sets.reserve(source.records_json.size());
-    input.evidence_manifests.reserve(source.records_json.size());
-    input.review_states.reserve(source.records_json.size());
+    records.reserve(source.records_json.size());
     for (std::size_t index = 0; index < source.records_json.size(); ++index) {
         const std::string& event_json = source.records_json[index];
-        analysis::EventSearchIndexEventRecord event_record =
+        EventFeatureSearchApplicationRecord event_record =
             OpsV300IndexEventRecordFromJson(event_json, index);
         const OpsEventReviewState review = DefaultOpsEventReviewState(event_record.event_id);
         event_by_id[event_record.event_id] = event_json;
-        input.evidence_manifests.push_back(
-            OpsV300IndexEvidenceManifestFromJson(event_json, event_record.event_id));
-        input.feature_sets.push_back(
-            OpsV300IndexFeatureSetFromJson(event_json, review, event_record));
-        input.review_states.push_back(
-            OpsV300IndexReviewStateFromReview(event_json, review, event_record.event_id));
-        input.events.push_back(std::move(event_record));
+        OpsV300ApplyIndexEvidenceManifestFromJson(event_json, &event_record);
+        OpsV300ApplyIndexFeatureSetFromJson(event_json, review, &event_record);
+        OpsV300ApplyIndexReviewStateFromReview(event_json, review, &event_record);
+        records.push_back(std::move(event_record));
     }
 
-    analysis::EventFeatureSearchIndex index;
-    const analysis::EventSearchIndexReport report = index.Rebuild(input);
-    std::vector<analysis::EventSearchIndexEntry> hits =
-        dsl.valid ? index.Search(dsl) : std::vector<analysis::EventSearchIndexEntry>{};
+    auto search_result = SearchEventFeaturesForApplication(records, search);
+    auto hits = std::move(search_result.hits);
 
     std::ostringstream out;
     out << "{"
@@ -5874,12 +5838,12 @@ std::string IntegratorScopedEventSearchJson(
         << "\"scopeGate\":\"event:read\","
         << "\"scope\":\"event:read:" << JsonEscape(access.view.view_id) << "\","
         << "\"query\":\"" << JsonEscape(search_query) << "\","
-        << "\"limit\":" << dsl.limit << ","
-        << "\"offset\":" << dsl.offset << ","
-        << "\"searchDslValid\":" << (dsl.valid ? "true" : "false") << ","
-        << "\"rejectionReason\":\"" << JsonEscape(dsl.rejection_reason) << "\","
+        << "\"limit\":" << search_result.limit << ","
+        << "\"offset\":" << search_result.offset << ","
+        << "\"searchDslValid\":" << (search_result.search_dsl_valid ? "true" : "false") << ","
+        << "\"rejectionReason\":\"" << JsonEscape(search_result.rejection_reason) << "\","
         << "\"featureSearchIndexBacked\":true,"
-        << "\"indexedEntries\":" << report.indexed_entries << ","
+        << "\"indexedEntries\":" << search_result.indexed_entries << ","
         << "\"modelProviderDependency\":false,"
         << "\"runtimeProviderCallPerformed\":false,"
         << "\"vectorSearchPerformed\":false,"

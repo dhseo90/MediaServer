@@ -593,25 +593,25 @@ check("Slice 25 evidence names bounded allocation and exception propagation risk
 function assertSuccessorGraph(graph) {
   const classifier = id => graph.moduleClassifiers.find(item => item.id === id);
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.expectedProductionFiles === 198 && graph.expectedCppFiles === 97 &&
-    classifier("application-service-interfaces")?.expectedFileCount === 31 &&
-    classifier("application-service-interfaces")?.expectedCppCount === 13 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 4 &&
+  assert(graph.expectedProductionFiles === 200 && graph.expectedCppFiles === 98 &&
+    classifier("application-service-interfaces")?.expectedFileCount === 33 &&
+    classifier("application-service-interfaces")?.expectedCppCount === 14 &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 3 &&
     edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 ===
-      "fe6019ef42f01914f342d19e884c0f3431eaa0e892a222793826d0ae776f5979" &&
-    edge("application-service-interfaces -> analysis-services")?.witnessCount === 15 &&
+      "59e2d5d4c4913e4c8776587692fabb264f3d8c2dbbafb61ce76c015db4367093" &&
+    edge("application-service-interfaces -> analysis-services")?.witnessCount === 16 &&
     edge("application-service-interfaces -> analysis-services")?.witnessSha256 ===
-      "8af1743af636bb433cba36ed9481fcb205ede6fad59625a497dd18be65e4360f" &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 16 &&
+      "563c01b6c801be24761cc00752fdb1d8c5e9f017ce3bb75b6bd4edb51ddbbe49" &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 17 &&
     edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 ===
-      "c043adfd438199bae030b0df835b0fe9e56e68f38d116ce9c5e9c275b5368e8c" &&
+      "068868b58572689d3a8e7ba33c41c8b948c8d170b0e3002acca11d230fa7e580" &&
     edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessCount === 4 &&
     edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessSha256 ===
       "adf4172d0e83de59df510ceeb38c88cd36aaf78b157e7022b6480d8e0793cab3" &&
     graph.observedModuleEdges.length === 16 &&
     graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 &&
     graph.stronglyConnectedComponents.length === 0 &&
-    graph.boundary.includes("analysis query and overlay application boundary"), "Slice 25 graph successor drift");
+    graph.boundary.includes("Event Feature Search application boundary"), "Slice 25 graph successor drift");
 }
 
 check("CMake dispatch graph and structure gate bind the exact successor", () => {

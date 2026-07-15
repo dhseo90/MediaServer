@@ -43,7 +43,7 @@
 #include "ingress/analysis_frame_application_service.h"
 #include "analysis/analysis_session_service.h"
 #include "ingress/category_catalog_application_service.h"
-#include "analysis/event_feature_search_index.h"
+#include "ingress/event_feature_search_application_service.h"
 #include "ingress/event_post_application_service.h"
 #include "analysis/event_rule_engine.h"
 #include "analysis/event_storage.h"
@@ -7527,63 +7527,63 @@ std::string OpsV310OperatorFeatureCorrectionViewJson(
     const std::unordered_map<std::string, OpsEventReviewState>& reviews);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33243 prototype
-analysis::EventSearchIndexEventRecord OpsV300IndexEventRecordFromJson(
+EventFeatureSearchApplicationRecord OpsV300IndexEventRecordFromJson(
     const std::string& event_json,
     const std::size_t index);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33279 prototype
-void OpsV300AddIndexFeature(analysis::EventSearchIndexFeatureSet* feature_set,
+void OpsV300AddIndexFeature(EventFeatureSearchApplicationRecord* record,
                             const std::string& namespace_name,
                             const std::string& name,
                             const std::string& value,
                             const std::string& evidence_ref);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33299 prototype
-analysis::EventSearchIndexFeatureSet OpsV300IndexFeatureSetFromJson(
+void OpsV300ApplyIndexFeatureSetFromJson(
     const std::string& event_json,
     const OpsEventReviewState& review,
-    const analysis::EventSearchIndexEventRecord& event_record);
+    EventFeatureSearchApplicationRecord* record);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33328 prototype
-analysis::EventSearchIndexEvidenceManifest OpsV300IndexEvidenceManifestFromJson(
+void OpsV300ApplyIndexEvidenceManifestFromJson(
     const std::string& event_json,
-    const std::string& event_id);
+    EventFeatureSearchApplicationRecord* record);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33350 prototype
-analysis::EventSearchIndexReviewState OpsV300IndexReviewStateFromReview(
+void OpsV300ApplyIndexReviewStateFromReview(
     const std::string& event_json,
     const OpsEventReviewState& review,
-    const std::string& event_id);
+    EventFeatureSearchApplicationRecord* record);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33363 prototype
-std::string OpsV300EntryFeatureValue(const analysis::EventSearchIndexEntry& entry,
+std::string OpsV300EntryFeatureValue(const EventFeatureSearchApplicationEntry& entry,
                                      const std::string& field);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33373 prototype
-bool OpsV300EntryHasFeature(const analysis::EventSearchIndexEntry& entry,
+bool OpsV300EntryHasFeature(const EventFeatureSearchApplicationEntry& entry,
                             const std::string& field);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33378 prototype
-std::string OpsV300EvidenceTimelineJson(const analysis::EventSearchIndexEntry& entry,
+std::string OpsV300EvidenceTimelineJson(const EventFeatureSearchApplicationEntry& entry,
                                         const std::string& event_json);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33425 prototype
-std::string OpsV300FeatureReasonsJson(const analysis::EventSearchIndexEntry& entry);
+std::string OpsV300FeatureReasonsJson(const EventFeatureSearchApplicationEntry& entry);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33451 prototype
-bool OpsV300EntryRetryable(const analysis::EventSearchIndexEntry& entry);
+bool OpsV300EntryRetryable(const EventFeatureSearchApplicationEntry& entry);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33455 prototype
-std::string OpsV300RetryActionsJson(const analysis::EventSearchIndexEntry& entry);
+std::string OpsV300RetryActionsJson(const EventFeatureSearchApplicationEntry& entry);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33469 prototype
-std::string OpsV300PinStatusJson(const analysis::EventSearchIndexEntry& entry);
+std::string OpsV300PinStatusJson(const EventFeatureSearchApplicationEntry& entry);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33481 prototype
-std::string OpsV300RetentionStatusJson(const analysis::EventSearchIndexEntry& entry);
+std::string OpsV300RetentionStatusJson(const EventFeatureSearchApplicationEntry& entry);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33494 prototype
-std::string OpsV300EventEvidenceSearchItemJson(const analysis::EventSearchIndexEntry& entry,
+std::string OpsV300EventEvidenceSearchItemJson(const EventFeatureSearchApplicationEntry& entry,
                                                const std::string& event_json);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33522 prototype
@@ -7607,13 +7607,13 @@ IntegratorScopedEventSearchSource LoadIntegratorScopedEventSearchSource(
     std::size_t read_limit);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33666 prototype
-ClientEventItem IntegratorScopedEventItemFromEntry(const analysis::EventSearchIndexEntry& entry,
+ClientEventItem IntegratorScopedEventItemFromEntry(const EventFeatureSearchApplicationEntry& entry,
                                                    const std::string& event_json);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 33690 prototype
 std::string IntegratorScopedEventSearchItemJson(
     const SourceViewApplicationService::ClientViewAccess& access,
-    const analysis::EventSearchIndexEntry& entry,
+    const EventFeatureSearchApplicationEntry& entry,
     const std::string& event_json,
     std::size_t index);
 

@@ -440,20 +440,20 @@ check("CMake dispatch and successor graph bind the exact Slice 24 boundary", () 
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const classifier = id => graph.moduleClassifiers.find(item => item.id === id);
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.expectedProductionFiles === 198 && graph.expectedCppFiles === 97 &&
-    classifier("application-service-interfaces")?.expectedFileCount === 31 &&
-    classifier("application-service-interfaces")?.expectedCppCount === 13 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 4 &&
+  assert(graph.expectedProductionFiles === 200 && graph.expectedCppFiles === 98 &&
+    classifier("application-service-interfaces")?.expectedFileCount === 33 &&
+    classifier("application-service-interfaces")?.expectedCppCount === 14 &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 3 &&
     edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 ===
-      "fe6019ef42f01914f342d19e884c0f3431eaa0e892a222793826d0ae776f5979" &&
-    edge("application-service-interfaces -> analysis-services")?.witnessCount === 15 &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 16 &&
+      "59e2d5d4c4913e4c8776587692fabb264f3d8c2dbbafb61ce76c015db4367093" &&
+    edge("application-service-interfaces -> analysis-services")?.witnessCount === 16 &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 17 &&
     edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessCount === 4 &&
     edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessSha256 ===
       "adf4172d0e83de59df510ceeb38c88cd36aaf78b157e7022b6480d8e0793cab3" &&
     graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 &&
     !graph.stronglyConnectedComponents.length &&
-    graph.boundary.includes("analysis query and overlay application boundary"), "graph successor drift");
+    graph.boundary.includes("Event Feature Search application boundary"), "graph successor drift");
 });
 
 check("current structure gate accepts the exact non-final successor", () => {
