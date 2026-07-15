@@ -47,12 +47,11 @@
 #include "ingress/event_post_application_service.h"
 #include "analysis/event_rule_engine.h"
 #include "analysis/event_storage.h"
-#include "analysis/image_frame_loader.h"
+#include "ingress/image_codec_application_service.h"
 #include "ingress/incident_memory_application_service.h"
 #include "analysis/metadata_subscription_filter.h"
 #include "analysis/object_tracker.h"
 #include "analysis/overlay_renderer.h"
-#include "analysis/snapshot_encoder.h"
 #include "analysis/va_runtime_metadata.h"
 #include "ingress/vlm_observation_application_service.h"
 #include "analysis/analysis_query.h"
@@ -2738,6 +2737,9 @@ bool ResolveImageRequestPath(const std::unordered_map<std::string, std::string>&
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8644 prototype
 bool QueryHasAny(const std::unordered_map<std::string, std::string>& query,
                  std::initializer_list<const char*> keys);
+
+ImageCodecFrame ProjectImageCodecFrame(const analysis::RawVideoFrame& frame);
+analysis::RawVideoFrame RestoreImageCodecFrame(const ImageCodecFrame& frame);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8651 prototype
 bool AnalyzeStaticImage(const std::unordered_map<std::string, std::string>& query,

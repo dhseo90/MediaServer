@@ -7308,6 +7308,62 @@ bool QueryHasAny(const std::unordered_map<std::string, std::string>& query,
     });
 }
 
+ImageCodecFrame ProjectImageCodecFrame(const analysis::RawVideoFrame& frame) {
+    ImageCodecFrame projected;
+    projected.source_key = frame.source_key;
+    projected.track_id = frame.track_id;
+    projected.width = frame.width;
+    projected.height = frame.height;
+    switch (frame.format) {
+        case analysis::PixelFormat::Unknown:
+            projected.format = ImageCodecPixelFormat::Unknown;
+            break;
+        case analysis::PixelFormat::I420:
+            projected.format = ImageCodecPixelFormat::I420;
+            break;
+        case analysis::PixelFormat::RGB:
+            projected.format = ImageCodecPixelFormat::RGB;
+            break;
+        case analysis::PixelFormat::BGR:
+            projected.format = ImageCodecPixelFormat::BGR;
+            break;
+        case analysis::PixelFormat::Gray8:
+            projected.format = ImageCodecPixelFormat::Gray8;
+            break;
+    }
+    projected.pts = frame.pts;
+    projected.data = frame.data;
+    return projected;
+}
+
+analysis::RawVideoFrame RestoreImageCodecFrame(const ImageCodecFrame& frame) {
+    analysis::RawVideoFrame restored;
+    restored.source_key = frame.source_key;
+    restored.track_id = frame.track_id;
+    restored.width = frame.width;
+    restored.height = frame.height;
+    switch (frame.format) {
+        case ImageCodecPixelFormat::Unknown:
+            restored.format = analysis::PixelFormat::Unknown;
+            break;
+        case ImageCodecPixelFormat::I420:
+            restored.format = analysis::PixelFormat::I420;
+            break;
+        case ImageCodecPixelFormat::RGB:
+            restored.format = analysis::PixelFormat::RGB;
+            break;
+        case ImageCodecPixelFormat::BGR:
+            restored.format = analysis::PixelFormat::BGR;
+            break;
+        case ImageCodecPixelFormat::Gray8:
+            restored.format = analysis::PixelFormat::Gray8;
+            break;
+    }
+    restored.pts = frame.pts;
+    restored.data = frame.data;
+    return restored;
+}
+
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8651 function
 bool AnalyzeStaticImage(const std::unordered_map<std::string, std::string>& query,
                         StaticImageAnalysis* output,
@@ -7325,9 +7381,11 @@ bool AnalyzeStaticImage(const std::unordered_map<std::string, std::string>& quer
         return false;
     }
 
-    if (!analysis::DecodeImageFileToRawFrame(image_path, &output->frame, error_message)) {
+    ImageCodecFrame decoded;
+    if (!DecodeImageForApplication(image_path, &decoded, error_message)) {
         return false;
     }
+    output->frame = RestoreImageCodecFrame(decoded);
     output->frame.source_key = "image:" + output->root_name + "/" + output->token;
 
     auto profile_query = query;

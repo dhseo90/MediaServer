@@ -27,9 +27,9 @@ const skipMutations = rawArgs.includes("--skip-mutations");
 const fixtureArg = rawArgs.find(arg => arg.startsWith("--fixture-root="));
 const sourceRoot = fixtureArg ? validateFixtureRoot(fixtureArg.slice("--fixture-root=".length)) : rootDir;
 const rollbackCommit = "2e4a4d7e";
-const expectedSuccessorDefinitionCount = 1154;
+const expectedSuccessorDefinitionCount = 1156;
 const expectedSuccessorDefinitionSha256 =
-  "d181c00a5a0c49bf2128212774e844a5920ba9e1d0442235cff9779be4ddb3be";
+  "495f97d99cf48f919fe8becd54b895846973f058d6efbff7b433dc3084b94957";
 const helperPath = "scripts/internal/webrtc_http_server_source_bundle.mjs";
 const graphPath = "test/fixtures/v390_structure_stabilization_current_graph.json";
 const splitPaths = [
@@ -388,7 +388,7 @@ check("CMake and owner classifier include every translation unit exactly once", 
 check("actual graph keeps direction debt stable while closing the mixed-owner limit", () => {
   const graph = JSON.parse(read(graphPath));
   const trackedSplit = graph.mixedOwnershipDebt.filter(item => splitPaths.includes(item.file));
-  assert(graph.expectedProductionFiles === 188 && graph.expectedCppFiles === 92 &&
+  assert(graph.expectedProductionFiles === 190 && graph.expectedCppFiles === 93 &&
     graph.observedModuleEdges.length === 17 &&
     graph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 3 &&
     graph.stronglyConnectedComponents.length === 0 && graph.cmake.targets.length === 2 &&
@@ -478,10 +478,10 @@ if (!skipMutations && splitPaths.every(file => fs.existsSync(path.join(rootDir, 
       text => text.replace(`        "${splitPaths[2]}",\n`, ""),
       "CMake and owner classifier");
     rejectMutation("graph", graphPath,
-      text => text.replace('"expectedProductionFiles": 188', '"expectedProductionFiles": 189'),
+      text => text.replace('"expectedProductionFiles": 190', '"expectedProductionFiles": 191'),
       "actual graph keeps direction debt stable");
     rejectMutation("graph-line-count", graphPath,
-      text => text.replace('"lineCount": 7585', '"lineCount": 7586'),
+      text => text.replace('"lineCount": 7643', '"lineCount": 7644'),
       "actual graph keeps direction debt stable");
     rejectMutation("line-budget", splitPaths[2],
       text => `${text}${"\n".repeat(15001)}`,

@@ -4219,8 +4219,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                             if (suffix == "/snapshot" || suffix == "/snapshot.jpg") {
                                 const int quality = ParseClampedIntQuery(query, "quality", 85, 1, 100);
-                                analysis::EncodedImage image;
-                                if (!analysis::EncodeJpeg(image_analysis.frame, quality, &image, &error_message)) {
+                                ImageCodecEncodedImage image;
+                                if (!EncodeJpegForApplication(
+                                        ProjectImageCodecFrame(image_analysis.frame), quality, &image, &error_message)) {
                                     return HttpResponse{500,
                                                         "Internal Server Error",
                                                         "text/plain; charset=utf-8",
@@ -4249,8 +4250,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 }
 
                                 const int quality = ParseClampedIntQuery(query, "quality", 85, 1, 100);
-                                analysis::EncodedImage image;
-                                if (!analysis::EncodeJpeg(overlay_frame, quality, &image, &error_message)) {
+                                ImageCodecEncodedImage image;
+                                if (!EncodeJpegForApplication(
+                                        ProjectImageCodecFrame(overlay_frame), quality, &image, &error_message)) {
                                     return HttpResponse{500,
                                                         "Internal Server Error",
                                                         "text/plain; charset=utf-8",
@@ -4552,9 +4554,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                         "analysis snapshot frame not found"};
                                 }
                                 const int quality = ParseClampedIntQuery(query, "quality", 85, 1, 100);
-                                analysis::EncodedImage image;
+                                ImageCodecEncodedImage image;
                                 std::string error_message;
-                                if (!analysis::EncodeJpeg(*frame, quality, &image, &error_message)) {
+                                if (!EncodeJpegForApplication(
+                                        ProjectImageCodecFrame(*frame), quality, &image, &error_message)) {
                                     return HttpResponse{500,
                                                         "Internal Server Error",
                                                         "text/plain; charset=utf-8",
@@ -4605,8 +4608,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 }
 
                                 const int quality = ParseClampedIntQuery(query, "quality", 85, 1, 100);
-                                analysis::EncodedImage image;
-                                if (!analysis::EncodeJpeg(overlay_frame, quality, &image, &error_message)) {
+                                ImageCodecEncodedImage image;
+                                if (!EncodeJpegForApplication(
+                                        ProjectImageCodecFrame(overlay_frame), quality, &image, &error_message)) {
                                     return HttpResponse{500,
                                                         "Internal Server Error",
                                                         "text/plain; charset=utf-8",

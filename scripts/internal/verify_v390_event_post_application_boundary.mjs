@@ -28,6 +28,7 @@ const runtimePath = "src/ingress/webrtc_http_server_runtime.cpp";
 const incidentsPath = "src/ingress/webrtc_http_server_ops_incidents.cpp";
 const dispatcherPath = "src/analysis/event_post_dispatcher.cpp";
 const rollback = "cb9c6950f43df1b489175b9e85c638e042ab6e4c";
+const successor = "16d6ffaa64290db3a74ae189102881572ae5b96c";
 const checks = [];
 function assert(value, message) { if (!value) throw new Error(message); }
 function check(name, fn) { try { fn(); checks.push({name,status:"PASS"}); } catch (error) { checks.push({name,status:"FAIL",detail:error.message}); } }
@@ -200,22 +201,18 @@ int main(){ingress::EventPostDispatchRequest q;q.source={.source_key="source",.p
 check("rollback dispatcher, status bytes, and three call-site orderings are exact", () => {
   const beforeDispatcher = execFileSync("git", ["show", `${rollback}:${dispatcherPath}`], {cwd:root,encoding:"utf8"});
   assert(sha256(read(dispatcherPath)) === sha256(beforeDispatcher), "canonical dispatcher bytes changed");
-  const beforeRuntime = execFileSync("git", ["show", `${rollback}:${runtimePath}`], {cwd:root,encoding:"utf8"});
-  const beforeIncidents = execFileSync("git", ["show", `${rollback}:${incidentsPath}`], {cwd:root,encoding:"utf8"});
-  const expandFacade = text => text.replace(
-    /DispatchEventPostsForApplication\(ProjectEventPostDispatchRequest\(\s*(evaluation(?:->|\.)annotated_result),\s*(evaluation(?:->|\.)events)\)\);/g,
-    "analysis::DispatchEventPosts($1, $2);");
-  assert(compactCppPreservingLiterals(expandFacade(read(runtimePath))) === compactCppPreservingLiterals(beforeRuntime),
+  const beforeRuntime = execFileSync("git", ["show", `${successor}:${runtimePath}`], {cwd:root,encoding:"utf8"});
+  const beforeIncidents = execFileSync("git", ["show", `${successor}:${incidentsPath}`], {cwd:root,encoding:"utf8"});
+  const restoreCodec = text => text.replaceAll("ImageCodecEncodedImage", "analysis::EncodedImage")
+    .replace(/EncodeJpegForApplication\(\s*ProjectImageCodecFrame\(([^)]*)\),\s*([^,]*),\s*([^,]*),\s*([^)]*)\)/g,
+      "analysis::EncodeJpeg($1, $2, $3, $4)");
+  assert(compactCppPreservingLiterals(restoreCodec(read(runtimePath))) === compactCppPreservingLiterals(beforeRuntime),
     "tap Record→Post→Ops alert ordering drift");
   const afterIncidents = read(incidentsPath);
   const beforeStatus = functionBlock(beforeIncidents, "std::string AnalysisEventPostStatusJson()");
   const afterStatus = functionBlock(afterIncidents, "std::string AnalysisEventPostStatusJson()");
   const assertStatusParity = value => {
-    const normalized = value
-      .replace("const auto status = ObserveEventPostDispatchStatus();",
-        "const auto snapshot = analysis::GetEventPostDispatcherSnapshot();")
-      .replaceAll("status.", "snapshot.");
-    assert(compactCppPreservingLiterals(normalized) === compactCppPreservingLiterals(beforeStatus),
+    assert(compactCppPreservingLiterals(value) === compactCppPreservingLiterals(beforeStatus),
       "status JSON output emission drift");
   };
   assertStatusParity(afterStatus);
@@ -229,10 +226,7 @@ check("rollback dispatcher, status bytes, and three call-site orderings are exac
     try { assertStatusParity(mutation(afterStatus)); } catch { rejected = true; }
     assert(rejected, `status parity mutation escaped: ${name}`);
   }
-  const normalizedIncidents = expandFacade(afterIncidents)
-    .replace(functionBlock(afterIncidents, "EventPostDispatchRequest ProjectEventPostDispatchRequest("), "")
-    .replace(afterStatus, beforeStatus);
-  assert(compactCppPreservingLiterals(normalizedIncidents) === compactCppPreservingLiterals(beforeIncidents),
+  assert(compactCppPreservingLiterals(afterIncidents) === compactCppPreservingLiterals(beforeIncidents),
     "status JSON bytes or overlay Record→Post→metadata ordering drift");
 });
 
@@ -244,17 +238,17 @@ check("CMake, dispatch, and graph bind the exact successor", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const owner = graph.moduleClassifiers.find(item => item.id === "application-service-interfaces");
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.boundary === "current REVIEW4-64 continuation graph after the Event POST application boundary; transport projects dependency-free payload/status DTOs while the application implementation alone maps the canonical dispatcher, Policy v1 counts 3 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed" &&
-    graph.expectedProductionFiles === 188 && graph.expectedCppFiles === 92 &&
-    owner?.expectedFileCount === 23 && owner.expectedCppCount === 9 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 13 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 === "2a57a73c7b95d0ff5afe52fff4af915ce8a99a0ab1ce96a1cf2ca24eff378233" &&
+  assert(graph.boundary === "current REVIEW4-64 continuation graph after the image codec application boundary; transport projects dependency-free raw-frame/JPEG DTOs while the application implementation alone calls canonical decode and encode owners, Policy v1 counts 3 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed" &&
+    graph.expectedProductionFiles === 190 && graph.expectedCppFiles === 93 &&
+    owner?.expectedFileCount === 25 && owner.expectedCppCount === 10 &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 11 &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 === "c9ed6ffdfab98888158999874e0d4c7dcd2c3aafa3eb87c6b02ac0e5f9e460cc" &&
     edge("transport-and-auth-adapter -> analysis-services")?.allowedByTarget === false &&
-    edge("application-service-interfaces -> analysis-services")?.witnessCount === 6 &&
-    edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "01462553c675fb8de7829bf128aa059679c3950f2f532209d495010e9c995251" &&
+    edge("application-service-interfaces -> analysis-services")?.witnessCount === 8 &&
+    edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "6ad1bfd8758a13102e249858140fd6269b5d771117bd1c6365617a09dc22808b" &&
     edge("application-service-interfaces -> analysis-services")?.allowedByTarget === true &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 12 &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "cb40c1b772183f109c5a5cf7522303b1c102d59ad2c6a46449ef684046e64d34" &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 13 &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "3f9760963c48c996f1c4568bd1d16f7b081fbc6a52be9623853f74a9dbca12c4" &&
     edge("transport-and-auth-adapter -> application-service-interfaces")?.allowedByTarget === true &&
     graph.observedModuleEdges.length === 17 &&
     graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 3 &&

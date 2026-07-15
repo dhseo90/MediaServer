@@ -503,6 +503,9 @@ rerun on a clean max-queue16 server after a preceding slow queue backlog caused 
 production188/C++92, edge17, violations3, SCC0; transport-to-analysis witnesses are 14→13. Parked generated evidence and remaining
 violation directions keep REVIEW4-64/65 open.
 
+### Current continuation Slice 22: `image-codec-application-boundary`
+
+Image decode and JPEG encode now cross `image_codec_application_service.h/.cpp` through dependency-free frame and encoded-image DTOs. Five pixel formats, frame metadata, PTS, raw/JPEG binary bytes, null/error behavior, one decode and four encode call sites are exact-oracle bound. Path containment and HTTP response policy remain transport-owned and rollback-equivalent. Focused 5/1 graph RED→6/0 after independent P1 oracle hardening; build, actual image20, lab core, redaction4/0, analysis181, final contract10, Event POST/bundle/physical gates pass. Current graph is production190/C++93, edge17, violations3, SCC0; transport-to-analysis witnesses are 13→11. Parked generated evidence and remaining directions keep final completion closed.
 ### Current continuation Slice 20: `incident-memory-application-boundary`
 
 - [x] Add dependency-free projection, search request/result, hit, and release-safe DTOs.
