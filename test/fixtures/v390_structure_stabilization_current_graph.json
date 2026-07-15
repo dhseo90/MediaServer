@@ -781,5 +781,5 @@
       "exitRule": "production-graph-unchanged-and-cumulative-debt-verified"
     }
   ],
-  "boundary": "current REVIEW4-64 continuation graph after the category catalog application boundary; transport serializes dependency-free category DTOs while the application implementation alone maps the canonical analysis catalog, Policy v1 counts 3 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed"
+  "boundary": "current REVIEW4-64 continuation graph after the incident memory application boundary; transport serializes dependency-free incident-memory DTOs while the application implementation alone owns canonical projection, privacy rejection, local fallback indexing, search, and highlights, Policy v1 counts 3 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed"
 }

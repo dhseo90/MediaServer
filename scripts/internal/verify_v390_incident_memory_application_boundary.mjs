@@ -255,7 +255,8 @@ check("actual graph successor reduces one transport-analysis witness", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const owner = graph.moduleClassifiers.find(item => item.id === "application-service-interfaces");
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.expectedProductionFiles === 186 && graph.expectedCppFiles === 91 &&
+  assert(graph.boundary === "current REVIEW4-64 continuation graph after the incident memory application boundary; transport serializes dependency-free incident-memory DTOs while the application implementation alone owns canonical projection, privacy rejection, local fallback indexing, search, and highlights, Policy v1 counts 3 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed" &&
+    graph.expectedProductionFiles === 186 && graph.expectedCppFiles === 91 &&
     owner?.expectedFileCount === 21 && owner.expectedCppCount === 8 &&
     edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 14 &&
     edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 === "1e8a99bf6cad1f593b2a2430f731b8d088c91e9d5e85b190b59d7790211f6449" &&

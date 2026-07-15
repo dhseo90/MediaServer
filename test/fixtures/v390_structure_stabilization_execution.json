@@ -55,7 +55,7 @@
   "currentGraph": {
     "path": "test/fixtures/v390_structure_stabilization_current_graph.json",
     "schema": "media-server.v390-structure-stabilization-current-graph.v1",
-    "sha256": "70de1ed1ac82548be5606bb497060b16dcd95fb3db0e458bbc2007b660c846f4",
+    "sha256": "a00e467b89950a321d5dfddd85a38caf6a9807d0fee9e79f42b895cce4f6db88",
     "metrics": {
       "productionFiles": 186,
       "cppSources": 91,
@@ -2435,7 +2435,7 @@
           "cmakeTargets": 2, "internalTargetSeparation": true
         },
         "after": {
-          "productionGraphSha256": "70de1ed1ac82548be5606bb497060b16dcd95fb3db0e458bbc2007b660c846f4",
+          "productionGraphSha256": "a00e467b89950a321d5dfddd85a38caf6a9807d0fee9e79f42b895cce4f6db88",
           "productionFiles": 186, "cppSources": 91,
           "targetViolationDirectionsUnderPolicyV1": 3,
           "transportAnalysisWitnessCount": 14, "transportDomainWitnessCount": 1,
@@ -2455,7 +2455,8 @@
           "the focused boundary was registered before production and failed 0/5",
           "the final focused gate added a compiled fake-analysis matrix, Upsert fail-soft call-order ledger, ordered two-hit and multi-value vector mapping, exact route limit/event-audit request assembly, and literal-preserving rollback output-emission parity oracle and passed 7/0 for exact DTO mapping, UTF-8/escaped values, null output, privacy, local fallback, partial error, deterministic hit/highlight order, and unchanged Ops/evidence JSON emission",
           "three historical companions had stale mixed-server UI owner or pre-application function anchors and were rebound to product_ui_server_pages and current application calls",
-          "the generated implementation and semantic audit fixtures remain parked non-final evidence and are not staged by this slice"
+          "the generated implementation and semantic audit fixtures remain parked non-final evidence and are not staged by this slice",
+          "independent follow-up corrected the current graph boundary narrative from stale Slice 18 category wording to the exact Slice 20 incident-memory frontier and bound it in the focused oracle"
         ],
         "tests": [
           {"command":"./server.sh verify-v390-incident-memory-application-boundary","status":"pass","result":"7/0","firstAttempt":"0/5 expected RED","reviewRepair":"Upsert fail-soft call order, exact ordered two-hit/tokens/redacted/matched terms, route limit/event-audit assembly, and literal-preserving rollback Ops/evidence JSON output-emission parity added"},
