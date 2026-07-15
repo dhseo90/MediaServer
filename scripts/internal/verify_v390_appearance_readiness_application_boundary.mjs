@@ -242,15 +242,15 @@ check("CMake and current graph preserve Slice 17 at the Slice 18 successor", () 
   const assertGraphBoundary = value => {
     const applicationOwner = value.moduleClassifiers.find(item => item.id === "application-service-interfaces");
     assert(applicationOwner?.exactFiles.includes(headerPath) && applicationOwner.exactFiles.includes(sourcePath) &&
-      applicationOwner.expectedFileCount === 19 && applicationOwner.expectedCppCount === 7,
+      applicationOwner.expectedFileCount === 21 && applicationOwner.expectedCppCount === 8,
     "current graph application ownership binding missing");
     const edge = direction => value.observedModuleEdges.find(item => item.direction === direction);
-    assert(edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 15 &&
+    assert(edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 14 &&
       edge("transport-and-auth-adapter -> analysis-services")?.allowedByTarget === false,
     "Slice 18 successor must preserve the Slice 17 boundary and reduce the next witness to 16");
-    assert(edge("application-service-interfaces -> analysis-services")?.witnessCount === 4 &&
+    assert(edge("application-service-interfaces -> analysis-services")?.witnessCount === 5 &&
       edge("application-service-interfaces -> analysis-services")?.allowedByTarget === true &&
-      edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 10 &&
+      edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 11 &&
       edge("transport-and-auth-adapter -> application-service-interfaces")?.allowedByTarget === true,
     "application successor edges drift");
     assert(value.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 3 &&
@@ -260,7 +260,7 @@ check("CMake and current graph preserve Slice 17 at the Slice 18 successor", () 
   assertGraphBoundary(graph);
   const mutated = structuredClone(graph);
   mutated.observedModuleEdges.find(item =>
-    item.direction === "transport-and-auth-adapter -> analysis-services").witnessCount = 16;
+    item.direction === "transport-and-auth-adapter -> analysis-services").witnessCount = 15;
   let rejected = false;
   try { assertGraphBoundary(mutated); } catch { rejected = true; }
   assert(rejected, "transport-to-analysis graph regression mutation was not rejected");

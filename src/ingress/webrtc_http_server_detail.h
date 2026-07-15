@@ -48,7 +48,7 @@
 #include "analysis/event_rule_engine.h"
 #include "analysis/event_storage.h"
 #include "analysis/image_frame_loader.h"
-#include "analysis/incident_memory.h"
+#include "ingress/incident_memory_application_service.h"
 #include "analysis/metadata_subscription_filter.h"
 #include "analysis/object_tracker.h"
 #include "analysis/overlay_renderer.h"
@@ -7107,11 +7107,6 @@ bool OpsIncidentMemoryRecordMatchesFilters(const std::string& event_json,
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 30617 prototype
 std::string OpsIncidentReviewProjectionJson(const OpsEventReviewState& review);
-
-// WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 30634 prototype
-std::vector<std::string> OpsIncidentMemoryHighlightFragments(
-    const analysis::IncidentProjectionDocument& document,
-    const std::vector<std::string>& matched_terms);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 30672 prototype
 std::string OpsVlmSummaryCandidateReviewJson(const std::string& search_query,

@@ -490,6 +490,19 @@ Ops review, draft workflow, v260 review, predecessor, bundle, and physical gates
 production184/C++90, edge17, violations3, SCC0; transport-to-analysis witnesses are 16→15. Parked generated manifest
 checks and the remaining violation directions keep REVIEW4-64/65 open.
 
+### Current continuation Slice 20: `incident-memory-application-boundary`
+
+- [x] Add dependency-free projection, search request/result, hit, and release-safe DTOs.
+- [x] Own canonical event/audit projection, forbidden-material rejection, forced local fallback index, search, and highlights.
+- [x] Preserve empty index paths, no-provider behavior, fail-soft errors, deterministic hit/highlight order, and output schema bytes.
+- [x] Remove direct incident-memory include/type/function calls from all ten transport files.
+
+Focused verification moved from expected 0/5 RED to 7/0 with a compiled fake-analysis matrix, Upsert fail-soft call-order ledger,
+exact route limit/event-audit assembly, ordered two-hit/multi-value vector mapping, and literal-preserving rollback Ops/evidence JSON output-emission parity. Build, canonical projection/index,
+semantic search, similar incident, owner readiness, VLM productization, predecessor, bundle, and physical gates passed. Current graph is
+production186/C++91, edge17, violations3, SCC0; transport-to-analysis witnesses are 15→14. Parked generated evidence and the
+remaining violation directions keep REVIEW4-64/65 open.
+
 ### Current continuation Slice 18: `category-catalog-application-boundary`
 
 - [x] Add a dependency-free seven-field category catalog DTO and exact canonical mapping.

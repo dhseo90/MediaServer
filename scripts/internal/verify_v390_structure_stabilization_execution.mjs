@@ -505,15 +505,16 @@ check("non-production Slice preserves production graph and parked evidence stays
   }
 });
 
-check("current continuation binds the exact Slice 1-19 frontier without a final claim", () => {
+check("current continuation binds the exact Slice 1-20 frontier without a final claim", () => {
   const slices = ledger.currentContinuation?.orderedSlices || [];
   assert(validateContinuationFrontier(ledger).length === 0,
     `current continuation frontier invalid: ${validateContinuationFrontier(ledger).join(",")}`);
-  assert(slices.length === 19 && slices[0].order === 1 && slices[1].order === 2 && slices[2].order === 3 &&
+  assert(slices.length === 20 && slices[0].order === 1 && slices[1].order === 2 && slices[2].order === 3 &&
     slices[3].order === 4 && slices[4].order === 5 && slices[5].order === 6 && slices[6].order === 7 &&
     slices[7].order === 8 && slices[8].order === 9 && slices[9].order === 10 && slices[10].order === 11 &&
     slices[11].order === 12 && slices[12].order === 13 && slices[13].order === 14 && slices[14].order === 15 &&
     slices[15].order === 16 && slices[16].order === 17 && slices[17].order === 18 && slices[18].order === 19 &&
+    slices[19].order === 20 &&
     slices[0].id === "completion-oracle-and-ops-ui-renderer" && slices[0].status === "completed" &&
     slices[1].id === "product-ui-principal-view-boundary" && slices[1].status === "completed" &&
     slices[2].id === "source-request-parser-owner-boundary" && slices[2].status === "completed" &&
@@ -534,8 +535,9 @@ check("current continuation binds the exact Slice 1-19 frontier without a final 
     slices[15].id === "source-view-application-boundary" && slices[15].status === "completed" &&
     slices[16].id === "appearance-readiness-application-boundary" && slices[16].status === "completed" &&
     slices[17].id === "category-catalog-application-boundary" && slices[17].status === "completed" &&
-    slices[18].id === "vlm-observation-application-boundary" &&
-    ["in-progress", "completed"].includes(slices[18].status),
+    slices[18].id === "vlm-observation-application-boundary" && slices[18].status === "completed" &&
+    slices[19].id === "incident-memory-application-boundary" &&
+    ["in-progress", "completed"].includes(slices[19].status),
   "current continuation slice identity/frontier mismatch");
   const slice1 = slices[0];
   const slice2 = slices[1];
@@ -1380,6 +1382,7 @@ check("current continuation binds the exact Slice 1-19 frontier without a final 
   const slice17 = slices[16];
   const slice18 = slices[17];
   const slice19 = slices[18];
+  const slice20 = slices[19];
   assert(slice15.after?.productionGraphSha256 === slice16?.before?.productionGraphSha256 &&
     slice15.after.productionFiles === 175 && slice15.after.cppSources === 86 &&
     slice15.after.targetViolationDirectionsUnderPolicyV1 === 3 &&
@@ -1578,31 +1581,65 @@ check("current continuation binds the exact Slice 1-19 frontier without a final 
   "current continuation Slice 19 rollback/contract/test inventory drift");
   assert(JSON.stringify(slice19.before) === JSON.stringify(slice18.after),
     "current continuation Slice 19 before-state is not bound to Slice 18 frontier");
+  assert(JSON.stringify(slice19.after) === JSON.stringify(slice20.before) &&
+    slice19.after.productionFiles === 184 && slice19.after.cppSources === 90 &&
+    slice19.after.targetViolationDirectionsUnderPolicyV1 === 3 &&
+    slice19.after.transportAnalysisWitnessCount === 15 && slice19.after.transportDomainWitnessCount === 1 &&
+    slice19.after.largestSccOwners === 0 && slice19.after.largestMixedOwnerFileLines === 10156 &&
+    slice19.after.cmakeTargets === 2 && slice19.after.internalTargetSeparation === true,
+  "Slice 19 VLM observation application boundary graph delta drift");
+  const slice19SelfCheck = sliceTest(slice19,
+    "./server.sh verify-v390-review4-structure-stabilization-execution");
+  assert(ledger.currentContinuation.latestCompletedSlice >= 19 &&
+    slice19.tests.every(test => test === slice19SelfCheck ? test.status === "self-check" : test.status === "pass"),
+  "completed Slice 19 frontier/test state mismatch");
+  const slice20Commands = [
+    "./server.sh verify-v390-incident-memory-application-boundary", "./server.sh build",
+    "./server.sh verify-analysis-state",
+    "./server.sh verify-v250-incident-text-projection", "./server.sh verify-v250-incident-memory-index",
+    "./server.sh verify-v250-ops-events-semantic-search-ui", "./server.sh verify-v250-similar-incident-lookup",
+    "./server.sh verify-v250-owner-release-readiness", "./server.sh verify-v260-incident-memory-productization",
+    "./server.sh verify-v390-vlm-observation-application-boundary",
+    "./server.sh verify-v390-category-catalog-application-boundary",
+    "./server.sh verify-v390-appearance-readiness-application-boundary",
+    "./server.sh verify-v390-transport-runtime-config-boundary",
+    "./server.sh verify-v390-webrtc-http-server-source-bundle",
+    "./server.sh verify-v390-webrtc-http-server-physical-split",
+    "./server.sh verify-v390-review4-structure-stabilization-execution",
+    "./server.sh verify-script-inventory", "./server.sh verify-docs-links", "git diff --check",
+  ];
+  assert(slice20 && slice20.rollbackCommit === "eb9e64e9a550e32bb33bb3ff3217fceede65045e" &&
+    slice20.nonProductionSlice === false && slice20.contractAssertions.length >= 7 &&
+    slice20.tests.length === slice20Commands.length &&
+    slice20Commands.every(command => slice20.tests.filter(test => test.command === command).length === 1),
+  "current continuation Slice 20 rollback/contract/test inventory drift");
+  assert(JSON.stringify(slice20.before) === JSON.stringify(slice19.after),
+    "current continuation Slice 20 before-state is not bound to Slice 19 frontier");
   const transportAnalysisEdge = graph.observedModuleEdges.find(item =>
     item.direction === "transport-and-auth-adapter -> analysis-services");
   const applicationAnalysisEdge = graph.observedModuleEdges.find(item =>
     item.direction === "application-service-interfaces -> analysis-services");
   const transportApplicationEdge = graph.observedModuleEdges.find(item =>
     item.direction === "transport-and-auth-adapter -> application-service-interfaces");
-  assert(slice19.after?.productionGraphSha256 === ledger.currentGraph.sha256 &&
-    slice19.after.productionFiles === 184 && slice19.after.cppSources === 90 &&
-    slice19.after.targetViolationDirectionsUnderPolicyV1 === 3 &&
-    slice19.after.transportAnalysisWitnessCount === 15 && slice19.after.transportDomainWitnessCount === 1 &&
-    slice19.after.largestSccOwners === 0 && slice19.after.largestMixedOwnerFileLines === 10156 &&
-    slice19.after.cmakeTargets === 2 && slice19.after.internalTargetSeparation === true &&
+  assert(slice20.after?.productionGraphSha256 === ledger.currentGraph.sha256 &&
+    slice20.after.productionFiles === 186 && slice20.after.cppSources === 91 &&
+    slice20.after.targetViolationDirectionsUnderPolicyV1 === 3 &&
+    slice20.after.transportAnalysisWitnessCount === 14 && slice20.after.transportDomainWitnessCount === 1 &&
+    slice20.after.largestSccOwners === 0 && slice20.after.largestMixedOwnerFileLines === 10156 &&
+    slice20.after.cmakeTargets === 2 && slice20.after.internalTargetSeparation === true &&
     graph.observedModuleEdges.length === 17 &&
-    transportAnalysisEdge?.witnessCount === 15 && transportAnalysisEdge.allowedByTarget === false &&
-    transportAnalysisEdge.witnessSha256 === "d9f6a06fbe6f2a382c85fca9d0a3757663b8a77bddeb4ac3aeb5e83889d6fa4d" &&
-    applicationAnalysisEdge?.witnessCount === 4 && applicationAnalysisEdge.allowedByTarget === true &&
-    applicationAnalysisEdge.witnessSha256 === "8d52d09690a4f5553d183359bc5e6816e7af7039a54d1624b3cfbb5c609d6b9a" &&
-    transportApplicationEdge?.witnessCount === 10 && transportApplicationEdge.allowedByTarget === true &&
-    transportApplicationEdge.witnessSha256 === "41c936dbe5e7873083d71e0f385017b29b48c1dd1b689585c2b9b38b1ef7421f",
-  "Slice 19 VLM observation application boundary graph delta drift");
-  const slice19SelfCheck = sliceTest(slice19,
+    transportAnalysisEdge?.witnessCount === 14 && transportAnalysisEdge.allowedByTarget === false &&
+    transportAnalysisEdge.witnessSha256 === "1e8a99bf6cad1f593b2a2430f731b8d088c91e9d5e85b190b59d7790211f6449" &&
+    applicationAnalysisEdge?.witnessCount === 5 && applicationAnalysisEdge.allowedByTarget === true &&
+    applicationAnalysisEdge.witnessSha256 === "c3945d3c0662be039ef60d72582e83ef31080c34fc88f9957d774e2bbf9c0a1f" &&
+    transportApplicationEdge?.witnessCount === 11 && transportApplicationEdge.allowedByTarget === true &&
+    transportApplicationEdge.witnessSha256 === "d7cc3552637efe0a9f995a313c875773b85998e656063f5a2bacf244c81d77be",
+  "Slice 20 incident-memory application boundary graph delta drift");
+  const slice20SelfCheck = sliceTest(slice20,
     "./server.sh verify-v390-review4-structure-stabilization-execution");
-  assert(ledger.currentContinuation.latestCompletedSlice === 19 &&
-    slice19.tests.every(test => test === slice19SelfCheck ? test.status === "self-check" : test.status === "pass"),
-  "completed Slice 19 frontier/test state mismatch");
+  assert(ledger.currentContinuation.latestCompletedSlice === 20 &&
+    slice20.tests.every(test => test === slice20SelfCheck ? test.status === "self-check" : test.status === "pass"),
+  "completed Slice 20 frontier/test state mismatch");
   assert(ledger.currentContinuation.finalCompletionClaimAllowed === false &&
     ledger.refactorComplete === false && ledger.completionClaimed === false,
   "current continuation overclaims final completion");

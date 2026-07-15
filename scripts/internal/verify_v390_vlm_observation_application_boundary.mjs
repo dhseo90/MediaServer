@@ -150,18 +150,18 @@ check("CMake and exact graph successor bind Slice 19", () => {
   const owner = graph.moduleClassifiers.find(item => item.id === "application-service-interfaces");
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
   assert(owner?.exactFiles.includes(headerPath) && owner.exactFiles.includes(sourcePath) &&
-    owner.expectedFileCount === 19 && owner.expectedCppCount === 7 &&
-    graph.expectedProductionFiles === 184 && graph.expectedCppFiles === 90 &&
+    owner.expectedFileCount === 21 && owner.expectedCppCount === 8 &&
+    graph.expectedProductionFiles === 186 && graph.expectedCppFiles === 91 &&
     graph.observedModuleEdges.length === 17 && graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 3 &&
     graph.stronglyConnectedComponents.length === 0 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 15 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 === "d9f6a06fbe6f2a382c85fca9d0a3757663b8a77bddeb4ac3aeb5e83889d6fa4d" &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 14 &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 === "1e8a99bf6cad1f593b2a2430f731b8d088c91e9d5e85b190b59d7790211f6449" &&
     edge("transport-and-auth-adapter -> analysis-services")?.allowedByTarget === false &&
-    edge("application-service-interfaces -> analysis-services")?.witnessCount === 4 &&
-    edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "8d52d09690a4f5553d183359bc5e6816e7af7039a54d1624b3cfbb5c609d6b9a" &&
+    edge("application-service-interfaces -> analysis-services")?.witnessCount === 5 &&
+    edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "c3945d3c0662be039ef60d72582e83ef31080c34fc88f9957d774e2bbf9c0a1f" &&
     edge("application-service-interfaces -> analysis-services")?.allowedByTarget === true &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 10 &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "41c936dbe5e7873083d71e0f385017b29b48c1dd1b689585c2b9b38b1ef7421f" &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 11 &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "d7cc3552637efe0a9f995a313c875773b85998e656063f5a2bacf244c81d77be" &&
     edge("transport-and-auth-adapter -> application-service-interfaces")?.allowedByTarget === true,
   "exact Slice 19 graph successor drift");
 });

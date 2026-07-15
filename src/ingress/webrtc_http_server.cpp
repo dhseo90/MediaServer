@@ -2307,7 +2307,7 @@ const analysis::AnalysisManager::TapSnapshot* SelectClientDashboardTap(
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 3703 function
 std::string ClientSafeDigestValue(const std::string& value, const std::string& fallback) {
     const std::string trimmed = Trim(value);
-    if (trimmed.empty() || analysis::IncidentProjectionContainsForbiddenMaterial(trimmed)) {
+    if (trimmed.empty() || !IsIncidentMemoryValueReleaseSafe(trimmed)) {
         return fallback;
     }
     return trimmed;
@@ -2350,7 +2350,7 @@ std::string ClientSourceStatusDigestSummaryText(const std::string& source_status
     } else {
         summary = "source offline / " + connection_status;
     }
-    if (analysis::IncidentProjectionContainsForbiddenMaterial(summary)) {
+    if (!IsIncidentMemoryValueReleaseSafe(summary)) {
         return "viewer-safe source status summary";
     }
     return summary;
@@ -3041,7 +3041,7 @@ std::string ClientSafeIncidentDigestSummaryText(const ClientEventItem& item) {
     }
     const std::string status = ClientSafeDigestValue(item.status, "recorded");
     std::string summary = label + " / " + status;
-    if (analysis::IncidentProjectionContainsForbiddenMaterial(summary)) {
+    if (!IsIncidentMemoryValueReleaseSafe(summary)) {
         summary = "viewer-safe event summary";
     }
     return summary;
@@ -3108,7 +3108,7 @@ std::string ClientSafeEventDigestSummaryText(const ClientEventItem& item) {
     const std::string event_type = ClientSafeDigestValue(item.event_type, "event");
     const std::string status = ClientSafeDigestValue(item.status, "recorded");
     std::string summary = label + " / " + event_type + " / " + status;
-    if (analysis::IncidentProjectionContainsForbiddenMaterial(summary)) {
+    if (!IsIncidentMemoryValueReleaseSafe(summary)) {
         summary = "viewer-safe event summary";
     }
     return summary;
@@ -3258,7 +3258,7 @@ std::string ClientSafeResolutionDigestSummaryText(const ClientEventItem& item,
         label = ClientSafeDigestValue(item.event_type, "event");
     }
     std::string summary = label + " / " + ClientSafeResolutionDigestLabel(resolution_status);
-    if (analysis::IncidentProjectionContainsForbiddenMaterial(summary)) {
+    if (!IsIncidentMemoryValueReleaseSafe(summary)) {
         summary = "viewer-safe resolution summary";
     }
     return summary;

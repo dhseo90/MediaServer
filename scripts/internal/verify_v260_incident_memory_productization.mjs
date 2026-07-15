@@ -10,6 +10,7 @@ import process from "node:process";
 const failures = [];
 
 const server = readWebRtcHttpServerBundle(readText);
+const pages = readText("src/ingress/product_ui_server_pages.cpp");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
@@ -53,8 +54,7 @@ check("ops events API wraps VLM summary candidates as Ops-only manual review vie
   for (const snippet of [
     "OpsVlmSummaryCandidateReviewJson",
     "media-server.ops.vlm-summary-candidate-review.v1",
-    "BuildVlmSummarySearchCandidatesJson",
-    "DefaultVlmObservationStorePath",
+    "BuildVlmSummaryCandidates",
     "\\\"vlmSummaryCandidateReview\\\":",
     "\\\"sourceCandidateReport\\\":",
     "\\\"candidateStatus\\\":\\\"ops-manual-review-not-auto-applied\\\"",
@@ -86,7 +86,7 @@ check("ops events UI renders VLM summary candidate review without exposing it to
     'id="opsVlmSummaryCandidateRows"',
     "VLM Summary Candidate Review",
   ]) {
-    assertIncludes(server, snippet, "Ops VLM summary candidate review shell");
+    assertIncludes(pages, snippet, "Ops VLM summary candidate review shell");
   }
   for (const snippet of [
     "renderVlmSummaryCandidateReview",

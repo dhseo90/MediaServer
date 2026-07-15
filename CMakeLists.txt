@@ -65,6 +65,7 @@ add_library(media_server_runtime STATIC
     src/ingress/appearance_readiness_application_service.cpp
     src/ingress/category_catalog_application_service.cpp
     src/ingress/vlm_observation_application_service.cpp
+    src/ingress/incident_memory_application_service.cpp
     src/analysis/analysis_query.cpp
     src/ingress/http_auth.cpp
     src/ingress/onvif_credential_provider.cpp

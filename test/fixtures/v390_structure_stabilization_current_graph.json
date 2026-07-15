@@ -11,8 +11,8 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 184,
-  "expectedCppFiles": 90,
+  "expectedProductionFiles": 186,
+  "expectedCppFiles": 91,
   "moduleClassifiers": [
     {
       "id": "composition-root",
@@ -50,6 +50,8 @@
         "src/ingress/appearance_readiness_application_service.cpp",
         "include/ingress/category_catalog_application_service.h",
         "src/ingress/category_catalog_application_service.cpp",
+        "include/ingress/incident_memory_application_service.h",
+        "src/ingress/incident_memory_application_service.cpp",
         "include/ingress/vlm_observation_application_service.h",
         "src/ingress/vlm_observation_application_service.cpp",
         "include/ingress/onvif_live_import.h",
@@ -66,8 +68,8 @@
         "include/ingress/vlm_evaluation_promotion.h"
       ],
       "prefixes": [],
-      "expectedFileCount": 19,
-      "expectedCppCount": 7
+      "expectedFileCount": 21,
+      "expectedCppCount": 8
     },
     {
       "id": "domain-and-registry-owners",
@@ -185,7 +187,7 @@
       "expectedCppCount": 15
     }
   ],
-  "expectedFileOwnershipSha256": "a2a6b25a9f18360df5699d258ac4cc7705483860fcc3e46f157c37310662b420",
+  "expectedFileOwnershipSha256": "4fdaf1045630ad3e1160122da65dc8152780c8471fd730ce04a9d755d7c953c2",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -244,6 +246,7 @@
           "src/ingress/appearance_readiness_application_service.cpp",
           "src/ingress/category_catalog_application_service.cpp",
           "src/ingress/vlm_observation_application_service.cpp",
+          "src/ingress/incident_memory_application_service.cpp",
           "src/analysis/analysis_query.cpp",
           "src/ingress/http_auth.cpp",
           "src/ingress/onvif_credential_provider.cpp",
@@ -282,9 +285,9 @@
           "src/ingress/gstreamer_rtsp_server.cpp",
           "src/core/youtube_resolver.cpp"
         ],
-        "productionSourceSha256": "ed0f24d9bd05d3f0cbae1fb11afa5cc2f98b8c0cd5ae4829e76784afa27ad3ba",
-        "declaredSourceCount": 88,
-        "defaultActiveSourceCount": 87,
+        "productionSourceSha256": "9b36b890d5e6d95539dc467da62ab62cdcf52de22a48b80bd72d0b21a1ccb86d",
+        "declaredSourceCount": 89,
+        "defaultActiveSourceCount": 88,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",
@@ -349,8 +352,8 @@
     },
     {
       "direction": "application-service-interfaces -> analysis-services",
-      "witnessCount": 4,
-      "witnessSha256": "8d52d09690a4f5553d183359bc5e6816e7af7039a54d1624b3cfbb5c609d6b9a",
+      "witnessCount": 5,
+      "witnessSha256": "c3945d3c0662be039ef60d72582e83ef31080c34fc88f9957d774e2bbf9c0a1f",
       "allowedByTarget": true
     },
     {
@@ -409,14 +412,14 @@
     },
     {
       "direction": "transport-and-auth-adapter -> analysis-services",
-      "witnessCount": 15,
-      "witnessSha256": "d9f6a06fbe6f2a382c85fca9d0a3757663b8a77bddeb4ac3aeb5e83889d6fa4d",
+      "witnessCount": 14,
+      "witnessSha256": "1e8a99bf6cad1f593b2a2430f731b8d088c91e9d5e85b190b59d7790211f6449",
       "allowedByTarget": false
     },
     {
       "direction": "transport-and-auth-adapter -> application-service-interfaces",
-      "witnessCount": 10,
-      "witnessSha256": "41c936dbe5e7873083d71e0f385017b29b48c1dd1b689585c2b9b38b1ef7421f",
+      "witnessCount": 11,
+      "witnessSha256": "d7cc3552637efe0a9f995a313c875773b85998e656063f5a2bacf244c81d77be",
       "allowedByTarget": true
     },
     {
@@ -483,7 +486,7 @@
     },
     {
       "file": "src/ingress/webrtc_http_server_ops_incidents.cpp",
-      "lineCount": 7884,
+      "lineCount": 7815,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -507,7 +510,7 @@
     },
     {
       "file": "src/ingress/webrtc_http_server_detail.h",
-      "lineCount": 7967,
+      "lineCount": 7962,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",

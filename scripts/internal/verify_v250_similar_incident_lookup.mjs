@@ -11,6 +11,7 @@ const failures = [];
 
 const server = readWebRtcHttpServerBundle(readText);
 const similarIncidentViewBlock = extractCppFunctionBlock(server, "std::string OpsSimilarIncidentLookupViewJson(");
+const pages = readText("src/ingress/product_ui_server_pages.cpp");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
@@ -27,7 +28,7 @@ check("ops events page exposes similar incident lookup shell", () => {
     'id="opsSimilarIncidentRows"',
     "같은 rule/scenario/source/status 패턴",
   ]) {
-    assertIncludes(server, snippet, "similar incident lookup shell");
+    assertIncludes(pages, snippet, "similar incident lookup shell");
   }
 });
 
@@ -116,6 +117,7 @@ check("ops smoke, inventory, and coverage track S06 markers", () => {
     "UI-042",
     "verify-v250-similar-incident-lookup",
     "scripts/internal/verify_v250_similar_incident_lookup.mjs",
+    'assertIncludes(lookupBlock, "similar-incident-score", "UI-042 block-scoped canonical product state");',
   );
 });
 
@@ -156,12 +158,12 @@ function assertIncludes(text, needle, label) {
   assert(text.includes(needle), `${label} missing snippet: ${needle}`);
 }
 
-function assertExactVerifierMapping(manifest, featureId, command, file) {
+function assertExactVerifierMapping(manifest, featureId, command, file, anchor) {
   const item = manifest.items?.find(entry => entry.id === featureId);
   assert(item?.verifierEvidence?.command === command,
     `${featureId} exact verifier command mismatch: ${item?.verifierEvidence?.command}`);
   assert(item?.verifierEvidence?.file === file,
     `${featureId} exact verifier file mismatch: ${item?.verifierEvidence?.file}`);
-  assert(item?.verifierEvidence?.anchor === featureId,
+  assert(item?.verifierEvidence?.anchor === anchor,
     `${featureId} exact verifier assertion anchor mismatch: ${item?.verifierEvidence?.anchor}`);
 }

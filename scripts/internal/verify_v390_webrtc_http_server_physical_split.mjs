@@ -27,9 +27,9 @@ const skipMutations = rawArgs.includes("--skip-mutations");
 const fixtureArg = rawArgs.find(arg => arg.startsWith("--fixture-root="));
 const sourceRoot = fixtureArg ? validateFixtureRoot(fixtureArg.slice("--fixture-root=".length)) : rootDir;
 const rollbackCommit = "2e4a4d7e";
-const expectedSuccessorDefinitionCount = 1154;
+const expectedSuccessorDefinitionCount = 1153;
 const expectedSuccessorDefinitionSha256 =
-  "8a2f1f0988528f7c7194a99b72877064df786709e9fcd4db9bc0d4827f0ed339";
+  "a70d383bd3a0ac84cadc51c297da6e0d79ac9247fc8fa0657ac731c385918822";
 const helperPath = "scripts/internal/webrtc_http_server_source_bundle.mjs";
 const graphPath = "test/fixtures/v390_structure_stabilization_current_graph.json";
 const splitPaths = [
@@ -388,7 +388,7 @@ check("CMake and owner classifier include every translation unit exactly once", 
 check("actual graph keeps direction debt stable while closing the mixed-owner limit", () => {
   const graph = JSON.parse(read(graphPath));
   const trackedSplit = graph.mixedOwnershipDebt.filter(item => splitPaths.includes(item.file));
-  assert(graph.expectedProductionFiles === 184 && graph.expectedCppFiles === 90 &&
+  assert(graph.expectedProductionFiles === 186 && graph.expectedCppFiles === 91 &&
     graph.observedModuleEdges.length === 17 &&
     graph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 3 &&
     graph.stronglyConnectedComponents.length === 0 && graph.cmake.targets.length === 2 &&
@@ -478,7 +478,7 @@ if (!skipMutations && splitPaths.every(file => fs.existsSync(path.join(rootDir, 
       text => text.replace(`        "${splitPaths[2]}",\n`, ""),
       "CMake and owner classifier");
     rejectMutation("graph", graphPath,
-      text => text.replace('"expectedProductionFiles": 184', '"expectedProductionFiles": 185'),
+      text => text.replace('"expectedProductionFiles": 186', '"expectedProductionFiles": 187'),
       "actual graph keeps direction debt stable");
     rejectMutation("graph-line-count", graphPath,
       text => text.replace('"lineCount": 7585', '"lineCount": 7586'),

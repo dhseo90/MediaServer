@@ -2864,45 +2864,6 @@ std::string OpsIncidentReviewProjectionJson(const OpsEventReviewState& review) {
     return out.str();
 }
 
-// WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 30634 function
-std::vector<std::string> OpsIncidentMemoryHighlightFragments(
-    const analysis::IncidentProjectionDocument& document,
-    const std::vector<std::string>& matched_terms) {
-    std::vector<std::string> fragments;
-    const std::string text = document.searchable_text.empty()
-                                 ? (document.title + " " + document.summary)
-                                 : document.searchable_text;
-    const std::string lowered = LowerAscii(text);
-    for (const std::string& term : matched_terms) {
-        const std::string lowered_term = LowerAscii(term);
-        const std::size_t pos = lowered.find(lowered_term);
-        if (pos == std::string::npos) {
-            continue;
-        }
-        const std::size_t start = pos > 42 ? pos - 42 : 0;
-        const std::size_t count = std::min<std::size_t>(text.size() - start, 120);
-        std::string fragment = Trim(text.substr(start, count));
-        if (start > 0) {
-            fragment = "..." + fragment;
-        }
-        if (start + count < text.size()) {
-            fragment += "...";
-        }
-        if (!fragment.empty() &&
-            !analysis::IncidentProjectionContainsForbiddenMaterial(fragment)) {
-            fragments.push_back(std::move(fragment));
-        }
-        if (fragments.size() >= 3) {
-            break;
-        }
-    }
-    if (fragments.empty() && !document.summary.empty() &&
-        !analysis::IncidentProjectionContainsForbiddenMaterial(document.summary)) {
-        fragments.push_back(document.summary);
-    }
-    return fragments;
-}
-
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 30672 function
 std::string OpsVlmSummaryCandidateReviewJson(const std::string& search_query,
                                              const std::string& source_id) {
@@ -2957,15 +2918,11 @@ std::string OpsIncidentMemorySearchViewJson(
     const std::string start_time_ms = OpsIncidentMemoryQueryValue(query, "startTimeMs");
     const std::string end_time_ms = OpsIncidentMemoryQueryValue(query, "endTimeMs");
 
-    analysis::IncidentMemoryIndex index;
-    analysis::IncidentMemoryIndexConfig config;
-    config.prefer_sqlite_fts5 = false;
-    config.force_jsonl_bm25_fallback = true;
-    std::string error_message;
-    (void)index.Open(config, &error_message);
-
-    std::vector<analysis::IncidentProjectionDocument> documents;
-    documents.reserve(event_json_records.size() * 2);
+    IncidentMemorySearchRequest memory_request;
+    memory_request.query = search_query;
+    memory_request.limit = 12;
+    memory_request.event_records_json.reserve(event_json_records.size());
+    memory_request.ops_audit_records_json.reserve(event_json_records.size());
     for (const std::string& event_json : event_json_records) {
         const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
         const auto review_it = reviews.find(event_id);
@@ -2975,41 +2932,23 @@ std::string OpsIncidentMemorySearchViewJson(
                 event_json, review, rule_id, source_id, incident_status)) {
             continue;
         }
-        analysis::IncidentProjectionDocument event_doc =
-            analysis::ProjectEventRecordIncidentText(event_json);
-        if (!analysis::IncidentProjectionContainsForbiddenMaterial(event_doc.searchable_text)) {
-            (void)index.Upsert(event_doc, nullptr);
-            documents.push_back(std::move(event_doc));
-        }
+        memory_request.event_records_json.push_back(event_json);
         if (review.present) {
-            analysis::IncidentProjectionDocument review_doc =
-                analysis::ProjectOpsAuditIncidentText(OpsIncidentReviewProjectionJson(review));
-            if (!analysis::IncidentProjectionContainsForbiddenMaterial(review_doc.searchable_text)) {
-                (void)index.Upsert(review_doc, nullptr);
-                documents.push_back(std::move(review_doc));
-            }
+            memory_request.ops_audit_records_json.push_back(OpsIncidentReviewProjectionJson(review));
         }
     }
-
-    std::vector<analysis::IncidentMemorySearchHit> hits;
-    if (!search_query.empty()) {
-        analysis::IncidentMemorySearchOptions options;
-        options.query = search_query;
-        options.limit = 12;
-        if (!index.Search(options, &hits, &error_message)) {
-            hits.clear();
-        }
-    }
+    IncidentMemorySearchResult memory_result;
+    std::string error_message;
+    (void)SearchIncidentMemory(memory_request, &memory_result, &error_message);
 
     std::ostringstream out;
-    const auto report = index.Report();
     out << "{"
         << "\"schema\":\"media-server.ops.incident-memory-search-view.v1\","
         << "\"status\":\"ops-incident-memory-search\","
         << "\"query\":\"" << JsonEscape(search_query) << "\","
-        << "\"backend\":\"" << JsonEscape(report.backend) << "\","
-        << "\"documentCount\":" << documents.size() << ","
-        << "\"hitCount\":" << hits.size() << ","
+        << "\"backend\":\"" << JsonEscape(memory_result.backend) << "\","
+        << "\"documentCount\":" << memory_result.document_count << ","
+        << "\"hitCount\":" << memory_result.hits.size() << ","
         << "\"modelProviderDependency\":false,"
         << "\"viewerClientExposureAdded\":false,"
         << "\"filters\":{"
@@ -3023,19 +2962,11 @@ std::string OpsIncidentMemorySearchViewJson(
         << OpsVlmSummaryCandidateReviewJson(search_query, source_id)
         << ","
         << "\"hits\":[";
-    for (std::size_t i = 0; i < hits.size(); ++i) {
-        const auto& hit = hits[i];
+    for (std::size_t i = 0; i < memory_result.hits.size(); ++i) {
+        const auto& hit = memory_result.hits[i];
         if (i != 0) {
             out << ",";
         }
-        const auto doc_it =
-            std::find_if(documents.begin(), documents.end(), [&](const auto& document) {
-                return document.document_id == hit.document_id;
-            });
-        const std::vector<std::string> highlights =
-            doc_it == documents.end()
-                ? std::vector<std::string>{hit.summary}
-                : OpsIncidentMemoryHighlightFragments(*doc_it, hit.matched_terms);
         out << "{"
             << "\"documentId\":\"" << JsonEscape(hit.document_id) << "\","
             << "\"sourceKind\":\"" << JsonEscape(hit.source_kind) << "\","
@@ -3046,7 +2977,7 @@ std::string OpsIncidentMemorySearchViewJson(
             << "\"score\":" << hit.score << ","
             << "\"matchedTerms\":" << OpsIncidentMemoryStringArrayJson(hit.matched_terms)
             << ",\"highlightFragments\":"
-            << OpsIncidentMemoryStringArrayJson(highlights)
+            << OpsIncidentMemoryStringArrayJson(hit.highlight_fragments)
             << "}";
     }
     out << "]"
@@ -5973,7 +5904,7 @@ std::string IntegratorScopedEventSearchJson(
 std::string OpsSimilarIncidentSafeValue(const std::string& value, const std::string& fallback) {
     const std::string trimmed = Trim(value);
     if (trimmed.empty() || OpsEventReviewNoteContainsSensitiveMaterial(trimmed) ||
-        analysis::IncidentProjectionContainsForbiddenMaterial(trimmed)) {
+        !IsIncidentMemoryValueReleaseSafe(trimmed)) {
         return fallback;
     }
     return trimmed;
@@ -7264,7 +7195,7 @@ std::string EventEvidenceBundleTokenJson(const std::unordered_map<std::string, s
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 35078 function
 std::string EvidenceBundleRedactedValue(const std::string& value, const std::string& fallback) {
     const std::string trimmed = Trim(value);
-    if (trimmed.empty() || analysis::IncidentProjectionContainsForbiddenMaterial(trimmed)) {
+    if (trimmed.empty() || !IsIncidentMemoryValueReleaseSafe(trimmed)) {
         return fallback;
     }
     return trimmed;
@@ -7287,7 +7218,7 @@ std::string BuildReleaseSafeIncidentEvidenceBundleManifest(const std::string& ev
         analysis::EventRecordQueryResult result;
         std::string query_error;
         if (analysis::QueryEventRecords(options, &result, &query_error) && !result.records_json.empty()) {
-            const auto document = analysis::ProjectEventRecordIncidentText(result.records_json.front());
+            const auto document = ProjectEventRecordForIncidentMemory(result.records_json.front());
             summary = EvidenceBundleRedactedValue(document.summary, summary);
             terms = document.tokens;
             if (terms.size() > 12) {

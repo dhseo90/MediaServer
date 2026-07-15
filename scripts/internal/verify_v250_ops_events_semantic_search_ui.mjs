@@ -11,6 +11,7 @@ const failures = [];
 
 const server = readWebRtcHttpServerBundle(readText);
 const searchViewBlock = extractCppFunctionBlock(server, "std::string OpsIncidentMemorySearchViewJson(");
+const pages = readText("src/ingress/product_ui_server_pages.cpp");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
@@ -31,7 +32,7 @@ check("ops events page exposes semantic incident search controls", () => {
     'id="opsIncidentSearchRows"',
     "matched evidence highlight",
   ]) {
-    assertIncludes(server, snippet, "semantic search page shell");
+    assertIncludes(pages, snippet, "semantic search page shell");
   }
 });
 
@@ -42,8 +43,8 @@ check("ops events review API returns local-only semantic search view model", () 
   for (const snippet of [
     "OpsIncidentMemorySearchViewJson",
     "media-server.ops.incident-memory-search-view.v1",
-    "IncidentMemoryIndex",
-    "IncidentMemorySearchOptions",
+    "IncidentMemorySearchRequest",
+    "SearchIncidentMemory",
     "\\\"memorySearch\\\":",
     "\\\"matchedTerms\\\":",
     "\\\"highlightFragments\\\":",

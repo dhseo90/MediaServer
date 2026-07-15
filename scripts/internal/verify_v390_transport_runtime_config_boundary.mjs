@@ -244,7 +244,7 @@ check("current owner, graph and Policy v1 remove exactly transport to core utili
   const policy = JSON.parse(read(policyPath));
   const violations = graph.observedModuleEdges.filter(item => item.allowedByTarget === false);
   const errors = [...inspectOwners(graph), ...inspectPolicy(policy)];
-  assert(graph.expectedProductionFiles === 184 && graph.expectedCppFiles === 90 &&
+  assert(graph.expectedProductionFiles === 186 && graph.expectedCppFiles === 91 &&
     graph.observedModuleEdges.length === 17 && violations.length === 3 &&
     graph.stronglyConnectedComponents.length === 0,
   `graph metrics drift: ${graph.expectedProductionFiles}/${graph.expectedCppFiles}/` +
