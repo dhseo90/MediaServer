@@ -20,7 +20,7 @@ Checks:
   - dependency-free WebRtcHttpRuntimeConfig exact field manifest
   - transport/AppConfig/core utility direct and alias dependency removal
   - composition-root exact mapping, diagnostics/stream-key operations, constructor injection
-  - fixed transport ownership and current successor Policy v1 graph 180/88/17/3/SCC0
+  - fixed transport ownership and current successor Policy v1 graph 182/89/17/3/SCC0
   - transitive include, relabel, alias, mapping and temporary-exception mutations
 `);
 }
@@ -244,7 +244,7 @@ check("current owner, graph and Policy v1 remove exactly transport to core utili
   const policy = JSON.parse(read(policyPath));
   const violations = graph.observedModuleEdges.filter(item => item.allowedByTarget === false);
   const errors = [...inspectOwners(graph), ...inspectPolicy(policy)];
-  assert(graph.expectedProductionFiles === 180 && graph.expectedCppFiles === 88 &&
+  assert(graph.expectedProductionFiles === 182 && graph.expectedCppFiles === 89 &&
     graph.observedModuleEdges.length === 17 && violations.length === 3 &&
     graph.stronglyConnectedComponents.length === 0,
   `graph metrics drift: ${graph.expectedProductionFiles}/${graph.expectedCppFiles}/` +

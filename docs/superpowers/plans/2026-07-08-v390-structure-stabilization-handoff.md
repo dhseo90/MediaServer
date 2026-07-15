@@ -478,6 +478,18 @@ split companion verifiers were rebound to exact function/UI owners without produ
 Current graph is production 178/C++ 87, edge 17, violations 3, SCC 0, and transport-to-domain witnesses 2→1.
 Transport-to-analysis/core-media/domain directions and parked generated evidence keep REVIEW4-64/65 open.
 
+### Current continuation Slice 18: `category-catalog-application-boundary`
+
+- [x] Add a dependency-free seven-field category catalog DTO and exact canonical mapping.
+- [x] Move the final compact JSON renderer behind the application boundary without changing route bytes.
+- [x] Bind all ten ordered catalog entries, seven ordered JSON keys, final UTF-8 SHA, and actual capabilities readback.
+- [x] Scan all ten transport files and reject direct analysis include/type/call reintroduction.
+
+Focused verification recorded 0/5 initial RED and 4/1 hardened-byte RED before reaching 5/0. Build, actual lab core API,
+analysis181, predecessor appearance5, transport5, source bundle6, physical6, and structure15 passed. Current graph is
+production182/C++89, edge17, violations3, SCC0; transport-to-analysis witnesses are 17→16. Remaining violation directions
+and parked generated evidence keep REVIEW4-64/65 open.
+
 ### Current continuation Slice 17: `appearance-readiness-application-boundary`
 
 - [x] Add dependency-free raw 14-input and redacted 14-output readiness DTOs.

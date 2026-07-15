@@ -539,6 +539,8 @@ Usage:
                  V390-REVIEW4-64 transport의 Source/View registry 결속을 application service로 역전합니다.
   verify-v390-appearance-readiness-application-boundary
                  V390-REVIEW4-64 transport의 Re-ID readiness 결속을 application service로 역전합니다.
+  verify-v390-category-catalog-application-boundary
+                 V390-REVIEW4-64 transport의 category catalog 결속을 application service로 역전합니다.
   verify-v390-stable-contract-owner-realignment
                  V390-REVIEW4-64 stable contract leaf를 target owner로 재정렬합니다.
   verify-v390-public-contract-interface-owner
@@ -961,6 +963,8 @@ Usage:
                  V390-REVIEW4-64 transport의 Source/View registry 결속을 application service로 역전합니다.
   verify-v390-appearance-readiness-application-boundary
                  V390-REVIEW4-64 transport의 Re-ID readiness 결속을 application service로 역전합니다.
+  verify-v390-category-catalog-application-boundary
+                 V390-REVIEW4-64 transport의 category catalog 결속을 application service로 역전합니다.
   verify-v390-stable-contract-owner-realignment
                  V390-REVIEW4-64 stable contract leaf를 target owner로 재정렬합니다.
   verify-v390-public-contract-interface-owner
@@ -2425,6 +2429,10 @@ case "${cmd}" in
   verify-v390-appearance-readiness-application-boundary)
     require_internal verify_v390_appearance_readiness_application_boundary.mjs
     exec "${INTERNAL_DIR}/verify_v390_appearance_readiness_application_boundary.mjs" "$@"
+    ;;
+  verify-v390-category-catalog-application-boundary)
+    require_internal verify_v390_category_catalog_application_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_category_catalog_application_boundary.mjs" "$@"
     ;;
   verify-v390-stable-contract-owner-realignment)
     require_internal verify_v390_stable_contract_owner_realignment.mjs

@@ -63,6 +63,7 @@ add_library(media_server_runtime STATIC
     src/ingress/gst_pipeline_builder.cpp
     src/ingress/analysis_overlay_probe.cpp
     src/ingress/appearance_readiness_application_service.cpp
+    src/ingress/category_catalog_application_service.cpp
     src/analysis/analysis_query.cpp
     src/ingress/http_auth.cpp
     src/ingress/onvif_credential_provider.cpp

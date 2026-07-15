@@ -11,8 +11,8 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 180,
-  "expectedCppFiles": 88,
+  "expectedProductionFiles": 182,
+  "expectedCppFiles": 89,
   "moduleClassifiers": [
     {
       "id": "composition-root",
@@ -48,6 +48,8 @@
         "include/ingress/application_service_result.h",
         "include/ingress/appearance_readiness_application_service.h",
         "src/ingress/appearance_readiness_application_service.cpp",
+        "include/ingress/category_catalog_application_service.h",
+        "src/ingress/category_catalog_application_service.cpp",
         "include/ingress/onvif_live_import.h",
         "src/ingress/onvif_live_import.cpp",
         "include/ingress/source_view_application_service.h",
@@ -62,8 +64,8 @@
         "include/ingress/vlm_evaluation_promotion.h"
       ],
       "prefixes": [],
-      "expectedFileCount": 15,
-      "expectedCppCount": 5
+      "expectedFileCount": 17,
+      "expectedCppCount": 6
     },
     {
       "id": "domain-and-registry-owners",
@@ -181,7 +183,7 @@
       "expectedCppCount": 15
     }
   ],
-  "expectedFileOwnershipSha256": "66a0f98e7642b6e122e0e9b03a18b6480fc405aeb6c20d01ca34227252025373",
+  "expectedFileOwnershipSha256": "18a3e7db14390b888fca0f876ca497ab0788fba1367c448d1f8eba0b83c34905",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -238,6 +240,7 @@
           "src/ingress/gst_pipeline_builder.cpp",
           "src/ingress/analysis_overlay_probe.cpp",
           "src/ingress/appearance_readiness_application_service.cpp",
+          "src/ingress/category_catalog_application_service.cpp",
           "src/analysis/analysis_query.cpp",
           "src/ingress/http_auth.cpp",
           "src/ingress/onvif_credential_provider.cpp",
@@ -276,9 +279,9 @@
           "src/ingress/gstreamer_rtsp_server.cpp",
           "src/core/youtube_resolver.cpp"
         ],
-        "productionSourceSha256": "ecd23ecf47c3a1dc639eb1f6f1aeba8de600d34f20fb31908498bcc5b7bed5d5",
-        "declaredSourceCount": 86,
-        "defaultActiveSourceCount": 85,
+        "productionSourceSha256": "c0d1ae54d06a3e1779a7c7c0e7bfa9add8a530b874228202ecb44e4a45a2fbdf",
+        "declaredSourceCount": 87,
+        "defaultActiveSourceCount": 86,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",
@@ -343,8 +346,8 @@
     },
     {
       "direction": "application-service-interfaces -> analysis-services",
-      "witnessCount": 2,
-      "witnessSha256": "4b011d2738496b8f01afa9915c895f5ab5317ff6546fc2c11babef99e2e2e2c8",
+      "witnessCount": 3,
+      "witnessSha256": "ef9f1860304f8f6948a81bd456ceccc6797f0cec540c68ea256309b1b0c1479c",
       "allowedByTarget": true
     },
     {
@@ -403,14 +406,14 @@
     },
     {
       "direction": "transport-and-auth-adapter -> analysis-services",
-      "witnessCount": 17,
-      "witnessSha256": "8f05c9fa2316cad9bd85fab07a85c3564c6f9a58d4526c17f51fd85ce97a7f10",
+      "witnessCount": 16,
+      "witnessSha256": "eee661f192fd965a64e071bb30599a128b8a58d48bfee23498679aa47e3ce716",
       "allowedByTarget": false
     },
     {
       "direction": "transport-and-auth-adapter -> application-service-interfaces",
-      "witnessCount": 8,
-      "witnessSha256": "06b1e5e8b65ce6da503aa31414665b7d1ae5e5ebd520d00cd3501f69211754fd",
+      "witnessCount": 9,
+      "witnessSha256": "54b086683804169e1e7716501aebdc44794cdd25d9e066671ee18b772711116a",
       "allowedByTarget": true
     },
     {
@@ -441,7 +444,7 @@
   "mixedOwnershipDebt": [
     {
       "file": "src/ingress/webrtc_http_server.cpp",
-      "lineCount": 7626,
+      "lineCount": 7585,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -501,7 +504,7 @@
     },
     {
       "file": "src/ingress/webrtc_http_server_detail.h",
-      "lineCount": 7969,
+      "lineCount": 7967,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -772,5 +775,5 @@
       "exitRule": "production-graph-unchanged-and-cumulative-debt-verified"
     }
   ],
-  "boundary": "current REVIEW4-64 continuation graph after the appearance readiness application boundary; transport passes raw Re-ID readiness inputs to a dependency-free application DTO while the application implementation alone normalizes and delegates to analysis, Policy v1 counts 3 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed"
+  "boundary": "current REVIEW4-64 continuation graph after the category catalog application boundary; transport serializes dependency-free category DTOs while the application implementation alone maps the canonical analysis catalog, Policy v1 counts 3 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed"
 }

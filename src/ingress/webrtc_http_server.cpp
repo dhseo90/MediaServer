@@ -1709,7 +1709,6 @@ std::optional<HttpRequest> ReadHttpRequest(int client_fd, HttpResponse* error_re
 }
 
 
-std::string AnalysisCategoryCatalogJson();
 
 }  // namespace webrtc_http_server_detail
 
@@ -7103,51 +7102,11 @@ std::string AnalysisGlobalMetricsDumpJson(
 }
 
 
-// WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8420 function
-// 문자열 vector를 JSON array로 직렬화한다.
-std::string StringVectorJson(const std::vector<std::string>& values) {
-    std::ostringstream out;
-    out << "[";
-    for (std::size_t i = 0; i < values.size(); ++i) {
-        if (i != 0) {
-            out << ",";
-        }
-        out << "\"" << JsonEscape(values[i]) << "\"";
-    }
-    out << "]";
-    return out.str();
-}
-
-// WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8434 function
-// Rule/Profile UI와 capabilities API가 공유하는 category catalog를 JSON으로 만든다.
-std::string AnalysisCategoryCatalogJson() {
-    std::ostringstream out;
-    out << "[";
-    const auto& categories = analysis::CategoryTokenCatalog();
-    for (std::size_t i = 0; i < categories.size(); ++i) {
-        const auto& item = categories[i];
-        if (i != 0) {
-            out << ",";
-        }
-        out << "{"
-            << "\"value\":\"" << JsonEscape(item.token) << "\","
-            << "\"label\":\"" << JsonEscape(item.label_ko) << "\","
-            << "\"hint\":\"" << JsonEscape(item.hint) << "\","
-            << "\"group\":\"" << JsonEscape(item.group) << "\","
-            << "\"aliases\":" << StringVectorJson(item.aliases) << ","
-            << "\"labels\":" << StringVectorJson(item.labels) << ","
-            << "\"displayLabels\":" << StringVectorJson(item.display_labels_ko)
-            << "}";
-    }
-    out << "]";
-    return out.str();
-}
-
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8458 function
 std::string AnalysisCapabilitiesJson() {
     std::ostringstream out;
     out << R"({"detectors":[{"id":"dummy","name":"테스트용 더미 검출기","runtime":"builtin"},{"id":"yolo","name":"YOLO ONNX Runtime","runtime":"onnxruntime","requiresBuildFlag":"MEDIA_SERVER_USE_ONNXRUNTIME"}],"preprocessModes":["letterbox","stretch"],"yoloOutputLayouts":["auto","channels-first","channels-last"],"yoloBoxFormats":["cxcywh","xyxy"],"yoloScoreModes":["auto","class-only","objectness-class","score-class","class-score"],"outputs":["metadata","events","snapshot.jpg","overlay.jpg","image-metadata","image-snapshot.jpg","image-overlay.jpg","rtsp-overlay","webrtc-overlay"],"eventTypes":["presence","enter","exit","line-crossing"],)"
-        << "\"trackingCategories\":" << AnalysisCategoryCatalogJson() << ","
+        << "\"trackingCategories\":" << CategoryCatalogJson() << ","
         << R"("eventActions":{"highlight":"blink overlay for matched object","post":"async curl-based POST worker with bounded queue and cooldown"},"metrics":["receivedVideoPackets","decodedFrames","sampledFrames","analyzedPackets","droppedPackets","pendingFrames","peakPendingFrames","effectiveDecodedFps","effectiveSampledFps","effectiveAnalyzedFps","lastQueueWaitMs","averageQueueWaitMs","lastInferenceMs","averageInferenceMs","lastAnalysisMs","averageAnalysisMs","maxAnalysisMs","adaptiveState","adaptiveDownshiftCount","adaptiveUpshiftCount"],"shortQuery":{"va":"1 enables the server default VA overlay profile with lightweight tracking for person/vehicle categories","overlay":"alias for va=1","analysis":"alias for va=1"},"advancedQuery":{"tracking":"optional object tracking on/off","trackingClasses":"optional comma-separated categories/classes: person,vehicle,road,animal,sports,tableware,food,furniture,device,object or '*' for all","fps":"optional VA wall-clock sampling fps override","maxQueue":"optional detector queue override","frameSampleInterval":"optional deterministic decoded-frame sampling interval; 1 means every decoded frame after fps gate","sampleEveryNFrames":"alias for frameSampleInterval","maxFrameAgeMs":"optional stale analysis frame drop threshold; 0 disables age drop","adaptive":"optional adaptive tuner on/off","adaptiveInputSize":"optional input size tuning on/off","adaptiveMinFps":"optional adaptive lower fps bound","adaptiveMaxFps":"optional adaptive upper fps bound","adaptiveMinInputWidth":"optional adaptive lower input width","adaptiveMinInputHeight":"optional adaptive lower input height","adaptiveCooldownMs":"optional adaptive action cooldown","overlayWaitMs":"optional max wait for near-PTS analysis result","overlaySyncToleranceMs":"optional allowed PTS distance for result matching","preprocess":"optional letterbox/stretch override","outputLayout":"optional YOLO output tensor layout: auto|channels-first|channels-last","boxFormat":"optional YOLO box format: cxcywh|xyxy","scoreMode":"optional YOLO score mode: auto|class-only|objectness-class|score-class|class-score","thickness":"optional box line thickness","drawLabels":"optional label visibility","trackIds":"optional track id labels on overlay","trackTrails":"optional track trail overlay","redaction":"optional person-mosaic/mosaic overlay redaction","redactionClasses":"optional comma-separated redaction categories/classes, default person","redactionBlockSize":"optional mosaic block size in pixels","redactionMarginRatio":"optional bbox expansion ratio for redaction"}})";
     return out.str();
 }

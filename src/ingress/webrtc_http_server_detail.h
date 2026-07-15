@@ -41,7 +41,7 @@
 
 #include "ingress/appearance_readiness_application_service.h"
 #include "analysis/analysis_session_service.h"
-#include "analysis/category_tokens.h"
+#include "ingress/category_catalog_application_service.h"
 #include "analysis/detector.h"
 #include "analysis/event_feature_search_index.h"
 #include "analysis/event_post_dispatcher.h"
@@ -2687,11 +2687,9 @@ struct StaticImageAnalysis {
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8420 prototype
 // 문자열 vector를 JSON array로 직렬화한다.
-std::string StringVectorJson(const std::vector<std::string>& values);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8434 prototype
 // Rule/Profile UI와 capabilities API가 공유하는 category catalog를 JSON으로 만든다.
-std::string AnalysisCategoryCatalogJson();
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8458 prototype
 std::string AnalysisCapabilitiesJson();

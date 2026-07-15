@@ -40,7 +40,7 @@ const rollbackCommit = "e5df05f3945e43e89ae13e3fdd21d0c83ab78ac8";
 const expectedConsumerCount = 170;
 const expectedExpressionCount = 188;
 const expectedConsumerSha = "1e13a798e01c601114df0287bc552e3681531e3021e81c57307ee99ae458ee1c";
-const expectedBundleSha = "57a9326b6891c8891e27c83d90de0cab26a818a94dea49b83389f324269941f9";
+const expectedBundleSha = "1761803bbb08b6d5cd0ebdead3bae60100bc3a6f4bc19b2da7f9e5866736df63";
 const checks = [];
 
 function validateFixtureRoot(value) {
@@ -173,15 +173,15 @@ check("six-file physical metrics and logical-origin bundle are exact", () => {
     result.logicalOrder.every(index => index >= 0) &&
     result.logicalOrder[0] < result.logicalOrder[1] && result.logicalOrder[2] < result.logicalOrder[3] &&
     result.missing === true && result.ambiguous === true &&
-    result.metrics.fileCount === 6 && result.metrics.totalLines === 46662 &&
-    result.metrics.largestFileLines === 10150 && result.metrics.totalBytes === 2247162 &&
+    result.metrics.fileCount === 6 && result.metrics.totalLines === 46619 &&
+    result.metrics.largestFileLines === 10150 && result.metrics.totalBytes === 2245565 &&
     JSON.stringify(result.metrics.files.map(item => item.file)) === JSON.stringify(sourcePaths),
   `logical source bundle order, bytes, resolver, or metrics drift: ${JSON.stringify(result)}`);
 });
 
 check("physical bundle successor binds the exact production graph", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
-  assert(graph.expectedProductionFiles === 180 && graph.expectedCppFiles === 88 &&
+  assert(graph.expectedProductionFiles === 182 && graph.expectedCppFiles === 89 &&
     graph.observedModuleEdges.length === 17 &&
     graph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 3 &&
     graph.stronglyConnectedComponents.length === 0,
@@ -265,7 +265,7 @@ if (!skipMutations) {
       text => text.replace("WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 17051", "WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 99999"),
       "six-file physical metrics and logical-origin bundle");
     rejectMutation("graph", "test/fixtures/v390_structure_stabilization_current_graph.json",
-      text => text.replace('"expectedProductionFiles": 180', '"expectedProductionFiles": 181'),
+      text => text.replace('"expectedProductionFiles": 182', '"expectedProductionFiles": 183'),
       "physical bundle successor binds the exact production graph");
   });
 }

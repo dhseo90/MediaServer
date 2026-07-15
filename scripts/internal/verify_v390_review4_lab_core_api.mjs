@@ -2,6 +2,7 @@
 // REVIEW4-53 LAB core API의 실제 HTTP mutation/readback/cleanup oracle다.
 
 import { spawn } from "node:child_process";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import net from "node:net";
 import os from "node:os";
@@ -50,8 +51,18 @@ try {
   fs.writeFileSync(reportPath, JSON.stringify({schema:"media-server.review4-lab-report.v1", marker:reportMarker}), {mode:0o600});
   const reportResolvedPath = fs.realpathSync(reportPath);
   await ensureServerReady();
-  const capabilities = (await request("GET", "/lab/analysis/capabilities", undefined, 200)).json;
+  const capabilitiesResponse = await request("GET", "/lab/analysis/capabilities", undefined, 200);
+  const capabilities = capabilitiesResponse.json;
+  const trackingCategoriesBytes = extractJsonArrayMember(capabilitiesResponse.text, "trackingCategories");
   assert(Array.isArray(capabilities.detectors) && Array.isArray(capabilities.outputs), "LAB-001 detectors/outputs schema missing");
+  assert(Array.isArray(capabilities.trackingCategories) && capabilities.trackingCategories.length === 10 &&
+    capabilities.trackingCategories.every(item =>
+      JSON.stringify(Object.keys(item)) === JSON.stringify([
+        "value", "label", "hint", "group", "aliases", "labels", "displayLabels",
+      ])) &&
+    crypto.createHash("sha256").update(trackingCategoriesBytes).digest("hex") ===
+      "5acfa1e522bc627763073d208b3b71be5c02f19f7ebfd6eadc2773ade5ed43fe",
+  "LAB-001 trackingCategories ordered byte schema drift");
 
   const initialProfiles = (await request("GET", "/lab/analysis/profiles", undefined, 200)).json;
   assert(Array.isArray(initialProfiles.builtInProfiles) && Array.isArray(initialProfiles.profiles), "LAB-002 profiles schema missing");
@@ -294,6 +305,31 @@ async function readSseMetadata(route) {
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+function extractJsonArrayMember(text, key) {
+  const keyIndex = text.indexOf(`"${key}"`);
+  if (keyIndex < 0) throw new Error(`JSON member missing: ${key}`);
+  const colon = text.indexOf(":", keyIndex + key.length + 2);
+  let start = colon + 1;
+  while (/\s/.test(text[start] || "")) start += 1;
+  if (colon < 0 || text[start] !== "[") throw new Error(`JSON array member malformed: ${key}`);
+  let depth = 0;
+  let quoted = false;
+  let escaped = false;
+  for (let index = start; index < text.length; index += 1) {
+    const char = text[index];
+    if (quoted) {
+      if (escaped) escaped = false;
+      else if (char === "\\") escaped = true;
+      else if (char === '"') quoted = false;
+      continue;
+    }
+    if (char === '"') quoted = true;
+    else if (char === "[") depth += 1;
+    else if (char === "]" && --depth === 0) return text.slice(start, index + 1);
+  }
+  throw new Error(`JSON array member unterminated: ${key}`);
 }
 
 async function ensureServerReady() {
