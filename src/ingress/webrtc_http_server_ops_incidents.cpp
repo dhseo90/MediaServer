@@ -406,13 +406,13 @@ std::string WebRtcSyncStatusForMatch(std::int64_t video_frame_pts_ns, std::int64
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 28230 function
-analysis::VaRuntimeSyncInfo BuildWebRtcVaMetadataSyncInfo(std::int64_t video_frame_pts_ns,
-                                                          std::int64_t analysis_pts_ns,
-                                                          std::int64_t sync_tolerance_ns,
-                                                          std::string sync_status,
-                                                          int frame_width,
-                                                          int frame_height) {
-    analysis::VaRuntimeSyncInfo sync;
+VaMetadataApplicationSyncInfo BuildWebRtcVaMetadataSyncInfo(std::int64_t video_frame_pts_ns,
+                                                            std::int64_t analysis_pts_ns,
+                                                            std::int64_t sync_tolerance_ns,
+                                                            std::string sync_status,
+                                                            int frame_width,
+                                                            int frame_height) {
+    VaMetadataApplicationSyncInfo sync;
     sync.available = true;
     sync.video_frame_pts_ms = PtsNsToMs(video_frame_pts_ns);
     sync.analysis_pts_ms = PtsNsToMs(analysis_pts_ns);
@@ -430,37 +430,22 @@ analysis::VaRuntimeSyncInfo BuildWebRtcVaMetadataSyncInfo(std::int64_t video_fra
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 28251 function
 std::string WebRtcVaMetadataMessageJson(const analysis::AnalysisResult& result,
                                         const std::vector<analysis::AnalysisEvent>& events,
-                                        const analysis::VaRuntimeSyncInfo& sync_info,
-                                        const analysis::VaMetadataSubscriptionFilter& subscription_filter) {
-    const auto filtered_result = analysis::FilterVaMetadataResult(result, subscription_filter);
-    const auto filtered_events = analysis::FilterVaMetadataEvents(events, subscription_filter);
-    analysis::VaRuntimeMetadataBuildOptions options;
-    options.schema = analysis::kWebRtcVaMetadataSchema;
-    options.include_source = false;
-    options.include_scenarios = false;
-    options.include_metrics = false;
-    options.include_tracking_issue_report = false;
-    options.include_missed_tracks = false;
-    options.sync = sync_info;
-    return analysis::SerializeVaRuntimeMetadataFrameForWebRtcJson(
-        analysis::BuildVaRuntimeMetadataFrame(filtered_result, filtered_events, options));
+                                        const VaMetadataApplicationSyncInfo& sync_info,
+                                        const VaMetadataApplicationFilter& subscription_filter) {
+    return SerializeWebRtcVaMetadataForApplication(
+        result, events, sync_info, subscription_filter);
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 28269 function
 std::string WebRtcVaMetadataMissingMessageJson(const std::string& stream_id,
                                                std::int64_t video_frame_pts_ns,
                                                std::int64_t sync_tolerance_ns) {
-    analysis::VaRuntimeMetadataFrame frame;
-    frame.schema = analysis::kWebRtcVaMetadataSchema;
-    frame.stream_id = stream_id;
-    frame.channel_id = stream_id;
-    frame.pts = video_frame_pts_ns;
-    frame.timestamp_ms = PtsNsToMs(video_frame_pts_ns);
-    frame.sync = BuildWebRtcVaMetadataSyncInfo(
+    auto sync = BuildWebRtcVaMetadataSyncInfo(
         video_frame_pts_ns, video_frame_pts_ns, sync_tolerance_ns, "missing", 0, 0);
-    frame.sync.analysis_pts_ms = 0;
-    frame.sync.sync_delta_ms = 0;
-    return analysis::SerializeVaRuntimeMetadataFrameForWebRtcJson(frame);
+    sync.analysis_pts_ms = 0;
+    sync.sync_delta_ms = 0;
+    return SerializeMissingWebRtcVaMetadataForApplication(
+        stream_id, video_frame_pts_ns, sync);
 }
 
 EventPostDispatchRequest ProjectEventPostDispatchRequest(

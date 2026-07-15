@@ -35,7 +35,7 @@ Development 17의 readiness와 REVIEW4-51 decision/graph는 승인 당시 histor
 `test/fixtures/v390_structure_stabilization_current_graph.json`, verifier는
 `./server.sh verify-v390-review4-structure-stabilization-execution`입니다.
 
-Current REVIEW4-64 status: `current-continuation-slice-24-completed-final-targets-unmet`
+Current REVIEW4-64 status: `current-continuation-slice-25-completed-final-targets-unmet`
 
 | 순서 | Current Slice | 상태 | 직접 경계 |
 | ---: | --- | --- | --- |
@@ -514,6 +514,10 @@ The first declaration-only shim was rejected by independent review because it re
 ### Current continuation Slice 24: `analysis-frame-application-boundary`
 
 Concrete detector Start/Analyze/Stop, one-shot tracker runtime14/kind/class mapping, close-object projection, and static/live overlay query/timing/debug/render moved to `analysis_frame_application_service.h/.cpp`. Transport direct detector/object-tracker/overlay-renderer includes and concrete calls are zero. Focused6, build, actual image20, redaction4, tracker3, and analysis181 pass. The close-object default-on matrix remains a separate non-gate report with four pre-existing comparison failures and a missing external NewYorkDriving fixture. Current graph is production196/C++96, edge16, violations2, SCC0; transport-to-analysis witnesses reduce 11→8 while core-media4 stays exact. Remaining directions and parked evidence keep REVIEW4-64/65 open.
+
+### Current continuation Slice 25: `va-metadata-application-boundary`
+
+Subscription filter9, sync11, runtime build options, canonical runtime/WebRTC/missing serialization, and the maximum-sixteen-attempt events-first byte-budget loop moved to `va_metadata_application_service.h/.cpp`. Query/control parsing, sequence and current-time ownership, Record→Post→publish order, and fallback selection remain in transport. Focused exact mapping/body/call-order and paired-swap/early-return/missing-PTS mutations pass after independent-review hardening. Build100, actual SSE5, side-channel5, WS9, WebRTC DataChannel8, and analysis181 pass. Current graph is production198/C++97, edge16, violations2, SCC0; transport-to-analysis witnesses reduce 8→6 while core-media4 stays exact. Bounded filter/frame/string copies add a documented allocation risk and exceptions still propagate. Remaining directions and parked evidence keep REVIEW4-64/65 open.
 ### Current continuation Slice 20: `incident-memory-application-boundary`
 
 - [x] Add dependency-free projection, search request/result, hit, and release-safe DTOs.

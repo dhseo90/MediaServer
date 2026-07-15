@@ -316,14 +316,14 @@ check("CMake dispatch and successor graph bind the exact Slice 24 boundary", () 
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const classifier = id => graph.moduleClassifiers.find(item => item.id === id);
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.expectedProductionFiles === 196 && graph.expectedCppFiles === 96 &&
-    classifier("application-service-interfaces")?.expectedFileCount === 29 &&
-    classifier("application-service-interfaces")?.expectedCppCount === 12 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 8 &&
+  assert(graph.expectedProductionFiles === 198 && graph.expectedCppFiles === 97 &&
+    classifier("application-service-interfaces")?.expectedFileCount === 31 &&
+    classifier("application-service-interfaces")?.expectedCppCount === 13 &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 6 &&
     edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 ===
-      "dd1dff19c49edddc4d96aa3ffe4c5a683d1232eb55867f0fce4f983c689791c3" &&
-    edge("application-service-interfaces -> analysis-services")?.witnessCount === 13 &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 15 &&
+      "fc4f0e5b77d766c3dea4f4513528480494b951bb2feeda236a1ec73bd70dad0e" &&
+    edge("application-service-interfaces -> analysis-services")?.witnessCount === 15 &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 16 &&
     edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessCount === 4 &&
     edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessSha256 ===
       "adf4172d0e83de59df510ceeb38c88cd36aaf78b157e7022b6480d8e0793cab3" &&

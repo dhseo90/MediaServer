@@ -63,6 +63,7 @@ add_library(media_server_runtime STATIC
     src/ingress/gst_pipeline_builder.cpp
     src/ingress/analysis_rule_application_service.cpp
     src/ingress/analysis_frame_application_service.cpp
+    src/ingress/va_metadata_application_service.cpp
     src/ingress/analysis_rule_registry.cpp
     src/ingress/analysis_overlay_probe.cpp
     src/ingress/appearance_readiness_application_service.cpp

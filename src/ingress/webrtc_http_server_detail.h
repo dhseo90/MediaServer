@@ -49,8 +49,7 @@
 #include "analysis/event_storage.h"
 #include "ingress/image_codec_application_service.h"
 #include "ingress/incident_memory_application_service.h"
-#include "analysis/metadata_subscription_filter.h"
-#include "analysis/va_runtime_metadata.h"
+#include "ingress/va_metadata_application_service.h"
 #include "ingress/vlm_observation_application_service.h"
 #include "analysis/analysis_query.h"
 #include "ingress/analysis_overlay_probe.h"
@@ -2490,7 +2489,7 @@ struct VaMetadataStreamOptions {
     bool include_scenarios{true};
     bool include_metrics{true};
     bool include_tracking_issue_report{true};
-    analysis::VaMetadataSubscriptionFilter subscription_filter;
+    VaMetadataApplicationFilter subscription_filter;
 };
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 7184 prototype
@@ -2511,7 +2510,7 @@ std::optional<int> ParseVaMetadataIntQuery(const std::unordered_map<std::string,
                                            std::initializer_list<const char*> keys);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 7272 prototype
-analysis::VaMetadataSubscriptionFilter BuildVaMetadataSubscriptionFilter(
+VaMetadataApplicationFilter BuildVaMetadataSubscriptionFilter(
     const std::unordered_map<std::string, std::string>& query);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 7287 prototype
@@ -2520,7 +2519,7 @@ void AppendVaMetadataFilterArrayJson(std::ostringstream& out,
                                      const std::vector<std::string>& values);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 7300 prototype
-std::string VaMetadataSubscriptionFilterJson(const analysis::VaMetadataSubscriptionFilter& filter);
+std::string VaMetadataSubscriptionFilterJson(const VaMetadataApplicationFilter& filter);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 7332 prototype
 VaMetadataStreamOptions BuildVaMetadataStreamOptions(const std::unordered_map<std::string, std::string>& query);
@@ -6821,7 +6820,7 @@ std::string OpsChannelBulkJson(const std::string& body);
 std::string WebRtcSyncStatusForMatch(std::int64_t video_frame_pts_ns, std::int64_t analysis_pts_ns);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 28230 prototype
-analysis::VaRuntimeSyncInfo BuildWebRtcVaMetadataSyncInfo(std::int64_t video_frame_pts_ns,
+VaMetadataApplicationSyncInfo BuildWebRtcVaMetadataSyncInfo(std::int64_t video_frame_pts_ns,
                                                           std::int64_t analysis_pts_ns,
                                                           std::int64_t sync_tolerance_ns,
                                                           std::string sync_status,
@@ -6831,8 +6830,8 @@ analysis::VaRuntimeSyncInfo BuildWebRtcVaMetadataSyncInfo(std::int64_t video_fra
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 28251 prototype
 std::string WebRtcVaMetadataMessageJson(const analysis::AnalysisResult& result,
                                         const std::vector<analysis::AnalysisEvent>& events,
-                                        const analysis::VaRuntimeSyncInfo& sync_info,
-                                        const analysis::VaMetadataSubscriptionFilter& subscription_filter);
+                                        const VaMetadataApplicationSyncInfo& sync_info,
+                                        const VaMetadataApplicationFilter& subscription_filter);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 28269 prototype
 std::string WebRtcVaMetadataMissingMessageJson(const std::string& stream_id,

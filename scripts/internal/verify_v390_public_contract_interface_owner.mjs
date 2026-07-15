@@ -76,6 +76,7 @@ const stableHeaders = [
 const applicationFiles = [
   "include/ingress/application_service_result.h",
   "include/ingress/analysis_frame_application_service.h", "src/ingress/analysis_frame_application_service.cpp",
+  "include/ingress/va_metadata_application_service.h", "src/ingress/va_metadata_application_service.cpp",
   "include/ingress/analysis_rule_application_service.h", "src/ingress/analysis_rule_application_service.cpp",
   "include/ingress/appearance_readiness_application_service.h", "src/ingress/appearance_readiness_application_service.cpp",
   "include/ingress/category_catalog_application_service.h", "src/ingress/category_catalog_application_service.cpp",
@@ -129,8 +130,8 @@ check("interface and implementation owners are exact", () => {
     owner("stable-contract-dtos").expectedFileCount === 9 && owner("stable-contract-dtos").expectedCppCount === 0,
   "stable public contract owner drift");
   assert(JSON.stringify(exact("application-service-interfaces")) === JSON.stringify([...applicationFiles].sort()) &&
-    owner("application-service-interfaces").expectedFileCount === 29 &&
-    owner("application-service-interfaces").expectedCppCount === 12,
+    owner("application-service-interfaces").expectedFileCount === 31 &&
+    owner("application-service-interfaces").expectedCppCount === 13,
   "application public interface owner drift");
   assert(JSON.stringify(exact("domain-and-registry-owners")) === JSON.stringify([...domainFiles].sort()) &&
     owner("domain-and-registry-owners").expectedFileCount === 6 &&
@@ -155,6 +156,7 @@ check("public headers remain dependency-neutral", () => {
   }
   const applicationIncludes = new Map([
     ["include/ingress/analysis_frame_application_service.h", []],
+    ["include/ingress/va_metadata_application_service.h", []],
     ["include/ingress/onvif_live_import.h", [
       "ingress/onvif_credential_provider.h", "ingress/application_service_result.h",
     ]],
@@ -197,7 +199,7 @@ check("strict JSON has a physical domain owner boundary", () => {
 check("current graph removes only the planned owner violations", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const violations = graph.observedModuleEdges.filter(item => item.allowedByTarget === false);
-  assert(graph.expectedProductionFiles === 196 && graph.expectedCppFiles === 96 &&
+  assert(graph.expectedProductionFiles === 198 && graph.expectedCppFiles === 97 &&
     graph.observedModuleEdges.length === 16 && violations.length === 2 &&
     graph.stronglyConnectedComponents.length === 0 &&
     JSON.stringify(graph.observedModuleEdges.map(item => item.direction)) === JSON.stringify(expectedDirections),

@@ -40,7 +40,58 @@ const rollbackCommit = "e5df05f3945e43e89ae13e3fdd21d0c83ab78ac8";
 const expectedConsumerCount = 170;
 const expectedExpressionCount = 188;
 const expectedConsumerSha = "1e13a798e01c601114df0287bc552e3681531e3021e81c57307ee99ae458ee1c";
-const expectedBundleSha = "d5bfab7e404a4db7e8671fa9a65b60f8a727c695e879645bcafd3d64c8ae9b98";
+const expectedBundleSha = "8aae2f75a63f81159b60fb472322503f6431fac87adce9b8d9e71f7c1b193248";
+const expectedLogicalOrder = [739297, 744362, 445360, 445741];
+const expectedSourceMetrics = {
+  fileCount: 6,
+  totalBytes: 2242691,
+  totalLines: 46583,
+  largestFileLines: 10150,
+  files: [
+    {
+      id: "transport-main",
+      file: "src/ingress/webrtc_http_server.cpp",
+      sha256: "6e545de8b2eef595940a70e528dd21c90646d130bdca264cae2a2051f23a3ae9",
+      bytes: 333851,
+      lines: 7593,
+    },
+    {
+      id: "ops-foundation",
+      file: "src/ingress/webrtc_http_server_ops_foundation.cpp",
+      sha256: "f3e4867a636a44354ddd9025609e34fad60aa28bb6266adc3af80e53e1a2c000",
+      bytes: 345615,
+      lines: 7845,
+    },
+    {
+      id: "ops-workflows",
+      file: "src/ingress/webrtc_http_server_ops_workflows.cpp",
+      sha256: "3cf5a50ba4001da55c6d5e754688529e471ed309399ffc8005e347f13184692b",
+      bytes: 509918,
+      lines: 10150,
+    },
+    {
+      id: "ops-incidents",
+      file: "src/ingress/webrtc_http_server_ops_incidents.cpp",
+      sha256: "9f1f8920910d530ce7b198c64af5ca2bc03e826e5b62ad064e05a5b41165b873",
+      bytes: 373759,
+      lines: 7832,
+    },
+    {
+      id: "transport-runtime",
+      file: "src/ingress/webrtc_http_server_runtime.cpp",
+      sha256: "e47ddceff115cf93cdc9a0c0109039a711687e5cbe4290f083fd0dfcd43efcb2",
+      bytes: 329156,
+      lines: 5197,
+    },
+    {
+      id: "private-detail",
+      file: "src/ingress/webrtc_http_server_detail.h",
+      sha256: "e7a1151108f1d86165b403e177263f7a62c87f056779c6f8d94736867a2e5c7e",
+      bytes: 350392,
+      lines: 7966,
+    },
+  ],
+};
 const currentOwnerRebindings = new Map([
   ["scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs", {
     removedBundleReads: 1,
@@ -182,20 +233,18 @@ check("six-file physical metrics and logical-origin bundle are exact", () => {
   assert(probe.status === 0, `source bundle probe failed: ${probe.stderr}`);
   const result = JSON.parse(probe.stdout.trim());
   assert(result.sha === expectedBundleSha &&
+    JSON.stringify(result.logicalOrder) === JSON.stringify(expectedLogicalOrder) &&
     result.resolved === "src/ingress/webrtc_http_server_runtime.cpp" &&
     result.resolvedFunction === "src/ingress/webrtc_http_server_ops_foundation.cpp" &&
-    result.logicalOrder.every(index => index >= 0) &&
-    result.logicalOrder[0] < result.logicalOrder[1] && result.logicalOrder[2] < result.logicalOrder[3] &&
     result.missing === true && result.ambiguous === true &&
-    result.metrics.fileCount === 6 && result.metrics.totalLines === 46622 &&
-    result.metrics.largestFileLines === 10150 && result.metrics.totalBytes === 2244501 &&
+    JSON.stringify(result.metrics) === JSON.stringify(expectedSourceMetrics) &&
     JSON.stringify(result.metrics.files.map(item => item.file)) === JSON.stringify(sourcePaths),
   `logical source bundle order, bytes, resolver, or metrics drift: ${JSON.stringify(result)}`);
 });
 
 check("physical bundle successor binds the exact production graph", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
-  assert(graph.expectedProductionFiles === 196 && graph.expectedCppFiles === 96 &&
+  assert(graph.expectedProductionFiles === 198 && graph.expectedCppFiles === 97 &&
     graph.observedModuleEdges.length === 16 &&
     graph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 2 &&
     graph.stronglyConnectedComponents.length === 0,
@@ -280,7 +329,7 @@ if (!skipMutations) {
       text => text.replace("WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 17051", "WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 99999"),
       "six-file physical metrics and logical-origin bundle");
     rejectMutation("graph", "test/fixtures/v390_structure_stabilization_current_graph.json",
-      text => text.replace('"expectedProductionFiles": 196', '"expectedProductionFiles": 197'),
+      text => text.replace('"expectedProductionFiles": 198', '"expectedProductionFiles": 199'),
       "physical bundle successor binds the exact production graph");
   });
 }

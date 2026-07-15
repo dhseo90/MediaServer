@@ -5937,9 +5937,9 @@ std::optional<int> ParseVaMetadataIntQuery(const std::unordered_map<std::string,
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 7272 function
-analysis::VaMetadataSubscriptionFilter BuildVaMetadataSubscriptionFilter(
+VaMetadataApplicationFilter BuildVaMetadataSubscriptionFilter(
     const std::unordered_map<std::string, std::string>& query) {
-    analysis::VaMetadataSubscriptionFilter filter;
+    VaMetadataApplicationFilter filter;
     AppendVaMetadataQueryList(query, {"eventType", "eventTypes"}, &filter.event_types);
     AppendVaMetadataQueryList(query, {"ruleId", "ruleIds", "metadataRuleId", "metadataRuleIds"}, &filter.rule_ids);
     AppendVaMetadataQueryList(query, {"scenario", "scenarioName", "scenarioNames"}, &filter.scenario_names);
@@ -5967,7 +5967,7 @@ void AppendVaMetadataFilterArrayJson(std::ostringstream& out,
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 7300 function
-std::string VaMetadataSubscriptionFilterJson(const analysis::VaMetadataSubscriptionFilter& filter) {
+std::string VaMetadataSubscriptionFilterJson(const VaMetadataApplicationFilter& filter) {
     std::ostringstream out;
     out << "{";
     AppendVaMetadataFilterArrayJson(out, "eventTypes", filter.event_types);
@@ -6188,40 +6188,17 @@ std::string BuildVaRuntimeMetadataJsonWithinBudget(const analysis::AnalysisResul
                                                    const std::vector<analysis::AnalysisEvent>& events,
                                                    const std::string& tracking_issue_report_json,
                                                    const VaMetadataStreamOptions& stream_options) {
-    const auto filtered_result =
-        analysis::FilterVaMetadataResult(result, stream_options.subscription_filter);
-    const auto filtered_events =
-        analysis::FilterVaMetadataEvents(events, stream_options.subscription_filter);
-    analysis::VaRuntimeMetadataBuildOptions options;
-    options.schema = analysis::kVaRuntimeMetadataSchema;
+    VaMetadataApplicationBuildOptions options;
+    options.filter = stream_options.subscription_filter;
     options.include_source = stream_options.include_source;
     options.include_scenarios = stream_options.include_scenarios;
     options.include_metrics = stream_options.include_metrics;
     options.include_tracking_issue_report = stream_options.include_tracking_issue_report;
     options.max_tracks = stream_options.max_tracks;
     options.max_events = stream_options.max_events;
-
-    std::string serialized;
-    for (int attempt = 0; attempt < 16; ++attempt) {
-        serialized = analysis::SerializeVaRuntimeMetadataFrameJson(
-            analysis::BuildVaRuntimeMetadataFrame(
-                filtered_result, filtered_events, options, tracking_issue_report_json));
-        if (serialized.size() <= stream_options.max_message_bytes) {
-            return serialized;
-        }
-        bool reduced = false;
-        if (options.max_events > 1) {
-            options.max_events = std::max<std::size_t>(1, options.max_events / 2);
-            reduced = true;
-        } else if (options.max_tracks > 1) {
-            options.max_tracks = std::max<std::size_t>(1, options.max_tracks / 2);
-            reduced = true;
-        }
-        if (!reduced) {
-            break;
-        }
-    }
-    return {};
+    options.max_message_bytes = stream_options.max_message_bytes;
+    return SerializeVaRuntimeMetadataForApplication(
+        result, events, tracking_issue_report_json, options);
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 7550 function
@@ -6612,7 +6589,7 @@ bool StreamVaMetadataSse(int client_fd,
 
     if (!SendSseComment(client_fd,
                         "va metadata stream opened; schema=" +
-                            std::string(analysis::kVaRuntimeMetadataSchema) +
+                            std::string(VaRuntimeMetadataSchemaForApplication()) +
                             "; tapId=" + tap_id)) {
         return false;
     }

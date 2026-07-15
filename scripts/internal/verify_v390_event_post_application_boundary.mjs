@@ -262,11 +262,73 @@ check("rollback dispatcher, status bytes, and three call-site orderings are exac
     overlay_config.render_options = BuildOverlayRenderOptionsFromQuery(query);
     overlay_config.sync_tolerance_ns = static_cast<std::int64_t>(timing_options.sync_tolerance_ms) * 1000000LL;
     overlay_config.wait_timeout_ms = timing_options.wait_timeout_ms;`, "live overlay configuration");
+  const restoreVaMetadataIncidents = text => {
+    let restored = replaceExactOnce(text, `VaMetadataApplicationSyncInfo BuildWebRtcVaMetadataSyncInfo(std::int64_t video_frame_pts_ns,
+                                                            std::int64_t analysis_pts_ns,
+                                                            std::int64_t sync_tolerance_ns,
+                                                            std::string sync_status,
+                                                            int frame_width,
+                                                            int frame_height) {
+    VaMetadataApplicationSyncInfo sync;`, `analysis::VaRuntimeSyncInfo BuildWebRtcVaMetadataSyncInfo(std::int64_t video_frame_pts_ns,
+                                                          std::int64_t analysis_pts_ns,
+                                                          std::int64_t sync_tolerance_ns,
+                                                          std::string sync_status,
+                                                          int frame_width,
+                                                          int frame_height) {
+    analysis::VaRuntimeSyncInfo sync;`, "VA metadata sync DTO");
+    restored = replaceExactOnce(restored, `std::string WebRtcVaMetadataMessageJson(const analysis::AnalysisResult& result,
+                                        const std::vector<analysis::AnalysisEvent>& events,
+                                        const VaMetadataApplicationSyncInfo& sync_info,
+                                        const VaMetadataApplicationFilter& subscription_filter) {
+    return SerializeWebRtcVaMetadataForApplication(
+        result, events, sync_info, subscription_filter);
+}`, `std::string WebRtcVaMetadataMessageJson(const analysis::AnalysisResult& result,
+                                        const std::vector<analysis::AnalysisEvent>& events,
+                                        const analysis::VaRuntimeSyncInfo& sync_info,
+                                        const analysis::VaMetadataSubscriptionFilter& subscription_filter) {
+    const auto filtered_result = analysis::FilterVaMetadataResult(result, subscription_filter);
+    const auto filtered_events = analysis::FilterVaMetadataEvents(events, subscription_filter);
+    analysis::VaRuntimeMetadataBuildOptions options;
+    options.schema = analysis::kWebRtcVaMetadataSchema;
+    options.include_source = false;
+    options.include_scenarios = false;
+    options.include_metrics = false;
+    options.include_tracking_issue_report = false;
+    options.include_missed_tracks = false;
+    options.sync = sync_info;
+    return analysis::SerializeVaRuntimeMetadataFrameForWebRtcJson(
+        analysis::BuildVaRuntimeMetadataFrame(filtered_result, filtered_events, options));
+}`, "VA metadata present serializer");
+    return replaceExactOnce(restored, `std::string WebRtcVaMetadataMissingMessageJson(const std::string& stream_id,
+                                               std::int64_t video_frame_pts_ns,
+                                               std::int64_t sync_tolerance_ns) {
+    auto sync = BuildWebRtcVaMetadataSyncInfo(
+        video_frame_pts_ns, video_frame_pts_ns, sync_tolerance_ns, "missing", 0, 0);
+    sync.analysis_pts_ms = 0;
+    sync.sync_delta_ms = 0;
+    return SerializeMissingWebRtcVaMetadataForApplication(
+        stream_id, video_frame_pts_ns, sync);
+}`, `std::string WebRtcVaMetadataMissingMessageJson(const std::string& stream_id,
+                                               std::int64_t video_frame_pts_ns,
+                                               std::int64_t sync_tolerance_ns) {
+    analysis::VaRuntimeMetadataFrame frame;
+    frame.schema = analysis::kWebRtcVaMetadataSchema;
+    frame.stream_id = stream_id;
+    frame.channel_id = stream_id;
+    frame.pts = video_frame_pts_ns;
+    frame.timestamp_ms = PtsNsToMs(video_frame_pts_ns);
+    frame.sync = BuildWebRtcVaMetadataSyncInfo(
+        video_frame_pts_ns, video_frame_pts_ns, sync_tolerance_ns, "missing", 0, 0);
+    frame.sync.analysis_pts_ms = 0;
+    frame.sync.sync_delta_ms = 0;
+    return analysis::SerializeVaRuntimeMetadataFrameForWebRtcJson(frame);
+}`, "VA metadata missing serializer");
+  };
   assert(compactCppPreservingLiterals(
     restoreCodec(restoreRulePort(restoreAnalysisFrameRuntime(read(runtimePath))))) ===
       compactCppPreservingLiterals(beforeRuntime),
     "tap Record→Post→Ops alert ordering drift");
-  const afterIncidents = restoreAnalysisFrameIncidents(read(incidentsPath));
+  const afterIncidents = restoreAnalysisFrameIncidents(restoreVaMetadataIncidents(read(incidentsPath)));
   const beforeStatus = functionBlock(beforeIncidents, "std::string AnalysisEventPostStatusJson()");
   const afterStatus = functionBlock(afterIncidents, "std::string AnalysisEventPostStatusJson()");
   const assertStatusParity = value => {
@@ -296,17 +358,17 @@ check("CMake, dispatch, and graph bind the exact successor", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const owner = graph.moduleClassifiers.find(item => item.id === "application-service-interfaces");
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.boundary === "current REVIEW4-64 continuation graph after the analysis frame application boundary; concrete detector, one-shot tracker, close-object projection, and static/live overlay execution are application-owned, Policy v1 counts 2 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed" &&
-    graph.expectedProductionFiles === 196 && graph.expectedCppFiles === 96 &&
-    owner?.expectedFileCount === 29 && owner.expectedCppCount === 12 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 8 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 === "dd1dff19c49edddc4d96aa3ffe4c5a683d1232eb55867f0fce4f983c689791c3" &&
+  assert(graph.boundary === "current REVIEW4-64 continuation graph after the VA metadata application boundary; subscription filtering, runtime/WebRTC/missing serialization, sync projection, and byte-budget reduction are application-owned, Policy v1 counts 2 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed" &&
+    graph.expectedProductionFiles === 198 && graph.expectedCppFiles === 97 &&
+    owner?.expectedFileCount === 31 && owner.expectedCppCount === 13 &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 6 &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 === "fc4f0e5b77d766c3dea4f4513528480494b951bb2feeda236a1ec73bd70dad0e" &&
     edge("transport-and-auth-adapter -> analysis-services")?.allowedByTarget === false &&
-    edge("application-service-interfaces -> analysis-services")?.witnessCount === 13 &&
-    edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "f5aebc173d3568a7969168e6985aa7ac1823f687c68a296a45ba41787cc7cc23" &&
+    edge("application-service-interfaces -> analysis-services")?.witnessCount === 15 &&
+    edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "8af1743af636bb433cba36ed9481fcb205ede6fad59625a497dd18be65e4360f" &&
     edge("application-service-interfaces -> analysis-services")?.allowedByTarget === true &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 15 &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "ba29adbb7ec710d5a518f1de38889edc0a31668b2cfbcbe8b40a5e26ad5c7c5a" &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 16 &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "c043adfd438199bae030b0df835b0fe9e56e68f38d116ce9c5e9c275b5368e8c" &&
     edge("transport-and-auth-adapter -> application-service-interfaces")?.allowedByTarget === true &&
     graph.observedModuleEdges.length === 16 &&
     graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 &&

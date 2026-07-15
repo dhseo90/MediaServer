@@ -55,10 +55,10 @@
   "currentGraph": {
     "path": "test/fixtures/v390_structure_stabilization_current_graph.json",
     "schema": "media-server.v390-structure-stabilization-current-graph.v1",
-    "sha256": "e1e5d771990c4fab3ea0b792a81987c7525ccfdb49f165116b2449ac53800209",
+    "sha256": "0d16cc233e2cd224201c852f666679ea98b71666973e3c15cd4917a696ad5b51",
     "metrics": {
-      "productionFiles": 196,
-      "cppSources": 96,
+      "productionFiles": 198,
+      "cppSources": 97,
       "moduleOwners": 10,
       "cmakeTargets": 2,
       "targetViolationDirections": 2,
@@ -69,7 +69,7 @@
   },
   "currentContinuation": {
     "status": "in-progress",
-    "latestCompletedSlice": 24,
+    "latestCompletedSlice": 25,
     "sliceSequenceStatus": "partial",
     "architectureStatus": "final-targets-unmet",
     "finalEvidenceStatus": "parked-generated-artifacts-in-review",
@@ -2918,6 +2918,99 @@
           {"command":"./server.sh verify-docs-links","status":"pass","result":"168 markdown, 892 local links, 22 images, 99 anchors, 0 failures"},
           {"command":"git diff --check","status":"pass","result":"clean"},
           {"command":"cleanup targets: image-analysis-1784087934-3228, redaction-1784087950-3470, tracker-stability-1784087997-3865, close_object_tracker_1784087871_2454, analysis_state_smoke-2461 and dep scan","status":"pass","result":"all listed reproducible files/directories deleted; post-cleanup find returned no paths"},
+          {"command":"lsof -nP -iTCP:8081 -iTCP:8555 -sTCP:LISTEN","status":"pass","result":"exit 1 with no output after throwaway server Ctrl-C"}
+        ]
+      },
+      {
+        "order": 25,
+        "id": "va-metadata-application-boundary",
+        "status": "completed",
+        "nonProductionSlice": false,
+        "rollbackCommit": "f88098a7d1586006d0d64e934b0db25655ceb814",
+        "selectedBoundary": "move subscription filtering, runtime and WebRTC metadata serialization, missing payload construction, sync projection, and byte-budget reduction behind an application-owned service while preserving transport parsing, sequence, timestamp, and publish order",
+        "allowedFiles": [
+          "CMakeLists.txt", "server.sh",
+          "include/ingress/va_metadata_application_service.h",
+          "src/ingress/va_metadata_application_service.cpp",
+          "src/ingress/webrtc_http_server.cpp",
+          "src/ingress/webrtc_http_server_detail.h",
+          "src/ingress/webrtc_http_server_ops_incidents.cpp",
+          "scripts/internal/verify_v390_va_metadata_application_boundary.mjs",
+          "scripts/internal/verify_v390_analysis_frame_application_boundary.mjs",
+          "scripts/internal/verify_v390_analysis_rule_private_declaration_boundary.mjs",
+          "scripts/internal/verify_v390_appearance_readiness_application_boundary.mjs",
+          "scripts/internal/verify_v390_category_catalog_application_boundary.mjs",
+          "scripts/internal/verify_v390_event_post_application_boundary.mjs",
+          "scripts/internal/verify_v390_image_codec_application_boundary.mjs",
+          "scripts/internal/verify_v390_incident_memory_application_boundary.mjs",
+          "scripts/internal/verify_v390_public_contract_interface_owner.mjs",
+          "scripts/internal/verify_v390_source_view_application_boundary.mjs",
+          "scripts/internal/verify_v390_structure_stabilization_execution.mjs",
+          "scripts/internal/verify_v390_transport_runtime_config_boundary.mjs",
+          "scripts/internal/verify_v390_vlm_observation_application_boundary.mjs",
+          "scripts/internal/verify_v390_webrtc_http_server_physical_split.mjs",
+          "scripts/internal/verify_v390_webrtc_http_server_source_bundle.mjs",
+          "test/fixtures/v390_structure_stabilization_current_graph.json",
+          "test/fixtures/v390_structure_stabilization_execution.json",
+          "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md",
+          "docs/development-backlog.md", "docs/project-feature-test-inventory.md",
+          "docs/stream-verification.md", "docs/release-test-records.md", "docs/release-evidence-index.md"
+        ],
+        "changedFiles": [
+          "CMakeLists.txt", "server.sh",
+          "include/ingress/va_metadata_application_service.h",
+          "src/ingress/va_metadata_application_service.cpp",
+          "src/ingress/webrtc_http_server.cpp",
+          "src/ingress/webrtc_http_server_detail.h",
+          "src/ingress/webrtc_http_server_ops_incidents.cpp",
+          "scripts/internal/verify_v390_va_metadata_application_boundary.mjs",
+          "test/fixtures/v390_structure_stabilization_current_graph.json",
+          "test/fixtures/v390_structure_stabilization_execution.json"
+        ],
+        "before": {
+          "productionGraphSha256": "e1e5d771990c4fab3ea0b792a81987c7525ccfdb49f165116b2449ac53800209",
+          "productionFiles": 196, "cppSources": 96,
+          "targetViolationDirectionsUnderPolicyV1": 2,
+          "transportAnalysisWitnessCount": 8, "transportCoreMediaWitnessCount": 4,
+          "largestSccOwners": 0, "largestMixedOwnerFileLines": 10156,
+          "cmakeTargets": 2, "internalTargetSeparation": true
+        },
+        "after": {
+          "productionGraphSha256": "0d16cc233e2cd224201c852f666679ea98b71666973e3c15cd4917a696ad5b51",
+          "productionFiles": 198, "cppSources": 97,
+          "targetViolationDirectionsUnderPolicyV1": 2,
+          "transportAnalysisWitnessCount": 6, "transportCoreMediaWitnessCount": 4,
+          "largestSccOwners": 0, "largestMixedOwnerFileLines": 10156,
+          "cmakeTargets": 2, "internalTargetSeparation": true
+        },
+        "contractAssertions": [
+          "transport has zero direct metadata subscription filter or VA runtime metadata implementation includes and calls",
+          "the application service maps all nine subscription filter fields and all eleven synchronization fields exactly",
+          "runtime metadata uses the canonical schema and preserves source scenario metrics tracking-issue and max track/event options",
+          "the byte-budget loop attempts at most sixteen serializations, reduces events before tracks, and returns empty only when still oversized",
+          "WebRTC present metadata fixes all five include flags off and preserves the canonical schema and serializer",
+          "WebRTC missing metadata preserves stream/channel ids, nanosecond PTS, millisecond timestamp, and zero analysis/delta sync fields",
+          "transport retains query/control parsing, metadata sequence, current timestamp, exact Record-Post-publish ordering, and fallback branches",
+          "the graph reduces transport-to-analysis witnesses from eight to six while core-media remains four and parked evidence stays non-final"
+        ],
+        "observedFollowups": [
+          "read-only mapping selected two cohesive filter/runtime metadata witnesses and excluded query parsing, sequence, timestamp, and publish ordering",
+          "the first integrated build failed because one transport open-log still referenced the canonical runtime schema constant; a dependency-neutral application schema accessor replaced it and the rerun reached 100 percent",
+          "the application boundary performs bounded copies of the nine-field filter DTO plus at most sixteen frame/string serialization attempts, which adds a bounded allocation risk; no catch was added, so std::bad_alloc and canonical exceptions continue to propagate"
+        ],
+        "tests": [
+          {"command":"./server.sh verify-v390-va-metadata-application-boundary","status":"pass","result":"6/0 after independent-review false-PASS hardening"},
+          {"command":"./server.sh build","status":"pass","result":"100%","firstAttempt":"transport open-log retained analysis::kVaRuntimeMetadataSchema after direct include removal"},
+          {"command":"./server.sh verify-webrtc-va-metadata","status":"pass","result":"actual 8/0","firstAttempt":"fetch failed because no loopback server was running"},
+          {"command":"./server.sh verify-va-metadata-sidechannel","status":"pass","result":"actual 5/0","firstAttempt":"connection refused because no loopback server was running"},
+          {"command":"./server.sh verify-sse-metadata","status":"pass","result":"actual 5/0","firstAttempt":"sandbox loopback connect returned EPERM"},
+          {"command":"./server.sh verify-ws-metadata","status":"pass","result":"actual 9/0","firstAttempt":"sandbox loopback connect returned EPERM"},
+          {"command":"./server.sh verify-analysis-state","status":"pass","result":"181/0"},
+          {"command":"./server.sh verify-v390-review4-structure-stabilization-execution","status":"self-check"},
+          {"command":"./server.sh verify-script-inventory","status":"pass","result":"11/0"},
+          {"command":"./server.sh verify-docs-links","status":"pass","result":"168 markdown, 893 local links, 22 images, 99 anchors, 0 failures"},
+          {"command":"git diff --check","status":"pass","result":"clean"},
+          {"command":"cleanup Slice 25 metadata/analysis temporary artifacts","status":"pass","result":"4.6MB plus summary/log files removed; exact post-cleanup find returned no paths"},
           {"command":"lsof -nP -iTCP:8081 -iTCP:8555 -sTCP:LISTEN","status":"pass","result":"exit 1 with no output after throwaway server Ctrl-C"}
         ]
       }

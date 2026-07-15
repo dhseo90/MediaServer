@@ -553,6 +553,8 @@ Usage:
                  V390-REVIEW4-64 transport의 analysis rule domain 선언 결속을 private declaration으로 분리합니다.
   verify-v390-analysis-frame-application-boundary
                  V390-REVIEW4-64 transport의 detector/tracker/overlay 실행을 application service로 역전합니다.
+  verify-v390-va-metadata-application-boundary
+                 V390-REVIEW4-64 transport의 VA metadata filter/serializer 결속을 application service로 역전합니다.
   verify-v390-stable-contract-owner-realignment
                  V390-REVIEW4-64 stable contract leaf를 target owner로 재정렬합니다.
   verify-v390-public-contract-interface-owner
@@ -989,6 +991,8 @@ Usage:
                  V390-REVIEW4-64 transport의 analysis rule domain 선언 결속을 private declaration으로 분리합니다.
   verify-v390-analysis-frame-application-boundary
                  V390-REVIEW4-64 transport의 detector/tracker/overlay 실행을 application service로 역전합니다.
+  verify-v390-va-metadata-application-boundary
+                 V390-REVIEW4-64 transport의 VA metadata filter/serializer 결속을 application service로 역전합니다.
   verify-v390-stable-contract-owner-realignment
                  V390-REVIEW4-64 stable contract leaf를 target owner로 재정렬합니다.
   verify-v390-public-contract-interface-owner
@@ -2481,6 +2485,10 @@ case "${cmd}" in
   verify-v390-analysis-frame-application-boundary)
     require_internal verify_v390_analysis_frame_application_boundary.mjs
     exec "${INTERNAL_DIR}/verify_v390_analysis_frame_application_boundary.mjs" "$@"
+    ;;
+  verify-v390-va-metadata-application-boundary)
+    require_internal verify_v390_va_metadata_application_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v390_va_metadata_application_boundary.mjs" "$@"
     ;;
   verify-v390-stable-contract-owner-realignment)
     require_internal verify_v390_stable_contract_owner_realignment.mjs
