@@ -4487,13 +4487,13 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     return JsonResponse(404, "Not Found",
                                                         "{\"error\":\"analysis tap not found\"}");
                                 }
-                                std::optional<analysis::EventRuleEvaluation> evaluation;
+                                std::optional<EventRuleApplicationEvaluation> evaluation;
                                 if (snapshot->latest_result.has_value()) {
                                     auto result = *snapshot->latest_result;
                                     result.debug_state_requested = true;
                                     result.debug_state_log_enabled = false;
-                                    evaluation = EvaluateStoredEventRules(
-                                        result, EventRuleRuntimeForKey("tap-state-dump:" + tap_id));
+                                    evaluation = EvaluateEventRulesForApplication(
+                                        result, AcquireEventRuleApplicationRuntime("tap-state-dump:" + tap_id));
                                 }
                                 return JsonResponse(200,
                                                     "OK",
@@ -4508,12 +4508,12 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     return JsonResponse(404, "Not Found",
                                                         "{\"error\":\"analysis tap not found\"}");
                                 }
-                                std::optional<analysis::EventRuleEvaluation> evaluation;
+                                std::optional<EventRuleApplicationEvaluation> evaluation;
                                 if (snapshot->latest_result.has_value()) {
                                     auto result = *snapshot->latest_result;
                                     result.metrics_report_requested = true;
-                                    evaluation = EvaluateStoredEventRules(
-                                        result, EventRuleRuntimeForKey("tap-metrics:" + tap_id));
+                                    evaluation = EvaluateEventRulesForApplication(
+                                        result, AcquireEventRuleApplicationRuntime("tap-metrics:" + tap_id));
                                 }
                                 return JsonResponse(200,
                                                     "OK",
@@ -4528,18 +4528,19 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     return JsonResponse(404, "Not Found",
                                                         "{\"error\":\"analysis tap not found\"}");
                                 }
-                                std::optional<analysis::EventRuleEvaluation> evaluation;
+                                std::optional<EventRuleApplicationEvaluation> evaluation;
                                 if (snapshot->latest_result.has_value()) {
-                                    evaluation = EvaluateStoredEventRules(
-                                        *snapshot->latest_result, EventRuleRuntimeForKey("tap-events:" + tap_id));
+                                    evaluation = EvaluateEventRulesForApplication(
+                                        *snapshot->latest_result,
+                                        AcquireEventRuleApplicationRuntime("tap-events:" + tap_id));
                                     if (ParseBoolQuery(query, "dispatch", false)) {
                                         DispatchEventRecordsForApplication(ProjectEventStorageDispatchRequest(
-                                            evaluation->annotated_result, evaluation->events));
+                                            evaluation->AnnotatedResult(), evaluation->Events()));
                                         DispatchEventPostsForApplication(ProjectEventPostDispatchRequest(
-                                            evaluation->annotated_result, evaluation->events));
+                                            evaluation->AnnotatedResult(), evaluation->Events()));
                                         DispatchOpsAlertDeliveries(config,
-                                                                  evaluation->annotated_result,
-                                                                  evaluation->events);
+                                                                  evaluation->AnnotatedResult(),
+                                                                  evaluation->Events());
                                     }
                                 }
                                 return JsonResponse(200,
@@ -4601,12 +4602,13 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     overlay_result.debug_state_requested || debug_overlay;
                                 overlay_result.debug_state_log_enabled =
                                     overlay_result.debug_state_log_enabled || debug_overlay;
-                                const auto evaluation = EvaluateStoredEventRules(
-                                    overlay_result, EventRuleRuntimeForKey("tap-overlay:" + tap_id));
+                                const auto evaluation = EvaluateEventRulesForApplication(
+                                    overlay_result,
+                                    AcquireEventRuleApplicationRuntime("tap-overlay:" + tap_id));
                                 std::string error_message;
                                 if (!RenderDetectionOverlayForApplication(
                                         latest->frame,
-                                        evaluation.annotated_result,
+                                        evaluation.AnnotatedResult(),
                                         query,
                                         &overlay_frame,
                                         &error_message)) {

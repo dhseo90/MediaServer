@@ -45,8 +45,8 @@
 #include "ingress/category_catalog_application_service.h"
 #include "ingress/event_feature_search_application_service.h"
 #include "ingress/event_post_application_service.h"
+#include "ingress/event_rule_application_service.h"
 #include "ingress/event_storage_application_service.h"
-#include "analysis/event_rule_engine.h"
 #include "ingress/image_codec_application_service.h"
 #include "ingress/incident_memory_application_service.h"
 #include "ingress/va_metadata_application_service.h"
@@ -2640,12 +2640,12 @@ bool StreamVaMetadataWebSocket(int client_fd,
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8167 prototype
 std::string AnalysisStateDumpJson(const std::string& tap_id,
                                   const analysis::AnalysisManager::TapSnapshot& snapshot,
-                                  const std::optional<analysis::EventRuleEvaluation>& evaluation);
+                                  const std::optional<EventRuleApplicationEvaluation>& evaluation);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8208 prototype
 std::string AnalysisMetricsDumpJson(const std::string& tap_id,
                                     const analysis::AnalysisManager::TapSnapshot& snapshot,
-                                    const std::optional<analysis::EventRuleEvaluation>& evaluation);
+                                    const std::optional<EventRuleApplicationEvaluation>& evaluation);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8319 prototype
 std::string AnalysisTapCreatedJson(const analysis::AnalysisSessionService::AnalysisTapResult& result,
@@ -2746,25 +2746,9 @@ bool AnalyzeStaticImage(const std::unordered_map<std::string, std::string>& quer
 std::string StaticImageAnalysisJson(const StaticImageAnalysis& analysis);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8768 prototype
-std::mutex& EventRuleRuntimeMapMutex();
-
-// WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8773 prototype
-std::unordered_map<std::string, std::shared_ptr<analysis::EventRuleRuntime>>& EventRuleRuntimeMap();
-
-// WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8778 prototype
-std::shared_ptr<analysis::EventRuleRuntime> EventRuleRuntimeForKey(const std::string& key);
-
-// WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8790 prototype
-void ReleaseEventRuleRuntimeForKey(const std::string& key);
-
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8795 prototype
 bool DetachAnalysisTapAndReleaseRuntimes(analysis::AnalysisSessionService& analysis_sessions,
                                          const std::string& tap_id);
-
-// WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8812 prototype
-analysis::EventRuleEvaluation EvaluateStoredEventRules(
-    const analysis::AnalysisResult& result,
-    const std::shared_ptr<analysis::EventRuleRuntime>& runtime);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8818 prototype
 std::string AnalysisEventJson(const analysis::AnalysisEvent& event);
@@ -2772,7 +2756,7 @@ std::string AnalysisEventJson(const analysis::AnalysisEvent& event);
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8846 prototype
 std::string AnalysisEventsJson(const std::string& tap_id,
                                const std::optional<analysis::AnalysisResult>& result,
-                               const analysis::EventRuleEvaluation* evaluation);
+                               const EventRuleApplicationEvaluation* evaluation);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8876 prototype
 WebRtcMetadataChannelConfig BuildWebRtcMetadataChannelConfigFromQuery(

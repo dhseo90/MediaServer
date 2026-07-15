@@ -220,7 +220,7 @@ const exactTransportDelegations = [
   "ProjectCloseObjectGuardForApplication(config.analysis_tracking_close_object_guard_mode)",
   "RenderDetectionOverlayForApplication( image_analysis.frame, image_analysis.result, query, &overlay_frame, &error_message)",
   "AnalysisOverlayDebugRequestedForApplication(query)",
-  "RenderDetectionOverlayForApplication( latest->frame, evaluation.annotated_result, query, &overlay_frame, &error_message)",
+  "RenderDetectionOverlayForApplication( latest->frame, evaluation.AnnotatedResult(), query, &overlay_frame, &error_message)",
   "ResolveAnalysisOverlaySettingsForApplication( query, render_video_overlay)",
   "MakeAnalysisOverlayAttachmentForApplication( query, render_video_overlay, std::move(result_provider))",
 ].map(compact);
@@ -240,10 +240,10 @@ function overlayTransportSemanticsAreExact(text) {
     'overlay_settings.render_video_overlay || ParseBoolQuery(query, "clientOverlayFallback", ParseBoolQuery(query, "vaMetadataDrawFallback", false))',
     'if (output == nullptr) { return false; }',
     'WaitAnalysisResultNearPts( tap_id, source_pts, tolerance_ns, std::chrono::milliseconds(wait_timeout_ms))',
-    'DispatchEventRecordsForApplication(ProjectEventStorageDispatchRequest( evaluation.annotated_result, evaluation.events))',
-    'DispatchEventPostsForApplication(ProjectEventPostDispatchRequest( evaluation.annotated_result, evaluation.events))',
+    'DispatchEventRecordsForApplication(ProjectEventStorageDispatchRequest( evaluation.AnnotatedResult(), evaluation.Events()))',
+    'DispatchEventPostsForApplication(ProjectEventPostDispatchRequest( evaluation.AnnotatedResult(), evaluation.Events()))',
     'bridge_lock->PublishAnalysisMetadata(',
-    '*output = evaluation.annotated_result; return true;',
+    '*output = evaluation.AnnotatedResult(); return true;',
     'const auto snapshot = analysis_sessions.AnalysisTapSnapshot(tap_id)',
     'if (!snapshot.has_value() || !snapshot->latest_result.has_value())',
     'WebRtcVaMetadataMissingMessageJson(tap_id, source_pts, tolerance_ns)',
@@ -253,14 +253,14 @@ function overlayTransportSemanticsAreExact(text) {
     'MakeAnalysisOverlayAttachmentForApplication( query, render_video_overlay, std::move(result_provider))',
   ].map(compact);
   if (!required.every(item => normalized.includes(item))) return false;
-  if (exactCount(body, /\*output\s*=\s*evaluation\.annotated_result\s*;/g) !== 2) return false;
+  if (exactCount(body, /\*output\s*=\s*evaluation\.AnnotatedResult\(\)\s*;/g) !== 2) return false;
   if (exactCount(body, /DispatchEventRecordsForApplication\(/g) !== 2 ||
       exactCount(body, /DispatchEventPostsForApplication\(/g) !== 2) return false;
   const ordered = [
     "WaitAnalysisResultNearPts", "if (result.has_value())", "DispatchEventRecordsForApplication",
     "DispatchEventPostsForApplication", "bridge_lock->PublishAnalysisMetadata", "*output =",
     "AnalysisTapSnapshot", "if (!snapshot.has_value()", "WebRtcVaMetadataMissingMessageJson",
-    "return false;", "EvaluateStoredEventRules(latest_result", "DispatchEventRecordsForApplication",
+    "return false;", "EvaluateEventRulesForApplication(latest_result", "DispatchEventRecordsForApplication",
     "DispatchEventPostsForApplication", "if (metadata_fallback_payload_enabled)", "*output =",
     "MakeAnalysisOverlayAttachmentForApplication",
   ];
@@ -418,7 +418,7 @@ check("transport delegates exact frame tracker and overlay call sites", () => {
   assert(overlayTransportSemanticsAreExact(incidents), "transport overlay provider semantic drift");
   const providerMutations = [
     incidents.replace("if (output == nullptr)", "if (false)"),
-    incidents.replace("*output = evaluation.annotated_result;", "/* output omitted */"),
+    incidents.replace("*output = evaluation.AnnotatedResult();", "/* output omitted */"),
     incidents.replace(
       "return false;\n            }\n            auto latest_result", "return true;\n            }\n            auto latest_result"),
     swapExact(incidents, "WaitAnalysisResultNearPts", "AnalysisTapSnapshot"),
@@ -440,20 +440,20 @@ check("CMake dispatch and successor graph bind the exact Slice 24 boundary", () 
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const classifier = id => graph.moduleClassifiers.find(item => item.id === id);
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.expectedProductionFiles === 202 && graph.expectedCppFiles === 99 &&
-    classifier("application-service-interfaces")?.expectedFileCount === 35 &&
-    classifier("application-service-interfaces")?.expectedCppCount === 15 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 2 &&
+  assert(graph.expectedProductionFiles === 204 && graph.expectedCppFiles === 100 &&
+    classifier("application-service-interfaces")?.expectedFileCount === 37 &&
+    classifier("application-service-interfaces")?.expectedCppCount === 16 &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 1 &&
     edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 ===
-      "fedb2cae90a73353883d64907bc089eee9b90d14597b88bdf4e68fe9530e65d1" &&
-    edge("application-service-interfaces -> analysis-services")?.witnessCount === 17 &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 18 &&
+      "65f056e8ec5e09a639a15d98920884535929f2470a6beac11ffa9869eba796a7" &&
+    edge("application-service-interfaces -> analysis-services")?.witnessCount === 18 &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 19 &&
     edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessCount === 4 &&
     edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessSha256 ===
       "adf4172d0e83de59df510ceeb38c88cd36aaf78b157e7022b6480d8e0793cab3" &&
     graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 &&
     !graph.stronglyConnectedComponents.length &&
-    graph.boundary.includes("Event Storage application boundary"), "graph successor drift");
+    graph.boundary.includes("Event Rule application boundary"), "graph successor drift");
 });
 
 check("current structure gate accepts the exact non-final successor", () => {

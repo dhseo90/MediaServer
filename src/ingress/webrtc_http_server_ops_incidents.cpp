@@ -7718,7 +7718,7 @@ bool AttachWebRtcAnalysisOverlay(analysis::AnalysisSessionService& analysis_sess
         overlay_settings.render_video_overlay ||
         ParseBoolQuery(query, "clientOverlayFallback", ParseBoolQuery(query, "vaMetadataDrawFallback", false));
     bridge->SetMetadataChannelConfig(metadata_channel_config);
-    auto event_runtime = EventRuleRuntimeForKey("webrtc-overlay:" + attach_result.tap_id);
+    auto event_runtime = AcquireEventRuleApplicationRuntime("webrtc-overlay:" + attach_result.tap_id);
     auto result_provider =
         [&analysis_sessions,
          tap_id = attach_result.tap_id,
@@ -7744,26 +7744,26 @@ bool AttachWebRtcAnalysisOverlay(analysis::AnalysisSessionService& analysis_sess
                 result->debug_state_requested =
                     result->debug_state_requested || debug_overlay || metadata_channel_enabled;
                 result->debug_state_log_enabled = result->debug_state_log_enabled || debug_overlay;
-                const auto evaluation = EvaluateStoredEventRules(*result, event_runtime);
+                const auto evaluation = EvaluateEventRulesForApplication(*result, event_runtime);
                 DispatchEventRecordsForApplication(ProjectEventStorageDispatchRequest(
-                    evaluation.annotated_result, evaluation.events));
+                    evaluation.AnnotatedResult(), evaluation.Events()));
                 DispatchEventPostsForApplication(ProjectEventPostDispatchRequest(
-                    evaluation.annotated_result, evaluation.events));
+                    evaluation.AnnotatedResult(), evaluation.Events()));
                 if (metadata_channel_enabled && bridge_lock != nullptr && bridge_lock->MetadataChannelReady()) {
                     const auto sync_info = BuildWebRtcVaMetadataSyncInfo(
                         source_pts,
-                        evaluation.annotated_result.pts,
+                        evaluation.AnnotatedResult().pts,
                         tolerance_ns,
-                        WebRtcSyncStatusForMatch(source_pts, evaluation.annotated_result.pts),
-                        evaluation.annotated_result.frame_width,
-                        evaluation.annotated_result.frame_height);
+                        WebRtcSyncStatusForMatch(source_pts, evaluation.AnnotatedResult().pts),
+                        evaluation.AnnotatedResult().frame_width,
+                        evaluation.AnnotatedResult().frame_height);
                     bridge_lock->PublishAnalysisMetadata(
-                        WebRtcVaMetadataMessageJson(evaluation.annotated_result,
-                                                    evaluation.events,
+                        WebRtcVaMetadataMessageJson(evaluation.AnnotatedResult(),
+                                                    evaluation.Events(),
                                                     sync_info,
                                                     metadata_subscription_filter));
                 }
-                *output = evaluation.annotated_result;
+                *output = evaluation.AnnotatedResult();
                 return true;
             }
             // 동기화 허용 시간 안에 결과가 아직 없으면 최신 snapshot으로 fallback해 overlay 공백을 줄인다.
@@ -7779,22 +7779,22 @@ bool AttachWebRtcAnalysisOverlay(analysis::AnalysisSessionService& analysis_sess
             latest_result.debug_state_requested =
                 latest_result.debug_state_requested || debug_overlay || metadata_channel_enabled;
             latest_result.debug_state_log_enabled = latest_result.debug_state_log_enabled || debug_overlay;
-            const auto evaluation = EvaluateStoredEventRules(latest_result, event_runtime);
+            const auto evaluation = EvaluateEventRulesForApplication(latest_result, event_runtime);
             DispatchEventRecordsForApplication(ProjectEventStorageDispatchRequest(
-                evaluation.annotated_result, evaluation.events));
+                evaluation.AnnotatedResult(), evaluation.Events()));
             DispatchEventPostsForApplication(ProjectEventPostDispatchRequest(
-                evaluation.annotated_result, evaluation.events));
+                evaluation.AnnotatedResult(), evaluation.Events()));
             if (metadata_channel_enabled && bridge_lock != nullptr && bridge_lock->MetadataChannelReady()) {
                 if (metadata_fallback_payload_enabled) {
                     const auto sync_info = BuildWebRtcVaMetadataSyncInfo(source_pts,
-                                                                         evaluation.annotated_result.pts,
+                                                                         evaluation.AnnotatedResult().pts,
                                                                          tolerance_ns,
                                                                          "fallback-latest",
-                                                                         evaluation.annotated_result.frame_width,
-                                                                         evaluation.annotated_result.frame_height);
+                                                                         evaluation.AnnotatedResult().frame_width,
+                                                                         evaluation.AnnotatedResult().frame_height);
                     bridge_lock->PublishAnalysisMetadata(
-                        WebRtcVaMetadataMessageJson(evaluation.annotated_result,
-                                                    evaluation.events,
+                        WebRtcVaMetadataMessageJson(evaluation.AnnotatedResult(),
+                                                    evaluation.Events(),
                                                     sync_info,
                                                     metadata_subscription_filter));
                 } else {
@@ -7802,7 +7802,7 @@ bool AttachWebRtcAnalysisOverlay(analysis::AnalysisSessionService& analysis_sess
                         WebRtcVaMetadataMissingMessageJson(tap_id, source_pts, tolerance_ns));
                 }
             }
-            *output = evaluation.annotated_result;
+            *output = evaluation.AnnotatedResult();
             return true;
         };
     bridge->SetPipelineAttachment(MakeAnalysisOverlayAttachmentForApplication(

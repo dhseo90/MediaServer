@@ -277,12 +277,12 @@ check("CMake dispatch and current graph bind exact Slice 28 successor", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const classifier = id => graph.moduleClassifiers.find(item => item.id === id);
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.expectedProductionFiles === 202 && graph.expectedCppFiles === 99 && classifier("application-service-interfaces")?.expectedFileCount === 35 && classifier("application-service-interfaces")?.expectedCppCount === 15 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 2 && edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 === "fedb2cae90a73353883d64907bc089eee9b90d14597b88bdf4e68fe9530e65d1" &&
-    edge("application-service-interfaces -> analysis-services")?.witnessCount === 17 && edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "c5883366cb8165fd20da8d10e4f6c615e828c07c60269c0c9b1564b2f1af7f84" &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 18 && edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "9ecde3f15cc1dc81233e418c2f4778689de3f0c75c9e16d7f064de8545a0e294" &&
+  assert(graph.expectedProductionFiles === 204 && graph.expectedCppFiles === 100 && classifier("application-service-interfaces")?.expectedFileCount === 37 && classifier("application-service-interfaces")?.expectedCppCount === 16 &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 1 && edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 === "65f056e8ec5e09a639a15d98920884535929f2470a6beac11ffa9869eba796a7" &&
+    edge("application-service-interfaces -> analysis-services")?.witnessCount === 18 && edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "a9367154a0273868ee9435211a33b3427ae3a5c565064b52275c9d7091373d3d" &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 19 && edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "8cb29f2bf4ad70bd4ad35ca7cd8558d702a058e7fc06ec7f89698d44643bab19" &&
     edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessCount === 4 && edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessSha256 === "adf4172d0e83de59df510ceeb38c88cd36aaf78b157e7022b6480d8e0793cab3" &&
-    graph.observedModuleEdges.length === 16 && graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 && graph.stronglyConnectedComponents.length === 0 && graph.boundary.includes("Event Storage application boundary"), "graph successor drift");
+    graph.observedModuleEdges.length === 16 && graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 && graph.stronglyConnectedComponents.length === 0 && graph.boundary.includes("Event Rule application boundary"), "graph successor drift");
 });
 
 check("current structure gate accepts exact non-final successor", () => {

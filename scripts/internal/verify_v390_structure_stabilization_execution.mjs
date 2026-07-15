@@ -505,18 +505,18 @@ check("non-production Slice preserves production graph and parked evidence stays
   }
 });
 
-check("current continuation binds the exact Slice 1-28 frontier without a final claim", () => {
+check("current continuation binds the exact Slice 1-29 frontier without a final claim", () => {
   const slices = ledger.currentContinuation?.orderedSlices || [];
   assert(validateContinuationFrontier(ledger).length === 0,
     `current continuation frontier invalid: ${validateContinuationFrontier(ledger).join(",")}`);
-  assert(slices.length === 28 && slices[0].order === 1 && slices[1].order === 2 && slices[2].order === 3 &&
+  assert(slices.length === 29 && slices[0].order === 1 && slices[1].order === 2 && slices[2].order === 3 &&
     slices[3].order === 4 && slices[4].order === 5 && slices[5].order === 6 && slices[6].order === 7 &&
     slices[7].order === 8 && slices[8].order === 9 && slices[9].order === 10 && slices[10].order === 11 &&
     slices[11].order === 12 && slices[12].order === 13 && slices[13].order === 14 && slices[14].order === 15 &&
     slices[15].order === 16 && slices[16].order === 17 && slices[17].order === 18 && slices[18].order === 19 &&
     slices[19].order === 20 && slices[20].order === 21 && slices[21].order === 22 && slices[22].order === 23 &&
     slices[23].order === 24 && slices[24].order === 25 && slices[25].order === 26 && slices[26].order === 27 &&
-    slices[27].order === 28 &&
+    slices[27].order === 28 && slices[28].order === 29 &&
     slices[0].id === "completion-oracle-and-ops-ui-renderer" && slices[0].status === "completed" &&
     slices[1].id === "product-ui-principal-view-boundary" && slices[1].status === "completed" &&
     slices[2].id === "source-request-parser-owner-boundary" && slices[2].status === "completed" &&
@@ -546,8 +546,9 @@ check("current continuation binds the exact Slice 1-28 frontier without a final 
     slices[24].id === "va-metadata-application-boundary" && slices[24].status === "completed" &&
     slices[25].id === "analysis-query-overlay-application-boundary" && slices[25].status === "completed" &&
     slices[26].id === "event-feature-search-application-boundary" && slices[26].status === "completed" &&
-    slices[27].id === "event-storage-application-boundary" &&
-    ["in-progress", "completed"].includes(slices[27].status),
+    slices[27].id === "event-storage-application-boundary" && slices[27].status === "completed" &&
+    slices[28].id === "event-rule-application-boundary" &&
+    ["in-progress", "completed"].includes(slices[28].status),
   "current continuation slice identity/frontier mismatch");
   const slice1 = slices[0];
   const slice2 = slices[1];
@@ -1398,6 +1399,7 @@ check("current continuation binds the exact Slice 1-28 frontier without a final 
   const slice26 = slices[25];
   const slice27 = slices[26];
   const slice28 = slices[27];
+  const slice29 = slices[28];
   assert(slice15.after?.productionGraphSha256 === slice16?.before?.productionGraphSha256 &&
     slice15.after.productionFiles === 175 && slice15.after.cppSources === 86 &&
     slice15.after.targetViolationDirectionsUnderPolicyV1 === 3 &&
@@ -1902,24 +1904,12 @@ check("current continuation binds the exact Slice 1-28 frontier without a final 
     slice28.tests.length === slice28Commands.length &&
     slice28Commands.every(command => slice28.tests.filter(test => test.command === command).length === 1),
   "current continuation Slice 28 rollback/contract/test inventory drift");
-  assert(slice28.after?.productionGraphSha256 === ledger.currentGraph.sha256 &&
+  assert(JSON.stringify(slice28.after) === JSON.stringify(slice29?.before) &&
     slice28.after.productionFiles === 202 && slice28.after.cppSources === 99 &&
     slice28.after.targetViolationDirectionsUnderPolicyV1 === 2 &&
     slice28.after.transportAnalysisWitnessCount === 2 && slice28.after.transportCoreMediaWitnessCount === 4 &&
     slice28.after.largestSccOwners === 0 && slice28.after.largestMixedOwnerFileLines === 10156 &&
-    slice28.after.cmakeTargets === 2 && slice28.after.internalTargetSeparation === true &&
-    graph.observedModuleEdges.length === 16 && transportDomainEdge === undefined &&
-    transportAnalysisEdge?.witnessCount === 2 && transportAnalysisEdge.allowedByTarget === false &&
-    transportAnalysisEdge.witnessSha256 === "fedb2cae90a73353883d64907bc089eee9b90d14597b88bdf4e68fe9530e65d1" &&
-    applicationAnalysisEdge?.witnessCount === 17 && applicationAnalysisEdge.allowedByTarget === true &&
-    applicationAnalysisEdge.witnessSha256 === "c5883366cb8165fd20da8d10e4f6c615e828c07c60269c0c9b1564b2f1af7f84" &&
-    transportApplicationEdge?.witnessCount === 18 && transportApplicationEdge.allowedByTarget === true &&
-    transportApplicationEdge.witnessSha256 === "9ecde3f15cc1dc81233e418c2f4778689de3f0c75c9e16d7f064de8545a0e294" &&
-    transportCoreEdge?.witnessCount === 4 && transportCoreEdge.allowedByTarget === false &&
-    transportCoreEdge.witnessSha256 === "adf4172d0e83de59df510ceeb38c88cd36aaf78b157e7022b6480d8e0793cab3" &&
-    graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 &&
-    graph.stronglyConnectedComponents.length === 0 &&
-    graph.boundary.includes("Event Storage application boundary"),
+    slice28.after.cmakeTargets === 2 && slice28.after.internalTargetSeparation === true,
   "Slice 28 event storage application graph delta drift");
   const slice28SelfCheck = sliceTest(slice28,
     "./server.sh verify-v390-review4-structure-stabilization-execution");
@@ -1932,6 +1922,72 @@ check("current continuation binds the exact Slice 1-28 frontier without a final 
       slice28.tests.every(test => test === slice28SelfCheck ? test.status === "self-check" : test.status === "pass"),
     "completed Slice 28 frontier/test state mismatch");
   }
+  const slice29Commands = [
+    "./server.sh verify-v390-event-rule-application-boundary", "./server.sh build",
+    "./server.sh verify-analysis-state", "./server.sh verify-sse-metadata",
+    "./server.sh verify-ws-metadata", "./server.sh verify-webrtc-va-metadata",
+    "./server.sh verify-rtsp-va-overlay-policy",
+    "./server.sh verify-v390-webrtc-http-server-source-bundle",
+    "./server.sh verify-v390-webrtc-http-server-physical-split",
+    "./server.sh verify-v390-review4-structure-stabilization-execution",
+    "./server.sh verify-script-inventory", "./server.sh verify-docs-links", "git diff --check",
+    "cleanup Slice 29 event-rule temporary artifacts",
+    "lsof -nP -iTCP:8081 -iTCP:8555 -sTCP:LISTEN",
+  ];
+  assert(slice29 && slice29.rollbackCommit === "dcdd0ee8" &&
+    slice29.nonProductionSlice === false && slice29.contractAssertions.length >= 9 &&
+    slice29.tests.length === slice29Commands.length &&
+    slice29Commands.every(command => slice29.tests.filter(test => test.command === command).length === 1),
+  "current continuation Slice 29 rollback/contract/test inventory drift");
+  const applicationOwner = graph.moduleClassifiers.find(item => item.id === "application-service-interfaces");
+  const runtimeTarget = graph.cmake.targets.find(item => item.id === "media_server_runtime");
+  const debtLines = new Map(graph.mixedOwnershipDebt.map(item => [item.file, item.lineCount]));
+  assert(slice29.after?.productionGraphSha256 === ledger.currentGraph.sha256 &&
+    ledger.currentGraph.sha256 === "1acac0820b29a0292d4ad6051c4a76201595632d7d60d5a80a794cd2602ce461" &&
+    slice29.after.productionFiles === 204 && slice29.after.cppSources === 100 &&
+    slice29.after.targetViolationDirectionsUnderPolicyV1 === 2 &&
+    slice29.after.transportAnalysisWitnessCount === 1 && slice29.after.transportCoreMediaWitnessCount === 4 &&
+    slice29.after.largestSccOwners === 0 && slice29.after.largestMixedOwnerFileLines === 10156 &&
+    slice29.after.cmakeTargets === 2 && slice29.after.internalTargetSeparation === true &&
+    graph.expectedProductionFiles === 204 && graph.expectedCppFiles === 100 &&
+    graph.expectedFileOwnershipSha256 === "73f8564d0144d3e4751f0e4d5234b30197078dcc55ff002ac3913e264850dc52" &&
+    applicationOwner?.expectedFileCount === 37 && applicationOwner.expectedCppCount === 16 &&
+    runtimeTarget?.productionSourceSha256 === "6e83e4350063b3654d171338350a4d01fc58fca0ddcbc574349eec1c8d116330" &&
+    runtimeTarget.declaredSourceCount === 98 && runtimeTarget.defaultActiveSourceCount === 97 &&
+    graph.observedModuleEdges.length === 16 && transportDomainEdge === undefined &&
+    transportAnalysisEdge?.witnessCount === 1 && transportAnalysisEdge.allowedByTarget === false &&
+    transportAnalysisEdge.witnessSha256 === "65f056e8ec5e09a639a15d98920884535929f2470a6beac11ffa9869eba796a7" &&
+    applicationAnalysisEdge?.witnessCount === 18 && applicationAnalysisEdge.allowedByTarget === true &&
+    applicationAnalysisEdge.witnessSha256 === "a9367154a0273868ee9435211a33b3427ae3a5c565064b52275c9d7091373d3d" &&
+    transportApplicationEdge?.witnessCount === 19 && transportApplicationEdge.allowedByTarget === true &&
+    transportApplicationEdge.witnessSha256 === "8cb29f2bf4ad70bd4ad35ca7cd8558d702a058e7fc06ec7f89698d44643bab19" &&
+    transportCoreEdge?.witnessCount === 4 && transportCoreEdge.allowedByTarget === false &&
+    transportCoreEdge.witnessSha256 === "adf4172d0e83de59df510ceeb38c88cd36aaf78b157e7022b6480d8e0793cab3" &&
+    graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 &&
+    graph.stronglyConnectedComponents.length === 0 &&
+    debtLines.get("src/ingress/webrtc_http_server.cpp") === 7554 &&
+    debtLines.get("src/ingress/webrtc_http_server_ops_foundation.cpp") === 7845 &&
+    debtLines.get("src/ingress/webrtc_http_server_ops_workflows.cpp") === 10150 &&
+    debtLines.get("src/ingress/webrtc_http_server_ops_incidents.cpp") === 7848 &&
+    debtLines.get("src/ingress/webrtc_http_server_runtime.cpp") === 5200 &&
+    debtLines.get("src/ingress/webrtc_http_server_detail.h") === 7952 &&
+    debtLines.get("src/ingress/product_ui_page_scripts.cpp") === 10156 &&
+    graph.boundary.includes("Event Rule application boundary"),
+  "Slice 29 event rule application graph delta drift");
+  const slice29SelfCheck = sliceTest(slice29,
+    "./server.sh verify-v390-review4-structure-stabilization-execution");
+  if (slice29.status === "in-progress") {
+    assert(ledger.currentContinuation.latestCompletedSlice === 28 &&
+      ledger.currentContinuation.status === "in-progress" && slice29SelfCheck.status === "self-check" &&
+      slice29.tests.every(test => ["registered", "pass", "self-check"].includes(test.status)),
+    "in-progress Slice 29 frontier false-PASS");
+  } else {
+    assert(ledger.currentContinuation.latestCompletedSlice >= 29 &&
+      slice29.tests.every(test => test === slice29SelfCheck ? test.status === "self-check" : test.status === "pass"),
+    "completed Slice 29 frontier/test state mismatch");
+  }
+  assert(validateSlice29Binding(ledger, graph).length === 0,
+    `Slice 29 named binding mismatch: ${validateSlice29Binding(ledger, graph).join(",")}`);
   assert(ledger.currentContinuation.finalCompletionClaimAllowed === false &&
     ledger.refactorComplete === false && ledger.completionClaimed === false,
   "current continuation overclaims final completion");
@@ -2036,6 +2092,27 @@ check("negative mutations reject false progress", () => {
     continuationOverclaim.currentContinuation.orderedSlices.length + 1;
   assert(validateContinuationFrontier(continuationOverclaim).includes("frontier"),
     "continuation latest-completed overclaim was accepted");
+
+  for (const [label, mutate, expected] of [
+    ["Slice 29 identity RED", value => { value.currentContinuation.orderedSlices[28].id = "event-rule-alias"; },
+      "slice29:identity"],
+    ["Slice 29 rollback RED", value => { value.currentContinuation.orderedSlices[28].rollbackCommit = "deadbeef"; },
+      "slice29:rollback-before"],
+    ["Slice 29 registered-test false PASS", value => {
+      value.currentContinuation.orderedSlices[28].status = "completed";
+      value.currentContinuation.latestCompletedSlice = 29;
+      value.currentContinuation.orderedSlices[28].tests[0].status = "registered";
+    }, "slice29:false-pass"],
+  ]) {
+    const copy = structuredClone(ledger);
+    mutate(copy);
+    assert(validateSlice29Binding(copy, graph).includes(expected), `${label} was accepted`);
+  }
+  const slice29GraphRed = structuredClone(graph);
+  slice29GraphRed.observedModuleEdges.find(item =>
+    item.direction === "transport-and-auth-adapter -> analysis-services").witnessSha256 = "0".repeat(64);
+  assert(validateSlice29Binding(ledger, slice29GraphRed).includes("slice29:graph"),
+    "Slice 29 graph witness RED was accepted");
 
   const graphCopy = structuredClone(graph);
   graphCopy.mixedOwnershipDebt = [];
@@ -2144,6 +2221,63 @@ function validateContinuationFrontier(value) {
   if (inProgress.length > 1 ||
       (inProgress.length === 1 && inProgress[0].order !== continuation.latestCompletedSlice + 1)) {
     errors.push("frontier");
+  }
+  return errors;
+}
+
+function validateSlice29Binding(value, graphValue) {
+  const errors = [];
+  const continuation = value.currentContinuation || {};
+  const slices = continuation.orderedSlices || [];
+  const slice28 = slices[27];
+  const slice29 = slices[28];
+  if (slices.length !== 29 || slice28?.order !== 28 || slice28?.status !== "completed" ||
+      slice29?.order !== 29 || slice29?.id !== "event-rule-application-boundary") {
+    errors.push("slice29:identity");
+    return errors;
+  }
+  if (slice29.rollbackCommit !== "dcdd0ee8" || JSON.stringify(slice28.after) !== JSON.stringify(slice29.before)) {
+    errors.push("slice29:rollback-before");
+  }
+  const selfCheck = (slice29.tests || []).find(test =>
+    test.command === "./server.sh verify-v390-review4-structure-stabilization-execution");
+  if (slice29.status === "in-progress") {
+    if (continuation.latestCompletedSlice !== 28 || selfCheck?.status !== "self-check" ||
+        slice29.tests.some(test => !["registered", "pass", "self-check"].includes(test.status))) {
+      errors.push("slice29:frontier");
+    }
+  } else if (slice29.status === "completed") {
+    if (continuation.latestCompletedSlice < 29 ||
+        slice29.tests.some(test => test === selfCheck ? test.status !== "self-check" : test.status !== "pass")) {
+      errors.push("slice29:false-pass");
+    }
+  } else {
+    errors.push("slice29:status");
+  }
+  const transportAnalysis = graphValue.observedModuleEdges?.find(item =>
+    item.direction === "transport-and-auth-adapter -> analysis-services");
+  const applicationAnalysis = graphValue.observedModuleEdges?.find(item =>
+    item.direction === "application-service-interfaces -> analysis-services");
+  const transportApplication = graphValue.observedModuleEdges?.find(item =>
+    item.direction === "transport-and-auth-adapter -> application-service-interfaces");
+  const transportCore = graphValue.observedModuleEdges?.find(item =>
+    item.direction === "transport-and-auth-adapter -> core-media-interfaces");
+  if (value.currentGraph?.sha256 !== "1acac0820b29a0292d4ad6051c4a76201595632d7d60d5a80a794cd2602ce461" ||
+      slice29.after?.productionGraphSha256 !== value.currentGraph.sha256 ||
+      graphValue.expectedProductionFiles !== 204 || graphValue.expectedCppFiles !== 100 ||
+      graphValue.expectedFileOwnershipSha256 !== "73f8564d0144d3e4751f0e4d5234b30197078dcc55ff002ac3913e264850dc52" ||
+      graphValue.observedModuleEdges?.length !== 16 ||
+      transportAnalysis?.witnessCount !== 1 ||
+      transportAnalysis?.witnessSha256 !== "65f056e8ec5e09a639a15d98920884535929f2470a6beac11ffa9869eba796a7" ||
+      applicationAnalysis?.witnessCount !== 18 ||
+      applicationAnalysis?.witnessSha256 !== "a9367154a0273868ee9435211a33b3427ae3a5c565064b52275c9d7091373d3d" ||
+      transportApplication?.witnessCount !== 19 ||
+      transportApplication?.witnessSha256 !== "8cb29f2bf4ad70bd4ad35ca7cd8558d702a058e7fc06ec7f89698d44643bab19" ||
+      transportCore?.witnessCount !== 4 ||
+      transportCore?.witnessSha256 !== "adf4172d0e83de59df510ceeb38c88cd36aaf78b157e7022b6480d8e0793cab3" ||
+      graphValue.observedModuleEdges.filter(item => !item.allowedByTarget).length !== 2 ||
+      graphValue.stronglyConnectedComponents?.length !== 0) {
+    errors.push("slice29:graph");
   }
   return errors;
 }

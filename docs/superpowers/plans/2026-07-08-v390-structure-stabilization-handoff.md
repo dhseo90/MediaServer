@@ -35,7 +35,7 @@ Development 17의 readiness와 REVIEW4-51 decision/graph는 승인 당시 histor
 `test/fixtures/v390_structure_stabilization_current_graph.json`, verifier는
 `./server.sh verify-v390-review4-structure-stabilization-execution`입니다.
 
-Current REVIEW4-64 status: `current-continuation-slice-28-completed-final-targets-unmet`
+Current REVIEW4-64 status: `current-continuation-slice-29-closure-in-progress-final-targets-unmet`
 
 | 순서 | Current Slice | 상태 | 직접 경계 |
 | ---: | --- | --- | --- |
@@ -489,6 +489,10 @@ Canonical Event Feature Search index rebuild, Search DSL conversion, query windo
 ### Current continuation Slice 28: `event-storage-application-boundary`
 
 Canonical Event Storage query, snapshot, compaction, compacted-file list/resolve/delete/cleanup, and dispatch mapping now live behind dependency-neutral `event_storage_application_service.h/.cpp`. Transport keeps query parsing, Auth/Role/Scope, HTTP status and JSON assembly, and Record-to-Event-POST-to-metadata ordering; canonical Stop remains in the composition root. Independent review found a P1 default projection mismatch and the implementation now preserves canonical `source_kind` and `route` `*`, with a compiled default RED. The focused gate first reported 5/1 because resolve failure could leave stale output without failing; an exact failure-overwrite oracle closes that false PASS and the rerun is 6/0. Build100, v300 evidence9, v310 clip10, scoped Integrator8, and analysis181 pass. The actual Ops event-records verifier encountered sandbox loopback EPERM, Auth auto 302, a wrong Auth environment, stale Event POST route, a credential false-positive, stale compaction fields, and a Chrome fallback flag; each cause and the verifier script were corrected before the full HTTP/compaction/browser rerun passed. Source-bundle6, physical6, structure15, script11, docs0, diff, cleanup, and listener gates pass. Current graph is production202/C++99, edge16, violations2, SCC0; transport-to-analysis witnesses reduce 3→2 while core-media4 stays exact and mixed-owner maximum is 10,156 lines. The two violation directions and parked evidence remain open, so REVIEW4-64/65 are not complete.
+
+### Current continuation Slice 29: `event-rule-application-boundary`
+
+The standard-only forward-declared `event_rule_application_service.h/.cpp` PIMPL boundary owns canonical stored-rule snapshot-to-evaluation order, the keyed runtime map/mutex and acquire/release lifecycle, per-connection ephemeral SSE/WebSocket runtimes, and annotated-result, ordered-event, count, optional-metrics, and tracking-issue accessors. Transport preserves debug/metrics flags, state/metrics/events JSON, Record-to-POST-to-alert-or-metadata order, near-result-to-latest overlay fallback, and the exact five-key release after a successful removed detach. Direct engine include, canonical runtime/evaluation/factory/apply, and local runtime map/mutex references in transport are zero. Independent review found no P0/P1 issue. The first focused failure was a verifier false failure that counted friend and public declarations as one exact fragment; context-specific manifests plus friend-only, public-only, and evaluate-friend omission REDs corrected it, and focused reran 6/0. Build100, standalone header compilation, analysis181, SSE5, VA side-channel5, WS9, WebRTC8, RTSP overlay6, predecessor85, source-bundle6, physical6, structure15, script11, and docs0 pass. Current 4.6MB analysis output, summaries, and WebRTC log were removed and listeners are clear. Current graph is production204/C++100, application owner37/C++16, edge16, violations2, SCC0; transport-to-analysis witnesses reduce 2→1 while core-media4 stays exact. Slice29 is closed, but both remaining violation directions and parked evidence remain open, so REVIEW4-64/65 are not complete.
 
 ### Current continuation Slice 19: `vlm-observation-application-boundary`
 

@@ -5839,11 +5839,6 @@ std::string AnalysisBboxDiagnosticsJson(const std::string& tap_id,
 
 bool SendAll(int fd, const std::string& data);
 void SuppressSocketSigPipe(int fd);
-analysis::EventRuleEvaluation EvaluateStoredEventRules(
-    const analysis::AnalysisResult& result,
-    const std::shared_ptr<analysis::EventRuleRuntime>& runtime);
-
-
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 7184 function
 std::vector<std::string> ParseVaMetadataStringList(std::string value) {
     std::vector<std::string> values;
@@ -6578,7 +6573,7 @@ bool StreamVaMetadataSse(int client_fd,
         return false;
     }
 
-    auto event_runtime = analysis::CreateEventRuleRuntime();
+    auto event_runtime = CreateEphemeralEventRuleApplicationRuntime();
     std::uint64_t sse_sequence = 1;
     std::uint64_t last_frame_id = 0;
     std::int64_t last_pts = std::numeric_limits<std::int64_t>::min();
@@ -6619,11 +6614,11 @@ bool StreamVaMetadataSse(int client_fd,
                 result.debug_state_requested = true;
                 result.debug_state_log_enabled = false;
                 result.metrics_report_requested = true;
-                const auto evaluation = EvaluateStoredEventRules(result, event_runtime);
+                const auto evaluation = EvaluateEventRulesForApplication(result, event_runtime);
                 const std::string payload = BuildVaRuntimeMetadataJsonWithinBudget(
-                    evaluation.annotated_result,
-                    evaluation.events,
-                    evaluation.tracking_issue_report_json,
+                    evaluation.AnnotatedResult(),
+                    evaluation.Events(),
+                    evaluation.TrackingIssueReportJson(),
                     options);
                 if (!payload.empty()) {
                     if (!SendSseEvent(client_fd, "metadata", payload, sse_sequence++)) {
@@ -6682,7 +6677,7 @@ bool StreamVaMetadataWebSocket(int client_fd,
         return false;
     }
 
-    auto event_runtime = analysis::CreateEventRuleRuntime();
+    auto event_runtime = CreateEphemeralEventRuleApplicationRuntime();
     std::uint64_t last_frame_id = 0;
     std::int64_t last_pts = std::numeric_limits<std::int64_t>::min();
     int sent_messages = 0;
@@ -6803,11 +6798,11 @@ bool StreamVaMetadataWebSocket(int client_fd,
                 result.debug_state_requested = true;
                 result.debug_state_log_enabled = false;
                 result.metrics_report_requested = true;
-                const auto evaluation = EvaluateStoredEventRules(result, event_runtime);
+                const auto evaluation = EvaluateEventRulesForApplication(result, event_runtime);
                 const std::string payload = BuildVaRuntimeMetadataJsonWithinBudget(
-                    evaluation.annotated_result,
-                    evaluation.events,
-                    evaluation.tracking_issue_report_json,
+                    evaluation.AnnotatedResult(),
+                    evaluation.Events(),
+                    evaluation.TrackingIssueReportJson(),
                     options);
                 if (!payload.empty()) {
                     if (!SendWebSocketTextFrame(client_fd, payload)) {
@@ -6832,7 +6827,7 @@ bool StreamVaMetadataWebSocket(int client_fd,
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8167 function
 std::string AnalysisStateDumpJson(const std::string& tap_id,
                                   const analysis::AnalysisManager::TapSnapshot& snapshot,
-                                  const std::optional<analysis::EventRuleEvaluation>& evaluation) {
+                                  const std::optional<EventRuleApplicationEvaluation>& evaluation) {
     const auto& appearance_stats = snapshot.track_state_metrics.appearance_extractor_stats;
     std::ostringstream out;
     out << "{"
@@ -6863,7 +6858,7 @@ std::string AnalysisStateDumpJson(const std::string& tap_id,
         << "}},"
         << "\"debugState\":";
     if (evaluation.has_value()) {
-        out << AnalysisDebugStateJson(evaluation->annotated_result.debug_state);
+        out << AnalysisDebugStateJson(evaluation->AnnotatedResult().debug_state);
     } else {
         out << "null";
     }
@@ -6874,7 +6869,7 @@ std::string AnalysisStateDumpJson(const std::string& tap_id,
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8208 function
 std::string AnalysisMetricsDumpJson(const std::string& tap_id,
                                     const analysis::AnalysisManager::TapSnapshot& snapshot,
-                                    const std::optional<analysis::EventRuleEvaluation>& evaluation) {
+                                    const std::optional<EventRuleApplicationEvaluation>& evaluation) {
     const auto& appearance_stats = snapshot.track_state_metrics.appearance_extractor_stats;
     std::ostringstream out;
     out << "{"
@@ -6957,13 +6952,16 @@ std::string AnalysisMetricsDumpJson(const std::string& tap_id,
         << "},"
         << "\"metricsReport\":";
     if (evaluation.has_value()) {
-        out << AnalysisMetricsReportJson(evaluation->metrics_report);
+        const auto* metrics_report = evaluation->MetricsReport();
+        out << AnalysisMetricsReportJson(
+            metrics_report != nullptr ? std::optional<analysis::AnalysisMetricsReport>(*metrics_report)
+                                      : std::nullopt);
     } else {
         out << "null";
     }
     out << ",\"trackingIssueReport\":";
-    if (evaluation.has_value() && !evaluation->tracking_issue_report_json.empty()) {
-        out << evaluation->tracking_issue_report_json;
+    if (evaluation.has_value() && !evaluation->TrackingIssueReportJson().empty()) {
+        out << evaluation->TrackingIssueReportJson();
     } else {
         out << "null";
     }
@@ -7436,37 +7434,6 @@ std::string StaticImageAnalysisJson(const StaticImageAnalysis& analysis) {
     return out.str();
 }
 
-// WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8768 function
-std::mutex& EventRuleRuntimeMapMutex() {
-    static std::mutex mu;
-    return mu;
-}
-
-// WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8773 function
-std::unordered_map<std::string, std::shared_ptr<analysis::EventRuleRuntime>>& EventRuleRuntimeMap() {
-    static std::unordered_map<std::string, std::shared_ptr<analysis::EventRuleRuntime>> runtimes;
-    return runtimes;
-}
-
-// WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8778 function
-std::shared_ptr<analysis::EventRuleRuntime> EventRuleRuntimeForKey(const std::string& key) {
-    std::lock_guard lock(EventRuleRuntimeMapMutex());
-    auto& runtimes = EventRuleRuntimeMap();
-    const auto it = runtimes.find(key);
-    if (it != runtimes.end() && it->second != nullptr) {
-        return it->second;
-    }
-    auto created = analysis::CreateEventRuleRuntime();
-    runtimes[key] = created;
-    return created;
-}
-
-// WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8790 function
-void ReleaseEventRuleRuntimeForKey(const std::string& key) {
-    std::lock_guard lock(EventRuleRuntimeMapMutex());
-    EventRuleRuntimeMap().erase(key);
-}
-
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8795 function
 bool DetachAnalysisTapAndReleaseRuntimes(analysis::AnalysisSessionService& analysis_sessions,
                                          const std::string& tap_id) {
@@ -7476,20 +7443,13 @@ bool DetachAnalysisTapAndReleaseRuntimes(analysis::AnalysisSessionService& analy
     const auto detach_result = analysis_sessions.DetachAnalysisTapRef(tap_id);
     // 이벤트 룰 runtime은 enter/exit/line-crossing 이전 상태를 들고 있으므로 tap 수명과 함께 정리한다.
     if (detach_result.removed) {
-        ReleaseEventRuleRuntimeForKey("webrtc-overlay:" + tap_id);
-        ReleaseEventRuleRuntimeForKey("tap-events:" + tap_id);
-        ReleaseEventRuleRuntimeForKey("tap-overlay:" + tap_id);
-        ReleaseEventRuleRuntimeForKey("tap-state-dump:" + tap_id);
-        ReleaseEventRuleRuntimeForKey("tap-metrics:" + tap_id);
+        ReleaseEventRuleApplicationRuntime("webrtc-overlay:" + tap_id);
+        ReleaseEventRuleApplicationRuntime("tap-events:" + tap_id);
+        ReleaseEventRuleApplicationRuntime("tap-overlay:" + tap_id);
+        ReleaseEventRuleApplicationRuntime("tap-state-dump:" + tap_id);
+        ReleaseEventRuleApplicationRuntime("tap-metrics:" + tap_id);
     }
     return detach_result.ok;
-}
-
-// WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8812 function
-analysis::EventRuleEvaluation EvaluateStoredEventRules(
-    const analysis::AnalysisResult& result,
-    const std::shared_ptr<analysis::EventRuleRuntime>& runtime) {
-    return analysis::ApplyEventRulesToResult(result, ApplicationAnalysisRuleDocumentsSnapshot(), runtime);
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8818 function
@@ -7524,25 +7484,25 @@ std::string AnalysisEventJson(const analysis::AnalysisEvent& event) {
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 8846 function
 std::string AnalysisEventsJson(const std::string& tap_id,
                                const std::optional<analysis::AnalysisResult>& result,
-                               const analysis::EventRuleEvaluation* evaluation) {
+                               const EventRuleApplicationEvaluation* evaluation) {
     std::ostringstream out;
     out << "{"
         << "\"tapId\":\"" << JsonEscape(tap_id) << "\","
         << "\"hasResult\":" << (result.has_value() ? "true" : "false") << ","
-        << "\"activeRuleCount\":" << (evaluation != nullptr ? evaluation->active_rule_count : 0) << ","
-        << "\"matchedDetectionCount\":" << (evaluation != nullptr ? evaluation->matched_detection_count : 0)
+        << "\"activeRuleCount\":" << (evaluation != nullptr ? evaluation->ActiveRuleCount() : 0) << ","
+        << "\"matchedDetectionCount\":" << (evaluation != nullptr ? evaluation->MatchedDetectionCount() : 0)
         << ",\"events\":[";
     if (evaluation != nullptr) {
-        for (std::size_t i = 0; i < evaluation->events.size(); ++i) {
+        for (std::size_t i = 0; i < evaluation->Events().size(); ++i) {
             if (i != 0) {
                 out << ",";
             }
-            out << AnalysisEventJson(evaluation->events[i]);
+            out << AnalysisEventJson(evaluation->Events()[i]);
         }
     }
     out << "],\"result\":";
     if (evaluation != nullptr) {
-        out << AnalysisResultJson(evaluation->annotated_result);
+        out << AnalysisResultJson(evaluation->AnnotatedResult());
     } else if (result.has_value()) {
         out << AnalysisResultJson(*result);
     } else {

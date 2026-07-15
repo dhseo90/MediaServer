@@ -212,6 +212,14 @@ check("rollback dispatcher, status bytes, and three call-site orderings are exac
     .replaceAll("WebRtcHttpAnalysisProfileDocumentsSnapshotBackend", "AnalysisProfileDocumentsSnapshot")
     .replaceAll("WebRtcHttpAnalysisRuleDocumentsSnapshotBackend", "AnalysisRuleDocumentsSnapshot")
     .replaceAll("WebRtcHttpVideoAnalysisRuleDocumentsSnapshotBackend", "VideoAnalysisRuleDocumentsSnapshot");
+  const restoreEventRuleRuntime = text => text
+    .replaceAll("EventRuleApplicationEvaluation", "analysis::EventRuleEvaluation")
+    .replaceAll("EvaluateEventRulesForApplication", "EvaluateStoredEventRules")
+    .replaceAll("AcquireEventRuleApplicationRuntime", "EventRuleRuntimeForKey")
+    .replaceAll("->AnnotatedResult()", "->annotated_result")
+    .replaceAll("->Events()", "->events")
+    .replaceAll(".AnnotatedResult()", ".annotated_result")
+    .replaceAll(".Events()", ".events");
   const restoreEventStorageRuntime = text => text
     .replaceAll("EventStorageApplicationQueryOptions", "analysis::EventRecordQueryOptions")
     .replaceAll("EventStorageApplicationQueryResult", "analysis::EventRecordQueryResult")
@@ -257,7 +265,7 @@ check("rollback dispatcher, status bytes, and three call-site orderings are exac
       "tap overlay debug option");
     return replaceExactOnce(restored, `                                if (!RenderDetectionOverlayForApplication(
                                         latest->frame,
-                                        evaluation.annotated_result,
+                                        evaluation.AnnotatedResult(),
                                         query,
                                         &overlay_frame,
                                         &error_message)) {`, `                                if (!analysis::RenderDetectionOverlay(
@@ -341,7 +349,8 @@ check("rollback dispatcher, status bytes, and three call-site orderings are exac
 }`, "VA metadata missing serializer");
   };
   assert(compactCppPreservingLiterals(
-    restoreCodec(restoreRulePort(restoreAnalysisFrameRuntime(restoreEventStorageRuntime(read(runtimePath)))))) ===
+    restoreCodec(restoreRulePort(restoreEventStorageRuntime(restoreEventRuleRuntime(
+      restoreAnalysisFrameRuntime(read(runtimePath))))))) ===
       compactCppPreservingLiterals(beforeRuntime),
     "tap Record→Post→Ops alert ordering drift");
   const afterIncidents = restoreAnalysisFrameIncidents(restoreVaMetadataIncidents(read(incidentsPath)));
@@ -374,17 +383,17 @@ check("CMake, dispatch, and graph bind the exact successor", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const owner = graph.moduleClassifiers.find(item => item.id === "application-service-interfaces");
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.boundary === "current REVIEW4-64 continuation graph after the Event Storage application boundary; canonical query, compaction, compacted-file lifecycle, status observation, dispatch projection, and storage calls are application-owned, Policy v1 counts 2 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed" &&
-    graph.expectedProductionFiles === 202 && graph.expectedCppFiles === 99 &&
-    owner?.expectedFileCount === 35 && owner.expectedCppCount === 15 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 2 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 === "fedb2cae90a73353883d64907bc089eee9b90d14597b88bdf4e68fe9530e65d1" &&
+  assert(graph.boundary === "current REVIEW4-64 continuation graph after the Event Rule application boundary; canonical stored-rule snapshot, evaluation, keyed runtime lifecycle, ephemeral SSE/WS runtime, and result accessors are application-owned, Policy v1 counts 2 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed" &&
+    graph.expectedProductionFiles === 204 && graph.expectedCppFiles === 100 &&
+    owner?.expectedFileCount === 37 && owner.expectedCppCount === 16 &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 1 &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessSha256 === "65f056e8ec5e09a639a15d98920884535929f2470a6beac11ffa9869eba796a7" &&
     edge("transport-and-auth-adapter -> analysis-services")?.allowedByTarget === false &&
-    edge("application-service-interfaces -> analysis-services")?.witnessCount === 17 &&
-    edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "c5883366cb8165fd20da8d10e4f6c615e828c07c60269c0c9b1564b2f1af7f84" &&
+    edge("application-service-interfaces -> analysis-services")?.witnessCount === 18 &&
+    edge("application-service-interfaces -> analysis-services")?.witnessSha256 === "a9367154a0273868ee9435211a33b3427ae3a5c565064b52275c9d7091373d3d" &&
     edge("application-service-interfaces -> analysis-services")?.allowedByTarget === true &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 18 &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "9ecde3f15cc1dc81233e418c2f4778689de3f0c75c9e16d7f064de8545a0e294" &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 19 &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessSha256 === "8cb29f2bf4ad70bd4ad35ca7cd8558d702a058e7fc06ec7f89698d44643bab19" &&
     edge("transport-and-auth-adapter -> application-service-interfaces")?.allowedByTarget === true &&
     graph.observedModuleEdges.length === 16 &&
     graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 &&

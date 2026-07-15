@@ -79,6 +79,7 @@ const applicationFiles = [
   "include/ingress/va_metadata_application_service.h", "src/ingress/va_metadata_application_service.cpp",
   "include/ingress/event_feature_search_application_service.h", "src/ingress/event_feature_search_application_service.cpp",
   "include/ingress/event_storage_application_service.h", "src/ingress/event_storage_application_service.cpp",
+  "include/ingress/event_rule_application_service.h", "src/ingress/event_rule_application_service.cpp",
   "include/ingress/analysis_rule_application_service.h", "src/ingress/analysis_rule_application_service.cpp",
   "include/ingress/appearance_readiness_application_service.h", "src/ingress/appearance_readiness_application_service.cpp",
   "include/ingress/category_catalog_application_service.h", "src/ingress/category_catalog_application_service.cpp",
@@ -132,8 +133,8 @@ check("interface and implementation owners are exact", () => {
     owner("stable-contract-dtos").expectedFileCount === 9 && owner("stable-contract-dtos").expectedCppCount === 0,
   "stable public contract owner drift");
   assert(JSON.stringify(exact("application-service-interfaces")) === JSON.stringify([...applicationFiles].sort()) &&
-    owner("application-service-interfaces").expectedFileCount === 35 &&
-    owner("application-service-interfaces").expectedCppCount === 15,
+    owner("application-service-interfaces").expectedFileCount === 37 &&
+    owner("application-service-interfaces").expectedCppCount === 16,
   "application public interface owner drift");
   assert(JSON.stringify(exact("domain-and-registry-owners")) === JSON.stringify([...domainFiles].sort()) &&
     owner("domain-and-registry-owners").expectedFileCount === 6 &&
@@ -202,7 +203,7 @@ check("strict JSON has a physical domain owner boundary", () => {
 check("current graph removes only the planned owner violations", () => {
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const violations = graph.observedModuleEdges.filter(item => item.allowedByTarget === false);
-  assert(graph.expectedProductionFiles === 202 && graph.expectedCppFiles === 99 &&
+  assert(graph.expectedProductionFiles === 204 && graph.expectedCppFiles === 100 &&
     graph.observedModuleEdges.length === 16 && violations.length === 2 &&
     graph.stronglyConnectedComponents.length === 0 &&
     JSON.stringify(graph.observedModuleEdges.map(item => item.direction)) === JSON.stringify(expectedDirections),

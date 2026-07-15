@@ -273,6 +273,7 @@ check("transport configures the exact backend once and consumes only application
   const server = read(serverSource);
   const runtime = read(runtimeSource);
   const detail = read(transportDetail);
+  const app = read(appSource);
   const constructor = server.slice(server.indexOf("WebRtcHttpServer::WebRtcHttpServer"),
     server.indexOf("WebRtcHttpServer::~WebRtcHttpServer"));
   const bindingPattern = new RegExp(
@@ -288,7 +289,8 @@ check("transport configures the exact backend once and consumes only application
   assert((constructor.match(/ConfigureAnalysisRuleApplicationService\(/g) || []).length === 1,
     "configuration count drift");
   assert((server.match(/ApplicationAnalysisProfileDocumentsSnapshot\(/g) || []).length === 1 &&
-    (server.match(/ApplicationAnalysisRuleDocumentsSnapshot\(/g) || []).length === 2 &&
+    (server.match(/ApplicationAnalysisRuleDocumentsSnapshot\(/g) || []).length === 1 &&
+    (app.match(/ApplicationAnalysisRuleDocumentsSnapshot\(/g) || []).length === 1 &&
     (runtime.match(/ApplyApplicationVideoAnalysisRuleToRequest\(/g) || []).length === 5,
   "transport wrapper call count drift");
   assert(detail.includes("ingress/analysis_rule_application_service.h") &&
@@ -306,19 +308,19 @@ check("dispatch and actual graph close the domain direction without relabeling",
   const graph = JSON.parse(read("test/fixtures/v390_structure_stabilization_current_graph.json"));
   const classifier = id => graph.moduleClassifiers.find(item => item.id === id);
   const edge = direction => graph.observedModuleEdges.find(item => item.direction === direction);
-  assert(graph.expectedProductionFiles === 202 && graph.expectedCppFiles === 99 &&
-    classifier("application-service-interfaces")?.expectedFileCount === 35 &&
-    classifier("application-service-interfaces")?.expectedCppCount === 15 &&
+  assert(graph.expectedProductionFiles === 204 && graph.expectedCppFiles === 100 &&
+    classifier("application-service-interfaces")?.expectedFileCount === 37 &&
+    classifier("application-service-interfaces")?.expectedCppCount === 16 &&
     classifier("domain-and-registry-owners")?.expectedFileCount === 6 &&
     classifier("domain-and-registry-owners")?.expectedCppCount === 3 &&
     classifier("transport-and-auth-adapter")?.expectedFileCount === 11 &&
     graph.observedModuleEdges.length === 16 &&
     graph.observedModuleEdges.filter(item => !item.allowedByTarget).length === 2 &&
     !edge("transport-and-auth-adapter -> domain-and-registry-owners") &&
-    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 18 &&
+    edge("transport-and-auth-adapter -> application-service-interfaces")?.witnessCount === 19 &&
     edge("application-service-interfaces -> domain-and-registry-owners")?.witnessCount === 4 &&
     edge("analysis-services -> domain-and-registry-owners")?.witnessCount === 2 &&
-    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 2 &&
+    edge("transport-and-auth-adapter -> analysis-services")?.witnessCount === 1 &&
     edge("transport-and-auth-adapter -> core-media-interfaces")?.witnessCount === 4 &&
     !graph.stronglyConnectedComponents.length, "graph successor");
   const structureOutput = execFileSync(path.join(root, "server.sh"),
