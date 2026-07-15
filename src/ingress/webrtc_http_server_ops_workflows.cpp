@@ -7024,32 +7024,22 @@ std::string OpsV390FieldEvidenceBridgeDecisionJson() {
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 24542 function
 std::string OpsV390ReidAssistDecisionJson(const WebRtcHttpRuntimeConfig& config) {
-    const auto normalized_lower = [](std::string value) {
-        value = Trim(std::move(value));
-        std::transform(value.begin(), value.end(), value.begin(), [](unsigned char ch) {
-            return static_cast<char>(std::tolower(ch));
-        });
-        return value;
-    };
-    analysis::AppearanceExtractorOptions appearance_options;
-    appearance_options.enabled = config.analysis_appearance_enabled;
-    appearance_options.extractor_name = normalized_lower(config.analysis_appearance_extractor);
-    appearance_options.model_path = config.analysis_appearance_model_path;
-    appearance_options.model_sha256 = normalized_lower(config.analysis_appearance_model_sha256);
-    appearance_options.model_provenance = Trim(config.analysis_appearance_model_provenance);
-    appearance_options.input_width = std::max(1, config.analysis_appearance_input_width);
-    appearance_options.input_height = std::max(1, config.analysis_appearance_input_height);
-    appearance_options.max_embedding_dim =
-        std::max<std::size_t>(1, config.analysis_appearance_max_embedding_dim);
-    appearance_options.log_enabled = config.analysis_appearance_log_enabled;
-    appearance_options.async_enabled = config.analysis_appearance_async_enabled;
-    appearance_options.max_queue_size = std::max<std::size_t>(1, config.analysis_appearance_max_queue);
-    appearance_options.global_max_queue_size =
-        std::max<std::size_t>(1, config.analysis_appearance_global_max_queue);
-    appearance_options.per_stream_rate_limit_ms =
-        std::max(0, config.analysis_appearance_per_stream_rate_limit_ms);
-    appearance_options.max_job_age_ms = std::max(0, config.analysis_appearance_max_job_age_ms);
-    const auto readiness = analysis::InspectAppearanceModelReadiness(appearance_options);
+    AppearanceReadinessRequest appearance_request;
+    appearance_request.enabled = config.analysis_appearance_enabled;
+    appearance_request.extractor_name = config.analysis_appearance_extractor;
+    appearance_request.model_path = config.analysis_appearance_model_path;
+    appearance_request.model_sha256 = config.analysis_appearance_model_sha256;
+    appearance_request.model_provenance = config.analysis_appearance_model_provenance;
+    appearance_request.input_width = config.analysis_appearance_input_width;
+    appearance_request.input_height = config.analysis_appearance_input_height;
+    appearance_request.max_embedding_dim = config.analysis_appearance_max_embedding_dim;
+    appearance_request.log_enabled = config.analysis_appearance_log_enabled;
+    appearance_request.async_enabled = config.analysis_appearance_async_enabled;
+    appearance_request.max_queue_size = config.analysis_appearance_max_queue;
+    appearance_request.global_max_queue_size = config.analysis_appearance_global_max_queue;
+    appearance_request.per_stream_rate_limit_ms = config.analysis_appearance_per_stream_rate_limit_ms;
+    appearance_request.max_job_age_ms = config.analysis_appearance_max_job_age_ms;
+    const auto readiness = InspectAppearanceReadiness(appearance_request);
 
     std::ostringstream out;
     out << "{"

@@ -11,8 +11,8 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 178,
-  "expectedCppFiles": 87,
+  "expectedProductionFiles": 180,
+  "expectedCppFiles": 88,
   "moduleClassifiers": [
     {
       "id": "composition-root",
@@ -46,6 +46,8 @@
       "id": "application-service-interfaces",
       "exactFiles": [
         "include/ingress/application_service_result.h",
+        "include/ingress/appearance_readiness_application_service.h",
+        "src/ingress/appearance_readiness_application_service.cpp",
         "include/ingress/onvif_live_import.h",
         "src/ingress/onvif_live_import.cpp",
         "include/ingress/source_view_application_service.h",
@@ -60,8 +62,8 @@
         "include/ingress/vlm_evaluation_promotion.h"
       ],
       "prefixes": [],
-      "expectedFileCount": 13,
-      "expectedCppCount": 4
+      "expectedFileCount": 15,
+      "expectedCppCount": 5
     },
     {
       "id": "domain-and-registry-owners",
@@ -179,7 +181,7 @@
       "expectedCppCount": 15
     }
   ],
-  "expectedFileOwnershipSha256": "c6444d9f154e22dae35e0e1f15bbc0dc20d30d9e0eb490ae029b295098aba9d4",
+  "expectedFileOwnershipSha256": "66a0f98e7642b6e122e0e9b03a18b6480fc405aeb6c20d01ca34227252025373",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -235,6 +237,7 @@
           "src/core/source_request_parser.cpp",
           "src/ingress/gst_pipeline_builder.cpp",
           "src/ingress/analysis_overlay_probe.cpp",
+          "src/ingress/appearance_readiness_application_service.cpp",
           "src/analysis/analysis_query.cpp",
           "src/ingress/http_auth.cpp",
           "src/ingress/onvif_credential_provider.cpp",
@@ -273,9 +276,9 @@
           "src/ingress/gstreamer_rtsp_server.cpp",
           "src/core/youtube_resolver.cpp"
         ],
-        "productionSourceSha256": "b98af897e48b93f48e63332f230fc9fe5176bbfb1963b243a4bbe084fac28735",
-        "declaredSourceCount": 85,
-        "defaultActiveSourceCount": 84,
+        "productionSourceSha256": "ecd23ecf47c3a1dc639eb1f6f1aeba8de600d34f20fb31908498bcc5b7bed5d5",
+        "declaredSourceCount": 86,
+        "defaultActiveSourceCount": 85,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",
@@ -289,9 +292,9 @@
           "core-utilities",
           "core-media-interfaces",
           "domain-and-registry-owners",
+          "application-service-interfaces",
           "transport-and-auth-adapter",
           "ops-route-groups",
-          "application-service-interfaces",
           "product-ui-workspaces"
         ]
       },
@@ -340,8 +343,8 @@
     },
     {
       "direction": "application-service-interfaces -> analysis-services",
-      "witnessCount": 1,
-      "witnessSha256": "cddfc1b896952f6f91d0b6427c60d87801968f3b03112c6ac799fbbf44f9e65a",
+      "witnessCount": 2,
+      "witnessSha256": "4b011d2738496b8f01afa9915c895f5ab5317ff6546fc2c11babef99e2e2e2c8",
       "allowedByTarget": true
     },
     {
@@ -400,14 +403,14 @@
     },
     {
       "direction": "transport-and-auth-adapter -> analysis-services",
-      "witnessCount": 18,
-      "witnessSha256": "b4db89d68764119c0636813ac16a5c4c47b95abe69161b6d2d4ed336edcffac1",
+      "witnessCount": 17,
+      "witnessSha256": "8f05c9fa2316cad9bd85fab07a85c3564c6f9a58d4526c17f51fd85ce97a7f10",
       "allowedByTarget": false
     },
     {
       "direction": "transport-and-auth-adapter -> application-service-interfaces",
-      "witnessCount": 7,
-      "witnessSha256": "ee694f386785845a6645e145126469c603adcaca7a22d423fcd3d1d6ad000e6d",
+      "witnessCount": 8,
+      "witnessSha256": "06b1e5e8b65ce6da503aa31414665b7d1ae5e5ebd520d00cd3501f69211754fd",
       "allowedByTarget": true
     },
     {
@@ -462,7 +465,7 @@
     },
     {
       "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
-      "lineCount": 10160,
+      "lineCount": 10150,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -769,5 +772,5 @@
       "exitRule": "production-graph-unchanged-and-cumulative-debt-verified"
     }
   ],
-  "boundary": "current REVIEW4-64 continuation graph after the Source/View application boundary; transport and ONVIF consume dependency-free application DTOs while registry storage, locking, and transactions remain domain-owned, Policy v1 counts 3 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed"
+  "boundary": "current REVIEW4-64 continuation graph after the appearance readiness application boundary; transport passes raw Re-ID readiness inputs to a dependency-free application DTO while the application implementation alone normalizes and delegates to analysis, Policy v1 counts 3 target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining transport/final-evidence debt keeps completion closed"
 }

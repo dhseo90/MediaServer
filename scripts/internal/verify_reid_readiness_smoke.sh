@@ -13,6 +13,7 @@ COMMON=(
   -pthread
   -I"${ROOT_DIR}/include"
   "${ROOT_DIR}/src/analysis/appearance_extractor.cpp"
+  "${ROOT_DIR}/src/ingress/appearance_readiness_application_service.cpp"
   "${SCRIPT_DIR}/reid_readiness_smoke.cpp"
 )
 

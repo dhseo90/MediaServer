@@ -39,7 +39,7 @@
 #include <utility>
 #include <vector>
 
-#include "analysis/appearance_extractor.h"
+#include "ingress/appearance_readiness_application_service.h"
 #include "analysis/analysis_session_service.h"
 #include "analysis/category_tokens.h"
 #include "analysis/detector.h"

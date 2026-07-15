@@ -477,3 +477,15 @@ passed; the full source-registry command passed five consecutive isolated runs a
 split companion verifiers were rebound to exact function/UI owners without product schema or handler changes.
 Current graph is production 178/C++ 87, edge 17, violations 3, SCC 0, and transport-to-domain witnesses 2→1.
 Transport-to-analysis/core-media/domain directions and parked generated evidence keep REVIEW4-64/65 open.
+
+### Current continuation Slice 17: `appearance-readiness-application-boundary`
+
+- [x] Add dependency-free raw 14-input and redacted 14-output readiness DTOs.
+- [x] Move lower/trim/min normalization and canonical analysis inspection out of transport.
+- [x] Preserve the Ops schema, authority text, privacy/no-execution boundary, compiled capability matrices, and ten actual HTTP cases.
+- [x] Bind exact successor edges and reject direct analysis include reintroduction without claiming direction closure.
+
+Focused verification moved from expected 0/5 RED to 5/0. Build, compiled2/HTTP10 readiness, advanced12,
+analysis181, conditional9, transport5, source bundle6, physical6, contract10, and structure15 passed.
+Current graph is production180/C++88, edge17, violations3, SCC0; transport-to-analysis witnesses are 18→17.
+Transport-to-analysis/core-media/domain directions and parked generated evidence keep REVIEW4-64/65 open.

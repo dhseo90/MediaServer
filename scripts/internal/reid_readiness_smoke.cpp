@@ -2,6 +2,7 @@
 
 #include "analysis/appearance_extractor.h"
 #include "app_config.h"
+#include "ingress/appearance_readiness_application_service.h"
 
 #include <cstdlib>
 #include <filesystem>
@@ -32,9 +33,82 @@ analysis::AppearanceExtractorOptions BaseOptions(const std::filesystem::path& mo
     return options;
 }
 
+ingress::AppearanceReadinessRequest ToApplicationRequest(
+    const analysis::AppearanceExtractorOptions& options) {
+    ingress::AppearanceReadinessRequest request;
+    request.enabled = options.enabled;
+    request.extractor_name = options.extractor_name;
+    request.model_path = options.model_path;
+    request.model_sha256 = options.model_sha256;
+    request.model_provenance = options.model_provenance;
+    request.input_width = options.input_width;
+    request.input_height = options.input_height;
+    request.max_embedding_dim = options.max_embedding_dim;
+    request.log_enabled = options.log_enabled;
+    request.async_enabled = options.async_enabled;
+    request.max_queue_size = options.max_queue_size;
+    request.global_max_queue_size = options.global_max_queue_size;
+    request.per_stream_rate_limit_ms = options.per_stream_rate_limit_ms;
+    request.max_job_age_ms = options.max_job_age_ms;
+    return request;
+}
+
+void RequireApplicationParity(const analysis::AppearanceModelReadiness& expected,
+                              const analysis::AppearanceExtractorOptions& options) {
+    const auto actual = ingress::InspectAppearanceReadiness(ToApplicationRequest(options));
+    Require(actual.appearance_enabled == expected.appearance_enabled &&
+                actual.onnx_reid_extractor_selected == expected.onnx_reid_extractor_selected &&
+                actual.model_path_configured == expected.model_path_configured &&
+                actual.model_file_exists == expected.model_file_exists &&
+                actual.model_file_regular == expected.model_file_regular &&
+                actual.checksum_configured == expected.checksum_configured &&
+                actual.checksum_format_valid == expected.checksum_format_valid &&
+                actual.openssl_runtime_available == expected.openssl_runtime_available &&
+                actual.checksum_readable == expected.checksum_readable &&
+                actual.checksum_matches == expected.checksum_matches &&
+                actual.provenance_configured == expected.provenance_configured &&
+                actual.onnxruntime_available == expected.onnxruntime_available &&
+                actual.model_backed_preflight_ready == expected.model_backed_preflight_ready &&
+                actual.fallback_reason == expected.fallback_reason,
+            "application readiness mapping drift");
+}
+
+void RequireApplicationNormalization(const analysis::AppearanceExtractorOptions& normalized) {
+    auto request = ToApplicationRequest(normalized);
+    request.extractor_name = "  ONNX-REID  ";
+    request.model_sha256 =
+        "38E6A4DE4D43E8EC1C8CEBC599F6D446D1F2BE1CEBDDFD4F9174284F79BA49AA";
+    request.model_provenance = "  operator-reviewed:test-fixture  ";
+    request.input_width = 0;
+    request.input_height = 0;
+    request.max_embedding_dim = 0;
+    request.max_queue_size = 0;
+    request.global_max_queue_size = 0;
+    request.per_stream_rate_limit_ms = -1;
+    request.max_job_age_ms = -1;
+    const auto actual = ingress::InspectAppearanceReadiness(request);
+    const auto expected = analysis::InspectAppearanceModelReadiness(normalized);
+    Require(actual.appearance_enabled == expected.appearance_enabled &&
+                actual.onnx_reid_extractor_selected == expected.onnx_reid_extractor_selected &&
+                actual.model_path_configured == expected.model_path_configured &&
+                actual.model_file_exists == expected.model_file_exists &&
+                actual.model_file_regular == expected.model_file_regular &&
+                actual.checksum_configured == expected.checksum_configured &&
+                actual.checksum_format_valid == expected.checksum_format_valid &&
+                actual.openssl_runtime_available == expected.openssl_runtime_available &&
+                actual.checksum_readable == expected.checksum_readable &&
+                actual.checksum_matches == expected.checksum_matches &&
+                actual.provenance_configured == expected.provenance_configured &&
+                actual.onnxruntime_available == expected.onnxruntime_available &&
+                actual.model_backed_preflight_ready == expected.model_backed_preflight_ready &&
+                actual.fallback_reason == expected.fallback_reason,
+            "application normalization drift");
+}
+
 void ExpectReason(const analysis::AppearanceExtractorOptions& options,
                   const std::string& reason) {
     const auto readiness = analysis::InspectAppearanceModelReadiness(options);
+    RequireApplicationParity(readiness, options);
     Require(!readiness.model_backed_preflight_ready, reason + ": unexpectedly ready");
     Require(readiness.fallback_reason == reason,
             reason + ": got " + readiness.fallback_reason);
@@ -68,6 +142,7 @@ int main(int argc, char** argv) {
         model << kModelBytes;
     }
     auto options = BaseOptions(model_path);
+    RequireApplicationNormalization(options);
 
     auto candidate = options;
     candidate.enabled = false;
@@ -96,6 +171,7 @@ int main(int argc, char** argv) {
 
     if (mode == "no-crypto") {
         const auto readiness = analysis::InspectAppearanceModelReadiness(options);
+        RequireApplicationParity(readiness, options);
         Require(!readiness.openssl_runtime_available, "no-crypto: OpenSSL must be unavailable");
         Require(readiness.fallback_reason == "openssl-runtime-unavailable",
                 "no-crypto: wrong reason " + readiness.fallback_reason);
@@ -108,6 +184,7 @@ int main(int argc, char** argv) {
         candidate.model_sha256 =
             "38E6A4DE4D43E8EC1C8CEBC599F6D446D1F2BE1CEBDDFD4F9174284F79BA49AA";
         const auto readiness = analysis::InspectAppearanceModelReadiness(candidate);
+        RequireApplicationParity(readiness, candidate);
         Require(readiness.openssl_runtime_available, "crypto-no-onnx: OpenSSL unavailable");
         Require(readiness.checksum_readable, "crypto-no-onnx: checksum unreadable");
         Require(readiness.checksum_matches, "crypto-no-onnx: uppercase checksum mismatch");

@@ -92,6 +92,7 @@ function validateFixture() {
 function verifySourceContract() {
   const header = read("include/analysis/appearance_extractor.h");
   const source = read("src/analysis/appearance_extractor.cpp");
+  const applicationService = read("src/ingress/appearance_readiness_application_service.cpp");
   const readinessBlock = extractCppFunctionBlock(source, "AppearanceModelReadiness InspectAppearanceModelReadiness(");
   assert(readinessBlock.includes("model_backed_preflight_ready = true;"), "LAB-125 shared readiness model_backed_preflight_ready block readback mismatch");
   const server = readWebRtcHttpServerBundle(read);
@@ -110,8 +111,12 @@ function verifySourceContract() {
   ]) assert(header.includes(snippet), `readiness header missing ${snippet}`);
   assert(source.includes("const auto readiness = InspectAppearanceModelReadiness(options);"),
     "extractor factory does not consume shared readiness");
-  assert(server.includes("analysis::InspectAppearanceModelReadiness(appearance_options)"),
-    "Ops route does not consume shared readiness");
+  assert(applicationService.includes("analysis::InspectAppearanceModelReadiness(options)"),
+    "application service does not consume shared readiness");
+  assert(server.includes("InspectAppearanceReadiness(appearance_request)") &&
+    !server.includes("analysis::AppearanceExtractorOptions appearance_options") &&
+    !server.includes("analysis::InspectAppearanceModelReadiness(appearance_options)"),
+  "Ops route does not consume application readiness boundary");
   for (const field of [
     "analysis_appearance_enabled", "analysis_appearance_extractor",
     "analysis_appearance_model_path", "analysis_appearance_model_sha256",
