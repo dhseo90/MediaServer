@@ -1,12 +1,14 @@
 # v3.9.0 REVIEW4 잔여 이슈 55~65 구현 계획 및 현재 기록
 
 이 문서는 REVIEW4 55~65 개발의 현재 실행 경계를 기록하며 roadmap과 release evidence를 대체하지 않습니다.
-현재 frontier는 64번 구조 안정화이며 65번 독립 acceptance는 64번 완료 뒤에만 시작합니다.
+현재 frontier는 65번 독립 acceptance correction입니다. 64번 구조 안정화는 완료·커밋됐고, 65번은 세 번의
+fail-stop 기록을 보존한 채 published seed와 client-events requested/observed 결속을 수정한 clean HEAD 재실행을
+앞두고 있습니다.
 
 | 항목 | 현재 상태 | 다음 경계 |
 | --- | --- | --- |
-| REVIEW4-64 | continuation Slice 32 완료. 구조 final target 충족 | Slice 32 커밋 후 REVIEW4-65 독립 acceptance |
-| REVIEW4-65 | 미착수 | 64번 완료 후 current HEAD 독립 acceptance |
+| REVIEW4-64 | 완료. Slice 32 구조 final target 충족, commit `b9a45740` | REVIEW4-65의 입력 commit으로 고정 |
+| REVIEW4-65 | 진행 중. build/34 gate·real 30분 PASS 뒤 UI bootstrap fail-stop을 수정 | correction commit 뒤 clean current HEAD에서 build→30분→exact 424→120분→cleanup→final integrity 전체 재실행 |
 
 ## Slice 30A Analysis Session read application 경계
 
@@ -64,3 +66,21 @@ LAB core를 통과했습니다. 최초 sandbox 격리 FAIL, auth-on 401, auth-of
 정확한 auth-off 명령과 Bash 3.2-safe optional argument 수정 뒤 재검증했습니다. 임시 파일 30개/32,763바이트를
 삭제했고 8081/8555 listener는 0입니다. Slice 32와 REVIEW4-64 구조 개발은 완료됐지만 parked evidence를 확정하는
 REVIEW4-65 독립 acceptance PASS는 아닙니다.
+
+## REVIEW4-65 current HEAD 독립 acceptance correction
+
+Clean commit `edc89771`의 세 번째 canonical run은 build/34 feature gate와 real 30분 1,800초
+118 PASS/0 FAIL을 통과한 뒤 published `v3.8.0` seed와 current-only helper 정책 충돌로 UI bootstrap에서
+fail-stop했습니다. Exact 424, Policy v4, 120분, final integrity는 실행되지 않았고 이 30분 결과만으로
+acceptance PASS를 주장하지 않습니다.
+
+Helper 기본 current strict 정책은 유지하고 acceptance/one-shot만 `config/docs_ui_assets.json`에 결속된
+`--published-seed-baseline`을 사용하도록 수정했습니다. 이어진 current-HEAD 사전 검증에서 canonical
+`/client/api/views/{id}/events`와 observed `/client/events`를 혼용하던 8개 client-events UI 증적을 분리했습니다.
+Canonical route와 control projection은 API 경로를 유지하고 `uiEvidence.screenRoute`와 native observed route만
+`/client/events`로 맞췄습니다. Coverage contract 12/12, native exact 15/15, current evidence 7/7,
+Policy producer 8/8, independence 10/10, eligibility 7/7, visual 6/6, acceptance contract 12/12,
+fixture cleanup 11/11, feature evidence 986행 validation/global error 0을 확인했습니다.
+
+이 correction 검증도 actual exact 424 browser 실행이나 120분 PASS가 아닙니다. 수정 commit 뒤 source tree가
+clean인 current HEAD에서 canonical bundle 전체를 처음부터 다시 실행해야 REVIEW4-65 완료를 판정합니다.

@@ -1179,14 +1179,28 @@ check("manual UI docs reference inventory", () => {
 check("manual checklist references seed fixture", () => {
   requireText(checklist, seedFixturePath, "manual checklist missing VA seed fixture path");
   requireText(checklist, "prepare-manual-ui-fulltest-seed --dry-run", "manual checklist missing seed dry-run command");
+  requireText(checklist, "--published-seed-baseline", "manual checklist missing published seed baseline selection");
   requireText(checklist, "--emit-registry-dir <dir>", "manual checklist missing seed registry dir command");
 });
 
 check("manual result template references seed fixture", () => {
   requireText(template, seedFixturePath, "manual result template missing VA seed fixture path");
   requireText(template, "prepare-manual-ui-fulltest-seed --dry-run", "manual result template missing seed dry-run command");
+  requireText(template, "--published-seed-baseline", "manual result template missing published seed baseline selection");
   requireText(template, "seed registry dir", "manual result template missing seed registry dir field");
   requireText(template, "## VA Seed / 최종 룰 상태", "manual result template missing VA seed result section");
+});
+
+check("VA seed inventory commands select the latest published baseline explicitly", () => {
+  requireText(inventory,
+    "prepare-manual-ui-fulltest-seed --dry-run --published-seed-baseline",
+    "inventory seed dry-run missing published baseline selection");
+  requireText(inventory,
+    "prepare-manual-ui-fulltest-seed --dry-run --published-seed-baseline --emit-registry-dir <dir>",
+    "inventory seed registry command missing published baseline selection");
+  requireText(inventory,
+    "--apply --published-seed-baseline --confirm-throwaway-data --http-base <url>",
+    "inventory seed apply boundary missing published baseline selection");
 });
 
 check("AGENTS requires individual future feature test rows", () => {

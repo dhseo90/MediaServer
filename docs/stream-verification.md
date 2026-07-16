@@ -846,6 +846,14 @@ RC command set:
 | Media/metadata | `verify-codecs`, `verify-webrtc-ice`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-event-post`, `verify-event-post --mode schema`, `verify-event-post --mode recovery` |
 | Release/docs | `verify-release-metadata`, `verify-release-closeout-helper`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-script-inventory` |
 
+### Fixture cleanup 경계
+
+- `verify-ops-click-e2e --auth-users-file <path>`는 격리된 auth 파일만 사용하고 접근 요청 fixture cleanup을 확인합니다.
+- 미공개 current source에서 VA seed를 준비할 때는 `prepare-manual-ui-fulltest-seed --dry-run --published-seed-baseline --emit-registry-dir <dir>`를 사용합니다. 생성 대상은 `sources.json`, `views.json`, `analysis.json`, `preconditions.json`이며 실제 registry와 분리합니다.
+- `verify-ops-event-records-scope --http-base`는 EventRecord fixture를 active file에 잠시 주입하고 복원하며, `ops-events-populated-<width>.png` 같은 화면 증거와 저장 fixture를 구분합니다.
+- SSE/WS/Event POST 검증은 임시 tap·queue·listener를 제거하고, lifecycle 검증은 throwaway state dir과 포트를 정리합니다.
+- 브라우저 visual smoke는 실행별 Chrome userDataDir을 제거합니다.
+
 Auth verifier는 고정 기본 비밀번호를 문서나 스크립트에 두지 않습니다. 테스트 실행자가 아래 env를 모두 제공하지 않으면 auth 테스트를 시작하지 않고 실패로 기록합니다.
 
 | Env | 용도 |

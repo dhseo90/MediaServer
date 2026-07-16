@@ -105,15 +105,21 @@ check("cross-prefix rows preserve exact test ID, route, control/action anchor, a
   const summary = readPositiveSummary();
   const implementation = readJson(implementationPath);
   const implementationById = new Map(implementation.items.map(item => [item.id, item]));
+  const clientEventsProjectionIds = new Set([
+    "SRC-038", "CLIENT-023", "CLIENT-029", "CLIENT-031",
+    "CLIENT-032", "CLIENT-040", "SAFE-110", "SAFE-119",
+  ]);
   for (const featureId of [
     "UI-001", "AUTH-004", "SRC-001", "RULE-001",
-    "EVT-001", "CLIENT-001", "MEDIA-016", "SAFE-015",
+    "EVT-001", "CLIENT-001", "MEDIA-016", "SAFE-015", ...clientEventsProjectionIds,
   ]) {
     const row = summary.rows.find(item => item.featureId === featureId);
     const source = implementationById.get(featureId);
     const semantic = source.semanticEvidence;
-    const expectedRoute = semantic.controlSelector?.screenRoute ||
-      (semantic.route?.applicability === "http-or-product-route" ? semantic.route.value : source.uiEvidence.screenRoute);
+    const expectedRoute = clientEventsProjectionIds.has(featureId)
+      ? source.uiEvidence.screenRoute
+      : semantic.controlSelector?.screenRoute ||
+        (semantic.route?.applicability === "http-or-product-route" ? semantic.route.value : source.uiEvidence.screenRoute);
     assert(row, `${featureId} cross-prefix matrix row missing`);
     assert(row.testId === source.manualUiCaseId, `${featureId} exact manual test ID mismatch`);
     assert(row.route === expectedRoute, `${featureId} exact route mismatch`);
@@ -124,6 +130,14 @@ check("cross-prefix rows preserve exact test ID, route, control/action anchor, a
       `${featureId} stability verifier assertion mismatch`);
     assert(row.stabilityVerifier.assertedSemanticDigest === source.review.semanticDigest,
       `${featureId} semantic verifier digest mismatch`);
+    if (clientEventsProjectionIds.has(featureId)) {
+      assert(semantic.route?.value === "/client/api/views/{id}/events",
+        `${featureId} canonical requested API route drift`);
+      assert(semantic.controlSelector?.screenRoute === "/client/api/views/{id}/events",
+        `${featureId} canonical control projection route drift`);
+      assert(source.uiEvidence.screenRoute === "/client/events" && row.route === "/client/events",
+        `${featureId} observed product screen route drift`);
+    }
   }
 });
 

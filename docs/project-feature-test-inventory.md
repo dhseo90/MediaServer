@@ -500,10 +500,10 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | 항목 | 기준 |
 | --- | --- |
 | fixture | `test/fixtures/manual_ui_fulltest_va_seed_matrix.json` |
-| dry-run 준비 | `./server.sh prepare-manual-ui-fulltest-seed --dry-run`은 HTTP 요청 없이 numeric ID, payload 참조, media file 존재, coverage를 확인합니다. 이 결과는 UI/event evidence가 아닙니다. 상태 표기는 `dry-run 준비 가능, 서버 적용 evidence 없음`으로 남깁니다. |
-| registry 파일 준비 | `./server.sh prepare-manual-ui-fulltest-seed --dry-run --emit-registry-dir <dir>`은 throwaway registry 파일을 생성합니다. 이 결과도 UI/event evidence가 아닙니다. |
+| dry-run 준비 | 미공개 current source에서는 `./server.sh prepare-manual-ui-fulltest-seed --dry-run --published-seed-baseline`으로 latest published fixture를 명시 선택합니다. HTTP 요청 없이 numeric ID, payload 참조, media file 존재, coverage를 확인하며 UI/event evidence가 아닙니다. 상태 표기는 `dry-run 준비 가능, 서버 적용 evidence 없음`으로 남깁니다. |
+| registry 파일 준비 | `./server.sh prepare-manual-ui-fulltest-seed --dry-run --published-seed-baseline --emit-registry-dir <dir>`은 throwaway registry 파일을 생성합니다. 이 결과도 UI/event evidence가 아닙니다. |
 | registry preconditions file | `preconditions.json`은 throwaway registry 시작 조건 파일입니다. 파일 생성은 서버 적용, 제품 UI 조작, EventRecord 확인 evidence가 아닙니다. |
-| apply 경계 | 실제 서버 적용은 사용자 지시 후 `--apply --confirm-throwaway-data --http-base <url>`로만 수행하며, 적용 후에도 인앱 브라우저 확인 전에는 UI PASS가 아닙니다. |
+| apply 경계 | 미공개 current source의 실제 서버 적용은 사용자 지시 후 `--apply --published-seed-baseline --confirm-throwaway-data --http-base <url>`로만 수행하며, 적용 후에도 인앱 브라우저 확인 전에는 UI PASS가 아닙니다. |
 | final state | profiles, event templates, VA rules가 모두 남아 있어야 하며 event log 확인 전 삭제하지 않음 |
 
 ## 30-Minute And 120-Minute Mapping

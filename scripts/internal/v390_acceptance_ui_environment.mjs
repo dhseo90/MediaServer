@@ -126,6 +126,7 @@ function createState({ rootDir, runId, fixtureMode, buildPath, timeoutMs, maxPor
     temporaryRoot: "",
     registryDir: "",
     seedPlanPath: "",
+    seedTargetSelection: null,
     seedPreconditionsPath: "",
     usersPath: "",
     sourcesPath: "",
@@ -268,6 +269,7 @@ function prepareRegistrySeed(state) {
   execFileSync(path.join(state.rootDir, "server.sh"), [
     "prepare-manual-ui-fulltest-seed",
     "--dry-run",
+    "--published-seed-baseline",
     "--emit-plan", state.seedPlanPath,
     "--emit-registry-dir", state.registryDir,
   ], {
@@ -279,6 +281,10 @@ function prepareRegistrySeed(state) {
   for (const required of [state.seedPlanPath, state.sourcesPath, state.viewsPath, state.analysisPath, state.seedPreconditionsPath]) {
     assert(fs.existsSync(required), `acceptance UI seed output missing: ${required}`);
   }
+  const seedPlan = readJson(state.seedPlanPath);
+  state.seedTargetSelection = seedPlan.seedTargetSelection || null;
+  assert(state.seedTargetSelection?.mode === "published-seed-baseline",
+    "acceptance UI seed did not attest published baseline selection");
   const views = readJson(state.viewsPath).views || [];
   state.viewId = String(views.find(item => item?.enabled !== false)?.viewId || "");
   assert(state.viewId, "acceptance UI seed contains no enabled PublishedView");
@@ -533,6 +539,7 @@ function buildRuntimeDescriptor(state) {
       views: state.viewsPath,
       analysis: state.analysisPath,
     },
+    seedTargetSelection: state.seedTargetSelection,
     eventStoragePath: state.eventPath,
     artifactPaths: {
       snapshots: state.snapshotDir,
@@ -570,6 +577,7 @@ function buildEnvironmentAttestation(state, result, failureReason = "") {
     },
     runtimeDescriptor: buildRuntimeDescriptor(state),
     runtimeDescriptorPath: state.runtimeDescriptorPath,
+    seedTargetSelection: state.seedTargetSelection,
     roles: roles.map(role => ({
       role,
       username: usernames[role],

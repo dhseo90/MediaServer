@@ -56,6 +56,8 @@ process.on("exit", () => {
 const files = {
   bundle: readText("scripts/internal/verify_v390_test_acceptance_bundle.mjs"),
   uiEnvironment: readText("scripts/internal/v390_acceptance_ui_environment.mjs"),
+  seedPreparation: readText("scripts/internal/prepare_manual_ui_fulltest_seed.mjs"),
+  uiOneShot: readText("scripts/internal/verify_ui_fulltest_one_shot.mjs"),
   caseRuntime: readText("scripts/internal/v390_ui_case_runtime.mjs"),
   exactRunner: readText("scripts/internal/run_v390_ui_native_exact_cases.mjs"),
   serverSh: readText("server.sh"),
@@ -131,7 +133,23 @@ check("canonical actual command owns the complete throwaway UI environment", () 
     '"runtime-env-consumed-then-unset"',
     "usersFile: state.usersPath",
     "defaultViewId: state.viewId",
+    '"--published-seed-baseline"',
   ]) assertIncludes(files.uiEnvironment, snippet, "self-contained runtime consumer contract");
+  for (const snippet of [
+    '"published-seed-baseline"',
+    'readPublishedSeedBaseline()',
+    'path.join(rootDir, "config/docs_ui_assets.json")',
+    'assetConfig?.baseline?.publishedRelease',
+    'assetConfig?.baseline?.sourceVersion === currentVersion',
+    'assetConfig?.baseline?.publicReleaseStatus === `${publishedRelease}-published-source-only`',
+    'seed.releaseTarget === seedTargetSelection.expectedReleaseTarget',
+    'mode: "published-seed-baseline"',
+    'policySha256: sha256Text(assetConfigText)',
+  ]) assertIncludes(files.seedPreparation, snippet, "published seed baseline contract");
+  assert(!files.seedPreparation.includes("expected-release-target"),
+    "seed helper must not accept an arbitrary release target override");
+  assert((files.uiOneShot.match(/"--published-seed-baseline"/g) || []).length === 2,
+    "UI one-shot core/auth seed preparation must select the published baseline explicitly");
 
   assert(files.bundle.indexOf("consumeAcceptanceAdminPassword()") <
     files.bundle.indexOf("collectSourceProvenanceWithAllowedArtifacts(rootDir, outputDir)"),
@@ -176,6 +194,45 @@ check("canonical actual command owns the complete throwaway UI environment", () 
     missingAdminRejected = String(error?.message || error).includes("MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD is required");
   }
   assert(missingAdminRejected, "missing runtime admin secret must fail before auth bootstrap");
+});
+
+check("published seed baseline is explicit, policy-bound, and rejects mismatched fixtures", () => {
+  const outputDir = fixtureDir("published-seed-baseline");
+  const fixturePath = path.join(rootDir, "test/fixtures/manual_ui_fulltest_va_seed_matrix.json");
+  const defaultResult = spawnSync(path.join(rootDir, "server.sh"), [
+    "prepare-manual-ui-fulltest-seed", "--dry-run",
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(defaultResult.status !== 0 && defaultResult.stderr.includes("seed fixture must pin v3.9.0"),
+    "default seed preparation did not reject the stale published fixture against current source");
+
+  const planPath = path.join(outputDir, "seed-plan.json");
+  const registryDir = path.join(outputDir, "registry");
+  const publishedResult = spawnSync(path.join(rootDir, "server.sh"), [
+    "prepare-manual-ui-fulltest-seed", "--dry-run", "--published-seed-baseline",
+    "--emit-plan", planPath, "--emit-registry-dir", registryDir,
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(publishedResult.status === 0, `published seed preparation failed: ${publishedResult.stderr}`);
+  const plan = readJson(planPath);
+  const policy = readJson(path.join(rootDir, "config/docs_ui_assets.json"));
+  const fixture = readJson(fixturePath);
+  assert(plan.releaseTarget === fixture.releaseTarget &&
+    plan.releaseTarget === policy.baseline.publishedRelease,
+  "published seed plan target is not bound to fixture and policy");
+  assert(plan.seedTargetSelection?.mode === "published-seed-baseline" &&
+    plan.seedTargetSelection.policyPath === "config/docs_ui_assets.json" &&
+    /^[a-f0-9]{64}$/.test(plan.seedTargetSelection.policySha256),
+  "published seed plan policy attestation mismatch");
+  assert(plan.httpRequests === 0 && plan.boundaries?.notExecutionEvidence === true,
+    "published seed dry-run changed its no-request/no-evidence boundary");
+
+  const mismatchedFixturePath = path.join(outputDir, "mismatched-seed.json");
+  fs.writeFileSync(mismatchedFixturePath, `${JSON.stringify({ ...fixture, releaseTarget: "v3.9.0" }, null, 2)}\n`);
+  const mismatchResult = spawnSync(path.join(rootDir, "server.sh"), [
+    "prepare-manual-ui-fulltest-seed", "--dry-run", "--published-seed-baseline",
+    "--fixture", mismatchedFixturePath,
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(mismatchResult.status !== 0 && mismatchResult.stderr.includes("seed fixture must pin v3.8.0"),
+    "published seed preparation accepted a current-source fixture outside the published baseline");
 });
 
 check("acceptance child environments and artifacts exclude retained secrets", () => {

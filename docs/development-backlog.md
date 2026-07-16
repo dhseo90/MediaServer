@@ -6363,6 +6363,22 @@ REVIEW4-64 구조 개발은 완료됐지만 parked evidence를 확정하는 REVI
 - Retry correction freeze candidate `1d67f5da1ec582567649edeca1a83bf422fefbe34025d53d1b87de449b0bf72d`는
   독립 986/986 승인을 받았고 SAFE-212/OPS-179의 최신 locator/body/5-edge 오류 0을 확인했습니다. 구 `5be8...`
   approval은 재사용하지 않고 새 ledger/implementation manifest/exact 424 binding으로 교체했습니다.
+- Clean commit `edc89771`의 세 번째 canonical run은 build와 34 feature gate, real 30분 1,800초를
+  118 PASS/0 FAIL로 닫은 뒤 UI bootstrap에서 published seed fixture `v3.8.0`와 helper current target
+  `v3.9.0` 충돌로 fail-stop했습니다. Exact 424/Policy v4/120분/final integrity는 not-run이며 UI/root
+  cleanup은 PASS입니다. 기본 helper의 current-source strict 판정은 유지하고, acceptance/one-shot만
+  `config/docs_ui_assets.json`의 publishedRelease/sourceVersion/status/SHA에 결속된
+  `--published-seed-baseline`을 명시하도록 수정했습니다. 기본 거부·published 성공·mismatch 거부와
+  plan/runtime attestation을 acceptance contract 12/12, fixture cleanup 11/11로 확인했으며 수정 commit 뒤
+  canonical 전체를 build부터 다시 실행해야 합니다.
+- Correction 사전 검증에서 `SRC-038` 뒤 `CLIENT-023`도 같은 route drift로 연속 실패해 단일 항목이 아니라
+  canonical `/client/api/views/{id}/events`를 쓰는 8개 client-events 증적의 requested/observed 혼용으로
+  분류했습니다. `SRC-038`, `CLIENT-023/029/031/032/040`, `SAFE-110/119`의 canonical route와 control
+  projection은 API 경로로 유지하고 `uiEvidence.screenRoute`만 observed `/client/events`로 맞췄습니다.
+  Coverage contract 12/12, native exact 15/15, current evidence 7/7, Policy producer 8/8, independence 10/10,
+  eligibility 7/7, visual 6/6, feature evidence 986행 validation/global error 0, audit 51/51, approval 986/986를
+  통과했습니다. 이 정적 correction은 actual exact 424/120분 PASS가 아니며 clean correction commit에서
+  canonical 전체 재실행이 필요합니다.
 
 ## 후속 이슈 추천 규칙
 
