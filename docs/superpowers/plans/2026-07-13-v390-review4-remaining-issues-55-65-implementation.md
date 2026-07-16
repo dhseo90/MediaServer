@@ -97,5 +97,18 @@ canonical 전체 재실행 결과만 사용합니다. 최초 exact binding 갱�
 수행해 4건 stale FAIL이었고, 적용 후 canonical/exact/current SHA를 순서대로 다시 결속해 exact 15/15와
 current evidence 7/7을 통과했습니다.
 
+Clean correction commit `17393ef5`의 canonical run `v390-test-acceptance-20260716104906-28392`는 build/34
+feature gate, real 30분 runner 2,374.022초·delegated 2,372초, ordered soak 22회/110 cases와 전체
+118 PASS/0 FAIL, cleanup을 통과했습니다. UI bootstrap/listener도 통과한 뒤 exact 첫 case `UI-001`에서
+canonical `/` 요청의 실제 setup-complete anonymous browser location `/login`을 observed `/`로 기대해
+fail-stop했습니다. Exact 나머지 423건·Policy v4·120분·final integrity는 not-run입니다. 제품 redirect는
+정상이며 root canonical request `/`와 runtime screen `/login`을 typed projection으로 분리해 contract에
+고정했습니다. 수정 commit 뒤 clean HEAD canonical 전체를 다시 실행합니다.
+
+Correction candidate `743da5ac892a45ea47e1bdd602c1a839c7c5bf7ee459fbb23a8a9549c24faa87`의
+독립 검토는 승인 986/거절 0/불확실 0입니다. 이전 후보 대비 `UI-018` 한 행만 exact verifier 위치 이동으로
+갱신됐고 404 oracle·required outcome·5-edge는 유지됩니다. Coverage는 최초 UI-001 canonical/observed 혼용으로
+11/12 FAIL한 뒤 canonical `/`와 observed `/login`을 별도 assertion으로 분리해 12/12 PASS했습니다.
+
 이 correction 검증도 actual exact 424 browser 실행이나 120분 PASS가 아닙니다. 수정 commit 뒤 source tree가
 clean인 current HEAD에서 canonical bundle 전체를 처음부터 다시 실행해야 REVIEW4-65 완료를 판정합니다.

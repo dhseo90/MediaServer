@@ -105,6 +105,7 @@ check("admin-only ops users cases and runtime role schema stay authoritative", (
 
 check("API ownership routes normalize to product screens", () => {
   const expected = new Map([
+    ["/", "/login"],
     ["/ops/api/events/reviews", "/ops/events"],
     ["/client/api/views/{id}/events", "/client/events"],
     ["/ops/api/source-registry/reliability-timeline", "/ops/sources"],
@@ -117,6 +118,9 @@ check("API ownership routes normalize to product screens", () => {
   for (const item of manifest.cases.filter(value => value.disposition === "native-executable")) {
     assert(!item.screenRoute.includes("/api/"), `${item.caseId} retains raw API screen route`);
   }
+  const rootEntry = manifest.cases.find(item => item.caseId === "UI-001");
+  assert(rootEntry?.canonicalRoute === "/" && rootEntry?.screenRoute === "/login",
+    "UI-001 canonical root request and setup-complete anonymous login observation are not separated");
 });
 
 check("UI-018 remains a dedicated negative route case", () => {
@@ -779,7 +783,7 @@ check("case runtime keeps generated secrets ephemeral and rejects state path esc
 check("canonical requested route and runtime screen route are explicit projections", () => {
   const canonicalById = new Map(canonical.cases.map(item => [item.testId, item]));
   const projected = manifest.cases.filter(item => item.canonicalRoute !== item.screenRoute);
-  assert(projected.length === 39, `canonical/runtime route projection count mismatch: ${projected.length}`);
+  assert(projected.length === 40, `canonical/runtime route projection count mismatch: ${projected.length}`);
   for (const item of manifest.cases) {
     assert(item.canonicalRoute === canonicalById.get(item.caseId)?.route,
       `${item.caseId} canonical requested route drift`);

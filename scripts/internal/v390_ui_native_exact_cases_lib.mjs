@@ -852,6 +852,7 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
 }
 
 export function normalizeProductScreenRoute(route) {
+  if (route === "/") return "/login";
   if (route === "/ops/api/events/reviews") return "/ops/events";
   if (route === "/client/api/views/{id}/events") return "/client/events";
   if (route === "/ops/api/audit") return "/ops/users";

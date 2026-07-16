@@ -6394,6 +6394,19 @@ REVIEW4-64 구조 개발은 완료됐지만 parked evidence를 확정하는 REVI
   생성한 순서 때문에 source binding 4건이 stale해진 최초 검증은 FAIL이었고, 최종 implementation manifest
   기준으로 canonical/exact binding과 current not-run SHA를 다시 생성해 exact 15/15, current 7/7을 통과했습니다.
   이 정적 승인은 actual browser·120분·final integrity PASS가 아닙니다.
+- Clean correction commit `17393ef5`의 canonical run `v390-test-acceptance-20260716104906-28392`는
+  build/34 feature gate와 real 30분 runner 2,374.022초·delegated 2,372초, ordered soak 22회/110 cases,
+  전체 118 PASS/0 FAIL 및 cleanup을 통과했습니다. UI bootstrap과 listener ownership도 통과했지만 exact
+  case 1 `UI-001`에서 canonical 요청 `/` 뒤 실제 setup-complete anonymous browser location `/login`을
+  observed `/`로 기대해 fail-stop했습니다. 나머지 423건, Policy v4, 120분, final integrity는 not-run이고
+  UI/root cleanup은 PASS입니다. 제품 redirect는 정상이며 requested `/`와 observed `/login`을 분리하도록
+  root product screen projection과 contract를 보정했습니다. 보정 commit 뒤 canonical 전체 재실행이 필요합니다.
+- Root projection correction candidate `743da5ac892a45ea47e1bdd602c1a839c7c5bf7ee459fbb23a8a9549c24faa87`는
+  독립 986행 재계산에서 승인 986/거절 0/불확실 0이었습니다. 이전 후보 대비 `UI-018` 한 행만 exact
+  contract readback 위치 이동으로 digest `492393b75cb629fd3c4dfe9706a7442c564964444dfd552edf2c30d4742e1bdb`로
+  갱신됐고 404 oracle·required outcome·5-edge는 유지됩니다. UI-001 source-flow/feature contract는 불변이며
+  canonical `/`와 observed `/login`만 분리됐습니다. Coverage 최초 검증은 UI-001 route를 다시 canonical과
+  비교해 11/12 FAIL이었고 observed UI route를 별도 비교하도록 수정해 12/12를 통과했습니다.
 
 ## 후속 이슈 추천 규칙
 

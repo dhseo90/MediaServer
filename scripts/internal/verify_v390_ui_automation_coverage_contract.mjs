@@ -109,6 +109,7 @@ check("cross-prefix rows preserve exact test ID, route, control/action anchor, a
     "SRC-038", "CLIENT-023", "CLIENT-029", "CLIENT-031",
     "CLIENT-032", "CLIENT-040", "SAFE-110", "SAFE-119",
   ]);
+  const requestedObservedProjectionIds = new Set(["UI-001", ...clientEventsProjectionIds]);
   for (const featureId of [
     "UI-001", "AUTH-004", "SRC-001", "RULE-001",
     "EVT-001", "CLIENT-001", "MEDIA-016", "SAFE-015", ...clientEventsProjectionIds,
@@ -116,7 +117,7 @@ check("cross-prefix rows preserve exact test ID, route, control/action anchor, a
     const row = summary.rows.find(item => item.featureId === featureId);
     const source = implementationById.get(featureId);
     const semantic = source.semanticEvidence;
-    const expectedRoute = clientEventsProjectionIds.has(featureId)
+    const expectedRoute = requestedObservedProjectionIds.has(featureId)
       ? source.uiEvidence.screenRoute
       : semantic.controlSelector?.screenRoute ||
         (semantic.route?.applicability === "http-or-product-route" ? semantic.route.value : source.uiEvidence.screenRoute);
@@ -137,6 +138,12 @@ check("cross-prefix rows preserve exact test ID, route, control/action anchor, a
         `${featureId} canonical control projection route drift`);
       assert(source.uiEvidence.screenRoute === "/client/events" && row.route === "/client/events",
         `${featureId} observed product screen route drift`);
+    }
+    if (featureId === "UI-001") {
+      assert(semantic.route?.value === "/" && semantic.controlSelector?.screenRoute === "/",
+        "UI-001 canonical requested root route drift");
+      assert(source.uiEvidence.screenRoute === "/login" && row.route === "/login",
+        "UI-001 setup-complete anonymous observed login screen drift");
     }
   }
 });
