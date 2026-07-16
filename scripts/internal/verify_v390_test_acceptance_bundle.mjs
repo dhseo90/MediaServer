@@ -912,7 +912,7 @@ function validateChildCleanup() {
       longrun30Summary.cleanup?.verificationSource !== "pid-port-artifact-before-after-observation") {
     errors.push("30-minute child cleanup source is not measured");
   }
-  if (!fixtureMode && uiEnvironmentCleanup &&
+  if (!fixtureMode && uiEnvironmentCleanup?.runtimeEvidence === true &&
       uiEnvironmentCleanup.verificationSource !== "pid-port-artifact-before-after-observation") {
     errors.push("UI environment cleanup source is not measured");
   }

@@ -76,12 +76,14 @@ check("current final actual preflight keeps 120 conditional and requires a clean
     "sourceProvenance.sourceWorktreeClean !== true",
     "AGENTS 7.6.2 conditional 120-minute decision",
     "if (!fixtureMode && longrun30Summary &&",
-    "if (!fixtureMode && uiEnvironmentCleanup &&",
+    "if (!fixtureMode && uiEnvironmentCleanup?.runtimeEvidence === true &&",
   ]) assertIncludes(files.bundle, snippet, "current final preflight contract");
   assert(!files.bundle.includes("longrun30Summary?.cleanup?.verificationSource"),
     "unstarted 30-minute child still creates a false cleanup-source failure");
   assert(!files.bundle.includes("uiEnvironmentCleanup?.verificationSource"),
     "unstarted UI environment still creates a false cleanup-source failure");
+  assert(!files.bundle.includes("if (!fixtureMode && uiEnvironmentCleanup &&"),
+    "non-runtime UI cleanup still creates a false measured-source failure");
   assert(!files.bundle.includes("const sourceProvenance = collectSourceProvenance(rootDir)"),
     "canonical retry still rejects its preserved first-failure output as source dirtiness");
 });

@@ -285,7 +285,7 @@
               "data-source-staging-restore-validation-handoff",
               "sourceStagingRestoreValidationStatus"
             ],
-            "sourceFileSha256": "4ca309c982c07a00baed7f910e286edba2a3864f1ab7b62d1f9f4d339338257e"
+            "sourceFileSha256": "d7e1bf42f0aa28094f8c03692bdd17fc1d15040b3673923a1bc807c910c38d0f"
           },
           {
             "file": "docs/ops-backup-recovery.md",

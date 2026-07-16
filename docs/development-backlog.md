@@ -6355,6 +6355,14 @@ REVIEW4-64 구조 개발은 완료됐지만 parked evidence를 확정하는 REVI
   SAFE-212/OPS-179는 cleanup/retry/final-integrity 최신 locator로 재결속됐으며 required outcome은 불변입니다.
   승인 적용 뒤 semantic audit 51/51, exact 424 contract 15/15, inventory 16/16, coverage 7/7,
   feature evidence 986/986·validation 0·global 0·negative 15/15를 통과했습니다.
+- 수정 commit `72c74f4f`의 canonical retry는 feature gate 15에서 REVIEW4-63 `production-restore`
+  source hash가 comment header 이전 값이라 fail-stop했습니다. 30분/UI/120분은 not-run이고 source start/end는
+  clean, unapproved path 0이었습니다. 이 실패는 `webrtc_http_server.cpp` current digest로 decision evidence를
+  재결속했습니다. 또한 UI environment가 시작되지 않아 `runtimeEvidence=false`인 cleanup에도 measured source를
+  요구하던 parent 조건을 runtime evidence에만 적용하도록 좁히고 contract negative assertion을 추가했습니다.
+- Retry correction freeze candidate `1d67f5da1ec582567649edeca1a83bf422fefbe34025d53d1b87de449b0bf72d`는
+  독립 986/986 승인을 받았고 SAFE-212/OPS-179의 최신 locator/body/5-edge 오류 0을 확인했습니다. 구 `5be8...`
+  approval은 재사용하지 않고 새 ledger/implementation manifest/exact 424 binding으로 교체했습니다.
 
 ## 후속 이슈 추천 규칙
 
