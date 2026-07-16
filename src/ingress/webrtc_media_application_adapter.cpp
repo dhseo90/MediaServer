@@ -1,5 +1,5 @@
 #include "ingress/webrtc_media_application_adapter.h"
-
+// 파일 용도: WebRTC media runtime을 application service port에 연결하는 adapter를 구현한다.
 #include <utility>
 
 #include "core/session_manager.h"

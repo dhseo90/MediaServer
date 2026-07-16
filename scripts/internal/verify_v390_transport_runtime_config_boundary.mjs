@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// REVIEW4-64 Slice 14: transport runtime config/core-utility boundary verifier.
+// 파일 용도: REVIEW4-64 Slice 14 transport runtime config/core-utility 경계를 검증한다.
 
 import crypto from "node:crypto";
 import fs from "node:fs";

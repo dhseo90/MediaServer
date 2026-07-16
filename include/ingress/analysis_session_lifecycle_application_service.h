@@ -1,5 +1,5 @@
 #pragma once
-
+// 파일 용도: 분석 세션 lifecycle용 transport-neutral application service 계약을 선언한다.
 #include <cstddef>
 #include <string>
 #include <unordered_map>

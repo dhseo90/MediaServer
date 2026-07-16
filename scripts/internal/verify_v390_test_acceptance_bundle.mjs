@@ -10,7 +10,6 @@ import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import {
-  collectSourceProvenance,
   collectSourceProvenanceWithAllowedArtifacts,
   isInside,
   listFiles,
@@ -129,7 +128,7 @@ let uiEnvironmentSummary = null;
 let uiEnvironmentCleanup = null;
 
 let acceptanceAdminPassword = consumeAcceptanceAdminPassword();
-const sourceProvenance = collectSourceProvenance(rootDir);
+const sourceProvenance = collectSourceProvenanceWithAllowedArtifacts(rootDir, outputDir);
 const priorFirstFailure = options.dryRun ? null : readPriorFirstFailure();
 const outputPreparation = options.dryRun ? {
   replacedExisting: false,
@@ -211,7 +210,7 @@ async function runRealStage(stageId) {
       recordFailure(stageId, "preflight", `missing required files: ${missing.join(", ")}`);
       return;
     }
-    if (!fixtureMode && sourceProvenance.worktreeClean !== true) {
+    if (!fixtureMode && sourceProvenance.sourceWorktreeClean !== true) {
       recordFailure(stageId, "preflight", "current final actual acceptance requires a clean worktree; commit approved changes before running");
       return;
     }
@@ -909,8 +908,14 @@ function validateChildCleanup() {
   if (!fixtureMode && longrun30Summary && (longrun30Summary.cleanup?.serverStopped !== true || longrun30Summary.cleanup?.portsClean !== true || longrun30Summary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("30-minute child cleanup failed");
   if (!fixtureMode && uiAutomationSummary && (uiAutomationSummary.cleanup?.serversStopped !== true || uiAutomationSummary.cleanup?.portsClean !== true || uiAutomationSummary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("UI child cleanup failed");
   if (!fixtureMode && longrun120Summary && (longrun120Summary.cleanup?.serverStopped !== true || longrun120Summary.cleanup?.portsClean !== true || longrun120Summary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("120-minute child cleanup failed");
-  if (!fixtureMode && longrun30Summary?.cleanup?.verificationSource !== "pid-port-artifact-before-after-observation") errors.push("30-minute child cleanup source is not measured");
-  if (!fixtureMode && uiEnvironmentCleanup?.verificationSource !== "pid-port-artifact-before-after-observation") errors.push("UI environment cleanup source is not measured");
+  if (!fixtureMode && longrun30Summary &&
+      longrun30Summary.cleanup?.verificationSource !== "pid-port-artifact-before-after-observation") {
+    errors.push("30-minute child cleanup source is not measured");
+  }
+  if (!fixtureMode && uiEnvironmentCleanup &&
+      uiEnvironmentCleanup.verificationSource !== "pid-port-artifact-before-after-observation") {
+    errors.push("UI environment cleanup source is not measured");
+  }
   if (!fixtureMode && longrun120Summary && longrun120Summary.cleanup?.verificationSource !== "pid-port-artifact-before-after-observation") errors.push("120-minute child cleanup source is not measured");
   if (!fixtureMode && longrun30Summary) errors.push(...validateCleanupMeasurement(longrun30Summary.cleanup?.measurement).map(error => `30-minute ${error}`));
   if (!fixtureMode && uiEnvironmentCleanup?.runtimeEvidence === true) errors.push(...validateCleanupMeasurement(uiEnvironmentCleanup.measurement).map(error => `UI ${error}`));
@@ -1263,7 +1268,7 @@ function writeReport(filePath, payload) {
     `dryRun: ${payload.dryRun}`,
     `sourceCommitSha: ${payload.sourceProvenance?.commitSha || ""}`,
     `sourceBranch: ${payload.sourceProvenance?.branch || ""}`,
-    `sourceWorktreeClean: ${payload.sourceProvenance?.worktreeClean ?? ""}`,
+    `sourceWorktreeClean: ${payload.sourceProvenance?.sourceWorktreeClean ?? payload.sourceProvenance?.worktreeClean ?? ""}`,
     `failedStage: ${payload.failedStage || "(none)"}`,
     `firstFailureCommand: ${payload.firstFailure?.command || "(none)"}`,
     `firstFailureContext: ${payload.firstFailure?.context || "(none)"}`,

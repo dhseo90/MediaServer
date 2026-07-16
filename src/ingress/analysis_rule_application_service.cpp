@@ -110,9 +110,9 @@ bool ConfigureAnalysisRuleApplicationService(
         }
         return true;
     }
-    // Keep the callback mutex held across the registry bind and callback commit. Once the
-    // adapter port becomes observable, concurrent adapter calls block until the callbacks
-    // are published; a failed bind leaves the application state untouched.
+    // Callback mutex는 registry bind와 callback commit 전체에서 유지한다. Adapter port가
+    // 관측 가능해지면 concurrent adapter call은 callback publish까지 대기하며, bind 실패는
+    // application state를 바꾸지 않는다.
     if (!BindAnalysisRuleRegistryPort(port, error_message)) {
         return false;
     }

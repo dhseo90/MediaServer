@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// REVIEW4-64 Slice 30A: Analysis Session read/query projection behind an application port.
+// 파일 용도: REVIEW4-64 Slice 30A 분석 세션 read/query projection의 application port 경계를 검증한다.
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";

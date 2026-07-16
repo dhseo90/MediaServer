@@ -1,5 +1,5 @@
 #include "ingress/analysis_session_read_application_adapter.h"
-
+// 파일 용도: 분석 세션 read/query application adapter를 구현한다.
 #include <chrono>
 #include <utility>
 

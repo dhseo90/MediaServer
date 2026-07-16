@@ -352,7 +352,7 @@ if (value !== undefined && value !== null) process.stdout.write(String(value));'
 
 assert_sources_api_freeze() {
   local payload_json
-  # registry response field/type readback is bound to the frozen digest below.
+  # registry response의 field/type readback은 아래 frozen digest에 결속한다.
   payload_json="$(cat)"
   python3 - "${payload_json}" <<'PY'
 import hashlib

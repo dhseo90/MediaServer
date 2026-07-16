@@ -1,5 +1,5 @@
 #pragma once
-
+// 파일 용도: WebRTC media/session/source application service의 opaque 계약을 선언한다.
 #include <cstddef>
 #include <cstdint>
 #include <functional>

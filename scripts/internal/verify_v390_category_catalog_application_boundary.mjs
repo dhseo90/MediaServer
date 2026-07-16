@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// REVIEW4-64 Slice 18: transport category catalog through a dependency-free application boundary.
+// 파일 용도: REVIEW4-64 Slice 18 transport category catalog의 dependency-free application 경계를 검증한다.
 
 import fs from "node:fs";
 import crypto from "node:crypto";

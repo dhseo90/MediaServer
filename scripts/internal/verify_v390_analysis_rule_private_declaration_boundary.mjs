@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// REVIEW4-64 Slice 23: replace the transport/domain declaration and hidden link with an actual DIP port.
+// 파일 용도: REVIEW4-64 Slice 23 transport/domain hidden link를 실제 DIP port로 대체했는지 검증한다.
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";

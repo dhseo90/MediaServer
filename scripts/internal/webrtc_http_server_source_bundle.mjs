@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-
+// 파일 용도: split된 WebRTC HTTP server source를 canonical 순서로 읽는 bundle helper를 제공한다.
 const defaultRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
 export const WEBRTC_HTTP_SERVER_SOURCE_LAYOUT = Object.freeze([

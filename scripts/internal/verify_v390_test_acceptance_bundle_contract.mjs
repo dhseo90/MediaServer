@@ -72,8 +72,18 @@ check("current final actual preflight keeps 120 conditional and requires a clean
     "actual preflight still makes conditional 120 mandatory");
   for (const snippet of [
     "current final actual acceptance requires a clean worktree; commit approved changes before running",
+    "const sourceProvenance = collectSourceProvenanceWithAllowedArtifacts(rootDir, outputDir)",
+    "sourceProvenance.sourceWorktreeClean !== true",
     "AGENTS 7.6.2 conditional 120-minute decision",
+    "if (!fixtureMode && longrun30Summary &&",
+    "if (!fixtureMode && uiEnvironmentCleanup &&",
   ]) assertIncludes(files.bundle, snippet, "current final preflight contract");
+  assert(!files.bundle.includes("longrun30Summary?.cleanup?.verificationSource"),
+    "unstarted 30-minute child still creates a false cleanup-source failure");
+  assert(!files.bundle.includes("uiEnvironmentCleanup?.verificationSource"),
+    "unstarted UI environment still creates a false cleanup-source failure");
+  assert(!files.bundle.includes("const sourceProvenance = collectSourceProvenance(rootDir)"),
+    "canonical retry still rejects its preserved first-failure output as source dirtiness");
 });
 
 check("canonical source removes legacy 8-case and external summary injection", () => {
@@ -122,7 +132,7 @@ check("canonical actual command owns the complete throwaway UI environment", () 
   ]) assertIncludes(files.uiEnvironment, snippet, "self-contained runtime consumer contract");
 
   assert(files.bundle.indexOf("consumeAcceptanceAdminPassword()") <
-    files.bundle.indexOf("collectSourceProvenance(rootDir)"),
+    files.bundle.indexOf("collectSourceProvenanceWithAllowedArtifacts(rootDir, outputDir)"),
   "admin secret must leave process.env before source provenance can spawn a child");
   assertIncludes(files.bundle, "adminPassword: acceptanceAdminPassword",
     "bundle must pass the consumed admin secret explicitly from memory");

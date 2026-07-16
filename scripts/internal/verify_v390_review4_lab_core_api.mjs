@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// REVIEW4-53 LAB core API의 실제 HTTP mutation/readback/cleanup oracle다.
+// 파일 용도: REVIEW4-53 LAB core API의 실제 HTTP mutation/readback/cleanup oracle을 검증한다.
 
 import { spawn } from "node:child_process";
 import crypto from "node:crypto";

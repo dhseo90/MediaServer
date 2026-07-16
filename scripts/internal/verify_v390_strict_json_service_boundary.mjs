@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// REVIEW4-64 Slice 15: transport strict-JSON usage behind a semantic application service.
+// 파일 용도: REVIEW4-64 Slice 15 transport strict-JSON 사용의 semantic application service 경계를 검증한다.
 
 import crypto from "node:crypto";
 import fs from "node:fs";

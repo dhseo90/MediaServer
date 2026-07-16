@@ -1,5 +1,5 @@
 #include "ingress/analysis_session_lifecycle_application_adapter.h"
-
+// 파일 용도: 분석 세션 attach/detach lifecycle application adapter를 구현한다.
 #include <utility>
 
 #include "analysis/analysis_query.h"

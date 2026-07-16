@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// REVIEW4-64 Slice 21: Event POST projection/status behind a dependency-free application boundary.
+// 파일 용도: REVIEW4-64 Slice 21 Event POST projection/status의 dependency-free application 경계를 검증한다.
 
 import crypto from "node:crypto";
 import fs from "node:fs";
@@ -392,8 +392,8 @@ check("rollback dispatcher, status bytes, and three call-site orderings are exac
     try { assertStatusParity(mutation(afterStatus)); } catch { rejected = true; }
     assert(rejected, `status parity mutation escaped: ${name}`);
   }
-  // Later continuation slices may change unrelated incident-search functions. The exact
-  // status bytes and all three Record→Post→metadata orderings above remain the Slice 21 oracle.
+  // 후속 continuation slice는 무관한 incident-search 함수를 바꿀 수 있다. 위 exact status byte와
+  // 세 Record→Post→metadata ordering은 계속 Slice 21 oracle이다.
 });
 
 check("CMake, dispatch, and graph bind the exact successor", () => {

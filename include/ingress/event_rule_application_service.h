@@ -1,5 +1,5 @@
 #pragma once
-
+// 파일 용도: Event Rule runtime/evaluation application service 계약을 선언한다.
 #include "ingress/analysis_session_read_application_service.h"
 
 #include <cstddef>

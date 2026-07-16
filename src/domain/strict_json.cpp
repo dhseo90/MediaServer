@@ -1,5 +1,5 @@
 #include "domain/strict_json.h"
-
+// 파일 용도: 중복 키와 타입 경계를 엄격히 검사하는 JSON parser를 구현한다.
 #include <cctype>
 #include <cstdint>
 #include <string_view>

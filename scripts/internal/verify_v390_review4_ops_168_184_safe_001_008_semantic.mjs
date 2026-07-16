@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
-// REVIEW4 authored product/harness semantic verifier for OPS-168..184 and SAFE-001..008.
+// 파일 용도: REVIEW4 OPS-168..184와 SAFE-001..008의 product/harness semantic을 검증한다.
 import crypto from"node:crypto";import fs from"node:fs";import path from"node:path";import{fileURLToPath}from"node:url";
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"../.."),serverSh=read("server.sh"),manifest=JSON.parse(read("test/fixtures/project_feature_implementation_evidence.json")),proofs=JSON.parse(read("test/fixtures/v390_review4_semantic_proofs_safe_ops.json")),resolved=[];
 const ops=[

@@ -1,5 +1,5 @@
 #include "ingress/event_rule_application_service.h"
-
+// 파일 용도: Event Rule runtime/evaluation application service를 구현한다.
 #include "analysis/event_rule_engine.h"
 #include "ingress/analysis_rule_application_service.h"
 

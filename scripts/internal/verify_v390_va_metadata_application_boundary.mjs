@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// REVIEW4-64 Slice 25: VA metadata filter/build/sync and serializers behind an application boundary.
+// 파일 용도: REVIEW4-64 Slice 25 VA metadata filter/build/sync/serializer의 application 경계를 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";

@@ -46,9 +46,9 @@ const serverLogs = [];
 
 try {
   fs.mkdirSync(stateDir, { recursive: true });
-  // The product seeds demo rows when a registry is completely empty. A disabled
-  // sentinel keeps this verifier's throwaway registry isolated from that bootstrap
-  // path while the assertions below count only rows owned by this run.
+  // 제품은 registry가 완전히 비면 demo row를 seed한다. Disabled sentinel은 이 verifier의
+  // throwaway registry를 bootstrap 경로와 격리하며, 아래 assertion은 현재 run 소유 row만
+  // 집계한다.
   fs.writeFileSync(sourceFile, `${JSON.stringify({ sources: [{
     sourceId: "900000",
     displayName: "REVIEW4 Managed Sentinel",

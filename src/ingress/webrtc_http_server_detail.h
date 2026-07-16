@@ -1,5 +1,5 @@
 #pragma once
-
+// 파일 용도: split WebRTC HTTP server translation unit이 공유하는 내부 선언을 제공한다.
 #include "ingress/webrtc_http_server.h"
 
 #include <arpa/inet.h>

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// REVIEW4-64 Slice 30B: Analysis Session attach/detach lifecycle behind a standard DTO port.
+// 파일 용도: REVIEW4-64 Slice 30B 분석 세션 attach/detach lifecycle의 표준 DTO port 경계를 검증한다.
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -411,7 +411,7 @@ check("CMake and server help/list/dispatch register only the focused lifecycle g
     assert(fs.existsSync(path.join(root, file)), `lifecycle production file missing: ${file}`);
   assert(exactCount(read("server.sh"), /verify-v390-analysis-session-lifecycle-application-boundary/g) === 3,
     "server lifecycle help/list/dispatch registration count drift");
-  // Current graph and execution ledger are deliberately not read here. Their successor binding is a later closure gate.
+  // Current graph와 execution ledger는 의도적으로 여기서 읽지 않고 후속 closure gate가 결속한다.
 });
 
 for (const item of checks)

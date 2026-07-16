@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// REVIEW4-64 Slice 29: Event Rule runtime/evaluation behind an opaque application boundary.
+// 파일 용도: REVIEW4-64 Slice 29 Event Rule runtime/evaluation의 opaque application 경계를 검증한다.
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";

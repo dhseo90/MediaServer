@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
-
+// 파일 용도: REVIEW4-64 source request parser의 canonical owner와 transport 경계를 검증한다.
 import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";

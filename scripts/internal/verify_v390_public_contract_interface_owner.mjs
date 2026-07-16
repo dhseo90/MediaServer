@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { readWebRtcHttpServerBundle } from "./webrtc_http_server_source_bundle.mjs";
 import { copyWebRtcHttpServerSourceFixture } from "./webrtc_http_server_source_bundle.mjs";
-// REVIEW4-64 Slice 9: public contract/interface owner realignment verifier.
+// 파일 용도: REVIEW4-64 Slice 9 public contract/interface owner 재정렬을 검증한다.
 
 import crypto from "node:crypto";
 import fs from "node:fs";

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// REVIEW4-64 Slice 19: VLM observation reads through a dependency-free application boundary.
+// 파일 용도: REVIEW4-64 Slice 19 VLM observation read의 dependency-free application 경계를 검증한다.
 
 import fs from "node:fs";
 import os from "node:os";

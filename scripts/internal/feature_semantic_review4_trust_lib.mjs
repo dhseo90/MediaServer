@@ -1,4 +1,4 @@
-// REVIEW4 candidate, source blob, verifier dispatch, approval envelope의 공통 trust binding을 제공한다.
+// 파일 용도: REVIEW4 candidate/source/verifier/approval의 공통 trust binding을 제공한다.
 
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -718,8 +718,8 @@ function sharedIdentifiers(from, to, evidenceToken) {
     'result', 'this', 'null', 'void', 'canonical', 'owner', 'dispatch', 'action', 'readback', 'verifier', 'role',
   ]);
   const ids = value => new Set([...String(value || '').matchAll(/[A-Za-z_$][A-Za-z0-9_$]{2,}/g)].map(match => match[0]).filter(token => !stop.has(token.toLowerCase())));
-  // Symbols are reviewer-authored locator labels, not source-level def-use evidence.
-  // Only identifiers present in both exact source anchors may prove a typed edge.
+  // Symbol은 reviewer가 작성한 locator label이며 source-level def-use evidence가 아니다.
+  // 두 exact source anchor에 모두 존재하는 identifier만 typed edge를 증명할 수 있다.
   const left = ids(from.anchor || '');
   const right = ids(to.anchor || '');
   const shared = [...left].filter(token => right.has(token));
@@ -1045,10 +1045,10 @@ function strongOutcomeToken(token) {
 
 function extractNegativeBoundaries(pass) {
   const text = String(pass || '');
-  // Korean acceptance sentences often describe a positive save/render clause and
-  // then a different non-exposure boundary.  Binding across those coordinating
-  // clauses turns real writes into a false `no-write` obligation, so evaluate the
-  // subject/negative pair only inside its semantic clause.
+  // 한글 acceptance 문장은 positive save/render 절과 별도 non-exposure 경계를 함께 쓰기도 한다.
+  // 이들 병렬 절을 가로질러 결속하면 실제 write가 잘못된 `no-write` 의무로 바뀐다.
+  // 따라서 subject/negative pair는 각 semantic clause 안에서만 판정한다.
+  // 병렬 절 밖의 token은 같은 outcome의 근거로 사용하지 않는다.
   const clauses = text.split(/(?:저장\s*흐름과|저장하고|반영되고|반영하며|표시되고)/);
   const negative = String.raw`(?:없이|않(?:음|는다|고|도록)?|금지|거부|차단|비노출|제외|false(?![-A-Za-z0-9_])|no[- ]|not[- ]|must not|without)`;
   const specs = [

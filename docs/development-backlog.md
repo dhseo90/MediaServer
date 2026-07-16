@@ -6339,6 +6339,22 @@ REVIEW4-64 구조 개발은 완료됐지만 parked evidence를 확정하는 REVI
   top-level/array 구조 공유와 변이 대상 단일 item clone을 사용합니다. 장시간 검증 세션에서 15/15와
   exit 0을 직접 확인했으며 acceptance feature stage의 메모리 폭증을 막습니다. Truthfulness verifier는
   REVIEW4-51 historical `not-executed`와 REVIEW4-64 current completion owner를 출력에서 명시 분리합니다.
+- Clean commit `53d7fbc9`의 첫 canonical actual은 build/34 feature gate 뒤 30분 child integrated smoke
+  529초에서 `verify-code-comments` 때문에 fail-stop했습니다. Codec/VA overlay/redaction/rule/VA event/image
+  analysis 자체는 20개 PASS였고, UI/120분/final integrity는 순서대로 not-run입니다. 원인은 REVIEW4-64
+  신규/split 파일 header 44개와 machine origin marker를 포함한 English-only comment 2,178개였습니다.
+  기존 줄 수를 유지해 44개 파일의 한글 `파일 용도` header를 보강하고, origin/baseline marker만 좁은
+  policy regex로 분류하고, 나머지 English comment 19개를 한글화해 734 files/header 0/English-only 0을
+  통과했습니다. 30분 child cleanup은 PID/8081/8555/artifact 128,879B 제거 모두 PASS였으나 parent가 아직
+  생성되지 않은 30분/UI cleanup summary의 measurement source까지 요구해 FAIL로 오표기한 조건도 객체 존재
+  guard와 contract assertion으로 수정했습니다. 최초 실패 output을 보존한 canonical retry는 그 output root만
+  source dirtiness에서 제외하며, preflight와 final-integrity가 동일한 `sourceWorktreeClean`/allowed root/unapproved
+  path 경계를 검증합니다. 따라서 다른 source 변경은 계속 current-HEAD acceptance를 차단합니다.
+- 수정 source freeze 후보 `5be8b5813a40d5de7f64d6951d32bc17e0d11af0725d0c8033005a3ac595174f`는
+  독립 검토에서 986/986 승인됐습니다. 이전 승인 대비 211개 drift 중 209개는 comment/hash-only였고,
+  SAFE-212/OPS-179는 cleanup/retry/final-integrity 최신 locator로 재결속됐으며 required outcome은 불변입니다.
+  승인 적용 뒤 semantic audit 51/51, exact 424 contract 15/15, inventory 16/16, coverage 7/7,
+  feature evidence 986/986·validation 0·global 0·negative 15/15를 통과했습니다.
 
 ## 후속 이슈 추천 규칙
 

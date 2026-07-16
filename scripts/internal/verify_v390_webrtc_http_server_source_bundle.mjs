@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// REVIEW4-64 Slice 11: split-safe WebRTC HTTP server verifier source bundle gate.
+// 파일 용도: REVIEW4-64 Slice 11 split-safe WebRTC HTTP server verifier source bundle을 검증한다.
 
 import crypto from "node:crypto";
 import fs from "node:fs";

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// REVIEW4-64 Slice 12: physical WebRTC HTTP server translation-unit split gate.
+// 파일 용도: REVIEW4-64 Slice 12 WebRTC HTTP server translation-unit physical split을 검증한다.
 
 import crypto from "node:crypto";
 import fs from "node:fs";

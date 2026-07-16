@@ -273,7 +273,7 @@ async function expectMutationCrash(item, crashStage) {
   try {
     await request(item.method, item.route, payloadFor(item, crashStage));
   } catch {
-    // The injected _exit closes the socket before an HTTP response is available.
+    // 주입한 _exit는 HTTP response가 오기 전에 socket을 닫는다.
   }
   const child = serverProcess;
   const exited = await waitForProcessExit(child, 10000);

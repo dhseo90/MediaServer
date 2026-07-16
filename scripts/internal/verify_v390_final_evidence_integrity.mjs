@@ -80,7 +80,16 @@ check("source provenance and command ledger are complete", () => {
   assert(/^[a-f0-9]{40}$/.test(String(summary.sourceProvenance?.commitSha || "")), "source commit SHA missing");
   assert(Boolean(summary.sourceProvenance?.branch), "source branch missing");
   assert(typeof summary.sourceProvenance?.worktreeClean === "boolean", "source worktree state missing");
-  if (summary.executionMode === "actual") assert(summary.sourceProvenance.worktreeClean === true, "actual final evidence must start from a clean worktree");
+  assert(typeof summary.sourceProvenance?.sourceWorktreeClean === "boolean", "source-only worktree state missing");
+  assert(fs.realpathSync(path.resolve(summary.sourceProvenance?.allowedArtifactRoot || "")) === outputReal,
+    "start provenance allowed artifact root mismatch");
+  assert(Array.isArray(summary.sourceProvenance?.unapprovedDirtyPaths), "start provenance unapproved path ledger missing");
+  if (summary.executionMode === "actual") {
+    assert(summary.sourceProvenance.sourceWorktreeClean === true,
+      "actual final evidence must start without source changes outside the acceptance artifact root");
+    assert(summary.sourceProvenance.unapprovedDirtyPaths.length === 0,
+      "actual final evidence started with unapproved dirty paths");
+  }
   assert(/^[a-f0-9]{64}$/.test(String(summary.sourceProvenance?.worktreeStatusSha256 || "")), "source worktree status hash missing");
   assert(summary.sourceProvenance.commitSha === summary.sourceProvenanceEnd?.commitSha, "source HEAD changed during acceptance execution");
   assert(summary.sourceProvenance.commitSha === currentProvenance.commitSha, "acceptance source HEAD is not current HEAD");

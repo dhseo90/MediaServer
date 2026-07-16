@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// REVIEW4-64 Slice 20: incident-memory projection/search/privacy behind an application boundary.
+// 파일 용도: REVIEW4-64 Slice 20 incident-memory projection/search/privacy의 application 경계를 검증한다.
 
 import fs from "node:fs";
 import os from "node:os";

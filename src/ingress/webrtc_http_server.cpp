@@ -1067,8 +1067,8 @@ void RecoverAnalysisRegistryTemporaryFiles(const std::filesystem::path& storage_
         ::_exit(88);
     }
     if (!parent_exists) {
-        // A transaction artifact cannot exist without its parent directory. The first
-        // registry mutation will create the directory before preparing a transaction.
+        // Transaction artifact는 parent directory 없이 존재할 수 없다. 첫 registry mutation이
+        // transaction 준비 전에 directory를 생성한다.
         return;
     }
     int directory_flags = O_RDONLY;

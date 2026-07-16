@@ -1,5 +1,5 @@
 #pragma once
-
+// 파일 용도: 중복 키와 타입 경계를 엄격히 검사하는 JSON 파서 계약을 선언한다.
 #include <optional>
 #include <string>
 #include <unordered_set>

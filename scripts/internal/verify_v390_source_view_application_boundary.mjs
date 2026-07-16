@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// REVIEW4-64 Slice 16: transport source/view registry access through an application boundary.
+// 파일 용도: REVIEW4-64 Slice 16 transport source/view registry access의 application 경계를 검증한다.
 
 import fs from "node:fs";
 import os from "node:os";

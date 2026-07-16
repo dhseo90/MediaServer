@@ -54,6 +54,16 @@ check("complete fixture integrity passes only with explicit fixture allowance", 
   assert(runIntegrity(workspace, false).status !== 0, "fixture must not be final-evidence eligible by default");
 });
 
+check("start provenance allows only the canonical artifact root", () => {
+  const workspace = makeFixture("start-provenance-boundary");
+  const summaryPath = path.join(workspace, "summary.json");
+  const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
+  summary.sourceProvenance.allowedArtifactRoot = os.tmpdir();
+  fs.writeFileSync(summaryPath, `${JSON.stringify(summary, null, 2)}\n`, "utf8");
+  assert(runIntegrity(workspace, true).status !== 0,
+    "start provenance with a different allowed artifact root must fail");
+});
+
 check("duplicate screenshot files are rejected", () => {
   const workspace = makeFixture("duplicate-screenshot");
   const screenshots = path.join(workspace, "manual-duplicate");

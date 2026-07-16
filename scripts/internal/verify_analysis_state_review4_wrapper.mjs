@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Runs the compiled analysis-state smoke and independently parses REVIEW4-safe observations.
+// 파일 용도: compiled analysis-state smoke를 실행하고 REVIEW4-safe observation을 독립 판독한다.
 
 import { spawnSync } from "node:child_process";
 import path from "node:path";
