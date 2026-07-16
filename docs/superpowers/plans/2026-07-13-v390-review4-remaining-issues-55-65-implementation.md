@@ -79,8 +79,23 @@ Helper 기본 current strict 정책은 유지하고 acceptance/one-shot만 `conf
 `/client/api/views/{id}/events`와 observed `/client/events`를 혼용하던 8개 client-events UI 증적을 분리했습니다.
 Canonical route와 control projection은 API 경로를 유지하고 `uiEvidence.screenRoute`와 native observed route만
 `/client/events`로 맞췄습니다. Coverage contract 12/12, native exact 15/15, current evidence 7/7,
-Policy producer 8/8, independence 10/10, eligibility 7/7, visual 6/6, acceptance contract 12/12,
+Policy producer 8/8, independence 10/10, eligibility 7/7, visual 6/6, acceptance contract 13/13,
 fixture cleanup 11/11, feature evidence 986행 validation/global error 0을 확인했습니다.
+
+Correction commit `c8dc5340`의 다음 canonical run은 build/34 feature gate와 real 30분 1,800초
+118 PASS/0 FAIL을 다시 통과하고 published seed 정책 오류도 넘었지만, UI server ownership 확인에서
+정상 `lsof -t` 출력의 trailing 빈 줄을 PID `0`으로 변환해 `http=5200,0`, `rtsp=5200,0`으로 판정하면서
+8회 bounded retry 뒤 fail-stop했습니다. Exact 424 이후 단계는 not-run이고 UI/root cleanup은 PASS입니다.
+Listener parser는 trim 뒤 빈 줄을 먼저 제거하고 양의 정수 PID만 dedupe하도록 수정했으며 trailing newline,
+duplicate, zero, invalid, blank 입력 contract를 추가해 acceptance contract 13/13을 통과했습니다.
+
+Correction candidate `bd9b9834d0d8f75b34e2285dc555d2ede97dc5c75833ec9dbe036d97dd75f021`는
+독립 reviewer가 986행 전부 재계산해 승인 986, 거절·불확실·오류 0으로 판정했습니다. 이전 후보의 985행은
+불변이고 `OPS-179`만 readback 위치 이동으로 갱신됐으며 required outcome과 5-edge는 유지됩니다. 새 approval
+ledger와 implementation manifest 적용은 완료했지만 actual acceptance 판정은 correction commit 뒤 clean HEAD
+canonical 전체 재실행 결과만 사용합니다. 최초 exact binding 갱신은 implementation manifest 적용보다 먼저
+수행해 4건 stale FAIL이었고, 적용 후 canonical/exact/current SHA를 순서대로 다시 결속해 exact 15/15와
+current evidence 7/7을 통과했습니다.
 
 이 correction 검증도 actual exact 424 browser 실행이나 120분 PASS가 아닙니다. 수정 commit 뒤 source tree가
 clean인 current HEAD에서 canonical bundle 전체를 처음부터 다시 실행해야 REVIEW4-65 완료를 판정합니다.

@@ -101,18 +101,24 @@ export function consumeAcceptanceAdminPassword(sourceEnv = process.env) {
 export function listListenerPids(port) {
   if (!Number.isInteger(Number(port)) || Number(port) <= 0 || Number(port) > 65535) return [];
   try {
-    return [...new Set(execFileSync("lsof", [
+    return parseListenerPidOutput(execFileSync("lsof", [
       "-nP",
       `-iTCP:${Number(port)}`,
       "-sTCP:LISTEN",
       "-t",
-    ], { encoding: "utf8", env: secretStrippedProcessEnv() })
-      .split(/\r?\n/)
-      .map(value => Number(value.trim()))
-      .filter(Number.isInteger))];
+    ], { encoding: "utf8", env: secretStrippedProcessEnv() }));
   } catch {
     return [];
   }
+}
+
+export function parseListenerPidOutput(output) {
+  return [...new Set(String(output || "")
+    .split(/\r?\n/)
+    .map(value => value.trim())
+    .filter(Boolean)
+    .map(Number)
+    .filter(value => Number.isInteger(value) && value > 0))];
 }
 
 function createState({ rootDir, runId, fixtureMode, buildPath, timeoutMs, maxPortAttempts }) {

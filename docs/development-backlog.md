@@ -6369,7 +6369,7 @@ REVIEW4-64 구조 개발은 완료됐지만 parked evidence를 확정하는 REVI
   cleanup은 PASS입니다. 기본 helper의 current-source strict 판정은 유지하고, acceptance/one-shot만
   `config/docs_ui_assets.json`의 publishedRelease/sourceVersion/status/SHA에 결속된
   `--published-seed-baseline`을 명시하도록 수정했습니다. 기본 거부·published 성공·mismatch 거부와
-  plan/runtime attestation을 acceptance contract 12/12, fixture cleanup 11/11로 확인했으며 수정 commit 뒤
+  plan/runtime attestation을 acceptance contract 13/13, fixture cleanup 11/11로 확인했으며 수정 commit 뒤
   canonical 전체를 build부터 다시 실행해야 합니다.
 - Correction 사전 검증에서 `SRC-038` 뒤 `CLIENT-023`도 같은 route drift로 연속 실패해 단일 항목이 아니라
   canonical `/client/api/views/{id}/events`를 쓰는 8개 client-events 증적의 requested/observed 혼용으로
@@ -6379,6 +6379,21 @@ REVIEW4-64 구조 개발은 완료됐지만 parked evidence를 확정하는 REVI
   eligibility 7/7, visual 6/6, feature evidence 986행 validation/global error 0, audit 51/51, approval 986/986를
   통과했습니다. 이 정적 correction은 actual exact 424/120분 PASS가 아니며 clean correction commit에서
   canonical 전체 재실행이 필요합니다.
+- Clean correction commit `c8dc5340`의 canonical run은 build/34 feature gate와 real 30분 1,800초
+  118 PASS/0 FAIL을 통과하고 published seed bootstrap도 넘었지만, UI server listener ownership에서 정상
+  `lsof -t` trailing newline을 빈 문자열→`Number("")`→PID 0으로 변환해 `5200,0`으로 오판하면서
+  8회 bounded retry 뒤 fail-stop했습니다. Exact 424/Policy/120/final integrity는 not-run이고 cleanup은
+  PASS입니다. `parseListenerPidOutput`을 분리해 blank/zero/invalid PID를 제거하고 positive integer만
+  dedupe하도록 수정했으며 trailing newline·duplicate·zero·invalid·blank RED/PASS를 acceptance contract
+  13/13으로 고정했습니다. 수정 commit 뒤 canonical 전체를 다시 시작해야 합니다.
+- Listener parser correction candidate `bd9b9834d0d8f75b34e2285dc555d2ede97dc5c75833ec9dbe036d97dd75f021`는
+  독립 재계산에서 986/986 승인, 거절·불확실·오류 0이었습니다. 이전 후보 대비 985행은 불변이고
+  `OPS-179` 한 행만 contract readback 위치가 이동해 digest `903578f08f770fa001558ddced298db6e62141e2190bf3ce3f0f5fafd8752953`로
+  갱신됐으며 required outcome과 owner→dispatch→action→state→readback→verifier 5-edge는 유지됩니다.
+  새 approval ledger와 canonical implementation manifest에 적용했습니다. 적용 직후 exact manifest를 먼저
+  생성한 순서 때문에 source binding 4건이 stale해진 최초 검증은 FAIL이었고, 최종 implementation manifest
+  기준으로 canonical/exact binding과 current not-run SHA를 다시 생성해 exact 15/15, current 7/7을 통과했습니다.
+  이 정적 승인은 actual browser·120분·final integrity PASS가 아닙니다.
 
 ## 후속 이슈 추천 규칙
 

@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import {
   assertSecretValuesAbsentFromTree,
   consumeAcceptanceAdminPassword,
+  parseListenerPidOutput,
   resolveAcceptanceRoleSecrets,
   secretStrippedProcessEnv,
 } from "./v390_acceptance_ui_environment.mjs";
@@ -233,6 +234,15 @@ check("published seed baseline is explicit, policy-bound, and rejects mismatched
   ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
   assert(mismatchResult.status !== 0 && mismatchResult.stderr.includes("seed fixture must pin v3.8.0"),
     "published seed preparation accepted a current-source fixture outside the published baseline");
+});
+
+check("listener ownership parser rejects trailing blank and zero pseudo-PIDs", () => {
+  assert(JSON.stringify(parseListenerPidOutput("5200\n")) === JSON.stringify([5200]),
+    "trailing lsof newline created a pseudo-PID");
+  assert(JSON.stringify(parseListenerPidOutput("5200\r\n5200\n0\ninvalid\n")) === JSON.stringify([5200]),
+    "listener parser did not reject duplicate, zero, or invalid PIDs");
+  assert(parseListenerPidOutput("\n\r\n").length === 0,
+    "blank lsof output created a listener owner");
 });
 
 check("acceptance child environments and artifacts exclude retained secrets", () => {

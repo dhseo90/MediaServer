@@ -234940,7 +234940,7 @@
           "file": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs",
           "symbol": "check:actual-mode-fixture-order",
           "anchor": "assert(summary.stages.find(item => item.id === \"server-longrun-120\")?.status === \"not-run\", \"120 stage must be not-run without trigger\");",
-          "line": 423,
+          "line": 433,
           "contextSha256": "99a58fdc0a75623fcb160ad21075ffe6aa7cd6e3177c9b93f59a00b81fe9c3ca"
         },
         "verifier": {
@@ -234982,14 +234982,14 @@
           "kind": "structural-producer-assertion",
           "witness": "OPS-179 state-readback",
           "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:385",
-          "target": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs:423"
+          "target": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs:433"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v390-test-acceptance-bundle-contract",
-          "source": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs:423",
+          "source": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs:433",
           "target": "server.sh:2357"
         }
       ],
@@ -235035,7 +235035,7 @@
           "sha256": "87351b8299314422d265153ec0ef3714914f164428cc7d403a1ea59b00cae7ae"
         }
       },
-      "sourceFlowDigest": "75944bc6bd89a74e5c2905d91a44c49aa2f4bfac24b14e5448c583935c47f821",
+      "sourceFlowDigest": "903578f08f770fa001558ddced298db6e62141e2190bf3ce3f0f5fafd8752953",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -235078,10 +235078,10 @@
           "readback": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs",
             "symbol": "check:actual-mode-fixture-order",
-            "trackedBlobSha256": "808c5b5dd38611597530feaa2caff21d39ca58761ae99b5f11ab079f68c15e7d",
+            "trackedBlobSha256": "44b486c648de43fe7ba1fdab3ab272e2de24cfa8ce816490d839043bf6cf31d5",
             "enclosingBodySha256": "3ebf90b9755f6cf218fa47d02da5ffae5d9db168a2716628216b56cccd2fa549",
-            "enclosingBodyStartLine": 373,
-            "enclosingBodyEndLine": 441,
+            "enclosingBodyStartLine": 383,
+            "enclosingBodyEndLine": 451,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -235094,7 +235094,7 @@
             "enclosingBodyScope": "file-fallback"
           }
         },
-        "verifierFileSha256": "808c5b5dd38611597530feaa2caff21d39ca58761ae99b5f11ab079f68c15e7d",
+        "verifierFileSha256": "44b486c648de43fe7ba1fdab3ab272e2de24cfa8ce816490d839043bf6cf31d5",
         "dispatch": {
           "command": "verify-v390-test-acceptance-bundle-contract",
           "file": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs",
@@ -236259,5 +236259,5 @@
       }
     }
   ],
-  "candidateDigest": "8a72634689cb0e9b6657a33268b5b5fc113ec8b34daabc373cc4c1e17fbb083c"
+  "candidateDigest": "bd9b9834d0d8f75b34e2285dc555d2ede97dc5c75833ec9dbe036d97dd75f021"
 }
