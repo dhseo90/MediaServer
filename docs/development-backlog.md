@@ -123,7 +123,7 @@ Structure -> Release 순서로 진행합니다. 아래 표의 순서는 v3.9.0�
 | 25 | v3.9.0 (25) route/control/action automation coverage matrix | P0 | historical source claim / REVIEW4-56~60 대기 | 986개 inventory와 exact `manualUiCaseId` 424개 선택 수치는 유지하지만, 기존 423+negative 1 readiness는 기능별 workflow·canonical schema·primary action oracle·visual matrix·Policy 독립성 완료 근거가 아닙니다. REVIEW4-56~60이 current workflow readiness를 다시 닫습니다 |
 | 26 | v3.9.0 (26) final evidence re-run and cleanup | P0 | current 재실행 대기 | Evidence 14의 source `8fe583d8`·26-command·30분 118/0·UI 8/8·cleanup/integrity PASS는 historical evidence로 보존합니다. Current 986 inventory source에 대한 안정화, 실제 30분, exact 424 Policy v4 UI, AGENTS 7.6.2 판정상 필요한 120분, PID/port/artifact cleanup과 final integrity canonical 재실행은 미실행입니다 |
 | 27 | v3.9.0 (27) deferred product decision owner sign-off | P1 | decision record | `decision-record`로 역할 기반 owner와 excluded/deferred 결정을 기록합니다. implementation은 `not-executed`이며 개인 이름, 실제 구현, field/release PASS를 주장하지 않습니다 |
-| 28 | v3.9.0 (28) structure stabilization implementation readiness | P1 | historical readiness / REVIEW4-51 superseded | 당시 `gate-ready`는 dependency/contract/slice gate 정의만 뜻했습니다. 최신 결정은 50~63 완료 뒤 current `v3.9.0`에서 REVIEW4-64를 실행하는 것이며 implementation은 아직 `not-executed`입니다 |
+| 28 | v3.9.0 (28) structure stabilization implementation readiness | P1 | historical readiness / REVIEW4-51 superseded | 당시 `gate-ready`와 REVIEW4-51 `approved-scheduled`/`not-executed`는 dependency/contract/slice 실행 승인 기록입니다. 이후 current `v3.9.0` REVIEW4-64는 Slice 32와 graph final target·구조 테스트·cleanup으로 완료됐고 REVIEW4-65 acceptance는 별도 pending입니다. |
 | 29 | v3.9.0 (29) real external field smoke gate | P2 | 조건부 미실행 | TURN/WHEP, ONVIF 실기기, 외부 VLM/provider는 조건 부재로 `conditional-not-run`입니다. external contact 0, field/release claim false이며 실행 완료/PASS가 아닙니다 |
 
 ### v3.9.0 (17) Evidence/Closure 13~18 개발 기록
@@ -2558,7 +2558,7 @@ REVIEW4는 아래 순서를 고정합니다. 앞 단계가 FAIL이면 뒤 단계
 | 62 | V390-REVIEW4-62 | Acceptance | self-contained one-command 실행 환경 | P0 | 완료 / actual 장시간·UI 미실행 | Canonical command는 output root만 받아 acceptance-owned throwaway HTTP/RTSP server, bounded port retry, admin/operator/viewer/integrator account와 0600 storage-state, Playwright/browser provenance, server log/PID/listener/artifact ownership과 cleanup을 직접 준비합니다. Exact runner는 contained runtime descriptor를 받아 case별 fresh role session, typed form 15건과 persisted mutation 35건의 실제 entry/field/identity/request lifecycle, cross-role action session, runtime-only secret resolver, collection/item authoritative readback과 aggregate cleanup을 수행합니다. Source/view는 ordered pair, ONVIF는 atomic pair로 결속하고 신규 pair는 isolated server teardown 전 양쪽 disabled 상태까지 확인합니다. `/ops/users` product case 20건과 관련 cross-role action은 admin으로 교정했으며 canonical role 분포는 admin 20/anonymous 16/operator 346/viewer 42입니다. SRC-018의 allowedRuleIds/clientGroups 편집 control도 제품 UI에 추가했습니다. 외부 HTTP/PID/log/role-state/port/temp-root option은 거부하며 첫 실패 뒤 later stage/case는 `not-run`입니다. Acceptance contract 10/0, exact runtime 15/0, adapter 8/0, final integrity 9/0, longrun measurement 12/0을 통과했지만 실제 30분·exact 424 browser·80 visual·120분은 실행하지 않았습니다. | 5.6 Sol | 매우 높음 (xhigh) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. 복합 실행 경계와 release correctness 상향 적용 |
 | 63 | V390-REVIEW4-63 | Product Scope | deferred 기능 실제 owner 확정 | P1 | 완료 | `.github/CODEOWNERS`의 effective rule에 따라 실제 책임자 `@dhseo90`를 `repository-code-owner`/`repository-scoped-product-scope-attestation`으로 결속하고 기능 역할과 조직 권한 추론을 분리했습니다. Exact 5개는 action write, persistent credential store, production restore, external provider call, model-backed Re-ID이며 외부 field smoke는 별도 조건부입니다. Production restore의 runbook/staging 구현과 product automation 미구현, external provider의 product runtime 금지와 conditional harness 구현, Re-ID의 `implemented-opt-in-experimental` source와 supported release 제외를 구분합니다. 모든 후속은 `post-v3.9-unassigned`, scheduled=false이며 구조화 dependency 승인 전 target version을 예약하지 않습니다. Current release execution/UI/30분/120분/field/release PASS는 주장하지 않습니다. | 5.6 Terra | 중간 (medium) | 영향도 1, 불확실성 1, 검증 난이도 1, 변경 범위 1, 총 4점. 제품 범위 결정 기록이며 상향 규칙 없음 |
 | 64 | V390-REVIEW4-64 | Structure | 승인된 구조 안정화 slice 실행 | P0 | 완료 / current continuation Slice 32 및 구조 final target 충족 | Historical ordered Slice 1~5와 current continuation Slice 1~32를 순서대로 닫았습니다. Slice 32는 standard-only deep DTO와 opaque egress/source session port, canonical adapter로 transport의 SessionManager·WebRTC egress/source session·source registry 직접 결속을 제거해 transport→core-media를 4→0으로 닫았고 application→core-media 4건은 canonical adapter 결속으로 유지합니다. Focused8/8, predecessor40/40, structure15/15, source bundle6/6, physical split6/6, build100%, analysis181/181, ICE8/8, codec67/67(외부3 제외), SSE5/5, side5/5, WS9/9, WebRTC metadata8/8, RTSP6/6, Ops lifecycle/source health와 LAB core PASS입니다. 최종 semantic review의 verifier false-PASS P1 1건은 exact mapping과 paired-swap·descriptor omission RED로 수정했습니다. Auth-off codec Bash 3.2 empty-array nounset 후속을 수정·RED 결속했습니다. Current graph는 production215/C++103, 위반0/SCC0이고 SHA는 `215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a`입니다. 임시 파일30개/32,763바이트 삭제와 listener0을 확인했습니다. REVIEW4-64 구조 개발 완료이며 parked evidence를 확정하는 REVIEW4-65 독립 acceptance PASS는 아닙니다. | 5.6 Sol | 최대 (max) | 영향도 2, 불확실성 2, 검증 난이도 2, 변경 범위 2, 총 8점. Physical split 뒤 dependency 방향과 final evidence를 순차 폐쇄하는 최난도 작업 |
-| 65 | V390-REVIEW4-65 | Final Test | current HEAD 독립 acceptance와 evidence | P0 | 64 완료 후 실행 승인됨 | 50~64가 닫힌 clean HEAD에서 정적/빌드 gate, 30분, exact 424 Policy v4 UI, AGENTS 7.6.2 판정에 따른 120분, cleanup, final integrity를 승인된 canonical command로 수행합니다. current commit, 명령, 첫 실패 위치, 재현 명령, 미실행/조건부 항목을 보존하며 historical PASS를 재사용하지 않습니다. | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 6점. release correctness 검증 상향 적용 |
+| 65 | V390-REVIEW4-65 | Final Test | current HEAD 독립 acceptance와 evidence | P0 | source-flow·runner·secret boundary 구현 완료 / clean-HEAD actual 실행 대기 | 50~64가 닫힌 clean HEAD에서 정적/빌드 gate, 30분, exact 424 Policy v4 UI, AGENTS 7.6.2 판정에 따른 120분, cleanup, final integrity를 승인된 canonical command로 수행합니다. Slice 32 뒤 stale locator를 current production owner/action/state/oracle로 재결속하고 986행 독립 approval을 다시 적용한 clean HEAD만 입력으로 허용합니다. Acceptance-owned throwaway `admin`은 `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD` 런타임 값을 provenance 수집 전에 process env에서 회수해 메모리로만 전달하고 다른 role은 실행별 생성합니다. 값은 argv·파일·summary/report·media server/browser/feature/longrun child env에 남기지 않고 exact 424 runner에만 memory-only role secret env로 전달한 뒤 artifact byte scan 후 해제합니다. 실제 PASS/FAIL과 commit SHA, 명령, 첫 실패, duration, cleanup의 source-of-truth는 `docs/release-artifacts/v3.9.0/test-acceptance-current-final/summary.json`이고 이 source 행은 historical PASS를 재사용하거나 실행 전 PASS를 주장하지 않습니다. | 5.6 Sol | 높음 (high) | 영향도 2, 불확실성 1, 검증 난이도 2, 변경 범위 1, 총 6점. release correctness 검증 상향 적용 |
 
 #### REVIEW4 단계 의존성과 중단 조건
 
@@ -6312,6 +6312,33 @@ WS9/9, WebRTC metadata8/8, RTSP6/6, Ops lifecycle/source health와 LAB core를 �
 격리 FAIL, auth-on 401, auth-off codec empty-array nounset FAIL은 정확한 명령과 Bash 3.2-safe optional
 argument 수정 뒤 재검증했습니다. 임시 파일30개/32,763바이트 삭제와 listener0을 확인했습니다. Slice32와
 REVIEW4-64 구조 개발은 완료됐지만 parked evidence를 확정하는 REVIEW4-65 독립 acceptance PASS는 아닙니다.
+
+## V390-REVIEW4-65 current source-flow와 acceptance 구현 맵
+
+- `feature_implementation_manifest_lib.mjs`의 locator refresh와
+  `feature_semantic_review4_trust_lib.mjs`의 independent decision 검증이 Slice 32 뒤 이동한 owner를
+  canonical 986행 manifest에 재결속합니다. `verify_v390_review4_feature_semantic_source_audit.mjs`는
+  candidate/approval/current source digest를 분리하고 승인 전 manifest 적용을 거부합니다.
+- `v390_ui_native_exact_cases_lib.mjs`와 `v390_ui_native_exact_cases.json`은 canonical 424 workflow를
+  current owner/control/action/readback에 다시 생성하며 `verify-v390-ui-native-exact-cases-contract`가
+  ordered 424, positive 423, negative route 1, unsupported 0을 판정합니다.
+- `consumeAcceptanceAdminPassword`, `startSelfContainedUiEnvironment`, `createV390UiCaseRuntime`,
+  `secretStrippedBrowserEnv`, `run_v390_ui_native_exact_cases.mjs`는 parent 시작 시 admin env 제거,
+  non-exact child/browser env 차단, generated role/fixture secret 메모리 보유, raw·URI·form·JSON escaped·
+  base64/base64url artifact byte scan 뒤 release를 결속합니다.
+- `verify-v390-test-acceptance-bundle-contract` 11/11, `verify-v390-ui-native-exact-cases-contract`
+  15/15, 변경 MJS `node --check`, Auth Bash `bash -n`, `git diff --check`, C++ build 100%,
+  `verify-v290-2x-compatibility-baseline` 20/20을 통과했습니다. 이 결과는 실제 30분·exact 424 browser·
+  120분·final integrity PASS가 아니며, 해당 판정은 clean-HEAD canonical bundle summary만 사용합니다.
+- OPS-182의 historical/current/acceptance 결합 claim을 독립 검토에서 두 차례 거절한 뒤 exact feature
+  contract를 실제 readback이 AND 검증하는 current graph 7개 지표로 좁혔습니다. 최종 candidate
+  `93b0b1eeeda84b37d3a0c4242cf9b9d6d9f8ebda9a24b5e7a03d7aa3d5ed1c2c`는 독립 986행
+  재계산과 approval/apply를 통과했고 semantic audit 51/51, feature evidence 986행·validation 0·
+  REVIEW4 global 0·negative 15/15, project inventory 16/16, coverage 7/7을 확인했습니다.
+- `verify_feature_implementation_evidence.mjs`의 25MB manifest negative fixture는 전체 deep clone 대신
+  top-level/array 구조 공유와 변이 대상 단일 item clone을 사용합니다. 장시간 검증 세션에서 15/15와
+  exit 0을 직접 확인했으며 acceptance feature stage의 메모리 폭증을 막습니다. Truthfulness verifier는
+  REVIEW4-51 historical `not-executed`와 REVIEW4-64 current completion owner를 출력에서 명시 분리합니다.
 
 ## 후속 이슈 추천 규칙
 

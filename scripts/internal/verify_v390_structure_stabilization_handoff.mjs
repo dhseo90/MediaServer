@@ -33,9 +33,8 @@ const command = "verify-v390-structure-stabilization-handoff";
 const targetScript = "verify_v390_structure_stabilization_handoff.mjs";
 const schema = "media-server.v390-structure-stabilization-handoff.v1";
 const planPath = "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md";
-const scopeDecisionPath = "test/fixtures/v390_structure_execution_scope_decision.json";
-const readinessPath = "test/fixtures/v390_structure_stabilization_readiness.json";
-const readinessCommand = "verify-v390-structure-stabilization-readiness";
+const executionPath = "test/fixtures/v390_structure_stabilization_execution.json";
+const currentGraphCommand = "verify-v390-review4-structure-stabilization-execution";
 
 const files = {
   plan: readText(planPath),
@@ -54,7 +53,7 @@ const files = {
 const checks = [];
 const normalizedRecords = normalizeWhitespace(files.releaseRecords);
 
-check("typed handoff decision is bound to actual filesystem readiness", verifyTypedHandoffState);
+check("typed handoff is bound to the actual current source graph", verifyTypedHandoffState);
 
 check("handoff plan covers each structure target and keeps behavior unchanged", () => {
   for (const snippet of [
@@ -74,50 +73,59 @@ check("handoff plan covers each structure target and keeps behavior unchanged", 
     "REVIEW4-64 Slice 2: `pure-json-builder-extraction`",
     "REVIEW4-64 Slice 3: `route-handler-group-extraction`",
     "REVIEW4-64 Slice 4: `product-ui-workspace-split`",
-    "REVIEW4-64 Slice 5: `source-read-model-boundary`",
-    "REVIEW4-64 Slice 6: `docs-template-and-vlm-index`",
-    "approved-scheduled-after-review4-50-63",
+    "| 5 | `source-read-model-boundary` |",
+    "REVIEW4-64 Slice 5: `vlm-parser`",
+    "| 6 | `docs-template-and-vlm-index` |",
+    "REVIEW4-64 Slice 6: `verifier-docs`",
+    "**Execution status:** `completed`",
+    "continuation Slice 1~32",
+    "`final-targets-satisfied`",
+    "REVIEW4-65 generated/actual acceptance는 별도 pending",
   ]) {
     assertIncludes(files.plan, snippet, "structure handoff plan");
   }
 });
 
 function verifyTypedHandoffState() {
-  const decision = readJson(scopeDecisionPath);
-  const readiness = readJson(readinessPath);
-  assert(decision.actualGraph?.path, "typed handoff decision actual graph path is missing");
-  const actualGraphPath = decision.actualGraph.path;
-  const actualGraph = readJson(actualGraphPath);
-  const actualGraphSha256 = sha256File(actualGraphPath);
-  const readinessRun = spawnSync(path.join(rootDir, "server.sh"), [readinessCommand], {
+  const execution = readJson(executionPath);
+  assert(execution.currentGraph?.path, "structure execution current graph path is missing");
+  const currentGraphPath = execution.currentGraph.path;
+  const currentGraph = readJson(currentGraphPath);
+  const currentGraphSha256 = sha256File(currentGraphPath);
+  const graphRun = spawnSync(path.join(rootDir, "server.sh"), [currentGraphCommand, "--graph-only"], {
     cwd: rootDir,
     encoding: "utf8",
     env: process.env,
   });
-  if (readinessRun.error) throw readinessRun.error;
-  assert(readinessRun.signal === null, `actual filesystem readiness terminated by signal ${readinessRun.signal}`);
-  const readinessStatus = readinessRun.status;
-  assert(readinessStatus === 0 &&
-    decision.schema === "media-server.v390-structure-execution-scope-decision.v2" &&
-    decision.decisionId === "V390-REVIEW4-51" &&
-    decision.status === "approved-scheduled" &&
-    decision.implementationStatus === "not-executed" &&
-    decision.approval?.approved === true &&
-    decision.approval?.v400TransferAllowed === false &&
-    readiness.schema === "media-server.v390-structure-stabilization-readiness.v2" &&
-    readiness.status === "approved-scheduled-after-review4-50-63" &&
-    readiness.implementationStatus === "not-executed" &&
-    readiness.refactorEntryReady === false &&
-    readiness.executionScopeDecision?.path === scopeDecisionPath &&
-    readiness.actualGraphEvidence?.path === actualGraphPath &&
-    decision.actualGraph.schema === actualGraph.schema &&
-    decision.actualGraph.sha256 === actualGraphSha256 &&
-    decision.actualGraph.productionFiles === actualGraph.expectedProductionFiles &&
-    decision.actualGraph.moduleOwners === actualGraph.moduleClassifiers?.length &&
-    decision.actualGraph.cmakeTargets === actualGraph.cmake?.targets?.length &&
-    decision.preservedContractIds?.length === 9 &&
-    decision.v390Execution?.orderedSlices?.length === 6,
-  `typed handoff / actual filesystem readiness mismatch (exit=${readinessStatus}, stderr=${readinessRun.stderr || "none"})`);
+  if (graphRun.error) throw graphRun.error;
+  assert(graphRun.signal === null, `current source graph verification terminated by signal ${graphRun.signal}`);
+  const graphStatus = graphRun.status;
+  const behaviorPreservingSourceGraphGate = graphStatus === 0 &&
+    execution.schema === "media-server.v390-structure-stabilization-execution.v3" &&
+    execution.issueId === "V390-REVIEW4-64" &&
+    execution.status === "completed" &&
+    execution.refactorComplete === true && execution.completionClaimed === true &&
+    execution.currentContinuation?.status === "completed" &&
+    execution.currentContinuation?.latestCompletedSlice >= 32 &&
+    execution.currentContinuation?.architectureStatus === "final-targets-satisfied" &&
+    execution.currentContinuation?.finalCompletionClaimAllowed === true &&
+    execution.review4Completion?.status === "completed" &&
+    execution.parkedGeneratedEvidenceArtifacts?.ownerIssue === "V390-REVIEW4-65" &&
+    execution.parkedGeneratedEvidenceArtifacts?.completionEvidence === false &&
+    execution.parkedGeneratedEvidenceArtifacts?.excludedFromReview4Completion === true &&
+    execution.currentGraph.schema === currentGraph.schema &&
+    execution.currentGraph.sha256 === currentGraphSha256 &&
+    execution.currentGraph.metrics?.productionFiles === currentGraph.expectedProductionFiles &&
+    execution.currentGraph.metrics?.cppSources === currentGraph.expectedCppFiles &&
+    execution.currentGraph.metrics?.moduleOwners === currentGraph.moduleClassifiers?.length &&
+    execution.currentGraph.metrics?.cmakeTargets === currentGraph.cmake?.targets?.length &&
+    execution.preservedContracts?.length === 9 &&
+    execution.orderedSlices?.length === 6;
+  const behaviorMutationPerformed = !behaviorPreservingSourceGraphGate;
+  if (behaviorMutationPerformed === true) {
+    throw new Error(
+      `SAFE-211 behavior-preserving current source graph handoff mismatch (exit=${graphStatus}, stderr=${graphRun.stderr || "none"})`);
+  }
 }
 
 check("v390 inventory records handoff-ready status without claiming refactor completion", () => {
@@ -202,8 +210,8 @@ console.log("== v3.9.0 structure stabilization handoff summary ==");
 console.log(`- schema: ${schema}`);
 console.log(`- command: ${command}`);
 console.log(`- plan: ${planPath}`);
-console.log(`- typedDecision: ${scopeDecisionPath}`);
-console.log(`- actualFilesystemReadiness: ${readinessCommand}`);
+console.log(`- structureExecution: ${executionPath}`);
+console.log(`- actualCurrentSourceGraph: ${currentGraphCommand} --graph-only`);
 console.log("- structureImplementation: not-run-by-this-command");
 console.log("- uiFulltest: not-run-by-this-command");
 console.log("- longrun30m120m: not-run-by-this-command");

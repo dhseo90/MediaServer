@@ -115,7 +115,7 @@ check("/ops/rules UI renders draft workflow and applies to form only", () => {
     assert(js.includes(snippet), `rules JS missing snippet: ${snippet}`);
   }
   const applyFunction = extractNamedFunction(js, "applyOpsVlmRuleSuggestionDraft");
-  assert(applyFunction.includes("opsRulesEventTypes.includes(type)"), "draft apply must validate opsRulesEventTypes");
+  assert(applyFunction.includes("opsRulesEventTypes.includes(type)"), "draft apply must reject unsupported candidate outside opsRulesEventTypes");
   assert(!["providerApiCall(", "rawProviderResponse", "providerMaterialExposed: true"].some(marker => applyFunction.includes(marker)), "UI-036 provider-boundary explicit absence oracle");
   const ruleRegistryWritePerformed = ["/lab/analysis/rules", "/lab/analysis/va-rules", "opsRulesSaveNativeRecord", "triggerOpsRulesSave"].some(marker => applyFunction.includes(marker));
   assert(ruleRegistryWritePerformed === false, "UI-036 draft form apply must not write the rule registry");

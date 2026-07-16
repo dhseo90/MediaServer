@@ -54,7 +54,7 @@ check("ops review API attaches Step 7 operator resolution flow to unified worksp
   const end = files.server.indexOf("struct OpsV320ActionReadinessChecklistInfo", start);
   assert(start >= 0 && end > start, "EVT-068 operator resolution flow block missing");
   const evt068ResolutionFlowBlock = files.server.slice(start, end);
-  assertIncludes(evt068ResolutionFlowBlock, "close_action_available", "EVT-068 block-scoped canonical resolution flow");
+assertIncludes(evt068ResolutionFlowBlock, "close_action_available", "OPS-075 /ops/events block-scoped canonical resolution flow");
   assert(!evt068ResolutionFlowBlock.includes("\\\"viewerClientExposureAdded\\\":true") && evt068ResolutionFlowBlock.includes("\\\"viewerClientExposureAdded\\\":false"), "EVT-068 client viewer exposure absent boundary");
   for (const snippet of [
     "OpsV320OperatorResolutionFlowInfoFor",

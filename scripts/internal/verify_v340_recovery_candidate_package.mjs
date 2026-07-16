@@ -35,6 +35,7 @@ const schema = "media-server.ops.v340-recovery-candidate-package.v1";
 const route = "/ops/api/source-registry/recovery-candidate-package";
 const files = {
   server: readWebRtcHttpServerBundle(readText),
+  eventStorageApplication: readText("src/ingress/event_storage_application_service.cpp"),
   backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
@@ -76,10 +77,17 @@ check("Ops server builds the v3.4 redacted recovery candidate package read model
 
 check("recovery candidate package reads source, view, source health, EventRecord, and audit context", () => {
   const block = extractBlock(files.server, "struct OpsV340RecoveryCandidateContext", "struct OpsV340ApprovalGatedRecoveryChecklistItem");
+  const eventStorageDelegate = extractBlock(files.eventStorageApplication,
+    "bool QueryEventRecordsForApplication(", "bool CompactEventRecordsForApplication(");
+  const eventRecordReadDelegateObserved = block.includes("QueryEventRecordsForApplication") &&
+    eventStorageDelegate.includes("analysis::QueryEventRecords") &&
+    eventStorageDelegate.includes("result->records_json = std::move(canonical.records_json)");
+  assert(eventRecordReadDelegateObserved,
+    "SRC-041 recovery candidate package must bind the application-service EventRecord read delegate and result readback");
   for (const snippet of [
     "SourceViewApplicationService::Instance().Snapshot",
     "source_health_snapshot.items",
-    "analysis::QueryEventRecords",
+    "QueryEventRecordsForApplication",
     "QueryOpsAuditEntries",
     "ParseStringField(event_json, \"eventId\")",
     "ParseStringField(event_json, \"streamId\")",

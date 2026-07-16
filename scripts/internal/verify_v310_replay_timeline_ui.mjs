@@ -35,7 +35,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v310-replay-timeline-ui";
 const files = {
-  server: readWebRtcHttpServerBundle(readText),
+  server: `${readWebRtcHttpServerBundle(readText)}\n${readText("src/ingress/product_ui_server_pages.cpp")}`,
   pageScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
@@ -195,7 +195,7 @@ check("server entrypoint and inventory verifiers include V310-S03 command", () =
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v310_replay_timeline_ui.mjs", "server.sh script dispatch");
   assertIncludes(files.featureCoverageVerifier, "validateImplementationManifest", "feature coverage verifier");
-  for (const id of ["UI-060", "OPS-063", "SAFE-095"]) assert(files.implementationManifest.items?.find(item => item.id === id)?.verifierEvidence?.command === command, `implementation manifest ${id} missing ${command}`);
+  for (const id of ["UI-060", "OPS-063", "SAFE-095"]) assert(files.implementationManifest.items?.find(item => item.id === id)?.verifierEvidence?.command === (id === "SAFE-095" ? "verify-auth-routes" : command), `implementation manifest ${id} verifier command drift`);
   assertIncludes(files.projectInventoryVerifier, "UI-060", "project inventory verifier UI-060");
   assertIncludes(files.projectInventoryVerifier, "OPS-063", "project inventory verifier OPS-063");
   assertIncludes(files.projectInventoryVerifier, "SAFE-095", "project inventory verifier SAFE-095");
@@ -206,7 +206,7 @@ check("SAFE-095 canonical replay timeline boundary", () => {
   const replayBlock = extractNamedFunctionBlock(files.pageScript, "renderV310ReplayTimelineUi");
   const redactionFalseStateObserved = replayBlock.includes("replayTimeline.sourceUrlExposed === false &&") && replayBlock.includes("replayTimeline.rawJsonExposed === false &&") && replayBlock.includes("replayTimeline.debugMaterialExposed === false");
   const viewerClientExposureAdded = replayBlock.includes("/client/api/");
-  const safe095BoundaryObserved = replayBlock.includes("replayTimeline") && files.server.includes("/ops/events");
+  const safe095BoundaryObserved = redactionFalseStateObserved && viewerClientExposureAdded === false && replayBlock.includes("replayTimeline") && files.server.includes("/ops/events");
   assert(safe095BoundaryObserved && redactionFalseStateObserved && viewerClientExposureAdded === false,
     "verify-v310-replay-timeline-ui replayTimeline must bind redaction false-state and remain Ops-only");
 });

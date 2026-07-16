@@ -104,8 +104,13 @@ check("client renderer shows resolution digest without raw/source/debug/provider
   const canonicalClientEventsRoute = "/client/api/views/{id}/events";
   assert(canonicalClientEventsRoute === "/client/api/views/{id}/events", "OPS-077 canonical client events route drift");
   const providerMaterialExposed = ["providerPrompt", "providerResponse", "providerMaterial"].some(marker => resolutionDigestRendererBlock.includes(marker));
-  assert(providerMaterialExposed === false, "CLIENT-027 provider material must remain absent");
-  assert(resolutionDigestRendererBlock.includes("resolutionDigest") && resolutionDigestRendererBlock.includes("resolutionStatus") && resolutionDigestRendererBlock.includes("resolutionLabel"), "CLIENT-027 exact resolutionDigest renderer readback missing");
+  const clientDigestProviderBoundaryObserved = canonicalClientEventsRoute === "/client/api/views/{id}/events" &&
+    providerMaterialExposed === false;
+  const clientDigestRendererObserved = clientDigestProviderBoundaryObserved &&
+    resolutionDigestRendererBlock.includes("resolutionDigest") &&
+    resolutionDigestRendererBlock.includes("resolutionStatus") && resolutionDigestRendererBlock.includes("resolutionLabel");
+  assert(clientDigestProviderBoundaryObserved, "CLIENT-027 provider material must remain absent");
+  assert(clientDigestRendererObserved && providerMaterialExposed === false && resolutionDigestRendererBlock.includes("resolutionDigest"), "CLIENT-027 exact resolutionDigest renderer readback missing and provider material must remain absent");
   for (const snippet of [
     "renderClientSafeResolutionDigest",
     "resolutionDigest",

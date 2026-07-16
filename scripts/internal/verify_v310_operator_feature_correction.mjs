@@ -35,7 +35,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const command = "verify-v310-operator-feature-correction";
 const files = {
-  server: readWebRtcHttpServerBundle(readText),
+  server: `${readWebRtcHttpServerBundle(readText)}\n${readText("src/ingress/product_ui_server_pages.cpp")}`,
   pageScript: readText("src/ingress/product_ui_page_scripts.cpp"),
   css: readText("src/ingress/product_ui_css.cpp"),
   uiSmoke: readText("scripts/internal/verify_ops_client_ui_smoke.mjs"),
@@ -256,7 +256,8 @@ check("SAFE-098 canonical operator correction boundary", () => {
   const safe098BoundaryObserved = correctionBlock.includes("media-server.ops.operator-feature-correction.v1") &&
     correctionBlock.includes("\\\"viewerClientExposureAdded\\\":false") &&
     files.serverSh.includes("verify-v310-operator-feature-correction");
-  assert(safe098BoundaryObserved,
+  const safe098ViewerBoundaryObserved = safe098BoundaryObserved && correctionBlock.includes("\\\"viewerClientExposureAdded\\\":false");
+  assert(safe098ViewerBoundaryObserved,
     "verify-v310-operator-feature-correction must bind the Ops-only correction schema and viewer false-state");
 });
 

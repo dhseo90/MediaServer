@@ -16,6 +16,7 @@ const replayShell = readText("scripts/internal/verify_va_replay_baselines.sh");
 const replayRules = readText("test/fixtures/va_replay/re_entry_cross_zone_rules.json");
 const replayExpected = readText("test/fixtures/va_replay/re_entry_cross_zone_expected.json");
 const server = readWebRtcHttpServerBundle(readText);
+const serverPages = readText("src/ingress/product_ui_server_pages.cpp");
 const pageScripts = readText("src/ingress/product_ui_page_scripts.cpp");
 const inventory = readText("docs/project-feature-test-inventory.md");
 const backlog = readText("docs/development-backlog.md");
@@ -103,7 +104,7 @@ check("/ops/rules UI labels configured-zones as A-to-B review candidate", () => 
     "지정 영역 A→B 후보",
     "id=\"opsEventRuleReEntryModeSelect\"",
   ]) {
-    assertIncludes(server, snippet, "ops rules re-entry mode select");
+    assertIncludes(serverPages, snippet, "ops rules re-entry mode select");
   }
   for (const snippet of [
     "A→B 후보",
@@ -156,6 +157,7 @@ check("S05 keeps event type, external schema, media path, and client exposure si
     assert(!header.includes(forbidden) &&
       !scenario.includes(forbidden) &&
       !ruleEngine.includes(forbidden) &&
+      !serverPages.includes(forbidden) &&
       !server.includes(forbidden) &&
       !pageScripts.includes(forbidden) &&
       !inventory.includes(forbidden) &&

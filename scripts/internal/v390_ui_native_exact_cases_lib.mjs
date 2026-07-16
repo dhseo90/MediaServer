@@ -212,7 +212,7 @@ const overrideControlSourceCatalog = new Map([
     anchor: '<form method="post" action="/logout"><button class="button-secondary" type="submit">로그아웃</button></form>',
   }],
   ["#opsVlmSaveProfile", {
-    file: "src/ingress/webrtc_http_server.cpp",
+    file: "src/ingress/product_ui_server_pages.cpp",
     anchor: '<button id="opsVlmSaveProfile" class="button-primary" type="button">profile 저장</button>',
   }],
   ["[data-delete-vlm-profile]", {
@@ -240,11 +240,11 @@ const overrideControlSourceCatalog = new Map([
     anchor: 'data-request-reject="${escapeHtml(displayValue(request.requestId))}"',
   }],
   ["#opsRulesComposerSave", {
-    file: "src/ingress/webrtc_http_server.cpp",
+    file: "src/ingress/product_ui_server_pages.cpp",
     anchor: '<button id="opsRulesComposerSave" class="button-primary" type="button">저장</button>',
   }],
   ["#opsEventRuleTypeSelect", {
-    file: "src/ingress/webrtc_http_server.cpp",
+    file: "src/ingress/product_ui_server_pages.cpp",
     anchor: '<select id="opsEventRuleTypeSelect" aria-label="종류"></select>',
   }],
   ['[data-ops-rule-action="delete-va"]', {

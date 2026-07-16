@@ -9,6 +9,7 @@ import { extractNamedFunctionBlock } from "./source_block_assertion_utils.mjs";
 const failures = [];
 
 const server = readWebRtcHttpServerBundle(readText);
+const serverPages = readText("src/ingress/product_ui_server_pages.cpp");
 const pageScripts = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
@@ -44,7 +45,7 @@ check("/ops/dashboard renders runtime trend card without persistent storage clai
     "id=\"dashRuntimeTrendBaseline\"",
     "런타임 추세",
   ]) {
-    assertIncludes(server, snippet, "ops dashboard S04 trend card");
+    assertIncludes(serverPages, snippet, "ops dashboard S04 trend card");
   }
 });
 
@@ -75,7 +76,7 @@ check("dashboard script keeps trend samples page-local and renders baseline delt
     "/ops/api/runtime/trends",
     "/lab/runtime/trends",
   ]) {
-    assert(!pageScripts.includes(forbidden) && !server.includes(forbidden),
+    assert(!pageScripts.includes(forbidden) && !serverPages.includes(forbidden) && !server.includes(forbidden),
       `runtime trend must stay page-local; forbidden snippet present: ${forbidden}`);
   }
 });

@@ -10,6 +10,7 @@ import process from "node:process";
 const failures = [];
 
 const server = readWebRtcHttpServerBundle(readText);
+const serverPages = readText("src/ingress/product_ui_server_pages.cpp");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
@@ -84,7 +85,7 @@ check("/ops/events UI renders decision scorecard and priority reason chips", () 
     'id="opsIncidentDecisionScorecardRows"',
     "Decision Scorecard",
   ]) {
-    assertIncludes(server, snippet, "Ops incident decision scorecard shell");
+    assertIncludes(serverPages, snippet, "Ops incident decision scorecard shell");
   }
   for (const snippet of [
     "renderIncidentDecisionScorecard",
@@ -137,9 +138,11 @@ check("smoke, inventory, coverage, and command catalog track S02", () => {
   ]) {
     assertIncludes(inventory, snippet, "feature inventory S02 row");
   }
-  for (const id of ["UI-051", "EVT-051", "LAB-075", "SAFE-059"]) {
+  for (const id of ["UI-051", "EVT-051", "LAB-075"]) {
     assert(implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-v270-incident-decision-scorecard", `${id} manifest verifier command drift`);
   }
+  assert(implementationManifest.items.find(item => item.id === "SAFE-059")?.verifierEvidence?.command === "verify-auth-routes",
+    "SAFE-059 strongest runtime boundary verifier command drift");
   assertIncludes(coverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   assertIncludes(coverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   assertIncludes(streamVerification, "verify-v270-incident-decision-scorecard", "stream verification S02 command");
@@ -159,7 +162,7 @@ check("S02 keeps forbidden client/provider/raw/schema/media side effects absent"
     "SSE/WS metadata schema 변경 완료",
     "RTSP/WebRTC media path 변경 완료",
   ]) {
-    assert(!server.includes(forbidden) && !script.includes(forbidden) && !backlog.includes(forbidden),
+    assert(!server.includes(forbidden) && !serverPages.includes(forbidden) && !script.includes(forbidden) && !backlog.includes(forbidden),
       `forbidden S02 snippet present: ${forbidden}`);
   }
 });

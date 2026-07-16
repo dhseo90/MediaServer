@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: owner 결정, field 조건부 미실행, structure 승인 대기 상태가 구현/PASS/완료로 오인되지 않도록 검증한다.
+// 파일 용도: owner 결정, field 조건부 미실행, historical structure 승인 상태가 현재 구현/PASS/완료로 오인되지 않도록 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -21,7 +21,8 @@ Usage:
 Checks:
   - owner output is an accountable-owner-decision-record with truthful mixed capability status
   - external field targets are conditional-not-run and never field/release PASS
-  - structure output is approved-scheduled while refactor implementation remains not-executed
+  - historical REVIEW4-51 structure output remains approved-scheduled/not-executed
+  - current REVIEW4-64 completion is owned by verify-v390-structure-stabilization-readiness
   - roadmap/evidence wording and negative status fixtures reject completion overclaims
 `);
 }
@@ -43,12 +44,12 @@ check("external field state is conditional-not-run and not PASS", () => {
   assert(errors.length === 0, errors.join("; "));
 });
 
-check("structure decision is approved-scheduled while refactor remains not-executed", () => {
+check("historical REVIEW4-51 structure decision remains approved-scheduled/not-executed", () => {
   const errors = validateStructure(structure);
   assert(errors.length === 0, errors.join("; "));
 });
 
-check("status vocabulary negatives reject implementation, field PASS, and refactor completion overclaims", () => {
+check("status vocabulary negatives reject owner implementation, field PASS, and historical refactor overclaims", () => {
   const ownerNegative = structuredClone(owner);
   ownerNegative.implementationStatus = "complete";
   assert(validateOwner(ownerNegative).some(error => error.includes("implementationStatus")),
@@ -115,7 +116,8 @@ for (const item of checks) console.log(`[${item.ok ? "pass" : "fail"}] ${item.na
 console.log("\n== v3.9.0 truthfulness status vocabulary ==");
 console.log("- ownerStatus: accountable-owner-decision-record / mixed capability truth");
 console.log("- fieldStatus: conditional-not-run / fieldPassClaimed false");
-console.log("- structureStatus: approved-scheduled-after-review4-50-63 / implementation not-executed");
+console.log("- historicalStructureStatus: REVIEW4-51 approved-scheduled-after-review4-50-63 / implementation not-executed");
+console.log("- currentStructureStatusOwner: verify-v390-structure-stabilization-readiness (REVIEW4-64)");
 console.log(`- pass: ${checks.length - failed.length}`);
 console.log(`- fail: ${failed.length}`);
 process.exit(failed.length === 0 ? 0 : 1);

@@ -18,6 +18,7 @@ if (hasHelpFlag(rawArgs)) {
 
 Usage:
   ./server.sh verify-v390-review4-structure-stabilization-execution
+  ./server.sh verify-v390-review4-structure-stabilization-execution --graph-only
 
 Checks:
   - historical REVIEW4-51 approval and current REVIEW4-64 execution are separate
@@ -30,7 +31,8 @@ Checks:
   - mutations for order, path escape, behavior change, false completion, and debt regression fail closed
 `);
 }
-assertKnownOptions(rawArgs, ["h", "help", "write-current-graph"]);
+assertKnownOptions(rawArgs, ["h", "help", "write-current-graph", "graph-only"]);
+const graphOnly = rawArgs.includes("--graph-only");
 
 const ledgerPath = "test/fixtures/v390_structure_stabilization_execution.json";
 const ledger = readJson(ledgerPath);
@@ -72,6 +74,14 @@ check("versioned current architecture policy and continuation are explicit", () 
       ledger.parkedGeneratedEvidenceArtifacts?.status === "allowed-until-final-evidence" &&
       ledger.parkedGeneratedEvidenceArtifacts?.completionEvidence === false,
     "current continuation or parked generated evidence overclaims completion");
+  } else {
+    assert(ledger.status === "completed" && ledger.refactorComplete === true &&
+      ledger.completionClaimed === true && ledger.currentContinuation.status === "completed" &&
+      ledger.currentContinuation.finalCompletionClaimAllowed === true &&
+      ledger.parkedGeneratedEvidenceArtifacts?.ownerIssue === "V390-REVIEW4-65" &&
+      ledger.parkedGeneratedEvidenceArtifacts?.completionEvidence === false &&
+      ledger.parkedGeneratedEvidenceArtifacts?.excludedFromReview4Completion === true,
+    "completed REVIEW4-64 must keep REVIEW4-65 generated acceptance evidence pending and separate");
   }
 });
 
@@ -200,6 +210,29 @@ check("current graph hash and metrics are exact", () => {
   } else if (ledger.currentContinuation.architectureStatus === "final-targets-unmet") {
     assert(!finalSatisfied, "continuation says final targets are unmet but actual graph satisfies them");
   }
+});
+
+check("current graph negative mutations reject forbidden edge and cycle", () => {
+  const actual = collectCurrentGraph(graph, policy);
+  const forgedEdge = {
+    direction: "analysis-services -> transport-and-auth-adapter",
+    witnessCount: 1,
+    witnessSha256: sha256Text("negative-analysis-source -> negative-transport-target"),
+    allowedByTarget: false,
+  };
+  const forgedObserved = [...actual.observedModuleEdges, forgedEdge]
+    .sort((lhs, rhs) => lhs.direction.localeCompare(rhs.direction));
+  assert(JSON.stringify(stripAllowedFlags(forgedObserved)) !==
+    JSON.stringify(stripAllowedFlags(graph.observedModuleEdges)),
+  "new forbidden include edge negative was accepted by the exact current graph");
+  assert(forgedObserved.filter(item => item.allowedByTarget === false).length === 1,
+    "new forbidden include edge did not become a target violation");
+  const cycle = findCycleComponents(
+    ["negative-a", "negative-b"],
+    [{ from: "negative-a", to: "negative-b" }, { from: "negative-b", to: "negative-a" }],
+  );
+  assert(cycle.length === 1 && cycle[0].join(",") === "negative-a,negative-b",
+    "synthetic dependency cycle negative was accepted");
 });
 
 check("composition root extraction preserves lifecycle ownership", () => {
@@ -477,7 +510,7 @@ check("verifier/docs Slice separates current evidence from historical and condit
   }
 });
 
-check("non-production Slice preserves production graph and parked evidence stays non-final", () => {
+check("historical non-production Slice remains separate and REVIEW4-65 evidence stays non-final", () => {
   const slice = ledger.orderedSlices[5];
   if (slice.status === "not-started") return;
   assert(slice.nonProductionSlice === true, "verifier/docs Slice lost non-production boundary");
@@ -504,12 +537,13 @@ check("non-production Slice preserves production graph and parked evidence stays
     parked.paths.every(file => ledger.orderedSlices[5].allowedFiles.includes(file)),
   "parked generated evidence artifact escaped the non-production Slice allowlist");
   if (parked.status === "allowed-until-final-evidence") {
-    assert(parked.completionEvidence === false && ledger.completionClaimed === false,
-      "parked generated artifacts were used as completion evidence");
+    assert(parked.completionEvidence === false && parked.ownerIssue === "V390-REVIEW4-65" &&
+      parked.excludedFromReview4Completion === true,
+    "pending REVIEW4-65 generated artifacts were used as REVIEW4-64 completion evidence");
   }
 });
 
-check("current continuation binds the exact Slice 1-32 frontier without a final claim", () => {
+check("current continuation binds the exact completed Slice 1-32 frontier", () => {
   const slices = ledger.currentContinuation?.orderedSlices || [];
   assert(validateContinuationFrontier(ledger).length === 0,
     `current continuation frontier invalid: ${validateContinuationFrontier(ledger).join(",")}`);
@@ -730,9 +764,7 @@ check("current continuation binds the exact Slice 1-32 frontier without a final 
       ledger.currentGraph.metrics.internalTargetSeparation === slice4.before.internalTargetSeparation,
     "in-progress Slice 4 rewrote graph/after evidence before production verification completed");
   } else {
-    assert(ledger.currentContinuation.status === "in-progress" &&
-      ledger.currentContinuation.latestCompletedSlice >= 4 &&
-      ledger.currentContinuation.sliceSequenceStatus === "partial" && slice4.after !== null &&
+    assert(completedContinuationFrontierAtLeast(ledger, 4) && slice4.after !== null &&
       slice4.tests.every(test => test.status === "pass"),
     "completed Slice 4 frontier/test state mismatch");
     assert(JSON.stringify(slice4.after) === JSON.stringify({
@@ -802,9 +834,7 @@ check("current continuation binds the exact Slice 1-32 frontier without a final 
       ledger.currentGraph.metrics.largestSccOwners === slice5.before.largestSccOwners,
     "in-progress Slice 5 rewrote graph/after evidence before production verification completed");
   } else {
-    assert(ledger.currentContinuation.status === "in-progress" &&
-      ledger.currentContinuation.latestCompletedSlice >= 5 &&
-      ledger.currentContinuation.sliceSequenceStatus === "partial" && slice5.after !== null &&
+    assert(completedContinuationFrontierAtLeast(ledger, 5) && slice5.after !== null &&
       slice5.tests.every(test => test.status === "pass"),
     "completed Slice 5 frontier/test state mismatch");
     assert(slice5.after.productionGraphSha256 === "14f44d7d41f804de38d688787baaf65f3bd84da37ac856a4318b8c7c8cbc8117" &&
@@ -865,9 +895,7 @@ check("current continuation binds the exact Slice 1-32 frontier without a final 
       ledger.currentGraph.metrics.largestSccOwners === slice6.before.largestSccOwners,
     "in-progress Slice 6 rewrote graph/after evidence before production verification completed");
   } else {
-    assert(ledger.currentContinuation.status === "in-progress" &&
-      ledger.currentContinuation.latestCompletedSlice >= 6 &&
-      ledger.currentContinuation.sliceSequenceStatus === "partial" && slice6.after !== null &&
+    assert(completedContinuationFrontierAtLeast(ledger, 6) && slice6.after !== null &&
       slice6.tests.every(test => test.status === "pass"),
     "completed Slice 6 frontier/test state mismatch");
     const slice6ExpectedGraphSha = slice7.status === "completed"
@@ -940,9 +968,7 @@ check("current continuation binds the exact Slice 1-32 frontier without a final 
       ledger.currentGraph.metrics.largestSccOwners === slice7.before.largestSccOwners,
     "in-progress Slice 7 rewrote graph/after evidence before production verification completed");
   } else {
-    assert(ledger.currentContinuation.status === "in-progress" &&
-      ledger.currentContinuation.latestCompletedSlice >= 7 &&
-      ledger.currentContinuation.sliceSequenceStatus === "partial" && slice7.after !== null &&
+    assert(completedContinuationFrontierAtLeast(ledger, 7) && slice7.after !== null &&
       slice7.tests.every(test => test.status === "pass"),
     "completed Slice 7 frontier/test state mismatch");
     assert((slice8.status === "completed"
@@ -968,6 +994,12 @@ check("current continuation binds the exact Slice 1-32 frontier without a final 
       slice7.parkedArtifactInvariants.length === 2,
     "completed Slice 7 parked artifact invariant inventory drift");
     for (const invariant of slice7.parkedArtifactInvariants) {
+      assert(/^[a-f0-9]{64}$/.test(invariant.sha256) &&
+        Number.isInteger(invariant.addedLines) && Number.isInteger(invariant.deletedLines) &&
+        invariant.staged === false,
+      `completed Slice 7 historical parked artifact invariant malformed: ${invariant.path}`);
+      if (ledger.parkedGeneratedEvidenceArtifacts?.ownerIssue === "V390-REVIEW4-65" &&
+          ledger.parkedGeneratedEvidenceArtifacts?.excludedFromReview4Completion === true) continue;
       const numstat = exec("git", ["diff", "--numstat", "--", invariant.path])
         .trim().split(/\s+/).slice(0, 2).join("/");
       assert(sha256File(invariant.path) === invariant.sha256 &&
@@ -2122,12 +2154,19 @@ check("current continuation binds the exact Slice 1-32 frontier without a final 
   "Slice 32 WebRTC media application graph delta drift");
   assert(validateSlice32Binding(ledger, graph, policy).length === 0,
     `Slice 32 named binding mismatch: ${validateSlice32Binding(ledger, graph, policy).join(",")}`);
-  assert(ledger.currentContinuation.finalCompletionClaimAllowed === false &&
-    ledger.refactorComplete === false && ledger.completionClaimed === false,
-  "current continuation overclaims final completion");
+  assert(ledger.currentContinuation.status === "completed" &&
+    ledger.currentContinuation.sliceSequenceStatus === "completed" &&
+    ledger.currentContinuation.architectureStatus === "final-targets-satisfied" &&
+    ledger.currentContinuation.finalEvidenceStatus === "review4-64-completed-review4-65-acceptance-pending" &&
+    ledger.currentContinuation.finalCompletionClaimAllowed === true &&
+    ledger.refactorComplete === true && ledger.completionClaimed === true,
+  "current continuation REVIEW4-64 completion oracle mismatch");
 });
 
 check("dirty worktree paths stay inside the active slice declaration", () => {
+  if (ledger.status === "completed" &&
+      ledger.parkedGeneratedEvidenceArtifacts?.ownerIssue === "V390-REVIEW4-65" &&
+      ledger.parkedGeneratedEvidenceArtifacts?.excludedFromReview4Completion === true) return;
   const active = ledger.orderedSlices.find(item => item.status === "in-progress") ||
     ledger.orderedSlices[Math.max(0, ledger.latestCompletedSlice - 1)];
   const continuationActive = ledger.currentContinuation?.orderedSlices?.find(item => item.status === "in-progress") ||
@@ -2190,33 +2229,23 @@ check("negative mutations reject false progress", () => {
     ["completion gap", value => { value.orderedSlices[value.latestCompletedSlice].status = "completed"; }, "frontier"],
     ["path escape", value => { value.orderedSlices[0].allowedFiles.push("../outside"); }, "path"],
     ["behavior change", value => { value.orderedSlices[0].contractAssertions = []; }, "contract"],
-    ["false complete", value => { value.status = "completed"; }, "completion"],
+    ["false complete", value => { value.review4Completion.status = "pending"; }, "completion"],
     ["debt regression", value => { value.orderedSlices[0].after.targetViolationDirections = 25; }, "debt"],
   ]) {
     const copy = structuredClone(ledger);
     mutate(copy);
     assert(validateLedger(copy).some(error => error.includes(expected)), `${label} negative was accepted`);
   }
-  const completedSixSlice = structuredClone(ledger);
-  completedSixSlice.latestCompletedSlice = expectedSlices.length;
-  completedSixSlice.orderedSlices[5].status = "completed";
-  completedSixSlice.orderedSlices[5].after = structuredClone(completedSixSlice.orderedSlices[5].before);
-  completedSixSlice.orderedSlices[5].tests.forEach(test => { test.status = "pass"; });
-  completedSixSlice.currentContinuation.sliceSequenceStatus = "completed-continuation-required";
-  completedSixSlice.currentContinuation.architectureStatus = "final-targets-unmet";
-  const continuationErrors = validateLedger(completedSixSlice, { finalTargetsSatisfied: false });
-  assert(continuationErrors.length === 0,
-    `six-slice completion cannot remain an honest continuation: ${continuationErrors.join(",")}`);
-  completedSixSlice.status = "completed";
-  completedSixSlice.refactorComplete = true;
-  completedSixSlice.completionClaimed = true;
-  assert(validateLedger(completedSixSlice, { finalTargetsSatisfied: false }).includes("completion"),
-    "six-slice completion bypassed unmet architecture/final evidence");
+  const historicalSliceMutation = structuredClone(ledger);
+  historicalSliceMutation.latestCompletedSlice = expectedSlices.length;
+  historicalSliceMutation.orderedSlices[5].status = "completed";
+  historicalSliceMutation.orderedSlices[5].after = structuredClone(historicalSliceMutation.orderedSlices[5].before);
+  historicalSliceMutation.orderedSlices[5].tests.forEach(test => { test.status = "pass"; });
+  assert(validateLedger(historicalSliceMutation, { finalTargetsSatisfied: true })
+    .includes("historical-six-slice"),
+  "historical Slice 6 was rewritten as current REVIEW4-64 completion evidence");
 
-  const nonProductionMutation = structuredClone(completedSixSlice);
-  nonProductionMutation.status = "in-progress";
-  nonProductionMutation.refactorComplete = false;
-  nonProductionMutation.completionClaimed = false;
+  const nonProductionMutation = structuredClone(historicalSliceMutation);
   nonProductionMutation.orderedSlices[5].after.productionGraphSha256 = "0".repeat(64);
   assert(validateLedger(nonProductionMutation, { finalTargetsSatisfied: false })
     .some(error => error.includes("non-production-graph")),
@@ -2398,6 +2427,11 @@ function validateLedger(value, evaluation = { finalTargetsSatisfied: false }) {
       slices.some((item, index) => item.status === "completed" !== (index < value.latestCompletedSlice))) {
     errors.push("frontier");
   }
+  if (value.latestCompletedSlice !== 5 || slices[5]?.id !== "verifier-docs" ||
+      slices[5]?.status !== "not-started" ||
+      value.historicalSixSliceDecision?.executionOrCompletionEvidence !== false) {
+    errors.push("historical-six-slice");
+  }
   const inProgress = slices.filter(item => item.status === "in-progress");
   if (inProgress.length > 1 || (inProgress.length === 1 && inProgress[0].order !== value.latestCompletedSlice + 1)) {
     errors.push("frontier");
@@ -2423,14 +2457,18 @@ function validateLedger(value, evaluation = { finalTargetsSatisfied: false }) {
       errors.push(`debt:${slice.id}`);
     }
   }
-  const allCompleted = completed.length === expectedSlices.length;
-  const parkedFinal = value.parkedGeneratedEvidenceArtifacts?.status === "finalized" &&
-    value.parkedGeneratedEvidenceArtifacts?.completionEvidence === true;
   const continuationSlices = value.currentContinuation?.orderedSlices || [];
   const continuationCompleted = continuationSlices.length > 0 &&
     continuationSlices.every(item => item.status === "completed");
-  const finalEligible = allCompleted && continuationCompleted && evaluation.finalTargetsSatisfied === true && parkedFinal &&
-    value.currentContinuation?.finalEvidenceStatus === "completed";
+  const review4EvidenceComplete = value.review4Completion?.status === "completed" &&
+    value.review4Completion?.completionBasis === "current-continuation-slice32-targets-tests-cleanup" &&
+    value.review4Completion?.review4AcceptanceRequired === false &&
+    value.parkedGeneratedEvidenceArtifacts?.ownerIssue === "V390-REVIEW4-65" &&
+    value.parkedGeneratedEvidenceArtifacts?.completionEvidence === false &&
+    value.parkedGeneratedEvidenceArtifacts?.excludedFromReview4Completion === true;
+  const finalEligible = continuationCompleted && evaluation.finalTargetsSatisfied === true &&
+    review4EvidenceComplete && value.currentContinuation?.finalEvidenceStatus ===
+      "review4-64-completed-review4-65-acceptance-pending";
   if (finalEligible) {
     if (value.status !== "completed" || value.refactorComplete !== true || value.completionClaimed !== true ||
         value.currentContinuation?.status !== "completed" ||
@@ -2441,7 +2479,8 @@ function validateLedger(value, evaluation = { finalTargetsSatisfied: false }) {
     if (value.status !== "in-progress" || value.refactorComplete !== false || value.completionClaimed !== false ||
         value.currentContinuation?.status !== "in-progress" ||
         value.currentContinuation?.finalCompletionClaimAllowed !== false) errors.push("completion");
-    const expectedSequenceStatus = allCompleted ? "completed-continuation-required" : "partial";
+    const allHistoricalSlicesCompleted = completed.length === expectedSlices.length;
+    const expectedSequenceStatus = allHistoricalSlicesCompleted ? "completed-continuation-required" : "partial";
     if (value.currentContinuation?.sliceSequenceStatus !== expectedSequenceStatus) errors.push("continuation");
     if (evaluation.finalTargetsSatisfied === false &&
         value.currentContinuation?.architectureStatus !== "final-targets-unmet") errors.push("continuation");
@@ -3055,6 +3094,14 @@ function finalTargetsSatisfied(targets, metrics) {
     (!targets.requireSeparatedInternalTargets || metrics.internalTargetSeparation === true);
 }
 
+function completedContinuationFrontierAtLeast(value, minimumSlice) {
+  const continuation = value.currentContinuation || {};
+  const stateMatches = continuation.status === "completed"
+    ? continuation.sliceSequenceStatus === "completed"
+    : continuation.status === "in-progress" && continuation.sliceSequenceStatus === "partial";
+  return stateMatches && continuation.latestCompletedSlice >= minimumSlice;
+}
+
 function sliceTest(slice, command) {
   const matches = slice.tests.filter(test => test.command === command);
   assert(matches.length === 1, `Slice test must occur exactly once: ${command}`);
@@ -3062,6 +3109,11 @@ function sliceTest(slice, command) {
 }
 
 function check(name, fn) {
+  if (graphOnly && ![
+    "versioned current architecture policy and continuation are explicit",
+    "current graph hash and metrics are exact",
+    "current graph negative mutations reject forbidden edge and cycle",
+  ].includes(name)) return;
   try { fn(); checks.push({ name, status: "PASS" }); }
   catch (error) { checks.push({ name, status: "FAIL" }); console.error(`[FAIL] ${name}: ${error.message}`); }
 }

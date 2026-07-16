@@ -211,7 +211,8 @@ check("server entrypoint and inventory verifiers include V300-S01 command", () =
 check("SAFE-082 canonical evidence contract boundary", () => {
   const evidenceContractCommandDocumented = files.server.includes("verify-v300-event-evidence-contract");
   const rawMaterialStored = manifest.privacy?.rawPromptStored !== false || manifest.privacy?.rawProviderResponseStored !== false;
-  const safe082BoundaryObserved = evidenceContractCommandDocumented &&
+  const evidenceContractInputsObserved = evidenceContractCommandDocumented && rawMaterialStored === false;
+  const safe082BoundaryObserved = evidenceContractInputsObserved &&
     files.featureInventory.includes("/ops/events") && rawMaterialStored === false;
   assert(safe082BoundaryObserved && rawMaterialStored === false,
     "verify-v300-event-evidence-contract /ops/events raw material must remain absent");

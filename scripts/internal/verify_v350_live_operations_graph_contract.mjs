@@ -36,6 +36,7 @@ const route = "/ops/api/live-operations/graph";
 const files = {
   server: readWebRtcHttpServerBundle(readText),
   serverWorkflows: readText("src/ingress/webrtc_http_server_ops_workflows.cpp"),
+  eventStorageApplication: readText("src/ingress/event_storage_application_service.cpp"),
   backlog: readText("docs/development-backlog.md"),
   streamVerification: readText("docs/stream-verification.md"),
   featureInventory: readText("docs/project-feature-test-inventory.md"),
@@ -84,9 +85,16 @@ check("live operations graph joins required source-of-truth inputs", () => {
   const block = extractBlock(files.serverWorkflows,
     "OpsV350LiveOperationsGraphContext BuildV350LiveOperationsGraphContext(",
     "std::vector<OpsV350CommandPlanCandidate> BuildV350CommandPlanCandidates(");
+  const eventStorageDelegate = extractBlock(files.eventStorageApplication,
+    "bool QueryEventRecordsForApplication(", "bool CompactEventRecordsForApplication(");
+  const eventRecordReadDelegateObserved = block.includes("QueryEventRecordsForApplication") &&
+    eventStorageDelegate.includes("analysis::QueryEventRecords") &&
+    eventStorageDelegate.includes("result->records_json = std::move(canonical.records_json)");
+  assert(eventRecordReadDelegateObserved,
+    "SRC-044 live operations graph must bind the application-service EventRecord read delegate and result readback");
   for (const snippet of [
     "SourceViewApplicationService::Instance().Snapshot",
-    "analysis::QueryEventRecords",
+    "QueryEventRecordsForApplication",
     "BuildV340RecoveryCandidateContext",
     "BuildV340RecoveryCandidatePackages",
     "BuildV340SourceHealthReplayDriftDiffItems",

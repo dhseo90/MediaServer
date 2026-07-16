@@ -190,7 +190,7 @@ check("SAFE-078 canonical public docs asset boundary", () => {
   const publicDocsCommandDocumented = serverSh.includes("verify-v290-public-docs-assets-refresh");
   const directBrowserReviewSeparated = normalizedAssetDocs.includes("직접 브라우저 검수");
   const safe078BoundaryObserved = publicDocsCommandDocumented && directBrowserReviewSeparated;
-  assert(safe078BoundaryObserved,
+  assert(safe078BoundaryObserved && (publicDocsCommandDocumented && directBrowserReviewSeparated),
     "verify-v290-public-docs-assets-refresh must preserve direct recapture/browser-review boundaries");
 });
 

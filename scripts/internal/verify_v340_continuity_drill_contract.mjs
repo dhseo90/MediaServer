@@ -217,7 +217,7 @@ check("SAFE-125 canonical continuity drill contract boundary", () => {
   const secretMaterialExposed = contractBlock.includes("\\\"secretMaterialExposed\\\":true");
   const automaticRecoveryPerformed = /\b(?:Restore|Recover|Execute)[A-Za-z0-9_:]*\s*\(/.test(contractBlock);
   const viewerClientExposureAdded = /AppendClient|ClientEventSummary|PublishedViewJson/.test(contractBlock);
-  assert(safe125BoundaryObserved && persistencePerformed === false && sourceOrEventWritePerformed === false && rawMaterialExposed === false && rawLocatorExposed === false && sourceUrlExposed === false && debugMaterialExposed === false && credentialMaterialExposed === false && secretMaterialExposed === false && automaticRecoveryPerformed === false && viewerClientExposureAdded === false,
+  assert(safe125BoundaryObserved && (continuityDrillContractRouteObserved && contractBlock.includes("BuildV340ContinuityDrillContractInputs()") && contractBlock.includes("media-server.ops.v340-continuity-drill-contract.v1") && contractBlock.includes("AppendV340ContinuityDrillContractInputJson")) && persistencePerformed === false && sourceOrEventWritePerformed === false && rawMaterialExposed === false && rawLocatorExposed === false && sourceUrlExposed === false && debugMaterialExposed === false && credentialMaterialExposed === false && secretMaterialExposed === false && automaticRecoveryPerformed === false && viewerClientExposureAdded === false,
     "SAFE-125 continuity-drill-contract must remain Ops-only read-only/no-secret/no-media-path-change without recovery or client mutation");
 });
 

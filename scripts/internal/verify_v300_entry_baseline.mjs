@@ -143,7 +143,7 @@ check("SAFE-081 canonical V300 source-of-truth boundary", () => {
   const baselineCommandDocumented = files.server.includes("verify-v300-entry-baseline");
   const v300SourceTruthAligned = version === "3.9.0" && files.backlog.includes("## v3.0.0 S00 개발 기록") && files.releaseRecords.includes("V300 source-of-truth split");
   const safe081BoundaryObserved = baselineCommandDocumented && v300SourceTruthAligned;
-  assert(safe081BoundaryObserved,
+  assert(safe081BoundaryObserved && (baselineCommandDocumented && v300SourceTruthAligned),
     "verify-v300-entry-baseline must preserve historical v3.0 evidence without reverting current source truth");
 });
 

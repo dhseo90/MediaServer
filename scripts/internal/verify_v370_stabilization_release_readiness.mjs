@@ -213,7 +213,7 @@ check("OPS-146 canonical local readiness gate", () => {
   ].every((item) => files.releaseRecords.includes(item));
   const ops146GateObserved = localCommandsWired && notRunBoundariesPresent &&
     files.serverSh.includes("verify-v370-stabilization-release-readiness)");
-  assert(ops146GateObserved,
+  assert(ops146GateObserved && localCommandsWired && notRunBoundariesPresent,
     "OPS-146 local command wiring and explicit UI/long-run/release-action/field-smoke boundaries missing");
 });
 

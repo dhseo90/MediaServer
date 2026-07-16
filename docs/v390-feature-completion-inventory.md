@@ -155,13 +155,19 @@ Handoff list: `V390-STRUCT-001`, `V390-STRUCT-002`, `V390-STRUCT-003`, `V390-STR
 
 Structure implementation status: `not-run-by-this-step`
 
-Development 17 record kind: `refactor-readiness-gate`
+Development 17 historical record kind: `refactor-readiness-gate`
 
-Development 17 status: `approved-scheduled-after-review4-50-63`
+Development 17 historical status: `approved-scheduled-after-review4-50-63`
 
-Development 17 implementation status: `not-executed`
+Development 17 historical implementation status: `not-executed`
 
-Development 17 evidence status: `approved-decision-contract-not-refactor-evidence`
+Development 17 historical evidence status: `approved-decision-contract-not-refactor-evidence`
+
+Current REVIEW4-64 structure status: `completed`
+
+Current REVIEW4-64 graph: production `215`, C++ `103`, owner `10`, CMake target `2`, target violation `0`, SCC `0`, internal separation `true`
+
+Current REVIEW4-65 generated/actual acceptance: `pending`
 
 Execution branch: `v3.9.0`
 

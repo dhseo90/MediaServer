@@ -187,7 +187,8 @@ check("server entrypoint and inventory verifiers include V310-S07 command", () =
 check("SAFE-100 canonical optional vector boundary", () => {
   const providerCallPerformed = files.source.includes("provider_embedding_call_performed = true") || files.source.includes("runtime_provider_call_performed = true");
   const optionalIndexDefaultOff = files.source.includes("optional-vector-index-disabled-default-off");
-  const safe100BoundaryObserved = optionalIndexDefaultOff && files.server.includes("verify-v310-optional-vector-search");
+  const optionalVectorInputsObserved = providerCallPerformed === false && optionalIndexDefaultOff;
+  const safe100BoundaryObserved = optionalVectorInputsObserved && files.server.includes("verify-v310-optional-vector-search");
   assert(safe100BoundaryObserved && providerCallPerformed === false,
     "verify-v310-optional-vector-search optional-vector-index-disabled-default-off provider call and WebRTC/SSE/RTSP exposure must remain absent");
 });

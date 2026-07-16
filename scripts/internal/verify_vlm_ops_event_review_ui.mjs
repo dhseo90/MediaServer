@@ -88,7 +88,7 @@ check("ops events UI renders VLM review panel in review inbox", () => {
   ]) {
     assertIncludes(pageScript, snippet, "Ops events script");
   }
-  assertIncludes(reviewBlock, "ops-vlm-event-review-card", "UI-032 block-scoped canonical product state");
+  assertIncludes(reviewBlock, "ops-vlm-event-review-card", "UI-032 evidence block-scoped canonical product state");
   assert(!["/client/api/", "viewerClientExposureAdded: true", "clientExposureAdded: true"].some(marker => reviewBlock.includes(marker)), "UI-032 client-viewer-boundary explicit absence oracle");
   assertIncludes(pageScript, "/ops/events", "UI-032 canonical route obligation");
   assertIncludes(pageScript, "VLM", "UI-032 canonical field obligation");

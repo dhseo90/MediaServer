@@ -215,7 +215,8 @@ check("SAFE-085 canonical feature privacy boundary", () => {
   const privacyCommandDocumented = files.server.includes("verify-v300-feature-schema-privacy");
   const schemaMutationPerformed = files.featureSource.includes("event_post_payload_changed = true") ||
     files.featureSource.includes("webrtc_data_channel_schema_changed = true");
-  const safe085BoundaryObserved = privacyCommandDocumented &&
+  const featurePrivacyInputsObserved = privacyCommandDocumented && schemaMutationPerformed === false;
+  const safe085BoundaryObserved = featurePrivacyInputsObserved &&
     files.featureSource.includes("raw_prompt_stored = false") && schemaMutationPerformed === false;
   assert(safe085BoundaryObserved && schemaMutationPerformed === false,
     "verify-v300-feature-schema-privacy VLM/WebRTC/SSE schema mutation must remain absent");

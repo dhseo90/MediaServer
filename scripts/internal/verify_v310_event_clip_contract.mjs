@@ -234,7 +234,7 @@ check("SAFE-094 canonical encoded clip contract boundary", () => {
   const encodedContractCommandDocumented = files.server.includes("verify-v310-event-clip-contract");
   const rawMaterialStored = manifest.privacy?.rawPromptStored !== false || manifest.privacy?.rawProviderResponseStored !== false;
   const safe094BoundaryObserved = encodedContractCommandDocumented && rawMaterialStored === false;
-  assert(safe094BoundaryObserved && rawMaterialStored === false,
+  assert(safe094BoundaryObserved && (encodedContractCommandDocumented && rawMaterialStored === false) && rawMaterialStored === false,
     "verify-v310-event-clip-contract raw material must remain absent before encoder generation evidence");
 });
 

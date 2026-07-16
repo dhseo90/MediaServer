@@ -168,7 +168,7 @@ check("SAFE-113 canonical V330 source-of-truth boundary", () => {
   const currentSourceAligned = semverAtLeast(version, baselineVersion) && files.cmake.includes(`VERSION ${version}`) && currentRoadmap.startsWith(`v${version} `);
   const historicalBaselinePreserved = files.streamVerification.includes(baselineRoadmap) && files.releaseRecords.includes("v330 Step 1 entry baseline final") && files.featureInventory.includes("SAFE-113");
   const safe113BoundaryObserved = baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved;
-  assert(safe113BoundaryObserved,
+  assert(safe113BoundaryObserved && (baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved),
     "SAFE-113 V330 baseline must align version/roadmap/inventory without claiming source reliability features, UI, long-run, published metadata, or release completion");
 });
 

@@ -91,7 +91,7 @@ check("release policy and evidence index record S06 readiness without promoting 
   const publishedMetadataStillManual = policy.includes(`\`${publishedMetadataCommand}\` 미실행`) &&
     policy.includes("UI 풀테스트 직접 조작 미실행") && policy.includes("30분 테스트 미실행") &&
     policy.includes("120분 테스트 미실행");
-  assert(publishedMetadataStillManual,
+  assert(publishedMetadataStillManual && policy.includes(`\`${publishedMetadataCommand}\` 미실행`),
     "verify-release-metadata --published and UI/30분/120분 must remain manual-not-run");
   assert(/\| V260-S06 \| 완료 \| v2\.6\.0 owner release readiness local gate \|/.test(backlog),
     "backlog V260-S06 historical completion row missing");

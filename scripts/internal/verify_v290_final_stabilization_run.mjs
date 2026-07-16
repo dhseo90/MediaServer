@@ -158,7 +158,7 @@ check("SAFE-079 canonical final stabilization boundary", () => {
   const stabilizationCommandRecorded = normalizedRecords.includes("verify-v290-final-stabilization-run");
   const manualUiStatusSeparated = normalizedRecords.includes("v290 S08 UI 풀테스트");
   const safe079BoundaryObserved = stabilizationCommandRecorded && manualUiStatusSeparated;
-  assert(safe079BoundaryObserved,
+  assert(safe079BoundaryObserved && (stabilizationCommandRecorded && manualUiStatusSeparated),
     "verify-v290-final-stabilization-run must keep direct UI/longrun/published work separate");
 });
 

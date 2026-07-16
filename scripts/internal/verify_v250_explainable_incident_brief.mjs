@@ -10,6 +10,7 @@ import process from "node:process";
 const failures = [];
 
 const server = readWebRtcHttpServerBundle(readText);
+const serverPages = readText("src/ingress/product_ui_server_pages.cpp");
 const incidentBriefBlock = extractCppFunctionBlock(server, "bool OpsEventReviewInboxJson(");
 const incidentBriefViewBlock = extractCppFunctionBlock(server, "std::string OpsExplainableIncidentBriefViewJson(");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
@@ -29,7 +30,7 @@ check("ops events page exposes explainable incident brief shell", () => {
     'id="opsIncidentBriefRows"',
     "action/object/context/environment",
   ]) {
-    assertIncludes(server, snippet, "incident brief shell");
+    assertIncludes(serverPages, snippet, "incident brief shell");
   }
 });
 
@@ -108,10 +109,12 @@ check("ops smoke, inventory, and coverage track S05 markers", () => {
   ]) {
     assertIncludes(inventory, snippet, "feature inventory S05 row");
   }
-  for (const id of ["UI-041", "EVT-043", "LAB-066", "SAFE-047"]) {
+  for (const id of ["UI-041", "EVT-043", "LAB-066"]) {
     assert(manifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-v250-explainable-incident-brief",
       `${id} manifest verifier command drift`);
   }
+  assert(manifest.items.find(item => item.id === "SAFE-047")?.verifierEvidence?.command === "verify-auth-routes",
+    "SAFE-047 strongest runtime boundary verifier command drift");
   assertIncludes(coverage, "validateImplementationManifest", "feature coverage manifest validation");
   assertIncludes(coverage, "verifierEvidenceRows", "feature coverage verifier evidence summary");
 });

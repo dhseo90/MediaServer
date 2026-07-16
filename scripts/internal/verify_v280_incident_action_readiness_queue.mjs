@@ -10,6 +10,7 @@ import process from "node:process";
 const failures = [];
 
 const server = readWebRtcHttpServerBundle(readText);
+const productUiPages = readText("src/ingress/product_ui_server_pages.cpp");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
@@ -74,7 +75,7 @@ check("/ops/events UI renders readiness queue panel and manual approval markers"
     'id="opsIncidentActionReadinessQueueRows"',
     "Incident Action Readiness Queue",
   ]) {
-    assertIncludes(server, snippet, "Ops incident action readiness shell");
+    assertIncludes(productUiPages, snippet, "Ops incident action readiness shell");
   }
   for (const snippet of [
     "renderIncidentActionReadinessQueue",
@@ -128,8 +129,13 @@ check("smoke, inventory, manual UI, coverage, and command catalog track S02", ()
     assertIncludes(inventory, snippet, "feature inventory S02 row");
   }
   assertIncludes(manualChecklist, "| V280-S02 Incident Action Readiness Queue | `UI-055`, `EVT-055`, `LAB-079`, `SAFE-065` |", "manual UI checklist S02 row");
-  for (const id of ["UI-055", "EVT-055", "LAB-079", "SAFE-065"]) {
-    assert(implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-v280-incident-action-readiness-queue", `${id} manifest verifier command drift`);
+  for (const [id, expectedCommand] of Object.entries({
+    "UI-055": "verify-v280-incident-action-readiness-queue",
+    "EVT-055": "verify-v280-incident-action-readiness-queue",
+    "LAB-079": "verify-v280-incident-action-readiness-queue",
+    "SAFE-065": "verify-auth-routes",
+  })) {
+    assert(implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === expectedCommand, `${id} manifest verifier command drift`);
   }
   assertIncludes(coverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   assertIncludes(coverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");

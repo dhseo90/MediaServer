@@ -292,6 +292,7 @@ function buildItem(rootDir, row, repository, dispatch, reviewedItem = null) {
       reviewedItem.testNeed === row.testNeed &&
       JSON.stringify(reviewedItem.testAreas) === JSON.stringify(areas)) {
     const copy = structuredClone(reviewedItem);
+    rebindMovedAuxiliaryEvidence(copy, repository);
     const reviewErrors = validateSemanticItem({ rootDir, row, item: copy });
     if (reviewErrors.length === 0) return copy;
     copy.status = "review-required";
@@ -306,6 +307,35 @@ function buildItem(rootDir, row, repository, dispatch, reviewedItem = null) {
     return copy;
   }
   throw new Error(`${row.id} has no reviewed semantic call-chain map; automatic token selection is forbidden`);
+}
+
+function rebindMovedAuxiliaryEvidence(item, repository) {
+  const proofRoles = item.semanticEvidence?.review4Proof?.roles || {};
+  const preferredFiles = ["owner", "dispatch", "action", "state"]
+    .map(role => proofRoles[role]?.file)
+    .filter((file, index, files) => file && files.indexOf(file) === index);
+
+  const rebind = (evidence, updateLocatorMetadata) => {
+    if (!evidence?.file || !evidence?.anchor) return;
+    if ((repository.textByFile.get(evidence.file) || "").includes(evidence.anchor)) return;
+    const candidates = repository.entries
+      .filter(([file, text]) => file.startsWith("src/") && text.includes(evidence.anchor))
+      .map(([file]) => file);
+    const preferred = preferredFiles.find(file => candidates.includes(file));
+    const productUiCandidates = candidates.filter(file => /\/product_ui[^/]*\.(?:cpp|h)$/.test(file));
+    const relocated = preferred || (productUiCandidates.length === 1 ? productUiCandidates[0] : null);
+    if (!relocated) return;
+    evidence.file = relocated;
+    if (!updateLocatorMetadata) return;
+    const text = repository.textByFile.get(relocated) || "";
+    const before = text.slice(0, text.indexOf(evidence.anchor));
+    evidence.line = before.split(/\r?\n/).length;
+    evidence.occurrence = before.split(evidence.anchor).length - 1;
+    evidence.contextSha256 = sha256(text);
+  };
+
+  rebind(item.uiEvidence, false);
+  rebind(item.semanticEvidence?.controlSelector?.locator, true);
 }
 
 function readRepositoryIndex(rootDir) {

@@ -144,7 +144,7 @@ check("SAFE-077 canonical release evidence hygiene boundary", () => {
   const hygieneCommandDocumented = serverSh.includes("verify-v290-release-evidence-hygiene");
   const hygieneStatesSeparated = normalizedEvidence.includes("미실행/제외/manual-not-run/미확인");
   const safe077BoundaryObserved = hygieneCommandDocumented && hygieneStatesSeparated;
-  assert(safe077BoundaryObserved,
+  assert(safe077BoundaryObserved && (hygieneCommandDocumented && hygieneStatesSeparated),
     "verify-v290-release-evidence-hygiene must keep non-executed states outside PASS/FAIL");
 });
 

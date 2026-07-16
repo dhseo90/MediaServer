@@ -167,7 +167,7 @@ check("SAFE-148 canonical V360 historical baseline boundary", () => {
   const currentSourceAligned = semverAtLeast(version, baselineVersion) && files.cmake.includes(`VERSION ${version}`) && currentRoadmap.startsWith(`v${version} `);
   const historicalBaselinePreserved = files.streamVerification.includes("v3.6.0 Operations Simulation and Safe Apply Readiness") && files.releaseRecords.includes("v360 Step 1 entry baseline final") && files.featureInventory.includes("SAFE-148");
   const safe148BoundaryObserved = baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved;
-  assert(safe148BoundaryObserved,
+  assert(safe148BoundaryObserved && (baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved),
     "SAFE-148 V360 historical baseline must preserve source 3.6.0 roadmap inventory records while accepting current source version");
 });
 

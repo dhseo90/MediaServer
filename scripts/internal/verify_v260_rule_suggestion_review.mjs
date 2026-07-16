@@ -75,7 +75,7 @@ check("/ops/events UI renders incident-to-rule review and links to draft workflo
     "/ops/api/vlm/rule-suggestion-drafts",
   ]) {
     assertIncludes(script, snippet, "Ops events incident-to-rule UI script");
-    assertIncludes(extractNamedFunctionBlock(script, "renderIncidentRuleSuggestionReview"), "ops-incident-rule-suggestion-review", "UI-046 block-scoped canonical product state");
+    assertIncludes(extractNamedFunctionBlock(script, "renderIncidentRuleSuggestionReview"), "ops-incident-rule-suggestion-review", "UI-046 report block-scoped canonical product state");
     assertIncludes(script, "/ops/events", "UI-046 canonical route obligation");
     assertIncludes(server, "media-server.ops.incident-rule-suggestion-review.v1", "UI-046 canonical schema obligation");
     assertIncludes(script, "VLM", "UI-046 canonical field obligation");

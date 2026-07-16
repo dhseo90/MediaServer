@@ -4,6 +4,8 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
+import { assertSecretValuesAbsentFromTree } from "./v390_acceptance_ui_environment.mjs";
+
 const descriptorSchema = "media-server.v390-ui-runtime-descriptor.v1";
 const roleMapSchema = "media-server.v390-ui-role-state-map.v1";
 
@@ -27,6 +29,7 @@ export function createV390UiCaseRuntime({
     }
   }
   const roleSecrets = parseSecretEnvelope(roleSecretsJson);
+  delete process.env.MEDIA_SERVER_V390_UI_ROLE_SECRETS;
   const runtimeSecrets = new Map();
   const activeCases = new Map();
 
@@ -208,6 +211,34 @@ export function createV390UiCaseRuntime({
     };
   }
 
+  function assertSecretsAbsentFromArtifacts(outputRoot) {
+    const secretValues = [
+      ...Object.values(roleSecrets.roles || {}),
+      ...Object.values(roleSecrets.refs || {}),
+      ...runtimeSecrets.values(),
+    ].filter(Boolean);
+    assert(secretValues.length > 0, "case runtime secret artifact scan has no retained secret values");
+    const roots = [...new Set([outputRoot, descriptor?.temporaryRoot]
+      .filter(Boolean)
+      .map(value => path.resolve(value)))];
+    const scans = roots.map(root => assertSecretValuesAbsentFromTree(root, secretValues));
+    return {
+      status: "PASS",
+      verificationSource: "case-runtime-exact-and-throwaway-byte-scan-before-secret-release",
+      scannedFiles: scans.reduce((sum, item) => sum + item.scannedFiles, 0),
+      scannedBytes: scans.reduce((sum, item) => sum + item.scannedBytes, 0),
+      roots: roots.length,
+    };
+  }
+
+  function releaseSecrets() {
+    runtimeSecrets.clear();
+    for (const values of [roleSecrets.roles || {}, roleSecrets.refs || {}]) {
+      for (const key of Object.keys(values)) values[key] = "";
+    }
+    delete process.env.MEDIA_SERVER_V390_UI_ROLE_SECRETS;
+  }
+
   return {
     enabled: Boolean(descriptor),
     descriptor,
@@ -218,6 +249,8 @@ export function createV390UiCaseRuntime({
     restoreCase,
     verifyMutationReadback,
     verifyCleanupReadback,
+    assertSecretsAbsentFromArtifacts,
+    releaseSecrets,
   };
 
   async function prepareAuthFixture(item, context) {

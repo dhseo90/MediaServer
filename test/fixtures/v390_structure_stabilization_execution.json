@@ -4,11 +4,11 @@
   "recordKind": "refactor-execution-ledger",
   "release": "v3.9.0",
   "branch": "v3.9.0",
-  "status": "in-progress",
+  "status": "completed",
   "latestCompletedSlice": 5,
   "productionRefactorStarted": true,
-  "refactorComplete": false,
-  "completionClaimed": false,
+  "refactorComplete": true,
+  "completionClaimed": true,
   "executionBase": {
     "commit": "962318c921667b21ca2595e25a38bbcc7c0bdea5",
     "branch": "v3.9.0",
@@ -68,12 +68,12 @@
     }
   },
   "currentContinuation": {
-    "status": "in-progress",
+    "status": "completed",
     "latestCompletedSlice": 32,
-    "sliceSequenceStatus": "partial",
-    "architectureStatus": "final-targets-met",
-    "finalEvidenceStatus": "parked-generated-artifacts-in-review",
-    "finalCompletionClaimAllowed": false,
+    "sliceSequenceStatus": "completed",
+    "architectureStatus": "final-targets-satisfied",
+    "finalEvidenceStatus": "review4-64-completed-review4-65-acceptance-pending",
+    "finalCompletionClaimAllowed": true,
     "reason": "The historical six-slice decision authorizes an ordered start; it does not waive current final architecture thresholds or final evidence review.",
     "orderedSlices": [
       {
@@ -3907,9 +3907,25 @@
       }
     ]
   },
+  "review4Completion": {
+    "status": "completed",
+    "completionBasis": "current-continuation-slice32-targets-tests-cleanup",
+    "latestCompletedContinuationSlice": 32,
+    "currentGraphPath": "test/fixtures/v390_structure_stabilization_current_graph.json",
+    "currentGraphSha256": "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a",
+    "targetViolationDirections": 0,
+    "largestSccOwners": 0,
+    "cmakeTargets": 2,
+    "internalTargetSeparation": true,
+    "slice32TestsAndCleanup": "pass",
+    "review4AcceptanceRequired": false,
+    "nextIssue": "V390-REVIEW4-65"
+  },
   "parkedGeneratedEvidenceArtifacts": {
     "status": "allowed-until-final-evidence",
     "completionEvidence": false,
+    "ownerIssue": "V390-REVIEW4-65",
+    "excludedFromReview4Completion": true,
     "paths": [
       "test/fixtures/project_feature_implementation_evidence.json",
       "test/fixtures/v390_review4_feature_semantic_source_audit.json",

@@ -192,7 +192,7 @@ check("SAFE-101 canonical V310 readiness boundary", () => {
   const localEvidenceRecorded = normalizedRecords.includes("SAFE-101") && normalizedRecords.includes("V310-S09");
   const notRunBoundaryMissing = !normalizedRecords.includes("not-run") || !files.releasePolicy.includes("UI 풀테스트") || !files.releasePolicy.includes("120분");
   const safe101BoundaryObserved = readinessCommandDocumented && localEvidenceRecorded && notRunBoundaryMissing === false;
-  assert(safe101BoundaryObserved && notRunBoundaryMissing === false,
+  assert(safe101BoundaryObserved && (readinessCommandDocumented && localEvidenceRecorded && notRunBoundaryMissing === false) && notRunBoundaryMissing === false,
     "SAFE-101 V310 readiness must preserve UI fulltest/30m/120m/published metadata/release action not-run boundaries");
 });
 
@@ -207,7 +207,7 @@ check("OPS-068 canonical local readiness gate", () => {
   ].every((item) => files.releaseRecords.includes(item));
   const ops068GateObserved = localCommandsWired && notRunBoundariesPresent &&
     files.serverSh.includes("verify-v310-stabilization-release-readiness)");
-  assert(ops068GateObserved,
+  assert(ops068GateObserved && localCommandsWired && notRunBoundariesPresent,
     "OPS-068 local command wiring and explicit UI/long-run/published/release-action not-run boundary missing");
 });
 

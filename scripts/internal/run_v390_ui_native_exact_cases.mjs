@@ -116,6 +116,18 @@ const caseRuntime = createV390UiCaseRuntime({
 });
 assert(typeof caseRuntime.verifyCleanupReadback === "function",
   "exact case runtime verifyCleanupReadback owner missing");
+let caseRuntimeSecretScanComplete = false;
+process.on("exit", () => {
+  if (caseRuntimeSecretScanComplete) return;
+  try {
+    caseRuntime.assertSecretsAbsentFromArtifacts(outputDir);
+  } catch (error) {
+    console.error(`[secret-artifact-fail] ${error instanceof Error ? error.message : String(error)}`);
+    process.exitCode = 1;
+  } finally {
+    caseRuntime.releaseSecrets();
+  }
+});
 
 const results = [];
 let stopped = false;
@@ -162,6 +174,12 @@ const produced = producePolicyV4Evidence({
   contractFixture: false,
 });
 const summary = produced.summary;
+const caseRuntimeSecretArtifactIntegrity = caseRuntime.assertSecretsAbsentFromArtifacts(outputDir);
+summary.caseRuntimeSecretArtifactIntegrity = caseRuntimeSecretArtifactIntegrity;
+writeJson(summaryPath, summary);
+caseRuntime.assertSecretsAbsentFromArtifacts(outputDir);
+caseRuntimeSecretScanComplete = true;
+caseRuntime.releaseSecrets();
 printSummary(summary, summaryPath);
 if (summary.result !== "PASS") process.exit(1);
 

@@ -277,9 +277,14 @@ check("server entrypoint and inventory verifiers include v3.3 Step 6 command", (
   for (const id of ["UI-071", "SRC-037", "EVT-072", "SAFE-118", "OPS-085"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  for (const id of ["SRC-037", "EVT-072", "SAFE-118", "OPS-085"]) {
+  for (const [id, expectedCommand] of Object.entries({
+    "SRC-037": "verify-ops-source-registry-api",
+    "EVT-072": command,
+    "SAFE-118": command,
+    "OPS-085": command,
+  })) {
     const item = implementationManifest.items.find(candidate => candidate.id === id);
-    assert(item?.verifierEvidence?.command === command, `${id} manifest canonical verifier command drift`);
+    assert(item?.verifierEvidence?.command === expectedCommand, `${id} manifest canonical verifier command drift`);
   }
   assertIncludes(files.scriptInventory, "verify_v330_operator_recheck_recovery_queue.mjs", "script inventory");
 });
@@ -296,8 +301,12 @@ check("SAFE-118 canonical operator recheck recovery boundary", () => {
   const credentialMaterialExposed = queueBlock.includes("\\\"credentialMaterialExposed\\\":true");
   const viewerClientExposureAdded = /AppendClient|ClientEventSummary|PublishedView/.test(queueBlock);
   const automaticRecoveryPerformed = /\b(?:Recover|Restore|Execute)[A-Za-z0-9_:]*\s*\(/.test(queueBlock);
-  assert(safe118BoundaryObserved && persistentQueueWritePerformed === false && sourceOrEventWritePerformed === false && rawMaterialExposed === false && rawLocatorExposed === false && sourceUrlExposed === false && debugMaterialExposed === false && credentialMaterialExposed === false && viewerClientExposureAdded === false && automaticRecoveryPerformed === false,
-    "SAFE-118 info.retry_candidate operatorRecheckRecoveryQueue must remain a deterministic hint without queue/source/event writes, raw credential, client, or automatic recovery");
+  const ops085RecoveryQueueGateObserved = safe118BoundaryObserved && persistentQueueWritePerformed === false &&
+    sourceOrEventWritePerformed === false && rawMaterialExposed === false && rawLocatorExposed === false &&
+    sourceUrlExposed === false && debugMaterialExposed === false && credentialMaterialExposed === false &&
+    viewerClientExposureAdded === false && automaticRecoveryPerformed === false;
+  assert(ops085RecoveryQueueGateObserved && persistentQueueWritePerformed === false && sourceOrEventWritePerformed === false && rawMaterialExposed === false && rawLocatorExposed === false && sourceUrlExposed === false && debugMaterialExposed === false && credentialMaterialExposed === false && files.server.includes("/ops/events") && files.server.includes("/ops/api/events/reviews"),
+    "SAFE-118 / OPS-085 /ops/events and /ops/api/events/reviews operatorRecheckRecoveryQueue must remain a deterministic hint without queue/source/event writes, raw JSON/source URL/debug/credential material, client exposure, or automatic recovery");
 });
 
 const results = runChecks();

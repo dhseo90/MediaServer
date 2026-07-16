@@ -124,58 +124,62 @@ function runNegativeFixtures({ rootDir, inventoryText, rows, manifest }) {
     },
     {
       name: "duplicate-id",
-      mutate(copy) { copy.items[1].id = copy.items[0].id; },
+      mutate(copy) { mutateItem(copy, 1, item => { item.id = copy.items[0].id; }); },
       expect: "manifest contains duplicate feature IDs",
     },
     {
       name: "wrong-section-prefix",
-      mutate(copy) { copy.items[0].section = "J"; },
+      mutate(copy) { mutateItem(copy, 0, item => { item.section = "J"; }); },
       expect: "section mismatch",
     },
     {
       name: "missing-source-file",
-      mutate(copy) { copy.items[0].sourceEvidence.file = "src/missing.cpp"; },
+      mutate(copy) { mutateItem(copy, 0, item => { item.sourceEvidence.file = "src/missing.cpp"; }); },
       expect: "file is not tracked",
     },
     {
       name: "missing-source-anchor",
-      mutate(copy) { copy.items[0].sourceEvidence.anchor = "__missing_feature_anchor__"; },
+      mutate(copy) { mutateItem(copy, 0, item => { item.sourceEvidence.anchor = "__missing_feature_anchor__"; }); },
       expect: "anchor missing",
     },
     {
       name: "missing-ui-control-anchor",
       mutate(copy) {
-        const item = copy.items.find(entry => entry.uiEvidence);
-        item.uiEvidence.anchor = "__missing_ui_control__";
+        mutateItem(copy, entry => entry.uiEvidence, item => {
+          item.uiEvidence.anchor = "__missing_ui_control__";
+        });
       },
       expect: "anchor missing",
     },
     {
       name: "missing-ui-screen-route",
       mutate(copy) {
-        const item = copy.items.find(entry => entry.uiEvidence);
-        item.uiEvidence.screenRoute = "/missing-product-screen";
+        mutateItem(copy, entry => entry.uiEvidence, item => {
+          item.uiEvidence.screenRoute = "/missing-product-screen";
+        });
       },
       expect: "UI screenRoute missing from product source",
     },
     {
       name: "unknown-verifier-command",
       mutate(copy) {
-        const item = copy.items.find(entry => entry.verifierEvidence?.command);
-        item.verifierEvidence.command = "verify-does-not-exist";
+        mutateItem(copy, entry => entry.verifierEvidence?.command, item => {
+          item.verifierEvidence.command = "verify-does-not-exist";
+        });
       },
       expect: "verifier command not dispatched",
     },
     {
       name: "missing-verifier-assertion",
-      mutate(copy) { copy.items[0].verifierEvidence.anchor = "__missing_assertion__"; },
+      mutate(copy) { mutateItem(copy, 0, item => { item.verifierEvidence.anchor = "__missing_assertion__"; }); },
       expect: "anchor missing",
     },
     {
       name: "legacy-longrun-command",
       mutate(copy) {
-        const item = copy.items.find(entry => entry.longrunEvidence?.soak30);
-        item.longrunEvidence.soak30 = "./server.sh verify-predev --soak-minutes 30";
+        mutateItem(copy, entry => entry.longrunEvidence?.soak30, item => {
+          item.longrunEvidence.soak30 = "./server.sh verify-predev --soak-minutes 30";
+        });
       },
       expect: "30분 mapping must use the v3.9 canonical runner",
     },
@@ -186,33 +190,35 @@ function runNegativeFixtures({ rootDir, inventoryText, rows, manifest }) {
     },
     {
       name: "missing-reviewed-call-chain",
-      mutate(copy) { delete copy.items[0].semanticEvidence.callChain; },
+      mutate(copy) { mutateItem(copy, 0, item => { delete item.semanticEvidence.callChain; }); },
       expect: "REVIEW4 compatibility call chain drift",
     },
     {
       name: "bulk-review-reason",
-      mutate(copy) { copy.items[1].review.reason = copy.items[0].review.reason; },
+      mutate(copy) { mutateItem(copy, 1, item => { item.review.reason = copy.items[0].review.reason; }); },
       expect: "bulk or duplicate semantic review reason detected",
     },
     {
       name: "safe-140-unrelated-owner",
       mutate(copy) {
-        const item = copy.items.find(entry => entry.id === "SAFE-140");
-        item.semanticEvidence.review4Proof.roles.action.symbol = "OpsV380ClientNoticeDraftQueueJson";
+        mutateItem(copy, entry => entry.id === "SAFE-140", item => {
+          item.semanticEvidence.review4Proof.roles.action.symbol = "OpsV380ClientNoticeDraftQueueJson";
+        });
       },
       expect: "REVIEW4 source-flow digest drift",
     },
     {
       name: "rule-017-generic-json-owner",
       mutate(copy) {
-        const item = copy.items.find(entry => entry.id === "RULE-017");
-        item.semanticEvidence.review4Proof.roles.owner.symbol = "ExtractObjectField";
+        mutateItem(copy, entry => entry.id === "RULE-017", item => {
+          item.semanticEvidence.review4Proof.roles.owner.symbol = "ExtractObjectField";
+        });
       },
       expect: "REVIEW4 source-flow digest drift",
     },
   ];
   return cases.map(testCase => {
-    const copy = structuredClone(manifest);
+    const copy = { ...manifest, items: [...manifest.items] };
     testCase.mutate(copy);
     const result = validateImplementationManifest({ rootDir, inventoryText, rows, manifest: copy });
     return {
@@ -220,6 +226,18 @@ function runNegativeFixtures({ rootDir, inventoryText, rows, manifest }) {
       pass: !result.ok && result.errors.some(error => error.includes(testCase.expect)),
     };
   });
+}
+
+function mutateItem(manifest, selector, mutate) {
+  const index = Number.isInteger(selector)
+    ? selector
+    : manifest.items.findIndex(selector);
+  if (index < 0 || index >= manifest.items.length) {
+    throw new Error("negative fixture target item missing");
+  }
+  const item = structuredClone(manifest.items[index]);
+  manifest.items[index] = item;
+  mutate(item);
 }
 
 function parseArgs(argsList) {

@@ -83,10 +83,14 @@ check("scoped search response is redacted and client-safe", () => {
   const sourceUrlBoundaryMissing = !scopedFunction.includes("\\\"sourceUrlIncluded\\\":false");
   const debugMaterialBoundaryMissing = !scopedFunction.includes("\\\"debugMaterialIncluded\\\":false");
   const rawMaterialExposed = /raw(?:Evidence|Json|Locator)(?:Value|Items|Payload)/.test(scopedFunction);
+  const scopedFunctionObserved = scopedFunction.includes("media-server.integrator.scoped-event-search.v1") &&
+    scopedFunction.includes("viewId") && scopedFunction.includes("eventId");
+  const scopedSearchBoundaryObserved = scopedFunctionObserved && rawEvidenceBoundaryMissing === false &&
+    sourceUrlBoundaryMissing === false && debugMaterialBoundaryMissing === false && rawMaterialExposed === false;
   assert(rawEvidenceBoundaryMissing === false && rawMaterialExposed === false, "CLIENT-026 raw material must remain redacted");
   assert(sourceUrlBoundaryMissing === false, "CLIENT-026 source URL must remain redacted");
   assert(debugMaterialBoundaryMissing === false, "CLIENT-026 debug material must remain redacted");
-  assert(scopedFunction.includes("media-server.integrator.scoped-event-search.v1") && scopedFunction.includes("viewId") && scopedFunction.includes("eventId"), "CLIENT-026 exact scoped integrator search readback missing for /client/api/views/{id}/events/search and event:read:{viewId}");
+  assert(scopedSearchBoundaryObserved && scopedFunction.includes("media-server.integrator.scoped-event-search.v1"), "CLIENT-026 exact scoped integrator search readback missing for /client/api/views/{id}/events/search and event:read:{viewId}");
   for (const snippet of [
     "\\\"schema\\\":\\\"media-server.integrator.scoped-event-search.v1\\\"",
     "\\\"integratorOnly\\\":true",

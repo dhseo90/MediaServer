@@ -10,6 +10,7 @@ import process from "node:process";
 const failures = [];
 
 const server = readWebRtcHttpServerBundle(readText);
+const serverPages = readText("src/ingress/product_ui_server_pages.cpp");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
@@ -79,7 +80,7 @@ check("/ops/events UI renders action pack panel and safe action links", () => {
     'id="opsOperationalActionPackRows"',
     "Operational Action Pack",
   ]) {
-    assertIncludes(server, snippet, "Ops operational action pack shell");
+    assertIncludes(serverPages, snippet, "Ops operational action pack shell");
   }
   for (const snippet of [
     "renderOperationalActionPack",
@@ -130,9 +131,11 @@ check("smoke, inventory, manual UI, coverage, and command catalog track S03", ()
     assertIncludes(inventory, snippet, "feature inventory S03 row");
   }
   assertIncludes(manualChecklist, "| V270-S03 Operational Action Pack | `UI-052`, `EVT-052`, `LAB-076`, `SAFE-060` |", "manual UI checklist S03 row");
-  for (const id of ["UI-052", "EVT-052", "LAB-076", "SAFE-060"]) {
+  for (const id of ["UI-052", "EVT-052", "LAB-076"]) {
     assert(implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-v270-operational-action-pack", `${id} manifest verifier command drift`);
   }
+  assert(implementationManifest.items.find(item => item.id === "SAFE-060")?.verifierEvidence?.command === "verify-auth-routes",
+    "SAFE-060 strongest runtime boundary verifier command drift");
   assertIncludes(coverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   assertIncludes(coverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   assertIncludes(streamVerification, "verify-v270-operational-action-pack", "stream verification S03 command");
@@ -153,7 +156,7 @@ check("S03 keeps forbidden delivery/rule/provider/schema/media side effects abse
     "SSE/WS metadata schema 변경 완료",
     "RTSP/WebRTC media path 변경 완료",
   ]) {
-    assert(!server.includes(forbidden) && !script.includes(forbidden) && !backlog.includes(forbidden),
+    assert(!server.includes(forbidden) && !serverPages.includes(forbidden) && !script.includes(forbidden) && !backlog.includes(forbidden),
       `forbidden S03 snippet present: ${forbidden}`);
   }
 });

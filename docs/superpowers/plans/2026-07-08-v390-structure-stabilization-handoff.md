@@ -6,7 +6,7 @@
 
 **Architecture:** 이 계획은 behavior-preserving stabilization handoff다. 새 product route, write path, UI control, schema, media path를 만들지 않고, 기존 대형 translation unit과 문서 source-of-truth를 작은 소유권 단위로 나누기 위한 순서와 검증만 정의한다.
 
-**Execution status:** `in-progress`; historical Slice 1~5와 current continuation Slice 1~9를 완료했고 최종 architecture/evidence 기준은 아직 미달입니다.
+**Execution status:** `completed`; historical REVIEW4-51의 Slice 1~5/Slice 6 미착수 기록은 불변 보존하고, current REVIEW4-64 continuation Slice 1~32가 `final-targets-satisfied`와 구조 테스트·cleanup을 통과해 refactor를 완료했습니다. REVIEW4-65 generated/actual acceptance는 별도 pending입니다.
 
 **Tech Stack:** C++17, GStreamer/ONNX 기반 MediaServer, `server.sh` verifier dispatch, Node.js static verifier, Markdown release/test evidence.
 
@@ -14,7 +14,7 @@
 
 ## Handoff Boundary
 
-이 문서는 `V390-STRUCT-001`~`V390-STRUCT-005`의 실행 계획이며 구조 안정화 구현 완료 evidence가 아닙니다. 최신 사용자 승인에 따라 REVIEW4-50~63을 모두 닫은 뒤 현재 `v3.9.0` branch에서 REVIEW4-64의 각 task를 TDD로 실행합니다.
+이 문서의 historical handoff/REVIEW4-51 부분은 `V390-STRUCT-001`~`V390-STRUCT-005`의 승인 당시 계획이며 그 자체가 구현 완료 evidence는 아닙니다. Current 완료 evidence는 `v390_structure_stabilization_execution.json`의 Slice 32, current graph, 구조 테스트·cleanup 결속입니다.
 
 대상 구조 항목:
 
@@ -35,7 +35,7 @@ Development 17의 readiness와 REVIEW4-51 decision/graph는 승인 당시 histor
 `test/fixtures/v390_structure_stabilization_current_graph.json`, verifier는
 `./server.sh verify-v390-review4-structure-stabilization-execution`입니다.
 
-Current REVIEW4-64 status: `current-continuation-slice-29-closure-in-progress-final-targets-unmet`
+Current REVIEW4-64 status: `completed-current-continuation-slice-32-final-targets-satisfied`
 
 | 순서 | Current Slice | 상태 | 직접 경계 |
 | ---: | --- | --- | --- |
@@ -44,12 +44,11 @@ Current REVIEW4-64 status: `current-continuation-slice-29-closure-in-progress-fi
 | 3 | `registry-domain` | 완료 | registry는 transport-neutral `ClientViewAccessAuthorizer`만 소비하고 기존 role/scope 판정은 HTTP adapter에 보존; write/persistence/paired transaction 불변 |
 | 4 | `ui-script-css` | 완료 | action execution deferral HTML/renderer를 focused product UI owner로 이동하고 shared CSS byte·DOM/route/test-ID·read-only 의미 보존 |
 | 5 | `vlm-parser` | 완료 | strict JSON을 core utility로 이동하고 VLM provenance validator를 application-service owner로 분리; actual save/restart/no-write와 profile/promotion 계약 보존 |
-| 6 | `verifier-docs` | 미착수·deferred | production continuation source/graph가 안정된 뒤 execution evidence, manual UI archive, VLM index를 final review; generated evidence는 그 전까지 parked 상태 |
+| 6 | `verifier-docs` | historical 미착수·deferred 기록 보존 | REVIEW4-51 당시 generated evidence 계획이며 current REVIEW4-64 completion evidence로 승격하지 않음; generated/actual acceptance owner는 REVIEW4-65 |
 
-Current policy v1 graph는 production 173파일/C++ 85개/owner 10개, target 위반 direction
-3개(승인 baseline 25개), 최대 SCC 0, production CMake target 2개입니다. `main.cpp` mixed composition debt는
-245→8줄, selected action route owner는 server 43,266→43,186줄로 닫았고 registry→transport auth edge와 product UI→transport/Auth edge를 제거했습니다. Transport monolith는 5개 구현 TU와 private detail header로 분할됐고 tracked mixed owner 최대는 10,160줄입니다. Slice 13은 utility 소유 compile-time 값을 `analysis_runtime_port.h`의 공식 `analysis_runtime_defaults` re-export로만 analysis에 노출하고 exact 133-default/148-field manifest를 고정했습니다. Slice 14는 exact 68-field WebRTC HTTP runtime snapshot을 composition에서 매핑·주입해 transport→core-utilities 방향을 제거했습니다. 위반 3개와 parked evidence가 남아 있으므로 REVIEW4-64 완료가
-아닙니다. Historical v2 order와 current order의 전환 범위는 slice identifier/order뿐이며 current branch,
+Current policy v1 graph는 production 215파일/C++ 103개/owner 10개, target 위반 direction
+0개(승인 baseline 25개), 최대 SCC 0, production CMake target 2개입니다. `main.cpp` mixed composition debt는
+245→8줄, selected action route owner는 server 43,266→43,186줄로 닫았고 registry→transport auth edge와 product UI→transport/Auth edge를 제거했습니다. Transport monolith는 5개 구현 TU와 private detail header로 분할됐고 tracked mixed owner 최대는 10,156줄입니다. Slice 13은 utility 소유 compile-time 값을 `analysis_runtime_port.h`의 공식 `analysis_runtime_defaults` re-export로만 analysis에 노출하고 exact 133-default/148-field manifest를 고정했습니다. Slice 14는 exact 68-field WebRTC HTTP runtime snapshot을 composition에서 매핑·주입해 transport→core-utilities 방향을 제거했습니다. Current architecture final target과 Slice 32 테스트·cleanup을 충족했으므로 REVIEW4-64는 완료입니다. Parked generated evidence는 REVIEW4-65 acceptance pending이며 64 완료 근거로 사용하지 않습니다. Historical v2 order와 current order의 전환 범위는 slice identifier/order뿐이며 current branch,
 50~63 prerequisite, 9 preserved contract, 64 뒤 65 acceptance 경계는 유지합니다. Policy v1은
 application-service→core와 transport→Ops/UI를 temporary debt로 기록하며 위반 계산에서 제외하지 않습니다.
 Ops server page renderer와 principal adapter 경계 이동에 이어 shared source request parser를
@@ -142,7 +141,9 @@ Source release: `v3.9.0`
 
 Historical readiness snapshot execution: `not-run`
 
-Current v3.9 refactor continuation: `in-progress` (Slice 10까지 실행, final target 미충족)
+Current v3.9 refactor execution: `completed`
+
+Current v3.9 refactor continuation: `completed` (Slice 32, final target 충족, 구조 테스트·cleanup PASS)
 
 Branch creation: `not-performed`
 

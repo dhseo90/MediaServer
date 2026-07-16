@@ -50,8 +50,8 @@ const expected = new Map([
     method: "GET",
     schema: "media-server.ops.v390-action-execution-deferral-decision.v1",
     sourceAnchors: [
-      anchor("src/ingress/webrtc_http_server.cpp", ["OpsV390ActionExecutionDeferralDecisionJson", "/ops/api/actions/execution-deferral-decision", "approvalGatedExecutionEnabled", "actionExecutionPerformed"]),
-      anchor("src/ingress/product_ui_page_scripts.cpp", ["renderV390ActionExecutionDeferralDecision", "dashActionExecutionDeferralText", "dashActionExecutionDeferralBoundary"]),
+      anchor("src/ingress/ops_action_execution_deferral.cpp", ["OpsV390ActionExecutionDeferralDecisionJson", "/ops/api/actions/execution-deferral-decision", "approvalGatedExecutionEnabled", "actionExecutionPerformed"]),
+      anchor("src/ingress/product_ui_action_execution_deferral.cpp", ["renderV390ActionExecutionDeferralDecision", "dashActionExecutionDeferralText", "dashActionExecutionDeferralBoundary"]),
     ],
     uiRoute: "/ops/dashboard",
     uiSelectors: ["[data-testid=\"ops-action-execution-deferral-decision\"]", "#dashActionExecutionDeferralText", "#dashActionExecutionDeferralBoundary"],
@@ -73,7 +73,7 @@ const expected = new Map([
     method: "GET",
     schema: "media-server.ops.v390-onvif-credential-provider-status.v1",
     sourceAnchors: [
-      anchor("src/ingress/webrtc_http_server.cpp", ["OpsV390OnvifCredentialProviderStatusSummaryJson", "/ops/api/onvif/credential-provider-status", "productPersistentSecretStoreEnabled", "secretMaterialStored"]),
+      anchor("src/ingress/webrtc_http_server_ops_foundation.cpp", ["OpsV390OnvifCredentialProviderStatusSummaryJson", "/ops/api/onvif/credential-provider-status", "productPersistentSecretStoreEnabled", "secretMaterialStored"]),
       anchor("src/ingress/product_ui_ops_sources_script.cpp", ["renderOnvifCredentialProviderStatus", "onvifCredentialGateStatus", "persistent store deferred"]),
     ],
     uiRoute: "/ops/sources",
@@ -96,8 +96,10 @@ const expected = new Map([
     method: "GET",
     schema: "media-server.ops.v390-staging-restore-validation-handoff.v1",
     sourceAnchors: [
-      anchor("src/ingress/webrtc_http_server.cpp", ["OpsV390StagingRestoreValidationHandoffJson", "/ops/api/source-registry/staging-restore-validation-handoff", "productionRestorePerformed", "automaticRecoveryPerformed"]),
+      anchor("src/ingress/webrtc_http_server_runtime.cpp", ["/ops/api/source-registry/staging-restore-validation-handoff", "OpsV390StagingRestoreValidationHandoffJson"]),
+      anchor("src/ingress/webrtc_http_server_ops_foundation.cpp", ["OpsV390StagingRestoreValidationHandoffJson", "media-server.ops.v390-staging-restore-validation-handoff.v1", "productionRestorePerformed", "automaticRecoveryPerformed"]),
       anchor("src/ingress/product_ui_ops_sources_script.cpp", ["renderStagingRestoreValidationHandoff", "sourceStagingRestoreValidationStatus", "productionRestorePerformed"]),
+      anchor("src/ingress/webrtc_http_server.cpp", ["data-source-staging-restore-validation-handoff", "sourceStagingRestoreValidationStatus"]),
       anchor("docs/ops-backup-recovery.md", ["staging", "restore"]),
     ],
     uiRoute: "/ops/sources",
@@ -119,8 +121,9 @@ const expected = new Map([
     method: "GET",
     schema: "media-server.ops.v390-field-evidence-bridge-decision.v1",
     sourceAnchors: [
-      anchor("src/ingress/webrtc_http_server.cpp", ["ValidateVlmRuntimeOptInContract", "providerCallAllowed", "OpsV390FieldEvidenceBridgeDecisionJson", "cloudProviderCalled"]),
+      anchor("src/ingress/webrtc_http_server_ops_workflows.cpp", ["OpsV390FieldEvidenceBridgeDecisionJson", "/ops/api/field-evidence/bridge-decision", "cloudProviderCalled", "vlmProviderCalled"]),
       anchor("src/ingress/product_ui_page_scripts.cpp", ["renderV390FieldEvidenceBridgeDecision", "dashFieldEvidenceBridgeText", "dashFieldEvidenceBridgeBoundary"]),
+      anchor("src/ingress/product_ui_server_pages.cpp", ["ops-field-evidence-bridge-decision", "dashFieldEvidenceBridgeText", "dashFieldEvidenceBridgeBoundary"]),
       anchor("scripts/internal/verify_vlm_cloud_provider_field_smoke_gate.mjs", ["approval", "provider"]),
     ],
     uiRoute: "/ops/dashboard",
@@ -144,10 +147,11 @@ const expected = new Map([
     method: "GET",
     schema: "media-server.ops.v390-reid-assist-decision.v1",
     sourceAnchors: [
-      anchor("src/ingress/webrtc_http_server.cpp", ["OpsV390ReidAssistDecisionJson", "/ops/api/analysis/reid-assist-decision", "modelSessionLoadPerformed", "modelBackedExecutionPerformed"]),
+      anchor("src/ingress/webrtc_http_server_ops_workflows.cpp", ["OpsV390ReidAssistDecisionJson", "/ops/api/analysis/reid-assist-decision", "modelSessionLoadPerformed", "modelBackedExecutionPerformed"]),
       anchor("src/analysis/appearance_extractor.cpp", ["ExperimentalOnnxReidExtractor", "session_->Run", "CreateAppearanceExtractorFromConfig"]),
       anchor("src/analysis/analysis_manager.cpp", ["CreateAppearanceExtractorFromConfig"]),
       anchor("src/ingress/product_ui_page_scripts.cpp", ["renderV390ReidAssistDecision", "dashReidAssistDecisionText", "dashReidAssistDecisionBoundary"]),
+      anchor("src/ingress/product_ui_server_pages.cpp", ["ops-reid-assist-decision", "dashReidAssistDecisionText", "dashReidAssistDecisionBoundary"]),
     ],
     uiRoute: "/ops/dashboard",
     uiSelectors: ["[data-testid=\"ops-reid-assist-decision\"]", "#dashReidAssistDecisionText", "#dashReidAssistDecisionBoundary"],
@@ -267,9 +271,10 @@ function validateDecisions(fixture) {
     actualIds.add(decision.id);
     const spec = expected.get(decision.id);
     assert(decision.functionalOwnerRole === spec.functionalOwnerRole, `${decision.id}: functional owner role mismatch`);
-    const accountableSubjectRef = decision.accountableSubjectRef;
-    const accountableOwnerBound = accountableSubjectRef === "repo-owner-v1";
-    assert(accountableOwnerBound && accountableSubjectRef === "repo-owner-v1",
+    const decisionOwnerSubjectRef = decision.accountableSubjectRef;
+    const accountableOwnerBound = decisionOwnerSubjectRef === "repo-owner-v1";
+    const accountableOwnerDecisionBound = accountableOwnerBound && decisionOwnerSubjectRef === "repo-owner-v1";
+    assert(accountableOwnerDecisionBound,
       `${decision.id}: missing accountable subject reference`);
     assert(decision.approvalStatus === "attested-current-goal", `${decision.id}: approval status mismatch`);
     assert(decision.decision === spec.decision, `${decision.id}: v3.9 decision mismatch`);

@@ -7,6 +7,14 @@ import process from "node:process";
 import { execFileSync, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
+import {
+  assertSecretValuesAbsentFromTree,
+  consumeAcceptanceAdminPassword,
+  resolveAcceptanceRoleSecrets,
+  secretStrippedProcessEnv,
+} from "./v390_acceptance_ui_environment.mjs";
+import { createV390UiCaseRuntime } from "./v390_ui_case_runtime.mjs";
+
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -48,6 +56,8 @@ process.on("exit", () => {
 const files = {
   bundle: readText("scripts/internal/verify_v390_test_acceptance_bundle.mjs"),
   uiEnvironment: readText("scripts/internal/v390_acceptance_ui_environment.mjs"),
+  caseRuntime: readText("scripts/internal/v390_ui_case_runtime.mjs"),
+  exactRunner: readText("scripts/internal/run_v390_ui_native_exact_cases.mjs"),
   serverSh: readText("server.sh"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   streamVerification: readText("docs/stream-verification.md"),
@@ -93,15 +103,38 @@ check("canonical actual command owns the complete throwaway UI environment", () 
     '"ui-environment-bootstrap"',
     "startSelfContainedUiEnvironment",
     "dependency-bootstrap-attestation",
-    "generated-secret-memory-only",
+    "runtime-admin-and-generated-role-secrets-memory-only",
+    "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD is required for the acceptance-owned throwaway admin",
+    "delete env.MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD",
     "role-storage-state-generated-by-acceptance",
     "self-contained-pid-port-artifact-ownership",
   ]) assertIncludes(files.bundle, snippet, "self-contained acceptance source");
   for (const snippet of [
     "JSON.stringify({ roles: secrets, refs: { fixturePassword } })",
+    "resolveAcceptanceRoleSecrets(adminPassword)",
+    "env: secretStrippedProcessEnv()",
+    "delete env[adminPasswordEnv]",
+    "delete process.env[adminPasswordEnv]",
+    'adminSecretSource: adminPasswordEnv',
+    '"runtime-env-consumed-then-unset"',
     "usersFile: state.usersPath",
     "defaultViewId: state.viewId",
   ]) assertIncludes(files.uiEnvironment, snippet, "self-contained runtime consumer contract");
+
+  assert(files.bundle.indexOf("consumeAcceptanceAdminPassword()") <
+    files.bundle.indexOf("collectSourceProvenance(rootDir)"),
+  "admin secret must leave process.env before source provenance can spawn a child");
+  assertIncludes(files.bundle, "adminPassword: acceptanceAdminPassword",
+    "bundle must pass the consumed admin secret explicitly from memory");
+  const sourceEnv = {
+    SAFE_VALUE: "preserved",
+    MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD: "contract-early-consume-admin",
+  };
+  const consumedAdmin = consumeAcceptanceAdminPassword(sourceEnv);
+  assert(consumedAdmin === "contract-early-consume-admin", "early admin secret consumption changed the value");
+  assert(!("MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD" in sourceEnv),
+    "early admin secret consumption left the value in the source environment");
+  assert(sourceEnv.SAFE_VALUE === "preserved", "early admin secret consumption removed an unrelated value");
 
   const rejected = runBundle([
     "--output-dir", fixtureDir("external-input-rejected"),
@@ -111,6 +144,109 @@ check("canonical actual command owns the complete throwaway UI environment", () 
   assert(rejected.status !== 0, "removed external UI runtime option must be rejected");
   assert(`${rejected.stdout}\n${rejected.stderr}`.includes("unknown option: --ui-http-base"),
     "removed external UI runtime option rejection reason missing");
+
+  const runtimeOnlyAdmin = "contract-runtime-only-admin-value";
+  const generated = [];
+  const resolved = resolveAcceptanceRoleSecrets(runtimeOnlyAdmin, username => {
+    generated.push(username);
+    return `generated-for-${username}`;
+  });
+  assert(resolved.admin === runtimeOnlyAdmin, "throwaway admin did not preserve the runtime-provided value");
+  assert(generated.length === 3 && !generated.includes("admin"),
+    "throwaway admin must not be regenerated while the other roles remain generated");
+  assert(Object.entries(resolved).filter(([role]) => role !== "admin")
+    .every(([, value]) => value !== runtimeOnlyAdmin),
+    "runtime admin value was reused by another role");
+  let missingAdminRejected = false;
+  try {
+    resolveAcceptanceRoleSecrets("", () => "unused-generated-value");
+  } catch (error) {
+    missingAdminRejected = String(error?.message || error).includes("MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD is required");
+  }
+  assert(missingAdminRejected, "missing runtime admin secret must fail before auth bootstrap");
+});
+
+check("acceptance child environments and artifacts exclude retained secrets", () => {
+  const stripped = secretStrippedProcessEnv({
+    SAFE_VALUE: "preserved",
+    MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD: "sentinel-admin",
+    MEDIA_SERVER_V390_UI_ROLE_SECRETS: "sentinel-roles",
+  });
+  assert(stripped.SAFE_VALUE === "preserved", "unrelated child environment value was removed");
+  assert(!("MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD" in stripped), "admin secret reached a non-exact child");
+  assert(!("MEDIA_SERVER_V390_UI_ROLE_SECRETS" in stripped), "role-secret JSON reached a non-exact child");
+  for (const [label, block] of [
+    ["lsof", sourceBlock(files.uiEnvironment, "export function listListenerPids", "function createState")],
+    ["bootstrap browser", sourceBlock(files.uiEnvironment, "async function bootstrapPlaywrightDependency", "function prepareRegistrySeed")],
+    ["manual UI seed", sourceBlock(files.uiEnvironment, "function prepareRegistrySeed", "async function startOwnedServerWithBoundedRetry")],
+    ["owned server", sourceBlock(files.uiEnvironment, "function spawnOwnedServer", "export function secretStrippedProcessEnv")],
+    ["ps", sourceBlock(files.uiEnvironment, "function readCommandIdentity", "function processIsAlive")],
+  ]) {
+    assert(block.includes("secretStrippedProcessEnv()"), `${label} child is not bound to the stripped environment`);
+  }
+  assert(files.bundle.includes("delete env.MEDIA_SERVER_V390_UI_ROLE_SECRETS"),
+    "acceptance stage child environment does not strip inherited role secrets");
+  assert(files.bundle.indexOf("assertSecretsAbsentFromArtifacts(childDir)") < files.bundle.indexOf("releaseSecrets()"),
+    "exact artifacts are not scanned before in-memory secrets are released");
+
+  const artifactRoot = fixtureDir("secret-artifact-scan");
+  fs.mkdirSync(artifactRoot, { recursive: true });
+  const sentinel = `sentinel value/+${process.pid}`;
+  const artifact = path.join(artifactRoot, "summary.json");
+  fs.writeFileSync(artifact, JSON.stringify({ value: sentinel }));
+  let leakedRejected = false;
+  try {
+    assertSecretValuesAbsentFromTree(artifactRoot, [sentinel]);
+  } catch (error) {
+    leakedRejected = String(error?.message || error).includes("generated auth secret persisted to disk");
+  }
+  assert(leakedRejected, "artifact scan accepted a retained secret literal");
+  fs.writeFileSync(artifact, JSON.stringify({ value: encodeURIComponent(sentinel) }));
+  let encodedLeakRejected = false;
+  try {
+    assertSecretValuesAbsentFromTree(artifactRoot, [sentinel]);
+  } catch (error) {
+    encodedLeakRejected = String(error?.message || error).includes("generated auth secret persisted to disk");
+  }
+  assert(encodedLeakRejected, "artifact scan accepted a reversibly encoded secret literal");
+  fs.writeFileSync(artifact, JSON.stringify({ value: "redacted" }));
+  const evidence = assertSecretValuesAbsentFromTree(artifactRoot, [sentinel]);
+  assert(evidence.status === "PASS" &&
+    evidence.verificationSource === "exact-artifact-byte-scan-before-secret-release",
+  "clean artifact scan evidence mismatch");
+  assert(files.bundle.includes("exact-and-runtime-artifact-byte-scan-before-secret-release"),
+    "exact and throwaway runtime artifact scan evidence is not required by the bundle");
+
+  const caseRuntime = createV390UiCaseRuntime({
+    rootDir,
+    httpBase: "http://127.0.0.1:1",
+    roleSecretsJson: JSON.stringify({ roles: { admin: sentinel }, refs: {} }),
+  });
+  const generated = caseRuntime.resolveSecretRef("CONTRACT:fixture-password", {
+    item: { caseId: "CONTRACT", accountRole: "admin" },
+    field: "password",
+  });
+  fs.writeFileSync(artifact, JSON.stringify({ value: encodeURIComponent(generated) }));
+  let childGeneratedRejected = false;
+  try {
+    caseRuntime.assertSecretsAbsentFromArtifacts(artifactRoot);
+  } catch (error) {
+    childGeneratedRejected = String(error?.message || error).includes("generated auth secret persisted to disk");
+  }
+  assert(childGeneratedRejected, "case-runtime scan accepted an encoded child-generated secret");
+  fs.writeFileSync(artifact, JSON.stringify({ value: "redacted" }));
+  const caseEvidence = caseRuntime.assertSecretsAbsentFromArtifacts(artifactRoot);
+  assert(caseEvidence.status === "PASS" &&
+    caseEvidence.verificationSource === "case-runtime-exact-and-throwaway-byte-scan-before-secret-release",
+  "case-runtime clean artifact evidence mismatch");
+  caseRuntime.releaseSecrets();
+  for (const snippet of [
+    "caseRuntimeSecretArtifactIntegrity",
+    "caseRuntime.assertSecretsAbsentFromArtifacts(outputDir)",
+    "caseRuntime.releaseSecrets()",
+  ]) assertIncludes(files.exactRunner, snippet, "exact runner case-runtime secret boundary");
+  assertIncludes(files.bundle, "case-runtime-exact-and-throwaway-byte-scan-before-secret-release",
+    "acceptance bundle child-generated secret evidence gate");
 });
 
 check("server.sh and script inventory expose R3 acceptance bundle commands", () => {
@@ -200,8 +336,12 @@ check("actual-mode fixture executes the fixed stage order and conditional 120 de
     "runtime descriptor auth defaultViewId mismatch");
   assert(summary.uiEnvironment?.dependency?.status === "dependency-bootstrap-attestation",
     "browser dependency bootstrap attestation missing");
-  assert(summary.uiEnvironment?.secretHandling === "generated-secret-memory-only",
-    "generated secrets must remain memory-only");
+  assert(summary.uiEnvironment?.secretHandling === "runtime-admin-and-generated-role-secrets-memory-only",
+    "runtime admin and generated role secrets must remain memory-only");
+  assert(summary.uiEnvironment?.adminSecretSource === "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD",
+    "throwaway admin secret source must be the runtime-only verifier environment");
+  assert(summary.uiEnvironment?.adminSecretLifecycle === "fixture-not-consumed",
+    "fixture must not claim runtime admin secret consumption");
   assert(!JSON.stringify(summary).includes("fixture-password-value"),
     "acceptance summary serialized a fixture password");
   assert(summary.stages.find(item => item.id === "ui-fulltest-qualification")?.status === "PASS",
@@ -382,6 +522,13 @@ function fixtureDir(label) {
   temporaryOutputDirs.add(outputDir);
   fs.rmSync(outputDir, { recursive: true, force: true });
   return outputDir;
+}
+
+function sourceBlock(source, start, end) {
+  const startIndex = source.indexOf(start);
+  const endIndex = source.indexOf(end, startIndex + start.length);
+  assert(startIndex >= 0 && endIndex > startIndex, `source block missing: ${start}`);
+  return source.slice(startIndex, endIndex);
 }
 
 function runBundle(args) {

@@ -173,7 +173,7 @@ check("SAFE-135 canonical V350 historical baseline boundary", () => {
   const currentSourceAligned = semverAtLeast(version, baselineVersion) && files.cmake.includes(`VERSION ${version}`) && currentRoadmap.startsWith(`v${version} `);
   const historicalBaselinePreserved = files.streamVerification.includes("v3.5.0 Live Operations Control Plane") && files.releaseRecords.includes("v350 Step 1 entry baseline final") && files.featureInventory.includes("SAFE-135");
   const safe135BoundaryObserved = baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved;
-  assert(safe135BoundaryObserved,
+  assert(safe135BoundaryObserved && (baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved),
     "SAFE-135 V350 historical baseline must preserve source 3.5.0 roadmap inventory records while accepting current source version");
 });
 

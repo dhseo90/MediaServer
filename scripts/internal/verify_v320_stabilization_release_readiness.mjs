@@ -196,7 +196,7 @@ check("SAFE-112 canonical V320 readiness boundary", () => {
   const localEvidenceRecorded = normalizedRecords.includes("SAFE-112") && normalizedRecords.includes("Step 11");
   const notRunBoundaryMissing = !normalizedRecords.includes("not-run") || !files.releasePolicy.includes("UI 풀테스트") || !files.releasePolicy.includes("120분");
   const safe112BoundaryObserved = readinessCommandDocumented && localEvidenceRecorded && notRunBoundaryMissing === false;
-  assert(safe112BoundaryObserved && notRunBoundaryMissing === false,
+  assert(safe112BoundaryObserved && (readinessCommandDocumented && localEvidenceRecorded && notRunBoundaryMissing === false) && notRunBoundaryMissing === false,
     "SAFE-112 V320 readiness must preserve UI fulltest/30m/120m/published metadata/field smoke/release action not-run boundaries");
 });
 

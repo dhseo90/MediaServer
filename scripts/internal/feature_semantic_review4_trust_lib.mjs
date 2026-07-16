@@ -500,8 +500,11 @@ export function validateReview4SemanticProof({ item, dispatchIndex, rootDir = nu
     name === 'verifier' ? '' : bindingBodyText(rootDir, role, item.trustBindings?.roles?.[name]),
   ]).join('\n');
   for (const clause of obligation.clauses || []) {
+    const matchingTokens = clause.kind === 'field'
+      ? clause.tokens.filter(token => evidence.toLocaleLowerCase('en-US').includes(String(token).toLocaleLowerCase('en-US')))
+      : clause.tokens.filter(token => evidence.includes(token));
     if (clause.minimumExactMatches > 0 &&
-        clause.tokens.filter(token => evidence.includes(token)).length < clause.minimumExactMatches) {
+        matchingTokens.length < clause.minimumExactMatches) {
       errors.push(`obligation-${clause.kind}-token-unbound`);
     }
   }
@@ -618,7 +621,7 @@ function validateTypedEdge(edge, roles, evidenceToken, trustBindings, dispatchIn
   const kind = edge.kind || edge.proof;
   const from = roles[edge.from];
   const to = roles[edge.to];
-  const allowed = new Set(['callsite', 'direct-callsite', 'branch-containment', 'function-containment', 'argument-def-use', 'return-def-use', 'assignment-def-use', 'event-binding', 'structural-producer-assertion', 'runtime-readback', 'verifier-dispatch']);
+  const allowed = new Set(['callsite', 'direct-callsite', 'branch-containment', 'function-containment', 'argument-def-use', 'return-def-use', 'assignment-def-use', 'co-asserted-boundary', 'event-binding', 'structural-producer-assertion', 'runtime-readback', 'verifier-dispatch']);
   if (!allowed.has(kind)) return ['unsupported-proof-kind'];
   if (!edge.witness) errors.push('witness-missing');
   if (!from || !to) return [...errors, 'role-missing'];
@@ -640,14 +643,21 @@ function validateTypedEdge(edge, roles, evidenceToken, trustBindings, dispatchIn
     const directCall = directCallRelation(from, to, rootDir, trustBindings);
     const directArgumentShared = directCall && directArgumentSharedRelation(from, to, rootDir, trustBindings);
     const returnAssignment = returnAssignmentRelation(from, to);
-    if (shared.length === 0 && !directArgumentShared && !returnAssignment) errors.push('def-use-token-or-variable-unbound');
-    if (kind === 'assignment-def-use' && !assignmentObserved(`${from.anchor}\n${to.anchor}`) && !returnAssignment) errors.push('assignment-not-observed');
+    const assignmentRelation = kind === 'assignment-def-use' && assignmentDefUseObserved(from, to);
+    if (shared.length === 0 && !directArgumentShared && !returnAssignment && !assignmentRelation) errors.push('def-use-token-or-variable-unbound');
+    if (kind === 'assignment-def-use' && !assignmentRelation && !returnAssignment) errors.push('assignment-def-use-unproven');
+    if (kind === 'assignment-def-use' && from.file !== to.file && !directArgumentShared && !returnAssignment) {
+      errors.push('cross-file-assignment-def-use-unproven');
+    }
     if (kind === 'assignment-def-use' && sameEnclosingBody(from, to, trustBindings) && from.line >= to.line) {
       errors.push('assignment-order-invalid');
     }
     if (kind === 'argument-def-use' && !((directCall && (shared.length > 0 || directArgumentShared) && callHasArguments(from, to, rootDir, trustBindings)) || returnAssignment)) errors.push('argument-call-not-observed');
     if (kind === 'return-def-use' && !/\breturn\b/.test(`${from.anchor}\n${to.anchor}`) && !returnAssignment) errors.push('return-not-observed');
     if (kind === 'event-binding' && !/(?:addEventListener|dispatchEvent|emit\s*\(|on[A-Z_a-z]+\s*=|\.on\s*\()/.test(`${from.anchor}\n${to.anchor}`)) errors.push('event-binding-not-observed');
+  }
+  if (kind === 'co-asserted-boundary' && !coAssertedBoundaryObserved(from, to, roles.readback, trustBindings)) {
+    errors.push('co-asserted-boundary-unproven');
   }
   if (kind === 'structural-producer-assertion' || kind === 'runtime-readback') {
     const token = String(evidenceToken || '');
@@ -708,8 +718,10 @@ function sharedIdentifiers(from, to, evidenceToken) {
     'result', 'this', 'null', 'void', 'canonical', 'owner', 'dispatch', 'action', 'readback', 'verifier', 'role',
   ]);
   const ids = value => new Set([...String(value || '').matchAll(/[A-Za-z_$][A-Za-z0-9_$]{2,}/g)].map(match => match[0]).filter(token => !stop.has(token.toLowerCase())));
-  const left = ids(`${from.anchor || ''} ${from.symbol || ''}`);
-  const right = ids(`${to.anchor || ''} ${to.symbol || ''}`);
+  // Symbols are reviewer-authored locator labels, not source-level def-use evidence.
+  // Only identifiers present in both exact source anchors may prove a typed edge.
+  const left = ids(from.anchor || '');
+  const right = ids(to.anchor || '');
   const shared = [...left].filter(token => right.has(token));
   for (const token of ids(evidenceToken)) if (left.has(token) && right.has(token)) shared.push(token);
   return [...new Set(shared)];
@@ -719,8 +731,36 @@ function authoritativeMutationAnchor(anchor) {
   return /(?:\b(?:save|write|store|persist|insert|emplace|append|push|erase|remove|delete|disable|update|upsert|create|replace|publish|assign|put|post|patch)\w*\s*\(|\b(?:Create|Update|Upsert|Delete|Persist|Save|Append|Publish)[A-Za-z0-9_:]*\s*\(|[A-Za-z_$][A-Za-z0-9_$.[\]"']*\s*=(?!=|>)|\[[^\]]+\]\s*=(?!=|>)|\+\+|--|\b(?:JsonResponse|JsonResult|RegistryHttpResponse)\s*\(\s*(?:200|201|202|204)\b|\breturn\b[^;]*(?:created|updated|deleted|disabled|persisted|saved))/i.test(anchor);
 }
 
-function assignmentObserved(text) {
-  return /(?:[A-Za-z_$][A-Za-z0-9_$.[\]"']*|\[[^\]]+\])\s*=(?!=|>)/.test(String(text || ''));
+function assignmentDefUseObserved(from, to) {
+  const assigned = assignedIdentifiers(from?.anchor);
+  const target = String(to?.anchor || '');
+  return [...assigned].some(identifier => new RegExp(`\\b${escapeRegExp(identifier)}\\b`).test(target));
+}
+
+function assignedIdentifiers(anchor) {
+  const source = String(anchor || '');
+  const assigned = new Set();
+  for (const match of source.matchAll(/(?:^|[^=!<>])(?:\b(?:const|let|var|auto)\s+)?([A-Za-z_$][A-Za-z0-9_$]*)\s*=(?!=|>)/g)) {
+    assigned.add(match[1]);
+  }
+  for (const match of source.matchAll(/(?:^|[^=!<>])([A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)+)\s*=(?!=|>)/g)) {
+    const parts = match[1].split('.');
+    assigned.add(match[1]);
+    assigned.add(parts.at(-1));
+  }
+  return assigned;
+}
+
+function coAssertedBoundaryObserved(from, to, readback, trustBindings) {
+  if (!from || !to || !readback || from.file !== to.file || to.file !== readback.file ||
+      from.line >= to.line || to.line >= readback.line ||
+      !sameEnclosingBody(from, to, trustBindings) || !sameEnclosingBody(to, readback, trustBindings)) return false;
+  const fromIds = assignedIdentifiers(from.anchor);
+  const toIds = assignedIdentifiers(to.anchor);
+  const assertion = String(readback.anchor || '');
+  return fromIds.size > 0 && toIds.size > 0 && assertionLine(assertion) &&
+    [...fromIds].some(identifier => new RegExp(`\\b${escapeRegExp(identifier)}\\b`).test(assertion)) &&
+    [...toIds].some(identifier => new RegExp(`\\b${escapeRegExp(identifier)}\\b`).test(assertion));
 }
 
 function sameEnclosingBody(from, to, trustBindings) {
@@ -738,7 +778,7 @@ function sameEnclosingBody(from, to, trustBindings) {
 }
 
 function assertionLine(anchor) {
-  return /\bassert[A-Za-z0-9_]*\s*\(|\bexpect(?:_[A-Za-z0-9_]+)?\s*(?:\(|\")/i.test(anchor);
+  return /\bassert[A-Za-z0-9_]*\s*\(|^\s*assert\s+\S|\bexpect(?:_[A-Za-z0-9_]+)?\s*(?:\(|\")/i.test(anchor);
 }
 
 function observedRuntimeAssertion({ rootDir, role, trust, item }) {
@@ -975,9 +1015,11 @@ function balancedCallSpan(rootDir, role, trust) {
 }
 
 function returnAssignmentRelation(from, to) {
-  const text = `${from.anchor}\n${to.anchor}`;
-  return /[A-Za-z_$][A-Za-z0-9_$.[\]]*\s*=(?!=|>)\s*[A-Za-z_$][A-Za-z0-9_$:.]*\s*\(/.test(text) ||
-    /\breturn\s+[A-Za-z_$][A-Za-z0-9_$:.]*\s*\(/.test(text);
+  const producer = String(from?.anchor || '');
+  const consumer = String(to?.anchor || '');
+  const returnedCall = /\breturn\s+([A-Za-z_$][A-Za-z0-9_$:.]*)\s*\(/.exec(producer);
+  const assignedCall = /[A-Za-z_$][A-Za-z0-9_$.[\]]*\s*=(?!=|>)\s*([A-Za-z_$][A-Za-z0-9_$:.]*)\s*\(/.exec(consumer);
+  return Boolean(returnedCall && assignedCall && returnedCall[1] === assignedCall[1]);
 }
 
 function negativeOutcomeAssertion(text) {

@@ -143,7 +143,7 @@ check("known REVIEW3 false mappings are replaced by actual source owners", () =>
   assertSpotCheck(byId, "UI-001", ["src/ingress/webrtc_http_server.cpp", 'request.path == "/"', "DefaultHomePath", "RoleLandingPath"]);
   assertSpotCheck(byId, "UI-022", ["src/ingress/product_ui_page_scripts.cpp", "wireOpsVlmControls"]);
   assertSpotCheck(byId, "SRC-009", ["src/ingress/product_ui_ops_sources_script.cpp", "saveChannelSourceViewPair"]);
-  assertSpotCheck(byId, "RULE-009", ["src/ingress/product_ui_page_scripts.cpp", "opsRulesSaveNativeRecord"]);
+  assertSpotCheck(byId, "RULE-009", ["src/ingress/webrtc_http_server_runtime.cpp", "AnalysisRegistry().UpsertVaRule(id, request.body)"]);
   assertSpotCheck(byId, "SAFE-217", ["src/ingress/webrtc_http_server.cpp", "WriteAnalysisRegistryFileAtomically"]);
   assertSpotCheck(byId, "OPS-184", ["src/ingress/webrtc_http_server.cpp", "RecoverAnalysisRegistryTemporaryFiles"]);
 });
@@ -320,7 +320,7 @@ check("comparison and arrow operators cannot impersonate assignment def-use", ()
     copy.roles.action.symbol = "comparison-action";
     copy.edges[1] = { from: "dispatch", to: "action", kind: "assignment-def-use", witness: `${label} is not assignment` };
     const errors = validateReview4SemanticProof({ item: copy, dispatchIndex: dispatch, rootDir });
-    assert(errors.includes("edge-1:assignment-not-observed"), `${label} passed as assignment: ${errors.join(",")}`);
+    assert(errors.includes("edge-1:assignment-def-use-unproven"), `${label} passed as assignment: ${errors.join(",")}`);
   }
 });
 check("generic canonical role labels cannot satisfy def-use sharing", () => {
@@ -345,11 +345,27 @@ check("same-body assignment def-use rejects reverse source order", () => {
   const errors = validateReview4SemanticProof({ item: base, dispatchIndex: dispatch, rootDir });
   assert(errors.includes("edge-1:assignment-order-invalid"), `reverse same-body assignment passed: ${errors.join(",")}`);
 });
-check("cross-function assignment def-use is not rejected by local source order", () => {
-  const crossFunction = candidate.items.find(item => item.id === "UI-018" && item.roles?.dispatch?.symbol !== item.roles?.action?.symbol);
-  assert(crossFunction, "cross-function assignment order regression requires UI-018");
-  const errors = validateReview4SemanticProof({ item: crossFunction, dispatchIndex: dispatch, rootDir });
-  assert(!errors.includes("edge-1:assignment-order-invalid"), `cross-function def-use was ordered locally: ${errors.join(",")}`);
+check("reviewer symbols and consumer-only returned calls cannot impersonate directional def-use", () => {
+  const base = structuredClone(candidate.items.find(item => item.semanticObligation && item.roles?.dispatch && item.roles?.action));
+  assert(base, "directional def-use negative requires candidate");
+  base.roles.dispatch.anchor = "const unrelatedOwner = staticLabel;";
+  base.roles.dispatch.symbol = "synthetic-shared-reviewer-label";
+  base.roles.action.anchor = "const observed = BuildUnrelatedResult();";
+  base.roles.action.symbol = "synthetic-shared-reviewer-label";
+  base.edges[1] = { from: "dispatch", to: "action", kind: "assignment-def-use", witness: "reviewer labels and consumer-only calls are not def-use" };
+  const errors = validateReview4SemanticProof({ item: base, dispatchIndex: dispatch, rootDir });
+  assert(errors.includes("edge-1:def-use-token-or-variable-unbound") && errors.includes("edge-1:assignment-def-use-unproven"),
+    `reviewer symbol or consumer-only call passed directional def-use: ${errors.join(",")}`);
+});
+check("co-asserted boundary requires both ordered values in one canonical assertion", () => {
+  const base = structuredClone(candidate.items.find(item => item.status === "source-resolved-candidate" &&
+    item.edges?.some(edge => edge.kind === "co-asserted-boundary")));
+  assert(base, "co-asserted boundary negative requires a resolved candidate");
+  const index = base.edges.findIndex(edge => edge.kind === "co-asserted-boundary");
+  base.roles.readback.anchor = "assert(unrelatedBoundaryOnly, \"unrelated boundary\");";
+  const errors = validateReview4SemanticProof({ item: base, dispatchIndex: dispatch, rootDir });
+  assert(errors.includes(`edge-${index}:co-asserted-boundary-unproven`),
+    `unbound co-asserted boundary passed: ${errors.join(",")}`);
 });
 check("static source-string assertion cannot satisfy mutation runtime readback", () => {
   const base = structuredClone(candidate.items.find(item => item.id === "UI-023" && item.status === "source-resolved-candidate"));
@@ -460,6 +476,25 @@ check("typed requirement honors explicit deferral without corrupting positive mu
   const stagedNoApply = classifyReview4Requirement(rows.find(row => row.id === "SAFE-139"));
   assert(stagedNoApply.operation === "read" && stagedNoApply.expectation === "invariant",
     `SAFE-139 staged no-apply classified as ${stagedNoApply.operation}/${stagedNoApply.expectation}`);
+});
+check("Python runtime assertions and case-normalized field identifiers preserve exact semantic binding", () => {
+  const pythonAssertion = candidate.items.find(item => item.id === "SAFE-039" && item.status === "source-resolved-candidate");
+  assert(pythonAssertion, "SAFE-039 Python runtime absence assertion was not accepted");
+  const missingAssert = structuredClone(pythonAssertion);
+  missingAssert.roles.readback.anchor = missingAssert.roles.readback.anchor.replace(/^\s*assert\s+/, "");
+  const missingAssertErrors = validateReview4SemanticProof({ item: missingAssert, dispatchIndex: dispatch, rootDir });
+  assert(missingAssertErrors.includes("edge-3:runtime-readback-observation-missing"),
+    `non-assert Python expression passed runtime readback: ${missingAssertErrors.join(",")}`);
+
+  const normalizedField = candidate.items.find(item => item.id === "SAFE-053" && item.status === "source-resolved-candidate");
+  assert(normalizedField, "SAFE-053 WebRTC/Webrtc field token normalization was not accepted");
+  const unrelatedField = structuredClone(normalizedField);
+  const fieldClause = unrelatedField.semanticObligation.clauses.find(clause => clause.kind === "field");
+  fieldClause.tokens = ["UnrelatedProtocolFieldThatDoesNotExist"];
+  fieldClause.minimumExactMatches = 1;
+  const unrelatedErrors = validateReview4SemanticProof({ item: unrelatedField, dispatchIndex: dispatch, rootDir });
+  assert(unrelatedErrors.includes("obligation-field-token-unbound"),
+    `unrelated case-normalized field token passed: ${unrelatedErrors.join(",")}`);
 });
 check("typed negative boundaries recognize exact false field names", () => {
   const cases = [
@@ -1146,7 +1181,7 @@ function validateProofEdge(edge, roles, evidenceToken, sourceIndex, commandDispa
   const from = roles?.[edge.from];
   const to = roles?.[edge.to];
   const kind = edge.kind || edge.proof;
-  const allowed = new Set(["callsite", "direct-callsite", "branch-containment", "function-containment", "argument-def-use", "return-def-use", "assignment-def-use", "event-binding", "structural-producer-assertion", "runtime-readback", "verifier-dispatch"]);
+  const allowed = new Set(["callsite", "direct-callsite", "branch-containment", "function-containment", "argument-def-use", "return-def-use", "assignment-def-use", "co-asserted-boundary", "event-binding", "structural-producer-assertion", "runtime-readback", "verifier-dispatch"]);
   if (!allowed.has(kind)) errors.push("unsupported-proof-kind");
   if (!edge.witness) errors.push("witness-missing");
   if (kind === "callsite" || kind === "direct-callsite") {
@@ -1787,7 +1822,7 @@ function verifierReadback(file, token, id, contracts = []) {
 
 function isVerifierAssertionLine(value) {
   if (!value || /^\s*(?:\/\/|\*|#)/.test(value)) return false;
-  return /\b(?:assert[A-Za-z0-9_]*|check|expect(?:_[A-Za-z0-9_]+)?|row)\s*(?:\(|\")|^case\s+.+\s+in\s*$|\.includes\s*\(|\.match\s*\(|===|!==/i.test(value);
+  return /\b(?:assert[A-Za-z0-9_]*|check|expect(?:_[A-Za-z0-9_]+)?|row)\s*(?:\(|\")|^\s*assert\s+\S|^case\s+.+\s+in\s*$|\.includes\s*\(|\.match\s*\(|===|!==/i.test(value);
 }
 
 function assertionScore(value, token, id, contracts) {
@@ -2135,6 +2170,7 @@ function candidateErrors(item) {
     "argument-def-use",
     "return-def-use",
     "assignment-def-use",
+    "co-asserted-boundary",
     "event-binding",
     "structural-producer-assertion",
     "runtime-readback",

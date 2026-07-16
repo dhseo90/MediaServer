@@ -186,7 +186,7 @@ check("SAFE-120 canonical operator runbook boundary", () => {
     !runbookBlock.includes("이 runbook은 real ONVIF/WHEP/TURN/cloud field smoke PASS가 아닙니다.");
   const sourceRegistryWriteClaimed = !runbookBlock.includes("자동 recovery, 자동 registry mutation, PublishedView write, EventRecord/Event POST schema 변경은 이 runbook 범위가 아닙니다.");
   const safe120BoundaryObserved = runbookCommandDocumented && handoffDocumented && productMutationClaimed === false && sourceRegistryWriteClaimed === false;
-  assert(safe120BoundaryObserved && productMutationClaimed === false && sourceRegistryWriteClaimed === false,
+  assert(safe120BoundaryObserved && (runbookCommandDocumented && handoffDocumented && productMutationClaimed === false && sourceRegistryWriteClaimed === false) && productMutationClaimed === false && sourceRegistryWriteClaimed === false,
     "SAFE-120 runbook handoff must remain documentation-only without product API/UI schema, SourceRegistry/PublishedView write, automatic recovery, or real backup/restore claims");
 });
 
@@ -203,7 +203,7 @@ check("OPS-087 canonical runbook handoff gate", () => {
   ].every((item) => runbookBlock.includes(item));
   const ops087GateObserved = runbookSourcesBound && excludedExecutionsRemainExplicit &&
     files.serverSh.includes("verify-v330-operator-runbook-reliability-handoff)");
-  assert(ops087GateObserved,
+  assert(ops087GateObserved && runbookSourcesBound && excludedExecutionsRemainExplicit,
     "OPS-087 runbook source/link/dispatch and explicit UI/long-run/publish/field-smoke exclusion boundary missing");
 });
 

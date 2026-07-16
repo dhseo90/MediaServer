@@ -125,7 +125,7 @@ check("UI-018 remains a dedicated negative route case", () => {
   assert(item.canonicalRoute === "/lab" && item.screenRoute === "/lab", "UI-018 route mismatch");
   assert(item.actions.length === 1 && item.actions[0].kind === "navigate", "UI-018 action must be native navigate");
   assert(item.oracle.kind === "negative-route-status", "UI-018 negative status oracle missing");
-  assert(item.oracle.allowedStatuses.includes(404), "UI-018 must accept only explicit negative status");
+  assert(JSON.stringify(item.oracle.allowedStatuses) === JSON.stringify([404]), "UI-018 must accept exactly status 404");
 });
 
 check("SAFE-017 keeps its cross-route negative behavior without changing UI-018 classification", () => {

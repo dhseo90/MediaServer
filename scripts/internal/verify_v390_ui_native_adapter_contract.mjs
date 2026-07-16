@@ -7,7 +7,12 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
-import { buildLiveSessionEvidence, nativeCapabilities, resolvePlaywrightModule } from "./v390_ui_native_adapter.mjs";
+import {
+  buildLiveSessionEvidence,
+  nativeCapabilities,
+  resolvePlaywrightModule,
+  secretStrippedBrowserEnv,
+} from "./v390_ui_native_adapter.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -70,6 +75,19 @@ check("adapter exposes native wait click fill type select screenshot", () => {
   for (const snippet of ["page.on(\"request\"", "pendingRequests", "correlatedEntryCount", "entry.correlationId === correlationId"]) {
     assert(adapterSource.includes(snippet), `adapter action-window source missing ${snippet}`);
   }
+});
+
+check("native browser child strips acceptance secrets", () => {
+  const env = secretStrippedBrowserEnv({
+    SAFE_VALUE: "preserved",
+    MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD: "contract-admin-secret",
+    MEDIA_SERVER_V390_UI_ROLE_SECRETS: "contract-role-secrets",
+  });
+  assert(env.SAFE_VALUE === "preserved", "browser child stripped an unrelated environment value");
+  assert(!("MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD" in env), "browser child inherited the admin secret");
+  assert(!("MEDIA_SERVER_V390_UI_ROLE_SECRETS" in env), "browser child inherited the role-secret JSON");
+  assert(adapterSource.includes("env: secretStrippedBrowserEnv()"),
+    "Playwright Chromium launch is not bound to the stripped environment");
 });
 
 check("live session evidence preserves request view and response session identity", () => {

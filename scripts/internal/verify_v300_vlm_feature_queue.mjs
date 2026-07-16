@@ -201,7 +201,8 @@ check("server entrypoint and inventory verifiers include V300-S04 command", () =
 check("SAFE-086 canonical VLM queue isolation boundary", () => {
   const invalidOutputDiscarded = files.source.includes("discard-invalid-output");
   const rawMaterialStored = files.source.includes("raw_prompt_stored = true") || files.source.includes("raw_provider_response_stored = true");
-  const safe086BoundaryObserved = invalidOutputDiscarded && files.source.includes("webrtc_data_channel_schema_changed = false");
+  const vlmQueueIsolationInputsObserved = invalidOutputDiscarded && rawMaterialStored === false;
+  const safe086BoundaryObserved = vlmQueueIsolationInputsObserved && files.source.includes("webrtc_data_channel_schema_changed = false");
   assert(safe086BoundaryObserved && rawMaterialStored === false,
     "verify-v300-vlm-feature-queue discard-invalid-output raw material must remain absent from WebRTC/SSE state");
 });

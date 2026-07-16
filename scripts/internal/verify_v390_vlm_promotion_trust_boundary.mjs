@@ -264,7 +264,8 @@ async function runCase(baseUrl, item) {
     const rejected = await request(baseUrl, "PUT", `/ops/api/vlm/profiles/${profileId}`, forged);
     assertRejected(item, rejected);
     const clientDeclaredPassedRejected = rejected.status === item.expectedHttp;
-    assert(rejected.status >= 400 && clientDeclaredPassedRejected,
+    const rejectedUpdateBoundaryObserved = clientDeclaredPassedRejected && rejected.status >= 400;
+    assert(rejectedUpdateBoundaryObserved && clientDeclaredPassedRejected,
       `${item.id}: client-declared passed result was not rejected`);
     const readback = await request(baseUrl, "GET", `/ops/api/vlm/profiles/${profileId}`);
     assert(readback.status === 200, `${item.id}: original profile missing after rejected update`);

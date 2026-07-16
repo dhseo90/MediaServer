@@ -123,6 +123,7 @@ check("SAFE-153 canonical bounded no-execution boundary", () => {
   const block = extractCppFunctionBlock(files.server, "std::string OpsV360SafeApplyReadinessGateJson(");
   const routeObserved = files.server.includes("/ops/api/live-operations/simulation/safe-apply-readiness");
   const safe153BoundaryObserved = block.includes("BuildV360SafeApplyReadinessItems");
+  const safe153CommandBoundaryObserved = safe153BoundaryObserved && command === "verify-v360-safe-apply-readiness-gate";
   const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer)[A-Za-z0-9_:]*\s*\(/.test(block);
   const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
   const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
@@ -136,7 +137,7 @@ check("SAFE-153 canonical bounded no-execution boundary", () => {
   const debugMaterialExposed = block.includes("\\\"debugMaterialIncluded\\\":true") || block.includes("\\\"debugMaterialExposed\\\":true");
   const viewerClientExposureAdded = block.includes("\\\"viewerClientExposureAdded\\\":true");
   const mediaPathChanged = block.includes("\\\"rtspOrWebrtcMediaPathChanged\\\":true");
-  assert(routeObserved && safe153BoundaryObserved && writePerformed === false && mutationPerformed === false && executionPerformed === false && automaticApplyPerformed === false && clientNoticeSent === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+  assert(routeObserved && safe153CommandBoundaryObserved && writePerformed === false && mutationPerformed === false && executionPerformed === false && automaticApplyPerformed === false && clientNoticeSent === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
     "SAFE-153 BuildV360SafeApplyReadinessItems must remain bounded no-execution no-write redacted and client/provider isolated");
 });
 

@@ -92,8 +92,8 @@ check("source-of-truth relationship phrases are present", () => {
 check("disposition vocabulary has exactly five approved values", () => {
   const section = sectionBetween(files.inventory, "## Disposition Vocabulary", "## Test Area Vocabulary");
   const rows = dataRows(section, "Disposition");
-  const actual = rows.map(row => row[0]);
-  assertSameList(actual, expectedDispositions, "disposition vocabulary");
+  const actualDispositions = rows.map(row => row[0]);
+  assertSameList(actualDispositions, expectedDispositions, "disposition vocabulary");
 });
 
 check("AGENTS four test areas and no extra test-area wording are present", () => {
@@ -196,7 +196,8 @@ check("SAFE-197 canonical feature inventory review boundary", () => {
   const discoveryGroupsObserved = expectedSourceGroups.every((group) => files.inventory.includes(group));
   const dispositionVocabularyObserved = expectedDispositions.every((value) => files.inventory.includes(value));
   const actualFeatureDiscoveryCompletion = !files.inventory.includes("not-run") && !files.inventory.includes("미실행");
-  const safe197BoundaryObserved = discoveryGroupsObserved && dispositionVocabularyObserved && files.projectInventory.includes("SAFE-197");
+  const featureInventoryReviewFlowObserved = discoveryGroupsObserved && dispositionVocabularyObserved;
+  const safe197BoundaryObserved = featureInventoryReviewFlowObserved && files.projectInventory.includes("SAFE-197");
   assert(safe197BoundaryObserved && actualFeatureDiscoveryCompletion === false,
     "SAFE-197 inventory scaffold must not claim actual feature discovery or implementation completion");
 });

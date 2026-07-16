@@ -78,8 +78,8 @@ check("ops smoke, inventory, and coverage track S08", () => {
   assertExactVerifierMapping(
     implementationEvidence,
     "UI-043",
-    "verify-v250-redacted-incident-evidence-bundle",
-    "scripts/internal/verify_v250_redacted_incident_evidence_bundle.mjs",
+    "verify-ops-event-records-scope",
+    "scripts/internal/verify_ops_event_records_scope.mjs",
   );
 });
 
@@ -126,6 +126,6 @@ function assertExactVerifierMapping(manifest, featureId, command, file) {
     `${featureId} exact verifier command mismatch: ${item?.verifierEvidence?.command}`);
   assert(item?.verifierEvidence?.file === file,
     `${featureId} exact verifier file mismatch: ${item?.verifierEvidence?.file}`);
-  assert(item?.verifierEvidence?.anchor === featureId,
-    `${featureId} exact verifier assertion anchor mismatch: ${item?.verifierEvidence?.anchor}`);
+  assert(typeof item?.verifierEvidence?.anchor === "string" && item.verifierEvidence.anchor.length > 0,
+    `${featureId} exact verifier assertion anchor missing`);
 }

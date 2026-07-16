@@ -171,12 +171,13 @@ check("Ops rules UI renders the bridge decision and provenance", () => {
   }
   const opsRulesRoutePresent = files.server.includes('request.path == "/ops/rules"');
   const schemaPresent = serverBridgeBlock.includes("media-server.ops.v390-vlm-rule-suggestion-draft-bridge.v1");
-  const registryWrite = serverBridgeBlock.includes('\\"ruleRegistryWritePerformed\\":true');
+  const ruleRegistryWritePerformedByBridge = serverBridgeBlock.includes('\\"ruleRegistryWritePerformed\\":true');
   const autoApply = serverBridgeBlock.includes('\\"autoApply\\":true') ||
     serverBridgeBlock.includes('\\"autoRuleApplied\\":true');
   assert(opsRulesRoutePresent, "v390 VLM draft bridge /ops/rules route missing");
   assert(schemaPresent, "v390 VLM draft bridge schema missing");
-  assert(registryWrite === false, "v390 VLM draft bridge must not write the rule registry");
+  assert(ruleRegistryWritePerformedByBridge === false,
+    "OPS-172 v390 VLM draft bridge ruleRegistryWritePerformedByBridge must remain false");
   assert(autoApply === false, "v390 VLM draft bridge must not auto apply rules");
   assert(rendererBlock.includes("ops-review-to-rule-draft-bridge") &&
     serverBridgeBlock.includes('\\"autoApply\\":true') === false &&
@@ -188,7 +189,7 @@ check("Ops rules UI renders the bridge decision and provenance", () => {
     "review-to-draft bridge",
     "manual-save-only",
   ]) {
-    assertIncludes(files.server, snippet, "v390 VLM rule suggestion draft bridge UI shell");
+    assertIncludes(files.opsRulesPage, snippet, "v390 VLM rule suggestion draft bridge UI shell");
   }
 });
 
@@ -249,6 +250,7 @@ finish("== v3.9.0 VLM rule suggestion draft bridge ==", {
 function loadFiles() {
   return {
     server: readWebRtcHttpServerBundle(readText),
+    opsRulesPage: readText("src/ingress/product_ui_server_pages.cpp"),
     opsRulesScript: readText("src/ingress/product_ui_page_scripts.cpp"),
     backlog: readText("docs/development-backlog.md"),
     streamVerification: readText("docs/stream-verification.md"),

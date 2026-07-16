@@ -1064,7 +1064,7 @@ async function assertRulesNativeCrudAndPolicyFlow(browser, context) {
     created.vaRuleIds.push(vaRuleId);
     await assertClientViewAllowedRuleApis(sourceId, vaRuleId, "created VA rule client allowed rule APIs");
     await assertVaRuleClientSession(sourceId, vaRuleId, "created VA rule client va-rule session");
-    await assertVaRuleRuntimeTrackingPolicy(sourceId, vaRuleId, { tracker: "lite", reid: "off" }, "created VA rule runtime Re-ID off policy");
+    await assertVaRuleRuntimeTrackingPolicy(sourceId, vaRuleId, { tracker: "lite", effectiveTracker: "lite", reid: "off" }, "RULE-035 tracking_policy_effective_tracker exact saved lite policy selected by live runtime tap");
     await assertDashboardActiveVaRuntime(browser, sourceId, vaRuleId, "created VA rule dashboard active runtime");
     await assertOpsRuleCopyPayload(browser, "rtsp", vaRuleId, ["rtsp://", `vaRule=${vaRuleId}`], "VA rule RTSP copy");
     await assertOpsRuleCopyPayload(browser, "whep", vaRuleId, ["/whep", `vaRule=${vaRuleId}`], "VA rule WHEP copy");
@@ -1095,14 +1095,16 @@ async function assertRulesNativeCrudAndPolicyFlow(browser, context) {
       expectedReid: "off",
     });
     await assertVaRuleClientSession(sourceId, vaRuleId, "line VA rule client va-rule session");
+    await assertVaRuleRuntimeTrackingPolicy(sourceId, vaRuleId, { tracker: "kalman-lite", effectiveTracker: "kalman-lite", reid: "off" }, "RULE-036 tracking_policy_effective_tracker exact saved kalman-lite policy selected by live runtime tap mutation");
 
     await updateVaRuleTrackingViaUi(browser, vaRuleId, { tracker: "bytetrack", reid: "off" });
     await assertVaRuleClientSession(sourceId, vaRuleId, "bytetrack VA rule client va-rule session");
-    await assertVaRuleRuntimeTrackingPolicy(sourceId, vaRuleId, { tracker: "bytetrack", reid: "off" }, "ByteTrack VA rule runtime Re-ID off policy");
+    await assertVaRuleRuntimeTrackingPolicy(sourceId, vaRuleId, { tracker: "bytetrack", effectiveTracker: "bytetrack", reid: "off" }, "RULE-037 tracking_policy_effective_tracker exact saved bytetrack policy selected by live runtime tap mutation");
     await updateVaRuleTrackingViaUi(browser, vaRuleId, { tracker: "lite", reid: "assist" });
     await assertVaRuleClientSession(sourceId, vaRuleId, "reid assist VA rule client va-rule session");
+    await assertVaRuleRuntimeTrackingPolicy(sourceId, vaRuleId, { tracker: "lite", effectiveTracker: "lite", reid: "assist" }, "RULE-039 tracking_policy_reid exact saved assist policy selected by live runtime tap mutation");
     await updateVaRuleTrackingViaUi(browser, vaRuleId, { tracker: "none", reid: "off", expectedReid: "off" });
-    await assertVaRuleRuntimeTrackingPolicy(sourceId, vaRuleId, { tracker: "none", effectiveTracker: "none", reid: "off" }, "tracking disabled VA rule runtime Re-ID off policy");
+    await assertVaRuleRuntimeTrackingPolicy(sourceId, vaRuleId, { tracker: "none", effectiveTracker: "none", reid: "off" }, "RULE-038 tracking_policy_reid exact saved off policy selected by live runtime tap mutation");
 
     await deleteEventTemplateViaUi(browser, lineTemplateId);
     removeCreated(created.eventRuleIds, lineTemplateId);
@@ -2411,7 +2413,7 @@ async function assertViewerRuleScopeBoundaryViaUi(browser, description, scopeFix
   if (!Array.isArray(clientScope?.views) || !clientScope.views.some(view => String(view?.viewId || "") === assignedViewId)) {
     throw new Error(`${description}: views runtime readback missing assigned viewId ${assignedViewId}`);
   }
-  if (clientScope.views.some(view => String(view?.viewId || "") === blockedViewId) || clientScope.allowed.includes(disallowedRuleId)) { // RULE-097 unauthorized-view PrincipalCanReadView
+  if (clientScope.views.some(view => String(view?.viewId || "") === blockedViewId) || clientScope.allowed.includes(disallowedRuleId)) { // RULE-097 ClientViewsJson unauthorized-view PrincipalCanReadView
     throw new Error(`${description}: viewer runtime readback leaked unauthorized viewId ${blockedViewId} or allowedRuleIds entry ${disallowedRuleId}`);
   }
 }

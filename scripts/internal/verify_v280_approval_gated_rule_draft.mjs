@@ -10,6 +10,7 @@ import process from "node:process";
 const failures = [];
 
 const server = readWebRtcHttpServerBundle(readText);
+const productUiPages = readText("src/ingress/product_ui_server_pages.cpp");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
@@ -89,7 +90,7 @@ check("/ops/events and /ops/rules render approval-gated staged draft readiness",
     'id="opsApprovalGatedRuleDraftReadinessRows"',
     "Approval-gated Rule Draft Readiness",
   ]) {
-    assertIncludes(server, snippet, "Ops events approval-gated rule draft shell");
+    assertIncludes(productUiPages, snippet, "Ops events approval-gated rule draft shell");
   }
   for (const snippet of [
     'data-testid="ops-approval-gated-rule-draft-readiness"',
@@ -98,7 +99,7 @@ check("/ops/events and /ops/rules render approval-gated staged draft readiness",
     'id="opsApprovalGatedRuleDraftRows"',
     "approvalDraft=1",
   ]) {
-    assertIncludes(server, snippet, "Ops rules approval-gated draft context shell");
+    assertIncludes(productUiPages, snippet, "Ops rules approval-gated draft context shell");
   }
   for (const snippet of [
     "renderApprovalGatedRuleDraftReadiness",

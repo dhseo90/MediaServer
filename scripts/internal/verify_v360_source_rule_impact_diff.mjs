@@ -129,6 +129,7 @@ check("SAFE-152 canonical bounded no-execution boundary", () => {
   const block = extractCppFunctionBlock(files.server, "std::string OpsV360SourceRuleImpactDiffJson(");
   const routeObserved = files.server.includes("/ops/api/live-operations/simulation/impact-diff");
   const safe152BoundaryObserved = block.includes("BuildV360SourceRuleImpactDiffs");
+  const safe152CommandBoundaryObserved = safe152BoundaryObserved && command === "verify-v360-source-rule-impact-diff";
   const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer)[A-Za-z0-9_:]*\s*\(/.test(block);
   const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
   const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
@@ -143,7 +144,7 @@ check("SAFE-152 canonical bounded no-execution boundary", () => {
   const debugMaterialExposed = block.includes("\\\"debugMaterialIncluded\\\":true") || block.includes("\\\"debugMaterialExposed\\\":true");
   const viewerClientExposureAdded = block.includes("\\\"viewerClientExposureAdded\\\":true");
   const mediaPathChanged = block.includes("\\\"rtspOrWebrtcMediaPathChanged\\\":true");
-  assert(routeObserved && safe152BoundaryObserved && writePerformed === false && mutationPerformed === false && executionPerformed === false && automaticApplyPerformed === false && clientNoticeSent === false && sendPerformed === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+  assert(routeObserved && safe152CommandBoundaryObserved && writePerformed === false && mutationPerformed === false && executionPerformed === false && automaticApplyPerformed === false && clientNoticeSent === false && sendPerformed === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
     "SAFE-152 BuildV360SourceRuleImpactDiffs must remain bounded no-execution no-write redacted and client/provider isolated");
 });
 

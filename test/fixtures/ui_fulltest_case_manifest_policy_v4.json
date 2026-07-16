@@ -4,7 +4,7 @@
   "implementationEvidence": {
     "path": "test/fixtures/project_feature_implementation_evidence.json",
     "schema": "media-server.feature-implementation-evidence.v2",
-    "sha256": "b1f1e85cbee17b47b23e3ac22374236df757d5dd27029080ffe64f2b7e0c73df"
+    "sha256": "fb9a5ade3a897863da91227059d461c6e749424c9deb04189998b757184f5892"
   },
   "caseCount": 424,
   "cases": [
@@ -260,7 +260,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "action"
+        "actionAnchor": "request-dispatch-lambda"
       }
     },
     {
@@ -2045,7 +2045,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "ViewIsClientVisible"
+        "actionAnchor": "SourceViewApplicationService::ClientViewsJson"
       }
     },
     {
@@ -2105,7 +2105,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#request-form",
-        "actionAnchor": "WebRtcHttpServer::Start"
+        "actionAnchor": "CreateAccessRequestFromJson"
       }
     },
     {
@@ -2135,7 +2135,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"auth-invite-setup-form\"]",
-        "actionAnchor": "WebRtcHttpServer::Start"
+        "actionAnchor": "RejectAccessRequest"
       }
     },
     {
@@ -2165,7 +2165,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "ViewIsClientVisible"
+        "actionAnchor": "client-view-dashboard-route-guard"
       }
     },
     {
@@ -2180,7 +2180,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "SourceViewRegistry::CreateSource"
+        "actionAnchor": "SourceViewApplicationService::CreateSource"
       }
     },
     {
@@ -2480,7 +2480,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "ViewIsClientVisible"
+        "actionAnchor": "SourceViewApplicationService::ClientViewsJson"
       }
     },
     {
@@ -2555,7 +2555,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "SourceViewRegistry::ClientViewsJson"
+        "actionAnchor": "SourceViewApplicationService::ClientViewsJson"
       }
     },
     {
@@ -3290,7 +3290,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#dashIncidentTimeline",
-        "actionAnchor": "WebRtcHttpServer::Start"
+        "actionAnchor": "ResolveAnalysisProfileForContext"
       }
     },
     {
@@ -3305,7 +3305,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVaRuleTrackerSelect",
-        "actionAnchor": "WebRtcHttpServer::Start"
+        "actionAnchor": "ResolveAnalysisProfileForContext"
       }
     },
     {
@@ -3320,7 +3320,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVaRuleTrackerSelect",
-        "actionAnchor": "WebRtcHttpServer::Start"
+        "actionAnchor": "ResolveAnalysisProfileForContext"
       }
     },
     {
@@ -3335,7 +3335,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "WebRtcHttpServer::Start"
+        "actionAnchor": "ResolveAnalysisProfileForContext"
       }
     },
     {
@@ -3350,7 +3350,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVaRuleTrackerSelect",
-        "actionAnchor": "WebRtcHttpServer::Start"
+        "actionAnchor": "ResolveAnalysisProfileForContext"
       }
     },
     {
@@ -3440,7 +3440,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsScenarioBuilderClasses",
-        "actionAnchor": "WebRtcHttpServer::Start"
+        "actionAnchor": "ApplyEventRulesToResult"
       }
     },
     {
@@ -3455,7 +3455,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRuleTriggerDirectionSelect",
-        "actionAnchor": "WebRtcHttpServer::Start"
+        "actionAnchor": "ApplyEventRulesToResult"
       }
     },
     {
@@ -3470,7 +3470,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsScenarioBuilderClasses",
-        "actionAnchor": "WebRtcHttpServer::Start"
+        "actionAnchor": "ApplyEventRulesToResult"
       }
     },
     {
@@ -3485,7 +3485,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRuleTypeSelect",
-        "actionAnchor": "BuildRuleRuntimeScenarios"
+        "actionAnchor": "ApplyEventRulesToResult"
       }
     },
     {
@@ -3500,7 +3500,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsScenarioBuilderType",
-        "actionAnchor": "BuildRuleRuntimeScenarios"
+        "actionAnchor": "ApplyEventRulesToResult"
       }
     },
     {
@@ -3515,7 +3515,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "[data-testid=\"ops-scenario-builder\"]",
-        "actionAnchor": "BuildRuleRuntimeScenarios"
+        "actionAnchor": "ApplyEventRulesToResult"
       }
     },
     {
@@ -3530,7 +3530,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRuleSettingsHeading",
-        "actionAnchor": "BuildRuleRuntimeScenarios"
+        "actionAnchor": "ApplyEventRulesToResult"
       }
     },
     {
@@ -3545,7 +3545,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsScenarioBuilderType",
-        "actionAnchor": "BuildRuleRuntimeScenarios"
+        "actionAnchor": "ApplyEventRulesToResult"
       }
     },
     {
@@ -3560,7 +3560,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsEventRulePresetSummary",
-        "actionAnchor": "BuildRuleRuntimeScenarios"
+        "actionAnchor": "ApplyEventRulesToResult"
       }
     },
     {
@@ -4220,7 +4220,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "ViewIsClientVisible"
+        "actionAnchor": "SourceViewApplicationService::ClientViewsJson"
       }
     },
     {
@@ -4295,7 +4295,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "WebRtcHttpServer::Start"
+        "actionAnchor": "ApplyEventRulesToResult"
       }
     },
     {
@@ -5570,7 +5570,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "WebRtcHttpServer::Start"
+        "actionAnchor": "undefined_route_BuildHttpResponse_status"
       }
     },
     {
@@ -5585,7 +5585,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "WebRtcHttpServer::Start"
+        "actionAnchor": "legacy_lab_BuildHttpResponse_status"
       }
     },
     {
@@ -6080,7 +6080,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "flow:SAFE-098"
+        "actionAnchor": "safe098BoundaryObserved"
       }
     },
     {
@@ -6230,7 +6230,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "OpsV330OperatorRecheckRecoveryQueueJson"
+        "actionAnchor": "canonical-owner:SAFE-118"
       }
     },
     {
@@ -6305,7 +6305,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "const routeObserved = files.server.includes(\"/ops/api/source-registry/approval-gated-recovery-checklist\");"
+        "actionAnchor": "check:SAFE-130 canonical approval-gated no-auto boundary"
       }
     },
     {
@@ -6335,7 +6335,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "const routeObserved = files.server.includes(\"/ops/api/source-registry/drill-evidence-export-cleanup-manifest\");"
+        "actionAnchor": "check:SAFE-132 canonical drill evidence cleanup manifest boundary"
       }
     },
     {

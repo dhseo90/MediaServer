@@ -215,8 +215,9 @@ function runSubcommands() {
 function assertCanonical2xCompatibilityBaseline(results, docs) {
   const expectedCommands = flatCommands;
   const executedCommands = results.map((item) => item.command);
-  const compatibilityBaselineObserved = docs.fail === 0 &&
-    JSON.stringify(executedCommands) === JSON.stringify(expectedCommands) &&
+  const compatibilityCommandsMatched = JSON.stringify(executedCommands) === JSON.stringify(expectedCommands);
+  const compatibilityBaselineObserved = compatibilityCommandsMatched &&
+    docs.fail === 0 &&
     results.every((item) => item.status === 0);
   assert(compatibilityBaselineObserved,
     "verify-v290-2x-compatibility-baseline must bind each current child exit status without UI/longrun/published promotion");

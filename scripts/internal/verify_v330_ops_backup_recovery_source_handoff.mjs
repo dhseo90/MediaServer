@@ -314,7 +314,9 @@ check("SAFE-122 canonical backup recovery source handoff boundary", () => {
   const automaticRecoveryPerformed = /\b(?:Restore|Recover|Execute)[A-Za-z0-9_:]*\s*\(/.test(handoffBlock);
   const schemaMutationPerformed = /DispatchEventRecords|CreateVaRule|UpdateVaRule/.test(handoffBlock);
   const viewerClientExposureAdded = /AppendClient|ClientEventSummary|PublishedViewJson/.test(handoffBlock);
-  assert(safe122BoundaryObserved && persistencePerformed === false && sourceRegistryWritePerformed === false && rawMaterialExposed === false && rawLocatorExposed === false && sourceUrlExposed === false && debugMaterialExposed === false && credentialMaterialExposed === false && automaticRecoveryPerformed === false && schemaMutationPerformed === false && viewerClientExposureAdded === false,
+  assert(!handoffBlock.includes("\\\"debugMaterialExposed\\\":true"),
+    "SAFE-122 debug material must remain absent");
+  assert(safe122BoundaryObserved && (backupRecoveryHandoffRouteObserved && handoffBlock.includes("SourceViewApplicationService::Instance().Snapshot") && handoffBlock.includes("media-server.ops.v330-backup-recovery-source-handoff.v1") && handoffBlock.includes("BuildV330BackupRecoveryValidationPlan")) && persistencePerformed === false && sourceRegistryWritePerformed === false && rawMaterialExposed === false && rawLocatorExposed === false && sourceUrlExposed === false && debugMaterialExposed === false && credentialMaterialExposed === false && automaticRecoveryPerformed === false && schemaMutationPerformed === false && viewerClientExposureAdded === false,
     "SAFE-122 backup-recovery-source-handoff must remain a non-persistent validation plan without registry/raw credential/recovery/schema/client mutation");
 });
 
@@ -365,11 +367,14 @@ function readJson(relativePath) {
 
 function assertExactVerifierMapping(manifest, featureId, expectedCommand, expectedFile) {
   const item = manifest.items?.find(entry => entry.id === featureId);
+  const expectedAnchor = featureId === "UI-074"
+    ? 'assertIncludes(extractNamedFunctionBlock(files.opsSourcesScript, "renderBackupRecoverySourceHandoff"), "sourceHandoffInputs", "UI-074 block-scoped canonical product state");'
+    : featureId;
   assert(item?.verifierEvidence?.command === expectedCommand,
     `${featureId} exact verifier command mismatch: ${item?.verifierEvidence?.command}`);
   assert(item?.verifierEvidence?.file === expectedFile,
     `${featureId} exact verifier file mismatch: ${item?.verifierEvidence?.file}`);
-  assert(item?.verifierEvidence?.anchor === featureId,
+  assert(item?.verifierEvidence?.anchor === expectedAnchor,
     `${featureId} exact verifier assertion anchor mismatch: ${item?.verifierEvidence?.anchor}`);
 }
 

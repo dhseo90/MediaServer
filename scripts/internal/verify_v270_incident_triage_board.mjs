@@ -10,6 +10,7 @@ import process from "node:process";
 const failures = [];
 
 const server = readWebRtcHttpServerBundle(readText);
+const serverPages = readText("src/ingress/product_ui_server_pages.cpp");
 const triageBoardViewBlock = extractCppFunctionBlock(server, "std::string OpsIncidentTriageBoardViewJson(");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
@@ -83,7 +84,7 @@ check("/ops/events UI renders triage board lanes, filters, and sort controls", (
     'id="opsIncidentTriageBoardRows"',
     "Incident Triage Board",
   ]) {
-    assertIncludes(server, snippet, "Ops incident triage board shell");
+    assertIncludes(serverPages, snippet, "Ops incident triage board shell");
   }
   for (const snippet of [
     "renderIncidentTriageBoard",
@@ -130,9 +131,11 @@ check("smoke, inventory, coverage, and command catalog track S01", () => {
   ]) {
     assertIncludes(inventory, snippet, "feature inventory S01 row");
   }
-  for (const id of ["UI-050", "EVT-050", "LAB-074", "SAFE-058"]) {
+  for (const id of ["UI-050", "EVT-050", "LAB-074"]) {
     assert(implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-v270-incident-triage-board", `${id} manifest verifier command drift`);
   }
+  assert(implementationManifest.items.find(item => item.id === "SAFE-058")?.verifierEvidence?.command === "verify-auth-routes",
+    "SAFE-058 strongest runtime boundary verifier command drift");
   assertIncludes(coverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   assertIncludes(coverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");
   assertIncludes(streamVerification, "verify-v270-incident-triage-board", "stream verification S01 command");
@@ -151,7 +154,7 @@ check("S01 keeps forbidden client/runtime/schema/media side effects absent", () 
     "SSE/WS metadata schema 변경 완료",
     "RTSP/WebRTC media path 변경 완료",
   ]) {
-    assert(!server.includes(forbidden) && !script.includes(forbidden) && !backlog.includes(forbidden),
+    assert(!server.includes(forbidden) && !serverPages.includes(forbidden) && !script.includes(forbidden) && !backlog.includes(forbidden),
       `forbidden S01 snippet present: ${forbidden}`);
   }
 });

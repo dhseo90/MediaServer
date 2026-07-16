@@ -81,7 +81,7 @@ published metadata, release action evidence가 아닙니다.
 | v3.9.0 (17) Evidence 13~14 | `./server.sh verify-v390-final-evidence-integrity --summary <acceptance-summary.json>`, `./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-final` | Final evidence integrity와 독립 acceptance 재실행입니다. canonical root 교체 전 기존 screenshot/video placeholder 수와 크기를 기록하고, 새 bundle은 screenshot content dedupe, placeholder video 부재, source commit SHA·명령·first failure, child/filesystem/port 실측 cleanup을 보존합니다. 실제 bundle의 30분/UI-108~115 자동화는 exact 424개 UI 풀테스트, 조건 미충족 120분, published metadata, release action PASS가 아닙니다 |
 | v3.9.0 (17) Development 15 | `./server.sh verify-v390-vlm-incident-rule-provenance` | VLM sidecar candidate의 event/observation/source, candidate/kind, observation-context-only evaluation metadata가 optional `vlmProvenance`를 통해 `/ops/rules` 수동 draft와 `/lab/analysis/rules/{id}` PUT/save/readback까지 보존되는지 실제 HTTP로 확인합니다. generated rule ID 또는 save route mismatch는 no-write로 거부하며 auto-save/apply, 실제 provider evaluation, EventRecord/Event POST/WebRTC/SSE/WS/media 변경, UI 풀테스트, 30분/120분 PASS가 아닙니다 |
 | v3.9.0 (17) Development 16 / REVIEW4-63 | `./server.sh verify-v390-deferred-product-owner-signoff`, `./server.sh verify-v390-truthfulness-status-vocabulary` | `.github/CODEOWNERS` effective rule의 `@dhseo90`를 `repository-code-owner`로 결속한 `accountable-owner-decision-record`입니다. Exact 5개에 production restore를 포함하고 field smoke를 별도 `conditional-not-run`으로 유지하며, mixed capability truth와 `post-v3.9-unassigned` dependency를 검증합니다. 현재 실행/field/UI/longrun/release PASS가 아닙니다 |
-| v3.9.0 (17) Development 17 | `./server.sh verify-v390-structure-stabilization-readiness`, `./server.sh verify-v390-truthfulness-status-vocabulary` | structure output은 `approved-scheduled-after-review4-50-63`, implementation `not-executed`, `approved-decision-contract-not-refactor-evidence`입니다. REVIEW4-64 refactor나 65 acceptance 완료/PASS가 아닙니다 |
+| v3.9.0 (17) Development 17 | `./server.sh verify-v390-structure-stabilization-readiness`, `./server.sh verify-v390-truthfulness-status-vocabulary` | Historical REVIEW4-51 readiness output은 `approved-scheduled-after-review4-50-63`/`not-executed`로 불변 보존합니다. Current REVIEW4-64 execution은 graph 215/103/10/2, violation 0/SCC 0, Slice 32 테스트·cleanup으로 `completed`이며 REVIEW4-65 generated/actual acceptance는 별도 pending입니다. |
 | V390-REVIEW3-48 actual module graph | `./server.sh verify-v390-structure-stabilization-readiness` | actual C++ 148개/CMake cpp declared 74·default active 73를 9 owner와 single target/link에 묶고 32 include direction, 25 target violation, legacy 3 edge, 8-owner SCC, 6 slice binding을 검사합니다. PASS는 current debt baseline이며 refactor 완료가 아닙니다 |
 | V390-REVIEW3-49 superseded historical structure execution scope decision | `./server.sh verify-v390-structure-stabilization-readiness` | 당시 graph/guard-only와 v4.0.0 이관 결정을 보존합니다. REVIEW4-51이 이를 supersede해 50~63 뒤 current v3.9.0에서 64를 실행하며, 어느 decision PASS도 refactor 실행 PASS가 아닙니다 |
 | V390-REVIEW4-51 v3.9 actual refactor scope decision | `./server.sh verify-v390-review4-structure-scope-decision` | 최신 사용자 지시가 50~63 완료 뒤 64번 actual refactor를 current `v3.9.0` branch에서 실행하고 v4.0.0 이관을 금지한 결정을 `approved-actual-refactor-after-review4-50-63` mode, base `027678ba`, 9 preserved contract, 6 slice, 64 뒤 `V390-REVIEW4-65` acceptance와 결속합니다. Decision PASS는 refactor/acceptance 실행 PASS가 아닙니다 |
@@ -930,3 +930,30 @@ PASS, 장시간 테스트 PASS로 재사용하지 않습니다.
 소비하고 concrete domain strict parser를 application-service 구현이 소유하는지 검증합니다. 이 명령은
 strict parser 의미와 graph witness 감소를 확인하지만 SAFE-025 generated evidence, 실제 VLM provider 호출,
 브라우저 UI, 장시간 또는 REVIEW4-65 acceptance를 대체하지 않습니다.
+
+## V390-REVIEW4-65 current HEAD independent acceptance
+
+Canonical actual entrypoint는 아래 한 명령입니다.
+
+```bash
+./server.sh verify-v390-test-acceptance-bundle \
+  --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final \
+  --user-directed-120 \
+  --run-120
+```
+
+64번의 WebRTC media application boundary와 cleanup/port lifecycle 변경은 AGENTS 7.6.2의
+120분 직접 trigger이므로 이번 실행은 안정화, 30분, exact 424 Policy v4 UI 뒤 120분을
+순서대로 수행합니다. `--user-directed-120`은 이번 사용자의 실행 승인을 evidence에 별도로
+기록하며, trigger 자체는 위 변경 범위에서 독립 판정합니다. 시작 worktree는 clean이어야 하며 Slice 32 뒤 이동한 986 feature
+source-flow와 독립 approval이 current source에 다시 결속되어야 합니다.
+
+Acceptance는 실제 사용자 registry를 읽거나 바꾸지 않고 격리된 throwaway users file을
+소유합니다. Throwaway `admin`만 `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`의 실행 시점 값을
+provenance 수집 전에 process env에서 회수해 메모리 인자로만 사용하고 operator/viewer/integrator와
+UI fixture secret은 실행별 생성합니다. 이 값들은
+명령행, 저장 파일, summary/report, media server/browser/feature/longrun child env에 전달하지 않으며
+UI environment process memory에서 setup/login에 사용하고 exact 424 runner에만 memory-only role-secret
+env로 전달한 뒤 raw·URI·form·JSON escaped·base64/base64url artifact byte scan을 통과해야 해제합니다.
+실제 결과의 source-of-truth는 output root의 `summary.json`과 `report.md`이며,
+이 설명이나 contract verifier PASS는 actual 30분/UI/120분/final-integrity PASS가 아닙니다.

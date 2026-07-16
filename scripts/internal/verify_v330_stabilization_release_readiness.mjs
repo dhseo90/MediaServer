@@ -193,7 +193,7 @@ check("SAFE-123 canonical V330 readiness boundary", () => {
   const localEvidenceRecorded = normalizedRecords.includes("SAFE-123") && normalizedRecords.includes("Step 11");
   const notRunBoundaryMissing = !normalizedRecords.includes("not-run") || !files.releasePolicy.includes("UI 풀테스트") || !files.releasePolicy.includes("120분");
   const safe123BoundaryObserved = readinessCommandDocumented && localEvidenceRecorded && notRunBoundaryMissing === false;
-  assert(safe123BoundaryObserved && notRunBoundaryMissing === false,
+  assert(safe123BoundaryObserved && (readinessCommandDocumented && localEvidenceRecorded && notRunBoundaryMissing === false) && notRunBoundaryMissing === false,
     "SAFE-123 V330 readiness must preserve UI fulltest/30m/120m/published metadata/field smoke/release action not-run boundaries");
 });
 
@@ -209,7 +209,7 @@ check("OPS-090 canonical V330 readiness gate", () => {
   ].every((item) => files.releaseRecords.includes(item));
   const ops090GateObserved = localCommandsWired && notRunBoundariesPresent &&
     files.serverSh.includes("verify-v330-stabilization-release-readiness)");
-  assert(ops090GateObserved,
+  assert(ops090GateObserved && localCommandsWired && notRunBoundariesPresent,
     "OPS-090 local command wiring and explicit UI/long-run/published/release-action/field-smoke boundaries missing");
 });
 

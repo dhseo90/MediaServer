@@ -181,7 +181,7 @@ check("SAFE-092 canonical V300 readiness boundary", () => {
   const readinessCommandRecorded = normalizedRecords.includes("verify-v300-stabilization-release-readiness");
   const publishedMetadataSeparated = releasePolicy.includes("published metadata");
   const safe092BoundaryObserved = readinessCommandRecorded && publishedMetadataSeparated;
-  assert(safe092BoundaryObserved,
+  assert(safe092BoundaryObserved && (readinessCommandRecorded && publishedMetadataSeparated),
     "verify-v300-stabilization-release-readiness must keep UI/longrun/published actions separate");
 });
 

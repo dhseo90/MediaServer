@@ -272,7 +272,7 @@ check("SAFE-115 canonical source onboarding quality boundary", () => {
   const rawLocatorExposed = qualityBlock.includes("\\\"rawLocatorExposedToClient\\\":true") || qualityBlock.includes("\\\"rawJsonExposed\\\":true");
   const credentialMaterialExposed = qualityBlock.includes("\\\"credentialMaterialExposed\\\":true");
   const viewerClientExposureAdded = /AppendClient|ClientEventSummary|PublishedViewJson/.test(qualityBlock);
-  assert(safe115BoundaryObserved && sourceRegistryWritePerformed === false && rawLocatorExposed === false && credentialMaterialExposed === false && viewerClientExposureAdded === false,
+  assert(safe115BoundaryObserved && qualityBlock.includes("BuildSourceOnboardingQualityItems(sources_, views_)") && onboardingRouteObserved && sourceRegistryWritePerformed === false && rawLocatorExposed === false && credentialMaterialExposed === false && viewerClientExposureAdded === false,
     "SAFE-115 source-onboarding-quality-summary must remain read-only and exclude raw locator/credential/client material");
 });
 

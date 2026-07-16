@@ -126,6 +126,13 @@ export function resolveNativeBrowserExecutable(explicitPath = "") {
   return candidates.find(candidate => fs.existsSync(candidate) && fs.statSync(candidate).isFile()) || "";
 }
 
+export function secretStrippedBrowserEnv(sourceEnv = process.env) {
+  const env = { ...sourceEnv };
+  delete env.MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD;
+  delete env.MEDIA_SERVER_V390_UI_ROLE_SECRETS;
+  return env;
+}
+
 async function openNativePlaywrightPage(playwright, {
   httpBase,
   pagePath,
@@ -145,6 +152,7 @@ async function openNativePlaywrightPage(playwright, {
   const pendingSafeResponseReads = new Set();
   const browser = await playwright.chromium.launch({
     headless: true,
+    env: secretStrippedBrowserEnv(),
     ...(executablePath ? { executablePath } : {}),
   });
   const context = await browser.newContext({

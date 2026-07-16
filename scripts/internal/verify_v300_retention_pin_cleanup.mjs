@@ -191,7 +191,8 @@ check("server entrypoint and inventory verifiers include V300-S09 command", () =
 check("SAFE-091 canonical retention cleanup boundary", () => {
   const pinnedCleanupIncluded = files.source.includes("retain-pinned");
   const schemaMutationPerformed = files.source.includes("event_post_payload_changed = true") || files.source.includes("rtsp_webrtc_media_path_changed = true");
-  const safe091BoundaryObserved = pinnedCleanupIncluded && files.source.includes("BuildEventRetentionCleanupPlan");
+  const retentionCleanupInputsObserved = pinnedCleanupIncluded && schemaMutationPerformed === false;
+  const safe091BoundaryObserved = retentionCleanupInputsObserved && files.source.includes("BuildEventRetentionCleanupPlan");
   assert(safe091BoundaryObserved && schemaMutationPerformed === false,
     "verify-v300-retention-pin-cleanup retain-pinned lifecycle must preserve WebRTC/SSE/RTSP boundary");
 });

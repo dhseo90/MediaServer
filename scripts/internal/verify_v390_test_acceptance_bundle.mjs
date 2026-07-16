@@ -26,6 +26,7 @@ import {
   validateMonotonicDurationEvidence,
 } from "./v390_longrun_evidence_measurement_lib.mjs";
 import {
+  consumeAcceptanceAdminPassword,
   listListenerPids,
   startSelfContainedUiEnvironment,
   stopSelfContainedUiEnvironment,
@@ -127,6 +128,7 @@ let uiEnvironmentHandle = null;
 let uiEnvironmentSummary = null;
 let uiEnvironmentCleanup = null;
 
+let acceptanceAdminPassword = consumeAcceptanceAdminPassword();
 const sourceProvenance = collectSourceProvenance(rootDir);
 const priorFirstFailure = options.dryRun ? null : readPriorFirstFailure();
 const outputPreparation = options.dryRun ? {
@@ -213,6 +215,10 @@ async function runRealStage(stageId) {
       recordFailure(stageId, "preflight", "current final actual acceptance requires a clean worktree; commit approved changes before running");
       return;
     }
+    if (!fixtureMode && !acceptanceAdminPassword) {
+      recordFailure(stageId, "preflight", "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD is required for the acceptance-owned throwaway admin");
+      return;
+    }
     stages.push(passStage(stageId, "validate actual bundle inputs", {
       outputDir,
       runDir,
@@ -220,7 +226,8 @@ async function runRealStage(stageId) {
       uiExecution: "exact-424-policy-v4",
       uiEnvironmentOwnership: "self-contained-pid-port-artifact-ownership",
       dependencyStatus: "dependency-bootstrap-attestation",
-      secretHandling: "generated-secret-memory-only",
+      secretHandling: "runtime-admin-and-generated-role-secrets-memory-only",
+      adminSecretSource: "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD",
       roleStateSource: "role-storage-state-generated-by-acceptance",
       run120: options.run120,
       longrun120Decision: "AGENTS 7.6.2 conditional 120-minute decision",
@@ -256,14 +263,19 @@ async function runRealStage(stageId) {
 
   if (stageId === "ui-environment-bootstrap") {
     const startedAt = Date.now();
-    uiEnvironmentHandle = await startSelfContainedUiEnvironment({
-      rootDir,
-      runId,
-      fixtureMode: false,
-      playwrightModulePath: options.uiPlaywrightModulePath,
-      chromePath: options.uiChromePath,
-      buildPath: options.uiBuildPath,
-    });
+    try {
+      uiEnvironmentHandle = await startSelfContainedUiEnvironment({
+        rootDir,
+        runId,
+        adminPassword: acceptanceAdminPassword,
+        fixtureMode: false,
+        playwrightModulePath: options.uiPlaywrightModulePath,
+        chromePath: options.uiChromePath,
+        buildPath: options.uiBuildPath,
+      });
+    } finally {
+      acceptanceAdminPassword = "";
+    }
     uiEnvironmentSummary = uiEnvironmentHandle.attestation;
     const endedAt = Date.now();
     stages.push(makeStage({
@@ -303,12 +315,27 @@ async function runRealStage(stageId) {
     if (options.uiPlaywrightModulePath) args.push("--playwright-module-path", options.uiPlaywrightModulePath);
     if (options.uiChromePath) args.push("--chrome-path", options.uiChromePath);
     await runSingleCommandStage(stageId, command("./server.sh", args, uiEnvironmentHandle.exactCaseEnv), childSummaryPath);
-    uiEnvironmentHandle.releaseSecrets();
-    if (fs.existsSync(childSummaryPath)) uiAutomationSummary = readJson(childSummaryPath);
-    if (!failedStage) {
-      const errors = validateExactUiSummary(uiAutomationSummary, childDir);
-      if (errors.length > 0) replaceStageWithValidationFailure(stageId, errors.join("; "));
+    const errors = [];
+    try {
+      if (fs.existsSync(childSummaryPath)) uiAutomationSummary = readJson(childSummaryPath);
+      if (!failedStage) errors.push(...validateExactUiSummary(uiAutomationSummary, childDir));
+      const acceptanceSecretArtifactIntegrity = uiEnvironmentHandle.assertSecretsAbsentFromArtifacts(childDir);
+      if (acceptanceSecretArtifactIntegrity.status !== "PASS" ||
+          acceptanceSecretArtifactIntegrity.verificationSource !== "exact-and-runtime-artifact-byte-scan-before-secret-release" ||
+          Number(acceptanceSecretArtifactIntegrity.scannedFiles) < 1 || Number(acceptanceSecretArtifactIntegrity.scannedBytes) < 1) {
+        errors.push("exact/runtime secret artifact scan evidence mismatch");
+      }
+      if (uiAutomationSummary) {
+        uiAutomationSummary.acceptanceSecretArtifactIntegrity = acceptanceSecretArtifactIntegrity;
+        writeJson(childSummaryPath, uiAutomationSummary);
+        uiEnvironmentHandle.assertSecretsAbsentFromArtifacts(childDir);
+      }
+    } catch (error) {
+      errors.push(error instanceof Error ? error.message : String(error));
+    } finally {
+      uiEnvironmentHandle.releaseSecrets();
     }
+    if (errors.length > 0) replaceStageWithValidationFailure(stageId, errors.join("; "));
     return;
   }
 
@@ -544,7 +571,7 @@ function runCommand(spec, logPath) {
     let settled = false;
     const child = spawn(spec.file, spec.args, {
       cwd: rootDir,
-      env: { ...process.env, ...spec.env },
+      env: childProcessEnv(spec.env),
       stdio: ["ignore", "pipe", "pipe"],
     });
     const collect = (chunk, output) => {
@@ -571,6 +598,13 @@ function runCommand(spec, logPath) {
     child.on("error", error => finish(1, `${error instanceof Error ? error.message : String(error)}\n`));
     child.on("close", code => finish(Number.isInteger(code) ? code : 1));
   });
+}
+
+function childProcessEnv(overrides = {}) {
+  const env = { ...process.env };
+  delete env.MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD;
+  delete env.MEDIA_SERVER_V390_UI_ROLE_SECRETS;
+  return { ...env, ...overrides };
 }
 
 function replaceStageWithValidationFailure(stageId, message) {
@@ -648,7 +682,8 @@ function buildActualSummary() {
       result: "not-run",
       fixtureMode,
       dependency: { status: "dependency-bootstrap-attestation", browserLaunchVerified: false },
-      secretHandling: "generated-secret-memory-only",
+      secretHandling: "runtime-admin-and-generated-role-secrets-memory-only",
+      adminSecretSource: "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD",
       ownership: {
         serverStartedByAcceptance: true,
         portsAllocatedByAcceptance: true,
@@ -714,7 +749,8 @@ function writeDryRun() {
       result: "not-run-by-dry-run",
       fixtureMode: false,
       dependency: { status: "dependency-bootstrap-attestation", browserLaunchVerified: false },
-      secretHandling: "generated-secret-memory-only",
+      secretHandling: "runtime-admin-and-generated-role-secrets-memory-only",
+      adminSecretSource: "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD",
       ownership: {
         serverStartedByAcceptance: true,
         portsAllocatedByAcceptance: true,
@@ -829,6 +865,12 @@ function validateExactUiSummary(payload, childDir) {
   if (payload?.manualIntervention !== false || Number(payload?.coverage?.fail) !== 0 || Number(payload?.coverage?.notRun) !== 0 || Number(payload?.coverage?.unsupported) !== 0) errors.push("exact UI zero-fail/manual boundary mismatch");
   if (Number(payload?.coverage?.targetCount) !== 424 || payload?.cases?.length !== 424) errors.push("exact UI 424 case closure mismatch");
   if (payload?.selectedAdapter?.engine !== "playwright-native" || payload?.selectedAdapter?.fallbackUsed !== false) errors.push("exact UI native adapter mismatch");
+  if (payload?.caseRuntimeSecretArtifactIntegrity?.status !== "PASS" ||
+      payload?.caseRuntimeSecretArtifactIntegrity?.verificationSource !== "case-runtime-exact-and-throwaway-byte-scan-before-secret-release" ||
+      Number(payload?.caseRuntimeSecretArtifactIntegrity?.scannedFiles) < 1 ||
+      Number(payload?.caseRuntimeSecretArtifactIntegrity?.scannedBytes) < 1) {
+    errors.push("exact UI case-runtime secret artifact integrity mismatch");
+  }
   if (scanArtifactTree(childDir).duplicateScreenshotFiles !== 0) errors.push("UI duplicate screenshot file remains");
   if (!fs.existsSync(path.join(childDir, "summary.json"))) errors.push("exact UI summary missing");
   return errors;

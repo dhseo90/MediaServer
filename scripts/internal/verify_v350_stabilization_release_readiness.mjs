@@ -203,7 +203,7 @@ check("SAFE-147 canonical V350 readiness boundary", () => {
   const localEvidenceRecorded = normalizedRecords.includes("SAFE-147") && normalizedRecords.includes("Step 13");
   const notRunBoundaryMissing = !normalizedRecords.includes("not-run") || !files.releasePolicy.includes("UI 풀테스트") || !files.releasePolicy.includes("120분");
   const safe147BoundaryObserved = readinessCommandDocumented && localEvidenceRecorded && notRunBoundaryMissing === false;
-  assert(safe147BoundaryObserved && notRunBoundaryMissing === false,
+  assert(safe147BoundaryObserved && (readinessCommandDocumented && localEvidenceRecorded && notRunBoundaryMissing === false) && notRunBoundaryMissing === false,
     "SAFE-147 V350 readiness must preserve release action published metadata UI fulltest 30m 120m field smoke not-run boundaries");
 });
 

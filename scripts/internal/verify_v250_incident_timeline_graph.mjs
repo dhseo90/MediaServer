@@ -10,6 +10,7 @@ import process from "node:process";
 const failures = [];
 
 const server = readWebRtcHttpServerBundle(readText);
+const productUiPages = readText("src/ingress/product_ui_server_pages.cpp");
 const timelineViewBlock = extractCppFunctionBlock(server, "std::string OpsIncidentTimelineGraphViewJson(");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
@@ -28,7 +29,7 @@ check("ops events page exposes incident timeline graph shell", () => {
     'id="opsIncidentTimelineGraphRows"',
     "source state → event → operator action → alert dry-run → close",
   ]) {
-    assertIncludes(server, snippet, "incident timeline graph shell");
+    assertIncludes(productUiPages, snippet, "incident timeline graph shell");
   }
 });
 
@@ -112,8 +113,13 @@ check("ops smoke, inventory, and coverage track S04 markers", () => {
   ]) {
     assertIncludes(inventory, snippet, "feature inventory S04 row");
   }
-  for (const id of ["UI-040", "EVT-042", "LAB-065", "SAFE-046"]) {
-    assert(manifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-v250-incident-timeline-graph",
+  for (const [id, expectedCommand] of Object.entries({
+    "UI-040": "verify-v250-incident-timeline-graph",
+    "EVT-042": "verify-v250-incident-timeline-graph",
+    "LAB-065": "verify-v250-incident-timeline-graph",
+    "SAFE-046": "verify-auth-routes",
+  })) {
+    assert(manifest.items.find(item => item.id === id)?.verifierEvidence?.command === expectedCommand,
       `${id} manifest verifier command drift`);
   }
   assertIncludes(coverage, "validateImplementationManifest", "feature coverage manifest validation");

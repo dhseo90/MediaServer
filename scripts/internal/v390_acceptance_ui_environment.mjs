@@ -25,10 +25,12 @@ const usernames = {
   viewer: "ui_viewer",
   integrator: "ui_integrator",
 };
+const adminPasswordEnv = "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD";
 
 export async function startSelfContainedUiEnvironment({
   rootDir,
   runId,
+  adminPassword = "",
   fixtureMode = false,
   playwrightModulePath = "",
   chromePath = "",
@@ -36,12 +38,14 @@ export async function startSelfContainedUiEnvironment({
   timeoutMs = 30000,
   maxPortAttempts = 8,
 } = {}) {
+  delete process.env[adminPasswordEnv];
   assert(rootDir && path.isAbsolute(rootDir), "self-contained UI rootDir must be absolute");
   assert(runId, "self-contained UI runId is required");
   assert(Number.isInteger(maxPortAttempts) && maxPortAttempts >= 1 && maxPortAttempts <= 32,
     "self-contained UI maxPortAttempts must be 1..32");
 
   const state = createState({ rootDir, runId, fixtureMode, buildPath, timeoutMs, maxPortAttempts });
+  if (adminPassword) state.secretValues.push(adminPassword);
   try {
     prepareTemporaryState(state);
     if (fixtureMode) return await startFixtureEnvironment(state);
@@ -55,7 +59,7 @@ export async function startSelfContainedUiEnvironment({
     prepareRegistrySeed(state);
     state.server = await startOwnedServerWithBoundedRetry(state);
     state.runtimeAcquired = true;
-    await bootstrapAuthAndStorageStates(state);
+    await bootstrapAuthAndStorageStates(state, adminPassword);
     await state.browser.close();
     state.browser = null;
     assertGeneratedSecretsAbsentFromDisk(state);
@@ -64,6 +68,7 @@ export async function startSelfContainedUiEnvironment({
     const attestation = buildEnvironmentAttestation(state, "PASS");
     return buildHandle(state, attestation);
   } catch (error) {
+    if (!state.adminSecretConsumed && adminPassword) state.adminSecretDiscarded = true;
     const reason = redactMessage(error instanceof Error ? error.message : String(error), state.secretValues);
     const cleanup = await cleanupState(state, { requireRuntimeMeasurement: false });
     const wrapped = new Error(reason);
@@ -78,6 +83,21 @@ export async function stopSelfContainedUiEnvironment(handle) {
   return handle.cleanup();
 }
 
+export function resolveAcceptanceRoleSecrets(adminPassword, generator = generatePassword) {
+  assert(typeof adminPassword === "string" && adminPassword.length > 0,
+    `${adminPasswordEnv} is required for the acceptance-owned throwaway admin`);
+  return Object.fromEntries(roles.map(role => [
+    role,
+    role === "admin" ? adminPassword : generator(usernames[role]),
+  ]));
+}
+
+export function consumeAcceptanceAdminPassword(sourceEnv = process.env) {
+  const adminPassword = sourceEnv[adminPasswordEnv] || "";
+  delete sourceEnv[adminPasswordEnv];
+  return adminPassword;
+}
+
 export function listListenerPids(port) {
   if (!Number.isInteger(Number(port)) || Number(port) <= 0 || Number(port) > 65535) return [];
   try {
@@ -86,7 +106,7 @@ export function listListenerPids(port) {
       `-iTCP:${Number(port)}`,
       "-sTCP:LISTEN",
       "-t",
-    ], { encoding: "utf8" })
+    ], { encoding: "utf8", env: secretStrippedProcessEnv() })
       .split(/\r?\n/)
       .map(value => Number(value.trim()))
       .filter(Number.isInteger))];
@@ -134,6 +154,8 @@ function createState({ rootDir, runId, fixtureMode, buildPath, timeoutMs, maxPor
     cleanupEvidence: null,
     secretValues: [],
     roleSecretsJson: "",
+    adminSecretConsumed: false,
+    adminSecretDiscarded: false,
   };
 }
 
@@ -212,6 +234,7 @@ async function bootstrapPlaywrightDependency({ playwrightModulePath, chromePath 
     `native Playwright browser executable unavailable: ${browserExecutable || "missing"}`);
   const browser = await resolved.playwright.chromium.launch({
     headless: true,
+    env: secretStrippedProcessEnv(),
     ...(explicitExecutable ? { executablePath: explicitExecutable } : {}),
   });
   const packagePath = path.join(resolved.modulePath, "package.json");
@@ -251,7 +274,7 @@ function prepareRegistrySeed(state) {
     cwd: state.rootDir,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
-    env: { ...process.env, MEDIA_SERVER_SKIP_LOCAL_ENV: "1" },
+    env: { ...secretStrippedProcessEnv(), MEDIA_SERVER_SKIP_LOCAL_ENV: "1" },
   });
   for (const required of [state.seedPlanPath, state.sourcesPath, state.viewsPath, state.analysisPath, state.seedPreconditionsPath]) {
     assert(fs.existsSync(required), `acceptance UI seed output missing: ${required}`);
@@ -313,7 +336,7 @@ function spawnOwnedServer(state, attempt) {
   const child = spawn("./server.sh", ["foreground"], {
     cwd: state.rootDir,
     env: {
-      ...process.env,
+      ...secretStrippedProcessEnv(),
       MEDIA_SERVER_SKIP_LOCAL_ENV: "1",
       MEDIA_SERVER_SKIP_BUILD: "1",
       MEDIA_SERVER_SKIP_ENV_CHECK: "1",
@@ -340,6 +363,13 @@ function spawnOwnedServer(state, attempt) {
   child.stdout.on("data", chunk => log.write(chunk));
   child.stderr.on("data", chunk => log.write(chunk));
   return { child, log, attempt };
+}
+
+export function secretStrippedProcessEnv(sourceEnv = process.env) {
+  const env = { ...sourceEnv };
+  delete env[adminPasswordEnv];
+  delete env.MEDIA_SERVER_V390_UI_ROLE_SECRETS;
+  return env;
 }
 
 async function waitForOwnedServer(record, state) {
@@ -373,10 +403,12 @@ async function waitForOwnedServer(record, state) {
   throw new Error(`owned server readiness timeout: ${lastReason}`);
 }
 
-async function bootstrapAuthAndStorageStates(state) {
-  const secrets = Object.fromEntries(roles.map(role => [role, generatePassword(usernames[role])]));
+async function bootstrapAuthAndStorageStates(state, adminPassword) {
+  const secrets = resolveAcceptanceRoleSecrets(adminPassword);
+  state.secretValues = [...Object.values(secrets)];
+  state.adminSecretConsumed = true;
   const fixturePassword = generatePassword();
-  state.secretValues = [...Object.values(secrets), fixturePassword];
+  state.secretValues.push(fixturePassword);
   state.roleSecretsJson = JSON.stringify({ roles: secrets, refs: { fixturePassword } });
 
   const adminContext = await state.browser.newContext();
@@ -521,7 +553,13 @@ function buildEnvironmentAttestation(state, result, failureReason = "") {
       browserLaunchVerified: false,
       reason: "dependency bootstrap did not complete",
     },
-    secretHandling: "generated-secret-memory-only",
+    secretHandling: "runtime-admin-and-generated-role-secrets-memory-only",
+    adminSecretSource: adminPasswordEnv,
+    adminSecretLifecycle: state.fixtureMode
+      ? "fixture-not-consumed"
+      : (state.adminSecretConsumed
+        ? "runtime-env-consumed-then-unset"
+        : (state.adminSecretDiscarded ? "runtime-env-discarded-before-consumption" : "runtime-env-not-consumed")),
     secretSerialization: false,
     ownership: {
       serverStartedByAcceptance: true,
@@ -566,6 +604,17 @@ function buildHandle(state, attestation) {
       state.roleSecretsJson = "";
       state.secretValues = [];
       this.exactCaseEnv = {};
+    },
+    assertSecretsAbsentFromArtifacts(rootPath) {
+      const exactArtifacts = assertSecretValuesAbsentFromTree(rootPath, state.secretValues);
+      const runtimeArtifacts = assertSecretValuesAbsentFromTree(state.temporaryRoot, state.secretValues);
+      return {
+        status: "PASS",
+        verificationSource: "exact-and-runtime-artifact-byte-scan-before-secret-release",
+        scannedFiles: exactArtifacts.scannedFiles + runtimeArtifacts.scannedFiles,
+        scannedBytes: exactArtifacts.scannedBytes + runtimeArtifacts.scannedBytes,
+        roots: ["exact-output", "throwaway-runtime"],
+      };
     },
     async cleanup() {
       const cleanup = await cleanupState(state, { requireRuntimeMeasurement: !state.fixtureMode && state.runtimeAcquired });
@@ -711,14 +760,57 @@ async function closeLog(record) {
 }
 
 function assertGeneratedSecretsAbsentFromDisk(state) {
-  for (const filePath of listFiles(state.temporaryRoot)) {
+  assertSecretValuesAbsentFromTree(state.temporaryRoot, state.secretValues);
+}
+
+export function assertSecretValuesAbsentFromTree(rootPath, secretValues) {
+  assert(Array.isArray(secretValues) && secretValues.length > 0,
+    "secret artifact scan requires retained in-memory secret values");
+  let scannedFiles = 0;
+  let scannedBytes = 0;
+  const needles = [...new Set(secretValues.flatMap(secret => {
+    const value = String(secret || "");
+    if (!value) return [];
+    const jsonEscaped = JSON.stringify(value).slice(1, -1);
+    const formEncoded = new URLSearchParams({ secret: value }).toString().slice("secret=".length);
+    return [
+      value,
+      encodeURIComponent(value),
+      formEncoded,
+      jsonEscaped,
+      Buffer.from(value).toString("base64"),
+      Buffer.from(value).toString("base64url"),
+    ];
+  }))].map(value => Buffer.from(value)).filter(needle => needle.length > 0);
+  const overlapBytes = Math.max(0, ...needles.map(needle => needle.length - 1));
+  for (const filePath of listFiles(rootPath)) {
     const stat = fs.statSync(filePath);
-    if (!stat.isFile() || stat.size > 16 * 1024 * 1024) continue;
-    const content = fs.readFileSync(filePath);
-    for (const secret of state.secretValues) {
-      assert(!content.includes(Buffer.from(secret)), `generated auth secret persisted to disk: ${filePath}`);
+    if (!stat.isFile()) continue;
+    scannedFiles += 1;
+    scannedBytes += stat.size;
+    const fd = fs.openSync(filePath, "r");
+    try {
+      const chunk = Buffer.allocUnsafe(1024 * 1024);
+      let carry = Buffer.alloc(0);
+      let bytesRead = 0;
+      do {
+        bytesRead = fs.readSync(fd, chunk, 0, chunk.length, null);
+        const content = Buffer.concat([carry, chunk.subarray(0, bytesRead)]);
+        for (const needle of needles) {
+          assert(!content.includes(needle), `generated auth secret persisted to disk: ${filePath}`);
+        }
+        carry = overlapBytes > 0 ? content.subarray(Math.max(0, content.length - overlapBytes)) : Buffer.alloc(0);
+      } while (bytesRead > 0);
+    } finally {
+      fs.closeSync(fd);
     }
   }
+  return {
+    status: "PASS",
+    verificationSource: "exact-artifact-byte-scan-before-secret-release",
+    scannedFiles,
+    scannedBytes,
+  };
 }
 
 function noEnvironmentCleanup() {
@@ -759,7 +851,10 @@ function canListenPort(port) {
 
 function readCommandIdentity(pid) {
   try {
-    return execFileSync("ps", ["-p", String(pid), "-o", "command="], { encoding: "utf8" }).trim();
+    return execFileSync("ps", ["-p", String(pid), "-o", "command="], {
+      encoding: "utf8",
+      env: secretStrippedProcessEnv(),
+    }).trim();
   } catch {
     return "";
   }

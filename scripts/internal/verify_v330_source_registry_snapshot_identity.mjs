@@ -216,7 +216,7 @@ check("SAFE-114 canonical source registry snapshot boundary", () => {
   const sourceRegistryWritePerformed = /\b(?:CreateSource|UpdateSource|DeleteSource|Write|Persist)[A-Za-z0-9_:]*\s*\(/.test(snapshotBlock);
   const schemaMutationPerformed = /DispatchEventRecords|CreateVaRule|UpdateVaRule/.test(snapshotBlock);
   const viewerClientExposureAdded = /AppendClient|ClientEventSummary|PublishedViewJson/.test(snapshotBlock);
-  assert(safe114BoundaryObserved && sourceRegistryWritePerformed === false && schemaMutationPerformed === false && viewerClientExposureAdded === false,
+  assert(safe114BoundaryObserved && snapshotBlock.includes("BuildSourceIdentitySnapshot(sources_, views_)") && snapshotRouteObserved && sourceRegistryWritePerformed === false && schemaMutationPerformed === false && viewerClientExposureAdded === false,
     "SAFE-114 source-registry-snapshot-identity must remain Ops-only read-only without registry/schema/client mutation");
 });
 

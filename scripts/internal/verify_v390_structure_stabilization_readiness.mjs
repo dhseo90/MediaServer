@@ -5,6 +5,7 @@ import fs from "node:fs";
 import crypto from "node:crypto";
 import path from "node:path";
 import process from "node:process";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -35,6 +36,8 @@ const command = "verify-v390-structure-stabilization-readiness";
 const targetScript = "verify_v390_structure_stabilization_readiness.mjs";
 const fixturePath = "test/fixtures/v390_structure_stabilization_readiness.json";
 const scopeDecisionPath = "test/fixtures/v390_structure_execution_scope_decision.json";
+const executionPath = "test/fixtures/v390_structure_stabilization_execution.json";
+const currentGraphCommand = "verify-v390-review4-structure-stabilization-execution";
 const planPath = "docs/superpowers/plans/2026-07-08-v390-structure-stabilization-handoff.md";
 const expectedContracts = [
   "event-post-payload",
@@ -58,6 +61,8 @@ const expectedSlices = [
 const checks = [];
 const fixture = JSON.parse(read(fixturePath));
 const actualGraphFixture = JSON.parse(read(fixture.actualGraphEvidence.path));
+const execution = JSON.parse(read(executionPath));
+const currentGraph = JSON.parse(read(execution.currentGraph.path));
 
 check("machine-readable readiness contract is complete", () => {
   const server = read("server.sh");
@@ -132,56 +137,34 @@ check("module mayDependOn declarations exactly match allowed dependency directio
     "mayDependOn and allowedDependencyDirections must be exact bidirectional representations");
 });
 
-check("actual nine-owner include and CMake graphs match the pinned debt baseline", () => {
-  const graph = collectActualGraph(actualGraphFixture);
-  const errors = validateActualGraph(graph, actualGraphFixture, fixture);
-  assert(errors.length === 0, errors.join("; "));
-  const refactorImplementationExecuted = fixture.implementationStatus !== "not-executed";
-  assert(graph.productionFiles.length === 148 && refactorImplementationExecuted === false,
-    "actual production graph baseline must remain explicitly not-executed");
-  assert(graph.cmakeSources.length === graph.cppFiles.length,
-    "CMake source graph must cover every production .cpp exactly once");
+check("current REVIEW4-64 source and CMake graph match the completed execution ledger", () => {
+  const graphRun = spawnSync(path.join(rootDir, "server.sh"), [currentGraphCommand, "--graph-only"], {
+    cwd: rootDir,
+    encoding: "utf8",
+    env: process.env,
+  });
+  if (graphRun.error) throw graphRun.error;
+  assert(graphRun.signal === null && graphRun.status === 0,
+    `current graph gate failed (exit=${graphRun.status}, stderr=${graphRun.stderr || "none"})`);
+  assert(graphRun.stdout.includes("current graph negative mutations reject forbidden edge and cycle"),
+    "current graph gate did not execute the forbidden-edge/cycle negative");
+  assert(execution.currentGraph.schema === currentGraph.schema &&
+    execution.currentGraph.sha256 === sha256File(path.join(rootDir, execution.currentGraph.path)),
+  "current graph path/schema/hash binding mismatch");
+  assert(currentGraph.expectedProductionFiles === 215 && currentGraph.expectedCppFiles === 103 &&
+    currentGraph.moduleClassifiers?.length === 10 && currentGraph.cmake?.targets?.length === 2,
+  "current graph inventory mismatch");
+  assert(execution.currentGraph.metrics?.productionFiles === 215 && execution.currentGraph.metrics?.targetViolationDirections === 0 &&
+    execution.currentGraph.metrics?.cppSources === 103 &&
+    execution.currentGraph.metrics?.moduleOwners === 10 &&
+    execution.currentGraph.metrics?.cmakeTargets === 2 &&
+    execution.currentGraph.metrics?.largestSccOwners === 0 &&
+    execution.currentGraph.metrics?.internalTargetSeparation === true,
+  "completed REVIEW4-64 " +
+    "graph metrics mismatch");
 });
 
-check("graph validator rejects a new forbidden include edge and a new cycle", () => {
-  const graph = collectActualGraph(actualGraphFixture);
-  const forbiddenGraph = {
-    ...graph,
-    includeEdges: [...graph.includeEdges, {
-      source: "src/analysis/negative_fixture.cpp",
-      include: "ingress/negative_fixture.h",
-      resolved: "include/ingress/negative_fixture.h",
-      from: "analysis-services",
-      to: "transport-and-auth-adapter",
-    }],
-    observedModuleEdges: [...graph.observedModuleEdges, {
-      direction: "analysis-services -> transport-and-auth-adapter",
-      witnessCount: 1,
-      witnessSha256: sha256Text("src/analysis/negative_fixture.cpp -> include/ingress/negative_fixture.h"),
-      allowedByTarget: false,
-    }].sort((lhs, rhs) => lhs.direction.localeCompare(rhs.direction)),
-  };
-  assert(validateActualGraph(forbiddenGraph, actualGraphFixture, fixture)
-    .some(error => error.includes("new target-violation direction")),
-  "new analysis-to-ingress edge negative must fail");
-
-  const cycle = findCycleComponents(
-    ["negative-a", "negative-b"],
-    [{ from: "negative-a", to: "negative-b" }, { from: "negative-b", to: "negative-a" }],
-  );
-  assert(cycle.length === 1 && cycle[0].join(",") === "negative-a,negative-b",
-    "synthetic dependency cycle negative must be detected");
-
-  const linkGraph = {
-    ...graph,
-    externalLinkEdges: [...graph.externalLinkEdges, "media_server -> forged-internal-target"],
-  };
-  assert(validateActualGraph(linkGraph, actualGraphFixture, fixture)
-    .some(error => error.includes("external link edge drift")),
-  "synthetic CMake link edge negative must be detected");
-});
-
-check("actual graph-backed REVIEW4-51 v3.9 execution decision is frozen", () => {
+check("historical REVIEW4-51 decision/readiness remain frozen and separate from current completion", () => {
   assert(fs.existsSync(path.join(rootDir, scopeDecisionPath)), "structure execution scope decision fixture missing");
   const decision = JSON.parse(read(scopeDecisionPath));
   assert(decision.schema === "media-server.v390-structure-execution-scope-decision.v2",
@@ -206,17 +189,18 @@ check("actual graph-backed REVIEW4-51 v3.9 execution decision is frozen", () => 
   "decision actual graph path/schema mismatch");
   assert(decision.actualGraph.sha256 === sha256File(path.join(rootDir, decision.actualGraph.path)),
     "decision actual graph hash drift");
-  const actual = collectActualGraph(actualGraphFixture);
-  const violations = actual.observedModuleEdges.filter(item => !item.allowedByTarget).length;
-  const largestScc = Math.max(0, ...actual.stronglyConnectedComponents.map(item => item.length));
+  const historicalViolations = actualGraphFixture.observedModuleEdges.filter(item => !item.allowedByTarget).length;
+  const historicalLargestScc = Math.max(0,
+    ...actualGraphFixture.stronglyConnectedComponents.map(item => item.length));
   const mixedByFile = new Map(actualGraphFixture.mixedOwnershipDebt.map(item => [item.file, item.lineCount]));
-  assert(decision.actualGraph.productionFiles === actual.productionFiles.length &&
-    decision.actualGraph.declaredCppSources === actual.cmakeSources.length &&
-    decision.actualGraph.defaultActiveCppSources === actual.defaultActiveCmakeSources.length &&
+  assert(decision.actualGraph.productionFiles === actualGraphFixture.expectedProductionFiles &&
+    decision.actualGraph.declaredCppSources === actualGraphFixture.expectedCppFiles &&
+    decision.actualGraph.defaultActiveCppSources === actualGraphFixture.cmake.targets
+      .reduce((sum, target) => sum + target.defaultActiveSourceCount, 0) &&
     decision.actualGraph.moduleOwners === actualGraphFixture.moduleClassifiers.length &&
     decision.actualGraph.cmakeTargets === actualGraphFixture.cmake.targets.length &&
-    decision.actualGraph.targetViolationDirections === violations &&
-    decision.actualGraph.largestSccOwners === largestScc &&
+    decision.actualGraph.targetViolationDirections === historicalViolations &&
+    decision.actualGraph.largestSccOwners === historicalLargestScc &&
     decision.actualGraph.webrtcHttpServerLines === mixedByFile.get("src/ingress/webrtc_http_server.cpp") &&
     decision.actualGraph.productUiPageScriptsLines === mixedByFile.get("src/ingress/product_ui_page_scripts.cpp"),
   "decision actual graph metrics mismatch");
@@ -224,8 +208,8 @@ check("actual graph-backed REVIEW4-51 v3.9 execution decision is frozen", () => 
     decision.riskRecord?.actualFactors?.length === 4 &&
     decision.riskRecord.actualFactors.every(item => item.result === "approved-with-hard-gates"),
   "high-risk explicit acceptance record mismatch");
-  assert(violations > decision.riskRecord.baselineThresholds.maxTargetViolationDirections &&
-    largestScc > decision.riskRecord.baselineThresholds.maxSccOwners &&
+  assert(historicalViolations > decision.riskRecord.baselineThresholds.maxTargetViolationDirections &&
+    historicalLargestScc > decision.riskRecord.baselineThresholds.maxSccOwners &&
     decision.actualGraph.webrtcHttpServerLines > decision.riskRecord.baselineThresholds.maxMixedOwnerFileLines &&
     actualGraphFixture.cmake.internalTargetSeparation === false,
   "accepted high-risk graph factors are not bound to actual evidence");
@@ -243,6 +227,20 @@ check("actual graph-backed REVIEW4-51 v3.9 execution decision is frozen", () => 
   assert(decision.finalAcceptance?.id === "V390-REVIEW4-65" &&
     decision.finalAcceptance?.approved === true && decision.finalAcceptance?.runAfterRefactor === true,
   "post-refactor final acceptance approval mismatch");
+  assert(execution.status === "completed" && execution.refactorComplete === true &&
+    execution.completionClaimed === true && execution.currentContinuation?.status === "completed" &&
+    execution.currentContinuation?.latestCompletedSlice === 32 &&
+    execution.currentContinuation?.architectureStatus === "final-targets-satisfied" &&
+    execution.currentContinuation?.finalCompletionClaimAllowed === true,
+  "current REVIEW4-64 completion oracle mismatch");
+  assert(execution.orderedSlices?.[5]?.id === "verifier-docs" &&
+    execution.orderedSlices[5].status === "not-started" &&
+    execution.historicalSixSliceDecision?.executionOrCompletionEvidence === false,
+  "historical six-slice Slice 6 record was rewritten as current completion evidence");
+  assert(execution.parkedGeneratedEvidenceArtifacts?.ownerIssue === "V390-REVIEW4-65" &&
+    execution.parkedGeneratedEvidenceArtifacts?.completionEvidence === false &&
+    execution.parkedGeneratedEvidenceArtifacts?.excludedFromReview4Completion === true,
+  "REVIEW4-65 generated acceptance artifacts are not separated from REVIEW4-64 completion");
   for (const [label, text, snippets] of [
     ["backlog", read("docs/development-backlog.md"), ["V390-REVIEW4-51", "current `v3.9.0` branch", "64 뒤 65 acceptance"]],
     ["records", read("docs/release-test-records.md"), ["V390-REVIEW4-51", "base `027678ba`", "64 후 65 acceptance"]],
@@ -260,13 +258,17 @@ check("handoff plan fixes branch, module, dependency, contract, and slice readin
   for (const snippet of [
     "## Development 17 Structure Stabilization Readiness",
     "Execution branch: `v3.9.0`",
-    "Current v3.9 refactor execution: `not-run`",
+    "Historical readiness snapshot execution: `not-run`",
+    "Current v3.9 refactor execution: `completed`",
+    "Current v3.9 refactor continuation: `completed` (Slice 32, final target 충족, 구조 테스트·cleanup PASS)",
     "Branch creation: `not-performed`",
     "## Module Boundary and Dependency Direction",
     "## Current actual graph baseline (V390-REVIEW3-48)",
     "test/fixtures/v390_actual_module_dependency_graph.json",
     "target architecture 위반 direction",
     "8-owner 1개",
+    "test/fixtures/v390_structure_stabilization_current_graph.json",
+    "production 215파일/C++ 103개/owner 10개",
     "## Structure execution scope decision (V390-REVIEW4-51)",
     "execute-actual-refactor-in-v3.9.0-after-review4-50-63",
     "approved-actual-refactor-after-review4-50-63",
@@ -283,16 +285,16 @@ check("handoff plan fixes branch, module, dependency, contract, and slice readin
   }
 });
 
-check("roadmap and evidence expose Development 17 readiness without refactor overclaim", () => {
+check("roadmap and evidence preserve historical readiness and expose current REVIEW4-64 completion", () => {
   const backlog = read("docs/development-backlog.md");
   const inventory = read("docs/project-feature-test-inventory.md");
   const records = read("docs/release-test-records.md");
   const evidence = read("docs/release-evidence-index.md");
   const stream = read("docs/stream-verification.md");
   for (const [label, text, snippets] of [
-    ["backlog", backlog, ["structure stabilization implementation readiness", "gate 준비", "구조 안정화 착수 조건", "gate 준비/커밋 `fcfe9f0d`"]],
+    ["backlog", backlog, ["structure stabilization implementation readiness", "gate 준비", "V390-REVIEW4-64 current continuation Slice 32", "REVIEW4-64 구조 개발은 완료됐지만 parked evidence를 확정하는 REVIEW4-65 독립 acceptance PASS는 아닙니다"]],
     ["inventory", inventory, ["SAFE-215", "OPS-182", command]],
-    ["records", records, ["V390 Structure Stabilization Readiness", "Development 17 structure readiness final", "Development 17 실제 refactor/UI/longrun"]],
+    ["records", records, ["V390 Structure Stabilization Readiness", "Development 17 structure readiness final", "V390-REVIEW4-64 continuation Slice 32 WebRTC media application final", "65 독립 acceptance PASS는 아닙니다"]],
     ["evidence", evidence, ["Development 17 structure stabilization readiness", "SAFE-215", "OPS-182"]],
     ["stream", stream, ["Development 17", command, "approved-scheduled-after-review4-50-63", "not-executed"]],
   ]) {
@@ -310,16 +312,18 @@ const failed = checks.filter(item => !item.ok);
 for (const item of checks) console.log(`[${item.ok ? "pass" : "fail"}] ${item.name}${item.error ? `: ${item.error}` : ""}`);
 console.log("\n== v3.9.0 structure stabilization readiness ==");
 console.log("- executionBranch: v3.9.0");
-console.log("- currentStepRefactorExecuted: false");
-console.log("- status: approved-scheduled-after-review4-50-63");
-console.log("- implementationStatus: not-executed");
+console.log("- historicalReadinessStatus: approved-scheduled-after-review4-50-63/not-executed");
+console.log("- currentReview4Status: completed");
+console.log("- review4AcceptanceStatus: pending");
 console.log("- preservedContracts: 9");
-console.log("- orderedSlices: 6");
-console.log(`- actualProductionFiles: ${collectActualGraph(actualGraphFixture).productionFiles.length}`);
-console.log(`- actualModuleOwners: ${actualGraphFixture.moduleClassifiers.length}`);
-console.log(`- actualTargetCount: ${actualGraphFixture.cmake.targets.length}`);
-console.log(`- targetViolationDirections: ${actualGraphFixture.observedModuleEdges.filter(item => !item.allowedByTarget).length}`);
-console.log("- graphStatus: actual-monolith-cyclic-target-violations-baselined-refactor-not-executed");
+console.log("- historicalOrderedSlices: 6 (Slice 6 not-started record preserved)");
+console.log(`- actualProductionFiles: ${currentGraph.expectedProductionFiles}`);
+console.log(`- actualCppSources: ${currentGraph.expectedCppFiles}`);
+console.log(`- actualModuleOwners: ${currentGraph.moduleClassifiers.length}`);
+console.log(`- actualTargetCount: ${currentGraph.cmake.targets.length}`);
+console.log(`- targetViolationDirections: ${execution.currentGraph.metrics.targetViolationDirections}`);
+console.log(`- largestSccOwners: ${execution.currentGraph.metrics.largestSccOwners}`);
+console.log("- graphStatus: final-targets-satisfied");
 console.log(`- pass: ${checks.length - failed.length}`);
 console.log(`- fail: ${failed.length}`);
 process.exit(failed.length === 0 ? 0 : 1);

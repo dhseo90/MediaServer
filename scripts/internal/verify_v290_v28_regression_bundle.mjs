@@ -192,8 +192,9 @@ function runSubcommands() {
 function assertCanonicalV28RegressionBundle(results, docs) {
   const expectedCommands = subcommands.map((item) => item.command);
   const executedCommands = results.map((item) => item.command);
-  const v28RegressionBundleObserved = docs.fail === 0 &&
-    JSON.stringify(executedCommands) === JSON.stringify(expectedCommands) &&
+  const v28CommandsMatched = JSON.stringify(executedCommands) === JSON.stringify(expectedCommands);
+  const v28RegressionBundleObserved = v28CommandsMatched &&
+    docs.fail === 0 &&
     results.every((item) => item.status === 0);
   assert(v28RegressionBundleObserved,
     "verify-v290-v28-regression-bundle must use current child exit status, not reused completion evidence");

@@ -216,9 +216,11 @@ check("current v3.9 contract keeps frozen transport semantics without historical
   }
   assert(freezeEvidence.frozenContract?.webrtcDataChannelLabel === "va-metadata",
     "WebRTC DataChannel label drift");
-  const schemaMutationAllowedWithoutReview = freezeEvidence.frozenContract?.schemaMutationAllowedWithoutReview;
+  const frozenContract = freezeEvidence.frozenContract || {};
+  const schemaMutationAllowedWithoutReview = frozenContract.schemaMutationAllowedWithoutReview;
   const schemaMutationBoundaryRequiresReview = schemaMutationAllowedWithoutReview === false;
-  assert(schemaMutationBoundaryRequiresReview && schemaMutationAllowedWithoutReview === false,
+  const finalContractFreezeBoundaryObserved = schemaMutationAllowedWithoutReview === false && schemaMutationBoundaryRequiresReview;
+  assert(finalContractFreezeBoundaryObserved,
     "schema mutation boundary must require review");
   assert(freezeEvidence.frozenContract?.metadataFailureMayBlockMediaPath === false,
     "metadata failure must not block the media path");

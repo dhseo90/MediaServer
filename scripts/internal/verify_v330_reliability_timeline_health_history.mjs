@@ -78,10 +78,9 @@ check("Ops server builds the v3.3 reliability timeline health history read model
 });
 
 check("reliability timeline read model is read-only and preserves schema/media/client boundaries", () => {
-  const block = extractBlock(
+  const block = extractCppFunctionBlock(
     files.server,
-    "std::string OpsV330ReliabilityTimelineHealthHistoryJson",
-    "std::string OpsAuditSearchIndexJson"
+    "std::string OpsV330ReliabilityTimelineHealthHistoryJson("
   );
   for (const snippet of [
     "sourceRegistryWritePerformed",
@@ -240,7 +239,7 @@ check("SAFE-116 canonical reliability timeline boundary", () => {
   const credentialMaterialExposed = timelineBlock.includes("\\\"credentialMaterialExposed\\\":true");
   const schemaMutationPerformed = /DispatchEventRecords|CreateVaRule|UpdateVaRule/.test(timelineBlock);
   const viewerClientExposureAdded = /AppendClient|ClientEventSummary|PublishedView/.test(timelineBlock);
-  assert(safe116BoundaryObserved && sourceRegistryWritePerformed === false && rawLocatorExposed === false && credentialMaterialExposed === false && schemaMutationPerformed === false && viewerClientExposureAdded === false,
+  assert(safe116BoundaryObserved && timelineBlock.includes("BuildV330ReliabilityTimelineHealthHistory") && reliabilityTimelineRouteObserved && sourceRegistryWritePerformed === false && rawLocatorExposed === false && credentialMaterialExposed === false && schemaMutationPerformed === false && viewerClientExposureAdded === false,
     "SAFE-116 reliability-timeline-health-history must remain an Ops-only read model without registry/schema/raw credential/client mutation");
 });
 

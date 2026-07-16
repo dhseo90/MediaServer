@@ -164,6 +164,7 @@ check("SAFE-168 canonical bounded no-execution boundary", () => {
   const block = extractCppFunctionBlock(files.server, "std::string OpsV370CrossSiteSafeApplyReadinessJson(");
   const routeObserved = files.server.includes("/ops/api/site-operations/cross-site-safe-apply-readiness");
   const safe168BoundaryObserved = block.includes("BuildV370CrossSiteSafeApplyReadinessItems");
+  const safe168CommandBoundaryObserved = safe168BoundaryObserved && command === "verify-v370-cross-site-safe-apply-readiness";
   const writePerformed = /\b(?:Write|Persist|AppendFile|UpdateSource|CreateVaRule|UpdateVaRule|AssignReviewer)[A-Za-z0-9_:]*\s*\(/.test(block);
   const mutationPerformed = writePerformed || /\b(?:Apply|AutomaticApply|SafeApply|SendClientNotice)[A-Za-z0-9_:]*\s*\(/.test(block);
   const executionPerformed = /\b(?:Execute|RunSimulation|Probe|Contact|ProviderCall|Infer|HttpPost)[A-Za-z0-9_:]*\s*\(/.test(block);
@@ -177,7 +178,7 @@ check("SAFE-168 canonical bounded no-execution boundary", () => {
   const debugMaterialExposed = block.includes("\\\"debugMaterialIncluded\\\":true") || block.includes("\\\"debugMaterialExposed\\\":true");
   const viewerClientExposureAdded = block.includes("\\\"viewerClientExposureAdded\\\":true");
   const mediaPathChanged = block.includes("\\\"rtspOrWebrtcMediaPathChanged\\\":true");
-  assert(routeObserved && safe168BoundaryObserved && block.includes("media-server.ops.v370-cross-site-safe-apply-readiness.v1") && writePerformed === false && mutationPerformed === false && executionPerformed === false && automaticApplyPerformed === false && clientNoticeSent === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
+  assert(routeObserved && safe168CommandBoundaryObserved && block.includes("media-server.ops.v370-cross-site-safe-apply-readiness.v1") && writePerformed === false && mutationPerformed === false && executionPerformed === false && automaticApplyPerformed === false && clientNoticeSent === false && fieldSmokeExecuted === false && providerCallPerformed === false && rawMaterialExposed === false && sourceUrlExposed === false && credentialMaterialExposed === false && debugMaterialExposed === false && viewerClientExposureAdded === false && mediaPathChanged === false,
     "SAFE-168 BuildV370CrossSiteSafeApplyReadinessItems must remain bounded no-execution no-write redacted and client/provider isolated");
 });
 

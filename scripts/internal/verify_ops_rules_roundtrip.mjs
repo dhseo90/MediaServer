@@ -1,8 +1,13 @@
 #!/usr/bin/env node
-// 파일 용도: Ops 룰 이벤트 템플릿의 저장/조회 round-trip을 영상 재생 없이 빠르게 검증한다.
+// 파일 용도: Ops 룰 저장/조회와 오프라인 VA replay의 실제 runtime 결속을 함께 검증한다.
 
 import crypto from "node:crypto";
+import { execFileSync } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 
 import { nextNumericIds } from "./numeric_id_helpers.mjs";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -24,6 +29,9 @@ assertKnownOptions(rawArgs, ["http-base", "token", "h", "help"]);
 const args = parseArgs(rawArgs);
 const httpBase = String(args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
 const bearerToken = String(args.token || "").trim();
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+let replayOutputDir = "";
+let replayBinaryReady = false;
 
 const catalog = await requestJson("/ops/api/rules/catalog");
 const rulesShell = await requestText("/ops/rules");
@@ -49,10 +57,10 @@ const fixtures = [
       region: {
         type: "line",
         direction: "any",
-        points: [{ x: 0.22, y: 0.44 }, { x: 0.78, y: 0.46 }],
+        points: [{ x: 0.5, y: 0.0 }, { x: 0.5, y: 1.0 }],
       },
-      minConfidence: 0.42,
-      minDurationMs: 1200,
+      minConfidence: 0.1,
+      minDurationMs: 0,
     },
   },
   {
@@ -64,18 +72,18 @@ const fixtures = [
       type: "re-entry",
       region: {
         type: "polygon",
-        points: [{ x: 0.18, y: 0.2 }, { x: 0.82, y: 0.2 }, { x: 0.8, y: 0.8 }, { x: 0.18, y: 0.78 }],
+        points: [{ x: 0.1, y: 0.1 }, { x: 0.4, y: 0.1 }, { x: 0.4, y: 0.5 }, { x: 0.1, y: 0.5 }],
       },
-      minConfidence: 0.33,
+      minConfidence: 0.1,
       minDurationMs: 0,
     },
     scenario: {
       type: "re-entry",
       enabled: true,
-      reEntryWindowMs: 17000,
+      reEntryWindowMs: 3000,
       reEntryMode: "configured-zones",
-      reEntryZoneIds: ["zone-a"],
-      cooldownMs: 9000,
+      reEntryZoneIds: [ids[11]],
+      cooldownMs: 1000,
       targetClasses: ["person"],
     },
   },
@@ -179,7 +187,7 @@ const fixtures = [
       dwellTimeMs: 2000,
       cooldownMs: 1000,
       targetClasses: ["person"],
-      restrictedZoneIds: ["zone-dwell"],
+      restrictedZoneIds: [ids[9]],
     },
   },
   {
@@ -202,28 +210,46 @@ const fixtures = [
       enabled: true,
       cooldownMs: 1000,
       targetClasses: ["person"],
-      targetLineIds: ["line-wrong-direction"],
+      targetLineIds: [ids[10]],
       allowedDirection: "forward",
     },
   },
   {
+    id: ids[11], enabled: true, ruleKind: "basic", analysis: { classes: ["person"] },
+    event: { type: "presence", region: { type: "polygon", points: [{ x: 0.7, y: 0.1 }, { x: 0.9, y: 0.1 }, { x: 0.9, y: 0.5 }, { x: 0.7, y: 0.5 }] }, minConfidence: 0.99, minDurationMs: 0 },
+  },
+  {
     id: ids[12], enabled: true, ruleKind: "scenario", analysis: { classes: ["person"] },
-    event: { type: "intrusion-after-line-crossing", region: { type: "polygon", points: [{ x: 0.2, y: 0.2 }, { x: 0.8, y: 0.2 }, { x: 0.8, y: 0.8 }, { x: 0.2, y: 0.8 }] }, minConfidence: 0.3, minDurationMs: 0 },
-    scenario: { type: "intrusion-after-line-crossing", enabled: true, maxDelayAfterCrossingMs: 10000, dwellTimeMs: 3000, cooldownMs: 1000, targetZoneIds: ["zone-after-line"], triggerLine: { id: "line-after", direction: "forward", points: [{ x: 0.2, y: 0.5 }, { x: 0.8, y: 0.5 }] } },
+    event: { type: "intrusion-after-line-crossing", region: { type: "polygon", points: [{ x: 0.65, y: 0.1 }, { x: 0.9, y: 0.1 }, { x: 0.9, y: 0.5 }, { x: 0.65, y: 0.5 }] }, minConfidence: 0.1, minDurationMs: 0 },
+    scenario: { type: "intrusion-after-line-crossing", enabled: true, maxDelayAfterCrossingMs: 5000, dwellTimeMs: 2000, cooldownMs: 1000, targetZoneIds: [ids[17]], triggerLine: { id: ids[16], direction: "reverse", points: [{ x: 0.5, y: 0.0 }, { x: 0.5, y: 1.0 }] } },
   },
   {
     id: ids[13], enabled: true, ruleKind: "scenario", analysis: { classes: ["person"] },
     event: { type: "loitering", region: { type: "polygon", points: [{ x: 0.2, y: 0.2 }, { x: 0.8, y: 0.2 }, { x: 0.8, y: 0.8 }, { x: 0.2, y: 0.8 }] }, minConfidence: 0.3, minDurationMs: 0 },
-    scenario: { type: "loitering", enabled: true, minDwellTimeMs: 30000, maxMovementRadius: 0.08, minTrajectoryPoints: 4, cooldownMs: 1000, restrictedZoneIds: ["zone-loitering"], useGroundPlaneMovementRadius: true },
+    scenario: { type: "loitering", enabled: true, minDwellTimeMs: 3000, maxMovementRadius: 0.08, minTrajectoryPoints: 4, cooldownMs: 1000, restrictedZoneIds: [ids[13]], useGroundPlaneMovementRadius: true },
   },
   {
     id: ids[14], enabled: true, ruleKind: "scenario", analysis: { classes: ["person"] },
     event: { type: "zone-occupancy", region: { type: "polygon", points: [{ x: 0.2, y: 0.2 }, { x: 0.8, y: 0.2 }, { x: 0.8, y: 0.8 }, { x: 0.2, y: 0.8 }] }, minConfidence: 0.3, minDurationMs: 0 },
-    scenario: { type: "zone-occupancy", enabled: true, occupancyThreshold: 4, minDwellTimeMs: 7000, cooldownMs: 1000, restrictedZoneIds: ["zone-occupancy"] },
+    scenario: { type: "zone-occupancy", enabled: true, occupancyThreshold: 2, minDwellTimeMs: 1000, cooldownMs: 1000, restrictedZoneIds: [ids[14]] },
+  },
+  {
+    id: ids[15], enabled: true, ruleKind: "scenario", analysis: { classes: ["person"] },
+    event: { type: "re-entry", region: { type: "polygon", points: [{ x: 0.1, y: 0.1 }, { x: 0.5, y: 0.1 }, { x: 0.5, y: 0.5 }, { x: 0.1, y: 0.5 }] }, minConfidence: 0.1, minDurationMs: 0 },
+    scenario: { type: "re-entry", enabled: true, reEntryWindowMs: 3000, cooldownMs: 1000, targetClasses: ["person"] },
+  },
+  {
+    id: ids[16], enabled: true, ruleKind: "basic", analysis: { classes: ["person"] },
+    event: { type: "presence", region: { type: "line", direction: "any", points: [{ x: 0.5, y: 0.0 }, { x: 0.5, y: 1.0 }] }, minConfidence: 0.99, minDurationMs: 0 },
+  },
+  {
+    id: ids[17], enabled: true, ruleKind: "basic", analysis: { classes: ["person"] },
+    event: { type: "presence", region: { type: "polygon", points: [{ x: 0.65, y: 0.1 }, { x: 0.9, y: 0.1 }, { x: 0.9, y: 0.5 }, { x: 0.65, y: 0.5 }] }, minConfidence: 0.99, minDurationMs: 0 },
   },
 ];
 
 const created = [];
+const storedRuleReadbacks = [];
 const createdVaRules = [];
 const createdProfiles = [];
 try {
@@ -235,6 +261,7 @@ try {
     });
     created.push(payload.id);
     const readback = await requestJson(`/lab/analysis/rules/${encodeURIComponent(payload.id)}`);
+    storedRuleReadbacks.push(readback.rule);
     assertRuleRoundTrip(payload, readback.rule);
     assertRuleTemplateSemanticReadback(payload, readback.rule, rulesShell);
     assertScenarioRuleSemanticReadback(payload, readback.rule);
@@ -285,6 +312,7 @@ try {
   });
   const reverseTemplateReadback = await requestJson(`/lab/analysis/rules/${encodeURIComponent(reverseTemplate.id)}`);
   assertEqual(reverseTemplateReadback.rule?.event?.region?.direction, "reverse", "RULE-047 UpsertRule reverse line direction readback");
+  assertRuleWorkflowRuntimeReplayReadback(rulesShell, storedRuleReadbacks, updatedTemplateReadback.rule, reverseTemplateReadback.rule);
   const duplicateTemplateError = await assertRequestFails("/lab/analysis/rules", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -315,7 +343,7 @@ try {
   const vaRuleReadback = await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(duplicateVaRule.id)}`);
   const storedVaRule = vaRuleReadback.vaRule;
   assertVaRuleCreateDetailReadback(storedVaRule, duplicateVaRule);
-  assertVaRuleTrackingSemanticReadback(storedVaRule, duplicateVaRule.analysis.trackingPolicy);
+  assertVaRuleTrackingStorageReadback(storedVaRule, duplicateVaRule.analysis.trackingPolicy);
   for (const trackingPolicy of [
     { tracker: "lite", reid: "off" },
     { tracker: "kalman-lite", reid: "off" },
@@ -331,7 +359,7 @@ try {
       body: JSON.stringify(policyPayload),
     });
     const policyReadback = await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(policyPayload.id)}`);
-    assertVaRuleTrackingSemanticReadback(policyReadback.vaRule, trackingPolicy);
+    assertVaRuleTrackingStorageReadback(policyReadback.vaRule, trackingPolicy);
   }
   assertEqual(storedVaRule?.id, duplicateVaRule.id, "stored vaRule.id");
   assertEqual(storedVaRule?.analysis?.profileId, duplicateVaRule.analysis.profileId, "stored vaRule.analysis.profileId");
@@ -454,6 +482,7 @@ try {
   for (const id of created.reverse()) {
     await requestJson(`/lab/analysis/rules/${encodeURIComponent(id)}`, { method: "DELETE" }).catch(() => {});
   }
+  if (replayOutputDir) fs.rmSync(replayOutputDir, { recursive: true, force: true });
 }
 
 function assertRuleCatalogLists(payload, generatedIds) {
@@ -558,28 +587,80 @@ function assertProfileSemanticReadback(actual, expected, rulesShell) {
   assertEqual(UpsertProfile.actual?.trackingClasses, expected.trackingClasses, "RULE-033 UpsertProfile tracking category summary readback");
 }
 
-function assertVaRuleTrackingSemanticReadback(actual, expectedPolicy) {
+function assertVaRuleTrackingStorageReadback(actual, expectedPolicy) {
   const UpsertVaRule = { actual, expectedPolicy };
   const tracker = expectedPolicy?.tracker;
   const reid = expectedPolicy?.reid;
-  if (tracker === "none") {
-    assertEqual(UpsertVaRule.actual?.analysis?.trackingPolicy?.tracker, "none", "RULE-034 UpsertVaRule tracker none readback");
+  if (tracker === "none") assertEqual(UpsertVaRule.actual?.analysis?.trackingPolicy?.tracker, "none", "RULE-034 UpsertVaRule tracker none storage readback");
+  assertEqual(UpsertVaRule.actual?.analysis?.trackingPolicy?.tracker, tracker, "UpsertVaRule trackingPolicy tracker storage readback");
+  assertEqual(UpsertVaRule.actual?.analysis?.trackingPolicy?.reid, reid, "UpsertVaRule trackingPolicy Re-ID storage readback");
+}
+
+function assertRuleWorkflowRuntimeReplayReadback(rulesShell, storedRules, forwardRule, reverseRule) {
+  const byType = type => storedRules.find(item => item.event?.type === type && item.scenario?.type === type);
+  const byId = id => storedRules.find(item => String(item?.id || "") === String(id));
+  const clone = value => JSON.parse(JSON.stringify(value));
+  const anyRule = storedRules.find(item => item.event?.type === "line-crossing");
+  const lineAnyTypes = runStoredRuleReplay("saved-line-any", [anyRule], "line_crossing_metadata.json");
+  const lineForwardTypes = runStoredRuleReplay("saved-line-forward", [forwardRule], "line_crossing_metadata.json");
+  const lineReverseTypes = runStoredRuleReplay("saved-line-reverse", [reverseRule], "line_crossing_metadata.json");
+  assertEqual(rulesShell.includes("opsRulesSaveNativeRecord") && anyRule?.event?.region?.direction === "any" && lineAnyTypes.has("line-crossing"), true, "RULE-045 UpsertRule exact saved any direction is consumed by runtime line-crossing readback");
+  assertEqual(forwardRule?.event?.region?.direction === "forward" && !lineForwardTypes.has("line-crossing") && lineReverseTypes.has("line-crossing"), true, "RULE-046 UpsertRule exact saved forward direction suppresses reverse-oriented runtime metadata mutation RED");
+  assertEqual(reverseRule?.event?.region?.direction === "reverse" && lineReverseTypes.has("line-crossing") && !lineForwardTypes.has("line-crossing"), true, "RULE-047 UpsertRule exact saved reverse direction accepts reverse-oriented runtime metadata mutation readback");
+
+  const intrusionDwell = byType("intrusion-dwell");
+  const configuredReEntry = storedRules.find(item => item.event?.type === "re-entry" && item.scenario?.reEntryMode === "configured-zones");
+  const defaultReEntry = storedRules.find(item => item.event?.type === "re-entry" && !item.scenario?.reEntryMode);
+  const reEntryDestination = byId(configuredReEntry?.scenario?.reEntryZoneIds?.[0]);
+  const wrongDirection = byType("wrong-direction");
+  const intrusionAfterLine = storedRules.find(item => item.event?.type === "intrusion-after-line-crossing" && byId(item.scenario?.triggerLine?.id) && byId(item.scenario?.targetZoneIds?.[0]));
+  const intrusionAfterTrigger = byId(intrusionAfterLine?.scenario?.triggerLine?.id);
+  const intrusionAfterZone = byId(intrusionAfterLine?.scenario?.targetZoneIds?.[0]);
+  const loitering = byType("loitering");
+  const zoneOccupancy = byType("zone-occupancy");
+  const intrusionDwellTypes = runStoredRuleReplay("saved-intrusion-dwell", [intrusionDwell], "intrusion_dwell_metadata.json");
+  const configuredReEntryTypes = runStoredRuleReplay("saved-re-entry-configured", [configuredReEntry, reEntryDestination], "re_entry_cross_zone_metadata.json", ["--no-intrusion-dwell", "--enable-re-entry"]);
+  const defaultReEntryTypes = runStoredRuleReplay("saved-re-entry-default", [defaultReEntry], "re_entry_metadata.json", ["--no-intrusion-dwell", "--enable-re-entry"]);
+  const wrongDirectionTypes = runStoredRuleReplay("saved-wrong-direction", [wrongDirection], "wrong_direction_metadata.json", ["--no-intrusion-dwell", "--enable-wrong-direction"]);
+  const intrusionAfterTypes = runStoredRuleReplay("saved-intrusion-after-line", [intrusionAfterLine, intrusionAfterTrigger, intrusionAfterZone], "intrusion_after_line_crossing_metadata.json", ["--no-intrusion-dwell", "--enable-intrusion-after-line-crossing"]);
+  const loiteringTypes = runStoredRuleReplay("saved-loitering", [loitering], "loitering_metadata.json", ["--no-intrusion-dwell", "--enable-loitering"]);
+  const zoneOccupancyTypes = runStoredRuleReplay("saved-zone-occupancy", [zoneOccupancy], "zone_occupancy_metadata.json", ["--no-intrusion-dwell", "--enable-zone-occupancy"]);
+
+  const badZoneReEntry = clone(configuredReEntry);
+  badZoneReEntry.scenario.reEntryZoneIds = ["missing-runtime-zone"];
+  const badZoneTypes = runStoredRuleReplay("mutated-re-entry-missing-zone", [badZoneReEntry, reEntryDestination], "re_entry_cross_zone_metadata.json", ["--no-intrusion-dwell", "--enable-re-entry"]);
+  const highThresholdOccupancy = clone(zoneOccupancy);
+  highThresholdOccupancy.scenario.occupancyThreshold = 3;
+  const highThresholdTypes = runStoredRuleReplay("mutated-zone-occupancy-threshold", [highThresholdOccupancy], "zone_occupancy_metadata.json", ["--no-intrusion-dwell", "--enable-zone-occupancy"]);
+
+  assertEqual(rulesShell.includes("intrusion-dwell") && intrusionDwellTypes.has("intrusion-dwell"), true, "RULE-048 UpsertRule exact saved UI/API intrusion-dwell is consumed by runtime EventRecord readback");
+  assertEqual(rulesShell.includes("re-entry") && configuredReEntryTypes.has("re-entry") && !badZoneTypes.has("re-entry"), true, "RULE-049 UpsertRule exact saved UI/API re-entry is consumed by runtime and missing-zone mutation is RED");
+  assertEqual(rulesShell.includes("wrong-direction") && wrongDirectionTypes.has("wrong-direction"), true, "RULE-050 UpsertRule exact saved UI/API wrong-direction is consumed by runtime EventRecord readback");
+  assertEqual(rulesShell.includes("intrusion-after-line-crossing") && intrusionAfterTypes.has("intrusion-after-line-crossing"), true, "RULE-051 UpsertRule exact saved UI/API intrusion-after-line-crossing is consumed by runtime EventRecord readback");
+  assertEqual(rulesShell.includes("loitering") && loiteringTypes.has("loitering"), true, "RULE-052 UpsertRule exact saved UI/API loitering is consumed by runtime EventRecord readback");
+  assertEqual(rulesShell.includes("zone-occupancy") && zoneOccupancyTypes.has("zone-occupancy") && !highThresholdTypes.has("zone-occupancy"), true, "RULE-053 UpsertRule exact saved UI/API zone-occupancy is consumed by runtime and threshold mutation is RED");
+  assertEqual(rulesShell.includes("reEntryMode") && rulesShell.includes("reEntryZoneIds") && configuredReEntryTypes.has("re-entry") && defaultReEntryTypes.has("re-entry") && !badZoneTypes.has("re-entry"), true, "RULE-103 UpsertRule exact saved configured/default re-entry rules are runtime-consumed and zone mutation is RED");
+}
+
+function runStoredRuleReplay(caseName, ruleDocuments, metadataFile, flags = []) {
+  assertEqual(ruleDocuments.every(Boolean), true, `${caseName} exact saved rule document lookup`);
+  if (!replayOutputDir) replayOutputDir = fs.mkdtempSync(path.join(os.tmpdir(), `media-server-rule-workflow-replay-${process.pid}-`));
+  const rootDir = path.resolve(scriptDir, "../..");
+  const fixtureDir = path.join(rootDir, "test/fixtures/va_replay");
+  const rulesPath = path.join(replayOutputDir, `${caseName}-rules.json`);
+  const outputPath = path.join(replayOutputDir, `${caseName}.json`);
+  const buildDir = path.join(replayOutputDir, "build");
+  fs.writeFileSync(rulesPath, `${JSON.stringify(ruleDocuments, null, 2)}\n`);
+  const replayArgs = ["--input", path.join(fixtureDir, metadataFile), "--rules", rulesPath, "--output", outputPath, ...flags];
+  const env = { ...process.env, MEDIA_SERVER_VA_REPLAY_BUILD_DIR: buildDir };
+  if (!replayBinaryReady) {
+    execFileSync(path.join(scriptDir, "replay_va_metadata.sh"), replayArgs, { cwd: rootDir, env, stdio: "pipe" });
+    replayBinaryReady = true;
+  } else {
+    execFileSync(path.join(buildDir, "va_metadata_replay"), replayArgs, { cwd: rootDir, env, stdio: "pipe" });
   }
-  if (tracker === "lite") {
-    assertEqual(UpsertVaRule.actual?.analysis?.trackingPolicy?.tracker, "lite", "RULE-035 UpsertVaRule tracker lite readback");
-  }
-  if (tracker === "kalman-lite") {
-    assertEqual(UpsertVaRule.actual?.analysis?.trackingPolicy?.tracker, "kalman-lite", "RULE-036 UpsertVaRule tracker kalman-lite readback");
-  }
-  if (tracker === "bytetrack") {
-    assertEqual(UpsertVaRule.actual?.analysis?.trackingPolicy?.tracker, "bytetrack", "RULE-037 UpsertVaRule tracker bytetrack readback");
-  }
-  if (reid === "off") {
-    assertEqual(UpsertVaRule.actual?.analysis?.trackingPolicy?.reid, "off", "RULE-038 UpsertVaRule Re-ID off readback");
-  }
-  if (reid === "assist") {
-    assertEqual(UpsertVaRule.actual?.analysis?.trackingPolicy?.reid, "assist", "RULE-039 UpsertVaRule Re-ID assist readback");
-  }
+  const payload = JSON.parse(fs.readFileSync(outputPath, "utf8"));
+  return new Set((payload.events || []).map(item => String(item?.type || "")));
 }
 
 function assertScenarioPresetReadback(actual, expected, rulesShell) {
@@ -612,10 +693,12 @@ function assertRuleTemplateSemanticReadback(expected, actual, rulesShell) {
     assertEqual(UpsertRule.actual?.scenario?.cooldownMs === expected.scenario.cooldownMs && rulesShell.includes("scenario.cooldownMs"), true, "RULE-069 UpsertRule intrusion-dwell cooldown validation/storage readback");
   }
   if (expected.event?.type === "re-entry") {
-    assertEqual(UpsertRule.actual?.event?.region?.type === "polygon" && UpsertRule.actual?.scenario?.reEntryZoneIds?.length > 0, true, "RULE-070 UpsertRule re-entry polygon zone readback");
+    assertEqual(UpsertRule.actual?.event?.region?.type === "polygon" && (UpsertRule.actual?.scenario?.reEntryMode !== "configured-zones" || UpsertRule.actual?.scenario?.reEntryZoneIds?.length > 0), true, "RULE-070 UpsertRule re-entry polygon zone readback");
     assertEqual(UpsertRule.actual?.scenario?.reEntryWindowMs === expected.scenario.reEntryWindowMs && rulesShell.includes("reEntryWindowMs"), true, "RULE-071 UpsertRule reEntryWindowMs validation/storage readback");
     assertEqual(UpsertRule.actual?.scenario?.cooldownMs === expected.scenario.cooldownMs && rulesShell.includes("scenario.cooldownMs"), true, "RULE-072 UpsertRule re-entry cooldown validation/storage readback");
-    assertEqual(UpsertRule.actual?.scenario?.reEntryMode === "configured-zones" && JSON.stringify(UpsertRule.actual?.scenario?.reEntryZoneIds) === JSON.stringify(expected.scenario.reEntryZoneIds), true, "RULE-103 reEntryMode configured-zones and reEntryZoneIds storage/GET readback");
+    if (expected.scenario?.reEntryMode === "configured-zones") {
+      assertEqual(UpsertRule.actual?.scenario?.reEntryMode === "configured-zones" && JSON.stringify(UpsertRule.actual?.scenario?.reEntryZoneIds) === JSON.stringify(expected.scenario.reEntryZoneIds), true, "RULE-103 reEntryMode configured-zones and reEntryZoneIds storage/GET readback");
+    }
   }
   if (expected.event?.type === "wrong-direction") {
     assertEqual(UpsertRule.actual?.event?.region?.type === "line" && UpsertRule.actual?.event?.region?.points?.length === 2, true, "RULE-073 UpsertRule wrong-direction line geometry readback");
@@ -627,26 +710,26 @@ function assertRuleTemplateSemanticReadback(expected, actual, rulesShell) {
 function assertScenarioRuleSemanticReadback(expected, actual) {
   const scenarioType = expected.scenario?.type;
   if (scenarioType === "intrusion-after-line-crossing") {
-    assertEqual(JSON.stringify(actual?.scenario?.triggerLine), JSON.stringify(expected.scenario.triggerLine), "RULE-076 triggerLine id/geometry storage and GET readback");
-    assertEqual(actual?.scenario?.triggerLine?.direction, expected.scenario.triggerLine.direction, "RULE-077 triggerLine direction storage and GET readback");
-    assertEqual(actual?.scenario?.targetZoneIds, expected.scenario.targetZoneIds, "RULE-078 targetZoneIds storage and GET readback");
-    assertEqual(actual?.scenario?.maxDelayAfterCrossingMs, expected.scenario.maxDelayAfterCrossingMs, "RULE-079 maxDelayAfterCrossingMs storage and GET readback");
-    assertEqual(actual?.scenario?.dwellTimeMs, expected.scenario.dwellTimeMs, "RULE-080 dwellTimeMs storage and GET readback");
-    assertEqual(actual?.scenario?.cooldownMs, expected.scenario.cooldownMs, "RULE-081 intrusion-after-line-crossing cooldown_ms/cooldownMs storage and GET readback");
+    assertEqual(JSON.stringify(actual?.scenario?.triggerLine), JSON.stringify(expected.scenario.triggerLine), "RULE-076 UpsertRule triggerLine id/geometry storage and GET readback");
+    assertEqual(actual?.scenario?.triggerLine?.direction, expected.scenario.triggerLine.direction, "RULE-077 UpsertRule triggerLine direction storage and GET readback");
+    assertEqual(actual?.scenario?.targetZoneIds, expected.scenario.targetZoneIds, "RULE-078 UpsertRule targetZoneIds storage and GET readback");
+    assertEqual(actual?.scenario?.maxDelayAfterCrossingMs, expected.scenario.maxDelayAfterCrossingMs, "RULE-079 UpsertRule maxDelayAfterCrossingMs storage and GET readback");
+    assertEqual(actual?.scenario?.dwellTimeMs, expected.scenario.dwellTimeMs, "RULE-080 UpsertRule dwellTimeMs storage and GET readback");
+    assertEqual(actual?.scenario?.cooldownMs, expected.scenario.cooldownMs, "RULE-081 UpsertRule intrusion-after-line-crossing cooldown_ms/cooldownMs storage and GET readback");
   }
   if (scenarioType === "loitering") {
-    assertEqual(actual?.scenario?.restrictedZoneIds, expected.scenario.restrictedZoneIds, "RULE-082 loitering restrictedZoneIds storage and GET readback");
-    assertEqual(actual?.scenario?.minDwellTimeMs, expected.scenario.minDwellTimeMs, "RULE-083 loitering minDwellTimeMs storage and GET readback");
-    assertEqual(actual?.scenario?.maxMovementRadius, expected.scenario.maxMovementRadius, "RULE-084 loitering maxMovementRadius storage and GET readback");
-    assertEqual(actual?.scenario?.minTrajectoryPoints, expected.scenario.minTrajectoryPoints, "RULE-085 loitering minTrajectoryPoints storage and GET readback");
-    assertEqual(actual?.scenario?.cooldownMs, expected.scenario.cooldownMs, "RULE-086 loitering cooldown_ms/cooldownMs storage and GET readback");
-    assertEqual(actual?.scenario?.useGroundPlaneMovementRadius, expected.scenario.useGroundPlaneMovementRadius, "RULE-087 useGroundPlaneMovementRadius storage and GET readback");
+    assertEqual(actual?.scenario?.restrictedZoneIds, expected.scenario.restrictedZoneIds, "RULE-082 UpsertRule loitering restrictedZoneIds storage and GET readback");
+    assertEqual(actual?.scenario?.minDwellTimeMs, expected.scenario.minDwellTimeMs, "RULE-083 UpsertRule loitering minDwellTimeMs storage and GET readback");
+    assertEqual(actual?.scenario?.maxMovementRadius, expected.scenario.maxMovementRadius, "RULE-084 UpsertRule loitering maxMovementRadius storage and GET readback");
+    assertEqual(actual?.scenario?.minTrajectoryPoints, expected.scenario.minTrajectoryPoints, "RULE-085 UpsertRule loitering minTrajectoryPoints storage and GET readback");
+    assertEqual(actual?.scenario?.cooldownMs, expected.scenario.cooldownMs, "RULE-086 UpsertRule loitering cooldown_ms/cooldownMs storage and GET readback");
+    assertEqual(actual?.scenario?.useGroundPlaneMovementRadius, expected.scenario.useGroundPlaneMovementRadius, "RULE-087 UpsertRule useGroundPlaneMovementRadius storage and GET readback");
   }
   if (scenarioType === "zone-occupancy") {
-    assertEqual(actual?.scenario?.restrictedZoneIds, expected.scenario.restrictedZoneIds, "RULE-088 zone-occupancy restrictedZoneIds storage and GET readback");
-    assertEqual(actual?.scenario?.occupancyThreshold, expected.scenario.occupancyThreshold, "RULE-089 occupancyThreshold storage and GET readback");
-    assertEqual(actual?.scenario?.minDwellTimeMs, expected.scenario.minDwellTimeMs, "RULE-090 zone-occupancy minDwellTimeMs storage and GET readback");
-    assertEqual(actual?.scenario?.cooldownMs, expected.scenario.cooldownMs, "RULE-091 zone-occupancy cooldown_ms/cooldownMs storage and GET readback");
+    assertEqual(actual?.scenario?.restrictedZoneIds, expected.scenario.restrictedZoneIds, "RULE-088 UpsertRule zone-occupancy restrictedZoneIds storage and GET readback");
+    assertEqual(actual?.scenario?.occupancyThreshold, expected.scenario.occupancyThreshold, "RULE-089 UpsertRule occupancyThreshold storage and GET readback");
+    assertEqual(actual?.scenario?.minDwellTimeMs, expected.scenario.minDwellTimeMs, "RULE-090 UpsertRule zone-occupancy minDwellTimeMs storage and GET readback");
+    assertEqual(actual?.scenario?.cooldownMs, expected.scenario.cooldownMs, "RULE-091 UpsertRule zone-occupancy cooldown_ms/cooldownMs storage and GET readback");
   }
 }
 

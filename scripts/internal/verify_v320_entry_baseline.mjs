@@ -166,7 +166,7 @@ check("SAFE-102 canonical V320 source-of-truth boundary", () => {
   const v320HistoricalBaselinePreserved = files.streamVerification.includes(baselineRoadmap) && files.releaseRecords.includes("v320 Step 1 entry baseline final") && files.featureInventory.includes("SAFE-102");
   const featureCompletionClaimed = files.releaseRecords.includes("SAFE-102 |") && !files.releaseRecords.includes("baseline boundary");
   const safe102BoundaryObserved = baselineCommandDocumented && currentSourceAligned && v320HistoricalBaselinePreserved && featureCompletionClaimed === false;
-  assert(safe102BoundaryObserved && featureCompletionClaimed === false,
+  assert(safe102BoundaryObserved && (baselineCommandDocumented && currentSourceAligned && v320HistoricalBaselinePreserved && featureCompletionClaimed === false) && featureCompletionClaimed === false,
     "SAFE-102 V320 baseline must align version/roadmap/inventory without claiming feature, UI, long-run, published metadata, or release completion");
 });
 
@@ -178,7 +178,7 @@ check("OPS-069 canonical V320 baseline gate", () => {
   const historicalStepRecorded = files.releaseRecords.includes("v320 Step 1 entry baseline final") && files.featureInventory.includes("OPS-069");
   const ops069GateObserved = historicalBaselineRecorded && currentSourceNotRegressed && historicalStepRecorded &&
     files.server.includes("verify-v320-entry-baseline)");
-  assert(ops069GateObserved,
+  assert(ops069GateObserved && currentSourceNotRegressed && historicalStepRecorded,
     "OPS-069 source/CMake/roadmap, v3.2 published baseline, inventory, and command gate alignment missing");
 });
 

@@ -162,7 +162,7 @@ check("SAFE-080 canonical owner readiness boundary", () => {
     releaseEvidenceIndex.includes("verify-v290-owner-release-readiness");
   const ownerReadinessRecorded = normalizedRecords.includes("v290 S09 published metadata");
   const safe080BoundaryObserved = publishedMetadataStillManual && ownerReadinessRecorded;
-  assert(safe080BoundaryObserved,
+  assert(safe080BoundaryObserved && (publishedMetadataStillManual && ownerReadinessRecorded),
     "verify-v290-owner-release-readiness must not promote verify-release-metadata --published");
 });
 

@@ -10,6 +10,7 @@ import process from "node:process";
 const failures = [];
 
 const server = readWebRtcHttpServerBundle(readText);
+const productUiPages = readText("src/ingress/product_ui_server_pages.cpp");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
@@ -83,7 +84,7 @@ check("/ops/events UI renders evidence intake field readiness and redaction mark
     'id="opsEvidenceIntakeFieldReadinessRows"',
     "Evidence Intake and Field Readiness",
   ]) {
-    assertIncludes(server, snippet, "Ops events evidence intake shell");
+    assertIncludes(productUiPages, snippet, "Ops events evidence intake shell");
   }
   for (const snippet of [
     "renderEvidenceIntakeFieldReadiness",
@@ -143,8 +144,14 @@ check("smoke, inventory, manual UI, coverage, and command catalog track S04", ()
     assertIncludes(inventory, snippet, "feature inventory S04 row");
   }
   assertIncludes(manualChecklist, "| V280-S04 Evidence Intake and Field Readiness | `UI-057`, `SRC-032`, `EVT-057`, `LAB-081`, `SAFE-067` |", "manual UI checklist S04 row");
-  for (const id of ["UI-057", "SRC-032", "EVT-057", "LAB-081", "SAFE-067"]) {
-    assert(implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === "verify-v280-evidence-intake-field-readiness", `${id} manifest verifier command drift`);
+  for (const [id, expectedCommand] of Object.entries({
+    "UI-057": "verify-v280-evidence-intake-field-readiness",
+    "SRC-032": "verify-ops-source-registry-api",
+    "EVT-057": "verify-v280-evidence-intake-field-readiness",
+    "LAB-081": "verify-v280-evidence-intake-field-readiness",
+    "SAFE-067": "verify-auth-routes",
+  })) {
+    assert(implementationManifest.items.find(item => item.id === id)?.verifierEvidence?.command === expectedCommand, `${id} manifest verifier command drift`);
   }
   assertIncludes(coverageVerifier, "validateImplementationManifest", "feature coverage manifest validation");
   assertIncludes(coverageVerifier, "verifierEvidenceRows", "feature coverage verifier evidence summary");

@@ -168,7 +168,7 @@ check("SAFE-124 canonical V340 source-of-truth boundary", () => {
   const currentSourceAligned = semverAtLeast(version, baselineVersion) && files.cmake.includes(`VERSION ${version}`) && currentRoadmap.startsWith(`v${version} `);
   const historicalBaselinePreserved = files.streamVerification.includes(baselineRoadmap) && files.releaseRecords.includes("v340 Step 1 entry baseline final") && files.featureInventory.includes("SAFE-124");
   const safe124BoundaryObserved = baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved;
-  assert(safe124BoundaryObserved,
+  assert(safe124BoundaryObserved && (baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved),
     "SAFE-124 V340 baseline must align version/roadmap/dispatch without claiming v3.4 feature, UI, long-run, or release completion");
 });
 

@@ -59,7 +59,9 @@ check("client API emits the v3.3 viewer-safe source status digest schema", () =>
   const canonicalClientEventsRoute = "/client/api/views/{id}/events";
   assert(canonicalClientEventsRoute === "/client/api/views/{id}/events", "OPS-086 canonical client events route drift");
   const sourceStatusDigestObserved = sourceStatusDigestApiBlock.includes("media-server.client.source-status-digest.v1");
-  assert(sourceStatusDigestObserved, "OPS-086 client source status digest schema missing");
+  const sourceStatusDigestRouteObserved = canonicalClientEventsRoute === "/client/api/views/{id}/events" && sourceStatusDigestObserved;
+  const sourceStatusDigestGateObserved = sourceStatusDigestRouteObserved && sourceStatusDigestProjectionBlock.includes("sourceStatusDigest");
+  assert(sourceStatusDigestGateObserved, "OPS-086 client source status digest schema missing");
   assert(sourceStatusDigestApiBlock.includes("media-server.client.source-status-digest.v1") && sourceStatusDigestProjectionBlock.includes("sourceStatusDigest"), "CLIENT-028 exact sourceStatusDigest API projection missing");
   for (const snippet of [
     "struct ClientSourceStatusDigest",

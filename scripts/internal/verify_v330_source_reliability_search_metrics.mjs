@@ -85,7 +85,7 @@ check("source reliability search metrics preserves write/schema/media/client bou
   const block = extractBlock(
     files.server,
     "std::string OpsV330SourceReliabilitySearchMetricsJson",
-    "std::string OpsAuditSearchIndexJson"
+    "std::string OpsV340SourceHealthReplayDriftDiffJson("
   );
   for (const snippet of [
     "opsOnly",
@@ -303,7 +303,9 @@ check("SAFE-121 canonical source reliability search metrics boundary", () => {
   const schemaMutationPerformed = /DispatchEventRecords|CreateVaRule|UpdateVaRule/.test(metricsBlock);
   const viewerClientExposureAdded = /AppendClient|ClientEventSummary|PublishedView/.test(metricsBlock);
   const automaticRecoveryPerformed = /\b(?:Recover|Restore|Execute)[A-Za-z0-9_:]*\s*\(/.test(metricsBlock);
-  assert(safe121BoundaryObserved && savedViewOrSourceWritePerformed === false && rawMaterialExposed === false && rawLocatorExposed === false && sourceUrlExposed === false && debugMaterialExposed === false && credentialMaterialExposed === false && schemaMutationPerformed === false && viewerClientExposureAdded === false && automaticRecoveryPerformed === false,
+  assert(!metricsBlock.includes("\\\"sourceUrlExposed\\\":true") && !metricsBlock.includes("\\\"credentialMaterialExposed\\\":true") && !metricsBlock.includes("\\\"debugMaterialExposed\\\":true"),
+    "SAFE-121 source URL, credential, and debug material must remain absent");
+  assert(safe121BoundaryObserved && (reliabilitySearchMetricsRouteObserved && metricsBlock.includes("BuildV330SourceReliabilitySearchMetrics") && metricsBlock.includes("media-server.ops.v330-source-reliability-search-metrics.v1") && metricsBlock.includes("BuildV330SourceReliabilitySavedViews")) && savedViewOrSourceWritePerformed === false && rawMaterialExposed === false && rawLocatorExposed === false && sourceUrlExposed === false && debugMaterialExposed === false && credentialMaterialExposed === false && schemaMutationPerformed === false && viewerClientExposureAdded === false && automaticRecoveryPerformed === false,
     "SAFE-121 source-reliability-search-metrics must remain read-only without saved/source writes, raw credential, schema/client mutation, or recovery");
 });
 

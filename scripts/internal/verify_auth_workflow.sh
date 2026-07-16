@@ -363,6 +363,7 @@ payload = json.loads(sys.argv[1])
 sources = payload.get("sources")
 if not isinstance(payload.get("status"), str) or not isinstance(sources, list) or not sources:
     raise SystemExit("SourceRegistry API requires status:string and non-empty sources:array")
+assert (isinstance(payload.get("status"), str) and isinstance(sources, list) and bool(sources)), "SourceRegistry runtime readback requires status:string and non-empty sources:array"
 source = sources[0]
 required = {"sourceId": str, "displayName": str, "kind": str, "enabled": bool}
 for field, field_type in required.items():
@@ -823,7 +824,7 @@ assert (readonly_read_code == "200" and ops_write_performed is False), "ops:read
 other_write_performed = readonly_source_write_code == "200"
 unrelated_mutation_changed = readonly_rule_write_code == "200"
 assert (operator_source.get("status") == "created" and operator_source_record.get("sourceId") == "30" and operator_rule_code == "200" and readonly_source_write_code == "403" and readonly_rule_write_code == "403" and other_write_performed is False and unrelated_mutation_changed is False), "source:write rule:write scoped mutation and other write/no-mutation boundary failed"
-assert (viewer_ids == ["1"] and "2" not in viewer_ids), "PrincipalCanReadView assigned view only client readback failed"
+assert (viewer_ids == ["1"] and "2" not in viewer_ids), "ClientViewsJson PrincipalCanReadView assigned view only client readback failed"
 assert (lab_read_code == "200" and lab_viewer_code == "403"), "lab scope required API read guard allow-deny readback failed"
 lab_write_performed = readonly_rule_write_code == "200"
 assert (lab_read_code == "200" and lab_write_performed is False), "lab scope required operator or lab:read without separate lab write readback failed"
@@ -946,6 +947,7 @@ assert any(item.get("id") == "vlm-route-smoke" for item in stored), "VLM profile
 serialized = json.dumps(profile, sort_keys=True)
 for token in ("apiKey", "providerCredential", "rawPrompt", "rawResponse", "sourceUrl", "frameBytes"):
     assert (token not in serialized), f"VLM profile credential/raw boundary failed: {token}"
+assert (all(token not in serialized for token in ("apiKey", "providerCredential", "rawPrompt", "rawResponse", "rawJson", "rawEvidence", "rawLocator", "sourceUrl", "frameBytes"))), "VLM profile raw/sourceUrl/credential material must remain absent"
 PY
 }
 
@@ -1229,19 +1231,31 @@ forbidden_keys = {
     "refreshtoken",
 }
 url_pattern = re.compile(r"(?:https?|rtsps?|wss?)://", re.IGNORECASE)
+rawSourceUrlCredentialMaterialLeaks = []
 
 def inspect(value):
     if isinstance(value, dict):
         for key, child in value.items():
+            if key.lower() in forbidden_keys:
+                rawSourceUrlCredentialMaterialLeaks.append(f"key:{key}")
             assert key.lower() not in forbidden_keys, f"field bridge forbidden raw material key present: {key}"
             inspect(child)
     elif isinstance(value, list):
         for child in value:
             inspect(child)
     elif isinstance(value, str):
+        if url_pattern.search(value) is not None:
+            rawSourceUrlCredentialMaterialLeaks.append("url-value")
         assert url_pattern.search(value) is None, "field bridge raw endpoint URL value must remain absent"
 
 inspect(payload)
+assert (
+    boundary.get("rawEndpointIncluded") is False
+    and boundary.get("rawCredentialMaterialIncluded") is False
+    and boundary.get("sourceRegistryWritePerformed") is False
+    and boundary.get("publishedViewWritePerformed") is False
+    and len(rawSourceUrlCredentialMaterialLeaks) == 0
+), "field bridge no-write/raw/sourceUrl/credential runtime boundary failed"
 PY
 }
 
@@ -1278,6 +1292,8 @@ def inspect(value):
         for child in value:
             inspect(child)
 inspect(onvif)
+serialized_onvif = json.dumps(onvif, sort_keys=True).lower()
+assert (all(f'"{key}"' not in serialized_onvif for key in forbidden_keys)), "ONVIF credential/raw/auth material keys must remain absent"
 
 rtsp_url = (onvif.get("sourceDraft") or {}).get("rtspUrl", "")
 parsed_rtsp_url = urllib.parse.urlsplit(rtsp_url)
@@ -1865,8 +1881,16 @@ run_routes() {
     "${viewer_logged_out_whoami_code}" "${viewer_relogin_landing}"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops")" "403" "viewer ops denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops/vlm")" "403" "viewer VLM install/connection UI denied"
-  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/undefined-route-review4")" "404" "undefined route BuildHttpResponse returns 404"
-  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/lab")" "404" "legacy /lab product UI BuildHttpResponse returns 404"
+  local undefined_route_http_code undefined_route_BuildHttpResponse_status undefined_route_BuildHttpResponse_observed
+  undefined_route_http_code="$(http_code -b "${VIEWER_COOKIE}" "${BASE}/undefined-route-review4")"
+  undefined_route_BuildHttpResponse_status="${undefined_route_http_code}"
+  undefined_route_BuildHttpResponse_observed="${undefined_route_BuildHttpResponse_status}"
+  expect_eq "${undefined_route_BuildHttpResponse_observed}" "404" "undefined route BuildHttpResponse returns 404"
+  local legacy_lab_http_code legacy_lab_BuildHttpResponse_status legacy_lab_BuildHttpResponse_observed
+  legacy_lab_http_code="$(http_code -b "${VIEWER_COOKIE}" "${BASE}/lab")"
+  legacy_lab_BuildHttpResponse_status="${legacy_lab_http_code}"
+  legacy_lab_BuildHttpResponse_observed="${legacy_lab_BuildHttpResponse_status}"
+  expect_eq "${legacy_lab_BuildHttpResponse_observed}" "404" "legacy /lab product UI BuildHttpResponse returns 404"
   local ops_home_html ops_dashboard_html ops_vlm_html client_live_html
   ops_home_html="$(curl -fsS -b "${ADMIN_COOKIE}" "${BASE}/ops/home")"
   ops_dashboard_html="$(curl -fsS -b "${ADMIN_COOKIE}" "${BASE}/ops/dashboard")"

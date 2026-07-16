@@ -65,23 +65,23 @@
         "schema": "media-server.ops.v390-action-execution-deferral-decision.v1",
         "sourceAnchors": [
           {
-            "file": "src/ingress/webrtc_http_server.cpp",
+            "file": "src/ingress/ops_action_execution_deferral.cpp",
             "requiredTokens": [
               "OpsV390ActionExecutionDeferralDecisionJson",
               "/ops/api/actions/execution-deferral-decision",
               "approvalGatedExecutionEnabled",
               "actionExecutionPerformed"
             ],
-            "sourceFileSha256": "33ffe5884014bd2540ff7fccbe7d422e37cf83d9f8ca60ad657d2a4759658c89"
+            "sourceFileSha256": "ccc2781ecc8aca7445dc719cbfb02cf203ddb047b5716493cbd49f069ec1f246"
           },
           {
-            "file": "src/ingress/product_ui_page_scripts.cpp",
+            "file": "src/ingress/product_ui_action_execution_deferral.cpp",
             "requiredTokens": [
               "renderV390ActionExecutionDeferralDecision",
               "dashActionExecutionDeferralText",
               "dashActionExecutionDeferralBoundary"
             ],
-            "sourceFileSha256": "05679c3cb5a45a62e787cdbe53bfe83ae73fd25d6f7be42753b2592ae9e8e32d"
+            "sourceFileSha256": "c6594d636a929ff48624da26c4cd2e5fadec931726054a5139d05adb06256416"
           }
         ],
         "uiRoute": "/ops/dashboard",
@@ -160,14 +160,14 @@
         "schema": "media-server.ops.v390-onvif-credential-provider-status.v1",
         "sourceAnchors": [
           {
-            "file": "src/ingress/webrtc_http_server.cpp",
+            "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
             "requiredTokens": [
               "OpsV390OnvifCredentialProviderStatusSummaryJson",
               "/ops/api/onvif/credential-provider-status",
               "productPersistentSecretStoreEnabled",
               "secretMaterialStored"
             ],
-            "sourceFileSha256": "33ffe5884014bd2540ff7fccbe7d422e37cf83d9f8ca60ad657d2a4759658c89"
+            "sourceFileSha256": "f1877e71124d52cf053ba9b1c3424f7ae3761dc0810ce124b19df074e5f2f6d1"
           },
           {
             "file": "src/ingress/product_ui_ops_sources_script.cpp",
@@ -253,14 +253,22 @@
         "schema": "media-server.ops.v390-staging-restore-validation-handoff.v1",
         "sourceAnchors": [
           {
-            "file": "src/ingress/webrtc_http_server.cpp",
+            "file": "src/ingress/webrtc_http_server_runtime.cpp",
+            "requiredTokens": [
+              "/ops/api/source-registry/staging-restore-validation-handoff",
+              "OpsV390StagingRestoreValidationHandoffJson"
+            ],
+            "sourceFileSha256": "de84c484cf6fe0abf53f3d5073e9e43eda9461003e76bc844fe692a7bfac170a"
+          },
+          {
+            "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
             "requiredTokens": [
               "OpsV390StagingRestoreValidationHandoffJson",
-              "/ops/api/source-registry/staging-restore-validation-handoff",
+              "media-server.ops.v390-staging-restore-validation-handoff.v1",
               "productionRestorePerformed",
               "automaticRecoveryPerformed"
             ],
-            "sourceFileSha256": "33ffe5884014bd2540ff7fccbe7d422e37cf83d9f8ca60ad657d2a4759658c89"
+            "sourceFileSha256": "f1877e71124d52cf053ba9b1c3424f7ae3761dc0810ce124b19df074e5f2f6d1"
           },
           {
             "file": "src/ingress/product_ui_ops_sources_script.cpp",
@@ -270,6 +278,14 @@
               "productionRestorePerformed"
             ],
             "sourceFileSha256": "c88ca801a345ccfb635a8ba755bc652adddb24b82b846be70d96718a15cb93b9"
+          },
+          {
+            "file": "src/ingress/webrtc_http_server.cpp",
+            "requiredTokens": [
+              "data-source-staging-restore-validation-handoff",
+              "sourceStagingRestoreValidationStatus"
+            ],
+            "sourceFileSha256": "4ca309c982c07a00baed7f910e286edba2a3864f1ab7b62d1f9f4d339338257e"
           },
           {
             "file": "docs/ops-backup-recovery.md",
@@ -354,14 +370,14 @@
         "schema": "media-server.ops.v390-field-evidence-bridge-decision.v1",
         "sourceAnchors": [
           {
-            "file": "src/ingress/webrtc_http_server.cpp",
+            "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
             "requiredTokens": [
-              "ValidateVlmRuntimeOptInContract",
-              "providerCallAllowed",
               "OpsV390FieldEvidenceBridgeDecisionJson",
-              "cloudProviderCalled"
+              "/ops/api/field-evidence/bridge-decision",
+              "cloudProviderCalled",
+              "vlmProviderCalled"
             ],
-            "sourceFileSha256": "33ffe5884014bd2540ff7fccbe7d422e37cf83d9f8ca60ad657d2a4759658c89"
+            "sourceFileSha256": "6e4f3da325362b5899d06f9137cde06782135cfd646fc35da9de3554effd7558"
           },
           {
             "file": "src/ingress/product_ui_page_scripts.cpp",
@@ -370,7 +386,16 @@
               "dashFieldEvidenceBridgeText",
               "dashFieldEvidenceBridgeBoundary"
             ],
-            "sourceFileSha256": "05679c3cb5a45a62e787cdbe53bfe83ae73fd25d6f7be42753b2592ae9e8e32d"
+            "sourceFileSha256": "8894d76bde429f87f4a2f6300a35d0ba07c967b57ed1266569d41b6c78bcbf42"
+          },
+          {
+            "file": "src/ingress/product_ui_server_pages.cpp",
+            "requiredTokens": [
+              "ops-field-evidence-bridge-decision",
+              "dashFieldEvidenceBridgeText",
+              "dashFieldEvidenceBridgeBoundary"
+            ],
+            "sourceFileSha256": "8f2b65966a3ff54bbf5a1180aaa49b374eabb7f3cbfba264def4c2b4735b968b"
           },
           {
             "file": "scripts/internal/verify_vlm_cloud_provider_field_smoke_gate.mjs",
@@ -459,14 +484,14 @@
         "schema": "media-server.ops.v390-reid-assist-decision.v1",
         "sourceAnchors": [
           {
-            "file": "src/ingress/webrtc_http_server.cpp",
+            "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
             "requiredTokens": [
               "OpsV390ReidAssistDecisionJson",
               "/ops/api/analysis/reid-assist-decision",
               "modelSessionLoadPerformed",
               "modelBackedExecutionPerformed"
             ],
-            "sourceFileSha256": "33ffe5884014bd2540ff7fccbe7d422e37cf83d9f8ca60ad657d2a4759658c89"
+            "sourceFileSha256": "6e4f3da325362b5899d06f9137cde06782135cfd646fc35da9de3554effd7558"
           },
           {
             "file": "src/analysis/appearance_extractor.cpp",
@@ -475,14 +500,14 @@
               "session_->Run",
               "CreateAppearanceExtractorFromConfig"
             ],
-            "sourceFileSha256": "74ba610768ca72e1590e47df64a29ddd98f0653dc04419456779561811cafa5f"
+            "sourceFileSha256": "1763a3f69ecd35a49260a16431a0cb51d2c5b174be5d96224f1b33d856af42f4"
           },
           {
             "file": "src/analysis/analysis_manager.cpp",
             "requiredTokens": [
               "CreateAppearanceExtractorFromConfig"
             ],
-            "sourceFileSha256": "99f6245611097384561c4a1c20754e85984e98db31f58e6781a3ed3194116492"
+            "sourceFileSha256": "7e3e3068d5efa7791ae9b8f09a76395084d873430ff5337fe455f79f31de2936"
           },
           {
             "file": "src/ingress/product_ui_page_scripts.cpp",
@@ -491,7 +516,16 @@
               "dashReidAssistDecisionText",
               "dashReidAssistDecisionBoundary"
             ],
-            "sourceFileSha256": "05679c3cb5a45a62e787cdbe53bfe83ae73fd25d6f7be42753b2592ae9e8e32d"
+            "sourceFileSha256": "8894d76bde429f87f4a2f6300a35d0ba07c967b57ed1266569d41b6c78bcbf42"
+          },
+          {
+            "file": "src/ingress/product_ui_server_pages.cpp",
+            "requiredTokens": [
+              "ops-reid-assist-decision",
+              "dashReidAssistDecisionText",
+              "dashReidAssistDecisionBoundary"
+            ],
+            "sourceFileSha256": "8f2b65966a3ff54bbf5a1180aaa49b374eabb7f3cbfba264def4c2b4735b968b"
           }
         ],
         "uiRoute": "/ops/dashboard",

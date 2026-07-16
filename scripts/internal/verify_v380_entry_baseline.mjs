@@ -166,7 +166,7 @@ check("SAFE-180 canonical V380 historical baseline boundary", () => {
   const currentSourceAligned = semverAtLeast(version, "3.8.0") && files.cmake.includes(`VERSION ${version}`);
   const historicalBaselinePreserved = files.streamVerification.includes(baselineRoadmap) && files.releaseRecords.includes("v380 Step 1 entry baseline final") && files.featureInventory.includes("SAFE-180");
   const safe180BoundaryObserved = baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved;
-  assert(safe180BoundaryObserved,
+  assert(safe180BoundaryObserved && (baselineCommandDocumented && currentSourceAligned && historicalBaselinePreserved),
     "SAFE-180 V380 historical baseline must remain preserved while current source version advances");
 });
 
@@ -178,7 +178,7 @@ check("OPS-147 canonical V380 historical baseline gate", () => {
     !files.releaseRecords.includes("OPS-147 feature implementation PASS");
   const ops147GateObserved = historicalBaselineRecorded && currentSourceNotRegressed && excludedCompletionAbsent &&
     files.serverSh.includes("verify-v380-entry-baseline)");
-  assert(ops147GateObserved,
+  assert(ops147GateObserved && currentSourceNotRegressed && excludedCompletionAbsent,
     "OPS-147 v3.8 source/published historical baseline, current non-regression, records, and dispatch gate missing");
 });
 
