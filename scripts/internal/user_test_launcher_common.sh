@@ -115,7 +115,9 @@ const ledger = Array.isArray(summary.stages) ? summary.stages : (Array.isArray(s
 const first = summary.firstFailure || summary.failure || null;
 const failedEntry = ledger.find(item => item.status === "FAIL") || null;
 const failureStage = first?.stage || first?.phase || summary.failedStage || summary.failedPhase || failedEntry?.id || "";
-const failureCase = first?.testcaseId || first?.caseName || first?.case || summary.failedCase || "";
+const firstFailureTestcaseId = typeof first?.testcaseId === "string" ? first.testcaseId.trim() : "";
+const failedCheck = (failedEntry?.checks || []).find(item => item?.status === "FAIL") || null;
+const failureCase = firstFailureTestcaseId || failedCheck?.id || failedEntry?.id || "";
 const failureExit = first?.exitCode ?? summary.exitCode ?? failedEntry?.exitCode ?? "";
 const failureLog = first?.logPath || failedEntry?.logPath || "";
 console.log(`[test] result=${summary.result || summary.status || "UNKNOWN"}`);

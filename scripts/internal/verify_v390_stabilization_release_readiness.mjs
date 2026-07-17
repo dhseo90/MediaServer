@@ -30,7 +30,7 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const commandName = "verify-v390-stabilization-release-readiness";
 const command = `./server.sh ${commandName}`;
-const currentFinalCommand = "./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final";
+const currentFinalCommand = "./test_release.sh";
 const targetScript = "verify_v390_stabilization_release_readiness.mjs";
 const schema = "media-server.v390-stabilization-release-readiness.v1";
 const companionCommands = [

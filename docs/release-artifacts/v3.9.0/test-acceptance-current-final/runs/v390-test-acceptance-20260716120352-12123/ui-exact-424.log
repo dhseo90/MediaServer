@@ -1,8 +1,0 @@
-
-== v3.9.0 exact native UI runner summary ==
-- result: INCOMPLETE
-- executionStatus: undefined
-- exactCases: 424
-- unsupported: 0
-- uiFulltestPass: false
-- summaryPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260716120352-12123/ui-exact-424/summary.json

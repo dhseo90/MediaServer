@@ -1,7 +1,7 @@
 [pass] roadmap and stream verification expose v3.9 Step 20 stabilization readiness
 [pass] AGENTS test category judgment table separates execution approval and evidence
 [pass] feature inventory maps v3.9 Step 20 to SAFE-212 and OPS-179
-[pass] release policy, evidence index, and records list v3.9 companion local gates
+[fail] release policy, evidence index, and records list v3.9 companion local gates: release evidence index current final acceptance command missing snippet: ./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final
 [pass] release records include v3.9 Step 20 RED/final and not-run boundaries
 [pass] server and script inventory expose v3.9 Step 20 readiness command
 [pass] Step 20 gate keeps release actions and long UI/soak evidence separate
@@ -15,5 +15,5 @@
 - publishedMetadata: not-run-by-this-command
 - releaseActions: not-run-by-this-command
 - fieldSmoke: not-run-by-this-command
-- pass: 7
-- fail: 0
+- pass: 6
+- fail: 1

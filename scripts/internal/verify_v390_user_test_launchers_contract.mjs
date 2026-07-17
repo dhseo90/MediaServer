@@ -67,6 +67,9 @@ check("common launcher owns output, contract preflight, sanitization, and exact 
     "verify-v390-test-acceptance-bundle --output-dir \"${output_dir}\" --suite ui",
     "verify-v390-test-acceptance-bundle --output-dir \"${output_dir}\" --auto-run-120",
     "failureStage=launcher-contract",
+    "firstFailureTestcaseId",
+    "const failedCheck = (failedEntry?.checks || []).find(item => item?.status === \"FAIL\") || null;",
+    "const failureCase = firstFailureTestcaseId || failedCheck?.id || failedEntry?.id || \"\";",
     "testcaseId=",
     "reproductionCommand=",
     "laterNotRun=",
@@ -134,6 +137,48 @@ check("server launcher preserves first failure and later not-run evidence", () =
   for (const id of ["soak-case-loop", "runtime-idle"]) {
     assert(summary.phases.find(item => item.id === id)?.status === "not-run", `${id} must be not-run`);
   }
+});
+
+check("release launcher falls back to the failed feature-gate check testcase ID", () => {
+  const fakeRoot = fixtureRoot("release-failure-fallback");
+  const fakeServer = path.join(fakeRoot, "server.sh");
+  fs.writeFileSync(fakeServer, `#!/usr/bin/env bash
+set -euo pipefail
+output_dir=""
+while [[ "$#" -gt 0 ]]; do
+  if [[ "$1" == "--output-dir" ]]; then output_dir="$2"; shift 2; continue; fi
+  shift
+done
+mkdir -p "$output_dir"
+cat >"$output_dir/summary.json" <<'JSON'
+{
+  "result": "FAIL",
+  "failedStage": "feature-gates",
+  "firstFailure": { "stage": "feature-gates", "testcaseId": "", "exitCode": 1 },
+  "stages": [{
+    "id": "feature-gates",
+    "status": "FAIL",
+    "exitCode": 1,
+    "checks": [{ "id": "v390-stabilization-release-readiness", "status": "FAIL", "exitCode": 1 }]
+  }],
+  "cleanup": { "status": "PASS" }
+}
+JSON
+exit 1
+`);
+  fs.chmodSync(fakeServer, 0o755);
+  const result = spawnSync("bash", ["-c", 'ROOT_DIR="$1"; source "$2"; media_server_run_user_test release', "bash", fakeRoot,
+    path.join(rootDir, "scripts/internal/user_test_launcher_common.sh")], {
+    cwd: rootDir,
+    env: { ...contractEnv(), ROOT_DIR: fakeRoot },
+    encoding: "utf8",
+    maxBuffer: 4 * 1024 * 1024,
+  });
+  assert(result.status === 1, "fixture release failure must exit 1");
+  assert(result.stdout.includes("[test] testcaseId=v390-stabilization-release-readiness"),
+    "empty firstFailure.testcaseId must fall back to the failed feature-gate check ID");
+  assert(result.stdout.includes("[test] reproductionCommand=./test_release.sh"),
+    "fallback failure must report the user-facing release command");
 });
 
 check("UI launcher delegates only exact 424 environment and Policy v4 stages", () => {

@@ -438,8 +438,8 @@ published metadata, PR/main/tag/GitHub Release, field smoke 실행 evidence를 �
 exact 424 Policy v4 UI -> AGENTS 7.6.2 120분 판정/조건부 실행 -> cleanup/final integrity`입니다.
 120분 필요성은 `--run-120` 존재 여부가 아니라 current base..HEAD의 media/source-worker/shared-stream/
 runtime-fanout/cleanup-port 변경, 직접 매핑, release gate, upstream drift로 계산합니다. Trigger가 있으면
-실행 승인을 받은 경우에만 `--run-120`을 추가하고, trigger 없이 flag만 주면 거부합니다. 현재 canonical
-command는 `./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final`이며, acceptance가 throwaway server·account/role·storage-state·Playwright/browser·PID/port/artifact cleanup을 자체 소유합니다.
+실행 승인을 받은 경우에만 `--run-120`을 추가하고, trigger 없이 flag만 주면 거부합니다. 현재 사용자의 canonical
+command는 `./test_release.sh`입니다. `./server.sh verify-v390-test-acceptance-bundle`은 launcher가 내부적으로 호출하는 구현 세부사항이며, acceptance가 throwaway server·account/role·storage-state·Playwright/browser·PID/port/artifact cleanup을 자체 소유합니다. 과거 release record의 개별 내부 명령은 historical 실행 기록으로 보존합니다.
 actual preflight는 clean worktree와 exact UI/cleanup 소유권 입력을 요구합니다.
 실제 실행 전에는 PASS evidence로 기록하지 않습니다.
 

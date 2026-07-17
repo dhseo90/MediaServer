@@ -2646,6 +2646,12 @@ evidence로 사용하지 않습니다.
 
 이 checkpoint는 source/contract/evidence readiness만 기록합니다. 실제 30분, 120분, exact 424 UI, release acceptance는 실행하지 않았으며 `/private/tmp` wrapper/log는 최종 evidence가 아닙니다.
 
+### REVIEW4-65 first actual acceptance failure and launcher correction
+
+- `2026-07-17` actual `./test_release.sh`는 build PASS 뒤 `feature-gates`의 `v390-stabilization-release-readiness`에서 FAIL했습니다. 30분, exact 424 UI, Policy v4, 120분, final integrity는 `not-run`이고 cleanup/report는 PASS입니다.
+- 당시 `firstFailure.testcaseId`는 빈 값이었으며 기존 `first-failure.json`/`.md`는 과거 failure fact로 수동 수정하지 않습니다. launcher 출력은 이제 빈 `firstFailure.testcaseId`에서 failed stage의 `checks[].status=FAIL` ID를 사용하고, 그마저 없을 때 stage ID로 fallback합니다.
+- current 사용자 canonical command는 `./test_release.sh`이며 `verify-v390-test-acceptance-bundle`은 launcher 내부 구현입니다. 과거 release record의 internal command는 historical 실행 기록으로 보존합니다.
+
 | 항목 | 판정/계약 | actual evidence 경계 |
 | --- | --- | --- |
 | 안정화 테스트 | 진행 대상. Canonical bundle의 build와 34개 current feature gate를 첫 단계로 실행 | Contract PASS나 과거 verifier PASS는 current actual PASS가 아님 |
