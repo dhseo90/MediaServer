@@ -32,6 +32,8 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const adapterSource = readText("scripts/internal/v390_ui_native_adapter.mjs");
 const runnerSource = readText("scripts/internal/verify_v390_ui_automation.mjs");
+const exactRunnerSource = readText("scripts/internal/run_v390_ui_native_exact_cases.mjs");
+const caseRuntimeSource = readText("scripts/internal/v390_ui_case_runtime.mjs");
 const serverSh = readText("server.sh");
 const docs = [
   readText("docs/development-backlog.md"),
@@ -69,12 +71,25 @@ check("adapter exposes native wait click fill type select screenshot", () => {
   for (const snippet of ["waitForSelector", "page.locator(selector).click", "page.locator(selector).fill", "pressSequentially", "selectOption", "page.screenshot"]) {
     assert(adapterSource.includes(snippet), `adapter source missing ${snippet}`);
   }
+  assert(adapterSource.includes("readOnly: Boolean(element && 'readOnly' in element && element.readOnly)"),
+    "adapter snapshot does not expose product readonly state");
   for (const snippet of ["x-media-server-correlation-id", "requestId", "correlationSource", "setCorrelationId"]) {
     assert(adapterSource.includes(snippet), `adapter correlation source missing ${snippet}`);
   }
   for (const snippet of ["page.on(\"request\"", "pendingRequests", "correlatedEntryCount", "entry.correlationId === correlationId"]) {
     assert(adapterSource.includes(snippet), `adapter action-window source missing ${snippet}`);
   }
+});
+
+check("whoami observation keeps setup-required and unauthorized sessions anonymous", () => {
+  const unauthenticatedBranches = adapterSource.match(/principal\?\.authenticated === false/g) || [];
+  assert(unauthenticatedBranches.length === 2,
+    `setup-required anonymous handling must cover requested/observed and visual capture: ${unauthenticatedBranches.length}`);
+  assert(adapterSource.includes("if (response.status === 401) {\n          accountRole = 'anonymous';") &&
+    adapterSource.includes("if (principal?.authenticated === false) {\n            accountRole = 'anonymous';"),
+  "whoami observation does not distinguish 401 and setup-required unauthenticated principals");
+  assert(adapterSource.includes("principal?.authenticated === true && typeof principal?.role === 'string'"),
+    "authenticated whoami observation no longer requires an exact role");
 });
 
 check("native browser child strips acceptance secrets", () => {
@@ -88,6 +103,38 @@ check("native browser child strips acceptance secrets", () => {
   assert(!("MEDIA_SERVER_V390_UI_ROLE_SECRETS" in env), "browser child inherited the role-secret JSON");
   assert(adapterSource.includes("env: secretStrippedBrowserEnv()"),
     "Playwright Chromium launch is not bound to the stripped environment");
+});
+
+check("issued invite tokens are registered and redacted at every evidence boundary", () => {
+  for (const snippet of [
+    "onRuntimeSecret",
+    'kind: "issued-invite-token"',
+    "invite response runtime secret sink is unavailable",
+    "safeResponseReadFailures",
+    "redactObservedSecrets",
+    "assertEvidenceDomSecretsAbsent",
+    "sanitizeEvidenceValue(consoleEntries",
+    "sanitizeEvidenceValue(networkEntries",
+    "persistentSecretFieldsPresent",
+  ]) {
+    assert(adapterSource.includes(snippet), `adapter invite secret boundary missing: ${snippet}`);
+  }
+  for (const snippet of [
+    "caseRuntime.registerObservedSecret",
+    "browser.registerRuntimeSecret",
+    "runtimeSecretRedaction",
+    "issued invite token was not registered or remained in the evidence DOM",
+  ]) {
+    assert(exactRunnerSource.includes(snippet), `exact runner invite secret binding missing: ${snippet}`);
+  }
+  for (const snippet of [
+    "registerObservedSecret",
+    "issued-invite-token",
+    "raw issued invite token reached the authoritative store",
+    "forbiddenSecretAbsent",
+  ]) {
+    assert(caseRuntimeSource.includes(snippet), `runtime invite secret oracle missing: ${snippet}`);
+  }
 });
 
 check("live session evidence preserves request view and response session identity", () => {

@@ -121,7 +121,7 @@ function buildValidatedPlan(seed, fixtureLabel, seedTargetSelection) {
     sourceIds.add(id);
     if (source.kind === "file") {
       const localPath = requireNonEmptyString(source.localPath, `source ${id} localPath`);
-      assert(fs.existsSync(path.join(rootDir, localPath)), `source ${id} local file missing: ${localPath}`);
+      validateLocalFileFixture(source, path.join(rootDir, localPath));
     }
   }
 
@@ -305,6 +305,30 @@ function readPublishedSeedBaseline() {
 
 function sha256Text(value) {
   return createHash("sha256").update(value).digest("hex");
+}
+
+function validateLocalFileFixture(source, filePath) {
+  const sourceId = requireNonEmptyString(source.id, "source.id");
+  const localPath = requireNonEmptyString(source.localPath, `source ${sourceId} localPath`);
+  assert(fs.existsSync(filePath), `source ${sourceId} local file missing: ${localPath}`);
+
+  const hasExpectedSize = source.fixtureSizeBytes !== undefined;
+  const hasExpectedSha256 = source.fixtureSha256 !== undefined;
+  if (!hasExpectedSize && !hasExpectedSha256) return;
+
+  assert(hasExpectedSize && hasExpectedSha256,
+    `source ${sourceId} fixture integrity requires both fixtureSizeBytes and fixtureSha256`);
+  assert(Number.isSafeInteger(source.fixtureSizeBytes) && source.fixtureSizeBytes >= 0,
+    `source ${sourceId} fixtureSizeBytes must be a non-negative integer`);
+  assert(/^[a-f0-9]{64}$/.test(String(source.fixtureSha256)),
+    `source ${sourceId} fixtureSha256 must be lowercase SHA-256`);
+
+  const actualSize = fs.statSync(filePath).size;
+  assert(actualSize === source.fixtureSizeBytes,
+    `source ${sourceId} fixture size mismatch: expected ${source.fixtureSizeBytes}, got ${actualSize}`);
+  const actualSha256 = createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
+  assert(actualSha256 === source.fixtureSha256,
+    `source ${sourceId} fixture SHA-256 mismatch`);
 }
 
 async function applySeedPlan(plan, { httpBase, cookieFile }) {

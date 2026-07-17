@@ -57,7 +57,7 @@ if (hasHelpFlag(rawArgs)) {
   printUsageAndExit(`V390 REVIEW4 independent feature semantic source audit
 
 Usage:
-  ./server.sh verify-v390-review4-feature-semantic-source-audit [--write-ledger] [--apply-approved-manifest] [--family <PREFIX>] [--id-range <START:END>]
+  ./server.sh verify-v390-review4-feature-semantic-source-audit [--write-ledger] [--apply-approved-manifest] [--emit-candidate PATH] [--family <PREFIX>] [--id-range <START:END>]
 
 The discovery phase extracts production tokens from each dispatched verifier and resolves them
 back to exact source locations. It does not trust or copy REVIEW3 edge digests, review reasons,
@@ -65,7 +65,7 @@ reviewer names, approval flags, or asserted semantic digests. Candidate generati
 a row. A committed approval ledger is required before a row can become REVIEW4 source-verified.
 `);
 }
-assertKnownOptions(rawArgs, ["h", "help", "write-ledger", "apply-approved-manifest", "family", "id-range"]);
+assertKnownOptions(rawArgs, ["h", "help", "write-ledger", "apply-approved-manifest", "emit-candidate", "family", "id-range"]);
 
 const manifest = readJson("test/fixtures/project_feature_implementation_evidence.json");
 const inventory = readText("docs/project-feature-test-inventory.md");
@@ -74,6 +74,19 @@ const production = productionIndex();
 const dispatch = dispatchIndex();
 const reviewedProofs = loadReviewedProofs();
 const candidate = buildCandidate({ manifest, rows, production, dispatch, reviewedProofs });
+
+const emitCandidateOptionIndex = rawArgs.findIndex(value => value === "--emit-candidate" || value.startsWith("--emit-candidate="));
+if (emitCandidateOptionIndex >= 0) {
+  const candidatePath = rawArgs[emitCandidateOptionIndex].includes("=")
+    ? rawArgs[emitCandidateOptionIndex].slice(rawArgs[emitCandidateOptionIndex].indexOf("=") + 1)
+    : rawArgs[emitCandidateOptionIndex + 1];
+  assert(candidatePath, "--emit-candidate requires PATH");
+  const absolute = path.resolve(candidatePath);
+  fs.mkdirSync(path.dirname(absolute), { recursive: true });
+  fs.writeFileSync(absolute, `${JSON.stringify(candidate, null, 2)}\n`);
+  fs.writeSync(process.stdout.fd, `${JSON.stringify({ candidatePath: absolute, candidateDigest: candidate.candidateDigest, items: candidate.items.length }, null, 2)}\n`);
+  process.exit(0);
+}
 
 const familyOptionIndex = rawArgs.findIndex(value => value === "--family" || value.startsWith("--family="));
 if (familyOptionIndex >= 0) {

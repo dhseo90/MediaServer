@@ -14,6 +14,10 @@ import { producePolicyV4Evidence } from "./v390_ui_policy_v4_evidence_producer.m
 import { expandVisualMatrixPlan, validateVisualMatrixPlan } from "./v390_ui_visual_evidence.mjs";
 import { deduplicateScreenshotArtifacts } from "./evidence_integrity_lib.mjs";
 import {
+  executeCatalogRuntimeOracle,
+  isExistingSpecializedExactOracle,
+} from "./v390_ui_exact_oracle_runtime.mjs";
+import {
   assertRequestedObservedEnvelope,
   canonicalRequestedProjection,
   runtimeObservedProjection,
@@ -40,12 +44,12 @@ const supportedActionKinds = Object.freeze([
   "select-control",
   "submit-form",
   "toggle-checkbox",
-  "toggle-details",
   "verify-independent-readback",
   "wait-visible",
 ]);
 const supportedCleanupKinds = Object.freeze([
   "no-op-cleanup",
+  "reset-local-ui-route",
   "restore-fixture-state",
   "restore-local-control",
 ]);
@@ -197,6 +201,8 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       storageStatePath,
       colorScheme: item.theme,
       navigationCorrelationId: item.actions[0].semanticCompletion.correlationId,
+      onRuntimeSecret: ({ kind, value }) =>
+        caseRuntime.registerObservedSecret(item, caseContext, kind, value),
     });
   } catch (error) {
     let cleanupFailure = null;
@@ -259,6 +265,13 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     trace.completionEvents.push(initialCompletion);
     if (item.disposition === "negative-route") {
       trace.actions.push({ kind: "navigate", status: "PASS", observedStatus: browser.navigation.status });
+      trace.rawPrimaryObservations.push(makeRawPrimaryObservation({
+        actionEvidence: initialCompletionAction,
+        after: initialSnapshot,
+        navigation: browser.navigation,
+        networkEntries: browser.networkEntries(),
+        semanticReadback: initialCompletion.semanticReadback,
+      }));
     } else {
       for (const action of item.actions.slice(1)) {
         if (action.kind === "wait-visible") {
@@ -279,12 +292,170 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
           } else if (item.workflow.workflowClass === "form-submit") {
             const submitAction = item.actions.find(candidate => candidate.kind === "submit-form");
             assert(submitAction, `${item.caseId} form submit action missing after wait-visible`);
-            const lifecycle = await prepareFormSubmitUiLifecycle(browser, item, submitAction);
+            const lifecycle = await prepareFormSubmitUiLifecycle(
+              browser,
+              item,
+              submitAction,
+              caseRuntime,
+              caseContext,
+            );
             runtimeState.set("__formSubmitUiLifecycle", lifecycle);
             trace.setup.push({ kind: "prepare-form-submit-ui-lifecycle", ...lifecycle, status: "PASS" });
             waitSelector = lifecycle.submitSelector;
+          } else if (["RULE-002", "RULE-003"].includes(item.caseId)) {
+            const modeControl = item.caseId === "RULE-002" ? "#opsAddEventRuleBtn" : "#opsAddProfileBtn";
+            await browser.click(modeControl);
+            trace.setup.push({
+              kind: "select-rule-catalog-mode",
+              selector: modeControl,
+              mode: item.caseId === "RULE-002" ? "event-rule" : "profile",
+              status: "PASS",
+            });
+          } else if (["RULE-010", "RULE-013"].includes(item.caseId)) {
+            const recordId = item.caseId === "RULE-010" ? "9301" : "9304";
+            const recordSelector = `[data-ops-rule-action="view-va"][data-ops-rule-id=${JSON.stringify(recordId)}]`;
+            await browser.click("#opsAddVaRuleBtn");
+            await browser.waitForSelector(recordSelector);
+            await browser.click(recordSelector);
+            await browser.waitForSelector("#opsRulesComposerEdit");
+            await browser.click("#opsRulesComposerEdit");
+            trace.setup.push({
+              kind: "open-rule-read-model",
+              selector: recordSelector,
+              mode: "va-rule",
+              detailMode: "edit",
+              recordId,
+              status: "PASS",
+            });
+          } else if (item.caseId === "RULE-021") {
+            const recordId = "9207";
+            const recordSelector = `[data-ops-rule-action="view-event-template"][data-ops-rule-id=${JSON.stringify(recordId)}]`;
+            await browser.click("#opsAddEventRuleBtn");
+            await browser.waitForSelector(recordSelector);
+            await browser.click(recordSelector);
+            trace.setup.push({
+              kind: "open-rule-read-model",
+              selector: recordSelector,
+              mode: "event-rule",
+              detailMode: "view",
+              recordId,
+              status: "PASS",
+            });
+          } else if (item.caseId === "RULE-092") {
+            await browser.evaluate(`(async () => {
+              if (typeof openOpsRulesEditor !== 'function') throw new Error('product rules lifecycle function is unavailable');
+              await openOpsRulesEditor('event-rule', 'new', '');
+              const id = document.getElementById('opsEventRuleIdInput');
+              if (!id) throw new Error('event-template ID input is unavailable');
+              id.value = '9201';
+              if (typeof opsRulesUpdateReviewLoop === 'function') opsRulesUpdateReviewLoop();
+            })()`);
+            trace.setup.push({
+              kind: "prepare-validation-no-write",
+              mode: "event-rule",
+              duplicateId: "9201",
+              status: "PASS",
+            });
+          } else if (["RULE-093", "RULE-094"].includes(item.caseId)) {
+            await browser.evaluate(`(async () => {
+              if (typeof openOpsRulesEditor !== 'function') throw new Error('product rules lifecycle function is unavailable');
+              await openOpsRulesEditor('va-rule', 'new', '');
+              const values = ${JSON.stringify({})};
+              const channel = document.getElementById('opsVaRuleChannelSelect');
+              const profile = document.getElementById('opsVaRuleProfileSelect');
+              const template = document.getElementById('opsVaRuleTemplateSeedSelect');
+              if (!channel || !profile || !template) throw new Error('VA relationship controls are unavailable');
+              channel.value = ${JSON.stringify(item.caseId === "RULE-093" ? "rule-093-source" : "rule-094-source")};
+              if (${JSON.stringify(item.caseId)} === 'RULE-093') {
+                profile.add(new Option('missing profile 9997', '9997'));
+                template.add(new Option('missing template 9998', '9998'));
+              }
+              profile.value = ${JSON.stringify(item.caseId === "RULE-093" ? "9997" : "9694")};
+              template.value = ${JSON.stringify(item.caseId === "RULE-093" ? "9998" : "9794")};
+              if (typeof opsRulesUpdateReviewLoop === 'function') opsRulesUpdateReviewLoop();
+            })()`);
+            trace.setup.push({
+              kind: "prepare-relationship-validation-no-write",
+              mode: "va-rule",
+              relationshipCase: item.caseId,
+              status: "PASS",
+            });
+          } else if (item.caseId === "RULE-100") {
+            await browser.evaluate(`(async () => {
+              if (typeof openOpsRulesEditor !== 'function') throw new Error('product rules lifecycle function is unavailable');
+              await openOpsRulesEditor('va-rule', 'new', '');
+              const id = document.getElementById('opsVaRuleIdInput');
+              const channel = document.getElementById('opsVaRuleChannelSelect');
+              const profile = document.getElementById('opsVaRuleProfileSelect');
+              const template = document.getElementById('opsVaRuleTemplateSeedSelect');
+              if (!id || !channel || !profile || !template) {
+                throw new Error('VA priority-conflict controls are unavailable');
+              }
+              id.value = ${JSON.stringify("3920100")};
+              channel.value = ${JSON.stringify("rule-100-source")};
+              profile.value = ${JSON.stringify("9690")};
+              template.value = ${JSON.stringify("9790")};
+              if (typeof opsRulesUpdateReviewLoop === 'function') opsRulesUpdateReviewLoop();
+            })()`);
+            trace.setup.push({
+              kind: "prepare-priority-conflict-no-write",
+              mode: "va-rule",
+              validRuleId: "9890",
+              conflictRuleId: "3920100",
+              priority: 0,
+              status: "PASS",
+            });
+          } else if (item.caseId === "RULE-101") {
+            await browser.evaluate(`(async () => {
+              if (typeof openOpsRulesEditor !== 'function') throw new Error('product rules lifecycle function is unavailable');
+              await openOpsRulesEditor('va-rule', 'new', '');
+              const id = document.getElementById('opsVaRuleIdInput');
+              const channel = document.getElementById('opsVaRuleChannelSelect');
+              const profile = document.getElementById('opsVaRuleProfileSelect');
+              const template = document.getElementById('opsVaRuleTemplateSeedSelect');
+              if (!id || !channel || !profile || !template) throw new Error('VA class-binding controls are unavailable');
+              id.value = '9891';
+              channel.value = 'rule-101-source';
+              profile.value = '9691';
+              template.value = '9791';
+              if (typeof opsRulesSetSelectedCategories !== 'function') throw new Error('product category selector is unavailable');
+              opsRulesSetSelectedCategories('opsEventRuleClassChecks', ['person'], 'opsEventRuleClassesSummary', '객체를 선택하세요.');
+              if (typeof opsRulesUpdateReviewLoop === 'function') opsRulesUpdateReviewLoop();
+            })()`);
+            trace.setup.push({
+              kind: "prepare-class-binding-conflict-no-write",
+              mode: "va-rule",
+              profileId: "9691",
+              templateId: "9791",
+              analysisClasses: ["person"],
+              status: "PASS",
+            });
+          } else if (item.caseId === "RULE-102") {
+            await browser.evaluate(`(async () => {
+              if (typeof openOpsRulesEditor !== 'function') throw new Error('product rules lifecycle function is unavailable');
+              await openOpsRulesEditor('event-rule', 'new', '');
+            })()`);
+            trace.setup.push({
+              kind: "prepare-review-loop-no-write",
+              mode: "event-rule",
+              selectedByPrimaryAction: "re-entry",
+              status: "PASS",
+            });
           }
           await browser.waitForSelector(waitSelector);
+          if (item.caseId === "RULE-104") {
+            const readinessUi = await browser.evaluate(`(() => {
+              const link = document.querySelector('[data-approval-gated-rule-draft-route]');
+              const card = link?.closest('[data-approval-gated-rule-draft-event]');
+              return { href: link?.getAttribute('href') || '', text: card?.textContent || '', eventId: card?.getAttribute('data-approval-gated-rule-draft-event') || '' };
+            })()`);
+            assert(readinessUi.eventId === caseContext.fixtureId &&
+              readinessUi.href.includes(`draftEventId=${encodeURIComponent(caseContext.fixtureId)}`) &&
+              readinessUi.href.includes('approvalState=approval-required') &&
+              ['noAutoSave true', 'noAutoApply true', 'ruleRegistryWritePerformed false', 'full replay'].every(token => readinessUi.text.includes(token)),
+            `${item.caseId} /ops/events approval readiness row/link exact UI mismatch`);
+            trace.setup.push({ kind: "observe-approval-readiness-row-link", ...readinessUi, status: "PASS" });
+          }
           await observePrimaryControlContext(browser, item, requested, runtimeState, action.selector);
           trace.actions.push({ ...action, status: "PASS" });
         } else if (action.kind === "navigate-action-route") {
@@ -635,7 +806,7 @@ async function preparePersistedUiLifecycle(browser, item, action, caseRuntimeOwn
   };
 
   if (lifecycle.adapter === "channel-source-view-pair") {
-    const kind = ({
+    const kind = input.actualValue?.kind || ({
       "SRC-002": "rtsp",
       "SRC-003": "http",
       "SRC-004": "whep",
@@ -647,7 +818,17 @@ async function preparePersistedUiLifecycle(browser, item, action, caseRuntimeOwn
       await browser.waitForSelector(`[data-view-channel=${JSON.stringify(fixtureId)}]`);
     }
     await browser.evaluate(`(async () => {
-      const value = ${JSON.stringify({ caseId: item.caseId, fixtureId, operation, kind, displayName: input.actualValue?.displayName || `REVIEW4 ${item.caseId}` })};
+      const value = ${JSON.stringify({
+        caseId: item.caseId,
+        fixtureId,
+        operation,
+        kind,
+        displayName: input.actualValue?.displayName || `REVIEW4 ${item.caseId}`,
+        zone: input.actualValue?.zone || "",
+        file: input.actualValue?.file || "sample_h264.mp4",
+        allowedRuleIds: input.actualValue?.allowedRuleIds || [],
+        clientGroups: input.actualValue?.clientGroups || [],
+      })};
       if (typeof resetChannelForm !== 'function' || typeof openChannel !== 'function') {
         throw new Error('product channel lifecycle functions are unavailable');
       }
@@ -665,12 +846,12 @@ async function preparePersistedUiLifecycle(browser, item, action, caseRuntimeOwn
       set('channelId', value.fixtureId);
       set('displayName', value.displayName);
       set('kind', value.kind);
-      if (value.caseId === 'SRC-009') set('zone', 'review4-zone-updated');
+      if (value.caseId === 'SRC-009') set('zone', value.zone);
       if (value.caseId === 'SRC-018') {
-        set('allowedRuleIds', '9301');
-        set('clientGroups', 'review4-client');
+        set('allowedRuleIds', value.allowedRuleIds.join(','));
+        set('clientGroups', value.clientGroups.join(','));
       }
-      if (value.kind === 'file') set('file', 'sample_h264.mp4');
+      if (value.kind === 'file') set('file', value.file);
       if (value.kind === 'rtsp') set('rtspUrl', 'rtsp://127.0.0.1:8554/' + value.fixtureId);
       if (value.kind === 'http') set('httpUrl', 'https://example.invalid/' + value.fixtureId + '/index.m3u8');
       if (value.kind === 'whep') set('whepUrl', 'https://example.invalid/whep/' + value.fixtureId);
@@ -689,9 +870,33 @@ async function preparePersistedUiLifecycle(browser, item, action, caseRuntimeOwn
       "rule-event-delete": "delete-event-template",
       "rule-profile-delete": "delete-profile",
     })[lifecycle.adapter];
+    const mode = ({
+      "rule-va-delete": "va-rule",
+      "rule-event-delete": "event-rule",
+      "rule-profile-delete": "profile",
+    })[lifecycle.adapter];
+    const modeControl = ({
+      "va-rule": "#opsAddVaRuleBtn",
+      "event-rule": "#opsAddEventRuleBtn",
+      profile: "#opsAddProfileBtn",
+    })[mode];
+    const section = ({
+      "va-rule": "#opsVaRulesSection:not([hidden])",
+      "event-rule": "#opsEventRulesSection:not([hidden])",
+      profile: "#opsProfileRulesSection:not([hidden])",
+    })[mode];
+    await browser.click(modeControl);
+    await browser.fill("#opsRulesFilterInput", "");
+    await browser.click("#opsRulesRefresh");
+    await browser.waitForSelector(section);
+    await browser.waitForNetworkQuiet({ minimumObservationMs: 500, quietMs: 250 });
+    const deleteSelector = `[data-ops-rule-action=${JSON.stringify(actionName)}][data-ops-rule-id=${JSON.stringify(fixtureId)}]`;
+    const menuSelector = `tr:has(${deleteSelector}) details[data-testid="ops-context-actions"] > summary`;
+    await browser.waitForSelector(menuSelector);
+    await browser.click(menuSelector);
     return {
       ...base,
-      selector: `[data-ops-rule-action=${JSON.stringify(actionName)}][data-ops-rule-id=${JSON.stringify(fixtureId)}]`,
+      selector: deleteSelector,
       activationCount: 2,
     };
   }
@@ -703,7 +908,40 @@ async function preparePersistedUiLifecycle(browser, item, action, caseRuntimeOwn
       "rule-profile-save": "profile",
     })[lifecycle.adapter];
     await browser.evaluate(`(async () => {
-      const value = ${JSON.stringify({ fixtureId, operation, mode, caseId: item.caseId, minConfidence: input.actualValue?.minConfidence })};
+      const value = ${JSON.stringify({
+        fixtureId,
+        operation,
+        mode,
+        caseId: item.caseId,
+        detector: input.actualValue?.detector,
+        fps: input.actualValue?.fps,
+        maxQueue: input.actualValue?.maxQueue,
+        minConfidence: input.actualValue?.minConfidence,
+        nms: input.actualValue?.nms,
+        inputWidth: input.actualValue?.inputWidth,
+        inputHeight: input.actualValue?.inputHeight,
+        trackingClasses: input.actualValue?.trackingClasses,
+        tracker: input.actualValue?.tracker,
+        reid: input.actualValue?.reid,
+        eventMode: input.actualValue?.eventMode,
+        eventType: input.actualValue?.eventType,
+        direction: input.actualValue?.direction,
+        preset: input.actualValue?.preset,
+        candidateTimeMs: input.actualValue?.candidateTimeMs,
+        dwellTimeMs: input.actualValue?.dwellTimeMs,
+        cooldownMs: input.actualValue?.cooldownMs,
+        restrictedZoneIds: input.actualValue?.restrictedZoneIds,
+        reEntryMode: input.actualValue?.reEntryMode,
+        reEntryZoneIds: input.actualValue?.reEntryZoneIds,
+        reEntryWindowMs: input.actualValue?.reEntryWindowMs,
+        targetZoneIds: input.actualValue?.targetZoneIds,
+        lineDelayMs: input.actualValue?.lineDelayMs,
+        loiteringRadius: input.actualValue?.loiteringRadius,
+        loiteringPoints: input.actualValue?.loiteringPoints,
+        groundPlane: input.actualValue?.groundPlane,
+        zoneThreshold: input.actualValue?.zoneThreshold,
+        zoneDwellMs: input.actualValue?.zoneDwellMs,
+      })};
       if (typeof openOpsRulesEditor !== 'function') throw new Error('product rules lifecycle function is unavailable');
       await openOpsRulesEditor(value.mode, value.operation === 'create' ? 'new' : 'edit', value.fixtureId);
       const idByMode = { 'va-rule': 'opsVaRuleIdInput', 'event-rule': 'opsEventRuleIdInput', profile: 'opsProfileIdInput' };
@@ -736,35 +974,92 @@ async function preparePersistedUiLifecycle(browser, item, action, caseRuntimeOwn
           }
           profile.value = '9101';
         }
+        const tracker = document.getElementById('opsVaRuleTrackerSelect');
+        if (tracker && value.tracker) {
+          tracker.value = String(value.tracker);
+          tracker.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        const reid = document.getElementById('opsVaRuleReidSelect');
+        if (reid && value.reid) {
+          reid.value = String(value.reid);
+          reid.dispatchEvent(new Event('change', { bubbles: true }));
+        }
       } else if (value.mode === 'event-rule') {
         const mode = document.getElementById('opsEventRuleModeSelect');
         const type = document.getElementById('opsEventRuleTypeSelect');
-        if (value.caseId === 'RULE-073') {
-          if (mode) mode.value = 'event';
-          if (typeof opsEventRuleRefreshTypeOptions === 'function') opsEventRuleRefreshTypeOptions('line-crossing');
-          else if (type) type.value = 'line-crossing';
+        if (value.eventMode && mode) mode.value = String(value.eventMode);
+        if (value.eventType) {
+          if (typeof opsEventRuleRefreshTypeOptions === 'function') opsEventRuleRefreshTypeOptions(String(value.eventType));
+          else if (type) type.value = String(value.eventType);
           if (typeof opsEventRuleUpdateModeUi === 'function') opsEventRuleUpdateModeUi();
-          const direction = document.getElementById('opsEventRuleLineDirectionSelect');
-          if (direction) direction.value = 'forward';
-        } else if (type && !type.value) {
+        }
+        if (value.preset) {
+          const preset = document.getElementById('opsEventRulePresetSelect');
+          if (preset) preset.value = String(value.preset);
+          if (typeof opsEventRuleApplyPresetToInputs === 'function') opsEventRuleApplyPresetToInputs(String(value.preset));
+        }
+        if (value.direction) {
+          const lineDirection = document.getElementById('opsEventRuleLineDirectionSelect');
+          if (lineDirection) lineDirection.value = String(value.direction);
+          const triggerDirection = document.getElementById('opsEventRuleTriggerDirectionSelect');
+          if (triggerDirection) triggerDirection.value = String(value.direction);
+        }
+        if (type && !type.value) {
           type.value = 'presence';
         }
         const confidence = document.getElementById('opsEventRuleConfidenceInput');
-        if (confidence) confidence.value = '0.61';
-        if (value.caseId === 'RULE-075') {
-          if (mode) mode.value = 'scenario';
-          if (typeof opsEventRuleRefreshTypeOptions === 'function') opsEventRuleRefreshTypeOptions('intrusion-dwell');
-          if (typeof opsEventRuleUpdateModeUi === 'function') opsEventRuleUpdateModeUi();
-          const cooldown = document.getElementById('opsEventRuleCooldownInput');
-          if (cooldown) cooldown.value = '9000';
-        }
+        if (confidence && value.minConfidence !== undefined) confidence.value = String(value.minConfidence);
+        const candidate = document.getElementById('opsEventRuleCandidateInput');
+        if (candidate && value.candidateTimeMs !== undefined) candidate.value = String(value.candidateTimeMs);
+        const dwell = document.getElementById('opsEventRuleDwellInput');
+        if (dwell && value.dwellTimeMs !== undefined) dwell.value = String(value.dwellTimeMs);
+        const cooldown = document.getElementById('opsEventRuleCooldownInput');
+        if (cooldown && value.cooldownMs !== undefined) cooldown.value = String(value.cooldownMs);
+        const restrictedZones = document.getElementById('opsEventRuleRestrictedZonesInput');
+        if (restrictedZones && Array.isArray(value.restrictedZoneIds)) restrictedZones.value = value.restrictedZoneIds.join(', ');
+        const reEntryMode = document.getElementById('opsEventRuleReEntryModeSelect');
+        if (reEntryMode && value.reEntryMode) reEntryMode.value = String(value.reEntryMode);
+        const reEntryZones = document.getElementById('opsEventRuleReEntryZonesInput');
+        if (reEntryZones && Array.isArray(value.reEntryZoneIds)) reEntryZones.value = value.reEntryZoneIds.join(', ');
+        const reEntryWindow = document.getElementById('opsEventRuleReEntryWindowInput');
+        if (reEntryWindow && value.reEntryWindowMs !== undefined) reEntryWindow.value = String(value.reEntryWindowMs);
+        const targetZones = document.getElementById('opsEventRuleTargetZonesInput');
+        if (targetZones && Array.isArray(value.targetZoneIds)) targetZones.value = value.targetZoneIds.join(', ');
+        const lineDelay = document.getElementById('opsEventRuleLineDelayInput');
+        if (lineDelay && value.lineDelayMs !== undefined) lineDelay.value = String(value.lineDelayMs);
+        const loiteringRadius = document.getElementById('opsEventRuleLoiteringRadiusInput');
+        if (loiteringRadius && value.loiteringRadius !== undefined) loiteringRadius.value = String(value.loiteringRadius);
+        const loiteringPoints = document.getElementById('opsEventRuleLoiteringPointsInput');
+        if (loiteringPoints && value.loiteringPoints !== undefined) loiteringPoints.value = String(value.loiteringPoints);
+        const groundPlane = document.getElementById('opsEventRuleLoiteringGroundPlaneToggle');
+        if (groundPlane && value.groundPlane !== undefined) groundPlane.checked = Boolean(value.groundPlane);
+        const zoneThreshold = document.getElementById('opsEventRuleZoneThresholdInput');
+        if (zoneThreshold && value.zoneThreshold !== undefined) zoneThreshold.value = String(value.zoneThreshold);
+        const zoneDwell = document.getElementById('opsEventRuleZoneDwellInput');
+        if (zoneDwell && value.zoneDwellMs !== undefined) zoneDwell.value = String(value.zoneDwellMs);
         const classInput = document.querySelector('#opsEventRuleClassChecks input[type="checkbox"]');
         if (classInput && !classInput.checked) classInput.click();
       } else {
+        const detector = document.getElementById('opsProfileDetectorSelect');
+        if (detector && value.detector) detector.value = String(value.detector);
+        const fps = document.getElementById('opsProfileFpsInput');
+        if (fps && value.fps !== undefined) fps.value = String(value.fps);
+        const maxQueue = document.getElementById('opsProfileQueueInput');
+        if (maxQueue && value.maxQueue !== undefined) maxQueue.value = String(value.maxQueue);
         const confidence = document.getElementById('opsProfileConfidenceInput');
         if (confidence) confidence.value = String(value.minConfidence ?? 0.66);
-        const classInput = document.querySelector('#opsProfileClassChecks input[type="checkbox"]');
-        if (classInput && !classInput.checked) classInput.click();
+        const nms = document.getElementById('opsProfileNmsInput');
+        if (nms && value.nms !== undefined) nms.value = String(value.nms);
+        const inputWidth = document.getElementById('opsProfileInputWidthInput');
+        if (inputWidth && value.inputWidth !== undefined) inputWidth.value = String(value.inputWidth);
+        const inputHeight = document.getElementById('opsProfileInputHeightInput');
+        if (inputHeight && value.inputHeight !== undefined) inputHeight.value = String(value.inputHeight);
+        const desiredClasses = Array.isArray(value.trackingClasses) ? new Set(value.trackingClasses.map(String)) : null;
+        const classInputs = Array.from(document.querySelectorAll('#opsProfileClassChecks input[type="checkbox"]'));
+        for (const classInput of classInputs) {
+          const desired = desiredClasses ? desiredClasses.has(String(classInput.value)) : classInput === classInputs[0];
+          if (classInput.checked !== desired) classInput.click();
+        }
       }
       return { fixtureId: idInput.value, mode: value.mode };
     })()`);
@@ -961,7 +1256,7 @@ function assertPersistedRequestBinding(networkResponses, action, lifecycle, case
   };
 }
 
-async function prepareFormSubmitUiLifecycle(browser, item, action) {
+async function prepareFormSubmitUiLifecycle(browser, item, action, caseRuntimeOwner, caseContext) {
   const lifecycle = action.uiLifecycle;
   assert(lifecycle?.schema === "media-server.v390-ui-form-lifecycle.v1" && lifecycle.adapter,
     `${item.caseId} typed form UI lifecycle schema/adapter missing`);
@@ -980,6 +1275,7 @@ async function prepareFormSubmitUiLifecycle(browser, item, action) {
   const submit = await browser.snapshot(lifecycle.submitSelector);
   assert(submit.exists && submit.visible && !submit.disabled,
     `${item.caseId} form submit control is unavailable: ${lifecycle.submitSelector}`);
+  const deferredFixture = await caseRuntimeOwner.prepareDeferredFormFixture(item, caseContext);
   return {
     schema: lifecycle.schema,
     adapter: lifecycle.adapter,
@@ -988,6 +1284,7 @@ async function prepareFormSubmitUiLifecycle(browser, item, action) {
     entrySelector: lifecycle.entrySelector || null,
     fieldControls: structuredClone(lifecycle.fieldControls),
     phases: [...lifecycle.requiredPhases],
+    deferredFixture,
   };
 }
 
@@ -1009,9 +1306,19 @@ async function applyTypedFormInputs(
       caseRuntimeOwner,
       caseContext,
     );
+    if (field.valueSource === "runtime-default-view") {
+      value = String(caseRuntimeOwner.descriptor?.auth?.defaultViewId || "");
+      assert(value, `${item.caseId} runtime default view is unavailable for ${field.name}`);
+    }
+    if (input.actualValue?.[field.name]?.secretRef) browser.registerRuntimeSecret(value);
     const selector = `${lifecycle.formSelector} [name=${JSON.stringify(field.name)}]`;
     if (field.control === "fill") {
       await browser.fill(selector, value);
+    } else if (field.control === "readonly-value") {
+      const before = await browser.snapshot(selector);
+      assert(field.expectedValue === value && before.exists && before.visible &&
+        before.readOnly === true && before.value === field.expectedValue,
+        `${item.caseId} readonly form value drift: ${field.name}`);
     } else if (field.control === "select") {
       await browser.select(selector, value);
     } else if (field.control === "check") {
@@ -1058,8 +1365,14 @@ function captureFormResponseIdentity(networkResponses, action, lifecycle, caseId
       pathname === request.urlPath &&
       request.allowedStatuses.includes(entry.status);
   });
+  const pathResponses = networkResponses.filter(entry => {
+    let pathname = "";
+    try { pathname = new URL(entry.url, "http://127.0.0.1").pathname; } catch { pathname = ""; }
+    return entry.phase === "response" && entry.method === request.method && pathname === request.urlPath;
+  });
   assert(matches.length === 1,
-    `${caseId} form response was not uniquely bound to ${request.method} ${request.urlPath}: ${matches.length}`);
+    `${caseId} form response was not uniquely bound to ${request.method} ${request.urlPath}: ${matches.length}; ` +
+    `pathResponses=${JSON.stringify(pathResponses.map(entry => ({ status: entry.status, correlated: entry.correlationId === request.correlationId })))}`);
   const productIdentity = matches[0].safeResponseBody || null;
   const expectedUsername = String(submittedInput?.username || "");
   if (lifecycle.adapter === "auth-user-create") {
@@ -1086,6 +1399,7 @@ function captureFormResponseIdentity(networkResponses, action, lifecycle, caseId
 }
 
 async function executeCaseNativeAction(browser, item, action, runtimeState, caseRuntimeOwner, caseContext) {
+  action = bindRuntimeDefaultViewRequest(item, action, caseRuntimeOwner);
   if (action.kind === "verify-independent-readback") {
     return executeIndependentReadback(
       browser,
@@ -1115,23 +1429,23 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
   assert(before.exists, `${item.caseId} control missing: ${action.selector}`);
   if (["assert-product-state", "assert-product-boundary", "assert-route-read-model", "assert-visible-read-model"].includes(action.kind)) {
     assert(before.visible, `${item.caseId} read model is not visible: ${action.selector}`);
-    return semanticAssertionResult(browser, item, action, before, snapshotSelector, runtimeState);
+    return semanticAssertionResult(browser, item, action, before, snapshotSelector, runtimeState, caseRuntimeOwner, caseContext);
   }
   if (action.kind === "assert-hidden-control") {
     assert(action.expectedExists === true && !before.visible, `${item.caseId} hidden control state mismatch`);
-    return semanticAssertionResult(browser, item, action, before, snapshotSelector, runtimeState);
+    return semanticAssertionResult(browser, item, action, before, snapshotSelector, runtimeState, caseRuntimeOwner, caseContext);
   }
   if (action.kind === "assert-disabled-control") {
     assert(before.disabled === true, `${item.caseId} control is not disabled: ${action.selector}`);
-    return semanticAssertionResult(browser, item, action, before, snapshotSelector, runtimeState);
+    return semanticAssertionResult(browser, item, action, before, snapshotSelector, runtimeState, caseRuntimeOwner, caseContext);
   }
   if (action.kind === "assert-enabled-control") {
     assert(before.visible && before.disabled === false, `${item.caseId} control is not enabled: ${action.selector}`);
-    return semanticAssertionResult(browser, item, action, before, snapshotSelector, runtimeState);
+    return semanticAssertionResult(browser, item, action, before, snapshotSelector, runtimeState, caseRuntimeOwner, caseContext);
   }
   if (action.kind === "assert-link-target") {
     assert(before.tag === "a" && before.href.startsWith("/"), `${item.caseId} same-origin link target missing`);
-    return semanticAssertionResult(browser, item, action, before, snapshotSelector, runtimeState);
+    return semanticAssertionResult(browser, item, action, before, snapshotSelector, runtimeState, caseRuntimeOwner, caseContext);
   }
   if (action.kind === "assert-seeded-select") {
     const nonEmpty = before.optionValues.filter(Boolean);
@@ -1144,6 +1458,8 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
       { ...before, nonEmptyOptionCount: nonEmpty.length },
       snapshotSelector,
       runtimeState,
+      caseRuntimeOwner,
+      caseContext,
     );
   }
 
@@ -1157,6 +1473,9 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
   let executedKind = "";
   let typedFormInputs = null;
   let submittedFormInput = null;
+  let originalSessionCookie = "";
+  let runtimeSecretRedaction = null;
+  let inviteDomSecretCapture = null;
   try {
     if (action.kind === "toggle-details") {
       assert(before.tag === "details", `${item.caseId} details contract mismatch`);
@@ -1191,6 +1510,17 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
         caseContext,
         formLifecycle,
       );
+      if (item.caseId === "UI-005") {
+        originalSessionCookie = await browser.cookieHeader();
+        assert(originalSessionCookie, `${item.caseId} pre-logout session cookie missing`);
+        browser.registerRuntimeSecret(originalSessionCookie);
+        caseRuntimeOwner.registerObservedSecret(
+          item,
+          caseContext,
+          "pre-logout-session-cookie",
+          originalSessionCookie,
+        );
+      }
       await browser.click(formLifecycle.submitSelector);
       executedKind = "submit";
     } else if (action.kind === "execute-persisted-action") {
@@ -1209,6 +1539,16 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
       minimumObservationMs: 750,
       quietMs: 250,
     });
+    inviteDomSecretCapture = ["AUTH-015", "AUTH-033"].includes(item.caseId)
+      ? await browser.captureInviteRuntimeSecret()
+      : null;
+    runtimeSecretRedaction = await browser.redactObservedSecrets();
+    if (["AUTH-015", "AUTH-033"].includes(item.caseId)) {
+      assert((inviteDomSecretCapture?.textPresent !== true || inviteDomSecretCapture?.captured === true) &&
+        runtimeSecretRedaction.residualSecrets === 0,
+      `${item.caseId} issued invite token was not registered or remained in the evidence DOM: ` +
+        JSON.stringify({ inviteDomSecretCapture, runtimeSecretRedaction }));
+    }
   } finally {
     await browser.setCorrelationId(`${item.caseId}:navigation`);
   }
@@ -1218,11 +1558,15 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
   }
   const actionEvidence = {
     ...semanticCompletionAction(action, item),
+    controlSelector: action.semanticCompletion.controlSelector || snapshotSelector,
+    executedControlSelector: snapshotSelector,
     executedKind,
     ...(persistedLifecycle ? { persistedUiLifecycle: structuredClone(persistedLifecycle) } : {}),
     ...(formLifecycle ? {
       formUiLifecycle: structuredClone(formLifecycle),
       typedFormInputs,
+      ...(inviteDomSecretCapture ? { inviteDomSecretCapture } : {}),
+      runtimeSecretRedaction,
     } : {}),
     before,
     after,
@@ -1256,6 +1600,7 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
     networkResponses,
     persistedRequestBinding,
     formResponseIdentity,
+    originalSessionCookie,
     beforePostconditionSnapshots,
   });
   return {
@@ -1264,18 +1609,152 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
   };
 }
 
-async function semanticAssertionResult(browser, item, action, observed, snapshotSelector, runtimeState) {
+function bindRuntimeDefaultViewRequest(item, action, caseRuntimeOwner) {
+  const request = action.semanticCompletion?.request;
+  if (item.workflow.workflowClass !== "read-only-state" ||
+      request?.method !== "GET" ||
+      !String(request.urlPathTemplate || "").startsWith("/client/api/views/{id}")) {
+    return action;
+  }
+  const viewId = String(caseRuntimeOwner.descriptor?.auth?.defaultViewId || "");
+  assert(viewId, `${item.caseId} runtime default view is unavailable for client readback`);
+  const runtimeUrlPath = String(request.urlPathTemplate).replace("{id}", encodeURIComponent(viewId));
+  return {
+    ...action,
+    semanticCompletion: {
+      ...action.semanticCompletion,
+      request: {
+        ...request,
+        urlPath: runtimeUrlPath,
+        pathParameters: { ...request.pathParameters, id: viewId },
+        parameterSource: "runtime-default-view",
+      },
+    },
+  };
+}
+
+async function semanticAssertionResult(
+  browser,
+  item,
+  action,
+  observed,
+  snapshotSelector,
+  runtimeState,
+  caseRuntimeOwner,
+  caseContext,
+) {
   const networkStart = browser.networkEntries().length;
   const completion = action.semanticCompletion;
-  if (completion.request) {
+  let exactObserved = observed;
+  const catalogObservation = isExistingSpecializedExactOracle(item)
+    ? null
+    : await executeCatalogRuntimeOracle({
+        browser,
+        item,
+        fixtureId: caseContext?.fixtureId || exactFixtureId(item),
+        bindings: exactOracleBindings(caseRuntimeOwner, caseContext),
+        correlationId: completion.correlationId,
+      });
+  if (catalogObservation) {
+    exactObserved = { ...observed, exactRuntimeOracle: catalogObservation };
+  }
+  if (completion.request && !catalogObservation) {
     await browser.setCorrelationId(completion.correlationId);
     try {
-      const response = await browser.request({
-        method: completion.request.method,
-        urlPath: completion.request.urlPath,
-      });
-      assert(completion.request.allowedStatuses.includes(response.status),
-        `${item.caseId} action request status mismatch: ${response.status}`);
+      if (item.caseId === "SRC-031") {
+        const sourceCountBefore = await browser.evaluate(`fetch('/ops/api/sources', {
+          credentials: 'same-origin', cache: 'no-store'
+        }).then(response => response.json()).then(payload => Array.isArray(payload.sources) ? payload.sources.length : -1)`);
+        await browser.click("#add-channel");
+        await browser.select('#channel-form [name="kind"]', "onvif");
+        await browser.fill("#onvifProbeDraftInput",
+          fs.readFileSync(path.join(rootDir, "test/fixtures/onvif_live_import_stub.json"), "utf8"));
+        await browser.click("#onvifProbeDraftApply");
+        await browser.waitForNetworkQuiet({
+          correlationId: completion.correlationId,
+          minimumObservationMs: 750,
+          quietMs: 250,
+        });
+        const responses = browser.networkEntries().slice(networkStart).filter(entry =>
+          entry.phase === "response" && entry.correlationId === completion.correlationId &&
+          entry.method === "POST" && new URL(entry.url).pathname === "/ops/api/onvif/import-draft");
+        assert(responses.length === 1 && completion.request.allowedStatuses.includes(responses[0].status),
+          `${item.caseId} ONVIF import draft response binding mismatch`);
+        const gate = responses[0].safeResponseBody?.credentialGate;
+        assert(gate?.schema === "media-server.onvif-credential-binding-gate.v1" &&
+          gate.requiredScope === "source:write" && gate.urlCredentialsRejected === true &&
+          gate.secretMaterialStored === false,
+        `${item.caseId} ONVIF credential gate boundary mismatch`);
+        const sourceCountAfter = await browser.evaluate(`fetch('/ops/api/sources', {
+          credentials: 'same-origin', cache: 'no-store'
+        }).then(response => response.json()).then(payload => Array.isArray(payload.sources) ? payload.sources.length : -1)`);
+        const gateStatus = await browser.snapshot("#onvifCredentialGateStatus");
+        assert(sourceCountBefore >= 0 && sourceCountBefore === sourceCountAfter && gateStatus.visible &&
+          gateStatus.text.includes(gate.primaryStoreProvider) &&
+          gateStatus.text.includes(gate.primaryStoreDecision) &&
+          gateStatus.text.includes(gate.credentialReferenceStatus),
+        `${item.caseId} ONVIF import draft no-write DOM readback mismatch`);
+        exactObserved = {
+          exists: true,
+          visible: true,
+          sourceCountBefore,
+          sourceCountAfter,
+          gateStatus,
+        };
+      } else if (["RULE-001", "RULE-002", "RULE-003"].includes(item.caseId)) {
+        const response = await browser.evaluate(`fetch(${JSON.stringify(completion.request.urlPath)}, {
+          method: ${JSON.stringify(completion.request.method)},
+          credentials: 'same-origin',
+          cache: 'no-store'
+        }).then(async response => ({ status: response.status, json: await response.json() }))`);
+        assert(completion.request.allowedStatuses.includes(response.status),
+          `${item.caseId} rule catalog request status mismatch: ${response.status}`);
+        const collectionKey = ({
+          "RULE-001": "vaRules",
+          "RULE-002": "rules",
+          "RULE-003": "profiles",
+        })[item.caseId];
+        const minimumCells = ({ "RULE-001": 9, "RULE-002": 6, "RULE-003": 7 })[item.caseId];
+        let records = response.json?.[collectionKey];
+        let effectiveCollectionKey = collectionKey;
+        if (item.caseId === "RULE-003") {
+          const profileCatalog = await browser.evaluate(`fetch('/lab/analysis/profiles', {
+            credentials: 'same-origin', cache: 'no-store'
+          }).then(async response => ({ status: response.status, json: await response.json() }))`);
+          assert(profileCatalog.status === 200 && Array.isArray(profileCatalog.json?.builtInProfiles),
+            `${item.caseId} built-in profile catalog readback is invalid`);
+          records = [...profileCatalog.json.builtInProfiles, ...(Array.isArray(records) ? records : [])];
+          effectiveCollectionKey = "builtInProfiles+profiles";
+        }
+        assert(Array.isArray(records) && records.length > 0,
+          `${item.caseId} rule catalog ${effectiveCollectionKey} is empty or invalid`);
+        const rendered = await browser.evaluate(`(() => {
+          const row = document.querySelector(${JSON.stringify(snapshotSelector)});
+          const body = row?.parentElement;
+          return {
+            rowCount: body ? body.querySelectorAll(':scope > tr').length : 0,
+            cellCount: row ? row.querySelectorAll(':scope > td').length : 0,
+            labels: row ? Array.from(row.querySelectorAll(':scope > td')).map(cell => cell.getAttribute('data-label') || '') : [],
+            text: row ? row.textContent.trim() : '',
+          };
+        })()`);
+        assert(rendered.rowCount === records.length && rendered.cellCount >= minimumCells && rendered.text,
+          `${item.caseId} rendered rule catalog row/count/fields mismatch: ${JSON.stringify(rendered)}`);
+        exactObserved = {
+          exists: true,
+          visible: true,
+          collectionKey: effectiveCollectionKey,
+          recordCount: records.length,
+          rendered,
+        };
+      } else {
+        const response = await browser.request({
+          method: completion.request.method,
+          urlPath: completion.request.urlPath,
+        });
+        assert(completion.request.allowedStatuses.includes(response.status),
+          `${item.caseId} action request status mismatch: ${response.status}`);
+      }
     } finally {
       await browser.setCorrelationId(`${item.caseId}:navigation`);
     }
@@ -1283,7 +1762,7 @@ async function semanticAssertionResult(browser, item, action, observed, snapshot
   const snapshot = await browser.snapshot(snapshotSelector);
   const actionEvidence = {
     ...semanticCompletionAction(action, item),
-    observed,
+    observed: exactObserved,
     status: "PASS",
   };
   assert(!runtimeState.has("__pendingPrimaryCompletion"),
@@ -1294,7 +1773,7 @@ async function semanticAssertionResult(browser, item, action, observed, snapshot
     before: snapshot,
     after: snapshot,
     networkResponses: browser.networkEntries().slice(networkStart),
-    explicitObserved: observed,
+    explicitObserved: exactObserved,
   });
   return { actionEvidence: { ...actionEvidence, completionStatus: "awaiting-independent-readback" }, completionOracle: null };
 }
@@ -1319,18 +1798,69 @@ async function executeIndependentReadback(
   for (const condition of pending.action.semanticCompletion.localTransition?.postconditions || []) {
     postconditionSnapshots[condition.selector] = await browser.snapshot(condition.selector);
   }
-  const selector = pending.actionEvidence.controlSelector || "body";
+  const selector = pending.actionEvidence.executedControlSelector ||
+    pending.actionEvidence.controlSelector || "body";
   const freshAfter = await browser.snapshot(selector);
   const runtimeMutationReadback = item.workflow.workflowClass === "persisted-mutation"
     ? await caseRuntimeOwner.verifyMutationReadback(item, caseContext)
     : null;
-  const explicitObserved = Object.keys(postconditionSnapshots).length > 0 || runtimeMutationReadback
+  const runtimeFormSubmitReadback = item.workflow.workflowClass === "form-submit"
+    ? await caseRuntimeOwner.verifyFormSubmitReadback(item, caseContext, {
+        action: pending.action,
+        formResponseIdentity: pending.formResponseIdentity,
+        browser,
+        originalSessionCookie: pending.originalSessionCookie,
+      })
+    : null;
+  const exactRuntimeReadback = item.workflow.inputs.some(input => input.kind === "exact-runtime-fixture")
+    ? await caseRuntimeOwner.verifyExactRuntimeReadback(item, caseContext)
+    : null;
+  const catalogRuntimeReadback = !isExistingSpecializedExactOracle(item) &&
+      !pending.explicitObserved?.exactRuntimeOracle
+    ? await executeCatalogRuntimeOracle({
+        browser,
+        item,
+        fixtureId: caseContext?.fixtureId || exactFixtureId(item),
+        bindings: exactOracleBindings(caseRuntimeOwner, caseContext),
+        correlationId: pending.action.semanticCompletion.correlationId,
+      })
+    : null;
+  let rejectedActionReadback = item.workflow.inputs.some(input => input.kind === "rejected-endpoint-fixture")
+    ? await caseRuntimeOwner.verifyRejectedActionReadback(item, caseContext)
+    : null;
+  if (item.caseId === "RULE-097" && rejectedActionReadback) {
+    const domScopeReadback = await browser.evaluate(({ assignedViewId, blockedViewId, disallowedRuleId }) => {
+      const assigned = document.querySelectorAll(`[data-source-view="${CSS.escape(assignedViewId)}"]`);
+      const blocked = document.querySelectorAll(`[data-source-view="${CSS.escape(blockedViewId)}"]`);
+      const text = String(document.body?.innerText || "");
+      return {
+        assignedSourceNodeCount: assigned.length,
+        blockedSourceNodeCount: blocked.length,
+        blockedViewTextAbsent: !text.includes(blockedViewId),
+        disallowedRuleTextAbsent: !text.includes(disallowedRuleId),
+      };
+    }, rejectedActionReadback);
+    assert(domScopeReadback.assignedSourceNodeCount === 1 &&
+      domScopeReadback.blockedSourceNodeCount === 0 &&
+      domScopeReadback.blockedViewTextAbsent === true &&
+      domScopeReadback.disallowedRuleTextAbsent === true,
+    `${item.caseId} scoped viewer /client/live DOM boundary mismatch`);
+    rejectedActionReadback = { ...rejectedActionReadback, domScopeReadback };
+  }
+  const explicitObserved = runtimeFormSubmitReadback ||
+    (Object.keys(postconditionSnapshots).length > 0 || runtimeMutationReadback || rejectedActionReadback || exactRuntimeReadback || catalogRuntimeReadback
     ? {
         beforeSnapshots: pending.beforePostconditionSnapshots || {},
         snapshots: postconditionSnapshots,
-        ...(runtimeMutationReadback ? { runtimeMutationReadback } : {}),
+        ...(runtimeMutationReadback ? {
+          persistedMutationObserved: runtimeMutationReadback.persistedMutationObserved,
+          runtimeMutationReadback,
+        } : {}),
+        ...(rejectedActionReadback ? { rejectedActionReadback } : {}),
+        ...(exactRuntimeReadback ? { exactRuntimeReadback } : {}),
+        ...(catalogRuntimeReadback ? { exactRuntimeOracle: catalogRuntimeReadback } : {}),
       }
-    : (pending.explicitObserved || null);
+    : (pending.explicitObserved || null));
   const semanticReadback = semanticReadbackEvidence(
     pending.action,
     pending.actionEvidence,
@@ -1366,6 +1896,8 @@ async function executeIndependentReadback(
       readbackIdentity: action.readbackIdentity,
       semanticReadback,
       runtimeMutationReadback,
+      runtimeFormSubmitReadback,
+      rejectedActionReadback,
       status: "PASS",
     },
     completionOracle,
@@ -1376,6 +1908,23 @@ async function executeIndependentReadback(
       networkEntries: pending.networkResponses,
       semanticReadback,
     }),
+  };
+}
+
+function exactFixtureId(item) {
+  return (item.workflow.setup || []).find(setup => setup.kind === "seed-reviewed-state")?.fixtureId ||
+    `${item.caseId.toLowerCase()}-fixture`;
+}
+
+function exactOracleBindings(caseRuntimeOwner, caseContext) {
+  const relationship = caseContext?.relationshipFixture || {};
+  const defaultViewId = caseRuntimeOwner?.descriptor?.auth?.defaultViewId || "9001";
+  return {
+    assignedViewId: relationship.viewId || defaultViewId,
+    blockedViewId: relationship.blockedView?.viewId || "99002",
+    viewId: relationship.viewId || defaultViewId,
+    sourceId: relationship.sourceId || defaultViewId,
+    ruleId: relationship.vaRuleId || "1",
   };
 }
 
@@ -1398,6 +1947,11 @@ async function executeWorkflowCleanup(browser, item, runtimeState, caseRuntimeOw
       } else {
         throw new Error(`${item.caseId} local cleanup inverse adapter is unavailable for ${state.kind}`);
       }
+    } else if (cleanup.kind === "reset-local-ui-route") {
+      assert(cleanup.route === item.workflow.primaryControl.route,
+        `${item.caseId} local UI reset route drift`);
+      const observed = await browser.navigate(cleanup.route);
+      assert(observed.status === 200, `${item.caseId} local UI reset route status mismatch: ${observed.status}`);
     } else if (cleanup.kind === "no-op-cleanup") {
       assert(cleanup.persistedMutation === false, `${item.caseId} no-op cleanup mutation flag drift`);
       assert(!item.workflow.controlSequence.some(action =>
@@ -1442,7 +1996,11 @@ async function executeCaseNativeNavigation(browser, item, action) {
     observed,
     status: "PASS",
   };
-  const semanticReadback = semanticReadbackEvidence(action, actionEvidence, before, after);
+  const semanticReadback = semanticReadbackEvidence(action, actionEvidence, before, after, {
+    route: new URL(observed.url, "http://127.0.0.1").pathname,
+    exists: after.exists === true,
+    visible: after.visible === true,
+  });
   const networkEntries = browser.networkEntries().slice(networkStart);
   const completionOracle = evaluateCompletionOracle({
     action: actionEvidence,
@@ -1531,7 +2089,11 @@ function semanticCompletionAction(action, item) {
 function semanticReadbackEvidence(action, actionEvidence, before, after, explicitObserved = null) {
   const expected = structuredClone(action.semanticCompletion.readbackExpectation);
   if (action.semanticCompletion.phase === "primary-action") {
-    const observation = {
+    const runtimeFormReadback = explicitObserved?.schema ===
+      "media-server.v390-ui-runtime-form-submit-readback.v1";
+    const observation = runtimeFormReadback ? {
+      actual: structuredClone(explicitObserved),
+    } : {
       before: before ? structuredClone(before) : null,
       after: after ? structuredClone(after) : null,
       ...(explicitObserved?.snapshots ? {
@@ -1551,7 +2113,9 @@ function semanticReadbackEvidence(action, actionEvidence, before, after, explici
       correlationId: actionEvidence.correlationId,
       actionId: actionEvidence.actionId,
       expectedBehaviorSha256: action.semanticCompletion.expectedBehaviorSha256,
-      observationSource: "browser-dom",
+      observationSource: runtimeFormReadback
+        ? "readback-request"
+        : "browser-dom",
       selector: actionEvidence.controlSelector,
       observation,
       observationSha256: domSnapshotDigest(observation),
@@ -1671,7 +2235,7 @@ function validateRunnerWorkflowCompatibility(cases) {
           action.uiLifecycle.fieldControls.length === action.fields.length &&
           action.uiLifecycle.fieldControls.every((field, fieldIndex) =>
             field.name === action.fields[fieldIndex] &&
-            ["fill", "select", "check", "hidden-binding"].includes(field.control)) &&
+            ["fill", "select", "check", "hidden-binding", "readonly-value"].includes(field.control)) &&
           Array.isArray(action.uiLifecycle.requiredPhases) && action.uiLifecycle.requiredPhases.length === 5,
         `${item.caseId} submit-form typed lifecycle shape invalid`);
       }
@@ -1700,6 +2264,9 @@ function validateRunnerWorkflowCompatibility(cases) {
       cleanupKinds.add(cleanup.kind);
       if (cleanup.kind === "restore-local-control") {
         assert(cleanup.selector, `${item.caseId} restore-local-control selector missing`);
+      } else if (cleanup.kind === "reset-local-ui-route") {
+        assert(cleanup.route === workflow.primaryControl.route,
+          `${item.caseId} reset-local-ui-route must target the primary product route`);
       } else if (cleanup.kind === "no-op-cleanup") {
         assert(cleanup.persistedMutation === false,
           `${item.caseId} no-op-cleanup mutation flag invalid`);

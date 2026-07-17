@@ -25,12 +25,12 @@ const usernames = {
   viewer: "ui_viewer",
   integrator: "ui_integrator",
 };
-const adminPasswordEnv = "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD";
+const legacyAdminPasswordEnv = "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD";
+const exactRoleSecretsEnv = "MEDIA_SERVER_V390_UI_ROLE_SECRETS";
 
 export async function startSelfContainedUiEnvironment({
   rootDir,
   runId,
-  adminPassword = "",
   fixtureMode = false,
   playwrightModulePath = "",
   chromePath = "",
@@ -38,14 +38,13 @@ export async function startSelfContainedUiEnvironment({
   timeoutMs = 30000,
   maxPortAttempts = 8,
 } = {}) {
-  delete process.env[adminPasswordEnv];
+  discardInheritedAcceptanceSecrets(process.env);
   assert(rootDir && path.isAbsolute(rootDir), "self-contained UI rootDir must be absolute");
   assert(runId, "self-contained UI runId is required");
   assert(Number.isInteger(maxPortAttempts) && maxPortAttempts >= 1 && maxPortAttempts <= 32,
     "self-contained UI maxPortAttempts must be 1..32");
 
   const state = createState({ rootDir, runId, fixtureMode, buildPath, timeoutMs, maxPortAttempts });
-  if (adminPassword) state.secretValues.push(adminPassword);
   try {
     prepareTemporaryState(state);
     if (fixtureMode) return await startFixtureEnvironment(state);
@@ -59,7 +58,7 @@ export async function startSelfContainedUiEnvironment({
     prepareRegistrySeed(state);
     state.server = await startOwnedServerWithBoundedRetry(state);
     state.runtimeAcquired = true;
-    await bootstrapAuthAndStorageStates(state, adminPassword);
+    await bootstrapAuthAndStorageStates(state);
     await state.browser.close();
     state.browser = null;
     assertGeneratedSecretsAbsentFromDisk(state);
@@ -68,7 +67,6 @@ export async function startSelfContainedUiEnvironment({
     const attestation = buildEnvironmentAttestation(state, "PASS");
     return buildHandle(state, attestation);
   } catch (error) {
-    if (!state.adminSecretConsumed && adminPassword) state.adminSecretDiscarded = true;
     const reason = redactMessage(error instanceof Error ? error.message : String(error), state.secretValues);
     const cleanup = await cleanupState(state, { requireRuntimeMeasurement: false });
     const wrapped = new Error(reason);
@@ -83,19 +81,28 @@ export async function stopSelfContainedUiEnvironment(handle) {
   return handle.cleanup();
 }
 
-export function resolveAcceptanceRoleSecrets(adminPassword, generator = generatePassword) {
-  assert(typeof adminPassword === "string" && adminPassword.length > 0,
-    `${adminPasswordEnv} is required for the acceptance-owned throwaway admin`);
-  return Object.fromEntries(roles.map(role => [
-    role,
-    role === "admin" ? adminPassword : generator(usernames[role]),
-  ]));
+export function resolveAcceptanceRoleSecrets(generator = generatePassword) {
+  assert(typeof generator === "function", "acceptance role secret generator is required");
+  const generated = Object.fromEntries(roles.map(role => [role, generator(usernames[role])]));
+  for (const role of roles) {
+    assert(typeof generated[role] === "string" && generated[role].length > 0,
+      `${role} acceptance secret generator returned an empty value`);
+  }
+  assert(new Set(Object.values(generated)).size === roles.length,
+    "acceptance role secrets must be unique per role");
+  return generated;
 }
 
-export function consumeAcceptanceAdminPassword(sourceEnv = process.env) {
-  const adminPassword = sourceEnv[adminPasswordEnv] || "";
-  delete sourceEnv[adminPasswordEnv];
-  return adminPassword;
+export function discardInheritedAcceptanceSecrets(sourceEnv = process.env) {
+  const discarded = [legacyAdminPasswordEnv, exactRoleSecretsEnv]
+    .filter(name => Object.prototype.hasOwnProperty.call(sourceEnv, name));
+  delete sourceEnv[legacyAdminPasswordEnv];
+  delete sourceEnv[exactRoleSecretsEnv];
+  return {
+    status: "PASS",
+    discardedVariableCount: discarded.length,
+    lifecycle: "inherited-secret-inputs-ignored-and-unset-before-provenance",
+  };
 }
 
 export function listListenerPids(port) {
@@ -161,8 +168,8 @@ function createState({ rootDir, runId, fixtureMode, buildPath, timeoutMs, maxPor
     cleanupEvidence: null,
     secretValues: [],
     roleSecretsJson: "",
-    adminSecretConsumed: false,
-    adminSecretDiscarded: false,
+    roleSecretsGenerated: false,
+    roleSecretsReleased: false,
   };
 }
 
@@ -379,8 +386,8 @@ function spawnOwnedServer(state, attempt) {
 
 export function secretStrippedProcessEnv(sourceEnv = process.env) {
   const env = { ...sourceEnv };
-  delete env[adminPasswordEnv];
-  delete env.MEDIA_SERVER_V390_UI_ROLE_SECRETS;
+  delete env[legacyAdminPasswordEnv];
+  delete env[exactRoleSecretsEnv];
   return env;
 }
 
@@ -415,10 +422,10 @@ async function waitForOwnedServer(record, state) {
   throw new Error(`owned server readiness timeout: ${lastReason}`);
 }
 
-async function bootstrapAuthAndStorageStates(state, adminPassword) {
-  const secrets = resolveAcceptanceRoleSecrets(adminPassword);
+async function bootstrapAuthAndStorageStates(state) {
+  const secrets = resolveAcceptanceRoleSecrets();
   state.secretValues = [...Object.values(secrets)];
-  state.adminSecretConsumed = true;
+  state.roleSecretsGenerated = true;
   const fixturePassword = generatePassword();
   state.secretValues.push(fixturePassword);
   state.roleSecretsJson = JSON.stringify({ roles: secrets, refs: { fixturePassword } });
@@ -566,13 +573,13 @@ function buildEnvironmentAttestation(state, result, failureReason = "") {
       browserLaunchVerified: false,
       reason: "dependency bootstrap did not complete",
     },
-    secretHandling: "runtime-admin-and-generated-role-secrets-memory-only",
-    adminSecretSource: adminPasswordEnv,
-    adminSecretLifecycle: state.fixtureMode
-      ? "fixture-not-consumed"
-      : (state.adminSecretConsumed
-        ? "runtime-env-consumed-then-unset"
-        : (state.adminSecretDiscarded ? "runtime-env-discarded-before-consumption" : "runtime-env-not-consumed")),
+    secretHandling: "all-role-secrets-generated-memory-only",
+    roleSecretSource: "acceptance-crypto-random-generated-memory-only",
+    roleSecretLifecycle: state.fixtureMode
+      ? "fixture-not-generated"
+      : (state.roleSecretsReleased
+        ? "generated-scanned-and-released"
+        : (state.roleSecretsGenerated ? "generated-held-for-exact-child" : "not-generated")),
     secretSerialization: false,
     ownership: {
       serverStartedByAcceptance: true,
@@ -617,6 +624,10 @@ function buildHandle(state, attestation) {
     releaseSecrets() {
       state.roleSecretsJson = "";
       state.secretValues = [];
+      state.roleSecretsReleased = true;
+      attestation.roleSecretLifecycle = state.fixtureMode
+        ? "fixture-not-generated"
+        : "generated-scanned-and-released";
       this.exactCaseEnv = {};
     },
     assertSecretsAbsentFromArtifacts(rootPath) {

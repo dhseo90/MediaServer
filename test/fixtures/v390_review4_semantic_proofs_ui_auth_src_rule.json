@@ -2104,8 +2104,8 @@
           "file": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs",
           "symbol": "negative-route-oracle:UI-018",
           "anchor": "assert(JSON.stringify(item.oracle.allowedStatuses) === JSON.stringify([404]), \"UI-018 must accept exactly status 404\");",
-          "line": 128,
-          "contextSha256": "91a31b6d24098e99b486fc064bf367b2d686a8cd5132c35ea8a4182123dd07c4"
+          "line": 164,
+          "contextSha256": "a18fba69e869e75408b5f49a39b41047ca63b733a3e50a016fef5f184d6f98e4"
         },
         "verifier": {
           "file": "server.sh",
@@ -2146,14 +2146,14 @@
           "kind": "structural-producer-assertion",
           "witness": "the unmatched-route 404 producer is bound to the exact UI-018 negative status oracle",
           "source": "src/ingress/webrtc_http_server_runtime.cpp:4967",
-          "target": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs:128"
+          "target": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs:164"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v390-ui-native-exact-cases-contract",
-          "source": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs:128",
+          "source": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs:164",
           "target": "server.sh:2301"
         }
       ],

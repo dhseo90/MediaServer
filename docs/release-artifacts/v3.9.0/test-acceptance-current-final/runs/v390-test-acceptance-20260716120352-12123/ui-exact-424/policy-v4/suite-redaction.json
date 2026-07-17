@@ -1,0 +1,2131 @@
+{
+  "schema": "media-server.ui-evidence-redaction-scan.v1",
+  "scope": "suite",
+  "status": "PASS",
+  "correlationId": "v390-suite-1784206489207",
+  "caseIds": [
+    "UI-001",
+    "UI-002",
+    "UI-003",
+    "UI-004",
+    "UI-005",
+    "UI-007",
+    "UI-008",
+    "UI-009",
+    "UI-010",
+    "UI-011",
+    "UI-012",
+    "UI-013",
+    "UI-014",
+    "UI-015",
+    "UI-016",
+    "UI-017",
+    "UI-018",
+    "UI-019",
+    "UI-020",
+    "UI-021",
+    "UI-022",
+    "UI-023",
+    "UI-024",
+    "UI-025",
+    "UI-026",
+    "UI-027",
+    "UI-028",
+    "UI-029",
+    "UI-030",
+    "UI-031",
+    "UI-032",
+    "UI-033",
+    "UI-034",
+    "UI-035",
+    "UI-036",
+    "UI-037",
+    "UI-038",
+    "UI-039",
+    "UI-040",
+    "UI-041",
+    "UI-042",
+    "UI-043",
+    "UI-044",
+    "UI-045",
+    "UI-046",
+    "UI-047",
+    "UI-048",
+    "UI-049",
+    "UI-050",
+    "UI-051",
+    "UI-052",
+    "UI-053",
+    "UI-054",
+    "UI-055",
+    "UI-056",
+    "UI-057",
+    "UI-058",
+    "UI-059",
+    "UI-060",
+    "UI-061",
+    "UI-062",
+    "UI-063",
+    "UI-064",
+    "UI-065",
+    "UI-066",
+    "UI-067",
+    "UI-068",
+    "UI-069",
+    "UI-070",
+    "UI-071",
+    "UI-072",
+    "UI-073",
+    "UI-074",
+    "UI-075",
+    "UI-076",
+    "UI-077",
+    "UI-078",
+    "UI-079",
+    "UI-080",
+    "UI-081",
+    "UI-082",
+    "UI-083",
+    "UI-084",
+    "UI-085",
+    "UI-086",
+    "UI-087",
+    "UI-088",
+    "UI-089",
+    "UI-090",
+    "UI-091",
+    "UI-092",
+    "UI-093",
+    "UI-094",
+    "UI-095",
+    "UI-096",
+    "UI-097",
+    "UI-098",
+    "UI-099",
+    "UI-100",
+    "UI-101",
+    "UI-102",
+    "UI-103",
+    "UI-104",
+    "UI-105",
+    "UI-106",
+    "UI-107",
+    "UI-108",
+    "UI-109",
+    "UI-110",
+    "UI-111",
+    "UI-112",
+    "UI-113",
+    "UI-114",
+    "UI-115",
+    "AUTH-004",
+    "AUTH-005",
+    "AUTH-006",
+    "AUTH-007",
+    "AUTH-012",
+    "AUTH-013",
+    "AUTH-014",
+    "AUTH-015",
+    "AUTH-016",
+    "AUTH-018",
+    "AUTH-019",
+    "AUTH-020",
+    "AUTH-021",
+    "AUTH-022",
+    "AUTH-023",
+    "AUTH-024",
+    "AUTH-025",
+    "AUTH-026",
+    "AUTH-027",
+    "AUTH-028",
+    "AUTH-029",
+    "AUTH-030",
+    "AUTH-033",
+    "AUTH-034",
+    "AUTH-035",
+    "AUTH-036",
+    "AUTH-037",
+    "AUTH-038",
+    "AUTH-039",
+    "AUTH-040",
+    "SRC-001",
+    "SRC-002",
+    "SRC-003",
+    "SRC-004",
+    "SRC-005",
+    "SRC-006",
+    "SRC-007",
+    "SRC-008",
+    "SRC-009",
+    "SRC-010",
+    "SRC-011",
+    "SRC-012",
+    "SRC-014",
+    "SRC-016",
+    "SRC-017",
+    "SRC-018",
+    "SRC-019",
+    "SRC-020",
+    "SRC-021",
+    "SRC-022",
+    "SRC-023",
+    "SRC-024",
+    "SRC-025",
+    "SRC-026",
+    "SRC-028",
+    "SRC-029",
+    "SRC-030",
+    "SRC-031",
+    "SRC-032",
+    "SRC-034",
+    "SRC-035",
+    "SRC-036",
+    "SRC-037",
+    "SRC-038",
+    "SRC-039",
+    "SRC-040",
+    "SRC-065",
+    "SRC-066",
+    "SRC-067",
+    "SRC-068",
+    "RULE-001",
+    "RULE-002",
+    "RULE-003",
+    "RULE-004",
+    "RULE-005",
+    "RULE-006",
+    "RULE-007",
+    "RULE-008",
+    "RULE-009",
+    "RULE-010",
+    "RULE-011",
+    "RULE-012",
+    "RULE-013",
+    "RULE-014",
+    "RULE-015",
+    "RULE-016",
+    "RULE-017",
+    "RULE-018",
+    "RULE-019",
+    "RULE-020",
+    "RULE-021",
+    "RULE-022",
+    "RULE-023",
+    "RULE-024",
+    "RULE-025",
+    "RULE-026",
+    "RULE-027",
+    "RULE-028",
+    "RULE-029",
+    "RULE-030",
+    "RULE-031",
+    "RULE-032",
+    "RULE-033",
+    "RULE-034",
+    "RULE-035",
+    "RULE-036",
+    "RULE-037",
+    "RULE-038",
+    "RULE-039",
+    "RULE-040",
+    "RULE-041",
+    "RULE-042",
+    "RULE-043",
+    "RULE-044",
+    "RULE-045",
+    "RULE-046",
+    "RULE-047",
+    "RULE-048",
+    "RULE-049",
+    "RULE-050",
+    "RULE-051",
+    "RULE-052",
+    "RULE-053",
+    "RULE-054",
+    "RULE-055",
+    "RULE-056",
+    "RULE-057",
+    "RULE-058",
+    "RULE-059",
+    "RULE-060",
+    "RULE-061",
+    "RULE-062",
+    "RULE-063",
+    "RULE-064",
+    "RULE-065",
+    "RULE-066",
+    "RULE-067",
+    "RULE-068",
+    "RULE-069",
+    "RULE-070",
+    "RULE-071",
+    "RULE-072",
+    "RULE-073",
+    "RULE-074",
+    "RULE-075",
+    "RULE-076",
+    "RULE-077",
+    "RULE-078",
+    "RULE-079",
+    "RULE-080",
+    "RULE-081",
+    "RULE-082",
+    "RULE-083",
+    "RULE-084",
+    "RULE-085",
+    "RULE-086",
+    "RULE-087",
+    "RULE-088",
+    "RULE-089",
+    "RULE-090",
+    "RULE-091",
+    "RULE-092",
+    "RULE-093",
+    "RULE-094",
+    "RULE-095",
+    "RULE-096",
+    "RULE-097",
+    "RULE-098",
+    "RULE-100",
+    "RULE-101",
+    "RULE-102",
+    "RULE-103",
+    "RULE-104",
+    "RULE-111",
+    "EVT-001",
+    "EVT-003",
+    "EVT-004",
+    "EVT-007",
+    "EVT-016",
+    "EVT-017",
+    "EVT-018",
+    "EVT-019",
+    "EVT-020",
+    "EVT-021",
+    "EVT-022",
+    "EVT-023",
+    "EVT-024",
+    "EVT-025",
+    "EVT-026",
+    "EVT-028",
+    "EVT-030",
+    "EVT-031",
+    "EVT-036",
+    "EVT-037",
+    "EVT-038",
+    "EVT-041",
+    "EVT-042",
+    "EVT-043",
+    "EVT-044",
+    "EVT-046",
+    "EVT-047",
+    "EVT-048",
+    "EVT-049",
+    "EVT-050",
+    "EVT-051",
+    "EVT-052",
+    "EVT-053",
+    "EVT-054",
+    "EVT-055",
+    "EVT-056",
+    "EVT-057",
+    "EVT-058",
+    "EVT-061",
+    "EVT-064",
+    "EVT-065",
+    "EVT-066",
+    "EVT-067",
+    "EVT-068",
+    "EVT-069",
+    "EVT-070",
+    "EVT-071",
+    "EVT-072",
+    "EVT-075",
+    "CLIENT-001",
+    "CLIENT-002",
+    "CLIENT-005",
+    "CLIENT-006",
+    "CLIENT-007",
+    "CLIENT-009",
+    "CLIENT-010",
+    "CLIENT-011",
+    "CLIENT-012",
+    "CLIENT-013",
+    "CLIENT-014",
+    "CLIENT-015",
+    "CLIENT-016",
+    "CLIENT-017",
+    "CLIENT-018",
+    "CLIENT-019",
+    "CLIENT-020",
+    "CLIENT-021",
+    "CLIENT-022",
+    "CLIENT-023",
+    "CLIENT-024",
+    "CLIENT-025",
+    "CLIENT-027",
+    "CLIENT-028",
+    "CLIENT-029",
+    "CLIENT-031",
+    "CLIENT-032",
+    "CLIENT-040",
+    "CLIENT-041",
+    "CLIENT-042",
+    "MEDIA-016",
+    "MEDIA-017",
+    "SAFE-015",
+    "SAFE-016",
+    "SAFE-017",
+    "SAFE-018",
+    "SAFE-019",
+    "SAFE-020",
+    "SAFE-021",
+    "SAFE-024",
+    "SAFE-028",
+    "SAFE-031",
+    "SAFE-033",
+    "SAFE-038",
+    "SAFE-041",
+    "SAFE-042",
+    "SAFE-045",
+    "SAFE-046",
+    "SAFE-047",
+    "SAFE-048",
+    "SAFE-049",
+    "SAFE-050",
+    "SAFE-052",
+    "SAFE-053",
+    "SAFE-054",
+    "SAFE-055",
+    "SAFE-056",
+    "SAFE-058",
+    "SAFE-059",
+    "SAFE-060",
+    "SAFE-061",
+    "SAFE-062",
+    "SAFE-065",
+    "SAFE-066",
+    "SAFE-067",
+    "SAFE-068",
+    "SAFE-069",
+    "SAFE-098",
+    "SAFE-104",
+    "SAFE-105",
+    "SAFE-106",
+    "SAFE-107",
+    "SAFE-108",
+    "SAFE-109",
+    "SAFE-110",
+    "SAFE-111",
+    "SAFE-117",
+    "SAFE-118",
+    "SAFE-119",
+    "SAFE-121",
+    "SAFE-122",
+    "SAFE-129",
+    "SAFE-130",
+    "SAFE-131",
+    "SAFE-132",
+    "SAFE-138",
+    "SAFE-140"
+  ],
+  "caseAttestations": [
+    {
+      "caseId": "UI-001",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-002",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-003",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-004",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-005",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-007",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-008",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-009",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-010",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-011",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-012",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-013",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-014",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-015",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-016",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-017",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-018",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-019",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-020",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-021",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-022",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-023",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-024",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-025",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-026",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-027",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-028",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-029",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-030",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-031",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-032",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-033",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-034",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-035",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-036",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-037",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-038",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-039",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-040",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-041",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-042",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-043",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-044",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-045",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-046",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-047",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-048",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-049",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-050",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-051",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-052",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-053",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-054",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-055",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-056",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-057",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-058",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-059",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-060",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-061",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-062",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-063",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-064",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-065",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-066",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-067",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-068",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-069",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-070",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-071",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-072",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-073",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-074",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-075",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-076",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-077",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-078",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-079",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-080",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-081",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-082",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-083",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-084",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-085",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-086",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-087",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-088",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-089",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-090",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-091",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-092",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-093",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-094",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-095",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-096",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-097",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-098",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-099",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-100",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-101",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-102",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-103",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-104",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-105",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-106",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-107",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-108",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-109",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-110",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-111",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-112",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-113",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-114",
+      "sha256": ""
+    },
+    {
+      "caseId": "UI-115",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-004",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-005",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-006",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-007",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-012",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-013",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-014",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-015",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-016",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-018",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-019",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-020",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-021",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-022",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-023",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-024",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-025",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-026",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-027",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-028",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-029",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-030",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-033",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-034",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-035",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-036",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-037",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-038",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-039",
+      "sha256": ""
+    },
+    {
+      "caseId": "AUTH-040",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-001",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-002",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-003",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-004",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-005",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-006",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-007",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-008",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-009",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-010",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-011",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-012",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-014",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-016",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-017",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-018",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-019",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-020",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-021",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-022",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-023",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-024",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-025",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-026",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-028",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-029",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-030",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-031",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-032",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-034",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-035",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-036",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-037",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-038",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-039",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-040",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-065",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-066",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-067",
+      "sha256": ""
+    },
+    {
+      "caseId": "SRC-068",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-001",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-002",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-003",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-004",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-005",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-006",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-007",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-008",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-009",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-010",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-011",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-012",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-013",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-014",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-015",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-016",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-017",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-018",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-019",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-020",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-021",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-022",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-023",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-024",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-025",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-026",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-027",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-028",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-029",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-030",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-031",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-032",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-033",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-034",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-035",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-036",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-037",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-038",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-039",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-040",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-041",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-042",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-043",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-044",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-045",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-046",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-047",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-048",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-049",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-050",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-051",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-052",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-053",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-054",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-055",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-056",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-057",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-058",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-059",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-060",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-061",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-062",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-063",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-064",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-065",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-066",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-067",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-068",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-069",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-070",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-071",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-072",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-073",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-074",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-075",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-076",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-077",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-078",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-079",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-080",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-081",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-082",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-083",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-084",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-085",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-086",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-087",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-088",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-089",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-090",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-091",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-092",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-093",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-094",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-095",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-096",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-097",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-098",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-100",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-101",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-102",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-103",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-104",
+      "sha256": ""
+    },
+    {
+      "caseId": "RULE-111",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-001",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-003",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-004",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-007",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-016",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-017",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-018",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-019",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-020",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-021",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-022",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-023",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-024",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-025",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-026",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-028",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-030",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-031",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-036",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-037",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-038",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-041",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-042",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-043",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-044",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-046",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-047",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-048",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-049",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-050",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-051",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-052",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-053",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-054",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-055",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-056",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-057",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-058",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-061",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-064",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-065",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-066",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-067",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-068",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-069",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-070",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-071",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-072",
+      "sha256": ""
+    },
+    {
+      "caseId": "EVT-075",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-001",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-002",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-005",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-006",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-007",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-009",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-010",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-011",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-012",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-013",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-014",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-015",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-016",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-017",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-018",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-019",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-020",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-021",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-022",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-023",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-024",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-025",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-027",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-028",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-029",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-031",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-032",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-040",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-041",
+      "sha256": ""
+    },
+    {
+      "caseId": "CLIENT-042",
+      "sha256": ""
+    },
+    {
+      "caseId": "MEDIA-016",
+      "sha256": ""
+    },
+    {
+      "caseId": "MEDIA-017",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-015",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-016",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-017",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-018",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-019",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-020",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-021",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-024",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-028",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-031",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-033",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-038",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-041",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-042",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-045",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-046",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-047",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-048",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-049",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-050",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-052",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-053",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-054",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-055",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-056",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-058",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-059",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-060",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-061",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-062",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-065",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-066",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-067",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-068",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-069",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-098",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-104",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-105",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-106",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-107",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-108",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-109",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-110",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-111",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-117",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-118",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-119",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-121",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-122",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-129",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-130",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-131",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-132",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-138",
+      "sha256": ""
+    },
+    {
+      "caseId": "SAFE-140",
+      "sha256": ""
+    }
+  ],
+  "findings": []
+}

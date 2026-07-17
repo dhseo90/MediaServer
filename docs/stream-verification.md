@@ -68,7 +68,7 @@ published metadata, release action evidence가 아닙니다.
 | V390-REVIEW4-59 | `./server.sh verify-v390-ui-visual-evidence-contract`, `./server.sh verify-v390-ui-native-adapter-contract`, `./server.sh verify-v390-ui-policy-v4-producer-contract`, `./server.sh verify-ui-fulltest-evidence-policy-v4-contract` | Canonical/native-bound 대표 route 10개를 320/390/760/1180×light/dark로 확장한 exact 80-probe v2 plan을 검증합니다. 실제 `data-theme`, screenshot pixel 정보량, geometry/contrast/focus/overflow를 재계산하고 `/client/live`는 tile `data-view-id`와 session/answer URL `viewId`, session 응답과 answer URL `sessionId`가 모두 같은 VA session, live track/frame progress, contain content rect, placeholder/control containment을 요구합니다. 합성 contract와 424 plan-only는 actual browser capture나 exact 424 UI/30분/120분 PASS가 아닙니다 |
 | V390-REVIEW4-60 | `./server.sh verify-v390-ui-policy-v4-independence-contract`, `./server.sh verify-v390-ui-policy-v4-producer-contract`, `./server.sh verify-ui-fulltest-evidence-policy-v4-contract` | Producer는 raw trace/action/network/readback/visual capture만 보존하고 qualifier는 별도 모듈에서 exact action·selector·request/response·fresh semantic readback·requested/observed·visual을 재계산합니다. Producer의 result/replay/completion/visual/current-source self-claim은 PASS 입력이 아닙니다. Contract 10/0·8/0·20/0은 source readiness이며 actual exact 424 browser와 80-probe capture, 30분/120분 PASS가 아닙니다 |
 | V390-REVIEW4-61 | `./server.sh verify-v390-longrun-evidence-measurement-contract`, `./server.sh verify-v390-server-longrun-runner-contract`, `./server.sh verify-v390-test-acceptance-bundle-contract`, `./server.sh verify-v390-final-evidence-integrity-contract` | Longrun v2 summary는 runner `process.hrtime.bigint`와 delegated Bash `SECONDS` monotonic 시작/종료/경과시간, requested duration, exact ordered iteration ledger와 delegated step ledger를 함께 검증합니다. 120분 정책 필요성은 AGENTS 7.6.2 change-scope trigger에서 계산하고 `--run-120`은 trigger 생성이 아닌 실행 승인만 표현합니다. Cleanup은 허용된 command identity/PID, listener owner 전후, bindable port, contained artifact의 `bytesBefore`/`bytesAfter`를 raw measurement로 기록하고 acceptance/final integrity가 독립 재검증합니다. Contract/fixture는 실제 30분/120분 또는 UI 실행 evidence가 아닙니다 |
-| V390-REVIEW4-62 | `./server.sh verify-v390-test-acceptance-bundle-contract`, `./server.sh verify-v390-ui-native-exact-cases-contract`, `./server.sh verify-v390-ui-native-adapter-contract` | Canonical acceptance가 임시 HTTP/RTSP server, bounded port 재시도, admin/operator/viewer/integrator 계정, 0600 storage-state, Playwright/browser provenance, PID·listener·artifact ownership과 cleanup을 직접 소유합니다. Exact runner는 acceptance runtime descriptor 안에서 case별 fresh role session, persisted state snapshot/restore, cross-role action 전환, runtime-only secret resolver와 cleanup readback을 수행합니다. `/ops/users` product case는 admin role로 실행합니다. Contract/fixture/plan-only는 실제 30분·exact 424 browser·80 visual·120분 PASS가 아닙니다 |
+| V390-REVIEW4-62 | 네 root launcher, `./server.sh verify-v390-user-test-launchers-contract`, acceptance/native contracts | 사용자는 인자·환경변수 없이 30분·120분·UI·release launcher 중 하나만 실행합니다. 30분·120분·UI launcher는 OS temp output을 유지하고 release launcher만 저장소 canonical `docs/release-artifacts/v3.9.0/test-acceptance-current-final`을 사용합니다. 공통 launcher가 contract preflight/결과 출력을, server runner가 ephemeral port와 direct 120 승인을, UI/release가 throwaway account/role-state/browser/all-role secret lifecycle을 소유합니다. Release 120은 AGENTS 7.6.2 다섯 변경 영역 또는 upstream signal에만 자동 실행하고 없으면 `not-required`입니다. Launcher 13/13·acceptance 15/15·longrun 9/9 contract는 actual PASS가 아닙니다 |
 | v3.9.0 (13) | `./server.sh verify-v390-vlm-rule-suggestion-draft-bridge` | VLM rule suggestion draft bridge. `/ops/api/vlm/rule-suggestion-draft-bridge`와 `/ops/rules`가 review-to-draft bridge, incident review provenance, manual-save-only boundary를 표시하고 기존 `/ops/api/vlm/rule-suggestion-drafts` workflow를 유지하는지 확인합니다. rule/profile registry write, auto-apply, provider/runtime call, client/viewer exposure, EventRecord/Event POST/WebRTC/SSE/WS/schema/media 변경, UI 풀테스트 직접 조작, 30분/120분 longrun evidence가 아닙니다 |
 | v3.9.0 (14) | `./server.sh verify-v390-vlm-evaluation-promotion-guard` | VLM evaluation promotion guard. `/ops/api/vlm/evaluation-promotion-guard`와 `/ops/vlm`가 `server-verified-evaluation-promotion`, `operator-select-candidate-then-server-verify-save`, candidate-reference-only boundary를 표시하는지 확인합니다. 실제 forged request HTTP matrix는 V390-ADD1-03 verifier가 담당하며 UI 풀테스트·장시간 evidence가 아닙니다 |
 | V390-REVIEW3-39 profile JSON | `./server.sh verify-v390-vlm-promotion-trust-boundary` | 14개 PUT/GET promotion, exact/escaped duplicate·nested-shadow·malformed·trailing structural save 7개, restart full-contract/structure quarantine 13개를 실행합니다. Strict parser는 exact top-level/object scope와 decoded key type을 사용합니다. runtime/provider/sidecar 호출, client/viewer payload, Event POST/WebRTC/SSE/WS/media/API schema 변경, UI 풀테스트 직접 조작, 30분/120분 evidence가 아닙니다 |
@@ -143,7 +143,7 @@ v3.9.0 Test Model Prep의 서버 longrun runner는 30분/120분을 새 테스트
 | semantic completion oracle | V390-REVIEW3-42는 historical source claim으로 유지합니다. REVIEW4-58의 `media-server.v390-ui-action-completion.v2`가 exact primary action ID/correlation/exact selector에 unique concrete product request 또는 handler별 local transition/postcondition과 별도 fresh runtime readback을 결속합니다. V2 raw observation을 evaluator가 재계산해 initial navigation, wrong fixture/selector/request, duplicate request, manifest expected/observed self-comparison을 거부합니다. Contract/plan-only PASS는 actual exact 424 browser 실행이나 REVIEW4-59 visual/60 Policy independence PASS가 아닙니다. |
 | Policy v4 raw evidence producer | V390-REVIEW3-43의 self-qualified producer는 historical source claim입니다. REVIEW4-60 producer는 raw v2 trace와 capture/fingerprint만 기록하고 별도 qualifier가 action/request/readback/visual/current source를 재계산합니다. Source readiness는 완료됐지만 raw capture 또는 qualifier contract만으로 actual UI PASS가 아닙니다. |
 | actual responsive/theme/visual evidence | V390-REVIEW3-44의 visual contract는 historical source claim입니다. REVIEW4-59의 exact 80-probe source contract는 완료됐지만 대표 route, 320/390/760/1180×light/dark, `/client/live` ready video/VA session/crop/control matrix를 실제 실행하기 전 actual visual PASS가 아닙니다. |
-| current HEAD/artifact containment | V390-REVIEW3-46 acceptance는 start/end provenance와 canonical command-set hash를 기록하고 final integrity는 current HEAD·branch·source-clean 및 output/run/child/Policy/UI artifact의 realpath containment를 독립 재검증합니다. `./server.sh verify-v390-final-evidence-integrity-contract`의 9/0은 변조 거부 계약이며 실제 30분/424 UI/120분 실행 evidence가 아닙니다. |
+| current HEAD/artifact containment | V390-REVIEW3-46 acceptance는 start/end provenance와 canonical command-set hash를 기록하고 final integrity는 current HEAD·branch·source-clean 및 canonical summary/report hash, 필수 child summary/report/Policy evidence의 realpath containment와 SHA-256을 독립 재검증합니다. `./server.sh verify-v390-final-evidence-integrity-contract`의 12/12는 변조 거부 계약이며 실제 30분/424 UI/120분 실행 evidence가 아닙니다. |
 | historical exact readiness/current isolation | V390-REVIEW3-47의 positive 423+negative 1/unsupported 0은 historical source classification입니다. REVIEW4-56~60 source readiness는 `exact-native-ready-current-not-run`으로 닫혔지만 pass 0/not-run 424 실행 상태와 audit-only historical root 거부 경계를 보존합니다. |
 | failure evidence | command, exit code, phase, port, route, log path, summary path, report path, cleanup state, case, context, separated stderr tail, reproduction command, stdout/stderr path, delegated predev first failed step, likely investigation files를 포함합니다. |
 | reproducible inputs | 같은 command와 fixture로 재현할 수 있어야 합니다. |
@@ -427,14 +427,16 @@ v3.9.0 R3 dry-run command는 `finalAcceptanceCommandSet`과 evidence boundary를
 summary/report schema로 고정합니다. V390-ADD1-06 non-dry command는 preserved evidence를
 PASS로 재사용하지 않고 preflight→build→current feature command→실제 30분
 server longrun→exact 424 Policy v4 producer→throwaway server cleanup→Policy v4 qualification→
-조건부 120분 decision/run→cleanup→final integrity→report를 순서대로 직접 실행합니다.
+조건부 120분 decision/run→cleanup→report materialization→final integrity를 순서대로 직접 실행합니다.
 첫 실패 뒤 일반 stage는 `not-run`이고 UI server cleanup/cleanup/report만 항상
 실행합니다.
 
 - `./server.sh verify-v390-test-acceptance-bundle --dry-run`
 - `./server.sh verify-v390-test-acceptance-bundle --dry-run --output-dir <path>`
-- `./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final`
-- 위 canonical command에 AGENTS 7.6.2 trigger와 실행 승인이 모두 있으면 `--run-120` 추가. Flag만으로 trigger를 만들 수 없습니다.
+- 사용자 개별 entrypoint: `./test_server_30min.sh`, `./test_server_120min.sh`, `./test_ui.sh`
+- 사용자 전체 entrypoint: `./test_release.sh`
+- Release launcher는 저장소 canonical `docs/release-artifacts/v3.9.0/test-acceptance-current-final`을 자동 output으로 사용하고 AGENTS 7.6.2 trigger가 있을 때만 내부 `--auto-run-120`으로 120분을 선택합니다. Trigger가 없으면 `not-required`로 계속하며 사용자는 option/env를 조합하지 않습니다. 개별 30분·120분·UI launcher의 OS temp output은 진단용이며 최종 release evidence가 아닙니다.
+- `./server.sh verify-v390-user-test-launchers-contract`
 - `./server.sh verify-v390-test-acceptance-bundle-contract`
 
 R3 summary schema is `media-server.v390-test-acceptance-bundle.v1`. Dry-run은 command/schema
@@ -941,27 +943,34 @@ strict parser 의미와 graph witness 감소를 확인하지만 SAFE-025 generat
 
 ## V390-REVIEW4-65 current HEAD independent acceptance
 
-Canonical actual entrypoint는 아래 한 명령입니다.
+사용자 actual entrypoint는 아래 네 명령이며 각 명령은 해당 범위만 위임합니다.
 
 ```bash
-./server.sh verify-v390-test-acceptance-bundle \
-  --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final \
-  --user-directed-120 \
-  --run-120
+./test_server_30min.sh
+./test_server_120min.sh
+./test_ui.sh
+./test_release.sh
 ```
 
 64번의 WebRTC media application boundary와 cleanup/port lifecycle 변경은 AGENTS 7.6.2의
-120분 직접 trigger이므로 이번 실행은 안정화, 30분, exact 424 Policy v4 UI 뒤 120분을
-순서대로 수행합니다. `--user-directed-120`은 이번 사용자의 실행 승인을 evidence에 별도로
-기록하며, trigger 자체는 위 변경 범위에서 독립 판정합니다. 시작 worktree는 clean이어야 하며 Slice 32 뒤 이동한 986 feature
+120분 직접 trigger이므로 현재 cut의 release launcher는 안정화, 30분, exact 424 Policy v4 UI 뒤 120분을
+자동 선택합니다. 다른 cut에서 다섯 변경 영역/upstream signal이 없으면 120분을 `not-required`로 기록하고
+cleanup/final integrity로 계속합니다. `test_server_120min.sh` 직접 호출은 그 자체를 120분 승인으로 기록합니다.
+사용자는 output path, port, browser path, 120 option, credential을 제공하지 않습니다.
+시작 worktree는 clean이어야 하며 Slice 32 뒤 이동한 986 feature
 source-flow와 독립 approval이 current source에 다시 결속되어야 합니다.
 
+Clean checkout은 re-entry seed `video/imports/va_tracking_event_long_1280x720_30fps_h264.mp4`를 repository fixture로
+포함합니다. Seed matrix는 7,284,400 bytes와 SHA-256
+`24147fb07bb3a1e1f86bb41d2cce6274a6f39eb75671a299a61ca9852f37a122`를 고정하며, seed helper와 acceptance bundle
+contract가 fixture 누락·크기 drift·SHA-256 drift를 모두 거부합니다. 이는 실행 입력 무결성 계약이며 actual 30분/UI/120분
+evidence가 아닙니다.
+
 Acceptance는 실제 사용자 registry를 읽거나 바꾸지 않고 격리된 throwaway users file을
-소유합니다. Throwaway `admin`만 `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`의 실행 시점 값을
-provenance 수집 전에 process env에서 회수해 메모리 인자로만 사용하고 operator/viewer/integrator와
-UI fixture secret은 실행별 생성합니다. 이 값들은
+소유합니다. Admin/operator/viewer/integrator와 UI fixture secret을 실행별 crypto random으로 생성하고
+상속된 legacy admin/role-secret env와 local override는 provenance 전에 무시·폐기합니다. 이 값들은
 명령행, 저장 파일, summary/report, media server/browser/feature/longrun child env에 전달하지 않으며
 UI environment process memory에서 setup/login에 사용하고 exact 424 runner에만 memory-only role-secret
 env로 전달한 뒤 raw·URI·form·JSON escaped·base64/base64url artifact byte scan을 통과해야 해제합니다.
-실제 결과의 source-of-truth는 output root의 `summary.json`과 `report.md`이며,
+실제 release 결과의 source-of-truth는 저장소 canonical `docs/release-artifacts/v3.9.0/test-acceptance-current-final/summary.json`과 `report.md`입니다. Final integrity는 두 파일과 필수 child evidence의 containment·크기·SHA-256을 직접 검증하며 final evidence manifest는 `/tmp`를 참조하지 않습니다. 개별 30분·120분·UI launcher의 OS temp output은 진단 결과일 뿐 저장소 최종 evidence가 아니며,
 이 설명이나 contract verifier PASS는 actual 30분/UI/120분/final-integrity PASS가 아닙니다.

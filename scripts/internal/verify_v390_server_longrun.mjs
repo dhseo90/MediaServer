@@ -33,6 +33,7 @@ Options:
   --fixture-fail-phase <id>    Fast contract fixture: fail at one phase and mark later phases not-run.
   --fixture-predev-summary <path>
                                Fast contract fixture: project a delegated predev summary into the parent phase ledger.
+  --user-launcher <id>         Internal caller identity for a root no-option launcher.
   -h, --help                   Show help.
 
 Notes:
@@ -47,6 +48,7 @@ assertKnownOptions(rawArgs, [
   "fixture-pass",
   "fixture-fail-phase",
   "fixture-predev-summary",
+  "user-launcher",
   "h",
   "help",
 ]);
@@ -69,6 +71,11 @@ const summaryPath = path.join(outputDir, "summary.json");
 const reportPath = path.join(outputDir, "report.md");
 const runId = `v390-server-longrun-${new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14)}-${process.pid}`;
 const fixtureMode = options.fixturePass || options.fixtureFailPhase !== "" || options.fixturePredevSummary !== "";
+const allocatedPorts = fixtureMode
+  ? { http: 18000 + (process.pid % 1000), rtsp: 19000 + (process.pid % 1000) }
+  : await allocatePortPair();
+process.env.MEDIA_SERVER_VERIFY_PREDEV_HTTP_PORT = String(allocatedPorts.http);
+process.env.MEDIA_SERVER_VERIFY_PREDEV_RTSP_PORT = String(allocatedPorts.rtsp);
 const runStartedAt = new Date().toISOString();
 const runStartedMonotonicNs = process.hrtime.bigint();
 const phases = [];
@@ -120,7 +127,7 @@ if (!fixtureMode && exitCode === 0 && (!durationEvidence.eligibleRealDuration ||
     caseName: failedCase,
     context: errors.join("; "),
     stderrTail: errors,
-    reproductionCommand: `./server.sh verify-v390-server-longrun --duration-minutes ${options.durationMinutes} --output-dir ${outputDir}`,
+    reproductionCommand: reproductionCommand(),
     command: "qualify monotonic duration and explicit iteration ledger",
     failureExitCode: 1,
     logPath: "",
@@ -153,9 +160,11 @@ const summary = {
   failedCase,
   exitCode,
   ports: {
-    http: Number(process.env.MEDIA_SERVER_VERIFY_PREDEV_HTTP_PORT || 8081),
-    rtsp: Number(process.env.MEDIA_SERVER_VERIFY_PREDEV_RTSP_PORT || 8555),
+    http: allocatedPorts.http,
+    rtsp: allocatedPorts.rtsp,
+    allocation: "runner-owned-ephemeral-loopback",
   },
+  authorization: buildAuthorizationEvidence(),
   outputDir,
   summaryPath,
   reportPath,
@@ -233,6 +242,7 @@ function parseArgs(args) {
     fixturePass: false,
     fixtureFailPhase: "",
     fixturePredevSummary: "",
+    userLauncher: "",
   };
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
@@ -250,6 +260,9 @@ function parseArgs(args) {
     } else if (arg === "--fixture-predev-summary") {
       parsed.fixturePredevSummary = args[index + 1] || "";
       index += 1;
+    } else if (arg === "--user-launcher") {
+      parsed.userLauncher = args[index + 1] || "";
+      index += 1;
     }
   }
   assert(parsed.durationMinutes !== null, "--duration-minutes is required");
@@ -260,6 +273,9 @@ function parseArgs(args) {
     assert(!["cleanup", "report"].includes(parsed.fixtureFailPhase), "fixture failure phase must be before cleanup/report");
   }
   assert(!(parsed.fixturePass && parsed.fixturePredevSummary), "--fixture-pass and --fixture-predev-summary are mutually exclusive");
+  assert(["", "test_server_30min", "test_server_120min"].includes(parsed.userLauncher), "unknown --user-launcher");
+  if (parsed.userLauncher === "test_server_30min") assert(parsed.durationMinutes === 30, "test_server_30min must delegate only 30 minutes");
+  if (parsed.userLauncher === "test_server_120min") assert(parsed.durationMinutes === 120, "test_server_120min must delegate only 120 minutes");
   return parsed;
 }
 
@@ -280,13 +296,15 @@ function runFixturePhase(phaseId) {
     const stderrTail = delegated?.stderrTail?.length > 0
       ? delegated.stderrTail
       : [`fixture stderr at ${phaseId}`];
-    const reproductionCommand = delegated?.reproductionCommand || `fixture fail ${phaseId}`;
+    const reproductionCommandValue = options.userLauncher
+      ? reproductionCommand()
+      : (delegated?.reproductionCommand || `fixture fail ${phaseId}`);
     failure = makeFailure({
       phase: phaseId,
       caseName: failedCase,
       context,
       stderrTail,
-      reproductionCommand,
+      reproductionCommand: reproductionCommandValue,
       command: `fixture fail ${phaseId}`,
       failureExitCode: 1,
       logPath: "",
@@ -309,7 +327,7 @@ function runFixturePhase(phaseId) {
       context,
       stdoutTail: [],
       stderrTail,
-      reproductionCommand,
+      reproductionCommand: reproductionCommandValue,
     }));
     return;
   }
@@ -411,7 +429,7 @@ async function runRealPhase(phaseId) {
           caseName: failedCase,
           context: "measured cleanup check failed",
           stderrTail: cleanup.checks.filter(item => item.status === "FAIL").map(item => `${item.check}: ${item.path || item.port || ""}`),
-          reproductionCommand: `./server.sh verify-v390-server-longrun --duration-minutes ${options.durationMinutes} --output-dir ${outputDir}`,
+          reproductionCommand: reproductionCommand(),
           command: "measured cleanup phase",
           failureExitCode: 1,
           logPath: "",
@@ -905,6 +923,7 @@ function runCommandPhase(phaseId, commandParts, phaseSummaryPath = "") {
 
     const child = spawn(commandParts[0], commandParts.slice(1), {
       cwd: rootDir,
+      env: longrunChildEnv(),
       stdio: ["ignore", "pipe", "pipe"],
     });
 
@@ -972,13 +991,15 @@ function finishCommandPhase(phaseId, commandParts, logPath, stdout, stderr, phas
     `outputDir=${outputDir}`,
   ].join("; ");
   const stderrTail = delegated?.stderrTail?.length > 0 ? delegated.stderrTail : tailLines(stderr);
-  const reproductionCommand = delegated?.reproductionCommand || command;
+  const reproductionCommandValue = options.userLauncher
+    ? reproductionCommand()
+    : (delegated?.reproductionCommand || command);
   failure = makeFailure({
     phase: phaseId,
     caseName: failedCase,
     context,
     stderrTail,
-    reproductionCommand,
+    reproductionCommand: reproductionCommandValue,
     command,
     failureExitCode: exitCode,
     logPath,
@@ -996,7 +1017,7 @@ function finishCommandPhase(phaseId, commandParts, logPath, stdout, stderr, phas
     context,
     stdoutTail: tailLines(stdout),
     stderrTail,
-    reproductionCommand,
+    reproductionCommand: reproductionCommandValue,
   }));
 }
 
@@ -1201,6 +1222,65 @@ function readTailFromFile(filePath) {
 
 function reportValue(value) {
   return value ? String(value).replace(/\r?\n/g, " | ") : "(none)";
+}
+
+function reproductionCommand() {
+  if (options.userLauncher === "test_server_30min") return "./test_server_30min.sh";
+  if (options.userLauncher === "test_server_120min") return "./test_server_120min.sh";
+  return `./server.sh verify-v390-server-longrun --duration-minutes ${options.durationMinutes} --output-dir ${outputDir}`;
+}
+
+function buildAuthorizationEvidence() {
+  if (options.durationMinutes !== 120) {
+    return {
+      status: "not-required",
+      source: options.userLauncher ? "direct-user-entrypoint-30" : "canonical-parent-runner",
+      userLauncher: options.userLauncher ? reproductionCommand() : "",
+    };
+  }
+  const direct = options.userLauncher === "test_server_120min";
+  return {
+    status: direct ? "approved" : "delegated-internal",
+    source: direct ? "direct-user-entrypoint-120" : "canonical-parent-runner",
+    userLauncher: direct ? reproductionCommand() : "",
+    approvalBoundary: direct
+      ? "invoking-test-server-120min-is-explicit-120-minute-authorization"
+      : "parent-runner-must-own-AGENTS-7.6.2-authorization",
+  };
+}
+
+function longrunChildEnv() {
+  const env = { ...process.env };
+  delete env.MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD;
+  delete env.MEDIA_SERVER_V390_UI_ROLE_SECRETS;
+  return {
+    ...env,
+    MEDIA_SERVER_SKIP_LOCAL_ENV: "1",
+    MEDIA_SERVER_VERIFY_PREDEV_HTTP_PORT: String(allocatedPorts.http),
+    MEDIA_SERVER_VERIFY_PREDEV_RTSP_PORT: String(allocatedPorts.rtsp),
+  };
+}
+
+async function allocatePortPair() {
+  const http = await allocateEphemeralPort(new Set());
+  const rtsp = await allocateEphemeralPort(new Set([http]));
+  return { http, rtsp };
+}
+
+function allocateEphemeralPort(excluded) {
+  return new Promise((resolve, reject) => {
+    const probe = net.createServer();
+    probe.once("error", reject);
+    probe.listen(0, "127.0.0.1", () => {
+      const address = probe.address();
+      const port = typeof address === "object" && address ? Number(address.port) : 0;
+      probe.close(error => {
+        if (error) reject(error);
+        else if (!Number.isInteger(port) || port <= 0 || excluded.has(port)) reject(new Error("failed to allocate distinct loopback port"));
+        else resolve(port);
+      });
+    });
+  });
 }
 
 function assert(condition, message) {

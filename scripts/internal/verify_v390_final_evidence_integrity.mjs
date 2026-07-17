@@ -46,7 +46,9 @@ const summaryPath = path.resolve(options.summary);
 const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
 const outputDir = path.resolve(summary.outputDir || path.dirname(summaryPath));
 const outputReal = requireContainedDirectory(outputDir, outputDir, "acceptance artifact root");
-const currentProvenance = collectSourceProvenanceWithAllowedArtifacts(process.cwd(), outputReal);
+const repositoryRoot = process.cwd();
+const canonicalReleaseOutputDir = path.join(repositoryRoot, "docs/release-artifacts/v3.9.0/test-acceptance-current-final");
+const currentProvenance = collectSourceProvenanceWithAllowedArtifacts(repositoryRoot, outputReal);
 const checks = [];
 const canonicalUiCaseIds = JSON.parse(fs.readFileSync(path.resolve(
   "test/fixtures/ui_fulltest_case_manifest_policy_v4.json"), "utf8")).cases.map(item => item.testId);
@@ -71,8 +73,55 @@ check("acceptance summary and actual eligibility", () => {
     assert(fullSuiteEligibility.finalEvidenceEligible === false,
       "contract fixture must not become final evidence eligible");
   } else {
+    assert(outputReal === fs.realpathSync(canonicalReleaseOutputDir),
+      "actual final evidence must use the repository canonical release output");
     assert(fullSuiteEligibility.finalEvidenceEligible === true,
       `actual final evidence lacks Policy v4 full-suite eligibility: ${fullSuiteEligibility.reasons.join(", ")}`);
+  }
+});
+
+check("canonical summary report and child evidence manifest are direct and hash-bound", () => {
+  const manifest = summary.finalEvidence;
+  assert(manifest?.schema === "media-server.v390-canonical-final-evidence.v1", "canonical final evidence manifest missing");
+  assert(manifest.temporaryPathFinalEvidenceReferences?.length === 0,
+    "temporary path is referenced as final evidence");
+  assert(fs.realpathSync(path.resolve(repositoryRoot, manifest.artifactRoot || "")) === outputReal,
+    "canonical artifact root manifest mismatch");
+  assert(path.resolve(repositoryRoot, manifest.summaryPath || "") === summaryPath,
+    "canonical summary manifest mismatch");
+  const reportReal = requireContainedFile(outputReal,
+    path.resolve(repositoryRoot, manifest.reportPath || ""), "canonical acceptance report");
+  assert(reportReal === fs.realpathSync(path.resolve(summary.reportPath || "")),
+    "summary report path differs from canonical manifest");
+  const reportText = fs.readFileSync(reportReal, "utf8");
+  assert(Buffer.byteLength(reportText) === Number(manifest.reportBytes), "canonical report byte count mismatch");
+  assert(sha256Text(reportText) === manifest.reportSha256, "canonical report hash mismatch");
+  if (!options.allowFixture) {
+    assert(!/(?:\/private)?\/tmp\//.test(reportText), "canonical report references a temporary path");
+  }
+  for (const stage of summary.stages || []) {
+    assert(reportText.includes(`| ${stage.id} | ${stage.status} |`), `canonical report stage mismatch: ${stage.id}`);
+  }
+
+  const entries = Array.isArray(manifest.artifacts) ? manifest.artifacts : [];
+  const expectedIds = options.allowFixture ? [] : [
+    "server-longrun-30-summary",
+    "server-longrun-30-report",
+    "ui-exact-424-summary",
+    "policy-v4-evaluation",
+    ...(summary.longrun120?.status === "PASS"
+      ? ["server-longrun-120-summary", "server-longrun-120-report"]
+      : []),
+  ];
+  for (const expectedId of expectedIds) {
+    assert(entries.some(item => item.id === expectedId), `required child evidence missing: ${expectedId}`);
+  }
+  for (const entry of entries) {
+    assert(entry.path && !path.isAbsolute(entry.path), `child evidence path must be repository-relative: ${entry.id}`);
+    assert(!/(?:^|\/)(?:private\/)?tmp(?:\/|$)/.test(entry.path), `temporary child evidence is final: ${entry.id}`);
+    const artifactReal = requireContainedFile(outputReal, path.resolve(repositoryRoot, entry.path), entry.id);
+    assert(fs.statSync(artifactReal).size === Number(entry.bytes), `child evidence byte count mismatch: ${entry.id}`);
+    assert(sha256File(artifactReal) === entry.sha256, `child evidence hash mismatch: ${entry.id}`);
   }
 });
 
@@ -125,7 +174,7 @@ check("canonical command set is exact and hash-bound", () => {
   ];
   assert(JSON.stringify(commandSet.map(item => item.id)) === JSON.stringify(expectedIds), "canonical command set IDs/order mismatch");
   const requiredCommandFragments = {
-    "actual-bundle": "verify-v390-test-acceptance-bundle",
+    "actual-bundle": "./test_release.sh",
     build: "./server.sh build",
     "feature-gates": "current feature commands",
     "server-longrun-30": "verify-v390-server-longrun --duration-minutes 30",
@@ -145,6 +194,7 @@ check("canonical command set is exact and hash-bound", () => {
 
 check("acceptance and child summary paths are contained by the current artifact root", () => {
   requireContainedFile(outputReal, summaryPath, "acceptance summary");
+  requireContainedFile(outputReal, summary.reportPath, "acceptance report");
   requireContainedDirectory(outputReal, summary.runDir, "acceptance run root");
   for (const [label, child] of [
     ["30-minute", summary.longrun30],
@@ -152,6 +202,10 @@ check("acceptance and child summary paths are contained by the current artifact 
     ["120-minute", summary.longrun120],
   ]) {
     if (child?.summaryPath) requireContainedFile(outputReal, child.summaryPath, `${label} summary`);
+  }
+  for (const stage of summary.stages || []) {
+    if (stage.logPath) requireContainedFile(outputReal, stage.logPath, `${stage.id} log`);
+    if (stage.summaryPath) requireContainedFile(outputReal, stage.summaryPath, `${stage.id} stage summary`);
   }
 });
 
@@ -177,7 +231,7 @@ check("Policy v4 evaluation is bound to its actual source summary", () => {
   assert(uiSummary.schema === "media-server.ui-automation-evidence.v4", "Policy v4 source is not exact UI evidence v4");
   assert(uiSummary.sourceBinding?.currentSourceVerified === true, "UI evidence current-source binding missing");
   assert(uiSummary.sourceBinding?.gitCommit === currentProvenance.commitSha, "UI evidence source commit is not current HEAD");
-  const artifactRoot = path.resolve(process.cwd(), uiSummary.sourceBinding?.artifactRoot || "");
+  const artifactRoot = path.resolve(repositoryRoot, uiSummary.sourceBinding?.artifactRoot || "");
   const artifactReal = requireContainedDirectory(outputReal, artifactRoot, "UI evidence artifact root");
   assert(isWithin(path.dirname(uiSummaryReal), artifactReal) || isWithin(artifactReal, path.dirname(uiSummaryReal)),
     "UI source summary and artifact root are unrelated");
@@ -263,6 +317,13 @@ check("actual child evidence uses measured cleanup", () => {
       "exact UI coverage closure mismatch");
     assert((ui.cases || []).every(item => item.artifacts?.screenshot && item.artifacts?.visualMeasurement && item.artifacts?.visualDiff),
       "exact UI visual artifact boundary mismatch");
+    for (const item of ui.cases || []) {
+      for (const [kind, artifactPath] of Object.entries(item.artifacts || {})) {
+        if (typeof artifactPath === "string" && artifactPath) {
+          requireContainedFile(outputReal, artifactPath, `${item.testId || item.caseId || "UI case"} ${kind}`);
+        }
+      }
+    }
   } else {
     assert((ui.cases || []).every(item => item.videoPath === "" && item.videoEvidence?.status === "not-captured" && item.videoEvidence?.placeholderCreated === false), "UI video boundary mismatch");
   }

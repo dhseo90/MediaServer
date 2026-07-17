@@ -12,6 +12,63 @@ const highRiskChangeAreas = new Set([
   "cleanup-port-lifecycle",
 ]);
 
+const longrun120ChangeRules = [
+  {
+    category: "rtsp-webrtc-whep-whip-media-path",
+    featureIds: ["MEDIA-001", "SAFE-212"],
+    modules: ["rtsp-webrtc-media-path"],
+    matches: file => /^(?:src|include)\//.test(file) && (
+      /(?:rtsp|webrtc|whep|whip|media_(?:session|path)|codec)/i.test(file) ||
+      /(?:^|[^a-z0-9])ice(?:[^a-z0-9]|$)/i.test(file)
+    ),
+  },
+  {
+    category: "source-worker-lifecycle",
+    featureIds: ["SRC-001", "SAFE-212"],
+    modules: ["source-worker-lifecycle"],
+    matches: file => /^(?:src|include)\/.+(?:source_worker|source_session|source_view_application_service)/i.test(file),
+  },
+  {
+    category: "shared-stream-reuse",
+    featureIds: ["MEDIA-001", "SAFE-212"],
+    modules: ["shared-stream-reuse"],
+    matches: file => /^(?:src|include)\/.+(?:shared_stream|stream_reuse|session_manager)/i.test(file),
+  },
+  {
+    category: "runtime-metadata-fanout",
+    featureIds: ["MEDIA-001", "OPS-179"],
+    modules: ["runtime-metadata-fanout"],
+    matches: file => /^(?:src|include)\/.+(?:metadata|side_?channel|server_sent_event|sse|websocket)/i.test(file),
+  },
+  {
+    category: "cleanup-port-lifecycle",
+    featureIds: ["OPS-168", "SAFE-201", "SAFE-212"],
+    modules: ["predev-server-lifecycle", "longrun-cleanup", "acceptance-cleanup"],
+    matches: file => [
+      "scripts/internal/verify_predev_stability.sh",
+      "scripts/internal/verify_v390_server_longrun.mjs",
+      "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+      "scripts/internal/v390_acceptance_ui_environment.mjs",
+      "scripts/internal/verify_v390_final_evidence_integrity.mjs",
+    ].includes(file) || /^(?:src|include)\/.+(?:cleanup|port_lifecycle)/i.test(file),
+  },
+];
+
+export function classifyLongrun120ChangedAreas(changedFiles = []) {
+  const normalized = [...new Set((Array.isArray(changedFiles) ? changedFiles : [])
+    .map(file => String(file || "").replace(/\\/g, "/"))
+    .filter(Boolean))];
+  return longrun120ChangeRules.flatMap(rule => {
+    const files = normalized.filter(rule.matches);
+    return files.length === 0 ? [] : [{
+      category: rule.category,
+      featureIds: [...rule.featureIds],
+      files,
+      modules: [...rule.modules],
+    }];
+  });
+}
+
 export function buildMonotonicDurationEvidence({
   requestedMinutes,
   fixtureMode,

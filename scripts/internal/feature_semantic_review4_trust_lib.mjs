@@ -37,7 +37,11 @@ export function stableStringify(value) {
 }
 
 export function review4SourceFlowDigest(item) {
-  return sha256(stableStringify({
+  return sha256(stableStringify(review4SemanticFlowPayload(item)));
+}
+
+function review4SemanticFlowPayload(item) {
+  return {
     id: item.id,
     featureContractSha256: item.featureContractSha256,
     flowKind: item.flowKind,
@@ -45,12 +49,12 @@ export function review4SourceFlowDigest(item) {
     evidenceMode: item.evidenceMode,
     evidenceToken: item.evidenceToken,
     sharedContract: item.sharedContract,
-    verifier: item.verifier,
-    roles: item.roles,
-    edges: item.edges,
+    verifier: review4SemanticVerifier(item.verifier),
+    roles: review4SemanticRoles(item.roles),
+    edges: review4SemanticEdges(item.edges),
     trustBindings: review4HardTrustBindings(item.trustBindings),
     semanticObligation: item.semanticObligation || null,
-  }));
+  };
 }
 
 export function review4CandidateDigest(items) {
@@ -58,7 +62,49 @@ export function review4CandidateDigest(items) {
 }
 
 export function review4HardCandidateItems(items) {
-  return (items || []).map(item => ({ ...structuredClone(item), trustBindings: review4HardTrustBindings(item.trustBindings) }));
+  return (items || []).map(item => ({
+    ...structuredClone(item),
+    verifier: review4SemanticVerifier(item.verifier),
+    roles: review4SemanticRoles(item.roles),
+    edges: review4SemanticEdges(item.edges),
+    trustBindings: review4HardTrustBindings(item.trustBindings),
+    sourceFlowDigest: review4SourceFlowDigest(item),
+  }));
+}
+
+function review4SemanticVerifier(verifier) {
+  if (!verifier || typeof verifier !== 'object') return verifier;
+  return {
+    command: verifier.command || null,
+    file: verifier.file || null,
+  };
+}
+
+function review4SemanticRoles(roles) {
+  const normalized = {};
+  for (const [name, role] of Object.entries(roles || {})) {
+    if (!role || typeof role !== 'object') {
+      normalized[name] = role;
+      continue;
+    }
+    normalized[name] = {
+      file: role.file || null,
+      symbol: role.symbol || null,
+      anchor: role.anchor || null,
+      token: role.token || null,
+      featureBinding: role.featureBinding || null,
+    };
+  }
+  return normalized;
+}
+
+function review4SemanticEdges(edges) {
+  return (edges || []).map(edge => ({
+    from: edge?.from || null,
+    to: edge?.to || null,
+    kind: edge?.kind || edge?.proof || null,
+    witness: edge?.witness || null,
+  }));
 }
 
 export function review4ApprovalEnvelope(approvals, orderedIds, audit = null) {
@@ -233,18 +279,23 @@ function verifiedConnectedHarness(rootDir, file) {
   if (matches.length !== 1) return null;
   const target = `scripts/internal/${matches[0][1]}`;
   if (!fs.existsSync(path.join(rootDir, target))) return null;
-  return { file: target, execSha256: sha256(matches[0][0]) };
+  return {
+    file: target,
+    execSha256: sha256(matches[0][0]),
+  };
 }
 
 export function buildReview4TrustBindings(rootDir, item, dispatchIndex) {
-  const roles = {};
-  for (const [name, locator] of Object.entries(item.roles || {})) {
-    roles[name] = roleTrustBinding(rootDir, locator);
-  }
   const dispatch = dispatchIndex.commandToRecord.get(item.verifier?.command || '');
   if (!dispatch) throw new Error(`${item.id || 'unknown'} verified dispatch missing: ${item.verifier?.command || ''}`);
   if (dispatch.file !== item.verifier?.file) {
     throw new Error(`${item.id || 'unknown'} verifier target mismatch: ${item.verifier?.command} -> ${dispatch.file}, proof=${item.verifier?.file}`);
+  }
+  const roles = {};
+  for (const [name, locator] of Object.entries(item.roles || {})) {
+    roles[name] = name === 'verifier'
+      ? dispatchRoleTrustBinding(locator, dispatch)
+      : roleTrustBinding(rootDir, locator);
   }
   const verifierText = fs.readFileSync(path.join(rootDir, dispatch.file), 'utf8');
   return {
@@ -294,10 +345,13 @@ export function review4HardTrustBindings(bindings) {
   if (!bindings || typeof bindings !== 'object') return bindings;
   const copy = structuredClone(bindings);
   for (const role of Object.values(copy.roles || {})) {
-    if (/^(?:src|include|config)\//.test(String(role.file || ''))) {
-      delete role.trackedBlobSha256;
-    }
+    delete role.trackedBlobSha256;
+    delete role.enclosingBodyStartLine;
+    delete role.enclosingBodyEndLine;
   }
+  // server.sh는 개별 command arm이 dispatch binding에 별도로 고정된다. 전체 파일/line
+  // 이동 hash는 해당 verifier의 semantic trust input이 아니다.
+  if (copy.roles) delete copy.roles.verifier;
   return copy;
 }
 
@@ -1306,6 +1360,18 @@ function roleTrustBinding(rootDir, locator) {
     enclosingBodyStartLine: body.startLine,
     enclosingBodyEndLine: body.endLine,
     enclosingBodyScope: body.scope,
+  };
+}
+
+function dispatchRoleTrustBinding(locator, dispatch) {
+  if (!locator?.file || locator.file !== 'server.sh') throw new Error('REVIEW4 verifier dispatch locator incomplete');
+  return {
+    file: locator.file,
+    symbol: locator.symbol,
+    enclosingBodySha256: dispatch.armSha256,
+    enclosingBodyStartLine: null,
+    enclosingBodyEndLine: null,
+    enclosingBodyScope: 'exact-dispatch-arm',
   };
 }
 

@@ -1,13 +1,38 @@
 // 파일 용도: exact 424 각 case의 fresh role session, runtime secret, persisted fixture snapshot/복구를 소유한다.
 
 import crypto from "node:crypto";
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
 import { assertSecretValuesAbsentFromTree } from "./v390_acceptance_ui_environment.mjs";
 
 const descriptorSchema = "media-server.v390-ui-runtime-descriptor.v1";
 const roleMapSchema = "media-server.v390-ui-role-state-map.v1";
+
+export const formReadbackProfiles = Object.freeze({
+  "UI-008": profile("369115bd854774b2872b93c2c631149ca84758a1b153e4301716a85c6533d969", ["responsePending", "storePending", "listPending", "noUserOrInvite", "pendingLoginDenied", "uiPending"]),
+  "UI-002": profile("f44961be73ee6e07c913f79ddcf045a5efd06d60f2bea8ce1478ea1945f46ba0", ["weakRejected", "weakNoWrite", "adminStored", "plaintextAbsent", "adminWhoami"]),
+  "UI-003": profile("60b1ba654195a63cc5c0d0b05446a304cf7979ded85d85872bac1450314512a8", ["stableAuthorization", "viewerWhoami", "viewerLanding"]),
+  "UI-004": profile("d97d5f54966ab4dcc224d967fc5ff1820ebbdc7e2cddee8c625b219bccda1ab4", ["oldPasswordDenied", "newPasswordAccepted", "historyReuseDenied", "historyRotated", "plaintextAbsent"]),
+  "UI-005": profile("2d64633de9cf710524302bac0f6ff1de06937e5d6c77fb86da7a151c52cde34e", ["browserAnonymous", "originalCookieRevoked", "protectedRouteBlocked", "storeUnchanged"]),
+  "UI-007": profile("da98e84cf0f0acdff3d28f1fb9556a5688d7b731e3a2f1fd157454b34b2b1a5c", ["beforeLoginDenied", "beforeClientDenied", "inviteConsumed", "viewerWhoami", "viewerScope", "clientAllowed", "opsDenied"]),
+  "AUTH-004": profile("1994311ad1baf7a0018e8321c2d6489b75441825b28502d0c1e19138fa96e7e4", ["stableAuthorization", "viewerWhoami", "clientAllowed", "opsDenied"]),
+  "AUTH-005": profile("a3546c87b364001c5c22370212b1975fbab2ba77d08ca7de87238890c9d8a0aa", ["missingStoreGate", "hashlessStoreGate", "hashlessLoginDenied", "bootstrapToLogin", "adminWhoami"]),
+  "AUTH-006": profile("726e4e6294571ed05474e620d5ce4158ae6c897773bc536f62b4193bfc035820", ["adminAllScope", "usersApiRedacted", "usersUiRedacted", "adminWhoami"]),
+  "AUTH-007": profile("f7f92112af1673336141c9ed6528b22e4b16e290f7167816ba1df749995a0358", ["emptyPasswordDenied", "hashlessAdminDenied", "browserAnonymous", "storeUnchanged"]),
+  "AUTH-014": profile("57700666ee7e9d6abf223416c8399df6b5a226d025ba9a6b61d1121a7cbe0aa3", ["responseIdentity", "responseRedacted", "storeIdentity", "listIdentity", "listRedacted", "uiRedacted", "plaintextAbsent"]),
+  "AUTH-015": profile("73569388823d0de8abe609397ebe0b9f5f6e99467415c5ad6c7b4f852c381485", ["responseTokenBound", "issuedTokenRegistered", "storeHasHashOnly", "listIdentity", "listRedacted", "uiRedacted"]),
+  "AUTH-033": profile("574f65cd5a55b1adc442d6e00a6dbfaf50854affc6df2d7e8650936d14b4140d", ["inviteCreatedStatus", "responseTokenBound", "issuedTokenRegistered", "storeHasHashOnly", "listIdentity", "listRedacted", "uiRedacted"]),
+  "AUTH-034": profile("6f20c9e17ceec760de6a91135f75cb74dd7a4e388c858a15730949398fcd490c", ["beforeLoginDenied", "beforeClientDenied", "inviteConsumed", "viewerWhoami", "viewerScope", "clientAllowed", "opsDenied"]),
+  "AUTH-035": profile("3a88390b3e88ba317b05828c430e92ae5230f2f194137eb4c3ae6be2a273ad81", ["consumedSeeded", "consumedRejected", "expiredSeeded", "expiredRejected", "browserAnonymous", "storeUnchanged"]),
+  "AUTH-036": profile("a7dcf49c1b91e2e3c96c6db48efcfb5776d5f8a2d50ad780896e5715bcc86cc3", ["responsePending", "storePending", "listPending", "noUserOrInvite", "pendingLoginDenied", "uiPending"]),
+});
+
+function profile(expectedBehaviorSha256, requiredChecks) {
+  return Object.freeze({ expectedBehaviorSha256, requiredChecks: Object.freeze([...requiredChecks]) });
+}
 
 export function createV390UiCaseRuntime({
   rootDir,
@@ -47,6 +72,15 @@ export function createV390UiCaseRuntime({
       actionRoleStatePaths: {},
       cleanupResults: [],
       secretRefs: new Set(),
+      preparedUsersSha256: "",
+      preparedUsersStableAuthSha256: "",
+      preFormReadback: {},
+      transientStateSeeded: false,
+      transientApiCleanup: [],
+      transientFixtureIds: [],
+      relationshipFixture: null,
+      exactRuntimeFixture: null,
+      transientSeedReadback: null,
       prepared: false,
     };
     try {
@@ -54,6 +88,40 @@ export function createV390UiCaseRuntime({
         assert(descriptor, `${item.caseId} requires a self-contained runtime descriptor`);
         await prepareAuthFixture(item, context);
         await preparePersistedFixture(item, context);
+        if (["RULE-001", "RULE-002", "RULE-003"].includes(item.caseId)) {
+          await seedRuleCatalogFixturesViaApi(
+            item,
+            context,
+            descriptor.auth?.defaultViewId || "9001",
+          );
+          context.transientStateSeeded = true;
+        } else if (["RULE-093", "RULE-094", "RULE-095", "RULE-096", "RULE-097", "RULE-098", "RULE-100", "RULE-101"].includes(item.caseId)) {
+          await seedRuleRelationshipFixturesViaApi(item, context);
+          context.transientStateSeeded = true;
+        } else if (["UI-036", "UI-046", "UI-053", "RULE-104", "RULE-111"].includes(item.caseId)) {
+          const observationPath = vlmObservationStoragePath(descriptor.eventStoragePath);
+          context.snapshots.push(...snapshotStateFiles([observationPath]));
+          if (["UI-046", "UI-053", "RULE-104"].includes(item.caseId)) {
+            seedEventRecordFixture(descriptor.eventStoragePath, {
+              eventId: context.fixtureId,
+              sourceId: descriptor.auth?.defaultViewId || "9001",
+            });
+          }
+          seedVlmRuleSuggestionFixture(observationPath, {
+            eventId: context.fixtureId,
+            sourceId: descriptor.auth?.defaultViewId || "9001",
+          });
+          context.transientStateSeeded = true;
+        } else if (["UI-052", "UI-064", "UI-065", "UI-066", "UI-067", "UI-068", "UI-069", "UI-070", "UI-071", "UI-080"].includes(item.caseId)) {
+          const sourceIdentity = item.caseId === "UI-068"
+            ? { ...defaultPublishedSourceIdentity(descriptor), status: "closed" }
+            : { sourceId: descriptor.auth?.defaultViewId || "9001" };
+          seedEventRecordFixture(descriptor.eventStoragePath, {
+            eventId: context.fixtureId,
+            ...sourceIdentity,
+          });
+          context.transientStateSeeded = true;
+        }
       }
       for (const input of item.workflow.inputs || []) {
         for (const value of Object.values(input.actualValue || {})) {
@@ -63,6 +131,259 @@ export function createV390UiCaseRuntime({
         }
       }
       context.primaryRoleStatePath = await freshRoleStorageState(item.accountRole, item.caseId);
+      if (item.caseId === "RULE-103") {
+        await seedRule103ReplayFixtures(item, context);
+        context.transientStateSeeded = true;
+      }
+      if (["UI-036", "RULE-111"].includes(item.caseId)) {
+        const response = await requestEndpoint(
+          "GET",
+          "/ops/api/vlm/rule-suggestion-drafts?limit=10",
+          null,
+          item,
+          context,
+          [200],
+        );
+        const candidates = response.json?.sourceCandidateReport?.candidates;
+        const candidate = Array.isArray(candidates)
+          ? candidates.find(value => value?.eventId === context.fixtureId)
+          : null;
+        assert(candidate?.ruleSuggestion?.manualReviewRequired === true &&
+          candidate?.ruleSuggestion?.autoApply === false,
+        `${item.caseId} transient VLM rule draft seed is missing from the authoritative API readback`);
+        context.transientSeedReadback = {
+          status: response.status,
+          matchedFixture: true,
+          candidateCount: candidates.length,
+        };
+        if (item.caseId === "RULE-111") {
+          const bridge = await requestEndpoint("GET", "/ops/api/vlm/rule-suggestion-draft-bridge", null, item, context, [200]);
+          const catalog = await requestEndpoint("GET", "/ops/api/rules/catalog", null, item, context, [200]);
+          context.exactRuntimeFixture = {
+            eventId: context.fixtureId,
+            candidate,
+            bridge: bridge.json,
+            catalogBeforeUiAction: stableJson(catalog.json),
+            eventStorageSha256: sha256FileOrMissing(descriptor.eventStoragePath),
+          };
+        }
+      } else if (["UI-046", "RULE-104"].includes(item.caseId)) {
+        const response = await requestEndpoint(
+          "GET",
+          `/ops/api/events/reviews?eventId=${encodeURIComponent(context.fixtureId)}&limit=25`,
+          null,
+          item,
+          context,
+          [200],
+        );
+        const records = response.json?.records;
+        const row = Array.isArray(records)
+          ? records.find(value => value?.event?.eventId === context.fixtureId)
+          : null;
+        const review = row?.incidentRuleSuggestionReview;
+        assert(review?.matchingRuleSuggestionPresent === true &&
+          review?.manualDraftRoute === "/ops/rules" &&
+          review?.contract?.ruleRegistryWritePerformed === false,
+        `${item.caseId} transient incident rule suggestion is missing from the authoritative API readback`);
+        context.transientSeedReadback = {
+          status: response.status,
+          matchedFixture: true,
+          recordCount: records.length,
+        };
+        if (item.caseId === "RULE-104") {
+          const readiness = response.json?.approvalGatedRuleDraftReadiness;
+          const readinessItem = Array.isArray(readiness?.items)
+            ? readiness.items.find(value => value?.eventId === context.fixtureId)
+            : null;
+          assert(readinessItem?.approvalState === "approval-required" &&
+            readinessItem?.stagedDraft?.noAutoSave === true &&
+            readinessItem?.stagedDraft?.ruleRegistryWritePerformed === false,
+          `${item.caseId} approval-gated rule draft readiness seed is missing`);
+          context.transientSeedReadback.approvalGatedRuleDraftReadiness = readinessItem;
+          const catalog = await requestEndpoint("GET", "/ops/api/rules/catalog", null, item, context, [200]);
+          context.exactRuntimeFixture = {
+            eventId: context.fixtureId,
+            readinessItem,
+            catalogBeforeUiAction: stableJson(catalog.json),
+            eventStorageSha256: sha256FileOrMissing(descriptor.eventStoragePath),
+          };
+        }
+      } else if (item.caseId === "UI-052") {
+        const response = await requestEndpoint(
+          "GET",
+          `/ops/api/events/reviews?eventId=${encodeURIComponent(context.fixtureId)}&limit=25`,
+          null,
+          item,
+          context,
+          [200],
+        );
+        const actionPack = response.json?.operationalActionPack;
+        const actionItem = Array.isArray(actionPack?.items)
+          ? actionPack.items.find(value => value?.eventId === context.fixtureId)
+          : null;
+        assert(actionItem?.actions?.ruleDraftRoute?.mode === "manual-draft-only" &&
+          actionItem?.actions?.ruleDraftRoute?.ruleRegistryWritePerformed === false &&
+          actionItem?.actions?.alertDryRunRoute?.externalDeliveryPerformed === false &&
+          actionItem?.actions?.sourceHealthRecheck?.dryRunOnly === true &&
+          actionItem?.actions?.sourceHealthRecheck?.sourceHealthWritePerformed === false &&
+          actionPack?.contract?.opsOnly === true &&
+          actionPack?.contract?.externalDeliveryPerformed === false &&
+          actionPack?.contract?.ruleRegistryWritePerformed === false &&
+          actionPack?.contract?.sourceHealthWritePerformed === false,
+        `${item.caseId} transient operational action pack is missing from the authoritative API readback`);
+        context.transientSeedReadback = {
+          status: response.status,
+          matchedFixture: true,
+          itemCount: actionPack.items.length,
+        };
+      } else if (item.caseId === "UI-053") {
+        const response = await requestEndpoint(
+          "GET",
+          `/ops/api/events/reviews?eventId=${encodeURIComponent(context.fixtureId)}&limit=25`,
+          null,
+          item,
+          context,
+          [200],
+        );
+        const preview = response.json?.ruleWhatIfPreview;
+        const previewItem = Array.isArray(preview?.items)
+          ? preview.items.find(value => value?.eventId === context.fixtureId)
+          : null;
+        assert(preview?.schema === "media-server.ops.rule-what-if-preview.v1" &&
+          preview?.status === "ops-rule-what-if-preview" &&
+          preview?.workflow === "selected-incident-draft-only" &&
+          previewItem?.preview?.matchingRuleSuggestionPresent === true &&
+          previewItem?.preview?.candidateStatus === "candidate-only-manual-rule-save" &&
+          previewItem?.preview?.draftComparison?.comparisonResult === "candidate-ready" &&
+          previewItem?.preview?.draftComparison?.fullReplayEngineExecuted === false &&
+          previewItem?.preview?.conditionPreview?.eventType === "line-crossing" &&
+          previewItem?.preview?.conditionPreview?.classes?.includes("person") &&
+          previewItem?.preview?.conditionPreview?.minConfidence === 0.8 &&
+          previewItem?.preview?.conditionPreview?.minDurationMs === 1000 &&
+          previewItem?.preview?.manualDraftRoute ===
+            `/ops/rules?draftEventId=${encodeURIComponent(context.fixtureId)}&whatIfPreview=1` &&
+          previewItem?.preview?.draftOnly === true &&
+          previewItem?.preview?.manualSaveRequired === true &&
+          previewItem?.preview?.ruleRegistryWritePerformed === false &&
+          previewItem?.preview?.autoRuleApplied === false &&
+          preview?.contract?.opsOnly === true &&
+          preview?.contract?.fullReplayEngineExecuted === false &&
+          preview?.contract?.ruleRegistryWritePerformed === false &&
+          preview?.contract?.autoRuleApplied === false &&
+          preview?.contract?.autoProfileApplied === false &&
+          preview?.contract?.eventRecordSchemaChanged === false &&
+          preview?.contract?.rtspOrWebrtcMediaPathChanged === false &&
+          preview?.contract?.runtimeVlmCallPerformed === false &&
+          preview?.contract?.cloudProviderApiCalled === false,
+        `${item.caseId} transient rule what-if preview is missing from the authoritative API readback`);
+        context.transientSeedReadback = {
+          status: response.status,
+          matchedFixture: true,
+          itemCount: preview.items.length,
+        };
+      } else if (["UI-064", "UI-065", "UI-066", "UI-067", "UI-069", "UI-070", "UI-071", "UI-080"].includes(item.caseId)) {
+        const response = await requestEndpoint(
+          "GET",
+          `/ops/api/events/reviews?eventId=${encodeURIComponent(context.fixtureId)}&limit=25`,
+          null,
+          item,
+          context,
+          [200],
+        );
+        const workspace = response.json?.unifiedResolutionWorkspace;
+        const detail = Array.isArray(workspace?.resolutionQueue)
+          ? workspace.resolutionQueue.find(value => value?.eventId === context.fixtureId)
+          : null;
+        const validation = validateUnifiedWorkspaceCaseReadback(item.caseId, {
+          workspace,
+          detail,
+          sourceId: descriptor.auth?.defaultViewId || "9001",
+        });
+        context.transientSeedReadback = {
+          status: response.status,
+          matchedFixture: true,
+          itemCount: validation.itemCount,
+        };
+      } else if (["UI-068", "UI-072"].includes(item.caseId)) {
+        const viewId = descriptor.auth?.defaultViewId || "9001";
+        const response = await requestEndpoint(
+          "GET",
+          `/client/api/views/${encodeURIComponent(viewId)}/events?limit=6`,
+          null,
+          item,
+          context,
+          [200],
+        );
+        const events = response.json?.events;
+        if (item.caseId === "UI-068") {
+          const digest = events?.resolutionDigest;
+          const fixture = Array.isArray(events?.recent)
+            ? events.recent.find(value => value?.eventId === context.fixtureId)
+            : null;
+          assert(response.json?.ok === true && String(response.json?.view?.viewId || "") === String(viewId),
+            `${item.caseId} viewer event route is not bound to the requested PublishedView`);
+          assert(fixture,
+            `${item.caseId} transient EventRecord is missing from the viewer-scoped recent event readback`);
+          assert(digest?.schema === "media-server.client.resolution-digest.v1" &&
+            digest?.viewerSafe === true && digest?.publishedViewScoped === true &&
+            digest?.itemCount >= 1 && Array.isArray(digest?.digestItems) && digest.digestItems.length >= 1,
+          `${item.caseId} viewer-safe resolution digest schema or item projection is missing`);
+          assert(digest.digestItems.some(value => value?.resolutionStatus === "closed" &&
+              value?.resolutionLabel === "closed" && value?.timelineHint === "closed event"),
+            `${item.caseId} transient closed EventRecord is not bound to the viewer-safe resolution digest`);
+          assert(
+            digest?.sourceUrlIncluded === false && digest?.rawEvidenceIncluded === false &&
+            digest?.debugMaterialIncluded === false && digest?.providerMaterialIncluded === false &&
+            digest?.featureProvenanceIncluded === false && digest?.internalEvidenceIncluded === false &&
+            digest?.operatorNotesIncluded === false && digest?.ruleEditorIncluded === false &&
+            digest?.actionControlsIncluded === false && digest?.eventPostPayloadChanged === false &&
+            digest?.eventSchemaChanged === false && digest?.mediaPathChanged === false &&
+            digest?.resolutionStateWritePerformed === false,
+          `${item.caseId} viewer-safe resolution digest boundary is not closed`);
+        } else {
+          const digest = events?.sourceStatusDigest;
+          assert(response.json?.ok === true && response.json?.view?.viewId === viewId &&
+            digest?.schema === "media-server.client.source-status-digest.v1" &&
+            digest?.viewerSafe === true && digest?.publishedViewScoped === true &&
+            digest?.itemCount === 1 && Array.isArray(digest?.digestItems) && digest.digestItems.length === 1 &&
+            typeof digest.digestItems[0]?.sourceStatus === "string" && digest.digestItems[0].sourceStatus &&
+            typeof digest.digestItems[0]?.connectionStatus === "string" && digest.digestItems[0].connectionStatus &&
+            digest?.sourceUrlIncluded === false && digest?.rawLocatorIncluded === false &&
+            digest?.rawJsonIncluded === false && digest?.debugMaterialIncluded === false &&
+            digest?.credentialMaterialIncluded === false && digest?.operatorMaterialIncluded === false &&
+            digest?.ruleEditorIncluded === false && digest?.actionControlsIncluded === false &&
+            digest?.sourceRegistryWritePerformed === false && digest?.publishedViewWritePerformed === false &&
+            digest?.eventRecordWritePerformed === false && digest?.eventPostPayloadChanged === false &&
+            digest?.eventSchemaChanged === false && digest?.webrtcDataChannelSchemaChanged === false &&
+            digest?.sseMetadataSchemaChanged === false && digest?.wsMetadataSchemaChanged === false &&
+            digest?.rtspOrWebrtcMediaPathChanged === false && digest?.ruleProfilePayloadChanged === false &&
+            digest?.searchMetricsChanged === false,
+          `${item.caseId} viewer-safe source status digest is missing from the authoritative API readback`);
+        }
+        context.transientSeedReadback = {
+          status: response.status,
+          matchedFixture: item.caseId === "UI-068",
+          itemCount: item.caseId === "UI-068" ? events.resolutionDigest.itemCount : events.sourceStatusDigest.itemCount,
+        };
+      } else if (["UI-073", "UI-074", "UI-075"].includes(item.caseId)) {
+        const validation = await validateOpsSourcesReadback(item.caseId, requestEndpoint, item, context);
+        context.transientSeedReadback = validation;
+      } else if (["UI-088", "UI-089", "UI-090", "UI-091"].includes(item.caseId)) {
+        context.transientSeedReadback = await validateV360SimulationReadback(
+          item.caseId,
+          requestEndpoint,
+          item,
+          context,
+        );
+      } else if (["UI-092", "UI-093", "UI-094", "UI-095", "UI-096", "UI-097", "UI-098", "UI-099", "UI-100", "UI-101", "UI-102", "UI-103", "UI-104", "UI-105"].includes(item.caseId)) {
+        context.transientSeedReadback = await validateV390Ui092To105Readback(
+          item.caseId,
+          requestEndpoint,
+          item,
+          context,
+          descriptor,
+        );
+      }
       for (const setup of item.workflow.setup || []) {
         if (setup.kind !== "bind-action-role-session") continue;
         context.actionRoleStatePaths[setup.accountRole] = await freshRoleStorageState(
@@ -70,10 +391,15 @@ export function createV390UiCaseRuntime({
           `${item.caseId}-action`,
         );
       }
+      context.preparedUsersSha256 = sha256FileOrMissing(descriptor?.auth?.usersFile || "");
+      context.preparedUsersStableAuthSha256 = stableUsersAuthSha256(descriptor?.auth?.usersFile || "");
       context.prepared = true;
       activeCases.set(item.caseId, context);
       return context;
     } catch (error) {
+      if (context.transientApiCleanup.length > 0) {
+        await cleanupTransientApiSeeds(item, context);
+      }
       restoreStateFiles(context.snapshots);
       const failure = error instanceof Error ? error : new Error(String(error));
       failure.runtimeCleanup = {
@@ -82,6 +408,273 @@ export function createV390UiCaseRuntime({
       };
       throw failure;
     }
+  }
+
+  async function seedRuleCatalogFixturesViaApi(item, context, sourceId) {
+    const fixtures = [
+      {
+        endpoint: "/lab/analysis/profiles/3920003",
+        payload: {
+          id: "3920003", profileId: "3920003", name: "REVIEW4 catalog profile",
+          detector: "yolo", fps: 6, confidence: 0.25, nms: 0.45,
+          inputWidth: 640, inputHeight: 640, trackingClasses: ["person"], enabled: true,
+        },
+      },
+      {
+        endpoint: "/lab/analysis/rules/3920002",
+        payload: {
+          id: "3920002", ruleId: "3920002", name: "REVIEW4 catalog event template",
+          ruleKind: "basic", analysis: { classes: ["person"] },
+          event: { type: "presence", region: { type: "polygon", points: [[0, 0], [1, 0], [1, 1], [0, 1]] } },
+          enabled: true,
+        },
+      },
+      {
+        endpoint: "/lab/analysis/va-rules/3920001",
+        payload: {
+          id: "3920001", ruleId: "3920001", name: "REVIEW4 catalog channel analysis",
+          source: { kind: "file", file: `review4-rule-catalog-${String(sourceId)}.mp4` },
+          analysis: {
+            profileId: "3920003", classes: ["person"],
+            trackingPolicy: { tracker: "lite", reid: "off" },
+          },
+          templateStart: { ruleId: "3920002" },
+          event: { type: "presence", region: { type: "polygon", points: [[0, 0], [1, 0], [1, 1], [0, 1]] } },
+          priority: 1, enabled: true,
+        },
+      },
+    ];
+    for (const fixture of fixtures) {
+      const write = await requestEndpoint("PUT", fixture.endpoint, fixture.payload, item, context, [200, 201], {
+        roleOverride: "operator",
+      });
+      assert(write.json?.ok === true,
+        `${item.caseId} transient rule catalog write did not return ok=true: ${fixture.endpoint}`);
+      context.transientApiCleanup.push(fixture.endpoint);
+      const detail = await requestEndpoint("GET", fixture.endpoint, null, item, context, [200], {
+        roleOverride: "operator",
+      });
+      assert(detail.json?.profile || detail.json?.rule || detail.json?.vaRule,
+        `${item.caseId} transient rule catalog detail readback is missing: ${fixture.endpoint}`);
+    }
+    const catalog = await requestEndpoint("GET", "/ops/api/rules/catalog", null, item, context, [200], {
+      roleOverride: "operator",
+    });
+    const counts = {
+      profiles: Array.isArray(catalog.json?.profiles) ? catalog.json.profiles.length : -1,
+      rules: Array.isArray(catalog.json?.rules) ? catalog.json.rules.length : -1,
+      vaRules: Array.isArray(catalog.json?.vaRules) ? catalog.json.vaRules.length : -1,
+    };
+    assert(counts.profiles > 0 && counts.rules > 0 && counts.vaRules > 0,
+      `${item.caseId} transient rule catalog API seed is not visible: ${JSON.stringify(counts)}`);
+  }
+
+  async function seedRuleRelationshipFixturesViaApi(item, context) {
+    const suffix = item.caseId.slice(-3);
+    const digit = item.caseId.slice(-1);
+    const profileId = `969${digit}`;
+    const templateId = `979${digit}`;
+    const vaRuleId = `989${digit}`;
+    // SourceRegistry는 10진수 source identity를 요구하므로 충돌을 피하는 숫자 ID를 사용하고,
+    // 사람이 읽을 수 있는 case 결속은 displayName과 file에 유지한다.
+    const sourceId = `93${suffix}`;
+    const viewId = `rule-${suffix}-view`;
+    const profile = (id, enabled = true) => ({
+      id, enabled, detector: "yolo", fps: 6, maxQueue: 1, confidence: 0.25, nms: 0.45,
+      trackingClasses: ["person"], analysis: { classes: ["person"] },
+    });
+    const template = (id, enabled = true, classes = ["person"]) => ({
+      id, enabled, ruleKind: "scenario", analysis: { classes },
+      event: { type: "loitering", region: { type: "polygon", points: [{ x: 0.2, y: 0.2 }, { x: 0.8, y: 0.2 }, { x: 0.8, y: 0.8 }, { x: 0.2, y: 0.8 }] }, minConfidence: 0.35, minDurationMs: 0 },
+      scenario: { type: "loitering", enabled: true, dwellTimeMs: 10000, cooldownMs: 20000, targetClasses: classes },
+    });
+    const source = {
+      sourceId, displayName: `REVIEW4 ${item.caseId} source`, kind: "file", file: `${sourceId}.mp4`,
+      enabled: item.caseId !== "RULE-096", tags: ["review4", "throwaway"], ownerGroup: "review4",
+      site: "contract", group: "review4", floor: "", zone: "",
+    };
+    const ruleSource = item.caseId === "RULE-095"
+      ? { kind: "file", file: "rule-095-unregistered-source.mp4" }
+      : { kind: "file", file: source.file };
+    const vaRuleFor = (id, priority, sourcePayload = ruleSource) => ({
+      id, name: `REVIEW4 ${item.caseId} relationship ${id}`, enabled: true, priority,
+      source: sourcePayload, analysis: { profileId, classes: ["person"] },
+      event: template(templateId).event, scenario: template(templateId).scenario,
+      templateStart: { ruleId: templateId },
+    });
+    const vaRule = vaRuleFor(vaRuleId, item.caseId === "RULE-100" ? 0 : Number(vaRuleId));
+    const view = {
+      viewId, sourceId, displayName: `REVIEW4 ${item.caseId} view`, enabled: item.caseId !== "RULE-096",
+      showDashboard: true, showEvents: true, showMetadataSummary: true,
+      allowedOverlayModes: ["raw", "va-overlay", "va-rule"],
+      defaultRuleId: ["RULE-095", "RULE-096", "RULE-097", "RULE-100"].includes(item.caseId) ? vaRuleId : "",
+      allowedRuleIds: ["RULE-095", "RULE-096", "RULE-097", "RULE-100"].includes(item.caseId) ? [vaRuleId] : [],
+      clientGroups: [], maxTiles: 1,
+    };
+    const fixtures = [
+      { endpoint: `/lab/analysis/profiles/${profileId}`, payload: profile(profileId, item.caseId !== "RULE-094") },
+      { endpoint: `/lab/analysis/rules/${templateId}`, payload: template(
+        templateId,
+        item.caseId !== "RULE-094",
+        item.caseId === "RULE-101" ? ["vehicle"] : ["person"],
+      ) },
+    ];
+    if (["RULE-093", "RULE-094", "RULE-101"].includes(item.caseId)) {
+      await requestEndpoint("GET", `/lab/analysis/va-rules/${vaRuleId}`, null, item, context, [404], {
+        roleOverride: "operator",
+      });
+    }
+    if (item.caseId === "RULE-100") {
+      await requestEndpoint("GET", `/lab/analysis/va-rules/${context.fixtureId}`, null, item, context, [404], {
+        roleOverride: "operator",
+      });
+    }
+    if (item.caseId === "RULE-094") {
+      fixtures.push(
+        { endpoint: "/lab/analysis/profiles/9684", payload: profile("9684", true) },
+        { endpoint: "/lab/analysis/rules/9784", payload: template("9784", true) },
+      );
+    }
+    if (item.caseId === "RULE-101") {
+      fixtures.push({ endpoint: "/lab/analysis/profiles/9681", payload: {
+        ...profile("9681", true),
+        trackingClasses: ["vehicle"],
+        analysis: { classes: ["vehicle"] },
+      } });
+    }
+    fixtures.push({ endpoint: `/ops/api/sources/${sourceId}`, payload: source });
+    if (["RULE-095", "RULE-096", "RULE-097", "RULE-098", "RULE-100"].includes(item.caseId)) {
+      fixtures.push({ endpoint: `/lab/analysis/va-rules/${vaRuleId}`, payload: vaRule });
+    }
+    let blockedSource = null;
+    let blockedView = null;
+    let disallowedVaRule = null;
+    if (item.caseId === "RULE-097") {
+      const disallowedRuleId = "98970";
+      disallowedVaRule = vaRuleFor(disallowedRuleId, Number(disallowedRuleId), { kind: "file", file: source.file });
+      blockedSource = {
+        ...source,
+        sourceId: "93970",
+        displayName: "REVIEW4 RULE-097 blocked source",
+        file: "rule-097-blocked-source.mp4",
+      };
+      blockedView = {
+        ...view,
+        viewId: "rule-097-blocked-view",
+        sourceId: blockedSource.sourceId,
+        displayName: "REVIEW4 RULE-097 blocked view",
+        defaultRuleId: "",
+        allowedRuleIds: [],
+      };
+      fixtures.push(
+        { endpoint: `/lab/analysis/va-rules/${disallowedRuleId}`, payload: disallowedVaRule },
+        { endpoint: `/ops/api/sources/${blockedSource.sourceId}`, payload: blockedSource },
+      );
+    }
+    fixtures.push({ endpoint: `/ops/api/views/${viewId}`, payload: view });
+    if (blockedView) fixtures.push({ endpoint: `/ops/api/views/${blockedView.viewId}`, payload: blockedView });
+    for (const fixture of fixtures) {
+      await requestEndpoint("GET", fixture.endpoint, null, item, context, [404], { roleOverride: "operator" });
+      const write = await requestEndpoint("PUT", fixture.endpoint, fixture.payload, item, context, [200, 201], { roleOverride: "operator" });
+      assert(write.json?.ok === true, `${item.caseId} relationship fixture write did not return ok=true: ${fixture.endpoint}`);
+      context.transientApiCleanup.push(fixture.endpoint);
+    }
+    context.transientFixtureIds.push(profileId, templateId,
+      ...(["RULE-095", "RULE-096", "RULE-097", "RULE-098", "RULE-100"].includes(item.caseId) ? [vaRuleId] : []),
+      ...(["RULE-093", "RULE-094", "RULE-101"].includes(item.caseId) ? [vaRuleId] : []),
+      ...(item.caseId === "RULE-100" ? [context.fixtureId] : []),
+      ...(disallowedVaRule ? [disallowedVaRule.id] : []),
+      ...(item.caseId === "RULE-101" ? ["9681"] : []),
+      ...(item.caseId === "RULE-094" ? ["9684", "9784"] : []));
+    context.relationshipFixture = {
+      profileId, templateId, vaRuleId, sourceId, viewId, source, view, vaRule,
+      blockedSource, blockedView, disallowedVaRule,
+      conflictVaRuleId: item.caseId === "RULE-100" ? context.fixtureId : "",
+    };
+    if (["RULE-097", "RULE-098"].includes(item.caseId)) {
+      scopeRuntimeViewerToView(viewId);
+    }
+  }
+
+  function scopeRuntimeViewerToView(viewId) {
+    const usersFile = descriptor.auth?.usersFile;
+    const username = descriptor.auth?.usernames?.viewer;
+    assert(usersFile && username && viewId, "viewer scope fixture binding is incomplete");
+    const store = JSON.parse(fs.readFileSync(usersFile, "utf8"));
+    const viewer = (store.users || []).find(user => user.username === username);
+    assert(viewer?.role === "viewer", "runtime viewer fixture account is unavailable");
+    viewer.viewId = viewId;
+    viewer.scopes = [
+      `view:read:${viewId}`,
+      `dashboard:read:${viewId}`,
+      `event:read:${viewId}`,
+      `metadata:read:${viewId}`,
+    ];
+    writePrivateJson(usersFile, store);
+  }
+
+  async function seedRule103ReplayFixtures(item, context) {
+    const polygon = points => ({ type: "polygon", points });
+    const destination = {
+      id: "9915", enabled: true, ruleKind: "basic", analysis: { classes: ["person"] },
+      event: { type: "presence", region: polygon([{ x: 0.7, y: 0.1 }, { x: 0.9, y: 0.1 }, { x: 0.9, y: 0.5 }, { x: 0.7, y: 0.5 }]), minConfidence: 0.99, minDurationMs: 0 },
+    };
+    const configured = {
+      id: "9913", enabled: true, ruleKind: "scenario", analysis: { classes: ["person"] },
+      event: { type: "re-entry", region: polygon([{ x: 0.1, y: 0.1 }, { x: 0.4, y: 0.1 }, { x: 0.4, y: 0.5 }, { x: 0.1, y: 0.5 }]), minConfidence: 0.1, minDurationMs: 0 },
+      scenario: { type: "re-entry", enabled: true, reEntryWindowMs: 3000, reEntryMode: "configured-zones", reEntryZoneIds: ["9915"], cooldownMs: 1000, targetClasses: ["person"] },
+    };
+    const defaultRule = {
+      id: "9914", enabled: true, ruleKind: "scenario", analysis: { classes: ["person"] },
+      event: { type: "re-entry", region: polygon([{ x: 0.1, y: 0.1 }, { x: 0.5, y: 0.1 }, { x: 0.5, y: 0.5 }, { x: 0.1, y: 0.5 }]), minConfidence: 0.1, minDurationMs: 0 },
+      scenario: { type: "re-entry", enabled: true, reEntryWindowMs: 3000, cooldownMs: 1000, targetClasses: ["person"] },
+    };
+    for (const payload of [destination, configured, defaultRule]) {
+      const endpoint = `/lab/analysis/rules/${payload.id}`;
+      await requestEndpoint("GET", endpoint, null, item, context, [404], { roleOverride: "operator" });
+      await requestEndpoint("PUT", endpoint, payload, item, context, [200, 201], { roleOverride: "operator" });
+      const detail = await requestEndpoint("GET", endpoint, null, item, context, [200], { roleOverride: "operator" });
+      assert(String(detail.json?.rule?.id || "") === payload.id &&
+        String(detail.json?.rule?.event?.type || "") === payload.event.type,
+      `${item.caseId} exact saved rule GET drift: ${payload.id}`);
+      context.transientApiCleanup.push(endpoint);
+      context.transientFixtureIds.push(payload.id);
+    }
+    const catalog = await requestEndpoint("GET", "/ops/api/rules/catalog", null, item, context, [200], { roleOverride: "operator" });
+    context.exactRuntimeFixture = { configured, defaultRule, destination, seededCatalog: stableJson(catalog.json) };
+  }
+
+  async function cleanupTransientApiSeeds(item, context) {
+    const deletedEndpoints = [...context.transientApiCleanup];
+    for (const endpoint of [...context.transientApiCleanup].reverse()) {
+      await requestEndpoint("DELETE", endpoint, null, item, context, [200, 404], {
+        freshRole: true,
+        roleOverride: "operator",
+      });
+    }
+    context.transientApiCleanup = [];
+    for (const endpoint of deletedEndpoints) {
+      const sourceViewSoftDelete = endpoint.startsWith("/ops/api/sources/") || endpoint.startsWith("/ops/api/views/");
+      const readback = await requestEndpoint("GET", endpoint, null, item, context, sourceViewSoftDelete ? [200] : [404], {
+        freshRole: true,
+        roleOverride: "operator",
+      });
+      if (sourceViewSoftDelete) {
+        assert((readback.json?.source || readback.json?.view)?.enabled === false,
+          `${item.caseId} transient source/view fixture was not soft-disabled before snapshot restoration`);
+      }
+    }
+    const catalog = await requestEndpoint(
+      "GET", "/ops/api/rules/catalog", null, item, context, [200],
+      { freshRole: true, roleOverride: "operator" },
+    );
+    const fixtureIds = new Set(["3920001", "3920002", "3920003", ...context.transientFixtureIds].map(String));
+    const leaked = [
+      ...(catalog.json?.profiles || []),
+      ...(catalog.json?.rules || []),
+      ...(catalog.json?.vaRules || []),
+    ].some(value => fixtureIds.has(String(value?.id || value?.ruleId || value?.profileId || "")));
+    assert(!leaked, `${item.caseId} transient rule catalog fixture remained after API cleanup`);
   }
 
   async function freshRoleStorageState(role, label = "case") {
@@ -100,6 +693,15 @@ export function createV390UiCaseRuntime({
     const whoami = await requestJson(`${httpBase}/auth/whoami`, { cookie });
     assert(whoami.status === 200 && whoami.json?.role === role,
       `fresh role whoami mismatch for ${role}: ${whoami.status}/${whoami.json?.role || ""}`);
+    if (role === "viewer") {
+      const usersStore = JSON.parse(fs.readFileSync(descriptor.auth.usersFile, "utf8"));
+      const expectedViewer = (usersStore.users || []).find(user => user.username === username);
+      assert(expectedViewer?.role === "viewer", "fresh viewer account is unavailable in the authoritative store");
+      const expectedViewId = String(expectedViewer.viewId || "");
+      const observedViewId = String(whoami.json?.viewId || "");
+      assert(observedViewId === expectedViewId,
+        `fresh viewer assigned view mismatch: ${observedViewId}/${expectedViewId}`);
+    }
     const storagePath = path.join(descriptor.temporaryRoot, "role-states", `${safeName(label)}-${role}.json`);
     fs.mkdirSync(path.dirname(storagePath), { recursive: true });
     writePrivateJson(storagePath, storageStateForCookie(cookie, httpBase));
@@ -135,7 +737,7 @@ export function createV390UiCaseRuntime({
   async function restoreCase(item, caseContext, browser = null) {
     assert(caseContext?.prepared === true, `${item.caseId} case runtime was not prepared`);
     for (const cleanup of item.workflow.cleanup || []) {
-      if (cleanup.kind === "no-op-cleanup" || cleanup.kind === "restore-local-control") continue;
+      if (["no-op-cleanup", "reset-local-ui-route", "restore-local-control"].includes(cleanup.kind)) continue;
       assert(["restore-fixture-state", "delete-created-fixture"].includes(cleanup.kind),
         `${item.caseId} unsupported mutation cleanup kind: ${cleanup.kind}`);
       let result;
@@ -167,6 +769,51 @@ export function createV390UiCaseRuntime({
       const readback = await verifyCleanupReadback(item, cleanup, caseContext, result);
       caseContext.cleanupResults.push({ cleanupId: cleanup.cleanupId, ...result, readback });
     }
+    if (item.caseId === "UI-004") {
+      const formInput = (item.workflow.inputs || []).find(input => input.kind === "form-values");
+      const originalPassword = resolveSecretRef(formInput?.actualValue?.currentPassword?.secretRef, {
+        item,
+        field: "currentPassword",
+        caseContext,
+      });
+      const username = descriptor.auth?.usernames?.[item.accountRole] || "";
+      const restoredLogin = await postForm(`${httpBase}/login`, {
+        username,
+        password: originalPassword,
+      });
+      assert(restoredLogin.status === 302,
+        `${item.caseId} original password login failed after exact snapshot restoration`);
+      caseContext.cleanupResults.push({
+        cleanupId: `${item.caseId}:after-cleanup-original-login`,
+        status: "PASS",
+        source: "restored-auth-store-final-login",
+        readback: { status: "PASS", loginStatus: restoredLogin.status },
+      });
+    }
+    if (caseContext.transientStateSeeded) {
+      if (caseContext.transientApiCleanup.length > 0) {
+        await cleanupTransientApiSeeds(item, caseContext);
+      }
+      restoreStateFiles(caseContext.snapshots);
+      caseContext.cleanupResults.push({
+        cleanupId: `${item.caseId}:restore-transient-state`,
+        status: "PASS",
+        source: "test-owned-transient-api-delete-and-file-snapshot-restore",
+      });
+    }
+    const unexpectedStateChange = !stateFilesEqual(caseContext.snapshots);
+    if (unexpectedStateChange) restoreStateFiles(caseContext.snapshots);
+    const finalStateRestored = stateFilesEqual(caseContext.snapshots);
+    caseContext.cleanupResults.push({
+      cleanupId: `${item.caseId}:authoritative-state-boundary`,
+      status: unexpectedStateChange ? "FAIL" : "PASS",
+      source: "acceptance-owned-state-file-byte-readback",
+      unexpectedStateChange,
+      finalStateRestored,
+    });
+    assert(finalStateRestored, `${item.caseId} authoritative state cleanup restoration failed`);
+    assert(!unexpectedStateChange,
+      `${item.caseId} no-op/read-only workflow changed authoritative state before cleanup`);
     activeCases.delete(item.caseId);
     if (browser) await browser.setCorrelationId(`${item.caseId}:cleanup-complete`);
     return caseContext.cleanupResults;
@@ -239,15 +886,382 @@ export function createV390UiCaseRuntime({
     delete process.env.MEDIA_SERVER_V390_UI_ROLE_SECRETS;
   }
 
+  function registerObservedSecret(item, caseContext, kind, value) {
+    assert(item?.caseId && caseContext?.caseId === item.caseId && activeCases.get(item.caseId) === caseContext,
+      "runtime secret registration is not bound to the active exact case");
+    assert(typeof kind === "string" && /^[a-z0-9-]+$/.test(kind),
+      `${item.caseId} runtime secret kind is invalid`);
+    assert(typeof value === "string" && value.length > 0,
+      `${item.caseId} observed runtime secret is empty`);
+    const secretRef = `${item.caseId}:${kind}`;
+    const existing = runtimeSecrets.get(secretRef);
+    assert(!existing || existing === value,
+      `${item.caseId} observed runtime secret changed within one case`);
+    runtimeSecrets.set(secretRef, value);
+    caseContext.secretRefs.add(secretRef);
+  }
+
+  async function verifyRejectedActionReadback(item, context) {
+    const input = (item.workflow.inputs || []).find(value => value.kind === "rejected-endpoint-fixture");
+    assert(input, `${item.caseId} rejected endpoint fixture is missing`);
+    if (["RULE-093", "RULE-094", "RULE-095", "RULE-096", "RULE-097", "RULE-098", "RULE-100", "RULE-101"].includes(item.caseId)) {
+      return verifyRuleRelationshipRejectedReadback(item, context);
+    }
+    if (item.caseId !== "RULE-092") {
+      throw new Error(`${item.caseId} rejected endpoint runtime adapter is not implemented`);
+    }
+    const duplicateId = String(input.actualValue?.body?.duplicateId || "9201");
+    const detail = await requestEndpoint(
+      "GET", `/lab/analysis/rules/${encodeURIComponent(duplicateId)}`, null, item, context, [200],
+      { freshRole: true, roleOverride: "operator" },
+    );
+    const payload = detail.json?.rule;
+    assert(payload?.id === duplicateId, `${item.caseId} duplicate source rule is missing`);
+    const before = await requestEndpoint(
+      "GET", "/lab/analysis/rules", null, item, context, [200],
+      { freshRole: true, roleOverride: "operator" },
+    );
+    const beforeRules = Array.isArray(before.json?.rules) ? before.json.rules : [];
+    const beforeCount = beforeRules.filter(rule => String(rule?.id || "") === duplicateId).length;
+    const rejected = await requestEndpoint(
+      "POST", "/lab/analysis/rules", payload, item, context, [400],
+      { freshRole: true, roleOverride: "operator" },
+    );
+    assert(String(rejected.json?.error || "").includes("already exists"),
+      `${item.caseId} duplicate create did not return the exact rejection`);
+    const after = await requestEndpoint(
+      "GET", "/lab/analysis/rules", null, item, context, [200],
+      { freshRole: true, roleOverride: "operator" },
+    );
+    const afterRules = Array.isArray(after.json?.rules) ? after.json.rules : [];
+    const afterCount = afterRules.filter(rule => String(rule?.id || "") === duplicateId).length;
+    assert(beforeCount === 1 && afterCount === beforeCount && stableJson(afterRules) === stableJson(beforeRules),
+      `${item.caseId} duplicate rejection changed the authoritative registry`);
+    return {
+      schema: "media-server.v390-ui-rejected-action-readback.v1",
+      fixtureId: duplicateId,
+      method: "POST",
+      endpoint: "/lab/analysis/rules",
+      httpStatus: rejected.status,
+      errorMatched: true,
+      registryUnchanged: true,
+      beforeCount,
+      afterCount,
+    };
+  }
+
+  async function verifyRuleRelationshipRejectedReadback(item, context) {
+    const fixture = context.relationshipFixture;
+    assert(fixture, `${item.caseId} relationship runtime fixture is missing`);
+    const request = (method, endpoint, payload, statuses) => requestEndpoint(
+      method, endpoint, payload, item, context, statuses,
+      { freshRole: true, roleOverride: "operator" },
+    );
+    const viewerRequest = (method, endpoint, payload, statuses) => requestEndpoint(
+      method, endpoint, payload, item, context, statuses,
+      { freshRole: true, roleOverride: "viewer" },
+    );
+    const before = await request("GET", "/lab/analysis/va-rules", null, [200]);
+    const beforeRules = Array.isArray(before.json?.vaRules) ? before.json.vaRules : [];
+    const endpoint = `/lab/analysis/va-rules/${fixture.vaRuleId}`;
+    const rejected = [];
+    if (item.caseId === "RULE-101") {
+      const analysisMismatch = structuredClone(fixture.vaRule);
+      analysisMismatch.analysis.profileId = "9681";
+      analysisMismatch.analysis.classes = ["person"];
+      const analysisResponse = await request("PUT", endpoint, analysisMismatch, [400]);
+      assert(String(analysisResponse.json?.error || "").includes("vaRule analysis.classes must include template analysis.classes"),
+        `${item.caseId} analysis/template class rejection mismatch`);
+      const profileMismatch = structuredClone(fixture.vaRule);
+      profileMismatch.analysis.profileId = "9691";
+      profileMismatch.analysis.classes = ["vehicle"];
+      const profileResponse = await request("PUT", endpoint, profileMismatch, [400]);
+      assert(String(profileResponse.json?.error || "").includes("vaRule profile classes must include template analysis.classes"),
+        `${item.caseId} profile/template class rejection mismatch`);
+      const afterRules = (await request("GET", "/lab/analysis/va-rules", null, [200])).json?.vaRules || [];
+      assert(!afterRules.some(rule => String(rule?.id || "") === fixture.vaRuleId) &&
+        stableJson(afterRules) === stableJson(beforeRules),
+      `${item.caseId} rejected class mismatch reached the VA registry`);
+      return {
+        schema: "media-server.v390-ui-rejected-action-readback.v1",
+        fixtureId: fixture.vaRuleId,
+        variants: 2,
+        httpStatuses: [analysisResponse.status, profileResponse.status],
+        analysisTemplateMismatchRejected: true,
+        profileTemplateMismatchRejected: true,
+        rejectedRuleAbsent: true,
+        registryUnchanged: true,
+      };
+    } else if (item.caseId === "RULE-097") {
+      const assigned = await viewerRequest("GET", "/client/api/views", null, [200]);
+      const assignedViews = Array.isArray(assigned.json?.views) ? assigned.json.views : [];
+      assert(assignedViews.length === 1 && String(assignedViews[0]?.viewId || "") === fixture.viewId,
+        `${item.caseId} viewer view list is not scoped to the assigned PublishedView`);
+      const assignedDetail = await viewerRequest("GET", `/client/api/views/${fixture.viewId}`, null, [200]);
+      assert(String(assignedDetail.json?.view?.viewId || "") === fixture.viewId &&
+        (assignedDetail.json?.view?.allowedRuleIds || []).includes(fixture.vaRuleId),
+      `${item.caseId} assigned PublishedView detail/allowlist mismatch`);
+      const blockedDashboard = await viewerRequest(
+        "GET", `/client/api/views/${fixture.blockedView.viewId}/dashboard`, null, [403, 404],
+      );
+      const blockedSession = await viewerRequest(
+        "POST", `/client/api/views/${fixture.blockedView.viewId}/webrtc/session`, { overlayMode: "raw" }, [403, 404],
+      );
+      const disallowed = await viewerRequest(
+        "POST", `/client/api/views/${fixture.viewId}/webrtc/session`,
+        { overlayMode: "va-rule", ruleId: fixture.disallowedVaRule.id }, [400],
+      );
+      assert(String(disallowed.json?.error || "").includes("allowed vaRule is required for va-rule mode") &&
+        !disallowed.json?.sessionId,
+      `${item.caseId} assigned-view disallowed VA rule rejection mismatch`);
+      rejected.push(blockedDashboard, blockedSession, disallowed);
+      return {
+        schema: "media-server.v390-ui-rejected-action-readback.v1",
+        fixtureId: fixture.vaRuleId,
+        assignedViewId: fixture.viewId,
+        blockedViewId: fixture.blockedView.viewId,
+        allowedRuleId: fixture.vaRuleId,
+        disallowedRuleId: fixture.disallowedVaRule.id,
+        visibleViewCount: assignedViews.length,
+        httpStatuses: rejected.map(value => value.status),
+        scopedViewerBoundaryObserved: true,
+        sessionCreated: false,
+      };
+    } else if (item.caseId === "RULE-098") {
+      const beforeViews = await viewerRequest("GET", "/client/api/views", null, [200]);
+      const beforeView = (beforeViews.json?.views || []).find(value => String(value?.viewId || "") === fixture.viewId);
+      assert(beforeView && !(beforeView.allowedRuleIds || []).includes(fixture.vaRuleId),
+        `${item.caseId} precondition requires matching source with VA rule outside allowedRuleIds`);
+      const response = await viewerRequest(
+        "POST", `/client/api/views/${fixture.viewId}/webrtc/session`,
+        { overlayMode: "va-rule", ruleId: fixture.vaRuleId }, [400],
+      );
+      assert(String(response.json?.error || "").includes("allowed vaRule is required for va-rule mode") &&
+        !response.json?.sessionId,
+      `${item.caseId} client VA rule allowlist rejection mismatch`);
+      const afterViews = await viewerRequest("GET", "/client/api/views", null, [200]);
+      const afterView = (afterViews.json?.views || []).find(value => String(value?.viewId || "") === fixture.viewId);
+      assert(stableJson(afterView) === stableJson(beforeView),
+        `${item.caseId} rejected client session changed the PublishedView readback`);
+      const afterRules = (await request("GET", "/lab/analysis/va-rules", null, [200])).json?.vaRules || [];
+      assert(stableJson(afterRules) === stableJson(beforeRules),
+        `${item.caseId} rejected client session changed the VA registry`);
+      return {
+        schema: "media-server.v390-ui-rejected-action-readback.v1",
+        fixtureId: fixture.vaRuleId,
+        viewId: fixture.viewId,
+        httpStatuses: [response.status],
+        errorMatched: true,
+        allowlistUnchanged: true,
+        registryUnchanged: true,
+        sessionCreated: false,
+      };
+    } else if (item.caseId === "RULE-100") {
+      const conflict = structuredClone(fixture.vaRule);
+      conflict.id = fixture.conflictVaRuleId;
+      conflict.name = "REVIEW4 RULE-100 priority conflict";
+      conflict.priority = fixture.vaRule.priority;
+      const response = await request(
+        "PUT", `/lab/analysis/va-rules/${fixture.conflictVaRuleId}`, conflict, [400],
+      );
+      assert(String(response.json?.error || "").includes("vaRule priority conflicts with existing rule on same source"),
+        `${item.caseId} same-source priority rejection mismatch`);
+      const afterRules = (await request("GET", "/lab/analysis/va-rules", null, [200])).json?.vaRules || [];
+      assert(!afterRules.some(rule => String(rule?.id || "") === fixture.conflictVaRuleId) &&
+        stableJson(afterRules) === stableJson(beforeRules),
+      `${item.caseId} priority-conflict candidate reached the VA registry`);
+      return {
+        schema: "media-server.v390-ui-rejected-action-readback.v1",
+        fixtureId: fixture.conflictVaRuleId,
+        validRuleId: fixture.vaRuleId,
+        httpStatuses: [response.status],
+        errorMatched: true,
+        rejectedRuleAbsent: true,
+        registryUnchanged: true,
+      };
+    } else if (item.caseId === "RULE-093") {
+      const missingProfile = structuredClone(fixture.vaRule);
+      missingProfile.analysis.profileId = "9997";
+      const profileResponse = await request("PUT", endpoint, missingProfile, [400]);
+      assert(String(profileResponse.json?.error || "").includes("vaRule analysis.profileId does not exist"),
+        `${item.caseId} missing-profile rejection mismatch`);
+      const missingTemplate = structuredClone(fixture.vaRule);
+      missingTemplate.templateStart.ruleId = "9998";
+      const templateResponse = await request("PUT", endpoint, missingTemplate, [400]);
+      assert(String(templateResponse.json?.error || "").includes("vaRule templateStart.ruleId does not exist"),
+        `${item.caseId} missing-template rejection mismatch`);
+      rejected.push(profileResponse, templateResponse);
+    } else if (item.caseId === "RULE-094") {
+      const inactiveProfile = structuredClone(fixture.vaRule);
+      inactiveProfile.analysis.profileId = "9694";
+      inactiveProfile.templateStart.ruleId = "9784";
+      const profileResponse = await request("PUT", endpoint, inactiveProfile, [400]);
+      assert(String(profileResponse.json?.error || "").includes("vaRule analysis.profileId is inactive"),
+        `${item.caseId} inactive-profile rejection mismatch`);
+      const inactiveTemplate = structuredClone(fixture.vaRule);
+      inactiveTemplate.analysis.profileId = "9684";
+      inactiveTemplate.templateStart.ruleId = "9794";
+      const templateResponse = await request("PUT", endpoint, inactiveTemplate, [400]);
+      assert(String(templateResponse.json?.error || "").includes("vaRule templateStart.ruleId is inactive"),
+        `${item.caseId} inactive-template rejection mismatch`);
+      rejected.push(profileResponse, templateResponse);
+    } else if (item.caseId === "RULE-095") {
+      const response = await request("POST", `/client/api/views/${fixture.viewId}/webrtc/session`,
+        { overlayMode: "va-rule", ruleId: fixture.vaRuleId }, [400]);
+      assert(String(response.json?.error || "").includes("vaRule source must match PublishedView source"),
+        `${item.caseId} client source-mismatch rejection mismatch`);
+      rejected.push(response);
+    } else {
+      await request("PUT", `/ops/api/sources/${fixture.sourceId}`, { ...fixture.source, enabled: true }, [200]);
+      await request("PUT", `/ops/api/views/${fixture.viewId}`, { ...fixture.view, enabled: false }, [200]);
+      const inactiveView = await request("POST", `/client/api/views/${fixture.viewId}/webrtc/session`,
+        { overlayMode: "va-rule", ruleId: fixture.vaRuleId }, [404]);
+      assert(String(inactiveView.json?.error || "").includes("PublishedView not found"),
+        `${item.caseId} inactive-view rejection mismatch`);
+      await request("PUT", `/ops/api/sources/${fixture.sourceId}`, { ...fixture.source, enabled: false }, [200]);
+      await request("PUT", `/ops/api/views/${fixture.viewId}`, { ...fixture.view, enabled: true }, [200]);
+      const inactiveChannel = await request("POST", `/client/api/views/${fixture.viewId}/webrtc/session`,
+        { overlayMode: "va-rule", ruleId: fixture.vaRuleId }, [404]);
+      assert(String(inactiveChannel.json?.error || "").includes("PublishedView source is not available"),
+        `${item.caseId} inactive-channel rejection mismatch`);
+      await request("PUT", `/ops/api/views/${fixture.viewId}`, { ...fixture.view, enabled: false }, [200]);
+      rejected.push(inactiveView, inactiveChannel);
+    }
+    const after = await request("GET", "/lab/analysis/va-rules", null, [200]);
+    const afterRules = Array.isArray(after.json?.vaRules) ? after.json.vaRules : [];
+    if (["RULE-093", "RULE-094"].includes(item.caseId)) {
+      assert(!afterRules.some(rule => String(rule?.id || "") === fixture.vaRuleId),
+        `${item.caseId} rejected VA rule was written`);
+      assert(stableJson(afterRules) === stableJson(beforeRules),
+        `${item.caseId} rejected relationship variants changed the VA registry`);
+    } else {
+      assert(stableJson(afterRules) === stableJson(beforeRules),
+        `${item.caseId} client rejection changed the VA registry`);
+    }
+    return {
+      schema: "media-server.v390-ui-rejected-action-readback.v1",
+      fixtureId: fixture.vaRuleId,
+      variants: rejected.length,
+      httpStatuses: rejected.map(value => value.status),
+      errorMatched: true,
+      registryUnchanged: true,
+      cleanupMode: "api-delete-source-view-soft-disable-plus-file-snapshot-restore",
+    };
+  }
+
+  async function verifyExactRuntimeReadback(item, context) {
+    const fixture = context.exactRuntimeFixture;
+    assert(fixture, `${item.caseId} exact runtime fixture is missing`);
+    const get = endpoint => requestEndpoint("GET", endpoint, null, item, context, [200], {
+      freshRole: true, roleOverride: "operator",
+    });
+    if (item.caseId === "RULE-103") {
+      const configured = (await get("/lab/analysis/rules/9913")).json?.rule;
+      const defaultRule = (await get("/lab/analysis/rules/9914")).json?.rule;
+      const destination = (await get("/lab/analysis/rules/9915")).json?.rule;
+      assert(configured?.scenario?.reEntryMode === "configured-zones" &&
+        stableJson(configured.scenario.reEntryZoneIds) === stableJson(["9915"]),
+      `${item.caseId} configured re-entry GET readback mismatch`);
+      assert(defaultRule?.event?.type === "re-entry" && !defaultRule?.scenario?.reEntryMode,
+        `${item.caseId} default re-entry GET readback mismatch`);
+      const replay = runRule103ExactReplay(configured, defaultRule, destination);
+      const catalog = await get("/ops/api/rules/catalog");
+      assert(stableJson(catalog.json) === fixture.seededCatalog, `${item.caseId} UI refresh changed the seeded rule catalog`);
+      return { schema: "media-server.v390-rule-103-exact-runtime.v1", ...replay, exactGet: true };
+    }
+    const catalog = await get("/ops/api/rules/catalog");
+    assert(stableJson(catalog.json) === fixture.catalogBeforeUiAction,
+      `${item.caseId} UI action changed rule/profile registry state`);
+    assert(sha256FileOrMissing(descriptor.eventStoragePath) === fixture.eventStorageSha256,
+      `${item.caseId} UI action changed the EventRecord registry`);
+    if (item.caseId === "RULE-104") {
+      const reviews = await get(`/ops/api/events/reviews?eventId=${encodeURIComponent(fixture.eventId)}&limit=25`);
+      const readiness = reviews.json?.approvalGatedRuleDraftReadiness;
+      const row = readiness?.items?.find(value => value?.eventId === fixture.eventId);
+      assert(row?.approvalState === "approval-required" &&
+        row?.stagedDraft?.manualDraftRoute?.startsWith(`/ops/rules?draftEventId=${encodeURIComponent(fixture.eventId)}`) &&
+        row?.stagedDraft?.noAutoSave === true &&
+        row?.stagedDraft?.noAutoApply === true &&
+        row?.stagedDraft?.ruleRegistryWritePerformed === false &&
+        row?.stagedDraft?.profileRegistryWritePerformed === false &&
+        row?.validationSummary?.fullReplayEngineExecuted === false &&
+        readiness?.contract?.runtimeVlmCallPerformed === false &&
+        readiness?.contract?.cloudProviderApiCalled === false,
+      `${item.caseId} approval-gated readiness exact API readback mismatch`);
+      return { schema: readiness.schema, eventId: fixture.eventId, approvalState: row.approvalState, registryUnchanged: true };
+    }
+    if (item.caseId === "RULE-111") {
+      const bridge = (await get("/ops/api/vlm/rule-suggestion-draft-bridge")).json;
+      const drafts = (await get("/ops/api/vlm/rule-suggestion-drafts?limit=10")).json;
+      const candidate = drafts?.sourceCandidateReport?.candidates?.find(value => value?.eventId === fixture.eventId);
+      assert(candidate?.ruleSuggestion?.manualReviewRequired === true &&
+        candidate?.ruleSuggestion?.autoApply === false &&
+        stableJson(candidate?.ruleSuggestion?.draftRule?.classes) === stableJson(["person"]) &&
+        Number(candidate?.ruleSuggestion?.draftRule?.minConfidence) === 0.8 &&
+        Number(candidate?.ruleSuggestion?.draftRule?.minDurationMs) === 1000 &&
+        String(candidate?.ruleSuggestion?.draftRule?.direction || "") === "any" &&
+        bridge?.workflowContract?.manualSaveRequired === true &&
+        bridge?.workflowContract?.autoApplyEnabled === false &&
+        bridge?.workflowContract?.ruleRegistryWritePerformedByBridge === false &&
+        bridge?.workflowContract?.profileRegistryWritePerformedByBridge === false &&
+        bridge?.workflowContract?.eventRecordWritePerformedByBridge === false &&
+        bridge?.workflowContract?.runtimeVlmCallPerformed === false &&
+        bridge?.workflowContract?.cloudProviderApiCalled === false,
+      `${item.caseId} VLM bridge/draft exact no-write contract mismatch`);
+      return { schema: bridge.schema, eventId: fixture.eventId, candidateAppliedToForm: true, registryUnchanged: true };
+    }
+    throw new Error(`${item.caseId} exact runtime readback adapter is unavailable`);
+  }
+
+  function runRule103ExactReplay(configured, defaultRule, destination) {
+    const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), `media-server-rule-103-replay-${process.pid}-`));
+    const buildDir = path.join(outputDir, "build");
+    const fixtureDir = path.join(rootDir, "test/fixtures/va_replay");
+    let replayBinaryReady = false;
+    const run = (name, rules, metadata) => {
+      const rulesPath = path.join(outputDir, `${name}-rules.json`);
+      const outputPath = path.join(outputDir, `${name}.json`);
+      fs.writeFileSync(rulesPath, `${JSON.stringify(rules, null, 2)}\n`, { mode: 0o600 });
+      const args = ["--input", path.join(fixtureDir, metadata), "--rules", rulesPath, "--output", outputPath, "--no-intrusion-dwell", "--enable-re-entry"];
+      const env = { ...process.env, MEDIA_SERVER_VA_REPLAY_BUILD_DIR: buildDir };
+      if (!replayBinaryReady) {
+        execFileSync(path.join(rootDir, "scripts/internal/replay_va_metadata.sh"), args, { cwd: rootDir, env, stdio: "pipe" });
+        replayBinaryReady = true;
+      } else {
+        execFileSync(path.join(buildDir, "va_metadata_replay"), args, { cwd: rootDir, env, stdio: "pipe" });
+      }
+      const payload = JSON.parse(fs.readFileSync(outputPath, "utf8"));
+      return new Set((payload.events || []).map(value => String(value?.type || "")));
+    };
+    try {
+      const configuredTypes = run("configured", [configured, destination], "re_entry_cross_zone_metadata.json");
+      const defaultTypes = run("default", [defaultRule], "re_entry_metadata.json");
+      const missingZone = structuredClone(configured);
+      missingZone.scenario.reEntryZoneIds = ["missing-runtime-zone"];
+      const missingZoneTypes = run("missing-zone", [missingZone, destination], "re_entry_cross_zone_metadata.json");
+      assert(configuredTypes.has("re-entry") && defaultTypes.has("re-entry") && !missingZoneTypes.has("re-entry"),
+        "RULE-103 actual replay positive/default/missing-zone RED mismatch");
+      return { configuredReplayPositive: true, defaultReplayPositive: true, missingZoneReplayRed: true, temporaryOutputCleaned: true };
+    } finally {
+      fs.rmSync(outputDir, { recursive: true, force: true });
+      assert(!fs.existsSync(outputDir), "RULE-103 replay temporary output cleanup failed");
+    }
+  }
+
   return {
     enabled: Boolean(descriptor),
     descriptor,
     prepareCase,
     freshRoleStorageState,
     resolveSecretRef,
+    registerObservedSecret,
     switchActionRoleSession,
+    prepareDeferredFormFixture,
     restoreCase,
     verifyMutationReadback,
+    verifyRejectedActionReadback,
+    verifyExactRuntimeReadback,
+    verifyFormSubmitReadback,
     verifyCleanupReadback,
     assertSecretsAbsentFromArtifacts,
     releaseSecrets,
@@ -262,13 +1276,54 @@ export function createV390UiCaseRuntime({
       const usersFile = descriptor.auth?.usersFile;
       assert(usersFile, `${item.caseId} auth users file missing from runtime descriptor`);
       if (item.caseId === "AUTH-007") {
-        writePrivateJson(usersFile, {
-          users: [{ username: values.username, displayName: "Hashless Fixture", role: "admin", scopes: ["*"], passwordHash: "", enabled: true }],
-          invites: [], accessRequests: [],
+        const emptyPassword = await postForm(`${httpBase}/login`, {
+          username: descriptor.auth?.usernames?.admin || "admin",
+          password: "",
         });
+        assert(emptyPassword.status === 401,
+          `${item.caseId} hashed-admin empty-password boundary expected HTTP 401, got ${emptyPassword.status}`);
+        context.preFormReadback = {
+          hashedAdminEmptyPasswordStatus: emptyPassword.status,
+          hashlessAdminUsername: "admin",
+          hashlessMutationPending: true,
+        };
       } else {
         fs.rmSync(usersFile, { force: true });
         fs.rmSync(`${usersFile}.tmp`, { force: true });
+        if (item.caseId === "UI-002") {
+          const before = sha256FileOrMissing(usersFile);
+          const weak = await postForm(`${httpBase}/setup`, {
+            username: "admin",
+            password: "weak",
+            confirm: "weak",
+          });
+          assert(weak.status === 400 && sha256FileOrMissing(usersFile) === before && !fs.existsSync(usersFile),
+            `${item.caseId} weak setup was not rejected without a store write`);
+          context.preFormReadback = { weakPasswordStatus: weak.status, weakPasswordNoWrite: true };
+        } else if (item.caseId === "AUTH-005") {
+          const missingWhoami = await requestJson(`${httpBase}/auth/whoami`);
+          const missingLogin = await requestStatus(`${httpBase}/login`);
+          assert(missingWhoami.status === 200 && missingWhoami.json?.setupRequired === true &&
+            missingLogin.status === 302 && missingLogin.location === "/setup",
+          `${item.caseId} missing-store bootstrap gate mismatch`);
+          writePrivateJson(usersFile, {
+            users: [{ username: "admin", displayName: "Hashless Admin", role: "admin", scopes: ["*"], passwordHash: "", enabled: true }],
+            invites: [], accessRequests: [],
+          });
+          const hashlessWhoami = await requestJson(`${httpBase}/auth/whoami`);
+          const hashlessLogin = await postForm(`${httpBase}/login`, { username: "admin", password: "unusable" });
+          assert(hashlessWhoami.status === 200 && hashlessWhoami.json?.setupRequired === true &&
+            hashlessLogin.status === 403,
+          `${item.caseId} hashless-admin bootstrap gate mismatch`);
+          fs.rmSync(usersFile, { force: true });
+          fs.rmSync(`${usersFile}.tmp`, { force: true });
+          context.preFormReadback = {
+            missingStoreSetupRequired: true,
+            missingLoginStatus: missingLogin.status,
+            hashlessStoreSetupRequired: true,
+            hashlessLoginStatus: hashlessLogin.status,
+          };
+        }
       }
       return;
     }
@@ -285,11 +1340,87 @@ export function createV390UiCaseRuntime({
       const invite = normalizeInviteSeedResponse(await createInvite(username, viewId), { username, viewId });
       assert(invite.token, `${item.caseId} invite API did not return a runtime token`);
       runtimeSecrets.set(tokenRef, invite.token);
+      const password = resolveSecretRef(values.password?.secretRef,
+        { item, field: "password", caseContext: context });
+      const beforeLogin = await postForm(`${httpBase}/login`, { username, password });
+      const beforeClient = await requestStatus(`${httpBase}/client/api/views`);
+      assert(beforeLogin.status === 401 && beforeClient.status === 401,
+        `${item.caseId} invite setup opened login/client access before completion`);
+      context.preFormReadback = {
+        beforeSetupLoginStatus: beforeLogin.status,
+        beforeSetupClientStatus: beforeClient.status,
+      };
       return;
     }
     if (item.caseId === "AUTH-035") {
-      runtimeSecrets.set(values.token.secretRef, `expired-${crypto.randomBytes(18).toString("hex")}`);
+      const viewId = descriptor.auth?.defaultViewId || "9001";
+      const consumedUsername = "auth-035-consumed";
+      const consumed = normalizeInviteSeedResponse(await createInvite(consumedUsername, viewId), {
+        username: consumedUsername,
+        viewId,
+      });
+      const consumedPassword = resolveSecretRef(values.password?.secretRef,
+        { item, field: "password", caseContext: context });
+      const consumedOnce = await postForm(`${httpBase}/invite/setup`, {
+        token: consumed.token,
+        password: consumedPassword,
+        confirm: consumedPassword,
+      });
+      assert(consumedOnce.status === 302, `${item.caseId} consumed invite seed setup failed`);
+      runtimeSecrets.set(values.token.secretRef, consumed.token);
+      context.secretRefs.add(values.token.secretRef);
+
+      const expiredUsername = "auth-035-expired";
+      const expired = normalizeInviteSeedResponse(await createInvite(expiredUsername, viewId), {
+        username: expiredUsername,
+        viewId,
+      });
+      const expiredRef = `${item.caseId}:expired-invite-token`;
+      runtimeSecrets.set(expiredRef, expired.token);
+      context.secretRefs.add(expiredRef);
+      const state = readUsersState(descriptor.auth?.usersFile || "");
+      const store = JSON.parse(state.raw);
+      const expiredRecord = store.invites.find(invite => invite.inviteId === expired.inviteId);
+      assert(expiredRecord, `${item.caseId} expired invite seed record missing`);
+      expiredRecord.expiresAt = "2000-01-01T00:00:00Z";
+      writePrivateJson(descriptor.auth.usersFile, store);
+      context.preFormReadback = {
+        consumedInviteId: consumed.inviteId,
+        expiredInviteId: expired.inviteId,
+        consumedOnceStatus: consumedOnce.status,
+      };
     }
+  }
+
+  async function prepareDeferredFormFixture(item, context) {
+    if (item.caseId !== "AUTH-007") return { prepared: false };
+    assert(context?.preFormReadback?.hashlessMutationPending === true,
+      `${item.caseId} deferred hashless-admin fixture was not staged`);
+    const usersFile = descriptor.auth?.usersFile;
+    assert(usersFile, `${item.caseId} auth users file missing from runtime descriptor`);
+    writePrivateJson(usersFile, {
+      users: [{
+        username: "admin",
+        displayName: "Hashless Fixture",
+        role: "admin",
+        scopes: ["*"],
+        passwordHash: "",
+        enabled: true,
+      }],
+      invites: [],
+      accessRequests: [],
+    });
+    const whoami = await requestJson(`${httpBase}/auth/whoami`);
+    assert(whoami.status === 200 && whoami.json?.setupRequired === true,
+      `${item.caseId} deferred hashless-admin bootstrap state is missing`);
+    context.preFormReadback.hashlessUsersSha256 = sha256FileOrMissing(usersFile);
+    context.preFormReadback.hashlessMutationPending = false;
+    context.preFormReadback.hashlessMutationPrepared = true;
+    return {
+      prepared: true,
+      source: "post-navigation-pre-submit-auth-store-fixture",
+      setupRequired: true,
+    };
   }
 
   async function preparePersistedFixture(item, context) {
@@ -507,10 +1638,463 @@ export function createV390UiCaseRuntime({
       method: endpointSpec.method,
       mode: readback.mode,
       changed,
+      persistedMutationObserved: true,
       beforeSha256: crypto.createHash("sha256").update(stableJson(before)).digest("hex"),
       observedSha256: crypto.createHash("sha256").update(stableJson(observed)).digest("hex"),
       observedPresent: observed !== null,
     };
+  }
+
+  async function verifyFormSubmitReadback(item, context, runtime = {}) {
+    const selected = formReadbackProfiles[item.caseId];
+    assert(selected, `${item.caseId} form authoritative readback profile is not registered`);
+    assert(item.oracle?.expectedBehaviorSha256 === selected.expectedBehaviorSha256,
+      `${item.caseId} form readback profile expected-behavior digest drift`);
+    const result = await verifyFormSubmitReadbackProfile(item, context, runtime);
+    const observedChecks = Object.keys(result.checks || {}).sort();
+    const expectedChecks = [...selected.requiredChecks].sort();
+    assert(stableJson(observedChecks) === stableJson(expectedChecks),
+      `${item.caseId} form readback evidence-key coverage drift`);
+    assert(expectedChecks.every(key => result.checks[key] === true),
+      `${item.caseId} form authoritative check failed`);
+    return {
+      ...result,
+      profileId: `form-readback:${item.caseId}`,
+      expectedBehaviorSha256: selected.expectedBehaviorSha256,
+    };
+  }
+
+  async function verifyFormSubmitReadbackProfile(item, context, {
+    action,
+    formResponseIdentity,
+    browser,
+    originalSessionCookie = "",
+  } = {}) {
+    assert(item.workflow?.workflowClass === "form-submit",
+      `${item.caseId} form readback is only valid for form-submit workflows`);
+    assert(action?.kind === "submit-form" && formResponseIdentity?.status,
+      `${item.caseId} form readback is not bound to a completed response`);
+    const input = (item.workflow.inputs || []).find(value => value.kind === "form-values");
+    assert(input?.submit === true, `${item.caseId} form readback input missing`);
+    const values = input.actualValue || {};
+    const common = {
+      schema: "media-server.v390-ui-runtime-form-submit-readback.v1",
+      submitted: true,
+      method: action.method,
+      action: action.action,
+      fields: [...action.fields],
+      responseStatus: formResponseIdentity.status,
+      responseRequestId: formResponseIdentity.requestId,
+      correlationId: formResponseIdentity.correlationId,
+      authoritative: true,
+    };
+    const usersFile = descriptor.auth?.usersFile || "";
+    const usersState = () => readUsersState(usersFile);
+    const assertUsersChanged = state => assert(state.sha256 !== context.preparedUsersSha256,
+      `${item.caseId} form submission did not change the authoritative users store`);
+    const assertUsersUnchanged = state => assert(state.sha256 === context.preparedUsersSha256,
+      `${item.caseId} rejected/session-only form changed the authoritative users store`);
+    if (["UI-002", "AUTH-005", "AUTH-006"].includes(item.caseId)) {
+      assert(usersFile && fs.existsSync(usersFile), `${item.caseId} setup users store was not created`);
+      const state = usersState();
+      assertUsersChanged(state);
+      const admin = state.users.find(user => user.username === "admin");
+      assert(admin?.role === "admin" && admin?.enabled === true &&
+        typeof admin?.passwordHash === "string" && admin.passwordHash.length > 0,
+      `${item.caseId} setup admin authoritative store readback failed`);
+      const passwordRef = values.password?.secretRef;
+      const password = resolveSecretRef(passwordRef, { item, field: "password", caseContext: context });
+      assert(!state.raw.includes(password), `${item.caseId} setup store contains plaintext password`);
+      const login = await postForm(`${httpBase}/login`, { username: "admin", password });
+      assert(login.status === 302, `${item.caseId} setup admin login readback failed HTTP ${login.status}`);
+      const loginCookie = cookieFromResponse(login);
+      const whoami = await requestJson(`${httpBase}/auth/whoami`, { cookie: loginCookie });
+      assert(whoami.status === 200 && whoami.json?.authenticated === true &&
+        whoami.json?.username === "admin" && whoami.json?.role === "admin",
+      `${item.caseId} setup admin principal readback mismatch`);
+      const baseChecks = {
+        adminStored: true,
+        plaintextAbsent: true,
+        adminWhoami: true,
+      };
+      if (item.caseId === "UI-002") {
+        return {
+          ...common,
+          readbackKind: "setup-weak-strong-admin-store-login-whoami",
+          principal: safePrincipal(whoami.json),
+          usersStoreSha256: state.sha256,
+          checks: {
+            weakRejected: context.preFormReadback.weakPasswordStatus === 400,
+            weakNoWrite: context.preFormReadback.weakPasswordNoWrite === true,
+            ...baseChecks,
+          },
+        };
+      }
+      if (item.caseId === "AUTH-005") {
+        const setupRoute = await requestStatus(`${httpBase}/setup`);
+        const rootRoute = await requestStatus(`${httpBase}/`);
+        return {
+          ...common,
+          readbackKind: "missing-hashless-bootstrap-to-login",
+          principal: safePrincipal(whoami.json),
+          usersStoreSha256: state.sha256,
+          checks: {
+            missingStoreGate: context.preFormReadback.missingStoreSetupRequired === true &&
+              context.preFormReadback.missingLoginStatus === 302,
+            hashlessStoreGate: context.preFormReadback.hashlessStoreSetupRequired === true,
+            hashlessLoginDenied: context.preFormReadback.hashlessLoginStatus === 403,
+            bootstrapToLogin: setupRoute.status === 302 && setupRoute.location === "/login" &&
+              rootRoute.status === 302 && rootRoute.location === "/login",
+            adminWhoami: true,
+          },
+        };
+      }
+      const usersApi = await requestJson(`${httpBase}/ops/api/users`, { cookie: loginCookie });
+      const publicAdmin = usersApi.json?.users?.find(user => user.username === "admin");
+      const ui = await inspectOpsUsersUiWithLogin(browser, {
+        username: "admin",
+        password,
+        sectionSelector: "#users-body",
+        identity: "admin",
+        returnPath: "/login",
+      });
+      return {
+        ...common,
+        readbackKind: "setup-admin-policy-api-ui-readback",
+        principal: safePrincipal(whoami.json),
+        usersStoreSha256: state.sha256,
+        checks: {
+          adminAllScope: stableJson(admin.scopes) === stableJson(["*"]) &&
+            stableJson(publicAdmin?.scopes) === stableJson(["*"]),
+          usersApiRedacted: usersApi.status === 200 && !containsForbiddenAuthMaterial(usersApi.json),
+          usersUiRedacted: ui.identityVisible && ui.forbiddenMarkersAbsent && ui.adminAllScopesVisible,
+          adminWhoami: true,
+        },
+      };
+    }
+    if (["UI-003", "AUTH-004"].includes(item.caseId)) {
+      const state = usersState();
+      assertUsersChanged(state);
+      assert(state.stableAuthSha256 === context.preparedUsersStableAuthSha256,
+        `${item.caseId} login changed credential or authorization fields`);
+      const principal = await observeBrowserWhoami(browser, item.caseId);
+      assert(principal.status === 200 && principal.authenticated === true &&
+        principal.username === values.username && principal.role === "viewer",
+      `${item.caseId} login principal authoritative readback mismatch`);
+      const landing = await browser.evaluate(() => location.pathname);
+      const boundary = await observeBrowserRoleBoundary(browser);
+      return {
+        ...common,
+        readbackKind: item.caseId === "UI-003"
+          ? "viewer-login-role-landing"
+          : "viewer-login-client-allow-ops-deny",
+        principal,
+        usersStoreSha256: state.sha256,
+        checks: item.caseId === "UI-003" ? {
+          stableAuthorization: true,
+          viewerWhoami: true,
+          viewerLanding: landing === "/client/live",
+        } : {
+          stableAuthorization: true,
+          viewerWhoami: true,
+          clientAllowed: boundary.clientStatus === 200,
+          opsDenied: boundary.opsStatus === 403,
+        },
+      };
+    }
+    if (item.caseId === "UI-004") {
+      const state = usersState();
+      assertUsersChanged(state);
+      const username = descriptor.auth?.usernames?.[item.accountRole] || "";
+      const oldPassword = resolveSecretRef(values.currentPassword?.secretRef,
+        { item, field: "currentPassword", caseContext: context });
+      const newPassword = resolveSecretRef(values.password?.secretRef,
+        { item, field: "password", caseContext: context });
+      assert(!state.raw.includes(oldPassword) && !state.raw.includes(newPassword),
+        `${item.caseId} password-change store contains plaintext auth material`);
+      const oldLogin = await postForm(`${httpBase}/login`, { username, password: oldPassword });
+      assert(oldLogin.status === 401, `${item.caseId} previous password remains valid`);
+      const newLogin = await postForm(`${httpBase}/login`, { username, password: newPassword });
+      assert(newLogin.status === 302, `${item.caseId} new password login failed HTTP ${newLogin.status}`);
+      const newCookie = cookieFromResponse(newLogin);
+      const whoami = await requestJson(`${httpBase}/auth/whoami`, { cookie: newCookie });
+      assert(whoami.status === 200 && whoami.json?.authenticated === true &&
+        whoami.json?.username === username && whoami.json?.role === item.accountRole,
+      `${item.caseId} changed-password principal readback mismatch`);
+      const historyReuse = await postForm(`${httpBase}/password/change`, {
+        currentPassword: newPassword,
+        password: oldPassword,
+        confirm: oldPassword,
+      }, { cookie: newCookie });
+      const historyState = usersState();
+      const changedUser = historyState.users.find(user => user.username === username);
+      assert(historyReuse.status === 400 && Array.isArray(changedUser?.passwordHistory) &&
+        changedUser.passwordHistory.length > 0,
+      `${item.caseId} previous password reuse/history boundary failed`);
+      return {
+        ...common,
+        readbackKind: "password-change-old-deny-new-history-reuse-deny",
+        principal: { authenticated: true, username, role: item.accountRole },
+        previousPasswordStatus: oldLogin.status,
+        usersStoreSha256: historyState.sha256,
+        checks: {
+          oldPasswordDenied: oldLogin.status === 401,
+          newPasswordAccepted: newLogin.status === 302 && whoami.status === 200,
+          historyReuseDenied: historyReuse.status === 400,
+          historyRotated: changedUser.passwordHistory.length > 0,
+          plaintextAbsent: !historyState.raw.includes(oldPassword) && !historyState.raw.includes(newPassword),
+        },
+      };
+    }
+    if (item.caseId === "UI-005") {
+      const state = usersState();
+      assertUsersUnchanged(state);
+      const principal = await observeBrowserWhoami(browser, item.caseId);
+      assert(principal.status === 401 && principal.authenticated === false,
+        `${item.caseId} logout session remains authenticated`);
+      assert(originalSessionCookie, `${item.caseId} original session cookie readback missing`);
+      const originalWhoami = await requestJson(`${httpBase}/auth/whoami`, { cookie: originalSessionCookie });
+      const protectedRoute = await requestStatus(`${httpBase}/ops/home`, { cookie: originalSessionCookie });
+      return {
+        ...common,
+        readbackKind: "browser-and-original-server-session-revoked",
+        principal,
+        usersStoreSha256: state.sha256,
+        checks: {
+          browserAnonymous: true,
+          originalCookieRevoked: originalWhoami.status === 401 && originalWhoami.json?.authenticated === false,
+          protectedRouteBlocked: protectedRoute.status === 302 && protectedRoute.location === "/login",
+          storeUnchanged: true,
+        },
+      };
+    }
+    if (["UI-007", "AUTH-034"].includes(item.caseId)) {
+      const state = usersState();
+      assertUsersChanged(state);
+      const username = `${item.caseId.toLowerCase()}-invite`;
+      const user = state.users.find(candidate => candidate.username === username);
+      const consumedInvite = state.invites.find(invite => invite.username === username);
+      assert(user?.enabled === true && typeof user?.passwordHash === "string" && user.passwordHash.length > 0,
+        `${item.caseId} invite completion user readback missing`);
+      assert(consumedInvite?.used === true && typeof consumedInvite?.usedAt === "string" &&
+        consumedInvite.usedAt.length > 0 && consumedInvite.tokenHash === "",
+      `${item.caseId} invite consumption state readback mismatch`);
+      const password = resolveSecretRef(values.password?.secretRef,
+        { item, field: "password", caseContext: context });
+      assert(!state.raw.includes(password), `${item.caseId} invite store contains plaintext password`);
+      const login = await postForm(`${httpBase}/login`, { username, password });
+      assert(login.status === 302, `${item.caseId} invited user login failed HTTP ${login.status}`);
+      const whoami = await requestJson(`${httpBase}/auth/whoami`, { cookie: cookieFromResponse(login) });
+      assert(whoami.status === 200 && whoami.json?.authenticated === true &&
+        whoami.json?.username === username && whoami.json?.role === "viewer",
+      `${item.caseId} invite principal readback mismatch`);
+      const loginCookie = cookieFromResponse(login);
+      const client = await requestStatus(`${httpBase}/client/api/views`, { cookie: loginCookie });
+      const ops = await requestStatus(`${httpBase}/ops/api/users`, { cookie: loginCookie });
+      const expectedScope = `view:read:${descriptor.auth?.defaultViewId || "9001"}`;
+      return {
+        ...common,
+        readbackKind: "invite-consumed-viewer-scope-client-boundary",
+        principal: safePrincipal(whoami.json),
+        usersStoreSha256: state.sha256,
+        checks: {
+          beforeLoginDenied: context.preFormReadback.beforeSetupLoginStatus === 401,
+          beforeClientDenied: context.preFormReadback.beforeSetupClientStatus === 401,
+          inviteConsumed: true,
+          viewerWhoami: true,
+          viewerScope: Array.isArray(whoami.json?.scopes) && whoami.json.scopes.includes(expectedScope),
+          clientAllowed: client.status === 200,
+          opsDenied: ops.status === 403,
+        },
+      };
+    }
+    if (item.caseId === "AUTH-007") {
+      const state = usersState();
+      assert(context.preFormReadback.hashlessMutationPrepared === true &&
+        state.sha256 === context.preFormReadback.hashlessUsersSha256,
+      `${item.caseId} rejected hashless-admin login changed the submit-time users store`);
+      const admin = state.users.find(user => user.username === "admin");
+      assert(admin?.enabled === true && admin?.passwordHash === "",
+        `${item.caseId} hashless-admin fixture readback drifted before verification`);
+      const principal = await observeBrowserWhoami(browser, item.caseId);
+      assert(principal.authenticated === false && principal.status === 200 &&
+        principal.setupRequired === true,
+      `${item.caseId} passwordless admin rejection authenticated a principal`);
+      return {
+        ...common,
+        readbackKind: "empty-password-and-hashless-admin-denied",
+        principal,
+        usersStoreSha256: state.sha256,
+        checks: {
+          emptyPasswordDenied: context.preFormReadback.hashedAdminEmptyPasswordStatus === 401,
+          hashlessAdminDenied: formResponseIdentity.status === 403 &&
+            context.preFormReadback.hashlessAdminUsername === "admin",
+          browserAnonymous: true,
+          storeUnchanged: true,
+        },
+      };
+    }
+    if (item.caseId === "AUTH-035") {
+      const state = usersState();
+      assertUsersUnchanged(state);
+      const principal = await observeBrowserWhoami(browser, item.caseId);
+      assert(principal.authenticated === false && principal.status === 401,
+        `${item.caseId} invalid invite authenticated a principal`);
+      const expiredToken = resolveSecretRef(`${item.caseId}:expired-invite-token`, {
+        item, field: "expiredInviteToken", caseContext: context,
+      });
+      const password = resolveSecretRef(values.password?.secretRef,
+        { item, field: "password", caseContext: context });
+      const expired = await postForm(`${httpBase}/invite/setup`, {
+        token: expiredToken,
+        password,
+        confirm: password,
+      });
+      const afterExpired = usersState();
+      assert(expired.status === 410 && afterExpired.sha256 === context.preparedUsersSha256,
+        `${item.caseId} expired invite boundary changed state or missed HTTP 410`);
+      return {
+        ...common,
+        readbackKind: "consumed-401-expired-410-no-write",
+        principal,
+        usersStoreSha256: afterExpired.sha256,
+        checks: {
+          consumedSeeded: context.preFormReadback.consumedOnceStatus === 302,
+          consumedRejected: formResponseIdentity.status === 401,
+          expiredSeeded: Boolean(context.preFormReadback.expiredInviteId),
+          expiredRejected: expired.status === 410,
+          browserAnonymous: true,
+          storeUnchanged: true,
+        },
+      };
+    }
+    if (item.caseId === "AUTH-014") {
+      const state = usersState();
+      assertUsersChanged(state);
+      const user = state.users.find(candidate => candidate.username === values.username);
+      const password = resolveSecretRef(values.password?.secretRef,
+        { item, field: "password", caseContext: context });
+      assert(user?.role === values.role && user?.enabled === true &&
+        typeof user?.passwordHash === "string" && user.passwordHash.length > 0 &&
+        formResponseIdentity.productIdentity?.username === values.username,
+      `${item.caseId} created user authoritative identity mismatch`);
+      assert(!state.raw.includes(password), `${item.caseId} user store contains plaintext password`);
+      const usersList = await requestEndpoint("GET", "/ops/api/users", null, item, context, [200], {
+        roleOverride: "admin",
+      });
+      const listed = usersList.json?.users?.find(candidate => candidate.username === values.username);
+      const ui = await observeCurrentOpsUsersUi(browser, {
+        sectionSelector: "#users-body",
+        identity: values.username,
+      });
+      return {
+        ...common,
+        readbackKind: "created-user-store-record",
+        recordIdentity: { username: values.username, role: user.role, enabled: user.enabled },
+        usersStoreSha256: state.sha256,
+        checks: {
+          responseIdentity: formResponseIdentity.productIdentity?.username === values.username,
+          responseRedacted: formResponseIdentity.productIdentity?.persistentSecretFieldsPresent === false,
+          storeIdentity: user.role === values.role && user.enabled === true,
+          listIdentity: listed?.username === values.username && listed?.role === values.role,
+          listRedacted: !containsForbiddenAuthMaterial(usersList.json),
+          uiRedacted: ui.identityVisible && ui.forbiddenMarkersAbsent,
+          plaintextAbsent: true,
+        },
+      };
+    }
+    if (["AUTH-015", "AUTH-033"].includes(item.caseId)) {
+      const state = usersState();
+      assertUsersChanged(state);
+      const invite = state.invites.find(candidate => candidate.username === values.username);
+      assert(invite?.inviteId && invite?.used === false && invite?.tokenHash &&
+        Number.isFinite(Date.parse(invite?.expiresAt || "")) && Date.parse(invite.expiresAt) > Date.now() &&
+        formResponseIdentity.productIdentity?.username === values.username &&
+        formResponseIdentity.productIdentity?.inviteId === invite.inviteId &&
+        formResponseIdentity.productIdentity?.tokenPresent === true &&
+        formResponseIdentity.productIdentity?.setupUrlTokenBound === true,
+      `${item.caseId} created invite authoritative identity mismatch`);
+      const issuedToken = resolveSecretRef(`${item.caseId}:issued-invite-token`, {
+        item, field: "issuedInviteToken", caseContext: context,
+      });
+      assert(!state.raw.includes(issuedToken) && invite.tokenHash !== issuedToken,
+        `${item.caseId} raw issued invite token reached the authoritative store`);
+      const inviteList = await requestEndpoint("GET", "/ops/api/invites", null, item, context, [200], {
+        roleOverride: "admin",
+      });
+      const listed = inviteList.json?.invites?.find(candidate => candidate.inviteId === invite.inviteId);
+      const serializedList = JSON.stringify(inviteList.json || {});
+      const ui = await observeCurrentOpsUsersUi(browser, {
+        sectionSelector: "#invite-list-body",
+        identity: values.username,
+        forbiddenSecret: issuedToken,
+      });
+      const checks = {
+        responseTokenBound: formResponseIdentity.productIdentity?.tokenPresent === true &&
+          formResponseIdentity.productIdentity?.setupUrlTokenBound === true,
+        issuedTokenRegistered: Boolean(issuedToken),
+        storeHasHashOnly: Boolean(invite.tokenHash) && !state.raw.includes(issuedToken),
+        listIdentity: listed?.inviteId === invite.inviteId && listed?.username === values.username,
+        listRedacted: !serializedList.includes(issuedToken) && !containsForbiddenAuthMaterial(inviteList.json) &&
+          !objectHasAnyKey(inviteList.json, new Set(["token", "setupUrl"])),
+        uiRedacted: ui.identityVisible && ui.forbiddenMarkersAbsent && ui.forbiddenSecretAbsent,
+      };
+      if (item.caseId === "AUTH-033") checks.inviteCreatedStatus =
+        formResponseIdentity.productIdentity?.status === "inviteCreated";
+      return {
+        ...common,
+        readbackKind: "created-invite-store-record",
+        recordIdentity: { username: values.username, inviteId: invite.inviteId, status: "pending" },
+        usersStoreSha256: state.sha256,
+        checks,
+      };
+    }
+    if (["UI-008", "AUTH-036"].includes(item.caseId)) {
+      const state = usersState();
+      assertUsersChanged(state);
+      const request = state.accessRequests.find(candidate => candidate.username === values.username);
+      assert(request?.requestId && request?.status === "pending" &&
+        formResponseIdentity.productIdentity?.username === values.username &&
+        formResponseIdentity.productIdentity?.requestId === request.requestId,
+      `${item.caseId} access request authoritative identity mismatch`);
+      const accessList = await requestEndpoint("GET", "/ops/api/access-requests", null, item, context, [200], {
+        roleOverride: "admin",
+      });
+      const listed = accessList.json?.accessRequests?.find(candidate => candidate.requestId === request.requestId);
+      const user = state.users.find(candidate => candidate.username === values.username);
+      const invite = state.invites.find(candidate => candidate.username === values.username);
+      const pendingPassword = resolveSecretRef(`${item.caseId}:fixture-password`, {
+        item, field: "pendingLoginPassword", caseContext: context,
+      });
+      const pendingLogin = await postForm(`${httpBase}/login`, {
+        username: values.username,
+        password: pendingPassword,
+      });
+      const adminPassword = roleSecrets.roles?.admin || "";
+      const ui = await inspectOpsUsersUiWithLogin(browser, {
+        username: descriptor.auth?.usernames?.admin || "admin",
+        password: adminPassword,
+        sectionSelector: "#access-requests-body",
+        identity: values.username,
+        returnPath: "/client/request-access",
+      });
+      return {
+        ...common,
+        readbackKind: "created-access-request-store-record",
+        recordIdentity: { username: values.username, requestId: request.requestId, status: request.status },
+        usersStoreSha256: state.sha256,
+        checks: {
+          responsePending: formResponseIdentity.productIdentity?.status === "pending" &&
+            formResponseIdentity.productIdentity?.requestId === request.requestId,
+          storePending: request.status === "pending",
+          listPending: listed?.status === "pending" && listed?.username === values.username,
+          noUserOrInvite: !user && !invite,
+          pendingLoginDenied: pendingLogin.status === 401,
+          uiPending: ui.identityVisible && ui.pendingVisible,
+        },
+      };
+    }
+    throw new Error(`${item.caseId} form authoritative readback adapter is unavailable`);
   }
 
   async function requestEndpoint(
@@ -553,7 +2137,14 @@ export function createV390UiCaseRuntime({
       headers: { Cookie: admin, "Content-Type": "application/json" },
       body: JSON.stringify({ username, displayName: username, role, viewId, password, enabled: true, mustChangePassword: false }),
     });
-    assert([200, 201, 409].includes(response.status), `runtime user seed failed HTTP ${response.status}`);
+    const text = await response.text();
+    let error = "";
+    try {
+      const payload = text ? JSON.parse(text) : null;
+      error = String(payload?.error || payload?.message || "");
+    } catch {}
+    assert([200, 201, 409].includes(response.status),
+      `runtime user seed failed HTTP ${response.status}${error ? `: ${error}` : ""}`);
   }
 
   async function createInvite(username, viewId) {
@@ -577,8 +2168,553 @@ export function createV390UiCaseRuntime({
   }
 }
 
+function validateUnifiedWorkspaceCaseReadback(caseId, { workspace, detail, sourceId }) {
+  assert(workspace?.schema === "media-server.ops.v320-unified-events-workspace.v1" &&
+    workspace?.status === "ops-v320-unified-events-workspace" &&
+    workspace?.opsOnly === true &&
+    detail?.eventId === `${caseId.toLowerCase()}-review4-fixture`,
+  `${caseId} transient unified workspace fixture is missing from the authoritative API readback`);
+  const commonBoundary = value => value?.opsOnly === true &&
+    value?.viewerClientExposureAdded === false &&
+    value?.sourceUrlExposed === false &&
+    value?.rawJsonExposed === false &&
+    value?.debugMaterialExposed === false;
+  if (caseId === "UI-064") {
+    const value = detail.sourceReliability;
+    const summary = workspace.sourceReliabilitySummary;
+    assert(value?.schema === "media-server.ops.v320-source-reliability-context.v1" &&
+      value?.sourceId === sourceId &&
+      typeof value?.sourceHealthStatus === "string" && value.sourceHealthStatus &&
+      value.sourceHealthStatus !== "source-missing" &&
+      typeof value?.recentFailureContext === "string" && value.recentFailureContext &&
+      typeof value?.operatorRecheckHint === "string" && value.operatorRecheckHint &&
+      value?.operatorRecheckRoute === "/ops/api/source-health" &&
+      value?.sourceRegistryWritePerformed === false &&
+      value?.eventPostPayloadChanged === false &&
+      value?.webrtcDataChannelSchemaChanged === false &&
+      value?.sseMetadataSchemaChanged === false &&
+      value?.wsMetadataSchemaChanged === false &&
+      value?.rtspOrWebrtcMediaPathChanged === false &&
+      value?.ruleProfilePayloadChanged === false &&
+      commonBoundary(value) &&
+      summary?.schema === "media-server.ops.v320-source-reliability-context.v1" &&
+      summary?.itemCount >= 1 &&
+      summary?.sourceRegistryWritePerformed === false &&
+      commonBoundary(summary),
+    `${caseId} transient source reliability context is missing from the authoritative API readback`);
+  } else if (caseId === "UI-065") {
+    const value = detail.aiReviewQuality;
+    const summary = workspace.aiReviewQualitySummary;
+    assert(workspace?.aiReviewQualityContextImplemented === true &&
+      value?.schema === "media-server.ops.v320-ai-review-quality-context.v1" &&
+      value?.correctionReviewSignal === "evidence-uncertain" &&
+      value?.uncertaintyReason === "low-evidence-confidence" &&
+      value?.qualityBadge === "uncertain" &&
+      value?.qualityScore === 35 &&
+      Array.isArray(value?.signals) && value.signals.includes("low-evidence-confidence") &&
+      value?.runtimeProviderCallPerformed === false &&
+      value?.rawProviderMaterialExposed === false &&
+      value?.eventPostPayloadChanged === false &&
+      value?.rtspOrWebrtcMediaPathChanged === false &&
+      commonBoundary(value) &&
+      summary?.schema === "media-server.ops.v320-ai-review-quality-context.v1" &&
+      summary?.itemCount >= 1 &&
+      summary?.runtimeProviderCallPerformed === false &&
+      summary?.rawProviderMaterialExposed === false &&
+      commonBoundary(summary),
+    `${caseId} transient AI review quality context is missing from the authoritative API readback`);
+  } else if (caseId === "UI-066") {
+    const value = detail.operatorResolutionFlow;
+    assert(value?.schema === "media-server.ops.v320-operator-resolution-flow.v1" &&
+      typeof value?.assignmentTarget === "string" && value.assignmentTarget &&
+      typeof value?.assignmentFlowStatus === "string" && value.assignmentFlowStatus &&
+      value?.auditTrailRequired === true && value?.auditTrailReady === true &&
+      Array.isArray(value?.auditActions) && value.auditActions.length >= 1 &&
+      value?.operatorResolutionFlowWritePath === "/ops/api/events/reviews/{eventId}" &&
+      value?.autoActionApplied === false &&
+      value?.eventPostPayloadChanged === false &&
+      value?.rtspOrWebrtcMediaPathChanged === false &&
+      commonBoundary(value),
+    `${caseId} transient operator resolution flow is missing from the authoritative API readback`);
+  } else if (caseId === "UI-067") {
+    const value = detail.actionReadinessChecklist;
+    assert(value?.schema === "media-server.ops.v320-action-readiness-checklist.v1" &&
+      typeof value?.readinessStatus === "string" && value.readinessStatus &&
+      Array.isArray(value?.readinessBlockers) && value.readinessBlockers.length >= 1 &&
+      Array.isArray(value?.checklistItems) && value.checklistItems.length >= 1 &&
+      value?.ruleDraftRoute === "/ops/rules" &&
+      value?.notificationDryRunRoute === "/ops/api/alerts/deliveries/dry-run" &&
+      value?.manualApprovalRequired === true &&
+      value?.autoActionApplied === false &&
+      value?.autoActionWritePerformed === false &&
+      value?.externalDeliveryPerformed === false &&
+      value?.ruleDraftCreated === false &&
+      value?.notificationSent === false &&
+      value?.eventPostPayloadChanged === false &&
+      value?.rtspOrWebrtcMediaPathChanged === false &&
+      commonBoundary(value),
+    `${caseId} transient action readiness checklist is missing from the authoritative API readback`);
+  } else if (caseId === "UI-069") {
+    const value = workspace.resolutionSearchMetricsSummary;
+    assert(value?.schema === "media-server.ops.v320-resolution-search-metrics.v1" &&
+      value?.itemCount >= 1 &&
+      Array.isArray(value?.savedViews) && value.savedViews.length >= 1 &&
+      value?.operationsMetricSummary?.matchedQueueCount >= 1 &&
+      value?.savedViewsPersisted === false &&
+      value?.savedViewWritePerformed === false &&
+      value?.operationsMetricSummary?.metricWritePerformed === false &&
+      value?.clientDigestChanged === false &&
+      value?.eventPostPayloadChanged === false &&
+      value?.rtspOrWebrtcMediaPathChanged === false &&
+      commonBoundary(value),
+    `${caseId} transient resolution search metrics is missing from the authoritative API readback`);
+  } else if (caseId === "UI-070") {
+    const value = detail.incidentSourceCorrelation;
+    assert(value?.schema === "media-server.ops.v330-incident-source-correlation.v1" &&
+      value?.eventId === detail.eventId && value?.sourceId === sourceId &&
+      typeof value?.sourceCauseCategory === "string" && value.sourceCauseCategory &&
+      typeof value?.resolutionClosureImpact === "string" && value.resolutionClosureImpact &&
+      value?.sourceAuditRoute?.startsWith("/ops/sources#") &&
+      value?.sourceRecheckRoute === "/ops/api/source-health" &&
+      value?.resolutionDetailAttached === true &&
+      value?.sourceReliabilityContextReused === true &&
+      value?.sourceHealthAuditLinked === true &&
+      value?.sourceRegistryWritePerformed === false &&
+      value?.publishedViewWritePerformed === false &&
+      value?.eventRecordWritePerformed === false &&
+      value?.eventPostPayloadChanged === false &&
+      value?.rtspOrWebrtcMediaPathChanged === false &&
+      commonBoundary(value),
+    `${caseId} transient incident source correlation is missing from the authoritative API readback`);
+  } else if (caseId === "UI-071") {
+    const value = detail.operatorRecheckRecoveryQueue;
+    assert(value?.schema === "media-server.ops.v330-operator-recheck-recovery-queue.v1" &&
+      value?.eventId === detail.eventId && value?.sourceId === sourceId &&
+      value?.failedOnlyRecheck === true &&
+      Array.isArray(value?.recoveryChecklist) && value.recoveryChecklist.length >= 1 &&
+      value?.operatorNoteRoute === "/ops/api/events/reviews/{eventId}" &&
+      value?.sourceRecheckRoute === "/ops/api/source-health" &&
+      value?.operatorNoteLinked === true &&
+      value?.recoveryQueueReadModelCreated === true &&
+      value?.persistentRecoveryQueueCreated === false &&
+      value?.recoveryQueueWritePerformed === false &&
+      value?.sourceRegistryWritePerformed === false &&
+      value?.eventRecordWritePerformed === false &&
+      value?.autoRecoveryApplied === false &&
+      value?.externalRecoveryPerformed === false &&
+      value?.eventPostPayloadChanged === false &&
+      value?.rtspOrWebrtcMediaPathChanged === false &&
+      value?.viewerClientExposureAdded === false &&
+      value?.sourceUrlExposed === false &&
+      value?.rawJsonExposed === false &&
+      value?.debugMaterialExposed === false,
+    `${caseId} transient operator recheck recovery queue is missing from the authoritative API readback`);
+  } else if (caseId === "UI-080") {
+    const value = detail.incidentCommandHandoff;
+    const summary = workspace.incidentCommandHandoffSummary;
+    const boundary = value?.boundaries;
+    assert(workspace?.incidentCommandHandoffImplemented === true &&
+      value?.schema === "media-server.ops.v350-incident-command-handoff.v1" &&
+      value?.eventId === detail.eventId && value?.sourceId === sourceId &&
+      typeof value?.sourceCause === "string" && value.sourceCause &&
+      typeof value?.continuityDrillCandidate === "string" && value.continuityDrillCandidate &&
+      value?.commandPlanDraft === "/ops/api/live-operations/command-plan" &&
+      typeof value?.operatorNextAction === "string" && value.operatorNextAction &&
+      boundary?.opsOnly === true && boundary?.readOnly === true && boundary?.draftOnly === true &&
+      boundary?.operatorApprovalRequired === true && boundary?.commandPlanExecuted === false &&
+      boundary?.sourceRecheckExecuted === false && boundary?.recoveryExecuted === false &&
+      boundary?.clientNoticeSent === false && boundary?.ruleFollowUpApplied === false &&
+      boundary?.sourceRegistryWritePerformed === false && boundary?.publishedViewWritePerformed === false &&
+      boundary?.ruleRegistryWritePerformed === false && boundary?.eventRecordWritePerformed === false &&
+      boundary?.opsAuditWritePerformed === false && boundary?.viewerClientExposureAdded === false &&
+      boundary?.rawLocatorExposedToClient === false && boundary?.credentialMaterialExposed === false &&
+      boundary?.rawDiagnosticJsonIncluded === false && boundary?.eventRecordSchemaChanged === false &&
+      boundary?.eventPostPayloadChanged === false && boundary?.webrtcDataChannelSchemaChanged === false &&
+      boundary?.sseMetadataSchemaChanged === false && boundary?.wsMetadataSchemaChanged === false &&
+      boundary?.rtspOrWebrtcMediaPathChanged === false && boundary?.ruleProfilePayloadChanged === false &&
+      summary?.schema === "media-server.ops.v350-incident-command-handoff.v1" &&
+      summary?.itemCount >= 1 && summary?.viewerClientExposureAdded === false &&
+      summary?.sourceRegistryWritePerformed === false && summary?.eventRecordWritePerformed === false,
+    `${caseId} transient incident command handoff is missing from the authoritative API readback`);
+  } else {
+    throw new Error(`${caseId} unsupported unified workspace runtime readback`);
+  }
+  return { itemCount: workspace.itemCount };
+}
+
+async function validateOpsSourcesReadback(caseId, requestEndpoint, item, context) {
+  const read = async route => requestEndpoint("GET", route, null, item, context, [200]);
+  const commonBoundary = value => value?.opsOnly === true && value?.readOnly === true &&
+    value?.sourceRegistryWritePerformed === false && value?.publishedViewWritePerformed === false &&
+    value?.automaticRecoveryPerformed === false && value?.viewerClientExposureAdded === false &&
+    value?.rawLocatorExposedToClient === false && value?.credentialMaterialExposed === false &&
+    value?.eventRecordSchemaChanged === false && value?.eventPostPayloadChanged === false &&
+    value?.webrtcDataChannelSchemaChanged === false && value?.sseMetadataSchemaChanged === false &&
+    value?.wsMetadataSchemaChanged === false && value?.rtspOrWebrtcMediaPathChanged === false &&
+    value?.ruleProfilePayloadChanged === false;
+  if (caseId === "UI-073") {
+    const response = await read("/ops/api/source-registry/reliability-search-metrics");
+    const value = response.json;
+    assert(value?.ok === true && value?.schema === "media-server.ops.v330-source-reliability-search-metrics.v1" &&
+      Array.isArray(value?.sourceHealthFilters) && value.sourceHealthFilters.length >= 1 &&
+      Array.isArray(value?.savedReliabilityViews) && value.savedReliabilityViews.length >= 1 &&
+      Array.isArray(value?.sourceReliabilitySearchResults) && value.sourceReliabilitySearchResults.length >= 1 &&
+      value?.sourceReliabilitySearchMetricsSummary?.sourceCount >= 1 &&
+      value?.boundaries?.savedViewsPersisted === false && value?.boundaries?.savedViewWritePerformed === false &&
+      commonBoundary(value?.boundaries),
+    `${caseId} source reliability search metrics are missing from the authoritative API readback`);
+    return { status: response.status, matchedFixture: true, itemCount: value.sourceReliabilitySearchResults.length };
+  }
+  if (caseId === "UI-074") {
+    const response = await read("/ops/api/source-registry/backup-recovery-handoff");
+    const value = response.json;
+    assert(value?.ok === true && value?.schema === "media-server.ops.v330-backup-recovery-source-handoff.v1" &&
+      Array.isArray(value?.sourceHandoffInputs) && value.sourceHandoffInputs.length >= 1 &&
+      Array.isArray(value?.recoveryValidationPlan) && value.recoveryValidationPlan.length >= 1 &&
+      value?.backupRecoverySourceHandoffSummary?.sourceCount >= 1 &&
+      value?.boundaries?.sourceHealthSnapshotPersisted === false &&
+      value?.boundaries?.recoveryValidationPlanPersisted === false &&
+      value?.boundaries?.realBackupPerformed === false && value?.boundaries?.productionRestorePerformed === false &&
+      commonBoundary(value?.boundaries),
+    `${caseId} backup recovery source handoff is missing from the authoritative API readback`);
+    return { status: response.status, matchedFixture: true, itemCount: value.sourceHandoffInputs.length };
+  }
+  const [contractResponse, packageResponse, driftResponse] = await Promise.all([
+    read("/ops/api/source-registry/continuity-drill/contract"),
+    read("/ops/api/source-registry/recovery-candidate-package"),
+    read("/ops/api/source-registry/source-health-replay-drift-diff"),
+  ]);
+  const contract = contractResponse.json;
+  const candidatePackage = packageResponse.json;
+  const drift = driftResponse.json;
+  assert(contract?.ok === true && contract?.schema === "media-server.ops.v340-continuity-drill-contract.v1" &&
+    Array.isArray(contract?.v330HandoffInputs) && contract.v330HandoffInputs.length >= 1 &&
+    contract?.drillBoundaries?.noWrite === true && contract?.drillBoundaries?.noSecret === true &&
+    commonBoundary(contract?.drillBoundaries) &&
+    candidatePackage?.ok === true && candidatePackage?.schema === "media-server.ops.v340-recovery-candidate-package.v1" &&
+    Array.isArray(candidatePackage?.recoveryCandidates) && candidatePackage.recoveryCandidates.length >= 1 &&
+    candidatePackage?.recoveryCandidatePackageSummary?.candidateCount >= 1 &&
+    candidatePackage?.redactionPolicy?.sourceLocatorIncluded === false &&
+    candidatePackage?.redactionPolicy?.credentialMaterialIncluded === false &&
+    commonBoundary(candidatePackage?.boundaries) &&
+    drift?.ok === true && drift?.schema === "media-server.ops.v340-source-health-replay-drift-diff.v1" &&
+    Array.isArray(drift?.sourceHealthReplayDriftItems) && drift.sourceHealthReplayDriftItems.length >= 1 &&
+    drift?.sourceHealthReplayDriftDiffSummary?.sourceCount >= 1 && commonBoundary(drift?.boundaries),
+  `${caseId} continuity drill workspace inputs are missing from the authoritative API readback`);
+  return {
+    status: [contractResponse.status, packageResponse.status, driftResponse.status].join("/"),
+    matchedFixture: true,
+    itemCount: candidatePackage.recoveryCandidates.length,
+  };
+}
+
+async function validateV360SimulationReadback(caseId, requestEndpoint, item, context) {
+  const read = async route => requestEndpoint("GET", route, null, item, context, [200]);
+  const noMutationBoundary = boundary => boundary?.opsOnly === true && boundary?.readOnly === true &&
+    boundary?.sourceRegistryWritePerformed === false && boundary?.publishedViewWritePerformed === false &&
+    boundary?.ruleRegistryWritePerformed === false && boundary?.eventRecordWritePerformed === false &&
+    boundary?.opsAuditWritePerformed === false && boundary?.clientNoticeSent === false &&
+    boundary?.eventPostPayloadChanged === false && boundary?.eventRecordSchemaChanged === false &&
+    boundary?.webrtcDataChannelSchemaChanged === false && boundary?.sseMetadataSchemaChanged === false &&
+    boundary?.wsMetadataSchemaChanged === false && boundary?.rtspOrWebrtcMediaPathChanged === false &&
+    boundary?.ruleProfilePayloadChanged === false;
+
+  if (caseId === "UI-089") {
+    const response = await read("/ops/api/live-operations/simulation/run-ledger");
+    const value = response.json;
+    assert(value?.ok === true && value?.schema === "media-server.ops.v360-simulation-run-ledger.v1" &&
+      Array.isArray(value?.simulationRunLedgerEntries) && value.simulationRunLedgerEntries.length >= 1 &&
+      value.simulationRunLedgerEntries.some(entry => typeof entry?.simulationRunId === "string" &&
+        entry.simulationRunId && typeof entry?.inputRef === "string" && entry.inputRef &&
+        typeof entry?.resultDiff === "string" && entry.resultDiff &&
+        typeof entry?.operatorNote === "string" && entry.operatorNote && entry?.readOnly === true) &&
+      value?.simulationRunLedgerSummary?.runCount >= 1 &&
+      value?.boundaries?.appendOnlyLedgerProjection === true &&
+      value?.boundaries?.simulationRunPersisted === false &&
+      value?.boundaries?.simulationRunExecuted === false &&
+      value?.boundaries?.operatorNoteWritePerformed === false &&
+      value?.boundaries?.resultDiffPersisted === false && noMutationBoundary(value?.boundaries),
+    `${caseId} simulation run ledger is missing from the authoritative API readback`);
+    return { status: response.status, matchedFixture: true, itemCount: value.simulationRunLedgerEntries.length };
+  }
+
+  if (caseId === "UI-090") {
+    const response = await read("/ops/api/live-operations/simulation/client-notice-preview");
+    const value = response.json;
+    assert(value?.ok === true && value?.schema === "media-server.ops.v360-client-notice-preview.v1" &&
+      value?.viewerSafeClientNoticePreview === true &&
+      Array.isArray(value?.clientNoticePreviewItems) && value.clientNoticePreviewItems.length >= 1 &&
+      value.clientNoticePreviewItems.every(entry => entry?.viewerSafe === true &&
+        entry?.deliveryState === "preview-only" && typeof entry?.noticeStatus === "string" &&
+        entry.noticeStatus && typeof entry?.viewerSafeTitle === "string" && entry.viewerSafeTitle) &&
+      value?.deliveryPolicy?.deliveryState === "preview-only" && value?.deliveryPolicy?.actualSend === "not-run" &&
+      value?.boundaries?.viewerSafe === true && value?.boundaries?.previewOnly === true &&
+      value?.boundaries?.clientNoticePersisted === false &&
+      value?.boundaries?.viewerClientPayloadChanged === false &&
+      value?.boundaries?.sourceUrlIncluded === false && value?.boundaries?.rawLocatorIncluded === false &&
+      value?.boundaries?.rawJsonIncluded === false && value?.boundaries?.debugMaterialIncluded === false &&
+      value?.boundaries?.credentialMaterialIncluded === false &&
+      value?.boundaries?.sourceRegistryWritePerformed === false &&
+      value?.boundaries?.publishedViewWritePerformed === false &&
+      value?.boundaries?.eventRecordWritePerformed === false &&
+      value?.boundaries?.opsAuditWritePerformed === false &&
+      value?.boundaries?.eventPostPayloadChanged === false &&
+      value?.boundaries?.eventRecordSchemaChanged === false &&
+      value?.boundaries?.webrtcDataChannelSchemaChanged === false &&
+      value?.boundaries?.sseMetadataSchemaChanged === false &&
+      value?.boundaries?.wsMetadataSchemaChanged === false &&
+      value?.boundaries?.rtspOrWebrtcMediaPathChanged === false &&
+      value?.boundaries?.ruleProfilePayloadChanged === false,
+    `${caseId} client notice preview is missing from the authoritative API readback`);
+    return { status: response.status, matchedFixture: true, itemCount: value.clientNoticePreviewItems.length };
+  }
+
+  if (caseId === "UI-091") {
+    const response = await read("/ops/api/live-operations/simulation/rule-va-what-if-replay-pack");
+    const value = response.json;
+    assert(value?.ok === true && value?.schema === "media-server.ops.v360-rule-va-what-if-replay-pack.v1" &&
+      value?.replayPolicy?.whatIfOnly === true &&
+      Array.isArray(value?.whatIfReplayCandidates) && value.whatIfReplayCandidates.length >= 1 &&
+      value.whatIfReplayCandidates.every(entry => entry?.readOnly === true &&
+        typeof entry?.ruleThresholdCandidate === "string" && entry.ruleThresholdCandidate &&
+        typeof entry?.presetCandidate === "string" && entry.presetCandidate &&
+        typeof entry?.scenarioCandidate === "string" && entry.scenarioCandidate &&
+        typeof entry?.eventRecordRef === "string" && entry.eventRecordRef &&
+        typeof entry?.whatIfResultDelta === "string" && entry.whatIfResultDelta) &&
+      value?.boundaries?.whatIfOnly === true && value?.boundaries?.ruleThresholdApplied === false &&
+      value?.boundaries?.presetApplied === false && value?.boundaries?.scenarioApplied === false &&
+      value?.boundaries?.viewerClientExposureAdded === false &&
+      value?.boundaries?.rawDiagnosticJsonIncluded === false &&
+      value?.boundaries?.ruleRegistryWritePerformed === false &&
+      value?.boundaries?.eventRecordWritePerformed === false &&
+      value?.boundaries?.eventPostPayloadChanged === false &&
+      value?.boundaries?.eventRecordSchemaChanged === false &&
+      value?.boundaries?.webrtcDataChannelSchemaChanged === false &&
+      value?.boundaries?.sseMetadataSchemaChanged === false &&
+      value?.boundaries?.wsMetadataSchemaChanged === false &&
+      value?.boundaries?.rtspOrWebrtcMediaPathChanged === false &&
+      value?.boundaries?.clientNoticeSent === false,
+    `${caseId} Rule/VA what-if replay pack is missing from the authoritative API readback`);
+    return { status: response.status, matchedFixture: true, itemCount: value.whatIfReplayCandidates.length };
+  }
+
+  const routes = [
+    "/ops/api/live-operations/simulation/input-pack",
+    "/ops/api/live-operations/simulation/run-contract",
+    "/ops/api/live-operations/simulation/command-plan-dry-run",
+    "/ops/api/live-operations/simulation/impact-diff",
+    "/ops/api/live-operations/simulation/safe-apply-readiness",
+  ];
+  const responses = await Promise.all(routes.map(read));
+  const [inputPack, runContract, dryRun, impactDiff, readiness] = responses.map(response => response.json);
+  assert(inputPack?.ok === true && inputPack?.schema === "media-server.ops.v360-simulation-input-pack.v1" &&
+    Array.isArray(inputPack?.simulationInputPackItems) && inputPack.simulationInputPackItems.length >= 1 &&
+    inputPack?.boundaries?.readOnly === true &&
+    runContract?.ok === true && runContract?.schema === "media-server.ops.v360-simulation-run-contract.v1" &&
+    Array.isArray(runContract?.simulationRunSchema?.simulationRouteFamily) &&
+    runContract.simulationRunSchema.simulationRouteFamily.length >= routes.length &&
+    runContract?.simulationResultEnvelope?.resultStatus === "not-run" &&
+    runContract?.boundaries?.simulationRunExecuted === false &&
+    dryRun?.ok === true && dryRun?.schema === "media-server.ops.v360-command-plan-dry-run.v1" &&
+    Array.isArray(dryRun?.commandPlanDryRunResults) && dryRun.commandPlanDryRunResults.length >= 1 &&
+    dryRun?.boundaries?.commandPlanExecuted === false &&
+    impactDiff?.ok === true && impactDiff?.schema === "media-server.ops.v360-source-rule-impact-diff.v1" &&
+    Array.isArray(impactDiff?.sourceRuleImpactDiffs) && impactDiff.sourceRuleImpactDiffs.length >= 1 &&
+    impactDiff?.boundaries?.sourceChangeApplied === false &&
+    readiness?.ok === true && readiness?.schema === "media-server.ops.v360-safe-apply-readiness.v1" &&
+    Array.isArray(readiness?.safeApplyReadinessItems) && readiness.safeApplyReadinessItems.length >= 1 &&
+    readiness?.boundaries?.safeApplyPerformed === false && readiness?.boundaries?.clientNoticeSent === false,
+  `${caseId} simulation workspace core read models are missing from the authoritative API readback`);
+  return {
+    status: responses.map(response => response.status).join("/"),
+    matchedFixture: true,
+    itemCount: inputPack.simulationInputPackItems.length + dryRun.commandPlanDryRunResults.length +
+      impactDiff.sourceRuleImpactDiffs.length + readiness.safeApplyReadinessItems.length,
+  };
+}
+
+async function validateV390Ui092To105Readback(
+  caseId,
+  requestEndpoint,
+  item,
+  context,
+  descriptor,
+) {
+  const read = async route => requestEndpoint("GET", route, null, item, context, [200]);
+  const assertBoundary = (value, { truthy = [], falsy = [] }, label) => {
+    for (const field of truthy) {
+      assert(value?.boundaries?.[field] === true, `${caseId} ${label} boundary ${field}=true missing`);
+    }
+    for (const field of falsy) {
+      assert(value?.boundaries?.[field] === false, `${caseId} ${label} boundary ${field}=false missing`);
+    }
+  };
+  const assertModel = (value, schema, arrayField, boundary, label) => {
+    assert(value?.ok === true && value?.schema === schema &&
+      Array.isArray(value?.[arrayField]) && value[arrayField].length >= 1,
+    `${caseId} ${label} schema or non-empty read model is missing`);
+    assertBoundary(value, boundary, label);
+    return value[arrayField].length;
+  };
+  const protocolFalse = [
+    "eventPostPayloadChanged",
+    "webrtcDataChannelSchemaChanged",
+    "sseMetadataSchemaChanged",
+    "wsMetadataSchemaChanged",
+    "rtspOrWebrtcMediaPathChanged",
+  ];
+
+  const singleModels = {
+    "UI-092": {
+      route: "/ops/api/live-operations/simulation/export-bundle",
+      schema: "media-server.ops.v360-simulation-export-bundle.v1",
+      array: "simulationExportBundleItems",
+      truthy: ["readOnly", "releaseSafe", "redacted"],
+      falsy: ["artifactExportExecuted", "bundlePersisted", "fileWritePerformed", "handoffWritePerformed", "simulationRunPersisted", "simulationRunExecuted", "clientNoticeSent", ...protocolFalse],
+    },
+    "UI-093": {
+      route: "/ops/api/live-operations/simulation/field-evidence-adapter",
+      schema: "media-server.ops.v360-field-evidence-simulation-adapter.v1",
+      array: "fieldEvidenceSimulationAdapters",
+      truthy: ["conditionalNotRunEvidence"],
+      falsy: ["fieldEvidencePersisted", "fieldEvidenceWritePerformed", "fieldSmokeExecuted", "endpointProbePerformed", "credentialProbePerformed", "onvifDeviceContacted", "externalWhepTurnContacted", "cloudProviderContacted", "vlmProviderCalled", "simulationRunExecuted", "artifactExportExecuted", ...protocolFalse],
+    },
+    "UI-094": {
+      route: "/ops/api/live-operations/simulation/vlm-assisted-explanation",
+      schema: "media-server.ops.v360-vlm-assisted-simulation-explanation.v1",
+      array: "vlmAssistedSimulationExplanations",
+      truthy: ["defaultOff", "runtimeOptInRequired"],
+      falsy: ["defaultEnabled", "vlmProviderCallPerformed", "vlmRuntimeCallPerformed", "simulationRunPersisted", "simulationRunExecuted", "fieldSmokeExecuted", "clientNoticeSent", ...protocolFalse],
+    },
+    "UI-096": {
+      route: "/ops/api/site-operations/client-notice-by-site-view-group",
+      schema: "media-server.ops.v370-client-notice-by-site-view-group.v1",
+      array: "clientNoticeBySiteViewGroupItems",
+      truthy: ["previewOnly", "siteViewGroupScoped"],
+      falsy: ["clientNoticeSent", "clientNoticePersisted", "viewerClientPayloadChanged", "sourceRegistryWritePerformed", "publishedViewWritePerformed", "ruleRegistryWritePerformed", "eventRecordWritePerformed", "opsAuditWritePerformed", ...protocolFalse],
+    },
+    "UI-097": {
+      route: "/ops/api/site-operations/rule-va-what-if-by-site",
+      schema: "media-server.ops.v370-rule-va-what-if-by-site.v1",
+      array: "ruleVaWhatIfBySiteItems",
+      truthy: ["whatIfOnly", "siteScoped"],
+      falsy: ["ruleRegistryWritePerformed", "ruleThresholdApplied", "presetApplied", "scenarioApplied", "eventRecordWritePerformed", "opsAuditWritePerformed", "simulationRunExecuted", "safeApplyPerformed", "clientNoticeSent", "viewerClientPayloadChanged", ...protocolFalse],
+    },
+    "UI-098": {
+      route: "/ops/api/site-operations/field-evidence-attachment",
+      schema: "media-server.ops.v370-field-evidence-attachment.v1",
+      array: "fieldEvidenceAttachments",
+      truthy: ["attachmentOnly", "conditionalNotRunOnly"],
+      falsy: ["fieldSmokeExecuted", "endpointProbePerformed", "credentialProbePerformed", "providerCallPerformed", "sourceRegistryWritePerformed", "runbookInstancePersisted", "approvalTicketWritePerformed", "eventRecordWritePerformed", "clientNoticeSent", "viewerClientPayloadChanged", ...protocolFalse],
+    },
+    "UI-099": {
+      route: "/ops/api/site-operations/limited-safe-execution-pilot",
+      schema: "media-server.ops.v370-limited-safe-execution-pilot.v1",
+      array: "limitedSafeExecutionPilotActions",
+      truthy: ["executionPilotOnly", "lowestRiskOnly", "approvalGateRequired"],
+      falsy: ["pilotExecutionPerformed", "sourceRecheckExecuted", "noticeQueueWritePerformed", "clientNoticeSent", "runbookInstancePersisted", "approvalTicketWritePerformed", "sourceRegistryWritePerformed", "eventRecordWritePerformed", "fieldSmokeExecuted", "endpointProbePerformed", ...protocolFalse],
+    },
+    "UI-100": {
+      route: "/ops/api/site-operations/outcome-reconciliation",
+      schema: "media-server.ops.v370-outcome-reconciliation.v1",
+      array: "outcomeReconciliationItems",
+      truthy: ["outcomeReconciliationOnly", "preSimulationCompared", "postExecutionCompared"],
+      falsy: ["executionObserved", "pilotExecutionPerformed", "sourceRecheckExecuted", "noticeQueueWritePerformed", "clientNoticeSent", "sourceRegistryWritePerformed", "publishedViewWritePerformed", "eventRecordWritePerformed", "opsAuditWritePerformed", "viewerClientPayloadChanged", ...protocolFalse],
+    },
+    "UI-101": {
+      route: "/ops/api/site-operations/export-handoff-bundle",
+      schema: "media-server.ops.v370-export-handoff-bundle.v1",
+      array: "exportHandoffBundleItems",
+      truthy: ["releaseSafe", "redacted", "exportHandoffOnly"],
+      falsy: ["artifactExportExecuted", "bundlePersisted", "fileWritePerformed", "handoffWritePerformed", "pilotExecutionPerformed", "sourceRecheckExecuted", "noticeQueueWritePerformed", "clientNoticeSent", "fieldSmokeExecuted", "endpointProbePerformed", "sourceRegistryWritePerformed", "eventRecordWritePerformed", ...protocolFalse],
+    },
+    "UI-104": {
+      route: "/ops/api/actions/outcome-reconciliation",
+      schema: "media-server.ops.v380-outcome-observer-reconciliation.v1",
+      array: "outcomeObserverItems",
+      truthy: ["outcomeObserverOnly", "readinessCompared", "candidateCompared", "observedOutcomeCompared"],
+      falsy: ["executionObserved", "actionExecutionPerformed", "sourceRecheckExecuted", "clientNoticeSent", "noticeQueueWritePerformed", "ruleApplyPerformed", "ruleRegistryWritePerformed", "eventRecordWritePerformed", "actionResultPersisted", "viewerClientPayloadChanged", ...protocolFalse],
+    },
+    "UI-105": {
+      route: "/ops/api/actions/receipt-bundle",
+      schema: "media-server.ops.v380-action-receipt-bundle.v1",
+      array: "receiptBundleItems",
+      truthy: ["receiptBundleOnly", "redacted", "releaseSafe", "handoffMapOnly"],
+      falsy: ["bundlePersisted", "artifactFileWritePerformed", "handoffWritePerformed", "actionExecutionPerformed", "sourceRecheckExecuted", "clientNoticeSent", "noticeQueueWritePerformed", "ruleApplyPerformed", "ruleRegistryWritePerformed", "eventRecordWritePerformed", "actionResultPersisted", "viewerClientPayloadChanged", "rawLocatorIncluded", "credentialMaterialIncluded", "rawDiagnosticJsonIncluded", ...protocolFalse],
+    },
+  };
+  if (singleModels[caseId]) {
+    const model = singleModels[caseId];
+    const response = await read(model.route);
+    const itemCount = assertModel(response.json, model.schema, model.array, model, model.route);
+    return { status: response.status, matchedFixture: true, itemCount };
+  }
+
+  if (caseId === "UI-095") {
+    const models = [
+      ["/ops/api/site-operations/source-registry-projection", "media-server.ops.v370-site-aware-source-registry-projection.v1", "siteRegistryProjection", ["sourceRegistryWritePerformed", "publishedViewWritePerformed"]],
+      ["/ops/api/site-operations/health-rollup", "media-server.ops.v370-site-health-rollup.v1", "siteHealthRollup", ["sourceHealthPersisted", "automaticRecoveryPerformed", "fieldSmokeExecuted"]],
+      ["/ops/api/site-operations/impact-graph", "media-server.ops.v370-site-impact-graph.v1", "siteImpactGraphNodes", ["sourceRegistryWritePerformed", "publishedViewWritePerformed", "eventRecordWritePerformed", "opsAuditWritePerformed"]],
+      ["/ops/api/site-operations/runbook-instance-ledger", "media-server.ops.v370-runbook-instance-ledger.v1", "runbookInstanceLedgerEntries", ["runbookInstancePersisted", "operatorNoteWritePerformed", "resultDiffPersisted", "eventRecordWritePerformed", "clientNoticeSent"]],
+      ["/ops/api/site-operations/approval-ticket-workflow", "media-server.ops.v370-approval-ticket-workflow.v1", "approvalTicketWorkflowItems", ["approvalTicketWritePerformed", "approvalDecisionPersisted", "operatorNoteWritePerformed", "eventRecordWritePerformed", "clientNoticeSent"]],
+    ];
+    const responses = await Promise.all(models.map(model => read(model[0])));
+    let itemCount = 0;
+    responses.forEach((response, index) => {
+      const [route, schema, arrayField, falsy] = models[index];
+      itemCount += assertModel(response.json, schema, arrayField, { falsy }, route);
+    });
+    return { status: responses.map(response => response.status).join("/"), matchedFixture: true, itemCount };
+  }
+
+  if (caseId === "UI-102") {
+    const models = [
+      ["/ops/api/actions/capability-contract", "media-server.ops.v380-action-capability-contract.v1", "allowedActionCatalog", ["actionExecutionPerformed"]],
+      ["/ops/api/actions/request-ledger", "media-server.ops.v380-action-request-ledger-contract.v1", "ledgerFields", ["requestWritePerformed", "actionRequestPersisted", "actionExecutionPerformed"]],
+      ["/ops/api/actions/approval-decision-gate", "media-server.ops.v380-approval-decision-gate.v1", "decisionStates", ["decisionWritePerformed", "approvalDecisionPersisted", "actionExecutionPerformed"]],
+      ["/ops/api/actions/readiness-preflight", "media-server.ops.v380-action-readiness-preflight.v1", "preflightBlockers", ["readinessCheckExecuted", "readinessResultPersisted", "actionExecutionPerformed"]],
+      ["/ops/api/actions/source-recheck-pilot", "media-server.ops.v380-source-recheck-action-pilot.v1", "pilotCandidate", ["sourceRecheckExecuted", "sourceHealthWritePerformed", "actionExecutionPerformed"]],
+      ["/ops/api/actions/client-notice-draft-queue", "media-server.ops.v380-client-notice-draft-queue.v1", "viewerSafeNoticeDrafts", ["noticeDraftPersisted", "clientNoticeSent", "noticeQueueWritePerformed"]],
+      ["/ops/api/actions/rule-draft-package", "media-server.ops.v380-rule-draft-action-package.v1", "draftPackage", ["ruleDraftPersisted", "ruleApplyPerformed", "scenarioApplyPerformed", "ruleRegistryWritePerformed", "profileRegistryWritePerformed"]],
+    ];
+    const responses = await Promise.all(models.map(model => read(model[0])));
+    let itemCount = 0;
+    responses.forEach((response, index) => {
+      const [route, schema, arrayField, falsy] = models[index];
+      itemCount += assertModel(response.json, schema, arrayField, { falsy }, route);
+    });
+    return { status: responses.map(response => response.status).join("/"), matchedFixture: true, itemCount };
+  }
+
+  const viewId = descriptor?.auth?.defaultViewId || "9001";
+  const response = await read(`/client/api/views/${encodeURIComponent(viewId)}/events?limit=6`);
+  const preview = response.json?.events?.clientActionNoticePreview;
+  assert(response.json?.ok === true && response.json?.view?.viewId === viewId &&
+    preview?.schema === "media-server.client.v380-action-notice-preview.v1" &&
+    preview?.provided === true && preview?.viewerSafeActionNoticePreview === true &&
+    preview?.viewerSafe === true && preview?.previewOnly === true &&
+    preview?.statusTimelineOnly === true && preview?.publishedViewScoped === true &&
+    preview?.itemCount === 1 && Array.isArray(preview?.noticeItems) && preview.noticeItems.length === 1 &&
+    typeof preview.noticeItems[0]?.viewerSafeTitle === "string" && preview.noticeItems[0].viewerSafeTitle &&
+    typeof preview.noticeItems[0]?.viewerSafeBody === "string" && preview.noticeItems[0].viewerSafeBody &&
+    ["maintenance", "degraded", "recovering", "available"].includes(preview.noticeItems[0]?.noticeStatus) &&
+    preview?.operatorOnlyBlockerDetailIncluded === false &&
+    preview?.approvalDecisionDetailIncluded === false && preview?.readinessBlockerDetailIncluded === false &&
+    preview?.sourceUrlIncluded === false && preview?.rawLocatorIncluded === false &&
+    preview?.credentialMaterialIncluded === false && preview?.actionControlsIncluded === false &&
+    preview?.actionExecutionPerformed === false && preview?.clientNoticeSent === false &&
+    preview?.noticeDraftPersisted === false && preview?.noticeQueueWritePerformed === false &&
+    preview?.eventRecordWritePerformed === false && preview?.eventPostPayloadChanged === false &&
+    preview?.eventSchemaChanged === false && preview?.rtspOrWebrtcMediaPathChanged === false,
+  `${caseId} viewer-safe action notice preview is missing from the authoritative API readback`);
+  return { status: response.status, matchedFixture: true, itemCount: preview.itemCount };
+}
+
 function caseNeedsRuntimeOwner(item) {
-  return (item.workflow.setup || []).some(setup => setup.kind === "bind-action-role-session" ||
+  return ["RULE-103", "RULE-104", "RULE-111", "UI-036", "UI-046", "UI-052", "UI-053", "UI-064", "UI-065", "UI-066", "UI-067", "UI-068", "UI-069", "UI-070", "UI-071", "UI-072", "UI-073", "UI-074", "UI-075", "UI-080", "UI-088", "UI-089", "UI-090", "UI-091", "UI-092", "UI-093", "UI-094", "UI-095", "UI-096", "UI-097", "UI-098", "UI-099", "UI-100", "UI-101", "UI-102", "UI-103", "UI-104", "UI-105"].includes(item.caseId) ||
+    (item.workflow.inputs || []).some(input => input.kind === "rejected-endpoint-fixture") ||
+    (item.workflow.inputs || []).some(input => input.kind === "exact-runtime-fixture") ||
+    (item.workflow.setup || []).some(setup => setup.kind === "bind-action-role-session" ||
     (setup.kind === "seed-reviewed-state" && setup.persistedMutation === true)) ||
     JSON.stringify(item.workflow.inputs || []).includes("secretRef") ||
     (item.workflow.cleanup || []).some(cleanup => ["restore-fixture-state", "delete-created-fixture"].includes(cleanup.kind));
@@ -627,16 +2763,263 @@ function stateFilesEqual(snapshots) {
   });
 }
 
+function sha256FileOrMissing(filePath) {
+  const value = filePath && fs.existsSync(filePath)
+    ? fs.readFileSync(filePath)
+    : Buffer.from("missing", "utf8");
+  return crypto.createHash("sha256").update(value).digest("hex");
+}
+
+function readUsersState(usersFile) {
+  assert(usersFile && fs.existsSync(usersFile), "authoritative users store is missing");
+  const raw = fs.readFileSync(usersFile, "utf8");
+  const parsed = JSON.parse(raw);
+  return {
+    raw,
+    sha256: crypto.createHash("sha256").update(raw).digest("hex"),
+    stableAuthSha256: stableUsersAuthSha256(usersFile),
+    users: Array.isArray(parsed.users) ? parsed.users : [],
+    invites: Array.isArray(parsed.invites) ? parsed.invites : [],
+    accessRequests: Array.isArray(parsed.accessRequests) ? parsed.accessRequests : [],
+  };
+}
+
+function stableUsersAuthSha256(usersFile) {
+  if (!usersFile || !fs.existsSync(usersFile)) {
+    return crypto.createHash("sha256").update("missing").digest("hex");
+  }
+  const parsed = JSON.parse(fs.readFileSync(usersFile, "utf8"));
+  const normalized = structuredClone(parsed);
+  for (const user of Array.isArray(normalized.users) ? normalized.users : []) {
+    delete user.lastLoginAt;
+    delete user.lastLoginIp;
+  }
+  return crypto.createHash("sha256").update(stableJson(normalized)).digest("hex");
+}
+
+async function observeBrowserWhoami(browser, caseId) {
+  assert(browser?.evaluate, `${caseId} browser whoami readback adapter missing`);
+  const principal = await browser.evaluate(async () => {
+    const response = await fetch("/auth/whoami", {
+      credentials: "same-origin",
+      cache: "no-store",
+      redirect: "follow",
+    });
+    let body = {};
+    try { body = await response.json(); } catch { body = {}; }
+    return {
+      status: response.status,
+      authenticated: body?.authenticated === true,
+      username: typeof body?.username === "string" ? body.username : "",
+      role: typeof body?.role === "string" ? body.role : "",
+      scopes: Array.isArray(body?.scopes) ? body.scopes.map(value => String(value)) : [],
+      setupRequired: body?.setupRequired === true,
+    };
+  });
+  assert(principal && Number.isInteger(principal.status), `${caseId} browser whoami result invalid`);
+  return principal;
+}
+
+function safePrincipal(value) {
+  return {
+    authenticated: value?.authenticated === true,
+    username: typeof value?.username === "string" ? value.username : "",
+    role: typeof value?.role === "string" ? value.role : "",
+    scopes: Array.isArray(value?.scopes) ? value.scopes.map(item => String(item)) : [],
+  };
+}
+
+async function observeBrowserRoleBoundary(browser) {
+  return browser.evaluate(async () => {
+    const request = async path => {
+      const response = await fetch(path, {
+        credentials: "same-origin",
+        cache: "no-store",
+        redirect: "follow",
+      });
+      return response.status;
+    };
+    return {
+      clientStatus: await request("/client/api/views"),
+      opsStatus: await request("/ops/api/users"),
+    };
+  });
+}
+
+async function observeCurrentOpsUsersUi(browser, {
+  sectionSelector,
+  identity,
+  forbiddenSecret = "",
+} = {}) {
+  assert(sectionSelector && identity, "ops users UI readback identity is incomplete");
+  await browser.waitForSelector(`${sectionSelector} tr:has-text(${JSON.stringify(identity)})`);
+  return browser.evaluate(({ selector, expectedIdentity, secret }) => {
+    const section = document.querySelector(selector);
+    const text = String(section?.innerText || "");
+    const bodyText = String(document.body?.innerText || "");
+    const matchingRows = Array.from(section?.querySelectorAll("tr") || [])
+      .filter(row => String(row.innerText || "").includes(expectedIdentity));
+    return {
+      identityVisible: matchingRows.length === 1,
+      matchingRowCount: matchingRows.length,
+      pendingVisible: text.includes(expectedIdentity) && /대기|pending/i.test(text),
+      adminAllScopesVisible: text.includes(expectedIdentity) && text.includes("모든 범위"),
+      forbiddenMarkersAbsent: !/passwordHash|passwordHistory|tokenHash/i.test(bodyText),
+      forbiddenSecretAbsent: !secret || !text.includes(secret),
+    };
+  }, { selector: sectionSelector, expectedIdentity: identity, secret: forbiddenSecret });
+}
+
+async function inspectOpsUsersUiWithLogin(browser, {
+  username,
+  password,
+  sectionSelector,
+  identity,
+  returnPath,
+} = {}) {
+  assert(username && password && returnPath, "ops users isolated UI readback login binding is incomplete");
+  browser.registerRuntimeSecret(password);
+  try {
+    const login = await browser.evaluate(async credentials => {
+      const response = await fetch("/login", {
+        method: "POST",
+        credentials: "same-origin",
+        redirect: "follow",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams(credentials),
+      });
+      return { status: response.status, pathname: new URL(response.url).pathname };
+    }, { username, password });
+    assert(login.status === 200 && login.pathname.startsWith("/ops/"),
+      "ops users isolated UI readback login failed");
+    const navigation = await browser.navigate("/ops/users");
+    assert(navigation.status === 200, "ops users isolated UI readback navigation failed");
+    return await observeCurrentOpsUsersUi(browser, { sectionSelector, identity });
+  } finally {
+    await browser.evaluate(async () => {
+      try {
+        await fetch("/logout", {
+          method: "POST",
+          credentials: "same-origin",
+          redirect: "manual",
+        });
+      } catch {}
+    });
+    await browser.navigate(returnPath);
+  }
+}
+
+function objectHasAnyKey(value, forbidden) {
+  if (Array.isArray(value)) return value.some(item => objectHasAnyKey(item, forbidden));
+  if (!value || typeof value !== "object") return false;
+  return Object.entries(value).some(([key, item]) =>
+    forbidden.has(key) || objectHasAnyKey(item, forbidden));
+}
+
+function containsForbiddenAuthMaterial(value) {
+  return objectHasAnyKey(value, new Set(["passwordHash", "passwordHistory", "tokenHash"]));
+}
+
 function fixturePayload(item, fixtureId, value) {
   const endpoint = item.workflow.productAction?.endpoint?.path || "";
   const base = { id: fixtureId, displayName: value.displayName || `REVIEW4 ${item.caseId} fixture`, enabled: true };
   if (endpoint.includes("/sources/")) return { ...base, sourceId: fixtureId, kind: "file", file: "sample_h264.mp4", tags: ["review4", "throwaway"] };
   if (endpoint.includes("/views/")) return { ...base, viewId: fixtureId, sourceId: "9001", allowedRuleIds: [], allowedOverlayModes: ["raw", "va-overlay"], showDashboard: true, showEvents: true, maxTiles: 1 };
-  if (endpoint.includes("/profiles/")) return { ...base, name: base.displayName, detector: "yolo", fps: 6, confidence: 0.25, nms: 0.45, inputWidth: 640, inputHeight: 640, trackingClasses: ["person"], analysis: { classes: ["person"] } };
-  if (endpoint.includes("/va-rules/")) return { ...base, name: base.displayName, source: { kind: "file", file: "sample_h264.mp4" }, analysis: { profileId: "9101", classes: ["person"], trackingPolicy: { tracker: "lite", reid: "off" } }, event: { type: "presence", region: { type: "polygon", points: [[0,0],[1,0],[1,1],[0,1]] } }, priority: 1 };
-  if (endpoint.includes("/rules/")) return { ...base, name: base.displayName, ruleKind: "basic", analysis: { profileId: "9101", classes: ["person"], trackingPolicy: { tracker: "lite", reid: "off" } }, event: { type: "presence", region: { type: "polygon", points: [[0,0],[1,0],[1,1],[0,1]] } } };
+  if (endpoint.includes("/vlm/profiles/")) {
+    return {
+      ...base,
+      schema: "media-server.vlm-profile.v1",
+      selectedOptionId: "local-qwen3-vl-8b",
+      provider: "user-supplied-local-runtime",
+      model: "Qwen/Qwen3-VL-8B-Instruct",
+      runtime: "not-configured",
+      privacyMode: "local-only",
+      cloudOptInAcknowledged: false,
+      promptProfile: { id: "event-review-default", version: "v1", language: "ko-en" },
+      evaluation: {
+        candidateId: "",
+        expectedCatalogRevision: "",
+        expectedProvenanceDigest: "",
+      },
+      activation: {
+        enabled: false,
+        status: "disabled",
+        fallbackProfileId: "",
+        disabledReason: "review4-runtime-fixture",
+      },
+      runtimeContract: {
+        schema: "media-server.vlm-runtime-opt-in-contract.v1",
+        targetStep: "V210-S01",
+        mode: "disabled",
+        status: "disabled",
+        defaultEnabled: false,
+        operatorOptInRequired: true,
+        operatorOptInAcknowledged: false,
+        runtimeCallAllowed: false,
+        providerCallAllowed: false,
+        providerFieldSmokeRequired: false,
+        sideEffects: {
+          runtimeVlmCallPerformed: false,
+          cloudProviderApiCalled: false,
+          modelArtifactDownloaded: false,
+          modelArtifactBundled: false,
+          credentialStored: false,
+          sidecarStored: false,
+          eventPostPayloadChanged: false,
+          webrtcDataChannelSchemaChanged: false,
+          sseMetadataSchemaChanged: false,
+          wsMetadataSchemaChanged: false,
+          rtspOrWebrtcMediaPathChanged: false,
+          viewerClientExposureAdded: false,
+        },
+      },
+      sourceStep: "V390-REVIEW4-65",
+      storageScope: "profile-storage-only",
+      contractInvariants: {
+        runtimeVlmCallPerformed: false,
+        sidecarStored: false,
+        cloudProviderApiCalled: false,
+        credentialStored: false,
+        eventPostPayloadChanged: false,
+        webrtcDataChannelSchemaChanged: false,
+        sseMetadataSchemaChanged: false,
+        wsMetadataSchemaChanged: false,
+        rtspOrWebrtcMediaPathChanged: false,
+        viewerClientExposureAdded: false,
+      },
+    };
+  }
+  if (endpoint.includes("/profiles/")) {
+    return {
+      ...base,
+      name: base.displayName,
+      detector: item.caseId === "RULE-026" ? "dummy" : "yolo",
+      fps: 6,
+      maxQueue: 1,
+      confidence: 0.25,
+      nms: 0.45,
+      inputWidth: 640,
+      inputHeight: 640,
+      trackingClasses: ["person"],
+      analysis: { classes: ["person"] },
+    };
+  }
+  if (endpoint.includes("/va-rules/")) {
+    const seedTrackingPolicy = {
+      "RULE-034": { tracker: "lite", reid: "assist" },
+      "RULE-035": { tracker: "kalman-lite", reid: "off" },
+      "RULE-036": { tracker: "lite", reid: "off" },
+      "RULE-037": { tracker: "lite", reid: "off" },
+      "RULE-038": { tracker: "lite", reid: "assist" },
+      "RULE-039": { tracker: "lite", reid: "off" },
+    }[item.caseId] || { tracker: "lite", reid: "off" };
+    return { ...base, name: base.displayName, source: { kind: "file", file: "sample_h264.mp4" }, analysis: { profileId: "9101", classes: ["person"], trackingPolicy: seedTrackingPolicy }, templateStart: { ruleId: "9201" }, event: { type: "presence", region: { type: "polygon", points: [[0,0],[1,0],[1,1],[0,1]] } }, priority: 1 };
+  }
+  if (endpoint.includes("/rules/")) {
+    const seedType = item.caseId === "RULE-041" ? "enter" : "presence";
+    return { ...base, name: base.displayName, ruleKind: "basic", analysis: { profileId: "9101", classes: ["person"], trackingPolicy: { tracker: "lite", reid: "off" } }, event: { type: seedType, region: { type: "polygon", points: [[0,0],[1,0],[1,1],[0,1]] } } };
+  }
   if (endpoint.includes("/users")) return { username: fixtureId, displayName: base.displayName, role: "viewer", viewId: "9001", enabled: true };
-  if (endpoint.includes("/vlm/profiles/")) return { ...base, name: base.displayName, provider: "disabled", model: "not-configured", runtimeContract: { defaultEnabled: false, runtimeCallAllowed: false, providerCallAllowed: false } };
   if (endpoint.includes("/events/reviews/")) return { eventId: fixtureId, reviewStatus: "pending", reviewNote: "review4 runtime baseline" };
   if (endpoint.includes("/onvif/channels/")) return { channelId: fixtureId, displayName: base.displayName, host: "127.0.0.1", port: 80, enabled: false };
   return base;
@@ -644,19 +3027,22 @@ function fixturePayload(item, fixtureId, value) {
 
 function buildOnvifPairPayload(item, fixtureId, value = {}) {
   const onvif = ["UI-109", "SRC-066"].includes(item.caseId);
+  const kind = onvif ? "rtsp" : (value.kind || "file");
   const displayName = value.displayName || `REVIEW4 ${item.caseId} fixture`;
   const source = {
     sourceId: fixtureId,
     displayName,
-    kind: onvif ? "rtsp" : "file",
+    kind,
     enabled: true,
-    tags: onvif ? ["onvif", "review4"] : ["review4", "throwaway"],
+    tags: onvif ? ["onvif", "live", "review4"] : ["review4", "throwaway"],
     ownerGroup: "review4",
     site: "contract",
     group: "review4",
     floor: "",
     zone: "",
-    ...(onvif ? { rtspUrl: `rtsp://127.0.0.1:${8554}/${fixtureId}` } : { file: "sample_h264.mp4" }),
+    ...(kind === "rtsp"
+      ? { rtspUrl: `rtsp://127.0.0.1:${8554}/${fixtureId}` }
+      : { file: value.file || "sample_h264.mp4" }),
   };
   const publishedView = {
     viewId: fixtureId,
@@ -741,25 +3127,109 @@ export function seedExactAccessRequestFixture(usersFile, {
   return record;
 }
 
-export function seedEventRecordFixture(eventStoragePath, { eventId, sourceId = "9001" } = {}) {
+function defaultPublishedSourceIdentity(descriptor) {
+  const viewId = String(descriptor.auth?.defaultViewId || "");
+  const views = readJson(descriptor.registrySeedPayloadPaths?.views || "").views || [];
+  const sources = readJson(descriptor.registrySeedPayloadPaths?.sources || "").sources || [];
+  const view = views.find(value => String(value?.viewId || "") === viewId);
+  const source = sources.find(value => String(value?.sourceId || "") === String(view?.sourceId || ""));
+  const sourceId = String(source?.sourceId || "");
+  const streamId = String(source?.canonicalSourceKey || "");
+  assert(view && sourceId && streamId,
+    "default PublishedView source identity is unavailable for viewer-scoped EventRecord seed");
+  return { sourceId, streamId };
+}
+
+export function seedEventRecordFixture(eventStoragePath, {
+  eventId,
+  sourceId = "9001",
+  streamId = sourceId,
+  status = "recorded",
+} = {}) {
   assert(eventStoragePath, "runtime event storage path is unavailable");
   assert(eventId, "runtime EventRecord fixture ID is required");
+  const timestampMs = Date.now();
   const record = {
+    schema: "media-server.va.event-record.v1",
     eventId,
-    streamId: sourceId,
+    streamId,
     sourceId,
     channelId: sourceId,
+    trackId: 1,
+    classId: 0,
     eventType: "presence",
     className: "person",
-    status: "recorded",
-    timestampMs: Date.now(),
-    receivedAtMs: Date.now(),
+    status,
+    startTime: timestampMs,
+    updateTime: timestampMs,
+    endTime: timestampMs,
+    zoneId: "",
+    lineId: "",
+    scenarioName: "",
+    scenarioPhase: "",
     confidence: 0.9,
+    snapshotPath: "",
+    clipPath: "",
+    preEventMs: 0,
+    postEventMs: 0,
+    metadata: { sourceId },
     fixtureOwner: "v390-self-contained-acceptance",
   };
   fs.appendFileSync(eventStoragePath, `${JSON.stringify(record)}\n`, { mode: 0o600 });
   fs.chmodSync(eventStoragePath, 0o600);
   return record;
+}
+
+export function seedVlmRuleSuggestionFixture(observationPath, { eventId, sourceId = "9001" } = {}) {
+  assert(observationPath, "runtime VLM observation path is unavailable");
+  assert(eventId, "runtime VLM rule suggestion fixture ID is required");
+  const record = {
+    schema: "media-server.vlm-observation.v1",
+    observationId: `${eventId}-observation`,
+    eventId,
+    sourceId,
+    ruleId: "",
+    scenarioId: "",
+    inputType: "event-record",
+    inputEvidenceRefs: {},
+    summary: "REVIEW4 exact local rule draft candidate",
+    eventExplanation: "test-owned manual draft candidate",
+    falsePositiveHints: [],
+    operatorReviewQuestions: [],
+    ruleSuggestion: {
+      kind: "line-crossing",
+      candidateId: `${eventId}-candidate`,
+      suggestedAction: "manual-save-in-ops-rules",
+      targetRoute: "/ops/rules",
+      manualReviewRequired: true,
+      autoApply: false,
+      rationale: "operator review required",
+      draftRule: {
+        eventType: "line-crossing",
+        classes: ["person"],
+        minConfidence: 0.8,
+        minDurationMs: 1000,
+        direction: "any",
+      },
+    },
+    uncertainty: 0.1,
+    provider: "test-owned-local-fixture",
+    model: "none",
+    promptProfile: "review4-exact",
+    privacyMode: "local-only",
+    latencyMs: 0,
+    createdAt: Date.now(),
+    storageScope: "vlm-observation-store-only",
+  };
+  fs.mkdirSync(path.dirname(observationPath), { recursive: true });
+  fs.appendFileSync(observationPath, `${JSON.stringify(record)}\n`, { mode: 0o600 });
+  fs.chmodSync(observationPath, 0o600);
+  return record;
+}
+
+function vlmObservationStoragePath(eventStoragePath) {
+  const parsed = path.parse(eventStoragePath);
+  return path.join(parsed.dir, `${parsed.name || "events"}.vlm-observations${parsed.ext || ".jsonl"}`);
 }
 
 export function resolveAuthoritativeReadback(endpoint, fixtureId) {
@@ -823,16 +3293,41 @@ function parseSecretEnvelope(raw) {
 }
 
 function generatedPassword() {
-  return `V390!${crypto.randomBytes(24).toString("base64url")}aA9`;
+  const letters = "BDFKMNPRTVXYZ";
+  const digits = "2749";
+  const specials = "!@#$%";
+  const entropy = crypto.randomBytes(36);
+  let value = "V!";
+  for (let index = 0; index < 12; index += 1) {
+    value += letters[entropy[index * 3] % letters.length];
+    value += digits[entropy[index * 3 + 1] % digits.length];
+    value += specials[entropy[index * 3 + 2] % specials.length];
+  }
+  return `${value}aZ`;
 }
 
-async function postForm(url, values) {
+async function postForm(url, values, { cookie = "" } = {}) {
   return fetch(url, {
     method: "POST",
     redirect: "manual",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      ...(cookie ? { Cookie: cookie } : {}),
+    },
     body: new URLSearchParams(values),
   });
+}
+
+async function requestStatus(url, { cookie = "", method = "GET" } = {}) {
+  const response = await fetch(url, {
+    method,
+    redirect: "manual",
+    headers: cookie ? { Cookie: cookie } : {},
+  });
+  return {
+    status: response.status,
+    location: response.headers.get("location") || "",
+  };
 }
 
 async function requestJson(url, { cookie = "" } = {}) {
@@ -897,10 +3392,11 @@ function validateDescriptor(descriptor, { rootDir, httpBase, runtimeDescriptorPa
 
 function assertReviewedMutationOutcome(caseId, observed) {
   if (caseId === "SRC-009") {
-    assert(observed?.source?.zone === "review4-zone-updated",
-      `${caseId} source zone update is missing from authoritative readback`);
+    assert(observed?.source?.displayName === "File Source Updated" && observed?.source?.zone === "South",
+      `${caseId} source displayName/zone update is missing from authoritative readback`);
   } else if (caseId === "SRC-018") {
-    assert(observed?.publishedView?.allowedRuleIds?.includes("9301") &&
+    assert(observed?.publishedView?.displayName === "View One Updated" &&
+      observed?.publishedView?.allowedRuleIds?.includes("13") &&
       observed?.publishedView?.clientGroups?.includes("review4-client"),
     `${caseId} published-view rule/scope update is missing from authoritative readback`);
   } else if (caseId === "RULE-008") {
@@ -911,15 +3407,21 @@ function assertReviewedMutationOutcome(caseId, observed) {
       `${caseId} profile mapping is missing from authoritative readback`);
   } else if (caseId === "RULE-012") {
     const points = observed?.event?.region?.points || observed?.region?.points || [];
-    assert(Array.isArray(points) && Number(points[0]?.[0]) === 0.1 && Number(points[0]?.[1]) === 0.1,
+    const firstX = Array.isArray(points?.[0]) ? points[0][0] : points?.[0]?.x;
+    const firstY = Array.isArray(points?.[0]) ? points[0][1] : points?.[0]?.y;
+    assert(Array.isArray(points) && Number(firstX) === 0.1 && Number(firstY) === 0.1,
       `${caseId} polygon mutation is missing from authoritative readback`);
   } else if (caseId === "RULE-030") {
     assert(Number(observed?.confidence ?? observed?.minConfidence) === 0.75,
       `${caseId} profile confidence mutation is missing from authoritative readback`);
   } else if (caseId === "RULE-073") {
-    assert(String(observed?.event?.type || observed?.scenario?.type || "") === "line-crossing" &&
+    assert(String(observed?.scenario?.type || observed?.event?.type || "") === "wrong-direction" &&
       String(observed?.event?.region?.direction || observed?.scenario?.allowedDirection || "") === "forward",
     `${caseId} line direction mutation is missing from authoritative readback`);
+  } else if (caseId === "RULE-074") {
+    assert(String(observed?.scenario?.type || observed?.event?.type || "") === "wrong-direction" &&
+      ["forward", "reverse"].includes(String(observed?.scenario?.allowedDirection || observed?.event?.region?.direction || "")),
+    `${caseId} allowed direction policy is missing from authoritative readback`);
   } else if (caseId === "RULE-075") {
     assert(Number(observed?.scenario?.cooldownMs) === 9000,
       `${caseId} cooldown mutation is missing from authoritative readback`);

@@ -1,0 +1,12 @@
+[pass] release evidence index owns required evidence categories
+[pass] release test records own detailed item and result tables
+[pass] token usage ledger final evidence excludes temporary paths
+[pass] skipped wording stays distinct from pass
+[pass] unverified wording stays distinct from pass
+[pass] test evidence records include token usage fields
+[pass] public docs do not expose evidence ledger as a front-door document
+[pass] server entrypoint exposes release evidence index verifier
+
+== Release evidence index verification summary ==
+- pass: 8
+- fail: 0

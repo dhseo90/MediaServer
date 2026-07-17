@@ -1,14 +1,15 @@
 # v3.9.0 REVIEW4 잔여 이슈 55~65 구현 계획 및 현재 기록
 
 이 문서는 REVIEW4 55~65 개발의 현재 실행 경계를 기록하며 roadmap과 release evidence를 대체하지 않습니다.
-현재 frontier는 65번 독립 acceptance correction입니다. 64번 구조 안정화는 완료·커밋됐고, 65번은 세 번의
-fail-stop 기록을 보존한 채 published seed와 client-events requested/observed 결속을 수정한 clean HEAD 재실행을
-앞두고 있습니다.
+현재 frontier는 62/65번 독립 acceptance 실행 인터페이스 correction입니다. 64번 구조 안정화는 완료·커밋됐고,
+65번은 기존 fail-stop 기록을 보존한 채 사용자가 인자·환경변수 없이 30분·120분·UI·release 중 하나의
+root launcher만 실행하는 4-launcher interface와 실행기 소유 port/secret/browser lifecycle을 보강했습니다. 실제 30분·exact UI·120분은 이번
+correction에서 재실행하지 않았습니다.
 
 | 항목 | 현재 상태 | 다음 경계 |
 | --- | --- | --- |
 | REVIEW4-64 | 완료. Slice 32 구조 final target 충족, commit `b9a45740` | REVIEW4-65의 입력 commit으로 고정 |
-| REVIEW4-65 | 진행 중. build/34 gate·real 30분 PASS 뒤 UI bootstrap fail-stop을 수정 | correction commit 뒤 clean current HEAD에서 build→30분→exact 424→120분→cleanup→final integrity 전체 재실행 |
+| REVIEW4-65 | 진행 중. 개별 OS temp/release canonical output·자동 port·직접 120 승인·조건부 release 120·all-role memory-only lifecycle과 tracked long VA re-entry fixture의 clean-checkout integrity를 구현 | checkpoint commit/push 뒤 `./test_release.sh` actual 실행 |
 
 ## Slice 30A Analysis Session read application 경계
 
@@ -112,3 +113,34 @@ Correction candidate `743da5ac892a45ea47e1bdd602c1a839c7c5bf7ee459fbb23a8a9549c2
 
 이 correction 검증도 actual exact 424 browser 실행이나 120분 PASS가 아닙니다. 수정 commit 뒤 source tree가
 clean인 current HEAD에서 canonical bundle 전체를 처음부터 다시 실행해야 REVIEW4-65 완료를 판정합니다.
+
+## REVIEW4-62/65 무옵션 실행 인터페이스 correction
+
+사용자 진입점은 repository root의 `./test_server_30min.sh`, `./test_server_120min.sh`, `./test_ui.sh`,
+`./test_release.sh` 네 개입니다. 모두 인자를 exit 64로 거부하며 actual 실행 전에
+`verify-v390-user-test-launchers-contract`를 통과해야 합니다. `test_release.sh`만 repository canonical output을 사용하고
+30분/120분/UI launcher는 OS temp output을 자동 생성합니다. Server launcher는 runner-owned ephemeral port를
+사용하고 30분/120분만 각각 위임하며, 직접 120분 launcher 실행 자체를 사용자 승인 evidence로 기록합니다.
+UI launcher는 exact 424·Policy v4와 필요한 throwaway runtime/cleanup만 선택합니다. Lower-level option은 내부용입니다.
+
+`v390_acceptance_ui_environment.mjs`는 admin/operator/viewer/integrator 비밀번호를 모두 crypto random으로
+서로 다르게 생성합니다. 상속된 legacy admin/role-secret env는 provenance child보다 먼저 폐기하고 local env
+override도 배제합니다. 실제 값은 argv·파일·summary/report·일반 child env에 넣지 않으며 exact UI child에만
+memory-only envelope로 전달합니다. Exact와 throwaway runtime artifact byte scan이 끝난 뒤 envelope와 in-memory
+secret 목록을 해제합니다.
+
+`verify_v390_user_test_launchers_contract.mjs`는 네 파일 존재/실행권한/금지 인자 exit 64, exact suite 위임,
+runner-owned port, 직접 120분 승인, first-fail/later not-run, UI-only stage, release trigger 없음 `not-required`,
+다섯 AGENTS 7.6.2 변경 영역 trigger를 13/13으로 검증했습니다. Acceptance contract 14/14와 longrun contract 9/9도
+회귀 통과했습니다. Release launcher는 무조건 `--run-120`을 전달하지 않고 내부 `--auto-run-120`을 사용합니다.
+대용량 dirty/untracked 목록은 기존 산출물을 삭제하지 않고 64 MiB git capture buffer로 검증합니다. 실제
+build·30분·exact 424·Policy v4·120분 acceptance와 커밋·푸시는 수행하지 않았습니다.
+
+## REVIEW4-65 clean-checkout VA media fixture correction
+
+`video/imports/va_tracking_event_long_1280x720_30fps_h264.mp4`는 re-entry scenario seed의 tracked input입니다.
+`.gitignore`는 이 exact path만 exception으로 허용하며 fixture metadata는 7,284,400 bytes와 SHA-256
+`24147fb07bb3a1e1f86bb41d2cce6274a6f39eb75671a299a61ca9852f37a122`를 고정합니다.
+`prepare_manual_ui_fulltest_seed.mjs`는 integrity metadata가 있는 file source에 대해 실제 bytes와 SHA-256을 대조하고,
+acceptance contract는 missing fixture, size drift, SHA drift를 각각 negative subprocess로 거부합니다. 이 보정은
+clean-checkout input 재현성만 닫으며 actual 30분·exact 424·Policy v4·120분 acceptance는 실행하지 않습니다.

@@ -9,12 +9,13 @@ import process from "node:process";
 
 import { findChrome, openBrowserPage } from "./ui_visual_smoke_lib.mjs";
 
-const args = parseArgs(process.argv.slice(2));
 const failures = [];
+const args = parseArgs(process.argv.slice(2));
 
 const server = readWebRtcHttpServerBundle(readText);
 const routeOwner = readText("src/ingress/ops_event_route_owner.cpp");
 const serverContract = server + routeOwner;
+const markup = readText("src/ingress/product_ui_server_pages.cpp");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
@@ -116,7 +117,7 @@ for (const [label, snippet] of [
   ["ops events UI styles alert delivery table", ".alert-delivery-table"],
 ]) {
   check(label, () => {
-    assertIncludes(server + script + css, snippet, "alert delivery UI");
+    assertIncludes(server + markup + script + css, snippet, "alert delivery UI");
   });
 }
 
@@ -321,6 +322,7 @@ async function runRoundtripSmoke() {
       body: JSON.stringify({ deliveryId: runId, eventId: `${runId}-event` }),
     });
     assert(Array.isArray(fixture.attempts) && fixture.attempts.length === 1, "/ops/events fixture attempt missing");
+    assert(fixture.attempts[0]?.status === "delivered" && fixture.attempts[0]?.transport === "fixture", "/ops/events expected delivered · fixture attempt");
     assert(fixture.eventPostPayloadChanged === false, "fixture changed Event POST payload contract");
     assert(JSON.stringify(fixture).includes("secret-token") === false, "fixture response leaked endpoint token");
     const dryRun = await requestJson("/ops/api/alerts/deliveries/dry-run", {

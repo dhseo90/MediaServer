@@ -9,12 +9,13 @@ import { fileURLToPath } from "node:url";
 
 import {
   assertSecretValuesAbsentFromTree,
-  consumeAcceptanceAdminPassword,
+  discardInheritedAcceptanceSecrets,
   parseListenerPidOutput,
   resolveAcceptanceRoleSecrets,
   secretStrippedProcessEnv,
 } from "./v390_acceptance_ui_environment.mjs";
 import { createV390UiCaseRuntime } from "./v390_ui_case_runtime.mjs";
+import { collectSourceProvenanceWithAllowedArtifacts } from "./evidence_integrity_lib.mjs";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
@@ -55,6 +56,8 @@ process.on("exit", () => {
 });
 
 const files = {
+  launcher: readText("test_release.sh"),
+  userLauncherCommon: readText("scripts/internal/user_test_launcher_common.sh"),
   bundle: readText("scripts/internal/verify_v390_test_acceptance_bundle.mjs"),
   uiEnvironment: readText("scripts/internal/v390_acceptance_ui_environment.mjs"),
   seedPreparation: readText("scripts/internal/prepare_manual_ui_fulltest_seed.mjs"),
@@ -62,6 +65,7 @@ const files = {
   caseRuntime: readText("scripts/internal/v390_ui_case_runtime.mjs"),
   exactRunner: readText("scripts/internal/run_v390_ui_native_exact_cases.mjs"),
   serverSh: readText("server.sh"),
+  buildServer: readText("scripts/internal/build_server.sh"),
   scriptInventory: readText("scripts/internal/verify_script_inventory.mjs"),
   streamVerification: readText("docs/stream-verification.md"),
   projectInventory: readText("docs/project-feature-test-inventory.md"),
@@ -91,6 +95,33 @@ check("current final actual preflight keeps 120 conditional and requires a clean
     "canonical retry still rejects its preserved first-failure output as source dirtiness");
 });
 
+check("canonical artifact dirtiness is allowed without masking source dirtiness", () => {
+  const repository = fixtureDir("canonical-allowed-artifact-boundary");
+  fs.mkdirSync(repository, { recursive: true });
+  const git = (...args) => execFileSync("git", args, {
+    cwd: repository,
+    encoding: "utf8",
+    env: { ...process.env, GIT_AUTHOR_NAME: "contract", GIT_AUTHOR_EMAIL: "contract@example.invalid",
+      GIT_COMMITTER_NAME: "contract", GIT_COMMITTER_EMAIL: "contract@example.invalid" },
+  });
+  git("init", "-q");
+  fs.writeFileSync(path.join(repository, "source.txt"), "clean\n", "utf8");
+  git("add", "source.txt");
+  git("commit", "-q", "-m", "fixture");
+  const canonical = path.join(repository, "docs/release-artifacts/v3.9.0/test-acceptance-current-final");
+  fs.mkdirSync(canonical, { recursive: true });
+  fs.writeFileSync(path.join(canonical, "summary.json"), "{}\n", "utf8");
+  const allowed = collectSourceProvenanceWithAllowedArtifacts(repository, canonical);
+  assert(allowed.worktreeClean === false && allowed.sourceWorktreeClean === true,
+    "canonical artifact dirtiness damaged source-clean classification");
+  assert(allowed.unapprovedDirtyPaths.length === 0 && allowed.allowedArtifactPaths.length === 1,
+    "canonical artifact path ledger mismatch");
+  fs.writeFileSync(path.join(repository, "source.txt"), "dirty\n", "utf8");
+  const rejected = collectSourceProvenanceWithAllowedArtifacts(repository, canonical);
+  assert(rejected.sourceWorktreeClean === false && rejected.unapprovedDirtyPaths.includes("source.txt"),
+    "source dirtiness was hidden by the canonical allowed-artifact root");
+});
+
 check("canonical source removes legacy 8-case and external summary injection", () => {
   assert(!files.bundle.includes('"verify-v390-ui-automation"'), "canonical bundle still executes legacy 8-case runner");
   assert(!files.bundle.includes("--ui-fulltest-summary"), "canonical bundle still accepts external UI summary injection");
@@ -99,6 +130,49 @@ check("canonical source removes legacy 8-case and external summary injection", (
     "verify-ui-fulltest-evidence-policy-v4",
     "verify-v390-final-evidence-integrity",
   ]) assertIncludes(files.bundle, snippet, "canonical exact/Policy/final source");
+});
+
+check("no-option launcher owns output and conditional 120 authorization", () => {
+  const launcherPath = path.join(rootDir, "test_release.sh");
+  assert(fs.existsSync(launcherPath), "test_release.sh is missing");
+  assert((fs.statSync(launcherPath).mode & 0o111) !== 0, "test_release.sh is not executable");
+  assertIncludes(files.launcher, 'media_server_run_user_test "release" "$@"', "release launcher delegation");
+  for (const snippet of [
+    'if [[ "$#" -ne 0 ]]',
+    'unset MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD',
+    'unset MEDIA_SERVER_V390_UI_ROLE_SECRETS',
+    'export MEDIA_SERVER_SKIP_LOCAL_ENV=1',
+    'mktemp -d',
+    'output_dir="${root_dir}/docs/release-artifacts/v3.9.0/test-acceptance-current-final"',
+    'verify-v390-test-acceptance-bundle',
+    '--output-dir "${output_dir}"',
+    '--auto-run-120',
+    'failureStage=',
+    'reproductionCommand=',
+    'laterNotRun=',
+  ]) assertIncludes(files.userLauncherCommon, snippet, "no-option release launcher");
+  assert(!files.userLauncherCommon.includes('--run-120'),
+    "release launcher unconditionally runs 120 minutes");
+  assert(!files.userLauncherCommon.includes('MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD='),
+    "launcher embeds or assigns an admin secret");
+  assert(!files.userLauncherCommon.includes('MEDIA_SERVER_V390_UI_ROLE_SECRETS='),
+    "launcher embeds or assigns a role-secret envelope");
+  assertIncludes(files.bundle, '{ id: "actual-bundle", command: "./test_release.sh", status: "user-no-option-actual-execution" }',
+    "canonical command set launcher binding");
+  for (const snippet of [
+    'executionMode === "actual" && outputDir !== canonicalReleaseOutputDir',
+    'schema: "media-server.v390-canonical-final-evidence.v1"',
+    'temporaryPathFinalEvidenceReferences: []',
+    'writeAcceptanceArtifacts()',
+  ]) assertIncludes(files.bundle, snippet, "canonical release evidence lifecycle");
+  const rejected = spawnSync(launcherPath, ["--output-dir", "/tmp/forbidden"], {
+    cwd: rootDir,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  assert(rejected.status === 64, "launcher must reject every user option before acceptance starts");
+  assert(`${rejected.stdout}\n${rejected.stderr}`.includes("사용법: ./test_release.sh"),
+    "launcher option rejection does not show the single supported command");
 });
 
 check("canonical actual command owns the complete throwaway UI environment", () => {
@@ -118,20 +192,21 @@ check("canonical actual command owns the complete throwaway UI environment", () 
     '"ui-environment-bootstrap"',
     "startSelfContainedUiEnvironment",
     "dependency-bootstrap-attestation",
-    "runtime-admin-and-generated-role-secrets-memory-only",
-    "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD is required for the acceptance-owned throwaway admin",
+    "all-role-secrets-generated-memory-only",
+    "acceptance-crypto-random-generated-memory-only",
+    "discardInheritedAcceptanceSecrets(process.env)",
     "delete env.MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD",
     "role-storage-state-generated-by-acceptance",
     "self-contained-pid-port-artifact-ownership",
   ]) assertIncludes(files.bundle, snippet, "self-contained acceptance source");
   for (const snippet of [
     "JSON.stringify({ roles: secrets, refs: { fixturePassword } })",
-    "resolveAcceptanceRoleSecrets(adminPassword)",
+    "resolveAcceptanceRoleSecrets()",
     "env: secretStrippedProcessEnv()",
-    "delete env[adminPasswordEnv]",
-    "delete process.env[adminPasswordEnv]",
-    'adminSecretSource: adminPasswordEnv',
-    '"runtime-env-consumed-then-unset"',
+    "delete env[legacyAdminPasswordEnv]",
+    "discardInheritedAcceptanceSecrets(process.env)",
+    'roleSecretSource: "acceptance-crypto-random-generated-memory-only"',
+    '"generated-scanned-and-released"',
     "usersFile: state.usersPath",
     "defaultViewId: state.viewId",
     '"--published-seed-baseline"',
@@ -152,20 +227,24 @@ check("canonical actual command owns the complete throwaway UI environment", () 
   assert((files.uiOneShot.match(/"--published-seed-baseline"/g) || []).length === 2,
     "UI one-shot core/auth seed preparation must select the published baseline explicitly");
 
-  assert(files.bundle.indexOf("consumeAcceptanceAdminPassword()") <
+  assert(files.bundle.indexOf("discardInheritedAcceptanceSecrets(process.env)") <
     files.bundle.indexOf("collectSourceProvenanceWithAllowedArtifacts(rootDir, outputDir)"),
-  "admin secret must leave process.env before source provenance can spawn a child");
-  assertIncludes(files.bundle, "adminPassword: acceptanceAdminPassword",
-    "bundle must pass the consumed admin secret explicitly from memory");
+  "inherited acceptance secrets must leave process.env before source provenance can spawn a child");
+  assert(!files.bundle.includes("adminPassword: acceptanceAdminPassword"),
+    "bundle still accepts an external admin secret");
   const sourceEnv = {
     SAFE_VALUE: "preserved",
     MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD: "contract-early-consume-admin",
+    MEDIA_SERVER_V390_UI_ROLE_SECRETS: "contract-inherited-role-envelope",
   };
-  const consumedAdmin = consumeAcceptanceAdminPassword(sourceEnv);
-  assert(consumedAdmin === "contract-early-consume-admin", "early admin secret consumption changed the value");
+  const discarded = discardInheritedAcceptanceSecrets(sourceEnv);
+  assert(discarded.status === "PASS" && discarded.discardedVariableCount === 2,
+    "inherited secret disposition mismatch");
   assert(!("MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD" in sourceEnv),
-    "early admin secret consumption left the value in the source environment");
-  assert(sourceEnv.SAFE_VALUE === "preserved", "early admin secret consumption removed an unrelated value");
+    "inherited admin secret remained in the source environment");
+  assert(!("MEDIA_SERVER_V390_UI_ROLE_SECRETS" in sourceEnv),
+    "inherited role-secret envelope remained in the source environment");
+  assert(sourceEnv.SAFE_VALUE === "preserved", "secret disposal removed an unrelated value");
 
   const rejected = runBundle([
     "--output-dir", fixtureDir("external-input-rejected"),
@@ -176,25 +255,25 @@ check("canonical actual command owns the complete throwaway UI environment", () 
   assert(`${rejected.stdout}\n${rejected.stderr}`.includes("unknown option: --ui-http-base"),
     "removed external UI runtime option rejection reason missing");
 
-  const runtimeOnlyAdmin = "contract-runtime-only-admin-value";
   const generated = [];
-  const resolved = resolveAcceptanceRoleSecrets(runtimeOnlyAdmin, username => {
+  const resolved = resolveAcceptanceRoleSecrets(username => {
     generated.push(username);
     return `generated-for-${username}`;
   });
-  assert(resolved.admin === runtimeOnlyAdmin, "throwaway admin did not preserve the runtime-provided value");
-  assert(generated.length === 3 && !generated.includes("admin"),
-    "throwaway admin must not be regenerated while the other roles remain generated");
-  assert(Object.entries(resolved).filter(([role]) => role !== "admin")
-    .every(([, value]) => value !== runtimeOnlyAdmin),
-    "runtime admin value was reused by another role");
-  let missingAdminRejected = false;
+  assert(generated.length === 4 && generated.includes("admin") && generated.includes("ui_operator") &&
+    generated.includes("ui_viewer") && generated.includes("ui_integrator"),
+  "all four acceptance role secrets were not generated internally");
+  assert(new Set(Object.values(resolved)).size === 4,
+    "generated acceptance role secrets are not unique");
+  let duplicateSecretsRejected = false;
   try {
-    resolveAcceptanceRoleSecrets("", () => "unused-generated-value");
+    resolveAcceptanceRoleSecrets(() => "duplicate-generated-value");
   } catch (error) {
-    missingAdminRejected = String(error?.message || error).includes("MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD is required");
+    duplicateSecretsRejected = String(error?.message || error).includes("must be unique per role");
   }
-  assert(missingAdminRejected, "missing runtime admin secret must fail before auth bootstrap");
+  assert(duplicateSecretsRejected, "duplicate role secrets must fail before auth bootstrap");
+  assertIncludes(files.buildServer, '"${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" != "1"',
+    "build child local-env exclusion");
 });
 
 check("published seed baseline is explicit, policy-bound, and rejects mismatched fixtures", () => {
@@ -225,6 +304,33 @@ check("published seed baseline is explicit, policy-bound, and rejects mismatched
   "published seed plan policy attestation mismatch");
   assert(plan.httpRequests === 0 && plan.boundaries?.notExecutionEvidence === true,
     "published seed dry-run changed its no-request/no-evidence boundary");
+
+  const longFixture = fixture.sources.find(item => item.id === "ui-file-va-tracking-long");
+  assert(longFixture?.localPath === "video/imports/va_tracking_event_long_1280x720_30fps_h264.mp4" &&
+    longFixture.fixtureSizeBytes === 7284400 &&
+    longFixture.fixtureSha256 === "24147fb07bb3a1e1f86bb41d2cce6274a6f39eb75671a299a61ca9852f37a122",
+  "published long VA fixture identity is not exact");
+  const rejectFixtureIntegrity = (label, mutate, expectedError) => {
+    const candidate = JSON.parse(JSON.stringify(fixture));
+    const source = candidate.sources.find(item => item.id === "ui-file-va-tracking-long");
+    mutate(source);
+    const candidatePath = path.join(outputDir, `${label}.json`);
+    fs.writeFileSync(candidatePath, `${JSON.stringify(candidate, null, 2)}\n`, "utf8");
+    const result = spawnSync(path.join(rootDir, "server.sh"), [
+      "prepare-manual-ui-fulltest-seed", "--dry-run", "--published-seed-baseline", "--fixture", candidatePath,
+    ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+    assert(result.status !== 0 && result.stderr.includes(expectedError),
+      `${label} long VA fixture integrity violation was accepted: ${result.stderr}`);
+  };
+  rejectFixtureIntegrity("missing-long-fixture", source => {
+    source.localPath = "video/imports/missing-va-tracking-event-long.mp4";
+  }, "source ui-file-va-tracking-long local file missing");
+  rejectFixtureIntegrity("long-fixture-size-drift", source => {
+    source.fixtureSizeBytes += 1;
+  }, "source ui-file-va-tracking-long fixture size mismatch");
+  rejectFixtureIntegrity("long-fixture-sha-drift", source => {
+    source.fixtureSha256 = "0".repeat(64);
+  }, "source ui-file-va-tracking-long fixture SHA-256 mismatch");
 
   const mismatchedFixturePath = path.join(outputDir, "mismatched-seed.json");
   fs.writeFileSync(mismatchedFixturePath, `${JSON.stringify({ ...fixture, releaseTarget: "v3.9.0" }, null, 2)}\n`);
@@ -371,7 +477,7 @@ check("dry-run writes replayable acceptance summary without executing gated suit
   assert(summary.finalAcceptanceCommandSet.some((item) => item.id === "server-longrun-30" && item.status === "executed-by-actual-bundle"), "missing R1 longrun execution in final acceptance set");
   assert(summary.finalAcceptanceCommandSet.some((item) => item.id === "ui-exact-424" && item.status === "executed-by-actual-bundle"), "missing exact 424 execution in final acceptance set");
   assert(summary.finalAcceptanceCommandSet.some((item) => item.id === "final-integrity" && item.status === "executed-by-actual-bundle"), "missing final integrity execution in final acceptance set");
-  assert(summary.finalAcceptanceCommandSet.some((item) => item.id === "actual-bundle" && item.status === "actual-execution"), "missing actual bundle command in final acceptance set");
+  assert(summary.finalAcceptanceCommandSet.some((item) => item.id === "actual-bundle" && item.status === "user-no-option-actual-execution"), "missing no-option actual bundle command in final acceptance set");
   assert(summary.longrun120?.status === "conditional-not-run", "120-minute status mismatch");
   assert(summary.publishedMetadata?.status === "not-run-by-dry-run", "published metadata status mismatch");
   assert(summary.releaseAction?.status === "not-run-by-dry-run", "release action status mismatch");
@@ -397,7 +503,7 @@ check("actual-mode fixture executes the fixed stage order and conditional 120 de
   assert(summary.stopOnFirstFail === true, "fixture stopOnFirstFail missing");
   assert(JSON.stringify(summary.stageOrder) === JSON.stringify([
     "preflight", "build", "feature-gates", "server-longrun-30", "ui-environment-bootstrap", "ui-exact-424", "ui-server-cleanup",
-    "ui-fulltest-qualification", "longrun-120-decision", "server-longrun-120", "cleanup", "final-integrity", "report",
+    "ui-fulltest-qualification", "longrun-120-decision", "server-longrun-120", "cleanup", "report", "final-integrity",
   ]), "fixture stage order mismatch");
   assert(summary.uiEnvironment?.schema === "media-server.v390-acceptance-ui-environment.v1",
     "self-contained UI environment schema missing");
@@ -415,12 +521,12 @@ check("actual-mode fixture executes the fixed stage order and conditional 120 de
     "runtime descriptor auth defaultViewId mismatch");
   assert(summary.uiEnvironment?.dependency?.status === "dependency-bootstrap-attestation",
     "browser dependency bootstrap attestation missing");
-  assert(summary.uiEnvironment?.secretHandling === "runtime-admin-and-generated-role-secrets-memory-only",
-    "runtime admin and generated role secrets must remain memory-only");
-  assert(summary.uiEnvironment?.adminSecretSource === "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD",
-    "throwaway admin secret source must be the runtime-only verifier environment");
-  assert(summary.uiEnvironment?.adminSecretLifecycle === "fixture-not-consumed",
-    "fixture must not claim runtime admin secret consumption");
+  assert(summary.uiEnvironment?.secretHandling === "all-role-secrets-generated-memory-only",
+    "all generated role secrets must remain memory-only");
+  assert(summary.uiEnvironment?.roleSecretSource === "acceptance-crypto-random-generated-memory-only",
+    "throwaway role secret source must be the acceptance generator");
+  assert(summary.uiEnvironment?.roleSecretLifecycle === "fixture-not-generated",
+    "fixture must not claim actual role secret generation");
   assert(!JSON.stringify(summary).includes("fixture-password-value"),
     "acceptance summary serialized a fixture password");
   assert(summary.stages.find(item => item.id === "ui-fulltest-qualification")?.status === "PASS",

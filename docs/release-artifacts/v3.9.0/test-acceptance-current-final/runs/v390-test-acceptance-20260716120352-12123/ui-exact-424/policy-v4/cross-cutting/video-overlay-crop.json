@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-cross-cutting-evidence.v1",
+  "obligationId": "video-overlay-crop",
+  "qualificationStatus": "unqualified-raw-capture",
+  "correlationId": "v390-cross-video-overlay-crop",
+  "caseSetSha256": "c3ad1b4e51c6993e0af7fd78b78bbdd8fe35af13c69207f63bb2a85c2979b2fe",
+  "measuredEvidenceRefs": [],
+  "rawVariantCount": 0
+}

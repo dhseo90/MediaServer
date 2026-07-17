@@ -1781,7 +1781,7 @@
           "symbol": "EVT-018:oracle",
           "anchor": "assert(Array.isArray(fixture.attempts) && fixture.attempts.length === 1, \"/ops/events fixture attempt missing\");",
           "line": 323,
-          "contextSha256": "f97ef5dc91396d3b5075395f950405a891a2359095e83fea78db351036e45a07"
+          "contextSha256": "0c70f8279bc2235c2ac0e334b6785e4a32683173b11fe46d6abfe500cf5af62a"
         },
         "verifier": {
           "file": "server.sh",

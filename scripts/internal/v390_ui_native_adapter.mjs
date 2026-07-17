@@ -143,6 +143,7 @@ async function openNativePlaywrightPage(playwright, {
   storageStatePath = "",
   colorScheme = "light",
   navigationCorrelationId = "",
+  onRuntimeSecret = null,
 }) {
   const consoleEntries = [];
   const networkEntries = [];
@@ -150,6 +151,8 @@ async function openNativePlaywrightPage(playwright, {
   const requestIds = new WeakMap();
   const pendingRequests = new Map();
   const pendingSafeResponseReads = new Set();
+  const safeResponseReadFailures = [];
+  const observedRuntimeSecrets = new Set();
   const browser = await playwright.chromium.launch({
     headless: true,
     env: secretStrippedBrowserEnv(),
@@ -223,6 +226,28 @@ async function openNativePlaywrightPage(playwright, {
         })
         .finally(() => pendingSafeResponseReads.delete(read));
       pendingSafeResponseReads.add(read);
+    } else if (request.method() === "POST" && urlPath(response.url()) === "/ops/api/onvif/import-draft") {
+      const read = response.json()
+        .then(payload => {
+          const gate = payload?.credentialGate || {};
+          const redaction = gate.redactionGuard || {};
+          entry.safeResponseBody = {
+            credentialGate: {
+              schema: String(gate.schema || ""),
+              requiredScope: String(gate.requiredScope || ""),
+              primaryStoreProvider: String(gate.primaryStoreProvider || ""),
+              primaryStoreDecision: String(gate.primaryStoreDecision || ""),
+              credentialReferenceStatus: String(gate.credentialReferenceStatus || ""),
+              urlCredentialsRejected: redaction.urlCredentialsRejected === true,
+              secretMaterialStored: gate.secretMaterialStored === true,
+            },
+          };
+        })
+        .catch(() => {
+          entry.safeResponseBody = { credentialGate: null };
+        })
+        .finally(() => pendingSafeResponseReads.delete(read));
+      pendingSafeResponseReads.add(read);
     } else if (request.method() === "POST" && [
       "/ops/api/users",
       "/ops/api/invites",
@@ -230,9 +255,20 @@ async function openNativePlaywrightPage(playwright, {
     ].includes(urlPath(response.url()))) {
       const read = response.json()
         .then(payload => {
+          if (urlPath(response.url()) === "/ops/api/invites") {
+            const issuedToken = typeof payload?.invite?.token === "string" ? payload.invite.token : "";
+            if (issuedToken) {
+              observedRuntimeSecrets.add(issuedToken);
+              if (typeof onRuntimeSecret !== "function") {
+                throw new Error("invite response runtime secret sink is unavailable");
+              }
+              onRuntimeSecret({ kind: "issued-invite-token", value: issuedToken });
+            }
+          }
           entry.safeResponseBody = safeFormResponseProjection(urlPath(response.url()), payload);
         })
-        .catch(() => {
+        .catch(error => {
+          safeResponseReadFailures.push(error instanceof Error ? error.message : String(error));
           entry.safeResponseBody = safeFormResponseProjection(urlPath(response.url()), null);
         })
         .finally(() => pendingSafeResponseReads.delete(read));
@@ -311,6 +347,9 @@ async function openNativePlaywrightPage(playwright, {
         if (Date.now() - startedAt >= minimumObservationMs &&
             !actionPending && pendingSafeResponseReads.size === 0 &&
             Date.now() - quietStartedAt >= quietMs) {
+          if (safeResponseReadFailures.length > 0) {
+            throw new Error("safe response projection or runtime secret registration failed");
+          }
           return {
             correlationId: correlationId || "",
             observedMs: Date.now() - startedAt,
@@ -337,7 +376,172 @@ async function openNativePlaywrightPage(playwright, {
       await page.locator(selector).filter({ hasText: String(expected) }).waitFor({ state: "visible", timeout: waitTimeoutMs });
       return page.locator(selector).innerText();
     },
-    snapshot: (selector) => page.evaluate(`(() => {
+    registerRuntimeSecret: value => {
+      if (typeof value === "string" && value) observedRuntimeSecrets.add(value);
+    },
+    captureInviteRuntimeSecret: async (selector = "#invite-create-output") => {
+      const captured = await page.evaluate(({ targetSelector, replacement }) => {
+        const target = document.querySelector(targetSelector);
+        const text = String(target?.textContent || "");
+        const tokenLineMatch = text.match(/(?:^|\n)\s*토큰:\s*([^\s]+)\s*(?:\n|$)/);
+        const setupUrlMatch = text.match(/\/invite\/setup\?token=([^\s]+)/);
+        let secret = String(tokenLineMatch?.[1] || "");
+        if (!secret && setupUrlMatch?.[1]) {
+          try {
+            secret = decodeURIComponent(setupUrlMatch[1]);
+          } catch {
+            secret = String(setupUrlMatch[1]);
+          }
+        }
+        if (!secret) return {
+          secret: "",
+          redactedNodes: 0,
+          targetExists: Boolean(target),
+          textPresent: text.length > 0,
+          tokenLinePresent: text.includes("토큰:"),
+          setupUrlPresent: text.includes("/invite/setup?token="),
+        };
+        const variants = [...new Set([secret, encodeURIComponent(secret)])].filter(Boolean);
+        const replaceSecrets = source => {
+          let next = String(source || "");
+          for (const value of variants) next = next.split(value).join(replacement);
+          return next;
+        };
+        let redactedNodes = 0;
+        const walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+          const next = replaceSecrets(node.nodeValue);
+          if (next !== node.nodeValue) {
+            node.nodeValue = next;
+            redactedNodes += 1;
+          }
+        }
+        for (const element of document.querySelectorAll("*")) {
+          if ("value" in element && typeof element.value === "string") {
+            element.value = replaceSecrets(element.value);
+          }
+          for (const attribute of [...element.attributes]) {
+            const next = replaceSecrets(attribute.value);
+            if (next !== attribute.value) element.setAttribute(attribute.name, next);
+          }
+        }
+        return {
+          secret,
+          redactedNodes,
+          targetExists: true,
+          textPresent: true,
+          tokenLinePresent: Boolean(tokenLineMatch),
+          setupUrlPresent: Boolean(setupUrlMatch),
+        };
+      }, { targetSelector: selector, replacement: "[REDACTED-RUNTIME-SECRET]" });
+      if (!captured.secret) {
+        return {
+          captured: false,
+          redactedNodes: 0,
+          targetExists: captured.targetExists,
+          textPresent: captured.textPresent,
+          tokenLinePresent: captured.tokenLinePresent,
+          setupUrlPresent: captured.setupUrlPresent,
+        };
+      }
+      observedRuntimeSecrets.add(captured.secret);
+      if (typeof onRuntimeSecret !== "function") {
+        throw new Error("invite DOM runtime secret sink is unavailable");
+      }
+      onRuntimeSecret({ kind: "issued-invite-token", value: captured.secret });
+      captured.secret = "";
+      return {
+        captured: true,
+        redactedNodes: captured.redactedNodes,
+        targetExists: captured.targetExists,
+        textPresent: captured.textPresent,
+        tokenLinePresent: captured.tokenLinePresent,
+        setupUrlPresent: captured.setupUrlPresent,
+      };
+    },
+    cookieHeader: async () => (await context.cookies())
+      .map(cookie => `${cookie.name}=${cookie.value}`)
+      .join("; "),
+    redactObservedSecrets: async () => {
+      await Promise.all([...pendingSafeResponseReads]);
+      if (safeResponseReadFailures.length > 0) {
+        throw new Error("safe response projection or runtime secret registration failed");
+      }
+      const variants = secretVariants([...observedRuntimeSecrets]);
+      if (variants.length === 0) {
+        return {
+          schema: "media-server.v390-ui-runtime-secret-redaction.v1",
+          status: "PASS",
+          registeredSecrets: 0,
+          redactedTextNodes: 0,
+          redactedValues: 0,
+          redactedAttributes: 0,
+          residualSecrets: 0,
+        };
+      }
+      const redactDomPass = () => page.evaluate(({ secretVariants: values, replacement }) => {
+        const replaceSecrets = source => {
+          let next = String(source || "");
+          for (const value of values) next = next.split(value).join(replacement);
+          return next;
+        };
+        let redactedTextNodes = 0;
+        let redactedValues = 0;
+        let redactedAttributes = 0;
+        const walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+          const next = replaceSecrets(node.nodeValue);
+          if (next !== node.nodeValue) {
+            node.nodeValue = next;
+            redactedTextNodes += 1;
+          }
+        }
+        for (const element of document.querySelectorAll("input,textarea,select,option")) {
+          if (!("value" in element)) continue;
+          const next = replaceSecrets(element.value);
+          if (next !== element.value) {
+            element.value = next;
+            redactedValues += 1;
+          }
+        }
+        for (const element of document.querySelectorAll("*")) {
+          for (const attribute of [...element.attributes]) {
+            const next = replaceSecrets(attribute.value);
+            if (next !== attribute.value) {
+              element.setAttribute(attribute.name, next);
+              redactedAttributes += 1;
+            }
+          }
+        }
+        const serialized = document.documentElement.outerHTML;
+        const residualSecrets = values.filter(value => serialized.includes(value)).length;
+        return { redactedTextNodes, redactedValues, redactedAttributes, residualSecrets };
+      }, { secretVariants: variants, replacement: "[REDACTED-RUNTIME-SECRET]" });
+      const result = {
+        redactedTextNodes: 0,
+        redactedValues: 0,
+        redactedAttributes: 0,
+        residualSecrets: 0,
+      };
+      for (let pass = 0; pass < 5; pass += 1) {
+        const observed = await redactDomPass();
+        result.redactedTextNodes += observed.redactedTextNodes;
+        result.redactedValues += observed.redactedValues;
+        result.redactedAttributes += observed.redactedAttributes;
+        result.residualSecrets = observed.residualSecrets;
+        if (pass < 4) await page.waitForTimeout(50);
+      }
+      if (result.residualSecrets !== 0) {
+        throw new Error("runtime secret remained in the evidence DOM after redaction");
+      }
+      return {
+        schema: "media-server.v390-ui-runtime-secret-redaction.v1",
+        status: "PASS",
+        registeredSecrets: observedRuntimeSecrets.size,
+        ...result,
+      };
+    },
+    snapshot: async (selector) => sanitizeEvidenceValue(await page.evaluate(`(() => {
       const element = document.querySelector(${JSON.stringify(selector)});
       const rect = element ? element.getBoundingClientRect() : null;
       const style = element ? getComputedStyle(element) : null;
@@ -348,6 +552,7 @@ async function openNativePlaywrightPage(playwright, {
         tag: String(element?.tagName || '').toLowerCase(),
         hidden: Boolean(element?.hidden),
         disabled: Boolean(element && 'disabled' in element && element.disabled),
+        readOnly: Boolean(element && 'readOnly' in element && element.readOnly),
         open: Boolean(element && 'open' in element && element.open),
         href: String(element?.getAttribute?.('href') || ''),
         title: String(element?.getAttribute?.('title') || ''),
@@ -360,7 +565,7 @@ async function openNativePlaywrightPage(playwright, {
         optionValues: element?.tagName === 'SELECT' ? Array.from(element.options).filter(option => !option.disabled).map(option => String(option.value)) : [],
         url: location.href,
       };
-    })()`),
+    })()`), observedRuntimeSecrets),
     measureVisualState: async (selector = "body", {
       caseBinding = null,
       requestedTheme = colorScheme,
@@ -402,7 +607,8 @@ async function openNativePlaywrightPage(playwright, {
         if (roleResponse.status === 401) accountRole = "anonymous";
         else if (roleResponse.ok) {
           const principal = await roleResponse.json();
-          if (principal?.authenticated === true && typeof principal?.role === "string") accountRole = principal.role;
+          if (principal?.authenticated === false) accountRole = "anonymous";
+          else if (principal?.authenticated === true && typeof principal?.role === "string") accountRole = principal.role;
         }
         const sampleLive = () => {
           if (!liveSpec) return null;
@@ -546,7 +752,7 @@ async function openNativePlaywrightPage(playwright, {
           video.videoWidth > 0 && video.videoHeight > 0 && liveTracks > 0);
       }, { videoSelectorValue: videoSelector, modeSelectorValue: modeSelector }, { timeout });
     },
-    evaluate: (expression) => page.evaluate(expression),
+    evaluate: (expression, argument) => page.evaluate(expression, argument),
     observeRequestedObservedState: async ({ selector = null, applicability = "required" } = {}) => {
       return page.evaluate(`(async () => {
         const selector = ${JSON.stringify(selector)};
@@ -558,10 +764,13 @@ async function openNativePlaywrightPage(playwright, {
         } else {
           if (!response.ok) throw new Error('whoami observation failed with status ' + response.status);
           const principal = await response.json();
-          if (principal?.authenticated !== true || typeof principal?.role !== 'string') {
+          if (principal?.authenticated === false) {
+            accountRole = 'anonymous';
+          } else if (principal?.authenticated === true && typeof principal?.role === 'string') {
+            accountRole = principal.role;
+          } else {
             throw new Error('whoami observation returned an invalid authenticated principal');
           }
-          accountRole = principal.role;
         }
         const element = selector ? document.querySelector(selector) : null;
         const rect = element?.getBoundingClientRect?.() || null;
@@ -593,14 +802,53 @@ async function openNativePlaywrightPage(playwright, {
         };
       })()`);
     },
-    screenshot: outputFile => page.screenshot({ path: outputFile, fullPage: false }),
-    consoleEntries: () => consoleEntries,
-    networkEntries: () => networkEntries.map(item => ({ ...item })),
+    screenshot: async outputFile => {
+      await assertEvidenceDomSecretsAbsent(page, observedRuntimeSecrets);
+      return page.screenshot({ path: outputFile, fullPage: false });
+    },
+    consoleEntries: () => sanitizeEvidenceValue(consoleEntries, observedRuntimeSecrets),
+    networkEntries: () => sanitizeEvidenceValue(networkEntries.map(item => ({ ...item })), observedRuntimeSecrets),
     close: async () => {
       await context.close();
       await browser.close();
     },
   };
+}
+
+function secretVariants(values) {
+  const variants = new Set();
+  for (const value of values) {
+    if (typeof value !== "string" || !value) continue;
+    variants.add(value);
+    variants.add(encodeURIComponent(value));
+    variants.add(new URLSearchParams({ value }).toString().slice("value=".length));
+  }
+  return [...variants].filter(Boolean).sort((left, right) => right.length - left.length);
+}
+
+function sanitizeEvidenceValue(value, secrets) {
+  const variants = secretVariants([...secrets]);
+  const sanitizeString = source => {
+    let next = source;
+    for (const secret of variants) next = next.split(secret).join("[REDACTED-RUNTIME-SECRET]");
+    return next;
+  };
+  if (typeof value === "string") return sanitizeString(value);
+  if (Array.isArray(value)) return value.map(item => sanitizeEvidenceValue(item, secrets));
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, sanitizeEvidenceValue(item, secrets)]));
+  }
+  return value;
+}
+
+async function assertEvidenceDomSecretsAbsent(page, secrets) {
+  const variants = secretVariants([...secrets]);
+  if (variants.length === 0) return;
+  const residual = await page.evaluate(values => {
+    const serialized = document.documentElement.outerHTML;
+    return values.filter(value => serialized.includes(value)).length;
+  }, variants);
+  if (residual !== 0) throw new Error("runtime secret reached an evidence capture boundary");
 }
 
 function unique(values) {
@@ -682,7 +930,16 @@ function safeFormResponseProjection(pathname, payload) {
     inviteId: String(record.inviteId || ""),
     tokenPresent: token.length > 0,
     setupUrlTokenBound: Boolean(token && setupUrl.includes(encodeURIComponent(token))),
+    persistentSecretFieldsPresent: objectContainsKey(value,
+      new Set(["passwordHash", "passwordHistory", "tokenHash"])),
   };
+}
+
+function objectContainsKey(value, forbidden) {
+  if (Array.isArray(value)) return value.some(item => objectContainsKey(item, forbidden));
+  if (!value || typeof value !== "object") return false;
+  return Object.entries(value).some(([key, item]) =>
+    forbidden.has(key) || objectContainsKey(item, forbidden));
 }
 
 export function buildLiveSessionEvidence(entries, correlationId, tileIdentity, tileViewId) {

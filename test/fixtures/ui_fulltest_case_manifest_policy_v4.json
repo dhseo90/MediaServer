@@ -4,7 +4,7 @@
   "implementationEvidence": {
     "path": "test/fixtures/project_feature_implementation_evidence.json",
     "schema": "media-server.feature-implementation-evidence.v2",
-    "sha256": "7cabc9ab55d0c53d20c7d36524e3fad0b9e096f295d1a5d5828849b32e753923"
+    "sha256": "37f7c8401a3e53da1a91bcedc8cc32fdb45641c059fb29ed2af6b4132f5efcad"
   },
   "caseCount": 424,
   "cases": [
@@ -102,7 +102,7 @@
       "testId": "UI-008",
       "featureId": "UI-008",
       "route": "/client/request-access",
-      "accountRole": "viewer",
+      "accountRole": "anonymous",
       "viewport": {
         "width": 390,
         "height": 844
@@ -124,7 +124,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": "[data-testid=\"ops-context-actions\"]",
+        "selector": "[data-testid=\"ops-home-page\"]",
         "actionAnchor": "AppendOpsHomePage"
       }
     },
@@ -154,7 +154,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": null,
+        "selector": "[data-testid=\"source-reliability-search-metrics\"]",
         "actionAnchor": "BuildOpsSourcesPageHtml"
       }
     },
@@ -244,7 +244,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": "#clientDashboardPresetStatus",
+        "selector": ".client-viewer-events",
         "actionAnchor": "renderEventPage"
       }
     },
@@ -281,15 +281,15 @@
     {
       "testId": "UI-020",
       "featureId": "UI-020",
-      "route": "/ops",
+      "route": "/ops/dashboard",
       "accountRole": "operator",
       "viewport": {
-        "width": 390,
-        "height": 844
+        "width": 1440,
+        "height": 900
       },
       "theme": "light",
       "controlAction": {
-        "selector": "[data-testid=\"ops-context-actions\"]",
+        "selector": ".ops-workspace-diagnostic-grid",
         "actionAnchor": "ProductUiCss"
       }
     },
@@ -379,7 +379,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": "#opsVlmStatus",
+        "selector": "[data-vlm-option-id=\"local-qwen3-vl-4b\"]",
         "actionAnchor": "wireOpsVlmControls"
       }
     },
@@ -439,7 +439,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": "#opsVlmStatus",
+        "selector": "#opsVlmEvaluationRows",
         "actionAnchor": "opsVlmEvaluationDimensionText"
       }
     },
@@ -679,7 +679,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": "#opsEventRulePresetSelect",
+        "selector": "[data-incident-rule-draft-route]",
         "actionAnchor": "renderIncidentRuleSuggestionReview"
       }
     },
@@ -694,7 +694,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": null,
+        "selector": "[data-testid=\"source-backup-recovery-handoff\"]",
         "actionAnchor": "renderOnvifCredentialGate"
       }
     },
@@ -724,7 +724,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": "[data-testid=\"ops-incident-rule-suggestion-review\"]",
+        "selector": "#opsScenarioBuilderType",
         "actionAnchor": "opsRulesPresetWarningText"
       }
     },
@@ -769,7 +769,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": "#dashRuntimeOpsList",
+        "selector": "[data-testid=\"ops-operational-action-pack\"]",
         "actionAnchor": "renderOperationalActionPack"
       }
     },
@@ -784,7 +784,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": "#opsEventRulePresetSelect",
+        "selector": "[data-testid=\"ops-rule-what-if-preview\"]",
         "actionAnchor": "renderRuleWhatIfPreview"
       }
     },
@@ -1084,7 +1084,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": null,
+        "selector": "[data-testid=\"source-reliability-search-metrics\"]",
         "actionAnchor": "renderSourceReliabilitySearchMetrics"
       }
     },
@@ -1099,7 +1099,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": null,
+        "selector": "[data-testid=\"source-backup-recovery-handoff\"]",
         "actionAnchor": "renderBackupRecoverySourceHandoff"
       }
     },
@@ -1114,7 +1114,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": null,
+        "selector": "[data-testid=\"ops-continuity-drill-workspace\"]",
         "actionAnchor": "renderOpsContinuityDrillWorkspace"
       }
     },
@@ -1309,7 +1309,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": null,
+        "selector": "[data-v360-simulation-workspace-entry=\"simulation-route-family\"]",
         "actionAnchor": "renderV360OpsSimulationWorkspace"
       }
     },
@@ -1324,7 +1324,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": null,
+        "selector": "#dashSimulationWorkspaceLedgerList > [data-v360-simulation-run-ledger-entry]:nth-child(2)",
         "actionAnchor": "renderV360OpsSimulationWorkspace"
       }
     },
@@ -1339,7 +1339,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": null,
+        "selector": "#dashSimulationWorkspaceNoticePreviewList > [data-v360-client-notice-preview-entry]:first-child",
         "actionAnchor": "renderV360OpsSimulationWorkspace"
       }
     },
@@ -1354,7 +1354,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": "#opsIncidentActionReadinessQueueRows",
+        "selector": "#dashSimulationWorkspaceWhatIfReplayList > [data-v360-rule-va-what-if-replay-entry]:first-child",
         "actionAnchor": "renderV360OpsSimulationWorkspace"
       }
     },
@@ -1369,7 +1369,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": null,
+        "selector": "#dashSimulationWorkspaceExportBundleList > [data-v360-simulation-export-bundle-entry]:first-child",
         "actionAnchor": "renderV360OpsSimulationWorkspace"
       }
     },
@@ -1384,7 +1384,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": null,
+        "selector": "#dashSimulationWorkspaceFieldEvidenceAdapterList > [data-v360-field-evidence-simulation-adapter-entry]:first-child",
         "actionAnchor": "renderV360OpsSimulationWorkspace"
       }
     },
@@ -1399,7 +1399,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": null,
+        "selector": "#dashSimulationWorkspaceVlmAssistedExplanationList > [data-v360-vlm-assisted-simulation-explanation-entry]:first-child",
         "actionAnchor": "renderV360OpsSimulationWorkspace"
       }
     },
@@ -1414,7 +1414,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": null,
+        "selector": "#dashSiteOperationsSiteList > [data-v370-site-operations-workspace-entry]:first-child",
         "actionAnchor": "renderV370SiteOperationsWorkspace"
       }
     },
@@ -1429,7 +1429,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": null,
+        "selector": "#dashSiteClientNoticePreviewList > [data-v370-client-notice-by-site-view-group-entry]:first-child",
         "actionAnchor": "renderV370ClientNoticeBySiteViewGroup"
       }
     },
@@ -1444,7 +1444,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": null,
+        "selector": "#dashSiteRuleVaWhatIfCandidateList > [data-v370-rule-va-what-if-by-site-entry]:first-child",
         "actionAnchor": "renderV370RuleVaWhatIfBySite"
       }
     },
@@ -1459,7 +1459,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": null,
+        "selector": "#dashSiteFieldEvidenceAttachmentList > [data-v370-field-evidence-attachment-entry]:first-child",
         "actionAnchor": "renderV370FieldEvidenceAttachment"
       }
     },
@@ -1474,7 +1474,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": null,
+        "selector": "#dashSiteLimitedSafeExecutionPilotList > [data-v370-limited-safe-execution-pilot-entry]:first-child",
         "actionAnchor": "renderV370LimitedSafeExecutionPilot"
       }
     },
@@ -1489,7 +1489,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": null,
+        "selector": "#dashSiteOutcomeReconciliationSourceList > [data-v370-outcome-reconciliation-entry]:first-child",
         "actionAnchor": "renderV370OutcomeReconciliation"
       }
     },
@@ -1504,7 +1504,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": null,
+        "selector": "#dashSiteExportHandoffBundleList > [data-v370-export-handoff-bundle-entry]:first-child",
         "actionAnchor": "renderV370ExportHandoffBundle"
       }
     },
@@ -1519,7 +1519,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": "#opsIncidentActionReadinessQueueRows",
+        "selector": "#dashActionControlRequestList > [data-v380-action-control-entry]:first-child",
         "actionAnchor": "renderV380OpsActionControlWorkspace"
       }
     },
@@ -1534,7 +1534,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": "[data-testid=\"client-action-notice-preview\"]",
+        "selector": "[data-testid=\"client-action-notice-preview\"] .client-action-notice-item:first-child",
         "actionAnchor": "renderClientActionNoticePreview"
       }
     },
@@ -1549,7 +1549,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": "#opsIncidentActionReadinessQueueRows",
+        "selector": "#dashActionOutcomeSourceList > [data-v380-outcome-observer-entry]:first-child",
         "actionAnchor": "renderV380OutcomeObserverReconciliation"
       }
     },
@@ -1564,7 +1564,7 @@
       },
       "theme": "light",
       "controlAction": {
-        "selector": "#opsIncidentActionReadinessQueueRows",
+        "selector": "#dashActionReceiptBundleList > [data-v380-action-receipt-entry]:first-child",
         "actionAnchor": "renderV380ActionReceiptBundle"
       }
     },
@@ -5277,7 +5277,7 @@
       "testId": "CLIENT-018",
       "featureId": "CLIENT-018",
       "route": "/client/live",
-      "accountRole": "viewer",
+      "accountRole": "admin",
       "viewport": {
         "width": 390,
         "height": 844
@@ -5532,7 +5532,7 @@
       "testId": "MEDIA-017",
       "featureId": "MEDIA-017",
       "route": "/ops/sources",
-      "accountRole": "operator",
+      "accountRole": "viewer",
       "viewport": {
         "width": 390,
         "height": 844

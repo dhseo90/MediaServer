@@ -11,6 +11,11 @@ import {
   expectedRuntimeObservation,
   validateRequestedObservedEnvelope,
 } from "./v390_ui_requested_observed_schema.mjs";
+import {
+  exactRuntimeOracleCaseIds,
+  exactRuntimeOracleFor,
+  validateExactRuntimeOracleCatalog,
+} from "./v390_ui_exact_oracle_catalog.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -58,15 +63,24 @@ const formContracts = new Map([
 ]);
 
 const localOnlyMutationCases = new Set([
-  "UI-036", "RULE-101", "RULE-102", "CLIENT-002", "CLIENT-005", "SAFE-038",
+  "UI-026", "UI-036", "UI-046", "RULE-092", "RULE-093", "RULE-094", "RULE-095", "RULE-096", "RULE-100", "RULE-101", "RULE-102", "RULE-103", "RULE-104", "RULE-111", "CLIENT-002", "CLIENT-005", "SAFE-038",
 ]);
 const forcedPersistedMutationCases = new Set([
-  "RULE-011", "RULE-012", "RULE-016", "RULE-030", "RULE-073", "RULE-075",
+  "RULE-011", "RULE-012", "RULE-016", "RULE-026", "RULE-027", "RULE-028", "RULE-029", "RULE-030",
+  "RULE-031", "RULE-032", "RULE-033", "RULE-034", "RULE-035", "RULE-036", "RULE-037", "RULE-038", "RULE-039",
+  "RULE-041", "RULE-042", "RULE-043", "RULE-044", "RULE-045", "RULE-046", "RULE-047", "RULE-048", "RULE-049",
+  "RULE-050", "RULE-051", "RULE-052", "RULE-053",
+  "RULE-054", "RULE-055", "RULE-056", "RULE-057", "RULE-058", "RULE-059", "RULE-060", "RULE-061", "RULE-062",
+  "RULE-063", "RULE-064", "RULE-065", "RULE-066", "RULE-067", "RULE-068", "RULE-069", "RULE-070", "RULE-071",
+  "RULE-072", "RULE-074",
+  "RULE-076", "RULE-077", "RULE-078", "RULE-079", "RULE-080", "RULE-081", "RULE-082", "RULE-083",
+  "RULE-084", "RULE-085", "RULE-086", "RULE-087", "RULE-088", "RULE-089", "RULE-090", "RULE-091",
+  "RULE-073", "RULE-075",
 ]);
 const endpointActionCases = new Set();
 const readOnlyBoundaryCases = new Set(["RULE-007", "RULE-025"]);
 const explicitHiddenControlCases = new Set(["RULE-017"]);
-const formMutationCases = new Set(["UI-004", "UI-005", "AUTH-036"]);
+const formMutationCases = new Set(["UI-004", "UI-005", "UI-008", "AUTH-036"]);
 const supportedAccountRoles = new Set(["anonymous", "admin", "operator", "viewer"]);
 const actionRoleOverrides = new Map([
   ["AUTH-014", "admin"],
@@ -75,8 +89,18 @@ const actionRoleOverrides = new Map([
   ["AUTH-037", "admin"],
   ["AUTH-038", "admin"],
   ["AUTH-039", "anonymous"],
+  ["RULE-097", "viewer"],
 ]);
 const formSubmitOverrides = new Map([
+  ["UI-008", {
+    selector: "#request-form",
+    submitSelector: '#request-form button[type="submit"]',
+    route: "/client/request-access",
+    method: "POST",
+    path: "/client/api/access-requests",
+    fields: ["username", "displayName", "contact", "viewId", "reason"],
+    allowedStatuses: [201],
+  }],
   ["UI-004", {
     selector: '[data-testid="auth-password-change-form"]',
     submitSelector: '[data-testid="auth-password-change-form"] button[type="submit"]',
@@ -155,13 +179,14 @@ const mutationPrimaryControls = new Map([
   ["UI-004", { selector: '[data-testid="auth-password-change-form"] button[type="submit"]', route: "/password/change" }],
   ["UI-005", { selector: 'form[action="/logout"] button[type="submit"]', route: "/ops/home" }],
   ["UI-023", { selector: "#opsVlmSaveProfile", route: "/ops/vlm" }],
-  ["UI-029", { selector: "[data-delete-vlm-profile]", route: "/ops/vlm" }],
+  ["UI-026", { selector: '[data-vlm-option-id="local-qwen3-vl-4b"]', route: "/ops/vlm" }],
+  ["UI-029", { selector: '[data-delete-vlm-profile="ui-029-review4-fixture"]', route: "/ops/vlm" }],
   ["UI-109", { selector: "#channel-save-selected", route: "/ops/sources" }],
   ["AUTH-018", { selector: "#user-save-selected", route: "/ops/users" }],
   ["AUTH-019", { selector: "#user-save-selected", route: "/ops/users" }],
   ["AUTH-036", { selector: '#request-form button[type="submit"]', route: "/client/request-access" }],
-  ["AUTH-037", { selector: "[data-request-approve]", route: "/ops/users" }],
-  ["AUTH-038", { selector: "[data-request-reject]", route: "/ops/users" }],
+  ["AUTH-037", { selector: '[data-request-approve="auth-037-review4-fixture"]', route: "/ops/users" }],
+  ["AUTH-038", { selector: '[data-request-reject="auth-038-review4-fixture"]', route: "/ops/users" }],
   ["AUTH-039", { selector: '#request-form button[type="submit"]', route: "/client/request-access" }],
   ["SRC-001", { selector: "#channel-save-selected", route: "/ops/sources" }],
   ["SRC-002", { selector: "#channel-save-selected", route: "/ops/sources" }],
@@ -185,20 +210,184 @@ const mutationPrimaryControls = new Map([
   ["RULE-022", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
   ["RULE-023", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
   ["RULE-024", { selector: '[data-ops-rule-action="delete-profile"]', route: "/ops/rules" }],
+  ["RULE-026", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-027", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-028", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-029", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
   ["RULE-030", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-031", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-032", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-033", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-034", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-035", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-036", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-037", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-038", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-039", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-041", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-042", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-043", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-044", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-045", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-046", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-047", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-048", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-049", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-050", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-051", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-052", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-053", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-054", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-055", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-056", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-057", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-058", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-059", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-060", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-061", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-062", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-063", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-064", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-065", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-066", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-067", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-068", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-069", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-070", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-071", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-072", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-074", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-076", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-077", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-078", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-079", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-080", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-081", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-082", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-083", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-084", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-085", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-086", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-087", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-088", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-089", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-090", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-091", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-092", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-093", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-094", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
+  ["RULE-095", { selector: "#opsRulesRefresh", route: "/ops/rules" }],
+  ["RULE-096", { selector: "#opsRulesRefresh", route: "/ops/rules" }],
+  ["RULE-100", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
   ["RULE-073", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
   ["RULE-075", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
   ["RULE-101", { selector: "#opsRulesComposerSave", route: "/ops/rules" }],
   ["RULE-102", { selector: "#opsEventRuleTypeSelect", route: "/ops/rules" }],
+  ["RULE-103", { selector: "#opsRulesRefresh", route: "/ops/rules" }],
+  ["RULE-104", { selector: "[data-approval-gated-rule-draft-route]", route: "/ops/events" }],
+  ["RULE-111", { selector: "[data-vlm-rule-draft-index]", route: "/ops/rules" }],
   ["EVT-021", { selector: "[data-event-review-save]", route: "/ops/events" }],
   ["CLIENT-002", { selector: '[data-action="toggle-playback"]', route: "/client/live" }],
   ["CLIENT-005", { selector: "#liveAllStop", route: "/client/live" }],
   ["CLIENT-009", { selector: "#liveSaveLayoutPreference", route: "/client/live" }],
   ["SAFE-038", { selector: "[data-vlm-rule-draft-index]", route: "/ops/rules" }],
   ["UI-036", { selector: "[data-vlm-rule-draft-index]", route: "/ops/rules" }],
+  ["UI-046", { selector: "[data-incident-rule-draft-route]", route: "/ops/events" }],
+]);
+
+const readModelPrimaryOverrides = new Map([
+  ["UI-009", { selector: '[data-testid="ops-home-page"]', route: "/ops/home" }],
+  ["RULE-001", { selector: "#opsVaRuleRows > tr:first-child", route: "/ops/rules" }],
+  ["RULE-002", { selector: "#opsEventRuleRows > tr:first-child", route: "/ops/rules" }],
+  ["RULE-003", { selector: "#opsProfileRows > tr:first-child", route: "/ops/rules" }],
+  ["RULE-010", { selector: "#opsVaRuleTemplateSeedSelect", route: "/ops/rules" }],
+  ["RULE-013", { selector: "#opsVaRuleGeometrySummary", route: "/ops/rules" }],
+  ["RULE-021", { selector: "#opsEventRuleDetailSummary", route: "/ops/rules" }],
+  ["RULE-097", { selector: '[data-testid="client-live-source-tree"]', route: "/client/live" }],
+  ["RULE-098", { selector: "#opsRulesValidationList", route: "/ops/rules" }],
 ]);
 
 const overrideControlSourceCatalog = new Map([
+  ["#dashIncidentTimelineSource", {
+    file: "src/ingress/product_ui_server_pages.cpp",
+    anchor: '<select id="dashIncidentTimelineSource" aria-label="출처">',
+  }],
+  ["#eventStorageBadges", {
+    file: "src/ingress/product_ui_server_pages.cpp",
+    anchor: '<div id="eventStorageBadges" class="badge-row"><span class="chip">로딩 중</span></div>',
+  }],
+  ["#alertDeliveryTest", {
+    file: "src/ingress/product_ui_server_pages.cpp",
+    anchor: '<button id="alertDeliveryTest" class="button-secondary" type="button">Fixture 전송</button>',
+  }],
+  ["#event-review-audit-list", {
+    file: "src/ingress/product_ui_server_pages.cpp",
+    anchor: '<div id="event-review-audit-list" class="audit-list" data-audit-area="events"></div>',
+  }],
+  ["#dashIncidentTimeline", {
+    file: "src/ingress/product_ui_server_pages.cpp",
+    anchor: '<div id="dashIncidentTimeline" class="root-cause-list">',
+  }],
+  ["#eventRecordRows", {
+    file: "src/ingress/product_ui_server_pages.cpp",
+    anchor: '<tbody id="eventRecordRows"><tr><td colspan="7">로딩 중</td></tr></tbody>',
+  }],
+  ["#opsRuntimeEvidenceWindowRows", {
+    file: "src/ingress/product_ui_server_pages.cpp",
+    anchor: '<div id="opsRuntimeEvidenceWindowRows" class="runtime-evidence-window-list">',
+  }],
+  [".client-preview-redaction-strip", {
+    file: "src/ingress/webrtc_http_server.cpp",
+    anchor: '<div class="client-preview-redaction-strip" data-client-review="admin-preview" data-admin-preview-state="',
+  }],
+  ['[data-testid="client-live-workspace"]', {
+    file: "src/ingress/product_ui_client_scripts.cpp",
+    anchor: '<div class="live-workspace-layout live-sketch-layout client-live-layout" data-testid="client-live-workspace"',
+  }],
+  ["#opsRulesRefresh", {
+    file: "src/ingress/product_ui_server_pages.cpp",
+    anchor: ')" << RefreshIconButtonHtml("opsRulesRefresh", "button-secondary", "새로고침") << R"(',
+  }],
+  ['[data-testid="ops-home-page"]', {
+    file: "src/ingress/product_ui_server_pages.cpp",
+    anchor: '<section class="panel ops-workspace ops-workspace-home" data-ops-panel="home" data-testid="ops-home-page">',
+  }],
+  ["#opsVaRuleRows > tr:first-child", {
+    file: "src/ingress/product_ui_server_pages.cpp",
+    anchor: '<tbody id="opsVaRuleRows"><tr><td colspan="9">로딩 중</td></tr></tbody>',
+  }],
+  ["#opsEventRuleRows > tr:first-child", {
+    file: "src/ingress/product_ui_server_pages.cpp",
+    anchor: '<tbody id="opsEventRuleRows"><tr><td colspan="6">로딩 중</td></tr></tbody>',
+  }],
+  ["#opsProfileRows > tr:first-child", {
+    file: "src/ingress/product_ui_server_pages.cpp",
+    anchor: '<tbody id="opsProfileRows"><tr><td colspan="7">로딩 중</td></tr></tbody>',
+  }],
+  ["#opsVaRuleTemplateSeedSelect", {
+    file: "src/ingress/product_ui_server_pages.cpp",
+    anchor: '<select id="opsVaRuleTemplateSeedSelect"></select>',
+  }],
+  ["#opsVaRuleGeometrySummary", {
+    file: "src/ingress/product_ui_server_pages.cpp",
+    anchor: '<p id="opsVaRuleGeometrySummary" class="form-note">미리보기 영역을 눌러 점을 추가합니다. 라인은 2점, 영역은 3점 이상이 필요합니다.</p>',
+  }],
+  ["#opsEventRuleDetailSummary", {
+    file: "src/ingress/product_ui_server_pages.cpp",
+    anchor: '<p id="opsEventRuleDetailSummary" class="form-note">조건, geometry, cooldown을 불러오는 중입니다.</p>',
+  }],
+  ['[data-testid="client-live-source-tree"]', {
+    file: "src/ingress/product_ui_client_scripts.cpp",
+    anchor: '<aside class="live-source-dock client-live-dock" data-testid="client-live-source-tree"',
+  }],
+  ["#opsRulesValidationList", {
+    file: "src/ingress/product_ui_server_pages.cpp",
+    anchor: '<div id="opsRulesValidationList" class="validation-list"></div>',
+  }],
+  ['[data-ops-rule-action="view-va"][data-ops-rule-id="9890"]', {
+    file: "src/ingress/product_ui_page_scripts.cpp",
+    anchor: "opsRuleActionButton('상세', 'view-va', id)",
+  }],
   ['[data-testid="auth-setup-form"] button[type="submit"]', {
     file: "src/ingress/product_ui_auth_pages.cpp",
     anchor: 'out << R"(    <form class="auth-form auth-form-grid" method="post" action="/setup" data-testid="auth-setup-form">',
@@ -215,7 +404,11 @@ const overrideControlSourceCatalog = new Map([
     file: "src/ingress/product_ui_server_pages.cpp",
     anchor: '<button id="opsVlmSaveProfile" class="button-primary" type="button">profile 저장</button>',
   }],
-  ["[data-delete-vlm-profile]", {
+  ['[data-vlm-option-id="local-qwen3-vl-4b"]', {
+    file: "src/ingress/product_ui_page_scripts.cpp",
+    anchor: 'data-vlm-option-id="${escapeHtml(option.id)}"',
+  }],
+  ['[data-delete-vlm-profile="ui-029-review4-fixture"]', {
     file: "src/ingress/product_ui_page_scripts.cpp",
     anchor: 'data-delete-vlm-profile="${escapeHtml(profile.id || \'\')}"',
   }],
@@ -236,6 +429,14 @@ const overrideControlSourceCatalog = new Map([
     anchor: 'data-request-approve="${escapeHtml(displayValue(request.requestId))}"',
   }],
   ["[data-request-reject]", {
+    file: "src/ingress/product_ui_ops_users_script.cpp",
+    anchor: 'data-request-reject="${escapeHtml(displayValue(request.requestId))}"',
+  }],
+  ['[data-request-approve="auth-037-review4-fixture"]', {
+    file: "src/ingress/product_ui_ops_users_script.cpp",
+    anchor: 'data-request-approve="${escapeHtml(displayValue(request.requestId))}"',
+  }],
+  ['[data-request-reject="auth-038-review4-fixture"]', {
     file: "src/ingress/product_ui_ops_users_script.cpp",
     anchor: 'data-request-reject="${escapeHtml(displayValue(request.requestId))}"',
   }],
@@ -279,6 +480,14 @@ const overrideControlSourceCatalog = new Map([
     file: "src/ingress/product_ui_page_scripts.cpp",
     anchor: 'data-vlm-rule-draft-index="${index}"',
   }],
+  ["[data-incident-rule-draft-route]", {
+    file: "src/ingress/product_ui_page_scripts.cpp",
+    anchor: '<a class="button button-secondary button-compact" data-incident-rule-draft-route href="${escapeHtml(draftRoute)}">룰 draft 검토</a>',
+  }],
+  ["[data-approval-gated-rule-draft-route]", {
+    file: "src/ingress/product_ui_page_scripts.cpp",
+    anchor: 'data-approval-gated-rule-draft-route="manual-approval-staged-only"',
+  }],
   ['#invite-create-form button[type="submit"]', {
     file: "src/ingress/webrtc_http_server.cpp",
     anchor: '<form id="invite-create-form" class="inline-form">',
@@ -303,11 +512,14 @@ const detailsControls = new Set(['[data-testid="ops-context-actions"]']);
 const enabledControls = new Set([
   "#add-channel",
   "#opsRulesComposerSave",
+  "#opsRulesRefresh",
   '[data-action="toggle-playback"]',
   "#liveAllStop",
+  '[data-vlm-option-id="local-qwen3-vl-4b"]',
   "[data-vlm-rule-draft-index]",
+  "#alertDeliveryTest",
 ]);
-const linkControls = new Set(["#opsRulesReviewEventRecordLink"]);
+const linkControls = new Set(["#opsRulesReviewEventRecordLink", "[data-incident-rule-draft-route]", "[data-approval-gated-rule-draft-route]"]);
 
 const selectControls = new Map([
   ["#opsEventRulePresetSelect", "road"],
@@ -320,6 +532,7 @@ const selectControls = new Map([
   ["#opsScenarioBuilderType", "re-entry"],
   ["#opsVlmRuleDraftKindSelect", "line-crossing"],
   ["#eventRecordsEvidenceSelect", "snapshot"],
+  ["#dashIncidentTimelineSource", "log-tail"],
 ]);
 
 const seededSelectControls = new Set(["#opsVaRuleTemplateSeedSelect"]);
@@ -328,6 +541,9 @@ const readModelControls = new Set([
   '[data-testid="client-live-action-reduction"]',
   '[data-testid="client-dashboard-shell"]',
   '[data-testid="client-dashboard-safe-summary"]',
+  '[data-testid="client-safe-source-status-digest"]',
+  ".client-viewer-events",
+  ".ops-workspace-diagnostic-grid",
   "#clientDashboardPresetStatus",
   "#dashSiteClientNoticePreviewList",
   "#opsVlmPrivacyGuardList",
@@ -338,7 +554,16 @@ const readModelControls = new Set([
   '[data-testid="ops-incident-rule-suggestion-review"]',
   "#opsIncidentTriageBoardRows",
   "#dashRuntimeOpsList",
+  '[data-testid="ops-operational-action-pack"]',
+  '[data-testid="ops-rule-what-if-preview"]',
   "#opsV320ResolutionTimeline",
+  "#eventStorageBadges",
+  "#event-review-audit-list",
+  "#dashIncidentTimeline",
+  "#eventRecordRows",
+  "#opsRuntimeEvidenceWindowRows",
+  ".client-preview-redaction-strip",
+  '[data-testid="client-live-workspace"]',
   "#v320SourceReliabilityGrid",
   "#v320AiReviewQualityGrid",
   "#v320OperatorResolutionFlowGrid",
@@ -347,14 +572,35 @@ const readModelControls = new Set([
   "#v330IncidentSourceCorrelationGrid",
   "#v330OperatorRecheckRecoveryQueueGrid",
   '[data-testid="client-safe-source-status-digest"]',
+  '[data-testid="source-reliability-search-metrics"]',
+  '[data-testid="source-backup-recovery-handoff"]',
+  '[data-testid="ops-continuity-drill-workspace"]',
   '[data-testid="client-safe-maintenance-digest"]',
   "#v350IncidentCommandHandoffGrid",
   '[data-testid="client-impact-forecast"]',
   '[data-testid="client-operations-notice"]',
   "#dashCommandWorkspaceExportBundleMap",
   "#dashCommandWorkspaceVlmAssistedExplanation",
+  '[data-v360-simulation-workspace-entry="simulation-route-family"]',
+  "#dashSimulationWorkspaceLedgerList > [data-v360-simulation-run-ledger-entry]:nth-child(2)",
+  "#dashSimulationWorkspaceNoticePreviewList > [data-v360-client-notice-preview-entry]:first-child",
+  "#dashSimulationWorkspaceWhatIfReplayList > [data-v360-rule-va-what-if-replay-entry]:first-child",
+  "#dashSimulationWorkspaceExportBundleList > [data-v360-simulation-export-bundle-entry]:first-child",
+  "#dashSimulationWorkspaceFieldEvidenceAdapterList > [data-v360-field-evidence-simulation-adapter-entry]:first-child",
+  "#dashSimulationWorkspaceVlmAssistedExplanationList > [data-v360-vlm-assisted-simulation-explanation-entry]:first-child",
+  "#dashSiteOperationsSiteList > [data-v370-site-operations-workspace-entry]:first-child",
+  "#dashSiteClientNoticePreviewList > [data-v370-client-notice-by-site-view-group-entry]:first-child",
+  "#dashSiteRuleVaWhatIfCandidateList > [data-v370-rule-va-what-if-by-site-entry]:first-child",
+  "#dashSiteFieldEvidenceAttachmentList > [data-v370-field-evidence-attachment-entry]:first-child",
+  "#dashSiteLimitedSafeExecutionPilotList > [data-v370-limited-safe-execution-pilot-entry]:first-child",
+  "#dashSiteOutcomeReconciliationSourceList > [data-v370-outcome-reconciliation-entry]:first-child",
+  "#dashSiteExportHandoffBundleList > [data-v370-export-handoff-bundle-entry]:first-child",
+  "#dashActionControlRequestList > [data-v380-action-control-entry]:first-child",
+  "#dashActionOutcomeSourceList > [data-v380-outcome-observer-entry]:first-child",
+  "#dashActionReceiptBundleList > [data-v380-action-receipt-entry]:first-child",
   "#opsIncidentActionReadinessQueueRows",
   '[data-testid="client-action-notice-preview"]',
+  '[data-testid="client-action-notice-preview"] .client-action-notice-item:first-child',
   "#opsVlmRuleDraftBridgeStatus",
   "#dashActionExecutionDeferralList",
   "#dashFieldEvidenceBridgeList",
@@ -387,6 +633,19 @@ const readModelControls = new Set([
 ]);
 
 const localCompletionContracts = new Map([
+  ["UI-026", {
+    requiredRequests: [
+      { sequence: 1, method: "GET", urlPath: "/ops/api/vlm/install-connection/dry-run", allowedStatuses: [200] },
+    ],
+    postconditions: [
+      { selector: '[data-vlm-option-id="local-qwen3-vl-4b"]', property: "text", operator: "equals", value: "선택됨" },
+      { selector: "#opsVlmSelectionSummary", property: "text", operator: "includes", value: "Qwen3-VL-4B" },
+    ],
+    forbiddenRequests: [
+      { methods: ["POST", "PUT", "DELETE"], pathPrefix: "/ops/api/vlm/profiles" },
+      { methods: ["POST", "PUT", "DELETE"], pathPrefix: "/ops/api/vlm/install-connection" },
+    ],
+  }],
   ["UI-036", {
     postconditions: [
       { selector: "#opsRulesDetailPanel", property: "hidden", operator: "equals", value: false },
@@ -396,6 +655,27 @@ const localCompletionContracts = new Map([
     forbiddenRequests: [
       { methods: ["POST", "PUT", "DELETE"], pathPrefix: "/lab/analysis/rules" },
       { methods: ["POST", "PUT", "DELETE"], pathPrefix: "/lab/analysis/va-rules" },
+    ],
+  }],
+  ["UI-046", {
+    postconditions: [
+      { selector: '[data-testid="ops-rules-page"]', property: "exists", operator: "equals", value: true },
+      { selector: '[data-testid="ops-rules-page"]', property: "url", operator: "includes", value: "/ops/rules" },
+    ],
+    forbiddenRequests: [
+      { methods: ["POST", "PUT", "DELETE"], pathPrefix: "/lab/analysis/rules" },
+      { methods: ["POST", "PUT", "DELETE"], pathPrefix: "/lab/analysis/va-rules" },
+    ],
+  }],
+  ["UI-049", {
+    postconditions: [
+      { selector: "#opsScenarioBuilderType", property: "value", operator: "equals", value: "re-entry" },
+      { selector: "#opsScenarioBuilderBaseline", property: "text", operator: "includes", value: "reEntryZoneIds" },
+      { selector: "#opsScenarioBuilderBaseline", property: "text", operator: "includes", value: "A→B" },
+    ],
+    forbiddenRequests: [
+      { methods: ["POST", "PUT", "DELETE"], pathPrefix: "/lab/analysis/rules" },
+      { methods: ["POST", "PUT", "DELETE"], pathPrefix: "/ops/api/events" },
     ],
   }],
   ["SRC-024", {
@@ -411,21 +691,114 @@ const localCompletionContracts = new Map([
   ["RULE-101", {
     postconditions: [
       { selector: "#opsRulesStatus", property: "text", operator: "includes", value: "저장 전 검증 실패" },
-      { selector: "#opsRulesComposerSave", property: "hidden", operator: "equals", value: false },
+      { selector: "#opsRulesReviewConflictDetail", property: "text", operator: "includes", value: "룰 대상(사람)이 템플릿 대상(차량)을 모두 포함하지 않습니다" },
+      { selector: "#opsRulesReviewConflictDetail", property: "text", operator: "includes", value: "프로파일 대상(사람)이 템플릿 대상(차량)과 맞지 않습니다" },
     ],
     forbiddenRequests: [
       { methods: ["PUT"], pathPrefix: "/lab/analysis/va-rules/" },
     ],
   }],
+  ["RULE-092", {
+    postconditions: [
+      { selector: "#opsRulesStatus", property: "text", operator: "includes", value: "저장 전 검증 실패" },
+      { selector: "#opsRulesReviewConflictDetail", property: "text", operator: "includes", value: "이미 사용 중" },
+    ],
+    forbiddenRequests: [
+      { methods: ["POST", "PUT", "DELETE"], pathPrefix: "/lab/analysis/rules" },
+    ],
+  }],
+  ["RULE-093", {
+    postconditions: [
+      { selector: "#opsRulesStatus", property: "text", operator: "includes", value: "저장 전 검증 실패" },
+      { selector: "#opsRulesReviewMissingDetail", property: "text", operator: "includes", value: "분석 프로파일 9997 reference 없음" },
+      { selector: "#opsRulesReviewMissingDetail", property: "text", operator: "includes", value: "이벤트 템플릿 9998 reference 없음" },
+    ],
+    forbiddenRequests: [{ methods: ["PUT"], pathPrefix: "/lab/analysis/va-rules/" }],
+  }],
+  ["RULE-094", {
+    postconditions: [
+      { selector: "#opsRulesStatus", property: "text", operator: "includes", value: "저장 전 검증 실패" },
+      { selector: "#opsRulesReviewMissingDetail", property: "text", operator: "includes", value: "분석 프로파일 9694 비활성" },
+      { selector: "#opsRulesReviewMissingDetail", property: "text", operator: "includes", value: "이벤트 템플릿 9794 비활성" },
+    ],
+    forbiddenRequests: [{ methods: ["PUT"], pathPrefix: "/lab/analysis/va-rules/" }],
+  }],
+  ["RULE-095", {
+    postconditions: [
+      { selector: "#opsRulesValidationList", property: "text", operator: "includes", value: "source-mismatch" },
+      { selector: "#opsRulesValidationList", property: "text", operator: "includes", value: "PublishedView 소스와 다릅니다" },
+    ],
+    forbiddenRequests: [{ methods: ["POST", "PUT", "DELETE"], pathPrefix: "/lab/analysis/" }],
+  }],
+  ["RULE-096", {
+    postconditions: [
+      { selector: "#opsRulesValidationList", property: "text", operator: "includes", value: "inactive-view" },
+      { selector: "#opsRulesValidationList", property: "text", operator: "includes", value: "inactive-channel" },
+    ],
+    forbiddenRequests: [{ methods: ["POST", "PUT", "DELETE"], pathPrefix: "/lab/analysis/" }],
+  }],
+  ["RULE-100", {
+    postconditions: [
+      { selector: "#opsRulesStatus", property: "text", operator: "includes", value: "저장 전 검증 실패" },
+      { selector: "#opsRulesStatus", property: "text", operator: "includes", value: "같은 채널에 priority" },
+      { selector: "#opsRulesStatus", property: "text", operator: "includes", value: "이미 있습니다" },
+    ],
+    forbiddenRequests: [{ methods: ["PUT"], pathPrefix: "/lab/analysis/va-rules/" }],
+  }],
   ["RULE-102", {
     postconditions: [
       { selector: "#opsRulesReviewLoop", property: "hidden", operator: "equals", value: false },
       { selector: "#opsRulesReviewEventTypeTitle", property: "text", operator: "includes", value: "re-entry" },
+      { selector: "#opsRulesReviewEventTypeDetail", property: "text", operator: "includes", value: "EventRecord eventType 후보는 re-entry" },
+      { selector: "#opsRulesReviewConflictDetail", property: "text", operator: "includes", value: "중복 ID, priority, source/class 충돌이 없습니다" },
+      { selector: "#opsRulesReviewMissingDetail", property: "text", operator: "includes", value: "별도 참조 누락이 없습니다" },
+      { selector: "#opsRulesReviewPresetDetail", property: "text", operator: "includes", value: "preset" },
+      { selector: "#opsRulesReviewCoverageDetail", property: "text", operator: "includes", value: "verify-va-event-coverage-report" },
       { selector: "#opsRulesReviewEventRecordLink", property: "href", operator: "startsWith", value: "/ops/events#eventType=" },
     ],
     forbiddenRequests: [
       { methods: ["POST", "PUT", "DELETE"], pathPrefix: "/lab/analysis/rules" },
       { methods: ["POST", "PUT", "DELETE"], pathPrefix: "/lab/analysis/va-rules" },
+    ],
+  }],
+  ["RULE-103", {
+    postconditions: [
+      { selector: "#opsEventRuleRows", property: "text", operator: "includes", value: "9913" },
+      { selector: "#opsEventRuleRows", property: "text", operator: "includes", value: "9914" },
+      { selector: "#opsEventRuleRows", property: "text", operator: "includes", value: "re-entry" },
+    ],
+    forbiddenRequests: [{ methods: ["POST", "PUT", "DELETE"], pathPrefix: "/lab/analysis/" }],
+  }],
+  ["RULE-104", {
+    postconditions: [
+      { selector: '[data-testid="ops-approval-gated-rule-draft-readiness"]', property: "url", operator: "includes", value: "/ops/rules?draftEventId=" },
+      { selector: "#opsApprovalGatedRuleDraftContext", property: "text", operator: "includes", value: "approval" },
+      { selector: "#opsApprovalGatedRuleDraftBadges", property: "text", operator: "includes", value: "approvalDraft=1" },
+      { selector: "#opsApprovalGatedRuleDraftRows", property: "text", operator: "includes", value: "noAutoSave true" },
+      { selector: "#opsApprovalGatedRuleDraftRows", property: "text", operator: "includes", value: "noAutoApply true" },
+      { selector: "#opsApprovalGatedRuleDraftRows", property: "text", operator: "includes", value: "ruleRegistryWritePerformed false" },
+      { selector: "#opsApprovalGatedRuleDraftRows", property: "text", operator: "includes", value: "fullReplayEngineExecuted false" },
+    ],
+    forbiddenRequests: [
+      { methods: ["POST", "PUT", "DELETE"], pathPrefix: "/lab/analysis/rules" },
+      { methods: ["POST", "PUT", "DELETE"], pathPrefix: "/lab/analysis/profiles" },
+    ],
+  }],
+  ["RULE-111", {
+    postconditions: [
+      { selector: "#opsRulesDetailPanel", property: "hidden", operator: "equals", value: false },
+      { selector: "#opsEventRuleTypeSelect", property: "value", operator: "equals", value: "line-crossing" },
+      { selector: "#opsEventRuleClassesSummary", property: "text", operator: "includes", value: "사람" },
+      { selector: "#opsEventRuleConfidenceInput", property: "value", operator: "equals", value: "0.8" },
+      { selector: "#opsEventRuleMinDurationInput", property: "value", operator: "equals", value: "1000" },
+      { selector: "#opsEventRuleLineDirectionSelect", property: "value", operator: "equals", value: "any" },
+      { selector: "#opsRulesStatus", property: "text", operator: "includes", value: "이벤트 템플릿 draft에 반영" },
+      { selector: "#opsVlmRuleDraftBridgeStatus", property: "text", operator: "includes", value: "ruleRegistryWrite=false" },
+    ],
+    forbiddenRequests: [
+      { methods: ["POST", "PUT", "DELETE"], pathPrefix: "/lab/analysis/" },
+      { methods: ["POST", "PUT", "DELETE"], pathPrefix: "/ops/api/vlm/" },
+      { methods: ["POST", "PUT", "DELETE"], pathPrefix: "/ops/api/events" },
     ],
   }],
   ["CLIENT-002", {
@@ -463,10 +836,369 @@ const localCompletionContracts = new Map([
   }],
 ]);
 
+const readModelCompletionContracts = new Map([
+  ["RULE-097", {
+    textIncludesAll: ["REVIEW4 RULE-097 view"],
+  }],
+  ["RULE-098", {
+    textIncludesAll: ["view-rule-not-allowed", "9898", "PublishedView 허용 룰 목록"],
+  }],
+  ["RULE-010", {
+    property: "selectedValues",
+    value: ["9201"],
+  }],
+  ["RULE-013", {
+    textIncludesAll: ["라인 점 2/2", "저장 가능", "양방향"],
+  }],
+  ["RULE-021", {
+    textIncludesAll: ["조건:", "확정 500ms", "재알림 1초", "geometry: 영역 4점", "cooldown: 1초"],
+  }],
+  ["UI-030", {
+    textIncludesAll: [
+      "latency:",
+      "jsonStability:",
+      "explanationQuality:",
+      "hallucinationRisk:",
+      "languageQuality:",
+    ],
+  }],
+  ["UI-052", {
+    textIncludesAll: [
+      "ui-052-review4-fixture",
+      "release-safe",
+      "manual draft only",
+      "dry-run only",
+      "source check only",
+      "external delivery 미수행",
+      "rule write 없음",
+      "source write 없음",
+    ],
+  }],
+  ["UI-053", {
+    textIncludesAll: [
+      "ui-053-review4-fixture",
+      "candidate-only-manual-rule-save",
+      "draftComparison",
+      "candidate-ready",
+      "conditionPreview",
+      "line-crossing",
+      "draft-only",
+      "manual save",
+      "no full replay",
+      "rule write 없음",
+      "no auto apply",
+      "/ops/rules draft-only 검토",
+    ],
+  }],
+  ["UI-064", {
+    textIncludesAll: [
+      "SOURCE HEALTH",
+      "RECENT FAILURE",
+      "OPERATOR RECHECK",
+      "/ops/api/source-health",
+      "BOUNDARY",
+      "check only",
+      "sourceRegistryWritePerformed false",
+      "sourceUrlExposed false",
+    ],
+  }],
+  ["UI-065", {
+    textIncludesAll: [
+      "CORRECTION REVIEW",
+      "evidence-uncertain",
+      "UNCERTAINTY REASON",
+      "low-evidence-confidence",
+      "QUALITY BADGE",
+      "uncertain",
+      "BOUNDARY",
+      "provider-free Ops-only",
+      "runtimeProviderCallPerformed false",
+      "rawProviderMaterialExposed false",
+    ],
+  }],
+  ["UI-066", {
+    textIncludesAll: [
+      "ASSIGNMENT TARGET",
+      "OPERATOR NOTE",
+      "CLOSE / REOPEN",
+      "AUDIT TRAIL",
+      "required",
+      "Ops-only redacted",
+      "/ops/api/events/reviews/{eventId}",
+      "operator-resolution-flow-update",
+    ],
+  }],
+  ["UI-067", {
+    textIncludesAll: [
+      "READINESS STATUS",
+      "RULE DRAFT",
+      "EVIDENCE BUNDLE",
+      "NOTIFICATION READINESS",
+      "BOUNDARY",
+      "Ops-only checklist",
+      "autoActionWritePerformed false",
+      "externalDeliveryPerformed false",
+      "manual-approval-required",
+    ],
+  }],
+  ["UI-068", {
+    textIncludesAll: [
+      "판정 digest",
+      "허용된 판정 상태 요약만 표시됩니다.",
+      "viewer-safe",
+      "view scope",
+      "operator note 숨김",
+      "closed",
+      "closed event",
+    ],
+  }],
+  ["UI-069", {
+    textIncludesAll: [
+      "RESOLUTION FILTERS",
+      "SAVED VIEWS",
+      "OPERATIONS METRIC SUMMARY",
+      "BOUNDARY",
+      "Ops-only search metrics",
+      "savedViewsPersisted false",
+      "savedViewWritePerformed false",
+      "clientDigestChanged false",
+      "sourceUrlExposed false",
+      "rawJsonExposed false",
+    ],
+  }],
+  ["UI-070", {
+    textIncludesAll: [
+      "SOURCE CAUSE",
+      "CLOSURE IMPACT",
+      "SOURCE HANDOFF",
+      "BOUNDARY",
+      "Ops-only correlation",
+      "/ops/api/source-health",
+      "sourceRegistryWritePerformed false",
+      "eventRecordWritePerformed false",
+      "resolutionDetailAttached true",
+      "sourceReliabilityContextReused true",
+      "sourceHealthAuditLinked true",
+    ],
+  }],
+  ["UI-071", {
+    textIncludesAll: [
+      "FAILED-ONLY RECHECK",
+      "RETRY CANDIDATE",
+      "DRY-RUN RESULT",
+      "OPERATOR NOTE",
+      "SOURCE RECHECK",
+      "BOUNDARY",
+      "read model only",
+      "/ops/api/source-health",
+      "persistentRecoveryQueueCreated false",
+      "eventRecordWritePerformed false",
+      "recoveryQueueReadModelCreated true",
+      "recoveryQueueWritePerformed false",
+      "autoRecoveryApplied false",
+    ],
+  }],
+  ["UI-072", {
+    textIncludesAll: [
+      "소스 상태 digest",
+      "허용된 소스 상태와 연결 요약만 표시됩니다.",
+      "viewer-safe",
+      "view scope",
+      "locator 숨김",
+      "video",
+      "metadata",
+    ],
+  }],
+  ["UI-073", {
+    textIncludesAll: [
+      "Reliability Search",
+      "source health filters",
+      "saved reliability views",
+      "reconnect/stale/offline metric summary",
+      "savedViewsPersisted: false",
+      "savedViewWritePerformed: false",
+    ],
+  }],
+  ["UI-074", {
+    textIncludesAll: [
+      "Backup Handoff",
+      "handoff inputs",
+      "recovery validation plan",
+      "sourceHealthSnapshotPersisted: false",
+      "recoveryValidationPlanPersisted: false",
+    ],
+  }],
+  ["UI-075", {
+    textIncludesAll: [
+      "Ops Continuity Drill Workspace",
+      "drill package",
+      "validation status",
+      "source health drift",
+      "automaticRecoveryPerformed: false",
+      "sourceRegistryWritePerformed: false",
+    ],
+  }],
+  ["UI-080", {
+    textIncludesAll: [
+      "SOURCE CAUSE",
+      "CONTINUITY DRILL",
+      "COMMAND PLAN DRAFT",
+      "BOUNDARY",
+      "/ops/api/live-operations/command-plan",
+      "read-only handoff",
+      "commandPlanExecuted false",
+      "viewerClientExposureAdded false",
+    ],
+  }],
+  ["UI-088", {
+    textIncludesAll: [
+      "route family",
+      "/ops/api/live-operations/simulation/input-pack",
+      "/ops/api/live-operations/simulation/run-contract",
+    ],
+  }],
+  ["UI-089", {
+    textIncludesAll: [
+      "simulation-run:",
+      "operator-note-required",
+      "inputRef=",
+      "resultDiff=",
+      "previous=",
+      "blocker=",
+      "changedFields=",
+    ],
+  }],
+  ["UI-090", {
+    textIncludesAll: [
+      "timelineHint=",
+      "deliveryState=preview-only",
+    ],
+  }],
+  ["UI-091", {
+    textIncludesAll: [
+      "thresholdCandidate",
+      "presetCandidate",
+      "scenarioCandidate",
+      "eventRecordRef=",
+      "delta=",
+      "before=",
+      "after=",
+    ],
+  }],
+  ["UI-092", {
+    textIncludesAll: [
+      "simulationInputRefs=",
+      "simulationOutputRefs=",
+      "readinessBlockerRefs=",
+      "redactionPolicy=",
+    ],
+  }],
+  ["UI-093", {
+    textIncludesAll: [
+      "conditional-not-run",
+      "simulationReadinessBlockerRef=",
+      "executionStatus=not-run",
+      "notRunReason=",
+      "conditionRefs=",
+    ],
+  }],
+  ["UI-094", {
+    textIncludesAll: [
+      "simulationBlockerSummary=",
+      "impactDiffSummary=",
+      "defaultEnabled=false",
+    ],
+  }],
+  ["UI-095", {
+    textIncludesAll: [
+      "source=",
+      "view=",
+      "route=/ops/api/site-operations/source-registry-projection",
+    ],
+  }],
+  ["UI-096", {
+    textIncludesAll: [
+      "site=",
+      "group=",
+      "viewGroup=",
+      "status=",
+    ],
+  }],
+  ["UI-097", {
+    textIncludesAll: [
+      "thresholdCandidate",
+      "scenarioCandidate",
+      "ruleCandidate=",
+      "source=",
+      "readiness=",
+    ],
+  }],
+  ["UI-098", {
+    textIncludesAll: [
+      "siteRunbookEvidenceRef",
+      "conditionalNotRunEvidence",
+      "runbook=",
+      "approval=",
+      "execution=not-run",
+      "fieldSmoke=",
+    ],
+  }],
+  ["UI-099", {
+    textIncludesAll: [
+      "sourceRecheckRef",
+      "noticeQueueRef",
+      "approval=",
+      "status=approval-gated-not-run",
+      "key=",
+    ],
+  }],
+  ["UI-100", {
+    textIncludesAll: [
+      "source-reconciliation",
+      "not-run",
+    ],
+  }],
+  ["UI-101", {
+    textIncludesAll: [
+      "siteRefs=",
+      "runbookRefs=",
+      "evidenceRefs=",
+      "approvalRefs=",
+      "outcomeRefs=",
+    ],
+  }],
+  ["UI-102", {
+    textIncludesAll: [
+      "required=",
+    ],
+  }],
+  ["UI-103", {
+    textIncludesAll: [
+      "notice",
+    ],
+  }],
+  ["UI-104", {
+    textIncludesAll: [
+      "readiness",
+      "candidate=",
+      "observed=",
+    ],
+  }],
+  ["UI-105", {
+    textIncludesAll: [
+      "candidate=",
+      "outcome=",
+    ],
+  }],
+]);
+
 export function buildNativeExactManifest({ canonical, implementation }) {
   assert(canonical?.schema === canonicalManifestSchema, "unexpected canonical manifest schema");
   assert(implementation?.schema === implementationManifestSchema, "unexpected implementation manifest schema");
   assert(Array.isArray(canonical.cases) && canonical.cases.length === 424, "canonical exact case count must be 424");
+  const runtimeOracleValidation = validateExactRuntimeOracleCatalog();
+  assert(JSON.stringify(exactRuntimeOracleCaseIds) === JSON.stringify(canonical.cases.map(item => item.testId)),
+    "exact runtime oracle catalog must preserve canonical ordered 424 IDs");
   for (const item of canonical.cases) {
     assert(supportedAccountRoles.has(item.accountRole),
       `${item.testId} unsupported canonical account role: ${item.accountRole || "missing"}`);
@@ -481,10 +1213,13 @@ export function buildNativeExactManifest({ canonical, implementation }) {
   const cases = canonical.cases.map(canonicalCase => {
     const implementationItem = implementationByManualId.get(canonicalCase.testId);
     assert(implementationItem, `${canonicalCase.testId} implementation item missing`);
+    const exactRuntimeOracle = exactRuntimeOracleFor(canonicalCase.testId);
+    assert(exactRuntimeOracle?.caseId === canonicalCase.testId,
+      `${canonicalCase.testId} exact runtime oracle missing`);
     const negativeRoute = canonicalCase.testId === "UI-018";
     const crossRouteNegative = canonicalCase.testId === "SAFE-017";
     const screenRoute = negativeRoute ? canonicalCase.route : normalizeProductScreenRoute(canonicalCase.route);
-    const canonicalSelector = normalizeCanonicalSelector(canonicalCase.controlAction?.selector);
+    const canonicalSelector = normalizeCanonicalSelector(canonicalCase.controlAction?.selector, canonicalCase);
     const workflowClass = classifyWorkflow({ canonicalCase, implementationItem, canonicalSelector });
     const primaryControl = resolvePrimaryControl({
       canonicalCase,
@@ -564,6 +1299,20 @@ export function buildNativeExactManifest({ canonical, implementation }) {
         productAction: workflowParts.productAction,
         expectedProductState: workflowParts.expectedProductState,
         independentReadback: workflowParts.independentReadback,
+        exactRuntimeOracle: {
+          schema: exactRuntimeOracle.schema,
+          caseId: exactRuntimeOracle.caseId,
+          classification: exactRuntimeOracle.classification || "case-specific-runtime-oracle",
+          route: exactRuntimeOracle.route,
+          role: exactRuntimeOracle.role,
+          featureMeaning: exactRuntimeOracle.featureMeaning || exactRuntimeOracle.expectedBehavior,
+          specSha256: sha256Json(exactRuntimeOracle),
+          requestCount: exactRuntimeOracle.requests.length,
+          domAssertionCount: exactRuntimeOracle.dom.length,
+          stateSnapshotCount: exactRuntimeOracle.stateSnapshots.length,
+          cleanupStrategy: exactRuntimeOracle.cleanup.strategy,
+          staticCatalogIsNotRuntimePass: true,
+        },
         controlSequence: actions,
         expectedResults: [{
           resultId: `${canonicalCase.testId}:semantic-result`,
@@ -615,6 +1364,8 @@ export function buildNativeExactManifest({ canonical, implementation }) {
       canonicalSha256: sha256Json(canonical),
       implementationSchema: implementation.schema,
       implementationSha256: sha256Json(implementation),
+      runtimeOracleCatalogSchema: runtimeOracleValidation.schema,
+      runtimeOracleCatalogSha256: runtimeOracleValidation.catalogSha256,
       selection: "canonical-exact-ordered-test-id",
     },
     counts: {
@@ -635,6 +1386,8 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
     "canonical source binding drift");
   assert(manifest.sourceBindings?.implementationSha256 === expected.sourceBindings.implementationSha256,
     "implementation source binding drift");
+  assert(manifest.sourceBindings?.runtimeOracleCatalogSha256 === expected.sourceBindings.runtimeOracleCatalogSha256,
+    "runtime oracle catalog source binding drift");
   assert(Array.isArray(manifest.cases) && manifest.cases.length === 424, "canonical exact case count must be 424");
   assertExact(manifest.cases.map(item => item.caseId), canonical.cases.map(item => item.testId),
     "canonical ordered case IDs");
@@ -723,6 +1476,10 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
       `${item.caseId} expected product state missing`);
     assert(item.workflow.independentReadback?.identity && item.workflow.independentReadback?.locator?.file,
       `${item.caseId} independent readback missing`);
+    assert(item.workflow.exactRuntimeOracle?.caseId === item.caseId &&
+      /^[a-f0-9]{64}$/.test(item.workflow.exactRuntimeOracle?.specSha256 || "") &&
+      item.workflow.exactRuntimeOracle?.staticCatalogIsNotRuntimePass === true,
+    `${item.caseId} exact runtime oracle binding missing`);
     assert(item.workflow.expectedProductState.identity !== item.workflow.independentReadback.identity,
       `${item.caseId} state/readback identity self-compare forbidden`);
     assert(locatorIdentity(item.workflow.expectedProductState.locator) !==
@@ -744,11 +1501,20 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
     }
     if (item.workflow.workflowClass === "form-submit") {
       const formInput = item.workflow.inputs.find(input => input.kind === "form-values");
+      const submitAction = item.workflow.controlSequence.find(action => action.kind === "submit-form");
       assert(formInput?.submit === true,
         `${item.caseId} form submit input missing`);
       assert(!containsLiteralAuthMaterial(formInput.actualValue), `${item.caseId} form auth literal forbidden`);
-      assert(item.workflow.controlSequence.some(action => action.kind === "submit-form"),
+      assert(submitAction,
         `${item.caseId} form submit action missing`);
+      if (submitAction.selector === '[data-testid="auth-setup-form"]') {
+        const usernameControl = submitAction.uiLifecycle?.fieldControls?.find(field => field.name === "username");
+        assert(formInput.actualValue?.username === "admin" &&
+          usernameControl?.control === "readonly-value" &&
+          usernameControl?.expectedValue === "admin" &&
+          usernameControl?.valueSource === "product-fixed-admin",
+        `${item.caseId} setup readonly admin contract missing`);
+      }
       assert(!item.workflow.controlSequence.some(action => action.kind === "assert-form-contract"),
         `${item.caseId} form contract-only action forbidden`);
     }
@@ -830,11 +1596,11 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
     manifest.cases.filter(item => item.workflow.workflowClass === workflowClass).length,
   ]));
   const expectedWorkflowClassCounts = {
-    actionable: 40,
-    "form-submit": 15,
-    "persisted-mutation": 35,
-    "read-only-state": 287,
-    "hidden-disabled": 45,
+    actionable: 29,
+    "form-submit": 16,
+    "persisted-mutation": 97,
+    "read-only-state": 238,
+    "hidden-disabled": 42,
     "negative-route": 2,
   };
   for (const workflowClass of review4WorkflowClasses) {
@@ -853,6 +1619,7 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
 
 export function normalizeProductScreenRoute(route) {
   if (route === "/") return "/login";
+  if (route === "/logout") return "/ops/home";
   if (route === "/ops/api/events/reviews") return "/ops/events";
   if (route === "/client/api/views/{id}/events") return "/client/events";
   if (route === "/ops/api/audit") return "/ops/users";
@@ -866,6 +1633,7 @@ export function normalizeProductScreenRoute(route) {
 
 function classifyWorkflow({ canonicalCase, implementationItem, canonicalSelector }) {
   const flowKind = implementationItem.semanticEvidence?.review4Proof?.flowKind || "";
+  if (readModelPrimaryOverrides.has(canonicalCase.testId)) return "read-only-state";
   if (canonicalCase.testId === "UI-018" || canonicalCase.testId === "SAFE-017") return "negative-route";
   if (localOnlyMutationCases.has(canonicalCase.testId)) return "actionable";
   if (endpointActionCases.has(canonicalCase.testId)) return "actionable";
@@ -885,6 +1653,22 @@ function classifyWorkflow({ canonicalCase, implementationItem, canonicalSelector
 function resolvePrimaryControl({ canonicalCase, implementationItem, canonicalSelector, screenRoute, workflowClass }) {
   const caseId = canonicalCase.testId;
   const accountRole = actionRoleOverrides.get(caseId) || canonicalCase.accountRole;
+  if (readModelPrimaryOverrides.has(caseId)) {
+    const override = readModelPrimaryOverrides.get(caseId);
+    const source = overrideControlSourceCatalog.get(override.selector);
+    assert(workflowClass === "read-only-state" && source,
+      `${caseId} read-model primary control/source override missing`);
+    return {
+      applicability: "required",
+      selector: override.selector,
+      route: override.route,
+      accountRole,
+      source: "review4-read-model-control-override",
+      expectedVisible: true,
+      expectedEnabled: true,
+      sourceLocator: sourceLocatorFromAnchor(caseId, source),
+    };
+  }
   if (workflowClass === "actionable" && (localOnlyMutationCases.has(caseId) || endpointActionCases.has(caseId))) {
     const override = mutationPrimaryControls.get(caseId);
     const source = overrideControlSourceCatalog.get(override?.selector);
@@ -948,7 +1732,10 @@ function resolvePrimaryControl({ canonicalCase, implementationItem, canonicalSel
     });
   }
   if (canonicalSelector) {
-    const locator = implementationItem.semanticEvidence?.controlSelector?.locator;
+    const overrideSource = overrideControlSourceCatalog.get(canonicalSelector);
+    const locator = overrideSource
+      ? sourceLocatorFromAnchor(caseId, overrideSource)
+      : implementationItem.semanticEvidence?.controlSelector?.locator;
     assert(locator?.file && locator?.anchor, `${caseId} canonical primary control source missing`);
     const hidden = exactHiddenControl;
     const disabled = exactDisabledControl;
@@ -957,10 +1744,10 @@ function resolvePrimaryControl({ canonicalCase, implementationItem, canonicalSel
       selector: canonicalSelector,
       route: screenRoute,
       accountRole,
-      source: "review4-canonical-product-control",
+      source: overrideSource ? "review4-exact-runtime-oracle-control-override" : "review4-canonical-product-control",
       expectedVisible: !hidden,
       expectedEnabled: !hidden && !disabled,
-      sourceLocator: compactSourceLocator(locator),
+      sourceLocator: overrideSource ? locator : compactSourceLocator(locator),
     };
   }
   return buildNotApplicablePrimaryControl({
@@ -1195,11 +1982,20 @@ function buildCaseNativeWorkflow({
         semanticCallChainSha256: semanticDigest,
       }];
   if (workflowClass === "actionable") {
-    cleanup.unshift({
-      kind: "restore-local-control",
-      cleanupId: `${caseId}:restore-local-control`,
-      selector: targetSelector,
-    });
+    const primaryLocalAction = controlSequence.find(action =>
+      !["navigate", "navigate-action-route", "wait-visible", "verify-independent-readback"].includes(action.kind));
+    cleanup.unshift(primaryLocalAction?.kind === "activate-control"
+      ? {
+          kind: "reset-local-ui-route",
+          cleanupId: `${caseId}:reset-local-ui-route`,
+          route: primaryControl.route,
+          assertion: "reload the product route to discard transient DOM and page-script state",
+        }
+      : {
+          kind: "restore-local-control",
+          cleanupId: `${caseId}:restore-local-control`,
+          selector: targetSelector,
+        });
   }
 
   return {
@@ -1335,7 +2131,7 @@ function buildProductAction({
     };
   }
   if (workflowClass === "form-submit") {
-    const selector = normalizeCanonicalSelector(canonicalCase.controlAction?.selector);
+    const selector = normalizeCanonicalSelector(canonicalCase.controlAction?.selector, canonicalCase);
     const contract = formSubmitSpec(caseId, selector);
     return {
       kind: "form-submit-request",
@@ -1353,7 +2149,14 @@ function buildProductAction({
     return action;
   }
   if (workflowClass === "actionable") {
-    if (caseId === "RULE-101") {
+    if (["RULE-092", "RULE-093", "RULE-094", "RULE-095", "RULE-096", "RULE-100", "RULE-101"].includes(caseId)) {
+      const verificationEndpoint = caseId === "RULE-092"
+        ? { method: "POST", path: "/lab/analysis/rules", allowedStatuses: [400] }
+        : (caseId === "RULE-095"
+          ? { method: "POST", path: "/client/api/views/rule-095-view/webrtc/session", allowedStatuses: [400] }
+          : (caseId === "RULE-096"
+            ? { method: "POST", path: "/client/api/views/rule-096-view/webrtc/session", allowedStatuses: [404] }
+            : { method: "PUT", path: `/lab/analysis/va-rules/${caseId === "RULE-093" ? "9893" : (caseId === "RULE-094" ? "9894" : (caseId === "RULE-101" ? "9891" : "{fixtureId}"))}`, allowedStatuses: [400] }));
       return {
         kind: "rejected-ui-action",
         endpoint: null,
@@ -1361,11 +2164,7 @@ function buildProductAction({
           type: "activate",
           target: primaryControl.selector,
           effect: "block the UI save before dispatch and preserve the reviewed rule registry",
-          verificationEndpoint: {
-            method: "PUT",
-            path: "/lab/analysis/va-rules/{fixtureId}",
-            allowedStatuses: [400],
-          },
+          verificationEndpoint,
         },
       };
     }
@@ -1379,12 +2178,50 @@ function buildProductAction({
       },
     };
   }
+  if (caseId === "SRC-031") {
+    return {
+      kind: "product-boundary-read",
+      endpoint: {
+        method: "POST",
+        path: "/ops/api/onvif/import-draft",
+        allowedStatuses: [200],
+      },
+      localAction: null,
+    };
+  }
+  if (caseId === "RULE-097") {
+    return {
+      kind: "product-boundary-read",
+      endpoint: { method: "GET", path: "/client/api/views", allowedStatuses: [200] },
+      localAction: null,
+    };
+  }
+  if (caseId === "RULE-098") {
+    return {
+      kind: "product-boundary-read",
+      endpoint: { method: "GET", path: "/ops/api/rules/catalog", allowedStatuses: [200] },
+      localAction: null,
+    };
+  }
+  if (["RULE-001", "RULE-002", "RULE-003"].includes(caseId)) {
+    return {
+      kind: "product-state-read",
+      endpoint: {
+        method: "GET",
+        path: "/ops/api/rules/catalog",
+        allowedStatuses: [200],
+      },
+      localAction: null,
+    };
+  }
   return {
     kind: workflowClass === "hidden-disabled" ? "product-boundary-read" : "product-state-read",
     endpoint: {
       method: "GET",
       path: canonicalCase.route || screenRoute,
-      allowedStatuses: [200],
+      allowedStatuses: caseId === "UI-001" && canonicalCase.route === "/" && screenRoute === "/login"
+        ? [200, 302]
+        : [200],
     },
     localAction: null,
   };
@@ -1450,13 +2287,22 @@ function mutationProductAction(caseId, implementationItem, primaryControl) {
   if (["RULE-011", "RULE-012"].includes(caseId)) {
     return endpoint("PUT", "/lab/analysis/va-rules/{fixtureId}");
   }
-  if (caseId === "RULE-030") return endpoint("PUT", "/lab/analysis/profiles/{fixtureId}");
+  if (["RULE-026", "RULE-027", "RULE-028", "RULE-029", "RULE-030", "RULE-031", "RULE-032", "RULE-033"].includes(caseId)) {
+    return endpoint("PUT", "/lab/analysis/profiles/{fixtureId}");
+  }
+  if (["RULE-034", "RULE-035", "RULE-036", "RULE-037", "RULE-038", "RULE-039"].includes(caseId)) {
+    return endpoint("PUT", "/lab/analysis/va-rules/{fixtureId}");
+  }
   if (caseId === "RULE-016") {
     return endpoint("PUT", "/lab/analysis/va-rules/{fixtureId}", [200]);
   }
   if (caseId === "RULE-006") return endpoint("DELETE", "/lab/analysis/va-rules/{fixtureId}");
+  const ruleNumber = /^RULE-(\d+)$/.test(caseId) ? Number(caseId.slice(5)) : -1;
   if (["RULE-018", "RULE-019"].includes(caseId)) {
     return endpoint("PUT", "/lab/analysis/rules/{fixtureId}");
+  }
+  if (ruleNumber >= 41 && ruleNumber <= 91) {
+    return endpoint("PUT", "/lab/analysis/rules/{fixtureId}", [200]);
   }
   if (["RULE-073", "RULE-075"].includes(caseId)) {
     return endpoint("PUT", "/lab/analysis/rules/{fixtureId}", [200]);
@@ -1469,6 +2315,9 @@ function mutationProductAction(caseId, implementationItem, primaryControl) {
   if (caseId === "EVT-021") return endpoint("PUT", "/ops/api/events/reviews/{fixtureId}");
   if (caseId === "CLIENT-009") return endpoint("PUT", "/client/api/preferences/live-layout");
   if (caseId === "RULE-102") return local("update-review-loop", "render event type/conflict/reference/preset/EventRecord review state");
+  if (caseId === "RULE-103") return local("click", "refresh configured/default re-entry rules before exact GET and replay readback");
+  if (caseId === "RULE-104") return local("navigate", "open the approval-gated event draft in /ops/rules without registry writes");
+  if (caseId === "RULE-111") return local("click", "apply one actual VLM candidate to the event-template form without saving or runtime/provider calls");
   if (caseId === "CLIENT-002") return local("click", "start selected live tile and create its client session");
   if (caseId === "CLIENT-005") return local("click", "stop all live tiles and close their client sessions");
   if (caseId === "SAFE-038") return local("click", "apply draft fields without registry, event, schema, media, or viewer write");
@@ -1490,7 +2339,7 @@ function buildWorkflowInputs({ canonicalCase, implementationItem, workflowClass,
   }];
   if (workflowClass === "form-submit") {
     const contract = formSubmitSpec(caseId, canonicalSelector);
-    const values = formValues(caseId, contract.fields);
+    const values = formValues(caseId, contract);
     inputs.push({
       inputId: `${caseId}:form-values`,
       kind: "form-values",
@@ -1528,14 +2377,46 @@ function buildWorkflowInputs({ canonicalCase, implementationItem, workflowClass,
     return inputs;
   }
   if (workflowClass === "actionable") {
-    if (caseId === "RULE-101") {
+    if (["RULE-103", "RULE-104", "RULE-111"].includes(caseId)) {
+      inputs.push({
+        inputId: `${caseId}:exact-runtime-fixture`,
+        kind: "exact-runtime-fixture",
+        actualValue: caseId === "RULE-103"
+          ? { configuredRuleId: "9913", defaultRuleId: "9914", destinationZoneRuleId: "9915", replayExpected: ["positive", "positive", "missing-zone-red"] }
+          : (caseId === "RULE-104"
+            ? { eventAndVlmSidecar: true, approvalGatedRuleDraftReadiness: true, registryWritePerformed: false }
+            : { actualVlmCandidate: true, applyToEventTemplateForm: true, manualSaveOnly: true }),
+        seedReference: { fixtureId: workflowFixtureId(caseId), accountRole: canonicalCase.accountRole, route: canonicalCase.route },
+        sensitive: false,
+      });
+      return inputs;
+    }
+    if (["RULE-092", "RULE-093", "RULE-094", "RULE-095", "RULE-096", "RULE-100", "RULE-101"].includes(caseId)) {
       inputs.push({
         inputId: `${caseId}:local-control-input`,
         kind: "rejected-endpoint-fixture",
         actualValue: {
           method: productAction.localAction.verificationEndpoint.method,
           path: productAction.localAction.verificationEndpoint.path,
-          body: { analysisClasses: ["person"], profileClasses: ["vehicle"], templateClasses: ["person"] },
+          body: caseId === "RULE-092"
+            ? { duplicateKind: "event-template", duplicateId: "9201" }
+            : (caseId === "RULE-093"
+              ? { variants: ["missing-profile", "missing-template"], profileId: "9693", templateId: "9793" }
+              : (caseId === "RULE-094"
+                ? { variants: ["inactive-profile", "inactive-template"], profileId: "9694", templateId: "9794" }
+                : (caseId === "RULE-095"
+                  ? { variant: "source-mismatch", viewId: "rule-095-view", ruleId: "9895" }
+                  : (caseId === "RULE-096"
+                    ? { variants: ["inactive-view", "inactive-channel"], viewId: "rule-096-view", ruleId: "9896" }
+                    : (caseId === "RULE-100"
+                      ? { validRuleId: "9890", conflictRuleId: workflowFixtureId(caseId), priority: 9890 }
+                      : {
+                          variants: ["analysis-template-mismatch", "profile-template-mismatch"],
+                          analysisClasses: ["person"],
+                          profileClasses: ["person"],
+                          templateClasses: ["vehicle"],
+                          alternateProfileClasses: ["vehicle"],
+                        }))))),
         },
         seedReference: {
           fixtureId: workflowFixtureId(caseId),
@@ -1577,6 +2458,41 @@ function buildWorkflowInputs({ canonicalCase, implementationItem, workflowClass,
     });
     return inputs;
   }
+  if (["RULE-097", "RULE-098", "RULE-100"].includes(caseId)) {
+    const exact = {
+      "RULE-097": {
+        assignedViewId: "rule-097-view",
+        blockedViewId: "rule-097-blocked-view",
+        allowedRuleId: "9897",
+        disallowedRuleId: "98970",
+      },
+      "RULE-098": {
+        viewId: "rule-098-view",
+        ruleId: "9898",
+        rejectedRequestRole: "viewer",
+        expectedStatus: 400,
+        expectedError: "allowed vaRule is required for va-rule mode",
+      },
+      "RULE-100": {
+        validRuleId: "9890",
+        conflictRuleId: workflowFixtureId(caseId),
+        expectedStatus: 400,
+        expectedError: "vaRule priority conflicts with existing rule on same source",
+      },
+    }[caseId];
+    inputs.push({
+      inputId: `${caseId}:exact-runtime-boundary`,
+      kind: "rejected-endpoint-fixture",
+      actualValue: exact,
+      seedReference: {
+        fixtureId: workflowFixtureId(caseId),
+        accountRole: productAction.endpoint.path.startsWith("/client/") ? "viewer" : "operator",
+        route: caseId === "RULE-097" ? "/client/live" : canonicalCase.route,
+      },
+      sensitive: false,
+    });
+    return inputs;
+  }
   inputs.push({
     inputId: `${caseId}:product-read-input`,
     kind: workflowClass === "negative-route" ? "negative-route-request" : "product-state-request",
@@ -1591,6 +2507,17 @@ function buildWorkflowInputs({ canonicalCase, implementationItem, workflowClass,
 }
 
 function persistedMutationInputValues(caseId) {
+  if (caseId === "SRC-009") {
+    return { displayName: "File Source Updated", zone: "South", file: "sample_h265.mp4" };
+  }
+  if (caseId === "SRC-018") {
+    return {
+      displayName: "View One Updated",
+      kind: "rtsp",
+      allowedRuleIds: ["13"],
+      clientGroups: ["review4-client"],
+    };
+  }
   if (caseId === "RULE-011") {
     return { profileId: "9101", expectedProfileMapping: true };
   }
@@ -1603,13 +2530,73 @@ function persistedMutationInputValues(caseId) {
   if (caseId === "RULE-030") {
     return { minConfidence: 0.75, expectedValidation: "accepted-range" };
   }
+  if (caseId === "RULE-026") return { detector: "yolo" };
+  if (caseId === "RULE-027") return { detector: "dummy" };
+  if (caseId === "RULE-028") return { fps: 9, expectedValidation: "positive-integer" };
+  if (caseId === "RULE-029") return { maxQueue: 3, expectedValidation: "positive-integer" };
+  if (caseId === "RULE-031") return { nms: 0.55, expectedValidation: "accepted-range" };
+  if (caseId === "RULE-032") return { inputWidth: 320, inputHeight: 320, expectedValidation: "positive-integer" };
+  if (caseId === "RULE-033") return { trackingClasses: ["person", "car"] };
+  if (caseId === "RULE-034") return { tracker: "none", reid: "off" };
+  if (caseId === "RULE-035") return { tracker: "lite", reid: "off" };
+  if (caseId === "RULE-036") return { tracker: "kalman-lite", reid: "off" };
+  if (caseId === "RULE-037") return { tracker: "bytetrack", reid: "off" };
+  if (caseId === "RULE-038") return { tracker: "lite", reid: "off" };
+  if (caseId === "RULE-039") return { tracker: "lite", reid: "assist" };
+  if (caseId === "RULE-041") return { eventMode: "event", eventType: "presence" };
+  if (caseId === "RULE-042") return { eventMode: "event", eventType: "enter" };
+  if (caseId === "RULE-043") return { eventMode: "event", eventType: "exit" };
+  if (caseId === "RULE-044" || caseId === "RULE-045") return { eventMode: "event", eventType: "line-crossing", direction: "any" };
+  if (caseId === "RULE-046") return { eventMode: "event", eventType: "line-crossing", direction: "forward" };
+  if (caseId === "RULE-047") return { eventMode: "event", eventType: "line-crossing", direction: "reverse" };
+  if (caseId === "RULE-048") return { eventMode: "scenario", eventType: "intrusion-dwell" };
+  if (caseId === "RULE-049") return { eventMode: "scenario", eventType: "re-entry" };
+  if (caseId === "RULE-050") return { eventMode: "scenario", eventType: "wrong-direction", direction: "forward" };
+  if (caseId === "RULE-051") return { eventMode: "scenario", eventType: "intrusion-after-line-crossing", direction: "any" };
+  if (caseId === "RULE-052") return { eventMode: "scenario", eventType: "loitering" };
+  if (caseId === "RULE-053") return { eventMode: "scenario", eventType: "zone-occupancy" };
+  const presetByCase = {
+    "RULE-054": "default", "RULE-055": "road", "RULE-056": "retail", "RULE-057": "park",
+    "RULE-058": "indoor", "RULE-059": "lobby", "RULE-060": "platform", "RULE-061": "entrance",
+    "RULE-062": "doorway", "RULE-063": "parking", "RULE-064": "elevator",
+  }[caseId];
+  if (presetByCase) return { eventMode: "scenario", eventType: "intrusion-dwell", preset: presetByCase, restrictedZoneIds: [`${caseId.toLowerCase()}-zone`] };
+  if (caseId === "RULE-065") return { eventMode: "scenario", eventType: "intrusion-dwell", preset: "custom", minConfidence: 0.61, candidateTimeMs: 3500, dwellTimeMs: 12500, cooldownMs: 9000, restrictedZoneIds: ["rule-065-zone"] };
+  if (caseId === "RULE-066") return { eventMode: "scenario", eventType: "intrusion-dwell", preset: "custom", restrictedZoneIds: ["rule-066-zone"] };
+  if (caseId === "RULE-067") return { eventMode: "scenario", eventType: "intrusion-dwell", preset: "custom", candidateTimeMs: 2500, restrictedZoneIds: ["rule-067-zone"] };
+  if (caseId === "RULE-068") return { eventMode: "scenario", eventType: "intrusion-dwell", preset: "custom", dwellTimeMs: 10500, restrictedZoneIds: ["rule-068-zone"] };
+  if (caseId === "RULE-069") return { eventMode: "scenario", eventType: "intrusion-dwell", preset: "custom", cooldownMs: 6000, restrictedZoneIds: ["rule-069-zone"] };
+  if (caseId === "RULE-070") return { eventMode: "scenario", eventType: "re-entry", preset: "custom", reEntryMode: "configured-zones", reEntryZoneIds: ["rule-070-destination"] };
+  if (caseId === "RULE-071") return { eventMode: "scenario", eventType: "re-entry", preset: "custom", reEntryWindowMs: 17000 };
+  if (caseId === "RULE-072") return { eventMode: "scenario", eventType: "re-entry", preset: "custom", cooldownMs: 9000 };
+  if (caseId === "RULE-073" || caseId === "RULE-074") return { eventMode: "scenario", eventType: "wrong-direction", preset: "custom", direction: "forward" };
+  if (caseId === "RULE-075") return { eventMode: "scenario", eventType: "wrong-direction", preset: "custom", direction: "forward", cooldownMs: 9000 };
+  if (caseId === "RULE-076") return { eventMode: "scenario", eventType: "intrusion-after-line-crossing", preset: "custom" };
+  if (caseId === "RULE-077") return { eventMode: "scenario", eventType: "intrusion-after-line-crossing", preset: "custom", direction: "reverse" };
+  if (caseId === "RULE-078") return { eventMode: "scenario", eventType: "intrusion-after-line-crossing", preset: "custom", targetZoneIds: ["rule-078-zone"] };
+  if (caseId === "RULE-079") return { eventMode: "scenario", eventType: "intrusion-after-line-crossing", preset: "custom", lineDelayMs: 13000 };
+  if (caseId === "RULE-080") return { eventMode: "scenario", eventType: "intrusion-after-line-crossing", preset: "custom", dwellTimeMs: 4500 };
+  if (caseId === "RULE-081") return { eventMode: "scenario", eventType: "intrusion-after-line-crossing", preset: "custom", cooldownMs: 11000 };
+  if (caseId === "RULE-082") return { eventMode: "scenario", eventType: "loitering", preset: "custom", restrictedZoneIds: ["rule-082-zone"] };
+  if (caseId === "RULE-083") return { eventMode: "scenario", eventType: "loitering", preset: "custom", dwellTimeMs: 35000 };
+  if (caseId === "RULE-084") return { eventMode: "scenario", eventType: "loitering", preset: "custom", loiteringRadius: 0.12 };
+  if (caseId === "RULE-085") return { eventMode: "scenario", eventType: "loitering", preset: "custom", loiteringPoints: 6 };
+  if (caseId === "RULE-086") return { eventMode: "scenario", eventType: "loitering", preset: "custom", cooldownMs: 13000 };
+  if (caseId === "RULE-087") return { eventMode: "scenario", eventType: "loitering", preset: "custom", groundPlane: true };
+  if (caseId === "RULE-088") return { eventMode: "scenario", eventType: "zone-occupancy", preset: "custom", restrictedZoneIds: ["rule-088-zone"] };
+  if (caseId === "RULE-089") return { eventMode: "scenario", eventType: "zone-occupancy", preset: "custom", zoneThreshold: 7 };
+  if (caseId === "RULE-090") return { eventMode: "scenario", eventType: "zone-occupancy", preset: "custom", zoneDwellMs: 9000 };
+  if (caseId === "RULE-091") return { eventMode: "scenario", eventType: "zone-occupancy", preset: "custom", cooldownMs: 14000 };
   return {};
 }
 
-function formValues(caseId, fields) {
+function formValues(caseId, form) {
   const fixtureId = workflowFixtureId(caseId);
+  const fields = form.fields;
   const values = {
-    username: fixtureId,
+    username: form.selector === '[data-testid="auth-setup-form"]' || caseId === "AUTH-007"
+      ? "admin"
+      : fixtureId,
     password: { secretRef: `${caseId}:fixture-password`, redacted: true },
     confirm: { secretRef: `${caseId}:fixture-password`, redacted: true },
     confirmPassword: { secretRef: `${caseId}:fixture-password`, redacted: true },
@@ -1649,11 +2636,11 @@ function persistedUiLifecycle(caseId, productAction, inputs) {
   else if (caseId === "AUTH-037") adapter = "auth-access-approve";
   else if (caseId === "AUTH-038") adapter = "auth-access-reject";
   else if (caseId === "AUTH-039") adapter = "auth-access-request-create";
-  else if (["RULE-004", "RULE-005", "RULE-008", "RULE-011", "RULE-012", "RULE-016"].includes(caseId)) adapter = "rule-va-save";
+  else if (["RULE-004", "RULE-005", "RULE-008", "RULE-011", "RULE-012", "RULE-016", "RULE-034", "RULE-035", "RULE-036", "RULE-037", "RULE-038", "RULE-039"].includes(caseId)) adapter = "rule-va-save";
   else if (caseId === "RULE-006") adapter = "rule-va-delete";
-  else if (["RULE-018", "RULE-019", "RULE-073", "RULE-075"].includes(caseId)) adapter = "rule-event-save";
+  else if (["RULE-018", "RULE-019", ...Array.from({ length: 51 }, (_, index) => `RULE-${String(41 + index).padStart(3, "0")}`)].includes(caseId)) adapter = "rule-event-save";
   else if (caseId === "RULE-020") adapter = "rule-event-delete";
-  else if (["RULE-022", "RULE-023", "RULE-030"].includes(caseId)) adapter = "rule-profile-save";
+  else if (["RULE-022", "RULE-023", "RULE-026", "RULE-027", "RULE-028", "RULE-029", "RULE-030", "RULE-031", "RULE-032", "RULE-033"].includes(caseId)) adapter = "rule-profile-save";
   else if (caseId === "RULE-024") adapter = "rule-profile-delete";
   else if (caseId === "EVT-021") adapter = "event-review-save";
   else if (caseId === "CLIENT-009") adapter = "client-layout-save";
@@ -1689,9 +2676,12 @@ function formSubmitUiLifecycle(caseId, form) {
   let adapter = "auth-standard-submit";
   if (caseId === "AUTH-014") adapter = "auth-user-create";
   else if (["AUTH-015", "AUTH-033"].includes(caseId)) adapter = "auth-invite-create";
-  else if (caseId === "AUTH-036") adapter = "auth-access-request-create";
+  else if (["UI-008", "AUTH-036"].includes(caseId)) adapter = "auth-access-request-create";
   else if (caseId === "UI-005") adapter = "auth-logout";
   const fieldControls = form.fields.map(name => {
+    if (form.selector === '[data-testid="auth-setup-form"]' && name === "username") {
+      return { name, control: "readonly-value", expectedValue: "admin", valueSource: "product-fixed-admin" };
+    }
     if (name === "role") return { name, control: "select" };
     if (caseId === "AUTH-014" && name === "viewId") {
       return {
@@ -1700,6 +2690,9 @@ function formSubmitUiLifecycle(caseId, form) {
         bindingSelector: "[data-assignment-view]",
         valueSource: "runtime-default-view",
       };
+    }
+    if (["AUTH-015", "AUTH-033", "UI-008", "AUTH-036"].includes(caseId) && name === "viewId") {
+      return { name, control: "fill", valueSource: "runtime-default-view" };
     }
     return { name, control: "fill" };
   });
@@ -1822,6 +2815,7 @@ function buildActionSemanticCompletion({
   let request = null;
   let localTransition = null;
   const localCompletionContract = primary ? localCompletionContracts.get(caseId) || null : null;
+  const readModelCompletionContract = primary ? readModelCompletionContracts.get(caseId) || null : null;
   if (primary) {
     if (productAction.endpoint) {
       request = actionRequestContract(correlationId, productAction.endpoint, workflowInputs, caseId);
@@ -1874,7 +2868,9 @@ function buildActionSemanticCompletion({
     readbackIdentity: primary || independent ? independentReadback.identity : `${caseId}:navigation`,
     readbackExpectation: localCompletionContract
       ? { postconditions: structuredClone(localCompletionContract.postconditions || []) }
-      : semanticReadbackExpectation(action),
+      : (readModelCompletionContract
+          ? structuredClone(readModelCompletionContract)
+          : semanticReadbackExpectation(action)),
     attestedAlternatives: negative ? [] : ["persisted-readback", "event-record", "server-log"],
   };
 }
@@ -1975,9 +2971,15 @@ function isRouteRootSelector(value) {
   return value === "body" || /^body\.(?:ops|client|auth|product)-shell$/.test(value || "");
 }
 
-function normalizeCanonicalSelector(value) {
+function normalizeCanonicalSelector(value, canonicalCase = null) {
   if (typeof value !== "string" || !value.trim()) return null;
   if (value === '[data-testid="${escapeHtml(testId)}"]') {
+    if (canonicalCase?.testId === "SRC-038") {
+      return '[data-testid="client-safe-source-status-digest"]';
+    }
+    if (canonicalCase?.testId === "CLIENT-007") {
+      return ".client-viewer-events";
+    }
     return '[data-testid="client-dashboard-safe-summary"]';
   }
   if (new RegExp(dynamicSelectorPattern).test(value)) return null;

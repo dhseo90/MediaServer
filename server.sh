@@ -166,6 +166,18 @@ Usage:
                  V390-REVIEW2-24 canonical exact 424 native 실행 manifest를 생성·검증합니다.
   verify-v390-ui-native-exact-cases-contract
                  V390-REVIEW2-24 exact case/API route/negative route/unsupported false-PASS 계약을 검증합니다.
+  verify-v390-ui-exact-core-oracles-contract
+                 V390-REVIEW4-65 UI/AUTH/SRC/RULE 288개 기능별 runtime oracle 계약을 검증합니다.
+  verify-v390-ui-exact-event-oracles-contract
+                 V390-REVIEW4-65 EVT 49개 기능별 runtime oracle 계약을 검증합니다.
+  verify-v390-ui-exact-event-oracle-evaluator-contract
+                 V390-REVIEW4-65 EVT response/DOM/network/state evaluator의 fail-closed 계약을 검증합니다.
+  verify-v390-ui-exact-client-safe-oracles-contract
+                 V390-REVIEW4-65 CLIENT/MEDIA/SAFE 87개 기능별 runtime oracle 계약을 검증합니다.
+  verify-v390-ui-exact-oracle-catalog-contract
+                 V390-REVIEW4-65 exact 424 통합 runtime oracle catalog를 검증합니다.
+  verify-v390-ui-exact-oracle-runtime-contract
+                 V390-REVIEW4-65 actual runtime oracle 실행기의 false-PASS 거부 계약을 검증합니다.
   verify-v390-ui-completion-oracle-contract
                  V390-REVIEW2-25 no-op action/pre-existing visible state false-PASS 계약을 검증합니다.
   verify-v390-ui-policy-v4-producer-contract
@@ -424,6 +436,8 @@ Usage:
                  V390-REVIEW4-53 저장 audit를 별도 trust-domain에서 재검증하고 approval ledger 경계를 검증합니다.
   verify-v390-review4-feature-semantic-source-approval-selftest
                  V390-REVIEW4-53 독립 approval validator의 non-gate negative self-test를 실행합니다.
+  verify-v390-review4-semantic-migration-contract
+                 V390-REVIEW4-65 scoped semantic input과 carry-forward negative contract를 검증합니다.
   verify-v390-review4-ops-168-184-safe-001-008-semantic
                  V390-REVIEW4-53 OPS-168~184/SAFE-001~008 product/harness authored closure를 검증합니다.
   verify-v390-feature-completion-inventory
@@ -478,6 +492,8 @@ Usage:
                  v3.9.0 canonical build→기능→30분→exact 424→Policy v4→조건부 120분→final integrity bundle을 실행합니다.
   verify-v390-test-acceptance-bundle-contract
                  v3.9.0 R3 test acceptance bundle command/docs/evidence contract를 검증합니다.
+  verify-v390-user-test-launchers-contract
+                 REVIEW4-62/65 사용자용 30분·120분·UI·release 무옵션 launcher 계약을 검증합니다.
   verify-v390-final-evidence-integrity
                  v3.9.0 Evidence 13~14 final artifact/provenance/cleanup 무결성을 검증합니다.
   verify-v390-final-evidence-integrity-contract
@@ -923,6 +939,8 @@ Usage:
                  V390-REVIEW4-53 저장 audit를 별도 trust-domain에서 재검증하고 approval ledger 경계를 검증합니다.
   verify-v390-review4-feature-semantic-source-approval-selftest
                  V390-REVIEW4-53 독립 approval validator의 non-gate negative self-test를 실행합니다.
+  verify-v390-review4-semantic-migration-contract
+                 V390-REVIEW4-65 scoped semantic input과 carry-forward negative contract를 검증합니다.
   verify-v390-review4-ops-168-184-safe-001-008-semantic
                  V390-REVIEW4-53 OPS-168~184/SAFE-001~008 product/harness authored closure를 검증합니다.
   verify-v390-feature-completion-inventory
@@ -2242,9 +2260,17 @@ case "${cmd}" in
     require_internal verify_v390_review4_feature_semantic_source_approvals.mjs
     exec "${INTERNAL_DIR}/verify_v390_review4_feature_semantic_source_approvals.mjs" "$@"
     ;;
+  produce-v390-review4-migration-aware-approvals)
+    require_internal produce_v390_review4_migration_aware_approvals.mjs
+    exec "${INTERNAL_DIR}/produce_v390_review4_migration_aware_approvals.mjs" "$@"
+    ;;
   verify-v390-review4-feature-semantic-source-approval-selftest)
     require_internal verify_v390_review4_feature_semantic_source_approval_selftest.mjs
     exec "${INTERNAL_DIR}/verify_v390_review4_feature_semantic_source_approval_selftest.mjs" "$@"
+    ;;
+  verify-v390-review4-semantic-migration-contract)
+    require_internal verify_v390_review4_semantic_migration_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_review4_semantic_migration_contract.mjs" "$@"
     ;;
   verify-v390-review4-ops-168-184-safe-001-008-semantic)
     require_internal verify_v390_review4_ops_168_184_safe_001_008_semantic.mjs
@@ -2302,6 +2328,30 @@ case "${cmd}" in
     require_internal verify_v390_ui_native_exact_cases_contract.mjs
     exec "${INTERNAL_DIR}/verify_v390_ui_native_exact_cases_contract.mjs" "$@"
     ;;
+  verify-v390-ui-exact-core-oracles-contract)
+    require_internal verify_v390_ui_exact_core_oracles_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_exact_core_oracles_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-exact-event-oracles-contract)
+    require_internal verify_v390_ui_exact_event_oracles_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_exact_event_oracles_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-exact-event-oracle-evaluator-contract)
+    require_internal verify_v390_ui_exact_event_oracle_evaluator_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_exact_event_oracle_evaluator_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-exact-client-safe-oracles-contract)
+    require_internal verify_v390_ui_exact_client_safe_oracles_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_exact_client_safe_oracles_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-exact-oracle-catalog-contract)
+    require_internal verify_v390_ui_exact_oracle_catalog_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_exact_oracle_catalog_contract.mjs" "$@"
+    ;;
+  verify-v390-ui-exact-oracle-runtime-contract)
+    require_internal verify_v390_ui_exact_oracle_runtime_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_ui_exact_oracle_runtime_contract.mjs" "$@"
+    ;;
   verify-v390-ui-completion-oracle-contract)
     require_internal verify_v390_ui_completion_oracle_contract.mjs
     exec "${INTERNAL_DIR}/verify_v390_ui_completion_oracle_contract.mjs" "$@"
@@ -2357,6 +2407,10 @@ case "${cmd}" in
   verify-v390-test-acceptance-bundle-contract)
     require_internal verify_v390_test_acceptance_bundle_contract.mjs
     exec "${INTERNAL_DIR}/verify_v390_test_acceptance_bundle_contract.mjs" "$@"
+    ;;
+  verify-v390-user-test-launchers-contract)
+    require_internal verify_v390_user_test_launchers_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v390_user_test_launchers_contract.mjs" "$@"
     ;;
   verify-v390-final-evidence-integrity)
     require_internal verify_v390_final_evidence_integrity.mjs

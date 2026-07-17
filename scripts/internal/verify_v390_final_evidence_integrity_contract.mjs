@@ -50,8 +50,45 @@ check("server dispatch, script inventory, and evidence docs expose final integri
 
 check("complete fixture integrity passes only with explicit fixture allowance", () => {
   const workspace = makeFixture("valid");
-  assert(runIntegrity(workspace, true).status === 0, "valid fixture integrity must pass with --allow-fixture");
+  const allowed = runIntegrity(workspace, true);
+  assert(allowed.status === 0,
+    `valid fixture integrity must pass with --allow-fixture: ${allowed.stdout}\n${allowed.stderr}`);
   assert(runIntegrity(workspace, false).status !== 0, "fixture must not be final-evidence eligible by default");
+  const summary = JSON.parse(fs.readFileSync(path.join(workspace, "summary.json"), "utf8"));
+  assert(summary.finalEvidence?.schema === "media-server.v390-canonical-final-evidence.v1",
+    "fixture canonical final evidence manifest missing");
+  assert(summary.finalEvidence.reportPath && summary.finalEvidence.reportSha256,
+    "fixture report is not directly hash-bound");
+});
+
+check("canonical report tampering and temporary final evidence references are rejected", () => {
+  const reportWorkspace = makeFixture("report-tamper");
+  fs.appendFileSync(path.join(reportWorkspace, "report.md"), "tampered\n", "utf8");
+  assert(runIntegrity(reportWorkspace, true).status !== 0, "tampered canonical report must fail");
+
+  const tempWorkspace = makeFixture("temporary-final-reference");
+  const summaryPath = path.join(tempWorkspace, "summary.json");
+  const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
+  summary.finalEvidence.temporaryPathFinalEvidenceReferences = ["/tmp/not-final.json"];
+  fs.writeFileSync(summaryPath, `${JSON.stringify(summary, null, 2)}\n`, "utf8");
+  assert(runIntegrity(tempWorkspace, true).status !== 0,
+    "temporary path referenced as final evidence must fail");
+});
+
+check("canonical child evidence byte and hash drift are rejected", () => {
+  const workspace = makeFixture("child-hash-drift");
+  const childPath = path.join(workspace, "runs", "fixture-child.json");
+  fs.writeFileSync(childPath, "{}\n", "utf8");
+  const summaryPath = path.join(workspace, "summary.json");
+  const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
+  summary.finalEvidence.artifacts.push({
+    id: "fixture-child",
+    path: path.relative(rootDir, childPath),
+    bytes: fs.statSync(childPath).size,
+    sha256: "0".repeat(64),
+  });
+  fs.writeFileSync(summaryPath, `${JSON.stringify(summary, null, 2)}\n`, "utf8");
+  assert(runIntegrity(workspace, true).status !== 0, "child evidence hash drift must fail");
 });
 
 check("start provenance allows only the canonical artifact root", () => {
@@ -146,7 +183,9 @@ check("preserved first failure files are required after a recovered retry", () =
     "--fixture-pass",
   ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
   assert(passed.status === 0, `recovered fixture retry failed: ${passed.stdout}\n${passed.stderr}`);
-  assert(runIntegrity(workspace, true).status === 0, "recovered fixture integrity must pass with preserved failure files");
+  const recovered = runIntegrity(workspace, true);
+  assert(recovered.status === 0,
+    `recovered fixture integrity must pass with preserved failure files: ${recovered.stdout}\n${recovered.stderr}`);
   fs.rmSync(path.join(workspace, "first-failure.md"), { force: true });
   assert(runIntegrity(workspace, true).status !== 0, "missing first-failure.md must fail integrity verification");
 });

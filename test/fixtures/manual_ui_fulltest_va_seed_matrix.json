@@ -59,6 +59,8 @@
       "kind": "file",
       "file": "imports/va_tracking_event_long_1280x720_30fps_h264.mp4",
       "localPath": "video/imports/va_tracking_event_long_1280x720_30fps_h264.mp4",
+      "fixtureSizeBytes": 7284400,
+      "fixtureSha256": "24147fb07bb3a1e1f86bb41d2cce6274a6f39eb75671a299a61ca9852f37a122",
       "purpose": "actual re-entry scenario firing proof; same-track exit and re-entry requires a longer fixture"
     },
     {

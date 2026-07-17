@@ -19,13 +19,14 @@ import {
 } from "./evidence_integrity_lib.mjs";
 import { evaluateV390FullSuiteEligibility } from "./v390_full_suite_eligibility_lib.mjs";
 import {
+  classifyLongrun120ChangedAreas,
   evaluateLongrun120Decision,
   validateCleanupMeasurement,
   validateIterationLedger,
   validateMonotonicDurationEvidence,
 } from "./v390_longrun_evidence_measurement_lib.mjs";
 import {
-  consumeAcceptanceAdminPassword,
+  discardInheritedAcceptanceSecrets,
   listListenerPids,
   startSelfContainedUiEnvironment,
   stopSelfContainedUiEnvironment,
@@ -46,8 +47,8 @@ const stageIds = [
   "longrun-120-decision",
   "server-longrun-120",
   "cleanup",
-  "final-integrity",
   "report",
+  "final-integrity",
 ];
 const canonicalUiCaseIds = readJson(path.join(rootDir, "test/fixtures/ui_fulltest_case_manifest_policy_v4.json"))
   .cases.map(item => item.testId);
@@ -56,8 +57,16 @@ if (hasHelpFlag(rawArgs)) {
   printUsageAndExit(`v3.9.0 test acceptance bundle
 
 Usage:
+  ./test_server_30min.sh
+  ./test_server_120min.sh
+  ./test_ui.sh
+  ./test_release.sh
   ./server.sh verify-v390-test-acceptance-bundle --dry-run [--output-dir <path>]
   ./server.sh verify-v390-test-acceptance-bundle --output-dir <path> [options]
+
+User entrypoint:
+  Root launchers generate output/ports/accounts/browser/secrets internally and accept no user options.
+  test_release.sh evaluates AGENTS 7.6.2 and runs 120 minutes only when a trigger exists.
 
 Options:
   --dry-run                    Validate command set and evidence boundaries without running child suites.
@@ -65,7 +74,9 @@ Options:
   --ui-playwright-module-path <path>  Optional native Playwright package directory.
   --ui-chrome-path <path>      Optional native Chrome/Chromium executable.
   --ui-build-path <path>       Built media_server fingerprint/server binary. Default build-gst-onnx/media_server.
+  --suite <release|ui>         Internal suite selection. User launchers own this option.
   --run-120                    Execute the conditional 120-minute phase after 30-minute and UI success.
+  --auto-run-120               Execute 120 minutes only when AGENTS 7.6.2 reports a trigger.
   --user-directed-120          Record an explicit AGENTS 7.6.2 user-directive trigger; combine with --run-120 to execute.
   --fixture-pass               Fast actual-mode orchestration fixture; not duration/UI evidence.
   --fixture-fail-stage <id>    Fail one stage and record later ordinary stages as not-run.
@@ -77,7 +88,7 @@ Actual order:
   preflight -> build -> feature gates -> real 30-minute -> self-contained UI environment
   -> exact 424 Policy v4 producer
   -> throwaway UI server cleanup -> Policy v4 qualification -> conditional 120-minute decision/run
-  -> cleanup -> final integrity -> report.
+  -> cleanup -> report materialization -> final integrity.
 
 Boundaries:
   - First ordinary stage failure makes later ordinary stages not-run; cleanup/report always run.
@@ -94,7 +105,9 @@ assertKnownOptions(rawArgs, [
   "ui-playwright-module-path",
   "ui-chrome-path",
   "ui-build-path",
+  "suite",
   "run-120",
+  "auto-run-120",
   "user-directed-120",
   "fixture-pass",
   "fixture-fail-stage",
@@ -107,11 +120,14 @@ assertKnownOptions(rawArgs, [
 const options = parseArgs(rawArgs);
 const runId = `v390-test-acceptance-${new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14)}-${process.pid}`;
 const outputDir = path.resolve(rootDir, options.outputDir || path.join(os.tmpdir(), `media_server_${runId}`));
+const canonicalReleaseOutputDir = path.join(rootDir, "docs/release-artifacts/v3.9.0/test-acceptance-current-final");
 const runDir = path.join(outputDir, "runs", runId);
 const summaryPath = path.join(outputDir, "summary.json");
 const reportPath = path.join(outputDir, "report.md");
 const fixtureMode = options.fixturePass || options.fixtureFailStage !== "" || options.fixtureCleanupFail;
-const executionMode = options.dryRun ? "dry-run" : (fixtureMode ? "actual-fixture" : "actual");
+const executionMode = options.dryRun
+  ? "dry-run"
+  : (fixtureMode ? "actual-fixture" : (options.suite === "ui" ? "actual-ui-only" : "actual"));
 const featureCommands = buildFeatureCommands();
 const finalAcceptanceCommandSet = buildFinalAcceptanceCommandSet();
 const stages = [];
@@ -126,8 +142,9 @@ let longrun120Decision = null;
 let uiEnvironmentHandle = null;
 let uiEnvironmentSummary = null;
 let uiEnvironmentCleanup = null;
+let finalizedSourceProvenanceEnd = null;
 
-let acceptanceAdminPassword = consumeAcceptanceAdminPassword();
+const inheritedSecretDisposition = discardInheritedAcceptanceSecrets(process.env);
 const sourceProvenance = collectSourceProvenanceWithAllowedArtifacts(rootDir, outputDir);
 const priorFirstFailure = options.dryRun ? null : readPriorFirstFailure();
 const outputPreparation = options.dryRun ? {
@@ -155,11 +172,15 @@ async function runActualBundle() {
   for (const stageId of stageIds) {
     const ordinary = !["ui-server-cleanup", "cleanup", "report"].includes(stageId);
     const skipForPreviousFailure = ordinary && failedStage !== "";
+    const skipForSuite = !stageSelectedForSuite(stageId);
     const skipConditional120 = stageId === "server-longrun-120" && longrun120Decision?.executionDecision !== "run";
-    if (skipForPreviousFailure || skipConditional120) {
-      stages.push(notRunStage(stageId, skipForPreviousFailure
+    if (skipForPreviousFailure || skipForSuite || skipConditional120) {
+      const reason = skipForPreviousFailure
         ? `not run after ${failedStage} failure`
-        : `120-minute execution decision: ${longrun120Decision?.executionDecision || "not-evaluated"}`));
+        : (skipForSuite
+          ? `not selected by ${options.suite} suite`
+          : `120-minute execution decision: ${longrun120Decision?.executionDecision || "not-evaluated"}`);
+      stages.push(notRunStage(stageId, reason));
       printProgress(stageId, "not-run");
       continue;
     }
@@ -176,10 +197,8 @@ async function runActualBundle() {
       recordFailure(stageId, `execute ${stageId}`, message, ["ui-server-cleanup", "cleanup"].includes(stageId));
     }
   }
-  const summary = buildActualSummary();
-  writeJson(summaryPath, summary);
-  writeReport(reportPath, summary);
   normalizeTextArtifacts(outputDir);
+  const summary = writeAcceptanceArtifacts();
   printSummary(summary);
   if (summary.result !== "PASS") process.exit(1);
 }
@@ -210,12 +229,12 @@ async function runRealStage(stageId) {
       recordFailure(stageId, "preflight", `missing required files: ${missing.join(", ")}`);
       return;
     }
-    if (!fixtureMode && sourceProvenance.sourceWorktreeClean !== true) {
-      recordFailure(stageId, "preflight", "current final actual acceptance requires a clean worktree; commit approved changes before running");
+    if (executionMode === "actual" && outputDir !== canonicalReleaseOutputDir) {
+      recordFailure(stageId, "preflight", `release acceptance output must be canonical: ${canonicalReleaseOutputDir}`);
       return;
     }
-    if (!fixtureMode && !acceptanceAdminPassword) {
-      recordFailure(stageId, "preflight", "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD is required for the acceptance-owned throwaway admin");
+    if (!fixtureMode && sourceProvenance.sourceWorktreeClean !== true) {
+      recordFailure(stageId, "preflight", "current final actual acceptance requires a clean worktree; commit approved changes before running");
       return;
     }
     stages.push(passStage(stageId, "validate actual bundle inputs", {
@@ -225,8 +244,9 @@ async function runRealStage(stageId) {
       uiExecution: "exact-424-policy-v4",
       uiEnvironmentOwnership: "self-contained-pid-port-artifact-ownership",
       dependencyStatus: "dependency-bootstrap-attestation",
-      secretHandling: "runtime-admin-and-generated-role-secrets-memory-only",
-      adminSecretSource: "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD",
+      secretHandling: "all-role-secrets-generated-memory-only",
+      roleSecretSource: "acceptance-crypto-random-generated-memory-only",
+      inheritedSecretDisposition,
       roleStateSource: "role-storage-state-generated-by-acceptance",
       run120: options.run120,
       longrun120Decision: "AGENTS 7.6.2 conditional 120-minute decision",
@@ -262,19 +282,14 @@ async function runRealStage(stageId) {
 
   if (stageId === "ui-environment-bootstrap") {
     const startedAt = Date.now();
-    try {
-      uiEnvironmentHandle = await startSelfContainedUiEnvironment({
-        rootDir,
-        runId,
-        adminPassword: acceptanceAdminPassword,
-        fixtureMode: false,
-        playwrightModulePath: options.uiPlaywrightModulePath,
-        chromePath: options.uiChromePath,
-        buildPath: options.uiBuildPath,
-      });
-    } finally {
-      acceptanceAdminPassword = "";
-    }
+    uiEnvironmentHandle = await startSelfContainedUiEnvironment({
+      rootDir,
+      runId,
+      fixtureMode: false,
+      playwrightModulePath: options.uiPlaywrightModulePath,
+      chromePath: options.uiChromePath,
+      buildPath: options.uiBuildPath,
+    });
     uiEnvironmentSummary = uiEnvironmentHandle.attestation;
     const endedAt = Date.now();
     stages.push(makeStage({
@@ -373,7 +388,14 @@ async function runRealStage(stageId) {
   }
 
   if (stageId === "longrun-120-decision") {
-    longrun120Decision = evaluateLongrun120Decision({ scope: buildLongrun120Scope(), runRequested: options.run120 });
+    const scope = buildLongrun120Scope();
+    const automaticScopeDecision = options.autoRun120
+      ? evaluateLongrun120Decision({ scope, runRequested: false })
+      : null;
+    const runRequested = options.autoRun120
+      ? automaticScopeDecision?.conditionMet === true
+      : options.run120;
+    longrun120Decision = evaluateLongrun120Decision({ scope, runRequested });
     if (!longrun120Decision.valid || longrun120Decision.executionDecision === "hold-awaiting-approval") {
       recordFailure(stageId, "evaluate AGENTS 7.6.2 change scope", JSON.stringify(longrun120Decision));
     } else {
@@ -430,20 +452,22 @@ async function runRealStage(stageId) {
       checks: [],
     });
     stages.push(stage);
-    writeJson(summaryPath, buildActualSummary());
+    normalizeTextArtifacts(outputDir);
+    finalizedSourceProvenanceEnd = collectSourceProvenanceWithAllowedArtifacts(rootDir, outputDir);
+    writeAcceptanceArtifacts();
     const result = await runCommand(command("./server.sh", [
       "verify-v390-final-evidence-integrity",
       "--summary", summaryPath,
     ]), logPath);
-    Object.assign(stage, {
-      status: result.exitCode === 0 ? "PASS" : "FAIL",
-      exitCode: result.exitCode,
-      startedAt: result.startedAt,
-      endedAt: result.endedAt,
-      durationMs: result.durationMs,
-      tail: result.tail,
-    });
     if (result.exitCode !== 0) {
+      Object.assign(stage, {
+        status: "FAIL",
+        exitCode: result.exitCode,
+        startedAt: result.startedAt,
+        endedAt: result.endedAt,
+        durationMs: result.durationMs,
+        tail: result.tail,
+      });
       failedStage = stageId;
       failedCommand = stage.command;
     }
@@ -452,6 +476,8 @@ async function runRealStage(stageId) {
 
   if (stageId === "report") {
     stages.push(passStage(stageId, "write acceptance summary/report", { summaryPath, reportPath }));
+    normalizeTextArtifacts(outputDir);
+    writeAcceptanceArtifacts();
   }
 }
 
@@ -487,7 +513,14 @@ async function runFixtureStage(stageId) {
     return;
   }
   if (stageId === "longrun-120-decision") {
-    longrun120Decision = evaluateLongrun120Decision({ scope: buildLongrun120Scope(), runRequested: options.run120 });
+    const scope = buildLongrun120Scope();
+    const automaticScopeDecision = options.autoRun120
+      ? evaluateLongrun120Decision({ scope, runRequested: false })
+      : null;
+    const runRequested = options.autoRun120
+      ? automaticScopeDecision?.conditionMet === true
+      : options.run120;
+    longrun120Decision = evaluateLongrun120Decision({ scope, runRequested });
     if (!longrun120Decision.valid || longrun120Decision.executionDecision === "hold-awaiting-approval") {
       recordFailure(stageId, "fixture AGENTS 7.6.2 change scope", JSON.stringify(longrun120Decision));
     } else {
@@ -603,7 +636,7 @@ function childProcessEnv(overrides = {}) {
   const env = { ...process.env };
   delete env.MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD;
   delete env.MEDIA_SERVER_V390_UI_ROLE_SECRETS;
-  return { ...env, ...overrides };
+  return { ...env, MEDIA_SERVER_SKIP_LOCAL_ENV: "1", ...overrides };
 }
 
 function replaceStageWithValidationFailure(stageId, message) {
@@ -643,7 +676,8 @@ function buildActualSummary() {
   });
   const knownUiClosureBlockers = [...fullSuiteEligibility.reasons];
   const firstFailure = buildFirstFailure();
-  const sourceProvenanceEnd = collectSourceProvenanceWithAllowedArtifacts(rootDir, outputDir);
+  const sourceProvenanceEnd = finalizedSourceProvenanceEnd ||
+    collectSourceProvenanceWithAllowedArtifacts(rootDir, outputDir);
   const canonicalCommandSetSha256 = sha256Text(JSON.stringify(finalAcceptanceCommandSet));
   return {
     schema: "media-server.v390-test-acceptance-bundle.v1",
@@ -653,6 +687,7 @@ function buildActualSummary() {
     sourceProvenanceEnd,
     outputPreparation,
     executionMode,
+    suite: options.suite,
     dryRun: false,
     fixtureMode,
     result: executionPassed ? "PASS" : "FAIL",
@@ -681,8 +716,8 @@ function buildActualSummary() {
       result: "not-run",
       fixtureMode,
       dependency: { status: "dependency-bootstrap-attestation", browserLaunchVerified: false },
-      secretHandling: "runtime-admin-and-generated-role-secrets-memory-only",
-      adminSecretSource: "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD",
+      secretHandling: "all-role-secrets-generated-memory-only",
+      roleSecretSource: "acceptance-crypto-random-generated-memory-only",
       ownership: {
         serverStartedByAcceptance: true,
         portsAllocatedByAcceptance: true,
@@ -728,6 +763,7 @@ function writeDryRun() {
     sourceProvenanceEnd: collectSourceProvenanceWithAllowedArtifacts(rootDir, outputDir),
     outputPreparation,
     executionMode,
+    suite: options.suite,
     dryRun: true,
     result: "PASS",
     stopOnFirstFail: true,
@@ -748,8 +784,8 @@ function writeDryRun() {
       result: "not-run-by-dry-run",
       fixtureMode: false,
       dependency: { status: "dependency-bootstrap-attestation", browserLaunchVerified: false },
-      secretHandling: "runtime-admin-and-generated-role-secrets-memory-only",
-      adminSecretSource: "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD",
+      secretHandling: "all-role-secrets-generated-memory-only",
+      roleSecretSource: "acceptance-crypto-random-generated-memory-only",
       ownership: {
         serverStartedByAcceptance: true,
         portsAllocatedByAcceptance: true,
@@ -821,21 +857,7 @@ function buildLongrun120Scope() {
       sourceComplete = false;
     }
   }
-  const cleanupFiles = changedFiles.filter(file => [
-    "scripts/internal/verify_predev_stability.sh",
-    "scripts/internal/verify_v390_server_longrun.mjs",
-    "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
-    "scripts/internal/v390_acceptance_ui_environment.mjs",
-    "scripts/internal/verify_v390_final_evidence_integrity.mjs",
-  ].includes(file));
-  if (cleanupFiles.length > 0) {
-    changedAreas.push({
-      category: "cleanup-port-lifecycle",
-      featureIds: ["OPS-168", "SAFE-201", "SAFE-212"],
-      files: cleanupFiles,
-      modules: ["predev-server-lifecycle", "longrun-cleanup", "acceptance-cleanup"],
-    });
-  }
+  changedAreas.push(...classifyLongrun120ChangedAreas(changedFiles));
   const upstreamSignals = [];
   if (longrun30Summary && (longrun30Summary.cleanup?.status !== "PASS" || longrun30Summary.durationEvidence?.eligibleRealDuration !== true)) {
     upstreamSignals.push({ id: "longrun-30-duration-cleanup-drift", status: "trigger" });
@@ -1181,7 +1203,7 @@ function buildFeatureCommands() {
 
 function buildFinalAcceptanceCommandSet() {
   return [
-    { id: "actual-bundle", command: "./server.sh verify-v390-test-acceptance-bundle --output-dir docs/release-artifacts/v3.9.0/test-acceptance-current-final [--user-directed-120] [--run-120]", status: "actual-execution" },
+    { id: "actual-bundle", command: "./test_release.sh", status: "user-no-option-actual-execution" },
     { id: "build", command: "./server.sh build", status: "executed-by-actual-bundle" },
     { id: "feature-gates", command: `${featureCommands.length} current feature commands`, status: "executed-by-actual-bundle" },
     { id: "server-longrun-30", command: "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir <run>/server-longrun-30", status: "executed-by-actual-bundle" },
@@ -1201,7 +1223,9 @@ function parseArgs(args) {
     uiPlaywrightModulePath: "",
     uiChromePath: "",
     uiBuildPath: "build-gst-onnx/media_server",
+    suite: "release",
     run120: false,
+    autoRun120: false,
     userDirected120: false,
     fixturePass: false,
     fixtureFailStage: "",
@@ -1215,7 +1239,9 @@ function parseArgs(args) {
     else if (arg === "--ui-playwright-module-path") { parsed.uiPlaywrightModulePath = args[index + 1] || ""; index += 1; }
     else if (arg === "--ui-chrome-path") { parsed.uiChromePath = args[index + 1] || ""; index += 1; }
     else if (arg === "--ui-build-path") { parsed.uiBuildPath = args[index + 1] || ""; index += 1; }
+    else if (arg === "--suite") { parsed.suite = args[index + 1] || ""; index += 1; }
     else if (arg === "--run-120") parsed.run120 = true;
+    else if (arg === "--auto-run-120") parsed.autoRun120 = true;
     else if (arg === "--user-directed-120") parsed.userDirected120 = true;
     else if (arg === "--fixture-pass") parsed.fixturePass = true;
     else if (arg === "--fixture-fail-stage") { parsed.fixtureFailStage = args[index + 1] || ""; index += 1; }
@@ -1223,10 +1249,26 @@ function parseArgs(args) {
     else if (arg === "--fixture-120-trigger") parsed.fixture120Trigger = true;
   }
   assert(parsed.dryRun || parsed.outputDir !== "", "--output-dir is required for actual mode");
-  assert(!(parsed.dryRun && (parsed.fixturePass || parsed.fixtureFailStage || parsed.fixtureCleanupFail || parsed.fixture120Trigger || parsed.run120 || parsed.userDirected120)), "--dry-run cannot be combined with actual fixture/run options");
+  assert(["release", "ui"].includes(parsed.suite), "--suite must be release or ui");
+  assert(!(parsed.run120 && parsed.autoRun120), "--run-120 and --auto-run-120 are mutually exclusive");
+  assert(!(parsed.userDirected120 && parsed.autoRun120), "--user-directed-120 and --auto-run-120 are mutually exclusive");
+  assert(!(parsed.dryRun && (parsed.fixturePass || parsed.fixtureFailStage || parsed.fixtureCleanupFail || parsed.fixture120Trigger || parsed.run120 || parsed.autoRun120 || parsed.userDirected120 || parsed.suite !== "release")), "--dry-run cannot be combined with actual fixture/run options");
   assert(!(parsed.fixturePass && parsed.fixtureFailStage), "--fixture-pass and --fixture-fail-stage are mutually exclusive");
   if (parsed.fixtureFailStage) assert(stageIds.includes(parsed.fixtureFailStage) && !["ui-server-cleanup", "cleanup", "report"].includes(parsed.fixtureFailStage), "unknown or invalid --fixture-fail-stage");
   return parsed;
+}
+
+function stageSelectedForSuite(stageId) {
+  if (options.suite === "release") return true;
+  return [
+    "preflight",
+    "ui-environment-bootstrap",
+    "ui-exact-424",
+    "ui-server-cleanup",
+    "ui-fulltest-qualification",
+    "cleanup",
+    "report",
+  ].includes(stageId);
 }
 
 function passStage(id, commandValue, details = {}) {
@@ -1258,7 +1300,49 @@ function writeStageLog(stageId, lines) {
   return filePath;
 }
 
-function writeReport(filePath, payload) {
+function writeAcceptanceArtifacts() {
+  const summary = buildActualSummary();
+  const reportText = renderReport(summary);
+  summary.finalEvidence = buildCanonicalFinalEvidenceManifest(reportText, summary);
+  writeJson(summaryPath, summary);
+  fs.writeFileSync(reportPath, reportText, "utf8");
+  return summary;
+}
+
+function buildCanonicalFinalEvidenceManifest(reportText, summary) {
+  const candidates = [
+    ["server-longrun-30-summary", summary.longrun30?.summaryPath],
+    ["server-longrun-30-report", summary.longrun30?.reportPath],
+    ["ui-exact-424-summary", summary.uiAutomation?.summaryPath],
+    ["policy-v4-evaluation", stages.find(item => item.id === "ui-fulltest-qualification")?.summaryPath],
+    ["server-longrun-120-summary", summary.longrun120?.summaryPath],
+    ["server-longrun-120-report", longrun120Summary?.reportPath],
+  ];
+  const artifacts = candidates.flatMap(([id, filePath]) => {
+    if (!filePath || !fs.existsSync(filePath)) return [];
+    const resolved = path.resolve(filePath);
+    assert(isInside(outputDir, resolved), `final evidence escapes canonical output: ${resolved}`);
+    return [{
+      id,
+      path: path.relative(rootDir, resolved),
+      bytes: fs.statSync(resolved).size,
+      sha256: sha256File(resolved),
+    }];
+  });
+  return {
+    schema: "media-server.v390-canonical-final-evidence.v1",
+    policy: "repository-canonical-artifacts-only; temporary paths are cleanup observations, never final evidence",
+    artifactRoot: path.relative(rootDir, outputDir),
+    summaryPath: path.relative(rootDir, summaryPath),
+    reportPath: path.relative(rootDir, reportPath),
+    reportBytes: Buffer.byteLength(reportText),
+    reportSha256: sha256Text(reportText),
+    artifacts,
+    temporaryPathFinalEvidenceReferences: [],
+  };
+}
+
+function renderReport(payload) {
   const lines = [
     "# v3.9.0 Test Acceptance Bundle",
     "",
@@ -1289,7 +1373,11 @@ function writeReport(filePath, payload) {
     "| --- | --- | --- | --- | ---: | --- |",
     ...((payload.executedCommands || []).map(item => `| ${escapeCell(item.stage)} | ${escapeCell(item.id)} | ${escapeCell(item.status)} | ${escapeCell(item.command)} | ${item.exitCode ?? ""} | ${escapeCell(item.logPath)} |`)),
   ];
-  fs.writeFileSync(filePath, `${lines.join("\n")}\n`, "utf8");
+  return `${lines.join("\n")}\n`;
+}
+
+function writeReport(filePath, payload) {
+  fs.writeFileSync(filePath, renderReport(payload), "utf8");
 }
 
 function writeJson(filePath, payload) { fs.writeFileSync(filePath, `${JSON.stringify(payload, null, 2)}\n`, "utf8"); }

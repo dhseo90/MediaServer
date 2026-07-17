@@ -435,7 +435,7 @@ check("REVIEW3-42 all 424 action plans close only with their exact endpoint and 
       evaluatedActions += 1;
     }
   }
-  assert(semanticActions === 1277, `semantic action plan count drift: ${semanticActions}`);
+  assert(semanticActions === 1278, `semantic action plan count drift: ${semanticActions}`);
   assert(evaluatedActions > 0, "non-primary semantic plan evaluation disappeared");
   assert(primarySelfComparisonsRejected === 422,
     `primary self-comparison rejection count drift: ${primarySelfComparisonsRejected}`);
@@ -550,6 +550,27 @@ check("REVIEW4-58 requires exact-selector runtime readback and rejects manifest 
   });
   assert(wrongSelector.pass === false && wrongSelector.reason === "readback-control-selector-mismatch",
     `wrong selector became completion: ${wrongSelector.reason}`);
+
+  const executedSelector = '#target[data-fixture-id="3920006"]';
+  const specializedBefore = { ...snapshot("idle", "before"), selector: executedSelector };
+  const specializedAfter = { ...snapshot("ready", "after"), selector: executedSelector };
+  const specialized = evaluateCompletionOracle({
+    action: { ...baseAction, executedControlSelector: executedSelector },
+    before: specializedBefore,
+    after: specializedAfter,
+    networkResponses,
+    semanticReadback: semanticV2({
+      identity: "CASE-1:independent-readback",
+      correlationId: "CASE-1:click:completion",
+      actionId: "CASE-1:click",
+      expectedBehaviorSha256: baseAction.expectedBehaviorSha256,
+      observationSource: "browser-dom",
+      selector: "#target",
+      observation: { before: specializedBefore, after: specializedAfter },
+    }),
+  });
+  assert(specialized.pass === true,
+    `fixture-specialized execution selector was not bound to its product control: ${specialized.reason}`);
 });
 
 check("REVIEW4-58 accepts only an action-bound local transition plus runtime readback", () => {
@@ -590,6 +611,76 @@ check("REVIEW4-58 accepts only an action-bound local transition plus runtime rea
     `action-bound local transition failed: ${result.reason}`);
   assert(result.completionPhase === "primary-action" && result.actionId === "CASE-1:select" &&
     result.controlSelector === "#target", "action completion identity missing");
+});
+
+check("REVIEW4-58 persisted mutation requires a changed authoritative runtime readback", () => {
+  const completionAction = {
+    ...action("click"),
+    actionId: "CASE-1:persist",
+    completionPhase: "primary-action",
+    controlSelector: "#save",
+    correlationId: "CASE-1:persist:completion",
+    semanticCompletionRequired: true,
+    expectedReadbackIdentity: "CASE-1:persist-readback",
+    expectedBehaviorSha256: "e".repeat(64),
+    expectedReadbackExpectation: { persistedMutationObserved: true },
+    expectedEndpoint: {
+      correlationId: "CASE-1:persist:completion",
+      method: "PUT",
+      urlPath: "/ops/api/vlm/profiles/case-1",
+      allowedStatuses: [200],
+    },
+    allowedCompletionSources: ["endpoint-dom"],
+  };
+  const authoritativeReadback = {
+    schema: "media-server.v390-ui-runtime-mutation-readback.v1",
+    method: "PUT",
+    persistedMutationObserved: true,
+    changed: true,
+    observedPresent: true,
+    beforeSha256: "1".repeat(64),
+    observedSha256: "2".repeat(64),
+  };
+  const readback = value => semanticV2({
+    identity: completionAction.expectedReadbackIdentity,
+    correlationId: completionAction.correlationId,
+    actionId: completionAction.actionId,
+    expectedBehaviorSha256: completionAction.expectedBehaviorSha256,
+    observationSource: "browser-dom",
+    selector: completionAction.controlSelector,
+    observation: {
+      before: { ...snapshot("idle", "before"), selector: "#save" },
+      after: { ...snapshot("ready", "after"), selector: "#save" },
+      runtimeMutationReadback: value,
+    },
+  });
+  const networkResponses = [{
+    requestId: "persist-put",
+    correlationId: completionAction.correlationId,
+    correlationSource: "request-header",
+    method: "PUT",
+    status: 200,
+    url: "http://127.0.0.1/ops/api/vlm/profiles/case-1",
+  }];
+  const accepted = evaluateCompletionOracle({
+    action: completionAction,
+    before: readback(authoritativeReadback).observation.before,
+    after: readback(authoritativeReadback).observation.after,
+    networkResponses,
+    semanticReadback: readback(authoritativeReadback),
+  });
+  assert(accepted.pass && accepted.source === "endpoint-dom",
+    `authoritative persisted readback failed: ${accepted.reason}`);
+  const unchanged = { ...authoritativeReadback, changed: false, observedSha256: authoritativeReadback.beforeSha256 };
+  const rejected = evaluateCompletionOracle({
+    action: completionAction,
+    before: readback(unchanged).observation.before,
+    after: readback(unchanged).observation.after,
+    networkResponses,
+    semanticReadback: readback(unchanged),
+  });
+  assert(!rejected.pass && rejected.reason === "semantic-readback-observation-mismatch",
+    "unchanged persisted readback became completion");
 });
 
 check("REVIEW4-58 locks one exact request and rejects another fixture or duplicate request", () => {
@@ -733,7 +824,7 @@ check("REVIEW4-58 corrected all activate-control handlers with exact transaction
       completion.request.allowedStatuses.length === 1 && completion.request.allowedStatuses[0] === 200,
     `${caseId} save transaction is not exact`);
   }
-  for (const caseId of ["UI-036", "SRC-024", "RULE-101", "RULE-102", "CLIENT-002", "CLIENT-005", "SAFE-038"]) {
+  for (const caseId of ["UI-036", "SRC-024", "RULE-093", "RULE-094", "RULE-095", "RULE-096", "RULE-101", "RULE-102", "RULE-103", "RULE-104", "RULE-111", "CLIENT-002", "CLIENT-005", "SAFE-038"]) {
     const item = manifest.cases.find(candidate => candidate.caseId === caseId);
     const completion = item.workflow.expectedResults[0].completion;
     assert(completion.localTransition?.property === null &&
@@ -769,7 +860,8 @@ check("REVIEW4-58 form readback snapshots the exact submit control and never rel
   }
   assert(exactRunnerSource.includes("action.submitSelector || action.selector"),
     "runner snapshots the form while labeling the submit selector");
-  assert(completionOracleSource.includes("snapshot => snapshot.selector !== action.controlSelector"),
+  assert(completionOracleSource.includes("action.executedControlSelector || action.controlSelector") &&
+    completionOracleSource.includes("snapshot => snapshot.selector !== executedSelector"),
     "runtime v2 readback does not verify raw snapshot selectors");
 });
 

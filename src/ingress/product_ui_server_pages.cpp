@@ -1361,6 +1361,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
             </label>
           </div>
           <p id="opsEventRulePresetSummary" class="form-note">현장 preset은 시작값입니다. 저장 전 replay/현장 영상 기준으로 geometry와 숫자 조건을 확인하세요.</p>
+          <p id="opsEventRuleDetailSummary" class="form-note">조건, geometry, cooldown을 불러오는 중입니다.</p>
           <section class="ops-category-section" aria-labelledby="opsEventRuleClassesHeading">
             <div class="ops-category-header">
               <div>

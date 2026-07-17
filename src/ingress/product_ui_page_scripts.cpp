@@ -8449,6 +8449,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('opsEventRuleTargetZonesInput').value = opsRulesStringArray(scenario?.targetZoneIds || []).join(', ');
         document.getElementById('opsEventRuleRestrictedZonesInput').value = opsRulesStringArray(scenario?.restrictedZoneIds || []).join(', ');
         document.getElementById('opsEventRuleReEntryZonesInput').value = opsRulesStringArray(scenario?.reEntryZoneIds || []).join(', ');
+        setText('opsEventRuleDetailSummary', opsRulesEventDetailSummaryText(item));
         opsRulesSetFormDisabled('event-rule', detailMode === 'view');
         opsEventRuleUpdateModeUi();
       }
@@ -9419,7 +9420,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         const preview = ids.slice(0, 3).join(', ');
         return ids.length > 3 ? `${preview} 외 ${ids.length - 3}` : preview;
       }
-      function opsRulesConditionHtml(item = {}) {
+      function opsRulesConditionSummaryText(item = {}) {
         const type = item?.scenario?.type || item?.event?.type || item?.eventType || 'event';
         const scenario = item?.scenario || {};
         const details = [];
@@ -9468,9 +9469,25 @@ void AppendOpsShellScript(std::ostringstream& out,
         }
         const cooldown = opsRulesMsLabel(scenario?.cooldownMs);
         if (cooldown) details.push(`재알림 ${cooldown}`);
+        return details.join(' · ') || '기본 이벤트';
+      }
+      function opsRulesConditionHtml(item = {}) {
         return `<div class="ops-rule-value-stack">
-          <span class="ops-rule-note">${escapeHtml(details.join(' · ') || '기본 이벤트')}</span>
+          <span class="ops-rule-note">${escapeHtml(opsRulesConditionSummaryText(item))}</span>
         </div>`;
+      }
+      function opsRulesEventGeometrySummaryText(item = {}) {
+        const region = item?.event?.region || {};
+        const points = Array.isArray(region?.points)
+          ? region.points.filter(point => point && Number.isFinite(Number(point.x)) && Number.isFinite(Number(point.y)))
+          : [];
+        if (region?.type === 'line') return `라인 ${Math.max(points.length, 2)}점`;
+        if (region?.type === 'polygon') return `영역 ${Math.max(points.length, 3)}점`;
+        return '미설정';
+      }
+      function opsRulesEventDetailSummaryText(item = {}) {
+        const cooldown = opsRulesMsLabel(item?.scenario?.cooldownMs) || '없음';
+        return `조건: ${opsRulesConditionSummaryText(item)} / geometry: ${opsRulesEventGeometrySummaryText(item)} / cooldown: ${cooldown}`;
       }
       function opsRulesTargetHtml(classes = []) {
         return `<div class="ops-rule-value-stack">
