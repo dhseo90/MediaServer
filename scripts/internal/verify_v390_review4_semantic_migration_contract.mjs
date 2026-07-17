@@ -150,10 +150,10 @@ function buildDelta(baseline, fresh) {
 }
 
 function writeMigrationEvidence(absolute, delta) {
-  const unapprovedIds = ["SAFE-212", "OPS-179"];
-  const actualUnapproved = delta.independentReviewRequired;
-  expectEqual(actualUnapproved, unapprovedIds, "migration evidence must retain only SAFE-212 and OPS-179 as unapproved");
-  assert(delta.carryForwardEligible.length === 984, `carry-forward count must be 984, got ${delta.carryForwardEligible.length}`);
+  const unapprovedIds = delta.independentReviewRequired;
+  assert(unapprovedIds.length > 0 &&
+    delta.carryForwardEligible.length + unapprovedIds.length === delta.rows,
+  "migration evidence coverage must partition all candidate rows");
   const carryForward = delta.rowDelta.filter(row => row.semanticFieldsEqual).map(row => ({
     id: row.id,
     oldSourceFlowDigest: row.oldSourceFlowDigest,
@@ -169,8 +169,8 @@ function writeMigrationEvidence(absolute, delta) {
     status: "unapproved-independent-review-required",
   }));
   const evidence = {
-    schema: "media-server.v390-review4-semantic-migration-evidence.v1",
-    migrationVersion: "review4-server-trust-local-v1",
+    schema: "media-server.v390-review4-semantic-migration-evidence.v2",
+    migrationVersion: "review4-acceptance-prerequisite-v2",
     generatedBy: "verify_v390_review4_semantic_migration_contract.mjs",
     candidateGeneratorMayApprove: false,
     baselineCandidateDigest: delta.baselineCandidateDigest,

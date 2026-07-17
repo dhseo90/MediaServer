@@ -26,7 +26,7 @@ const servicePath = "include/ingress/webrtc_media_application_service.h";
 const adapterHeaderPath = "include/ingress/webrtc_media_application_adapter.h";
 const adapterSourcePath = "src/ingress/webrtc_media_application_adapter.cpp";
 const compositionPath = "src/application/media_server_application.cpp";
-const graphPath = "test/fixtures/v390_structure_stabilization_current_graph.json";
+const completionGraphPath = "test/fixtures/v390_structure_stabilization_slice32_completion_graph.json";
 const policyPath = "test/fixtures/v390_structure_stabilization_current_architecture_policy.json";
 const codecMatrixPath = "scripts/internal/verify_codec_matrix.sh";
 const transportPaths = [
@@ -356,8 +356,8 @@ check("codec matrix keeps auth-off optional arguments nounset-safe", () => {
     "codec auth optional argument safe-expansion count drift");
 });
 
-check("Policy and exact successor graph close transport/core debt without ownership laundering", () => {
-  const graphText = read(graphPath), policyText = read(policyPath);
+check("Policy and immutable Slice 32 completion graph close transport/core debt without ownership laundering", () => {
+  const graphText = read(completionGraphPath), policyText = read(policyPath);
   assert(sha256(graphText) === "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a",
     "current graph SHA drift");
   assert(sha256(policyText) === "f65d07504ad94d17c8026f151b7d3de4576f8b8757639c53835f8424e57c5970",
@@ -398,7 +398,7 @@ function copyTree(relative, targetRoot) {
 }
 function copyFixture(targetRoot) {
   copyTree("include", targetRoot);
-  for (const file of [...transportPaths, adapterSourcePath, compositionPath, graphPath, policyPath,
+  for (const file of [...transportPaths, adapterSourcePath, compositionPath, completionGraphPath, policyPath,
     codecMatrixPath, "CMakeLists.txt", "server.sh", "scripts/internal/script_arg_utils.mjs"])
     copyFile(file, targetRoot);
 }
@@ -486,10 +486,10 @@ if (!skipMutations) check("isolated direct, transitive, alias, mapping, bypass, 
     ["transport-bypass", "src/ingress/webrtc_http_server_runtime.cpp",
       text => `${text}\ncore::SessionManager* g_forbidden_media_bypass = nullptr;\n`,
       "all eleven transport files have zero direct/transitive canonical closure and concrete symbols"],
-    ["graph", graphPath, text => text.replace('"expectedProductionFiles": 215', '"expectedProductionFiles": 216'),
-      "Policy and exact successor graph close transport/core debt without ownership laundering"],
+    ["graph", completionGraphPath, text => text.replace('"expectedProductionFiles": 215', '"expectedProductionFiles": 216'),
+      "Policy and immutable Slice 32 completion graph close transport/core debt without ownership laundering"],
     ["policy", policyPath, text => text.replace('    "application-service-interfaces -> core-media-interfaces",\n', ""),
-      "Policy and exact successor graph close transport/core debt without ownership laundering"],
+      "Policy and immutable Slice 32 completion graph close transport/core debt without ownership laundering"],
     ["cmake", "CMakeLists.txt", text => text.replace("    src/ingress/webrtc_media_application_adapter.cpp\n", ""),
       "composition, CMake, and dispatch bind one canonical adapter lifetime"],
     ["dispatch", "server.sh", text => text.replaceAll("verify-v390-webrtc-media-application-boundary", "removed-v390-media-boundary"),

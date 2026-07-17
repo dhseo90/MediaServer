@@ -1,0 +1,1 @@
+{"status":"PASS","runtimeEvidence":false,"fixtureMode":false,"verificationSource":"no-environment-acquired-no-cleanup-required","serversStopped":true,"portsClean":true,"temporaryArtifactsRemoved":true,"removedTemporaryArtifacts":[],"measurement":null,"checks":[{"check":"no-environment-acquired","status":"PASS"}]}

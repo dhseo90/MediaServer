@@ -1,5 +1,5 @@
 {
-  "schema": "media-server.v390-structure-stabilization-execution.v3",
+  "schema": "media-server.v390-structure-stabilization-execution.v4",
   "issueId": "V390-REVIEW4-64",
   "recordKind": "refactor-execution-ledger",
   "release": "v3.9.0",
@@ -52,8 +52,8 @@
     "policyVersion": "v1",
     "sha256": "f65d07504ad94d17c8026f151b7d3de4576f8b8757639c53835f8424e57c5970"
   },
-  "currentGraph": {
-    "path": "test/fixtures/v390_structure_stabilization_current_graph.json",
+  "completionGraph": {
+    "path": "test/fixtures/v390_structure_stabilization_slice32_completion_graph.json",
     "schema": "media-server.v390-structure-stabilization-current-graph.v1",
     "sha256": "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a",
     "metrics": {
@@ -64,6 +64,22 @@
       "targetViolationDirections": 0,
       "largestSccOwners": 0,
       "largestMixedOwnerFileLines": 10156,
+      "internalTargetSeparation": true
+    },
+    "evidenceRole": "immutable-slice32-completion"
+  },
+  "currentGraph": {
+    "path": "test/fixtures/v390_structure_stabilization_current_graph.json",
+    "schema": "media-server.v390-structure-stabilization-current-graph.v1",
+    "sha256": "fd34ace24775ec0ffbd6617bc1ddcee661f50630471626ff57604e5955eebc24",
+    "metrics": {
+      "productionFiles": 215,
+      "cppSources": 103,
+      "moduleOwners": 10,
+      "cmakeTargets": 2,
+      "targetViolationDirections": 0,
+      "largestSccOwners": 0,
+      "largestMixedOwnerFileLines": 10173,
       "internalTargetSeparation": true
     }
   },
@@ -3911,8 +3927,8 @@
     "status": "completed",
     "completionBasis": "current-continuation-slice32-targets-tests-cleanup",
     "latestCompletedContinuationSlice": 32,
-    "currentGraphPath": "test/fixtures/v390_structure_stabilization_current_graph.json",
-    "currentGraphSha256": "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a",
+    "completionGraphPath": "test/fixtures/v390_structure_stabilization_slice32_completion_graph.json",
+    "completionGraphSha256": "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a",
     "targetViolationDirections": 0,
     "largestSccOwners": 0,
     "cmakeTargets": 2,

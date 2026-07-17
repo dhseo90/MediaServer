@@ -37,7 +37,13 @@ const graphOnly = rawArgs.includes("--graph-only");
 const ledgerPath = "test/fixtures/v390_structure_stabilization_execution.json";
 const ledger = readJson(ledgerPath);
 const decision = readJson(ledger.approvalDecision.path);
-const graph = readJson(ledger.currentGraph.path);
+const completionGraph = readJson(ledger.completionGraph.path);
+const currentGraphAbsolutePath = path.join(rootDir, ledger.currentGraph.path);
+const currentGraph = fs.existsSync(currentGraphAbsolutePath)
+  ? readJson(ledger.currentGraph.path)
+  : structuredClone(completionGraph);
+// Slice 1~32 validators intentionally stay bound to this immutable completion artifact.
+const graph = completionGraph;
 const policy = readJson(ledger.currentArchitecturePolicy.path);
 const expectedSlices = [
   "composition-root", "route-api-handler", "registry-domain",
@@ -86,19 +92,32 @@ check("versioned current architecture policy and continuation are explicit", () 
 });
 
 if (rawArgs.includes("--write-current-graph")) {
-  const current = collectCurrentGraph(graph, policy);
-  graph.expectedProductionFiles = current.productionFiles.length;
-  graph.expectedCppFiles = current.cppFiles.length;
-  graph.expectedFileOwnershipSha256 = current.ownershipSha256;
-  for (const classifier of graph.moduleClassifiers) {
+  const ledgerSha256Before = sha256File(ledgerPath);
+  const completionSha256Before = sha256File(ledger.completionGraph.path);
+  assert(ledger.completionGraph.sha256 === completionSha256Before,
+    "immutable Slice 32 completion graph drift before current generation");
+  const generatedGraph = structuredClone(completionGraph);
+  generatedGraph.graphKind = "actual-current-source-include-and-cmake-target-graph";
+  generatedGraph.completionGraphBinding = {
+    path: ledger.completionGraph.path,
+    sha256: ledger.completionGraph.sha256,
+  };
+  generatedGraph.boundary = "current post-Slice-32 source topology generated from src/include and CMake; " +
+    "the immutable Slice 32 completion graph remains the historical completion evidence, while current line counts, " +
+    "owner/include/target directions, SCCs, and target separation are independently fail-closed";
+  const current = collectCurrentGraph(generatedGraph, policy);
+  generatedGraph.expectedProductionFiles = current.productionFiles.length;
+  generatedGraph.expectedCppFiles = current.cppFiles.length;
+  generatedGraph.expectedFileOwnershipSha256 = current.ownershipSha256;
+  for (const classifier of generatedGraph.moduleClassifiers) {
     const owned = current.ownership.filter(item => item.owner === classifier.id);
     classifier.expectedFileCount = owned.length;
     classifier.expectedCppCount = owned.filter(item => item.file.endsWith(".cpp")).length;
   }
-  const conditionalByPath = new Map(graph.cmake.targets
+  const conditionalByPath = new Map(generatedGraph.cmake.targets
     .flatMap(target => target.conditionalSources || [])
     .map(conditional => [conditional.path, conditional]));
-  graph.cmake.targets = current.cmake.targets.map(target => {
+  generatedGraph.cmake.targets = current.cmake.targets.map(target => {
     const conditionalSources = target.productionSources
       .filter(source => conditionalByPath.has(source))
       .map(source => conditionalByPath.get(source));
@@ -114,17 +133,21 @@ if (rawArgs.includes("--write-current-graph")) {
       moduleOwners: target.moduleOwners,
     };
   });
-  graph.cmake.internalTargetSeparation = current.cmake.internalTargetSeparation;
-  graph.observedModuleEdges = current.observedModuleEdges;
-  graph.stronglyConnectedComponents = current.stronglyConnectedComponents;
-  for (const debt of graph.mixedOwnershipDebt) debt.lineCount = lineCount(debt.file);
-  fs.writeFileSync(path.join(rootDir, ledger.currentGraph.path), `${JSON.stringify(graph, null, 2)}\n`);
+  generatedGraph.cmake.internalTargetSeparation = current.cmake.internalTargetSeparation;
+  generatedGraph.observedModuleEdges = current.observedModuleEdges;
+  generatedGraph.stronglyConnectedComponents = current.stronglyConnectedComponents;
+  for (const debt of generatedGraph.mixedOwnershipDebt) debt.lineCount = lineCount(debt.file);
+  fs.writeFileSync(currentGraphAbsolutePath, `${JSON.stringify(generatedGraph, null, 2)}\n`);
+  assert(sha256File(ledgerPath) === ledgerSha256Before,
+    "current graph generator modified the historical execution ledger");
+  assert(sha256File(ledger.completionGraph.path) === completionSha256Before,
+    "current graph generator modified the immutable Slice 32 completion graph");
   console.log(`wrote ${ledger.currentGraph.path}: files=${current.productionFiles.length} cpp=${current.cppFiles.length} edges=${current.observedModuleEdges.length}`);
   process.exit(0);
 }
 
 check("historical approval is separate from actual execution", () => {
-  assert(ledger.schema === "media-server.v390-structure-stabilization-execution.v3", "execution schema mismatch");
+  assert(ledger.schema === "media-server.v390-structure-stabilization-execution.v4", "execution schema mismatch");
   assert(ledger.issueId === "V390-REVIEW4-64" && ledger.release === "v3.9.0" && ledger.branch === "v3.9.0",
     "execution identity mismatch");
   assert(ledger.recordKind === "refactor-execution-ledger" && ledger.productionRefactorStarted === true,
@@ -155,9 +178,9 @@ check("historical approval is separate from actual execution", () => {
 });
 
 check("slice order and completion frontier are fail-closed", () => {
-  const current = collectCurrentGraph(graph, policy);
+  const current = collectCurrentGraph(currentGraph, policy);
   const errors = validateLedger(ledger, {
-    finalTargetsSatisfied: finalTargetsSatisfied(ledger.finalTargets, graphMetrics(graph, current)),
+    finalTargetsSatisfied: finalTargetsSatisfied(ledger.finalTargets, graphMetrics(currentGraph, current)),
   });
   assert(errors.length === 0, errors.join("; "));
   assert(JSON.stringify(ledger.orderedSlices.map(item => item.id)) === JSON.stringify(expectedSlices),
@@ -167,39 +190,39 @@ check("slice order and completion frontier are fail-closed", () => {
 });
 
 check("current graph hash and metrics are exact", () => {
-  assert(ledger.currentGraph.schema === graph.schema, "current graph schema mismatch");
+  assert(ledger.currentGraph.schema === currentGraph.schema, "current graph schema mismatch");
   assert(ledger.currentGraph.sha256 === sha256File(ledger.currentGraph.path), "current graph hash drift");
-  assert(JSON.stringify(policy.ownerIds) === JSON.stringify(graph.moduleClassifiers.map(item => item.id)),
+  assert(JSON.stringify(policy.ownerIds) === JSON.stringify(currentGraph.moduleClassifiers.map(item => item.id)),
     "versioned policy owner order does not match current graph classifiers");
-  const actual = collectCurrentGraph(graph, policy);
-  assert(actual.productionFiles.length === graph.expectedProductionFiles, "current production file count drift");
-  assert(actual.cppFiles.length === graph.expectedCppFiles, "current cpp count drift");
-  assert(actual.ownershipSha256 === graph.expectedFileOwnershipSha256, "current ownership digest drift");
+  const actual = collectCurrentGraph(currentGraph, policy);
+  assert(actual.productionFiles.length === currentGraph.expectedProductionFiles, "current production file count drift");
+  assert(actual.cppFiles.length === currentGraph.expectedCppFiles, "current cpp count drift");
+  assert(actual.ownershipSha256 === currentGraph.expectedFileOwnershipSha256, "current ownership digest drift");
   assert(JSON.stringify(stripAllowedFlags(actual.observedModuleEdges)) ===
-    JSON.stringify(stripAllowedFlags(graph.observedModuleEdges)),
+    JSON.stringify(stripAllowedFlags(currentGraph.observedModuleEdges)),
     "current include edge/witness graph drift");
-  assert(JSON.stringify(actual.stronglyConnectedComponents) === JSON.stringify(graph.stronglyConnectedComponents),
+  assert(JSON.stringify(actual.stronglyConnectedComponents) === JSON.stringify(currentGraph.stronglyConnectedComponents),
     "current SCC graph drift");
-  assert(JSON.stringify(actual.cmake.targetIds) === JSON.stringify(graph.cmake.targets.map(item => item.id)),
+  assert(JSON.stringify(actual.cmake.targetIds) === JSON.stringify(currentGraph.cmake.targets.map(item => item.id)),
     "current CMake target drift");
   for (const target of actual.cmake.targets) {
-    const stored = graph.cmake.targets.find(item => item.id === target.id);
+    const stored = currentGraph.cmake.targets.find(item => item.id === target.id);
     assert(stored && JSON.stringify(stored.productionSources) === JSON.stringify(target.productionSources) &&
       stored.productionSourceSha256 === sha256Text(target.productionSources.join("\n")),
     `current CMake target source digest drift: ${target.id}`);
   }
-  const declaredSourceCount = graph.cmake.targets
+  const declaredSourceCount = currentGraph.cmake.targets
     .reduce((sum, target) => sum + target.declaredSourceCount, 0);
-  const defaultActiveSourceCount = graph.cmake.targets
+  const defaultActiveSourceCount = currentGraph.cmake.targets
     .reduce((sum, target) => sum + target.defaultActiveSourceCount, 0);
-  const conditionalSourceCount = graph.cmake.targets
+  const conditionalSourceCount = currentGraph.cmake.targets
     .reduce((sum, target) => sum + target.conditionalSources.length, 0);
   assert(actual.cmake.productionSources.length === declaredSourceCount &&
     actual.cmake.productionSources.length - conditionalSourceCount === defaultActiveSourceCount,
   "current CMake source count drift");
-  const graphPolicyErrors = validateGraphPolicy(graph, policy, actual);
+  const graphPolicyErrors = validateGraphPolicy(currentGraph, policy, actual);
   assert(graphPolicyErrors.length === 0, graphPolicyErrors.join("; "));
-  const metrics = graphMetrics(graph, actual);
+  const metrics = graphMetrics(currentGraph, actual);
   assert(JSON.stringify(metrics) === JSON.stringify(ledger.currentGraph.metrics),
     `current graph metric drift: expected=${JSON.stringify(ledger.currentGraph.metrics)} actual=${JSON.stringify(metrics)}`);
   assert(metrics.targetViolationDirections < ledger.approvalBaseline.targetViolationDirections,
@@ -213,7 +236,7 @@ check("current graph hash and metrics are exact", () => {
 });
 
 check("current graph negative mutations reject forbidden edge and cycle", () => {
-  const actual = collectCurrentGraph(graph, policy);
+  const actual = collectCurrentGraph(currentGraph, policy);
   const forgedEdge = {
     direction: "analysis-services -> transport-and-auth-adapter",
     witnessCount: 1,
@@ -223,7 +246,7 @@ check("current graph negative mutations reject forbidden edge and cycle", () => 
   const forgedObserved = [...actual.observedModuleEdges, forgedEdge]
     .sort((lhs, rhs) => lhs.direction.localeCompare(rhs.direction));
   assert(JSON.stringify(stripAllowedFlags(forgedObserved)) !==
-    JSON.stringify(stripAllowedFlags(graph.observedModuleEdges)),
+    JSON.stringify(stripAllowedFlags(currentGraph.observedModuleEdges)),
   "new forbidden include edge negative was accepted by the exact current graph");
   assert(forgedObserved.filter(item => item.allowedByTarget === false).length === 1,
     "new forbidden include edge did not become a target violation");
@@ -233,6 +256,87 @@ check("current graph negative mutations reject forbidden edge and cycle", () => 
   );
   assert(cycle.length === 1 && cycle[0].join(",") === "negative-a,negative-b",
     "synthetic dependency cycle negative was accepted");
+});
+
+check("Slice 32 completion and current graph separation is fail-closed", () => {
+  const slice32 = ledger.currentContinuation?.orderedSlices?.[31];
+  assert(ledger.completionGraph?.path ===
+      "test/fixtures/v390_structure_stabilization_slice32_completion_graph.json" &&
+    ledger.completionGraph.schema === completionGraph.schema &&
+    ledger.completionGraph.sha256 === "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a" &&
+    ledger.completionGraph.sha256 === sha256File(ledger.completionGraph.path),
+  "immutable Slice 32 completion graph binding mismatch");
+  assert(slice32?.after?.productionGraphSha256 === ledger.completionGraph.sha256 &&
+    slice32.after.largestMixedOwnerFileLines === 10156 &&
+    ledger.review4Completion?.completionGraphPath === ledger.completionGraph.path &&
+    ledger.review4Completion?.completionGraphSha256 === ledger.completionGraph.sha256,
+  "Slice 32 completion ledger was rewritten as current source evidence");
+  const currentDebt = new Map(currentGraph.mixedOwnershipDebt.map(item => [item.file, item.lineCount]));
+  assert(currentGraph.completionGraphBinding?.path === ledger.completionGraph.path &&
+    currentGraph.completionGraphBinding?.sha256 === ledger.completionGraph.sha256 &&
+    currentDebt.get("src/ingress/product_ui_page_scripts.cpp") === 10173 &&
+    ledger.currentGraph.metrics?.largestMixedOwnerFileLines === 10173 &&
+    ledger.currentGraph.sha256 !== ledger.completionGraph.sha256,
+  "current graph is not independently bound to the current source");
+
+  const currentLineDrift = structuredClone(currentGraph);
+  currentLineDrift.mixedOwnershipDebt.find(item =>
+    item.file === "src/ingress/product_ui_page_scripts.cpp").lineCount = 10156;
+  assert(validateCurrentGraphBinding(ledger, currentLineDrift, policy)
+    .some(error => error.includes("line-count")), "current graph line-count drift was accepted");
+
+  const currentOwnerDrift = structuredClone(currentGraph);
+  currentOwnerDrift.moduleClassifiers.find(item => item.id === "product-ui-workspaces")
+    .expectedFileCount += 1;
+  assert(validateCurrentGraphBinding(ledger, currentOwnerDrift, policy)
+    .some(error => error.includes("owner")), "current owner drift was accepted");
+
+  const currentIncludeDrift = structuredClone(currentGraph);
+  currentIncludeDrift.observedModuleEdges[0].witnessCount += 1;
+  assert(validateCurrentGraphBinding(ledger, currentIncludeDrift, policy)
+    .some(error => error.includes("include")), "current include edge drift was accepted");
+
+  const currentTargetDrift = structuredClone(currentGraph);
+  currentTargetDrift.cmake.targets[0].declaredSourceCount += 1;
+  assert(validateCurrentGraphBinding(ledger, currentTargetDrift, policy)
+    .some(error => error.includes("target")), "current target drift was accepted");
+
+  const currentSccDrift = structuredClone(currentGraph);
+  currentSccDrift.stronglyConnectedComponents = [["analysis-services", "core-media-interfaces"]];
+  assert(validateCurrentGraphBinding(ledger, currentSccDrift, policy)
+    .some(error => error.includes("SCC")), "current SCC drift was accepted");
+
+  const completionMutation = structuredClone(completionGraph);
+  completionMutation.mixedOwnershipDebt.find(item =>
+    item.file === "src/ingress/product_ui_page_scripts.cpp").lineCount = 10173;
+  assert(validateCompletionGraphBinding(ledger, completionMutation)
+    .some(error => error.includes("completion")), "completion graph mutation was accepted");
+
+  const exchanged = structuredClone(ledger);
+  [exchanged.completionGraph.sha256, exchanged.currentGraph.sha256] =
+    [exchanged.currentGraph.sha256, exchanged.completionGraph.sha256];
+  assert(validateCompletionGraphBinding(exchanged, completionGraph).length > 0 &&
+    validateCurrentGraphBinding(exchanged, currentGraph, policy).length > 0,
+  "completion/current graph hash exchange was accepted");
+
+  const historicalMetricRewrite = structuredClone(ledger);
+  historicalMetricRewrite.currentContinuation.orderedSlices[31]
+    .after.largestMixedOwnerFileLines = 10173;
+  assert(validateCompletionGraphBinding(historicalMetricRewrite, completionGraph)
+    .some(error => error.includes("historical")), "historical Slice 32 metric rewrite was accepted");
+
+  const currentAsHistorical = structuredClone(ledger);
+  currentAsHistorical.currentContinuation.orderedSlices[31]
+    .after.productionGraphSha256 = currentAsHistorical.currentGraph.sha256;
+  assert(validateCompletionGraphBinding(currentAsHistorical, completionGraph)
+    .some(error => error.includes("historical")), "current graph was accepted as historical evidence");
+
+  const generatorSource = readText("scripts/internal/verify_v390_structure_stabilization_execution.mjs");
+  assert([...generatorSource.matchAll(/^\s*fs\.writeFileSync\(/gm)].length === 1 &&
+    generatorSource.includes("fs.writeFileSync(currentGraphAbsolutePath") &&
+    generatorSource.includes("current graph generator modified the historical execution ledger") &&
+    generatorSource.includes("current graph generator modified the immutable Slice 32 completion graph"),
+  "current graph generator write boundary is not limited to the current graph artifact");
 });
 
 check("composition root extraction preserves lifecycle ownership", () => {
@@ -2354,7 +2458,7 @@ check("negative mutations reject false progress", () => {
       value.currentContinuation.orderedSlices[31].tests[0].status = "registered";
     }, "slice32:false-pass"],
     ["Slice 32 graph hash RED", value => {
-      value.currentGraph.sha256 = "0".repeat(64);
+      value.completionGraph.sha256 = "0".repeat(64);
     }, "slice32:graph"],
     ["Slice 32 dirty allowlist RED", value => {
       value.currentContinuation.orderedSlices[31].allowedFiles =
@@ -2385,25 +2489,25 @@ check("negative mutations reject false progress", () => {
   assert(validateSlice32Binding(ledger, slice32OwnerRed, policy).includes("slice32:graph"),
     "Slice 32 canonical core owner RED was accepted");
 
-  const graphCopy = structuredClone(graph);
+  const graphCopy = structuredClone(currentGraph);
   graphCopy.mixedOwnershipDebt = [];
   const actual = collectCurrentGraph(graphCopy, policy);
   assert(validateGraphPolicy(graphCopy, policy, actual).some(error => error.includes("required-entry-missing")),
     "mixed ownership debt deletion was accepted");
   const policyCopy = structuredClone(policy);
   policyCopy.allowedDependencyDirections.push(policyCopy.temporaryDebtExceptions[0].direction);
-  assert(validateGraphPolicy(graph, policyCopy, collectCurrentGraph(graph, policyCopy))
+  assert(validateGraphPolicy(currentGraph, policyCopy, collectCurrentGraph(currentGraph, policyCopy))
     .some(error => error.includes("temporary-debt-hidden")),
   "temporary debt exception was hidden in the allowlist");
   const duplicateCmake = parseCmakeBuildGraph(
     `${readText(policy.cmakePolicy.file)}\ntarget_sources(media_server PRIVATE src/main.cpp)\n`,
-    collectCurrentGraph(graph, policy).productionFiles,
-    graph.moduleClassifiers,
+    collectCurrentGraph(currentGraph, policy).productionFiles,
+    currentGraph.moduleClassifiers,
     policy.cmakePolicy,
   );
   assert(duplicateCmake.duplicateSources.some(item => item.startsWith("src/main.cpp:")),
     "duplicate CMake production source was accepted");
-  const targetSourceMutation = structuredClone(graph);
+  const targetSourceMutation = structuredClone(currentGraph);
   const storedRuntimeTarget = targetSourceMutation.cmake.targets
     .find(item => item.id === "media_server_runtime");
   storedRuntimeTarget.productionSources = storedRuntimeTarget.productionSources
@@ -2770,9 +2874,9 @@ function validateSlice32Binding(value, graphValue, policyValue) {
     "include/core/webrtc_source_registry.h",
     "include/ingress/webrtc_source_session.h",
   ];
-  if (value.currentGraph?.sha256 !==
+  if (value.completionGraph?.sha256 !==
         "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a" ||
-      slice32.after?.productionGraphSha256 !== value.currentGraph.sha256 ||
+      slice32.after?.productionGraphSha256 !== value.completionGraph.sha256 ||
       graphValue.expectedProductionFiles !== 215 || graphValue.expectedCppFiles !== 103 ||
       graphValue.expectedFileOwnershipSha256 !==
         "f9f4725ef087a680719f56d2b8f42ae73e6d00bfae45d86ca0aae6f3bedf896e" ||
@@ -2944,6 +3048,71 @@ function cmakeCalls(textValue, names) {
   return calls;
 }
 
+function validateCurrentGraphBinding(ledgerValue, graphValue, policyValue) {
+  const errors = [];
+  const actual = collectCurrentGraph(graphValue, policyValue);
+  const serializedSha256 = sha256Text(`${JSON.stringify(graphValue, null, 2)}\n`);
+  if (ledgerValue.currentGraph?.sha256 !== serializedSha256) errors.push("current:hash");
+  if (actual.productionFiles.length !== graphValue.expectedProductionFiles ||
+      actual.cppFiles.length !== graphValue.expectedCppFiles ||
+      actual.ownershipSha256 !== graphValue.expectedFileOwnershipSha256) errors.push("current:owner-inventory");
+  for (const classifier of graphValue.moduleClassifiers || []) {
+    const owned = actual.ownership.filter(item => item.owner === classifier.id);
+    if (classifier.expectedFileCount !== owned.length ||
+        classifier.expectedCppCount !== owned.filter(item => item.file.endsWith(".cpp")).length) {
+      errors.push(`current:owner:${classifier.id}`);
+    }
+  }
+  if (JSON.stringify(stripAllowedFlags(actual.observedModuleEdges)) !==
+      JSON.stringify(stripAllowedFlags(graphValue.observedModuleEdges || []))) errors.push("current:include-edge");
+  if (JSON.stringify(actual.stronglyConnectedComponents) !==
+      JSON.stringify(graphValue.stronglyConnectedComponents || [])) errors.push("current:SCC");
+  if (JSON.stringify(actual.cmake.targetIds) !==
+      JSON.stringify((graphValue.cmake?.targets || []).map(item => item.id))) errors.push("current:target-set");
+  for (const target of graphValue.cmake?.targets || []) {
+    const actualTarget = actual.cmake.targets.find(item => item.id === target.id);
+    if (!actualTarget || target.declaredSourceCount !== target.productionSources.length ||
+        JSON.stringify(target.productionSources) !== JSON.stringify(actualTarget.productionSources) ||
+        target.productionSourceSha256 !== sha256Text(target.productionSources.join("\n"))) {
+      errors.push(`current:target:${target.id}`);
+    }
+  }
+  errors.push(...validateGraphPolicy(graphValue, policyValue, actual));
+  if (JSON.stringify(graphMetrics(graphValue, actual)) !== JSON.stringify(ledgerValue.currentGraph?.metrics)) {
+    errors.push("current:metrics");
+  }
+  return [...new Set(errors)];
+}
+
+function validateCompletionGraphBinding(ledgerValue, graphValue) {
+  const errors = [];
+  const expectedSha256 = "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a";
+  const serializedSha256 = sha256Text(`${JSON.stringify(graphValue, null, 2)}\n`);
+  const slice32 = ledgerValue.currentContinuation?.orderedSlices?.[31];
+  const debt = new Map((graphValue.mixedOwnershipDebt || []).map(item => [item.file, item.lineCount]));
+  const resolved = (graphValue.resolvedDebt || []).find(item =>
+    item.file === "src/ingress/product_ui_page_scripts.cpp" &&
+    item.resolvedResponsibility === "action-execution-deferral-renderer-and-refresh");
+  if (serializedSha256 !== expectedSha256 || ledgerValue.completionGraph?.sha256 !== expectedSha256) {
+    errors.push("completion:hash");
+  }
+  if (ledgerValue.completionGraph?.path !==
+      "test/fixtures/v390_structure_stabilization_slice32_completion_graph.json") {
+    errors.push("completion:path");
+  }
+  if (slice32?.after?.productionGraphSha256 !== expectedSha256 ||
+      slice32?.after?.largestMixedOwnerFileLines !== 10156 ||
+      debt.get("src/ingress/product_ui_page_scripts.cpp") !== 10156 ||
+      resolved?.beforeLineCount !== 10217 || resolved?.afterLineCount !== 10156) {
+    errors.push("completion:historical-slice32");
+  }
+  if (ledgerValue.review4Completion?.completionGraphPath !== ledgerValue.completionGraph?.path ||
+      ledgerValue.review4Completion?.completionGraphSha256 !== expectedSha256) {
+    errors.push("completion:review4-binding");
+  }
+  return errors;
+}
+
 function validateGraphPolicy(graphValue, policyValue, actual) {
   const errors = [];
   for (const binding of policyValue.immutableHistoricalBindings || []) {
@@ -3113,6 +3282,7 @@ function check(name, fn) {
     "versioned current architecture policy and continuation are explicit",
     "current graph hash and metrics are exact",
     "current graph negative mutations reject forbidden edge and cycle",
+    "Slice 32 completion and current graph separation is fail-closed",
   ].includes(name)) return;
   try { fn(); checks.push({ name, status: "PASS" }); }
   catch (error) { checks.push({ name, status: "FAIL" }); console.error(`[FAIL] ${name}: ${error.message}`); }

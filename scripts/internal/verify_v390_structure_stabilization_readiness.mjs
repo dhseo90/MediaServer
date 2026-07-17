@@ -63,6 +63,7 @@ const fixture = JSON.parse(read(fixturePath));
 const actualGraphFixture = JSON.parse(read(fixture.actualGraphEvidence.path));
 const execution = JSON.parse(read(executionPath));
 const currentGraph = JSON.parse(read(execution.currentGraph.path));
+const completionGraph = JSON.parse(read(execution.completionGraph.path));
 
 check("machine-readable readiness contract is complete", () => {
   const server = read("server.sh");
@@ -159,9 +160,20 @@ check("current REVIEW4-64 source and CMake graph match the completed execution l
     execution.currentGraph.metrics?.moduleOwners === 10 &&
     execution.currentGraph.metrics?.cmakeTargets === 2 &&
     execution.currentGraph.metrics?.largestSccOwners === 0 &&
+    execution.currentGraph.metrics?.largestMixedOwnerFileLines === 10173 &&
     execution.currentGraph.metrics?.internalTargetSeparation === true,
   "completed REVIEW4-64 " +
     "graph metrics mismatch");
+  const currentDebt = new Map(currentGraph.mixedOwnershipDebt.map(item => [item.file, item.lineCount]));
+  assert(currentDebt.get("src/ingress/product_ui_page_scripts.cpp") === 10173,
+    "current source graph product UI line count drift");
+  assert(execution.completionGraph?.sha256 ===
+      "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a" &&
+    execution.completionGraph.sha256 === sha256File(path.join(rootDir, execution.completionGraph.path)) &&
+    completionGraph.mixedOwnershipDebt.find(item =>
+      item.file === "src/ingress/product_ui_page_scripts.cpp")?.lineCount === 10156 &&
+    execution.review4Completion?.completionGraphSha256 === execution.completionGraph.sha256,
+  "immutable Slice 32 completion graph binding mismatch");
 });
 
 check("historical REVIEW4-51 decision/readiness remain frozen and separate from current completion", () => {
@@ -268,6 +280,7 @@ check("handoff plan fixes branch, module, dependency, contract, and slice readin
     "target architecture 위반 direction",
     "8-owner 1개",
     "test/fixtures/v390_structure_stabilization_current_graph.json",
+    "test/fixtures/v390_structure_stabilization_slice32_completion_graph.json",
     "production 215파일/C++ 103개/owner 10개",
     "## Structure execution scope decision (V390-REVIEW4-51)",
     "execute-actual-refactor-in-v3.9.0-after-review4-50-63",
@@ -323,6 +336,7 @@ console.log(`- actualModuleOwners: ${currentGraph.moduleClassifiers.length}`);
 console.log(`- actualTargetCount: ${currentGraph.cmake.targets.length}`);
 console.log(`- targetViolationDirections: ${execution.currentGraph.metrics.targetViolationDirections}`);
 console.log(`- largestSccOwners: ${execution.currentGraph.metrics.largestSccOwners}`);
+console.log(`- largestMixedOwnerFileLines: ${execution.currentGraph.metrics.largestMixedOwnerFileLines}`);
 console.log("- graphStatus: final-targets-satisfied");
 console.log(`- pass: ${checks.length - failed.length}`);
 console.log(`- fail: ${failed.length}`);

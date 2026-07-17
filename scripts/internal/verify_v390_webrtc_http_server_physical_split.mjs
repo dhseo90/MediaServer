@@ -32,8 +32,13 @@ const expectedSuccessorDefinitionSha256 =
   "eb9f038a775adebb06d9ddd84f6b6ef1b6f5dbcc2803dc020cc4cc9287250729";
 const expectedGraphSha256 =
   "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a";
+const expectedCurrentGraphSha256 =
+  "fd34ace24775ec0ffbd6617bc1ddcee661f50630471626ff57604e5955eebc24";
 const helperPath = "scripts/internal/webrtc_http_server_source_bundle.mjs";
-const graphPath = "test/fixtures/v390_structure_stabilization_current_graph.json";
+const completionGraphPath = "test/fixtures/v390_structure_stabilization_slice32_completion_graph.json";
+const currentGraphPath = "test/fixtures/v390_structure_stabilization_current_graph.json";
+const snapshotPath = "test/fixtures/v390_webrtc_http_server_source_bundle_snapshots.json";
+const completionSourceCommit = "b9a45740e60f087cff6ff6d8358994855db8651f";
 const splitPaths = [
   "src/ingress/webrtc_http_server.cpp",
   "src/ingress/webrtc_http_server_ops_foundation.cpp",
@@ -60,6 +65,10 @@ function check(name, fn) {
 const read = file => fs.readFileSync(path.join(sourceRoot, file), "utf8");
 const sha256 = value => crypto.createHash("sha256").update(value).digest("hex");
 const lineCount = text => text.split(/\r?\n/).length - (text.endsWith("\n") ? 1 : 0);
+const gitText = (commit, file) => execFileSync("git", ["show", `${commit}:${file}`], {
+  cwd: rootDir, encoding: "utf8",
+});
+const snapshots = JSON.parse(read(snapshotPath));
 
 function findClosingBrace(text, opening) {
   let depth = 0;
@@ -360,17 +369,28 @@ check("private detail declarations keep shared state and singleton ownership ODR
 check("rollback split and exact successor definition inventory remain bound", () => {
   const current = splitPaths.filter(file => fs.existsSync(path.join(sourceRoot, file)))
     .flatMap(file => definitionInventory(read(file))).sort();
+  const completion = splitPaths.flatMap(file => definitionInventory(gitText(completionSourceCommit, file))).sort();
+  const completionBinding = snapshots.completion.physicalSplitBinding;
+  const currentBinding = snapshots.current.physicalSplitBinding;
   assert(rollbackDefinitions.length === 1151 &&
     sha256(rollbackDefinitions.join("\n")) ===
       "1127fa03438b96dd134fef7488eebe69e0cf5049fe41bf256674edb6d8e825cd" &&
-    current.length === expectedSuccessorDefinitionCount &&
-    sha256(current.join("\n")) === expectedSuccessorDefinitionSha256,
-  `definition inventory drift: rollback=${rollbackDefinitions.length}/${sha256(rollbackDefinitions.join("\n"))} current=${current.length}/${sha256(current.join("\n"))}`);
+    snapshots.completion.sourceCommit === completionSourceCommit &&
+    completion.length === expectedSuccessorDefinitionCount &&
+    completionBinding.definitionCount === expectedSuccessorDefinitionCount &&
+    completionBinding.definitionSha256 === expectedSuccessorDefinitionSha256 &&
+    sha256(completion.join("\n")) === expectedSuccessorDefinitionSha256 &&
+    current.length === currentBinding.definitionCount &&
+    sha256(current.join("\n")) === currentBinding.definitionSha256,
+  `definition inventory drift: rollback=${rollbackDefinitions.length}/${sha256(rollbackDefinitions.join("\n"))} completion=${completion.length}/${sha256(completion.join("\n"))} current=${current.length}/${sha256(current.join("\n"))}`);
 });
 
 check("CMake and owner classifier include every translation unit exactly once", () => {
   const cmake = read("CMakeLists.txt");
-  const graph = JSON.parse(read(graphPath));
+  const graphText = read(currentGraphPath);
+  const graph = JSON.parse(graphText);
+  assert(sha256(graphText) === expectedCurrentGraphSha256,
+    "current source owner/CMake graph SHA drift");
   const owner = graph.moduleClassifiers.find(item => item.id === "transport-and-auth-adapter");
   const runtimeTarget = cmakeCall(cmake, "add_library", "media_server_runtime");
   const executableTarget = cmakeCall(cmake, "add_executable", "media_server");
@@ -387,8 +407,8 @@ check("CMake and owner classifier include every translation unit exactly once", 
   }
 });
 
-check("actual graph keeps direction debt stable while closing the mixed-owner limit", () => {
-  const graphText = read(graphPath);
+check("Slice 32 completion graph keeps direction debt stable while closing the mixed-owner limit", () => {
+  const graphText = read(completionGraphPath);
   const graph = JSON.parse(graphText);
   const trackedSplit = graph.mixedOwnershipDebt.filter(item => splitPaths.includes(item.file));
   const appCore = graph.observedModuleEdges.find(item =>
@@ -409,7 +429,8 @@ check("actual graph keeps direction debt stable while closing the mixed-owner li
 });
 
 function copyInputs(targetRoot) {
-  for (const file of [...splitPaths, helperPath, graphPath, "CMakeLists.txt", "scripts/internal/script_arg_utils.mjs"]) {
+  for (const file of [...splitPaths, helperPath, completionGraphPath, currentGraphPath, snapshotPath,
+    "CMakeLists.txt", "scripts/internal/script_arg_utils.mjs"]) {
     const source = path.join(rootDir, file);
     if (!fs.existsSync(source)) continue;
     const target = path.join(targetRoot, file);
@@ -485,15 +506,26 @@ if (!skipMutations && splitPaths.every(file => fs.existsSync(path.join(rootDir, 
       text => text.replace(`    ${splitPaths[2]}\n`, "")
         .replace("add_executable(media_server\n", `add_executable(media_server\n    ${splitPaths[2]}\n`),
       "CMake and owner classifier");
-    rejectMutation("classifier", graphPath,
+    rejectMutation("classifier", currentGraphPath,
       text => text.replace(`        "${splitPaths[2]}",\n`, ""),
       "CMake and owner classifier");
-    rejectMutation("graph", graphPath,
+    rejectMutation("graph", completionGraphPath,
       text => text.replace('"expectedProductionFiles": 215', '"expectedProductionFiles": 216'),
-      "actual graph keeps direction debt stable");
-    rejectMutation("graph-line-count", graphPath,
+      "Slice 32 completion graph keeps direction debt stable");
+    rejectMutation("graph-line-count", completionGraphPath,
       text => text.replace('"lineCount": 7777', '"lineCount": 7778'),
-      "actual graph keeps direction debt stable");
+      "Slice 32 completion graph keeps direction debt stable");
+    rejectMutation("completion-definition-binding", snapshotPath, text => {
+      const value = JSON.parse(text);
+      value.completion.physicalSplitBinding = structuredClone(value.current.physicalSplitBinding);
+      return `${JSON.stringify(value, null, 2)}\n`;
+    }, "rollback split and exact successor definition inventory remain bound");
+    rejectMutation("current-definition-binding", snapshotPath, text => {
+      const value = JSON.parse(text);
+      value.current.physicalSplitBinding.definitionSha256 =
+        value.completion.physicalSplitBinding.definitionSha256;
+      return `${JSON.stringify(value, null, 2)}\n`;
+    }, "rollback split and exact successor definition inventory remain bound");
     rejectMutation("line-budget", splitPaths[2],
       text => `${text}${"\n".repeat(15001)}`,
       "six-file layout is exact");

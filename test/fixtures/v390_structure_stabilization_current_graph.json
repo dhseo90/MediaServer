@@ -1,7 +1,7 @@
 {
   "schema": "media-server.v390-structure-stabilization-current-graph.v1",
   "sourceRelease": "v3.9.0",
-  "graphKind": "actual-source-include-and-cmake-target-graph",
+  "graphKind": "actual-current-source-include-and-cmake-target-graph",
   "ownershipModel": "ordered-exact-over-directory-container",
   "productionRoots": [
     "src",
@@ -557,7 +557,7 @@
     },
     {
       "file": "src/ingress/product_ui_page_scripts.cpp",
-      "lineCount": 10156,
+      "lineCount": 10173,
       "primaryOwner": "product-ui-workspaces",
       "embeddedResponsibilities": [
         "ops-workspaces",
@@ -816,5 +816,9 @@
       "exitRule": "production-graph-unchanged-and-cumulative-debt-verified"
     }
   ],
-  "boundary": "current REVIEW4-64 continuation graph after the WebRTC media application boundary; standard deep DTOs and opaque egress/source session ports remove all four transport-to-core-media witnesses while one canonical adapter owns SessionManager, concrete WebRTC sessions, registry snapshots, packet delivery, negotiation, metadata, overlay, and source observability mapping; Policy v1 counts zero target-direction violations and zero multi-owner SCCs, internal target separation is true, and remaining independent final evidence keeps REVIEW4-64 completion closed"
+  "boundary": "current post-Slice-32 source topology generated from src/include and CMake; the immutable Slice 32 completion graph remains the historical completion evidence, while current line counts, owner/include/target directions, SCCs, and target separation are independently fail-closed",
+  "completionGraphBinding": {
+    "path": "test/fixtures/v390_structure_stabilization_slice32_completion_graph.json",
+    "sha256": "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a"
+  }
 }

@@ -101,7 +101,7 @@ function verifyTypedHandoffState() {
   assert(graphRun.signal === null, `current source graph verification terminated by signal ${graphRun.signal}`);
   const graphStatus = graphRun.status;
   const behaviorPreservingSourceGraphGate = graphStatus === 0 &&
-    execution.schema === "media-server.v390-structure-stabilization-execution.v3" &&
+    execution.schema === "media-server.v390-structure-stabilization-execution.v4" &&
     execution.issueId === "V390-REVIEW4-64" &&
     execution.status === "completed" &&
     execution.refactorComplete === true && execution.completionClaimed === true &&
@@ -119,6 +119,10 @@ function verifyTypedHandoffState() {
     execution.currentGraph.metrics?.cppSources === currentGraph.expectedCppFiles &&
     execution.currentGraph.metrics?.moduleOwners === currentGraph.moduleClassifiers?.length &&
     execution.currentGraph.metrics?.cmakeTargets === currentGraph.cmake?.targets?.length &&
+    execution.currentGraph.metrics?.largestMixedOwnerFileLines === 10173 &&
+    execution.completionGraph?.sha256 ===
+      "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a" &&
+    execution.review4Completion?.completionGraphSha256 === execution.completionGraph.sha256 &&
     execution.preservedContracts?.length === 9 &&
     execution.orderedSlices?.length === 6;
   const behaviorMutationPerformed = !behaviorPreservingSourceGraphGate;

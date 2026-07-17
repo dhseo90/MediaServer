@@ -46,7 +46,7 @@ Current REVIEW4-64 status: `completed-current-continuation-slice-32-final-target
 | 5 | `vlm-parser` | 완료 | strict JSON을 core utility로 이동하고 VLM provenance validator를 application-service owner로 분리; actual save/restart/no-write와 profile/promotion 계약 보존 |
 | 6 | `verifier-docs` | historical 미착수·deferred 기록 보존 | REVIEW4-51 당시 generated evidence 계획이며 current REVIEW4-64 completion evidence로 승격하지 않음; generated/actual acceptance owner는 REVIEW4-65 |
 
-Current policy v1 graph는 production 215파일/C++ 103개/owner 10개, target 위반 direction
+Slice 32 completion policy v1 graph는 production 215파일/C++ 103개/owner 10개, target 위반 direction
 0개(승인 baseline 25개), 최대 SCC 0, production CMake target 2개입니다. `main.cpp` mixed composition debt는
 245→8줄, selected action route owner는 server 43,266→43,186줄로 닫았고 registry→transport auth edge와 product UI→transport/Auth edge를 제거했습니다. Transport monolith는 5개 구현 TU와 private detail header로 분할됐고 tracked mixed owner 최대는 10,156줄입니다. Slice 13은 utility 소유 compile-time 값을 `analysis_runtime_port.h`의 공식 `analysis_runtime_defaults` re-export로만 analysis에 노출하고 exact 133-default/148-field manifest를 고정했습니다. Slice 14는 exact 68-field WebRTC HTTP runtime snapshot을 composition에서 매핑·주입해 transport→core-utilities 방향을 제거했습니다. Current architecture final target과 Slice 32 테스트·cleanup을 충족했으므로 REVIEW4-64는 완료입니다. Parked generated evidence는 REVIEW4-65 acceptance pending이며 64 완료 근거로 사용하지 않습니다. Historical v2 order와 current order의 전환 범위는 slice identifier/order뿐이며 current branch,
 50~63 prerequisite, 9 preserved contract, 64 뒤 65 acceptance 경계는 유지합니다. Policy v1은
@@ -66,8 +66,13 @@ Slice 6 `verifier-docs`의 current evidence 재결속 entry blocker입니다.
 
 Historical REVIEW4-51의 6-slice decision/readiness/graph는 승인 당시 SHA로 불변 보존합니다. 그 6개 Slice를
 완료하는 것만으로 current architecture 최종 기준을 만족했다고 간주하지 않습니다. 별도 current policy는
-`test/fixtures/v390_structure_stabilization_current_architecture_policy.json`, current source/CMake graph는
-`test/fixtures/v390_structure_stabilization_current_graph.json`입니다.
+`test/fixtures/v390_structure_stabilization_current_architecture_policy.json`입니다. Slice 32 완료 당시 graph는
+`test/fixtures/v390_structure_stabilization_slice32_completion_graph.json`의 SHA-256
+`215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a`로 immutable 보존하고,
+현재 source/CMake topology는 generator가 `test/fixtures/v390_structure_stabilization_current_graph.json`에
+별도로 기록합니다. REVIEW4-65 event-rule UI의 비구조 변경 뒤 current graph는 product UI 10,173줄/최대 mixed
+owner 10,173줄이며 target violation 0, SCC 0, target 2, internal separation true를 유지합니다. Slice 32의
+10,156줄과 `resolvedDebt` 10,217→10,156 기록은 current 값으로 덮어쓰지 않습니다.
 
 첫 continuation Slice `completion-oracle-and-ops-ui-renderer`는 completion oracle과 byte-stable Ops product UI
 server renderer owner 이동을 함께 결속하고 targeted gate를 통과해 `completed`입니다. 전체 current continuation은
@@ -559,6 +564,18 @@ Focused verification recorded 0/5 initial RED and 4/1 hardened-byte RED before r
 analysis181, predecessor appearance5, transport5, source bundle6, physical6, and structure15 passed. Current graph is
 production182/C++89, edge17, violations3, SCC0; transport-to-analysis witnesses are 17→16. Remaining violation directions
 and parked generated evidence keep REVIEW4-64/65 open.
+
+### REVIEW4-65 acceptance prerequisite: completion/current structure evidence
+
+- [x] Preserve the immutable Slice 32 completion graph (`215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a`, product UI/largest mixed-owner file 10,156 lines) and generate the current graph (`fd34ace24775ec0ffbd6617bc1ddcee661f50630471626ff57604e5955eebc24`, 10,173 lines) without rewriting Slice 1–32 history or resolved debt.
+- [x] Split the six-file WebRTC source bundle into completion source `b9a45740e60f087cff6ff6d8358994855db8651f` (`d2dc01ef58a1379b3c73f22da546ee60a5aa2f0eb4e47234dea0d12762a919e6`, 2,252,961 bytes) and current comment-only baseline `72c74f4f71bcb3e212082139077aaf8ed3d478fd` (`31f3613d0c56c2a455c1e8e9232a60200557dea7195ed90c90a3f7fc6c1198a9`, 2,253,063 bytes).
+- [x] Accept only the exact bounded -4/+106-byte, zero-line-delta comment regions; require executable-source byte equivalence and reject snapshot/graph exchange, commit/file/offset/order drift, executable token changes, missing files, duplicates, and reordered sources.
+- [x] Rebind only `SAFE-211`, `SAFE-215`, `OPS-178`, and `OPS-182`: semantic candidate `2f89a5ad453e6aef72db4bf598e5a80d05c0ec5892802b5fe83f9606697a3c14`, 982 strict-equivalence carry-forward plus four independent-review approvals, 986/986 coverage. No additional row is directly bound to the source-bundle verifier.
+
+Focused source bundle 8/8, physical split 6/6, media application boundary 8/8, graph-only 4/4, handoff 7/7,
+readiness 7/7, semantic audit/approval/migration, feature implementation evidence, and project inventory pass.
+The preserved canonical SAFE-211 failure remains FAIL evidence. The release launcher, 30-minute run, exact UI/Policy v4,
+and 120-minute run are not executed by this correction.
 
 ### Current continuation Slice 17: `appearance-readiness-application-boundary`
 

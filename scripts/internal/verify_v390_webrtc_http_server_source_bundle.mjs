@@ -10,6 +10,10 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import {
+  readWebRtcHttpServerBundle,
+  webrtcHttpServerSourceMetrics,
+} from "./webrtc_http_server_source_bundle.mjs";
 
 const rawArgs = process.argv.slice(2);
 if (hasHelpFlag(rawArgs)) {
@@ -19,11 +23,12 @@ Usage:
   ./server.sh verify-v390-webrtc-http-server-source-bundle
 `);
 }
-assertKnownOptions(rawArgs, ["h", "help", "fixture-root", "skip-mutations"]);
+assertKnownOptions(rawArgs, ["h", "help", "fixture-root", "skip-mutations", "write-current-snapshot"]);
 
 const scriptPath = fileURLToPath(import.meta.url);
 const rootDir = path.resolve(path.dirname(scriptPath), "../..");
 const skipMutations = rawArgs.includes("--skip-mutations");
+const writeCurrentSnapshot = rawArgs.includes("--write-current-snapshot");
 const fixtureArg = rawArgs.find(arg => arg.startsWith("--fixture-root="));
 const sourceRoot = fixtureArg ? validateFixtureRoot(fixtureArg.slice("--fixture-root=".length)) : rootDir;
 const helperPath = "scripts/internal/webrtc_http_server_source_bundle.mjs";
@@ -36,63 +41,17 @@ const sourcePaths = [
   "src/ingress/webrtc_http_server_runtime.cpp",
   "src/ingress/webrtc_http_server_detail.h",
 ];
+const snapshotPath = "test/fixtures/v390_webrtc_http_server_source_bundle_snapshots.json";
+const completionGraphPath = "test/fixtures/v390_structure_stabilization_slice32_completion_graph.json";
+const currentGraphPath = "test/fixtures/v390_structure_stabilization_current_graph.json";
+const completionSourceCommit = "b9a45740e60f087cff6ff6d8358994855db8651f";
+const currentSourceBaselineCommit = "72c74f4f71bcb3e212082139077aaf8ed3d478fd";
+const completionGraphSha256 = "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a";
+const currentGraphSha256 = "fd34ace24775ec0ffbd6617bc1ddcee661f50630471626ff57604e5955eebc24";
 const rollbackCommit = "e5df05f3945e43e89ae13e3fdd21d0c83ab78ac8";
 const expectedConsumerCount = 170;
 const expectedExpressionCount = 188;
 const expectedConsumerSha = "1e13a798e01c601114df0287bc552e3681531e3021e81c57307ee99ae458ee1c";
-const expectedBundleSha = "d2dc01ef58a1379b3c73f22da546ee60a5aa2f0eb4e47234dea0d12762a919e6";
-const expectedLogicalOrder = [747210, 752283, 453245, 453626];
-const expectedGraphSha256 = "215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a";
-const expectedSourceMetrics = {
-  fileCount: 6,
-  totalBytes: 2252961,
-  totalLines: 46853,
-  largestFileLines: 10150,
-  files: [
-    {
-      id: "transport-main",
-      file: "src/ingress/webrtc_http_server.cpp",
-      sha256: "4ca309c982c07a00baed7f910e286edba2a3864f1ab7b62d1f9f4d339338257e",
-      bytes: 340940,
-      lines: 7777,
-    },
-    {
-      id: "ops-foundation",
-      file: "src/ingress/webrtc_http_server_ops_foundation.cpp",
-      sha256: "f1877e71124d52cf053ba9b1c3424f7ae3761dc0810ce124b19df074e5f2f6d1",
-      bytes: 345860,
-      lines: 7849,
-    },
-    {
-      id: "ops-workflows",
-      file: "src/ingress/webrtc_http_server_ops_workflows.cpp",
-      sha256: "6e4f3da325362b5899d06f9137cde06782135cfd646fc35da9de3554effd7558",
-      bytes: 509926,
-      lines: 10150,
-    },
-    {
-      id: "ops-incidents",
-      file: "src/ingress/webrtc_http_server_ops_incidents.cpp",
-      sha256: "c444db1b1450210e4e88e6412c49a7c9f70f40f3f0c6cb808f7b0ecf4596f7b7",
-      bytes: 375384,
-      lines: 7888,
-    },
-    {
-      id: "transport-runtime",
-      file: "src/ingress/webrtc_http_server_runtime.cpp",
-      sha256: "de84c484cf6fe0abf53f3d5073e9e43eda9461003e76bc844fe692a7bfac170a",
-      bytes: 328385,
-      lines: 5193,
-    },
-    {
-      id: "private-detail",
-      file: "src/ingress/webrtc_http_server_detail.h",
-      sha256: "0af5bc99a0a4912b67ca4fcb96922373aa66254852d7566a59f233dc3f2f16d5",
-      bytes: 352466,
-      lines: 7996,
-    },
-  ],
-};
 const currentOwnerRebindings = new Map([
   ["scripts/internal/verify_vlm_rule_suggestion_draft_workflow.mjs", {
     removedBundleReads: 1,
@@ -116,6 +75,152 @@ function check(name, fn) {
 }
 const read = file => fs.readFileSync(path.join(sourceRoot, file), "utf8");
 const sha256Text = text => crypto.createHash("sha256").update(text).digest("hex");
+const lineCount = text => text.length === 0 ? 0 :
+  text.split(/\r?\n/).length - (text.endsWith("\n") ? 1 : 0);
+const gitText = (commit, file) => execFileSync("git", ["show", `${commit}:${file}`], {
+  cwd: rootDir, encoding: "utf8",
+});
+const snapshot = JSON.parse(read(snapshotPath));
+
+function logicalOffsets(bundle) {
+  return [
+    bundle.indexOf("struct OpsV350LiveOperationsGraphNode"),
+    bundle.indexOf("BuildV350LiveOperationsGraphNodes("),
+    bundle.indexOf("struct OpsV380ActionCapabilityContractItem"),
+    bundle.indexOf("BuildV380ActionCapabilityContractItems("),
+  ];
+}
+
+function sourceSnapshot(reader) {
+  const bundle = readWebRtcHttpServerBundle(reader);
+  return {
+    bundleSha256: sha256Text(bundle),
+    logicalOffsets: logicalOffsets(bundle),
+    metrics: webrtcHttpServerSourceMetrics(reader),
+  };
+}
+
+function probeCurrentBundle() {
+  const helperUrl = pathToFileURL(path.join(sourceRoot, helperPath)).href;
+  const probe = spawnSync(process.execPath, ["--input-type=module", "-e", `
+    import crypto from "node:crypto";
+    import { readWebRtcHttpServerBundle, resolveWebRtcHttpServerSource,
+      webrtcHttpServerSourceMetrics } from ${JSON.stringify(helperUrl)};
+    const root = ${JSON.stringify(sourceRoot)};
+    const bundle = readWebRtcHttpServerBundle(root);
+    const resolved = resolveWebRtcHttpServerSource(root, {
+      tokens: ["bool WebRtcHttpServer::Start(const std::string& listen_address",
+        "failed to create HTTP socket"],
+      purpose: "slice11-probe",
+    });
+    const resolvedFunction = resolveWebRtcHttpServerSource(root, {
+      tokens: ["std::int64_t PtsNsToMs"], purpose: "slice12-prototype-shadow-probe",
+    });
+    let missing = false;
+    try { resolveWebRtcHttpServerSource(root, { tokens: ["__missing_slice11_token__"] }); }
+    catch { missing = true; }
+    let ambiguous = false;
+    try {
+      resolveWebRtcHttpServerSource(file => file.endsWith("a.cpp") || file.endsWith("b.cpp")
+        ? "shared ambiguous token" : "", {
+        tokens: ["shared ambiguous token"],
+        layout: [{ id: "a", path: "a.cpp" }, { id: "b", path: "b.cpp" }],
+      });
+    } catch { ambiguous = true; }
+    console.log(JSON.stringify({
+      bundleSha256: crypto.createHash("sha256").update(bundle).digest("hex"),
+      logicalOffsets: [bundle.indexOf("struct OpsV350LiveOperationsGraphNode"),
+        bundle.indexOf("BuildV350LiveOperationsGraphNodes("),
+        bundle.indexOf("struct OpsV380ActionCapabilityContractItem"),
+        bundle.indexOf("BuildV380ActionCapabilityContractItems(")],
+      metrics: webrtcHttpServerSourceMetrics(root), resolved: resolved.file,
+      resolvedFunction: resolvedFunction.file, missing, ambiguous,
+    }));
+  `], { cwd: sourceRoot, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(probe.status === 0, `source bundle probe failed: ${probe.stderr}`);
+  return JSON.parse(probe.stdout.trim());
+}
+
+function extractBoundedRegion(text, item, label) {
+  const startMatches = [...text.matchAll(new RegExp(escapeRegExp(item.startLocator), "g"))];
+  const endMatches = [...text.matchAll(new RegExp(escapeRegExp(item.endLocator), "g"))];
+  assert(startMatches.length === 1 && endMatches.length === 1,
+    `${label}: comment-only locator missing or duplicated`);
+  const start = startMatches[0].index + item.startLocator.length;
+  const end = endMatches[0].index;
+  assert(start <= end, `${label}: comment-only locators are reversed`);
+  return {
+    region: text.slice(start, end),
+    executableSource: text.slice(0, start) + text.slice(end),
+  };
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function validateOrderedSources(value) {
+  assert(value.schema === "media-server.v390-webrtc-http-server-source-bundle-snapshots.v1",
+    "source bundle snapshot schema drift");
+  assert(Array.isArray(value.orderedSources) && value.orderedSources.length === sourcePaths.length,
+    "six-file source order missing or duplicated");
+  const files = value.orderedSources.map(item => item.file);
+  assert(new Set(files).size === sourcePaths.length &&
+    JSON.stringify(files) === JSON.stringify(sourcePaths),
+  "six-file source order missing, duplicated, or reordered");
+}
+
+function validateCompletionSnapshot(value) {
+  const completion = value.completion;
+  assert(completion.sourceCommit === completionSourceCommit,
+    "completion source commit drift");
+  const actual = sourceSnapshot(file => gitText(completionSourceCommit, file));
+  assert(actual.bundleSha256 === completion.bundleSha256 &&
+    JSON.stringify(actual.logicalOffsets) === JSON.stringify(completion.logicalOffsets) &&
+    JSON.stringify(actual.metrics) === JSON.stringify(completion.metrics),
+  "immutable completion bundle snapshot drift");
+  assert(completion.graphBinding.path === completionGraphPath &&
+    completion.graphBinding.sha256 === completionGraphSha256,
+  "completion bundle graph binding drift");
+}
+
+function currentSnapshotFromSource(value, actual) {
+  return {
+    sourceBaselineCommit: value.current.sourceBaselineCommit,
+    generatedFrom: "working-tree-six-file-source",
+    bundleSha256: actual.bundleSha256,
+    logicalOffsets: actual.logicalOffsets,
+    metrics: actual.metrics,
+    graphBinding: {
+      path: currentGraphPath,
+      sha256: sha256Text(read(currentGraphPath)),
+    },
+    physicalSplitBinding: value.current.physicalSplitBinding,
+  };
+}
+
+if (writeCurrentSnapshot) {
+  assert(!fixtureArg && !skipMutations, "current snapshot generation only supports the repository root");
+  validateOrderedSources(snapshot);
+  validateCompletionSnapshot(snapshot);
+  const completionBefore = JSON.stringify(snapshot.completion);
+  const transitionBefore = JSON.stringify(snapshot.commentOnlyTransition);
+  const orderBefore = JSON.stringify(snapshot.orderedSources);
+  const next = structuredClone(snapshot);
+  next.current = currentSnapshotFromSource(snapshot, probeCurrentBundle());
+  assert(next.current.sourceBaselineCommit === currentSourceBaselineCommit,
+    "current source baseline commit drift");
+  assert(JSON.stringify(next.completion) === completionBefore &&
+    JSON.stringify(next.commentOnlyTransition) === transitionBefore &&
+    JSON.stringify(next.orderedSources) === orderBefore,
+  "current snapshot generator modified immutable completion or historical transition evidence");
+  const absolute = path.join(rootDir, snapshotPath);
+  const temporary = `${absolute}.tmp-${process.pid}`;
+  fs.writeFileSync(temporary, `${JSON.stringify(next, null, 2)}\n`);
+  fs.renameSync(temporary, absolute);
+  console.log(`updated current WebRTC source bundle snapshot: ${snapshotPath}`);
+  process.exit(0);
+}
 const legacyPatterns = [
   /\breadText\(\s*["']src\/ingress\/webrtc_http_server\.cpp["']\s*\)/g,
   /\bread\(\s*["']src\/ingress\/webrtc_http_server\.cpp["']\s*\)/g,
@@ -194,77 +299,118 @@ check("all 170 readers use the bundle exactly and no unregistered reader is migr
     "unregistered source bundle consumer migration detected");
 });
 
-check("six-file physical metrics and logical-origin bundle are exact", () => {
-  const helperUrl = pathToFileURL(path.join(sourceRoot, helperPath)).href;
-  const probe = spawnSync(process.execPath, ["--input-type=module", "-e", `
-    import crypto from "node:crypto";
-    import { readWebRtcHttpServerBundle, resolveWebRtcHttpServerSource,
-      webrtcHttpServerSourceMetrics } from ${JSON.stringify(helperUrl)};
-    const root = ${JSON.stringify(sourceRoot)};
-    const bundle = readWebRtcHttpServerBundle(root);
-    const resolved = resolveWebRtcHttpServerSource(root, {
-      tokens: ["bool WebRtcHttpServer::Start(const std::string& listen_address",
-        "failed to create HTTP socket"],
-      purpose: "slice11-probe",
-    });
-    const resolvedFunction = resolveWebRtcHttpServerSource(root, {
-      tokens: ["std::int64_t PtsNsToMs"], purpose: "slice12-prototype-shadow-probe",
-    });
-    let missing = false;
-    try { resolveWebRtcHttpServerSource(root, { tokens: ["__missing_slice11_token__"] }); }
-    catch { missing = true; }
-    let ambiguous = false;
-    try {
-      resolveWebRtcHttpServerSource(file => file.endsWith("a.cpp") || file.endsWith("b.cpp")
-        ? "shared ambiguous token" : "", {
-        tokens: ["shared ambiguous token"],
-        layout: [{ id: "a", path: "a.cpp" }, { id: "b", path: "b.cpp" }],
-      });
-    } catch { ambiguous = true; }
-    console.log(JSON.stringify({
-      sha: crypto.createHash("sha256").update(bundle).digest("hex"),
-      logicalOrder: [bundle.indexOf("struct OpsV350LiveOperationsGraphNode"),
-        bundle.indexOf("BuildV350LiveOperationsGraphNodes("),
-        bundle.indexOf("struct OpsV380ActionCapabilityContractItem"),
-        bundle.indexOf("BuildV380ActionCapabilityContractItems(")],
-      metrics: webrtcHttpServerSourceMetrics(root), resolved: resolved.file,
-      resolvedFunction: resolvedFunction.file, missing, ambiguous,
-    }));
-  `], { cwd: sourceRoot, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
-  assert(probe.status === 0, `source bundle probe failed: ${probe.stderr}`);
-  const result = JSON.parse(probe.stdout.trim());
-  assert(result.sha === expectedBundleSha &&
-    JSON.stringify(result.logicalOrder) === JSON.stringify(expectedLogicalOrder) &&
+check("completion and current six-file source bundle snapshots are exact", () => {
+  validateOrderedSources(snapshot);
+  validateCompletionSnapshot(snapshot);
+  assert(snapshot.current.sourceBaselineCommit === currentSourceBaselineCommit,
+    "current source baseline commit drift");
+  const result = probeCurrentBundle();
+  assert(result.bundleSha256 === snapshot.current.bundleSha256 &&
+    JSON.stringify(result.logicalOffsets) === JSON.stringify(snapshot.current.logicalOffsets) &&
     result.resolved === "src/ingress/webrtc_http_server_runtime.cpp" &&
     result.resolvedFunction === "src/ingress/webrtc_http_server_ops_foundation.cpp" &&
     result.missing === true && result.ambiguous === true &&
-    JSON.stringify(result.metrics) === JSON.stringify(expectedSourceMetrics) &&
+    JSON.stringify(result.metrics) === JSON.stringify(snapshot.current.metrics) &&
     JSON.stringify(result.metrics.files.map(item => item.file)) === JSON.stringify(sourcePaths),
-  `logical source bundle order, bytes, resolver, or metrics drift: ${JSON.stringify(result)}`);
+  `current logical source bundle order, bytes, resolver, or metrics drift: ${JSON.stringify(result)}`);
 });
 
-check("physical bundle successor binds the exact production graph", () => {
-  const graphText = read("test/fixtures/v390_structure_stabilization_current_graph.json");
-  const graph = JSON.parse(graphText);
+check("completion-to-current delta is limited to two exact comment regions", () => {
+  const transition = snapshot.commentOnlyTransition;
+  assert(transition.fromCommit === completionSourceCommit &&
+    transition.toCommit === currentSourceBaselineCommit &&
+    Array.isArray(transition.files) && transition.files.length === 2,
+  "comment-only transition commit or file coverage drift");
+  const changed = new Set(transition.files.map(item => item.file));
+  assert(changed.size === 2 && changed.has(serverPath) && changed.has(sourcePaths.at(-1)),
+    "comment-only transition must cover exactly the two reviewed files");
+  let byteDelta = 0;
+  let lineDelta = 0;
+  let unchanged = 0;
+  for (const file of sourcePaths) {
+    const completionText = gitText(completionSourceCommit, file);
+    const baselineText = gitText(currentSourceBaselineCommit, file);
+    const currentText = read(file);
+    assert(currentText === baselineText, `current source is not bound to the reviewed baseline commit: ${file}`);
+    const item = transition.files.find(entry => entry.file === file);
+    if (!item) {
+      assert(completionText === currentText, `unreviewed source bundle file changed: ${file}`);
+      unchanged += 1;
+      continue;
+    }
+    const completionBounded = extractBoundedRegion(completionText, item, `${file}:completion`);
+    const currentBounded = extractBoundedRegion(currentText, item, `${file}:current`);
+    const actualByteDelta = Buffer.byteLength(currentText) - Buffer.byteLength(completionText);
+    const actualLineDelta = lineCount(currentText) - lineCount(completionText);
+    assert(sha256Text(completionText) === item.completionSha256 &&
+      sha256Text(currentText) === item.currentSha256 &&
+      actualByteDelta === item.byteDelta && actualLineDelta === item.lineDelta &&
+      completionBounded.region === item.completionRegion &&
+      currentBounded.region === item.currentRegion &&
+      sha256Text(completionBounded.region) === item.completionRegionSha256 &&
+      sha256Text(currentBounded.region) === item.currentRegionSha256,
+    `reviewed comment region digest or metric drift: ${file}`);
+    for (const region of [completionBounded.region, currentBounded.region]) {
+      assert(region.split("\n").filter(line => line.trim().length > 0)
+        .every(line => line.trimStart().startsWith("//")),
+      `reviewed region contains executable text: ${file}`);
+    }
+    assert(completionBounded.executableSource === currentBounded.executableSource &&
+      sha256Text(completionBounded.executableSource) === item.executableSourceSha256,
+    `executable source changed outside the reviewed comment region: ${file}`);
+    byteDelta += actualByteDelta;
+    lineDelta += actualLineDelta;
+  }
+  assert(unchanged === transition.unchangedFileCount &&
+    byteDelta === transition.totalByteDelta && lineDelta === transition.totalLineDelta,
+  "comment-only aggregate delta drift");
+});
+
+check("completion and current bundles bind only their matching structure graphs", () => {
+  const completionGraphText = read(completionGraphPath);
+  const currentGraphText = read(currentGraphPath);
+  const graph = JSON.parse(completionGraphText);
+  const currentGraph = JSON.parse(currentGraphText);
   const appCore = graph.observedModuleEdges.find(item =>
     item.direction === "application-service-interfaces -> core-media-interfaces");
   const transportCore = graph.observedModuleEdges.filter(item =>
     item.direction === "transport-and-auth-adapter -> core-media-interfaces" ||
     item.direction === "transport-and-auth-adapter -> core-utilities");
-  assert(sha256Text(graphText) === expectedGraphSha256 &&
+  assert(snapshot.completion.graphBinding.path === completionGraphPath &&
+    snapshot.current.graphBinding.path === currentGraphPath &&
+    snapshot.completion.graphBinding.sha256 === completionGraphSha256 &&
+    snapshot.current.graphBinding.sha256 === currentGraphSha256 &&
+    sha256Text(completionGraphText) === completionGraphSha256 &&
+    sha256Text(currentGraphText) === currentGraphSha256 &&
     graph.expectedProductionFiles === 215 && graph.expectedCppFiles === 103 &&
     graph.observedModuleEdges.length === 16 &&
     graph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 0 &&
     appCore?.witnessCount === 4 && appCore.allowedByTarget === true &&
     transportCore.length === 0 &&
-    graph.stronglyConnectedComponents.length === 0,
-  "source bundle slice changed production graph metrics");
+    graph.stronglyConnectedComponents.length === 0 &&
+    currentGraph.expectedProductionFiles === 215 && currentGraph.expectedCppFiles === 103 &&
+    currentGraph.observedModuleEdges.filter(item => item.allowedByTarget === false).length === 0 &&
+    currentGraph.stronglyConnectedComponents.length === 0,
+  "source bundle completion/current graph boundary drift");
+});
+
+check("current snapshot generator preserves completion and historical evidence", () => {
+  const source = fs.readFileSync(scriptPath, "utf8");
+  const start = source.indexOf("if (writeCurrentSnapshot) {");
+  const end = source.indexOf("const legacyPatterns", start);
+  assert(start >= 0 && end > start, "current snapshot generator block missing");
+  const generator = source.slice(start, end);
+  assert(generator.includes("next.current = currentSnapshotFromSource") &&
+    generator.includes("current snapshot generator modified immutable completion or historical transition evidence") &&
+    [...generator.matchAll(/^\s*fs\.writeFileSync\(/gm)].length === 1 &&
+    [...generator.matchAll(/^\s*fs\.renameSync\(/gm)].length === 1,
+  "current snapshot generator write boundary drift");
 });
 
 function copyInputs(targetRoot) {
   for (const file of [...baselineFiles, helperPath, ...sourcePaths,
     ...new Set([...currentOwnerRebindings.values()].map(item => item.owner)),
-    "test/fixtures/v390_structure_stabilization_current_graph.json",
+    snapshotPath, completionGraphPath, currentGraphPath,
     "scripts/internal/script_arg_utils.mjs"]) {
     const target = path.join(targetRoot, file);
     fs.mkdirSync(path.dirname(target), { recursive: true });
@@ -313,10 +459,10 @@ if (!skipMutations) {
       "all 170 readers use the bundle exactly");
     rejectMutation("empty-bundle", helperPath,
       text => text.replace("  return `${prefix.trimEnd()}\\n\\n${chunks.map(item => item.source).join(\"\\n\\n\")}\\n`;", '  return "";'),
-      "six-file physical metrics and logical-origin bundle");
+      "completion and current six-file source bundle snapshots");
     rejectMutation("duplicate-layout", helperPath,
       text => text.replace(`path: "${serverPath}"`, `path: "${serverPath}" },\n  { id: "duplicate", path: "${serverPath}"`),
-      "six-file physical metrics and logical-origin bundle");
+      "completion and current six-file source bundle snapshots");
     rejectMutation("header-first", helperPath,
       text => {
         const line = `  { id: "private-detail", role: "declaration", path: "${sourcePaths.at(-1)}" },\n`;
@@ -324,23 +470,73 @@ if (!skipMutations) {
           "export const WEBRTC_HTTP_SERVER_SOURCE_LAYOUT = Object.freeze([\n",
           `export const WEBRTC_HTTP_SERVER_SOURCE_LAYOUT = Object.freeze([\n${line}`);
       },
-      "six-file physical metrics and logical-origin bundle");
+      "completion and current six-file source bundle snapshots");
     rejectMutation("prototype-shadow", helperPath,
       text => text.replace('{ id: "private-detail", role: "declaration"',
         '{ id: "private-detail", role: "implementation"'),
-      "six-file physical metrics and logical-origin bundle");
+      "completion and current six-file source bundle snapshots");
     rejectMutation("ambiguous-resolver", helperPath,
       text => text.replace("if (matches.length !== 1)", "if (matches.length === 0)"),
-      "six-file physical metrics and logical-origin bundle");
+      "completion and current six-file source bundle snapshots");
     rejectMutation("logical-order", helperPath,
       text => text.replace("left.line - right.line", "right.line - left.line"),
-      "six-file physical metrics and logical-origin bundle");
+      "completion and current six-file source bundle snapshots");
     rejectMutation("logical-origin", sourcePaths[2],
       text => text.replace("WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 17051", "WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 99999"),
-      "six-file physical metrics and logical-origin bundle");
-    rejectMutation("graph", "test/fixtures/v390_structure_stabilization_current_graph.json",
+      "completion and current six-file source bundle snapshots");
+    rejectMutation("completion-graph", completionGraphPath,
       text => text.replace('"expectedProductionFiles": 215', '"expectedProductionFiles": 216'),
-      "physical bundle successor binds the exact production graph");
+      "completion and current bundles bind only their matching structure graphs");
+    rejectMutation("current-graph", currentGraphPath,
+      text => text.replace('"expectedProductionFiles": 215', '"expectedProductionFiles": 216'),
+      "completion and current bundles bind only their matching structure graphs");
+    rejectMutation("completion-current-exchange", snapshotPath, text => {
+      const value = JSON.parse(text);
+      [value.completion, value.current] = [value.current, value.completion];
+      return `${JSON.stringify(value, null, 2)}\n`;
+    }, "completion and current six-file source bundle snapshots");
+    rejectMutation("completion-source-commit", snapshotPath,
+      text => text.replace(completionSourceCommit, currentSourceBaselineCommit),
+      "completion and current six-file source bundle snapshots");
+    rejectMutation("current-file-metric", snapshotPath, text => {
+      const value = JSON.parse(text);
+      value.current.metrics.files[0].bytes += 1;
+      return `${JSON.stringify(value, null, 2)}\n`;
+    }, "completion and current six-file source bundle snapshots");
+    rejectMutation("current-logical-offset", snapshotPath, text => {
+      const value = JSON.parse(text);
+      value.current.logicalOffsets[0] += 1;
+      return `${JSON.stringify(value, null, 2)}\n`;
+    }, "completion and current six-file source bundle snapshots");
+    rejectMutation("executable-token", serverPath,
+      text => text.replace("const bool parent_exists =", "const bool parent_exists_changed ="),
+      "completion-to-current delta is limited to two exact comment regions");
+    rejectMutation("completion-graph-bound-to-current", snapshotPath, text => {
+      const value = JSON.parse(text);
+      value.completion.graphBinding = structuredClone(value.current.graphBinding);
+      return `${JSON.stringify(value, null, 2)}\n`;
+    }, "completion and current six-file source bundle snapshots");
+    rejectMutation("current-graph-bound-to-completion", snapshotPath, text => {
+      const value = JSON.parse(text);
+      value.current.graphBinding = structuredClone(value.completion.graphBinding);
+      return `${JSON.stringify(value, null, 2)}\n`;
+    }, "completion and current bundles bind only their matching structure graphs");
+    rejectMutation("missing-source", snapshotPath, text => {
+      const value = JSON.parse(text);
+      value.orderedSources.pop();
+      return `${JSON.stringify(value, null, 2)}\n`;
+    }, "completion and current six-file source bundle snapshots");
+    rejectMutation("reordered-source", snapshotPath, text => {
+      const value = JSON.parse(text);
+      [value.orderedSources[0], value.orderedSources[1]] =
+        [value.orderedSources[1], value.orderedSources[0]];
+      return `${JSON.stringify(value, null, 2)}\n`;
+    }, "completion and current six-file source bundle snapshots");
+    rejectMutation("duplicate-source", snapshotPath, text => {
+      const value = JSON.parse(text);
+      value.orderedSources[1] = structuredClone(value.orderedSources[0]);
+      return `${JSON.stringify(value, null, 2)}\n`;
+    }, "completion and current six-file source bundle snapshots");
   });
 }
 

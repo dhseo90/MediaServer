@@ -6319,7 +6319,7 @@ transport→core-media를 4→0으로 닫았고 application→core-media 4건은
 
 Focused 8/8, predecessor 6종 40/40, structure 15/15, source bundle 6/6, physical split 6/6,
 build 100%, analysis-state 181/181을 통과했습니다. 최종 semantic review의 verifier false-PASS P1 1건은
-exact mapping과 paired-swap·descriptor omission RED로 수정했습니다. Current graph는 production215/C++103, 위반0/SCC0이며
+exact mapping과 paired-swap·descriptor omission RED로 수정했습니다. Immutable Slice 32 completion graph는 production215/C++103, 위반0/SCC0이며
 SHA는 `215ce9282593945dc820171348eabc2f06814ce2be4b2abe1dbd632919dd820a`입니다.
 
 승인된 sandbox 밖 auth-off throwaway 서버에서 ICE8/8, codec67/67(외부3 제외), SSE5/5, side5/5,
@@ -6327,6 +6327,39 @@ WS9/9, WebRTC metadata8/8, RTSP6/6, Ops lifecycle/source health와 LAB core를 �
 격리 FAIL, auth-on 401, auth-off codec empty-array nounset FAIL은 정확한 명령과 Bash 3.2-safe optional
 argument 수정 뒤 재검증했습니다. 임시 파일30개/32,763바이트 삭제와 listener0을 확인했습니다. Slice32와
 REVIEW4-64 구조 개발은 완료됐지만 parked evidence를 확정하는 REVIEW4-65 독립 acceptance PASS는 아닙니다.
+
+## V390-REVIEW4-65 SAFE-211 completion/current graph 분리 보정
+
+Canonical acceptance run `v390-test-acceptance-20260717130122-44713`은 build와 앞선 feature gate를 통과한 뒤
+`v390-structure-stabilization-handoff`에서 Slice 32 completion graph의 product UI 10,156줄을 현재 source
+10,173줄과 비교해 FAIL했습니다. 제품/API/UI 의미, owner/include/target direction, SCC에는 변화가 없었습니다.
+기존 `215ce928...` graph와 Slice 1~32 before/after, `resolvedDebt` 10,217→10,156은 completion evidence로
+불변 보존하고, current graph는 generator가 현재 source에서 별도로 생성해 product UI/최대 mixed owner
+10,173줄, violation 0, SCC 0, target 2, internal separation true를 결속합니다. Source bundle·physical split·media
+application boundary는 completion graph를, handoff/readiness와 current `--graph-only`는 current graph를 사용합니다.
+이 보정은 canonical FAIL evidence를 PASS로 바꾸지 않으며 실제 `test_release.sh`, 30분, exact UI, Policy v4,
+120분은 재실행하지 않습니다.
+
+### WebRTC source-bundle completion/current 보정
+
+WebRTC six-file source bundle도 같은 lifecycle 경계로 분리했습니다. Slice 32 completion snapshot은 source commit
+`b9a45740e60f087cff6ff6d8358994855db8651f`, bundle SHA
+`d2dc01ef58a1379b3c73f22da546ee60a5aa2f0eb4e47234dea0d12762a919e6`, 2,252,961 bytes와 completion graph
+`215ce928...`를 보존합니다. Current snapshot은 comment-only commit
+`72c74f4f71bcb3e212082139077aaf8ed3d478fd` 이후 현재 six-file bundle SHA
+`31f3613d0c56c2a455c1e8e9232a60200557dea7195ed90c90a3f7fc6c1198a9`, 2,253,063 bytes와 current graph
+`fd34ace24775ec0ffbd6617bc1ddcee661f50630471626ff57604e5955eebc24`에 결속합니다. 두 변경 파일의 line delta는
+0, byte delta는 -4/+106이고 지정된 두 주석 영역을 제거한 executable source SHA가 각각 동일함을 exact locator로
+검증합니다. 전체 C++ comment 제거 같은 fallback은 사용하지 않으며 snapshot/graph 교환, source commit·file
+SHA·bytes·logical offset drift, executable token 변경, six-file 누락·순서·중복을 negative contract가 거부합니다.
+
+Focused 구조 gate는 source bundle 8/8, physical split 6/6, media application boundary 8/8, current graph-only 4/4,
+handoff 7/7, readiness 7/7을 통과했습니다. Fresh semantic candidate
+`2f89a5ad453e6aef72db4bf598e5a80d05c0ec5892802b5fe83f9606697a3c14`에서 영향 행은 기존 graph lifecycle에
+결속된 `SAFE-211`, `SAFE-215`, `OPS-178`, `OPS-182` 네 행뿐이고 source-bundle verifier 직접 결속 추가 행은
+0개입니다. 982행 strict-equivalence carry-forward와 네 행 independent review로 approval 986/986을 구성했고,
+semantic audit 986/986, migration/selftest, feature implementation evidence, project inventory를 통과했습니다.
+Canonical actual FAIL evidence는 그대로 보존하며 장시간/UI/release acceptance는 미실행입니다.
 
 ## V390-REVIEW4-65 current source-flow와 acceptance 구현 맵
 

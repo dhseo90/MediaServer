@@ -11,7 +11,7 @@ import { fileURLToPath } from "node:url";
 
 import { parseFeatureRows, loadImplementationManifest } from "./feature_implementation_manifest_lib.mjs";
 import { applyApprovedReview4SemanticClosure } from "./feature_semantic_review4_apply.mjs";
-import { REVIEW4_APPROVAL_PRODUCER, REVIEW4_APPROVAL_REVIEWER_SOURCE, REVIEW4_APPROVAL_SCHEMA, REVIEW4_AUDIT_SCHEMA, REVIEW4_GENERATION_BOUNDARY, review4ApprovalReason, review4CandidateDigest, review4GenerationBoundaryDigest, review4InventoryDigest, sha256, stableStringify, validateReview4ApprovalEnvelope } from "./feature_semantic_review4_trust_lib.mjs";
+import { REVIEW4_APPROVAL_PRODUCER, REVIEW4_APPROVAL_REVIEWER_SOURCE, REVIEW4_APPROVAL_SCHEMA, REVIEW4_AUDIT_SCHEMA, REVIEW4_GENERATION_BOUNDARY, review4ApprovalReason, review4CandidateDigest, review4GenerationBoundaryDigest, review4HardCandidateItems, review4InventoryDigest, sha256, stableStringify, validateReview4ApprovalEnvelope } from "./feature_semantic_review4_trust_lib.mjs";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -19,22 +19,21 @@ const args = process.argv.slice(2);
 const auditRelative = "test/fixtures/v390_review4_feature_semantic_source_audit.json";
 const approvalRelative = "test/fixtures/v390_review4_feature_semantic_source_approvals.json";
 const manifestRelative = "test/fixtures/project_feature_implementation_evidence.json";
-const migrationRelative = "test/fixtures/v390_review4_semantic_migration_evidence_v1.json";
-const expectedCandidate = "f25f20743712c6ce48be61d83628763edfbbbc3a6e4e6eef596e8336f457d7ca";
-const requiredIndependentIds = ["SAFE-212", "OPS-179"];
+const defaultMigrationRelative = "test/fixtures/v390_review4_semantic_migration_evidence_v1.json";
 
 if (hasHelpFlag(args)) printUsageAndExit(`V390 REVIEW4 migration-aware approval producer
 
 Usage:
-  ./server.sh produce-v390-review4-migration-aware-approvals --write-ledger --prior-audit PATH --decisions PATH --review-package PATH
+  ./server.sh produce-v390-review4-migration-aware-approvals --write-ledger --prior-audit PATH --migration-evidence PATH --decisions PATH --review-package PATH
 
 The producer generates a fresh candidate in a temporary path, verifies the old applied audit and
 approval plus migration evidence, then atomically replaces audit, approval, and applied manifest
-only after complete readback validation. It cannot create approval without 984 strict-equivalent
-prior approvals and the two independent decisions.`);
-assertKnownOptions(args, ["h", "help", "write-ledger", "prior-audit", "decisions", "review-package"]);
+only after complete readback validation. It cannot create approval without exact strict-equivalent
+prior approval coverage and independent decisions for every changed row.`);
+assertKnownOptions(args, ["h", "help", "write-ledger", "prior-audit", "migration-evidence", "decisions", "review-package"]);
 if (!args.includes("--write-ledger")) throw new Error("migration-aware producer requires --write-ledger");
 const priorAuditPath = optionValue("prior-audit");
+const migrationRelative = optionValue("migration-evidence") || defaultMigrationRelative;
 const decisionsPath = optionValue("decisions");
 const packagePath = optionValue("review-package");
 if (!priorAuditPath || !decisionsPath || !packagePath) throw new Error("--write-ledger requires --prior-audit, --decisions, and --review-package");
@@ -44,7 +43,7 @@ try {
   const freshPath = path.join(tempDir, "fresh-audit.json");
   execFileSync(process.execPath, [path.join(rootDir, "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs"), "--emit-candidate", freshPath], { cwd: rootDir, stdio: "pipe" });
   const freshAudit = readJson(freshPath);
-  if (freshAudit.schema !== REVIEW4_AUDIT_SCHEMA || freshAudit.candidateDigest !== expectedCandidate || freshAudit.candidateDigest !== review4CandidateDigest(freshAudit.items) || freshAudit.items.length !== 986) {
+  if (freshAudit.schema !== REVIEW4_AUDIT_SCHEMA || freshAudit.candidateDigest !== review4CandidateDigest(freshAudit.items) || freshAudit.items.length !== 986) {
     throw new Error("fresh REVIEW4 candidate is not the immutable reviewed 986-row candidate");
   }
   const inventoryText = fs.readFileSync(path.join(rootDir, "docs/project-feature-test-inventory.md"), "utf8");
@@ -83,38 +82,72 @@ try {
   assertEnvelope(readbackAudit, readbackApproval, rows);
   console.log("== V390 REVIEW4 migration-aware approval producer ==");
   console.log(`- candidate digest: ${freshAudit.candidateDigest}`);
-  console.log("- carry-forward: 984");
-  console.log("- independent-review: SAFE-212,OPS-179");
+  console.log(`- carry-forward: ${migration.carryForward.length}`);
+  console.log(`- independent-review: ${migration.unapproved.map(item => item.id).join(",")}`);
   console.log("- atomic replacements: audit,approval,manifest");
   console.log("- failures: 0");
 } finally { fs.rmSync(tempDir, { recursive: true, force: true }); }
 
 function buildMigrationApproval({ freshAudit, rows, priorAudit, priorAuditAbsolute, priorApprovals, migration, decisions, reviewPackage, decisionsAbsolute, packageAbsolute }) {
   const orderedIds = rows.map(row => row.id);
+  const requiredIndependentIds = migration.unapproved?.map(item => item.id) || [];
   if (priorApprovals.schema !== REVIEW4_APPROVAL_SCHEMA || priorApprovals.approvals?.length !== 986 || new Set(priorApprovals.approvals.map(x => x.id)).size !== 986) throw new Error("prior approval ledger coverage invalid");
   if (priorAudit.schema !== REVIEW4_AUDIT_SCHEMA || priorAudit.candidateDigest !== priorApprovals.candidateDigest || migration.baselineCandidateDigest !== review4CandidateDigest(priorAudit.items) || migration.freshCandidateDigest !== review4CandidateDigest(freshAudit.items) || priorAudit.items?.length !== 986 || stableStringify(priorAudit.items.map(x => x.id)) !== stableStringify(orderedIds) || priorAudit.items.some((item, index) => item.sourceFlowDigest !== priorApprovals.approvals[index]?.sourceFlowDigest)) throw new Error("prior audit/approval direct binding invalid");
-  if (migration.schema !== "media-server.v390-review4-semantic-migration-evidence.v1" || migration.candidateGeneratorMayApprove !== false || migration.carryForward?.length !== 984 || stableStringify(migration.unapproved?.map(x => x.id)) !== stableStringify(requiredIndependentIds)) throw new Error("migration evidence coverage invalid");
-  if (reviewPackage.schema !== "media-server.v390-review4-independent-review-package.v1" || reviewPackage.candidate?.digest !== freshAudit.candidateDigest || !/^[a-f0-9]{40,64}$/.test(String(reviewPackage.stagedTreeOid || "")) || sha256(fs.readFileSync(packageAbsolute)) !== decisions.immutableReviewPackage?.sha256) throw new Error("review package binding invalid");
-  if (decisions.schema !== "media-server.v390-review4-independent-reviewer-decisions.v1" || decisions.candidateDigest !== freshAudit.candidateDigest || decisions.candidateGeneratorMayApprove !== false || decisions.migrationEvidenceSha256 !== sha256(fs.readFileSync(path.join(rootDir, migrationRelative))) || decisions.stagedTreeOid !== reviewPackage.stagedTreeOid || sha256(fs.readFileSync(decisionsAbsolute)) !== "c5fdc6308267ccc961b893d6e3306d4bcda38edf365a032af6061979a425c64d") throw new Error("independent decision artifact binding invalid");
+  if (migration.schema !== "media-server.v390-review4-semantic-migration-evidence.v2" || migration.candidateGeneratorMayApprove !== false ||
+      migration.carryForward?.length + requiredIndependentIds.length !== 986 ||
+      new Set([...migration.carryForward.map(item => item.id), ...requiredIndependentIds]).size !== 986) {
+    throw new Error("migration evidence coverage invalid");
+  }
+  const packageSha256 = sha256(fs.readFileSync(packageAbsolute));
+  const decisionSha256 = sha256(fs.readFileSync(decisionsAbsolute));
+  if (reviewPackage.schema !== "media-server.v390-review4-semantic-independent-review-package.v1" ||
+      reviewPackage.candidate?.candidateDigest !== freshAudit.candidateDigest ||
+      reviewPackage.candidate?.rows !== 986 || reviewPackage.candidate?.unresolved !== 0 ||
+      stableStringify(reviewPackage.reviewScope?.changedIds) !== stableStringify(requiredIndependentIds) ||
+      decisions.reviewPackage?.sha256 !== packageSha256) throw new Error("review package binding invalid");
+  if (decisions.schema !== "media-server.v390-review4-semantic-independent-scoped-decisions.v1" ||
+      decisions.reviewerIsCandidateGenerator !== false || decisions.verdict !== "approved" ||
+      decisions.candidate?.candidateDigest !== freshAudit.candidateDigest ||
+      stableStringify(decisions.reviewScope?.ids) !== stableStringify(requiredIndependentIds)) {
+    throw new Error("independent decision artifact binding invalid");
+  }
   const evidenceById = new Map(migration.carryForward.map(x => [x.id, x]));
   const priorAuditById = new Map(priorAudit.items.map(x => [x.id, x]));
   const priorApprovalById = new Map(priorApprovals.approvals.map(x => [x.id, x]));
   const freshById = new Map(freshAudit.items.map(x => [x.id, x]));
+  const priorHardById = new Map(review4HardCandidateItems(priorAudit.items).map(item => [item.id, item]));
+  const freshHardById = new Map(review4HardCandidateItems(freshAudit.items).map(item => [item.id, item]));
   const rowsById = new Map(rows.map(x => [x.id, x]));
   const independentById = new Map(decisions.decisions?.map(x => [x.id, x]));
-  if (independentById.size !== 2 || stableStringify([...independentById.keys()].sort()) !== stableStringify(requiredIndependentIds.slice().sort())) throw new Error("independent artifact missing, rejected, or extra ID");
+  if (independentById.size !== requiredIndependentIds.length ||
+      stableStringify([...independentById.keys()]) !== stableStringify(requiredIndependentIds)) {
+    throw new Error("independent artifact missing, rejected, or extra ID");
+  }
   const approvals = orderedIds.map(id => {
     const item = freshById.get(id); const row = rowsById.get(id); const prior = priorApprovalById.get(id); const evidence = evidenceById.get(id); const independent = independentById.get(id);
     if (evidence) {
-      if (!prior || evidence.oldSourceFlowDigest !== prior.sourceFlowDigest || evidence.oldSourceFlowDigest !== priorAuditById.get(id)?.sourceFlowDigest || evidence.newSourceFlowDigest !== item.sourceFlowDigest || !/^[a-f0-9]{64}$/.test(String(evidence.equivalenceDigest || ""))) throw new Error(`${id} non-equivalent carry-forward attempt`);
+      const priorHard = priorHardById.get(id);
+      const freshHard = freshHardById.get(id);
+      if (!prior || evidence.oldSourceFlowDigest !== prior.sourceFlowDigest || evidence.oldSourceFlowDigest !== priorAuditById.get(id)?.sourceFlowDigest ||
+          evidence.newSourceFlowDigest !== item.sourceFlowDigest || stableStringify(priorHard) !== stableStringify(freshHard) ||
+          evidence.equivalenceDigest !== sha256(stableStringify(priorHard))) {
+        throw new Error(`${id} non-equivalent carry-forward attempt`);
+      }
       return { ...approvalFields(item, row), reviewerSource: REVIEW4_APPROVAL_REVIEWER_SOURCE, reviewerActor: "review4-migration-aware-ledger", reviewedOn: "2026-07-17", approvalBasis: "equivalent-flow-carry-forward", priorSourceFlowDigest: evidence.oldSourceFlowDigest, newSourceFlowDigest: evidence.newSourceFlowDigest, strictEquivalenceDigest: evidence.equivalenceDigest, priorApprovalDigest: sha256(stableStringify(prior)), reason: `${review4ApprovalReason(row, item)}|approvalBasis=equivalent-flow-carry-forward`, reasonSha256: "" };
     }
-    if (!requiredIndependentIds.includes(id) || !independent || independent.decision !== "approved" || independent.sourceFlowDigest !== item.sourceFlowDigest || stableStringify(independent.verifier) !== stableStringify(item.verifier) || stableStringify(independent.exactDispatchBinding) !== stableStringify(item.trustBindings.dispatch)) throw new Error(`${id} independent review binding invalid`);
-    return { ...approvalFields(item, row), reviewerSource: REVIEW4_APPROVAL_REVIEWER_SOURCE, reviewerActor: "review4-migration-aware-ledger", reviewedOn: "2026-07-17", approvalBasis: "independent-review", independentArtifactSha256: sha256(fs.readFileSync(decisionsAbsolute)), reviewPackageSha256: sha256(fs.readFileSync(packageAbsolute)), reviewedTreeOid: reviewPackage.stagedTreeOid, reason: `${review4ApprovalReason(row, item)}|approvalBasis=independent-review|independentArtifactSha256=${sha256(fs.readFileSync(decisionsAbsolute))}|reviewPackageSha256=${sha256(fs.readFileSync(packageAbsolute))}|reviewedTreeOid=${reviewPackage.stagedTreeOid}`, reasonSha256: "" };
+    if (!requiredIndependentIds.includes(id) || !independent || independent.decision !== "approved" ||
+        independent.featureContractSha256 !== item.featureContractSha256 || independent.sourceFlowDigest !== item.sourceFlowDigest ||
+        independent.verifierCommand !== item.verifier.command || independent.verifierFile !== item.verifier.file ||
+        independent.dispatchArmSha256 !== item.trustBindings.dispatch.armSha256 ||
+        independent.evidenceToken !== item.evidenceToken || independent.actionSymbol !== item.roles.action.symbol ||
+        independent.stateSymbol !== item.roles.state.symbol || independent.justificationSha256 !== sha256(independent.justification)) {
+      throw new Error(`${id} independent review binding invalid`);
+    }
+    return { ...approvalFields(item, row), reviewerSource: REVIEW4_APPROVAL_REVIEWER_SOURCE, reviewerActor: "review4-migration-aware-ledger", independentReviewerActor: decisions.reviewer, reviewedOn: decisions.reviewedAt, approvalBasis: "independent-review", independentArtifactSha256: decisionSha256, reviewPackageSha256: packageSha256, reviewedSnapshotDigest: reviewPackage.bindings.trackedWorktreeDiffSha256, reason: `${review4ApprovalReason(row, item)}|approvalBasis=independent-review|independentReviewerActor=${decisions.reviewer}|independentArtifactSha256=${decisionSha256}|reviewPackageSha256=${packageSha256}|reviewedSnapshotDigest=${reviewPackage.bindings.trackedWorktreeDiffSha256}`, reasonSha256: "" };
   });
   for (const item of approvals) item.reasonSha256 = sha256(item.reason);
   if (new Set(approvals.map(x => x.id)).size !== 986 || stableStringify(approvals.map(x => x.id)) !== stableStringify(orderedIds)) throw new Error("approval coverage/order drift");
-  const approval = { schema: REVIEW4_APPROVAL_SCHEMA, producer: REVIEW4_APPROVAL_PRODUCER, reviewerActor: "review4-migration-aware-ledger", reviewerSource: REVIEW4_APPROVAL_REVIEWER_SOURCE, candidateGeneratorMayApprove: false, candidateDigest: freshAudit.candidateDigest, reviewedOn: "2026-07-17", orderedIdsSha256: sha256(stableStringify(orderedIds)), inventoryDigest: review4InventoryDigest(rows), generationBoundarySha256: review4GenerationBoundaryDigest(), decisionArtifactSha256: sha256(fs.readFileSync(decisionsAbsolute)), priorAuditSha256: sha256(fs.readFileSync(priorAuditAbsolute)), priorApprovalLedgerSha256: sha256(stableStringify(priorApprovals)), migrationEvidenceSha256: sha256(fs.readFileSync(path.join(rootDir, migrationRelative))), reviewPackageSha256: sha256(fs.readFileSync(packageAbsolute)), reviewedTreeOid: reviewPackage.stagedTreeOid, approvalsDigest: sha256(stableStringify(approvals)), approvals };
+  const approval = { schema: REVIEW4_APPROVAL_SCHEMA, producer: REVIEW4_APPROVAL_PRODUCER, reviewerActor: "review4-migration-aware-ledger", reviewerSource: REVIEW4_APPROVAL_REVIEWER_SOURCE, candidateGeneratorMayApprove: false, candidateDigest: freshAudit.candidateDigest, reviewedOn: decisions.reviewedAt, orderedIdsSha256: sha256(stableStringify(orderedIds)), inventoryDigest: review4InventoryDigest(rows), generationBoundarySha256: review4GenerationBoundaryDigest(), decisionArtifactSha256: decisionSha256, priorAuditSha256: sha256(fs.readFileSync(priorAuditAbsolute)), priorApprovalLedgerSha256: sha256(stableStringify(priorApprovals)), migrationEvidenceSha256: sha256(fs.readFileSync(path.join(rootDir, migrationRelative))), reviewPackageSha256: packageSha256, reviewedSnapshotDigest: reviewPackage.bindings.trackedWorktreeDiffSha256, approvalsDigest: sha256(stableStringify(approvals)), approvals };
   return approval;
 }
 
