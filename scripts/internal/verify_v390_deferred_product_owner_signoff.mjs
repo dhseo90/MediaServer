@@ -18,6 +18,7 @@ if (hasHelpFlag(rawArgs)) {
 
 Usage:
   ./server.sh verify-v390-deferred-product-owner-signoff
+  ./server.sh verify-v390-deferred-product-owner-source-region-contract
 
 Checks:
   - CODEOWNERS의 effective repository owner와 current /goal attestation 결속
@@ -28,7 +29,7 @@ Checks:
 `);
 }
 
-assertKnownOptions(rawArgs, ["h", "help"]);
+assertKnownOptions(rawArgs, ["h", "help", "source-region-contract"]);
 
 const command = "verify-v390-deferred-product-owner-signoff";
 const targetScript = "verify_v390_deferred_product_owner_signoff.mjs";
@@ -36,6 +37,35 @@ const fixtureRelativePath = "test/fixtures/v390_deferred_product_owner_signoff.j
 const fixturePath = path.join(rootDir, fixtureRelativePath);
 const approvalSource = "/goal v3.9.0 (25) 잔여이슈 해결 4";
 const accountableHandle = "@dhseo90";
+const sourceRegionContractMode = rawArgs.includes("--source-region-contract");
+const productUiPageScriptsPath = "src/ingress/product_ui_page_scripts.cpp";
+const productUiServerPagesPath = "src/ingress/product_ui_server_pages.cpp";
+const productUiSourceRegions = Object.freeze({
+  "external-vlm-provider-call": Object.freeze({
+    [productUiPageScriptsPath]: Object.freeze({
+      startLocator: "      const renderV390FieldEvidenceBridgeDecision = (payload = {}) => {",
+      endLocator: "      const refreshV390FieldEvidenceBridgeDecision = async ({",
+      regionSha256: "4ee1566a473d9ddc338c052499b9ed8fc0831bcaa99e19867921c4958f8e84cc",
+    }),
+    [productUiServerPagesPath]: Object.freeze({
+      startLocator: "      <section class=\"section-card ops-workspace-wide ops-field-evidence-bridge-decision\"",
+      endLocator: "      <section class=\"section-card ops-workspace-wide ops-reid-assist-decision\"",
+      regionSha256: "cd5024e9ab5caa968bb0b387df9e6d399485ff69cb06e907439083d8f27522b8",
+    }),
+  }),
+  "model-backed-reid-session": Object.freeze({
+    [productUiPageScriptsPath]: Object.freeze({
+      startLocator: "      const renderV390ReidAssistDecision = (payload = {}) => {",
+      endLocator: "      const refreshV390ReidAssistDecision = async ({",
+      regionSha256: "22a48c2a5d243611ea77c92579a245ec75b92ad5cf94869d3baedca48f73513c",
+    }),
+    [productUiServerPagesPath]: Object.freeze({
+      startLocator: "      <section class=\"section-card ops-workspace-wide ops-reid-assist-decision\"",
+      endLocator: "      <section class=\"section-card ops-workspace-wide ops-site-client-notice-workspace\"",
+      regionSha256: "adace168532d37a155dcf5e551a1cf37ffb989d3c0775e6f56633adea4c7b970",
+    }),
+  }),
+});
 const expected = new Map([
   ["action-execution", {
     functionalOwnerRole: "Product Owner",
@@ -122,8 +152,8 @@ const expected = new Map([
     schema: "media-server.ops.v390-field-evidence-bridge-decision.v1",
     sourceAnchors: [
       anchor("src/ingress/webrtc_http_server_ops_workflows.cpp", ["OpsV390FieldEvidenceBridgeDecisionJson", "/ops/api/field-evidence/bridge-decision", "cloudProviderCalled", "vlmProviderCalled"]),
-      anchor("src/ingress/product_ui_page_scripts.cpp", ["renderV390FieldEvidenceBridgeDecision", "dashFieldEvidenceBridgeText", "dashFieldEvidenceBridgeBoundary"]),
-      anchor("src/ingress/product_ui_server_pages.cpp", ["ops-field-evidence-bridge-decision", "dashFieldEvidenceBridgeText", "dashFieldEvidenceBridgeBoundary"]),
+      regionAnchor("external-vlm-provider-call", productUiPageScriptsPath, ["renderV390FieldEvidenceBridgeDecision", "dashFieldEvidenceBridgeText", "dashFieldEvidenceBridgeBoundary"]),
+      regionAnchor("external-vlm-provider-call", productUiServerPagesPath, ["ops-field-evidence-bridge-decision", "dashFieldEvidenceBridgeText", "dashFieldEvidenceBridgeBoundary"]),
       anchor("scripts/internal/verify_vlm_cloud_provider_field_smoke_gate.mjs", ["approval", "provider"]),
     ],
     uiRoute: "/ops/dashboard",
@@ -150,8 +180,8 @@ const expected = new Map([
       anchor("src/ingress/webrtc_http_server_ops_workflows.cpp", ["OpsV390ReidAssistDecisionJson", "/ops/api/analysis/reid-assist-decision", "modelSessionLoadPerformed", "modelBackedExecutionPerformed"]),
       anchor("src/analysis/appearance_extractor.cpp", ["ExperimentalOnnxReidExtractor", "session_->Run", "CreateAppearanceExtractorFromConfig"]),
       anchor("src/analysis/analysis_manager.cpp", ["CreateAppearanceExtractorFromConfig"]),
-      anchor("src/ingress/product_ui_page_scripts.cpp", ["renderV390ReidAssistDecision", "dashReidAssistDecisionText", "dashReidAssistDecisionBoundary"]),
-      anchor("src/ingress/product_ui_server_pages.cpp", ["ops-reid-assist-decision", "dashReidAssistDecisionText", "dashReidAssistDecisionBoundary"]),
+      regionAnchor("model-backed-reid-session", productUiPageScriptsPath, ["renderV390ReidAssistDecision", "dashReidAssistDecisionText", "dashReidAssistDecisionBoundary"]),
+      regionAnchor("model-backed-reid-session", productUiServerPagesPath, ["ops-reid-assist-decision", "dashReidAssistDecisionText", "dashReidAssistDecisionBoundary"]),
     ],
     uiRoute: "/ops/dashboard",
     uiSelectors: ["[data-testid=\"ops-reid-assist-decision\"]", "#dashReidAssistDecisionText", "#dashReidAssistDecisionBoundary"],
@@ -160,9 +190,14 @@ const expected = new Map([
     dependencyIds: ["model-bundle-license-approval", "privacy-retention-approval", "session-performance-field-evidence"],
   }],
 ]);
+
+if (sourceRegionContractMode) {
+  runSourceRegionContract();
+}
+
 const checks = [];
 
-check("v2 decision record binds the effective repository owner and current goal attestation", () => {
+check("v3 decision record binds the effective repository owner and current goal attestation", () => {
   assert(fs.existsSync(fixturePath), "missing deferred owner sign-off fixture");
   const fixture = loadFixture();
   const effectiveOwners = effectiveCodeownersFor(fixtureRelativePath);
@@ -232,7 +267,7 @@ console.log(`- fail: ${failed.length}`);
 process.exit(failed.length === 0 ? 0 : 1);
 
 function validateHeader(fixture, effectiveOwners) {
-  assert(fixture.schema === "media-server.v390-deferred-product-owner-signoff.v2", "unexpected fixture schema");
+  assert(fixture.schema === "media-server.v390-deferred-product-owner-signoff.v3", "unexpected fixture schema");
   assert(fixture.release === "v3.9.0", "fixture release must be v3.9.0");
   assert(fixture.developmentItem === 16 && fixture.review4Item === 63, "Development 16 / REVIEW4-63 identity mismatch");
   assert(fixture.recordKind === "accountable-owner-decision-record", "record kind must be accountable-owner-decision-record");
@@ -306,6 +341,7 @@ function validateDecisions(fixture) {
 
 function validateEvidence(fixture) {
   validateDecisions(fixture);
+  validateMigratedProductUiRegionCoverage(fixture);
   const server = read("server.sh");
   for (const decision of fixture.decisions) {
     const spec = expected.get(decision.id);
@@ -328,9 +364,16 @@ function validateEvidence(fixture) {
       assert(actualAnchor.file === expectedAnchor.file, `${decision.id}: source anchor file mismatch at ${index}`);
       assertExactArray(actualAnchor.requiredTokens, expectedAnchor.requiredTokens, `${decision.id}: source anchor tokens at ${index}`);
       const source = read(actualAnchor.file);
-      assert(actualAnchor.sourceFileSha256 === sha256(source), `${decision.id}: source file digest drift at ${actualAnchor.file}`);
-      for (const token of actualAnchor.requiredTokens) {
-        assert(source.includes(token), `${decision.id}: source anchor missing ${token} in ${actualAnchor.file}`);
+      if (expectedAnchor.sourceRegion) {
+        assert(!Object.hasOwn(actualAnchor, "sourceFileSha256"), `${decision.id}: migrated source anchor must not use whole-file hash fallback`);
+        assert(deepEqual(actualAnchor.sourceRegion, expectedAnchor.sourceRegion), `${decision.id}: source region binding mismatch at ${actualAnchor.file}`);
+        validateSourceRegionBinding(source, actualAnchor.sourceRegion, actualAnchor.requiredTokens, `${decision.id}: ${actualAnchor.file}`);
+      } else {
+        assert(!Object.hasOwn(actualAnchor, "sourceRegion"), `${decision.id}: unexpected source region binding at ${actualAnchor.file}`);
+        assert(actualAnchor.sourceFileSha256 === sha256(source), `${decision.id}: source file digest drift at ${actualAnchor.file}`);
+        for (const token of actualAnchor.requiredTokens) {
+          assert(source.includes(token), `${decision.id}: source anchor missing ${token} in ${actualAnchor.file}`);
+        }
       }
     }
     for (const selector of evidence.uiSelectors) {
@@ -395,6 +438,166 @@ function selectorSourceTokens(selector) {
 
 function anchor(file, requiredTokens) {
   return { file, requiredTokens };
+}
+
+function regionAnchor(decisionId, file, requiredTokens) {
+  return {
+    file,
+    requiredTokens,
+    sourceRegion: productUiSourceRegions[decisionId][file],
+  };
+}
+
+function validateMigratedProductUiRegionCoverage(fixture) {
+  const migratedIds = Object.keys(productUiSourceRegions);
+  const decisions = new Map((fixture.decisions || []).map(item => [item.id, item]));
+  for (const decisionId of migratedIds) {
+    const decision = decisions.get(decisionId);
+    assert(decision, `missing migrated decision ${decisionId}`);
+    for (const file of Object.keys(productUiSourceRegions[decisionId])) {
+      const anchors = (decision.evidence?.sourceAnchors || []).filter(item => item.file === file);
+      assert(anchors.length === 1, `${decisionId}: expected exactly one migrated source anchor for ${file}`);
+      const [sourceAnchor] = anchors;
+      assert(sourceAnchor.sourceRegion && typeof sourceAnchor.sourceRegion === "object", `${decisionId}: source region binding missing for ${file}`);
+      assert(!Object.hasOwn(sourceAnchor, "sourceFileSha256"), `${decisionId}: migrated source anchor must not retain whole-file hash fallback for ${file}`);
+    }
+  }
+}
+
+function validateSourceRegionBinding(source, binding, requiredTokens, label) {
+  assert(binding && typeof binding === "object", `${label}: source region binding missing`);
+  const startLocator = typeof binding.startLocator === "string" ? binding.startLocator : "";
+  const endLocator = typeof binding.endLocator === "string" ? binding.endLocator : "";
+  assert(startLocator.trim().length > 0, `${label}: start locator missing`);
+  assert(endLocator.trim().length > 0, `${label}: end locator missing`);
+  assert(startLocator !== endLocator, `${label}: source region locators must differ`);
+  const startIndexes = allIndexesOf(source, startLocator);
+  const endIndexes = allIndexesOf(source, endLocator);
+  assert(startIndexes.length === 1, `${label}: start locator must occur exactly once`);
+  assert(endIndexes.length === 1, `${label}: end locator must occur exactly once`);
+  const startIndex = startIndexes[0];
+  const endIndex = endIndexes[0];
+  assert(startIndex < endIndex, `${label}: source region locators are reversed`);
+  const body = source.slice(startIndex + startLocator.length, endIndex);
+  assert(body.trim().length > 0, `${label}: source region body is empty`);
+  const region = source.slice(startIndex, endIndex);
+  assert(/^[a-f0-9]{64}$/.test(String(binding.regionSha256 || "")), `${label}: source region digest format invalid`);
+  assert(sha256(region) === binding.regionSha256, `${label}: source region digest drift`);
+  assert(Array.isArray(requiredTokens) && requiredTokens.length > 0, `${label}: required tokens missing`);
+  for (const token of requiredTokens) {
+    assert(typeof token === "string" && token.length > 0, `${label}: required token invalid`);
+    assert(region.includes(token), `${label}: required token outside bounded region: ${token}`);
+  }
+  return { region, startIndex, endIndex };
+}
+
+function allIndexesOf(source, locator) {
+  const indexes = [];
+  let cursor = 0;
+  while (cursor <= source.length - locator.length) {
+    const index = source.indexOf(locator, cursor);
+    if (index < 0) break;
+    indexes.push(index);
+    cursor = index + locator.length;
+  }
+  return indexes;
+}
+
+function runSourceRegionContract() {
+  const contractChecks = [];
+  const fixture = loadFixture();
+  const source = read(productUiPageScriptsPath);
+  const decision = fixture.decisions.find(item => item.id === "external-vlm-provider-call");
+  const sourceAnchor = decision?.evidence?.sourceAnchors?.find(item => item.file === productUiPageScriptsPath);
+  assert(sourceAnchor, "contract fixture field source anchor missing");
+
+  contractCheck(contractChecks, "unrelated source region change preserves the bounded digest", () => {
+    validateSourceRegionBinding(`// unrelated event-rule UI region\n${source}`, sourceAnchor.sourceRegion, sourceAnchor.requiredTokens, "unrelated-region");
+  });
+  contractCheck(contractChecks, "bounded source region content change is rejected", () => {
+    const changed = source.replace(sourceAnchor.sourceRegion.startLocator,
+      `${sourceAnchor.sourceRegion.startLocator}\n        // semantic mutation inside bounded region`);
+    expectRegionRejected(changed, sourceAnchor.sourceRegion, sourceAnchor.requiredTokens, "bounded-region-change");
+  });
+  contractCheck(contractChecks, "required token moved outside the bounded region is rejected", () => {
+    const token = "dashFieldEvidenceBridgeText";
+    const extracted = extractSourceRegion(source, sourceAnchor.sourceRegion, "required-token-move");
+    const changedRegion = extracted.region.replaceAll(token, "dashFieldEvidenceBridgeMovedText");
+    const changed = `${source.slice(0, extracted.startIndex)}${changedRegion}${source.slice(extracted.endIndex)}\n// ${token}\n`;
+    const changedBinding = { ...sourceAnchor.sourceRegion, regionSha256: sha256(changedRegion) };
+    expectRegionRejected(changed, changedBinding, sourceAnchor.requiredTokens, "required-token-move");
+  });
+  contractCheck(contractChecks, "stale source region digest is rejected", () => {
+    expectRegionRejected(source, { ...sourceAnchor.sourceRegion, regionSha256: "0".repeat(64) }, sourceAnchor.requiredTokens, "stale-region-digest");
+  });
+  contractCheck(contractChecks, "missing and duplicate locators are rejected", () => {
+    const missing = source.replace(sourceAnchor.sourceRegion.startLocator, "missing-field-render-locator");
+    expectRegionRejected(missing, sourceAnchor.sourceRegion, sourceAnchor.requiredTokens, "missing-locator");
+    const duplicate = `${source}\n${sourceAnchor.sourceRegion.startLocator}\n`;
+    expectRegionRejected(duplicate, sourceAnchor.sourceRegion, sourceAnchor.requiredTokens, "duplicate-locator");
+  });
+  contractCheck(contractChecks, "reversed and empty source regions are rejected", () => {
+    const reverseSource = `${sourceAnchor.sourceRegion.endLocator}\nbody\n${sourceAnchor.sourceRegion.startLocator}`;
+    expectRegionRejected(reverseSource, { ...sourceAnchor.sourceRegion, regionSha256: "0".repeat(64) }, sourceAnchor.requiredTokens, "reversed-locators");
+    const emptySource = `${sourceAnchor.sourceRegion.startLocator}${sourceAnchor.sourceRegion.endLocator}`;
+    expectRegionRejected(emptySource, { ...sourceAnchor.sourceRegion, regionSha256: "0".repeat(64) }, sourceAnchor.requiredTokens, "empty-region");
+  });
+  contractCheck(contractChecks, "both migrated decisions must use source region bindings", () => {
+    const partial = structuredClone(fixture);
+    const reid = partial.decisions.find(item => item.id === "model-backed-reid-session");
+    for (const reidAnchor of reid.evidence.sourceAnchors.filter(item => Object.hasOwn(productUiSourceRegions[reid.id], item.file))) {
+      delete reidAnchor.sourceRegion;
+      reidAnchor.sourceFileSha256 = sha256(read(reidAnchor.file));
+    }
+    let rejected = false;
+    try {
+      validateMigratedProductUiRegionCoverage(partial);
+    } catch {
+      rejected = true;
+    }
+    assert(rejected, "partial migration of only one decision was accepted");
+  });
+
+  const failed = contractChecks.filter(item => !item.ok);
+  for (const item of contractChecks) {
+    console.log(`[${item.ok ? "pass" : "fail"}] ${item.name}${item.error ? `: ${item.error}` : ""}`);
+  }
+  console.log("\n== v3.9.0 deferred owner source-region contract ==");
+  console.log(`- pass: ${contractChecks.length - failed.length}`);
+  console.log(`- fail: ${failed.length}`);
+  process.exit(failed.length === 0 ? 0 : 1);
+}
+
+function extractSourceRegion(source, binding, label) {
+  const startIndexes = allIndexesOf(source, binding.startLocator);
+  const endIndexes = allIndexesOf(source, binding.endLocator);
+  assert(startIndexes.length === 1, `${label}: start locator must occur exactly once`);
+  assert(endIndexes.length === 1, `${label}: end locator must occur exactly once`);
+  assert(startIndexes[0] < endIndexes[0], `${label}: source region locators are reversed`);
+  return {
+    region: source.slice(startIndexes[0], endIndexes[0]),
+    startIndex: startIndexes[0],
+    endIndex: endIndexes[0],
+  };
+}
+
+function expectRegionRejected(source, binding, requiredTokens, label) {
+  let rejected = false;
+  try {
+    validateSourceRegionBinding(source, binding, requiredTokens, label);
+  } catch {
+    rejected = true;
+  }
+  assert(rejected, `${label}: invalid source region was accepted`);
+}
+
+function contractCheck(contractChecks, name, fn) {
+  try {
+    fn();
+    contractChecks.push({ name, ok: true });
+  } catch (error) {
+    contractChecks.push({ name, ok: false, error: error instanceof Error ? error.message : String(error) });
+  }
 }
 
 function loadFixture() {

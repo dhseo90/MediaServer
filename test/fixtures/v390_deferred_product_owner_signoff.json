@@ -1,5 +1,5 @@
 {
-  "schema": "media-server.v390-deferred-product-owner-signoff.v2",
+  "schema": "media-server.v390-deferred-product-owner-signoff.v3",
   "release": "v3.9.0",
   "developmentItem": 16,
   "review4Item": 63,
@@ -386,7 +386,11 @@
               "dashFieldEvidenceBridgeText",
               "dashFieldEvidenceBridgeBoundary"
             ],
-            "sourceFileSha256": "8894d76bde429f87f4a2f6300a35d0ba07c967b57ed1266569d41b6c78bcbf42"
+            "sourceRegion": {
+              "startLocator": "      const renderV390FieldEvidenceBridgeDecision = (payload = {}) => {",
+              "endLocator": "      const refreshV390FieldEvidenceBridgeDecision = async ({",
+              "regionSha256": "4ee1566a473d9ddc338c052499b9ed8fc0831bcaa99e19867921c4958f8e84cc"
+            }
           },
           {
             "file": "src/ingress/product_ui_server_pages.cpp",
@@ -395,7 +399,11 @@
               "dashFieldEvidenceBridgeText",
               "dashFieldEvidenceBridgeBoundary"
             ],
-            "sourceFileSha256": "8f2b65966a3ff54bbf5a1180aaa49b374eabb7f3cbfba264def4c2b4735b968b"
+            "sourceRegion": {
+              "startLocator": "      <section class=\"section-card ops-workspace-wide ops-field-evidence-bridge-decision\"",
+              "endLocator": "      <section class=\"section-card ops-workspace-wide ops-reid-assist-decision\"",
+              "regionSha256": "cd5024e9ab5caa968bb0b387df9e6d399485ff69cb06e907439083d8f27522b8"
+            }
           },
           {
             "file": "scripts/internal/verify_vlm_cloud_provider_field_smoke_gate.mjs",
@@ -516,7 +524,11 @@
               "dashReidAssistDecisionText",
               "dashReidAssistDecisionBoundary"
             ],
-            "sourceFileSha256": "8894d76bde429f87f4a2f6300a35d0ba07c967b57ed1266569d41b6c78bcbf42"
+            "sourceRegion": {
+              "startLocator": "      const renderV390ReidAssistDecision = (payload = {}) => {",
+              "endLocator": "      const refreshV390ReidAssistDecision = async ({",
+              "regionSha256": "22a48c2a5d243611ea77c92579a245ec75b92ad5cf94869d3baedca48f73513c"
+            }
           },
           {
             "file": "src/ingress/product_ui_server_pages.cpp",
@@ -525,7 +537,11 @@
               "dashReidAssistDecisionText",
               "dashReidAssistDecisionBoundary"
             ],
-            "sourceFileSha256": "8f2b65966a3ff54bbf5a1180aaa49b374eabb7f3cbfba264def4c2b4735b968b"
+            "sourceRegion": {
+              "startLocator": "      <section class=\"section-card ops-workspace-wide ops-reid-assist-decision\"",
+              "endLocator": "      <section class=\"section-card ops-workspace-wide ops-site-client-notice-workspace\"",
+              "regionSha256": "adace168532d37a155dcf5e551a1cf37ffb989d3c0775e6f56633adea4c7b970"
+            }
           }
         ],
         "uiRoute": "/ops/dashboard",

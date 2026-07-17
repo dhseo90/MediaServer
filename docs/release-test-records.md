@@ -2652,6 +2652,17 @@ evidence로 사용하지 않습니다.
 - 당시 `firstFailure.testcaseId`는 빈 값이었으며 기존 `first-failure.json`/`.md`는 과거 failure fact로 수동 수정하지 않습니다. launcher 출력은 이제 빈 `firstFailure.testcaseId`에서 failed stage의 `checks[].status=FAIL` ID를 사용하고, 그마저 없을 때 stage ID로 fallback합니다.
 - current 사용자 canonical command는 `./test_release.sh`이며 `verify-v390-test-acceptance-bundle`은 launcher 내부 구현입니다. 과거 release record의 internal command는 historical 실행 기록으로 보존합니다.
 
+### REVIEW4-65 deferred owner row-local source correction
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| Canonical actual failure 보존 | `9d68f7d9`의 run `v390-test-acceptance-20260717113149-625`는 build PASS 뒤 feature gate `v390-deferred-product-owner-signoff`에서 `external-vlm-provider-call`의 `product_ui_page_scripts.cpp` whole-file digest drift로 FAIL했습니다. 30분·exact424·Policy v4·120분·final integrity는 not-run, cleanup/report는 PASS이며 canonical summary/report/run log를 실제 실패 evidence로 보존합니다 | fail / preserved |
+| 원인 비교 | REVIEW4-65 event-rule UI 추가 영역만 변경됐고 `renderV390FieldEvidenceBridgeDecision`, `renderV390ReidAssistDecision` 및 두 대응 server-page section은 이전 bytes와 동일했습니다 | pass |
+| 두 decision source binding | `external-vlm-provider-call`, `model-backed-reid-session`의 `product_ui_page_scripts.cpp`와 `product_ui_server_pages.cpp` anchor를 unique start/end locator, bounded SHA-256, region-local required token으로 결속했습니다. Migrated anchor의 whole-file fallback, missing/duplicate/reverse/empty locator, stale digest, bounded mutation, token 외부 이동, partial migration을 거부합니다 | owner 6/6, contract 7/7 pass |
+| Semantic 독립 검토 | 기존 984행 digest 동일, 영향 행은 `SAFE-214`(`e845afc19ff0dbba1ed2fe9df77ca46456009b6c4a5c3da37fce8cbb8f7e0659`)와 `OPS-181`(`3d54cab069019e2a6d39b9384e43c40e96a03b4c4de6ed8afbd8fb5ecf8fa730`)뿐입니다. Candidate `cd59de4730d6d25e8a42e51c5a6a7819f37d6081c96fd60a5c80e0442aeed2d3`, reviewed tree `9ae5a19e7536cc9c24de0f797a65de09086ff91b`, package SHA `cd03041bbcdf9ec2aaf9d803cd2e47bb2625b71a0b476aef27da5378a453c3cb`, decision artifact SHA `761a3b2f997bee5dcf01abb3d8df4dad13408eef1c82f638365aca908c6bb26b`에 결속했습니다 | semantic 986/986, approval 986/986, migration 9/9 pass |
+| Focused correction gate | `verify-feature-implementation-evidence` exit 0(986/986, negative 15/15), project inventory 17/17, release evidence index 8/8, script inventory 11/11, docs links failures 0 | pass |
+| Actual acceptance 경계 | 이 correction에서는 `./test_release.sh`, 30분, exact 424 UI, Policy v4 actual, 120분을 실행하지 않았습니다 | not-run |
+
 | 항목 | 판정/계약 | actual evidence 경계 |
 | --- | --- | --- |
 | 안정화 테스트 | 진행 대상. Canonical bundle의 build와 34개 current feature gate를 첫 단계로 실행 | Contract PASS나 과거 verifier PASS는 current actual PASS가 아님 |

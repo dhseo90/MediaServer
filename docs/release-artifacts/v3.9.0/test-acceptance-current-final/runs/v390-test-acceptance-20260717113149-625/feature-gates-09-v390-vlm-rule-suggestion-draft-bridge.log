@@ -1,0 +1,17 @@
+[pass] Ops server exposes the v3.9 VLM rule suggestion draft bridge
+[pass] VLM bridge preserves draft-only/manual-save boundaries
+[pass] Ops API exposes the bridge as guarded no-store JSON
+[pass] Ops rules UI renders the bridge decision and provenance
+[pass] roadmap, stream verification, inventory, and release records map v3.9 Step 13
+[pass] server entrypoint and inventory verifiers include v3.9 Step 13 command
+
+== v3.9.0 VLM rule suggestion draft bridge ==
+- schema: media-server.ops.v390-vlm-rule-suggestion-draft-bridge.v1
+- step: v3.9.0 (13)
+- route: /ops/api/vlm/rule-suggestion-draft-bridge
+- decision: ops review-to-rule draft bridge; existing draft workflow remains manual-save-only
+- writes: no rule/profile registry write by bridge, no auto apply, no provider/runtime call
+- uiFulltest: not-run-by-this-command
+- longrun30Or120: not-run-by-this-command
+- pass: 6
+- fail: 0

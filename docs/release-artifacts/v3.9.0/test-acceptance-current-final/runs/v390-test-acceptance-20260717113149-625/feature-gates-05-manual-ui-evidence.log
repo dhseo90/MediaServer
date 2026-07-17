@@ -1,0 +1,31 @@
+[pass] manual UI docs are current release baseline
+[pass] manual UI docs pin v3.9 required closeout and coverage bridge
+[pass] v3.5-v3.8 bridge binds all 36 exact IDs to route/control/action semantic evidence
+[pass] inventory longrun mapping counts are derived from the current 986-row manifest
+[pass] manual result template covers required screens
+[pass] manual result template splits tracker policy results
+[pass] manual result template splits event template results
+[pass] manual result template splits scenario preset results
+[pass] manual result template splits vaRule results
+[pass] manual result template splits event record keys
+[pass] manual result template separates qualified UI execution from support smoke
+[pass] manual UI docs separate script stability tests from UI full test
+[pass] manual UI docs require native-dialog-free autonomous UI flow
+[pass] manual result template pins admin preview boundary
+[pass] manual result template pins client redaction boundary
+[pass] manual UI docs require operator-provided auth verifier passwords
+[pass] manual result template records explicit exclusions outside UI verdict
+[pass] manual UI docs keep rewrite requirements
+[pass] manual UI docs keep new document requirements
+[pass] manual UI docs keep merge requirements
+[pass] manual checklist references UI fulltest document
+[pass] manual checklist links evidence verifier
+[pass] manual template links evidence verifier
+[pass] manual UI docs link v2.2.0 UI Evidence Close-out
+[pass] roadmap links evidence verifier
+[pass] current release UI checklist requires direct UI evidence index
+
+== Manual UI evidence verification summary ==
+- result: not provided; template/checklist only
+- pass: 26
+- fail: 0
