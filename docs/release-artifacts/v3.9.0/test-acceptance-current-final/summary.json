@@ -1,9 +1,9 @@
 {
   "schema": "media-server.v390-test-acceptance-bundle.v1",
-  "runId": "v390-test-acceptance-20260717145141-60438",
+  "runId": "v390-test-acceptance-20260717153927-36826",
   "command": "./server.sh verify-v390-test-acceptance-bundle --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final --auto-run-120",
   "sourceProvenance": {
-    "commitSha": "b48ef1bbb5ea6b7a6621781e068e146602e67643",
+    "commitSha": "911446e802a5eb984843d929238715563722261a",
     "branch": "v3.9.0",
     "worktreeClean": false,
     "sourceWorktreeClean": true,
@@ -16,40 +16,15 @@
     "unapprovedDirtyPaths": [],
     "allowedArtifactRoot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final",
     "worktreeStatusSha256": "1e6389a023fa09d9028ef5dd26bb714ac5032f1f20c8fa298d8f59bcf21ce989",
-    "capturedAt": "2026-07-17T14:51:41.487Z"
+    "capturedAt": "2026-07-17T15:39:27.856Z"
   },
   "sourceProvenanceEnd": {
-    "commitSha": "b48ef1bbb5ea6b7a6621781e068e146602e67643",
+    "commitSha": "911446e802a5eb984843d929238715563722261a",
     "branch": "v3.9.0",
     "worktreeClean": false,
     "sourceWorktreeClean": true,
     "dirtyPaths": [
       "docs/release-artifacts/v3.9.0/test-acceptance-current-final/report.md",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/build.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/cleanup.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-01-v390-stabilization-release-readiness.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-02-v390-entry-baseline.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-03-v390-feature-completion-inventory.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-04-v390-user-review-gate.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-05-manual-ui-evidence.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-06-v390-evidence-test-gate-prep.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-07-v390-onvif-credential-provider-status.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-08-v390-onvif-live-import-persist-decision.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-09-v390-vlm-rule-suggestion-draft-bridge.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-10-v390-vlm-incident-rule-provenance.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-11-v390-vlm-evaluation-promotion-guard.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-12-v390-vlm-promotion-trust-boundary.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-13-v390-backup-recovery-handoff-validation.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-14-v390-action-execution-deferral-decision.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-15-v390-deferred-product-owner-signoff.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-16-v390-conditional-field-ai-decisions.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-17-v390-reid-readiness-consistency.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-18-v390-onvif-source-view-atomicity.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-19-v390-structure-stabilization-handoff.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/preflight.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/report.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/ui-server-cleanup.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/summary.json",
       "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/build.log",
       "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/cleanup.log",
       "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-01-v390-stabilization-release-readiness.log",
@@ -104,35 +79,66 @@
       "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30/seed.log",
       "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30/soak-case-loop.log",
       "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30/summary.json",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/ui-server-cleanup.log"
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/ui-server-cleanup.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/summary.json",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/build.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/cleanup.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-01-code-comments.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-02-v390-stabilization-release-readiness.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-03-v390-entry-baseline.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-04-v390-feature-completion-inventory.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-05-v390-user-review-gate.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-06-manual-ui-evidence.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-07-v390-evidence-test-gate-prep.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-08-v390-onvif-credential-provider-status.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-09-v390-onvif-live-import-persist-decision.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-10-v390-vlm-rule-suggestion-draft-bridge.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-11-v390-vlm-incident-rule-provenance.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-12-v390-vlm-evaluation-promotion-guard.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-13-v390-vlm-promotion-trust-boundary.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-14-v390-backup-recovery-handoff-validation.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-15-v390-action-execution-deferral-decision.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-16-v390-deferred-product-owner-signoff.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-17-v390-conditional-field-ai-decisions.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-18-v390-reid-readiness-consistency.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-19-v390-onvif-source-view-atomicity.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-20-v390-structure-stabilization-handoff.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-21-v390-structure-stabilization-readiness.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-22-v390-external-field-smoke-no-device-closure.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-23-v390-truthfulness-status-vocabulary.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-24-v390-analysis-registry-durable-write.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-25-v390-ui-policy-v4-producer-contract.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-26-v390-ui-visual-evidence-contract.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-27-release-metadata.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-28-docs-links.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-29-docs-ui-assets.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-30-feature-implementation-evidence.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-31-project-inventory.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-32-feature-inventory-coverage.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-33-release-evidence-index.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-34-script-inventory.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-35-git-diff-check.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/preflight.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/report.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/build.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/cleanup.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/predev-report.html",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/predev-report.md",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/predev-summary.json",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/preflight.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/report.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/report.md",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/seed.json",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/seed.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/soak-case-loop.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/summary.json",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/ui-environment-bootstrap.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/ui-exact-424.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/ui-server-cleanup.log"
     ],
     "allowedArtifactPaths": [
       "docs/release-artifacts/v3.9.0/test-acceptance-current-final/report.md",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/build.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/cleanup.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-01-v390-stabilization-release-readiness.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-02-v390-entry-baseline.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-03-v390-feature-completion-inventory.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-04-v390-user-review-gate.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-05-manual-ui-evidence.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-06-v390-evidence-test-gate-prep.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-07-v390-onvif-credential-provider-status.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-08-v390-onvif-live-import-persist-decision.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-09-v390-vlm-rule-suggestion-draft-bridge.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-10-v390-vlm-incident-rule-provenance.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-11-v390-vlm-evaluation-promotion-guard.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-12-v390-vlm-promotion-trust-boundary.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-13-v390-backup-recovery-handoff-validation.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-14-v390-action-execution-deferral-decision.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-15-v390-deferred-product-owner-signoff.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-16-v390-conditional-field-ai-decisions.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-17-v390-reid-readiness-consistency.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-18-v390-onvif-source-view-atomicity.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/feature-gates-19-v390-structure-stabilization-handoff.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/preflight.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/report.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717130122-44713/ui-server-cleanup.log",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/summary.json",
       "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/build.log",
       "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/cleanup.log",
       "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-01-v390-stabilization-release-readiness.log",
@@ -187,17 +193,73 @@
       "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30/seed.log",
       "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30/soak-case-loop.log",
       "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30/summary.json",
-      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/ui-server-cleanup.log"
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/ui-server-cleanup.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/summary.json",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/build.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/cleanup.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-01-code-comments.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-02-v390-stabilization-release-readiness.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-03-v390-entry-baseline.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-04-v390-feature-completion-inventory.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-05-v390-user-review-gate.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-06-manual-ui-evidence.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-07-v390-evidence-test-gate-prep.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-08-v390-onvif-credential-provider-status.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-09-v390-onvif-live-import-persist-decision.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-10-v390-vlm-rule-suggestion-draft-bridge.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-11-v390-vlm-incident-rule-provenance.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-12-v390-vlm-evaluation-promotion-guard.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-13-v390-vlm-promotion-trust-boundary.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-14-v390-backup-recovery-handoff-validation.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-15-v390-action-execution-deferral-decision.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-16-v390-deferred-product-owner-signoff.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-17-v390-conditional-field-ai-decisions.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-18-v390-reid-readiness-consistency.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-19-v390-onvif-source-view-atomicity.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-20-v390-structure-stabilization-handoff.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-21-v390-structure-stabilization-readiness.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-22-v390-external-field-smoke-no-device-closure.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-23-v390-truthfulness-status-vocabulary.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-24-v390-analysis-registry-durable-write.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-25-v390-ui-policy-v4-producer-contract.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-26-v390-ui-visual-evidence-contract.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-27-release-metadata.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-28-docs-links.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-29-docs-ui-assets.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-30-feature-implementation-evidence.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-31-project-inventory.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-32-feature-inventory-coverage.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-33-release-evidence-index.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-34-script-inventory.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-35-git-diff-check.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/preflight.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/report.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/build.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/cleanup.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/predev-report.html",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/predev-report.md",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/predev-summary.json",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/preflight.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/report.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/report.md",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/seed.json",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/seed.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/soak-case-loop.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/summary.json",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/ui-environment-bootstrap.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/ui-exact-424.log",
+      "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/ui-server-cleanup.log"
     ],
     "unapprovedDirtyPaths": [],
     "allowedArtifactRoot": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final",
-    "worktreeStatusSha256": "e60a32c3b3d3ada8f897672ed2447bdfb69428ee1db0e93cf317f26e4d09d9ea",
-    "capturedAt": "2026-07-17T15:11:23.213Z"
+    "worktreeStatusSha256": "e909b4ea147b9dc66f7aaf0b575b0fb3ac9ab90447af3d239e468438e64f8c39",
+    "capturedAt": "2026-07-17T16:29:59.770Z"
   },
   "outputPreparation": {
     "replacedExisting": true,
-    "removedFiles": 25,
-    "removedBytes": 36845,
+    "removedFiles": 56,
+    "removedBytes": 643373,
     "removedScreenshotFiles": 0,
     "removedDuplicateScreenshotFiles": 0,
     "removedPlaceholderVideoFiles": 0,
@@ -220,10 +282,10 @@
   "fixtureMode": false,
   "result": "FAIL",
   "stopOnFirstFail": true,
-  "failedStage": "server-longrun-30",
-  "failedCommand": "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30",
+  "failedStage": "ui-exact-424",
+  "failedCommand": "./server.sh run-v390-ui-native-exact-cases --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/ui-exact-424 --http-base http://127.0.0.1:61811 --role-state-map /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/role-state-map.json --server-log /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/media-server.log --runtime-descriptor /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/runtime-descriptor.json --build-path build-gst-onnx/media_server",
   "outputDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final",
-  "runDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438",
+  "runDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826",
   "summaryPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/summary.json",
   "reportPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/report.md",
   "finalAcceptanceCommandSet": [
@@ -239,7 +301,7 @@
     },
     {
       "id": "feature-gates",
-      "command": "34 current feature commands",
+      "command": "35 current feature commands",
       "status": "executed-by-actual-bundle"
     },
     {
@@ -278,7 +340,7 @@
       "status": "executed-by-actual-bundle"
     }
   ],
-  "canonicalCommandSetSha256": "3ff114a84c19ac2312630c0a556d22fa9450123812a6457c462fed9cc0609577",
+  "canonicalCommandSetSha256": "289e9b23312fcfe5511dc8573759d3412f9371ba90af4a76065ba7584ba12129",
   "stageOrder": [
     "preflight",
     "build",
@@ -300,17 +362,17 @@
       "status": "PASS",
       "command": "validate actual bundle inputs",
       "exitCode": 0,
-      "startedAt": "2026-07-17T14:51:41.492Z",
-      "endedAt": "2026-07-17T14:51:41.492Z",
+      "startedAt": "2026-07-17T15:39:27.871Z",
+      "endedAt": "2026-07-17T15:39:27.871Z",
       "durationMs": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/preflight.log",
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/preflight.log",
       "summaryPath": "",
       "tail": [],
       "checks": [],
       "details": {
         "outputDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final",
-        "runDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438",
-        "featureCommandCount": 34,
+        "runDir": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826",
+        "featureCommandCount": 35,
         "uiExecution": "exact-424-policy-v4",
         "uiEnvironmentOwnership": "self-contained-pid-port-artifact-ownership",
         "dependencyStatus": "dependency-bootstrap-attestation",
@@ -331,10 +393,10 @@
       "status": "PASS",
       "command": "./server.sh build",
       "exitCode": 0,
-      "startedAt": "2026-07-17T14:51:41.492Z",
-      "endedAt": "2026-07-17T14:51:42.180Z",
-      "durationMs": 688,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/build.log",
+      "startedAt": "2026-07-17T15:39:27.872Z",
+      "endedAt": "2026-07-17T15:39:28.768Z",
+      "durationMs": 896,
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/build.log",
       "summaryPath": "",
       "tail": [
         "[env] local override skipped",
@@ -352,22 +414,36 @@
     {
       "id": "feature-gates",
       "status": "PASS",
-      "command": "34 current feature commands",
+      "command": "35 current feature commands",
       "exitCode": 0,
-      "startedAt": "2026-07-17T14:51:42.180Z",
-      "endedAt": "2026-07-17T15:02:37.735Z",
-      "durationMs": 655539,
+      "startedAt": "2026-07-17T15:39:28.769Z",
+      "endedAt": "2026-07-17T15:50:31.551Z",
+      "durationMs": 662770,
       "logPath": "",
       "summaryPath": "",
       "tail": [],
       "checks": [
         {
+          "id": "code-comments",
+          "status": "PASS",
+          "command": "./server.sh verify-code-comments",
+          "exitCode": 0,
+          "durationMs": 264,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-01-code-comments.log",
+          "tail": [
+            "== Code comment policy summary ==",
+            "- files: 754",
+            "- missing headers: 0",
+            "- english-only comments: 0"
+          ]
+        },
+        {
           "id": "v390-stabilization-release-readiness",
           "status": "PASS",
           "command": "./server.sh verify-v390-stabilization-release-readiness",
           "exitCode": 0,
-          "durationMs": 45,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-01-v390-stabilization-release-readiness.log",
+          "durationMs": 75,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-02-v390-stabilization-release-readiness.log",
           "tail": [
             "[pass] Step 20 gate keeps release actions and long UI/soak evidence separate",
             "== v3.9.0 stabilization/release readiness summary ==",
@@ -388,8 +464,8 @@
           "status": "PASS",
           "command": "./server.sh verify-v390-entry-baseline",
           "exitCode": 0,
-          "durationMs": 35,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-02-v390-entry-baseline.log",
+          "durationMs": 78,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-03-v390-entry-baseline.log",
           "tail": [
             "- command: verify-v390-entry-baseline",
             "- currentVersion: 3.9.0",
@@ -410,8 +486,8 @@
           "status": "PASS",
           "command": "./server.sh verify-v390-feature-completion-inventory",
           "exitCode": 0,
-          "durationMs": 35,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-03-v390-feature-completion-inventory.log",
+          "durationMs": 64,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-04-v390-feature-completion-inventory.log",
           "tail": [
             "- inventory: docs/v390-feature-completion-inventory.md",
             "- dispositionValues: 5",
@@ -432,8 +508,8 @@
           "status": "PASS",
           "command": "./server.sh verify-v390-user-review-gate",
           "exitCode": 0,
-          "durationMs": 34,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-04-v390-user-review-gate.log",
+          "durationMs": 62,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-05-v390-user-review-gate.log",
           "tail": [
             "- featureDevelopmentAtReviewGate: blocked-before-user-approval",
             "- currentApprovalStatus: approved-through-recorded-user-goals",
@@ -454,8 +530,8 @@
           "status": "PASS",
           "command": "./server.sh verify-manual-ui-evidence",
           "exitCode": 0,
-          "durationMs": 88,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-05-manual-ui-evidence.log",
+          "durationMs": 140,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-06-manual-ui-evidence.log",
           "tail": [
             "[pass] manual UI docs keep new document requirements",
             "[pass] manual UI docs keep merge requirements",
@@ -476,8 +552,8 @@
           "status": "PASS",
           "command": "./server.sh verify-v390-evidence-test-gate-prep",
           "exitCode": 0,
-          "durationMs": 38,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-06-v390-evidence-test-gate-prep.log",
+          "durationMs": 60,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-07-v390-evidence-test-gate-prep.log",
           "tail": [
             "- schema: media-server.v390-evidence-test-gate-prep.v1",
             "- command: verify-v390-evidence-test-gate-prep",
@@ -498,8 +574,8 @@
           "status": "PASS",
           "command": "./server.sh verify-v390-onvif-credential-provider-status",
           "exitCode": 0,
-          "durationMs": 44,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-07-v390-onvif-credential-provider-status.log",
+          "durationMs": 74,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-08-v390-onvif-credential-provider-status.log",
           "tail": [
             "[pass] v3.9 feature completion inventory separates original review candidates from current active candidates",
             "[pass] server entrypoint and inventory verifiers include v3.9 Step 11 command",
@@ -520,8 +596,8 @@
           "status": "PASS",
           "command": "./server.sh verify-v390-onvif-live-import-persist-decision",
           "exitCode": 0,
-          "durationMs": 42,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-08-v390-onvif-live-import-persist-decision.log",
+          "durationMs": 59,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-09-v390-onvif-live-import-persist-decision.log",
           "tail": [
             "[pass] roadmap, stream verification, inventory, and release records map v3.9 Step 12",
             "[pass] server entrypoint and inventory verifiers include v3.9 Step 12 command",
@@ -542,8 +618,8 @@
           "status": "PASS",
           "command": "./server.sh verify-v390-vlm-rule-suggestion-draft-bridge",
           "exitCode": 0,
-          "durationMs": 46,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-09-v390-vlm-rule-suggestion-draft-bridge.log",
+          "durationMs": 67,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-10-v390-vlm-rule-suggestion-draft-bridge.log",
           "tail": [
             "[pass] roadmap, stream verification, inventory, and release records map v3.9 Step 13",
             "[pass] server entrypoint and inventory verifiers include v3.9 Step 13 command",
@@ -564,8 +640,8 @@
           "status": "PASS",
           "command": "./server.sh verify-v390-vlm-incident-rule-provenance",
           "exitCode": 0,
-          "durationMs": 9918,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-10-v390-vlm-incident-rule-provenance.log",
+          "durationMs": 10054,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-11-v390-vlm-incident-rule-provenance.log",
           "tail": [
             "- schema: media-server.vlm-incident-to-rule-provenance.v1",
             "- event/candidate/evaluation source mapped: true",
@@ -586,8 +662,8 @@
           "status": "PASS",
           "command": "./server.sh verify-v390-vlm-evaluation-promotion-guard",
           "exitCode": 0,
-          "durationMs": 104,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-11-v390-vlm-evaluation-promotion-guard.log",
+          "durationMs": 106,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-12-v390-vlm-evaluation-promotion-guard.log",
           "tail": [
             "- step: v3.9.0 (14)",
             "- route: /ops/api/vlm/evaluation-promotion-guard",
@@ -608,8 +684,8 @@
           "status": "PASS",
           "command": "./server.sh verify-v390-vlm-promotion-trust-boundary",
           "exitCode": 0,
-          "durationMs": 7533,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-12-v390-vlm-promotion-trust-boundary.log",
+          "durationMs": 8091,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-13-v390-vlm-promotion-trust-boundary.log",
           "tail": [
             "[pass] review-active-rejected",
             "[pass] rejected-update-preserves-original",
@@ -630,8 +706,8 @@
           "status": "PASS",
           "command": "./server.sh verify-v390-backup-recovery-handoff-validation",
           "exitCode": 0,
-          "durationMs": 71,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-13-v390-backup-recovery-handoff-validation.log",
+          "durationMs": 67,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-14-v390-backup-recovery-handoff-validation.log",
           "tail": [
             "- schema: media-server.ops.v390-staging-restore-validation-handoff.v1",
             "- step: v3.9.0 (15)",
@@ -652,8 +728,8 @@
           "status": "PASS",
           "command": "./server.sh verify-v390-action-execution-deferral-decision",
           "exitCode": 0,
-          "durationMs": 53,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-14-v390-action-execution-deferral-decision.log",
+          "durationMs": 65,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-15-v390-action-execution-deferral-decision.log",
           "tail": [
             "- step: v3.9.0 (16)",
             "- route: /ops/api/actions/execution-deferral-decision",
@@ -674,8 +750,8 @@
           "status": "PASS",
           "command": "./server.sh verify-v390-deferred-product-owner-signoff",
           "exitCode": 0,
-          "durationMs": 69,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-15-v390-deferred-product-owner-signoff.log",
+          "durationMs": 102,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-16-v390-deferred-product-owner-signoff.log",
           "tail": [
             "[pass] decision evidence resolves to current source, route, UI, boundary, and verifier owners",
             "[pass] negative variants reject role-only, field-smoke substitution, owner drift, future scheduling, and Re-ID false claims",
@@ -696,8 +772,8 @@
           "status": "PASS",
           "command": "./server.sh verify-v390-conditional-field-ai-decisions",
           "exitCode": 0,
-          "durationMs": 104,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-16-v390-conditional-field-ai-decisions.log",
+          "durationMs": 164,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-17-v390-conditional-field-ai-decisions.log",
           "tail": [
             "- fieldSelectedMode: approval-only-minimal-field-evidence-bridge",
             "- reidSchema: media-server.ops.v390-reid-assist-decision.v1",
@@ -718,8 +794,8 @@
           "status": "PASS",
           "command": "./server.sh verify-v390-reid-readiness-consistency",
           "exitCode": 0,
-          "durationMs": 17574,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-17-v390-reid-readiness-consistency.log",
+          "durationMs": 18546,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-18-v390-reid-readiness-consistency.log",
           "tail": [
             "[pass] checksum-missing: model-checksum-missing",
             "[pass] checksum-invalid: model-checksum-invalid",
@@ -740,8 +816,8 @@
           "status": "PASS",
           "command": "./server.sh verify-v390-onvif-source-view-atomicity",
           "exitCode": 0,
-          "durationMs": 22401,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-18-v390-onvif-source-view-atomicity.log",
+          "durationMs": 22687,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-19-v390-onvif-source-view-atomicity.log",
           "tail": [
             "[pass] restart-pair-consistency",
             "[pass] transaction-artifacts-cleaned",
@@ -762,8 +838,8 @@
           "status": "PASS",
           "command": "./server.sh verify-v390-structure-stabilization-handoff",
           "exitCode": 0,
-          "durationMs": 302,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-19-v390-structure-stabilization-handoff.log",
+          "durationMs": 349,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-20-v390-structure-stabilization-handoff.log",
           "tail": [
             "- schema: media-server.v390-structure-stabilization-handoff.v1",
             "- command: verify-v390-structure-stabilization-handoff",
@@ -784,8 +860,8 @@
           "status": "PASS",
           "command": "./server.sh verify-v390-structure-stabilization-readiness",
           "exitCode": 0,
-          "durationMs": 242,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-20-v390-structure-stabilization-readiness.log",
+          "durationMs": 352,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-21-v390-structure-stabilization-readiness.log",
           "tail": [
             "- preservedContracts: 9",
             "- historicalOrderedSlices: 6 (Slice 6 not-started record preserved)",
@@ -806,8 +882,8 @@
           "status": "PASS",
           "command": "./server.sh verify-v390-external-field-smoke-no-device-closure",
           "exitCode": 0,
-          "durationMs": 40,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-21-v390-external-field-smoke-no-device-closure.log",
+          "durationMs": 47,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-22-v390-external-field-smoke-no-device-closure.log",
           "tail": [
             "[pass] closure fixture records exact no-device not-run state",
             "[pass] feature inventory records Development 18 no-device closure",
@@ -828,8 +904,8 @@
           "status": "PASS",
           "command": "./server.sh verify-v390-truthfulness-status-vocabulary",
           "exitCode": 0,
-          "durationMs": 37,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-22-v390-truthfulness-status-vocabulary.log",
+          "durationMs": 49,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-23-v390-truthfulness-status-vocabulary.log",
           "tail": [
             "[pass] external field state is conditional-not-run and not PASS",
             "[pass] historical REVIEW4-51 structure decision remains approved-scheduled/not-executed",
@@ -850,8 +926,8 @@
           "status": "PASS",
           "command": "./server.sh verify-v390-analysis-registry-durable-write",
           "exitCode": 0,
-          "durationMs": 118547,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-23-v390-analysis-registry-durable-write.log",
+          "durationMs": 116819,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-24-v390-analysis-registry-durable-write.log",
           "tail": [
             "[pass] va-rule-create-during-rollback",
             "[pass] va-rule-update-during-rollback",
@@ -872,8 +948,8 @@
           "status": "PASS",
           "command": "./server.sh verify-v390-ui-policy-v4-producer-contract",
           "exitCode": 0,
-          "durationMs": 376,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-24-v390-ui-policy-v4-producer-contract.log",
+          "durationMs": 365,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-25-v390-ui-policy-v4-producer-contract.log",
           "tail": [
             "[pass] producer emits captured raw envelope without qualification claims",
             "[pass] producer preserves the native trace byte-for-byte",
@@ -894,8 +970,8 @@
           "status": "PASS",
           "command": "./server.sh verify-v390-ui-visual-evidence-contract",
           "exitCode": 0,
-          "durationMs": 1259,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-25-v390-ui-visual-evidence-contract.log",
+          "durationMs": 1313,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-26-v390-ui-visual-evidence-contract.log",
           "tail": [
             "[pass] 10 route×4 viewport×2 theme matrix만 exact PASS한다",
             "[pass] case/route/role/target와 실제 적용 theme drift는 거부된다",
@@ -917,7 +993,7 @@
           "command": "./server.sh verify-release-metadata",
           "exitCode": 0,
           "durationMs": 61,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-26-release-metadata.log",
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-27-release-metadata.log",
           "tail": [
             "[pass] docs index points to backlog as current release source of truth",
             "[pass] public entry docs keep release evidence source-of-truth deduped",
@@ -938,12 +1014,12 @@
           "status": "PASS",
           "command": "./server.sh verify-docs-links",
           "exitCode": 0,
-          "durationMs": 90,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-27-docs-links.log",
+          "durationMs": 113,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-28-docs-links.log",
           "tail": [
             "== Docs link verification summary ==",
             "- markdown files: 171",
-            "- local links: 901",
+            "- local links: 900",
             "- local images: 22",
             "- local anchors: 99",
             "- indexed docs: 78",
@@ -956,8 +1032,8 @@
           "status": "PASS",
           "command": "./server.sh verify-docs-ui-assets",
           "exitCode": 0,
-          "durationMs": 44,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-28-docs-ui-assets.log",
+          "durationMs": 67,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-29-docs-ui-assets.log",
           "tail": [
             "[pass] English README uses English UI screenshots",
             "[pass] UI guide keeps product screenshots in the shared asset set",
@@ -978,8 +1054,8 @@
           "status": "PASS",
           "command": "./server.sh verify-feature-implementation-evidence",
           "exitCode": 0,
-          "durationMs": 393132,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-29-feature-implementation-evidence.log",
+          "durationMs": 399506,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-30-feature-implementation-evidence.log",
           "tail": [
             "- sourceEvidenceRows: 986",
             "- uiEvidenceRows: 441",
@@ -1000,8 +1076,8 @@
           "status": "PASS",
           "command": "./server.sh verify-project-inventory",
           "exitCode": 0,
-          "durationMs": 25049,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-30-project-inventory.log",
+          "durationMs": 24838,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-31-project-inventory.log",
           "tail": [
             "[pass] manual UI seed tracker Re-ID pair bytetrack/off",
             "[pass] manual UI seed tracker Re-ID pair lite/assist",
@@ -1022,8 +1098,8 @@
           "status": "PASS",
           "command": "./server.sh verify-feature-inventory-coverage",
           "exitCode": 0,
-          "durationMs": 49328,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-31-feature-inventory-coverage.log",
+          "durationMs": 49213,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-32-feature-inventory-coverage.log",
           "tail": [
             "[pass] inventory uses only the four approved test areas",
             "[pass] coverage docs and server command are wired",
@@ -1044,8 +1120,8 @@
           "status": "PASS",
           "command": "./server.sh verify-release-evidence-index",
           "exitCode": 0,
-          "durationMs": 38,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-32-release-evidence-index.log",
+          "durationMs": 36,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-33-release-evidence-index.log",
           "tail": [
             "[pass] release evidence index owns required evidence categories",
             "[pass] release test records own detailed item and result tables",
@@ -1065,8 +1141,8 @@
           "status": "PASS",
           "command": "./server.sh verify-script-inventory",
           "exitCode": 0,
-          "durationMs": 8748,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-33-script-inventory.log",
+          "durationMs": 8805,
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-34-script-inventory.log",
           "tail": [
             "[pass] tracked scripts are classified and referenced",
             "[pass] project inventory delegates script file inventory to this verifier",
@@ -1088,91 +1164,393 @@
           "command": "git diff --check",
           "exitCode": 0,
           "durationMs": 12,
-          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-34-git-diff-check.log",
+          "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-35-git-diff-check.log",
           "tail": []
         }
       ]
     },
     {
       "id": "server-longrun-30",
-      "status": "FAIL",
-      "command": "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30",
-      "exitCode": 1,
-      "startedAt": "2026-07-17T15:02:37.735Z",
-      "endedAt": "2026-07-17T15:11:23.127Z",
-      "durationMs": 525392,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30.log",
-      "summaryPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30/summary.json",
+      "status": "PASS",
+      "command": "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30",
+      "exitCode": 0,
+      "startedAt": "2026-07-17T15:50:31.551Z",
+      "endedAt": "2026-07-17T16:29:52.169Z",
+      "durationMs": 2360618,
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30.log",
+      "summaryPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/summary.json",
       "tail": [
         "[progress] (9/9) report test; remaining=0",
         "== v3.9.0 server longrun runner summary ==",
         "- schema: media-server.v390-server-longrun.v2",
-        "- result: FAIL",
+        "- result: PASS",
         "- durationMinutes: 30",
         "- stopOnFirstFail: true",
-        "- failedPhase: integrated-smoke",
-        "- failedCase: integrated-smoke",
+        "- failedPhase: ",
+        "- failedCase: ",
         "- delegatedPhaseLedgerValid: true",
-        "- longrunEvidenceStatus: real-duration-failed-no-pass-evidence",
-        "- summaryPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30/summary.json",
-        "- reportPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30/report.md"
+        "- longrunEvidenceStatus: real-duration-evidence",
+        "- summaryPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/summary.json",
+        "- reportPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/report.md"
       ],
       "checks": []
     },
     {
       "id": "ui-environment-bootstrap",
-      "status": "not-run",
-      "command": "",
-      "exitCode": null,
-      "startedAt": "",
-      "endedAt": "",
-      "durationMs": 0,
-      "logPath": "",
-      "summaryPath": "",
+      "status": "PASS",
+      "command": "bootstrap acceptance-owned throwaway server/auth roles/Playwright storage-state",
+      "exitCode": 0,
+      "startedAt": "2026-07-17T16:29:52.170Z",
+      "endedAt": "2026-07-17T16:29:58.128Z",
+      "durationMs": 5958,
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/ui-environment-bootstrap.log",
+      "summaryPath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/runtime-descriptor.json",
       "tail": [],
-      "checks": [],
-      "reason": "not run after server-longrun-30 failure"
+      "checks": [
+        {
+          "id": "dependency-bootstrap-attestation",
+          "status": "PASS"
+        },
+        {
+          "id": "role-storage-state-generated-by-acceptance",
+          "status": "PASS"
+        },
+        {
+          "id": "self-contained-pid-port-artifact-ownership",
+          "status": "PASS"
+        }
+      ],
+      "details": {
+        "schema": "media-server.v390-acceptance-ui-environment.v1",
+        "result": "PASS",
+        "fixtureMode": false,
+        "dependency": {
+          "status": "dependency-bootstrap-attestation",
+          "engine": "playwright-native",
+          "fixtureMode": false,
+          "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+          "moduleVersion": "1.61.1",
+          "modulePackageSha256": "6b840268612656f0639fb7d68782e8353bdf11518589d30ddf66f283c2670ed5",
+          "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+          "browserVersion": "150.0.7871.125",
+          "browserLaunchVerified": true,
+          "fallbackUsed": false,
+          "resolutionAttempts": [
+            {
+              "candidate": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/node_modules/playwright",
+              "status": "missing-package-json",
+              "version": "",
+              "reason": ""
+            },
+            {
+              "candidate": "/Users/dhseo/.nvm/versions/node/v24.13.0/node_modules/playwright",
+              "status": "missing-package-json",
+              "version": "",
+              "reason": ""
+            },
+            {
+              "candidate": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright",
+              "status": "selected",
+              "version": "1.61.1",
+              "reason": ""
+            }
+          ]
+        },
+        "secretHandling": "all-role-secrets-generated-memory-only",
+        "roleSecretSource": "acceptance-crypto-random-generated-memory-only",
+        "roleSecretLifecycle": "generated-scanned-and-released",
+        "secretSerialization": false,
+        "ownership": {
+          "serverStartedByAcceptance": true,
+          "portsAllocatedByAcceptance": true,
+          "rolesSeededByAcceptance": true,
+          "storageStatesGeneratedByAcceptance": true,
+          "boundary": "self-contained-pid-port-artifact-ownership"
+        },
+        "runtimeDescriptor": {
+          "schema": "media-server.v390-ui-runtime-descriptor.v1",
+          "runId": "v390-test-acceptance-20260717153927-36826",
+          "fixtureMode": false,
+          "temporaryRoot": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ",
+          "httpBase": "http://127.0.0.1:61811",
+          "httpPort": 61811,
+          "rtspPort": 61812,
+          "serverPid": 32384,
+          "serverLogPath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/media-server.log",
+          "roleStateMapPath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/role-state-map.json",
+          "stateFiles": [
+            "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/auth-users.json",
+            "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/registry/sources.json",
+            "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/registry/views.json",
+            "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/registry/analysis.json",
+            "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/events.jsonl",
+            "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/registry/.media_server.client_live_layout_preferences.jsonl"
+          ],
+          "auth": {
+            "usersFile": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/auth-users.json",
+            "defaultViewId": "9001",
+            "usernames": {
+              "admin": "admin",
+              "operator": "ui_operator",
+              "viewer": "ui_viewer",
+              "integrator": "ui_integrator"
+            },
+            "storageStatePaths": {
+              "admin": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/storage-state-admin.json",
+              "operator": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/storage-state-operator.json",
+              "viewer": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/storage-state-viewer.json",
+              "integrator": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/storage-state-integrator.json"
+            },
+            "generatedBy": "role-storage-state-generated-by-acceptance"
+          },
+          "registrySeedPayloadPaths": {
+            "plan": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/seed-plan.json",
+            "preconditions": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/registry/preconditions.json",
+            "sources": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/registry/sources.json",
+            "views": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/registry/views.json",
+            "analysis": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/registry/analysis.json"
+          },
+          "seedTargetSelection": {
+            "mode": "published-seed-baseline",
+            "expectedReleaseTarget": "v3.8.0",
+            "policyPath": "config/docs_ui_assets.json",
+            "policySha256": "9c703218958fab35a1bfdce5e339d0861fbd17e971e2ec6f800e324b7b89df76"
+          },
+          "eventStoragePath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/events.jsonl",
+          "artifactPaths": {
+            "snapshots": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/snapshots",
+            "clips": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/clips"
+          },
+          "ownership": "self-contained-pid-port-artifact-ownership"
+        },
+        "runtimeDescriptorPath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/runtime-descriptor.json",
+        "seedTargetSelection": {
+          "mode": "published-seed-baseline",
+          "expectedReleaseTarget": "v3.8.0",
+          "policyPath": "config/docs_ui_assets.json",
+          "policySha256": "9c703218958fab35a1bfdce5e339d0861fbd17e971e2ec6f800e324b7b89df76"
+        },
+        "roles": [
+          {
+            "role": "admin",
+            "username": "admin",
+            "storageStatePath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/storage-state-admin.json",
+            "storageStateMode": "0600",
+            "status": "actual-whoami-verified"
+          },
+          {
+            "role": "operator",
+            "username": "ui_operator",
+            "storageStatePath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/storage-state-operator.json",
+            "storageStateMode": "0600",
+            "status": "actual-whoami-verified"
+          },
+          {
+            "role": "viewer",
+            "username": "ui_viewer",
+            "storageStatePath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/storage-state-viewer.json",
+            "storageStateMode": "0600",
+            "status": "actual-whoami-verified"
+          },
+          {
+            "role": "integrator",
+            "username": "ui_integrator",
+            "storageStatePath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/storage-state-integrator.json",
+            "storageStateMode": "0600",
+            "status": "actual-whoami-verified"
+          }
+        ],
+        "portAllocation": {
+          "strategy": "ephemeral-probe-bounded-retry-with-exact-child-listener-ownership",
+          "maxAttempts": 8,
+          "attempts": [
+            {
+              "attempt": 1,
+              "httpPort": 61811,
+              "rtspPort": 61812,
+              "pid": 32384,
+              "status": "owned-ready",
+              "readiness": {
+                "status": 200,
+                "httpOwners": [
+                  32384
+                ],
+                "rtspOwners": [
+                  32384
+                ],
+                "commandIdentity": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/build-gst-onnx/media_server"
+              }
+            }
+          ]
+        },
+        "actualRuntimeEvidence": true,
+        "evidenceBoundary": "runtime environment attestation does not substitute for exact-424 or Policy v4 case evidence",
+        "failureReason": ""
+      }
     },
     {
       "id": "ui-exact-424",
-      "status": "not-run",
-      "command": "",
-      "exitCode": null,
-      "startedAt": "",
-      "endedAt": "",
-      "durationMs": 0,
-      "logPath": "",
-      "summaryPath": "",
-      "tail": [],
-      "checks": [],
-      "reason": "not run after server-longrun-30 failure"
+      "status": "FAIL",
+      "command": "./server.sh run-v390-ui-native-exact-cases --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/ui-exact-424 --http-base http://127.0.0.1:61811 --role-state-map /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/role-state-map.json --server-log /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/media-server.log --runtime-descriptor /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/runtime-descriptor.json --build-path build-gst-onnx/media_server",
+      "exitCode": 1,
+      "startedAt": "2026-07-17T16:29:58.128Z",
+      "endedAt": "2026-07-17T16:29:58.500Z",
+      "durationMs": 372,
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/ui-exact-424.log",
+      "summaryPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/ui-exact-424/summary.json",
+      "tail": [
+        "file:///Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/internal/v390_ui_native_exact_cases_lib.mjs:3013",
+        "  if (!condition) throw new Error(message);",
+        "                        ^",
+        "Error: implementation source binding drift",
+        "    at assert (file:///Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/internal/v390_ui_native_exact_cases_lib.mjs:3013:25)",
+        "    at validateNativeExactManifest (file:///Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/internal/v390_ui_native_exact_cases_lib.mjs:1387:3)",
+        "    at file:///Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/internal/run_v390_ui_native_exact_cases.mjs:65:20",
+        "    at ModuleJob.run (node:internal/modules/esm/module_job:413:25)",
+        "    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)",
+        "    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)",
+        "    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)",
+        "Node.js v24.13.0"
+      ],
+      "checks": []
     },
     {
       "id": "ui-server-cleanup",
       "status": "PASS",
       "command": "stop exact UI throwaway server and verify ports",
       "exitCode": 0,
-      "startedAt": "2026-07-17T15:11:23.127Z",
-      "endedAt": "2026-07-17T15:11:23.127Z",
+      "startedAt": "2026-07-17T16:29:59.677Z",
+      "endedAt": "2026-07-17T16:29:59.677Z",
       "durationMs": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/ui-server-cleanup.log",
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/ui-server-cleanup.log",
       "summaryPath": "",
       "tail": [],
       "checks": [],
       "details": {
         "status": "PASS",
-        "runtimeEvidence": false,
+        "runtimeEvidence": true,
         "fixtureMode": false,
-        "verificationSource": "no-environment-acquired-no-cleanup-required",
+        "verificationSource": "pid-port-artifact-before-after-observation",
         "serversStopped": true,
+        "coreServerStopped": true,
         "portsClean": true,
         "temporaryArtifactsRemoved": true,
-        "removedTemporaryArtifacts": [],
-        "measurement": null,
+        "removedTemporaryArtifacts": [
+          "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ"
+        ],
+        "measurement": {
+          "schema": "media-server.v390-cleanup-measurement.v1",
+          "processes": [
+            {
+              "pid": 32384,
+              "commandIdentity": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/build-gst-onnx/media_server",
+              "aliveBefore": true,
+              "aliveAfter": false,
+              "ownedPorts": [
+                61811,
+                61812
+              ]
+            }
+          ],
+          "ports": [
+            {
+              "port": 61811,
+              "listenerPidsBefore": [
+                32384
+              ],
+              "listenerPidsAfter": [],
+              "bindableAfter": true
+            },
+            {
+              "port": 61812,
+              "listenerPidsBefore": [
+                32384
+              ],
+              "listenerPidsAfter": [],
+              "bindableAfter": true
+            }
+          ],
+          "artifacts": [
+            {
+              "path": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ",
+              "contained": true,
+              "existedBefore": true,
+              "bytesBefore": 83062,
+              "existsAfter": false,
+              "bytesAfter": 0,
+              "removedBytes": 83062
+            }
+          ]
+        },
         "checks": [
           {
-            "check": "no-environment-acquired",
-            "status": "PASS"
+            "check": "throwaway-process-identity",
+            "status": "PASS",
+            "pid": 32384,
+            "commandIdentity": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/build-gst-onnx/media_server"
+          },
+          {
+            "check": "throwaway-process-alive-before",
+            "status": "PASS",
+            "pid": 32384,
+            "observed": true
+          },
+          {
+            "check": "throwaway-port-ownership-before",
+            "status": "PASS",
+            "pid": 32384,
+            "ports": [
+              {
+                "port": 61811,
+                "listenerPidsBefore": [
+                  32384
+                ]
+              },
+              {
+                "port": 61812,
+                "listenerPidsBefore": [
+                  32384
+                ]
+              }
+            ]
+          },
+          {
+            "check": "throwaway-server-stopped",
+            "status": "PASS",
+            "pid": 32384,
+            "observed": true
+          },
+          {
+            "check": "throwaway-port-61811-clean",
+            "status": "PASS",
+            "port": 61811,
+            "listenerPidsBefore": [
+              32384
+            ],
+            "listenerPidsAfter": [],
+            "bindableAfter": true
+          },
+          {
+            "check": "throwaway-port-61812-clean",
+            "status": "PASS",
+            "port": 61812,
+            "listenerPidsBefore": [
+              32384
+            ],
+            "listenerPidsAfter": [],
+            "bindableAfter": true
+          },
+          {
+            "check": "throwaway-temporary-root-removed",
+            "status": "PASS",
+            "path": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ",
+            "bytesBefore": 83062,
+            "bytesAfter": 0
+          },
+          {
+            "check": "foreign-listener-preservation",
+            "status": "PASS",
+            "action": "only the spawned child PID was signalled"
           }
         ]
       }
@@ -1189,7 +1567,7 @@
       "summaryPath": "",
       "tail": [],
       "checks": [],
-      "reason": "not run after server-longrun-30 failure"
+      "reason": "not run after ui-exact-424 failure"
     },
     {
       "id": "longrun-120-decision",
@@ -1203,7 +1581,7 @@
       "summaryPath": "",
       "tail": [],
       "checks": [],
-      "reason": "not run after server-longrun-30 failure"
+      "reason": "not run after ui-exact-424 failure"
     },
     {
       "id": "server-longrun-120",
@@ -1217,69 +1595,32 @@
       "summaryPath": "",
       "tail": [],
       "checks": [],
-      "reason": "not run after server-longrun-30 failure"
+      "reason": "not run after ui-exact-424 failure"
     },
     {
       "id": "cleanup",
-      "status": "PASS",
-      "command": "validate child cleanup and preserved evidence",
-      "exitCode": 0,
-      "startedAt": "2026-07-17T15:11:23.130Z",
-      "endedAt": "2026-07-17T15:11:23.130Z",
+      "status": "FAIL",
+      "command": "cleanup validation",
+      "exitCode": 1,
+      "startedAt": "2026-07-17T16:29:59.680Z",
+      "endedAt": "2026-07-17T16:29:59.680Z",
       "durationMs": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/cleanup.log",
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/cleanup.log",
       "summaryPath": "",
-      "tail": [],
-      "checks": [],
-      "details": {
-        "status": "PASS",
-        "verificationSource": "child-summary-and-filesystem",
-        "childCleanupVerified": true,
-        "temporaryArtifactsRemoved": true,
-        "placeholderVideoFilesAbsent": true,
-        "duplicateScreenshotFilesAbsent": true,
-        "preservedArtifacts": [
-          "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/summary.json",
-          "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/report.md",
-          "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/first-failure.json",
-          "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/first-failure.md",
-          "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30/summary.json",
-          "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30/report.md"
-        ],
-        "preservationReason": "minimum reproducible summary/report/log/screenshot evidence inside requested output directory",
-        "checks": [
-          {
-            "check": "child-cleanup-validation",
-            "status": "PASS",
-            "observed": true
-          },
-          {
-            "check": "temporary-run-paths-absent",
-            "status": "PASS",
-            "paths": []
-          },
-          {
-            "check": "placeholder-video-files-absent",
-            "status": "PASS",
-            "paths": []
-          },
-          {
-            "check": "duplicate-screenshot-files-absent",
-            "status": "PASS",
-            "groups": []
-          }
-        ]
-      }
+      "tail": [
+        "UI child cleanup summary missing"
+      ],
+      "checks": []
     },
     {
       "id": "report",
       "status": "PASS",
       "command": "write acceptance summary/report",
       "exitCode": 0,
-      "startedAt": "2026-07-17T15:11:23.130Z",
-      "endedAt": "2026-07-17T15:11:23.130Z",
+      "startedAt": "2026-07-17T16:29:59.680Z",
+      "endedAt": "2026-07-17T16:29:59.680Z",
       "durationMs": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/report.log",
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/report.log",
       "summaryPath": "",
       "tail": [],
       "checks": [],
@@ -1300,7 +1641,7 @@
       "summaryPath": "",
       "tail": [],
       "checks": [],
-      "reason": "not run after server-longrun-30 failure"
+      "reason": "not run after ui-exact-424 failure"
     }
   ],
   "executedCommands": [
@@ -1310,7 +1651,7 @@
       "status": "PASS",
       "command": "validate actual bundle inputs",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/preflight.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/preflight.log"
     },
     {
       "stage": "build",
@@ -1318,15 +1659,23 @@
       "status": "PASS",
       "command": "./server.sh build",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/build.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/build.log"
     },
     {
       "stage": "feature-gates",
       "id": "feature-gates",
       "status": "PASS",
-      "command": "34 current feature commands",
+      "command": "35 current feature commands",
       "exitCode": 0,
       "logPath": ""
+    },
+    {
+      "stage": "feature-gates",
+      "id": "code-comments",
+      "status": "PASS",
+      "command": "./server.sh verify-code-comments",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-01-code-comments.log"
     },
     {
       "stage": "feature-gates",
@@ -1334,7 +1683,7 @@
       "status": "PASS",
       "command": "./server.sh verify-v390-stabilization-release-readiness",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-01-v390-stabilization-release-readiness.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-02-v390-stabilization-release-readiness.log"
     },
     {
       "stage": "feature-gates",
@@ -1342,7 +1691,7 @@
       "status": "PASS",
       "command": "./server.sh verify-v390-entry-baseline",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-02-v390-entry-baseline.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-03-v390-entry-baseline.log"
     },
     {
       "stage": "feature-gates",
@@ -1350,7 +1699,7 @@
       "status": "PASS",
       "command": "./server.sh verify-v390-feature-completion-inventory",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-03-v390-feature-completion-inventory.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-04-v390-feature-completion-inventory.log"
     },
     {
       "stage": "feature-gates",
@@ -1358,7 +1707,7 @@
       "status": "PASS",
       "command": "./server.sh verify-v390-user-review-gate",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-04-v390-user-review-gate.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-05-v390-user-review-gate.log"
     },
     {
       "stage": "feature-gates",
@@ -1366,7 +1715,7 @@
       "status": "PASS",
       "command": "./server.sh verify-manual-ui-evidence",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-05-manual-ui-evidence.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-06-manual-ui-evidence.log"
     },
     {
       "stage": "feature-gates",
@@ -1374,7 +1723,7 @@
       "status": "PASS",
       "command": "./server.sh verify-v390-evidence-test-gate-prep",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-06-v390-evidence-test-gate-prep.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-07-v390-evidence-test-gate-prep.log"
     },
     {
       "stage": "feature-gates",
@@ -1382,7 +1731,7 @@
       "status": "PASS",
       "command": "./server.sh verify-v390-onvif-credential-provider-status",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-07-v390-onvif-credential-provider-status.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-08-v390-onvif-credential-provider-status.log"
     },
     {
       "stage": "feature-gates",
@@ -1390,7 +1739,7 @@
       "status": "PASS",
       "command": "./server.sh verify-v390-onvif-live-import-persist-decision",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-08-v390-onvif-live-import-persist-decision.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-09-v390-onvif-live-import-persist-decision.log"
     },
     {
       "stage": "feature-gates",
@@ -1398,7 +1747,7 @@
       "status": "PASS",
       "command": "./server.sh verify-v390-vlm-rule-suggestion-draft-bridge",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-09-v390-vlm-rule-suggestion-draft-bridge.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-10-v390-vlm-rule-suggestion-draft-bridge.log"
     },
     {
       "stage": "feature-gates",
@@ -1406,7 +1755,7 @@
       "status": "PASS",
       "command": "./server.sh verify-v390-vlm-incident-rule-provenance",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-10-v390-vlm-incident-rule-provenance.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-11-v390-vlm-incident-rule-provenance.log"
     },
     {
       "stage": "feature-gates",
@@ -1414,7 +1763,7 @@
       "status": "PASS",
       "command": "./server.sh verify-v390-vlm-evaluation-promotion-guard",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-11-v390-vlm-evaluation-promotion-guard.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-12-v390-vlm-evaluation-promotion-guard.log"
     },
     {
       "stage": "feature-gates",
@@ -1422,7 +1771,7 @@
       "status": "PASS",
       "command": "./server.sh verify-v390-vlm-promotion-trust-boundary",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-12-v390-vlm-promotion-trust-boundary.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-13-v390-vlm-promotion-trust-boundary.log"
     },
     {
       "stage": "feature-gates",
@@ -1430,7 +1779,7 @@
       "status": "PASS",
       "command": "./server.sh verify-v390-backup-recovery-handoff-validation",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-13-v390-backup-recovery-handoff-validation.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-14-v390-backup-recovery-handoff-validation.log"
     },
     {
       "stage": "feature-gates",
@@ -1438,7 +1787,7 @@
       "status": "PASS",
       "command": "./server.sh verify-v390-action-execution-deferral-decision",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-14-v390-action-execution-deferral-decision.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-15-v390-action-execution-deferral-decision.log"
     },
     {
       "stage": "feature-gates",
@@ -1446,7 +1795,7 @@
       "status": "PASS",
       "command": "./server.sh verify-v390-deferred-product-owner-signoff",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-15-v390-deferred-product-owner-signoff.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-16-v390-deferred-product-owner-signoff.log"
     },
     {
       "stage": "feature-gates",
@@ -1454,7 +1803,7 @@
       "status": "PASS",
       "command": "./server.sh verify-v390-conditional-field-ai-decisions",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-16-v390-conditional-field-ai-decisions.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-17-v390-conditional-field-ai-decisions.log"
     },
     {
       "stage": "feature-gates",
@@ -1462,7 +1811,7 @@
       "status": "PASS",
       "command": "./server.sh verify-v390-reid-readiness-consistency",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-17-v390-reid-readiness-consistency.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-18-v390-reid-readiness-consistency.log"
     },
     {
       "stage": "feature-gates",
@@ -1470,7 +1819,7 @@
       "status": "PASS",
       "command": "./server.sh verify-v390-onvif-source-view-atomicity",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-18-v390-onvif-source-view-atomicity.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-19-v390-onvif-source-view-atomicity.log"
     },
     {
       "stage": "feature-gates",
@@ -1478,7 +1827,7 @@
       "status": "PASS",
       "command": "./server.sh verify-v390-structure-stabilization-handoff",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-19-v390-structure-stabilization-handoff.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-20-v390-structure-stabilization-handoff.log"
     },
     {
       "stage": "feature-gates",
@@ -1486,7 +1835,7 @@
       "status": "PASS",
       "command": "./server.sh verify-v390-structure-stabilization-readiness",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-20-v390-structure-stabilization-readiness.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-21-v390-structure-stabilization-readiness.log"
     },
     {
       "stage": "feature-gates",
@@ -1494,7 +1843,7 @@
       "status": "PASS",
       "command": "./server.sh verify-v390-external-field-smoke-no-device-closure",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-21-v390-external-field-smoke-no-device-closure.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-22-v390-external-field-smoke-no-device-closure.log"
     },
     {
       "stage": "feature-gates",
@@ -1502,7 +1851,7 @@
       "status": "PASS",
       "command": "./server.sh verify-v390-truthfulness-status-vocabulary",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-22-v390-truthfulness-status-vocabulary.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-23-v390-truthfulness-status-vocabulary.log"
     },
     {
       "stage": "feature-gates",
@@ -1510,7 +1859,7 @@
       "status": "PASS",
       "command": "./server.sh verify-v390-analysis-registry-durable-write",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-23-v390-analysis-registry-durable-write.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-24-v390-analysis-registry-durable-write.log"
     },
     {
       "stage": "feature-gates",
@@ -1518,7 +1867,7 @@
       "status": "PASS",
       "command": "./server.sh verify-v390-ui-policy-v4-producer-contract",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-24-v390-ui-policy-v4-producer-contract.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-25-v390-ui-policy-v4-producer-contract.log"
     },
     {
       "stage": "feature-gates",
@@ -1526,7 +1875,7 @@
       "status": "PASS",
       "command": "./server.sh verify-v390-ui-visual-evidence-contract",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-25-v390-ui-visual-evidence-contract.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-26-v390-ui-visual-evidence-contract.log"
     },
     {
       "stage": "feature-gates",
@@ -1534,7 +1883,7 @@
       "status": "PASS",
       "command": "./server.sh verify-release-metadata",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-26-release-metadata.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-27-release-metadata.log"
     },
     {
       "stage": "feature-gates",
@@ -1542,7 +1891,7 @@
       "status": "PASS",
       "command": "./server.sh verify-docs-links",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-27-docs-links.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-28-docs-links.log"
     },
     {
       "stage": "feature-gates",
@@ -1550,7 +1899,7 @@
       "status": "PASS",
       "command": "./server.sh verify-docs-ui-assets",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-28-docs-ui-assets.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-29-docs-ui-assets.log"
     },
     {
       "stage": "feature-gates",
@@ -1558,7 +1907,7 @@
       "status": "PASS",
       "command": "./server.sh verify-feature-implementation-evidence",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-29-feature-implementation-evidence.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-30-feature-implementation-evidence.log"
     },
     {
       "stage": "feature-gates",
@@ -1566,7 +1915,7 @@
       "status": "PASS",
       "command": "./server.sh verify-project-inventory",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-30-project-inventory.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-31-project-inventory.log"
     },
     {
       "stage": "feature-gates",
@@ -1574,7 +1923,7 @@
       "status": "PASS",
       "command": "./server.sh verify-feature-inventory-coverage",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-31-feature-inventory-coverage.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-32-feature-inventory-coverage.log"
     },
     {
       "stage": "feature-gates",
@@ -1582,7 +1931,7 @@
       "status": "PASS",
       "command": "./server.sh verify-release-evidence-index",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-32-release-evidence-index.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-33-release-evidence-index.log"
     },
     {
       "stage": "feature-gates",
@@ -1590,7 +1939,7 @@
       "status": "PASS",
       "command": "./server.sh verify-script-inventory",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-33-script-inventory.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-34-script-inventory.log"
     },
     {
       "stage": "feature-gates",
@@ -1598,15 +1947,49 @@
       "status": "PASS",
       "command": "git diff --check",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/feature-gates-34-git-diff-check.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/feature-gates-35-git-diff-check.log"
     },
     {
       "stage": "server-longrun-30",
       "id": "server-longrun-30",
+      "status": "PASS",
+      "command": "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30.log"
+    },
+    {
+      "stage": "ui-environment-bootstrap",
+      "id": "ui-environment-bootstrap",
+      "status": "PASS",
+      "command": "bootstrap acceptance-owned throwaway server/auth roles/Playwright storage-state",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/ui-environment-bootstrap.log"
+    },
+    {
+      "stage": "ui-environment-bootstrap",
+      "id": "dependency-bootstrap-attestation",
+      "status": "PASS",
+      "logPath": ""
+    },
+    {
+      "stage": "ui-environment-bootstrap",
+      "id": "role-storage-state-generated-by-acceptance",
+      "status": "PASS",
+      "logPath": ""
+    },
+    {
+      "stage": "ui-environment-bootstrap",
+      "id": "self-contained-pid-port-artifact-ownership",
+      "status": "PASS",
+      "logPath": ""
+    },
+    {
+      "stage": "ui-exact-424",
+      "id": "ui-exact-424",
       "status": "FAIL",
-      "command": "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30",
+      "command": "./server.sh run-v390-ui-native-exact-cases --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/ui-exact-424 --http-base http://127.0.0.1:61811 --role-state-map /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/role-state-map.json --server-log /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/media-server.log --runtime-descriptor /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/runtime-descriptor.json --build-path build-gst-onnx/media_server",
       "exitCode": 1,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/ui-exact-424.log"
     },
     {
       "stage": "ui-server-cleanup",
@@ -1614,15 +1997,15 @@
       "status": "PASS",
       "command": "stop exact UI throwaway server and verify ports",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/ui-server-cleanup.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/ui-server-cleanup.log"
     },
     {
       "stage": "cleanup",
       "id": "cleanup",
-      "status": "PASS",
-      "command": "validate child cleanup and preserved evidence",
-      "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/cleanup.log"
+      "status": "FAIL",
+      "command": "cleanup validation",
+      "exitCode": 1,
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/cleanup.log"
     },
     {
       "stage": "report",
@@ -1630,30 +2013,31 @@
       "status": "PASS",
       "command": "write acceptance summary/report",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/report.log"
+      "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/report.log"
     }
   ],
   "firstFailure": {
-    "stage": "server-longrun-30",
-    "command": "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30",
-    "context": "[progress] (9/9) report test; remaining=0 | == v3.9.0 server longrun runner summary == | - schema: media-server.v390-server-longrun.v2 | - result: FAIL | - durationMinutes: 30 | - stopOnFirstFail: true | - failedPhase: integrated-smoke | - failedCase: integrated-smoke | - delegatedPhaseLedgerValid: true | - longrunEvidenceStatus: real-duration-failed-no-pass-evidence | - summaryPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30/summary.json | - reportPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30/report.md",
+    "stage": "ui-exact-424",
+    "testcaseId": "ui-exact-424",
+    "command": "./server.sh run-v390-ui-native-exact-cases --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/ui-exact-424 --http-base http://127.0.0.1:61811 --role-state-map /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/role-state-map.json --server-log /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/media-server.log --runtime-descriptor /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/runtime-descriptor.json --build-path build-gst-onnx/media_server",
+    "context": "file:///Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/internal/v390_ui_native_exact_cases_lib.mjs:3013 |   if (!condition) throw new Error(message); |                         ^ | Error: implementation source binding drift |     at assert (file:///Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/internal/v390_ui_native_exact_cases_lib.mjs:3013:25) |     at validateNativeExactManifest (file:///Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/internal/v390_ui_native_exact_cases_lib.mjs:1387:3) |     at file:///Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/internal/run_v390_ui_native_exact_cases.mjs:65:20 |     at ModuleJob.run (node:internal/modules/esm/module_job:413:25) |     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) |     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26) |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) | Node.js v24.13.0",
     "exitCode": 1,
-    "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30.log",
+    "logPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/ui-exact-424.log",
     "stderrTail": [
-      "[progress] (9/9) report test; remaining=0",
-      "== v3.9.0 server longrun runner summary ==",
-      "- schema: media-server.v390-server-longrun.v2",
-      "- result: FAIL",
-      "- durationMinutes: 30",
-      "- stopOnFirstFail: true",
-      "- failedPhase: integrated-smoke",
-      "- failedCase: integrated-smoke",
-      "- delegatedPhaseLedgerValid: true",
-      "- longrunEvidenceStatus: real-duration-failed-no-pass-evidence",
-      "- summaryPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30/summary.json",
-      "- reportPath: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30/report.md"
+      "file:///Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/internal/v390_ui_native_exact_cases_lib.mjs:3013",
+      "  if (!condition) throw new Error(message);",
+      "                        ^",
+      "Error: implementation source binding drift",
+      "    at assert (file:///Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/internal/v390_ui_native_exact_cases_lib.mjs:3013:25)",
+      "    at validateNativeExactManifest (file:///Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/internal/v390_ui_native_exact_cases_lib.mjs:1387:3)",
+      "    at file:///Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/internal/run_v390_ui_native_exact_cases.mjs:65:20",
+      "    at ModuleJob.run (node:internal/modules/esm/module_job:413:25)",
+      "    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)",
+      "    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)",
+      "    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)",
+      "Node.js v24.13.0"
     ],
-    "reproductionCommand": "./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir /Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30"
+    "reproductionCommand": "./test_release.sh"
   },
   "priorFirstFailure": {
     "schema": "media-server.v390-acceptance-first-failure.v1",
@@ -2457,22 +2841,52 @@
   },
   "localReadiness": "PASS",
   "longrun30": {
-    "status": "FAIL",
-    "summaryPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30/summary.json",
-    "reportPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30/report.md",
-    "result": "FAIL"
+    "status": "PASS",
+    "summaryPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/summary.json",
+    "reportPath": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/report.md",
+    "result": "PASS"
   },
   "uiTemporaryRoot": "",
   "uiEnvironment": {
     "schema": "media-server.v390-acceptance-ui-environment.v1",
-    "result": "not-run",
+    "result": "PASS",
     "fixtureMode": false,
     "dependency": {
       "status": "dependency-bootstrap-attestation",
-      "browserLaunchVerified": false
+      "engine": "playwright-native",
+      "fixtureMode": false,
+      "modulePath": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright@1.61.1/node_modules/playwright",
+      "moduleVersion": "1.61.1",
+      "modulePackageSha256": "6b840268612656f0639fb7d68782e8353bdf11518589d30ddf66f283c2670ed5",
+      "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "browserVersion": "150.0.7871.125",
+      "browserLaunchVerified": true,
+      "fallbackUsed": false,
+      "resolutionAttempts": [
+        {
+          "candidate": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/node_modules/playwright",
+          "status": "missing-package-json",
+          "version": "",
+          "reason": ""
+        },
+        {
+          "candidate": "/Users/dhseo/.nvm/versions/node/v24.13.0/node_modules/playwright",
+          "status": "missing-package-json",
+          "version": "",
+          "reason": ""
+        },
+        {
+          "candidate": "/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright",
+          "status": "selected",
+          "version": "1.61.1",
+          "reason": ""
+        }
+      ]
     },
     "secretHandling": "all-role-secrets-generated-memory-only",
     "roleSecretSource": "acceptance-crypto-random-generated-memory-only",
+    "roleSecretLifecycle": "generated-scanned-and-released",
+    "secretSerialization": false,
     "ownership": {
       "serverStartedByAcceptance": true,
       "portsAllocatedByAcceptance": true,
@@ -2480,27 +2894,256 @@
       "storageStatesGeneratedByAcceptance": true,
       "boundary": "self-contained-pid-port-artifact-ownership"
     },
-    "cleanup": {
-      "status": "PASS",
-      "runtimeEvidence": false,
+    "runtimeDescriptor": {
+      "schema": "media-server.v390-ui-runtime-descriptor.v1",
+      "runId": "v390-test-acceptance-20260717153927-36826",
       "fixtureMode": false,
-      "verificationSource": "no-environment-acquired-no-cleanup-required",
-      "serversStopped": true,
-      "portsClean": true,
-      "temporaryArtifactsRemoved": true,
-      "removedTemporaryArtifacts": [],
-      "measurement": null,
-      "checks": [
+      "temporaryRoot": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ",
+      "httpBase": "http://127.0.0.1:61811",
+      "httpPort": 61811,
+      "rtspPort": 61812,
+      "serverPid": 32384,
+      "serverLogPath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/media-server.log",
+      "roleStateMapPath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/role-state-map.json",
+      "stateFiles": [
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/auth-users.json",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/registry/sources.json",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/registry/views.json",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/registry/analysis.json",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/events.jsonl",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/registry/.media_server.client_live_layout_preferences.jsonl"
+      ],
+      "auth": {
+        "usersFile": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/auth-users.json",
+        "defaultViewId": "9001",
+        "usernames": {
+          "admin": "admin",
+          "operator": "ui_operator",
+          "viewer": "ui_viewer",
+          "integrator": "ui_integrator"
+        },
+        "storageStatePaths": {
+          "admin": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/storage-state-admin.json",
+          "operator": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/storage-state-operator.json",
+          "viewer": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/storage-state-viewer.json",
+          "integrator": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/storage-state-integrator.json"
+        },
+        "generatedBy": "role-storage-state-generated-by-acceptance"
+      },
+      "registrySeedPayloadPaths": {
+        "plan": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/seed-plan.json",
+        "preconditions": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/registry/preconditions.json",
+        "sources": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/registry/sources.json",
+        "views": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/registry/views.json",
+        "analysis": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/registry/analysis.json"
+      },
+      "seedTargetSelection": {
+        "mode": "published-seed-baseline",
+        "expectedReleaseTarget": "v3.8.0",
+        "policyPath": "config/docs_ui_assets.json",
+        "policySha256": "9c703218958fab35a1bfdce5e339d0861fbd17e971e2ec6f800e324b7b89df76"
+      },
+      "eventStoragePath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/events.jsonl",
+      "artifactPaths": {
+        "snapshots": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/snapshots",
+        "clips": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/clips"
+      },
+      "ownership": "self-contained-pid-port-artifact-ownership"
+    },
+    "runtimeDescriptorPath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/runtime-descriptor.json",
+    "seedTargetSelection": {
+      "mode": "published-seed-baseline",
+      "expectedReleaseTarget": "v3.8.0",
+      "policyPath": "config/docs_ui_assets.json",
+      "policySha256": "9c703218958fab35a1bfdce5e339d0861fbd17e971e2ec6f800e324b7b89df76"
+    },
+    "roles": [
+      {
+        "role": "admin",
+        "username": "admin",
+        "storageStatePath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/storage-state-admin.json",
+        "storageStateMode": "0600",
+        "status": "actual-whoami-verified"
+      },
+      {
+        "role": "operator",
+        "username": "ui_operator",
+        "storageStatePath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/storage-state-operator.json",
+        "storageStateMode": "0600",
+        "status": "actual-whoami-verified"
+      },
+      {
+        "role": "viewer",
+        "username": "ui_viewer",
+        "storageStatePath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/storage-state-viewer.json",
+        "storageStateMode": "0600",
+        "status": "actual-whoami-verified"
+      },
+      {
+        "role": "integrator",
+        "username": "ui_integrator",
+        "storageStatePath": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ/storage-state-integrator.json",
+        "storageStateMode": "0600",
+        "status": "actual-whoami-verified"
+      }
+    ],
+    "portAllocation": {
+      "strategy": "ephemeral-probe-bounded-retry-with-exact-child-listener-ownership",
+      "maxAttempts": 8,
+      "attempts": [
         {
-          "check": "no-environment-acquired",
-          "status": "PASS"
+          "attempt": 1,
+          "httpPort": 61811,
+          "rtspPort": 61812,
+          "pid": 32384,
+          "status": "owned-ready",
+          "readiness": {
+            "status": 200,
+            "httpOwners": [
+              32384
+            ],
+            "rtspOwners": [
+              32384
+            ],
+            "commandIdentity": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/build-gst-onnx/media_server"
+          }
         }
       ]
     },
-    "evidenceBoundary": "environment bootstrap was not run"
+    "actualRuntimeEvidence": true,
+    "evidenceBoundary": "runtime environment attestation does not substitute for exact-424 or Policy v4 case evidence",
+    "failureReason": "",
+    "cleanup": {
+      "status": "PASS",
+      "runtimeEvidence": true,
+      "fixtureMode": false,
+      "verificationSource": "pid-port-artifact-before-after-observation",
+      "serversStopped": true,
+      "coreServerStopped": true,
+      "portsClean": true,
+      "temporaryArtifactsRemoved": true,
+      "removedTemporaryArtifacts": [
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ"
+      ],
+      "measurement": {
+        "schema": "media-server.v390-cleanup-measurement.v1",
+        "processes": [
+          {
+            "pid": 32384,
+            "commandIdentity": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/build-gst-onnx/media_server",
+            "aliveBefore": true,
+            "aliveAfter": false,
+            "ownedPorts": [
+              61811,
+              61812
+            ]
+          }
+        ],
+        "ports": [
+          {
+            "port": 61811,
+            "listenerPidsBefore": [
+              32384
+            ],
+            "listenerPidsAfter": [],
+            "bindableAfter": true
+          },
+          {
+            "port": 61812,
+            "listenerPidsBefore": [
+              32384
+            ],
+            "listenerPidsAfter": [],
+            "bindableAfter": true
+          }
+        ],
+        "artifacts": [
+          {
+            "path": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ",
+            "contained": true,
+            "existedBefore": true,
+            "bytesBefore": 83062,
+            "existsAfter": false,
+            "bytesAfter": 0,
+            "removedBytes": 83062
+          }
+        ]
+      },
+      "checks": [
+        {
+          "check": "throwaway-process-identity",
+          "status": "PASS",
+          "pid": 32384,
+          "commandIdentity": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/build-gst-onnx/media_server"
+        },
+        {
+          "check": "throwaway-process-alive-before",
+          "status": "PASS",
+          "pid": 32384,
+          "observed": true
+        },
+        {
+          "check": "throwaway-port-ownership-before",
+          "status": "PASS",
+          "pid": 32384,
+          "ports": [
+            {
+              "port": 61811,
+              "listenerPidsBefore": [
+                32384
+              ]
+            },
+            {
+              "port": 61812,
+              "listenerPidsBefore": [
+                32384
+              ]
+            }
+          ]
+        },
+        {
+          "check": "throwaway-server-stopped",
+          "status": "PASS",
+          "pid": 32384,
+          "observed": true
+        },
+        {
+          "check": "throwaway-port-61811-clean",
+          "status": "PASS",
+          "port": 61811,
+          "listenerPidsBefore": [
+            32384
+          ],
+          "listenerPidsAfter": [],
+          "bindableAfter": true
+        },
+        {
+          "check": "throwaway-port-61812-clean",
+          "status": "PASS",
+          "port": 61812,
+          "listenerPidsBefore": [
+            32384
+          ],
+          "listenerPidsAfter": [],
+          "bindableAfter": true
+        },
+        {
+          "check": "throwaway-temporary-root-removed",
+          "status": "PASS",
+          "path": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-UEUuvZ",
+          "bytesBefore": 83062,
+          "bytesAfter": 0
+        },
+        {
+          "check": "foreign-listener-preservation",
+          "status": "PASS",
+          "action": "only the spawned child PID was signalled"
+        }
+      ]
+    }
   },
   "uiAutomation": {
-    "status": "not-run",
+    "status": "FAIL",
     "summaryPath": "",
     "reportPath": "",
     "result": ""
@@ -2574,9 +3217,9 @@
     "passClaimed": false
   },
   "cleanup": {
-    "status": "PASS",
+    "status": "FAIL",
     "verificationSource": "child-summary-and-filesystem",
-    "childCleanupVerified": true,
+    "childCleanupVerified": false,
     "temporaryArtifactsRemoved": true,
     "placeholderVideoFilesAbsent": true,
     "duplicateScreenshotFilesAbsent": true,
@@ -2585,15 +3228,15 @@
       "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/report.md",
       "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/first-failure.json",
       "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/first-failure.md",
-      "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30/summary.json",
-      "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30/report.md"
+      "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/summary.json",
+      "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/report.md"
     ],
     "preservationReason": "minimum reproducible summary/report/log/screenshot evidence inside requested output directory",
     "checks": [
       {
         "check": "child-cleanup-validation",
-        "status": "PASS",
-        "observed": true
+        "status": "FAIL",
+        "observed": false
       },
       {
         "check": "temporary-run-paths-absent",
@@ -2633,20 +3276,20 @@
     "artifactRoot": "docs/release-artifacts/v3.9.0/test-acceptance-current-final",
     "summaryPath": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/summary.json",
     "reportPath": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/report.md",
-    "reportBytes": 17461,
-    "reportSha256": "0498ca16476da0ba37223e8969390123dcb291ee17d1e6b6d56eb7a667e88fc7",
+    "reportBytes": 20679,
+    "reportSha256": "9d74b7ed62bfe0b73e1e798db5d8339b79d3cef760709ac414e339fb6b33eda1",
     "artifacts": [
       {
         "id": "server-longrun-30-summary",
-        "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30/summary.json",
-        "bytes": 29680,
-        "sha256": "58e8a5c2759cfeb2769142a6d9d76ab9a8e58e934a87fdbcdf26789069c3c7d0"
+        "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/summary.json",
+        "bytes": 69929,
+        "sha256": "0cce91db0ddf6f0f4eb1bc840d4937e8ed9210087d38f0008cca46dd07be02a5"
       },
       {
         "id": "server-longrun-30-report",
-        "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717145141-60438/server-longrun-30/report.md",
-        "bytes": 5269,
-        "sha256": "dae9c794069cb37870acb851de1220ea202a5ef2947555f5045b9b7877de4f8c"
+        "path": "docs/release-artifacts/v3.9.0/test-acceptance-current-final/runs/v390-test-acceptance-20260717153927-36826/server-longrun-30/report.md",
+        "bytes": 8907,
+        "sha256": "a78835a8783a1f701bc679fd0275f209f4ede7016805829173a6656d5a8acec7"
       }
     ],
     "temporaryPathFinalEvidenceReferences": []

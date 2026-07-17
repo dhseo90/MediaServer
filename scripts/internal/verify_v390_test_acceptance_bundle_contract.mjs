@@ -610,6 +610,45 @@ check("code-comments is the first and unique feature gate, with a fail-closed us
   fs.rmSync(outputDir, { recursive: true, force: true });
 });
 
+check("native exact manifest contract is a unique 36th-set early feature gate", () => {
+  assertCanonicalNativeManifestFeatureGate(files.bundle);
+  const featureBlock = sourceBlock(files.bundle, "function buildFeatureCommands()", "function buildFinalAcceptanceCommandSet()");
+  const commandLiteral = '"verify-v390-ui-native-exact-cases-contract"';
+  for (const [label, mutated] of [
+    ["omitted", files.bundle.replace(commandLiteral, "")],
+    ["duplicated", files.bundle.replace(commandLiteral, `${commandLiteral},\n    ${commandLiteral}`)],
+    ["after-longrun", files.bundle.replace(commandLiteral, "").replace(
+      "function buildFinalAcceptanceCommandSet() {",
+      `const misplacedNativeManifestGate = ${commandLiteral};\n\nfunction buildFinalAcceptanceCommandSet() {`,
+    )],
+  ]) {
+    let rejected = false;
+    try { assertCanonicalNativeManifestFeatureGate(mutated); } catch { rejected = true; }
+    assert(rejected, `negative ${label} native manifest feature fixture was accepted`);
+  }
+  const names = [...featureBlock.matchAll(/^\s+"([^"]+)",$/gm)].map(match => match[1]);
+  assert(names.length === 35 && names.includes("verify-v390-ui-native-exact-cases-contract"),
+    `server feature command count drift: ${names.length}`);
+
+  const outputDir = fixtureDir("native-manifest-contract-first-failure");
+  const result = runBundle(["--output-dir", outputDir, "--fixture-fail-feature-command", "v390-ui-native-exact-cases-contract"]);
+  assert(result.status !== 0, "native manifest contract failure fixture must return non-zero");
+  const summary = readJson(path.join(outputDir, "summary.json"));
+  const featureStage = summary.stages.find(item => item.id === "feature-gates");
+  assert(featureStage?.command === "36 current feature commands" && featureStage?.checks?.length === 36,
+    "current acceptance feature gate count must be 36");
+  assert(summary.failedStage === "feature-gates", "native manifest drift must fail in feature-gates");
+  assert(summary.firstFailure?.testcaseId === "v390-ui-native-exact-cases-contract",
+    "native manifest drift failed check ID mismatch");
+  assert(summary.firstFailure?.reproductionCommand === "./test_release.sh",
+    "native manifest drift reproduction must use the user launcher");
+  for (const id of ["server-longrun-30", "ui-environment-bootstrap", "ui-exact-424", "ui-fulltest-qualification", "longrun-120-decision", "server-longrun-120", "final-integrity"]) {
+    assert(summary.stages.find(item => item.id === id)?.status === "not-run",
+      `${id} must be not-run after native manifest feature-gate failure`);
+  }
+  fs.rmSync(outputDir, { recursive: true, force: true });
+});
+
 check("rerun preserves the earliest first failure after canonical output replacement", () => {
   const outputDir = fixtureDir("preserved-first-fail");
   const failed = runBundle(["--output-dir", outputDir, "--fixture-fail-stage", "feature-gates"]);
@@ -757,6 +796,18 @@ function assertCanonicalCodeCommentsFeatureGate(featureBlock) {
   const codeCommentsIndexes = names.map((name, index) => name === "verify-code-comments" ? index : -1).filter(index => index >= 0);
   assert(codeCommentsIndexes.length === 1, "code-comments must be registered exactly once");
   assert(codeCommentsIndexes[0] === 0, "code-comments must be the first static feature command");
+}
+
+function assertCanonicalNativeManifestFeatureGate(bundleSource) {
+  const featureBlock = sourceBlock(bundleSource, "function buildFeatureCommands()", "function buildFinalAcceptanceCommandSet()");
+  const names = [...featureBlock.matchAll(/^\s+"([^"]+)",$/gm)].map(match => match[1]);
+  const indexes = names.map((name, index) => name === "verify-v390-ui-native-exact-cases-contract" ? index : -1)
+    .filter(index => index >= 0);
+  assert(indexes.length === 1, "native manifest contract must be registered exactly once");
+  assert(indexes[0] < names.length, "native manifest contract must remain in the feature command list");
+  assert(bundleSource.indexOf("runCommandListStage(stageId, featureCommands)") <
+    bundleSource.indexOf('if (stageId === "server-longrun-30")'),
+  "native manifest contract must execute before server-longrun-30");
 }
 
 function runBundle(args) {

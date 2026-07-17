@@ -3,15 +3,19 @@
 
 import fs from "node:fs";
 import crypto from "node:crypto";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
+import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import {
   buildNativeExactManifest,
+  createNativeExactPreExecutionFailureSummary,
   normalizeProductScreenRoute,
+  validateNativeExactCleanupContract,
   validateNativeExactManifest,
+  validateNativeExactPreExecutionFailureSummary,
 } from "./v390_ui_native_exact_cases_lib.mjs";
 import {
   canonicalRequestedProjection,
@@ -41,6 +45,8 @@ const trackedFiles = new Set(execFileSync("git", ["ls-files"], { cwd: rootDir, e
   .split("\n").filter(Boolean));
 const sourceCache = new Map();
 const checks = [];
+const temporaryDirs = [];
+process.on("exit", () => temporaryDirs.forEach(directory => fs.rmSync(directory, { recursive: true, force: true })));
 
 check("generated manifest validates against canonical exact ordered 424", () => {
   const result = validateNativeExactManifest({ manifest, canonical, implementation });
@@ -1145,6 +1151,78 @@ check("missing, reordered, unsupported, API-screen, and field drift are rejected
   expectInvalid("role-drift", mutate(value => { value.cases[0].accountRole = "admin"; }), "accountRole drift");
   expectInvalid("viewport-drift", mutate(value => { value.cases[0].viewport.width = 1180; }), "viewport drift");
   expectInvalid("oracle-drift", mutate(value => { value.cases[0].oracle.expectedBehaviorSha256 = "0".repeat(64); }), "oracle digest drift");
+});
+
+check("stale implementation binding writes a fail-closed 0/424 pre-execution summary", () => {
+  const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "media-server-v390-native-pre-execution-"));
+  temporaryDirs.push(workspace);
+  const staleManifestPath = path.join(workspace, "stale-native.json");
+  const outputDir = path.join(workspace, "output");
+  const stale = structuredClone(manifest);
+  stale.sourceBindings.implementationSha256 = "0".repeat(64);
+  fs.writeFileSync(staleManifestPath, `${JSON.stringify(stale, null, 2)}\n`, "utf8");
+  const run = spawnSync(path.join(rootDir, "server.sh"), [
+    "run-v390-ui-native-exact-cases",
+    "--manifest", staleManifestPath,
+    "--output-dir", outputDir,
+    "--plan-only",
+  ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert(run.status !== 0, "stale implementation binding must fail before execution");
+  const summaryPath = path.join(outputDir, "summary.json");
+  assert(fs.existsSync(summaryPath), "pre-execution failure summary missing");
+  const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
+  assert(validateNativeExactPreExecutionFailureSummary(summary).length === 0,
+    `pre-execution failure summary invalid: ${validateNativeExactPreExecutionFailureSummary(summary).join(", ")}`);
+  assert(summary.failure.error.includes("implementation source binding drift"),
+    `unexpected pre-execution failure: ${summary.failure.error}`);
+});
+
+check("pre-execution failure cannot become UI PASS, Policy v4 eligible, or cleanup evidence", () => {
+  const base = createNativeExactPreExecutionFailureSummary({
+    error: new Error("implementation source binding drift"),
+    manifest,
+    canonical,
+  });
+  const measuredEnvironmentCleanup = {
+    status: "PASS",
+    serversStopped: true,
+    portsClean: true,
+    temporaryArtifactsRemoved: true,
+    runtimeEvidence: true,
+    verificationSource: "pid-port-artifact-before-after-observation",
+  };
+  assert(validateNativeExactCleanupContract({
+    stageAttempted: true,
+    summary: base,
+    acceptanceEnvironmentCleanup: measuredEnvironmentCleanup,
+  }).length === 0, "valid pre-execution lifecycle must accept measured acceptance cleanup");
+
+  const missingSummaryErrors = validateNativeExactCleanupContract({
+    stageAttempted: true,
+    summary: null,
+    acceptanceEnvironmentCleanup: measuredEnvironmentCleanup,
+  });
+  assert(missingSummaryErrors.includes("UI child summary missing"), "missing pre-execution summary was accepted");
+
+  const resourcesAcquired = structuredClone(base);
+  resourcesAcquired.childResourcesAcquired = true;
+  resourcesAcquired.cleanupRequired = true;
+  assert(validateNativeExactCleanupContract({
+    stageAttempted: true,
+    summary: resourcesAcquired,
+    acceptanceEnvironmentCleanup: measuredEnvironmentCleanup,
+  }).some(error => error.includes("without measured cleanup")),
+  "acquired child resources without cleanup were accepted");
+
+  const falsePass = structuredClone(base);
+  falsePass.uiFulltestPass = true;
+  assert(validateNativeExactPreExecutionFailureSummary(falsePass).some(error => error.includes("UI PASS")),
+    "0/424 pre-execution failure became UI PASS");
+
+  const falsePolicy = structuredClone(base);
+  falsePolicy.policyV4Qualification.status = "eligible";
+  assert(validateNativeExactPreExecutionFailureSummary(falsePolicy).some(error => error.includes("Policy v4")),
+    "pre-execution failure became Policy v4 eligible");
 });
 
 const result = runChecks();

@@ -1,0 +1,14 @@
+[pass] owner decision record is distinct from implementation completion
+[pass] external field state is conditional-not-run and not PASS
+[pass] historical REVIEW4-51 structure decision remains approved-scheduled/not-executed
+[pass] status vocabulary negatives reject owner implementation, field PASS, and historical refactor overclaims
+[pass] roadmap, inventory, records, and evidence use the same truthful status vocabulary
+[pass] server dispatch exposes the truthfulness verifier
+
+== v3.9.0 truthfulness status vocabulary ==
+- ownerStatus: accountable-owner-decision-record / mixed capability truth
+- fieldStatus: conditional-not-run / fieldPassClaimed false
+- historicalStructureStatus: REVIEW4-51 approved-scheduled-after-review4-50-63 / implementation not-executed
+- currentStructureStatusOwner: verify-v390-structure-stabilization-readiness (REVIEW4-64)
+- pass: 6
+- fail: 0

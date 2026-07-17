@@ -9,7 +9,7 @@ correction에서 재실행하지 않았습니다.
 | 항목 | 현재 상태 | 다음 경계 |
 | --- | --- | --- |
 | REVIEW4-64 | 완료. Slice 32 구조 final target 충족, commit `b9a45740` | REVIEW4-65의 입력 commit으로 고정 |
-| REVIEW4-65 | 진행 중. 개별 OS temp/release canonical output·자동 port·직접 120 승인·조건부 release 120·all-role memory-only lifecycle과 tracked long VA re-entry fixture의 clean-checkout integrity를 구현 | checkpoint commit/push 뒤 `./test_release.sh` actual 실행 |
+| REVIEW4-65 | 진행 중. Historical actual 35/35와 real 30분은 PASS했으나 exact UI가 implementation binding drift로 browser 실행 전 0/424 FAIL. Official binding refresh, current 36 gate, structured pre-execution summary와 measured cleanup 계약을 보강 | correction checkpoint commit/push 뒤 `./test_release.sh` fresh actual 실행 |
 
 ## Slice 30A Analysis Session read application 경계
 
@@ -69,6 +69,25 @@ LAB core를 통과했습니다. 최초 sandbox 격리 FAIL, auth-on 401, auth-of
 REVIEW4-65 독립 acceptance PASS는 아닙니다.
 
 ## REVIEW4-65 current HEAD 독립 acceptance correction
+
+Source `911446e802a5eb984843d929238715563722261a`의 canonical run
+`v390-test-acceptance-20260717153927-36826`은 historical actual feature gate 35/35와 real 30분
+runner 2,360.544초/delegated 2,358초, 118 PASS/0 FAIL/2 제외를 통과했습니다. UI environment도
+정상 bootstrap/cleanup됐지만 exact manifest의 implementation source binding drift가 browser 실행 전에 발생해
+0/424 FAIL했고, Policy v4·120분·final integrity는 not-run입니다. 기존 UI runner가 이 pre-execution 예외에
+summary를 쓰지 않아 root cleanup은 child summary missing으로 FAIL했습니다.
+
+Official generator 전후 구조 비교는 canonical/native binding 및 derived digest만 변경했고, exact 424의 ordered
+ID·route·role·viewport·theme·control action·workflow·completion oracle·cleanup non-hash drift는 0입니다.
+Current acceptance는 `verify-v390-ui-native-exact-cases-contract`를 longrun 전 unique gate로 추가한 36개 feature
+gate를 사용합니다. Runner는 manifest validation 실패도 0/424·browser false·Policy not-run·resource 미획득으로
+구조화하며, acceptance는 summary 누락을 계속 FAIL 처리하고 resource 미획득일 때만 acceptance-owned PID/port/temp
+cleanup 실측 PASS로 child cleanup을 대체합니다. 이 correction에서는 실제 acceptance/30분/UI/Policy/120분을
+재실행하지 않습니다. Fresh semantic candidate `9d8ba38065bb169d2c7ac0b163106d565d95404b95732958f47ca447f2f99548`는
+981행 strict-equivalent와 `UI-018`, `SAFE-202`, `SAFE-212`, `OPS-169`, `OPS-179` 다섯 independent-review
+행으로 분리됐고 approval coverage 986/986을 확인했습니다. Semantic manifest 적용 후 official generator를
+재실행한 최종 canonical/native fixture SHA는 `0aecda8305a02954b574adfb7453c4034cb8afcb2c4fb2ac8c18ec0b3dd630bc`와
+`764138aa45842eb7fe425efb582a11825c115aad81b7d98b2e44e8ebb8621aa3`이며 non-hash drift는 여전히 0입니다.
 
 Clean commit `edc89771`의 세 번째 canonical run은 build/34 feature gate와 real 30분 1,800초
 118 PASS/0 FAIL을 통과한 뒤 published `v3.8.0` seed와 current-only helper 정책 충돌로 UI bootstrap에서

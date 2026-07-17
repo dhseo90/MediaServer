@@ -9,7 +9,10 @@ import { fileURLToPath } from "node:url";
 import { createNativePlaywrightAdapter } from "./v390_ui_native_adapter.mjs";
 import { createV390UiCaseRuntime } from "./v390_ui_case_runtime.mjs";
 import { domSnapshotDigest, evaluateCompletionOracle } from "./v390_ui_completion_oracle_lib.mjs";
-import { validateNativeExactManifest } from "./v390_ui_native_exact_cases_lib.mjs";
+import {
+  createNativeExactPreExecutionFailureSummary,
+  validateNativeExactManifest,
+} from "./v390_ui_native_exact_cases_lib.mjs";
 import { producePolicyV4Evidence } from "./v390_ui_policy_v4_evidence_producer.mjs";
 import { expandVisualMatrixPlan, validateVisualMatrixPlan } from "./v390_ui_visual_evidence.mjs";
 import { deduplicateScreenshotArtifacts } from "./evidence_integrity_lib.mjs";
@@ -57,16 +60,31 @@ const supportedCleanupKinds = Object.freeze([
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const options = parseArgs(process.argv.slice(2));
-const manifest = readJson(options.manifest);
-const canonical = readJson("test/fixtures/ui_fulltest_case_manifest_policy_v4.json");
-const visualMatrixPlan = readJson("test/fixtures/v390_ui_visual_matrix_plan.json");
-const canonicalById = new Map(canonical.cases.map(item => [item.testId, item]));
-const implementation = readJson("test/fixtures/project_feature_implementation_evidence.json");
-const validation = validateNativeExactManifest({ manifest, canonical, implementation });
-const visualPlanValidation = validateVisualMatrixPlan({ plan: visualMatrixPlan, canonical, native: manifest });
-const runnerWorkflowCompatibility = validateRunnerWorkflowCompatibility(manifest.cases);
 const outputDir = resolveRootOrAbsolute(options.outputDir);
 const summaryPath = path.join(outputDir, "summary.json");
+fs.mkdirSync(outputDir, { recursive: true });
+let manifest = null;
+let canonical = null;
+let visualMatrixPlan = null;
+let implementation = null;
+let validation = null;
+let visualPlanValidation = null;
+let runnerWorkflowCompatibility = null;
+try {
+  manifest = readJson(options.manifest);
+  canonical = readJson("test/fixtures/ui_fulltest_case_manifest_policy_v4.json");
+  visualMatrixPlan = readJson("test/fixtures/v390_ui_visual_matrix_plan.json");
+  implementation = readJson("test/fixtures/project_feature_implementation_evidence.json");
+  validation = validateNativeExactManifest({ manifest, canonical, implementation });
+  visualPlanValidation = validateVisualMatrixPlan({ plan: visualMatrixPlan, canonical, native: manifest });
+  runnerWorkflowCompatibility = validateRunnerWorkflowCompatibility(manifest.cases);
+} catch (error) {
+  const summary = createNativeExactPreExecutionFailureSummary({ error, manifest, canonical });
+  writeJson(summaryPath, summary);
+  printSummary(summary, summaryPath);
+  process.exit(1);
+}
+const canonicalById = new Map(canonical.cases.map(item => [item.testId, item]));
 const tracesDir = path.join(outputDir, "traces");
 const screenshotsDir = path.join(outputDir, "screenshots");
 const logsDir = path.join(outputDir, "logs");

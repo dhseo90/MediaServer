@@ -2665,6 +2665,21 @@ evidence로 사용하지 않습니다.
 | Focused correction gate | `verify-feature-implementation-evidence` exit 0(986/986, negative 15/15), project inventory 17/17, release evidence index 8/8, script inventory 11/11, docs links failures 0 | pass |
 | Actual acceptance 경계 | 이 correction에서는 `./test_release.sh`, 30분, exact 424 UI, Policy v4 actual, 120분을 실행하지 않았습니다 | not-run |
 
+### REVIEW4-65 UI manifest drift actual failure/correction
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| Canonical actual evidence 보존 | Source `911446e802a5eb984843d929238715563722261a`, run `v390-test-acceptance-20260717153927-36826`은 feature gate 35/35와 real 30분을 PASS한 뒤 `ui-exact-424` implementation source binding drift로 browser case 실행 전 0/424 FAIL했습니다. Policy v4 qualification, 120분 판정/실행, final integrity는 not-run입니다 | acceptance fail / 30-minute pass preserved |
+| 30분 actual | Runner monotonic 2,360.544초, delegated 2,358초, 118 PASS/0 FAIL/2 제외, 22회 ordered soak와 PID/port/temp 609,552B cleanup이 PASS했습니다 | pass; 전체 acceptance PASS 아님 |
+| UI/cleanup actual | UI environment bootstrap과 listener/PID/port/temp-root cleanup은 실제 PASS했습니다. 기존 runner는 manifest validation 예외 전에 summary를 쓰지 않아 root cleanup이 `UI child cleanup summary missing`으로 FAIL했습니다 | UI 0/424 fail; environment cleanup pass; root cleanup fail |
+| 공식 binding 갱신 | `./server.sh verify-v390-ui-native-exact-cases --update-canonical-binding`만 사용했습니다. 최초 correction은 canonical `b80d19bb...`→`b5a07317...`, native `e7bd8b00...`→`965f1614...`였고 semantic manifest 적용 뒤 재실행한 최종 fixture SHA는 canonical `0aecda8305a02954b574adfb7453c4034cb8afcb2c4fb2ac8c18ec0b3dd630bc`, native `764138aa45842eb7fe425efb582a11825c115aad81b7d98b2e44e8ebb8621aa3`입니다. 두 비교 모두 canonical implementation SHA와 native canonical/implementation/runtime-oracle 및 derived semantic digest만 변경됐고 424 ordered ID·route·role·viewport·theme·control action·workflow·completion oracle·cleanup의 non-hash 변경은 0입니다 | pass |
+| Current 36 gate | `verify-v390-ui-native-exact-cases-contract`를 code-comments 뒤, longrun 전 feature gate에 정확히 한 번 추가했습니다. Stale binding은 feature-gates에서 실패하고 30분/UI/Policy/120분/final integrity를 not-run으로 남깁니다. Historical actual 34/34와 35/35 기록은 변경하지 않습니다 | acceptance contract 17/17 pass |
+| Structured pre-execution summary | Manifest validation 실패도 `executionStatus=pre-execution-failed`, failure phase/error, `actualBrowserExecution=false`, executed 0/notRun 424, `uiFulltestPass=false`, Policy v4 not-run, `childResourcesAcquired=false`, `cleanupRequired=false`로 기록합니다. Summary 누락, 0/424 UI PASS, Policy eligible 승격을 거부합니다 | native exact contract 18/18 pass |
+| Cleanup 판정 | Structured pre-execution failure에서 child resource 미획득이면 child cleanup summary를 요구하지 않되 acceptance-owned UI environment의 PID/port/temp-root를 before/after observation으로 모두 실측 PASS해야 합니다. Resource 획득 시 기존 child cleanup evidence가 필수입니다 | launcher 14/14, final-integrity 12/12 pass |
+| Policy fixture 후속 | Official binding refresh로 노출된 contract fixture의 duplicate selector/postcondition snapshot 합성을 보정했습니다. 최초 focused 실행은 11개 readback mismatch, 첫 보정은 RULE-092 pre-state false transition으로 1개 mismatch였고 최종 contract는 20/20 PASS입니다. Contract fixture는 actual UI evidence가 아닙니다 | corrected / pass |
+| Semantic 영향/승인 | Fresh candidate `9d8ba38065bb169d2c7ac0b163106d565d95404b95732958f47ca447f2f99548`는 981행이 strict-equivalent이고 `UI-018`, `SAFE-202`, `SAFE-212`, `OPS-169`, `OPS-179` 다섯 행만 변경됐습니다. Independent package SHA `e85b8380e10bf4cd19acc1bd86ede573add87c5e3b04a8f995311ce31e30fc5b`, decision SHA `a4e9838edcdc90f49f81071087a214764632577fc6e8d67eacd8f8f7387f2d70`로 5행 승인, 전체 986/986 coverage를 결속했습니다 | semantic 51/51, approval 986/986, selftest 11, migration 9 pass |
+| 미실행 경계 | 이 correction에서는 `./test_release.sh`, actual 30분, exact 424 browser, Policy v4 qualification, 120분을 실행하지 않았습니다 | not-run |
+
 ### REVIEW4-65 SAFE-211 completion/current graph correction
 
 | 제목 | 수행내용 | 결과(pass/fail) |
@@ -2683,7 +2698,7 @@ evidence로 사용하지 않습니다.
 
 | 항목 | 판정/계약 | actual evidence 경계 |
 | --- | --- | --- |
-| 안정화 테스트 | 진행 대상. Canonical bundle의 build와 35개 current feature gate를 첫 단계로 실행 | Contract PASS나 과거 verifier PASS는 current actual PASS가 아님 |
+| 안정화 테스트 | 진행 대상. Canonical bundle의 build와 36개 current feature gate를 첫 단계로 실행 | Historical actual 34/34·35/35와 contract PASS는 다음 current actual PASS가 아님 |
 | 30분 테스트 | 진행 대상. v3.9.0 current close-out 필수 evidence | 실제 child summary의 duration/iteration/cleanup이 있어야 PASS |
 | UI 풀테스트 | 진행 대상. Exact 424/424, fail·not-run·unsupported 0, native Playwright, requested/observed·completion·80 visual probe, Policy v4 eligibility를 요구 | Smoke/fixture/replay/plan-only/manual-not-run은 PASS 대체 불가 |
 | 120분 테스트 | 진행 대상. REVIEW4-64가 `webrtc_media_application_*`, session/source adapter와 cleanup/port lifecycle을 직접 변경해 AGENTS 7.6.2 4번 trigger 충족 | `./test_release.sh`가 trigger reason을 기록하고 120 child를 자동 실행하거나, `./test_server_120min.sh` 직접 실행 승인 summary가 있어야 PASS |

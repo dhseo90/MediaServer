@@ -720,8 +720,17 @@ function observationForExpectation(expected, before, after) {
     const beforeSnapshots = {};
     const snapshots = {};
     for (const condition of expected.postconditions) {
-      beforeSnapshots[condition.selector] = { selector: condition.selector, [condition.property]: differentValue(condition.value ?? condition.values?.[0] ?? "") };
-      snapshots[condition.selector] = { selector: condition.selector, [condition.property]: condition.value ?? condition.values?.[0] ?? "" };
+      const expectedValue = condition.value ?? condition.values?.[0] ?? "";
+      const beforeSnapshot = beforeSnapshots[condition.selector] ||= { selector: condition.selector };
+      const snapshot = snapshots[condition.selector] ||= { selector: condition.selector };
+      beforeSnapshot[condition.property] = condition.operator === "includes"
+        ? "__before_unmatched__"
+        : differentValue(expectedValue);
+      if (condition.operator === "includes" && typeof snapshot[condition.property] === "string") {
+        snapshot[condition.property] = `${snapshot[condition.property]} ${expectedValue}`;
+      } else {
+        snapshot[condition.property] = expectedValue;
+      }
     }
     return { beforeSnapshots, snapshots };
   }

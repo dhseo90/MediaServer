@@ -23,6 +23,7 @@ export const nativeExactManifestSchema = "media-server.v390-ui-native-exact-case
 export const canonicalManifestSchema = "media-server.ui-fulltest-canonical-case-manifest.v1";
 export const implementationManifestSchema = "media-server.feature-implementation-evidence.v2";
 export const caseNativeWorkflowSchema = "media-server.v390-ui-case-native-workflow.v2";
+export const nativeExactPreExecutionFailureStatus = "pre-execution-failed";
 export const review4WorkflowClasses = Object.freeze([
   "actionable",
   "form-submit",
@@ -31,6 +32,112 @@ export const review4WorkflowClasses = Object.freeze([
   "hidden-disabled",
   "negative-route",
 ]);
+
+export function createNativeExactPreExecutionFailureSummary({
+  error,
+  manifest,
+  canonical,
+} = {}) {
+  const requestedExactCases = Array.isArray(canonical?.cases) ? canonical.cases.length : 424;
+  const manifestCases = Array.isArray(manifest?.cases) ? manifest.cases : [];
+  const caseIds = manifestCases.length === requestedExactCases
+    ? manifestCases.map(item => item.caseId || item.testId || "")
+    : Array.from({ length: requestedExactCases }, (_, index) => `not-run-${String(index + 1).padStart(3, "0")}`);
+  const message = error instanceof Error ? error.message : String(error || "pre-execution validation failed");
+  return {
+    schema: "media-server.ui-automation-evidence.v4",
+    result: "FAIL",
+    executionStatus: nativeExactPreExecutionFailureStatus,
+    failure: {
+      phase: "manifest-validation",
+      error: message,
+    },
+    actualBrowserExecution: false,
+    requestedExactCases,
+    executed: 0,
+    notRun: requestedExactCases,
+    unsupported: 0,
+    uiFulltestPass: false,
+    policyV4Qualification: {
+      status: "not-run",
+      reason: nativeExactPreExecutionFailureStatus,
+    },
+    childResourcesAcquired: false,
+    cleanupRequired: false,
+    coverage: {
+      targetCount: requestedExactCases,
+      obligationIds: caseIds,
+      captured: 0,
+      fail: 0,
+      notRun: requestedExactCases,
+      unsupported: 0,
+      unapprovedExclusions: 0,
+      manualIntervention: 0,
+    },
+    cases: caseIds.map(caseId => ({
+      testId: caseId,
+      caseId,
+      status: "not-run",
+      rawOutcome: "not-run-pre-execution-failure",
+      reason: message,
+    })),
+    evidenceBoundary: "manifest validation failed before browser or case resources were acquired; this is neither UI execution nor Policy v4 evidence",
+  };
+}
+
+export function validateNativeExactPreExecutionFailureSummary(summary, expectedExactCases = 424) {
+  const errors = [];
+  if (summary?.schema !== "media-server.ui-automation-evidence.v4") errors.push("pre-execution summary schema mismatch");
+  if (summary?.result !== "FAIL") errors.push("pre-execution summary result must remain FAIL");
+  if (summary?.executionStatus !== nativeExactPreExecutionFailureStatus) errors.push("pre-execution status mismatch");
+  if (summary?.failure?.phase !== "manifest-validation" || !String(summary?.failure?.error || "")) errors.push("pre-execution failure phase/error missing");
+  if (summary?.actualBrowserExecution !== false) errors.push("pre-execution summary cannot claim browser execution");
+  if (Number(summary?.executed) !== 0 || Number(summary?.notRun) !== expectedExactCases) errors.push("pre-execution executed/notRun mismatch");
+  if (Number(summary?.coverage?.targetCount) !== expectedExactCases ||
+      Number(summary?.coverage?.captured) !== 0 ||
+      Number(summary?.coverage?.notRun) !== expectedExactCases ||
+      Number(summary?.coverage?.fail) !== 0) {
+    errors.push("pre-execution coverage mismatch");
+  }
+  if (!Array.isArray(summary?.cases) || summary.cases.length !== expectedExactCases ||
+      summary.cases.some(item => item.status !== "not-run")) errors.push("pre-execution case ledger mismatch");
+  if (summary?.uiFulltestPass !== false) errors.push("pre-execution summary cannot claim UI PASS");
+  if (summary?.policyV4Qualification?.status !== "not-run") errors.push("pre-execution summary cannot claim Policy v4 eligibility");
+  if (summary?.childResourcesAcquired !== false || summary?.cleanupRequired !== false) errors.push("pre-execution resource lifecycle mismatch");
+  return errors;
+}
+
+export function validateNativeExactCleanupContract({
+  stageAttempted,
+  summary,
+  acceptanceEnvironmentCleanup,
+  expectedExactCases = 424,
+} = {}) {
+  const errors = [];
+  if (!stageAttempted) return errors;
+  if (!summary) return ["UI child summary missing"];
+  const preExecution = summary.executionStatus === nativeExactPreExecutionFailureStatus;
+  if (preExecution) {
+    errors.push(...validateNativeExactPreExecutionFailureSummary(summary, expectedExactCases));
+    if (summary.childResourcesAcquired === false && summary.cleanupRequired === false) {
+      if (acceptanceEnvironmentCleanup?.status !== "PASS" ||
+          acceptanceEnvironmentCleanup?.serversStopped !== true ||
+          acceptanceEnvironmentCleanup?.portsClean !== true ||
+          acceptanceEnvironmentCleanup?.temporaryArtifactsRemoved !== true ||
+          acceptanceEnvironmentCleanup?.runtimeEvidence !== true ||
+          acceptanceEnvironmentCleanup?.verificationSource !== "pid-port-artifact-before-after-observation") {
+        errors.push("acceptance-owned UI environment cleanup is not measured PASS");
+      }
+      return errors;
+    }
+  }
+  if (summary.cleanup?.serversStopped !== true ||
+      summary.cleanup?.portsClean !== true ||
+      summary.cleanup?.temporaryArtifactsRemoved !== true) {
+    errors.push("UI child resources were acquired without measured cleanup");
+  }
+  return errors;
+}
 
 const dynamicSelectorPattern = /\$\{|<%|\{\{/.source;
 const productScreenRoutes = new Set([

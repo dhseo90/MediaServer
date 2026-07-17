@@ -19,6 +19,10 @@ import {
 } from "./evidence_integrity_lib.mjs";
 import { evaluateV390FullSuiteEligibility } from "./v390_full_suite_eligibility_lib.mjs";
 import {
+  nativeExactPreExecutionFailureStatus,
+  validateNativeExactCleanupContract,
+} from "./v390_ui_native_exact_cases_lib.mjs";
+import {
   classifyLongrun120ChangedAreas,
   evaluateLongrun120Decision,
   validateCleanupMeasurement,
@@ -361,7 +365,11 @@ async function runRealStage(stageId) {
     uiEnvironmentCleanup = cleanup;
     const cleanupErrors = validateUiEnvironmentCleanupEvidence(cleanup);
     if (uiAutomationSummary) {
-      uiAutomationSummary.cleanup = cleanup;
+      if (isStructuredUiPreExecutionFailure(uiAutomationSummary)) {
+        uiAutomationSummary.acceptanceOwnedEnvironmentCleanup = cleanup;
+      } else {
+        uiAutomationSummary.cleanup = cleanup;
+      }
       uiAutomationSummary.summaryPath = path.join(runDir, "ui-exact-424", "summary.json");
       uiAutomationSummary.reportPath = "";
       uiAutomationSummary.artifactIntegrity = {
@@ -966,10 +974,14 @@ function validateChildCleanup() {
   if (!fixtureMode && stageWasAttempted("server-longrun-30") && !longrun30Summary) errors.push("30-minute child cleanup summary missing");
   if (!fixtureMode && stageWasAttempted("ui-environment-bootstrap") && !uiEnvironmentSummary) errors.push("self-contained UI environment summary missing");
   if (!fixtureMode && stageWasAttempted("ui-environment-bootstrap") && !uiEnvironmentCleanup) errors.push("self-contained UI environment cleanup missing");
-  if (!fixtureMode && stageWasAttempted("ui-exact-424") && !uiAutomationSummary) errors.push("UI child cleanup summary missing");
   if (!fixtureMode && stageWasAttempted("server-longrun-120") && !longrun120Summary) errors.push("120-minute child cleanup summary missing");
   if (!fixtureMode && longrun30Summary && (longrun30Summary.cleanup?.serverStopped !== true || longrun30Summary.cleanup?.portsClean !== true || longrun30Summary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("30-minute child cleanup failed");
-  if (!fixtureMode && uiAutomationSummary && (uiAutomationSummary.cleanup?.serversStopped !== true || uiAutomationSummary.cleanup?.portsClean !== true || uiAutomationSummary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("UI child cleanup failed");
+  if (!fixtureMode) errors.push(...validateNativeExactCleanupContract({
+    stageAttempted: stageWasAttempted("ui-exact-424"),
+    summary: uiAutomationSummary,
+    acceptanceEnvironmentCleanup: uiEnvironmentCleanup,
+    expectedExactCases: canonicalUiCaseIds.length,
+  }));
   if (!fixtureMode && longrun120Summary && (longrun120Summary.cleanup?.serverStopped !== true || longrun120Summary.cleanup?.portsClean !== true || longrun120Summary.cleanup?.temporaryArtifactsRemoved !== true)) errors.push("120-minute child cleanup failed");
   if (!fixtureMode && longrun30Summary &&
       longrun30Summary.cleanup?.verificationSource !== "pid-port-artifact-before-after-observation") {
@@ -984,6 +996,10 @@ function validateChildCleanup() {
   if (!fixtureMode && uiEnvironmentCleanup?.runtimeEvidence === true) errors.push(...validateCleanupMeasurement(uiEnvironmentCleanup.measurement).map(error => `UI ${error}`));
   if (!fixtureMode && longrun120Summary) errors.push(...validateCleanupMeasurement(longrun120Summary.cleanup?.measurement).map(error => `120-minute ${error}`));
   return errors;
+}
+
+function isStructuredUiPreExecutionFailure(summary) {
+  return summary?.executionStatus === nativeExactPreExecutionFailureStatus;
 }
 
 function cleanupEvidence() {
@@ -1204,6 +1220,7 @@ function readPreservedUiAutomationEvidence() {
 function buildFeatureCommands() {
   const serverCommands = [
     "verify-code-comments",
+    "verify-v390-ui-native-exact-cases-contract",
     "verify-v390-stabilization-release-readiness",
     "verify-v390-entry-baseline",
     "verify-v390-feature-completion-inventory",

@@ -1,0 +1,14 @@
+[pass] inventory row count is stable
+[pass] inventory uses only the four approved test areas
+[pass] coverage docs and server command are wired
+[pass] exact implementation evidence manifest is valid
+[pass] all feature IDs have exact coverage targets
+[pass] negative missing-ID fixture fails
+[pass] SAFE-200 canonical coverage wording truthfulness boundary
+
+== Feature inventory coverage summary ==
+- featureRows: 986
+- covered: 986
+- missing: 0
+- pass: 7
+- fail: 0

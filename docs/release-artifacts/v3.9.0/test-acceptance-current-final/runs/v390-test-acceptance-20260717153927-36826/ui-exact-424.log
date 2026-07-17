@@ -1,0 +1,14 @@
+file:///Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/internal/v390_ui_native_exact_cases_lib.mjs:3013
+  if (!condition) throw new Error(message);
+                        ^
+
+Error: implementation source binding drift
+    at assert (file:///Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/internal/v390_ui_native_exact_cases_lib.mjs:3013:25)
+    at validateNativeExactManifest (file:///Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/internal/v390_ui_native_exact_cases_lib.mjs:1387:3)
+    at file:///Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/internal/run_v390_ui_native_exact_cases.mjs:65:20
+    at ModuleJob.run (node:internal/modules/esm/module_job:413:25)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.13.0
