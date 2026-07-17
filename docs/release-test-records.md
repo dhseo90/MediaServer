@@ -2651,6 +2651,8 @@ evidence로 사용하지 않습니다.
 - `2026-07-17` actual `./test_release.sh`는 build PASS 뒤 `feature-gates`의 `v390-stabilization-release-readiness`에서 FAIL했습니다. 30분, exact 424 UI, Policy v4, 120분, final integrity는 `not-run`이고 cleanup/report는 PASS입니다.
 - 당시 `firstFailure.testcaseId`는 빈 값이었으며 기존 `first-failure.json`/`.md`는 과거 failure fact로 수동 수정하지 않습니다. launcher 출력은 이제 빈 `firstFailure.testcaseId`에서 failed stage의 `checks[].status=FAIL` ID를 사용하고, 그마저 없을 때 stage ID로 fallback합니다.
 - current 사용자 canonical command는 `./test_release.sh`이며 `verify-v390-test-acceptance-bundle`은 launcher 내부 구현입니다. 과거 release record의 internal command는 historical 실행 기록으로 보존합니다.
+- `b48ef1bbb5ea6b7a6621781e068e146602e67643`의 후속 canonical run은 build와 historical actual `34/34` feature gate를 통과했지만 `server-longrun-30` integrated-smoke가 519초에 `verify-code-comments` English-only 설명 주석 2건으로 FAIL했습니다. 이 actual failure evidence는 보존하며 PASS로 바꾸지 않습니다. 다음 current bundle은 `verify-code-comments`를 첫 static feature gate로 정확히 한 번 추가해 35개 gate를 실행합니다. 해당 gate의 fixture failure는 `firstFailure.testcaseId=code-comments`, failed check ID `code-comments`, 사용자 재현 `./test_release.sh`, 이후 30분·UI·Policy v4·120분·final integrity `not-run`을 확인합니다.
+- 이 early-gate 보정의 fresh semantic candidate는 `cb7924e6b62cccc7957e442df11b229943e7d9478f1991a3c30dbf1c9ec6b0da`이며 984행 strict carry-forward와 independent review `SAFE-212`/`OPS-179` 두 행으로 986/986 approval coverage를 구성합니다. Reviewer package/decision의 SHA-256은 각각 `f86c13e81318b8dc686e9f2c7db63cbc8f67be15f136463c1a9b3d8eaac89613`, `bf51b11697988d302570101bda3461fcf9f9f4d1b1eb4680233da28641179eb5`입니다. producer의 carry-forward review date는 해당 independent decision의 reviewedAt에 결속하며, 이 tooling-only 보정 전후 candidate는 동일합니다. 실제 acceptance는 재실행하지 않습니다.
 
 ### REVIEW4-65 deferred owner row-local source correction
 
@@ -2681,7 +2683,7 @@ evidence로 사용하지 않습니다.
 
 | 항목 | 판정/계약 | actual evidence 경계 |
 | --- | --- | --- |
-| 안정화 테스트 | 진행 대상. Canonical bundle의 build와 34개 current feature gate를 첫 단계로 실행 | Contract PASS나 과거 verifier PASS는 current actual PASS가 아님 |
+| 안정화 테스트 | 진행 대상. Canonical bundle의 build와 35개 current feature gate를 첫 단계로 실행 | Contract PASS나 과거 verifier PASS는 current actual PASS가 아님 |
 | 30분 테스트 | 진행 대상. v3.9.0 current close-out 필수 evidence | 실제 child summary의 duration/iteration/cleanup이 있어야 PASS |
 | UI 풀테스트 | 진행 대상. Exact 424/424, fail·not-run·unsupported 0, native Playwright, requested/observed·completion·80 visual probe, Policy v4 eligibility를 요구 | Smoke/fixture/replay/plan-only/manual-not-run은 PASS 대체 불가 |
 | 120분 테스트 | 진행 대상. REVIEW4-64가 `webrtc_media_application_*`, session/source adapter와 cleanup/port lifecycle을 직접 변경해 AGENTS 7.6.2 4번 trigger 충족 | `./test_release.sh`가 trigger reason을 기록하고 120 child를 자동 실행하거나, `./test_server_120min.sh` 직접 실행 승인 summary가 있어야 PASS |

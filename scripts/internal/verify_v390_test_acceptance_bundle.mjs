@@ -80,6 +80,7 @@ Options:
   --user-directed-120          Record an explicit AGENTS 7.6.2 user-directive trigger; combine with --run-120 to execute.
   --fixture-pass               Fast actual-mode orchestration fixture; not duration/UI evidence.
   --fixture-fail-stage <id>    Fail one stage and record later ordinary stages as not-run.
+  --fixture-fail-feature-command <id>  Contract-only feature-gate failure fixture.
   --fixture-cleanup-fail       Make cleanup fail in fixture mode.
   --fixture-120-trigger        Contract-only cleanup/port change-scope trigger; not execution evidence.
   -h, --help                   Show help.
@@ -111,6 +112,7 @@ assertKnownOptions(rawArgs, [
   "user-directed-120",
   "fixture-pass",
   "fixture-fail-stage",
+  "fixture-fail-feature-command",
   "fixture-cleanup-fail",
   "fixture-120-trigger",
   "h",
@@ -124,7 +126,8 @@ const canonicalReleaseOutputDir = path.join(rootDir, "docs/release-artifacts/v3.
 const runDir = path.join(outputDir, "runs", runId);
 const summaryPath = path.join(outputDir, "summary.json");
 const reportPath = path.join(outputDir, "report.md");
-const fixtureMode = options.fixturePass || options.fixtureFailStage !== "" || options.fixtureCleanupFail;
+const fixtureMode = options.fixturePass || options.fixtureFailStage !== "" ||
+  options.fixtureFailFeatureCommand !== "" || options.fixtureCleanupFail;
 const executionMode = options.dryRun
   ? "dry-run"
   : (fixtureMode ? "actual-fixture" : (options.suite === "ui" ? "actual-ui-only" : "actual"));
@@ -495,6 +498,44 @@ async function runFixtureStage(stageId) {
     });
     uiEnvironmentSummary = uiEnvironmentHandle.attestation;
     stages.push(passStage(stageId, "fixture self-contained UI environment wiring", uiEnvironmentSummary));
+    return;
+  }
+  if (stageId === "feature-gates") {
+    const startedAt = new Date().toISOString();
+    const checks = featureCommands.map((spec, index) => {
+      const failed = options.fixtureFailFeatureCommand === spec.id;
+      const logPath = path.join(runDir, `${stageId}-${String(index + 1).padStart(2, "0")}-${spec.id}.log`);
+      fs.writeFileSync(logPath, failed
+        ? `fixture failure at feature check ${spec.id}\n`
+        : `fixture pass feature check ${spec.id}\n`, "utf8");
+      return {
+        id: spec.id,
+        status: failed ? "FAIL" : "PASS",
+        command: commandText(spec),
+        exitCode: failed ? 1 : 0,
+        durationMs: 0,
+        logPath,
+        tail: failed ? [`fixture failure at feature check ${spec.id}`] : [],
+      };
+    });
+    const failedCheck = checks.find(item => item.status === "FAIL");
+    if (failedCheck) {
+      failedStage = stageId;
+      failedCommand = failedCheck.command;
+    }
+    stages.push(makeStage({
+      id: stageId,
+      status: failedCheck ? "FAIL" : "PASS",
+      command: `${featureCommands.length} current feature commands`,
+      exitCode: failedCheck ? 1 : 0,
+      startedAt,
+      endedAt: new Date().toISOString(),
+      durationMs: 0,
+      logPath: "",
+      summaryPath: "",
+      tail: [],
+      checks,
+    }));
     return;
   }
   if (stageId === "ui-server-cleanup") {
@@ -1119,12 +1160,13 @@ function buildFirstFailure() {
   const context = failedCheck?.tail?.join(" | ") || stage?.validationError || stage?.tail?.join(" | ") || "";
   return {
     stage: failedStage,
+    testcaseId: failedCheck?.id || failedStage,
     command: commandValue,
     context,
     exitCode: failedCheck?.exitCode ?? stage?.exitCode ?? 1,
     logPath: failedCheck?.logPath || stage?.logPath || "",
     stderrTail: failedCheck?.tail || stage?.tail || [],
-    reproductionCommand: commandValue,
+    reproductionCommand: "./test_release.sh",
   };
 }
 
@@ -1161,6 +1203,7 @@ function readPreservedUiAutomationEvidence() {
 
 function buildFeatureCommands() {
   const serverCommands = [
+    "verify-code-comments",
     "verify-v390-stabilization-release-readiness",
     "verify-v390-entry-baseline",
     "verify-v390-feature-completion-inventory",
@@ -1229,6 +1272,7 @@ function parseArgs(args) {
     userDirected120: false,
     fixturePass: false,
     fixtureFailStage: "",
+    fixtureFailFeatureCommand: "",
     fixtureCleanupFail: false,
     fixture120Trigger: false,
   };
@@ -1245,6 +1289,7 @@ function parseArgs(args) {
     else if (arg === "--user-directed-120") parsed.userDirected120 = true;
     else if (arg === "--fixture-pass") parsed.fixturePass = true;
     else if (arg === "--fixture-fail-stage") { parsed.fixtureFailStage = args[index + 1] || ""; index += 1; }
+    else if (arg === "--fixture-fail-feature-command") { parsed.fixtureFailFeatureCommand = args[index + 1] || ""; index += 1; }
     else if (arg === "--fixture-cleanup-fail") parsed.fixtureCleanupFail = true;
     else if (arg === "--fixture-120-trigger") parsed.fixture120Trigger = true;
   }
@@ -1252,9 +1297,10 @@ function parseArgs(args) {
   assert(["release", "ui"].includes(parsed.suite), "--suite must be release or ui");
   assert(!(parsed.run120 && parsed.autoRun120), "--run-120 and --auto-run-120 are mutually exclusive");
   assert(!(parsed.userDirected120 && parsed.autoRun120), "--user-directed-120 and --auto-run-120 are mutually exclusive");
-  assert(!(parsed.dryRun && (parsed.fixturePass || parsed.fixtureFailStage || parsed.fixtureCleanupFail || parsed.fixture120Trigger || parsed.run120 || parsed.autoRun120 || parsed.userDirected120 || parsed.suite !== "release")), "--dry-run cannot be combined with actual fixture/run options");
-  assert(!(parsed.fixturePass && parsed.fixtureFailStage), "--fixture-pass and --fixture-fail-stage are mutually exclusive");
+  assert(!(parsed.dryRun && (parsed.fixturePass || parsed.fixtureFailStage || parsed.fixtureFailFeatureCommand || parsed.fixtureCleanupFail || parsed.fixture120Trigger || parsed.run120 || parsed.autoRun120 || parsed.userDirected120 || parsed.suite !== "release")), "--dry-run cannot be combined with actual fixture/run options");
+  assert(!(parsed.fixturePass && (parsed.fixtureFailStage || parsed.fixtureFailFeatureCommand)), "--fixture-pass and failure fixtures are mutually exclusive");
   if (parsed.fixtureFailStage) assert(stageIds.includes(parsed.fixtureFailStage) && !["ui-server-cleanup", "cleanup", "report"].includes(parsed.fixtureFailStage), "unknown or invalid --fixture-fail-stage");
+  if (parsed.fixtureFailFeatureCommand) assert(buildFeatureCommands().some(spec => spec.id === parsed.fixtureFailFeatureCommand), "unknown fixture feature command");
   return parsed;
 }
 

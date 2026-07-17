@@ -1,0 +1,14 @@
+[pass] 대표 route plan은 canonical/native 10개 화면과 80개 조합에 결속된다
+[pass] 10 route×4 viewport×2 theme matrix만 exact PASS한다
+[pass] case/route/role/target와 실제 적용 theme drift는 거부된다
+[pass] 빈 단색 PNG, clipping, 저대비, focus 누락은 계산된 FAIL이다
+[pass] client/live는 동일 tile의 VA session·live frame·contain·control 증거를 모든 8개 조합에서 요구한다
+[pass] legacy 8-probe width/theme-only matrix는 80-probe current matrix를 대체하지 못한다
+
+== v3.9.0 representative visual matrix contract ==
+- pass: 6
+- fail: 0
+- representativeScreens: 10
+- responsiveThemeVariants: 80
+- clientLiveVideoVariants: 8
+- actualBrowserUiFulltest: not-run-by-this-contract

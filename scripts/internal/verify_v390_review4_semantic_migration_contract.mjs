@@ -81,7 +81,7 @@ function runBindingContract() {
     const baselineTrust = buildReview4TrustBindings(temp, item, baselineDispatch);
     const baselineDigest = review4SourceFlowDigest({ ...item, trustBindings: baselineTrust });
 
-    // An unrelated command arm and any line-only movement leave the bound arm invariant.
+    // 무관한 command arm 추가와 line-only 이동은 bound arm 불변을 유지한다.
     const withUnrelatedArm = `# line-only prefix\n${baselineServer.replace("  verify-alpha)", "  verify-unrelated)\n    require_internal beta.mjs\n    exec \"${INTERNAL_DIR}/beta.mjs\" \"$@\"\n    ;;\n  verify-alpha)")}`;
     const movedRecord = requireRecord(parseVerifiedReview4Dispatch(temp, withUnrelatedArm), "verify-alpha");
     expectEqual(baselineRecord, movedRecord, "unrelated dispatch arm or line movement changed bound record");

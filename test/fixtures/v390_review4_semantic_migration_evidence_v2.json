@@ -3,8 +3,8 @@
   "migrationVersion": "review4-acceptance-prerequisite-v2",
   "generatedBy": "verify_v390_review4_semantic_migration_contract.mjs",
   "candidateGeneratorMayApprove": false,
-  "baselineCandidateDigest": "cd59de4730d6d25e8a42e51c5a6a7819f37d6081c96fd60a5c80e0442aeed2d3",
-  "freshCandidateDigest": "2f89a5ad453e6aef72db4bf598e5a80d05c0ec5892802b5fe83f9606697a3c14",
+  "baselineCandidateDigest": "2f89a5ad453e6aef72db4bf598e5a80d05c0ec5892802b5fe83f9606697a3c14",
+  "freshCandidateDigest": "cb7924e6b62cccc7957e442df11b229943e7d9478f1991a3c30dbf1c9ec6b0da",
   "equivalenceAlgorithmSha256": "6d103a884ac9111b8a3356211ae757cf0285c29cec323fcaa9b32d145a48f47d",
   "carryForward": [
     {
@@ -5811,10 +5811,10 @@
       "status": "carry-forward-eligible-not-approved"
     },
     {
-      "id": "SAFE-212",
-      "oldSourceFlowDigest": "ccf810422f5f86f6fb4a59db7b9e4833daa399120d771446de2182f8f768d814",
-      "newSourceFlowDigest": "ccf810422f5f86f6fb4a59db7b9e4833daa399120d771446de2182f8f768d814",
-      "equivalenceDigest": "80ea3841a1d87bef2716d9c26370622227e175b6bc7f4a2a7fc1f177c775330b",
+      "id": "SAFE-211",
+      "oldSourceFlowDigest": "f889b0d702a2bcca471ed07940edf62015918c6d89c95251bb2b58a58d72d316",
+      "newSourceFlowDigest": "f889b0d702a2bcca471ed07940edf62015918c6d89c95251bb2b58a58d72d316",
+      "equivalenceDigest": "6865a6bb5abf0b9f7fcd84fcd886c3c8321d2cbd21f9e698b997fd71b0470b21",
       "status": "carry-forward-eligible-not-approved"
     },
     {
@@ -5829,6 +5829,13 @@
       "oldSourceFlowDigest": "e845afc19ff0dbba1ed2fe9df77ca46456009b6c4a5c3da37fce8cbb8f7e0659",
       "newSourceFlowDigest": "e845afc19ff0dbba1ed2fe9df77ca46456009b6c4a5c3da37fce8cbb8f7e0659",
       "equivalenceDigest": "9cef5f81d80e488037273b94e52cfda350dfee4f678bc2de494ca995c0de51b7",
+      "status": "carry-forward-eligible-not-approved"
+    },
+    {
+      "id": "SAFE-215",
+      "oldSourceFlowDigest": "3a27feae8ce9f2d16d5c398bcc03ea9e9cc44129d379c083d04461790da14e41",
+      "newSourceFlowDigest": "3a27feae8ce9f2d16d5c398bcc03ea9e9cc44129d379c083d04461790da14e41",
+      "equivalenceDigest": "b3c1cc27e700b36a28eb8103551ddee7423d1e316d76793a0a6337f29229b9d1",
       "status": "carry-forward-eligible-not-approved"
     },
     {
@@ -6847,10 +6854,10 @@
       "status": "carry-forward-eligible-not-approved"
     },
     {
-      "id": "OPS-179",
-      "oldSourceFlowDigest": "0cb9b6786cb4493d415c723cdf0352263f9b092375fdd4dc31181aab60c0efe9",
-      "newSourceFlowDigest": "0cb9b6786cb4493d415c723cdf0352263f9b092375fdd4dc31181aab60c0efe9",
-      "equivalenceDigest": "c004a012170cc997c9fdc3a62bd98072eea5cf39ca66bd9fbc2c6f2d874c71fd",
+      "id": "OPS-178",
+      "oldSourceFlowDigest": "0f358e6a4f65e6d0866ca1bb8b0cdf65804dbe906e04c11a9583ed0cff6b596b",
+      "newSourceFlowDigest": "0f358e6a4f65e6d0866ca1bb8b0cdf65804dbe906e04c11a9583ed0cff6b596b",
+      "equivalenceDigest": "61f412fdf4b740a7dd704a2ad60c8bd672e1b2ebb7a4f529219dabee31e5c2ef",
       "status": "carry-forward-eligible-not-approved"
     },
     {
@@ -6865,6 +6872,13 @@
       "oldSourceFlowDigest": "3d54cab069019e2a6d39b9384e43c40e96a03b4c4de6ed8afbd8fb5ecf8fa730",
       "newSourceFlowDigest": "3d54cab069019e2a6d39b9384e43c40e96a03b4c4de6ed8afbd8fb5ecf8fa730",
       "equivalenceDigest": "1269498bedba0255395ac01c6951ff505e4eb154a57151fbc1f04ccfc0ab1303",
+      "status": "carry-forward-eligible-not-approved"
+    },
+    {
+      "id": "OPS-182",
+      "oldSourceFlowDigest": "4cc819c6e4230522c0f255beca8864cd0ad3c8db17705335332c1853f713e5ff",
+      "newSourceFlowDigest": "4cc819c6e4230522c0f255beca8864cd0ad3c8db17705335332c1853f713e5ff",
+      "equivalenceDigest": "ee5b3214234cd4ff4594fcfc8ecfb5f8627cf73dd196725dbcafdd2224de6ebf",
       "status": "carry-forward-eligible-not-approved"
     },
     {
@@ -6884,36 +6898,18 @@
   ],
   "unapproved": [
     {
-      "id": "SAFE-211",
-      "oldSourceFlowDigest": "804b380476491a8f907a19261bd558050f259d1531d712aa1f534e44a434c1a1",
-      "newSourceFlowDigest": "f889b0d702a2bcca471ed07940edf62015918c6d89c95251bb2b58a58d72d316",
+      "id": "SAFE-212",
+      "oldSourceFlowDigest": "ccf810422f5f86f6fb4a59db7b9e4833daa399120d771446de2182f8f768d814",
+      "newSourceFlowDigest": "16114748fadbba63e925f49b3e27d66f686b85a9301709b85e121554e44dda2a",
       "changedFields": [
         "trustBindings"
       ],
       "status": "unapproved-independent-review-required"
     },
     {
-      "id": "SAFE-215",
-      "oldSourceFlowDigest": "54a582c278d3996874cb87d15eaf19e79fa7b6f4297c943def47ca983f5ccdfe",
-      "newSourceFlowDigest": "3a27feae8ce9f2d16d5c398bcc03ea9e9cc44129d379c083d04461790da14e41",
-      "changedFields": [
-        "trustBindings"
-      ],
-      "status": "unapproved-independent-review-required"
-    },
-    {
-      "id": "OPS-178",
-      "oldSourceFlowDigest": "b0fc41f78762a5c532fc17a934184e0fc11b569a924ad6569f66a21cab8e9482",
-      "newSourceFlowDigest": "0f358e6a4f65e6d0866ca1bb8b0cdf65804dbe906e04c11a9583ed0cff6b596b",
-      "changedFields": [
-        "trustBindings"
-      ],
-      "status": "unapproved-independent-review-required"
-    },
-    {
-      "id": "OPS-182",
-      "oldSourceFlowDigest": "c224a7c60abd24f0e4073ea94c3222f5753e852d6493b004fcb9dc02da0679cc",
-      "newSourceFlowDigest": "4cc819c6e4230522c0f255beca8864cd0ad3c8db17705335332c1853f713e5ff",
+      "id": "OPS-179",
+      "oldSourceFlowDigest": "0cb9b6786cb4493d415c723cdf0352263f9b092375fdd4dc31181aab60c0efe9",
+      "newSourceFlowDigest": "cb5a24437dedddd1128e08e31539e1359fbcccb636105d6ad89ee6b43f570721",
       "changedFields": [
         "trustBindings"
       ],
@@ -6923,10 +6919,8 @@
   "reviewerDecisionArtifact": {
     "schema": "media-server.v390-review4-independent-reviewer-decisions.v1",
     "requiredIds": [
-      "SAFE-211",
-      "SAFE-215",
-      "OPS-178",
-      "OPS-182"
+      "SAFE-212",
+      "OPS-179"
     ],
     "generationCommand": "./server.sh verify-v390-review4-feature-semantic-source-approvals --write-ledger --decisions <independent-reviewer-decision-artifact.json>",
     "generatorMayApprove": false

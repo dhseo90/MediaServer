@@ -42,7 +42,7 @@ const currentGraphAbsolutePath = path.join(rootDir, ledger.currentGraph.path);
 const currentGraph = fs.existsSync(currentGraphAbsolutePath)
   ? readJson(ledger.currentGraph.path)
   : structuredClone(completionGraph);
-// Slice 1~32 validators intentionally stay bound to this immutable completion artifact.
+// Slice 1~32 validator는 이 immutable completion artifact에 의도적으로 계속 결속한다.
 const graph = completionGraph;
 const policy = readJson(ledger.currentArchitecturePolicy.path);
 const expectedSlices = [

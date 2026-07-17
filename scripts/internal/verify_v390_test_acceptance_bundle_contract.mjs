@@ -574,6 +574,42 @@ check("actual-mode fixture stops on first failure and still runs cleanup/report"
   fs.rmSync(outputDir, { recursive: true, force: true });
 });
 
+check("code-comments is the first and unique feature gate, with a fail-closed user-facing failure record", () => {
+  const featureBlock = sourceBlock(files.bundle, "function buildFeatureCommands()", "function buildFinalAcceptanceCommandSet()");
+  const codeComments = '"verify-code-comments"';
+  assert((featureBlock.match(/"verify-code-comments"/g) || []).length === 1,
+    "code-comments must occur exactly once in feature commands");
+  assert(featureBlock.indexOf(codeComments) < featureBlock.indexOf('"verify-v390-stabilization-release-readiness"'),
+    "code-comments must be the first static feature gate");
+  assert(files.bundle.indexOf("runCommandListStage(stageId, featureCommands)") <
+    files.bundle.indexOf('if (stageId === "server-longrun-30")'),
+  "feature-gates must precede server-longrun-30");
+
+  for (const [label, mutated] of [
+    ["omitted", featureBlock.replace(codeComments, "")],
+    ["duplicated", featureBlock.replace(codeComments, `${codeComments},\n    ${codeComments}`)],
+    ["after-longrun", featureBlock.replace(codeComments, "").replace('"verify-v390-stabilization-release-readiness",', '"verify-v390-stabilization-release-readiness",\n    "verify-code-comments",')],
+  ]) {
+    let rejected = false;
+    try { assertCanonicalCodeCommentsFeatureGate(mutated); } catch { rejected = true; }
+    assert(rejected, `negative ${label} code-comments feature fixture was accepted`);
+  }
+
+  const outputDir = fixtureDir("code-comments-first-failure");
+  const result = runBundle(["--output-dir", outputDir, "--fixture-fail-feature-command", "code-comments"]);
+  assert(result.status !== 0, "code-comments failure fixture must return non-zero");
+  const summary = readJson(path.join(outputDir, "summary.json"));
+  assert(summary.failedStage === "feature-gates", "code-comments fixture failed at an unexpected stage");
+  assert(summary.firstFailure?.testcaseId === "code-comments", "firstFailure testcaseId must be code-comments");
+  assert(summary.firstFailure?.reproductionCommand === "./test_release.sh", "failure reproduction must use the user command");
+  assert(summary.stages.find(item => item.id === "feature-gates")?.checks?.find(item => item.status === "FAIL")?.id === "code-comments",
+    "failed feature check ID must be code-comments");
+  for (const id of ["server-longrun-30", "ui-environment-bootstrap", "ui-exact-424", "ui-fulltest-qualification", "longrun-120-decision", "server-longrun-120", "final-integrity"]) {
+    assert(summary.stages.find(item => item.id === id)?.status === "not-run", `${id} must be not-run after code-comments failure`);
+  }
+  fs.rmSync(outputDir, { recursive: true, force: true });
+});
+
 check("rerun preserves the earliest first failure after canonical output replacement", () => {
   const outputDir = fixtureDir("preserved-first-fail");
   const failed = runBundle(["--output-dir", outputDir, "--fixture-fail-stage", "feature-gates"]);
@@ -714,6 +750,13 @@ function sourceBlock(source, start, end) {
   const endIndex = source.indexOf(end, startIndex + start.length);
   assert(startIndex >= 0 && endIndex > startIndex, `source block missing: ${start}`);
   return source.slice(startIndex, endIndex);
+}
+
+function assertCanonicalCodeCommentsFeatureGate(featureBlock) {
+  const names = [...featureBlock.matchAll(/^\s+"([^"]+)",$/gm)].map(match => match[1]);
+  const codeCommentsIndexes = names.map((name, index) => name === "verify-code-comments" ? index : -1).filter(index => index >= 0);
+  assert(codeCommentsIndexes.length === 1, "code-comments must be registered exactly once");
+  assert(codeCommentsIndexes[0] === 0, "code-comments must be the first static feature command");
 }
 
 function runBundle(args) {

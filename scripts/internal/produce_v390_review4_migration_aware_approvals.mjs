@@ -133,7 +133,7 @@ function buildMigrationApproval({ freshAudit, rows, priorAudit, priorAuditAbsolu
           evidence.equivalenceDigest !== sha256(stableStringify(priorHard))) {
         throw new Error(`${id} non-equivalent carry-forward attempt`);
       }
-      return { ...approvalFields(item, row), reviewerSource: REVIEW4_APPROVAL_REVIEWER_SOURCE, reviewerActor: "review4-migration-aware-ledger", reviewedOn: "2026-07-17", approvalBasis: "equivalent-flow-carry-forward", priorSourceFlowDigest: evidence.oldSourceFlowDigest, newSourceFlowDigest: evidence.newSourceFlowDigest, strictEquivalenceDigest: evidence.equivalenceDigest, priorApprovalDigest: sha256(stableStringify(prior)), reason: `${review4ApprovalReason(row, item)}|approvalBasis=equivalent-flow-carry-forward`, reasonSha256: "" };
+      return { ...approvalFields(item, row), reviewerSource: REVIEW4_APPROVAL_REVIEWER_SOURCE, reviewerActor: "review4-migration-aware-ledger", reviewedOn: decisions.reviewedAt, approvalBasis: "equivalent-flow-carry-forward", priorSourceFlowDigest: evidence.oldSourceFlowDigest, newSourceFlowDigest: evidence.newSourceFlowDigest, strictEquivalenceDigest: evidence.equivalenceDigest, priorApprovalDigest: sha256(stableStringify(prior)), reason: `${review4ApprovalReason(row, item)}|approvalBasis=equivalent-flow-carry-forward`, reasonSha256: "" };
     }
     if (!requiredIndependentIds.includes(id) || !independent || independent.decision !== "approved" ||
         independent.featureContractSha256 !== item.featureContractSha256 || independent.sourceFlowDigest !== item.sourceFlowDigest ||

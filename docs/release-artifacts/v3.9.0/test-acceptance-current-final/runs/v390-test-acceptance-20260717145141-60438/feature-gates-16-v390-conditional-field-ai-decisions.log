@@ -1,0 +1,25 @@
+[pass] MEDIA-027 exact product approval-only bridge preserves external WHEP/TURN no-execution
+[pass] Ops server exposes the v3.9 conditional field and Re-ID decisions
+[pass] field evidence bridge preserves approval-only no-execution boundaries
+[pass] Re-ID assist decision preserves explicit opt-in and privacy boundaries
+[pass] Ops API exposes both decision routes as guarded no-store JSON
+[pass] /ops dashboard renders conditional field and Re-ID decisions
+[pass] client/viewer scripts do not receive field or Re-ID internals
+[pass] roadmap, stream verification, inventory, and release records map v3.9 Steps 17~18
+[pass] server entrypoint and inventory verifiers include v3.9 Steps 17~18 command
+
+== v3.9.0 conditional field / Re-ID assist decisions ==
+- fieldSchema: media-server.ops.v390-field-evidence-bridge-decision.v1
+- fieldRoute: /ops/api/field-evidence/bridge-decision
+- fieldSelectedMode: approval-only-minimal-field-evidence-bridge
+- reidSchema: media-server.ops.v390-reid-assist-decision.v1
+- reidRoute: /ops/api/analysis/reid-assist-decision
+- reidSelectedMode: explicit-opt-in-provenance-gated-assist
+- fieldSmokeExecuted: false
+- providerCallPerformed: false
+- modelBackedExecutionPerformed: false
+- uiFulltest: not-run-by-this-command
+- longrun30: not-run-by-this-command
+- longrun120: not-run-by-this-command
+- pass: 9
+- fail: 0
