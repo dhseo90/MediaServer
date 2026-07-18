@@ -202,10 +202,10 @@ function buildOracle(canonicalCase) {
     ...negativeBoundaries.flatMap(boundary => boundary.tokens || []),
     ...(canonicalCase.accountRole === "viewer" ? ["sourceUrl", "rawLocator", "credentialMaterial"] : []),
   ]);
-  const forbiddenDomTextTokens = unique([
+  const forbiddenMaterialTokens = unique([
     ...baselineForbiddenFields,
     ...negativeBoundaries.flatMap(boundary => (boundary.tokens || []).filter(token =>
-      boundary.kind !== "client-viewer-boundary" || !/^(?:client|viewer)$/i.test(String(token)))),
+      !isNarrativeBoundaryToken(boundary.kind, token))),
     ...(canonicalCase.accountRole === "viewer" ? ["sourceUrl", "rawLocator", "credentialMaterial"] : []),
   ]);
   const classification = specializedRuleCases.has(canonicalCase.testId) ? "existing-specialized" : "core-exact";
@@ -316,7 +316,8 @@ function buildOracle(canonicalCase) {
     dom: [{
       selector,
       requiredTextTokens: [],
-      forbiddenTextTokens: forbiddenDomTextTokens,
+      forbiddenTextTokens: [],
+      forbiddenMaterialTokens,
       requiredAttributes,
       expectedBehaviorSha256,
     }],
@@ -422,6 +423,7 @@ function validateOracle(oracle, canonicalCase) {
   assert(Array.isArray(oracle.dom) && oracle.dom.length >= 1 && oracle.dom.every(item =>
     item.selector && item.expectedBehaviorSha256?.length === 64 &&
     Array.isArray(item.requiredTextTokens) && Array.isArray(item.forbiddenTextTokens) &&
+    Array.isArray(item.forbiddenMaterialTokens) && item.forbiddenMaterialTokens.length >= 4 &&
     Array.isArray(item.requiredAttributes) && item.requiredAttributes.length > 0 &&
     item.requiredAttributes.every(attribute => attribute.name && attribute.operator && attribute.value !== undefined)),
   `${canonicalCase.testId} runner DOM assertion shape missing`);
@@ -458,6 +460,22 @@ function validateOracle(oracle, canonicalCase) {
     JSON.stringify(oracle.api.request.allowedStatuses) === "[200]" &&
     oracle.api.bodyAssertions.every(item => ["exists", "visible"].includes(item.kind));
   assert(!genericGet200, `${canonicalCase.testId} generic GET200/exists-only oracle forbidden`);
+}
+
+function isNarrativeBoundaryToken(kind, token) {
+  const normalized = String(token || "").trim().toLowerCase();
+  const narrativeByKind = {
+    "client-viewer-boundary": new Set(["client", "viewer"]),
+    "debug-redaction": new Set(["debug"]),
+    "no-auto-apply": new Set(["자동 적용"]),
+    "no-mutation": new Set(["changed", "mutation", "변경"]),
+    "no-send": new Set(["delivery", "send", "발송"]),
+    "no-write": new Set(["write"]),
+    "provider-boundary": new Set(["provider"]),
+    "raw-material-redaction": new Set(["raw"]),
+    "source-url-redaction": new Set(["source url"]),
+  };
+  return narrativeByKind[kind]?.has(normalized) === true;
 }
 
 function preferredReadEndpoint(canonicalCase, routeTokens, screenRoute) {

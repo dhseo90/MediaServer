@@ -102,16 +102,37 @@ check("every exact API path is owned by ingress source and has semantic body ass
   }
 });
 
-check("client/viewer boundary keeps structured exposure checks without banning safe audience labels", () => {
+check("negative boundaries use structured DOM material instead of banning narrative labels", () => {
   const oracle = coreExactOracleFor("UI-033");
   const responseTokens = oracle.requests[0].forbiddenJsonKeys;
-  const domTokens = oracle.dom[0].forbiddenTextTokens;
+  const domTextTokens = oracle.dom[0].forbiddenTextTokens;
+  const domMaterialTokens = oracle.dom[0].forbiddenMaterialTokens;
   assert(responseTokens.includes("client") && responseTokens.includes("viewer") &&
     responseTokens.includes("viewerClientExposure"),
   "UI-033 structured response boundary tokens missing");
-  assert(!domTokens.includes("client") && !domTokens.includes("viewer") &&
-    domTokens.includes("viewerClientExposure"),
-  "UI-033 DOM boundary must distinguish audience labels from exposure material");
+  assert(!domTextTokens.includes("client") && !domTextTokens.includes("viewer") &&
+    !domMaterialTokens.includes("client") && !domMaterialTokens.includes("viewer") &&
+    domMaterialTokens.includes("viewerClientExposure"),
+  "UI-033 DOM boundary must distinguish narrative labels from structured exposure material");
+  const noWrite = coreExactOracleFor("UI-036").dom[0];
+  assert(!noWrite.forbiddenTextTokens.includes("write") && !noWrite.forbiddenTextTokens.includes("provider") &&
+    !noWrite.forbiddenMaterialTokens.includes("write") && !noWrite.forbiddenMaterialTokens.includes("provider") &&
+    noWrite.forbiddenMaterialTokens.includes("WritePerformed") &&
+    noWrite.forbiddenMaterialTokens.includes("registryWrite") &&
+    noWrite.forbiddenMaterialTokens.includes("providerCall"),
+  "UI-036 no-write/provider boundary must use structured DOM material");
+
+  const narrativeTokens = new Set([
+    "client", "viewer", "debug", "자동 적용", "changed", "mutation", "변경",
+    "delivery", "send", "발송", "write", "provider", "raw", "source url",
+  ]);
+  for (const caseId of coreExactOracleCaseIds) {
+    for (const dom of coreExactOracleFor(caseId).dom) {
+      assert(dom.forbiddenTextTokens.length === 0, `${caseId} raw narrative DOM ban must remain empty`);
+      assert(!dom.forbiddenMaterialTokens.some(token => narrativeTokens.has(String(token).toLowerCase())),
+        `${caseId} narrative token leaked into structured DOM material`);
+    }
+  }
 });
 
 check("state mutations bind exact request bodies, changed state, and authoritative cleanup", () => {

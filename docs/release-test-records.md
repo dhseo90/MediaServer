@@ -2769,6 +2769,20 @@ evidence로 사용하지 않습니다.
 | Generated binding | 공식 generator는 canonical 424 fixture를 변경하지 않고 native 30행의 SHA/digest/provenance만 갱신했습니다. Ordered route·role·viewport·theme·action·workflow·oracle·cleanup non-hash 변경은 0이고 최종 native SHA는 `fad193591bd3908a9528b92f05454fc084a5954a4ccc2d6eecafbdbe753886fc`입니다 | 424 / 423 native + 1 negative / unsupported 0 |
 | 미실행 경계 | 이번 correction에서는 actual `./test_ui.sh`, exact 424, Policy v4 qualification, 30분, 120분, `./test_release.sh`를 실행하지 않았습니다 | not-run / REVIEW4-65 미완료 |
 
+### REVIEW4-65 UI-036 typed negative-boundary DOM correction
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| Standalone actual failure 보존 | Source `1f39e86397be5d2ff36262f9305eec146c4c4a02`에서 sandbox 밖 `./test_ui.sh`를 정확히 1회 실행했습니다. Preflight/bootstrap PASS 뒤 UI-001~035 중 34건 PASS, UI-036에서 executed/pass/fail/not-run `35/34/1/389`로 중단됐고 Policy v4는 not-run, measured cleanup은 PASS했습니다 | actual oracle FAIL preserved |
+| 직접 확인한 원인 | UI-036의 no-write/provider typed boundary가 `write`, `provider` 같은 narrative token까지 `[data-testid="ops-rules-page"]` 전체 text의 금지 substring으로 변환했습니다. 실제 UI는 draft form만 채우고 저장 전 `write 없음`을 설명합니다 | boundary token/DOM material type 오류 |
+| 전수 범위 | 986행 negative boundary를 집계해 client-viewer, credential, debug, no-auto-apply, no-mutation, no-send, no-write, provider, raw, source-url 9개 family 모두 같은 구조 영향을 받는 것을 확인했습니다 | UI-036 단일 예외 아님 |
+| 원천 보정 | 288개 core oracle의 narrative raw-text ban을 제거하고 concrete state token만 `forbiddenMaterialTokens`로 생성합니다. Assignment/form value의 inactive/redacted 상태는 허용하고 active/실제 값은 거부합니다. Forbidden network와 authoritative before/after equality는 유지합니다 | typed structured-material boundary |
+| 전수 회귀 계약 | 288개 core oracle에서 narrative forbidden text 0과 boundary-kind 일반어 material 재유입 0을 검증합니다. 9-family matrix는 narrative/inactive PASS와 active credential/debug/apply/write/send/client/provider/raw/sourceUrl FAIL을 검증합니다 | core 14/14, runtime 12/12 PASS |
+| Focused 검증 | VLM rule draft 6/6, catalog 3/3, native exact 26/26, completion 22/22, adapter 11/11, MJS syntax PASS | actual browser execution not-run-by-contract |
+| Semantic 영향 | Candidate `917c7917895ff4bcd9b7fe801f797437eb1bac1ea5706385262cab89cbc22e9c`와 986개 source-flow/approval가 불변입니다. Audit/approval/selftest/migration PASS입니다 | feature/pass 및 semantic approval 변경 0 |
+| Generated binding | 공식 generator는 canonical 424 fixture를 변경하지 않고 native 288개 core 행의 SHA/digest/provenance만 갱신했습니다. Ordered route·role·viewport·theme·action·workflow·oracle·cleanup non-hash 변경은 0이고 최종 native SHA는 `b1ff54640fc83d3727b328c63ab7c02a52f9dacc0db37019cc06b03cd5dbcc01`입니다 | 424 / 423 native + 1 negative / unsupported 0 |
+| 미실행 경계 | 이번 correction에서는 actual `./test_ui.sh`, exact 424, Policy v4 qualification, 30분, 120분, `./test_release.sh`를 실행하지 않았습니다 | not-run / REVIEW4-65 미완료 |
+
 ### REVIEW4-65 SAFE-211 completion/current graph correction
 
 | 제목 | 수행내용 | 결과(pass/fail) |

@@ -907,6 +907,18 @@ v3.2.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직
 | Generated binding | Canonical SHA `e3151222...989` 불변, native 30행 SHA/digest/provenance 변경, ordered product/workflow non-hash 변경 0. Native SHA `fad19359...86fc` | actual browser not-run / unsupported 0 |
 | 미실행 경계 | Actual `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`는 이번 correction에서 실행하지 않았습니다 | not-run / REVIEW4-65 미완료 |
 
+## V390-REVIEW4-65 UI-036 typed negative-boundary DOM correction
+
+| evidence | current boundary | 판정 |
+| --- | --- | --- |
+| Standalone run at `1f39e863` | Sandbox 밖 `./test_ui.sh` 1회 실행의 exact 집계는 `35 executed / 34 PASS / 1 FAIL / 389 not-run`이고 UI-036에서 중단됐습니다. Actual browser 실행, Policy v4 not-run, cleanup PASS입니다 | actual oracle FAIL preserved |
+| Root cause | `/ops/rules`의 안전한 no-write/provider 설명을 typed negative token의 raw substring 검사로 실제 material처럼 분류했습니다. 9개 negative-boundary family 전체가 같은 구조 영향을 받았습니다 | test oracle infrastructure defect |
+| Typed material contract | 288개 core oracle은 narrative raw-text ban 대신 concrete structured material을 사용합니다. `false`·`없음`·`비노출`은 허용하고 `true`·실제 민감 값은 거부하며 network/state invariant를 유지합니다 | core 14/14, runtime 12/12 PASS |
+| Focused gates | VLM draft 6/6, catalog 3/3, native exact 26/26, completion 22/22, adapter 11/11, MJS syntax PASS | actual exact 424 / Policy v4 evidence 아님 |
+| Semantic review | Candidate `917c7917...e9c` 및 986행 approval 불변. Audit/approval/selftest/migration PASS | feature/pass·sourceFlow 변경 0 |
+| Generated binding | Canonical SHA `e3151222...989` 불변, native 288개 core 행 SHA/digest/provenance 변경, ordered product/workflow non-hash 변경 0. Native SHA `b1ff5464...cc01` | actual browser not-run / unsupported 0 |
+| 미실행 경계 | Actual `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`는 이번 correction에서 실행하지 않았습니다 | not-run / REVIEW4-65 미완료 |
+
 ## V390-REVIEW4-65 SAFE-211 completion/current graph correction
 
 | evidence | verified result | boundary |

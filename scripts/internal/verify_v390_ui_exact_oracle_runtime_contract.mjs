@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 // 파일 용도: exact 424 runtime oracle 실행기가 status/DOM/network 누락을 거짓 PASS로 처리하지 않는지 검증한다.
 
-import { executeCatalogRuntimeOracle } from "./v390_ui_exact_oracle_runtime.mjs";
+import {
+  containsForbiddenStructuredDomMaterial,
+  executeCatalogRuntimeOracle,
+} from "./v390_ui_exact_oracle_runtime.mjs";
 
 const checks = [];
 
@@ -120,6 +123,55 @@ await check("client/viewer boundary labels are distinct from enabled exposure ma
   const safe = await execute("viewer/client에는 저장하거나 노출하지 않습니다. viewerClientExposure=false");
   assert(safe.dom[0].count === 1, "UI-033 safe client/viewer boundary DOM evidence missing");
   await expectReject(() => execute("viewerClientExposure=true"), "forbidden DOM material observed");
+});
+
+await check("no-write/provider labels are distinct from enabled capability material", async () => {
+  const selector = '[data-testid="ops-rules-page"]';
+  const execute = text => executeCatalogRuntimeOracle({
+    browser: fakeBrowser({
+      route: "/ops/rules",
+      status: 200,
+      body: { status: "ok", rules: [] },
+      observations: {
+        [selector]: {
+          count: 1,
+          visibleCount: 1,
+          text,
+          attributes: [{ "data-testid": "ops-rules-page" }],
+        },
+      },
+    }),
+    item: exactItem("UI-036", "/ops/rules"),
+    fixtureId: "ops-rules-no-write-boundary-contract",
+    correlationId: "UI-036:contract",
+  });
+
+  const safe = await execute("rule write 없음 · provider 호출 없음 · registryWrite=false · providerCall=false");
+  assert(safe.dom[0].count === 1, "UI-036 safe no-write/provider boundary DOM evidence missing");
+  await expectReject(() => execute("WritePerformed=true"), "forbidden DOM material observed");
+  await expectReject(() => execute("providerCall=true"), "forbidden DOM material observed");
+});
+
+await check("all negative-boundary families distinguish narrative, inactive, and active material", async () => {
+  const descriptors = [
+    ["credential", "credential 비노출", "credential=false", "credential=secret-value"],
+    ["Debug", "Debug 정보 비노출", "Debug=false", "Debug=true"],
+    ["autoApply", "자동 적용 없음", "autoApply=false", "autoApply=true"],
+    ["WritePerformed", "rule write 없음", "WritePerformed=false", "WritePerformed=true"],
+    ["clientNoticeSent", "발송 없음", "clientNoticeSent=false", "clientNoticeSent=true"],
+    ["viewerClientExposure", "viewer/client 비노출", "viewerClientExposure=false", "viewerClientExposure=true"],
+    ["providerCall", "provider 호출 없음", "providerCall=false", "providerCall=true"],
+    ["rawEvidence", "raw evidence 비노출", "rawEvidence=false", "rawEvidence=unredacted-value"],
+    ["sourceUrl", "source URL 비노출", "sourceUrl=false", "sourceUrl=rtsp://camera.invalid/live"],
+  ];
+  for (const [token, narrative, inactive, active] of descriptors) {
+    assert(!containsForbiddenStructuredDomMaterial({ text: narrative, formControls: [] }, token),
+      `${token} narrative label must not be material`);
+    assert(!containsForbiddenStructuredDomMaterial({ text: inactive, formControls: [] }, token),
+      `${token} inactive attestation must not be material`);
+    assert(containsForbiddenStructuredDomMaterial({ text: active, formControls: [] }, token),
+      `${token} active material must be rejected`);
+  }
 });
 
 await check("status and response semantic drift are rejected", async () => {

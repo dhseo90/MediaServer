@@ -409,6 +409,7 @@ async function observeDom(browser, item, assertion, bindings, responses, respons
   })()`);
   const requiredText = (assertion.requiredTextTokens || []).map(value => expand(String(value), bindings)).filter(Boolean);
   const forbiddenText = (assertion.forbiddenTextTokens || []).map(value => expand(String(value), bindings)).filter(Boolean);
+  const forbiddenMaterial = (assertion.forbiddenMaterialTokens || []).map(value => expand(String(value), bindings)).filter(Boolean);
   const zeroCardinalityExpected = assertion.cardinality?.operator === "equals" && Number(assertion.cardinality?.value) === 0;
   assert(observed.count > 0 || assertion.expectedExists === false || zeroCardinalityExpected,
     `${item.caseId} exact DOM selector missing: ${selector}`);
@@ -426,6 +427,10 @@ async function observeDom(browser, item, assertion, bindings, responses, respons
   }
   for (const token of forbiddenText) {
     assert(!containsForbiddenDomMaterial(observed, token),
+      `${item.caseId} forbidden DOM material observed ${selector}: ${token}`);
+  }
+  for (const token of forbiddenMaterial) {
+    assert(!containsForbiddenStructuredDomMaterial(observed, token),
       `${item.caseId} forbidden DOM material observed ${selector}: ${token}`);
   }
   const requiredAttributes = Array.isArray(assertion.requiredAttributes)
@@ -553,6 +558,23 @@ function containsForbiddenDomMaterial(observed, needle) {
     if (!isRedactedDomValue(match[1])) return true;
   }
 
+  return (observed?.formControls || []).some(control => {
+    const identity = [control.id, control.name, control.dataTestid, control.ariaLabel]
+      .map(value => String(value || "").toLowerCase()).join(" ");
+    return identity.includes(token.toLowerCase()) && !isRedactedDomValue(control.value);
+  });
+}
+
+export function containsForbiddenStructuredDomMaterial(observed, needle) {
+  const token = String(needle || "");
+  const text = String(observed?.text || "");
+  const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const assignment = new RegExp(`(?:^|[\\s{[(,;])['\"]?${escaped}['\"]?\\s*[:=]\\s*([^\\s,;)}\\]]+)`, "gi");
+  for (const match of text.matchAll(assignment)) {
+    if (!isRedactedDomValue(match[1])) return true;
+  }
+
+  if (!/(?:credential|password|token|source.?url|raw(?:locator|json|evidence|material)?)/i.test(token)) return false;
   return (observed?.formControls || []).some(control => {
     const identity = [control.id, control.name, control.dataTestid, control.ariaLabel]
       .map(value => String(value || "").toLowerCase()).join(" ");
