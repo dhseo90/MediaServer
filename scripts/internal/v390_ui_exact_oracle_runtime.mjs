@@ -545,7 +545,7 @@ function containsForbiddenResponseMaterial(value, needle, contentType) {
 function containsForbiddenDomMaterial(observed, needle) {
   const token = String(needle || "");
   const text = String(observed?.text || "");
-  if (!/credential/i.test(token)) return text.includes(token);
+  if (!/(?:credential|exposure)/i.test(token)) return text.includes(token);
 
   const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const assignment = new RegExp(`(?:^|[\\s{[(,;])['\"]?${escaped}['\"]?\\s*[:=]\\s*([^\\s,;)}\\]]+)`, "gi");

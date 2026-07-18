@@ -5,9 +5,9 @@
     "canonicalSha256": "56b9fa6f376664856e8df1a6434b8659e91675f5a7f3884fb4c865736824c80c",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "7a3d82e4425e0419206ee3a85378d02e5d8f02f0cb88ac8deac35813bf332b2d",
+    "implementationProjectionSha256": "56a2e692e62c2a2d015e52aea649d3fda69122e96bd6e51c946433b55ce36ed8",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "1025324d757a7d7e6096d10b82009b0229dda6655c9e375603c72b68d92b84d8",
+    "runtimeOracleCatalogSha256": "4bf8c11626beff8f5e598255117f2aba1d5f61b9bacc76ff47b6d7cc9bf3cb03",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -19740,7 +19740,7 @@
             "text": "VLM summary, explanation, false-positive hints, operator questions, evidence availability가 Ops event review 안에서만 열리고 client/viewer에는 노출되지 않음",
             "sha256": "3aacd192ac6cb528cc18a7a7c1bfb7319513ded3914569df5b812dbfcc76a210"
           },
-          "specSha256": "9994e4670c62b98b9e4d4095d46bd8c11bdc863e01d57af8886acd006c6333d8",
+          "specSha256": "520d4320059370d90aa489c0cc65b4977b7b98672450b45ae8e8f9dd7f9677e6",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -20355,7 +20355,7 @@
             "text": "provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mode, default-off 상태가 Ops-only panel에 표시되고 client/viewer에는 노출되지 않음",
             "sha256": "9e749d7e93bf80816ba7989aa080bb1a16d23c4004603cd2007166b9bbd0c0fd"
           },
-          "specSha256": "16d959c44dd9acb64e75f896a177a85ee2b693143ec709e42a4a54d9c2035352",
+          "specSha256": "6725202ed6d50e2b5b6294d53c383c74725fcb88ac4fdcd2a90a6d220ea0c72d",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -21583,7 +21583,7 @@
             "text": "VLM review card의 action/target/note control이 `accept`, `dismiss`, `review-needed`를 Ops review state에 저장하고 EventRecord/Event POST/metadata/media path와 client/viewer 노출을 바꾸지 않음",
             "sha256": "c984dfb6cc6f502d4da81e732add7410cb24581e353d6feb800ed090a6fdf8fa"
           },
-          "specSha256": "0fc11f06726a2a8454d2f8578048fb39c2ef02e2f8aff419dcac1116450c67d1",
+          "specSha256": "1697d6fd31c3a71e7d6ec62e0c3061095f28d1c6fbfdbe22eb90c9a314edd0f2",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -22973,7 +22973,7 @@
             "text": "incident status/id/action target control이 `new`, `review-needed`, `acknowledged`, `in-progress`, `closed`, `false-positive`를 Ops review state에 저장하고 events audit trail에 `incident-action-update`로 표시되며 EventRecord/Event POST/metadata/media path와 client/viewer 노출을 바꾸지 않음",
             "sha256": "a315cc4ca886fa703a5d105317e204ab5afc531293c214f854206760dcbbf934"
           },
-          "specSha256": "d32d7085a3408f09c3f940e88706ecb5ce68575704992fc04f94c8ce20a58df1",
+          "specSha256": "87ceabf4541f810130ef8c955b77adb18cf6e7f0eec383bf8817c4696cd1e9c3",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -24197,7 +24197,7 @@
             "text": "검색 입력, rule/source/incident status/time filter, `memorySearch` 결과, matched evidence highlight가 `/ops/events`에 Ops-only로 표시되고 primary nav/client/viewer에는 노출되지 않음",
             "sha256": "adbaba2fbb41010667a8bf831c3f37099a16bdf0e7ff2d2c11987eca0d70dd02"
           },
-          "specSha256": "190cd68203b4b09b9e318c26b7987ff347558064abc7eda2db99d8f64c2ff26c",
+          "specSha256": "d58d1c6b17e531ea926ae4a62aa5dfa50af608ca5cd9c50ca1fce028125a46df",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -27867,7 +27867,7 @@
             "text": "VLM summary candidate review panel이 `media-server.ops.vlm-summary-candidate-review.v1` wrapper, candidate count, matched terms, manual review route를 Ops-only로 표시하고 client/viewer에는 노출되지 않음",
             "sha256": "e5210ba357c9124b2519da79839e5e519964c8bb0ce34702587925e8a622f2c5"
           },
-          "specSha256": "a5ab4879173227a7e9d1be305b8f75c024676f070f5670ce3fa57d9aca7f30a3",
+          "specSha256": "402c0d03407a83b5d991ad81974d015bb090181fbbf033af8b6b6cff0ca30e24",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -31232,7 +31232,7 @@
             "text": "`/ops/events`가 priority/review state/source/rule/scenario/similar incident/VLM candidate 기준의 lane/filter/sort board를 `media-server.ops.incident-triage-board.v1`로 표시하고 client/viewer에는 노출하지 않음",
             "sha256": "0113e9561ae4f6b448468c0fcb3949bec72d8a92fd8cadd0b3a2f238e81fa173"
           },
-          "specSha256": "d23c63913b002d848f811a86ae147f473b71d429e676b5142dc379bd1066419f",
+          "specSha256": "c0586bd61e9e21e9f521ab54554e2c467133889f952a0569247e160b891b0bd5",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -36206,7 +36206,7 @@
             "text": "`/ops/events` incident detail이 bounded runtime/source/event evidence window를 Ops-only로 표시하되 장기 저장소, 30분/120분 evidence, client/viewer exposure를 만들지 않음",
             "sha256": "83572c5985717974bf76cf1541d6ce1252f0d934fee5c0932430d78507ad1941"
           },
-          "specSha256": "178df6955e3994697207ee294b4541b8d32ef9c5e957d59eb0d0223c46fee11c",
+          "specSha256": "19313f60c577a3bf1829f699d82aecc09da469660dbc0fe0256381cd91ebfaa5",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -36818,7 +36818,7 @@
             "text": "`/ops/events`가 V300 Feature/Search Index 기반의 search/detail UI를 Ops-only로 표시하고 evidence timeline, feature reasons, retry action, pin status, retention status를 source URL/raw provider/debug/client exposure 없이 보여줌",
             "sha256": "24e483ac5e5883b6588e5dafa5d2d9ab772dfa878f7197461405a288f01efb4e"
           },
-          "specSha256": "390ca05322ee7c2132807e8ca2e9acbbcf10d01d8b2b108541f88878e6ab7a98",
+          "specSha256": "f18cf3a0c22a53afde16aeb3ae9d2c7f78b1424a6a75c448b8b86685241c5559",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -37430,7 +37430,7 @@
             "text": "`/ops/events`가 EventRecord evidence refs 기반 event frame, representative image, frame bundle, encoded clip timeline과 FrameRef/PTS mapping을 Ops-only로 표시하고 source URL/raw JSON/debug/client exposure 없이 유지함",
             "sha256": "1f85a84d5bd6d12e51eb2bdb9748e3563bb6dda59bf50812b4afc420e3cdb5a7"
           },
-          "specSha256": "2b2e1e5ed49d20bddf2dae24056cd8c0d51df9d257b0400057af84f58f479f7c",
+          "specSha256": "bd0cecd8b3d9d9c56d2dbe08e94dbac8afdbdce40fd947fadf722f130897a9ca",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -38042,7 +38042,7 @@
             "text": "`/ops/events`가 correctedFeatureLabel, featureAliases, reanalysisRequested/reanalysisReason control과 summary card를 Ops-only로 표시하고 기존 review 저장 버튼으로 event review state에만 반영하며 client/viewer에는 노출하지 않음",
             "sha256": "fd53e5eee0532914ac0c943f9cdd96c1f92c454471395ba42de45df073b84291"
           },
-          "specSha256": "97618031025b895baacd80568b7fcdee453af0332e3bf03476b621a2b4b157e7",
+          "specSha256": "6814030205c2974a2993fb218b122fb5caec37feb070586a554f671a4dded519",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -38653,7 +38653,7 @@
             "text": "`/ops/events`가 `media-server.ops.v320-unified-events-workspace.v1` 기반 resolution queue, resolution detail, resolution timeline을 한 작업공간으로 표시하고 source URL/raw JSON/debug/client exposure 없이 유지함",
             "sha256": "eaccd6e9cbe45cb5b7062966bbf4e8da69aca43439690b4faffc65ea484781af"
           },
-          "specSha256": "272715071aefd33fc876d19e9142dfe47fb36a33d68267c898271aa7ab97af03",
+          "specSha256": "913ccd834e417d5995a892f78377b3bb3ac71f319991572955f2832ff6e724ef",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -39272,7 +39272,7 @@
             "text": "`/ops/events`가 `media-server.ops.v320-evidence-quality.v1` 기반 evidence completeness, deterministic confidence, replay coverage hint를 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure 없이 유지함",
             "sha256": "4226fcb6b09bb2bc1b0b12a355e65daa21c615aafe3fecdf26c5bd132b102240"
           },
-          "specSha256": "2ecb9294f981ffb57de0cc65475d18ff0bc9b341d854f671b45f16f1b7d4aa0c",
+          "specSha256": "41b5a083da848aefab52e657db9204e5a549b9b4b4fdb323294a046d13ce1340",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -39891,7 +39891,7 @@
             "text": "`/ops/events`가 `media-server.ops.v320-source-reliability-context.v1` 기반 source health, recent failure, operator recheck hint를 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure/source registry write 없이 유지함",
             "sha256": "ded8feb950690a012d76a34ae33bf2882831fa2f6ab421b4018003f9d7b3f4ce"
           },
-          "specSha256": "2b9bbc5a3f4f2b2e867244bbcf474ac3b55328a893cdaad1babd653292e81db2",
+          "specSha256": "af2ba390cc90f3e4544f604c2d0367b8888e728f99a06f59e9247fdcdc3d13c8",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -40535,7 +40535,7 @@
             "text": "`/ops/events`가 `media-server.ops.v320-ai-review-quality-context.v1` 기반 correction/review signal, uncertainty reason, quality badge를 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure/provider call 없이 유지함",
             "sha256": "1bd0a4cb5c840378775506bd5e9dbac1ade737b62768f58d29bca317615b85bc"
           },
-          "specSha256": "f1e771c8a1f6d5b0dae4103ee6c7cf17c1bb919bce5316b564897f96dee65e7e",
+          "specSha256": "9ae330e01b7ac6e73f65727b46db3a774dcec43f1877b49c890b76dd915fb91e",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -41181,7 +41181,7 @@
             "text": "`/ops/events`가 `media-server.ops.v320-operator-resolution-flow.v1` 기반 assignment target, operator note, close/reopen 가능 상태, audit trail을 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure 없이 유지함",
             "sha256": "59b15b2bcc3063804d12a17f8e648b771567ecb93e1bc28af72aca26dfc62d2f"
           },
-          "specSha256": "db9712418af9e40d82fd0295bd5f60424d7fbcf2a1f32d83793ab31e2ec96225",
+          "specSha256": "cea62d0027031f037b26371c95807a4f569430193a6a753bd82b43090f9fffe7",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -41824,7 +41824,7 @@
             "text": "`/ops/events`가 `media-server.ops.v320-action-readiness-checklist.v1` 기반 readiness status, rule draft, evidence bundle, notification readiness checklist와 blocker chip을 unified resolution detail 안에 표시하고 자동 action write, external delivery, source URL/raw JSON/debug/client exposure 없이 유지함",
             "sha256": "790def5a15cd2fd2bf0da3ab60224e6e6975cf64b6fc6cf764744a6038289bcb"
           },
-          "specSha256": "cbfccb2a6a0dae449aa0b08cc02e954999bbf2fa7e13ad62bc6b55381436e993",
+          "specSha256": "695e8666e05f67f95dd4ecc522d55fea8886bca83f8fb70892a8a5edbc95e130",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -43109,7 +43109,7 @@
             "text": "`/ops/events`가 `media-server.ops.v320-resolution-search-metrics.v1` 기반 active resolution filters, saved view presets, operations metric summary를 unified resolution detail 안에 표시하고 saved view write/source URL/raw JSON/debug/client exposure 없이 유지함",
             "sha256": "8476f63682c885547ce1e69164345db4b321ab89fe25948b84135cc1a79dbf5d"
           },
-          "specSha256": "be255855a6202fe18f0157b6d157e439d91d5265180b351252aab23558c9517d",
+          "specSha256": "ca115f4025ea71211babeaa5a1c29b78eea829b53559b5a01dcadeb8036ed230",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -43758,7 +43758,7 @@
             "text": "`/ops/events`가 `media-server.ops.v330-incident-source-correlation.v1` 기반 source cause, closure impact, source handoff를 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure 없이 유지함",
             "sha256": "0c9079adae96ad042455b4ed255e3bc2ca0cd2fae0196306ff66c34348f0560e"
           },
-          "specSha256": "1bb64af93ee04a6075aa2906a2dd09f4347c91f38eea8dded36e3a602582034e",
+          "specSha256": "acd5d8ff1e06b8069043ed3dccea233e4848019722e3cce2a57acda48430d9cc",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -44411,7 +44411,7 @@
             "text": "`/ops/events`가 `media-server.ops.v330-operator-recheck-recovery-queue.v1` 기반 failed-only recheck, retry candidate, recovery checklist, dry-run result, operator note link를 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure/자동 recovery 없이 유지함",
             "sha256": "d55cf495904eb2b01ac50765b54a31a6cf1a08c6177adaf9eacedb750941e323"
           },
-          "specSha256": "6486b077a343a6d9fb7b0abe36ba27e90a83d2e7a0eaaf532ea6b5f4c10faee0",
+          "specSha256": "3640c3d60a8399089d6d4ae1cf0e1704cca7a3eebf5c956d309138334e5937f5",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -45700,7 +45700,7 @@
             "text": "`/ops/sources`가 `media-server.ops.v330-source-reliability-search-metrics.v1` 기반 source health filters, saved reliability view presets, reconnect/stale/offline metric summary와 search result list를 표시하고 saved view write/source URL/raw locator/raw JSON/debug/client exposure 없이 유지함",
             "sha256": "f9ce7bb5e1f90c847d086d6deca1b6af096762ede2efadef91ac661d24ec9fc9"
           },
-          "specSha256": "d089f5ba15b5fb7c9407953f52c86235a18c83a517b4b4cd557383a057b79eb2",
+          "specSha256": "60b35528f6d584db227a636cdc10b0ceee59cdc82c403784dc2ee260f3b33a7a",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -46335,7 +46335,7 @@
             "text": "`/ops/sources`가 `media-server.ops.v330-backup-recovery-source-handoff.v1` 기반 source registry snapshot, PublishedView registry, source health snapshot, recovery validation plan handoff를 표시하고 source URL/raw locator/raw JSON/debug/credential/client exposure 없이 유지함",
             "sha256": "8f32eb04cc142b1ac00325729f7a174083dbd913d53b9e8ae7d15b3dcdbcb570"
           },
-          "specSha256": "6350d5c6072cfac8e8bb4143fd85fab6f5322de27d51ddd95cfdc1a789a3e695",
+          "specSha256": "f7bfcc8246997c14386d6f99cf6cc352f12377f630dbb0d42db0aa93899cdbe5",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -56271,7 +56271,7 @@
             "text": "`/ops/dashboard` simulation workspace가 `media-server.ops.v360-client-notice-preview.v1` 기반 maintenance/degraded/recovering notice preview를 preview-only로 표시하고 client notice send/persist 또는 viewer client payload 변경을 수행하지 않음",
             "sha256": "4aaa127d3f1e9628368acc904c3c2b678a2d28a9ace1ac4c56f52a41dc1ae6b7"
           },
-          "specSha256": "c6f21de646fe4f0d1a9fa3076562e07a7314d5c1e036409bf6c6cddb140cb0e3",
+          "specSha256": "1bcb136dc570f536453ca50d9c067e0238d2896c3ceb440f4073af7e8b7f2d36",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -60053,7 +60053,7 @@
             "text": "`/ops/dashboard`가 `media-server.ops.v370-client-notice-by-site-view-group.v1` 기반 site/view group viewer-safe notice preview와 delivery queue를 preview-only로 표시하고 client notice send/persist 또는 viewer client payload 변경을 수행하지 않음",
             "sha256": "1f3db0b64b2165de13126c7ab978344d057a4033527bb7c270d133955b200ea0"
           },
-          "specSha256": "dc998e11073d082bef951f4ad176dfa41a60e88a3fa41fd9fdeb893dc49f7bb7",
+          "specSha256": "e0f6e254ade78c421f83bf5fbf3a5a2d914ab50d4f8f24804fd60731d877911c",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -112787,7 +112787,7 @@
             "text": "`/ops/api/source-registry/onboarding-quality`과 `/ops/sources`가 채널 저장 전 validation, 중복/충돌/누락/ready 상태, ONVIF/WHEP/RTSP 입력 품질 요약을 표시하고 raw locator/credential/client exposure/source registry write를 만들지 않음",
             "sha256": "73eda40e36cef9a9acb1dc8c40ed26bc27bfa34b877a72fc7e94d4b6e0d36857"
           },
-          "specSha256": "0cab2fec838bcda1fd45df8b5a18e51b91baeb2b387e7fbb8fdda0835775f2aa",
+          "specSha256": "df2f13cf06ac5aa1a7b45bd4983590c6e7c9338e2e3dd97af3996efeda542c51",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -113401,7 +113401,7 @@
             "text": "`/ops/api/source-registry/reliability-timeline`과 `/ops/sources`가 live/stale/offline/reconnect/source warning 변화 이력과 Ops audit 연결을 표시하고 raw locator/credential/client exposure/source registry write를 만들지 않음",
             "sha256": "83c397424a54f8ff2ec57c338af11ed8d3bb8763a77012b3c1dcbff02be90a49"
           },
-          "specSha256": "8269ed4459032bd960840a17372e33b279c57cf8bc36f7ac7ba33bf4f971163c",
+          "specSha256": "353091b327243ab2dba846b641e424570743df9ec4c5d018e3b46624d61cf7b4",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -114015,7 +114015,7 @@
             "text": "`/ops/api/events/reviews`의 incidentSourceCorrelation이 기존 sourceReliability와 source-health-state-change audit handoff만 읽어 source 원인/context를 연결하고 raw locator/credential/client exposure/source registry write를 만들지 않음",
             "sha256": "34df83a5610a479a7a9f4e3ccf5d13b70fea965ebf1eac31ea807007d78d8d65"
           },
-          "specSha256": "960998194bf9f6442e8cc80118976ab73251e5a4b900acb2734d44a26c78d32c",
+          "specSha256": "b7268d559f023c5313008d9e69223e1f227a1719b57231fc40367d624e927b3c",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -114629,7 +114629,7 @@
             "text": "`/ops/api/events/reviews`의 operatorRecheckRecoveryQueue가 기존 sourceReliability와 incidentSourceCorrelation만 읽어 failed-only source recheck와 retry candidate를 요약하고 raw locator/credential/client exposure/source registry write를 만들지 않음",
             "sha256": "b84cf1b2afda59d69a201d598f76c306aea81114a72d7daf8faafc6f4f789322"
           },
-          "specSha256": "81b1a0394e63e5bfaa90979c846b359622f5ef42ebf44832586448ab5a59ce41",
+          "specSha256": "50da18ec971edb0708e68284c5139b88070508123f679c496c07b6ee79f4e85e",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -115869,7 +115869,7 @@
             "text": "`/ops/api/source-registry/reliability-search-metrics`가 기존 source health snapshot과 source-health-state-change audit history만 읽어 source health filters, saved reliability view presets, reconnect/stale/offline metric summary를 요약하고 source registry write/PublishedView write/saved view write/raw locator/credential/client exposure를 만들지 않음",
             "sha256": "d0bbeff12ea63f1b39fd7f11af2e62885ef05c94d4f0fd100ca7d31a84dda0db"
           },
-          "specSha256": "7a14e66faba88af742034adecb477c11e85d504cffd2e806c0891c37193980de",
+          "specSha256": "5f5505ef4f3cd0cf56001cacc7954b5aa850294ba57d69ca77e06d8ab1393bbc",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -116483,7 +116483,7 @@
             "text": "`/ops/api/source-registry/backup-recovery-handoff`가 기존 SourceRegistry/PublishedView snapshot과 source health snapshot만 읽어 recovery validation plan 입력을 요약하고 source registry write/PublishedView write/backup artifact persistence/raw locator/credential/client exposure를 만들지 않음",
             "sha256": "e20e16d132f1259b4f25af65a2719fc8eecf2949216707d7c3e8132d19d6eae7"
           },
-          "specSha256": "745f295312e82dfd939d1884ce998de70c20df6f7a29d55ed710a0977f7e9868",
+          "specSha256": "d4a0b802508dc1a1d1cb65acdb8d9bd9847e67a8404231df6a8afa7c9e1b7672",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,

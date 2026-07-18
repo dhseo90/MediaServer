@@ -2756,6 +2756,19 @@ evidence로 사용하지 않습니다.
 | Generated binding | 공식 generator 전후 canonical fixture 변경 0, native SHA/digest/provenance 변경 314, ordered ID·route·role·viewport·theme·action·workflow·oracle·cleanup non-hash 변경 0입니다. 최종 SHA는 canonical `e3151222...989`, native `a6f5b6ea...b507`입니다 | 424 / 423 native + 1 negative / unsupported 0 |
 | 미실행 경계 | 이번 correction에서는 actual `./test_ui.sh`, exact 424, Policy v4 qualification, 30분, 120분, `./test_release.sh`를 실행하지 않았습니다 | not-run / REVIEW4-65 미완료 |
 
+### REVIEW4-65 UI-033 client/viewer DOM boundary correction
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| Standalone actual failure 보존 | Source `5edff738b912623d14e9d07d74fa86fe140b1fe2`에서 sandbox 밖 `./test_ui.sh`를 정확히 1회 실행했습니다. Preflight/bootstrap PASS 뒤 UI-001~032 중 31건 PASS, UI-033에서 executed/pass/fail/not-run `32/31/1/392`로 중단됐고 Policy v4는 not-run, measured cleanup은 PASS했습니다 | actual oracle FAIL preserved |
+| 제품 경계 직접 확인 | `/ops/vlm`은 viewer/client에 VLM raw material을 저장·노출하지 않는다는 privacy 문구를 표시합니다. `verify-vlm-runtime-status-ui`는 client markup의 Ops VLM panel과 `viewerClientExposureAdded: true`/`clientExposureAdded: true` 부재를 별도 확인합니다 | client/viewer material exposure 없음 / product source 확인 |
+| 직접 확인한 원인 | `client-viewer-boundary`의 구조화 token `client`, `viewer`, `viewerClientExposure`를 같은 Ops page root의 금지 text에도 그대로 적용해 audience 설명 단어를 실제 노출 material로 분류했습니다 | boundary token/context type 오류 |
+| 원천 보정 | `client`/`viewer`는 response forbidden key 검사에 유지하지만 Ops DOM forbidden text에서는 제외합니다. Concrete exposure token은 유지하고 assignment/form control material로 판정합니다. `viewerClientExposure=false`는 안전 상태이고 `viewerClientExposure=true`는 FAIL입니다 | typed audience-label/exposure-material boundary |
+| Focused 검증 | Core 14/14, runtime 10/10, VLM runtime status 5/5, catalog 3/3, native exact 26/26, completion 22/22, adapter 11/11, MJS syntax PASS | actual browser execution not-run-by-contract |
+| Semantic 영향 | Candidate `917c7917895ff4bcd9b7fe801f797437eb1bac1ea5706385262cab89cbc22e9c`와 986개 source-flow/approval가 불변입니다. Audit/approval/migration과 feature evidence 986/986·negative 15/15가 PASS했습니다 | feature/pass 및 semantic approval 변경 0 |
+| Generated binding | 공식 generator는 canonical 424 fixture를 변경하지 않고 native 30행의 SHA/digest/provenance만 갱신했습니다. Ordered route·role·viewport·theme·action·workflow·oracle·cleanup non-hash 변경은 0이고 최종 native SHA는 `fad193591bd3908a9528b92f05454fc084a5954a4ccc2d6eecafbdbe753886fc`입니다 | 424 / 423 native + 1 negative / unsupported 0 |
+| 미실행 경계 | 이번 correction에서는 actual `./test_ui.sh`, exact 424, Policy v4 qualification, 30분, 120분, `./test_release.sh`를 실행하지 않았습니다 | not-run / REVIEW4-65 미완료 |
+
 ### REVIEW4-65 SAFE-211 completion/current graph correction
 
 | 제목 | 수행내용 | 결과(pass/fail) |

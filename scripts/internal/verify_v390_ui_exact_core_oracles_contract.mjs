@@ -102,6 +102,18 @@ check("every exact API path is owned by ingress source and has semantic body ass
   }
 });
 
+check("client/viewer boundary keeps structured exposure checks without banning safe audience labels", () => {
+  const oracle = coreExactOracleFor("UI-033");
+  const responseTokens = oracle.requests[0].forbiddenJsonKeys;
+  const domTokens = oracle.dom[0].forbiddenTextTokens;
+  assert(responseTokens.includes("client") && responseTokens.includes("viewer") &&
+    responseTokens.includes("viewerClientExposure"),
+  "UI-033 structured response boundary tokens missing");
+  assert(!domTokens.includes("client") && !domTokens.includes("viewer") &&
+    domTokens.includes("viewerClientExposure"),
+  "UI-033 DOM boundary must distinguish audience labels from exposure material");
+});
+
 check("state mutations bind exact request bodies, changed state, and authoritative cleanup", () => {
   const mutations = coreExactOracleCaseIds.map(coreExactOracleFor).filter(oracle =>
     oracle.beforeAfterState.comparison === "case-fixture-created-or-updated");

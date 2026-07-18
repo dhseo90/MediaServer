@@ -190,12 +190,22 @@ function buildOracle(canonicalCase) {
     semantic.actionHandler?.symbol,
     canonicalCase.controlAction?.actionAnchor,
   ].map(String).filter(Boolean));
-  const forbiddenFields = unique([
+  const baselineForbiddenFields = [
     "literalPassword",
     "plaintextCredential",
     "unredactedTokenHash",
     "genericPassSubstitution",
-    ...(obligation.negativeBoundaries || []).flatMap(boundary => boundary.tokens || []),
+  ];
+  const negativeBoundaries = obligation.negativeBoundaries || [];
+  const forbiddenFields = unique([
+    ...baselineForbiddenFields,
+    ...negativeBoundaries.flatMap(boundary => boundary.tokens || []),
+    ...(canonicalCase.accountRole === "viewer" ? ["sourceUrl", "rawLocator", "credentialMaterial"] : []),
+  ]);
+  const forbiddenDomTextTokens = unique([
+    ...baselineForbiddenFields,
+    ...negativeBoundaries.flatMap(boundary => (boundary.tokens || []).filter(token =>
+      boundary.kind !== "client-viewer-boundary" || !/^(?:client|viewer)$/i.test(String(token)))),
     ...(canonicalCase.accountRole === "viewer" ? ["sourceUrl", "rawLocator", "credentialMaterial"] : []),
   ]);
   const classification = specializedRuleCases.has(canonicalCase.testId) ? "existing-specialized" : "core-exact";
@@ -306,7 +316,7 @@ function buildOracle(canonicalCase) {
     dom: [{
       selector,
       requiredTextTokens: [],
-      forbiddenTextTokens: forbiddenFields,
+      forbiddenTextTokens: forbiddenDomTextTokens,
       requiredAttributes,
       expectedBehaviorSha256,
     }],

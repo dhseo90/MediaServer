@@ -96,6 +96,32 @@ await check("DOM redaction labels are distinct from exposed credential values", 
   }), "forbidden DOM material observed");
 });
 
+await check("client/viewer boundary labels are distinct from enabled exposure material", async () => {
+  const selector = '[data-testid="ops-vlm-page"]';
+  const execute = text => executeCatalogRuntimeOracle({
+    browser: fakeBrowser({
+      route: "/ops/vlm",
+      status: 200,
+      body: `<main data-testid="ops-vlm-page">${text}</main>`,
+      observations: {
+        [selector]: {
+          count: 1,
+          visibleCount: 1,
+          text,
+          attributes: [{ "data-testid": "ops-vlm-page" }],
+        },
+      },
+    }),
+    item: exactItem("UI-033", "/ops/vlm"),
+    fixtureId: "ops-vlm-client-viewer-boundary-contract",
+    correlationId: "UI-033:contract",
+  });
+
+  const safe = await execute("viewer/client에는 저장하거나 노출하지 않습니다. viewerClientExposure=false");
+  assert(safe.dom[0].count === 1, "UI-033 safe client/viewer boundary DOM evidence missing");
+  await expectReject(() => execute("viewerClientExposure=true"), "forbidden DOM material observed");
+});
+
 await check("status and response semantic drift are rejected", async () => {
   await expectReject(() => executeCatalogRuntimeOracle({
     browser: eventBrowser({ status: 503 }),
