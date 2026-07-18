@@ -322,7 +322,7 @@ async function observeRequest(browser, item, request, bindings, correlationId, n
   }
   const forbidden = request.forbiddenJsonKeys || [];
   for (const key of forbidden) {
-    assert(!containsForbiddenKeyOrValue(body, String(key)),
+    assert(!containsForbiddenResponseMaterial(body, String(key), contentType),
       `${item.caseId} forbidden response material observed in ${method} ${urlPath}: ${key}`);
   }
   const serializedBody = typeof body === "string" ? body : JSON.stringify(body ?? null);
@@ -519,6 +519,43 @@ function containsForbiddenKeyOrValue(value, needle) {
   if (!value || typeof value !== "object") return false;
   return Object.entries(value).some(([key, child]) =>
     key.toLowerCase() === needle.toLowerCase() || containsForbiddenKeyOrValue(child, needle));
+}
+
+function containsForbiddenResponseMaterial(value, needle, contentType) {
+  const mediaType = String(contentType || "").split(";", 1)[0].trim().toLowerCase();
+  if (mediaType !== "text/html" || typeof value !== "string") {
+    return containsForbiddenKeyOrValue(value, needle);
+  }
+  return htmlEmbeddedJsonDocuments(value).some(document => containsForbiddenKeyOrValue(document, needle)) ||
+    htmlContainsForbiddenAttribute(value, needle);
+}
+
+function htmlEmbeddedJsonDocuments(html) {
+  const documents = [];
+  const scriptPattern = /<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi;
+  for (const match of String(html || "").matchAll(scriptPattern)) {
+    const attributes = match[1] || "";
+    const typeMatch = attributes.match(/\btype\s*=\s*(["'])(.*?)\1/i);
+    if (String(typeMatch?.[2] || "").trim().toLowerCase() !== "application/json") continue;
+    const source = String(match[2] || "").trim();
+    if (!source) continue;
+    try {
+      documents.push(JSON.parse(source));
+    } catch {
+      documents.push(source);
+    }
+  }
+  return documents;
+}
+
+function htmlContainsForbiddenAttribute(html, needle) {
+  const kebab = String(needle || "").replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+  const compact = String(needle || "").toLowerCase();
+  return [...String(html || "").matchAll(/\s([\w:-]+)\s*=\s*(["'])/g)].some(match => {
+    const attribute = String(match[1] || "").toLowerCase();
+    return attribute === compact || attribute === kebab ||
+      attribute === `data-${compact}` || attribute === `data-${kebab}`;
+  });
 }
 
 function compareAttribute(actual, operator, expected) {

@@ -36,6 +36,33 @@ await check("core object-form requiredAttributes are enforced", async () => {
   }), "exact DOM attribute mismatch");
 });
 
+await check("HTML redaction code is distinct from embedded forbidden response fields", async () => {
+  const safeHtml = `<!doctype html><body>
+    <main data-testid="client-live-workspace">
+      <section data-testid="client-live-action-reduction">viewer-safe</section>
+    </main>
+    <script>const auditMaterialKeys = new Set(['sourceurl']);</script>
+    <script type="application/json" id="views-data">{"views":[],"sourceUrlIncluded":false}</script>
+  </body>`;
+  const execute = body => executeCatalogRuntimeOracle({
+    browser: clientLiveBrowser(body),
+    item: exactItem("UI-015", "/client/live"),
+    fixtureId: "client-live-html-redaction-contract",
+    correlationId: "UI-015:contract",
+  });
+  const result = await execute(safeHtml);
+  assert(result.responses.length === 1 && result.responses[0].urlPath === "/client/live",
+    "UI-015 safe HTML response evidence missing");
+
+  const leakedHtml = `<!doctype html><body>
+    <main data-testid="client-live-workspace">
+      <section data-testid="client-live-action-reduction">viewer-safe</section>
+    </main>
+    <script type="application/json" id="views-data">{"views":[],"sourceUrl":"rtsp://camera.invalid/live"}</script>
+  </body>`;
+  await expectReject(() => execute(leakedHtml), "forbidden response material observed");
+});
+
 await check("status and response semantic drift are rejected", async () => {
   await expectReject(() => executeCatalogRuntimeOracle({
     browser: eventBrowser({ status: 503 }),
@@ -194,6 +221,21 @@ function coreBrowser({ attributes = [{ "data-testid": "ops-home-page" }] } = {})
     body,
     texts: { '[data-testid="ops-home-page"]': "ops-workspace-home" },
     attributes: { '[data-testid="ops-home-page"]': attributes },
+  });
+}
+
+function clientLiveBrowser(body) {
+  const selector = '[data-testid="client-live-action-reduction"]';
+  const workspaceSelector = '[data-testid="client-live-workspace"]';
+  return fakeBrowser({
+    route: "/client/live",
+    status: 200,
+    body,
+    texts: { [selector]: "viewer-safe", [workspaceSelector]: "viewer-safe" },
+    attributes: {
+      [selector]: [{ "data-testid": "client-live-action-reduction" }],
+      [workspaceSelector]: [{ "data-testid": "client-live-workspace" }],
+    },
   });
 }
 

@@ -871,6 +871,17 @@ v3.2.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직
 | Generated binding | Canonical `e3151222...` 변경 0, native `421aa432...`; 293 SHA/digest 변경과 ordered ID·route·role·viewport·theme·action·workflow·oracle·cleanup non-hash 변경 0 | official generator, exact 424 / unsupported 0 |
 | 미실행 경계 | Actual `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`는 이번 correction에서 실행하지 않았습니다 | not-run / REVIEW4-65 미완료 |
 
+## V390-REVIEW4-65 UI-015 HTML response-material type-boundary correction
+
+| evidence | current boundary | 판정 |
+| --- | --- | --- |
+| Standalone run at `f22098f0` | Sandbox 밖 `./test_ui.sh` 1회 실행의 exact 집계는 `14 executed / 13 PASS / 1 FAIL / 410 not-run`이고 UI-015에서 중단됐습니다. Policy v4는 not-run, cleanup은 PASS이며 actual FAIL을 PASS로 승격하지 않습니다 | actual oracle FAIL preserved |
+| Product response boundary | `ClientViewsJson`/`ClientPublishedViewJson`은 source URL을 직렬화하지 않습니다. 검출된 `sourceurl`은 viewer data가 아니라 공용 UI audit sanitizer의 정적 redaction key입니다 | viewer payload exposure 없음 |
+| Content-type contract | JSON은 기존 recursive forbidden key/value 검사를 유지하고 HTML은 parsed `application/json` embedded data와 exact forbidden attribute만 검사합니다. 안전한 redaction source/false attestation은 허용하되 실제 embedded `sourceUrl` field는 거부합니다 | runtime contract 8/8; false-PASS 방지 유지 |
+| Focused gates | Core oracle 13/13, client-safe oracle 9/9, native exact 26/26, completion 22/22, adapter 11/11, MJS syntax PASS | actual exact 424 / Policy v4 evidence 아님 |
+| Semantic/generated boundary | Fresh candidate `c7bb675c...`, 986행 변경 0, 기존 approval 986/986 유지. Canonical/native generated fixture 변경 없음 | semantic/generated lifecycle 불변 |
+| 미실행 경계 | Actual `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`는 이번 correction에서 실행하지 않았습니다 | not-run / REVIEW4-65 미완료 |
+
 ## V390-REVIEW4-65 SAFE-211 completion/current graph correction
 
 | evidence | verified result | boundary |

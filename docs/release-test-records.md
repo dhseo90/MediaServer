@@ -2729,6 +2729,19 @@ evidence로 사용하지 않습니다.
 | Generated binding | Canonical 424 fixture는 변경 0, native fixture는 SHA/digest 293개만 공식 generator로 갱신했습니다. Ordered ID·route·role·viewport·theme·action·workflow·oracle·cleanup non-hash 변경은 0이며 최종 SHA는 canonical `e3151222e545a60b6e66073de751e52019e0a1bedbcbea290638ed62a8105989`, native `421aa4327b457ae04f1c719c6c0fe91a0baaaf92528aacb001cc97a9f99ec241`입니다 | exact 424 / 423 native + 1 negative / unsupported 0 |
 | 미실행 경계 | 이번 correction에서는 actual `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`를 실행하지 않았습니다 | not-run / REVIEW4-65 미완료 |
 
+### REVIEW4-65 UI-015 HTML response-material type-boundary correction
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| Standalone actual failure 보존 | Source `f22098f047685951ed39d8f980d9e98ba8bacdbe`에서 sandbox 밖 `./test_ui.sh`를 정확히 1회 실행했습니다. Preflight/bootstrap PASS 뒤 UI-001~014 중 13건 PASS, UI-015에서 executed/pass/fail/not-run `14/13/1/410`으로 중단됐고 Policy v4는 not-run, measured cleanup은 PASS했습니다 | actual oracle FAIL preserved |
+| 제품 응답 직접 확인 | `/client/live`의 `ClientViewsJson`/`ClientPublishedViewJson`은 view/source identity, safe tags, overlay/viewer 설정만 직렬화하며 source URL field/value를 포함하지 않습니다. 공용 UI script의 audit redaction key 목록에는 민감 키를 제거하기 위한 정적 `sourceurl` 식별자가 존재합니다 | viewer payload leak 없음 / product source 확인 |
+| 직접 확인한 원인 | `observeRequest`가 content type과 무관하게 HTML 문자열 전체에 `containsForbiddenKeyOrValue`를 적용했고 문자열 substring 비교가 정적 redaction 식별자도 실제 `sourceUrl` response material로 분류했습니다 | JSON oracle의 HTML 적용 오류 |
+| 원천 보정 | JSON 응답은 기존 recursive key/value 검사를 유지합니다. `text/html`은 `application/json` embedded document를 parse해 검사하고 exact forbidden HTML attribute를 별도로 검사합니다. 일반 JavaScript source는 viewer data로 승격하지 않습니다 | content-type-aware fail-closed boundary |
+| 회귀 계약 | 안전 HTML의 redaction key `sourceurl`과 `sourceUrlIncluded:false`는 PASS하고, embedded JSON의 실제 `"sourceUrl":"rtsp://camera.invalid/live"`는 동일 forbidden response 오류로 FAIL해야 합니다 | runtime oracle contract 8/8 pass |
+| Focused 검증 | MJS syntax, core oracle 13/13, client-safe oracle 9/9, native exact 26/26, completion 22/22, adapter 11/11 PASS | actual browser execution not-run |
+| Semantic/generated 영향 | Fresh candidate digest `c7bb675ce4074ab029c7fe33a4333fac64b1f973ef276fc97ba647cdd56a0d1d`, 986행 sourceFlow/feature contract 변경 0입니다. Canonical/native generated fixture도 변경하지 않았습니다 | 기존 approval 986/986 유지 |
+| 미실행 경계 | 이번 correction에서는 actual `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`를 실행하지 않았습니다 | not-run / REVIEW4-65 미완료 |
+
 ### REVIEW4-65 SAFE-211 completion/current graph correction
 
 | 제목 | 수행내용 | 결과(pass/fail) |
