@@ -839,6 +839,16 @@ v3.2.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직
 | Current gate/summary contract | Native exact contract를 longrun 전 unique gate로 추가해 current 36개. Structured pre-execution summary와 resource-acquisition-aware measured cleanup을 fail-closed 검증 | contract PASS; actual acceptance 재실행 필요 |
 | Semantic review | Candidate `9d8ba380...`, 981 strict-equivalent carry-forward + `UI-018/SAFE-202/SAFE-212/OPS-169/OPS-179` independent review, approval 986/986 | package `e85b8380...`, decision `a4e9838e...`; actual UI evidence 아님 |
 
+## V390-REVIEW4-65 exact source-projection lifecycle correction
+
+| evidence | current boundary | 판정 |
+| --- | --- | --- |
+| Standalone run at `9c5410e8` | `./test_ui.sh` preflight/bootstrap PASS 뒤 manifest-validation source binding drift, executed/pass/fail 0/0/0, not-run 424. Policy v4 not-run, measured cleanup PASS | actual infrastructure FAIL; 제품 UI assertion evidence 아님 |
+| Exact projection binding | Canonical exact 424 route/control projection SHA와 native generated-case projection SHA를 사용하고 legacy whole-file implementation SHA를 거부합니다 | canonical `e3151222...`, native `2f8f39a4...`; route/role/viewport/theme/action non-provenance drift 0 |
+| Standalone fail-fast | Native exact source contract가 UI environment bootstrap 전에 실행되며 failure에서 acceptance 환경 호출 0을 contract로 확인합니다 | launcher 17/17; actual UI PASS 대체 불가 |
+| Focused gates | native 24/24, Policy 21/21, producer 9/9, independence 10/10, completion 22/22, adapter 11/11, visual 6/6, eligibility 7/7, final integrity 12/12 | 전부 contract/fixture이며 browser actual not-run |
+| Semantic review | Candidate `1dd1281b...`, 983 carry-forward + `UI-018/SAFE-202/OPS-169` independent review, approval 986/986 | package `5a4db0...`, decision `b20508b...`; actual UI evidence 아님 |
+
 ## V390-REVIEW4-65 SAFE-211 completion/current graph correction
 
 | evidence | verified result | boundary |

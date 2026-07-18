@@ -84,6 +84,26 @@ media_server_run_user_test() {
     fi
   fi
 
+  if [[ "${suite}" == "ui" ]]; then
+    local ui_source_contract_log="${output_dir}/ui-source-contract.log"
+    local ui_source_contract_status=0
+    if "${root_dir}/server.sh" verify-v390-ui-native-exact-cases-contract >"${ui_source_contract_log}" 2>&1; then
+      ui_source_contract_status=0
+    else
+      ui_source_contract_status=$?
+    fi
+    sed -n '1,240p' "${ui_source_contract_log}"
+    if [[ "${ui_source_contract_status}" -ne 0 ]]; then
+      echo "[test] failureStage=ui-source-contract" >&2
+      echo "[test] testcaseId=verify-v390-ui-native-exact-cases-contract" >&2
+      echo "[test] exitCode=${ui_source_contract_status}" >&2
+      echo "[test] logPath=${ui_source_contract_log}" >&2
+      echo "[test] reproductionCommand=${user_command}" >&2
+      echo "[test] laterNotRun=ui-environment-bootstrap,ui-exact-424,ui-fulltest-qualification,cleanup,report" >&2
+      return "${ui_source_contract_status}"
+    fi
+  fi
+
   local -a command
   case "${suite}" in
     server-30)

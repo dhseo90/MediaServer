@@ -104,6 +104,51 @@ check("server launchers use OS temp while UI and release use distinct repository
     "standalone UI output rejection");
 });
 
+check("standalone UI verifies the exact source manifest before environment bootstrap", () => {
+  assertIncludes(commonSource,
+    '"${root_dir}/server.sh" verify-v390-ui-native-exact-cases-contract',
+    "standalone UI source-manifest preflight");
+  assertIncludes(commonSource, "failureStage=ui-source-contract", "standalone UI source-manifest failure stage");
+  assert(commonSource.indexOf('verify-v390-ui-native-exact-cases-contract') <
+    commonSource.indexOf('verify-v390-test-acceptance-bundle --output-dir "${output_dir}" --suite ui'),
+  "standalone UI source-manifest preflight runs after environment delegation");
+});
+
+check("standalone UI source-contract failure cannot reach the acceptance environment", () => {
+  const fakeRoot = fixtureRoot("ui-source-contract-failure");
+  const fakeServer = path.join(fakeRoot, "server.sh");
+  const callLog = path.join(fakeRoot, "calls.log");
+  fs.writeFileSync(fakeServer, `#!/usr/bin/env bash
+set -u
+root_dir="$(cd "$(dirname "$0")" && pwd)"
+printf '%s\\n' "\${1:-missing}" >>"\${root_dir}/calls.log"
+case "\${1:-}" in
+  verify-v390-user-test-launchers-contract) exit 0 ;;
+  verify-v390-ui-native-exact-cases-contract) echo "projection drift" >&2; exit 23 ;;
+  verify-v390-test-acceptance-bundle) exit 0 ;;
+  *) exit 64 ;;
+esac
+`);
+  fs.chmodSync(fakeServer, 0o755);
+  const result = spawnSync("bash", ["-c",
+    'ROOT_DIR="$1"; source "$2"; media_server_run_user_test ui',
+    "bash", fakeRoot, path.join(rootDir, "scripts/internal/user_test_launcher_common.sh")], {
+    cwd: rootDir,
+    env: { ...contractEnv(), ROOT_DIR: fakeRoot },
+    encoding: "utf8",
+    maxBuffer: 4 * 1024 * 1024,
+  });
+  assert(result.status === 23, `UI source-contract failure exit drift: ${result.status}`);
+  assert(`${result.stdout}\n${result.stderr}`.includes("failureStage=ui-source-contract"),
+    "UI source-contract failure stage missing");
+  assert(`${result.stdout}\n${result.stderr}`.includes("testcaseId=verify-v390-ui-native-exact-cases-contract"),
+    "UI source-contract testcase ID missing");
+  const calls = fs.readFileSync(callLog, "utf8").trim().split("\n");
+  assert(JSON.stringify(calls) === JSON.stringify([
+    "verify-v390-ui-native-exact-cases-contract",
+  ]), `acceptance environment was reached after source-contract failure: ${calls.join(",")}`);
+});
+
 check("30-minute launcher delegates only the runner-owned 30-minute suite", () => {
   const outputDir = fixtureRoot("server-30");
   const result = runLower([

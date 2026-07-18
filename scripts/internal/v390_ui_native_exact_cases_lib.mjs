@@ -1563,7 +1563,8 @@ export function buildNativeExactManifest({ canonical, implementation }) {
       canonicalSchema: canonical.schema,
       canonicalSha256: sha256Json(canonical),
       implementationSchema: implementation.schema,
-      implementationSha256: sha256Json(implementation),
+      implementationBindingSchema: "media-server.v390-ui-native-generated-case-projection.v1",
+      implementationProjectionSha256: sha256Json(cases),
       runtimeOracleCatalogSchema: runtimeOracleValidation.schema,
       runtimeOracleCatalogSha256: runtimeOracleValidation.catalogSha256,
       selection: "canonical-exact-ordered-test-id",
@@ -1584,8 +1585,12 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
   const expected = buildNativeExactManifest({ canonical, implementation });
   assert(manifest.sourceBindings?.canonicalSha256 === expected.sourceBindings.canonicalSha256,
     "canonical source binding drift");
-  assert(manifest.sourceBindings?.implementationSha256 === expected.sourceBindings.implementationSha256,
-    "implementation source binding drift");
+  assert(!Object.hasOwn(manifest.sourceBindings || {}, "implementationSha256"),
+    "whole-file implementation source binding is forbidden");
+  assert(manifest.sourceBindings?.implementationBindingSchema === expected.sourceBindings.implementationBindingSchema,
+    "implementation projection schema drift");
+  assert(manifest.sourceBindings?.implementationProjectionSha256 === expected.sourceBindings.implementationProjectionSha256,
+    "implementation case projection drift");
   assert(manifest.sourceBindings?.runtimeOracleCatalogSha256 === expected.sourceBindings.runtimeOracleCatalogSha256,
     "runtime oracle catalog source binding drift");
   assert(Array.isArray(manifest.cases) && manifest.cases.length === 424, "canonical exact case count must be 424");
@@ -2020,7 +2025,7 @@ function buildCaseNativeWorkflow({
     kind: "reviewed-verifier-readback",
     locator: readbackLocator,
     verifierCommand: semantic.verifierAssertion?.command || proof.verifier?.command || "",
-    assertedSemanticDigest: semantic.verifierAssertion?.assertedSemanticDigest || proof.sourceFlowDigest || "",
+    assertedSemanticDigest: proof.sourceFlowDigest || semantic.callChain?.digest || "",
   };
   assert(expectedProductState.identity !== independentReadback.identity, `${caseId} state/readback identity self-compare`);
   assert(locatorIdentity(stateLocator) !== locatorIdentity(readbackLocator), `${caseId} state/readback locator self-compare`);

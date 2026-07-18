@@ -16,6 +16,8 @@ import {
 import { qualifyRawCase } from "./v390_ui_policy_v4_independent_qualifier.mjs";
 
 const sha256Pattern = /^[a-f0-9]{64}$/;
+export const canonicalImplementationProjectionSchema =
+  "media-server.ui-fulltest-canonical-implementation-projection.v1";
 
 export function validatePolicy(policy) {
   const errors = [];
@@ -349,7 +351,6 @@ function loadCanonicalCaseBinding(policy, summary, rootDir, reasons) {
   if (!implementationPath || !fs.existsSync(implementationPath)) {
     reasons.push("canonical-implementation-evidence-missing-file");
   } else {
-    if (sha256File(implementationPath) !== implementationRef.sha256) reasons.push("canonical-implementation-evidence-hash-drift");
     try {
       implementation = JSON.parse(fs.readFileSync(implementationPath, "utf8"));
     } catch {
@@ -360,10 +361,27 @@ function loadCanonicalCaseBinding(policy, summary, rootDir, reasons) {
       implementation?.schema !== policy.sourceBinding.canonicalImplementationEvidenceSchema) {
     reasons.push("canonical-implementation-evidence-schema-mismatch");
   }
+  if (Object.hasOwn(implementationRef, "sha256")) {
+    reasons.push("canonical-implementation-whole-file-binding-forbidden");
+  }
+  if (implementationRef.bindingSchema !== canonicalImplementationProjectionSchema) {
+    reasons.push("canonical-implementation-projection-schema-mismatch");
+  }
+  if (!sha256Pattern.test(String(implementationRef.projectionSha256 || ""))) {
+    reasons.push("canonical-implementation-projection-hash-invalid");
+  }
 
-  const implementationCases = Array.isArray(implementation?.items)
-    ? implementation.items.filter(item => item.manualUiCaseId !== null).map(implementationCanonicalCase)
-    : [];
+  let implementationCases = [];
+  if (implementation) {
+    try {
+      implementationCases = canonicalImplementationProjection({ implementation, orderedCaseIds: testIds });
+      if (implementationRef.projectionSha256 !== sha256Text(JSON.stringify(implementationCases))) {
+        reasons.push("canonical-implementation-evidence-projection-drift");
+      }
+    } catch {
+      reasons.push("canonical-implementation-evidence-projection-invalid");
+    }
+  }
   if (implementationCases.length !== policy.suiteClosure.expectedExactUiTestIds) reasons.push("canonical-implementation-exact-count-mismatch");
   if (manifestCases.length === implementationCases.length) {
     for (let index = 0; index < manifestCases.length; index += 1) {
@@ -419,33 +437,51 @@ function loadCanonicalCaseBinding(policy, summary, rootDir, reasons) {
   };
 }
 
-export function refreshCanonicalCaseManifest({ canonical, implementation, implementationSha256 }) {
-  if (!canonical || canonical.schema !== "media-server.ui-fulltest-canonical-case-manifest.v1") {
-    throw new Error("unexpected canonical case manifest schema");
-  }
+export function canonicalImplementationProjection({ implementation, orderedCaseIds }) {
   if (!implementation || implementation.schema !== "media-server.feature-implementation-evidence.v2") {
     throw new Error("unexpected implementation evidence schema");
+  }
+  if (!Array.isArray(orderedCaseIds) || orderedCaseIds.length !== 424 || new Set(orderedCaseIds).size !== 424) {
+    throw new Error("canonical implementation projection requires exact ordered 424 IDs");
   }
   const implementationByManualId = new Map(
     (implementation.items || [])
       .filter(item => typeof item.manualUiCaseId === "string" && item.manualUiCaseId)
       .map(item => [item.manualUiCaseId, item]),
   );
-  if (implementationByManualId.size !== canonical.cases.length) {
+  if (implementationByManualId.size !== orderedCaseIds.length) {
     throw new Error("canonical implementation exact case count drift");
   }
+  return orderedCaseIds.map(testId => {
+    const item = implementationByManualId.get(testId);
+    if (!item) throw new Error(`${testId} implementation item missing`);
+    return implementationCanonicalCase(item);
+  });
+}
+
+export function refreshCanonicalCaseManifest({ canonical, implementation }) {
+  if (!canonical || canonical.schema !== "media-server.ui-fulltest-canonical-case-manifest.v1") {
+    throw new Error("unexpected canonical case manifest schema");
+  }
+  if (!implementation || implementation.schema !== "media-server.feature-implementation-evidence.v2") {
+    throw new Error("unexpected implementation evidence schema");
+  }
+  const orderedCaseIds = canonical.cases.map(item => item.testId);
+  const projection = canonicalImplementationProjection({ implementation, orderedCaseIds });
+  const projectionById = new Map(projection.map(item => [item.testId, item]));
   const refreshed = structuredClone(canonical);
   refreshed.implementationEvidence = {
-    ...refreshed.implementationEvidence,
+    path: refreshed.implementationEvidence?.path || "test/fixtures/project_feature_implementation_evidence.json",
     schema: implementation.schema,
-    sha256: implementationSha256,
+    bindingSchema: canonicalImplementationProjectionSchema,
+    projectionSha256: sha256Text(JSON.stringify(projection)),
   };
   refreshed.cases = refreshed.cases.map(item => {
-    const implementationItem = implementationByManualId.get(item.testId);
-    if (!implementationItem) throw new Error(`${item.testId} implementation item missing`);
+    const projected = projectionById.get(item.testId);
+    if (!projected) throw new Error(`${item.testId} implementation projection missing`);
     return {
       ...item,
-      ...implementationCanonicalCase(implementationItem),
+      ...projected,
       accountRole: item.accountRole,
       viewport: item.viewport,
       theme: item.theme,

@@ -3,8 +3,8 @@
   "migrationVersion": "review4-acceptance-prerequisite-v2",
   "generatedBy": "verify_v390_review4_semantic_migration_contract.mjs",
   "candidateGeneratorMayApprove": false,
-  "baselineCandidateDigest": "cb7924e6b62cccc7957e442df11b229943e7d9478f1991a3c30dbf1c9ec6b0da",
-  "freshCandidateDigest": "9d8ba38065bb169d2c7ac0b163106d565d95404b95732958f47ca447f2f99548",
+  "baselineCandidateDigest": "ec38b1be142c73c9f782f4b64ae9964a68f58d32a15ffdb34fddef61c277fb0a",
+  "freshCandidateDigest": "1dd1281bd88e617b72d36a0da008a98551bc3ae14e1e2a754b68bc0d72bd9b03",
   "equivalenceAlgorithmSha256": "6d103a884ac9111b8a3356211ae757cf0285c29cec323fcaa9b32d145a48f47d",
   "carryForward": [
     {
@@ -5804,6 +5804,13 @@
       "status": "carry-forward-eligible-not-approved"
     },
     {
+      "id": "SAFE-212",
+      "oldSourceFlowDigest": "e9c57ce50a49b9e6e1616420f406b3327613f3388022f5e6d48cafafe1318357",
+      "newSourceFlowDigest": "e9c57ce50a49b9e6e1616420f406b3327613f3388022f5e6d48cafafe1318357",
+      "equivalenceDigest": "c7e40b6698bf711b88fcad137f036102f55cca2883d1b3a5a3ab322b354fcf51",
+      "status": "carry-forward-eligible-not-approved"
+    },
+    {
       "id": "SAFE-213",
       "oldSourceFlowDigest": "ecd70a5ce97e7d4dc4675817ae7a3a7c7b41c6f3e79c506ffe58db180bd81fbc",
       "newSourceFlowDigest": "ecd70a5ce97e7d4dc4675817ae7a3a7c7b41c6f3e79c506ffe58db180bd81fbc",
@@ -6840,6 +6847,13 @@
       "status": "carry-forward-eligible-not-approved"
     },
     {
+      "id": "OPS-179",
+      "oldSourceFlowDigest": "446a4e2c79ff30d749a66ac5b4bcd56e6459ec9e08a4a7653938ee3d4f99307e",
+      "newSourceFlowDigest": "446a4e2c79ff30d749a66ac5b4bcd56e6459ec9e08a4a7653938ee3d4f99307e",
+      "equivalenceDigest": "f32f85ea879a3fdd3df4c0c1a49b2ae34228757a65f87cf8f2238361574c893f",
+      "status": "carry-forward-eligible-not-approved"
+    },
+    {
       "id": "OPS-180",
       "oldSourceFlowDigest": "2d187de3f7e33aec5b6db622ba7b971991a0f68c3abb8b365b0ca60b19d412f0",
       "newSourceFlowDigest": "2d187de3f7e33aec5b6db622ba7b971991a0f68c3abb8b365b0ca60b19d412f0",
@@ -6878,8 +6892,8 @@
   "unapproved": [
     {
       "id": "UI-018",
-      "oldSourceFlowDigest": "8ecb6f165a1a97a1d14dce010a31762cf45dd841c7c21adec3789f01eaf09b40",
-      "newSourceFlowDigest": "4f71a6c7a21ed1ea23f76a071c2321e6ef79747cc7f0779180f739488cd2048b",
+      "oldSourceFlowDigest": "153f737b951d0400b166ee06e89260bb94b6c4f33aa7ecbdbd6a43f75f5abb29",
+      "newSourceFlowDigest": "5a160045eb2a9322a1ffce97ed7d6c93881a1597199eda8ac30626f0bfe9b9ab",
       "changedFields": [
         "trustBindings"
       ],
@@ -6887,17 +6901,8 @@
     },
     {
       "id": "SAFE-202",
-      "oldSourceFlowDigest": "dd55491e58027cee679e00ba6dc813955a5b46026ee5e51bf9cf756241520662",
-      "newSourceFlowDigest": "01af2d1ec3de2835112baddd40eb157f1f06fe8e65ad67a3e71ff39324a7d124",
-      "changedFields": [
-        "trustBindings"
-      ],
-      "status": "unapproved-independent-review-required"
-    },
-    {
-      "id": "SAFE-212",
-      "oldSourceFlowDigest": "16114748fadbba63e925f49b3e27d66f686b85a9301709b85e121554e44dda2a",
-      "newSourceFlowDigest": "4e8f8978f8fbeb3a2c370a91df725a8a11bac7ca29ca334ad1f1260b236659ae",
+      "oldSourceFlowDigest": "01af2d1ec3de2835112baddd40eb157f1f06fe8e65ad67a3e71ff39324a7d124",
+      "newSourceFlowDigest": "89a0bd4877dfd869156c36944998ea1410dea99ec1531b4efa198e134e388496",
       "changedFields": [
         "trustBindings"
       ],
@@ -6905,17 +6910,8 @@
     },
     {
       "id": "OPS-169",
-      "oldSourceFlowDigest": "6156bb7ea47e935742f7e4f33cc6b41c3ab5f9f55bbe5aa4ab23b47bc9afdff0",
-      "newSourceFlowDigest": "448014b1349e4a4ffe328b9fc0cd470683ee2b675e54432968d27fa3f0d0d2de",
-      "changedFields": [
-        "trustBindings"
-      ],
-      "status": "unapproved-independent-review-required"
-    },
-    {
-      "id": "OPS-179",
-      "oldSourceFlowDigest": "cb5a24437dedddd1128e08e31539e1359fbcccb636105d6ad89ee6b43f570721",
-      "newSourceFlowDigest": "32d326b1c2788a433e56162a56cb12e229e4eebff3f027293ddfa39f246c321d",
+      "oldSourceFlowDigest": "448014b1349e4a4ffe328b9fc0cd470683ee2b675e54432968d27fa3f0d0d2de",
+      "newSourceFlowDigest": "14713c16f457c5f15d9e4e2a9eeb017a27a37b38115ce02691484e8f464191f8",
       "changedFields": [
         "trustBindings"
       ],
@@ -6927,9 +6923,7 @@
     "requiredIds": [
       "UI-018",
       "SAFE-202",
-      "SAFE-212",
-      "OPS-169",
-      "OPS-179"
+      "OPS-169"
     ],
     "generationCommand": "./server.sh verify-v390-review4-feature-semantic-source-approvals --write-ledger --decisions <independent-reviewer-decision-artifact.json>",
     "generatorMayApprove": false

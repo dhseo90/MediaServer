@@ -70,6 +70,43 @@ check("builder is deterministic and preserves exact case order", () => {
     JSON.stringify(canonical.cases.map(item => item.testId)), "canonical ordered IDs drift");
 });
 
+check("non-canonical implementation review metadata does not invalidate the exact 424 manifest", () => {
+  const generated = buildNativeExactManifest({ canonical, implementation });
+  const metadataOnly = structuredClone(implementation);
+  const unrelated = metadataOnly.items.find(item => item.manualUiCaseId === null);
+  assert(unrelated?.review?.reason, "non-canonical implementation review fixture missing");
+  unrelated.review.reason = `${unrelated.review.reason}|metadata-only-contract-delta`;
+  const result = validateNativeExactManifest({ manifest: generated, canonical, implementation: metadataOnly });
+  assert(result.caseCount === 424, "metadata-only delta changed exact case coverage");
+
+  const verifierMetadataOnly = structuredClone(implementation);
+  const exactItem = verifierMetadataOnly.items.find(item => item.manualUiCaseId === "UI-001");
+  assert(exactItem?.semanticEvidence?.verifierAssertion?.assertedSemanticDigest,
+    "UI-001 verifier assertion fixture missing");
+  exactItem.semanticEvidence.verifierAssertion.assertedSemanticDigest = "0".repeat(64);
+  const verifierMetadataResult = validateNativeExactManifest({
+    manifest: generated,
+    canonical,
+    implementation: verifierMetadataOnly,
+  });
+  assert(verifierMetadataResult.caseCount === 424,
+    "verifier-file assertion metadata invalidated the exact case projection");
+});
+
+check("exact-case implementation projection drift and whole-file fallback are rejected", () => {
+  const generated = buildNativeExactManifest({ canonical, implementation });
+  const relevant = structuredClone(implementation);
+  const exactItem = relevant.items.find(item => item.manualUiCaseId === "UI-003");
+  assert(exactItem?.semanticEvidence?.stateOracle, "UI-003 state oracle fixture missing");
+  exactItem.semanticEvidence.stateOracle.expectedBehavior += " projection-drift";
+  expectManifestInvalid(generated, canonical, relevant, "implementation case projection drift");
+
+  const wholeFileFallback = structuredClone(generated);
+  wholeFileFallback.sourceBindings.implementationSha256 = "0".repeat(64);
+  expectManifestInvalid(wholeFileFallback, canonical, implementation,
+    "whole-file implementation source binding is forbidden");
+});
+
 check("admin-only ops users cases and runtime role schema stay authoritative", () => {
   const canonicalAdminCases = canonical.cases.filter(item => normalizeProductScreenRoute(item.route) === "/ops/users");
   const nativeAdminCases = manifest.cases.filter(item => item.screenRoute === "/ops/users");
@@ -1166,7 +1203,7 @@ check("stale implementation binding writes a fail-closed 0/424 pre-execution sum
   const staleManifestPath = path.join(workspace, "stale-native.json");
   const outputDir = path.join(workspace, "output");
   const stale = structuredClone(manifest);
-  stale.sourceBindings.implementationSha256 = "0".repeat(64);
+  stale.sourceBindings.implementationProjectionSha256 = "0".repeat(64);
   fs.writeFileSync(staleManifestPath, `${JSON.stringify(stale, null, 2)}\n`, "utf8");
   const run = spawnSync(path.join(rootDir, "server.sh"), [
     "run-v390-ui-native-exact-cases",
@@ -1180,7 +1217,7 @@ check("stale implementation binding writes a fail-closed 0/424 pre-execution sum
   const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
   assert(validateNativeExactPreExecutionFailureSummary(summary).length === 0,
     `pre-execution failure summary invalid: ${validateNativeExactPreExecutionFailureSummary(summary).join(", ")}`);
-  assert(summary.failure.error.includes("implementation source binding drift"),
+  assert(summary.failure.error.includes("implementation case projection drift"),
     `unexpected pre-execution failure: ${summary.failure.error}`);
 });
 
@@ -1460,6 +1497,21 @@ function runChecks() {
 
 function readJson(relativePath) {
   return JSON.parse(fs.readFileSync(path.join(rootDir, relativePath), "utf8"));
+}
+
+function expectManifestInvalid(value, canonicalValue, implementationValue, expectedMessage) {
+  let message = "";
+  try {
+    validateNativeExactManifest({
+      manifest: value,
+      canonical: canonicalValue,
+      implementation: implementationValue,
+    });
+  } catch (error) {
+    message = error instanceof Error ? error.message : String(error);
+  }
+  assert(message.includes(expectedMessage),
+    `missing error ${expectedMessage}: ${message || "validation unexpectedly passed"}`);
 }
 
 function png1x1() {

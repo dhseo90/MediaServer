@@ -973,6 +973,15 @@ current file/order/offset drift, executable token·logical-origin marker 변경�
 ./test_release.sh
 ```
 
+Source `9c5410e84dd8fd18153823ba4f9a425ed87e8615`의 standalone `./test_ui.sh` actual 1회는
+preflight/bootstrap 뒤 exact manifest whole-file implementation binding drift로 browser 실행 전 0/424 FAIL했습니다.
+제품 UI assertion 실패가 아니며 Policy v4는 not-run, PID/ephemeral port/runtime root와 acceptance cleanup은 PASS입니다.
+현재 canonical/native generator는 전체 implementation file SHA 대신 exact 424 route/control projection과 generated-case
+projection을 사용합니다. Unrelated approval/review metadata는 projection을 흔들지 않지만 route/control/state/readback 의미
+변경은 계속 fail-closed입니다. `./test_ui.sh`는 native exact source contract를 environment bootstrap 전에 실행하므로 stale
+projection에서는 server/browser를 시작하지 않습니다. 이 contract correction은 actual exact 424/Policy v4 PASS가 아니며
+checkpoint commit 뒤 새 source에서 사용자 명령을 다시 실행해야 합니다.
+
 64번의 WebRTC media application boundary와 cleanup/port lifecycle 변경은 AGENTS 7.6.2의
 120분 직접 trigger이므로 현재 cut의 release launcher는 안정화, 30분, exact 424 Policy v4 UI 뒤 120분을
 자동 선택합니다. 다른 cut에서 다섯 변경 영역/upstream signal이 없으면 120분을 `not-required`로 기록하고

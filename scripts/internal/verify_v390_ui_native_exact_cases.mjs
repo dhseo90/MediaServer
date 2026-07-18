@@ -7,7 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
-import { refreshCanonicalCaseManifest, sha256File } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
+import { refreshCanonicalCaseManifest } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
 import { buildNativeExactManifest, validateNativeExactManifest } from "./v390_ui_native_exact_cases_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -22,7 +22,7 @@ Usage:
 
 Default mode validates the checked-in manifest. --update-manifest mechanically regenerates it
 from the canonical Policy v4 binding and reviewed semantic implementation evidence.
---update-canonical-binding first refreshes the canonical implementation hash and exact
+--update-canonical-binding first refreshes the canonical exact-424 implementation projection and
 route/control bindings, then regenerates the native manifest.
 This command does not execute the actual 424-case browser suite.
 `);
@@ -38,7 +38,6 @@ if (rawArgs.includes("--update-canonical-binding")) {
   canonical = refreshCanonicalCaseManifest({
     canonical,
     implementation,
-    implementationSha256: sha256File(implementationPath),
   });
   fs.writeFileSync(canonicalPath, `${JSON.stringify(canonical, null, 2)}\n`, "utf8");
 }

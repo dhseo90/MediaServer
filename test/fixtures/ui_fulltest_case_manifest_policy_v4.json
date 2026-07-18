@@ -4,7 +4,8 @@
   "implementationEvidence": {
     "path": "test/fixtures/project_feature_implementation_evidence.json",
     "schema": "media-server.feature-implementation-evidence.v2",
-    "sha256": "2a7c6f9bcba35236c17bc81ebb2930551aefd491d1c372dbc8cebd2b2fe572fd"
+    "bindingSchema": "media-server.ui-fulltest-canonical-implementation-projection.v1",
+    "projectionSha256": "6993f9a3da10f34b8689198728c57bfb9490b4c6d33f7555f495bc615df559cf"
   },
   "caseCount": 424,
   "cases": [

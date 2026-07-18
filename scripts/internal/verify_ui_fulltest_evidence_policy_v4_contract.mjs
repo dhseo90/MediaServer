@@ -10,7 +10,13 @@ import zlib from "node:zlib";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
-import { evaluateEvidence, sha256File, sha256Text, validatePolicy } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
+import {
+  evaluateEvidence,
+  refreshCanonicalCaseManifest,
+  sha256File,
+  sha256Text,
+  validatePolicy,
+} from "./ui_fulltest_evidence_policy_v4_lib.mjs";
 import { expandVisualMatrixPlan } from "./v390_ui_visual_evidence.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -34,6 +40,8 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 const policy = JSON.parse(fs.readFileSync(path.join(rootDir, "test/fixtures/ui_fulltest_evidence_policy_v4.json"), "utf8"));
 const canonicalManifestSourcePath = path.join(rootDir, policy.sourceBinding.canonicalCaseManifestPath);
 const canonicalManifestSource = JSON.parse(fs.readFileSync(canonicalManifestSourcePath, "utf8"));
+const implementationManifestSource = JSON.parse(fs.readFileSync(
+  path.join(rootDir, canonicalManifestSource.implementationEvidence.path), "utf8"));
 const nativeManifestSourcePath = path.join(rootDir, policy.sourceBinding.nativeExactManifestPath);
 const nativeManifestSource = JSON.parse(fs.readFileSync(nativeManifestSourcePath, "utf8"));
 const nativeById = new Map(nativeManifestSource.cases.map(item => [item.caseId, item]));
@@ -127,6 +135,38 @@ try {
     const result = evaluate(candidate, tempRoot);
     assert(result.uiFulltestPass === false, "hash-valid noncanonical manifest became UI fulltest PASS");
     assert(result.reasons.includes("canonical-case-manifest-implementation-route-drift"), "manifest implementation drift reason missing");
+  });
+
+  check("canonical source binding ignores unrelated review metadata and rejects exact projection drift", () => {
+    const baseline = refreshCanonicalCaseManifest({
+      canonical: canonicalManifestSource,
+      implementation: implementationManifestSource,
+    });
+    assert(!Object.hasOwn(baseline.implementationEvidence, "sha256"),
+      "canonical manifest retained whole-file implementation fallback");
+
+    const metadataOnly = clone(implementationManifestSource);
+    const unrelated = metadataOnly.items.find(item => item.manualUiCaseId === null);
+    assert(unrelated?.review?.reason, "non-canonical implementation review fixture missing");
+    unrelated.review.reason += "|policy-metadata-only-contract-delta";
+    const metadataRefresh = refreshCanonicalCaseManifest({
+      canonical: baseline,
+      implementation: metadataOnly,
+    });
+    assert(metadataRefresh.implementationEvidence.projectionSha256 ===
+      baseline.implementationEvidence.projectionSha256,
+    "unrelated review metadata invalidated canonical exact projection");
+    assert(JSON.stringify(metadataRefresh.cases) === JSON.stringify(baseline.cases),
+      "unrelated review metadata changed canonical exact cases");
+
+    const relevant = clone(implementationManifestSource);
+    const exactItem = relevant.items.find(item => item.manualUiCaseId === "UI-003");
+    assert(exactItem?.semanticEvidence?.controlSelector, "UI-003 control selector fixture missing");
+    exactItem.semanticEvidence.controlSelector.screenRoute = "/projection-drift";
+    const relevantRefresh = refreshCanonicalCaseManifest({ canonical: baseline, implementation: relevant });
+    assert(relevantRefresh.implementationEvidence.projectionSha256 !==
+      baseline.implementationEvidence.projectionSha256,
+    "exact route drift did not invalidate canonical projection");
   });
 
   check("source file hashes remain mandatory when git source comparison is disabled", () => {

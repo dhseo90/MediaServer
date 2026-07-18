@@ -2692,6 +2692,18 @@ evidence로 사용하지 않습니다.
 | Semantic 영향/승인 | Fresh candidate `ec38b1be142c73c9f782f4b64ae9964a68f58d32a15ffdb34fddef61c277fb0a`에서 기존 983행은 strict-equivalent로 이관하고, 실제 source-flow가 바뀐 `UI-018`, `SAFE-212`, `OPS-179`만 package SHA `5516d34d620bcfe5be0a90a908969993791f3d9bfe95809e924296382ecadfab`와 decision SHA `63bb4d326d3be4528fdd661fea6bb4bfc77ed2633a89cde81eaac48598b526a3`의 독립 검토로 승인했습니다. Producer는 audit/approval/manifest 세 파일을 원자 교체하고 실패 시 기존 파일을 복원합니다 | semantic 51/51, approval 986/986, selftest 11/11, migration 9/9, feature evidence 986/986·negative 15/15, project inventory 17/17 pass |
 | 미실행 경계 | 이번 보정에서는 `./test_ui.sh`, exact 424 browser, Policy v4 actual qualification, 30분, 120분, `./test_release.sh`를 실행하지 않았습니다. Contract 결과는 actual UI PASS가 아닙니다 | not-run |
 
+### REVIEW4-65 exact source-projection lifecycle correction
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| Standalone actual failure 보존 | Source `9c5410e84dd8fd18153823ba4f9a425ed87e8615`의 sandbox 밖 `./test_ui.sh` 1회 실행은 preflight/bootstrap PASS 뒤 `manifest-validation`의 `implementation source binding drift`로 0/424 FAIL했습니다. Browser/action/assertion은 0건, Policy v4는 not-run이며 child PID/port/runtime root와 acceptance cleanup은 PASS했습니다 | infrastructure fail / ignored repository-local evidence preserved |
+| 원인 경계 | Canonical/native manifest가 986행 implementation evidence 전체 SHA와 shared verifier assertion digest에 결속돼 unrelated approval/review metadata 변경도 exact UI 전체를 무효화했습니다 | whole-file over-invalidation confirmed |
+| Row-local projection | Canonical은 exact 424의 feature/route/control projection, native는 generated exact-case projection에 결속합니다. Legacy whole-file implementation SHA를 거부하고 route/control/state/readback 의미 drift는 계속 fail-closed입니다. Unrelated non-UI review metadata와 shared verifier assertion metadata는 projection을 바꾸지 않습니다 | canonical fixture `e3151222...`, native fixture `2f8f39a4...`; non-provenance route/role/viewport/theme/action drift 0 |
+| Environment 이전 fail-stop | `./test_ui.sh`는 launcher contract 다음에 `verify-v390-ui-native-exact-cases-contract`를 실행합니다. 실패하면 `ui-source-contract`와 exact testcase ID를 출력하고 acceptance/UI environment를 호출하지 않습니다 | launcher 17/17, acceptance 17/17 pass |
+| Focused contract | Native exact 24/24, Policy v4 evidence 21/21, producer 9/9, independence 10/10, completion 22/22, adapter 11/11, visual 6/6, eligibility 7/7, final integrity 12/12, code-comments PASS | actual browser execution not-run |
+| Semantic 영향/승인 | Fresh candidate `1dd1281bd88e617b72d36a0da008a98551bc3ae14e1e2a754b68bc0d72bd9b03`에서 983행은 strict-equivalent이고 `UI-018`, `SAFE-202`, `OPS-169`만 독립 검토했습니다. Package SHA `5a4db0b15daf07b4af787ae597f88a974c91b56af881cb8904cd078d03497469`, decision SHA `b20508b8a34cde24954958876eef625f1fbb3f98ab6301afcb945f515b255d38`에 결속했습니다 | semantic 51/51, audit/approval 986/986 pass |
+| 미실행 경계 | 이번 correction에서는 `./test_ui.sh`, actual exact 424/Policy v4, 30분, 120분, `./test_release.sh`를 재실행하지 않았습니다. Checkpoint commit·push 뒤 새 commit에서 사용자 명령 1회 실행이 필요합니다 | not-run / REVIEW4-65 미완료 |
+
 ### REVIEW4-65 SAFE-211 completion/current graph correction
 
 | 제목 | 수행내용 | 결과(pass/fail) |

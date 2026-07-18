@@ -89,6 +89,16 @@ cleanup 실측 PASS로 child cleanup을 대체합니다. 이 correction에서는
 재실행한 최종 canonical/native fixture SHA는 `0aecda8305a02954b574adfb7453c4034cb8afcb2c4fb2ac8c18ec0b3dd630bc`와
 `764138aa45842eb7fe425efb582a11825c115aad81b7d98b2e44e8ebb8621aa3`이며 non-hash drift는 여전히 0입니다.
 
+Source `9c5410e84dd8fd18153823ba4f9a425ed87e8615`의 다음 standalone `./test_ui.sh` 1회는 repository-local
+output과 cleanup 불변식을 통과했지만, exact manifest가 986행 implementation evidence 전체 SHA에 결속된 탓에
+`manifest-validation`에서 0/424 FAIL했습니다. Shared verifier assertion metadata도 424행 전체를 무효화했습니다.
+Canonical/native source binding을 exact 424 route/control projection과 generated-case projection으로 교체하고 whole-file
+fallback을 금지했습니다. Unrelated review metadata는 projection을 바꾸지 않으며 exact route/control/state/readback drift는
+계속 FAIL합니다. Standalone UI launcher는 native source contract를 environment bootstrap 전에 실행합니다.
+Fresh candidate `1dd1281bd88e617b72d36a0da008a98551bc3ae14e1e2a754b68bc0d72bd9b03`은 983 carry-forward와
+`UI-018`, `SAFE-202`, `OPS-169` 독립 검토 3행으로 승인됐습니다. 이번 correction의 actual browser/Policy v4/30분/120분/release
+acceptance는 미실행이며 checkpoint commit 뒤 새 commit에서 `./test_ui.sh` 1회 재실행이 남습니다.
+
 Clean commit `edc89771`의 세 번째 canonical run은 build/34 feature gate와 real 30분 1,800초
 118 PASS/0 FAIL을 통과한 뒤 published `v3.8.0` seed와 current-only helper 정책 충돌로 UI bootstrap에서
 fail-stop했습니다. Exact 424, Policy v4, 120분, final integrity는 실행되지 않았고 이 30분 결과만으로
@@ -151,7 +161,7 @@ secret 목록을 해제합니다.
 
 `verify_v390_user_test_launchers_contract.mjs`는 네 파일 존재/실행권한/금지 인자 exit 64, exact suite 위임,
 runner-owned port, 직접 120분 승인, first-fail/later not-run, UI-only stage, release trigger 없음 `not-required`,
-다섯 AGENTS 7.6.2 변경 영역 trigger를 13/13으로 검증했습니다. Acceptance contract 14/14와 longrun contract 9/9도
+다섯 AGENTS 7.6.2 변경 영역 trigger와 UI source-contract failure의 acceptance environment 미진입을 17/17로 검증했습니다. Acceptance contract 17/17와 longrun contract 9/9도
 회귀 통과했습니다. Release launcher는 무조건 `--run-120`을 전달하지 않고 내부 `--auto-run-120`을 사용합니다.
 대용량 dirty/untracked 목록은 기존 산출물을 삭제하지 않고 64 MiB git capture buffer로 검증합니다. 실제
 build·30분·exact 424·Policy v4·120분 acceptance와 커밋·푸시는 수행하지 않았습니다.
