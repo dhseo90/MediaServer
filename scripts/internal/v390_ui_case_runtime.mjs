@@ -777,9 +777,13 @@ export function createV390UiCaseRuntime({
         caseContext,
       });
       const username = descriptor.auth?.usernames?.[item.accountRole] || "";
-      const restoredLogin = await postForm(`${httpBase}/login`, {
-        username,
-        password: originalPassword,
+      const restoredLogin = await runAuthoritativeReadbackWithSnapshotRestore({
+        snapshots: caseContext.snapshots,
+        label: `${item.caseId} original-password login`,
+        readback: () => postForm(`${httpBase}/login`, {
+          username,
+          password: originalPassword,
+        }),
       });
       assert(restoredLogin.status === 302,
         `${item.caseId} original password login failed after exact snapshot restoration`);
@@ -787,7 +791,11 @@ export function createV390UiCaseRuntime({
         cleanupId: `${item.caseId}:after-cleanup-original-login`,
         status: "PASS",
         source: "restored-auth-store-final-login",
-        readback: { status: "PASS", loginStatus: restoredLogin.status },
+        readback: {
+          status: "PASS",
+          loginStatus: restoredLogin.status,
+          authoritativeStateRestoredAfterReadback: true,
+        },
       });
     }
     if (caseContext.transientStateSeeded) {
@@ -813,7 +821,7 @@ export function createV390UiCaseRuntime({
     });
     assert(finalStateRestored, `${item.caseId} authoritative state cleanup restoration failed`);
     assert(!unexpectedStateChange,
-      `${item.caseId} no-op/read-only workflow changed authoritative state before cleanup`);
+      `${item.caseId} cleanup/readback left authoritative state changed`);
     activeCases.delete(item.caseId);
     if (browser) await browser.setCorrelationId(`${item.caseId}:cleanup-complete`);
     return caseContext.cleanupResults;
@@ -2166,6 +2174,36 @@ export function createV390UiCaseRuntime({
     assert(response.status === 302, `runtime admin login failed HTTP ${response.status}`);
     return cookieFromResponse(response);
   }
+}
+
+export async function runAuthoritativeReadbackWithSnapshotRestore({
+  snapshots,
+  readback,
+  label = "authoritative readback",
+} = {}) {
+  assert(Array.isArray(snapshots), `${label} snapshots are missing`);
+  assert(typeof readback === "function", `${label} callback is missing`);
+  let result;
+  let readbackFailure = null;
+  try {
+    result = await readback();
+  } catch (error) {
+    readbackFailure = error instanceof Error ? error : new Error(String(error));
+  }
+
+  let restorationFailure = null;
+  try {
+    restoreStateFiles(snapshots);
+    assert(stateFilesEqual(snapshots), `${label} authoritative state restoration failed`);
+  } catch (error) {
+    restorationFailure = error instanceof Error ? error : new Error(String(error));
+  }
+  if (restorationFailure) {
+    if (readbackFailure) restorationFailure.cause = readbackFailure;
+    throw restorationFailure;
+  }
+  if (readbackFailure) throw readbackFailure;
+  return result;
 }
 
 function validateUnifiedWorkspaceCaseReadback(caseId, { workspace, detail, sourceId }) {

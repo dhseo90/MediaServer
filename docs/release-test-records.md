@@ -2704,6 +2704,19 @@ evidence로 사용하지 않습니다.
 | Semantic 영향/승인 | Fresh candidate `1dd1281bd88e617b72d36a0da008a98551bc3ae14e1e2a754b68bc0d72bd9b03`에서 983행은 strict-equivalent이고 `UI-018`, `SAFE-202`, `OPS-169`만 독립 검토했습니다. Package SHA `5a4db0b15daf07b4af787ae597f88a974c91b56af881cb8904cd078d03497469`, decision SHA `b20508b8a34cde24954958876eef625f1fbb3f98ab6301afcb945f515b255d38`에 결속했습니다 | semantic 51/51, audit/approval 986/986 pass |
 | 미실행 경계 | 이번 correction에서는 `./test_ui.sh`, actual exact 424/Policy v4, 30분, 120분, `./test_release.sh`를 재실행하지 않았습니다. Checkpoint commit·push 뒤 새 commit에서 사용자 명령 1회 실행이 필요합니다 | not-run / REVIEW4-65 미완료 |
 
+### REVIEW4-65 UI-004 cleanup-readback correction
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| Standalone actual failure 보존 | Source `a762df04b5c1d550caf3364186ef795e674601e6`의 sandbox 밖 `./test_ui.sh` 1회 실행은 preflight/bootstrap PASS, UI-001~003 PASS 뒤 UI-004에서 중단됐습니다. Exact 집계는 executed/pass/fail/not-run `4/3/1/420`, actual browser true이며 Policy v4는 not-run입니다. PID/ephemeral port/runtime root와 acceptance cleanup은 PASS했습니다 | infrastructure oracle fail / ignored repository-local evidence preserved |
+| 직접 확인한 원인 | UI-004는 `form-submit` mutation으로 `POST /password/change`, users store 변경, 이전 비밀번호 거부, 새 비밀번호 로그인, password history 재사용 거부를 확인합니다. Cleanup snapshot 복원 뒤 수행한 원래 비밀번호 최종 로그인이 `AuthenticateUserPassword`의 `lastLoginAt`/`lastLoginIp` 저장을 일으켰고, 이 readback 변경을 재복원하지 않은 채 byte boundary가 read-only 위반으로 오판했습니다 | root cause confirmed; 제품 비밀번호 변경 FAIL로 분류하지 않음 |
+| 원천 보정 | `runAuthoritativeReadbackWithSnapshotRestore`가 cleanup authoritative readback 성공·예외 뒤 모든 owned state snapshot을 복원합니다. 복원 실패는 readback 실패를 cause로 보존해 우선 보고하고, 정상 복원 시 원 readback 결과 또는 원 오류를 유지합니다. UI-004 최종 로그인은 이 경계만 사용하며 이후 byte-equality boundary도 유지합니다 | fail-closed restoration |
+| 회귀 계약 | 임시 users 파일을 실제로 변경하는 302 성공 callback과 의도적 예외 callback을 각각 실행해 두 경우 모두 baseline byte 복원, 성공 결과 보존, 원 예외 보존을 확인합니다. Source 문자열만 맞추는 fixture가 아닙니다 | native exact 25/25 pass |
+| Focused 검증 | MJS syntax, completion oracle 22/22, native adapter 11/11, acceptance bundle 17/17 PASS | actual browser execution not-run |
+| Semantic 영향/승인 | Fresh candidate `8dfefc9da3634c4e355e8b252d6d2878c7bd36df4b0474b2a2296ad109ca7208`에서 985행은 strict-equivalent이고 shared native verifier의 exact UI-018 행만 독립 검토했습니다. Migration/package/decision SHA는 `facbbb710b7c9a8b563aff7c36edc6b3c8641a13f70f42fcad2ac9ca8b24ad23`/`0841766313f9b2a6c1c0cce728373d177e984090dc624b13eaa5190b1dec61d0`/`624b6237d13913d26fac728bac37d6c4470fa1db3d0e491ed53da67288525f77`입니다 | approval 985 carry-forward + UI-018 independent review, coverage 986/986 |
+| Generated binding refresh | 승인 적용 뒤 공식 generator 전후 비교에서 canonical fixture 변경 0, native digest/provenance 변경 293, 424 ordered ID·route·role·viewport·theme·action·workflow·cleanup non-hash 변경 0을 확인했습니다. 최종 SHA는 canonical `e3151222e545a60b6e66073de751e52019e0a1bedbcbea290638ed62a8105989`, native `2e997a047637d30792ea9f299261621ca2f16b907275807a6dedf912038086c0`입니다 | generated binding only |
+| 미실행 경계 | 이번 correction에서는 `./test_ui.sh`, actual exact 424/Policy v4, 30분, 120분, `./test_release.sh`를 재실행하지 않았습니다 | not-run / REVIEW4-65 미완료 |
+
 ### REVIEW4-65 SAFE-211 completion/current graph correction
 
 | 제목 | 수행내용 | 결과(pass/fail) |

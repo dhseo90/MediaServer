@@ -28,6 +28,7 @@ import {
 import {
   createV390UiCaseRuntime,
   formReadbackProfiles,
+  runAuthoritativeReadbackWithSnapshotRestore,
   seedExactAccessRequestFixture,
   seedEventRecordFixture,
 } from "./v390_ui_case_runtime.mjs";
@@ -1083,9 +1084,9 @@ check("case runtime keeps generated secrets ephemeral and rejects state path esc
     assert(!fs.readFileSync(descriptorPath, "utf8").includes(generated),
       "generated runtime secret leaked into the safe descriptor");
     assert(runtimeSource.includes("acceptance-owned-state-file-byte-readback") &&
-      runtimeSource.includes("no-op/read-only workflow changed authoritative state before cleanup") &&
+      runtimeSource.includes("cleanup/readback left authoritative state changed") &&
       runtimeSource.includes("assert(!unexpectedStateChange"),
-    "case runtime no-op/read-only authoritative state boundary is not fail-closed");
+    "case runtime authoritative state boundary is not fail-closed");
 
     const escapedPath = path.join("/private/tmp", `v390-case-runtime-escape-${process.pid}.json`);
     fs.writeFileSync(escapedPath, "{}\n", { mode: 0o600 });
@@ -1101,6 +1102,52 @@ check("case runtime keeps generated secrets ephemeral and rejects state path esc
     }
     fs.rmSync(escapedPath, { force: true });
     assert(rejected, "runtime descriptor accepted a state file outside its temporary root");
+  } finally {
+    fs.rmSync(temporaryRoot, { recursive: true, force: true });
+  }
+});
+
+check("authoritative cleanup readback restores state after success and failure", async () => {
+  const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), "media_server_v390_cleanup_readback_"));
+  const stateFile = path.join(temporaryRoot, "users.json");
+  const baseline = Buffer.from('{"users":[{"username":"operator","lastLoginAt":""}]}\n');
+  const snapshots = [{
+    path: stateFile,
+    exists: true,
+    mode: 0o600,
+    bytes: baseline.toString("base64"),
+  }];
+  try {
+    fs.writeFileSync(stateFile, baseline, { mode: 0o600 });
+    const result = await runAuthoritativeReadbackWithSnapshotRestore({
+      snapshots,
+      readback: async () => {
+        fs.writeFileSync(stateFile, '{"users":[{"username":"operator","lastLoginAt":"changed"}]}\n');
+        return { status: 302 };
+      },
+      label: "UI-004 original-password login",
+    });
+    assert(result.status === 302, "successful cleanup readback result was not preserved");
+    assert(fs.readFileSync(stateFile).equals(baseline),
+      "successful cleanup readback left authoritative state changed");
+
+    let failureMessage = "";
+    try {
+      await runAuthoritativeReadbackWithSnapshotRestore({
+        snapshots,
+        readback: async () => {
+          fs.writeFileSync(stateFile, '{"users":[{"username":"operator","lastLoginAt":"failed"}]}\n');
+          throw new Error("intentional readback failure");
+        },
+        label: "UI-004 failing original-password login",
+      });
+    } catch (error) {
+      failureMessage = error instanceof Error ? error.message : String(error);
+    }
+    assert(failureMessage === "intentional readback failure",
+      "cleanup readback failure was not preserved");
+    assert(fs.readFileSync(stateFile).equals(baseline),
+      "failed cleanup readback left authoritative state changed");
   } finally {
     fs.rmSync(temporaryRoot, { recursive: true, force: true });
   }
@@ -1381,7 +1428,7 @@ check("failed case partial artifacts are referenced, deduplicated, and orphan-fr
   }
 });
 
-const result = runChecks();
+const result = await runChecks();
 console.log("");
 console.log("== v3.9.0 exact native UI case contract summary ==");
 console.log("- canonicalExactCases: 424");
@@ -1479,12 +1526,12 @@ function check(name, fn) {
   checks.push({ name, fn });
 }
 
-function runChecks() {
+async function runChecks() {
   let pass = 0;
   let fail = 0;
   for (const item of checks) {
     try {
-      item.fn();
+      await item.fn();
       pass += 1;
       console.log(`[pass] ${item.name}`);
     } catch (error) {

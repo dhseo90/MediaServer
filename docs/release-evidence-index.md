@@ -849,6 +849,17 @@ v3.2.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직
 | Focused gates | native 24/24, Policy 21/21, producer 9/9, independence 10/10, completion 22/22, adapter 11/11, visual 6/6, eligibility 7/7, final integrity 12/12 | 전부 contract/fixture이며 browser actual not-run |
 | Semantic review | Candidate `1dd1281b...`, 983 carry-forward + `UI-018/SAFE-202/OPS-169` independent review, approval 986/986 | package `5a4db0...`, decision `b20508b...`; actual UI evidence 아님 |
 
+## V390-REVIEW4-65 UI-004 cleanup-readback correction
+
+| evidence | current boundary | 판정 |
+| --- | --- | --- |
+| Standalone run at `a762df04` | `./test_ui.sh` preflight/bootstrap PASS, UI-001~003 PASS 뒤 UI-004에서 executed/pass/fail/not-run `4/3/1/420`. Actual browser true, Policy v4 not-run, measured cleanup PASS | actual infrastructure oracle FAIL; 제품 비밀번호 변경 PASS evidence로 사용 불가 |
+| Root-cause binding | UI-004 mutation/readback 뒤 snapshot 복원은 성공했지만 원래 비밀번호 최종 로그인 readback이 users 파일의 `lastLoginAt`/`lastLoginIp`를 다시 기록한 뒤 재복원되지 않았습니다 | `no-op/read-only` 분류 오류가 아니라 cleanup readback 순서 결함 |
+| Restoration contract | 상태를 쓰는 authoritative cleanup readback의 성공·예외 뒤 snapshot byte를 항상 복원하고 원 결과/오류를 보존합니다 | native exact 25/25; actual UI 재실행 전 source readiness만 인정 |
+| Focused gates | MJS syntax, completion 22/22, adapter 11/11, acceptance 17/17 | actual exact 424, Policy v4, 30분, 120분, release acceptance not-run |
+| Semantic review | Candidate `8dfefc9d...`, 985 carry-forward + `UI-018` independent review, approval 986/986 | migration `facbbb71...`, package `08417663...`, decision `624b6237...`; actual UI evidence 아님 |
+| Generated binding | Canonical fixture `e3151222...` unchanged, native fixture `2e997a04...`; digest/provenance 293 changes and product/workflow non-hash 0 | official generator output; actual UI evidence 아님 |
+
 ## V390-REVIEW4-65 SAFE-211 completion/current graph correction
 
 | evidence | verified result | boundary |
