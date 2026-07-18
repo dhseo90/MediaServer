@@ -5,9 +5,9 @@
     "canonicalSha256": "56b9fa6f376664856e8df1a6434b8659e91675f5a7f3884fb4c865736824c80c",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "0ccba4222034adf7ea3997c92e0d8418588f0664b5d6c53f0e81b9f4456a2cb9",
+    "implementationProjectionSha256": "7a3d82e4425e0419206ee3a85378d02e5d8f02f0cb88ac8deac35813bf332b2d",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "23af5d4e2abe5e7e8c9c995ac35fc61e6858b7b3f162a693e0c5a0a3d2ff5615",
+    "runtimeOracleCatalogSha256": "1025324d757a7d7e6096d10b82009b0229dda6655c9e375603c72b68d92b84d8",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -321,7 +321,7 @@
             "text": "auth/setup 상태별 redirect가 실제 route와 브라우저 화면에서 일치",
             "sha256": "a581afeda3091b93b9ca89cc5cdd75c0a9122bb0139dc2a6fac53bfc49c0071b"
           },
-          "specSha256": "1d6c2b099788ad3ec35d69cbc845e274749a8a0c8c911512f6a09895d70dcc9b",
+          "specSha256": "8f7d038f412dce042590df47c2b9238a596062aa84193e6dc60d51805f68bccd",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -998,7 +998,7 @@
             "text": "setup form 표시, S08 `auth-form-grid`/password policy panel, weak/strong password flow 직접 확인",
             "sha256": "f44961be73ee6e07c913f79ddcf045a5efd06d60f2bea8ce1478ea1945f46ba0"
           },
-          "specSha256": "dba653ca65c13dd44f7a576f128d7d5bf1a6bd2814325512e86db8cc66db85d9",
+          "specSha256": "87d1a03707045e9952f3611f44cf8640bcf85cc2c43056f56185f3f404619f1b",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -1749,7 +1749,7 @@
             "text": "S08 `auth-login-form` credential 입력 후 role landing 확인",
             "sha256": "60b1ba654195a63cc5c0d0b05446a304cf7979ded85d85872bac1450314512a8"
           },
-          "specSha256": "6f190174a2486ebc1712c5235d283d9475b3a58b36d89671af36e83309047059",
+          "specSha256": "5c087e5f1772ff5de6f943afbc79bbc0fa78221b7b1e9f0a723c8ea2c9206215",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -2506,7 +2506,7 @@
             "text": "S08 `auth-password-change-form`, 사용자 지정 테스트 pw -> 임시 pw 변경 성공, 임시 pw 로그인, 즉시 원래 pw 재사용 거부, history count 기준 복원 후 최종 로그인 확인",
             "sha256": "d97d5f54966ab4dcc224d967fc5ff1820ebbdc7e2cddee8c625b219bccda1ab4"
           },
-          "specSha256": "0bf889f53f378c7f7f86c813cf72aff3797ddf9da3bab2ce42dbf8704c1a1379",
+          "specSha256": "8e4e92785928f0bd0646544d245968b23bd73114b803501ef7e4e547f98cfcae",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -3232,7 +3232,7 @@
             "text": "logout action 후 세션 종료와 보호 route 재접근 차단 확인",
             "sha256": "2d64633de9cf710524302bac0f6ff1de06937e5d6c77fb86da7a151c52cde34e"
           },
-          "specSha256": "ba7c94b49ac3e0d6e96ad68b40d745fdc69dedd3b375f8f4581e352cdb2e1776",
+          "specSha256": "10b0bd9acab757b1beab581c5a9631208884a376e0f3437988297c542b65c13d",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -3970,7 +3970,7 @@
             "text": "S08 `auth-invite-setup-form`, invite setup 전후 login/client 접근 경계 확인",
             "sha256": "da98e84cf0f0acdff3d28f1fb9556a5688d7b731e3a2f1fd157454b34b2b1a5c"
           },
-          "specSha256": "78d13b173fc82c71cc23c212d455508c706dda3b3e108b429b4aa8a51ebd9ffe",
+          "specSha256": "48288d06df9036ef1ce444efc521b824a6d4e2d7c7f75ddedf90f836d0ed904a",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -4742,7 +4742,7 @@
             "text": "S08 `auth-access-request-form`, request submit, pending copy, 승인 전 접근 차단 확인",
             "sha256": "369115bd854774b2872b93c2c631149ca84758a1b153e4301716a85c6533d969"
           },
-          "specSha256": "672d5bd376ec81c30989da9822577d761daa404ac7d5ef4b6dc8b540e98f44e2",
+          "specSha256": "e3357ed625f5f20f7ab66ebf9aebd9f3d8f3fea19d38f6a71f35bff44300683b",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -5457,7 +5457,7 @@
             "text": "home summary/nav/status와 S05 `ops-workspace-home` action grid가 표시되고 320/390/760/1180 overflow 없음",
             "sha256": "99466aeeb917582b4486638143e40b3799ba82f830b038542567d5c9030f6181"
           },
-          "specSha256": "94e7941151839ee5e8f325c0438a286a41ce103f5a374b041a73fe0877b7e6f3",
+          "specSha256": "57dce72de69b026266660a2e07a0e14a950c6a4edbd1c03a1435604bc66ad716",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -6076,7 +6076,7 @@
             "text": "filter/search/copy/refresh, root cause/runtime/event panel, S05 `ops-workspace-dashboard` diagnostic grid 표시 확인",
             "sha256": "eb0563a6fa624c184e9ced2c2674b995e90a3cdf2adc755386d9812a9995825c"
           },
-          "specSha256": "f2934cac4d38426e279599d6695e76716bc44a4c280e806d067a8bff24589927",
+          "specSha256": "ecd646e4c5dd7b0b0847b4c458ff71fc2833a18ecf4068327377856732e70181",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -6687,7 +6687,7 @@
             "text": "source/view CRUD와 validation을 직접 조작",
             "sha256": "00a5a8465cb5858afc0a0722144e0a95d704b620fef1cfc80c8692f18883aabe"
           },
-          "specSha256": "3f69b4cca039c704cd8251f2d78875dc2176026167d28254ea004fdf9d30976d",
+          "specSha256": "08e84e4ab48f53dead37a1361569005858ab9141855b776d9ea05b81a5e55320",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -7306,7 +7306,7 @@
             "text": "rule/template/profile CRUD, validation, preview, S06 `rules-workspace` readiness/assist/catalog/detail flow와 320/390/760/1180 overflow 확인",
             "sha256": "42de61d610d363827b7e32dce34393f517811b639d22a4cbb8b0b966effbf303"
           },
-          "specSha256": "a6eb67c91a9f8b39419d434903c12eb727336d6f9f68ffd5f69cc902c7ce70f0",
+          "specSha256": "b60def6201d7a2578b49498c3ca9871e7e5b7426d02e544baed66e19d9a006b5",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -7918,7 +7918,7 @@
             "text": "user/invite/access request/role/scope flow 확인",
             "sha256": "cfc990d5cf6da7b4209f7a78f52d2ef8d5e9b05946c2c5504528e574b2cac761"
           },
-          "specSha256": "d63b25df1b5083c48ae9d8277a4b2788cca4f63732c520f4802a092b153b9429",
+          "specSha256": "13a558efe246a7d829fd4bb636d9c2653de959c9a9331dce7405fe9672cacd9f",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -8528,7 +8528,7 @@
             "text": "operator review inbox list/detail, evidence refs, review state, operator note, false-positive/action target 저장 흐름과 primary nav 비노출 경계 확인",
             "sha256": "bbd130c0e9b3a4c5d90d3416deb63e47647f5388fb59b4d1bd813b696e3b9463"
           },
-          "specSha256": "91ae072222d667cf683d5a5dc99bdcbae7b66fdf9b7f3a204ceeb782c4aa3357",
+          "specSha256": "b38295f7e77ea8ba017a0f028842101b0ad3f0a5262a81abc870b51beb0ccb25",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -9142,7 +9142,7 @@
             "text": "video viewport/control/status/overlay, S07 `client-live-workspace` video-first grid, viewer redaction, session 지속성 확인",
             "sha256": "48139d66553ec58af9676a5b7c8b6d88cbe5da70773cebea27425ff1dee879b8"
           },
-          "specSha256": "50c25a3cb2fa631d5d334931cc73028eb7aa52ca54b08a4fed5333cf53b5e4a8",
+          "specSha256": "7728c94459fbd9ddad28bad1d6a3e6a2577ada90631119b7e49c110768060ebb",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -9760,7 +9760,7 @@
             "text": "viewer scope 내 dashboard/filter/sort/copy와 S07 `client-viewer-dashboard` status/event summary 확인",
             "sha256": "590f0341be23e7a241f54528007f71e74c9dd472ec90b5768529605cbac7d3cc"
           },
-          "specSha256": "d4ebdb3df438fa01c98484b9ba4d7df121ae9931455c3272d315d84f2a4db779",
+          "specSha256": "7abe42e651120b537bf1457da3b811dfa85e77bf2e48a2370d6317966e8f0de7",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -10378,7 +10378,7 @@
             "text": "viewer scope 내 events 표시, S07 `client-viewer-events` direct route, 비노출 경계 확인",
             "sha256": "5a6caf3f034ee51006ca17aeb0bb7c9cc5c793fb42e10e35444b0d0deabb4a86"
           },
-          "specSha256": "4a80d7cc314555e41b6f6543fc4b5602ec97034d7a2442695cc6c3ff90f14e78",
+          "specSha256": "619866a39ddc7220bf55879b4ad3437159f0f8c38880459f1e5159a936a4cccf",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -10886,7 +10886,7 @@
             "text": "이전 제품 UI route와 임의 route가 제품 UI로 열리지 않음",
             "sha256": "f1144f7c0adcce66ac91dff5640cde8374fb5425ee81f003c48bb3e8bc36e246"
           },
-          "specSha256": "d22f9f0229bf67c6d42c610bd6853a9ae8641b2a751d5f0e291ddbc87a1b0373",
+          "specSha256": "d29e9174674f04c812962ffecb3ad11d1fdb55ac2bfc56ac09a34896f6b0563e",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -11380,7 +11380,7 @@
             "text": "주요 화면에서 contrast/token/상태 색상 일관성 확인",
             "sha256": "d6d600fbe2129e9f04c1dff154cb0a8f5f0c9dbb32c6eb6cf6e643ef5fd505a5"
           },
-          "specSha256": "275b73e432729af98ece863c70bdbf72bd8da021ebe013655519021d2e7f71dd",
+          "specSha256": "1d256cec5c036a4103768d970163e0a8c9838540b1ed57afb57676e912767ecf",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -11991,7 +11991,7 @@
             "text": "1180px 이상에서 nav/table/form/video 겹침 없음",
             "sha256": "d115472ddf4fd114482204962236d8976b8e35a3fa09356d6b685c945d648128"
           },
-          "specSha256": "32108bbefc62112d664aa432c84eb09b916f46fc80d858d50b973422f775b0c8",
+          "specSha256": "35369460fda48cddcd6f8f63b940734f2df8282d0d35bf5cb9ca04606cd96cbb",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -12610,7 +12610,7 @@
             "text": "320px/390px에서 text/control/video overflow 없음",
             "sha256": "a9c7aa83df2de8f442bf98fb6f6da108f1a742c9fcd0450097ee3e6f33d58354"
           },
-          "specSha256": "2516ffe77bcf863cc66751c49dc24a08a0763d6d72bc14f56e47e22eca9ba36b",
+          "specSha256": "0aac980e48cb35d20561bc5b3cdf58819e5a18e1487df94ca92e744c78a7cf12",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -13128,7 +13128,7 @@
             "setupId": "UI-022:reviewed-state",
             "strategy": "hidden-disabled",
             "route": "/ops/vlm",
-            "semanticCallChainSha256": "23a87e1d30f740e32ecbcb6a64a287c5e656ef04b2ca6dfbd2c9f97d8bac340c",
+            "semanticCallChainSha256": "06abb9f815c9e6143617f524e39c01ec73ec99ecc28b1e1990bcf2de69e35cc5",
             "persistedMutation": false,
             "fixtureId": "ui-022-review4-fixture",
             "beforeSnapshotRef": null
@@ -13202,7 +13202,7 @@
             "contextSha256": "803529072bc9f63021989b1886d1e59f2fcef6a4029de92e26490018d3552608"
           },
           "verifierCommand": "verify-vlm-install-connection-ui",
-          "assertedSemanticDigest": "23a87e1d30f740e32ecbcb6a64a287c5e656ef04b2ca6dfbd2c9f97d8bac340c"
+          "assertedSemanticDigest": "06abb9f815c9e6143617f524e39c01ec73ec99ecc28b1e1990bcf2de69e35cc5"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -13214,7 +13214,7 @@
             "text": "Ops-only route에서 local/cloud dry-run 후보, cloud opt-in guard, 단일 선택 상태, 실행/저장 없음 boundary가 표시되고 viewer/client에는 노출되지 않음",
             "sha256": "0d7e4c1950ffa6507114dc3c6e6cb38a724d45dcb60747c486f1f79b2f740fe7"
           },
-          "specSha256": "3f8e4cb440f1cc73110f7e9f1251e1074c968e016ac4e973e3d637a4a612c4ef",
+          "specSha256": "9b65331f020fe07dfd51441a6f7fa68c1fe9593780e34422c0de9f51e4ba3610",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -13456,7 +13456,7 @@
             "cleanupId": "UI-022:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "23a87e1d30f740e32ecbcb6a64a287c5e656ef04b2ca6dfbd2c9f97d8bac340c"
+            "semanticCallChainSha256": "06abb9f815c9e6143617f524e39c01ec73ec99ecc28b1e1990bcf2de69e35cc5"
           }
         ]
       },
@@ -13861,7 +13861,7 @@
             "text": "선택한 dry-run 후보를 profile ID, prompt profile, 평가 상태, 활성화/fallback/disable 상태와 함께 저장하고 저장 목록/삭제가 Ops-only로 동작",
             "sha256": "5700862b30abffc4ea9acc4d9d7dcf161c3aa45778c112272952d8af3328606f"
           },
-          "specSha256": "0c2b2c65eaaf8f0281b572ca541d2f894571b65a713f38d9ec3cd0dd49a564c6",
+          "specSha256": "eacd24814447df9ae9bd948f78bb0a85cb3d82f17ed95043f384716176b9983e",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -14544,7 +14544,7 @@
             "text": "Cloud 후보에서 외부 전송 경고 확인과 provider logging/retention 검토가 profile 저장 전 guard로 표시되고, local 후보는 provider 전송 없음 상태로 표시",
             "sha256": "24c5834ad42fee7a8c89c2360e78b2ed69f6979cf21c1508adb1c2bad645552a"
           },
-          "specSha256": "de48ad31f456ee529c5e9371ededa0a149ee9a59f62cb4e2a9c63f07f8f83588",
+          "specSha256": "7e4ad338412ad4a6f4eb25702cc110032376052fe7f35500a9702f153471d30b",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -15072,7 +15072,7 @@
             "setupId": "UI-025:reviewed-state",
             "strategy": "actionable",
             "route": "/ops/vlm",
-            "semanticCallChainSha256": "f7774d888f6a26d9885e90b84127e401b3e23b099b6cc6ecb09afb3d9cfe326c",
+            "semanticCallChainSha256": "8ba15a25362ace192ab7f19f893e4a1cc1e78a9982c2ceb61a518b6ff10ebb26",
             "persistedMutation": false,
             "fixtureId": "ui-025-review4-fixture",
             "beforeSnapshotRef": null
@@ -15149,7 +15149,7 @@
             "contextSha256": "17e2401c8566dad8707faa22d0df1e76118b9fd4b75bc0a96231133d3726d567"
           },
           "verifierCommand": "verify-vlm-install-connection-ui",
-          "assertedSemanticDigest": "f7774d888f6a26d9885e90b84127e401b3e23b099b6cc6ecb09afb3d9cfe326c"
+          "assertedSemanticDigest": "8ba15a25362ace192ab7f19f893e4a1cc1e78a9982c2ceb61a518b6ff10ebb26"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -15161,7 +15161,7 @@
             "text": "hardware class, runtime readiness, 추천/대안/비추천 사유가 Ops-only로 표시되고 자동 설치/호출/저장 action은 발생하지 않음",
             "sha256": "8bbbc88e368d8f2eda58ca20d85bdd8243387d677fd0e32702adfe0b6b042bc5"
           },
-          "specSha256": "89985d2aa04369d3e3714b7699b87bc7a4e10a6e86c78391a21ed4602dbd25f8",
+          "specSha256": "4a9829b592a2a19b9037cc4ecca7254116fb7893d3df6bcc2c14a9b2951a11b5",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -15406,7 +15406,7 @@
             "cleanupId": "UI-025:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "f7774d888f6a26d9885e90b84127e401b3e23b099b6cc6ecb09afb3d9cfe326c"
+            "semanticCallChainSha256": "8ba15a25362ace192ab7f19f893e4a1cc1e78a9982c2ceb61a518b6ff10ebb26"
           }
         ]
       },
@@ -15738,7 +15738,7 @@
             "setupId": "UI-026:reviewed-state",
             "strategy": "actionable",
             "route": "/ops/vlm",
-            "semanticCallChainSha256": "116e757a439f237607219cc7a5b35b32a2d98c6f16527dff3a54af1a64b001a3",
+            "semanticCallChainSha256": "d5af7425fe5a1bfe499e52adf71ab325f4fff2865f64527c920c011e529e811a",
             "persistedMutation": false,
             "fixtureId": "ui-026-review4-fixture",
             "beforeSnapshotRef": null
@@ -15810,7 +15810,7 @@
             "contextSha256": "a16dde247f389bb7c250b0ac545867f88313a1f7a3677675689193114f540aab"
           },
           "verifierCommand": "verify-vlm-install-connection-ui",
-          "assertedSemanticDigest": "116e757a439f237607219cc7a5b35b32a2d98c6f16527dff3a54af1a64b001a3"
+          "assertedSemanticDigest": "d5af7425fe5a1bfe499e52adf71ab325f4fff2865f64527c920c011e529e811a"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -15822,7 +15822,7 @@
             "text": "local 후보 선택 버튼이 단일 선택 상태를 반영하고 model download, runtime install, profile 저장 없이 dry-run 상태만 갱신",
             "sha256": "0b198a3f564129c6f5774ca5e3e98ecc2ef36e9814456366ec73af9e642c2acb"
           },
-          "specSha256": "2e45f5f8cb181212172c9a2791358808bd05f13386a001c61a25cc2e60a8aab2",
+          "specSha256": "35132dfa9ae61539df01568ab44fafe276c07173e32c295b8362a27ac7ad338f",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -16175,7 +16175,7 @@
             "cleanupId": "UI-026:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "116e757a439f237607219cc7a5b35b32a2d98c6f16527dff3a54af1a64b001a3"
+            "semanticCallChainSha256": "d5af7425fe5a1bfe499e52adf71ab325f4fff2865f64527c920c011e529e811a"
           }
         ]
       },
@@ -16458,7 +16458,7 @@
             "setupId": "UI-027:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/vlm",
-            "semanticCallChainSha256": "5c478ab009864dc1794189da6ab3b96f41f9b447225ef02dd4751e7a28e3ac0d",
+            "semanticCallChainSha256": "50544049019370631d71b7007e85de974d74bfa6ff339808f461cceb7750910b",
             "persistedMutation": false,
             "fixtureId": "ui-027-review4-fixture",
             "beforeSnapshotRef": null
@@ -16532,7 +16532,7 @@
             "contextSha256": "b0cf2f6b7a271cdf6457d36137eaf9ab95b5f856174c300aab330fed06a72bb3"
           },
           "verifierCommand": "verify-vlm-install-connection-ui",
-          "assertedSemanticDigest": "5c478ab009864dc1794189da6ab3b96f41f9b447225ef02dd4751e7a28e3ac0d"
+          "assertedSemanticDigest": "50544049019370631d71b7007e85de974d74bfa6ff339808f461cceb7750910b"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -16544,7 +16544,7 @@
             "text": "cloud opt-in 전 후보가 disabled 상태이며 opt-in 확인 후에도 provider API 호출/credential 저장 없이 dry-run 선택만 반영",
             "sha256": "9585ad5f024aa26cad53b448ccc05fdb36ee1b15ef5aedf2b892f475ce1a68ce"
           },
-          "specSha256": "e11ddd4616ec5c46f6473c552688900f63399a3a184df52dd832fa546dfe06f9",
+          "specSha256": "40c466550e4d1adde3b99d110435416e26a6f2e8d8b94e2af5a381129daa183b",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -16793,7 +16793,7 @@
             "cleanupId": "UI-027:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "5c478ab009864dc1794189da6ab3b96f41f9b447225ef02dd4751e7a28e3ac0d"
+            "semanticCallChainSha256": "50544049019370631d71b7007e85de974d74bfa6ff339808f461cceb7750910b"
           }
         ]
       },
@@ -17072,7 +17072,7 @@
             "setupId": "UI-028:reviewed-state",
             "strategy": "actionable",
             "route": "/ops/vlm",
-            "semanticCallChainSha256": "f7272130591bffc33169885e60c38d6efb113d8899075087ac75568854ceaece",
+            "semanticCallChainSha256": "25a7a1a67ee410030eb4c82a90fbfcb07976b8aaa2aa73abcfc3ef8b7b607266",
             "persistedMutation": false,
             "fixtureId": "ui-028-review4-fixture",
             "beforeSnapshotRef": null
@@ -17149,7 +17149,7 @@
             "contextSha256": "c6d2edf6704572d891dbb2cac9312b2e4c2e929d7157266608d7af77a7141479"
           },
           "verifierCommand": "verify-vlm-install-connection-ui",
-          "assertedSemanticDigest": "f7272130591bffc33169885e60c38d6efb113d8899075087ac75568854ceaece"
+          "assertedSemanticDigest": "25a7a1a67ee410030eb4c82a90fbfcb07976b8aaa2aa73abcfc3ef8b7b607266"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -17161,7 +17161,7 @@
             "text": "profile row의 active/fallback/disabled 상태가 저장 목록과 상세 copy에 반영되고 VLM runtime 호출은 발생하지 않음",
             "sha256": "f2248e91cd5e6af1e509a4436f15fc7c07b99366290db34cb07b0d22fd921d56"
           },
-          "specSha256": "19284988fce3b5037672cd183a71694e5e9fa05949beacce38705057d4051dcb",
+          "specSha256": "c486a00ee8919213a3b7c5b35e48c12916aeeca20c2f99f4dc6e68f80fab807e",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -17406,7 +17406,7 @@
             "cleanupId": "UI-028:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "f7272130591bffc33169885e60c38d6efb113d8899075087ac75568854ceaece"
+            "semanticCallChainSha256": "25a7a1a67ee410030eb4c82a90fbfcb07976b8aaa2aa73abcfc3ef8b7b607266"
           }
         ]
       },
@@ -17811,7 +17811,7 @@
             "text": "삭제 버튼이 Ops-only로 동작하고 삭제 후 목록에서 제거되며 EventRecord, sidecar, media path에는 영향 없음",
             "sha256": "931d17b5cae7661eca232afdca45e870c18acf745dbbf18d908d6be95b57af79"
           },
-          "specSha256": "966b38ce3c1c5ffe5f1f45731c4c429747386b7d081e0388e9e36116fbbfd707",
+          "specSha256": "875ea56e6340d176dd4effac3c4b1a81ebcdc203d8591de908a3088d1f21ee32",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -18413,7 +18413,7 @@
             "setupId": "UI-030:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/vlm",
-            "semanticCallChainSha256": "72d85c66d8854d8a9b62432e4d65ddf8ff88378fdfc7ebd64f6780e437f3853c",
+            "semanticCallChainSha256": "c004be1fec04fbee63e3892b33695bfd8da6de8ae45101e51d3b86d7b0a47f28",
             "persistedMutation": false,
             "fixtureId": "ui-030-review4-fixture",
             "beforeSnapshotRef": null
@@ -18487,7 +18487,7 @@
             "contextSha256": "2379a3aab5d513d2eb2a70d9344f1622cd27622d1d4a3eee0bd37857f2ca0c49"
           },
           "verifierCommand": "verify-vlm-install-connection-ui",
-          "assertedSemanticDigest": "72d85c66d8854d8a9b62432e4d65ddf8ff88378fdfc7ebd64f6780e437f3853c"
+          "assertedSemanticDigest": "c004be1fec04fbee63e3892b33695bfd8da6de8ae45101e51d3b86d7b0a47f28"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -18499,7 +18499,7 @@
             "text": "평가 상태, prompt profile, language/JSON stability planning 값이 저장 profile에 표시되고 benchmark PASS로 과장하지 않음",
             "sha256": "0f4b4762bba5e5d1b62c92a57a3f7efa148e6705547c5f0e0571969cd7ecd27d"
           },
-          "specSha256": "5e015505078918c2d8c8d85b5036772781faa351a07e6c7fe02aa60c3fdfcc05",
+          "specSha256": "a471f0a13ea9c89e071f4532807bc8e73e62bd7f649a5e647e307d7c984c2600",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -18758,7 +18758,7 @@
             "cleanupId": "UI-030:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "72d85c66d8854d8a9b62432e4d65ddf8ff88378fdfc7ebd64f6780e437f3853c"
+            "semanticCallChainSha256": "c004be1fec04fbee63e3892b33695bfd8da6de8ae45101e51d3b86d7b0a47f28"
           }
         ]
       },
@@ -19034,7 +19034,7 @@
             "setupId": "UI-031:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/vlm",
-            "semanticCallChainSha256": "8551a12e42742a7bbdd73987605c69ae2a3e87b8fcf13132a3eaf0c1f974bcb7",
+            "semanticCallChainSha256": "94f2af0400e562ee64315a12f34e6742d2faca6ce5b541dfa555273c53e7e4cd",
             "persistedMutation": false,
             "fixtureId": "ui-031-review4-fixture",
             "beforeSnapshotRef": null
@@ -19116,7 +19116,7 @@
             "contextSha256": "17183f41d0a3953ce01545c1d9febbf8d8a9de67859e95eb68063ee233148af8"
           },
           "verifierCommand": "verify-vlm-install-connection-ui",
-          "assertedSemanticDigest": "8551a12e42742a7bbdd73987605c69ae2a3e87b8fcf13132a3eaf0c1f974bcb7"
+          "assertedSemanticDigest": "94f2af0400e562ee64315a12f34e6742d2faca6ce5b541dfa555273c53e7e4cd"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -19128,7 +19128,7 @@
             "text": "dry-run/profile diagnostic JSON은 Ops debug details 안에만 접혀 있고 viewer/client 화면에는 노출되지 않음",
             "sha256": "55381bb44c2d7779465ca594154059fb15b76ebdba74a584039f6896caefb198"
           },
-          "specSha256": "a78c1f81a14d355ed79e3dd5789a218a57b517c2b1490efd668348022ca2ff89",
+          "specSha256": "da404b428e6f22252ef6c27b68c7e75452b9055b11115f9067f163095046a08e",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -19372,7 +19372,7 @@
             "cleanupId": "UI-031:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "8551a12e42742a7bbdd73987605c69ae2a3e87b8fcf13132a3eaf0c1f974bcb7"
+            "semanticCallChainSha256": "94f2af0400e562ee64315a12f34e6742d2faca6ce5b541dfa555273c53e7e4cd"
           }
         ]
       },
@@ -19740,7 +19740,7 @@
             "text": "VLM summary, explanation, false-positive hints, operator questions, evidence availability가 Ops event review 안에서만 열리고 client/viewer에는 노출되지 않음",
             "sha256": "3aacd192ac6cb528cc18a7a7c1bfb7319513ded3914569df5b812dbfcc76a210"
           },
-          "specSha256": "a0311e68e383eaccafb15cee9f57ad5fbc3f751edb11fcdcdae075fe8a91827a",
+          "specSha256": "9994e4670c62b98b9e4d4095d46bd8c11bdc863e01d57af8886acd006c6333d8",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -20355,7 +20355,7 @@
             "text": "provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mode, default-off 상태가 Ops-only panel에 표시되고 client/viewer에는 노출되지 않음",
             "sha256": "9e749d7e93bf80816ba7989aa080bb1a16d23c4004603cd2007166b9bbd0c0fd"
           },
-          "specSha256": "86affda8745c2734034373f9ca3136275a82eaf86850e799a68fcc2fa3232c30",
+          "specSha256": "16d959c44dd9acb64e75f896a177a85ee2b693143ec709e42a4a54d9c2035352",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -20880,7 +20880,7 @@
             "setupId": "UI-034:reviewed-state",
             "strategy": "read-only-state",
             "route": "/ops/vlm",
-            "semanticCallChainSha256": "456fc14dc49754eef4199b05ebcfa77d7c1bc85f51e23822eb02b1fa0c36ebfa",
+            "semanticCallChainSha256": "218a2ef269c4e8fbec9be56b27ef76fb3179ac39d29898c8eb738702de49363c",
             "persistedMutation": false,
             "fixtureId": "ui-034-review4-fixture",
             "beforeSnapshotRef": null
@@ -20954,7 +20954,7 @@
             "contextSha256": "0d4109ac7f01c5b2228038860545532beb3f6a6d7eee8c32d024aed03d4ec48f"
           },
           "verifierCommand": "verify-vlm-install-connection-ui",
-          "assertedSemanticDigest": "456fc14dc49754eef4199b05ebcfa77d7c1bc85f51e23822eb02b1fa0c36ebfa"
+          "assertedSemanticDigest": "218a2ef269c4e8fbec9be56b27ef76fb3179ac39d29898c8eb738702de49363c"
         },
         "exactRuntimeOracle": {
           "schema": "media-server.v390-ui-exact-core-oracle.v1",
@@ -20966,7 +20966,7 @@
             "text": "evaluation result 후보를 latency/JSON/explanation/hallucination/language 축으로 비교하고 profile draft 반영 버튼이 model/prompt/evaluation 상태만 채우며 자동 저장/활성화/runtime 호출은 하지 않음",
             "sha256": "c97a45fec68cd6589a1b36ac3296e3abb0761cf36779cde46f7aa431120af8ea"
           },
-          "specSha256": "ec52aca2ba41608829b1fdab65db5c2102412a3fba72153ba2abc55a4540724c",
+          "specSha256": "8a250ce3e19160fc5f52050eb90dc80017b7f0c64f9d80dd8039ca3aaafbbbda",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -21215,7 +21215,7 @@
             "cleanupId": "UI-034:no-persisted-mutation",
             "persistedMutation": false,
             "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "456fc14dc49754eef4199b05ebcfa77d7c1bc85f51e23822eb02b1fa0c36ebfa"
+            "semanticCallChainSha256": "218a2ef269c4e8fbec9be56b27ef76fb3179ac39d29898c8eb738702de49363c"
           }
         ]
       },
@@ -21583,7 +21583,7 @@
             "text": "VLM review card의 action/target/note control이 `accept`, `dismiss`, `review-needed`를 Ops review state에 저장하고 EventRecord/Event POST/metadata/media path와 client/viewer 노출을 바꾸지 않음",
             "sha256": "c984dfb6cc6f502d4da81e732add7410cb24581e353d6feb800ed090a6fdf8fa"
           },
-          "specSha256": "35a6d8daf24ed331e1097b9d8dad271f703b3a6064de7bbd94598b6c77a2834a",
+          "specSha256": "0fc11f06726a2a8454d2f8578048fb39c2ef02e2f8aff419dcac1116450c67d1",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -22246,7 +22246,7 @@
             "text": "VLM rule draft 후보 refresh/kind filter/`폼에 적용`이 이벤트 템플릿 form draft만 채우고, 기존 저장 버튼 전에는 `/lab/analysis/rules`/`va-rules` write, 자동 Rule/Profile 적용, runtime/provider 호출이 발생하지 않음",
             "sha256": "80aefca497d6a5c6f690e0f314c9418e49ecb1da39a54028cac38bd9fa9c9e7a"
           },
-          "specSha256": "54debba0b4ccf98e01dc3c5f597e4daeb59e2fc777d0d311fd88cdba42b0a8b5",
+          "specSha256": "2d9b2bf637d9ae19311dc3e81eebe20c902575d7c9073767d4743a013c623414",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -22973,7 +22973,7 @@
             "text": "incident status/id/action target control이 `new`, `review-needed`, `acknowledged`, `in-progress`, `closed`, `false-positive`를 Ops review state에 저장하고 events audit trail에 `incident-action-update`로 표시되며 EventRecord/Event POST/metadata/media path와 client/viewer 노출을 바꾸지 않음",
             "sha256": "a315cc4ca886fa703a5d105317e204ab5afc531293c214f854206760dcbbf934"
           },
-          "specSha256": "ef8c56d4e603f06ce78d4afb08a5d81a408c355537e8d2e070e74e1e62f4c6c2",
+          "specSha256": "d32d7085a3408f09c3f940e88706ecb5ce68575704992fc04f94c8ce20a58df1",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -23585,7 +23585,7 @@
             "text": "alert target draft의 dry-run button이 payload preview와 dry-run result를 표시하고 delivery attempt log에 `dry-run`/`externalDeliveryPerformed=false`를 남기며 endpoint secret과 Event POST payload를 노출하지 않음",
             "sha256": "6f13c66260f7438755af5df744ec8e664ea93750219a6f35ee0e3733a834d64f"
           },
-          "specSha256": "df9998a05c9ba4cb4bbe5fd169f26fb92fabd14bb3608472f5d04d55b26ec396",
+          "specSha256": "34ae95951f3b388cf0651998d0bae18f2e41ef18caa82b39e502e93576f039e7",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -24197,7 +24197,7 @@
             "text": "검색 입력, rule/source/incident status/time filter, `memorySearch` 결과, matched evidence highlight가 `/ops/events`에 Ops-only로 표시되고 primary nav/client/viewer에는 노출되지 않음",
             "sha256": "adbaba2fbb41010667a8bf831c3f37099a16bdf0e7ff2d2c11987eca0d70dd02"
           },
-          "specSha256": "4534258eefd9e6f19468de80c4c8f837ceda9dcab01ef28173a44020a02afa29",
+          "specSha256": "190cd68203b4b09b9e318c26b7987ff347558064abc7eda2db99d8f64c2ff26c",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -24809,7 +24809,7 @@
             "text": "source state → EventRecord → operator action → alert dry-run → close state graph가 `/ops/events`에 Ops-only로 표시되고 graph node/edge가 source URL/raw/debug/provider material 없이 연결됨",
             "sha256": "4b6b0679d92f7688207314e0c1bfb4cd4830d73fb82539754da993a01a7a74c9"
           },
-          "specSha256": "4e4de0d9fd8ef60276a067ff7152dfc0873b016a90fffcb550fe7945e6100a87",
+          "specSha256": "aa67ce8b1105e74d9b09ef4aa149ecf35d60453809d97ab98cc3c0700284d0a9",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -25421,7 +25421,7 @@
             "text": "action/object/context/environment slot 기반 brief가 `/ops/events`에 Ops-only로 표시되고 VLM enrichment는 default-off, provider call 없음, client/viewer 노출 없음으로 표시됨",
             "sha256": "a7a086110c113e4f8ce73c413ad108616427ac98778bcfffe1f8c21bdc6c9ef3"
           },
-          "specSha256": "cf84f0abb4380b356ef592d7e30ed7196b24b43debb8fc43b38b8fabbcf505f4",
+          "specSha256": "436d9a448ac0ca6b84c9b86010b07658b4be1de7e6bd3b00a8e7e6f0646a798a",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -26033,7 +26033,7 @@
             "text": "rule/scenario/source/status/action target 기반 similar incident lookup group이 `/ops/events`에 Ops-only로 표시되고 raw JSON/source URL/debug/provider material 없이 deterministic score와 explanation term만 표시됨",
             "sha256": "22f3d168ac5a9256fce1a1556b333dde1d11b11d219342b1d868fb91eb45fcc1"
           },
-          "specSha256": "bb8e959c511eb1680a5d9021f8fa1c06dc6b743ef62130d4c4cc52c4525fe091",
+          "specSha256": "406149bab98cc72084e6449e2ad9341aa29d733f32b8cc80bfae6dca61451129",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -26645,7 +26645,7 @@
             "text": "`/ops/events` evidence action이 raw signed bundle과 별도로 release-safe bundle 버튼을 제공하고 redacted manifest-only export 경계를 표시함",
             "sha256": "cc9865cb647fe5c04475a9293a314310f46a36d35ef22e4fbb88de827a53a1b0"
           },
-          "specSha256": "0078532c3e924cb91bd5e9b7b1f6d367d2199bc9d4f13dd48395661213d40961",
+          "specSha256": "1193048f8e095336b19790c1d0a207bb64d29d2f87e8c3c9e7d9a89895f71225",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -27257,7 +27257,7 @@
             "text": "semantic search, timeline graph, explainable brief, similar lookup, release-safe bundle을 route/control/action 단위 UI 풀테스트 기준으로 분리하고 자동 smoke나 raw JSON/API-only 확인을 UI PASS로 쓰지 않음",
             "sha256": "72cb385fe2ab44be33980a2f8324c9c25e8b9eee6a2d880bb7e2867dda0dac1f"
           },
-          "specSha256": "cfdc2b12f3e6c60638db527e66aa74c5b4e634a84c52f1926a5a890b6220a67c",
+          "specSha256": "7fa13f86e31e48bfa4ccb60235a526af06aa881181505ae09a234a6506a78ba4",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -27867,7 +27867,7 @@
             "text": "VLM summary candidate review panel이 `media-server.ops.vlm-summary-candidate-review.v1` wrapper, candidate count, matched terms, manual review route를 Ops-only로 표시하고 client/viewer에는 노출되지 않음",
             "sha256": "e5210ba357c9124b2519da79839e5e519964c8bb0ce34702587925e8a622f2c5"
           },
-          "specSha256": "d7059193ea28afba17f9b799f2447923168713cdc9bd72888121a2b76eb69fed",
+          "specSha256": "a5ab4879173227a7e9d1be305b8f75c024676f070f5670ce3fa57d9aca7f30a3",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -28518,7 +28518,7 @@
             "text": "Event review row가 matching VLM rule suggestion을 `media-server.ops.incident-rule-suggestion-review.v1` 카드로 표시하고 `/ops/rules` draft-only manual save route로만 연결함",
             "sha256": "2a142046b8196b8f696d1c57e75d48c02cc6657da2b24166b0304e6ca652f37d"
           },
-          "specSha256": "4466b02cdd318af960dc4d9ee00aea9a008045611d2d59813f72d6a806a6447e",
+          "specSha256": "10d44b183be3184a03c27c2675bee077d09496235cf34c2ade02467e15d374b0",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -29220,7 +29220,7 @@
             "text": "ONVIF probe draft tool이 `media-server.onvif-credential-binding-gate.v1` gate status를 표시하고 secret input/reference echo 없이 source:write/reference-only/store-off 경계를 보여줌",
             "sha256": "ae795899460f8d6124dbcadec5317e4dce96a3c922615d271332c73c888480b8"
           },
-          "specSha256": "e56ca78feb8c06a81f72f31c7c1dff484d7e51ad87a734e4bed2e6b8a8f92fd0",
+          "specSha256": "330ea4b6924b3e5d296c101771ebe53885116bdeca354fe30a1667c18100da46",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -29839,7 +29839,7 @@
             "text": "`/ops/dashboard`가 page-session-only sample로 runtime baseline/sparkline 후보, delta, longrun evidence 아님 상태를 운영 card에 표시하고 persistent trend store를 만들지 않음",
             "sha256": "b8603d1a6291186e876fbb26b48c80a407dc2a5137b377f722cde32dcb623ac6"
           },
-          "specSha256": "d31c9c68d7aa119bb60020d6b4d072b3d6354295e0352ea9b72ebd4e9b1e08e9",
+          "specSha256": "7cf89bd58a6d656d67311c5e2db12cce13dc5ecc6f4528823fed3635ceeef5c2",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -30505,7 +30505,7 @@
             "text": "ReEntry `configured-zones` 기준이 source zone A 이탈 후 `reEntryZoneIds` destination B 진입 후보임을 select/summary/review copy로 표시하고 event/schema/media/client 경계를 바꾸지 않음",
             "sha256": "00261ecfc47c28d0f361f72f9c1fb43ad907217818e8aa022c5ac0f93c9461d9"
           },
-          "specSha256": "2d0fd5e89d124081f8d6cf92d406f170de0b22e087282a4ef3e24899c99463fd",
+          "specSha256": "6f24c9e93c6a49089d9b74a1c3a94a002ec59c78337f96de0f110a41d2f4ce2c",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -31232,7 +31232,7 @@
             "text": "`/ops/events`가 priority/review state/source/rule/scenario/similar incident/VLM candidate 기준의 lane/filter/sort board를 `media-server.ops.incident-triage-board.v1`로 표시하고 client/viewer에는 노출하지 않음",
             "sha256": "0113e9561ae4f6b448468c0fcb3949bec72d8a92fd8cadd0b3a2f238e81fa173"
           },
-          "specSha256": "02e11b60b03cdabb20fa2ab099e2181c0764bb55de321ffdc3d2aec39db6564c",
+          "specSha256": "d23c63913b002d848f811a86ae147f473b71d429e676b5142dc379bd1066419f",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -31843,7 +31843,7 @@
             "text": "`/ops/events`가 EventRecord/source health/similar incident/VLM summary/rule candidate/operator review age를 deterministic priority reason chip으로 표시하고 provider 호출/raw JSON/source URL 노출 없이 Ops-only로 유지함",
             "sha256": "e642b7784831b6a06bdd5d1ae7539abf288b610c26c60a3c28e4eec7f1dc1f69"
           },
-          "specSha256": "c32abd42be9144a4b289e13b8692ff2495867ca1124e464e67ce88c23436b57a",
+          "specSha256": "d2066dde5e31bf2de960a523785d279835fac337265887c47cf38526ba66903b",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -32469,7 +32469,7 @@
             "text": "`/ops/events`가 release-safe evidence bundle, `/ops/rules` draft route, alert dry-run, source health recheck dry-run을 한 action pack card로 표시하고 외부 실제 발송/자동 rule write 없이 Ops-only로 유지함",
             "sha256": "69da6cd51a7e3db6a4276fcc625020e47783b945b70fd5f74ba8b4d6c1375be6"
           },
-          "specSha256": "07366b7d0e17eda0c4ad194b51bb7e4a1dcead808c88ba68e56067f5d7e06e96",
+          "specSha256": "c12c251b0d58686a9393bd110d55e9351d20a12c0fb13b9ea3d1b00ede1321b1",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -33115,7 +33115,7 @@
             "text": "`/ops/events`가 selected incident/EventRecord와 rule suggestion 후보를 저장 전 condition preview/draft comparison으로 표시하고 `/ops/rules` draft-only 수동 저장 경로로만 연결하며 full replay engine/자동 저장/자동 적용 없이 Ops-only로 유지함",
             "sha256": "2af914e8516d4fb476cf65119b5bf01e1afdcce1dd77ec20d0156ed56d092317"
           },
-          "specSha256": "d3b214b80d8993741af94b9bdc21954c6123a6c71bf44c4365962b70139de2e7",
+          "specSha256": "37ce8e98dba9fdd62ef41c228592a7ef77df697091f1567201342b3183dc5762",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -33758,7 +33758,7 @@
             "text": "`/ops/events`가 accept/dismiss/review-needed outcome과 기존 Ops review/audit 상태를 deterministic history hint로 표시하고 새 저장소/자동 학습/client viewer 노출 없이 Ops-only로 유지함",
             "sha256": "ff425f243e0d89c54df9333ead33e35c87e7be07dcc0e149936526b9b5580e74"
           },
-          "specSha256": "6520cfe77f1fe76338fd4737c3843b0fdefb21d60e3a8a78d5667323479dbf82",
+          "specSha256": "c1966a110eb257cd8b226370d719aa45f1043c7b15b5c1549c3b20542efa830b",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -34370,7 +34370,7 @@
             "text": "`/ops/events`가 operator 승인 가능한 follow-up 후보를 ready/blocked/field-smoke-needed/not-run 상태로 분리해 표시하고 외부 실제 발송, 자동 action write, EventRecord/Event POST/WebRTC/SSE/WS/media path 변경 없이 Ops-only로 유지함",
             "sha256": "00871ef02d7932acfe03761bd29e5c57e7b32d7ee89d6781923811e3dee4c08d"
           },
-          "specSha256": "605e0a681d074be9322af2612e6136a7f2e103d670cd5f1e70ab457c66304ad2",
+          "specSha256": "5e4096db819b621aff0d9a9398dc0ce4f9f06c078f7c73d65514575cbac38552",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -34982,7 +34982,7 @@
             "text": "`/ops/rules`가 incident/rule suggestion 후보를 approval state, validation summary, staged draft context로 표시하고 수동 저장 전 Rule/Profile registry write, 자동 저장, 자동 적용을 만들지 않음",
             "sha256": "66de36c8bfd931c3f8ddbfcea54cf2dea28f1fa48fd36d3012ef3c3373cad077"
           },
-          "specSha256": "76e33fa8416fb3086ea443f8a7e5ea7eb8cac9cf576666c42ec585b9240900e9",
+          "specSha256": "e31b943940788e3bd720d2ad7926b2d1b9efdfc2abc6b6396a1571a77bb0d23c",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -35594,7 +35594,7 @@
             "text": "`/ops/events`가 redacted evidence intake, source health recheck, field smoke precondition을 passed/failed/blocked/not-run으로 구분하고 credential/source/raw/debug material을 노출하지 않음",
             "sha256": "3e42b091b47dd5ac2f5e6f253eb7de544607100a740e939325f629451b59e9d0"
           },
-          "specSha256": "8281be7472aacdfec0320025184b7be3f4de14cbf774aede85a019e42cb87705",
+          "specSha256": "97b480ee56d84f9bad22daa9109811ee9fec81a3b4b3bc83aebbb8df7947b31a",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -36206,7 +36206,7 @@
             "text": "`/ops/events` incident detail이 bounded runtime/source/event evidence window를 Ops-only로 표시하되 장기 저장소, 30분/120분 evidence, client/viewer exposure를 만들지 않음",
             "sha256": "83572c5985717974bf76cf1541d6ce1252f0d934fee5c0932430d78507ad1941"
           },
-          "specSha256": "6d13940c3856affbdbf7f0e62b74e074599bc589d3393c4fd00ace2a58e08f85",
+          "specSha256": "178df6955e3994697207ee294b4541b8d32ef9c5e957d59eb0d0223c46fee11c",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -36818,7 +36818,7 @@
             "text": "`/ops/events`가 V300 Feature/Search Index 기반의 search/detail UI를 Ops-only로 표시하고 evidence timeline, feature reasons, retry action, pin status, retention status를 source URL/raw provider/debug/client exposure 없이 보여줌",
             "sha256": "24e483ac5e5883b6588e5dafa5d2d9ab772dfa878f7197461405a288f01efb4e"
           },
-          "specSha256": "851384d969bc8004f506bbae3cf41c92f201f94dd4d931820483a6d161122907",
+          "specSha256": "390ca05322ee7c2132807e8ca2e9acbbcf10d01d8b2b108541f88878e6ab7a98",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -37430,7 +37430,7 @@
             "text": "`/ops/events`가 EventRecord evidence refs 기반 event frame, representative image, frame bundle, encoded clip timeline과 FrameRef/PTS mapping을 Ops-only로 표시하고 source URL/raw JSON/debug/client exposure 없이 유지함",
             "sha256": "1f85a84d5bd6d12e51eb2bdb9748e3563bb6dda59bf50812b4afc420e3cdb5a7"
           },
-          "specSha256": "358dd20cd6e167f4b8167af5cf30784aef9c208eff27ca17c2562f73fa451375",
+          "specSha256": "2b2e1e5ed49d20bddf2dae24056cd8c0d51df9d257b0400057af84f58f479f7c",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -38042,7 +38042,7 @@
             "text": "`/ops/events`가 correctedFeatureLabel, featureAliases, reanalysisRequested/reanalysisReason control과 summary card를 Ops-only로 표시하고 기존 review 저장 버튼으로 event review state에만 반영하며 client/viewer에는 노출하지 않음",
             "sha256": "fd53e5eee0532914ac0c943f9cdd96c1f92c454471395ba42de45df073b84291"
           },
-          "specSha256": "7574dc18a2b183f5c5b9b4ba1acce49202d44377af1f6327928ea20460ff54e2",
+          "specSha256": "97618031025b895baacd80568b7fcdee453af0332e3bf03476b621a2b4b157e7",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -38653,7 +38653,7 @@
             "text": "`/ops/events`가 `media-server.ops.v320-unified-events-workspace.v1` 기반 resolution queue, resolution detail, resolution timeline을 한 작업공간으로 표시하고 source URL/raw JSON/debug/client exposure 없이 유지함",
             "sha256": "eaccd6e9cbe45cb5b7062966bbf4e8da69aca43439690b4faffc65ea484781af"
           },
-          "specSha256": "76dd2c954f2cc5089c9c67484c642ca22e18f7a5615171ac4ac07f106060b34f",
+          "specSha256": "272715071aefd33fc876d19e9142dfe47fb36a33d68267c898271aa7ab97af03",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -39272,7 +39272,7 @@
             "text": "`/ops/events`가 `media-server.ops.v320-evidence-quality.v1` 기반 evidence completeness, deterministic confidence, replay coverage hint를 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure 없이 유지함",
             "sha256": "4226fcb6b09bb2bc1b0b12a355e65daa21c615aafe3fecdf26c5bd132b102240"
           },
-          "specSha256": "656ce75d9b647b1e012b51104db59f0e7544c1b0179313887d447ea80bfe88fd",
+          "specSha256": "2ecb9294f981ffb57de0cc65475d18ff0bc9b341d854f671b45f16f1b7d4aa0c",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -39891,7 +39891,7 @@
             "text": "`/ops/events`가 `media-server.ops.v320-source-reliability-context.v1` 기반 source health, recent failure, operator recheck hint를 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure/source registry write 없이 유지함",
             "sha256": "ded8feb950690a012d76a34ae33bf2882831fa2f6ab421b4018003f9d7b3f4ce"
           },
-          "specSha256": "f8e004d57b1c1a73a33e58d00e8bcc16af3ea7751235eb42df8f113a92830e89",
+          "specSha256": "2b9bbc5a3f4f2b2e867244bbcf474ac3b55328a893cdaad1babd653292e81db2",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -40535,7 +40535,7 @@
             "text": "`/ops/events`가 `media-server.ops.v320-ai-review-quality-context.v1` 기반 correction/review signal, uncertainty reason, quality badge를 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure/provider call 없이 유지함",
             "sha256": "1bd0a4cb5c840378775506bd5e9dbac1ade737b62768f58d29bca317615b85bc"
           },
-          "specSha256": "6c8aed1af0ddc571800a6a7c2794cf87ee371b7a6588f7a9fbd6709a45e3767e",
+          "specSha256": "f1e771c8a1f6d5b0dae4103ee6c7cf17c1bb919bce5316b564897f96dee65e7e",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -41181,7 +41181,7 @@
             "text": "`/ops/events`가 `media-server.ops.v320-operator-resolution-flow.v1` 기반 assignment target, operator note, close/reopen 가능 상태, audit trail을 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure 없이 유지함",
             "sha256": "59b15b2bcc3063804d12a17f8e648b771567ecb93e1bc28af72aca26dfc62d2f"
           },
-          "specSha256": "5ff57e79e82ee206fe82a3ddd55e49f2d0ebd523f3c29b1767f4f9a34c3499c4",
+          "specSha256": "db9712418af9e40d82fd0295bd5f60424d7fbcf2a1f32d83793ab31e2ec96225",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -41824,7 +41824,7 @@
             "text": "`/ops/events`가 `media-server.ops.v320-action-readiness-checklist.v1` 기반 readiness status, rule draft, evidence bundle, notification readiness checklist와 blocker chip을 unified resolution detail 안에 표시하고 자동 action write, external delivery, source URL/raw JSON/debug/client exposure 없이 유지함",
             "sha256": "790def5a15cd2fd2bf0da3ab60224e6e6975cf64b6fc6cf764744a6038289bcb"
           },
-          "specSha256": "def850f05bf572e008341a207a5c301839da34ba86c18f5bf36bfc544c612ec1",
+          "specSha256": "cbfccb2a6a0dae449aa0b08cc02e954999bbf2fa7e13ad62bc6b55381436e993",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -42467,7 +42467,7 @@
             "text": "`/client/live`, `/client/dashboard`, `/client/events`가 `media-server.client.resolution-digest.v1` 기반 resolutionStatus/resolutionLabel/summaryText/severity/timelineHint/time만 표시하고 source URL/raw JSON/debug/provider/operator note/action control을 노출하지 않음",
             "sha256": "0f69e3b67fb774714c41c2475ed8cc0d042c48e535e6e33900d3d52a199df886"
           },
-          "specSha256": "48441319908bb9dfeba90ddd3d9d3f7ef01276cfd145a4d0663b507fe7dc16ae",
+          "specSha256": "1cbad428b46b11c99e2c79c446068af70c7f46ad5e384fb4d85ccc09f2512393",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -43109,7 +43109,7 @@
             "text": "`/ops/events`가 `media-server.ops.v320-resolution-search-metrics.v1` 기반 active resolution filters, saved view presets, operations metric summary를 unified resolution detail 안에 표시하고 saved view write/source URL/raw JSON/debug/client exposure 없이 유지함",
             "sha256": "8476f63682c885547ce1e69164345db4b321ab89fe25948b84135cc1a79dbf5d"
           },
-          "specSha256": "cc7c35a3ab3e6f5344694044a5160fc7828bd9c52f906b16259ecd862c551c44",
+          "specSha256": "be255855a6202fe18f0157b6d157e439d91d5265180b351252aab23558c9517d",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -43758,7 +43758,7 @@
             "text": "`/ops/events`가 `media-server.ops.v330-incident-source-correlation.v1` 기반 source cause, closure impact, source handoff를 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure 없이 유지함",
             "sha256": "0c9079adae96ad042455b4ed255e3bc2ca0cd2fae0196306ff66c34348f0560e"
           },
-          "specSha256": "0b181d835941e52d06397d28d737985cb90c26920145a1d1139b3a941809879a",
+          "specSha256": "1bb64af93ee04a6075aa2906a2dd09f4347c91f38eea8dded36e3a602582034e",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -44411,7 +44411,7 @@
             "text": "`/ops/events`가 `media-server.ops.v330-operator-recheck-recovery-queue.v1` 기반 failed-only recheck, retry candidate, recovery checklist, dry-run result, operator note link를 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure/자동 recovery 없이 유지함",
             "sha256": "d55cf495904eb2b01ac50765b54a31a6cf1a08c6177adaf9eacedb750941e323"
           },
-          "specSha256": "7624f04bedbd590c45488154210f80db866c2d347386ed90c3d0034fcd70bc83",
+          "specSha256": "6486b077a343a6d9fb7b0abe36ba27e90a83d2e7a0eaaf532ea6b5f4c10faee0",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -45062,7 +45062,7 @@
             "text": "`/client/live`, `/client/dashboard`, `/client/events`가 `media-server.client.source-status-digest.v1` 기반 sourceStatus/connectionStatus/videoFrameStatus/metadataStatus/summaryText/severity/timelineHint만 표시하고 source URL/raw locator/raw JSON/debug/credential/operator material/action control을 노출하지 않음",
             "sha256": "c553c736030b3ee8a0d8f7624e215fadb610c531a27b31eeed955e5d58ec7633"
           },
-          "specSha256": "2c2610952be6eae16edd613d0dcd38950a23ba002c576c523d05e74abe620f75",
+          "specSha256": "acb050a26ebd48d665e9ac7f9664aa9939037e212643627c6b5aa82e72fbd3e8",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -45700,7 +45700,7 @@
             "text": "`/ops/sources`가 `media-server.ops.v330-source-reliability-search-metrics.v1` 기반 source health filters, saved reliability view presets, reconnect/stale/offline metric summary와 search result list를 표시하고 saved view write/source URL/raw locator/raw JSON/debug/client exposure 없이 유지함",
             "sha256": "f9ce7bb5e1f90c847d086d6deca1b6af096762ede2efadef91ac661d24ec9fc9"
           },
-          "specSha256": "145987971ead0507cebae382f596d9fcce14c741e114e6dccaf1ef6f1fc08849",
+          "specSha256": "d089f5ba15b5fb7c9407953f52c86235a18c83a517b4b4cd557383a057b79eb2",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -46335,7 +46335,7 @@
             "text": "`/ops/sources`가 `media-server.ops.v330-backup-recovery-source-handoff.v1` 기반 source registry snapshot, PublishedView registry, source health snapshot, recovery validation plan handoff를 표시하고 source URL/raw locator/raw JSON/debug/credential/client exposure 없이 유지함",
             "sha256": "8f32eb04cc142b1ac00325729f7a174083dbd913d53b9e8ae7d15b3dcdbcb570"
           },
-          "specSha256": "a3a8f9ce26a717c406e753dde8e0f306a35c5d87a8b8d972b0b4caa40049f458",
+          "specSha256": "6350d5c6072cfac8e8bb4143fd85fab6f5322de27d51ddd95cfdc1a789a3e695",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -46969,7 +46969,7 @@
             "text": "`/ops/sources`가 `media-server.ops.v340-continuity-drill-workspace-ui.v1` 기반 drill package, validation status, blocked/ready 상태, source health drift를 read-only로 표시하고 source URL/raw locator/raw JSON/debug/credential material과 자동 recovery/source registry write를 노출하지 않음",
             "sha256": "c453ccd17b81301812ec28e29d4f8fa7ff768dd1e07cee21f8cbf4d088c2e982"
           },
-          "specSha256": "edff768c3f8a07bb784d95e001b2e7b1d8ffc68b2c3a5448208fb9f9bc023fb6",
+          "specSha256": "6aada7b8f51b64e6e73477ad79328a0fd826fb4e0e6c6233119a16a11bd1ca6c",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -47600,7 +47600,7 @@
             "text": "`/ops/sources`가 `media-server.ops.v340-approval-gated-recovery-checklist.v1` 기반 operator note, ready/blocked/field-smoke-needed/not-run 상태, dry-run result, Ops audit link를 read-only로 표시하고 source URL/raw locator/raw JSON/debug/credential material과 자동 recovery/source registry write를 노출하지 않음",
             "sha256": "e1b85ef488193d7aa4c5ff9eb0f2bece52cfbfc3564a53c54acdea584db10942"
           },
-          "specSha256": "d26746a9143e915233d53cb3b1935aef15d09ce5ef5631b86021383a858a2a4b",
+          "specSha256": "0462c3293ffcfd1db7bd4d7934e0d3be3c72bca2ee7e24bc8e2effc4b9acbbbc",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -48211,7 +48211,7 @@
             "text": "`/client/live`, `/client/dashboard`, `/client/events`가 `media-server.client.v340-maintenance-digest.v1` 기반 maintenance/recovering/unavailable viewer-safe digest를 표시하고 source URL/raw locator/raw JSON/debug/credential material/operator note/Ops audit/dry-run/recovery action을 노출하지 않음",
             "sha256": "6ab55afa9fa31070390fa615a7f4bbf5f4cc2e1a41ee9595fc362a13924544f5"
           },
-          "specSha256": "2db47aafa7b8f907402f65685d179b1692e2cae63873de631fc597fcd0a5d10e",
+          "specSha256": "badb989ab2e51e3975a8c8b3a9e4edb36c88eb62a62404fd9afe76a58547b79e",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -48830,7 +48830,7 @@
             "text": "`/ops/sources`가 `media-server.ops.v340-drill-evidence-export-cleanup-manifest.v1` 기반 redacted drill artifact manifest, minimum retained evidence, /tmp cleanup manifest, sensitive material scan boundary를 read-only로 표시하고 source URL/raw locator/raw JSON/debug/credential material/raw audit body를 노출하지 않음",
             "sha256": "e2adcd81a81a2e16b2617aaa176072e99962d64c7a46a010ad032438c47b15ae"
           },
-          "specSha256": "faaac5fe862bf4b797143a7ac6f02d325fe2e8ee579e187dec58c0c1e335d506",
+          "specSha256": "a9b2fc4685c6f824d67523ee66ebfc71ed97e42cdb2a6a57e73148fec6892585",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -49442,7 +49442,7 @@
             "text": "`/ops/sources`가 `media-server.ops.v340-field-bridge-condition-gates.v1` 기반 ONVIF 실기기, external WHEP/TURN, real cloud/VLM provider 조건 gate와 source-only PASS boundary를 read-only로 표시하고 endpoint URL/raw locator/raw JSON/debug/credential/provider material을 노출하지 않음",
             "sha256": "5247db644bf9a98c9e02e26601c7365a260f337d43cbfdf6c1ca0738d8c32eaf"
           },
-          "specSha256": "205f4cb54efa605839fc65399ab62cde0fd34fa79de38e4dd13114113b441167",
+          "specSha256": "ee1737a51a5a117f3e1bb3ba06cfd02d5370ad060f1ef88eebc692fd96043405",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -50061,7 +50061,7 @@
             "text": "`/ops/events` selected detail이 `media-server.ops.v350-incident-command-handoff.v1` 기반 source 원인, continuity drill 후보, command plan 초안을 read-only로 표시하고 source/view/rule write, client notice 발송, media/schema mutation을 만들지 않음",
             "sha256": "a4d55a8d968f3921aa740beb33f308e36c97423e6993b2688d4452bc878ed452"
           },
-          "specSha256": "7759dee48daf15914593f3b4dc65070ab003ffc1b55df571c8bbc65d118d7913",
+          "specSha256": "ac3c446679fa22ef24625333feb47ae0b47aa2a1566a91a3855854bb27f94e09",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -50696,7 +50696,7 @@
             "text": "`/ops/dashboard`가 `media-server.ops.v350-command-workspace-ui.v1` 기반 incident, source, drill, staged plan, client impact flow를 read-only로 표시하고 source URL/raw locator/raw JSON/debug/credential material과 command execution/source-view-rule write를 노출하지 않음",
             "sha256": "e4725fd98b410a334b5765dd2c8673660e7693e5fc4fceac747be289211ef10e"
           },
-          "specSha256": "85201a9db0b889b86da142f3146909d33fee54ca287565133f6e75a4e33dc69c",
+          "specSha256": "93bf8a2a3f90c19c876f7867dd8e7e0bd4f2c45ae44632a62991e9cb304c0995",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -51308,7 +51308,7 @@
             "text": "`/ops/dashboard`가 `media-server.ops.v350-drill-run-ledger.v1` 기반 drill run id, operator note, blocker, evidence refs, previous run diff를 read-only로 표시하고 drill run write/operator note write/command execution을 수행하지 않음",
             "sha256": "3eb6796475eb96c23f76898a8d35c2b619e7c5f8fbf9d8ba17a7944f0db3a1de"
           },
-          "specSha256": "b3f3b6d455e9fc1a3618ca25bf8e3634b9622f606a07eba148686c660b8ff285",
+          "specSha256": "449bb6d92b7ea6ad62d7aed64c63cdec73f92e9fbbbf4e2e972d04090a3223e6",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -51919,7 +51919,7 @@
             "text": "`/client/live`, `/client/dashboard`, `/client/events`가 `media-server.client.v350-impact-forecast.v1` 기반 source/view/command plan 영향 forecast를 viewer-safe로 표시하고 source URL/raw locator/debug/operator/command detail을 노출하지 않음",
             "sha256": "a597eab493ecb7e9458ca53503ad35a15db2be132c17e684b4fef893efd135b2"
           },
-          "specSha256": "0ebec82784b38c9d595d24656cb9181f50f1146b134c2d3e4539fbd8ce7b5f9b",
+          "specSha256": "9bb7217013aa18c22dc5d1e5fc652b75aa974e3fbfbc45bfeb0a08550493ff71",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -52537,7 +52537,7 @@
             "text": "`/client/live`, `/client/dashboard`, `/client/events`가 `media-server.client.v350-operations-notice.v1` 기반 maintenance/degraded/recovering/available 상태와 timeline hint만 표시하고 source URL/raw locator/debug/operator/command/incident detail을 노출하지 않음",
             "sha256": "c33770c9dda432f312b067189483208c32efb5878eb21f8e0738b46daead9ddb"
           },
-          "specSha256": "a4e0e7a8128c4c00d19a8c1908f785a1770e04c82ff4a3b23b9dcc2de39bd1d6",
+          "specSha256": "d2b1ad15a7278230fddc2702a4208596deea178c48680b4ce133f0c6dcfe13b2",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -53155,7 +53155,7 @@
             "text": "`/ops/dashboard`가 `media-server.ops.v350-export-bundle-handoff-map.v1` 기반 Operations Export Bundle과 Handoff Map을 표시하고 command plan refs, drill ledger refs, field evidence refs, client impact forecast refs를 release-safe/read-only로만 노출함",
             "sha256": "eacd2153c41f161b552b75b5bc9882feafbed1803aa77307168eb8eb4b38e3e2"
           },
-          "specSha256": "a4d8c873ca3fad237dfdf08f8920c8dd2079f465419497f731b4ed0610b648a0",
+          "specSha256": "6b02256c7ff2c19522e1a080f30b560664de2619899fb5973f405423ec000325",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -53774,7 +53774,7 @@
             "text": "`/ops/dashboard`가 `media-server.ops.v350-field-evidence-intake.v1` 기반 Field Evidence Intake를 표시하고 ONVIF, external WHEP/TURN, cloud/VLM provider의 redacted field evidence, execution conditions, not-run 상태를 raw endpoint/credential/provider/VLM material 없이 노출함",
             "sha256": "3eabf83092a7e0da5a746ab6c59f0f5bea4023c2c3f289e3bb2c25aa3432393c"
           },
-          "specSha256": "565c08921f2a3daa102b7ca688e6b63152b695a1c9e8054179852712aaaa608c",
+          "specSha256": "73f4e120ab5f5d03bac2d75d808af06fd09dce5c02ae9898cf14096ffd9bc32c",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -54385,7 +54385,7 @@
             "text": "`/ops/dashboard`가 `media-server.ops.v350-vlm-assisted-explanation.v1` 기반 VLM-assisted Ops Explanation을 default-off로 표시하고 command plan blocker, incident/source relation, operator review hint를 raw prompt/provider response/credential material 없이 노출함",
             "sha256": "cde190214ff4c624629d34e0d7b7244bf57a94bb5402f90cc781955d6aca94f1"
           },
-          "specSha256": "3d0acfc85464e69c7c896e0e757c82831474ec234ddf4592502fe3931a2dfe02",
+          "specSha256": "95c8544652bd13ed6b128e829e465feb1c573831091b2440d3d3597e67d83eae",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -55006,7 +55006,7 @@
             "text": "`/ops/dashboard`가 `media-server.ops.v360-simulation-workspace-ui.v1` 기반 simulation input, run, impact diff, readiness blocker를 read-only로 표시하고 command execution/source-view-rule write/client notice 발송을 수행하지 않음",
             "sha256": "90aaa2a11b3706833271c12f39e36d7d09c8ffc400ccb8149b3c4cbc7fc44ffe"
           },
-          "specSha256": "28e37bfaf13af9019920d4069edb091ae8d18bca4f5e1c9fc4db46e52674eef3",
+          "specSha256": "d6922bf30b5dda373a383645223eb4ddb9b150238d1fe874493ca5e578de6bd3",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -55637,7 +55637,7 @@
             "text": "`/ops/dashboard` simulation workspace가 `media-server.ops.v360-simulation-run-ledger.v1` 기반 simulation run id, input ref, result diff, operator note, previous run diff를 read-only로 표시하고 simulation 실행/operator note write/client notice 발송을 수행하지 않음",
             "sha256": "0d14123e45d3b83dee4470b7649eb28c4b373d0479e7a130f8bb2fefd2b45bf9"
           },
-          "specSha256": "83ebbaf2b352e28e7b8c1bb34deb89c08cfec67c488ef6f034d16365e7a12d08",
+          "specSha256": "ea8fcb18200d637b761887dd95fc3000b0c004dbace90bb33dd9bf0205e04578",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -56271,7 +56271,7 @@
             "text": "`/ops/dashboard` simulation workspace가 `media-server.ops.v360-client-notice-preview.v1` 기반 maintenance/degraded/recovering notice preview를 preview-only로 표시하고 client notice send/persist 또는 viewer client payload 변경을 수행하지 않음",
             "sha256": "4aaa127d3f1e9628368acc904c3c2b678a2d28a9ace1ac4c56f52a41dc1ae6b7"
           },
-          "specSha256": "cb1e32eec02627f1361e6da29d6d7d47741fd81afa3a8818bd313e131d310022",
+          "specSha256": "c6f21de646fe4f0d1a9fa3076562e07a7314d5c1e036409bf6c6cddb140cb0e3",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -56900,7 +56900,7 @@
             "text": "`/ops/dashboard` simulation workspace가 `media-server.ops.v360-rule-va-what-if-replay-pack.v1` 기반 rule threshold, preset, scenario what-if 후보를 read-only로 표시하고 rule apply/EventRecord write/media mutation을 수행하지 않음",
             "sha256": "de9e531f9ee059582dc38ae90c36e5d68205a31d7111925e51dd00450b47b61d"
           },
-          "specSha256": "6510f7a57b3c96c05a845c6c9786ad50f6bb5d0664fdb5f6d0fc13fd827f8afc",
+          "specSha256": "24f581ff72a049966295d07c15aa4caa8fd290be0916cee28e726b5398acb2e1",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -57536,7 +57536,7 @@
             "text": "`/ops/dashboard` simulation workspace가 `media-server.ops.v360-simulation-export-bundle.v1` 기반 simulation input/output, blocker, handoff map refs를 redacted release-safe bundle으로 표시하고 artifact export/file write/handoff write를 수행하지 않음",
             "sha256": "ea7a9127fc3603249f3d94f953faa89f2ba76cf79b4032dd38fae4120080fd01"
           },
-          "specSha256": "b7c412da7108da0fc63bbd7603d74245abd52647a5c1a3122df177ba3ef41e39",
+          "specSha256": "8ba8cc6db90dad7caa822fc4feeb3692d54fa02ca5a405a3d4b781c5fbebb650",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -58167,7 +58167,7 @@
             "text": "`/ops/dashboard` simulation workspace가 `media-server.ops.v360-field-evidence-simulation-adapter.v1` 기반 ONVIF, external WHEP/TURN, cloud/VLM provider 조건부/not-run evidence와 readiness blocker ref를 raw endpoint/credential/provider material 없이 표시함",
             "sha256": "14e7485d53b5de0633608e7bdcbb3a3907328431c51ae802a207d5fdd53b59c4"
           },
-          "specSha256": "44886e844d4bc0cec9d302f5642e9b045cc685d09badc67ee18c2d529620b0a8",
+          "specSha256": "18d161edeffee5ff81671561718891b20e7052c78c669c6284555252da076466",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -58798,7 +58798,7 @@
             "text": "`/ops/dashboard` simulation workspace가 `media-server.ops.v360-vlm-assisted-simulation-explanation.v1` 기반 VLM-assisted Simulation Explanation을 default-off로 표시하고 blocker, impact diff, operator review hint를 raw prompt/provider response/credential material 없이 노출함",
             "sha256": "1b3cbe56ce915a859b9521ed43b7e0a3f8d7ff2929d542d1b504843c0670dc7d"
           },
-          "specSha256": "c24f4a6c12752ae9c0d2ba08c3da775c0fdf3581a477197437b53f42ac34b87d",
+          "specSha256": "8749ad1c6aef0cca5df304250d48ad73c5703570cf9dc3db9bc40aec85388a78",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -59425,7 +59425,7 @@
             "text": "`/ops/dashboard`가 `media-server.ops.v370-site-operations-workspace-ui.v1` 기반 site list, health rollup, runbook queue, impact detail을 read-only로 표시하고 source URL/raw locator/raw JSON/debug/credential/operator material과 source/view/runbook/approval write를 노출하지 않음",
             "sha256": "e01ae2a8bc63cf1d5eeb18f17e3793194c8f331f3cbf60655edabd2e23940b6c"
           },
-          "specSha256": "12ca7ce307216b4595c8131a13050d41c666e336f7c00c0074273f26a09c8186",
+          "specSha256": "6b624fd49ad463e6e5efc32a29953cc6ebf1858b060a072eb20e476f14804e4f",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -60053,7 +60053,7 @@
             "text": "`/ops/dashboard`가 `media-server.ops.v370-client-notice-by-site-view-group.v1` 기반 site/view group viewer-safe notice preview와 delivery queue를 preview-only로 표시하고 client notice send/persist 또는 viewer client payload 변경을 수행하지 않음",
             "sha256": "1f3db0b64b2165de13126c7ab978344d057a4033527bb7c270d133955b200ea0"
           },
-          "specSha256": "eb2605034de39f30de74fb36b7eac459d908ddcea7a1bddc3a02a9e1f58af1bb",
+          "specSha256": "dc998e11073d082bef951f4ad176dfa41a60e88a3fa41fd9fdeb893dc49f7bb7",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -60684,7 +60684,7 @@
             "text": "`/ops/dashboard`가 `media-server.ops.v370-rule-va-what-if-by-site.v1` 기반 site-scoped rule threshold/scenario what-if 후보, site impact delta, EventRecord/VA fixture refs를 read-only로 표시하고 rule apply/EventRecord write/media mutation을 수행하지 않음",
             "sha256": "63eb92f387a97530aeda7778a9ee104a3a6b74f0d877ab1f8f285d785931fe52"
           },
-          "specSha256": "e02b69790915acef0261ad782c07024f838d25d63f61396f59dd6544713e7684",
+          "specSha256": "c4b3c135d300ad9e55a3977b72e9eb795d2e2971489f0e7db08bfbd31283c201",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -61318,7 +61318,7 @@
             "text": "`/ops/dashboard`가 `media-server.ops.v370-field-evidence-attachment.v1` 기반 site/runbook field evidence attachment, condition refs, approval/runbook refs, not-run/conditional evidence boundary를 표시하고 field smoke, endpoint/provider 실행, source/view/runbook/approval write, raw endpoint/credential/provider material 노출을 수행하지 않음",
             "sha256": "d7cde601d8892924e838d1930ad06b7b79916c038821028afc7ee12412b77216"
           },
-          "specSha256": "24a78b0a444cba472b25440fed4e59c09f340945c8463cff86d6232b5a9fc537",
+          "specSha256": "179714a0fcc14ca8a1b647706f17fb83a262da80c5fa69f34b6168e35a2c2413",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -61953,7 +61953,7 @@
             "text": "`/ops/dashboard`가 `media-server.ops.v370-limited-safe-execution-pilot.v1` 기반 source recheck 또는 notice queue pilot 후보, approval gate state, execution preview, idempotency key를 표시하고 source recheck 실행, notice send/queue write, source/view/runbook/approval write를 수행하지 않음",
             "sha256": "47dddfe5566faaa68020bb872249a728f3c2d5086b14118848c3b6dbcb4f63e5"
           },
-          "specSha256": "a3b13088ec0c35fd8232c4a59a3dc6da5e94ababcde3ff12d4a882ac4132dcde",
+          "specSha256": "5d41f8a0c69dbe2237080065aba54b039649b9120b0329d487a537cd161980f3",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -62583,7 +62583,7 @@
             "text": "`/ops/dashboard`가 `media-server.ops.v370-outcome-reconciliation.v1` 기반 pre-simulation ref, post-execution not-run ref, source impact diff, EventRecord/client impact diff, pending reason을 표시하고 pilot execution, EventRecord write, client notice send, source/view/client/media mutation을 수행하지 않음",
             "sha256": "f7f5816ffd251489350f1bdcfab22cb036949bd2063712421f955b39ac2d0604"
           },
-          "specSha256": "e56d9429e57929892ac96037583a128593bf7f545b79e571981b71a46314558c",
+          "specSha256": "fc38adaf2c7de037a860c3fe82c577b7ab868b83f3c38e074c13fb7a6c389cbe",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -63210,7 +63210,7 @@
             "text": "`/ops/dashboard`가 `media-server.ops.v370-export-handoff-bundle.v1` 기반 bundle item, handoff map, redaction review, release safety boundary를 표시하고 artifact/file/handoff write, client notice send, raw material 노출을 수행하지 않음",
             "sha256": "46f3f9ae5a61409d3afb930a755d656b8e18329e5e5770ca7de451368e814eb1"
           },
-          "specSha256": "3c5241f7042a9c50961a6ef2204b3acc46ddaace0638058f676397497fea7901",
+          "specSha256": "c134200fee367639c098c29788b51ca837bf7490b261337b3915937c6eda1877",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -63839,7 +63839,7 @@
             "text": "`/ops/dashboard`가 `media-server.ops.v380-action-control-workspace-ui.v1` 기반 request/approval/readiness/pilot/receipt flow를 read-only로 표시하고 action execution, request persist, approval persist, readiness persist, source recheck, notice send, rule apply, client/media/schema mutation을 수행하지 않음",
             "sha256": "30e973cdc376141770e82c1564e74fe866aa7a569ef47ed4e439efe4a51c8f18"
           },
-          "specSha256": "9c008df323a1d6cb6bf6da5b29b2fe8331ffc178a226d41d002ff0ea9fc31a66",
+          "specSha256": "825188a4274250c1d0333b572b8b6d6706ffff2352b81c5a655d24a68107c410",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -64460,7 +64460,7 @@
             "text": "`/client/dashboard`, `/client/events`, `/client/live`가 `media-server.client.v380-action-notice-preview.v1` 기반 maintenance/degraded/recovering/available action notice preview를 status/timeline-only로 표시하고 internal blocker, approval/readiness detail, source locator, credential, raw diagnostic, Ops-only action material을 노출하지 않음",
             "sha256": "45cdc72b3798c4957bdc24ccd5aaf043b356a59f89ff77cab836ac70f9bf2449"
           },
-          "specSha256": "c2249868f97389a27bf0cac3ca94f05db50f21d56b896ab77775b010fa6282b8",
+          "specSha256": "07f067e596988ee23bc41d3043436648f3a4aba502fe102f35b9f188918e7a76",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -65083,7 +65083,7 @@
             "text": "`/ops/dashboard`의 Action Control Workspace가 `media-server.ops.v380-outcome-observer-reconciliation.v1` 기반 readiness, execution candidate, observed outcome diff를 source/EventRecord/client/rule 축으로 표시하고 action execution, EventRecord write, client notice send, rule apply, media/schema mutation을 수행하지 않음",
             "sha256": "72f1e0d0f9d9e4a5afce799178004b03d91b27c8193f8a085843d91b9e044bce"
           },
-          "specSha256": "dca5a3205f93aee216a497ce63e92ebdb56d889e96e6fde49671cde8f18000be",
+          "specSha256": "a5372de98513dcdbc14544d13fa41f059793f86274e00d22c803b2d96aa590a7",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -65709,7 +65709,7 @@
             "text": "`/ops/dashboard`의 Action Control Workspace가 `media-server.ops.v380-action-receipt-bundle.v1` 기반 redacted release-safe receipt bundle, handoff map, redaction review를 표시하고 artifact/file/handoff write, action execution, raw locator/credential/raw diagnostic 노출을 수행하지 않음",
             "sha256": "ddd975b59e043777760526c2cc9998e825af759ca44b25f36340726d41b18743"
           },
-          "specSha256": "ab2841c57bbfb4ae4eba169b0ee934119040df0dada8316475e70e9685b94ca4",
+          "specSha256": "24b03970db5919c9e8194dc383faee1c4187891c982524e8c60d2005b0e401e6",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -66332,7 +66332,7 @@
             "text": "`/ops/dashboard`의 Action Control Workspace가 `media-server.ops.v380-field-connector-evidence-package.v1` 기반 ONVIF/external WHEP-TURN/cloud provider connector evidence package와 credential/endpoint approval condition을 표시하고 field smoke, endpoint/credential probe, provider call, raw endpoint/locator/credential/provider/debug material 노출을 수행하지 않음",
             "sha256": "73864eb32ac6cb958a2ae5e862faa05a229403eacc2e8b2e6557c4a5ea55bd6e"
           },
-          "specSha256": "0befcad13f445a6af1698232271c4dea2f64cb0fc5e4f547a7f2242000ec7966",
+          "specSha256": "cdc9ccfca58e9fc000dcc283c6165507ec106cb885f7c388ad4501c55c39810d",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -66944,7 +66944,7 @@
             "text": "`/ops/dashboard`의 Action Control Workspace가 `media-server.ops.v380-default-off-action-explanation.v1` 기반 approval blocker, readiness reason, outcome hint를 default-off explanation으로 표시하고 VLM/provider/runtime call, raw prompt/provider response, credential/locator/debug material, action execution을 수행하지 않음",
             "sha256": "a35f469f8194d4c56fdd530b80feb6eb37e82f810e8b955b5d0e305626ab1c76"
           },
-          "specSha256": "d673bb9bf87c6a11c8502bf55df5f179c561f51f2e82327af06d0e20a65d4c36",
+          "specSha256": "e7bc6b89e429e2b3aa9d695416faf9050b65a7c6048c948d698b9170a0623a2a",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -67556,7 +67556,7 @@
             "text": "`/ops/sources` ONVIF 도구 영역이 `media-server.ops.v390-onvif-credential-provider-status.v1` 기반 primary provider `none`, fallback `in-memory-fixture`, persistent store deferred, `referenceValueExposed=false`, `credentialMaterialExposed=false`를 표시하고 credential reference value나 secret material을 노출하지 않음",
             "sha256": "6726c993f0bbba982d16c7ac3968a7f46981787bf06a9968eb8092e88b7825f2"
           },
-          "specSha256": "899aae667027f4c24916231fe7fc4e337c1d1f569b689013dda89a3dc9146aa6",
+          "specSha256": "d0d6152ea95f8694c21f3ec09bda90ee5557ccfae81415012c201ad39cb2dec3",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -68211,7 +68211,7 @@
             "text": "`/ops/sources`의 `saveChannelSourceViewPair`와 persist decision status가 importDraftNotSaved=true, oneShotPersist=false, sourceWriteRequired=true, manual paired route, server rollback model을 표시하고 ONVIF form save/toggle에서 기존 source/view 연속 PUT을 사용하지 않음",
             "sha256": "9f26de4b660860b6913ebd15c28cb0a89aa11fa7a44f8092652af2b5938cc91b"
           },
-          "specSha256": "69aa847df83c54872ac830f60af2a592d0c488f1f285845e20a4154e32b3e9e3",
+          "specSha256": "9c983f44a2b8dbd60c716548025cfa54ec88b0e66fbb698d21c0656fa3717cd5",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -68900,7 +68900,7 @@
             "text": "`/ops/rules` VLM Rule draft 영역이 `media-server.ops.v390-vlm-rule-suggestion-draft-bridge.v1` 기반 `ops-review-to-rule-draft-bridge`, `provenance=incident-review-provenance`, `manualSaveRequired=true`, `autoApply=false`, `ruleRegistryWrite=false`를 표시하고 자동 저장/자동 적용 완료처럼 표시하지 않음",
             "sha256": "b636741f91a691f6e0ef4fcfdb0b5545da422a9542f6fad092196eb7eebe7635"
           },
-          "specSha256": "6ce7ac5a8e7f7d7b5d696dcc586703fa8a4fc4b6c89a499fd40aa1126b2dff9c",
+          "specSha256": "289b902c1ea4f442240fe4775dfda1206564c562698545c59ee2d0ac39529e71",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -69511,7 +69511,7 @@
             "text": "`verify-v390-vlm-promotion-trust-boundary`가 `/ops/vlm` Evaluation을 read-only `server verified` 상태로 표시하고 payload는 `candidateId`, `expectedCatalogRevision`, `expectedProvenanceDigest`만 제출하며 editable passed option과 client result/status 선언이 없음을 확인",
             "sha256": "a6667d13433fa844f7cbd8d1bfe298d4651925a5971262e292fe09e1143dc89f"
           },
-          "specSha256": "cfa5330e3e52161e5af88a3fad6db41ef3b3d5bbbc0765b614203972901e9741",
+          "specSha256": "dc983d800a96585d0ab2db53d183b903b0e5795c8ea62325265335e35bbfd40b",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -70123,7 +70123,7 @@
             "text": "`/ops/sources` Backup Handoff 영역이 `media-server.ops.v390-staging-restore-validation-handoff.v1` 기반 staging restore checklist와 result artifact contract, `resultArtifactPersistedByRoute=false`, `productionRestorePerformed=false`, `automaticRecoveryPerformed=false`를 표시하고 restore/cutover 완료처럼 표시하지 않음",
             "sha256": "50f09d3c30c86fb035bd6a38eadf4ae2884f9aab32ce8a3b9539c53659b6418a"
           },
-          "specSha256": "71857d945e1f0b778875f531a2a1b71620e5642c1cf17b0a5035a97729bf1748",
+          "specSha256": "84e542eeb309e8356483da753727d5f6baae33773295518153e1bf608c7e3fc2",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -70734,7 +70734,7 @@
             "text": "`/ops/dashboard` Action Control Workspace 인근이 `media-server.ops.v390-action-execution-deferral-decision.v1` 기반 `defer-all-action-writes`, `approvalGatedExecutionEnabled=false`, `sourceRecheckExecuted=false`, `clientNoticeSent=false`, `ruleApplyPerformed=false`를 표시하고 action 실행 버튼이나 완료처럼 표시하지 않음",
             "sha256": "2a8a105ab751987082fe13dbb211342d7eefdeba0c98a0f3e54e62dbae2aef1b"
           },
-          "specSha256": "b814815090dc08acb89ad79205623cfe2757122a8a6fc071156508b6cc1cf147",
+          "specSha256": "b9d25dfe54250e6e771831954d6c53ff76863960e4d283842828b2eade43218a",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -71352,7 +71352,7 @@
             "text": "`/ops/dashboard`가 `media-server.ops.v390-field-evidence-bridge-decision.v1` 기반 `approval-only-minimal-field-evidence-bridge`, `fieldSmokeExecuted=false`, `endpointProbePerformed=false`, `credentialProbePerformed=false`, `fieldPassClaimed=false`, `releasePassClaimed=false`를 표시하고 field 실행 버튼이나 release PASS처럼 표시하지 않음",
             "sha256": "10ffb20d9a07f176831358e80ed465ec9d35febc08797b79cbd4a4cd6a1d87f9"
           },
-          "specSha256": "ce6660ca30fe479ec0d9efd30343bb85be6980c73dc91c87ee89116e9b9ecc70",
+          "specSha256": "5dde81e5072b97ff2e636255d57e1ede2eb8b6d8bfb24b413aa35e06e3ee723b",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -71971,7 +71971,7 @@
             "text": "`/ops/dashboard`의 `renderV390ReidAssistDecision`이 regular file, SHA format/read/match, trim provenance, OpenSSL·ONNX availability, safe reason code, preflight/session-load 분리와 no-op fallback을 표시하고 raw model material 또는 Re-ID 실행 완료처럼 표시하지 않음",
             "sha256": "8fd96d2eb748257b2e3f501abc59e2b965a3e799c6a9c55ea89c6bb658ef3937"
           },
-          "specSha256": "9f49d1f0d044a344a4a43e5b5529dd5ff62286d316ed350d958710cb6f2e5435",
+          "specSha256": "81338b0ff4b12e4842ad1c8736183a9870fe3213516e6c8eb09fc26e729b7519",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -72632,7 +72632,7 @@
             "text": "login cookie 기반 보호 route 접근/차단 확인",
             "sha256": "1994311ad1baf7a0018e8321c2d6489b75441825b28502d0c1e19138fa96e7e4"
           },
-          "specSha256": "c319f3ea653a05ca2365ca030feae7ac54e84b188044a8fbbf8bc1a3c180990e",
+          "specSha256": "3ade3e2fd3c112e2b7beb37d0bb2a2baf7bbc9942fed1794a8ab6a3288a85ced",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -73388,7 +73388,7 @@
             "text": "`/setup` redirect와 bootstrap 후 `/login` redirect 확인",
             "sha256": "a3546c87b364001c5c22370212b1975fbab2ba77d08ca7de87238890c9d8a0aa"
           },
-          "specSha256": "0370add2b502fe82e621d739c8079dd2ba038d33b449f7e3902e8684d434c7dc",
+          "specSha256": "7675825a4cb0d5b315007877a88ff0ea40b1c0445d20fc2da92d6d619289bf6f",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -74153,7 +74153,7 @@
             "text": "setup/login/user 화면에서 기본 admin 정책 일치",
             "sha256": "726e4e6294571ed05474e620d5ce4158ae6c897773bc536f62b4193bfc035820"
           },
-          "specSha256": "730bd351477626a92344fc0c80ca75ee31a77d85bdbbc8c29386feb91ace75e5",
+          "specSha256": "b230cb0d8dcb332161fce6e2b8ed613bfaaad6e4d94f99500d41eba2c6addfa0",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -74904,7 +74904,7 @@
             "text": "빈 password 또는 hash 없는 admin으로 login 불가",
             "sha256": "f7f92112af1673336141c9ed6528b22e4b16e290f7167816ba1df749995a0358"
           },
-          "specSha256": "f945cc6c1a7ebbc6432475c5707901485ec2c831bd19a360b1ed546415715e09",
+          "specSha256": "426a2963560d44aa176a509059b8ab45ddd5ef2e59835509eccf699c6e305867",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -75597,7 +75597,7 @@
             "text": "API 응답과 admin/user UI에 hash가 보이지 않음",
             "sha256": "898c55f40e04dee60c4157dca4b99d560c298537a91b8af15d2e8239c44219c4"
           },
-          "specSha256": "d78540fc758d02e1e4626c348d3764b7145b46f89f39908d95f53a420cc8617f",
+          "specSha256": "b4f702846dc23dd5412318d4b383c8add1c5b4ce7224498bdedc474e59191e5c",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -76209,7 +76209,7 @@
             "text": "API 응답과 admin/user UI에 history가 보이지 않음",
             "sha256": "e0b10118aaed4198f78aa5a5c2818b5ea2dee31d7e4e297a7eb7e47197911cd5"
           },
-          "specSha256": "e50d617f206a5206b878a720b69faa4aa076aba195bf7c5d32745b8b4f108cca",
+          "specSha256": "a6987850525d694f139853293c8766408610b024d6f4fd284f27e10ad0859318",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -76971,7 +76971,7 @@
             "text": "API 응답과 UI에 tokenHash가 보이지 않음",
             "sha256": "57700666ee7e9d6abf223416c8399df6b5a226d025ba9a6b61d1121a7cbe0aa3"
           },
-          "specSha256": "b3e21c6b23cb94e57c662e23b1fe054a4f3d319eb024c9365a226a467dcd1e85",
+          "specSha256": "5b80897524d5b3e3257746f98c89addfe518a9cb8fac3d52d87a9d271d4f0767",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -77884,7 +77884,7 @@
             "text": "invite list/detail에 hash가 보이지 않음",
             "sha256": "73569388823d0de8abe609397ebe0b9f5f6e99467415c5ad6c7b4f852c381485"
           },
-          "specSha256": "4fd48a7cbe2c37b69d28162d9878cf5dc789b374583fe735a0087ef070fffb3e",
+          "specSha256": "199d4ff76b722e993a80c6cf602a0a4efef4f6983dd817b0378d002a77482290",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -78654,7 +78654,7 @@
             "text": "cookie 세션으로 role landing과 logout이 동작",
             "sha256": "3c8e4a0e5f7605667e28894fd8607833b71d340bcacc3bd2bd775e99a94c887c"
           },
-          "specSha256": "db40d9d7134a096df41df097f1d4af8fe834c049aaa9c0adad3c0d178523c986",
+          "specSha256": "6475739b22c2f676067e67cbe781f3d0cfd45872b7b3263c825cdeb8f8186c00",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -79296,7 +79296,7 @@
             "text": "`/ops/users`에서 create 성공과 validation 확인",
             "sha256": "74c8a86ef79bb54c18b1de47c0ccf1b999229baac2e0e60f6419b30fbe96c154"
           },
-          "specSha256": "21dd97494fcf84e254db33148831a1cde73d6e272d73971413e38b916508dc5e",
+          "specSha256": "5878d23878c3226028f3949fe11d4f107e5856015f588afaf542ceadbd718d4a",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -80006,7 +80006,7 @@
             "text": "role/scope/status 수정 후 목록/detail 반영",
             "sha256": "7f3a1faced3fdc263cd14516a963a0279079647ae2378d7412888c95603e9a55"
           },
-          "specSha256": "49b444c72088397ae9b348f50d402364a6b2a3d9c944064cb66a0cb8a9e36f82",
+          "specSha256": "e31f9fc3d53ed38cdefd062f8da9250c8b466ce7b1ad323dd4790de8ab347f4b",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -80688,7 +80688,7 @@
             "text": "disable/delete action 후 login/access 차단",
             "sha256": "af21776b605bd3154d1f6ea16db54dd78e2c5937dde5001083f9b2e061c65ffa"
           },
-          "specSha256": "b3f782026bdba0b6fd35670c930dee4c6ad8aca8f833903c6d73f01ea8efd2b1",
+          "specSha256": "fa7aebc8e34e7848a86fb3d8cd0d279d6f82a6256d006cb9830a7d50873301d5",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -81300,7 +81300,7 @@
             "text": "disabled user restore 후 의도된 접근 복구",
             "sha256": "64a9675d911b9e0d051d5711edf174919742cce4ed2fecfd7f853fa63012fef6"
           },
-          "specSha256": "362db68bec9b74a0a810c42a08e24a5d5078e2e0601c1d398a950b7dc2721d3d",
+          "specSha256": "b3c833f8e8967c70e0ed150e5344b2549ab1d24b435f06af829354d1ac65bdae",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -81912,7 +81912,7 @@
             "text": "reset은 password history 우회가 아님을 확인하고, reset 성공 시 must-change/password flow와 session revoke 확인",
             "sha256": "237cd65334fe36081dead4eaf64616ae5c8653245437ba1fb154745a1cba7b13"
           },
-          "specSha256": "f629dcceb74321510157a81b2a64bba5701f3ac0c07e0b935daebd45b602059d",
+          "specSha256": "015d163f62f28611fcf97d8e04fba7d1e1a820f53a993a6959dee5b562414839",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -82524,7 +82524,7 @@
             "text": "마지막 admin disable/role change가 거부 copy를 표시",
             "sha256": "2d2ab9613612f758e3b6549c7fffabdbf1459e30a5890e30469fab0319a8096b"
           },
-          "specSha256": "e9be10d7808184b7da1c129554447ee082a4cf935b1c1387e7e85d6ad80211ea",
+          "specSha256": "9c056d46b95c22b1d2ca68fb5b08dd12848a7be37f009853032cc0275a629c14",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -83136,7 +83136,7 @@
             "text": "ops/users/rules/sources 접근과 admin action 허용",
             "sha256": "29321ad4b450763ab2d19a07636f8aef0b9356471174d4c7edcde11f397ee2a8"
           },
-          "specSha256": "6eb7c57475d6144b979599aedec84751559024246720004b55fa2be227697265",
+          "specSha256": "7e2e0b5d6e314b6650a3890bd48cede4edb4b1b6facd2626e2f9b8c2767f42c3",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -83748,7 +83748,7 @@
             "text": "ops 운영 범위 접근과 admin-only action 차단",
             "sha256": "d43a0c43089ad2fe59e9f895010736ef415fc2a7b8a2445daef8e3fe670fe75a"
           },
-          "specSha256": "53454b54404ac50c1cc00337c7cd7fa85ebe21d60cf16189753c5aebae86ad50",
+          "specSha256": "42697a59b1836aed0c057c5f022c68f191fade988a01d0d0fc5a754fc0378bac",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -84360,7 +84360,7 @@
             "text": "client만 접근, ops/lab 차단",
             "sha256": "84aeac0290301dbc93e649429f0fd61c660429409bb8137ca52c6b9ff44754da"
           },
-          "specSha256": "913775060a4c4eb82357a360710934b1c96b58a10e1e0c4f22bf28a46fd7a3f0",
+          "specSha256": "b35c723b6ea157ff1eef289b34db759b02458d224c43db5d83d80270f73470bb",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -84972,7 +84972,7 @@
             "text": "API/scope 중심 접근과 제품 UI 경계 확인",
             "sha256": "a306e661403e75bfb6776ee9da15fce9155d18c3903d18242f2a856a1ff2de25"
           },
-          "specSha256": "f0048feee13c7a270d5bb45d139433eca1eebe2ff4106a86c8295218379a4be6",
+          "specSha256": "e9bbc108bbf3e14634f9da031331a5e906b32e429d4489b2fea127b154444d94",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -85584,7 +85584,7 @@
             "text": "read-only route/API 허용, write action 차단",
             "sha256": "b95fe5d84b2dc47269655ed83122ac87eb85326104b761ee4dc9c4976cee4258"
           },
-          "specSha256": "09cf9d8f3dcb7e59a30f2e71b4c626dd7e681c21668869acf95d3bde01aa815d",
+          "specSha256": "66a6683a362ced83bd9e64f16167257b14ddbda93e7cc715b546dbb2aa29c843",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -86196,7 +86196,7 @@
             "text": "`source:write`는 source/view mutation, `rule:write`는 Rule/Profile mutation만 허용하고 다른 write action은 차단",
             "sha256": "49b96c3f0f23bb3b0ef698e553a4b579a94fac7a9d3547b101dbe45dd57522d7"
           },
-          "specSha256": "43c923ba79864de3c4d485bc93bb12076ff0557c6ccf8b29338eb103032c5173",
+          "specSha256": "572366b26c0c73942afa13baf6883b3677dcf02874a95686ad97f32d5570d152",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -86808,7 +86808,7 @@
             "text": "assigned view만 client 화면에 표시",
             "sha256": "80dbd5b00810a897f54358176d9691970876f1b3c16d9c25a7a3087278dac328"
           },
-          "specSha256": "ac9bd1f018b8d7d291f38b34be3bcaeb1c17bf51dbcfb6565c4a005158790723",
+          "specSha256": "e7b53e318be58a9daeda46216e2b3f268d2f6c752ff97edf8a6024a1ff6c13f9",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -87555,7 +87555,7 @@
             "text": "invite 생성 UI/API 성공, 원문 token 기록 금지",
             "sha256": "574f65cd5a55b1adc442d6e00a6dbfaf50854affc6df2d7e8650936d14b4140d"
           },
-          "specSha256": "2521ffae99c1f60b0b94f5262510283342446626445c2d81f05fcc6117555418",
+          "specSha256": "3588cda1972593577089866559b790c6dcf06848bf20e5c5752fc38090fce443",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -88388,7 +88388,7 @@
             "text": "invite setup 후 login/client 접근 확인",
             "sha256": "6f20c9e17ceec760de6a91135f75cb74dd7a4e388c858a15730949398fcd490c"
           },
-          "specSha256": "b2b21db187d8f87f391a449fbd1a0fc851233ad1f772d97ed532dde5df5d6750",
+          "specSha256": "b9f24945b0fb363d9cb76ddaf56d68e33b17f04622941a3246d059e81811c2fd",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -89151,7 +89151,7 @@
             "text": "expired/consumed token이 거부됨",
             "sha256": "3a88390b3e88ba317b05828c430e92ae5230f2f194137eb4c3ae6be2a273ad81"
           },
-          "specSha256": "0cd4e5e84091cd20b204535ce74071a3b1cd2d08a963b055f891ac4dc38ae800",
+          "specSha256": "537841ce6236d7a55935671ac340f331961ddbc4554575b07a09e660abdda200",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -89986,7 +89986,7 @@
             "text": "public request 제출 후 pending 상태 확인",
             "sha256": "a7dcf49c1b91e2e3c96c6db48efcfb5776d5f8a2d50ad780896e5715bcc86cc3"
           },
-          "specSha256": "1afbcbc8885c01183c367d77f4a5883d9d130446fe0e034b0a0a0307ca960ab8",
+          "specSha256": "fa0e9437634cf446f5fec14aa36e1d6a6ff96c31531577d9cbbefa2f4a722d9a",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -90854,7 +90854,7 @@
             "text": "approve 후 invite/view scope 생성 확인",
             "sha256": "332957d7bc5f49d354d51cd54f8d99c941dba38a53fc0155f2e9e8a5ded3621d"
           },
-          "specSha256": "517c91954da214ba7fccd30ef7e22644711eae37c5e6e0006515af5af8f5cb43",
+          "specSha256": "b27f34c940af1c540c99fb13202c04a0b12c0841d3728eedf3d70c5c2dff8683",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -91689,7 +91689,7 @@
             "text": "reject 후 invite/session/view scope 미생성 확인",
             "sha256": "43e9c931cb4eb2ab038414b8a8b1e5b82c6da1daf908dfd3b3f77eb89ac0f32d"
           },
-          "specSha256": "e10d053c7da066882c578c64c71455f9ab27f3a8aed739394adc8780acaf59f8",
+          "specSha256": "d391b419b0deb0e084063fa5fc3a75903754605d1e052248fcea39275695b135",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -92519,7 +92519,7 @@
             "text": "pending 상태에서 user/session/view 접근 없음",
             "sha256": "f855e894f7e6228af7b04b98df01fc7326c4bc7c6e0fd1560f60005c195376ef"
           },
-          "specSha256": "3abb4fbcb144dca3cb646fc22e75ac306029eaf5e5208918dc29380a33b3f2c8",
+          "specSha256": "a46739433b3d4454265a9d518c27ae20b7e880a22b57147438c745621216bd36",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -93249,7 +93249,7 @@
             "text": "role별 보호 route 접근/차단이 브라우저와 API에서 일치",
             "sha256": "f42d247b10f3c27c1eeac96102826920a6ed03fa60e0a79ba2ff875c0e6a07b8"
           },
-          "specSha256": "c33e46d796d125557f8e7c114c9c4ea871902bbb897fc090963e952e3de49b70",
+          "specSha256": "ce0d665f9f689d06b4ca5ee4125bb704e4d43ea6825fde90cc292d4a7623113c",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -93908,7 +93908,7 @@
             "text": "`/ops/sources` file source form의 `kind=file` 저장 후 `/ops/api/sources` 목록과 PublishedView 선택에서 사용 가능",
             "sha256": "95469e76f0ece67b9e2709842677a9bc9f459e4ec8d560892018722843082fae"
           },
-          "specSha256": "b50929e6bace7b560dfcf84c2ec35391b91c4e5c513d855548aeb35ae26701b5",
+          "specSha256": "f3813378cd6e8fb1eef63f3746ec028a113d6b526997c68057143d796b3c8d28",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -94649,7 +94649,7 @@
             "text": "RTSP URL 저장, health/session 지속성 확인",
             "sha256": "8d27e45a138bf75770cc4f789d15d0f3834c08feb429c0d21a0f9fc4f40adb1d"
           },
-          "specSha256": "50b4f920a64469ef9254a8f303ab8a7f5b9e3528e2e4a5a72acc7bec3867bd15",
+          "specSha256": "0d016e523f197240265f2ce1421b0a1e17e3ee52b65133b248f53c168850deff",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -95390,7 +95390,7 @@
             "text": "URI 저장, 재생/health 상태 확인",
             "sha256": "ac6e76e25249659cdb945f9722a63d8e57b80e7567704de6357020b0aba7ec1e"
           },
-          "specSha256": "b0b5340be4607aed933b23757101a3faabe46b1c3003f15c2ae645c399822731",
+          "specSha256": "81a5550ab476a9768f8e46f7a5a3c7f565be342d8064c1d1a1c5b2d07acc552e",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -96131,7 +96131,7 @@
             "text": "WHEP URL 저장, client wrapper session 생성/삭제, WHEP source sample ready 확인",
             "sha256": "d9c693e2e48dc78ffb68a754173e52cbd8535092e4cb158ec8e938a203010eef"
           },
-          "specSha256": "1f1b7cf0e1f8ac94823f35740d6dfd787d3a44d7b7abbcd95016f381e6c0a5f5",
+          "specSha256": "52132c304bd4c5e19788f7491b5ca7f0ef75fea5935b0d66f1613c541996ca2d",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -96872,7 +96872,7 @@
             "text": "WHIP publish sourceId가 view/source registry에 반영",
             "sha256": "0c3f6261fab94301ca7bc7c909ffc83026b0987923b16b80ad01e952b99d860d"
           },
-          "specSha256": "db1b29361320ac8f9b76b72c79f727f0b308ff6b5e8474474cd8b58ca09f4013",
+          "specSha256": "254f5f890d9096a20d87e6000a0c4ebdb7b4da629e1b22cb3a91947dadf3d485",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -97566,7 +97566,7 @@
             "text": "목록 row/count/status가 API와 일치",
             "sha256": "d3fbf25a0ed8c31cf4085c6baf9e1edddc17c10e17cdd2b2c29db6653dce9bad"
           },
-          "specSha256": "991a5e7e6ac3f822571399f023ffc7439e057d993d39ae5e4c8e4c92c7251c89",
+          "specSha256": "3bfc5665ee868afa0e0be62cf1bc3c7f68afe944b041121a5feba31a99b471b9",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -98178,7 +98178,7 @@
             "text": "detail panel/route가 source fields를 표시",
             "sha256": "f0b3e49ed55b661f3d4c03444ac4fe0af56b5dbc44797a4837af9ebf06a1a248"
           },
-          "specSha256": "ddd426b837cac815fced6c7c3e9744e02dd161b522756428cdf05f8f3587056b",
+          "specSha256": "0b59e2483388894771adf2f5438d4cd263addd3b6f784d15844cb6f41071a0e7",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -98790,7 +98790,7 @@
             "text": "create validation, 빈 채널 이름 거부, 성공 row 반영",
             "sha256": "d0cbf5824eb1110098996f014c585120d0279ff301952d58875aa7d3a5b20ebc"
           },
-          "specSha256": "e09881dc9ba8a2ff9a6140ea029435fcd70590386035bf2e7f196af7bee724aa",
+          "specSha256": "8647005460177bd90712f965fb06ac3550466874d3a2e9643f01ed9313e481ea",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -99451,7 +99451,7 @@
             "text": "`/ops/sources` edit save가 `PUT /ops/api/sources/{sourceId}`로 반영되고 source API와 table row가 같은 displayName/zone을 표시",
             "sha256": "20361e435161232703956dcf89fda0eabcd80d57edfff0fe4d7f5bc3cf1c569d"
           },
-          "specSha256": "5596d1b6a2a33235103a69c9eed1485023bd447e2c32c2928c8e1779ff1a0537",
+          "specSha256": "ba96c05eb19235c8a4c031a92d557b91f43e5e44b26a879bc2a1144064c2201d",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -100145,7 +100145,7 @@
             "text": "`DELETE /ops/api/sources/{sourceId}`가 record를 제거하지 않고 `enabled=false`로 soft-disable하며 연결된 view/session 접근은 비활성 source guard로 차단",
             "sha256": "b8814ddd8fc93ca73cfe52e9010170caf2cab673cf073fee105016ce89d01667"
           },
-          "specSha256": "4eabe75e487f414b3f1b7eb55b208964780630bc2e9d7fee5df2b7def298b4f5",
+          "specSha256": "e54e089f5a65c9f1387f33678530e1d18dd46efb7795702665ceefc6141f9825",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -100757,7 +100757,7 @@
             "text": "disabled source가 view/session/rule에서 차단됨",
             "sha256": "3264afa0be4e35b7e7c574878461acfb1e9355b3eed1b21cdbe49f76dfe8cceb"
           },
-          "specSha256": "a7558bb8f1a6f75c730eab5cf41c39fcf05054be580c77c8f976faa38613fccb",
+          "specSha256": "7eb216053b9a96cda0f351c4af119259f2d0a8c379f0c985904459e58bd7cb44",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -101369,7 +101369,7 @@
             "text": "health status가 dashboard/list와 V240-S04 client-safe source health summary에 반영",
             "sha256": "afa24e584a206b426291479e8258f592b1d3ebe2ac2069ef333dd73b29310958"
           },
-          "specSha256": "480d596287018e1c5f38233e83e15e9d7d549ed037bf5cdb600252e1e7625ab0",
+          "specSha256": "6bbc01d2b69f44d411b302fa2fff98a81a900faec5f67581d4f1e56f63c36f48",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -101981,7 +101981,7 @@
             "text": "no-device 경계와 실기기 endpoint 조건을 안정화/UI 기록 안에서 분리하고 V230-S04 `verify-v230-conditional-field-evidence`에서 approved environment only, redacted field report, not-run is not PASS 경계를 확인",
             "sha256": "fc85d416262e362a9875b20d2a6a36cb457b566bbce262581c67c9c951f60191"
           },
-          "specSha256": "970be549b32626fe3bd424e1ff2fb3b57daca80a84af1a1bdeb1810f6a9e2646",
+          "specSha256": "00a40167ddf04eb2e4f69e9f3a6c276ee51fbc43a9a63b495cda4f4c025d50ca",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -102593,7 +102593,7 @@
             "text": "view 목록/count/scope 표시 확인",
             "sha256": "bfd836922c0e7368f99f6cc8700ff83feaec8bcac7448430a64a2817419083ea"
           },
-          "specSha256": "fcab969f7f7dce67f518da5e89a5b0a4e021f04e03e5e3534aacd4ed2e1c2c75",
+          "specSha256": "37ec20635788ffb9cdba38f77e48d3ef398efe472a9203888332cef7cdff8665",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -103252,7 +103252,7 @@
             "text": "create 후 client/viewer scope에서 선택 가능",
             "sha256": "0a4cafd2c35d0ae2c441cb1baecea249456a2370f9f8459d670290404cef5011"
           },
-          "specSha256": "3d116d084be9ab3cab97d16c92a9d6f853df5ea34aaa0829d6ae1a19f1d2ac2d",
+          "specSha256": "6b4a8fdf351632a4c77c3c0fcfbefb2c592878a62fc7b2500060a09a8351bf98",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -104000,7 +104000,7 @@
             "text": "source/rule/scope 변경 후 반영",
             "sha256": "9f7d2cb3ced77f9e0a1f6600bc8037a90d736b0ba732080f6fdb3e3abbe4e927"
           },
-          "specSha256": "8af227d3100a1cc869936008575c406354c62b8da1adb2a614a1963bb01a7e43",
+          "specSha256": "01c99c3756a9aa632bd7d855d23382566a0ec7ee24d43445a9edb969832e0a0d",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -104694,7 +104694,7 @@
             "text": "`DELETE /ops/api/views/{viewId}`가 record를 제거하지 않고 `enabled=false`로 soft-disable한 뒤 client view와 신규 session 접근을 차단",
             "sha256": "b67a75b841b9889c8ec0e05224147c48356ff6c6a146356a6efcf2bc6bc9d3f4"
           },
-          "specSha256": "5465af2873ab0de230bb3d39a9781a473c0a80dfe2aa4542359a1c6c40e02d72",
+          "specSha256": "a2bd6b90d2ed2019e51b1b4e329b02d728c578593a7018186a85650c093ef3f8",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -105306,7 +105306,7 @@
             "text": "inactive view가 client/rule/session에서 차단",
             "sha256": "af934130193e81cbc36e5268d36396b1e22fc67b0bce9b4a8bf1403770174b12"
           },
-          "specSha256": "4e011df3a98415ab7b84e421f9c94a41147e37ea1c2eccd4a35a5140c7bcf19f",
+          "specSha256": "e1c0200015170a501c597a517fcad7a9de89929a6947de5208a784870f6e5404",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -105918,7 +105918,7 @@
             "text": "view-source mapping이 client live에 반영",
             "sha256": "af434e007567ebf21320f9e16ed31b79cdcdcaf0cf9e2c6099fa13278e29787e"
           },
-          "specSha256": "67c6d1eaa74e62e5102d70a71db2193ea5c6d3000e85c9f844bbabf265728bb7",
+          "specSha256": "eaec8042f373ed77d5772579034f8b59ed3c7839830551a643b624fa150137e5",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -106530,7 +106530,7 @@
             "text": "PublishedView `allowedRuleIds`가 client list/detail API에 유지되고 허용 rule만 client session/metadata에 반영",
             "sha256": "ae15c345b08aa6b5158d32e54fe7cf32e06c29dcdc2ec825d84a781c6431e66d"
           },
-          "specSha256": "b0d0b7ede8fa388668c9ae1a7f3eb6357f0995d4ade24ba1021c252542f00940",
+          "specSha256": "efcee3d4af7a7fc37a49bd9f766e00ed5fb5746f396dbc0fd3b5cd7fc8fb5a9f",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -107142,7 +107142,7 @@
             "text": "viewer별 assigned view만 노출",
             "sha256": "98e33ce6df9b2789f7520e481233ec72f2163dfc2c23d50a93feeb32f9f5ac67"
           },
-          "specSha256": "0ae0b447e79261bf178f285bd000670b522443bd8a1e15a8e6bceb25c7870353",
+          "specSha256": "7159e6c9aa4bed8b35ccb2367096d2045b652834b620de9ae588b4f92294aaf8",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -107792,7 +107792,7 @@
             "text": "wrapper session 생성/종료와 media path 확인",
             "sha256": "6f5b29b82dee2201df06ddf61330a7f5d60074a2dec0d9076a0dc72f29eea860"
           },
-          "specSha256": "a70b6be48ff1bf9bc029a91019f47565249abba190cfb378516482011aa560e0",
+          "specSha256": "86dc1ff3d932059652b066dcb2ec5f85f6d1423d364a1a868ef5633b373f2678",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -108501,7 +108501,7 @@
             "text": "view-scoped dashboard가 assigned data만 표시",
             "sha256": "2f1cf04eb440fee90285046f0b4a4f4212dcc86c04ace4b659ad916611169b58"
           },
-          "specSha256": "b23f23bcce374026bb88ea0b202d65dddb875571835112e823d9e089358f8325",
+          "specSha256": "8e666054b117e97f78fc6f18c294269b630c94c8152e22892d8619f8291b0339",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -109113,7 +109113,7 @@
             "text": "view-scoped events가 assigned data만 표시",
             "sha256": "149c9603366634e5f321f7fac609e7815312fe4e78cb3ff32c5c1c0504a8d804"
           },
-          "specSha256": "ade29b699904a59dfb013232e80c1d2af736089d8d142635cc9da02755a59bba",
+          "specSha256": "465125ff56139698ffd71570f96a1f7aa6960decc4e9571aedac5475389e388f",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -109725,7 +109725,7 @@
             "text": "admin client 화면에 preview 상태가 명확히 표시",
             "sha256": "226152d584707dae0dd8b30f429e379b01dbee9082ebf867ceab061f6a499ecc"
           },
-          "specSha256": "542d62b02be5d2bd9dce064cd0bde2e2bed3be849938a1f6899b3cce955c3b30",
+          "specSha256": "fa7e5536e2a978b6b1e1c02d5eb7348b6cb81a75c05d0bf077e796264775756e",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -110337,7 +110337,7 @@
             "text": "client 화면/API에 source URL이 보이지 않음",
             "sha256": "a714556ca2392c862846a10e04187281ab085548a0fc87dbc08ddf56914dc366"
           },
-          "specSha256": "40e4bd1a8cf8206d0bc54c465d671f4e6881390607bd22678b25cea2e941eb33",
+          "specSha256": "0000c513f54736e31d5c3ac79804e4b63f1530277ba86ffaeb5a7ab064201b88",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -110949,7 +110949,7 @@
             "text": "client 화면에 Developer URL이 보이지 않음",
             "sha256": "31ee608957dcba92bbc821dfe6f2643e8134a82cdf0205213af781ad57adc221"
           },
-          "specSha256": "b271e648f0a371d5c733924765102469febd81c8694236ed7fa579e2545bdd44",
+          "specSha256": "ca321c4dcd8df5867da4d252a38fa0ca331c8c50a28fce167a525eb1845e5ab4",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -111561,7 +111561,7 @@
             "text": "`/ops/api/onvif/import-draft`가 `credentialGate` summary만 반환하고 `source:write` guard, URL credential reject, SourceRegistry/PublishedView secret field 비저장을 유지함",
             "sha256": "37091899832db8395810e98c1b826e49e8060412d32ed747991e7ef0928b7a10"
           },
-          "specSha256": "aa68466a33a7010493e76a760ef810c678b8e892c99f98a0a32d6fa6f1edec1d",
+          "specSha256": "95189141c07d7f696869f76ddcc5979e872b714f6704740fb5beb462bf0c27db",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -112175,7 +112175,7 @@
             "text": "v2.8.0 evidence intake가 source health recheck 준비 상태를 표시하되 source registry write, credential 원문 저장, external endpoint 성공 보장, Event POST/WebRTC/SSE/WS/media path 변경을 만들지 않음",
             "sha256": "a517084151330742c3962a275b5bffa5dd08feb7d5c5299f2731cac8932b45e7"
           },
-          "specSha256": "007052b49355edb12e7662f22ca9ce5ce925005ee0d230ea26ad8f20c149227e",
+          "specSha256": "5352a6212fc260c259d5f47d42b65d450bd06bea26823bc1f6d5ae1455712b35",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -112787,7 +112787,7 @@
             "text": "`/ops/api/source-registry/onboarding-quality`과 `/ops/sources`가 채널 저장 전 validation, 중복/충돌/누락/ready 상태, ONVIF/WHEP/RTSP 입력 품질 요약을 표시하고 raw locator/credential/client exposure/source registry write를 만들지 않음",
             "sha256": "73eda40e36cef9a9acb1dc8c40ed26bc27bfa34b877a72fc7e94d4b6e0d36857"
           },
-          "specSha256": "ca9ca7c867357b9c737e7da559428d3f40f8dc188a35ee8d7056bb5b3f4d0748",
+          "specSha256": "0cab2fec838bcda1fd45df8b5a18e51b91baeb2b387e7fbb8fdda0835775f2aa",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -113401,7 +113401,7 @@
             "text": "`/ops/api/source-registry/reliability-timeline`과 `/ops/sources`가 live/stale/offline/reconnect/source warning 변화 이력과 Ops audit 연결을 표시하고 raw locator/credential/client exposure/source registry write를 만들지 않음",
             "sha256": "83c397424a54f8ff2ec57c338af11ed8d3bb8763a77012b3c1dcbff02be90a49"
           },
-          "specSha256": "d5909a647431afe50be5fb5fadb881e5798681231d861f6d615016164b5f63b1",
+          "specSha256": "8269ed4459032bd960840a17372e33b279c57cf8bc36f7ac7ba33bf4f971163c",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -114015,7 +114015,7 @@
             "text": "`/ops/api/events/reviews`의 incidentSourceCorrelation이 기존 sourceReliability와 source-health-state-change audit handoff만 읽어 source 원인/context를 연결하고 raw locator/credential/client exposure/source registry write를 만들지 않음",
             "sha256": "34df83a5610a479a7a9f4e3ccf5d13b70fea965ebf1eac31ea807007d78d8d65"
           },
-          "specSha256": "22c6e0508d7d4955c7cd25a3c4aacef2db4c5299165b14aaa737c951acc98066",
+          "specSha256": "960998194bf9f6442e8cc80118976ab73251e5a4b900acb2734d44a26c78d32c",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -114629,7 +114629,7 @@
             "text": "`/ops/api/events/reviews`의 operatorRecheckRecoveryQueue가 기존 sourceReliability와 incidentSourceCorrelation만 읽어 failed-only source recheck와 retry candidate를 요약하고 raw locator/credential/client exposure/source registry write를 만들지 않음",
             "sha256": "b84cf1b2afda59d69a201d598f76c306aea81114a72d7daf8faafc6f4f789322"
           },
-          "specSha256": "0b529ab9a0e8b2b78c1ffef8f524107cfc1f4be3ebcf6b36a757303ded884b39",
+          "specSha256": "81b1a0394e63e5bfaa90979c846b359622f5ef42ebf44832586448ab5a59ce41",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -115244,7 +115244,7 @@
             "text": "`/client/api/views/{id}/events`와 client dashboard payload가 PublishedView-scoped source/tap 상태만 읽어 source status와 connection health를 요약하고 source URL/raw locator/credential/client scope 외 노출/source registry write를 만들지 않음",
             "sha256": "31edb7a8cd0baf3d7ea6ca5ac8390294f6149bc8e73b36934790ce4a51256b13"
           },
-          "specSha256": "55316e2db013133c672938ad9e9c978d26ff86f7a2975215693002bc7eea4975",
+          "specSha256": "6ee5672d2297f1155b63362af3dcae00ca5d195d7a56c931057bd1617dbf1ebf",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -115869,7 +115869,7 @@
             "text": "`/ops/api/source-registry/reliability-search-metrics`가 기존 source health snapshot과 source-health-state-change audit history만 읽어 source health filters, saved reliability view presets, reconnect/stale/offline metric summary를 요약하고 source registry write/PublishedView write/saved view write/raw locator/credential/client exposure를 만들지 않음",
             "sha256": "d0bbeff12ea63f1b39fd7f11af2e62885ef05c94d4f0fd100ca7d31a84dda0db"
           },
-          "specSha256": "1f603f68e6ccbcaba71099e4caa8a30eea4a7f4aff5d9eace83fd36879825f89",
+          "specSha256": "7a14e66faba88af742034adecb477c11e85d504cffd2e806c0891c37193980de",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -116483,7 +116483,7 @@
             "text": "`/ops/api/source-registry/backup-recovery-handoff`가 기존 SourceRegistry/PublishedView snapshot과 source health snapshot만 읽어 recovery validation plan 입력을 요약하고 source registry write/PublishedView write/backup artifact persistence/raw locator/credential/client exposure를 만들지 않음",
             "sha256": "e20e16d132f1259b4f25af65a2719fc8eecf2949216707d7c3e8132d19d6eae7"
           },
-          "specSha256": "27f958ab206dabb12297454029545d887222a3feb8c9932040eab47c8b915b71",
+          "specSha256": "745f295312e82dfd939d1884ce998de70c20df6f7a29d55ed710a0977f7e9868",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -117097,7 +117097,7 @@
             "text": "`verify-v390-onvif-credential-provider-status`가 `/ops/api/onvif/credential-provider-status`를 SourceRegistry/PublishedView write와 분리된 status summary로 검증하고, provider decision이 `none`/`in-memory-fixture`/persistent store deferred로 표시되며 raw locator, credential reference value, secret material을 source/view/client payload에 포함하지 않음을 확인",
             "sha256": "504fa905e82240c7e7163a05e070fed1871f43fefeca17c93cea53a38d99b3b5"
           },
-          "specSha256": "a096f262c6cbfbb6192b09ece5f4ba02163cfdf43beb3c1a8445c968a6f38b98",
+          "specSha256": "699af7d1a71308be24db97d19c78bc90d97d2f9ccf662f068170bad32405029f",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -117754,7 +117754,7 @@
             "text": "`UpsertOnvifSourceView`가 source/view를 모두 선검증하고 한 registry lock에서 durable prepared/committed marker와 byte-exact rollback snapshot을 만든 뒤 두 파일을 저장하며, restart recovery가 prepared crash는 이전 pair로 복구하고 committed crash는 새 pair를 유지한 뒤 success에서만 두 memory vector를 함께 반영함을 확인",
             "sha256": "99fb00527d7edb06b7cf822ab760ef24f58955cfb90569377cd3cf7401b0f196"
           },
-          "specSha256": "fbe26236d8437b87a0b292aa3bfa507908eabcec401583579c15fa5291969fad",
+          "specSha256": "89341e063ecd9d812e8fd46b3d2aeca9aae706e40f7a54b003eef985d7bb353d",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -118444,7 +118444,7 @@
             "text": "`verify-v390-backup-recovery-handoff-validation`이 SourceRegistry snapshot, PublishedView registry, source health snapshot, viewer scope validation을 staging restore checklist/result artifact contract로 연결하되 source registry/PublishedView write, production restore cutover, raw locator/credential 노출을 수행하지 않음을 확인",
             "sha256": "bb3c360c052ba58f42a3ce6ba4c6b13ed7e0f9b48865f387318d4f8f1b291e64"
           },
-          "specSha256": "7ae4bc456f39d2b2fdfeef6246fc54de2f222864eb097e0e624e868d93d4e95a",
+          "specSha256": "de11dfd1a4bedb4354658f9858709d81e60a5ea5f4e3829a8022e81b6896b2b6",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -119056,7 +119056,7 @@
             "text": "`verify-v390-conditional-field-ai-decisions`가 ONVIF/source field evidence를 approval-only minimal evidence bridge로만 표시하고 SourceRegistry/PublishedView write, endpoint probe, credential probe, raw locator/credential 노출, field success PASS 승격을 수행하지 않음을 확인",
             "sha256": "ff9fa723a3d1d49afd625c8d7ab1ff4166a7afcd00e4c48d763baea558293bfc"
           },
-          "specSha256": "41d19e252866b1532908db6a6d49641663d7b06f7817b5da6c5a855aec4bb0b4",
+          "specSha256": "71441d5524324f24cc9e4e040804ba80b93fb68e4d2f85484ddc6fa6c7056db3",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -119668,7 +119668,7 @@
             "text": "list count/status/source/type/profile이 표시됨",
             "sha256": "031e36b2cc37dff6cb705a6ce5aad82cb1e13094aa789948d9ce3dc58754733d"
           },
-          "specSha256": "d89952476883251ccec7fed96db7f367f219aa9491254fa6c7080dbf8c3dab8e",
+          "specSha256": "6b3edd2752948e1079e4ca17f43037df803bac11783c67da38e265227d130972",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -120287,7 +120287,7 @@
             "text": "template 목록과 type/scenario summary 표시",
             "sha256": "322211a6c4377b0144ff5a173cc55369698ce5c1c85d776a990029a24a0e43d1"
           },
-          "specSha256": "74ed24226e52d47cbe390a82fb70b88b484e4a1316f731aaec0302e40803cb6b",
+          "specSha256": "b182f63448b4dca5e8143b4c94f317074ea237cd9e0aa18ea9254d7ca42eeb44",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -120906,7 +120906,7 @@
             "text": "profile 목록과 detector/FPS/tracking summary 표시",
             "sha256": "d6fd26f6d857df6e5164f40a82b53a31632ecdaeaf5db19a2bb03dd68257496b"
           },
-          "specSha256": "e4a9d4386a0164f6084df34a5cd645a4bafae6c12fd40519d2d16a88f5aba3a4",
+          "specSha256": "36a1da7a30b16298352f6805d83494789d7bb3e4ccdfa07330eb1269d607f401",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -121560,7 +121560,7 @@
             "text": "source/template/profile/geometry 선택 후 저장 성공",
             "sha256": "973f4dfb3f6d233218a4a1e0a38e7b2f3752b0a87caec5f629712b5e7229d3df"
           },
-          "specSha256": "f41ebafe0eee673da08474d4171878214a0c4dfed6bb02221cf975e027956596",
+          "specSha256": "a4035dd9273c2369668d5cb6d5c40a09e7d9d92b28739d88bb383c1e08559f60",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -122277,7 +122277,7 @@
             "text": "변경 값 저장 후 list/detail 반영",
             "sha256": "1cd155b66ae65443bb893dd24316ffc19fd9fcb76fbd03dc2e2d2db886f498b8"
           },
-          "specSha256": "7d8140857e50de60119b732628732845f8c05b7fe0f9a867228a46caff9d6d19",
+          "specSha256": "e680638267efe0d2b587a313e7c1cb02636f3999ff35310b013a588e77bbc205",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -122994,7 +122994,7 @@
             "text": "삭제 후 allowed rule/session에서 제거",
             "sha256": "c940e406058736459a75a7ccc17c472a82adb21a476313ab5eb4199fd21d38ca"
           },
-          "specSha256": "0ba94935eeac9be6d91949b0ea56741545c017fbbe9d4fdf94c37f06c802cc9c",
+          "specSha256": "fe35c031025d2ec42d6cfd9f44783dc28f562b188cbd25862a6964fd0e49ac1f",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -123676,7 +123676,7 @@
             "text": "detail에 source/template/profile/geometry/status 표시",
             "sha256": "b341ea5d0664b0ba5308898e2608585ffa36fda0735c873d16e56500a5fc1210"
           },
-          "specSha256": "d02f239b844b8ce35f739f9e7088d024b39d12dd83bb72e180012de3e04f7b05",
+          "specSha256": "6c5951f3b66c93b2fabfc80ea746b0cf948cbd60d59334e189f475ecad3814af",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -124323,7 +124323,7 @@
             "text": "active/inactive 전환과 적용 상태 반영",
             "sha256": "c91c6f937dfa90b26e97006ed3ace41b52c9373c9aeb383163ee717977cfa2b0"
           },
-          "specSha256": "a285bcaeb32d604b05819f3653a51ffb5f6482ff18baffeb4d205e86caff0b6a",
+          "specSha256": "7c0068601728597c94eb032964df1acf0807a5b20571d5d8247b3ebdd61a4d0c",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -125005,7 +125005,7 @@
             "text": "source select와 validation 동작",
             "sha256": "2bfe3cc97be0bba56c9b2604feec724b4c2456b3bbdafd19cbccc650acd9ce9b"
           },
-          "specSha256": "372999931de8cc056cb1df7c97d4bc6d268eb913f15520541a9d7b1ad47f4e9e",
+          "specSha256": "d49a5e88708486efd592128f3c817c5049170507e67b00a3c76e257ddefd3402",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -125626,7 +125626,7 @@
             "text": "template 선택과 저장 payload 반영",
             "sha256": "98c46c5d3e15694834c7b9383ddc8339d39a519b9b9819ab736a8c6c89417323"
           },
-          "specSha256": "7d6bd574bc668944b5913f40a069c8ca127b513061361d9a94c3ddd94aaebf53",
+          "specSha256": "23b0e480bb0976ddf591417356437d3523e8111f6a79771eb4da1dde5b3b4538",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -126286,7 +126286,7 @@
             "text": "profile 선택과 저장 payload 반영",
             "sha256": "ac4ad51d70899c7ed103bbf6bbd572ea9f35defe1140f34ef8f94b7d89d54109"
           },
-          "specSha256": "8cf3bdddcdec287d3600f0dcc81f3ddd4bb2c056559d3ceaa55f190911b2a5b9",
+          "specSha256": "04b24363d2cb049153ae18fc44181cf0a5abd1b372150a291204656b4b2c6f61",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -127027,7 +127027,7 @@
             "text": "polygon/region 값 입력/초기화/저장",
             "sha256": "f4dcec871fb22959ac52ca2d94c3f436265bbcf8ba8284109c46c9dffe2a77d7"
           },
-          "specSha256": "99ebb6821371cbeb3f4b625bc1c47331a7d9c2fa3f93671284348bfabfbe934e",
+          "specSha256": "6520049681b2415e7cd02f7dd7d3d0a3ee91e31b65cb70d5877117e7092a6307",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -127712,7 +127712,7 @@
             "text": "line points/direction 입력/저장",
             "sha256": "e2ba7859e15d53a38b30ed71e27ef687339cef8db607c1e98a33474bfc0526da"
           },
-          "specSha256": "9838ef284a41e6287d1ad5ffde668d8163abc4cec26ebb70e17f9ec999d7be34",
+          "specSha256": "4eb72a1b6f978e5983969c8fefc7a31da4ce6641a481040685921e8153c68f93",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -128337,7 +128337,7 @@
             "text": "output URL/copy 표시가 role 정책과 일치",
             "sha256": "f522c0dac5283ded3ac3317a29a8634c931a064659d994b32260b4d55b70162b"
           },
-          "specSha256": "dfa716529ddd8bf9169f088fd68647f4c51cfe9337f67a4a329fde32a75b4d6d",
+          "specSha256": "e1d2b7ea3dd1f1dad6cb2c65417206247755356f63b8803f34362e4d2db05ace",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -128949,7 +128949,7 @@
             "text": "status badge/copy가 runtime/API와 일치",
             "sha256": "400f0d9908161d53efb00df1958b20776829e79ab79bcdd2a84b1fcd72e1b874"
           },
-          "specSha256": "cbfab87fb76bd30fc19ef444f45abaf216f4361b375e24cf1c92ff29a49069dd",
+          "specSha256": "6709cf7957617d03d03b15946602b24eb3bb001612e12cefb29507af859d81d5",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -129593,7 +129593,7 @@
             "text": "사용자가 직접 id 입력하지 않고 다음 번호가 부여",
             "sha256": "c9aa8da7877735211182dbe0e05268def96dcb1bb14a35ed589317e2772f7660"
           },
-          "specSha256": "0b25d4df708032f5cd1259acce2034775a6ce1abc385d7e2927f6e02ae2971f5",
+          "specSha256": "90816bb1d003f46d124e483c894a8921f87d7f1e11dca1397d07544035630438",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -130265,7 +130265,7 @@
             "text": "id field가 노출/수정되지 않음",
             "sha256": "3b8dadaf1fb2d6e8dfa23958207908d7ccfc8fb703b11c6bbfdcbe85f1274f55"
           },
-          "specSha256": "6d54e9113d204f75aa6ca4a47235b1059944ae5fb2210d165209f54ef0e450cf",
+          "specSha256": "5c52731cb8fa6bf5009de4eb19bb16937b13f7bd55351f7b1efaf2ac6a852a4d",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -130913,7 +130913,7 @@
             "text": "basic/scenario template 생성 성공",
             "sha256": "a79d20d5d8dd4f8a98f2eecfae6f17ee26f7ac34a84d81b0170fabddc94fe53e"
           },
-          "specSha256": "a124fd192e8b5aed2126b7270e13d8a3be1674b3fb4c0d8af813d2019f52478f",
+          "specSha256": "01d43c5ccae8890c0bd62c195c307d473178e2e97fd331c5d62786058f72cbfe",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -131630,7 +131630,7 @@
             "text": "type/condition 변경 저장 후 반영",
             "sha256": "d93ea075a7d8d70520bd483e384a246f6e72b664b02c4ddb8faa793d9a61516d"
           },
-          "specSha256": "f70b323ea93787246f2f7174b5e3701322bccb8c3ba45b6803df483cf6dee654",
+          "specSha256": "8b8be2e24f514b63d42c071ce995c9af59d50d6e573f8a339a399ab4d22647d5",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -132347,7 +132347,7 @@
             "text": "삭제 후 참조 rule validation 확인",
             "sha256": "5136b8a8cb8b6fd70c76f007faf62252d09d5f64a28e4941fed76ae21034b589"
           },
-          "specSha256": "f6e06cc955cd3648bb699595d1cf61049fc39d7c0eaa8d0bd56e63481aa0f34a",
+          "specSha256": "f589b6f38f6fe01aa4bcf5888164232865443a914e2c9eda66afe016b2a7191a",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -133034,7 +133034,7 @@
             "text": "condition/geometry/cooldown summary 표시",
             "sha256": "e35308b1445a892342d5df11695827f6cf5a8d3c3a35c6923d8f6d33dbdbfc56"
           },
-          "specSha256": "1d11c5ace099110491d545364e0f665af4d30cc3a8de5aa32f845a9865722f3f",
+          "specSha256": "0f3e185dc2b08356091dc260dfdcc86a817473385698e1f49f127e4777d864f7",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -133698,7 +133698,7 @@
             "text": "detector/FPS/queue/input/tracker 설정 저장",
             "sha256": "da79beab2a12b8a95483c8c4891b76fcd480a05cabb6b148fd09d89aff5f3b44"
           },
-          "specSha256": "e71578137e3b10afcd0f11e6619a1b19f690f167e92719142177a984cc72e202",
+          "specSha256": "a8c8c88daf772090f7b7261bb7a00cd5b052c1ad30b1e1cd81440304a2cc3e4d",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -134415,7 +134415,7 @@
             "text": "profile field 변경 후 반영",
             "sha256": "32fa448651d7bd8998ffe88c95f1af6c7e8d564d1841bbc5dfa5046ac02f09e0"
           },
-          "specSha256": "e283e714635466fd1a245fb2377e612f8c7856ba5587f683a4f8fdc2a525bc5e",
+          "specSha256": "bc522f99d8f2cc5ad0d999b50bac6691667d8310ac30f82c0f1af6593c9aee7b",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -135132,7 +135132,7 @@
             "text": "삭제 후 참조 rule validation 확인",
             "sha256": "49f9b07263777022beb0a6f37e06fe551e3d0769c10864c664b977a37d2368da"
           },
-          "specSha256": "a6c1bc6ce32ea3418a2147dd5d500cde67e12face9b2aa7a79f84f43eed99237",
+          "specSha256": "1e67d8f873dffa67a1d9639c23264381255f9a34fde911dde9417365e8694449",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -135814,7 +135814,7 @@
             "text": "detector/FPS/queue/tracker/Re-ID 표시",
             "sha256": "0e643b5c42838cd93e0e279102e38c59bebdcdd50bd89911d04c6f2114873c56"
           },
-          "specSha256": "c39a69202f7541aea830bc0511e8f7e637269338bb09bf67162441dd42e24e90",
+          "specSha256": "ae2cf2ed17ec0a0c4e7bd0d182240fc710eede4de9fd89badd4365da6c739f3d",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -136462,7 +136462,7 @@
             "text": "detector 선택과 payload 저장",
             "sha256": "7f919a7d2c0604ce2f8368152c3bd57bae52490bd9de6feb2c8e6f7e85505827"
           },
-          "specSha256": "fd057e9f384a76a3c82df8c22f8bece141cc1b033930b62e533605d569cb3861",
+          "specSha256": "f8376a0473f87899daf042f4a6694e4ae017b37b0645db2390367af6ffc62ad6",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -137180,7 +137180,7 @@
             "text": "dummy detector 선택과 payload 저장",
             "sha256": "301cdcb5a4543f823902462b61b85ed17f44f714fbebc48def073dd96b8d54ad"
           },
-          "specSha256": "2667350a542388baee972d62eeb92aa94b7b544e988c3a91d94f280f75ba3ebb",
+          "specSha256": "f78a91d2fbff8263135bb2aae0494463fa9b7f06eaaac61d62fa7cef153ade11",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -137899,7 +137899,7 @@
             "text": "numeric input validation과 저장",
             "sha256": "9e69b2b4f5b0ad5edb9cde139c654a4d25a39dd72d92486f8d762ea343d72eed"
           },
-          "specSha256": "a951de74900fc51a2f0990791f8784288f8c14fe7772bb259688b3cb14fc5317",
+          "specSha256": "242d86b8d9ed05ee65d060295a0fd3ed3b2b04cc7488008a1a54b56514f984e0",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -138618,7 +138618,7 @@
             "text": "queue input validation과 저장",
             "sha256": "78229f1f550ba2ec00edf6930b85c382d27080da14cf7bc566113c9734179727"
           },
-          "specSha256": "26de0665a467814b6174f169661d5f6044cfa97b32640655a122f57b5091c1c6",
+          "specSha256": "b8481261502beb99dbfa514a3804b27cddcaf3d050a9dc7bac51225156c5e14a",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -139337,7 +139337,7 @@
             "text": "confidence range validation과 저장",
             "sha256": "0b0ff6a7d1fcf40067b1f2587e6d8b29c1abd4f3c7dd0026a97928fd8f18a05c"
           },
-          "specSha256": "57a2b1eb318e69859e0601fca5588416ecfd7ebaf8134b6934972beee20f69ec",
+          "specSha256": "229c1fd89efcda88d1379eb11b142fc4ff7379a05644582753e3f61275924e94",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -140056,7 +140056,7 @@
             "text": "NMS range validation과 저장",
             "sha256": "0a78c0ebf15197fafeb387a1feb545aeb70477bc484a0316c1a3d247b5d2c86b"
           },
-          "specSha256": "ebcc8a9fae00adf7364e683e48cd10a8fc2e005fb9ac4f553680c9d9ed993f70",
+          "specSha256": "a6363bdf435f22d7ec36ca3f0a1eee6ea3a5d2fe754bca42eee0bcb8de16219b",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -140776,7 +140776,7 @@
             "text": "width/height validation과 저장",
             "sha256": "41808392c6cd6ba31cba7050f46ad68c1ed3a6539b880a366ef5ef559aa47bb6"
           },
-          "specSha256": "f6ff79329656a8cc9fc5e30e177e8580cc509d9101216d222c1454f56eb2092a",
+          "specSha256": "c3a445050209f3e4a58cc0b9c8040688e1b6bfdd052f5bcc0dd14efc771126e8",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -141497,7 +141497,7 @@
             "text": "tracking category summary가 선택 값과 일치",
             "sha256": "74acf4902cc8c2d28ca8439484bee11bd57483d539a0a3d71f22a00d778e6cb0"
           },
-          "specSha256": "7394a0624b7df99f614bcab59ee095af57b26bb5d89528e1661571a74d724097",
+          "specSha256": "279bc98e734daa82311a70ac67135a84b5a61ed80c98dd8544d13d45ccecdca7",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -142216,7 +142216,7 @@
             "text": "tracker none 저장과 Re-ID off 정책 확인",
             "sha256": "d36e35057b58332e1181c12b2a99735a12aec023552bddbafd702a46f20859f4"
           },
-          "specSha256": "36d2cf52ce44ac3156df6f11815c026f537776ee58b22085b89ac97f82941edf",
+          "specSha256": "4a01f615d68d8e42956b22ddfe5610a341d24ed6718aeb737c818bf0abfe17ff",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -142935,7 +142935,7 @@
             "text": "lite 저장과 runtime 안정성 확인",
             "sha256": "d0c3481f8d712ed7f025dd1f94229462f8b98b262574793fd2e3ce4a589d6070"
           },
-          "specSha256": "c45a6507efd876054083ff22ae60f85aa8615231c57e1b7e20ed15c44130c238",
+          "specSha256": "99b8a9649d235b5b1fc5fc7286ac961018c127f375c06c9405e7959c55cd87f9",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -143654,7 +143654,7 @@
             "text": "kalman-lite 저장과 runtime 안정성 확인",
             "sha256": "515d039c5a7478f56673cbac3e9e0febd8268f9539ecc80c87a6617893720f21"
           },
-          "specSha256": "3e38309217ca78af82d313565545ffd91b36b8c98f3dab7b9c6acb04d988418b",
+          "specSha256": "6dceca7288bd60f348178461a44779d28d62d6938ddce356f46e287579163baa",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -144373,7 +144373,7 @@
             "text": "bytetrack 저장과 runtime 안정성 확인",
             "sha256": "4009a342a99c0c4eaae68bac97de3c93f2de40bb57c49e91fb7d5596f68813a7"
           },
-          "specSha256": "9bf52a42190ffcc0fc0a5de19c5a2150deb092f28d5dd98eef3ac00447a81db3",
+          "specSha256": "fc8305ac0324c20e3cae0af8e8c935a58a48e461a56a7d9cbcb1d14496f4ecc1",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -145092,7 +145092,7 @@
             "text": "Re-ID off 저장과 metadata policy 확인",
             "sha256": "fedaf880fbc99f1e00da74acfbd7ebaa7efa9b0b4f600001d99cdc3512ab13f1"
           },
-          "specSha256": "334608d8c5ab1d93a22e6a4554b5644495df0a193bf78d5da164ac5f55370256",
+          "specSha256": "dde814c35f96e6c478eb429f878192ab098bc6427b0472912ccc9142dcbaabf7",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -145811,7 +145811,7 @@
             "text": "assist 저장과 tracker 조합 정책 확인",
             "sha256": "8ce7a22f2ccca02ef6303c11767fcbac8cd721496b0db56d0711415afe0e730e"
           },
-          "specSha256": "c03babcaedde9870b0055c38885e32b9a929a034bcb9ef800fae2b24ee8177d4",
+          "specSha256": "f51ec2a7a935c178fc4541a576f52e93ec3a8e31a602f5633c5e18ee02781d4f",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -146493,7 +146493,7 @@
             "text": "invalid 조합이 저장되지 않거나 off로 정규화",
             "sha256": "3c212b8d57d3338e8df0b0b23969e64a6e5dee1362133a7d28a6cb3255f85b51"
           },
-          "specSha256": "d0db6b7cd67a0275eed1319b00d7d4c4f82ba3e5b0bd85e99e9d31d8e72e65a2",
+          "specSha256": "be1a283faae5d2778efb2906f37b3432e240c5cf316c0742b6aefd2e20723e0e",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -147139,7 +147139,7 @@
             "text": "template 생성과 최종 EventRecord `presence` 발생 이력 확인",
             "sha256": "29e221bf0e30ba81b6f4a5691ff21e52ae1014427218ef058d41d75dd41859ea"
           },
-          "specSha256": "3924416895b8a759fe1f28ffa4681220029c53429576894528382149f3431786",
+          "specSha256": "d18dc23d27faa09faf7c35762a34bc211814d9d38598b3d4910d92384b033e23",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -147852,7 +147852,7 @@
             "text": "template 생성과 최종 EventRecord `enter` 발생 이력 확인",
             "sha256": "e0ece75bbedf2e9dfbe515a7821feea02b71df06c08e0971dd9f46912816b21f"
           },
-          "specSha256": "b8400647862d8ca10aae6861f0d5cc843ac1419d62736ebc7eab84473ec8949a",
+          "specSha256": "b68a881b6235eb7a288cf6a3c57d0f9b1dcb3eed37a97543ee429e7bf700a306",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -148565,7 +148565,7 @@
             "text": "template 생성과 최종 EventRecord `exit` 발생 이력 확인",
             "sha256": "0f355c4e988e19ab9334e9864ebcb10065bd8725ca403af54ca652d3d4495ad9"
           },
-          "specSha256": "ff51e63d0b27523c29e3e74830938ff6fc7cf6820aea867ef1f99ea923ace147",
+          "specSha256": "dd1157470b1327747063ad8d8379d871641026d548215a03cea1763472082ee9",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -149279,7 +149279,7 @@
             "text": "line geometry/direction 저장과 최종 EventRecord `line-crossing` 발생 이력 확인",
             "sha256": "2c51ace55010ad550801ca15d90dcd62d6f5ec97761a05ba31725baa371ca68f"
           },
-          "specSha256": "6b6b8f1fd20abeed071c95c35eb89a6c598463c0facdd79ca140d171225cd26b",
+          "specSha256": "cddd09e6aa22f0ec27e9f6998281fcd1fb48d8245d4551f28377d3d631aa7893",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -149993,7 +149993,7 @@
             "text": "any direction 저장과 적용 확인",
             "sha256": "bbdc343c5a23157cc74532a8ab669f1c963ec72cf813f630b197c1a7dccf3459"
           },
-          "specSha256": "f4f27b7edf95d96ffdc8340225b23253dc311c9b5688771be481d2b5d6ad74e5",
+          "specSha256": "55cd15c5d9ed6660284d2f3b0e5eef85b82021dded98e77a5b4910c09c5a1dc7",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -150707,7 +150707,7 @@
             "text": "forward 저장과 적용 확인",
             "sha256": "557d7f01056ca9d928fbc4673a7c2336ad5f42216a971bc8eac4fcaf1b279f00"
           },
-          "specSha256": "ba36cfef6ee0b256cac4574d6eae81e87c9ea1fdd9f76a2569660c86c9b619c4",
+          "specSha256": "7af57488d9ea54230713ff1e68aa29f5960cf6db6f81ef0799130cc10e1476c3",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -151421,7 +151421,7 @@
             "text": "reverse 저장과 적용 확인",
             "sha256": "291353d31a42e81529fb0975467c01fe839647e67da14448735d8beea827a318"
           },
-          "specSha256": "9fba69cd08e189b51932e63538ec0f7022e10859feb9c608507326ed923309ac",
+          "specSha256": "fe1d62109d1228d19d335b108513e5f1ea99a41e62249df1eaf12e7c8eab6db8",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -152134,7 +152134,7 @@
             "text": "scenario UI 저장과 최종 EventRecord `intrusion-dwell` 발생 이력 확인",
             "sha256": "2ebe40d1b260d587488b4bcb90597aa389762fdaf09de68ee8773539085d5106"
           },
-          "specSha256": "aa4014dca165684f982f95d1c3befd8c36e014c9515468fd29e17db2893aac73",
+          "specSha256": "67c4563621324821c739f1ec3309cbc1f0fb226a63c5878a77fdb4b2d58d1ea0",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -152847,7 +152847,7 @@
             "text": "scenario UI 저장과 최종 EventRecord `re-entry` 발생 이력 확인",
             "sha256": "2abb09415c2c85670237be308a2650f3465163958278d7ee7ef455b740bab352"
           },
-          "specSha256": "0ebedf55bd916c95699b207d053013b53cda8f7aa48c637a70d0c15e95f573bd",
+          "specSha256": "e37a9cce9044da62a073e810edcd7a886e0a0ac95d33baed423c4a2a3a947baf",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -153561,7 +153561,7 @@
             "text": "scenario UI 저장과 최종 EventRecord `wrong-direction` 발생 이력 확인",
             "sha256": "079454bae00b5caa8a4f068967d9bb59eb3bcea63c346b9d161b9d84194a8a08"
           },
-          "specSha256": "1b972092f62a119083071b9ec789b73a74b15210d291bc98da13872831b1160b",
+          "specSha256": "0d0b1167e12c7061ca50b0b0992d98dc77bbbba6ddccdc7b79c0fd9dcc771376",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -154275,7 +154275,7 @@
             "text": "scenario UI 저장과 최종 EventRecord `intrusion-after-line-crossing` 발생 이력 확인",
             "sha256": "9aff3f022c35e2be209cf92a8d385940ea9499a8ad59ec6fee2b1471e8f23876"
           },
-          "specSha256": "73a658a32f0b51ddf6c54338ee268cf9b9689eae1c07a0a621d508fa2f88ee0d",
+          "specSha256": "160ffcf7ca5765f37d23541cc9f88f545d9b50db523656a2ff689c3501621a5f",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -154988,7 +154988,7 @@
             "text": "scenario UI 저장과 최종 EventRecord `loitering` 발생 이력 확인",
             "sha256": "25f4748348102d3b7126b116264c7c3838225fbcaa98d0cb36257d7ab9f26691"
           },
-          "specSha256": "3197ed27fb83b8911ff0a286f5ba4bc6f431bdb5bf3621e884dec38a5499f04c",
+          "specSha256": "88c6b90ff3c2103495979a35dfac8fea558ef2f8510a4aa24eae040c8da18500",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -155701,7 +155701,7 @@
             "text": "scenario UI 저장과 최종 EventRecord `zone-occupancy` 발생 이력 확인",
             "sha256": "7bf6e4e066c811c1943afa02b91a725abfce55416c6c77c64b61146e60712232"
           },
-          "specSha256": "4069028490dc969e2298f3fd84bf41c8f509adadfd7ba025821b6dd2466fe865",
+          "specSha256": "81f01140f719a67b15093e3b106f4f4de081bc19db36e23127050721f4e8a3ee",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -156418,7 +156418,7 @@
             "text": "preset 선택 후 condition 값 반영",
             "sha256": "08f1cd31cc75e56bcb40ec7fa0fe5fed475be7bc57a13163d83720d78bb4f847"
           },
-          "specSha256": "1ed307d9e13a00fcef5eb92681bb588345ba1da8c8c92d09582d24223e60fa64",
+          "specSha256": "097a1a2a13002b28b4a2059ee40c65efed201ed7ce81dd7f41665f817f5baece",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -157135,7 +157135,7 @@
             "text": "preset 선택 후 condition 값 반영",
             "sha256": "785ef21df114acac8416564012e75941aaa870bed655c149ddf2bb7218e5bf75"
           },
-          "specSha256": "7a0efc04de07656ab6042c917d18c0894d00e8a2299f3d45999384a175f2e2c3",
+          "specSha256": "f1e0d49def075a0b55530c4a930192c6694ba2ef45644aa6a85429f42d001326",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -157852,7 +157852,7 @@
             "text": "preset 선택 후 condition 값 반영",
             "sha256": "376c2af7c3e5aadde3663825c4d19c7a83d033023d1d9d9e7a329fa6920872dc"
           },
-          "specSha256": "f9c4e102e9fbd552692be7d2d3cafa98425fd417aff8747c687bf364f1ded3b2",
+          "specSha256": "9208f66944afba505dfe9c30584154519d22069c508a2c77abb45616465d5e27",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -158569,7 +158569,7 @@
             "text": "preset 선택 후 condition 값 반영",
             "sha256": "cb8c957ec8601eb0804318dbdfed48870f80370c91b525d3fa6f2120f59113de"
           },
-          "specSha256": "28d63ccc8f1a003b8a2adf4c291d81ebe2dde222ba21d97ce75308227400eba4",
+          "specSha256": "c5605700cb262b4668d3e00d61591631c87653a43686acb7470cef6051f776f0",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -159286,7 +159286,7 @@
             "text": "preset 선택 후 condition 값 반영",
             "sha256": "ec24757d847eba5ac36e6455c81f0b590b32a949c531182880b4d6a85b154906"
           },
-          "specSha256": "5f733ed93875b7aba571a4e12b04f2dbe82b1c32d1ee530be788cccd1c3493f8",
+          "specSha256": "bf0ba07652314b9854c1c3cdb9ff33f9439bb8885641b97d32224da491a506fa",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -160003,7 +160003,7 @@
             "text": "preset 선택 후 condition 값 반영",
             "sha256": "2edd63b72eb880775b71dd68f571ccf80566ed373119aa3b2840f06de438ff6a"
           },
-          "specSha256": "5772c744c0ed8c06978eb4d1d06141b2f2812543f6493c1bf62aec2a046bf87a",
+          "specSha256": "01844376295da49d798f7f7b010b2e532eee42fb9002c31ae758bb6f927dbc48",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -160720,7 +160720,7 @@
             "text": "preset 선택 후 condition 값 반영",
             "sha256": "f0f077fab9b96a61b0a9e882eab93bc8c8f98303c4900e7de118ad2f096890d5"
           },
-          "specSha256": "b2ede79b4e2ab3298b822e33947076edcd2cab88cf8f30760e35cb4a16af9dfe",
+          "specSha256": "017ad1e5ca29820ae13c64be2132982bd17099ef45dd4b996352438044f580a5",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -161437,7 +161437,7 @@
             "text": "preset 선택 후 condition 값 반영",
             "sha256": "52e090e3e9ee30ca0237a74af79620aaf0090ab186b19094102bd12608ec5cbf"
           },
-          "specSha256": "1d49b74116d62b8b9f656899d55696a4a0724b1605d4e4edc35e5a925ed4feeb",
+          "specSha256": "ca2915a6acacabe884965800e8b66b676bc49608e55a0b9d787cb8a51e074f1f",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -162154,7 +162154,7 @@
             "text": "preset 선택 후 condition 값 반영",
             "sha256": "b1312957d8c3aa715a4c154e6f04d103b00e28b224c1ce45971149cd414c7aa8"
           },
-          "specSha256": "e24b9bc8138a6f6e7cdbb4ef8d577633294dc3323db529199d7a251d9ddc87a7",
+          "specSha256": "39b9363138f114d243e005bb990cfe9adf9e9083dd0be676c1015961eaaea430",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -162871,7 +162871,7 @@
             "text": "preset 선택 후 condition 값 반영",
             "sha256": "035ff12e2501dffb1b7ac600c28cb1ef1ce058ad3670c75028ea03a186687dd1"
           },
-          "specSha256": "c7ab91f9dd1b212e6092ff16b326858910d43d2f4e6376414864cb25bda510fb",
+          "specSha256": "9f9a029f268da8bdd498f758a8c1b72027cf2536a55bcdecc89ccdaf631af6ca",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -163588,7 +163588,7 @@
             "text": "preset 선택 후 condition 값 반영",
             "sha256": "4010262c345b07378b8c71512d8bb3a9868a693b135697d98c2d9235cd1f380d"
           },
-          "specSha256": "024d1079a14b3d597bbdd7f78af6783fd9a842c4212b6d8c37ffc0947773d07d",
+          "specSha256": "81c388774e8298ae92289ab0dcf2c1a77597c0d696f4ac2dfa72823f6ff9846e",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -164309,7 +164309,7 @@
             "text": "custom value 입력과 저장 확인",
             "sha256": "9c72a9c7324231785238a3cb8bb729e97fb263d7011adcfab7715244b2f93a7f"
           },
-          "specSha256": "519c0940f9d7599aeca7312f65fcedf3dc36a3db216f1878b3d769ecbe34a7ca",
+          "specSha256": "bfc02dd6a20528ac585023d8db29f15191fba5435f7eb8dc109957856dca41af",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -165026,7 +165026,7 @@
             "text": "zone geometry 저장과 payload 반영",
             "sha256": "0ff0f6b1ee06e2114ccb9a9849b9c6db08e7d054d3855b4d158c048808007d6b"
           },
-          "specSha256": "49a1b92317983f34ae960906afe20353f3cb7a978c417f91b1f75542c24842c6",
+          "specSha256": "872a718f08b13dd87fe2dfd489708c4cb250471f050aca2f579fa8d50859568d",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -165744,7 +165744,7 @@
             "text": "candidateTime validation과 저장",
             "sha256": "abfd717a562e1a1f718a33e93abbd5667cbf6e201e0f52f9855705ba623f743e"
           },
-          "specSha256": "f9d8a2fc3af0892bef02770d633d4ce8f662ce38581a284a94eab8e22ccf0553",
+          "specSha256": "506a1f92bb3a4703b84a26783a5d772edf00aec28ec7a805db9162eb441c3dd3",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -166462,7 +166462,7 @@
             "text": "dwellTime validation과 저장",
             "sha256": "69b0ed0af97196586efac239693a21c92b267b5de7931bdee28c5ad51570fa7e"
           },
-          "specSha256": "d9ee98e3b9f61984cf595b7910576f7ea199ec2b482f81b5fecb22568df48fd1",
+          "specSha256": "e5eb45ff8cca6df8034213758959f7dd93d98459b24eb0582d5e63ac40df01fc",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -167180,7 +167180,7 @@
             "text": "cooldown validation과 저장",
             "sha256": "cf7c219a47063c8c51ba57061c0220a8d7ffea3e8f62a4d819f83e75ee386b02"
           },
-          "specSha256": "8dad0d0b88634d6fa52d95ae458c616bd88022685477d0aff6fbeaba453a5636",
+          "specSha256": "77eb7a83cf0fc7da5051b32eccc99c418360655c77d63fe768686e2ca016969f",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -167898,7 +167898,7 @@
             "text": "polygon zone 저장",
             "sha256": "137c1964db1e53951927ccec9235042d7a5b40db8dacb02ea8677133d149bf64"
           },
-          "specSha256": "13c3d139f15c02ee16d5984130d4b47267532be07b98cda62db3664ffafbace7",
+          "specSha256": "044c28ef3bfdb5f408a21c841f46012b1c961917c342cc1bb2e670ca93bcc0e7",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -168613,7 +168613,7 @@
             "text": "reEntryWindow validation과 저장",
             "sha256": "602d726e4f9a7ab2a63ba15b4ad8e1b45fa08b676f498c2f051b3c80551e2c6b"
           },
-          "specSha256": "a6963150595f1d4202fdd7c69c224a2598d0b921fea19912c1ebdc68304af7f6",
+          "specSha256": "83ecba2a26151897cf801a70fb2fd64f4340e4c7e7b9393a7cc873053c914b09",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -169328,7 +169328,7 @@
             "text": "cooldown validation과 저장",
             "sha256": "1cb6496f19f11470828fd16f31eaa9254724eb0befe9af5e394e83b631248839"
           },
-          "specSha256": "38bfc372e6ea8260d708630f7ba476865fbb1cfe6ea86052867d6b1f09f3fb91",
+          "specSha256": "1006dd246011062357858bc08ae4933b059914c0503a9fc6443f7b9a77beb35d",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -170043,7 +170043,7 @@
             "text": "line geometry 저장",
             "sha256": "e2ad4f7c49cdb6e6b8751a9552cbfd8e23e26e68f7f8e782bdd618848fceff71"
           },
-          "specSha256": "e5e88f4a4f08b30729f6ddbd9e875c59b48e62bd7da2bda3df7961dcd326eedf",
+          "specSha256": "29d92ce7f541d4a9d7ea3430bcadcc8fa5264b185a769dd80c721b58c4248619",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -170758,7 +170758,7 @@
             "text": "allowed direction에서 `any` 제외 정책 확인",
             "sha256": "59a2df1a4069b3fffac0994f908c6f72921a59586cdf6d18af4e88d11233dbe7"
           },
-          "specSha256": "276fd461ab3fdeb1661e1fb592d89ea607b31a5a161a3cdea5d9750695c26363",
+          "specSha256": "45917a29daaca4de5bcbdb49e55ac3f0e28294856598890f70b1cc152a40efd6",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -171474,7 +171474,7 @@
             "text": "cooldown validation과 저장",
             "sha256": "e88adfa19c240155cc97fbed4f2e4d9a31675e0fa393498ca83ee141e8fe3e97"
           },
-          "specSha256": "746ba131db6855f2bbe3c195447aaae4986fb3bcdf0b1550f92f7080a015d7d2",
+          "specSha256": "4650312810f5d5bc5313cbaba1c2b267f003c8f768949efee0080d10b0b0a012",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -172188,7 +172188,7 @@
             "text": "trigger line 저장",
             "sha256": "b928eb0fd5b1085a134a7354bfced57892c035a2e4f8e4e3ba9f82a8baa92ea2"
           },
-          "specSha256": "01f9baa8ec7dc116eaec0e817d94ee1892c660edffacf84848366b3bf65e2529",
+          "specSha256": "0e2dc1dd10f5c64e5a06e23909bdfcb64b32577924a2d28508c5e9b3aaadbe27",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -172903,7 +172903,7 @@
             "text": "any/forward/reverse 저장",
             "sha256": "2d62997599712344d2101b061d43d6cf7e76ee59ceadb858399ac3a1f6b38d0d"
           },
-          "specSha256": "77cfa59392777a51dec3823bdef5c9df1b1f26f684dcc89948a64f4337570ad5",
+          "specSha256": "519b514f45d2df49e49cc7e386410d56f42ea409beca0e6ba24fccfd3aa9466d",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -173620,7 +173620,7 @@
             "text": "target zone 저장",
             "sha256": "fe322aa673e287d699054cfe035ccea6f07c6b919b2154d0ddd6192b4d409f43"
           },
-          "specSha256": "604a1c99567b088ccdc152fbf1920884320a7b3758205ff210b3e514d689b278",
+          "specSha256": "ba7315c74d828141450fd5bc21807b9a7057dc759bbbe87b0682e16e03cf92a8",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -174335,7 +174335,7 @@
             "text": "maxDelayAfterCrossingMs validation과 저장",
             "sha256": "6d920d7dcbbb0194585e036147d7b58a426d8aa3c1f253b309c1bf27d82d958b"
           },
-          "specSha256": "fed8a37ac86439b9a67119838a5a5566baea3a988afae8802ac9f4af6ba15feb",
+          "specSha256": "1645a7bf95442666de5ebb22ea4a2d4674f8e63374e2bc2eec4471eb61fdb59e",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -175050,7 +175050,7 @@
             "text": "dwell validation과 저장",
             "sha256": "e2b66fbfa555f02dc07f63c4904ea5ccae6ef34370b8be33180fb2d6c3a3f114"
           },
-          "specSha256": "e00791c45a30eab60a06dacb3a23a481322f91a7f68b628c5373a14c998b8556",
+          "specSha256": "0ff93420940d0d2b68f4d54df52760a108d54e1eb4c15d43ef89c92e05d49240",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -175765,7 +175765,7 @@
             "text": "cooldown validation과 저장",
             "sha256": "4aea479d9084be6412255ca89a0555bcede70c2c37a23dc7e0485a0c1a0b0670"
           },
-          "specSha256": "7bba324385dcd5b6cbac42b29f88509dbf970ef838fdb6e2bf000dc336539a0a",
+          "specSha256": "926ca3632717c8ad7539f90d368cb01af9a55d106df4a0bd2b61f108b751bf13",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -176482,7 +176482,7 @@
             "text": "target zone 저장",
             "sha256": "185f4fa909bbe7130b1decb33e018d91d9e35b2983ca50731f9513a87dce932c"
           },
-          "specSha256": "ddb9fa6bc97d125f7d0962143545e3e6fb5d3f855fa43096c9b007df81946db3",
+          "specSha256": "5b030b3efb0827bcdb26b1c9872527ecaa59f1ce4e36c50bf98092692921a269",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -177197,7 +177197,7 @@
             "text": "min dwell validation과 저장",
             "sha256": "1357af5b964e670fc1d85f6a70df876aef85c9cba56fe727e966b4fadd03fe62"
           },
-          "specSha256": "439acf8cb5526b4c0802a9e970d14873de433bd9f8e19cc099c7d515623d601e",
+          "specSha256": "f2f89626c3c211233077de35d7cd9fac3c5a0ae67b44051cdff59d15c5dbd2ae",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -177912,7 +177912,7 @@
             "text": "radius validation과 저장",
             "sha256": "35eee7f1cd8c4631017bb63f077704521fe8affef0f5eef52fb9cc6f28a50b16"
           },
-          "specSha256": "2952eb5893c65835e55f202268f198ff73ef69e3e1be47ef0ea9d22441e9457c",
+          "specSha256": "f658f6cd81aad4094b7677d3d9f5871c3621c11f3da081f6187474900a0721ec",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -178627,7 +178627,7 @@
             "text": "min points validation과 저장",
             "sha256": "1f00c347b0de749e8ba18063987395c6a3fb53158c6ef403c2e90542c0b34a23"
           },
-          "specSha256": "6413a7391c816749057638e6e50311cfbb91c7fc8450016b80d67f0338d40571",
+          "specSha256": "b9c89c13bf91b38d14fc7265301957d1abe19419b71c26a1ab2c2d0fe3024d0f",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -179342,7 +179342,7 @@
             "text": "cooldown validation과 저장",
             "sha256": "64b5889d74579b8e5c3db10d23752a067e03b0ba4087c4528654cba0b22f44f0"
           },
-          "specSha256": "951351b1e18224f3aef80bf6f46de3bf4b7530594aa409cc34a5405ea8a96672",
+          "specSha256": "adeda267b5f6852b4887c044e25892f96466abae1b2a8055c8d16ead92ebaf90",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -180057,7 +180057,7 @@
             "text": "`/ops/rules` loitering form의 ground-plane toggle이 표시되고 `scenario.useGroundPlaneMovementRadius` 저장/재조회에 반영",
             "sha256": "f3e7a256ada4b54baa5be155e014c64cdab45256379a06ef447d50f5a77fadb9"
           },
-          "specSha256": "1387796e57c80ceacc9e9cf243477b39ac69f57cb1760f72df4fa852d9b445ad",
+          "specSha256": "49bb63f0c2cecbdcb6472c0ab3ec8d0398009e1ce52c88b2924733338db65075",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -180774,7 +180774,7 @@
             "text": "target zone 저장",
             "sha256": "64426186425625e02b5d6c8aafd171ab6ebc26b8702fc74816acabf5c6934395"
           },
-          "specSha256": "bcf36083b0d1e939cb01aa633acb38acbbc38428e6c3d07f8a7fdbeadf93f8ad",
+          "specSha256": "a862c3cda1a3573b48db0b72e9e7e5ac58ef68840e9f732045c4519501db35d6",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -181489,7 +181489,7 @@
             "text": "threshold validation과 저장",
             "sha256": "d012e7975d3f822252a1ac4936008a40c39d2ac67cf079c1599828620f029d63"
           },
-          "specSha256": "74613e391033e050f4a9b7d01b24a70d600f00a488178969bec01c848c093876",
+          "specSha256": "d7f57ccc0042144373339bc15aa86d6eb740e80b115ef86e4a58731884cd85b7",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -182204,7 +182204,7 @@
             "text": "min dwell validation과 저장",
             "sha256": "efbf486f8953abef9d3eac7fe05a461adc1f8531e1a003e22a5f3058a20d5b20"
           },
-          "specSha256": "0110b16ab08cf57e2609e33aca6eb1fb6ccfc36d1a4a3a9ab768278ebd540282",
+          "specSha256": "34c851b2c1ef1dbb2ca8e2cf48fdadf8f1bce31a352f8c62e61477fae3c20b19",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -182919,7 +182919,7 @@
             "text": "cooldown validation과 저장",
             "sha256": "0246bcf4b56b3a0efa4c8acdf3581ae7362132cf28b50ee80bdbbed7143c7b71"
           },
-          "specSha256": "317d3c4afddda6a3c3bffe5b80013f73061dd40ec28382910a56e61da26e4447",
+          "specSha256": "8fcd315a1f5486e5e700394c543b6d88ced9e02911498c7292baccf2ec56bc08",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -183642,7 +183642,7 @@
             "text": "`/ops/rules` validation panel이 VA rule/event template/profile 중복 ID를 표시하고, 서버 create API가 기존 event template/VA rule ID 재생성을 거부",
             "sha256": "d6aefc1b91104d65e1e93fc75bcff20dd66c4978390fdc955f7edae8ac2ea496"
           },
-          "specSha256": "ed0055fb1851de02729fe24fc4255303cd77fc8a51ba2a6f561fba0ccf92d305",
+          "specSha256": "cb1986ca8da152cc69444d88d69928f383298558d3e563e43f57646583afc197",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -184387,7 +184387,7 @@
             "text": "`/ops/rules` 저장 전 missing profile과 missing template을 각각 차단하고, 서버가 `analysis.profileId`/`templateStart.ruleId` missing reference 저장을 거부",
             "sha256": "2d77b07d5f14b2e90452945d0a363201aaa3d8c30abc3e7191bbbd6615337e97"
           },
-          "specSha256": "776b2caafbb06893b517927329586fc348a592c7c4dd714ef64615dc9a556b6b",
+          "specSha256": "f7afb00952ccdbcfc5e610787337d317be6d83a00d88c744694ff7624bfdfe75",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -185152,7 +185152,7 @@
             "text": "`/ops/rules` 저장 전 inactive profile과 inactive template을 각각 차단하고, 서버가 inactive `analysis.profileId`/`templateStart.ruleId` 저장을 거부",
             "sha256": "939c6ce31dbda3c6d95cec4bf3129843df45f540c2291703c7dee7b497673986"
           },
-          "specSha256": "a27e6ae657c42ea2bdb0ba6deb96cd4f5fec132d1215575f4e235b3021003f56",
+          "specSha256": "ff4601dfa8d37553c9683a4d4af1293bcd55c18d54f8dfb820b41614e5ab53cf",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -185904,7 +185904,7 @@
             "text": "`/ops/rules` validation matrix가 source mismatch를 표시하고, mismatched PublishedView `va-rule` session apply가 `vaRule source must match PublishedView source`로 거부",
             "sha256": "8677a4e7ce4a663c4ad556414d436d7ac7728b981aa765a97e3d175837d23f63"
           },
-          "specSha256": "743e0d880857c5787745486f8e634e49605e4556142d089b408ad4cf6da59113",
+          "specSha256": "3cc0564f3cef2d8f20c1dd61e738124e0db3d5008c8a82cb9fe2dfa60e163b64",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -186639,7 +186639,7 @@
             "text": "`/ops/rules` validation matrix가 inactive channel/view를 표시하고, inactive PublishedView와 inactive source의 `va-rule` session apply가 각각 404로 거부",
             "sha256": "fd8d2c72720a580e55c9f2e7668f5ff4121075238790f919fa71f247b725c372"
           },
-          "specSha256": "7e715ac8f4b69b202e33dff3621dc55174c334194371f89b4e77a909c6270450",
+          "specSha256": "32671569eb38c4859e0ac7715607d14d42c5149693c55dc82464f812ce9ac8ce",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -187396,7 +187396,7 @@
             "text": "viewer가 권한 없는 rule/view를 보지 못함",
             "sha256": "d8d5a1aa36a1c77108749a11dbf2d86b7087b1739fee0cf27f6d2cf761400520"
           },
-          "specSha256": "eabc642bd55756517291587fde3523ff970d3034cbb8090d8ef2aaa7c7c8166f",
+          "specSha256": "f6ee4461cdaf59a33f13f4c7d6140af194c5e492459934620a011c04223544c8",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -188082,7 +188082,7 @@
             "text": "source는 일치하지만 PublishedView `allowedRuleIds` 밖인 VA rule이 `/ops/rules`에서 표시되고 client `va-rule` session이 `allowed vaRule is required for va-rule mode`로 거부",
             "sha256": "8718f30a01b9ea1c6b500b879a399adcf17f96d4bbaf8b4dd756d1098306b709"
           },
-          "specSha256": "db4a42ac539cb947a224b96f47020f07df74659ef74cfcb3c632af7a65fb7364",
+          "specSha256": "315cbd138c158f4a227ae1154c662ff9438e8c765358e4e77d0ebbf27a308a52",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -188762,7 +188762,7 @@
             "text": "`/ops/rules` validation matrix가 `priority-conflict`를 표시하고, 같은 source+priority의 두 번째 VA rule 저장 API가 `vaRule priority conflicts with existing rule on same source`로 거부",
             "sha256": "aa6831f57b86c798f26b22608eaabcdfa8af9f12b19c640df1f21b0429aaf53e"
           },
-          "specSha256": "46a953b34573727b770b4d5662050703275a904431009aefd9f83c3a5956c40c",
+          "specSha256": "d00f3467bc1524790a9871e638094c079aa5d0c69cfe35c8b3a215f4400cad56",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -189537,7 +189537,7 @@
             "text": "`/ops/rules` 저장 전 검증이 profile/template class mismatch를 쓰기 없이 차단하고, 서버가 `analysis.classes`/profile classes가 template classes를 포함하지 않는 VA rule 저장을 각각 거부",
             "sha256": "a043a13baa547616a0ec2c4e83b7e44bde5818f0b57f4bc003c77f085d82bc3c"
           },
-          "specSha256": "ad9e78ff1df0b32073d7628ab38fea6d735a717da8696138415de9dbe04a4559",
+          "specSha256": "9a0538288599c6c3c62535e4ae0228591d5d06539e92c369bb421ada31658950",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -190359,7 +190359,7 @@
             "text": "`/ops/rules` 상세 편집기가 저장 전 예상 event type, conflict, missing reference, scenario preset 영향, `/ops/events` EventRecord coverage link를 표시하고, `verify-rule-ui` 인앱 evidence `v240-s05-rule-scenario-review-loop`와 `verify-ops-rule-validation-matrix`가 확인",
             "sha256": "52b66736d1131289c00e6452dfd229522635fe7d784b34b27048bdc003876bd4"
           },
-          "specSha256": "e9c61f340b3445e98ce165a87ae527d4d8180c54f59bd0b98376239523bc71fd",
+          "specSha256": "48cb7ba86935f98879960492acbdf2eb7ec3e490e04782d52f149896aedb82ca",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -191257,7 +191257,7 @@
             "text": "저장 scenario payload의 `reEntryMode=configured-zones`와 `reEntryZoneIds`가 runtime ReEntryScenario source/destination zone 후보로 반영되고 기본 `same-zone` 동작과 event type `re-entry`는 유지",
             "sha256": "c79ef8ebeb4b6f78d63dcc69e58a06b16290e622507c4478700e9888b7f5f2aa"
           },
-          "specSha256": "362f0c33e4c1d93711ed5b8594129ff7a037265595ddb72747f6471fede42933",
+          "specSha256": "5890a6ee4660367bd499c5b31efd15ff7f5bc9db5d66793fa05c28ee52eaa850",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -192133,7 +192133,7 @@
             "text": "incident/rule suggestion 후보가 approval state와 validation summary를 가진 staged draft로만 표시되고 기존 저장 버튼 전에는 Rule/Profile registry write, 자동 적용, full replay execution, Event POST/WebRTC/SSE/WS/media path 변경을 만들지 않음",
             "sha256": "9aa645ecfc917fe8a5bb9805971e65cdbf43202fd4ee10f2a0b208608f7237c8"
           },
-          "specSha256": "5ea7b4da4e2b3523a605a82613889e5a724452de35af9e84bb36c87a4e51c897",
+          "specSha256": "70737a557928d3c15b2fd29e73d7ff82055b346919510ee0d13ff280ca4dd51b",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -193133,7 +193133,7 @@
             "text": "`verify-v390-vlm-rule-suggestion-draft-bridge`와 `verify-vlm-rule-suggestion-draft-workflow`가 incident review provenance와 sidecar rule suggestion 후보를 `/ops/rules` 이벤트 템플릿 draft로만 연결하고 기존 저장 버튼 전 Rule/Profile registry write, auto-apply, provider/runtime call, EventRecord/Event POST/WebRTC/SSE/WS/media path 변경을 만들지 않음을 확인",
             "sha256": "20d3c7f35cda112aec423f262e79bd24cc678d5f4b7510774e7dd10dfe9adcd9"
           },
-          "specSha256": "17633af36da30eb1afbc57ab209d99d057cf3f2f201aaddbcf12f0b4acc09a55",
+          "specSha256": "891c094570eb27d57ace6e5e9a449ab82fbbcc68d9b103f0f83ebdb0af7f5aa8",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,

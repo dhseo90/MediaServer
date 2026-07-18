@@ -63,6 +63,39 @@ await check("HTML redaction code is distinct from embedded forbidden response fi
   await expectReject(() => execute(leakedHtml), "forbidden response material observed");
 });
 
+await check("DOM redaction labels are distinct from exposed credential values", async () => {
+  const selector = '[data-testid="ops-vlm-page"]';
+  const execute = ({ text, formControls = [] }) => executeCatalogRuntimeOracle({
+    browser: fakeBrowser({
+      route: "/ops/vlm",
+      status: 200,
+      body: `<main data-testid="ops-vlm-page">${text}</main>`,
+      observations: {
+        [selector]: {
+          count: 1,
+          visibleCount: 1,
+          text,
+          attributes: [{ "data-testid": "ops-vlm-page" }],
+          formControls,
+        },
+      },
+    }),
+    item: exactItem("UI-027", "/ops/vlm"),
+    fixtureId: "ops-vlm-dom-redaction-contract",
+    correlationId: "UI-027:contract",
+  });
+
+  const safe = await execute({
+    text: "Cloud provider는 credential env 준비 전까지 release PASS가 아닙니다. prompt/raw response/source URL/credential 비노출",
+  });
+  assert(safe.dom[0].count === 1, "UI-027 safe redaction boundary DOM evidence missing");
+  await expectReject(() => execute({ text: "credential=sk-live-exposed-value" }), "forbidden DOM material observed");
+  await expectReject(() => execute({
+    text: "credential 비노출",
+    formControls: [{ id: "providerCredential", name: "credential", type: "password", value: "sk-live-input-value" }],
+  }), "forbidden DOM material observed");
+});
+
 await check("status and response semantic drift are rejected", async () => {
   await expectReject(() => executeCatalogRuntimeOracle({
     browser: eventBrowser({ status: 503 }),
@@ -259,6 +292,7 @@ function fakeBrowser({ route, status, body, texts = {}, attributes = {}, observa
         text: observation?.text ?? (selector ? String(texts[selector] || "") : ""),
         attributes: observation?.attributes ?? (selector ? (attributes[selector] || [{}]) : []),
         values: [""],
+        formControls: observation?.formControls ?? [],
         descendantCount: 0,
         properties: {},
       };

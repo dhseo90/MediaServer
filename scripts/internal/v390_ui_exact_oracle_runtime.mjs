@@ -376,6 +376,17 @@ async function observeDom(browser, item, assertion, bindings, responses, respons
       text: nodes.map(node => String(node.innerText || node.textContent || '')).join(' ').replace(/\\s+/g, ' ').trim().slice(0, 24000),
       attributes: nodes.slice(0, 20).map(node => Object.fromEntries(Array.from(node.attributes || []).map(attr => [attr.name, attr.value]))),
       values: nodes.slice(0, 20).map(node => String(node.value ?? '')),
+      formControls: nodes.flatMap(node => [
+        ...(node.matches?.('input, textarea, select') ? [node] : []),
+        ...Array.from(node.querySelectorAll('input, textarea, select')),
+      ]).slice(0, 200).map(control => ({
+        id: String(control.id || ''),
+        name: String(control.getAttribute('name') || ''),
+        dataTestid: String(control.getAttribute('data-testid') || ''),
+        ariaLabel: String(control.getAttribute('aria-label') || ''),
+        type: String(control.getAttribute('type') || control.tagName || '').toLowerCase(),
+        value: String(control.value ?? ''),
+      })),
       descendantCount: nodes.reduce((count, node) => count + node.querySelectorAll('*').length, 0),
       properties: {
         text: nodes.map(node => String(node.innerText || node.textContent || '')).join(' ').replace(/\\s+/g, ' ').trim(),
@@ -414,7 +425,8 @@ async function observeDom(browser, item, assertion, bindings, responses, respons
     assert(observed.text.includes(token), `${item.caseId} exact DOM token missing ${selector}: ${token}`);
   }
   for (const token of forbiddenText) {
-    assert(!observed.text.includes(token), `${item.caseId} forbidden DOM token observed ${selector}: ${token}`);
+    assert(!containsForbiddenDomMaterial(observed, token),
+      `${item.caseId} forbidden DOM material observed ${selector}: ${token}`);
   }
   const requiredAttributes = Array.isArray(assertion.requiredAttributes)
     ? assertion.requiredAttributes
@@ -528,6 +540,29 @@ function containsForbiddenResponseMaterial(value, needle, contentType) {
   }
   return htmlEmbeddedJsonDocuments(value).some(document => containsForbiddenKeyOrValue(document, needle)) ||
     htmlContainsForbiddenAttribute(value, needle);
+}
+
+function containsForbiddenDomMaterial(observed, needle) {
+  const token = String(needle || "");
+  const text = String(observed?.text || "");
+  if (!/credential/i.test(token)) return text.includes(token);
+
+  const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const assignment = new RegExp(`(?:^|[\\s{[(,;])['\"]?${escaped}['\"]?\\s*[:=]\\s*([^\\s,;)}\\]]+)`, "gi");
+  for (const match of text.matchAll(assignment)) {
+    if (!isRedactedDomValue(match[1])) return true;
+  }
+
+  return (observed?.formControls || []).some(control => {
+    const identity = [control.id, control.name, control.dataTestid, control.ariaLabel]
+      .map(value => String(value || "").toLowerCase()).join(" ");
+    return identity.includes(token.toLowerCase()) && !isRedactedDomValue(control.value);
+  });
+}
+
+function isRedactedDomValue(value) {
+  const normalized = String(value ?? "").trim().replace(/^['\"]|['\"]$/g, "").toLowerCase();
+  return normalized === "" || /^(?:false|null|none|undefined|redacted|masked|hidden|omitted|not[-_ ]?stored|비노출|비저장|없음|미포함)$/.test(normalized);
 }
 
 function htmlEmbeddedJsonDocuments(html) {

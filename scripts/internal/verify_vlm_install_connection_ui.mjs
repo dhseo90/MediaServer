@@ -38,6 +38,7 @@ const checks = [];
 
 check("Ops shell exposes VLM install/connection page and dry-run API", () => {
   const server = readWebRtcHttpServerBundle(readText);
+  const pages = readText("src/ingress/product_ui_server_pages.cpp");
   for (const snippet of [
     "AppendOpsVlmInstallConnectionPage",
     "data-testid=\"ops-vlm-page\"",
@@ -48,6 +49,10 @@ check("Ops shell exposes VLM install/connection page and dry-run API", () => {
     "id=\"opsVlmRawDetails\"",
     "id=\"opsVlmPretty\"",
     "id=\"opsVlmRaw\"",
+  ]) {
+    assert(pages.includes(snippet), `product UI page source missing VLM snippet: ${snippet}`);
+  }
+  for (const snippet of [
     "request.path == \"/ops/api/vlm/install-connection/dry-run\"",
     "OpsVlmInstallConnectionDryRunJson(query",
     "path == \"/ops/vlm\"",
@@ -56,7 +61,7 @@ check("Ops shell exposes VLM install/connection page and dry-run API", () => {
     assert(server.includes(snippet), `server missing VLM UI/API snippet: ${snippet}`);
   }
   assert(server.includes("require_ops_principal"), "VLM API/page must be guarded by ops principal");
-  assert(!server.includes("AppendImageNavLink(out, \"/ops/vlm\""), "VLM must not be added to primary Ops nav");
+  assert(!pages.includes("AppendImageNavLink(out, \"/ops/vlm\""), "VLM must not be added to primary Ops nav");
 });
 
 check("Ops page script renders selectable dry-run candidates without writes", () => {

@@ -2742,6 +2742,20 @@ evidence로 사용하지 않습니다.
 | Semantic/generated 영향 | Fresh candidate digest `c7bb675ce4074ab029c7fe33a4333fac64b1f973ef276fc97ba647cdd56a0d1d`, 986행 sourceFlow/feature contract 변경 0입니다. Canonical/native generated fixture도 변경하지 않았습니다 | 기존 approval 986/986 유지 |
 | 미실행 경계 | 이번 correction에서는 actual `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`를 실행하지 않았습니다 | not-run / REVIEW4-65 미완료 |
 
+### REVIEW4-65 UI-027 credential DOM material boundary correction
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| Standalone actual failure 보존 | Source `2cad7bb93a29b6d5f3f2e1f45246c4e279fa5e6c`에서 sandbox 밖 `./test_ui.sh`를 정확히 1회 실행했습니다. Preflight/bootstrap PASS 뒤 UI-001~026 중 25건 PASS, UI-027에서 executed/pass/fail/not-run `26/25/1/398`으로 중단됐고 Policy v4는 not-run, measured cleanup은 PASS했습니다 | actual oracle FAIL preserved |
+| 제품 DOM 직접 확인 | `opsVlmRuntimeStatusSummary`/`renderOpsVlmRuntimeStatus`는 provider API 호출이나 credential 저장을 수행하지 않고 `credential env 준비 전`, `credential 비노출` 같은 음성 privacy/default-off 상태만 표시합니다 | credential material exposure 없음 / product source 확인 |
+| 직접 확인한 원인 | Core exact oracle의 forbidden field `credential`을 `[data-testid="ops-vlm-page"]` 전체 text에 단순 substring으로 적용해 redaction label을 실제 값 노출로 분류했습니다 | field-name/material type boundary 오류 |
+| 원천 보정 | 일반 금지 토큰은 기존 exact text 검사를 유지합니다. Credential 계열은 key/value assignment와 credential 식별 form control의 비어 있지 않은 값만 material로 판정합니다. 안전 label과 false/redacted value는 허용하지만 `credential=sk-...` 및 credential input 실제 값은 거부합니다 | typed DOM material boundary |
+| 구조 verifier 보정 | `verify-vlm-install-connection-ui`는 UI markup을 실제 owner `product_ui_server_pages.cpp`에서, API guard와 `/ops/vlm` route dispatch를 canonical WebRTC source bundle에서 각각 검증합니다. 제품 C++/API/UI 동작은 변경하지 않았습니다 | VLM verifier 4/4 PASS |
+| Focused 검증 | Runtime 9/9, core 13/13, client-safe 9/9, catalog 3/3, native exact 26/26, completion 22/22, adapter 11/11, MJS syntax PASS | actual browser execution not-run-by-contract |
+| Semantic 영향/승인 | Feature/pass 변경 0, candidate `917c7917895ff4bcd9b7fe801f797437eb1bac1ea5706385262cab89cbc22e9c`, 978 carry-forward + `UI-022/025/026/027/028/030/031/034` 독립 검토로 approval 986/986입니다. Migration/package/decision SHA는 `77249a22...58f3`/`4993e458...5f4f`/`6ed2e7b4...2d75`입니다 | audit/approval/manifest current binding |
+| Generated binding | 공식 generator 전후 canonical fixture 변경 0, native SHA/digest/provenance 변경 314, ordered ID·route·role·viewport·theme·action·workflow·oracle·cleanup non-hash 변경 0입니다. 최종 SHA는 canonical `e3151222...989`, native `a6f5b6ea...b507`입니다 | 424 / 423 native + 1 negative / unsupported 0 |
+| 미실행 경계 | 이번 correction에서는 actual `./test_ui.sh`, exact 424, Policy v4 qualification, 30분, 120분, `./test_release.sh`를 실행하지 않았습니다 | not-run / REVIEW4-65 미완료 |
+
 ### REVIEW4-65 SAFE-211 completion/current graph correction
 
 | 제목 | 수행내용 | 결과(pass/fail) |

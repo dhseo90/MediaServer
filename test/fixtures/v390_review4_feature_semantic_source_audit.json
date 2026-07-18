@@ -4836,7 +4836,7 @@
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
           "symbol": "canonical-assertion:renderOpsVlmPrivacyTransferGuard",
           "anchor": "assert(privacyBlock.includes(\"renderOpsVlmPrivacyTransferGuard\"), \"VLM privacy transfer renderer missing\");",
-          "line": 115,
+          "line": 120,
           "contextSha256": "803529072bc9f63021989b1886d1e59f2fcef6a4029de92e26490018d3552608"
         },
         "verifier": {
@@ -4878,14 +4878,14 @@
           "kind": "structural-producer-assertion",
           "witness": "renderOpsVlmPrivacyTransferGuard is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:3685",
-          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:115"
+          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:120"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-install-connection-ui",
-          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:115",
+          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:120",
           "target": "server.sh:3039"
         }
       ],
@@ -4939,7 +4939,7 @@
           "sha256": "b6203cbe567d6c81bb960ee1fac160009e3be38352f7edbad728da0abf476dd5"
         }
       },
-      "sourceFlowDigest": "23a87e1d30f740e32ecbcb6a64a287c5e656ef04b2ca6dfbd2c9f97d8bac340c",
+      "sourceFlowDigest": "06abb9f815c9e6143617f524e39c01ec73ec99ecc28b1e1990bcf2de69e35cc5",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -4982,10 +4982,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
             "symbol": "canonical-assertion:renderOpsVlmPrivacyTransferGuard",
-            "trackedBlobSha256": "0cc8d6bd3941729500f36667509cb13aaae42e850f55cdefb6411ae6f8719897",
+            "trackedBlobSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
             "enclosingBodySha256": "ed6ce7a23390dbf003c4cff7e6d7a06397cb045020c5efac236fc30666e5a8da",
-            "enclosingBodyStartLine": 62,
-            "enclosingBodyEndLine": 126,
+            "enclosingBodyStartLine": 67,
+            "enclosingBodyEndLine": 131,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -4997,7 +4997,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "0cc8d6bd3941729500f36667509cb13aaae42e850f55cdefb6411ae6f8719897",
+        "verifierFileSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
         "dispatch": {
           "command": "verify-vlm-install-connection-ui",
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
@@ -5522,7 +5522,7 @@
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
           "symbol": "canonical-assertion:runtimeStatus",
           "anchor": "assert(runtimeSummaryBlock.includes(\"runtimeStatus: externalTransfer\"), \"VLM runtimeStatus summary state missing\");",
-          "line": 82,
+          "line": 87,
           "contextSha256": "17e2401c8566dad8707faa22d0df1e76118b9fd4b75bc0a96231133d3726d567"
         },
         "verifier": {
@@ -5564,14 +5564,14 @@
           "kind": "structural-producer-assertion",
           "witness": "runtimeStatus is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:3459",
-          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:82"
+          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:87"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-install-connection-ui",
-          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:82",
+          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:87",
           "target": "server.sh:3039"
         }
       ],
@@ -5630,7 +5630,7 @@
           "sha256": "c7a933e5bd33036dda80828bcc0afe50e9406f4cecc4dcbc801de1a9450cfe99"
         }
       },
-      "sourceFlowDigest": "f7774d888f6a26d9885e90b84127e401b3e23b099b6cc6ecb09afb3d9cfe326c",
+      "sourceFlowDigest": "8ba15a25362ace192ab7f19f893e4a1cc1e78a9982c2ceb61a518b6ff10ebb26",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -5673,10 +5673,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
             "symbol": "canonical-assertion:runtimeStatus",
-            "trackedBlobSha256": "0cc8d6bd3941729500f36667509cb13aaae42e850f55cdefb6411ae6f8719897",
+            "trackedBlobSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
             "enclosingBodySha256": "ed6ce7a23390dbf003c4cff7e6d7a06397cb045020c5efac236fc30666e5a8da",
-            "enclosingBodyStartLine": 62,
-            "enclosingBodyEndLine": 126,
+            "enclosingBodyStartLine": 67,
+            "enclosingBodyEndLine": 131,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -5688,7 +5688,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "0cc8d6bd3941729500f36667509cb13aaae42e850f55cdefb6411ae6f8719897",
+        "verifierFileSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
         "dispatch": {
           "command": "verify-vlm-install-connection-ui",
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
@@ -5755,7 +5755,7 @@
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
           "symbol": "canonical-assertion:opsVlmSelectedOptionId",
           "anchor": "assert(controlsBlock.includes(\"opsVlmSelectedOptionId = String(button.dataset.vlmOptionId\"), \"VLM selected option state missing\");",
-          "line": 88,
+          "line": 93,
           "contextSha256": "a16dde247f389bb7c250b0ac545867f88313a1f7a3677675689193114f540aab"
         },
         "verifier": {
@@ -5797,14 +5797,14 @@
           "kind": "structural-producer-assertion",
           "witness": "opsVlmSelectedOptionId is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:4030",
-          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:88"
+          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:93"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-install-connection-ui",
-          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:88",
+          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:93",
           "target": "server.sh:3039"
         }
       ],
@@ -5863,7 +5863,7 @@
           "sha256": "91852c103a2bffe50da04ba9269a3e4c2afefd25165bb18a55697a1962552a49"
         }
       },
-      "sourceFlowDigest": "116e757a439f237607219cc7a5b35b32a2d98c6f16527dff3a54af1a64b001a3",
+      "sourceFlowDigest": "d5af7425fe5a1bfe499e52adf71ab325f4fff2865f64527c920c011e529e811a",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -5906,10 +5906,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
             "symbol": "canonical-assertion:opsVlmSelectedOptionId",
-            "trackedBlobSha256": "0cc8d6bd3941729500f36667509cb13aaae42e850f55cdefb6411ae6f8719897",
+            "trackedBlobSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
             "enclosingBodySha256": "ed6ce7a23390dbf003c4cff7e6d7a06397cb045020c5efac236fc30666e5a8da",
-            "enclosingBodyStartLine": 62,
-            "enclosingBodyEndLine": 126,
+            "enclosingBodyStartLine": 67,
+            "enclosingBodyEndLine": 131,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -5921,7 +5921,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "0cc8d6bd3941729500f36667509cb13aaae42e850f55cdefb6411ae6f8719897",
+        "verifierFileSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
         "dispatch": {
           "command": "verify-vlm-install-connection-ui",
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
@@ -5988,7 +5988,7 @@
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
           "symbol": "canonical-assertion:cloudOptInState",
           "anchor": "assert(runtimeSummaryBlock.includes(\"payload?.privacy?.cloudOptInState === 'acknowledged'\"), \"VLM cloud opt-in state missing\");",
-          "line": 93,
+          "line": 98,
           "contextSha256": "b0cf2f6b7a271cdf6457d36137eaf9ab95b5f856174c300aab330fed06a72bb3"
         },
         "verifier": {
@@ -6030,14 +6030,14 @@
           "kind": "structural-producer-assertion",
           "witness": "cloudOptInState is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:3457",
-          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:93"
+          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:98"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-install-connection-ui",
-          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:93",
+          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:98",
           "target": "server.sh:3039"
         }
       ],
@@ -6103,7 +6103,7 @@
           "sha256": "73c36f7f60fbca06fb8c7c578617370c70f88dce72f84b00d0ddf054be9a9e66"
         }
       },
-      "sourceFlowDigest": "5c478ab009864dc1794189da6ab3b96f41f9b447225ef02dd4751e7a28e3ac0d",
+      "sourceFlowDigest": "50544049019370631d71b7007e85de974d74bfa6ff339808f461cceb7750910b",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -6146,10 +6146,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
             "symbol": "canonical-assertion:cloudOptInState",
-            "trackedBlobSha256": "0cc8d6bd3941729500f36667509cb13aaae42e850f55cdefb6411ae6f8719897",
+            "trackedBlobSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
             "enclosingBodySha256": "ed6ce7a23390dbf003c4cff7e6d7a06397cb045020c5efac236fc30666e5a8da",
-            "enclosingBodyStartLine": 62,
-            "enclosingBodyEndLine": 126,
+            "enclosingBodyStartLine": 67,
+            "enclosingBodyEndLine": 131,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -6161,7 +6161,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "0cc8d6bd3941729500f36667509cb13aaae42e850f55cdefb6411ae6f8719897",
+        "verifierFileSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
         "dispatch": {
           "command": "verify-vlm-install-connection-ui",
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
@@ -6228,7 +6228,7 @@
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
           "symbol": "canonical-assertion:activation.status",
           "anchor": "assert(profilesBlock.includes(\"badge(activation.status || 'pending-evaluation'\"), \"VLM activation status state missing\");",
-          "line": 99,
+          "line": 104,
           "contextSha256": "c6d2edf6704572d891dbb2cac9312b2e4c2e929d7157266608d7af77a7141479"
         },
         "verifier": {
@@ -6270,14 +6270,14 @@
           "kind": "structural-producer-assertion",
           "witness": "activation.status is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:3837",
-          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:99"
+          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:104"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-install-connection-ui",
-          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:99",
+          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:104",
           "target": "server.sh:3039"
         }
       ],
@@ -6331,7 +6331,7 @@
           "sha256": "d6ae56928eb96c71e8152832283cff9c120bd7e0c57ddc2d33cc5a17b5491f28"
         }
       },
-      "sourceFlowDigest": "f7272130591bffc33169885e60c38d6efb113d8899075087ac75568854ceaece",
+      "sourceFlowDigest": "25a7a1a67ee410030eb4c82a90fbfcb07976b8aaa2aa73abcfc3ef8b7b607266",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -6374,10 +6374,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
             "symbol": "canonical-assertion:activation.status",
-            "trackedBlobSha256": "0cc8d6bd3941729500f36667509cb13aaae42e850f55cdefb6411ae6f8719897",
+            "trackedBlobSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
             "enclosingBodySha256": "ed6ce7a23390dbf003c4cff7e6d7a06397cb045020c5efac236fc30666e5a8da",
-            "enclosingBodyStartLine": 62,
-            "enclosingBodyEndLine": 126,
+            "enclosingBodyStartLine": 67,
+            "enclosingBodyEndLine": 131,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -6389,7 +6389,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "0cc8d6bd3941729500f36667509cb13aaae42e850f55cdefb6411ae6f8719897",
+        "verifierFileSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
         "dispatch": {
           "command": "verify-vlm-install-connection-ui",
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
@@ -6682,7 +6682,7 @@
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
           "symbol": "canonical-assertion:dimensions",
           "anchor": "assert(dimensionsBlock.includes(\"dimensions[key]\"), \"VLM evaluation dimensions state missing\");",
-          "line": 104,
+          "line": 109,
           "contextSha256": "2379a3aab5d513d2eb2a70d9344f1622cd27622d1d4a3eee0bd37857f2ca0c49"
         },
         "verifier": {
@@ -6724,14 +6724,14 @@
           "kind": "structural-producer-assertion",
           "witness": "dimensions is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:3534",
-          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:104"
+          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:109"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-install-connection-ui",
-          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:104",
+          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:109",
           "target": "server.sh:3039"
         }
       ],
@@ -6781,7 +6781,7 @@
           "sha256": "c3f0e1b0e14483ff89b7874f4e3d8dfb2d43c227b028bd9594d9a9cc6561ec49"
         }
       },
-      "sourceFlowDigest": "72d85c66d8854d8a9b62432e4d65ddf8ff88378fdfc7ebd64f6780e437f3853c",
+      "sourceFlowDigest": "c004be1fec04fbee63e3892b33695bfd8da6de8ae45101e51d3b86d7b0a47f28",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -6824,10 +6824,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
             "symbol": "canonical-assertion:dimensions",
-            "trackedBlobSha256": "0cc8d6bd3941729500f36667509cb13aaae42e850f55cdefb6411ae6f8719897",
+            "trackedBlobSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
             "enclosingBodySha256": "ed6ce7a23390dbf003c4cff7e6d7a06397cb045020c5efac236fc30666e5a8da",
-            "enclosingBodyStartLine": 62,
-            "enclosingBodyEndLine": 126,
+            "enclosingBodyStartLine": 67,
+            "enclosingBodyEndLine": 131,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -6839,7 +6839,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "0cc8d6bd3941729500f36667509cb13aaae42e850f55cdefb6411ae6f8719897",
+        "verifierFileSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
         "dispatch": {
           "command": "verify-vlm-install-connection-ui",
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
@@ -6906,7 +6906,7 @@
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
           "symbol": "canonical-assertion:opsVlmRaw",
           "anchor": "assert(refreshBlock.includes(\"opsVlmRaw\"), \"UI-031 block-scoped canonical product state\");",
-          "line": 120,
+          "line": 125,
           "contextSha256": "17183f41d0a3953ce01545c1d9febbf8d8a9de67859e95eb68063ee233148af8"
         },
         "verifier": {
@@ -6948,14 +6948,14 @@
           "kind": "structural-producer-assertion",
           "witness": "opsVlmRaw is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:3993",
-          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:120"
+          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:125"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-install-connection-ui",
-          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:120",
+          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:125",
           "target": "server.sh:3039"
         }
       ],
@@ -7013,7 +7013,7 @@
           "sha256": "5f9df38c5cf526d34cc8033f5332acefcb762c7e471e8df96ebf9800f0e5f998"
         }
       },
-      "sourceFlowDigest": "8551a12e42742a7bbdd73987605c69ae2a3e87b8fcf13132a3eaf0c1f974bcb7",
+      "sourceFlowDigest": "94f2af0400e562ee64315a12f34e6742d2faca6ce5b541dfa555273c53e7e4cd",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -7056,10 +7056,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
             "symbol": "canonical-assertion:opsVlmRaw",
-            "trackedBlobSha256": "0cc8d6bd3941729500f36667509cb13aaae42e850f55cdefb6411ae6f8719897",
+            "trackedBlobSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
             "enclosingBodySha256": "ed6ce7a23390dbf003c4cff7e6d7a06397cb045020c5efac236fc30666e5a8da",
-            "enclosingBodyStartLine": 62,
-            "enclosingBodyEndLine": 126,
+            "enclosingBodyStartLine": 67,
+            "enclosingBodyEndLine": 131,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -7071,7 +7071,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "0cc8d6bd3941729500f36667509cb13aaae42e850f55cdefb6411ae6f8719897",
+        "verifierFileSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
         "dispatch": {
           "command": "verify-vlm-install-connection-ui",
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
@@ -7612,7 +7612,7 @@
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
           "symbol": "canonical-assertion:opsVlmEvaluationRows",
           "anchor": "assert(evaluationBlock.includes(\"document.getElementById('opsVlmEvaluationRows')\"), \"VLM evaluation rows state missing\");",
-          "line": 108,
+          "line": 113,
           "contextSha256": "0d4109ac7f01c5b2228038860545532beb3f6a6d7eee8c32d024aed03d4ec48f"
         },
         "verifier": {
@@ -7654,14 +7654,14 @@
           "kind": "structural-producer-assertion",
           "witness": "opsVlmEvaluationRows is asserted in the canonical product-source assertion branch",
           "source": "src/ingress/product_ui_page_scripts.cpp:3552",
-          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:108"
+          "target": "scripts/internal/verify_vlm_install_connection_ui.mjs:113"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-vlm-install-connection-ui",
-          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:108",
+          "source": "scripts/internal/verify_vlm_install_connection_ui.mjs:113",
           "target": "server.sh:3039"
         }
       ],
@@ -7724,7 +7724,7 @@
           "sha256": "cab2852970655f834f37a11fc8594a73fb58b7eb0b0dad5965a8bcdb5b8936fa"
         }
       },
-      "sourceFlowDigest": "456fc14dc49754eef4199b05ebcfa77d7c1bc85f51e23822eb02b1fa0c36ebfa",
+      "sourceFlowDigest": "218a2ef269c4e8fbec9be56b27ef76fb3179ac39d29898c8eb738702de49363c",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -7767,10 +7767,10 @@
           "readback": {
             "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
             "symbol": "canonical-assertion:opsVlmEvaluationRows",
-            "trackedBlobSha256": "0cc8d6bd3941729500f36667509cb13aaae42e850f55cdefb6411ae6f8719897",
+            "trackedBlobSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
             "enclosingBodySha256": "ed6ce7a23390dbf003c4cff7e6d7a06397cb045020c5efac236fc30666e5a8da",
-            "enclosingBodyStartLine": 62,
-            "enclosingBodyEndLine": 126,
+            "enclosingBodyStartLine": 67,
+            "enclosingBodyEndLine": 131,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -7782,7 +7782,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "0cc8d6bd3941729500f36667509cb13aaae42e850f55cdefb6411ae6f8719897",
+        "verifierFileSha256": "16613cd609f1ee4f6d8c7e1d050021b31a9e12699e6ba3bca6c63c9fd4c52c3e",
         "dispatch": {
           "command": "verify-vlm-install-connection-ui",
           "file": "scripts/internal/verify_vlm_install_connection_ui.mjs",
@@ -235277,5 +235277,5 @@
       }
     }
   ],
-  "candidateDigest": "c7bb675ce4074ab029c7fe33a4333fac64b1f973ef276fc97ba647cdd56a0d1d"
+  "candidateDigest": "917c7917895ff4bcd9b7fe801f797437eb1bac1ea5706385262cab89cbc22e9c"
 }

@@ -882,6 +882,19 @@ v3.2.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직
 | Semantic/generated boundary | Fresh candidate `c7bb675c...`, 986행 변경 0, 기존 approval 986/986 유지. Canonical/native generated fixture 변경 없음 | semantic/generated lifecycle 불변 |
 | 미실행 경계 | Actual `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`는 이번 correction에서 실행하지 않았습니다 | not-run / REVIEW4-65 미완료 |
 
+## V390-REVIEW4-65 UI-027 credential DOM material boundary correction
+
+| evidence | current boundary | 판정 |
+| --- | --- | --- |
+| Standalone run at `2cad7bb9` | Sandbox 밖 `./test_ui.sh` 1회 실행의 exact 집계는 `26 executed / 25 PASS / 1 FAIL / 398 not-run`이고 UI-027에서 중단됐습니다. Actual browser 실행, route/role/viewport/theme/control 일치, Policy v4 not-run, cleanup PASS입니다 | actual oracle FAIL preserved |
+| Product privacy boundary | `/ops/vlm`은 credential 저장/provider 호출 없이 `credential env 준비 전`, `credential 비노출` 같은 음성 상태를 표시하며 실제 credential value를 렌더링하지 않습니다 | credential material exposure 없음 |
+| Typed DOM contract | 일반 금지 토큰 exact 검사는 유지하고 credential 계열은 key/value assignment 또는 credential form control의 실제 값으로 판정합니다. 안전 redaction label은 허용하되 `credential=sk-...`와 credential input 값은 FAIL합니다 | runtime contract 9/9 PASS |
+| Source-owner verifier | VLM page markup은 `product_ui_server_pages.cpp`, API/route guard는 WebRTC source bundle에서 각각 확인합니다. Structure split 이전 bundle-only fallback은 제거했습니다 | VLM verifier 4/4 PASS |
+| Focused gates | Core 13/13, client-safe 9/9, catalog 3/3, native exact 26/26, completion 22/22, adapter 11/11, MJS syntax PASS | actual exact 424 / Policy v4 evidence 아님 |
+| Semantic review | Candidate `917c7917...e9c`, feature/pass 변경 0, 978 carry-forward + `UI-022/025/026/027/028/030/031/034` independent review, approval 986/986 | migration `77249a22...58f3`, package `4993e458...5f4f`, decision `6ed2e7b4...2d75` |
+| Generated binding | Canonical fixture 변경 0, native SHA/digest/provenance 변경 314, ordered product/workflow non-hash 변경 0. 최종 SHA canonical `e3151222...989`, native `a6f5b6ea...b507` | actual browser not-run / unsupported 0 |
+| 미실행 경계 | Actual `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`는 이번 correction에서 실행하지 않았습니다 | not-run / REVIEW4-65 미완료 |
+
 ## V390-REVIEW4-65 SAFE-211 completion/current graph correction
 
 | evidence | verified result | boundary |
