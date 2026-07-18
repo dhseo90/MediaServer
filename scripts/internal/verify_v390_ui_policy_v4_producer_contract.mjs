@@ -9,7 +9,10 @@ import { fileURLToPath } from "node:url";
 
 import { evaluateEvidence } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
 import { qualifyRawCase } from "./v390_ui_policy_v4_independent_qualifier.mjs";
-import { producePolicyV4Evidence } from "./v390_ui_policy_v4_evidence_producer.mjs";
+import {
+  assertPolicyV4ArtifactRoot,
+  producePolicyV4Evidence,
+} from "./v390_ui_policy_v4_evidence_producer.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const tempParent = path.join(rootDir, ".tmp-v390-policy-producer-contract");
@@ -142,6 +145,21 @@ check("producer rejects artifact path escape", () => {
     failed = String(error.message).includes("escapes artifact root");
   }
   assert(failed, "artifact path escape was accepted");
+});
+
+check("producer rejects an artifact root outside the repository before capture", () => {
+  const outside = fs.mkdtempSync(path.join(os.tmpdir(), "media_server_v390_policy_root_"));
+  let failed = false;
+  try {
+    assertPolicyV4ArtifactRoot({ rootDir, outputDir: outside });
+  } catch (error) {
+    failed = String(error.message).includes("inside the repository root");
+  } finally {
+    fs.rmSync(outside, { recursive: true, force: true });
+  }
+  assert(failed, "outside-repository artifact root was accepted");
+  assert(assertPolicyV4ArtifactRoot({ rootDir, outputDir }).artifactRoot === path.relative(rootDir, outputDir),
+    "repository-contained artifact root was not normalized");
 });
 
 const failed = checks.filter(value => !value.ok);

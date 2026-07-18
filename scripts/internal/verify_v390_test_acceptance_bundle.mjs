@@ -20,8 +20,10 @@ import {
 import { evaluateV390FullSuiteEligibility } from "./v390_full_suite_eligibility_lib.mjs";
 import {
   nativeExactPreExecutionFailureStatus,
+  validateNativeExactCaptureSummary,
   validateNativeExactCleanupContract,
 } from "./v390_ui_native_exact_cases_lib.mjs";
+import { assertPolicyV4ArtifactRoot } from "./v390_ui_policy_v4_evidence_producer.mjs";
 import {
   classifyLongrun120ChangedAreas,
   evaluateLongrun120Decision,
@@ -127,6 +129,7 @@ const options = parseArgs(rawArgs);
 const runId = `v390-test-acceptance-${new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14)}-${process.pid}`;
 const outputDir = path.resolve(rootDir, options.outputDir || path.join(os.tmpdir(), `media_server_${runId}`));
 const canonicalReleaseOutputDir = path.join(rootDir, "docs/release-artifacts/v3.9.0/test-acceptance-current-final");
+const canonicalUiOutputDir = path.join(rootDir, ".media_server.test/v3.9.0/ui-acceptance-current");
 const runDir = path.join(outputDir, "runs", runId);
 const summaryPath = path.join(outputDir, "summary.json");
 const reportPath = path.join(outputDir, "report.md");
@@ -238,6 +241,16 @@ async function runRealStage(stageId) {
     }
     if (executionMode === "actual" && outputDir !== canonicalReleaseOutputDir) {
       recordFailure(stageId, "preflight", `release acceptance output must be canonical: ${canonicalReleaseOutputDir}`);
+      return;
+    }
+    if (executionMode === "actual-ui-only" && outputDir !== canonicalUiOutputDir) {
+      recordFailure(stageId, "preflight", `standalone UI output must use the repository-local test root: ${canonicalUiOutputDir}`);
+      return;
+    }
+    try {
+      assertPolicyV4ArtifactRoot({ rootDir, outputDir: path.join(runDir, "ui-exact-424") });
+    } catch (error) {
+      recordFailure(stageId, "preflight", error instanceof Error ? error.message : String(error));
       return;
     }
     if (!fixtureMode && sourceProvenance.sourceWorktreeClean !== true) {
@@ -929,12 +942,7 @@ function buildLongrun120Scope() {
 }
 
 function validateExactUiSummary(payload, childDir) {
-  const errors = [];
-  if (payload?.schema !== "media-server.ui-automation-evidence.v4") errors.push("exact UI Policy v4 schema mismatch");
-  if (payload?.result !== "PASS") errors.push("exact UI execution result is not PASS");
-  if (payload?.manualIntervention !== false || Number(payload?.coverage?.fail) !== 0 || Number(payload?.coverage?.notRun) !== 0 || Number(payload?.coverage?.unsupported) !== 0) errors.push("exact UI zero-fail/manual boundary mismatch");
-  if (Number(payload?.coverage?.targetCount) !== 424 || payload?.cases?.length !== 424) errors.push("exact UI 424 case closure mismatch");
-  if (payload?.selectedAdapter?.engine !== "playwright-native" || payload?.selectedAdapter?.fallbackUsed !== false) errors.push("exact UI native adapter mismatch");
+  const errors = validateNativeExactCaptureSummary(payload, 424);
   if (payload?.caseRuntimeSecretArtifactIntegrity?.status !== "PASS" ||
       payload?.caseRuntimeSecretArtifactIntegrity?.verificationSource !== "case-runtime-exact-and-throwaway-byte-scan-before-secret-release" ||
       Number(payload?.caseRuntimeSecretArtifactIntegrity?.scannedFiles) < 1 ||
@@ -1032,8 +1040,10 @@ function cleanupEvidence() {
 
 function prepareOutputRoot() {
   const allowedReleaseRoot = path.join(rootDir, "docs/release-artifacts/v3.9.0");
+  const allowedUiRoot = path.join(rootDir, ".media_server.test/v3.9.0");
   const allowedTempRoots = [os.tmpdir(), "/tmp", "/private/tmp"].map(value => path.resolve(value));
-  assert(isInside(allowedReleaseRoot, outputDir) || allowedTempRoots.some(tempRoot => isInside(tempRoot, outputDir)), `unsafe acceptance output directory: ${outputDir}`);
+  assert(isInside(allowedReleaseRoot, outputDir) || isInside(allowedUiRoot, outputDir) ||
+    allowedTempRoots.some(tempRoot => isInside(tempRoot, outputDir)), `unsafe acceptance output directory: ${outputDir}`);
   const existed = fs.existsSync(outputDir);
   const before = existed ? scanArtifactTree(outputDir) : {
     fileCount: 0,

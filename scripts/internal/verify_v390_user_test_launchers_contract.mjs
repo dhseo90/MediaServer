@@ -79,21 +79,29 @@ check("common launcher owns output, contract preflight, sanitization, and exact 
   assert(!commonSource.includes("MEDIA_SERVER_V390_UI_ROLE_SECRETS="), "launcher assigns a role-secret envelope");
 });
 
-check("release alone uses repository canonical output while focused launchers retain OS temp", () => {
+check("server launchers use OS temp while UI and release use distinct repository roots", () => {
   for (const snippet of [
     'if [[ "${suite}" == "release" ]]',
     'output_dir="${root_dir}/docs/release-artifacts/v3.9.0/test-acceptance-current-final"',
+    'elif [[ "${suite}" == "ui" ]]',
+    'output_dir="${root_dir}/.media_server.test/v3.9.0/ui-acceptance-current"',
     'output_dir="$(mktemp -d "${temp_root%/}/${output_prefix}.XXXXXX")"',
   ]) assertIncludes(commonSource, snippet, "launcher evidence lifecycle");
-  assert(commonSource.indexOf('if [[ "${suite}" == "release" ]]') <
+  assert(commonSource.indexOf('elif [[ "${suite}" == "ui" ]]') <
     commonSource.indexOf('output_dir="$(mktemp -d'),
-  "focused launcher temp fallback is not separated from canonical release output");
+  "UI repository-local output is not separated from server temp output");
   assertIncludes(bundleSource,
     'canonicalReleaseOutputDir = path.join(rootDir, "docs/release-artifacts/v3.9.0/test-acceptance-current-final")',
     "canonical acceptance output boundary");
   assertIncludes(bundleSource,
+    'canonicalUiOutputDir = path.join(rootDir, ".media_server.test/v3.9.0/ui-acceptance-current")',
+    "canonical standalone UI output boundary");
+  assertIncludes(bundleSource,
     'executionMode === "actual" && outputDir !== canonicalReleaseOutputDir',
     "canonical acceptance output rejection");
+  assertIncludes(bundleSource,
+    'executionMode === "actual-ui-only" && outputDir !== canonicalUiOutputDir',
+    "standalone UI output rejection");
 });
 
 check("30-minute launcher delegates only the runner-owned 30-minute suite", () => {
@@ -209,6 +217,20 @@ check("UI launcher fail-stop keeps Policy v4 not-run and still cleans up", () =>
   assert(summary.stages.find(item => item.id === "ui-fulltest-qualification")?.status === "not-run", "Policy v4 must be not-run after exact failure");
   assert(summary.stages.find(item => item.id === "ui-server-cleanup")?.status === "PASS", "UI server cleanup must still run");
   assert(summary.stages.find(item => item.id === "cleanup")?.status === "PASS", "root cleanup must still run");
+});
+
+check("actual UI suite rejects an OS temp artifact root before environment bootstrap", () => {
+  const outputDir = fixtureRoot("ui-invalid-temp-root");
+  const result = runLower([
+    "verify-v390-test-acceptance-bundle", "--output-dir", outputDir, "--suite", "ui",
+  ]);
+  assert(result.status === 1, "actual UI suite accepted an OS temp artifact root");
+  const summary = readJson(path.join(outputDir, "summary.json"));
+  const preflight = summary.stages.find(item => item.id === "preflight");
+  assert(preflight?.status === "FAIL" && preflight.tail?.some(line => line.includes("repository-local test root")),
+    "invalid UI artifact root did not fail at preflight");
+  assert(summary.stages.find(item => item.id === "ui-environment-bootstrap")?.status === "not-run",
+    "invalid UI artifact root reached environment bootstrap");
 });
 
 check("release launcher records 120 minutes as not-required without a trigger", () => {

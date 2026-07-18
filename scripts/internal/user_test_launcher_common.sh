@@ -51,6 +51,9 @@ media_server_run_user_test() {
   if [[ "${suite}" == "release" ]]; then
     output_dir="${root_dir}/docs/release-artifacts/v3.9.0/test-acceptance-current-final"
     mkdir -p "${output_dir}"
+  elif [[ "${suite}" == "ui" ]]; then
+    output_dir="${root_dir}/.media_server.test/v3.9.0/ui-acceptance-current"
+    mkdir -p "${output_dir}"
   else
     output_dir="$(mktemp -d "${temp_root%/}/${output_prefix}.XXXXXX")"
   fi

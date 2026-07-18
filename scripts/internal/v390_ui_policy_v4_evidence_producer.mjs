@@ -40,9 +40,9 @@ export function producePolicyV4Evidence({
   visualMatrixProbes = [],
   contractFixture = false,
 }) {
-  const resolvedRoot = path.resolve(rootDir);
-  const resolvedOutput = path.resolve(outputDir);
-  assert(isInside(resolvedRoot, resolvedOutput), "Policy v4 artifact root must be inside the repository root");
+  const artifactRoot = assertPolicyV4ArtifactRoot({ rootDir, outputDir });
+  const resolvedRoot = artifactRoot.rootDir;
+  const resolvedOutput = artifactRoot.outputDir;
   assert(Array.isArray(results), "actual result list is required");
   assert(Array.isArray(manifest?.cases), "exact native manifest cases are required");
   assert(Array.isArray(canonical?.cases), "canonical case manifest cases are required");
@@ -127,6 +127,7 @@ export function producePolicyV4Evidence({
     fixture: false,
     scopeKind: "full-suite",
     executionKind: "actual-native-visible-dom",
+    actualBrowserExecution: true,
     result: fail === 0 && notRun === 0 && unsupported === 0 ? "CAPTURED" : "INCOMPLETE",
     startedAt,
     finishedAt,
@@ -149,7 +150,7 @@ export function producePolicyV4Evidence({
       nativeExactManifestSha256: sha256File(path.join(resolvedRoot, "test/fixtures/v390_ui_native_exact_cases.json")),
       runnerPath: relativeInside(resolvedRoot, resolvedRunner),
       runnerSha256: sha256File(resolvedRunner),
-      artifactRoot: relativeInside(resolvedRoot, resolvedOutput),
+      artifactRoot: artifactRoot.artifactRoot,
       sourceFingerprintOnly: true,
     },
     security: {
@@ -185,6 +186,17 @@ export function producePolicyV4Evidence({
   return { summary, summaryPath };
 }
 
+export function assertPolicyV4ArtifactRoot({ rootDir, outputDir }) {
+  const resolvedRoot = path.resolve(rootDir);
+  const resolvedOutput = path.resolve(outputDir);
+  assert(isInside(resolvedRoot, resolvedOutput), "Policy v4 artifact root must be inside the repository root");
+  return {
+    rootDir: resolvedRoot,
+    outputDir: resolvedOutput,
+    artifactRoot: relativeInside(resolvedRoot, resolvedOutput),
+  };
+}
+
 function produceCase({ outputDir, policyRoot, policy, result, manifestCase, canonicalCase, serverLogPath }) {
   assert(manifestCase && canonicalCase, `${result.caseId} canonical/manifest binding missing`);
   if (result.status !== "PASS") {
@@ -194,6 +206,7 @@ function produceCase({ outputDir, policyRoot, policy, result, manifestCase, cano
       rawOutcome: result.status === "not-run" ? "not-run-after-first-failure" : "runner-error",
       status: result.status,
       reason: result.reason || "case did not pass actual execution",
+      diagnosticArtifacts: result.diagnosticArtifacts || undefined,
     };
   }
   const requestedObserved = assertRequestedObservedEnvelope({

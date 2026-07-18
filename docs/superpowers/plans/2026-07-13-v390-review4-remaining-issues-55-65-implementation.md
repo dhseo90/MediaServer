@@ -137,8 +137,9 @@ clean인 current HEAD에서 canonical bundle 전체를 처음부터 다시 실�
 
 사용자 진입점은 repository root의 `./test_server_30min.sh`, `./test_server_120min.sh`, `./test_ui.sh`,
 `./test_release.sh` 네 개입니다. 모두 인자를 exit 64로 거부하며 actual 실행 전에
-`verify-v390-user-test-launchers-contract`를 통과해야 합니다. `test_release.sh`만 repository canonical output을 사용하고
-30분/120분/UI launcher는 OS temp output을 자동 생성합니다. Server launcher는 runner-owned ephemeral port를
+`verify-v390-user-test-launchers-contract`를 통과해야 합니다. `test_release.sh`는 repository canonical output을,
+`test_ui.sh`는 repository-local transient `.media_server.test/v3.9.0/ui-acceptance-current`를 사용하며
+30분/120분 server launcher만 OS temp output을 자동 생성합니다. Server launcher는 runner-owned ephemeral port를
 사용하고 30분/120분만 각각 위임하며, 직접 120분 launcher 실행 자체를 사용자 승인 evidence로 기록합니다.
 UI launcher는 exact 424·Policy v4와 필요한 throwaway runtime/cleanup만 선택합니다. Lower-level option은 내부용입니다.
 

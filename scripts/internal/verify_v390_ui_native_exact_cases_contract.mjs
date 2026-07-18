@@ -11,8 +11,10 @@ import { fileURLToPath } from "node:url";
 
 import {
   buildNativeExactManifest,
+  createNativeExactExecutionFailureSummary,
   createNativeExactPreExecutionFailureSummary,
   normalizeProductScreenRoute,
+  validateNativeExactCaptureSummary,
   validateNativeExactCleanupContract,
   validateNativeExactManifest,
   validateNativeExactPreExecutionFailureSummary,
@@ -29,6 +31,11 @@ import {
   seedExactAccessRequestFixture,
   seedEventRecordFixture,
 } from "./v390_ui_case_runtime.mjs";
+import {
+  deduplicateScreenshotArtifacts,
+  pruneUnreferencedArtifactFiles,
+  scanArtifactTree,
+} from "./evidence_integrity_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -1177,6 +1184,30 @@ check("stale implementation binding writes a fail-closed 0/424 pre-execution sum
     `unexpected pre-execution failure: ${summary.failure.error}`);
 });
 
+check("actual runner bootstrap failure writes a fail-closed 0/424 summary", () => {
+  const workspace = fs.mkdtempSync(path.join(rootDir, ".tmp-v390-native-bootstrap-contract-"));
+  try {
+    const outputDir = path.join(workspace, "output");
+    const run = spawnSync(path.join(rootDir, "server.sh"), [
+      "run-v390-ui-native-exact-cases",
+      "--output-dir", outputDir,
+      "--http-base", "http://127.0.0.1:1",
+      "--server-log", path.join(rootDir, "VERSION"),
+      "--build-path", path.join(rootDir, "VERSION"),
+      "--role-state-map", path.join(workspace, "missing-role-state-map.json"),
+    ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+    assert(run.status !== 0, "missing role-state map must fail runner bootstrap");
+    const summaryPath = path.join(outputDir, "summary.json");
+    assert(fs.existsSync(summaryPath), `bootstrap failure summary missing: ${run.stderr || run.stdout}`);
+    const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
+    assert(validateNativeExactPreExecutionFailureSummary(summary).length === 0,
+      `bootstrap failure summary invalid: ${validateNativeExactPreExecutionFailureSummary(summary).join(", ")}`);
+    assert(summary.failure.phase === "runtime-bootstrap", "bootstrap failure phase mismatch");
+  } finally {
+    fs.rmSync(workspace, { recursive: true, force: true });
+  }
+});
+
 check("pre-execution failure cannot become UI PASS, Policy v4 eligible, or cleanup evidence", () => {
   const base = createNativeExactPreExecutionFailureSummary({
     error: new Error("implementation source binding drift"),
@@ -1223,6 +1254,94 @@ check("pre-execution failure cannot become UI PASS, Policy v4 eligible, or clean
   falsePolicy.policyV4Qualification.status = "eligible";
   assert(validateNativeExactPreExecutionFailureSummary(falsePolicy).some(error => error.includes("Policy v4")),
     "pre-execution failure became Policy v4 eligible");
+});
+
+check("raw capture success and UI qualification remain separate lifecycle states", () => {
+  const captured = {
+    schema: "media-server.ui-automation-evidence.v4",
+    contractFixture: false,
+    result: "CAPTURED",
+    executionKind: "actual-native-visible-dom",
+    actualBrowserExecution: true,
+    manualIntervention: false,
+    selectedAdapter: { engine: "playwright-native", fallbackUsed: false },
+    coverage: {
+      targetCount: 424,
+      captured: 424,
+      fail: 0,
+      notRun: 0,
+      unsupported: 0,
+      unapprovedExclusions: 0,
+      manualIntervention: 0,
+    },
+    cases: manifest.cases.map(item => ({ testId: item.caseId, rawOutcome: "completed" })),
+    uiFulltestPass: false,
+  };
+  assert(validateNativeExactCaptureSummary(captured).length === 0,
+    `complete raw capture was rejected: ${validateNativeExactCaptureSummary(captured).join(", ")}`);
+
+  const falsePass = structuredClone(captured);
+  falsePass.result = "PASS";
+  falsePass.uiFulltestPass = true;
+  const falsePassErrors = validateNativeExactCaptureSummary(falsePass);
+  assert(falsePassErrors.some(error => error.includes("CAPTURED")) &&
+    falsePassErrors.some(error => error.includes("UI fulltest PASS")),
+  "raw capture was allowed to self-qualify as UI PASS");
+});
+
+check("evidence producer failure always leaves an exact 424 failure ledger", () => {
+  const results = manifest.cases.map((item, index) => ({
+    caseId: item.caseId,
+    featureId: item.featureId,
+    status: index < 3 ? "PASS" : (index === 3 ? "FAIL" : "not-run"),
+    reason: index === 3 ? "evidence producer failure" : "not run after previous native case failure",
+  }));
+  const summary = createNativeExactExecutionFailureSummary({
+    error: new Error("Policy v4 evidence production failed"),
+    manifest,
+    results,
+    phase: "policy-v4-evidence-production",
+  });
+  assert(summary.result === "FAIL" && summary.cases.length === 424,
+    "execution failure summary did not preserve the exact ledger");
+  assert(summary.coverage.captured === 3 && summary.coverage.fail === 1 && summary.coverage.notRun === 420,
+    "execution failure coverage is not exact");
+  assert(summary.policyV4Qualification.status === "not-run" && summary.uiFulltestPass === false,
+    "producer failure became Policy v4 or UI PASS");
+  assert(summary.childResourcesAcquired === true && summary.cleanupRequired === true,
+    "execution failure lost the acquired-resource cleanup boundary");
+});
+
+check("failed case partial artifacts are referenced, deduplicated, and orphan-free", () => {
+  const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "media_server_v390_partial_artifacts_"));
+  try {
+    const screenshots = path.join(workspace, "screenshots");
+    const traces = path.join(workspace, "traces");
+    fs.mkdirSync(screenshots, { recursive: true });
+    fs.mkdirSync(traces, { recursive: true });
+    const canonicalPath = path.join(screenshots, "UI-001.png");
+    const failedPath = path.join(screenshots, "UI-004.png");
+    const orphanPath = path.join(screenshots, "UI-999.png");
+    for (const filePath of [canonicalPath, failedPath, orphanPath]) fs.writeFileSync(filePath, png1x1());
+    const tracePath = path.join(traces, "UI-001.json");
+    fs.writeFileSync(tracePath, "{}\n", "utf8");
+    const items = [
+      { caseId: "UI-001", screenshotPath: canonicalPath, tracePath },
+      { caseId: "UI-004", status: "FAIL", screenshotPath: failedPath },
+    ];
+    pruneUnreferencedArtifactFiles({
+      roots: [screenshots, traces],
+      referencedPaths: items.flatMap(item => [item.screenshotPath, item.tracePath]).filter(Boolean),
+    });
+    deduplicateScreenshotArtifacts(items);
+    const scan = scanArtifactTree(workspace);
+    assert(!fs.existsSync(orphanPath), "unreferenced partial artifact remained");
+    assert(items[1].screenshotPath === canonicalPath && items[1].screenshotEvidence?.deduplicated === true,
+      "failed case duplicate screenshot did not bind to the canonical artifact");
+    assert(scan.duplicateScreenshotFiles === 0, "failed case left duplicate screenshot bytes");
+  } finally {
+    fs.rmSync(workspace, { recursive: true, force: true });
+  }
 });
 
 const result = runChecks();
@@ -1341,6 +1460,10 @@ function runChecks() {
 
 function readJson(relativePath) {
   return JSON.parse(fs.readFileSync(path.join(rootDir, relativePath), "utf8"));
+}
+
+function png1x1() {
+  return Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGD4DwABBAEAHnOcQAAAAABJRU5ErkJggg==", "base64");
 }
 
 function assert(condition, message) {

@@ -10,12 +10,21 @@ import { createNativePlaywrightAdapter } from "./v390_ui_native_adapter.mjs";
 import { createV390UiCaseRuntime } from "./v390_ui_case_runtime.mjs";
 import { domSnapshotDigest, evaluateCompletionOracle } from "./v390_ui_completion_oracle_lib.mjs";
 import {
+  createNativeExactExecutionFailureSummary,
   createNativeExactPreExecutionFailureSummary,
+  validateNativeExactCaptureSummary,
   validateNativeExactManifest,
 } from "./v390_ui_native_exact_cases_lib.mjs";
-import { producePolicyV4Evidence } from "./v390_ui_policy_v4_evidence_producer.mjs";
+import {
+  assertPolicyV4ArtifactRoot,
+  producePolicyV4Evidence,
+} from "./v390_ui_policy_v4_evidence_producer.mjs";
 import { expandVisualMatrixPlan, validateVisualMatrixPlan } from "./v390_ui_visual_evidence.mjs";
-import { deduplicateScreenshotArtifacts } from "./evidence_integrity_lib.mjs";
+import {
+  deduplicateScreenshotArtifacts,
+  pruneUnreferencedArtifactFiles,
+  sha256File,
+} from "./evidence_integrity_lib.mjs";
 import {
   executeCatalogRuntimeOracle,
   isExistingSpecializedExactOracle,
@@ -118,26 +127,56 @@ if (options.planOnly) {
   process.exit(0);
 }
 
-assert(options.httpBase, "--http-base is required for actual execution");
-assert(options.serverLog, "--server-log is required for actual execution");
-const buildPath = resolveRootOrAbsolute(options.buildPath);
-assert(fs.existsSync(buildPath), `--build-path does not exist: ${buildPath}`);
-const serverLogPath = resolveRootOrAbsolute(options.serverLog);
-assert(fs.existsSync(serverLogPath), `server log does not exist: ${serverLogPath}`);
+let buildPath = "";
+let serverLogPath = "";
+try {
+  assertPolicyV4ArtifactRoot({ rootDir, outputDir });
+  assert(options.httpBase, "--http-base is required for actual execution");
+  assert(options.serverLog, "--server-log is required for actual execution");
+  buildPath = resolveRootOrAbsolute(options.buildPath);
+  assert(fs.existsSync(buildPath), `--build-path does not exist: ${buildPath}`);
+  serverLogPath = resolveRootOrAbsolute(options.serverLog);
+  assert(fs.existsSync(serverLogPath), `server log does not exist: ${serverLogPath}`);
+} catch (error) {
+  const summary = createNativeExactPreExecutionFailureSummary({
+    error,
+    manifest,
+    canonical,
+    phase: "actual-runner-preflight",
+  });
+  writeJson(summaryPath, summary);
+  printSummary(summary, summaryPath);
+  process.exit(1);
+}
 const actualStartedAt = new Date().toISOString();
-const roleStateMap = loadRoleStateMap(options.roleStateMap);
-const adapter = await createNativePlaywrightAdapter({
-  modulePath: options.playwrightModulePath,
-  chromePath: options.chromePath,
-});
-const caseRuntime = createV390UiCaseRuntime({
-  rootDir,
-  httpBase: options.httpBase,
-  runtimeDescriptorPath: options.runtimeDescriptor,
-  roleStateMapPath: options.roleStateMap,
-});
-assert(typeof caseRuntime.verifyCleanupReadback === "function",
-  "exact case runtime verifyCleanupReadback owner missing");
+let roleStateMap = null;
+let adapter = null;
+let caseRuntime = null;
+try {
+  roleStateMap = loadRoleStateMap(options.roleStateMap);
+  adapter = await createNativePlaywrightAdapter({
+    modulePath: options.playwrightModulePath,
+    chromePath: options.chromePath,
+  });
+  caseRuntime = createV390UiCaseRuntime({
+    rootDir,
+    httpBase: options.httpBase,
+    runtimeDescriptorPath: options.runtimeDescriptor,
+    roleStateMapPath: options.roleStateMap,
+  });
+  assert(typeof caseRuntime.verifyCleanupReadback === "function",
+    "exact case runtime verifyCleanupReadback owner missing");
+} catch (error) {
+  const summary = createNativeExactPreExecutionFailureSummary({
+    error,
+    manifest,
+    canonical,
+    phase: "runtime-bootstrap",
+  });
+  writeJson(summaryPath, summary);
+  printSummary(summary, summaryPath);
+  process.exit(1);
+}
 let caseRuntimeSecretScanComplete = false;
 process.on("exit", () => {
   if (caseRuntimeSecretScanComplete) return;
@@ -170,42 +209,96 @@ for (const item of manifest.cases) {
       reason: error instanceof Error ? error.message : String(error),
       dispatch: "playwright-native",
       manualIntervention: false,
+      ...(error?.partialArtifacts || {}),
     });
   }
 }
 
 const fail = results.filter(item => item.status === "FAIL").length;
 const notRun = results.filter(item => item.status === "not-run").length;
-const visualMatrixProbes = fail === 0 && notRun === 0
-  ? await executeVisualMatrix(adapter)
-  : [];
-deduplicateScreenshotArtifacts([...results, ...visualMatrixProbes]);
-const produced = producePolicyV4Evidence({
-  rootDir,
-  outputDir,
-  manifest,
-  canonical,
-  results,
-  selectedAdapter: adapter.summary,
-  startedAt: actualStartedAt,
-  finishedAt: new Date().toISOString(),
-  buildPath,
-  runnerPath: fileURLToPath(import.meta.url),
-  serverLogPath,
-  visualMatrixProbes,
-  contractFixture: false,
+let visualMatrixProbes = [];
+let evidenceProductionFailure = null;
+try {
+  if (fail === 0 && notRun === 0) visualMatrixProbes = await executeVisualMatrix(adapter);
+} catch (error) {
+  evidenceProductionFailure = error;
+}
+const artifactItems = [...results, ...visualMatrixProbes];
+const artifactPruning = pruneUnreferencedArtifactFiles({
+  roots: [screenshotsDir, tracesDir, logsDir, visualMatrixDir],
+  referencedPaths: artifactItems.flatMap(item => [
+    item.screenshotPath,
+    item.tracePath,
+    item.browserConsolePath,
+  ]).filter(Boolean),
 });
-const summary = produced.summary;
-const caseRuntimeSecretArtifactIntegrity = caseRuntime.assertSecretsAbsentFromArtifacts(outputDir);
-summary.caseRuntimeSecretArtifactIntegrity = caseRuntimeSecretArtifactIntegrity;
+const screenshotDeduplication = deduplicateScreenshotArtifacts(artifactItems);
+refreshFailureDiagnosticArtifacts(results);
+let summary = null;
+if (!evidenceProductionFailure) {
+  try {
+    summary = producePolicyV4Evidence({
+      rootDir,
+      outputDir,
+      manifest,
+      canonical,
+      results,
+      selectedAdapter: adapter.summary,
+      startedAt: actualStartedAt,
+      finishedAt: new Date().toISOString(),
+      buildPath,
+      runnerPath: fileURLToPath(import.meta.url),
+      serverLogPath,
+      visualMatrixProbes,
+      contractFixture: false,
+    }).summary;
+  } catch (error) {
+    evidenceProductionFailure = error;
+  }
+}
+if (evidenceProductionFailure) {
+  summary = createNativeExactExecutionFailureSummary({
+    error: evidenceProductionFailure,
+    manifest,
+    results,
+    phase: "policy-v4-evidence-production",
+  });
+}
+summary.artifactLifecycle = summarizeArtifactLifecycle(artifactPruning, screenshotDeduplication);
+let caseRuntimeSecretArtifactIntegrity = null;
+let secretArtifactFailure = null;
+try {
+  caseRuntimeSecretArtifactIntegrity = caseRuntime.assertSecretsAbsentFromArtifacts(outputDir);
+} catch (error) {
+  secretArtifactFailure = error;
+  summary = createNativeExactExecutionFailureSummary({
+    error,
+    manifest,
+    results,
+    phase: "secret-artifact-integrity",
+  });
+  summary.artifactLifecycle = summarizeArtifactLifecycle(artifactPruning, screenshotDeduplication);
+}
+summary.caseRuntimeSecretArtifactIntegrity = caseRuntimeSecretArtifactIntegrity || {
+  status: "FAIL",
+  error: secretArtifactFailure instanceof Error ? secretArtifactFailure.message : String(secretArtifactFailure || ""),
+};
+const captureErrors = validateNativeExactCaptureSummary(summary, manifest.cases.length);
+summary.rawCaptureValidation = {
+  status: captureErrors.length === 0 ? "PASS" : "FAIL",
+  errors: captureErrors,
+};
 writeJson(summaryPath, summary);
-caseRuntime.assertSecretsAbsentFromArtifacts(outputDir);
+if (!secretArtifactFailure) caseRuntime.assertSecretsAbsentFromArtifacts(outputDir);
 caseRuntimeSecretScanComplete = true;
 caseRuntime.releaseSecrets();
 printSummary(summary, summaryPath);
-if (summary.result !== "PASS") process.exit(1);
+if (captureErrors.length > 0) process.exit(1);
 
 async function executeCase(item, adapter, roleStateMap, serverLogPath) {
+  const screenshotPath = path.join(screenshotsDir, `${item.caseId}.png`);
+  const tracePath = path.join(tracesDir, `${item.caseId}.trace.json`);
+  const consolePath = path.join(logsDir, `${item.caseId}.browser-console.json`);
   const caseContext = await caseRuntime.prepareCase(item);
   const storageStatePath = caseContext.primaryRoleStatePath || resolveRoleState(item.accountRole, roleStateMap);
   let browser = null;
@@ -233,6 +326,7 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
       primaryFailure: error,
       cleanupFailure,
       browserCloseFailure: null,
+      artifactPaths: { screenshotPath, tracePath, consolePath },
     });
   }
   const requested = canonicalRequestedProjection(item);
@@ -253,9 +347,6 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     cleanup: [],
   };
   const runtimeState = new Map();
-  const screenshotPath = path.join(screenshotsDir, `${item.caseId}.png`);
-  const tracePath = path.join(tracesDir, `${item.caseId}.trace.json`);
-  const consolePath = path.join(logsDir, `${item.caseId}.browser-console.json`);
   let caseResult = null;
   let primaryFailure = null;
   let cleanupFailure = null;
@@ -630,13 +721,18 @@ async function executeCase(item, adapter, roleStateMap, serverLogPath) {
     }
   }
   if (primaryFailure || cleanupFailure || browserCloseFailure) {
-    throw caseExecutionFailure(item.caseId, { primaryFailure, cleanupFailure, browserCloseFailure });
+    throw caseExecutionFailure(item.caseId, {
+      primaryFailure,
+      cleanupFailure,
+      browserCloseFailure,
+      artifactPaths: { screenshotPath, tracePath, consolePath },
+    });
   }
   assert(caseResult, `${item.caseId} completed without a result`);
   return caseResult;
 }
 
-function caseExecutionFailure(caseId, { primaryFailure, cleanupFailure, browserCloseFailure }) {
+function caseExecutionFailure(caseId, { primaryFailure, cleanupFailure, browserCloseFailure, artifactPaths = {} }) {
   const messageFor = value => value instanceof Error ? value.message : (value ? String(value) : "");
   const parts = [
     primaryFailure ? `primary=${messageFor(primaryFailure)}` : "",
@@ -647,7 +743,59 @@ function caseExecutionFailure(caseId, { primaryFailure, cleanupFailure, browserC
   error.primaryFailure = primaryFailure ? { message: messageFor(primaryFailure) } : null;
   error.cleanupFailure = cleanupFailure ? { message: messageFor(cleanupFailure) } : null;
   error.browserCloseFailure = browserCloseFailure ? { message: messageFor(browserCloseFailure) } : null;
+  error.partialArtifacts = Object.fromEntries(Object.entries({
+    screenshotPath: artifactPaths.screenshotPath,
+    tracePath: artifactPaths.tracePath,
+    browserConsolePath: artifactPaths.consolePath,
+  }).filter(([, filePath]) => filePath && fs.existsSync(filePath)));
   return error;
+}
+
+function refreshFailureDiagnosticArtifacts(items) {
+  for (const item of items.filter(candidate => candidate.status === "FAIL")) {
+    const diagnosticArtifacts = {};
+    for (const [name, filePath] of [
+      ["screenshot", item.screenshotPath],
+      ["trace", item.tracePath],
+      ["browserConsole", item.browserConsolePath],
+    ]) {
+      if (!filePath || !fs.existsSync(filePath)) continue;
+      diagnosticArtifacts[name] = {
+        path: path.relative(outputDir, filePath),
+        bytes: fs.statSync(filePath).size,
+        sha256: sha256File(filePath),
+      };
+    }
+    if (item.screenshotEvidence) {
+      diagnosticArtifacts.screenshotEvidence = {
+        ...item.screenshotEvidence,
+        canonicalPath: item.screenshotEvidence.canonicalPath
+          ? path.relative(outputDir, item.screenshotEvidence.canonicalPath)
+          : "",
+      };
+    }
+    item.diagnosticArtifacts = diagnosticArtifacts;
+  }
+}
+
+function summarizeArtifactLifecycle(pruning, deduplication) {
+  return {
+    pruning: {
+      scannedRoots: pruning.scannedRoots.map(value => path.relative(outputDir, value)),
+      referencedFiles: pruning.referencedFiles,
+      removedFiles: pruning.removedFiles.map(value => path.relative(outputDir, value)),
+    },
+    screenshotDeduplication: {
+      referencedScreenshots: deduplication.referencedScreenshots,
+      uniqueScreenshotFiles: deduplication.uniqueScreenshotFiles,
+      duplicateScreenshotFilesRemoved: deduplication.duplicateScreenshotFilesRemoved,
+      removed: deduplication.removed.map(item => ({
+        ...item,
+        path: path.relative(outputDir, item.path),
+        canonicalPath: path.relative(outputDir, item.canonicalPath),
+      })),
+    },
+  };
 }
 
 async function observePrimaryControlContext(browser, item, requested, runtimeState, candidateSelector = null) {

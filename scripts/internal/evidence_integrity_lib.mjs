@@ -113,6 +113,25 @@ export function deduplicateScreenshotArtifacts(items) {
   };
 }
 
+export function pruneUnreferencedArtifactFiles({ roots, referencedPaths }) {
+  const resolvedRoots = [...new Set((roots || []).map(value => path.resolve(value)))];
+  const referenced = new Set((referencedPaths || []).filter(Boolean).map(value => path.resolve(value)));
+  const removed = [];
+  for (const root of resolvedRoots) {
+    for (const filePath of listFiles(root)) {
+      const resolved = path.resolve(filePath);
+      if (referenced.has(resolved)) continue;
+      fs.rmSync(resolved, { force: true });
+      removed.push(resolved);
+    }
+  }
+  return {
+    scannedRoots: resolvedRoots,
+    referencedFiles: referenced.size,
+    removedFiles: removed,
+  };
+}
+
 export function sha256File(filePath) {
   return crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
 }
