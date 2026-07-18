@@ -1980,8 +1980,8 @@
           "file": "scripts/internal/verify_ops_event_review_inbox.mjs",
           "symbol": "review-detail-producer-assertion",
           "anchor": "assertIncludes(reviewInboxBlock, \"OpsEventReviewInboxItemJson\", \"review detail item projection\");",
-          "line": 27,
-          "contextSha256": "517dceab1acece8bca9276ed6c871c46011ccb64515f87d636f53319f11d3ec4"
+          "line": 32,
+          "contextSha256": "5a6ba9c3658a30e4fde743b89ca7e41a1d5826d6e261b79b915d6e42e733f0af"
         },
         "verifier": {
           "file": "server.sh",
@@ -2022,14 +2022,14 @@
           "kind": "structural-producer-assertion",
           "witness": "Canonical functional verifier directly observes/asserts OpsEventReviewInboxItemJson.",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:6572",
-          "target": "scripts/internal/verify_ops_event_review_inbox.mjs:27"
+          "target": "scripts/internal/verify_ops_event_review_inbox.mjs:32"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-ops-event-review-inbox",
-          "source": "scripts/internal/verify_ops_event_review_inbox.mjs:27",
+          "source": "scripts/internal/verify_ops_event_review_inbox.mjs:32",
           "target": "server.sh:2829"
         }
       ],

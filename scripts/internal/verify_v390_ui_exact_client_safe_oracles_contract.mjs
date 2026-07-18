@@ -147,7 +147,7 @@ check("selector cardinality, fixture refs and JSONPath bindings are evaluator-re
   "CLIENT-001 blocked-view API value exclusion is not fixture-bound");
 });
 
-check("fixture materializer separates assigned/blocked and multi-view runtime values", () => {
+check("fixture materializer separates assigned/blocked, multi-view and event-search runtime values", () => {
   const client001 = materializeClientSafeExactOracle("CLIENT-001", {
     "assigned-view": "assigned/view-A",
     "blocked-view": "blocked/view-B",
@@ -168,12 +168,14 @@ check("fixture materializer separates assigned/blocked and multi-view runtime va
     media017.requests[0].path !== media017.requests[1].path,
   "MEDIA-017 materialized session paths are not distinct/URL-safe");
   const safe052 = materializeClientSafeExactOracle("SAFE-052", {
-    "vlm-summary-candidate": "candidate/52",
+    "event-record": "event/52",
+    "event-search-query": "candidate 52",
   });
-  assert(safe052.visibleControl.action.value === "candidate/52" &&
-    safe052.dom.some(item => item.requiredTextTokens.includes("candidate/52")) &&
-    safe052.dom.some(item => item.propertyAssertions.some(property => property.value === "candidate/52")),
-  "SAFE-052 action/DOM fixture values were not materialized together");
+  assert(safe052.action.kind === "assert-read-model" &&
+    safe052.requests[0].path.includes("eventId=event%2F52&q=candidate%2052") &&
+    safe052.dom.some(item => item.selector.includes('data-vlm-summary-candidate-event="event\\2f 52"')) &&
+    safe052.dom.some(item => item.propertyAssertions.some(property => property.value === "candidate 52")),
+  "SAFE-052 event/query API and DOM fixture values were not materialized together");
   let missingFixture = "";
   try {
     materializeClientSafeExactOracle("CLIENT-001", { "assigned-view": "assigned" });

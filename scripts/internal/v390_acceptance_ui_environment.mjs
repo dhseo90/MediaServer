@@ -537,6 +537,11 @@ function buildRuntimeDescriptor(state) {
       state.analysisPath,
       state.eventPath,
       state.preferencesPath,
+      path.join(state.registryDir, ".media_server.event_reviews.jsonl"),
+      path.join(state.registryDir, ".media_server.ops_audit.jsonl"),
+      path.join(state.registryDir, ".media_server.alert_deliveries.jsonl"),
+      path.join(state.registryDir, ".media_server.alert_delivery_attempts.jsonl"),
+      path.join(state.temporaryRoot, "events.vlm-observations.jsonl"),
     ],
     auth: {
       usersFile: state.usersPath,

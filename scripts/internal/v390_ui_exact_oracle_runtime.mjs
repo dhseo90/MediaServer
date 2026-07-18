@@ -36,6 +36,8 @@ export async function executeCatalogRuntimeOracle({
   fixtureId,
   bindings = {},
   correlationId,
+  primaryAction = null,
+  primaryNetworkEntries = [],
 }) {
   const baseSpec = exactRuntimeOracleFor(item.caseId);
   assert(baseSpec?.caseId === item.caseId, `${item.caseId} runtime oracle spec missing`);
@@ -75,7 +77,30 @@ export async function executeCatalogRuntimeOracle({
   const networkStart = browser.networkEntries().length;
   await browser.setCorrelationId(correlationId);
   try {
-    const interaction = await executeTrustedInteraction(browser, item, spec, correlationId);
+    const nativePrimaryControl = await observeNativePrimaryControl(browser, item);
+    if (primaryAction && clientSafeCase) {
+      const expectedExecutedKind = new Map([
+        ["activate", "click"],
+        ["start-live-tile", "click"],
+        ["fill", "fill"],
+        ["select", "select"],
+      ]).get(spec.action?.kind);
+      if (expectedExecutedKind) {
+        assert(primaryAction.executedKind === expectedExecutedKind,
+          `${item.caseId} catalog/native primary action mismatch: ` +
+          `${spec.action?.kind || "missing"}/${primaryAction.executedKind || "missing"}`);
+      }
+    }
+    const interaction = primaryAction
+      ? {
+          kind: "existing-primary-action",
+          actionKind: spec.action?.kind || null,
+          actionId: primaryAction.actionId || null,
+          selector: primaryAction.executedControlSelector || primaryAction.controlSelector || null,
+          before: primaryAction.before || null,
+          after: primaryAction.after || null,
+        }
+      : await executeTrustedInteraction(browser, item, spec, correlationId);
     if (clientSafeCase) {
       const createdSessionId = browser.networkEntries().slice(networkStart)
         .find(entry => entry.phase === "response" && entry.method === "POST" &&
@@ -89,7 +114,15 @@ export async function executeCatalogRuntimeOracle({
     const responses = [];
     const responseBodies = [];
     for (const request of spec.requests) {
-      const observation = await observeRequest(browser, item, request, runtimeBindings, correlationId, networkStart);
+      const observation = await observeRequest(
+        browser,
+        item,
+        request,
+        runtimeBindings,
+        correlationId,
+        networkStart,
+        primaryNetworkEntries,
+      );
       responses.push(observation.evidence);
       responseBodies.push(observation.body);
     }
@@ -97,7 +130,10 @@ export async function executeCatalogRuntimeOracle({
     for (const assertion of spec.dom) {
       dom.push(await observeDom(browser, item, assertion, runtimeBindings, responses, responseBodies, interaction));
     }
-    assertForbiddenNetwork(browser.networkEntries().slice(networkStart), item, spec, runtimeBindings);
+    assertForbiddenNetwork([
+      ...primaryNetworkEntries,
+      ...browser.networkEntries().slice(networkStart),
+    ], item, spec, runtimeBindings);
     const cleanup = await cleanupTrustedInteraction(browser, item, spec, interaction, correlationId);
     return {
       schema: "media-server.v390-ui-exact-runtime-observation.v1",
@@ -107,6 +143,7 @@ export async function executeCatalogRuntimeOracle({
       responses,
       dom,
       cleanup,
+      nativePrimaryControl,
       forbiddenNetworkObserved: 0,
       requestedRoute: spec.route,
       observedRoute: await browser.evaluate("location.pathname"),
@@ -116,8 +153,90 @@ export async function executeCatalogRuntimeOracle({
   }
 }
 
+async function observeNativePrimaryControl(browser, item) {
+  const control = item?.workflow?.primaryControl;
+  if (!control?.applicability) return null;
+  assert(["required", "not-applicable"].includes(control.applicability),
+    `${item.caseId} native primary control applicability invalid`);
+  if (control.applicability === "not-applicable") {
+    return { applicability: "not-applicable", status: "PASS" };
+  }
+  const currentPath = await browser.evaluate("location.pathname");
+  if (control.route !== currentPath) {
+    return {
+      applicability: "required",
+      selector: control.selector,
+      route: control.route,
+      observedRoute: currentPath,
+      status: "verified-by-native-workflow-on-action-route",
+    };
+  }
+  const snapshot = await browser.snapshot(control.selector);
+  assert(snapshot.exists === true,
+    `${item.caseId} native primary control missing: ${control.selector}`);
+  assert(snapshot.visible === control.expectedVisible,
+    `${item.caseId} native primary control visibility mismatch: ${control.selector}`);
+  if (control.expectedEnabled) {
+    assert(snapshot.disabled === false,
+      `${item.caseId} native primary control disabled: ${control.selector}`);
+  }
+  return {
+    applicability: "required",
+    selector: control.selector,
+    route: control.route,
+    visible: snapshot.visible,
+    enabled: snapshot.disabled === false,
+    status: "PASS",
+  };
+}
+
+export async function executeCatalogRuntimeOracleAtSourceRoute(args) {
+  const { browser, item } = args;
+  const sourceRoute = String(exactRuntimeOracleFor(item?.caseId)?.route || "");
+  assert(sourceRoute.startsWith("/"), `${item?.caseId || "unknown"} catalog source route missing`);
+  const currentRoute = await browser.evaluate("location.pathname + location.search + location.hash");
+  if (currentRoute === sourceRoute) return executeCatalogRuntimeOracle(args);
+
+  const sourceNavigation = await browser.navigate(sourceRoute);
+  assert([200, 204].includes(sourceNavigation.status),
+    `${item.caseId} catalog source route status mismatch: ${sourceNavigation.status}`);
+  let observation = null;
+  let oracleError = null;
+  try {
+    observation = await executeCatalogRuntimeOracle(args);
+  } catch (error) {
+    oracleError = error;
+  }
+
+  let restoreNavigation = null;
+  let restoreError = null;
+  try {
+    restoreNavigation = await browser.navigate(currentRoute);
+    assert([200, 204].includes(restoreNavigation.status),
+      `${item.caseId} catalog destination restore status mismatch: ${restoreNavigation.status}`);
+  } catch (error) {
+    restoreError = error;
+  }
+  if (oracleError || restoreError) {
+    const details = [oracleError, restoreError]
+      .filter(Boolean)
+      .map(error => String(error?.message || error))
+      .join("; ");
+    throw new Error(details);
+  }
+  return {
+    ...observation,
+    routeLifecycle: {
+      sourceRoute,
+      destinationRoute: currentRoute,
+      sourceNavigationStatus: sourceNavigation.status,
+      restoreNavigationStatus: restoreNavigation.status,
+    },
+  };
+}
+
 async function cleanupTrustedInteraction(browser, item, spec, interaction, correlationId) {
-  const kind = interaction?.kind || "";
+  const kind = interaction?.actionKind || interaction?.kind || "";
   if (["start-live-tile", "control-sequence"].includes(kind)) {
     await browser.click(interaction.selector);
     await browser.waitForNetworkQuiet({ correlationId, minimumObservationMs: 300, quietMs: 150 });
@@ -167,6 +286,8 @@ function clientSafeFixtureValues(bindings) {
     "assigned-view-a": bindings.viewA,
     "assigned-view-b": bindings.viewB,
     "blocked-view": bindings.blockedViewId,
+    "event-record": bindings.eventId,
+    "event-search-query": bindings.searchQuery,
     "va-metadata-sample": bindings.vaMetadataSampleId,
     "vlm-rule-suggestion-draft": bindings.draftId,
     "vlm-summary-candidate": bindings.candidateId,
@@ -278,7 +399,15 @@ async function executeClientSafeInteraction(browser, item, spec, correlationId) 
   throw new Error(`${item.caseId} unsupported exact client/safe action kind: ${action.kind || "missing"}`);
 }
 
-async function observeRequest(browser, item, request, bindings, correlationId, networkStart) {
+async function observeRequest(
+  browser,
+  item,
+  request,
+  bindings,
+  correlationId,
+  networkStart,
+  primaryNetworkEntries = [],
+) {
   const method = String(request.method || "GET").toUpperCase();
   const urlPath = expand(String(request.path || ""), bindings);
   const allowedStatuses = request.allowedStatuses || request.statuses || [200];
@@ -300,7 +429,10 @@ async function observeRequest(browser, item, request, bindings, correlationId, n
     contentType = result.contentType || "";
     source = "fresh-browser-fetch";
   } else {
-    const match = browser.networkEntries().slice(networkStart).find(entry => {
+    const match = [
+      ...primaryNetworkEntries,
+      ...browser.networkEntries().slice(networkStart),
+    ].find(entry => {
       if (entry.phase !== "response" || entry.method !== method) return false;
       try { return new URL(entry.url).pathname === new URL(urlPath, "http://runtime.invalid").pathname; } catch (_) { return false; }
     });

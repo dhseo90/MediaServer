@@ -27,6 +27,7 @@ import {
 } from "./evidence_integrity_lib.mjs";
 import {
   executeCatalogRuntimeOracle,
+  executeCatalogRuntimeOracleAtSourceRoute,
   isExistingSpecializedExactOracle,
 } from "./v390_ui_exact_oracle_runtime.mjs";
 import {
@@ -1814,7 +1815,7 @@ async function semanticAssertionResult(
   let exactObserved = observed;
   const catalogObservation = isExistingSpecializedExactOracle(item)
     ? null
-    : await executeCatalogRuntimeOracle({
+    : await executeCatalogRuntimeOracleAtSourceRoute({
         browser,
         item,
         fixtureId: caseContext?.fixtureId || exactFixtureId(item),
@@ -1983,12 +1984,16 @@ async function executeIndependentReadback(
     : null;
   const catalogRuntimeReadback = !isExistingSpecializedExactOracle(item) &&
       !pending.explicitObserved?.exactRuntimeOracle
-    ? await executeCatalogRuntimeOracle({
+    ? await executeCatalogRuntimeOracleAtSourceRoute({
         browser,
         item,
         fixtureId: caseContext?.fixtureId || exactFixtureId(item),
         bindings: exactOracleBindings(caseRuntimeOwner, caseContext),
         correlationId: pending.action.semanticCompletion.correlationId,
+        primaryAction: item.workflow.workflowClass === "actionable"
+          ? pending.actionEvidence
+          : null,
+        primaryNetworkEntries: pending.networkResponses,
       })
     : null;
   let rejectedActionReadback = item.workflow.inputs.some(input => input.kind === "rejected-endpoint-fixture")
@@ -2084,13 +2089,17 @@ function exactFixtureId(item) {
 
 function exactOracleBindings(caseRuntimeOwner, caseContext) {
   const relationship = caseContext?.relationshipFixture || {};
+  const catalog = caseContext?.catalogBindings || {};
   const defaultViewId = caseRuntimeOwner?.descriptor?.auth?.defaultViewId || "9001";
   return {
     assignedViewId: relationship.viewId || defaultViewId,
     blockedViewId: relationship.blockedView?.viewId || "99002",
-    viewId: relationship.viewId || defaultViewId,
-    sourceId: relationship.sourceId || defaultViewId,
+    viewId: catalog.viewId || relationship.viewId || defaultViewId,
+    sourceId: catalog.sourceId || relationship.sourceId || defaultViewId,
     ruleId: relationship.vaRuleId || "1",
+    candidateId: catalog.candidateId || caseContext?.fixtureId || "",
+    eventId: catalog.eventId || caseContext?.fixtureId || "",
+    searchQuery: catalog.searchQuery || caseContext?.fixtureId || "",
   };
 }
 

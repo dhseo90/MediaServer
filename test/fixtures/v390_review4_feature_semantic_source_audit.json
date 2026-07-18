@@ -3044,7 +3044,7 @@
           "file": "scripts/internal/verify_ops_event_review_inbox.mjs",
           "symbol": "runtime-oracle:event-review-list",
           "anchor": "assert(review?.eventId === eventId, \"listed /ops/events review eventId mismatch\");",
-          "line": 230,
+          "line": 235,
           "contextSha256": "6b5f15975e3c1d92c2a361a04677cc0190cbb19de13dc97383edcbd877b415d2"
         },
         "verifier": {
@@ -3086,14 +3086,14 @@
           "kind": "runtime-readback",
           "witness": "eventId PUT is followed by an independent list GET that checks classification, note, review status, and VLM target",
           "source": "src/ingress/product_ui_page_scripts.cpp:4295",
-          "target": "scripts/internal/verify_ops_event_review_inbox.mjs:230"
+          "target": "scripts/internal/verify_ops_event_review_inbox.mjs:235"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-ops-event-review-inbox",
-          "source": "scripts/internal/verify_ops_event_review_inbox.mjs:230",
+          "source": "scripts/internal/verify_ops_event_review_inbox.mjs:235",
           "target": "server.sh:2891"
         }
       ],
@@ -3143,7 +3143,7 @@
           "sha256": "681c5ed633df45cd1ef06913e01d0e12a056ae10ab7b230919f01b23786598fe"
         }
       },
-      "sourceFlowDigest": "7746a39c10b1cd76b585db4077503a90e1b7a33560a10c6707d8b178e20919ab",
+      "sourceFlowDigest": "3323f9dee755faafb450ed25812616db8a13b03db44786a0fdcc4bc27b0b27f4",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -3186,10 +3186,10 @@
           "readback": {
             "file": "scripts/internal/verify_ops_event_review_inbox.mjs",
             "symbol": "runtime-oracle:event-review-list",
-            "trackedBlobSha256": "caca52e341c00314447d2e4cece2b2c02ff956f5c0c69a9be7b7dfdb06cea0d3",
+            "trackedBlobSha256": "0e850e81f2a811eaa597fa78dcde48ee3adec338b904f20af60a921f874f8e97",
             "enclosingBodySha256": "32a5070f7c7eceeb22e23285b9a1ef217076e29957a44824268ffd1046b275d8",
-            "enclosingBodyStartLine": 223,
-            "enclosingBodyEndLine": 242,
+            "enclosingBodyStartLine": 228,
+            "enclosingBodyEndLine": 247,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -3201,7 +3201,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "caca52e341c00314447d2e4cece2b2c02ff956f5c0c69a9be7b7dfdb06cea0d3",
+        "verifierFileSha256": "0e850e81f2a811eaa597fa78dcde48ee3adec338b904f20af60a921f874f8e97",
         "dispatch": {
           "command": "verify-ops-event-review-inbox",
           "file": "scripts/internal/verify_ops_event_review_inbox.mjs",
@@ -7849,7 +7849,7 @@
           "file": "scripts/internal/verify_ops_event_review_inbox.mjs",
           "symbol": "runRoundtripSmoke",
           "anchor": "assert(observed?.vlmAction?.action === action, `${action} independent list action mismatch`);",
-          "line": 267,
+          "line": 272,
           "contextSha256": "d5c6e497861e0712ac409fabd45e281b3fde2d862fd74059513cf76a6e946866"
         },
         "verifier": {
@@ -7891,14 +7891,14 @@
           "kind": "runtime-readback",
           "witness": "vlmAction review-needed, accept, and dismiss actions each receive independent list readback",
           "source": "src/ingress/product_ui_page_scripts.cpp:4275",
-          "target": "scripts/internal/verify_ops_event_review_inbox.mjs:267"
+          "target": "scripts/internal/verify_ops_event_review_inbox.mjs:272"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-ops-event-review-inbox",
-          "source": "scripts/internal/verify_ops_event_review_inbox.mjs:267",
+          "source": "scripts/internal/verify_ops_event_review_inbox.mjs:272",
           "target": "server.sh:2891"
         }
       ],
@@ -7967,7 +7967,7 @@
           "sha256": "4b1124c67ab0c7e678b7fb672ffa02d91e43deaf201da084f5ac0bb070d39055"
         }
       },
-      "sourceFlowDigest": "c57505065c726f7f6472f40da4931484f3f1fefe5bfa4b75bd7b24f77e8ed6f9",
+      "sourceFlowDigest": "5138b19f6f0d90361b7618d98589a252ecd9713cd233fdca45eb9fe782c70f7c",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -8010,10 +8010,10 @@
           "readback": {
             "file": "scripts/internal/verify_ops_event_review_inbox.mjs",
             "symbol": "runRoundtripSmoke",
-            "trackedBlobSha256": "caca52e341c00314447d2e4cece2b2c02ff956f5c0c69a9be7b7dfdb06cea0d3",
+            "trackedBlobSha256": "0e850e81f2a811eaa597fa78dcde48ee3adec338b904f20af60a921f874f8e97",
             "enclosingBodySha256": "752129e1085d3de1ab36e3a503419172447728556a9f2618cfb7b8b7d70f5a0f",
-            "enclosingBodyStartLine": 190,
-            "enclosingBodyEndLine": 284,
+            "enclosingBodyStartLine": 195,
+            "enclosingBodyEndLine": 289,
             "enclosingBodyScope": "declared-symbol"
           },
           "verifier": {
@@ -8025,7 +8025,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "caca52e341c00314447d2e4cece2b2c02ff956f5c0c69a9be7b7dfdb06cea0d3",
+        "verifierFileSha256": "0e850e81f2a811eaa597fa78dcde48ee3adec338b904f20af60a921f874f8e97",
         "dispatch": {
           "command": "verify-ops-event-review-inbox",
           "file": "scripts/internal/verify_ops_event_review_inbox.mjs",
@@ -83924,7 +83924,7 @@
           "file": "scripts/internal/verify_ops_event_review_inbox.mjs",
           "symbol": "event-review-inbox-status-oracle",
           "anchor": "assert(json.status === \"ops-event-review-inbox\", \"unexpected inbox status\");",
-          "line": 225,
+          "line": 230,
           "contextSha256": "f061680931083ea2a57d70b0514b6b04ead9b4e2a9d0657e2a45152b259eaa1b"
         },
         "verifier": {
@@ -83966,14 +83966,14 @@
           "kind": "runtime-readback",
           "witness": "The runtime assertion rejects any status other than ops-event-review-inbox.",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:6588",
-          "target": "scripts/internal/verify_ops_event_review_inbox.mjs:225"
+          "target": "scripts/internal/verify_ops_event_review_inbox.mjs:230"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-ops-event-review-inbox",
-          "source": "scripts/internal/verify_ops_event_review_inbox.mjs:225",
+          "source": "scripts/internal/verify_ops_event_review_inbox.mjs:230",
           "target": "server.sh:2891"
         }
       ],
@@ -84019,7 +84019,7 @@
           "sha256": "6682f80c773ada61ac106de7e624972fbb3bdb47b4005e3ee5617e9263aeea70"
         }
       },
-      "sourceFlowDigest": "5f7c107138a047f89962541b07c3289ad3cba54e7a7da3614acaceb2c88dd3db",
+      "sourceFlowDigest": "58b911f753801ef0820b25513aaf1b21abd4bf1cac1b574bc4c55527bd753ba5",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -84062,10 +84062,10 @@
           "readback": {
             "file": "scripts/internal/verify_ops_event_review_inbox.mjs",
             "symbol": "event-review-inbox-status-oracle",
-            "trackedBlobSha256": "caca52e341c00314447d2e4cece2b2c02ff956f5c0c69a9be7b7dfdb06cea0d3",
+            "trackedBlobSha256": "0e850e81f2a811eaa597fa78dcde48ee3adec338b904f20af60a921f874f8e97",
             "enclosingBodySha256": "32a5070f7c7eceeb22e23285b9a1ef217076e29957a44824268ffd1046b275d8",
-            "enclosingBodyStartLine": 223,
-            "enclosingBodyEndLine": 242,
+            "enclosingBodyStartLine": 228,
+            "enclosingBodyEndLine": 247,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -84077,7 +84077,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "caca52e341c00314447d2e4cece2b2c02ff956f5c0c69a9be7b7dfdb06cea0d3",
+        "verifierFileSha256": "0e850e81f2a811eaa597fa78dcde48ee3adec338b904f20af60a921f874f8e97",
         "dispatch": {
           "command": "verify-ops-event-review-inbox",
           "file": "scripts/internal/verify_ops_event_review_inbox.mjs",
@@ -84145,8 +84145,8 @@
           "file": "scripts/internal/verify_ops_event_review_inbox.mjs",
           "symbol": "review-detail-producer-assertion",
           "anchor": "assertIncludes(reviewInboxBlock, \"OpsEventReviewInboxItemJson\", \"review detail item projection\");",
-          "line": 27,
-          "contextSha256": "517dceab1acece8bca9276ed6c871c46011ccb64515f87d636f53319f11d3ec4"
+          "line": 32,
+          "contextSha256": "5a6ba9c3658a30e4fde743b89ca7e41a1d5826d6e261b79b915d6e42e733f0af"
         },
         "verifier": {
           "file": "server.sh",
@@ -84187,14 +84187,14 @@
           "kind": "structural-producer-assertion",
           "witness": "Canonical functional verifier directly observes/asserts OpsEventReviewInboxItemJson.",
           "source": "src/ingress/webrtc_http_server_ops_incidents.cpp:6572",
-          "target": "scripts/internal/verify_ops_event_review_inbox.mjs:27"
+          "target": "scripts/internal/verify_ops_event_review_inbox.mjs:32"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-ops-event-review-inbox",
-          "source": "scripts/internal/verify_ops_event_review_inbox.mjs:27",
+          "source": "scripts/internal/verify_ops_event_review_inbox.mjs:32",
           "target": "server.sh:2891"
         }
       ],
@@ -84240,7 +84240,7 @@
           "sha256": "f02c6cd1e6f7281100fc6de14166240674fbf5f36f26aa2623a607f8a328c6c9"
         }
       },
-      "sourceFlowDigest": "76bcf10b380a892e8bd26d5aeac7a042ac806a68fe5bfcfaf154faa62e88d4a2",
+      "sourceFlowDigest": "fc57dd401dbbad8372b17532121782a081d96c9dc2c00d22352f5937b9d2fb86",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -84283,10 +84283,10 @@
           "readback": {
             "file": "scripts/internal/verify_ops_event_review_inbox.mjs",
             "symbol": "review-detail-producer-assertion",
-            "trackedBlobSha256": "caca52e341c00314447d2e4cece2b2c02ff956f5c0c69a9be7b7dfdb06cea0d3",
-            "enclosingBodySha256": "aee86f1661e5d8042b1f277fa02d9b23249a90673deafbadb5be9072dea9fd9c",
-            "enclosingBodyStartLine": 26,
-            "enclosingBodyEndLine": 40,
+            "trackedBlobSha256": "0e850e81f2a811eaa597fa78dcde48ee3adec338b904f20af60a921f874f8e97",
+            "enclosingBodySha256": "616e9c884d9683ce4987a3052afff307f98b301ae9c5c768d396cea70e108ae9",
+            "enclosingBodyStartLine": 31,
+            "enclosingBodyEndLine": 45,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -84298,7 +84298,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "caca52e341c00314447d2e4cece2b2c02ff956f5c0c69a9be7b7dfdb06cea0d3",
+        "verifierFileSha256": "0e850e81f2a811eaa597fa78dcde48ee3adec338b904f20af60a921f874f8e97",
         "dispatch": {
           "command": "verify-ops-event-review-inbox",
           "file": "scripts/internal/verify_ops_event_review_inbox.mjs",
@@ -84366,7 +84366,7 @@
           "file": "scripts/internal/verify_ops_event_review_inbox.mjs",
           "symbol": "event-review-reviewStatus-oracle",
           "anchor": "assert(json.review?.reviewStatus === \"confirmed\", \"updated review status mismatch\");",
-          "line": 213,
+          "line": 218,
           "contextSha256": "da6d0cb11e8f08a3b9e8eedd1bfd6454ea8a14bd78c38c858ad8c52413c98d46"
         },
         "verifier": {
@@ -84408,14 +84408,14 @@
           "kind": "runtime-readback",
           "witness": "Observed VLM action target is persisted and read back with reviewStatus.",
           "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:4288",
-          "target": "scripts/internal/verify_ops_event_review_inbox.mjs:213"
+          "target": "scripts/internal/verify_ops_event_review_inbox.mjs:218"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-ops-event-review-inbox",
-          "source": "scripts/internal/verify_ops_event_review_inbox.mjs:213",
+          "source": "scripts/internal/verify_ops_event_review_inbox.mjs:218",
           "target": "server.sh:2891"
         }
       ],
@@ -84465,7 +84465,7 @@
           "sha256": "e71b0502bc634e1d8141ba55cfa8d2f9bfc9be19b6892294d7d315ac4887fd9f"
         }
       },
-      "sourceFlowDigest": "070b6bd8cd1235404af8b9a917d83f15d1fb3b05ff260ebaf7d8778ca54ac051",
+      "sourceFlowDigest": "ce6f720cd69d077149875b0b6f9d9938393bef34623eff93643997ed36fc6b8b",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -84508,10 +84508,10 @@
           "readback": {
             "file": "scripts/internal/verify_ops_event_review_inbox.mjs",
             "symbol": "event-review-reviewStatus-oracle",
-            "trackedBlobSha256": "caca52e341c00314447d2e4cece2b2c02ff956f5c0c69a9be7b7dfdb06cea0d3",
+            "trackedBlobSha256": "0e850e81f2a811eaa597fa78dcde48ee3adec338b904f20af60a921f874f8e97",
             "enclosingBodySha256": "a85472ebd50e68336efe797be32bc8a9f405e437af6af8b84deacea452442cf9",
-            "enclosingBodyStartLine": 195,
-            "enclosingBodyEndLine": 222,
+            "enclosingBodyStartLine": 200,
+            "enclosingBodyEndLine": 227,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -84523,7 +84523,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "caca52e341c00314447d2e4cece2b2c02ff956f5c0c69a9be7b7dfdb06cea0d3",
+        "verifierFileSha256": "0e850e81f2a811eaa597fa78dcde48ee3adec338b904f20af60a921f874f8e97",
         "dispatch": {
           "command": "verify-ops-event-review-inbox",
           "file": "scripts/internal/verify_ops_event_review_inbox.mjs",
@@ -87600,7 +87600,7 @@
           "file": "scripts/internal/verify_ops_event_review_inbox.mjs",
           "symbol": "event-review-vlm-action-oracle",
           "anchor": "assert(observed?.vlmAction?.schema === \"media-server.ops.vlm-review-action-state.v1\" && status.text.includes(\"vlmAction\") === false, \"listed VLM action schema or EventRecord no-action boundary mismatch\");",
-          "line": 239,
+          "line": 244,
           "contextSha256": "36a80370b1814118653ae94bddb8c3d7a7d762e3f45f1b80d211dfe509f60069"
         },
         "verifier": {
@@ -87642,14 +87642,14 @@
           "kind": "runtime-readback",
           "witness": "Canonical functional verifier directly observes/asserts vlm-review-action-state.",
           "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:4335",
-          "target": "scripts/internal/verify_ops_event_review_inbox.mjs:239"
+          "target": "scripts/internal/verify_ops_event_review_inbox.mjs:244"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-ops-event-review-inbox",
-          "source": "scripts/internal/verify_ops_event_review_inbox.mjs:239",
+          "source": "scripts/internal/verify_ops_event_review_inbox.mjs:244",
           "target": "server.sh:2891"
         }
       ],
@@ -87709,7 +87709,7 @@
           "sha256": "9c8bccbc816a16a64361132116bbb65ac654b8b2a33c68035234b6598463ed92"
         }
       },
-      "sourceFlowDigest": "63cbef6e3a66a65a374eea637e2d30cfef6b30fe5246fa46b1e09565ceeb8e2d",
+      "sourceFlowDigest": "a46d38b59990c85682ddbe2f05b6809f40f141be81c9f3a4c01bec1851511933",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -87752,10 +87752,10 @@
           "readback": {
             "file": "scripts/internal/verify_ops_event_review_inbox.mjs",
             "symbol": "event-review-vlm-action-oracle",
-            "trackedBlobSha256": "caca52e341c00314447d2e4cece2b2c02ff956f5c0c69a9be7b7dfdb06cea0d3",
+            "trackedBlobSha256": "0e850e81f2a811eaa597fa78dcde48ee3adec338b904f20af60a921f874f8e97",
             "enclosingBodySha256": "32a5070f7c7eceeb22e23285b9a1ef217076e29957a44824268ffd1046b275d8",
-            "enclosingBodyStartLine": 223,
-            "enclosingBodyEndLine": 242,
+            "enclosingBodyStartLine": 228,
+            "enclosingBodyEndLine": 247,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -87767,7 +87767,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "caca52e341c00314447d2e4cece2b2c02ff956f5c0c69a9be7b7dfdb06cea0d3",
+        "verifierFileSha256": "0e850e81f2a811eaa597fa78dcde48ee3adec338b904f20af60a921f874f8e97",
         "dispatch": {
           "command": "verify-ops-event-review-inbox",
           "file": "scripts/internal/verify_ops_event_review_inbox.mjs",
@@ -235277,5 +235277,5 @@
       }
     }
   ],
-  "candidateDigest": "917c7917895ff4bcd9b7fe801f797437eb1bac1ea5706385262cab89cbc22e9c"
+  "candidateDigest": "c654e2717bb2bfec5b42df9a589c20468f23917e8c3b492dd66d27e89a9174d7"
 }

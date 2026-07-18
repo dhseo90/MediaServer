@@ -2783,6 +2783,17 @@ evidence로 사용하지 않습니다.
 | Generated binding | 공식 generator는 canonical 424 fixture를 변경하지 않고 native 288개 core 행의 SHA/digest/provenance만 갱신했습니다. Ordered route·role·viewport·theme·action·workflow·oracle·cleanup non-hash 변경은 0이고 최종 native SHA는 `b1ff54640fc83d3727b328c63ab7c02a52f9dacc0db37019cc06b03cd5dbcc01`입니다 | 424 / 423 native + 1 negative / unsupported 0 |
 | 미실행 경계 | 이번 correction에서는 actual `./test_ui.sh`, exact 424, Policy v4 qualification, 30분, 120분, `./test_release.sh`를 실행하지 않았습니다 | not-run / REVIEW4-65 미완료 |
 
+### REVIEW4-65 UI-046~424 source audit와 source-route lifecycle correction
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| Actual UI-046 failure 보존 | Source `1e4ed53ce461f3265eb709cc11d2ccc822ef5cc4`의 실제 `./test_ui.sh`는 UI-046에서 `exact DOM selector missing: [data-testid="ops-events-page"]`로 중단됐습니다. 앞선 exact 44건은 PASS, UI-046은 FAIL, 이후 379건은 not-run이며 Policy v4는 not-run입니다 | actual FAIL preserved / PASS 승격 없음 |
+| 제품/테스트 경계 | 제품 C++/HTML/JS에는 `/ops/events`의 `ops-events-page` root와 `[data-incident-rule-draft-route]`가 모두 존재합니다. Primary link가 `/ops/rules`로 이동한 뒤 initial `/ops/events` catalog를 destination DOM에서 실행한 phase/route anchoring이 원인입니다 | product defect 0 / test lifecycle defect |
+| 379 source 전수 감사 | 1-based position 46~424를 canonical/native manifest, product renderer, route/role 조건, setup/login/cleanup, forbidden material, authoritative readback에 직접 대조했습니다 | deterministic 96 / infrastructure 162 / product 0 / browser-only 121 |
+| 공통 runtime 보정 | Catalog는 source route에서 exact page/root/API를 검증한 뒤 원 destination route를 복원하고 양쪽 navigation status를 fail-closed로 확인합니다. 이미 실행된 primary action과 correlated network evidence를 재사용해 CLIENT action을 이중 실행하지 않으며 canonical/native primary control을 route root와 별도로 검증합니다 | runtime contract 16/16 PASS |
+| Semantic checkpoint | UI-014/UI-035/EVT-019/EVT-020/EVT-021/EVT-035만 current source/owner/verifier/readback으로 독립 재결속했습니다. Candidate `c654e2717bb2bfec5b42df9a589c20468f23917e8c3b492dd66d27e89a9174d7`, 980 carry-forward+6 independent review, audit/approval 986/986, migration negative binding 9/9입니다. EVT-020의 stale readback locator는 actual verifier assertion으로 교정했으며 feature/pass·status와 제품 C++/API/UI 동작은 0 변경입니다 | static checkpoint PASS |
+| 미실행 경계 | Actual `./test_ui.sh`, exact 424, Policy v4 qualification, 30분, 120분, `./test_release.sh`는 실행하지 않았습니다. Generator는 재실행하지 않았으며, 기존 공식 semantic migration-aware producer는 이 checkpoint에서 정확히 1회 실행했습니다 | not-run / actual acceptance 미완료 |
+
 ### REVIEW4-65 SAFE-211 completion/current graph correction
 
 | 제목 | 수행내용 | 결과(pass/fail) |

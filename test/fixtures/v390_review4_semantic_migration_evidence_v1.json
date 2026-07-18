@@ -3,8 +3,8 @@
   "migrationVersion": "review4-acceptance-prerequisite-v2",
   "generatedBy": "verify_v390_review4_semantic_migration_contract.mjs",
   "candidateGeneratorMayApprove": false,
-  "baselineCandidateDigest": "c7bb675ce4074ab029c7fe33a4333fac64b1f973ef276fc97ba647cdd56a0d1d",
-  "freshCandidateDigest": "917c7917895ff4bcd9b7fe801f797437eb1bac1ea5706385262cab89cbc22e9c",
+  "baselineCandidateDigest": "917c7917895ff4bcd9b7fe801f797437eb1bac1ea5706385262cab89cbc22e9c",
+  "freshCandidateDigest": "c654e2717bb2bfec5b42df9a589c20468f23917e8c3b492dd66d27e89a9174d7",
   "equivalenceAlgorithmSha256": "6d103a884ac9111b8a3356211ae757cf0285c29cec323fcaa9b32d145a48f47d",
   "carryForward": [
     {
@@ -99,13 +99,6 @@
       "status": "carry-forward-eligible-not-approved"
     },
     {
-      "id": "UI-014",
-      "oldSourceFlowDigest": "7746a39c10b1cd76b585db4077503a90e1b7a33560a10c6707d8b178e20919ab",
-      "newSourceFlowDigest": "7746a39c10b1cd76b585db4077503a90e1b7a33560a10c6707d8b178e20919ab",
-      "equivalenceDigest": "bb572d4f766c3a070e24418560ef3dc559c309de51556983ef83dfd285600efb",
-      "status": "carry-forward-eligible-not-approved"
-    },
-    {
       "id": "UI-015",
       "oldSourceFlowDigest": "0fd26c021ce3fa8e93affdeaea2ee51b1e00c554a11deec0e6a2df96e898f930",
       "newSourceFlowDigest": "0fd26c021ce3fa8e93affdeaea2ee51b1e00c554a11deec0e6a2df96e898f930",
@@ -155,6 +148,13 @@
       "status": "carry-forward-eligible-not-approved"
     },
     {
+      "id": "UI-022",
+      "oldSourceFlowDigest": "06abb9f815c9e6143617f524e39c01ec73ec99ecc28b1e1990bcf2de69e35cc5",
+      "newSourceFlowDigest": "06abb9f815c9e6143617f524e39c01ec73ec99ecc28b1e1990bcf2de69e35cc5",
+      "equivalenceDigest": "a1eb8b0c8d104448e3ab806eed9850a65e9c892aeb6009ef815278118e58aaf5",
+      "status": "carry-forward-eligible-not-approved"
+    },
+    {
       "id": "UI-023",
       "oldSourceFlowDigest": "cf4bf688a15db51cc82a01456d3ba89a1a364f76fef0a3f659fb0f2a319cc879",
       "newSourceFlowDigest": "cf4bf688a15db51cc82a01456d3ba89a1a364f76fef0a3f659fb0f2a319cc879",
@@ -169,10 +169,52 @@
       "status": "carry-forward-eligible-not-approved"
     },
     {
+      "id": "UI-025",
+      "oldSourceFlowDigest": "8ba15a25362ace192ab7f19f893e4a1cc1e78a9982c2ceb61a518b6ff10ebb26",
+      "newSourceFlowDigest": "8ba15a25362ace192ab7f19f893e4a1cc1e78a9982c2ceb61a518b6ff10ebb26",
+      "equivalenceDigest": "11f06f88874174c012105645130ead655b83b908270e782ef10be7fd6691daa6",
+      "status": "carry-forward-eligible-not-approved"
+    },
+    {
+      "id": "UI-026",
+      "oldSourceFlowDigest": "d5af7425fe5a1bfe499e52adf71ab325f4fff2865f64527c920c011e529e811a",
+      "newSourceFlowDigest": "d5af7425fe5a1bfe499e52adf71ab325f4fff2865f64527c920c011e529e811a",
+      "equivalenceDigest": "0cc97ca48f5237853790ce17a3a91691b76bee2b97a8641f996b77a16a5282e1",
+      "status": "carry-forward-eligible-not-approved"
+    },
+    {
+      "id": "UI-027",
+      "oldSourceFlowDigest": "50544049019370631d71b7007e85de974d74bfa6ff339808f461cceb7750910b",
+      "newSourceFlowDigest": "50544049019370631d71b7007e85de974d74bfa6ff339808f461cceb7750910b",
+      "equivalenceDigest": "8edb93418b4434996794ef5cf84d6130d3f2385d48dec8a2f0e7f35b3928bc1f",
+      "status": "carry-forward-eligible-not-approved"
+    },
+    {
+      "id": "UI-028",
+      "oldSourceFlowDigest": "25a7a1a67ee410030eb4c82a90fbfcb07976b8aaa2aa73abcfc3ef8b7b607266",
+      "newSourceFlowDigest": "25a7a1a67ee410030eb4c82a90fbfcb07976b8aaa2aa73abcfc3ef8b7b607266",
+      "equivalenceDigest": "e69ada5c39550a936ef0db1e02f3369ef59ca905331dcbe32a46be78b19f63bd",
+      "status": "carry-forward-eligible-not-approved"
+    },
+    {
       "id": "UI-029",
       "oldSourceFlowDigest": "9317acadca72b3ea369c68d22ae616fb7778e84c3048040d0a4b9a7e13102ef3",
       "newSourceFlowDigest": "9317acadca72b3ea369c68d22ae616fb7778e84c3048040d0a4b9a7e13102ef3",
       "equivalenceDigest": "43a783eb033543e05342aa12e6a9116b43e4ab71b41dd71e08c92770212266e5",
+      "status": "carry-forward-eligible-not-approved"
+    },
+    {
+      "id": "UI-030",
+      "oldSourceFlowDigest": "c004be1fec04fbee63e3892b33695bfd8da6de8ae45101e51d3b86d7b0a47f28",
+      "newSourceFlowDigest": "c004be1fec04fbee63e3892b33695bfd8da6de8ae45101e51d3b86d7b0a47f28",
+      "equivalenceDigest": "af42ad4d36f7dc6d9374ddecb82e58a0ce28c6c610e392e8d636369a726604ff",
+      "status": "carry-forward-eligible-not-approved"
+    },
+    {
+      "id": "UI-031",
+      "oldSourceFlowDigest": "94f2af0400e562ee64315a12f34e6742d2faca6ce5b541dfa555273c53e7e4cd",
+      "newSourceFlowDigest": "94f2af0400e562ee64315a12f34e6742d2faca6ce5b541dfa555273c53e7e4cd",
+      "equivalenceDigest": "e3bb11a680d70c26dbc047c2458ba338a4cca424f2d71360bd5234833aee55e5",
       "status": "carry-forward-eligible-not-approved"
     },
     {
@@ -190,10 +232,10 @@
       "status": "carry-forward-eligible-not-approved"
     },
     {
-      "id": "UI-035",
-      "oldSourceFlowDigest": "c57505065c726f7f6472f40da4931484f3f1fefe5bfa4b75bd7b24f77e8ed6f9",
-      "newSourceFlowDigest": "c57505065c726f7f6472f40da4931484f3f1fefe5bfa4b75bd7b24f77e8ed6f9",
-      "equivalenceDigest": "af464c96ab994cec4f23543f5d9bf5950c3c02a75ad3987ae4b7593d43683bb0",
+      "id": "UI-034",
+      "oldSourceFlowDigest": "218a2ef269c4e8fbec9be56b27ef76fb3179ac39d29898c8eb738702de49363c",
+      "newSourceFlowDigest": "218a2ef269c4e8fbec9be56b27ef76fb3179ac39d29898c8eb738702de49363c",
+      "equivalenceDigest": "a93c9c48352a7ae0c86c28a5525c34572c5441bea664edbfebfa39ddbe702deb",
       "status": "carry-forward-eligible-not-approved"
     },
     {
@@ -2437,27 +2479,6 @@
       "status": "carry-forward-eligible-not-approved"
     },
     {
-      "id": "EVT-019",
-      "oldSourceFlowDigest": "5f7c107138a047f89962541b07c3289ad3cba54e7a7da3614acaceb2c88dd3db",
-      "newSourceFlowDigest": "5f7c107138a047f89962541b07c3289ad3cba54e7a7da3614acaceb2c88dd3db",
-      "equivalenceDigest": "557c9400f8b4ba8363f0fda97405341e05dc1c8660193ef6627d9b76ed4dac7f",
-      "status": "carry-forward-eligible-not-approved"
-    },
-    {
-      "id": "EVT-020",
-      "oldSourceFlowDigest": "76bcf10b380a892e8bd26d5aeac7a042ac806a68fe5bfcfaf154faa62e88d4a2",
-      "newSourceFlowDigest": "76bcf10b380a892e8bd26d5aeac7a042ac806a68fe5bfcfaf154faa62e88d4a2",
-      "equivalenceDigest": "155a0e09a9fbf99e64651411439d17dc6d2395de8ae6513ba8745a4876ca2e62",
-      "status": "carry-forward-eligible-not-approved"
-    },
-    {
-      "id": "EVT-021",
-      "oldSourceFlowDigest": "070b6bd8cd1235404af8b9a917d83f15d1fb3b05ff260ebaf7d8778ca54ac051",
-      "newSourceFlowDigest": "070b6bd8cd1235404af8b9a917d83f15d1fb3b05ff260ebaf7d8778ca54ac051",
-      "equivalenceDigest": "d065a9db91fb36db8122dba645f9222978164b6cf63b7f0846e50663bff720a1",
-      "status": "carry-forward-eligible-not-approved"
-    },
-    {
       "id": "EVT-022",
       "oldSourceFlowDigest": "30c4c2e0a3340d65e1615b999c7c3709ec550ad59cf94123e1915a0ae603f287",
       "newSourceFlowDigest": "30c4c2e0a3340d65e1615b999c7c3709ec550ad59cf94123e1915a0ae603f287",
@@ -2546,13 +2567,6 @@
       "oldSourceFlowDigest": "35200ea8cf5ccff14e3b2df84dfca8014df6a59cb671f93c06708b57f5a0697e",
       "newSourceFlowDigest": "35200ea8cf5ccff14e3b2df84dfca8014df6a59cb671f93c06708b57f5a0697e",
       "equivalenceDigest": "eb24f644183efccb9a227fd67326c0416f9b3a3b4929408fa1c47e03828e645f",
-      "status": "carry-forward-eligible-not-approved"
-    },
-    {
-      "id": "EVT-035",
-      "oldSourceFlowDigest": "63cbef6e3a66a65a374eea637e2d30cfef6b30fe5246fa46b1e09565ceeb8e2d",
-      "newSourceFlowDigest": "63cbef6e3a66a65a374eea637e2d30cfef6b30fe5246fa46b1e09565ceeb8e2d",
-      "equivalenceDigest": "ac72c1464c05770d6aab833f5bf8c907612289ab2cfec6ff1cfc46c9cc9a3a17",
       "status": "carry-forward-eligible-not-approved"
     },
     {
@@ -6856,72 +6870,54 @@
   ],
   "unapproved": [
     {
-      "id": "UI-022",
-      "oldSourceFlowDigest": "23a87e1d30f740e32ecbcb6a64a287c5e656ef04b2ca6dfbd2c9f97d8bac340c",
-      "newSourceFlowDigest": "06abb9f815c9e6143617f524e39c01ec73ec99ecc28b1e1990bcf2de69e35cc5",
+      "id": "UI-014",
+      "oldSourceFlowDigest": "7746a39c10b1cd76b585db4077503a90e1b7a33560a10c6707d8b178e20919ab",
+      "newSourceFlowDigest": "3323f9dee755faafb450ed25812616db8a13b03db44786a0fdcc4bc27b0b27f4",
       "changedFields": [
         "trustBindings"
       ],
       "status": "unapproved-independent-review-required"
     },
     {
-      "id": "UI-025",
-      "oldSourceFlowDigest": "f7774d888f6a26d9885e90b84127e401b3e23b099b6cc6ecb09afb3d9cfe326c",
-      "newSourceFlowDigest": "8ba15a25362ace192ab7f19f893e4a1cc1e78a9982c2ceb61a518b6ff10ebb26",
+      "id": "UI-035",
+      "oldSourceFlowDigest": "c57505065c726f7f6472f40da4931484f3f1fefe5bfa4b75bd7b24f77e8ed6f9",
+      "newSourceFlowDigest": "5138b19f6f0d90361b7618d98589a252ecd9713cd233fdca45eb9fe782c70f7c",
       "changedFields": [
         "trustBindings"
       ],
       "status": "unapproved-independent-review-required"
     },
     {
-      "id": "UI-026",
-      "oldSourceFlowDigest": "116e757a439f237607219cc7a5b35b32a2d98c6f16527dff3a54af1a64b001a3",
-      "newSourceFlowDigest": "d5af7425fe5a1bfe499e52adf71ab325f4fff2865f64527c920c011e529e811a",
+      "id": "EVT-019",
+      "oldSourceFlowDigest": "5f7c107138a047f89962541b07c3289ad3cba54e7a7da3614acaceb2c88dd3db",
+      "newSourceFlowDigest": "58b911f753801ef0820b25513aaf1b21abd4bf1cac1b574bc4c55527bd753ba5",
       "changedFields": [
         "trustBindings"
       ],
       "status": "unapproved-independent-review-required"
     },
     {
-      "id": "UI-027",
-      "oldSourceFlowDigest": "5c478ab009864dc1794189da6ab3b96f41f9b447225ef02dd4751e7a28e3ac0d",
-      "newSourceFlowDigest": "50544049019370631d71b7007e85de974d74bfa6ff339808f461cceb7750910b",
+      "id": "EVT-020",
+      "oldSourceFlowDigest": "76bcf10b380a892e8bd26d5aeac7a042ac806a68fe5bfcfaf154faa62e88d4a2",
+      "newSourceFlowDigest": "fc57dd401dbbad8372b17532121782a081d96c9dc2c00d22352f5937b9d2fb86",
       "changedFields": [
         "trustBindings"
       ],
       "status": "unapproved-independent-review-required"
     },
     {
-      "id": "UI-028",
-      "oldSourceFlowDigest": "f7272130591bffc33169885e60c38d6efb113d8899075087ac75568854ceaece",
-      "newSourceFlowDigest": "25a7a1a67ee410030eb4c82a90fbfcb07976b8aaa2aa73abcfc3ef8b7b607266",
+      "id": "EVT-021",
+      "oldSourceFlowDigest": "070b6bd8cd1235404af8b9a917d83f15d1fb3b05ff260ebaf7d8778ca54ac051",
+      "newSourceFlowDigest": "ce6f720cd69d077149875b0b6f9d9938393bef34623eff93643997ed36fc6b8b",
       "changedFields": [
         "trustBindings"
       ],
       "status": "unapproved-independent-review-required"
     },
     {
-      "id": "UI-030",
-      "oldSourceFlowDigest": "72d85c66d8854d8a9b62432e4d65ddf8ff88378fdfc7ebd64f6780e437f3853c",
-      "newSourceFlowDigest": "c004be1fec04fbee63e3892b33695bfd8da6de8ae45101e51d3b86d7b0a47f28",
-      "changedFields": [
-        "trustBindings"
-      ],
-      "status": "unapproved-independent-review-required"
-    },
-    {
-      "id": "UI-031",
-      "oldSourceFlowDigest": "8551a12e42742a7bbdd73987605c69ae2a3e87b8fcf13132a3eaf0c1f974bcb7",
-      "newSourceFlowDigest": "94f2af0400e562ee64315a12f34e6742d2faca6ce5b541dfa555273c53e7e4cd",
-      "changedFields": [
-        "trustBindings"
-      ],
-      "status": "unapproved-independent-review-required"
-    },
-    {
-      "id": "UI-034",
-      "oldSourceFlowDigest": "456fc14dc49754eef4199b05ebcfa77d7c1bc85f51e23822eb02b1fa0c36ebfa",
-      "newSourceFlowDigest": "218a2ef269c4e8fbec9be56b27ef76fb3179ac39d29898c8eb738702de49363c",
+      "id": "EVT-035",
+      "oldSourceFlowDigest": "63cbef6e3a66a65a374eea637e2d30cfef6b30fe5246fa46b1e09565ceeb8e2d",
+      "newSourceFlowDigest": "a46d38b59990c85682ddbe2f05b6809f40f141be81c9f3a4c01bec1851511933",
       "changedFields": [
         "trustBindings"
       ],
@@ -6931,14 +6927,12 @@
   "reviewerDecisionArtifact": {
     "schema": "media-server.v390-review4-independent-reviewer-decisions.v1",
     "requiredIds": [
-      "UI-022",
-      "UI-025",
-      "UI-026",
-      "UI-027",
-      "UI-028",
-      "UI-030",
-      "UI-031",
-      "UI-034"
+      "UI-014",
+      "UI-035",
+      "EVT-019",
+      "EVT-020",
+      "EVT-021",
+      "EVT-035"
     ],
     "generationCommand": "./server.sh verify-v390-review4-feature-semantic-source-approvals --write-ledger --decisions <independent-reviewer-decision-artifact.json>",
     "generatorMayApprove": false

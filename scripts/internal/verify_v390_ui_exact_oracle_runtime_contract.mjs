@@ -4,6 +4,7 @@
 import {
   containsForbiddenStructuredDomMaterial,
   executeCatalogRuntimeOracle,
+  executeCatalogRuntimeOracleAtSourceRoute,
 } from "./v390_ui_exact_oracle_runtime.mjs";
 
 const checks = [];
@@ -19,6 +20,126 @@ await check("EVT-001 actual response counts and DOM projections pass", async () 
   assert(result.responses.length === 1 && result.dom.length === 4, "EVT-001 evidence cardinality mismatch");
   assert(result.responses[0].assertionEvidence.length === 3, "EVT-001 request assertions were not executed");
   assert(result.dom.every(item => item.semanticEvidence.length === 1), "EVT-001 DOM assertions were not executed");
+});
+
+await check("cross-route primary action verifies source catalog and restores destination", async () => {
+  const navigations = [];
+  const browser = coreBrowser();
+  let route = "/ops/rules?draftEventId=runtime-contract";
+  browser.evaluate = async script => {
+    if (script === "location.pathname + location.search + location.hash") return route;
+    if (script === "location.pathname") return new URL(route, "http://runtime.invalid").pathname;
+    if (String(script).startsWith("fetch(")) {
+      return {
+        status: 200,
+        text: '<section data-testid="ops-home-page">ops-workspace-home</section>',
+        json: null,
+        contentType: "text/html",
+      };
+    }
+    return {
+      count: route === "/ops/home" ? 1 : 0,
+      visibleCount: route === "/ops/home" ? 1 : 0,
+      text: "ops-workspace-home",
+      attributes: [{ "data-testid": "ops-home-page" }],
+      values: [""],
+      formControls: [],
+      descendantCount: 0,
+      properties: {},
+    };
+  };
+  browser.navigate = async target => {
+    navigations.push(target);
+    route = target;
+    return { status: 200, url: `http://runtime.invalid${target}` };
+  };
+  const result = await executeCatalogRuntimeOracleAtSourceRoute({
+    browser,
+    item: { ...exactItem("UI-009", "/ops/home"), screenRoute: "/ops/home" },
+    fixtureId: "source-route-contract",
+    correlationId: "UI-009:contract",
+  });
+  assert(navigations.join("|") === "/ops/home|/ops/rules?draftEventId=runtime-contract",
+    "catalog source/destination route lifecycle mismatch");
+  assert(result.routeLifecycle?.sourceNavigationStatus === 200 &&
+    result.routeLifecycle?.restoreNavigationStatus === 200,
+  "catalog source/destination lifecycle evidence missing");
+});
+
+await check("cross-route source and restore navigation failures are fail-closed", async () => {
+  const sourceFailure = coreBrowser();
+  sourceFailure.evaluate = async script => script === "location.pathname + location.search + location.hash"
+    ? "/ops/rules"
+    : "/ops/rules";
+  sourceFailure.navigate = async () => ({ status: 404, url: "http://runtime.invalid/missing" });
+  await expectReject(() => executeCatalogRuntimeOracleAtSourceRoute({
+    browser: sourceFailure,
+    item: { ...exactItem("UI-009", "/ops/home"), screenRoute: "/ops/home" },
+    fixtureId: "source-route-negative-contract",
+    correlationId: "UI-009:contract",
+  }), "catalog source route status mismatch");
+});
+
+await check("already executed primary action is not dispatched twice", async () => {
+  let clicks = 0;
+  const browser = coreBrowser();
+  browser.click = async () => { clicks += 1; };
+  const result = await executeCatalogRuntimeOracle({
+    browser,
+    item: exactItem("UI-009", "/ops/home"),
+    fixtureId: "single-primary-contract",
+    correlationId: "UI-009:contract",
+    primaryAction: {
+      actionId: "UI-009:primary-action",
+      executedControlSelector: "#already-executed",
+      executedKind: "click",
+    },
+  });
+  assert(clicks === 0 && result.interaction.kind === "existing-primary-action",
+    "catalog dispatched an already executed primary action");
+});
+
+await check("native primary control binding is enforced independently of route root", async () => {
+  const selector = "#reviewed-product-control";
+  const item = {
+    ...exactItem("UI-009", "/ops/home"),
+    workflow: {
+      workflowClass: "read-only-state",
+      primaryControl: {
+        applicability: "required",
+        selector,
+        route: "/ops/home",
+        expectedVisible: true,
+        expectedEnabled: true,
+      },
+    },
+  };
+  const browser = coreBrowser();
+  const originalSnapshot = browser.snapshot;
+  browser.snapshot = async requested => requested === selector
+    ? { exists: true, visible: true, disabled: false, selector: requested }
+    : originalSnapshot(requested);
+  const result = await executeCatalogRuntimeOracle({
+    browser,
+    item,
+    fixtureId: "native-control-contract",
+    correlationId: "UI-009:contract",
+  });
+  assert(result.nativePrimaryControl?.selector === selector &&
+    result.nativePrimaryControl?.status === "PASS",
+  "native primary control evidence missing");
+
+  const missing = coreBrowser();
+  const missingSnapshot = missing.snapshot;
+  missing.snapshot = async requested => requested === selector
+    ? { exists: false, visible: false, disabled: false, selector: requested }
+    : missingSnapshot(requested);
+  await expectReject(() => executeCatalogRuntimeOracle({
+    browser: missing,
+    item,
+    fixtureId: "native-control-negative-contract",
+    correlationId: "UI-009:contract",
+  }), "native primary control missing");
 });
 
 await check("core object-form requiredAttributes are enforced", async () => {

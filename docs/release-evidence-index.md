@@ -919,6 +919,17 @@ v3.2.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직
 | Generated binding | Canonical SHA `e3151222...989` 불변, native 288개 core 행 SHA/digest/provenance 변경, ordered product/workflow non-hash 변경 0. Native SHA `b1ff5464...cc01` | actual browser not-run / unsupported 0 |
 | 미실행 경계 | Actual `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`는 이번 correction에서 실행하지 않았습니다 | not-run / REVIEW4-65 미완료 |
 
+## V390-REVIEW4-65 UI-046~424 runtime source audit
+
+| evidence | current boundary | 판정 |
+| --- | --- | --- |
+| Preserved actual failure | Source `1e4ed53c`의 standalone actual은 앞선 exact 44 PASS 뒤 UI-046에서 source root selector failure로 중단됐고 이후 379와 Policy v4는 not-run입니다 | actual FAIL preserved / PASS 승격 없음 |
+| Product source comparison | `/ops/events` root와 incident-rule draft link는 제품 source에 존재합니다. Link destination `/ops/rules`에서 initial source catalog를 재실행한 route lifecycle이 실제 원인입니다 | test infrastructure defect |
+| Remaining 379 audit | Canonical/native 424 ordering의 position 46~424를 직접 대조했습니다 | deterministic 96 / infrastructure 162 / product 0 / browser-only 121 |
+| Implemented common boundary | Source-route catalog execution과 destination restore를 모두 status-check하고, prior primary action/network evidence를 재사용하며, native primary control을 route root와 독립 검증합니다 | focused runtime contract 16/16 |
+| Static semantic checkpoint | UI-014, UI-035, EVT-019, EVT-020, EVT-021, EVT-035만 current source/owner/verifier 흐름으로 재결속했습니다. Candidate `c654e2717bb2bfec5b42df9a589c20468f23917e8c3b492dd66d27e89a9174d7`, 980 carry-forward+6 independent review, audit/approval 986/986 및 migration negative binding 9/9입니다 | static checkpoint PASS / 제품 동작 변경 0 |
+| Actual execution boundary | 앞선 104 source-audit 분류는 browser 결과가 아니며, UI-046 FAIL과 이후 379 not-run을 변경하지 않았습니다. Actual UI/exact 424/Policy v4, 30분, 120분, release와 generator는 이번 checkpoint에서 실행하지 않았습니다 | not-run / actual acceptance 미완료 |
+
 ## V390-REVIEW4-65 SAFE-211 completion/current graph correction
 
 | evidence | verified result | boundary |

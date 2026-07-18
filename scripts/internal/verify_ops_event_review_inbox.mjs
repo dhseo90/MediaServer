@@ -6,15 +6,20 @@ import process from "node:process";
 
 import { extractCppFunctionBlock } from "./source_block_assertion_utils.mjs";
 import { findChrome, openBrowserPage } from "./ui_visual_smoke_lib.mjs";
+import { resolveWebRtcHttpServerSource } from "./webrtc_http_server_source_bundle.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const failures = [];
 
-const server = [
-  "src/ingress/webrtc_http_server.cpp",
-  "src/ingress/ops_event_route_owner.cpp",
-].map(readText).join("\n");
-const reviewInboxBlock = extractCppFunctionBlock(server, "bool OpsEventReviewInboxJson(");
+const reviewInboxSource = resolveWebRtcHttpServerSource(undefined, {
+  tokens: ["bool OpsEventReviewInboxJson("],
+});
+const reviewStorageSource = resolveWebRtcHttpServerSource(undefined, {
+  tokens: [".media_server.event_reviews.jsonl", "UpsertOpsEventReviewState"],
+});
+const reviewRouteSource = readText("src/ingress/ops_event_route_owner.cpp");
+const reviewInboxBlock = extractCppFunctionBlock(reviewInboxSource.source, "bool OpsEventReviewInboxJson(");
+const pageShell = readText("src/ingress/product_ui_server_pages.cpp");
 const pageScript = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
@@ -25,18 +30,18 @@ const featureInventory = readText("docs/project-feature-test-inventory.md");
 
 check("server stores review state outside event payloads", () => {
   assertIncludes(reviewInboxBlock, "OpsEventReviewInboxItemJson", "review detail item projection");
-  assertIncludes(server, ".media_server.event_reviews.jsonl", "review state storage");
-  assertIncludes(server, "separateFromEventRecords", "review storage contract");
-  assertIncludes(server, "separateFromEventPostPayload", "review storage contract");
-  assertIncludes(server, "eventPostPayloadChanged", "review storage contract");
-  assertIncludes(server, "OpsEventReviewState", "review state struct");
-  assertIncludes(server, "OpsEventReviewInboxJson", "review inbox list");
-  assertIncludes(server, "UpsertOpsEventReviewState", "review state update");
-  assertIncludes(server, "/ops/api/events/reviews", "review API route");
-  assertIncludes(server, "event-review-update", "review audit action");
-  assertIncludes(server, "media-server.ops.vlm-review-action-state.v1", "VLM review action state");
-  assertIncludes(server, '\\"vlmAction\\":{', "VLM review action JSON");
-  assertIncludes(server, "vlmReviewActionSchema", "VLM review action storage contract");
+  assertIncludes(reviewStorageSource.source, ".media_server.event_reviews.jsonl", "review state storage");
+  assertIncludes(reviewStorageSource.source, "OpsEventReviewState", "review state struct");
+  assertIncludes(reviewStorageSource.source, "UpsertOpsEventReviewState", "review state update");
+  assertIncludes(reviewInboxBlock, "separateFromEventRecords", "review storage contract");
+  assertIncludes(reviewInboxBlock, "separateFromEventPostPayload", "review storage contract");
+  assertIncludes(reviewInboxBlock, "eventPostPayloadChanged", "review storage contract");
+  assertIncludes(reviewInboxBlock, "OpsEventReviewInboxJson", "review inbox list");
+  assertIncludes(reviewRouteSource, "/ops/api/events/reviews", "review API route");
+  assertIncludes(reviewInboxBlock, "event-review-update", "review audit action");
+  assertIncludes(reviewInboxBlock, "media-server.ops.vlm-review-action-state.v1", "VLM review action state");
+  assertIncludes(reviewStorageSource.source, '\\"vlmAction\\":{', "VLM review action JSON");
+  assertIncludes(reviewInboxBlock, "vlmReviewActionSchema", "VLM review action storage contract");
 });
 
 check("event payload storage excludes review fields", () => {
@@ -49,15 +54,15 @@ check("event payload storage excludes review fields", () => {
 });
 
 check("ops events UI exposes review inbox controls", () => {
-  assertIncludes(server, 'data-testid="ops-event-review-inbox"', "ops events review inbox marker");
-  assertIncludes(server, 'data-route-scope="operator-event-review"', "ops events operator review route scope");
-  assertIncludes(server, 'data-event-review-workflow="operator-inbox"', "ops events operator inbox workflow marker");
-  assertIncludes(server, "<h2>Operator Event Review Inbox</h2>", "ops events operator inbox title");
-  assertIncludes(server, 'data-review-state="separate-from-event-post-payload"', "review state marker");
-  assertIncludes(server, 'data-vlm-review-action-workflow="ops-only-review-state"', "VLM review action marker");
-  assertIncludes(server, 'id="eventReviewStatusFilter"', "review status filter");
-  assertIncludes(server, 'id="eventReviewClassFilter"', "review classification filter");
-  assertIncludes(server, 'id="eventReviewRows"', "review rows");
+  assertIncludes(pageShell, 'data-testid="ops-event-review-inbox"', "ops events review inbox marker");
+  assertIncludes(pageShell, 'data-route-scope="operator-event-review"', "ops events operator review route scope");
+  assertIncludes(pageShell, 'data-event-review-workflow="operator-inbox"', "ops events operator inbox workflow marker");
+  assertIncludes(pageShell, "<h2>Operator Event Review Inbox</h2>", "ops events operator inbox title");
+  assertIncludes(pageShell, 'data-review-state="separate-from-event-post-payload"', "review state marker");
+  assertIncludes(pageShell, 'data-vlm-review-action-workflow="ops-only-review-state"', "VLM review action marker");
+  assertIncludes(pageShell, 'id="eventReviewStatusFilter"', "review status filter");
+  assertIncludes(pageShell, 'id="eventReviewClassFilter"', "review classification filter");
+  assertIncludes(pageShell, 'id="eventReviewRows"', "review rows");
   assertIncludes(pageScript, "renderEventReviewRows", "review table renderer");
   assertIncludes(pageScript, "bindEventReviewActions", "review save binding");
   assertIncludes(pageScript, 'data-event-review-detail="event-list-detail"', "event list/detail row marker");

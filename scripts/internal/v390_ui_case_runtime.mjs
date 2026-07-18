@@ -7,6 +7,7 @@ import os from "node:os";
 import path from "node:path";
 
 import { assertSecretValuesAbsentFromTree } from "./v390_acceptance_ui_environment.mjs";
+import { exactRuntimeOracleFor } from "./v390_ui_exact_oracle_catalog.mjs";
 
 const descriptorSchema = "media-server.v390-ui-runtime-descriptor.v1";
 const roleMapSchema = "media-server.v390-ui-role-state-map.v1";
@@ -80,6 +81,7 @@ export function createV390UiCaseRuntime({
       transientFixtureIds: [],
       relationshipFixture: null,
       exactRuntimeFixture: null,
+      catalogBindings: {},
       transientSeedReadback: null,
       prepared: false,
     };
@@ -122,6 +124,7 @@ export function createV390UiCaseRuntime({
           });
           context.transientStateSeeded = true;
         }
+        await prepareCatalogRuntimeFixture(item, context);
       }
       for (const input of item.workflow.inputs || []) {
         for (const value of Object.values(input.actualValue || {})) {
@@ -1284,6 +1287,97 @@ export function createV390UiCaseRuntime({
     assertSecretsAbsentFromArtifacts,
     releaseSecrets,
   };
+
+  async function prepareCatalogRuntimeFixture(item, context) {
+    const spec = exactRuntimeOracleFor(item.caseId);
+    const fixtureNames = Array.isArray(spec?.setup?.fixtures) ? spec.setup.fixtures : [];
+    const eventFixture = item.caseId.startsWith("EVT-") || fixtureNames.some(name =>
+      /(?:event|incident|review|rule-suggestion|vlm-summary|resolution)/i.test(String(name)));
+    if (!spec || !eventFixture || !["/ops/events", "/client/events", "/client/live"].includes(spec.route)) return;
+    const eventPath = descriptor?.eventStoragePath;
+    assert(eventPath, `${item.caseId} catalog EventRecord storage is unavailable`);
+    const observationPath = vlmObservationStoragePath(eventPath);
+    if (!context.snapshots.some(snapshot => snapshot.path === path.resolve(observationPath))) {
+      context.snapshots.push(...snapshotStateFiles([observationPath]));
+    }
+    const source = defaultPublishedSourceIdentity(descriptor);
+    const searchQuery = String((item.workflow.inputs || []).find(input =>
+      input.kind === "literal-control-value" && typeof input.actualValue === "string")?.actualValue || context.fixtureId);
+    const existing = fs.existsSync(eventPath) &&
+      fs.readFileSync(eventPath, "utf8").includes(`\"eventId\":\"${context.fixtureId}\"`);
+    if (!existing) {
+      seedEventRecordFixture(eventPath, {
+        eventId: context.fixtureId,
+        sourceId: source.sourceId,
+        streamId: source.streamId,
+      });
+    }
+    const observation = seedVlmRuleSuggestionFixture(observationPath, {
+      eventId: context.fixtureId,
+      sourceId: source.sourceId,
+      searchTerm: searchQuery,
+    });
+    let reviewStatus = 0;
+    let readbackStatus = 0;
+    let recordCount = 0;
+    if (["operator", "admin"].includes(item.accountRole)) {
+      const review = await requestEndpoint(
+        "PUT",
+        `/ops/api/events/reviews/${encodeURIComponent(context.fixtureId)}`,
+        {
+          reviewStatus: "reviewing",
+          classification: "needs-review",
+          note: `REVIEW4 ${item.caseId} acceptance-owned review fixture`,
+        },
+        item,
+        context,
+        [200, 201],
+      );
+      const readback = await requestEndpoint(
+        "GET",
+        `/ops/api/events/reviews?eventId=${encodeURIComponent(context.fixtureId)}&limit=25`,
+        null,
+        item,
+        context,
+        [200],
+      );
+      const records = Array.isArray(readback.json?.records) ? readback.json.records : [];
+      assert(records.some(record => String(record?.event?.eventId || record?.eventId || "") === context.fixtureId),
+        `${item.caseId} catalog EventRecord/review fixture readback is missing`);
+      reviewStatus = review.status;
+      readbackStatus = readback.status;
+      recordCount = records.length;
+    } else {
+      const viewId = descriptor.auth?.defaultViewId || "9001";
+      const readback = await requestEndpoint(
+        "GET",
+        `/client/api/views/${encodeURIComponent(viewId)}/events?limit=25`,
+        null,
+        item,
+        context,
+        [200],
+      );
+      const recent = Array.isArray(readback.json?.events?.recent) ? readback.json.events.recent : [];
+      assert(recent.some(record => String(record?.eventId || "") === context.fixtureId),
+        `${item.caseId} viewer-scoped EventRecord fixture readback is missing`);
+      readbackStatus = readback.status;
+      recordCount = recent.length;
+    }
+    context.catalogBindings = {
+      eventId: context.fixtureId,
+      candidateId: String(observation?.ruleSuggestion?.candidateId || `${context.fixtureId}-candidate`),
+      searchQuery,
+      sourceId: source.sourceId,
+      viewId: descriptor.auth?.defaultViewId || "9001",
+    };
+    context.transientStateSeeded = true;
+    context.transientSeedReadback = {
+      status: readbackStatus,
+      reviewStatus,
+      matchedFixture: true,
+      recordCount,
+    };
+  }
 
   async function prepareAuthFixture(item, context) {
     const formInput = (item.workflow.inputs || []).find(input => input.kind === "form-values");
@@ -2759,7 +2853,8 @@ async function validateV390Ui092To105Readback(
 }
 
 function caseNeedsRuntimeOwner(item) {
-  return ["RULE-103", "RULE-104", "RULE-111", "UI-036", "UI-046", "UI-052", "UI-053", "UI-064", "UI-065", "UI-066", "UI-067", "UI-068", "UI-069", "UI-070", "UI-071", "UI-072", "UI-073", "UI-074", "UI-075", "UI-080", "UI-088", "UI-089", "UI-090", "UI-091", "UI-092", "UI-093", "UI-094", "UI-095", "UI-096", "UI-097", "UI-098", "UI-099", "UI-100", "UI-101", "UI-102", "UI-103", "UI-104", "UI-105"].includes(item.caseId) ||
+  const exactSpec = exactRuntimeOracleFor(item.caseId);
+  return Boolean(exactSpec?.seed || exactSpec?.setup?.fixtures?.length) || ["RULE-103", "RULE-104", "RULE-111", "UI-036", "UI-046", "UI-052", "UI-053", "UI-064", "UI-065", "UI-066", "UI-067", "UI-068", "UI-069", "UI-070", "UI-071", "UI-072", "UI-073", "UI-074", "UI-075", "UI-080", "UI-088", "UI-089", "UI-090", "UI-091", "UI-092", "UI-093", "UI-094", "UI-095", "UI-096", "UI-097", "UI-098", "UI-099", "UI-100", "UI-101", "UI-102", "UI-103", "UI-104", "UI-105"].includes(item.caseId) ||
     (item.workflow.inputs || []).some(input => input.kind === "rejected-endpoint-fixture") ||
     (item.workflow.inputs || []).some(input => input.kind === "exact-runtime-fixture") ||
     (item.workflow.setup || []).some(setup => setup.kind === "bind-action-role-session" ||
@@ -3228,7 +3323,7 @@ export function seedEventRecordFixture(eventStoragePath, {
   return record;
 }
 
-export function seedVlmRuleSuggestionFixture(observationPath, { eventId, sourceId = "9001" } = {}) {
+export function seedVlmRuleSuggestionFixture(observationPath, { eventId, sourceId = "9001", searchTerm = "" } = {}) {
   assert(observationPath, "runtime VLM observation path is unavailable");
   assert(eventId, "runtime VLM rule suggestion fixture ID is required");
   const record = {
@@ -3240,8 +3335,8 @@ export function seedVlmRuleSuggestionFixture(observationPath, { eventId, sourceI
     scenarioId: "",
     inputType: "event-record",
     inputEvidenceRefs: {},
-    summary: "REVIEW4 exact local rule draft candidate",
-    eventExplanation: "test-owned manual draft candidate",
+    summary: `REVIEW4 exact local rule draft candidate ${String(searchTerm || "").trim()}`.trim(),
+    eventExplanation: `test-owned manual draft candidate ${String(searchTerm || "").trim()}`.trim(),
     falsePositiveHints: [],
     operatorReviewQuestions: [],
     ruleSuggestion: {
