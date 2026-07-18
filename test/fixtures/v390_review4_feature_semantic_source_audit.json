@@ -4051,7 +4051,7 @@
           "sha256": "a07299ae9edbc3ed6cd247785383c48072eeba409eb86d7bd767264665cb36ff"
         }
       },
-      "sourceFlowDigest": "17d378e623f27a592c731744184be91c0bbe1cbb289d12b50bf0ed3398211eb5",
+      "sourceFlowDigest": "1f61edf80974c3ca30fad91c2e38a93fbe94d58ab1c1488313934de230731e5a",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
@@ -4094,7 +4094,7 @@
           "readback": {
             "file": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs",
             "symbol": "negative-route-oracle:UI-018",
-            "trackedBlobSha256": "e2792beee0ed32da8d880f8c26b4b7d2b1705971cbdb5797f12f498677e7fbfd",
+            "trackedBlobSha256": "3ba78d11a69aed5c847c5d9f99d3db839b2b7399b292d8a1e90a9d07d1006d33",
             "enclosingBodySha256": "921631115ed367215c0b7738f8fc3e64ec1184f87686dbc717424f2f273b6bb7",
             "enclosingBodyStartLine": 210,
             "enclosingBodyEndLine": 225,
@@ -4109,7 +4109,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "e2792beee0ed32da8d880f8c26b4b7d2b1705971cbdb5797f12f498677e7fbfd",
+        "verifierFileSha256": "3ba78d11a69aed5c847c5d9f99d3db839b2b7399b292d8a1e90a9d07d1006d33",
         "dispatch": {
           "command": "verify-v390-ui-native-exact-cases-contract",
           "file": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs",
@@ -235277,5 +235277,5 @@
       }
     }
   ],
-  "candidateDigest": "8dfefc9da3634c4e355e8b252d6d2878c7bd36df4b0474b2a2296ad109ca7208"
+  "candidateDigest": "c7bb675ce4074ab029c7fe33a4333fac64b1f973ef276fc97ba647cdd56a0d1d"
 }

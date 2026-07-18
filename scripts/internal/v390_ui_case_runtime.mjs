@@ -687,10 +687,20 @@ export function createV390UiCaseRuntime({
     const username = descriptor.auth?.usernames?.[role];
     const password = roleSecrets.roles?.[role];
     assert(username && password, `fresh role credential missing for ${role}`);
-    const response = await postForm(`${httpBase}/login`, { username, password });
-    assert(response.status === 302, `fresh ${role} login failed with HTTP ${response.status}`);
-    const cookie = cookieFromResponse(response);
-    const whoami = await requestJson(`${httpBase}/auth/whoami`, { cookie });
+    const usersFile = descriptor.auth?.usersFile || "";
+    assert(usersFile && fs.existsSync(usersFile), `fresh ${role} users store is missing`);
+    const login = await runAuthoritativeReadbackWithSnapshotRestore({
+      snapshots: snapshotStateFiles([usersFile]),
+      label: `fresh ${role} session login`,
+      readback: async () => {
+        const response = await postForm(`${httpBase}/login`, { username, password });
+        assert(response.status === 302, `fresh ${role} login failed with HTTP ${response.status}`);
+        const cookie = cookieFromResponse(response);
+        const whoami = await requestJson(`${httpBase}/auth/whoami`, { cookie });
+        return { cookie, whoami };
+      },
+    });
+    const { cookie, whoami } = login;
     assert(whoami.status === 200 && whoami.json?.role === role,
       `fresh role whoami mismatch for ${role}: ${whoami.status}/${whoami.json?.role || ""}`);
     if (role === "viewer") {

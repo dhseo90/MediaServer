@@ -3,8 +3,8 @@
   "migrationVersion": "review4-acceptance-prerequisite-v2",
   "generatedBy": "verify_v390_review4_semantic_migration_contract.mjs",
   "candidateGeneratorMayApprove": false,
-  "baselineCandidateDigest": "ec38b1be142c73c9f782f4b64ae9964a68f58d32a15ffdb34fddef61c277fb0a",
-  "freshCandidateDigest": "1dd1281bd88e617b72d36a0da008a98551bc3ae14e1e2a754b68bc0d72bd9b03",
+  "baselineCandidateDigest": "8dfefc9da3634c4e355e8b252d6d2878c7bd36df4b0474b2a2296ad109ca7208",
+  "freshCandidateDigest": "c7bb675ce4074ab029c7fe33a4333fac64b1f973ef276fc97ba647cdd56a0d1d",
   "equivalenceAlgorithmSha256": "6d103a884ac9111b8a3356211ae757cf0285c29cec323fcaa9b32d145a48f47d",
   "carryForward": [
     {
@@ -5741,6 +5741,13 @@
       "status": "carry-forward-eligible-not-approved"
     },
     {
+      "id": "SAFE-202",
+      "oldSourceFlowDigest": "89a0bd4877dfd869156c36944998ea1410dea99ec1531b4efa198e134e388496",
+      "newSourceFlowDigest": "89a0bd4877dfd869156c36944998ea1410dea99ec1531b4efa198e134e388496",
+      "equivalenceDigest": "85d08d9b4947940d6e9d083838f3ce037accde7a056ffb802827e004908289d7",
+      "status": "carry-forward-eligible-not-approved"
+    },
+    {
       "id": "SAFE-203",
       "oldSourceFlowDigest": "26171c086642de9953df0062833f6e4848ff52acca701a12627920a6193f085c",
       "newSourceFlowDigest": "26171c086642de9953df0062833f6e4848ff52acca701a12627920a6193f085c",
@@ -6784,6 +6791,13 @@
       "status": "carry-forward-eligible-not-approved"
     },
     {
+      "id": "OPS-169",
+      "oldSourceFlowDigest": "14713c16f457c5f15d9e4e2a9eeb017a27a37b38115ce02691484e8f464191f8",
+      "newSourceFlowDigest": "14713c16f457c5f15d9e4e2a9eeb017a27a37b38115ce02691484e8f464191f8",
+      "equivalenceDigest": "925cd835caac3af62616f45617669db093f2a248ca8557688652b64f3166d231",
+      "status": "carry-forward-eligible-not-approved"
+    },
+    {
       "id": "OPS-170",
       "oldSourceFlowDigest": "6d310f67031bf496d63c2643b551332e7fb37554a94fb4be10e292333de11b68",
       "newSourceFlowDigest": "6d310f67031bf496d63c2643b551332e7fb37554a94fb4be10e292333de11b68",
@@ -6892,26 +6906,8 @@
   "unapproved": [
     {
       "id": "UI-018",
-      "oldSourceFlowDigest": "153f737b951d0400b166ee06e89260bb94b6c4f33aa7ecbdbd6a43f75f5abb29",
-      "newSourceFlowDigest": "5a160045eb2a9322a1ffce97ed7d6c93881a1597199eda8ac30626f0bfe9b9ab",
-      "changedFields": [
-        "trustBindings"
-      ],
-      "status": "unapproved-independent-review-required"
-    },
-    {
-      "id": "SAFE-202",
-      "oldSourceFlowDigest": "01af2d1ec3de2835112baddd40eb157f1f06fe8e65ad67a3e71ff39324a7d124",
-      "newSourceFlowDigest": "89a0bd4877dfd869156c36944998ea1410dea99ec1531b4efa198e134e388496",
-      "changedFields": [
-        "trustBindings"
-      ],
-      "status": "unapproved-independent-review-required"
-    },
-    {
-      "id": "OPS-169",
-      "oldSourceFlowDigest": "448014b1349e4a4ffe328b9fc0cd470683ee2b675e54432968d27fa3f0d0d2de",
-      "newSourceFlowDigest": "14713c16f457c5f15d9e4e2a9eeb017a27a37b38115ce02691484e8f464191f8",
+      "oldSourceFlowDigest": "17d378e623f27a592c731744184be91c0bbe1cbb289d12b50bf0ed3398211eb5",
+      "newSourceFlowDigest": "1f61edf80974c3ca30fad91c2e38a93fbe94d58ab1c1488313934de230731e5a",
       "changedFields": [
         "trustBindings"
       ],
@@ -6921,9 +6917,7 @@
   "reviewerDecisionArtifact": {
     "schema": "media-server.v390-review4-independent-reviewer-decisions.v1",
     "requiredIds": [
-      "UI-018",
-      "SAFE-202",
-      "OPS-169"
+      "UI-018"
     ],
     "generationCommand": "./server.sh verify-v390-review4-feature-semantic-source-approvals --write-ledger --decisions <independent-reviewer-decision-artifact.json>",
     "generatorMayApprove": false

@@ -2717,6 +2717,18 @@ evidence로 사용하지 않습니다.
 | Generated binding refresh | 승인 적용 뒤 공식 generator 전후 비교에서 canonical fixture 변경 0, native digest/provenance 변경 293, 424 ordered ID·route·role·viewport·theme·action·workflow·cleanup non-hash 변경 0을 확인했습니다. 최종 SHA는 canonical `e3151222e545a60b6e66073de751e52019e0a1bedbcbea290638ed62a8105989`, native `2e997a047637d30792ea9f299261621ca2f16b907275807a6dedf912038086c0`입니다 | generated binding only |
 | 미실행 경계 | 이번 correction에서는 `./test_ui.sh`, actual exact 424/Policy v4, 30분, 120분, `./test_release.sh`를 재실행하지 않았습니다 | not-run / REVIEW4-65 미완료 |
 
+### REVIEW4-65 UI-009 fresh-role setup isolation correction
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| Standalone actual failure 보존 | Source `28378c7419c876c4af8cf4b8c8d0759f8de6e96d`에서 sandbox 밖 `./test_ui.sh`를 정확히 1회 실행한 기존 결과는 UI-001~008 중 7건 PASS 뒤 UI-009에서 중단됐고 executed/pass/fail/not-run은 `8/7/1/416`입니다. UI-009 제품 UI assertion 이전 cleanup/readback drift이며 이전 FAIL evidence는 PASS로 바꾸지 않습니다 | actual infrastructure oracle fail / preserved |
+| 직접 확인한 원인 | `prepareCase`가 authoritative state를 snapshot한 뒤 `freshRoleStorageState`의 `/login`이 auth users 파일의 `lastLoginAt`/`lastLoginIp`를 기록했습니다. Read-only UI-009는 제품 동작이 아니라 fresh-role setup이 만든 write를 authoritative state drift로 감지했습니다 | root cause confirmed |
+| 원천 보정 | Fresh-role login 직전 users 파일만 별도 snapshot하고 `runAuthoritativeReadbackWithSnapshotRestore`로 login audit write를 복원합니다. 발급된 session/cookie와 `/auth/whoami` 결과는 유지합니다. UI-009 전용 예외, drift 판정 완화, read-only 우회는 없습니다 | fail-closed setup isolation |
+| 회귀 계약 | 공통 helper 계약은 실제 users 파일을 바꾸는 성공 callback과 예외 callback 모두에서 baseline byte를 복원하고 원 결과/원 오류를 유지합니다. Fresh-role 계약은 실제 `/login` mock이 audit 필드를 변경한 뒤 발급 cookie를 storage-state에 보존하면서 users bytes를 baseline으로 복원하는지 확인합니다 | native exact focused source contract |
+| Semantic 영향/승인 | Feature/pass 계약 변경 0, semantic source-flow 변경은 `UI-018` 한 행입니다. Candidate `c7bb675ce4074ab029c7fe33a4333fac64b1f973ef276fc97ba647cdd56a0d1d`에서 985행 strict-equivalent carry-forward + UI-018 independent review로 approval 986/986을 구성했습니다. Migration/package/corrected decision SHA는 `72dbec790b0ebe06fbf5966b05ea20b064550e05586bf0b2a8e0e71b6afef6a4`/`e1feeaed31409753042f8f63e25c25189a63f5a704838c0c1b141079cfa220e4`/`0425ea531e7f1db75e3a3a8af27b674368915d8a72246f54d0c905677624d889`입니다 | source audit/approval/migration PASS; actual UI evidence 아님 |
+| Generated binding | Canonical 424 fixture는 변경 0, native fixture는 SHA/digest 293개만 공식 generator로 갱신했습니다. Ordered ID·route·role·viewport·theme·action·workflow·oracle·cleanup non-hash 변경은 0이며 최종 SHA는 canonical `e3151222e545a60b6e66073de751e52019e0a1bedbcbea290638ed62a8105989`, native `421aa4327b457ae04f1c719c6c0fe91a0baaaf92528aacb001cc97a9f99ec241`입니다 | exact 424 / 423 native + 1 negative / unsupported 0 |
+| 미실행 경계 | 이번 correction에서는 actual `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`를 실행하지 않았습니다 | not-run / REVIEW4-65 미완료 |
+
 ### REVIEW4-65 SAFE-211 completion/current graph correction
 
 | 제목 | 수행내용 | 결과(pass/fail) |

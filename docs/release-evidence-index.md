@@ -860,6 +860,17 @@ v3.2.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직
 | Semantic review | Candidate `8dfefc9d...`, 985 carry-forward + `UI-018` independent review, approval 986/986 | migration `facbbb71...`, package `08417663...`, decision `624b6237...`; actual UI evidence 아님 |
 | Generated binding | Canonical fixture `e3151222...` unchanged, native fixture `2e997a04...`; digest/provenance 293 changes and product/workflow non-hash 0 | official generator output; actual UI evidence 아님 |
 
+## V390-REVIEW4-65 UI-009 fresh-role setup isolation correction
+
+| evidence | current boundary | 판정 |
+| --- | --- | --- |
+| Standalone run at `28378c74` | Sandbox 밖 `./test_ui.sh` 1회 실행의 exact 집계는 `8 executed / 7 PASS / 1 FAIL / 416 not-run`이고 UI-009에서 중단됐습니다. 제품 UI assertion 이전 cleanup/readback drift이며 이전 FAIL을 PASS로 승격하지 않습니다 | actual infrastructure oracle FAIL preserved |
+| Root-cause binding | `prepareCase` snapshot 뒤 fresh-role `/login`이 auth users 파일의 `lastLoginAt`/`lastLoginIp`를 기록해 read-only UI-009의 authoritative state를 setup 단계에서 바꿨습니다 | 제품 UI 동작 실패가 아니라 fresh-role setup isolation 결함 |
+| Restoration contract | Login 직전 users 파일만 snapshot·복원하고 발급된 session/cookie와 whoami는 유지합니다. 공통 helper 성공/예외 복원과 fresh-role cookie/users-byte 회귀 계약을 결속하며 UI-009 예외나 drift/read-only 완화는 없습니다 | source readiness; actual UI 재실행 전 PASS evidence 아님 |
+| Semantic review | Feature/pass 변경 0, candidate `c7bb675c...`, 985 carry-forward + `UI-018` independent review, approval 986/986 | migration `72dbec79...`, package `e1feeaed...`, corrected decision `0425ea53...` |
+| Generated binding | Canonical `e3151222...` 변경 0, native `421aa432...`; 293 SHA/digest 변경과 ordered ID·route·role·viewport·theme·action·workflow·oracle·cleanup non-hash 변경 0 | official generator, exact 424 / unsupported 0 |
+| 미실행 경계 | Actual `./test_ui.sh`, Policy v4 qualification, 30분, 120분, `./test_release.sh`는 이번 correction에서 실행하지 않았습니다 | not-run / REVIEW4-65 미완료 |
+
 ## V390-REVIEW4-65 SAFE-211 completion/current graph correction
 
 | evidence | verified result | boundary |

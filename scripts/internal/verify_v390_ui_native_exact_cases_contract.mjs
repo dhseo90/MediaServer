@@ -1153,6 +1153,76 @@ check("authoritative cleanup readback restores state after success and failure",
   }
 });
 
+check("fresh role session restores login audit writes before a read-only case", async () => {
+  const temporaryRoot = fs.mkdtempSync("/private/tmp/media_server_v390_ui-fresh-role-");
+  const stateFile = path.join(temporaryRoot, "users.json");
+  const roleMapPath = path.join(temporaryRoot, "roles.json");
+  const descriptorPath = path.join(temporaryRoot, "descriptor.json");
+  const serverLogPath = path.join(temporaryRoot, "server.log");
+  const eventStoragePath = path.join(temporaryRoot, "events.jsonl");
+  const baseline = Buffer.from('{"users":[{"username":"operator","lastLoginAt":"","lastLoginIp":""}]}\n');
+  const originalFetch = globalThis.fetch;
+  try {
+    fs.writeFileSync(stateFile, baseline, { mode: 0o600 });
+    fs.writeFileSync(roleMapPath,
+      `${JSON.stringify({ schema: "media-server.v390-ui-role-state-map.v1", roles: {} })}\n`,
+      { mode: 0o600 });
+    fs.writeFileSync(serverLogPath, "", { mode: 0o600 });
+    fs.writeFileSync(eventStoragePath, "", { mode: 0o600 });
+    fs.writeFileSync(descriptorPath, `${JSON.stringify({
+      schema: "media-server.v390-ui-runtime-descriptor.v1",
+      temporaryRoot,
+      httpBase: "http://127.0.0.1:1",
+      httpPort: 1,
+      roleStateMapPath: roleMapPath,
+      serverLogPath,
+      eventStoragePath,
+      registrySeedPayloadPaths: {},
+      artifactPaths: {},
+      stateFiles: [stateFile],
+      auth: {
+        usersFile: stateFile,
+        usernames: { operator: "operator" },
+        storageStatePaths: {},
+      },
+    })}\n`, { mode: 0o600 });
+    globalThis.fetch = async input => {
+      const url = new URL(String(input));
+      if (url.pathname === "/login") {
+        fs.writeFileSync(stateFile,
+          '{"users":[{"username":"operator","lastLoginAt":"changed","lastLoginIp":"127.0.0.1"}]}\n');
+        return new Response("", {
+          status: 302,
+          headers: { location: "/ops/home", "set-cookie": "media_session=contract-cookie; Path=/; HttpOnly" },
+        });
+      }
+      if (url.pathname === "/auth/whoami") {
+        return new Response(JSON.stringify({ authenticated: true, role: "operator" }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      throw new Error(`unexpected fresh-role contract request: ${url.pathname}`);
+    };
+    const runtime = createV390UiCaseRuntime({
+      rootDir,
+      httpBase: "http://127.0.0.1:1",
+      runtimeDescriptorPath: descriptorPath,
+      roleStateMapPath: roleMapPath,
+      roleSecretsJson: JSON.stringify({ roles: { operator: "contract-current-secret" }, refs: {} }),
+    });
+    const storageStatePath = await runtime.freshRoleStorageState("operator", "UI-009");
+    const storageState = JSON.parse(fs.readFileSync(storageStatePath, "utf8"));
+    assert(storageState.cookies?.[0]?.value === "contract-cookie",
+      "fresh role session did not preserve the issued session cookie");
+    assert(fs.readFileSync(stateFile).equals(baseline),
+      "fresh role session left login audit fields changed before read-only case execution");
+  } finally {
+    globalThis.fetch = originalFetch;
+    fs.rmSync(temporaryRoot, { recursive: true, force: true });
+  }
+});
+
 check("canonical requested route and runtime screen route are explicit projections", () => {
   const canonicalById = new Map(canonical.cases.map(item => [item.testId, item]));
   const projected = manifest.cases.filter(item => item.canonicalRoute !== item.screenRoute);
