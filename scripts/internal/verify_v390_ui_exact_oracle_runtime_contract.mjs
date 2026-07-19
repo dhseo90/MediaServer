@@ -142,6 +142,176 @@ await check("native primary control binding is enforced independently of route r
   }), "native primary control missing");
 });
 
+await check("required current-route primary control waits before its snapshot", async () => {
+  const selector = "#async-primary-control";
+  const item = primaryControlItem(selector, "/ops/home");
+  const browser = coreBrowser();
+  const order = [];
+  let ready = false;
+  browser.waitForSelector = async requested => {
+    order.push(`wait:${requested}`);
+    assert(requested === selector, "unexpected async primary selector");
+    ready = true;
+  };
+  browser.snapshot = async requested => {
+    order.push(`snapshot:${requested}`);
+    assert(ready, "native primary snapshot occurred before waitForSelector");
+    return { exists: true, visible: true, disabled: false, selector: requested };
+  };
+  const result = await executeCatalogRuntimeOracle({
+    browser,
+    item,
+    fixtureId: "async-primary-control-contract",
+    correlationId: "UI-046:contract",
+  });
+  assert(result.nativePrimaryControl?.status === "PASS" &&
+    order.slice(0, 2).join("|") === `wait:${selector}|snapshot:${selector}`,
+  "async native primary control did not wait before snapshot");
+});
+
+await check("required current-route primary control keeps timeout and post-wait failures fail-closed", async () => {
+  const selector = "#async-primary-control-negative";
+  const item = primaryControlItem(selector, "/ops/home");
+  const timeout = coreBrowser();
+  let timeoutSnapshotCalls = 0;
+  timeout.waitForSelector = async () => { throw new Error("adapter timeout"); };
+  timeout.snapshot = async () => {
+    timeoutSnapshotCalls += 1;
+    return { exists: true, visible: true, disabled: false, selector };
+  };
+  await expectReject(() => executeCatalogRuntimeOracle({
+    browser: timeout,
+    item,
+    fixtureId: "async-primary-timeout-contract",
+    correlationId: "UI-046:contract",
+  }), "adapter timeout");
+  assert(timeoutSnapshotCalls === 0, "snapshot ran after primary control wait timeout");
+
+  const missing = coreBrowser();
+  let waitCalls = 0;
+  missing.waitForSelector = async () => { waitCalls += 1; };
+  missing.snapshot = async requested => ({ exists: false, visible: false, disabled: false, selector: requested });
+  await expectReject(() => executeCatalogRuntimeOracle({
+    browser: missing,
+    item,
+    fixtureId: "async-primary-missing-contract",
+    correlationId: "UI-046:contract",
+  }), "native primary control missing");
+  assert(waitCalls === 1, "missing control did not wait before failing");
+});
+
+await check("required current-route primary control still rejects hidden and disabled snapshots", async () => {
+  const selector = "#async-primary-visibility";
+  const item = primaryControlItem(selector, "/ops/home");
+  for (const [label, snapshot, expected] of [
+    ["hidden", { exists: true, visible: false, disabled: false }, "native primary control visibility mismatch"],
+    ["disabled", { exists: true, visible: true, disabled: true }, "native primary control disabled"],
+  ]) {
+    const browser = coreBrowser();
+    let waits = 0;
+    browser.waitForSelector = async () => { waits += 1; };
+    browser.snapshot = async requested => ({ ...snapshot, selector: requested });
+    await expectReject(() => executeCatalogRuntimeOracle({
+      browser,
+      item,
+      fixtureId: `async-primary-${label}-contract`,
+      correlationId: "UI-046:contract",
+    }), expected);
+    assert(waits === 1, `${label} primary control did not use waitForSelector`);
+  }
+});
+
+await check("route mismatch and not-applicable primary controls do not wait or replay", async () => {
+  const selector = "#route-mismatch-primary";
+  const mismatch = coreBrowser();
+  let mismatchWaits = 0;
+  mismatch.evaluate = async script => script === "location.pathname" ? "/ops/rules" : coreBrowser().evaluate(script);
+  mismatch.waitForSelector = async () => { mismatchWaits += 1; };
+  const mismatchResult = await executeCatalogRuntimeOracle({
+    browser: mismatch,
+    item: primaryControlItem(selector, "/ops/home"),
+    fixtureId: "route-mismatch-primary-contract",
+    correlationId: "UI-046:contract",
+  });
+  assert(mismatchResult.nativePrimaryControl?.status === "verified-by-native-workflow-on-action-route" &&
+    mismatchWaits === 0, "route mismatch replayed the primary control");
+
+  const notApplicable = coreBrowser();
+  let notApplicableWaits = 0;
+  notApplicable.waitForSelector = async () => { notApplicableWaits += 1; };
+  const notApplicableResult = await executeCatalogRuntimeOracle({
+    browser: notApplicable,
+    item: {
+      ...exactItem("UI-009", "/ops/home"),
+      workflow: { primaryControl: { applicability: "not-applicable" } },
+    },
+    fixtureId: "not-applicable-primary-contract",
+    correlationId: "UI-046:contract",
+  });
+  assert(notApplicableResult.nativePrimaryControl?.status === "PASS" && notApplicableWaits === 0,
+    "not-applicable primary control waited unexpectedly");
+});
+
+await check("source-route navigation waits for async primary control and restores on success and failure", async () => {
+  const selector = "#source-route-async-primary";
+  const makeBrowser = ({ waitError = "" } = {}) => {
+    const browser = coreBrowser();
+    let route = "/ops/rules?draftEventId=runtime-contract";
+    const navigations = [];
+    let waits = 0;
+    browser.evaluate = async script => {
+      if (script === "location.pathname + location.search + location.hash") return route;
+      if (script === "location.pathname") return new URL(route, "http://runtime.invalid").pathname;
+      if (String(script).startsWith("fetch(")) return {
+        status: 200,
+        text: '<section data-testid="ops-home-page">ops-workspace-home</section>',
+        json: null,
+        contentType: "text/html",
+      };
+      return {
+        count: route === "/ops/home" ? 1 : 0,
+        visibleCount: route === "/ops/home" ? 1 : 0,
+        text: "ops-workspace-home",
+        attributes: [{ "data-testid": "ops-home-page" }],
+        values: [""], formControls: [], descendantCount: 0, properties: {},
+      };
+    };
+    browser.navigate = async target => {
+      navigations.push(target);
+      route = target;
+      return { status: 200, url: `http://runtime.invalid${target}` };
+    };
+    browser.waitForSelector = async requested => {
+      waits += 1;
+      assert(requested === selector, "source route waited for unexpected selector");
+      if (waitError) throw new Error(waitError);
+    };
+    browser.snapshot = async requested => ({ exists: true, visible: true, disabled: false, selector: requested });
+    return { browser, navigations, waits: () => waits };
+  };
+  const item = primaryControlItem(selector, "/ops/home");
+  const passing = makeBrowser();
+  const result = await executeCatalogRuntimeOracleAtSourceRoute({
+    browser: passing.browser,
+    item,
+    fixtureId: "source-route-async-primary-contract",
+    correlationId: "UI-046:contract",
+  });
+  assert(passing.waits() === 1 && passing.navigations.join("|") === "/ops/home|/ops/rules?draftEventId=runtime-contract" &&
+    result.routeLifecycle?.restoreNavigationStatus === 200,
+  "source-route async primary lifecycle did not wait and restore");
+
+  const failing = makeBrowser({ waitError: "adapter timeout" });
+  await expectReject(() => executeCatalogRuntimeOracleAtSourceRoute({
+    browser: failing.browser,
+    item,
+    fixtureId: "source-route-async-primary-timeout-contract",
+    correlationId: "UI-046:contract",
+  }), "adapter timeout");
+  assert(failing.navigations.join("|") === "/ops/home|/ops/rules?draftEventId=runtime-contract",
+    "source-route async primary failure did not restore destination");
+});
+
 await check("core object-form requiredAttributes are enforced", async () => {
   const browser = coreBrowser();
   const result = await executeCatalogRuntimeOracle({
@@ -420,6 +590,22 @@ function exactItem(caseId, route) {
   };
 }
 
+function primaryControlItem(selector, route) {
+  return {
+    ...exactItem("UI-009", route),
+    workflow: {
+      workflowClass: "read-only-state",
+      primaryControl: {
+        applicability: "required",
+        selector,
+        route,
+        expectedVisible: true,
+        expectedEnabled: true,
+      },
+    },
+  };
+}
+
 function eventBody({ activeSessions = 2 } = {}) {
   return {
     ok: true,
@@ -477,6 +663,7 @@ function fakeBrowser({ route, status, body, texts = {}, attributes = {}, observa
   return {
     networkEntries: () => (++networkReads === 1 ? [] : entries),
     setCorrelationId: async () => {},
+    waitForSelector: async () => {},
     snapshot: async selector => ({ exists: true, visible: true, disabled: false, selector }),
     click: async () => {},
     waitForNetworkQuiet: async () => {},

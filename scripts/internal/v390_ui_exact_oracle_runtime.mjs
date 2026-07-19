@@ -171,6 +171,7 @@ async function observeNativePrimaryControl(browser, item) {
       status: "verified-by-native-workflow-on-action-route",
     };
   }
+  await browser.waitForSelector(control.selector);
   const snapshot = await browser.snapshot(control.selector);
   assert(snapshot.exists === true,
     `${item.caseId} native primary control missing: ${control.selector}`);
