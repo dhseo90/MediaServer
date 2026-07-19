@@ -341,7 +341,8 @@ check("REVIEW4-56 requires exact typed product workflows for all 424 cases", () 
       `${item.caseId} state/readback identity self-compare forbidden`);
     assert(locatorIdentity(workflow.expectedProductState.locator) !== locatorIdentity(workflow.independentReadback.locator),
       `${item.caseId} state/readback locator self-compare forbidden`);
-    if (workflow.workflowClass === "persisted-mutation" || workflow.workflowClass === "form-submit") {
+    if (workflow.workflowClass === "persisted-mutation" || workflow.workflowClass === "form-submit" ||
+        workflow.productAction?.kind === "endpoint-owned-action") {
       assert(workflow.cleanup.some(cleanup => {
         const inverseCount = cleanup.inverseAction?.endpoint ? 1 : 0;
         const inverseLocalCount = cleanup.inverseAction?.localAction ? 1 : 0;
@@ -375,6 +376,9 @@ check("REVIEW4-56 requires exact typed product workflows for all 424 cases", () 
           workflow.productAction.endpoint?.method === "GET" &&
           JSON.stringify(workflow.productAction.endpoint.allowedStatuses) === JSON.stringify([404]),
         `${item.caseId} selector-null exact negative-route readback action missing`);
+      } else if (workflow.productAction?.kind === "endpoint-owned-action") {
+        assert(workflow.controlSequence.some(action => action.kind === "execute-endpoint-action"),
+          `${item.caseId} selector-null endpoint-owned action missing`);
       } else {
         assert(workflow.controlSequence.some(action => ["assert-product-state", "assert-product-boundary"].includes(action.kind)),
           `${item.caseId} selector-null exact product readback action missing`);
@@ -441,6 +445,56 @@ check("REVIEW4-56 requires exact typed product workflows for all 424 cases", () 
   assert(requiredHiddenDisabled.every(item =>
     item.workflow.controlSequence.some(action => ["assert-hidden-control", "assert-disabled-control"].includes(action.kind))),
   "hidden/disabled exact controls must use explicit state assertions");
+
+  const endpointOwnedSpecs = new Map([
+    ["AUTH-020", ["POST", "/ops/api/users/{fixtureId}/disable"]],
+    ["SRC-008", ["POST", "/ops/api/sources"]],
+    ["SRC-010", ["DELETE", "/ops/api/sources/{fixtureId}"]],
+    ["SRC-019", ["DELETE", "/ops/api/views/{fixtureId}"]],
+    ["SRC-031", ["POST", "/ops/api/onvif/import-draft"]],
+  ]);
+  const endpointOwnedCases = manifest.cases.filter(item =>
+    item.workflow.productAction?.kind === "endpoint-owned-action");
+  assert(JSON.stringify(endpointOwnedCases.map(item => item.caseId)) ===
+    JSON.stringify([...endpointOwnedSpecs.keys()]),
+  `endpoint-owned case set drift: ${endpointOwnedCases.map(item => item.caseId).join(",")}`);
+  for (const item of endpointOwnedCases) {
+    const [method, endpointPath] = endpointOwnedSpecs.get(item.caseId);
+    const action = item.workflow.controlSequence.find(value => value.kind === "execute-endpoint-action");
+    const input = item.workflow.inputs.find(value => value.kind === "endpoint-action-fixture");
+    assert(item.workflow.primaryControl.applicability === "not-applicable" &&
+      item.workflow.productAction.primaryControlRequired === false,
+    `${item.caseId} endpoint-owned action incorrectly claims a direct UI control`);
+    assert(item.workflow.productAction.endpoint.method === method &&
+      item.workflow.productAction.endpoint.path === endpointPath &&
+      action?.endpoint?.method === method && action?.endpoint?.path === endpointPath &&
+      action?.semanticCompletion?.request?.method === method &&
+      action?.semanticCompletion?.request?.urlPathTemplate === endpointPath,
+    `${item.caseId} endpoint-owned method/path binding drift`);
+    assert(action?.ownership === "product-endpoint-no-primary-control" &&
+      input?.actualValue?.method === method && input?.actualValue?.path === endpointPath,
+    `${item.caseId} endpoint-owned input/action ownership binding missing`);
+    assert(item.workflow.controlSequence.indexOf(action) > 0 &&
+      item.workflow.controlSequence.findIndex(value => value.kind === "verify-independent-readback") >
+        item.workflow.controlSequence.indexOf(action),
+    `${item.caseId} endpoint action/readback sequence drift`);
+    assert(item.workflow.cleanup.some(value => value.kind === "restore-fixture-state"),
+      `${item.caseId} endpoint-owned cleanup is missing`);
+    assert(!item.workflow.controlSequence.some(value =>
+      ["assert-product-boundary", "assert-product-state"].includes(value.kind)),
+    `${item.caseId} endpoint mutation is disguised as a boundary/state read`);
+  }
+  assert(runtimeSource.includes("responseSynthesized: false") &&
+    runtimeSource.includes("actualBrowserRequestObserved: true") &&
+    runnerSource.includes("matchingResponses.length === 1") &&
+    runnerSource.includes("entry.correlationId !== completionRequest.correlationId"),
+  "endpoint-owned runtime does not require an actual correlated browser response");
+  assert(runtimeSource.includes("disabled user response/store/list/session/login readback failed") &&
+    runtimeSource.includes("created source response/registry readback failed") &&
+    runtimeSource.includes("disabled source response/registry/client boundary readback failed") &&
+    runtimeSource.includes("disabled view response/registry/client boundary readback failed") &&
+    runtimeSource.includes("ONVIF draft response/registry equal-before readback failed"),
+  "endpoint-owned independent authoritative readback coverage missing");
 
   assert(manifest.cases.every(item => item.workflow.setup.some(setup => setup.kind === "seed-reviewed-state")),
     "all 424 cases must declare reviewed state seed");
@@ -790,8 +844,8 @@ check("runner owns native execution, role state, first-fail, and artifact fields
   const crossRoleCount = manifest.cases.filter(item => item.workflow.setup.some(setup =>
     setup.kind === "bind-action-role-session" && setup.accountRole !== item.accountRole)).length;
   const secretRefCount = manifest.cases.filter(item => JSON.stringify(item.workflow.inputs).includes("secretRef")).length;
-  assert(persistedSeedCount === 113, `persisted seed closure drift: ${persistedSeedCount}/113`);
-  assert(mutationCleanupCount === 113, `mutation cleanup closure drift: ${mutationCleanupCount}/113`);
+  assert(persistedSeedCount === 118, `persisted seed closure drift: ${persistedSeedCount}/118`);
+  assert(mutationCleanupCount === 118, `mutation cleanup closure drift: ${mutationCleanupCount}/118`);
   assert(crossRoleCount === 7, `cross-role closure drift: ${crossRoleCount}/7`);
   assert(secretRefCount === 11, `secretRef case closure drift: ${secretRefCount}/11`);
   assert(runnerSource.indexOf("validateRunnerWorkflowCompatibility(manifest.cases)") <

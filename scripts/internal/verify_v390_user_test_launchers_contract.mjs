@@ -285,6 +285,15 @@ check("UI launcher fail-stop keeps Policy v4 not-run and still cleans up", () =>
   assert(summary.stages.find(item => item.id === "ui-fulltest-qualification")?.status === "not-run", "Policy v4 must be not-run after exact failure");
   assert(summary.stages.find(item => item.id === "ui-server-cleanup")?.status === "PASS", "UI server cleanup must still run");
   assert(summary.stages.find(item => item.id === "cleanup")?.status === "PASS", "root cleanup must still run");
+  const firstFailure = readJson(path.join(outputDir, "first-failure.json"));
+  const firstFailureReport = fs.readFileSync(path.join(outputDir, "first-failure.md"), "utf8");
+  assert(firstFailure.runId === summary.runId && firstFailure.invocationId === summary.runId &&
+    firstFailure.sourceProvenance?.commitSha === summary.sourceProvenance?.commitSha &&
+    firstFailure.failedStage === "ui-exact-424",
+  "UI actual-case stage did not replace root first-failure with the current run binding");
+  assert(firstFailureReport.includes(`runId: ${summary.runId}`) &&
+    firstFailureReport.includes(`sourceCommitSha: ${summary.sourceProvenance?.commitSha}`),
+  "UI root first-failure markdown does not identify the current run/source");
 });
 
 check("actual UI suite rejects an OS temp artifact root before environment bootstrap", () => {

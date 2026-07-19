@@ -74,6 +74,19 @@ const files = {
   backlog: readText("docs/development-backlog.md"),
 };
 
+check("source-contract and actual-case failures materialize distinct current first-failure records", () => {
+  assert(files.userLauncherCommon.includes('stage: "ui-source-contract"') &&
+    files.userLauncherCommon.includes('testcaseId: "verify-v390-ui-native-exact-cases-contract"') &&
+    files.userLauncherCommon.includes("priorFirstFailure"),
+  "source-contract first-failure lifecycle binding missing");
+  assert(files.bundle.includes('summary.failedStage === "ui-exact-424"') &&
+    files.bundle.includes('(uiAutomationSummary?.cases || []).find(item => item.status === "FAIL")') &&
+    files.bundle.includes("writeCurrentFirstFailure(summary)") &&
+    files.bundle.includes("testcaseId: childCaseFailure?.testId") &&
+    files.bundle.includes("priorFirstFailure,"),
+  "actual exact-case first-failure lifecycle does not replace stale root evidence with current case/run/source");
+});
+
 check("current final actual preflight keeps 120 conditional and requires a clean worktree", () => {
   assert(!files.bundle.includes("current final actual acceptance requires explicit --run-120"),
     "actual preflight still makes conditional 120 mandatory");

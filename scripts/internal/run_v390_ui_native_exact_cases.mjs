@@ -49,6 +49,7 @@ const supportedActionKinds = Object.freeze([
   "assert-product-boundary",
   "assert-product-state",
   "assert-visible-read-model",
+  "execute-endpoint-action",
   "execute-persisted-action",
   "fill-control",
   "navigate",
@@ -1577,6 +1578,16 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
       caseContext,
     );
   }
+  if (action.kind === "execute-endpoint-action") {
+    return executeEndpointOwnedAction(
+      browser,
+      item,
+      action,
+      runtimeState,
+      caseRuntimeOwner,
+      caseContext,
+    );
+  }
 
   const persistedLifecycle = action.kind === "execute-persisted-action"
     ? runtimeState.get("__persistedUiLifecycle")
@@ -1772,6 +1783,102 @@ async function executeCaseNativeAction(browser, item, action, runtimeState, case
   });
   return {
     actionEvidence: { ...boundActionEvidence, completionStatus: "awaiting-independent-readback" },
+    completionOracle: null,
+  };
+}
+
+async function executeEndpointOwnedAction(
+  browser,
+  item,
+  action,
+  runtimeState,
+  caseRuntimeOwner,
+  caseContext,
+) {
+  const input = workflowInput(item, action.inputId, "endpoint-action-fixture");
+  const request = caseRuntimeOwner.endpointActionRequest(item, caseContext, input);
+  const completionRequest = action.semanticCompletion?.request;
+  assert(completionRequest && request.method === completionRequest.method &&
+    request.path === completionRequest.urlPath &&
+    JSON.stringify(request.allowedStatuses) === JSON.stringify(completionRequest.allowedStatuses),
+  `${item.caseId} endpoint-owned action request/completion binding mismatch`);
+  const before = await browser.snapshot("body");
+  const networkStart = browser.networkEntries().length;
+  await browser.setCorrelationId(completionRequest.correlationId);
+  let response;
+  try {
+    response = await browser.evaluate(async ({ method, path, body }) => {
+      const result = await fetch(path, {
+        method,
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: body === null ? {} : { "Content-Type": "application/json" },
+        ...(body === null ? {} : { body: JSON.stringify(body) }),
+      });
+      const text = await result.text();
+      let json = null;
+      try { json = text ? JSON.parse(text) : null; } catch (_) {}
+      return {
+        status: result.status,
+        contentType: result.headers.get("content-type") || "",
+        text,
+        json,
+      };
+    }, { method: request.method, path: request.path, body: request.body });
+    await browser.waitForNetworkQuiet({
+      correlationId: completionRequest.correlationId,
+      minimumObservationMs: 750,
+      quietMs: 250,
+    });
+  } finally {
+    await browser.setCorrelationId(`${item.caseId}:navigation`);
+  }
+  assert(request.allowedStatuses.includes(response.status),
+    `${item.caseId} endpoint-owned action status mismatch: ${response.status}/${request.allowedStatuses.join(",")}`);
+  const networkResponses = browser.networkEntries().slice(networkStart);
+  const matchingResponses = networkResponses.filter(entry => {
+    if (entry.phase !== "response" || entry.method !== request.method ||
+        entry.correlationId !== completionRequest.correlationId) return false;
+    try { return new URL(entry.url).pathname === request.path; } catch { return false; }
+  });
+  assert(matchingResponses.length === 1,
+    `${item.caseId} endpoint-owned action response binding mismatch: ${matchingResponses.length}`);
+  assert(matchingResponses[0].status === response.status && request.allowedStatuses.includes(matchingResponses[0].status),
+    `${item.caseId} endpoint-owned action network status mismatch`);
+  const after = await browser.snapshot("body");
+  const actionEvidence = {
+    ...semanticCompletionAction(action, item),
+    executedKind: "browser-fetch",
+    endpointOwnership: action.ownership,
+    request: { method: request.method, path: request.path, bodyPresent: request.body !== null },
+    response: {
+      status: response.status,
+      contentType: response.contentType,
+      body: structuredClone(response.json ?? response.text),
+    },
+    networkBinding: {
+      method: matchingResponses[0].method,
+      path: new URL(matchingResponses[0].url).pathname,
+      status: matchingResponses[0].status,
+      correlationId: matchingResponses[0].correlationId,
+      requestId: matchingResponses[0].requestId,
+    },
+    before,
+    after,
+    status: "PASS",
+  };
+  assert(!runtimeState.has("__pendingPrimaryCompletion"),
+    `${item.caseId} multiple pending primary actions are forbidden`);
+  runtimeState.set("__pendingPrimaryCompletion", {
+    action,
+    actionEvidence,
+    before,
+    after,
+    networkResponses,
+    endpointResponse: response,
+  });
+  return {
+    actionEvidence: { ...actionEvidence, completionStatus: "awaiting-independent-readback" },
     completionOracle: null,
   };
 }
@@ -1979,6 +2086,13 @@ async function executeIndependentReadback(
         originalSessionCookie: pending.originalSessionCookie,
       })
     : null;
+  const runtimeEndpointActionReadback = pending.action.kind === "execute-endpoint-action"
+    ? await caseRuntimeOwner.verifyEndpointActionReadback(item, caseContext, {
+        action: pending.action,
+        endpointResponse: pending.endpointResponse,
+        networkResponses: pending.networkResponses,
+      })
+    : null;
   const exactRuntimeReadback = item.workflow.inputs.some(input => input.kind === "exact-runtime-fixture")
     ? await caseRuntimeOwner.verifyExactRuntimeReadback(item, caseContext)
     : null;
@@ -2019,7 +2133,7 @@ async function executeIndependentReadback(
     rejectedActionReadback = { ...rejectedActionReadback, domScopeReadback };
   }
   const explicitObserved = runtimeFormSubmitReadback ||
-    (Object.keys(postconditionSnapshots).length > 0 || runtimeMutationReadback || rejectedActionReadback || exactRuntimeReadback || catalogRuntimeReadback
+    (Object.keys(postconditionSnapshots).length > 0 || runtimeMutationReadback || runtimeEndpointActionReadback || rejectedActionReadback || exactRuntimeReadback || catalogRuntimeReadback
     ? {
         beforeSnapshots: pending.beforePostconditionSnapshots || {},
         snapshots: postconditionSnapshots,
@@ -2027,6 +2141,7 @@ async function executeIndependentReadback(
           persistedMutationObserved: runtimeMutationReadback.persistedMutationObserved,
           runtimeMutationReadback,
         } : {}),
+        ...(runtimeEndpointActionReadback ? { runtimeEndpointActionReadback } : {}),
         ...(rejectedActionReadback ? { rejectedActionReadback } : {}),
         ...(exactRuntimeReadback ? { exactRuntimeReadback } : {}),
         ...(catalogRuntimeReadback ? { exactRuntimeOracle: catalogRuntimeReadback } : {}),
@@ -2068,6 +2183,7 @@ async function executeIndependentReadback(
       semanticReadback,
       runtimeMutationReadback,
       runtimeFormSubmitReadback,
+      runtimeEndpointActionReadback,
       rejectedActionReadback,
       status: "PASS",
     },
@@ -2399,6 +2515,14 @@ function validateRunnerWorkflowCompatibility(cases) {
         "select-control", "toggle-checkbox", "toggle-details", "wait-visible",
       ].includes(action.kind)) {
         assert(action.selector, `${item.caseId} ${action.kind} selector missing`);
+      }
+      if (action.kind === "execute-endpoint-action") {
+        assert(action.inputId && action.ownership === "product-endpoint-no-primary-control" &&
+          action.endpoint?.method && action.endpoint?.path &&
+          Array.isArray(action.endpoint?.allowedStatuses) && action.endpoint.allowedStatuses.length > 0,
+        `${item.caseId} execute-endpoint-action shape invalid`);
+        assert(workflow.primaryControl.applicability === "not-applicable",
+          `${item.caseId} endpoint-owned action must not claim a direct primary control`);
       }
       if (action.kind === "submit-form") {
         assert(action.selector && action.submitSelector && action.inputId && Array.isArray(action.fields),

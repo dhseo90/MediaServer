@@ -3,8 +3,8 @@
   "migrationVersion": "review4-acceptance-prerequisite-v2",
   "generatedBy": "verify_v390_review4_semantic_migration_contract.mjs",
   "candidateGeneratorMayApprove": false,
-  "baselineCandidateDigest": "917c7917895ff4bcd9b7fe801f797437eb1bac1ea5706385262cab89cbc22e9c",
-  "freshCandidateDigest": "c654e2717bb2bfec5b42df9a589c20468f23917e8c3b492dd66d27e89a9174d7",
+  "baselineCandidateDigest": "c654e2717bb2bfec5b42df9a589c20468f23917e8c3b492dd66d27e89a9174d7",
+  "freshCandidateDigest": "65cc4cf1429f52f4ec3a3c2653dc25529b3250c1c4f135bf5f2aa450efa71d5a",
   "equivalenceAlgorithmSha256": "6d103a884ac9111b8a3356211ae757cf0285c29cec323fcaa9b32d145a48f47d",
   "carryForward": [
     {
@@ -99,6 +99,13 @@
       "status": "carry-forward-eligible-not-approved"
     },
     {
+      "id": "UI-014",
+      "oldSourceFlowDigest": "3323f9dee755faafb450ed25812616db8a13b03db44786a0fdcc4bc27b0b27f4",
+      "newSourceFlowDigest": "3323f9dee755faafb450ed25812616db8a13b03db44786a0fdcc4bc27b0b27f4",
+      "equivalenceDigest": "11170d1fadd475665a58414256dbfb075910f5fb49c17c75fa7bbcb25bbfcec1",
+      "status": "carry-forward-eligible-not-approved"
+    },
+    {
       "id": "UI-015",
       "oldSourceFlowDigest": "0fd26c021ce3fa8e93affdeaea2ee51b1e00c554a11deec0e6a2df96e898f930",
       "newSourceFlowDigest": "0fd26c021ce3fa8e93affdeaea2ee51b1e00c554a11deec0e6a2df96e898f930",
@@ -117,13 +124,6 @@
       "oldSourceFlowDigest": "267d579c2fdd60f8970e365c7a3e09432c126b3a9b259a18d9d0218c2bb06623",
       "newSourceFlowDigest": "267d579c2fdd60f8970e365c7a3e09432c126b3a9b259a18d9d0218c2bb06623",
       "equivalenceDigest": "9031e61050510f614789dc88d4207b19f2b9d2c50fd0f1a263efb8c476935193",
-      "status": "carry-forward-eligible-not-approved"
-    },
-    {
-      "id": "UI-018",
-      "oldSourceFlowDigest": "1f61edf80974c3ca30fad91c2e38a93fbe94d58ab1c1488313934de230731e5a",
-      "newSourceFlowDigest": "1f61edf80974c3ca30fad91c2e38a93fbe94d58ab1c1488313934de230731e5a",
-      "equivalenceDigest": "fd03c6b2841f68dd23f02e1783eb54d59c9943fba4d6d1771b87c675aafe06c3",
       "status": "carry-forward-eligible-not-approved"
     },
     {
@@ -236,6 +236,13 @@
       "oldSourceFlowDigest": "218a2ef269c4e8fbec9be56b27ef76fb3179ac39d29898c8eb738702de49363c",
       "newSourceFlowDigest": "218a2ef269c4e8fbec9be56b27ef76fb3179ac39d29898c8eb738702de49363c",
       "equivalenceDigest": "a93c9c48352a7ae0c86c28a5525c34572c5441bea664edbfebfa39ddbe702deb",
+      "status": "carry-forward-eligible-not-approved"
+    },
+    {
+      "id": "UI-035",
+      "oldSourceFlowDigest": "5138b19f6f0d90361b7618d98589a252ecd9713cd233fdca45eb9fe782c70f7c",
+      "newSourceFlowDigest": "5138b19f6f0d90361b7618d98589a252ecd9713cd233fdca45eb9fe782c70f7c",
+      "equivalenceDigest": "cd26d4527828e0143ac9088f1b7a8c47c6608b09070efa6400926313d7ee0466",
       "status": "carry-forward-eligible-not-approved"
     },
     {
@@ -2479,6 +2486,27 @@
       "status": "carry-forward-eligible-not-approved"
     },
     {
+      "id": "EVT-019",
+      "oldSourceFlowDigest": "58b911f753801ef0820b25513aaf1b21abd4bf1cac1b574bc4c55527bd753ba5",
+      "newSourceFlowDigest": "58b911f753801ef0820b25513aaf1b21abd4bf1cac1b574bc4c55527bd753ba5",
+      "equivalenceDigest": "7c9f3421ef0a4c700c51f0d801b5b8781eb88070c3a1147f3d2adbea1e6e6321",
+      "status": "carry-forward-eligible-not-approved"
+    },
+    {
+      "id": "EVT-020",
+      "oldSourceFlowDigest": "fc57dd401dbbad8372b17532121782a081d96c9dc2c00d22352f5937b9d2fb86",
+      "newSourceFlowDigest": "fc57dd401dbbad8372b17532121782a081d96c9dc2c00d22352f5937b9d2fb86",
+      "equivalenceDigest": "d0d5055fa0006558884526f6f028ff213ecd0e45e9de8cfc5be6afa081f0f2e9",
+      "status": "carry-forward-eligible-not-approved"
+    },
+    {
+      "id": "EVT-021",
+      "oldSourceFlowDigest": "ce6f720cd69d077149875b0b6f9d9938393bef34623eff93643997ed36fc6b8b",
+      "newSourceFlowDigest": "ce6f720cd69d077149875b0b6f9d9938393bef34623eff93643997ed36fc6b8b",
+      "equivalenceDigest": "7c40090794fe8c177c474483be172223cb477696d2f46117d86aeac911ae2670",
+      "status": "carry-forward-eligible-not-approved"
+    },
+    {
       "id": "EVT-022",
       "oldSourceFlowDigest": "30c4c2e0a3340d65e1615b999c7c3709ec550ad59cf94123e1915a0ae603f287",
       "newSourceFlowDigest": "30c4c2e0a3340d65e1615b999c7c3709ec550ad59cf94123e1915a0ae603f287",
@@ -2567,6 +2595,13 @@
       "oldSourceFlowDigest": "35200ea8cf5ccff14e3b2df84dfca8014df6a59cb671f93c06708b57f5a0697e",
       "newSourceFlowDigest": "35200ea8cf5ccff14e3b2df84dfca8014df6a59cb671f93c06708b57f5a0697e",
       "equivalenceDigest": "eb24f644183efccb9a227fd67326c0416f9b3a3b4929408fa1c47e03828e645f",
+      "status": "carry-forward-eligible-not-approved"
+    },
+    {
+      "id": "EVT-035",
+      "oldSourceFlowDigest": "a46d38b59990c85682ddbe2f05b6809f40f141be81c9f3a4c01bec1851511933",
+      "newSourceFlowDigest": "a46d38b59990c85682ddbe2f05b6809f40f141be81c9f3a4c01bec1851511933",
+      "equivalenceDigest": "7c440aeca67e9a26ae96802a69a3ecf797e260daa188415c4feb6a92c4b05a58",
       "status": "carry-forward-eligible-not-approved"
     },
     {
@@ -5776,13 +5811,6 @@
       "status": "carry-forward-eligible-not-approved"
     },
     {
-      "id": "SAFE-212",
-      "oldSourceFlowDigest": "e9c57ce50a49b9e6e1616420f406b3327613f3388022f5e6d48cafafe1318357",
-      "newSourceFlowDigest": "e9c57ce50a49b9e6e1616420f406b3327613f3388022f5e6d48cafafe1318357",
-      "equivalenceDigest": "c7e40b6698bf711b88fcad137f036102f55cca2883d1b3a5a3ab322b354fcf51",
-      "status": "carry-forward-eligible-not-approved"
-    },
-    {
       "id": "SAFE-213",
       "oldSourceFlowDigest": "ecd70a5ce97e7d4dc4675817ae7a3a7c7b41c6f3e79c506ffe58db180bd81fbc",
       "newSourceFlowDigest": "ecd70a5ce97e7d4dc4675817ae7a3a7c7b41c6f3e79c506ffe58db180bd81fbc",
@@ -6826,13 +6854,6 @@
       "status": "carry-forward-eligible-not-approved"
     },
     {
-      "id": "OPS-179",
-      "oldSourceFlowDigest": "446a4e2c79ff30d749a66ac5b4bcd56e6459ec9e08a4a7653938ee3d4f99307e",
-      "newSourceFlowDigest": "446a4e2c79ff30d749a66ac5b4bcd56e6459ec9e08a4a7653938ee3d4f99307e",
-      "equivalenceDigest": "f32f85ea879a3fdd3df4c0c1a49b2ae34228757a65f87cf8f2238361574c893f",
-      "status": "carry-forward-eligible-not-approved"
-    },
-    {
       "id": "OPS-180",
       "oldSourceFlowDigest": "2d187de3f7e33aec5b6db622ba7b971991a0f68c3abb8b365b0ca60b19d412f0",
       "newSourceFlowDigest": "2d187de3f7e33aec5b6db622ba7b971991a0f68c3abb8b365b0ca60b19d412f0",
@@ -6870,54 +6891,27 @@
   ],
   "unapproved": [
     {
-      "id": "UI-014",
-      "oldSourceFlowDigest": "7746a39c10b1cd76b585db4077503a90e1b7a33560a10c6707d8b178e20919ab",
-      "newSourceFlowDigest": "3323f9dee755faafb450ed25812616db8a13b03db44786a0fdcc4bc27b0b27f4",
+      "id": "UI-018",
+      "oldSourceFlowDigest": "1f61edf80974c3ca30fad91c2e38a93fbe94d58ab1c1488313934de230731e5a",
+      "newSourceFlowDigest": "c92c4c8feb7f44e776e99639316c3112fff01c020780b3fd733cc50d01591ab7",
       "changedFields": [
         "trustBindings"
       ],
       "status": "unapproved-independent-review-required"
     },
     {
-      "id": "UI-035",
-      "oldSourceFlowDigest": "c57505065c726f7f6472f40da4931484f3f1fefe5bfa4b75bd7b24f77e8ed6f9",
-      "newSourceFlowDigest": "5138b19f6f0d90361b7618d98589a252ecd9713cd233fdca45eb9fe782c70f7c",
+      "id": "SAFE-212",
+      "oldSourceFlowDigest": "e9c57ce50a49b9e6e1616420f406b3327613f3388022f5e6d48cafafe1318357",
+      "newSourceFlowDigest": "2fdfcd2a8cf372390e8efb5f7629beb1159a19eb4f4707a364606263c3f83ea4",
       "changedFields": [
         "trustBindings"
       ],
       "status": "unapproved-independent-review-required"
     },
     {
-      "id": "EVT-019",
-      "oldSourceFlowDigest": "5f7c107138a047f89962541b07c3289ad3cba54e7a7da3614acaceb2c88dd3db",
-      "newSourceFlowDigest": "58b911f753801ef0820b25513aaf1b21abd4bf1cac1b574bc4c55527bd753ba5",
-      "changedFields": [
-        "trustBindings"
-      ],
-      "status": "unapproved-independent-review-required"
-    },
-    {
-      "id": "EVT-020",
-      "oldSourceFlowDigest": "76bcf10b380a892e8bd26d5aeac7a042ac806a68fe5bfcfaf154faa62e88d4a2",
-      "newSourceFlowDigest": "fc57dd401dbbad8372b17532121782a081d96c9dc2c00d22352f5937b9d2fb86",
-      "changedFields": [
-        "trustBindings"
-      ],
-      "status": "unapproved-independent-review-required"
-    },
-    {
-      "id": "EVT-021",
-      "oldSourceFlowDigest": "070b6bd8cd1235404af8b9a917d83f15d1fb3b05ff260ebaf7d8778ca54ac051",
-      "newSourceFlowDigest": "ce6f720cd69d077149875b0b6f9d9938393bef34623eff93643997ed36fc6b8b",
-      "changedFields": [
-        "trustBindings"
-      ],
-      "status": "unapproved-independent-review-required"
-    },
-    {
-      "id": "EVT-035",
-      "oldSourceFlowDigest": "63cbef6e3a66a65a374eea637e2d30cfef6b30fe5246fa46b1e09565ceeb8e2d",
-      "newSourceFlowDigest": "a46d38b59990c85682ddbe2f05b6809f40f141be81c9f3a4c01bec1851511933",
+      "id": "OPS-179",
+      "oldSourceFlowDigest": "446a4e2c79ff30d749a66ac5b4bcd56e6459ec9e08a4a7653938ee3d4f99307e",
+      "newSourceFlowDigest": "ee6dcc5923c62dffcf282902a8a2c5bfae5b317eaa0c3510c9dd92e9aca03fd3",
       "changedFields": [
         "trustBindings"
       ],
@@ -6927,12 +6921,9 @@
   "reviewerDecisionArtifact": {
     "schema": "media-server.v390-review4-independent-reviewer-decisions.v1",
     "requiredIds": [
-      "UI-014",
-      "UI-035",
-      "EVT-019",
-      "EVT-020",
-      "EVT-021",
-      "EVT-035"
+      "UI-018",
+      "SAFE-212",
+      "OPS-179"
     ],
     "generationCommand": "./server.sh verify-v390-review4-feature-semantic-source-approvals --write-ledger --decisions <independent-reviewer-decision-artifact.json>",
     "generatorMayApprove": false

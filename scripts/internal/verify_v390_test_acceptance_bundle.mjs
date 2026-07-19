@@ -1141,8 +1141,12 @@ function writePriorFirstFailure(payload) {
     "",
     `schema: ${payload.schema}`,
     `recordedAt: ${payload.recordedAt}`,
+    `runId: ${payload.runId || payload.invocationId || ""}`,
     `sourceCommitSha: ${payload.sourceProvenance?.commitSha || ""}`,
     `failedStage: ${payload.failedStage || ""}`,
+    `testcaseId: ${payload.firstFailure?.testcaseId || ""}`,
+    `error: ${payload.firstFailure?.error || payload.firstFailure?.context || ""}`,
+    `logPath: ${payload.firstFailure?.logPath || ""}`,
     `failedCommand: ${payload.failedCommand || ""}`,
     `reproductionCommand: ${payload.firstFailure?.reproductionCommand || ""}`,
     `context: ${payload.firstFailure?.context || ""}`,
@@ -1184,16 +1188,69 @@ function buildFirstFailure() {
   const failedCheck = stage?.checks?.find(item => item.status === "FAIL");
   const commandValue = failedCheck?.command || failedCommand || stage?.command || "";
   const context = failedCheck?.tail?.join(" | ") || stage?.validationError || stage?.tail?.join(" | ") || "";
+  const childCaseFailure = failedStage === "ui-exact-424"
+    ? (uiAutomationSummary?.cases || []).find(item => item.status === "FAIL") || null
+    : null;
   return {
     stage: failedStage,
-    testcaseId: failedCheck?.id || failedStage,
+    testcaseId: childCaseFailure?.testId || childCaseFailure?.caseId || failedCheck?.id || failedStage,
     command: commandValue,
-    context,
+    context: childCaseFailure?.reason || context,
+    error: childCaseFailure?.reason || context,
     exitCode: failedCheck?.exitCode ?? stage?.exitCode ?? 1,
     logPath: failedCheck?.logPath || stage?.logPath || "",
     stderrTail: failedCheck?.tail || stage?.tail || [],
     reproductionCommand: "./test_release.sh",
   };
+}
+
+function writeCurrentFirstFailure(summary) {
+  const childCaseFailure = summary.failedStage === "ui-exact-424"
+    ? (uiAutomationSummary?.cases || []).find(item => item.status === "FAIL") || null
+    : null;
+  const diagnosticPaths = new Set([
+    summary.firstFailure?.logPath,
+    uiAutomationSummary?.summaryPath,
+  ].filter(candidate => candidate && fs.existsSync(candidate) && fs.statSync(candidate).isFile()));
+  const diagnosticArtifacts = [...diagnosticPaths].map(filePath => ({
+    originalPath: filePath,
+    bytes: fs.statSync(filePath).size,
+    sha256: sha256File(filePath),
+    tail: fs.readFileSync(filePath, "utf8").split(/\r?\n/).filter(Boolean).slice(-200),
+  }));
+  const payload = {
+    schema: "media-server.v390-acceptance-first-failure.v1",
+    recordedAt: new Date().toISOString(),
+    invocationId: summary.runId,
+    runId: summary.runId,
+    sourceProvenance: summary.sourceProvenance,
+    acceptanceCommand: summary.command,
+    failedStage: summary.failedStage,
+    failedCommand: summary.failedCommand,
+    firstFailure: {
+      ...summary.firstFailure,
+      testcaseId: childCaseFailure?.testId || childCaseFailure?.caseId ||
+        summary.firstFailure?.testcaseId || summary.failedStage,
+      context: childCaseFailure?.reason || summary.firstFailure?.context || "",
+      error: childCaseFailure?.reason || summary.firstFailure?.error ||
+        summary.firstFailure?.context || "",
+      logPath: summary.firstFailure?.logPath || "",
+    },
+    childFailure: childCaseFailure ? {
+      phase: "ui-exact-424",
+      case: childCaseFailure.testId || childCaseFailure.caseId || "",
+      error: childCaseFailure.reason || "",
+      logPath: summary.firstFailure?.logPath || "",
+      summaryPath: uiAutomationSummary?.summaryPath || "",
+    } : (uiAutomationSummary?.failure || null),
+    cleanup: {
+      acceptance: summary.cleanup || null,
+      child: uiAutomationSummary?.cleanup || null,
+    },
+    diagnosticArtifacts,
+    priorFirstFailure,
+  };
+  writePriorFirstFailure(payload);
 }
 
 function readPreservedLongrun30Evidence() {
@@ -1375,6 +1432,7 @@ function writeStageLog(stageId, lines) {
 
 function writeAcceptanceArtifacts() {
   const summary = buildActualSummary();
+  if (summary.result === "FAIL") writeCurrentFirstFailure(summary);
   const reportText = renderReport(summary);
   summary.finalEvidence = buildCanonicalFinalEvidenceManifest(reportText, summary);
   writeJson(summaryPath, summary);

@@ -34,6 +34,22 @@ export const review4WorkflowClasses = Object.freeze([
   "negative-route",
 ]);
 
+const endpointOwnedActionCases = new Set([
+  "AUTH-020",
+  "SRC-008",
+  "SRC-010",
+  "SRC-019",
+  "SRC-031",
+]);
+
+const endpointOwnedActionSpecs = Object.freeze({
+  "AUTH-020": Object.freeze({ method: "POST", path: "/ops/api/users/{fixtureId}/disable", allowedStatuses: Object.freeze([200]) }),
+  "SRC-008": Object.freeze({ method: "POST", path: "/ops/api/sources", allowedStatuses: Object.freeze([201]) }),
+  "SRC-010": Object.freeze({ method: "DELETE", path: "/ops/api/sources/{fixtureId}", allowedStatuses: Object.freeze([200]) }),
+  "SRC-019": Object.freeze({ method: "DELETE", path: "/ops/api/views/{fixtureId}", allowedStatuses: Object.freeze([200]) }),
+  "SRC-031": Object.freeze({ method: "POST", path: "/ops/api/onvif/import-draft", allowedStatuses: Object.freeze([200]) }),
+});
+
 export function createNativeExactPreExecutionFailureSummary({
   error,
   manifest,
@@ -1690,7 +1706,8 @@ export function validateNativeExactManifest({ manifest, canonical, implementatio
     assert(locatorIdentity(item.workflow.expectedProductState.locator) !==
       locatorIdentity(item.workflow.independentReadback.locator),
     `${item.caseId} state/readback locator self-compare forbidden`);
-    if (["persisted-mutation", "form-submit"].includes(item.workflow.workflowClass)) {
+    if (["persisted-mutation", "form-submit"].includes(item.workflow.workflowClass) ||
+        item.workflow.productAction?.kind === "endpoint-owned-action") {
       assert(item.workflow.cleanup.some(cleanup => {
         const inverseCount = cleanup.inverseAction?.endpoint ? 1 : 0;
         const inverseLocalCount = cleanup.inverseAction?.localAction ? 1 : 0;
@@ -2045,7 +2062,8 @@ function buildCaseNativeWorkflow({
     canonicalSelector,
     productAction,
   });
-  const mutatesFixture = workflowClass === "persisted-mutation" || workflowClass === "form-submit";
+  const endpointOwnedAction = endpointOwnedActionCases.has(caseId);
+  const mutatesFixture = workflowClass === "persisted-mutation" || workflowClass === "form-submit" || endpointOwnedAction;
   const setup = [
     {
       kind: "bind-role-session",
@@ -2089,7 +2107,14 @@ function buildCaseNativeWorkflow({
     }));
   }
 
-  if (workflowClass === "negative-route") {
+  if (endpointOwnedAction) {
+    controlSequence.push(nativeAction("execute-endpoint-action", {
+      actionId: `${caseId}:execute-endpoint-action`,
+      endpoint: structuredClone(productAction.endpoint),
+      inputId: `${caseId}:endpoint-action-fixture`,
+      ownership: "product-endpoint-no-primary-control",
+    }));
+  } else if (workflowClass === "negative-route") {
     if (crossRouteNegative) {
       controlSequence.push(nativeAction("navigate-negative", {
         actionId: `${caseId}:navigate-negative`,
@@ -2224,12 +2249,13 @@ function buildMutationCleanup({
 }) {
   const fixtureId = workflowFixtureId(caseId);
   const endpointPath = String(productAction.endpoint?.path || "");
-  const sourceViewState = [
+  const sourceViewState = ["SRC-008", "SRC-010", "SRC-019"].includes(caseId) || [
     "/ops/api/sources/",
     "/ops/api/views/",
     "/ops/api/onvif/channels/",
   ].some(prefix => endpointPath.startsWith(prefix));
   const fileBackedState = workflowClass === "form-submit" ||
+    caseId === "SRC-031" ||
     endpointPath === "/client/api/preferences/live-layout" ||
     endpointPath.startsWith("/ops/api/users") ||
     endpointPath.startsWith("/ops/api/invites") ||
@@ -2324,6 +2350,19 @@ function buildProductAction({
   crossRouteNegative,
 }) {
   const caseId = canonicalCase.testId;
+  if (endpointOwnedActionCases.has(caseId)) {
+    const endpoint = endpointOwnedActionSpecs[caseId];
+    return {
+      kind: "endpoint-owned-action",
+      endpoint: {
+        method: endpoint.method,
+        path: endpoint.path,
+        allowedStatuses: [...endpoint.allowedStatuses],
+      },
+      localAction: null,
+      primaryControlRequired: false,
+    };
+  }
   if (workflowClass === "negative-route") {
     return {
       kind: "negative-route-request",
@@ -2381,17 +2420,6 @@ function buildProductAction({
         target: primaryControl.selector,
         effect: implementationItem.semanticEvidence?.stateOracle?.expectedBehavior || "reviewed local product state transition",
       },
-    };
-  }
-  if (caseId === "SRC-031") {
-    return {
-      kind: "product-boundary-read",
-      endpoint: {
-        method: "POST",
-        path: "/ops/api/onvif/import-draft",
-        allowedStatuses: [200],
-      },
-      localAction: null,
     };
   }
   if (caseId === "RULE-097") {
@@ -2542,6 +2570,10 @@ function buildWorkflowInputs({ canonicalCase, implementationItem, workflowClass,
     valueSha256: implementationItem.semanticEvidence?.stateOracle?.expectedBehaviorSha256 || "",
     sensitive: false,
   }];
+  if (endpointOwnedActionCases.has(caseId)) {
+    inputs.push(endpointOwnedActionInput(canonicalCase, productAction));
+    return inputs;
+  }
   if (workflowClass === "form-submit") {
     const contract = formSubmitSpec(caseId, canonicalSelector);
     const values = formValues(caseId, contract);
@@ -2709,6 +2741,70 @@ function buildWorkflowInputs({ canonicalCase, implementationItem, workflowClass,
     sensitive: false,
   });
   return inputs;
+}
+
+function endpointOwnedActionInput(canonicalCase, productAction) {
+  const caseId = canonicalCase.testId;
+  const fixtureId = workflowFixtureId(caseId);
+  const source = {
+    sourceId: fixtureId,
+    displayName: `REVIEW4 ${caseId} source`,
+    kind: "file",
+    file: "sample_h264.mp4",
+    enabled: true,
+    zone: "REVIEW4",
+  };
+  const publishedView = {
+    viewId: fixtureId,
+    displayName: `REVIEW4 ${caseId} view`,
+    sourceId: fixtureId,
+    allowedOverlayModes: ["raw", "va-overlay", "va-rule"],
+    allowedRuleIds: [],
+    clientGroups: ["default"],
+    showDashboard: true,
+    showEvents: true,
+    showMetadataSummary: true,
+    maxTiles: 1,
+    enabled: true,
+  };
+  let body = null;
+  let setup = { kind: "none" };
+  let readback = { kind: "endpoint-response-and-authoritative-registry" };
+  if (caseId === "AUTH-020") {
+    setup = { kind: "active-auth-user", username: fixtureId, role: "viewer" };
+    readback = { kind: "disabled-user-store-list-session-login" };
+  } else if (caseId === "SRC-008") {
+    body = source;
+    setup = { kind: "source-absent", sourceId: fixtureId };
+    readback = { kind: "created-source-registry", sourceId: fixtureId };
+  } else if (caseId === "SRC-010") {
+    setup = { kind: "source-view-pair", source, publishedView };
+    readback = { kind: "disabled-source-and-client-boundary", sourceId: fixtureId, viewId: fixtureId };
+  } else if (caseId === "SRC-019") {
+    setup = { kind: "source-view-pair", source, publishedView };
+    readback = { kind: "disabled-view-and-client-boundary", sourceId: fixtureId, viewId: fixtureId };
+  } else if (caseId === "SRC-031") {
+    body = JSON.parse(fs.readFileSync(path.join(rootDir, "test/fixtures/onvif_live_import_stub.json"), "utf8"));
+    setup = { kind: "registry-equal-before" };
+    readback = { kind: "onvif-draft-no-registry-mutation" };
+  }
+  return {
+    inputId: `${caseId}:endpoint-action-fixture`,
+    kind: "endpoint-action-fixture",
+    actualValue: {
+      method: productAction.endpoint.method,
+      path: productAction.endpoint.path,
+      body,
+      setup,
+      readback,
+    },
+    seedReference: {
+      fixtureId,
+      accountRole: canonicalCase.accountRole,
+      route: canonicalCase.route,
+    },
+    sensitive: false,
+  };
 }
 
 function persistedMutationInputValues(caseId) {
@@ -3140,6 +3236,15 @@ function semanticReadbackExpectation(action) {
     return { submitted: true, method: action.method, action: action.action, fields: [...action.fields] };
   }
   if (action.kind === "execute-persisted-action") return { persistedMutationObserved: true };
+  if (action.kind === "execute-endpoint-action") {
+    return {
+      endpointActionObserved: true,
+      method: action.endpoint.method,
+      path: action.endpoint.path,
+      correlationRequired: true,
+      independentReadbackRequired: true,
+    };
+  }
   if (action.kind === "verify-independent-readback") {
     return {
       readbackIdentity: action.readbackIdentity,

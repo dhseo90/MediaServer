@@ -395,6 +395,37 @@ await check("response redaction separates UI-068 narrative labels from structure
     "provider JSON material was not rejected");
 });
 
+await check("endpoint-owned mutation requires the actual method/path/status/correlation response", async () => {
+  const fixtureId = "auth-020-runtime-contract";
+  const correlationId = "AUTH-020:endpoint-contract";
+  const response = {
+    phase: "response",
+    method: "POST",
+    url: `http://runtime.invalid/ops/api/users/${fixtureId}/disable`,
+    status: 200,
+    correlationId,
+    safeResponseBody: { status: "disabled", user: { username: fixtureId, enabled: false } },
+    responseHeaders: { "content-type": "application/json" },
+  };
+  const execute = entries => executeCatalogRuntimeOracle({
+    browser: authMutationBrowser(),
+    item: exactItem("AUTH-020", "/ops/users"),
+    fixtureId,
+    correlationId,
+    primaryNetworkEntries: entries,
+  });
+  const passed = await execute([response]);
+  assert(passed.responses.length === 1 && passed.responses[0].source === "correlated-browser-network",
+    "AUTH-020 actual endpoint response evidence missing");
+  await expectReject(() => execute([]), "exact mutation response missing");
+  await expectReject(() => execute([{ ...response, method: "DELETE" }]), "exact mutation response missing");
+  await expectReject(() => execute([{ ...response, url: "http://runtime.invalid/ops/api/users/wrong/disable" }]),
+    "exact mutation response missing");
+  await expectReject(() => execute([{ ...response, status: 409 }]), "exact request status mismatch");
+  await expectReject(() => execute([{ ...response, correlationId: "AUTH-020:wrong-correlation" }]),
+    "exact mutation response correlation mismatch");
+});
+
 await check("DOM redaction labels are distinct from exposed credential values", async () => {
   const selector = '[data-testid="ops-vlm-page"]';
   const execute = ({ text, formControls = [] }) => executeCatalogRuntimeOracle({
@@ -677,6 +708,17 @@ function coreBrowser({ attributes = [{ "data-testid": "ops-home-page" }] } = {})
     body,
     texts: { '[data-testid="ops-home-page"]': "ops-workspace-home" },
     attributes: { '[data-testid="ops-home-page"]': attributes },
+  });
+}
+
+function authMutationBrowser() {
+  const selector = '[data-testid="ops-users-page"]';
+  return fakeBrowser({
+    route: "/ops/users",
+    status: 200,
+    body: '<main data-testid="ops-users-page">users</main>',
+    texts: { [selector]: "users" },
+    attributes: { [selector]: [{ "data-testid": "ops-users-page" }] },
   });
 }
 

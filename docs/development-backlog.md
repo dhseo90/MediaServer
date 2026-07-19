@@ -6390,6 +6390,12 @@ Canonical actual FAIL evidence는 그대로 보존하며 장시간/UI/release ac
 - `v390_ui_native_exact_cases_lib.mjs`와 `v390_ui_native_exact_cases.json`은 canonical 424 workflow를
   current owner/control/action/readback에 다시 생성하며 `verify-v390-ui-native-exact-cases-contract`가
   ordered 424, positive 423, negative route 1, unsupported 0을 판정합니다.
+- AUTH-020, SRC-008, SRC-010, SRC-019, SRC-031의 primary-control 없는 mutation은
+  `v390_ui_native_exact_cases_lib.mjs`의 endpoint-owned action, `run_v390_ui_native_exact_cases.mjs`의
+  actual browser fetch/network observation, `v390_ui_case_runtime.mjs`의 deterministic setup·independent
+  readback·success/exception cleanup으로 결속합니다. `verify_v390_test_acceptance_bundle.mjs`는 actual case와
+  source-contract failure 모두 root first-failure를 current commit/run/case/error/log로 갱신하고 과거 실패를
+  `priorFirstFailure`로만 보존합니다. 이 static correction은 actual UI/Policy v4/장시간 PASS가 아닙니다.
 - clean checkout은 `video/imports/va_tracking_event_long_1280x720_30fps_h264.mp4`를 tracked fixture로
   포함합니다. `manual_ui_fulltest_va_seed_matrix.json`은 7,284,400 bytes와 SHA-256
   `24147fb07bb3a1e1f86bb41d2cce6274a6f39eb75671a299a61ca9852f37a122`를 고정하고,

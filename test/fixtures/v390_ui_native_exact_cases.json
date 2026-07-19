@@ -5,7 +5,7 @@
     "canonicalSha256": "56b9fa6f376664856e8df1a6434b8659e91675f5a7f3884fb4c865736824c80c",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "a13a166fdfb885a1b59968c18c77db1dfab653cc0be180574bb2eaabf6e1f0d8",
+    "implementationProjectionSha256": "2e535e6db6c27e81b1f59c6add31ed1ed396e9b6de030e5e9aac6802303f8200",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
     "runtimeOracleCatalogSha256": "f45216388c4367deb56cc9e3a71d18573f5027ebe874d912b9e117e9a3546996",
     "selection": "canonical-exact-ordered-test-id"
@@ -80465,28 +80465,38 @@
           }
         },
         {
-          "kind": "assert-product-boundary",
+          "kind": "execute-endpoint-action",
           "dispatch": "playwright-native",
-          "actionId": "AUTH-020:assert-product-boundary",
-          "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#assert_user_enabled_authoritative_runtime#c4cede16416f8ec91d652236a84379f35fbd17dac53db698200b5c6e247da4bf",
+          "actionId": "AUTH-020:execute-endpoint-action",
+          "endpoint": {
+            "method": "POST",
+            "path": "/ops/api/users/{fixtureId}/disable",
+            "allowedStatuses": [
+              200
+            ]
+          },
+          "inputId": "AUTH-020:endpoint-action-fixture",
+          "ownership": "product-endpoint-no-primary-control",
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
             "phase": "primary-action",
-            "actionId": "AUTH-020:assert-product-boundary",
-            "actionKind": "assert-product-boundary",
+            "actionId": "AUTH-020:execute-endpoint-action",
+            "actionKind": "execute-endpoint-action",
             "controlSelector": null,
             "linkedPrimaryActionId": null,
             "requiredSource": "endpoint-dom",
-            "correlationId": "AUTH-020:assert-product-boundary:completion",
+            "correlationId": "AUTH-020:execute-endpoint-action:completion",
             "request": {
               "correlationHeader": "x-media-server-correlation-id",
-              "correlationId": "AUTH-020:assert-product-boundary:completion",
+              "correlationId": "AUTH-020:execute-endpoint-action:completion",
               "correlationSource": "request-header",
-              "method": "GET",
-              "urlPathTemplate": "/ops/users",
-              "urlPath": "/ops/users",
-              "pathParameters": {},
+              "method": "POST",
+              "urlPathTemplate": "/ops/api/users/{fixtureId}/disable",
+              "urlPath": "/ops/api/users/auth-020-review4-fixture/disable",
+              "pathParameters": {
+                "fixtureId": "auth-020-review4-fixture"
+              },
               "allowedStatuses": [
                 200
               ]
@@ -80507,8 +80517,11 @@
             },
             "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#assert_user_enabled_authoritative_runtime#c4cede16416f8ec91d652236a84379f35fbd17dac53db698200b5c6e247da4bf",
             "readbackExpectation": {
-              "exists": true,
-              "visible": true
+              "endpointActionObserved": true,
+              "method": "POST",
+              "path": "/ops/api/users/{fixtureId}/disable",
+              "correlationRequired": true,
+              "independentReadbackRequired": true
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -80539,7 +80552,7 @@
             "actionId": "AUTH-020:verify-independent-readback",
             "actionKind": "verify-independent-readback",
             "controlSelector": null,
-            "linkedPrimaryActionId": "AUTH-020:assert-product-boundary",
+            "linkedPrimaryActionId": "AUTH-020:execute-endpoint-action",
             "requiredSource": "endpoint-dom",
             "correlationId": "AUTH-020:verify-independent-readback:completion",
             "request": null,
@@ -80595,9 +80608,9 @@
             "strategy": "hidden-disabled",
             "route": "/ops/users",
             "semanticCallChainSha256": "0ac67505e5fad4896d06a8c24c49b09c8f9b5deb9074b41b05dc1e0d62d7ec37",
-            "persistedMutation": false,
+            "persistedMutation": true,
             "fixtureId": "auth-020-review4-fixture",
-            "beforeSnapshotRef": null
+            "beforeSnapshotRef": "AUTH-020:before-product-state"
           }
         ],
         "inputs": [
@@ -80608,12 +80621,25 @@
             "sensitive": false
           },
           {
-            "inputId": "AUTH-020:product-read-input",
-            "kind": "product-state-request",
+            "inputId": "AUTH-020:endpoint-action-fixture",
+            "kind": "endpoint-action-fixture",
             "actualValue": {
-              "method": "GET",
-              "path": "/ops/users",
-              "accountRole": "admin"
+              "method": "POST",
+              "path": "/ops/api/users/{fixtureId}/disable",
+              "body": null,
+              "setup": {
+                "kind": "active-auth-user",
+                "username": "auth-020-review4-fixture",
+                "role": "viewer"
+              },
+              "readback": {
+                "kind": "disabled-user-store-list-session-login"
+              }
+            },
+            "seedReference": {
+              "fixtureId": "auth-020-review4-fixture",
+              "accountRole": "admin",
+              "route": "/ops/users"
             },
             "sensitive": false
           }
@@ -80643,15 +80669,16 @@
           }
         },
         "productAction": {
-          "kind": "product-boundary-read",
+          "kind": "endpoint-owned-action",
           "endpoint": {
-            "method": "GET",
-            "path": "/ops/users",
+            "method": "POST",
+            "path": "/ops/api/users/{fixtureId}/disable",
             "allowedStatuses": [
               200
             ]
           },
-          "localAction": null
+          "localAction": null,
+          "primaryControlRequired": false
         },
         "expectedProductState": {
           "identity": "product-state:src/ingress/http_auth.cpp#SetAuthUserEnabled#e9f6b7aba958a8cf88771cac97aa23bc7efcb2083c554b3c5f2ba49631b1348b",
@@ -80751,28 +80778,38 @@
             }
           },
           {
-            "kind": "assert-product-boundary",
+            "kind": "execute-endpoint-action",
             "dispatch": "playwright-native",
-            "actionId": "AUTH-020:assert-product-boundary",
-            "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#assert_user_enabled_authoritative_runtime#c4cede16416f8ec91d652236a84379f35fbd17dac53db698200b5c6e247da4bf",
+            "actionId": "AUTH-020:execute-endpoint-action",
+            "endpoint": {
+              "method": "POST",
+              "path": "/ops/api/users/{fixtureId}/disable",
+              "allowedStatuses": [
+                200
+              ]
+            },
+            "inputId": "AUTH-020:endpoint-action-fixture",
+            "ownership": "product-endpoint-no-primary-control",
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "AUTH-020:assert-product-boundary",
-              "actionKind": "assert-product-boundary",
+              "actionId": "AUTH-020:execute-endpoint-action",
+              "actionKind": "execute-endpoint-action",
               "controlSelector": null,
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
-              "correlationId": "AUTH-020:assert-product-boundary:completion",
+              "correlationId": "AUTH-020:execute-endpoint-action:completion",
               "request": {
                 "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "AUTH-020:assert-product-boundary:completion",
+                "correlationId": "AUTH-020:execute-endpoint-action:completion",
                 "correlationSource": "request-header",
-                "method": "GET",
-                "urlPathTemplate": "/ops/users",
-                "urlPath": "/ops/users",
-                "pathParameters": {},
+                "method": "POST",
+                "urlPathTemplate": "/ops/api/users/{fixtureId}/disable",
+                "urlPath": "/ops/api/users/auth-020-review4-fixture/disable",
+                "pathParameters": {
+                  "fixtureId": "auth-020-review4-fixture"
+                },
                 "allowedStatuses": [
                   200
                 ]
@@ -80793,8 +80830,11 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#assert_user_enabled_authoritative_runtime#c4cede16416f8ec91d652236a84379f35fbd17dac53db698200b5c6e247da4bf",
               "readbackExpectation": {
-                "exists": true,
-                "visible": true
+                "endpointActionObserved": true,
+                "method": "POST",
+                "path": "/ops/api/users/{fixtureId}/disable",
+                "correlationRequired": true,
+                "independentReadbackRequired": true
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -80825,7 +80865,7 @@
               "actionId": "AUTH-020:verify-independent-readback",
               "actionKind": "verify-independent-readback",
               "controlSelector": null,
-              "linkedPrimaryActionId": "AUTH-020:assert-product-boundary",
+              "linkedPrimaryActionId": "AUTH-020:execute-endpoint-action",
               "requiredSource": "endpoint-dom",
               "correlationId": "AUTH-020:verify-independent-readback:completion",
               "request": null,
@@ -80879,20 +80919,22 @@
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "AUTH-020:assert-product-boundary",
-              "actionKind": "assert-product-boundary",
+              "actionId": "AUTH-020:execute-endpoint-action",
+              "actionKind": "execute-endpoint-action",
               "controlSelector": null,
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
-              "correlationId": "AUTH-020:assert-product-boundary:completion",
+              "correlationId": "AUTH-020:execute-endpoint-action:completion",
               "request": {
                 "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "AUTH-020:assert-product-boundary:completion",
+                "correlationId": "AUTH-020:execute-endpoint-action:completion",
                 "correlationSource": "request-header",
-                "method": "GET",
-                "urlPathTemplate": "/ops/users",
-                "urlPath": "/ops/users",
-                "pathParameters": {},
+                "method": "POST",
+                "urlPathTemplate": "/ops/api/users/{fixtureId}/disable",
+                "urlPath": "/ops/api/users/auth-020-review4-fixture/disable",
+                "pathParameters": {
+                  "fixtureId": "auth-020-review4-fixture"
+                },
                 "allowedStatuses": [
                   200
                 ]
@@ -80913,8 +80955,11 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#assert_user_enabled_authoritative_runtime#c4cede16416f8ec91d652236a84379f35fbd17dac53db698200b5c6e247da4bf",
               "readbackExpectation": {
-                "exists": true,
-                "visible": true
+                "endpointActionObserved": true,
+                "method": "POST",
+                "path": "/ops/api/users/{fixtureId}/disable",
+                "correlationRequired": true,
+                "independentReadbackRequired": true
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -80926,11 +80971,43 @@
         ],
         "cleanup": [
           {
-            "kind": "no-op-cleanup",
-            "cleanupId": "AUTH-020:no-persisted-mutation",
-            "persistedMutation": false,
-            "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "0ac67505e5fad4896d06a8c24c49b09c8f9b5deb9074b41b05dc1e0d62d7ec37"
+            "kind": "restore-fixture-state",
+            "cleanupId": "AUTH-020:restore-fixture",
+            "fixtureId": "auth-020-review4-fixture",
+            "strategy": "restore-before-snapshot",
+            "beforeSnapshotRef": "AUTH-020:before-product-state",
+            "inverseAction": {
+              "endpoint": null,
+              "localAction": {
+                "type": "restore-file-backed-fixture-snapshot",
+                "target": "auth-020-review4-fixture",
+                "effect": "restore every owned file-backed product state byte-for-byte"
+              }
+            },
+            "afterReadback": {
+              "identity": "independent-readback:scripts/internal/verify_auth_workflow.sh#assert_user_enabled_authoritative_runtime#c4cede16416f8ec91d652236a84379f35fbd17dac53db698200b5c6e247da4bf:cleanup",
+              "expectation": "equal-before",
+              "locator": {
+                "file": "scripts/internal/verify_auth_workflow.sh",
+                "symbol": "assert_user_enabled_authoritative_runtime",
+                "anchor": "assert (stored.get(\"enabled\") is False and listed_user.get(\"enabled\") is False and sys.argv[3] == \"401\" and sys.argv[4] == \"401\"), \"user.enabled disable/delete API/store/login and existing session revoke readback failed\"",
+                "anchorSha256": "9d1383153124be67a7d5736ef2df6412676ba12fd6e2c51e1f8258225a086534",
+                "contextSha256": "c4cede16416f8ec91d652236a84379f35fbd17dac53db698200b5c6e247da4bf"
+              }
+            },
+            "readback": {
+              "identity": "independent-readback:scripts/internal/verify_auth_workflow.sh#assert_user_enabled_authoritative_runtime#c4cede16416f8ec91d652236a84379f35fbd17dac53db698200b5c6e247da4bf",
+              "kind": "reviewed-verifier-readback",
+              "locator": {
+                "file": "scripts/internal/verify_auth_workflow.sh",
+                "symbol": "assert_user_enabled_authoritative_runtime",
+                "anchor": "assert (stored.get(\"enabled\") is False and listed_user.get(\"enabled\") is False and sys.argv[3] == \"401\" and sys.argv[4] == \"401\"), \"user.enabled disable/delete API/store/login and existing session revoke readback failed\"",
+                "anchorSha256": "9d1383153124be67a7d5736ef2df6412676ba12fd6e2c51e1f8258225a086534",
+                "contextSha256": "c4cede16416f8ec91d652236a84379f35fbd17dac53db698200b5c6e247da4bf"
+              },
+              "verifierCommand": "verify-auth-users",
+              "assertedSemanticDigest": "0ac67505e5fad4896d06a8c24c49b09c8f9b5deb9074b41b05dc1e0d62d7ec37"
+            }
           }
         ]
       },
@@ -80949,8 +81026,8 @@
           "event-record",
           "server-log"
         ],
-        "primaryActionId": "AUTH-020:assert-product-boundary",
-        "primaryActionCorrelationId": "AUTH-020:assert-product-boundary:completion",
+        "primaryActionId": "AUTH-020:execute-endpoint-action",
+        "primaryActionCorrelationId": "AUTH-020:execute-endpoint-action:completion",
         "primaryControlSelector": null,
         "independentReadbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#assert_user_enabled_authoritative_runtime#c4cede16416f8ec91d652236a84379f35fbd17dac53db698200b5c6e247da4bf"
       },
@@ -98567,30 +98644,38 @@
           }
         },
         {
-          "kind": "assert-product-boundary",
+          "kind": "execute-endpoint-action",
           "dispatch": "playwright-native",
-          "actionId": "SRC-008:assert-product-boundary",
-          "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertSourceCreateValidationReadback#ad16e0626bf9d9fbaba423b463ffe7c1109d9c4f6bd21e83f60bb6b7a6652b04",
+          "actionId": "SRC-008:execute-endpoint-action",
+          "endpoint": {
+            "method": "POST",
+            "path": "/ops/api/sources",
+            "allowedStatuses": [
+              201
+            ]
+          },
+          "inputId": "SRC-008:endpoint-action-fixture",
+          "ownership": "product-endpoint-no-primary-control",
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
             "phase": "primary-action",
-            "actionId": "SRC-008:assert-product-boundary",
-            "actionKind": "assert-product-boundary",
+            "actionId": "SRC-008:execute-endpoint-action",
+            "actionKind": "execute-endpoint-action",
             "controlSelector": null,
             "linkedPrimaryActionId": null,
             "requiredSource": "endpoint-dom",
-            "correlationId": "SRC-008:assert-product-boundary:completion",
+            "correlationId": "SRC-008:execute-endpoint-action:completion",
             "request": {
               "correlationHeader": "x-media-server-correlation-id",
-              "correlationId": "SRC-008:assert-product-boundary:completion",
+              "correlationId": "SRC-008:execute-endpoint-action:completion",
               "correlationSource": "request-header",
-              "method": "GET",
-              "urlPathTemplate": "/ops/sources",
-              "urlPath": "/ops/sources",
+              "method": "POST",
+              "urlPathTemplate": "/ops/api/sources",
+              "urlPath": "/ops/api/sources",
               "pathParameters": {},
               "allowedStatuses": [
-                200
+                201
               ]
             },
             "localTransition": null,
@@ -98609,8 +98694,11 @@
             },
             "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertSourceCreateValidationReadback#ad16e0626bf9d9fbaba423b463ffe7c1109d9c4f6bd21e83f60bb6b7a6652b04",
             "readbackExpectation": {
-              "exists": true,
-              "visible": true
+              "endpointActionObserved": true,
+              "method": "POST",
+              "path": "/ops/api/sources",
+              "correlationRequired": true,
+              "independentReadbackRequired": true
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -98641,7 +98729,7 @@
             "actionId": "SRC-008:verify-independent-readback",
             "actionKind": "verify-independent-readback",
             "controlSelector": null,
-            "linkedPrimaryActionId": "SRC-008:assert-product-boundary",
+            "linkedPrimaryActionId": "SRC-008:execute-endpoint-action",
             "requiredSource": "endpoint-dom",
             "correlationId": "SRC-008:verify-independent-readback:completion",
             "request": null,
@@ -98697,9 +98785,9 @@
             "strategy": "hidden-disabled",
             "route": "/ops/sources",
             "semanticCallChainSha256": "c1dd70f0aea94d7bb775f30e59f2b76e10acf468d3d2b5a4ad6546529a88ec08",
-            "persistedMutation": false,
+            "persistedMutation": true,
             "fixtureId": "src-008-review4-fixture",
-            "beforeSnapshotRef": null
+            "beforeSnapshotRef": "SRC-008:before-product-state"
           }
         ],
         "inputs": [
@@ -98710,12 +98798,32 @@
             "sensitive": false
           },
           {
-            "inputId": "SRC-008:product-read-input",
-            "kind": "product-state-request",
+            "inputId": "SRC-008:endpoint-action-fixture",
+            "kind": "endpoint-action-fixture",
             "actualValue": {
-              "method": "GET",
-              "path": "/ops/sources",
-              "accountRole": "operator"
+              "method": "POST",
+              "path": "/ops/api/sources",
+              "body": {
+                "sourceId": "src-008-review4-fixture",
+                "displayName": "REVIEW4 SRC-008 source",
+                "kind": "file",
+                "file": "sample_h264.mp4",
+                "enabled": true,
+                "zone": "REVIEW4"
+              },
+              "setup": {
+                "kind": "source-absent",
+                "sourceId": "src-008-review4-fixture"
+              },
+              "readback": {
+                "kind": "created-source-registry",
+                "sourceId": "src-008-review4-fixture"
+              }
+            },
+            "seedReference": {
+              "fixtureId": "src-008-review4-fixture",
+              "accountRole": "operator",
+              "route": "/ops/sources"
             },
             "sensitive": false
           }
@@ -98745,15 +98853,16 @@
           }
         },
         "productAction": {
-          "kind": "product-boundary-read",
+          "kind": "endpoint-owned-action",
           "endpoint": {
-            "method": "GET",
-            "path": "/ops/sources",
+            "method": "POST",
+            "path": "/ops/api/sources",
             "allowedStatuses": [
-              200
+              201
             ]
           },
-          "localAction": null
+          "localAction": null,
+          "primaryControlRequired": false
         },
         "expectedProductState": {
           "identity": "product-state:src/ingress/source_view_registry.cpp#ParseSourceRecord#674f3d0691a4b9b352f58d0dd18326e2d7bc073a36582c84dd388f9cf3f1a2f4",
@@ -98853,30 +98962,38 @@
             }
           },
           {
-            "kind": "assert-product-boundary",
+            "kind": "execute-endpoint-action",
             "dispatch": "playwright-native",
-            "actionId": "SRC-008:assert-product-boundary",
-            "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertSourceCreateValidationReadback#ad16e0626bf9d9fbaba423b463ffe7c1109d9c4f6bd21e83f60bb6b7a6652b04",
+            "actionId": "SRC-008:execute-endpoint-action",
+            "endpoint": {
+              "method": "POST",
+              "path": "/ops/api/sources",
+              "allowedStatuses": [
+                201
+              ]
+            },
+            "inputId": "SRC-008:endpoint-action-fixture",
+            "ownership": "product-endpoint-no-primary-control",
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "SRC-008:assert-product-boundary",
-              "actionKind": "assert-product-boundary",
+              "actionId": "SRC-008:execute-endpoint-action",
+              "actionKind": "execute-endpoint-action",
               "controlSelector": null,
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
-              "correlationId": "SRC-008:assert-product-boundary:completion",
+              "correlationId": "SRC-008:execute-endpoint-action:completion",
               "request": {
                 "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "SRC-008:assert-product-boundary:completion",
+                "correlationId": "SRC-008:execute-endpoint-action:completion",
                 "correlationSource": "request-header",
-                "method": "GET",
-                "urlPathTemplate": "/ops/sources",
-                "urlPath": "/ops/sources",
+                "method": "POST",
+                "urlPathTemplate": "/ops/api/sources",
+                "urlPath": "/ops/api/sources",
                 "pathParameters": {},
                 "allowedStatuses": [
-                  200
+                  201
                 ]
               },
               "localTransition": null,
@@ -98895,8 +99012,11 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertSourceCreateValidationReadback#ad16e0626bf9d9fbaba423b463ffe7c1109d9c4f6bd21e83f60bb6b7a6652b04",
               "readbackExpectation": {
-                "exists": true,
-                "visible": true
+                "endpointActionObserved": true,
+                "method": "POST",
+                "path": "/ops/api/sources",
+                "correlationRequired": true,
+                "independentReadbackRequired": true
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -98927,7 +99047,7 @@
               "actionId": "SRC-008:verify-independent-readback",
               "actionKind": "verify-independent-readback",
               "controlSelector": null,
-              "linkedPrimaryActionId": "SRC-008:assert-product-boundary",
+              "linkedPrimaryActionId": "SRC-008:execute-endpoint-action",
               "requiredSource": "endpoint-dom",
               "correlationId": "SRC-008:verify-independent-readback:completion",
               "request": null,
@@ -98981,22 +99101,22 @@
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "SRC-008:assert-product-boundary",
-              "actionKind": "assert-product-boundary",
+              "actionId": "SRC-008:execute-endpoint-action",
+              "actionKind": "execute-endpoint-action",
               "controlSelector": null,
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
-              "correlationId": "SRC-008:assert-product-boundary:completion",
+              "correlationId": "SRC-008:execute-endpoint-action:completion",
               "request": {
                 "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "SRC-008:assert-product-boundary:completion",
+                "correlationId": "SRC-008:execute-endpoint-action:completion",
                 "correlationSource": "request-header",
-                "method": "GET",
-                "urlPathTemplate": "/ops/sources",
-                "urlPath": "/ops/sources",
+                "method": "POST",
+                "urlPathTemplate": "/ops/api/sources",
+                "urlPath": "/ops/api/sources",
                 "pathParameters": {},
                 "allowedStatuses": [
-                  200
+                  201
                 ]
               },
               "localTransition": null,
@@ -99015,8 +99135,11 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertSourceCreateValidationReadback#ad16e0626bf9d9fbaba423b463ffe7c1109d9c4f6bd21e83f60bb6b7a6652b04",
               "readbackExpectation": {
-                "exists": true,
-                "visible": true
+                "endpointActionObserved": true,
+                "method": "POST",
+                "path": "/ops/api/sources",
+                "correlationRequired": true,
+                "independentReadbackRequired": true
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -99028,11 +99151,43 @@
         ],
         "cleanup": [
           {
-            "kind": "no-op-cleanup",
-            "cleanupId": "SRC-008:no-persisted-mutation",
-            "persistedMutation": false,
-            "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "c1dd70f0aea94d7bb775f30e59f2b76e10acf468d3d2b5a4ad6546529a88ec08"
+            "kind": "restore-fixture-state",
+            "cleanupId": "SRC-008:restore-fixture",
+            "fixtureId": "src-008-review4-fixture",
+            "strategy": "restore-before-snapshot",
+            "beforeSnapshotRef": "SRC-008:before-product-state",
+            "inverseAction": {
+              "endpoint": null,
+              "localAction": {
+                "type": "restore-source-view-snapshot",
+                "target": "src-008-review4-fixture",
+                "effect": "restore an existing source/view pair or disable a suite-created pair before isolated server teardown"
+              }
+            },
+            "afterReadback": {
+              "identity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertSourceCreateValidationReadback#ad16e0626bf9d9fbaba423b463ffe7c1109d9c4f6bd21e83f60bb6b7a6652b04:cleanup",
+              "expectation": "inactive-or-equal-before",
+              "locator": {
+                "file": "scripts/internal/verify_ops_source_registry_api.mjs",
+                "symbol": "assertSourceCreateValidationReadback",
+                "anchor": "assert(invalidStatus === 400 && Boolean(invalid.error) && !sources.some(item => String(item.sourceId) === \"\"), \"SRC-008 invalid source create rejection and successful row preservation failed\");",
+                "anchorSha256": "0ff099b38379a0273a766875cfdc109b8baac2158d44c7fa5642eec9a8710ee9",
+                "contextSha256": "ad16e0626bf9d9fbaba423b463ffe7c1109d9c4f6bd21e83f60bb6b7a6652b04"
+              }
+            },
+            "readback": {
+              "identity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertSourceCreateValidationReadback#ad16e0626bf9d9fbaba423b463ffe7c1109d9c4f6bd21e83f60bb6b7a6652b04",
+              "kind": "reviewed-verifier-readback",
+              "locator": {
+                "file": "scripts/internal/verify_ops_source_registry_api.mjs",
+                "symbol": "assertSourceCreateValidationReadback",
+                "anchor": "assert(invalidStatus === 400 && Boolean(invalid.error) && !sources.some(item => String(item.sourceId) === \"\"), \"SRC-008 invalid source create rejection and successful row preservation failed\");",
+                "anchorSha256": "0ff099b38379a0273a766875cfdc109b8baac2158d44c7fa5642eec9a8710ee9",
+                "contextSha256": "ad16e0626bf9d9fbaba423b463ffe7c1109d9c4f6bd21e83f60bb6b7a6652b04"
+              },
+              "verifierCommand": "verify-ops-source-registry-api",
+              "assertedSemanticDigest": "c1dd70f0aea94d7bb775f30e59f2b76e10acf468d3d2b5a4ad6546529a88ec08"
+            }
           }
         ]
       },
@@ -99051,8 +99206,8 @@
           "event-record",
           "server-log"
         ],
-        "primaryActionId": "SRC-008:assert-product-boundary",
-        "primaryActionCorrelationId": "SRC-008:assert-product-boundary:completion",
+        "primaryActionId": "SRC-008:execute-endpoint-action",
+        "primaryActionCorrelationId": "SRC-008:execute-endpoint-action:completion",
         "primaryControlSelector": null,
         "independentReadbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertSourceCreateValidationReadback#ad16e0626bf9d9fbaba423b463ffe7c1109d9c4f6bd21e83f60bb6b7a6652b04"
       },
@@ -99922,28 +100077,38 @@
           }
         },
         {
-          "kind": "assert-product-boundary",
+          "kind": "execute-endpoint-action",
           "dispatch": "playwright-native",
-          "actionId": "SRC-010:assert-product-boundary",
-          "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertSourceSoftDisableReadback#905c084653e99f4cfc200af9c95fa68373b452d10dc0480a8e665068f57be060",
+          "actionId": "SRC-010:execute-endpoint-action",
+          "endpoint": {
+            "method": "DELETE",
+            "path": "/ops/api/sources/{fixtureId}",
+            "allowedStatuses": [
+              200
+            ]
+          },
+          "inputId": "SRC-010:endpoint-action-fixture",
+          "ownership": "product-endpoint-no-primary-control",
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
             "phase": "primary-action",
-            "actionId": "SRC-010:assert-product-boundary",
-            "actionKind": "assert-product-boundary",
+            "actionId": "SRC-010:execute-endpoint-action",
+            "actionKind": "execute-endpoint-action",
             "controlSelector": null,
             "linkedPrimaryActionId": null,
             "requiredSource": "endpoint-dom",
-            "correlationId": "SRC-010:assert-product-boundary:completion",
+            "correlationId": "SRC-010:execute-endpoint-action:completion",
             "request": {
               "correlationHeader": "x-media-server-correlation-id",
-              "correlationId": "SRC-010:assert-product-boundary:completion",
+              "correlationId": "SRC-010:execute-endpoint-action:completion",
               "correlationSource": "request-header",
-              "method": "GET",
-              "urlPathTemplate": "/ops/sources",
-              "urlPath": "/ops/sources",
-              "pathParameters": {},
+              "method": "DELETE",
+              "urlPathTemplate": "/ops/api/sources/{fixtureId}",
+              "urlPath": "/ops/api/sources/src-010-review4-fixture",
+              "pathParameters": {
+                "fixtureId": "src-010-review4-fixture"
+              },
               "allowedStatuses": [
                 200
               ]
@@ -99964,8 +100129,11 @@
             },
             "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertSourceSoftDisableReadback#905c084653e99f4cfc200af9c95fa68373b452d10dc0480a8e665068f57be060",
             "readbackExpectation": {
-              "exists": true,
-              "visible": true
+              "endpointActionObserved": true,
+              "method": "DELETE",
+              "path": "/ops/api/sources/{fixtureId}",
+              "correlationRequired": true,
+              "independentReadbackRequired": true
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -99996,7 +100164,7 @@
             "actionId": "SRC-010:verify-independent-readback",
             "actionKind": "verify-independent-readback",
             "controlSelector": null,
-            "linkedPrimaryActionId": "SRC-010:assert-product-boundary",
+            "linkedPrimaryActionId": "SRC-010:execute-endpoint-action",
             "requiredSource": "endpoint-dom",
             "correlationId": "SRC-010:verify-independent-readback:completion",
             "request": null,
@@ -100052,9 +100220,9 @@
             "strategy": "hidden-disabled",
             "route": "/ops/sources",
             "semanticCallChainSha256": "802dec525416e0f2c28bbce7c7bcfd02442bf486502750125447bd33ca37fdaf",
-            "persistedMutation": false,
+            "persistedMutation": true,
             "fixtureId": "src-010-review4-fixture",
-            "beforeSnapshotRef": null
+            "beforeSnapshotRef": "SRC-010:before-product-state"
           }
         ],
         "inputs": [
@@ -100065,12 +100233,52 @@
             "sensitive": false
           },
           {
-            "inputId": "SRC-010:product-read-input",
-            "kind": "product-state-request",
+            "inputId": "SRC-010:endpoint-action-fixture",
+            "kind": "endpoint-action-fixture",
             "actualValue": {
-              "method": "GET",
-              "path": "/ops/sources",
-              "accountRole": "operator"
+              "method": "DELETE",
+              "path": "/ops/api/sources/{fixtureId}",
+              "body": null,
+              "setup": {
+                "kind": "source-view-pair",
+                "source": {
+                  "sourceId": "src-010-review4-fixture",
+                  "displayName": "REVIEW4 SRC-010 source",
+                  "kind": "file",
+                  "file": "sample_h264.mp4",
+                  "enabled": true,
+                  "zone": "REVIEW4"
+                },
+                "publishedView": {
+                  "viewId": "src-010-review4-fixture",
+                  "displayName": "REVIEW4 SRC-010 view",
+                  "sourceId": "src-010-review4-fixture",
+                  "allowedOverlayModes": [
+                    "raw",
+                    "va-overlay",
+                    "va-rule"
+                  ],
+                  "allowedRuleIds": [],
+                  "clientGroups": [
+                    "default"
+                  ],
+                  "showDashboard": true,
+                  "showEvents": true,
+                  "showMetadataSummary": true,
+                  "maxTiles": 1,
+                  "enabled": true
+                }
+              },
+              "readback": {
+                "kind": "disabled-source-and-client-boundary",
+                "sourceId": "src-010-review4-fixture",
+                "viewId": "src-010-review4-fixture"
+              }
+            },
+            "seedReference": {
+              "fixtureId": "src-010-review4-fixture",
+              "accountRole": "operator",
+              "route": "/ops/sources"
             },
             "sensitive": false
           }
@@ -100100,15 +100308,16 @@
           }
         },
         "productAction": {
-          "kind": "product-boundary-read",
+          "kind": "endpoint-owned-action",
           "endpoint": {
-            "method": "GET",
-            "path": "/ops/sources",
+            "method": "DELETE",
+            "path": "/ops/api/sources/{fixtureId}",
             "allowedStatuses": [
               200
             ]
           },
-          "localAction": null
+          "localAction": null,
+          "primaryControlRequired": false
         },
         "expectedProductState": {
           "identity": "product-state:src/ingress/source_view_registry.cpp#SourceViewRegistry::DisableSource#5abff3bdb4a7e61f961b94d88e890739b23388d276c7ebb683a4fecf794f90da",
@@ -100208,28 +100417,38 @@
             }
           },
           {
-            "kind": "assert-product-boundary",
+            "kind": "execute-endpoint-action",
             "dispatch": "playwright-native",
-            "actionId": "SRC-010:assert-product-boundary",
-            "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertSourceSoftDisableReadback#905c084653e99f4cfc200af9c95fa68373b452d10dc0480a8e665068f57be060",
+            "actionId": "SRC-010:execute-endpoint-action",
+            "endpoint": {
+              "method": "DELETE",
+              "path": "/ops/api/sources/{fixtureId}",
+              "allowedStatuses": [
+                200
+              ]
+            },
+            "inputId": "SRC-010:endpoint-action-fixture",
+            "ownership": "product-endpoint-no-primary-control",
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "SRC-010:assert-product-boundary",
-              "actionKind": "assert-product-boundary",
+              "actionId": "SRC-010:execute-endpoint-action",
+              "actionKind": "execute-endpoint-action",
               "controlSelector": null,
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
-              "correlationId": "SRC-010:assert-product-boundary:completion",
+              "correlationId": "SRC-010:execute-endpoint-action:completion",
               "request": {
                 "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "SRC-010:assert-product-boundary:completion",
+                "correlationId": "SRC-010:execute-endpoint-action:completion",
                 "correlationSource": "request-header",
-                "method": "GET",
-                "urlPathTemplate": "/ops/sources",
-                "urlPath": "/ops/sources",
-                "pathParameters": {},
+                "method": "DELETE",
+                "urlPathTemplate": "/ops/api/sources/{fixtureId}",
+                "urlPath": "/ops/api/sources/src-010-review4-fixture",
+                "pathParameters": {
+                  "fixtureId": "src-010-review4-fixture"
+                },
                 "allowedStatuses": [
                   200
                 ]
@@ -100250,8 +100469,11 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertSourceSoftDisableReadback#905c084653e99f4cfc200af9c95fa68373b452d10dc0480a8e665068f57be060",
               "readbackExpectation": {
-                "exists": true,
-                "visible": true
+                "endpointActionObserved": true,
+                "method": "DELETE",
+                "path": "/ops/api/sources/{fixtureId}",
+                "correlationRequired": true,
+                "independentReadbackRequired": true
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -100282,7 +100504,7 @@
               "actionId": "SRC-010:verify-independent-readback",
               "actionKind": "verify-independent-readback",
               "controlSelector": null,
-              "linkedPrimaryActionId": "SRC-010:assert-product-boundary",
+              "linkedPrimaryActionId": "SRC-010:execute-endpoint-action",
               "requiredSource": "endpoint-dom",
               "correlationId": "SRC-010:verify-independent-readback:completion",
               "request": null,
@@ -100336,20 +100558,22 @@
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "SRC-010:assert-product-boundary",
-              "actionKind": "assert-product-boundary",
+              "actionId": "SRC-010:execute-endpoint-action",
+              "actionKind": "execute-endpoint-action",
               "controlSelector": null,
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
-              "correlationId": "SRC-010:assert-product-boundary:completion",
+              "correlationId": "SRC-010:execute-endpoint-action:completion",
               "request": {
                 "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "SRC-010:assert-product-boundary:completion",
+                "correlationId": "SRC-010:execute-endpoint-action:completion",
                 "correlationSource": "request-header",
-                "method": "GET",
-                "urlPathTemplate": "/ops/sources",
-                "urlPath": "/ops/sources",
-                "pathParameters": {},
+                "method": "DELETE",
+                "urlPathTemplate": "/ops/api/sources/{fixtureId}",
+                "urlPath": "/ops/api/sources/src-010-review4-fixture",
+                "pathParameters": {
+                  "fixtureId": "src-010-review4-fixture"
+                },
                 "allowedStatuses": [
                   200
                 ]
@@ -100370,8 +100594,11 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertSourceSoftDisableReadback#905c084653e99f4cfc200af9c95fa68373b452d10dc0480a8e665068f57be060",
               "readbackExpectation": {
-                "exists": true,
-                "visible": true
+                "endpointActionObserved": true,
+                "method": "DELETE",
+                "path": "/ops/api/sources/{fixtureId}",
+                "correlationRequired": true,
+                "independentReadbackRequired": true
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -100383,11 +100610,43 @@
         ],
         "cleanup": [
           {
-            "kind": "no-op-cleanup",
-            "cleanupId": "SRC-010:no-persisted-mutation",
-            "persistedMutation": false,
-            "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "802dec525416e0f2c28bbce7c7bcfd02442bf486502750125447bd33ca37fdaf"
+            "kind": "restore-fixture-state",
+            "cleanupId": "SRC-010:restore-fixture",
+            "fixtureId": "src-010-review4-fixture",
+            "strategy": "restore-before-snapshot",
+            "beforeSnapshotRef": "SRC-010:before-product-state",
+            "inverseAction": {
+              "endpoint": null,
+              "localAction": {
+                "type": "restore-source-view-snapshot",
+                "target": "src-010-review4-fixture",
+                "effect": "restore an existing source/view pair or disable a suite-created pair before isolated server teardown"
+              }
+            },
+            "afterReadback": {
+              "identity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertSourceSoftDisableReadback#905c084653e99f4cfc200af9c95fa68373b452d10dc0480a8e665068f57be060:cleanup",
+              "expectation": "inactive-or-equal-before",
+              "locator": {
+                "file": "scripts/internal/verify_ops_source_registry_api.mjs",
+                "symbol": "assertSourceSoftDisableReadback",
+                "anchor": "assert(response.status === \"disabled\" && api?.enabled === false && disk?.enabled === false && clientBody.includes(\"not available\") && sessionBody.includes(\"not available\"), \"SRC-010 source DELETE soft-disable and client/session blocked readback failed\");",
+                "anchorSha256": "20a4352dfcfd95b11ebdc37d8764d8db45b2bc3ab6ebccc023239da3943e2467",
+                "contextSha256": "905c084653e99f4cfc200af9c95fa68373b452d10dc0480a8e665068f57be060"
+              }
+            },
+            "readback": {
+              "identity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertSourceSoftDisableReadback#905c084653e99f4cfc200af9c95fa68373b452d10dc0480a8e665068f57be060",
+              "kind": "reviewed-verifier-readback",
+              "locator": {
+                "file": "scripts/internal/verify_ops_source_registry_api.mjs",
+                "symbol": "assertSourceSoftDisableReadback",
+                "anchor": "assert(response.status === \"disabled\" && api?.enabled === false && disk?.enabled === false && clientBody.includes(\"not available\") && sessionBody.includes(\"not available\"), \"SRC-010 source DELETE soft-disable and client/session blocked readback failed\");",
+                "anchorSha256": "20a4352dfcfd95b11ebdc37d8764d8db45b2bc3ab6ebccc023239da3943e2467",
+                "contextSha256": "905c084653e99f4cfc200af9c95fa68373b452d10dc0480a8e665068f57be060"
+              },
+              "verifierCommand": "verify-ops-source-registry-api",
+              "assertedSemanticDigest": "802dec525416e0f2c28bbce7c7bcfd02442bf486502750125447bd33ca37fdaf"
+            }
           }
         ]
       },
@@ -100406,8 +100665,8 @@
           "event-record",
           "server-log"
         ],
-        "primaryActionId": "SRC-010:assert-product-boundary",
-        "primaryActionCorrelationId": "SRC-010:assert-product-boundary:completion",
+        "primaryActionId": "SRC-010:execute-endpoint-action",
+        "primaryActionCorrelationId": "SRC-010:execute-endpoint-action:completion",
         "primaryControlSelector": null,
         "independentReadbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertSourceSoftDisableReadback#905c084653e99f4cfc200af9c95fa68373b452d10dc0480a8e665068f57be060"
       },
@@ -104471,28 +104730,38 @@
           }
         },
         {
-          "kind": "assert-product-boundary",
+          "kind": "execute-endpoint-action",
           "dispatch": "playwright-native",
-          "actionId": "SRC-019:assert-product-boundary",
-          "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertPublishedViewSoftDisableReadback#a080b14a1e971a6eada5c948e1d4aeb79bb2d599536ce70df4fb6467066de692",
+          "actionId": "SRC-019:execute-endpoint-action",
+          "endpoint": {
+            "method": "DELETE",
+            "path": "/ops/api/views/{fixtureId}",
+            "allowedStatuses": [
+              200
+            ]
+          },
+          "inputId": "SRC-019:endpoint-action-fixture",
+          "ownership": "product-endpoint-no-primary-control",
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
             "phase": "primary-action",
-            "actionId": "SRC-019:assert-product-boundary",
-            "actionKind": "assert-product-boundary",
+            "actionId": "SRC-019:execute-endpoint-action",
+            "actionKind": "execute-endpoint-action",
             "controlSelector": null,
             "linkedPrimaryActionId": null,
             "requiredSource": "endpoint-dom",
-            "correlationId": "SRC-019:assert-product-boundary:completion",
+            "correlationId": "SRC-019:execute-endpoint-action:completion",
             "request": {
               "correlationHeader": "x-media-server-correlation-id",
-              "correlationId": "SRC-019:assert-product-boundary:completion",
+              "correlationId": "SRC-019:execute-endpoint-action:completion",
               "correlationSource": "request-header",
-              "method": "GET",
-              "urlPathTemplate": "/ops/sources",
-              "urlPath": "/ops/sources",
-              "pathParameters": {},
+              "method": "DELETE",
+              "urlPathTemplate": "/ops/api/views/{fixtureId}",
+              "urlPath": "/ops/api/views/src-019-review4-fixture",
+              "pathParameters": {
+                "fixtureId": "src-019-review4-fixture"
+              },
               "allowedStatuses": [
                 200
               ]
@@ -104513,8 +104782,11 @@
             },
             "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertPublishedViewSoftDisableReadback#a080b14a1e971a6eada5c948e1d4aeb79bb2d599536ce70df4fb6467066de692",
             "readbackExpectation": {
-              "exists": true,
-              "visible": true
+              "endpointActionObserved": true,
+              "method": "DELETE",
+              "path": "/ops/api/views/{fixtureId}",
+              "correlationRequired": true,
+              "independentReadbackRequired": true
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -104545,7 +104817,7 @@
             "actionId": "SRC-019:verify-independent-readback",
             "actionKind": "verify-independent-readback",
             "controlSelector": null,
-            "linkedPrimaryActionId": "SRC-019:assert-product-boundary",
+            "linkedPrimaryActionId": "SRC-019:execute-endpoint-action",
             "requiredSource": "endpoint-dom",
             "correlationId": "SRC-019:verify-independent-readback:completion",
             "request": null,
@@ -104601,9 +104873,9 @@
             "strategy": "hidden-disabled",
             "route": "/ops/sources",
             "semanticCallChainSha256": "fba20e5c7496eac5cd7af33a93d10e8e23e91b35d633d01fa624de4211e50a87",
-            "persistedMutation": false,
+            "persistedMutation": true,
             "fixtureId": "src-019-review4-fixture",
-            "beforeSnapshotRef": null
+            "beforeSnapshotRef": "SRC-019:before-product-state"
           }
         ],
         "inputs": [
@@ -104614,12 +104886,52 @@
             "sensitive": false
           },
           {
-            "inputId": "SRC-019:product-read-input",
-            "kind": "product-state-request",
+            "inputId": "SRC-019:endpoint-action-fixture",
+            "kind": "endpoint-action-fixture",
             "actualValue": {
-              "method": "GET",
-              "path": "/ops/sources",
-              "accountRole": "operator"
+              "method": "DELETE",
+              "path": "/ops/api/views/{fixtureId}",
+              "body": null,
+              "setup": {
+                "kind": "source-view-pair",
+                "source": {
+                  "sourceId": "src-019-review4-fixture",
+                  "displayName": "REVIEW4 SRC-019 source",
+                  "kind": "file",
+                  "file": "sample_h264.mp4",
+                  "enabled": true,
+                  "zone": "REVIEW4"
+                },
+                "publishedView": {
+                  "viewId": "src-019-review4-fixture",
+                  "displayName": "REVIEW4 SRC-019 view",
+                  "sourceId": "src-019-review4-fixture",
+                  "allowedOverlayModes": [
+                    "raw",
+                    "va-overlay",
+                    "va-rule"
+                  ],
+                  "allowedRuleIds": [],
+                  "clientGroups": [
+                    "default"
+                  ],
+                  "showDashboard": true,
+                  "showEvents": true,
+                  "showMetadataSummary": true,
+                  "maxTiles": 1,
+                  "enabled": true
+                }
+              },
+              "readback": {
+                "kind": "disabled-view-and-client-boundary",
+                "sourceId": "src-019-review4-fixture",
+                "viewId": "src-019-review4-fixture"
+              }
+            },
+            "seedReference": {
+              "fixtureId": "src-019-review4-fixture",
+              "accountRole": "operator",
+              "route": "/ops/sources"
             },
             "sensitive": false
           }
@@ -104649,15 +104961,16 @@
           }
         },
         "productAction": {
-          "kind": "product-boundary-read",
+          "kind": "endpoint-owned-action",
           "endpoint": {
-            "method": "GET",
-            "path": "/ops/sources",
+            "method": "DELETE",
+            "path": "/ops/api/views/{fixtureId}",
             "allowedStatuses": [
               200
             ]
           },
-          "localAction": null
+          "localAction": null,
+          "primaryControlRequired": false
         },
         "expectedProductState": {
           "identity": "product-state:src/ingress/source_view_registry.cpp#SourceViewRegistry::DisableView#2a0f922bc99830e2dcb0498f3a9113c1c3ee3a27ccb5b70e5c1e03109cafdf38",
@@ -104757,28 +105070,38 @@
             }
           },
           {
-            "kind": "assert-product-boundary",
+            "kind": "execute-endpoint-action",
             "dispatch": "playwright-native",
-            "actionId": "SRC-019:assert-product-boundary",
-            "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertPublishedViewSoftDisableReadback#a080b14a1e971a6eada5c948e1d4aeb79bb2d599536ce70df4fb6467066de692",
+            "actionId": "SRC-019:execute-endpoint-action",
+            "endpoint": {
+              "method": "DELETE",
+              "path": "/ops/api/views/{fixtureId}",
+              "allowedStatuses": [
+                200
+              ]
+            },
+            "inputId": "SRC-019:endpoint-action-fixture",
+            "ownership": "product-endpoint-no-primary-control",
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "SRC-019:assert-product-boundary",
-              "actionKind": "assert-product-boundary",
+              "actionId": "SRC-019:execute-endpoint-action",
+              "actionKind": "execute-endpoint-action",
               "controlSelector": null,
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
-              "correlationId": "SRC-019:assert-product-boundary:completion",
+              "correlationId": "SRC-019:execute-endpoint-action:completion",
               "request": {
                 "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "SRC-019:assert-product-boundary:completion",
+                "correlationId": "SRC-019:execute-endpoint-action:completion",
                 "correlationSource": "request-header",
-                "method": "GET",
-                "urlPathTemplate": "/ops/sources",
-                "urlPath": "/ops/sources",
-                "pathParameters": {},
+                "method": "DELETE",
+                "urlPathTemplate": "/ops/api/views/{fixtureId}",
+                "urlPath": "/ops/api/views/src-019-review4-fixture",
+                "pathParameters": {
+                  "fixtureId": "src-019-review4-fixture"
+                },
                 "allowedStatuses": [
                   200
                 ]
@@ -104799,8 +105122,11 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertPublishedViewSoftDisableReadback#a080b14a1e971a6eada5c948e1d4aeb79bb2d599536ce70df4fb6467066de692",
               "readbackExpectation": {
-                "exists": true,
-                "visible": true
+                "endpointActionObserved": true,
+                "method": "DELETE",
+                "path": "/ops/api/views/{fixtureId}",
+                "correlationRequired": true,
+                "independentReadbackRequired": true
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -104831,7 +105157,7 @@
               "actionId": "SRC-019:verify-independent-readback",
               "actionKind": "verify-independent-readback",
               "controlSelector": null,
-              "linkedPrimaryActionId": "SRC-019:assert-product-boundary",
+              "linkedPrimaryActionId": "SRC-019:execute-endpoint-action",
               "requiredSource": "endpoint-dom",
               "correlationId": "SRC-019:verify-independent-readback:completion",
               "request": null,
@@ -104885,20 +105211,22 @@
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "SRC-019:assert-product-boundary",
-              "actionKind": "assert-product-boundary",
+              "actionId": "SRC-019:execute-endpoint-action",
+              "actionKind": "execute-endpoint-action",
               "controlSelector": null,
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
-              "correlationId": "SRC-019:assert-product-boundary:completion",
+              "correlationId": "SRC-019:execute-endpoint-action:completion",
               "request": {
                 "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "SRC-019:assert-product-boundary:completion",
+                "correlationId": "SRC-019:execute-endpoint-action:completion",
                 "correlationSource": "request-header",
-                "method": "GET",
-                "urlPathTemplate": "/ops/sources",
-                "urlPath": "/ops/sources",
-                "pathParameters": {},
+                "method": "DELETE",
+                "urlPathTemplate": "/ops/api/views/{fixtureId}",
+                "urlPath": "/ops/api/views/src-019-review4-fixture",
+                "pathParameters": {
+                  "fixtureId": "src-019-review4-fixture"
+                },
                 "allowedStatuses": [
                   200
                 ]
@@ -104919,8 +105247,11 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertPublishedViewSoftDisableReadback#a080b14a1e971a6eada5c948e1d4aeb79bb2d599536ce70df4fb6467066de692",
               "readbackExpectation": {
-                "exists": true,
-                "visible": true
+                "endpointActionObserved": true,
+                "method": "DELETE",
+                "path": "/ops/api/views/{fixtureId}",
+                "correlationRequired": true,
+                "independentReadbackRequired": true
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -104932,11 +105263,43 @@
         ],
         "cleanup": [
           {
-            "kind": "no-op-cleanup",
-            "cleanupId": "SRC-019:no-persisted-mutation",
-            "persistedMutation": false,
-            "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "fba20e5c7496eac5cd7af33a93d10e8e23e91b35d633d01fa624de4211e50a87"
+            "kind": "restore-fixture-state",
+            "cleanupId": "SRC-019:restore-fixture",
+            "fixtureId": "src-019-review4-fixture",
+            "strategy": "restore-before-snapshot",
+            "beforeSnapshotRef": "SRC-019:before-product-state",
+            "inverseAction": {
+              "endpoint": null,
+              "localAction": {
+                "type": "restore-source-view-snapshot",
+                "target": "src-019-review4-fixture",
+                "effect": "restore an existing source/view pair or disable a suite-created pair before isolated server teardown"
+              }
+            },
+            "afterReadback": {
+              "identity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertPublishedViewSoftDisableReadback#a080b14a1e971a6eada5c948e1d4aeb79bb2d599536ce70df4fb6467066de692:cleanup",
+              "expectation": "inactive-or-equal-before",
+              "locator": {
+                "file": "scripts/internal/verify_ops_source_registry_api.mjs",
+                "symbol": "assertPublishedViewSoftDisableReadback",
+                "anchor": "assert(response.status === \"disabled\" && api?.enabled === false && disk?.enabled === false && clientBody.includes(\"PublishedView not found\") && sessionBody.includes(\"PublishedView not found\"), \"SRC-019 PublishedView DELETE soft-disable and client/session blocked readback failed\");",
+                "anchorSha256": "da96ebc9d5a7cb48e8718e3235342599dcc9ac252236abae8a5975b5a94c4260",
+                "contextSha256": "a080b14a1e971a6eada5c948e1d4aeb79bb2d599536ce70df4fb6467066de692"
+              }
+            },
+            "readback": {
+              "identity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertPublishedViewSoftDisableReadback#a080b14a1e971a6eada5c948e1d4aeb79bb2d599536ce70df4fb6467066de692",
+              "kind": "reviewed-verifier-readback",
+              "locator": {
+                "file": "scripts/internal/verify_ops_source_registry_api.mjs",
+                "symbol": "assertPublishedViewSoftDisableReadback",
+                "anchor": "assert(response.status === \"disabled\" && api?.enabled === false && disk?.enabled === false && clientBody.includes(\"PublishedView not found\") && sessionBody.includes(\"PublishedView not found\"), \"SRC-019 PublishedView DELETE soft-disable and client/session blocked readback failed\");",
+                "anchorSha256": "da96ebc9d5a7cb48e8718e3235342599dcc9ac252236abae8a5975b5a94c4260",
+                "contextSha256": "a080b14a1e971a6eada5c948e1d4aeb79bb2d599536ce70df4fb6467066de692"
+              },
+              "verifierCommand": "verify-ops-source-registry-api",
+              "assertedSemanticDigest": "fba20e5c7496eac5cd7af33a93d10e8e23e91b35d633d01fa624de4211e50a87"
+            }
           }
         ]
       },
@@ -104955,8 +105318,8 @@
           "event-record",
           "server-log"
         ],
-        "primaryActionId": "SRC-019:assert-product-boundary",
-        "primaryActionCorrelationId": "SRC-019:assert-product-boundary:completion",
+        "primaryActionId": "SRC-019:execute-endpoint-action",
+        "primaryActionCorrelationId": "SRC-019:execute-endpoint-action:completion",
         "primaryControlSelector": null,
         "independentReadbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertPublishedViewSoftDisableReadback#a080b14a1e971a6eada5c948e1d4aeb79bb2d599536ce70df4fb6467066de692"
       },
@@ -111338,23 +111701,31 @@
           }
         },
         {
-          "kind": "assert-product-boundary",
+          "kind": "execute-endpoint-action",
           "dispatch": "playwright-native",
-          "actionId": "SRC-031:assert-product-boundary",
-          "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertRemainingSourceReadModels#bffbae10b188e7f155a845d094f150be96ae876ddb9a5428b84cd8a992a1c90e",
+          "actionId": "SRC-031:execute-endpoint-action",
+          "endpoint": {
+            "method": "POST",
+            "path": "/ops/api/onvif/import-draft",
+            "allowedStatuses": [
+              200
+            ]
+          },
+          "inputId": "SRC-031:endpoint-action-fixture",
+          "ownership": "product-endpoint-no-primary-control",
           "semanticCompletion": {
             "schema": "media-server.v390-ui-action-completion.v2",
             "required": true,
             "phase": "primary-action",
-            "actionId": "SRC-031:assert-product-boundary",
-            "actionKind": "assert-product-boundary",
+            "actionId": "SRC-031:execute-endpoint-action",
+            "actionKind": "execute-endpoint-action",
             "controlSelector": null,
             "linkedPrimaryActionId": null,
             "requiredSource": "endpoint-dom",
-            "correlationId": "SRC-031:assert-product-boundary:completion",
+            "correlationId": "SRC-031:execute-endpoint-action:completion",
             "request": {
               "correlationHeader": "x-media-server-correlation-id",
-              "correlationId": "SRC-031:assert-product-boundary:completion",
+              "correlationId": "SRC-031:execute-endpoint-action:completion",
               "correlationSource": "request-header",
               "method": "POST",
               "urlPathTemplate": "/ops/api/onvif/import-draft",
@@ -111380,8 +111751,11 @@
             },
             "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertRemainingSourceReadModels#bffbae10b188e7f155a845d094f150be96ae876ddb9a5428b84cd8a992a1c90e",
             "readbackExpectation": {
-              "exists": true,
-              "visible": true
+              "endpointActionObserved": true,
+              "method": "POST",
+              "path": "/ops/api/onvif/import-draft",
+              "correlationRequired": true,
+              "independentReadbackRequired": true
             },
             "attestedAlternatives": [
               "persisted-readback",
@@ -111412,7 +111786,7 @@
             "actionId": "SRC-031:verify-independent-readback",
             "actionKind": "verify-independent-readback",
             "controlSelector": null,
-            "linkedPrimaryActionId": "SRC-031:assert-product-boundary",
+            "linkedPrimaryActionId": "SRC-031:execute-endpoint-action",
             "requiredSource": "endpoint-dom",
             "correlationId": "SRC-031:verify-independent-readback:completion",
             "request": null,
@@ -111468,9 +111842,9 @@
             "strategy": "hidden-disabled",
             "route": "/ops/sources",
             "semanticCallChainSha256": "2b2031eb3adb6c0ede61d6d7aeeb6f51fffed8f8bf251fc1b6f0cd8fef22ba01",
-            "persistedMutation": false,
+            "persistedMutation": true,
             "fixtureId": "src-031-review4-fixture",
-            "beforeSnapshotRef": null
+            "beforeSnapshotRef": "SRC-031:before-product-state"
           }
         ],
         "inputs": [
@@ -111481,12 +111855,140 @@
             "sensitive": false
           },
           {
-            "inputId": "SRC-031:product-read-input",
-            "kind": "product-state-request",
+            "inputId": "SRC-031:endpoint-action-fixture",
+            "kind": "endpoint-action-fixture",
             "actualValue": {
               "method": "POST",
               "path": "/ops/api/onvif/import-draft",
-              "accountRole": "operator"
+              "body": {
+                "schema": "media-server.onvif-live-import-stub.v1",
+                "description": "Synthetic ONVIF import fixture for v1.8.0 live source onboarding fixture design. It fixes the internal import-draft contract and is not a product API contract.",
+                "device": {
+                  "endpoint": "http://192.0.2.10/onvif/device_service",
+                  "manufacturer": "ExampleCam",
+                  "model": "EC-LiveT-200",
+                  "firmwareVersion": "1.2.3-test",
+                  "serialNumber": "EXAMPLE-ONVIF-0001",
+                  "profilesSupported": [
+                    "T",
+                    "S"
+                  ]
+                },
+                "auth": {
+                  "required": true,
+                  "credentialRef": "operator-entered-secret",
+                  "plaintextSecretIncluded": false
+                },
+                "previewContract": {
+                  "schema": "media-server.onvif-draft-preview.v1",
+                  "scope": "ops-sources-before-save",
+                  "requiresExplicitSave": true,
+                  "storageAction": "none",
+                  "sourceRegistryMutation": false,
+                  "publishedViewMutation": false,
+                  "rawSoapIncluded": false,
+                  "credentialMaterialIncluded": false,
+                  "endpointIncluded": false,
+                  "diagnosticJsonIncluded": false
+                },
+                "capabilities": {
+                  "media": true,
+                  "media2": true,
+                  "ptz": true,
+                  "recording": false,
+                  "replay": false
+                },
+                "profiles": [
+                  {
+                    "token": "profile-live-main",
+                    "name": "Live Main H264",
+                    "mediaApi": "Media2",
+                    "encoding": "H264",
+                    "width": 1920,
+                    "height": 1080,
+                    "fps": 30,
+                    "transport": "RTSP",
+                    "streamUri": "rtsp://192.0.2.10/live/main",
+                    "selected": true
+                  },
+                  {
+                    "token": "profile-live-sub",
+                    "name": "Live Sub H264",
+                    "mediaApi": "Media",
+                    "encoding": "H264",
+                    "width": 640,
+                    "height": 360,
+                    "fps": 15,
+                    "transport": "RTSP",
+                    "streamUri": "rtsp://192.0.2.10/live/sub",
+                    "selected": false
+                  }
+                ],
+                "importDecision": {
+                  "selectedProfileToken": "profile-live-main",
+                  "expectedSourceDraft": {
+                    "sourceId": "5",
+                    "displayName": "ExampleCam Live Main",
+                    "kind": "rtsp",
+                    "rtspUrl": "rtsp://192.0.2.10/live/main",
+                    "enabled": true,
+                    "tags": [
+                      "onvif",
+                      "live",
+                      "profile-t"
+                    ],
+                    "ownerGroup": "ops"
+                  },
+                  "proposedOriginMetadata": {
+                    "type": "onvif",
+                    "endpoint": "http://192.0.2.10/onvif/device_service",
+                    "manufacturer": "ExampleCam",
+                    "model": "EC-LiveT-200",
+                    "profile": "T",
+                    "mediaProfileToken": "profile-live-main",
+                    "mediaApi": "Media2",
+                    "streamUriImportedAt": "fixture-time",
+                    "credentialRef": "operator-entered-secret",
+                    "credentialInline": false
+                  },
+                  "expectedPublishedViewDraft": {
+                    "viewId": "5",
+                    "displayName": "ExampleCam Live Main",
+                    "sourceId": "5",
+                    "allowedOverlayModes": [
+                      "raw",
+                      "va-overlay",
+                      "va-rule"
+                    ],
+                    "showDashboard": true,
+                    "showEvents": true,
+                    "showMetadataSummary": true,
+                    "clientGroups": [
+                      "default"
+                    ],
+                    "maxTiles": 1,
+                    "enabled": true
+                  }
+                },
+                "nonGoals": [
+                  "ONVIF conformant server",
+                  "ONVIF Profile G recording/replay",
+                  "camera recording configuration",
+                  "playback/search",
+                  "plain text credential persistence"
+                ]
+              },
+              "setup": {
+                "kind": "registry-equal-before"
+              },
+              "readback": {
+                "kind": "onvif-draft-no-registry-mutation"
+              }
+            },
+            "seedReference": {
+              "fixtureId": "src-031-review4-fixture",
+              "accountRole": "operator",
+              "route": "/ops/api/onvif/import-draft"
             },
             "sensitive": false
           }
@@ -111516,7 +112018,7 @@
           }
         },
         "productAction": {
-          "kind": "product-boundary-read",
+          "kind": "endpoint-owned-action",
           "endpoint": {
             "method": "POST",
             "path": "/ops/api/onvif/import-draft",
@@ -111524,7 +112026,8 @@
               200
             ]
           },
-          "localAction": null
+          "localAction": null,
+          "primaryControlRequired": false
         },
         "expectedProductState": {
           "identity": "product-state:src/ingress/onvif_live_import.cpp#BuildOnvifLiveImportDraft#2bde4809ac40608ce7205d0fdd3a2cd47e4139f42fab1e84f13d5b25aade5b87",
@@ -111624,23 +112127,31 @@
             }
           },
           {
-            "kind": "assert-product-boundary",
+            "kind": "execute-endpoint-action",
             "dispatch": "playwright-native",
-            "actionId": "SRC-031:assert-product-boundary",
-            "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertRemainingSourceReadModels#bffbae10b188e7f155a845d094f150be96ae876ddb9a5428b84cd8a992a1c90e",
+            "actionId": "SRC-031:execute-endpoint-action",
+            "endpoint": {
+              "method": "POST",
+              "path": "/ops/api/onvif/import-draft",
+              "allowedStatuses": [
+                200
+              ]
+            },
+            "inputId": "SRC-031:endpoint-action-fixture",
+            "ownership": "product-endpoint-no-primary-control",
             "semanticCompletion": {
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "SRC-031:assert-product-boundary",
-              "actionKind": "assert-product-boundary",
+              "actionId": "SRC-031:execute-endpoint-action",
+              "actionKind": "execute-endpoint-action",
               "controlSelector": null,
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
-              "correlationId": "SRC-031:assert-product-boundary:completion",
+              "correlationId": "SRC-031:execute-endpoint-action:completion",
               "request": {
                 "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "SRC-031:assert-product-boundary:completion",
+                "correlationId": "SRC-031:execute-endpoint-action:completion",
                 "correlationSource": "request-header",
                 "method": "POST",
                 "urlPathTemplate": "/ops/api/onvif/import-draft",
@@ -111666,8 +112177,11 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertRemainingSourceReadModels#bffbae10b188e7f155a845d094f150be96ae876ddb9a5428b84cd8a992a1c90e",
               "readbackExpectation": {
-                "exists": true,
-                "visible": true
+                "endpointActionObserved": true,
+                "method": "POST",
+                "path": "/ops/api/onvif/import-draft",
+                "correlationRequired": true,
+                "independentReadbackRequired": true
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -111698,7 +112212,7 @@
               "actionId": "SRC-031:verify-independent-readback",
               "actionKind": "verify-independent-readback",
               "controlSelector": null,
-              "linkedPrimaryActionId": "SRC-031:assert-product-boundary",
+              "linkedPrimaryActionId": "SRC-031:execute-endpoint-action",
               "requiredSource": "endpoint-dom",
               "correlationId": "SRC-031:verify-independent-readback:completion",
               "request": null,
@@ -111754,15 +112268,15 @@
               "schema": "media-server.v390-ui-action-completion.v2",
               "required": true,
               "phase": "primary-action",
-              "actionId": "SRC-031:assert-product-boundary",
-              "actionKind": "assert-product-boundary",
+              "actionId": "SRC-031:execute-endpoint-action",
+              "actionKind": "execute-endpoint-action",
               "controlSelector": null,
               "linkedPrimaryActionId": null,
               "requiredSource": "endpoint-dom",
-              "correlationId": "SRC-031:assert-product-boundary:completion",
+              "correlationId": "SRC-031:execute-endpoint-action:completion",
               "request": {
                 "correlationHeader": "x-media-server-correlation-id",
-                "correlationId": "SRC-031:assert-product-boundary:completion",
+                "correlationId": "SRC-031:execute-endpoint-action:completion",
                 "correlationSource": "request-header",
                 "method": "POST",
                 "urlPathTemplate": "/ops/api/onvif/import-draft",
@@ -111788,8 +112302,11 @@
               },
               "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertRemainingSourceReadModels#bffbae10b188e7f155a845d094f150be96ae876ddb9a5428b84cd8a992a1c90e",
               "readbackExpectation": {
-                "exists": true,
-                "visible": true
+                "endpointActionObserved": true,
+                "method": "POST",
+                "path": "/ops/api/onvif/import-draft",
+                "correlationRequired": true,
+                "independentReadbackRequired": true
               },
               "attestedAlternatives": [
                 "persisted-readback",
@@ -111801,11 +112318,43 @@
         ],
         "cleanup": [
           {
-            "kind": "no-op-cleanup",
-            "cleanupId": "SRC-031:no-persisted-mutation",
-            "persistedMutation": false,
-            "assertion": "reviewed workflow does not persist product state",
-            "semanticCallChainSha256": "2b2031eb3adb6c0ede61d6d7aeeb6f51fffed8f8bf251fc1b6f0cd8fef22ba01"
+            "kind": "restore-fixture-state",
+            "cleanupId": "SRC-031:restore-fixture",
+            "fixtureId": "src-031-review4-fixture",
+            "strategy": "restore-before-snapshot",
+            "beforeSnapshotRef": "SRC-031:before-product-state",
+            "inverseAction": {
+              "endpoint": null,
+              "localAction": {
+                "type": "restore-file-backed-fixture-snapshot",
+                "target": "src-031-review4-fixture",
+                "effect": "restore every owned file-backed product state byte-for-byte"
+              }
+            },
+            "afterReadback": {
+              "identity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertRemainingSourceReadModels#bffbae10b188e7f155a845d094f150be96ae876ddb9a5428b84cd8a992a1c90e:cleanup",
+              "expectation": "equal-before",
+              "locator": {
+                "file": "scripts/internal/verify_ops_source_registry_api.mjs",
+                "symbol": "assertRemainingSourceReadModels",
+                "anchor": "assert(onvifDraft.credentialGate?.schema === \"media-server.onvif-credential-binding-gate.v1\" && onvifDraft.credentialGate?.requiredScope === \"source:write\" && onvifDraft.credentialGate?.redactionGuard?.urlCredentialsRejected === true && onvifDraft.credentialGate?.secretMaterialStored === false && sourceCountBeforeDraft === sourceCountAfterDraft, \"SRC-031 credentialGate source:write/no-secret-store runtime readback failed\");",
+                "anchorSha256": "ac3752676dcff53a928c0389e712d9b1e4fde239622b6e1928517933cc56a6e3",
+                "contextSha256": "bffbae10b188e7f155a845d094f150be96ae876ddb9a5428b84cd8a992a1c90e"
+              }
+            },
+            "readback": {
+              "identity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertRemainingSourceReadModels#bffbae10b188e7f155a845d094f150be96ae876ddb9a5428b84cd8a992a1c90e",
+              "kind": "reviewed-verifier-readback",
+              "locator": {
+                "file": "scripts/internal/verify_ops_source_registry_api.mjs",
+                "symbol": "assertRemainingSourceReadModels",
+                "anchor": "assert(onvifDraft.credentialGate?.schema === \"media-server.onvif-credential-binding-gate.v1\" && onvifDraft.credentialGate?.requiredScope === \"source:write\" && onvifDraft.credentialGate?.redactionGuard?.urlCredentialsRejected === true && onvifDraft.credentialGate?.secretMaterialStored === false && sourceCountBeforeDraft === sourceCountAfterDraft, \"SRC-031 credentialGate source:write/no-secret-store runtime readback failed\");",
+                "anchorSha256": "ac3752676dcff53a928c0389e712d9b1e4fde239622b6e1928517933cc56a6e3",
+                "contextSha256": "bffbae10b188e7f155a845d094f150be96ae876ddb9a5428b84cd8a992a1c90e"
+              },
+              "verifierCommand": "verify-ops-source-registry-api",
+              "assertedSemanticDigest": "2b2031eb3adb6c0ede61d6d7aeeb6f51fffed8f8bf251fc1b6f0cd8fef22ba01"
+            }
           }
         ]
       },
@@ -111824,8 +112373,8 @@
           "event-record",
           "server-log"
         ],
-        "primaryActionId": "SRC-031:assert-product-boundary",
-        "primaryActionCorrelationId": "SRC-031:assert-product-boundary:completion",
+        "primaryActionId": "SRC-031:execute-endpoint-action",
+        "primaryActionCorrelationId": "SRC-031:execute-endpoint-action:completion",
         "primaryControlSelector": null,
         "independentReadbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertRemainingSourceReadModels#bffbae10b188e7f155a845d094f150be96ae876ddb9a5428b84cd8a992a1c90e"
       },
