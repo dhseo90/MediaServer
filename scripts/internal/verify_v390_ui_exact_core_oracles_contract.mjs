@@ -102,14 +102,14 @@ check("every exact API path is owned by ingress source and has semantic body ass
   }
 });
 
-check("negative boundaries use structured DOM material instead of banning narrative labels", () => {
+check("negative boundaries use the same structured-material rule for response and DOM", () => {
   const oracle = coreExactOracleFor("UI-033");
   const responseTokens = oracle.requests[0].forbiddenJsonKeys;
   const domTextTokens = oracle.dom[0].forbiddenTextTokens;
   const domMaterialTokens = oracle.dom[0].forbiddenMaterialTokens;
-  assert(responseTokens.includes("client") && responseTokens.includes("viewer") &&
+  assert(!responseTokens.includes("client") && !responseTokens.includes("viewer") &&
     responseTokens.includes("viewerClientExposure"),
-  "UI-033 structured response boundary tokens missing");
+  "UI-033 response boundary must distinguish narrative labels from structured exposure material");
   assert(!domTextTokens.includes("client") && !domTextTokens.includes("viewer") &&
     !domMaterialTokens.includes("client") && !domMaterialTokens.includes("viewer") &&
     domMaterialTokens.includes("viewerClientExposure"),
@@ -121,18 +121,38 @@ check("negative boundaries use structured DOM material instead of banning narrat
     noWrite.forbiddenMaterialTokens.includes("registryWrite") &&
     noWrite.forbiddenMaterialTokens.includes("providerCall"),
   "UI-036 no-write/provider boundary must use structured DOM material");
+  const noWriteResponse = coreExactOracleFor("UI-036").requests[0].forbiddenJsonKeys;
+  assert(!noWriteResponse.includes("write") && !noWriteResponse.includes("provider") &&
+    noWriteResponse.includes("WritePerformed") && noWriteResponse.includes("registryWrite") &&
+    noWriteResponse.includes("providerCall"),
+  "UI-036 response boundary must use structured no-write/provider material");
+
+  const rawResponse = coreExactOracleFor("UI-068").requests[0].forbiddenJsonKeys;
+  assert(!rawResponse.includes("raw") && !rawResponse.includes("source URL") &&
+    !rawResponse.includes("debug") && rawResponse.includes("rawEvidence") &&
+    rawResponse.includes("rawJson") && rawResponse.includes("rawLocator") &&
+    rawResponse.includes("rawProviderResponse") && rawResponse.includes("rawEvidenceIncluded") &&
+    rawResponse.includes("sourceUrl") && rawResponse.includes("credentialMaterial"),
+  "UI-068 response redaction must preserve structured material and exclude narrative tokens");
 
   const narrativeTokens = new Set([
     "client", "viewer", "debug", "자동 적용", "changed", "mutation", "변경",
     "delivery", "send", "발송", "write", "provider", "raw", "source url",
   ]);
   for (const caseId of coreExactOracleCaseIds) {
-    for (const dom of coreExactOracleFor(caseId).dom) {
+    const oracle = coreExactOracleFor(caseId);
+    for (const dom of oracle.dom) {
       assert(dom.forbiddenTextTokens.length === 0, `${caseId} raw narrative DOM ban must remain empty`);
       assert(!dom.forbiddenMaterialTokens.some(token => narrativeTokens.has(String(token).toLowerCase())),
         `${caseId} narrative token leaked into structured DOM material`);
     }
+    assert(!oracle.requests[0].forbiddenJsonKeys.some(token => narrativeTokens.has(String(token).toLowerCase())),
+      `${caseId} narrative token leaked into response material`);
   }
+  assert(coreExactOracleFor("UI-068").requests[0].forbiddenJsonKeys.includes("literalPassword") &&
+    coreExactOracleFor("UI-068").requests[0].forbiddenJsonKeys.includes("plaintextCredential") &&
+    coreExactOracleFor("UI-068").requests[0].forbiddenJsonKeys.includes("unredactedTokenHash"),
+  "baseline secret response boundary changed");
 });
 
 check("state mutations bind exact request bodies, changed state, and authoritative cleanup", () => {

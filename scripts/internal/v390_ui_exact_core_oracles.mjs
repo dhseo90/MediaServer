@@ -197,15 +197,17 @@ function buildOracle(canonicalCase) {
     "genericPassSubstitution",
   ];
   const negativeBoundaries = obligation.negativeBoundaries || [];
+  const structuredNegativeBoundaryTokens = unique(
+    negativeBoundaries.flatMap(structuredBoundaryTokens),
+  );
   const forbiddenFields = unique([
     ...baselineForbiddenFields,
-    ...negativeBoundaries.flatMap(boundary => boundary.tokens || []),
+    ...structuredNegativeBoundaryTokens,
     ...(canonicalCase.accountRole === "viewer" ? ["sourceUrl", "rawLocator", "credentialMaterial"] : []),
   ]);
   const forbiddenMaterialTokens = unique([
     ...baselineForbiddenFields,
-    ...negativeBoundaries.flatMap(boundary => (boundary.tokens || []).filter(token =>
-      !isNarrativeBoundaryToken(boundary.kind, token))),
+    ...structuredNegativeBoundaryTokens,
     ...(canonicalCase.accountRole === "viewer" ? ["sourceUrl", "rawLocator", "credentialMaterial"] : []),
   ]);
   const classification = specializedRuleCases.has(canonicalCase.testId) ? "existing-specialized" : "core-exact";
@@ -465,17 +467,33 @@ function validateOracle(oracle, canonicalCase) {
 function isNarrativeBoundaryToken(kind, token) {
   const normalized = String(token || "").trim().toLowerCase();
   const narrativeByKind = {
-    "client-viewer-boundary": new Set(["client", "viewer"]),
-    "debug-redaction": new Set(["debug"]),
-    "no-auto-apply": new Set(["자동 적용"]),
-    "no-mutation": new Set(["changed", "mutation", "변경"]),
-    "no-send": new Set(["delivery", "send", "발송"]),
-    "no-write": new Set(["write"]),
-    "provider-boundary": new Set(["provider"]),
-    "raw-material-redaction": new Set(["raw"]),
-    "source-url-redaction": new Set(["source url"]),
+    "client-viewer-boundary": new Set(["client", "viewer", "클라이언트", "뷰어"]),
+    "debug-redaction": new Set(["debug", "디버그"]),
+    "no-auto-apply": new Set(["자동 적용", "자동적용"]),
+    "no-mutation": new Set(["changed", "mutation", "변경", "변경됨"]),
+    "no-send": new Set(["delivery", "send", "발송", "전송"]),
+    "no-write": new Set(["write", "쓰기"]),
+    "provider-boundary": new Set(["provider", "제공자", "프로바이더"]),
+    "raw-material-redaction": new Set(["raw", "원시", "로우"]),
+    "source-url-redaction": new Set(["source url", "소스 url", "소스 주소", "원본 url"]),
   };
   return narrativeByKind[kind]?.has(normalized) === true;
+}
+
+function structuredBoundaryTokens(boundary) {
+  const kind = String(boundary?.kind || "");
+  const aliasesByKind = {
+    "client-viewer-boundary": ["viewerClientExposure"],
+    "debug-redaction": ["debugMaterial"],
+    "no-write": ["registryWrite"],
+    "provider-boundary": ["providerCall"],
+    "raw-material-redaction": ["rawEvidence", "rawJson", "rawLocator", "rawProviderResponse", "rawEvidenceIncluded"],
+    "source-url-redaction": ["sourceUrl"],
+  };
+  return unique([
+    ...(boundary?.tokens || []).filter(token => !isNarrativeBoundaryToken(kind, token)),
+    ...(aliasesByKind[kind] || []),
+  ]);
 }
 
 function preferredReadEndpoint(canonicalCase, routeTokens, screenRoute) {

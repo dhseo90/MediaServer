@@ -671,7 +671,7 @@ function containsForbiddenKeyOrValue(value, needle) {
     key.toLowerCase() === needle.toLowerCase() || containsForbiddenKeyOrValue(child, needle));
 }
 
-function containsForbiddenResponseMaterial(value, needle, contentType) {
+export function containsForbiddenResponseMaterial(value, needle, contentType) {
   const mediaType = String(contentType || "").split(";", 1)[0].trim().toLowerCase();
   if (mediaType !== "text/html" || typeof value !== "string") {
     return containsForbiddenKeyOrValue(value, needle);

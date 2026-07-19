@@ -2,6 +2,7 @@
 // 파일 용도: exact 424 runtime oracle 실행기가 status/DOM/network 누락을 거짓 PASS로 처리하지 않는지 검증한다.
 
 import {
+  containsForbiddenResponseMaterial,
   containsForbiddenStructuredDomMaterial,
   executeCatalogRuntimeOracle,
   executeCatalogRuntimeOracleAtSourceRoute,
@@ -355,6 +356,43 @@ await check("HTML redaction code is distinct from embedded forbidden response fi
     <script type="application/json" id="views-data">{"views":[],"sourceUrl":"rtsp://camera.invalid/live"}</script>
   </body>`;
   await expectReject(() => execute(leakedHtml), "forbidden response material observed");
+});
+
+await check("response redaction separates UI-068 narrative labels from structured material", async () => {
+  const execute = body => executeCatalogRuntimeOracle({
+    browser: clientLiveBrowser(body),
+    item: exactItem("UI-068", "/client/live"),
+    fixtureId: "client-live-response-redaction-contract",
+    correlationId: "UI-068:contract",
+  });
+  const html = fields => `<!doctype html><body>
+    <main data-testid="client-live-workspace">overlayMode=raw · raw 숨김 · raw evidence 비노출</main>
+    <script type="application/json" id="views-data">${JSON.stringify(fields)}</script>
+  </body>`;
+  const safeHtml = await execute(html({ overlayMode: "raw" }));
+  assert(safeHtml.responses.length === 1, "UI-068 raw overlay narrative HTML response was not observed");
+  const safeJson = { overlayMode: "raw", narrative: "raw 숨김 · raw evidence 비노출" };
+  for (const token of ["rawEvidence", "rawJson", "rawLocator"]) {
+    assert(!containsForbiddenResponseMaterial(safeJson, token, "application/json"),
+      `UI-068 ${token} narrative JSON was treated as material`);
+  }
+  const ui068Material = [
+    ["rawEvidence", "unredacted-value"],
+    ["rawJson", { secret: "value" }],
+    ["rawLocator", "rtsp://camera.invalid/live"],
+    ["rawProviderResponse", { secret: "value" }],
+    ["rawEvidenceIncluded", true],
+    ["sourceUrl", "rtsp://camera.invalid/live"],
+    ["credentialMaterial", "secret-value"],
+    ["debugMaterial", "debug-value"],
+  ];
+  for (const [field, value] of ui068Material) {
+    await expectReject(() => execute(html({ [field]: value })), "forbidden response material observed");
+    assert(containsForbiddenResponseMaterial({ [field]: value }, field, "application/json"),
+      `UI-068 ${field} JSON material was not rejected`);
+  }
+  assert(containsForbiddenResponseMaterial({ providerCall: true }, "providerCall", "application/json"),
+    "provider JSON material was not rejected");
 });
 
 await check("DOM redaction labels are distinct from exposed credential values", async () => {
