@@ -928,7 +928,8 @@ v3.2.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직
 | Remaining 379 audit | Canonical/native 424 ordering의 position 46~424를 직접 대조했습니다 | deterministic 96 / infrastructure 162 / product 0 / browser-only 121 |
 | Implemented common boundary | Source-route catalog execution과 destination restore를 모두 status-check하고, prior primary action/network evidence를 재사용하며, native primary control을 route root와 독립 검증합니다 | focused runtime contract 16/16 |
 | Static semantic checkpoint | UI-014, UI-035, EVT-019, EVT-020, EVT-021, EVT-035만 current source/owner/verifier 흐름으로 재결속했습니다. Candidate `c654e2717bb2bfec5b42df9a589c20468f23917e8c3b492dd66d27e89a9174d7`, 980 carry-forward+6 independent review, audit/approval 986/986 및 migration negative binding 9/9입니다 | static checkpoint PASS / 제품 동작 변경 0 |
-| Actual execution boundary | 앞선 104 source-audit 분류는 browser 결과가 아니며, UI-046 FAIL과 이후 379 not-run을 변경하지 않았습니다. Actual UI/exact 424/Policy v4, 30분, 120분, release와 generator는 이번 checkpoint에서 실행하지 않았습니다 | not-run / actual acceptance 미완료 |
+| Current-source binding/lifecycle | Official native generator 1회로 native manifest를 current builder에 재결속했습니다. 424/423+1/unsupported 0, ordered ID·route/role/viewport/theme/action/workflow의 제품 projection 변경 0이며 native SHA는 `127660b9a0c168782fec8b342ad6bb744a9ba6310b7f0eadb06cb3bcaa6f4701`입니다. UI source-contract FAIL은 current commit/invocation의 fresh `executed/pass/fail/not-run=0/0/0/424`, `actualBrowserExecution=false` evidence만 기록하고 acceptance child를 호출하지 않습니다 | launcher 17/17, native exact 26/26, acceptance 17/17, final integrity 12/12 PASS |
+| Actual execution boundary | 앞선 104 source-audit 분류는 browser 결과가 아니며, UI-046 FAIL과 이후 379 not-run을 변경하지 않았습니다. Actual UI/exact 424/Policy v4, 30분, 120분, release와 canonical manifest generator 재실행은 하지 않았습니다. Native generator는 위 current binding 보정으로만 1회 실행했습니다 | not-run / actual acceptance 미완료 |
 
 ## V390-REVIEW4-65 SAFE-211 completion/current graph correction
 

@@ -67,6 +67,11 @@ check("common launcher owns output, contract preflight, sanitization, and exact 
     "verify-v390-test-acceptance-bundle --output-dir \"${output_dir}\" --suite ui",
     "verify-v390-test-acceptance-bundle --output-dir \"${output_dir}\" --auto-run-120",
     "failureStage=launcher-contract",
+    "media_server_write_ui_source_contract_failure_evidence",
+    "sourceContractFailureEvidence: true",
+    "acceptanceChildInvoked: false",
+    "actualBrowserExecution: false",
+    "notRun: 424",
     "firstFailureTestcaseId",
     "const failedCheck = (failedEntry?.checks || []).find(item => item?.status === \"FAIL\") || null;",
     "const failureCase = firstFailureTestcaseId || failedCheck?.id || failedEntry?.id || \"\";",
@@ -143,6 +148,24 @@ esac
     "UI source-contract failure stage missing");
   assert(`${result.stdout}\n${result.stderr}`.includes("testcaseId=verify-v390-ui-native-exact-cases-contract"),
     "UI source-contract testcase ID missing");
+  const evidenceDir = path.join(fakeRoot, ".media_server.test/v3.9.0/ui-acceptance-current");
+  const summary = readJson(path.join(evidenceDir, "summary.json"));
+  assert(summary.runId?.startsWith("v390-ui-source-contract-"), "fresh source-contract invocation ID missing");
+  assert(summary.failedStage === "ui-source-contract", "fresh source-contract failure stage mismatch");
+  assert(summary.firstFailure?.testcaseId === "verify-v390-ui-native-exact-cases-contract",
+    "fresh source-contract testcase ID mismatch");
+  assert(summary.actualBrowserExecution === false, "source-contract failure claimed browser execution");
+  assert(summary.uiAutomation?.coverage?.executed === 0 && summary.uiAutomation?.coverage?.pass === 0 &&
+    summary.uiAutomation?.coverage?.fail === 0 && summary.uiAutomation?.coverage?.notRun === 424 &&
+    summary.uiAutomation?.coverage?.unsupported === 0, "source-contract exact fail-closed coverage mismatch");
+  for (const id of ["ui-environment-bootstrap", "ui-exact-424", "ui-fulltest-qualification"]) {
+    assert(summary.stages.find(item => item.id === id)?.status === "not-run",
+      `${id} must be not-run after source-contract failure`);
+  }
+  assert(summary.outputPreparation?.acceptanceChildInvoked === false,
+    "source-contract failure claimed acceptance child invocation");
+  assert(!JSON.stringify(summary).includes("verify-v390-test-acceptance-bundle"),
+    "source-contract failure retained acceptance-child command evidence");
   const calls = fs.readFileSync(callLog, "utf8").trim().split("\n");
   assert(JSON.stringify(calls) === JSON.stringify([
     "verify-v390-ui-native-exact-cases-contract",

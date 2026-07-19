@@ -94,6 +94,9 @@ media_server_run_user_test() {
     fi
     sed -n '1,240p' "${ui_source_contract_log}"
     if [[ "${ui_source_contract_status}" -ne 0 ]]; then
+      media_server_write_ui_source_contract_failure_evidence \
+        "${root_dir}" "${output_dir}" "${ui_source_contract_log}" \
+        "${ui_source_contract_status}" "${user_command}"
       echo "[test] failureStage=ui-source-contract" >&2
       echo "[test] testcaseId=verify-v390-ui-native-exact-cases-contract" >&2
       echo "[test] exitCode=${ui_source_contract_status}" >&2
@@ -184,4 +187,168 @@ NODE
   fi
 
   return "${test_status}"
+}
+
+# UI source-contract가 acceptance child 전에 실패하면, 이전 실행 summary/report를 이번 실행의
+# evidence로 재사용하지 않고 현재 invocation의 fail-closed evidence만 기록한다.
+media_server_write_ui_source_contract_failure_evidence() {
+  local root_dir="$1"
+  local output_dir="$2"
+  local contract_log="$3"
+  local exit_code="$4"
+  local user_command="$5"
+  local summary_path="${output_dir}/summary.json"
+  local report_path="${output_dir}/report.md"
+  local first_failure_path="${output_dir}/first-failure.json"
+  local first_failure_report_path="${output_dir}/first-failure.md"
+  local commit_sha
+  local branch_name
+  local invocation_id
+  commit_sha="$(git -C "${root_dir}" rev-parse HEAD 2>/dev/null || printf 'unknown')"
+  branch_name="$(git -C "${root_dir}" branch --show-current 2>/dev/null || printf 'unknown')"
+  invocation_id="v390-ui-source-contract-$(date -u +%Y%m%dT%H%M%SZ)-$$"
+
+  node - "${summary_path}" "${report_path}" "${first_failure_path}" "${first_failure_report_path}" \
+    "${contract_log}" "${exit_code}" "${user_command}" "${commit_sha}" "${branch_name}" "${invocation_id}" <<'NODE'
+const fs = require("node:fs");
+const path = require("node:path");
+const [summaryPath, reportPath, firstFailurePath, firstFailureReportPath, contractLog,
+  exitCodeRaw, userCommand, commitSha, branch, invocationId] = process.argv.slice(2);
+const exitCode = Number(exitCodeRaw);
+const now = new Date().toISOString();
+let priorFirstFailure = null;
+if (fs.existsSync(firstFailurePath)) {
+  try {
+    const prior = JSON.parse(fs.readFileSync(firstFailurePath, "utf8"));
+    priorFirstFailure = {
+      schema: prior.schema || "",
+      recordedAt: prior.recordedAt || "",
+      sourceCommitSha: prior.sourceProvenance?.commitSha || "",
+      failedStage: prior.failedStage || "",
+      testcaseId: prior.firstFailure?.testcaseId || "",
+    };
+  } catch {
+    priorFirstFailure = { schema: "unreadable-prior-first-failure" };
+  }
+}
+const sourceProvenance = {
+  commitSha,
+  branch,
+  worktreeClean: null,
+  sourceWorktreeClean: null,
+  capturedAt: now,
+};
+const firstFailure = {
+  stage: "ui-source-contract",
+  testcaseId: "verify-v390-ui-native-exact-cases-contract",
+  command: "./server.sh verify-v390-ui-native-exact-cases-contract",
+  exitCode,
+  logPath: contractLog,
+  reproductionCommand: userCommand,
+};
+const exactCoverage = {
+  targetCount: 424,
+  executed: 0,
+  pass: 0,
+  fail: 0,
+  notRun: 424,
+  unsupported: 0,
+};
+const stages = [
+  { id: "preflight", status: "PASS", exitCode: 0, command: "validate zero-option UI launcher inputs" },
+  { id: "ui-source-contract", status: "FAIL", exitCode, command: firstFailure.command, logPath: contractLog },
+  { id: "ui-environment-bootstrap", status: "not-run", reason: "ui-source-contract failed before acceptance child" },
+  { id: "ui-exact-424", status: "not-run", reason: "ui-source-contract failed before acceptance child" },
+  { id: "ui-server-cleanup", status: "not-run", reason: "acceptance child was not invoked" },
+  { id: "ui-fulltest-qualification", status: "not-run", reason: "ui-source-contract failed before acceptance child" },
+  { id: "cleanup", status: "not-run", reason: "no acceptance-owned runtime was created" },
+  { id: "report", status: "PASS", exitCode: 0, command: "write current fail-closed source-contract evidence" },
+  { id: "final-integrity", status: "not-run", reason: "ui-source-contract failed before acceptance child" },
+];
+const summary = {
+  schema: "media-server.v390-test-acceptance-bundle.v1",
+  runId: invocationId,
+  command: userCommand,
+  executionMode: "actual-ui-only",
+  suite: "ui",
+  dryRun: false,
+  fixtureMode: false,
+  result: "FAIL",
+  stopOnFirstFail: true,
+  sourceProvenance,
+  sourceProvenanceEnd: sourceProvenance,
+  outputPreparation: {
+    sourceContractFailureEvidence: true,
+    acceptanceChildInvoked: false,
+    priorFirstFailurePreserved: priorFirstFailure !== null,
+  },
+  failedStage: "ui-source-contract",
+  firstFailure,
+  priorFirstFailure,
+  actualBrowserExecution: false,
+  uiAutomation: {
+    result: "FAIL",
+    executionStatus: "pre-execution-failed",
+    actualBrowserExecution: false,
+    coverage: exactCoverage,
+    failure: firstFailure,
+  },
+  policyV4Evaluation: null,
+  uiFulltestQualification: {
+    status: "not-run",
+    finalEvidenceEligible: false,
+    uiFulltestPass: false,
+    reason: "ui-source-contract failed before acceptance child",
+  },
+  cleanup: {
+    status: "not-run",
+    reason: "no acceptance-owned runtime was created",
+  },
+  stages,
+  reportPath,
+  evidenceBoundary: "source-contract failure is current launcher evidence only; no acceptance child, runtime, browser, PID, port, or prior source binding is claimed",
+};
+const firstFailureRecord = {
+  schema: "media-server.v390-acceptance-first-failure.v1",
+  recordedAt: now,
+  invocationId,
+  sourceProvenance,
+  acceptanceCommand: userCommand,
+  failedStage: firstFailure.stage,
+  firstFailure,
+  childFailure: { phase: "ui-source-contract", error: "verify-v390-ui-native-exact-cases-contract failed" },
+  priorFirstFailure,
+};
+fs.writeFileSync(summaryPath, `${JSON.stringify(summary, null, 2)}\n`);
+fs.writeFileSync(firstFailurePath, `${JSON.stringify(firstFailureRecord, null, 2)}\n`);
+fs.writeFileSync(reportPath, [
+  "# v3.9.0 UI Source-Contract Failure",
+  "",
+  `runId: ${invocationId}`,
+  `sourceCommitSha: ${commitSha}`,
+  `sourceBranch: ${branch}`,
+  "result: FAIL",
+  "failedStage: ui-source-contract",
+  "testcaseId: verify-v390-ui-native-exact-cases-contract",
+  "actualBrowserExecution: false",
+  "exact: executed=0 pass=0 fail=0 not-run=424 unsupported=0",
+  "ui-environment-bootstrap: not-run",
+  "ui-exact-424: not-run",
+  "ui-fulltest-qualification: not-run",
+  "acceptanceChildInvoked: false",
+  `sourceContractLog: ${contractLog}`,
+  "",
+].join("\n"));
+fs.writeFileSync(firstFailureReportPath, [
+  "# v3.9.0 UI Source-Contract First Failure",
+  "",
+  `runId: ${invocationId}`,
+  `sourceCommitSha: ${commitSha}`,
+  "failedStage: ui-source-contract",
+  "testcaseId: verify-v390-ui-native-exact-cases-contract",
+  `exitCode: ${exitCode}`,
+  `logPath: ${contractLog}`,
+  "",
+].join("\n"));
+NODE
 }
