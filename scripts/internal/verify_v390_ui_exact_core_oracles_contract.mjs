@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import {
+  buildCoreExactOracleCatalog,
   coreExactOracleCaseIds,
   coreExactOracleFor,
   validateCoreExactOracleCatalog,
@@ -15,6 +16,7 @@ import {
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const checks = [];
 const productSource = readTree("src/ingress", file => /\.(?:cpp|h)$/.test(file));
+const implementation = readJson("test/fixtures/project_feature_implementation_evidence.json");
 
 check("catalog covers every canonical UI/AUTH/SRC/RULE case in exact order", () => {
   const result = validateCoreExactOracleCatalog();
@@ -37,6 +39,57 @@ check("catalog and every returned oracle are deeply immutable", () => {
     `${caseId} oracle is not deeply immutable`);
   }
   assert(coreExactOracleFor("NOT-A-CASE") === null, "unknown core oracle must return null");
+});
+
+check("approval-envelope-only drift leaves every runtime oracle projection unchanged", () => {
+  const changed = structuredClone(implementation);
+  for (const item of changed.items) {
+    const semantic = item.semanticEvidence;
+    semantic.review4Proof.candidateDigest = "a".repeat(64);
+    semantic.review4Proof.approvalDigest = "b".repeat(64);
+    semantic.review4Proof.approval.reviewedOn = "2099-12-31";
+    semantic.review4Proof.approval.priorApprovalDigest = "c".repeat(64);
+    item.review.reviewedOn = "2099-12-31";
+    item.review.approvalDigest = "d".repeat(64);
+    semantic.verifierAssertion.assertedSemanticDigest = "e".repeat(64);
+  }
+  assert(JSON.stringify(buildCoreExactOracleCatalog(changed)) ===
+    JSON.stringify(buildCoreExactOracleCatalog(implementation)),
+  "approval envelope drift changed the core runtime catalog");
+});
+
+check("row-local semantic inputs invalidate exactly their affected runtime oracle", () => {
+  const cases = [
+    ["sourceFlowDigest", item => { item.semanticEvidence.review4Proof.sourceFlowDigest = "a".repeat(64); }],
+    ["expectedBehavior", item => { item.semanticEvidence.stateOracle.expectedBehaviorSha256 = "b".repeat(64); }],
+    ["verifierAssertion", item => { item.semanticEvidence.verifierAssertion.assertionAnchor += " row-local-drift"; }],
+    ["stateLocator", item => { item.semanticEvidence.stateOracle.locator.contextSha256 = "c".repeat(64); }],
+  ];
+  const baseline = buildCoreExactOracleCatalog(implementation);
+  for (const [label, mutate] of cases) {
+    const changed = structuredClone(implementation);
+    mutate(changed.items.find(item => item.id === "UI-018"));
+    const changedIds = changedOracleIds(baseline, buildCoreExactOracleCatalog(changed));
+    assert(JSON.stringify(changedIds) === JSON.stringify(["UI-018"]),
+      `${label} drift did not stay row-local: ${changedIds.join(",")}`);
+  }
+});
+
+check("runtime semantic binding contains only functional row-local inputs", () => {
+  for (const caseId of coreExactOracleCaseIds) {
+    const oracle = coreExactOracleFor(caseId);
+    assert(JSON.stringify(Object.keys(oracle.runtimeSemanticBinding)) === JSON.stringify([
+      "schema", "caseId", "sourceFlowDigest", "expectedBehaviorSha256", "featureContractSha256",
+      "verifier", "authoritativeStateLocatorContextSha256",
+    ]), `${caseId} runtime semantic binding fields drift`);
+    assert(JSON.stringify(Object.keys(oracle.runtimeSemanticBinding.verifier)) ===
+      JSON.stringify(["file", "symbol", "assertionAnchor", "command"]),
+    `${caseId} runtime verifier binding fields drift`);
+    assert(!JSON.stringify(oracle.runtimeSemanticBinding).includes("approvalDigest") &&
+      !JSON.stringify(oracle.runtimeSemanticBinding).includes("candidateDigest") &&
+      !JSON.stringify(oracle.runtimeSemanticBinding).includes("reviewedOn"),
+    `${caseId} approval provenance leaked into runtime binding`);
+  }
 });
 
 check("runner-facing route/role/control/request/DOM/network/state/cleanup shape is exact", () => {
@@ -325,6 +378,15 @@ function readTree(relativeDir, include) {
   };
   visit(root);
   return chunks.join("\n");
+}
+
+function readJson(relativePath) {
+  return JSON.parse(fs.readFileSync(path.join(rootDir, relativePath), "utf8"));
+}
+
+function changedOracleIds(before, after) {
+  return before.filter((item, index) => JSON.stringify(item) !== JSON.stringify(after[index]))
+    .map(item => item.caseId);
 }
 
 function check(name, fn) {

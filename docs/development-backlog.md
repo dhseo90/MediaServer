@@ -6396,6 +6396,13 @@ Canonical actual FAIL evidence는 그대로 보존하며 장시간/UI/release ac
   readback·success/exception cleanup으로 결속합니다. `verify_v390_test_acceptance_bundle.mjs`는 actual case와
   source-contract failure 모두 root first-failure를 current commit/run/case/error/log로 갱신하고 과거 실패를
   `priorFirstFailure`로만 보존합니다. 이 static correction은 actual UI/Policy v4/장시간 PASS가 아닙니다.
+- `v390_ui_exact_core_oracles.mjs`는 approval envelope 전체 digest 대신 case/sourceFlow/expected behavior/
+  feature contract/verifier/state locator context의 row-local runtime binding으로 after-state identity를 만듭니다.
+  `v390_ui_exact_oracle_catalog.mjs`와 `v390_ui_native_exact_cases_lib.mjs`는 동일 implementation manifest를
+  주입받아 exact catalog/native 파생물을 생성하고, migration-aware producer는 audit·approval·implementation·
+  native fixture 네 개를 한 transaction에서 readback한 뒤 확정하며 중간 실패 시 모두 이전 bytes로 복원합니다.
+  Candidate `65cc4cf…`는 semantic 변경 0이라 producer를 실행하지 않았고 native generator만 1회 실행했습니다.
+  424/423+1/unsupported0, ordered ID·비해시 workflow 변경0이며 actual UI/장시간/release는 미실행입니다.
 - clean checkout은 `video/imports/va_tracking_event_long_1280x720_30fps_h264.mp4`를 tracked fixture로
   포함합니다. `manual_ui_fulltest_va_seed_matrix.json`은 7,284,400 bytes와 SHA-256
   `24147fb07bb3a1e1f86bb41d2cce6274a6f39eb75671a299a61ca9852f37a122`를 고정하고,

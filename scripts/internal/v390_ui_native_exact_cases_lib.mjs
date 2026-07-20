@@ -12,8 +12,8 @@ import {
   validateRequestedObservedEnvelope,
 } from "./v390_ui_requested_observed_schema.mjs";
 import {
+  buildExactRuntimeOracleCatalog,
   exactRuntimeOracleCaseIds,
-  exactRuntimeOracleFor,
   validateExactRuntimeOracleCatalog,
 } from "./v390_ui_exact_oracle_catalog.mjs";
 
@@ -1412,7 +1412,9 @@ export function buildNativeExactManifest({ canonical, implementation }) {
   assert(canonical?.schema === canonicalManifestSchema, "unexpected canonical manifest schema");
   assert(implementation?.schema === implementationManifestSchema, "unexpected implementation manifest schema");
   assert(Array.isArray(canonical.cases) && canonical.cases.length === 424, "canonical exact case count must be 424");
-  const runtimeOracleValidation = validateExactRuntimeOracleCatalog();
+  const runtimeOracleCatalog = buildExactRuntimeOracleCatalog({ implementation });
+  const runtimeOracleById = new Map(runtimeOracleCatalog.map(item => [item.caseId, item]));
+  const runtimeOracleValidation = validateExactRuntimeOracleCatalog(runtimeOracleCatalog);
   assert(JSON.stringify(exactRuntimeOracleCaseIds) === JSON.stringify(canonical.cases.map(item => item.testId)),
     "exact runtime oracle catalog must preserve canonical ordered 424 IDs");
   for (const item of canonical.cases) {
@@ -1429,7 +1431,7 @@ export function buildNativeExactManifest({ canonical, implementation }) {
   const cases = canonical.cases.map(canonicalCase => {
     const implementationItem = implementationByManualId.get(canonicalCase.testId);
     assert(implementationItem, `${canonicalCase.testId} implementation item missing`);
-    const exactRuntimeOracle = exactRuntimeOracleFor(canonicalCase.testId);
+    const exactRuntimeOracle = runtimeOracleById.get(canonicalCase.testId);
     assert(exactRuntimeOracle?.caseId === canonicalCase.testId,
       `${canonicalCase.testId} exact runtime oracle missing`);
     const negativeRoute = canonicalCase.testId === "UI-018";

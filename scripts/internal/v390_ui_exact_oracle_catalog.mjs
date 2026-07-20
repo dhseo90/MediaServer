@@ -3,6 +3,7 @@
 import crypto from "node:crypto";
 
 import {
+  buildCoreExactOracleCatalog,
   coreExactOracleCaseIds,
   coreExactOracleFor,
   validateCoreExactOracleCatalog,
@@ -24,27 +25,42 @@ const orderedIds = Object.freeze([
   ...eventExactOracleCaseIds(),
   ...clientSafeExactOracleCaseIds(),
 ]);
+const catalog = buildExactRuntimeOracleCatalog();
+const catalogById = new Map(catalog.map(item => [item.caseId, item]));
 
 export const exactRuntimeOracleCaseIds = orderedIds;
 
-export function exactRuntimeOracleFor(caseId) {
-  const id = String(caseId || "");
-  if (id.startsWith("EVT-")) return eventExactOracleFor(id);
-  if (id.startsWith("CLIENT-") || id.startsWith("MEDIA-") || id.startsWith("SAFE-")) {
-    return clientSafeExactOracleFor(id);
-  }
-  return coreExactOracleFor(id);
+export function buildExactRuntimeOracleCatalog({ implementation } = {}) {
+  const core = implementation
+    ? buildCoreExactOracleCatalog(implementation)
+    : coreExactOracleCaseIds.map(coreExactOracleFor);
+  return Object.freeze([
+    ...core,
+    ...eventExactOracleCaseIds().map(eventExactOracleFor),
+    ...clientSafeExactOracleCaseIds().map(clientSafeExactOracleFor),
+  ]);
 }
 
-export function validateExactRuntimeOracleCatalog() {
-  const core = validateCoreExactOracleCatalog();
+export function exactRuntimeOracleFor(caseId) {
+  return catalogById.get(String(caseId || "")) || null;
+}
+
+export function validateExactRuntimeOracleCatalog(candidateCatalog = catalog) {
+  assert(Array.isArray(candidateCatalog), "exact runtime oracle catalog must be an array");
+  const candidateIds = candidateCatalog.map(item => item?.caseId);
+  assert(JSON.stringify(candidateIds) === JSON.stringify(orderedIds),
+    "exact runtime oracle canonical order/coverage drift");
+  const candidateById = new Map(candidateCatalog.map(item => [item.caseId, item]));
+  const core = validateCoreExactOracleCatalog(
+    coreExactOracleCaseIds.map(caseId => candidateById.get(caseId)),
+  );
   const event = validateEventExactOracleCatalog();
   const clientSafe = validateClientSafeExactOracleCatalog();
   assert(orderedIds.length === expectedCaseCount,
     `exact runtime oracle count mismatch: ${orderedIds.length}/${expectedCaseCount}`);
   assert(new Set(orderedIds).size === expectedCaseCount, "exact runtime oracle case IDs must be globally unique");
   for (const caseId of orderedIds) {
-    const spec = exactRuntimeOracleFor(caseId);
+    const spec = candidateById.get(caseId);
     assert(spec?.caseId === caseId, `${caseId} exact runtime oracle lookup drift`);
     assert(spec.route && spec.role && spec.visibleControl?.selector,
       `${caseId} exact runtime oracle route/role/control missing`);
@@ -58,7 +74,7 @@ export function validateExactRuntimeOracleCatalog() {
       `${caseId} exact runtime oracle cleanup missing`);
   }
   const catalogSha256 = crypto.createHash("sha256")
-    .update(JSON.stringify(orderedIds.map(caseId => exactRuntimeOracleFor(caseId))))
+    .update(JSON.stringify(candidateCatalog))
     .digest("hex");
   return Object.freeze({
     schema: "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",

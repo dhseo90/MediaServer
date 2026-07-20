@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 // 파일 용도: REVIEW4 row-local trust migration에서만 이전 독립 승인을 안전하게 이관한다.
 
-import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -10,15 +9,24 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { parseFeatureRows, loadImplementationManifest } from "./feature_implementation_manifest_lib.mjs";
-import { applyApprovedReview4SemanticClosure } from "./feature_semantic_review4_apply.mjs";
+import {
+  applyApprovedReview4SemanticClosure,
+  replaceJsonFixturesAtomically,
+} from "./feature_semantic_review4_apply.mjs";
 import { REVIEW4_APPROVAL_PRODUCER, REVIEW4_APPROVAL_REVIEWER_SOURCE, REVIEW4_APPROVAL_SCHEMA, REVIEW4_AUDIT_SCHEMA, REVIEW4_GENERATION_BOUNDARY, review4ApprovalReason, review4CandidateDigest, review4GenerationBoundaryDigest, review4HardCandidateItems, review4InventoryDigest, sha256, stableStringify, validateReview4ApprovalEnvelope } from "./feature_semantic_review4_trust_lib.mjs";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import {
+  buildNativeExactManifest,
+  validateNativeExactManifest,
+} from "./v390_ui_native_exact_cases_lib.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const args = process.argv.slice(2);
 const auditRelative = "test/fixtures/v390_review4_feature_semantic_source_audit.json";
 const approvalRelative = "test/fixtures/v390_review4_feature_semantic_source_approvals.json";
 const manifestRelative = "test/fixtures/project_feature_implementation_evidence.json";
+const nativeRelative = "test/fixtures/v390_ui_native_exact_cases.json";
+const canonicalRelative = "test/fixtures/ui_fulltest_case_manifest_policy_v4.json";
 const defaultMigrationRelative = "test/fixtures/v390_review4_semantic_migration_evidence_v1.json";
 
 if (hasHelpFlag(args)) printUsageAndExit(`V390 REVIEW4 migration-aware approval producer
@@ -27,9 +35,10 @@ Usage:
   ./server.sh produce-v390-review4-migration-aware-approvals --write-ledger --prior-audit PATH --migration-evidence PATH --decisions PATH --review-package PATH
 
 The producer generates a fresh candidate in a temporary path, verifies the old applied audit and
-approval plus migration evidence, then atomically replaces audit, approval, and applied manifest
-only after complete readback validation. It cannot create approval without exact strict-equivalent
-prior approval coverage and independent decisions for every changed row.`);
+approval plus migration evidence, then derives and atomically replaces audit, approval, applied
+manifest, and native exact manifest only after complete readback validation. It cannot create
+approval without exact strict-equivalent prior approval coverage and independent decisions for
+every changed row.`);
 assertKnownOptions(args, ["h", "help", "write-ledger", "prior-audit", "migration-evidence", "decisions", "review-package"]);
 if (!args.includes("--write-ledger")) throw new Error("migration-aware producer requires --write-ledger");
 const priorAuditPath = optionValue("prior-audit");
@@ -61,30 +70,41 @@ try {
   const reviewPackage = readJson(packageAbsolute);
   const approval = buildMigrationApproval({ freshAudit, rows, priorAudit, priorAuditAbsolute, priorApprovals, migration, decisions, reviewPackage, decisionsAbsolute, packageAbsolute });
   const manifest = applyApprovedReview4SemanticClosure({ rootDir, inventoryText, rows, manifest: priorManifest, audit: freshAudit, approvals: approval });
+  const canonical = readJson(path.join(rootDir, canonicalRelative));
+  const native = buildNativeExactManifest({ canonical, implementation: manifest });
+  validateNativeExactManifest({ manifest: native, canonical, implementation: manifest });
   assertEnvelope(freshAudit, approval, rows);
   const replacements = [
     [path.join(rootDir, auditRelative), freshAudit],
     [path.join(rootDir, approvalRelative), approval],
     [path.join(rootDir, manifestRelative), manifest],
+    [path.join(rootDir, nativeRelative), native],
   ];
-  const staged = replacements.map(([target, value]) => writeTemp(target, value));
-  // 원본에 손대기 전에 모든 임시 JSON을 다시 파싱한다. 이후 교체는 backup/restore
-  // transaction으로 수행하므로 중간 rename 실패도 기존 세 fixture를 보존한다.
-  for (let index = 0; index < staged.length; index += 1) {
-    if (stableStringify(readJson(staged[index][1])) !== stableStringify(replacements[index][1])) {
-      throw new Error(`temporary ${path.basename(staged[index][0])} readback drift`);
-    }
-  }
-  atomicReplaceAll(staged);
-  const readbackAudit = readJson(path.join(rootDir, auditRelative));
-  const readbackApproval = readJson(path.join(rootDir, approvalRelative));
-  if (stableStringify(readbackAudit) !== stableStringify(freshAudit) || stableStringify(readbackApproval) !== stableStringify(approval)) throw new Error("atomic approval readback drift");
-  assertEnvelope(readbackAudit, readbackApproval, rows);
+  replaceJsonFixturesAtomically({
+    replacements,
+    validateReadback: () => {
+      const readbackAudit = readJson(path.join(rootDir, auditRelative));
+      const readbackApproval = readJson(path.join(rootDir, approvalRelative));
+      const readbackManifest = readJson(path.join(rootDir, manifestRelative));
+      const readbackNative = readJson(path.join(rootDir, nativeRelative));
+      const expected = [freshAudit, approval, manifest, native];
+      const actual = [readbackAudit, readbackApproval, readbackManifest, readbackNative];
+      if (actual.some((value, index) => stableStringify(value) !== stableStringify(expected[index]))) {
+        throw new Error("atomic semantic/native fixture readback drift");
+      }
+      assertEnvelope(readbackAudit, readbackApproval, rows);
+      validateNativeExactManifest({
+        manifest: readbackNative,
+        canonical,
+        implementation: readbackManifest,
+      });
+    },
+  });
   console.log("== V390 REVIEW4 migration-aware approval producer ==");
   console.log(`- candidate digest: ${freshAudit.candidateDigest}`);
   console.log(`- carry-forward: ${migration.carryForward.length}`);
   console.log(`- independent-review: ${migration.unapproved.map(item => item.id).join(",")}`);
-  console.log("- atomic replacements: audit,approval,manifest");
+  console.log("- atomic replacements: audit,approval,manifest,native");
   console.log("- failures: 0");
 } finally { fs.rmSync(tempDir, { recursive: true, force: true }); }
 
@@ -153,23 +173,5 @@ function buildMigrationApproval({ freshAudit, rows, priorAudit, priorAuditAbsolu
 
 function approvalFields(item, row) { return { id: item.id, decision: "approved-source-flow", featureContractSha256: item.featureContractSha256, sourceFlowDigest: item.sourceFlowDigest, verifierCommand: item.verifier.command, evidenceToken: item.evidenceToken, actionSymbol: item.roles.action.symbol, stateSymbol: item.roles.state.symbol }; }
 function assertEnvelope(audit, approvals, rows) { const errors = validateReview4ApprovalEnvelope({ audit, approvals, orderedIds: rows.map(x => x.id), rows }); if (errors.length) throw new Error(errors.join("; ")); }
-function writeTemp(target, value) { const temporary = `${target}.migration-${process.pid}-${crypto.randomUUID()}.tmp`; fs.writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600 }); return [target, temporary]; }
-function atomicReplaceAll(staged) {
-  const backups = staged.map(([target]) => [target, `${target}.migration-${process.pid}-${crypto.randomUUID()}.bak`]);
-  try {
-    for (let index = 0; index < staged.length; index += 1) {
-      fs.renameSync(staged[index][0], backups[index][1]);
-      fs.renameSync(staged[index][1], staged[index][0]);
-    }
-    for (const [, backup] of backups) fs.rmSync(backup, { force: true });
-  } catch (error) {
-    for (let index = backups.length - 1; index >= 0; index -= 1) {
-      const [target, backup] = backups[index];
-      if (fs.existsSync(backup)) fs.renameSync(backup, target);
-    }
-    for (const [, temporary] of staged) fs.rmSync(temporary, { force: true });
-    throw error;
-  }
-}
 function optionValue(name) { const i = args.findIndex(x => x === `--${name}` || x.startsWith(`--${name}=`)); return i < 0 ? "" : args[i].includes("=") ? args[i].slice(args[i].indexOf("=") + 1) : String(args[i + 1] || ""); }
 function readJson(file) { return JSON.parse(fs.readFileSync(file, "utf8")); }

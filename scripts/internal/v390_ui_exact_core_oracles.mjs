@@ -132,10 +132,19 @@ const coreCases = canonical.cases.filter(item => corePrefixes.has(item.testId.sp
 const coreBindingSha256 = "62e799c0460c633a6ea8a75934824aaa7cd28556452b5fddf6bc14053b8ec24d";
 assert(coreProjectionSha256(coreCases) === coreBindingSha256,
   "core canonical/source semantic binding drift; review and update the independent oracle catalog explicitly");
-const catalog = deepFreeze(coreCases.map(buildOracle));
+const catalog = buildCoreExactOracleCatalog(implementation);
 const catalogById = new Map(catalog.map(item => [item.caseId, item]));
 
 export const coreExactOracleCaseIds = Object.freeze(catalog.map(item => item.caseId));
+
+export function buildCoreExactOracleCatalog(implementationManifest = implementation) {
+  assert(implementationManifest?.schema === implementation.schema,
+    "core oracle implementation manifest schema mismatch");
+  const byId = new Map((implementationManifest.items || []).map(item => [item.id, item]));
+  assert(byId.size === implementation.items.length,
+    "core oracle implementation manifest coverage mismatch");
+  return deepFreeze(coreCases.map(item => buildOracle(item, byId)));
+}
 
 export function coreExactOracleFor(caseId) {
   return catalogById.get(String(caseId || "")) || null;
@@ -162,8 +171,8 @@ export function validateCoreExactOracleCatalog(candidateCatalog = catalog) {
   });
 }
 
-function buildOracle(canonicalCase) {
-  const evidence = implementationById.get(canonicalCase.testId);
+function buildOracle(canonicalCase, evidenceById = implementationById) {
+  const evidence = evidenceById.get(canonicalCase.testId);
   assert(evidence, `${canonicalCase.testId} implementation evidence missing`);
   const semantic = evidence.semanticEvidence;
   const proof = semantic.review4Proof;
@@ -218,6 +227,21 @@ function buildOracle(canonicalCase) {
   const fixtureId = `${canonicalCase.testId.toLowerCase()}-exact-fixture`;
   const expectedBehaviorSha256 = semantic.stateOracle.expectedBehaviorSha256;
   const verifier = semantic.verifierAssertion;
+  const runtimeSemanticBinding = {
+    schema: "media-server.v390-ui-row-local-runtime-semantic-binding.v1",
+    caseId: canonicalCase.testId,
+    sourceFlowDigest: proof.sourceFlowDigest,
+    expectedBehaviorSha256,
+    featureContractSha256: proof.featureContractSha256,
+    verifier: {
+      file: verifier.file,
+      symbol: verifier.symbol,
+      assertionAnchor: verifier.assertionAnchor,
+      command: verifier.command,
+    },
+    authoritativeStateLocatorContextSha256: semantic.stateOracle.locator.contextSha256,
+  };
+  const runtimeSemanticBindingSha256 = sha256Json(runtimeSemanticBinding);
   const allowedStatuses = requestOverride?.allowedStatuses ||
     (mutation ? successStatuses(method, endpointPath) : readStatuses(canonicalCase));
   const responseContract = executableResponseContract(canonicalCase.testId, method, endpointPath, selector);
@@ -246,6 +270,8 @@ function buildOracle(canonicalCase) {
       text: semantic.stateOracle.expectedBehavior,
       sha256: expectedBehaviorSha256,
     },
+    runtimeSemanticBinding,
+    runtimeSemanticBindingSha256,
     visibleControl: {
       selector,
       action: runnerAction,
@@ -333,7 +359,7 @@ function buildOracle(canonicalCase) {
       },
       {
         phase: "after",
-        identity: `${canonicalCase.testId}:after:${verifier.assertedSemanticDigest}`,
+        identity: `${canonicalCase.testId}:after:${runtimeSemanticBindingSha256}`,
         source: `${verifier.file}#${verifier.symbol}`,
         expectation: stateMutation ? "changed-only-at-fixture" : "equal-before",
       },
@@ -351,7 +377,7 @@ function buildOracle(canonicalCase) {
     },
     beforeAfterState: {
       beforeIdentity: `${canonicalCase.testId}:before:${semantic.stateOracle.locator.contextSha256}`,
-      afterIdentity: `${canonicalCase.testId}:after:${verifier.assertedSemanticDigest}`,
+      afterIdentity: `${canonicalCase.testId}:after:${runtimeSemanticBindingSha256}`,
       comparison: stateMutation ? "case-fixture-created-or-updated" : "authoritative-state-equal-before",
       expectedBehaviorSha256,
       requireIndependentReadback: true,
@@ -397,6 +423,18 @@ function validateOracle(oracle, canonicalCase) {
     `${canonicalCase.testId} visible product control/root missing`);
   assert(oracle.expectedBehavior?.text && /^[a-f0-9]{64}$/.test(oracle.expectedBehavior?.sha256 || ""),
     `${canonicalCase.testId} expectedBehavior contract missing`);
+  assert(oracle.runtimeSemanticBinding?.schema === "media-server.v390-ui-row-local-runtime-semantic-binding.v1" &&
+    oracle.runtimeSemanticBinding.caseId === canonicalCase.testId &&
+    oracle.runtimeSemanticBinding.sourceFlowDigest?.length === 64 &&
+    oracle.runtimeSemanticBinding.expectedBehaviorSha256 === oracle.expectedBehavior.sha256 &&
+    oracle.runtimeSemanticBinding.featureContractSha256 === oracle.action?.semanticPayload?.featureContractSha256 &&
+    oracle.runtimeSemanticBinding.verifier?.file && oracle.runtimeSemanticBinding.verifier?.symbol &&
+    oracle.runtimeSemanticBinding.verifier?.assertionAnchor && oracle.runtimeSemanticBinding.verifier?.command &&
+    oracle.runtimeSemanticBinding.authoritativeStateLocatorContextSha256?.length === 64 &&
+    /^[a-f0-9]{64}$/.test(oracle.runtimeSemanticBindingSha256 || "") &&
+    !Object.keys(oracle.runtimeSemanticBinding).some(key =>
+      ["approvalDigest", "candidateDigest", "priorApprovalDigest", "reviewedOn"].includes(key)),
+  `${canonicalCase.testId} row-local runtime semantic binding missing or over-broad`);
   assert(!["generic", "interact", "get-200", "exists-only"].includes(oracle.action?.kind),
     `${canonicalCase.testId} generic action forbidden`);
   assert(oracle.action?.semanticPayload?.featureContractSha256?.length === 64,
@@ -624,6 +662,10 @@ function deepFreeze(value) {
   if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
   for (const child of Object.values(value)) deepFreeze(child);
   return Object.freeze(value);
+}
+
+function sha256Json(value) {
+  return crypto.createHash("sha256").update(JSON.stringify(value)).digest("hex");
 }
 
 function coreProjectionSha256(cases) {

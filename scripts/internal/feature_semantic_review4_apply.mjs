@@ -209,6 +209,45 @@ export function applyApprovedReview4SemanticClosure({ rootDir, inventoryText, ro
   return next;
 }
 
+export function replaceJsonFixturesAtomically({
+  replacements,
+  validateReadback = () => {},
+  failAfterReplacement = -1,
+}) {
+  if (!Array.isArray(replacements) || replacements.length === 0) {
+    throw new Error("JSON fixture transaction requires replacements");
+  }
+  const transactionId = `${process.pid}-${crypto.randomUUID()}`;
+  const staged = replacements.map(([target, value]) => {
+    const temporary = `${target}.transaction-${transactionId}.tmp`;
+    const mode = fs.existsSync(target) ? fs.statSync(target).mode & 0o777 : 0o600;
+    fs.writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, { mode });
+    if (stableStringify(JSON.parse(fs.readFileSync(temporary, "utf8"))) !== stableStringify(value)) {
+      throw new Error(`temporary ${path.basename(target)} readback drift`);
+    }
+    return [target, temporary];
+  });
+  const backups = staged.map(([target]) => [target, `${target}.transaction-${transactionId}.bak`]);
+  try {
+    for (let index = 0; index < staged.length; index += 1) {
+      fs.renameSync(staged[index][0], backups[index][1]);
+      fs.renameSync(staged[index][1], staged[index][0]);
+      if (index === failAfterReplacement) throw new Error(`injected fixture transaction failure after ${index + 1}`);
+    }
+    validateReadback();
+    for (const [, backup] of backups) fs.rmSync(backup, { force: true });
+  } catch (error) {
+    for (let index = backups.length - 1; index >= 0; index -= 1) {
+      const [target, backup] = backups[index];
+      if (!fs.existsSync(backup)) continue;
+      fs.rmSync(target, { force: true });
+      fs.renameSync(backup, target);
+    }
+    for (const [, temporary] of staged) fs.rmSync(temporary, { force: true });
+    throw error;
+  }
+}
+
 function compatibilityLocator(rootDir, role) {
   const text = fs.readFileSync(path.join(rootDir, role.file), "utf8");
   const lines = text.split(/\r?\n/);

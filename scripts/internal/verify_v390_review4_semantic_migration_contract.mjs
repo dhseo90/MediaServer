@@ -15,6 +15,7 @@ import {
   review4SourceFlowDigest,
   stableStringify,
 } from "./feature_semantic_review4_trust_lib.mjs";
+import { replaceJsonFixturesAtomically } from "./feature_semantic_review4_apply.mjs";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -42,6 +43,7 @@ if (reportPath && !baselinePath) throw new Error("--report requires --baseline a
 if (evidencePath && !baselinePath) throw new Error("--write-evidence requires --baseline and --fresh");
 
 runBindingContract();
+runFixtureTransactionContract();
 let delta = null;
 if (baselinePath) {
   delta = buildDelta(readAudit(baselinePath), readAudit(freshPath));
@@ -55,6 +57,7 @@ if (baselinePath) {
 
 console.log("== V390 REVIEW4 semantic migration contract ==");
 console.log("- positive/negative bindings: 9");
+console.log("- semantic/native transaction bindings: 2");
 if (delta) {
   console.log(`- rows: ${delta.rows}`);
   console.log(`- carryForwardEligible: ${delta.carryForwardEligible.length}`);
@@ -107,6 +110,53 @@ function runBindingContract() {
     const anchorChanged = structuredClone(item);
     anchorChanged.roles.action.anchor = "ChangedSemanticAnchor();";
     expectNotEqual(baselineDigest, review4SourceFlowDigest({ ...anchorChanged, trustBindings: baselineTrust }), "semantic anchor change was ignored");
+  } finally {
+    fs.rmSync(temp, { recursive: true, force: true });
+  }
+}
+
+function runFixtureTransactionContract() {
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "v390-review4-fixture-transaction-"));
+  try {
+    const names = ["audit.json", "approval.json", "implementation.json", "native.json"];
+    const targets = names.map(name => path.join(temp, name));
+    const initialBytes = names.map((name, index) => `${JSON.stringify({ name, generation: 0, index }, null, 2)}\n`);
+    for (let index = 0; index < targets.length; index += 1) fs.writeFileSync(targets[index], initialBytes[index]);
+    const replacements = targets.map((target, index) => [target, { name: names[index], generation: 1, index }]);
+
+    replaceJsonFixturesAtomically({
+      replacements,
+      validateReadback: () => {
+        for (let index = 0; index < targets.length; index += 1) {
+          const value = JSON.parse(fs.readFileSync(targets[index], "utf8"));
+          assert(value.generation === 1 && value.index === index,
+            `successful fixture transaction readback drift: ${names[index]}`);
+        }
+      },
+    });
+    for (let index = 0; index < targets.length; index += 1) fs.writeFileSync(targets[index], initialBytes[index]);
+
+    let failure = "";
+    try {
+      replaceJsonFixturesAtomically({ replacements, failAfterReplacement: 1 });
+    } catch (error) {
+      failure = String(error?.message || error);
+    }
+    assert(failure.includes("injected fixture transaction failure"),
+      "mid-transaction failure fixture did not fail");
+    for (let index = 0; index < targets.length; index += 1) {
+      assert(fs.readFileSync(targets[index], "utf8") === initialBytes[index],
+        `mid-transaction rollback did not restore exact bytes: ${names[index]}`);
+    }
+    assert(fs.readdirSync(temp).every(name => !name.includes(".transaction-")),
+      "fixture transaction left temporary or backup files");
+
+    const producer = fs.readFileSync(path.join(rootDir,
+      "scripts/internal/produce_v390_review4_migration_aware_approvals.mjs"), "utf8");
+    for (const token of [
+      "buildNativeExactManifest", "validateNativeExactManifest", "nativeRelative",
+      "replaceJsonFixturesAtomically", "atomic semantic/native fixture readback drift",
+    ]) assert(producer.includes(token), `migration producer missing semantic/native transaction token: ${token}`);
   } finally {
     fs.rmSync(temp, { recursive: true, force: true });
   }
